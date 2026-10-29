@@ -16,46 +16,75 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, radius, shadows } from './src/theme';
 import type { ScreenId, ScreenMeta } from './src/types';
 import {
-  SplashScreen,
-  OnboardingScreen,
-  DashboardScreen,
+  LoginScreen,
   ChildProfileScreen,
-  CaptureScreen,
-  VoiceScreen,
-  AiProcessingScreen,
-  SceneUnderstandingScreen,
-  StoryPreviewScreen,
-  ActivityRecommendScreen,
-  ExperienceReviewScreen,
-  PixiIntroScreen,
-  VideoPlaceholderScreen,
-  ActivityDetailScreen,
-  FeedbackLoopScreen,
+  ParentProfileListScreen,
+  ParentProfileDetailScreen,
+  ParentHomeScreen,
+  TopicSelectionScreen,
+  SketchGuideScreen,
+  ParentCaptureScreen,
+  StoryInputScreen,
+  TranscriptReviewScreen,
+  ParentSubjectReviewScreen,
+  ActivitySelectionScreen,
+  ActivityContextReviewScreen,
+  ParentAiProcessingScreen,
+  StoryReviewScreen,
+  StoryboardScreen,
+  ScriptConfirmScreen,
+  ParentVideoProcessingScreen,
+  SafetyGateScreen,
+  PlaybackScreen,
+  CompletionScreen,
+  HistoryScreen,
+  QuotaScreen,
+  NotificationsSettingsScreen,
+  IntroVideoScreen,
 } from './src/screens';
 import { AppProvider, useAppContext } from './src/context/AppContext';
 
 // Screen metadata for dev quick-switch (only active when ?dev=true)
 const SCREENS: ScreenMeta[] = [
-  { id: 'splash', title: '1. Splash Screen', subtitle: 'Khởi động & linh vật', flow: 'flow1', workflowStep: 1, stepName: 'Splash' },
-  { id: 'onboarding', title: '2. Onboarding', subtitle: '3 giá trị cốt lõi', flow: 'flow1', workflowStep: 1, stepName: 'Onboarding' },
-  { id: 'dashboard', title: '3. Home Dashboard', subtitle: 'Trang chủ phụ huynh', flow: 'flow1', workflowStep: 1, stepName: 'Dashboard' },
-  { id: 'profile', title: '4. Child Profile', subtitle: 'Hồ sơ trẻ & consent', flow: 'flow1', workflowStep: 1, stepName: 'Bước 1: Hồ sơ' },
-  { id: 'capture', title: '5. Capture / Upload', subtitle: 'Thêm tranh vẽ của bé', flow: 'flow1', workflowStep: 1, stepName: 'Bước 1: Tranh vẽ' },
-  { id: 'voice', title: '6. Voice Recording', subtitle: 'Kể chuyện bằng giọng nói', flow: 'flow1', workflowStep: 1, stepName: 'Bước 1: Lời kể' },
-  { id: 'ai_processing', title: '7. Xử lý bức tranh', subtitle: 'Ghép ảnh và lời kể', flow: 'flow2', workflowStep: 2, stepName: 'Bước 2: Xử lý AI' },
-  { id: 'scene_understanding', title: '8. Scene Understanding', subtitle: 'Hiểu tranh (Gate A)', flow: 'flow2', workflowStep: 2, stepName: 'Bước 2: Gate A' },
-  { id: 'story_preview', title: '9. Story Preview', subtitle: 'Phase 1: Art Animation', flow: 'flow2', workflowStep: 5, stepName: 'Bước 5: Hoạt hình' },
-  { id: 'activity_recommend', title: '10. Activity Recommendation', subtitle: 'Gợi ý Montessori (Gate B)', flow: 'flow2', workflowStep: 3, stepName: 'Bước 3: Gate B' },
-  { id: 'experience_review', title: '11. Parent Review', subtitle: 'Người lớn duyệt Gate B', flow: 'flow2', workflowStep: 4, stepName: 'Bước 4: Duyệt' },
-  { id: 'pixi_intro', title: '12. Pixi Story Intro', subtitle: 'Tranh chuyển động', flow: 'flow2', workflowStep: 5, stepName: 'Bước 5: Pixi' },
-  { id: 'video_placeholder', title: '13. Video Placeholder', subtitle: 'Seam video tương lai', flow: 'flow2', workflowStep: 6, stepName: 'Bước 6: Video' },
-  { id: 'activity_detail', title: '14. Outdoor Activity', subtitle: 'Hoạt động ngoài trời', flow: 'flow2', workflowStep: 7, stepName: 'Bước 7: Ngoài đời' },
-  { id: 'feedback', title: '15. Feedback Loop', subtitle: 'Đánh giá & quan sát', flow: 'flow2', workflowStep: 8, stepName: 'Bước 8: Phản hồi' },
+  { id: 'login', title: '1. Parent Login', subtitle: 'Đăng nhập phụ huynh', flow: 'flow1', workflowStep: 1, stepName: 'Login' },
+  { id: 'profile_list', title: '2. Profile List', subtitle: 'Danh sách hồ sơ trẻ', flow: 'flow1', workflowStep: 1, stepName: 'Profiles' },
+  { id: 'profile_detail', title: '3. Profile Detail', subtitle: 'Chi tiết hồ sơ trẻ', flow: 'flow1', workflowStep: 1, stepName: 'Profile detail' },
+  { id: 'parent_home', title: '4. Parent Home', subtitle: 'Trang chủ phụ huynh', flow: 'flow1', workflowStep: 1, stepName: 'Parent home' },
+  { id: 'topic_selection', title: '5. Topic Selection', subtitle: 'Chọn chủ đề & độ khó', flow: 'flow1', workflowStep: 1, stepName: 'Topic' },
+  { id: 'sketch_guide', title: '6. Optional Sketch Guide', subtitle: 'Hướng dẫn vẽ chung', flow: 'flow1', workflowStep: 1, stepName: 'Sketch guide' },
+  { id: 'capture', title: '7. Capture / Upload', subtitle: 'Một tranh vẽ của bé', flow: 'flow1', workflowStep: 1, stepName: 'Capture' },
+  { id: 'voice', title: '8. Story Input', subtitle: 'Text hoặc audio', flow: 'flow1', workflowStep: 1, stepName: 'Narration' },
+  { id: 'transcript_review', title: '9. Transcript Review', subtitle: 'Kiểm tra lời kể', flow: 'flow1', workflowStep: 1, stepName: 'Transcript review' },
+  { id: 'activity_selection', title: '10. Activity Catalog', subtitle: 'Chọn hoạt động đã duyệt', flow: 'flow2', workflowStep: 3, stepName: 'Activity' },
+  { id: 'activity_context_review', title: '11. Activity Context', subtitle: 'Duyệt hoạt động & hồ sơ', flow: 'flow2', workflowStep: 3, stepName: 'Context' },
+  { id: 'ai_processing', title: '12. Story Processing', subtitle: 'Xử lý bất đồng bộ', flow: 'flow2', workflowStep: 4, stepName: 'Processing' },
+  { id: 'story_review', title: '13. Story Review', subtitle: 'Duyệt bản story', flow: 'flow2', workflowStep: 4, stepName: 'Story review' },
+  { id: 'storyboard', title: '14. Storyboard', subtitle: '5–15 cảnh', flow: 'flow2', workflowStep: 5, stepName: 'Storyboard' },
+  { id: 'script_confirm', title: '15. Script Confirmation', subtitle: 'Xác nhận kịch bản', flow: 'flow2', workflowStep: 5, stepName: 'Script' },
+  { id: 'video_processing', title: '16. Video Job', subtitle: 'Tạo video bất đồng bộ', flow: 'flow2', workflowStep: 6, stepName: 'Video job' },
+  { id: 'safety_gate', title: '17. Safety Gate', subtitle: 'Kiểm tra an toàn', flow: 'flow2', workflowStep: 7, stepName: 'Safety' },
+  { id: 'playback', title: '18. Playback', subtitle: 'Xem video', flow: 'flow2', workflowStep: 8, stepName: 'Playback' },
+  { id: 'completion', title: '19. Completion', subtitle: 'Hoàn tất / huỷ / xoá', flow: 'flow2', workflowStep: 8, stepName: 'Completion' },
+  { id: 'history', title: '20. History', subtitle: 'Lịch sử run/video', flow: 'flow1', workflowStep: 8, stepName: 'History' },
+  { id: 'quota', title: '21. Quota', subtitle: 'Quota tháng hiện tại', flow: 'flow1', workflowStep: 8, stepName: 'Quota' },
+  { id: 'notifications_settings', title: '22. Notifications & Settings', subtitle: 'Thông báo và dữ liệu', flow: 'flow1', workflowStep: 8, stepName: 'Settings' },
 ];
 
 function MainAppContent() {
   const { width: windowWidth } = useWindowDimensions();
   const { currentScreen, navigate, toastMessage, workflowError, dismissWorkflowError } = useAppContext();
+
+  // The branded intro is a one-shot startup gate. Developer deep links can
+  // bypass it with ?dev=true, ?screen=..., or ?intro=false; native startup
+  // always shows the video before entering the existing Login screen.
+  const [introComplete, setIntroComplete] = useState<boolean>(() => {
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('intro') === 'true') return false;
+      return params.get('dev') === 'true' || params.has('screen') || params.get('intro') === 'false';
+    }
+    return false;
+  });
 
   // Check if developer mode is enabled via query param (?dev=true)
   const [isDevMode, setIsDevMode] = useState<boolean>(() => {
@@ -107,40 +136,62 @@ function MainAppContent() {
 
   const renderScreen = () => {
     switch (currentScreen) {
-      case 'splash':
-        return <SplashScreen />;
-      case 'onboarding':
-        return <OnboardingScreen />;
-      case 'dashboard':
-        return <DashboardScreen />;
+      case 'login':
+        return <LoginScreen />;
+      case 'profile_list':
+        return <ParentProfileListScreen />;
+      case 'profile_detail':
+        return <ParentProfileDetailScreen />;
+      case 'parent_home':
+        return <ParentHomeScreen />;
+      case 'topic_selection':
+        return <TopicSelectionScreen />;
+      case 'sketch_guide':
+        return <SketchGuideScreen />;
       case 'profile':
         return <ChildProfileScreen />;
       case 'capture':
-        return <CaptureScreen />;
+        return <ParentCaptureScreen />;
       case 'voice':
-        return <VoiceScreen />;
+        return <StoryInputScreen />;
       case 'ai_processing':
-        return <AiProcessingScreen />;
+        return <ParentAiProcessingScreen />;
       case 'scene_understanding':
-        return <SceneUnderstandingScreen />;
-      case 'story_preview':
-        return <StoryPreviewScreen />;
-      case 'activity_recommend':
-        return <ActivityRecommendScreen />;
-      case 'experience_review':
-        return <ExperienceReviewScreen />;
-      case 'pixi_intro':
-        return <PixiIntroScreen />;
-      case 'video_placeholder':
-        return <VideoPlaceholderScreen />;
-      case 'activity_detail':
-        return <ActivityDetailScreen />;
-      case 'feedback':
-        return <FeedbackLoopScreen />;
+        return <ParentSubjectReviewScreen />;
+      case 'activity_selection':
+        return <ActivitySelectionScreen />;
+      case 'activity_context_review':
+        return <ActivityContextReviewScreen />;
+      case 'transcript_review':
+        return <TranscriptReviewScreen />;
+      case 'story_review':
+        return <StoryReviewScreen />;
+      case 'storyboard':
+        return <StoryboardScreen />;
+      case 'script_confirm':
+        return <ScriptConfirmScreen />;
+      case 'video_processing':
+        return <ParentVideoProcessingScreen />;
+      case 'safety_gate':
+        return <SafetyGateScreen />;
+      case 'playback':
+        return <PlaybackScreen />;
+      case 'completion':
+        return <CompletionScreen />;
+      case 'history':
+        return <HistoryScreen />;
+      case 'quota':
+        return <QuotaScreen />;
+      case 'notifications_settings':
+        return <NotificationsSettingsScreen />;
       default:
-        return <SplashScreen />;
+        return <LoginScreen />;
     }
   };
+
+  if (!introComplete) {
+    return <IntroVideoScreen onFinished={() => setIntroComplete(true)} />;
+  }
 
   return (
     <SafeAreaView style={styles.outerContainer}>

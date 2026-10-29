@@ -22,7 +22,6 @@ import WebView, { type WebViewMessageEvent } from 'react-native-webview';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, radius, shadows } from '../theme';
 import { Kid3DButton } from '../components/Kid3DButton';
-import { RiveMascot } from '../components/RiveMascot';
 import {
   CatDrawingArtwork,
   AnimatedMeadowScene,
@@ -521,7 +520,7 @@ export const SceneUnderstandingScreen: React.FC<ScreenProps> = ({ onNavigate }) 
           <Ionicons name="sparkles" size={13} color="#7C3AED" />
           <Text style={styles.aiSuccessBadgeText}>GỢI Ý TỪ ẢNH & LỜI KỂ</Text>
         </View>
-        <TouchableOpacity onPress={() => nav('dashboard')} style={styles.backBtn}>
+        <TouchableOpacity onPress={() => nav('profile')} style={styles.backBtn}>
           <Ionicons name="home-outline" size={18} color={colors.textBody} />
         </TouchableOpacity>
       </View>
@@ -834,7 +833,7 @@ export const SceneUnderstandingScreen: React.FC<ScreenProps> = ({ onNavigate }) 
             size="lg"
             disabled={!!workflowBusy || (!correction.trim() && (!primaryClaimId || selectedClaimIds.length === 0))}
             onPress={async () => {
-              if (await confirmGateA()) nav('story_preview');
+              if (await confirmGateA()) nav('activity_context_review');
             }}
           />
         </PulseGlow>

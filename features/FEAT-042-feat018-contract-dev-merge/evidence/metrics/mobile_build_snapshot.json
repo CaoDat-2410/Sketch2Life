@@ -941,11 +941,6 @@
       "snapshot_sha256": "b20f2ee261a3b4349a44a3b4a8b9974176bc66b65c295885c2a4a8ad6ca86bff"
     },
     {
-      "path": "apps/ui-mobile/src/components/RiveMascot.tsx",
-      "index_blob_oid": "3c09b957f57a3e335214d4498537cbc3e414545b",
-      "snapshot_sha256": "974255467bf724ade87e09af299248d7ecbfc0b9168d0570d013b8fa871bc9f8"
-    },
-    {
       "path": "apps/ui-mobile/src/components/cards/AgeFilterPill.tsx",
       "index_blob_oid": "c65c86fe0331d426510a226f63c690c5681ec0aa",
       "snapshot_sha256": "f033b334f9b93bd7c3d36201ce3cf61607468f18bc9db4ac99d6900b3f4d58be"

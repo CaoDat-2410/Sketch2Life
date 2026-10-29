@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useRef, useState } from 'r
 import { Platform } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Audio } from 'expo-av';
-import type { ScreenId } from '../types';
+import { PARENT_FLOW_SCREENS, type ScreenId } from '../types';
 import type {
   ChildProfile,
   SceneEntity,
@@ -563,9 +563,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const s = params.get('screen') as ScreenId;
-      if (s) return s;
+      if (s && PARENT_FLOW_SCREENS.includes(s)) return s;
     }
-    return 'splash';
+    return 'login';
   };
 
   const [currentScreen, setCurrentScreen] = useState<ScreenId>(getInitialScreen);
@@ -1009,7 +1009,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setIsSavingFeedback(false);
       setToastMessage(null);
       setWorkflowNotice('Phiên khám phá đã sẵn sàng. Hãy chọn bức vẽ của con.');
-      navigate('capture');
+      navigate('sketch_guide');
       return true;
     } catch (error) {
       setWorkflowError(friendlyError(error, 'Chưa bắt đầu được phiên mới. Hãy thử lại.'));

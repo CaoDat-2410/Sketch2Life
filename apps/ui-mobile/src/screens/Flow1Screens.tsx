@@ -14,7 +14,6 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { colors, radius, shadows } from '../theme';
 import { Kid3DButton } from '../components/Kid3DButton';
-import { RiveMascot } from '../components/RiveMascot';
 import {
   LogoSketch2Life,
   CatDrawingArtwork,
@@ -56,6 +55,76 @@ const PROFILE_SUPPORTS = [
   ['OBSERVATION', 'Thích quan sát, khám phá'],
 ] as const;
 const PROFILE_INPUT_METRIC_SAMPLE_COUNT = 24;
+
+// ==========================================
+// Parent SRS V2.2 — LOGIN
+// ==========================================
+export const LoginScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
+  const { navigate } = useAppContext();
+  const nav = onNavigate || navigate;
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  return (
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      style={{ flex: 1 }}
+    >
+      <ScrollView contentContainerStyle={[styles.screenContainer, { flexGrow: 1, justifyContent: 'center' }]}>
+        <View style={{ alignItems: 'center', marginBottom: 24 }}>
+          <LogoSketch2Life size="lg" showTagline={false} />
+          <Text style={styles.headingSubtitle}>Không gian riêng cho phụ huynh</Text>
+        </View>
+
+        <View style={styles.loginCard}>
+          <Text style={styles.loginTitle}>Đăng nhập phụ huynh</Text>
+          <Text style={styles.loginSubtitle}>
+            Đăng nhập để quản lý hồ sơ của con và tạo câu chuyện từ tranh vẽ.
+          </Text>
+
+          <Text style={styles.loginLabel}>Email</Text>
+          <TextInput
+            accessibilityLabel="Email phụ huynh"
+            autoCapitalize="none"
+            autoComplete="email"
+            keyboardType="email-address"
+            placeholder="parent@example.com"
+            placeholderTextColor="#94A3B8"
+            value={email}
+            onChangeText={setEmail}
+            style={styles.loginInput}
+          />
+
+          <Text style={styles.loginLabel}>Mật khẩu</Text>
+          <TextInput
+            accessibilityLabel="Mật khẩu phụ huynh"
+            autoCapitalize="none"
+            autoComplete="password"
+            placeholder="Nhập mật khẩu"
+            placeholderTextColor="#94A3B8"
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+            style={styles.loginInput}
+          />
+
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel="Đăng nhập và tiếp tục"
+            onPress={() => nav('profile_list')}
+            style={styles.loginPrimaryButton}
+          >
+            <Text style={styles.loginPrimaryText}>Đăng nhập</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity accessibilityRole="button" onPress={() => nav('profile_list')} style={styles.loginSecondaryButton}>
+            <Text style={styles.loginSecondaryText}>Dùng bản demo không cần tài khoản</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+};
 
 const ChoiceChip: React.FC<{
   label: string;
@@ -999,7 +1068,7 @@ export const CaptureScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
         onPress={async () => {
           const imageAlreadyAdmitted = admission?.decision === 'ADMITTED';
           if ((!imageAlreadyAdmitted && !(await uploadDrawing())) || !(await uploadNarration())) return;
-          nav('ai_processing');
+          nav(narrationMode === 'none' ? 'ai_processing' : 'transcript_review');
         }}
       />
 
@@ -1052,7 +1121,7 @@ export const VoiceScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
 
   const handleFinishVoice = async () => {
     if (isRecording || !selectedNarrationAudio) return;
-    if (await uploadNarration()) nav('ai_processing');
+    if (await uploadNarration()) nav('transcript_review');
   };
 
   return (
@@ -1143,6 +1212,67 @@ export const VoiceScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
 };
 
 const styles = StyleSheet.create({
+  loginCard: {
+    width: '100%',
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    backgroundColor: '#FFFFFF',
+    padding: 20,
+    ...shadows.card,
+  },
+  loginTitle: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: colors.textHeading,
+    textAlign: 'center',
+    marginBottom: 6,
+  },
+  loginSubtitle: {
+    fontSize: 12,
+    lineHeight: 18,
+    color: colors.textSoft,
+    textAlign: 'center',
+    marginBottom: 18,
+  },
+  loginLabel: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: colors.textHeading,
+    marginBottom: 6,
+  },
+  loginInput: {
+    minHeight: 48,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    backgroundColor: '#F8FAFC',
+    paddingHorizontal: 14,
+    color: colors.textHeading,
+    marginBottom: 14,
+  },
+  loginPrimaryButton: {
+    minHeight: 50,
+    borderRadius: 16,
+    backgroundColor: '#2563EB',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 4,
+  },
+  loginPrimaryText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '900',
+  },
+  loginSecondaryButton: {
+    alignItems: 'center',
+    paddingVertical: 14,
+  },
+  loginSecondaryText: {
+    color: '#2563EB',
+    fontSize: 12,
+    fontWeight: '800',
+  },
   centerContainer: {
     flexGrow: 1,
     padding: 16,
