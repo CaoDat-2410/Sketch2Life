@@ -1,5 +1,21 @@
 # Source register and authority boundary
 
+## FEAT-063 Rev36 review response — 2026-10-29
+
+Owner requested addressing the three P3 notes of the Rev35 independent review. `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV36_BACKEND_SRS23_ALIGNMENT_20261029.md` is the current plan draft for review; prior plans and approvals remain unchanged, and this does not authorize implementation.
+
+## FEAT-063 Rev35 review response — 2026-10-29
+
+Owner supplied Rev34 independent review (NEEDS_REVISION). `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV35_BACKEND_SRS23_ALIGNMENT_20261029.md` supersedes Rev34 for review only. It does not approve code, DB, provider calls or publication; prior approvals remain unchanged.
+
+## FEAT-063 Rev34 SRS 2.3 plan alignment — 2026-10-29
+
+Owner requested aligning the backend plan with FEAT-063 SRS 2.3. `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV34_BACKEND_SRS23_ALIGNMENT_20261029.md` supersedes Rev33 for future planning and remains awaiting implementation approval. SRS/register contradictions, S1 operation decisions and later cutover gates remain explicit; this request does not authorize runtime changes or alter historical approvals.
+
+## owner-feat063-current-branch-continuation-20261029
+
+The owner instructed continuing SRS2.3 backend work on the current merged branch. The checkout is feature/feat063-be-foundation at4f071242; Modal and CI repair commits are ancestors. This permits current-branch preparation and review; it does not select Rev33's remaining owner decisions or confer a missing exact-scope approval. The S1 draft operation inventory/file boundaries and branch checkpoint are recorded under FEAT-063. No new branch, source/migration, approval edit, DB/service/provider execution or publication is included in that preparation.
+
 ## owner-feat065-ci-repair-20261029
 
 Person 2 authorized “ok v sửa đi nào thấy ok thì đẩy lên” after reviewing CI run 40875382264 and the three scoped fixes. FEAT-065 records repair of Node CI pin, backend lock metadata and five missing evidence-directory placeholders, validation and publication on existing feature/modal-vision-dev only. This does not authorize product-flow implementation, new branches, service/DB/Modal calls, package installs or changes to other feature plans/approvals.

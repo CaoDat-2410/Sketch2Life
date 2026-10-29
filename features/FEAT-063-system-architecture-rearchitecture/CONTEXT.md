@@ -1,5 +1,21 @@
 # FEAT-063 — Whole-repository architecture redesign
 
+## Rev36 response to Rev35 review — 2026-10-29
+
+Owner requested fixing the three P3 notes in the independent Rev35 PLAN_REVIEW_PASS. `plan/PLAN_REV36_BACKEND_SRS23_ALIGNMENT_20261029.md` is the current documentation draft; implementation approval and applicable owner decisions remain pending. See `evidence/notes/REV36_REVIEW_RESPONSE_20261029.md`.
+
+## Historical: Rev35 response to Rev34 review — 2026-10-29
+
+The owner supplied a NEEDS_REVISION review of Rev34. `plan/PLAN_REV35_BACKEND_SRS23_ALIGNMENT_20261029.md` was the subsequent draft, with independently checked migration, job, identity, CI and FEAT-064 coordination corrections; Rev36 now supersedes it. Earlier revisions and approvals remain historical. S1 dispositions, owner decisions and implementation approval remain pending.
+
+## Historical: Rev34 SRS 2.3 alignment — 2026-10-29
+
+The owner requested aligning the backend plan to the FEAT-063 SRS 2.3 draft. `plan/PLAN_REV34_BACKEND_SRS23_ALIGNMENT_20261029.md` supersedes Rev33 for future planning; S1 operation disposition and implementation approval remain pending. The Parent activity ordering conflict across the SRS/register is documented, not silently resolved. See `evidence/notes/REV34_SRS23_PLAN_ALIGNMENT_20261029.md`.
+
+## Historical: branch continuation — 2026-10-29
+
+The owner selected SRS2.3 and instructed continuing in the existing merged branch. Current checkout: feature/feat063-be-foundation at4f071242, including Modal and CI repair history. Rev33 remains awaiting scoped approval; no S1/S2/S3 implementation is inferred from the merges. S1's candidate operation inventory and file boundaries are prepared in `plan/REV33_S1_EXECUTION_SCOPE_DRAFT_20261029.md`; review/error/operation dispositions must be approved before code. See `evidence/notes/BE_FOUNDATION_MERGED_BRANCH_CHECKPOINT_20261029.md` for the read-only findings.
+
 ## Backend slice 1 plan - Plan Rev33 (2026-10-29), AWAITING_APPROVAL
 
 - Plan: `plan/PLAN_REV33_BACKEND_SLICE_1_LEGACY_FENCE_IDENTITY_JOB_TARGETS_20261029.md`, SHA-256 `B087E87CF0A27004ECAE54AF8623B3FD81A894E7C709EA83037A23841DF92919`.
