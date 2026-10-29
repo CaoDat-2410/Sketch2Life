@@ -9,3 +9,6 @@
 features/FEAT-039-collaborative-learning-scope/artifacts/Sketch2Life_Master_SRS_v2.0_preserved_20261010.md -text whitespace=cr-at-eol
 features/FEAT-040-four-person-delivery-plan/artifacts/**/*.md -text whitespace=cr-at-eol
 features/FEAT-040-four-person-delivery-plan/artifacts/*.md -text whitespace=cr-at-eol
+
+# Preserve byte-level hash of FEAT-061 backend demo smoke evidence cross-referenced by the FEAT-064 source review.
+features/FEAT-061-modal-qwen-vl-endpoint/evidence/BACKEND_DEMO_MODAL_SMOKE_20261029.md -text whitespace=-blank-at-eof
