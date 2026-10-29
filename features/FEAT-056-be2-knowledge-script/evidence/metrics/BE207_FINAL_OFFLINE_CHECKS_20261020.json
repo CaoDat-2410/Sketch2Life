@@ -1,0 +1,172 @@
+{
+  "kind": "BE207_FINAL_OFFLINE_CHECKS",
+  "profile": "BE207_REQUIRED_OFFLINE_01_07",
+  "final_run": "evidence/local/final-offline-20261020-rerun1",
+  "source_manifest_sha256": "7d204d1feddcd21082f422c6eab5188f9dafe461b035ca31484495f36afe0cf9",
+  "acceptance_map_generator_sha256": "4ae498fa7cbbb4561a4c96538273c0bd3fa6e6f483611296ce2e55414868d9ea",
+  "source_manifest_files": 595,
+  "junit_sha256": "77b48bfd6858ec7aebfe8ccccccdb56a6389f9d5fae210909da65f7b16189701",
+  "junit_counts": {
+    "collected": 1515,
+    "passed": 1512,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 3
+  },
+  "mapped_acceptance_cases": {
+    "pass": 42,
+    "partial": 0,
+    "not_run": 0
+  },
+  "selected_test_files": {
+    "baseline_01_06": 50,
+    "required_07": 6,
+    "total": 56,
+    "selection_sha256": "daaba05409651d6883a522347904aeb383999d7eeae4a10add0d4914096be430"
+  },
+  "packages": {
+    "pytest": "8.4.2",
+    "pydantic": "2.13.4",
+    "ruff": "0.16.4",
+    "mypy": "1.20.2"
+  },
+  "checks": {
+    "collection": {
+      "exit": 0,
+      "seconds": 2.75,
+      "started_utc": "2026-10-20T04:18:55.235358+00:00",
+      "ended_utc": "2026-10-20T04:18:57.985102+00:00",
+      "log_sha256": "8807fd99bc4698a3ea20384ee4832a02c0053e863949a37e2facb2c77ed5a87b"
+    },
+    "pytest": {
+      "exit": 0,
+      "seconds": 13.531,
+      "started_utc": "2026-10-20T04:18:57.986102+00:00",
+      "ended_utc": "2026-10-20T04:19:11.519448+00:00",
+      "log_sha256": "0797c160c921a95bf4c796fd47f64edad7e9fd0d1b8a0bf24008ac4270fbe163"
+    },
+    "ruff": {
+      "exit": 0,
+      "seconds": 0.156,
+      "started_utc": "2026-10-20T04:19:11.593117+00:00",
+      "ended_utc": "2026-10-20T04:19:11.759155+00:00",
+      "log_sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+    },
+    "evidence-script-ruff": {
+      "exit": 0,
+      "seconds": 0.094,
+      "started_utc": "2026-10-20T04:19:11.760346+00:00",
+      "ended_utc": "2026-10-20T04:19:11.852770+00:00",
+      "log_sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+    },
+    "mypy-strict": {
+      "exit": 0,
+      "seconds": 0.313,
+      "started_utc": "2026-10-20T04:19:11.853891+00:00",
+      "ended_utc": "2026-10-20T04:19:12.151281+00:00",
+      "log_sha256": "e522fa370334927ac2ccb7106100045b572938dd238093267de825336e6704f2"
+    },
+    "mypy-fresh-cache": {
+      "exit": 0,
+      "seconds": 1.593,
+      "started_utc": "2026-10-20T04:19:12.152362+00:00",
+      "ended_utc": "2026-10-20T04:19:13.757383+00:00",
+      "log_sha256": "e522fa370334927ac2ccb7106100045b572938dd238093267de825336e6704f2"
+    },
+    "validate-harness": {
+      "exit": 0,
+      "seconds": 0.938,
+      "started_utc": "2026-10-20T04:19:13.758397+00:00",
+      "ended_utc": "2026-10-20T04:19:14.683602+00:00",
+      "log_sha256": "bcb49c3e0135849d66743bca1c2dc53dd0b4de175f3146e80f8b5ea38c611636"
+    },
+    "validate-repository_security": {
+      "exit": 0,
+      "seconds": 20.484,
+      "started_utc": "2026-10-20T04:19:14.684883+00:00",
+      "ended_utc": "2026-10-20T04:19:35.175734+00:00",
+      "log_sha256": "7504d10d94bac37bf85482f5b354afd50923b3694c35c31ea2a0b0fe70eeb5f2"
+    },
+    "validate-architecture": {
+      "exit": 0,
+      "seconds": 0.11,
+      "started_utc": "2026-10-20T04:19:35.177330+00:00",
+      "ended_utc": "2026-10-20T04:19:35.288535+00:00",
+      "log_sha256": "67f1bc538fc90b4f70000a89126dde0aa14c688b8c3dbba796e1a89d6caef80e"
+    },
+    "validate-skeleton": {
+      "exit": 0,
+      "seconds": 0.078,
+      "started_utc": "2026-10-20T04:19:35.288535+00:00",
+      "ended_utc": "2026-10-20T04:19:35.358803+00:00",
+      "log_sha256": "c3bd0318347efa17e2cb71a192287f1fe5bbb4bb1932fa8a360e6f3328a7bd1b"
+    },
+    "diff-check": {
+      "exit": 0,
+      "seconds": 0.515,
+      "started_utc": "2026-10-20T04:19:35.359870+00:00",
+      "ended_utc": "2026-10-20T04:19:35.880919+00:00",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "invariants": {
+    "baseline_backend_unchanged": 572,
+    "other_tracked_unchanged": 3309,
+    "staged": 0,
+    "head_unchanged": true,
+    "shared_history_preserved": true,
+    "old_draft_unchanged": true,
+    "approved_plan_unchanged": true,
+    "own_source_utf8_lf": [
+      "backend/src/sketch2life/application/ports/knowledge_bundle.py",
+      "backend/src/sketch2life/application/services/knowledge_bundle.py",
+      "backend/src/sketch2life/contracts/schemas/knowledge_bundles.py",
+      "backend/src/sketch2life/domain/knowledge_bundle.py",
+      "backend/src/sketch2life/infrastructure/knowledge_bundle/__init__.py",
+      "backend/src/sketch2life/infrastructure/knowledge_bundle/adapters.py",
+      "backend/src/sketch2life/infrastructure/knowledge_bundle/coordination.py",
+      "backend/src/sketch2life/infrastructure/knowledge_bundle/examples.py",
+      "backend/src/sketch2life/infrastructure/knowledge_bundle/fakes.py",
+      "backend/src/sketch2life/infrastructure/knowledge_bundle/harness.py",
+      "backend/tests/contract/test_knowledge_bundles.py",
+      "backend/tests/unit/test_knowledge_bundle_adapters.py",
+      "backend/tests/unit/test_knowledge_bundle_chain.py",
+      "backend/tests/unit/test_knowledge_bundle_domain.py",
+      "backend/tests/unit/test_knowledge_bundle_races.py",
+      "backend/tests/unit/test_knowledge_bundle_service.py"
+    ]
+  },
+  "external_invariants": {
+    "main_unchanged_files": 356,
+    "shared_unchanged_files": 1243,
+    "a17_unchanged_files": 6112,
+    "external_baseline_sha256": "dea79e2656412d627e27562fa22904e66ac777fcd7074b419da4e5b26192376e"
+  },
+  "skipped_cases": [
+    {
+      "classname": "tests.contract.test_ai_job_polling",
+      "name": "test_live_app_routes_have_no_candidate_job_route",
+      "reason": "live app import needs Pillow (not in this env)"
+    },
+    {
+      "classname": "tests.contract.test_analysis_corrections_api",
+      "name": "test_v12_production_app_routes_do_not_mount_cmd34",
+      "reason": "live app import needs Pillow (not in this env)"
+    },
+    {
+      "classname": "tests.contract.test_assistance_requests_api",
+      "name": "test_live_app_has_no_assistance_route",
+      "reason": "live app import needs Pillow (not in this env)"
+    }
+  ],
+  "excluded": [
+    {
+      "path": "backend/tests/unit/test_lightning_vision_v2_server.py",
+      "reason": "Pillow-importing V2 runtime server module; missing dependency and outside offline component profile; NOT_RUN"
+    }
+  ],
+  "runtime_executed": false,
+  "dependency_installation": false,
+  "owner_component_acceptance": "NOT_ACCEPTED",
+  "card_status": "IN_PROGRESS / NOT_DONE"
+}

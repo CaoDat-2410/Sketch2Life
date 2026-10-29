@@ -1,0 +1,19 @@
+{
+  "verified_at_utc": "2026-10-10T14:29:09.929972+00:00",
+  "checks": [
+    {
+      "name": "harness",
+      "returncode": 0,
+      "status": "PASS",
+      "log": "evidence/raw/final-checks/harness.txt",
+      "output": "HARNESS_VALID\nroot=<workspace>\napproval_gate=enabled\nfrontend_asset_gate=enabled\n"
+    },
+    {
+      "name": "repository_security",
+      "returncode": 0,
+      "status": "PASS",
+      "log": "evidence/raw/final-checks/repository_security.txt",
+      "output": "REPOSITORY_SECURITY_VALID\npublishable_files_scanned=2328\nenvironment_files=excluded\nseed_accounts=excluded\ncredentials_and_signing_keys=excluded\nexternal_reference_documents=excluded\nabsolute_machine_paths=absent\n"
+    }
+  ]
+}

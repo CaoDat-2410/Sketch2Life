@@ -1,0 +1,366 @@
+{
+  "scope": "BE2_01_14_RUNTIME_READINESS_ANALYSIS",
+  "status": "PREPARED_NOT_EXECUTED",
+  "analyzed_at": "2026-10-20",
+  "integration_branch": "feature/be2-backend-ai-integration",
+  "analysis_start_commit": "d981a248900284c7765c4a179a92c22e4e6feaf4",
+  "merge_commit": "abe3c357e2c40c694317ead6cf9a1b7c479e3f6e",
+  "branch_publication": "LOCAL_ONLY",
+  "one_shot_01_14_runtime_command": "NOT_AVAILABLE",
+  "first_prepared_runtime_checkpoint": {
+    "task": "BE2-01 A17-fix01 frozen Studio",
+    "studio": "sketch2life-backend-test",
+    "base_branch": "feature/be2-01-ai-job-foundation",
+    "base_head": "993a26cae78c0a4fe983033f03881838c886b176",
+    "zip_sha256": "e6ce0192dc4299d08dda84ce3ec4c270334d98490246d226097ccc817b40307d",
+    "entrypoint_sha256": "184584274f24b2e1754f8c521c1854a08a4132c69948a75fd53dc6568567fea6",
+    "source_manifest_sha256": "5b76868d8993284eed548a9db72d3a668b51ff0857aa875697cd2c450e9835d0",
+    "state": "NOT_RUN",
+    "procedure": "features/FEAT-044-be2-ai-job-foundation/evidence/local/a17fix01-studio-package-20261016/README_STUDIO_RUN.md",
+    "readme_sha256": "1e921ea7b3d21faca63de59b64379b98c0cf5ff1bba250cc7631c1e1835689ec"
+  },
+  "generic_lightning_runner_scope": {
+    "setup": "backend dev + whiteboard renderer environment installation; explicit SKETCH2LIFE_ALLOW_INSTALL=1",
+    "verify": "GPU/Wan/runtime inventory and safe feature flag check",
+    "run_tests": "FEAT-018 story-world/whiteboard tests; not a BE2-01Ã¢â‚¬â€œ14 aggregate"
+  },
+  "task_readiness": {
+    "01": {
+      "feature": "FEAT-044-be2-ai-job-foundation",
+      "offline": "historical foundation evidence; A17 package reviewed",
+      "runtime": "NOT_RUN",
+      "next": "exact frozen A17 procedure only",
+      "owner_boundary": "FEAT-044 task owner; BE1 OwnerFence/audit/artifact adapter owners",
+      "next_action": "After Lightning recovery, run the named-Studio A17 inventory and exact README procedure only."
+    },
+    "02": {
+      "feature": "FEAT-048-be2-vision-correction",
+      "offline": "C1/C2 component scope accepted",
+      "runtime": "NOT_IMPLEMENTED",
+      "blocker": "typed-context serving route/transport and real BE1 context authority",
+      "owner_boundary": "FEAT-048 vision owner; BE1 context/consent/age owners; selected model/profile owner",
+      "next_action": "No live command until typed-context serving and real BE1 adapters are implemented, reviewed and source-pinned."
+    },
+    "03": {
+      "feature": "FEAT-049-be2-assistance-orchestration",
+      "offline": "A1 deterministic component evidence",
+      "runtime": "NOT_IMPLEMENTED",
+      "blocker": "durable request/receipt/budget/outbox and real BE1/14 adapters",
+      "owner_boundary": "FEAT-049 orchestration owner; BE1 session/device/roster owners; FEAT-049 AI-policy owner",
+      "next_action": "No live command until durable dispatch/receipt/settlement and actual BE1/14 adapters exist."
+    },
+    "04": {
+      "feature": "FEAT-050-be2-sketch-generation",
+      "offline": "SK1 component scope accepted",
+      "runtime": "NOT_IMPLEMENTED",
+      "blocker": "provider/model/license/profile/decoder and durable staging",
+      "owner_boundary": "FEAT-050 sketch-generation owner; provider/model/decoder owner; FEAT-044 callback adopter",
+      "next_action": "No provider/GPU command until provider, model, license, profile, decoder and callback path are approved and implemented."
+    },
+    "05": {
+      "feature": "FEAT-052-be2-sketch-review",
+      "offline": "review component evidence",
+      "runtime": "NOT_RUN",
+      "blocker": "real policy/Teacher/consent/ticket/gateway and SQL fences",
+      "owner_boundary": "FEAT-052 sketch-review owner; BE1 Teacher/consent/ticket owners; FEAT-049 AI-policy owner",
+      "next_action": "No integrated command until current moderation, Teacher/consent, ticket/gateway and SQL fences are adopted."
+    },
+    "06": {
+      "feature": "FEAT-055-be2-child-response",
+      "offline": "component implementation/review evidence",
+      "runtime": "NOT_IMPLEMENTED",
+      "blocker": "real device/current-turn/disclosure authority and durable receipt/delivery",
+      "owner_boundary": "FEAT-055 child-response owner; BE1 device/turn/disclosure owners; Teacher delivery/P4 owners",
+      "next_action": "No live command until current-turn/disclosure authority, durable receipt/history and Teacher delivery are adopted."
+    },
+    "07": {
+      "feature": "FEAT-056-be2-knowledge-script",
+      "offline": "KNOWLEDGE_SCRIPT_COMPONENT_OFFLINE owner accepted",
+      "runtime": "NOT_RUN",
+      "blocker": "real source/catalog/Teacher adapters, SQL/outbox and adopted 08/09 fence",
+      "owner_boundary": "FEAT-056 knowledge-script owner; BE1 source/catalog owners; FEAT-050/051 consumer owners",
+      "next_action": "No runtime command until real source/catalog/Teacher adapters and 08/09 invalidation consumers are adopted."
+    },
+    "08": {
+      "feature": "FEAT-050-be2-knowledge-video",
+      "offline_runner": "PASS: owned=459, regression=1435, sql_collection_only=11; see final offline baseline receipt",
+      "owned_postgres": "11 PASS",
+      "runtime": "NOT_RUN",
+      "blocker": "provider/model/license/decoder/profile and real source/policy fences",
+      "owner_boundary": "FEAT-050 knowledge-video owner; BE1/FEAT-044/056/049 adopters; provider/model owner",
+      "next_action": "Run component runner for offline regression; keep live generation blocked by runtime decision and approval.",
+      "historical_offline_runner_before_handoff_sync": "PASS: 459 owned + 1435 regression; SQL collection only",
+      "offline_evidence_binding": "PRE_F057_H01; not rerun after integration-test change",
+      "historical_offline_runner_pre_install": "FAIL_ENVIRONMENT_BLOCKED: collection blocked importing PIL; 446-case inventory; pass count unavailable; 1435 PASS",
+      "offline_baseline_summary_sha256": "cd15d636dd4dde039adad5294ded630a98572385c765999f891dda23db5902ec"
+    },
+    "09": {
+      "feature": "FEAT-051-be2-video-review-playback",
+      "offline_runner": "PASS: owned=458, regression=1894, sql_collection_only=21; see final offline baseline receipt",
+      "owned_postgres": "21 PASS",
+      "runtime": "NOT_RUN",
+      "blocker": "real access/source/review/consent and BE1/07/08/14 adoption",
+      "owner_boundary": "FEAT-051 video-review owner; BE1/FEAT-056/050/049/P4 access and consumer owners",
+      "next_action": "Run component runner for offline regression; actual playback requires adopted source/access/review consumers.",
+      "historical_offline_runner_before_handoff_sync": "PASS: 458 owned + 1894 regression; SQL collection only",
+      "offline_evidence_binding": "PRE_F057_H01; not rerun after integration-test change",
+      "historical_offline_runner_pre_install": "FAIL_ENVIRONMENT_BLOCKED: 458 PASS; collection blocked importing PIL; 1881-case inventory; pass count unavailable",
+      "offline_baseline_summary_sha256": "ec8cd4502063fcf6e03f75322610b44a29201e25f3a21cafa2a17c6b8d240557"
+    },
+    "10": {
+      "feature": "FEAT-052-be2-video-failure-disposition",
+      "offline_runner": "PASS: owned=253, regression=2352, sql_collection_only=14; see final offline baseline receipt",
+      "owned_postgres": "14 PASS",
+      "runtime": "NOT_RUN",
+      "blocker": "current owner/session/budget/checkpoint and late-result adapters",
+      "owner_boundary": "FEAT-052 video-failure owner; BE1/FEAT-044/050/049 lifecycle and fence owners",
+      "next_action": "Run component runner; actual lifecycle requires current owner/session/budget and late-result adopters.",
+      "historical_offline_runner_before_handoff_sync": "PASS: 253 owned + 2352 regression; SQL collection only",
+      "offline_evidence_binding": "PRE_F057_H01; not rerun after integration-test change",
+      "historical_offline_runner_pre_install": "FAIL_ENVIRONMENT_BLOCKED: 253 PASS; collection blocked importing PIL; 2339-case inventory; pass count unavailable",
+      "offline_baseline_summary_sha256": "7dd100a75e8d599d61dffac92737a7ca81c4fad88204ad9752d79e8ab7d4d510"
+    },
+    "11": {
+      "feature": "FEAT-053-be2-activity-execution",
+      "offline_runner": "PASS: owned=219, regression=2605, legacy_catalog=25, sql_collection_only=17; see final offline baseline receipt",
+      "owned_postgres": "17 PASS",
+      "runtime": "NOT_RUN",
+      "blocker": "real source/policy/BE1 outcome sink, durable dedup and ACK",
+      "owner_boundary": "FEAT-053 activity owner; BE1/FEAT-048/049/P4 source, policy, outcome and delivery owners",
+      "next_action": "Run component runner; actual activity flow requires BE1 source/policy and durable outcome ACK/dedup.",
+      "historical_offline_runner_before_handoff_sync": "PASS: 219 owned + 2605 regression + 25 legacy; SQL collection only",
+      "offline_evidence_binding": "PRE_F057_H01; not rerun after integration-test change",
+      "historical_offline_runner_pre_install": "FAIL_ENVIRONMENT_BLOCKED: 219 PASS; collection blocked importing PIL; 2592-case inventory; pass count unavailable",
+      "offline_baseline_summary_sha256": "091fd05dfe0df776fea7e865b1584dcd69b0a01296835c78fd4e0d52da2fc36e"
+    },
+    "12": {
+      "feature": "FEAT-048-be2-content-publication",
+      "offline_runner": "PASS: 477/477 PASS; see final offline baseline receipt",
+      "owned_postgres": "33 PASS",
+      "runtime": "NOT_RUN",
+      "blocker": "real BE1 authority/source/review, fixed consumer and app composition",
+      "owner_boundary": "FEAT-048 content-publication owner; BE1/P4/FEAT-054/049 authority and consumer owners",
+      "next_action": "Run component runner on a dependency-complete pinned environment; review current 476/477 failure before any PASS claim.",
+      "historical_offline_runner_before_handoff_sync": "476/477 PASS; one route failure due missing python-multipart",
+      "offline_evidence_binding": "PRE_F057_H01; not rerun after integration-test change",
+      "historical_offline_runner_pre_install": "NOT_RUN: 476 PASS, 1 SKIP of 477; Pillow skip; incomplete pack",
+      "offline_baseline_summary_sha256": "727b8c976612670d4836b83d2a1ec7b51f27629e158e82909f7eeb91543fbf9d"
+    },
+    "13": {
+      "feature": "FEAT-054-be2-preset-automation",
+      "offline_runner": "PASS: owned=194, regression=2849, sql_collection_only=11; see final offline baseline receipt",
+      "owned_postgres": "11 PASS; 10/11/13 combined 42 PASS",
+      "runtime": "NOT_RUN",
+      "blocker": "real BE1 command/session and policy/scheduler adoption",
+      "owner_boundary": "FEAT-054 preset-automation owner; BE1/FEAT-049/P4 session, policy and scheduler owners",
+      "next_action": "Run component runner; actual automation requires adopted BE1 command/session and scheduler/policy adapters.",
+      "historical_offline_runner_before_handoff_sync": "PASS: 194 owned + 2849 regression; SQL collection only",
+      "offline_evidence_binding": "PRE_F057_H01; not rerun after integration-test change",
+      "historical_offline_runner_pre_install": "FAIL_ENVIRONMENT_BLOCKED: 194 PASS; collection blocked importing PIL; 2836-case inventory; pass count unavailable",
+      "offline_baseline_summary_sha256": "4d5fe71520a7fa5bd217c761071a501f4fd5ea3b9896af77fd895f809a4d56b6"
+    },
+    "14": {
+      "feature": "FEAT-049-be2-ai-policy",
+      "offline_runner": "PASS: 1061/1061 PASS; see final offline baseline receipt",
+      "owned_postgres": "104 PASS",
+      "runtime": "NOT_RUN",
+      "blocker": "real current-owner/provider/worker stop/copy lifecycle/telemetry adapters",
+      "owner_boundary": "FEAT-049 AI-policy owner; BE1 current-owner authority; FEAT-050/049 provider hooks; P4 telemetry owner",
+      "next_action": "Run component runner; actual provider/kill/copy tests wait for current-owner, worker and provider adapters.",
+      "historical_offline_runner_before_handoff_sync": "1061 owned + 114 foundation PASS; delegated regression blocked by task 12 environment",
+      "offline_evidence_binding": "PRE_F057_H01; not rerun after integration-test change",
+      "historical_offline_runner_pre_install": "FAIL_DEPENDENT_REGRESSION_NOT_RUN: 1061 PASS; NOT_RUN; task 12 had one Pillow-dependent skip",
+      "offline_baseline_summary_sha256": "b005cb9a837f06bedf499b59f7e74805cf3029c36eb3a88cc4555b6d726b7de6"
+    }
+  },
+  "approved_runtime_entrypoints": {
+    "01": {
+      "state": "APPROVED_IN_ISOLATED_STUDIO_PENDING_ACCESS",
+      "approval": "FEAT-044 Phase B approval, revision 3 B1-B6, named synthetic Studio sketch2life-backend-test",
+      "procedure": "features/FEAT-044-be2-ai-job-foundation/evidence/local/a17fix01-studio-package-20261016/README_STUDIO_RUN.md, sections 1-3, in the FEAT-044 worktree",
+      "command": "After read-only inventory and exact ZIP verification: bash $HOME/be2-a17fix01-package/run_a17fix01_on_studio.sh",
+      "scope": "Frozen A17-fix01 checkpoint only; not the merged BE2-01-14 candidate",
+      "state_now": "NOT_RUN_NO_LIGHTNING_SESSION"
+    },
+    "02": {
+      "state": "NO_APPROVED_LIVE_ENTRYPOINT",
+      "approval_scope": "C1/C2 typed-context offline component only; real server/prompt/endpoint/provider and production router excluded",
+      "entrypoint": null,
+      "blocker": "typed-context serving and real BE1 context/consent/age/purpose/revision adapters are missing"
+    },
+    "03": {
+      "state": "NO_APPROVED_LIVE_ENTRYPOINT",
+      "approval_scope": "A1 assistance component offline only; provider and production adoption excluded",
+      "entrypoint": null,
+      "blocker": "durable dispatch/receipt/settlement and actual BE1/BE2-14 adapters are missing"
+    },
+    "04": {
+      "state": "NO_APPROVED_LIVE_ENTRYPOINT",
+      "approval_scope": "SK1 sketch component offline only; no provider, GPU, production adoption, or full-card acceptance",
+      "entrypoint": null,
+      "blocker": "provider/model/license/profile/decoder and durable staging/callback are unselected or missing"
+    },
+    "05": {
+      "state": "NO_APPROVED_LIVE_ENTRYPOINT",
+      "approval_scope": "K1-K7 sketch-review component offline only; production/runtime adoption excluded",
+      "entrypoint": null,
+      "blocker": "current moderation/Teacher/consent/ticket/gateway and SQL fences are not adopted"
+    },
+    "06": {
+      "state": "NO_APPROVED_LIVE_ENTRYPOINT",
+      "approval_scope": "Child-response component offline only; Lightning/Studio/provider/durable/BE1 integration deferred",
+      "entrypoint": null,
+      "blocker": "real current-turn/disclosure authority and durable receipt/delivery are missing"
+    },
+    "07": {
+      "state": "NO_APPROVED_LIVE_ENTRYPOINT",
+      "approval_scope": "KNOWLEDGE_SCRIPT_COMPONENT_OFFLINE only; provider/runtime/HTTP/SQL and actual 08/09 adoption deferred",
+      "entrypoint": null,
+      "blocker": "real source/catalog/Teacher adapters, SQL/outbox, and adopted 08/09 invalidation fence are missing"
+    },
+    "08": {
+      "state": "OFFLINE_ENTRYPOINT_ONLY",
+      "approval_scope": "approved local implementation/component checks; actual provider/runtime/provisioning decisions remain unapproved",
+      "lightning_entrypoint": null,
+      "offline_entrypoint": "python features/FEAT-050-be2-knowledge-video/src/run_component_checks.py"
+    },
+    "09": {
+      "state": "OFFLINE_ENTRYPOINT_ONLY",
+      "approval_scope": "approved owned implementation/local tests; actual provider/Lightning and BE1/P4 wiring excluded",
+      "lightning_entrypoint": null,
+      "offline_entrypoint": "python features/FEAT-051-be2-video-review-playback/src/run_component_checks.py"
+    },
+    "10": {
+      "state": "OFFLINE_ENTRYPOINT_ONLY",
+      "approval_scope": "local verification only; actual SQL provisioning/provider/Lightning and cross-owner effects excluded",
+      "lightning_entrypoint": null,
+      "offline_entrypoint": "python features/FEAT-052-be2-video-failure-disposition/src/run_component_checks.py"
+    },
+    "11": {
+      "state": "OFFLINE_ENTRYPOINT_ONLY",
+      "approval_scope": "local verification only; actual SQL provisioning/provider/Lightning and BE1/P4 adoption excluded",
+      "lightning_entrypoint": null,
+      "offline_entrypoint": "python features/FEAT-053-be2-activity-execution/src/run_component_checks.py"
+    },
+    "12": {
+      "state": "OFFLINE_ENTRYPOINT_ONLY",
+      "approval_scope": "approved local implementation/checks; cloud/service/model run and external adapter/runtime gates excluded",
+      "lightning_entrypoint": null,
+      "offline_entrypoint": "python features/FEAT-048-be2-content-publication/src/run_component_checks.py",
+      "known_result": "PASS: 477/477 in the final isolated pinned offline baseline",
+      "historical_known_result": "476/477; missing declared python-multipart dependency",
+      "historical_known_result_pre_install": "NOT_RUN: 476 PASS, 1 SKIP of 477; latest skip requires Pillow/PIL"
+    },
+    "13": {
+      "state": "OFFLINE_ENTRYPOINT_ONLY",
+      "approval_scope": "approved internal implementation/local verification; Lightning/cloud/provider activation excluded",
+      "lightning_entrypoint": null,
+      "offline_entrypoint": "python features/FEAT-054-be2-preset-automation/src/run_component_checks.py"
+    },
+    "14": {
+      "state": "OFFLINE_ENTRYPOINT_ONLY",
+      "approval_scope": "owned SQL/component checks only; cloud/provider/GPU and real BE1/P4 integration excluded",
+      "lightning_entrypoint": null,
+      "offline_entrypoint": "python features/FEAT-049-be2-ai-policy/src/run_component_checks.py"
+    }
+  },
+  "integration_constraints": {
+    "alembic_heads": 9,
+    "shared_database_run": "NOT_RUN",
+    "provider_calls": "NOT_RUN",
+    "lightning": "NOT_RUN",
+    "feature_statuses_changed": false,
+    "stale_record": "FEAT-056 BE2_01_07_RUNTIME_CAMPAIGN_PLAN has old task-07/source pointers; reconcile before shared campaign",
+    "latest_session_access_check": {
+      "date": "2026-10-20",
+      "lightning_connector_exposed": false,
+      "lightning_cli_on_local_path": false,
+      "studio_tools_exposed": "ROBLOX_STUDIO_ONLY",
+      "a17_package_and_runner_hashes": "PASS",
+      "named_studio_inventory": "NOT_RUN",
+      "runtime_execution": "NOT_RUN"
+    }
+  },
+  "handoff_sync": {
+    "source_head": "d35f035f87fddfc87b0d72d8929f5b1b843fce0e",
+    "current_recheck_sha256": "322b715b8c9906402692d586f0c04e2c5305c541e31741eeacb060e5da989b71",
+    "source_binding": "08â€“14 receipts before F057-H01; single test delta only",
+    "test_fix": {
+      "finding": "F057-H01",
+      "state": "FIXED_OFFLINE_TEST_EXPECTATION",
+      "file": "backend/tests/integration/ai_jobs/test_migrations.py",
+      "before_sha256": "f3e907442ee228ac45c25834ddc91ee7f27678b2178487062b6d4e331df15d22",
+      "after_sha256": "9b507b7f342a8c863062ed4ff6865a6e5012a804c41b360199f7cadaf3c03d46",
+      "before_test_failed": 1,
+      "after_tests_passed": 3,
+      "after_tests_skipped": 0,
+      "guard_probe_scenarios": 4,
+      "test_ids_and_expected_case_counts_changed": false,
+      "product_source_changed": false,
+      "other_protected_files_unchanged": 1078,
+      "external_access": "NONE",
+      "checks": [
+        {
+          "check": "fixed-graph-focused",
+          "exit": 0,
+          "started_utc": "2026-10-20T10:19:09.987570+00:00",
+          "finished_utc": "2026-10-20T10:19:10.902326+00:00",
+          "log": "fixed-graph-focused.log",
+          "log_sha256": "6f79a85401a459334e0ab7017c6d35546dce18834374e1295f5dae11daa0103a"
+        },
+        {
+          "check": "owned-head-guard-probes",
+          "exit": 0,
+          "started_utc": "2026-10-20T10:19:10.918735+00:00",
+          "finished_utc": "2026-10-20T10:19:11.592427+00:00",
+          "log": "owned-head-guard-probes.log",
+          "log_sha256": "5aa514e3388bde5bd777949263062f343826ed675d92ce6cab9fbfadaf153331"
+        },
+        {
+          "check": "ruff-scoped-test",
+          "exit": 0,
+          "started_utc": "2026-10-20T10:19:11.592427+00:00",
+          "finished_utc": "2026-10-20T10:19:11.693524+00:00",
+          "log": "ruff-scoped-test.log",
+          "log_sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+        },
+        {
+          "check": "mypy-scoped-test",
+          "exit": 0,
+          "started_utc": "2026-10-20T10:19:11.693524+00:00",
+          "finished_utc": "2026-10-20T10:19:12.375010+00:00",
+          "log": "mypy-scoped-test.log",
+          "log_sha256": "5d4b6d285b77932e3d08212c3b4974d0a803f98ec60408ac6ccf6a063fa6c19e"
+        }
+      ]
+    },
+    "runtime_execution": "NOT_RUN",
+    "publication_recheck": "NOT_RUN"
+  },
+  "final_offline_baseline": {
+    "state": "PASS_OFFLINE_LOCAL_ONLY",
+    "receipt": "evidence/metrics/GOAL_OFFLINE_BASELINE_FINAL_20261020.json",
+    "receipt_sha256": "1ad88fc752ffc62b66f438fe891ba12fb84d63a3f79cd9a80e97d20de34cd76e",
+    "environment": {
+      "python": "3.12.10",
+      "profile": "backend editable install + [dev,image-admission]",
+      "versions": {
+        "pytest": "8.4.2",
+        "ruff": "0.16.4",
+        "mypy": "1.20.2",
+        "Pillow": "12.3.0",
+        "python-multipart": "0.0.32",
+        "av": "18.1.0",
+        "pydantic": "2.13.4",
+        "SQLAlchemy": "2.0.52",
+        "alembic": "1.19.1"
+      },
+      "pip_check": "PASS",
+      "shared_environment_package_install": "NONE"
+    },
+    "all_source_hash_maps_match_current_checkout": true,
+    "all_junit_failures_errors_skips_zero": true,
+    "sql_execution": "NOT_RUN",
+    "runtime_lightning_provider_postgres": "NOT_RUN"
+  }
+}

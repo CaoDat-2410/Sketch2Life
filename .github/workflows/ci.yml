@@ -1,0 +1,108 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  repository:
+    name: Repository policy checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12.14"
+
+      - name: Validate repository harness
+        run: python tools/validate_harness.py
+
+      - name: Validate repository skeleton
+        run: python tools/validate_skeleton.py
+
+      - name: Validate architecture boundaries
+        run: python tools/validate_architecture.py
+
+      - name: Validate repository security
+        run: python tools/validate_repository_security.py
+
+      - name: Validate team allocation
+        run: python tools/validate_team_allocation.py
+
+  backend:
+    name: Backend unit and contract tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12.14"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+        with:
+          version: "0.13.5"
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+
+      - name: Install locked backend dependencies
+        run: uv sync --locked --extra dev --extra image-admission --python 3.12.14 --no-managed-python
+
+      - name: Run backend tests
+        run: >-
+          uv run --locked --python 3.12.14 --no-managed-python
+          pytest -p no:cacheprovider --basetemp .pytest-tmp-ci -rA
+          tests/contract/test_app_composition.py
+          tests/contract/test_session_http_api.py
+          tests/unit/test_classroom_stage_policy.py
+          tests/unit/test_session_lock_pool.py
+          tests/integration/test_be1_postgres_api.py
+
+  active-ui:
+    name: ${{ matrix.name }} checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Child UI
+            path: apps/child-ui
+          - name: Teacher UI
+            path: apps/teacher-ui
+          - name: Admin UI
+            path: apps/admin-ui
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22.13.0"
+          cache: npm
+          cache-dependency-path: ${{ matrix.path }}/package-lock.json
+
+      - name: Install locked UI dependencies
+        run: npm ci --prefix "${{ matrix.path }}"
+
+      - name: Run UI checks
+        run: npm run check --prefix "${{ matrix.path }}"

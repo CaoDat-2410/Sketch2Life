@@ -1,0 +1,431 @@
+{
+  "schema_version": "1.0",
+  "reviewed_at_utc": "2026-10-17T16:21:39.494509+00:00",
+  "disposition": "CODE_REVIEW_PASS",
+  "priority_counts": {
+    "P1": 0,
+    "P2": 0
+  },
+  "state": "A1_CODE_REVIEW_PASS_PENDING_OWNER_ACCEPTANCE",
+  "head": "f120c4fce8f7853e5ab5e061eff4bf916d45603c",
+  "branch": "feature/be2-03-assistance-orchestration",
+  "approved_plan": {
+    "path": "features/FEAT-049-be2-assistance-orchestration/plan/PLAN_REV3_APPROVED.md",
+    "revision": 3,
+    "sha256": "e1fce645a5d8c98efe366865f5a8a1b9c81c8a48626723c4e73f0c646979d3e5"
+  },
+  "approval": {
+    "path": "features/FEAT-049-be2-assistance-orchestration/approvals/TASK_APPROVAL.md",
+    "sha256": "f6a266c9a01c6a6c2432765ff50a866618bb05221aed933e4113e2bff8a23501",
+    "status": "APPROVED",
+    "scope": "A1.1-A1.5 offline component; D1-D11 selected by actual owner instruction"
+  },
+  "reviewed_followup_metrics": {
+    "path": "evidence/metrics/A1_CR03_FOLLOWUP_CHECKS_20261017.json",
+    "sha256": "4cb4a0a966c4d15d4d68b9878b3112740998fc4e067381a27edb62632c8de585"
+  },
+  "findings": {
+    "A1-CR01": "CLOSED_A1_OFFLINE_REVIEWED_SCOPE",
+    "A1-CR02": "CLOSED_A1_OFFLINE_REVIEWED_SCOPE",
+    "A1-CR03": "CLOSED_A1_OFFLINE_REVIEWED_SCOPE",
+    "A1-CR04": "CLOSED_A1_OFFLINE_REVIEWED_SCOPE",
+    "A1-CR05": "CLOSED_A1_OFFLINE_REVIEWED_SCOPE",
+    "A1-CR03-F1": "CLOSED_A1_OFFLINE_REVIEWED_SCOPE",
+    "A1-CR03-F2": "CLOSED_A1_OFFLINE_REVIEWED_SCOPE"
+  },
+  "root_pytest": {
+    "exit_code": 0,
+    "counts": {
+      "tests": 878,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "file_count": 31,
+    "elapsed_s": 10.797,
+    "scope": "A1 plus BE2-01 and BE2-02 approved offline regressions; no Studio/SQL/provider",
+    "network_guard": "Parent test process external sockets blocked; local child Python tests permitted",
+    "out": "evidence/local/codex-a1-final-review-20261017/root-1792253950180160800",
+    "paths": [
+      "backend/tests/contract/test_ai_job_contracts.py",
+      "backend/tests/contract/test_ai_job_polling.py",
+      "backend/tests/contract/test_analysis_corrections_api.py",
+      "backend/tests/contract/test_analysis_result_contracts.py",
+      "backend/tests/contract/test_assistance_request_contracts.py",
+      "backend/tests/contract/test_assistance_requests_api.py",
+      "backend/tests/contract/test_h_ai_review_handoff_examples.py",
+      "backend/tests/contract/test_vision_context_contracts.py",
+      "backend/tests/unit/test_ai_job_application.py",
+      "backend/tests/unit/test_ai_job_b3_fences.py",
+      "backend/tests/unit/test_ai_job_b4_dispatch.py",
+      "backend/tests/unit/test_ai_job_b5_capability.py",
+      "backend/tests/unit/test_ai_job_b5_effects.py",
+      "backend/tests/unit/test_ai_job_b6_conformance.py",
+      "backend/tests/unit/test_ai_job_lifecycle.py",
+      "backend/tests/unit/test_ai_job_q00_followups.py",
+      "backend/tests/unit/test_ai_job_review_regressions.py",
+      "backend/tests/unit/test_assistance_chain.py",
+      "backend/tests/unit/test_assistance_cr03_followup.py",
+      "backend/tests/unit/test_assistance_domain.py",
+      "backend/tests/unit/test_assistance_races.py",
+      "backend/tests/unit/test_assistance_review_fixes.py",
+      "backend/tests/unit/test_assistance_service.py",
+      "backend/tests/unit/test_vision_analysis_domain.py",
+      "backend/tests/unit/test_vision_analysis_job_lineage.py",
+      "backend/tests/unit/test_vision_analysis_legacy_bridge.py",
+      "backend/tests/unit/test_vision_analysis_review_fixes.py",
+      "backend/tests/unit/test_vision_analysis_service.py",
+      "backend/tests/unit/test_vision_context_adapter.py",
+      "backend/tests/unit/test_vision_context_domain.py",
+      "backend/tests/unit/test_vision_context_service.py"
+    ]
+  },
+  "suite_split": {
+    "A1": 128,
+    "BE2-01": 338,
+    "BE2-02": 412
+  },
+  "verified_followup_baseline": {
+    "tests": 10,
+    "failures": 8,
+    "passed": 2,
+    "errors": 0,
+    "skipped": 0
+  },
+  "static": {
+    "ruff": {
+      "exit_code": 0,
+      "paths": 18
+    },
+    "mypy_strict_source": {
+      "exit_code": 0,
+      "paths": 10
+    }
+  },
+  "positive_probes": {
+    "analysis_epoch_protocol": {
+      "receipt": "evidence/local/codex-a1-final-review-20261017/root-probes/analysis_epoch_protocol_result.json",
+      "sha256": "353cec96ed0d1e2193bdb181643821d23fee9b25803eae24162a2fe958a6dd9f",
+      "result": {
+        "scope": "existing VisionAnalysisService public methods in A1 synthetic composition",
+        "protocol_methods": [
+          "add_invalidation",
+          "append_correction",
+          "cas_head",
+          "find_by_attempt",
+          "get_correction",
+          "get_head",
+          "get_observation",
+          "get_provider_result",
+          "get_receipt",
+          "insert_head",
+          "insert_observation",
+          "insert_provider_result",
+          "list_corrections",
+          "notice_seen",
+          "put_receipt",
+          "record_notice"
+        ],
+        "all_protocol_methods_forwarded": true,
+        "token_before": [
+          1,
+          1
+        ],
+        "token_after_reads": [
+          1,
+          1
+        ],
+        "token_after_teacher_correction": [
+          1,
+          2
+        ],
+        "correction_revision": 2,
+        "token_after_correction_replay": [
+          1,
+          2
+        ],
+        "token_after_rolled_back_invalidation": [
+          1,
+          2
+        ],
+        "token_after_committed_invalidation": [
+          1,
+          3
+        ],
+        "duplicate_invalidation_moves_no_token": true,
+        "owner_eligibility_epoch_unchanged_by_vision": true,
+        "result": "PASS"
+      }
+    },
+    "semantic_commit_orders": {
+      "receipt": "evidence/local/codex-a1-final-review-20261017/root-probes/probe_result.json",
+      "sha256": "2cb10fd48206e63df852cb2f99d6d3b77a6ede7834afcf97fa4ca24ed4a0c42c",
+      "result": {
+        "revoke_before_commit": {
+          "trigger": 1,
+          "immediate": [
+            true
+          ],
+          "owner_observed": [
+            {
+              "committed_status": "scheduled",
+              "committed_intents": 0
+            }
+          ],
+          "final_status": "stale",
+          "sketch_intents": 0
+        },
+        "revoke_inside_unit": {
+          "trigger": 2,
+          "immediate": [
+            false
+          ],
+          "owner_observed": [
+            {
+              "committed_status": "analysis_ready",
+              "committed_intents": 1
+            }
+          ],
+          "final_status": "analysis_ready",
+          "sketch_intents": 1
+        },
+        "correction_retry": {
+          "decision_revisions": [
+            1,
+            2
+          ],
+          "final_status": "analysis_ready",
+          "handoff_revision": 2,
+          "intent_revision": 2
+        },
+        "cancel_authority_retry": {
+          "result": "GRANT_REVOKED",
+          "request_status": "scheduled",
+          "cancel_events": 0
+        }
+      }
+    }
+  },
+  "coordinator_matrix": {
+    "cases": 24,
+    "pass": true,
+    "details": [
+      {
+        "outer": "foundation",
+        "inner": "foundation",
+        "rollback": false,
+        "pass": true
+      },
+      {
+        "outer": "foundation",
+        "inner": "foundation",
+        "rollback": true,
+        "pass": true
+      },
+      {
+        "outer": "foundation",
+        "inner": "vision",
+        "rollback": false,
+        "pass": true
+      },
+      {
+        "outer": "foundation",
+        "inner": "vision",
+        "rollback": true,
+        "pass": true
+      },
+      {
+        "outer": "foundation",
+        "inner": "assistance",
+        "rollback": false,
+        "pass": true
+      },
+      {
+        "outer": "foundation",
+        "inner": "assistance",
+        "rollback": true,
+        "pass": true
+      },
+      {
+        "outer": "vision",
+        "inner": "foundation",
+        "rollback": false,
+        "pass": true
+      },
+      {
+        "outer": "vision",
+        "inner": "foundation",
+        "rollback": true,
+        "pass": true
+      },
+      {
+        "outer": "vision",
+        "inner": "vision",
+        "rollback": false,
+        "pass": true
+      },
+      {
+        "outer": "vision",
+        "inner": "vision",
+        "rollback": true,
+        "pass": true
+      },
+      {
+        "outer": "vision",
+        "inner": "assistance",
+        "rollback": false,
+        "pass": true
+      },
+      {
+        "outer": "vision",
+        "inner": "assistance",
+        "rollback": true,
+        "pass": true
+      },
+      {
+        "outer": "assistance",
+        "inner": "foundation",
+        "rollback": false,
+        "pass": true
+      },
+      {
+        "outer": "assistance",
+        "inner": "foundation",
+        "rollback": true,
+        "pass": true
+      },
+      {
+        "outer": "assistance",
+        "inner": "vision",
+        "rollback": false,
+        "pass": true
+      },
+      {
+        "outer": "assistance",
+        "inner": "vision",
+        "rollback": true,
+        "pass": true
+      },
+      {
+        "outer": "assistance",
+        "inner": "assistance",
+        "rollback": false,
+        "pass": true
+      },
+      {
+        "outer": "assistance",
+        "inner": "assistance",
+        "rollback": true,
+        "pass": true
+      },
+      {
+        "cross_thread_kind": "foundation",
+        "pass": true
+      },
+      {
+        "cross_thread_kind": "vision",
+        "pass": true
+      },
+      {
+        "cross_thread_kind": "assistance",
+        "pass": true
+      },
+      {
+        "deferred_failure_kind": "foundation",
+        "pass": true
+      },
+      {
+        "deferred_failure_kind": "vision",
+        "pass": true
+      },
+      {
+        "deferred_failure_kind": "assistance",
+        "pass": true
+      }
+    ]
+  },
+  "review_method": "Root and three same-family targeted delegated reviews; subsets overlap root tests and are not added; no cross-role sign-off.",
+  "source_sha256": {
+    "backend/src/sketch2life/infrastructure/assistance/__init__.py": "00af247f07037e7feac9d2ec1f7170ce9dde7d7a8a5ef01c3bbde09b7a9b8799",
+    "backend/src/sketch2life/infrastructure/assistance/adapters.py": "a3f4f721423d589733700da292f429a9caf94090bcc94f0137f32d8a997a9614",
+    "backend/src/sketch2life/infrastructure/assistance/fakes.py": "bdbb4317cfa2dc2143602cc3172b400504d7e907c0ca8aae51ae516ce2c8b517",
+    "backend/src/sketch2life/infrastructure/assistance/harness.py": "ffc688b437f45b9572a0ce4f3ea8a3c5d7d668774c5e233b96741407398b231c",
+    "backend/src/sketch2life/domain/assistance.py": "ab4df2971bd403c209810fc958ac249e8b4cb5d74ebc21b2a5b82c28fb455e1c",
+    "backend/src/sketch2life/contracts/schemas/assistance_requests.py": "2c2df0b574e2c5bb846c8e3c6688f1291966357f94f02ae83356886f7a5b62a2",
+    "backend/src/sketch2life/application/ports/assistance.py": "5e205659f2abbe3f3ad5e5459f05a64139d51dce8a7db19b60fd3426bd90e338",
+    "backend/src/sketch2life/application/services/assistance.py": "5bfff0481f7d30158d7f67f57c07edd576a4af3499856213cd39065c31e56d34",
+    "backend/src/sketch2life/interfaces/http/routers/assistance_requests.py": "2bc20104a480155bdccbcb200e9b71cd49d2d1e44394b14928ad643e8e2c958e",
+    "backend/src/sketch2life/interfaces/http/assistance_requests_fixture_app.py": "3cdf6e04b8540168d0bd5da4318a0e8135040e12f3761cf98fb0e00d1cc6f30d",
+    "backend/tests/unit/test_assistance_chain.py": "f27c887f4c4d78afb89dc79b275ba4ef84c51e717ab6636b28cb47c07d9b608b",
+    "backend/tests/unit/test_assistance_cr03_followup.py": "361867f6a9e8de8d8484e9ebd649a7dcf94dbaf590463fa844fb5234c2097c2f",
+    "backend/tests/unit/test_assistance_domain.py": "afabe3545e47eab5101551b1642855143d71e9fd910da0ba8f213a9b78a89dc8",
+    "backend/tests/unit/test_assistance_races.py": "c874ce32de889cbdf2abd6066a789bfd831e895cf68106d3698e84c100dbb371",
+    "backend/tests/unit/test_assistance_review_fixes.py": "df2f7d39b058b20b6ac2eee151319600be8a9f262e85c0bddb5cdf1e1784a690",
+    "backend/tests/unit/test_assistance_service.py": "a40bf516bd7232f7e641ef0168764f7b61ade0e0a895c0a7b03a74b60abfdaac",
+    "backend/tests/contract/test_assistance_request_contracts.py": "30b6eedc5ad11d7b26746782e59794614bf9feedc440e5894ec694f0d2c05ffc",
+    "backend/tests/contract/test_assistance_requests_api.py": "7dd80544c9fd6f142c2510108d669298de6e0d87d94b61b373bd7c5901d3df8a",
+    "features/FEAT-049-be2-assistance-orchestration/fixtures/h_ai_review/assistance_handoff_examples.json": "9bbfe99cfb436040da8c053d99cb54bb7ce2c8e19643eae8de314d4bbeae5b06",
+    "features/FEAT-049-be2-assistance-orchestration/plan/PLAN_REV3_APPROVED.md": "e1fce645a5d8c98efe366865f5a8a1b9c81c8a48626723c4e73f0c646979d3e5",
+    "features/FEAT-049-be2-assistance-orchestration/approvals/TASK_APPROVAL.md": "f6a266c9a01c6a6c2432765ff50a866618bb05221aed933e4113e2bff8a23501"
+  },
+  "protected_prerequisite_sha256": {
+    "features/FEAT-048-be2-vision-correction/plan/PLAN_REV1_APPROVED.md": "f4733c88797edbcce225ecd63700634f929ca75789362c7f3a58a2b57f19df30",
+    "features/FEAT-048-be2-vision-correction/plan/C2_TYPED_CONTEXT_PLAN_REV2_APPROVED.md": "4b339514d3d5bf01b9a8c23f0a15ea5e71b4d2f1389db9e141e31aa322cd57c2",
+    "features/FEAT-048-be2-vision-correction/approvals/TASK_APPROVAL.md": "ebe826ce01a004c6888bc6d2cd4741470beabfdb1f89133d8ebd18f48a691494",
+    "features/FEAT-048-be2-vision-correction/approvals/C1_COMPONENT_ACCEPTANCE.md": "2d2e109a3e01f7fd4a2908ee474b620cfce67136f10bafb793d97e1a1e81cece",
+    "features/FEAT-048-be2-vision-correction/approvals/C2_TASK_APPROVAL.md": "16af8a94c1de2430745ba213d7e183ffa28305de33856a153e9b49d836d294df",
+    "features/FEAT-048-be2-vision-correction/approvals/C2_COMPONENT_ACCEPTANCE.md": "35962b02864f84cb4532897efc63e94cc297f23359c4a9b287f5a16b49fd6ad5"
+  },
+  "prerequisite_source_sha256": {
+    "backend/src/sketch2life/application/services/ai_jobs.py": "df6ac4fd47bd9fdcd7d5eaf7dfca5e4cf9541870f40e0dc4a81150dffd936704",
+    "backend/src/sketch2life/application/ports/ai_jobs.py": "6c6967070d5042b5a6db33e7d28d856e03fe1bd6dc1302e55d73eacc047b33df",
+    "backend/src/sketch2life/domain/ai_jobs/model.py": "512b604636c1a22e231ac3276d3e537ae0deae4d9bb6652ccb064fab7314db99",
+    "backend/src/sketch2life/infrastructure/ai_jobs/fakes.py": "f1318e236694002be238fd8cf73bd54d5c27b952a085c8eb9a798ec8e65957e0",
+    "backend/src/sketch2life/domain/vision_analysis.py": "cb36b2917ec0e9061c21dca4b1ac27316f57e329fc3caafbd78ad1fa41f3dfa5",
+    "backend/src/sketch2life/domain/vision_context.py": "9501f2194a2896df121c50af2a1df29b7003c7f2029af0febd461664886e04eb",
+    "backend/src/sketch2life/application/services/vision_analysis.py": "f30ccbbb5be5af360d042ea3dc1d3fb1ad00e8175f60f7d65dac11d1d7ea9212"
+  },
+  "original_records_unchanged": {
+    "features/FEAT-049-be2-assistance-orchestration/evidence/notes/A1_CODEX_REREVIEW_20261017.md": "b06aaecbfe699a1e2ec66544030f28a62be80b27c21bab8f6b757efb3c50779a",
+    "features/FEAT-049-be2-assistance-orchestration/evidence/notes/A1_CODEX_REVIEW_20261017.md": "a2bb3aee16b201b0d26dff57a123934bffb9bd6fd22291dcbdaa0ec8d0b04c4e",
+    "features/FEAT-049-be2-assistance-orchestration/evidence/notes/A1_CR03_FOLLOWUP_EVIDENCE_20261017.md": "2c8e85bbffb6880a1a0624bbe3925b2fbd1d50631a2600f8642072ec52346d49",
+    "features/FEAT-049-be2-assistance-orchestration/evidence/notes/A1_IMPLEMENTATION_EVIDENCE_20261017.md": "d739a3592006d0a13b51bda92905223632aaf58f8f252698cc472a24998f05b2",
+    "features/FEAT-049-be2-assistance-orchestration/evidence/notes/A1_REVIEW_FIX_EVIDENCE_20261017.md": "015ccfb9b1dc8ff02e7553c05049aba606dafdf52c40fe42ed4ab0934d1b6060",
+    "features/FEAT-049-be2-assistance-orchestration/evidence/metrics/A1_CHECKS_20261017.json": "6d455a5513a1c502e08311744974991bccc4baeab7a360beb10288ad51f49295",
+    "features/FEAT-049-be2-assistance-orchestration/evidence/metrics/A1_CODEX_REREVIEW_20261017.json": "a60ff31e871d4360e847cd0882654d7072e92161d259d44634919ad10fe0b9fd",
+    "features/FEAT-049-be2-assistance-orchestration/evidence/metrics/A1_CODEX_REVIEW_20261017.json": "c6722e6f61fc6852f906b9972fc89a0830f98c9259f9be5fc61e6c3777d373d5",
+    "features/FEAT-049-be2-assistance-orchestration/evidence/metrics/A1_CR03_FOLLOWUP_CHECKS_20261017.json": "4cb4a0a966c4d15d4d68b9878b3112740998fc4e067381a27edb62632c8de585",
+    "features/FEAT-049-be2-assistance-orchestration/evidence/metrics/A1_REVIEW_FIX_CHECKS_20261017.json": "54785ea5827c7414631174f7beb1153113ee4d9ab87134dd59e619ae84d23ac8",
+    "features/FEAT-049-be2-assistance-orchestration/approvals/TASK_APPROVAL.md": "f6a266c9a01c6a6c2432765ff50a866618bb05221aed933e4113e2bff8a23501",
+    "features/FEAT-049-be2-assistance-orchestration/plan/PLAN_REV3_APPROVED.md": "e1fce645a5d8c98efe366865f5a8a1b9c81c8a48626723c4e73f0c646979d3e5"
+  },
+  "validators": {
+    "validate_harness": {
+      "exit_code": 0,
+      "receipt": "evidence/local/codex-a1-final-review-20261017/validate_harness.log"
+    },
+    "validate_repository_security": {
+      "exit_code": 0,
+      "receipt": "evidence/local/codex-a1-final-review-20261017/validate_repository_security.log"
+    },
+    "validate_architecture": {
+      "exit_code": 0,
+      "receipt": "evidence/local/codex-a1-final-review-20261017/validate_architecture.log"
+    },
+    "validate_skeleton": {
+      "exit_code": 0,
+      "receipt": "evidence/local/codex-a1-final-review-20261017/validate_skeleton.log"
+    }
+  },
+  "component_acceptance": false,
+  "studio_runtime": "NOT_RUN",
+  "full_card_done": false,
+  "product_source_modified_by_review": false,
+  "staged_paths": 0,
+  "git_publication_performed": false,
+  "limits": [
+    "Synthetic single-organization in-memory composition; one coordinator lock, coarse epochs and bounded retries.",
+    "No production SQL fencing, real OwnerFence, durable delivery, live provider/route/adopted policy claim.",
+    "BE2-01 WAITING_STUDIO; BE2-02 PARKED; BE2-03 IN_PROGRESS / NOT_DONE."
+  ]
+}

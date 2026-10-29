@@ -1,0 +1,346 @@
+{
+  "feature": "FEAT-055-be2-child-response",
+  "card": "BE2-06",
+  "checkpoint": "CHILD_RESPONSE_COMPONENT_OFFLINE",
+  "state": "READY_FOR_OWNER_COMPONENT_REVIEW",
+  "component_acceptance": "NOT_ACCEPTED",
+  "card_done": false,
+  "base": "818ec0778ffb044a77d95c425193f4f02fc3aa44",
+  "branch": "feature/be2-06-child-response",
+  "approved_plan_sha256": "65299121abc3576c344a95f00369e5f18764c51faa8b1dee7dbd39a16b5804f0",
+  "execution_prompt_sha256": "56a47968fca472fda86632c70c3ef31fddae7a2264e8233db9766bd361d81719",
+  "environment": {
+    "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+    "packages": {
+      "pytest": "8.4.2",
+      "pydantic": "2.13.4",
+      "ruff": "0.16.4",
+      "mypy": "1.20.2"
+    },
+    "pillow_available": false,
+    "dependencies_installed": false,
+    "imports": "task-worktree backend/src, verified in final environment"
+  },
+  "checks": {
+    "ruff": {
+      "exit": 0,
+      "seconds": 0.099
+    },
+    "mypy-strict": {
+      "exit": 0,
+      "seconds": 1.599
+    },
+    "mypy-isolated": {
+      "exit": 0,
+      "seconds": 1.588
+    },
+    "pytest": {
+      "exit": 0,
+      "seconds": 14.478
+    },
+    "validate-harness": {
+      "exit": 0,
+      "seconds": 0.174
+    },
+    "validate-repository_security": {
+      "exit": 0,
+      "seconds": 18.41
+    },
+    "validate-architecture": {
+      "exit": 0,
+      "seconds": 0.433
+    },
+    "validate-skeleton": {
+      "exit": 0,
+      "seconds": 0.369
+    },
+    "diff-check": {
+      "exit": 0,
+      "seconds": null
+    }
+  },
+  "final_batch": {
+    "selected_files": 50,
+    "collected": 1325,
+    "passed": 1322,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 3,
+    "groups": {
+      "01": {
+        "passed": 337,
+        "failed": 0,
+        "error": 0,
+        "skipped": 1
+      },
+      "02": {
+        "passed": 411,
+        "failed": 0,
+        "error": 0,
+        "skipped": 1
+      },
+      "03": {
+        "passed": 127,
+        "failed": 0,
+        "error": 0,
+        "skipped": 1
+      },
+      "06": {
+        "passed": 155,
+        "failed": 0,
+        "error": 0,
+        "skipped": 0
+      },
+      "04": {
+        "passed": 175,
+        "failed": 0,
+        "error": 0,
+        "skipped": 0
+      },
+      "05": {
+        "passed": 117,
+        "failed": 0,
+        "error": 0,
+        "skipped": 0
+      }
+    },
+    "skips": [
+      {
+        "case": "tests.contract.test_ai_job_polling::test_live_app_routes_have_no_candidate_job_route",
+        "reason": "live app import needs Pillow (not in this env)"
+      },
+      {
+        "case": "tests.contract.test_analysis_corrections_api::test_v12_production_app_routes_do_not_mount_cmd34",
+        "reason": "live app import needs Pillow (not in this env)"
+      },
+      {
+        "case": "tests.contract.test_assistance_requests_api::test_live_app_has_no_assistance_route",
+        "reason": "live app import needs Pillow (not in this env)"
+      }
+    ],
+    "pytest_invocations": 1,
+    "selected_paths": [
+      "backend/tests/contract/test_ai_job_contracts.py",
+      "backend/tests/contract/test_ai_job_polling.py",
+      "backend/tests/contract/test_analysis_corrections_api.py",
+      "backend/tests/contract/test_analysis_result_contracts.py",
+      "backend/tests/contract/test_assistance_request_contracts.py",
+      "backend/tests/contract/test_assistance_requests_api.py",
+      "backend/tests/contract/test_child_responses.py",
+      "backend/tests/contract/test_h_ai_review_handoff_examples.py",
+      "backend/tests/contract/test_sketch_proposal_contracts.py",
+      "backend/tests/contract/test_sketch_review_contracts.py",
+      "backend/tests/contract/test_vision_context_contracts.py",
+      "backend/tests/unit/test_ai_job_application.py",
+      "backend/tests/unit/test_ai_job_b3_fences.py",
+      "backend/tests/unit/test_ai_job_b4_dispatch.py",
+      "backend/tests/unit/test_ai_job_b5_capability.py",
+      "backend/tests/unit/test_ai_job_b5_effects.py",
+      "backend/tests/unit/test_ai_job_b6_conformance.py",
+      "backend/tests/unit/test_ai_job_lifecycle.py",
+      "backend/tests/unit/test_ai_job_q00_followups.py",
+      "backend/tests/unit/test_ai_job_review_regressions.py",
+      "backend/tests/unit/test_assistance_chain.py",
+      "backend/tests/unit/test_assistance_cr03_followup.py",
+      "backend/tests/unit/test_assistance_domain.py",
+      "backend/tests/unit/test_assistance_races.py",
+      "backend/tests/unit/test_assistance_review_fixes.py",
+      "backend/tests/unit/test_assistance_service.py",
+      "backend/tests/unit/test_child_response_adapters.py",
+      "backend/tests/unit/test_child_response_chain.py",
+      "backend/tests/unit/test_child_response_domain.py",
+      "backend/tests/unit/test_child_response_races.py",
+      "backend/tests/unit/test_child_response_service.py",
+      "backend/tests/unit/test_sketch_generation_adapters.py",
+      "backend/tests/unit/test_sketch_generation_chain.py",
+      "backend/tests/unit/test_sketch_generation_races.py",
+      "backend/tests/unit/test_sketch_generation_service.py",
+      "backend/tests/unit/test_sketch_proposal_domain.py",
+      "backend/tests/unit/test_sketch_review_chain.py",
+      "backend/tests/unit/test_sketch_review_domain.py",
+      "backend/tests/unit/test_sketch_review_eligibility.py",
+      "backend/tests/unit/test_sketch_review_races.py",
+      "backend/tests/unit/test_sketch_review_review_fixes.py",
+      "backend/tests/unit/test_sketch_review_service.py",
+      "backend/tests/unit/test_vision_analysis_domain.py",
+      "backend/tests/unit/test_vision_analysis_job_lineage.py",
+      "backend/tests/unit/test_vision_analysis_legacy_bridge.py",
+      "backend/tests/unit/test_vision_analysis_review_fixes.py",
+      "backend/tests/unit/test_vision_analysis_service.py",
+      "backend/tests/unit/test_vision_context_adapter.py",
+      "backend/tests/unit/test_vision_context_domain.py",
+      "backend/tests/unit/test_vision_context_service.py"
+    ],
+    "final_snapshot_unchanged": true,
+    "existing558code_test_files_byte_unchanged": true
+  },
+  "acceptance": {
+    "planned_case_ids": 35,
+    "case_map": "evidence/notes/BE206_ACCEPTANCE_AUDIT_20261019.md",
+    "assertion_rows_complete": 35,
+    "focused06passed": 155,
+    "focused06skipped": 0,
+    "offline_verification_complete": true,
+    "owner_acceptance": false,
+    "runtime_verification_complete": false
+  },
+  "review": {
+    "verdict": "PASS_WITH_NOTES",
+    "found": [
+      "B6-CR01(P2)"
+    ],
+    "closed": [
+      "B6-CR01"
+    ],
+    "remaining_P1": 0,
+    "remaining_P2": 0,
+    "limits": [
+      "single-process fixture repository",
+      "synthetic current-disclosure and Teacher grants",
+      "viewed is client acknowledgement, not rendering proof",
+      "future runtime/durable/HTTP/BE1 integration not supplied"
+    ]
+  },
+  "new_source_tests": {
+    "backend/src/sketch2life/application/ports/child_response.py": {
+      "sha256": "fed1a73e9e11176265e817a55ccaba993968ceebdf068703bfe46972a4ec5c6e",
+      "bytes": 3199
+    },
+    "backend/src/sketch2life/application/services/child_response.py": {
+      "sha256": "60011163336ddfad72feba7134d167e46b0ba301cb086d6dbb20358513479f2d",
+      "bytes": 11824
+    },
+    "backend/src/sketch2life/contracts/schemas/child_responses.py": {
+      "sha256": "fbebe17fd46b0fd2ac1ed96b56e596093108a401f3898bfa5b3e852e63761993",
+      "bytes": 5715
+    },
+    "backend/src/sketch2life/domain/child_response.py": {
+      "sha256": "6844320c7e75f300f77f4f8317d9cb87fd1a6f7afd7d0052959fd94b7ad5a6be",
+      "bytes": 4875
+    },
+    "backend/src/sketch2life/infrastructure/child_response/adapters.py": {
+      "sha256": "19be6084256fdecbf919388a9ef7fd3c3cf38f22eb8fad0d77c783783e411882",
+      "bytes": 7968
+    },
+    "backend/src/sketch2life/infrastructure/child_response/examples.py": {
+      "sha256": "1eefe98e0c238af6e4d2b5e017cc14158538b4e09ed06f3d6c2ed34d7dd3aa2f",
+      "bytes": 1963
+    },
+    "backend/src/sketch2life/infrastructure/child_response/fakes.py": {
+      "sha256": "643379e7d0681c695f902088f152148be1a31c2ffcc8989d207aeb40e7872bc9",
+      "bytes": 6193
+    },
+    "backend/src/sketch2life/infrastructure/child_response/harness.py": {
+      "sha256": "b903dafbcef48aadce890d2cfc35b363fcc5f8a34db307314f6df9ee8a4cd9ef",
+      "bytes": 7510
+    },
+    "backend/tests/contract/test_child_responses.py": {
+      "sha256": "629c329c8ddd02bcd8d4002564cb4876efb62c1a55b85d6c71eab4444aa4db91",
+      "bytes": 7400
+    },
+    "backend/tests/unit/test_child_response_adapters.py": {
+      "sha256": "2a31665345c975c7571674845712c7da87ec7ef3a46179ad1ce9013d8264a683",
+      "bytes": 8148
+    },
+    "backend/tests/unit/test_child_response_chain.py": {
+      "sha256": "731f3eb44ba799ec8db315f5c3f2f20cf48ca4717e3ca5d8704b6376fa6f3eaa",
+      "bytes": 8875
+    },
+    "backend/tests/unit/test_child_response_domain.py": {
+      "sha256": "f54cca673c9386aa04fc9c0c137c7ed56a023bb2028fcfb04638da58f3dddba2",
+      "bytes": 5018
+    },
+    "backend/tests/unit/test_child_response_races.py": {
+      "sha256": "3f45a0354b54050acc698376e5eddbfa65edff2894080edb354bcaa0c8dea999",
+      "bytes": 9482
+    },
+    "backend/tests/unit/test_child_response_service.py": {
+      "sha256": "7217e9246f40ab0209cc906c0d1bf385e71c211415040732c18493b405d27cb2",
+      "bytes": 17749
+    }
+  },
+  "fixture": {
+    "path": "artifacts/CHILD_RESPONSE_EXAMPLES.json",
+    "sha256": "f34ce527976f0152dead058fbc092f06a2fe14849d3da2c8ddf1d10c6b91ad0b",
+    "kind": "synthetic values from actual04/05/06 harness, JSON value equality asserted"
+  },
+  "local_receipts": {
+    "directory": "evidence/local/final-offline-batch-20261019",
+    "ignored": true,
+    "files": {
+      "receipt.json": {
+        "sha256": "8b2f3717624ebffa4e2148438573efa63f54aab1c51e640ba14f81794a323141",
+        "bytes": 65512
+      },
+      "junit.xml": {
+        "sha256": "79a12a6bbfb95f2d9d1dcf8261ed831204213d556eeab9a438d09e9f1aaeea6d",
+        "bytes": 207349
+      },
+      "pytest.log": {
+        "sha256": "753d39d2ea1f14edfce06ba7fdd6b6358f210f088d555882d3a50482a2f5a4e7",
+        "bytes": 2152
+      },
+      "input-hashes-before.json": {
+        "sha256": "3ce6b22bcfd382c10e4bcc789558705ead0c521066f17920da82b892871033ac",
+        "bytes": 52586
+      },
+      "input-hashes-after.json": {
+        "sha256": "3ce6b22bcfd382c10e4bcc789558705ead0c521066f17920da82b892871033ac",
+        "bytes": 52586
+      },
+      "selected-files.txt": {
+        "sha256": "07a598b39d7a28db56797a05a3e5b2ad4b9d9cf48656aa5394f2f709fdd6dde4",
+        "bytes": 2573
+      },
+      "ruff.log": {
+        "sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18",
+        "bytes": 19
+      },
+      "mypy-strict.log": {
+        "sha256": "157a09cfcdfdfb5977479c5a1c08345149263a3e990a2ec976ef28aaeec9cae6",
+        "bytes": 43
+      },
+      "mypy-isolated.log": {
+        "sha256": "157a09cfcdfdfb5977479c5a1c08345149263a3e990a2ec976ef28aaeec9cae6",
+        "bytes": 43
+      },
+      "validate-harness.log": {
+        "sha256": "a2ee1cee7c64e1ce24e19d66a7e4ea8e3770a4c921b84c0fff4e7665aabdae51",
+        "bytes": 124
+      },
+      "validate-repository_security.log": {
+        "sha256": "2df4ca804ce38ae50ba2a01a9b20cde7844897001972ffbc4a0f95a2bb8d3c02",
+        "bytes": 213
+      },
+      "validate-architecture.log": {
+        "sha256": "fa02308d81518f8db014a47ac4e9d26bcd2986c1ac8066868fd97e0fee2a5fd4",
+        "bytes": 165
+      },
+      "validate-skeleton.log": {
+        "sha256": "a0d55ec08b5d079817600d915f0c8060fc8872efdc32318ff4a7e0f4a3ac93d7",
+        "bytes": 198
+      },
+      "diff-check.log": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      }
+    }
+  },
+  "not_run": [
+    "Lightning/Studio frozen A17",
+    "real provider/model/typed-context serving",
+    "Pillow-dependent Vision V2 server module",
+    "three live-app import checks (skipped)",
+    "real BE1 device-turn/disclosure/Teacher authority",
+    "HTTP CMD36 and media-ticket delivery",
+    "SQL/Redis/outbox delivery worker",
+    "cross-process/distributed revocation and CAS"
+  ],
+  "git": {
+    "staged_files": 0,
+    "created_commits": 0,
+    "pushed": false,
+    "merged": false
+  },
+  "identifier_adjustment": "Fresh inventory found proposedFEAT054 occupied; FEAT055 selected administratively under direct execution instruction; not an explicit user055 quote or teammate confirmation."
+}

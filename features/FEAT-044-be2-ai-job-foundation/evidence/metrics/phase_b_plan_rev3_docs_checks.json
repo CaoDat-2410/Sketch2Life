@@ -1,0 +1,40 @@
+{
+  "recorded_at": "2026-10-15T00:54:15.552461+07:00",
+  "scope": "BE2-01 Phase A Phase B plan revision 3 documentation (docs-only gates) (fixture/contract scope)",
+  "python_default": "3.12.10",
+  "checks": [
+    {
+      "check": "harness",
+      "command": [
+        "python",
+        "tools/validate_harness.py",
+        "--feature",
+        "features/FEAT-044-be2-ai-job-foundation"
+      ],
+      "started_at": "2026-10-15T00:54:13.397067+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/phase_b_plan_rev3_docs_harness.txt"
+    },
+    {
+      "check": "security",
+      "command": [
+        "python",
+        "tools/validate_repository_security.py"
+      ],
+      "started_at": "2026-10-15T00:54:13.562096+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/phase_b_plan_rev3_docs_security.txt"
+    },
+    {
+      "check": "diff_check",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "started_at": "2026-10-15T00:54:15.506813+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/phase_b_plan_rev3_docs_diff_check.txt"
+    }
+  ]
+}

@@ -4,6 +4,7 @@ import logging
 import os
 import re
 from pathlib import Path
+from typing import Literal
 from uuid import uuid4
 
 from fastapi import FastAPI, Request
@@ -26,6 +27,7 @@ from sketch2life.application.services.image_admission import Feat018ImageAdmissi
 from sketch2life.application.services.live_image_demo import LiveImageDemoService
 from sketch2life.application.services.p1_experience import P1ExperienceCompiler
 from sketch2life.application.services.pixi_topic_asset_candidates import load_topic_asset_catalog
+from sketch2life.application.services.storage_example import StorageExampleService
 from sketch2life.application.services.story_video_admission import StoryGateEvidence
 from sketch2life.application.services.story_video_job import StoryVideoJobService
 from sketch2life.application.services.story_video_pipeline import StoryVideoPipeline
@@ -43,7 +45,6 @@ from sketch2life.contracts.schemas.mobile_workflow import (
     WorkflowResultProvenanceV1,
 )
 from sketch2life.contracts.schemas.scene_exploration import SourceRegionV1
-from sketch2life.contracts.schemas.workflow_records import SessionSnapshotV1
 from sketch2life.infrastructure.ai.lightning_activity_ranker import LightningActivityRanker
 from sketch2life.infrastructure.ai.lightning_child_preference_classifier import (
     LightningChildPreferenceClassifier,
@@ -80,6 +81,8 @@ from sketch2life.infrastructure.catalog.pixi_show_assets import (
 )
 from sketch2life.infrastructure.catalog.workflow_metadata import FileWorkflowCatalogMetadata
 from sketch2life.infrastructure.config.settings import Settings, get_settings
+from sketch2life.infrastructure.documents.clamav_scanner import ClamAvScanner
+from sketch2life.infrastructure.documents.lesson_parser import DeterministicLessonDocumentParser
 from sketch2life.infrastructure.media.whiteboard_pipeline_factory import (
     build_lightning_whiteboard_mvp_pipeline,
 )
@@ -91,41 +94,26 @@ from sketch2life.infrastructure.media.whiteboard_runtime import (
 from sketch2life.infrastructure.media_validation.av_image_decoder import AvImageDecoder
 from sketch2life.infrastructure.storage.in_memory import (
     InMemoryArtifactStore,
-    InMemoryIdempotencyStore,
     InMemoryJobStore,
-    InMemorySessionRepository,
 )
 from sketch2life.infrastructure.storage.in_memory_auto_rig_grants import (
     InMemoryRigPackageGrantStore,
 )
-from sketch2life.infrastructure.storage.in_memory_demo_workflow import (
-    InMemoryDemoWorkflowStore,
-)
-from sketch2life.infrastructure.storage.in_memory_renderer_source_grants import (
-    InMemoryRendererSourceGrantStore,
-)
+from sketch2life.infrastructure.storage.s3_compatible import Boto3S3CompatibleObjectStorage
 from sketch2life.interfaces.http.be1_runtime import build_be1_runtime
 from sketch2life.interfaces.http.middleware.bounded_image_upload import (
     BoundedImageUploadMiddleware,
 )
-from sketch2life.interfaces.http.routers.be1_runtime import router as be1_runtime_router
-from sketch2life.interfaces.http.routers.child_preferences import (
-    router as child_preferences_router,
+from sketch2life.interfaces.http.demo_composition import (
+    build_demo_stores,
+    build_ephemeral_session_service,
 )
-from sketch2life.interfaces.http.routers.health import router as health_router
-from sketch2life.interfaces.http.routers.images import router as images_router
-from sketch2life.interfaces.http.routers.sessions import router as sessions_router
-from sketch2life.interfaces.http.routers.story_video import router as story_video_router
-from sketch2life.interfaces.http.routers.supervised_flow import (
-    renderer_source_router,
+from sketch2life.interfaces.http.router_composition import mount_all_routers
+from sketch2life.interfaces.http.router_composition import (
+    mount_classroom_routers,
+    mount_demo_routers,
 )
-from sketch2life.interfaces.http.routers.supervised_flow import (
-    router as supervised_flow_router,
-)
-from sketch2life.interfaces.http.routers.whiteboard_storyboard import (
-    router as whiteboard_storyboard_router,
-)
-from sketch2life.interfaces.http.routers.whiteboard_video import router as whiteboard_video_router
+from sketch2life.interfaces.http.routers.storage_examples import router as storage_examples_router
 
 _LOGGER = logging.getLogger("sketch2life.api")
 _SAFE_ID = re.compile(r"^[A-Za-z0-9._:-]{1,120}$")
@@ -169,18 +157,20 @@ def create_app(
     whiteboard_video_job_service: WhiteboardVideoJobService | None = None,
     whiteboard_video_pipeline: WhiteboardVideoPipeline | None = None,
     story_video_job_service: StoryVideoJobService | None = None,
+    _composition_profile: Literal["combined", "classroom", "demo"] = "combined",
 ) -> FastAPI:
-    """Create the local image-only API composition root with ephemeral adapters."""
+    """Create the compatibility or explicitly scoped classroom/demo HTTP app."""
     application = FastAPI(
         title="Sketch2Life API",
         version="1.0.0",
         docs_url="/docs",
         redoc_url=None,
     )
+    storage_example_settings = get_settings()
 
     @application.middleware("http")
     async def be1_request_context(request: Request, call_next):
-        if not request.url.path.startswith("/api/be1/v1"):
+        if not request.url.path.startswith(("/api/be1/v1", "/api/lesson-library/v1")):
             return await call_next(request)
         supplied_id = request.headers.get("X-Request-ID", "")
         request_id = supplied_id if _SAFE_ID.fullmatch(supplied_id) else str(uuid4())
@@ -193,6 +183,26 @@ def create_app(
     async def handle_http_exception(
         request: Request, exc: StarletteHTTPException
     ) -> JSONResponse:
+        if request.url.path.startswith("/api/lesson-library/v1"):
+            detail = exc.detail if isinstance(exc.detail, dict) else {}
+            status_codes = {
+                401: "UNAUTHENTICATED", 403: "FORBIDDEN", 404: "RESOURCE_NOT_FOUND",
+                409: "INVALID_TRANSITION", 413: "REQUEST_TOO_LARGE",
+                415: "UNSUPPORTED_MEDIA_TYPE", 422: "INVALID_REQUEST",
+                428: "PRECONDITION_REQUIRED", 503: "DEPENDENCY_UNAVAILABLE",
+            }
+            code = detail.get("code", status_codes.get(exc.status_code, "REQUEST_FAILED"))
+            message = detail.get("message", "The Lesson Library request could not be completed")
+            request_id = getattr(request.state, "be1_request_id", str(uuid4()))
+            return JSONResponse(
+                status_code=exc.status_code,
+                content={
+                    "code": code if isinstance(code, str) else "REQUEST_FAILED",
+                    "message": message if isinstance(message, str) else "The request could not be completed",
+                    "request_id": request_id,
+                },
+                headers={**(exc.headers or {}), "X-Request-ID": request_id},
+            )
         if not request.url.path.startswith("/api/be1/v1"):
             return await http_exception_handler(request, exc)
         detail = exc.detail if isinstance(exc.detail, dict) else {}
@@ -245,6 +255,17 @@ def create_app(
                 request_id=getattr(request.state, "be1_request_id", str(uuid4())),
             )
             return JSONResponse(status_code=422, content=error.model_dump(mode="json"))
+        if request.url.path.startswith("/api/lesson-library/v1"):
+            request_id = getattr(request.state, "be1_request_id", str(uuid4()))
+            return JSONResponse(
+                status_code=422,
+                content={
+                    "code": "INVALID_REQUEST",
+                    "message": "The request does not match the Lesson Library API contract",
+                    "request_id": request_id,
+                },
+                headers={"X-Request-ID": request_id},
+            )
         is_context_options_route = request.url.path.endswith(
             "/p1/context-options"
         ) or request.url.path.endswith("/p1/context-options/finalize")
@@ -324,6 +345,22 @@ def create_app(
 
     @application.exception_handler(Exception)
     async def handle_unexpected_exception(request: Request, exc: Exception):
+        if request.url.path.startswith("/api/lesson-library/v1"):
+            request_id = getattr(request.state, "be1_request_id", str(uuid4()))
+            _LOGGER.error(
+                "lesson_library_unhandled_exception request_id=%s exception_type=%s",
+                request_id,
+                type(exc).__name__,
+            )
+            return JSONResponse(
+                status_code=500,
+                content={
+                    "code": "INTERNAL_SERVER_ERROR",
+                    "message": "The server could not complete the request",
+                    "request_id": request_id,
+                },
+                headers={"X-Request-ID": request_id},
+            )
         if not request.url.path.startswith("/api/be1/v1"):
             del exc
             return PlainTextResponse("Internal Server Error", status_code=500)
@@ -344,13 +381,19 @@ def create_app(
             headers={"X-Request-ID": request_id},
         )
 
-    application.add_middleware(BoundedImageUploadMiddleware)
+    application.add_middleware(
+        BoundedImageUploadMiddleware,
+        max_storage_example_body_bytes=(
+            storage_example_settings.storage_example_max_upload_bytes + 64 * 1024
+        ),
+    )
     scene_localizer = None
     pixi_show_planner_required = False
-    if session_service is None:
-        artifacts = InMemoryArtifactStore()
-        idempotency = InMemoryIdempotencyStore()
-        renderer_source_grants = InMemoryRendererSourceGrantStore()
+    if _composition_profile != "classroom" and session_service is None:
+        demo_stores = build_demo_stores()
+        artifacts = demo_stores.artifacts
+        idempotency = demo_stores.idempotency
+        renderer_source_grants = demo_stores.renderer_source_grants
         settings = get_settings()
         pixi_show_planner_required = settings.pixi_show_planner_enabled
         if child_preference_classifier is None:
@@ -366,12 +409,9 @@ def create_app(
                 jobs=InMemoryJobStore(),
                 segmenter=_configured_lightning_sam21(settings, artifacts),
             )
-        session_service = EphemeralSessionService(
-            sessions=InMemorySessionRepository[SessionSnapshotV1](),
-            idempotency=idempotency,
-            artifacts=artifacts,
-            workflow_data=InMemoryDemoWorkflowStore(),
-            idle_ttl_seconds=get_settings().session_idle_ttl_seconds,
+        session_service = build_ephemeral_session_service(
+            stores=demo_stores,
+            settings=settings,
         )
         if live_image_demo_service is None:
             vision = _configured_lightning_vision(settings, artifacts)
@@ -555,17 +595,51 @@ def create_app(
         )
     application.state.whiteboard_video_job_service = whiteboard_video_job_service
     application.state.story_video_job_service = story_video_job_service or StoryVideoJobService()
+    application.state.storage_example_service = None
     application.state.be1_runtime = build_be1_runtime(get_settings())
-    application.include_router(health_router)
-    application.include_router(be1_runtime_router)
-    application.include_router(child_preferences_router)
-    application.include_router(sessions_router)
-    application.include_router(images_router)
-    application.include_router(supervised_flow_router)
-    application.include_router(renderer_source_router)
-    application.include_router(whiteboard_video_router)
-    application.include_router(whiteboard_storyboard_router)
-    application.include_router(story_video_router)
+    application.state.lesson_library_storage = None
+    application.state.lesson_document_parser = None
+    application.state.lesson_document_scanner = None
+    if _composition_profile == "combined":
+        mount_all_routers(application)
+    elif _composition_profile == "classroom":
+        mount_classroom_routers(application)
+    else:
+        mount_demo_routers(application)
+    if (
+        _composition_profile == "combined"
+        and storage_example_settings.env == "local"
+        and storage_example_settings.storage_example_enabled
+    ):
+        access_key = storage_example_settings.s3_access_key
+        secret_key = storage_example_settings.s3_secret_key
+        storage = Boto3S3CompatibleObjectStorage(
+            bucket=storage_example_settings.s3_bucket,
+            endpoint_url=storage_example_settings.s3_endpoint,
+            region_name=storage_example_settings.s3_region,
+            access_key=access_key.get_secret_value() if access_key else None,
+            secret_key=secret_key.get_secret_value() if secret_key else None,
+        )
+        application.state.storage_example_service = StorageExampleService(
+            storage,
+            max_upload_bytes=storage_example_settings.storage_example_max_upload_bytes,
+        )
+        application.include_router(storage_examples_router)
+    if _composition_profile == "combined":
+        access_key = storage_example_settings.s3_access_key
+        secret_key = storage_example_settings.s3_secret_key
+        application.state.lesson_library_storage = Boto3S3CompatibleObjectStorage(
+            bucket=storage_example_settings.s3_bucket,
+            endpoint_url=storage_example_settings.s3_endpoint,
+            region_name=storage_example_settings.s3_region,
+            access_key=access_key.get_secret_value() if access_key else None,
+            secret_key=secret_key.get_secret_value() if secret_key else None,
+        )
+        application.state.lesson_document_parser = DeterministicLessonDocumentParser()
+        application.state.lesson_document_scanner = ClamAvScanner(
+            host=storage_example_settings.clamav_host,
+            port=storage_example_settings.clamav_port,
+        )
     renderer_dist = Path(__file__).resolve().parents[5] / "packages" / "art-renderer" / "dist-demo"
     if renderer_dist.is_dir():
         application.mount(
@@ -625,6 +699,16 @@ def create_app(
 
     application.openapi = be1_openapi_schema
     return application
+
+
+def create_classroom_app() -> FastAPI:
+    """Create the durable classroom HTTP profile without process-local demo routes."""
+    return create_app(_composition_profile="classroom")
+
+
+def create_demo_app() -> FastAPI:
+    """Create the local/demo HTTP profile without durable classroom routes."""
+    return create_app(_composition_profile="demo")
 
 
 def _configured_lightning_preference_classifier(

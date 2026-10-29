@@ -1,0 +1,75 @@
+# Read-only documentation checks executed inline with default Python from BE2 worktree.
+# Receipt JSON/log writes omitted from this source excerpt.
+import hashlib, json, re, subprocess
+from datetime import datetime
+from pathlib import Path
+from zoneinfo import ZoneInfo
+root=Path.cwd()
+feature=root/"features/FEAT-044-be2-ai-job-foundation"
+roadmap=(feature/"plan/BE2_ROADMAP.md").read_text(encoding="utf-8")
+tracker=(feature/"plan/BE2_EXECUTION_TRACKER.md").read_text(encoding="utf-8")
+source=json.loads((root/"features/FEAT-040-four-person-delivery-plan/evidence/metrics/PLAN_MANIFEST.json").read_text(encoding="utf-8"))
+expected={f"BE2-{n:02d}" for n in range(1,15)}
+headers=re.findall(r"^### (BE2-\d{2}) — ",roadmap,re.M)
+assert set(headers)==expected and len(headers)==14
+queue_section=roadmap.split("## 3.",1)[1].split("### 3.1",1)[0]
+queue=re.findall(r"^\| (Q\d{2}) \| (BE2-\d{2})([^|]*)\|",queue_section,re.M)
+assert [slot for slot,card,label in queue]==[f"Q{n:02d}" for n in range(15)]
+expected_order=["BE2-01","BE2-01","BE2-12","BE2-14","BE2-02","BE2-03","BE2-04","BE2-05","BE2-06","BE2-07","BE2-08","BE2-09","BE2-10","BE2-11","BE2-13"]
+assert [card for slot,card,label in queue]==expected_order
+assert set(card for slot,card,label in queue)==expected
+dependencies=roadmap.split("### 3.2",1)[1].split("## 4.",1)[0]
+actual_deps={card:re.findall(r"BE2-\d{2}",body) for card,body in re.findall(r"^\| (BE2-\d{2}) \| (.*?) \|$",dependencies,re.M)}
+for card in expected:
+    assert actual_deps[card]==source["dependencies"][card],(card,actual_deps[card],source["dependencies"][card])
+first_slot={}
+for index,(slot,card,label) in enumerate(queue):
+    first_slot.setdefault(card,index)
+assert all(first_slot[pred]<first_slot[card] for card,preds in actual_deps.items() for pred in preds)
+ownership=roadmap.split("### 6.1",1)[1].split("### 6.2",1)[0]
+cmd_owners={}
+data_owners={}
+for line in ownership.splitlines():
+    if not re.match(r"^\| BE2-\d{2} \|",line):
+        continue
+    cols=[part.strip() for part in line.split("|")[1:-1]]
+    card,cmd,data=cols
+    if not cmd.startswith("Typed"):
+        for ident in re.findall(r"CMD-\d{2}",cmd):
+            assert ident not in cmd_owners
+            cmd_owners[ident]=card
+    if not data.startswith("Shared"):
+        for ident in re.findall(r"DATA-\d{2}",data):
+            assert ident not in data_owners
+            data_owners[ident]=card
+assert cmd_owners=={key:owner for key,owner in source["cmd_owners"].items() if owner.startswith("BE2-")}
+assert data_owners=={key:owner for key,owner in source["data_owners"].items() if owner.startswith("BE2-")}
+assert len(cmd_owners)==14 and len(data_owners)==10
+assert "ACTIVE slot: Q00" in tracker and "only Phase A is currently approved" in tracker
+assert len(re.findall(r"^\| R\d{2} ",tracker,re.M))==11
+previous=json.loads((feature/"evidence/metrics/CODEX_INDEPENDENT_REVIEW_20261014.json").read_text())
+frozen_errors=[name for name,digest in previous["reviewed_source_sha256"].items() if hashlib.sha256((root/name).read_bytes()).hexdigest()!=digest]
+assert not frozen_errors,frozen_errors
+planning=json.loads((feature/"evidence/metrics/PLANNING_CHECKS.json").read_text())
+protected=["features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md","features/FEAT-040-four-person-delivery-plan/artifacts/TEAM_TASK_BREAKDOWN.md"]
+for name in protected:
+    assert hashlib.sha256((root/name).read_bytes()).hexdigest()==planning["source_sha256"][name]
+assert not subprocess.run(["git","diff","--name-only","--"]+protected+["backend/src/sketch2life/interfaces/http/app.py"],text=True,capture_output=True,check=True).stdout.strip()
+references=["plan/PLAN.md","approvals/TASK_APPROVAL.md","plan/BE2_ROADMAP.md","plan/BE2_EXECUTION_TRACKER.md","plan/CLAUDE_PHASE_A_FIX_PROMPT.md","evidence/notes/PHASE_A_CODEX_INDEPENDENT_REVIEW_20261014.md","evidence/notes/BE2_ROADMAP_REV1_ARCHIVE_20261014.md","evidence/notes/BE2_ROADMAP_REV2_VALIDATION_20261014.md"]
+assert all((feature/name).exists() for name in references)
+for name in ["plan/BE2_ROADMAP.md","plan/BE2_EXECUTION_TRACKER.md","evidence/notes/BE2_ROADMAP_REV2_VALIDATION_20261014.md"]:
+    content=(feature/name).read_text(encoding="utf-8")
+    assert not any(line.rstrip()!=line for line in content.splitlines())
+checks=[json.loads(p.read_text(encoding="utf-8")) for p in sorted((feature/"evidence/metrics").glob("roadmap_rev2_*.json"))]
+assert all(check["exit_code"]==0 for check in checks)
+record={
+"recorded_at":datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).isoformat(),
+"roadmap_revision":2,"scope":"documentation/routing only; no code or approval change",
+"coverage":{"cards":14,"queue_slots":15,"split_reason":"BE2-01 A/B checkpoints, not business cards","primary_cmd":14,"primary_data":10,"source_dependencies_match":True,"queue_topological":True,"open_phase_a_findings":11},
+"checks":checks,
+"source_freeze":{"backend_tests_runners_approval_snapshot_unchanged":True,"files_compared":len(previous["reviewed_source_sha256"]),"srs_backlog_unchanged":True,"approved_phase_a_plan_sha256":hashlib.sha256((feature/"plan/PLAN.md").read_bytes()).hexdigest()},
+"reference_paths_checked":len(references),"new_document_whitespace":"PASS",
+"independent_review":{"be2_scope_analysis":"PASS","be2_sequence_review":"PASS; approval wording closed"},
+"routing":{"active":"Q00","executor":"Claude","new_runtime_authorization":False,"implementation_wip":1},
+"artifact_sha256":{name:hashlib.sha256((feature/name).read_bytes()).hexdigest() for name in ["plan/BE2_ROADMAP.md","plan/BE2_EXECUTION_TRACKER.md","evidence/notes/BE2_ROADMAP_REV1_ARCHIVE_20261014.md"]},
+"runtime_tests":"NOT_RERUN; documentation-only; existing review NEEDS_REVISION"}

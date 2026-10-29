@@ -1,0 +1,5 @@
+validate_harness=0
+validate_skeleton=0
+validate_architecture=0
+validate_repository_security=0
+validate_team_allocation=0

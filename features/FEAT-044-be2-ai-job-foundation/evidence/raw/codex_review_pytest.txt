@@ -1,0 +1,9 @@
+command=["<existing-backend-venv>/python", "-B", "-m", "pytest", "backend/tests/unit/test_ai_job_lifecycle.py", "backend/tests/unit/test_ai_job_application.py", "backend/tests/contract/test_ai_job_contracts.py", "backend/tests/contract/test_ai_job_polling.py", "backend/tests/unit/test_ephemeral_storage_ports.py", "backend/tests/unit/test_whiteboard_video_job.py", "backend/tests/unit/test_story_video_job_input_gate.py", "backend/tests/contract/test_mobile_workflow_contracts.py", "-p", "no:cacheprovider", "-rs"]
+started_at=2026-10-14T21:21:10.816873+07:00
+exit_code=0
+........................................................................ [ 41%]
+....................................................................s... [ 83%]
+.............................                                            [100%]
+=========================== short test summary info ===========================
+SKIPPED [1] backend\tests\contract\test_ai_job_polling.py:180: live app import needs Pillow (not in this env)
+172 passed, 1 skipped in 0.88s

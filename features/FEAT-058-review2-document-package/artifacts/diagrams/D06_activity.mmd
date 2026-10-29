@@ -1,0 +1,19 @@
+flowchart LR
+  subgraph Child
+    C1[Join session] --> C2[Draw and collaborate]
+    C2 --> C3[Request optional AI support]
+    C3 --> C4[View / hide / decline reviewed suggestion]
+    C4 --> C5[Reflect and join off-screen activity]
+  end
+  subgraph Teacher
+    T1[Check roster and admit] --> T2[Control groups and session pace]
+    T2 --> T3[Review each suggestion]
+    T3 --> T4[Approve exact knowledge or video]
+    T4 --> T5[Record observation and session outcome]
+  end
+  subgraph Backend
+    B1[Authorize and persist accepted operation] --> B2[Run bounded AI job through provider port]
+    B2 --> B3[Return typed result to review queue]
+    B3 --> B4[Serve approved version only]
+    B4 --> B5[Close and persist records]
+  end

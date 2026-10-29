@@ -1,0 +1,176 @@
+{
+  "recorded_at": "2026-10-15T00:25:24.000+07:00",
+  "review_started": "2026-10-14",
+  "review_finalized": "2026-10-15",
+  "branch": "feature/be2-01-ai-job-foundation",
+  "review_result": "NEEDS_REVISION",
+  "scope": "Read-only design/implementability review of Phase B plan revision1; documentation/prompt/tracker changes only",
+  "reviewed_plan_revision": 1,
+  "reviewed_plan_rev1_sha256": {
+    "plan/PHASE_B_PLAN.md": "cdbb2be692dcb8528438009d578cd2c904801ad9e74ccee3809290d57ffb7ec0",
+    "plan/PHASE_B_ADR_PROPOSAL.md": "04f6c35bf9c53731f4bef79176036fb33837e360c496045d4260fb6e3b6b2d03",
+    "plan/PHASE_B_PORT_REVIEW.md": "b4e67a833d54e3db4defb7c81e1b32fc2fa14eda2b9cbd4deacf0bbaf677074e"
+  },
+  "findings": [
+    {
+      "id": "PB-R01",
+      "priority": 1,
+      "status": "OPEN",
+      "summary": "Job CAS does not fence changed owner authority/eligibility/artifact state"
+    },
+    {
+      "id": "PB-R02",
+      "priority": 2,
+      "status": "OPEN",
+      "summary": "Nullable semantic uniqueness and whole losing-create rollback"
+    },
+    {
+      "id": "PB-R03",
+      "priority": 1,
+      "status": "OPEN",
+      "summary": "Queued worker-start/ack and uncommitted-output recovery"
+    },
+    {
+      "id": "PB-R04",
+      "priority": 1,
+      "status": "OPEN",
+      "summary": "Attempt-bound capability verifier/call-site/lifecycle contract"
+    },
+    {
+      "id": "PB-R05",
+      "priority": 2,
+      "status": "OPEN",
+      "summary": "Durable rejection/conflict audit across rollback"
+    },
+    {
+      "id": "PB-R06",
+      "priority": 1,
+      "status": "OPEN",
+      "summary": "Complete cancellation notice coverage after limited queries/restart"
+    }
+  ],
+  "reviewers": [
+    "Codex primary",
+    "phase_b_persistence_review",
+    "phase_b_dispatch_review"
+  ],
+  "checks": [
+    {
+      "check": "harness",
+      "command": [
+        "<existing-backend-venv>/python",
+        "tools/validate_harness.py",
+        "--feature",
+        "features/FEAT-044-be2-ai-job-foundation"
+      ],
+      "started_at": "2026-10-15T00:24:17.318887+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/phase_b_codex_review_harness.txt"
+    },
+    {
+      "check": "security",
+      "command": [
+        "<existing-backend-venv>/python",
+        "tools/validate_repository_security.py"
+      ],
+      "started_at": "2026-10-15T00:24:18.040079+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/phase_b_codex_review_security.txt"
+    },
+    {
+      "check": "diff",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "started_at": "2026-10-15T00:24:18.775293+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/phase_b_codex_review_diff.txt"
+    }
+  ],
+  "runtime_tests": "NOT_RUN; no Phase B implementation exists; only source/design analysis",
+  "source_validation": "24 Phase A reviewed sources/tests/runners/approved plan/approval unchanged; 3 Phase B proposed docs unchanged",
+  "reviewed_source_sha256": {
+    "backend/src/sketch2life/application/ports/ai_jobs.py": "de806e0cc19a275dd584e5a6f1250d8d53c2a899597a07b5b5a2f32dc7a6cbcb",
+    "backend/src/sketch2life/application/services/ai_jobs.py": "c6b4f1e1693f4ff87acd933e9b09df1c16100c47734f6890a2b3e931066ef512",
+    "backend/src/sketch2life/application/services/provider_copy_lifecycle.py": "c45ad24934b848ce1f4a6357daec925a2e70543d66d5bb8b85cae75a0201d73e",
+    "backend/src/sketch2life/contracts/schemas/ai_contract_candidates.py": "7bbe68aae583f2bf30b62a94108940aa5374ffe2be4a2dbb1d3500331615426c",
+    "backend/src/sketch2life/contracts/schemas/ai_jobs.py": "15025b1386ba2781204ad41655c1dec135b28672845bac1a3744d1b8ad1e9c5f",
+    "backend/src/sketch2life/domain/ai_jobs/__init__.py": "301c97c4a3a0308350dd857f39f94fd8f1b5cc45820a9fa8b4c6e4caee0b2748",
+    "backend/src/sketch2life/domain/ai_jobs/completion.py": "b3e1a78d2a93227d09e4db3fed4b77bc4d1c3775f54f519f68fd762ceb3ec62b",
+    "backend/src/sketch2life/domain/ai_jobs/model.py": "a60692c2f4deab068471a35dcf58abe777400e8bd4575beb9fbf8c3a7c078c8b",
+    "backend/src/sketch2life/domain/ai_jobs/provider_copy.py": "2c55b67e0a036b4e7786094d5e1bc59a2b3d81ecfc75f24aaaa03a4296ee1ddd",
+    "backend/src/sketch2life/infrastructure/ai_jobs/__init__.py": "22375802e5b6353e0531b8dfcc8034260672783edd3df6b20c55914fbc1cad78",
+    "backend/src/sketch2life/infrastructure/ai_jobs/fakes.py": "af78a5bbdbb3bea3fa2bd57cf6b52ceffce22312fa1a7546319eec4d564a22b1",
+    "backend/src/sketch2life/infrastructure/ai_jobs/harness.py": "f60eb285f39e53906c5123533bd0663dbd2263609e9f0ac0c988cb9a8f5ad90f",
+    "backend/src/sketch2life/interfaces/http/ai_jobs_fixture_app.py": "7ee82e3c80d3ba892b9b532961786832f747cf1a627a245cb20c90d85e6d1d03",
+    "backend/src/sketch2life/interfaces/http/routers/ai_jobs.py": "8f90789fe6bc5abbd5b1f2d489c201dd99def252ad2182d591a2becbbc7641b6",
+    "backend/tests/contract/test_ai_job_contracts.py": "a65c552542fcdc11a3b3340d1873fcc9085de78a533af25e95326f6cf149af79",
+    "backend/tests/contract/test_ai_job_polling.py": "26ba77564276802fd2d4c19958442d6094cf563ea5cb5392760a416e2b95bb25",
+    "backend/tests/unit/test_ai_job_application.py": "3a7760dfa7bc3f6c21a59ae91e69805708372dcafdaffd3152c2a5f650bdc57f",
+    "backend/tests/unit/test_ai_job_lifecycle.py": "d9535a7f109e0889d7c775abd6b25361f97479286286b409e78a3eaadb46ee37",
+    "backend/tests/unit/test_ai_job_review_regressions.py": "dab50ea145eb06e11f35fd8e4966ea567e4a386a05c25b43783409ffad770155",
+    "features/FEAT-044-be2-ai-job-foundation/approvals/TASK_APPROVAL.md": "1ba7f641a7501bffb99c065d137ea4104684e93a95a1bf4a0d7fd785fec71112",
+    "features/FEAT-044-be2-ai-job-foundation/plan/PLAN.md": "c835986f2a7dc15ac0c724e0b0304e44d3811575fabeffb7863e7e9058cfe766",
+    "features/FEAT-044-be2-ai-job-foundation/src/fixture_catalog.py": "272dd88a4d90d55b1f9d81f5665bf6dac8afdd2abd35e1fe96a6da47298e93f2",
+    "features/FEAT-044-be2-ai-job-foundation/src/run_fixture_contracts.py": "34010ffb6b6714e4e5c30949752809fbf1a6f6a90944d2db460fc1b12c0b2975",
+    "backend/tests/unit/test_ai_job_q00_followups.py": "ecc9638cf84d7ea41f6888c6d14bc6fccd075e1174cb722f511d474a74d05269"
+  },
+  "document_sha256": {
+    "evidence/notes/PHASE_B_PLAN_CODEX_REVIEW_20261014.md": "646586593e0e896e81805bddff21a5f21ea0b041d65cb332f3261c21c23b011a",
+    "plan/CLAUDE_PHASE_B_PLAN_REVISION_PROMPT.md": "6775ff53e3dbdc8d375ec194a5e006e2f75e1f71e636dd1957d64e0593a42043",
+    "plan/BE2_EXECUTION_TRACKER.md": "80ba218270ca2c190f203fa95adb35a94b6a14d2dd4ce698a5003462d5b4ea74",
+    "status/STATUS.md": "2e630959c24e75b15e41b71f0d34985bdb34fb0296e8d655b27c948695f68b51",
+    "CONTEXT.md": "e00983811ac9b82fb0735a78519bae5bf1a473006bdeb74c03bd2ad6d202cbed",
+    "DECISIONS.md": "36d62325f4df5f7da4d92593f6603d2875b39e63b858247c866299051aff2bfd",
+    "evidence/README.md": "0f71b6268657bcd52e35ebcc331365e86be901a7d2613d9d47dcf3307d843380"
+  },
+  "docs_whitespace": "PASS",
+  "findings_prompt_coverage": [
+    "PB-R01",
+    "PB-R02",
+    "PB-R03",
+    "PB-R04",
+    "PB-R05",
+    "PB-R06"
+  ],
+  "external_primary_references": [
+    {
+      "title": "PostgreSQL 17 constraints",
+      "url": "https://www.postgresql.org/docs/17/ddl-constraints.html",
+      "used_for": "NULL uniqueness semantics"
+    },
+    {
+      "title": "PostgreSQL 17 transaction isolation",
+      "url": "https://www.postgresql.org/docs/17/transaction-iso.html",
+      "used_for": "READ COMMITTED/ON CONFLICT reread consistency"
+    }
+  ],
+  "installed_dependency_source": {
+    "rq_version": "2.11.0",
+    "receipt": "evidence/raw/phase_b_review_rq_source.txt",
+    "sha256": "59858cf6a9f9ae73ed674c383d68b6999ff46e4b53ee50023d4a749a7c93885e",
+    "evidence_type": "Static installed source inspection, not runtime crash reproduction"
+  },
+  "review_evidence": "evidence/notes/PHASE_B_PLAN_CODEX_REVIEW_20261014.md",
+  "next_prompt": "plan/CLAUDE_PHASE_B_PLAN_REVISION_PROMPT.md",
+  "requested_next_action": "Claude revises only PB-R01–PB-R06 into plan revision2; independent review required",
+  "active_slot": "Q00",
+  "phase_a_code_review": "PASS at fake/contract scope; not reopened",
+  "phase_a_acceptance": "PENDING consumer/task-owner and missing-test disposition",
+  "phase_b_implementation": "NOT_STARTED_UNAPPROVED",
+  "adr_port_decisions": "PROPOSED/PENDING; not adopted by review",
+  "business_card_count": 14,
+  "implementation_wip": 1,
+  "approval_modified": false,
+  "approved_phase_a_plan_modified": false,
+  "phase_b_rev1_docs_modified": false,
+  "backend_modified": false,
+  "limits": [
+    "No code/test edits",
+    "No dependency installation or DB/broker/cloud/provider execution",
+    "No owner sign-off/stack adoption",
+    "No commit/push/deploy"
+  ]
+}

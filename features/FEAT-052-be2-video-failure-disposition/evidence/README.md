@@ -1,0 +1,29 @@
+# BE2-10 evidence index
+
+2026-10-20 integration-candidate recheck: see
+notes/LOCAL_OFFLINE_RECHECK_20261020.md and
+raw/LOCAL_OFFLINE_RECHECK_20261020.summary.json. Owned 253 passed; regression
+collection was blocked because Pillow was unavailable. This is not card
+acceptance or runtime evidence.
+
+Latest E02 notes/C4B_ACTUAL_POSTGRES_20261019.md and metrics/ACTUAL_POSTGRES.json:
+separately approved own14 actual SQL PASS, clean fresh PG17.11 environment removed;
+post-cleanup3043 consolidated local PASS. Actual owner integration still OPEN.
+
+Historical E01 notes/C4_INTERNAL_COMPLETION_20261019.md: approved internal P1–P4
+COMPLETE_LOCAL_VERIFIED.253 own +2352 existing regression=2605 PASS,0 skips,
+753 transitive sources unchanged, Ruff/Mypy10/architecture/harness/security/diff PASS.
+Its14 SQL COLLECTED_NOT_RUN is that old local pack; E02 now supplies actual SQL.
+Full10 pending adopter/budget/session/checkpoint/runtime acceptance. Current artifacts
+in artifacts/, sanitized measured summary evidence/metrics/LOCAL_COMPONENT.json.
+
+notes/PLAN_VALIDATION_20261019.md is historical planning-only evidence. Existing
+08/09/12/14 actual SQL/runtime evidence never counted as10 acceptance.
+
+
+## FEAT-057 approved offline baseline — 2026-10-20
+
+Final note: `notes/GOAL_OFFLINE_BASELINE_20261020.md`. Authoritative source-bound receipt: `evidence/raw/GOAL_OFFLINE_BASELINE_20261020_FINAL_PINNED_ENV/summary.json`, with JUnit, collection logs, static check logs, source hashes, and `evidence-manifest.json` in that directory.
+This is local offline evidence only. The feature card remains open; no acceptance or status was changed.
+
+Earlier attempts remain in the sibling baseline evidence directories and are historical; the final pinned receipt is authoritative.

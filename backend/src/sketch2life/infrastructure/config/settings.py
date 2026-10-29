@@ -24,6 +24,19 @@ class Settings(BaseSettings):
     api_port: int = 8000
     log_level: str = "INFO"
     database_url: SecretStr | None = None
+    room_code_hmac_key: SecretStr | None = None
+    s3_endpoint: str | None = None
+    s3_region: str = "us-east-1"
+    s3_bucket: str = "sketch2life-private"
+    s3_access_key: SecretStr | None = None
+    s3_secret_key: SecretStr | None = None
+    clamav_host: str | None = None
+    clamav_port: int = Field(default=3310, ge=1, le=65535)
+    platform_admin_subjects: str = ""
+    storage_example_enabled: bool = False
+    storage_example_max_upload_bytes: int = Field(
+        default=10 * 1024 * 1024, ge=1, le=50 * 1024 * 1024
+    )
     be1_artifact_root: Path = Path(".runtime/be1-artifacts")
     session_idle_ttl_seconds: int = Field(default=1800, ge=60, le=86_400)
 
@@ -70,6 +83,18 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def enforce_deployment_provider_policy(self) -> Self:
+        if self.storage_example_enabled and self.env != "local":
+            raise ValueError("the storage example is available only in local development")
+
+        has_s3_access_key = bool(
+            self.s3_access_key and self.s3_access_key.get_secret_value()
+        )
+        has_s3_secret_key = bool(
+            self.s3_secret_key and self.s3_secret_key.get_secret_value()
+        )
+        if has_s3_access_key != has_s3_secret_key:
+            raise ValueError("S3 access key and secret key must be configured together")
+
         if self.env in {"staging", "production"} and (
             self.auth_provider != "firebase" or not self.firebase_project_id
         ):

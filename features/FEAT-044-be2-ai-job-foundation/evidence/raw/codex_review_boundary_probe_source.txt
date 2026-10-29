@@ -1,0 +1,82 @@
+from dataclasses import replace
+from concurrent.futures import ThreadPoolExecutor
+from threading import Barrier, Lock
+import json
+from pathlib import Path
+from fastapi.testclient import TestClient
+from sketch2life.infrastructure.ai_jobs.harness import build_fixture_harness, TEACHER, ORG, SUBJECT
+from sketch2life.interfaces.http.ai_jobs_fixture_app import create_ai_jobs_fixture_app
+from sketch2life.contracts.schemas.ai_jobs import AsyncJobViewV1, AsyncJobChildViewV1
+from sketch2life.contracts.schemas.ai_contract_candidates import check_shape
+from sketch2life.domain.ai_jobs.provider_copy import ProviderCopy, CopyKind, PurgeReceipt, ReceiptOutcome, EvidenceKind
+from sketch2life.application.services.provider_copy_lifecycle import ProviderCopyLifecycleService
+from sketch2life.infrastructure.ai_jobs.fakes import InMemoryProviderCopyRegistry, FakeProviderCopyAdapter
+feature=Path('features/FEAT-044-be2-ai-job-foundation')
+probes={}
+h=build_fixture_harness()
+j=h.service.create_job(h.create()).job_id
+m=h.start_next()
+r=h.service.accept_completion(h.capability(j),h.failure_claim(m,code='http 503 from provider',retryable=False))
+with TestClient(create_ai_jobs_fixture_app(h.service,{'teacher':TEACHER}),raise_server_exceptions=False) as client:
+    response=client.get('/api/collaboration/v1/jobs/'+j,headers={'Authorization':'Fixture teacher'})
+probes['malformed_failure_code']={'receipt':str(r.disposition),'http_status':response.status_code,'body':response.text}
+positive=json.loads((feature/'fixtures/shapes/positive/DATA-21.json').read_text())
+positive['request_reason']=[]
+try:
+    outcome=check_shape('DATA-21',positive)
+except Exception as exc:
+    outcome=type(exc).__name__+': '+str(exc)
+probes['shape_list_enum']={'outcome':outcome}
+view=json.loads((feature/'fixtures/data25/positive/succeeded_accepted.json').read_text())
+view.update(state='queued',started_at=None,completed_at=None,poll_after_ms=2000)
+accepted=AsyncJobViewV1.model_validate_json(json.dumps(view),strict=True)
+probes['queued_with_refs']={'accepted':True,'result_refs':len(accepted.result_refs)}
+child=json.loads((feature/'fixtures/data25_child/positive/succeeded_device_projection.json').read_text())
+child['poll_after_ms']=2000
+accepted_child=AsyncJobChildViewV1.model_validate_json(json.dumps(child),strict=True)
+probes['terminal_child_poll_hint']={'accepted':True,'poll_after_ms':accepted_child.poll_after_ms}
+h=build_fixture_harness()
+j=h.service.create_job(h.create()).job_id
+h.eligibility.revoked_subjects.add(SUBJECT)
+sent=h.service.dispatch_outbox()
+probes['revoked_dispatch']={'enqueued':sent,'state':str(h.store.snapshot().jobs[j].state)}
+registry=InMemoryProviderCopyRegistry()
+adapter=FakeProviderCopyAdapter()
+service=ProviderCopyLifecycleService(registry,adapter)
+copy=ProviderCopy('copy_fx_review',ORG,'scope_fx_review',CopyKind.OUTPUT,'fixture-pending')
+service.register_copy(copy)
+first=service.purge_scope(ORG,copy.scope_ref,'p1')
+registry.save(replace(registry.get(copy.copy_id),provider_profile='fixture-deletes'))
+second=service.purge_scope(ORG,copy.scope_ref,'p2')
+try:
+    replay=service.purge_scope(ORG,copy.scope_ref,'p1')
+    replay_result=str(replay)
+except Exception as exc:
+    replay_result=type(exc).__name__+': '+str(exc)
+probes['old_purge_replay']={'first':first[0].status,'second':second[0].status,'replay':replay_result,'adapter_calls':len(adapter.purge_requests)}
+class ConcurrentAdapter:
+    def __init__(self):
+        self.barrier=Barrier(2,timeout=5)
+        self.lock=Lock()
+        self.calls=0
+    def request_purge(self,copy):
+        with self.lock:
+            self.calls+=1
+            number=self.calls
+        self.barrier.wait()
+        return PurgeReceipt('receipt_fx_'+str(number),copy.copy_id,ReceiptOutcome.DELETED,True,EvidenceKind.FIXTURE)
+    def request_cancel(self,copy):
+        pass
+registry=InMemoryProviderCopyRegistry()
+adapter=ConcurrentAdapter()
+service=ProviderCopyLifecycleService(registry,adapter)
+copy=ProviderCopy('copy_fx_race',ORG,'scope_fx_race',CopyKind.OUTPUT,'fixture-deletes')
+service.register_copy(copy)
+with ThreadPoolExecutor(max_workers=2) as pool:
+    futures=[pool.submit(service.purge_scope,ORG,copy.scope_ref,'same') for _ in range(2)]
+    receipts=sorted(f.result(timeout=10)[0].receipt_id for f in futures)
+key=f'{ORG}:{copy.scope_ref}:same:{copy.copy_id}'
+probes['concurrent_purge']={'adapter_calls':adapter.calls,'returned_receipts':receipts,'stored_receipt':registry.get_purge_receipt(key).receipt_id,'copy_receipt':registry.get(copy.copy_id).receipt_id}
+output=json.dumps({'scope':'read-only fresh synthetic probes','probes':probes},ensure_ascii=False,indent=2)
+(feature/'evidence/raw/codex_review_boundary_probes.json').write_text(output+'\n',encoding='utf-8')
+print(output)

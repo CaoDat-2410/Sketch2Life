@@ -1,0 +1,22 @@
+{
+  "payload": {
+    "canvas_id": "canvas_fx_001",
+    "checkpoint_ref": {
+      "checkpoint_id": "ckpt_fx_001",
+      "document_epoch": 1,
+      "hash": "fbe0c35964aa06598accbb75309da67fb0812773232f7909b853ec86f8b1bb56",
+      "server_sequence": 42
+    },
+    "child_intent": null,
+    "client_request_id": "client_req_fx_001",
+    "context_revision": 3,
+    "request_reason": "inactivity",
+    "requested_level": "hint",
+    "target_region_id": null,
+    "target_scope": {
+      "kind": "individual",
+      "participant_id": "participant_fx_001"
+    }
+  },
+  "reason": "unknown request_reason"
+}

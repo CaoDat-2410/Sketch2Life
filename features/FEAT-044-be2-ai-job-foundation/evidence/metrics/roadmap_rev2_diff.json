@@ -1,0 +1,11 @@
+{
+  "check": "diff",
+  "command": [
+    "git",
+    "diff",
+    "--check"
+  ],
+  "started_at": "2026-10-14T21:47:26.620843+07:00",
+  "exit_code": 0,
+  "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/roadmap_rev2_diff.txt"
+}

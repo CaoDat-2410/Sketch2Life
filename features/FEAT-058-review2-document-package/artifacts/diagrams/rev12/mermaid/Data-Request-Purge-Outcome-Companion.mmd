@@ -1,0 +1,6 @@
+stateDiagram-v2
+  [*] --> AwaitingExternalPurge
+  AwaitingExternalPurge --> Completed
+  AwaitingExternalPurge --> PartiallyCompleted
+  AwaitingExternalPurge --> Failed
+  note right of PartiallyCompleted: The outcome records the purge result; it does not claim every external copy was removed.

@@ -1,0 +1,6 @@
+stateDiagram-v2
+  Authenticated --> Revoked: grant revoked
+  Resyncing --> Revoked: grant revoked
+  Connected --> Revoked: grant revoked
+  Disconnected --> Revoked: grant revoked
+  note right of Revoked: Revoked devices cannot refresh or replay a grant. Device acceptance remains open.

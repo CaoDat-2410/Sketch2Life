@@ -1,0 +1,94 @@
+{
+  "date": "2026-10-23",
+  "revision": 5,
+  "status": "PASS",
+  "scope": "Standalone Report 2 visual-form revision only; no new photos/diagrams, existing process diagram retained; consolidated report and BM01 unchanged.",
+  "outputs": {
+    "report2_docx": {
+      "path": "features/FEAT-058-review2-document-package/artifacts/SWP490_FA26SE225_R2_Report2_Project_Management_Plan.docx",
+      "bytes": 116314,
+      "sha256": "aeffac0a698821bb2e27ed1c6da6e97757d27b95e0cd70706b3e0e99079c0378"
+    },
+    "report2_pdf": {
+      "path": "features/FEAT-058-review2-document-package/artifacts/SWP490_FA26SE225_R2_Report2_Project_Management_Plan.pdf",
+      "bytes": 529588,
+      "sha256": "2a24ddef233039b2ec8a83f0861dccf36781a3a089b4b15fbe41c0d4223d441b"
+    },
+    "report2_pdf_evidence_copy": {
+      "path": "features/FEAT-058-review2-document-package/evidence/render/final/Report2_Project_Management_Plan.pdf",
+      "bytes": 529588,
+      "sha256": "2a24ddef233039b2ec8a83f0861dccf36781a3a089b4b15fbe41c0d4223d441b"
+    }
+  },
+  "references": {
+    "official_report2_template": {
+      "path": "features/FEAT-058-review2-document-package/evidence/local/Report2_Project Management Plan.docx",
+      "bytes": 52720,
+      "sha256": "f59a4ce96d99f2f772f4c0ef07828812674aee4b8795aac475d5a395a8401be5"
+    },
+    "visual_reference_consolidated_report": {
+      "path": "features/FEAT-058-review2-document-package/artifacts/SWP490_FA26SE225_R2_Reports1-5_Tracking.docx",
+      "bytes": 1088481,
+      "sha256": "6444ca04aa703e465d5765b881f1226724fb8027fe71e6dffe408a1135a052a7"
+    }
+  },
+  "structure": {
+    "docx_zip_integrity": "PASS",
+    "table_count": 11,
+    "page_geometry_in": [
+      8.27,
+      11.69
+    ],
+    "margins_in": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "separate_first_page_footer": true
+  },
+  "content_checks": {
+    "official_sections_present": "PASS",
+    "template_instruction_placeholders": "NONE",
+    "cover_metadata_table": "PASS",
+    "wbs_rows_including_total_excluding_header": 21,
+    "planning_effort_person_days": 252,
+    "schedule_rows_excluding_header": 9,
+    "deliverable_rows_excluding_header": 8,
+    "responsibility_rows_excluding_header": 14,
+    "relative_plan": "15 weeks; calendar dates remain subject to course confirmation",
+    "modal": "selected; deployment values remain TBD"
+  },
+  "rendering": {
+    "docx_renderer": "Word COM export through features/FEAT-058-review2-document-package/src/render_word.ps1",
+    "pdf_page_renderer": "pypdfium2 at scale 1.65",
+    "bundled_render_docx_status": "unavailable: LibreOffice soffice.exe not found",
+    "pdf_page_count": 10,
+    "pdf_copy_matches": "PASS",
+    "visually_reviewed_pages": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "page_images": "evidence/render/final/Report2_Project_Management_Plan_pages/rev5d/",
+    "layout_result": "PASS; cover, TOC, change log, report body and references use separate pages; no clipped text or split table rows observed."
+  },
+  "verification_boundary": "Document package structural and visual QA only; no application tests, E2E, staging, Modal/GPU/provider call, deployment, commit, push or tag in this revision.",
+  "approved_plan": {
+    "revision": 5,
+    "approved_content_sha256": "E02B9DF2733BAD6B0E497A930DBAED7A8A48C28DE319BB86AD5DA5A4C09594E2",
+    "completion_metadata_sha256": "8B878987C16DA3FE664DBD99E17B2FBD6BBA727F029FB27B24A925BA21BCE6AA",
+    "acceptance_criteria_changed_after_approval": false
+  },
+  "lint_and_geometry_audit": {
+    "section_audit": "PASS; one A4 portrait section, 1-inch margins, distinct first-page footer",
+    "style_lint": "Completed; reports 503 direct-format runs and 444 direct-format paragraphs from template-preserving cover/table styling; cover and metadata headings are intentionally not Heading styles."
+  }
+}

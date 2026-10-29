@@ -1,0 +1,120 @@
+{
+  "feature": "FEAT-044-be2-ai-job-foundation",
+  "plan_revision": 1,
+  "recorded_at": "2026-10-14T19:56:55.422072+07:00",
+  "branch": "feature/be2-01-ai-job-foundation",
+  "baseline": "b9204d8c9eb4f8a1ee6d4db4de5ee23672e0392c",
+  "scope": "documentation planning; runtime not implemented or tested",
+  "checks": [
+    {
+      "check": "architecture",
+      "command": [
+        "python",
+        "tools/validate_architecture.py"
+      ],
+      "started_at": "2026-10-14T19:55:10.990899+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/planning_architecture.txt",
+      "output_lines": 6
+    },
+    {
+      "check": "diff",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "started_at": "2026-10-14T19:55:13.124022+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/planning_diff.txt",
+      "output_lines": 1
+    },
+    {
+      "check": "harness",
+      "command": [
+        "python",
+        "tools/validate_harness.py",
+        "--feature",
+        "FEAT-044-be2-ai-job-foundation"
+      ],
+      "started_at": "2026-10-14T19:55:10.981896+07:00",
+      "exit_code": 1,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/planning_harness.txt",
+      "output_lines": 2
+    },
+    {
+      "check": "harness_corrected",
+      "command": [
+        "python",
+        "tools/validate_harness.py",
+        "--feature",
+        "features/FEAT-044-be2-ai-job-foundation"
+      ],
+      "started_at": "2026-10-14T19:56:09.317015+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/planning_harness_corrected.txt",
+      "output_lines": 4
+    },
+    {
+      "check": "security",
+      "command": [
+        "python",
+        "tools/validate_repository_security.py"
+      ],
+      "started_at": "2026-10-14T19:55:11.447013+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/planning_security.txt",
+      "output_lines": 7
+    },
+    {
+      "check": "skeleton",
+      "command": [
+        "python",
+        "tools/validate_skeleton.py"
+      ],
+      "started_at": "2026-10-14T19:55:12.281484+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/planning_skeleton.txt",
+      "output_lines": 8
+    }
+  ],
+  "current_required_checks": [
+    "architecture",
+    "security",
+    "skeleton",
+    "diff",
+    "harness_corrected"
+  ],
+  "documentation_checks": {
+    "acceptance_rows": 20,
+    "be2_card_rows": 14,
+    "approval_template_unchanged": true,
+    "source_authority_unchanged": true
+  },
+  "environment_inventory": {
+    "python": "3.12.10",
+    "available": {
+      "pydantic": true,
+      "pytest": false,
+      "fastapi": false,
+      "ruff": false,
+      "mypy": false,
+      "redis": false,
+      "rq": false
+    }
+  },
+  "source_sha256": {
+    "features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md": "a95c89589843e3555e967c5e486f3bcaf4bbdf9446cb3bc9c49ed16f672964d9",
+    "features/FEAT-040-four-person-delivery-plan/artifacts/TEAM_TASK_BREAKDOWN.md": "293fcb8cfca9a603c0ee18e745ae37d61c3c13de80cdaa336ac648ad4f706ca9",
+    "docs/adr/ADR-0015-four-person-role-and-integration-allocation.md": "714a9c4faa192991547235b658b69ec59e3784200c6ca9583ee163621ab47b57",
+    "docs/context/PROJECT_CONTEXT.md": "ea18c3532322fdd37456fe8f9681419019877212254658baa9321d6e64c6c6cb",
+    "docs/context/SOURCE_REGISTER.md": "f6c5b336f1e24ab8c626ab5de46bf6c923902d7010d8cbdc470d145e55bf841c"
+  },
+  "review": {
+    "result": "PASS",
+    "reviewer": "independent Codex be2_plan_review agent",
+    "closed_findings": [
+      "P2 cancellation during retry backoff"
+    ]
+  }
+}

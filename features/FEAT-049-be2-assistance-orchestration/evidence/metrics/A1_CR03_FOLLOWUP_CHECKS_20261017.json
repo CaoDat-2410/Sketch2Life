@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "recorded_at_local": "2026-10-17 Asia/Saigon",
+  "state": "A1_CR03_F1_F2_FIXED_PENDING_CODEX_REREVIEW",
+  "head": "f120c4fce8f7853e5ab5e061eff4bf916d45603c",
+  "staged_paths": 0,
+  "approved_plan_sha256": "e1fce645a5d8c98efe366865f5a8a1b9c81c8a48626723c4e73f0c646979d3e5",
+  "approval_sha256": "f6a266c9a01c6a6c2432765ff50a866618bb05221aed933e4113e2bff8a23501",
+  "rereview_hashes_verified_before_edit": {
+    "checked": 32,
+    "mismatch": 0
+  },
+  "findings": {
+    "A1-CR03-F1": "FIXED_PENDING_REREVIEW",
+    "A1-CR03-F2": "FIXED_PENDING_REREVIEW"
+  },
+  "before": {
+    "tests": 10,
+    "failed": 8,
+    "passed": 2,
+    "cases": {
+      "test_f1_consent_publication_inside_handoff_unit_runs_after_commit": "failed",
+      "test_f1_disclosure_publication_inside_cache_unit_runs_after_commit": "failed",
+      "test_f1_publication_committed_before_decision_still_blocks_handoff": "passed",
+      "test_f1_rollback_with_queued_publication_publishes_nothing_staged": "failed",
+      "test_f1_failed_deferred_callback_inside_unit_is_recorded_and_releases": "failed",
+      "test_f2_vision_invalidation_between_cache_read_and_commit": "failed",
+      "test_f2_vision_invalidation_between_handoff_gate_and_commit": "failed",
+      "test_f2_teacher_correction_commit_between_read_and_commit_is_re_decided": "failed",
+      "test_f2_vision_call_inside_assistance_unit_is_refused": "failed",
+      "test_f2_failed_vision_commit_does_not_move_the_decision_epoch": "passed"
+    },
+    "note": "attempt1 had one test-expectation bug (exception type); corrected before this baseline; attempt1 log kept"
+  },
+  "after_followup_cases": {
+    "test_f1_consent_publication_inside_handoff_unit_runs_after_commit": "passed",
+    "test_f1_disclosure_publication_inside_cache_unit_runs_after_commit": "passed",
+    "test_f1_publication_committed_before_decision_still_blocks_handoff": "passed",
+    "test_f1_rollback_with_queued_publication_publishes_nothing_staged": "passed",
+    "test_f1_failed_deferred_callback_inside_unit_is_recorded_and_releases": "passed",
+    "test_f2_vision_invalidation_between_cache_read_and_commit": "passed",
+    "test_f2_vision_invalidation_between_handoff_gate_and_commit": "passed",
+    "test_f2_teacher_correction_commit_between_read_and_commit_is_re_decided": "passed",
+    "test_f2_vision_call_inside_assistance_unit_is_refused": "passed",
+    "test_f2_failed_vision_commit_does_not_move_the_decision_epoch": "passed"
+  },
+  "after_pytest": {
+    "a1_new": {
+      "exit": 0,
+      "tests": 128,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "files": 8,
+      "passed": 128
+    },
+    "be201": {
+      "exit": 0,
+      "tests": 338,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "files": 11,
+      "passed": 338
+    },
+    "be202": {
+      "exit": 0,
+      "tests": 412,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "files": 12,
+      "passed": 412
+    }
+  },
+  "after_probes": {
+    "cache_in_unit_publication": "no longer immediate; old assertion fails",
+    "vision_invalidation_cache": "no cache hit; re-decided then debounced",
+    "semantics_inside_transaction": "deferred; callback saw committed analysis_ready + 1 intent",
+    "semantics_pre_transaction": "stale, 0 intents"
+  },
+  "static": {
+    "ruff": "PASS (18 paths)",
+    "mypy_strict_src": "PASS (10 files)",
+    "mypy_strict_src_and_tests_follow_imports_silent": "PASS (18 files)"
+  },
+  "validators": {
+    "validate_harness": "HARNESS_VALID",
+    "validate_repository_security": "REPOSITORY_SECURITY_VALID",
+    "validate_architecture": "ARCHITECTURE_VALID",
+    "validate_skeleton": "SKELETON_VALID",
+    "git_diff_check": "clean",
+    "new_file_whitespace_scan": "clean (53 files)"
+  },
+  "existing_tracked_source_modified": false,
+  "source_sha256": {
+    "backend/src/sketch2life/infrastructure/assistance/__init__.py": "00af247f07037e7feac9d2ec1f7170ce9dde7d7a8a5ef01c3bbde09b7a9b8799",
+    "backend/src/sketch2life/infrastructure/assistance/adapters.py": "a3f4f721423d589733700da292f429a9caf94090bcc94f0137f32d8a997a9614",
+    "backend/src/sketch2life/infrastructure/assistance/fakes.py": "bdbb4317cfa2dc2143602cc3172b400504d7e907c0ca8aae51ae516ce2c8b517",
+    "backend/src/sketch2life/infrastructure/assistance/harness.py": "ffc688b437f45b9572a0ce4f3ea8a3c5d7d668774c5e233b96741407398b231c",
+    "backend/src/sketch2life/domain/assistance.py": "ab4df2971bd403c209810fc958ac249e8b4cb5d74ebc21b2a5b82c28fb455e1c",
+    "backend/src/sketch2life/contracts/schemas/assistance_requests.py": "2c2df0b574e2c5bb846c8e3c6688f1291966357f94f02ae83356886f7a5b62a2",
+    "backend/src/sketch2life/application/ports/assistance.py": "5e205659f2abbe3f3ad5e5459f05a64139d51dce8a7db19b60fd3426bd90e338",
+    "backend/src/sketch2life/application/services/assistance.py": "5bfff0481f7d30158d7f67f57c07edd576a4af3499856213cd39065c31e56d34",
+    "backend/src/sketch2life/interfaces/http/routers/assistance_requests.py": "2bc20104a480155bdccbcb200e9b71cd49d2d1e44394b14928ad643e8e2c958e",
+    "backend/src/sketch2life/interfaces/http/assistance_requests_fixture_app.py": "3cdf6e04b8540168d0bd5da4318a0e8135040e12f3761cf98fb0e00d1cc6f30d",
+    "backend/tests/unit/test_assistance_chain.py": "f27c887f4c4d78afb89dc79b275ba4ef84c51e717ab6636b28cb47c07d9b608b",
+    "backend/tests/unit/test_assistance_cr03_followup.py": "361867f6a9e8de8d8484e9ebd649a7dcf94dbaf590463fa844fb5234c2097c2f",
+    "backend/tests/unit/test_assistance_domain.py": "afabe3545e47eab5101551b1642855143d71e9fd910da0ba8f213a9b78a89dc8",
+    "backend/tests/unit/test_assistance_races.py": "c874ce32de889cbdf2abd6066a789bfd831e895cf68106d3698e84c100dbb371",
+    "backend/tests/unit/test_assistance_review_fixes.py": "df2f7d39b058b20b6ac2eee151319600be8a9f262e85c0bddb5cdf1e1784a690",
+    "backend/tests/unit/test_assistance_service.py": "a40bf516bd7232f7e641ef0168764f7b61ade0e0a895c0a7b03a74b60abfdaac",
+    "backend/tests/contract/test_assistance_request_contracts.py": "30b6eedc5ad11d7b26746782e59794614bf9feedc440e5894ec694f0d2c05ffc",
+    "backend/tests/contract/test_assistance_requests_api.py": "7dd80544c9fd6f142c2510108d669298de6e0d87d94b61b373bd7c5901d3df8a",
+    "features/FEAT-049-be2-assistance-orchestration/fixtures/h_ai_review/assistance_handoff_examples.json": "9bbfe99cfb436040da8c053d99cb54bb7ce2c8e19643eae8de314d4bbeae5b06",
+    "features/FEAT-049-be2-assistance-orchestration/plan/PLAN_REV3_APPROVED.md": "e1fce645a5d8c98efe366865f5a8a1b9c81c8a48626723c4e73f0c646979d3e5",
+    "features/FEAT-049-be2-assistance-orchestration/approvals/TASK_APPROVAL.md": "f6a266c9a01c6a6c2432765ff50a866618bb05221aed933e4113e2bff8a23501"
+  }
+}

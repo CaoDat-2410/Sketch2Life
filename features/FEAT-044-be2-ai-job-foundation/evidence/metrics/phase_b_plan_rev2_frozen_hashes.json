@@ -1,0 +1,154 @@
+{
+  "recorded_at": "2026-10-15T00:35:09.470851+07:00",
+  "source": "metrics/CODEX_Q00_FINAL_CODE_REVIEW_20261014.json",
+  "files": 24,
+  "all_match": true,
+  "rows": [
+    {
+      "path": "backend/src/sketch2life/application/ports/ai_jobs.py",
+      "frozen": "de806e0cc19a275dd584e5a6f1250d8d53c2a899597a07b5b5a2f32dc7a6cbcb",
+      "current": "de806e0cc19a275dd584e5a6f1250d8d53c2a899597a07b5b5a2f32dc7a6cbcb",
+      "match": true
+    },
+    {
+      "path": "backend/src/sketch2life/application/services/ai_jobs.py",
+      "frozen": "c6b4f1e1693f4ff87acd933e9b09df1c16100c47734f6890a2b3e931066ef512",
+      "current": "c6b4f1e1693f4ff87acd933e9b09df1c16100c47734f6890a2b3e931066ef512",
+      "match": true
+    },
+    {
+      "path": "backend/src/sketch2life/application/services/provider_copy_lifecycle.py",
+      "frozen": "c45ad24934b848ce1f4a6357daec925a2e70543d66d5bb8b85cae75a0201d73e",
+      "current": "c45ad24934b848ce1f4a6357daec925a2e70543d66d5bb8b85cae75a0201d73e",
+      "match": true
+    },
+    {
+      "path": "backend/src/sketch2life/contracts/schemas/ai_contract_candidates.py",
+      "frozen": "7bbe68aae583f2bf30b62a94108940aa5374ffe2be4a2dbb1d3500331615426c",
+      "current": "7bbe68aae583f2bf30b62a94108940aa5374ffe2be4a2dbb1d3500331615426c",
+      "match": true
+    },
+    {
+      "path": "backend/src/sketch2life/contracts/schemas/ai_jobs.py",
+      "frozen": "15025b1386ba2781204ad41655c1dec135b28672845bac1a3744d1b8ad1e9c5f",
+      "current": "15025b1386ba2781204ad41655c1dec135b28672845bac1a3744d1b8ad1e9c5f",
+      "match": true
+    },
+    {
+      "path": "backend/src/sketch2life/domain/ai_jobs/__init__.py",
+      "frozen": "301c97c4a3a0308350dd857f39f94fd8f1b5cc45820a9fa8b4c6e4caee0b2748",
+      "current": "301c97c4a3a0308350dd857f39f94fd8f1b5cc45820a9fa8b4c6e4caee0b2748",
+      "match": true
+    },
+    {
+      "path": "backend/src/sketch2life/domain/ai_jobs/completion.py",
+      "frozen": "b3e1a78d2a93227d09e4db3fed4b77bc4d1c3775f54f519f68fd762ceb3ec62b",
+      "current": "b3e1a78d2a93227d09e4db3fed4b77bc4d1c3775f54f519f68fd762ceb3ec62b",
+      "match": true
+    },
+    {
+      "path": "backend/src/sketch2life/domain/ai_jobs/model.py",
+      "frozen": "a60692c2f4deab068471a35dcf58abe777400e8bd4575beb9fbf8c3a7c078c8b",
+      "current": "a60692c2f4deab068471a35dcf58abe777400e8bd4575beb9fbf8c3a7c078c8b",
+      "match": true
+    },
+    {
+      "path": "backend/src/sketch2life/domain/ai_jobs/provider_copy.py",
+      "frozen": "2c55b67e0a036b4e7786094d5e1bc59a2b3d81ecfc75f24aaaa03a4296ee1ddd",
+      "current": "2c55b67e0a036b4e7786094d5e1bc59a2b3d81ecfc75f24aaaa03a4296ee1ddd",
+      "match": true
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/ai_jobs/__init__.py",
+      "frozen": "22375802e5b6353e0531b8dfcc8034260672783edd3df6b20c55914fbc1cad78",
+      "current": "22375802e5b6353e0531b8dfcc8034260672783edd3df6b20c55914fbc1cad78",
+      "match": true
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/ai_jobs/fakes.py",
+      "frozen": "af78a5bbdbb3bea3fa2bd57cf6b52ceffce22312fa1a7546319eec4d564a22b1",
+      "current": "af78a5bbdbb3bea3fa2bd57cf6b52ceffce22312fa1a7546319eec4d564a22b1",
+      "match": true
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/ai_jobs/harness.py",
+      "frozen": "f60eb285f39e53906c5123533bd0663dbd2263609e9f0ac0c988cb9a8f5ad90f",
+      "current": "f60eb285f39e53906c5123533bd0663dbd2263609e9f0ac0c988cb9a8f5ad90f",
+      "match": true
+    },
+    {
+      "path": "backend/src/sketch2life/interfaces/http/ai_jobs_fixture_app.py",
+      "frozen": "7ee82e3c80d3ba892b9b532961786832f747cf1a627a245cb20c90d85e6d1d03",
+      "current": "7ee82e3c80d3ba892b9b532961786832f747cf1a627a245cb20c90d85e6d1d03",
+      "match": true
+    },
+    {
+      "path": "backend/src/sketch2life/interfaces/http/routers/ai_jobs.py",
+      "frozen": "8f90789fe6bc5abbd5b1f2d489c201dd99def252ad2182d591a2becbbc7641b6",
+      "current": "8f90789fe6bc5abbd5b1f2d489c201dd99def252ad2182d591a2becbbc7641b6",
+      "match": true
+    },
+    {
+      "path": "backend/tests/contract/test_ai_job_contracts.py",
+      "frozen": "a65c552542fcdc11a3b3340d1873fcc9085de78a533af25e95326f6cf149af79",
+      "current": "a65c552542fcdc11a3b3340d1873fcc9085de78a533af25e95326f6cf149af79",
+      "match": true
+    },
+    {
+      "path": "backend/tests/contract/test_ai_job_polling.py",
+      "frozen": "26ba77564276802fd2d4c19958442d6094cf563ea5cb5392760a416e2b95bb25",
+      "current": "26ba77564276802fd2d4c19958442d6094cf563ea5cb5392760a416e2b95bb25",
+      "match": true
+    },
+    {
+      "path": "backend/tests/unit/test_ai_job_application.py",
+      "frozen": "3a7760dfa7bc3f6c21a59ae91e69805708372dcafdaffd3152c2a5f650bdc57f",
+      "current": "3a7760dfa7bc3f6c21a59ae91e69805708372dcafdaffd3152c2a5f650bdc57f",
+      "match": true
+    },
+    {
+      "path": "backend/tests/unit/test_ai_job_lifecycle.py",
+      "frozen": "d9535a7f109e0889d7c775abd6b25361f97479286286b409e78a3eaadb46ee37",
+      "current": "d9535a7f109e0889d7c775abd6b25361f97479286286b409e78a3eaadb46ee37",
+      "match": true
+    },
+    {
+      "path": "backend/tests/unit/test_ai_job_review_regressions.py",
+      "frozen": "dab50ea145eb06e11f35fd8e4966ea567e4a386a05c25b43783409ffad770155",
+      "current": "dab50ea145eb06e11f35fd8e4966ea567e4a386a05c25b43783409ffad770155",
+      "match": true
+    },
+    {
+      "path": "features/FEAT-044-be2-ai-job-foundation/approvals/TASK_APPROVAL.md",
+      "frozen": "1ba7f641a7501bffb99c065d137ea4104684e93a95a1bf4a0d7fd785fec71112",
+      "current": "1ba7f641a7501bffb99c065d137ea4104684e93a95a1bf4a0d7fd785fec71112",
+      "match": true
+    },
+    {
+      "path": "features/FEAT-044-be2-ai-job-foundation/plan/PLAN.md",
+      "frozen": "c835986f2a7dc15ac0c724e0b0304e44d3811575fabeffb7863e7e9058cfe766",
+      "current": "c835986f2a7dc15ac0c724e0b0304e44d3811575fabeffb7863e7e9058cfe766",
+      "match": true
+    },
+    {
+      "path": "features/FEAT-044-be2-ai-job-foundation/src/fixture_catalog.py",
+      "frozen": "272dd88a4d90d55b1f9d81f5665bf6dac8afdd2abd35e1fe96a6da47298e93f2",
+      "current": "272dd88a4d90d55b1f9d81f5665bf6dac8afdd2abd35e1fe96a6da47298e93f2",
+      "match": true
+    },
+    {
+      "path": "features/FEAT-044-be2-ai-job-foundation/src/run_fixture_contracts.py",
+      "frozen": "34010ffb6b6714e4e5c30949752809fbf1a6f6a90944d2db460fc1b12c0b2975",
+      "current": "34010ffb6b6714e4e5c30949752809fbf1a6f6a90944d2db460fc1b12c0b2975",
+      "match": true
+    },
+    {
+      "path": "backend/tests/unit/test_ai_job_q00_followups.py",
+      "frozen": "ecc9638cf84d7ea41f6888c6d14bc6fccd075e1174cb722f511d474a74d05269",
+      "current": "ecc9638cf84d7ea41f6888c6d14bc6fccd075e1174cb722f511d474a74d05269",
+      "match": true
+    }
+  ],
+  "phase_b_rev1_archive_sha256": "cdbb2be692dcb8528438009d578cd2c904801ad9e74ccee3809290d57ffb7ec0",
+  "rev1_archive_matches_reviewed": true
+}

@@ -1,8 +1,8 @@
 # Sketch2Life — Master SRS Markdown context
 
-## Canonical replacement — 2026-10-10
+## Canonical replacement — 2026-10-10; current amendment — 2026-10-24
 
-Owner explicitly replaced scope and kept Android/FastAPI/React Native. FEAT-039 updates this feature's canonical SRS to v3.1 for ages 3–12, Child/Teacher/Super Admin, classroom/groups/collaborative canvas/adaptive sketch/knowledge video/off-screen/portfolio. Documentation revision 3 adds detailed system-foundation sections B19–B26; owner selected one-school pilot, managed child profiles + QR/code without own login and school-mediated consent evidence/purposes. Exact v2.0 and v3.0 are preserved under FEAT-039. Older decisions below remain historical; conflicting product targets do not override v3.1. Detailed architecture/schema/contracts and unanswered policy remain proposed/TBD; source runtime is unchanged. Approval, source review, analysis, verification and current status are owned by FEAT-039.
+Owner explicitly replaced scope and kept Android/FastAPI/React Native. FEAT-039's SRS v3.1 baseline covers ages 3–12, Child/Teacher/Super Admin, classroom/groups/collaborative canvas/adaptive sketch/knowledge video/off-screen/portfolio, with B19–B26 system-foundation detail. On 2026-10-24, owner-authorized revision 5 published SRS v3.3/B28, adding six classroom policies: atomically revoke pending joins at Start; shared room-code controls and rate-limit threshold; next-stage-only progression with interleaved/`not_needed` Assistance; interim no-rewind until OD07 is resolved; mandatory `save_draft` for unfinished groups; and mandatory early-stop reason category with optional note. Exact v3.2 remains preserved in FEAT-039. API/schema/guard/migration contracts remain BE1 review gates; source runtime is unchanged by the SRS update. Approval, source review, analysis, verification and current status are owned by FEAT-039.
 
 Owner also confirmed age 36–155 completed months inclusive, a pilot capacity target of one class/up to 40 children, and default session/artwork retention 90 days after end. Separate portfolio/profile/audit/copy policies and measured device/model/load evidence remain gates.
 

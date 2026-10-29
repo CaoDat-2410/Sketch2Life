@@ -1,0 +1,66 @@
+{
+  "date": "2026-10-23",
+  "target": {
+    "ref": "dev",
+    "initial_sha": "f220781876472950093856e97bbdaaec5170a7c1",
+    "final_sha": "0a7ce768c153f2104cff930569c3eda6e484532c",
+    "commits_ahead_of_origin_dev": 726,
+    "pushed": false
+  },
+  "sources": [
+    {
+      "ref": "origin/feature/be2-backend-ai-integration",
+      "sha": "aa41ed6f481a6d4a797609e588137c94a7c778d7",
+      "result": "fast-forward"
+    },
+    {
+      "ref": "origin/FE_UI_Child",
+      "sha": "ca3779869dfc1385cbbc7b8ca730f780386af7b2",
+      "merge_commit": "0a7ce768c153f2104cff930569c3eda6e484532c",
+      "result": "merged after newly pushed source refreshed; adds apps/child-ui"
+    },
+    {
+      "ref": "origin/FE_UI_Teacher",
+      "sha": "a5c7fa84c9d05f66f6278954d2fc6b5bb4fc8f62",
+      "merge_commit": "a392059be0fd601ad09f0c5d4e62b26602106c71",
+      "result": "merged"
+    },
+    {
+      "ref": "origin/FE_UI_Admin",
+      "sha": "2bb2ab4bb7d1d09b93e566e9b519cd006984ca85",
+      "merge_commit": "32d8bc7ac153d8333e5624126b6ce18ad352b1cb",
+      "result": "merged"
+    }
+  ],
+  "tree_delta_from_be1_base": {
+    "files_changed": 2505,
+    "insertions": 322976,
+    "deletions": 4
+  },
+  "child_ui_merge": {
+    "files_changed": 166,
+    "insertions": 11112,
+    "deletions": 0,
+    "framework": "Expo SDK 55 / React Native 0.83.10",
+    "api_client": "stubbed; local fixture-backed UI"
+  },
+  "validation": {
+    "prior_merge_tree_repository_security": "pass; see preexisting merge evidence",
+    "post_merge_application_builds_and_tests": "not-run",
+    "pushed": false,
+    "pull_request_created": false,
+    "modal_endpoint_tested": false
+  },
+  "document_baseline": {
+    "required_tag": "review-2 TBD",
+    "modal_deployment": "TBD per owner",
+    "class": "blank in supplied registration",
+    "working_project_identifier": "FA26SE225 (inferred from registration filename)"
+  },
+  "workspace_preservation": {
+    "no_push_or_pr": true,
+    "no_runtime_source_edit": true,
+    "dirty_workspace_preserved": true,
+    "local_stash_backup": "b881880442fbef6bf86772f9681692172fbbcfe6"
+  }
+}

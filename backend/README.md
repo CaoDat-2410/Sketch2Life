@@ -17,11 +17,13 @@ FEAT-047 exposes the durable BE1 API under `/api/be1/v1`. It requires PostgreSQL
 ```powershell
 cd backend
 $env:SKETCH2LIFE_DATABASE_URL = "postgresql+psycopg://<user>:<password>@<host>:5432/<database>"
-.\.venv\Scripts\alembic.exe upgrade head
-.\.venv\Scripts\uvicorn.exe sketch2life.main:app --host 127.0.0.1 --port 8000
+.\.venv\Scripts\alembic.exe upgrade be1_core@head
+.\.venv\Scripts\uvicorn.exe sketch2life.main:app --host 127.0.0.1 --port 8000 --no-proxy-headers
 ```
 
 Configure Firebase Authentication with `SKETCH2LIFE_AUTH_PROVIDER=firebase`, `SKETCH2LIFE_FIREBASE_PROJECT_ID`, and either Application Default Credentials or the ignored local credentials file setting. The bootstrap command accepts a Firebase ID token interactively and provisions the first organization administrator without persisting the token:
+
+The shared six-digit classroom code requires `SKETCH2LIFE_ROOM_CODE_HMAC_KEY` with at least 32 random bytes from the ignored local environment or runtime secret manager. BE1 stores only an HMAC digest. Forwarded-IP headers are ignored; before deployment behind a proxy, configure a reviewed trusted-proxy boundary so `request.client.host` is the originating client address. Rotating this key invalidates active room codes; Teachers can issue a replacement while the room is still in Lobby.
 
 ```powershell
 python -m sketch2life.infrastructure.persistence.be1_bootstrap "<organization name>"

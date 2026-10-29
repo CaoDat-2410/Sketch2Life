@@ -23,14 +23,19 @@ from sketch2life.application.ports.identity import VerifiedPrincipal
 from sketch2life.infrastructure.config.settings import get_core_database_settings, get_settings
 from sketch2life.infrastructure.persistence.be1_models import (
     AdultIdentityModel,
+    Be1GroupDraftModel,
+    Be1RoomCodeModel,
+    Be1RoomCodeRateLimitModel,
     ClassroomSessionModel,
     ConsentRecordModel,
     DataLifecycleRequestModel,
     DeviceGrantModel,
     EnrollmentModel,
+    GallerySnapshotModel,
     ManagedProfileModel,
     OrganizationAssignmentModel,
     OrganizationModel,
+    SessionMembershipModel,
 )
 from sketch2life.infrastructure.persistence.be1_worker import run_retention_once
 from sketch2life.infrastructure.persistence.core_models import (
@@ -62,6 +67,7 @@ def acceptance_client(monkeypatch: pytest.MonkeyPatch, tmp_path) -> Iterator[Acc
     monkeypatch.setenv("SKETCH2LIFE_DATABASE_URL", database_url)
     monkeypatch.setenv("SKETCH2LIFE_AUTH_PROVIDER", "development")
     monkeypatch.setenv("SKETCH2LIFE_ENV", "test")
+    monkeypatch.setenv("SKETCH2LIFE_ROOM_CODE_HMAC_KEY", "synthetic-test-key-" + "x" * 40)
     monkeypatch.setenv("SKETCH2LIFE_BE1_ARTIFACT_ROOT", str(tmp_path / "artifacts"))
     get_settings.cache_clear()
     get_core_database_settings.cache_clear()
@@ -108,7 +114,9 @@ def acceptance_client(monkeypatch: pytest.MonkeyPatch, tmp_path) -> Iterator[Acc
         return principal
 
     app.dependency_overrides[get_verified_adult] = verified_test_adult
-    with TestClient(app) as client:
+    random_ip = uuid4().int
+    test_ip = f"10.{random_ip % 254 + 1}.{(random_ip >> 8) % 254 + 1}.{(random_ip >> 16) % 254 + 1}"
+    with TestClient(app, client=(test_ip, 12345)) as client:
         yield AcceptanceClient(app, client, organization_id, subject)
     app.dependency_overrides.clear()
     runtime.engine.dispose()
@@ -279,14 +287,14 @@ def test_real_http_writes_audits_outbox_and_enforces_assignment_scope(
     assert openapi_response.status_code == 200
     openapi = openapi_response.json()
     be1_paths = [path for path in openapi["paths"] if path.startswith("/api/be1/v1/")]
-    assert len(be1_paths) == 42
+    assert len(be1_paths) == 50
     be1_operations = sum(
         1
         for path in be1_paths
         for method in openapi["paths"][path]
         if method in {"get", "post", "put", "patch", "delete"}
     )
-    assert be1_operations == 47
+    assert be1_operations == 55
     assert "HTTPBearer" in openapi["components"]["securitySchemes"]
     error_schema = openapi["components"]["schemas"]["Be1Error"]
     assert set(error_schema["properties"]) == {"code", "message", "request_id"}
@@ -298,6 +306,355 @@ def test_real_http_writes_audits_outbox_and_enforces_assignment_scope(
         "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/artifacts/{asset_ref}"
     ]["get"]["responses"]
     assert "410" in download_response
+
+
+def test_room_code_start_revocation_stage_and_early_outcome_are_durable(
+    acceptance_client: AcceptanceClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import sketch2life.interfaces.http.routers.be1_sessions as be1_sessions
+
+    monkeypatch.setattr(be1_sessions, "consent_is_effective", lambda *args, **kwargs: True)
+    accepted = acceptance_client
+    client = accepted.client
+    class_response = client.post(_url(accepted, "/classes"), json={"display_name": "Join Test"})
+    assert class_response.status_code == 201, class_response.text
+    class_id = class_response.json()["class_id"]
+    created = client.post(
+        _url(accepted, "/sessions"),
+        json={"class_id": class_id, "purpose_ref": "synthetic-purpose", "configuration": {}},
+    )
+    assert created.status_code == 201, created.text
+    session_id = created.json()["session_id"]
+    assert client.post(
+        _url(accepted, f"/sessions/{session_id}/lobby"), json={"expected_revision": 1}
+    ).status_code == 200
+
+    first_code = client.post(
+        _url(accepted, f"/sessions/{session_id}/room-code/rotate")
+    )
+    assert first_code.status_code == 200, first_code.text
+    retired_code = first_code.json()["room_code"]
+    second_code = client.post(
+        _url(accepted, f"/sessions/{session_id}/room-code/rotate")
+    )
+    assert second_code.status_code == 200, second_code.text
+    room_code = second_code.json()["room_code"]
+    assert len(room_code) == 6 and room_code.isascii() and room_code.isdigit()
+
+    retired_join = client.post(
+        "/api/be1/v1/room-code/join",
+        json={"room_code": retired_code, "device_key": "synthetic-device-retired-code"},
+    )
+    assert retired_join.status_code == 404
+    assert room_code not in retired_join.text and "session_id" not in retired_join.json()
+
+    device_key = "synthetic-device-admitted-key-0001"
+    join = client.post(
+        "/api/be1/v1/room-code/join",
+        json={"room_code": room_code, "device_key": device_key},
+    )
+    assert join.status_code == 202, join.text
+    assert join.json()["state"] == "pending"
+    assert "organization_id" not in join.json() and "session_id" not in join.json()
+    duplicate = client.post(
+        "/api/be1/v1/room-code/join",
+        json={"room_code": room_code, "device_key": device_key},
+    )
+    assert duplicate.status_code == 202
+    assert duplicate.json()["grant_id"] == join.json()["grant_id"]
+
+    pending_key = "synthetic-device-pending-key-0002"
+    pending = client.post(
+        "/api/be1/v1/room-code/join",
+        json={"room_code": room_code, "device_key": pending_key},
+    )
+    assert pending.status_code == 202 and pending.json()["grant_id"] != join.json()["grant_id"]
+
+    group = client.post(
+        _url(accepted, f"/sessions/{session_id}/groups"), json={"display_name": "Team A"}
+    )
+    assert group.status_code == 201, group.text
+    group_id = group.json()["group_id"]
+    child_id = f"synthetic-child-{uuid4()}"
+    consent_id = str(uuid4())
+    with accepted.app.state.be1_runtime.session_factory.begin() as db:
+        db.add(
+            ConsentRecordModel(
+                consent_id=consent_id,
+                organization_id=accepted.organization_id,
+                class_id=class_id,
+                child_id=child_id,
+                purpose_ref="synthetic-purpose",
+                state="pending",
+                recorded_by=accepted.subject,
+            )
+        )
+        db.add(
+            ManagedProfileModel(
+                child_id=child_id,
+                organization_id=accepted.organization_id,
+                class_id=class_id,
+                display_name="Synthetic Admitted Child",
+                age_months=72,
+                consent_id=consent_id,
+                consent_purpose_ref="synthetic-purpose",
+                created_by=accepted.subject,
+            )
+        )
+    admission = client.post(
+        _url(accepted, f"/sessions/{session_id}/join-requests/{join.json()['grant_id']}/admit"),
+        json={"child_id": child_id},
+    )
+    assert admission.status_code == 200, admission.text
+    session = client.get(_url(accepted, f"/sessions/{session_id}")).json()
+    assignment = client.put(
+        _url(accepted, f"/sessions/{session_id}/groups/{group_id}/members/{child_id}"),
+        json={"child_id": child_id, "expected_revision": session["revision"]},
+    )
+    assert assignment.status_code == 200, assignment.text
+
+    before_start = client.get(
+        _url(accepted, f"/sessions/{session_id}/learning-stage")
+    ).json()
+    assert (before_start["stage"], before_start["stage_revision"]) == ("join", 2)
+    session_revision = client.get(_url(accepted, f"/sessions/{session_id}")).json()["revision"]
+    started = client.post(
+        _url(accepted, f"/sessions/{session_id}/start"),
+        json={"expected_revision": session_revision},
+    )
+    assert started.status_code == 200, started.text
+    stage = client.get(_url(accepted, f"/sessions/{session_id}/learning-stage")).json()
+    assert (stage["stage"], stage["stage_revision"], stage["lifecycle_state"]) == (
+        "explore_draw", 3, "active"
+    )
+    pending_status = client.post(
+        f"/api/be1/v1/device-grants/{pending.json()['grant_id']}/join-status",
+        headers={"X-Be1-Device-Key": pending_key},
+    )
+    assert pending_status.status_code == 200
+    assert pending_status.json()["state"] == "revoked"
+    assert "session_id" not in pending_status.json()
+    admitted_status = client.post(
+        f"/api/be1/v1/device-grants/{join.json()['grant_id']}/join-status",
+        headers={"X-Be1-Device-Key": device_key},
+    )
+    assert admitted_status.status_code == 200
+    assert admitted_status.json()["state"] == "admitted"
+    assert admitted_status.json()["session_id"] == session_id
+
+    new_qr_join = client.post(
+        _url(accepted, f"/sessions/{session_id}/join"),
+        json={
+            "join_code": created.json()["join_code"],
+            "device_key": "synthetic-device-new-qr-key",
+        },
+    )
+    assert new_qr_join.status_code == 404
+    closed_code_join = client.post(
+        "/api/be1/v1/room-code/join",
+        json={"room_code": room_code, "device_key": "synthetic-device-late-code-key"},
+    )
+    assert closed_code_join.status_code == 404
+
+    skip = client.post(
+        _url(accepted, f"/sessions/{session_id}/learning-stage/advance"),
+        headers={"Idempotency-Key": "skip-stage-test"},
+        json={
+            "expected_stage_revision": 3,
+            "target_stage": "sharing",
+            "unfinished_group_ids": [],
+        },
+    )
+    assert skip.status_code == 409 and skip.json()["code"] == "INVALID_STAGE_TRANSITION"
+
+    turn = client.post(_url(accepted, f"/sessions/{session_id}/groups/{group_id}/turns/{child_id}"))
+    assert turn.status_code == 200, turn.text
+    advance_body = {
+        "expected_stage_revision": 3,
+        "target_stage": "assistance",
+        "unfinished_group_ids": [group_id],
+        "unfinished_group_disposition": "save_draft",
+    }
+    no_drawing = client.post(
+        _url(accepted, f"/sessions/{session_id}/learning-stage/advance"),
+        headers={"Idempotency-Key": "draw-stage-before-save"},
+        json=advance_body,
+    )
+    assert no_drawing.status_code == 409
+    assert no_drawing.json()["code"] == "DRAWING_RECEIPT_REQUIRED"
+
+    operation_id = str(uuid4())
+    drawing = client.post(
+        _url(accepted, f"/sessions/{session_id}/canvas/operations"),
+        headers={
+            "X-Be1-Grant": join.json()["grant_id"],
+            "X-Be1-Device-Key": device_key,
+            "Idempotency-Key": operation_id,
+        },
+        json={
+            "operation_id": operation_id,
+            "turn_id": turn.json()["turn_id"],
+            "document_epoch": 1,
+            "expected_revision": 1,
+            "operation_payload": {"type": "stroke", "points": [{"x": 12, "y": 18}]},
+        },
+    )
+    assert drawing.status_code == 200, drawing.text
+    assert drawing.json()["status"] == "accepted"
+
+    first_advance = client.post(
+        _url(accepted, f"/sessions/{session_id}/learning-stage/advance"),
+        headers={"Idempotency-Key": "draw-stage-save-draft"},
+        json=advance_body,
+    )
+    assert first_advance.status_code == 200, first_advance.text
+    assert first_advance.json()["stage"] == "assistance"
+    assert len(first_advance.json()["saved_drafts"]) == 1
+    draft_replay = client.post(
+        _url(accepted, f"/sessions/{session_id}/learning-stage/advance"),
+        headers={"Idempotency-Key": "draw-stage-save-draft"},
+        json=advance_body,
+    )
+    assert draft_replay.status_code == 200 and draft_replay.json() == first_advance.json()
+
+    assistance = client.post(
+        _url(accepted, f"/sessions/{session_id}/learning-stage/advance"),
+        headers={"Idempotency-Key": "assistance-not-needed"},
+        json={
+            "expected_stage_revision": 4,
+            "target_stage": "sharing",
+            "assistance_disposition": "not_needed",
+            "unfinished_group_ids": [group_id],
+            "unfinished_group_disposition": "save_draft",
+        },
+    )
+    assert assistance.status_code == 200, assistance.text
+    assert assistance.json()["stage"] == "sharing"
+
+    with accepted.app.state.be1_runtime.session_factory.begin() as db:
+        db.add(
+            GallerySnapshotModel(
+                gallery_id=str(uuid4()),
+                organization_id=accepted.organization_id,
+                session_id=session_id,
+                artifact_ref="synthetic-artifact-ref",
+                audience="class",
+                contributor_refs=[child_id],
+                state="published",
+                created_by=accepted.subject,
+            )
+        )
+    sharing = client.post(
+        _url(accepted, f"/sessions/{session_id}/learning-stage/advance"),
+        headers={"Idempotency-Key": "sharing-published-gallery"},
+        json={
+            "expected_stage_revision": 5,
+            "target_stage": "knowledge",
+            "unfinished_group_ids": [group_id],
+            "unfinished_group_disposition": "save_draft",
+        },
+    )
+    assert sharing.status_code == 200, sharing.text
+    assert sharing.json()["stage"] == "knowledge"
+    gated_stage = client.post(
+        _url(accepted, f"/sessions/{session_id}/learning-stage/advance"),
+        headers={"Idempotency-Key": "knowledge-contract-gate"},
+        json={
+            "expected_stage_revision": 6,
+            "target_stage": "off_screen",
+            "unfinished_group_ids": [group_id],
+            "unfinished_group_disposition": "save_draft",
+        },
+    )
+    assert gated_stage.status_code == 409
+    assert gated_stage.json()["code"] == "SRS_STAGE_CONTRACT_UNAVAILABLE"
+
+    invalid_code = "000000" if room_code != "000000" else "000001"
+    for _ in range(8):
+        response = client.post(
+            "/api/be1/v1/room-code/join",
+            json={"room_code": invalid_code, "device_key": "synthetic-device-invalid-key"},
+        )
+        assert response.status_code == 404
+    limited = client.post(
+        "/api/be1/v1/room-code/join",
+        json={"room_code": invalid_code, "device_key": "synthetic-device-invalid-key"},
+    )
+    assert limited.status_code == 429
+
+    missing_reason = client.post(
+        _url(accepted, f"/sessions/{session_id}/completion"),
+        headers={"Idempotency-Key": "early-end-reason-required"},
+        json={"expected_stage_revision": 6, "outcome": "ended_early"},
+    )
+    assert missing_reason.status_code == 422
+    premature_completion = client.post(
+        _url(accepted, f"/sessions/{session_id}/completion"),
+        headers={"Idempotency-Key": "completed-stage-required"},
+        json={"expected_stage_revision": 6, "outcome": "completed"},
+    )
+    assert premature_completion.status_code == 409
+    assert premature_completion.json()["code"] == "COMPLETION_STAGE_REQUIRED"
+
+    ended = client.post(
+        _url(accepted, f"/sessions/{session_id}/completion"),
+        headers={"Idempotency-Key": "early-end-test"},
+        json={
+            "expected_stage_revision": 6,
+            "outcome": "ended_early",
+            "reason_category": "technical",
+        },
+    )
+    assert ended.status_code == 200, ended.text
+    assert ended.json()["outcome"] == "ended_early"
+    replay = client.post(
+        _url(accepted, f"/sessions/{session_id}/completion"),
+        headers={"Idempotency-Key": "early-end-test"},
+        json={
+            "expected_stage_revision": 6,
+            "outcome": "ended_early",
+            "reason_category": "technical",
+        },
+    )
+    assert replay.status_code == 200 and replay.json() == ended.json()
+    mismatch = client.post(
+        _url(accepted, f"/sessions/{session_id}/completion"),
+        headers={"Idempotency-Key": "early-end-test"},
+        json={"expected_stage_revision": 6, "outcome": "ended_early", "reason_category": "time"},
+    )
+    assert mismatch.status_code == 409 and mismatch.json()["code"] == "IDEMPOTENCY_KEY_REUSED"
+
+    with accepted.app.state.be1_runtime.session_factory() as db:
+        stored_code = db.get(Be1RoomCodeModel, session_id)
+        stored_pending = db.get(DeviceGrantModel, pending.json()["grant_id"])
+        stored_admitted = db.get(DeviceGrantModel, join.json()["grant_id"])
+        assert stored_code is not None and len(stored_code.room_code_hmac) == 64
+        assert stored_code.room_code_hmac != room_code
+        assert stored_pending is not None and stored_pending.state == "revoked"
+        assert stored_admitted is not None and stored_admitted.state == "admitted"
+        stored_attempts = db.scalar(select(Be1RoomCodeRateLimitModel.attempts))
+        assert stored_attempts is not None and len(stored_attempts) == 10
+        stored_draft = db.get(Be1GroupDraftModel, first_advance.json()["saved_drafts"][0])
+        assert stored_draft is not None and stored_draft.disposition == "save_draft"
+        assert stored_draft.durable_canvas_refs[0]["turn_id"] == turn.json()["turn_id"]
+        assert stored_draft.durable_canvas_refs[0]["accepted_revision"] == 2
+        assert len(
+            db.scalars(
+                select(Be1GroupDraftModel).where(
+                    Be1GroupDraftModel.organization_id == accepted.organization_id,
+                    Be1GroupDraftModel.session_id == session_id,
+                    Be1GroupDraftModel.group_id == group_id,
+                )
+            ).all()
+        ) == 3
+        membership = db.scalar(
+            select(SessionMembershipModel).where(SessionMembershipModel.session_id == session_id)
+        )
+        assert membership is not None and membership.group_id == group_id
+
+    outcome = client.get(_url(accepted, f"/sessions/{session_id}/outcome"))
+    assert outcome.status_code == 200
+    assert outcome.json()["outcome"]["value"] == "ended_early"
 
 
 def test_pending_consent_stays_pending_and_blocks_profile_admission_and_canvas(

@@ -1,0 +1,18 @@
+sequenceDiagram
+  participant C as Child UI
+  participant T as Teacher UI
+  participant API as FastAPI
+  participant APP as Application and domain
+  participant DB as PostgreSQL
+  participant W as AI worker / Modal
+  T->>API: Configure session and issue join code
+  C->>API: Request admission
+  T->>API: Admit participant
+  API->>APP: Authorize and validate command
+  APP->>DB: Persist membership and session state
+  C->>API: Submit drawing operation with selected contributor context
+  API->>APP: Check scope, epoch and idempotency
+  APP->>DB: Commit accepted operation and receipt
+  DB-->>APP: Durable sequence / receipt
+  APP-->>C: Accepted result
+  APP-->>W: Optional AI job through backend-owned port (proposed)

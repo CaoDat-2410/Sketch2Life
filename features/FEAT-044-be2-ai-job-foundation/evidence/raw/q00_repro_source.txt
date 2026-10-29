@@ -1,0 +1,231 @@
+"""Q00 repro for review findings R01-R11. Prints JSON {id: {defect_present, observed}}.
+
+Uses only APIs that exist both before and after the fixes. Synthetic data, fresh harness each case.
+"""
+from __future__ import annotations
+
+import json
+import sys
+import threading
+import time
+from dataclasses import replace
+from pathlib import Path
+
+ROOT = Path(sys.argv[1]).resolve()
+sys.path.insert(0, str(ROOT / "backend/src"))
+sys.path.insert(0, str(ROOT / "features/FEAT-044-be2-ai-job-foundation/src"))
+
+import sketch2life  # noqa: E402
+from sketch2life.application.services.ai_jobs import AiJobError  # noqa: E402
+from sketch2life.contracts.schemas.ai_contract_candidates import check_shape  # noqa: E402
+from sketch2life.contracts.schemas.ai_jobs import AsyncJobChildViewV1, AsyncJobViewV1  # noqa: E402
+from sketch2life.domain.ai_jobs.provider_copy import CopyKind, ProviderCopy  # noqa: E402
+from sketch2life.infrastructure.ai_jobs.harness import (  # noqa: E402
+    ORG, OTHER_ORG, TEACHER, build_fixture_harness, request_ref,
+)
+
+FIX = ROOT / "features/FEAT-044-be2-ai-job-foundation/fixtures"
+out: dict[str, dict[str, object]] = {}
+
+
+def rec(rid: str, defect: bool, **observed: object) -> None:
+    out[rid] = {"defect_present": defect, "observed": observed}
+
+
+def guard(rid: str, fn) -> None:  # type: ignore[no-untyped-def]
+    try:
+        fn()
+    except Exception as exc:  # noqa: BLE001
+        rec(rid, True, exception=f"{type(exc).__name__}: {exc}")
+
+
+def r01() -> None:
+    h = build_fixture_harness()
+    j = h.service.create_job(h.create()).job_id
+    m = h.start_next()
+    foreign = h.artifacts.put(OTHER_ORG, b"foreign-org")
+    other_job = h.artifacts.put(ORG, b"same-org-other-job")
+    claim = replace(h.success_claim(m), input_hash="0" * 64, outputs=(foreign, other_job))
+    r = h.service.accept_completion(h.capability(j), claim)
+    h2 = build_fixture_harness()
+    j2 = h2.service.create_job(h2.create()).job_id
+    m2 = h2.start_next()
+    foreign2 = h2.artifacts.put(OTHER_ORG, b"foreign-org")
+    r2 = h2.service.accept_completion(h2.capability(j2),
+                                      replace(h2.success_claim(m2), outputs=(foreign2,)))
+    q = dict(h.artifacts.quarantined)
+    if foreign2.artifact_ref in h2.artifacts.quarantined:
+        q["h2:" + foreign2.artifact_ref] = h2.artifacts.quarantined[foreign2.artifact_ref]
+    rec("R01", foreign.artifact_ref in q or other_job.artifact_ref in q,
+        reasons=[r.reason_code, r2.reason_code], quarantined=sorted(q))
+
+
+def r02() -> None:
+    h = build_fixture_harness()
+    a = h.service.create_job(h.create(key="a"))
+    b = h.service.create_job(h.create(key="b", target="target_fx_other",
+                                     session_id="session_fx_other",
+                                     subjects=("child_fx_other",)))
+    rec("R02", a.job_id == b.job_id, a=a.job_id, b=b.job_id, outcome_b=b.outcome)
+
+
+def r03() -> None:
+    h = build_fixture_harness()
+    j = h.service.create_job(h.create()).job_id
+    m = h.next_message()
+    cap = h.capability(j)
+    claim = h.success_claim(m)
+    first = h.service.accept_completion(cap, claim)
+    h.service.start_attempt(cap, j, m.attempt_id)
+    second = h.service.accept_completion(cap, claim)
+    h2 = build_fixture_harness()
+    j2 = h2.service.create_job(h2.create()).job_id
+    m2 = h2.start_next()
+    good = h2.success_claim(m2)
+    bad = h2.service.accept_completion(h2.capability(j2), replace(good, input_hash="0" * 64))
+    try:
+        corrected = str(h2.service.accept_completion(h2.capability(j2), good).disposition)
+    except AiJobError as exc:
+        corrected = exc.code
+    rec("R03", second.disposition.value != "accepted" or corrected != "accepted",
+        before_start=first.reason_code, after_start=str(second.disposition),
+        mismatch=bad.reason_code, corrected=corrected)
+
+
+def r04() -> None:
+    from fastapi.testclient import TestClient
+
+    from sketch2life.interfaces.http.ai_jobs_fixture_app import create_ai_jobs_fixture_app
+    h = build_fixture_harness()
+    j = h.service.create_job(h.create()).job_id
+    m = h.start_next()
+    h.service.accept_completion(h.capability(j),
+                                h.failure_claim(m, code="http 503 from provider", retryable=False))
+    client = TestClient(create_ai_jobs_fixture_app(h.service, {"t": TEACHER}),
+                        raise_server_exceptions=False)
+    resp = client.get(f"/api/collaboration/v1/jobs/{j}", headers={"Authorization": "Fixture t"})
+    rec("R04", resp.status_code == 500 or "503" in resp.text, http_status=resp.status_code,
+        failure=(resp.json().get("data", {}) or {}).get("failure") if resp.status_code == 200
+        else resp.text[:60])
+
+
+def r05() -> None:
+    h = build_fixture_harness()
+    h.copy_service.register_copy(ProviderCopy("c1", ORG, "s1", CopyKind.OUTPUT, "fixture-deletes"))
+    original = h.copy_adapter.request_purge
+
+    def slow(copy):  # type: ignore[no-untyped-def]
+        time.sleep(0.3)
+        return original(copy)
+
+    h.copy_adapter.request_purge = slow  # type: ignore[method-assign]
+    results: list[str | None] = []
+
+    def run() -> None:
+        results.append(h.copy_service.purge_scope(ORG, "s1", "same")[0].receipt_id)
+
+    threads = [threading.Thread(target=run) for _ in range(2)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    copy = h.copy_registry.get("c1")
+    stored = h.copy_registry.get_purge_receipt(f"{ORG}:s1:same:c1")
+    calls = len(h.copy_adapter.purge_requests)
+    consistent = len(set(results)) == 1 and stored is not None and copy is not None and (
+        copy.receipt_id == stored.receipt_id == results[0])
+    rec("R05", calls != 1 or not consistent, adapter_calls=calls, returned=sorted(map(str, results)),
+        stored=stored.receipt_id if stored else None, copy=copy.receipt_id if copy else None)
+
+
+def r06() -> None:
+    h = build_fixture_harness()
+    h.copy_service.register_copy(ProviderCopy("c1", ORG, "s1", CopyKind.OUTPUT, "fixture-pending"))
+    first = h.copy_service.purge_scope(ORG, "s1", "p1")[0]
+    h.copy_registry.save(replace(h.copy_registry.get("c1"), provider_profile="fixture-deletes"))
+    second = h.copy_service.purge_scope(ORG, "s1", "p2")[0]
+    try:
+        replay = h.copy_service.purge_scope(ORG, "s1", "p1")[0]
+        replay_obs = {"status": replay.status, "receipt": replay.receipt_id}
+        err = None
+    except Exception as exc:  # noqa: BLE001
+        replay_obs, err = None, f"{type(exc).__name__}: {exc}"
+    current = h.copy_registry.get("c1")
+    rec("R06", err is not None or current is None or current.status.value != "deleted"
+        or len(h.copy_adapter.purge_requests) != 2,
+        first=first.status, second=second.status, replay=replay_obs, error=err,
+        current=current.status.value if current else None,
+        adapter_calls=len(h.copy_adapter.purge_requests))
+
+
+def r07() -> None:
+    base = json.loads((FIX / "shapes/positive/DATA-21.json").read_bytes())
+    crashes = []
+    for value in ([], {}, None, 7):
+        try:
+            errs = check_shape("DATA-21", {**base, "request_reason": value})
+            if not errs:
+                crashes.append(f"{value!r}: accepted")
+        except Exception as exc:  # noqa: BLE001
+            crashes.append(f"{value!r}: {type(exc).__name__}")
+    rec("R07", bool(crashes), problems=crashes)
+
+
+def r08() -> None:
+    d = json.loads((FIX / "data25/positive/succeeded_accepted.json").read_bytes())
+    d.update(state="queued", started_at=None, completed_at=None, poll_after_ms=2000)
+    try:
+        AsyncJobViewV1.model_validate_json(json.dumps(d), strict=True)
+        accepted = True
+    except Exception:  # noqa: BLE001
+        accepted = False
+    rec("R08", accepted, queued_with_refs_accepted=accepted)
+
+
+def r09() -> None:
+    h = build_fixture_harness()
+    j = h.service.create_job(h.create()).job_id
+    h.eligibility.revoked_subjects.add("child_fx_001")
+    sent = h.service.dispatch_outbox()
+    with h.store.transaction() as tx:
+        state = tx.get_job(j).state.value  # type: ignore[union-attr]
+    rec("R09", sent != 0 or len(h.queue.messages) != 0, enqueued=sent, state=state)
+
+
+def r10() -> None:
+    h = build_fixture_harness()
+    j = h.service.create_job(h.create()).job_id
+    first = h.service.get_job_status(TEACHER, j)
+    h.clock.advance(seconds=60)
+    later = h.service.get_job_status(TEACHER, j)
+    cond = h.service.get_job_status(TEACHER, j, first.etag)
+    rec("R10", cond.not_modified and first.view["poll_after_ms"] != later.view["poll_after_ms"],  # type: ignore[index]
+        before=first.view["poll_after_ms"], after=later.view["poll_after_ms"],  # type: ignore[index]
+        same_etag=first.etag == later.etag, conditional_304=cond.not_modified)
+
+
+def r11() -> None:
+    base = json.loads((FIX / "data25_child/positive/succeeded_device_projection.json").read_bytes())
+    accepted = []
+    for name, change in {
+        "terminal_polling": {"poll_after_ms": 2000},
+        "failed_without_failure": {"state": "failed_exhausted", "failure": None},
+        "succeeded_with_failure": {"failure": {"code": "PROVIDER_ERROR", "retryable": False,
+                                               "public_message": "x"}},
+    }.items():
+        try:
+            AsyncJobChildViewV1.model_validate_json(json.dumps({**base, **change}), strict=True)
+            accepted.append(name)
+        except Exception:  # noqa: BLE001
+            pass
+    rec("R11", bool(accepted), accepted_invalid=accepted)
+
+
+for fn in (r01, r02, r03, r04, r05, r06, r07, r08, r09, r10, r11):
+    guard(fn.__name__.upper(), fn)
+
+origin = Path(sketch2life.__file__).resolve()
+print(json.dumps({"module_origin_in_worktree": origin.is_relative_to(ROOT),
+                  "module_origin": origin.relative_to(ROOT).as_posix()
+                  if origin.is_relative_to(ROOT) else "OUTSIDE_WORKTREE",
+                  "findings": out}, indent=2, default=str))

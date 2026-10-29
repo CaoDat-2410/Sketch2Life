@@ -1,0 +1,27 @@
+{
+  "scope": "BE2_13_LOCAL_COMPONENT_ONLY",
+  "status": "PASS",
+  "run": "20261019-134513-069772",
+  "implementation_parent": "448e41f",
+  "cases": {"owned": 194, "regression": 2849, "local_pass_total": 3043, "sql_collection_only": 11},
+  "sql_status": "COLLECTED_NOT_RUN",
+  "checks_exit": {"ruff": 0, "mypy": 0, "architecture": 0, "harness": 0, "security": 0, "whitespace": 0},
+  "mypy_owned_modules": 11,
+  "source_files": 829,
+  "source_unchanged": true,
+  "summary_sha256": "a7278a381348c0e2f8c7036014ef855f3e12213752fb86df03fe32830f1fec03",
+  "node_sha256": {
+    "owned": "3c14f1ca16a2b14f628f2dfa8bd54d76cc138cfcc1b225c35d1860e4a674db90",
+    "regression": "812ed73cb7779a1a901c39e8fe6dfd8cd7fe0c61a3d0f7053038c4731cc9e358",
+    "sql_collection_only": "287c75b7d4961e3cbcf80b8870ca455c0475723107913eae151665738c055bb4"
+  },
+  "junit_sha256": {
+    "owned.xml": "ee0e68d5466d9d0c023cf32b7bc3c357a2fea509f4008b878b2d45f1109f12ad",
+    "regression.xml": "9e8686b8307cd237bec144e0ff0a449fde61f3fbbd41e0dd0977fb4c418b051b"
+  },
+  "postgresql": "NOT_RUN",
+  "actual_owner_integration": "NOT_RUN",
+  "actual_session_config_effect": "NOT_RUN",
+  "actual_scheduler": "NOT_RUN",
+  "full_card_complete": false
+}

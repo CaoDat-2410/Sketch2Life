@@ -1,0 +1,25 @@
+flowchart LR
+    subgraph Host[Developer host]
+        AND[Parent Android]
+        WEB[Teacher browser]
+    end
+    subgraph Compose[Docker Compose local]
+        API[FastAPI API]
+        DB[(PostgreSQL 17)]
+        Q[Redis 8 + RQ]
+        WORKER[Worker + FFmpeg]
+        MINIO[(MinIO)]
+        OBS[OpenTelemetry Collector<br/>Prometheus + Grafana]
+    end
+    MODAL[Modal AI functions]
+    AND --> API
+    WEB --> API
+    API --> DB
+    API --> Q
+    Q --> WORKER
+    WORKER --> DB
+    API --> MINIO
+    WORKER --> MINIO
+    WORKER -->|synthetic demo inputs| MODAL
+    API --> OBS
+    WORKER --> OBS

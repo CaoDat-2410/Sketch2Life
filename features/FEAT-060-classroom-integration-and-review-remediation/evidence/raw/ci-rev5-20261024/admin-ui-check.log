@@ -1,0 +1,38 @@
+
+> admin-ui@0.0.0 check
+> npm run build && npm run lint && npm run test
+
+
+> admin-ui@0.0.0 build
+> tsc -b && vite build
+
+vite v8.3.4 building client environment for production...
+transforming...
+✓ 1949 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                               0.45 kB │ gzip:   0.29 kB
+dist/assets/login-logo-icon-CDqVlUzM.png     12.56 kB
+dist/assets/sidebar-logo-USdNTwe9.png        13.20 kB
+dist/assets/login-bg-khhIMwk8.png         1,151.22 kB
+dist/assets/index-oTgasV9j.css               42.94 kB │ gzip:   8.56 kB
+dist/assets/index-lFcSGTiO.js               392.53 kB │ gzip: 122.43 kB
+
+✓ built in 527ms
+
+> admin-ui@0.0.0 lint
+> oxlint
+
+src/pages/ClassesPage.tsx:27:26: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it from the event that caused the change. Use an effect only when synchronizing with an external system.
+
+> admin-ui@0.0.0 test
+> vitest run
+
+
+ RUN  v5.0.5 <workspace>/apps/admin-ui
+
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  20:29:25
+   Duration  1.48s (environment 47%, tests 21%, import 20%, transform 12%)

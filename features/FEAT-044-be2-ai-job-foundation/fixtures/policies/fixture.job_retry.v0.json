@@ -1,0 +1,9 @@
+{
+  "attempt_timeout_ms": 30000,
+  "backoff_base_ms": 1000,
+  "backoff_max_ms": 8000,
+  "backoff_multiplier": 2,
+  "max_attempts": 3,
+  "source": "SRS v3.1 VIDEO_RETRY_BUDGET PROPOSED; timeout fixture-only",
+  "status": "PROPOSED"
+}

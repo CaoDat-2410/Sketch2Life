@@ -1,0 +1,78 @@
+{
+  "asset_id": "A09",
+  "use_case": "ui-mockup",
+  "status": "REVIEW_PENDING",
+  "generated_path": "assets/generated/admin-app/A09-nhat-ky.png",
+  "srs_ui_id": "A09",
+  "screen_kind": "main",
+  "role": "admin-app",
+  "prompt": "assets/prompts/A09.txt",
+  "source_references": [
+    {
+      "path": "features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md",
+      "sha256": "a95c89589843e3555e967c5e486f3bcaf4bbdf9446cb3bc9c49ed16f672964d9",
+      "section": "B23.4"
+    },
+    {
+      "path": "apps/ui-mobile/src/theme.ts",
+      "purpose": "existing design tokens"
+    }
+  ],
+  "generator": "built-in image_gen.imagegen",
+  "captured_at_utc": "2026-10-10T14:20:57.538047+00:00",
+  "generator_output_filename": "exec-57d75a37-83a2-4f19-b9c9-92eafbb94c60.png",
+  "sha256": "d19827bb0e1938ab6df8f8c77a0bb95896cc465a978fd4fac44646fa91ac7fc7",
+  "bytes": 1344426,
+  "width": 1586,
+  "height": 992,
+  "original_copied_unchanged": true,
+  "synthetic_data_only": true,
+  "qa": {
+    "reviewer": "Codex visual inspection",
+    "status": "INSPECTED",
+    "note": "Inspected A09: immutable redacted audit event refs, scoped filter and export, denied access reason with purpose/policy/correlation, no raw child names/media/prompts/tokens/links, no edit/delete history controls. Clear Vietnamese, synthetic timestamps and consistent shell. REVIEW_PENDING."
+  },
+  "review": {
+    "status": "REVIEW_PENDING",
+    "reviewer": null,
+    "reviewed_at": null
+  },
+  "applied_path": null,
+  "limitations": "Generated design proposal; not implemented runtime, approved visual or device acceptance.",
+  "input_images": [
+    {
+      "path": "assets/generated/admin-app/A01-tong-quan.png",
+      "sha256": "e2dc6127bce77e3faa424eeb6c648b6e32ee6c46c0e72780cbc2101d83357956",
+      "role": "style reference",
+      "original_copied_unchanged": true
+    }
+  ],
+  "generation_history": [
+    {
+      "attempt": 1,
+      "prompt": "assets/prompts/history/admin/A09-attempt-01.txt",
+      "generator": "built-in image_gen.imagegen",
+      "input_images": [
+        {
+          "path": "assets/generated/admin-app/A01-tong-quan.png",
+          "sha256": "e2dc6127bce77e3faa424eeb6c648b6e32ee6c46c0e72780cbc2101d83357956",
+          "role": "style reference",
+          "original_copied_unchanged": true
+        }
+      ],
+      "output_filename": "exec-57d75a37-83a2-4f19-b9c9-92eafbb94c60.png",
+      "output_sha256": "d19827bb0e1938ab6df8f8c77a0bb95896cc465a978fd4fac44646fa91ac7fc7",
+      "selected": true,
+      "output_path": "assets/generated/admin-app/A09-nhat-ky.png"
+    }
+  ],
+  "style_references": [
+    {
+      "path": "assets/generated/admin-app/A01-tong-quan.png",
+      "sha256": "e2dc6127bce77e3faa424eeb6c648b6e32ee6c46c0e72780cbc2101d83357956",
+      "role": "style reference",
+      "original_copied_unchanged": true
+    }
+  ],
+  "prompt_sha256": "5eed4560688f5f5bedd5d6a55da41d5b06e37478723210eb9fc4315cbafdd337"
+}

@@ -1,0 +1,213 @@
+{
+  "generated_utc": "2026-10-16T13:16:16.264447+00:00",
+  "feature": "FEAT-048-be2-vision-correction",
+  "checkpoint": "C1_COMPONENT_OFFLINE",
+  "verdict": "NEEDS_REVISION",
+  "branch": "feature/be2-02-vision-correction",
+  "head": "6dcc57ee0b3d053f071c8c92e72aaaee2e98d899",
+  "staged_paths": 0,
+  "implementation_changed_by_review": false,
+  "source_unchanged_from_implementation_report": true,
+  "approved_plan_sha256": "f4733c88797edbcce225ecd63700634f929ca75789362c7f3a58a2b57f19df30",
+  "approval_sha256": "ebe826ce01a004c6888bc6d2cd4741470beabfdb1f89133d8ebd18f48a691494",
+  "review_note": "evidence/notes/C1_CODEX_REVIEW_20261016.md",
+  "review_note_sha256": "5e24464cb4332e3d1e537f9516109c43db83ac34671d8a4aa641f0d46af34381",
+  "environment": {
+    "python": "3.12.10",
+    "import_pin": "this worktree backend/src",
+    "provider": "offline scripted/fake only",
+    "installs": false,
+    "network": false
+  },
+  "checks": {
+    "focused": {
+      "collected": 175,
+      "passed": 174,
+      "skipped": 1,
+      "failed": 0
+    },
+    "root_service_invariant_probes": {
+      "failed": 6,
+      "deselected": 3,
+      "pytest_exit": 1,
+      "meaning": "before-fix regression assertions fail, confirming R01/R02"
+    },
+    "root_bridge_fact_probe": {
+      "script_exit": 0,
+      "meaning": "measurements completed; defects reproduced"
+    },
+    "root_domain_fact_probe": {
+      "script_exit": 0,
+      "meaning": "measurements completed; defects reproduced"
+    }
+  },
+  "findings": [
+    {
+      "id": "C1-R01",
+      "priority": "P1",
+      "status": "OPEN",
+      "summary": "Observation replay bypasses current applicability",
+      "affected_acceptance": [
+        "V05",
+        "V06"
+      ]
+    },
+    {
+      "id": "C1-R02",
+      "priority": "P1",
+      "status": "OPEN",
+      "summary": "Post-provider acceptance omits full eligibility",
+      "affected_acceptance": [
+        "V05",
+        "V15"
+      ]
+    },
+    {
+      "id": "C1-R03",
+      "priority": "P2",
+      "status": "OPEN",
+      "summary": "Foundation job ownership scope discarded",
+      "affected_acceptance": [
+        "V05",
+        "V07"
+      ]
+    },
+    {
+      "id": "C1-R04",
+      "priority": "P2",
+      "status": "OPEN",
+      "summary": "Mapped output accepted despite incompatible DTO; HTTP 500 after commit",
+      "affected_acceptance": [
+        "V01",
+        "V12",
+        "V13"
+      ]
+    },
+    {
+      "id": "C1-R05",
+      "priority": "P2",
+      "status": "OPEN",
+      "summary": "Accepted correction history exceeds its output contract",
+      "affected_acceptance": [
+        "V01",
+        "V04",
+        "V16"
+      ]
+    },
+    {
+      "id": "C1-R06",
+      "priority": "P2",
+      "status": "OPEN",
+      "summary": "Provider result evidence ref has no retained full artifact",
+      "affected_acceptance": [
+        "V03",
+        "V13",
+        "V16"
+      ]
+    }
+  ],
+  "non_blocking": [
+    {
+      "id": "N01",
+      "priority": "P3",
+      "summary": "Request cap checked after buffering; isolated fixture only"
+    }
+  ],
+  "not_promoted": [
+    "real owner-fence correction TOCTOU",
+    "mutation of foundation immutable input hash",
+    "runtime tuple typing/hash-coverage and nested legacy DTO suggestions"
+  ],
+  "not_run": [
+    "Pillow-dependent production route walk",
+    "real owner/provider/SQL/runtime/live composition"
+  ],
+  "source_sha256": {
+    "backend/src/sketch2life/application/ports/vision_analysis.py": "2a77e6f216b7771d13c19fc4964ef94ac8ba8f9acf7e26d7c84a940ee06f6ed1",
+    "backend/src/sketch2life/application/services/vision_analysis.py": "42d0032ba6c67b18c0abc6266d603547002ec04e8846f3fc56a9df8789ad34ab",
+    "backend/src/sketch2life/contracts/schemas/analysis_results.py": "fc5396db587f90a5b1ecabcc0f9daf4a6c220caf21678c422c25e5bc9f53382f",
+    "backend/src/sketch2life/domain/vision_analysis.py": "45292339c41499059098915da603d076dbbbb7ff9f591786e339dfda07b100b2",
+    "backend/src/sketch2life/infrastructure/vision_analysis/__init__.py": "ca7f2429c3309872604b3ab440ac054371086fb0dff82c17704af2148253ec37",
+    "backend/src/sketch2life/infrastructure/vision_analysis/fakes.py": "a873e9e9815470473a04245c8779cf70380751455f726954ac49ff594fa7f72b",
+    "backend/src/sketch2life/infrastructure/vision_analysis/harness.py": "112095d2c5a4c6d319dd5904945c423f799d8bd8ecd2e91bcd90dd833659069c",
+    "backend/src/sketch2life/infrastructure/vision_analysis/job_lineage.py": "9c07e7bc02653f666b2fe1dc1c7e4fd5491b93f1f77aaac9420890a1f53b3121",
+    "backend/src/sketch2life/infrastructure/vision_analysis/legacy_v2.py": "4730c08f5aa6b84dc1950327eaeb54751f44472ce7cf5156626b1845f4f3fcbd",
+    "backend/src/sketch2life/interfaces/http/analysis_corrections_fixture_app.py": "7aef60529ebc761a4e2044bd7b437598a49a41c35069f2ab7dae1415b673f661",
+    "backend/src/sketch2life/interfaces/http/routers/analysis_corrections.py": "6b5a6050ab9b64a0a72619f2a8736b0f654d73409c76233e3fa2d7df316fd657",
+    "backend/tests/contract/test_analysis_corrections_api.py": "4c3d3b0d9b81c7a96214eab81e874af4044e326d678eeb431017245a91f3a87b",
+    "backend/tests/contract/test_analysis_result_contracts.py": "24dbf892a06469c678f76c9af471047816930dc33e4d87c49daa5446decf9b67",
+    "backend/tests/contract/test_h_ai_review_handoff_examples.py": "56ada46d805aced66e9e455567e7a4d95a13c3fb4fa66d9b89b5e46e74db3eb3",
+    "backend/tests/unit/test_vision_analysis_domain.py": "a39f451ab8a3f791a943a2212ed110b8ec850a250ff6968d6d2b568fc8acefe5",
+    "backend/tests/unit/test_vision_analysis_job_lineage.py": "98ba03b0ff3ea406dea574440ae5344e62cd7e14af82a79a6b7f237c7a50159e",
+    "backend/tests/unit/test_vision_analysis_legacy_bridge.py": "deb38372b9c0850543d39e84e31b87ffa66159b5316f6384fc33d3884ecfbe5b",
+    "backend/tests/unit/test_vision_analysis_service.py": "0595e0a4c0acc13ca710d1c79367be879b77d9d0ff4c6c383d72f4a5b20c8b4d"
+  },
+  "receipts_sha256": {
+    "evidence/local/codex-review-20261016/agent-bridge/probe_bridge_api.py": "451e6b69fabdaccaa6468a1539632b77d02d93c31666bc4097176812257c59e7",
+    "evidence/local/codex-review-20261016/agent-bridge/probe_bridge_api_results.json": "4c82b8d4d983d10a1a902744a1cb61f2c3e427bd65c296d4a3f48db25910930b",
+    "evidence/local/codex-review-20261016/agent-bridge/probe_stream_limit.py": "83d0ff527238ac96bd407d2e8f08906e797cec2fe9e98730df4e3dfc8c272d16",
+    "evidence/local/codex-review-20261016/agent-bridge/probe_stream_limit_results.json": "c9b0891608c60723dac6dd20d5266ad2630381d53fdb2d37016c129dd251f506",
+    "evidence/local/codex-review-20261016/agent-bridge/selected-tests.log": "4c056fff26e3b270c10e14f2fff4f9a0350fb756b53a74e8dd6d1daab502a82b",
+    "evidence/local/codex-review-20261016/agent-bridge/selected-tests.xml": "5ab8be98c57a03e66d9b61a6c0ff26d75d74110c4c55d3390a70e6a5f80cb42e",
+    "evidence/local/codex-review-20261016/agent-domain/domain-contract-junit.xml": "9ee5e5b25034687acc49992e625e79cc0ad410a4286c2b9d1e34fecfbb570020",
+    "evidence/local/codex-review-20261016/agent-domain/domain-contract-pytest.txt": "8a06fdc2818b537b25818b7a85371d29a66612ca285ee4b435fd3b87959a8799",
+    "evidence/local/codex-review-20261016/agent-domain/domain_probes.py": "0628d0e02cc5a54dccd0e2e2ef93d4a89e45a49882b160e273a735fe7750058c",
+    "evidence/local/codex-review-20261016/agent-domain/domain_probes_result.json": "7270178bc14cf78a9159bc80ba7bf02896643258f804c1aeb5d00a0e5cad18fb",
+    "evidence/local/codex-review-20261016/agent-domain/oversized_provider_probe.py": "44fc08ae808593f349724c750edf821768bb90aec5b46b8bc96b12148ce9008f",
+    "evidence/local/codex-review-20261016/agent-domain/oversized_provider_probe_result.json": "2bda879d1205a63ddd6590c8f50fdcd8533cac73496ccbd36deed789771ee714",
+    "evidence/local/codex-review-20261016/agent-domain/r06_full_provider_result_probe.py": "3e08d582420e72e6637c083cd0bbf5ec3b4baebe9c0f4804466af1c3ddf25b26",
+    "evidence/local/codex-review-20261016/agent-domain/r06_full_provider_result_probe_result.json": "83f0df9f98a65bc10a2bfff9e4865f0feb4b9aa91a59791821f8590aafc0be64",
+    "evidence/local/codex-review-20261016/agent-service/existing_service.junit.xml": "2e11f34b73a32e4b49f5b2902122f7b3dfd0119b6fe2f0f9c043f2fe9088f2a4",
+    "evidence/local/codex-review-20261016/agent-service/existing_service.txt": "1bd5f2eab52cd7335f4d127941a600ec708b18c0b259c46fb940c67120441f6b",
+    "evidence/local/codex-review-20261016/agent-service/probes.junit.xml": "0ca9dc6908fca3c24a147b295be8788aebbc22974d0a9ff6ac316d26990b3303",
+    "evidence/local/codex-review-20261016/agent-service/probes.txt": "9851824c9ae50ce39e47c8148ff269eed053eb3cdcfe083fd9253054db5170eb",
+    "evidence/local/codex-review-20261016/agent-service/REVIEW.md": "397e8677dbcba257bcb30b6d2c60acf4aa6c765297cf94fe4467176c66205587",
+    "evidence/local/codex-review-20261016/agent-service/test_service_probes.py": "23ca5808585c2ab5b6bd49a42be5c6ff000afa1755f21393b661847102e174b9",
+    "evidence/local/codex-review-20261016/finalize_review.py": "87e9835881136803d780304e92e96787724ec6fcc6aa5268ec5a3ddcf0459938",
+    "evidence/local/codex-review-20261016/focused-junit.xml": "69d3ad967fb1f6507f62587d81d31dd874a34ff4e6824ee9dfa73c89d416d198",
+    "evidence/local/codex-review-20261016/root-bridge-results.json": "4c82b8d4d983d10a1a902744a1cb61f2c3e427bd65c296d4a3f48db25910930b",
+    "evidence/local/codex-review-20261016/root-domain-results.json": "7270178bc14cf78a9159bc80ba7bf02896643258f804c1aeb5d00a0e5cad18fb",
+    "evidence/local/codex-review-20261016/root-full-result-proof.json": "b717f4597cd44f643e3a1379a9daacec79080bd3311c22651db6e16f2ee6bead",
+    "evidence/local/codex-review-20261016/root-service-junit.xml": "9289d3e8081a1a3ee27b55cf020ea1abef2613b93f9757626e1a1f27208bea8d",
+    "evidence/local/codex-review-20261016/root-service-probes.log": "82600357fb9a4d579dfb15bc98b6b6d5015b881c7df087024e033bebe385c8cb",
+    "evidence/local/codex-review-20261016/architecture.log": "67f1bc538fc90b4f70000a89126dde0aa14c688b8c3dbba796e1a89d6caef80e",
+    "evidence/local/codex-review-20261016/diff_check.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "evidence/local/codex-review-20261016/harness.log": "7ebd23d71bdbd03156d1979c05852163fd7ec6e9dac22977f221dffc656186e3",
+    "evidence/local/codex-review-20261016/record_checks.py": "7ec4561e61389f9444e92c53d92ae809c81a49ded5685f854b1ecae9948dc423",
+    "evidence/local/codex-review-20261016/security.log": "7ae2a82f57c15b1caf0c73753b46639141198eaa5e4c9d05be50c4e6bdb9e4d0",
+    "evidence/local/codex-review-20261016/skeleton.log": "c3bd0318347efa17e2cb71a192287f1fe5bbb4bb1932fa8a360e6f3328a7bd1b"
+  },
+  "validators": {
+    "harness": {
+      "exit": 0,
+      "first_line": "HARNESS_VALID",
+      "log": "evidence/local/codex-review-20261016/harness.log",
+      "log_sha256": "7ebd23d71bdbd03156d1979c05852163fd7ec6e9dac22977f221dffc656186e3"
+    },
+    "security": {
+      "exit": 0,
+      "first_line": "REPOSITORY_SECURITY_VALID",
+      "log": "evidence/local/codex-review-20261016/security.log",
+      "log_sha256": "7ae2a82f57c15b1caf0c73753b46639141198eaa5e4c9d05be50c4e6bdb9e4d0"
+    },
+    "architecture": {
+      "exit": 0,
+      "first_line": "ARCHITECTURE_VALID",
+      "log": "evidence/local/codex-review-20261016/architecture.log",
+      "log_sha256": "67f1bc538fc90b4f70000a89126dde0aa14c688b8c3dbba796e1a89d6caef80e"
+    },
+    "skeleton": {
+      "exit": 0,
+      "first_line": "SKELETON_VALID",
+      "log": "evidence/local/codex-review-20261016/skeleton.log",
+      "log_sha256": "c3bd0318347efa17e2cb71a192287f1fe5bbb4bb1932fa8a360e6f3328a7bd1b"
+    },
+    "diff_check": {
+      "exit": 0,
+      "first_line": "",
+      "log": "evidence/local/codex-review-20261016/diff_check.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "checks_recorded_utc": "2026-10-16T13:17:18.085564+00:00"
+}

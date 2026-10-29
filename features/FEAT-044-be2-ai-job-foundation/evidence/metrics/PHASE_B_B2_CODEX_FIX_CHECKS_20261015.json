@@ -1,0 +1,291 @@
+{
+  "recorded_at": "2026-10-15T13:36:08.250650+07:00",
+  "executor": "Codex authorized by actual user reply recorded in notes/B2_CODEX_EXECUTOR_HANDOFF_20261015.md",
+  "scope": "B2-R01/R02 only; no B3",
+  "state": "B2_FIXES_LOCAL_PASS_WAITING_STUDIO_POSTGRES",
+  "findings": {
+    "B2-R01": "FIXED_LOCALLY_CODE_REVIEW_PASS_POSTGRES_NOT_RUN",
+    "B2-R02": "FIXED_OFFLINE_CODE_REVIEW_PASS_STUDIO_NOT_RUN"
+  },
+  "independent_reviewers": [
+    "b2_schema_migration_review",
+    "b2_studio_test_review"
+  ],
+  "backend_changed_paths": [
+    "backend/alembic/versions/20261015_ai_0001_ai_jobs_schema.py",
+    "backend/src/sketch2life/infrastructure/ai_jobs/sql/tables.py",
+    "backend/tests/integration/ai_jobs/test_migrations.py"
+  ],
+  "all_other_before_paths_unchanged": 480,
+  "phase_a_phase_b_approvals_and_reviewed_plans_unchanged": true,
+  "gitignore_and_existing_eof_disposition_preserved": true,
+  "local_diagnostic_originals_preserved": 61,
+  "checks": {
+    "b2_tests": {
+      "exit_code": 0,
+      "output": "........ssssssssss                                                       [100%]\r\n============================== warnings summary ===============================\r\ntests/integration/ai_jobs/test_migrations.py::test_script_graph_keeps_be1_history_and_adds_independent_ai_jobs_branch\r\ntests/integration/ai_jobs/test_migrations.py::test_plain_head_is_ambiguous_and_refused\r\ntests/integration/ai_jobs/test_migrations.py::test_contract_valid_opaque_ids_fit_metadata_and_migration[81]\r\ntests/integration/ai_jobs/test_migrations.py::test_contract_valid_opaque_ids_fit_metadata_and_migration[120]\r\ntests/integration/ai_jobs/test_migrations.py::test_offline_upgrade_and_downgrade_sql_touch_only_ai_jobs\r\ntests/integration/ai_jobs/test_migrations.py::test_offline_upgrade_and_downgrade_sql_touch_only_ai_jobs\r\n  <LOCAL_PY312_VENV>\\Lib\\site-packages\\alembic\\config.py:604: DeprecationWarning: No path_separator found in configuration; falling back to legacy splitting on spaces, commas, and colons for prepend_sys_path.  Consider adding path_separator=os to Alembic config.\r\n    util.warn_deprecated(\r\n\r\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\r\n=========================== short test summary info ===========================\r\nSKIPPED [1] backend\\tests\\integration\\ai_jobs\\test_migrations.py:318: BE2_TEST_PG_HOST not set: PostgreSQL migration checks NOT_RUN\r\nSKIPPED [1] backend\\tests\\integration\\ai_jobs\\test_migrations.py:340: BE2_TEST_PG_HOST not set: PostgreSQL migration checks NOT_RUN\r\nSKIPPED [1] backend\\tests\\integration\\ai_jobs\\test_migrations.py:355: BE2_TEST_PG_HOST not set: PostgreSQL migration checks NOT_RUN\r\nSKIPPED [1] backend\\tests\\integration\\ai_jobs\\test_migrations.py:375: BE2_TEST_PG_HOST not set: PostgreSQL migration checks NOT_RUN\r\nSKIPPED [1] backend\\tests\\integration\\ai_jobs\\test_migrations.py:394: BE2_TEST_PG_HOST not set: PostgreSQL migration checks NOT_RUN\r\nSKIPPED [1] backend\\tests\\integration\\ai_jobs\\test_migrations.py:420: BE2_TEST_PG_HOST not set: PostgreSQL migration checks NOT_RUN\r\nSKIPPED [2] backend\\tests\\integration\\ai_jobs\\test_migrations.py:576: BE2_TEST_PG_HOST not set: PostgreSQL migration checks NOT_RUN\r\nSKIPPED [1] backend\\tests\\integration\\ai_jobs\\test_migrations.py:618: BE2_TEST_PG_HOST not set: PostgreSQL migration checks NOT_RUN\r\nSKIPPED [1] backend\\tests\\integration\\ai_jobs\\test_migrations.py:723: BE2_TEST_PG_HOST not set: PostgreSQL migration checks NOT_RUN\r\n8 passed, 10 skipped, 6 warnings in 0.43s\r\n"
+    },
+    "phase_a": {
+      "exit_code": 0,
+      "output": "........................................................................ [ 32%]\r\n........................................................................ [ 64%]\r\n........................................................................ [ 96%]\r\n.......s                                                                 [100%]\r\n=========================== short test summary info ===========================\r\nSKIPPED [1] backend\\tests\\contract\\test_ai_job_polling.py:180: live app import needs Pillow (not in this env)\r\n223 passed, 1 skipped in 1.95s\r\n"
+    },
+    "ruff": {
+      "exit_code": 0,
+      "output": "All checks passed!\n"
+    },
+    "format": {
+      "exit_code": 0,
+      "output": "5 files already formatted\n"
+    },
+    "mypy": {
+      "exit_code": 0,
+      "output": "Success: no issues found in 5 source files\r\n"
+    }
+  },
+  "r01_before": {
+    "scope": "Local offline regression before widening schema, no PostgreSQL execution",
+    "command": "python -B -m pytest -c backend/pyproject.toml backend/tests/integration/ai_jobs/test_migrations.py -k contract_valid_opaque_ids_fit -p no:cacheprovider -rs",
+    "exit_code": 1,
+    "result": "2 failed, 16 deselected, 2 warnings in 0.50s",
+    "contract_and_fixture_service_accepted": [
+      81,
+      120
+    ],
+    "failure": "String(length=80) cannot contain contract-valid job_type of length81 or120",
+    "production_schema_snapshot": "before/backend in this evidence directory"
+  },
+  "runner_offline_mock": {
+    "status": "PASS",
+    "cases": 26,
+    "runner_sha256": "7e26933c7a369eb97c28ef1d7edccd38fab13031485eb815fede9360916baa85",
+    "provenance": "LOCAL_OFFLINE_MOCK; no Docker daemon, PostgreSQL or remote execution",
+    "mock_hooks": "Extract exact heredoc; replace activation and package mount paths. Mock python/tee; outer uses scratch synthetic Git history and mock Docker.",
+    "results": [
+      {
+        "case": "inner_both_pass",
+        "exit_code": 0,
+        "pytest_calls": [
+          "b2",
+          "phase_a"
+        ]
+      },
+      {
+        "case": "inner_b2_fail",
+        "exit_code": 1,
+        "pytest_calls": [
+          "b2",
+          "phase_a"
+        ]
+      },
+      {
+        "case": "inner_phase_a_fail",
+        "exit_code": 1,
+        "pytest_calls": [
+          "b2",
+          "phase_a"
+        ]
+      },
+      {
+        "case": "inner_both_fail",
+        "exit_code": 1,
+        "pytest_calls": [
+          "b2",
+          "phase_a"
+        ]
+      },
+      {
+        "case": "inner_provenance_fail",
+        "exit_code": 7,
+        "pytest_calls": []
+      },
+      {
+        "case": "inner_alembic_fail",
+        "exit_code": 8,
+        "pytest_calls": []
+      },
+      {
+        "case": "inner_activation_fail",
+        "exit_code": 6,
+        "pytest_calls": []
+      },
+      {
+        "case": "inner_b2_log_fail",
+        "exit_code": 9,
+        "pytest_calls": [
+          "b2"
+        ]
+      },
+      {
+        "case": "inner_phase_a_log_fail",
+        "exit_code": 9,
+        "pytest_calls": [
+          "b2",
+          "phase_a"
+        ]
+      },
+      {
+        "case": "inner_provenance_log_fail",
+        "exit_code": 9,
+        "pytest_calls": []
+      },
+      {
+        "case": "inner_patch_tampered",
+        "exit_code": 1,
+        "pytest_calls": []
+      },
+      {
+        "case": "inner_manifest_tampered",
+        "exit_code": 1,
+        "pytest_calls": []
+      },
+      {
+        "case": "inner_source_tampered",
+        "exit_code": 1,
+        "pytest_calls": []
+      },
+      {
+        "case": "inner_source_changes_between_suites",
+        "exit_code": 1,
+        "pytest_calls": [
+          "b2"
+        ]
+      },
+      {
+        "case": "outer_pristine",
+        "exit_code": 0,
+        "docker_mock_called": true
+      },
+      {
+        "case": "outer_exact_rerun",
+        "exit_code": 0,
+        "docker_mock_called": true
+      },
+      {
+        "case": "outer_suite_failure_retry",
+        "exit_code": 11
+      },
+      {
+        "case": "outer_suite_failure_retry_retry",
+        "exit_code": 0,
+        "docker_mock_called": true
+      },
+      {
+        "case": "outer_foreign_tracked",
+        "exit_code": 1,
+        "docker_mock_called": false
+      },
+      {
+        "case": "outer_foreign_untracked",
+        "exit_code": 1,
+        "docker_mock_called": false
+      },
+      {
+        "case": "outer_package_file_edit",
+        "exit_code": 1,
+        "docker_mock_called": false
+      },
+      {
+        "case": "outer_patch_tamper",
+        "exit_code": 1,
+        "docker_mock_called": false
+      },
+      {
+        "case": "outer_manifest_tamper",
+        "exit_code": 1,
+        "docker_mock_called": false
+      },
+      {
+        "case": "outer_missing_secret",
+        "exit_code": 1,
+        "docker_mock_called": false
+      },
+      {
+        "case": "outer_wrong_branch",
+        "exit_code": 1,
+        "docker_mock_called": false
+      },
+      {
+        "case": "outer_wrong_head",
+        "exit_code": 1,
+        "docker_mock_called": false
+      }
+    ]
+  },
+  "package_checks": {
+    "patch_sha256": "f388ce3646db5844ca8baabe17db657e0580a92fc21f800f75753e139a419bff",
+    "manifest_sha256": "25e83f2965730083225a9d05f1539edf52f8cd75afb2ed7a6397fb23e47b06f2",
+    "runner_sha256": "7e26933c7a369eb97c28ef1d7edccd38fab13031485eb815fede9360916baa85",
+    "source_files": 8,
+    "reverse_check_exit": 0,
+    "pristine_forward_check_exit": 0,
+    "applied_pristine_blob_hashes_match": true,
+    "real_index_modified": false,
+    "postgres_executed": false
+  },
+  "current_source_package": {
+    "base_commit": "993a26cae78c0a4fe983033f03881838c886b176",
+    "patch": "b2_source.patch",
+    "patch_sha256": "f388ce3646db5844ca8baabe17db657e0580a92fc21f800f75753e139a419bff",
+    "patch_bytes": 63069,
+    "manifest_sha256": "25e83f2965730083225a9d05f1539edf52f8cd75afb2ed7a6397fb23e47b06f2",
+    "runner_sha256": "7e26933c7a369eb97c28ef1d7edccd38fab13031485eb815fede9360916baa85",
+    "files": {
+      "backend/README.md": "85a3d3bcb341eaa311fa29b691ffdbe62284ff6d96c7c698ffacd8ef35f56af0",
+      "backend/alembic/README.md": "a2dfeab8dd7fd0811d91bedf58510431838e88b012c721d6cf34a47cdab546fc",
+      "backend/alembic/env.py": "7beb279c2ae05afe499f981606e82745441b95f6922f1af391b44c3eba6dff9f",
+      "backend/alembic/versions/20261015_ai_0001_ai_jobs_schema.py": "d86bd759fcb5dc644c94007fca3650c6315903ec39ee4da99579c4e23e656714",
+      "backend/src/sketch2life/infrastructure/ai_jobs/sql/__init__.py": "389d10a2447bc9d48d9f116095601b90da46c4d46fa581ebd9b6e6dec09f501b",
+      "backend/src/sketch2life/infrastructure/ai_jobs/sql/tables.py": "12f6ce1edab047efdd81d495b44df08dc6f990692860621f37fc73778006f888",
+      "backend/tests/integration/ai_jobs/conftest.py": "c44c3abd75a1f3d3a035dedb5cc2994c72f04ef1c2804ff61637ccee9b4172a4",
+      "backend/tests/integration/ai_jobs/test_migrations.py": "f3e907442ee228ac45c25834ddc91ee7f27678b2178487062b6d4e331df15d22"
+    },
+    "scope": "B2-R01/R02 correction, no B3",
+    "postgres_status": "NOT_RUN"
+  },
+  "zip_sha256": "8530368f52757c02bd623d65a53d27d8c85677d9f40ecd6960a49f594702974e",
+  "business_cards": 14,
+  "implementation_wip": 1,
+  "full_card_done": 0,
+  "b3": "NOT_STARTED",
+  "postgres": "NOT_RUN",
+  "source_remote_baseline": "Last user-reported published993a26c; current remote dirty state not independently inspected",
+  "remote_execution": "NONE",
+  "committed": false,
+  "pushed": false,
+  "deployed": false,
+  "final_repository_checks": {
+    "harness": {
+      "exit_code": 0,
+      "output": "HARNESS_VALID\r\nroot=<BE2_WORKTREE>\r\napproval_gate=enabled\r\nfrontend_asset_gate=enabled\r\n"
+    },
+    "security": {
+      "exit_code": 0,
+      "output": "REPOSITORY_SECURITY_VALID\r\npublishable_files_scanned=2984\r\nenvironment_files=excluded\r\nseed_accounts=excluded\r\ncredentials_and_signing_keys=excluded\r\nexternal_reference_documents=excluded\r\nabsolute_machine_paths=absent\r\n"
+    },
+    "architecture": {
+      "exit_code": 0,
+      "output": "ARCHITECTURE_VALID\r\npython_dependency_direction=valid\r\nmobile_feature_isolation=valid\r\nfrontend_asset_gate=valid\r\nmobile_ai_boundary=valid\r\nfirebase_data_products=absent\r\n"
+    },
+    "skeleton": {
+      "exit_code": 0,
+      "output": "SKELETON_VALID\r\nbackend=python-fastapi\r\nfrontend=react-native\r\nmobile_target=android-only\r\nandroid_sdk=min29-target36-compile37\r\nauth=firebase-auth-only\r\nai=lightning-dev-runpod-production\r\nworkspace=pnpm\r\n"
+    },
+    "diff": {
+      "exit_code": 0,
+      "output": ""
+    },
+    "exact_current_source_combined_tests": {
+      "exit_code": 0,
+      "output": "........ssssssssss...................................................... [ 29%]\r\n........................................................................ [ 59%]\r\n........................................................................ [ 89%]\r\n.........................s                                               [100%]\r\n============================== warnings summary ===============================\r\ntests/integration/ai_jobs/test_migrations.py::test_script_graph_keeps_be1_history_and_adds_independent_ai_jobs_branch\r\ntests/integration/ai_jobs/test_migrations.py::test_plain_head_is_ambiguous_and_refused\r\ntests/integration/ai_jobs/test_migrations.py::test_contract_valid_opaque_ids_fit_metadata_and_migration[81]\r\ntests/integration/ai_jobs/test_migrations.py::test_contract_valid_opaque_ids_fit_metadata_and_migration[120]\r\ntests/integration/ai_jobs/test_migrations.py::test_offline_upgrade_and_downgrade_sql_touch_only_ai_jobs\r\ntests/integration/ai_jobs/test_migrations.py::test_offline_upgrade_and_downgrade_sql_touch_only_ai_jobs\r\n  <LOCAL_PY312_VENV>\\Lib\\site-packages\\alembic\\config.py:604: DeprecationWarning: No path_separator found in configuration; falling back to legacy splitting on spaces, commas, and colons for prepend_sys_path.  Consider adding path_separator=os to Alembic config.\r\n    util.warn_deprecated(\r\n\r\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\r\n=========================== short test summary info ===========================\r\nSKIPPED [1] backend\\tests\\integration\\ai_jobs\\test_migrations.py:318: BE2_TEST_PG_HOST not set: PostgreSQL migration checks NOT_RUN\r\nSKIPPED [1] backend\\tests\\integration\\ai_jobs\\test_migrations.py:340: BE2_TEST_PG_HOST not set: PostgreSQL migration checks NOT_RUN\r\nSKIPPED [1] backend\\tests\\integration\\ai_jobs\\test_migrations.py:355: BE2_TEST_PG_HOST not set: PostgreSQL migration checks NOT_RUN\r\nSKIPPED [1] backend\\tests\\integration\\ai_jobs\\test_migrations.py:375: BE2_TEST_PG_HOST not set: PostgreSQL migration checks NOT_RUN\r\nSKIPPED [1] backend\\tests\\integration\\ai_jobs\\test_migrations.py:394: BE2_TEST_PG_HOST not set: PostgreSQL migration checks NOT_RUN\r\nSKIPPED [1] backend\\tests\\integration\\ai_jobs\\test_migrations.py:420: BE2_TEST_PG_HOST not set: PostgreSQL migration checks NOT_RUN\r\nSKIPPED [2] backend\\tests\\integration\\ai_jobs\\test_migrations.py:576: BE2_TEST_PG_HOST not set: PostgreSQL migration checks NOT_RUN\r\nSKIPPED [1] backend\\tests\\integration\\ai_jobs\\test_migrations.py:621: BE2_TEST_PG_HOST not set: PostgreSQL migration checks NOT_RUN\r\nSKIPPED [1] backend\\tests\\integration\\ai_jobs\\test_migrations.py:726: BE2_TEST_PG_HOST not set: PostgreSQL migration checks NOT_RUN\r\nSKIPPED [1] backend\\tests\\contract\\test_ai_job_polling.py:180: live app import needs Pillow (not in this env)\r\n231 passed, 11 skipped, 6 warnings in 2.21s\r\n"
+    }
+  },
+  "current_handover_sha256": {
+    "evidence/notes/CLAUDE_SESSION_HANDOVER_20261015.md": "754f42ee9fbd1e5dc57eafe0fef03b277d19d99c67013254d583d1469080680b",
+    "plan/CLAUDE_NEW_SESSION_START_20261015.md": "e0e7ba5d33e967e0d6ccec911ccf23f514d3777629b427bcc9940777540e6330"
+  },
+  "handover_review": {
+    "reviewer": "b2_studio_test_review",
+    "result": "PASS_AFTER_SOURCE_MAP_POINTER_SYNC",
+    "note": "Current map now points to corrected proof and bootstrap; old original review/fix prompt explicitly historical."
+  }
+}

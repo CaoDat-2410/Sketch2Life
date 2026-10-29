@@ -1,0 +1,422 @@
+{
+  "record": "PHASE_B_B6_CONFORMANCE_EVIDENCE_20261016",
+  "date": "2026-10-16",
+  "status": "B6_CR01_R2_CODE_PACKAGE_REVIEW_PASS_PENDING_RUNTIME",
+  "b6_closed": false,
+  "be2_01": "IN_PROGRESS",
+  "executor": "Claude",
+  "authority": "existing Phase B plan rev3 B1-B6 approval (plan sha256 bb20d5be...)",
+  "baseline_manifest": "3930046b5f04a67b6ff2a52dc70a4f12d5d7a89c2675e149ab654f00da2ab670",
+  "added_files": {
+    "backend/tests/integration/ai_jobs/test_restart_recovery.py": "c5d51286238e5aaff9736e027d1ab8345d2fc24adc6ad0e2167c7e411d0b4d54",
+    "backend/tests/unit/test_ai_job_b6_conformance.py": "b9065ff52c19eef7a6a40b6317dad31afb7c175f97ff135081c880ba72f3defd",
+    "features/FEAT-044-be2-ai-job-foundation/src/run_durable_conformance.py": "c89595b39e6f7be0b4226655f280877c81b6334243396b771a5f113580710f97"
+  },
+  "existing_files_changed": 0,
+  "local_checks": {
+    "import_origin": "worktree backend/src",
+    "b2_b6_pytest": "103 passed, 99 skipped (PG/Redis NOT_RUN incl. 3 restart tests)",
+    "b6_unit": 6,
+    "phase_a": "223 passed, 1 skipped (Pillow)",
+    "fixture_runner": "exit 0; 20 PASS/215; d17f58a3 unchanged",
+    "durable_runner_local_with_junit": {
+      "exit_code": 2,
+      "by_status": {
+        "DEFERRED": 1,
+        "HANDOFF": 1,
+        "NOT_APPLICABLE": 3,
+        "NOT_RUN": 40
+      }
+    },
+    "ruff_b6_files": "PASS",
+    "ruff_b2_b6_scope": "4 pre-existing I001 in unchanged fix03 files",
+    "mypy_src": "PASS (18)",
+    "mypy_tests_runner": "PASS (20)",
+    "validators": {
+      "harness": 0,
+      "repository_security": 0,
+      "architecture": 0,
+      "skeleton": 0
+    },
+    "git_diff_check": 0
+  },
+  "mapping": {
+    "acceptance": [
+      "B-01",
+      "B-02",
+      "B-03",
+      "B-04",
+      "B-05",
+      "B-06",
+      "B-07",
+      "B-08",
+      "B-09",
+      "B-10",
+      "B-11",
+      "B-12"
+    ],
+    "crash_windows": [
+      "W01",
+      "W02",
+      "W03",
+      "W04",
+      "W05",
+      "W06",
+      "W07",
+      "W08",
+      "W09",
+      "W10",
+      "W11",
+      "W12"
+    ],
+    "a_required_durable": [
+      "A-01",
+      "A-03",
+      "A-04",
+      "A-05",
+      "A-06",
+      "A-07",
+      "A-08",
+      "A-09",
+      "A-10",
+      "A-11",
+      "A-12",
+      "A-13",
+      "A-14",
+      "A-15",
+      "A-16",
+      "A-17"
+    ],
+    "a_contract_only": [
+      "A-02",
+      "A-19",
+      "A-20"
+    ],
+    "a_deferred": [
+      "A-18"
+    ],
+    "a_optional": [
+      "A-17-http"
+    ],
+    "b12": "HANDOFF (notes/PHASE_B_B6_HANDOFF_20261016.md)"
+  },
+  "package": {
+    "previous_manifest_sha256": "3930046b5f04a67b6ff2a52dc70a4f12d5d7a89c2675e149ab654f00da2ab670",
+    "delta_sha256": "f34d8b1a4bc8145c7e21b5dd661229e82daefe839e2636a7b51e2d81feb83f63",
+    "manifest_sha256": "3940e529e673f80f525591bb39bf3b2a99d892e27225f05c5b984ff7e2dc43ea",
+    "manifest_files": 46,
+    "runner_sha256": "aa9cc843bd7f316eda2ccf3d46010164aa8bbd5ac1ee3346b5016b33856e0696",
+    "zip_sha256": "5c2e4641ef5352370fab14089ee4037de4ced180d535aeb541d918b339f804bf",
+    "zip_members": [
+      "b6_delta.patch",
+      "b6_previous.sha256",
+      "b6_source.sha256",
+      "run_b6_on_studio.sh"
+    ]
+  },
+  "package_self_check": {
+    "delta_sha256": "f34d8b1a4bc8145c7e21b5dd661229e82daefe839e2636a7b51e2d81feb83f63",
+    "manifest_sha256": "3940e529e673f80f525591bb39bf3b2a99d892e27225f05c5b984ff7e2dc43ea",
+    "previous_manifest_sha256": "3930046b5f04a67b6ff2a52dc70a4f12d5d7a89c2675e149ab654f00da2ab670",
+    "runner_sha256": "aa9cc843bd7f316eda2ccf3d46010164aa8bbd5ac1ee3346b5016b33856e0696",
+    "zip_sha256": "5c2e4641ef5352370fab14089ee4037de4ced180d535aeb541d918b339f804bf",
+    "delta_files": 3,
+    "manifest_files": 46,
+    "previous_snapshot_rebuilt": "PASS (43 hashes = 3930046b)",
+    "previous_plus_delta_matches_new_manifest": "PASS",
+    "delta_is_additive_only": true,
+    "second_delta_application_refused": true,
+    "worktree_reverse_check_exit": 0,
+    "no_other_packaged_area_change": true,
+    "zip_members_byte_identical": true,
+    "older_packages_unchanged": "PASS (60 files)",
+    "real_index_modified": false,
+    "runtime_executed": false
+  },
+  "host_simulation": {
+    "status": "PASS",
+    "cases": 9,
+    "results": [
+      {
+        "case": "b5fix03_to_b6",
+        "exit_code": 0,
+        "docker_mock_called": true
+      },
+      {
+        "case": "corrected_retry",
+        "exit_code": 0,
+        "docker_mock_called": true
+      },
+      {
+        "case": "docker_failure_then_retry",
+        "exit_code": 125,
+        "docker_mock_called": true
+      },
+      {
+        "case": "docker_failure_then_retry_retry",
+        "exit_code": 0,
+        "docker_mock_called": true
+      },
+      {
+        "case": "foreign_tracked",
+        "exit_code": 1,
+        "docker_mock_called": false
+      },
+      {
+        "case": "foreign_untracked",
+        "exit_code": 1,
+        "docker_mock_called": false
+      },
+      {
+        "case": "known_file_edit",
+        "exit_code": 1,
+        "docker_mock_called": false
+      },
+      {
+        "case": "tampered_delta",
+        "exit_code": 1,
+        "docker_mock_called": false
+      },
+      {
+        "case": "unrun_fix02",
+        "exit_code": 1,
+        "docker_mock_called": false
+      }
+    ]
+  },
+  "runtime": "Run 1 USER_REPORTED_REMOTE FAIL (B6-RT01 test defect); b6fix01 run USER_REPORTED_REMOTE PASS (2026-10-15T18:49:30Z)",
+  "studio_run_1": {
+    "provenance": "USER_REPORTED_REMOTE",
+    "run_utc": "2026-10-15T18:19:36Z",
+    "source_state": "b5fix03_snapshot",
+    "manifest_sha256": "3940e529e673f80f525591bb39bf3b2a99d892e27225f05c5b984ff7e2dc43ea",
+    "source_files_ok": 46,
+    "b2_b6_pytest": {
+      "passed": 201,
+      "failed": 1,
+      "skipped": 0
+    },
+    "phase_a_pytest": {
+      "passed": 224,
+      "skipped": 0
+    },
+    "fixture_runner": {
+      "PASS": 20,
+      "checks": 215,
+      "results_sha256": "d17f58a3c9c535d45a2fe03ed0c1edad42a565422725aede21b22ba45af41f68"
+    },
+    "durable_runner": {
+      "exit_code": 1,
+      "checks": 127,
+      "checks_failed": 0,
+      "failed": [
+        "B-01",
+        "B-06",
+        "W02",
+        "W08"
+      ],
+      "required": 39,
+      "required_pass": 35,
+      "required_not_run": []
+    },
+    "report_sha256": {
+      "durable-conformance.json": "f507161e0ea10fd758b2b01303479e89d3797087ca9ee6598a028fa889522280",
+      "junit-b2-b6.xml": "397e150ab8fe6f3f994e4d64d90116ab9c47ace1763a1745299dfdcd84aa7878",
+      "junit-phase-a.xml": "c8d9d6e26a23dd59fff1db50d9315e7cbc45697394a120242cc186a699b0b10e",
+      "runner-report.json": "cf8a57ee021fa0a8a0a47ce92d641d8add36934cfe7e679a64b2382170b1e87c"
+    },
+    "outer_runner_exit": 1,
+    "runner_result": "FAIL"
+  },
+  "fix01": {
+    "finding": "B6-RT01",
+    "cause": "test_restart_recovery.py:136 piped the Attempt object; :156 lookup raised psycopg ProgrammingError cannot adapt type 'Attempt'",
+    "changed_files": [
+      "backend/tests/integration/ai_jobs/test_restart_recovery.py"
+    ],
+    "changed_lines": 1,
+    "product_or_runner_changed": false,
+    "local_checks": {
+      "ruff": 0,
+      "mypy": 0,
+      "b2_b6_pytest": "103 passed / 99 skipped (PG/Redis NOT_RUN)",
+      "validators": 0
+    },
+    "package": {
+      "previous_manifest_sha256": "3940e529e673f80f525591bb39bf3b2a99d892e27225f05c5b984ff7e2dc43ea",
+      "delta_sha256": "11e238c782f9e08d257dbbfcb74a1bfe99553e2021ea7de978a6dc707feff3b2",
+      "manifest_sha256": "90724453b77b0cbf3a5843f1e78165a27155a8f76eb832ca0324e6a753a9dfec",
+      "manifest_files": 46,
+      "runner_sha256": "55695aeffb626155ddb581ae639277a8c17257e27f3987f7710e51caabab3683",
+      "zip_sha256": "e813a48b0751d5f17742935df6d9a6b6b2d2d6315061275a9cbc1265335a6941"
+    },
+    "package_self_check": "PASS (older packages 66 files unchanged)",
+    "host_simulation": "9/9 PASS (DIRECT_LOCAL_HOST_MOCK_ONLY)",
+    "runtime": "USER_REPORTED_REMOTE PASS",
+    "pre_run_review": "AUTHOR_SELF_REVIEW PASS (Codex unavailable; user-directed; not independent)"
+  },
+  "studio_run_2_fix01": {
+    "provenance": "USER_REPORTED_REMOTE",
+    "run_utc": "2026-10-15T18:49:30Z",
+    "source_state": "b6_snapshot",
+    "previous_manifest_sha256": "3940e529e673f80f525591bb39bf3b2a99d892e27225f05c5b984ff7e2dc43ea",
+    "manifest_sha256": "90724453b77b0cbf3a5843f1e78165a27155a8f76eb832ca0324e6a753a9dfec",
+    "source_files_ok": 46,
+    "b2_b6_pytest": {
+      "passed": 202,
+      "failed": 0,
+      "skipped": 0
+    },
+    "phase_a_pytest": {
+      "passed": 224,
+      "skipped": 0
+    },
+    "fixture_runner": {
+      "PASS": 20,
+      "checks": 215,
+      "not_run_optional": 1,
+      "results_sha256": "d17f58a3c9c535d45a2fe03ed0c1edad42a565422725aede21b22ba45af41f68"
+    },
+    "durable_runner": {
+      "exit_code": 0,
+      "items": 45,
+      "pass": 40,
+      "deferred": 1,
+      "handoff": 1,
+      "not_applicable": 3,
+      "required": 39,
+      "required_pass": 39,
+      "required_not_run": [],
+      "failed": [],
+      "checks": 127,
+      "checks_failed": 0
+    },
+    "report_sha256": {
+      "durable-conformance.json": "afe8b51261a61a7923be2d7c83c1e0a066dceef82a034b30cdc38f912071e2c1",
+      "junit-b2-b6.xml": "205d2017e123fd2a782c1b783dbcb285f2783eed793a84bcc8c4a93fe8b8d4a6",
+      "junit-phase-a.xml": "1547705be1785de70848d70347c5b7b4515bf13d5b49c3f61f1fbb597186e130",
+      "runner-report.json": "cf8a57ee021fa0a8a0a47ce92d641d8add36934cfe7e679a64b2382170b1e87c"
+    },
+    "exits": {
+      "b2_b6": 0,
+      "phase_a": 0,
+      "fixture_runner": 0,
+      "durable_runner": 0,
+      "logs": 0,
+      "skips": 0,
+      "outer_runner": 0,
+      "studio_command": 0
+    },
+    "runner_result": "PASS",
+    "studio_after_run": "stopped by the user; Docker state may be gone",
+    "observations": [
+      "O-1 non-blocking: pyproject addopts -q cancels -v; summary per-test lines empty; JUnit is authoritative"
+    ]
+  },
+  "cr01": {
+    "finding": "B6-CR01 (M, independent closure review): durable runner alone not a self-sufficient gate",
+    "owner_choice": "harden (Person 2, DECISIONS 122); keep B4-RT01 pair in the repo",
+    "changed_files": [
+      "features/FEAT-044-be2-ai-job-foundation/src/run_durable_conformance.py",
+      "backend/tests/unit/test_ai_job_b6_conformance.py"
+    ],
+    "runner_version": "b6.2",
+    "gates": [
+      "G-01 B2-B6 JUnit vs pytest-collected case ids",
+      "G-02 Phase A JUnit vs pytest-collected case ids",
+      "G-03 complete fixture report",
+      "G-04 pinned complete matching manifest"
+    ],
+    "regressions_new": 11,
+    "local_checks": {
+      "ruff": 0,
+      "mypy": 0,
+      "b6_unit": "17 passed",
+      "b2_b6": "114 passed / 99 skipped (NOT_RUN)",
+      "phase_a": "223 passed / 1 skipped",
+      "fixture_results_sha256": "d17f58a3c9c535d45a2fe03ed0c1edad42a565422725aede21b22ba45af41f68",
+      "durable_local": "exit 2; G-03/G-04 PASS; no FAIL",
+      "validators": 0,
+      "collected_cases": {
+        "b2_b6": 213,
+        "phase_a": 224
+      }
+    },
+    "package": {
+      "previous_manifest_sha256": "90724453b77b0cbf3a5843f1e78165a27155a8f76eb832ca0324e6a753a9dfec",
+      "delta_sha256": "5e1f6012f2c7209e7c11f755df65c7fccde2ce89b881da2845fe7b0d4907b898",
+      "manifest_sha256": "a75841e03a793ed436aa4714eb41a3ba57294d6884fa2b161085d40e2b162a95",
+      "runner_sha256": "5f8858d71a6152f62119890b2da187e1d68f2fb914b36d378e3256e145a637cf",
+      "zip_sha256": "d0b9f27ba5e692c80457dc233a185440692b33d6c6323dd174a9e409f4f70018"
+    },
+    "package_self_check": "PASS (older packages 72 files unchanged)",
+    "host_simulation": "9/9 PASS (DIRECT_LOCAL_HOST_MOCK_ONLY)",
+    "runtime": "NOT_RUN",
+    "codex_precommit_review": "NEEDS_REVISION P2 on bytes 87f0961f (parameter variants); reproduced and fixed with collected ids; not re-reviewed by Codex",
+    "superseded_by": "cr01_r2"
+  },
+  "cr01_r2": {
+    "finding": "Codex pre-commit P2 on runner 87f0961f: missing parameter variant still PASS",
+    "changed_files": [
+      "features/FEAT-044-be2-ai-job-foundation/src/run_durable_conformance.py",
+      "backend/tests/unit/test_ai_job_b6_conformance.py"
+    ],
+    "fix": "full pytest-collected identities (path, class parts, parameter id); all-or-nothing collection",
+    "regressions_total": 21,
+    "before_after_probe": {
+      "old_87f0961f_accepts_missing_variant": true,
+      "current_rejects_missing_variant": true,
+      "collected": {
+        "b2_b6": 217,
+        "phase_a": 224
+      }
+    },
+    "identity_check_vs_real_junit": {
+      "b2_b6": "217/217 identical",
+      "phase_a": "224/224 identical"
+    },
+    "local_checks": {
+      "ruff": 0,
+      "mypy": 0,
+      "b6_unit": "21 passed",
+      "b2_b6": "118 passed / 99 skipped (NOT_RUN)",
+      "phase_a": "223 passed / 1 skipped",
+      "durable_local": "exit 2; G-03/G-04 PASS; no FAIL",
+      "validators": 0
+    },
+    "package": {
+      "previous_manifest_sha256": "90724453b77b0cbf3a5843f1e78165a27155a8f76eb832ca0324e6a753a9dfec",
+      "delta_sha256": "9d9146c6c165cce698562321457d5819c30147d4cfb409a149890ad688395259",
+      "manifest_sha256": "cb527d7f1739480a6312a0c497f65e1b6aca7ef5acdad28ce93f082e88cc1cca",
+      "runner_sha256": "d027d05c8067d9827ceaa05ba852422c25abf089fa50fbbee2a4bb1b1f19bcd9",
+      "zip_sha256": "3a9d6ef263572f12083b7cbc8f606e0f7c678d4b3180586519d7b634b474b97c"
+    },
+    "package_self_check": "PASS (older packages 78 files unchanged, b6cr01 d0b9f27b kept)",
+    "host_simulation": "10/10 PASS (incl. superseded b6cr01 refused)",
+    "superseded_first_build_overwritten": "b6cr01 ZIP 575aa8f4 overwritten in place by d0b9f27b; never run",
+    "runtime": "NOT_RUN"
+  },
+  "codex_cr01_r2_pre_run_review": {
+    "reviewer": "Codex",
+    "result": "PASS_CODE_AND_R2_PACKAGE_PENDING_RUNTIME",
+    "source_manifest_sha256": "cb527d7f1739480a6312a0c497f65e1b6aca7ef5acdad28ce93f082e88cc1cca",
+    "zip_sha256": "3a9d6ef263572f12083b7cbc8f606e0f7c678d4b3180586519d7b634b474b97c",
+    "local_b6_unit_tests_passed": 21,
+    "source_files_match": 46,
+    "independent_heldout_decision_probes": "PASS; synthetic JUnit, no durable runtime",
+    "package_audit": "PASS",
+    "runtime": "NOT_RUN",
+    "finding_closed": false,
+    "review_note": "evidence/notes/PHASE_B_B6_CR01_CODEX_PRECOMMIT_REVIEW_20261016.md"
+  },
+  "local_checkpoint_decision": {
+    "record": "DECISIONS 124",
+    "date": "2026-10-16",
+    "meaning": "reviewed state saved by local commits before the r2 Studio run; not acceptance",
+    "runtime_r2": "NOT_RUN",
+    "cr01_closed": false,
+    "source_package_unchanged": true,
+    "studio_state": "base 993a26c, source 90724453 (last reported); no pull",
+    "push_merge_deploy": "not performed"
+  }
+}

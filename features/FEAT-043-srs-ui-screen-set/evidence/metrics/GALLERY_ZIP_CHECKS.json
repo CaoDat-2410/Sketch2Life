@@ -1,0 +1,13 @@
+{
+  "status": "GALLERY_AND_ZIP_VALID",
+  "verified_at_utc": "2026-10-10T14:28:58.347680+00:00",
+  "gallery_file_links_checked": 173,
+  "script_syntax": "PASS",
+  "zip_crc": "PASS",
+  "zip_pngs": 43,
+  "zip_prompt_files": 67,
+  "zip_offline_links_checked": 173,
+  "all_selected_png_hashes_match": "PASS",
+  "local_http_gallery": "PASS",
+  "browser_interaction": "UNVERIFIED_CUA_KERNEL_SETUP_FAILED"
+}

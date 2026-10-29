@@ -1,0 +1,280 @@
+{
+  "schema_version": "1.0",
+  "reviewed_at_utc": "2026-10-17T14:17:12.851499+00:00",
+  "disposition": "NEEDS_REVISION",
+  "priority_counts": {
+    "P1": 0,
+    "P2": 2
+  },
+  "state": "A1_NEEDS_REVISION_AFTER_FIXES",
+  "head": "f120c4fce8f7853e5ab5e061eff4bf916d45603c",
+  "branch": "feature/be2-03-assistance-orchestration",
+  "approved_plan": {
+    "path": "features/FEAT-049-be2-assistance-orchestration/plan/PLAN_REV3_APPROVED.md",
+    "revision": 3,
+    "sha256": "e1fce645a5d8c98efe366865f5a8a1b9c81c8a48626723c4e73f0c646979d3e5"
+  },
+  "approval": {
+    "path": "features/FEAT-049-be2-assistance-orchestration/approvals/TASK_APPROVAL.md",
+    "sha256": "f6a266c9a01c6a6c2432765ff50a866618bb05221aed933e4113e2bff8a23501",
+    "status": "APPROVED",
+    "scope": "A1.1-A1.5 offline component; D1-D11 selected by actual owner instruction"
+  },
+  "reviewed_fix_metrics": {
+    "path": "evidence/metrics/A1_REVIEW_FIX_CHECKS_20261017.json",
+    "sha256": "54785ea5827c7414631174f7beb1153113ee4d9ab87134dd59e619ae84d23ac8"
+  },
+  "original_findings": {
+    "A1-CR01": "direct gate fixed; full lifetime depends on CR03 follow-ups",
+    "A1-CR02": "CLOSED_REVIEWED_SCOPE",
+    "A1-CR03": "OPEN_F1_F2",
+    "A1-CR04": "CLOSED_REVIEWED_SCOPE",
+    "A1-CR05": "CLOSED_REVIEWED_SCOPE"
+  },
+  "findings": [
+    {
+      "id": "A1-CR03-F1",
+      "priority": "P2",
+      "path": "backend/src/sketch2life/infrastructure/assistance/fakes.py",
+      "start_line": 127,
+      "end_line": 133,
+      "title": "Defer reentrant owner publication through assistance commit",
+      "status": "OPEN"
+    },
+    {
+      "id": "A1-CR03-F2",
+      "priority": "P2",
+      "path": "backend/src/sketch2life/application/services/assistance.py",
+      "start_line": 477,
+      "end_line": 478,
+      "title": "Include current Vision mutations in decision/commit validation",
+      "status": "OPEN"
+    }
+  ],
+  "root_pytest": {
+    "exit_code": 0,
+    "counts": {
+      "tests": 868,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "file_count": 30,
+    "elapsed_s": 10.5,
+    "scope": "A1 plus BE2-01 and BE2-02 approved offline regressions; no Studio/SQL/provider",
+    "network_guard": "Parent test process external sockets blocked; local child Python tests permitted",
+    "out": "evidence/local/codex-a1-rereview-20261017/root-1792246309396908000",
+    "paths": [
+      "backend/tests/contract/test_ai_job_contracts.py",
+      "backend/tests/contract/test_ai_job_polling.py",
+      "backend/tests/contract/test_analysis_corrections_api.py",
+      "backend/tests/contract/test_analysis_result_contracts.py",
+      "backend/tests/contract/test_assistance_request_contracts.py",
+      "backend/tests/contract/test_assistance_requests_api.py",
+      "backend/tests/contract/test_h_ai_review_handoff_examples.py",
+      "backend/tests/contract/test_vision_context_contracts.py",
+      "backend/tests/unit/test_ai_job_application.py",
+      "backend/tests/unit/test_ai_job_b3_fences.py",
+      "backend/tests/unit/test_ai_job_b4_dispatch.py",
+      "backend/tests/unit/test_ai_job_b5_capability.py",
+      "backend/tests/unit/test_ai_job_b5_effects.py",
+      "backend/tests/unit/test_ai_job_b6_conformance.py",
+      "backend/tests/unit/test_ai_job_lifecycle.py",
+      "backend/tests/unit/test_ai_job_q00_followups.py",
+      "backend/tests/unit/test_ai_job_review_regressions.py",
+      "backend/tests/unit/test_assistance_chain.py",
+      "backend/tests/unit/test_assistance_domain.py",
+      "backend/tests/unit/test_assistance_races.py",
+      "backend/tests/unit/test_assistance_review_fixes.py",
+      "backend/tests/unit/test_assistance_service.py",
+      "backend/tests/unit/test_vision_analysis_domain.py",
+      "backend/tests/unit/test_vision_analysis_job_lineage.py",
+      "backend/tests/unit/test_vision_analysis_legacy_bridge.py",
+      "backend/tests/unit/test_vision_analysis_review_fixes.py",
+      "backend/tests/unit/test_vision_analysis_service.py",
+      "backend/tests/unit/test_vision_context_adapter.py",
+      "backend/tests/unit/test_vision_context_domain.py",
+      "backend/tests/unit/test_vision_context_service.py"
+    ]
+  },
+  "suite_split": {
+    "A1": 118,
+    "BE2-01": 338,
+    "BE2-02": 412
+  },
+  "before_receipt_verified": {
+    "tests": 16,
+    "failures": 12,
+    "errors": 0,
+    "skipped": 0
+  },
+  "static": {
+    "ruff": {
+      "exit_code": 0,
+      "paths": 17
+    },
+    "mypy_strict_source": {
+      "exit_code": 0,
+      "paths": 10
+    }
+  },
+  "probes": {
+    "cache_in_assistance_unit": {
+      "receipt": "evidence/local/codex-a1-rereview-20261017/root-probes/cache_in_unit_publication_result.json",
+      "sha256": "1e1c6e0397cf36143a89bb0fbe2d7e1787bcf75deeb523a0c6dbc279dc951dcd",
+      "observations": {
+        "scope": "real AssistanceService, real Vision service, approved synthetic fakes",
+        "observations": {
+          "seam": "_event clock, after assistance decision_epoch guard",
+          "revocation_ran_immediately": true,
+          "original_disclosure_inside_unit": false
+        },
+        "decision_epoch_before": 1,
+        "decision_epoch_after": 2,
+        "committed_outcome": "cache_hit",
+        "returned_cache_provenance": {
+          "assistance_id": "assist_fx0001",
+          "job_id": "job_fx0001",
+          "analysis_id": "ana_fx0001"
+        },
+        "original_disclosure_after_commit": false,
+        "gap_reproduced": true,
+        "expected": "Same-thread owner publication cannot commit inside an atomic assistance unit"
+      }
+    },
+    "handoff_and_debounce": {
+      "receipt": "evidence/local/codex-a1-rereview-20261017/root-probes/probe_result.json",
+      "sha256": "1ff3255683b2d1eaa3528bc03b5d246777b7bfe35f835ab2941dcd0e139143fe",
+      "observations": {
+        "pre_transaction": {
+          "trigger": 1,
+          "calls": 4,
+          "publication_immediate": [
+            true
+          ],
+          "owner_publication_observed": [
+            {
+              "committed_request_status": "scheduled",
+              "committed_sketch_intents": 0
+            }
+          ],
+          "status": "stale",
+          "sketch_intents": 0,
+          "consent": false,
+          "pin_stale_now": true
+        },
+        "inside_transaction": {
+          "trigger": 2,
+          "calls": 4,
+          "publication_immediate": [
+            true
+          ],
+          "owner_publication_observed": [
+            {
+              "committed_request_status": "scheduled",
+              "committed_sketch_intents": 0
+            }
+          ],
+          "status": "analysis_ready",
+          "sketch_intents": 1,
+          "consent": false,
+          "pin_stale_now": true
+        },
+        "semantic": {
+          "inside_window": "RATE_LIMITED",
+          "old_status": "scheduled",
+          "old_counted": true,
+          "after_window": "scheduled",
+          "old_after_window": "scheduled"
+        }
+      }
+    },
+    "vision_invalidation": {
+      "receipt": "evidence/local/codex-a1-rereview-20261017/root-probes/cache_analysis_invalidation_result.json",
+      "sha256": "ae16aed1c0d00a96c5eda0282df7fd7aba75cd19fbe5f6b4d92fa3618902ab6d",
+      "observations": {
+        "scope": "real AssistanceService and real VisionAnalysisService over A1 composition",
+        "mutation": "VisionAnalysisService.apply_invalidation(INTENT_CHANGED), not raw fake mutation",
+        "seam": "after current analysis read returned, before cache acceptance transaction",
+        "observations": {
+          "decision_epoch_before": 1,
+          "decision_epoch_after": 1
+        },
+        "current_meaning": "not_applicable",
+        "committed_outcome": "cache_hit",
+        "cached_analysis_id": "ana_fx0001",
+        "gap_reproduced": true,
+        "expected": "Cache cannot accept an analysis already invalidated before cache commit"
+      }
+    }
+  },
+  "probe_interpretation": "Witness exit 0 confirms violations, not product PASS; delegated test subsets overlap root total.",
+  "review_method": "Root plus three targeted same-family delegates; no cross-role sign-off.",
+  "source_sha256": {
+    "backend/src/sketch2life/infrastructure/assistance/__init__.py": "00af247f07037e7feac9d2ec1f7170ce9dde7d7a8a5ef01c3bbde09b7a9b8799",
+    "backend/src/sketch2life/infrastructure/assistance/adapters.py": "7648b9762a93218bbcf2727b824619957525c70dc120950ae13f13d392c350dc",
+    "backend/src/sketch2life/infrastructure/assistance/fakes.py": "4d499f35115623fcb7782552c53511b8b716ad766e4791fe00cfc6fed2ce7fee",
+    "backend/src/sketch2life/infrastructure/assistance/harness.py": "0d082c5dffa7aa2cef2ed8984ec567111a0f14e15d17738ef18e1dd1ea30f33d",
+    "backend/src/sketch2life/domain/assistance.py": "ab4df2971bd403c209810fc958ac249e8b4cb5d74ebc21b2a5b82c28fb455e1c",
+    "backend/src/sketch2life/contracts/schemas/assistance_requests.py": "2c2df0b574e2c5bb846c8e3c6688f1291966357f94f02ae83356886f7a5b62a2",
+    "backend/src/sketch2life/application/ports/assistance.py": "a1f1d83093b702fc859aeaff610005be6794278e3b220be6fe5db0110f358077",
+    "backend/src/sketch2life/application/services/assistance.py": "0221686b482667ddda8763e6be4a02fba4ef8e4e5b2fa94781515922ce502f06",
+    "backend/src/sketch2life/interfaces/http/routers/assistance_requests.py": "2bc20104a480155bdccbcb200e9b71cd49d2d1e44394b14928ad643e8e2c958e",
+    "backend/src/sketch2life/interfaces/http/assistance_requests_fixture_app.py": "3cdf6e04b8540168d0bd5da4318a0e8135040e12f3761cf98fb0e00d1cc6f30d",
+    "backend/tests/unit/test_assistance_chain.py": "f27c887f4c4d78afb89dc79b275ba4ef84c51e717ab6636b28cb47c07d9b608b",
+    "backend/tests/unit/test_assistance_domain.py": "afabe3545e47eab5101551b1642855143d71e9fd910da0ba8f213a9b78a89dc8",
+    "backend/tests/unit/test_assistance_races.py": "c874ce32de889cbdf2abd6066a789bfd831e895cf68106d3698e84c100dbb371",
+    "backend/tests/unit/test_assistance_review_fixes.py": "df2f7d39b058b20b6ac2eee151319600be8a9f262e85c0bddb5cdf1e1784a690",
+    "backend/tests/unit/test_assistance_service.py": "a40bf516bd7232f7e641ef0168764f7b61ade0e0a895c0a7b03a74b60abfdaac",
+    "backend/tests/contract/test_assistance_request_contracts.py": "30b6eedc5ad11d7b26746782e59794614bf9feedc440e5894ec694f0d2c05ffc",
+    "backend/tests/contract/test_assistance_requests_api.py": "7dd80544c9fd6f142c2510108d669298de6e0d87d94b61b373bd7c5901d3df8a",
+    "features/FEAT-049-be2-assistance-orchestration/fixtures/h_ai_review/assistance_handoff_examples.json": "9bbfe99cfb436040da8c053d99cb54bb7ce2c8e19643eae8de314d4bbeae5b06",
+    "features/FEAT-049-be2-assistance-orchestration/plan/PLAN_REV3_APPROVED.md": "e1fce645a5d8c98efe366865f5a8a1b9c81c8a48626723c4e73f0c646979d3e5"
+  },
+  "protected_prerequisite_sha256": {
+    "features/FEAT-048-be2-vision-correction/plan/PLAN_REV1_APPROVED.md": "f4733c88797edbcce225ecd63700634f929ca75789362c7f3a58a2b57f19df30",
+    "features/FEAT-048-be2-vision-correction/plan/C2_TYPED_CONTEXT_PLAN_REV2_APPROVED.md": "4b339514d3d5bf01b9a8c23f0a15ea5e71b4d2f1389db9e141e31aa322cd57c2",
+    "features/FEAT-048-be2-vision-correction/approvals/TASK_APPROVAL.md": "ebe826ce01a004c6888bc6d2cd4741470beabfdb1f89133d8ebd18f48a691494",
+    "features/FEAT-048-be2-vision-correction/approvals/C1_COMPONENT_ACCEPTANCE.md": "2d2e109a3e01f7fd4a2908ee474b620cfce67136f10bafb793d97e1a1e81cece",
+    "features/FEAT-048-be2-vision-correction/approvals/C2_TASK_APPROVAL.md": "16af8a94c1de2430745ba213d7e183ffa28305de33856a153e9b49d836d294df",
+    "features/FEAT-048-be2-vision-correction/approvals/C2_COMPONENT_ACCEPTANCE.md": "35962b02864f84cb4532897efc63e94cc297f23359c4a9b287f5a16b49fd6ad5"
+  },
+  "prerequisite_source_sha256": {
+    "backend/src/sketch2life/application/services/ai_jobs.py": "df6ac4fd47bd9fdcd7d5eaf7dfca5e4cf9541870f40e0dc4a81150dffd936704",
+    "backend/src/sketch2life/application/ports/ai_jobs.py": "6c6967070d5042b5a6db33e7d28d856e03fe1bd6dc1302e55d73eacc047b33df",
+    "backend/src/sketch2life/domain/ai_jobs/model.py": "512b604636c1a22e231ac3276d3e537ae0deae4d9bb6652ccb064fab7314db99",
+    "backend/src/sketch2life/infrastructure/ai_jobs/fakes.py": "f1318e236694002be238fd8cf73bd54d5c27b952a085c8eb9a798ec8e65957e0",
+    "backend/src/sketch2life/domain/vision_analysis.py": "cb36b2917ec0e9061c21dca4b1ac27316f57e329fc3caafbd78ad1fa41f3dfa5",
+    "backend/src/sketch2life/domain/vision_context.py": "9501f2194a2896df121c50af2a1df29b7003c7f2029af0febd461664886e04eb",
+    "backend/src/sketch2life/application/services/vision_analysis.py": "f30ccbbb5be5af360d042ea3dc1d3fb1ad00e8175f60f7d65dac11d1d7ea9212"
+  },
+  "validators": {
+    "validate_harness": {
+      "exit_code": 0,
+      "receipt": "evidence/local/codex-a1-rereview-20261017/validate_harness.log"
+    },
+    "validate_repository_security": {
+      "exit_code": 0,
+      "receipt": "evidence/local/codex-a1-rereview-20261017/validate_repository_security.log"
+    },
+    "validate_architecture": {
+      "exit_code": 0,
+      "receipt": "evidence/local/codex-a1-rereview-20261017/validate_architecture.log"
+    },
+    "validate_skeleton": {
+      "exit_code": 0,
+      "receipt": "evidence/local/codex-a1-rereview-20261017/validate_skeleton.log"
+    },
+    "git_diff_check": {
+      "exit_code": 0
+    }
+  },
+  "component_acceptance": false,
+  "studio_runtime": "NOT_RUN",
+  "full_card_done": false,
+  "product_source_modified_by_review": false,
+  "staged_paths": 0,
+  "git_publication_performed": false,
+  "protected_original_records_unchanged": 8,
+  "new_review_records_whitespace": "LF, no trailing whitespace"
+}

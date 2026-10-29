@@ -1,0 +1,185 @@
+{
+  "date": "2026-10-23",
+  "revision": 4,
+  "status": "PASS",
+  "outputs": {
+    "report_docx": {
+      "path": "features\\FEAT-058-review2-document-package\\artifacts\\SWP490_FA26SE225_R2_Reports1-5_Tracking.docx",
+      "bytes": 1088481,
+      "sha256": "6444ca04aa703e465d5765b881f1226724fb8027fe71e6dffe408a1135a052a7"
+    },
+    "report_pdf": {
+      "path": "features\\FEAT-058-review2-document-package\\artifacts\\SWP490_FA26SE225_R2_Reports1-5_Tracking.pdf",
+      "bytes": 1554111,
+      "sha256": "24f34de319fdf3b91a952192f45e265b54da1757458e97d61bf0290b4d56258b"
+    },
+    "brief_docx": {
+      "path": "features\\FEAT-058-review2-document-package\\artifacts\\SWP490_FA26SE225_R2_DesignBrief.docx",
+      "bytes": 18596,
+      "sha256": "33a734a305d4121b11e7471171343b089530f048f85715d0cf282c9ca614c28b"
+    },
+    "brief_pdf": {
+      "path": "features\\FEAT-058-review2-document-package\\artifacts\\SWP490_FA26SE225_R2_DesignBrief.pdf",
+      "bytes": 354512,
+      "sha256": "cc4f97838eada13535799d6b2c06f63666bcec0a95a088cab74b69f3c0bc6e0b"
+    },
+    "report2_docx": {
+      "path": "features\\FEAT-058-review2-document-package\\artifacts\\SWP490_FA26SE225_R2_Report2_Project_Management_Plan.docx",
+      "bytes": 108520,
+      "sha256": "3b336c37ca9681fe8383d6b8a3f9506c5b1ae01c5e1b654bceef725f4ed59265"
+    },
+    "report2_pdf": {
+      "path": "features\\FEAT-058-review2-document-package\\artifacts\\SWP490_FA26SE225_R2_Report2_Project_Management_Plan.pdf",
+      "bytes": 552538,
+      "sha256": "0f849a13ae3b7fa8450c2ce6ea55cc6df13423cc4f748dbb7733740190c63589"
+    }
+  },
+  "structure": {
+    "consolidated_report_docx": {
+      "bytes": 1088481,
+      "sha256": "6444ca04aa703e465d5765b881f1226724fb8027fe71e6dffe408a1135a052a7",
+      "tables": 33,
+      "zip_integrity": "PASS",
+      "page_geometry_in": [
+        8.268,
+        11.693
+      ],
+      "margins_in": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "design_brief_docx": {
+      "bytes": 18596,
+      "sha256": "33a734a305d4121b11e7471171343b089530f048f85715d0cf282c9ca614c28b",
+      "tables": 11,
+      "zip_integrity": "PASS",
+      "page_geometry_in": [
+        8.267,
+        11.693
+      ],
+      "margins_in": [
+        0.787,
+        0.787,
+        0.787,
+        0.787
+      ]
+    },
+    "standalone_report2_docx": {
+      "bytes": 108520,
+      "sha256": "3b336c37ca9681fe8383d6b8a3f9506c5b1ae01c5e1b654bceef725f4ed59265",
+      "tables": 10,
+      "zip_integrity": "PASS",
+      "page_geometry_in": [
+        8.268,
+        11.693
+      ],
+      "margins_in": [
+        1.0,
+        0.983,
+        1.0,
+        1.0
+      ]
+    }
+  },
+  "report2_checks": {
+    "required_sections_present": {
+      "Record of Changes": true,
+      "Scope & Estimation": true,
+      "Project Objectives": true,
+      "Project Risks": true,
+      "Project Process": true,
+      "Quality Management": true,
+      "Training Plan": true,
+      "Project Schedule and Time Plan": true,
+      "Deliverable Register": true,
+      "Responsibility Assignments": true,
+      "Project Communications": true,
+      "Configuration Management": true,
+      "Document Management": true,
+      "Source Code Management": true,
+      "Tools & Infrastructures": true,
+      "References": true
+    },
+    "required_sections_pass": true,
+    "no_template_instruction_placeholders": true,
+    "wbs_tables": 1,
+    "wbs_rows_excluding_header": 21,
+    "estimated_effort_total_person_days": 252,
+    "schedule_tables": 1,
+    "schedule_rows_excluding_header": 9,
+    "deliverable_tables": 1,
+    "deliverable_rows_excluding_header": 8,
+    "raci_tables": 1,
+    "raci_rows_excluding_header": 14,
+    "standalone_pdf_pages": 8,
+    "toc_and_change_log_on_cover": true,
+    "process_not_split_after_revision": true,
+    "relative_15_week_plan_visible": true,
+    "calendar_anchors_tbd": true,
+    "modal_configuration_tbd": true,
+    "calendar_anchor_evidence": "Report 2 says official calendar dates/submission deadlines must be confirmed; W15 and registration period are stated, and calendar-specific dates remain TBD."
+  },
+  "pdfs": {
+    "consolidated_report": {
+      "pages": 25,
+      "sha256": "24f34de319fdf3b91a952192f45e265b54da1757458e97d61bf0290b4d56258b",
+      "bytes": 1554111
+    },
+    "design_brief": {
+      "pages": 6,
+      "sha256": "cc4f97838eada13535799d6b2c06f63666bcec0a95a088cab74b69f3c0bc6e0b",
+      "bytes": 354512
+    },
+    "standalone_report2": {
+      "pages": 8,
+      "sha256": "0f849a13ae3b7fa8450c2ce6ea55cc6df13423cc4f748dbb7733740190c63589",
+      "bytes": 552538,
+      "evidence_copy_sha256": "0f849a13ae3b7fa8450c2ce6ea55cc6df13423cc4f748dbb7733740190c63589",
+      "copy_matches": true
+    }
+  },
+  "source_templates": {
+    "Report2_template_sha256": "f59a4ce96d99f2f772f4c0ef07828812674aee4b8795aac475d5a395a8401be5",
+    "Report2_source_copies_same_bytes": true,
+    "copies": {
+      "feature_copy": {
+        "sha256": "f59a4ce96d99f2f772f4c0ef07828812674aee4b8795aac475d5a395a8401be5",
+        "bytes": 52720
+      },
+      "supplied_copy": {
+        "sha256": "f59a4ce96d99f2f772f4c0ef07828812674aee4b8795aac475d5a395a8401be5",
+        "bytes": 52720
+      },
+      "pristine_duplicate": {
+        "sha256": "f59a4ce96d99f2f772f4c0ef07828812674aee4b8795aac475d5a395a8401be5",
+        "bytes": 52720
+      }
+    },
+    "registration_v1_2_sha256": "0c52809dfc24bacfe6d3f5e02f0f3150ba5453d999dabf739b2eadfeafbad5df",
+    "Report7_reference_sha256": "ab559f29deebc9be7e23ccf94ba535f6dc48e21174694e8efa97990db27facfc",
+    "BM01_reference_sha256": "1fdcda346a65501601310952c1b0afebc3a3cdf70e4e6a70581e023a02e2f4c8"
+  },
+  "visual_review": {
+    "method": "Word COM PDF export; pypdfium2 page render; all final output pages visually inspected",
+    "pages": {
+      "consolidated_report": 25,
+      "design_brief": 6,
+      "standalone_report2": 8
+    },
+    "report2_contact_sheets": [
+      "qa-rev4-final-v2-1.png",
+      "qa-rev4-final-v2-2.png"
+    ],
+    "consolidated_contact_sheets": "contact-01.png through contact-07.png",
+    "designbrief_contact_sheets": "all six pages inspected in prior revision"
+  },
+  "research_references": [
+    "https://agilemanifesto.org/principles",
+    "https://scrumguides.org/scrum-guide.html",
+    "https://docs.github.com/en/issues/planning-and-tracking-with-projects/learning-about-projects/about-projects"
+  ],
+  "verification_boundary": "Document structural, content, package-integrity and visual QA only; no application tests, E2E, staging, Modal/GPU, pilot, deployment, commit, push or tag were performed for this revision."
+}

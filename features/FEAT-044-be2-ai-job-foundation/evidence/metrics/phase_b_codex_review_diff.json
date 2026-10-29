@@ -1,0 +1,11 @@
+{
+  "check": "diff",
+  "command": [
+    "git",
+    "diff",
+    "--check"
+  ],
+  "started_at": "2026-10-15T00:24:18.775293+07:00",
+  "exit_code": 0,
+  "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/phase_b_codex_review_diff.txt"
+}

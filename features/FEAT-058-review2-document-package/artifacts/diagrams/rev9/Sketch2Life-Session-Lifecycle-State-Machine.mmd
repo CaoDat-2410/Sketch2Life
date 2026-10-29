@@ -1,0 +1,23 @@
+stateDiagram-v2
+direction LR
+[*] --> Draft
+Draft --> Scheduled: schedule
+Draft --> Lobby: open lobby
+Scheduled --> Lobby: open lobby
+Draft --> Cancelled
+Scheduled --> Cancelled
+Lobby --> Cancelled
+Lobby --> Active: Start
+Active --> Paused: pause
+Paused --> Active: resume
+Active --> Recovering: failure
+Paused --> Recovering: failure
+Recovering --> Active: recover
+Recovering --> Paused: recover
+Active --> Completing
+Paused --> Completing
+Completing --> Completed
+Lobby --> EndedEarly
+Active --> EndedEarly: early end*
+Paused --> EndedEarly
+Recovering --> EndedEarly

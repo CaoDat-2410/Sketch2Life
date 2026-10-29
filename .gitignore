@@ -108,6 +108,37 @@ features/FEAT-000-harness/evidence/handbook-page-*.png
 features/FEAT-026-current-system-srs/artifacts/Sketch2Life_SRS_Form_qa.pdf
 features/FEAT-029-master-srs/evidence/notes/SOURCES.md
 
+# FEAT-043 generated screen assets remain REVIEW_PENDING and are not runtime-adopted.
+# Keep image previews, iteration captures and packed delivery archives local until approval.
+/features/FEAT-043-srs-ui-screen-set/assets/generated/
+/features/FEAT-043-srs-ui-screen-set/assets/generated.rar
+/features/FEAT-043-srs-ui-screen-set/artifacts/Sketch2Life_UI_SRS_v3.1.zip
+/features/FEAT-043-srs-ui-screen-set/evidence/iterations/
+/features/FEAT-043-srs-ui-screen-set/evidence/screenshots/
+
+# FEAT-058 source PDFs and rendered page QA stay local; publish the editable DOCX/Draw.io sources.
+/features/FEAT-058-review2-document-package/**/*.pdf
+/features/FEAT-058-review2-document-package/evidence/render/
+/features/FEAT-058-review2-document-package/evidence/raw/mermaid-import/
+# The registration submission contains team members' phone numbers and email addresses.
+# Keep that required submission file local because this repository is publicly readable.
+/features/FEAT-058-review2-document-package/artifacts/submission_r2_rev10/Sketch2Life_R2_Registration_BM03.docx
+/features/FEAT-058-review2-document-package/artifacts/submission_r2_rev6/SWP490_FA26SE225_R2_Registration.docx
+/features/FEAT-058-review2-document-package/artifacts/submission_r2_rev7/SWP490_FA26SE225_R2_Registration.docx
+/features/FEAT-058-review2-document-package/artifacts/submission_r2_rev11/SWP490_FA26SE225_R2_Registration.docx
+/features/FEAT-058-review2-document-package/artifacts/submission_r2_rev12/SWP490_FA26SE225_R2_Registration.docx
+
+# FEAT-060 raw local command logs may contain workstation paths; reviewed summaries are versioned.
+/features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/active-ui-full-check.log
+/features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/admin-ui-integration-check.log
+/features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/implementation-baseline-20261024/admin-check.log
+/features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/implementation-baseline-20261024/backend-contract-tests.log
+/features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/teacher-auth-tests.log
+/features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/teacher-ui-integration-check.log
+# One P4 runner transcript embeds an absolute workstation path; keep the raw
+# transcript local and publish its path-free result summary instead.
+/features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/ci-rev5-20261024/iteration1-p4-runner.log
+
 # Android native build intermediates
 apps/mobile/android/app/.cxx/
 
@@ -124,3 +155,45 @@ apps/ui-mobile/android/.gradle-alt*/
 
 # Feature-local complete repeated diagnostics; published excerpts retain lineage.
 /features/FEAT-042-feat018-contract-dev-merge/evidence/local/
+
+# BE2 operator-local inventory and repeated intermediate diagnostics.
+# Selection/provenance: FEAT-044 evidence/notes/PUBLICATION_SELECTION_20261015.md
+/features/FEAT-044-be2-ai-job-foundation/evidence/local/
+# BE2-02 prompts, scratch output and repeated diagnostics stay local.
+/features/FEAT-048-be2-vision-correction/evidence/local/
+# BE2-03 prompts, scratch output and raw validator logs stay local.
+/features/FEAT-049-be2-assistance-orchestration/evidence/local/
+# BE2-04 prompts, scratch output and raw validator/test logs stay local.
+/features/FEAT-050-be2-sketch-generation/evidence/local/
+# BE2-05 prompts, preparation inputs, scratch output and raw logs stay local.
+/features/FEAT-052-be2-sketch-review/evidence/local/
+# Claude operator prompts/session handovers belong under evidence/local/claude/.
+# Retain the historical handoff explicitly referenced by the Phase A approval.
+/features/FEAT-044-be2-ai-job-foundation/plan/CLAUDE_*.md
+!/features/FEAT-044-be2-ai-job-foundation/plan/CLAUDE_BE2_HANDOFF.md
+/features/FEAT-044-be2-ai-job-foundation/evidence/notes/CLAUDE_SESSION_HANDOVER_*.md
+/features/FEAT-044-be2-ai-job-foundation/evidence/raw/phase_a_run1_*
+/features/FEAT-044-be2-ai-job-foundation/evidence/raw/phase_a_run2_*
+/features/FEAT-044-be2-ai-job-foundation/evidence/raw/q00a_run2_*
+/features/FEAT-044-be2-ai-job-foundation/evidence/metrics/phase_a_run1_checks.json
+/features/FEAT-044-be2-ai-job-foundation/evidence/metrics/phase_a_run2_checks.json
+/features/FEAT-044-be2-ai-job-foundation/evidence/metrics/q00a_checks.json
+/features/FEAT-044-be2-ai-job-foundation/evidence/metrics/q00a_run2_checks.json
+/features/FEAT-044-be2-ai-job-foundation/evidence/raw/q00a_architecture.txt
+/features/FEAT-044-be2-ai-job-foundation/evidence/raw/q00a_diff_check.txt
+/features/FEAT-044-be2-ai-job-foundation/evidence/raw/q00a_harness.txt
+/features/FEAT-044-be2-ai-job-foundation/evidence/raw/q00a_module_origin.txt
+/features/FEAT-044-be2-ai-job-foundation/evidence/raw/q00a_mypy.txt
+/features/FEAT-044-be2-ai-job-foundation/evidence/raw/q00a_pytest_new.txt
+/features/FEAT-044-be2-ai-job-foundation/evidence/raw/q00a_pytest_regressions.txt
+/features/FEAT-044-be2-ai-job-foundation/evidence/raw/q00a_ruff.txt
+/features/FEAT-044-be2-ai-job-foundation/evidence/raw/q00a_runner_default_python.txt
+/features/FEAT-044-be2-ai-job-foundation/evidence/raw/q00a_runner_report.json
+/features/FEAT-044-be2-ai-job-foundation/evidence/raw/q00a_runner_report_http.json
+/features/FEAT-044-be2-ai-job-foundation/evidence/raw/q00a_runner_venv_with_http.txt
+/features/FEAT-044-be2-ai-job-foundation/evidence/raw/q00a_security.txt
+/features/FEAT-044-be2-ai-job-foundation/evidence/raw/q00a_skeleton.txt
+/features/FEAT-044-be2-ai-job-foundation/evidence/raw/phase_b_review_rq_source.txt
+/features/FEAT-055-be2-child-response/evidence/local/
+/features/FEAT-056-be2-knowledge-script/evidence/local/
+/features/FEAT-057-be2-01-14-offline-integration/evidence/local/

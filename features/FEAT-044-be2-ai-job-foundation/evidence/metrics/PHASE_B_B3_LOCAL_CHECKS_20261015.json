@@ -1,0 +1,56 @@
+{
+  "recorded_at": "2026-10-15",
+  "batch": "B3",
+  "state": "B3_CODE_COMPLETE_POSTGRES_NOT_RUN",
+  "executor": "Claude",
+  "provenance": "DIRECT_LOCAL_RUN",
+  "environment": "Windows, <repo>/backend/.venv Python 3.12.10, PYTHONPATH/MYPYPATH=<BE2_WORKTREE>/backend/src",
+  "source_base": "993a26cae78c0a4fe983033f03881838c886b176",
+  "requires_b2_patch_sha256": "f388ce3646db5844ca8baabe17db657e0580a92fc21f800f75753e139a419bff",
+  "owner_fence": "ASSUMED_CONTRACT OwnerFenceV1/0.1-candidate",
+  "checks": {
+    "phase_a_suites": {"exit_code": 0, "passed": 223, "skipped": 1, "skip_reason": "Pillow absent locally (live-route)"},
+    "b2_b3_suite": {"exit_code": 0, "passed": 22, "skipped": 47, "passed_split": {"b3_offline": 14, "b2_offline": 8}, "skipped_split": {"b3_postgres": 37, "b2_postgres": 10}, "skipped_status": "NOT_RUN"},
+    "fixture_runner_default": {"exit_code": 0, "criteria_pass": 20, "checks": 215, "not_run": 1, "results_sha256": "d17f58a3c9c535d45a2fe03ed0c1edad42a565422725aede21b22ba45af41f68", "matches_q00_final_digest": true},
+    "ruff": {"exit_code": 0},
+    "ruff_format_new_files": {"exit_code": 0},
+    "mypy_src": {"exit_code": 0},
+    "mypy_b3_tests": {"exit_code": 0},
+    "validate_harness": {"exit_code": 0},
+    "validate_repository_security": {"exit_code": 0},
+    "validate_architecture": {"exit_code": 0},
+    "validate_skeleton": {"exit_code": 0},
+    "git_diff_check": {"exit_code": 0}
+  },
+  "postgres": {
+    "status": "NOT_RUN",
+    "reason": "no local PostgreSQL 17; local Docker engine unavailable",
+    "acceptance_pending": ["B-03a", "B-03b", "B-03c", "B-03d", "B-03e", "B-03f", "B-07", "B-08a", "B-08b (B3 part)", "B-09a", "B-09b", "B-09c", "B-09d"]
+  },
+  "package": {
+    "directory": "evidence/local/b3-studio-package-20261015",
+    "b3_patch_sha256": "a2e479d5ee8fc59c67568f5089cf981672b76315d7b0796c3bddc1d0d956e312",
+    "manifest_sha256": "ea5cf57e12058f48cbd6ef73b23ca9a8b60b78c374f655ba629623b6b308939f",
+    "runner_sha256": "6a9e57b787a3b76b5c3cae4f9fe87c4179b088336859b745a5d2c4eae2f1f5cc",
+    "zip_sha256": "4a7e5dd9a30ccdc1abc6d00cf95f82295f9aec0ed15f148ed9527e8ca06e050f",
+    "manifest_files": 19,
+    "b3_files": 11,
+    "reverse_check_exit": 0,
+    "pristine_forward_apply_b2_then_b3": "PASS",
+    "real_index_modified": false
+  },
+  "source_sha256": {
+    "backend/src/sketch2life/application/ports/ai_jobs.py": "8a26f69167b8779d5a0ebcb633dc38a6ca8df9ac371e7c4d376bb9aa4b781f9e",
+    "backend/src/sketch2life/application/services/ai_jobs.py": "4f327bf145c99ae78d1d13c06b19f75e33a3acfd5f424fadaaf96a290dda3944",
+    "backend/src/sketch2life/infrastructure/ai_jobs/fakes.py": "8282e082449ab5198e90e489d7778a2a078ee0b677e131080d2159ee5b7217ea",
+    "backend/src/sketch2life/infrastructure/ai_jobs/harness.py": "f3837ee191a641ab9c2e426b7156726f7b98c0fe46f58b4087f56ba95f0cb07f",
+    "backend/src/sketch2life/infrastructure/ai_jobs/sql/owner_fence_fixture.py": "ad93ea35037b10e808f84787fb55ebbf17b97874df462183d6808a5d8d0b4555",
+    "backend/src/sketch2life/infrastructure/ai_jobs/sql/repository.py": "f66dfb5d6994f705c896d41e26598afa914edcd5e5c920c702f970750fdc111b"
+  },
+  "b2_sources_unchanged": true,
+  "approvals_and_approved_plans_unchanged": true,
+  "b4_b5_b6_implemented": false,
+  "committed": false,
+  "pushed": false,
+  "deployed": false
+}

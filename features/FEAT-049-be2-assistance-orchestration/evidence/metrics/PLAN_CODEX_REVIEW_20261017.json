@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "reviewed_at_utc": "2026-10-17T11:38:42.350402+00:00",
+  "display_timezone": "Asia/Saigon",
+  "disposition": "NEEDS_REVISION",
+  "feature": "features/FEAT-049-be2-assistance-orchestration",
+  "branch": "feature/be2-03-assistance-orchestration",
+  "head": "f120c4fce8f7853e5ab5e061eff4bf916d45603c",
+  "plan": {
+    "path": "features/FEAT-049-be2-assistance-orchestration/plan/PLAN.md",
+    "revision": 1,
+    "sha256": "bb072cf54cc9012f05fcee984b8aae7b6bec2d53dc21a70f446c33cf9c0afe5e",
+    "bytes": 32784,
+    "unchanged_by_review": true
+  },
+  "findings": [
+    {
+      "id": "A1-PR01",
+      "priority": "P1",
+      "plan_lines": [
+        195,
+        207,
+        231
+      ],
+      "title": "Late create can escape cancellation and budget settlement"
+    },
+    {
+      "id": "A1-PR02",
+      "priority": "P2",
+      "plan_lines": [
+        188,
+        191
+      ],
+      "title": "Semantic dedup omits resolved pin equivalence"
+    },
+    {
+      "id": "A1-PR03",
+      "priority": "P2",
+      "plan_lines": [
+        230,
+        232,
+        302
+      ],
+      "title": "Queued retry can refund a spent stage"
+    },
+    {
+      "id": "A1-PR04",
+      "priority": "P2",
+      "plan_lines": [
+        143,
+        157,
+        203,
+        207,
+        299
+      ],
+      "title": "Terminal completion and cancel-wins promises conflict"
+    },
+    {
+      "id": "A1-PR05",
+      "priority": "P2",
+      "plan_lines": [
+        195,
+        199,
+        304
+      ],
+      "title": "QueueUnavailable recovery uses the wrong foundation boundary"
+    }
+  ],
+  "review_method": "Root source review plus three delegated same-family source audits; not role-owner sign-off",
+  "implementation_status": "NOT_STARTED",
+  "approval_status": "AWAITING_APPROVAL",
+  "be203_tests": "NOT_RUN_NOT_IMPLEMENTED",
+  "studio_runtime": "NOT_RUN",
+  "foundation_probe": {
+    "path": "features/FEAT-049-be2-assistance-orchestration/evidence/local/codex-plan-review-20261017/foundation_probe.json",
+    "sha256": "37b109f1467abeabe97c87f8f64f3f22898a2306ff5090489c518fcd7f4125e6",
+    "result": "PASS",
+    "kind": "existing_foundation_fake_and_pure_domain_only"
+  },
+  "checks": {
+    "validate_harness": {
+      "exit_code": 0,
+      "output": "HARNESS_VALID\nroot=D:\\GitHub\\Sketch2Life\\.worktrees\\be2-03-assistance-orchestration\napproval_gate=enabled\nfrontend_asset_gate=enabled",
+      "raw_log": "evidence/local/codex-plan-review-20261017/validate_harness.log"
+    },
+    "validate_repository_security": {
+      "exit_code": 0,
+      "output": "REPOSITORY_SECURITY_VALID\npublishable_files_scanned=3143\nenvironment_files=excluded\nseed_accounts=excluded\ncredentials_and_signing_keys=excluded\nexternal_reference_documents=excluded\nabsolute_machine_paths=absent",
+      "raw_log": "evidence/local/codex-plan-review-20261017/validate_repository_security.log"
+    },
+    "validate_architecture": {
+      "exit_code": 0,
+      "output": "ARCHITECTURE_VALID\npython_dependency_direction=valid\nmobile_feature_isolation=valid\nfrontend_asset_gate=valid\nmobile_ai_boundary=valid\nfirebase_data_products=absent",
+      "raw_log": "evidence/local/codex-plan-review-20261017/validate_architecture.log"
+    },
+    "validate_skeleton": {
+      "exit_code": 0,
+      "output": "SKELETON_VALID\nbackend=python-fastapi\nfrontend=react-native\nmobile_target=android-only\nandroid_sdk=min29-target36-compile37\nauth=firebase-auth-only\nai=lightning-dev-runpod-production\nworkspace=pnpm",
+      "raw_log": "evidence/local/codex-plan-review-20261017/validate_skeleton.log"
+    },
+    "git_diff_check": {
+      "exit_code": 0,
+      "output": "",
+      "raw_log": "evidence/local/codex-plan-review-20261017/git_diff_check.log"
+    }
+  },
+  "new_feature_markdown_whitespace_issues": [],
+  "source_sha256": {
+    "backend/src/sketch2life/application/services/ai_jobs.py": "df6ac4fd47bd9fdcd7d5eaf7dfca5e4cf9541870f40e0dc4a81150dffd936704",
+    "backend/src/sketch2life/application/ports/ai_jobs.py": "6c6967070d5042b5a6db33e7d28d856e03fe1bd6dc1302e55d73eacc047b33df",
+    "backend/src/sketch2life/domain/ai_jobs/model.py": "512b604636c1a22e231ac3276d3e537ae0deae4d9bb6652ccb064fab7314db99",
+    "backend/src/sketch2life/infrastructure/ai_jobs/fakes.py": "f1318e236694002be238fd8cf73bd54d5c27b952a085c8eb9a798ec8e65957e0",
+    "backend/src/sketch2life/domain/vision_analysis.py": "cb36b2917ec0e9061c21dca4b1ac27316f57e329fc3caafbd78ad1fa41f3dfa5",
+    "backend/src/sketch2life/domain/vision_context.py": "9501f2194a2896df121c50af2a1df29b7003c7f2029af0febd461664886e04eb",
+    "backend/src/sketch2life/application/services/vision_analysis.py": "f30ccbbb5be5af360d042ea3dc1d3fb1ad00e8175f60f7d65dac11d1d7ea9212"
+  },
+  "protected_sha256": {
+    "features/FEAT-048-be2-vision-correction/plan/PLAN_REV1_APPROVED.md": "f4733c88797edbcce225ecd63700634f929ca75789362c7f3a58a2b57f19df30",
+    "features/FEAT-048-be2-vision-correction/plan/C2_TYPED_CONTEXT_PLAN_REV2_APPROVED.md": "4b339514d3d5bf01b9a8c23f0a15ea5e71b4d2f1389db9e141e31aa322cd57c2",
+    "features/FEAT-048-be2-vision-correction/approvals/TASK_APPROVAL.md": "ebe826ce01a004c6888bc6d2cd4741470beabfdb1f89133d8ebd18f48a691494",
+    "features/FEAT-048-be2-vision-correction/approvals/C1_COMPONENT_ACCEPTANCE.md": "2d2e109a3e01f7fd4a2908ee474b620cfce67136f10bafb793d97e1a1e81cece",
+    "features/FEAT-048-be2-vision-correction/approvals/C2_TASK_APPROVAL.md": "16af8a94c1de2430745ba213d7e183ffa28305de33856a153e9b49d836d294df",
+    "features/FEAT-048-be2-vision-correction/approvals/C2_COMPONENT_ACCEPTANCE.md": "35962b02864f84cb4532897efc63e94cc297f23359c4a9b287f5a16b49fd6ad5"
+  },
+  "approval_sha256": "d9f0368d4d6541ffe431f2ca8eb04f53313d38cf9854afc30ede7d0b516917c6",
+  "staged_paths": [],
+  "application_source_test_changes": [],
+  "git_publication_performed": false
+}

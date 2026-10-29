@@ -1,0 +1,4 @@
+Command=<backend-venv>/python -B -c import sketch2life,pathlib;print(pathlib.Path(sketch2life.__file__).resolve())
+started_at=2026-10-14T22:09:29.250384+07:00
+exit_code=0
+<worktree>\backend\src\sketch2life\__init__.py
