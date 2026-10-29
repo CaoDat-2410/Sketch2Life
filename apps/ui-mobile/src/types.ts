@@ -2,6 +2,8 @@ export type ScreenId =
   // Active Parent flow (SRS V2.2)
   | 'login'
   | 'profile_list'
+  | 'profile_create'
+  | 'profile_edit'
   | 'profile_detail'
   | 'parent_home'
   | 'topic_selection'
@@ -55,6 +57,8 @@ export type ScreenId =
 export const PARENT_FLOW_SCREENS: ScreenId[] = [
   'login',
   'profile_list',
+  'profile_create',
+  'profile_edit',
   'profile_detail',
   'parent_home',
   'topic_selection',

@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Path, Circle, Rect, Ellipse } from 'react-native-svg';
@@ -340,7 +341,8 @@ const styles = StyleSheet.create({
   screenFull: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-    padding: 18,
+    paddingHorizontal: 18,
+    paddingTop: Platform.OS === 'web' ? 54 : 18,
     justifyContent: 'space-between',
   },
   scrollScreen: {

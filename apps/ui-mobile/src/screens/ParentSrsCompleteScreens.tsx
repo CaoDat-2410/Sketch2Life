@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { CatDrawingArtwork } from '../components/ArtworkCards';
 import { colors, shadows } from '../theme';
@@ -147,7 +147,7 @@ export const NotificationsSettingsScreen: React.FC<ScreenProps> = ({ onNavigate 
 };
 
 const styles = StyleSheet.create({
-  container: { padding: 20, paddingBottom: 36, backgroundColor: '#F8FAFC', minHeight: '100%' },
+  container: { paddingHorizontal: 20, paddingTop: Platform.OS === 'web' ? 56 : 20, paddingBottom: 36, backgroundColor: '#F8FAFC', minHeight: '100%' },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 21 },
   backButton: { width: 40, height: 40, borderRadius: 14, backgroundColor: '#F4F7FB', alignItems: 'center', justifyContent: 'center' },
   headerTitle: { fontSize: 15, fontWeight: '900', color: colors.textHeading },

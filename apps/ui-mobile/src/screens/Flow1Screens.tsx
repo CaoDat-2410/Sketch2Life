@@ -2255,7 +2255,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   screenContainer: {
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingTop: Platform.OS === 'web' ? 54 : 16,
     paddingBottom: 24,
     width: '100%',
     alignItems: 'stretch',

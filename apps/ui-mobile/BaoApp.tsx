@@ -19,6 +19,7 @@ import {
   LoginScreen,
   ChildProfileScreen,
   ParentProfileListScreen,
+  ParentProfileCreateScreen,
   ParentProfileDetailScreen,
   ParentHomeScreen,
   TopicSelectionScreen,
@@ -48,26 +49,28 @@ import { AppProvider, useAppContext } from './src/context/AppContext';
 const SCREENS: ScreenMeta[] = [
   { id: 'login', title: '1. Parent Login', subtitle: 'Đăng nhập phụ huynh', flow: 'flow1', workflowStep: 1, stepName: 'Login' },
   { id: 'profile_list', title: '2. Profile List', subtitle: 'Danh sách hồ sơ trẻ', flow: 'flow1', workflowStep: 1, stepName: 'Profiles' },
-  { id: 'profile_detail', title: '3. Profile Detail', subtitle: 'Chi tiết hồ sơ trẻ', flow: 'flow1', workflowStep: 1, stepName: 'Profile detail' },
-  { id: 'parent_home', title: '4. Parent Home', subtitle: 'Trang chủ phụ huynh', flow: 'flow1', workflowStep: 1, stepName: 'Parent home' },
-  { id: 'topic_selection', title: '5. Topic Selection', subtitle: 'Chọn chủ đề & độ khó', flow: 'flow1', workflowStep: 1, stepName: 'Topic' },
-  { id: 'sketch_guide', title: '6. Optional Sketch Guide', subtitle: 'Hướng dẫn vẽ chung', flow: 'flow1', workflowStep: 1, stepName: 'Sketch guide' },
-  { id: 'capture', title: '7. Capture / Upload', subtitle: 'Một tranh vẽ của bé', flow: 'flow1', workflowStep: 1, stepName: 'Capture' },
-  { id: 'voice', title: '8. Story Input', subtitle: 'Text hoặc audio', flow: 'flow1', workflowStep: 1, stepName: 'Narration' },
-  { id: 'transcript_review', title: '9. Transcript Review', subtitle: 'Kiểm tra lời kể', flow: 'flow1', workflowStep: 1, stepName: 'Transcript review' },
-  { id: 'activity_selection', title: '10. Activity Catalog', subtitle: 'Chọn hoạt động đã duyệt', flow: 'flow2', workflowStep: 3, stepName: 'Activity' },
-  { id: 'activity_context_review', title: '11. Activity Context', subtitle: 'Duyệt hoạt động & hồ sơ', flow: 'flow2', workflowStep: 3, stepName: 'Context' },
-  { id: 'ai_processing', title: '12. Story Processing', subtitle: 'Xử lý bất đồng bộ', flow: 'flow2', workflowStep: 4, stepName: 'Processing' },
-  { id: 'story_review', title: '13. Story Review', subtitle: 'Duyệt bản story', flow: 'flow2', workflowStep: 4, stepName: 'Story review' },
-  { id: 'storyboard', title: '14. Storyboard', subtitle: '5–15 cảnh', flow: 'flow2', workflowStep: 5, stepName: 'Storyboard' },
-  { id: 'script_confirm', title: '15. Script Confirmation', subtitle: 'Xác nhận kịch bản', flow: 'flow2', workflowStep: 5, stepName: 'Script' },
-  { id: 'video_processing', title: '16. Video Job', subtitle: 'Tạo video bất đồng bộ', flow: 'flow2', workflowStep: 6, stepName: 'Video job' },
-  { id: 'safety_gate', title: '17. Safety Gate', subtitle: 'Kiểm tra an toàn', flow: 'flow2', workflowStep: 7, stepName: 'Safety' },
-  { id: 'playback', title: '18. Playback', subtitle: 'Xem video', flow: 'flow2', workflowStep: 8, stepName: 'Playback' },
-  { id: 'completion', title: '19. Completion', subtitle: 'Hoàn tất / huỷ / xoá', flow: 'flow2', workflowStep: 8, stepName: 'Completion' },
-  { id: 'history', title: '20. History', subtitle: 'Lịch sử run/video', flow: 'flow1', workflowStep: 8, stepName: 'History' },
-  { id: 'quota', title: '21. Quota', subtitle: 'Quota tháng hiện tại', flow: 'flow1', workflowStep: 8, stepName: 'Quota' },
-  { id: 'notifications_settings', title: '22. Notifications & Settings', subtitle: 'Thông báo và dữ liệu', flow: 'flow1', workflowStep: 8, stepName: 'Settings' },
+  { id: 'profile_create', title: '3. Create Profile', subtitle: 'Tạo hồ sơ trẻ mới', flow: 'flow1', workflowStep: 1, stepName: 'Create profile' },
+  { id: 'profile_edit', title: '4. Edit Profile', subtitle: 'Chỉnh sửa hồ sơ trẻ', flow: 'flow1', workflowStep: 1, stepName: 'Edit profile' },
+  { id: 'profile_detail', title: '5. Profile Detail', subtitle: 'Chi tiết hồ sơ trẻ', flow: 'flow1', workflowStep: 1, stepName: 'Profile detail' },
+  { id: 'parent_home', title: '6. Parent Home', subtitle: 'Trang chủ phụ huynh', flow: 'flow1', workflowStep: 1, stepName: 'Parent home' },
+  { id: 'topic_selection', title: '7. Topic Selection', subtitle: 'Chọn chủ đề & độ khó', flow: 'flow1', workflowStep: 1, stepName: 'Topic' },
+  { id: 'sketch_guide', title: '8. Optional Sketch Guide', subtitle: 'Hướng dẫn vẽ chung', flow: 'flow1', workflowStep: 1, stepName: 'Sketch guide' },
+  { id: 'capture', title: '9. Capture / Upload', subtitle: 'Một tranh vẽ của bé', flow: 'flow1', workflowStep: 1, stepName: 'Capture' },
+  { id: 'voice', title: '10. Story Input', subtitle: 'Text hoặc audio', flow: 'flow1', workflowStep: 1, stepName: 'Narration' },
+  { id: 'transcript_review', title: '11. Transcript Review', subtitle: 'Kiểm tra lời kể', flow: 'flow1', workflowStep: 1, stepName: 'Transcript review' },
+  { id: 'activity_selection', title: '12. Activity Catalog', subtitle: 'Chọn hoạt động đã duyệt', flow: 'flow2', workflowStep: 3, stepName: 'Activity' },
+  { id: 'activity_context_review', title: '13. Activity Context', subtitle: 'Duyệt hoạt động & hồ sơ', flow: 'flow2', workflowStep: 3, stepName: 'Context' },
+  { id: 'ai_processing', title: '14. Story Processing', subtitle: 'Xử lý bất đồng bộ', flow: 'flow2', workflowStep: 4, stepName: 'Processing' },
+  { id: 'story_review', title: '15. Story Review', subtitle: 'Duyệt bản story', flow: 'flow2', workflowStep: 4, stepName: 'Story review' },
+  { id: 'storyboard', title: '16. Storyboard', subtitle: '5–15 cảnh', flow: 'flow2', workflowStep: 5, stepName: 'Storyboard' },
+  { id: 'script_confirm', title: '17. Script Confirmation', subtitle: 'Xác nhận kịch bản', flow: 'flow2', workflowStep: 5, stepName: 'Script' },
+  { id: 'video_processing', title: '18. Video Job', subtitle: 'Tạo video bất đồng bộ', flow: 'flow2', workflowStep: 6, stepName: 'Video job' },
+  { id: 'safety_gate', title: '19. Safety Gate', subtitle: 'Kiểm tra an toàn', flow: 'flow2', workflowStep: 7, stepName: 'Safety' },
+  { id: 'playback', title: '20. Playback', subtitle: 'Xem video', flow: 'flow2', workflowStep: 8, stepName: 'Playback' },
+  { id: 'completion', title: '21. Completion', subtitle: 'Hoàn tất / huỷ / xoá', flow: 'flow2', workflowStep: 8, stepName: 'Completion' },
+  { id: 'history', title: '22. History', subtitle: 'Lịch sử run/video', flow: 'flow1', workflowStep: 8, stepName: 'History' },
+  { id: 'quota', title: '23. Quota', subtitle: 'Quota tháng hiện tại', flow: 'flow1', workflowStep: 8, stepName: 'Quota' },
+  { id: 'notifications_settings', title: '24. Notifications & Settings', subtitle: 'Thông báo và dữ liệu', flow: 'flow1', workflowStep: 8, stepName: 'Settings' },
 ];
 
 function MainAppContent() {
@@ -131,6 +134,12 @@ function MainAppContent() {
   }, [currentScreen]);
 
   const isDesktopWeb = Platform.OS === 'web' && windowWidth > 540;
+  // Every app screen after Splash owns the complete drawable surface. The
+  // virtual status/home bars in the web preview are overlays only; they must
+  // never reserve their own white rows or expose the chassis background.
+  // Keeping this rule centralized prevents each new Parent flow screen from
+  // accidentally reintroducing a top/bottom gap.
+  const isFullBleedScreen = currentScreen !== 'splash';
   const currentIndex = SCREENS.findIndex((s) => s.id === currentScreen);
   const currentMeta = SCREENS[currentIndex] || SCREENS[0];
 
@@ -140,6 +149,10 @@ function MainAppContent() {
         return <LoginScreen />;
       case 'profile_list':
         return <ParentProfileListScreen />;
+      case 'profile_create':
+        return <ParentProfileCreateScreen mode="create" />;
+      case 'profile_edit':
+        return <ParentProfileCreateScreen mode="edit" />;
       case 'profile_detail':
         return <ParentProfileDetailScreen />;
       case 'parent_home':
@@ -195,13 +208,10 @@ function MainAppContent() {
 
   return (
     <SafeAreaView style={styles.outerContainer}>
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-      {Platform.OS === 'android' && Number(Platform.Version) >= 35 && (
-        <View
-          pointerEvents="none"
-          style={{ height: StatusBar.currentHeight ?? 0, backgroundColor: '#EFF6FF' }}
-        />
-      )}
+      {/* Edge-to-edge is the single shell rule for every post-splash screen.
+          Keep the native system bars transparent so the active screen's
+          background continues underneath them on Android as well as Web. */}
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
       {/* Optional Developer Quick Bar: ONLY visible if ?dev=true or 3x tap clock */}
       {isDevMode && (
@@ -281,7 +291,7 @@ function MainAppContent() {
         <View style={[styles.phoneChassis, !isDesktopWeb && styles.phoneChassisNative]}>
           {/* Native Mobile Status Bar (hidden on splash because splash hero image fills the bezel) */}
           {Platform.OS === 'web' && currentScreen !== 'splash' && (
-            <View style={[styles.mobileStatusBar, currentScreen === 'login' && styles.mobileStatusBarLoginOverlay]}>
+            <View style={[styles.mobileStatusBar, currentScreen === 'login' && styles.mobileStatusBarLoginOverlay, isFullBleedScreen && styles.mobileStatusBarFullBleed]}>
               <TouchableOpacity activeOpacity={0.7} onPress={handleClockTap}>
                 <Text style={styles.statusBarClock}>9:41</Text>
               </TouchableOpacity>
@@ -307,13 +317,13 @@ function MainAppContent() {
           )}
 
           {/* Active Screen */}
-          <View style={[styles.screenBody, currentScreen === 'login' && styles.screenBodyLoginFullBleed]}>
+          <View style={[styles.screenBody, currentScreen === 'login' && styles.screenBodyLoginFullBleed, isFullBleedScreen && styles.screenBodyFullBleed]}>
             {renderScreen()}
           </View>
 
           {/* Virtual Home Bar */}
           {Platform.OS === 'web' && (
-            <View style={[styles.homeBarContainer, currentScreen === 'login' && styles.homeBarLoginOverlay]}>
+            <View style={[styles.homeBarContainer, currentScreen === 'login' && styles.homeBarLoginOverlay, isFullBleedScreen && styles.homeBarFullBleed]}>
               <View style={styles.homeBarIndicator} />
             </View>
           )}
@@ -459,6 +469,15 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     borderBottomWidth: 0,
   },
+  mobileStatusBarFullBleed: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 30,
+    backgroundColor: 'transparent',
+    borderBottomWidth: 0,
+  },
   statusBarClock: {
     fontSize: 12,
     fontWeight: '800',
@@ -496,6 +515,13 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
   },
+  screenBodyFullBleed: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+  },
   homeBarContainer: {
     height: 18,
     backgroundColor: colors.white,
@@ -503,6 +529,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   homeBarLoginOverlay: {
+    position: 'absolute',
+    right: 0,
+    bottom: 0,
+    left: 0,
+    zIndex: 30,
+    backgroundColor: 'transparent',
+  },
+  homeBarFullBleed: {
     position: 'absolute',
     right: 0,
     bottom: 0,

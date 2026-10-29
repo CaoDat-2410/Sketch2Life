@@ -2619,7 +2619,8 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   screenContainer: {
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingTop: Platform.OS === 'web' ? 54 : 16,
     paddingBottom: 28,
     width: '100%',
     maxWidth: '100%',

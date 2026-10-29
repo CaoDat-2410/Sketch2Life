@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { AccessibilityInfo, Animated, Image, ImageBackground, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useFonts } from 'expo-font';
 import { colors, radius, shadows } from '../theme';
 import { CatDrawingArtwork, ChildAvatarImage, LogoSketch2Life } from '../components/ArtworkCards';
 import type { ScreenId } from '../types';
 import { useAppContext } from '../context/AppContext';
 import { ParentFlowHeader } from '../components/ParentFlowShell';
+import type { ChildProfile } from '../services/api.types';
 
 interface ScreenProps {
   onNavigate?: (screen: ScreenId) => void;
@@ -19,15 +21,229 @@ const EntryHeader: React.FC<{
   <ParentFlowHeader title={title} onBack={onBack} action={action} />
 );
 
+// Reuse the project's existing child-friendly illustrations instead of
+// drawing generic geometric placeholders for the topic cards.
+const topicArtSources = {
+  animals: require('../../assets/images/topics/topic-animals.png'),
+  nature: require('../../assets/images/topics/topic-nature.png'),
+  family: require('../../assets/images/topics/topic-family.png'),
+  vehicles: require('../../assets/images/topics/topic-vehicles.png'),
+  space: require('../../assets/images/topics/topic-space.png'),
+  free: require('../../assets/images/topics/topic-free.png'),
+} as const;
+
+// Small, transparent doodles cropped from the supplied hand-drawn sprite sheet.
+// They sit behind the content at low opacity so the screen stays light and readable.
+const topicDecorSources = {
+  sun: require('../../assets/images/topic-decor/topic-decor-sun.png'),
+  cloud: require('../../assets/images/topic-decor/topic-decor-cloud.png'),
+  heart: require('../../assets/images/topic-decor/topic-decor-heart.png'),
+  star: require('../../assets/images/topic-decor/topic-decor-star.png'),
+  leaves: require('../../assets/images/topic-decor/topic-decor-leaves.png'),
+} as const;
+
+const dashboardStoryHero = require('../../assets/images/dashboard/dashboard_story_hero.png');
+
 const AgeLabel: React.FC<{ age: number }> = ({ age }) => (
   <Text style={styles.ageLabel}>{age} tuổi</Text>
 );
 
+const useReducedMotionPreference = () => {
+  const [reducedMotion, setReducedMotion] = useState(false);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    AccessibilityInfo.isReduceMotionEnabled()
+      .then((enabled) => {
+        if (!active) return;
+        setReducedMotion(enabled);
+        setReady(true);
+      })
+      .catch(() => {
+        if (active) setReady(true);
+      });
+
+    const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', setReducedMotion);
+    return () => {
+      active = false;
+      subscription.remove();
+    };
+  }, []);
+
+  return { reducedMotion, motionPreferenceReady: ready };
+};
+
+const PrivacyNotice: React.FC = () => (
+  <View style={styles.profileNoticeCard}>
+    <View style={styles.profileNoticeIcon}>
+      <Ionicons name="lock-closed-outline" size={18} color={colors.blueDeep} />
+    </View>
+    <Text style={styles.profileNoticeText}>Hồ sơ của con chỉ hiển thị với tài khoản phụ huynh này.</Text>
+  </View>
+);
+
+const CrayonRainbow: React.FC = () => (
+  <View pointerEvents="none" style={styles.profileRainbow}>
+    <View style={[styles.profileRainbowArc, styles.profileRainbowOuter]} />
+    <View style={[styles.profileRainbowArc, styles.profileRainbowMiddle]} />
+    <View style={[styles.profileRainbowArc, styles.profileRainbowInner]} />
+  </View>
+);
+
+const ChildProfileCard: React.FC<{
+  child: ChildProfile;
+  selected: boolean;
+  onPress: () => void;
+  entranceDelay: number;
+  reducedMotion: boolean;
+  motionPreferenceReady: boolean;
+}> = ({ child, selected, onPress, entranceDelay, reducedMotion, motionPreferenceReady }) => {
+  const entrance = useRef(new Animated.Value(0)).current;
+  const pressScale = useRef(new Animated.Value(1)).current;
+  const selectionProgress = useRef(new Animated.Value(selected ? 1 : 0)).current;
+  const hasEntered = useRef(false);
+
+  useEffect(() => {
+    if (!motionPreferenceReady || hasEntered.current) return;
+    hasEntered.current = true;
+    if (reducedMotion) {
+      entrance.setValue(1);
+      return;
+    }
+    Animated.timing(entrance, {
+      toValue: 1,
+      duration: 300,
+      delay: entranceDelay,
+      useNativeDriver: true,
+    }).start();
+  }, [entrance, entranceDelay, motionPreferenceReady, reducedMotion]);
+
+  useEffect(() => {
+    if (reducedMotion) {
+      selectionProgress.setValue(selected ? 1 : 0);
+      return;
+    }
+    Animated.timing(selectionProgress, {
+      toValue: selected ? 1 : 0,
+      duration: 180,
+      useNativeDriver: false,
+    }).start();
+  }, [reducedMotion, selected, selectionProgress]);
+
+  const cardBackground = selectionProgress.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['#FFFDF7', '#F8FBFF'],
+  });
+  const cardBorder = selectionProgress.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['#F0E3C9', '#8EC5FF'],
+  });
+
+  return (
+    <Animated.View
+      style={{
+        opacity: entrance,
+        transform: [{ translateY: entrance.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) }],
+      }}
+    >
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`Mở hồ sơ ${child.name}`}
+        accessibilityState={{ selected }}
+        onPressIn={() => Animated.spring(pressScale, { toValue: 0.97, useNativeDriver: true, speed: 24, bounciness: 2 }).start()}
+        onPressOut={() => Animated.spring(pressScale, { toValue: 1, useNativeDriver: true, speed: 20, bounciness: 8 }).start()}
+        onPress={onPress}
+      >
+        <Animated.View style={[styles.profileCard, { backgroundColor: cardBackground, borderColor: cardBorder, transform: [{ scale: pressScale }] }]}>
+          <View style={styles.avatarFrame}>
+            <ChildAvatarImage childName={child.name} size={70} />
+          </View>
+          <View style={styles.profileMain}>
+            <View style={styles.profileNameRow}>
+              <Text style={styles.profileName}>{child.name}</Text>
+              {selected && <Text style={styles.selectedBadge}>Đang chọn</Text>}
+            </View>
+            <AgeLabel age={child.age} />
+            <Text style={styles.profileMeta}>{child.recentStoriesCount || 0} câu chuyện đã tạo</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={21} color={colors.textLight} />
+        </Animated.View>
+      </Pressable>
+    </Animated.View>
+  );
+};
+
+const AddChildProfileButton: React.FC<{
+  onPress: () => void;
+  reducedMotion: boolean;
+}> = ({ onPress, reducedMotion }) => {
+  const pressScale = useRef(new Animated.Value(1)).current;
+  const plusScale = useRef(new Animated.Value(1)).current;
+
+  const pressIn = () => {
+    if (reducedMotion) return;
+    Animated.parallel([
+      Animated.spring(pressScale, { toValue: 0.98, useNativeDriver: true, speed: 24, bounciness: 2 }),
+      Animated.spring(plusScale, { toValue: 1.12, useNativeDriver: true, speed: 22, bounciness: 5 }),
+    ]).start();
+  };
+  const pressOut = () => {
+    if (reducedMotion) return;
+    Animated.parallel([
+      Animated.spring(pressScale, { toValue: 1, useNativeDriver: true, speed: 20, bounciness: 8 }),
+      Animated.spring(plusScale, { toValue: 1, useNativeDriver: true, speed: 20, bounciness: 8 }),
+    ]).start();
+  };
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel="Thêm hồ sơ trẻ"
+      onPressIn={pressIn}
+      onPressOut={pressOut}
+      onPress={onPress}
+    >
+      <Animated.View style={[styles.addProfileButton, { transform: [{ scale: pressScale }] }]}>
+        <View style={styles.addProfileCopy}>
+          <Animated.View style={{ transform: [{ scale: plusScale }] }}>
+            <Ionicons name="add" size={34} color={colors.blueDeep} />
+          </Animated.View>
+          <Text style={styles.addProfileText}>Thêm hồ sơ trẻ</Text>
+        </View>
+        <CrayonRainbow />
+      </Animated.View>
+    </Pressable>
+  );
+};
+
 /** Parent entry surface: owned child profiles, before starting a story run. */
 export const ParentProfileListScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
-  const { navigate, childrenList, selectedChild, setSelectedChild } = useAppContext();
+  const { navigate, goBack, childrenList, selectedChild, setSelectedChild } = useAppContext();
   const nav = onNavigate || navigate;
-  const [addNotice, setAddNotice] = useState(false);
+  const { reducedMotion, motionPreferenceReady } = useReducedMotionPreference();
+  const headerEntrance = useRef(new Animated.Value(0)).current;
+  const heroEntrance = useRef(new Animated.Value(0)).current;
+  const hasStartedEntrance = useRef(false);
+  useFonts({
+    MaliBold: require('../../assets/fonts/Mali-Bold.ttf'),
+    MaliSemiBold: require('../../assets/fonts/Mali-SemiBold.ttf'),
+    ItimRegular: require('../../assets/fonts/Itim-Regular.ttf'),
+  });
+
+  useEffect(() => {
+    if (!motionPreferenceReady || hasStartedEntrance.current) return;
+    hasStartedEntrance.current = true;
+    if (reducedMotion) {
+      headerEntrance.setValue(1);
+      heroEntrance.setValue(1);
+      return;
+    }
+    Animated.stagger(70, [
+      Animated.timing(headerEntrance, { toValue: 1, duration: 280, useNativeDriver: true }),
+      Animated.timing(heroEntrance, { toValue: 1, duration: 320, useNativeDriver: true }),
+    ]).start();
+  }, [headerEntrance, heroEntrance, motionPreferenceReady, reducedMotion]);
 
   const openProfile = (child: (typeof childrenList)[number]) => {
     setSelectedChild(child);
@@ -35,80 +251,266 @@ export const ParentProfileListScreen: React.FC<ScreenProps> = ({ onNavigate }) =
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-      <EntryHeader title="Hồ sơ của con" />
-      <View style={styles.brandRow}>
-        <LogoSketch2Life size="sm" showTagline={false} />
-        <View style={styles.brandCopy}>
-          <Text style={styles.eyebrow}>KHU VỰC PHỤ HUYNH</Text>
-          <Text style={styles.pageTitle}>Chọn hồ sơ để bắt đầu</Text>
-          <Text style={styles.pageSubtitle}>Mỗi câu chuyện chỉ gắn với một hồ sơ trẻ.</Text>
-        </View>
+    <ImageBackground
+      source={require('../../assets/images/login/background_paper.png')}
+      resizeMode="cover"
+      style={styles.profileBackground}
+      imageStyle={styles.profileBackgroundImage}
+    >
+      <View pointerEvents="none" style={styles.profileDoodleLayer}>
+        <Ionicons name="sunny-outline" size={42} color={colors.yellowDeep} style={styles.profileDoodleSun} />
+        <Ionicons name="star-outline" size={28} color={colors.blue} style={styles.profileDoodleStarLeft} />
+        <Ionicons name="heart-outline" size={25} color={colors.coralDeep} style={styles.profileDoodleHeartRight} />
+        <Ionicons name="sparkles-outline" size={20} color={colors.coralDeep} style={styles.profileDoodleTopRight} />
+        <Ionicons name="leaf-outline" size={28} color={colors.greenDeep} style={styles.profileDoodleLeafBottomLeft} />
+        <Ionicons name="leaf-outline" size={25} color={colors.greenDeep} style={styles.profileDoodleLeafBottomRight} />
+        <Ionicons name="star-outline" size={24} color={colors.yellowDeep} style={styles.profileDoodleStarBottomRight} />
+        <View style={styles.profileDoodleStrokeTop} />
+        <View style={styles.profileDoodleStrokeBottom} />
       </View>
+      <ScrollView contentContainerStyle={styles.profileContainer} showsVerticalScrollIndicator={false}>
+        <Animated.View style={{ opacity: headerEntrance, transform: [{ translateY: headerEntrance.interpolate({ inputRange: [0, 1], outputRange: [-5, 0] }) }] }}>
+          <View style={styles.profileTopBar}>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Quay lại" onPress={goBack} style={styles.profileBackButton}>
+              <Ionicons name="arrow-back" size={23} color={styles.profileInk.color} />
+            </TouchableOpacity>
+            <Text style={styles.profileTopTitle}>Hồ sơ của con</Text>
+            <View style={styles.profileTopBarSpacer} />
+          </View>
+        </Animated.View>
+        <Animated.View style={{ opacity: heroEntrance, transform: [{ translateY: heroEntrance.interpolate({ inputRange: [0, 1], outputRange: [8, 0] }) }] }}>
+          <View style={styles.profileHero}>
+            <Text style={styles.profilePageTitle}>Chọn hồ sơ để bắt đầu</Text>
+            <View style={styles.profileTitleUnderline} />
+            <Text style={styles.profilePageSubtitle}>Mỗi câu chuyện đều bắt đầu từ một họa sĩ nhỏ.</Text>
+          </View>
+        </Animated.View>
 
-      <View style={styles.noticeCard}>
-        <View style={styles.noticeIcon}>
-          <Ionicons name="lock-closed-outline" size={18} color={colors.blueDeep} />
-        </View>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.noticeTitle}>Không gian riêng của gia đình</Text>
-          <Text style={styles.noticeText}>Hồ sơ và tranh của con chỉ hiển thị với tài khoản phụ huynh này.</Text>
-        </View>
-      </View>
+        <PrivacyNotice />
 
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Hồ sơ đang có</Text>
-        <Text style={styles.sectionCount}>{childrenList.length} hồ sơ</Text>
-      </View>
-
-      {childrenList.map((child) => {
-        const isSelected = child.id === selectedChild.id;
-        return (
-          <TouchableOpacity
-            key={child.id}
-            accessibilityRole="button"
-            accessibilityLabel={`Mở hồ sơ ${child.name}`}
-            accessibilityState={{ selected: isSelected }}
-            activeOpacity={0.9}
-            onPress={() => openProfile(child)}
-            style={[styles.profileCard, isSelected && styles.profileCardSelected]}
-          >
-            <View style={styles.avatarFrame}>
-              <ChildAvatarImage childName={child.name} size={62} />
+        <View style={styles.profileSectionHeader}>
+          <View style={styles.profileSectionHeading}>
+            <View>
+              <Text style={styles.profileSectionTitle}>Hồ sơ đang có</Text>
+              <View style={styles.profileSectionUnderline} />
             </View>
-            <View style={styles.profileMain}>
-              <View style={styles.profileNameRow}>
-                <Text style={styles.profileName}>{child.name}</Text>
-                {isSelected && <Text style={styles.selectedBadge}>Đang chọn</Text>}
-              </View>
-              <AgeLabel age={child.age} />
-              <Text style={styles.profileMeta}>{child.recentStoriesCount || 0} câu chuyện đã tạo</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={colors.textLight} />
-          </TouchableOpacity>
-        );
-      })}
+          </View>
+          <Text style={styles.profileSectionCount}>{childrenList.length} hồ sơ</Text>
+        </View>
 
-      <TouchableOpacity
-        accessibilityRole="button"
-        accessibilityLabel="Thêm hồ sơ trẻ"
-        onPress={() => setAddNotice(true)}
-        style={styles.addProfileButton}
-      >
-        <Ionicons name="add" size={20} color={colors.blueDeep} />
-        <Text style={styles.addProfileText}>Thêm hồ sơ trẻ</Text>
-      </TouchableOpacity>
-      {addNotice && (
-        <Text accessibilityRole="alert" style={styles.inlineNotice}>
-          Màn hình tạo hồ sơ sẽ được bổ sung ở bước tiếp theo; hiện tại đang dùng dữ liệu demo.
-        </Text>
-      )}
+      {childrenList.map((child, index) => (
+        <ChildProfileCard
+          key={child.id}
+          child={child}
+          selected={child.id === selectedChild.id}
+          onPress={() => openProfile(child)}
+          entranceDelay={Math.min(index, 9) * 65}
+          reducedMotion={reducedMotion}
+          motionPreferenceReady={motionPreferenceReady}
+        />
+      ))}
 
-      <View style={styles.footerNote}>
-        <Ionicons name="information-circle-outline" size={16} color={colors.textSoft} />
-        <Text style={styles.footerNoteText}>Bản hiện tại là giao diện mẫu; dữ liệu chưa lưu vào backend.</Text>
+        <View style={styles.addProfileSection}>
+          <AddChildProfileButton reducedMotion={reducedMotion} onPress={() => nav('profile_create')} />
+        </View>
+
+        <View style={styles.profileFooterNote}>
+          <Ionicons name="information-circle-outline" size={16} color={colors.textSoft} />
+          <Text style={styles.profileFooterNoteText}>Bạn có thể đổi hồ sơ bất cứ lúc nào.</Text>
+        </View>
+      </ScrollView>
+    </ImageBackground>
+  );
+};
+
+type ProfileFormMode = 'create' | 'edit';
+
+/** Create/edit profile UI. Local state is intentionally used until the Parent profile API is connected. */
+export const ParentProfileCreateScreen: React.FC<ScreenProps & { mode?: ProfileFormMode }> = ({ onNavigate, mode = 'create' }) => {
+  const {
+    navigate,
+    goBack,
+    selectedChild,
+    selectedAgeMonths,
+    selectedChildLearningProfile,
+    createChildProfile,
+    updateChildProfile,
+  } = useAppContext();
+  const nav = onNavigate || navigate;
+  const isEdit = mode === 'edit';
+  const [name, setName] = useState(isEdit ? selectedChild.name : '');
+  const [ageMonths, setAgeMonths] = useState(String(isEdit ? selectedAgeMonths : 60));
+  const [interestText, setInterestText] = useState(selectedChildLearningProfile?.interest_text || '');
+  const [avoidText, setAvoidText] = useState(selectedChildLearningProfile?.avoid_text || '');
+  const [adultParticipation, setAdultParticipation] = useState<'together' | 'independent' | ''>(
+    selectedChildLearningProfile?.adult_participating === false ? 'independent' : selectedChildLearningProfile?.adult_participating ? 'together' : '',
+  );
+  const [learningSupportIds, setLearningSupportIds] = useState<Array<'HANDS_ON' | 'MOVEMENT' | 'VISUAL_SEQUENCE' | 'OBSERVATION'>>(selectedChildLearningProfile?.learning_support_ids || []);
+  const [errors, setErrors] = useState<{ name?: string; age?: string }>({});
+
+  const supportOptions = [
+    ['HANDS_ON', 'Thích tự tay thao tác'],
+    ['MOVEMENT', 'Thích vận động'],
+    ['VISUAL_SEQUENCE', 'Hợp với hướng dẫn trực quan'],
+  ] as const;
+  const ageOptions = [
+    ['3–4 tuổi', 48],
+    ['5–6 tuổi', 72],
+    ['7–8 tuổi', 96],
+    ['9+ tuổi', 120],
+  ] as const;
+
+  const toggleSupport = (id: 'HANDS_ON' | 'MOVEMENT' | 'VISUAL_SEQUENCE' | 'OBSERVATION') => {
+    setLearningSupportIds((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
+  };
+
+  const submit = () => {
+    const trimmedName = name.trim();
+    const parsedAge = Number(ageMonths);
+    const nextErrors: { name?: string; age?: string } = {};
+    if (!trimmedName) nextErrors.name = 'Hãy nhập tên hiển thị của bé.';
+    else if (trimmedName.length > 40) nextErrors.name = 'Tên hiển thị tối đa 40 ký tự.';
+    if (!Number.isInteger(parsedAge) || parsedAge < 36 || parsedAge > 155) {
+      nextErrors.age = 'Tuổi của hồ sơ cần nằm trong khoảng 36–155 tháng.';
+    }
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
+
+    const payload = {
+      name: trimmedName,
+      ageMonths: parsedAge,
+      interestText,
+      avoidText,
+      adultParticipating: adultParticipation === '' ? null : adultParticipation === 'together',
+      learningSupportIds,
+    };
+    if (isEdit) updateChildProfile(selectedChild.id, payload);
+    else createChildProfile(payload);
+    nav('profile_detail');
+  };
+
+  return (
+    <ImageBackground
+      source={require('../../assets/images/login/background_paper.png')}
+      resizeMode="cover"
+      style={styles.profileBackground}
+      imageStyle={styles.profileBackgroundImage}
+    >
+      <View pointerEvents="none" style={styles.profileDoodleLayer}>
+        <Ionicons name="sunny-outline" size={42} color={colors.yellowDeep} style={styles.profileDoodleSun} />
+        <Ionicons name="heart-outline" size={25} color={colors.coralDeep} style={styles.profileDoodleHeartRight} />
+        <Ionicons name="star-outline" size={26} color={colors.blue} style={styles.profileDoodleStarLeft} />
+        <Ionicons name="leaf-outline" size={28} color={colors.greenDeep} style={styles.profileDoodleLeafBottomRight} />
       </View>
-    </ScrollView>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.profileFormKeyboard}>
+        <ScrollView contentContainerStyle={styles.profileFormContainer} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+          <View style={styles.profileTopBar}>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Quay lại" onPress={goBack} style={styles.profileBackButton}>
+              <Ionicons name="arrow-back" size={23} color={styles.profileInk.color} />
+            </TouchableOpacity>
+            <Text style={styles.profileTopTitle}>{isEdit ? 'Chỉnh sửa hồ sơ' : 'Thêm hồ sơ trẻ'}</Text>
+            <View style={styles.profileTopBarSpacer} />
+          </View>
+
+          <View style={styles.profileFormIntro}>
+            <View style={styles.profileFormIcon}><Ionicons name={isEdit ? 'pencil-outline' : 'sparkles-outline'} size={24} color={colors.blueDeep} /></View>
+            <Text style={styles.profileFormTitle}>{isEdit ? 'Cập nhật một chút nhé' : 'Bắt đầu với họa sĩ nhỏ'}</Text>
+            <Text style={styles.profileFormSubtitle}>Thông tin này giúp câu chuyện phù hợp hơn với bé. Bạn có thể thay đổi sau.</Text>
+          </View>
+
+          <View style={styles.profileFormCard}>
+            <Text style={styles.profileFormLabel}>Tên hiển thị</Text>
+            <View style={[styles.profileFormInput, errors.name && styles.profileFormInputError]}>
+              <Ionicons name="person-outline" size={20} color={colors.textSoft} />
+              <TextInput
+                accessibilityLabel="Tên hiển thị của bé"
+                value={name}
+                onChangeText={(value) => { setName(value); if (errors.name) setErrors((current) => ({ ...current, name: undefined })); }}
+                placeholder="Ví dụ: An, Bảo..."
+                placeholderTextColor="#8B9AB0"
+                maxLength={40}
+                style={styles.profileFormTextInput}
+              />
+            </View>
+            {errors.name && <Text accessibilityRole="alert" style={styles.profileFormError}>{errors.name}</Text>}
+
+            <Text style={[styles.profileFormLabel, styles.profileFormLabelSpaced]}>Tuổi của bé (tháng)</Text>
+            <View style={[styles.profileFormInput, errors.age && styles.profileFormInputError]}>
+              <Ionicons name="calendar-outline" size={20} color={colors.textSoft} />
+              <TextInput
+                accessibilityLabel="Tuổi của bé theo tháng"
+                value={ageMonths}
+                onChangeText={(value) => { setAgeMonths(value.replace(/[^0-9]/g, '')); if (errors.age) setErrors((current) => ({ ...current, age: undefined })); }}
+                keyboardType="number-pad"
+                placeholder="Từ 36 đến 155 tháng"
+                placeholderTextColor="#8B9AB0"
+                maxLength={3}
+                style={styles.profileFormTextInput}
+              />
+            </View>
+            {errors.age && <Text accessibilityRole="alert" style={styles.profileFormError}>{errors.age}</Text>}
+            <View style={styles.profileAgeChips}>
+              {ageOptions.map(([label, value]) => {
+                const active = Number(ageMonths) >= value - 12 && Number(ageMonths) <= value + 11;
+                return <Pressable key={label} accessibilityRole="button" onPress={() => setAgeMonths(String(value))} style={[styles.profileAgeChip, active && styles.profileAgeChipActive]}><Text style={[styles.profileAgeChipText, active && styles.profileAgeChipTextActive]}>{label}</Text></Pressable>;
+              })}
+            </View>
+
+            <Text style={[styles.profileFormLabel, styles.profileFormLabelSpaced]}>Bé thích điều gì?</Text>
+            <TextInput
+              accessibilityLabel="Sở thích của bé"
+              value={interestText}
+              onChangeText={(value) => setInterestText(value.slice(0, 240))}
+              placeholder="Ví dụ: vẽ con vật, chơi ngoài trời..."
+              placeholderTextColor="#8B9AB0"
+              multiline
+              maxLength={240}
+              style={[styles.profileFormInput, styles.profileFormMultiline]}
+            />
+
+            <Text style={[styles.profileFormLabel, styles.profileFormLabelSpaced]}>Điều cần lưu ý</Text>
+            <TextInput
+              accessibilityLabel="Điều cần lưu ý về bé"
+              value={avoidText}
+              onChangeText={(value) => setAvoidText(value.slice(0, 240))}
+              placeholder="Ví dụ: không thích tiếng ồn..."
+              placeholderTextColor="#8B9AB0"
+              multiline
+              maxLength={240}
+              style={[styles.profileFormInput, styles.profileFormMultiline]}
+            />
+
+            <Text style={[styles.profileFormLabel, styles.profileFormLabelSpaced]}>Mức đồng hành của người lớn</Text>
+            <View style={styles.profileChoiceRow}>
+              <Pressable accessibilityRole="radio" accessibilityState={{ selected: adultParticipation === 'together' }} onPress={() => setAdultParticipation('together')} style={[styles.profileChoice, adultParticipation === 'together' && styles.profileChoiceActive]}>
+                <Ionicons name="people-outline" size={18} color={adultParticipation === 'together' ? colors.blueDeep : colors.textSoft} />
+                <Text style={[styles.profileChoiceText, adultParticipation === 'together' && styles.profileChoiceTextActive]}>Cùng con</Text>
+              </Pressable>
+              <Pressable accessibilityRole="radio" accessibilityState={{ selected: adultParticipation === 'independent' }} onPress={() => setAdultParticipation('independent')} style={[styles.profileChoice, adultParticipation === 'independent' && styles.profileChoiceActive]}>
+                <Ionicons name="happy-outline" size={18} color={adultParticipation === 'independent' ? colors.blueDeep : colors.textSoft} />
+                <Text style={[styles.profileChoiceText, adultParticipation === 'independent' && styles.profileChoiceTextActive]}>Con tự khám phá</Text>
+              </Pressable>
+            </View>
+
+            <Text style={[styles.profileFormLabel, styles.profileFormLabelSpaced]}>Cách bé học tốt hơn (không bắt buộc)</Text>
+            <View style={styles.profileSupportWrap}>
+              {supportOptions.map(([id, label]) => {
+                const active = learningSupportIds.includes(id);
+                return <Pressable key={id} accessibilityRole="checkbox" accessibilityState={{ checked: active }} onPress={() => toggleSupport(id)} style={[styles.profileSupportChip, active && styles.profileSupportChipActive]}><Ionicons name={active ? 'checkmark-circle' : 'ellipse-outline'} size={16} color={active ? colors.greenDeep : colors.textLight} /><Text style={[styles.profileSupportText, active && styles.profileSupportTextActive]}>{label}</Text></Pressable>;
+              })}
+            </View>
+
+            <View style={styles.profileFormPrivacy}><Ionicons name="lock-closed-outline" size={17} color={colors.greenDeep} /><Text style={styles.profileFormPrivacyText}>Thông tin chỉ thuộc tài khoản phụ huynh này và có thể chỉnh sửa bất cứ lúc nào.</Text></View>
+
+            <Pressable accessibilityRole="button" accessibilityLabel={isEdit ? 'Lưu thay đổi hồ sơ' : 'Tạo hồ sơ trẻ'} onPress={submit} style={({ pressed }) => [styles.primaryButton, pressed && styles.loginButtonPressed]}>
+              <Text style={styles.primaryButtonText}>{isEdit ? 'Lưu thay đổi' : 'Tạo hồ sơ trẻ'}</Text>
+              <Ionicons name="arrow-forward" size={19} color={colors.white} />
+            </Pressable>
+            <TouchableOpacity accessibilityRole="button" onPress={goBack} style={styles.textButton}><Text style={styles.textButtonLabel}>Để sau</Text></TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </ImageBackground>
   );
 };
 
@@ -172,6 +574,10 @@ export const ParentProfileDetailScreen: React.FC<ScreenProps> = ({ onNavigate })
         <Text style={styles.primaryButtonText}>Lưu và tiếp tục</Text>
         <Ionicons name="arrow-forward" size={18} color={colors.white} />
       </TouchableOpacity>
+      <TouchableOpacity accessibilityRole="button" onPress={() => nav('profile_edit')} style={styles.detailEditButton}>
+        <Ionicons name="pencil-outline" size={16} color={colors.blueDeep} />
+        <Text style={styles.detailEditButtonText}>Chỉnh sửa hồ sơ</Text>
+      </TouchableOpacity>
       <TouchableOpacity accessibilityRole="button" onPress={goBack} style={styles.textButton}>
         <Text style={styles.textButtonLabel}>Chọn hồ sơ khác</Text>
       </TouchableOpacity>
@@ -183,19 +589,44 @@ export const ParentProfileDetailScreen: React.FC<ScreenProps> = ({ onNavigate })
 export const ParentHomeScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
   const { navigate, selectedChild } = useAppContext();
   const nav = onNavigate || navigate;
+  const recentStories = [
+    ['Mèo con khám phá', 'animals', topicArtSources.animals],
+    ['Khu vườn sắc màu', 'nature', topicArtSources.nature],
+    ['Chuyến bay lên trời', 'space', topicArtSources.space],
+    ['Ngày hội gia đình', 'family', topicArtSources.family],
+  ] as const;
+  useFonts({
+    MaliBold: require('../../assets/fonts/Mali-Bold.ttf'),
+    MaliSemiBold: require('../../assets/fonts/Mali-SemiBold.ttf'),
+    ItimRegular: require('../../assets/fonts/Itim-Regular.ttf'),
+  });
 
   return (
-    <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView contentContainerStyle={styles.homeContainer} showsVerticalScrollIndicator={false}>
+      <View pointerEvents="none" style={styles.homeDecorLayer}>
+        <Image source={topicDecorSources.sun} resizeMode="contain" style={[styles.homeDecorImage, styles.homeDecorSun]} />
+        <Image source={topicDecorSources.cloud} resizeMode="contain" style={[styles.homeDecorImage, styles.homeDecorCloud]} />
+        <Image source={topicDecorSources.heart} resizeMode="contain" style={[styles.homeDecorImage, styles.homeDecorHeart]} />
+        <Image source={topicDecorSources.leaves} resizeMode="contain" style={[styles.homeDecorImage, styles.homeDecorLeaves]} />
+      </View>
       <View style={styles.homeHeader}>
-        <View>
-          <Text style={styles.eyebrow}>SKETCH2LIFE · PARENT</Text>
+        <View style={styles.homeHeaderCopy}>
+          <Text style={styles.homeEyebrow}>KHÔNG GIAN PHỤ HUYNH</Text>
           <Text accessibilityRole="header" style={styles.homeGreeting}>Xin chào, Mẹ Lan</Text>
-          <Text style={styles.pageSubtitle}>Hôm nay mình kể câu chuyện gì cho {selectedChild.name}?</Text>
+          <Text style={styles.homeSubtitle}>Hôm nay mình kể câu chuyện gì cho {selectedChild.name}?</Text>
         </View>
         <TouchableOpacity accessibilityRole="button" accessibilityLabel="Mở thông báo" onPress={() => nav('notifications_settings')} style={styles.notificationButton}>
           <Ionicons name="notifications-outline" size={21} color={colors.textBody} />
           <View style={styles.notificationDot} />
         </TouchableOpacity>
+      </View>
+
+      <View style={styles.homeBrandStrip}>
+        <LogoSketch2Life size="sm" showTagline={false} />
+        <View style={styles.homeBrandBadge}>
+          <Ionicons name="sparkles-outline" size={15} color={colors.orangeDeep} />
+          <Text style={styles.homeBrandBadgeText}>Mỗi nét vẽ đều có chuyện để kể</Text>
+        </View>
       </View>
 
       <View style={styles.childSummaryCard}>
@@ -217,19 +648,25 @@ export const ParentHomeScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
         onPress={() => nav('topic_selection')}
         style={styles.createCard}
       >
+        <Image source={dashboardStoryHero} resizeMode="contain" style={styles.createHeroImage} />
         <View style={styles.createCopy}>
-          <Text style={styles.createEyebrow}>BẮT ĐẦU MỘT RUN MỚI</Text>
+          <View style={styles.createBadge}>
+            <Ionicons name="color-palette-outline" size={14} color={colors.yellowDeep} />
+            <Text style={styles.createEyebrow}>CÂU CHUYỆN MỚI</Text>
+          </View>
           <Text style={styles.createTitle}>Biến nét vẽ thành một câu chuyện</Text>
           <Text style={styles.createText}>Chọn chủ đề, để bé vẽ, rồi cùng xem thế giới trong tranh sống dậy.</Text>
           <View style={styles.createCta}>
-            <Text style={styles.createCtaText}>Tạo câu chuyện mới</Text>
+            <Text style={styles.createCtaText}>Bắt đầu ngay</Text>
             <Ionicons name="arrow-forward" size={17} color={colors.white} />
           </View>
         </View>
-        <View style={styles.createSparkle}><Ionicons name="sparkles" size={34} color={colors.yellowDeep} /></View>
       </TouchableOpacity>
 
-      <Text style={[styles.sectionTitle, { marginTop: 24 }]}>Truy cập nhanh</Text>
+      <View style={styles.homeSectionHeader}>
+        <Text style={styles.homeSectionTitle}>Truy cập nhanh</Text>
+        <Text style={styles.homeSectionHint}>Mở lại trong một chạm</Text>
+      </View>
       <View style={styles.quickGrid}>
         {[
           ['time-outline', 'Lịch sử', 'Xem các run đã tạo', 'history'],
@@ -240,10 +677,26 @@ export const ParentHomeScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
             <View style={styles.quickIcon}><Ionicons name={icon as keyof typeof Ionicons.glyphMap} size={18} color={colors.blueDeep} /></View>
             <Text style={styles.quickTitle}>{title}</Text>
             <Text style={styles.quickSubtitle}>{subtitle}</Text>
-            <Text style={styles.comingSoon}>Mở màn hình</Text>
+            <Ionicons name="arrow-forward" size={15} color={colors.blueDeep} style={styles.quickArrow} />
           </TouchableOpacity>
         ))}
       </View>
+
+      <View style={styles.homeSectionHeader}>
+        <Text style={styles.homeSectionTitle}>Câu chuyện gần đây</Text>
+        <TouchableOpacity accessibilityRole="button" onPress={() => nav('history')} style={styles.recentSeeAll}>
+          <Text style={styles.recentSeeAllText}>Xem tất cả</Text>
+          <Ionicons name="chevron-forward" size={15} color={colors.blueDeep} />
+        </TouchableOpacity>
+      </View>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.recentStoriesRow}>
+        {recentStories.map(([title, id, source]) => (
+          <TouchableOpacity key={id} accessibilityRole="button" accessibilityLabel={`Mở ${title}`} onPress={() => nav('history')} style={styles.recentStoryCard}>
+            <Image source={source} resizeMode="cover" style={styles.recentStoryImage} />
+            <Text style={styles.recentStoryTitle} numberOfLines={1}>{title}</Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
 
       <View style={styles.bottomNav}>
         <View style={[styles.bottomNavItem, styles.bottomNavItemActive]}><Ionicons name="home" size={20} color={colors.blueDeep} /><Text style={styles.bottomNavActiveText}>Trang chủ</Text></View>
@@ -261,49 +714,78 @@ export const TopicSelectionScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
   const [selectedTopic, setSelectedTopic] = useState('animals');
   const [difficulty, setDifficulty] = useState('simple');
   const topics = [
-    ['animals', 'Động vật', 'paw-outline', 'Mèo, chó, chim và những người bạn nhỏ'],
-    ['nature', 'Thiên nhiên', 'leaf-outline', 'Cây cối, khu vườn và bầu trời'],
-    ['family', 'Gia đình', 'home-outline', 'Những khoảnh khắc thân quen'],
-    ['vehicles', 'Phương tiện', 'bicycle-outline', 'Xe đạp, tàu bay và chuyến đi'],
-    ['space', 'Khám phá', 'planet-outline', 'Vũ trụ, đại dương và điều kỳ thú'],
-    ['free', 'Tự chọn', 'color-wand-outline', 'Để bé tự nghĩ ra thế giới riêng'],
-  ];
+    ['animals', 'Động vật', 'paw-outline', 'Mèo, chó, chim và những người bạn nhỏ', 'animals', '#FFF7D9'],
+    ['nature', 'Thiên nhiên', 'leaf-outline', 'Cây cối, khu vườn và bầu trời', 'nature', '#EEF8E3'],
+    ['family', 'Gia đình', 'home-outline', 'Những khoảnh khắc thân quen', 'family', '#FFEAF0'],
+    ['vehicles', 'Phương tiện', 'bicycle-outline', 'Xe đạp, tàu bay và chuyến đi', 'vehicles', '#EAF5FF'],
+    ['space', 'Khám phá', 'planet-outline', 'Vũ trụ, đại dương và điều kỳ thú', 'space', '#F0ECFF'],
+    ['free', 'Tự chọn', 'color-wand-outline', 'Để bé tự nghĩ ra thế giới riêng', 'free', '#FFF5DF'],
+  ] as const;
 
   return (
-    <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-      <EntryHeader title="Chọn chủ đề" onBack={goBack} />
-      <View style={styles.flowProgress}><View style={styles.flowProgressActive} /><View style={styles.flowProgressTrack} /><Text style={styles.flowProgressLabel}>1 / 4 · Chuẩn bị cho bé vẽ</Text></View>
-      <Text style={styles.pageTitle}>Hôm nay bé muốn vẽ gì?</Text>
-      <Text style={styles.pageSubtitle}>Chủ đề chỉ để khởi động ý tưởng. Bé vẫn tự do vẽ theo cách của mình.</Text>
+    <ScrollView contentContainerStyle={[styles.container, styles.topicContainer]} showsVerticalScrollIndicator={false}>
+      <View pointerEvents="none" style={styles.topicDoodleLayer}>
+        <Image source={topicDecorSources.sun} resizeMode="contain" style={[styles.topicDecorImage, styles.topicDecorSun]} />
+        <Image source={topicDecorSources.cloud} resizeMode="contain" style={[styles.topicDecorImage, styles.topicDecorCloud]} />
+        <Image source={topicDecorSources.heart} resizeMode="contain" style={[styles.topicDecorImage, styles.topicDecorHeart]} />
+        <Image source={topicDecorSources.star} resizeMode="contain" style={[styles.topicDecorImage, styles.topicDecorStar]} />
+        <Image source={topicDecorSources.leaves} resizeMode="contain" style={[styles.topicDecorImage, styles.topicDecorLeavesLeft]} />
+        <Image source={topicDecorSources.leaves} resizeMode="contain" style={[styles.topicDecorImage, styles.topicDecorLeavesRight, { transform: [{ scaleX: -1 }] }]} />
+      </View>
 
-      <View style={styles.topicGrid}>
-        {topics.map(([id, title, icon, summary]) => {
+      <EntryHeader title="Chọn chủ đề" onBack={goBack} />
+      <View style={styles.flowProgress}><View style={[styles.flowProgressActive, styles.topicProgressActive]} /><View style={styles.flowProgressTrack} /><Text style={styles.flowProgressLabel}>1 / 4 · Chuẩn bị cho bé vẽ</Text></View>
+      <View style={styles.topicHero}>
+        <View style={styles.topicEyebrow}><Ionicons name="sparkles-outline" size={14} color={colors.orangeDeep} /><Text style={styles.topicEyebrowText}>BẮT ĐẦU TỪ MỘT Ý TƯỞNG NHỎ</Text></View>
+        <Text style={styles.pageTitle}>Hôm nay bé muốn vẽ gì?</Text>
+        <View style={styles.topicTitleUnderline} />
+        <Text style={styles.pageSubtitle}>Chủ đề chỉ để khởi động ý tưởng. Bé vẫn tự do vẽ theo cách của mình.</Text>
+      </View>
+
+      <View style={styles.topicGrid} accessibilityRole="radiogroup" accessibilityLabel="Chủ đề cho câu chuyện">
+        {topics.map(([id, title, icon, summary, artKey, artTint]) => {
           const active = selectedTopic === id;
           return (
-            <TouchableOpacity key={id} accessibilityRole="radio" accessibilityState={{ selected: active }} onPress={() => setSelectedTopic(id)} style={[styles.topicCard, active && styles.topicCardActive]}>
-              <View style={[styles.topicEmoji, active && styles.topicEmojiActive]}><Ionicons name={icon as keyof typeof Ionicons.glyphMap} size={25} color={active ? colors.blueDeep : colors.yellowDeep} /></View>
-              <Text style={styles.topicTitle}>{title}</Text>
-              <Text style={styles.topicSummary}>{summary}</Text>
+            <Pressable
+              key={id}
+              accessibilityRole="radio"
+              accessibilityLabel={`${title}: ${summary}`}
+              accessibilityState={{ selected: active }}
+              onPress={() => setSelectedTopic(id)}
+              hitSlop={4}
+              style={({ pressed }) => [styles.topicCard, { backgroundColor: artTint }, active && styles.topicCardActive, pressed && styles.topicCardPressed]}
+            >
+              <View style={styles.topicArtFrame}>
+                {artKey ? (
+                  <Image source={topicArtSources[artKey]} style={styles.topicArtworkImage} resizeMode="cover" />
+                ) : (
+                  <Ionicons name={icon as keyof typeof Ionicons.glyphMap} size={25} color={active ? colors.blueDeep : colors.yellowDeep} />
+                )}
+              </View>
+              <View style={styles.topicCardCopy}>
+                <Text style={styles.topicTitle}>{title}</Text>
+                <Text style={styles.topicSummary}>{summary}</Text>
+              </View>
               {active && <View style={styles.topicCheck}><Ionicons name="checkmark" size={12} color={colors.white} /></View>}
-            </TouchableOpacity>
+            </Pressable>
           );
         })}
       </View>
 
-      <Text style={[styles.sectionTitle, { marginTop: 22 }]}>Độ khó gợi ý</Text>
-      <View style={styles.segmentedControl}>
+      <View style={styles.topicDifficultyHeader}><Text style={styles.sectionTitle}>Độ khó gợi ý</Text><Text style={styles.topicDifficultyHint}>Bé có thể đổi sau</Text></View>
+      <View style={styles.segmentedControl} accessibilityRole="radiogroup" accessibilityLabel="Độ khó gợi ý">
         {[
           ['simple', 'Đơn giản', 'Ít nét, dễ bắt đầu'],
           ['free', 'Tự do', 'Bé tự chọn cách vẽ'],
         ].map(([id, title, subtitle]) => {
           const active = difficulty === id;
-          return <TouchableOpacity key={id} accessibilityRole="radio" accessibilityState={{ selected: active }} onPress={() => setDifficulty(id)} style={[styles.segment, active && styles.segmentActive]}><Text style={[styles.segmentTitle, active && styles.segmentTitleActive]}>{title}</Text><Text style={[styles.segmentSubtitle, active && styles.segmentSubtitleActive]}>{subtitle}</Text></TouchableOpacity>;
+          return <Pressable key={id} accessibilityRole="radio" accessibilityLabel={`${title}: ${subtitle}`} accessibilityState={{ selected: active }} onPress={() => setDifficulty(id)} hitSlop={4} style={({ pressed }) => [styles.segment, active && styles.segmentActive, pressed && styles.segmentPressed]}><Text style={[styles.segmentTitle, active && styles.segmentTitleActive]}>{title}</Text><Text style={[styles.segmentSubtitle, active && styles.segmentSubtitleActive]}>{subtitle}</Text>{active && <Ionicons name="checkmark-circle" size={16} color={colors.blueDeep} style={styles.segmentCheck} />}</Pressable>;
         })}
       </View>
 
       <View style={styles.guideInfoCard}><Ionicons name="bulb-outline" size={21} color={colors.yellowDeep} /><Text style={styles.guideInfoText}>Bạn có thể xem hướng dẫn nét vẽ AI 3–5 bước cho chủ đề này, hoặc bỏ qua để bé vẽ ngay.</Text></View>
-      <TouchableOpacity accessibilityRole="button" onPress={() => nav('sketch_guide')} style={styles.primaryButton}><Ionicons name="sparkles-outline" size={18} color={colors.white} /><Text style={styles.primaryButtonText}>Xem hướng dẫn nét vẽ</Text></TouchableOpacity>
-      <TouchableOpacity accessibilityRole="button" onPress={() => nav('capture')} style={styles.textButton}><Text style={styles.textButtonLabel}>Bỏ qua, để bé vẽ ngay</Text></TouchableOpacity>
+      <Pressable accessibilityRole="button" accessibilityLabel="Xem hướng dẫn nét vẽ" onPress={() => nav('sketch_guide')} style={({ pressed }) => [styles.primaryButton, pressed && styles.loginButtonPressed]}><Ionicons name="sparkles-outline" size={18} color={colors.white} /><Text style={styles.primaryButtonText}>Xem hướng dẫn nét vẽ</Text></Pressable>
+      <Pressable accessibilityRole="button" accessibilityLabel="Bỏ qua hướng dẫn và bắt đầu vẽ" onPress={() => nav('capture')} style={({ pressed }) => [styles.textButton, pressed && styles.topicSkipPressed]}><Text style={styles.textButtonLabel}>Bỏ qua, để bé vẽ ngay</Text></Pressable>
       <Text style={styles.flowFootnote}>Đang chuẩn bị cho hồ sơ của {selectedChild.name} · chưa gửi dữ liệu lên AI</Text>
     </ScrollView>
   );
@@ -442,7 +924,21 @@ export const ParentSubjectReviewScreen: React.FC<ScreenProps> = ({ onNavigate })
 };
 
 const styles = StyleSheet.create({
-  container: { padding: 20, paddingBottom: 36, backgroundColor: '#F8FAFC', minHeight: '100%' },
+  container: { paddingHorizontal: 20, paddingTop: Platform.OS === 'web' ? 56 : 20, paddingBottom: 36, backgroundColor: '#F8FAFC', minHeight: '100%' },
+  profileBackground: { flex: 1, backgroundColor: '#FFF8EA' },
+  profileBackgroundImage: { opacity: 0.86 },
+  profileContainer: { paddingHorizontal: 18, paddingTop: 52, paddingBottom: 46, backgroundColor: 'transparent', minHeight: '100%' },
+  profileDoodleLayer: { ...StyleSheet.absoluteFillObject },
+  profileDoodleSun: { position: 'absolute', top: 84, right: 14, opacity: 0.46, transform: [{ rotate: '10deg' }] },
+  profileDoodleStarLeft: { position: 'absolute', top: 232, left: 10, opacity: 0.52, transform: [{ rotate: '-12deg' }] },
+  profileDoodleHeartRight: { position: 'absolute', top: 246, right: 14, opacity: 0.48, transform: [{ rotate: '12deg' }] },
+  profileDoodleTopRight: { position: 'absolute', top: 154, right: 24, opacity: 0.52, transform: [{ rotate: '12deg' }] },
+  profileDoodleLeafBottomLeft: { position: 'absolute', bottom: 34, left: 18, opacity: 0.42, transform: [{ rotate: '-26deg' }] },
+  profileDoodleLeafBottomRight: { position: 'absolute', bottom: 32, right: 18, opacity: 0.42, transform: [{ rotate: '28deg' }] },
+  profileDoodleStarBottomRight: { position: 'absolute', bottom: 28, right: 70, opacity: 0.5, transform: [{ rotate: '14deg' }] },
+  profileDoodleStrokeTop: { position: 'absolute', top: 286, left: 18, width: 28, height: 5, borderRadius: 5, backgroundColor: '#F4BD47', opacity: 0.58, transform: [{ rotate: '-24deg' }] },
+  profileDoodleStrokeBottom: { position: 'absolute', bottom: 102, right: 18, width: 32, height: 5, borderRadius: 5, backgroundColor: '#70C6A1', opacity: 0.52, transform: [{ rotate: '-18deg' }] },
+  profileInk: { color: '#5B2E1F' },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 },
   headerIcon: { width: 42, height: 42, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.white, borderWidth: 1, borderColor: '#F0E7D8' },
   headerTitle: { fontSize: 16, fontWeight: '900', color: colors.textHeading },
@@ -458,20 +954,79 @@ const styles = StyleSheet.create({
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   sectionTitle: { fontSize: 16, fontWeight: '900', color: colors.textHeading },
   sectionCount: { fontSize: 11, color: colors.textSoft },
-  profileCard: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 13, borderRadius: 20, backgroundColor: colors.white, borderWidth: 1, borderColor: '#E5EAF2', marginBottom: 10, ...shadows.soft },
-  profileCardSelected: { borderColor: '#9CCBFF', backgroundColor: '#F8FBFF' },
-  avatarFrame: { width: 70, height: 70, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFF4D7' },
+  profileCard: { flexDirection: 'row', alignItems: 'center', gap: 11, padding: 12, borderRadius: 23, backgroundColor: '#FFFDF7', borderWidth: 1.5, borderStyle: 'dashed', borderColor: '#F0D7A7', marginBottom: 9, ...shadows.soft },
+  profileCardSelected: { borderColor: '#8EC5FF', backgroundColor: '#F8FBFF', ...shadows.card },
+  avatarFrame: { width: 72, height: 72, borderRadius: 26, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFF4D7', borderWidth: 1, borderColor: '#F6DFA7' },
   profileMain: { flex: 1 },
   profileNameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  profileName: { fontSize: 17, fontWeight: '900', color: colors.textHeading },
-  selectedBadge: { fontSize: 9, fontWeight: '800', color: colors.blueDeep, backgroundColor: '#DBEAFE', paddingHorizontal: 7, paddingVertical: 4, borderRadius: 7 },
-  ageLabel: { fontSize: 12, fontWeight: '700', color: colors.textBody, marginTop: 3 },
-  profileMeta: { fontSize: 11, color: colors.textSoft, marginTop: 4 },
-  addProfileButton: { minHeight: 50, borderRadius: 16, borderWidth: 1, borderStyle: 'dashed', borderColor: '#93C5FD', backgroundColor: '#F8FBFF', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, marginTop: 4 },
-  addProfileText: { fontSize: 13, fontWeight: '800', color: colors.blueDeep },
+  profileName: { fontFamily: 'MaliBold', fontSize: 20, color: '#5B2E1F' },
+  selectedBadge: { fontFamily: 'MaliSemiBold', fontSize: 10, color: colors.blueDeep, backgroundColor: '#DCEBFF', paddingHorizontal: 9, paddingVertical: 5, borderRadius: 12 },
+  ageLabel: { fontFamily: 'MaliSemiBold', fontSize: 14, color: colors.textBody, marginTop: 4 },
+  profileMeta: { fontFamily: 'ItimRegular', fontSize: 13, color: colors.textSoft, marginTop: 4 },
+  addProfileSection: { marginTop: 5 },
+  addProfileButton: { minHeight: 88, borderRadius: 24, borderWidth: 1.5, borderStyle: 'dashed', borderColor: '#69B7FF', backgroundColor: 'rgba(255, 253, 247, 0.76)', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, overflow: 'hidden' },
+  addProfileText: { fontFamily: 'MaliBold', fontSize: 16, color: colors.blueDeep },
+  addProfileCopy: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  profileRainbow: { position: 'absolute', right: 28, bottom: 10, width: 62, height: 40, overflow: 'hidden' },
+  profileRainbowArc: { position: 'absolute', alignSelf: 'center', borderTopLeftRadius: 999, borderTopRightRadius: 999, borderWidth: 4, borderBottomWidth: 0 },
+  profileRainbowOuter: { width: 58, height: 35, top: 5, borderColor: '#F472B6' },
+  profileRainbowMiddle: { width: 45, height: 27, top: 10, borderColor: '#FBBF24' },
+  profileRainbowInner: { width: 32, height: 19, top: 15, borderColor: '#38BDF8' },
   inlineNotice: { fontSize: 11, lineHeight: 16, color: '#92400E', backgroundColor: '#FFFBEB', borderRadius: 12, padding: 10, marginTop: 8 },
   footerNote: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 22 },
   footerNoteText: { fontSize: 10, color: colors.textSoft },
+  profileTopBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
+  profileBackButton: { width: 48, height: 48, borderRadius: 24, borderWidth: 1.5, borderStyle: 'dashed', borderColor: '#7B4A33', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255, 253, 247, 0.46)' },
+  profileTopTitle: { fontFamily: 'MaliBold', fontSize: 24, color: '#5B2E1F' },
+  profileTopBarSpacer: { width: 48, height: 48 },
+  profileHero: { alignItems: 'center', paddingHorizontal: 12, marginBottom: 16 },
+  profilePageTitle: { fontFamily: 'MaliBold', fontSize: 29, lineHeight: 35, textAlign: 'center', color: '#5B2E1F' },
+  profileTitleUnderline: { width: 190, height: 6, borderRadius: 6, backgroundColor: '#F4BD47', opacity: 0.72, marginTop: 3, transform: [{ rotate: '-1deg' }] },
+  profilePageSubtitle: { fontFamily: 'ItimRegular', fontSize: 16, lineHeight: 21, textAlign: 'center', color: '#5A7192', marginTop: 7, maxWidth: 310 },
+  profileNoticeCard: { flexDirection: 'row', gap: 10, alignItems: 'center', padding: 11, borderRadius: 20, backgroundColor: '#EEF7FF', borderWidth: 1.5, borderColor: '#C7E2FF', marginBottom: 18 },
+  profileNoticeIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#D8EAFE', alignItems: 'center', justifyContent: 'center' },
+  profileNoticeText: { flex: 1, fontFamily: 'ItimRegular', fontSize: 14, lineHeight: 20, color: '#5A7192' },
+  profileSectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 9 },
+  profileSectionHeading: { flexDirection: 'row', alignItems: 'center' },
+  profileSectionTitle: { fontFamily: 'MaliBold', fontSize: 23, lineHeight: 28, color: '#5B2E1F' },
+  profileSectionUnderline: { width: 108, height: 4, borderRadius: 4, backgroundColor: '#F4BD47', opacity: 0.65, marginTop: 2, transform: [{ rotate: '-1deg' }] },
+  profileSectionCount: { fontFamily: 'MaliSemiBold', fontSize: 15, color: '#5A7192' },
+  profileInlineNotice: { fontFamily: 'ItimRegular', fontSize: 12, lineHeight: 17, color: colors.yellowText, backgroundColor: '#FFF3C4', borderRadius: 13, padding: 10, marginTop: 8 },
+  profileFooterNote: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 12 },
+  profileFooterNoteText: { fontFamily: 'ItimRegular', fontSize: 11, color: colors.textSoft },
+  profileFormKeyboard: { flex: 1 },
+  profileFormContainer: { paddingHorizontal: 18, paddingTop: 52, paddingBottom: 44 },
+  profileFormIntro: { alignItems: 'center', paddingHorizontal: 20, marginBottom: 15 },
+  profileFormIcon: { width: 52, height: 52, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: '#E2F0FF', borderWidth: 1, borderColor: '#BBDFFF', marginBottom: 8 },
+  profileFormTitle: { fontFamily: 'MaliBold', fontSize: 25, lineHeight: 31, textAlign: 'center', color: '#5B2E1F' },
+  profileFormSubtitle: { fontFamily: 'ItimRegular', fontSize: 14, lineHeight: 20, textAlign: 'center', color: '#5A7192', marginTop: 5, maxWidth: 320 },
+  profileFormCard: { padding: 16, borderRadius: 25, backgroundColor: 'rgba(255, 253, 247, 0.9)', borderWidth: 1.5, borderColor: '#F0D7A7', ...shadows.soft },
+  profileFormLabel: { fontFamily: 'MaliSemiBold', fontSize: 15, color: '#5B2E1F', marginBottom: 7 },
+  profileFormLabelSpaced: { marginTop: 16 },
+  profileFormInput: { minHeight: 51, flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: 16, borderWidth: 1.5, borderColor: '#CFD9E8', backgroundColor: '#FFFDFC', paddingHorizontal: 13, color: colors.textHeading },
+  profileFormInputError: { borderColor: '#E35D6A', backgroundColor: '#FFF8F8' },
+  profileFormTextInput: { flex: 1, minHeight: 48, paddingVertical: 0, fontFamily: 'ItimRegular', fontSize: 15, color: colors.textHeading },
+  profileFormError: { fontFamily: 'ItimRegular', fontSize: 12, lineHeight: 16, color: '#B42318', marginTop: 5 },
+  profileAgeChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 7, marginTop: 9 },
+  profileAgeChip: { paddingHorizontal: 10, paddingVertical: 7, borderRadius: 12, borderWidth: 1, borderColor: '#E7DCC8', backgroundColor: '#FFFDF7' },
+  profileAgeChipActive: { borderColor: '#7DBBFA', backgroundColor: '#EAF4FF' },
+  profileAgeChipText: { fontFamily: 'MaliSemiBold', fontSize: 11, color: colors.textSoft },
+  profileAgeChipTextActive: { color: colors.blueDeep },
+  profileFormMultiline: { minHeight: 78, alignItems: 'flex-start', paddingTop: 12, paddingBottom: 10, fontFamily: 'ItimRegular', fontSize: 14 },
+  profileChoiceRow: { flexDirection: 'row', gap: 8 },
+  profileChoice: { flex: 1, minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 8, borderRadius: 14, borderWidth: 1, borderColor: '#E7DCC8', backgroundColor: '#FFFDF7' },
+  profileChoiceActive: { borderColor: '#7DBBFA', backgroundColor: '#EAF4FF' },
+  profileChoiceText: { fontFamily: 'MaliSemiBold', fontSize: 11, color: colors.textSoft },
+  profileChoiceTextActive: { color: colors.blueDeep },
+  profileSupportWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 7 },
+  profileSupportChip: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 9, paddingVertical: 8, borderRadius: 13, borderWidth: 1, borderColor: '#E7DCC8', backgroundColor: '#FFFDF7' },
+  profileSupportChipActive: { borderColor: '#99D6B8', backgroundColor: '#EFFBF4' },
+  profileSupportText: { fontFamily: 'ItimRegular', fontSize: 11, color: colors.textSoft },
+  profileSupportTextActive: { color: colors.greenDeep },
+  profileFormPrivacy: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, padding: 11, borderRadius: 15, backgroundColor: '#F0FDF4', marginTop: 17 },
+  profileFormPrivacyText: { flex: 1, fontFamily: 'ItimRegular', fontSize: 11, lineHeight: 16, color: '#166534' },
+  detailEditButton: { minHeight: 46, borderRadius: 16, borderWidth: 1, borderColor: '#A9D1FF', backgroundColor: '#EFF6FF', alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 7, marginTop: 10 },
+  detailEditButtonText: { fontFamily: 'MaliSemiBold', fontSize: 13, color: colors.blueDeep },
   detailHero: { alignItems: 'center', paddingVertical: 8, marginBottom: 22 },
   detailAvatar: { width: 116, height: 116, borderRadius: 38, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFF4D7', marginBottom: 12 },
   detailName: { fontSize: 27, fontWeight: '900', letterSpacing: -0.6, color: colors.textHeading },
@@ -486,59 +1041,104 @@ const styles = StyleSheet.create({
   privacyCard: { flexDirection: 'row', gap: 9, padding: 13, borderRadius: 16, backgroundColor: '#F0FDF4', marginTop: 14 },
   privacyText: { flex: 1, fontSize: 11, lineHeight: 16, color: '#166534' },
   primaryButton: { minHeight: 56, borderRadius: 18, backgroundColor: colors.blueDeep, borderBottomWidth: 4, borderBottomColor: '#1D4ED8', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 24, ...shadows.button },
+  loginButtonPressed: { opacity: 0.9, transform: [{ scale: 0.985 }] },
   primaryButtonText: { color: colors.white, fontSize: 16, fontWeight: '900' },
   textButton: { alignItems: 'center', paddingVertical: 14 },
   textButtonLabel: { fontSize: 12, fontWeight: '800', color: colors.blueDeep },
-  homeHeader: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 22 },
-  homeGreeting: { fontSize: 26, lineHeight: 31, fontWeight: '900', letterSpacing: -0.6, color: colors.textHeading, marginTop: 4 },
-  notificationButton: { width: 42, height: 42, borderRadius: 15, backgroundColor: colors.white, borderWidth: 1, borderColor: '#E5EAF2', alignItems: 'center', justifyContent: 'center' },
-  notificationDot: { position: 'absolute', top: 9, right: 10, width: 6, height: 6, borderRadius: 3, backgroundColor: colors.coralDeep },
-  childSummaryCard: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 20, backgroundColor: '#F9F5EA', marginBottom: 14 },
-  summaryAvatar: { width: 72, height: 72, borderRadius: 24, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFFDF7' },
-  summaryLabel: { fontSize: 11, fontWeight: '900', letterSpacing: 0.4, color: colors.textBody },
-  summaryName: { fontSize: 18, fontWeight: '900', color: colors.textHeading, marginTop: 3 },
-  summaryMeta: { fontSize: 11, color: colors.textBody, marginTop: 3 },
-  changeText: { fontSize: 12, fontWeight: '800', color: colors.blueDeep },
-  createCard: { minHeight: 212, overflow: 'hidden', borderRadius: 26, padding: 20, backgroundColor: colors.blueDeep, flexDirection: 'row', ...shadows.soft },
-  createCopy: { flex: 1, zIndex: 1 },
-  createEyebrow: { fontSize: 11, fontWeight: '900', letterSpacing: 0.4, color: colors.white },
-  createTitle: { fontSize: 24, lineHeight: 28, fontWeight: '900', letterSpacing: -0.5, color: colors.white, marginTop: 8, maxWidth: 250 },
-  createText: { fontSize: 12, lineHeight: 18, color: colors.white, marginTop: 8, maxWidth: 250 },
-  createCta: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 7, paddingHorizontal: 13, paddingVertical: 10, borderRadius: 12, backgroundColor: '#0F4DBA', marginTop: 17 },
-  createCtaText: { fontSize: 12, fontWeight: '900', color: colors.white },
-  createSparkle: { position: 'absolute', right: 20, top: 24, width: 80, height: 80, borderRadius: 40, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FDE68A' },
-  quickGrid: { flexDirection: 'row', gap: 9, marginTop: 11 },
-  quickCard: { flex: 1, minHeight: 118, padding: 11, borderRadius: 17, borderWidth: 1, borderColor: '#E5EAF2', backgroundColor: colors.white },
-  quickIcon: { width: 30, height: 30, borderRadius: 10, backgroundColor: '#EFF6FF', alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
-  quickTitle: { fontSize: 12, fontWeight: '900', color: colors.textHeading },
-  quickSubtitle: { fontSize: 11, lineHeight: 15, color: colors.textSoft, marginTop: 3 },
-  comingSoon: { fontSize: 11, fontWeight: '800', color: '#B45309', marginTop: 7 },
-  bottomNav: { flexDirection: 'row', justifyContent: 'space-around', paddingTop: 20, marginTop: 22, borderTopWidth: 1, borderTopColor: '#EEF2F7' },
+  homeContainer: { paddingHorizontal: 18, paddingTop: Platform.OS === 'web' ? 56 : 18, paddingBottom: 38, backgroundColor: '#FFF8EA', minHeight: '100%', position: 'relative' },
+  homeDecorLayer: { ...StyleSheet.absoluteFillObject, zIndex: 0 },
+  homeDecorImage: { position: 'absolute', opacity: 0.22 },
+  homeDecorSun: { width: 66, height: 66, top: 86, right: 9 },
+  homeDecorCloud: { width: 94, height: 44, top: 194, right: -17, opacity: 0.2 },
+  homeDecorHeart: { width: 35, height: 35, top: 308, left: 1, opacity: 0.18 },
+  homeDecorLeaves: { width: 82, height: 78, bottom: 34, left: -18, opacity: 0.16 },
+  homeHeader: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 },
+  homeHeaderCopy: { flex: 1, paddingRight: 12 },
+  homeEyebrow: { fontFamily: 'MaliSemiBold', fontSize: 11, letterSpacing: 0.6, color: colors.orangeDeep },
+  homeGreeting: { fontFamily: 'MaliBold', fontSize: 26, lineHeight: 32, color: colors.textHeading, marginTop: 3 },
+  homeSubtitle: { fontFamily: 'ItimRegular', fontSize: 14, lineHeight: 20, color: colors.textBody, marginTop: 5 },
+  notificationButton: { width: 44, height: 44, borderRadius: 16, backgroundColor: '#FFFDF7', borderWidth: 1, borderColor: '#F0DDB8', alignItems: 'center', justifyContent: 'center', ...shadows.soft },
+  notificationDot: { position: 'absolute', top: 8, right: 9, width: 7, height: 7, borderRadius: 4, backgroundColor: colors.coralDeep, borderWidth: 1, borderColor: '#FFFDF7' },
+  homeBrandStrip: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, paddingVertical: 8, marginBottom: 13, borderRadius: 18, backgroundColor: '#FFFDF7', borderWidth: 1, borderColor: '#F5E7CB' },
+  homeBrandBadge: { flexDirection: 'row', alignItems: 'center', gap: 5, maxWidth: 180 },
+  homeBrandBadgeText: { fontFamily: 'ItimRegular', fontSize: 11, lineHeight: 15, color: colors.textBody },
+  childSummaryCard: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 22, backgroundColor: '#FFF0C9', borderWidth: 1, borderColor: '#F8D98A', marginBottom: 14 },
+  summaryAvatar: { width: 72, height: 72, borderRadius: 24, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFFDF7', borderWidth: 1, borderColor: '#F6DFA7' },
+  summaryLabel: { fontFamily: 'MaliSemiBold', fontSize: 10, letterSpacing: 0.5, color: colors.yellowText },
+  summaryName: { fontFamily: 'MaliBold', fontSize: 18, color: colors.textHeading, marginTop: 3 },
+  summaryMeta: { fontFamily: 'ItimRegular', fontSize: 12, color: colors.textBody, marginTop: 3 },
+  changeText: { fontFamily: 'MaliSemiBold', fontSize: 12, color: colors.blueDeep },
+  createCard: { minHeight: 236, overflow: 'hidden', borderRadius: 27, padding: 20, backgroundColor: colors.blueDeep, borderWidth: 1, borderColor: '#1D4ED8', flexDirection: 'row', ...shadows.button },
+  createHeroImage: { position: 'absolute', width: 250, height: 141, right: -8, bottom: -3, zIndex: 0 },
+  createCopy: { flex: 1, zIndex: 2 },
+  createBadge: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 9, paddingVertical: 5, borderRadius: 10, backgroundColor: '#FFF3B0' },
+  createEyebrow: { fontFamily: 'MaliSemiBold', fontSize: 10, letterSpacing: 0.4, color: colors.yellowText },
+  createTitle: { fontFamily: 'MaliBold', fontSize: 22, lineHeight: 27, color: colors.white, marginTop: 10, maxWidth: 205 },
+  createText: { fontFamily: 'ItimRegular', fontSize: 13, lineHeight: 18, color: '#E8F3FF', marginTop: 8, maxWidth: 205 },
+  createCta: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 7, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 13, backgroundColor: '#0F4DBA', marginTop: 17 },
+  createCtaText: { fontFamily: 'MaliBold', fontSize: 12, color: colors.white },
+  homeSectionHeader: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginTop: 23, marginBottom: 10 },
+  homeSectionTitle: { fontFamily: 'MaliBold', fontSize: 17, color: colors.textHeading },
+  homeSectionHint: { fontFamily: 'ItimRegular', fontSize: 11, color: colors.textSoft },
+  recentSeeAll: { flexDirection: 'row', alignItems: 'center', gap: 2, paddingVertical: 4 },
+  recentSeeAllText: { fontFamily: 'MaliSemiBold', fontSize: 11, color: colors.blueDeep },
+  recentStoriesRow: { gap: 10, paddingBottom: 2 },
+  recentStoryCard: { width: 126, padding: 6, borderRadius: 17, backgroundColor: '#FFFDF7', borderWidth: 1, borderColor: '#F0E3C9', ...shadows.soft },
+  recentStoryImage: { width: '100%', height: 78, borderRadius: 12, backgroundColor: '#EAF5FF' },
+  recentStoryTitle: { fontFamily: 'MaliSemiBold', fontSize: 11, color: colors.textHeading, marginTop: 6, paddingHorizontal: 2, paddingBottom: 2 },
+  quickGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  quickCard: { width: '48%', minHeight: 118, padding: 12, borderRadius: 18, borderWidth: 1, borderColor: '#F0E3C9', backgroundColor: '#FFFDF7', ...shadows.soft },
+  quickIcon: { width: 32, height: 32, borderRadius: 11, backgroundColor: '#E7F3FF', alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
+  quickTitle: { fontFamily: 'MaliSemiBold', fontSize: 13, color: colors.textHeading },
+  quickSubtitle: { fontFamily: 'ItimRegular', fontSize: 11, lineHeight: 15, color: colors.textSoft, marginTop: 3, maxWidth: 120 },
+  quickArrow: { position: 'absolute', right: 12, bottom: 12 },
+  bottomNav: { flexDirection: 'row', justifyContent: 'space-around', paddingTop: 18, marginTop: 23, borderTopWidth: 1, borderTopColor: '#F0E3C9' },
   bottomNavItem: { alignItems: 'center', gap: 4, paddingHorizontal: 13 },
   bottomNavItemActive: { borderBottomWidth: 2, borderBottomColor: colors.blueDeep, paddingBottom: 7 },
-  bottomNavText: { fontSize: 11, color: colors.textSoft },
-  bottomNavActiveText: { fontSize: 11, fontWeight: '800', color: colors.blueDeep },
+  bottomNavText: { fontFamily: 'ItimRegular', fontSize: 11, color: colors.textSoft },
+  bottomNavActiveText: { fontFamily: 'MaliSemiBold', fontSize: 11, color: colors.blueDeep },
+  topicContainer: { backgroundColor: '#FFF8EA', position: 'relative' },
+  topicDoodleLayer: { ...StyleSheet.absoluteFillObject, zIndex: 0 },
+  topicDecorImage: { position: 'absolute', opacity: 0.34 },
+  topicDecorSun: { width: 54, height: 54, top: 84, right: 7 },
+  topicDecorCloud: { width: 82, height: 40, top: 230, left: -16 },
+  topicDecorHeart: { width: 32, height: 32, top: 282, right: 8, opacity: 0.28 },
+  topicDecorStar: { width: 30, height: 30, top: 150, right: 20, opacity: 0.33 },
+  topicDecorLeavesLeft: { width: 66, height: 64, bottom: 18, left: -13, opacity: 0.28 },
+  topicDecorLeavesRight: { width: 66, height: 64, bottom: 18, right: -13, opacity: 0.28 },
+  topicProgressActive: { width: '25%' },
+  topicHero: { alignItems: 'center', paddingHorizontal: 8, marginTop: 4, marginBottom: 2 },
+  topicEyebrow: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12, backgroundColor: '#FFF1C5', marginBottom: 9 },
+  topicEyebrowText: { fontFamily: 'MaliSemiBold', fontSize: 9, letterSpacing: 0.45, color: colors.orangeDeep },
+  topicTitleUnderline: { width: 156, height: 5, borderRadius: 5, backgroundColor: '#F4BD47', opacity: 0.7, marginTop: 2, transform: [{ rotate: '-1deg' }] },
+  topicDifficultyHeader: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginTop: 22, marginBottom: 10 },
+  topicDifficultyHint: { fontFamily: 'ItimRegular', fontSize: 11, color: colors.textSoft },
   skipText: { fontSize: 12, fontWeight: '800', color: colors.blueDeep },
   flowProgress: { position: 'relative', marginBottom: 20 },
   flowProgressActive: { height: 4, width: '25%', borderRadius: 4, backgroundColor: colors.blueDeep, zIndex: 1 },
   flowProgressTrack: { position: 'absolute', left: 0, right: 0, top: 0, height: 4, borderRadius: 4, backgroundColor: '#E8EEF7' },
   flowProgressLabel: { fontSize: 10, fontWeight: '800', color: colors.textSoft, marginTop: 8 },
-  topicGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 20 },
-  topicCard: { width: '48%', minHeight: 132, padding: 13, borderRadius: 20, backgroundColor: colors.white, borderWidth: 1, borderColor: '#E8E1D6', position: 'relative' },
-  topicCardActive: { borderColor: '#60A5FA', backgroundColor: '#F3F8FF', ...shadows.soft },
-  topicEmoji: { width: 46, height: 46, borderRadius: 15, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFF7E2', marginBottom: 9 },
-  topicEmojiActive: { backgroundColor: '#DBEAFE' },
+  topicGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 11, marginTop: 18, zIndex: 1 },
+  topicCard: { width: '48%', minHeight: 198, padding: 10, borderRadius: 22, backgroundColor: '#FFFDF7', borderWidth: 1.5, borderStyle: 'dashed', borderColor: '#E8D7B9', position: 'relative', ...shadows.soft },
+  topicCardActive: { borderStyle: 'solid', borderColor: '#69B7FF', ...shadows.card },
+  topicCardPressed: { opacity: 0.88, transform: [{ scale: 0.985 }] },
+  topicArtFrame: { width: '100%', height: 112, alignItems: 'center', justifyContent: 'center', backgroundColor: 'transparent', marginBottom: 8 },
+  topicArtworkImage: { width: '100%', height: '100%' },
+  topicCardCopy: { flex: 1 },
   topicEmojiText: { fontSize: 21 },
-  topicTitle: { fontSize: 13, fontWeight: '900', color: colors.textHeading },
-  topicSummary: { fontSize: 10, lineHeight: 14, color: colors.textSoft, marginTop: 4 },
-  topicCheck: { position: 'absolute', top: 8, right: 8, width: 18, height: 18, borderRadius: 9, backgroundColor: colors.blueDeep, alignItems: 'center', justifyContent: 'center' },
-  segmentedControl: { flexDirection: 'row', gap: 8, marginTop: 10 },
-  segment: { flex: 1, padding: 12, borderRadius: 15, borderWidth: 1, borderColor: '#E5EAF2', backgroundColor: colors.white },
-  segmentActive: { borderColor: '#60A5FA', backgroundColor: '#EFF6FF' },
-  segmentTitle: { fontSize: 12, fontWeight: '900', color: colors.textHeading },
+  topicTitle: { fontFamily: 'MaliSemiBold', fontSize: 14, color: '#5B2E1F' },
+  topicSummary: { fontFamily: 'ItimRegular', fontSize: 11, lineHeight: 15, color: colors.textSoft, marginTop: 4, paddingRight: 4 },
+  topicCheck: { position: 'absolute', top: 9, right: 9, width: 20, height: 20, borderRadius: 10, backgroundColor: colors.blueDeep, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#FFFFFF' },
+  segmentedControl: { flexDirection: 'row', gap: 9, marginTop: 0 },
+  segment: { flex: 1, minHeight: 68, padding: 12, borderRadius: 17, borderWidth: 1.5, borderStyle: 'dashed', borderColor: '#E8D7B9', backgroundColor: '#FFFDF7', position: 'relative' },
+  segmentActive: { borderStyle: 'solid', borderColor: '#69B7FF', backgroundColor: '#F3F8FF' },
+  segmentPressed: { opacity: 0.86, transform: [{ scale: 0.985 }] },
+  segmentCheck: { position: 'absolute', top: 10, right: 10 },
+  segmentTitle: { fontFamily: 'MaliSemiBold', fontSize: 13, color: '#5B2E1F' },
   segmentTitleActive: { color: colors.blueDeep },
-  segmentSubtitle: { fontSize: 10, color: colors.textSoft, marginTop: 4 },
+  segmentSubtitle: { fontFamily: 'ItimRegular', fontSize: 11, color: colors.textSoft, marginTop: 4, paddingRight: 14 },
   segmentSubtitleActive: { color: '#1D4ED8' },
+  topicSkipPressed: { opacity: 0.72, transform: [{ scale: 0.98 }] },
   guideInfoCard: { flexDirection: 'row', alignItems: 'center', gap: 9, padding: 13, borderRadius: 16, backgroundColor: '#FFFBEB', marginTop: 18 },
   guideInfoText: { flex: 1, fontSize: 11, lineHeight: 16, color: '#92400E' },
   flowFootnote: { fontSize: 10, lineHeight: 15, color: colors.textSoft, textAlign: 'center', marginTop: 14 },

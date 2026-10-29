@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, radius, shadows } from '../theme';
 import { useAppContext } from '../context/AppContext';
@@ -136,7 +136,7 @@ export const ParentPlaceholderScreen: React.FC<ParentPlaceholderProps> = ({ scre
 };
 
 const styles = StyleSheet.create({
-  container: { padding: 18, paddingBottom: 30, flexGrow: 1 },
+  container: { paddingHorizontal: 18, paddingTop: Platform.OS === 'web' ? 54 : 18, paddingBottom: 30, flexGrow: 1 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 },
   backButton: { width: 42, height: 42, borderRadius: 21, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' },
   headerLabel: { fontSize: 12, fontWeight: '800', color: colors.textSoft },

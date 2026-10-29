@@ -94,6 +94,22 @@ interface AppContextType {
   childrenList: ChildProfile[];
   selectedChild: ChildProfile;
   setSelectedChild: (child: ChildProfile) => void;
+  createChildProfile: (input: {
+    name: string;
+    ageMonths: number;
+    interestText?: string;
+    avoidText?: string;
+    adultParticipating?: boolean | null;
+    learningSupportIds?: LearningSupportId[];
+  }) => ChildProfile;
+  updateChildProfile: (childId: string, input: {
+    name: string;
+    ageMonths: number;
+    interestText?: string;
+    avoidText?: string;
+    adultParticipating?: boolean | null;
+    learningSupportIds?: LearningSupportId[];
+  }) => ChildProfile | null;
   selectedAgeMonths: number;
   setSelectedAgeMonths: (ageMonths: number) => void;
   selectedChildLearningProfile: ChildLearningProfileInput | null;
@@ -201,6 +217,7 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | null>(null);
 const workflowApi = createDemoApi();
 type JsonObject = Record<string, unknown>;
+type LearningSupportId = ChildLearningProfileInput['learning_support_ids'][number];
 
 function asObject(value: unknown): JsonObject {
   return typeof value === 'object' && value !== null ? value as JsonObject : {};
@@ -609,7 +626,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // Child Profile
-  const [childrenList] = useState<ChildProfile[]>(MOCK_CHILDREN);
+  const [childrenList, setChildrenList] = useState<ChildProfile[]>(MOCK_CHILDREN);
   const [selectedChild, setSelectedChildState] = useState<ChildProfile>(MOCK_CHILDREN[0]);
   const [childAgeMonthsById, setChildAgeMonthsById] = useState<Record<string, number>>(
     () => Object.fromEntries(MOCK_CHILDREN.map((child) => [child.id, child.age * 12])),
@@ -633,6 +650,100 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const setSelectedChild = (child: ChildProfile) => {
     setSelectedChildState(child);
     invalidateP1Selection();
+  };
+  const ageGroupForMonths = (ageMonths: number): ChildProfile['ageGroup'] => {
+    if (ageMonths < 60) return '3-4';
+    if (ageMonths < 84) return '5-6';
+    if (ageMonths < 108) return '7-8';
+    return '9+';
+  };
+  const updateLearningProfileForChild = (
+    childId: string,
+    input: {
+      interestText?: string;
+      avoidText?: string;
+      adultParticipating?: boolean | null;
+      learningSupportIds?: LearningSupportId[];
+    },
+  ) => {
+    setChildLearningProfiles((current) => {
+      const previous = current[childId] || {
+        profile_declared_by: 'CAREGIVER' as const,
+        profile_recorded_at: new Date().toISOString(),
+        interest_text: '',
+        avoid_text: '',
+        proposed_interest_tags: [],
+        proposed_avoid_tags: [],
+        preference_tags_confirmed: false,
+        interests: [],
+        dislikes: [],
+        readiness_ids: null,
+        available_material_option_ids: null,
+        adult_participating: null,
+        caregiver_participating: null,
+        learning_support_ids: [],
+      };
+      return {
+        ...current,
+        [childId]: {
+          ...previous,
+          interest_text: input.interestText?.trim().slice(0, 240) || '',
+          avoid_text: input.avoidText?.trim().slice(0, 240) || '',
+          adult_participating: input.adultParticipating ?? previous.adult_participating,
+          caregiver_participating: input.adultParticipating ?? previous.caregiver_participating,
+          learning_support_ids: input.learningSupportIds || previous.learning_support_ids,
+          profile_recorded_at: new Date().toISOString(),
+        },
+      };
+    });
+  };
+  const createChildProfile = (input: {
+    name: string;
+    ageMonths: number;
+    interestText?: string;
+    avoidText?: string;
+    adultParticipating?: boolean | null;
+    learningSupportIds?: LearningSupportId[];
+  }) => {
+    const ageMonths = Math.max(36, Math.min(155, Math.trunc(input.ageMonths)));
+    const child: ChildProfile = {
+      id: `child-${Date.now()}-${childrenList.length + 1}`,
+      name: input.name.trim(),
+      age: Math.floor(ageMonths / 12),
+      ageGroup: ageGroupForMonths(ageMonths),
+      avatar: childrenList.length % 2 === 0 ? '👧' : '👦',
+      recentStoriesCount: 0,
+    };
+    setChildrenList((current) => [...current, child]);
+    setChildAgeMonthsById((current) => ({ ...current, [child.id]: ageMonths }));
+    updateLearningProfileForChild(child.id, input);
+    setSelectedChildState(child);
+    invalidateP1Selection();
+    return child;
+  };
+  const updateChildProfile = (childId: string, input: {
+    name: string;
+    ageMonths: number;
+    interestText?: string;
+    avoidText?: string;
+    adultParticipating?: boolean | null;
+    learningSupportIds?: LearningSupportId[];
+  }) => {
+    const ageMonths = Math.max(36, Math.min(155, Math.trunc(input.ageMonths)));
+    const existing = childrenList.find((child) => child.id === childId);
+    if (!existing) return null;
+    const updated: ChildProfile = {
+      ...existing,
+      name: input.name.trim(),
+      age: Math.floor(ageMonths / 12),
+      ageGroup: ageGroupForMonths(ageMonths),
+    };
+    setChildrenList((current) => current.map((child) => child.id === childId ? updated : child));
+    setChildAgeMonthsById((current) => ({ ...current, [childId]: ageMonths }));
+    updateLearningProfileForChild(childId, input);
+    setSelectedChildState(updated);
+    invalidateP1Selection();
+    return updated;
   };
   const setSelectedAgeMonths = (ageMonths: number) => {
     if (!Number.isFinite(ageMonths)) return;
@@ -1684,6 +1795,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         childrenList,
         selectedChild,
         setSelectedChild,
+        createChildProfile,
+        updateChildProfile,
         selectedAgeMonths,
         setSelectedAgeMonths,
         selectedChildLearningProfile,

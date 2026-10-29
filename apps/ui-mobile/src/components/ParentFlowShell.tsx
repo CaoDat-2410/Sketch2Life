@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, shadows } from '../theme';
 
@@ -13,9 +13,9 @@ export const ParentFlowHeader: React.FC<{
       <TouchableOpacity accessibilityRole="button" accessibilityLabel="Quay lại" activeOpacity={0.78} onPress={onBack} style={styles.iconButton}>
         <Ionicons name="arrow-back" size={19} color={colors.textBody} />
       </TouchableOpacity>
-    ) : <View style={styles.iconButton} />}
+    ) : <View style={styles.iconButtonPlaceholder} />}
     <Text style={styles.headerTitle}>{title}</Text>
-    {action || <View style={styles.iconButton} />}
+    {action || <View style={styles.iconButtonPlaceholder} />}
   </View>
 );
 
@@ -53,9 +53,10 @@ export const ParentFlowScroll: React.FC<React.ComponentProps<typeof ScrollView>>
 );
 
 const styles = StyleSheet.create({
-  container: { padding: 20, paddingBottom: 36, backgroundColor: '#F8FAFC', minHeight: '100%' },
+  container: { paddingHorizontal: 20, paddingTop: Platform.OS === 'web' ? 56 : 20, paddingBottom: 36, backgroundColor: '#F8FAFC', minHeight: '100%' },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 },
   iconButton: { width: 42, height: 42, borderRadius: 16, backgroundColor: colors.white, borderWidth: 1, borderColor: '#F0E7D8', alignItems: 'center', justifyContent: 'center' },
+  iconButtonPlaceholder: { width: 42, height: 42 },
   headerTitle: { fontSize: 16, fontWeight: '900', color: colors.textHeading },
   progressWrap: { marginBottom: 20 },
   progressTrack: { height: 7, borderRadius: 5, backgroundColor: '#E8EEF7', overflow: 'hidden' },
