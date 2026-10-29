@@ -1,0 +1,52 @@
+{
+  "schema_version": "1.0",
+  "created_date": "2026-10-29",
+  "data_policy": "SYNTHETIC_ONLY",
+  "generation_tool": "built-in image_gen.imagegen",
+  "purpose": "Three crayon-style synthetic preview controls for a future bounded diagnostic; no real child's artwork",
+  "status": "GENERATED_PREVIEW; ADMISSION_NOT_RUN; MODAL_NOT_CALLED",
+  "original_fixture_replaced": false,
+  "exact_pixel_control": false,
+  "limitations": "AI edits target matching subject placement and style, but pixel-identical preservation is not guaranteed. These are development controls, not held-out quality benchmark evidence.",
+  "assets": [
+    {
+      "asset_id": "crayon-house-only-v1",
+      "path": "assets/generated/crayon-controls-v1/01-house-only.png",
+      "width": 1254,
+      "height": 1254,
+      "byte_length": 2190681,
+      "sha256": "0a45ce7309b87b4d70c09eaea94f9b3c5b46c7381075be5562b92f3c271511d6",
+      "operation": "edit_remove_sun",
+      "reference_asset_id": "crayon-house-and-sun-v1",
+      "prompt": "Edit this synthetic crayon drawing to create the HOUSE-ONLY control image. Remove the entire sun and all of its rays from the upper-right, replacing that area with matching plain white paper texture. Keep the existing house exactly the same in appearance, size, placement, roof, blue walls, yellow windows, brown door, wobbly wax crayon strokes and coloring. Keep the square canvas and opaque paper background unchanged. Do not add anything: no ground line, grass, clouds, trees, people, text, labels, signature or watermark. The only recognizable subject must be the house. This is an AI-generated synthetic control, not real child's artwork."
+    },
+    {
+      "asset_id": "crayon-sun-only-v1",
+      "path": "assets/generated/crayon-controls-v1/02-sun-only.png",
+      "width": 1254,
+      "height": 1254,
+      "byte_length": 1640386,
+      "sha256": "e8943992cf78cb892ab86e0879dae1c2d520c8d3de96614ce35bc196dc05bae3",
+      "operation": "edit_remove_house",
+      "reference_asset_id": "crayon-house-and-sun-v1",
+      "prompt": "Edit this synthetic crayon drawing to create the SUN-ONLY control image. Remove the entire house including red roof, blue walls, yellow windows, brown door and every stray crayon mark belonging to it. Replace the removed house area with matching plain white paper texture. Keep the existing sun exactly the same in appearance, size, placement in the upper-right, yellow disk, orange-yellow rays and uneven wax crayon strokes. Keep the square canvas and opaque white paper background unchanged. Do not move or enlarge the sun. Do not add anything: no faces, ground line, grass, clouds, trees, people, text, labels, signature or watermark. The only recognizable subject must be the sun. This is an AI-generated synthetic control, not real child's artwork."
+    },
+    {
+      "asset_id": "crayon-house-and-sun-v1",
+      "path": "assets/generated/crayon-controls-v1/03-house-and-sun.png",
+      "width": 1254,
+      "height": 1254,
+      "byte_length": 2444928,
+      "sha256": "2846a1b6a710e931da6abccf8c9858a938cbd021c0325bbd3f0c98d513fd0c36",
+      "operation": "generate",
+      "reference_asset_id": null,
+      "prompt": "Create a single square raster illustration for a synthetic vision-model diagnostic. It must look like a spontaneous drawing made with wax crayons by a five-year-old: wobbly uneven lines, slightly crooked simple shapes, visible wax grain, patchy coloring that goes outside the outlines, modest beginner drawing skill. Flat scan of plain white paper filling the whole image. Exactly two recognizable subjects: one simple house in the lower-left/center area occupying about 55 percent of the image width, and one sun in the upper-right area occupying about 18 percent of the width. House: red triangular roof, roughly blue square walls, a brown door and two yellow square windows; childlike imperfect proportions. Sun: a roughly circular yellow crayon disk with eight to ten short uneven orange-yellow rays, with no face. Leave plenty of plain white paper around the two subjects. No grass, ground line, clouds, trees, animals, people, toys, extra buildings, mountains, letters, numbers, signature, border, watermarks, collage or labels. Do not turn it into polished children's-book art, vector graphics, a perfect geometric icon, photorealism or a photo showing a child or hands. This is AI-generated fictional artwork, not an authentic child's artwork. Entire image opaque; white paper background."
+    }
+  ],
+  "visual_inspection": {
+    "reviewer": "assistant",
+    "source": "tool-returned images displayed and inspected in chat",
+    "result": "Each image has the intended subject set, wax-crayon texture, plain paper, no people or text",
+    "owner_approval": "NOT_CLAIMED"
+  }
+}
