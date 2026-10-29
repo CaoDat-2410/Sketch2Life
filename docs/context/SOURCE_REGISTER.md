@@ -1,5 +1,11 @@
 # Source register and authority boundary
 
+## owner-feat065-ci-repair-20261029
+
+Person 2 authorized “ok v sửa đi nào thấy ok thì đẩy lên” after reviewing CI run 40875382264 and the three scoped fixes. FEAT-065 records repair of Node CI pin, backend lock metadata and five missing evidence-directory placeholders, validation and publication on existing feature/modal-vision-dev only. This does not authorize product-flow implementation, new branches, service/DB/Modal calls, package installs or changes to other feature plans/approvals.
+
+Focused validation exposed the stale composition-test route allowlist; FEAT-065 revision2 records maintenance against already approved FEAT-063 Lesson Library method/path inventory, preserving exact assertions and changing no runtime endpoint. Results and limitations are in FEAT-065 evidence.
+
 ## FEAT-063 complete API purpose catalog - current - 2026-10-28
 
 Plan Rev32 (`features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV32_API_PURPOSE_CATALOG_20261028.md`, SHA-256 `FD189D3E2684CE2930624AFD7412C54F9BB53339209790F7B319B534C41E087C`) is approved for documentation-only work. The linked catalog (`features/FEAT-063-system-architecture-rearchitecture/artifacts/API_PURPOSE_CATALOG_FEAT063_REV32_20261028.md`, SHA-256 `E65582C197FCF9DC134294D140B5289C44B82E6A81AC6DB6C23C0AFE3800A881`) gives a concise purpose and runtime exposure for every one of the 135 current route declarations. It changes no API or runtime behavior. EV-063-25 records the catalog; no tests, Docker, database, provider, or deployment operation was performed.
