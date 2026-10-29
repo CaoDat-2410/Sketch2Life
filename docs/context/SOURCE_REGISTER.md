@@ -1,5 +1,11 @@
 # Source register and authority boundary
 
+## owner-feat065-ci-repair-20261029
+
+Person 2 authorized “ok v sửa đi nào thấy ok thì đẩy lên” after reviewing CI run 40875382264 and the three scoped fixes. FEAT-065 records repair of Node CI pin, backend lock metadata and five missing evidence-directory placeholders, validation and publication on existing feature/modal-vision-dev only. This does not authorize product-flow implementation, new branches, service/DB/Modal calls, package installs or changes to other feature plans/approvals.
+
+Focused validation exposed the stale composition-test route allowlist; FEAT-065 revision2 records maintenance against already approved FEAT-063 Lesson Library method/path inventory, preserving exact assertions and changing no runtime endpoint. Results and limitations are in FEAT-065 evidence.
+
 ## owner-feat064-current-flow-modal-vision-plan-20261029 — planning only
 
 The owner requested a plan and selected testing the existing Child UI/BE1 flow with Modal before the newer Parent/Teacher architecture: “Test luồng hiện tại chạy ok trên modal đi r mới làm luồng mới được nha :))) luồng mới hơi nhìu”. Record: `features/FEAT-064-current-flow-modal-vision-dev/CONTEXT.md`, `plan/PLAN.md` and `evidence/notes/SOURCE_REVIEW_20261029.md`.

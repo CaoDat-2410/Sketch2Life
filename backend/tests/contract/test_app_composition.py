@@ -28,9 +28,41 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
         path: sorted(method.upper() for method in operations)
         for path, operations in openapi["paths"].items()
     }
+    # Frozen method/path pairs from the FEAT-063 Rev32 API purpose catalog.
+    library = "/api/lesson-library/v1"
+    organization = f"{library}/organizations/{{organization_id}}"
+    lesson = f"{organization}/lessons/{{lesson_id}}"
+    upload = f"{library}/upload-sessions/{{upload_session_id}}"
+    lesson_library_methods = {
+        f"{library}/me/lesson-invitations": ["GET"],
+        f"{library}/me/lesson-invitations/{{access_grant_id}}/accept": ["POST"],
+        f"{library}/me/lesson-invitations/{{access_grant_id}}/decline": ["POST"],
+        f"{library}/me/lessons": ["GET"],
+        f"{library}/me/lessons/{{lesson_id}}": ["GET"],
+        f"{library}/me/lessons/{{lesson_id}}/download": ["GET"],
+        f"{library}/me/parent-group-invitations": ["GET"],
+        f"{library}/me/parent-group-invitations/{{membership_id}}/accept": ["POST"],
+        f"{organization}/access-grants": ["GET"],
+        f"{organization}/access-grants/{{access_grant_id}}/decision": ["POST"],
+        f"{organization}/lessons": ["GET", "POST"],
+        lesson: ["DELETE", "GET", "PATCH"],
+        f"{lesson}/access-grants": ["POST"],
+        f"{lesson}/access-grants/{{access_grant_id}}": ["DELETE"],
+        f"{lesson}/source-documents/{{source_document_id}}": ["GET"],
+        f"{lesson}/source-documents/{{source_document_id}}/revisions/{{revision_id}}": ["GET"],
+        f"{lesson}/upload-sessions": ["POST"],
+        f"{lesson}/versions": ["POST"],
+        f"{organization}/parent-groups": ["GET", "POST"],
+        f"{organization}/parent-groups/{{parent_group_id}}/invitations": ["POST"],
+        f"{organization}/parent-groups/{{parent_group_id}}/members/{{membership_id}}": ["DELETE"],
+        f"{library}/platform/lessons/{{lesson_id}}/moderation": ["PATCH"],
+        upload: ["DELETE", "GET"],
+        f"{upload}/complete": ["POST"],
+        f"{upload}/parts/{{part_number}}": ["PUT"],
+    }
 
     # Preserve the full pre-integration route surface while allowing only the
-    # explicitly reviewed classroom contracts added by FEAT-060 Rev4.
+    # reviewed FEAT-060 classroom and FEAT-063 Lesson Library contracts.
     assert expected.items() <= actual.items()
     assert set(actual) - set(expected) == {
         "/api/be1/v1/device-grants/{grant_id}/join-status",
@@ -41,7 +73,8 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
         "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/room-code/rotate",
         "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/roster",
         "/api/be1/v1/room-code/join",
-    }
+    } | set(lesson_library_methods)
+    assert {path: actual[path] for path in lesson_library_methods} == lesson_library_methods
 
 
 def test_compatibility_app_keeps_be1_and_demo_services_on_app_state() -> None:
