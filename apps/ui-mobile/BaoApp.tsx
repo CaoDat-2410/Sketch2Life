@@ -281,7 +281,7 @@ function MainAppContent() {
         <View style={[styles.phoneChassis, !isDesktopWeb && styles.phoneChassisNative]}>
           {/* Native Mobile Status Bar (hidden on splash because splash hero image fills the bezel) */}
           {Platform.OS === 'web' && currentScreen !== 'splash' && (
-            <View style={styles.mobileStatusBar}>
+            <View style={[styles.mobileStatusBar, currentScreen === 'login' && styles.mobileStatusBarLoginOverlay]}>
               <TouchableOpacity activeOpacity={0.7} onPress={handleClockTap}>
                 <Text style={styles.statusBarClock}>9:41</Text>
               </TouchableOpacity>
@@ -307,13 +307,13 @@ function MainAppContent() {
           )}
 
           {/* Active Screen */}
-          <View style={styles.screenBody}>
+          <View style={[styles.screenBody, currentScreen === 'login' && styles.screenBodyLoginFullBleed]}>
             {renderScreen()}
           </View>
 
           {/* Virtual Home Bar */}
           {Platform.OS === 'web' && (
-            <View style={styles.homeBarContainer}>
+            <View style={[styles.homeBarContainer, currentScreen === 'login' && styles.homeBarLoginOverlay]}>
               <View style={styles.homeBarIndicator} />
             </View>
           )}
@@ -450,6 +450,15 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0.5,
     borderBottomColor: '#F1F5F9',
   },
+  mobileStatusBarLoginOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 30,
+    backgroundColor: 'transparent',
+    borderBottomWidth: 0,
+  },
   statusBarClock: {
     fontSize: 12,
     fontWeight: '800',
@@ -480,11 +489,26 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     backgroundColor: colors.white,
   },
+  screenBodyLoginFullBleed: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+  },
   homeBarContainer: {
     height: 18,
     backgroundColor: colors.white,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  homeBarLoginOverlay: {
+    position: 'absolute',
+    right: 0,
+    bottom: 0,
+    left: 0,
+    zIndex: 30,
+    backgroundColor: 'transparent',
   },
   homeBarIndicator: {
     width: 130,

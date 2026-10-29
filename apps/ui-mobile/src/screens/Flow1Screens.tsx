@@ -3,6 +3,8 @@ import {
   View,
   Text,
   Image,
+  Pressable,
+  ActivityIndicator,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
@@ -10,8 +12,11 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  useWindowDimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useFonts } from 'expo-font';
+import Svg, { Path } from 'react-native-svg';
 import { colors, radius, shadows } from '../theme';
 import { Kid3DButton } from '../components/Kid3DButton';
 import {
@@ -55,73 +60,474 @@ const PROFILE_SUPPORTS = [
   ['OBSERVATION', 'Thích quan sát, khám phá'],
 ] as const;
 const PROFILE_INPUT_METRIC_SAMPLE_COUNT = 24;
+// No Firebase client adapter or Google provider configuration is present in
+// this repository yet. Keep the entry point visibly discoverable but disabled
+// until it can issue a real Firebase credential and backend-authorized session.
+const GOOGLE_SIGN_IN_SUPPORTED = false;
+const LOGIN_INPUT_WEB_FOCUS_RESET =
+  Platform.OS === 'web'
+    ? ({ outlineStyle: 'none', outlineWidth: 0, outlineColor: 'transparent' } as any)
+    : null;
 
 // ==========================================
 // Parent SRS V2.2 — LOGIN
 // ==========================================
+const LOGIN_ARTBOARD = { width: 941, height: 1672 } as const;
+const LOGIN_ARTWORK_LAYOUT = {
+  title: { x: 168, y: 710, width: 605, height: 72 },
+  // The compact login title replaces the previous welcome copy, so bring the
+  // interactive form up into that freed space while keeping it inside the
+  // illustrated card's safe area.
+  emailLabel: { x: 130, y: 820, width: 680, height: 38 },
+  emailField: { x: 128, y: 930, width: 685, height: 87 },
+  passwordLabel: { x: 130, y: 1044, width: 680, height: 38 },
+  passwordField: { x: 128, y: 1097, width: 685, height: 87 },
+  primaryButton: { x: 126, y: 1220, width: 690, height: 102 },
+} as const;
+
+/** Official Google G mark, kept as vector artwork so it is never stretched. */
+const GoogleMark: React.FC<{ size?: number }> = ({ size = 22 }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" aria-hidden>
+    <Path
+      fill="#4285F4"
+      d="M23.49 12.27c0-.79-.07-1.55-.2-2.27H12v4.3h6.45a5.51 5.51 0 0 1-2.39 3.61v3h3.87c2.27-2.09 3.56-5.17 3.56-8.64Z"
+    />
+    <Path
+      fill="#34A853"
+      d="M12 24c3.24 0 5.95-1.07 7.93-2.91l-3.87-3A7.18 7.18 0 0 1 12 19.22a7.2 7.2 0 0 1-6.77-4.98H1.23v3.09A12 12 0 0 0 12 24Z"
+    />
+    <Path
+      fill="#FBBC05"
+      d="M5.23 14.24A7.2 7.2 0 0 1 4.85 12c0-.78.13-1.54.38-2.24V6.67H1.23A12 12 0 0 0 0 12c0 1.93.46 3.75 1.23 5.33l4-3.09Z"
+    />
+    <Path
+      fill="#EA4335"
+      d="M12 4.77c1.76 0 3.34.61 4.58 1.81l3.43-3.43C17.94 1.17 15.24 0 12 0A12 12 0 0 0 1.23 6.67l4 3.09A7.2 7.2 0 0 1 12 4.77Z"
+    />
+  </Svg>
+);
+
 export const LoginScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
   const { navigate } = useAppContext();
   const nav = onNavigate || navigate;
+  const [fontsLoaded] = useFonts({
+    MaliBold: require('../../assets/fonts/Mali-Bold.ttf'),
+    MaliSemiBold: require('../../assets/fonts/Mali-SemiBold.ttf'),
+    ItimRegular: require('../../assets/fonts/Itim-Regular.ttf'),
+  });
+  const { width: viewportWidth, height: viewportHeight } = useWindowDimensions();
+  // The web preview wraps the real screen in a phone chassis, so
+  // useWindowDimensions() describes the browser window rather than the
+  // drawable screen. Measure the actual ScrollView viewport before mapping
+  // the illustration's source coordinates to displayed coordinates.
+  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
+  const canvasWidth = canvasSize.width || viewportWidth;
+  const canvasHeight = canvasSize.height || viewportHeight;
+  // The desktop preview's phone viewport is shorter than a real 393x852
+  // device. Keep the same artwork coordinates, but tighten only the optional
+  // auth affordances/gaps so Google + registration remain discoverable without
+  // shrinking the required 44/48dp controls.
+  const isCompactLoginViewport = Platform.OS === 'web' && canvasHeight < 700;
+  const imageScale = Math.max(
+    canvasWidth / LOGIN_ARTBOARD.width,
+    canvasHeight / LOGIN_ARTBOARD.height,
+  );
+  const displayedImageWidth = LOGIN_ARTBOARD.width * imageScale;
+  const displayedImageHeight = LOGIN_ARTBOARD.height * imageScale;
+  const imageLeft = (canvasWidth - displayedImageWidth) / 2;
+  const imageTop = (canvasHeight - displayedImageHeight) / 2;
+  const mapArtworkRect = (
+    rect: { x: number; y: number; width: number; height: number },
+    minimumHeight = 0,
+  ) => ({
+    position: 'absolute' as const,
+    left: imageLeft + rect.x * imageScale,
+    top: imageTop + rect.y * imageScale,
+    width: rect.width * imageScale,
+    height: Math.max(minimumHeight, rect.height * imageScale),
+  });
+  const mapArtworkPosition = (
+    rect: { x: number; y: number; width: number },
+  ) => ({
+    position: 'absolute' as const,
+    left: imageLeft + rect.x * imageScale,
+    top: imageTop + rect.y * imageScale,
+    width: rect.width * imageScale,
+  });
+  const titleFontSize = Math.max(22, Math.min(28, 50 * imageScale));
+  const labelFontSize = Math.max(14, Math.min(17, 31 * imageScale));
+  const controlFontSize = Math.max(13, Math.min(16, 28 * imageScale));
+  const buttonFontSize = Math.max(16, Math.min(19, 36 * imageScale));
+  const fieldHeight = Math.max(44, LOGIN_ARTWORK_LAYOUT.emailField.height * imageScale);
+  const labelHeight = Math.max(17, (isCompactLoginViewport ? 34 : 38) * imageScale);
+  const labelFieldGap = Math.max(6, 14 * imageScale);
+  const sectionGap = isCompactLoginViewport ? 2 : Math.max(8, Math.min(12, 20 * imageScale));
+  const buttonGap = isCompactLoginViewport ? 4 : Math.max(8, Math.min(10, 24 * imageScale));
+  const errorFontSize = Math.max(12, Math.min(14, 26 * imageScale));
+  const errorLineHeight = Math.max(15, errorFontSize * 1.15);
+  // Reserve the same line under each field in both valid and invalid states.
+  // This keeps the Google/register actions from jumping when validation appears.
+  const errorSlotHeight = isCompactLoginViewport ? 15 : Math.max(16, Math.min(20, 24 * imageScale));
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [emailFocused, setEmailFocused] = useState(false);
+  const [passwordFocused, setPasswordFocused] = useState(false);
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [authOverlay, setAuthOverlay] = useState<'register' | 'forgot' | null>(null);
+  const [authOverlayEmail, setAuthOverlayEmail] = useState('');
+  const [authOverlayPassword, setAuthOverlayPassword] = useState('');
+  const [authOverlayNotice, setAuthOverlayNotice] = useState('');
+
+  const validateEmail = (value: string) => {
+    const normalizedEmail = value.trim();
+    if (!normalizedEmail) return 'Vui lòng nhập email.';
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)
+      ? ''
+      : 'Email chưa đúng định dạng.';
+  };
+
+  const validatePassword = (value: string) => {
+    // The current SRS/repository does not define a client-side password
+    // strength rule. Keep the UI contract to the required-field check only.
+    return value ? '' : 'Vui lòng nhập mật khẩu.';
+  };
+
+  const handleEmailBlur = () => {
+    setEmailFocused(false);
+    setEmailError(validateEmail(email));
+  };
+
+  const handlePasswordBlur = () => {
+    setPasswordFocused(false);
+    setPasswordError(validatePassword(password));
+  };
+
+  const handleLoginPress = () => {
+    if (isSubmitting) return;
+    const nextEmailError = validateEmail(email);
+    const nextPasswordError = validatePassword(password);
+    setEmailError(nextEmailError);
+    setPasswordError(nextPasswordError);
+    if (nextEmailError || nextPasswordError) return;
+    setIsSubmitting(true);
+    // Keep the existing navigation contract. Real Firebase/backend auth is
+    // intentionally not invented in this UI-only layer.
+    try {
+      nav('profile_list');
+    } catch {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (!fontsLoaded) {
+    return <View style={styles.loginScreen} />;
+  }
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.loginScreen}
     >
-      <ScrollView contentContainerStyle={[styles.screenContainer, { flexGrow: 1, justifyContent: 'center' }]}>
-        <View style={{ alignItems: 'center', marginBottom: 24 }}>
-          <LogoSketch2Life size="lg" showTagline={false} />
-          <Text style={styles.headingSubtitle}>Không gian riêng cho phụ huynh</Text>
-        </View>
-
-        <View style={styles.loginCard}>
-          <Text style={styles.loginTitle}>Đăng nhập phụ huynh</Text>
-          <Text style={styles.loginSubtitle}>
-            Đăng nhập để quản lý hồ sơ của con và tạo câu chuyện từ tranh vẽ.
-          </Text>
-
-          <Text style={styles.loginLabel}>Email</Text>
-          <TextInput
-            accessibilityLabel="Email phụ huynh"
-            autoCapitalize="none"
-            autoComplete="email"
-            keyboardType="email-address"
-            placeholder="parent@example.com"
-            placeholderTextColor="#94A3B8"
-            value={email}
-            onChangeText={setEmail}
-            style={styles.loginInput}
+      <ScrollView
+        style={styles.loginScroll}
+        onLayout={({ nativeEvent: { layout } }) => {
+          setCanvasSize((previous) => {
+            // Keep the original portrait canvas when Android resizes the
+            // viewport for the keyboard; the ScrollView can then pan to the
+            // focused field instead of shrinking/cropping the illustration.
+            const measuredHeight = previous.height === 0
+              ? layout.height
+              : Math.max(previous.height, layout.height);
+            if (layout.width === previous.width && measuredHeight === previous.height) return previous;
+            return { width: layout.width, height: measuredHeight };
+          });
+        }}
+        contentContainerStyle={{ minHeight: canvasHeight }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View
+          style={[styles.illustratedLoginCanvas, { height: canvasHeight }]}
+        >
+          <Image
+            accessibilityLabel="Minh họa nền Sketch2Life"
+            source={require('../../assets/images/login/login_illustrated_background.png')}
+            style={{
+              position: 'absolute',
+              left: imageLeft,
+              top: imageTop,
+              width: displayedImageWidth,
+              height: displayedImageHeight,
+            }}
+            resizeMode="contain"
           />
 
-          <Text style={styles.loginLabel}>Mật khẩu</Text>
-          <TextInput
-            accessibilityLabel="Mật khẩu phụ huynh"
-            autoCapitalize="none"
-            autoComplete="password"
-            placeholder="Nhập mật khẩu"
-            placeholderTextColor="#94A3B8"
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-            style={styles.loginInput}
-          />
+          <View pointerEvents="box-none" style={styles.illustratedLoginOverlay}>
+            <Text style={[styles.illustratedTitle, mapArtworkRect(LOGIN_ARTWORK_LAYOUT.title), { fontSize: titleFontSize, lineHeight: titleFontSize * 1.15 }]}>
+              Đăng nhập
+            </Text>
 
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessibilityLabel="Đăng nhập và tiếp tục"
-            onPress={() => nav('profile_list')}
-            style={styles.loginPrimaryButton}
-          >
-            <Text style={styles.loginPrimaryText}>Đăng nhập</Text>
-          </TouchableOpacity>
+            <View style={[styles.illustratedFormStack, mapArtworkPosition({ x: LOGIN_ARTWORK_LAYOUT.emailField.x, y: LOGIN_ARTWORK_LAYOUT.emailLabel.y, width: LOGIN_ARTWORK_LAYOUT.emailField.width })]}>
+              <Text style={[styles.illustratedFlowLabel, { minHeight: labelHeight, marginLeft: 2 * imageScale, fontSize: labelFontSize, lineHeight: labelFontSize * 1.2 }]}>
+                Email
+              </Text>
+              <View style={[styles.illustratedField, { height: fieldHeight, marginTop: labelFieldGap }, emailFocused && styles.illustratedFieldFocused, emailError && styles.illustratedFieldError]}>
+                <Image source={require('../../assets/images/login/icon_email.png')} style={styles.illustratedFieldIcon} resizeMode="contain" />
+                <TextInput
+                  accessibilityLabel="Email phụ huynh"
+                  autoCapitalize="none"
+                  autoComplete="email"
+                  keyboardType="email-address"
+                  placeholder="Nhập email của bạn"
+                  placeholderTextColor="#64748B"
+                  value={email}
+                  onChangeText={(value) => {
+                    setEmail(value);
+                    if (emailError) setEmailError('');
+                  }}
+                  onFocus={() => setEmailFocused(true)}
+                  onBlur={handleEmailBlur}
+                  style={[styles.illustratedInput, LOGIN_INPUT_WEB_FOCUS_RESET, { fontSize: controlFontSize }]}
+                  accessibilityHint={emailError || 'Nhập địa chỉ email của phụ huynh.'}
+                />
+              </View>
+              <View style={[styles.illustratedErrorSlot, { minHeight: errorSlotHeight, marginTop: isCompactLoginViewport ? 2 : 5 }]}>
+                {emailError && (
+                  <Text
+                    accessibilityRole="alert"
+                    accessibilityLiveRegion="polite"
+                    style={[styles.illustratedFieldErrorText, { fontSize: errorFontSize, lineHeight: errorLineHeight }]}
+                  >
+                    {emailError}
+                  </Text>
+                )}
+              </View>
 
-          <TouchableOpacity accessibilityRole="button" onPress={() => nav('profile_list')} style={styles.loginSecondaryButton}>
-            <Text style={styles.loginSecondaryText}>Dùng bản demo không cần tài khoản</Text>
-          </TouchableOpacity>
+              <View style={[styles.illustratedPasswordHeaderRow, { minHeight: labelHeight, marginTop: sectionGap }]}>
+                <Text style={[styles.illustratedFlowLabel, { fontSize: labelFontSize, lineHeight: labelFontSize * 1.2 }]}>
+                  Mật khẩu
+                </Text>
+                <Pressable
+                  accessibilityRole="link"
+                  accessibilityLabel="Quên mật khẩu"
+                  accessibilityHint="Khôi phục mật khẩu chưa được cấu hình trong phiên bản này."
+                  onPress={() => {
+                    setAuthOverlayNotice('');
+                    setAuthOverlay('forgot');
+                  }}
+                  hitSlop={8}
+                >
+                  <Text style={[styles.illustratedForgotLink, { fontSize: Math.max(12, controlFontSize - 1) }]}>Quên mật khẩu?</Text>
+                </Pressable>
+              </View>
+              <View style={[styles.illustratedField, { height: fieldHeight, marginTop: labelFieldGap }, passwordFocused && styles.illustratedFieldFocused, passwordError && styles.illustratedFieldError]}>
+                <Image source={require('../../assets/images/login/icon_lock.png')} style={[styles.illustratedFieldIcon, styles.illustratedLockIcon]} resizeMode="contain" />
+                <TextInput
+                  accessibilityLabel="Mật khẩu phụ huynh"
+                  autoCapitalize="none"
+                  autoComplete="password"
+                  placeholder="Nhập mật khẩu"
+                  placeholderTextColor="#64748B"
+                  secureTextEntry={!passwordVisible}
+                  value={password}
+                  onChangeText={(value) => {
+                    setPassword(value);
+                    if (passwordError) setPasswordError('');
+                  }}
+                  onFocus={() => setPasswordFocused(true)}
+                  onBlur={handlePasswordBlur}
+                  style={[styles.illustratedInput, LOGIN_INPUT_WEB_FOCUS_RESET, { fontSize: controlFontSize }]}
+                  accessibilityHint={passwordError || 'Nhập mật khẩu của phụ huynh.'}
+                />
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessibilityLabel={passwordVisible ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                  hitSlop={10}
+                  onPress={() => setPasswordVisible((visible) => !visible)}
+                  style={styles.illustratedPasswordToggle}
+                >
+                  <Image source={require('../../assets/images/login/icon_eye.png')} style={styles.illustratedEyeIcon} resizeMode="contain" />
+                </TouchableOpacity>
+              </View>
+              <View style={[styles.illustratedErrorSlot, { minHeight: errorSlotHeight, marginTop: isCompactLoginViewport ? 2 : 5 }]}>
+                {passwordError && (
+                  <Text
+                    accessibilityRole="alert"
+                    accessibilityLiveRegion="polite"
+                    style={[styles.illustratedFieldErrorText, { fontSize: errorFontSize, lineHeight: errorLineHeight }]}
+                  >
+                    {passwordError}
+                  </Text>
+                )}
+              </View>
+
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Đăng nhập và tiếp tục"
+                accessibilityState={{ busy: isSubmitting, disabled: isSubmitting }}
+                disabled={isSubmitting}
+                onPress={handleLoginPress}
+                style={({ pressed }) => [styles.illustratedPrimaryButton, { height: Math.max(48, (isCompactLoginViewport ? 94 : LOGIN_ARTWORK_LAYOUT.primaryButton.height) * imageScale), marginTop: buttonGap }, pressed && styles.loginButtonPressed]}
+              >
+                {isSubmitting ? <ActivityIndicator color="#FFFFFF" size="small" /> : (
+                  <>
+                    <Text style={[styles.illustratedButtonText, { fontSize: buttonFontSize }]}>Đăng nhập</Text>
+                    <Ionicons name="arrow-forward" size={Math.max(19, buttonFontSize + 3)} color="#FFFFFF" />
+                  </>
+                )}
+              </Pressable>
+
+              <View style={[styles.illustratedDivider, isCompactLoginViewport && styles.illustratedDividerCompact]}>
+                <View style={styles.illustratedDividerLine} />
+                <Text style={[styles.illustratedDividerText, { fontSize: controlFontSize }]}>hoặc</Text>
+                <View style={styles.illustratedDividerLine} />
+              </View>
+
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Đăng nhập với Google"
+                accessibilityHint={GOOGLE_SIGN_IN_SUPPORTED ? 'Sử dụng tài khoản Google để đăng nhập.' : 'Google Sign-In chưa được cấu hình trong ứng dụng.'}
+                accessibilityState={{ disabled: !GOOGLE_SIGN_IN_SUPPORTED }}
+                disabled={!GOOGLE_SIGN_IN_SUPPORTED}
+                style={({ pressed }) => [
+                  styles.illustratedGoogleButton,
+                  !GOOGLE_SIGN_IN_SUPPORTED && styles.illustratedGoogleButtonUnavailable,
+                  pressed && styles.loginButtonPressed,
+                ]}
+              >
+                <GoogleMark size={Math.max(20, Math.min(24, 24 * imageScale))} />
+                <Text style={[styles.illustratedGoogleText, { fontSize: Math.max(14, buttonFontSize - 1) }]}>Đăng nhập với Google</Text>
+              </Pressable>
+
+              <View style={[styles.illustratedRegistrationRow, isCompactLoginViewport && styles.illustratedRegistrationRowCompact]}>
+                <Text style={[styles.illustratedRegistrationCopy, { fontSize: controlFontSize }]}>Chưa có tài khoản? </Text>
+                <Pressable
+                  accessibilityRole="link"
+                  accessibilityLabel="Đăng ký ngay"
+                  accessibilityHint="Màn hình đăng ký phụ huynh chưa được cấu hình trong phiên bản này."
+                  onPress={() => {
+                    setAuthOverlayNotice('');
+                    setAuthOverlay('register');
+                  }}
+                  hitSlop={8}
+                >
+                  <Text style={[styles.illustratedRegistrationLink, { fontSize: controlFontSize }]}>Đăng ký ngay</Text>
+                </Pressable>
+              </View>
+            </View>
+          </View>
         </View>
       </ScrollView>
+      {authOverlay && (
+        <View style={styles.authFlowOverlay} accessibilityViewIsModal>
+          <ScrollView
+            contentContainerStyle={styles.authFlowOverlayContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.authFlowCard}>
+              <View style={styles.authFlowHeader}>
+                <Text style={styles.authFlowTitle}>
+                  {authOverlay === 'register' ? 'Tạo tài khoản' : 'Quên mật khẩu?'}
+                </Text>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Đóng"
+                  onPress={() => setAuthOverlay(null)}
+                  hitSlop={10}
+                  style={styles.authFlowClose}
+                >
+                  <Ionicons name="close" size={22} color="#5B3018" />
+                </Pressable>
+              </View>
+
+              <Text style={styles.authFlowDescription}>
+                {authOverlay === 'register'
+                  ? 'Tạo không gian riêng để quản lý hồ sơ và câu chuyện của con.'
+                  : 'Nhập email để nhận hướng dẫn khôi phục mật khẩu.'}
+              </Text>
+
+              {authOverlay === 'register' && (
+                <>
+                  <Text style={styles.authFlowLabel}>Họ tên</Text>
+                  <View style={styles.authFlowInputWrap}>
+                    <Ionicons name="person-outline" size={20} color="#7C8798" />
+                    <TextInput
+                      accessibilityLabel="Họ tên phụ huynh"
+                      placeholder="Nhập họ tên của bạn"
+                      placeholderTextColor="#7C8798"
+                      style={styles.authFlowInput}
+                    />
+                  </View>
+                </>
+              )}
+
+              <Text style={styles.authFlowLabel}>Email</Text>
+              <View style={styles.authFlowInputWrap}>
+                <Ionicons name="mail-outline" size={20} color="#7C8798" />
+                <TextInput
+                  accessibilityLabel="Email phụ huynh"
+                  autoCapitalize="none"
+                  autoComplete="email"
+                  keyboardType="email-address"
+                  placeholder="Nhập email của bạn"
+                  placeholderTextColor="#7C8798"
+                  value={authOverlayEmail}
+                  onChangeText={setAuthOverlayEmail}
+                  style={styles.authFlowInput}
+                />
+              </View>
+
+              {authOverlay === 'register' && (
+                <>
+                  <Text style={styles.authFlowLabel}>Mật khẩu</Text>
+                  <View style={styles.authFlowInputWrap}>
+                    <Ionicons name="lock-closed-outline" size={20} color="#7C8798" />
+                    <TextInput
+                      accessibilityLabel="Mật khẩu tài khoản mới"
+                      autoCapitalize="none"
+                      placeholder="Tạo mật khẩu"
+                      placeholderTextColor="#7C8798"
+                      secureTextEntry
+                      value={authOverlayPassword}
+                      onChangeText={setAuthOverlayPassword}
+                      style={styles.authFlowInput}
+                    />
+                  </View>
+                </>
+              )}
+
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={authOverlay === 'register' ? 'Đăng ký tài khoản' : 'Gửi liên kết khôi phục'}
+                onPress={() => setAuthOverlayNotice('UI đã sẵn sàng; bước kết nối xác thực sẽ được nối sau.')}
+                style={({ pressed }) => [styles.authFlowPrimaryButton, pressed && styles.loginButtonPressed]}
+              >
+                <Text style={styles.authFlowPrimaryText}>
+                  {authOverlay === 'register' ? 'Đăng ký' : 'Gửi liên kết'}
+                </Text>
+                <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
+              </Pressable>
+
+              {authOverlayNotice && (
+                <Text accessibilityRole="alert" style={styles.authFlowNotice}>{authOverlayNotice}</Text>
+              )}
+
+              <Pressable
+                accessibilityRole="link"
+                accessibilityLabel="Quay lại đăng nhập"
+                onPress={() => setAuthOverlay(null)}
+                style={styles.authFlowBackLink}
+              >
+                <Text style={styles.authFlowBackText}>Quay lại đăng nhập</Text>
+              </Pressable>
+            </View>
+          </ScrollView>
+        </View>
+      )}
     </KeyboardAvoidingView>
   );
 };
@@ -1212,66 +1618,635 @@ export const VoiceScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
 };
 
 const styles = StyleSheet.create({
+  loginScreen: {
+    flex: 1,
+    backgroundColor: '#FBF4E8',
+  },
+  loginBackground: {
+    flex: 1,
+  },
+  loginBackgroundImage: {
+    resizeMode: 'cover',
+  },
+  loginScroll: {
+    flex: 1,
+  },
+  loginScreenContent: {
+    flexGrow: 1,
+    paddingHorizontal: 20,
+    paddingTop: 14,
+    paddingBottom: 28,
+    position: 'relative',
+  },
+  loginDoodles: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  loginDoodleSun: {
+    position: 'absolute',
+    top: 2,
+    left: 0,
+    width: 60,
+    height: 64,
+    opacity: 0.72,
+  },
+  loginDoodleCloud: {
+    position: 'absolute',
+    top: 152,
+    left: -12,
+    width: 78,
+    height: 64,
+    opacity: 0.48,
+  },
+  loginDoodleHeart: {
+    position: 'absolute',
+    top: 164,
+    right: 8,
+    width: 28,
+    height: 34,
+    opacity: 0.68,
+  },
+  loginDoodleStar: {
+    position: 'absolute',
+    top: 282,
+    right: 8,
+    width: 50,
+    height: 34,
+    opacity: 0.72,
+  },
+  loginDoodleLeavesLeft: {
+    position: 'absolute',
+    bottom: 6,
+    left: -2,
+    width: 44,
+    height: 64,
+    opacity: 0.58,
+  },
+  loginDoodleLeavesRight: {
+    position: 'absolute',
+    bottom: 4,
+    right: -2,
+    width: 46,
+    height: 70,
+    opacity: 0.58,
+  },
+  loginBrandHeader: {
+    alignItems: 'center',
+    marginTop: 4,
+    marginBottom: 0,
+    zIndex: 2,
+  },
+  loginLogoWrap: {
+    width: '100%',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  loginLogoImage: {
+    maxWidth: 280,
+  },
+  loginMascotStage: {
+    height: 118,
+    marginTop: -2,
+    position: 'relative',
+    zIndex: 1,
+    alignItems: 'center',
+  },
+  loginMascotImage: {
+    position: 'absolute',
+    left: '50%',
+    bottom: -30,
+    width: 165,
+    height: 161,
+    marginLeft: -82.5,
+    zIndex: 2,
+  },
   loginCard: {
     width: '100%',
-    borderRadius: 24,
+    borderRadius: 30,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    backgroundColor: '#FFFFFF',
-    padding: 20,
-    ...shadows.card,
+    borderColor: '#F0DCC0',
+    backgroundColor: '#FFFDF7',
+    paddingHorizontal: 20,
+    paddingTop: 38,
+    paddingBottom: 20,
+    zIndex: 3,
+    shadowColor: '#7A5B42',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.14,
+    shadowRadius: 18,
+    elevation: 5,
+  },
+  loginCardAccent: {
+    position: 'absolute',
+    width: 42,
+    height: 4,
+    borderRadius: 4,
+    opacity: 0.68,
+  },
+  loginCardAccentYellow: {
+    top: 16,
+    left: 14,
+    backgroundColor: '#F6C84C',
+    transform: [{ rotate: '-22deg' }],
+  },
+  loginCardAccentPink: {
+    top: 17,
+    right: 14,
+    backgroundColor: '#F5A7B8',
+    transform: [{ rotate: '22deg' }],
+  },
+  loginCardAccentBlue: {
+    bottom: 16,
+    left: 14,
+    backgroundColor: '#75B8E8',
+    transform: [{ rotate: '24deg' }],
+  },
+  loginCardAccentGreen: {
+    bottom: 16,
+    right: 14,
+    backgroundColor: '#8BCB8A',
+    transform: [{ rotate: '-24deg' }],
   },
   loginTitle: {
-    fontSize: 22,
+    fontSize: 25,
+    lineHeight: 32,
     fontWeight: '900',
-    color: colors.textHeading,
+    color: '#4A2A16',
     textAlign: 'center',
-    marginBottom: 6,
+    marginBottom: 8,
   },
   loginSubtitle: {
-    fontSize: 12,
-    lineHeight: 18,
-    color: colors.textSoft,
+    fontSize: 14,
+    lineHeight: 21,
+    color: '#6B7280',
     textAlign: 'center',
-    marginBottom: 18,
+    marginBottom: 21,
   },
   loginLabel: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: colors.textHeading,
-    marginBottom: 6,
+    fontSize: 14,
+    fontWeight: '900',
+    color: '#4A2A16',
+    marginBottom: 7,
+  },
+  loginInputWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minHeight: 54,
+    borderRadius: 16,
+    borderWidth: 1.2,
+    borderColor: '#D8D9DD',
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 14,
+    marginBottom: 16,
+  },
+  loginFieldIcon: {
+    width: 22,
+    height: 20,
+    opacity: 0.9,
+  },
+  loginFieldIconFocused: {
+    opacity: 1,
+  },
+  loginLockIcon: {
+    width: 23,
+    height: 25,
+  },
+  loginInputWrapFocused: {
+    borderColor: '#6EA8FF',
+    backgroundColor: '#FBFDFF',
   },
   loginInput: {
-    minHeight: 48,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#CBD5E1',
-    backgroundColor: '#F8FAFC',
-    paddingHorizontal: 14,
-    color: colors.textHeading,
-    marginBottom: 14,
+    flex: 1,
+    minHeight: 52,
+    paddingHorizontal: 10,
+    paddingVertical: 0,
+    color: '#1F2937',
+    fontSize: 14,
   },
-  loginPrimaryButton: {
-    minHeight: 50,
-    borderRadius: 16,
-    backgroundColor: '#2563EB',
+  loginPasswordToggle: {
+    width: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 4,
+  },
+  loginEyeIcon: {
+    width: 23,
+    height: 20,
+    opacity: 0.92,
+  },
+  loginPrimaryButton: {
+    minHeight: 56,
+    borderRadius: 18,
+    backgroundColor: '#2684F4',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 2,
+    overflow: 'hidden',
+    shadowColor: '#1D4ED8',
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.2,
+    shadowRadius: 9,
+    elevation: 4,
+  },
+  loginPrimaryButtonTexture: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.88,
+    resizeMode: 'contain',
+  },
+  loginButtonPressed: {
+    opacity: 0.88,
+    transform: [{ scale: 0.985 }],
+  },
+  loginButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    zIndex: 1,
   },
   loginPrimaryText: {
     color: '#FFFFFF',
+    fontSize: 17,
+    fontWeight: '900',
+  },
+  loginDivider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginVertical: 16,
+  },
+  loginDividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#DCCFBF',
+  },
+  loginDividerText: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#8A8F98',
+  },
+  loginGoogleButton: {
+    minHeight: 54,
+    borderRadius: 17,
+    borderWidth: 1.4,
+    borderColor: '#4D8FF4',
+    backgroundColor: '#FFFDF8',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    overflow: 'hidden',
+  },
+  loginGoogleButtonTexture: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.32,
+    resizeMode: 'contain',
+  },
+  loginGoogleText: {
+    color: '#2563EB',
     fontSize: 15,
     fontWeight: '900',
   },
-  loginSecondaryButton: {
-    alignItems: 'center',
-    paddingVertical: 14,
+  illustratedLoginCanvas: {
+    width: '100%',
+    position: 'relative',
+    overflow: 'hidden',
+    backgroundColor: '#FFF8E9',
   },
-  loginSecondaryText: {
+  illustratedLoginOverlay: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  illustratedFormStack: {
+    position: 'absolute',
+    zIndex: 2,
+    overflow: 'visible',
+  },
+  illustratedTitle: {
+    position: 'absolute',
+    color: '#31180C',
+    fontFamily: 'MaliBold',
+    fontWeight: '700',
+    textAlign: 'center',
+    includeFontPadding: false,
+  },
+  illustratedLabel: {
+    position: 'absolute',
+    color: '#2F1A0F',
+    fontFamily: 'MaliSemiBold',
+    fontWeight: '600',
+    includeFontPadding: false,
+  },
+  illustratedFlowLabel: {
+    color: '#2F1A0F',
+    fontFamily: 'MaliSemiBold',
+    fontWeight: '600',
+    includeFontPadding: false,
+  },
+  illustratedField: {
+    position: 'relative',
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 16,
+    borderWidth: 1.2,
+    borderColor: '#CBD5E1',
+    backgroundColor: 'rgba(255, 255, 255, 0.92)',
+    paddingHorizontal: 13,
+  },
+  illustratedFieldFocused: {
+    borderColor: '#3B82F6',
+    backgroundColor: 'rgba(255, 255, 255, 0.98)',
+  },
+  illustratedFieldError: {
+    borderColor: '#D45E4C',
+    backgroundColor: 'rgba(255, 248, 246, 0.98)',
+  },
+  illustratedFieldIcon: {
+    width: 22,
+    height: 20,
+    opacity: 0.95,
+  },
+  illustratedLockIcon: {
+    width: 23,
+    height: 25,
+  },
+  illustratedInput: {
+    flex: 1,
+    minWidth: 0,
+    height: '100%',
+    paddingHorizontal: 10,
+    paddingVertical: 0,
+    color: '#334155',
+    fontFamily: 'ItimRegular',
+    fontWeight: '400',
+  },
+  illustratedPasswordToggle: {
+    width: 30,
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  illustratedEyeIcon: {
+    width: 23,
+    height: 20,
+    opacity: 0.94,
+  },
+  illustratedPrimaryButton: {
+    width: '100%',
+    borderRadius: 22,
+    backgroundColor: '#2E80ED',
+    borderWidth: 1.2,
+    borderColor: '#1D6DDA',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 10,
+    overflow: 'hidden',
+    shadowColor: '#1D4ED8',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  illustratedButtonText: {
+    color: '#FFFFFF',
+    fontFamily: 'MaliBold',
+    fontWeight: '700',
+  },
+  illustratedFieldErrorText: {
+    width: '100%',
+    color: '#B74436',
+    fontFamily: 'ItimRegular',
+    fontWeight: '400',
+    textAlign: 'left',
+    includeFontPadding: false,
+  },
+  illustratedErrorSlot: {
+    width: '100%',
+    justifyContent: 'flex-start',
+  },
+  illustratedPasswordHeaderRow: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 2,
+  },
+  illustratedForgotLink: {
     color: '#2563EB',
-    fontSize: 12,
-    fontWeight: '800',
+    fontFamily: 'ItimRegular',
+    fontWeight: '400',
+    textDecorationLine: 'underline',
+  },
+  illustratedDivider: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  illustratedDividerCompact: {
+    marginTop: 8,
+    marginBottom: 8,
+    gap: 8,
+  },
+  illustratedDividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#D9CBB9',
+  },
+  illustratedDividerText: {
+    color: '#6B7280',
+    fontFamily: 'ItimRegular',
+    fontWeight: '400',
+  },
+  illustratedGoogleButton: {
+    width: '100%',
+    minHeight: 48,
+    borderRadius: 18,
+    borderWidth: 1.2,
+    borderColor: '#C9D2E3',
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 10,
+    paddingHorizontal: 12,
+  },
+  illustratedGoogleButtonUnavailable: {
+    opacity: 0.72,
+  },
+  illustratedGoogleText: {
+    color: '#1D4ED8',
+    fontFamily: 'MaliBold',
+    fontWeight: '700',
+  },
+  illustratedRegistrationRow: {
+    width: '100%',
+    minHeight: 24,
+    marginTop: 8,
+    marginBottom: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+    transform: [{ translateY: -6 }],
+  },
+  illustratedRegistrationRowCompact: {
+    minHeight: 20,
+    marginTop: 8,
+    marginBottom: 2,
+  },
+  illustratedRegistrationCopy: {
+    color: '#64748B',
+    fontFamily: 'ItimRegular',
+    fontWeight: '400',
+  },
+  illustratedRegistrationLink: {
+    color: '#2563EB',
+    fontFamily: 'MaliSemiBold',
+    fontWeight: '600',
+    textDecorationLine: 'underline',
+  },
+  illustratedAuthNotice: {
+    width: '100%',
+    color: '#A05A2C',
+    fontFamily: 'ItimRegular',
+    textAlign: 'center',
+    includeFontPadding: false,
+    marginBottom: 8,
+  },
+  authFlowOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 20,
+    backgroundColor: 'rgba(49, 24, 12, 0.28)',
+  },
+  authFlowOverlayContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 24,
+  },
+  authFlowCard: {
+    width: '100%',
+    maxWidth: 360,
+    alignSelf: 'center',
+    borderRadius: 28,
+    borderWidth: 1.2,
+    borderColor: '#E8C77A',
+    backgroundColor: '#FFF8E9',
+    paddingHorizontal: 22,
+    paddingVertical: 22,
+    shadowColor: '#5B3018',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 16,
+    elevation: 6,
+  },
+  authFlowHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  authFlowTitle: {
+    flex: 1,
+    color: '#31180C',
+    fontFamily: 'MaliBold',
+    fontSize: 25,
+    lineHeight: 31,
+    textAlign: 'center',
+  },
+  authFlowClose: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F8E8C9',
+  },
+  authFlowDescription: {
+    marginTop: 8,
+    marginBottom: 18,
+    color: '#46566D',
+    fontFamily: 'ItimRegular',
+    fontSize: 15,
+    lineHeight: 21,
+    textAlign: 'center',
+  },
+  authFlowLabel: {
+    marginBottom: 6,
+    color: '#2F1A0F',
+    fontFamily: 'MaliSemiBold',
+    fontSize: 15,
+    lineHeight: 19,
+  },
+  authFlowInputWrap: {
+    minHeight: 50,
+    marginBottom: 14,
+    borderRadius: 16,
+    borderWidth: 1.2,
+    borderColor: '#CBD5E1',
+    backgroundColor: '#FFFFFF',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+  },
+  authFlowInput: {
+    flex: 1,
+    minWidth: 0,
+    height: '100%',
+    paddingHorizontal: 10,
+    paddingVertical: 0,
+    color: '#334155',
+    fontFamily: 'ItimRegular',
+    fontSize: 15,
+  },
+  authFlowPrimaryButton: {
+    minHeight: 50,
+    marginTop: 4,
+    borderRadius: 20,
+    backgroundColor: '#2E80ED',
+    borderWidth: 1.2,
+    borderColor: '#1D6DDA',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    shadowColor: '#1D4ED8',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  authFlowPrimaryText: {
+    color: '#FFFFFF',
+    fontFamily: 'MaliBold',
+    fontSize: 16,
+  },
+  authFlowNotice: {
+    marginTop: 10,
+    color: '#A05A2C',
+    fontFamily: 'ItimRegular',
+    fontSize: 13,
+    lineHeight: 18,
+    textAlign: 'center',
+  },
+  authFlowBackLink: {
+    alignSelf: 'center',
+    marginTop: 16,
+    paddingVertical: 4,
+  },
+  authFlowBackText: {
+    color: '#2563EB',
+    fontFamily: 'MaliSemiBold',
+    fontSize: 14,
+    textDecorationLine: 'underline',
   },
   centerContainer: {
     flexGrow: 1,
