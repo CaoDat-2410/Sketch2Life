@@ -1,0 +1,71 @@
+{
+  "assets": [
+    {
+      "admission_ref": "features/FEAT-061-modal-qwen-vl-endpoint/evidence/crayon-controls-20261029-v1/crayon-house-only-v1-admission.json",
+      "admission_sha256": "bfce80cdad07ae3968d976e8528a3b9e669aefe1e4937ac137ecad9a7e78bcec",
+      "asset_id": "crayon-house-only-v1",
+      "metadata": {
+        "codec": "png",
+        "container": "png_pipe",
+        "height": 1254,
+        "pixel_format": "rgb24",
+        "width": 1254
+      },
+      "outcome": "ADMITTED",
+      "request_ref": "features/FEAT-061-modal-qwen-vl-endpoint/evidence/crayon-controls-20261029-v1/crayon-house-only-v1-request.json",
+      "request_sha256": "c0df93e6b658ef4afc964887fb8e9163a39e902573a19928e1e7e539b860ebbb",
+      "source_bytes": 2190681,
+      "source_ref": "features/FEAT-061-modal-qwen-vl-endpoint/assets/generated/crayon-controls-v1/01-house-only.png",
+      "source_sha256": "0a45ce7309b87b4d70c09eaea94f9b3c5b46c7381075be5562b92f3c271511d6"
+    },
+    {
+      "admission_ref": "features/FEAT-061-modal-qwen-vl-endpoint/evidence/crayon-controls-20261029-v1/crayon-sun-only-v1-admission.json",
+      "admission_sha256": "5e186b46dcddcd133037e8c13dee73549742320e4a8c670f5f21a765e891161e",
+      "asset_id": "crayon-sun-only-v1",
+      "metadata": {
+        "codec": "png",
+        "container": "png_pipe",
+        "height": 1254,
+        "pixel_format": "rgb24",
+        "width": 1254
+      },
+      "outcome": "ADMITTED",
+      "request_ref": "features/FEAT-061-modal-qwen-vl-endpoint/evidence/crayon-controls-20261029-v1/crayon-sun-only-v1-request.json",
+      "request_sha256": "21631622c833344ed2997843efaaec50b8028401bc530eb1475943a648c28fa5",
+      "source_bytes": 1640386,
+      "source_ref": "features/FEAT-061-modal-qwen-vl-endpoint/assets/generated/crayon-controls-v1/02-sun-only.png",
+      "source_sha256": "e8943992cf78cb892ab86e0879dae1c2d520c8d3de96614ce35bc196dc05bae3"
+    },
+    {
+      "admission_ref": "features/FEAT-061-modal-qwen-vl-endpoint/evidence/crayon-controls-20261029-v1/crayon-house-and-sun-v1-admission.json",
+      "admission_sha256": "a0c198f55263c4fcd8f20d49e575ef6b4a28ecc9b4fc70e192b0f20ac6c7268f",
+      "asset_id": "crayon-house-and-sun-v1",
+      "metadata": {
+        "codec": "png",
+        "container": "png_pipe",
+        "height": 1254,
+        "pixel_format": "rgb24",
+        "width": 1254
+      },
+      "outcome": "ADMITTED",
+      "request_ref": "features/FEAT-061-modal-qwen-vl-endpoint/evidence/crayon-controls-20261029-v1/crayon-house-and-sun-v1-request.json",
+      "request_sha256": "878a2e2e9698eac2c1b5ef62b309f87ee2799245209a99c2132a8bbac1887d45",
+      "source_bytes": 2444928,
+      "source_ref": "features/FEAT-061-modal-qwen-vl-endpoint/assets/generated/crayon-controls-v1/03-house-and-sun.png",
+      "source_sha256": "2846a1b6a710e931da6abccf8c9858a938cbd021c0325bbd3f0c98d513fd0c36"
+    }
+  ],
+  "av_version": "18.1.0",
+  "data_policy": "SYNTHETIC_ONLY",
+  "decoder": "AvImageDecoder",
+  "inference_executed": false,
+  "limits": {
+    "max_file_bytes": 5000000,
+    "max_longest_edge": 4096,
+    "max_pixels": 4000000
+  },
+  "model_calls": 0,
+  "policy_version": "FEAT018_P2_T1_D1_20260910",
+  "prepared_at_utc": "2026-10-29T05:39:17.081630+00:00",
+  "schema_version": "1.0"
+}
