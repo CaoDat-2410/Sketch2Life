@@ -8,6 +8,8 @@
   verification pass, while fresh backend-rig Pixi playback acceptance remains pending; integrated
   child-profile UI, Montessori personalization and SAM/renderer quality plan is APPROVED and in progress
 - Plan revision: 2 with approved P2-T1 D2/D3-R2 and P2-T2 offline addenda
+- P2-T5 plan revision: 1.0; approved for the bounded offline candidate only. Full P2-T5 remains OPEN;
+  live execution and Task 5 closure are not authorized by that slice.
 - Owner: shared integration allocation pending contract freeze approval
 - Goal: run a synthetic/non-child JPG/PNG through backend admission and the owner-triggered Lightning
   Vision V2 path, Gate A, adult-entered one-anchor/one-objective ExperienceSpec/P1/Gate B, whole-image
@@ -18,6 +20,34 @@
 - Pilot: 20 golden activities for full device/integration flow; 100 MVP activities for offline catalog/reference validation.
 
 ## Current state
+
+P2-T5 bounded offline slice is APPROVED under Person 2 issuance
+FEAT018_P2T5_BOUNDED_OFFLINE_APPROVAL_01 (2026-10-22). The canonical approval append is recorded
+under an explicit one-append APP exception; APP hold continues outside it. The approved source is
+plan rev 0.9/hash 6E9550A045D9FC382F83FEACC0ACAF9B55A4423A5DE99C30E437C48071A1951E;
+rev 1.0 synchronizes that issuance. Only the 13 named files and offline commands are authorized.
+The bounded candidate harness and 120-slot manifest are implemented. Unit/manifest subset: 49
+passed; existing regressions: 162 passed, 5 skipped (no PASS credit). After the test-only
+socketpair guard correction, the focused command completed on a fresh in-backend basetemp: 56
+passed. A subsequent run of the full `test_live_image_demo_api.py` module on a fresh in-backend
+basetemp passed 30 tests. HTTP counter scope is test-specific: invalid-media cases assert
+Vision/ASR/localizer zero; the admitted-upload and rejected-implicit flow asserts Vision zero, then
+one injected Vision fake call after explicit understanding (localizer zero; ASR is not injected
+there). This does not establish live-provider behavior. Ruff and scoped mypy passed
+again after the guard correction. The project-declared `python-multipart` range is `>=0.0.20,<1`;
+the 0.0.32 wheel was verified
+against official PyPI metadata and installed offline into the local venv only; no dependency file
+changed. Earlier collection and r3 guard failures remain in the evidence chronology. After the r4
+guard correction and latest documentation synchronization, architecture, skeleton and
+repository-security checks returned VALID; security scanned 2,596 publishable files and is not
+Security owner approval. Repository harness remains HARNESS_INVALID for unrelated FEAT-045/046/047
+directories, not a pass or waiver. Overall verification remains INCOMPLETE.
+Runner execution: primary 100 SUCCEEDED / 20 NOT_EXECUTED, supplemental 21 SUCCEEDED / 5 NOT_EXECUTED;
+all full acceptance rows remain OPEN and HELD receives zero coverage. See
+`evidence/notes/P2_T5_OFFLINE_EVALUATION_20261022.md` for exact commands, source attribution and limits.
+Full Task 5 and P2T4-FU-01..10
+remain OPEN/unassigned. OSError proof and unresolved failure/semantic acceptance remain HELD;
+quality-reference and HTTP-admission evidence stay separate; Security PENDING and live gates intact.
 
 The owner approved `plan/PIXI_RENDERER_PLAYBACK_FAILURE_DIAGNOSIS_AND_FIX_PLAN_20260930.md`.
 Safe allowlisted renderer failure codes now reach development diagnostics instead of being hidden
@@ -577,3 +607,100 @@ FEAT-030 `E-030-FIX-014`.
 ## Owner supported-age amendment — 2026-10-06
 
 The supported profile/session age is now under 9 years (0–107 completed months). Mobile age selection and supervised-flow/P1 application services reject 108+ months before activity selection, Gate B media resolution, or renderer localization. Existing versioned DTOs continue to represent historical/catalog values. The 9–12 source catalog remains intact, but the current product journey cannot request it. Cross-feature approval and evidence are tracked under FEAT-037; no new visual asset was generated or promoted.
+
+## P2-T3 status reconciliation — 2026-10-20
+
+The 2026-09-21 owner-approved full-workflow/narration addendum and its implementation-closure
+record supersede the earlier 2026-09-12 progress statement that P2-T3 remained separately gated.
+P2-T3's offline implementation is complete; owner-only live Lightning/ASR smoke remains pending.
+The current-branch scope mapping and verification outcomes, including checks blocked by this
+Windows environment, are recorded in
+[`evidence/notes/P2_T3_OPTIONAL_NARRATION_STATUS_20261020.md`](evidence/notes/P2_T3_OPTIONAL_NARRATION_STATUS_20261020.md).
+
+## P2-T4 input design and external review — 2026-10-20
+
+Branch `feature/feat018-p2t4-mapping-diagnostics` contains a draft diagnostics plan and synthetic
+input specification, published for the owner's Claude Cloud review at commit `9663ba4`. The owner
+relayed that review as not ready for approval. Revision 2 addresses label/version identity,
+Raw/Gate-A/matcher boundaries, no-match versus P1 fallback, confidence preservation and explicit
+correction/conflict projection gaps. A coordinator-directed Codex subagent checked source claims;
+it did not run the matrix or provide external acceptance of revision 2.
+
+The proposed diagnostic matrix remains 20 golden activities × six primary cases, with supplemental
+contract cases counted separately. It adds no candidate API or low-confidence policy. Known gaps
+remain open; complete test execution alone cannot close P2-T4 while required behavior is unresolved.
+See `plan/P2_T4_MAPPING_DIAGNOSTICS_PLAN_DRAFT_20261020.md` and
+`plan/P2_T4_MAPPING_INPUT_REVIEW_DRAFT_20261020.md`. This is documentation-only preparation: no
+P2-T4 implementation approval, fixtures, application tests, provider calls or runtime edits occurred.
+
+The subsequent Claude Cloud delta-review of `fc1f987` accepted the structural revisions but required
+explicit claim/primary choices for ambiguity and adult correction. Revision 3 binds both recipes,
+the in-memory session preconditions, counter-versus-disabled-dependency reporting, source confidence
+versus matcher defaults, manifest-level synthetic provenance and the separate narration fixture
+shape. The reported V2 phrase-regex issue is recorded for diagnosis, not silently fixed here.
+These remain draft proposals awaiting owner approval; this update does not start implementation.
+
+## P2-T4 approved diagnostic slice — 2026-10-20
+
+Person 2 later approved Revision 3 at source commit `b39a9f2f56509b0543184876eb538fc9faf0e1aa`.
+The approved scope is B1/B2/B3 with B3 used only to observe existing matchers, 120 primary cases,
+separate supplemental counts, and diagnostic-only report labels. The implementation adds a
+synthetic manifest and test-only diagnostics; it does not change runtime contracts, schemas,
+catalogs, or provider behavior.
+
+The initial local preflight completed B1 for all 120 primary rows but lacked `Pillow>=11,<13`, so
+B2/B3 and nine Gate-A supplemental rows were initially NOT_RUN. A subsequent owner-run Modal
+Notebook check at pinned checkout `5c79741f9e3806626c1dc5c586fe409b2e9370a1` completed the focused
+suite (368 passed, one Pydantic deprecation warning) and regenerated the report: B1/B2/B3 COMPLETE
+for all 120 primary rows and all 43 supplemental rows COMPLETE. Requirements remain 60 primary and
+5 supplemental UNRESOLVED; 10 supplemental requirements are EXPECTED_BLOCKED. The report records
+`provider_execution=NOT_EXECUTED`; no model/provider/Lightning call was made. At the time of this
+2026-10-20 entry, the original approval still required owner disposition and independent review.
+The 2026-10-21 `W2_FEAT018_P2_T4_DIAGNOSTIC_ACCEPTANCE_REBASE_01` supersedes only the unresolved-
+requirements closure clause for diagnostic-deliverable acceptance. The UNRESOLVED results remain
+product gaps and are tracked as separate unassigned follow-ups; Task 4 still awaits valid final gates
+and independent final review. Details and report provenance are in
+`evidence/notes/P2_T4_MAPPING_DIAGNOSTICS_20261020.md`.
+
+The focused suite's 368-pass result and scoped mypy success remain applicable to the unchanged
+candidate source; the earlier typing-only fixes and installation of the declared Pillow dependency
+are historical, not new work under the continuation. Person 2 issued the Gate 3 disposition and
+`W2_FEAT018_P2_T4_CONTINUATION_AND_FINAL_GATE_SCOPE_01` on 2026-10-21. The newly authorized Ruff
+invocation with `--no-cache --no-fix --no-fix-only` completed with exit 0 and `All checks passed!`.
+The earlier cache-denied invocation remains recorded as exit 1 with no lint verdict.
+
+The handoff was committed and pushed as `c54b5a5a4a0dfe8f5c494cd47cd9f432e115f61b` (parent
+`4310fcbfafa48a14e5fce31f38a2089e24079e52`). The coordinator's post-commit chat record reports all
+seven P2-T4 gates passing on that commit. A fresh-session Claude review also reports `PASS WITH
+NOTES` and reran those seven gates in a separate Linux environment; Person 2 accepts it as session-
+independent while the same-model-family limitation remains explicit. The review attachment, its
+three Low-note dispositions, and the distinction between coordinator and reviewer evidence are
+recorded in the diagnostics note.
+
+`HARNESS_INVALID` remains a separate repository-wide result outside P2-T4, not a pass or waiver;
+FEAT-045/046/047 were not changed. The candidate-time “commit/push not authorized” statements below
+are historical snapshots; Person 2 accepted their chronology in chat. At the time of this handoff
+update, Task 4 remained OPEN pending Person 2's closure disposition. APP hold remained IN FORCE and
+Security remained PENDING.
+
+All 60 primary `UNRESOLVED` rows have static-review hypotheses; 40 of them (the conflict and adult-
+correction families) also have runtime boundary findings, while the 20 ambiguous rows have only the
+static hypothesis. Of the five supplemental `UNRESOLVED` rows, two carry static hypotheses and four
+carry runtime findings (six finding entries), with one row in both groups. Preserve the owner-designated labels without
+describing every row as an independently measured runtime defect. The evidence note records the
+earlier local Claude review rounds and their limits, plus the fresh-session final review of the
+handoff commit. The final reviewer is from the same Claude model family; Person 2 accepted session-
+level independence while that caveat remains disclosed. At that review stage, Task 4 remained OPEN
+pending owner closure; the later owner decision is recorded below.
+
+## P2-T4 diagnostic deliverable closure — 2026-10-21
+
+Person 2 confirmed closure of the approved P2-T4 diagnostic deliverable at handoff commit
+`8ed2e8bbc7509eb236691bb8196eecb1e4f7e14f`, accepting the four closure gates: the missing
+provenance contract-name is recorded as `P2T4-FU-01 OPEN`; artifacts are consistent; final gates
+PASS on that commit; and the independent final review is PASS with no findings. This is diagnostic-
+deliverable closure only. The 60 primary and 5 supplemental `UNRESOLVED` results remain product
+gaps, and `P2T4-FU-01` through `P2T4-FU-10` remain OPEN, unassigned, and not automatically assigned
+to Task 5. No runtime, schema, catalog, contract, or provider authority is granted. APP hold remains
+IN FORCE; Security remains PENDING. The decision is recorded in `DECISIONS.md` and the diagnostics
+note; `TASK_APPROVAL.md` remains untouched under APP hold.

@@ -582,3 +582,284 @@ mobile, Gate A, P1 eligibility, P3/P4 and shared integration remain separately g
 - Exclusions: no payment implementation, catalog deletion, provider execution, deployment, or visual asset change.
 - Implementation clarification (2026-10-06): existing versioned DTOs continue to accept historical 9–12 catalog values. The application service enforces the approved <9 boundary before activity selection, Gate B progression, renderer localization, and age-sensitive AI execution; no V1 contract version or historical manifest interpretation is changed.
 - Current controlling clarification: FEAT-037 Plan revision 2, SHA-256 `B9C4454605146ED5E69241381E4A65C666AF751CBC36B4F8BAA2272897BAECB9`; same approved scope, with wire-contract compatibility made explicit.
+
+## Owner approval — FEAT-018 P2-T4 diagnostic slice — 2026-10-20
+
+- Approver: Person 2, direct approval message in the coordinator conversation on 2026-10-20.
+- Approved source commit: `b39a9f2f56509b0543184876eb538fc9faf0e1aa`.
+- Approved plan: `plan/P2_T4_MAPPING_DIAGNOSTICS_PLAN_DRAFT_20261020.md`, revision 3,
+  source SHA-256 `1482c047476049e44ecd515178d64b2d4c9e60d13511c92aa8112fd5269d2d66`.
+- Approved inputs: `plan/P2_T4_MAPPING_INPUT_REVIEW_DRAFT_20261020.md`, revision 3,
+  source SHA-256 `98dade81e57045efd8f6a38101e4d80e01a8518e505c1f44e7d33a0acf1575a2`.
+- State: `APPROVED — DIAGNOSTIC IMPLEMENTATION ONLY`; full P2-T4 acceptance remains open.
+- Scope: B1 Raw, B2 existing Gate A handoff and B3 matcher observation; exactly 120 primary
+  synthetic cases with supplemental cases counted separately. Report labels are diagnostic-only
+  and introduce no public/runtime contract.
+- Approved files: repository `tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json`,
+  `backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py`,
+  `backend/tests/contract/test_feat018_p2_t4_manifest_contract.py`; feature-local
+  `evidence/notes/P2_T4_MAPPING_DIAGNOSTICS_20261020.md` and
+  `evidence/metrics/P2_T4_MAPPING_DIAGNOSTICS_20261020.json`; the two plan/input documents,
+  `CONTEXT.md`, `DECISIONS.md`, `status/STATUS.md`, `evidence/README.md` and this approval record.
+- Authorized: record this approval, create the declared fixtures/tests/evidence, run offline checks
+  and implementation review. Production runtime/schema/catalog changes and Lightning/model calls
+  remain excluded. Required behavior recorded `UNRESOLVED` keeps Task 4 open.
+- No earlier execution attempt/grant is revived by this approval.
+
+Actual owner issuance:
+
+```text
+Person 2 duyệt triển khai FEAT-018 P2-T4 diagnostic slice
+theo plan và input specification Revision 3 tại commit:
+b39a9f2f56509b0543184876eb538fc9faf0e1aa.
+
+Chấp nhận B1/B2/B3 với B3 chỉ quan sát matcher;
+120 ca chính và các ca bổ sung được đếm riêng.
+Các nhãn report chỉ dùng cho diagnostics, không tạo contract mới.
+
+Cho ghi approval thực tế, tạo fixture/tests và evidence
+đúng danh sách file trong plan; chạy kiểm tra offline
+và review implementation.
+
+Chưa cho sửa runtime/schema/catalog hoặc gọi Lightning/model.
+Các yêu cầu còn UNRESOLVED giữ Task 4 mở, không tự coi hoàn tất.
+```
+
+## Owner acceptance rebase — FEAT-018 P2-T4 — 2026-10-21
+
+- Approver: Person 2, direct issuance in the coordinator conversation on 2026-10-21.
+- Amendment: `W2_FEAT018_P2_T4_DIAGNOSTIC_ACCEPTANCE_REBASE_01`.
+- Scope: redefine P2-T4 diagnostic-deliverable acceptance as the approved 120 primary cases,
+  43 separately counted supplemental cases, B1/B2/B3 within their approved limits, the metrics
+  report, and evidence.
+- Supersession: this amendment replaces only the original approval clause that kept Task 4 open
+  because required behavior was `UNRESOLVED`, and only to permit closure of the diagnostic
+  deliverable. It does not change any result label. The 60 primary and 5 supplemental
+  `UNRESOLVED` requirements remain product gaps and are not `SATISFIED`.
+- Follow-up: ambiguity/provenance, source conflict, adult assertion/confidence, narration mismatch,
+  version transitions, V2 matcher and candidate-envelope gaps must be tracked separately. This
+  amendment does not assign them to Task 5.
+- Exclusions remain: no runtime/schema/catalog change, Lightning/model/provider call, or contract
+  change. Those require a separate plan and approval.
+- Task 4 closure still requires: (1) check the missing provenance contract-name or record a
+  follow-up; (2) keep plan, evidence note, status and report consistent, including observed
+  findings and review limits; (3) valid final gates, with mypy `INTERNAL ERROR` not counting as
+  `PASS`; and (4) an independent final review of the handoff state.
+- This issuance does not itself close Task 4 or claim that product gaps were fixed.
+
+Actual owner issuance:
+
+```text
+Person 2 ban hành
+W2_FEAT018_P2_T4_DIAGNOSTIC_ACCEPTANCE_REBASE_01.
+
+Phạm vi: định nghĩa lại nghiệm thu P2-T4 là hoàn tất diagnostic
+deliverable đã được duyệt: 120 ca chính, 43 ca supplemental,
+B1/B2/B3 theo đúng giới hạn đã duyệt, metrics report và evidence.
+
+Amendment này thay điều kiện “Required behavior recorded UNRESOLVED
+keeps Task 4 open” trong approval P2-T4, chỉ để cho phép đóng
+diagnostic deliverable. Nó không đổi trạng thái kết quả:
+60 primary và 5 supplemental UNRESOLVED vẫn là gap chưa được giải quyết,
+không được tính là SATISFIED hay là hành vi sản phẩm đạt yêu cầu.
+
+Các gap về ambiguity/provenance, source conflict, adult assertion/
+confidence, narration mismatch, version transitions, V2 matcher và
+candidate envelope phải được ghi thành follow-up riêng. Không tự gán
+chúng sang Task 5 nếu chưa có disposition.
+
+Không cấp quyền sửa runtime/schema/catalog, gọi Lightning/model/provider,
+hay thay đổi contract. Các việc đó cần plan và approval riêng.
+
+Task 4 chỉ được đóng sau khi:
+1. provenance contract-name còn thiếu được kiểm tra hoặc được ghi thành
+   follow-up theo amendment này;
+2. plan, evidence note, status và report được cập nhật nhất quán, gồm
+   findings đã quan sát và giới hạn review;
+3. các gate cuối có kết quả hợp lệ; mypy INTERNAL ERROR không được tính
+   là PASS;
+4. có independent review cuối trên đúng trạng thái bàn giao.
+
+Việc ban hành amendment không tự đóng Task 4 và không tuyên bố các gap
+sản phẩm đã được sửa.
+```
+
+## Person 2 issuance - FEAT018_P2T5_BOUNDED_OFFLINE_APPROVAL_01 - 2026-10-22
+
+- State: APPROVED - BOUNDED OFFLINE IMPLEMENTATION AND VERIFICATION ONLY.
+- Approver/hold authority: Person 2, direct issuance in the current coordinator conversation.
+  Person 2 explicitly confirms authority over APP hold and grants the current coordinator one
+  narrow append for this approval in this file. No older approval is edited or deleted.
+  APP hold remains IN FORCE outside this append.
+- Recorded at: 2026-10-22 09:37:04 UTC. This is the coordinator clock observation at recording,
+  not an inferred timestamp for receipt of the user's instruction.
+- Reviewer: Claude, owner-relayed read-only review of plan revision 0.9, PASS WITH NOTES,
+  no plan blocker, for the source hash below. This review is not implementation review,
+  live authority, a gate PASS, or review of later changed bytes.
+- Approved source plan: plan/P2_T5_EVALUATION_HARNESS_PLAN_DRAFT_20261021.md, revision 0.9.
+- Approved source SHA-256:
+  6E9550A045D9FC382F83FEACC0ACAF9B55A4423A5DE99C30E437C48071A1951E.
+- Baseline HEAD: b11bc7b870f615e493afb1bc723b888befdb58c9.
+- Branch verified: feature/feat018-p2t5-evaluation-harness.
+- Pre-write worktree: no staged/unstaged tracked changes; the source plan is untracked.
+  Git reports an inaccessible global ignore file; no clean-worktree claim is made.
+- Governing scope supplement: the C0/D5 package and Person 2's D1-D4 design dispositions in this
+  coordinator conversation, expressly adopted by this issuance. The following scope, paths,
+  acceptance portions, matrix rules, commands and write effects record that supplement.
+- Authorized order: append this issuance and read it back; synchronize the plan and offline-slice
+  status to APPROVED; only then implement and verify within the allowlist. The source-plan hash
+  remains the approval input identity; the synchronized plan is an attributable successor, not a
+  claim that Claude reviewed its changed bytes.
+
+### Scope and acceptance
+
+A1: non-orientation fixture/fake checks only. Quality-validator reference and HTTP-admission
+provider-call proof are separate evidence and do not replace each other. Full A1 remains OPEN.
+A2: exactly 20 pilot IDs x six diagnostic families (120 primary slots), using the C0 subprobes.
+No activity eligibility, direct Gate B creation, or Gate A bypass. Diagnostic execution success
+is separate from requirement satisfaction; HELD/UNMAPPED cells never count as satisfied coverage.
+A3: selected ASR present/missing/failure fixtures with truthful modality/source/provenance.
+ASR-only contract diagnostics do not authorize an image-free product flow or an ASR provider.
+A4: supported malformed/prohibited/reference/timeout/failure fixtures and characterization of
+current rate-limit/provider-error mappings only. No retry added. D1: independent unaffected
+offline work is approved, but OSError/attempt-number proof remains HELD; no adapter fix.
+D2: characterization is not resolution of rate-limit/provider-error task acceptance.
+A5: synthetic source/contract/code hashes, attributable candidate results and sanitized metadata.
+A6: fixture/fake execution without real network/model/provider access.
+A7/A8, orientation, stale-session, full A9 and all remaining mandatory portions stay HELD/OPEN
+as applicable. All live metrics remain NOT_MEASURED. Full Task 5 remains OPEN.
+P2T4-FU-01 through P2T4-FU-10 remain OPEN and unassigned; no follow-up transfers to Task 5.
+
+Contract locks (whole defining-file SHA-256, unchanged consume-only boundaries):
+- backend/src/sketch2life/contracts/schemas/vision_v2.py:
+  VisionUnderstandingResultV2@2.0,
+  BEA0511C400B452B86FF32A90CB5F65DF4C191A72A857B1024C30A65628CD0D8.
+- backend/src/sketch2life/contracts/schemas/raw_understanding.py:
+  RawUnderstandingResultV1@1.0,
+  9A5350A7A6913C2FC4F9F3008AA3BCEBA652D90CD25F3CFE76F598B053A57E0B.
+- backend/src/sketch2life/contracts/schemas/asr.py:
+  AsrResultV1@1.0,
+  1DCF8DB144EBFD080266F05B8E75AE404EC230EDC7983937A0E598E48C0B9B22.
+- backend/src/sketch2life/application/ports/asr.py: selected AsrPort,
+  92E9E68AA7C428A72CC366FF540F4D5F1BF3BFA2605AEC059B9DC20E9E84F9D6.
+No runtime/schema/contract/dependency change is authorized.
+
+### Exact 13-file implementation/document/evidence allowlist
+
+1. backend/src/sketch2life/benchmark/feat018_p2_t5_evaluation.py - A1 non-orientation; A2-A6 bounded offline.
+2. backend/tests/unit/test_feat018_p2_t5_evaluation.py - A1-A6 bounded offline.
+3. backend/tests/contract/test_feat018_p2_t5_manifest_contract.py - A2-A5.
+4. backend/tests/contract/test_live_image_demo_api.py - A1/A6 invalid-media zero-provider proof.
+5. features/FEAT-018-live-image-canvas-flow/fixtures/feat018-p2-t5-evaluation-manifest-v1.json - A1-A6 bounded offline.
+6. features/FEAT-018-live-image-canvas-flow/evidence/metrics/P2_T5_OFFLINE_EVALUATION_20261022.json - A1-A6 sanitized reporting.
+7. features/FEAT-018-live-image-canvas-flow/evidence/notes/P2_T5_OFFLINE_STATUS_20261022.txt - A5/A6.
+8. features/FEAT-018-live-image-canvas-flow/evidence/notes/P2_T5_OFFLINE_EVALUATION_20261022.md - A5/A6 commands/provenance/limits.
+9. features/FEAT-018-live-image-canvas-flow/plan/P2_T5_EVALUATION_HARNESS_PLAN_DRAFT_20261021.md - C0 approved offline scope/status.
+10. features/FEAT-018-live-image-canvas-flow/CONTEXT.md - offline progress only.
+11. features/FEAT-018-live-image-canvas-flow/DECISIONS.md - attributable dispositions only.
+12. features/FEAT-018-live-image-canvas-flow/status/STATUS.md - offline slice status; full Task 5 OPEN.
+13. features/FEAT-018-live-image-canvas-flow/evidence/README.md - offline evidence index.
+
+This canonical approval file is the separate single-append exception, not an additional
+implementation path. No other approval write is authorized.
+
+### Matrix binding
+
+Pilot version 2 IDs:
+ACT-0004, ACT-0016, ACT-0019, ACT-0020, ACT-0023, ACT-0026, ACT-0030, ACT-0033, ACT-0039,
+ACT-0046, ACT-0055, ACT-0058, ACT-0061, ACT-0067, ACT-0074, ACT-0085, ACT-0087, ACT-0091,
+ACT-0097, ACT-0099.
+Families/suffixes: exact, ambiguous, no-match, conflict, low, adult-correction.
+IDs: feat018-p2-t5-act-####-<suffix>; evidence ID P2T5:<fixture_id>.
+Exact/ambiguity/unknown-label/low-confidence subprobes only prove their selected schema/mapper
+behavior. Conflict separates selected-ASR provenance from explicit Raw-conflict schema fixtures;
+per-pilot semantic conflict remains HELD. Adult correction remains HELD/UNMAPPED outside the
+selected three-contract input. Null confidence is not replaced with a fabricated default.
+T4 recipes may be planning references only; T4 results are not T5 results.
+D3 separates execution and requirement status. D4 separates quality reference and HTTP proof.
+
+### Authorized commands and write effects
+
+Working directory for the next five commands: repository backend directory.
+The new runner/node interfaces below are to be implemented within the listed paths.
+
+focused:
+
+```powershell
+.\.venv\Scripts\python.exe -B -m pytest -p no:cacheprovider --basetemp=.pytest-tmp-feat018-p2t5-r1 tests/unit/test_feat018_p2_t5_evaluation.py tests/contract/test_feat018_p2_t5_manifest_contract.py tests/contract/test_live_image_demo_api.py::test_feat018_p2_t5_invalid_media_never_calls_providers tests/contract/test_live_image_demo_api.py::test_image_upload_rejects_animated_and_conflicting_source_metadata tests/contract/test_live_image_demo_api.py::test_session_image_upload_is_admitted_then_requires_an_explicit_understanding_command
+```
+
+regressions:
+
+```powershell
+.\.venv\Scripts\python.exe -B -m pytest -p no:cacheprovider --basetemp=.pytest-tmp-feat018-p2t5-r2 tests/unit/test_image_admission.py tests/unit/test_media_validation.py tests/unit/test_raw_understanding.py tests/contract/test_raw_understanding_contract.py tests/unit/test_lightning_vision_v2_adapter.py tests/unit/test_lightning_v2_asr_adapter.py tests/unit/test_vision_phase_b_b1_contracts.py tests/unit/test_asr_phase_b_contract.py tests/unit/test_p1_online_model_compatibility.py
+```
+
+runner:
+
+```powershell
+.\.venv\Scripts\python.exe -B -c "import runpy,sys;sys.path.insert(0,'src');runpy.run_module('sketch2life.benchmark.feat018_p2_t5_evaluation',run_name='__main__')" --manifest ../features/FEAT-018-live-image-canvas-flow/fixtures/feat018-p2-t5-evaluation-manifest-v1.json --run-id feat018-p2-t5-offline-20261022-r1 --source-head b11bc7b870f615e493afb1bc723b888befdb58c9 --source-state candidate --scratch-dir .pytest-tmp-feat018-p2t5-runner-r1 --metrics-output ../features/FEAT-018-live-image-canvas-flow/evidence/metrics/P2_T5_OFFLINE_EVALUATION_20261022.json --status-output ../features/FEAT-018-live-image-canvas-flow/evidence/notes/P2_T5_OFFLINE_STATUS_20261022.txt
+```
+
+ruff:
+
+```powershell
+.\.venv\Scripts\python.exe -B -m ruff check --no-cache --no-fix --no-fix-only src/sketch2life/benchmark/feat018_p2_t5_evaluation.py tests/unit/test_feat018_p2_t5_evaluation.py tests/contract/test_feat018_p2_t5_manifest_contract.py tests/contract/test_live_image_demo_api.py
+```
+
+mypy:
+
+```powershell
+.\.venv\Scripts\python.exe -B -m mypy --follow-imports=silent --cache-dir=.pytest-tmp-feat018-p2t5-mypy-r1 src/sketch2life/benchmark/feat018_p2_t5_evaluation.py tests/unit/test_feat018_p2_t5_evaluation.py tests/contract/test_feat018_p2_t5_manifest_contract.py tests/contract/test_live_image_demo_api.py
+```
+
+Working directory for repository validators: repository root.
+
+harness:
+
+```powershell
+.\backend\.venv\Scripts\python.exe -B tools/validate_harness.py --feature features/FEAT-018-live-image-canvas-flow
+```
+
+architecture:
+
+```powershell
+.\backend\.venv\Scripts\python.exe -B tools/validate_architecture.py
+```
+
+skeleton:
+
+```powershell
+.\backend\.venv\Scripts\python.exe -B tools/validate_skeleton.py
+```
+
+security:
+
+```powershell
+.\backend\.venv\Scripts\python.exe -B tools/validate_repository_security.py
+```
+
+The validator grant includes read-only Git inventory used internally by the security validator.
+No stage/commit/push, fetch, checkout, persistent Git setting or credential change is authorized.
+Ordinary in-scope code/test failures may be repaired and affected authorized checks rerun;
+outside-scope findings must be reported separately.
+
+Write effects: listed synthetic scratch directories under backend/.pytest-tmp-feat018-p2t5-*;
+mypy cache in the listed directory; runner writes only the listed sanitized JSON/TXT;
+the note/index/status updates stay in the allowlist. Check resolved scratch paths and preserve
+any unrelated/pre-existing data before a tool can clear its own basetemp. No dependency install,
+model download, raw provider payload, image, prompt, header or secret in evidence.
+Tests use injected in-memory services/settings, no local secret-file loading, and guard unexpected
+network/provider calls; do not claim process guards are an OS network sandbox.
+Evidence binds baseline HEAD plus actual candidate-file hashes, not a nonexistent handoff commit.
+Required skips, INTERNAL ERROR, HARNESS_INVALID and HELD items are not PASS.
+
+### Continuing restrictions
+
+Security remains PENDING. Security/phase/freeze/S14 and every other live-specific gate stay
+unchanged. No provider/model/Lightning/Modal request, live run, runtime/schema/dependency edit,
+Git mutation/publication, or Task 5 closure is authorized. APP hold continues outside this append.
+
+Actual authority is Person 2's direct issuance FEAT018_P2T5_BOUNDED_OFFLINE_APPROVAL_01,
+including the explicit narrow APP exception, adoption of C0/D5/D1-D4, the command grant and the
+five-step execution order. This record grants only the bounded offline scope described above.

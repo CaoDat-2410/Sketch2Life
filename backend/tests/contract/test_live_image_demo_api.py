@@ -1,12 +1,17 @@
 from __future__ import annotations
 
 import base64
+import socket
+import threading
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any, Never
 
+import pytest
 from fastapi.testclient import TestClient
 
 from sketch2life.application.ports.activity_ranker import ActivityRankerPort
+from sketch2life.application.ports.asr import AsrPort
 from sketch2life.application.ports.child_preference_classifier import (
     ChildPreferenceClassifierPort,
 )
@@ -20,6 +25,7 @@ from sketch2life.contracts.schemas.activity_ranking import (
     ActivityRankingRequestV1,
     ActivityRankingResultV1,
 )
+from sketch2life.contracts.schemas.asr import AsrRequestV1, AsrResultV1
 from sketch2life.contracts.schemas.child_preference_classification import (
     ChildPreferenceClassificationRequestV1,
     ChildPreferenceClassificationV1,
@@ -45,6 +51,7 @@ from sketch2life.domain.understanding.image_admission import (
 from sketch2life.infrastructure.ai.lightning_child_preference_classifier import (
     ChildPreferenceClassificationUnavailable,
 )
+from sketch2life.infrastructure.ai.lightning_client import UrllibJsonTransport
 from sketch2life.infrastructure.ai.vision_lexical_policy import synthetic_prohibited_lexicon
 from sketch2life.infrastructure.catalog.activity_semantics import load_activity_semantic_catalog
 from sketch2life.infrastructure.catalog.activity_semantics_v2 import (
@@ -52,6 +59,7 @@ from sketch2life.infrastructure.catalog.activity_semantics_v2 import (
 )
 from sketch2life.infrastructure.catalog.p1_catalog import load_p1_template_library
 from sketch2life.infrastructure.catalog.workflow_metadata import FileWorkflowCatalogMetadata
+from sketch2life.infrastructure.config.settings import CoreDatabaseSettings, Settings
 from sketch2life.infrastructure.storage.in_memory import (
     InMemoryArtifactStore,
     InMemoryIdempotencyStore,
@@ -67,6 +75,8 @@ from sketch2life.infrastructure.storage.in_memory_demo_workflow import (
 from sketch2life.infrastructure.storage.in_memory_renderer_source_grants import (
     InMemoryRendererSourceGrantStore,
 )
+from sketch2life.interfaces.http import app as http_app
+from sketch2life.interfaces.http import be1_runtime
 from sketch2life.interfaces.http.app import create_app
 
 _IMAGE = base64.b64decode(
@@ -77,6 +87,64 @@ _SOURCE_WEBP = (
     b"RIFF" + (16).to_bytes(4, "little") + b"WEBPVP8 "
     + (4).to_bytes(4, "little") + b"test"
 )
+
+
+@pytest.fixture(autouse=True)
+def _offline_api_settings(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """Keep API contract tests independent of local credentials and external services."""
+    # Pydantic's generated type signature omits this BaseSettings runtime option.
+    settings = Settings(  # type: ignore[call-arg]
+        _env_file=None,
+        env="test",
+        ai_provider="disabled",
+        auth_provider="development",
+        database_url=None,
+        be1_artifact_root=tmp_path / "be1-artifacts",
+        firebase_credentials_file=None,
+        lightning_ai_base_url="",
+        lightning_ai_token_file=None,
+        runpod_api_key_file=None,
+        pixi_show_planner_enabled=False,
+        whiteboard_video_enabled=False,
+    )
+    monkeypatch.setattr(http_app, "get_settings", lambda: settings)
+    database_settings = CoreDatabaseSettings(  # type: ignore[call-arg]
+        _env_file=None, database_url=None
+    )
+    monkeypatch.setattr(be1_runtime, "get_core_database_settings", lambda: database_settings)
+
+    def reject_external_call(*args: object, **kwargs: object) -> None:
+        raise AssertionError("External access is forbidden in offline API contract tests")
+
+    socketpair_scope = threading.local()
+    original_socketpair = socket.socketpair
+    original_connect = socket.socket.connect
+
+    def guarded_connect(sock: socket.socket, address: Any) -> None:
+        is_loopback = (
+            isinstance(address, tuple)
+            and len(address) >= 2
+            and isinstance(address[0], str)
+            and address[0] in {"127.0.0.1", "::1"}
+        )
+        if getattr(socketpair_scope, "active", False) and is_loopback:
+            return original_connect(sock, address)
+        reject_external_call(sock, address)
+
+    def guarded_socketpair(*args: Any, **kwargs: Any) -> tuple[socket.socket, socket.socket]:
+        was_active = getattr(socketpair_scope, "active", False)
+        socketpair_scope.active = True
+        try:
+            return original_socketpair(*args, **kwargs)
+        finally:
+            socketpair_scope.active = was_active
+
+    monkeypatch.setattr(http_app, "read_secret_file", reject_external_call)
+    monkeypatch.setattr(UrllibJsonTransport, "post_json", reject_external_call)
+    monkeypatch.setattr(socket, "create_connection", reject_external_call)
+    monkeypatch.setattr(socket, "socketpair", guarded_socketpair)
+    monkeypatch.setattr(socket.socket, "connect", guarded_connect)
+    monkeypatch.setattr(socket.socket, "connect_ex", reject_external_call)
 
 
 class _TestActivityRanker(ActivityRankerPort):
@@ -138,7 +206,9 @@ def _contains_none(value: object) -> bool:
     return False
 
 
-def test_profile_context_validation_returns_safe_typed_failure(caplog) -> None:
+def test_profile_context_validation_returns_safe_typed_failure(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     client = TestClient(create_app())
     response = client.post(
         "/v1/sessions/synthetic-session/p1/context-options",
@@ -172,7 +242,9 @@ def test_profile_context_validation_returns_safe_typed_failure(caplog) -> None:
     assert "private free text must never leak" not in caplog.text
 
 
-def test_context_options_query_validation_returns_safe_typed_failure(caplog) -> None:
+def test_context_options_query_validation_returns_safe_typed_failure(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     client = TestClient(create_app())
     response = client.get(
         "/v1/sessions/synthetic-session/p1/context-options",
@@ -194,7 +266,9 @@ def test_context_options_query_validation_returns_safe_typed_failure(caplog) -> 
     assert "156" not in caplog.text
 
 
-def test_preference_classifier_is_backend_owned_bounded_and_does_not_log_text(caplog) -> None:
+def test_preference_classifier_is_backend_owned_bounded_and_does_not_log_text(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     classifier = _TestPreferenceClassifier()
     client, _ = _client(child_preference_classifier=classifier)
     private_synthetic_phrase = "synthetic private phrase that must not appear in logs"
@@ -217,7 +291,9 @@ def test_preference_classifier_is_backend_owned_bounded_and_does_not_log_text(ca
     assert private_synthetic_phrase not in caplog.text
 
 
-def test_preference_classifier_upstream_exception_returns_safe_typed_failure(caplog) -> None:
+def test_preference_classifier_upstream_exception_returns_safe_typed_failure(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     client, _ = _client(child_preference_classifier=_FailingPreferenceClassifier())
     private_synthetic_phrase = "synthetic preference must not leak"
     response = client.post(
@@ -241,7 +317,9 @@ def test_preference_classifier_upstream_exception_returns_safe_typed_failure(cap
     assert private_synthetic_phrase not in caplog.text
 
 
-def test_missing_lightning_classifier_route_has_actionable_safe_failure(caplog) -> None:
+def test_missing_lightning_classifier_route_has_actionable_safe_failure(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     client, _ = _client(
         child_preference_classifier=_MissingPreferenceEndpointClassifier()
     )
@@ -804,9 +882,19 @@ class _CountingLocalizer:
         }
 
 
+class _CountingAsr:
+    def __init__(self) -> None:
+        self.calls = 0
+
+    def transcribe(self, request: AsrRequestV1) -> AsrResultV1:
+        self.calls += 1
+        raise AssertionError("An invalid image must never trigger ASR")
+
+
 def _client(
     *,
     vision: _CountingVision | None = None,
+    asr: AsrPort | None = None,
     scene_localizer: _CountingLocalizer | None = None,
     child_preference_classifier: ChildPreferenceClassifierPort | None = None,
     activity_ranker: ActivityRankerPort | None = None,
@@ -826,6 +914,7 @@ def _client(
         idempotency=idempotency,
         admission=Feat018ImageAdmission(_TestImageDecoder()),
         vision=actual_vision,
+        asr=asr,
         renderer_source_grants=InMemoryRendererSourceGrantStore(),
         scene_localizer=scene_localizer,
     )
@@ -918,7 +1007,7 @@ def test_image_normalization_keeps_original_and_derived_artifact_provenance() ->
 
 
 def test_image_upload_rejects_animated_and_conflicting_source_metadata() -> None:
-    client, _ = _client()
+    client, vision = _client()
     session_id, version = _create_session(client)
     animated_png = b"\x89PNG\r\n\x1a\n" + b"\x00\x00\x00\x08acTL" + bytes(12)
     animated = client.post(
@@ -937,6 +1026,45 @@ def test_image_upload_rejects_animated_and_conflicting_source_metadata() -> None
     )
     assert conflict.status_code == 422
     assert conflict.json()["failure"]["code"] == "IMAGE_METADATA_CONFLICT"
+    assert vision.calls == 0
+
+
+@pytest.mark.parametrize("case", ["corrupt", "unsupported", "oversized", "animated", "metadata"])
+def test_feat018_p2_t5_invalid_media_never_calls_providers(case: str) -> None:
+    asr = _CountingAsr()
+    localizer = _CountingLocalizer()
+    client, vision = _client(asr=asr, scene_localizer=localizer)
+    session_id, version = _create_session(client)
+    payload = _IMAGE
+    content_type = "image/png"
+    data: dict[str, str] = {}
+    if case == "corrupt":
+        payload = b"synthetic-not-an-image"
+    elif case == "unsupported":
+        payload = b"GIF89a" + bytes(32)
+        content_type = "image/gif"
+    elif case == "oversized":
+        payload = _IMAGE + bytes(5_000_001 - len(_IMAGE))
+    elif case == "animated":
+        payload = b"\x89PNG\r\n\x1a\n" + b"\x00\x00\x00\x08acTL" + bytes(12)
+    else:
+        data = {"source_media_type": "image/jpeg"}
+
+    response = client.post(
+        f"/v1/sessions/{session_id}/media/image",
+        headers=_headers(session_id, version, f"p2t5-invalid-{case}"),
+        data=data,
+        files={"image": (f"synthetic-{case}.png", payload, content_type)},
+    )
+    if case == "oversized":
+        assert response.status_code == 200
+        assert response.json()["payload"]["decision"] == "RECAPTURE"
+        assert response.json()["payload"]["outcome"] == "REJECTED"
+        assert response.json()["payload"]["source_image_ref"] is None
+    else:
+        assert response.status_code in {415, 422}
+        assert response.json()["status"] == "FAILED"
+    assert vision.calls == asr.calls == localizer.calls == 0
 
 
 def _command(
@@ -948,7 +1076,7 @@ def _command(
     route: str,
     payload: dict[str, object],
     method: str = "post",
-):
+) -> Any:
     return getattr(client, method)(
         f"/v1/sessions/{session_id}{route}",
         json={
@@ -2048,7 +2176,7 @@ def test_vision_runtime_failure_is_recoverable_without_exposing_exception_text()
     class _FailingVision:
         calls = 0
 
-        def understand(self, request: VisionUnderstandingRequestV2):
+        def understand(self, request: VisionUnderstandingRequestV2) -> Never:
             del request
             self.calls += 1
             raise RuntimeError("synthetic private provider detail")

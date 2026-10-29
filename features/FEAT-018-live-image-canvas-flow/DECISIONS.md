@@ -1,5 +1,128 @@
 # FEAT-018 decisions
 
+- 2026-10-22 coordinator execution record under FEAT018_P2T5_BOUNDED_OFFLINE_APPROVAL_01:
+  the candidate runner reports 100/120 primary and 21/26 supplemental diagnostic executions
+  SUCCEEDED; remaining 20+5 are NOT_EXECUTED/HELD. No full acceptance is marked satisfied.
+  The final unit/manifest subset passes 49 tests; regressions pass 162 with 5 intentional skips;
+  after the test-only socketpair guard correction, focused pytest passes 56 tests and a subsequent
+  run of the full `test_live_image_demo_api.py` module passes 30 tests. HTTP counter scope is
+  test-specific: invalid-media cases assert Vision/ASR/localizer zero; the admitted-upload and
+  rejected-implicit flow asserts Vision zero, then one injected Vision fake call after explicit
+  understanding (localizer zero; ASR is not injected there). This does not establish live-provider
+  behavior. Ruff and scoped mypy pass
+  again after the guard correction. The earlier missing-python-multipart collection error and r3
+  socketpair-guard failure remain historical events; the project-declared range is
+  `python-multipart>=0.0.20,<1`, and the verified 0.0.32 wheel was installed offline in the local
+  venv without changing project dependencies. After the r4 guard correction and latest
+  documentation synchronization, architecture, skeleton and repository-security checks returned
+  VALID (security scanned 2,596 publishable files; not Security owner approval). The repository-
+  harness check remains HARNESS_INVALID for FEAT-045/046/047 missing evidence directories; it is a
+  failure, not a pass or waiver. Overall verification remains INCOMPLETE.
+  This is an observed candidate record, not a new Person 2 disposition, Task 5 acceptance,
+  live grant, final handoff review or FU assignment. See the P2-T5 offline evidence note.
+
+- 2026-10-22 Person 2 issued FEAT018_P2T5_BOUNDED_OFFLINE_APPROVAL_01, adopting source plan
+  rev 0.9 (SHA-256 6E9550A045D9FC382F83FEACC0ACAF9B55A4423A5DE99C30E437C48071A1951E),
+  baseline b11bc7b870f615e493afb1bc723b888befdb58c9 and the exact C0/D5 13-file scope,
+  contract locks, 120-slot matrix, commands and write effects. Person 2 explicitly confirms APP
+  authority and permits only the current coordinator's one canonical append; that append is
+  recorded and its original prefix preserved. APP hold continues outside it. D1-D4 authorize
+  independent unaffected offline implementation, current-mapping characterization only, separate
+  execution/requirement status, and separate quality-reference/HTTP evidence. Plan rev 1.0 and
+  offline status are APPROVED before implementation. No adapter/runtime/schema/dependency changes,
+  provider/model/Modal calls, Git publication or Task 5 closure. OSError proof, unresolved semantics
+  and live gates remain HELD; Task 5 and FU-01..FU-10 remain OPEN/unassigned; Security PENDING.
+
+- 2026-10-21 Person 2 directly confirmed closure of FEAT-018 P2-T4 as a diagnostic deliverable
+  at handoff commit `8ed2e8bbc7509eb236691bb8196eecb1e4f7e14f`. Person 2 accepts the four closure
+  gates: `P2T4-FU-01` records the missing provenance contract-name as OPEN; artifacts are consistent;
+  final gates PASS on that commit; and the independent final review is PASS with no findings. This
+  closes only the approved diagnostic deliverable. The 60 primary and 5 supplemental `UNRESOLVED`
+  results remain product gaps; `P2T4-FU-01` through `P2T4-FU-10` remain OPEN and unassigned, with no
+  automatic assignment to Task 5. No runtime, schema, catalog, contract, or provider authority is
+  granted. APP hold remains IN FORCE and Security remains PENDING. This direct owner decision is
+  recorded here; `approvals/TASK_APPROVAL.md` is not changed while APP hold remains active.
+
+- 2026-10-21 coordinator record (not a new Person 2 product decision): the handoff was committed
+  and pushed as `c54b5a5a4a0dfe8f5c494cd47cd9f432e115f61b` (parent
+  `4310fcbfafa48a14e5fce31f38a2089e24079e52`). The coordinator's post-commit chat record reports
+  all seven P2-T4 gates passing on that exact commit. A fresh-session Claude review attachment
+  reports `PASS WITH NOTES`, independently reruns the seven gates in Linux, and identifies three
+  Low notes. Person 2 accepted session-level independence in the current conversation; the review's
+  same-Claude-model-family caveat remains disclosed. The evidence note labels the prior Ruff
+  candidate table historical, records Person 2's acceptance of the pre-commit chronology, and
+  defers updating `approvals/TASK_APPROVAL.md` while APP hold is IN FORCE. This record does not close
+  Task 4.
+
+- 2026-10-21 Person 2 issued `W2_FEAT018_P2_T4_GATE3_HARNESS_DISPOSITION_01` in the
+  coordinator conversation: `HARNESS_INVALID` remains the actual repository-wide result, not a
+  pass or waiver, and is outside the seven P2-T4-specific gates. Gate 3 requires valid passing
+  results bound to the final handoff commit. This is relayed, not recorded in TASK_APPROVAL.md,
+  because the APP write hold remains in force; FEAT-045/046/047 are not changed.
+
+- 2026-10-21 Person 2 issued the complete
+  `W2_FEAT018_P2_T4_CONTINUATION_AND_FINAL_GATE_SCOPE_01` in the coordinator conversation.
+  It permits one new candidate Ruff invocation with `--no-cache --no-fix --no-fix-only`, candidate
+  synchronization in the seven named documentation/evidence files, and a bounded post-edit validator
+  mini-cycle. The C/D amendment permits candidate synchronization before the final commit and accepts
+  `W2_FEAT018_P2_T4_POST_COMMIT_GATE_RECORD_01` in chat, bound to the full commit SHA, as the final
+  seven-gate evidence. One final gate cycle is conditional on a separate local-commit authorization;
+  this scope grants no stage, commit or push. This is relayed, not recorded in TASK_APPROVAL.md,
+  while APP hold is in force. Task 4 remains OPEN, Security PENDING, and product follow-ups unchanged.
+
+- 2026-10-21 coordinator record (not a Person 2 decision): the newly authorized candidate Ruff
+  invocation completed with exit 0 and `All checks passed!`. The earlier cache-denied invocation
+  remains exit 1 with no lint verdict. HEAD was `4310fcbfafa48a14e5fce31f38a2089e24079e52`;
+  tested source/config had no Git diff, the two test-file tuples matched the note, and CPython
+  3.12.10, pytest 8.4.2, Pillow 12.3.0, Ruff 0.16.4 and mypy 1.20.2 matched the earlier checks.
+  The other six valid candidate results are reused under the issued scope. Candidate evidence does
+  not establish Gate 3 MET; the post-commit record and independent final review remain outstanding.
+
+- 2026-10-21 owner amendment `W2_FEAT018_P2_T4_DIAGNOSTIC_ACCEPTANCE_REBASE_01`: P2-T4 may
+  accept the approved diagnostic deliverable (120 primary, 43 supplemental, B1/B2/B3 within scope,
+  metrics report and evidence) without treating the 60 primary or 5 supplemental `UNRESOLVED`
+  results as satisfied product behavior. Track ambiguity/provenance, source conflict, adult
+  assertion/confidence, narration mismatch, version-transition, V2 matcher and candidate-envelope
+  gaps as separate unassigned follow-ups; do not assign them to Task 5 without disposition. No
+  runtime/schema/catalog/provider/contract work is authorized. Task 4 remains open until the four
+  amendment closure gates and independent final review pass; issuance alone does not close it.
+
+- 2026-10-21 coordinator record (not a Person 2 decision): row-basis counts and local validation for
+  the P2-T4 handoff candidate. All 60 primary `UNRESOLVED` rows carry static-review hypotheses, and
+  40 also carry runtime boundary findings (20 conflict and 20 adult-correction rows); the 20 ambiguous
+  rows have only the static hypothesis. Of the five supplemental `UNRESOLVED` rows, two carry static
+  hypotheses and four carry runtime findings (six finding entries in total); one row carries both.
+  Do not describe every unresolved row as a separately measured runtime defect, and do not read these
+  counts as satisfied product behavior. Local validation on the uncommitted candidate: focused pytest
+  368 passed, Ruff and scoped mypy passed after typing-only fixes in the approved test files, and
+  architecture/skeleton/security checks passed. The repository harness is `HARNESS_INVALID` due to
+  missing evidence paths in FEAT-045/046/047. These results are bound to the working tree, not to a
+  final commit.
+
+- 2026-10-21 Person 2 disposition of the independent working-tree review (relayed in the coordinator
+  conversation; not recorded in `approvals/TASK_APPROVAL.md` because the APP write hold is in force):
+  M-1 accepted (supplemental counts stated as four rows with runtime findings, six finding entries,
+  one row with both a static hypothesis and a runtime finding; `UNRESOLVED` results unchanged and
+  not read as satisfied behavior). M-2 accepted (coordinator validation text kept separate from the
+  owner amendment above). L-1 authorized: the typing-only edits stay in the two approved P2-T4 test
+  files, limited to call forms and types needed for mypy, with no change to test behavior, fixtures,
+  runtime, schema or manifest. `HARNESS_INVALID` stays the recorded result and is not called a pass;
+  the missing paths belong to FEAT-045/046/047, are outside P2-T4, are a separate repository-wide
+  issue, and those features are not changed under Task 4. `P2T4-FU-01` remains an OPEN follow-up and
+  the contract-name gap is not resolved. Task 4 stays OPEN until artifacts are synchronized, validation
+  evidence is bound to the final commit, valid gates are confirmed, and an independent final review
+  covers the handoff commit. Security remains PENDING.
+
+- 2026-10-20 owner approval: implement the P2-T4 Revision 3 diagnostic slice at source commit
+  `b39a9f2f56509b0543184876eb538fc9faf0e1aa`. Use B1/B2/B3, with B3 as matcher observation only;
+  keep 120 primary cases and supplemental cases separately counted; report labels remain diagnostics
+  and do not introduce a contract. The approval does not authorize runtime/schema/catalog changes or
+  Lightning/model calls. The later Modal Notebook run completed B1/B2/B3 and the supplemental
+  execution rows. The 2026-10-21 amendment supersedes only the original unresolved-requirements
+  closure clause for diagnostic-deliverable acceptance; the unresolved product gaps remain open.
+  Task 4 still awaits valid final gates and independent final review. The measured result is
+  recorded in `evidence/notes/P2_T4_MAPPING_DIAGNOSTICS_20261020.md`.
+
 - 2026-09-09 research record: user requested one P2 research round and proposals;
   any FEAT-003 change or connection requires user review first. Proposed offline
   slices and contract decisions are recorded in `plan/P2_OFFLINE_FIRST_PLAN.md`
