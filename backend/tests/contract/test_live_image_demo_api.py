@@ -31,6 +31,7 @@ from sketch2life.contracts.schemas.child_preference_classification import (
     ChildPreferenceClassificationV1,
     ChildPreferenceTagV1,
 )
+from sketch2life.contracts.schemas.mobile_workflow import MobileWorkflowResultV1
 from sketch2life.contracts.schemas.vision import (
     VISION_POLICY_MATCH_VIEW_VERSION,
     EntityCandidateV1,
@@ -78,6 +79,10 @@ from sketch2life.infrastructure.storage.in_memory_renderer_source_grants import 
 from sketch2life.interfaces.http import app as http_app
 from sketch2life.interfaces.http import be1_runtime
 from sketch2life.interfaces.http.app import create_app
+from sketch2life.interfaces.http.middleware.bounded_image_upload import (
+    _is_demo_media_upload,
+    _mobile_workflow_upload_failure,
+)
 
 _IMAGE = base64.b64decode(
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAA"
@@ -1511,15 +1516,59 @@ def test_openapi_exposes_image_narration_and_separate_story_video_routes() -> No
     assert "/v1/live-understanding" not in paths
 
 
-def test_image_upload_transport_enforces_a_hard_multipart_body_cap() -> None:
+@pytest.mark.parametrize(
+    ("upload_path", "request_id"),
+    [
+        ("/v1/sessions/not-created/media/image", "oversized-image-request"),
+        ("/v1/sessions/not-created/media/audio", "oversized-audio-request"),
+    ],
+)
+def test_media_upload_transport_enforces_a_typed_hard_multipart_body_cap(
+    upload_path: str, request_id: str
+) -> None:
     client, _vision = _client()
     response = client.post(
-        "/v1/sessions/not-created/media/image",
+        upload_path,
         content=b"x" * 20_100_001,
-        headers={"Content-Type": "multipart/form-data; boundary=unused"},
+        headers={
+            "Content-Type": "multipart/form-data; boundary=unused",
+            "X-Request-ID": request_id,
+            "X-Expected-Session-Version": "7",
+        },
     )
     assert response.status_code == 413
-    assert response.json()["failure"]["code"] == "UPLOAD_TOO_LARGE"
+    body = response.json()
+    result = MobileWorkflowResultV1.model_validate(body)
+    assert result.status == "FAILED"
+    assert result.request_id == request_id
+    assert result.session_id == "not-created"
+    assert result.expected_session_version == result.observed_session_version == 7
+    assert result.failure is not None
+    assert result.failure.code == "UPLOAD_TOO_LARGE"
+    assert response.headers["x-request-id"] == request_id
+
+
+def test_media_upload_failure_sanitizes_request_context() -> None:
+    path = "/v1/sessions/not-created/media/image"
+    assert _is_demo_media_upload(path)
+    assert not _is_demo_media_upload("/v1/sessions/not-created/extra/media/image")
+
+    body, request_id = _mobile_workflow_upload_failure(
+        {
+            "path": path,
+            "headers": [
+                (b"x-request-id", b"invalid/request-id"),
+                (b"x-expected-session-version", b"99999999999999999999"),
+            ],
+        },
+        "Upload exceeded the body limit.",
+    )
+    result = MobileWorkflowResultV1.model_validate_json(body)
+
+    assert request_id == "request-body-limit"
+    assert result.request_id == request_id
+    assert result.session_id == "not-created"
+    assert result.expected_session_version == result.observed_session_version == 2**31 - 1
 
 
 def test_under_three_p1_options_require_caregiver_and_candidates_show_direct_supervision() -> None:

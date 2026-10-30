@@ -6,6 +6,11 @@ EV-063-13 records the pre-platform table-reduction and relationship-integrity ba
 
 | ID | Type | Purpose | Artifact |
 |---|---|---|---|
+| EV-063-34 | Swagger review and local commit | Record contract/snapshot review, unsafe request-ID reflection fix, focused checks, security result and publication boundary | `EV-063-34_SWAGGER_REVIEW_AND_COMMIT_20261030.md` |
+| EV-063-33 | Swagger overview presentation | Replace the dense intro paragraph with scannable coverage, authorization and unmounted-route notes; verify the served snapshot | `EV-063-33_SWAGGER_INFO_PRESENTATION_20261030.md` |
+| EV-063-32 | Local Swagger QA kit and upload error parity | Record the contract-shaped 413 fix, synthetic demo request examples/PNG, focused checks, local Swagger restart, and Firebase-protected-route test limit | `EV-063-32_LOCAL_SWAGGER_QA_KIT_20261030.md` |
+| EV-063-31 | Swagger navigation and role grouping | Replace broad surface tags with explicit Lesson Library role tags and BE1/Demo domain groups; include tag descriptions and preserve Rev37 parity | `EV-063-31_SWAGGER_NAVIGATION_ROLE_GROUPING_20261030.md` |
+| EV-063-30 | Swagger/OpenAPI contract alignment | Rev37 parity for 124 mounted and 11 unmounted operations, full request/authentication/response checks, reproducible snapshot, and upload 413 discrepancy evidence | `EV-063-30_SWAGGER_OPENAPI_FEAT063_REV37_20261030.md` |
 | EV-063-01 | Source review | Current table inventory, architecture conventions, app/backend/runtime baseline | `SOURCE_REGISTER.md` and SRS §3, §11–§14 |
 | EV-063-02 | Technical research | Official LTX/Modal capability and hardware requirements | SRS §9 and §19 |
 | EV-063-03 | Regulatory source review | Current law status and child data / AI design boundary | SRS §10 and §19 |

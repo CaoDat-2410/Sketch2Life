@@ -36,6 +36,26 @@ Owner requested aligning the backend plan with FEAT-063 SRS 2.3. `features/FEAT-
 
 The owner instructed continuing SRS2.3 backend work on the current merged branch. The checkout is feature/feat063-be-foundation at4f071242; Modal and CI repair commits are ancestors. This permits current-branch preparation and review; it does not select Rev33's remaining owner decisions or confer a missing exact-scope approval. The S1 draft operation inventory/file boundaries and branch checkpoint are recorded under FEAT-063. No new branch, source/migration, approval edit, DB/service/provider execution or publication is included in that preparation.
 
+## owner-feat063-rev42-swagger-review-commit-20261030
+
+The owner requested review and commit of the pending Swagger work. FEAT-063 Plan Rev42 (SHA-256 `E8A809729BDE4B83D0A6FD0AC21336C8F3721F55B7BDFA7431F1125922D026E8`) authorizes the reviewed local `dev` commit only; no push. The review fixed unsafe request-ID reflection in the typed 413 middleware. Focused checks, OpenAPI live/snapshot parity and the required repository security validator passed. Evidence: `features/FEAT-063-system-architecture-rearchitecture/evidence/EV-063-34_SWAGGER_REVIEW_AND_COMMIT_20261030.md`.
+
+## owner-feat063-rev41-swagger-overview-presentation-20261030
+
+The owner requested a cleaner Swagger overview based on the attached screenshot. FEAT-063 Plan Rev41 (SHA-256 `8693C3B4165F9413775306260CCC9023404F2AB7F58C967632236951B1FC2BDB`) authorizes a concise Markdown summary and local snapshot/server refresh only. The served API surface is unchanged at 124 operations, 111 paths and 18 tags; `/docs` and `/openapi.json` return 200. Evidence: `features/FEAT-063-system-architecture-rearchitecture/evidence/EV-063-33_SWAGGER_INFO_PRESENTATION_20261030.md`.
+
+## owner-feat063-rev40-local-swagger-qa-20261030
+
+The owner said `duyệt` after reviewing the recommended local Swagger QA steps. FEAT-063 Plan Rev40 (SHA-256 `701402BC515745FDCBCFF8C8AF8E7630EDF4025D51C330F7E7747AB6D738E1E9`) authorizes a synthetic in-memory demo workflow, request examples and fixture, focused verification, and an image/audio 413 payload correction to the Rev37 contract. The loopback API is live at `http://127.0.0.1:8000/docs`. Protected Lesson Library/BE1 requests still require Firebase ID tokens; no Auth Emulator/test database URL or credential bypass is configured. Evidence and limits are recorded in `features/FEAT-063-system-architecture-rearchitecture/evidence/EV-063-32_LOCAL_SWAGGER_QA_KIT_20261030.md`. No commit or push.
+
+## owner-feat063-rev39-swagger-navigation-20261030
+
+The owner asked to make the current FEAT-063 Rev37 Swagger UI easier to navigate by role where source guards establish roles, or by another professional grouping otherwise. FEAT-063 Plan Rev39 authorizes the exact OpenAPI tag/description and local-server restart scope; plan SHA-256 `1E0244E9D43F3F3B46361D66711D413293F2B7E50DB30DEE5B353BAA2474834F`. Results and current snapshot hash are in `features/FEAT-063-system-architecture-rearchitecture/evidence/EV-063-31_SWAGGER_NAVIGATION_ROLE_GROUPING_20261030.md`. No API behavior, authorization, commit, or push is included.
+
+## owner-feat063-rev37-swagger-openapi-20261030
+
+The user supplied `API_CONTRACT_CATALOG_FEAT063_REV37_20261030.md` and asked for contract-aligned Swagger, complete coverage, and reporting of errors. FEAT-063 Plan Rev38 authorizes the documented scope: align the local FastAPI OpenAPI surface, preserve runtime behavior, test parity, and record any discrepancy. Contract SHA-256 `56FC8BEA01360E11F73E45B2D43AC1897540B30BC8AE524CDE1ECEFACFBB1B88`; plan hash and results are in `features/FEAT-063-system-architecture-rearchitecture/evidence/EV-063-30_SWAGGER_OPENAPI_FEAT063_REV37_20261030.md`. No commit, push, deployment, database, Docker, or provider action is authorized by this record.
+
 ## owner-feat065-ci-repair-20261029
 
 Person 2 authorized “ok v sửa đi nào thấy ok thì đẩy lên” after reviewing CI run 40875382264 and the three scoped fixes. FEAT-065 records repair of Node CI pin, backend lock metadata and five missing evidence-directory placeholders, validation and publication on existing feature/modal-vision-dev only. This does not authorize product-flow implementation, new branches, service/DB/Modal calls, package installs or changes to other feature plans/approvals.

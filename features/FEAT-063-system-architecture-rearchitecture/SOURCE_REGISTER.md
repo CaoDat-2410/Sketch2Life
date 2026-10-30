@@ -1,5 +1,36 @@
 # FEAT-063 source register
 
+## Rev42 Swagger review and local commit — current — 2026-10-30
+
+- Direct owner request: `coi và commit cho tui`. Plan Rev42 SHA-256 `E8A809729BDE4B83D0A6FD0AC21336C8F3721F55B7BDFA7431F1125922D026E8` authorizes review, focused verification and one local commit on `dev`; it excludes push.
+- Review corrected unsafe request-ID reflection in the typed middleware 413 response. Exported local OpenAPI still matches the served API and all previous contract counts.
+- Check results and limitations: `evidence/EV-063-34_SWAGGER_REVIEW_AND_COMMIT_20261030.md`.
+
+## Rev41 Swagger overview presentation — current — 2026-10-30
+
+- Direct owner request: make the Swagger overview in the attached screenshot easier to scan. Plan Rev41 SHA-256 `8693C3B4165F9413775306260CCC9023404F2AB7F58C967632236951B1FC2BDB`.
+- The info description is a compact summary of coverage, bearer authentication/tag behavior, and unmounted candidates. No operation or runtime changes.
+- Current snapshot SHA-256 `C1F2B453E5D893AF5328C9091A51B183CB2D67FED2587411C0D45598F47A9466`; served counts and verification are recorded in `evidence/EV-063-33_SWAGGER_INFO_PRESENTATION_20261030.md`.
+
+## Rev40 local Swagger QA kit — current — 2026-10-30
+
+- Direct owner approval: `duyệt` for local synthetic workflow examples, 413 contract parity and focused verification. Plan Rev40 SHA-256 `701402BC515745FDCBCFF8C8AF8E7630EDF4025D51C330F7E7747AB6D738E1E9`.
+- Rev37 contract source SHA-256 remains `56FC8BEA01360E11F73E45B2D43AC1897540B30BC8AE524CDE1ECEFACFBB1B88`. Snapshot SHA-256 `70BDA49D2E122C4CE0370211DCEF8EA03BEC477CFDE2C60673501EB2CCDF8208`.
+- Synthetic fixture: `artifacts/qa-fixtures/synthetic-demo.png`, 128 × 96 RGBA, 504 bytes, SHA-256 `2A0D125A7B34306DF54407EA8B7C41BA189C061C24F6C43277502C38D3CA9B9F`; no personal/child content.
+- Quickstart: `artifacts/LOCAL_SWAGGER_QA_QUICKSTART_20261030.md`. Verification and authenticated-route limits: `evidence/EV-063-32_LOCAL_SWAGGER_QA_KIT_20261030.md`.
+
+## Rev39 professional Swagger navigation — current — 2026-10-30
+
+- Direct owner request: organize Swagger by explicit role where known and otherwise by a clear professional grouping. Plan Rev39 SHA-256 `1E0244E9D43F3F3B46361D66711D413293F2B7E50DB30DEE5B353BAA2474834F`.
+- Role grouping is based on current Lesson Library route guards; BE1 and Demo groupings use handler/domain workflows to avoid implying authorization that is not explicit in the contract.
+- Snapshot SHA-256 `27BB19AC8A5938D239A300DB4BFC5028AA205A675AE9B09EE00CCD35CB3D3453`; review and results are recorded in `evidence/EV-063-31_SWAGGER_NAVIGATION_ROLE_GROUPING_20261030.md`.
+
+## Rev37 contract-aligned Swagger/OpenAPI — current — 2026-10-30
+
+- Owner-provided source: `API_CONTRACT_CATALOG_FEAT063_REV37_20261030.md`, SHA-256 `56FC8BEA01360E11F73E45B2D43AC1897540B30BC8AE524CDE1ECEFACFBB1B88`.
+- Plan Rev38 is approved for exact OpenAPI documentation, contract completeness checks and reporting observed discrepancies; plan SHA-256 `C1E8C74AD57E7F053E0D1E093BAF7F97BE6F12E8EF8887A2C098632B9B863BCF`.
+- Generated metadata, local Compose OpenAPI snapshot, focused tests and the known upload-413 mismatch are indexed in `evidence/EV-063-30_SWAGGER_OPENAPI_FEAT063_REV37_20261030.md`.
+
 ## Rev36 UI component patterns and interaction states — current — 2026-10-30
 
 - Plan Rev36 is approved for nine generated component/state boards; SHA-256 `300104684514C4C6F67614F58DDE402668AAC24AF2204F9B1BCA7A5BBEA2D336`.

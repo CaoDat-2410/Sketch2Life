@@ -45,6 +45,45 @@ The owner selected SRS2.3 and instructed continuing in the existing merged branc
 - Plan: `plan/PLAN_REV33_BACKEND_SLICE_1_LEGACY_FENCE_IDENTITY_JOB_TARGETS_20261029.md`, SHA-256 `B087E87CF0A27004ECAE54AF8623B3FD81A894E7C709EA83037A23841DF92919`.
 - Three additive backend slices on the v2.3 baseline: S1 feature-flag fence for the classroom/demo surface, S2 Parent identity scope and `parent.*` profile tables, S3 AI job owner-scope and target-kind columns. Seven open decisions (OD-1 to OD-7) are listed in the plan.
 - Documentation only. No code, migration, test run or approval record was changed; approval must be recorded against the exact hash in `approvals/TASK_APPROVAL.md`.
+
+## Swagger review and local commit — Plan Rev42 (2026-10-30)
+
+- Lifecycle: review and verification complete for the approved local commit scope. No push is authorized.
+- Plan Rev42 SHA-256: `E8A809729BDE4B83D0A6FD0AC21336C8F3721F55B7BDFA7431F1125922D026E8`.
+- The full pending Swagger/OpenAPI diff was reviewed. Local and served OpenAPI match at 124 operations, 111 paths, 18 tags and 11 unmounted candidates. A request-ID reflection issue in typed 413 middleware was fixed and regression-checked.
+- Five focused tests, Ruff, compile, exporter, live snapshot parity, plan hash checks, whitespace check and required repository security validation passed. Evidence: `evidence/EV-063-34_SWAGGER_REVIEW_AND_COMMIT_20261030.md`.
+
+## Rev41 Swagger overview presentation — 2026-10-30
+
+- Lifecycle: COMPLETE for the approved Swagger overview-copy scope. Plan Rev41 SHA-256: `8693C3B4165F9413775306260CCC9023404F2AB7F58C967632236951B1FC2BDB`.
+- The info block now uses a short intro and labeled coverage, Try it out/authentication, and unmounted-candidate notes instead of one long paragraph.
+- The API surface is unchanged. The served local OpenAPI matches the regenerated snapshot: 124 operations, 111 paths, 18 tags, 11 unmounted candidates. `/docs` and `/openapi.json` returned 200.
+- Snapshot SHA-256: `C1F2B453E5D893AF5328C9091A51B183CB2D67FED2587411C0D45598F47A9466`. Evidence: `evidence/EV-063-33_SWAGGER_INFO_PRESENTATION_20261030.md`.
+
+## Rev40 local Swagger QA kit — 2026-10-30
+
+- Lifecycle: COMPLETE for the approved synthetic local QA and upload 413 parity scope. Plan Rev40 SHA-256: `701402BC515745FDCBCFF8C8AF8E7630EDF4025D51C330F7E7747AB6D738E1E9`.
+- The local Swagger page now provides a runnable in-memory create-session/image-upload example and a deterministic synthetic PNG. TestClient returned session HTTP 201/version 0, then image HTTP 200/`ADMITTED`/version 1 with external AI disabled.
+- Oversized image/audio responses now match the Rev37 `MobileWorkflowResultV1` schema. Focused tests: 4 passed; exporter, Ruff, compile and whitespace checks passed.
+- Current snapshot: `artifacts/OPENAPI_FEAT063_REV37_20261030.json`, SHA-256 `70BDA49D2E122C4CE0370211DCEF8EA03BEC477CFDE2C60673501EB2CCDF8208`. Live loopback `/docs` and `/openapi.json` return 200 with 124 operations, 111 paths and 18 tags.
+- The local Demo flow is ready for interactive Swagger testing. Protected Lesson Library/BE1 operations are not yet interactive-test-ready because this setup has no configured Firebase Auth Emulator/test token or disposable BE1 database URL. No fake credential path was added. See `artifacts/LOCAL_SWAGGER_QA_QUICKSTART_20261030.md` and `evidence/EV-063-32_LOCAL_SWAGGER_QA_KIT_20261030.md`.
+
+## Rev39 professional Swagger navigation — 2026-10-30
+
+- Current Swagger groups 124 mounted Rev37 operations into 18 descriptive tags. Lesson Library tags follow explicit Teacher, School Manager, Parent, Platform Admin, shared-staff, and upload-owner guards; remaining APIs use BE1/Demo domain groups.
+- All 11 candidate routes remain unmounted; request/authentication/response parity and the Rev38 413 discrepancy record are preserved. Tags are navigational and do not change authorization.
+- Approved Plan Rev39 SHA-256: `1E0244E9D43F3F3B46361D66711D413293F2B7E50DB30DEE5B353BAA2474834F`.
+- Current snapshot: `artifacts/OPENAPI_FEAT063_REV37_20261030.json`, SHA-256 `27BB19AC8A5938D239A300DB4BFC5028AA205A675AE9B09EE00CCD35CB3D3453`.
+- Focused Swagger parity: 2 passed; snapshot exporter passed; the local `/docs` server was restarted. Evidence: `evidence/EV-063-31_SWAGGER_NAVIGATION_ROLE_GROUPING_20261030.md`.
+
+## Rev37 contract-aligned Swagger/OpenAPI — Plan Rev38 (2026-10-30)
+
+- Lifecycle: COMPLETE for the Swagger/OpenAPI documentation scope; the upload body-limit payload mismatch is recorded as an outstanding API/test defect, not concealed or behavior-fixed here.
+- Approved Plan Rev38 SHA-256: `C1E8C74AD57E7F053E0D1E093BAF7F97BE6F12E8EF8887A2C098632B9B863BCF`; source contract SHA-256: `56FC8BEA01360E11F73E45B2D43AC1897540B30BC8AE524CDE1ECEFACFBB1B88`.
+- `/docs` and `/openapi.json` expose 124 mounted Rev37 operations across 111 local-profile paths; 11 candidate/fixture operations remain unmounted and are recorded with exact metadata. Request inputs, security, response codes/media/schemas, descriptions, handlers and verification status are reconciled against the contract.
+- Snapshot: `artifacts/OPENAPI_FEAT063_REV37_20261030.json`, SHA-256 `A45748B8715F1934BED86F89795F71C3559CD0E2122140EC3D346194E9B2F9F5`. Focused Swagger test: 2 passed; exporter parity validation passed.
+- Known mismatch: oversized audio/image upload transport responses use the middleware's generic `REQUEST_TOO_LARGE` payload, while the contract declares `MobileWorkflowResultV1`; the existing image-cap regression expects a third payload shape and fails. Swagger documents both observed/declared shapes. No API behavior changed. See EV-063-30.
+
 ## UI component patterns and states — Plan Rev36 (2026-10-30)
 
 - Lifecycle: REVIEW; nine generated component boards, group-specific prompt/motion notes, API mapping and evidence are complete. Owner visual approval is pending before any asset can be approved/applied.

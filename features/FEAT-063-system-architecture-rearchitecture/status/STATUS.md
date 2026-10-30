@@ -57,6 +57,49 @@
 - First-slice preparation: `plan/REV33_S1_EXECUTION_SCOPE_DRAFT_20261029.md`, DRAFT. Static command inventory and exceptions prepared; owner disposition/error choice and exact subset approval remain pending.
 - Checkpoint: `evidence/notes/BE_FOUNDATION_MERGED_BRANCH_CHECKPOINT_20261029.md`.
 - No runtime source, schema/migration, approval, service/DB/Modal execution or Git publication in this preparation step.
+
+## Swagger review and local commit — Plan Rev42 (2026-10-30)
+
+- Lifecycle: REVIEW and verification complete for the approved single local commit scope; push is excluded.
+- Approved Plan Rev42 SHA-256: `E8A809729BDE4B83D0A6FD0AC21336C8F3721F55B7BDFA7431F1125922D026E8`.
+- Review confirmed the 124-operation/111-path/18-tag local OpenAPI snapshot matches the served API and records 11 unmounted candidates. A middleware review finding was fixed: invalid request IDs are now sanitized before being echoed in typed 413 responses, media-route matching is exact, and oversized version values are capped.
+- Focused Swagger/upload suite: 5 passed; Ruff, compile, exporter, live snapshot parity, plan hash checks, `git diff --check` and repository security validation passed.
+- Evidence: `evidence/EV-063-34_SWAGGER_REVIEW_AND_COMMIT_20261030.md`.
+
+## Swagger overview presentation — Plan Rev41 (2026-10-30)
+
+- Lifecycle: COMPLETE for the approved overview-copy change.
+- Approved Plan Rev41 SHA-256: `8693C3B4165F9413775306260CCC9023404F2AB7F58C967632236951B1FC2BDB`.
+- Replaced the dense info paragraph with a concise intro and labeled coverage, authorization/Try it out and unmounted-route notes. No API routes, tags, schemas or behavior changed.
+- Snapshot SHA-256: `C1F2B453E5D893AF5328C9091A51B183CB2D67FED2587411C0D45598F47A9466`; it matches the live OpenAPI (124 operations, 111 paths, 18 tags). `/docs` and `/openapi.json` return 200.
+- Evidence: `evidence/EV-063-33_SWAGGER_INFO_PRESENTATION_20261030.md`.
+
+## Local Swagger QA kit — Plan Rev40 (2026-10-30)
+
+- Lifecycle: COMPLETE for the approved local synthetic workflow and 413 parity scope.
+- Approved Plan Rev40 SHA-256: `701402BC515745FDCBCFF8C8AF8E7630EDF4025D51C330F7E7747AB6D738E1E9`.
+- Oversized image/audio requests now return HTTP 413 with `MobileWorkflowResultV1` / `UPLOAD_TOO_LARGE`; OpenAPI 413 schemas match. Focused tests: 4 passed; exporter, Ruff, compile and `git diff --check` passed.
+- The documented synthetic session/image flow passed in memory: 201/version 0, then 200/`ADMITTED`/version 1. Snapshot SHA-256: `70BDA49D2E122C4CE0370211DCEF8EA03BEC477CFDE2C60673501EB2CCDF8208`.
+- The loopback API was restarted; `/docs` and `/openapi.json` return 200 with 124 operations, 111 paths, 18 tags and two Try it out examples. The synthetic Demo workflow is ready for interactive testing. Protected routes still require Firebase ID tokens and their persistence services; no Auth Emulator, test DB URL, or fake credential path is configured. Evidence: `evidence/EV-063-32_LOCAL_SWAGGER_QA_KIT_20261030.md`.
+
+## Professional Swagger navigation — Plan Rev39 (2026-10-30)
+
+- Lifecycle: COMPLETE for the approved tag/navigation scope.
+- Approved Plan Rev39 SHA-256: `1E0244E9D43F3F3B46361D66711D413293F2B7E50DB30DEE5B353BAA2474834F`.
+- Swagger has 18 descriptive groups. Explicit Lesson Library roles are shown where source guards establish them; other routes are grouped by BE1/Demo domain and workflow.
+- Contract parity remains 124 mounted operations across 111 paths and 11 unmounted candidates. Focused Swagger test: 2 passed; exporter passed.
+- Snapshot SHA-256: `27BB19AC8A5938D239A300DB4BFC5028AA205A675AE9B09EE00CCD35CB3D3453`. Local server restarted at `/docs`; existing upload 413 mismatch remains documented under EV-063-30.
+- Evidence: `evidence/EV-063-31_SWAGGER_NAVIGATION_ROLE_GROUPING_20261030.md`.
+
+## Contract-aligned Swagger/OpenAPI — Plan Rev38 (2026-10-30)
+
+- Lifecycle: COMPLETE for the approved documentation scope; one existing upload body-limit API/test mismatch is reported in EV-063-30 and remains outside this behavior-preserving change.
+- Approved Plan Rev38 SHA-256: `C1E8C74AD57E7F053E0D1E093BAF7F97BE6F12E8EF8887A2C098632B9B863BCF`.
+- `/docs` and `/openapi.json` returned HTTP 200. Local profile OpenAPI 3.1.0 contains all 124 mounted operations across 111 paths and records all 11 unmounted candidates. Request, authentication, response and schema parity checks passed.
+- Snapshot `artifacts/OPENAPI_FEAT063_REV37_20261030.json`; SHA-256 `A45748B8715F1934BED86F89795F71C3559CD0E2122140EC3D346194E9B2F9F5`.
+- Focused Swagger checks: 2 passed; exporter validation and targeted Ruff/compile checks passed. The existing upload body-cap test fails because its expected `failure.code=UPLOAD_TOO_LARGE` payload differs from the middleware's generic `REQUEST_TOO_LARGE` body. No route behavior, database, Docker, provider, commit, or push changes were made.
+- Evidence: `evidence/EV-063-30_SWAGGER_OPENAPI_FEAT063_REV37_20261030.md`.
+
 ## UI component patterns and interaction states — Plan Rev36 (2026-10-30)
 
 - Lifecycle: REVIEW; nine component/state images and all per-group prompt/motion/index/evidence records are complete.

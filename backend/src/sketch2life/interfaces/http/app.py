@@ -101,15 +101,26 @@ from sketch2life.infrastructure.storage.in_memory_auto_rig_grants import (
 )
 from sketch2life.infrastructure.storage.s3_compatible import Boto3S3CompatibleObjectStorage
 from sketch2life.interfaces.http.be1_runtime import build_be1_runtime
-from sketch2life.interfaces.http.middleware.bounded_image_upload import (
-    BoundedImageUploadMiddleware,
-)
 from sketch2life.interfaces.http.demo_composition import (
     build_demo_stores,
     build_ephemeral_session_service,
 )
-from sketch2life.interfaces.http.router_composition import mount_all_routers
+from sketch2life.interfaces.http.middleware.bounded_image_upload import (
+    BoundedImageUploadMiddleware,
+)
+from sketch2life.interfaces.http.openapi_contract import (
+    CONTRACT_REVISION,
+    DECLARED_OPERATION_COUNT,
+    MOUNTED_OPERATION_COUNT,
+    MOUNTED_OPERATIONS,
+    SOURCE_FILE_NAME,
+    SOURCE_SHA256,
+    TAG_DESCRIPTIONS,
+    UNMOUNTED_OPERATION_COUNT,
+    UNMOUNTED_OPERATIONS,
+)
 from sketch2life.interfaces.http.router_composition import (
+    mount_all_routers,
     mount_classroom_routers,
     mount_demo_routers,
 )
@@ -142,6 +153,22 @@ _SAFE_CONTEXT_PROFILE_FIELDS = frozenset(
         "supervision_confirmed_activity_ids",
     }
 )
+def _contract_response_schema(
+    schema_name: str, openapi_schema: dict[str, object]
+) -> dict[str, object]:
+    components = openapi_schema.get("components", {})
+    schemas = components.get("schemas", {}) if isinstance(components, dict) else {}
+    if isinstance(schemas, dict) and schema_name in schemas:
+        return {"$ref": f"#/components/schemas/{schema_name}"}
+    if schema_name == "object":
+        return {"type": "object"}
+    list_match = re.match(r"^list\[([A-Za-z][A-Za-z0-9_]*)", schema_name)
+    if list_match and isinstance(schemas, dict) and list_match.group(1) in schemas:
+        return {
+            "type": "array",
+            "items": {"$ref": f"#/components/schemas/{list_match.group(1)}"},
+        }
+    raise ValueError(f"Rev37 response schema {schema_name!r} is not present in OpenAPI components")
 
 
 def create_app(
@@ -163,8 +190,20 @@ def create_app(
     application = FastAPI(
         title="Sketch2Life API",
         version="1.0.0",
+        description=(
+            "Contract-aligned API reference for the FEAT-063 Rev37 catalog.\n\n"
+            "- **Local coverage:** 124 operations across 111 paths in 18 groups; three local "
+            "storage examples are flag-controlled.\n"
+            "- **Try it out:** Protected routes require a valid bearer token. Tags aid navigation; "
+            "endpoint guards enforce access.\n"
+            "- **Catalog:** 11 candidate operations are unmounted; see `x-unmounted-operations`."
+        ),
         docs_url="/docs",
         redoc_url=None,
+        openapi_tags=[
+            {"name": name, "description": description}
+            for name, description in TAG_DESCRIPTIONS.items()
+        ],
     )
     storage_example_settings = get_settings()
 
@@ -654,8 +693,79 @@ def create_app(
         schema = get_openapi(
             title=application.title,
             version=application.version,
+            description=application.description,
             routes=application.routes,
+            tags=application.openapi_tags,
         )
+        schema.setdefault("info", {})["x-contract-catalog"] = {
+            "revision": CONTRACT_REVISION,
+            "source_file": SOURCE_FILE_NAME,
+            "source_sha256": SOURCE_SHA256,
+            "declared_operations": DECLARED_OPERATION_COUNT,
+            "mounted_in_default_compose": MOUNTED_OPERATION_COUNT,
+            "unmounted_candidates": UNMOUNTED_OPERATION_COUNT,
+            "runtime_operation_count": sum(
+                1
+                for path_item in schema.get("paths", {}).values()
+                for method in path_item
+                if method.lower() in {"get", "post", "put", "patch", "delete", "options", "head"}
+            ),
+        }
+        schema["x-unmounted-operations"] = [dict(item) for item in UNMOUNTED_OPERATIONS]
+        for path, path_item in schema.get("paths", {}).items():
+            if not isinstance(path_item, dict):
+                continue
+            for method, operation in path_item.items():
+                if not isinstance(operation, dict) or method.lower() not in {
+                    "get",
+                    "post",
+                    "put",
+                    "patch",
+                    "delete",
+                    "options",
+                    "head",
+                }:
+                    continue
+                contract = MOUNTED_OPERATIONS.get((method.lower(), path))
+                if contract is None:
+                    continue
+                operation["description"] = contract["purpose"]
+                operation["tags"] = [contract["tag"]]
+                operation["x-contract-request-inputs"] = contract["request_inputs"]
+                operation["x-contract-authentication"] = contract["authentication"]
+                operation["x-contract-surface"] = contract["surface"]
+                operation["x-contract-handler"] = contract["handler"]
+                operation["x-contract-verification"] = contract["verification"]
+                operation["x-contract-declared-responses"] = [
+                    dict(response) for response in contract["responses"]
+                ]
+                declared_responses = {
+                    response["status"]: response for response in contract["responses"]
+                }
+                runtime_responses = operation.setdefault("responses", {})
+                for status, declared in declared_responses.items():
+                    response = runtime_responses.get(status)
+                    if not isinstance(response, dict):
+                        response = {"description": declared["description"]}
+                        if declared["media_type"]:
+                            response["content"] = {
+                                declared["media_type"]: {
+                                    "schema": _contract_response_schema(
+                                        declared["schema_name"], schema
+                                    )
+                                }
+                            }
+                        runtime_responses[status] = response
+                    else:
+                        response["description"] = declared["description"]
+                    if declared["media_type"] and declared["schema_name"] == "object":
+                        response_schema = (
+                            response.get("content", {})
+                            .get(declared["media_type"], {})
+                            .get("schema")
+                        )
+                        if isinstance(response_schema, dict):
+                            response_schema.setdefault("type", "object")
         for path, path_item in schema.get("paths", {}).items():
             if not path.startswith("/api/be1/v1/") or not isinstance(path_item, dict):
                 continue
@@ -694,6 +804,81 @@ def create_app(
                             "schema": {"type": "string", "maxLength": 120},
                         },
                     )
+
+        session_operation = schema.get("paths", {}).get("/v1/sessions", {}).get("post", {})
+        session_content = (
+            session_operation.get("requestBody", {}).get("content", {}).get("application/json")
+            if isinstance(session_operation, dict)
+            else None
+        )
+        if isinstance(session_content, dict):
+            session_content["examples"] = {
+                "localSyntheticSession": {
+                    "summary": "Create a process-local synthetic demo session",
+                    "description": (
+                        "Use a fresh UUIDv4 for each run. The session exists only in this "
+                        "API process and is cleared when it restarts."
+                    ),
+                    "value": {
+                        "request_id": "swagger-qa-session-001",
+                        "idempotency_key": "swagger-qa-session-001",
+                        "session_id": "d5f439fa-3065-4a5e-a06e-52a57514781f",
+                        "expected_session_version": 0,
+                        "actor_ref": "demo:local",
+                        "payload": {"operation": "CREATE_SESSION"},
+                    },
+                }
+            }
+        if isinstance(session_operation, dict):
+            session_operation["description"] = (
+                f"{session_operation.get('description', '')}\n\n"
+                "**Local synthetic Try it out:** use a fresh UUIDv4 for `session_id`. "
+                "Copy `observed_session_version` from the response into the next request. "
+                "This demo session is process-local and makes no persistent database write."
+            ).strip()
+
+        image_operation = schema.get("paths", {}).get(
+            "/v1/sessions/{session_id}/media/image", {}
+        ).get("post", {})
+        image_content = (
+            image_operation.get("requestBody", {}).get("content", {}).get("multipart/form-data")
+            if isinstance(image_operation, dict)
+            else None
+        )
+        if isinstance(image_content, dict):
+            image_content["examples"] = {
+                "localSyntheticPng": {
+                    "summary": "Upload the supplied synthetic PNG",
+                    "description": (
+                        "Choose `features/FEAT-063-system-architecture-rearchitecture/"
+                        "artifacts/qa-fixtures/synthetic-demo.png` in the image field."
+                    ),
+                    "value": {
+                        "image": "synthetic-demo.png",
+                        "source_media_type": "image/png",
+                        "normalization_policy": "IDENTITY_V1",
+                    },
+                }
+            }
+        if isinstance(image_operation, dict):
+            image_operation["description"] = (
+                f"{image_operation.get('description', '')}\n\n"
+                "**Local synthetic Try it out:** first call `POST /v1/sessions`, then use its "
+                "`session_id` and `observed_session_version`. Select the supplied synthetic "
+                "non-child PNG above, keep `normalization_policy` as `IDENTITY_V1`, and set "
+                "`X-Synthetic-Non-Child-Confirmed` to `true`. The upload is processed locally "
+                "without invoking an AI provider."
+            ).strip()
+            header_examples = {
+                "X-Request-ID": "swagger-qa-image-001",
+                "X-Expected-Session-Version": 0,
+                "Idempotency-Key": "swagger-qa-image-001",
+                "X-Actor-Ref": "demo:local",
+                "X-Synthetic-Non-Child-Confirmed": True,
+            }
+            for parameter in image_operation.get("parameters", []):
+                if parameter.get("in") == "header" and parameter.get("name") in header_examples:
+                    parameter["example"] = header_examples[parameter["name"]]
         application.openapi_schema = schema
         return schema
 
