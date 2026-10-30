@@ -29,6 +29,10 @@ Catalog Rev37 do chủ task cung cấp có SHA-256 `56FC8BEA01360E11F73E45B2D43A
 
 ## Trạng thái B0
 
+Theo dõi hai phần riêng: **B0a đạt phạm vi baseline offline mới** (`combined` với storage bật/tắt, không phải test runtime); **B0b blocked** về provenance/kết quả lịch sử Rev37. B0b không chặn B1 sử dụng baseline mới; không gọi toàn bộ B0 đã hoàn tất. Chưa xuất snapshot riêng cho `classroom`, là profile dự kiến của pilot FEAT-064.
+
 Snapshot mới xác nhận được chênh lệch 121/124 trong cấu hình offline được mô tả và sự trùng method/path với 124 dòng catalog Rev37. Còn **BLOCKED đối chiếu lịch sử**: thiếu OpenAPI JSON và `EV-063-30` gốc, commit/working tree và cấu hình thực tế lúc chụp, nên chưa xác nhận kết quả test Compose cũ. Xem [báo cáo B0 ban đầu](B0_API_REV37_BASELINE_REVIEW_20261030.md) để phân biệt evidence cũ và công việc còn thiếu.
 
 Không có code sản phẩm, approval, cơ sở dữ liệu hay provider nào được thay đổi. Tại thời điểm lập báo cáo, các artifact mới còn ở local và chưa commit/push.
+
+Bổ sung trạng thái publication: artifact/script được commit `61c25690`, hai báo cáo tại `bbb43293` và đã push theo yêu cầu chủ task. Việc publish evidence không bổ sung bất kỳ kết quả test runtime nào.
