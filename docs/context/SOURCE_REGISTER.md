@@ -1,5 +1,13 @@
 # Source register and authority boundary
 
+## B2 Parent activity ordering - 2026-10-31
+
+- B2 reviewed 225 source passages: POST_VIDEO 26, PRE_VIDEO 9, TEACHER_PRE_VIDEO 82, NEUTRAL 81, AMBIGUOUS 27.
+- Owner selected A for Q1 only; Q2-Q8 remain unconfirmed working assumptions.
+- B2A amendment plan is DRAFT / AWAITING_APPROVAL; 42/45 proposed edits remain owner-gated, none applied.
+- B1 rows T018-T031, T046 and T047 remain blocked_by=B2.
+- No SRS or Data Table Register source was changed; B2 does not block the FEAT-064 pilot.
+
 ## B0 baseline and B1 crosswalk sources — 2026-10-30
 
 Catalog Rev37 (`API_CONTRACT_CATALOG_FEAT063_REV37_20261030.md`) is an owner-provided external document kept outside the repository; it is cited by SHA-256 (CRLF copy `56FC8BEA01360E11F73E45B2D43AC1897540B30BC8AE524CDE1ECEFACFBB1B88`, LF blob from commit `e9ba2ddd` `4090833B7EC03A6FEE81E0F8AE7FD57F9C2C1A8901D969D13F3C3F5CAAD29C54`). Its runtime labels are unverified because `EV-063-30` was not found. The B1 crosswalk in FEAT-063 `evidence/` combines that catalog, the B0 offline snapshots, SRS 2.3 draft section 21.2/9.6, the Rev36 S1 draft and the FEAT-064 outline; every disposition is a proposal and none changes an approval or authorizes implementation.

@@ -1,5 +1,13 @@
 # Status
 
+## B2 Parent activity ordering - 2026-10-31
+
+- B2 reviewed 225 source passages: POST_VIDEO 26, PRE_VIDEO 9, TEACHER_PRE_VIDEO 82, NEUTRAL 81, AMBIGUOUS 27.
+- Owner selected A for Q1 only; Q2-Q8 remain unconfirmed working assumptions.
+- B2A amendment plan is DRAFT / AWAITING_APPROVAL; 42/45 proposed edits remain owner-gated, none applied.
+- B1 rows T018-T031, T046 and T047 remain blocked_by=B2.
+- No SRS or Data Table Register source was changed; B2 does not block the FEAT-064 pilot.
+
 ## B0 closeout and B1 API crosswalk — 2026-10-30
 
 - B0a complete (offline snapshot baseline, 124 catalog rows matched, 11 absent). B0b open: `EV-063-30` files not found; Rev37 historical provenance and runtime results unverified. Evidence: `evidence/B0_CLOSEOUT_20261030.md`.

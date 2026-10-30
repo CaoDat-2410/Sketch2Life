@@ -1,5 +1,13 @@
 # FEAT-063 — Whole-repository architecture redesign
 
+## B2 Parent activity ordering - 2026-10-31
+
+- B2 reviewed 225 source passages: POST_VIDEO 26, PRE_VIDEO 9, TEACHER_PRE_VIDEO 82, NEUTRAL 81, AMBIGUOUS 27.
+- Owner selected A for Q1 only; Q2-Q8 remain unconfirmed working assumptions.
+- B2A amendment plan is DRAFT / AWAITING_APPROVAL; 42/45 proposed edits remain owner-gated, none applied.
+- B1 rows T018-T031, T046 and T047 remain blocked_by=B2.
+- No SRS or Data Table Register source was changed; B2 does not block the FEAT-064 pilot.
+
 ## B0 baseline and B1 API crosswalk — 2026-10-30
 
 B0a is complete: offline OpenAPI snapshots of the current backend (`combined` profile, 121 operations with the storage example off and 124 with it on) match the 124 mounted rows of catalog Rev37 on method/path, parameter names and 2xx codes; the 11 candidate/fixture rows are absent. B0b stays open: the catalog's `EV-063-30` OpenAPI JSON and verification report were not found on local disk, in any Git ref, on GitHub or in agent logs, so Rev37's historical commit, profile and runtime results are unverified. See `evidence/B0_CLOSEOUT_20261030.md`.
