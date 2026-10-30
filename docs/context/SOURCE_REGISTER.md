@@ -1,5 +1,9 @@
 # Source register and authority boundary
 
+## B3 manifest and decision slip sources — 2026-10-31
+
+The B3 manifest combines FEAT-064 owner-path and guard drafts, ADR-0015, FEAT-064 D-07/D-08, the Rev36 coordination section and a read-only count of the Alembic revision files. `OWNER_DECISION_SLIP_20261031.md` records the owner's answers to the proposal slip; it grants no approval and no signature, and the B2 Parent-activity answers Q2-Q8 it records still require B2A to be approved before any SRS or register edit.
+
 ## B2 Parent activity ordering - 2026-10-31
 
 - B2 reviewed 225 source passages: POST_VIDEO 26, PRE_VIDEO 9, TEACHER_PRE_VIDEO 82, NEUTRAL 81, AMBIGUOUS 27.

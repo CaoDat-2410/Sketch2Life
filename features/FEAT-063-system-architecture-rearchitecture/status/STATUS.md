@@ -1,5 +1,11 @@
 # Status
 
+## B3 manifest and owner decisions — 2026-10-31
+
+- B3 complete as a document: ownership matrix (18 boundaries, 18 shared-file rows, all co-signatures unsigned) and manifest with three migration-order options left open. Evidence: `evidence/B3_OWNERSHIP_MIGRATION_MANIFEST_20261031.md`, `evidence/B3_OWNER_MATRIX_20261031.csv`.
+- Owner decision slip recorded in `evidence/OWNER_DECISION_SLIP_20261031.md`: scoped BE2 exception, migration option X, three-party `OwnerFenceV1` signing, pilot before Rev36, no temporary DB yet, and B2 Q2-Q8 answered.
+- Still open: named P4, actual co-signatures, per-file reviewers, approvals for FEAT-064 T0, Rev36 S1-S3 and B2A, and the B1 update. No code, database, provider or deployment change.
+
 ## B2 Parent activity ordering - 2026-10-31
 
 - B2 reviewed 225 source passages: POST_VIDEO 26, PRE_VIDEO 9, TEACHER_PRE_VIDEO 82, NEUTRAL 81, AMBIGUOUS 27.

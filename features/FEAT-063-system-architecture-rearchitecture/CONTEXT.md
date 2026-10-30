@@ -1,5 +1,11 @@
 # FEAT-063 — Whole-repository architecture redesign
 
+## B3 ownership manifest and owner decision slip — 2026-10-31
+
+B3 produced a documentation-only ownership, shared-file and migration-order manifest (`evidence/B3_OWNERSHIP_MIGRATION_MANIFEST_20261031.md` and `evidence/B3_OWNER_MATRIX_20261031.csv`): 18 source boundaries, 18 shared-file/migration rows, every co-signature `CHƯA KÝ`, and a static Alembic count of 22 revisions with 10 terminals by `down_revision` only or 9 when `depends_on` is counted. Migration options X/Y/Z, writers and signatures were left to the owner.
+
+The owner's decision slip (`evidence/OWNER_DECISION_SLIP_20261031.md`) records the answers: BE2 = Person 2 as a FEAT-064-scoped exception to ADR-0015; migration option X with the BE1 owner owning the synthetic-origin schema; `OwnerFenceV1` needs the BE1, BE2 and integration owners' signatures; pilot before Rev36; no temporary database yet; and Q2-Q8 of the B2 Parent-activity decision are now decided (option A). The slip is not an approval for FEAT-064, Rev36 or B2A, and signs nothing. The 16 B1 rows stay `blocked_by=B2` until the source is amended under its own approval.
+
 ## B2 Parent activity ordering - 2026-10-31
 
 - B2 reviewed 225 source passages: POST_VIDEO 26, PRE_VIDEO 9, TEACHER_PRE_VIDEO 82, NEUTRAL 81, AMBIGUOUS 27.
