@@ -1,5 +1,11 @@
 # FEAT-063 — Whole-repository architecture redesign
 
+## B0 baseline and B1 API crosswalk — 2026-10-30
+
+B0a is complete: offline OpenAPI snapshots of the current backend (`combined` profile, 121 operations with the storage example off and 124 with it on) match the 124 mounted rows of catalog Rev37 on method/path, parameter names and 2xx codes; the 11 candidate/fixture rows are absent. B0b stays open: the catalog's `EV-063-30` OpenAPI JSON and verification report were not found on local disk, in any Git ref, on GitHub or in agent logs, so Rev37's historical commit, profile and runtime results are unverified. See `evidence/B0_CLOSEOUT_20261030.md`.
+
+B1 produced a 192-row crosswalk (135 catalog rows plus 57 target rows from SRS 2.3 and the FEAT-064 pilot outline) in `evidence/B1_API_CROSSWALK_20261030.md` and `.csv`. All dispositions are proposals; evidence levels E0-E3 never mean a route passed. Twelve S1 fence candidates are also needed by the pilot, 16 rows wait on B2 (Parent activity ordering) and 23 low-confidence rows need owner answers. The B1 approval entry is recorded in `approvals/TASK_APPROVAL.md` after the work was done. Documentation only; no code, database, MinIO, Modal or GPU operation. Pilot FEAT-064 remains the owner's chosen first track (D-01) but is unapproved, and backend Rev36 is still awaiting approval.
+
 ## Dev backend synchronization — 2026-10-30
 
 Owner requested the latest dev backend in this feature branch for testing. Incoming tip `111ae547` adds existing Lesson Library/BE1 fixes and upstream evidence/UI drafts; Modal remains present. Revision numbers overlap across independent backend and UI/API work: use exact plan filenames and hashes for authority. Upstream UI Rev36 approval does not approve backend Rev36. See `evidence/notes/DEV_BACKEND_SYNC_20261030.md` for actual checks and limitations.

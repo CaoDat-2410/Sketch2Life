@@ -1,5 +1,12 @@
 # Status
 
+## B0 closeout and B1 API crosswalk — 2026-10-30
+
+- B0a complete (offline snapshot baseline, 124 catalog rows matched, 11 absent). B0b open: `EV-063-30` files not found; Rev37 historical provenance and runtime results unverified. Evidence: `evidence/B0_CLOSEOUT_20261030.md`.
+- B1 complete as a document: `evidence/B1_API_CROSSWALK_20261030.md` and `.csv` (192 rows: KEEP 54, MODIFY 3, LEGACY_HOLD 64, FIXTURE 14, NEW_TARGET 57; evidence E0 57, E1 11, E2 83, E3 41; pilot Y 18, MAYBE 2). Dispositions are proposals for owner review; no route is claimed to have passed.
+- Open for the owner: 23 low-confidence rows, 16 rows blocked by B2, the C070 evidence level, and the B0b source files. Next planned task: B2 (Parent activity ordering), which does not block the FEAT-064 pilot.
+- No code, approval beyond the B1 entry, database, provider or deployment change.
+
 ## Dev backend synchronized for local testing — 2026-10-30
 
 - Incoming dev tip: `111ae547`, destination existing feature/feat063-be-foundation. Existing Modal wrapper and backend Rev36 plan preserved; no S1/S2/S3 implementation approval inferred from upstream UI/API approvals.

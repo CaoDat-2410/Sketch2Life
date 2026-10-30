@@ -1,5 +1,9 @@
 # Source register and authority boundary
 
+## B0 baseline and B1 crosswalk sources — 2026-10-30
+
+Catalog Rev37 (`API_CONTRACT_CATALOG_FEAT063_REV37_20261030.md`) is an owner-provided external document kept outside the repository; it is cited by SHA-256 (CRLF copy `56FC8BEA01360E11F73E45B2D43AC1897540B30BC8AE524CDE1ECEFACFBB1B88`, LF blob from commit `e9ba2ddd` `4090833B7EC03A6FEE81E0F8AE7FD57F9C2C1A8901D969D13F3C3F5CAAD29C54`). Its runtime labels are unverified because `EV-063-30` was not found. The B1 crosswalk in FEAT-063 `evidence/` combines that catalog, the B0 offline snapshots, SRS 2.3 draft section 21.2/9.6, the Rev36 S1 draft and the FEAT-064 outline; every disposition is a proposal and none changes an approval or authorizes implementation.
+
 ## Owner-requested dev backend synchronization — 2026-10-30
 
 Owner requested importing current dev into feature/feat063-be-foundation for testing. Source dev tip `111ae547` and preservation/check details are recorded in FEAT-063 `evidence/notes/DEV_BACKEND_SYNC_20261030.md`. Existing upstream approvals remain tied to exact filenames and hashes; matching Rev33–36 numbers do not authorize the separate backend foundation plans. No provider, production migration or push authorization is inferred.
