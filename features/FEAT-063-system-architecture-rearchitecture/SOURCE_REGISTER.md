@@ -1,5 +1,33 @@
 # FEAT-063 source register
 
+## Rev36 UI component patterns and interaction states — current — 2026-10-30
+
+- Plan Rev36 is approved for nine generated component/state boards; SHA-256 `300104684514C4C6F67614F58DDE402668AAC24AF2204F9B1BCA7A5BBEA2D336`.
+- SRS baseline: §3, §20, §21.5–§21.6, §22.4, §31.2–§31.7; Rev31-reconciled Lesson Library contract; Rev31 route inventory; Rev32 purpose catalog; Rev35 UI visuals.
+- Output: nine component boards plus per-group prompt/motion notes at `assets/generated/ui-components-rev36-20261030/`; index separates current Lesson Library APIs from SRS-only/unmounted states.
+- EV-063-29 records source paths, final PNG hashes, review observations, limitations and visual-approval status.
+- Palette tokens and unresolved age/quota/profile-share values remain illustrative; no application code uses the generated assets.
+
+## Rev35 UI screen mockups and motion notes — current — 2026-10-30
+
+- Plan Rev35 is approved for the exact 14-screen generated-visual scope; SHA-256 `0EBBE2D7E983663F448B167F39FE42AD6C89A2E38EE5390A054673FC2C42723C`.
+- Visual baseline: SRS v2.3-draft §3, §6, §20, §21.5 and §31.1–§31.7; Rev31-reconciled Lesson Library API contract; Rev31 API inventory; Rev32 purpose catalog.
+- Existing visual references: `apps/ui-mobile/assets/images/`, `apps/teacher-ui/src/`, `apps/admin-ui/src/`.
+- Fourteen screen PNGs, fourteen per-screen prompt records and fourteen per-screen motion notes are under `assets/generated/ui-mockups-rev35-20261030/`; screen index and shared specifications are in that directory.
+- EV-063-28 records image-generation source files, provenance, visual review observations and limits. Assets remain drafts pending owner visual approval; no application source uses them.
+
+## Rev34 legacy non-AI API regression - current - 2026-10-29
+
+- Plan Rev34 is approved for the exact test-only scope; SHA-256 `308F4FEA6576BAB08ACCD86B62616FE463C94D099FC27EBF301E855C4756F5B1`.
+- “Old APIs” means pre-Lesson-Library BE1/classroom and Demo/local-flow routes. AI-dependent endpoints, new Lesson Library/storage-example routes, and candidate/unmounted declarations are reported separately.
+- EV-063-27 records 77 active non-AI route-dispatch responses (0 HTTP 5xx), 109/110 non-PostgreSQL API tests, 3/4 BE1 PostgreSQL tests, the two failures, and uncovered success-path boundaries. The disposable DB was dropped; persistent DB remains at Rev33.
+
+## Rev33 local migration and non-AI API verification - current - 2026-10-29
+
+- Plan Rev33 is approved for local additive migration and non-AI workflow testing; SHA-256 `513FEE246CF1DD2B062BE146996C362C7C726667A9529E0E2342962084CF4DE1`.
+- EV-063-26 records migration of the existing local `sketch2life` database to `20261028_ll_0001`, Lesson Library API tests (5/5), BE1 HTTP suite (3/4), and exact MinIO/test-database limits. The disposable test DB was dropped; the application DB was retained.
+- No AI API, remote provider, AWS/Firebase, real child data, actual `.env` edit, commit, or push was used/performed.
+
 ## Complete API purpose catalog - current - 2026-10-28
 
 - Plan Rev32 is approved for documentation-only work; SHA-256 `FD189D3E2684CE2930624AFD7412C54F9BB53339209790F7B319B534C41E087C`.

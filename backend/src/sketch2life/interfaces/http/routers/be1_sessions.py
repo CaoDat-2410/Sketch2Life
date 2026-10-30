@@ -444,7 +444,6 @@ def _draft_canvas_refs(
             select(CoreCanvasCheckpointModel)
             .where(
                 CoreCanvasCheckpointModel.organization_id == organization_id,
-                CoreCanvasCheckpointModel.session_id == session_id,
                 CoreCanvasCheckpointModel.canvas_id == turn.canvas_id,
                 CoreCanvasCheckpointModel.document_epoch == turn.document_epoch,
             )
@@ -591,7 +590,6 @@ def advance_learning_stage(
                 select(CoreCanvasCheckpointModel.checkpoint_id)
                 .where(
                     CoreCanvasCheckpointModel.organization_id == organization_id,
-                    CoreCanvasCheckpointModel.session_id == session_id,
                     CoreCanvasCheckpointModel.canvas_id == turn.canvas_id,
                     CoreCanvasCheckpointModel.document_epoch == turn.document_epoch,
                 )
