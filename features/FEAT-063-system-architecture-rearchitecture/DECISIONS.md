@@ -143,3 +143,33 @@ EV-063-05 records an independent architecture audit in `evidence/INDEPENDENT_ARC
 | ID | Record | Basis |
 |---|---|---|
 | D-113 | Rev36 adds visual references for reusable controls, dialogs, toasts, API states, upload, quota, sharing and feedback. They distinguish Rev31 Lesson Library APIs from SRS target contracts and do not alter runtime behavior or lock app design tokens. Assets await owner visual review before application. | Approved Plan Rev36; EV-063-29 |
+
+## Rev38 contract-aligned Swagger record (documentation resolution, not a product decision)
+
+| ID | Record | Basis |
+|---|---|---|
+| D-114 | The local Compose Swagger/OpenAPI surface is enriched and checked against every mounted Rev37 request, authentication, response and route declaration; 11 candidate/fixture operations remain unmounted. The two upload body-limit 413 routes document both the Rev37 `MobileWorkflowResultV1` contract and the currently observed generic middleware payload. This changes no route or middleware behavior; the existing image body-cap test mismatch remains recorded for separate resolution. | Approved Plan Rev38; source Rev37 catalog; EV-063-30 |
+
+## Rev39 Swagger navigation record (documentation resolution, not a product decision)
+
+| ID | Record | Basis |
+|---|---|---|
+| D-115 | Swagger tags use explicit Lesson Library route guards for role-based groups and BE1/Demo domain/workflow groups where access roles are not declared by the API contract. Tag descriptions are published in OpenAPI; tags are navigational only and change no authorization or endpoint behavior. | Approved Plan Rev39; source review; EV-063-31 |
+
+## Rev40 local Swagger QA boundary (not a product authorization decision)
+
+| ID | Record | Basis |
+|---|---|---|
+| D-116 | Local Swagger QA uses the existing in-memory synthetic Demo session and image-admission flow. Middleware body-limit failures for its image/audio routes use `MobileWorkflowResultV1`. Do not add persisted QA credentials or an auth bypass; protected routes remain Firebase-authenticated and require an explicitly configured test identity plus their required persistence services. | Approved Plan Rev40; repository auth/test fixtures; EV-063-32 |
+
+## Rev41 Swagger overview presentation (documentation only)
+
+| ID | Record | Basis |
+|---|---|---|
+| D-117 | Keep the Swagger overview concise and scannable: summarize current local coverage, explain bearer-authenticated Try it out, clarify that tags organize navigation only, and identify the 11 unmounted candidates. This presentation text changes no route, auth or API behavior. | Approved Plan Rev41; owner-provided screenshot; EV-063-33 |
+
+## Rev42 Swagger review hardening
+
+| ID | Record | Basis |
+|---|---|---|
+| D-118 | Before returning a typed 413 for a local session media upload, match only the exact image/audio upload route, validate echoed request/session identifiers using the API's safe identifier format, and cap the reported version at the established error-response maximum. This prevents unsafe header reflection while preserving the approved `MobileWorkflowResultV1` payload. | Approved Plan Rev40 and Rev42; source review; EV-063-34 |
