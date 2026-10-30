@@ -1,5 +1,44 @@
 # FEAT-063 — Whole-repository architecture redesign
 
+## UI component patterns and states — Plan Rev36 (2026-10-30)
+
+- Lifecycle: REVIEW; nine generated component boards, group-specific prompt/motion notes, API mapping and evidence are complete. Owner visual approval is pending before any asset can be approved/applied.
+- Approved Plan Rev36 SHA-256: `300104684514C4C6F67614F58DDE402668AAC24AF2204F9B1BCA7A5BBEA2D336`; approval and exact AC1–AC7 scope are in `approvals/TASK_APPROVAL.md`.
+- Output index: `assets/generated/ui-components-rev36-20261030/COMPONENT_INDEX.md`; each group folder contains one PNG, `PROMPT.md` and `MOTION.md`; central `PROMPT_LOG.md` and `MOTION_SPEC.md` provide the shared reference.
+- Coverage: visual foundations; Parent dialogs; web decision dialogs; toast/inline notices; loading/empty/auth/not-found/forbidden/stale/service states; filtered upload/extraction; quota/video job; separate lesson/profile grants; school-scoped feedback/notifications.
+- API boundary is explicit: Rev31 Lesson Library covers lesson CRUD, filtered upload, lesson grants/Manager decisions/Parent lesson read and Admin moderation. Video/quota, child-profile grant, LessonOccurrence history/feedback and new AI/video flows remain SRS target APIs.
+- Motion notes enforce true API state, byte-based upload progress, no fake job percentages/ETA, non-refundable accepted video quota and reduced-motion behavior.
+- Samples are fictional. Palette numbers are proposals only. Assets remain under `assets/generated/`; no product UI/API/database code, tests or runtime operations were performed.
+- Evidence: `evidence/EV-063-29_UI_COMPONENT_PATTERNS_REV36_20261030.md`.
+
+## UI screen mockups and motion notes — Plan Rev35 (2026-10-30)
+
+- Lifecycle: REVIEW; 14 visual drafts and their per-screen prompt/motion notes are complete. Owner visual review is pending before any asset can be approved/applied.
+- Approved Plan Rev35 SHA-256: `0EBBE2D7E983663F448B167F39FE42AD6C89A2E38EE5390A054673FC2C42723C`; direct request and exact scope are recorded in `approvals/TASK_APPROVAL.md`.
+- Output index: `assets/generated/ui-mockups-rev35-20261030/SCREEN_INDEX.md`; one PNG, `PROMPT.md` and `MOTION.md` per screen. `PROMPT_LOG.md` and `MOTION_SPEC.md` hold shared provenance and detailed behavior notes.
+- Coverage: Parent lesson library/detail, optional line-sketch drawing, capture/subject confirmation, story review, video progress/playback/activities, history/feedback; Teacher workspace/authoring/filtered upload/session Sketch Deck; School Manager Public review; Platform Admin catalog moderation.
+- Source baseline: SRS v2.3-draft §3, §6, §20, §21.5, §31.1–§31.7; Rev31 Lesson Library API contract; Rev31 API inventory; Rev32 API purpose catalog; existing Parent assets and Teacher/Admin UI source.
+- All samples are fictional. Assets remain under `assets/generated/`; no product UI/API/database implementation was changed. No tests or runtime checks were requested or run.
+- Evidence: `evidence/EV-063-28_UI_MOCKUPS_AND_MOTION_NOTES_REV35_20261030.md`.
+
+## Current legacy API regression - Plan Rev34 (2026-10-29)
+
+- Plan Rev34 SHA-256: `308F4FEA6576BAB08ACCD86B62616FE463C94D099FC27EBF301E855C4756F5B1`; direct owner approval is recorded in `approvals/TASK_APPROVAL.md`.
+- “Old APIs” is scoped to pre-Lesson-Library BE1/classroom and Demo/local-flow surfaces from the Rev32 catalog. The newer Lesson Library and conditional local storage example are not part of this rerun.
+- AI-dependent classifier, media/understanding, ranking, story/whiteboard-video, and AI planner endpoints are excluded. Candidate/unmounted route contracts are tracked separately from active APIs.
+- Smoke-tested 77 active old non-AI method/path operations: 52 returned 401, 23 returned 422, 2 health endpoints returned 200, and 0 returned 5xx. Requests omitted credentials/valid write bodies, so this is route-dispatch evidence only.
+- Existing API suites: 109 passed / 1 failed in the non-PostgreSQL batch; 3 passed / 1 failed in the BE1 PostgreSQL suite. Failures: stale app route-difference baseline after Lesson Library was mounted, and BE1 consent schema/runtime mismatch (`effective` required but not allowed by the DB constraint).
+- Disposable `sketch2life_be1_acceptance` was dropped; persistent `sketch2life` remains at the Rev33 target. No AI call or product/test-expectation change was made. Full detail and uncovered success paths are in EV-063-27.
+
+## Current local API verification - Plan Rev33 (2026-10-29)
+
+- Plan Rev33 SHA-256: `513FEE246CF1DD2B062BE146996C362C7C726667A9529E0E2342962084CF4DE1`; direct owner approval and exact local scope are recorded in `approvals/TASK_APPROVAL.md`.
+- The owner authorized non-AI API workflow tests and execution of the database migration. This supersedes Rev31's explicit test/migration exclusion only for the local Compose database and a separately isolated disposable `be1_acceptance` database.
+- Applied `20261028_ll_0001` to local Compose PostgreSQL `sketch2life`; it was at `20261014_0004` before the run. Alembic applied prerequisite `20261024_0005`, leaving independent AI/media heads untouched. Main DB is verified at the Lesson Library target revision.
+- Lesson Library HTTP integration suite: 5/5 passed. Existing BE1 HTTP suite: 3 passed, 1 failed with `409 CONSENT_NOT_EFFECTIVE`; the test exposed that runtime authorization requires consent state `effective`, while the model/database constraint permits only `pending` or `revoked`. The successful consent path is unrepresentable and needs separately scoped schema/domain remediation.
+- A disposable `sketch2life_be1_acceptance` database was migrated and then dropped. ClamAV was healthy. MinIO pulls failed (Quay returned 401; Docker Hub denied access), so storage-example routes used an in-memory storage adapter; MinIO adapter and bucket initialization remain unverified.
+- Targeted Ruff and `compileall` passed. No AI, AWS/Firebase, remote DB, real child data, `.env` edit, or deployment was used. See EV-063-26 for commands, defects fixed, results, and limitations.
+
 ## Current API purpose catalog - Plan Rev32 (2026-10-28)
 
 - Plan Rev32 SHA-256: `FD189D3E2684CE2930624AFD7412C54F9BB53339209790F7B319B534C41E087C`; approval is recorded in `approvals/TASK_APPROVAL.md`.

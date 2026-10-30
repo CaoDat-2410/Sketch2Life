@@ -131,3 +131,15 @@ EV-063-05 records an independent architecture audit in `evidence/INDEPENDENT_ARC
 | ID | Record | Basis |
 |---|---|---|
 | D-111 | The API purpose catalog enumerates all 135 declared backend method/path operations and labels combined-app, profile-specific, conditional local, and unmounted candidate/fixture exposure. It adds no endpoint or behavior; generated FastAPI documentation routes are listed separately. | Approved Plan Rev32; EV-063-25 |
+
+## Rev35 visual draft record (not a product or implementation decision)
+
+| ID | Record | Basis |
+|---|---|---|
+| D-112 | The Rev35 mockups use the current Parent/Teacher visual surfaces and add separate School Manager and Platform Admin concepts. They illustrate the SRS/API roles and states without changing product requirements. Generated images and motion notes require owner visual review before application. | Approved Plan Rev35; EV-063-28 |
+
+## Rev36 visual component record (not a product or implementation decision)
+
+| ID | Record | Basis |
+|---|---|---|
+| D-113 | Rev36 adds visual references for reusable controls, dialogs, toasts, API states, upload, quota, sharing and feedback. They distinguish Rev31 Lesson Library APIs from SRS target contracts and do not alter runtime behavior or lock app design tokens. Assets await owner visual review before application. | Approved Plan Rev36; EV-063-29 |

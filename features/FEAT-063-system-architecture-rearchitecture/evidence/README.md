@@ -1,6 +1,6 @@
 # FEAT-063 evidence index
 
-Evidence includes source/configuration and documentation review for the current Rev31 backend slice. No runtime, database, provider, Modal, test/build, or deployment has been used.
+Evidence includes source/configuration and documentation reviews for earlier FEAT-063 slices. Rev33 adds local runtime and database evidence: the Lesson Library migration was applied, non-AI HTTP workflows were tested, and MinIO limitations are documented in EV-063-26.
 
 EV-063-13 records the pre-platform table-reduction and relationship-integrity baseline. EV-063-18 supersedes its platform target counts through Q195; EV-063-24 records the Rev31 implementation crosswalk and complete API inventory. EV-063-14 documents the original architecture diagram package and its references/QA; EV-063-15 supersedes its artifact counts with the expanded master and detailed system-flows PDF. Earlier evidence files preserve historical review snapshots and must not be treated as the current baseline.
 
@@ -32,3 +32,7 @@ EV-063-13 records the pre-platform table-reduction and relationship-integrity ba
 | EV-063-23 | Local Docker, MinIO and S3-compatible storage example | Records approved Rev30 implementation scope, Compose/storage wiring, local-only sample API, official MinIO maintenance source review and unrun runtime/test limits | DOCKER_MINIO_STORAGE_EXAMPLE_20261028.md |
 | EV-063-24 | Backend implementation and API inventory | Record the approved Rev31 implementation scope, static route inventory, additive Lesson support tables and unrun runtime/database gates | REV31_LESSON_LIBRARY_IMPLEMENTATION_AND_API_INVENTORY_20261028.md |
 | EV-063-25 | API purpose catalog | Record purpose and runtime exposure for all 135 declared routes; static source/composition limits | REV32_COMPLETE_API_PURPOSE_CATALOG_20261028.md |
+| EV-063-26 | Local non-AI API workflow and migration verification | Record the additive local migration, Lesson Library HTTP results, legacy BE1 result, isolated test database cleanup, and MinIO pull limitation | REV33_NON_AI_API_TESTS_AND_LOCAL_MIGRATION_20261029.md |
+| EV-063-27 | Legacy non-AI API regression | Record 77 active-route smoke responses, 109/110 non-DB tests, 3/4 BE1 tests, AI exclusions, candidate-route boundary, and the two failures | REV34_LEGACY_NON_AI_API_REGRESSION_20261029.md |
+| EV-063-28 | UI screen mockups and motion notes | Record 14 generated screen drafts, per-screen prompt/motion files, API/SRS mapping, image provenance/hashes, and visual review limits | EV-063-28_UI_MOCKUPS_AND_MOTION_NOTES_REV35_20261030.md |
+| EV-063-29 | UI component patterns and interaction states | Record nine reusable component/state boards, SRS/API mapping, motion notes, hashes, and current-versus-target API limits | EV-063-29_UI_COMPONENT_PATTERNS_REV36_20261030.md |
