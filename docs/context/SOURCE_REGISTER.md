@@ -1,5 +1,9 @@
 # Source register and authority boundary
 
+## Owner-requested dev backend synchronization — 2026-10-30
+
+Owner requested importing current dev into feature/feat063-be-foundation for testing. Source dev tip `111ae547` and preservation/check details are recorded in FEAT-063 `evidence/notes/DEV_BACKEND_SYNC_20261030.md`. Existing upstream approvals remain tied to exact filenames and hashes; matching Rev33–36 numbers do not authorize the separate backend foundation plans. No provider, production migration or push authorization is inferred.
+
 ## FEAT-063 Rev36 review response — 2026-10-29
 
 Owner requested addressing the three P3 notes of the Rev35 independent review. `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV36_BACKEND_SRS23_ALIGNMENT_20261029.md` is the current plan draft for review; prior plans and approvals remain unchanged, and this does not authorize implementation.
@@ -35,6 +39,13 @@ Owner then supplied Claude's rev2 NEEDS_REVISION review. Rev3 records an externa
 Owner supplied Claude's rev3 NEEDS_REVISION review; rev4 aligns AC18 and contracts to require an independently verified witness, separates T0 specification from approved throwaway tests, and distinguishes unknown transport outcomes. See `features/FEAT-064-current-flow-modal-vision-dev/evidence/notes/CLAUDE_PLAN_REVIEW_REV4_20261029.md`; no rev4 PASS, runtime evidence or implementation approval is inferred.
 
 Claude's subsequent review of exact rev4 returned PLAN_REVIEW_PASS with one P3-C for T0; see `features/FEAT-064-current-flow-modal-vision-dev/evidence/notes/CLAUDE_REVIEW_REV4_PASS_20261029.md`. OD-1–OD-4 remain open; review does not grant task or live approval. P3-C must not infer absence of a ledger proves no send after a DB restore.
+## FEAT-063 Rev34 legacy non-AI API regression result - current - 2026-10-29
+
+Plan Rev34 (`features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV34_LEGACY_NON_AI_API_REGRESSION_20261029.md`, SHA-256 `308F4FEA6576BAB08ACCD86B62616FE463C94D099FC27EBF301E855C4756F5B1`) records the owner's request to rerun legacy non-AI APIs. The route smoke covered 77 active BE1/classroom and Demo/local-flow method/path operations with no 5xx (52 expected 401, 23 expected 422, 2 health responses 200). Existing suites yielded 109 passed/1 failed and BE1 PostgreSQL yielded 3 passed/1 failed. The failures are a stale route-composition expectation after Lesson Library routes were mounted and the BE1 `effective` consent state mismatch. No AI API was called; the disposable DB was dropped. EV-063-27 records route status, JUnit results, exclusions, and success-path coverage gaps.
+
+## FEAT-063 Rev33 local migration and API test result - current - 2026-10-29
+
+Plan Rev33 (`features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV33_NON_AI_API_TESTS_AND_LOCAL_MIGRATION_20261029.md`, SHA-256 `513FEE246CF1DD2B062BE146996C362C7C726667A9529E0E2342962084CF4DE1`) is approved for local non-AI API workflow tests and additive migration. The existing Compose PostgreSQL database `sketch2life` is at `20261028_ll_0001` after applying prerequisite `20261024_0005`; its named volume was retained. The Lesson Library HTTP suite passed 5/5; the existing BE1 suite passed 3/4 and exposed a consent-state defect: runtime authorization requires `effective`, while the database constraint allows only `pending`/`revoked`. MinIO could not be pulled (Quay 401; Docker Hub access denied), so storage-example routes used an in-memory adapter and MinIO integration remains unverified. The disposable test DB was dropped. EV-063-26 records the commands, fixes and limits. No AI/provider, AWS/Firebase, remote DB, real child data, `.env` edit, commit, or push was used/performed.
 
 ## FEAT-063 complete API purpose catalog - current - 2026-10-28
 
