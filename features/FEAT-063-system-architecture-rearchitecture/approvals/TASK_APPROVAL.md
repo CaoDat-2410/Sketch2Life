@@ -138,3 +138,43 @@
 - Acceptance criteria: AC1–AC7 in the hash-identified Plan Rev36.
 - Explicitly excluded: frontend/component implementation, API/schema/database changes, executable animation, provider/model calls, tests/builds, deployment, real child data, Git commit/push, and promotion into `assets/approved/` or `assets/applied/` before visual approval.
 - Approval basis: the owner's direct request applies to the exact plan scope and acceptance criteria above.
+
+## Plan revision 38 — UI mockup remediation and workflow coverage
+
+- Status: APPROVED for generated visual drafts and the single AC-33 consistency correction described below. Visual approval, product implementation and promotion of assets remain separate gates.
+- Approver: Project owner, direct reply on 2026-10-30 (“Ok, ấy lại dfi”) to the recommendation to revise the UI mockups against the current FEAT-063 source, reconcile the Parent line-sketch contradiction, and add missing workflow screens.
+- Recorded timestamp: 2026-10-30 15:21:02 Asia/Saigon.
+- Feature: FEAT-063 - whole-repository architecture redesign.
+- Approved plan: `plan/PLAN_REV38_UI_MOCKUP_REMEDIATION_20261030.md`.
+- Approved plan SHA-256: `ADB45B054C5E4872629AFDAF52037053AB97470EEEAC6F225D007ED0B62ADB27`.
+- Approved scope: correct the contradictory Parent-guide wording in draft SRS AC-33; preserve Rev35/Rev36 originals; produce 23 screen drafts and nine component boards with prompt/motion notes and API-boundary labels under new `assets/generated/` directories; use consistent proposed visual styling and synthetic examples; inspect and record provenance, hashes and limitations; update FEAT-063 context, decisions, source register, evidence and status.
+- Acceptance criteria: AC1–AC8 in the hash-identified Plan Rev38.
+- Explicitly excluded: app/source implementation, product API/schema/database changes, executable animation, age-policy decision or SRS sign-off, provider calls, tests/builds, deployment, real child data, Git commit/push, and promotion to `assets/approved/` or `assets/applied/` before separate owner visual approval.
+- Approval basis: the owner's direct instruction applies to the exact scope and acceptance criteria in Plan Rev38; it does not constitute visual approval of generated assets.
+
+## Plan revision 40 — publish Rev38 on a branch based on current origin/dev
+
+- Status: APPROVED for a new-branch publish of the Rev38 package; do not rewrite `origin/dev`.
+- Approver: Project owner, direct instruction on 2026-10-30: “commit and push lên”.
+- Recorded date: 2026-10-30.
+- Feature: FEAT-063 — whole-repository architecture redesign.
+- Approved plan: `plan/PLAN_REV40_PUBLISH_REV38_BRANCH_20261030.md`.
+- Approved plan SHA-256: `B8B6B143F2032AD53C2B8A9A3A8E5D2632FE06FD55B0FEF5248CFB7191B78174`.
+- Approved scope: publish Rev38 visuals and associated FEAT-063 records on `codex/feat063-rev38-ui-mockups-20261030`, rooted at fetched `origin/dev`; run repository security validation before commit and push.
+- Acceptance criteria: AC1–AC5 in the hash-identified Plan Rev40.
+- Explicit exclusions: force-push or change to `origin/dev`, Rev37 pending outputs, unrelated staged/worktree changes, other features, secrets, `.env`, and visual asset promotion.
+- Approval basis: the owner's direct commit/push instruction authorizes publishing this package on a new branch because the local and remote `dev` histories diverged. It is not visual approval of the generated UI assets.
+
+## Plan revision 41 — publish Rev38 with its API source on a branch
+
+- Status: APPROVED for the exact path-scoped commit and new-branch push below.
+- Approver: Project owner, direct instruction on 2026-10-30: “commit and push lên”.
+- Recorded date: 2026-10-30.
+- Feature: FEAT-063 — whole-repository architecture redesign.
+- Approved plan: `plan/PLAN_REV41_PUBLISH_REV38_WITH_API_SOURCE_20261030.md`.
+- Approved plan SHA-256: `BDA32999FED7D34B3F94939F9836F9073A4BD624A7CEC3A20071D9C65D0636BD`.
+- Approved scope: publish Rev38 visuals and associated FEAT-063 records on `codex/feat063-rev38-ui-mockups-20261030`, rooted at fetched `origin/dev`; include the cited Rev37 API contract catalog as a read-only source dependency; run repository security validation before commit and push.
+- Acceptance criteria: AC1–AC5 in the hash-identified Plan Rev41.
+- Explicit exclusions: force-push or change to `origin/dev`, Rev37 execution reports/scripts/logs, unrelated staged/worktree changes, other features, secrets, `.env`, product-code changes and visual asset promotion.
+- Supersession: Rev41 supersedes Plan Rev40 only to include the Rev37 API contract catalog required by Rev38 provenance. It is not visual approval of generated UI assets.
+- Approval basis: the owner's direct commit/push instruction authorizes publishing this reviewable package on a new branch because local and remote `dev` histories diverged.

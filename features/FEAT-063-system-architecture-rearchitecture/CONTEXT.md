@@ -1,5 +1,24 @@
 # FEAT-063 — Whole-repository architecture redesign
 
+## UI mockup remediation — Plan Rev38 (2026-10-30)
+
+- Lifecycle: REVIEW. Plan Rev38 is approved and executed for new generated visual drafts plus one unsigned SRS consistency correction. Plan SHA-256: `ADB45B054C5E4872629AFDAF52037053AB97470EEEAC6F225D007ED0B62ADB27`.
+- Corrected AC-33 in `artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` so the optional Parent generic line-sketch guide and optional Teacher Sketch Deck are consistent with the already-recorded decisions. The SRS remains an unsigned draft.
+- Added 23 role screens and nine component boards under the Rev38 `assets/generated/` directories. Each screen/component folder has a PNG, PROMPT.md and MOTION.md; both sets have indexes and central prompt/motion records.
+- API indexes distinguish Rev37 mounted Lesson Library operations from SRS target flows. Current Rev37 catalog has 135 declared operations / 124 mounted operations; the mockups do not imply target routes already exist.
+- Cross-screen review aligned the fictional child/artwork, Teacher/school/class, blue primary actions, role navigation, state-dependent actions and 2026 sample dates. Visual tokens and sample copy remain proposals.
+- Evidence: EV-063-31 records output hashes, provenance, static checks, review findings and limitations. All visuals remain generated drafts pending separate owner visual approval; none were copied to approved/applied.
+- No application code, API, schema, database, migration, executable animation, test/build, provider call, commit or push was performed.
+
+## Complete API contract and local verification — Plan Rev37 (2026-10-30)
+
+- Lifecycle: REVIEW; the approved execution and evidence are complete. Plan Rev37 SHA-256 `9050EFE86F9C2531C93BBF5EBC6B7846EC1944CD70D991E23CC3DBD3E7EE42F0` is recorded in `approvals/TASK_APPROVAL.md`.
+- Contract result: all 135 source operations are cataloged; runtime OpenAPI has 124 operations / 111 paths / 87 schemas, with 11 candidate routes unmounted. Framework/docs and static renderer routes are itemized separately.
+- Runtime result: API, PostgreSQL, Redis and ClamAV are healthy; MinIO and `minio-init` are blocked by Quay's 401 response for the pinned MinIO image. Persistent DB heads were checked read-only; a separate test DB was created, migrated, used, and dropped.
+- Test result: the 1,260-case API/contract set is 1,259 passed / 1 failed when the DB-gated tests are included. The first full backend run completed with 12 failures; targeted reruns resolved nine harness-dependent cases and the media 413 fix resolved one, leaving two stale assertions. A post-fix full rerun stopped at 66% without progress. Frontend/workspace results and all blockers are detailed in EV-063-30.
+- Scope guard: no live AI/provider/account calls, real child data, `.env` edits, persistent DB reset, or volume deletion. Existing work in other feature folders was preserved.
+- Outputs: `artifacts/API_CONTRACT_CATALOG_FEAT063_REV37_20261030.md` and `evidence/EV-063-30_API_CONTRACT_AND_FULL_STACK_VERIFICATION_20261030.md`.
+
 ## UI component patterns and states — Plan Rev36 (2026-10-30)
 
 - Lifecycle: REVIEW; nine generated component boards, group-specific prompt/motion notes, API mapping and evidence are complete. Owner visual approval is pending before any asset can be approved/applied.

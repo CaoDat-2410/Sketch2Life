@@ -1,5 +1,23 @@
 # FEAT-063 source register
 
+## Rev38 UI mockup remediation — current — 2026-10-30
+
+- Approved Plan Rev38 SHA-256: `ADB45B054C5E4872629AFDAF52037053AB97470EEEAC6F225D007ED0B62ADB27`; approval is in `approvals/TASK_APPROVAL.md`.
+- SRS source: `artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` v2.3-draft; only AC-33 was reconciled to existing Parent-guide/Teacher-Deck requirements. No age-band decision or SRS sign-off.
+- Visual sources: Rev35/Rev36 generated drafts, owner UI review supplied 2026-10-30, current SRS/API sources, logo at `apps/teacher-ui/src/assets/logo-icon.png`, and one synthetic shared butterfly artwork.
+- Outputs: `assets/generated/ui-mockups-rev38-20261030/SCREEN_INDEX.md` (23 screens) and `assets/generated/ui-components-rev38-20261030/COMPONENT_INDEX.md` (9 boards); per-folder prompt/motion notes and central logs accompany them.
+- API status source: `artifacts/API_CONTRACT_CATALOG_FEAT063_REV37_20261030.md` (135 declared, 124 mounted). Indexes mark mounted Lesson Library routes separately from SRS-target Parent/Teacher story, video, class/profile, billing, occurrence and feedback routes.
+- Evidence: `evidence/EV-063-31_UI_MOCKUP_REMEDIATION_REV38_20261030.md`. Visual approval remains pending; no asset is approved/applied and no product code/API/schema/test/build changed.
+
+## Rev37 complete API contract and local verification — current — 2026-10-30
+
+- Approved Plan Rev37 SHA-256: `9050EFE86F9C2531C93BBF5EBC6B7846EC1944CD70D991E23CC3DBD3E7EE42F0`; approval is in `approvals/TASK_APPROVAL.md`.
+- Lifecycle: REVIEW; the 135 source operations reconcile to 124 mounted OpenAPI operations and 11 unmounted candidates; 3 optional local storage routes are conditional on the local profile.
+- Runtime: API, PostgreSQL, Redis and ClamAV are healthy. MinIO and its initializer are blocked by a Quay 401 for the pinned MinIO image. Persistent migration heads are unchanged; the isolated BE1 acceptance DB was removed after test execution.
+- Verification: 1,259/1,260 API/contract tests passed across the non-DB and disposable-DB runs; one BE1 canvas/consent workflow failed with `CONSENT_NOT_EFFECTIVE`. The first backend-wide run completed with 12 failures; targeted reruns resolved nine harness-dependent failures and the image 413 fix resolved one, leaving two stale assertions. The second post-fix full run is recorded as incomplete at 66%.
+- Catalog: `artifacts/API_CONTRACT_CATALOG_FEAT063_REV37_20261030.md`. Full stack, test, UI, database and limitation details: `evidence/EV-063-30_API_CONTRACT_AND_FULL_STACK_VERIFICATION_20261030.md`.
+- Safety: no live AI/provider calls, real child data, `.env` edits, persistent database reset or named-volume deletion.
+
 ## Rev36 UI component patterns and interaction states — current — 2026-10-30
 
 - Plan Rev36 is approved for nine generated component/state boards; SHA-256 `300104684514C4C6F67614F58DDE402668AAC24AF2204F9B1BCA7A5BBEA2D336`.

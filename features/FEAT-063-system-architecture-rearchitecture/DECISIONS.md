@@ -143,3 +143,4 @@ EV-063-05 records an independent architecture audit in `evidence/INDEPENDENT_ARC
 | ID | Record | Basis |
 |---|---|---|
 | D-113 | Rev36 adds visual references for reusable controls, dialogs, toasts, API states, upload, quota, sharing and feedback. They distinguish Rev31 Lesson Library APIs from SRS target contracts and do not alter runtime behavior or lock app design tokens. Assets await owner visual review before application. | Approved Plan Rev36; EV-063-29 |
+| D-114 | Rev38 reconciles the unsigned SRS AC-33 wording with existing optional Parent guide and Teacher Deck decisions, and records 23 screen drafts plus nine component boards with mounted-versus-target API labels. This is a documentation/visual artifact record, not a new product decision or app token selection. | Approved Plan Rev38; owner UI review 2026-10-30; EV-063-31 |

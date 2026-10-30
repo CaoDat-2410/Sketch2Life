@@ -1,5 +1,22 @@
 # Status
 
+## UI mockup remediation — Plan Rev38 (2026-10-30)
+
+- Lifecycle: REVIEW; generated draft package and static documentation are complete. Plan Rev38 SHA-256 `ADB45B054C5E4872629AFDAF52037053AB97470EEEAC6F225D007ED0B62ADB27` is approved in `approvals/TASK_APPROVAL.md`.
+- Result: 23 screens, 9 component boards, per-folder prompt/motion notes, cross-screen/API indexes and EV-063-31 evidence.
+- SRS: corrected AC-33 only; v2.3 remains unsigned and the age-band conflict is unresolved.
+- Static check: 23/23 screen PNGs and 9/9 board PNGs present; every screen/component directory has PROMPT.md and MOTION.md. Hashes are recorded in EV-063-31.
+- Visual approval/promotion: pending. Assets stay in `assets/generated/`; do not reference from app source until owner visual approval.
+- No code, API, schema, database, migration, tests/builds, live providers, commit or push in this plan.
+
+## Complete API contract and local verification — Plan Rev37 (2026-10-30)
+
+- Lifecycle: REVIEW; approval for Plan Rev37 SHA-256 `9050EFE86F9C2531C93BBF5EBC6B7846EC1944CD70D991E23CC3DBD3E7EE42F0` is recorded in `approvals/TASK_APPROVAL.md`.
+- Deliverables: 135-row route contract catalog; runtime OpenAPI snapshot; API, backend, frontend and workspace test evidence; Docker/service status; feature-local evidence report.
+- Runtime: API/PostgreSQL/Redis/ClamAV healthy. MinIO plus `minio-init` remain blocked by Quay 401 for the pinned image. Persistent DB heads are unchanged. A separately created DB was migrated/tested/dropped.
+- Tests: API/contract aggregate 1,259 passed / 1 failed. Lesson Library DB API 5/5; BE1 DB API 3/4, with the consent-gated canvas failure recorded. Full backend suite completed once with 12 failures; targeted runner conditions and the image contract issue were resolved, leaving two stale test assertions. A post-fix full-suite rerun stalled at 66% and is not counted as a pass. Workspace/UI suites passed; Android tests were not available because test sources and SDK environment variables were absent.
+- Evidence and limits: `evidence/EV-063-30_API_CONTRACT_AND_FULL_STACK_VERIFICATION_20261030.md`. No AI/provider calls, real child data, `.env` edits, persistent database reset, volume deletion, commit or push.
+
 ## UI component patterns and interaction states — Plan Rev36 (2026-10-30)
 
 - Lifecycle: REVIEW; nine component/state images and all per-group prompt/motion/index/evidence records are complete.
