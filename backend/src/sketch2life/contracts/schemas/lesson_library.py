@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-from datetime import datetime
 from typing import Annotated, Literal
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, model_validator
-
 
 OpaqueId = Annotated[str, Field(min_length=1, max_length=256, pattern=r"^[A-Za-z0-9._:-]+$")]
 Sha256Hex = Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
@@ -267,6 +265,7 @@ class ParentGroupMembershipV1(StrictLessonModel):
     invited_at: AwareDatetime
     expires_at: AwareDatetime | None = None
     accepted_at: AwareDatetime | None = None
+    revision: int = Field(ge=1)
 
 
 class ParentGroupInvitationPageV1(StrictLessonModel):

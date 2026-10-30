@@ -1350,6 +1350,7 @@ class LessonLibraryService:
                 fail(409, "INVITATION_EXISTS", "Parent already has an active group invitation or membership")
             if prior is None:
                 membership_id = str(uuid4())
+                membership_revision = 1
                 self.db.execute(
                     PARENT_GROUP_MEMBERS.insert().values(
                         membership_id=membership_id,
@@ -1364,6 +1365,7 @@ class LessonLibraryService:
                 )
             else:
                 membership_id = prior["membership_id"]
+                membership_revision = prior["revision"] + 1
                 self.db.execute(
                     PARENT_GROUP_MEMBERS.update()
                     .where(PARENT_GROUP_MEMBERS.c.membership_id == membership_id)
@@ -1388,6 +1390,7 @@ class LessonLibraryService:
                 "invited_at": now,
                 "expires_at": now + INVITATION_TTL,
                 "accepted_at": None,
+                "revision": membership_revision,
             }
 
         return self._idempotent(
@@ -1524,6 +1527,7 @@ class LessonLibraryService:
                 "invited_at": current["invited_at"],
                 "expires_at": current["expires_at"],
                 "accepted_at": now,
+                "revision": current["revision"] + 1,
             }
 
         return self._idempotent(
@@ -1582,6 +1586,7 @@ class LessonLibraryService:
             "invited_at": row["invited_at"],
             "expires_at": row["expires_at"],
             "accepted_at": row["accepted_at"],
+            "revision": row["revision"],
         }
 
     def list_lesson_invitations(
@@ -1779,7 +1784,7 @@ class LessonLibraryService:
                     "version_id": row["version_id"],
                     "version_no": row["version_no"],
                     "content_json": row["content_json"],
-                    "lesson_state": row["state"],
+                    "lesson_state": row["lesson_state"],
                     "moderation_state": row["moderation_state"],
                     "created_at": row["lesson_created_at"],
                     "access_source": "PUBLIC" if row["grant_audience_kind"] == "PUBLIC" else "SHARED",
