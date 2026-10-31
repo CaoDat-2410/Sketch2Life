@@ -103,3 +103,21 @@
 - Still open and not decided here: the BE1 owner's written confirmation of the PROPOSAL names and migration; writer and reviewer for `settings.py`, the migration and the tool (T0 O13, O16); L-3 of the first review (substring `be1_acceptance`, self-declared `issued_by`, no `revoked_by`); every PostgreSQL, Alembic and end-to-end check (T12).
 - Explicitly excluded: any database, Alembic command or application, backend service, MinIO, Modal, GPU or network operation; real child data; BE2 changes; editing any file outside Addendum B section B8; editing any approval record other than this entry; any stage, commit or push.
 - Approval basis: the owner's direct instruction above, applied to the decisions C1 and C2 and to the list of recorded changes. The plan and addenda must not change without a new entry.
+
+## T2B/T3 owner decisions — documentation and publication only (2026-11-01)
+
+- Status: **APPROVED for recording the selected design decisions, creating the T2B/T3 plans, and one documentation-only commit/push. This does not approve implementation.** The parent FEAT-064 plan remains `DRAFT / NOT_STARTED`.
+- Approver: Project owner, direct instruction on 2026-11-01 to “commit and push” after the T2B/T3 decision ballot was answered.
+- Recorded at: 2026-11-01, Asia/Saigon.
+- Approved decision-record plan: `plan/PLAN_REV2_OWNER_DECISION_RECORD_20261101.md`, SHA-256 `DE455C77CFB687086A01194E628AB00EEC9E851C3E9258915561D4EE186916A2`.
+- Decision plans:
+  - `plan/T2B_BE1_TO_BE2_FACT_ADAPTER_PLAN_20261101.md`, SHA-256 `781A561AEC08BF0990AA18CBDBD27DB7CEB84CB23EA3CDD5ABB483A6A10D83C7`.
+  - `plan/T3_STROKE_PROFILE_AND_UI_BLOCKERS_PLAN_20261101.md`, SHA-256 `D948F8DCAB9FDCF0EACBF3B0D4DB5C88914A6A17BC61D7001E1C3B1C28D61DA2`.
+- Approved file scope: exactly the ten paths listed in Plan Rev2 §“Exact file scope” (three plan files, feature source register, decision evidence, decision/context/status ledgers, evidence index and this approval entry).
+- Accepted decisions: T2B A1 `Sửa`, A2 `Đồng ý`, A3 `Sửa`, A4/A5 `Để sau`, A6 `Đồng ý`; T3 B1–B4 `Đồng ý`, B5 `Đồng ý A`, B6 `Đồng ý B`, B7 `Đồng ý`, B8 `Sửa/blocked`. Exact conditions and implementation gates are in the pinned decision plans.
+- B8 implementation boundary: the original owner-referenced T3 §1 allowlist was unavailable on the base branch and could not be located locally. This documentation approval authorizes no T3 source/test path; restore or separately approve the exact list before implementation.
+- A3 contract note: source review found BE2 `ContextDecision.context_revision` is an integer and current comparisons are equality checks. Preserve that field; add an explicit versioned context digest and compare it for whole-context freshness. Do not coerce a digest into the integer field.
+- Publication target: `feature/feat063-be-foundation`, based on remote `3ca9c1593d4a0e7d449a65ef08ff33d5c0a5b269`. The reported `578f3e5e` cannot be resolved in this checkout or fetched from origin; this approval authorizes a new forward documentation commit from the current remote tip, not a force-push.
+- Explicitly excluded: source/code edits, tests, migration creation/application, PostgreSQL/database setup or access, Docker/MinIO, Modal/GPU/provider calls, real-child data, B4b, sending a message to Hiếu, any T1 implementation commit, or any change beyond the exact file scope above.
+- Acceptance criteria: Plan Rev2 AC1–AC7; security validator and `git diff --check` must pass before publication; push normally and verify the remote ref.
+- Approval basis: the owner's direct “commit and push” instruction applied to the decisions returned immediately before this entry. T2B/T3 implementation requires separate approvals pinning its own scope and hashes.

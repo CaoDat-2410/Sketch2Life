@@ -1,5 +1,6 @@
 # FEAT-064 evidence index
 
+- `OWNER_DECISIONS_T2B_T3_20261101.md`: selected design choices, A3 contract source check, branch baseline, and explicit implementation/publication limits.
 - `notes/SOURCE_REVIEW_20261029.md`: baseline, chỉ đạo owner, nguồn và điểm chặn đã đọc.
 - Plan, contract outline và owner path map là DRAFT, không phải implementation evidence.
 - `notes/PLAN_REVIEW_AND_CHECKS_20261029.md`: hai review draft, các sửa material và static checks thực tế. Skeleton/security đạt; harness chung còn lỗi paths FEAT-043/063, không lỗi FEAT-064 được báo. Chưa có application/DB/provider test mới.

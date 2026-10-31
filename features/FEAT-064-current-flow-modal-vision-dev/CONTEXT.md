@@ -1,5 +1,14 @@
 # FEAT-064 — Kiểm chứng luồng hiện tại với Modal Vision ở dev
 
+## T2B/T3 decision checkpoint — 2026-11-01
+
+- Owner requested commit/push after the T2B/T3 decision ballot. The selected options and caveats are recorded in `DECISIONS.md` D-10–D-12 and `evidence/OWNER_DECISIONS_T2B_T3_20261101.md`.
+- Added design plans: `plan/T2B_BE1_TO_BE2_FACT_ADAPTER_PLAN_20261101.md` and `plan/T3_STROKE_PROFILE_AND_UI_BLOCKERS_PLAN_20261101.md`. Both are design-only; the FEAT-064 parent plan remains `DRAFT`, implementation remains `NOT_STARTED`, and code/migration/runtime work still needs separate task approval.
+- A3 was refined after inspecting the current BE2 types: `ContextDecision.context_revision` is `int`; consumers compare equality. The full-context digest will be a separate versioned field, compared by equality, rather than being coerced into the integer revision.
+- T3 B8 remains blocked because the owner-referenced original §1 allowlist is missing from the reachable branch/worktrees. No T3 source/test path is authorized by the new plan. Child reconnect (B5) and Teacher synthetic-profile lookup (B6) remain separate future tasks.
+- Publication branch: `feature/feat063-be-foundation`. Current remote tip was `3ca9c159`; owner-reported `578f3e5e` was not available in this checkout or fetchable from origin, so the approved action is a new forward docs-only commit from the remote tip.
+- No implementation, tests, migration, database operation, Docker/MinIO/Modal call, real-child data or outreach to Hiếu is part of this checkpoint.
+
 - Status: DRAFT
 - Owner: Person 2 / chủ task; phân công BE1, BE2, frontend và integration cần chốt trước triển khai.
 - Requested at: 2026-10-29, Asia/Saigon.

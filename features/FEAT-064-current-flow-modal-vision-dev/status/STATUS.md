@@ -1,5 +1,15 @@
 # FEAT-064 status
 
+## Current decision checkpoint — 2026-11-01
+
+- The T2B/T3 ballot outcomes are recorded in D-10–D-12 with design-only plans and a documentation-only approval. See `evidence/OWNER_DECISIONS_T2B_T3_20261101.md`.
+- T2B and T3 implementation: **NOT_STARTED; separate task approval required**. Parent plan revision 6 remains `DRAFT / NOT_STARTED`.
+- A3 uses an explicit versioned context digest alongside the existing integer `context_revision`; the latter is not retyped or treated as an ordered whole-context version.
+- T3 B8 remains blocked: the original §1 path allowlist referenced by the ballot is not present in reachable history, so this plan authorizes no T3 source/test path. B5 reconnect and B6 Teacher profile routes remain separate later tasks.
+- T12 PostgreSQL is waiting for a disposable database and local-only `BE1_TEST_DATABASE_URL`; B4b remains deferred. Hiếu has not been contacted.
+- Branch publication is to `feature/feat063-be-foundation` from remote base `3ca9c159`. The reported `578f3e5e` is unavailable locally and from origin; no force-push is authorized.
+- No code, test, migration, DB, Docker, provider or Modal operation was performed in this checkpoint.
+
 - Status: DRAFT
 - Plan revision: 6
 - Implementation status: NOT_STARTED
