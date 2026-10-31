@@ -40,6 +40,7 @@ from sketch2life.contracts.schemas.be1_runtime import (
     SessionTransitionRequest,
     StageAdvanceRequest,
 )
+from sketch2life.infrastructure.config.settings import Settings
 from sketch2life.infrastructure.persistence.be1_models import (
     Be1GroupDraftModel,
     Be1RoomCodeModel,
@@ -73,6 +74,8 @@ from sketch2life.interfaces.http.routers.be1_common import (
     commit,
     consent_is_effective,
     deny_pending_consent,
+    eligibility_all_ready,
+    eligibility_ready,
     event,
     failure,
     get_class,
@@ -710,6 +713,7 @@ def _transition(
     expected_revision: int,
     action: str,
     actor: str,
+    settings: Settings | None = None,
 ) -> dict[str, object]:
     record = _lock_session(db, record.organization_id, record.session_id)
     if record.revision != expected_revision:
@@ -741,16 +745,15 @@ def _transition(
                 SessionMembershipModel.state == "admitted",
             )
         ).all()
-        purpose_ref = str(record.configuration.get("purpose_ref", ""))
-        consent_ready = bool(members) and not any(
-            not consent_is_effective(
-                db,
-                organization_id=record.organization_id,
-                class_id=record.class_id,
-                child_id=member.child_id,
-                purpose_ref=purpose_ref,
-            )
-            for member in members
+        # `consent_ready` now means "eligibility ready": legal consent or a valid synthetic proof.
+        consent_ready = bool(members) and eligibility_all_ready(
+            db,
+            session=record,
+            child_ids=[member.child_id for member in members],
+            legal_effective=consent_is_effective,
+            settings=settings,
+            actor=actor,
+            audit_action="session.start.synthetic_eligibility",
         )
         if not consent_ready:
             deny_pending_consent(
@@ -853,6 +856,7 @@ def _do_transition(
     action: str,
     principal: VerifiedPrincipal,
     db: Session,
+    settings: Settings | None = None,
 ) -> dict[str, object]:
     record = _lock_session(db, organization_id, session_id)
     require_assignment(
@@ -864,6 +868,7 @@ def _do_transition(
         expected_revision=payload.expected_revision,
         action=action,
         actor=principal.subject,
+        settings=settings,
     )
 
 
@@ -885,8 +890,11 @@ def start_session(
     payload: SessionTransitionRequest,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
+    runtime: Be1Runtime = Depends(get_runtime),
 ) -> dict[str, object]:
-    return _do_transition(organization_id, session_id, payload, "start", principal, db)
+    return _do_transition(
+        organization_id, session_id, payload, "start", principal, db, settings=runtime.settings
+    )
 
 
 @router.post("/organizations/{organization_id}/sessions/{session_id}/pause")
@@ -1275,6 +1283,7 @@ def admit_device(
     payload: AdmitDeviceRequest,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
+    runtime: Be1Runtime = Depends(get_runtime),
 ) -> dict[str, object]:
     record = _lock_session(db, organization_id, session_id)
     require_assignment(
@@ -1304,12 +1313,14 @@ def admit_device(
     )
     if profile is None:
         raise failure(404, "PROFILE_NOT_FOUND", "Profile was not found in this class")
-    if not consent_is_effective(
+    if not eligibility_ready(
         db,
-        organization_id=organization_id,
-        class_id=record.class_id,
+        session=record,
         child_id=payload.child_id,
-        purpose_ref=str(record.configuration.get("purpose_ref", "")),
+        legal_effective=consent_is_effective,
+        settings=runtime.settings,
+        actor=principal.subject,
+        audit_action="device.admit.synthetic_eligibility",
     ):
         deny_pending_consent(
             db,
@@ -1556,6 +1567,7 @@ def assign_member_to_group(
     payload: AssignMemberRequest,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
+    runtime: Be1Runtime = Depends(get_runtime),
 ) -> dict[str, object]:
     record = get_session(db, organization_id, session_id)
     require_assignment(
@@ -1583,12 +1595,14 @@ def assign_member_to_group(
         raise failure(404, "GROUP_NOT_FOUND", "Group was not found")
     if payload.expected_revision != record.revision:
         raise failure(409, "STALE_SESSION_REVISION", "Session changed; reload before retrying")
-    if not consent_is_effective(
+    if not eligibility_ready(
         db,
-        organization_id=organization_id,
-        class_id=record.class_id,
+        session=record,
         child_id=child_id,
-        purpose_ref=str(record.configuration.get("purpose_ref", "")),
+        legal_effective=consent_is_effective,
+        settings=runtime.settings,
+        actor=principal.subject,
+        audit_action="group.assign_member.synthetic_eligibility",
     ):
         deny_pending_consent(
             db,
@@ -1913,6 +1927,7 @@ def start_child_turn(
     child_id: str,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
+    runtime: Be1Runtime = Depends(get_runtime),
 ) -> dict[str, object]:
     record = get_session(db, organization_id, session_id)
     require_assignment(
@@ -1943,12 +1958,14 @@ def start_child_turn(
         raise failure(
             409, "ADMITTED_MEMBER_REQUIRED", "An admitted member with an assigned group is required"
         )
-    if not consent_is_effective(
+    if not eligibility_ready(
         db,
-        organization_id=organization_id,
-        class_id=record.class_id,
+        session=record,
         child_id=child_id,
-        purpose_ref=str(record.configuration.get("purpose_ref", "")),
+        legal_effective=consent_is_effective,
+        settings=runtime.settings,
+        actor=principal.subject,
+        audit_action="turn.start.synthetic_eligibility",
     ):
         deny_pending_consent(
             db,

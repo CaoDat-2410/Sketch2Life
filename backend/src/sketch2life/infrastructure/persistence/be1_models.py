@@ -100,6 +100,19 @@ class ManagedProfileModel(CorePersistenceBase):
     __table_args__ = (
         UniqueConstraint("organization_id", "child_id", name="uq_be1_profile_org_child"),
         CheckConstraint("age_months BETWEEN 36 AND 155", name="ck_be1_profile_age_months"),
+        CheckConstraint(
+            "data_origin IN ('REAL', 'SYNTHETIC_DEV', 'LEGACY_UNCLASSIFIED')",
+            name="ck_be1_profile_data_origin",
+        ),
+        # Single-table only: the proof lives in its own table and is read at decision time.
+        CheckConstraint(
+            "(data_origin = 'REAL' AND consent_id IS NOT NULL"
+            " AND consent_purpose_ref IS NOT NULL)"
+            " OR (data_origin = 'SYNTHETIC_DEV' AND consent_id IS NULL"
+            " AND consent_purpose_ref IS NULL)"
+            " OR data_origin = 'LEGACY_UNCLASSIFIED'",
+            name="ck_be1_profile_origin_consent_refs",
+        ),
         Index("ix_be1_profile_org_class", "organization_id", "class_id"),
     )
 
@@ -114,13 +127,69 @@ class ManagedProfileModel(CorePersistenceBase):
     )
     display_name: Mapped[str] = mapped_column(String(200), nullable=False)
     age_months: Mapped[int] = mapped_column(Integer, nullable=False)
-    consent_id: Mapped[str] = mapped_column(String(36), nullable=False)
-    consent_purpose_ref: Mapped[str] = mapped_column(String(128), nullable=False)
+    consent_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    consent_purpose_ref: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    # The legal registry route never sets this; the ORM default keeps it REAL.
+    data_origin: Mapped[str] = mapped_column(String(24), nullable=False, default="REAL")
     state: Mapped[str] = mapped_column(String(24), nullable=False, default="active")
     created_by: Mapped[str] = mapped_column(String(256), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
+
+
+class SyntheticEligibilityProofModel(CorePersistenceBase):
+    """Server-issued dev-pilot proof; issuance columns are never edited, only revoked."""
+
+    __tablename__ = "be1_synthetic_eligibility_proofs"
+    __table_args__ = (
+        CheckConstraint("data_origin = 'SYNTHETIC_DEV'", name="ck_be1_synth_proof_origin"),
+        CheckConstraint("expires_at > issued_at", name="ck_be1_synth_proof_interval"),
+        CheckConstraint(
+            "(revoked_at IS NULL AND revocation_revision = 0)"
+            " OR (revoked_at IS NOT NULL AND revocation_revision > 0)",
+            name="ck_be1_synth_proof_revocation",
+        ),
+        Index(
+            "ix_be1_synth_proof_scope",
+            "organization_id",
+            "class_id",
+            "child_profile_id",
+            "purpose_ref",
+        ),
+    )
+
+    evidence_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    schema_version: Mapped[str] = mapped_column(String(64), nullable=False)
+    data_origin: Mapped[str] = mapped_column(String(24), nullable=False, default="SYNTHETIC_DEV")
+    organization_id: Mapped[str] = mapped_column(
+        String(128),
+        ForeignKey(
+            "be1_organizations.organization_id",
+            ondelete="RESTRICT",
+            name="fk_be1_synth_proof_organization",
+        ),
+        nullable=False,
+    )
+    class_id: Mapped[str] = mapped_column(String(128), nullable=False)
+    child_profile_id: Mapped[str] = mapped_column(
+        String(128),
+        ForeignKey(
+            "be1_managed_profiles.child_id",
+            ondelete="RESTRICT",
+            name="fk_be1_synth_proof_profile",
+        ),
+        nullable=False,
+    )
+    purpose_ref: Mapped[str] = mapped_column(String(128), nullable=False)
+    run_ref: Mapped[str] = mapped_column(String(128), nullable=False)
+    session_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    issued_by: Mapped[str] = mapped_column(String(256), nullable=False)
+    issued_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    revocation_revision: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    policy_version: Mapped[str] = mapped_column(String(64), nullable=False)
 
 
 class EnrollmentModel(CorePersistenceBase):

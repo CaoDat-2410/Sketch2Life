@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
+from datetime import UTC, datetime
 from uuid import uuid4
 
 from fastapi import HTTPException
@@ -17,6 +19,16 @@ from sketch2life.application.services.be1_runtime import (
     Be1RuntimePolicy,
 )
 from sketch2life.contracts.schemas.be1_runtime import Be1Error
+from sketch2life.domain.eligibility import (
+    EligibilityBasis,
+    EligibilityDecision,
+    EligibilityFacts,
+    EligibilityScope,
+    ProvisionalDataOrigin,
+    SyntheticEligibilityProof,
+    evaluate_eligibility,
+)
+from sketch2life.infrastructure.config.settings import Settings
 from sketch2life.infrastructure.persistence.be1_models import (
     AdultIdentityModel,
     ClassroomModel,
@@ -28,6 +40,10 @@ from sketch2life.infrastructure.persistence.core_models import (
     CoreAggregateRevisionModel,
     CoreAuditEntryModel,
     CoreOutboxEventModel,
+)
+from sketch2life.infrastructure.persistence.core_store import (
+    load_profile_origin,
+    load_synthetic_proof,
 )
 
 BE1_ERROR_RESPONSES = {
@@ -216,8 +232,11 @@ def consent_is_effective(
     organization_id: str,
     class_id: str,
     child_id: str,
-    purpose_ref: str,
+    purpose_ref: str | None,
 ) -> bool:
+    if purpose_ref is None:
+        # A profile without a consent purpose (SYNTHETIC_DEV) has no legal consent to look up.
+        return False
     return (
         db.scalar(
             select(ConsentRecordModel.consent_id).where(
@@ -230,6 +249,146 @@ def consent_is_effective(
         )
         is not None
     )
+
+
+def eligibility_decision(
+    db: Session,
+    *,
+    session: ClassroomSessionModel,
+    child_id: str,
+    legal_effective: Callable[..., bool],
+    settings: Settings | None,
+    now: datetime | None = None,
+) -> EligibilityDecision:
+    """Fetch current server-side facts and apply the pure typed decision.
+
+    ``legal_effective`` is the existing effective-consent lookup, passed in by the caller so a
+    caller-module monkeypatch of ``consent_is_effective`` keeps its effect. Missing settings
+    mean the pilot is off, so only the legal basis can be granted.
+    """
+    organization_id = session.organization_id
+    class_id = session.class_id
+    purpose_ref = str(session.configuration.get("purpose_ref", ""))
+    run_ref = session.configuration.get("pilot_run_ref")
+    stored_origin = load_profile_origin(
+        db, organization_id=organization_id, class_id=class_id, child_id=child_id
+    )
+    # Before this feature the legal gate never looked at the profile row, only at an effective
+    # consent record. A Child with no active profile row (for example one archived after being
+    # admitted) therefore keeps that legal-only behavior; it can never be synthetic, because a
+    # synthetic decision needs a SYNTHETIC_DEV profile row and a proof that references it.
+    profile_origin = (
+        stored_origin if stored_origin is not None else ProvisionalDataOrigin.LEGACY_UNCLASSIFIED
+    )
+    proof: SyntheticEligibilityProof | None = None
+    if profile_origin == ProvisionalDataOrigin.SYNTHETIC_DEV:
+        # Only a synthetic profile consults the proof table, so the legal path never depends on
+        # it. A proof cannot exist for another origin: it references the profile row, the
+        # operator store refuses to issue one for a non-synthetic profile, and the origin has
+        # no update path. (The pure evaluator still denies a stray proof on a legal profile.)
+        proof = load_synthetic_proof(
+            db,
+            organization_id=organization_id,
+            class_id=class_id,
+            child_id=child_id,
+            purpose_ref=purpose_ref,
+        )
+        if proof is not None and proof.session_id is None:
+            # `pilot_run_ref` is written into the session configuration by whoever creates the
+            # session, so the run alone does not identify the operator's intended session. A
+            # synthetic proof therefore has to be bound to one session id to count.
+            proof = None
+    facts = EligibilityFacts(
+        profile_origin=profile_origin,
+        scope=EligibilityScope(organization_id, class_id, child_id, purpose_ref),
+        legal_consent_effective=legal_effective(
+            db,
+            organization_id=organization_id,
+            class_id=class_id,
+            child_id=child_id,
+            purpose_ref=purpose_ref,
+        ),
+        proof=proof,
+        session_run_ref=run_ref if isinstance(run_ref, str) else None,
+        session_id=session.session_id,
+        environment=settings.env if settings is not None else None,
+        pilot_enabled=settings.synthetic_pilot_enabled if settings is not None else False,
+        evaluated_at=now if now is not None else datetime.now(UTC),
+    )
+    return evaluate_eligibility(facts)
+
+
+def eligibility_ready(
+    db: Session,
+    *,
+    session: ClassroomSessionModel,
+    child_id: str,
+    legal_effective: Callable[..., bool],
+    settings: Settings | None,
+    actor: str,
+    audit_action: str | None = None,
+) -> bool:
+    """True for LEGAL_CONSENT or SYNTHETIC_DEV; the decision never becomes a consent value.
+
+    An accepted synthetic decision is audited (proof id, basis, basis version) only when the
+    caller names a state-changing ``audit_action``; per-request device and stroke checks pass
+    none. Denials are audited by the caller's existing ``deny_pending_consent``.
+    """
+    decision = eligibility_decision(
+        db, session=session, child_id=child_id, legal_effective=legal_effective, settings=settings
+    )
+    if decision.basis is EligibilityBasis.SYNTHETIC_DEV and audit_action is not None:
+        audit(
+            db,
+            organization_id=session.organization_id,
+            actor=actor,
+            action=audit_action,
+            resource_type="synthetic_eligibility_proof",
+            resource_id=decision.evidence_id or "",
+            decision=f"allowed_synthetic_dev:{decision.basis_version}",
+        )
+    return decision.basis is not EligibilityBasis.DENIED
+
+
+def eligibility_all_ready(
+    db: Session,
+    *,
+    session: ClassroomSessionModel,
+    child_ids: list[str],
+    legal_effective: Callable[..., bool],
+    settings: Settings | None,
+    actor: str,
+    audit_action: str,
+) -> bool:
+    """All Children must be eligible; accepted synthetic decisions are audited only then.
+
+    Every decision is computed before any audit row is added, so a later denial cannot leave
+    "allowed" audit rows behind in the transaction that ``deny_pending_consent`` commits.
+    """
+    decisions = [
+        eligibility_decision(
+            db,
+            session=session,
+            child_id=child_id,
+            legal_effective=legal_effective,
+            settings=settings,
+        )
+        for child_id in child_ids
+    ]
+    if not all(decision.basis is not EligibilityBasis.DENIED for decision in decisions):
+        return False
+    for decision in decisions:
+        if decision.basis is EligibilityBasis.SYNTHETIC_DEV:
+            audit(
+                db,
+                organization_id=session.organization_id,
+                actor=actor,
+                action=audit_action,
+                resource_type="synthetic_eligibility_proof",
+                resource_id=decision.evidence_id or "",
+                decision=f"allowed_synthetic_dev:{decision.basis_version}",
+            )
+    return True
 
 
 def deny_pending_consent(
@@ -281,6 +440,9 @@ __all__ = [
     "commit",
     "consent_is_effective",
     "deny_pending_consent",
+    "eligibility_all_ready",
+    "eligibility_decision",
+    "eligibility_ready",
     "event",
     "failure",
     "get_class",

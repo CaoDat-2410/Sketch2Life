@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from datetime import datetime
 from typing import Any, cast
 from uuid import uuid4
 
@@ -19,6 +20,16 @@ from sketch2life.application.ports.core_foundation import (
     CoreAuditRecord,
 )
 from sketch2life.domain.core_foundation import CanvasOperation, IdempotencyReceipt
+from sketch2life.domain.eligibility import (
+    PROOF_VERSION,
+    EligibilityScope,
+    ProvisionalDataOrigin,
+    SyntheticEligibilityProof,
+)
+from sketch2life.infrastructure.persistence.be1_models import (
+    ManagedProfileModel,
+    SyntheticEligibilityProofModel,
+)
 from sketch2life.infrastructure.persistence.core_models import (
     CoreAggregateRevisionModel,
     CoreAssetMetadataModel,
@@ -30,6 +41,57 @@ from sketch2life.infrastructure.persistence.core_models import (
 )
 
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+
+
+def load_profile_origin(
+    db: Session, *, organization_id: str, class_id: str, child_id: str
+) -> str | None:
+    """Return the stored origin of an active profile, or None when it is not found."""
+    return db.scalar(
+        select(ManagedProfileModel.data_origin).where(
+            ManagedProfileModel.organization_id == organization_id,
+            ManagedProfileModel.class_id == class_id,
+            ManagedProfileModel.child_id == child_id,
+            ManagedProfileModel.state == "active",
+        )
+    )
+
+
+def load_synthetic_proof(
+    db: Session, *, organization_id: str, class_id: str, child_id: str, purpose_ref: str
+) -> SyntheticEligibilityProof | None:
+    """Return the most recently issued proof for the exact scope; absence means no proof."""
+    row = db.scalar(
+        select(SyntheticEligibilityProofModel)
+        .where(
+            SyntheticEligibilityProofModel.organization_id == organization_id,
+            SyntheticEligibilityProofModel.class_id == class_id,
+            SyntheticEligibilityProofModel.child_profile_id == child_id,
+            SyntheticEligibilityProofModel.purpose_ref == purpose_ref,
+        )
+        .order_by(
+            SyntheticEligibilityProofModel.issued_at.desc(),
+            SyntheticEligibilityProofModel.evidence_id.desc(),
+        )
+        .limit(1)
+    )
+    if row is None:
+        return None
+    return SyntheticEligibilityProof(
+        evidence_id=row.evidence_id,
+        scope=EligibilityScope(
+            organization_id=row.organization_id,
+            class_id=row.class_id,
+            child_id=row.child_profile_id,
+            purpose_ref=row.purpose_ref,
+        ),
+        run_ref=row.run_ref,
+        issued_at=row.issued_at,
+        expires_at=row.expires_at,
+        revoked_at=row.revoked_at,
+        session_id=row.session_id,
+        schema_version=row.schema_version,
+    )
 
 
 class PostgresCoreStore:
@@ -401,6 +463,125 @@ class PostgresCoreStore:
                 derived_from_ref=row.derived_from_ref,
             )
 
+    def get_profile_origin(
+        self, *, organization_id: str, class_id: str, child_id: str
+    ) -> str | None:
+        with self._sessions() as session:
+            return load_profile_origin(
+                session, organization_id=organization_id, class_id=class_id, child_id=child_id
+            )
+
+    def get_synthetic_proof(
+        self, *, organization_id: str, class_id: str, child_id: str, purpose_ref: str
+    ) -> SyntheticEligibilityProof | None:
+        with self._sessions() as session:
+            return load_synthetic_proof(
+                session,
+                organization_id=organization_id,
+                class_id=class_id,
+                child_id=child_id,
+                purpose_ref=purpose_ref,
+            )
+
+    def create_synthetic_profile(
+        self,
+        *,
+        organization_id: str,
+        class_id: str,
+        child_id: str,
+        display_name: str,
+        age_months: int,
+        created_by: str,
+    ) -> bool:
+        """Operator-only: creates a SYNTHETIC_DEV profile with no legal consent references."""
+        if not child_id.startswith("synthetic-") or not display_name.startswith("Synthetic "):
+            # Second line of defense behind the operator tool: never store a real-looking identity.
+            raise ValueError("a SYNTHETIC_DEV profile needs a synthetic- id and a Synthetic name")
+        try:
+            with self._sessions.begin() as session:
+                session.add(
+                    ManagedProfileModel(
+                        child_id=child_id,
+                        organization_id=organization_id,
+                        class_id=class_id,
+                        display_name=display_name,
+                        age_months=age_months,
+                        consent_id=None,
+                        consent_purpose_ref=None,
+                        data_origin=ProvisionalDataOrigin.SYNTHETIC_DEV.value,
+                        created_by=created_by,
+                    )
+                )
+                session.flush()
+            return True
+        except IntegrityError:
+            return False
+
+    def issue_synthetic_proof(
+        self,
+        *,
+        evidence_id: str,
+        organization_id: str,
+        class_id: str,
+        child_id: str,
+        purpose_ref: str,
+        run_ref: str,
+        session_id: str | None,
+        issued_by: str,
+        issued_at: datetime,
+        expires_at: datetime,
+        policy_version: str,
+    ) -> bool:
+        """Operator-only: append one proof for a SYNTHETIC_DEV profile; never edits history."""
+        try:
+            with self._sessions.begin() as session:
+                origin = load_profile_origin(
+                    session, organization_id=organization_id, class_id=class_id, child_id=child_id
+                )
+                if origin != ProvisionalDataOrigin.SYNTHETIC_DEV.value:
+                    raise ValueError("a proof can only be issued for a SYNTHETIC_DEV profile")
+                session.add(
+                    SyntheticEligibilityProofModel(
+                        evidence_id=evidence_id,
+                        schema_version=PROOF_VERSION,
+                        data_origin=ProvisionalDataOrigin.SYNTHETIC_DEV.value,
+                        organization_id=organization_id,
+                        class_id=class_id,
+                        child_profile_id=child_id,
+                        purpose_ref=purpose_ref,
+                        run_ref=run_ref,
+                        session_id=session_id,
+                        issued_by=issued_by,
+                        issued_at=issued_at,
+                        expires_at=expires_at,
+                        revocation_revision=0,
+                        policy_version=policy_version,
+                    )
+                )
+                session.flush()
+            return True
+        except IntegrityError:
+            return False
+
+    def revoke_synthetic_proof(
+        self, *, evidence_id: str, organization_id: str, revoked_at: datetime
+    ) -> bool:
+        """Operator-only: set the one-time revocation; a second call changes nothing."""
+        with self._sessions.begin() as session:
+            result = cast(
+                CursorResult[Any],
+                session.execute(
+                    update(SyntheticEligibilityProofModel)
+                    .where(
+                        SyntheticEligibilityProofModel.evidence_id == evidence_id,
+                        SyntheticEligibilityProofModel.organization_id == organization_id,
+                        SyntheticEligibilityProofModel.revoked_at.is_(None),
+                    )
+                    .values(revoked_at=revoked_at, revocation_revision=1)
+                ),
+            )
+            return result.rowcount == 1
+
     @staticmethod
     def _validate_sha256(value: str, label: str) -> None:
         if not _SHA256_RE.fullmatch(value):
@@ -420,4 +601,4 @@ class PostgresCoreStore:
         )
 
 
-__all__ = ["PostgresCoreStore"]
+__all__ = ["PostgresCoreStore", "load_profile_origin", "load_synthetic_proof"]

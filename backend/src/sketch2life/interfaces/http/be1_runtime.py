@@ -37,7 +37,6 @@ from sketch2life.infrastructure.identity.firebase_token_verifier import (
 from sketch2life.infrastructure.persistence.be1_models import (
     ChildTurnModel,
     ClassroomSessionModel,
-    ConsentRecordModel,
     DeviceGrantModel,
     SessionGroupModel,
     SessionMembershipModel,
@@ -52,6 +51,7 @@ from sketch2life.infrastructure.persistence.database import (
     create_core_session_factory,
 )
 from sketch2life.infrastructure.storage.persistent_local_artifacts import LocalArtifactStore
+from sketch2life.interfaces.http.routers.be1_common import consent_is_effective, eligibility_ready
 
 
 @dataclass(slots=True)
@@ -144,6 +144,7 @@ def get_verified_device(
     grant_id: str | None = Header(default=None, alias="X-Be1-Grant"),
     device_key: str | None = Header(default=None, alias="X-Be1-Device-Key"),
     db: Session = Depends(get_db),
+    runtime: Be1Runtime = Depends(get_runtime),
 ) -> VerifiedDeviceContext:
     if not grant_id or not device_key or len(device_key) < 24 or len(device_key) > 256:
         raise HTTPException(status_code=401, detail={"code": "DEVICE_AUTHENTICATION_REQUIRED"})
@@ -196,16 +197,15 @@ def get_verified_device(
     )
     if turn_row is None:
         raise HTTPException(status_code=403, detail={"code": "ACTIVE_TURN_REQUIRED"})
-    consent_id = db.scalar(
-        select(ConsentRecordModel.consent_id).where(
-            ConsentRecordModel.organization_id == grant.organization_id,
-            ConsentRecordModel.class_id == session.class_id,
-            ConsentRecordModel.child_id == grant.admitted_child_id,
-            ConsentRecordModel.purpose_ref == str(session.configuration.get("purpose_ref", "")),
-            ConsentRecordModel.state == "effective",
-        )
-    )
-    if consent_id is None:
+    # Typed eligibility (legal consent or a valid synthetic proof); no success audit per request.
+    if not eligibility_ready(
+        db,
+        session=session,
+        child_id=grant.admitted_child_id,
+        legal_effective=consent_is_effective,
+        settings=runtime.settings,
+        actor=f"device:{grant.grant_id}",
+    ):
         db.add(
             CoreAuditEntryModel(
                 audit_id=str(uuid4()),

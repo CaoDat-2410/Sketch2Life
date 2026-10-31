@@ -6,7 +6,7 @@
 > - Không operation nào trong bảng được xác nhận bằng runtime test; `E0–E3` chỉ mô tả mức bằng chứng tĩnh theo kế hoạch. Nhãn trạng thái cũ chỉ được giữ dưới dạng “nhãn catalog”.
 > - Chưa có snapshot riêng cho profile `classroom`; `profile=classroom` suy từ nhóm catalog, chưa xác minh bằng OpenAPI riêng.
 > - SRS v2.3 và S1 Rev36 còn là draft. Mọi `disposition` dưới đây là đề xuất, không phải quyết định cắt route hay approval.
-> - Mâu thuẫn thời điểm Parent chọn activity vẫn để nguyên; target Parent activity/StoryRun có `blocked_by=B2`. Pilot FEAT064 không được suy là đã chạy từ smoke demo.
+> - Mâu thuẫn thời điểm Parent chọn activity đã được giải quyết theo B2A rev2; 16 target rows T018–T031, T046, T047 không còn blocker B2. Pilot FEAT064 vẫn chưa được chứng minh bằng smoke demo.
 > - Không chứa đường dẫn tuyệt đối local, credentials hoặc dữ liệu trẻ thật.
 
 ## S0 — Preflight và nguồn ghim
@@ -151,7 +151,7 @@ CSV/Markdown và source/test refs được đối chiếu bằng đọc tĩnh; k
 | 3 | ĐẠT | enum_ok=True; no_blank=True; LOW_without_owner=0 |
 | 4 | ĐẠT | candidate=29; preserve=8 |
 | 5 | ĐẠT | NEW_TARGET=57; missing_map=0; C_overlap=0 |
-| 6 | ĐẠT | Parent/StoryRun-related=15; without_B2=0 |
+| 6 | ĐẠT | Parent/StoryRun-related=15; without_B2=15; B2-targets=16; remaining_B2=0 |
 | 7 | ĐẠT | no absolute local path/secret matches |
 | 8 | ĐẠT | Markdown summaries generated from CSV counters |
 | 9 | ĐẠT | E3=41; valid evidence_ref=41 |

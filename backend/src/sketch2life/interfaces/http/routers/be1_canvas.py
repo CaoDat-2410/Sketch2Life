@@ -27,6 +27,7 @@ from sketch2life.domain.core_foundation import (
     CanvasOperation,
     CoreRuleViolation,
 )
+from sketch2life.infrastructure.config.settings import Settings
 from sketch2life.infrastructure.persistence.be1_models import (
     ChildTurnModel,
     ClassroomSessionModel,
@@ -52,7 +53,9 @@ from sketch2life.interfaces.http.routers.be1_common import (
     BE1_ERROR_RESPONSES,
     audit,
     commit,
+    consent_is_effective,
     deny_pending_consent,
+    eligibility_ready,
     event,
     failure,
     get_session,
@@ -107,8 +110,9 @@ def append_canvas_operation(
     db: Session = Depends(get_db),
 ) -> dict[str, object]:
     _require_device_path(device, organization_id, session_id)
-    _require_group_consent(
+    _require_group_eligibility(
         db,
+        settings=runtime.settings,
         organization_id=organization_id,
         session_id=session_id,
         group_id=device.membership.group_id or "",
@@ -253,6 +257,68 @@ def _require_group_consent(
             )
         )
         if consent is None:
+            deny_pending_consent(
+                db,
+                organization_id=organization_id,
+                actor=actor,
+                resource_type="canvas_checkpoint",
+                resource_id=group_id,
+                action=action,
+            )
+    return session
+
+
+def _require_group_eligibility(
+    db: Session,
+    *,
+    settings: Settings,
+    organization_id: str,
+    session_id: str,
+    group_id: str,
+    actor: str,
+    action: str,
+) -> ClassroomSessionModel:
+    """Stroke-append only: every Child in the group needs legal or valid synthetic eligibility.
+
+    Sync, checkpoint, restore and reconnect keep ``_require_group_consent`` (legal only).
+    """
+    session = get_session(db, organization_id, session_id)
+    group = db.scalar(
+        select(SessionGroupModel.group_id).where(
+            SessionGroupModel.organization_id == organization_id,
+            SessionGroupModel.session_id == session_id,
+            SessionGroupModel.group_id == group_id,
+        )
+    )
+    if group is None:
+        raise failure(404, "GROUP_NOT_FOUND", "Group was not found in this session")
+    child_ids = set(
+        db.scalars(
+            select(SessionMembershipModel.child_id).where(
+                SessionMembershipModel.organization_id == organization_id,
+                SessionMembershipModel.session_id == session_id,
+                SessionMembershipModel.group_id == group_id,
+            )
+        ).all()
+    )
+    child_ids.update(
+        db.scalars(
+            select(CoreCanvasOperationModel.participant_id).where(
+                CoreCanvasOperationModel.organization_id == organization_id,
+                CoreCanvasOperationModel.session_id == session_id,
+                CoreCanvasOperationModel.canvas_id == group_id,
+            )
+        ).all()
+    )
+    for child_id in sorted(child_ids):
+        if not eligibility_ready(
+            db,
+            session=session,
+            child_id=child_id,
+            legal_effective=consent_is_effective,
+            settings=settings,
+            actor=actor,
+        ):
             deny_pending_consent(
                 db,
                 organization_id=organization_id,

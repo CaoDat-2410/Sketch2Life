@@ -39,6 +39,8 @@ class Settings(BaseSettings):
     )
     be1_artifact_root: Path = Path(".runtime/be1-artifacts")
     session_idle_ttl_seconds: int = Field(default=1800, ge=60, le=86_400)
+    # FEAT-064 dev pilot: synthetic eligibility is honored only when this is on in local/test.
+    synthetic_pilot_enabled: bool = False
 
     auth_provider: Literal["development", "firebase"] = "development"
     firebase_project_id: str = ""
