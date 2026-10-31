@@ -74,6 +74,15 @@ class VerifiedDeviceContext:
     scope: CoreScope
 
 
+@dataclass(frozen=True, slots=True)
+class VerifiedDeviceStatusContext:
+    """Verified authority for reading the current Child's own request status only."""
+
+    grant: DeviceGrantModel
+    session: ClassroomSessionModel
+    membership: SessionMembershipModel
+
+
 def build_be1_runtime(settings: Settings) -> Be1Runtime:
     configured = get_core_database_settings().database_url
     database_url = configured.get_secret_value() if configured else None
@@ -276,12 +285,117 @@ def get_verified_device(
     return VerifiedDeviceContext(principal, grant, session, membership, turn, scope)
 
 
+def get_verified_device_status(
+    request: Request,
+    grant_id: str | None = Header(default=None, alias="X-Be1-Grant"),
+    device_key: str | None = Header(default=None, alias="X-Be1-Device-Key"),
+    db: Session = Depends(get_db),
+    runtime: Be1Runtime = Depends(get_runtime),
+) -> VerifiedDeviceStatusContext:
+    """Authorize an own-status read without requiring a writable group or active turn.
+
+    The future status route must still bind its request reference to this grant's Child/canvas.
+    This dependency only establishes the current admitted device and session membership.
+    """
+    if not grant_id or not device_key or len(device_key) < 24 or len(device_key) > 256:
+        raise HTTPException(status_code=401, detail={"code": "DEVICE_AUTHENTICATION_REQUIRED"})
+    grant = db.scalar(
+        select(DeviceGrantModel).where(
+            DeviceGrantModel.grant_id == grant_id,
+            DeviceGrantModel.state == "admitted",
+        )
+    )
+    digest = hashlib.sha256(device_key.encode("utf-8")).hexdigest()
+    if (
+        grant is None
+        or grant.state != "admitted"
+        or not hmac.compare_digest(grant.device_key_hash, digest)
+    ):
+        raise HTTPException(status_code=401, detail={"code": "INVALID_DEVICE_CREDENTIAL"})
+
+    path_params = request.path_params
+    for name in ("organization_id", "org_id"):
+        path_organization_id = path_params.get(name)
+        if path_organization_id is not None and path_organization_id != grant.organization_id:
+            raise HTTPException(status_code=403, detail={"code": "DEVICE_SCOPE_INACTIVE"})
+    path_session_id = path_params.get("session_id")
+    if path_session_id is not None and path_session_id != grant.session_id:
+        raise HTTPException(status_code=403, detail={"code": "DEVICE_SCOPE_INACTIVE"})
+
+    session = db.scalar(
+        select(ClassroomSessionModel).where(
+            ClassroomSessionModel.organization_id == grant.organization_id,
+            ClassroomSessionModel.session_id == grant.session_id,
+            ClassroomSessionModel.state.in_(("active", "paused")),
+        )
+    )
+    if (
+        session is None
+        or session.organization_id != grant.organization_id
+        or session.session_id != grant.session_id
+        or session.state not in {"active", "paused"}
+        or grant.admitted_child_id is None
+    ):
+        raise HTTPException(status_code=403, detail={"code": "DEVICE_SCOPE_INACTIVE"})
+
+    membership = db.scalar(
+        select(SessionMembershipModel).where(
+            SessionMembershipModel.organization_id == grant.organization_id,
+            SessionMembershipModel.session_id == grant.session_id,
+            SessionMembershipModel.child_id == grant.admitted_child_id,
+            SessionMembershipModel.device_grant_id == grant.grant_id,
+            SessionMembershipModel.state == "admitted",
+        )
+    )
+    if (
+        membership is None
+        or membership.organization_id != grant.organization_id
+        or membership.session_id != grant.session_id
+        or membership.child_id != grant.admitted_child_id
+        or membership.device_grant_id != grant.grant_id
+        or membership.state != "admitted"
+    ):
+        raise HTTPException(status_code=403, detail={"code": "DEVICE_MEMBERSHIP_INACTIVE"})
+
+    if not eligibility_ready(
+        db,
+        session=session,
+        child_id=grant.admitted_child_id,
+        legal_effective=consent_is_effective,
+        settings=runtime.settings,
+        actor=f"device:{grant.grant_id}",
+    ):
+        db.add(
+            CoreAuditEntryModel(
+                audit_id=str(uuid4()),
+                organization_id=grant.organization_id,
+                actor_ref=f"device:{grant.grant_id}",
+                action="device.request_status_auth",
+                resource_type="session",
+                resource_id=grant.session_id,
+                decision="denied_consent_pending",
+            )
+        )
+        db.commit()
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "code": "CONSENT_NOT_EFFECTIVE",
+                "message": "Child data is blocked while consent verification is pending",
+            },
+        )
+
+    return VerifiedDeviceStatusContext(grant=grant, session=session, membership=membership)
+
+
 __all__ = [
     "Be1Runtime",
     "VerifiedDeviceContext",
+    "VerifiedDeviceStatusContext",
     "build_be1_runtime",
     "get_db",
     "get_runtime",
     "get_verified_adult",
     "get_verified_device",
+    "get_verified_device_status",
 ]

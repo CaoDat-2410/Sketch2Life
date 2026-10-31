@@ -18,11 +18,16 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from alembic import command
 from alembic.autogenerate import compare_metadata
 from alembic.config import Config
 from alembic.runtime.migration import MigrationContext
 from alembic.script import Script, ScriptDirectory
 from alembic.util.exc import CommandError
+from sketch2life.contracts.schemas.ai_jobs import CreateAiJobCommandV1
+from sketch2life.infrastructure.ai_jobs.harness import build_fixture_harness
+from sketch2life.infrastructure.ai_jobs.sql import tables as t
+from sketch2life.infrastructure.config.settings import get_core_database_settings
 from sqlalchemy import Connection, String, create_engine, insert, select, text
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.engine import URL
@@ -30,15 +35,17 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.pool import NullPool
 from sqlalchemy.schema import CreateTable
 
-from alembic import command
-from sketch2life.contracts.schemas.ai_jobs import CreateAiJobCommandV1
-from sketch2life.infrastructure.ai_jobs.harness import build_fixture_harness
-from sketch2life.infrastructure.ai_jobs.sql import tables as t
-from sketch2life.infrastructure.config.settings import get_core_database_settings
-
 BACKEND = Path(__file__).resolve().parents[3]
 AI_HEAD = "20261015_ai_0001"
-BE1_CHAIN = ("20261014_0004", "20261014_0003", "20261014_0002", "20261014_0001")
+BE1_CHAIN = (
+    "20261101_be1_age_0001",
+    "20261031_be1_se_0001",
+    "20261024_0005",
+    "20261014_0004",
+    "20261014_0003",
+    "20261014_0002",
+    "20261014_0001",
+)
 AI_TABLES = {
     "job",
     "attempt",

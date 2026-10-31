@@ -339,7 +339,13 @@ class AssistanceService:
         if policy is None:
             raise AssistanceError("POLICY_UNRESOLVED")
         members = self._d.owner.members(canvas.organization_id, audience, policy.purpose_code)
-        refusal = audience_refusal(audience, members)
+        refusal = audience_refusal(
+            audience,
+            members,
+            organization_id=canvas.organization_id,
+            class_id=canvas.class_id,
+            purpose_code=policy.purpose_code,
+        )
         if refusal is not None:
             raise AssistanceError(_AUDIENCE_ERRORS[refusal])
         if not policy.assistance_enabled:
@@ -952,7 +958,13 @@ class AssistanceService:
         except AssistanceError:
             return None
         members = self._d.owner.members(facts.organization_id, audience, facts.purpose_code)
-        if audience_refusal(audience, members) is not None:
+        if audience_refusal(
+            audience,
+            members,
+            organization_id=facts.organization_id,
+            class_id=facts.class_id,
+            purpose_code=facts.purpose_code,
+        ) is not None:
             return None
         if facts.region_id is not None and facts.region_id not in canvas.regions:
             return None
@@ -1149,7 +1161,10 @@ def teacher_view(request: AssistanceRequest) -> dict[str, object]:
              "age_revision": m.age_revision} for m in facts.members],
         "consent_revision_refs": [
             {"participant_id": m.participant_id, "consent_record_ref": m.consent_record_ref,
-             "revision": m.consent_revision} for m in facts.members],
+             "revision": m.consent_revision,
+             **({"eligibility_basis": m.eligibility_basis}
+                if m.eligibility_basis is not None else {})}
+            for m in facts.members],
         "purpose_code": facts.purpose_code,
         "context_revision": facts.context_revision,
         "input_hash": facts.source.input_hash,

@@ -356,6 +356,8 @@ def create_profile(
         class_id=class_id,
         display_name=payload.display_name,
         age_months=payload.age_months,
+        age_revision=1,
+        age_source="ADULT_DECLARED",
         consent_id=payload.consent_id,
         consent_purpose_ref=payload.purpose_ref,
         created_by=principal.subject,

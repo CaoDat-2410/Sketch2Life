@@ -60,3 +60,11 @@ Chủ task chọn OD-4 tại `DECISIONS.md` D-07: Person 2 là integration owner
 Chủ task nêu tên owner BE1 GitHub `CaoDat-2410` và owner BE2 là Person 2 / GitHub `AnhKhoaa157` (D-08). Đây là phân công được cung cấp trong chat; chưa ghi nhận đồng ký hợp đồng của họ.
 
 Chủ task chốt paused behavior (D-09): request AI đang chạy tiếp tục, không nhận request mới; T0 đặc tả/test và giữ các kiểm tra eligibility/freshness.
+
+## GOAL A1 — closeout sau review T7a (2026-11-01)
+
+Finding P2 về organization scope của `CommandReceipt` đã được sửa: `put_receipt()` từ chối snapshot có organization khác repository trước khi gọi SQL; regression unit xác nhận storage không bị gọi. Focused T7a đạt 18 passed; offline GA1 đạt 649 passed, 4 skipped; Ruff, mypy, ba validator và diff-check đạt. Báo cáo sửa: `evidence/T7A_TENANT_SCOPE_REVIEW_FIX_REPORT_GA1_20261101.md`; snapshot: `GA1_T7A_TENANT_SCOPE_FIX_20261101T233641`.
+
+Claude review độc lập kết luận ACCEPTED; T7a P2 đã đóng. M1 và T6 đã được chấp nhận ở các review trước. **Trạng thái GOAL A1: COMPLETE.** Review record: `evidence/T7A_TENANT_SCOPE_INDEPENDENT_REVIEW_GA1_20261101.md`. Việc dispatch review Codex trước đó không xác nhận được; sau đó owner cung cấp kết quả Claude review độc lập.
+
+Chưa khởi chạy A2. Goal A2 hiện vẫn ghim HEAD cũ `1e93bc3f…`; cần owner quyết định cập nhật mốc sau khi commit A1 được amend, rồi review/ghim lại goal trước khi chạy. Trạng thái DRAFT của kế hoạch cha FEAT-064 ở phần trên vẫn là trạng thái của kế hoạch nền, không phải trạng thái Goal A1.

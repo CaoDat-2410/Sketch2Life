@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
+from decimal import Decimal, InvalidOperation
 from enum import StrEnum
 
 
@@ -19,6 +21,8 @@ class CoreErrorCode(StrEnum):
     IDEMPOTENCY_CONFLICT = "IDEMPOTENCY_CONFLICT"
     GALLERY_AUDIENCE_DENIED = "GALLERY_AUDIENCE_DENIED"
     DATA_REQUEST_INCOMPLETE = "DATA_REQUEST_INCOMPLETE"
+    CANVAS_PROFILE_INVALID = "CANVAS_PROFILE_INVALID"
+    CANVAS_PROFILE_MISMATCH = "CANVAS_PROFILE_MISMATCH"
 
 
 class PrincipalKind(StrEnum):
@@ -76,6 +80,127 @@ class CoreRuleViolation(ValueError):
     def __init__(self, code: CoreErrorCode, message: str) -> None:
         self.code = code
         super().__init__(message)
+
+
+CANVAS_OPERATION_PROFILE_V1_ID = "canvas-operation-profile-v1"
+CANVAS_OPERATION_PROFILE_V1_VERSION = "CanvasOperationProfileV1"
+_CANVAS_OPERATION_COLORS = frozenset({"#FFD21F", "#FF596C", "#1685F8", "#31C978", "#9250E8"})
+_CANVAS_OPERATION_WIDTHS = {5: 0.0125, 9: 0.0225, 14: 0.035}
+_CANVAS_OPERATION_FIELDS = frozenset({"kind", "points", "color", "size"})
+
+
+def canvas_operation_profile_v1_configuration() -> dict[str, object]:
+    """Return a fresh server-owned JSON-safe copy of the fixed pilot canvas profile."""
+
+    return {
+        "profile_id": CANVAS_OPERATION_PROFILE_V1_ID,
+        "version": CANVAS_OPERATION_PROFILE_V1_VERSION,
+        "aspect_ratio": {"width": 1, "height": 1},
+        "logical_canvas": {"width": 400, "height": 400},
+        "background": "#FFFFFF",
+        "operation_mode": "strokes-only",
+        "history_mode": "append-only",
+        "palette": ["#FFD21F", "#FF596C", "#1685F8", "#31C978", "#9250E8"],
+        "stroke_widths": [
+            {"token": token, "ratio": ratio} for token, ratio in _CANVAS_OPERATION_WIDTHS.items()
+        ],
+        "minimum_points": 2,
+        "maximum_points": 512,
+        "coordinate_precision_places": 6,
+    }
+
+
+def _canvas_coordinate_is_valid(value: object) -> bool:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return False
+    try:
+        number = Decimal(str(value))
+    except (InvalidOperation, ValueError):
+        return False
+    if not number.is_finite() or not Decimal(0) <= number <= Decimal(1):
+        return False
+    decimal_places = number.as_tuple().exponent
+    return isinstance(decimal_places, int) and decimal_places >= -6
+
+
+def validate_canvas_operation_profile_v1(
+    payload: Mapping[str, object],
+) -> dict[str, object]:
+    """Validate one normalized stroke without coercing or repairing client input."""
+
+    if set(payload) != _CANVAS_OPERATION_FIELDS:
+        raise CoreRuleViolation(
+            CoreErrorCode.CANVAS_PROFILE_INVALID,
+            "stroke fields do not match the canvas operation profile",
+        )
+    if payload.get("kind") != "stroke":
+        raise CoreRuleViolation(
+            CoreErrorCode.CANVAS_PROFILE_INVALID,
+            "only stroke operations are supported by this canvas profile",
+        )
+    color = payload.get("color")
+    if not isinstance(color, str) or color not in _CANVAS_OPERATION_COLORS:
+        raise CoreRuleViolation(
+            CoreErrorCode.CANVAS_PROFILE_INVALID,
+            "stroke color is outside the canvas palette",
+        )
+    size = payload.get("size")
+    if type(size) is not int or size not in _CANVAS_OPERATION_WIDTHS:
+        raise CoreRuleViolation(
+            CoreErrorCode.CANVAS_PROFILE_INVALID,
+            "stroke width is outside the canvas profile",
+        )
+    points = payload.get("points")
+    if not isinstance(points, list) or not 2 <= len(points) <= 512:
+        raise CoreRuleViolation(
+            CoreErrorCode.CANVAS_PROFILE_INVALID,
+            "stroke requires between 2 and 512 points",
+        )
+    for point in points:
+        if (
+            not isinstance(point, dict)
+            or set(point) != {"x", "y"}
+            or not _canvas_coordinate_is_valid(point.get("x"))
+            or not _canvas_coordinate_is_valid(point.get("y"))
+        ):
+            raise CoreRuleViolation(
+                CoreErrorCode.CANVAS_PROFILE_INVALID,
+                "stroke coordinates must be finite normalized x/y pairs",
+            )
+    return dict(payload)
+
+
+def bind_canvas_operation_profile_v1_payload(
+    session_configuration: Mapping[str, object],
+    profile_version: str | None,
+    operation_payload: Mapping[str, object],
+) -> dict[str, object]:
+    """Bind a stroke to its immutable server profile, preserving historical sessions."""
+
+    server_profile = session_configuration.get("canvas_operation_profile")
+    client_claimed_profile_id = "canvas_operation_profile_id" in operation_payload
+    if server_profile is None:
+        if profile_version is not None or client_claimed_profile_id:
+            raise CoreRuleViolation(
+                CoreErrorCode.CANVAS_PROFILE_MISMATCH,
+                "an unprofiled session cannot be opted into a canvas profile by the client",
+            )
+        return dict(operation_payload)
+
+    expected_profile = canvas_operation_profile_v1_configuration()
+    if (
+        server_profile != expected_profile
+        or profile_version != CANVAS_OPERATION_PROFILE_V1_VERSION
+        or client_claimed_profile_id
+    ):
+        raise CoreRuleViolation(
+            CoreErrorCode.CANVAS_PROFILE_MISMATCH,
+            "session and client canvas profile versions do not match",
+        )
+
+    accepted_payload = validate_canvas_operation_profile_v1(operation_payload)
+    accepted_payload["canvas_operation_profile_id"] = CANVAS_OPERATION_PROFILE_V1_ID
+    return accepted_payload
 
 
 @dataclass(frozen=True, slots=True)
@@ -435,6 +560,8 @@ __all__ = [
     "ActiveChildTurn",
     "AdultRole",
     "CanvasOperation",
+    "CANVAS_OPERATION_PROFILE_V1_ID",
+    "CANVAS_OPERATION_PROFILE_V1_VERSION",
     "ConsentGrant",
     "ConsentState",
     "CoreErrorCode",
@@ -452,6 +579,8 @@ __all__ = [
     "SessionMembership",
     "VerifiedPrincipal",
     "authorize_action",
+    "bind_canvas_operation_profile_v1_payload",
+    "canvas_operation_profile_v1_configuration",
     "is_idempotent_replay",
     "require_admission_eligible",
     "require_admitted_membership",
@@ -463,5 +592,6 @@ __all__ = [
     "require_portfolio_access",
     "validate_age_months",
     "validate_canvas_operation",
+    "validate_canvas_operation_profile_v1",
     "visible_contributor_ids",
 ]

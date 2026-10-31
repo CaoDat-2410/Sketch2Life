@@ -18,6 +18,12 @@ from typing import Any
 
 from sketch2life.domain.ai_jobs.model import require_aware
 from sketch2life.domain.core_foundation import CoreRuleViolation, validate_age_months
+from sketch2life.domain.eligibility import (
+    BASIS_VERSION,
+    SYNTHETIC_AUDIENCE_SIZE,
+    EligibilityBasis,
+    EligibilityScope,
+)
 from sketch2life.domain.vision_analysis import AnalysisRuleViolation, normalize_long_text
 from sketch2life.domain.vision_context import CONTEXT_AUDIENCE_MAX, strict_canonical_sha256
 
@@ -165,13 +171,32 @@ class MemberFact:
     completed_age_months: int | None
     age_provenance_ref: str
     age_revision: int
-    consent_record_ref: str
-    consent_revision: int
+    consent_record_ref: str | None
+    consent_revision: int | None
     consent_effective: bool
     purpose_granted: bool
+    eligibility_basis: str | None = None
+    basis_version: str | None = None
+    evidence_ref: str | None = None
+    eligibility_scope: EligibilityScope | None = None
+
+    def __post_init__(self) -> None:
+        synthetic = self.eligibility_basis == EligibilityBasis.SYNTHETIC_DEV
+        if synthetic:
+            if self.consent_record_ref is not None or self.consent_revision is not None:
+                raise AssistanceRuleViolation(
+                    "synthetic eligibility must not carry a legal consent reference or revision"
+                )
+            return
+        if self.consent_record_ref is None or self.consent_revision is None:
+            raise AssistanceRuleViolation(
+                "legal or unclassified member facts require both consent reference and revision"
+            )
+        _ref(self.consent_record_ref, "consent record ref")
+        _int(self.consent_revision, "consent revision", 1)
 
     def canonical(self) -> dict[str, object]:
-        return {
+        value: dict[str, object] = {
             "participant_id": self.participant_id,
             "completed_age_months": self.completed_age_months,
             "age_provenance_ref": self.age_provenance_ref,
@@ -181,6 +206,30 @@ class MemberFact:
             "consent_effective": self.consent_effective,
             "purpose_granted": self.purpose_granted,
         }
+        if any(
+            item is not None
+            for item in (
+                self.eligibility_basis,
+                self.basis_version,
+                self.evidence_ref,
+                self.eligibility_scope,
+            )
+        ):
+            scope = self.eligibility_scope
+            value["eligibility_basis"] = self.eligibility_basis
+            value["basis_version"] = self.basis_version
+            value["evidence_ref"] = self.evidence_ref
+            value["eligibility_scope"] = (
+                {
+                    "organization_id": scope.organization_id,
+                    "class_id": scope.class_id,
+                    "child_id": scope.child_id,
+                    "purpose_ref": scope.purpose_ref,
+                }
+                if scope is not None
+                else None
+            )
+        return value
 
 
 @dataclass(frozen=True, slots=True)
@@ -355,7 +404,49 @@ def normalize_child_intent(value: str | None) -> str | None:
         raise AssistanceRuleViolation("child_intent must be bounded long text") from exc
 
 
-def audience_refusal(audience: tuple[str, ...], members: tuple[MemberFact, ...]) -> str | None:
+def _member_eligibility_ready(
+    member: MemberFact, *, expected_scope: EligibilityScope | None
+) -> bool:
+    metadata = (
+        member.basis_version,
+        member.evidence_ref,
+        member.eligibility_scope,
+    )
+    if member.eligibility_basis is None:
+        return (
+            all(value is None for value in metadata)
+            and member.consent_effective
+            and member.purpose_granted
+        )
+    if member.eligibility_basis == EligibilityBasis.LEGAL_CONSENT:
+        return (
+            member.basis_version == BASIS_VERSION
+            and member.evidence_ref is None
+            and (member.eligibility_scope is None or member.eligibility_scope == expected_scope)
+            and member.consent_effective
+            and member.purpose_granted
+        )
+    if member.eligibility_basis == EligibilityBasis.SYNTHETIC_DEV:
+        return (
+            not member.consent_effective
+            and not member.purpose_granted
+            and member.basis_version == BASIS_VERSION
+            and isinstance(member.evidence_ref, str)
+            and bool(member.evidence_ref.strip())
+            and expected_scope is not None
+            and member.eligibility_scope == expected_scope
+        )
+    return False
+
+
+def audience_refusal(
+    audience: tuple[str, ...],
+    members: tuple[MemberFact, ...],
+    *,
+    organization_id: str | None = None,
+    class_id: str | None = None,
+    purpose_code: str | None = None,
+) -> str | None:
     """Per-member gate before any dict/set conversion; one failing member refuses all (D4).
 
     Returns an internal reason token or ``None``. Ages are authoritative 36–155 completed
@@ -376,7 +467,19 @@ def audience_refusal(audience: tuple[str, ...], members: tuple[MemberFact, ...])
             validate_age_months(months)
         except CoreRuleViolation:
             return "AGE_NOT_SUPPORTED"
-        if not member.consent_effective or not member.purpose_granted:
+        expected_scope = (
+            EligibilityScope(organization_id, class_id, member.participant_id, purpose_code)
+            if organization_id and class_id and purpose_code
+            else None
+        )
+        if (
+            member.eligibility_basis == EligibilityBasis.SYNTHETIC_DEV
+            and len(members) != SYNTHETIC_AUDIENCE_SIZE
+        ):
+            # A synthetic basis is bound to exactly one audience member, as in the vision
+            # gate and the BE1 fact reader; it never extends to groups or mixed audiences.
+            return "CONSENT_REQUIRED"
+        if not _member_eligibility_ready(member, expected_scope=expected_scope):
             return "CONSENT_REQUIRED"
     return None
 

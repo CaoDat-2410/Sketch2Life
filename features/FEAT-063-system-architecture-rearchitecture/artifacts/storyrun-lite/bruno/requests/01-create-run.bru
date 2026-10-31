@@ -1,0 +1,35 @@
+meta {
+  name: 01 Create synthetic Parent run
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs
+  body: json
+  auth: none
+}
+
+headers {
+  Idempotency-Key: {{createRunKey}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "profile_ref": "{{profileRef}}"
+  }
+}
+
+script:post-response {
+  bru.setVar("runRef", res.body.run_ref);
+  bru.setVar("runETag", res.headers.etag);
+  bru.setVar("runRevision", res.body.revision);
+}
+
+tests {
+  test("creates a run", function () {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody()).to.have.property("run_ref");
+  });
+}

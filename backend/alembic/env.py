@@ -27,17 +27,25 @@ from sketch2life.infrastructure.knowledge_video.tables import METADATA as VIDEO_
 from sketch2life.infrastructure.knowledge_video.tables import SCHEMA as VIDEO_SCHEMA
 from sketch2life.infrastructure.learning_content.tables import METADATA as CONTENT_METADATA
 from sketch2life.infrastructure.learning_content.tables import SCHEMA as CONTENT_SCHEMA
-from sketch2life.infrastructure.persistence import be1_models as _be1_models  # noqa: F401
-from sketch2life.infrastructure.persistence.core_models import CorePersistenceBase
 from sketch2life.infrastructure.lesson_library.tables import (
     LESSON_METADATA as LESSON_LIBRARY_METADATA,
 )
+from sketch2life.infrastructure.persistence import be1_models as _be1_models  # noqa: F401
+from sketch2life.infrastructure.persistence.core_models import CorePersistenceBase
 from sketch2life.infrastructure.preset_automation.tables import METADATA as PRESET_METADATA
 from sketch2life.infrastructure.preset_automation.tables import SCHEMA as PRESET_SCHEMA
+from sketch2life.infrastructure.story_run_lite.tables import (
+    CORE_METADATA as STORY_RUN_LITE_CORE_METADATA,
+)
+from sketch2life.infrastructure.story_run_lite.tables import (
+    STORY_METADATA as STORY_RUN_LITE_METADATA,
+)
 from sketch2life.infrastructure.video_failure.tables import METADATA as FAILURE_METADATA
 from sketch2life.infrastructure.video_failure.tables import SCHEMA as FAILURE_SCHEMA
 from sketch2life.infrastructure.video_review.tables import METADATA as REVIEW_METADATA
 from sketch2life.infrastructure.video_review.tables import SCHEMA as REVIEW_SCHEMA
+from sketch2life.infrastructure.vision_analysis.tables import METADATA as PILOT_VISION_METADATA
+from sketch2life.infrastructure.vision_analysis.tables import SCHEMA as PILOT_VISION_SCHEMA
 
 config = context.config
 if config.config_file_name is not None:
@@ -66,6 +74,13 @@ _MANAGED_SCHEMAS.add(ACTIVITY_SCHEMA)
 
 target_metadata.append(PRESET_METADATA)
 _MANAGED_SCHEMAS.add(PRESET_SCHEMA)
+
+target_metadata.append(PILOT_VISION_METADATA)
+_MANAGED_SCHEMAS.add(PILOT_VISION_SCHEMA)
+
+target_metadata.append(STORY_RUN_LITE_CORE_METADATA)
+target_metadata.append(STORY_RUN_LITE_METADATA)
+_MANAGED_SCHEMAS.add("story")
 
 
 def _include_name(name: str | None, type_: str, parent_names: object) -> bool:

@@ -1,0 +1,25 @@
+meta {
+  name: 05 Get upload state
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/v1/upload-sessions/{{uploadRef}}
+  auth: none
+}
+
+script:post-response {
+  bru.setVar("uploadETag", res.headers.etag);
+  if (res.body.asset_ref) {
+    bru.setVar("assetRef", res.body.asset_ref);
+  }
+}
+
+tests {
+  test("reads the admitted upload", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().state).to.equal("READY");
+    expect(res.getBody()).to.have.property("asset_ref");
+  });
+}

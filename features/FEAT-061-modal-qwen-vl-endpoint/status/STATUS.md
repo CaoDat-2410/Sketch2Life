@@ -1,5 +1,10 @@
 # FEAT-061 status
 
+## Live recheck — 2026-11-02
+
+- At the owner's direct request, one fresh synthetic request to the existing Modal Vision V2 endpoint returned HTTP 200 / `SUCCEEDED`; the temporary app was stopped and Modal reported zero tasks. This checks the legacy endpoint only, not the new S1/S2 flow. See `../evidence/MODAL_LIVE_RECHECK_20261102.md`.
+- The feature remains `REVIEW`; this recheck is not a quality or production-readiness approval and does not authorize another provider call.
+
 ## Current snapshot — 2026-10-29
 
 - Status remains REVIEW; original PLAN/approval bytes are preserved.

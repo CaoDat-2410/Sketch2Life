@@ -1,0 +1,576 @@
+=== race_cancel ===
+============================= test session starts =============================
+
+platform win32 -- Python 3.12.10, pytest-8.4.2, pluggy-1.6.0 -- <REPO>\backend\.venv\Scripts\python.exe
+
+rootdir: <REPO>\backend
+
+configfile: pyproject.toml
+
+plugins: anyio-4.14.2, asyncio-1.4.0
+
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+
+collecting ... collected 1 item
+
+
+
+tests/integration/test_story_run_lite_postgres.py::test_cancel_and_admission_finalizer_race_serializes_asset_commit[cancel] FAILED [100%]
+
+
+
+================================== FAILURES ===================================
+
+__ test_cancel_and_admission_finalizer_race_serializes_asset_commit[cancel] ___
+
+
+
+story_db = (Engine(postgresql+psycopg://postgres@127.0.0.1:5433/storyrun_lite_e4eb465c9dd34d75be56), <sketch2life.infrastructure.story_run_lite.repository.SqlStoryRunLiteRepository object at 0x000001F66757F440>)
+
+winner = 'cancel'
+
+
+
+    @pytest.mark.parametrize("winner", ["cancel", "admission"])
+
+    def test_cancel_and_admission_finalizer_race_serializes_asset_commit(
+
+        story_db, winner: str
+
+    ) -> None:
+
+        engine, repository = story_db
+
+        owner = "parent-cancel-admission-race-" + winner + "-" + str(uuid.uuid4())
+
+        run_id = _create_run(repository, owner)
+
+        payload = b"synthetic-cancel-admission-race"
+
+        upload_id, digest = _create_upload(
+
+            repository,
+
+            owner=owner,
+
+            run_id=run_id,
+
+            content=payload,
+
+            name="cancel-admission-race-" + winner,
+
+        )
+
+        claim_version = _open_upload_for_admission(
+
+            repository,
+
+            owner=owner,
+
+            upload_id=upload_id,
+
+            digest=digest,
+
+            size=len(payload),
+
+            name="cancel-admission-race-" + winner,
+
+        )
+
+        normalized = _normalized_upload(payload, digest)
+
+        original_ref = str(uuid.uuid4())
+
+        derived_ref = str(uuid.uuid4())
+
+        cancel_holds_run_before_uploads = threading.Event()
+
+        allow_cancel = threading.Event()
+
+        admission_at_asset_insert = threading.Event()
+
+        allow_admission = threading.Event()
+
+        finalizer_waiting_for_run = threading.Event()
+
+        cancellation_waiting_for_run = threading.Event()
+
+        thread_role = threading.local()
+
+        commit_order: list[str] = []
+
+
+
+        def coordinate_sql(_connection, _cursor, statement, _parameters, _context, _many):
+
+            sql = statement.lower()
+
+            is_lock = "for update" in sql
+
+            role = getattr(thread_role, "value", None)
+
+            if winner == "cancel" and role == "cancel" and "upload_sessions" in sql and is_lock:
+
+                cancel_holds_run_before_uploads.set()
+
+                assert allow_cancel.wait(timeout=15)
+
+            elif winner == "cancel" and role == "admission" and "story_runs" in sql and is_lock:
+
+                finalizer_waiting_for_run.set()
+
+            elif (
+
+                winner == "admission"
+
+                and role == "admission"
+
+                and "insert into core_asset_metadata" in sql
+
+            ):
+
+                if not admission_at_asset_insert.is_set():
+
+                    admission_at_asset_insert.set()
+
+                    assert allow_admission.wait(timeout=15)
+
+            elif winner == "admission" and role == "cancel" and "story_runs" in sql and is_lock:
+
+                cancellation_waiting_for_run.set()
+
+
+
+        event.listen(engine, "before_cursor_execute", coordinate_sql)
+
+
+
+        def cancel():
+
+            thread_role.value = "cancel"
+
+            result = repository.cancel_run(
+
+                actor_scope_kind=_PARENT,
+
+                actor_scope_ref=owner,
+
+                run_id=run_id,
+
+                expected_revision=1,
+
+                expected_version=1,
+
+                key_sha256=_hash("cancel-admission-race:" + winner),
+
+                fingerprint_sha256=_hash("fingerprint-cancel-admission-race:" + winner),
+
+            )
+
+            commit_order.append("cancel")
+
+            return result
+
+
+
+        def finalize_admission():
+
+            thread_role.value = "admission"
+
+            result = repository.finish_upload_admission(
+
+                upload_id=upload_id,
+
+                claim_version=claim_version,
+
+                original_asset_ref=original_ref,
+
+                derived_asset_ref=derived_ref,
+
+                normalized=normalized,
+
+                scanner=ScanVerdict("CLEAN", digest, "test-only", datetime.now(UTC)),
+
+                actor_scope_ref=owner,
+
+            )
+
+            commit_order.append("admission")
+
+            return result
+
+
+
+        try:
+
+            with ThreadPoolExecutor(
+
+                max_workers=2, thread_name_prefix="storyrun-admission-race"
+
+            ) as pool:
+
+                if winner == "cancel":
+
+                    cancellation = pool.submit(cancel)
+
+                    assert cancel_holds_run_before_uploads.wait(timeout=10)
+
+                    admission = pool.submit(finalize_admission)
+
+>                   assert finalizer_waiting_for_run.wait(timeout=10)
+
+E                   assert False
+
+E                    +  where False = wait(timeout=10)
+
+E                    +    where wait = <threading.Event at 0x1f667871af0: unset>.wait
+
+
+
+tests\integration\test_story_run_lite_postgres.py:792: AssertionError
+
+=========================== short test summary info ===========================
+
+FAILED tests/integration/test_story_run_lite_postgres.py::test_cancel_and_admission_finalizer_race_serializes_asset_commit[cancel]
+
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!
+
+============================= 1 failed in 16.08s ==============================
+
+exit_code=1; timeout=False
+
+=== race_admission ===
+============================= test session starts =============================
+
+platform win32 -- Python 3.12.10, pytest-8.4.2, pluggy-1.6.0 -- <REPO>\backend\.venv\Scripts\python.exe
+
+rootdir: <REPO>\backend
+
+configfile: pyproject.toml
+
+plugins: anyio-4.14.2, asyncio-1.4.0
+
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+
+collecting ... collected 1 item
+
+
+
+tests/integration/test_story_run_lite_postgres.py::test_cancel_and_admission_finalizer_race_serializes_asset_commit[admission] FAILED [100%]
+
+
+
+================================== FAILURES ===================================
+
+_ test_cancel_and_admission_finalizer_race_serializes_asset_commit[admission] _
+
+
+
+story_db = (Engine(postgresql+psycopg://postgres@127.0.0.1:5433/storyrun_lite_e4eb465c9dd34d75be56), <sketch2life.infrastructure.story_run_lite.repository.SqlStoryRunLiteRepository object at 0x0000024F9F271610>)
+
+winner = 'admission'
+
+
+
+    @pytest.mark.parametrize("winner", ["cancel", "admission"])
+
+    def test_cancel_and_admission_finalizer_race_serializes_asset_commit(
+
+        story_db, winner: str
+
+    ) -> None:
+
+        engine, repository = story_db
+
+        owner = "parent-cancel-admission-race-" + winner + "-" + str(uuid.uuid4())
+
+        run_id = _create_run(repository, owner)
+
+        payload = b"synthetic-cancel-admission-race"
+
+        upload_id, digest = _create_upload(
+
+            repository,
+
+            owner=owner,
+
+            run_id=run_id,
+
+            content=payload,
+
+            name="cancel-admission-race-" + winner,
+
+        )
+
+        claim_version = _open_upload_for_admission(
+
+            repository,
+
+            owner=owner,
+
+            upload_id=upload_id,
+
+            digest=digest,
+
+            size=len(payload),
+
+            name="cancel-admission-race-" + winner,
+
+        )
+
+        normalized = _normalized_upload(payload, digest)
+
+        original_ref = str(uuid.uuid4())
+
+        derived_ref = str(uuid.uuid4())
+
+        cancel_holds_run_before_uploads = threading.Event()
+
+        allow_cancel = threading.Event()
+
+        admission_at_asset_insert = threading.Event()
+
+        allow_admission = threading.Event()
+
+        finalizer_waiting_for_run = threading.Event()
+
+        cancellation_waiting_for_run = threading.Event()
+
+        thread_role = threading.local()
+
+        commit_order: list[str] = []
+
+
+
+        def coordinate_sql(_connection, _cursor, statement, _parameters, _context, _many):
+
+            sql = statement.lower()
+
+            is_lock = "for update" in sql
+
+            role = getattr(thread_role, "value", None)
+
+            if winner == "cancel" and role == "cancel" and "upload_sessions" in sql and is_lock:
+
+                cancel_holds_run_before_uploads.set()
+
+                assert allow_cancel.wait(timeout=15)
+
+            elif winner == "cancel" and role == "admission" and "story_runs" in sql and is_lock:
+
+                finalizer_waiting_for_run.set()
+
+            elif (
+
+                winner == "admission"
+
+                and role == "admission"
+
+                and "insert into core_asset_metadata" in sql
+
+            ):
+
+                if not admission_at_asset_insert.is_set():
+
+                    admission_at_asset_insert.set()
+
+                    assert allow_admission.wait(timeout=15)
+
+            elif winner == "admission" and role == "cancel" and "story_runs" in sql and is_lock:
+
+                cancellation_waiting_for_run.set()
+
+
+
+        event.listen(engine, "before_cursor_execute", coordinate_sql)
+
+
+
+        def cancel():
+
+            thread_role.value = "cancel"
+
+            result = repository.cancel_run(
+
+                actor_scope_kind=_PARENT,
+
+                actor_scope_ref=owner,
+
+                run_id=run_id,
+
+                expected_revision=1,
+
+                expected_version=1,
+
+                key_sha256=_hash("cancel-admission-race:" + winner),
+
+                fingerprint_sha256=_hash("fingerprint-cancel-admission-race:" + winner),
+
+            )
+
+            commit_order.append("cancel")
+
+            return result
+
+
+
+        def finalize_admission():
+
+            thread_role.value = "admission"
+
+            result = repository.finish_upload_admission(
+
+                upload_id=upload_id,
+
+                claim_version=claim_version,
+
+                original_asset_ref=original_ref,
+
+                derived_asset_ref=derived_ref,
+
+                normalized=normalized,
+
+                scanner=ScanVerdict("CLEAN", digest, "test-only", datetime.now(UTC)),
+
+                actor_scope_ref=owner,
+
+            )
+
+            commit_order.append("admission")
+
+            return result
+
+
+
+        try:
+
+            with ThreadPoolExecutor(
+
+                max_workers=2, thread_name_prefix="storyrun-admission-race"
+
+            ) as pool:
+
+                if winner == "cancel":
+
+                    cancellation = pool.submit(cancel)
+
+                    assert cancel_holds_run_before_uploads.wait(timeout=10)
+
+                    admission = pool.submit(finalize_admission)
+
+                    assert finalizer_waiting_for_run.wait(timeout=10)
+
+                    allow_cancel.set()
+
+                    cancel_result = cancellation.result(timeout=15)
+
+                    admission_result = admission.result(timeout=15)
+
+                else:
+
+                    admission = pool.submit(finalize_admission)
+
+                    assert admission_at_asset_insert.wait(timeout=10)
+
+                    cancellation = pool.submit(cancel)
+
+>                   assert cancellation_waiting_for_run.wait(timeout=10)
+
+E                   assert False
+
+E                    +  where False = wait(timeout=10)
+
+E                    +    where wait = <threading.Event at 0x24f9f600c20: unset>.wait
+
+
+
+tests\integration\test_story_run_lite_postgres.py:800: AssertionError
+
+=========================== short test summary info ===========================
+
+FAILED tests/integration/test_story_run_lite_postgres.py::test_cancel_and_admission_finalizer_race_serializes_asset_commit[admission]
+
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!
+
+============================= 1 failed in 15.93s ==============================
+
+exit_code=1; timeout=False
+
+=== expiry_get ===
+============================= test session starts =============================
+
+platform win32 -- Python 3.12.10, pytest-8.4.2, pluggy-1.6.0 -- <REPO>\backend\.venv\Scripts\python.exe
+
+rootdir: <REPO>\backend
+
+configfile: pyproject.toml
+
+plugins: anyio-4.14.2, asyncio-1.4.0
+
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+
+collecting ... collected 1 item
+
+
+
+tests/integration/test_story_run_lite_postgres.py::test_expiry_uses_utc_time_after_story_run_lock_wait[get] Timeout (0:00:20)!
+Thread 0x0000a888 (most recent call first):
+  File "<REPO>\backend\.venv\Lib\site-packages\psycopg\waiting.py", line 265 in wait_select
+  File "<REPO>\backend\.venv\Lib\site-packages\psycopg\connection.py", line 484 in wait
+  File "<REPO>\backend\.venv\Lib\site-packages\psycopg\cursor.py", line 113 in execute
+  File "<REPO>\backend\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952 in do_execute
+  File "<REPO>\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1969 in _exec_single_context
+  File "<REPO>\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1848 in _execute_context
+  File "<REPO>\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1643 in _execute_clauseelement
+  File "<REPO>\backend\.venv\Lib\site-packages\sqlalchemy\sql\elements.py", line 526 in _execute_on_connection
+  File "<REPO>\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1421 in execute
+  File "<REPO>\backend\src\sketch2life\infrastructure\story_run_lite\repository.py", line 2200 in _owned_run
+  File "<REPO>\backend\src\sketch2life\infrastructure\story_run_lite\repository.py", line 2168 in _owned_upload_with_run
+  File "<REPO>\backend\src\sketch2life\infrastructure\story_run_lite\repository.py", line 1133 in get_upload
+  File "<REPO>\backend\tests\integration\test_story_run_lite_postgres.py", line 1021 in invoke
+  File "<USER_DIR>\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\thread.py", line 59 in run
+  File "<USER_DIR>\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\thread.py", line 93 in _worker
+  File "<USER_DIR>\AppData\Local\Programs\Python\Python312\Lib\threading.py", line 1012 in run
+  File "<USER_DIR>\AppData\Local\Programs\Python\Python312\Lib\threading.py", line 1075 in _bootstrap_inner
+  File "<USER_DIR>\AppData\Local\Programs\Python\Python312\Lib\threading.py", line 1032 in _bootstrap
+
+Thread 0x0000f68c (most recent call first):
+  File "<USER_DIR>\AppData\Local\Programs\Python\Python312\Lib\threading.py", line 1169 in _wait_for_tstate_lock
+  File "<USER_DIR>\AppData\Local\Programs\Python\Python312\Lib\threading.py", line 1149 in join
+  File "<USER_DIR>\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\thread.py", line 239 in shutdown
+  File "<USER_DIR>\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\_base.py", line 647 in __exit__
+  File "<REPO>\backend\tests\integration\test_story_run_lite_postgres.py", line 1049 in test_expiry_uses_utc_time_after_story_run_lock_wait
+  File "<REPO>\backend\.venv\Lib\site-packages\_pytest\python.py", line 157 in pytest_pyfunc_call
+  File "<REPO>\backend\.venv\Lib\site-packages\pluggy\_callers.py", line 121 in _multicall
+  File "<REPO>\backend\.venv\Lib\site-packages\pluggy\_manager.py", line 120 in _hookexec
+  File "<REPO>\backend\.venv\Lib\site-packages\pluggy\_hooks.py", line 512 in __call__
+  File "<REPO>\backend\.venv\Lib\site-packages\_pytest\python.py", line 1671 in runtest
+  File "<REPO>\backend\.venv\Lib\site-packages\_pytest\runner.py", line 178 in pytest_runtest_call
+  File "<REPO>\backend\.venv\Lib\site-packages\pluggy\_callers.py", line 121 in _multicall
+  File "<REPO>\backend\.venv\Lib\site-packages\pluggy\_manager.py", line 120 in _hookexec
+  File "<REPO>\backend\.venv\Lib\site-packages\pluggy\_hooks.py", line 512 in __call__
+  File "<REPO>\backend\.venv\Lib\site-packages\_pytest\runner.py", line 246 in <lambda>
+  File "<REPO>\backend\.venv\Lib\site-packages\_pytest\runner.py", line 344 in from_call
+  File "<REPO>\backend\.venv\Lib\site-packages\_pytest\runner.py", line 245 in call_and_report
+  File "<REPO>\backend\.venv\Lib\site-packages\_pytest\runner.py", line 136 in runtestprotocol
+  File "<REPO>\backend\.venv\Lib\site-packages\_pytest\runner.py", line 117 in pytest_runtest_protocol
+  File "<REPO>\backend\.venv\Lib\site-packages\pluggy\_callers.py", line 121 in _multicall
+  File "<REPO>\backend\.venv\Lib\site-packages\pluggy\_manager.py", line 120 in _hookexec
+  File "<REPO>\backend\.venv\Lib\site-packages\pluggy\_hooks.py", line 512 in __call__
+  File "<REPO>\backend\.venv\Lib\site-packages\_pytest\main.py", line 367 in pytest_runtestloop
+  File "<REPO>\backend\.venv\Lib\site-packages\pluggy\_callers.py", line 121 in _multicall
+  File "<REPO>\backend\.venv\Lib\site-packages\pluggy\_manager.py", line 120 in _hookexec
+  File "<REPO>\backend\.venv\Lib\site-packages\pluggy\_hooks.py", line 512 in __call__
+  File "<REPO>\backend\.venv\Lib\site-packages\_pytest\main.py", line 343 in _main
+  File "<REPO>\backend\.venv\Lib\site-packages\_pytest\main.py", line 289 in wrap_session
+  File "<REPO>\backend\.venv\Lib\site-packages\_pytest\main.py", line 336 in pytest_cmdline_main
+  File "<REPO>\backend\.venv\Lib\site-packages\pluggy\_callers.py", line 121 in _multicall
+  File "<REPO>\backend\.venv\Lib\site-packages\pluggy\_manager.py", line 120 in _hookexec
+  File "<REPO>\backend\.venv\Lib\site-packages\pluggy\_hooks.py", line 512 in __call__
+  File "<REPO>\backend\.venv\Lib\site-packages\_pytest\config\__init__.py", line 175 in main
+  File "<REPO>\backend\.venv\Lib\site-packages\_pytest\config\__init__.py", line 201 in console_main
+  File "<REPO>\backend\.venv\Lib\site-packages\pytest\__main__.py", line 9 in <module>
+  File "<frozen runpy>", line 88 in _run_code
+  File "<frozen runpy>", line 198 in _run_module_as_main
+
+exit_code=124; timeout=True

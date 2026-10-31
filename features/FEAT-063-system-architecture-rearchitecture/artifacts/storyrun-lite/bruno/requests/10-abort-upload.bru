@@ -1,0 +1,21 @@
+meta {
+  name: 10 Abort open upload
+  type: http
+  seq: 10
+}
+
+delete {
+  url: {{baseUrl}}/v1/upload-sessions/{{uploadRef}}
+  auth: none
+}
+
+headers {
+  Idempotency-Key: {{abortUploadKey}}
+  If-Match: {{uploadETag}}
+}
+
+tests {
+  test("aborts an open upload", function () {
+    expect(res.getStatus()).to.equal(202);
+  });
+}

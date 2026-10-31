@@ -27,6 +27,22 @@
 - 26 focused non-DB contract/unit tests passed; harness/security/architecture checks passed. Upstream JUnit evidence has two pre-existing whitespace findings; preserved as historical bytes. No DB migration, running service or AI call in this synchronization.
 - Evidence: `evidence/notes/DEV_BACKEND_SYNC_20261030.md`. PostgreSQL/MinIO and end-to-end AI tests remain separate.
 
+## Remaining AI model recommendations — 2026-10-30
+
+- Publisher-source research proposes FLUX.2-klein-4B for line-sketch, Qwen3-VL reuse plus OpenCV for consistency, and Qwen3Guard-Gen-4B / ShieldGemma 2 4B for text/image moderation. See `evidence/notes/REMAINING_AI_MODEL_RECOMMENDATIONS_20261030.md`.
+- These are evaluation proposals, not SRS changes, quality acceptance or deployment. No models downloaded, GPU calls or runtime changes.
+
+## Video flow comparison — 2026-10-30
+
+- Owner left task allocation to the backend team and requested a comparison of video flows. Read-only findings: `evidence/notes/VIDEO_FLOW_COMPARISON_20261030.md`.
+- SRS 2.3 retains the core video pipeline already in SRS 2.2; it differs substantially from legacy demo/whiteboard/Lightning source. Current Modal wrapper remains Vision-only. No implementation or provider test follows from this comparison.
+
+## Current-machine continuation — 2026-10-30
+
+- Rev35 → Rev36 independently checked: DELTA_REVIEW_PASS for the three P3 corrections, not implementation approval or a full re-audit. Earlier BA handoff statements about pending final delta review describe the publication checkpoint.
+- `plan/S1_DECISION_CARD_20261030.md` proposes exact 24 BLOCK / 5 KEEP dispositions for owner review. Parent and original S1 hashes are unchanged. S1 remains NOT_STARTED pending disposition, applicable OD/allocation and execution approval.
+- Evidence: `evidence/notes/REV36_DELTA_REVIEW_AND_S1_PREPARATION_20261030.md`. Documentation only; no source/runtime/DB/provider changes or publication in this continuation.
+
 ## BA handoff — 2026-10-30
 
 - Use `plan/PLAN_REV36_BACKEND_SRS23_ALIGNMENT_20261029.md` as the latest backend foundation draft and `plan/REV36_S1_EXECUTION_SCOPE_DRAFT_20261029.md` for the S1 candidate inventory. Rev35 passed independent plan review; Rev36 addresses its three P3 notes but has not yet received an independent final review.
@@ -224,3 +240,174 @@
 - Diagrams/PDF: the existing monochrome 69-page Draw.io master and matching full-package PDF, plus 24-page flow-only PDF, are revision 2.0 outputs and predate the Parent AI guide. They are historical snapshots; refresh only if the owner requests a new diagram/PDF package. EV-063-15 records their original hashes and QA. All 78 active target tables appear once; 48 legacy mappings remain separate.
 - Product code/schema changes, database access, tests/builds, provider/payment/Modal calls, deployment and real-child data: not performed or approved.
 - Working tree: documentation changes are limited to FEAT-063, the FEAT-062 retirement redirect/records, ADR-0021 and the global source-register pointer; unrelated existing changes were not modified.
+
+## StoryRun-lite S1 checkpoint — 2026-11-02
+
+- Goal: continuous approved S1→S2 implementation from `plan/STORYRUN_LITE_S1_S2_LAUNCH_PROMPT_20261102.md`; execution plan SHA-256 `225FAAEBD6186130214DF2523D0B4ACABEFCEB94C9C235048750430BBA8F1B09`.
+- S1 overall: **NOT VERIFIED** pending a goal-owned PostgreSQL migration/transaction run and compatible ClamAV verification. Offline contract/domain/API/worker checks passed (38 tests), Ruff passed, and mypy passed (22 files). Windows Job Object process kill, limit readback and 40MP synthetic measurement passed; see `evidence/STORYRUN_LITE_S1_CHECKPOINT_20261102.md`.
+- No PostgreSQL URL or usable local maintenance connection was available. No database was created or contacted beyond loopback maintenance probes; no A2 or application database was used. ClamAV is absent from PATH and no real `CLEAN` verdict was claimed.
+- Per owner instruction, transition directly to S2 without another review gate. S2’s PG-backed bridge/receipt integration remains NOT VERIFIED until the environment gate is available.
+
+## StoryRun-lite S2 checkpoint — 2026-11-02
+
+- S2 implementation slice and offline contract checks are complete, but S2 readiness is **NOT VERIFIED**: five PostgreSQL-backed StoryRun-lite test cases skipped because no goal-owned loopback database could be created; ClamAV is unavailable. See `evidence/STORYRUN_LITE_S2_READINESS_20261102.md`.
+- Final focused/A1 regression run: 118 passed, 5 skipped. Ruff, mypy, repository harness, architecture, security, and migration-graph checks passed. Bruno CLI execution was not run; static operation matching passed.
+- Protected local changes: FEAT-061 and FEAT-064 baseline paths remain hash-identical. One unrelated FEAT-063 roadmap file differs from its initial captured hash and was retained untouched; overall 83-path preservation is therefore NOT VERIFIED. No changes were staged.
+- Resume only after a local compatible ClamAV daemon and a create-capable local PostgreSQL configuration are available. Use a new owner-verified `storyrun_lite_*` DB, then run the StoryRun-lite branch and skipped integrations. Do not use A2 or any pre-existing application DB.
+
+## StoryRun-lite final handoff — 2026-11-02
+
+- S1→S2 implementation work is recorded in `evidence/STORYRUN_LITE_S1_S2_FINAL_20261102.md`. Overall acceptance remains NOT VERIFIED for the explicitly recorded ClamAV, PostgreSQL, Bruno CLI, and one unrelated baseline-hash discrepancy.
+- Final scope snapshot: `.claude/handoff/snapshots/STORYRUN_LITE_S1_S2_20261102/`. No local A2 or FEAT-061 path changed; no database was created or used; the index remains clean.
+
+## StoryRun-lite final continuation — 2026-11-02
+
+- Goal: one continuous S1→S2 execution; this is not A2. The pinned launch-prompt SHA-256 matched. S1 and S2 technical/runtime gates are **VERIFIED** after creating and later cleaning only goal-owned loopback PostgreSQL/ClamAV/HTTP-stub resources.
+- Final focused StoryRun-lite/A1 regression result: **125 passed, 0 skipped**. Ruff, mypy (14 source files), harness, architecture, repository-security, Alembic-current and `git diff --check` passed. Bruno CLI 4.3.0 passed all ten request files across main, cancel and abort flows.
+- Strict overall acceptance is **NOT VERIFIED** because the initial 83-path comparison contains one unrelated FEAT-063 roadmap hash mismatch outside the allowlist. It was retained untouched. Three allowed FEAT-063 files contain only goal-scoped append records. All 35 FEAT-061/FEAT-064 protected paths, including A2 and the three FEAT-061 documents, remain byte-identical.
+- The exact temporary goal databases and local service processes were cleaned up. No provider, stage, commit, push, merge or deployment occurred. Do not use the strict acceptance label `XONG-CHƯA REVIEW IMPLEMENTATION` while the baseline exception remains unresolved.
+
+
+## StoryRun-lite SL-0/SL-8 owner-approved rebaseline — 2026-11-02
+
+- The owner selected **B — Rebaseline 875**. The current roadmap bytes are accepted for that single path under an explicit exception; the original B881 hash remains historical and is not described as preserved.
+- SL-0 and SL-8: **PASS WITH APPROVED REBASELINE**. The other baseline records remain 79 byte-identical paths, three approved append-only FEAT-063 paths, and 35/35 protected FEAT-061/FEAT-064 paths unchanged; no original path is missing.
+- S1 and S2 technical gates were already verified. This documentation-only disposition changes no source, test, migration or roadmap content. The original snapshot remains unchanged; see the additive rebaseline evidence/snapshot.
+- No A2 or FEAT-061 content was changed. Index remains unstaged; no commit/push/merge/deploy/provider/database operation occurred.
+
+
+- Post-rebaseline checks: `validate_harness.py --feature ...` returned `HARNESS_VALID`; `git diff --check` exited 0 with CRLF normalization notices only. No tests were rerun because source/tests/migrations were unchanged.
+
+
+## StoryRun-lite independent review fixes — three findings — 2026-11-02
+
+- Status: **APPROVED / IN PROGRESS** under `plan/STORYRUN_LITE_S1_S2_REVIEW_FIX_3_FINDINGS_20261102.md`, SHA-256 `D68FFBC1F251E367797DCAD0C6252D08797EA7ED19CC35DC2033B906C9A09D47`; approval is appended in `approvals/TASK_APPROVAL.md` before source changes.
+- Scope is limited to P2 upload/cancel concurrency and cleanup, P2 published expiry enforcement, and P3 runtime/OpenAPI response parity. Existing `ABORTED` and `EXPIRED` states are reused; no migration/schema change is planned.
+- Preserve the existing S1→S2, A2, FEAT-061/FEAT-064 and roadmap rebaseline records and bytes outside the exact allowlist. Final fix status will be recorded after focused regression and validators.
+
+
+## StoryRun-lite independent review fixes — implementation result — 2026-11-02
+
+- Status: **FIXED — XONG-CHƯA REVIEW**. The two P2 lifecycle/expiry findings and one P3 OpenAPI/runtime parity finding are implemented under the approved narrow plan.
+- Focused offline S1→S2/A1 regression: **126 passed, 9 skipped**; all nine skipped cases require the unavailable task-owned PostgreSQL database. The PostgreSQL race and expiry integration tests remain **NOT RUN**, so database-backed acceptance is not claimed.
+- Ruff, mypy (three changed production files), harness, architecture, repository-security and `git diff --check` passed. Evidence: `evidence/STORYRUN_LITE_S1_S2_REVIEW_FIX_20261102.md`.
+- The review-fix snapshot is additive at `.claude/handoff/snapshots/STORYRUN_LITE_S1_S2_REVIEW_FIX_20261102/`. All 35/35 protected FEAT-061/FEAT-064 paths remain byte-identical; branch, HEAD and empty index are unchanged.
+- Independent review is pending. No database/provider operation, stage, commit, push, merge or deploy occurred.
+
+
+## StoryRun-lite review-fix hash-gate clarification — 2026-11-02
+
+- The prior comparison used the pre-rebaseline S1→S2 snapshot (`6171A9…`); the owner-approved rebaseline snapshot is the applicable baseline and its `FC7ED78A…` hash matches the current final report and review-fix snapshot. The original snapshot remains unchanged as history.
+- Status remains **FIXED — XONG-CHƯA REVIEW**. PostgreSQL integration tests remain **NOT RUN**; independent review is pending.
+
+
+## StoryRun-lite independent review — round 2 implementation — 2026-11-02
+
+- Status: **FIXED — XONG-CHƯA REVIEW**. Round-2 P2 lock-wait expiry, P2 cancel/admission race and P3 OpenAPI/runtime parity changes are implemented under the same approved scope.
+- Focused offline S1→S2/A1 regression: **135 passed, 15 skipped**. All skipped cases require the unavailable task-owned PostgreSQL database; PostgreSQL expiry and race acceptance remain **NOT RUN**.
+- Ruff, mypy (two changed production files), harness, architecture, repository-security and `git diff --check` passed. Detailed test commands and limitations are in `evidence/STORYRUN_LITE_S1_S2_REVIEW_FIX_20261102.md`.
+- Standalone StoryRun-lite API runner was **NOT RUN** because no safe task-owned DB could be created or verified. The previous review-fix snapshot, plan, approval, final report, roadmap, A2 and FEAT-061/FEAT-064 files remain preserved.
+- Round-2 snapshot was captured additively at `.claude/handoff/snapshots/STORYRUN_LITE_S1_S2_REVIEW_FIX_20261102/ROUND2_20261102/`. All 35/35 protected FEAT-061/FEAT-064 paths match their prior snapshot hashes. Independent review is pending; no stage/commit/push/merge/deploy occurred.
+
+
+## StoryRun-lite independent review - round 3 P3 OpenAPI persisted errors - 2026-11-02
+
+- Status: **FIXED — XONG-CHƯA REVIEW**. OpenAPI `Error.code.enum` now covers all 17 StoryRun and 17 UploadSession runtime codes traced through the production GET projections, including `VISION_LOOPBACK_NOT_CONFIGURED` and `MODEL_INPUT_TOO_LARGE`; the enum remains closed.
+- Added a contract test that exercises both GET routes using the repository error projection and verifies their response schemas and every enumerated runtime code against OpenAPI. Focused contract tests: **20 passed**; Ruff and OpenAPI JSON parsing passed.
+- Harness, repository-security, architecture and `git diff --check` passed. Mypy returned an internal error (1.20.2), so no type-check verdict is claimed.
+- PostgreSQL tests and the DB-backed runner remain **NOT RUN**; no task-owned DB URL was set and no database was touched. No Modal/GPU/provider/external-network call was made.
+- Additive snapshot: `.claude/handoff/snapshots/STORYRUN_LITE_S1_S2_REVIEW_FIX_20261102/ROUND3_20261102/`. Branch `feature/feat063-be-foundation`, HEAD `a88de875ff92e9b4d4fa5cc2f5f8d5fc1f626f58`, index empty; all 35/35 protected FEAT-061/FEAT-064 paths remain hash-identical. Independent review is pending; no stage/commit/push/merge/deploy occurred.
+
+
+## StoryRun-lite independent review - round 4 projection test strengthening - 2026-11-02
+
+- Status: **FIXED — XONG-CHƯA REVIEW**. Only the approved contract test and append-only evidence/status records changed; OpenAPI and production source remain unchanged.
+- Added separate GET StoryRun and GET UploadSession tests using the real `StoryRunLiteService` and `SqlStoryRunLiteRepository` projections. Fake rows carry saved error codes; the fake UploadSession connection returns no parts. Each HTTP response code is checked against the row and OpenAPI `Error.code.enum`. Runtime code inventory coverage remains.
+- Focused contract suite: **22 passed**; Ruff, harness, repository-security, architecture and `git diff --check` passed. Mypy 1.20.2 returned an internal error without a verdict.
+- PostgreSQL tests/runner **NOT RUN**; task-owned DB URL and other database URLs were unset. No database or provider/network operation occurred.
+- Additive snapshot: `.claude/handoff/snapshots/STORYRUN_LITE_S1_S2_REVIEW_FIX_20261102/ROUND4_20261102/`. Branch `feature/feat063-be-foundation`, HEAD `a88de875ff92e9b4d4fa5cc2f5f8d5fc1f626f58`, index empty; protected FEAT-061/FEAT-064 paths and prior snapshots are preserved. Independent review round 4 is pending; no stage/commit/push/merge/deploy occurred.
+
+
+## StoryRun-lite review round 4 verdict recorded - 2026-11-02
+
+- The owner reports independent review **ACCEPTED** for the P3 production GET projection tests in round 4. This closes that review finding only; runtime verification is still pending.
+- PostgreSQL tests remain **NOT RUN** at this point. Mypy 1.20.2 returned an internal error and has no verdict. The immutable S1-S2 plan and its Modal/provider boundary remain unchanged.
+- Additive checkpoint snapshot: `.claude/handoff/snapshots/STORYRUN_LITE_S1_S2_RUNTIME_VERIFY_20261102/STEP1_REVIEW_ACCEPTED_20261102/`. No database/provider call, stage, commit, push, merge or deploy occurred.
+
+
+- Snapshot correction note: two preliminary step-1 captures were retained unchanged but are non-authoritative due to inventory defects. The upcoming `STEP1_REVIEW_ACCEPTED_FINAL_20261102` capture is the authoritative checkpoint with the complete Git-visible inventory and task-scoped snapshot list.
+
+
+## StoryRun-lite runtime verification - PostgreSQL gate blocked - 2026-11-02
+
+- Review round 4 P3 verdict remains **ACCEPTED**. Runtime verification is blocked at PostgreSQL: all three DB URL variables are unset; PostgreSQL 17/18 services exist but no task-owned connection/owner could be verified. No existing database was contacted or used.
+- PostgreSQL integration test command: **0 passed, 0 failed, 12 skipped**; the fixture skipped before connecting because `STORYRUN_LITE_DATABASE_URL` was unset. This does not verify database behavior.
+- Per the stop rule, Bruno and Modal steps are **NOT RUN**; Modal invocation count is **0**. Mypy still has no verdict from the prior 1.20.2 internal error.
+- Additive blocked-gate snapshot: `.claude/handoff/snapshots/STORYRUN_LITE_S1_S2_RUNTIME_VERIFY_20261102/STEP2_DATABASE_GATE_BLOCKED_20261102/`. No source/UI change, database/provider/network call, stage, commit, push, merge or deploy occurred.
+
+## StoryRun-lite runtime verification closeout - 2026-11-02
+
+The post-review execution record is `features/FEAT-063-system-architecture-rearchitecture/plan/STORYRUN_LITE_POST_REVIEW_RUNTIME_VERIFY_20261102.md` (SHA-256 `7BF55D4B95F8E3887502DC2889BC50D1F531DA172AC4465AAF32CB3DC8E74807`). Its final additive snapshot is `.claude/handoff/snapshots/STORYRUN_LITE_S1_S2_RUNTIME_VERIFY_20261102/STEP2_DATABASE_GATE_BLOCKED_CLOSEOUT_20261102/`, captured against the previous database-gate checkpoint and including the plan plus final evidence/status. Earlier snapshots remain unchanged.
+
+Runtime verification is **BLOCKED** at the PostgreSQL task-owned database gate: 0 passed, 0 failed, 12 skipped before connection. Bruno and Modal are **NOT RUN**; Modal invocation count is 0. The P3 implementation remains **FIXED — XONG-CHƯA REVIEW**; this does not claim runtime completion. No source, database, provider, or external-network operation occurred.
+## StoryRun-lite PostgreSQL owner assertion — 2026-11-03
+
+- The owner-approved test-only change compares the verified owner to both PostgreSQL `current_user` and the real database owner; runtime source and migration are unchanged. Independent review remains pending.
+- On a newly created task-owned PostgreSQL 17.11 loopback DB with owner/user `postgres`, the pre-Story migration synthetic legacy Organization fixture was created and verified in order. The full integration file returned **12 setup errors, 0 passed, 0 failed, 0 skipped**, before test bodies, because pytest could not access its default local temporary directory. See `evidence/STORYRUN_LITE_POSTGRES_OWNER_20261103.md` and its sanitized pytest log.
+- PostgreSQL gate **NOT VERIFIED**; Bruno and ClamAV/worker readiness **NOT RUN**. The exact task cluster was stopped and preserved; no Modal/provider invocation or stage/commit/push/merge occurred.
+## StoryRun-lite PostgreSQL suite on existing loopback service — 2026-11-03
+
+- New task DB `storyrun_lite_e4eb465c9dd34d75be56`, PostgreSQL 17.11 `127.0.0.1:5433`, user/owner `postgres`: verified. The synthetic legacy Organization asset was committed before the StoryRun-lite migration and verified afterwards.
+- Full 12-item suite: **5 passed, 2 reported failed, 1 interrupted at timeout, 4 not run**. The owner assertion and both legacy tests passed. The runner killed the test process tree at 600 seconds while the expiry lock-wait `[get]` case was running; pytest did not produce tracebacks for the two earlier race failures. PostgreSQL gate **NOT PASSED**.
+- See `evidence/STORYRUN_LITE_POSTGRES_5433_20261103.md` and its sanitized output. The task DB is retained. Bruno and scanner/worker readiness are **NOT RUN**; no Modal/provider call, stage, commit, push or merge occurred.
+## StoryRun-lite PostgreSQL diagnostics — 2026-11-03
+
+- The two race cases were rerun separately: both **FAIL**, with tracebacks showing unset coordination events at test lines 792 and 800. The expiry lock-wait `[get]` case was **TIMEOUT** after 75 seconds; its 20-second thread dump shows a DB worker in `_owned_run` and the main thread waiting for executor shutdown.
+- The test hooks look for `story_runs`, whereas the compiled PostgreSQL lock query uses `story.runs`; see `evidence/STORYRUN_LITE_POSTGRES_5433_DIAGNOSTICS_20261103.md` and the sanitized trace/dump log. A narrow test repair is proposed, not applied. Production race behavior and full suite remain unverified.
+- No source, test or migration was edited in this diagnostic; no DB was reset or deleted, Bruno and Modal were not run, and no stage/commit/push/merge occurred.
+## StoryRun-lite PostgreSQL coordination test-only fix — 2026-11-03
+
+- Owner-approved test changes recognize `story.runs` lock SQL and release blocking events/transactions before executor shutdown; runtime source and migrations are unchanged. Independent review is pending.
+- Nine individually bounded focused cases on the verified task DB: **7 passed, 2 failed, 0 skipped, 0 timed out**. Both admission/cancel races and all three expiry lock-wait variants passed. Recovery lock-wait counted three expired sessions instead of one; startup cleanup found the parts directory absent after the injected failure. Reused DB state is a possible factor, not a proven cause.
+- Full PostgreSQL suite, ClamAV/worker and Bruno **NOT RUN** because focused tests did not all pass. See `evidence/STORYRUN_LITE_POSTGRES_COORDINATION_FIX_20261103.md` and its sanitized traceback log. No database reset/delete, Modal/provider, stage, commit, push or merge occurred.
+## StoryRun-lite recovery diagnosis on fresh databases — 2026-11-03
+
+- Both recovery cases passed separately, each on a newly provisioned PostgreSQL 17.11 task DB with a legacy synthetic asset seeded before StoryRun-lite migration. On a third fresh task DB, nine sequential focused cases returned **7 passed, 2 failed, 0 skipped, 0 timed out**; the same two recovery tests failed after the preceding cases accumulated state.
+- The recovery code scans DB-wide rows while the tests use per-test quarantine paths and exact global counts/first-call injection. This explains a possible interference mechanism; the specific prior rows were not independently enumerated. Production correctness is not established. See `evidence/STORYRUN_LITE_FRESH_RECOVERY_20261103.md` and its sanitized log.
+- Full suite, ClamAV/worker and Bruno **NOT RUN** because the focused gate failed. Three new task DBs were retained, no existing DB reset or deleted. No source/test/migration changes, Modal/provider calls, stage/commit/push/merge occurred.
+## StoryRun-lite recovery test independence — 2026-11-03
+
+- Test-only change computes exact DB-wide recovery candidates and verifies the test-created upload independently; the injected cleanup failure targets that upload and its retry is asserted. Runtime source and migrations remain unchanged.
+- Two recovery cases passed individually on separate new PostgreSQL 17.11 task DBs; focused **9 passed, 0 failed, 0 skipped**; full PostgreSQL integration file on a fourth fresh DB **12 passed, 0 failed, 0 skipped**, no timeout. All had synthetic Organization fixture committed before StoryRun-lite migration.
+- Worker synthetic suite **18 passed, 0 skipped**, including Job Object limits/kill and 40 MP. Real ClamAV and configured loopback Vision stub **NOT VERIFIED**; Bruno flow **NOT RUN**, Modal/provider invocation **0**. See `evidence/STORYRUN_LITE_RECOVERY_ISOLATION_20261103.md` and sanitized log. Local Parent flow remains blocked; independent review of the test changes is pending.
+- Task DBs were retained; no existing DB reset or deleted, no stage/commit/push/merge.
+- Type-check update: mypy on the integration test file returned **25 errors**; Ruff, harness, repository security, architecture and `git diff --check` passed. No clean mypy verdict is claimed.
+## StoryRun-lite local readiness and mypy classification — 2026-11-03
+
+- PostgreSQL **12 passed** and worker synthetic suite **18 passed** remain the previously recorded results; not rerun. Real ClamAV and Vision loopback stub are **NOT VERIFIED** in the current environment, so synthetic CLEAN/EICAR INFECTED, API startup and Bruno flow are **NOT RUN**. No Modal/provider call occurred.
+- Mypy comparison using the same mypy 1.20.2/config on hash-verified pre-recovery-isolation and current test bytes: **24 existing, 1 new, 0 unclassified**. The new `no-untyped-def` concerns nested `ControlledDateTime.now` in the startup recovery test. Mypy is not clean; see `evidence/STORYRUN_LITE_LOCAL_READINESS_MYPY_20261103.md`.
+## StoryRun-lite local Bruno flow — 2026-11-03
+
+- Real ClamAV 1.5.4 with official signatures returned **CLEAN** for synthetic image and **INFECTED / CLAMAV_FOUND** for in-memory EICAR. A task-local fake Vision stub passed V2 HTTP/schema/bridge verification; this is not live AI inference.
+- On a new owner-verified PG17 task DB, Bruno **9 requests / 9 tests passed**: upload READY, run SUBJECT_REVIEW, confirm 202 and post-confirm GET PREPARATION_REVIEW. An initial attempt on the prior test DB returned 409 `ACTIVE_RUN_EXISTS`; the DB/run were preserved. See `evidence/STORYRUN_LITE_LOCAL_BRUNO_20261103.md` and sanitized summary JSON.
+- The single new test mypy diagnostic was fixed. Targeted recovery **1 passed**, Ruff passed; mypy now reports **24 baseline errors**, not clean. Previous full PostgreSQL suite **12 passed** and worker **18 passed** were not rerun in full for this type-only fix.
+- Temporary API, ClamAV and fake Vision processes were stopped and listeners absent; PostgreSQL services remain running. No Modal/provider call, stage/commit/push/merge/deploy occurred. New task DB was retained; its generated name was printed in the helper console but not captured in the task log.
+## StoryRun-lite guarded Modal integration — 2026-11-03
+
+- Explicit, run-bound live configuration implemented; default loopback retained. Offline bridge/A1 tests **78 passed**, PostgreSQL loopback regression **3 passed**, worker **18 passed**. Real ClamAV returned CLEAN for the selected synthetic image and INFECTED for EICAR. Mypy on the two source files returned **2 repository/port mismatch errors**, not a clean verdict.
+- **LIVE BLOCKED / NOT RUN**: the owner reports no active Modal endpoint. Live inference requests **0**; the required new task-owned live DB and live Parent flow have not run. See `evidence/STORYRUN_LITE_MODAL_LIVE_20261103.md`. The task scanner was stopped after its check; readiness must be established again before a future live attempt. No deployment, stage, commit, push or merge occurred.
+## StoryRun-lite temporary Modal serve — 2026-11-03
+
+- A new isolated PG17 task DB and synthetic upload reached **READY**; real ClamAV returned CLEAN/EICAR INFECTED. Bootstrap stopped before attach. The temporary Modal serve endpoint's **GET /health timed out after 100 s**; direct DNS/TLS succeeded, app had 0 tasks, and no app logs were returned. Cause remains undetermined.
+- The bridge now accepts valid regional Modal hostnames; bridge/A1 tests **83 passed**, Ruff and security passed. Mypy remains **2 repository/port arg-type errors**; the underlying mismatch predates live integration and its port fix is outside the approved scope.
+- **LIVE BLOCKED / NOT RUN**, inference requests **0**, no confirmation or live ledger result. App and task-owned local processes were stopped. See `evidence/STORYRUN_LITE_MODAL_TEMP_SERVE_20261103.md`; no existing DB reset, persistent deployment, stage, commit, push or merge.
+## StoryRun-lite one-request Modal live smoke — 2026-11-03
+
+- New temporary app health **200**; one synthetic Parent flow via BE/A1 sent exactly **one Modal inference POST**, HTTP **200**, Vision **SUCCEEDED**. Attach **202**, GET **SUBJECT_REVIEW**, confirm **202**, subsequent GET **PREPARATION_REVIEW**; ledger **SUCCEEDED**. See `evidence/STORYRUN_LITE_MODAL_LIVE_SUCCESS_20261103.md` for timing and limits.
+- Cleanup return contract corrected to `bool` after caller/implementation review. Focused **104 passed**, mypy on the two live source files and new test **passed**; no whole-repository clean claim. Real ClamAV CLEAN/EICAR INFECTED. The prior health timeout cause remains unknown.
+- App and task-owned temporary processes were stopped; task DB retained. No persistent deploy, stage, commit, push or merge. This live smoke is not independent review or production approval.
+## StoryRun-lite main BE integration — 2026-11-03
+
+- Local synthetic StoryRun routes/lifecycle are opt-in in the combined main app, guarded to loopback. Lesson and StoryRun upload tables are separated with verified migration compatibility. The clean/lesson-first/story-first/unknown-shape matrix passed; StoryRun PG **12 passed**, loopback **3 passed**, Lesson **6 passed**.
+- Owner-authorized empty `sketch2life` on PG17 loopback 5433 passed preflight and `upgrade heads`; main BE synthetic upload READY and one Modal inference returned **200 / SUCCEEDED**. Attach 202, SUBJECT_REVIEW, confirm 202, PREPARATION_REVIEW; ledger SUCCEEDED. Modal inference HTTP requests **1**.
+- Temporary app/processes stopped, DB and synthetic run retained. UI handoff: `artifacts/storyrun-lite/MAIN_BE_UI_HANDOFF_20261103.md`; evidence: `evidence/STORYRUN_LITE_MAIN_BE_INTEGRATION_20261103.md`. Local demo only; independent review and production identity remain open. No A2 change, stage, commit, push, merge or permanent deploy.

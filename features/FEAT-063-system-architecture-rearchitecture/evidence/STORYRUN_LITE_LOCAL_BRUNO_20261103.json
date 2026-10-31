@@ -1,0 +1,260 @@
+{
+  "fixture": {
+    "media_type": "image/png",
+    "dimensions": "64x48",
+    "bytes": 161,
+    "sha256": "621587CAFFEA6BF2F1DD76A4AAE778E7AE94E0821007770E267C113EF9558322"
+  },
+  "previous_db_run": {
+    "results": [
+      {
+        "name": "01 Create synthetic Parent run",
+        "status": 409,
+        "state": null,
+        "error_code": "ACTIVE_RUN_EXISTS",
+        "tests": [
+          {
+            "description": "creates a run",
+            "status": "fail",
+            "error": "expected 409 to equal 201"
+          }
+        ],
+        "skipped": false
+      },
+      {
+        "name": "02 Create upload session",
+        "status": "skipped",
+        "state": null,
+        "error_code": null,
+        "tests": [],
+        "skipped": true
+      },
+      {
+        "name": "03 Upload one raw image part",
+        "status": "skipped",
+        "state": null,
+        "error_code": null,
+        "tests": [],
+        "skipped": true
+      },
+      {
+        "name": "04 Complete and admit upload",
+        "status": "skipped",
+        "state": null,
+        "error_code": null,
+        "tests": [],
+        "skipped": true
+      },
+      {
+        "name": "05 Get upload state",
+        "status": "skipped",
+        "state": null,
+        "error_code": null,
+        "tests": [],
+        "skipped": true
+      },
+      {
+        "name": "06 Attach admitted asset and dispatch one attempt",
+        "status": "skipped",
+        "state": null,
+        "error_code": null,
+        "tests": [],
+        "skipped": true
+      },
+      {
+        "name": "07 Poll run and result",
+        "status": "skipped",
+        "state": null,
+        "error_code": null,
+        "tests": [],
+        "skipped": true
+      },
+      {
+        "name": "08 Confirm current subject understanding",
+        "status": "skipped",
+        "state": null,
+        "error_code": null,
+        "tests": [],
+        "skipped": true
+      },
+      {
+        "name": "09 Verify preparation review after confirmation",
+        "status": "skipped",
+        "state": null,
+        "error_code": null,
+        "tests": [],
+        "skipped": true
+      }
+    ],
+    "summary": {
+      "totalRequests": 9,
+      "passedRequests": 0,
+      "failedRequests": 1,
+      "errorRequests": 0,
+      "skippedRequests": 8,
+      "skippedByBail": 8,
+      "totalAssertions": 0,
+      "passedAssertions": 0,
+      "failedAssertions": 0,
+      "totalTests": 1,
+      "passedTests": 0,
+      "failedTests": 1,
+      "totalPreRequestTests": 0,
+      "passedPreRequestTests": 0,
+      "failedPreRequestTests": 0,
+      "totalPostResponseTests": 0,
+      "passedPostResponseTests": 0,
+      "failedPostResponseTests": 0
+    }
+  },
+  "fresh_db_run": {
+    "results": [
+      {
+        "name": "01 Create synthetic Parent run",
+        "status": 201,
+        "state": "INPUT_PROCESSING",
+        "error_code": null,
+        "tests": [
+          {
+            "description": "creates a run",
+            "status": "pass",
+            "error": null
+          }
+        ],
+        "skipped": false
+      },
+      {
+        "name": "02 Create upload session",
+        "status": 201,
+        "state": "RECEIVING",
+        "error_code": null,
+        "tests": [
+          {
+            "description": "creates a bounded upload session",
+            "status": "pass",
+            "error": null
+          }
+        ],
+        "skipped": false
+      },
+      {
+        "name": "03 Upload one raw image part",
+        "status": 200,
+        "state": null,
+        "error_code": null,
+        "tests": [
+          {
+            "description": "stores one raw upload part",
+            "status": "pass",
+            "error": null
+          }
+        ],
+        "skipped": false
+      },
+      {
+        "name": "04 Complete and admit upload",
+        "status": 202,
+        "state": "PENDING",
+        "error_code": null,
+        "tests": [
+          {
+            "description": "accepts upload admission",
+            "status": "pass",
+            "error": null
+          }
+        ],
+        "skipped": false
+      },
+      {
+        "name": "05 Get upload state",
+        "status": 200,
+        "state": "READY",
+        "error_code": null,
+        "tests": [
+          {
+            "description": "reads the admitted upload",
+            "status": "pass",
+            "error": null
+          }
+        ],
+        "skipped": false
+      },
+      {
+        "name": "06 Attach admitted asset and dispatch one attempt",
+        "status": 202,
+        "state": "INPUT_PROCESSING",
+        "error_code": null,
+        "tests": [
+          {
+            "description": "attaches the admitted asset",
+            "status": "pass",
+            "error": null
+          }
+        ],
+        "skipped": false
+      },
+      {
+        "name": "07 Poll run and result",
+        "status": 200,
+        "state": "SUBJECT_REVIEW",
+        "error_code": null,
+        "tests": [
+          {
+            "description": "reads the subject review result",
+            "status": "pass",
+            "error": null
+          }
+        ],
+        "skipped": false
+      },
+      {
+        "name": "08 Confirm current subject understanding",
+        "status": 202,
+        "state": "PREPARATION_REVIEW",
+        "error_code": null,
+        "tests": [
+          {
+            "description": "confirms the current subject revision",
+            "status": "pass",
+            "error": null
+          }
+        ],
+        "skipped": false
+      },
+      {
+        "name": "09 Verify preparation review after confirmation",
+        "status": 200,
+        "state": "PREPARATION_REVIEW",
+        "error_code": null,
+        "tests": [
+          {
+            "description": "reads preparation review after confirmation",
+            "status": "pass",
+            "error": null
+          }
+        ],
+        "skipped": false
+      }
+    ],
+    "summary": {
+      "totalRequests": 9,
+      "passedRequests": 9,
+      "failedRequests": 0,
+      "errorRequests": 0,
+      "skippedRequests": 0,
+      "skippedByBail": 0,
+      "totalAssertions": 0,
+      "passedAssertions": 0,
+      "failedAssertions": 0,
+      "totalTests": 9,
+      "passedTests": 9,
+      "failedTests": 0,
+      "totalPreRequestTests": 0,
+      "passedPreRequestTests": 0,
+      "failedPreRequestTests": 0,
+      "totalPostResponseTests": 0,
+      "passedPostResponseTests": 0,
+      "failedPostResponseTests": 0
+    }
+  }
+}

@@ -1,0 +1,8 @@
+# StoryRun-lite one-request Modal temporary serve — 2026-11-03
+
+Status: **APPROVED / IN PROGRESS** under the owner's direct instruction to resume the guarded live smoke. This supplements, without rewriting, `STORYRUN_LITE_MODAL_LIVE_20261103.md` and its existing approval. The owner's new instruction expressly authorizes a temporary `modal serve`, not a persistent deployment.
+
+1. Check the configured Modal account, named model Volume, Secret name and locally protected bearer without disclosing values; classify the two existing mypy diagnostics and do not change files outside the previously approved scope.
+2. Use a task-local archive of committed `a88de875ff92e9b4d4fa5cc2f5f8d5fc1f626f58` FEAT-061 wrapper, backend package/manifest and Vision server, so unpublished A2 changes are not uploaded. Start only `modal serve`, verify `/health`, and stop that exact temporary serve/app when done. No long-running deployment or Secret/Volume mutation.
+3. On a new task-owned, separately verified loopback PostgreSQL database, with real ClamAV and worker gates, create one synthetic Parent run and upload the selected synthetic image. Pin that run in the explicitly configured live API before making at most one backend/A1-guarded POST to the Modal inference endpoint. Preserve the durable ledger, deadline and no-retry rule; UNKNOWN or ambiguity after SENT terminates the attempt.
+4. Record sanitized outcomes, exact request count, cleanup and remaining gates in feature evidence/status and an additive snapshot. Do not expose credentials, reset existing DBs, stage, commit, push, merge or permanently deploy. Stop on missing credentials, a failed required gate or an out-of-scope fix.

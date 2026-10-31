@@ -111,6 +111,15 @@ class _RecordingTransport:
         self.raw = response
         return response
 
+    def mark_bridge_outcome_validated(self) -> None:
+        marker = getattr(self._inner, "mark_bridge_outcome_validated", None)
+        if callable(marker):
+            marker()
+
+    @property
+    def guarded_live_transport(self) -> bool:
+        return callable(getattr(self._inner, "mark_bridge_outcome_validated", None))
+
 
 class LegacyVisionV2Bridge:
     def __init__(
@@ -140,6 +149,11 @@ class LegacyVisionV2Bridge:
     def context_capability(self) -> ContextCapability | None:
         return None
 
+    @property
+    def invocation_guard_identity(self) -> object | None:
+        """Expose the injected transport's guard identity without changing bridge behavior."""
+        return getattr(self._transport, "invocation_guard_identity", None)
+
     def observe(self, request: ObservationRequest) -> ObservationOutcome:
         if (
             request.context_mode is not ProviderContextMode.IMAGE_ONLY
@@ -166,6 +180,16 @@ class LegacyVisionV2Bridge:
                                      detail="LEGACY_ADAPTER_CONTRACT_ERROR")
         invoked = recorder.calls > 0
         if isinstance(result, VisionUnderstandingFailureV2):
+            if recorder.guarded_live_transport:
+                mismatch = verify_v2_failure(
+                    result, v2_request, recorder.raw, catalog=self._catalog,
+                    profile=self._profile, policy=self._policy,
+                )
+                if mismatch is not None:
+                    return ObservationFailed(
+                        ObservationFailureCode.OUTPUT_MALFORMED, invoked, detail=mismatch
+                    )
+                recorder.mark_bridge_outcome_validated()
             return failure_for(result, invoked)
         mismatch = verify_v2_success(result, v2_request, recorder.raw, catalog=self._catalog,
                                      profile=self._profile, policy=self._policy)
@@ -201,6 +225,7 @@ class LegacyVisionV2Bridge:
         moderation = ModerationOutcome(
             LexicalOutcome.PASSED, result.content_policy_version, result.policy_match_view_version
         )
+        recorder.mark_bridge_outcome_validated()
         return ObservationSucceeded(observation, evidence, moderation, result_document=document)
 
 
@@ -290,6 +315,61 @@ def verify_v2_success(
     return None
 
 
+def verify_v2_failure(
+    result: VisionUnderstandingFailureV2,
+    request: VisionUnderstandingRequestV2,
+    raw: Mapping[str, object] | None,
+    *,
+    catalog: VisionProfileCatalogV2,
+    profile: VisionProfileV2,
+    policy: LexicalRegressionContentPolicy,
+) -> str | None:
+    """Accept only a complete typed failure, or the bridge's validated local policy block."""
+
+    if raw is None:
+        return "FAILURE_RESPONSE_MISSING"
+    if raw.get("status") == "FAILED":
+        try:
+            wire_failure = VisionUnderstandingFailureV2.model_validate(raw)
+        except ValidationError:
+            return "FAILURE_RESPONSE_INVALID"
+        if wire_failure != result:
+            return "FAILURE_RESPONSE_MISMATCH"
+        if (
+            wire_failure.correlation_id != request.correlation_id
+            or wire_failure.source_image_ref != request.source_image_ref
+            or wire_failure.profile_id is not request.requested_profile_id
+        ):
+            return "IDENTITY_MISMATCH"
+        return None
+
+    # The unchanged V2 adapter can turn an otherwise valid success into a typed lexical
+    # policy failure. Admit that outcome only when the original success passes every bridge
+    # provenance/identity check and the adapter returned the closed policy-block result.
+    if (
+        raw.get("status") == "SUCCEEDED"
+        and result.error_code is VisionErrorCode.PROHIBITED_CLAIM_DETECTED
+        and result.policy_execution_state == "BLOCKED"
+    ):
+        try:
+            wire_success = VisionUnderstandingSuccessV2.model_validate(raw)
+        except ValidationError:
+            return "POLICY_SOURCE_RESPONSE_INVALID"
+        mismatch = verify_v2_success(
+            wire_success, request, raw, catalog=catalog, profile=profile, policy=policy
+        )
+        if mismatch is not None:
+            return mismatch
+        if (
+            result.correlation_id != request.correlation_id
+            or result.source_image_ref != request.source_image_ref
+            or result.profile_id is not request.requested_profile_id
+        ):
+            return "IDENTITY_MISMATCH"
+        return None
+    return "FAILURE_RESPONSE_NOT_TYPED"
+
+
 def _raw_confidences_strict(raw: Mapping[str, object]) -> bool:
     """V2 validates in lax mode (``"0.5"``/``true`` would coerce); re-check the raw values."""
 
@@ -347,5 +427,6 @@ __all__ = [
     "map_v2_observation",
     "precheck_image_request",
     "v2_request_for",
+    "verify_v2_failure",
     "verify_v2_success",
 ]

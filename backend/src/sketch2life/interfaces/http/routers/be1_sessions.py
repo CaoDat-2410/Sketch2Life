@@ -40,6 +40,7 @@ from sketch2life.contracts.schemas.be1_runtime import (
     SessionTransitionRequest,
     StageAdvanceRequest,
 )
+from sketch2life.domain.core_foundation import canvas_operation_profile_v1_configuration
 from sketch2life.infrastructure.config.settings import Settings
 from sketch2life.infrastructure.persistence.be1_models import (
     Be1GroupDraftModel,
@@ -90,6 +91,13 @@ _RETENTION_DAYS = 90
 _ROOM_CODE_DIGITS = 6
 _ROOM_CODE_RATE_LIMIT = 10
 _ROOM_CODE_WINDOW = timedelta(minutes=15)
+_RESERVED_SESSION_CONFIGURATION_KEYS = {
+    "purpose_ref",
+    "join_code_sha256",
+    "canvas_operation_profile",
+    "canvas_operation_profile_id",
+    "canvas_operation_profile_version",
+}
 
 
 def _room_code_key(runtime: Be1Runtime) -> bytes:
@@ -192,13 +200,14 @@ def create_session(
     organization_id: str,
     payload: CreateSessionRequest,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
+    runtime: Be1Runtime = Depends(get_runtime),
     db: Session = Depends(get_db),
 ) -> dict[str, object]:
     require_assignment(
         db, principal, organization_id, roles={"school_admin", "teacher"}, class_id=payload.class_id
     )
     get_class(db, organization_id, payload.class_id)
-    if {"purpose_ref", "join_code_sha256"}.intersection(payload.configuration):
+    if _RESERVED_SESSION_CONFIGURATION_KEYS.intersection(payload.configuration):
         raise failure(
             422, "RESERVED_CONFIGURATION_KEY", "Session configuration contains a reserved key"
         )
@@ -209,6 +218,8 @@ def create_session(
         "purpose_ref": payload.purpose_ref,
         "join_code_sha256": hashlib.sha256(join_code.encode("utf-8")).hexdigest(),
     }
+    if runtime.settings.env in {"local", "test"} and runtime.settings.synthetic_pilot_enabled:
+        configuration["canvas_operation_profile"] = canvas_operation_profile_v1_configuration()
     record = ClassroomSessionModel(
         session_id=session_id,
         organization_id=organization_id,
@@ -566,11 +577,13 @@ def advance_learning_stage(
     if stage.stage == "explore_draw" and next_stage == "assistance":
         for group in groups:
             turn = db.scalar(
-                select(ChildTurnModel).where(
+                select(ChildTurnModel)
+                .where(
                     ChildTurnModel.organization_id == organization_id,
                     ChildTurnModel.session_id == session_id,
                     ChildTurnModel.group_id == group.group_id,
-                ).limit(1)
+                )
+                .limit(1)
             )
             if turn is None:
                 raise failure(

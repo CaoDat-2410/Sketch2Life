@@ -149,7 +149,7 @@ EV-063-05 records an independent architecture audit in `evidence/INDEPENDENT_ARC
 
 | ID | Record | Basis |
 |---|---|---|
-| D-114 | The local Compose Swagger/OpenAPI surface is enriched and checked against every mounted Rev37 request, authentication, response and route declaration; 11 candidate/fixture operations remain unmounted. The two upload body-limit 413 routes document both the Rev37 `MobileWorkflowResultV1` contract and the currently observed generic middleware payload. This changes no route or middleware behavior; the existing image body-cap test mismatch remains recorded for separate resolution. | Approved Plan Rev38; source Rev37 catalog; EV-063-30 |
+| D-119 | The local Compose Swagger/OpenAPI surface is enriched and checked against every mounted Rev37 request, authentication, response and route declaration; 11 candidate/fixture operations remain unmounted. The two upload body-limit 413 routes document both the Rev37 `MobileWorkflowResultV1` contract and the currently observed generic middleware payload. This changes no route or middleware behavior; the existing image body-cap test mismatch remains recorded for separate resolution. | Approved Plan Rev38; source Rev37 catalog; EV-063-30 |
 
 ## Rev39 Swagger navigation record (documentation resolution, not a product decision)
 
@@ -174,3 +174,16 @@ EV-063-05 records an independent architecture audit in `evidence/INDEPENDENT_ARC
 | ID | Record | Basis |
 |---|---|---|
 | D-118 | Before returning a typed 413 for a local session media upload, match only the exact image/audio upload route, validate echoed request/session identifiers using the API's safe identifier format, and cap the reported version at the established error-response maximum. This prevents unsafe header reflection while preserving the approved `MobileWorkflowResultV1` payload. | Approved Plan Rev40 and Rev42; source review; EV-063-34 |
+
+## StoryRun-lite implementation decisions — S1→S2 — 2026-11-02
+
+| ID | Record | Basis |
+|---|---|---|
+| D-120 | Keep the demo in a standalone local StoryRun-lite API and additive Core/Story schema branch. Reuse typed Core asset ownership and the existing A1 V2 adapter/ledger/guard/transport; do not alter the existing canvas analysis entry point. | Approved S1→S2 launch prompt and execution plan; current runtime/source review |
+| D-121 | Admission is fail-closed: ClamAV must scan the exact immutable upload snapshot before image parsing. Test-only scanner doubles do not establish production scanner readiness. | V12 §10; approved S1→S2 acceptance |
+| D-122 | Image decoding runs only after Windows Job Object assignment; read back memory/CPU limits and accounting, enforce kill-on-close, and retain NOT VERIFIED if the supported OS measurements fail. | V12 §10; local Windows 40MP/kill-on-close tests |
+| D-123 | A Story result must commit before the A1 invocation ledger is terminalized. After SENT/UNKNOWN, the bridge never retries the provider tuple; S2 transport targets only HTTP loopback. | Approved S1→S2 launch prompt; A1 guard/transport contract |
+| D-124 | PostgreSQL integration may use only a unique goal-created `storyrun_lite_*` loopback database with verified owner. Since no URL/usable local connection was available, do not create/migrate a database or downgrade this gate to SQLite. | Approved launch prompt; environment check 2026-11-02 |
+| D-125 | For the S1→S2 run, the missing caller-supplied URL was replaced only with a temporary goal-created PostgreSQL 17 loopback cluster and uniquely named databases owned by `storyrun_lite_owner`. Owner/loopback identity was checked before applying the StoryRun-lite migration; only those exact goal databases were dropped after verification. This is a local test-environment record, not a final production stack choice. | Approved launch prompt; `evidence/STORYRUN_LITE_S1_S2_ENVIRONMENT_20261102.md` |
+
+| D-126 | For S1→S2 SL-0/SL-8 only, accept the current pre-existing local roadmap bytes (SHA-256 `875E93C59085DA9C38923DB85EEE50D15945CBD38EC27EC0B6389B93B3ECB8D4`) as an owner-approved rebaseline. Preserve the original B881 capture in the historical manifest; do not claim the original bytes were preserved or alter the roadmap. This is a baseline-scoping decision, not an architecture/product stack choice. | Owner reply “B — Rebaseline 875”; `evidence/STORYRUN_LITE_SL0_SL8_REBASELINE_20261102.md` |

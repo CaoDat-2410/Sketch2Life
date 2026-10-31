@@ -100,6 +100,11 @@ class ManagedProfileModel(CorePersistenceBase):
     __table_args__ = (
         UniqueConstraint("organization_id", "child_id", name="uq_be1_profile_org_child"),
         CheckConstraint("age_months BETWEEN 36 AND 155", name="ck_be1_profile_age_months"),
+        CheckConstraint("age_revision >= 1", name="ck_be1_profile_age_revision"),
+        CheckConstraint(
+            "age_source IN ('LEGACY_UNKNOWN', 'SYNTHETIC_FIXTURE', 'ADULT_DECLARED')",
+            name="ck_be1_profile_age_source",
+        ),
         CheckConstraint(
             "data_origin IN ('REAL', 'SYNTHETIC_DEV', 'LEGACY_UNCLASSIFIED')",
             name="ck_be1_profile_data_origin",
@@ -127,6 +132,10 @@ class ManagedProfileModel(CorePersistenceBase):
     )
     display_name: Mapped[str] = mapped_column(String(200), nullable=False)
     age_months: Mapped[int] = mapped_column(Integer, nullable=False)
+    age_revision: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=1, server_default="1"
+    )
+    age_source: Mapped[str] = mapped_column(String(24), nullable=False)
     consent_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     consent_purpose_ref: Mapped[str | None] = mapped_column(String(128), nullable=True)
     # The legal registry route never sets this; the ORM default keeps it REAL.

@@ -33,6 +33,11 @@ from sketch2life.domain.lesson_library.model import (
     next_version_number,
     validate_content,
 )
+from sketch2life.infrastructure.lesson_library.receipt_compat import (
+    ReceiptCompatibilityError,
+    parent_group_membership_lookup,
+    upgrade_parent_group_receipt,
+)
 from sketch2life.infrastructure.lesson_library.tables import (
     ACCESS_GRANTS,
     COMMAND_RECEIPTS,
@@ -499,7 +504,61 @@ class LessonLibraryService:
             return None
         if previous["request_fingerprint"] != self._fingerprint(payload):
             fail(409, "IDEMPOTENCY_KEY_REUSED", "Idempotency-Key was already used for another request")
-        return dict(previous["response_json"])
+        stored_response = previous["response_json"]
+        try:
+            lookup = parent_group_membership_lookup(
+                organization_id=organization_id,
+                principal_ref=actor,
+                operation_scope=scope,
+                response=stored_response,
+            )
+            membership_row = None
+            if lookup is not None:
+                stmt = (
+                    select(
+                        PARENT_GROUP_MEMBERS.c.membership_id.label("membership_id"),
+                        PARENT_GROUP_MEMBERS.c.parent_group_id.label("parent_group_id"),
+                        PARENT_GROUP_MEMBERS.c.parent_principal_ref.label("parent_principal_ref"),
+                        PARENT_GROUP_MEMBERS.c.revision.label("revision"),
+                        PARENT_GROUPS.c.organization_id.label("organization_id"),
+                    )
+                    .select_from(
+                        PARENT_GROUP_MEMBERS.join(
+                            PARENT_GROUPS,
+                            PARENT_GROUPS.c.parent_group_id
+                            == PARENT_GROUP_MEMBERS.c.parent_group_id,
+                        )
+                    )
+                    .where(
+                        PARENT_GROUP_MEMBERS.c.membership_id == lookup.membership_id,
+                        PARENT_GROUP_MEMBERS.c.parent_group_id == lookup.parent_group_id,
+                        PARENT_GROUPS.c.organization_id == lookup.organization_id,
+                    )
+                )
+                if lookup.parent_principal_ref is not None:
+                    stmt = stmt.where(
+                        PARENT_GROUP_MEMBERS.c.parent_principal_ref
+                        == lookup.parent_principal_ref
+                    )
+                membership_row = self.db.execute(stmt).mappings().one_or_none()
+                if membership_row is None:
+                    raise ReceiptCompatibilityError("current membership row is unavailable")
+                membership_data = dict(membership_row)
+            else:
+                membership_data = None
+            return upgrade_parent_group_receipt(
+                operation_scope=scope,
+                response=stored_response,
+                membership_row=membership_data,
+                organization_id=organization_id,
+                principal_ref=actor,
+            )
+        except ReceiptCompatibilityError as exc:
+            raise LessonLibraryError(
+                409,
+                "IDEMPOTENCY_RECEIPT_INCOMPATIBLE",
+                "Stored idempotency receipt cannot be replayed under the current response contract",
+            ) from exc
 
     @staticmethod
     def _fingerprint(payload: dict[str, Any]) -> str:

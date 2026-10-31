@@ -1,0 +1,29 @@
+meta {
+  name: 09 Cancel unfinished run
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{runRef}}/cancel
+  body: json
+  auth: none
+}
+
+headers {
+  Idempotency-Key: {{cancelRunKey}}
+  If-Match: {{runETag}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "expected_revision": {{runRevision}}
+  }
+}
+
+tests {
+  test("cancels an unfinished run", function () {
+    expect(res.getStatus()).to.equal(202);
+  });
+}

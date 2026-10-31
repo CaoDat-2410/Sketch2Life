@@ -1,0 +1,16 @@
+# Evidence whitespace normalization for local commit — 2026-11-03
+
+Owner requested correcting whitespace before committing. The eight files below were normalized only for trailing whitespace, final blank lines, and line endings; Markdown hard breaks were represented with `<br>`. Content and test results were not rerun or changed.
+
+Historical approvals, plans and reports retain their originally recorded hashes as hashes of the original bytes. They do not describe the normalized current bytes. The original files were copied and verified locally under `.claude/handoff/snapshots/COMMIT_WHITESPACE_ORIGINALS_20261103/`, which is ignored by Git and is not included in the commit. Obtain originals from the author when original byte-level verification is needed.
+
+| File | Original SHA-256 | Normalized SHA-256 |
+| --- | --- | --- |
+| `features/FEAT-061-modal-qwen-vl-endpoint/evidence/MODAL_LIVE_RECHECK_20261102.md` | `C124A3BB6651A04AE9297194CA27025CD0F322F6F9545AB54CA59475D7B6CA37` | `71F8588ED0B568EA90E16FC54AF12B9C1FBA9783A8041518CCA56E50FFA4B46C` |
+| `features/FEAT-063-system-architecture-rearchitecture/artifacts/storyrun-lite/README.md` | `284F88AD3DD6B258D7CC62A52350157EF9EE7E1442DC6F4B85D3544626A9B2F8` | `9BA1EFD64FCD53B4948CBD443D1C474072878644F573674B5E1127B149070EC0` |
+| `features/FEAT-063-system-architecture-rearchitecture/evidence/STORYRUN_LITE_FRESH_RECOVERY_20261103.log` | `6514640452BC6ABBC136F8CBDA13B3116FCCEFD3DC649AFF013F00C8DD9FA4A0` | `6AC2A16E6604F44BBC757C3F9956C849F2D19B5D04B3AEDF8016E4296A6AD55B` |
+| `features/FEAT-063-system-architecture-rearchitecture/evidence/STORYRUN_LITE_POSTGRES_5433_DIAGNOSTICS_20261103.log` | `5A30DA4A7C56E13327BFDA007DEF3130ECED8929BD608B178D951B2E7C1EB91E` | `83C979A26B15264FF1A66E5758DE5A990DDC040BEE3DF88097277A036FCD5850` |
+| `features/FEAT-063-system-architecture-rearchitecture/evidence/STORYRUN_LITE_POSTGRES_COORDINATION_FIX_20261103.log` | `55FF562160320391A7853D451E6B35AE36E8EEF13CA8405AE9279B037D1E13FD` | `D9FD4FCBFE13290D297206A0E28DD0366B54C212862DD6382090AE6E6CBC0D2A` |
+| `features/FEAT-063-system-architecture-rearchitecture/evidence/STORYRUN_LITE_S1_S2_LOCAL_CHANGE_BASELINE_20261102.md` | `0BB9B961D2EFF556D3535F2506A4BBA75E313788779DC166326C408C238A931E` | `74831FCEF7842AF5FA95BA1146F976BEC2B2E498C09C77F34D174E8FAAB68662` |
+| `features/FEAT-063-system-architecture-rearchitecture/evidence/STORYRUN_LITE_VISION_M0_V11_INDEPENDENT_REVIEW_20261102.md` | `755FF00669104900B1F728C35107ABEE123BC31B65D258900508A7CA3C51F1A5` | `57565E09FC15B4AB8449B07CB3AD4E02AFC5F3220D8A04992CD833F349DDDF7C` |
+| `features/FEAT-063-system-architecture-rearchitecture/plan/B0_B13_SIX_MILESTONE_REDISPOSITION_PLAN_20261102.md` | `03AEA386B8545624100688B68AA828A84CD154B47857CB5E98FB06354D6BB582` | `773C4A8340C8E33AE39764D920B042AC19BACBAF6DC561FE9D5D3DFFCC4B5A5A` |

@@ -506,6 +506,8 @@ class PostgresCoreStore:
                         class_id=class_id,
                         display_name=display_name,
                         age_months=age_months,
+                        age_revision=1,
+                        age_source="SYNTHETIC_FIXTURE",
                         consent_id=None,
                         consent_purpose_ref=None,
                         data_origin=ProvisionalDataOrigin.SYNTHETIC_DEV.value,

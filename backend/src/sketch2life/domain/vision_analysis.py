@@ -30,6 +30,7 @@ INTENDED_OBJECTS_MAX = 16
 # an OpaqueId-sized token and each projected observation collection holds at most 256 items.
 OBSERVATION_REF_MAX = 120
 OBSERVATION_COLLECTION_MAX = 256
+_CONTEXT_DIGEST_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
 SUPPORTED_RENDER_MEDIA_TYPES = frozenset({"image/png", "image/jpeg"})
 
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
@@ -73,13 +74,13 @@ class ProviderContextMode(StrEnum):
 
 
 class EvidenceKind(StrEnum):
-    """How an observation was produced. There is no live member: neither C1 nor C2 has real
-    inference. ``offline_context_adapter`` is the C2 typed-context client over an injected
-    offline transport; it never means the model used the context."""
+    """How an observation was produced. Offline bridge evidence never means live inference;
+    the live member is only assigned after the per-attempt guard accepts a complete response."""
 
     SYNTHETIC_FAKE = "synthetic_fake"
     OFFLINE_LEGACY_BRIDGE = "offline_legacy_bridge"
     OFFLINE_CONTEXT_ADAPTER = "offline_context_adapter"
+    LIVE_LEGACY_BRIDGE = "live_legacy_bridge"
 
 
 class LexicalOutcome(StrEnum):
@@ -712,14 +713,20 @@ class ObservationEvidence:
         if self.transport_attempts not in {0, 1}:
             raise AnalysisRuleViolation("an observation uses at most one provider attempt")
         typed = self.provider_context_mode is ProviderContextMode.TYPED_CONTEXT
-        if self.evidence_kind is EvidenceKind.OFFLINE_LEGACY_BRIDGE and typed:
+        if self.evidence_kind in {
+            EvidenceKind.OFFLINE_LEGACY_BRIDGE,
+            EvidenceKind.LIVE_LEGACY_BRIDGE,
+        } and typed:
             raise AnalysisRuleViolation("the legacy bridge is image_only")
         if self.evidence_kind is EvidenceKind.OFFLINE_CONTEXT_ADAPTER and not typed:
             raise AnalysisRuleViolation("the context adapter is typed_context only")
         if typed != (self.context_binding is not None):
             raise AnalysisRuleViolation("typed context evidence carries its binding, and only it")
-        if self.evidence_kind in {EvidenceKind.OFFLINE_LEGACY_BRIDGE,
-                                  EvidenceKind.OFFLINE_CONTEXT_ADAPTER}:
+        if self.evidence_kind in {
+            EvidenceKind.OFFLINE_LEGACY_BRIDGE,
+            EvidenceKind.LIVE_LEGACY_BRIDGE,
+            EvidenceKind.OFFLINE_CONTEXT_ADAPTER,
+        }:
             required = (self.profile_id, self.profile_catalog_hash, self.config_hash,
                         self.adapter_version, self.model_identifier, self.model_revision,
                         self.content_policy_version, self.policy_match_view_version)
@@ -886,11 +893,15 @@ class AnalysisHead:
     updated_at: datetime
     # C2: immutable typed-context binding pinned before the call; ``None`` for image_only.
     typed_binding: TypedContextBinding | None = None
+    # BE1 fact-context freshness; distinct from the typed-context provider-binding digest.
+    context_digest: str | None = None
 
     def __post_init__(self) -> None:
         _require_int(self.analysis_revision, "analysis_revision", 1)
         require_aware(self.created_at, "created_at")
         require_aware(self.updated_at, "updated_at")
+        if not context_digest_is_valid(self.context_digest):
+            raise AnalysisRuleViolation("context_digest must be a lowercase SHA-256 digest")
         if self.current_meaning_ref is not None and (
             self.current_meaning_ref not in self.correction_refs
         ):
@@ -919,6 +930,7 @@ def new_head(
     stale_reason: InvalidationReason | None,
     now: datetime,
     typed_binding: TypedContextBinding | None = None,
+    context_digest: str | None = None,
 ) -> AnalysisHead:
     if stale_reason is not None and stale_reason not in OWNER_INVALIDATION_REASONS:
         raise AnalysisRuleViolation("a new analysis is only stale for an owner change")
@@ -938,6 +950,7 @@ def new_head(
         created_at=now,
         updated_at=now,
         typed_binding=typed_binding,
+        context_digest=context_digest,
     )
 
 
@@ -985,13 +998,47 @@ def mark_stale(head: AnalysisHead, reason: InvalidationReason, now: datetime) ->
     )
 
 
-def is_applicable(head: AnalysisHead, *, current_context_revision: int,
-                  current_input_hash: str | None) -> bool:
+def context_digest_is_valid(value: str | None) -> bool:
+    """Return whether an optional whole-fact context digest has the pinned wire form."""
+    return value is None or _CONTEXT_DIGEST_RE.fullmatch(value) is not None
+
+
+def context_freshness_matches(
+    expected_revision: int,
+    current_revision: int,
+    expected_digest: str | None,
+    current_digest: str | None,
+) -> bool:
+    """Match compatibility revisions plus optional full digests strictly by equality.
+
+    If either peer carries the whole-fact digest, both peers must carry the same valid digest.
+    """
+    if expected_revision != current_revision:
+        return False
+    if not context_digest_is_valid(expected_digest) or not context_digest_is_valid(current_digest):
+        return False
+    if expected_digest is None and current_digest is None:
+        return True
+    return expected_digest is not None and expected_digest == current_digest
+
+
+def is_applicable(
+    head: AnalysisHead,
+    *,
+    current_context_revision: int,
+    current_context_digest: str | None = None,
+    current_input_hash: str | None,
+) -> bool:
     """Accepted, pinned context still current and the snapshot still resolves identically."""
 
     return (
         head.accepted_status is AcceptedStatus.ACCEPTED
-        and head.context_revision == current_context_revision
+        and context_freshness_matches(
+            head.context_revision,
+            current_context_revision,
+            head.context_digest,
+            current_context_digest,
+        )
         and current_input_hash == head.lineage.input_hash
     )
 

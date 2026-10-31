@@ -24,6 +24,18 @@ B1 produced a 192-row crosswalk (135 catalog rows plus 57 target rows from SRS 2
 
 Owner requested the latest dev backend in this feature branch for testing. Incoming tip `111ae547` adds existing Lesson Library/BE1 fixes and upstream evidence/UI drafts; Modal remains present. Revision numbers overlap across independent backend and UI/API work: use exact plan filenames and hashes for authority. Upstream UI Rev36 approval does not approve backend Rev36. See `evidence/notes/DEV_BACKEND_SYNC_20261030.md` for actual checks and limitations.
 
+## Remaining AI-stage candidates — 2026-10-30
+
+Owner asked for line-sketch, consistency and safety model proposals compatible with the discussed dev model set. Research and limits are in `evidence/notes/REMAINING_AI_MODEL_RECOMMENDATIONS_20261030.md`; no canonical SRS, approved plan or runtime model changed. Existing NO_GO and synthetic evaluation gates remain.
+
+## Video comparison; task allocation deferred to backend team — 2026-10-30
+
+Owner requested the backend team handle allocation, steering this session to a read-only comparison. `evidence/notes/VIDEO_FLOW_COMPARISON_20261030.md` distinguishes source legacy video paths from the SRS target and SRS 2.2 → 2.3 continuity. No S1 implementation approval, provider execution or new task assignment is inferred.
+
+## Current-machine S1 preparation — 2026-10-30
+
+Owner resumed work on this machine. Rev36's three P3 corrections received a bounded independent DELTA_REVIEW_PASS. `plan/S1_DECISION_CARD_20261030.md` proposes 24 blocked and five preserved operations during a preparatory fence, with explicit read-only cutover and ownership gates. It is not approved; no product code or existing approval changed. See `evidence/notes/REV36_DELTA_REVIEW_AND_S1_PREPARATION_20261030.md`.
+
 ## Rev36 response to Rev35 review — 2026-10-29
 
 Owner requested fixing the three P3 notes in the independent Rev35 PLAN_REVIEW_PASS. `plan/PLAN_REV36_BACKEND_SRS23_ALIGNMENT_20261029.md` is the current documentation draft; implementation approval and applicable owner decisions remain pending. See `evidence/notes/REV36_REVIEW_RESPONSE_20261029.md`.
@@ -291,3 +303,35 @@ Historical statements below preserve prior decisions. Where they conflict with Q
 - The owner authorized one native multi-page Draw.io master, a matching complete PDF and a separate system-flows PDF in `owner-selected local document directory`. The later flow request extends the same master and supersedes the earlier two-output count; it does not approve either SRS source or product implementation.
 - The current master and complete PDF have 69 pages. They include the context/use-case/screen-flow views, conceptual and owner-partitioned logical ERDs, architecture/package/class, activity/sequence/state, deployment/trust/operations, migration/traceability and 24 flow-section pages. The separate flow-only PDF has 24 pages: one index and 23 detailed user, staff/admin, AI/media, billing/quota, notification, lifecycle, catalog, operations and migration flows.
 - All 78 active target tables appear once; 48 legacy mappings are listed separately. Both PDFs are monochrome and rendered for QA. EV-063-15 records hashes, page maps and visual checks. The model remains a logical proposal from repository declarations, not a live database inspection; the SRS and register remain drafts.
+
+## StoryRun-lite S1→S2 implementation context — 2026-11-02
+
+- The approved synthetic Parent demo is an isolated local API with a Core/Story persistence slice, 10-operation OpenAPI/Bruno handoff, bounded upload/quarantine and image normalization, and S1 fake Vision. S2’s photo bridge is limited to the existing A1 ledger/guard/HTTP JSON transport and literal HTTP loopback.
+- S1 offline tests pass, including one/two/five contiguous upload parts, exact size bounds, scanner-before-decoder fail-closed branches, JPEG/PNG/WebP validation, multi-frame rejection, 40MP normalization, and Windows Job Object kill/limit measurements. Evidence is in `evidence/STORYRUN_LITE_S1_CHECKPOINT_20261102.md`.
+- Overall S1 and S2 readiness are not complete: compatible ClamAV is unavailable and PostgreSQL could not be reached with a goal-specific URL/owner. The runtime remains fail-closed if ClamAV or Vision loopback is unconfigured. Do not report production readiness or a real scanner CLEAN result.
+- A2 and FEAT-061 local changes remain protected by the initial change baseline. No Modal, GPU, remote provider, external inference, real child data, or pre-existing database was used.
+
+## StoryRun-lite S2 readiness — 2026-11-02
+
+- S2 route and bridge wiring are statically validated: the 10 OpenAPI operations, runtime router and Bruno request paths match; V2 bridge traffic can target only literal HTTP loopback and goes through the existing A1 guard, ledger, transport and adapter.
+- Story result persistence precedes ledger terminalization. Raw response and canonical result hashes are separate. Tests cover loopback success, refusal, race, HTTP status failures, reset, timeout, invalid response, recovery and cancel/late CAS, but those five PostgreSQL-backed cases were skipped because no goal-owned database could be established.
+- 118 focused StoryRun-lite/A1 regression tests passed; 5 database-dependent cases skipped. Ruff, mypy, harness, architecture and repository-security validators passed. Bruno CLI was unavailable; static operation matching passed.
+- Overall readiness remains NOT VERIFIED until local ClamAV and the approved disposable PostgreSQL setup are available. The FEAT-061/FEAT-064 protected baseline hashes remain unchanged; one unrelated FEAT-063 roadmap hash changed during the session and was retained untouched. See the S2 readiness evidence for exact hashes and resume steps.
+
+## Final StoryRun-lite handoff — 2026-11-02
+
+- The approved S1→S2 implementation and handoff are recorded in `evidence/STORYRUN_LITE_S1_S2_FINAL_20261102.md`; overall acceptance is NOT VERIFIED because ClamAV and the goal-owned PostgreSQL run were unavailable. The worker/CPU/memory gate, offline contracts, A1 regression tests, harness, architecture and security checks passed.
+- A2 and the three FEAT-061 local documents remain unchanged. One unrelated FEAT-063 roadmap baseline hash discrepancy was detected and preserved as found; inspect it before claiming the full original workspace baseline is unchanged.
+
+## StoryRun-lite final continuation — 2026-11-02
+
+- The earlier pending ClamAV/PostgreSQL/Bruno gates were resolved with temporary goal-owned loopback resources. Final focused S1/S2 and A1 regression result: 125 passed, 0 skipped; real ClamAV, PostgreSQL migration/transactions, loopback bridge/recovery and all ten Bruno request files were exercised. See the final S1 checkpoint, S2 readiness, environment and handoff addenda.
+- S1 and S2 technical/runtime gates are VERIFIED. Strict end-to-end acceptance remains NOT VERIFIED only because the initial 83-path hash audit has one unrelated FEAT-063 roadmap mismatch outside the edit allowlist; that current file was preserved untouched. The other three hash changes are approved append-only FEAT-063 records. All 35 protected FEAT-061/FEAT-064 paths, including A2 and the three FEAT-061 documents, are byte-identical.
+- Goal-owned databases and local processes were cleaned up after verification. No A2 work, Modal/GPU/provider inference, real child data, or deployment occurred.
+
+
+## StoryRun-lite final baseline disposition — 2026-11-02
+
+- Owner selected B — Rebaseline 875. The exact current roadmap bytes are accepted as the baseline for that one path under an explicit SL-0/SL-8 exception; the initial B881 hash remains historical evidence and is not claimed to have been preserved.
+- The original baseline manifest and initial snapshot remain unchanged. The new owner-approved rebaseline record and post-decision snapshot are linked from `evidence/STORYRUN_LITE_SL0_SL8_REBASELINE_20261102.md`.
+- S1/S2 technical gates remain verified; the approved rebaseline closes the remaining baseline gate. A2 and all 35 protected FEAT-061/FEAT-064 paths remain byte-identical.

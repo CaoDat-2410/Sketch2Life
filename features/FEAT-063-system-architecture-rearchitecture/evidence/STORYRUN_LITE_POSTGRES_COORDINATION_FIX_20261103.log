@@ -1,0 +1,629 @@
+
+--- identity verification begin ---
+database=storyrun_lite_e4eb465c9dd34d75be56; host=127.0.0.1; port=5433; user=postgres
+
+--- identity and fixture verified ---
+database=storyrun_lite_e4eb465c9dd34d75be56; user=postgres; owner=postgres; address=127.0.0.1/32; port=5433; version_num=170011; revisions=['20261102_story_run_lite']; synthetic_asset_ref=d2bb1d82-0614-4684-a28f-b2d9b2e5285f
+
+--- race_complete_cancel begin ---
+selector=tests/integration/test_story_run_lite_postgres.py::test_cancel_racing_complete_aborts_upload_before_admission_and_cleans_staging; timeout_seconds=75; faulthandler_timeout=20; unique_basetemp=yes
+
+--- race_complete_cancel output ---
+============================= test session starts =============================
+
+platform win32 -- Python 3.12.10, pytest-8.4.2, pluggy-1.6.0 -- <REPO>\backend\.venv\Scripts\python.exe
+
+rootdir: <REPO>\backend
+
+configfile: pyproject.toml
+
+plugins: anyio-4.14.2, asyncio-1.4.0
+
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+
+collecting ... collected 1 item
+
+
+
+tests/integration/test_story_run_lite_postgres.py::test_cancel_racing_complete_aborts_upload_before_admission_and_cleans_staging PASSED [100%]
+
+
+
+============================== 1 passed in 0.88s ==============================
+
+
+
+--- race_complete_cancel termination ---
+exit_code=0; timeout=False; one_passed=True; skipped_or_xfail=False; passed_gate=True
+
+--- race_cancel begin ---
+selector=tests/integration/test_story_run_lite_postgres.py::test_cancel_and_admission_finalizer_race_serializes_asset_commit[cancel]; timeout_seconds=75; faulthandler_timeout=20; unique_basetemp=yes
+
+--- race_cancel output ---
+============================= test session starts =============================
+
+platform win32 -- Python 3.12.10, pytest-8.4.2, pluggy-1.6.0 -- <REPO>\backend\.venv\Scripts\python.exe
+
+rootdir: <REPO>\backend
+
+configfile: pyproject.toml
+
+plugins: anyio-4.14.2, asyncio-1.4.0
+
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+
+collecting ... collected 1 item
+
+
+
+tests/integration/test_story_run_lite_postgres.py::test_cancel_and_admission_finalizer_race_serializes_asset_commit[cancel] PASSED [100%]
+
+
+
+============================== 1 passed in 0.88s ==============================
+
+
+
+--- race_cancel termination ---
+exit_code=0; timeout=False; one_passed=True; skipped_or_xfail=False; passed_gate=True
+
+--- race_admission begin ---
+selector=tests/integration/test_story_run_lite_postgres.py::test_cancel_and_admission_finalizer_race_serializes_asset_commit[admission]; timeout_seconds=75; faulthandler_timeout=20; unique_basetemp=yes
+
+--- race_admission output ---
+============================= test session starts =============================
+
+platform win32 -- Python 3.12.10, pytest-8.4.2, pluggy-1.6.0 -- <REPO>\backend\.venv\Scripts\python.exe
+
+rootdir: <REPO>\backend
+
+configfile: pyproject.toml
+
+plugins: anyio-4.14.2, asyncio-1.4.0
+
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+
+collecting ... collected 1 item
+
+
+
+tests/integration/test_story_run_lite_postgres.py::test_cancel_and_admission_finalizer_race_serializes_asset_commit[admission] PASSED [100%]
+
+
+
+============================== 1 passed in 1.19s ==============================
+
+
+
+--- race_admission termination ---
+exit_code=0; timeout=False; one_passed=True; skipped_or_xfail=False; passed_gate=True
+
+--- expiry_boundary begin ---
+selector=tests/integration/test_story_run_lite_postgres.py::test_expiry_is_enforced_at_utc_boundary_for_get_put_complete_and_versions; timeout_seconds=75; faulthandler_timeout=20; unique_basetemp=yes
+
+--- expiry_boundary output ---
+============================= test session starts =============================
+
+platform win32 -- Python 3.12.10, pytest-8.4.2, pluggy-1.6.0 -- <REPO>\backend\.venv\Scripts\python.exe
+
+rootdir: <REPO>\backend
+
+configfile: pyproject.toml
+
+plugins: anyio-4.14.2, asyncio-1.4.0
+
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+
+collecting ... collected 1 item
+
+
+
+tests/integration/test_story_run_lite_postgres.py::test_expiry_is_enforced_at_utc_boundary_for_get_put_complete_and_versions PASSED [100%]
+
+
+
+============================== 1 passed in 1.28s ==============================
+
+
+
+--- expiry_boundary termination ---
+exit_code=0; timeout=False; one_passed=True; skipped_or_xfail=False; passed_gate=True
+
+--- expiry_get begin ---
+selector=tests/integration/test_story_run_lite_postgres.py::test_expiry_uses_utc_time_after_story_run_lock_wait[get]; timeout_seconds=75; faulthandler_timeout=20; unique_basetemp=yes
+
+--- expiry_get output ---
+============================= test session starts =============================
+
+platform win32 -- Python 3.12.10, pytest-8.4.2, pluggy-1.6.0 -- <REPO>\backend\.venv\Scripts\python.exe
+
+rootdir: <REPO>\backend
+
+configfile: pyproject.toml
+
+plugins: anyio-4.14.2, asyncio-1.4.0
+
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+
+collecting ... collected 1 item
+
+
+
+tests/integration/test_story_run_lite_postgres.py::test_expiry_uses_utc_time_after_story_run_lock_wait[get] PASSED [100%]
+
+
+
+============================== 1 passed in 0.89s ==============================
+
+
+
+--- expiry_get termination ---
+exit_code=0; timeout=False; one_passed=True; skipped_or_xfail=False; passed_gate=True
+
+--- expiry_put begin ---
+selector=tests/integration/test_story_run_lite_postgres.py::test_expiry_uses_utc_time_after_story_run_lock_wait[put]; timeout_seconds=75; faulthandler_timeout=20; unique_basetemp=yes
+
+--- expiry_put output ---
+============================= test session starts =============================
+
+platform win32 -- Python 3.12.10, pytest-8.4.2, pluggy-1.6.0 -- <REPO>\backend\.venv\Scripts\python.exe
+
+rootdir: <REPO>\backend
+
+configfile: pyproject.toml
+
+plugins: anyio-4.14.2, asyncio-1.4.0
+
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+
+collecting ... collected 1 item
+
+
+
+tests/integration/test_story_run_lite_postgres.py::test_expiry_uses_utc_time_after_story_run_lock_wait[put] PASSED [100%]
+
+
+
+============================== 1 passed in 0.82s ==============================
+
+
+
+--- expiry_put termination ---
+exit_code=0; timeout=False; one_passed=True; skipped_or_xfail=False; passed_gate=True
+
+--- expiry_complete begin ---
+selector=tests/integration/test_story_run_lite_postgres.py::test_expiry_uses_utc_time_after_story_run_lock_wait[complete]; timeout_seconds=75; faulthandler_timeout=20; unique_basetemp=yes
+
+--- expiry_complete output ---
+============================= test session starts =============================
+
+platform win32 -- Python 3.12.10, pytest-8.4.2, pluggy-1.6.0 -- <REPO>\backend\.venv\Scripts\python.exe
+
+rootdir: <REPO>\backend
+
+configfile: pyproject.toml
+
+plugins: anyio-4.14.2, asyncio-1.4.0
+
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+
+collecting ... collected 1 item
+
+
+
+tests/integration/test_story_run_lite_postgres.py::test_expiry_uses_utc_time_after_story_run_lock_wait[complete] PASSED [100%]
+
+
+
+============================== 1 passed in 1.16s ==============================
+
+
+
+--- expiry_complete termination ---
+exit_code=0; timeout=False; one_passed=True; skipped_or_xfail=False; passed_gate=True
+
+--- recovery_lock_wait begin ---
+selector=tests/integration/test_story_run_lite_postgres.py::test_recovery_rechecks_expiry_after_wait_on_unfinished_upload_lock; timeout_seconds=75; faulthandler_timeout=20; unique_basetemp=yes
+
+--- recovery_lock_wait output ---
+============================= test session starts =============================
+
+platform win32 -- Python 3.12.10, pytest-8.4.2, pluggy-1.6.0 -- <REPO>\backend\.venv\Scripts\python.exe
+
+rootdir: <REPO>\backend
+
+configfile: pyproject.toml
+
+plugins: anyio-4.14.2, asyncio-1.4.0
+
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+
+collecting ... collected 1 item
+
+
+
+tests/integration/test_story_run_lite_postgres.py::test_recovery_rechecks_expiry_after_wait_on_unfinished_upload_lock FAILED [100%]
+
+
+
+================================== FAILURES ===================================
+
+_____ test_recovery_rechecks_expiry_after_wait_on_unfinished_upload_lock ______
+
+
+
+story_db = (Engine(postgresql+psycopg://postgres@127.0.0.1:5433/storyrun_lite_e4eb465c9dd34d75be56), <sketch2life.infrastructure.story_run_lite.repository.SqlStoryRunLiteRepository object at 0x0000027FD172DEB0>)
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000027FD188D520>
+
+
+
+    def test_recovery_rechecks_expiry_after_wait_on_unfinished_upload_lock(
+
+        story_db, monkeypatch
+
+    ) -> None:
+
+        engine, repository = story_db
+
+        owner = "parent-upload-expiry-recovery-lock-wait-" + str(uuid.uuid4())
+
+        run_id = _create_run(repository, owner)
+
+        payload = b"synthetic-expiry-recovery-lock-wait"
+
+        upload_id, digest = _create_upload(
+
+            repository,
+
+            owner=owner,
+
+            run_id=run_id,
+
+            content=payload,
+
+            name="expiry-recovery-lock-wait",
+
+        )
+
+        snapshot_path, _snapshot = repository._quarantine.assemble_snapshot(
+
+            upload_id,
+
+            [{"part_number": 1, "sha256": digest, "byte_size": len(payload)}],
+
+            expected_size=len(payload),
+
+            expected_sha256=digest,
+
+        )
+
+        deadline = datetime(2030, 3, 4, 5, 6, 7, tzinfo=UTC)
+
+        clock = {"now": deadline - timedelta(microseconds=1)}
+
+
+
+        class ControlledDateTime(datetime):
+
+            @classmethod
+
+            def now(cls, tz=None):
+
+                value = clock["now"]
+
+                return value.replace(tzinfo=None) if tz is None else value.astimezone(tz)
+
+
+
+        monkeypatch.setattr(repository_module, "datetime", ControlledDateTime)
+
+        with engine.begin() as connection:
+
+            connection.execute(
+
+                update(tables.upload_sessions)
+
+                .where(tables.upload_sessions.c.upload_session_id == upload_id)
+
+                .values(expires_at=deadline)
+
+            )
+
+
+
+        blocker_owner = "parent-expiry-recovery-blocker-" + str(uuid.uuid4())
+
+        blocker_run_id = _create_run(repository, blocker_owner)
+
+        blocker_payload = b"synthetic-recovery-pending-lock"
+
+        blocker_upload_id, blocker_digest = _create_upload(
+
+            repository,
+
+            owner=blocker_owner,
+
+            run_id=blocker_run_id,
+
+            content=blocker_payload,
+
+            name="expiry-recovery-lock-blocker",
+
+        )
+
+        pending = _reserve_complete(
+
+            repository,
+
+            owner=blocker_owner,
+
+            upload_id=blocker_upload_id,
+
+            digest=blocker_digest,
+
+            size=len(blocker_payload),
+
+            name="expiry-recovery-lock-blocker",
+
+        )
+
+        assert pending.command_result.status_code == 202
+
+
+
+        holder = engine.connect()
+
+        holder_transaction = holder.begin()
+
+        holder.execute(
+
+            select(tables.upload_sessions.c.upload_session_id)
+
+            .where(tables.upload_sessions.c.upload_session_id == blocker_upload_id)
+
+            .with_for_update()
+
+        )
+
+        recovery_lock_waiting = threading.Event()
+
+
+
+        def observe_pending_lock(_connection, _cursor, statement, parameters, _context, _many):
+
+            sql = statement.lower()
+
+            values = repr(parameters).lower()
+
+            if (
+
+                "upload_sessions" in sql
+
+                and "for update" in sql
+
+                and "pending" in values
+
+                and "processing" in values
+
+            ):
+
+                recovery_lock_waiting.set()
+
+
+
+        event.listen(engine, "before_cursor_execute", observe_pending_lock)
+
+        try:
+
+            with ThreadPoolExecutor(
+
+                max_workers=1, thread_name_prefix="storyrun-expiry-recovery"
+
+            ) as pool:
+
+                try:
+
+                    pending = pool.submit(repository.recover_after_restart)
+
+                    assert recovery_lock_waiting.wait(timeout=10)
+
+                    clock["now"] = deadline + timedelta(microseconds=1)
+
+                    holder_transaction.commit()
+
+                    counts = pending.result(timeout=15)
+
+                finally:
+
+                    if holder_transaction.is_active:
+
+                        holder_transaction.rollback()
+
+        finally:
+
+            event.remove(engine, "before_cursor_execute", observe_pending_lock)
+
+            if holder_transaction.is_active:
+
+                holder_transaction.rollback()
+
+            holder.close()
+
+
+
+        assert counts["core_sessions_failed"] == 1
+
+>       assert counts["core_sessions_expired"] == 1
+
+E       assert 3 == 1
+
+
+
+tests\integration\test_story_run_lite_postgres.py:1221: AssertionError
+
+=========================== short test summary info ===========================
+
+FAILED tests/integration/test_story_run_lite_postgres.py::test_recovery_rechecks_expiry_after_wait_on_unfinished_upload_lock
+
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!
+
+============================== 1 failed in 1.02s ==============================
+
+
+
+--- recovery_lock_wait termination ---
+exit_code=1; timeout=False; one_passed=False; skipped_or_xfail=False; passed_gate=False
+
+--- recovery_startup begin ---
+selector=tests/integration/test_story_run_lite_postgres.py::test_startup_recovery_expires_receiving_and_retries_staging_cleanup; timeout_seconds=75; faulthandler_timeout=20; unique_basetemp=yes
+
+--- recovery_startup output ---
+============================= test session starts =============================
+
+platform win32 -- Python 3.12.10, pytest-8.4.2, pluggy-1.6.0 -- <REPO>\backend\.venv\Scripts\python.exe
+
+rootdir: <REPO>\backend
+
+configfile: pyproject.toml
+
+plugins: anyio-4.14.2, asyncio-1.4.0
+
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+
+collecting ... collected 1 item
+
+
+
+tests/integration/test_story_run_lite_postgres.py::test_startup_recovery_expires_receiving_and_retries_staging_cleanup FAILED [100%]
+
+
+
+================================== FAILURES ===================================
+
+_____ test_startup_recovery_expires_receiving_and_retries_staging_cleanup _____
+
+
+
+story_db = (Engine(postgresql+psycopg://postgres@127.0.0.1:5433/storyrun_lite_e4eb465c9dd34d75be56), <sketch2life.infrastructure.story_run_lite.repository.SqlStoryRunLiteRepository object at 0x000002029DA1D5B0>)
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000002029DCBD340>
+
+
+
+    def test_startup_recovery_expires_receiving_and_retries_staging_cleanup(story_db, monkeypatch):
+
+        engine, repository = story_db
+
+        owner = "parent-upload-expiry-recovery-" + str(uuid.uuid4())
+
+        run_id = _create_run(repository, owner)
+
+        payload = b"synthetic-expiry-recovery"
+
+        upload_id, digest = _create_upload(
+
+            repository,
+
+            owner=owner,
+
+            run_id=run_id,
+
+            content=payload,
+
+            name="expiry-recovery",
+
+        )
+
+        quarantine = repository._quarantine
+
+        snapshot_path, _snapshot = quarantine.assemble_snapshot(
+
+            upload_id,
+
+            [{"part_number": 1, "sha256": digest, "byte_size": len(payload)}],
+
+            expected_size=len(payload),
+
+            expected_sha256=digest,
+
+        )
+
+        parts_path = quarantine._parts / upload_id
+
+        with engine.begin() as connection:
+
+            connection.execute(
+
+                update(tables.upload_sessions)
+
+                .where(tables.upload_sessions.c.upload_session_id == upload_id)
+
+                .values(expires_at=datetime.now(UTC) - timedelta(seconds=1))
+
+            )
+
+
+
+        original_remove = quarantine.remove_upload
+
+        attempts = 0
+
+
+
+        def fail_first_cleanup(resource_id: str) -> None:
+
+            nonlocal attempts
+
+            attempts += 1
+
+            if attempts == 1:
+
+                raise OSError("synthetic cleanup failure")
+
+            original_remove(resource_id)
+
+
+
+        monkeypatch.setattr(quarantine, "remove_upload", fail_first_cleanup)
+
+        first = repository.recover_after_restart()
+
+        assert first["core_sessions_expired"] == 1
+
+        assert first["core_expired_cleanup_failed"] == 1
+
+>       assert parts_path.exists()
+
+E       AssertionError: assert False
+
+E        +  where False = exists()
+
+E        +    where exists = WindowsPath('<USER_DIR>/.codex/visualizations/2026/11/02/01a19bb6-ef2c-78f0-8196-c0c85a402935/storyrun_focused_full_5433_xahzu62n/pytest_recovery_startup/test_startup_recovery_expires_0/quarantine/parts/ffaf81e6-fa10-42e1-8d23-01566d76dc0e').exists
+
+
+
+tests\integration\test_story_run_lite_postgres.py:1276: AssertionError
+
+------------------------------ Captured log call ------------------------------
+
+WARNING  sketch2life.infrastructure.story_run_lite.repository:repository.py:2103 StoryRun-lite upload staging cleanup failed
+
+=========================== short test summary info ===========================
+
+FAILED tests/integration/test_story_run_lite_postgres.py::test_startup_recovery_expires_receiving_and_retries_staging_cleanup
+
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!
+
+============================== 1 failed in 0.99s ==============================
+
+
+
+--- recovery_startup termination ---
+exit_code=1; timeout=False; one_passed=False; skipped_or_xfail=False; passed_gate=False
+
+--- focused completion ---
+race_complete_cancel: exit=0, timeout=False, pass=True; race_cancel: exit=0, timeout=False, pass=True; race_admission: exit=0, timeout=False, pass=True; expiry_boundary: exit=0, timeout=False, pass=True; expiry_get: exit=0, timeout=False, pass=True; expiry_put: exit=0, timeout=False, pass=True; expiry_complete: exit=0, timeout=False, pass=True; recovery_lock_wait: exit=1, timeout=False, pass=False; recovery_startup: exit=1, timeout=False, pass=False
+
+--- full suite NOT RUN ---
+At least one focused case failed, timed out, skipped or had no verdict.

@@ -145,12 +145,36 @@ class CoreAssetMetadataModel(CorePersistenceBase):
     __table_args__ = (
         CheckConstraint("asset_version > 0", name="ck_core_asset_version_positive"),
         CheckConstraint("length(content_sha256) = 64", name="ck_core_asset_hash_length"),
+        CheckConstraint(
+            "(owner_scope_kind = 'PARENT_ACCOUNT' AND owner_scope_ref IS NOT NULL "
+            "AND length(owner_scope_ref) > 0 "
+            "AND organization_id IS NULL) OR "
+            "(owner_scope_kind = 'ORGANIZATION' AND organization_id IS NOT NULL "
+            "AND (owner_scope_ref IS NULL OR "
+            "(length(owner_scope_ref) > 0 AND owner_scope_ref = organization_id)))",
+            name="ck_core_asset_owner_scope",
+        ),
         Index("ix_core_asset_organization", "organization_id", "asset_ref"),
+        Index(
+            "ix_core_asset_typed_owner",
+            "owner_scope_kind",
+            "owner_scope_ref",
+            "asset_ref",
+            postgresql_where=text("owner_scope_ref IS NOT NULL"),
+        ),
     )
 
     asset_ref: Mapped[str] = mapped_column(String(256), primary_key=True)
     asset_version: Mapped[int] = mapped_column(Integer, primary_key=True)
-    organization_id: Mapped[str] = mapped_column(String(128), nullable=False)
+    organization_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    owner_scope_kind: Mapped[str] = mapped_column(
+        String(32), nullable=False, default="ORGANIZATION", server_default=text("'ORGANIZATION'")
+    )
+    owner_scope_ref: Mapped[str | None] = mapped_column(
+        String(128),
+        nullable=True,
+        default=lambda context: context.get_current_parameters().get("organization_id"),
+    )
     content_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
     media_type: Mapped[str] = mapped_column(String(128), nullable=False)
     source_refs: Mapped[list[str]] = mapped_column(JSONB, nullable=False, default=list)

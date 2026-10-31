@@ -1,0 +1,34 @@
+meta {
+  name: 04 Complete and admit upload
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/v1/upload-sessions/{{uploadRef}}/complete
+  body: json
+  auth: none
+}
+
+headers {
+  Idempotency-Key: {{completeUploadKey}}
+  If-Match: {{uploadETag}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "expected_size_bytes": {{expectedSizeBytes}},
+    "expected_sha256": "{{expectedSha256}}"
+  }
+}
+
+script:post-response {
+  bru.setVar("uploadETag", res.headers.etag);
+}
+
+tests {
+  test("accepts upload admission", function () {
+    expect(res.getStatus()).to.equal(202);
+  });
+}

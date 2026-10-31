@@ -13,6 +13,10 @@ from enum import StrEnum
 
 BASIS_VERSION = "eligibility-decision-v1"
 PROOF_VERSION = "synthetic-dev-eligibility-v1"
+# A synthetic (dev-pilot) eligibility basis covers exactly one audience member. The assistance
+# gate imports this constant; the vision gate and the BE1 fact reader still enforce the same
+# limit with their own single-member checks.
+SYNTHETIC_AUDIENCE_SIZE = 1
 
 
 class ProvisionalDataOrigin(StrEnum):

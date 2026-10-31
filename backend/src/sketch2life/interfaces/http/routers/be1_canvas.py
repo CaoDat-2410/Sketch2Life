@@ -10,8 +10,8 @@ import hmac
 import json
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, Header, Query
-from sqlalchemy import select, update
+from fastapi import APIRouter, Depends, Header, HTTPException, Query
+from sqlalchemy import and_, case, func, select, update
 from sqlalchemy.orm import Session
 
 from sketch2life.application.ports.identity import VerifiedPrincipal as AdultPrincipal
@@ -21,12 +21,23 @@ from sketch2life.application.services.core_foundation import (
 from sketch2life.contracts.schemas.be1_runtime import (
     CanvasCheckpointRequest,
     CanvasOperationRequest,
+    CanvasReconnectResponse,
     CanvasRestoreRequest,
+    CanvasSourceExportV1,
+    CanvasSourceOperationV1,
 )
 from sketch2life.domain.core_foundation import (
+    CANVAS_OPERATION_PROFILE_V1_ID,
     CanvasOperation,
+    CoreErrorCode,
     CoreRuleViolation,
+    bind_canvas_operation_profile_v1_payload,
+    canvas_operation_profile_v1_configuration,
+    is_idempotent_replay,
+    require_expected_revision,
+    validate_canvas_operation_profile_v1,
 )
+from sketch2life.infrastructure.canvas_render.limits import MAX_POINTS, MAX_STROKES
 from sketch2life.infrastructure.config.settings import Settings
 from sketch2life.infrastructure.persistence.be1_models import (
     ChildTurnModel,
@@ -44,10 +55,12 @@ from sketch2life.infrastructure.persistence.core_store import PostgresCoreStore
 from sketch2life.interfaces.http.be1_runtime import (
     Be1Runtime,
     VerifiedDeviceContext,
+    VerifiedDeviceStatusContext,
     get_db,
     get_runtime,
     get_verified_adult,
     get_verified_device,
+    get_verified_device_status,
 )
 from sketch2life.interfaces.http.routers.be1_common import (
     BE1_ERROR_RESPONSES,
@@ -63,9 +76,11 @@ from sketch2life.interfaces.http.routers.be1_common import (
     session_event,
 )
 
-router = APIRouter(
-    prefix="/api/be1/v1", tags=["BE1 canvas"], responses=BE1_ERROR_RESPONSES
-)
+router = APIRouter(prefix="/api/be1/v1", tags=["BE1 canvas"], responses=BE1_ERROR_RESPONSES)
+
+
+def _canvas_source_unavailable() -> HTTPException:
+    return failure(409, "CANVAS_SOURCE_UNAVAILABLE", "Canvas source is unavailable")
 
 
 def _store(runtime: Be1Runtime) -> PostgresCoreStore:
@@ -99,6 +114,140 @@ def _record_response(record) -> dict[str, object]:
     }
 
 
+def build_canvas_source_export(
+    db: Session,
+    *,
+    organization_id: str,
+    session_id: str,
+    canvas_id: str,
+    document_epoch: int,
+) -> CanvasSourceExportV1:
+    """Build a complete, server-accepted canvas source from one DB statement snapshot."""
+
+    checkpoint_exists = (
+        select(CoreCanvasCheckpointModel.checkpoint_id)
+        .where(CoreCanvasCheckpointModel.canvas_id == canvas_id)
+        .exists()
+    )
+    statement = (
+        select(
+            CoreAggregateRevisionModel,
+            ClassroomSessionModel.session_id,
+            ClassroomSessionModel.configuration,
+            CoreCanvasOperationModel,
+            checkpoint_exists.label("has_checkpoint"),
+        )
+        .select_from(CoreAggregateRevisionModel)
+        .outerjoin(
+            ClassroomSessionModel,
+            and_(
+                ClassroomSessionModel.organization_id == organization_id,
+                ClassroomSessionModel.session_id == session_id,
+            ),
+        )
+        .outerjoin(
+            CoreCanvasOperationModel,
+            CoreCanvasOperationModel.canvas_id == CoreAggregateRevisionModel.aggregate_id,
+        )
+        .where(
+            CoreAggregateRevisionModel.organization_id == organization_id,
+            CoreAggregateRevisionModel.aggregate_id == canvas_id,
+        )
+        .order_by(
+            CoreCanvasOperationModel.resulting_revision,
+            CoreCanvasOperationModel.operation_id,
+        )
+    )
+    rows = db.execute(statement).all()
+    if not rows:
+        raise _canvas_source_unavailable()
+
+    aggregate = rows[0][0]
+    bound_session_id = rows[0][1]
+    session_configuration = rows[0][2]
+    if (
+        aggregate.aggregate_id != canvas_id
+        or aggregate.organization_id != organization_id
+        or bound_session_id != session_id
+        or not isinstance(session_configuration, dict)
+        or session_configuration.get("canvas_operation_profile")
+        != canvas_operation_profile_v1_configuration()
+        or any(bool(row[4]) for row in rows)
+    ):
+        raise _canvas_source_unavailable()
+
+    raw_operations = [row[3] for row in rows if row[3] is not None]
+    point_count = sum(
+        len(row.operation_payload.get("points", []))
+        for row in raw_operations
+        if isinstance(row.operation_payload, dict)
+        and isinstance(row.operation_payload.get("points"), list)
+    )
+    if aggregate.revision - 1 > MAX_STROKES or point_count > MAX_POINTS:
+        raise failure(409, "CANVAS_SOURCE_TOO_LARGE", "Canvas source exceeds pilot capacity")
+
+    operations: list[CanvasSourceOperationV1] = []
+    for row in rows:
+        operation = row[3]
+        if operation is None:
+            raise _canvas_source_unavailable()
+        if (
+            operation.organization_id != organization_id
+            or operation.session_id != session_id
+            or operation.canvas_id != canvas_id
+            or operation.document_epoch != document_epoch
+            or not isinstance(operation.operation_payload, dict)
+            or operation.operation_payload.get("canvas_operation_profile_id")
+            != CANVAS_OPERATION_PROFILE_V1_ID
+        ):
+            raise _canvas_source_unavailable()
+        accepted_payload = dict(operation.operation_payload)
+        accepted_payload.pop("canvas_operation_profile_id", None)
+        try:
+            validated_payload = validate_canvas_operation_profile_v1(accepted_payload)
+            if validated_payload != accepted_payload:
+                raise _canvas_source_unavailable()
+            operations.append(
+                CanvasSourceOperationV1(
+                    operation_id=operation.operation_id,
+                    participant_id=operation.participant_id,
+                    document_epoch=operation.document_epoch,
+                    resulting_revision=operation.resulting_revision,
+                    operation_payload=operation.operation_payload,
+                    payload_sha256=hashlib.sha256(
+                        json.dumps(
+                            operation.operation_payload,
+                            ensure_ascii=False,
+                            sort_keys=True,
+                            separators=(",", ":"),
+                        ).encode("utf-8")
+                    ).hexdigest(),
+                )
+            )
+        except (CoreRuleViolation, TypeError, ValueError):
+            raise _canvas_source_unavailable() from None
+
+    expected_revisions = list(range(2, aggregate.revision + 1))
+    if (
+        document_epoch < 1
+        or not operations
+        or [operation.resulting_revision for operation in operations] != expected_revisions
+    ):
+        raise _canvas_source_unavailable()
+
+    try:
+        return CanvasSourceExportV1.from_operations(
+            organization_id=organization_id,
+            session_id=session_id,
+            canvas_id=canvas_id,
+            document_epoch=document_epoch,
+            document_revision=aggregate.revision,
+            operations=operations,
+        )
+    except (TypeError, ValueError):
+        raise _canvas_source_unavailable() from None
+
+
 @router.post("/organizations/{organization_id}/sessions/{session_id}/canvas/operations")
 def append_canvas_operation(
     organization_id: str,
@@ -110,7 +259,7 @@ def append_canvas_operation(
     db: Session = Depends(get_db),
 ) -> dict[str, object]:
     _require_device_path(device, organization_id, session_id)
-    _require_group_eligibility(
+    session = _require_group_eligibility(
         db,
         settings=runtime.settings,
         organization_id=organization_id,
@@ -119,6 +268,16 @@ def append_canvas_operation(
         actor=f"device:{device.grant.grant_id}",
         action="canvas.operation.append",
     )
+    try:
+        operation_payload = bind_canvas_operation_profile_v1_payload(
+            session_configuration=session.configuration,
+            profile_version=payload.profile_version,
+            operation_payload=payload.operation_payload,
+        )
+    except CoreRuleViolation as exc:
+        code = exc.code.value
+        status_code = 422 if exc.code is CoreErrorCode.CANVAS_PROFILE_INVALID else 409
+        raise failure(status_code, code, str(exc)) from None
     operation = CanvasOperation(
         operation_id=payload.operation_id,
         turn_id=payload.turn_id,
@@ -132,8 +291,10 @@ def append_canvas_operation(
         "turn_id": payload.turn_id,
         "document_epoch": payload.document_epoch,
         "expected_revision": payload.expected_revision,
-        "operation_payload": payload.operation_payload,
+        "operation_payload": operation_payload,
     }
+    if payload.profile_version is not None:
+        fingerprint_payload["profile_version"] = payload.profile_version
     request_fingerprint = hashlib.sha256(
         json.dumps(
             fingerprint_payload,
@@ -144,6 +305,49 @@ def append_canvas_operation(
     ).hexdigest()
     store = _store(runtime)
     try:
+        previous = store.get_receipt(
+            organization_id=organization_id,
+            scope=f"canvas:{device.turn.canvas_id}",
+            key=idempotency_key,
+        )
+        replay = is_idempotent_replay(
+            previous, key=idempotency_key, request_fingerprint=request_fingerprint
+        )
+        if not replay:
+            current_revision = store.current_revision(
+                device.turn.canvas_id, organization_id=organization_id
+            )
+            if current_revision is None:
+                raise CoreRuleViolation(CoreErrorCode.STALE_AGGREGATE, "canvas is unavailable")
+            require_expected_revision(payload.expected_revision, current_revision)
+            points_json = CoreCanvasOperationModel.operation_payload["points"]
+            existing_points = db.scalar(
+                select(
+                    func.coalesce(
+                        func.sum(
+                            case(
+                                (
+                                    func.jsonb_typeof(points_json) == "array",
+                                    func.jsonb_array_length(points_json),
+                                ),
+                                else_=0,
+                            )
+                        ),
+                        0,
+                    )
+                ).where(
+                    CoreCanvasOperationModel.organization_id == organization_id,
+                    CoreCanvasOperationModel.session_id == session_id,
+                    CoreCanvasOperationModel.canvas_id == device.turn.canvas_id,
+                )
+            )
+            incoming_points = operation_payload.get("points")
+            point_count = len(incoming_points) if isinstance(incoming_points, list) else 0
+            if (
+                current_revision - 1 >= MAX_STROKES
+                or int(existing_points or 0) + point_count > MAX_POINTS
+            ):
+                raise failure(409, "CANVAS_CAPACITY_REACHED", "Canvas reached pilot capacity")
         outcome = CoreFoundationApplication.apply_canvas_operation(
             principal=device.principal,
             target=device.scope,
@@ -157,11 +361,16 @@ def append_canvas_operation(
             revision_port=store,
             receipt_port=store,
             transaction_port=store,
-            operation_payload=payload.operation_payload,
+            operation_payload=operation_payload,
         )
     except CoreRuleViolation as exc:
         code = exc.code.value
-        status_code = 403 if code in {"FORBIDDEN_ROLE", "SCOPE_DENIED", "INVALID_TURN"} else 409
+        if exc.code is CoreErrorCode.CANVAS_PROFILE_INVALID:
+            status_code = 422
+        elif code in {"FORBIDDEN_ROLE", "SCOPE_DENIED", "INVALID_TURN"}:
+            status_code = 403
+        else:
+            status_code = 409
         raise failure(status_code, code, str(exc)) from None
     return {
         "contract": "Be1CanvasOperationReceiptV1",
@@ -278,9 +487,9 @@ def _require_group_eligibility(
     actor: str,
     action: str,
 ) -> ClassroomSessionModel:
-    """Stroke-append only: every Child in the group needs legal or valid synthetic eligibility.
+    """Require legal or valid synthetic eligibility for each group contributor.
 
-    Sync, checkpoint, restore and reconnect keep ``_require_group_consent`` (legal only).
+    Stroke append and Child reconnect use this gate; other routes retain their existing guards.
     """
     session = get_session(db, organization_id, session_id)
     group = db.scalar(
@@ -645,58 +854,86 @@ def restore_checkpoint(
     }
 
 
-@router.get("/organizations/{organization_id}/sessions/{session_id}/reconnect")
+@router.get(
+    "/organizations/{organization_id}/sessions/{session_id}/reconnect",
+    response_model=CanvasReconnectResponse,
+)
 def reconnect_canvas(
     organization_id: str,
     session_id: str,
     after_revision: int = Query(default=0, ge=0),
-    device: VerifiedDeviceContext = Depends(get_verified_device),
+    device: VerifiedDeviceStatusContext = Depends(get_verified_device_status),
     runtime: Be1Runtime = Depends(get_runtime),
     db: Session = Depends(get_db),
 ) -> dict[str, object]:
-    _require_device_path(device, organization_id, session_id)
-    _require_group_consent(
+    group_id = device.membership.group_id
+    if group_id is None:
+        raise failure(404, "GROUP_NOT_FOUND", "Group was not found in this session")
+    session = _require_group_eligibility(
         db,
+        settings=runtime.settings,
         organization_id=organization_id,
         session_id=session_id,
-        group_id=device.membership.group_id or "",
+        group_id=group_id,
         actor=f"device:{device.grant.grant_id}",
         action="canvas.reconnect",
     )
     store = _store(runtime)
-    checkpoint = None
     row = db.scalar(
         select(CoreCanvasCheckpointModel)
         .where(
             CoreCanvasCheckpointModel.organization_id == organization_id,
-            CoreCanvasCheckpointModel.canvas_id == device.turn.canvas_id,
+            CoreCanvasCheckpointModel.canvas_id == group_id,
         )
         .order_by(
             CoreCanvasCheckpointModel.document_epoch.desc(),
             CoreCanvasCheckpointModel.revision.desc(),
         )
     )
-    if row is not None:
-        checkpoint = {
+    checkpoint = (
+        {
             "checkpoint_id": row.checkpoint_id,
             "document_epoch": row.document_epoch,
             "document_revision": row.revision,
             "snapshot": _checkpoint_snapshot(runtime, row),
         }
+        if row is not None
+        else None
+    )
+    turn = db.scalar(
+        select(ChildTurnModel)
+        .where(
+            ChildTurnModel.organization_id == organization_id,
+            ChildTurnModel.session_id == session_id,
+            ChildTurnModel.group_id == group_id,
+            ChildTurnModel.child_id == device.membership.child_id,
+            ChildTurnModel.device_grant_id == device.grant.grant_id,
+            ChildTurnModel.state == "active",
+        )
+        .order_by(ChildTurnModel.started_at.desc())
+        .limit(1)
+    )
+    document_epoch = (
+        row.document_epoch if row is not None else turn.document_epoch if turn is not None else 1
+    )
     records = store.list_operations(
         organization_id=organization_id,
-        canvas_id=device.turn.canvas_id,
+        canvas_id=group_id,
         after_revision=after_revision,
         limit=500,
     )
     return {
         "contract": "Be1CanvasReconnectV1",
-        "canvas_id": device.turn.canvas_id,
-        "turn_id": device.turn.turn_id,
-        "document_epoch": device.turn.document_epoch,
-        "current_revision": store.current_revision(
-            device.turn.canvas_id, organization_id=organization_id
+        "canvas_id": group_id,
+        "turn_id": turn.turn_id if turn is not None else None,
+        "profile_version": (
+            profile.get("version")
+            if isinstance((profile := session.configuration.get("canvas_operation_profile")), dict)
+            and isinstance(profile.get("version"), str)
+            else None
         ),
+        "document_epoch": document_epoch,
+        "current_revision": store.current_revision(group_id, organization_id=organization_id) or 0,
         "checkpoint": checkpoint,
         "operations": [_record_response(record) for record in records],
     }

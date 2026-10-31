@@ -1,0 +1,191 @@
+============================= test session starts =============================
+
+platform win32 -- Python 3.12.10, pytest-8.4.2, pluggy-1.6.0 -- <REPO>\backend\.venv\Scripts\python.exe
+
+rootdir: <REPO>\backend
+
+configfile: pyproject.toml
+
+plugins: anyio-4.14.2, asyncio-1.4.0
+
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+
+collecting ... collected 12 items
+
+
+
+tests/integration/test_story_run_lite_postgres.py::test_goal_database_owner_accepts_loopback_inet_prefix ERROR [  8%]
+
+tests/integration/test_story_run_lite_postgres.py::test_legacy_owner_fence_receipts_recovery_confirm_and_cancel ERROR [ 16%]
+
+tests/integration/test_story_run_lite_postgres.py::test_pre_migration_fixture_row_is_only_read_or_non_scope_updated ERROR [ 25%]
+
+tests/integration/test_story_run_lite_postgres.py::test_cancel_racing_complete_aborts_upload_before_admission_and_cleans_staging ERROR [ 33%]
+
+tests/integration/test_story_run_lite_postgres.py::test_cancel_and_admission_finalizer_race_serializes_asset_commit[cancel] ERROR [ 41%]
+
+tests/integration/test_story_run_lite_postgres.py::test_cancel_and_admission_finalizer_race_serializes_asset_commit[admission] ERROR [ 50%]
+
+tests/integration/test_story_run_lite_postgres.py::test_expiry_is_enforced_at_utc_boundary_for_get_put_complete_and_versions ERROR [ 58%]
+
+tests/integration/test_story_run_lite_postgres.py::test_expiry_uses_utc_time_after_story_run_lock_wait[get] ERROR [ 66%]
+
+tests/integration/test_story_run_lite_postgres.py::test_expiry_uses_utc_time_after_story_run_lock_wait[put] ERROR [ 75%]
+
+tests/integration/test_story_run_lite_postgres.py::test_expiry_uses_utc_time_after_story_run_lock_wait[complete] ERROR [ 83%]
+
+tests/integration/test_story_run_lite_postgres.py::test_recovery_rechecks_expiry_after_wait_on_unfinished_upload_lock ERROR [ 91%]
+
+tests/integration/test_story_run_lite_postgres.py::test_startup_recovery_expires_receiving_and_retries_staging_cleanup ERROR [100%]
+
+
+
+=================================== ERRORS ====================================
+
+___ ERROR at setup of test_goal_database_owner_accepts_loopback_inet_prefix ___
+
+.venv\Lib\site-packages\pytest_asyncio\plugin.py:924: in pytest_fixture_setup
+
+    return (yield)
+
+            ^^^^^
+
+E   PermissionError: [WinError 5] Access is denied: 'C:\\Users\\USER\\AppData\\Local\\Temp\\pytest-of-user'
+
+_ ERROR at setup of test_legacy_owner_fence_receipts_recovery_confirm_and_cancel _
+
+.venv\Lib\site-packages\pytest_asyncio\plugin.py:924: in pytest_fixture_setup
+
+    return (yield)
+
+            ^^^^^
+
+E   PermissionError: [WinError 5] Access is denied: 'C:\\Users\\USER\\AppData\\Local\\Temp\\pytest-of-user'
+
+_ ERROR at setup of test_pre_migration_fixture_row_is_only_read_or_non_scope_updated _
+
+.venv\Lib\site-packages\pytest_asyncio\plugin.py:924: in pytest_fixture_setup
+
+    return (yield)
+
+            ^^^^^
+
+E   PermissionError: [WinError 5] Access is denied: 'C:\\Users\\USER\\AppData\\Local\\Temp\\pytest-of-user'
+
+_ ERROR at setup of test_cancel_racing_complete_aborts_upload_before_admission_and_cleans_staging _
+
+.venv\Lib\site-packages\pytest_asyncio\plugin.py:924: in pytest_fixture_setup
+
+    return (yield)
+
+            ^^^^^
+
+E   PermissionError: [WinError 5] Access is denied: 'C:\\Users\\USER\\AppData\\Local\\Temp\\pytest-of-user'
+
+_ ERROR at setup of test_cancel_and_admission_finalizer_race_serializes_asset_commit[cancel] _
+
+.venv\Lib\site-packages\pytest_asyncio\plugin.py:924: in pytest_fixture_setup
+
+    return (yield)
+
+            ^^^^^
+
+E   PermissionError: [WinError 5] Access is denied: 'C:\\Users\\USER\\AppData\\Local\\Temp\\pytest-of-user'
+
+_ ERROR at setup of test_cancel_and_admission_finalizer_race_serializes_asset_commit[admission] _
+
+.venv\Lib\site-packages\pytest_asyncio\plugin.py:924: in pytest_fixture_setup
+
+    return (yield)
+
+            ^^^^^
+
+E   PermissionError: [WinError 5] Access is denied: 'C:\\Users\\USER\\AppData\\Local\\Temp\\pytest-of-user'
+
+_ ERROR at setup of test_expiry_is_enforced_at_utc_boundary_for_get_put_complete_and_versions _
+
+.venv\Lib\site-packages\pytest_asyncio\plugin.py:924: in pytest_fixture_setup
+
+    return (yield)
+
+            ^^^^^
+
+E   PermissionError: [WinError 5] Access is denied: 'C:\\Users\\USER\\AppData\\Local\\Temp\\pytest-of-user'
+
+_ ERROR at setup of test_expiry_uses_utc_time_after_story_run_lock_wait[get] __
+
+.venv\Lib\site-packages\pytest_asyncio\plugin.py:924: in pytest_fixture_setup
+
+    return (yield)
+
+            ^^^^^
+
+E   PermissionError: [WinError 5] Access is denied: 'C:\\Users\\USER\\AppData\\Local\\Temp\\pytest-of-user'
+
+_ ERROR at setup of test_expiry_uses_utc_time_after_story_run_lock_wait[put] __
+
+.venv\Lib\site-packages\pytest_asyncio\plugin.py:924: in pytest_fixture_setup
+
+    return (yield)
+
+            ^^^^^
+
+E   PermissionError: [WinError 5] Access is denied: 'C:\\Users\\USER\\AppData\\Local\\Temp\\pytest-of-user'
+
+_ ERROR at setup of test_expiry_uses_utc_time_after_story_run_lock_wait[complete] _
+
+.venv\Lib\site-packages\pytest_asyncio\plugin.py:924: in pytest_fixture_setup
+
+    return (yield)
+
+            ^^^^^
+
+E   PermissionError: [WinError 5] Access is denied: 'C:\\Users\\USER\\AppData\\Local\\Temp\\pytest-of-user'
+
+_ ERROR at setup of test_recovery_rechecks_expiry_after_wait_on_unfinished_upload_lock _
+
+.venv\Lib\site-packages\pytest_asyncio\plugin.py:924: in pytest_fixture_setup
+
+    return (yield)
+
+            ^^^^^
+
+E   PermissionError: [WinError 5] Access is denied: 'C:\\Users\\USER\\AppData\\Local\\Temp\\pytest-of-user'
+
+_ ERROR at setup of test_startup_recovery_expires_receiving_and_retries_staging_cleanup _
+
+.venv\Lib\site-packages\pytest_asyncio\plugin.py:924: in pytest_fixture_setup
+
+    return (yield)
+
+            ^^^^^
+
+E   PermissionError: [WinError 5] Access is denied: 'C:\\Users\\USER\\AppData\\Local\\Temp\\pytest-of-user'
+
+=========================== short test summary info ===========================
+
+ERROR tests/integration/test_story_run_lite_postgres.py::test_goal_database_owner_accepts_loopback_inet_prefix
+
+ERROR tests/integration/test_story_run_lite_postgres.py::test_legacy_owner_fence_receipts_recovery_confirm_and_cancel
+
+ERROR tests/integration/test_story_run_lite_postgres.py::test_pre_migration_fixture_row_is_only_read_or_non_scope_updated
+
+ERROR tests/integration/test_story_run_lite_postgres.py::test_cancel_racing_complete_aborts_upload_before_admission_and_cleans_staging
+
+ERROR tests/integration/test_story_run_lite_postgres.py::test_cancel_and_admission_finalizer_race_serializes_asset_commit[cancel]
+
+ERROR tests/integration/test_story_run_lite_postgres.py::test_cancel_and_admission_finalizer_race_serializes_asset_commit[admission]
+
+ERROR tests/integration/test_story_run_lite_postgres.py::test_expiry_is_enforced_at_utc_boundary_for_get_put_complete_and_versions
+
+ERROR tests/integration/test_story_run_lite_postgres.py::test_expiry_uses_utc_time_after_story_run_lock_wait[get]
+
+ERROR tests/integration/test_story_run_lite_postgres.py::test_expiry_uses_utc_time_after_story_run_lock_wait[put]
+
+ERROR tests/integration/test_story_run_lite_postgres.py::test_expiry_uses_utc_time_after_story_run_lock_wait[complete]
+
+ERROR tests/integration/test_story_run_lite_postgres.py::test_recovery_rechecks_expiry_after_wait_on_unfinished_upload_lock
+
+ERROR tests/integration/test_story_run_lite_postgres.py::test_startup_recovery_expires_receiving_and_retries_staging_cleanup
+
+============================= 12 errors in 0.89s ==============================

@@ -1,0 +1,6 @@
+{
+  "version": "1",
+  "name": "StoryRun-lite local synthetic demo",
+  "type": "collection",
+  "ignore": ["node_modules", ".git"]
+}

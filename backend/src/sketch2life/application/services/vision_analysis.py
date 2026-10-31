@@ -62,6 +62,7 @@ from sketch2life.application.ports.vision_analysis import (
 )
 from sketch2life.domain.ai_jobs.completion import canonical_sha256
 from sketch2life.domain.core_foundation import CoreRuleViolation, validate_age_months
+from sketch2life.domain.eligibility import BASIS_VERSION, EligibilityBasis, EligibilityScope
 from sketch2life.domain.vision_analysis import (
     ANALYSIS_CONTRACT_VERSION,
     OWNER_INVALIDATION_REASONS,
@@ -90,6 +91,8 @@ from sketch2life.domain.vision_analysis import (
     apply_correction,
     check_input_hash,
     check_lineage,
+    context_digest_is_valid,
+    context_freshness_matches,
     derive_uncertainty,
     document_sha256,
     invalidation_event_id,
@@ -270,13 +273,70 @@ class VisionAnalysisDependencies:
     age_band_policy: AgeBandPolicy | None = None
 
 
+def _context_eligibility_ready(
+    context: ContextDecision, scope: AnalysisScope, *, require_purpose: bool
+) -> bool:
+    metadata = (
+        context.basis_version,
+        context.evidence_ref,
+        context.eligibility_scope,
+    )
+    if context.eligibility_basis is None:
+        return (
+            all(value is None for value in metadata)
+            and context.consent_effective
+            and (context.purpose_granted or not require_purpose)
+        )
+
+    expected_scope = (
+        EligibilityScope(
+            scope.organization_id,
+            scope.class_id,
+            scope.audience_participant_ids[0],
+            scope.purpose_code,
+        )
+        if len(scope.audience_participant_ids) == 1
+        else None
+    )
+    if context.eligibility_basis == EligibilityBasis.LEGAL_CONSENT:
+        return (
+            context.basis_version == BASIS_VERSION
+            and context.evidence_ref is None
+            and (
+                context.eligibility_scope is None
+                or context.eligibility_scope == expected_scope
+            )
+            and context.consent_effective
+            and (context.purpose_granted or not require_purpose)
+        )
+    if context.eligibility_basis == EligibilityBasis.SYNTHETIC_DEV:
+        return (
+            not context.consent_effective
+            and not context.purpose_granted
+            and context.basis_version == BASIS_VERSION
+            and isinstance(context.evidence_ref, str)
+            and bool(context.evidence_ref.strip())
+            and expected_scope is not None
+            and context.eligibility_scope == expected_scope
+        )
+    return False
+
+
 def eligibility_code(context: ContextDecision, scope: AnalysisScope) -> str | None:
     """Purpose/consent/session/age gate. Ages are authoritative 36–155 completed months for
     every audience participant; an unknown or out-of-range age fails closed. Duplicate
     participants (audience or age facts) are refused before any dict/set conversion (C2)."""
 
-    if not context.consent_effective or not context.purpose_granted:
+    if not _context_eligibility_ready(context, scope, require_purpose=True):
         return "CONSENT_REQUIRED"
+    if (
+        context.eligibility_basis == EligibilityBasis.SYNTHETIC_DEV
+        and (
+            context.context_digest is None
+            or not context_digest_is_valid(context.context_digest)
+        )
+    ):
+        return "STALE_CONTEXT"
     if not context.session_active:
         return "INVALID_STATE"
     reported = [participant for participant, _ in context.audience_age_months]
@@ -339,7 +399,12 @@ class VisionAnalysisService:
             )
         context = self._d.context.current(scope)
         gate = eligibility_code(context, scope)
-        if gate is None and context.context_revision != claim.context_revision:
+        if gate is None and not context_freshness_matches(
+            claim.context_revision,
+            context.context_revision,
+            None,
+            context.context_digest,
+        ):
             gate = "STALE_CONTEXT"
         if gate is not None:
             return ObservationResult(ObservationDisposition.REFUSED, gate, False)
@@ -408,7 +473,12 @@ class VisionAnalysisService:
             if typed_after is None:
                 return ObservationResult(ObservationDisposition.REJECTED, refusal_after, True)
         stale_reason: InvalidationReason | None = None
-        if context_after.context_revision != claim.context_revision:
+        if not context_freshness_matches(
+            claim.context_revision,
+            context_after.context_revision,
+            context.context_digest,
+            context_after.context_digest,
+        ):
             stale_reason = InvalidationReason.CONTEXT_CHANGED
         elif typed is not None and typed_after is not None and (
             typed_after.binding.context_digest != typed.binding.context_digest
@@ -449,6 +519,7 @@ class VisionAnalysisService:
             stale_reason=stale_reason,
             now=now,
             typed_binding=None if typed is None else typed.binding,
+            context_digest=context.context_digest,
         )
         result_record = ProviderResultRecord(
             result_ref=provider_result_ref(analysis_id),
@@ -503,7 +574,12 @@ class VisionAnalysisService:
             disposition, code = ObservationDisposition.REJECTED, typed_refusal
         elif head.accepted_status is AcceptedStatus.STALE:
             disposition, code = ObservationDisposition.STALE, head.status_reason
-        elif context.context_revision != head.context_revision or typed_moved:
+        elif not context_freshness_matches(
+            head.context_revision,
+            context.context_revision,
+            head.context_digest,
+            context.context_digest,
+        ) or typed_moved:
             disposition = ObservationDisposition.STALE
             code = str(InvalidationReason.CONTEXT_CHANGED)
         elif not self._applicable(head, context):
@@ -664,7 +740,7 @@ class VisionAnalysisService:
             if decision.reason is AuthorityReason.GRANT_REVOKED:
                 raise VisionAnalysisError("GRANT_REVOKED")
             raise VisionAnalysisError("RESOURCE_NOT_FOUND")
-        if not context.consent_effective:
+        if not _context_eligibility_ready(context, scope, require_purpose=False):
             raise VisionAnalysisError("CONSENT_REQUIRED")
 
     def _require_action(self, principal: Principal, scope: AnalysisScope) -> ActorRef:
@@ -715,6 +791,7 @@ class VisionAnalysisService:
         if not is_applicable(
             head,
             current_context_revision=context.context_revision,
+            current_context_digest=context.context_digest,
             current_input_hash=None if current is None else current.input_hash(),
         ):
             return False

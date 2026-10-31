@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from typing import Annotated, Literal
 
-from pydantic import AwareDatetime, BaseModel, ConfigDict, Field
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, model_validator
 
 OpaqueId = Annotated[str, Field(min_length=1, max_length=120, pattern=r"^[A-Za-z0-9_.:-]+$")]
 Sha256Hex = Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
@@ -82,8 +82,19 @@ class AgeContextRefV1(_Strict):
 
 class ConsentRevisionRefV1(_Strict):
     participant_id: OpaqueId
-    consent_record_ref: OpaqueId
-    revision: int = Field(ge=1)
+    consent_record_ref: OpaqueId | None
+    revision: int | None = Field(ge=1)
+    eligibility_basis: Literal["LEGAL_CONSENT", "SYNTHETIC_DEV"] | None = None
+
+    @model_validator(mode="after")
+    def require_consent_only_for_legal_basis(self) -> ConsentRevisionRefV1:
+        has_pair = self.consent_record_ref is not None and self.revision is not None
+        if self.eligibility_basis == "SYNTHETIC_DEV":
+            if self.consent_record_ref is not None or self.revision is not None:
+                raise ValueError("synthetic eligibility must not carry legal consent references")
+        elif not has_pair:
+            raise ValueError("legal or unclassified facts require both consent values")
+        return self
 
 
 class PolicyRefV1(_Strict):

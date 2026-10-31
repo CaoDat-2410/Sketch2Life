@@ -21,7 +21,6 @@ from pydantic import (
     field_serializer,
     model_validator,
 )
-
 from sketch2life.contracts.schemas.ai_jobs import OpaqueId, Sha256Hex
 from sketch2life.contracts.schemas.vision import (
     ActionCandidateV1,
@@ -111,7 +110,7 @@ class EvidenceRefV1(_Strict):
 
 
 class ProvenanceV1(_Strict):
-    evidence_kind: Literal["synthetic_fake", "offline_legacy_bridge"]
+    evidence_kind: Literal["synthetic_fake", "offline_legacy_bridge", "live_legacy_bridge"]
     provider_context_mode: Literal["image_only", "typed_context"]
     adapter_id: OpaqueId
     result_contract: ShortTextV1
@@ -132,7 +131,7 @@ class ProvenanceV1(_Strict):
 
     @model_validator(mode="after")
     def _truthful(self) -> ProvenanceV1:
-        if self.evidence_kind == "offline_legacy_bridge":
+        if self.evidence_kind in {"offline_legacy_bridge", "live_legacy_bridge"}:
             if self.provider_context_mode != "image_only":
                 raise ValueError("the legacy bridge is image_only")
             if self.transport_attempts != 1 or None in (

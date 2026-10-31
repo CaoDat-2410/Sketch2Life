@@ -266,6 +266,7 @@ class ParentGroupMembershipV1(StrictLessonModel):
     expires_at: AwareDatetime | None = None
     accepted_at: AwareDatetime | None = None
     revision: int = Field(ge=1)
+    revision_source: Literal["recorded", "reconstructed_from_current_row"] | None = None
 
 
 class ParentGroupInvitationPageV1(StrictLessonModel):

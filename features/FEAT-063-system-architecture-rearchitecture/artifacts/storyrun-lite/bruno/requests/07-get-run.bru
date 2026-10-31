@@ -1,0 +1,25 @@
+meta {
+  name: 07 Poll run and result
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/v1/story-runs/{{runRef}}
+  auth: none
+}
+
+script:post-response {
+  bru.setVar("runETag", res.headers.etag);
+  bru.setVar("runRevision", res.body.revision);
+  if (res.body.result && res.body.result.understanding_revision) {
+    bru.setVar("understandingRevision", res.body.result.understanding_revision);
+  }
+}
+
+tests {
+  test("reads the subject review result", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().run_state).to.equal("SUBJECT_REVIEW");
+  });
+}

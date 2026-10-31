@@ -153,3 +153,29 @@
 - No model weights were downloaded or benchmarked. Candidate VLM/LLM/TTS choices are design candidates pending exact revision, license, synthetic quality, and latency evidence.
 - No final PDF exists at this review stage. A future PDF must be generated only after owner approval of the two Markdown documents and will remain a summary of the proposed repository target, not legal advice or runtime proof.
 
+
+## StoryRun-lite S1→S2 implementation sources — 2026-11-02
+
+- `plan/STORYRUN_LITE_S1_S2_LAUNCH_PROMPT_20261102.md` — owner-approved continuous S1→S2 launch authority and constraints; SHA-256 `13067726F17892EDD4E8A10EF0EF24DE65ED4F8FAB913FE1C7753612177A070C`.
+- `plan/STORYRUN_LITE_S1_S2_MASTER_GOAL_20261102.md` — pinned aggregate goal; SHA-256 `C5E8B15839FA3470596DAC4B964450BD56428D481EA1A78B8AEC70B2E6A02B42`.
+- `plan/STORYRUN_LITE_VISION_M0_V12_FINAL_DRAFT_20261102.md` — image safety and current byte/pixel limits in §10; SHA-256 `D0560C4B7821EA76A50780D00161DE1D1AC9917168B9C975547077C457FB448B`. This draft is not described as independently accepted.
+- `plan/STORYRUN_LITE_GOAL_1_PLAN_20261102.md` and `.claude/handoff/OWNER_DECISIONS_G3G4_V4_20261101.md` — approved workflow decisions and prior scope constraints; both pinned hashes were verified before implementation.
+- `plan/STORYRUN_LITE_S1_S2_EXECUTION_PLAN_20261102.md` and `approvals/TASK_APPROVAL.md` — scoped implementation plan and explicit approval record.
+- `artifacts/storyrun-lite/openapi.json`, `artifacts/storyrun-lite/bruno/`, and `artifacts/DATA_TABLE_REGISTER.md` — synthetic local API handoff and additive source-derived persistence crosswalk.
+- `backend/src/sketch2life/{domain,application,contracts,infrastructure,interfaces}` StoryRun-lite modules and `backend/alembic/versions/20261102_story_run_lite.py` — implementation source; the migration branch was enumerated but not applied.
+- `evidence/STORYRUN_LITE_S1_CHECKPOINT_20261102.md` and `evidence/STORYRUN_LITE_S2_READINESS_20261102.md` — local test, worker, fixture provenance, environment and readiness evidence. No provider or production database source was used.
+- `evidence/STORYRUN_LITE_S1_S2_FINAL_20261102.md` and `.claude/handoff/snapshots/STORYRUN_LITE_S1_S2_20261102/` — final stage-gate summary and scope/hash handoff snapshot.
+
+## StoryRun-lite final runtime evidence update — 2026-11-02
+
+- `evidence/STORYRUN_LITE_S1_CHECKPOINT_20261102.md` — final PostgreSQL owner/migration and real ClamAV verification; focused StoryRun-lite/A1 suite result **125 passed, 0 skipped**; prior Windows Job Object measurements retained.
+- `evidence/STORYRUN_LITE_S2_READINESS_20261102.md` — goal-owned PostgreSQL loopback/recovery integration and Bruno CLI 4.3.0 results: main 8/8, cancel 2/2, abort 3/3; all ten request files passed assertions.
+- `evidence/STORYRUN_LITE_S1_S2_ENVIRONMENT_20261102.md` — temporary loopback resource ownership and exact cleanup record. Existing PostgreSQL services were not changed or used.
+- `evidence/STORYRUN_LITE_S1_S2_FINAL_20261102.md` — final SL-0–SL-8 status. Technical/runtime stages pass; strict acceptance remains NOT VERIFIED because one unrelated preserved initial-hash discrepancy is outside the allowlist.
+- The final snapshot inventories the current workspace state. All 35 FEAT-061/FEAT-064 protected paths remain hash-identical; no local A2 or FEAT-061 content was edited by this goal.
+
+
+## Owner-approved baseline rebaseline record — 2026-11-02
+
+- `evidence/STORYRUN_LITE_SL0_SL8_REBASELINE_20261102.md` records the local provenance review, owner-selected B disposition, exact initial/current hashes and acceptance limitation.
+- `.claude/handoff/snapshots/STORYRUN_LITE_S1_S2_REBASELINE_20261102/` is the additive post-decision inventory. The initial S1→S2 baseline manifest and original snapshot are retained unchanged.

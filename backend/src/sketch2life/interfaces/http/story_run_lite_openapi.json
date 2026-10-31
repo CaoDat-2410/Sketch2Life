@@ -1,0 +1,1391 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "StoryRun-lite API",
+    "version": "1.0.0",
+    "description": "Local synthetic Parent demo contract for the continuous S1→S2 slice. S2 permits HTTP loopback only; this contract does not authorize live provider calls."
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:8778",
+      "description": "Local loopback demo only"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Story runs"
+    },
+    {
+      "name": "Uploads"
+    }
+  ],
+  "paths": {
+    "/v1/story-runs": {
+      "post": {
+        "tags": [
+          "Story runs"
+        ],
+        "operationId": "createStoryRun",
+        "summary": "Create a synthetic Parent story run",
+        "description": "The actor is resolved server-side. The client cannot select an owner identity. Exact Idempotency-Key and request replay returns the stored status and body.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRunRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Run created or exact replay",
+            "headers": {
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoryRun"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/story-runs/{run_ref}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/RunRef"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Story runs"
+        ],
+        "operationId": "getStoryRun",
+        "summary": "Read current run state and result",
+        "responses": {
+          "200": {
+            "description": "Current run snapshot; a result is exposed only in SUBJECT_REVIEW",
+            "headers": {
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoryRun"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/story-runs/{run_ref}/assets": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/RunRef"
+        }
+      ],
+      "post": {
+        "tags": [
+          "Story runs"
+        ],
+        "operationId": "attachStoryRunAsset",
+        "summary": "Attach an admitted RUN_ARTWORK asset",
+        "description": "This command attaches an asset reference; image bytes are uploaded through an upload session.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          },
+          {
+            "$ref": "#/components/parameters/IfMatch"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttachAssetRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted for one Vision attempt or exact replay",
+            "headers": {
+              "Location": {
+                "$ref": "#/components/headers/Location"
+              },
+              "Retry-After": {
+                "$ref": "#/components/headers/RetryAfter"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "Cache-Control": {
+                "description": "Successful command responses must not be cached.",
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoryRun"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "428": {
+            "$ref": "#/components/responses/PreconditionRequired"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/story-runs/{run_ref}/subject-confirmation": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/RunRef"
+        }
+      ],
+      "post": {
+        "tags": [
+          "Story runs"
+        ],
+        "operationId": "confirmSubject",
+        "summary": "Confirm the current subject understanding",
+        "description": "Only CONFIRM is supported. The decision and FINAL command receipt commit together. Replay of the same key/fingerprint returns the original 202 without another decision or Vision attempt.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          },
+          {
+            "$ref": "#/components/parameters/IfMatch"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmSubjectRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Confirmation accepted",
+            "headers": {
+              "Location": {
+                "$ref": "#/components/headers/Location"
+              },
+              "Retry-After": {
+                "$ref": "#/components/headers/RetryAfter"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "Cache-Control": {
+                "description": "Successful command responses must not be cached.",
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoryRun"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "428": {
+            "$ref": "#/components/responses/PreconditionRequired"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/story-runs/{run_ref}/cancel": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/RunRef"
+        }
+      ],
+      "post": {
+        "tags": [
+          "Story runs"
+        ],
+        "operationId": "cancelStoryRun",
+        "summary": "Cancel an unfinished run and release its active-owner lock",
+        "description": "Cancellation does not claim that an external provider or GPU stopped. A post-SENT unknown ledger outcome remains unknown; no automatic resend occurs.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          },
+          {
+            "$ref": "#/components/parameters/IfMatch"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelRunRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Run moved to DELETE_PENDING and active lock released",
+            "headers": {
+              "Location": {
+                "$ref": "#/components/headers/Location"
+              },
+              "Retry-After": {
+                "$ref": "#/components/headers/RetryAfter"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "Cache-Control": {
+                "description": "Successful command responses must not be cached.",
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoryRun"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "428": {
+            "$ref": "#/components/responses/PreconditionRequired"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        }
+      }
+    },
+    "/v1/upload-sessions": {
+      "post": {
+        "tags": [
+          "Uploads"
+        ],
+        "operationId": "createUploadSession",
+        "summary": "Create an upload session for a run artwork",
+        "description": "Server-advertised limits are authoritative. Current targets are 20 MiB total, 4 MiB per part and at most five contiguous parts.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUploadRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Upload session created or exact replay",
+            "headers": {
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadSession"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/upload-sessions/{upload_ref}/parts/{part_no}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/UploadRef"
+        },
+        {
+          "$ref": "#/components/parameters/PartNo"
+        }
+      ],
+      "put": {
+        "tags": [
+          "Uploads"
+        ],
+        "operationId": "putUploadPart",
+        "summary": "Store one contiguous raw binary part",
+        "description": "Part numbers start at one. An exact same-part/same-digest retry is idempotent; a different digest for an existing part returns 409.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ContentLength"
+          },
+          {
+            "$ref": "#/components/parameters/ContentSha256"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/octet-stream": {
+              "schema": {
+                "type": "string",
+                "format": "binary",
+                "description": "One raw image byte range; maximum size is the server-advertised part_size_bytes."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Part stored or exact retry",
+            "headers": {
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadPart"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "411": {
+            "$ref": "#/components/responses/ContentLengthRequired"
+          },
+          "413": {
+            "description": "Part exceeds advertised size",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "410": {
+            "$ref": "#/components/responses/UploadExpired"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/upload-sessions/{upload_ref}/complete": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/UploadRef"
+        }
+      ],
+      "post": {
+        "tags": [
+          "Uploads"
+        ],
+        "operationId": "completeUpload",
+        "summary": "Verify aggregate bytes and begin admission",
+        "description": "Missing parts return UPLOAD_INCOMPLETE without consuming the command key. The server hashes concatenated bytes in ascending part order. Scanner CLEAN on the exact immutable snapshot precedes every parser, decoder and Vision call.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          },
+          {
+            "$ref": "#/components/parameters/IfMatch"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompleteUploadRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Admission started; poll the upload resource",
+            "headers": {
+              "Location": {
+                "$ref": "#/components/headers/Location"
+              },
+              "Retry-After": {
+                "$ref": "#/components/headers/RetryAfter"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "Cache-Control": {
+                "description": "Successful command responses must not be cached.",
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadSession"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "410": {
+            "$ref": "#/components/responses/UploadExpired"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "428": {
+            "$ref": "#/components/responses/PreconditionRequired"
+          },
+          "413": {
+            "description": "Aggregate image exceeds advertised total",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/upload-sessions/{upload_ref}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/UploadRef"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Uploads"
+        ],
+        "operationId": "getUploadSession",
+        "summary": "Read upload state, parts, limits and expiry",
+        "responses": {
+          "200": {
+            "description": "Current upload snapshot",
+            "headers": {
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadSession"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "410": {
+            "description": "Upload expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Uploads"
+        ],
+        "operationId": "abortUpload",
+        "summary": "Abort an open upload session",
+        "description": "The state transition is committed before best-effort deletion of staged synthetic bytes.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          },
+          {
+            "$ref": "#/components/parameters/IfMatch"
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Upload marked ABORTED",
+            "headers": {
+              "Location": {
+                "$ref": "#/components/headers/Location"
+              },
+              "Retry-After": {
+                "$ref": "#/components/headers/RetryAfter"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "Cache-Control": {
+                "description": "Successful command responses must not be cached.",
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadSession"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "428": {
+            "$ref": "#/components/responses/PreconditionRequired"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "parameters": {
+      "IdempotencyKey": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        }
+      },
+      "IfMatch": {
+        "name": "If-Match",
+        "in": "header",
+        "required": true,
+        "description": "Current quoted ETag returned by the resource, encoding its expected revision/version.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "RunRef": {
+        "name": "run_ref",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "UploadRef": {
+        "name": "upload_ref",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "PartNo": {
+        "name": "part_no",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        }
+      },
+      "ContentLength": {
+        "name": "Content-Length",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4194304
+        }
+      },
+      "ContentSha256": {
+        "name": "Content-SHA256",
+        "in": "header",
+        "required": true,
+        "description": "Hex SHA-256 of this exact part; the server recalculates and verifies it.",
+        "schema": {
+          "type": "string",
+          "pattern": "^[A-Fa-f0-9]{64}$"
+        }
+      }
+    },
+    "headers": {
+      "ETag": {
+        "description": "Opaque strong version token; send back unchanged in If-Match.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "Location": {
+        "description": "Resource URL to poll.",
+        "schema": {
+          "type": "string",
+          "format": "uri-reference"
+        }
+      },
+      "RetryAfter": {
+        "description": "Suggested poll interval in seconds.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "schemas": {
+      "CreateRunRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "profile_ref"
+        ],
+        "properties": {
+          "profile_ref": {
+            "type": "string",
+            "const": "synthetic-parent-demo"
+          }
+        }
+      },
+      "CreateUploadRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "target_ref",
+          "purpose",
+          "media_type",
+          "expected_size_bytes",
+          "expected_sha256"
+        ],
+        "properties": {
+          "target_ref": {
+            "type": "string",
+            "description": "StoryRun reference returned by create."
+          },
+          "purpose": {
+            "type": "string",
+            "const": "RUN_ARTWORK"
+          },
+          "media_type": {
+            "type": "string",
+            "enum": [
+              "image/jpeg",
+              "image/png",
+              "image/webp"
+            ]
+          },
+          "expected_size_bytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20971520
+          },
+          "expected_sha256": {
+            "type": "string",
+            "pattern": "^[A-Fa-f0-9]{64}$"
+          }
+        }
+      },
+      "CompleteUploadRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "expected_size_bytes",
+          "expected_sha256"
+        ],
+        "properties": {
+          "expected_size_bytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20971520
+          },
+          "expected_sha256": {
+            "type": "string",
+            "pattern": "^[A-Fa-f0-9]{64}$"
+          }
+        }
+      },
+      "AttachAssetRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "asset_ref",
+          "expected_revision"
+        ],
+        "properties": {
+          "asset_ref": {
+            "type": "string"
+          },
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      },
+      "ConfirmSubjectRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "decision",
+          "expected_understanding_revision"
+        ],
+        "properties": {
+          "decision": {
+            "type": "string",
+            "const": "CONFIRM"
+          },
+          "expected_understanding_revision": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      },
+      "CancelRunRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "expected_revision"
+        ],
+        "properties": {
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      },
+      "StoryRun": {
+        "type": "object",
+        "required": [
+          "run_ref",
+          "run_state",
+          "revision",
+          "version",
+          "updated_at"
+        ],
+        "properties": {
+          "run_ref": {
+            "type": "string"
+          },
+          "run_state": {
+            "type": "string",
+            "enum": [
+              "INPUT_PROCESSING",
+              "SUBJECT_REVIEW",
+              "PREPARATION_REVIEW",
+              "DELETE_PENDING",
+              "FAILED"
+            ]
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "target_revision": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "job_state": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "QUEUED",
+              "RUNNING",
+              "SUCCEEDED",
+              "FAILED",
+              "AWAITING_RECONCILIATION",
+              null
+            ]
+          },
+          "retryable": {
+            "type": "boolean"
+          },
+          "action_required": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "NONE",
+              "OPERATOR_REVIEW",
+              null
+            ]
+          },
+          "error": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Error"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "result": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/SubjectUnderstanding"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "SubjectUnderstanding": {
+        "type": "object",
+        "required": [
+          "understanding_revision",
+          "subject_label",
+          "confidence"
+        ],
+        "properties": {
+          "understanding_revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "subject_label": {
+            "type": "string"
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
+        }
+      },
+      "UploadSession": {
+        "type": "object",
+        "required": [
+          "upload_ref",
+          "state",
+          "version",
+          "part_size_bytes",
+          "max_total_bytes",
+          "max_parts",
+          "parts",
+          "expires_at"
+        ],
+        "properties": {
+          "upload_ref": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "RECEIVING",
+              "PENDING",
+              "PROCESSING",
+              "READY",
+              "FAILED",
+              "ABORTED",
+              "EXPIRED"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "part_size_bytes": {
+            "type": "integer",
+            "const": 4194304
+          },
+          "max_total_bytes": {
+            "type": "integer",
+            "const": 20971520
+          },
+          "max_parts": {
+            "type": "integer",
+            "const": 5
+          },
+          "parts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UploadPart"
+            }
+          },
+          "asset_ref": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "derived_asset_ref": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "error": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Error"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "UploadPart": {
+        "type": "object",
+        "required": [
+          "part_no",
+          "size_bytes",
+          "sha256"
+        ],
+        "properties": {
+          "part_no": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "size_bytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4194304
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[A-Fa-f0-9]{64}$"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "message",
+          "correlation_id",
+          "retryable"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "enum": [
+              "ACTIVE_RUN_EXISTS",
+              "ASSET_INVALID",
+              "ASSET_SCOPE_MISMATCH",
+              "COMMAND_RECOVERY_HOLD",
+              "CONTENT_LENGTH_MISMATCH",
+              "CONTENT_LENGTH_REQUIRED",
+              "IMAGE_DECODER_UNAVAILABLE",
+              "IMAGE_HASH_MISMATCH",
+              "IMAGE_INFECTED",
+              "IMAGE_INVALID",
+              "IMAGE_NORMALIZATION_FAILED",
+              "IMAGE_TOO_LARGE",
+              "IMAGE_WORKER_FAILED",
+              "INTERNAL_ERROR",
+              "INVALID_CONTENT_LENGTH",
+              "INVALID_ETAG",
+              "INVALID_IDEMPOTENCY_KEY",
+              "INVALID_PART_NUMBER",
+              "INVALID_REQUEST",
+              "INVALID_STATE",
+              "MODEL_INPUT_NOT_ADMITTED",
+              "MODEL_INPUT_TOO_LARGE",
+              "NOT_FOUND",
+              "PART_CONFLICT",
+              "PART_HASH_MISMATCH",
+              "PART_HASH_REQUIRED",
+              "PART_TOO_LARGE",
+              "PRECONDITION_REQUIRED",
+              "QUARANTINE_UNAVAILABLE",
+              "SCANNER_REJECTED",
+              "SCANNER_UNAVAILABLE",
+              "SERVICE_NOT_READY",
+              "STAGING_UNAVAILABLE",
+              "STALE_REVISION",
+              "STORY_RESULT_PERSISTENCE_UNKNOWN",
+              "UNSUPPORTED_MEDIA_TYPE",
+              "UPLOAD_EXPIRED",
+              "UPLOAD_INCOMPLETE",
+              "UPLOAD_METADATA_MISMATCH",
+              "UPLOAD_PART_GAP",
+              "UPLOAD_SESSION_STATE_CONFLICT",
+              "VISION_ADAPTER_FAILURE",
+              "VISION_ATTEMPT_FAILED",
+              "VISION_ATTEMPT_HOLD",
+              "VISION_ENDPOINT_NOT_ALLOWED",
+              "VISION_INPUT_NOT_VALIDATED",
+              "VISION_LEDGER_FINALIZATION_UNKNOWN",
+              "VISION_LOOPBACK_NOT_CONFIGURED",
+              "VISION_OUTCOME_UNKNOWN",
+              "VISION_PROHIBITED_CLAIM_DETECTED",
+              "VISION_RESPONSE_INVALID",
+              "VISION_RESULT_CAS_LOST",
+              "VISION_VISION_MODEL_UNAVAILABLE",
+              "VISION_VISION_PROVIDER_FAILURE",
+              "VISION_VISION_SCHEMA_INVALID",
+              "VISION_VISION_TIMEOUT",
+              "WORKER_GATE_CLOSED",
+              "WORKER_LIMITS_UNAVAILABLE",
+              "WORKER_TIMEOUT"
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "correlation_id": {
+            "type": "string"
+          },
+          "retryable": {
+            "type": "boolean"
+          },
+          "retry_after_seconds": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "field_errors": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "object",
+              "required": [
+                "field",
+                "code",
+                "message"
+              ],
+              "properties": {
+                "field": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Invalid request or idempotency fingerprint mismatch",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "ContentLengthRequired": {
+        "description": "Raw part upload requires a Content-Length header",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Resource not found in the resolved synthetic Parent scope",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Conflict": {
+        "description": "State, digest, idempotency or expected revision conflict",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "PreconditionRequired": {
+        "description": "If-Match is required for this versioned command",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "UnsupportedMediaType": {
+        "description": "Upload part media type must be application/octet-stream",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "UploadExpired": {
+        "description": "Upload session expiry has been enforced",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "ValidationError": {
+        "description": "Request validation or complete-upload part validation failed",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Unavailable": {
+        "description": "Required local dependency is unavailable; fail closed",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "InternalError": {
+        "description": "Unexpected internal error returned by the shared HTTP exception handler",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    }
+  }
+}

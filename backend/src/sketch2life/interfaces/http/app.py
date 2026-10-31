@@ -3,8 +3,12 @@
 import logging
 import os
 import re
+from collections.abc import AsyncIterator, Awaitable, Callable
+from contextlib import asynccontextmanager
+from ipaddress import ip_address
 from pathlib import Path
 from typing import Literal
+from urllib.parse import urlsplit
 from uuid import uuid4
 
 from fastapi import FastAPI, Request
@@ -14,6 +18,7 @@ from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.responses import Response
 
 from sketch2life.application.ports.activity_ranker import ActivityRankerPort
 from sketch2life.application.ports.child_preference_classifier import (
@@ -45,6 +50,7 @@ from sketch2life.contracts.schemas.mobile_workflow import (
     WorkflowResultProvenanceV1,
 )
 from sketch2life.contracts.schemas.scene_exploration import SourceRegionV1
+from sketch2life.domain.story_run_lite import StoryRunLiteError
 from sketch2life.infrastructure.ai.lightning_activity_ranker import LightningActivityRanker
 from sketch2life.infrastructure.ai.lightning_child_preference_classifier import (
     LightningChildPreferenceClassifier,
@@ -100,6 +106,7 @@ from sketch2life.infrastructure.storage.in_memory_auto_rig_grants import (
     InMemoryRigPackageGrantStore,
 )
 from sketch2life.infrastructure.storage.s3_compatible import Boto3S3CompatibleObjectStorage
+from sketch2life.infrastructure.story_run_lite.composition import runtime_lifespan
 from sketch2life.interfaces.http.be1_runtime import build_be1_runtime
 from sketch2life.interfaces.http.demo_composition import (
     build_demo_stores,
@@ -125,9 +132,42 @@ from sketch2life.interfaces.http.router_composition import (
     mount_demo_routers,
 )
 from sketch2life.interfaces.http.routers.storage_examples import router as storage_examples_router
+from sketch2life.interfaces.http.routers.story_run_lite import router as story_run_lite_router
+from sketch2life.interfaces.http.routers.story_run_lite import (
+    story_error_response,
+    story_unexpected_error_response,
+    story_validation_error_response,
+)
+from sketch2life.interfaces.http.story_run_lite_contract import add_story_run_lite_contract
 
 _LOGGER = logging.getLogger("sketch2life.api")
 _SAFE_ID = re.compile(r"^[A-Za-z0-9._:-]{1,120}$")
+
+
+def _story_run_lite_path(path: str) -> bool:
+    return any(path == base or path.startswith(base + "/") for base in (
+        "/v1/story-runs", "/v1/upload-sessions"
+    ))
+
+
+def _loopback(address: object) -> bool:
+    try:
+        return ip_address(str(address)).is_loopback
+    except ValueError:
+        return False
+
+
+def _local_host_header(value: str) -> bool:
+    try:
+        parsed = urlsplit("http://" + value)
+        return bool(
+            parsed.hostname in {"127.0.0.1", "::1", "localhost"}
+            and parsed.username is None and parsed.password is None
+            and not parsed.path and not parsed.query and not parsed.fragment
+            and (parsed.port is None or 1 <= parsed.port <= 65535)
+        )
+    except ValueError:
+        return False
 _SAFE_CONTEXT_PROFILE_FIELDS = frozenset(
     {
         "contract_name",
@@ -187,6 +227,21 @@ def create_app(
     _composition_profile: Literal["combined", "classroom", "demo"] = "combined",
 ) -> FastAPI:
     """Create the compatibility or explicitly scoped classroom/demo HTTP app."""
+    storage_example_settings = get_settings()
+    story_flag = os.environ.get("STORYRUN_LITE_MAIN_DEMO_ENABLED", "0")
+    if story_flag not in {"0", "1"}:
+        raise ValueError("StoryRun-lite main demo flag must be 0 or 1")
+    story_demo_enabled = story_flag == "1"
+    if story_demo_enabled and (
+        _composition_profile != "combined" or storage_example_settings.env not in {"local", "test"}
+    ):
+        raise ValueError("StoryRun-lite main demo requires the combined local/test app")
+
+    @asynccontextmanager
+    async def main_lifespan(app: FastAPI) -> AsyncIterator[None]:
+        async with runtime_lifespan(app, main_demo=True):
+            yield
+
     application = FastAPI(
         title="Sketch2Life API",
         version="1.0.0",
@@ -204,8 +259,33 @@ def create_app(
             {"name": name, "description": description}
             for name, description in TAG_DESCRIPTIONS.items()
         ],
+        lifespan=main_lifespan if story_demo_enabled else None,
     )
-    storage_example_settings = get_settings()
+    if story_demo_enabled:
+        application.description += (
+            "\n\nStoryRun-lite routes are an unauthenticated, loopback-only synthetic demo; "
+            "they do not establish a real Parent identity."
+        )
+
+    if story_demo_enabled:
+        @application.middleware("http")
+        async def story_local_only(
+            request: Request, call_next: Callable[[Request], Awaitable[Response]]
+        ) -> Response:
+            if _story_run_lite_path(request.url.path):
+                client = request.scope.get("client")
+                server = request.scope.get("server")
+                proxy_headers = {"forwarded", "x-forwarded-for", "x-real-ip"}
+                if (
+                    not client or not server or not _loopback(client[0])
+                    or not _loopback(server[0])
+                    or not _local_host_header(request.headers.get("host", ""))
+                    or any(header in request.headers for header in proxy_headers)
+                ):
+                    return JSONResponse(status_code=403, content={"detail": "Local demo only"})
+            return await call_next(request)
+
+        application.add_exception_handler(StoryRunLiteError, story_error_response)
 
     @application.middleware("http")
     async def be1_request_context(request: Request, call_next):
@@ -287,6 +367,8 @@ def create_app(
     async def handle_request_validation_error(
         request: Request, exc: RequestValidationError
     ) -> JSONResponse:
+        if story_demo_enabled and _story_run_lite_path(request.url.path):
+            return await story_validation_error_response(request, exc)
         if request.url.path.startswith("/api/be1/v1"):
             error = Be1Error(
                 code="REQUEST_VALIDATION_FAILED",
@@ -384,6 +466,8 @@ def create_app(
 
     @application.exception_handler(Exception)
     async def handle_unexpected_exception(request: Request, exc: Exception):
+        if story_demo_enabled and _story_run_lite_path(request.url.path):
+            return await story_unexpected_error_response(request, exc)
         if request.url.path.startswith("/api/lesson-library/v1"):
             request_id = getattr(request.state, "be1_request_id", str(uuid4()))
             _LOGGER.error(
@@ -641,6 +725,8 @@ def create_app(
     application.state.lesson_document_scanner = None
     if _composition_profile == "combined":
         mount_all_routers(application)
+        if story_demo_enabled:
+            application.include_router(story_run_lite_router)
     elif _composition_profile == "classroom":
         mount_classroom_routers(application)
     else:
@@ -697,6 +783,8 @@ def create_app(
             routes=application.routes,
             tags=application.openapi_tags,
         )
+        if story_demo_enabled:
+            add_story_run_lite_contract(schema)
         schema.setdefault("info", {})["x-contract-catalog"] = {
             "revision": CONTRACT_REVISION,
             "source_file": SOURCE_FILE_NAME,

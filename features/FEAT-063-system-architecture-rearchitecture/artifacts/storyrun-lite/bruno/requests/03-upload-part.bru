@@ -1,0 +1,27 @@
+meta {
+  name: 03 Upload one raw image part
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{baseUrl}}/v1/upload-sessions/{{uploadRef}}/parts/{{partNo}}
+  body: file
+  auth: none
+}
+
+headers {
+  Content-Type: application/octet-stream
+  Content-Length: {{contentLength}}
+  Content-SHA256: {{contentSha256}}
+}
+
+body:file {
+  file: @file(./synthetic-upload.bin) @contentType(application/octet-stream)
+}
+
+tests {
+  test("stores one raw upload part", function () {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

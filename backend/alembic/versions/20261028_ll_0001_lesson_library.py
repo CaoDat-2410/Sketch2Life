@@ -5,7 +5,8 @@ from __future__ import annotations
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
-from alembic import op
+from alembic import context, op
+from sketch2life.infrastructure.story_run_lite.migration_compat import prepare_lesson_upload_tables
 
 revision = "20261028_ll_0001"
 down_revision = None
@@ -14,6 +15,11 @@ depends_on = "20261024_0005"
 
 
 def upgrade() -> None:
+    # Story's original independent revision used these public names. Preserve its
+    # rows and references before Lesson claims them, but only for a verified layout.
+    if context.is_offline_mode():
+        raise RuntimeError("Lesson/Story compatibility requires online PostgreSQL validation")
+    prepare_lesson_upload_tables(op.get_bind())
     op.execute(sa.schema.CreateSchema("lesson", if_not_exists=True))
 
     op.create_table(

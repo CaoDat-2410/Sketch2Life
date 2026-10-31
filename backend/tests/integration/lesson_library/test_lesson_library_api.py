@@ -4,29 +4,37 @@ from __future__ import annotations
 
 import hashlib
 import os
-from collections.abc import Iterator
+from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from io import BytesIO
+from typing import Any
 from uuid import uuid4
 
 import pytest
 from fastapi import FastAPI, Header
 from fastapi.testclient import TestClient
-
 from sketch2life.application.ports.identity import VerifiedPrincipal
 from sketch2life.application.ports.object_storage import StoredObject
 from sketch2life.application.services.storage_example import StorageExampleService
 from sketch2life.infrastructure.config.settings import get_core_database_settings, get_settings
 from sketch2life.infrastructure.documents.clamav_scanner import ClamAvScanner
 from sketch2life.infrastructure.documents.lesson_parser import DeterministicLessonDocumentParser
+from sketch2life.infrastructure.lesson_library.service import LessonLibraryService
+from sketch2life.infrastructure.lesson_library.tables import COMMAND_RECEIPTS, PARENT_GROUP_MEMBERS
 from sketch2life.infrastructure.persistence.be1_models import (
     AdultIdentityModel,
     OrganizationAssignmentModel,
     OrganizationModel,
 )
+from sketch2life.infrastructure.persistence.core_models import (
+    CoreAuditEntryModel,
+    CoreOutboxEventModel,
+)
 from sketch2life.interfaces.http.app import create_app
 from sketch2life.interfaces.http.be1_runtime import get_verified_adult
 from sketch2life.interfaces.http.routers.storage_examples import get_storage_example_service
+from sqlalchemy import MetaData, Table, and_, delete, func, insert, inspect, or_, select
+from sqlalchemy.sql.elements import ColumnElement
 
 
 class InMemoryObjectStorage:
@@ -172,22 +180,153 @@ def lesson_api_acceptance(monkeypatch: pytest.MonkeyPatch) -> Iterator[LessonApi
         max_upload_bytes=10 * 1024 * 1024,
     )
 
-    with TestClient(app, client=("10.77.0.1", 12345)) as client:
-        yield LessonApiAcceptance(
-            app,
-            client,
-            organization_id,
-            teacher,
-            manager,
-            parent,
-            platform_admin,
-            storage,
-        )
+    try:
+        with TestClient(app, client=("10.77.0.1", 12345)) as client:
+            yield LessonApiAcceptance(
+                app,
+                client,
+                organization_id,
+                teacher,
+                manager,
+                parent,
+                platform_admin,
+                storage,
+            )
+    finally:
+        app.dependency_overrides.clear()
+        inspector = inspect(runtime.engine)
+        metadata = MetaData()
+        tables: dict[tuple[str, str], Table] = {}
+        for schema in inspector.get_schema_names():
+            if schema == "information_schema" or schema.startswith("pg_"):
+                continue
+            for table_name in inspector.get_table_names(schema=schema):
+                table = Table(
+                    table_name,
+                    metadata,
+                    schema=schema,
+                    autoload_with=runtime.engine,
+                )
+                tables[(schema, table_name)] = table
 
-    app.dependency_overrides.clear()
-    runtime.engine.dispose()
-    get_settings.cache_clear()
-    get_core_database_settings.cache_clear()
+        ordered = [
+            table
+            for table in reversed(metadata.sorted_tables)
+            if (table.schema or "public", table.name) in tables
+        ]
+        with runtime.engine.begin() as connection:
+            owned_keys: dict[tuple[str, str], set[tuple[object, ...]]] = {}
+            primary_keys = {key: list(table.primary_key.columns) for key, table in tables.items()}
+
+            def key_filter(
+                columns: Sequence[ColumnElement[Any]], keys: set[tuple[object, ...]]
+            ) -> ColumnElement[bool]:
+                return or_(
+                    *(
+                        and_(*(column == value for column, value in zip(columns, key, strict=True)))
+                        for key in keys
+                    )
+                )
+
+            # Seed ownership only from this fixture's unique organization ID.
+            # Some dependent tables (for example lesson version activities) do
+            # not carry organization_id, so follow FK edges to find their rows.
+            for table_key, table in tables.items():
+                if "organization_id" not in table.c:
+                    continue
+                primary_key = primary_keys[table_key]
+                if not primary_key:
+                    exists = connection.execute(
+                        select(func.count())
+                        .select_from(table)
+                        .where(table.c.organization_id == organization_id)
+                    ).scalar_one()
+                    if exists:
+                        raise AssertionError(
+                            f"fixture-owned table has no primary key: {table.fullname}"
+                        )
+                    continue
+                rows = connection.execute(
+                    select(*primary_key).where(table.c.organization_id == organization_id)
+                ).all()
+                if rows:
+                    owned_keys[table_key] = {tuple(row) for row in rows}
+
+            foreign_keys = {
+                table_key: inspector.get_foreign_keys(table.name, schema=table.schema)
+                for table_key, table in tables.items()
+            }
+            changed = True
+            while changed:
+                changed = False
+                for child_key, child in tables.items():
+                    child_primary_key = primary_keys[child_key]
+                    if not child_primary_key:
+                        continue
+                    for foreign_key_index, foreign_key in enumerate(foreign_keys[child_key]):
+                        parent_schema = (
+                            foreign_key.get("referred_schema") or child.schema or "public"
+                        )
+                        parent_name = foreign_key.get("referred_table")
+                        parent_key = (parent_schema, parent_name)
+                        parent_table = tables.get(parent_key)
+                        local_names = foreign_key.get("constrained_columns") or []
+                        remote_names = foreign_key.get("referred_columns") or []
+                        parent_owned_keys = owned_keys.get(parent_key, set())
+                        parent_primary_key = primary_keys.get(parent_key, [])
+                        if (
+                            parent_table is None
+                            or not parent_owned_keys
+                            or not parent_primary_key
+                            or not local_names
+                            or len(local_names) != len(remote_names)
+                        ):
+                            continue
+                        parent_alias = parent_table.alias(
+                            f"owned_parent_{len(child_key[1])}_{foreign_key_index}"
+                        )
+                        join_condition = and_(
+                            *(
+                                child.c[local_name] == parent_alias.c[remote_name]
+                                for local_name, remote_name in zip(
+                                    local_names, remote_names, strict=True
+                                )
+                            )
+                        )
+                        rows = connection.execute(
+                            select(*child_primary_key)
+                            .select_from(child.join(parent_alias, join_condition))
+                            .where(
+                                key_filter(
+                                    [parent_alias.c[column.name] for column in parent_primary_key],
+                                    parent_owned_keys,
+                                )
+                            )
+                        ).all()
+                        if not rows:
+                            continue
+                        child_owned_keys = owned_keys.setdefault(child_key, set())
+                        prior_count = len(child_owned_keys)
+                        child_owned_keys.update(tuple(row) for row in rows)
+                        changed = changed or len(child_owned_keys) != prior_count
+
+            for table in ordered:
+                table_key = (table.schema or "public", table.name)
+                rows = owned_keys.get(table_key, set())
+                if not rows:
+                    continue
+                primary_key = primary_keys[table_key]
+                for row in rows:
+                    connection.execute(delete(table).where(key_filter(primary_key, {row})))
+
+            adults = tables.get(("public", "be1_adult_identities"))
+            if adults is not None:
+                for subject in (teacher, manager, parent, platform_admin):
+                    connection.execute(delete(adults).where(adults.c.subject == subject))
+
+        runtime.engine.dispose()
+        get_settings.cache_clear()
+        get_core_database_settings.cache_clear()
 
 
 def _headers(subject: str, **extra: str) -> dict[str, str]:
@@ -806,3 +945,110 @@ def test_local_storage_example_upload_download_and_delete_routes(
         f"/api/dev/v1/storage-examples/lesson-source-documents/{receipt['object_id']}"
     )
     assert missing.status_code == 404
+
+
+def test_parent_group_accept_replays_legacy_receipt_without_repeating_effects(
+    lesson_api_acceptance: LessonApiAcceptance,
+) -> None:
+    accepted = lesson_api_acceptance
+    client = accepted.client
+    group_key = f"b5-group-{uuid4()}"
+    invite_key = f"b5-invite-{uuid4()}"
+    accept_key = f"b5-accept-{uuid4()}"
+    group_response = client.post(
+        f"/api/lesson-library/v1/organizations/{accepted.organization_id}/parent-groups",
+        json={"contract": "CreateParentGroupRequestV1", "display_name": "Synthetic B5 group"},
+        headers=_headers(accepted.manager, **{"Idempotency-Key": group_key}),
+    )
+    assert group_response.status_code == 201, group_response.text
+    group_id = group_response.json()["parent_group_id"]
+    invite_response = client.post(
+        f"/api/lesson-library/v1/organizations/{accepted.organization_id}/parent-groups/"
+        f"{group_id}/invitations",
+        json={"contract": "InviteParentToGroupRequestV1", "parent_principal_ref": accepted.parent},
+        headers=_headers(accepted.manager, **{"Idempotency-Key": invite_key}),
+    )
+    assert invite_response.status_code == 201, invite_response.text
+    membership_id = invite_response.json()["membership_id"]
+    accept_path = f"/api/lesson-library/v1/me/parent-group-invitations/{membership_id}/accept"
+    accept_response = client.post(
+        accept_path,
+        headers=_headers(accepted.parent, **{"Idempotency-Key": accept_key}),
+    )
+    assert accept_response.status_code == 200, accept_response.text
+
+    legacy_response = dict(accept_response.json())
+    legacy_response.pop("revision", None)
+    legacy_response.pop("revision_source", None)
+    accept_scope = f"POST /me/parent-group-invitations/{membership_id}/accept"
+    accept_payload = {"membership_id": membership_id}
+    receipt_identity = {
+        "organization_id": accepted.organization_id,
+        "principal_ref": accepted.parent,
+        "operation_scope": accept_scope,
+        "idempotency_key": accept_key,
+    }
+    receipt_conditions = tuple(
+        getattr(COMMAND_RECEIPTS.c, key) == value
+        for key, value in receipt_identity.items()
+    )
+    with accepted.app.state.be1_runtime.session_factory.begin() as db:
+        db.execute(delete(COMMAND_RECEIPTS).where(*receipt_conditions))
+        db.execute(insert(COMMAND_RECEIPTS).values(
+            **receipt_identity,
+            request_fingerprint=LessonLibraryService._fingerprint(accept_payload),
+            response_json=legacy_response,
+        ))
+
+    def effect_counts() -> tuple[int, int, int, int]:
+        with accepted.app.state.be1_runtime.session_factory.begin() as db:
+            receipt_count = db.execute(
+                select(func.count())
+                .select_from(COMMAND_RECEIPTS)
+                .where(*receipt_conditions)
+            ).scalar_one()
+            member_count = db.execute(
+                select(func.count()).select_from(PARENT_GROUP_MEMBERS).where(
+                    PARENT_GROUP_MEMBERS.c.membership_id == membership_id
+                )
+            ).scalar_one()
+            audit_count = db.execute(
+                select(func.count()).select_from(CoreAuditEntryModel).where(
+                    CoreAuditEntryModel.resource_id == membership_id,
+                    CoreAuditEntryModel.action == "parent_group.invitation.accept",
+                )
+            ).scalar_one()
+            outbox_count = db.execute(
+                select(func.count()).select_from(CoreOutboxEventModel).where(
+                    CoreOutboxEventModel.event_type == "lesson.parent_group_invited.v1",
+                    CoreOutboxEventModel.payload.contains({"membership_id": membership_id}),
+                )
+            ).scalar_one()
+            return receipt_count, member_count, audit_count, outbox_count
+
+    before = effect_counts()
+    replay_response = client.post(
+        accept_path,
+        headers=_headers(accepted.parent, **{"Idempotency-Key": accept_key}),
+    )
+    assert replay_response.status_code == 200, replay_response.text
+    assert replay_response.json()["revision"] == 2
+    assert replay_response.json()["revision_source"] == "reconstructed_from_current_row"
+    assert effect_counts() == before == (1, 1, 1, 1)
+    with accepted.app.state.be1_runtime.session_factory.begin() as db:
+        stored = db.execute(
+            select(COMMAND_RECEIPTS.c.response_json).where(*receipt_conditions)
+        ).scalar_one()
+    assert stored == legacy_response
+
+    conflicting_retry = client.post(
+        f"/api/lesson-library/v1/organizations/{accepted.organization_id}/parent-groups/"
+        f"{group_id}/invitations",
+        json={
+            "contract": "InviteParentToGroupRequestV1",
+            "parent_principal_ref": f"synthetic-other-parent-{uuid4()}",
+        },
+        headers=_headers(accepted.manager, **{"Idempotency-Key": invite_key}),
+    )
+    assert conflicting_retry.status_code == 409
+    assert conflicting_retry.json()["code"] == "IDEMPOTENCY_KEY_REUSED"

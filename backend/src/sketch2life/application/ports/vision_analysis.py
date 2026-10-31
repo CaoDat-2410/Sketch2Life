@@ -10,12 +10,14 @@ used by the BE2-01 foundation; nothing here trusts a client-supplied actor or or
 
 from __future__ import annotations
 
+import re
 from contextlib import AbstractContextManager
 from dataclasses import dataclass
 from enum import StrEnum
 from typing import Protocol
 
 from sketch2life.application.ports.ai_jobs import Principal
+from sketch2life.domain.eligibility import EligibilityScope
 from sketch2life.domain.vision_analysis import (
     ActorRef,
     ActorRole,
@@ -104,6 +106,17 @@ class ContextDecision:
     audience_age_months: tuple[tuple[str, int | None], ...]
     topic_ref: str | None = None
     age_policy_ref: str | None = None
+    eligibility_basis: str | None = None
+    basis_version: str | None = None
+    evidence_ref: str | None = None
+    eligibility_scope: EligibilityScope | None = None
+    context_digest: str | None = None
+
+    def __post_init__(self) -> None:
+        if self.context_digest is not None and re.fullmatch(
+            r"sha256:[0-9a-f]{64}", self.context_digest
+        ) is None:
+            raise ValueError("context_digest must be a lowercase SHA-256 digest")
 
 
 class AnalysisContextPort(Protocol):
@@ -184,6 +197,71 @@ class ObservationFailureCode(StrEnum):
     PROVIDER_UNAVAILABLE = "PROVIDER_UNAVAILABLE"
     OUTPUT_MALFORMED = "OUTPUT_MALFORMED"
     UNSAFE_CONTENT = "UNSAFE_CONTENT"
+    # Invocation-boundary outcomes. The NOT_SENT codes are only used when the current
+    # request has not crossed the durable SENT boundary.
+    NOT_SENT_GUARD_REFUSED = "NOT_SENT_GUARD_REFUSED"
+    NOT_SENT_RUN_ALREADY_USED = "NOT_SENT_RUN_ALREADY_USED"
+    PROVIDER_OUTCOME_UNKNOWN = "PROVIDER_OUTCOME_UNKNOWN"
+
+
+class InvocationGuardState(StrEnum):
+    NEW = "NEW"
+    CLAIMED = "CLAIMED"
+    SENT = "SENT"
+    SUCCEEDED = "SUCCEEDED"
+    FAILED = "FAILED"
+    UNKNOWN = "UNKNOWN"
+    REFUSED = "REFUSED"
+    USED = "USED"
+    PRIOR_OUTCOME_UNKNOWN = "PRIOR_OUTCOME_UNKNOWN"
+
+
+class InvocationTerminalState(StrEnum):
+    SUCCEEDED = "SUCCEEDED"
+    FAILED = "FAILED"
+    UNKNOWN = "UNKNOWN"
+
+
+@dataclass(frozen=True, slots=True)
+class InvocationResponseMetadata:
+    """Bounded transport facts only; never retain response headers or body bytes."""
+
+    status_code: int | None = None
+    body_sha256: str | None = None
+    body_complete: bool = False
+    json_object: bool = False
+    within_deadline: bool = False
+    bridge_validated: bool = False
+
+
+class InvocationGuardPort(Protocol):
+    """Per-attempt durable send boundary supplied by the caller."""
+
+    @property
+    def state(self) -> InvocationGuardState: ...
+
+    @property
+    def response_metadata(self) -> InvocationResponseMetadata: ...
+
+    def claim(self) -> ObservationFailureCode | None: ...
+
+    def mark_sent(self) -> ObservationFailureCode | None: ...
+
+    def record_response(
+        self,
+        *,
+        status_code: int | None,
+        body_sha256: str | None,
+        body_complete: bool,
+        json_object: bool,
+        within_deadline: bool,
+    ) -> None: ...
+
+    def mark_bridge_outcome_validated(self) -> None: ...
+
+    def finalize(
+        self, state: InvocationTerminalState, result_sha256: str | None = None
+    ) -> bool: ...
 
 
 @dataclass(frozen=True, slots=True)
@@ -306,6 +384,10 @@ __all__ = [
     "CorrectionReceipt",
     "CorrectionScopeKey",
     "JobLineagePort",
+    "InvocationGuardPort",
+    "InvocationGuardState",
+    "InvocationResponseMetadata",
+    "InvocationTerminalState",
     "ObservationFailed",
     "ObservationFailureCode",
     "ObservationOutcome",
