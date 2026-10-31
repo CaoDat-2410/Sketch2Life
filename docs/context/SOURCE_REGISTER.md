@@ -1,5 +1,9 @@
 # Source register and authority boundary
 
+## FEAT-063 FE Swagger SRS v2.2 and current-only cleanup — 2026-11-01
+
+The current FE-facing OpenAPI projection is features/FEAT-063-system-architecture-rearchitecture/artifacts/OPENAPI_FEAT063_REV45_20261101.json: 24 mounted operations across 17 paths and four tags, based on the owner-selected SRS v2.2 draft and current backend handlers. Plan Rev45 and EV-063-37 record scope and live/snapshot parity. Plans Rev46–48 record the approved one-commit history consolidation and removal of superseded standalone Swagger artifacts/notes. API runtime routes and behavior are unchanged by the cleanup.
+
 ## owner-feat065-ci-repair-20261029
 
 Person 2 authorized “ok v sửa đi nào thấy ok thì đẩy lên” after reviewing CI run 40875382264 and the three scoped fixes. FEAT-065 records repair of Node CI pin, backend lock metadata and five missing evidence-directory placeholders, validation and publication on existing feature/modal-vision-dev only. This does not authorize product-flow implementation, new branches, service/DB/Modal calls, package installs or changes to other feature plans/approvals.

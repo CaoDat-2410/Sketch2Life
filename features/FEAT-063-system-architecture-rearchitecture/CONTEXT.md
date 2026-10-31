@@ -1,5 +1,20 @@
 # FEAT-063 — Whole-repository architecture redesign
 
+## Swagger commit consolidation — Plan Rev46 (2026-11-01)
+
+- The owner authorized replacing the two tip Swagger commits with one consolidated commit and updating `origin/dev` by force-with-lease. Exact old tip `6d77d2ad` and parent Swagger commit `f68ed2b5` are replaced on `dev`; merge parent `111ae547` is retained.
+- Remote `origin/dev` was verified at `6d77d2ad` before history work. Plan Rev46 SHA-256: `4EE5DEF1E5AD7C544BBCF79921E8A7495EDE79C7765AE523D38BFFA1D9938B27`.
+- The new commit retains the current SRS v2.2 FE Swagger tree and records the exact deletion/replacement scope. Other refs are excluded.
+- Plans Rev47–48 remove superseded snapshots, local-demo artifacts, and standalone Swagger revision notes before the current-only commit is amended; the Rev45 SRS v2.2 snapshot and evidence remain.
+
+## FE Swagger SRS v2.2 scope — Plan Rev45 (2026-11-01)
+
+- The owner selected SRS v2.2 as the baseline for this Swagger update. The source SRS remains a draft; this task does not sign it off.
+- Swagger now publishes an explicit FE projection of 24 currently mounted operations across 17 paths and four navigation tags. The full 124-operation mounted schema remains available in app state for internal contract parity; backend routes and behavior are unchanged.
+- The FE view includes organization/class/profile/consent and Teacher lesson preparation/upload. It omits classroom collaboration, gallery, local/demo/storage, sharing, moderation, and health operations. It states that Parent StoryRun, activity catalog, occurrence/Sketch Deck/sample-video, playback/job, billing/quota, and notification APIs are not available here.
+- SRS §9.6 is a logical route proposal, not the final API contract. Plan Rev45 SHA-256: `5D1DBABE161F92F08DE7FE8C1B81B1E5D57CFA3C2B8D57CBA6BE76ACADB0FD06`; approval is recorded in `approvals/TASK_APPROVAL.md`.
+- The FE view labels the shared error envelope `ApiError`; its fields and payload remain unchanged. The overview is 50 words and each tag description is at most seven words. Snapshot `artifacts/OPENAPI_FEAT063_REV45_20261101.json`, SHA-256 `C61D3ADD7FF906AC9E5B018A9CE428AF7B162D67510FEEE7B202B53DA05D74A2`. Live parity is recorded in evidence. No test suite was run. Evidence: `evidence/EV-063-37_SWAGGER_SRS_V22_SCOPE_20261101.md`.
+
 ## UI component patterns and states — Plan Rev36 (2026-10-30)
 
 - Lifecycle: REVIEW; nine generated component boards, group-specific prompt/motion notes, API mapping and evidence are complete. Owner visual approval is pending before any asset can be approved/applied.

@@ -143,3 +143,22 @@ EV-063-05 records an independent architecture audit in `evidence/INDEPENDENT_ARC
 | ID | Record | Basis |
 |---|---|---|
 | D-113 | Rev36 adds visual references for reusable controls, dialogs, toasts, API states, upload, quota, sharing and feedback. They distinguish Rev31 Lesson Library APIs from SRS target contracts and do not alter runtime behavior or lock app design tokens. Assets await owner visual review before application. | Approved Plan Rev36; EV-063-29 |
+
+## Historical Swagger implementation decisions — summarized; FE view superseded by Rev45
+
+The older standalone Swagger plan/evidence notes were removed from the current tree under Plan Rev48. These rows preserve the relevant implementation and security boundaries.
+
+| ID | Record | Basis |
+|---|---|---|
+| D-114 | The initial Swagger audit compared mounted routes with the Rev37 catalog and reported the upload 413 mismatch; no unmounted route was inferred. | Owner-approved prior Swagger work; detail notes retired under Plan Rev48 |
+| D-115 | Tags organize navigation by explicit route role or domain/workflow and do not grant authorization. | Owner-approved prior Swagger work; detail notes retired under Plan Rev48 |
+| D-116 | Local Demo examples use synthetic in-memory state and do not bypass protected-route authentication. | Owner-approved prior Swagger work; detail notes retired under Plan Rev48 |
+| D-117 | Swagger overview copy distinguishes mounted coverage from unmounted candidates. | Owner-approved prior Swagger work; detail notes retired under Plan Rev48 |
+| D-118 | Typed 413 handling is limited to exact image/audio routes and sanitizes echoed request/session identifiers and version values. | Owner-approved prior Swagger work; detail notes retired under Plan Rev48 |
+| D-119 | OpenAPI uses standard response fields and source-backed examples; runtime behavior is unchanged. | Owner-approved prior Swagger work; detail notes retired under Plan Rev48 |
+
+## FE-facing Swagger scope aligned to SRS v2.2 — Plan Rev45
+
+| ID | Record | Basis |
+|---|---|---|
+| D-120 | Publish a separate FE OpenAPI projection containing only the 24 currently mounted organization/class/profile/consent and Teacher lesson-preparation/upload operations mapped to the owner-selected SRS v2.2 domains. Keep the full mounted schema internally for contract inventory; omit local/demo, collaborative-classroom, gallery, sharing, moderation, health, and unmounted candidate APIs from the FE view. Treat SRS §9.6 paths as proposals, state missing SRS flows, and do not invent endpoints or change runtime behavior. | Owner instruction, 2026-11-01; approved Plan Rev45; SRS v2.2 §9.6; EV-063-37 |

@@ -1,0 +1,4178 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Sketch2Life FE API",
+    "description": "Implemented FE APIs aligned to SRS v2.2: organization, class, profile, consent, and Teacher lesson preparation.\n\nBearer authentication and role/resource access are checked per operation.\n\nNot available yet: Parent profile/story/activity; Teacher occurrence, Sketch Deck, sample video; job/playback; quota/payment; notifications.\n\nSRS §9.6 lists proposed routes. This page documents current backend paths only.",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/be1/v1/organizations/{organization_id}": {
+      "get": {
+        "tags": [
+          "Organization & Class Management"
+        ],
+        "summary": "Read Organization",
+        "operationId": "read_organization_api_be1_v1_organizations__organization_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "X-Request-ID",
+            "in": "header",
+            "required": false,
+            "description": "Optional safe correlation ID; generated when omitted or invalid.",
+            "schema": {
+              "type": "string",
+              "maxLength": 120,
+              "pattern": "^[A-Za-z0-9._:-]{1,120}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "contract",
+                    "organization_id",
+                    "display_name"
+                  ],
+                  "properties": {
+                    "contract": {
+                      "type": "string"
+                    },
+                    "organization_id": {
+                      "type": "string"
+                    },
+                    "display_name": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "syntheticResponse": {
+                    "summary": "Response example",
+                    "description": "Illustrative values derived from the current handler response shape. Identifiers and records are fictional; list contents vary with stored data.",
+                    "value": {
+                      "contract": "Be1OrganizationV1",
+                      "organization_id": "org-example-001",
+                      "display_name": "Example School"
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication or device credential is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller is not authorized for this resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The request does not match the API contract",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Other documented API failures may use HTTP 404, 409, 410, 413, 415, 429, 500, 503; response body follows `ApiError`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          }
+        },
+        "description": "Đọc thông tin tổ chức/trường."
+      }
+    },
+    "/api/be1/v1/organizations/{organization_id}/me": {
+      "get": {
+        "tags": [
+          "Organization & Class Management"
+        ],
+        "summary": "Current Assignments",
+        "operationId": "current_assignments_api_be1_v1_organizations__organization_id__me_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "X-Request-ID",
+            "in": "header",
+            "required": false,
+            "description": "Optional safe correlation ID; generated when omitted or invalid.",
+            "schema": {
+              "type": "string",
+              "maxLength": 120,
+              "pattern": "^[A-Za-z0-9._:-]{1,120}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "contract",
+                    "subject",
+                    "organization_id",
+                    "assignments"
+                  ],
+                  "properties": {
+                    "contract": {
+                      "type": "string"
+                    },
+                    "subject": {
+                      "type": "string"
+                    },
+                    "organization_id": {
+                      "type": "string"
+                    },
+                    "assignments": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "role",
+                          "class_id"
+                        ],
+                        "properties": {
+                          "role": {
+                            "type": "string"
+                          },
+                          "class_id": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "syntheticResponse": {
+                    "summary": "Response example",
+                    "description": "Illustrative values derived from the current handler response shape. Identifiers and records are fictional; list contents vary with stored data.",
+                    "value": {
+                      "contract": "Be1AdultAssignmentsV1",
+                      "subject": "adult-example-001",
+                      "organization_id": "org-example-001",
+                      "assignments": [
+                        {
+                          "role": "teacher",
+                          "class_id": "class-example-001"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication or device credential is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller is not authorized for this resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The request does not match the API contract",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Other documented API failures may use HTTP 404, 409, 410, 413, 415, 429, 500, 503; response body follows `ApiError`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          }
+        },
+        "description": "Xem tổ chức/lớp/vai trò đang được gán cho người gọi."
+      }
+    },
+    "/api/be1/v1/organizations/{organization_id}/assignments": {
+      "post": {
+        "tags": [
+          "Organization & Class Management"
+        ],
+        "summary": "Create Assignment",
+        "operationId": "create_assignment_api_be1_v1_organizations__organization_id__assignments_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "X-Request-ID",
+            "in": "header",
+            "required": false,
+            "description": "Optional safe correlation ID; generated when omitted or invalid.",
+            "schema": {
+              "type": "string",
+              "maxLength": 120,
+              "pattern": "^[A-Za-z0-9._:-]{1,120}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAssignmentRequest"
+              },
+              "examples": {
+                "syntheticRequest": {
+                  "summary": "Request example",
+                  "description": "Schema-shaped sample with fictional values. Replace example IDs and references with records valid in your environment; protected routes also require a real bearer token. This is not seeded test data.",
+                  "value": {
+                    "subject": "example-value",
+                    "role": "school_admin"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "contract",
+                    "assignment_id",
+                    "subject",
+                    "role",
+                    "class_id",
+                    "active"
+                  ],
+                  "properties": {
+                    "contract": {
+                      "type": "string"
+                    },
+                    "assignment_id": {
+                      "type": "string"
+                    },
+                    "subject": {
+                      "type": "string"
+                    },
+                    "role": {
+                      "type": "string"
+                    },
+                    "class_id": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "active": {
+                      "type": "boolean"
+                    }
+                  }
+                },
+                "examples": {
+                  "syntheticResponse": {
+                    "summary": "Response example",
+                    "description": "Illustrative values derived from the current handler response shape. Identifiers and records are fictional; list contents vary with stored data.",
+                    "value": {
+                      "contract": "Be1AdultAssignmentV1",
+                      "assignment_id": "assignment-example-001",
+                      "subject": "adult-example-002",
+                      "role": "teacher",
+                      "class_id": "class-example-001",
+                      "active": true
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication or device credential is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller is not authorized for this resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The request does not match the API contract",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Other documented API failures may use HTTP 404, 409, 410, 413, 415, 429, 500, 503; response body follows `ApiError`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          }
+        },
+        "description": "Gán một người dùng vào vai trò hoặc phạm vi công việc của tổ chức."
+      }
+    },
+    "/api/be1/v1/organizations/{organization_id}/assignments/{assignment_id}": {
+      "delete": {
+        "tags": [
+          "Organization & Class Management"
+        ],
+        "summary": "Revoke Assignment",
+        "operationId": "revoke_assignment_api_be1_v1_organizations__organization_id__assignments__assignment_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "assignment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Assignment Id"
+            }
+          },
+          {
+            "name": "X-Request-ID",
+            "in": "header",
+            "required": false,
+            "description": "Optional safe correlation ID; generated when omitted or invalid.",
+            "schema": {
+              "type": "string",
+              "maxLength": 120,
+              "pattern": "^[A-Za-z0-9._:-]{1,120}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "contract",
+                    "assignment_id",
+                    "active"
+                  ],
+                  "properties": {
+                    "contract": {
+                      "type": "string"
+                    },
+                    "assignment_id": {
+                      "type": "string"
+                    },
+                    "active": {
+                      "type": "boolean"
+                    }
+                  }
+                },
+                "examples": {
+                  "syntheticResponse": {
+                    "summary": "Response example",
+                    "description": "Illustrative values derived from the current handler response shape. Identifiers and records are fictional; list contents vary with stored data.",
+                    "value": {
+                      "contract": "Be1AdultAssignmentV1",
+                      "assignment_id": "assignment-example-001",
+                      "active": false
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication or device credential is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller is not authorized for this resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The request does not match the API contract",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Other documented API failures may use HTTP 404, 409, 410, 413, 415, 429, 500, 503; response body follows `ApiError`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          }
+        },
+        "description": "Thu hồi assignment/role của người dùng trong tổ chức."
+      }
+    },
+    "/api/be1/v1/organizations/{organization_id}/classes": {
+      "get": {
+        "tags": [
+          "Organization & Class Management"
+        ],
+        "summary": "List Classes",
+        "operationId": "list_classes_api_be1_v1_organizations__organization_id__classes_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "X-Request-ID",
+            "in": "header",
+            "required": false,
+            "description": "Optional safe correlation ID; generated when omitted or invalid.",
+            "schema": {
+              "type": "string",
+              "maxLength": 120,
+              "pattern": "^[A-Za-z0-9._:-]{1,120}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "contract",
+                    "items"
+                  ],
+                  "properties": {
+                    "contract": {
+                      "type": "string"
+                    },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "class_id",
+                          "display_name",
+                          "state"
+                        ],
+                        "properties": {
+                          "class_id": {
+                            "type": "string"
+                          },
+                          "display_name": {
+                            "type": "string"
+                          },
+                          "state": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "syntheticResponse": {
+                    "summary": "Response example",
+                    "description": "Illustrative values derived from the current handler response shape. Identifiers and records are fictional; list contents vary with stored data.",
+                    "value": {
+                      "contract": "Be1ClassListV1",
+                      "items": [
+                        {
+                          "class_id": "class-example-001",
+                          "display_name": "Example Class",
+                          "state": "active"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication or device credential is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller is not authorized for this resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The request does not match the API contract",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Other documented API failures may use HTTP 404, 409, 410, 413, 415, 429, 500, 503; response body follows `ApiError`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          }
+        },
+        "description": "Liệt kê các lớp thuộc tổ chức."
+      },
+      "post": {
+        "tags": [
+          "Organization & Class Management"
+        ],
+        "summary": "Create Class",
+        "operationId": "create_class_api_be1_v1_organizations__organization_id__classes_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "X-Request-ID",
+            "in": "header",
+            "required": false,
+            "description": "Optional safe correlation ID; generated when omitted or invalid.",
+            "schema": {
+              "type": "string",
+              "maxLength": 120,
+              "pattern": "^[A-Za-z0-9._:-]{1,120}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateClassRequest"
+              },
+              "examples": {
+                "syntheticRequest": {
+                  "summary": "Request example",
+                  "description": "Schema-shaped sample with fictional values. Replace example IDs and references with records valid in your environment; protected routes also require a real bearer token. This is not seeded test data.",
+                  "value": {
+                    "display_name": "Synthetic example"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "contract",
+                    "class_id",
+                    "display_name"
+                  ],
+                  "properties": {
+                    "contract": {
+                      "type": "string"
+                    },
+                    "class_id": {
+                      "type": "string"
+                    },
+                    "display_name": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "syntheticResponse": {
+                    "summary": "Response example",
+                    "description": "Illustrative values derived from the current handler response shape. Identifiers and records are fictional; list contents vary with stored data.",
+                    "value": {
+                      "contract": "Be1ClassV1",
+                      "class_id": "class-example-001",
+                      "display_name": "Example Class"
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication or device credential is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller is not authorized for this resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The request does not match the API contract",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Other documented API failures may use HTTP 404, 409, 410, 413, 415, 429, 500, 503; response body follows `ApiError`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          }
+        },
+        "description": "Tạo lớp mới trong tổ chức."
+      }
+    },
+    "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles": {
+      "get": {
+        "tags": [
+          "Organization & Class Management"
+        ],
+        "summary": "List Profiles",
+        "operationId": "list_profiles_api_be1_v1_organizations__organization_id__classes__class_id__profiles_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "class_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Class Id"
+            }
+          },
+          {
+            "name": "X-Request-ID",
+            "in": "header",
+            "required": false,
+            "description": "Optional safe correlation ID; generated when omitted or invalid.",
+            "schema": {
+              "type": "string",
+              "maxLength": 120,
+              "pattern": "^[A-Za-z0-9._:-]{1,120}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "contract",
+                    "items"
+                  ],
+                  "properties": {
+                    "contract": {
+                      "type": "string"
+                    },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "child_id",
+                          "class_id",
+                          "display_name",
+                          "age_months"
+                        ],
+                        "properties": {
+                          "child_id": {
+                            "type": "string"
+                          },
+                          "class_id": {
+                            "type": "string"
+                          },
+                          "display_name": {
+                            "type": "string"
+                          },
+                          "age_months": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "syntheticResponse": {
+                    "summary": "Response example",
+                    "description": "Illustrative values derived from the current handler response shape. Identifiers and records are fictional; list contents vary with stored data.",
+                    "value": {
+                      "contract": "Be1ManagedProfileListV1",
+                      "items": [
+                        {
+                          "child_id": "child-example-001",
+                          "class_id": "class-example-001",
+                          "display_name": "Example Learner",
+                          "age_months": 60
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication or device credential is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller is not authorized for this resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The request does not match the API contract",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Other documented API failures may use HTTP 404, 409, 410, 413, 415, 429, 500, 503; response body follows `ApiError`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          }
+        },
+        "description": "Liệt kê hồ sơ trẻ thuộc lớp."
+      },
+      "post": {
+        "tags": [
+          "Organization & Class Management"
+        ],
+        "summary": "Create Profile",
+        "operationId": "create_profile_api_be1_v1_organizations__organization_id__classes__class_id__profiles_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "class_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Class Id"
+            }
+          },
+          {
+            "name": "X-Request-ID",
+            "in": "header",
+            "required": false,
+            "description": "Optional safe correlation ID; generated when omitted or invalid.",
+            "schema": {
+              "type": "string",
+              "maxLength": 120,
+              "pattern": "^[A-Za-z0-9._:-]{1,120}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProfileRequest"
+              },
+              "examples": {
+                "syntheticRequest": {
+                  "summary": "Request example",
+                  "description": "Schema-shaped sample with fictional values. Replace example IDs and references with records valid in your environment; protected routes also require a real bearer token. This is not seeded test data.",
+                  "value": {
+                    "child_id": "example-value",
+                    "class_id": "example-value",
+                    "consent_id": "example-value",
+                    "purpose_ref": "example-value",
+                    "display_name": "Synthetic example",
+                    "age_months": 48
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "contract",
+                    "child_id",
+                    "class_id",
+                    "display_name",
+                    "age_months",
+                    "consent_state"
+                  ],
+                  "properties": {
+                    "contract": {
+                      "type": "string"
+                    },
+                    "child_id": {
+                      "type": "string"
+                    },
+                    "class_id": {
+                      "type": "string"
+                    },
+                    "display_name": {
+                      "type": "string"
+                    },
+                    "age_months": {
+                      "type": "integer"
+                    },
+                    "consent_state": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "syntheticResponse": {
+                    "summary": "Response example",
+                    "description": "Illustrative values derived from the current handler response shape. Identifiers and records are fictional; list contents vary with stored data.",
+                    "value": {
+                      "contract": "Be1ManagedProfileV1",
+                      "child_id": "child-example-001",
+                      "class_id": "class-example-001",
+                      "display_name": "Example Learner",
+                      "age_months": 60,
+                      "consent_state": "effective"
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication or device credential is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller is not authorized for this resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The request does not match the API contract",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Other documented API failures may use HTTP 404, 409, 410, 413, 415, 429, 500, 503; response body follows `ApiError`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          }
+        },
+        "description": "Tạo hồ sơ trẻ do tổ chức quản lý trong lớp."
+      }
+    },
+    "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/consents": {
+      "post": {
+        "tags": [
+          "Organization & Class Management"
+        ],
+        "summary": "Record Consent",
+        "operationId": "record_consent_api_be1_v1_organizations__organization_id__classes__class_id__consents_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "class_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Class Id"
+            }
+          },
+          {
+            "name": "X-Request-ID",
+            "in": "header",
+            "required": false,
+            "description": "Optional safe correlation ID; generated when omitted or invalid.",
+            "schema": {
+              "type": "string",
+              "maxLength": 120,
+              "pattern": "^[A-Za-z0-9._:-]{1,120}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecordConsentRequest"
+              },
+              "examples": {
+                "syntheticRequest": {
+                  "summary": "Request example",
+                  "description": "Schema-shaped sample with fictional values. Replace example IDs and references with records valid in your environment; protected routes also require a real bearer token. This is not seeded test data.",
+                  "value": {
+                    "class_id": "example-value",
+                    "child_id": "example-value",
+                    "purpose_ref": "example-value"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "contract",
+                    "consent_id",
+                    "child_id",
+                    "purpose_ref",
+                    "state",
+                    "effective"
+                  ],
+                  "properties": {
+                    "contract": {
+                      "type": "string"
+                    },
+                    "consent_id": {
+                      "type": "string"
+                    },
+                    "child_id": {
+                      "type": "string"
+                    },
+                    "purpose_ref": {
+                      "type": "string"
+                    },
+                    "state": {
+                      "type": "string"
+                    },
+                    "effective": {
+                      "type": "boolean"
+                    }
+                  }
+                },
+                "examples": {
+                  "syntheticResponse": {
+                    "summary": "Response example",
+                    "description": "Illustrative values derived from the current handler response shape. Identifiers and records are fictional; list contents vary with stored data.",
+                    "value": {
+                      "contract": "Be1ConsentV1",
+                      "consent_id": "consent-example-001",
+                      "child_id": "child-example-001",
+                      "purpose_ref": "classroom-learning-v1",
+                      "state": "pending",
+                      "effective": false
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication or device credential is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller is not authorized for this resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The request does not match the API contract",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Other documented API failures may use HTTP 404, 409, 410, 413, 415, 429, 500, 503; response body follows `ApiError`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          }
+        },
+        "description": "Ghi nhận consent cho một lớp theo nội dung yêu cầu."
+      },
+      "get": {
+        "tags": [
+          "Organization & Class Management"
+        ],
+        "summary": "List Consents",
+        "operationId": "list_consents_api_be1_v1_organizations__organization_id__classes__class_id__consents_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "class_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Class Id"
+            }
+          },
+          {
+            "name": "X-Request-ID",
+            "in": "header",
+            "required": false,
+            "description": "Optional safe correlation ID; generated when omitted or invalid.",
+            "schema": {
+              "type": "string",
+              "maxLength": 120,
+              "pattern": "^[A-Za-z0-9._:-]{1,120}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "contract",
+                    "items"
+                  ],
+                  "properties": {
+                    "contract": {
+                      "type": "string"
+                    },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "consent_id",
+                          "child_id",
+                          "purpose_ref",
+                          "state",
+                          "effective"
+                        ],
+                        "properties": {
+                          "consent_id": {
+                            "type": "string"
+                          },
+                          "child_id": {
+                            "type": "string"
+                          },
+                          "purpose_ref": {
+                            "type": "string"
+                          },
+                          "state": {
+                            "type": "string"
+                          },
+                          "effective": {
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "syntheticResponse": {
+                    "summary": "Response example",
+                    "description": "Illustrative values derived from the current handler response shape. Identifiers and records are fictional; list contents vary with stored data.",
+                    "value": {
+                      "contract": "Be1ConsentListV1",
+                      "items": [
+                        {
+                          "consent_id": "consent-example-001",
+                          "child_id": "child-example-001",
+                          "purpose_ref": "classroom-learning-v1",
+                          "state": "pending",
+                          "effective": false
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication or device credential is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller is not authorized for this resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The request does not match the API contract",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Other documented API failures may use HTTP 404, 409, 410, 413, 415, 429, 500, 503; response body follows `ApiError`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          }
+        },
+        "description": "Liệt kê hồ sơ consent của lớp."
+      }
+    },
+    "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/consents/{consent_id}/revoke": {
+      "post": {
+        "tags": [
+          "Organization & Class Management"
+        ],
+        "summary": "Revoke Consent",
+        "operationId": "revoke_consent_api_be1_v1_organizations__organization_id__classes__class_id__consents__consent_id__revoke_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "class_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Class Id"
+            }
+          },
+          {
+            "name": "consent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Consent Id"
+            }
+          },
+          {
+            "name": "X-Request-ID",
+            "in": "header",
+            "required": false,
+            "description": "Optional safe correlation ID; generated when omitted or invalid.",
+            "schema": {
+              "type": "string",
+              "maxLength": 120,
+              "pattern": "^[A-Za-z0-9._:-]{1,120}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "contract",
+                    "consent_id",
+                    "state",
+                    "effective"
+                  ],
+                  "properties": {
+                    "contract": {
+                      "type": "string"
+                    },
+                    "consent_id": {
+                      "type": "string"
+                    },
+                    "state": {
+                      "type": "string"
+                    },
+                    "effective": {
+                      "type": "boolean"
+                    }
+                  }
+                },
+                "examples": {
+                  "syntheticResponse": {
+                    "summary": "Response example",
+                    "description": "Illustrative values derived from the current handler response shape. Identifiers and records are fictional; list contents vary with stored data.",
+                    "value": {
+                      "contract": "Be1ConsentV1",
+                      "consent_id": "consent-example-001",
+                      "state": "revoked",
+                      "effective": false
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication or device credential is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller is not authorized for this resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The request does not match the API contract",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Other documented API failures may use HTTP 404, 409, 410, 413, 415, 429, 500, 503; response body follows `ApiError`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "description": "Correlation ID for this response.",
+                "schema": {
+                  "type": "string",
+                  "maxLength": 120
+                }
+              }
+            }
+          }
+        },
+        "description": "Thu hồi một consent đã ghi nhận."
+      }
+    },
+    "/api/lesson-library/v1/organizations/{organization_id}/lessons": {
+      "post": {
+        "tags": [
+          "Teacher — Lesson Preparation"
+        ],
+        "summary": "Create Lesson",
+        "operationId": "create_lesson_api_lesson_library_v1_organizations__organization_id__lessons_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLessonRequestV1"
+              },
+              "examples": {
+                "syntheticRequest": {
+                  "summary": "Request example",
+                  "description": "Schema-shaped sample with fictional values. Replace example IDs and references with records valid in your environment; protected routes also require a real bearer token. This is not seeded test data.",
+                  "value": {
+                    "contract": "CreateLessonRequestV1",
+                    "content": {
+                      "locale": "vi-VN",
+                      "title": "example-value",
+                      "topic": "example-value",
+                      "target_age_band_ref": "example-value",
+                      "target_age_band_version": 1,
+                      "objectives": [
+                        "example-value"
+                      ],
+                      "drawing_subject": "example-value",
+                      "drawing_steps_text": "example-value",
+                      "subject_learning_notes": "example-value",
+                      "script_following_allowed": false,
+                      "activities": [
+                        {
+                          "title": "example-value",
+                          "objective": "example-value",
+                          "materials_text": "",
+                          "preparation_text": "",
+                          "instructions_text": "example-value",
+                          "observation_notes": "",
+                          "safety_notes": "",
+                          "activity_kind": "outdoor"
+                        }
+                      ]
+                    },
+                    "visibility": "PRIVATE"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LessonDetailV1"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "Teacher tạo lesson reusable mới, ban đầu ở trạng thái riêng tư."
+      },
+      "get": {
+        "tags": [
+          "Teacher & School Manager — Lesson Library"
+        ],
+        "summary": "List Lessons",
+        "operationId": "list_lessons_api_lesson_library_v1_organizations__organization_id__lessons_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "ACTIVE",
+                    "ARCHIVED"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "State"
+            }
+          },
+          {
+            "name": "visibility",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "PRIVATE",
+                    "SCHOOL",
+                    "PUBLIC"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Visibility"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LessonPageV1"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "Teacher/Manager liệt kê lesson trong phạm vi quyền của trường."
+      }
+    },
+    "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}": {
+      "get": {
+        "tags": [
+          "Teacher & School Manager — Lesson Library"
+        ],
+        "summary": "Get Lesson",
+        "operationId": "get_lesson_api_lesson_library_v1_organizations__organization_id__lessons__lesson_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "lesson_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Lesson Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LessonDetailV1"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "Teacher/Manager đọc lesson và phiên bản hiện tại trong trường."
+      },
+      "patch": {
+        "tags": [
+          "Teacher — Lesson Preparation"
+        ],
+        "summary": "Update Lesson",
+        "operationId": "update_lesson_api_lesson_library_v1_organizations__organization_id__lessons__lesson_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "lesson_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Lesson Id"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-Match"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateLessonRequestV1"
+              },
+              "examples": {
+                "syntheticRequest": {
+                  "summary": "Request example",
+                  "description": "Schema-shaped sample with fictional values. Replace example IDs and references with records valid in your environment; protected routes also require a real bearer token. This is not seeded test data.",
+                  "value": {
+                    "contract": "UpdateLessonRequestV1",
+                    "content": {
+                      "locale": "vi-VN",
+                      "title": "example-value",
+                      "topic": "example-value",
+                      "target_age_band_ref": "example-value",
+                      "target_age_band_version": 1,
+                      "objectives": [
+                        "example-value"
+                      ],
+                      "drawing_subject": "example-value",
+                      "drawing_steps_text": "example-value",
+                      "subject_learning_notes": "example-value",
+                      "script_following_allowed": false,
+                      "activities": [
+                        {
+                          "title": "example-value",
+                          "objective": "example-value",
+                          "materials_text": "",
+                          "preparation_text": "",
+                          "instructions_text": "example-value",
+                          "observation_notes": "",
+                          "safety_notes": "",
+                          "activity_kind": "outdoor"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LessonDetailV1"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "Teacher sửa nội dung bằng cách tạo phiên bản lesson mới."
+      },
+      "delete": {
+        "tags": [
+          "Teacher & School Manager — Lesson Library"
+        ],
+        "summary": "Archive Lesson",
+        "operationId": "archive_lesson_api_lesson_library_v1_organizations__organization_id__lessons__lesson_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "lesson_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Lesson Id"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-Match"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LessonDetailV1"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "Archive lesson mà không xóa lịch sử phiên bản và kiểm toán."
+      }
+    },
+    "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}/upload-sessions": {
+      "post": {
+        "tags": [
+          "Teacher — Lesson Preparation"
+        ],
+        "summary": "Create Upload Session",
+        "operationId": "create_upload_session_api_lesson_library_v1_organizations__organization_id__lessons__lesson_id__upload_sessions_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "lesson_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Lesson Id"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLessonUploadSessionRequestV1"
+              },
+              "examples": {
+                "syntheticRequest": {
+                  "summary": "Request example",
+                  "description": "Schema-shaped sample with fictional values. Replace example IDs and references with records valid in your environment; protected routes also require a real bearer token. This is not seeded test data.",
+                  "value": {
+                    "contract": "CreateLessonUploadSessionRequestV1",
+                    "file_name": "synthetic-example.pdf",
+                    "media_type": "application/pdf",
+                    "byte_length": 1,
+                    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadSessionV1"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "Teacher mở phiên upload riêng tư cho tài liệu nguồn của lesson."
+      }
+    },
+    "/api/lesson-library/v1/upload-sessions/{upload_session_id}": {
+      "get": {
+        "tags": [
+          "Lesson Document Upload"
+        ],
+        "summary": "Get Upload Session",
+        "operationId": "get_upload_session_api_lesson_library_v1_upload_sessions__upload_session_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "upload_session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Upload Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadSessionV1"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "Teacher kiểm tra tiến độ, các phần đã nhận và hạn hết phiên upload."
+      },
+      "delete": {
+        "tags": [
+          "Lesson Document Upload"
+        ],
+        "summary": "Abort Upload Session",
+        "operationId": "abort_upload_session_api_lesson_library_v1_upload_sessions__upload_session_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "upload_session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Upload Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadSessionV1"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "Teacher hủy phiên upload của mình và xóa các chunk riêng tư."
+      }
+    },
+    "/api/lesson-library/v1/upload-sessions/{upload_session_id}/parts/{part_number}": {
+      "put": {
+        "tags": [
+          "Lesson Document Upload"
+        ],
+        "summary": "Upload Part",
+        "operationId": "upload_part_api_lesson_library_v1_upload_sessions__upload_session_id__parts__part_number__put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "upload_session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Upload Session Id"
+            }
+          },
+          {
+            "name": "part_number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Part Number"
+            }
+          },
+          {
+            "name": "X-Part-SHA256",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "X-Part-Sha256"
+            }
+          },
+          {
+            "name": "Content-Range",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Content-Range"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadPartReceiptV1"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "Tải hoặc gửi lại một chunk có checksum của phiên upload."
+      }
+    },
+    "/api/lesson-library/v1/upload-sessions/{upload_session_id}/complete": {
+      "post": {
+        "tags": [
+          "Lesson Document Upload"
+        ],
+        "summary": "Complete Upload",
+        "operationId": "complete_upload_api_lesson_library_v1_upload_sessions__upload_session_id__complete_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "upload_session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Upload Session Id"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LessonSourceDocumentStatusV1"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "Ghép, quét malware, kiểm tra và trích xuất tài liệu để chuyển sang READY_FOR_REVIEW."
+      }
+    },
+    "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}/source-documents/{source_document_id}": {
+      "get": {
+        "tags": [
+          "Teacher — Lesson Preparation"
+        ],
+        "summary": "Get Source Document",
+        "operationId": "get_source_document_api_lesson_library_v1_organizations__organization_id__lessons__lesson_id__source_documents__source_document_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "lesson_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Lesson Id"
+            }
+          },
+          {
+            "name": "source_document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Source Document Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LessonSourceDocumentStatusV1"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "Teacher xem trạng thái scan/trích xuất của tài liệu lesson đã tải."
+      }
+    },
+    "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}/source-documents/{source_document_id}/revisions/{revision_id}": {
+      "get": {
+        "tags": [
+          "Teacher — Lesson Preparation"
+        ],
+        "summary": "Get Document Revision",
+        "operationId": "get_document_revision_api_lesson_library_v1_organizations__organization_id__lessons__lesson_id__source_documents__source_document_id__revisions__revision_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "lesson_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Lesson Id"
+            }
+          },
+          {
+            "name": "source_document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Source Document Id"
+            }
+          },
+          {
+            "name": "revision_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Revision Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LessonDocumentRevisionPreviewV1"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "Teacher xem trước các trường được trích xuất và cảnh báo của một revision."
+      }
+    },
+    "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}/versions": {
+      "post": {
+        "tags": [
+          "Teacher — Lesson Preparation"
+        ],
+        "summary": "Create Lesson Version",
+        "operationId": "create_lesson_version_api_lesson_library_v1_organizations__organization_id__lessons__lesson_id__versions_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Organization Id"
+            }
+          },
+          {
+            "name": "lesson_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Lesson Id"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-Match"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLessonVersionRequestV1"
+              },
+              "examples": {
+                "syntheticRequest": {
+                  "summary": "Request example",
+                  "description": "Schema-shaped sample with fictional values. Replace example IDs and references with records valid in your environment; protected routes also require a real bearer token. This is not seeded test data.",
+                  "value": {
+                    "contract": "CreateLessonVersionRequestV1",
+                    "source_document_revision_id": "example-value",
+                    "content": {
+                      "locale": "vi-VN",
+                      "title": "example-value",
+                      "topic": "example-value",
+                      "target_age_band_ref": "example-value",
+                      "target_age_band_version": 1,
+                      "objectives": [
+                        "example-value"
+                      ],
+                      "drawing_subject": "example-value",
+                      "drawing_steps_text": "example-value",
+                      "subject_learning_notes": "example-value",
+                      "script_following_allowed": false,
+                      "activities": [
+                        {
+                          "title": "example-value",
+                          "objective": "example-value",
+                          "materials_text": "",
+                          "preparation_text": "",
+                          "instructions_text": "example-value",
+                          "observation_notes": "",
+                          "safety_notes": "",
+                          "activity_kind": "outdoor"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LessonVersionV1"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "Teacher xác nhận nội dung đã lọc và tạo phiên bản lesson bất biến."
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CreateAssignmentRequest": {
+        "properties": {
+          "subject": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Subject"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "school_admin",
+              "teacher",
+              "guide",
+              "observer"
+            ],
+            "title": "Role"
+          },
+          "class_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 128,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Class Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "subject",
+          "role"
+        ],
+        "title": "CreateAssignmentRequest"
+      },
+      "CreateClassRequest": {
+        "properties": {
+          "display_name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Display Name"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "display_name"
+        ],
+        "title": "CreateClassRequest"
+      },
+      "CreateLessonRequestV1": {
+        "properties": {
+          "contract": {
+            "type": "string",
+            "const": "CreateLessonRequestV1",
+            "title": "Contract",
+            "default": "CreateLessonRequestV1"
+          },
+          "content": {
+            "$ref": "#/components/schemas/LessonContentInputV1"
+          },
+          "visibility": {
+            "type": "string",
+            "enum": [
+              "PRIVATE",
+              "SCHOOL"
+            ],
+            "title": "Visibility",
+            "default": "PRIVATE"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "content"
+        ],
+        "title": "CreateLessonRequestV1"
+      },
+      "CreateLessonUploadSessionRequestV1": {
+        "properties": {
+          "contract": {
+            "type": "string",
+            "const": "CreateLessonUploadSessionRequestV1",
+            "title": "Contract",
+            "default": "CreateLessonUploadSessionRequestV1"
+          },
+          "file_name": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "File Name"
+          },
+          "media_type": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Media Type"
+          },
+          "byte_length": {
+            "type": "integer",
+            "maximum": 25000000.0,
+            "minimum": 1.0,
+            "title": "Byte Length"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Sha256"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "file_name",
+          "media_type",
+          "byte_length",
+          "sha256"
+        ],
+        "title": "CreateLessonUploadSessionRequestV1"
+      },
+      "CreateLessonVersionRequestV1": {
+        "properties": {
+          "contract": {
+            "type": "string",
+            "const": "CreateLessonVersionRequestV1",
+            "title": "Contract",
+            "default": "CreateLessonVersionRequestV1"
+          },
+          "source_document_revision_id": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9._:-]+$",
+            "title": "Source Document Revision Id"
+          },
+          "content": {
+            "$ref": "#/components/schemas/LessonContentInputV1"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "source_document_revision_id",
+          "content"
+        ],
+        "title": "CreateLessonVersionRequestV1"
+      },
+      "CreateProfileRequest": {
+        "properties": {
+          "child_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Child Id"
+          },
+          "class_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Class Id"
+          },
+          "consent_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Consent Id"
+          },
+          "purpose_ref": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Purpose Ref"
+          },
+          "display_name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Display Name"
+          },
+          "age_months": {
+            "type": "integer",
+            "maximum": 155.0,
+            "minimum": 36.0,
+            "title": "Age Months"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "child_id",
+          "class_id",
+          "consent_id",
+          "purpose_ref",
+          "display_name",
+          "age_months"
+        ],
+        "title": "CreateProfileRequest"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "LessonActivityInputV1": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "objective": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Objective"
+          },
+          "materials_text": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Materials Text",
+            "default": ""
+          },
+          "preparation_text": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Preparation Text",
+            "default": ""
+          },
+          "instructions_text": {
+            "type": "string",
+            "maxLength": 5000,
+            "minLength": 1,
+            "title": "Instructions Text"
+          },
+          "observation_notes": {
+            "type": "string",
+            "maxLength": 3000,
+            "title": "Observation Notes",
+            "default": ""
+          },
+          "safety_notes": {
+            "type": "string",
+            "maxLength": 3000,
+            "title": "Safety Notes",
+            "default": ""
+          },
+          "activity_kind": {
+            "type": "string",
+            "enum": [
+              "outdoor",
+              "indoor",
+              "mixed"
+            ],
+            "title": "Activity Kind",
+            "default": "outdoor"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "title",
+          "objective",
+          "instructions_text"
+        ],
+        "title": "LessonActivityInputV1"
+      },
+      "LessonContentInputV1": {
+        "properties": {
+          "locale": {
+            "type": "string",
+            "const": "vi-VN",
+            "title": "Locale",
+            "default": "vi-VN"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "topic": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Topic"
+          },
+          "target_age_band_ref": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9._:-]+$",
+            "title": "Target Age Band Ref"
+          },
+          "target_age_band_version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Target Age Band Version"
+          },
+          "objectives": {
+            "items": {
+              "type": "string",
+              "maxLength": 1000,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 12,
+            "minItems": 1,
+            "title": "Objectives"
+          },
+          "drawing_subject": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Drawing Subject"
+          },
+          "drawing_steps_text": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Drawing Steps Text"
+          },
+          "subject_learning_notes": {
+            "type": "string",
+            "maxLength": 5000,
+            "minLength": 1,
+            "title": "Subject Learning Notes"
+          },
+          "script_direction": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Script Direction"
+          },
+          "script_following_allowed": {
+            "type": "boolean",
+            "title": "Script Following Allowed",
+            "default": false
+          },
+          "activities": {
+            "items": {
+              "$ref": "#/components/schemas/LessonActivityInputV1"
+            },
+            "type": "array",
+            "maxItems": 24,
+            "minItems": 1,
+            "title": "Activities"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "title",
+          "topic",
+          "target_age_band_ref",
+          "target_age_band_version",
+          "objectives",
+          "drawing_subject",
+          "drawing_steps_text",
+          "subject_learning_notes",
+          "activities"
+        ],
+        "title": "LessonContentInputV1"
+      },
+      "LessonDetailV1": {
+        "properties": {
+          "contract": {
+            "type": "string",
+            "const": "LessonDetailV1",
+            "title": "Contract",
+            "default": "LessonDetailV1"
+          },
+          "lesson_id": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9._:-]+$",
+            "title": "Lesson Id"
+          },
+          "organization_id": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9._:-]+$",
+            "title": "Organization Id"
+          },
+          "owner_kind": {
+            "type": "string",
+            "const": "ORGANIZATION",
+            "title": "Owner Kind",
+            "default": "ORGANIZATION"
+          },
+          "created_by": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9._:-]+$",
+            "title": "Created By"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "ARCHIVED"
+            ],
+            "title": "State"
+          },
+          "visibility": {
+            "type": "string",
+            "enum": [
+              "PRIVATE",
+              "SCHOOL",
+              "SELECTED_AUDIENCE",
+              "PUBLIC"
+            ],
+            "title": "Visibility"
+          },
+          "moderation_state": {
+            "type": "string",
+            "enum": [
+              "VISIBLE",
+              "HIDDEN"
+            ],
+            "title": "Moderation State",
+            "default": "VISIBLE"
+          },
+          "current_version": {
+            "$ref": "#/components/schemas/LessonVersionV1"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Revision"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "lesson_id",
+          "organization_id",
+          "created_by",
+          "state",
+          "visibility",
+          "current_version",
+          "revision",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "LessonDetailV1"
+      },
+      "LessonDocumentRevisionPreviewV1": {
+        "properties": {
+          "contract": {
+            "type": "string",
+            "const": "LessonDocumentRevisionPreviewV1",
+            "title": "Contract",
+            "default": "LessonDocumentRevisionPreviewV1"
+          },
+          "revision_id": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9._:-]+$",
+            "title": "Revision Id"
+          },
+          "extracted_fields": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Extracted Fields"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          },
+          "page_coverage": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Page Coverage"
+          },
+          "review_state": {
+            "type": "string",
+            "title": "Review State"
+          },
+          "parser_version": {
+            "type": "string",
+            "title": "Parser Version"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "revision_id",
+          "extracted_fields",
+          "warnings",
+          "page_coverage",
+          "review_state",
+          "parser_version"
+        ],
+        "title": "LessonDocumentRevisionPreviewV1"
+      },
+      "LessonPageV1": {
+        "properties": {
+          "contract": {
+            "type": "string",
+            "const": "LessonPageV1",
+            "title": "Contract",
+            "default": "LessonPageV1"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/LessonSummaryV1"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "LessonPageV1"
+      },
+      "LessonSourceDocumentStatusV1": {
+        "properties": {
+          "contract": {
+            "type": "string",
+            "const": "LessonSourceDocumentStatusV1",
+            "title": "Contract",
+            "default": "LessonSourceDocumentStatusV1"
+          },
+          "source_document_id": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9._:-]+$",
+            "title": "Source Document Id"
+          },
+          "state": {
+            "type": "string",
+            "title": "State"
+          },
+          "safe_file_name": {
+            "type": "string",
+            "title": "Safe File Name"
+          },
+          "file_extension": {
+            "type": "string",
+            "title": "File Extension"
+          },
+          "page_or_slide_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page Or Slide Count"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          },
+          "parser_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parser Version"
+          },
+          "asset_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Asset Sha256"
+          },
+          "revision_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 256,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9._:-]+$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revision Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "source_document_id",
+          "state",
+          "safe_file_name",
+          "file_extension",
+          "warnings",
+          "asset_sha256"
+        ],
+        "title": "LessonSourceDocumentStatusV1"
+      },
+      "LessonSummaryV1": {
+        "properties": {
+          "contract": {
+            "type": "string",
+            "const": "LessonSummaryV1",
+            "title": "Contract",
+            "default": "LessonSummaryV1"
+          },
+          "lesson_id": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9._:-]+$",
+            "title": "Lesson Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "topic": {
+            "type": "string",
+            "title": "Topic"
+          },
+          "current_version_no": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Current Version No"
+          },
+          "review_state": {
+            "type": "string",
+            "title": "Review State"
+          },
+          "visibility": {
+            "type": "string",
+            "title": "Visibility"
+          },
+          "activity_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Activity Count"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "lesson_id",
+          "title",
+          "topic",
+          "current_version_no",
+          "review_state",
+          "visibility",
+          "activity_count",
+          "updated_at"
+        ],
+        "title": "LessonSummaryV1"
+      },
+      "LessonVersionV1": {
+        "properties": {
+          "contract": {
+            "type": "string",
+            "const": "LessonVersionV1",
+            "title": "Contract",
+            "default": "LessonVersionV1"
+          },
+          "lesson_id": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9._:-]+$",
+            "title": "Lesson Id"
+          },
+          "version_id": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9._:-]+$",
+            "title": "Version Id"
+          },
+          "version_no": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Version No"
+          },
+          "review_state": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "PENDING_REVIEW",
+              "CHANGES_REQUESTED",
+              "APPROVED"
+            ],
+            "title": "Review State"
+          },
+          "structured_content_hash": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Structured Content Hash"
+          },
+          "source_document_revision_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 256,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9._:-]+$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Document Revision Id"
+          },
+          "authored_principal_ref": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9._:-]+$",
+            "title": "Authored Principal Ref"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "content": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LessonContentInputV1"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "lesson_id",
+          "version_id",
+          "version_no",
+          "review_state",
+          "structured_content_hash",
+          "authored_principal_ref",
+          "created_at"
+        ],
+        "title": "LessonVersionV1"
+      },
+      "RecordConsentRequest": {
+        "properties": {
+          "class_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Class Id"
+          },
+          "child_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Child Id"
+          },
+          "purpose_ref": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Purpose Ref"
+          },
+          "evidence_ref": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 512
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Ref"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "class_id",
+          "child_id",
+          "purpose_ref"
+        ],
+        "title": "RecordConsentRequest"
+      },
+      "UpdateLessonRequestV1": {
+        "properties": {
+          "contract": {
+            "type": "string",
+            "const": "UpdateLessonRequestV1",
+            "title": "Contract",
+            "default": "UpdateLessonRequestV1"
+          },
+          "content": {
+            "$ref": "#/components/schemas/LessonContentInputV1"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "content"
+        ],
+        "title": "UpdateLessonRequestV1"
+      },
+      "UploadPartReceiptV1": {
+        "properties": {
+          "contract": {
+            "type": "string",
+            "const": "UploadPartReceiptV1",
+            "title": "Contract",
+            "default": "UploadPartReceiptV1"
+          },
+          "part_number": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Part Number"
+          },
+          "byte_length": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Byte Length"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Sha256"
+          },
+          "accepted": {
+            "type": "boolean",
+            "title": "Accepted"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "part_number",
+          "byte_length",
+          "sha256",
+          "accepted"
+        ],
+        "title": "UploadPartReceiptV1"
+      },
+      "UploadSessionV1": {
+        "properties": {
+          "contract": {
+            "type": "string",
+            "const": "UploadSessionV1",
+            "title": "Contract",
+            "default": "UploadSessionV1"
+          },
+          "upload_session_id": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9._:-]+$",
+            "title": "Upload Session Id"
+          },
+          "state": {
+            "type": "string",
+            "title": "State"
+          },
+          "part_size_bytes": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Part Size Bytes"
+          },
+          "expected_parts": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Parts"
+          },
+          "accepted_part_numbers": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Accepted Part Numbers"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "upload_session_id",
+          "state",
+          "part_size_bytes",
+          "expected_parts",
+          "accepted_part_numbers",
+          "expires_at"
+        ],
+        "title": "UploadSessionV1"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "ApiError": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "request_id"
+        ],
+        "title": "ApiError"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Use a valid token from the configured identity provider. Swagger UI adds the Bearer prefix. Authentication identifies the caller; each operation checks its own role and resource permissions."
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Organization & Class Management",
+      "description": "Manage organization assignments, classes, profiles, and consent."
+    },
+    {
+      "name": "Teacher — Lesson Preparation",
+      "description": "Create and review lessons and source documents."
+    },
+    {
+      "name": "Teacher & School Manager — Lesson Library",
+      "description": "Browse and archive organization lessons."
+    },
+    {
+      "name": "Lesson Document Upload",
+      "description": "Upload source documents and track upload sessions."
+    }
+  ]
+}
