@@ -1,1 +1,0 @@
-export const mockGalleryItems = [{ id: "art-1", title: "Cây hoa mặt trời" }];

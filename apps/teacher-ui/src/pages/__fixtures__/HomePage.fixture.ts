@@ -1,1 +1,0 @@
-export const mockHomeData = { activeClassrooms: 2, totalStudents: 24 };

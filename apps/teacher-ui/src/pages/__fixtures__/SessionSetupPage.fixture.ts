@@ -1,1 +1,0 @@
-export const mockSetupWizard = { step: 1, selectedAge: "4-5" };
