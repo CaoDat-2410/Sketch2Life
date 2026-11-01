@@ -1,5 +1,13 @@
 # FEAT-063 source register
 
+## Current product requirements authority — 2026-11-01
+
+- Canonical working SRS: `artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md`, v2.3-draft (2026-10-28). This remains a draft awaiting formal owner sign-off.
+- Matching data-model companion: `artifacts/DATA_TABLE_REGISTER.md`, v2.3-draft. It supports data-model work and does not create a second SRS authority.
+- Repository-wide agent instructions and the historical source map: `docs/context/SRS_AUTHORITY.md`.
+- Older feature SRS copies and old version claims in feature contexts are non-authoritative for current product intent; retained originals remain available for historical traceability.
+- Publication: Plan Rev43; approval in `approvals/TASK_APPROVAL.md`; evidence EV-063-35.
+
 ## Rev42 Swagger review and local commit — current — 2026-10-30
 
 - Direct owner request: `coi và commit cho tui`. Plan Rev42 SHA-256 `E8A809729BDE4B83D0A6FD0AC21336C8F3721F55B7BDFA7431F1125922D026E8` authorizes review, focused verification and one local commit on `dev`; it excludes push.

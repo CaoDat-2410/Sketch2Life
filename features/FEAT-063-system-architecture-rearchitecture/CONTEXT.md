@@ -1,5 +1,12 @@
 # FEAT-063 — Whole-repository architecture redesign
 
+## Canonical SRS authority — 2026-11-01
+
+- The single canonical working SRS for current product requirements and target architecture is `artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md`, version `2.3-draft` (2026-10-28). It remains unsigned/draft; no final owner sign-off is implied.
+- Older feature SRS copies and contexts are historical or feature-local records only. Repository agents must follow `docs/context/SRS_AUTHORITY.md` and must not use old versions as current requirements.
+- The SRS and data-table register contents were not changed by this authority cleanup.
+- Plan Rev43 records the owner-authorized publication scope; EV-063-35 records its verification.
+
 ## Swagger review and local commit — Plan Rev42 (2026-10-30)
 
 - Lifecycle: review and verification complete for the approved local commit scope. No push is authorized.

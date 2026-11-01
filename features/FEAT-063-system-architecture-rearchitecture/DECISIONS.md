@@ -173,3 +173,9 @@ EV-063-05 records an independent architecture audit in `evidence/INDEPENDENT_ARC
 | ID | Record | Basis |
 |---|---|---|
 | D-118 | Before returning a typed 413 for a local session media upload, match only the exact image/audio upload route, validate echoed request/session identifiers using the API's safe identifier format, and cap the reported version at the established error-response maximum. This prevents unsafe header reflection while preserving the approved `MobileWorkflowResultV1` payload. | Approved Plan Rev40 and Rev42; source review; EV-063-34 |
+
+## Rev43 canonical SRS authority (documentation decision)
+
+| ID | Record | Basis |
+|---|---|---|
+| D-119 | For current product requirements and target architecture, the canonical working SRS is FEAT-063 `SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` v2.3-draft. Older SRS copies and feature contexts are historical/feature-local only. The v2.3 draft is not thereby signed or made final. | Owner instruction 2026-11-01; approved Plan Rev43; `docs/context/SRS_AUTHORITY.md` |

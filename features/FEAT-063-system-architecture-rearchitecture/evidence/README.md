@@ -7,6 +7,7 @@ EV-063-13 records the pre-platform table-reduction and relationship-integrity ba
 | ID | Type | Purpose | Artifact |
 |---|---|---|---|
 | EV-063-34 | Swagger review and local commit | Record contract/snapshot review, unsafe request-ID reflection fix, focused checks, security result and publication boundary | `EV-063-34_SWAGGER_REVIEW_AND_COMMIT_20261030.md` |
+| EV-063-35 | Canonical SRS authority and historical-context cleanup | Verify the FEAT-063 v2.3-draft source pointer, 24 older tracked-context notices, exact manifest, and publication result | `SRS_AUTHORITY_AND_LEGACY_CONTEXT_CLEANUP_20261101.md` |
 | EV-063-33 | Swagger overview presentation | Replace the dense intro paragraph with scannable coverage, authorization and unmounted-route notes; verify the served snapshot | `EV-063-33_SWAGGER_INFO_PRESENTATION_20261030.md` |
 | EV-063-32 | Local Swagger QA kit and upload error parity | Record the contract-shaped 413 fix, synthetic demo request examples/PNG, focused checks, local Swagger restart, and Firebase-protected-route test limit | `EV-063-32_LOCAL_SWAGGER_QA_KIT_20261030.md` |
 | EV-063-31 | Swagger navigation and role grouping | Replace broad surface tags with explicit Lesson Library role tags and BE1/Demo domain groups; include tag descriptions and preserve Rev37 parity | `EV-063-31_SWAGGER_NAVIGATION_ROLE_GROUPING_20261030.md` |

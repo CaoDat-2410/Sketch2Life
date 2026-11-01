@@ -1,5 +1,9 @@
 # Source register and authority boundary
 
+## Canonical product SRS — current working baseline
+
+Use `features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` v2.3-draft for all current product requirements and target architecture. It remains a draft pending formal owner sign-off. Older feature SRS copies and contexts are historical/feature-local and do not override it. The detailed agent reading order and historical-source list are in `docs/context/SRS_AUTHORITY.md`.
+
 ## owner-feat063-rev42-swagger-review-commit-20261030
 
 The owner requested review and commit of the pending Swagger work. FEAT-063 Plan Rev42 (SHA-256 `E8A809729BDE4B83D0A6FD0AC21336C8F3721F55B7BDFA7431F1125922D026E8`) authorizes the reviewed local `dev` commit only; no push. The review fixed unsafe request-ID reflection in the typed 413 middleware. Focused checks, OpenAPI live/snapshot parity and the required repository security validator passed. Evidence: `features/FEAT-063-system-architecture-rearchitecture/evidence/EV-063-34_SWAGGER_REVIEW_AND_COMMIT_20261030.md`.

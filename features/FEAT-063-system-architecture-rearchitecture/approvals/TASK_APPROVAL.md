@@ -206,3 +206,14 @@
 - Approved scope: review the pending Swagger/OpenAPI implementation and related FEAT-063 records/artifacts; run the focused contract, style, compilation, export/snapshot, hash, whitespace and required security checks; stage only that reviewed work; create one local commit on `dev`; and verify the resulting branch and worktree.
 - Explicitly excluded: push, deployment, unrelated changes, new route/API behavior outside earlier approved scope, credentials, real child data, and database/provider operations.
 - Supersession: this approval supersedes earlier commit exclusions only for the exact reviewed local commit in Plan Rev42; push remains excluded.
+
+## Plan Rev43 — publish canonical SRS authority cleanup
+
+- Status: `APPROVED` for the exact 36-path documentation-only manifest in Plan Rev43.
+- Approver: Project owner, direct instruction on 2026-11-01: “Commit and push”.
+- Approved plan: `plan/PLAN_REV43_PUBLISH_SRS_AUTHORITY_CLEANUP_20261101.md`.
+- Approved plan SHA-256: `A679446E79548E3D00452AFC6237BD689B31EAB0DE826521892C3D33FD0BD44C`.
+- Base and branch: `origin/dev` at `f68ed2b579c89e8fb1ee3dcf7e4c8f109acd31d8`; `codex/feat063-srs-authority-20261101`.
+- Scope: publish the SRS authority routing, notices in 24 older tracked context files, and FEAT-063 records/evidence exactly as listed in the approved plan.
+- Explicit exclusions: API path changes or route implementation, untracked/staged files from the dirty original workspace, changes to `dev`, runtime/tests/DB/provider/AI, secrets, or force push.
+- Approval basis: the owner's direct “Commit and push” instruction authorizes publication of this exact reviewed documentation package. The FEAT-063 SRS remains a draft.
