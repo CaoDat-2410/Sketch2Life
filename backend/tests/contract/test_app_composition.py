@@ -23,7 +23,7 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
         entry["path"]: sorted(entry["methods"])
         for entry in expected_entries
     }
-    openapi = create_app().openapi()
+    openapi = create_app().openapi(fe_projected=False)
     actual = {
         path: sorted(method.upper() for method in operations)
         for path, operations in openapi["paths"].items()
