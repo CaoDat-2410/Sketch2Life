@@ -34,4 +34,8 @@ The FEAT-039 v3.5 copy and FEAT-061/062 context files are not tracked at this br
 
 ## Verification and publication receipt
 
-- Plan/approval hash, exact changed-path manifest, `git diff --check`, repository security validation, commit ID, and remote ref are recorded here after publication.
+- Repository security validation: `REPOSITORY_SECURITY_VALID`, 5,809 publishable files scanned; no absolute machine paths found.
+- Payload commit: `7e4aaa662aff9af26e0a417f3beef529c5c63a26` (`docs(feat063): establish canonical SRS authority`), containing exactly the approved 36 paths.
+- Push: successful, without force, to `origin/codex/feat063-srs-authority-20261101`.
+- Remote-ref check after the payload push: `git ls-remote` returned `7e4aaa662aff9af26e0a417f3beef529c5c63a26` for that branch.
+- A follow-up documentation commit updates this status/evidence receipt; the final branch head is verified after that push and reported in the delivery message.

@@ -2,10 +2,11 @@
 
 ## Canonical SRS authority cleanup — Plan Rev43 (2026-11-01)
 
-- Lifecycle: REVIEW; repository source-routing guidance and historical notices are complete for the approved tracked-path manifest.
+- Lifecycle: PUBLISHED; repository source-routing guidance and historical notices are complete for the approved tracked-path manifest.
 - Current working SRS: `artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` v2.3-draft. It remains unsigned; no requirements or sign-off status changed.
 - Historical SRS content and files remain unchanged. Twenty-four older tracked context files now mark prior SRS references as historical/feature-local.
-- Verification and publication receipt: EV-063-35. Repository guidance is not a technical access-control mechanism.
+- Payload commit `7e4aaa662aff9af26e0a417f3beef529c5c63a26` is pushed to `codex/feat063-srs-authority-20261101`; remote ref matched this commit before the publication-receipt update. See EV-063-35.
+- Repository guidance is not a technical access-control mechanism.
 - This documentation change does not alter API paths, runtime code, database, or UI.
 
 ## Swagger review and local commit — Plan Rev42 (2026-10-30)
