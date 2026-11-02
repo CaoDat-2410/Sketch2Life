@@ -5,6 +5,8 @@ Evidence includes source/configuration and documentation reviews for earlier FEA
 EV-063-13 records the pre-platform table-reduction and relationship-integrity baseline. EV-063-18 supersedes its platform target counts through Q195; EV-063-24 records the Rev31 implementation crosswalk and complete API inventory. EV-063-14 documents the original architecture diagram package and its references/QA; EV-063-15 supersedes its artifact counts with the expanded master and detailed system-flows PDF. Earlier evidence files preserve historical review snapshots and must not be treated as the current baseline.
 
 | ID | Type | Purpose | Artifact |
+| EV-063-37 | Current FE Swagger | SRS v2.2 implementation scope and live/snapshot parity | EV-063-37_SWAGGER_SRS_V22_SCOPE_20261101.md |
+| EV-063-38 | Swagger cleanup | Current-only file set, focused checks, and commit consolidation status | EV-063-38_SWAGGER_HISTORY_CLEANUP_20261101.md |
 |---|---|---|---|
 | EV-063-34 | Swagger review and local commit | Record contract/snapshot review, unsafe request-ID reflection fix, focused checks, security result and publication boundary | `EV-063-34_SWAGGER_REVIEW_AND_COMMIT_20261030.md` |
 | EV-063-33 | Swagger overview presentation | Replace the dense intro paragraph with scannable coverage, authorization and unmounted-route notes; verify the served snapshot | `EV-063-33_SWAGGER_INFO_PRESENTATION_20261030.md` |

@@ -116,16 +116,19 @@ from sketch2life.interfaces.http.middleware.bounded_image_upload import (
     BoundedImageUploadMiddleware,
 )
 from sketch2life.interfaces.http.openapi_contract import (
-    CONTRACT_REVISION,
-    DECLARED_OPERATION_COUNT,
-    MOUNTED_OPERATION_COUNT,
     MOUNTED_OPERATIONS,
-    SOURCE_FILE_NAME,
-    SOURCE_SHA256,
     TAG_DESCRIPTIONS,
-    UNMOUNTED_OPERATION_COUNT,
-    UNMOUNTED_OPERATIONS,
 )
+from sketch2life.interfaces.http.openapi_contract_amendments import (
+    add_error_examples,
+    add_multipart_examples,
+    add_request_examples,
+    add_response_examples,
+    public_tag_name,
+    public_tags,
+    published_responses,
+)
+from sketch2life.interfaces.http.openapi_srs_v22 import project_srs_v22_openapi
 from sketch2life.interfaces.http.router_composition import (
     mount_all_routers,
     mount_classroom_routers,
@@ -200,6 +203,8 @@ def _contract_response_schema(
     schemas = components.get("schemas", {}) if isinstance(components, dict) else {}
     if isinstance(schemas, dict) and schema_name in schemas:
         return {"$ref": f"#/components/schemas/{schema_name}"}
+    if schema_name == "binary":
+        return {"type": "string", "format": "binary"}
     if schema_name == "object":
         return {"type": "object"}
     list_match = re.match(r"^list\[([A-Za-z][A-Za-z0-9_]*)", schema_name)
@@ -246,19 +251,16 @@ def create_app(
         title="Sketch2Life API",
         version="1.0.0",
         description=(
-            "Contract-aligned API reference for the FEAT-063 Rev37 catalog.\n\n"
-            "- **Local coverage:** 124 operations across 111 paths in 18 groups; three local "
-            "storage examples are flag-controlled.\n"
-            "- **Try it out:** Protected routes require a valid bearer token. Tags aid navigation; "
-            "endpoint guards enforce access.\n"
-            "- **Catalog:** 11 candidate operations are unmounted; see `x-unmounted-operations`."
+            "Sketch2Life API for classroom management, collaborative learning, and the Lesson "
+            "Library.\n\n"
+            "Protected operations require a valid bearer token. Examples illustrate request and "
+            "response shapes; they do not create database records. Use IDs available in your "
+            "environment. Local operations depend on the selected app profile and configured "
+            "services."
         ),
         docs_url="/docs",
         redoc_url=None,
-        openapi_tags=[
-            {"name": name, "description": description}
-            for name, description in TAG_DESCRIPTIONS.items()
-        ],
+        openapi_tags=public_tags(TAG_DESCRIPTIONS),
         lifespan=main_lifespan if story_demo_enabled else None,
     )
     if story_demo_enabled:
@@ -317,7 +319,11 @@ def create_app(
                 status_code=exc.status_code,
                 content={
                     "code": code if isinstance(code, str) else "REQUEST_FAILED",
-                    "message": message if isinstance(message, str) else "The request could not be completed",
+                    "message": (
+                        message
+                        if isinstance(message, str)
+                        else "The request could not be completed"
+                    ),
                     "request_id": request_id,
                 },
                 headers={**(exc.headers or {}), "X-Request-ID": request_id},
@@ -773,9 +779,10 @@ def create_app(
             name="pixi-renderer",
         )
 
-    def be1_openapi_schema() -> dict[str, object]:
-        if application.openapi_schema is not None:
-            return application.openapi_schema
+    def build_runtime_openapi_schema() -> dict[str, object]:
+        runtime_schema = getattr(application.state, "runtime_openapi_schema", None)
+        if isinstance(runtime_schema, dict):
+            return runtime_schema
         schema = get_openapi(
             title=application.title,
             version=application.version,
@@ -783,23 +790,17 @@ def create_app(
             routes=application.routes,
             tags=application.openapi_tags,
         )
-        if story_demo_enabled:
-            add_story_run_lite_contract(schema)
-        schema.setdefault("info", {})["x-contract-catalog"] = {
-            "revision": CONTRACT_REVISION,
-            "source_file": SOURCE_FILE_NAME,
-            "source_sha256": SOURCE_SHA256,
-            "declared_operations": DECLARED_OPERATION_COUNT,
-            "mounted_in_default_compose": MOUNTED_OPERATION_COUNT,
-            "unmounted_candidates": UNMOUNTED_OPERATION_COUNT,
-            "runtime_operation_count": sum(
-                1
-                for path_item in schema.get("paths", {}).values()
-                for method in path_item
-                if method.lower() in {"get", "post", "put", "patch", "delete", "options", "head"}
-            ),
-        }
-        schema["x-unmounted-operations"] = [dict(item) for item in UNMOUNTED_OPERATIONS]
+        bearer_scheme = (
+            schema.get("components", {})
+            .get("securitySchemes", {})
+            .get("HTTPBearer")
+        )
+        if isinstance(bearer_scheme, dict):
+            bearer_scheme["description"] = (
+                "Use a valid token from the configured identity provider. Swagger UI adds the "
+                "Bearer prefix. Authentication identifies the caller; each operation checks "
+                "its own role and resource permissions."
+            )
         for path, path_item in schema.get("paths", {}).items():
             if not isinstance(path_item, dict):
                 continue
@@ -818,19 +819,29 @@ def create_app(
                 if contract is None:
                     continue
                 operation["description"] = contract["purpose"]
-                operation["tags"] = [contract["tag"]]
-                operation["x-contract-request-inputs"] = contract["request_inputs"]
-                operation["x-contract-authentication"] = contract["authentication"]
-                operation["x-contract-surface"] = contract["surface"]
-                operation["x-contract-handler"] = contract["handler"]
-                operation["x-contract-verification"] = contract["verification"]
-                operation["x-contract-declared-responses"] = [
-                    dict(response) for response in contract["responses"]
-                ]
+                if (method.lower(), path) == (
+                    "post",
+                    "/api/be1/v1/organizations/{organization_id}/sessions/"
+                    "{session_id}/groups/{group_id}/restore",
+                ):
+                    operation["description"] += (
+                        "\n\n**Access:** a valid bearer token and a Teacher or School Admin "
+                        "assignment for the class. Effective group consent and an existing "
+                        "checkpoint are required. This operation is available in local/test "
+                        "until production checkpoint storage is configured."
+                    )
+                operation["tags"] = [public_tag_name(contract["tag"])]
+                effective_responses = published_responses(
+                    (method.lower(), path), contract["responses"]
+                )
                 declared_responses = {
-                    response["status"]: response for response in contract["responses"]
+                    response["status"]: response for response in effective_responses
                 }
                 runtime_responses = operation.setdefault("responses", {})
+                if path.startswith("/api/be1/v1/"):
+                    for status in tuple(runtime_responses):
+                        if status not in declared_responses:
+                            del runtime_responses[status]
                 for status, declared in declared_responses.items():
                     response = runtime_responses.get(status)
                     if not isinstance(response, dict):
@@ -854,6 +865,14 @@ def create_app(
                         )
                         if isinstance(response_schema, dict):
                             response_schema.setdefault("type", "object")
+                    if declared["media_type"] and declared["schema_name"] == "binary":
+                        response["content"] = {
+                            declared["media_type"]: {
+                                "schema": _contract_response_schema(
+                                    declared["schema_name"], schema
+                                )
+                            }
+                        }
         for path, path_item in schema.get("paths", {}).items():
             if not path.startswith("/api/be1/v1/") or not isinstance(path_item, dict):
                 continue
@@ -967,6 +986,41 @@ def create_app(
             for parameter in image_operation.get("parameters", []):
                 if parameter.get("in") == "header" and parameter.get("name") in header_examples:
                     parameter["example"] = header_examples[parameter["name"]]
+        portfolio_path = (
+            "/api/be1/v1/organizations/{organization_id}/classes/"
+            "{class_id}/profiles/{child_id}/portfolio"
+        )
+        portfolio_operation = schema.get("paths", {}).get(portfolio_path, {}).get("get")
+        if isinstance(portfolio_operation, dict):
+            portfolio_operation["description"] = (
+                f"{portfolio_operation.get('description', '')}\n\n"
+                "**Implementation gap:** the Rev37 catalog lists a 200 response, but the current "
+                "handler has no success path. After profile lookup it returns `409 "
+                "CONSENT_NOT_EFFECTIVE` until an approved portfolio-purpose verifier is available."
+            ).strip()
+
+        add_request_examples(schema)
+        add_multipart_examples(schema)
+        add_response_examples(schema)
+        add_error_examples(schema)
+        application.state.runtime_openapi_schema = schema
+        return application.state.runtime_openapi_schema
+
+    def be1_openapi_schema() -> dict[str, object]:
+        if application.openapi_schema is not None:
+            return application.openapi_schema
+        runtime_schema = build_runtime_openapi_schema()
+        schema = project_srs_v22_openapi(runtime_schema)
+        if story_demo_enabled:
+            schema["paths"].update(
+                (path, path_item)
+                for path, path_item in runtime_schema.get("paths", {}).items()
+                if _story_run_lite_path(path)
+            )
+            add_story_run_lite_contract(schema)
+            schema["info"]["description"] += (
+                "\n\nStoryRun-lite is an unauthenticated loopback-only synthetic demo."
+            )
         application.openapi_schema = schema
         return schema
 

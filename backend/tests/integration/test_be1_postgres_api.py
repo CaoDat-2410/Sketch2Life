@@ -285,7 +285,8 @@ def test_real_http_writes_audits_outbox_and_enforces_assignment_scope(
     }
     openapi_response = client.get("/openapi.json")
     assert openapi_response.status_code == 200
-    openapi = openapi_response.json()
+    assert openapi_response.json()["info"]["title"] == "Sketch2Life FE API"
+    openapi = accepted.app.state.runtime_openapi_schema
     be1_paths = [path for path in openapi["paths"] if path.startswith("/api/be1/v1/")]
     assert len(be1_paths) == 50
     be1_operations = sum(

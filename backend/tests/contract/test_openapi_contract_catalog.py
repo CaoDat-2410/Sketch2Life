@@ -13,14 +13,23 @@ from fastapi.testclient import TestClient
 from sketch2life.infrastructure.config.settings import get_core_database_settings, get_settings
 from sketch2life.interfaces.http.app import create_app
 from sketch2life.interfaces.http.openapi_contract import (
-    CONTRACT_REVISION,
-    DECLARED_OPERATION_COUNT,
     MOUNTED_OPERATION_COUNT,
     MOUNTED_OPERATIONS,
-    SOURCE_SHA256,
     TAG_DESCRIPTIONS,
     UNMOUNTED_OPERATION_COUNT,
     UNMOUNTED_OPERATIONS,
+)
+from sketch2life.interfaces.http.openapi_contract_amendments import (
+    PORTFOLIO_OPERATION_KEY,
+    RESTORE_CHECKPOINT_OPERATION_KEY,
+    RESTORE_CHECKPOINT_RESPONSE_DESCRIPTIONS,
+    public_tag_name,
+    public_tags,
+    published_responses,
+)
+from sketch2life.interfaces.http.openapi_srs_v22 import (
+    SRS_V22_INCLUDED_OPERATIONS,
+    SRS_V22_TAGS,
 )
 
 HTTP_METHODS = {"get", "post", "put", "patch", "delete", "options", "head"}
@@ -49,6 +58,20 @@ def _schema_refs(value: Any) -> set[str]:
     return set()
 
 
+def _extension_keys(value: Any) -> set[str]:
+    if isinstance(value, dict):
+        keys = {key for key in value if key.startswith("x-")}
+        for child in value.values():
+            keys.update(_extension_keys(child))
+        return keys
+    if isinstance(value, list):
+        keys: set[str] = set()
+        for child in value:
+            keys.update(_extension_keys(child))
+        return keys
+    return set()
+
+
 def test_swagger_ui_and_openapi_json_are_published(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("SKETCH2LIFE_ENV", "local")
     monkeypatch.setenv("SKETCH2LIFE_STORAGE_EXAMPLE_ENABLED", "true")
@@ -63,7 +86,27 @@ def test_swagger_ui_and_openapi_json_are_published(monkeypatch: pytest.MonkeyPat
         assert docs_response.status_code == 200
         assert "swagger-ui" in docs_response.text
         assert openapi_response.status_code == 200
-        assert openapi_response.json()["openapi"] == "3.1.0"
+        published_spec = openapi_response.json()
+        assert published_spec["openapi"] == "3.1.0"
+        assert published_spec["info"]["title"] == "Sketch2Life FE API"
+        assert published_spec["tags"] == SRS_V22_TAGS
+        assert len(published_spec["info"]["description"].split()) <= 55
+        assert all(len(tag["description"].split()) <= 9 for tag in published_spec["tags"])
+        assert "ApiError" in published_spec["components"]["schemas"]
+        assert "Be1Error" not in published_spec["components"]["schemas"]
+        assert all(
+            "BE1" not in response.get("description", "")
+            for path_item in published_spec["paths"].values()
+            for operation in path_item.values()
+            for response in operation.get("responses", {}).values()
+        )
+        published_operations = {
+            (method.lower(), path)
+            for path, path_item in published_spec["paths"].items()
+            for method in path_item
+            if method.lower() in HTTP_METHODS
+        }
+        assert published_operations == set(SRS_V22_INCLUDED_OPERATIONS)
     finally:
         if runtime is not None and runtime.engine is not None:
             runtime.engine.dispose()
@@ -72,7 +115,7 @@ def test_swagger_ui_and_openapi_json_are_published(monkeypatch: pytest.MonkeyPat
 
 
 @pytest.fixture
-def rev37_openapi(monkeypatch: pytest.MonkeyPatch) -> Iterator[dict[str, Any]]:
+def runtime_openapi(monkeypatch: pytest.MonkeyPatch) -> Iterator[dict[str, Any]]:
     monkeypatch.setenv("SKETCH2LIFE_ENV", "local")
     monkeypatch.setenv("SKETCH2LIFE_STORAGE_EXAMPLE_ENABLED", "true")
     get_settings.cache_clear()
@@ -80,7 +123,8 @@ def rev37_openapi(monkeypatch: pytest.MonkeyPatch) -> Iterator[dict[str, Any]]:
     app = create_app()
     runtime = getattr(app.state, "be1_runtime", None)
     try:
-        yield app.openapi()
+        app.openapi()
+        yield app.state.runtime_openapi_schema
     finally:
         if runtime is not None and runtime.engine is not None:
             runtime.engine.dispose()
@@ -89,10 +133,36 @@ def rev37_openapi(monkeypatch: pytest.MonkeyPatch) -> Iterator[dict[str, Any]]:
         get_core_database_settings.cache_clear()
 
 
-def test_swagger_matches_all_mounted_rev37_operations_and_records_unmounted_candidates(
-    rev37_openapi: dict[str, Any],
+def test_runtime_openapi_preserves_local_synthetic_examples(
+    runtime_openapi: dict[str, Any],
 ) -> None:
-    spec = rev37_openapi
+    session_example = runtime_openapi["paths"]["/v1/sessions"]["post"]["requestBody"][
+        "content"
+    ]["application/json"]["examples"]["localSyntheticSession"]["value"]
+    assert session_example["actor_ref"] == "demo:local"
+    assert session_example["expected_session_version"] == 0
+    assert session_example["payload"] == {"operation": "CREATE_SESSION"}
+
+    image_operation = runtime_openapi["paths"]["/v1/sessions/{session_id}/media/image"]["post"]
+    image_example = image_operation["requestBody"]["content"]["multipart/form-data"]["examples"][
+        "localSyntheticPng"
+    ]["value"]
+    assert image_example["image"] == "synthetic-demo.png"
+    assert image_example["normalization_policy"] == "IDENTITY_V1"
+    image_headers = {
+        parameter["name"]: parameter["example"]
+        for parameter in image_operation["parameters"]
+        if parameter.get("in") == "header" and "example" in parameter
+    }
+    assert image_headers["X-Actor-Ref"] == "demo:local"
+    assert image_headers["X-Synthetic-Non-Child-Confirmed"] is True
+    assert "without invoking an AI provider" in image_operation["description"]
+
+
+def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmounted_candidates(
+    runtime_openapi: dict[str, Any],
+) -> None:
+    spec = runtime_openapi
     operations = {
         (method.lower(), path): operation
         for path, path_item in spec["paths"].items()
@@ -101,8 +171,7 @@ def test_swagger_matches_all_mounted_rev37_operations_and_records_unmounted_cand
     }
 
     assert spec["openapi"] == "3.1.0"
-    assert [tag["name"] for tag in spec["tags"]] == list(TAG_DESCRIPTIONS)
-    assert {tag["name"]: tag["description"] for tag in spec["tags"]} == TAG_DESCRIPTIONS
+    assert spec["tags"] == public_tags(TAG_DESCRIPTIONS)
     assert len(spec["paths"]) == 111
     assert len(operations) == MOUNTED_OPERATION_COUNT == 124
     assert set(operations) == set(MOUNTED_OPERATIONS)
@@ -112,29 +181,40 @@ def test_swagger_matches_all_mounted_rev37_operations_and_records_unmounted_cand
         if key in {
             ("post", "/v1/sessions"),
             ("post", "/v1/sessions/{session_id}/media/image"),
+            RESTORE_CHECKPOINT_OPERATION_KEY,
+            PORTFOLIO_OPERATION_KEY,
+            (
+                "get",
+                "/api/be1/v1/organizations/{organization_id}/classes/"
+                "{class_id}/profiles/{child_id}/portfolio",
+            ),
         }:
             assert operation["description"].startswith(contract["purpose"])
         else:
             assert operation["description"] == contract["purpose"]
-        assert operation["tags"] == [contract["tag"]]
+        assert operation["tags"] == [public_tag_name(contract["tag"])]
         assert contract["tag"] in TAG_DESCRIPTIONS
-        assert operation["x-contract-request-inputs"] == contract["request_inputs"]
-        assert operation["x-contract-authentication"] == contract["authentication"]
         if contract["authentication"] == "HTTPBearer (bearer)":
             assert operation["security"] == [{"HTTPBearer": []}]
         else:
             assert "security" not in operation
-        assert operation["x-contract-surface"] == contract["surface"]
-        assert operation["x-contract-handler"] == contract["handler"]
-        assert operation["x-contract-verification"] == contract["verification"]
         assert operation.get("responses")
         assert operation.get("operationId")
-        declared_responses = {response["status"]: response for response in contract["responses"]}
+        declared_responses = {
+            response["status"]: response
+            for response in published_responses(key, contract["responses"])
+        }
         assert set(operation["responses"]) == set(declared_responses)
-        assert operation["x-contract-declared-responses"] == list(contract["responses"])
         for status, response_contract in declared_responses.items():
             runtime_response = operation["responses"][status]
-            assert runtime_response["description"] == response_contract["description"]
+            expected_response_description = (
+                RESTORE_CHECKPOINT_RESPONSE_DESCRIPTIONS.get(
+                    status, response_contract["description"]
+                )
+                if key == RESTORE_CHECKPOINT_OPERATION_KEY
+                else response_contract["description"]
+            )
+            assert runtime_response["description"] == expected_response_description
             media_type = response_contract["media_type"]
             if media_type:
                 assert set(runtime_response["content"]) == {media_type}
@@ -142,6 +222,8 @@ def test_swagger_matches_all_mounted_rev37_operations_and_records_unmounted_cand
                 schema_name = response_contract["schema_name"]
                 if schema_name == "object":
                     assert response_schema.get("type") == "object"
+                elif schema_name == "binary":
+                    assert response_schema == {"type": "string", "format": "binary"}
                 elif schema_name:
                     list_schema = re.match(r"^list\[([A-Za-z][A-Za-z0-9_]*)", schema_name)
                     expected_schema = list_schema.group(1) if list_schema else schema_name
@@ -179,40 +261,41 @@ def test_swagger_matches_all_mounted_rev37_operations_and_records_unmounted_cand
             schema = response_413["content"]["application/json"]["schema"]
             assert schema == {"$ref": "#/components/schemas/MobileWorkflowResultV1"}
 
+        if key[1].startswith("/api/be1/v1/"):
+            if key == RESTORE_CHECKPOINT_OPERATION_KEY:
+                expected_statuses = {
+                    "200", "401", "403", "404", "409", "410", "422", "500", "503"
+                }
+                expected_default_codes = None
+            elif key == PORTFOLIO_OPERATION_KEY:
+                expected_statuses = {"401", "403", "409", "422", "default"}
+                expected_default_codes = "404, 410, 413, 415, 429, 500, 503"
+            else:
+                success_status = next(
+                    row["status"]
+                    for row in declared_responses.values()
+                    if row["status"] not in {"401", "403", "422", "default"}
+                )
+                expected_statuses = {
+                    success_status,
+                    "401",
+                    "403",
+                    "422",
+                    "default",
+                }
+                expected_default_codes = "404, 409, 410, 413, 415, 429, 500, 503"
+            assert set(operation["responses"]) == expected_statuses
+            if expected_default_codes is not None:
+                default_response = operation["responses"]["default"]
+                assert expected_default_codes in default_response["description"]
+                assert default_response["content"]["application/json"]["schema"] == {
+                    "$ref": "#/components/schemas/Be1Error"
+                }
+
     candidate_keys = {(item["method"], item["path"]) for item in UNMOUNTED_OPERATIONS}
     assert len(candidate_keys) == UNMOUNTED_OPERATION_COUNT == 11
     assert not candidate_keys.intersection(operations)
-    assert spec["x-unmounted-operations"] == list(UNMOUNTED_OPERATIONS)
-
-    contract_info = spec["info"]["x-contract-catalog"]
-    assert contract_info["revision"] == CONTRACT_REVISION
-    assert contract_info["source_sha256"] == SOURCE_SHA256
-    assert contract_info["declared_operations"] == DECLARED_OPERATION_COUNT == 135
-    assert contract_info["mounted_in_default_compose"] == MOUNTED_OPERATION_COUNT == 124
-    assert contract_info["unmounted_candidates"] == UNMOUNTED_OPERATION_COUNT == 11
-    assert contract_info["runtime_operation_count"] == len(operations)
-
-    session_example = spec["paths"]["/v1/sessions"]["post"]["requestBody"]["content"][
-        "application/json"
-    ]["examples"]["localSyntheticSession"]["value"]
-    assert session_example["actor_ref"] == "demo:local"
-    assert session_example["expected_session_version"] == 0
-    assert session_example["payload"] == {"operation": "CREATE_SESSION"}
-
-    image_operation = spec["paths"]["/v1/sessions/{session_id}/media/image"]["post"]
-    image_example = image_operation["requestBody"]["content"]["multipart/form-data"]["examples"][
-        "localSyntheticPng"
-    ]["value"]
-    assert image_example["image"] == "synthetic-demo.png"
-    assert image_example["normalization_policy"] == "IDENTITY_V1"
-    image_header_examples = {
-        parameter["name"]: parameter["example"]
-        for parameter in image_operation["parameters"]
-        if parameter.get("in") == "header" and "example" in parameter
-    }
-    assert image_header_examples["X-Actor-Ref"] == "demo:local"
-    assert image_header_examples["X-Synthetic-Non-Child-Confirmed"] is True
-    assert "without invoking an AI provider" in image_operation["description"]
+    assert not _extension_keys(spec)
 
     assert len(spec["tags"]) == 18
     assert all(tag.get("description") for tag in spec["tags"])

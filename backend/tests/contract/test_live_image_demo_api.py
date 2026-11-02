@@ -1508,11 +1508,17 @@ def test_audio_is_stored_after_image_and_never_sent_without_configured_asr() -> 
 def test_openapi_exposes_image_narration_and_separate_story_video_routes() -> None:
     client, _vision = _client()
     paths = client.get("/openapi.json").json()["paths"]
-    assert "/v1/sessions/{session_id}/media/image" in paths
-    assert "/v1/sessions/{session_id}/media/audio" in paths
-    assert "/v1/sessions/{session_id}/understanding" in paths
-    assert "/v1/sessions/{session_id}/story-video-jobs" in paths
-    assert "/v1/sessions/{session_id}/story-video/{job_id}/file" in paths
+    runtime_paths = client.app.state.runtime_openapi_schema["paths"]
+    assert "/v1/sessions/{session_id}/media/image" not in paths
+    assert "/v1/sessions/{session_id}/media/audio" not in paths
+    assert "/v1/sessions/{session_id}/understanding" not in paths
+    assert "/v1/sessions/{session_id}/story-video-jobs" not in paths
+    assert "/v1/sessions/{session_id}/story-video/{job_id}/file" not in paths
+    assert "/v1/sessions/{session_id}/media/image" in runtime_paths
+    assert "/v1/sessions/{session_id}/media/audio" in runtime_paths
+    assert "/v1/sessions/{session_id}/understanding" in runtime_paths
+    assert "/v1/sessions/{session_id}/story-video-jobs" in runtime_paths
+    assert "/v1/sessions/{session_id}/story-video/{job_id}/file" in runtime_paths
     assert "/v1/live-understanding" not in paths
 
 

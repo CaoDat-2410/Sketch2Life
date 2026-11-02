@@ -30,6 +30,27 @@
 - Owner-provided source: `API_CONTRACT_CATALOG_FEAT063_REV37_20261030.md`, SHA-256 `56FC8BEA01360E11F73E45B2D43AC1897540B30BC8AE524CDE1ECEFACFBB1B88`.
 - Plan Rev38 is approved for exact OpenAPI documentation, contract completeness checks and reporting observed discrepancies; plan SHA-256 `C1E8C74AD57E7F053E0D1E093BAF7F97BE6F12E8EF8887A2C098632B9B863BCF`.
 - Generated metadata, local Compose OpenAPI snapshot, focused tests and the known upload-413 mismatch are indexed in `evidence/EV-063-30_SWAGGER_OPENAPI_FEAT063_REV37_20261030.md`.
+## Rev46 Swagger commit consolidation — current — 2026-11-01
+
+- Owner requested one commit for the current Swagger work and removal of the two preceding Swagger commits from `dev` history.
+- Exact target commits: `6d77d2ad41370f118386d9861fed4cd031ddea67` and `f68ed2b579c89e8fb1ee3dcf7e4c8f109acd31d8`; retained parent: `111ae547007801d7d171dd12f3ac6f1085d22199`.
+- `origin/dev` was checked at the exact old tip. Plan Rev46 SHA-256 `4EE5DEF1E5AD7C544BBCF79921E8A7495EDE79C7765AE523D38BFFA1D9938B27` authorizes one consolidated commit and a lease-guarded update of `origin/dev`.
+- Plans Rev47–48 remove obsolete snapshots, local-demo artifacts, and superseded standalone Swagger revision notes; retain the current Rev45 SRS v2.2 snapshot and EV-063-37.
+
+## Rev45 FE Swagger scope from SRS v2.2 — current — 2026-11-01
+
+- Owner instruction: update Swagger on `dev` according to SRS v2.2. This selects the source for this documentation task only; the source document still labels itself v2.2-draft and pending owner sign-off.
+- SRS source: `artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS_V2.2_PRESERVED_20261028.md`, repository SHA-256 `D1C4AF0D42A160AAA08D1EC33F1FFD746C4EB33CA75C5D802616A5DD4502E4DE`. It matches the owner's attached copy after normalizing BOM/line endings, as reviewed before this plan.
+- API source: current FastAPI route handlers, auth guards, DTOs, and `MOUNTED_OPERATIONS`; §9.6 route groups are logical proposals, not final OpenAPI paths.
+- Approved Plan Rev45 SHA-256: `5D1DBABE161F92F08DE7FE8C1B81B1E5D57CFA3C2B8D57CBA6BE76ACADB0FD06`; direct approval is recorded in `approvals/TASK_APPROVAL.md`.
+- Published FE snapshot: `artifacts/OPENAPI_FEAT063_REV45_20261101.json`, 24 operations / 17 paths / 4 tags, SHA-256 `C61D3ADD7FF906AC9E5B018A9CE428AF7B162D67510FEEE7B202B53DA05D74A2`. The shared error envelope is named `ApiError` in this FE document; its fields/runtime payload are unchanged. The overview is 50 words and tag descriptions are 5–7 words.
+- Current implementation gaps are stated in the OpenAPI info block and detailed in `evidence/EV-063-37_SWAGGER_SRS_V22_SCOPE_20261101.md`. No new route is inferred from the target proposal table.
+
+## Rev47–48 current-only Swagger cleanup — current — 2026-11-01
+
+- Plan Rev47 removes superseded OpenAPI snapshots and retired local-demo fixture/quickstart artifacts.
+- Plan Rev48 removes standalone Swagger plans/evidence for prior revisions from the current dev tree. The Rev45 SRS v2.2 snapshot and EV-063-37 remain current.
+- Backend contract metadata and source code remain because they generate and validate the current FE projection.
 
 ## Rev36 UI component patterns and interaction states — current — 2026-10-30
 

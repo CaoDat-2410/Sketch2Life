@@ -115,6 +115,31 @@
 - Snapshot `artifacts/OPENAPI_FEAT063_REV37_20261030.json`; SHA-256 `A45748B8715F1934BED86F89795F71C3559CD0E2122140EC3D346194E9B2F9F5`.
 - Focused Swagger checks: 2 passed; exporter validation and targeted Ruff/compile checks passed. The existing upload body-cap test fails because its expected `failure.code=UPLOAD_TOO_LARGE` payload differs from the middleware's generic `REQUEST_TOO_LARGE` body. No route behavior, database, Docker, provider, commit, or push changes were made.
 - Evidence: `evidence/EV-063-30_SWAGGER_OPENAPI_FEAT063_REV37_20261030.md`.
+## Current Swagger cleanup — Plans Rev47–48 (2026-11-01)
+
+- Lifecycle: COMPLETE for the current-only documentation cleanup and local commit amendment; remote publication is pending GitHub authentication.
+- Removed the superseded OpenAPI snapshots/local-demo artifacts under Rev47 and the 12 standalone Swagger documents for prior revisions under Rev48.
+- Retained baseline: Rev45 SRS v2.2 snapshot, source contract metadata, and EV-063-37. No API route or runtime behavior was changed by this cleanup.
+- Exporter, targeted Ruff, whitespace check, and repository security validation passed. Backend test suites were not run.
+- The amended consolidated commit retains parent 111ae547007801d7d171dd12f3ac6f1085d22199; remote publication is guarded by the expected old tip recorded in EV-063-38.
+- Evidence: evidence/EV-063-38_SWAGGER_HISTORY_CLEANUP_20261101.md.
+
+## Swagger commit consolidation — Plan Rev46 (2026-11-01)
+
+- Lifecycle: Local consolidated commit complete; remote ref update is pending GitHub authentication.
+- Approved Plan Rev46 SHA-256: `4EE5DEF1E5AD7C544BBCF79921E8A7495EDE79C7765AE523D38BFFA1D9938B27`.
+- Current remote tip before rewrite: `6d77d2ad41370f118386d9861fed4cd031ddea67`; retained parent: `111ae547007801d7d171dd12f3ac6f1085d22199`.
+- Completion and resulting ref verification will be recorded in EV-063-38.
+
+## FE Swagger SRS v2.2 scope — Plan Rev45 (2026-11-01)
+
+- Lifecycle: COMPLETE for the approved documentation-only projection scope.
+- Approved Plan Rev45 SHA-256: `5D1DBABE161F92F08DE7FE8C1B81B1E5D57CFA3C2B8D57CBA6BE76ACADB0FD06`.
+- The FE OpenAPI projection contains exactly 24 mounted operations across 17 paths and four tags. The full 124-operation runtime schema remains available internally; no route, auth guard, request/response behavior, or persistence flow changed.
+- Exporter verification passed with the backend virtualenv and confirmed exact allowlist equality, four public tags, schema references, no `x-` extensions, a 50-word overview, and tag descriptions of at most seven words. The public error model is labeled `ApiError`; its fields/payload are unchanged. Snapshot `artifacts/OPENAPI_FEAT063_REV45_20261101.json`, SHA-256 `C61D3ADD7FF906AC9E5B018A9CE428AF7B162D67510FEEE7B202B53DA05D74A2`.
+- Local `/docs` and `/openapi.json` returned 200 and the served JSON equals the snapshot (24 operations / 17 paths / 4 tags). URL: `http://127.0.0.1:8000/docs`.
+- The overview identifies the implemented scope and missing Parent story/activity, Teacher occurrence/Sketch Deck/sample-video, playback/job, quota/payment, and notification APIs. Runtime-local/collaborative routes are not deleted; they are omitted from this FE documentation view.
+- Backend tests were not run. `git diff --check` passed. No commit or push was made. Evidence: `evidence/EV-063-37_SWAGGER_SRS_V22_SCOPE_20261101.md`.
 
 ## UI component patterns and interaction states — Plan Rev36 (2026-10-30)
 

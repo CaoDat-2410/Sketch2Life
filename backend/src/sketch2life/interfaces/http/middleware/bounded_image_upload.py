@@ -151,7 +151,10 @@ def _mobile_workflow_upload_failure(scope: Scope, safe_message: str) -> tuple[by
     raw_version = headers.get(b"x-expected-session-version", b"")
     try:
         version_text = raw_version.decode("ascii")
-        expected_version = int(version_text) if version_text.isdecimal() and len(version_text) <= 20 else 0
+        if version_text.isdecimal() and len(version_text) <= 20:
+            expected_version = int(version_text)
+        else:
+            expected_version = 0
     except (UnicodeDecodeError, ValueError):
         expected_version = 0
     expected_version = min(expected_version, 2**31 - 1)
