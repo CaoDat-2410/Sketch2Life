@@ -24,7 +24,13 @@ def local_demo(monkeypatch: pytest.MonkeyPatch):
     repository = Mock()
     service = Mock()
     service.get_run.return_value = CommandResult(200, {"run_ref": "synthetic"}, 1)
-    runtime = SimpleNamespace(repository=repository, service=service, vision=None, engine=Mock())
+    runtime = SimpleNamespace(
+        repository=repository,
+        service=service,
+        vision=None,
+        engine=Mock(),
+        ensure_ready=repository.require_singleton_lock,
+    )
     build = Mock(return_value=runtime)
     monkeypatch.setattr(composition, "build_runtime", build)
     yield runtime, build
@@ -37,6 +43,7 @@ def test_disabled_preserves_default_surface_and_does_not_start_runtime(monkeypat
     monkeypatch.setattr(composition, "build_runtime", build)
     with TestClient(create_app()) as client:
         assert client.get("/v1/story-runs/synthetic").status_code == 404
+        assert client.get("/v1/story-runs/readiness").status_code == 404
     build.assert_not_called()
 
 
@@ -56,17 +63,38 @@ def test_main_demo_lifespan_routes_and_error_isolation(local_demo):
     runtime.engine.dispose.assert_called_once()
 
 
+def test_main_demo_readiness_uses_runtime_probe_and_health_remains_liveness(local_demo):
+    runtime, _build = local_demo
+    with TestClient(
+        create_app(), base_url="http://127.0.0.1", client=("127.0.0.1", 54321)
+    ) as client:
+        response = client.get("/v1/story-runs/readiness")
+        assert response.status_code == 200
+        assert response.json() == {"status": "ready", "service": "storyrun-lite"}
+        runtime.service.get_run.assert_not_called()
+        runtime.repository.require_singleton_lock.side_effect = StoryRunLiteError(
+            503, "SERVICE_NOT_READY", "singleton lost", retryable=False
+        )
+        assert client.get("/v1/story-runs/readiness").status_code == 503
+        assert client.get("/health").json() == {"status": "ok", "service": "sketch2life-api"}
+
+
 def test_main_demo_rejects_nonlocal_and_forwarded_requests(local_demo):
     app = create_app()
     with TestClient(app, base_url="http://127.0.0.1", client=("192.0.2.1", 54321)) as client:
         assert client.get("/v1/story-runs/synthetic").status_code == 403
+        assert client.get("/v1/story-runs/readiness").status_code == 403
     with TestClient(app, base_url="http://127.0.0.1", client=("127.0.0.1", 54321)) as client:
-        assert client.get(
-            "/v1/story-runs/synthetic", headers={"X-Forwarded-For": "127.0.0.1"}
-        ).status_code == 403
-        assert client.get(
-            "/v1/story-runs/synthetic", headers={"Host": "attacker.example"}
-        ).status_code == 403
+        assert (
+            client.get(
+                "/v1/story-runs/synthetic", headers={"X-Forwarded-For": "127.0.0.1"}
+            ).status_code
+            == 403
+        )
+        assert (
+            client.get("/v1/story-runs/synthetic", headers={"Host": "attacker.example"}).status_code
+            == 403
+        )
     with TestClient(app, base_url="http://192.0.2.1", client=("127.0.0.1", 54321)) as client:
         assert client.get("/v1/story-runs/synthetic").status_code == 403
 
@@ -74,8 +102,9 @@ def test_main_demo_rejects_nonlocal_and_forwarded_requests(local_demo):
 def test_main_demo_lock_failure_disposes_engine(local_demo):
     runtime, _build = local_demo
     runtime.repository.acquire_singleton_lock.side_effect = RuntimeError("lock unavailable")
-    with pytest.raises(RuntimeError, match="lock unavailable"), TestClient(
-        create_app(), base_url="http://127.0.0.1"
+    with (
+        pytest.raises(RuntimeError, match="lock unavailable"),
+        TestClient(create_app(), base_url="http://127.0.0.1"),
     ):
         pass
     runtime.repository.release_singleton_lock.assert_not_called()
@@ -85,8 +114,9 @@ def test_main_demo_lock_failure_disposes_engine(local_demo):
 def test_main_demo_recovery_failure_releases_lock_and_engine(local_demo):
     runtime, _build = local_demo
     runtime.repository.recover_after_restart.side_effect = RuntimeError("recovery unavailable")
-    with pytest.raises(RuntimeError, match="recovery unavailable"), TestClient(
-        create_app(), base_url="http://127.0.0.1"
+    with (
+        pytest.raises(RuntimeError, match="recovery unavailable"),
+        TestClient(create_app(), base_url="http://127.0.0.1"),
     ):
         pass
     runtime.repository.release_singleton_lock.assert_called_once()
@@ -97,7 +127,9 @@ def test_main_demo_error_contract_does_not_replace_other_errors(local_demo):
     runtime, _build = local_demo
     app = create_app()
     with TestClient(
-        app, base_url="http://127.0.0.1", client=("127.0.0.1", 54321),
+        app,
+        base_url="http://127.0.0.1",
+        client=("127.0.0.1", 54321),
         raise_server_exceptions=False,
     ) as client:
         runtime.service.get_run.side_effect = StoryRunLiteError(404, "RUN_NOT_FOUND", "Not found")
@@ -126,8 +158,10 @@ def test_main_demo_rejects_other_profiles_and_deployment_environments(local_demo
 def test_main_demo_openapi_uses_pinned_route_contract(local_demo):
     root = Path(__file__).resolve().parents[3]
     expected = json.loads(
-        (root / "features/FEAT-063-system-architecture-rearchitecture/artifacts/"
-         "storyrun-lite/openapi.json").read_text(encoding="utf-8")
+        (
+            root / "features/FEAT-063-system-architecture-rearchitecture/artifacts/"
+            "storyrun-lite/openapi.json"
+        ).read_text(encoding="utf-8")
     )
     packaged = files("sketch2life.interfaces.http").joinpath("story_run_lite_openapi.json")
     assert json.loads(packaged.read_text(encoding="utf-8")) == expected
@@ -152,22 +186,28 @@ def test_main_demo_openapi_uses_pinned_route_contract(local_demo):
             assert restore_refs(schema["components"][group][f"StoryRunLite_{name}"]) == value
 
 
-@pytest.mark.parametrize("url", [
-    "postgresql://postgres@127.0.0.1:5433/sketch2life",
-    "postgresql://postgres@127.0.0.1:5433/storyrun_lite_test",
-])
+@pytest.mark.parametrize(
+    "url",
+    [
+        "postgresql://postgres@127.0.0.1:5433/sketch2life",
+        "postgresql://postgres@127.0.0.1:5433/storyrun_lite_test",
+    ],
+)
 def test_main_demo_accepts_only_explicit_local_database_targets(url):
     assert composition.goal_database_url(url, main_demo=True)[0] == url
 
 
-@pytest.mark.parametrize("url", [
-    "postgresql://postgres@127.0.0.1:5433/sketch2life_a2",
-    "postgresql://postgres@127.0.0.1:5432/sketch2life",
-    "postgresql://postgres@localhost:5433/sketch2life",
-    "postgresql://postgres@192.0.2.1:5433/sketch2life",
-    "postgresql://postgres@127.0.0.1:5433/sketch2life?host=192.0.2.1",
-    "postgresql://postgres@127.0.0.1:5433/sketch2life?port=5432",
-])
+@pytest.mark.parametrize(
+    "url",
+    [
+        "postgresql://postgres@127.0.0.1:5433/sketch2life_a2",
+        "postgresql://postgres@127.0.0.1:5432/sketch2life",
+        "postgresql://postgres@localhost:5433/sketch2life",
+        "postgresql://postgres@192.0.2.1:5433/sketch2life",
+        "postgresql://postgres@127.0.0.1:5433/sketch2life?host=192.0.2.1",
+        "postgresql://postgres@127.0.0.1:5433/sketch2life?port=5432",
+    ],
+)
 def test_main_demo_rejects_wrong_database_targets(url):
     with pytest.raises(ValueError):
         composition.goal_database_url(url, main_demo=True)

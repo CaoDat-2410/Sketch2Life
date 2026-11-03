@@ -1,0 +1,22 @@
+meta {
+  name: 11 Read confirmed preparation review
+  type: http
+  seq: 11
+}
+
+get {
+  url: {{baseUrl}}/v1/story-runs/{{runRef}}
+  auth: none
+}
+
+script:post-response {
+  bru.setVar("runETag", res.headers.etag);
+  bru.setVar("runRevision", res.body.revision);
+}
+
+tests {
+  test("reads the confirmed run in preparation review", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().run_state).to.equal("PREPARATION_REVIEW");
+  });
+}

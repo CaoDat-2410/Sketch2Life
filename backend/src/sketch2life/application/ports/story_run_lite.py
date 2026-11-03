@@ -133,6 +133,16 @@ class CoreAssetAdmissionPort(Protocol):
 
 
 class StoryRunLiteRepositoryPort(Protocol):
+    def replay_attach_command(
+        self,
+        *,
+        actor_scope_kind: OwnerScopeKind,
+        actor_scope_ref: str,
+        run_id: str,
+        key_sha256: str,
+        fingerprint_sha256: str,
+    ) -> CommandResult | None: ...
+
     def create_run(
         self,
         *,

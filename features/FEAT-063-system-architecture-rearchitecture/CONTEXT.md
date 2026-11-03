@@ -349,3 +349,15 @@ Historical statements below preserve prior decisions. Where they conflict with Q
 - Owner selected B — Rebaseline 875. The exact current roadmap bytes are accepted as the baseline for that one path under an explicit SL-0/SL-8 exception; the initial B881 hash remains historical evidence and is not claimed to have been preserved.
 - The original baseline manifest and initial snapshot remain unchanged. The new owner-approved rebaseline record and post-decision snapshot are linked from `evidence/STORYRUN_LITE_SL0_SL8_REBASELINE_20261102.md`.
 - S1/S2 technical gates remain verified; the approved rebaseline closes the remaining baseline gate. A2 and all 35 protected FEAT-061/FEAT-064 paths remain byte-identical.
+
+## Milestone 1 independent review fixes — 2026-11-03
+
+The owner approved all six findings and the approval entry. Runtime and handoff fixes are implemented; offline regression: 163 passed, 1 PostgreSQL-dependent skipped; isolated PG17/loopback/singleton regression: 36 passed. No Modal rerun. Status: FIXED — XONG-CHƯA REVIEW; not ACCEPTED. See `evidence/MILESTONE1_REVIEW_FIX_REPORT_20261103.md`.
+
+## Milestone 1 review round 2 — 2026-11-03
+
+The follow-up review identified an attach-replay race and missing public StoryRun readiness. The replay path now rechecks the immutable receipt under the repository identity lock when mutable attach validation fails. A dedicated GET `/v1/story-runs/readiness` probes the latched runtime singleton state; `/health` remains liveness. PostgreSQL tests cover the HTTP overlap, PENDING recovery, confirmed-run cancel/create races, probe concurrency and terminated lock-owner session. Offline regression is 170 passed/1 PostgreSQL-dependent skip; isolated PostgreSQL is 46/46. Bruno completed two different synthetic Parent runs on the same task DB with real ClamAV and the Windows Job Object normalizer, while Vision used a local loopback stub. No post-fix Modal call occurred. See `evidence/MILESTONE1_REVIEW_ROUND2_FIX_REPORT_20261103.md`; status remains FIXED — waiting for independent review.
+
+## Milestone 1 review acceptance — 2026-11-03
+
+Independent review round 3 returned ACCEPTED for all six round-1 findings and both round-2 P2 findings. The review checked the current working tree and verified all 38 closeout-snapshot paths at review time. PostgreSQL/Bruno results remain implementation-run evidence; no tests or services were rerun by the reviewer. This accepts the synthetic local demo scope only. No post-fix Modal inference or production readiness is claimed. See `evidence/MILESTONE1_INDEPENDENT_REVIEW_ROUND3_20261103.md`.

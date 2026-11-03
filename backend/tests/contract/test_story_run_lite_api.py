@@ -36,9 +36,7 @@ class _StubService:
         return CommandResult(201, {"profile": payload.profile_ref, "key": idempotency_key}, 1)
 
     def create_upload(self, payload, *, idempotency_key: str) -> CommandResult:
-        return CommandResult(
-            201, {"upload_ref": payload.target_ref, "key": idempotency_key}, 1
-        )
+        return CommandResult(201, {"upload_ref": payload.target_ref, "key": idempotency_key}, 1)
 
     def get_run(self, run_id: str) -> CommandResult:
         if run_id == "explode":
@@ -167,7 +165,7 @@ def _production_projection_client(engine: _FakeProjectionEngine) -> TestClient:
     return TestClient(create_app(service=service))
 
 
-def test_runtime_router_and_pinned_openapi_have_ten_operations() -> None:
+def test_runtime_router_and_pinned_openapi_have_eleven_operations() -> None:
     runtime_operations = {
         (route.path, method.lower())
         for route in router.routes
@@ -191,9 +189,10 @@ def test_runtime_router_and_pinned_openapi_have_ten_operations() -> None:
         for method in item
         if method in {"get", "post", "put", "delete"}
     }
-    assert len(runtime_operations) == 10
+    assert len(runtime_operations) == 11
     assert runtime_operations == contract_operations
-    assert len({path for path, _method in contract_operations}) == 9
+    assert len({path for path, _method in contract_operations}) == 10
+    assert ("/v1/story-runs/readiness", "get") in contract_operations
     assert ("/v1/story-runs/{run_ref}", "get") in contract_operations
     assert ("/v1/upload-sessions/{upload_ref}", "get") in contract_operations
     upload_schema = contract["components"]["schemas"]["UploadSession"]
@@ -224,16 +223,16 @@ def test_runtime_router_and_pinned_openapi_have_ten_operations() -> None:
         }.items():
             path = path.replace("{{" + variable + "}}", "{" + parameter + "}")
         bruno_operations.add((path, method_match.group(1)))
-    assert len(bruno_operations) == 10
+    assert len(bruno_operations) == 11
     assert bruno_operations == contract_operations
 
     put_responses = contract["paths"]["/v1/upload-sessions/{upload_ref}/parts/{part_no}"]["put"][
         "responses"
     ]
     assert {"410", "411", "415"}.issubset(put_responses)
-    assert "410" in contract["paths"]["/v1/upload-sessions/{upload_ref}/complete"]["post"][
-        "responses"
-    ]
+    assert (
+        "410" in contract["paths"]["/v1/upload-sessions/{upload_ref}/complete"]["post"]["responses"]
+    )
     precondition_operations = {
         ("/v1/story-runs/{run_ref}/assets", "post"),
         ("/v1/story-runs/{run_ref}/subject-confirmation", "post"),
@@ -265,15 +264,11 @@ def test_runtime_router_and_pinned_openapi_have_ten_operations() -> None:
         for method, operation in path_item.items():
             if method not in {"get", "post", "put", "delete"}:
                 continue
-            assert operation["responses"]["500"]["$ref"] == (
-                "#/components/responses/InternalError"
-            )
+            assert operation["responses"]["500"]["$ref"] == ("#/components/responses/InternalError")
             for status, response in operation.get("responses", {}).items():
                 if status == "202":
                     headers = response.get("headers", {})
-                    assert {"Location", "Retry-After", "ETag", "Cache-Control"}.issubset(
-                        headers
-                    )
+                    assert {"Location", "Retry-After", "ETag", "Cache-Control"}.issubset(headers)
                     assert headers["Cache-Control"]["schema"]["const"] == "no-store"
 
     error_codes = set(contract["components"]["schemas"]["Error"]["properties"]["code"]["enum"])
@@ -385,9 +380,7 @@ def test_get_projection_runtime_error_codes_are_declared_by_openapi() -> None:
     }
     for schema_name, case in cases.items():
         operation = contract["paths"][case["path"]]["get"]
-        response_schema = operation["responses"]["200"]["content"]["application/json"][
-            "schema"
-        ]
+        response_schema = operation["responses"]["200"]["content"]["application/json"]["schema"]
         assert response_schema["$ref"] == f"#/components/schemas/{schema_name}"
         error_schema = schemas[schema_name]["properties"]["error"]
         assert error_schema["oneOf"][0]["$ref"] == "#/components/schemas/Error"
@@ -423,9 +416,7 @@ def test_get_run_projects_saved_error_code_through_production_repository() -> No
         / "openapi.json"
     )
     openapi = json.loads(openapi_path.read_text(encoding="utf-8"))
-    declared_codes = set(
-        openapi["components"]["schemas"]["Error"]["properties"]["code"]["enum"]
-    )
+    declared_codes = set(openapi["components"]["schemas"]["Error"]["properties"]["code"]["enum"])
 
     response = client.get("/v1/story-runs/run-projection-test")
 
@@ -457,9 +448,7 @@ def test_get_upload_projects_saved_error_code_through_production_repository() ->
     }
     engine = _FakeProjectionEngine(
         begin_results=[
-            _FakeProjectionResult(
-                row=SimpleNamespace(target_kind="STORY_RUN", target_ref=run_id)
-            ),
+            _FakeProjectionResult(row=SimpleNamespace(target_kind="STORY_RUN", target_ref=run_id)),
             _FakeProjectionResult(row={"run_id": run_id}),
             _FakeProjectionResult(row=upload_row),
             _FakeProjectionResult(rows=[]),
@@ -475,9 +464,7 @@ def test_get_upload_projects_saved_error_code_through_production_repository() ->
         / "openapi.json"
     )
     openapi = json.loads(openapi_path.read_text(encoding="utf-8"))
-    declared_codes = set(
-        openapi["components"]["schemas"]["Error"]["properties"]["code"]["enum"]
-    )
+    declared_codes = set(openapi["components"]["schemas"]["Error"]["properties"]["code"]["enum"])
 
     response = client.get(f"/v1/upload-sessions/{upload_id}")
 

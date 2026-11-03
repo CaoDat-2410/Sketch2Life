@@ -200,3 +200,21 @@
 
 - `evidence/STORYRUN_LITE_SL0_SL8_REBASELINE_20261102.md` records the local provenance review, owner-selected B disposition, exact initial/current hashes and acceptance limitation.
 - `.claude/handoff/snapshots/STORYRUN_LITE_S1_S2_REBASELINE_20261102/` is the additive post-decision inventory. The initial S1→S2 baseline manifest and original snapshot are retained unchanged.
+
+## Milestone 1 review round 1 and fixes — 2026-11-03
+
+- Independent findings: `evidence/MILESTONE1_INDEPENDENT_REVIEW_ROUND1_20261103.md`.
+- Approved plan: `plan/STORYRUN_LITE_MILESTONE1_INDEPENDENT_REVIEW_FIX_20261103.md`; owner explicitly allowed the approval entry and six fixes.
+- Fix evidence: `evidence/MILESTONE1_REVIEW_FIX_REPORT_20261103.md`; PostgreSQL output: `evidence/MILESTONE1_REVIEW_FIX_POSTGRES_20261103.log`.
+
+## Milestone 1 review round 2 and fixes — 2026-11-03
+
+- Independent findings: `evidence/MILESTONE1_INDEPENDENT_REVIEW_ROUND2_20261103.md`.
+- Round-2 implementation and test evidence: `evidence/MILESTONE1_REVIEW_ROUND2_FIX_REPORT_20261103.md`, `evidence/MILESTONE1_REVIEW_ROUND2_OFFLINE_20261103.log`, `evidence/MILESTONE1_REVIEW_ROUND2_POSTGRES_20261103.log`, and the sanitized Bruno summary JSON beside them.
+- Source/test snapshot: `.claude/handoff/snapshots/MILESTONE1_REVIEW_ROUND2_CLOSEOUT_20261103/`; read-only independent review prompt: `plan/MILESTONE1_REVIEW_ROUND3_PROMPT_20261103.md`.
+
+
+## Milestone 1 independent review round 3 — 2026-11-03
+
+- Verdict ACCEPTED: `evidence/MILESTONE1_INDEPENDENT_REVIEW_ROUND3_20261103.md`.
+- Review thread: `01a19ff8-ecf5-7843-ac8b-e5b8f5a62dc6`; all 38 closeout snapshot paths matched at review time.

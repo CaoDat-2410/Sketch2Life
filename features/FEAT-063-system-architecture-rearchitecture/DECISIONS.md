@@ -206,3 +206,15 @@ The older standalone Swagger plan/evidence notes were removed from the current t
 | ID | Record | Basis |
 |---|---|---|
 | D-120 | Publish a separate FE OpenAPI projection containing only the 24 currently mounted organization/class/profile/consent and Teacher lesson-preparation/upload operations mapped to the owner-selected SRS v2.2 domains. Keep the full mounted schema internally for contract inventory; omit local/demo, collaborative-classroom, gallery, sharing, moderation, health, and unmounted candidate APIs from the FE view. Treat SRS §9.6 paths as proposals, state missing SRS flows, and do not invent endpoints or change runtime behavior. | Owner instruction, 2026-11-01; approved Plan Rev45; SRS v2.2 §9.6; EV-063-37 |
+
+## Milestone 1 demo closeout and review fixes — 2026-11-03
+
+The approved M0 D1 cancel path is implemented after PREPARATION_REVIEW: the existing cancel command moves to DELETE_PENDING and atomically releases the active owner, preserving admitted assets, results and receipts. No new state or migration. The singleton probe rejects new HTTP commands after lock loss; D17 still permits previously claimed work to progress, and cancel does not prove a provider stopped. Full production fencing remains outside this demo.
+
+## Milestone 1 review round 2 — 2026-11-03
+
+| ID | Record | Basis |
+|---|---|---|
+| D-127 | Reuse the existing cancel contract as the explicit close path from PREPARATION_REVIEW: transition to DELETE_PENDING and release active-owner identity in the same transaction while retaining result, asset and receipts. Do not add a state or migration for the synthetic demo. | Approved M0 D1; six-finding Milestone 1 plan; PostgreSQL race and two-run Bruno evidence |
+| D-128 | Keep `/health` as liveness and expose StoryRun readiness separately. The readiness route must call the latched singleton/database probe and return unavailable after lock-session loss; it must not call a business service. | Round-2 independent review; StoryRun singleton/readiness contract and PostgreSQL terminated-session test |
+| D-129 | Treat attach replay as an immutable receipt lookup scoped to actor, run, key and fingerprint. If mutable target/admission validation fails after an initial miss, recheck the receipt while holding the repository identity lock before returning that failure; do not dispatch another Vision attempt. | Round-2 independent review; HTTP/PostgreSQL overlap tests |

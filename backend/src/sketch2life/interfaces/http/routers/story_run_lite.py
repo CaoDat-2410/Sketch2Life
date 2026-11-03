@@ -25,6 +25,9 @@ _RETRY_AFTER_SECONDS = "1"
 
 
 def _service(request: Request) -> StoryRunLiteService:
+    runtime = getattr(request.app.state, "story_run_lite_runtime", None)
+    if runtime is not None:
+        runtime.repository.require_singleton_lock()
     service = getattr(request.app.state, "story_run_lite_service", None)
     if service is None:
         raise StoryRunLiteError(
@@ -58,6 +61,22 @@ def create_run(
     idempotency_key: Annotated[str, Header(alias="Idempotency-Key")],
 ) -> JSONResponse:
     return _result(_service(request).create_run(payload, idempotency_key=idempotency_key))
+
+
+@router.get("/story-runs/readiness")
+def readiness(request: Request) -> JSONResponse:
+    """Report readiness of the configured StoryRun runtime and its pinned singleton session."""
+
+    runtime = getattr(request.app.state, "story_run_lite_runtime", None)
+    if runtime is None or getattr(request.app.state, "story_run_lite_service", None) is None:
+        raise StoryRunLiteError(
+            503, "SERVICE_NOT_READY", "StoryRun-lite runtime is not configured.", retryable=False
+        )
+    runtime.ensure_ready()
+    return JSONResponse(
+        {"status": "ready", "service": "storyrun-lite"},
+        headers={"Cache-Control": "no-store"},
+    )
 
 
 @router.get("/story-runs/{run_ref}")

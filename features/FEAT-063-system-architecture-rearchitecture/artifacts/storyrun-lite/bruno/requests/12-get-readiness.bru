@@ -1,0 +1,18 @@
+meta {
+  name: 12 Check StoryRun runtime readiness
+  type: http
+  seq: 12
+}
+
+get {
+  url: {{baseUrl}}/v1/story-runs/readiness
+  auth: none
+}
+
+tests {
+  test("StoryRun runtime owns its singleton session", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().status).to.equal("ready");
+    expect(res.getBody().service).to.equal("storyrun-lite");
+  });
+}

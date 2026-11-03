@@ -7,18 +7,34 @@ import uuid
 from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime, timedelta, tzinfo
 from typing import Self, cast
+from unittest.mock import Mock
 
 import pytest
+from fastapi.testclient import TestClient
 from sqlalchemy import Table, create_engine, event, insert, select, text, update
 from sqlalchemy.exc import IntegrityError
 
 from sketch2life.application.ports.story_run_lite import (
     AdmittedAssetPair,
     AssetBinding,
+    CoreAssetAdmissionPort,
+    ImageNormalizerPort,
+    ImageSafetyScannerPort,
     NormalizedImage,
     ScanVerdict,
+    StoryRunLiteVisionPort,
+    StoryRunReferencePort,
+    ValidatedVisionResult,
+    VisionAttemptResult,
 )
-from sketch2life.domain.story_run_lite import OwnerScopeKind, StoryRunLiteError, UploadState
+from sketch2life.application.services.story_run_lite import StoryRunLiteService
+from sketch2life.domain.story_run_lite import (
+    OwnerScopeKind,
+    StoryRunLiteError,
+    UploadState,
+    canonical_fingerprint,
+    validate_idempotency_key,
+)
 from sketch2life.infrastructure.persistence.core_models import CoreAssetMetadataModel
 from sketch2life.infrastructure.story_run_lite import repository as repository_module
 from sketch2life.infrastructure.story_run_lite import tables
@@ -28,6 +44,7 @@ from sketch2life.infrastructure.story_run_lite.composition import (
 )
 from sketch2life.infrastructure.story_run_lite.quarantine import QuarantineStore
 from sketch2life.infrastructure.story_run_lite.repository import SqlStoryRunLiteRepository
+from sketch2life.interfaces.http.story_run_lite_app import create_app
 
 _PARENT = OwnerScopeKind.PARENT_ACCOUNT
 
@@ -162,12 +179,8 @@ def _open_upload_for_admission(
     )
     assert reservation.command_result.status_code == 202
     assert reservation.claim_version is not None
-    repository.finalize_complete_upload(
-        reservation, key_sha256=_hash("complete:" + name)
-    )
-    assert repository.open_upload_gate(
-        upload_id=upload_id, claim_version=reservation.claim_version
-    )
+    repository.finalize_complete_upload(reservation, key_sha256=_hash("complete:" + name))
+    assert repository.open_upload_gate(upload_id=upload_id, claim_version=reservation.claim_version)
     return reservation.claim_version
 
 
@@ -675,16 +688,18 @@ def test_cancel_racing_complete_aborts_upload_before_admission_and_cleans_stagin
     with engine.connect() as connection:
         assets = connection.execute(
             select(CoreAssetMetadataModel.asset_ref).where(
-                CoreAssetMetadataModel.asset_ref.in_(
-                    [original_ref, derived_ref]
-                )
+                CoreAssetMetadataModel.asset_ref.in_([original_ref, derived_ref])
             )
         ).all()
-        upload = connection.execute(
-            select(tables.upload_sessions).where(
-                tables.upload_sessions.c.upload_session_id == upload_id
+        upload = (
+            connection.execute(
+                select(tables.upload_sessions).where(
+                    tables.upload_sessions.c.upload_session_id == upload_id
+                )
             )
-        ).mappings().one()
+            .mappings()
+            .one()
+        )
     assert assets == []
     assert upload["state"] == UploadState.ABORTED.value
     assert not (quarantine._parts / upload_id).exists()
@@ -705,9 +720,7 @@ def test_cancel_racing_complete_aborts_upload_before_admission_and_cleans_stagin
 
 
 @pytest.mark.parametrize("winner", ["cancel", "admission"])
-def test_cancel_and_admission_finalizer_race_serializes_asset_commit(
-    story_db, winner: str
-) -> None:
+def test_cancel_and_admission_finalizer_race_serializes_asset_commit(story_db, winner: str) -> None:
     engine, repository = story_db
     owner = "parent-cancel-admission-race-" + winner + "-" + str(uuid.uuid4())
     run_id = _create_run(repository, owner)
@@ -819,16 +832,24 @@ def test_cancel_and_admission_finalizer_race_serializes_asset_commit(
     assert cancel_result.status_code == 202
     assert cancel_result.body["run_state"] == "DELETE_PENDING"
     with engine.connect() as connection:
-        upload = connection.execute(
-            select(tables.upload_sessions).where(
-                tables.upload_sessions.c.upload_session_id == upload_id
+        upload = (
+            connection.execute(
+                select(tables.upload_sessions).where(
+                    tables.upload_sessions.c.upload_session_id == upload_id
+                )
             )
-        ).mappings().one()
-        assets = connection.execute(
-            select(CoreAssetMetadataModel.asset_ref).where(
-                CoreAssetMetadataModel.asset_ref.in_([original_ref, derived_ref])
+            .mappings()
+            .one()
+        )
+        assets = (
+            connection.execute(
+                select(CoreAssetMetadataModel.asset_ref).where(
+                    CoreAssetMetadataModel.asset_ref.in_([original_ref, derived_ref])
+                )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
     if winner == "cancel":
         assert commit_order == ["cancel", "admission"]
         assert admission_result is False
@@ -895,20 +916,22 @@ def test_expiry_is_enforced_at_utc_boundary_for_get_put_complete_and_versions(
             .values(expires_at=fixed_now)
         )
     with pytest.raises(StoryRunLiteError) as expired_get:
-        repository.get_upload(
-            actor_scope_kind=_PARENT, actor_scope_ref=owner, upload_id=upload_id
-        )
+        repository.get_upload(actor_scope_kind=_PARENT, actor_scope_ref=owner, upload_id=upload_id)
     assert expired_get.value.status_code == 410
     assert expired_get.value.code == "UPLOAD_EXPIRED"
     assert not snapshot_path.exists()
     assert not (quarantine._parts / upload_id).exists()
 
     with engine.connect() as connection:
-        row = connection.execute(
-            select(tables.upload_sessions).where(
-                tables.upload_sessions.c.upload_session_id == upload_id
+        row = (
+            connection.execute(
+                select(tables.upload_sessions).where(
+                    tables.upload_sessions.c.upload_session_id == upload_id
+                )
             )
-        ).mappings().one()
+            .mappings()
+            .one()
+        )
         part_count = connection.execute(
             select(tables.upload_parts.c.upload_part_id).where(
                 tables.upload_parts.c.upload_session_id == upload_id
@@ -958,17 +981,25 @@ def test_expiry_is_enforced_at_utc_boundary_for_get_put_complete_and_versions(
     assert replay.command_result.replayed is True
     assert replay.command_result.body == completed.command_result.body
     with engine.connect() as connection:
-        row = connection.execute(
-            select(tables.upload_sessions).where(
-                tables.upload_sessions.c.upload_session_id == upload_id
+        row = (
+            connection.execute(
+                select(tables.upload_sessions).where(
+                    tables.upload_sessions.c.upload_session_id == upload_id
+                )
             )
-        ).mappings().one()
-        receipt = connection.execute(
-            select(tables.upload_command_receipts).where(
-                tables.upload_command_receipts.c.resource_ref == upload_id,
-                tables.upload_command_receipts.c.operation == "COMPLETE_UPLOAD",
+            .mappings()
+            .one()
+        )
+        receipt = (
+            connection.execute(
+                select(tables.upload_command_receipts).where(
+                    tables.upload_command_receipts.c.resource_ref == upload_id,
+                    tables.upload_command_receipts.c.operation == "COMPLETE_UPLOAD",
+                )
             )
-        ).mappings().one()
+            .mappings()
+            .one()
+        )
     assert row["state"] == UploadState.EXPIRED.value
     assert row["state_version"] == 2
     assert row["admission_gate_open"] is False
@@ -1092,22 +1123,30 @@ def test_expiry_uses_utc_time_after_story_run_lock_wait(
         assert result.code == "UPLOAD_EXPIRED"
 
     with engine.connect() as connection:
-        upload = connection.execute(
-            select(tables.upload_sessions).where(
-                tables.upload_sessions.c.upload_session_id == upload_id
+        upload = (
+            connection.execute(
+                select(tables.upload_sessions).where(
+                    tables.upload_sessions.c.upload_session_id == upload_id
+                )
             )
-        ).mappings().one()
+            .mappings()
+            .one()
+        )
         parts = connection.execute(
             select(tables.upload_parts.c.upload_part_id).where(
                 tables.upload_parts.c.upload_session_id == upload_id
             )
         ).all()
-        completion_receipts = connection.execute(
-            select(tables.upload_command_receipts).where(
-                tables.upload_command_receipts.c.resource_ref == upload_id,
-                tables.upload_command_receipts.c.operation == "COMPLETE_UPLOAD",
+        completion_receipts = (
+            connection.execute(
+                select(tables.upload_command_receipts).where(
+                    tables.upload_command_receipts.c.resource_ref == upload_id,
+                    tables.upload_command_receipts.c.operation == "COMPLETE_UPLOAD",
+                )
             )
-        ).mappings().all()
+            .mappings()
+            .all()
+        )
     assert upload["state"] == UploadState.EXPIRED.value
     assert upload["state_version"] == 2
     assert upload["admission_gate_open"] is False
@@ -1179,13 +1218,17 @@ def test_recovery_rechecks_expiry_after_wait_on_unfinished_upload_lock(
 
     recovery_time = deadline + timedelta(microseconds=1)
     with engine.connect() as connection:
-        before = connection.execute(
-            select(
-                tables.upload_sessions.c.upload_session_id,
-                tables.upload_sessions.c.state,
-                tables.upload_sessions.c.expires_at,
+        before = (
+            connection.execute(
+                select(
+                    tables.upload_sessions.c.upload_session_id,
+                    tables.upload_sessions.c.state,
+                    tables.upload_sessions.c.expires_at,
+                )
             )
-        ).mappings().all()
+            .mappings()
+            .all()
+        )
     expected_failed = {
         row["upload_session_id"]
         for row in before
@@ -1259,16 +1302,24 @@ def test_recovery_rechecks_expiry_after_wait_on_unfinished_upload_lock(
     assert not (repository._quarantine._parts / upload_id).exists()
     assert not snapshot_path.exists()
     with engine.connect() as connection:
-        row = connection.execute(
-            select(tables.upload_sessions).where(
-                tables.upload_sessions.c.upload_session_id == upload_id
+        row = (
+            connection.execute(
+                select(tables.upload_sessions).where(
+                    tables.upload_sessions.c.upload_session_id == upload_id
+                )
             )
-        ).mappings().one()
-        blocker = connection.execute(
-            select(tables.upload_sessions).where(
-                tables.upload_sessions.c.upload_session_id == blocker_upload_id
+            .mappings()
+            .one()
+        )
+        blocker = (
+            connection.execute(
+                select(tables.upload_sessions).where(
+                    tables.upload_sessions.c.upload_session_id == blocker_upload_id
+                )
             )
-        ).mappings().one()
+            .mappings()
+            .one()
+        )
     assert row["state"] == UploadState.EXPIRED.value
     assert row["state_version"] == 2
     assert blocker["state"] == UploadState.FAILED.value
@@ -1310,13 +1361,17 @@ def test_startup_recovery_expires_receiving_and_retries_staging_cleanup(story_db
             .values(expires_at=recovery_time - timedelta(seconds=1))
         )
     with engine.connect() as connection:
-        before = connection.execute(
-            select(
-                tables.upload_sessions.c.upload_session_id,
-                tables.upload_sessions.c.state,
-                tables.upload_sessions.c.expires_at,
+        before = (
+            connection.execute(
+                select(
+                    tables.upload_sessions.c.upload_session_id,
+                    tables.upload_sessions.c.state,
+                    tables.upload_sessions.c.expires_at,
+                )
             )
-        ).mappings().all()
+            .mappings()
+            .all()
+        )
     expected_expiring = {
         row["upload_session_id"]
         for row in before
@@ -1350,11 +1405,15 @@ def test_startup_recovery_expires_receiving_and_retries_staging_cleanup(story_db
     assert parts_path.exists()
     assert snapshot_path.exists()
     with engine.connect() as connection:
-        first_row = connection.execute(
-            select(tables.upload_sessions).where(
-                tables.upload_sessions.c.upload_session_id == upload_id
+        first_row = (
+            connection.execute(
+                select(tables.upload_sessions).where(
+                    tables.upload_sessions.c.upload_session_id == upload_id
+                )
             )
-        ).mappings().one()
+            .mappings()
+            .one()
+        )
     assert first_row["state"] == UploadState.EXPIRED.value
     assert first_row["state_version"] == 2
 
@@ -1368,10 +1427,526 @@ def test_startup_recovery_expires_receiving_and_retries_staging_cleanup(story_db
     assert not parts_path.exists()
     assert not snapshot_path.exists()
     with engine.connect() as connection:
-        row = connection.execute(
-            select(tables.upload_sessions).where(
-                tables.upload_sessions.c.upload_session_id == upload_id
+        row = (
+            connection.execute(
+                select(tables.upload_sessions).where(
+                    tables.upload_sessions.c.upload_session_id == upload_id
+                )
             )
-        ).mappings().one()
+            .mappings()
+            .one()
+        )
     assert row["state"] == UploadState.EXPIRED.value
     assert row["state_version"] == 2
+
+
+def test_review_two_http_flows_release_owner_and_replay_attach_without_resending(story_db) -> None:
+    """Exercise real HTTP/service/storage with synthetic scanner, worker and Vision doubles."""
+    engine, repository = story_db
+    owner = "review-repeat-parent-" + str(uuid.uuid4())
+    scanner, normalizer, vision = Mock(), Mock(), Mock()
+    scanner.scan.side_effect = lambda _payload, digest: ScanVerdict(
+        "CLEAN", digest, "synthetic-test-only", datetime.now(UTC)
+    )
+
+    def normalize(payload: bytes, *, original_media_type: str, sha256: str) -> NormalizedImage:
+        derived = b"synthetic-derived:" + payload
+        return NormalizedImage(
+            original_media_type,
+            sha256,
+            len(payload),
+            1,
+            1,
+            "image/jpeg",
+            hashlib.sha256(derived).hexdigest(),
+            len(derived),
+            derived,
+            128 * 1024 * 1024,
+            25,
+            120,
+            1024,
+            1,
+            0,
+            25,
+            1,
+        )
+
+    normalizer.normalize.side_effect = normalize
+
+    def analyze(*, run_id, binding, persist_success):
+        committed = persist_success(
+            ValidatedVisionResult(
+                {"contract_name": "SyntheticReviewResult", "asset_ref": binding.asset_ref},
+                "Synthetic subject",
+                0.75,
+                _hash("canonical:" + run_id),
+                _hash("raw:" + run_id),
+            )
+        )
+        assert committed
+        return VisionAttemptResult("SUCCEEDED", provider_invoked=True, result_committed=True)
+
+    vision.analyze.side_effect = analyze
+    service = StoryRunLiteService(
+        repository=repository,
+        scanner=cast(ImageSafetyScannerPort, scanner),
+        normalizer=cast(ImageNormalizerPort, normalizer),
+        vision=cast(StoryRunLiteVisionPort, vision),
+        story_references=cast(StoryRunReferencePort, repository),
+        asset_admission=cast(CoreAssetAdmissionPort, repository),
+        actor_scope_ref=owner,
+    )
+    previous_runs: list[tuple[str, str, bytes]] = []
+    with TestClient(create_app(service=service)) as client:
+        for turn in range(2):
+            tag = str(uuid.uuid4())
+            created = client.post(
+                "/v1/story-runs",
+                json={"profile_ref": "synthetic-parent-demo"},
+                headers={"Idempotency-Key": "create-" + tag},
+            )
+            assert created.status_code == 201
+            run_id = created.json()["run_ref"]
+            payload = ("synthetic-chosen-photo-" + str(turn)).encode()
+            digest = hashlib.sha256(payload).hexdigest()
+            upload = client.post(
+                "/v1/upload-sessions",
+                json={
+                    "target_ref": run_id,
+                    "purpose": "RUN_ARTWORK",
+                    "media_type": "image/png",
+                    "expected_size_bytes": len(payload),
+                    "expected_sha256": digest,
+                },
+                headers={"Idempotency-Key": "upload-" + tag},
+            )
+            assert upload.status_code == 201
+            upload_id = upload.json()["upload_ref"]
+            part = client.put(
+                f"/v1/upload-sessions/{upload_id}/parts/1",
+                content=payload,
+                headers={
+                    "Content-Type": "application/octet-stream",
+                    "Content-Length": str(len(payload)),
+                    "Content-SHA256": digest,
+                },
+            )
+            assert part.status_code == 200
+            completed = client.post(
+                f"/v1/upload-sessions/{upload_id}/complete",
+                json={"expected_size_bytes": len(payload), "expected_sha256": digest},
+                headers={"Idempotency-Key": "complete-" + tag, "If-Match": upload.headers["etag"]},
+            )
+            assert completed.status_code == 202
+            admitted = client.get(f"/v1/upload-sessions/{upload_id}")
+            assert admitted.json()["state"] == "READY"
+            asset_ref = admitted.json()["asset_ref"]
+            attach_headers = {
+                "Idempotency-Key": "attach-" + tag,
+                "If-Match": created.headers["etag"],
+            }
+            attach_body = {"asset_ref": asset_ref, "expected_revision": 1}
+            attached = client.post(
+                f"/v1/story-runs/{run_id}/assets",
+                json=attach_body,
+                headers=attach_headers,
+            )
+            assert attached.status_code == 202
+            subject = client.get(f"/v1/story-runs/{run_id}")
+            assert subject.json()["run_state"] == "SUBJECT_REVIEW"
+            replay = client.post(
+                f"/v1/story-runs/{run_id}/assets",
+                json=attach_body,
+                headers=attach_headers,
+            )
+            assert (replay.status_code, replay.json(), replay.headers["etag"]) == (
+                attached.status_code,
+                attached.json(),
+                attached.headers["etag"],
+            )
+            changed = client.post(
+                f"/v1/story-runs/{run_id}/assets",
+                json={**attach_body, "expected_revision": 2},
+                headers=attach_headers,
+            )
+            assert changed.status_code == 400
+            assert changed.json()["code"] == "INVALID_IDEMPOTENCY_KEY"
+            with pytest.raises(StoryRunLiteError) as forbidden:
+                repository.replay_attach_command(
+                    actor_scope_kind=_PARENT,
+                    actor_scope_ref=owner + "-foreign",
+                    run_id=run_id,
+                    key_sha256=validate_idempotency_key("attach-" + tag),
+                    fingerprint_sha256=canonical_fingerprint(
+                        method="POST",
+                        path=f"/v1/story-runs/{run_id}/assets",
+                        request=attach_body,
+                        expected_version=1,
+                    ),
+                )
+            assert forbidden.value.status_code == 404
+            confirmed = client.post(
+                f"/v1/story-runs/{run_id}/subject-confirmation",
+                json={"decision": "CONFIRM", "expected_understanding_revision": 1},
+                headers={"Idempotency-Key": "confirm-" + tag, "If-Match": subject.headers["etag"]},
+            )
+            assert confirmed.status_code == 202
+            assert confirmed.json()["run_state"] == "PREPARATION_REVIEW"
+            after_confirm = client.post(
+                f"/v1/story-runs/{run_id}/assets",
+                json=attach_body,
+                headers=attach_headers,
+            )
+            assert after_confirm.status_code == 202 and after_confirm.json() == attached.json()
+            canceled = client.post(
+                f"/v1/story-runs/{run_id}/cancel",
+                json={"expected_revision": confirmed.json()["revision"]},
+                headers={"Idempotency-Key": "cancel-" + tag, "If-Match": confirmed.headers["etag"]},
+            )
+            assert canceled.status_code == 202
+            assert canceled.json()["run_state"] == "DELETE_PENDING"
+            after_cancel = client.post(
+                f"/v1/story-runs/{run_id}/assets",
+                json=attach_body,
+                headers=attach_headers,
+            )
+            assert after_cancel.status_code == 202 and after_cancel.json() == attached.json()
+            assert vision.analyze.call_count == turn + 1
+            previous_runs.append((run_id, asset_ref, payload))
+            with engine.connect() as connection:
+                stored = (
+                    connection.execute(
+                        select(tables.story_runs).where(tables.story_runs.c.run_id == run_id)
+                    )
+                    .mappings()
+                    .one()
+                )
+                assert stored["active_owner_parent_account_id"] is None
+                assert (
+                    connection.execute(
+                        select(tables.understanding_revisions).where(
+                            tables.understanding_revisions.c.run_id == run_id
+                        )
+                    )
+                    .mappings()
+                    .one()["result_snapshot"]["contract_name"]
+                    == "SyntheticReviewResult"
+                )
+                assert (
+                    connection.execute(
+                        select(tables.review_decisions).where(
+                            tables.review_decisions.c.run_id == run_id
+                        )
+                    )
+                    .mappings()
+                    .one()["decision"]
+                    == "CONFIRM"
+                )
+            assert repository.read_asset(asset_ref) == payload
+    assert len({run for run, _ref, _payload in previous_runs}) == 2
+    for old_run, old_asset, old_payload in previous_runs:
+        assert repository.read_asset(old_asset) == old_payload
+        assert repository.get_run(actor_scope_kind=_PARENT, actor_scope_ref=owner, run_id=old_run)
+
+
+def test_review_http_replays_final_attach_receipt_after_restart_recovery(story_db) -> None:
+    _engine, repository = story_db
+    owner = "review-recovered-replay-" + str(uuid.uuid4())
+    run_id = _create_run(repository, owner)
+    pair = _asset_pair(run_id, owner, seed="review-recovered")
+    key = "attach-recovered-" + str(uuid.uuid4())
+    body = {"asset_ref": pair.original.asset_ref, "expected_revision": 1}
+    key_hash = validate_idempotency_key(key)
+    fingerprint = canonical_fingerprint(
+        method="POST",
+        path=f"/v1/story-runs/{run_id}/assets",
+        request=body,
+        expected_version=1,
+    )
+    _reserved, _job, claim = repository.attach_asset(
+        actor_scope_kind=_PARENT,
+        actor_scope_ref=owner,
+        run_id=run_id,
+        pair=pair,
+        expected_revision=1,
+        expected_version=1,
+        key_sha256=key_hash,
+        fingerprint_sha256=fingerprint,
+    )
+    assert claim is not None
+    initial = repository.finalize_attach_command(
+        run_id=run_id,
+        key_sha256=key_hash,
+        claimed_version=claim,
+    )
+    repository.recover_after_restart()
+    current = repository.get_run(actor_scope_kind=_PARENT, actor_scope_ref=owner, run_id=run_id)
+    assert current.body["job_state"] == "AWAITING_RECONCILIATION"
+    vision, admission = Mock(), Mock()
+    service = StoryRunLiteService(
+        repository=repository,
+        scanner=cast(ImageSafetyScannerPort, object()),
+        normalizer=cast(ImageNormalizerPort, object()),
+        vision=cast(StoryRunLiteVisionPort, vision),
+        story_references=repository,
+        asset_admission=cast(CoreAssetAdmissionPort, admission),
+        actor_scope_ref=owner,
+    )
+    with TestClient(create_app(service=service)) as client:
+        replay = client.post(
+            f"/v1/story-runs/{run_id}/assets",
+            json=body,
+            headers={"Idempotency-Key": key, "If-Match": '"v1"'},
+        )
+    assert replay.status_code == initial.status_code == 202
+    assert replay.json() == initial.body
+    vision.analyze.assert_not_called()
+    admission.resolve_story_artwork.assert_not_called()
+
+
+def _review_prepare_confirmed_run(repository: SqlStoryRunLiteRepository, owner: str):
+    """Reach the real post-confirmation state before testing closeout authority."""
+    run_id = _create_run(repository, owner)
+    name = "review-confirmed-" + str(uuid.uuid4())
+    pair = _asset_pair(run_id, owner, seed=name)
+    _result, _job, claim = _attach(repository, owner=owner, run_id=run_id, pair=pair, name=name)
+    assert claim is not None
+    repository.finalize_attach_command(
+        run_id=run_id, key_sha256=_hash("attach:" + name), claimed_version=claim
+    )
+    assert repository.open_story_dispatch_gate(run_id=run_id, claimed_version=claim)
+    assert repository.commit_vision_success(
+        run_id=run_id,
+        claimed_version=claim,
+        result_snapshot={"contract_name": "SyntheticCloseoutRace", "run_ref": run_id},
+        subject_label="synthetic closeout subject",
+        confidence=0.75,
+        canonical_result_sha256=_hash("canonical:" + name),
+        raw_body_sha256=_hash("raw:" + name),
+    )
+    subject = repository.get_run(actor_scope_kind=_PARENT, actor_scope_ref=owner, run_id=run_id)
+    confirmed = repository.confirm_subject(
+        actor_scope_kind=_PARENT,
+        actor_scope_ref=owner,
+        run_id=run_id,
+        expected_version=int(subject.resource_version),
+        expected_understanding_revision=1,
+        key_sha256=_hash("confirm:" + name),
+        fingerprint_sha256=_hash("confirm-fingerprint:" + name),
+    )
+    assert confirmed.status_code == 202
+    assert confirmed.body["run_state"] == "PREPARATION_REVIEW"
+    return run_id, confirmed
+
+
+@pytest.mark.parametrize("winner", ["cancel", "create"])
+def test_review_post_confirm_cancel_and_create_serialize_owner_release(story_db, winner) -> None:
+    engine, repository = story_db
+    owner = "review-closeout-race-" + str(uuid.uuid4())
+    run_id, confirmed = _review_prepare_confirmed_run(repository, owner)
+    cancel_holds = threading.Event()
+    create_holds = threading.Event()
+    create_waiting = threading.Event()
+    cancel_waiting = threading.Event()
+    allow_cancel = threading.Event()
+    allow_create = threading.Event()
+    role = threading.local()
+
+    def before_sql(_connection, _cursor, statement, _params, _context, _many):
+        sql = statement.lower()
+        current_role = getattr(role, "value", None)
+        if (
+            winner == "cancel"
+            and current_role == "cancel"
+            and sql.lstrip().startswith("update story.runs")
+        ):
+            cancel_holds.set()
+            assert allow_cancel.wait(timeout=15)
+        elif winner == "cancel" and current_role == "create" and _is_story_run_lock(statement):
+            create_waiting.set()
+        elif winner == "create" and current_role == "cancel" and _is_story_run_lock(statement):
+            cancel_waiting.set()
+
+    def after_sql(_connection, _cursor, statement, _params, _context, _many):
+        if (
+            winner == "create"
+            and getattr(role, "value", None) == "create"
+            and _is_story_run_lock(statement)
+        ):
+            create_holds.set()
+            assert allow_create.wait(timeout=15)
+
+    create_key = _hash("review-create-race:" + owner)
+    create_fingerprint = _hash("review-create-race-fingerprint:" + owner)
+    cancel_key = _hash("review-cancel-race:" + owner)
+    cancel_fingerprint = _hash("review-cancel-race-fingerprint:" + owner)
+
+    def create():
+        role.value = "create"
+        return repository.create_run(
+            actor_scope_kind=_PARENT,
+            actor_scope_ref=owner,
+            profile_ref="synthetic-parent-demo",
+            key_sha256=create_key,
+            fingerprint_sha256=create_fingerprint,
+        )
+
+    def cancel():
+        role.value = "cancel"
+        return repository.cancel_run(
+            actor_scope_kind=_PARENT,
+            actor_scope_ref=owner,
+            run_id=run_id,
+            expected_revision=int(confirmed.body["revision"]),
+            expected_version=int(confirmed.resource_version),
+            key_sha256=cancel_key,
+            fingerprint_sha256=cancel_fingerprint,
+        )
+
+    event.listen(engine, "before_cursor_execute", before_sql)
+    event.listen(engine, "after_cursor_execute", after_sql)
+    try:
+        with ThreadPoolExecutor(max_workers=2, thread_name_prefix="review-closeout-race") as pool:
+            try:
+                if winner == "cancel":
+                    cancellation = pool.submit(cancel)
+                    assert cancel_holds.wait(timeout=10)
+                    creation = pool.submit(create)
+                    assert create_waiting.wait(timeout=10)
+                    allow_cancel.set()
+                else:
+                    creation = pool.submit(create)
+                    assert create_holds.wait(timeout=10)
+                    cancellation = pool.submit(cancel)
+                    assert cancel_waiting.wait(timeout=10)
+                    allow_create.set()
+                canceled = cancellation.result(timeout=15)
+                created = creation.result(timeout=15)
+            finally:
+                allow_cancel.set()
+                allow_create.set()
+    finally:
+        event.remove(engine, "before_cursor_execute", before_sql)
+        event.remove(engine, "after_cursor_execute", after_sql)
+
+    assert canceled.status_code == 202
+    assert canceled.body["run_state"] == "DELETE_PENDING"
+    assert created.status_code == (201 if winner == "cancel" else 409)
+    if winner == "create":
+        assert created.body["code"] == "ACTIVE_RUN_EXISTS"
+        replay_create = create()
+        assert replay_create.replayed is True
+        assert replay_create.status_code == 409
+        assert replay_create.body == created.body
+        next_run = repository.create_run(
+            actor_scope_kind=_PARENT,
+            actor_scope_ref=owner,
+            profile_ref="synthetic-parent-demo",
+            key_sha256=_hash("review-create-after-close:" + owner),
+            fingerprint_sha256=_hash("review-create-after-close-fingerprint:" + owner),
+        )
+        assert next_run.status_code == 201
+    with engine.connect() as connection:
+        old = (
+            connection.execute(
+                select(tables.story_runs).where(tables.story_runs.c.run_id == run_id)
+            )
+            .mappings()
+            .one()
+        )
+        active = connection.execute(
+            select(tables.story_runs.c.run_id).where(
+                tables.story_runs.c.active_owner_parent_account_id == owner
+            )
+        ).all()
+        retained_result = connection.execute(
+            select(tables.understanding_revisions.c.result_snapshot).where(
+                tables.understanding_revisions.c.run_id == run_id
+            )
+        ).scalar_one()
+        retained_decision = connection.execute(
+            select(tables.review_decisions.c.decision).where(
+                tables.review_decisions.c.run_id == run_id
+            )
+        ).scalar_one()
+    assert old["active_owner_parent_account_id"] is None
+    assert len(active) == 1
+    assert retained_result["contract_name"] == "SyntheticCloseoutRace"
+    assert retained_decision == "CONFIRM"
+
+
+def test_review_post_confirm_duplicate_cancel_replays_original_receipt(story_db) -> None:
+    engine, repository = story_db
+    owner = "review-duplicate-close-" + str(uuid.uuid4())
+    run_id, confirmed = _review_prepare_confirmed_run(repository, owner)
+    values = {
+        "actor_scope_kind": _PARENT,
+        "actor_scope_ref": owner,
+        "run_id": run_id,
+        "expected_revision": int(confirmed.body["revision"]),
+        "expected_version": int(confirmed.resource_version),
+        "key_sha256": _hash("cancel-duplicate:" + owner),
+        "fingerprint_sha256": _hash("cancel-duplicate-fingerprint:" + owner),
+    }
+    initial = repository.cancel_run(**values)
+    replay = repository.cancel_run(**values)
+    assert initial.status_code == replay.status_code == 202
+    assert replay.body == initial.body
+    assert replay.resource_version == initial.resource_version
+    assert replay.replayed is True
+    with engine.connect() as connection:
+        current = (
+            connection.execute(
+                select(tables.story_runs).where(tables.story_runs.c.run_id == run_id)
+            )
+            .mappings()
+            .one()
+        )
+        cancel_receipts = connection.execute(
+            select(tables.story_command_receipts.c.receipt_id).where(
+                tables.story_command_receipts.c.resource_ref == run_id,
+                tables.story_command_receipts.c.operation == "CANCEL_RUN",
+            )
+        ).all()
+    assert current["version"] == initial.resource_version
+    assert current["revision"] == initial.body["revision"]
+    assert current["active_owner_parent_account_id"] is None
+    assert len(cancel_receipts) == 1
+
+
+@pytest.mark.parametrize("stale", ["version", "revision"])
+def test_review_post_confirm_stale_cancel_does_not_release_active_owner(story_db, stale) -> None:
+    engine, repository = story_db
+    owner = "review-stale-close-" + str(uuid.uuid4())
+    run_id, confirmed = _review_prepare_confirmed_run(repository, owner)
+    canceled = repository.cancel_run(
+        actor_scope_kind=_PARENT,
+        actor_scope_ref=owner,
+        run_id=run_id,
+        expected_revision=int(confirmed.body["revision"]) - (stale == "revision"),
+        expected_version=int(confirmed.resource_version) - (stale == "version"),
+        key_sha256=_hash("stale-close:" + owner),
+        fingerprint_sha256=_hash("stale-close-fingerprint:" + owner),
+    )
+    assert canceled.status_code == 409
+    assert canceled.body["code"] == "STALE_REVISION"
+    with engine.connect() as connection:
+        row = (
+            connection.execute(
+                select(tables.story_runs).where(tables.story_runs.c.run_id == run_id)
+            )
+            .mappings()
+            .one()
+        )
+    assert row["run_state"] == "PREPARATION_REVIEW"
+    assert row["version"] == confirmed.resource_version
+    assert row["active_owner_parent_account_id"] == owner
+    blocked = repository.create_run(
+        actor_scope_kind=_PARENT,
+        actor_scope_ref=owner,
+        profile_ref="synthetic-parent-demo",
+        key_sha256=_hash("new-while-active:" + owner),
+        fingerprint_sha256=_hash("new-while-active-fingerprint:" + owner),
+    )
+    assert blocked.status_code == 409
+    assert blocked.body["code"] == "ACTIVE_RUN_EXISTS"

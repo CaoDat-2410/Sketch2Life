@@ -309,18 +309,6 @@ class StoryRunLiteService:
         idempotency_key: str,
     ) -> CommandResult:
         expected_version = parse_etag_version(if_match)
-        if not self._story_references.authorize_upload_target(
-            actor_scope_kind=self._actor_scope_kind,
-            actor_scope_ref=self._actor_scope_ref,
-            run_id=run_id,
-        ):
-            raise StoryRunLiteError(404, "NOT_FOUND", "StoryRun not found in this Parent scope.")
-        pair = self._asset_admission.resolve_story_artwork(
-            actor_scope_kind=self._actor_scope_kind,
-            actor_scope_ref=self._actor_scope_ref,
-            asset_ref=request.asset_ref,
-            run_id=run_id,
-        )
         key_hash = validate_idempotency_key(idempotency_key)
         fingerprint = canonical_fingerprint(
             method="POST",
@@ -328,6 +316,45 @@ class StoryRunLiteService:
             request=request.model_dump(mode="json"),
             expected_version=expected_version,
         )
+        replay = self._repository.replay_attach_command(
+            actor_scope_kind=self._actor_scope_kind,
+            actor_scope_ref=self._actor_scope_ref,
+            run_id=run_id,
+            key_sha256=key_hash,
+            fingerprint_sha256=fingerprint,
+        )
+        if replay is not None:
+            return replay
+        try:
+            if not self._story_references.authorize_upload_target(
+                actor_scope_kind=self._actor_scope_kind,
+                actor_scope_ref=self._actor_scope_ref,
+                run_id=run_id,
+            ):
+                raise StoryRunLiteError(
+                    404, "NOT_FOUND", "StoryRun not found in this Parent scope."
+                )
+            pair = self._asset_admission.resolve_story_artwork(
+                actor_scope_kind=self._actor_scope_kind,
+                actor_scope_ref=self._actor_scope_ref,
+                asset_ref=request.asset_ref,
+                run_id=run_id,
+            )
+        except StoryRunLiteError:
+            # Another attach can commit its receipt after our first lookup and then change
+            # the run/admission state. Recheck under the receipt identity lock before using
+            # a mutable-state error as this request's outcome. A genuinely new request still
+            # raises the original error; no new dispatch is made for a replay or PENDING hold.
+            replay = self._repository.replay_attach_command(
+                actor_scope_kind=self._actor_scope_kind,
+                actor_scope_ref=self._actor_scope_ref,
+                run_id=run_id,
+                key_sha256=key_hash,
+                fingerprint_sha256=fingerprint,
+            )
+            if replay is not None:
+                return replay
+            raise
         reservation, provider_job_id, claimed_version = self._repository.attach_asset(
             actor_scope_kind=self._actor_scope_kind,
             actor_scope_ref=self._actor_scope_ref,

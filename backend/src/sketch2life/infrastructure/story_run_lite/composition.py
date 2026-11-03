@@ -44,6 +44,11 @@ class StoryRunLiteRuntime:
     service: StoryRunLiteService
     vision: StoryRunLiteVisionPort
 
+    def ensure_ready(self) -> None:
+        """Revalidate singleton ownership before accepting another API operation."""
+
+        self.repository.require_singleton_lock()
+
 
 def goal_database_url(value: str, *, main_demo: bool = False) -> tuple[str, str]:
     """Reject non-loopback or non-goal databases before SQLAlchemy can connect."""
@@ -141,10 +146,18 @@ def build_runtime(*, main_demo: bool = False) -> StoryRunLiteRuntime | None:
         return None
     safe_url, database_name = goal_database_url(value, main_demo=main_demo)
     if main_demo:
-        if any(os.environ.get(name) for name in (
-            "PGHOST", "PGHOSTADDR", "PGPORT", "PGDATABASE", "PGSERVICE", "PGSERVICEFILE",
-            "PGOPTIONS",
-        )):
+        if any(
+            os.environ.get(name)
+            for name in (
+                "PGHOST",
+                "PGHOSTADDR",
+                "PGPORT",
+                "PGDATABASE",
+                "PGSERVICE",
+                "PGSERVICEFILE",
+                "PGOPTIONS",
+            )
+        ):
             raise ValueError("StoryRun-lite main demo rejects PostgreSQL target overrides")
         main_value = os.environ.get("SKETCH2LIFE_DATABASE_URL")
         if not main_value:
@@ -154,7 +167,10 @@ def build_runtime(*, main_demo: bool = False) -> StoryRunLiteRuntime | None:
             main_url = make_url(main_value)
             story_url = make_url(safe_url)
             if (main_url.get_backend_name(), main_url.host, main_url.port, main_url.database) != (
-                story_url.get_backend_name(), story_url.host, story_url.port, story_url.database
+                story_url.get_backend_name(),
+                story_url.host,
+                story_url.port,
+                story_url.database,
             ):
                 raise ValueError
         except Exception:

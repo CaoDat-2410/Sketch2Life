@@ -326,9 +326,7 @@ def test_committed_story_result_recovers_sent_ledger_without_redispatch(
         == "SUBJECT_REVIEW"
     )
     pending_story_result = next(
-        row
-        for row in repository.pending_vision_ledger_reconciliation()
-        if row["run_id"] == run_id
+        row for row in repository.pending_vision_ledger_reconciliation() if row["run_id"] == run_id
     )
     expected_raw_body_sha256 = str(pending_story_result["raw_body_sha256"])
     assert bridge.reconcile_completed_results() == {"completed": 1, "unavailable": 0}
@@ -485,3 +483,165 @@ def test_guard_denial_race_unknown_and_cancel_late_cas(loopback_runtime) -> None
         raw_body_sha256=None,
     )
     assert int(server_state["count"]) == sent_before + 1 + len(failure_modes)
+
+
+@pytest.mark.parametrize("transition", ["confirm", "cancel", "confirm-cancel"])
+@pytest.mark.parametrize("finalize_failure", ["crash", "returns-false"])
+def test_committed_result_reconciles_after_state_transition_before_finalize(
+    loopback_runtime,
+    monkeypatch,
+    transition: str,
+    finalize_failure: str,
+) -> None:
+    engine, repository, bridge, server_state, _server_lock = loopback_runtime
+    owner, run_id, binding, claim = _create_attached_run(
+        repository, "review-ledger-" + transition + "-" + finalize_failure
+    )
+    original_finalize = InvocationLedgerGuard.finalize
+    persisted = _persist_callback(repository, engine, run_id, claim, [])
+
+    def commit_and_transition(result: ValidatedVisionResult) -> bool:
+        assert persisted(result)
+        if transition in {"confirm", "confirm-cancel"}:
+            current = repository.get_run(
+                actor_scope_kind=_PARENT,
+                actor_scope_ref=owner,
+                run_id=run_id,
+            )
+            accepted = repository.confirm_subject(
+                actor_scope_kind=_PARENT,
+                actor_scope_ref=owner,
+                run_id=run_id,
+                expected_version=int(current.body["version"]),
+                expected_understanding_revision=1,
+                key_sha256=hashlib.sha256((run_id + "confirm").encode()).hexdigest(),
+                fingerprint_sha256=hashlib.sha256((run_id + "confirm-fp").encode()).hexdigest(),
+            )
+            assert accepted.status_code == 202
+            assert accepted.body["run_state"] == "PREPARATION_REVIEW"
+        if transition in {"cancel", "confirm-cancel"}:
+            current = repository.get_run(
+                actor_scope_kind=_PARENT,
+                actor_scope_ref=owner,
+                run_id=run_id,
+            )
+            accepted = repository.cancel_run(
+                actor_scope_kind=_PARENT,
+                actor_scope_ref=owner,
+                run_id=run_id,
+                expected_version=int(current.body["version"]),
+                expected_revision=int(current.body["revision"]),
+                key_sha256=hashlib.sha256((run_id + "cancel").encode()).hexdigest(),
+                fingerprint_sha256=hashlib.sha256((run_id + "cancel-fp").encode()).hexdigest(),
+            )
+            assert accepted.status_code == 202
+            assert accepted.body["run_state"] == "DELETE_PENDING"
+        return True
+
+    def fail_after_story_commit(guard, state, result_sha256=None):
+        if state is InvocationTerminalState.SUCCEEDED:
+            if finalize_failure == "crash":
+                raise RuntimeError("review crash after confirmed/canceled result")
+            return False
+        return original_finalize(guard, state, result_sha256)
+
+    monkeypatch.setattr(InvocationLedgerGuard, "finalize", fail_after_story_commit)
+    if finalize_failure == "crash":
+        with pytest.raises(RuntimeError, match="review crash"):
+            bridge.analyze(run_id=run_id, binding=binding, persist_success=commit_and_transition)
+    else:
+        outcome = bridge.analyze(
+            run_id=run_id,
+            binding=binding,
+            persist_success=commit_and_transition,
+        )
+        assert outcome.state == "UNKNOWN" and outcome.result_committed
+    monkeypatch.setattr(InvocationLedgerGuard, "finalize", original_finalize)
+    ledger = InvocationLedger(engine)
+    sent = ledger.get(run_id)
+    assert sent is not None and sent.state is InvocationState.SENT
+    before_count = int(server_state["count"])
+    with engine.connect() as connection:
+        immutable = connection.execute(
+            text(
+                "SELECT raw_body_sha256, canonical_result_sha256, result_snapshot "
+                "FROM story.understanding_revisions WHERE run_id = :run"
+            ),
+            {"run": run_id},
+        ).one()
+    assert any(row["run_id"] == run_id for row in repository.pending_vision_ledger_reconciliation())
+    repository.recover_after_restart()
+    bridge.reconcile_completed_results()
+    finished = ledger.get(run_id)
+    assert finished is not None and finished.state is InvocationState.SUCCEEDED
+    assert finished.result_sha256 == immutable.raw_body_sha256
+    assert int(server_state["count"]) == before_count == 1
+    bridge.reconcile_completed_results()
+    assert int(server_state["count"]) == before_count
+    after = repository.get_run(actor_scope_kind=_PARENT, actor_scope_ref=owner, run_id=run_id)
+    assert after.body["run_state"] == (
+        "PREPARATION_REVIEW" if transition == "confirm" else "DELETE_PENDING"
+    )
+    with engine.connect() as connection:
+        unchanged = connection.execute(
+            text(
+                "SELECT raw_body_sha256, canonical_result_sha256, result_snapshot "
+                "FROM story.understanding_revisions WHERE run_id = :run"
+            ),
+            {"run": run_id},
+        ).one()
+    assert unchanged == immutable
+
+
+def test_reconcile_does_not_finalize_mismatching_tuple_or_result_hash(
+    loopback_runtime,
+    monkeypatch,
+) -> None:
+    engine, repository, bridge, server_state, _server_lock = loopback_runtime
+    _owner, run_id, binding, claim = _create_attached_run(repository, "review-ledger-mismatch")
+    original_finalize = InvocationLedgerGuard.finalize
+
+    def hold_finalize(guard, state, result_sha256=None):
+        if state is InvocationTerminalState.SUCCEEDED:
+            return False
+        return original_finalize(guard, state, result_sha256)
+
+    monkeypatch.setattr(InvocationLedgerGuard, "finalize", hold_finalize)
+    outcome = bridge.analyze(
+        run_id=run_id,
+        binding=binding,
+        persist_success=_persist_callback(repository, engine, run_id, claim, []),
+    )
+    assert outcome.result_committed
+    monkeypatch.setattr(InvocationLedgerGuard, "finalize", original_finalize)
+    ledger = InvocationLedger(engine)
+    original = ledger.get(run_id)
+    assert original is not None and original.state is InvocationState.SENT
+    with engine.begin() as connection:
+        raw_hash = connection.execute(
+            text("SELECT raw_body_sha256 FROM story.runs WHERE run_id = :run"), {"run": run_id}
+        ).scalar_one()
+        connection.execute(
+            text("UPDATE story.runs SET provider_attempt_id = :attempt WHERE run_id = :run"),
+            {"run": run_id, "attempt": str(uuid.uuid4())},
+        )
+    bridge.reconcile_completed_results()
+    assert ledger.get(run_id).state is InvocationState.SENT
+    with engine.begin() as connection:
+        connection.execute(
+            text(
+                "UPDATE story.runs SET provider_attempt_id = :attempt, raw_body_sha256 = :hash "
+                "WHERE run_id = :run"
+            ),
+            {"run": run_id, "attempt": original.attempt_id, "hash": "0" * 64},
+        )
+    bridge.reconcile_completed_results()
+    assert ledger.get(run_id).state is InvocationState.SENT
+    with engine.begin() as connection:
+        connection.execute(
+            text("UPDATE story.runs SET raw_body_sha256 = :hash WHERE run_id = :run"),
+            {"run": run_id, "hash": raw_hash},
+        )
+    bridge.reconcile_completed_results()
+    assert ledger.get(run_id).state is InvocationState.SUCCEEDED
+    assert int(server_state["count"]) == 1

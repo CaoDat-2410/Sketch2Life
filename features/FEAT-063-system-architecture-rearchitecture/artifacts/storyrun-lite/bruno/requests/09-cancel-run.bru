@@ -1,5 +1,5 @@
 meta {
-  name: 09 Cancel unfinished run
+  name: 09 Cancel or close demo run
   type: http
   seq: 9
 }
@@ -23,7 +23,8 @@ body:json {
 }
 
 tests {
-  test("cancels an unfinished run", function () {
+  test("cancels or closes the demo run", function () {
     expect(res.getStatus()).to.equal(202);
+    expect(res.getBody().run_state).to.equal("DELETE_PENDING");
   });
 }

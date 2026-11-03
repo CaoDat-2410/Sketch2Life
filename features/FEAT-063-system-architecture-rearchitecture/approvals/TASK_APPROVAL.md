@@ -496,3 +496,11 @@
 - Explicitly excluded: unrelated FEAT-063 history, API route/auth/payload/runtime changes, remote ref changes beyond the already approved lease-guarded consolidation in Plan Rev46, and backend test-suite execution.
 - Acceptance criteria: AC1–AC5 in the hash-identified Plan Rev48.
 - Approval basis: this owner's direct request applies to the exact cleanup and acceptance criteria in Plan Rev48.
+
+## Milestone 1 independent review fixes — 2026-11-03
+
+- Status: APPROVED / IN PROGRESS. Owner explicitly answered: “Cho phép ghi approval và sửa 6 finding”.
+- Plan: `plan/STORYRUN_LITE_MILESTONE1_INDEPENDENT_REVIEW_FIX_20261103.md`, SHA-256 `B054B44289EA9DE32F26878F719E06A1EA34591518BDDF5690EA62AB3BB295C4`.
+- Authorizes the six reviewed lifecycle/reconciliation/replay/singleton/Bruno findings and focused regression tests, plus feature-owned documentation/evidence/snapshot. Existing D1 permits cancel after PREPARATION_REVIEW; retain states and migrations.
+- Preserve the 55 pre-existing A2/local paths, HEAD/index and existing databases. PostgreSQL tests only on a new task-owned loopback DB; otherwise explicitly NOT RUN. No Modal/provider/GPU, stage, commit, push or merge.
+- Final implementation label: FIXED — XONG-CHƯA REVIEW only after required gates pass. Independent review remains a separate user-owned chat.

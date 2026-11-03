@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import hashlib
 import logging
+from contextlib import suppress
 from datetime import UTC, datetime, timedelta
+from threading import RLock
 from typing import Any, cast
 from uuid import uuid4
 
@@ -46,42 +48,114 @@ class SqlStoryRunLiteRepository:
         self._engine = engine
         self._quarantine = quarantine
         self._singleton_connection: Connection | None = None
+        self._singleton_backend_pid: int | None = None
+        self._singleton_failed = False
+        self._singleton_mutex = RLock()
 
     def acquire_singleton_lock(self) -> None:
         """Hold a process-scoped PostgreSQL advisory lock for the local one-instance demo."""
 
-        if self._singleton_connection is not None:
-            return
-        connection = self._engine.connect()
-        if connection.dialect.name != "postgresql":
-            connection.close()
-            raise RuntimeError(
-                "StoryRun-lite requires PostgreSQL and a goal-owned disposable database"
+        with self._singleton_mutex:
+            if self._singleton_failed:
+                raise RuntimeError("StoryRun-lite singleton ownership was lost")
+            if self._singleton_connection is not None:
+                self.require_singleton_lock()
+                return
+            connection = self._engine.connect()
+            try:
+                if connection.dialect.name != "postgresql":
+                    raise RuntimeError(
+                        "StoryRun-lite requires PostgreSQL and a goal-owned disposable database"
+                    )
+                connection = connection.execution_options(isolation_level="AUTOCOMMIT")
+                backend_pid, acquired = connection.execute(
+                    text(
+                        "SELECT pg_backend_pid(), pg_try_advisory_lock(hashtextextended(:scope, 0))"
+                    ),
+                    {"scope": "storyrun-lite-singleton-v1"},
+                ).one()
+                if acquired is not True:
+                    raise RuntimeError("StoryRun-lite singleton lock is already held")
+                self._singleton_backend_pid = int(backend_pid)
+                self._singleton_connection = connection
+            except Exception:
+                # Never return a session with an accidentally acquired lock to the pool.
+                with suppress(Exception):
+                    connection.invalidate()
+                with suppress(Exception):
+                    connection.close()
+                raise
+
+    def require_singleton_lock(self) -> None:
+        """Reject new API work after losing the pinned session or its advisory lock.
+
+        This does not fence work that was already claimed before a lock loss (M0 D17).
+        A failed instance must be restarted; probing never reconnects or reacquires its lock.
+        """
+
+        with self._singleton_mutex:
+            connection = self._singleton_connection
+            healthy = False
+            if (
+                not self._singleton_failed
+                and connection is not None
+                and not connection.closed
+                and not connection.invalidated
+            ):
+                try:
+                    backend_pid, owns_lock = connection.execute(
+                        text(
+                            "SELECT pg_backend_pid(), EXISTS ("
+                            "SELECT 1 FROM pg_locks WHERE locktype = 'advisory' "
+                            "AND pid = pg_backend_pid() AND granted "
+                            "AND database = (SELECT oid FROM pg_database "
+                            "WHERE datname = current_database()) "
+                            "AND classid = ((hashtextextended(:scope, 0) >> 32) "
+                            "& 4294967295)::oid "
+                            "AND objid = (hashtextextended(:scope, 0) & 4294967295)::oid "
+                            "AND objsubid = 1)"
+                        ),
+                        {"scope": "storyrun-lite-singleton-v1"},
+                    ).one()
+                    healthy = owns_lock is True and backend_pid == self._singleton_backend_pid
+                except Exception:
+                    healthy = False
+            if healthy:
+                return
+            self._singleton_failed = True
+            self._singleton_connection = None
+            self._singleton_backend_pid = None
+            if connection is not None:
+                # Invalidating closes the physical session even if rollback/unlock would fail.
+                with suppress(Exception):
+                    connection.invalidate()
+                with suppress(Exception):
+                    connection.close()
+            raise StoryRunLiteError(
+                503,
+                "SERVICE_NOT_READY",
+                "StoryRun-lite singleton ownership is unavailable.",
+                retryable=False,
             )
-        connection.execute(
-            text("SELECT pg_advisory_lock(hashtextextended(:scope, 0))"),
-            {"scope": "storyrun-lite-singleton-v1"},
-        )
-        self._singleton_connection = connection
 
     def release_singleton_lock(self) -> None:
-        connection = self._singleton_connection
-        self._singleton_connection = None
-        if connection is None:
-            return
-        try:
-            connection.execute(
-                text("SELECT pg_advisory_unlock(hashtextextended(:scope, 0))"),
-                {"scope": "storyrun-lite-singleton-v1"},
-            )
-        finally:
-            connection.close()
+        with self._singleton_mutex:
+            connection = self._singleton_connection
+            self._singleton_connection = None
+            self._singleton_backend_pid = None
+            if connection is None:
+                return
+            # Close the physical session instead of querying a dead/replaced connection.
+            # Session-scoped advisory locks are released when PostgreSQL drops the session.
+            with suppress(Exception):
+                connection.invalidate()
+            with suppress(Exception):
+                connection.close()
 
     def recover_after_restart(self) -> dict[str, int]:
         """Fence unfinished Core/Story dispatches after this process owns the singleton lock."""
 
-        if self._singleton_connection is None:
-            raise RuntimeError("singleton advisory lock must be acquired before recovery")
+        self.require_singleton_lock()
         counts = {
             "core_sessions_failed": 0,
             "core_receipts_finalized": 0,
@@ -187,15 +261,12 @@ class SqlStoryRunLiteRepository:
                 )
                 counts["core_sessions_expired"] += 1
 
-            expired_rows = (
-                connection.execute(
-                    select(tables.upload_sessions.c.upload_session_id)
-                    .where(tables.upload_sessions.c.state == UploadState.EXPIRED.value)
-                    .order_by(tables.upload_sessions.c.upload_session_id)
-                    .with_for_update()
-                )
-                .all()
-            )
+            expired_rows = connection.execute(
+                select(tables.upload_sessions.c.upload_session_id)
+                .where(tables.upload_sessions.c.state == UploadState.EXPIRED.value)
+                .order_by(tables.upload_sessions.c.upload_session_id)
+                .with_for_update()
+            ).all()
             expired_upload_ids = [str(row[0]) for row in expired_rows]
 
             queued_runs = (
@@ -431,9 +502,7 @@ class SqlStoryRunLiteRepository:
             )
             if existing is not None:
                 return existing
-            run = self._owned_run(
-                connection, actor_scope_kind, actor_scope_ref, run_id, lock=True
-            )
+            run = self._owned_run(connection, actor_scope_kind, actor_scope_ref, run_id, lock=True)
             if run["run_state"] != RunState.INPUT_PROCESSING.value:
                 raise StoryRunLiteError(404, "NOT_FOUND", "StoryRun is not accepting uploads.")
             connection.execute(
@@ -692,9 +761,7 @@ class SqlStoryRunLiteRepository:
                             updated_at=now,
                         )
                     )
-                body = _error_body(
-                    "UPLOAD_EXPIRED", "Upload session has expired.", retryable=False
-                )
+                body = _error_body("UPLOAD_EXPIRED", "Upload session has expired.", retryable=False)
                 _finalize_receipt(
                     connection,
                     tables.upload_command_receipts,
@@ -706,9 +773,7 @@ class SqlStoryRunLiteRepository:
                     expired_version,
                     now,
                 )
-                expired_result = UploadReservation(
-                    CommandResult(410, body, expired_version)
-                )
+                expired_result = UploadReservation(CommandResult(410, body, expired_version))
             elif int(row["state_version"]) != expected_version:
                 body = _error_body(
                     "STALE_REVISION",
@@ -1308,6 +1373,27 @@ class SqlStoryRunLiteRepository:
             original, derived, str(upload["upload_session_id"]), str(upload["target_ref"])
         )
 
+    def replay_attach_command(
+        self,
+        *,
+        actor_scope_kind: OwnerScopeKind,
+        actor_scope_ref: str,
+        run_id: str,
+        key_sha256: str,
+        fingerprint_sha256: str,
+    ) -> CommandResult | None:
+        """Replay an owned immutable receipt without rechecking mutable run/admission state."""
+
+        identity = _identity(
+            actor_scope_kind, actor_scope_ref, "ATTACH_ASSET", "STORY_RUN", run_id, key_sha256
+        )
+        with self._engine.begin() as connection:
+            _lock_identity(connection, "story:" + ":".join(identity.values()))
+            self._owned_run(connection, actor_scope_kind, actor_scope_ref, run_id)
+            return _existing_receipt(
+                connection, tables.story_command_receipts, identity, fingerprint_sha256
+            )
+
     def attach_asset(
         self,
         *,
@@ -1597,10 +1683,26 @@ class SqlStoryRunLiteRepository:
                         tables.story_runs.c.run_id,
                         tables.story_runs.c.provider_job_id,
                         tables.story_runs.c.provider_attempt_id,
-                        tables.story_runs.c.raw_body_sha256,
-                    ).where(
-                        tables.story_runs.c.run_state == RunState.SUBJECT_REVIEW.value,
-                        tables.story_runs.c.raw_body_sha256.is_not(None),
+                        tables.understanding_revisions.c.raw_body_sha256,
+                    )
+                    .join(
+                        tables.understanding_revisions,
+                        (tables.understanding_revisions.c.run_id == tables.story_runs.c.run_id)
+                        & (
+                            tables.understanding_revisions.c.revision_no
+                            == tables.story_runs.c.understanding_revision
+                        )
+                        & (
+                            tables.understanding_revisions.c.canonical_result_sha256
+                            == tables.story_runs.c.result_sha256
+                        )
+                        & (
+                            tables.understanding_revisions.c.raw_body_sha256
+                            == tables.story_runs.c.raw_body_sha256
+                        ),
+                    )
+                    .where(
+                        tables.understanding_revisions.c.raw_body_sha256.is_not(None),
                         tables.story_runs.c.provider_job_id.is_not(None),
                         tables.story_runs.c.provider_attempt_id.is_not(None),
                     )
@@ -1937,7 +2039,6 @@ class SqlStoryRunLiteRepository:
                 )
                 return CommandResult(409, body, int(row["version"]))
             if row["run_state"] in {
-                RunState.PREPARATION_REVIEW.value,
                 RunState.DELETE_PENDING.value,
                 RunState.FAILED.value,
             }:
