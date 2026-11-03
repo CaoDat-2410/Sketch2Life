@@ -1,0 +1,20 @@
+meta {
+  name: 003 [READ ONLY] Read Organization
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
+}

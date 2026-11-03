@@ -1,0 +1,30 @@
+meta {
+  name: 027 [POST/ACTION - LOCAL TEST ONLY] Append Canvas Operation
+  type: http
+  seq: 27
+}
+
+post {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/sessions/{{session_id}}/canvas/operations
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  Idempotency-Key: REPLACE_WITH_SYNTHETIC_VALUE
+  X-Be1-Grant: REPLACE_WITH_SYNTHETIC_VALUE
+  X-Be1-Device-Key: REPLACE_WITH_SYNTHETIC_VALUE
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
+}
+
+body:json {
+  {
+    "operation_id": "REPLACE_ME",
+    "turn_id": "REPLACE_ME",
+    "document_epoch": 1,
+    "expected_revision": 1,
+    "operation_payload": {}
+  }
+}

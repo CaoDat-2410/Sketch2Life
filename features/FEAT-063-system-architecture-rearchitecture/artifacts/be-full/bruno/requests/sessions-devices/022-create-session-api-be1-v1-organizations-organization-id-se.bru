@@ -1,0 +1,28 @@
+meta {
+  name: 022 [POST/ACTION - LOCAL TEST ONLY] Create Session
+  type: http
+  seq: 22
+}
+
+post {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/sessions
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
+}
+
+body:json {
+  {
+    "class_id": "REPLACE_ME",
+    "purpose_ref": "REPLACE_ME"
+  }
+}

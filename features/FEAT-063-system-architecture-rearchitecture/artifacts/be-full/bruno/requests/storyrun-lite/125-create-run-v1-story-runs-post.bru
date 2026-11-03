@@ -1,0 +1,23 @@
+meta {
+  name: 125 [POST/ACTION - LOCAL TEST ONLY] Create Run
+  type: http
+  seq: 125
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  Idempotency-Key: REPLACE_WITH_SYNTHETIC_VALUE
+}
+
+body:json {
+  {
+    "profile_ref": "synthetic-parent-demo"
+  }
+}

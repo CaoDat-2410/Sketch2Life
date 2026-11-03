@@ -1,0 +1,15 @@
+meta {
+  name: 126 [READ ONLY] Readiness
+  type: http
+  seq: 126
+}
+
+get {
+  url: {{baseUrl}}/v1/story-runs/readiness
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}

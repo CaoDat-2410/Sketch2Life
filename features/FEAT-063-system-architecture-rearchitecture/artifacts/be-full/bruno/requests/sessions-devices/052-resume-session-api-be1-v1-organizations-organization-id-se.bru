@@ -1,0 +1,27 @@
+meta {
+  name: 052 [POST/ACTION - LOCAL TEST ONLY] Resume Session
+  type: http
+  seq: 52
+}
+
+post {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/sessions/{{session_id}}/resume
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
+}
+
+body:json {
+  {
+    "expected_revision": 1
+  }
+}

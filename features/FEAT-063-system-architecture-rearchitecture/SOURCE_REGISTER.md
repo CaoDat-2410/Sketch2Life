@@ -218,3 +218,12 @@
 
 - Verdict ACCEPTED: `evidence/MILESTONE1_INDEPENDENT_REVIEW_ROUND3_20261103.md`.
 - Review thread: `01a19ff8-ecf5-7843-ac8b-e5b8f5a62dc6`; all 38 closeout snapshot paths matched at review time.
+
+
+## Full BE Bruno collection — 2026-11-03
+
+- Approved task plan: plan/BE_FULL_BRUNO_COLLECTION_PLAN_20261103.md, SHA-256 4488A7B739FDCC80246AFB590DDFC229B6DCB37FEB9600C5B9501B160E5E80ED; approval is appended to approvals/TASK_APPROVAL.md.
+- Source of active operations: backend/src/sketch2life/interfaces/http/app.py application factory and its state.runtime_openapi_schema, generated for combined/classroom/demo profiles with local optional groups separately measured. The FE/SRS public /openapi.json projection is not the full API source.
+- Historical comparison: artifacts/API_INVENTORY_FEAT063_REV31_20261028.md and backend/src/sketch2life/interfaces/http/openapi_contract.py MOUNTED_OPERATIONS / UNMOUNTED_OPERATIONS. Current runtime adds one mounted pilot-profiles GET absent from the static Rev31 catalog; three local storage examples remain optional; 11 candidate declarations remain unmounted.
+- Deliverables: artifacts/be-full/openapi.runtime.json, artifacts/be-full/API_COVERAGE.csv, artifacts/be-full/bruno/, README and evidence/BE_FULL_BRUNO_COLLECTION_REPORT_20261103.md. Generator/validator helper scripts remain local-only and are excluded from the requested collection commit. Snapshot path is recorded in the report.
+- Validation: Bruno CLI 4.3.0 parsed and documented all 136 request names. Safe loopback smoke passed `GET /health` (200), process-local synthetic `POST /v1/sessions` (201), and `GET /v1/sessions/{session_id}` (200) with AI disabled and no DB URL. Sanitized transcript: evidence/BE_FULL_BRUNO_VALIDATION_20261103.log. DB-backed BE1/Lesson Library routes and StoryRun-lite runtime were not run. The MCP request-list tool exposes only the existing StoryRun-lite collection.

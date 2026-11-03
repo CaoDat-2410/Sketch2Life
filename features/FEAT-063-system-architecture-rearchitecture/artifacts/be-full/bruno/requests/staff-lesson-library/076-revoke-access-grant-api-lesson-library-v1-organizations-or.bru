@@ -1,0 +1,20 @@
+meta {
+  name: 076 [STATE CHANGE - DISPOSABLE DATA ONLY] Revoke Access Grant
+  type: http
+  seq: 76
+}
+
+delete {
+  url: {{baseUrl}}/api/lesson-library/v1/organizations/{{organization_id}}/lessons/{{lesson_id}}/access-grants/{{access_grant_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  If-Match: REPLACE_WITH_SYNTHETIC_VALUE
+}

@@ -1,0 +1,19 @@
+meta {
+  name: 097 [READ ONLY] Get Session
+  type: http
+  seq: 97
+}
+
+get {
+  url: {{baseUrl}}/v1/sessions/{{session_id}}
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  X-Expected-Session-Version: 0
+  Idempotency-Key: {{idempotency_key}}
+  X-Actor-Ref: {{demo_actor_ref}}
+}

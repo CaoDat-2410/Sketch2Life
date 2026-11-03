@@ -1,0 +1,28 @@
+meta {
+  name: 036 [POST/ACTION - LOCAL TEST ONLY] Restore Checkpoint
+  type: http
+  seq: 36
+}
+
+post {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/sessions/{{session_id}}/groups/{{group_id}}/restore
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
+}
+
+body:json {
+  {
+    "checkpoint_id": "REPLACE_ME",
+    "expected_revision": 1
+  }
+}

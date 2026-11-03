@@ -1,0 +1,20 @@
+meta {
+  name: 020 [POST/ACTION - LOCAL TEST ONLY] Publish Gallery
+  type: http
+  seq: 20
+}
+
+post {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/gallery/{{gallery_id}}/publish
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
+}

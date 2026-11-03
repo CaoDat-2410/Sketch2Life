@@ -1,0 +1,15 @@
+meta {
+  name: 127 [READ ONLY] Get Run
+  type: http
+  seq: 127
+}
+
+get {
+  url: {{baseUrl}}/v1/story-runs/{{run_ref}}
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}

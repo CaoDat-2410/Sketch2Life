@@ -1,0 +1,30 @@
+meta {
+  name: 079 [POST/ACTION - LOCAL TEST ONLY] Create Upload Session
+  type: http
+  seq: 79
+}
+
+post {
+  url: {{baseUrl}}/api/lesson-library/v1/organizations/{{organization_id}}/lessons/{{lesson_id}}/upload-sessions
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  Idempotency-Key: REPLACE_WITH_SYNTHETIC_VALUE
+}
+
+body:json {
+  {
+    "file_name": "REPLACE_ME",
+    "media_type": "REPLACE_ME",
+    "byte_length": 1,
+    "sha256": "x"
+  }
+}

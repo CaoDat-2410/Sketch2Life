@@ -1,0 +1,17 @@
+meta {
+  name: 121 [PROVIDER-CAPABLE - REVIEW BEFORE RUN] Read the last sanitized understanding stage projection
+  type: http
+  seq: 121
+}
+
+get {
+  url: {{baseUrl}}/v1/sessions/{{session_id}}/understanding/progress
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  request-id: REPLACE_WITH_SYNTHETIC_VALUE
+  X-Expected-Session-Version: 0
+}

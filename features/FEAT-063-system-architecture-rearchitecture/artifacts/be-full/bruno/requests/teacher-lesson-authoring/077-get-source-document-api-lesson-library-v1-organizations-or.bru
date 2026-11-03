@@ -1,0 +1,19 @@
+meta {
+  name: 077 [READ ONLY] Get Source Document
+  type: http
+  seq: 77
+}
+
+get {
+  url: {{baseUrl}}/api/lesson-library/v1/organizations/{{organization_id}}/lessons/{{lesson_id}}/source-documents/{{source_document_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+}

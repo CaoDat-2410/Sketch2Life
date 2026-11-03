@@ -1,0 +1,20 @@
+meta {
+  name: 014 [READ ONLY] Read Portfolio
+  type: http
+  seq: 14
+}
+
+get {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/classes/{{class_id}}/profiles/{{child_id}}/portfolio
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
+}

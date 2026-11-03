@@ -1,0 +1,15 @@
+meta {
+  name: 119 [PROVIDER-CAPABLE - REVIEW BEFORE RUN] Stream Story Video
+  type: http
+  seq: 119
+}
+
+get {
+  url: {{baseUrl}}/v1/sessions/{{session_id}}/story-video/{{job_id}}/file
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}

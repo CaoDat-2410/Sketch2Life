@@ -1,0 +1,20 @@
+meta {
+  name: 072 [STATE CHANGE - DISPOSABLE DATA ONLY] Archive Lesson
+  type: http
+  seq: 72
+}
+
+delete {
+  url: {{baseUrl}}/api/lesson-library/v1/organizations/{{organization_id}}/lessons/{{lesson_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  If-Match: REPLACE_WITH_SYNTHETIC_VALUE
+}

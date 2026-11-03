@@ -1,0 +1,62 @@
+meta {
+  name: 117 [PROVIDER-CAPABLE - REVIEW BEFORE RUN] Create Story Video Job
+  type: http
+  seq: 117
+}
+
+post {
+  url: {{baseUrl}}/v1/sessions/{{session_id}}/story-video-jobs
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "idempotency_key": "REPLACE_ME",
+    "package": {
+      "package_id": "REPLACE_ME",
+      "session_id": "REPLACE_ME",
+      "session_version": 0,
+      "source_image_ref": "REPLACE_ME",
+      "source_image_sha256": "x",
+      "confirmed_understanding_ref": "REPLACE_ME",
+      "confirmed_understanding_sha256": "x",
+      "experience_spec_ref": "REPLACE_ME",
+      "experience_spec_sha256": "x",
+      "story_script_ref": "REPLACE_ME",
+      "story_script_revision": 1,
+      "story_script_sha256": "x",
+      "audience_profile_ref": "REPLACE_ME",
+      "audience_profile_sha256": "x",
+      "evidence_set_ref": "REPLACE_ME",
+      "evidence_set_sha256": "x",
+      "locale": "REPLACE_ME",
+      "narration_profile_ref": "REPLACE_ME",
+      "narration_profile_sha256": "x",
+      "approval_ref": "REPLACE_ME",
+      "approval_sha256": "x",
+      "content_validator_version": "REPLACE_ME",
+      "content_validator_result": "PASSED",
+      "created_at": "REPLACE_ME",
+      "package_hash": "x"
+    },
+    "segments": [
+      {
+        "segment_id": "x",
+        "text": "REPLACE_ME",
+        "approved_fact_ids": [
+          "REPLACE_ME"
+        ],
+        "confirmed_anchor_ids": [
+          "REPLACE_ME"
+        ],
+        "scene_purpose": "INTRO"
+      }
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+meta {
+  name: 116 [PROVIDER-CAPABLE - REVIEW BEFORE RUN] List Story Video Jobs
+  type: http
+  seq: 116
+}
+
+get {
+  url: {{baseUrl}}/v1/sessions/{{session_id}}/story-video-jobs
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}

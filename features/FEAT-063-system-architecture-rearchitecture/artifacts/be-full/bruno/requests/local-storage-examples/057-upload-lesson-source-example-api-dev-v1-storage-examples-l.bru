@@ -1,0 +1,19 @@
+meta {
+  name: 057 [POST/ACTION - LOCAL TEST ONLY] Upload a local lesson-source storage example
+  type: http
+  seq: 57
+}
+
+post {
+  url: {{baseUrl}}/api/dev/v1/storage-examples/lesson-source-documents
+  body: multipart-form
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+body:multipart-form {
+  file: @file(./fixtures/REPLACE_WITH_SYNTHETIC_FILE) @contentType(application/octet-stream)
+}

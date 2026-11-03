@@ -1,0 +1,21 @@
+meta {
+  name: 089 [STATE CHANGE - DISPOSABLE DATA ONLY] Upload Part
+  type: http
+  seq: 89
+}
+
+put {
+  url: {{baseUrl}}/api/lesson-library/v1/upload-sessions/{{upload_session_id}}/parts/{{part_number}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Part-SHA256: REPLACE_WITH_SYNTHETIC_VALUE
+  Content-Range: REPLACE_WITH_SYNTHETIC_VALUE
+}

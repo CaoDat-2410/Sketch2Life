@@ -1,0 +1,30 @@
+meta {
+  name: 109 [QUERY-STYLE POST - VERIFY HANDLER] Read P1 Activity Suggestions
+  type: http
+  seq: 109
+}
+
+post {
+  url: {{baseUrl}}/v1/sessions/{{session_id}}/p1/activity-suggestions
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
+  X-Expected-Session-Version: 0
+  X-Actor-Ref: REPLACE_WITH_SYNTHETIC_VALUE
+}
+
+body:json {
+  {
+    "age_months": 0,
+    "child_profile": {
+      "profile_declared_by": "CAREGIVER",
+      "profile_recorded_at": "2000-01-01T00:00:00Z"
+    },
+    "adult_participating": true
+  }
+}

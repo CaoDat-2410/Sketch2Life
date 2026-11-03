@@ -1,0 +1,20 @@
+meta {
+  name: 088 [POST/ACTION - LOCAL TEST ONLY] Complete Upload
+  type: http
+  seq: 88
+}
+
+post {
+  url: {{baseUrl}}/api/lesson-library/v1/upload-sessions/{{upload_session_id}}/complete
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  Idempotency-Key: REPLACE_WITH_SYNTHETIC_VALUE
+}

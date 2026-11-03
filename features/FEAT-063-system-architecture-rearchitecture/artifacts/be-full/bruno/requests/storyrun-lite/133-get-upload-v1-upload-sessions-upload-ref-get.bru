@@ -1,0 +1,15 @@
+meta {
+  name: 133 [READ ONLY] Get Upload
+  type: http
+  seq: 133
+}
+
+get {
+  url: {{baseUrl}}/v1/upload-sessions/{{upload_ref}}
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}

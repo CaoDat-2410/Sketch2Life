@@ -504,3 +504,11 @@
 - Authorizes the six reviewed lifecycle/reconciliation/replay/singleton/Bruno findings and focused regression tests, plus feature-owned documentation/evidence/snapshot. Existing D1 permits cancel after PREPARATION_REVIEW; retain states and migrations.
 - Preserve the 55 pre-existing A2/local paths, HEAD/index and existing databases. PostgreSQL tests only on a new task-owned loopback DB; otherwise explicitly NOT RUN. No Modal/provider/GPU, stage, commit, push or merge.
 - Final implementation label: FIXED — XONG-CHƯA REVIEW only after required gates pass. Independent review remains a separate user-owned chat.
+
+## Owner approval — full BE Bruno collection — 2026-11-03
+
+- **Status:** APPROVED / IN PROGRESS.
+- **Owner instruction:** after Milestone 1 completes, create a complete Bruno collection for the full BE API surface under FEAT-063.
+- **Pinned plan:** `plan/BE_FULL_BRUNO_COLLECTION_PLAN_20261103.md`, SHA-256 `4488A7B739FDCC80246AFB590DDFC229B6DCB37FEB9600C5B9501B160E5E80ED`.
+- **Authorized scope:** inventory current mounted runtime API contracts; create a separate full-BE runtime OpenAPI artifact, Bruno collection, operation coverage matrix, local validator, README and evidence under `artifacts/be-full/`; update FEAT-063 records and snapshot.
+- **Boundaries:** preserve StoryRun-lite collection and all 55 unrelated A2 paths; no BE route/schema/migration changes, no real child data/credentials, no external provider/Modal/GPU calls, no existing DB reset, no stage/commit/push/merge.

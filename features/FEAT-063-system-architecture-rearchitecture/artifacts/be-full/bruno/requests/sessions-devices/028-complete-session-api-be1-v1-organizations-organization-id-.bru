@@ -1,0 +1,29 @@
+meta {
+  name: 028 [POST/ACTION - LOCAL TEST ONLY] Complete Session
+  type: http
+  seq: 28
+}
+
+post {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/sessions/{{session_id}}/completion
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  Idempotency-Key: REPLACE_WITH_SYNTHETIC_VALUE
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
+}
+
+body:json {
+  {
+    "expected_stage_revision": 1,
+    "outcome": "completed"
+  }
+}

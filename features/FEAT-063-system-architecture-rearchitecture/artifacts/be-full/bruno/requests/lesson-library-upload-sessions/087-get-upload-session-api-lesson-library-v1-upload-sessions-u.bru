@@ -1,0 +1,19 @@
+meta {
+  name: 087 [READ ONLY] Get Upload Session
+  type: http
+  seq: 87
+}
+
+get {
+  url: {{baseUrl}}/api/lesson-library/v1/upload-sessions/{{upload_session_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+}

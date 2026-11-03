@@ -1,0 +1,20 @@
+meta {
+  name: 067 [POST/ACTION - LOCAL TEST ONLY] Accept Parent Group Invitation
+  type: http
+  seq: 67
+}
+
+post {
+  url: {{baseUrl}}/api/lesson-library/v1/me/parent-group-invitations/{{membership_id}}/accept
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  Idempotency-Key: REPLACE_WITH_SYNTHETIC_VALUE
+}

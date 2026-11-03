@@ -1,0 +1,17 @@
+meta {
+  name: 135 [STATE CHANGE - DISPOSABLE DATA ONLY] Put Upload Part
+  type: http
+  seq: 135
+}
+
+put {
+  url: {{baseUrl}}/v1/upload-sessions/{{upload_ref}}/parts/{{part_no}}
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Length: REPLACE_WITH_SYNTHETIC_VALUE
+  Content-SHA256: REPLACE_WITH_SYNTHETIC_VALUE
+}

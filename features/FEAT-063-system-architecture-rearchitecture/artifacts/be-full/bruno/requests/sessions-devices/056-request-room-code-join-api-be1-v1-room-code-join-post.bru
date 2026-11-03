@@ -1,0 +1,24 @@
+meta {
+  name: 056 [POST/ACTION - LOCAL TEST ONLY] Request Room Code Join
+  type: http
+  seq: 56
+}
+
+post {
+  url: {{baseUrl}}/api/be1/v1/room-code/join
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
+}
+
+body:json {
+  {
+    "room_code": "x",
+    "device_key": "REPLACE_ME"
+  }
+}

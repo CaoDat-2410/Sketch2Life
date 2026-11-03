@@ -1,0 +1,20 @@
+meta {
+  name: 010 [POST/ACTION - LOCAL TEST ONLY] Revoke Consent
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/classes/{{class_id}}/consents/{{consent_id}}/revoke
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
+}

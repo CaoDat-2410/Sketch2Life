@@ -1,0 +1,27 @@
+meta {
+  name: 019 [POST/ACTION - LOCAL TEST ONLY] Annotate Gallery
+  type: http
+  seq: 19
+}
+
+post {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/gallery/{{gallery_id}}/annotations
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
+}
+
+body:json {
+  {
+    "text": "REPLACE_ME"
+  }
+}

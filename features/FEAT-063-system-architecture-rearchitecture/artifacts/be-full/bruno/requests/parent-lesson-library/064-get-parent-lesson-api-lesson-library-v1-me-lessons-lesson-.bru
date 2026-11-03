@@ -1,0 +1,19 @@
+meta {
+  name: 064 [READ ONLY] Get Parent Lesson
+  type: http
+  seq: 64
+}
+
+get {
+  url: {{baseUrl}}/api/lesson-library/v1/me/lessons/{{lesson_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+}

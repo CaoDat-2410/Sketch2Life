@@ -1,0 +1,18 @@
+meta {
+  name: 051 [READ ONLY] Reconnect Canvas
+  type: http
+  seq: 51
+}
+
+get {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/sessions/{{session_id}}/reconnect
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  X-Be1-Grant: REPLACE_WITH_SYNTHETIC_VALUE
+  X-Be1-Device-Key: REPLACE_WITH_SYNTHETIC_VALUE
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
+}

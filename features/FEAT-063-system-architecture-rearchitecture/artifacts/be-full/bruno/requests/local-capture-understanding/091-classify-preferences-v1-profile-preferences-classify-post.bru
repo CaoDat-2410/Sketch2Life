@@ -1,0 +1,23 @@
+meta {
+  name: 091 [PROVIDER-CAPABLE - REVIEW BEFORE RUN] Classify Preferences
+  type: http
+  seq: 91
+}
+
+post {
+  url: {{baseUrl}}/v1/profile/preferences/classify
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  X-Actor-Ref: REPLACE_WITH_SYNTHETIC_VALUE
+}
+
+body:json {
+  {
+    "request_id": "REPLACE_ME"
+  }
+}

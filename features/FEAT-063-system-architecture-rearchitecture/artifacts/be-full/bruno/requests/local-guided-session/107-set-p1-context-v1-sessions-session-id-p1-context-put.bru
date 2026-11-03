@@ -1,0 +1,27 @@
+meta {
+  name: 107 [STATE CHANGE - DISPOSABLE DATA ONLY] Set P1 Context
+  type: http
+  seq: 107
+}
+
+put {
+  url: {{baseUrl}}/v1/sessions/{{session_id}}/p1-context
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "request_id": "REPLACE_ME",
+    "idempotency_key": "REPLACE_ME",
+    "session_id": "REPLACE_ME",
+    "expected_session_version": 0,
+    "actor_ref": "REPLACE_ME",
+    "payload": {}
+  }
+}

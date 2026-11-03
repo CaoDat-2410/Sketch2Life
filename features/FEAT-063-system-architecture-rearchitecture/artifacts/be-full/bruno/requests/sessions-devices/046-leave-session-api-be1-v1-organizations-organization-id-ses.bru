@@ -1,0 +1,20 @@
+meta {
+  name: 046 [POST/ACTION - LOCAL TEST ONLY] Leave Session
+  type: http
+  seq: 46
+}
+
+post {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/sessions/{{session_id}}/memberships/{{membership_id}}/leave
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
+}

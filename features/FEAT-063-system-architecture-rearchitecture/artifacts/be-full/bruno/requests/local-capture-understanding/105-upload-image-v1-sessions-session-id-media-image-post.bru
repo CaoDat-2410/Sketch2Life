@@ -1,0 +1,24 @@
+meta {
+  name: 105 [POST/ACTION - LOCAL TEST ONLY] Upload and admit one synthetic non-child image
+  type: http
+  seq: 105
+}
+
+post {
+  url: {{baseUrl}}/v1/sessions/{{session_id}}/media/image
+  body: multipart-form
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: swagger-qa-image-001
+  X-Expected-Session-Version: 0
+  Idempotency-Key: swagger-qa-image-001
+  X-Actor-Ref: demo:local
+  X-Synthetic-Non-Child-Confirmed: true
+}
+
+body:multipart-form {
+  image: @file(./fixtures/REPLACE_WITH_SYNTHETIC_FILE) @contentType(application/octet-stream)
+}

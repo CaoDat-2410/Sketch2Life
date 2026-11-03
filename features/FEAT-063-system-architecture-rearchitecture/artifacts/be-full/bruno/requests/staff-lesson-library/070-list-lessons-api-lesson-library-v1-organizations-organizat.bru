@@ -1,0 +1,19 @@
+meta {
+  name: 070 [READ ONLY] List Lessons
+  type: http
+  seq: 70
+}
+
+get {
+  url: {{baseUrl}}/api/lesson-library/v1/organizations/{{organization_id}}/lessons
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+}

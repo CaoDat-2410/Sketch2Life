@@ -1,0 +1,15 @@
+meta {
+  name: 124 [PROVIDER-CAPABLE - REVIEW BEFORE RUN] Stream Whiteboard Video
+  type: http
+  seq: 124
+}
+
+get {
+  url: {{baseUrl}}/v1/sessions/{{session_id}}/whiteboard-video/file
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}

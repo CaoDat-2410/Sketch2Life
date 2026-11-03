@@ -1,0 +1,29 @@
+meta {
+  name: 009 [POST/ACTION - LOCAL TEST ONLY] Record Consent
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/classes/{{class_id}}/consents
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
+}
+
+body:json {
+  {
+    "class_id": "REPLACE_ME",
+    "child_id": "REPLACE_ME",
+    "purpose_ref": "REPLACE_ME"
+  }
+}

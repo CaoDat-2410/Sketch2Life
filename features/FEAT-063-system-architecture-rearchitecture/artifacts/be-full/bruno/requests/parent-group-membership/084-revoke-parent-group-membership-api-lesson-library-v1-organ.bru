@@ -1,0 +1,20 @@
+meta {
+  name: 084 [STATE CHANGE - DISPOSABLE DATA ONLY] Revoke Parent Group Membership
+  type: http
+  seq: 84
+}
+
+delete {
+  url: {{baseUrl}}/api/lesson-library/v1/organizations/{{organization_id}}/parent-groups/{{parent_group_id}}/members/{{membership_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  If-Match: REPLACE_WITH_SYNTHETIC_VALUE
+}

@@ -1,0 +1,32 @@
+meta {
+  name: 013 [POST/ACTION - LOCAL TEST ONLY] Create Profile
+  type: http
+  seq: 13
+}
+
+post {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/classes/{{class_id}}/profiles
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
+}
+
+body:json {
+  {
+    "child_id": "REPLACE_ME",
+    "class_id": "REPLACE_ME",
+    "consent_id": "REPLACE_ME",
+    "purpose_ref": "REPLACE_ME",
+    "display_name": "REPLACE_ME",
+    "age_months": 36
+  }
+}

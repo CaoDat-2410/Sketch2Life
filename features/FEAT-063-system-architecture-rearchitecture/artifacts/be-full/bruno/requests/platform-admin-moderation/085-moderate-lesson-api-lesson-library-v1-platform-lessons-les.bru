@@ -1,0 +1,29 @@
+meta {
+  name: 085 [STATE CHANGE - DISPOSABLE DATA ONLY] Moderate Lesson
+  type: http
+  seq: 85
+}
+
+patch {
+  url: {{baseUrl}}/api/lesson-library/v1/platform/lessons/{{lesson_id}}/moderation
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  If-Match: REPLACE_WITH_SYNTHETIC_VALUE
+  Idempotency-Key: REPLACE_WITH_SYNTHETIC_VALUE
+}
+
+body:json {
+  {
+    "state": "HIDDEN",
+    "reason": "REPLACE_ME"
+  }
+}

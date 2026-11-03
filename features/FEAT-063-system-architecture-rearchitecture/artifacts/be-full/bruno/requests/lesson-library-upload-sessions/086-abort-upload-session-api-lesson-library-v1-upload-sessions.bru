@@ -1,0 +1,19 @@
+meta {
+  name: 086 [STATE CHANGE - DISPOSABLE DATA ONLY] Abort Upload Session
+  type: http
+  seq: 86
+}
+
+delete {
+  url: {{baseUrl}}/api/lesson-library/v1/upload-sessions/{{upload_session_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+}

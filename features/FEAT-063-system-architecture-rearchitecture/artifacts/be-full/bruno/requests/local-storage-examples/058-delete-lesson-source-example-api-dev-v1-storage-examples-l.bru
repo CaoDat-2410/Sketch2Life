@@ -1,0 +1,15 @@
+meta {
+  name: 058 [STATE CHANGE - DISPOSABLE DATA ONLY] Delete a local lesson-source storage example
+  type: http
+  seq: 58
+}
+
+delete {
+  url: {{baseUrl}}/api/dev/v1/storage-examples/lesson-source-documents/{{object_id}}
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}

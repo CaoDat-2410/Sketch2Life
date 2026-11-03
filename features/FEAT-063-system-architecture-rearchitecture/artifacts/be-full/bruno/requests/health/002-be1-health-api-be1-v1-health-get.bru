@@ -1,0 +1,16 @@
+meta {
+  name: 002 [READ ONLY] Be1 Health
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/be1/v1/health
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
+}
