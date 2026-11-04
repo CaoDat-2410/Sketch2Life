@@ -1,5 +1,9 @@
 # Source register and authority boundary
 
+## FEAT-063 Modal AI setup scaffold — 2026-11-03
+
+Owner request: create Modal setup artifacts now; owner will configure the environment later. Approved exact scope: `features/FEAT-063-system-architecture-rearchitecture/plan/MODAL_AI_SETUP_SCAFFOLD_20261103.md` (SHA-256 `7FE03A68DF76877457DF5C5F652FCB705669A624B2E07F7B6F317C9FB510E391`), with approval in the FEAT-063 task ledger. The canonical source is the FEAT-063 SRS v2.3-draft, not historical FEAT-062 copies. The added `deployment/modal/srs_v23/` directory is a dev-only, model-unconfigured scaffold. No Modal account operation, deployment, inference, GPU spend, actual secret/env edit, backend integration, product test or real-child data is performed by this task.
+
 ## B3 manifest and decision slip sources — 2026-10-31
 
 The B3 manifest combines FEAT-064 owner-path and guard drafts, ADR-0015, FEAT-064 D-07/D-08, the Rev36 coordination section and a read-only count of the Alembic revision files. `OWNER_DECISION_SLIP_20261031.md` records the owner's answers to the proposal slip; it grants no approval and no signature, and the B2 Parent-activity answers Q2-Q8 it records still require B2A to be approved before any SRS or register edit.
@@ -599,3 +603,28 @@ The owner adopted `BE2-VIDEO-LIFECYCLE/1` for A/S/B and identity-failure under t
 their exact §4 path lists were verified (7/7, 14/14, and 1/1).
 
 The implementation is limited to those approved source/test manifests. The focused unit/contract batch passed 325 tests. PostgreSQL 17 persistence verification remains unrun because its required isolated loopback endpoint and external test-only credential file are unavailable; no database was created or contacted. Evidence is indexed at `features/FEAT-057-be2-01-14-offline-integration/evidence/README.md`. Durable BE2-07 source fencing is separately gated, X01 remains PARTIAL, and no BE1 integration readiness is claimed.
+
+## Modal drawing VLM L4 POC — 2026-11-03
+
+- FEAT-063 approved synthetic-only POC plan: features/FEAT-063-system-architecture-rearchitecture/plan/MODAL_DRAWING_VLM_L4_POC_20261103.md, SHA-256 F2AF6433EFE812BBD8144CBCD3E4ECFDE09FCF0A9952280BCE814314A7008E72; approval is recorded in the feature approval log.
+- Model source: Qwen/Qwen2.5-VL-7B-Instruct, immutable revision cc594898137f460bfe9f0759e9844b3ce807cfb5, Apache-2.0 model card; Transformers v4.53.0 usage docs.
+- Hosting sources: Modal GPU, Volume v2, read-only mount, and model weight storage docs. The owner's dev account preflight found no existing app/volume/secret and a current-month metered-cost summary of 0.00.
+- Implementation/evidence status: POC implementation is starting under the approved path list; no real child data is in scope.
+
+## Modal AI hosting wave — 2026-11-03
+
+- Owner-authorized FEAT-063 dev-only wave is pinned in `features/FEAT-063-system-architecture-rearchitecture/plan/MODAL_AI_HOSTING_WAVE_20261103.md`; exact approved hash and deployment evidence are in the feature approval/evidence records.
+- Official hosting sources: [Modal GPU guide](https://modal.com/docs/guide/gpu) and [Modal Volumes guide](https://modal.com/docs/guide/volumes). Official model/runtime sources and exact immutable revisions are catalogued in `features/FEAT-063-system-architecture-rearchitecture/evidence/MODAL_AI_HOSTING_WAVE_20261103.md`.
+- Status at hosting-wave capture: private dev apps deployed; all seven pinned checkpoints downloaded directly into Modal Volume (88.59 GiB retained files); TTS-to-ASR and FLUX synthetic POCs succeeded, with one ASR word substitution and FLUX queue-plus-cold-start of about 20 minutes. The corrective Qwen-VL call later reached terminal success; a separate API-triggered call and its unreconciled API state are recorded in FEAT-063 evidence. Qwen story and Wan inference have not run. Current Modal billing after downloads is unchecked. All product workloads stay disabled; no production model choice/readiness is inferred.
+
+## Local API runtime availability smoke — 2026-11-03
+
+- Owner-authorized read-only checks: `features/FEAT-063-system-architecture-rearchitecture/plan/API_RUNTIME_AVAILABILITY_SMOKE_20261103.md` and matching approval/evidence records.
+- Local Docker API `/health` and `/openapi.json` returned 200. Active image has no StoryRun route, AI provider is unset, and no route dispatches to the new private Modal functions; read-only StoryRun probe returned 404. No write or inference request was sent.
+- Full results and the separation from the earlier temporary-Modal StoryRun test are recorded in `features/FEAT-063-system-architecture-rearchitecture/evidence/API_RUNTIME_AVAILABILITY_SMOKE_20261103.md`.
+
+## FEAT-063 full non-video AI retest — 2026-11-04
+
+- Approved scope and criteria: `features/FEAT-063-system-architecture-rearchitecture/plan/AI_NONVIDEO_WORKLOAD_FULL_RETEST_20261104.md`; execution results: `features/FEAT-063-system-architecture-rearchitecture/evidence/AI_NONVIDEO_WORKLOAD_FULL_RETEST_RESULTS_20261104.md`.
+- Fresh synthetic TTS→Whisper succeeded. GPU-backed VLM, story, FLUX, Teacher Deck, and SAM2 calls timed out at their approved queue bound; all 13 mounted StoryRun-lite operations passed 14 isolated contract checks. Video was excluded.
+- All Modal dev apps stopped at zero tasks; task-owned PostgreSQL/cache removed; shared Docker services and Modal Volumes retained. Product workloads remain disabled.

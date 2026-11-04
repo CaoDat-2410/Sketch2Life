@@ -1,0 +1,127 @@
+{
+  "started_at": "2026-11-04T17:14:09+07:00",
+  "ended_at": "2026-11-04T17:14:13+07:00",
+  "actor_scope_ref": "synthetic-parent-api-contract-retest-v2-20261104",
+  "task_database": "storyrun_lite_feat063_ai_api_contract_20261104",
+  "api_dispatches": 0,
+  "video_calls": 0,
+  "routes_covered": 14,
+  "routes": [
+    {
+      "name": "POST /v1/story-runs missing-age validation",
+      "method": "POST",
+      "path": "/v1/story-runs",
+      "status": 422,
+      "assessment": "expected 422",
+      "response_code": "INVALID_REQUEST"
+    },
+    {
+      "name": "POST /v1/story-runs",
+      "method": "POST",
+      "path": "/v1/story-runs",
+      "status": 201,
+      "assessment": "passed 201",
+      "response_code": null
+    },
+    {
+      "name": "GET /v1/story-runs/{run_ref}",
+      "method": "GET",
+      "path": "/v1/story-runs/dd60a92e-3bea-4e40-a3f3-0b2ea6e85052",
+      "status": 200,
+      "assessment": "passed 200",
+      "response_code": null
+    },
+    {
+      "name": "POST /v1/story-runs/{run_ref}/assets invalid reference",
+      "method": "POST",
+      "path": "/v1/story-runs/dd60a92e-3bea-4e40-a3f3-0b2ea6e85052/assets",
+      "status": 404,
+      "assessment": "expected no-AI rejection",
+      "response_code": "NOT_FOUND"
+    },
+    {
+      "name": "POST /v1/story-runs/{run_ref}/subject-confirmation",
+      "method": "POST",
+      "path": "/v1/story-runs/dd60a92e-3bea-4e40-a3f3-0b2ea6e85052/subject-confirmation",
+      "status": 409,
+      "assessment": "expected 409 before AI result",
+      "response_code": "STALE_REVISION"
+    },
+    {
+      "name": "POST /v1/story-runs/{run_ref}/story-revisions no-dispatch guard",
+      "method": "POST",
+      "path": "/v1/story-runs/dd60a92e-3bea-4e40-a3f3-0b2ea6e85052/story-revisions",
+      "status": 409,
+      "assessment": "expected 409 before AI dispatch",
+      "response_code": "INVALID_STATE"
+    },
+    {
+      "name": "GET /v1/story-runs/{run_ref}/story-revisions/{revision_ref}",
+      "method": "GET",
+      "path": "/v1/story-runs/dd60a92e-3bea-4e40-a3f3-0b2ea6e85052/story-revisions/02b733e3-0010-41b2-80c1-eb5c6768c53e",
+      "status": 404,
+      "assessment": "expected 404 for absent revision",
+      "response_code": "NOT_FOUND"
+    },
+    {
+      "name": "POST /v1/story-runs/{run_ref}/story-revisions/{revision_ref}/confirmation",
+      "method": "POST",
+      "path": "/v1/story-runs/dd60a92e-3bea-4e40-a3f3-0b2ea6e85052/story-revisions/02b733e3-0010-41b2-80c1-eb5c6768c53e/confirmation",
+      "status": 404,
+      "assessment": "expected 404 for absent revision",
+      "response_code": "NOT_FOUND"
+    },
+    {
+      "name": "POST /v1/story-runs/{run_ref}/cancel",
+      "method": "POST",
+      "path": "/v1/story-runs/dd60a92e-3bea-4e40-a3f3-0b2ea6e85052/cancel",
+      "status": 202,
+      "assessment": "passed 202",
+      "response_code": null
+    },
+    {
+      "name": "POST /v1/upload-sessions",
+      "method": "POST",
+      "path": "/v1/upload-sessions",
+      "status": 201,
+      "assessment": "passed 201",
+      "response_code": null
+    },
+    {
+      "name": "PUT /v1/upload-sessions/{upload_ref}/parts/{part_no}",
+      "method": "PUT",
+      "path": "/v1/upload-sessions/0c2a6ceb-a88d-4835-9990-6aaee7241030/parts/1",
+      "status": 200,
+      "assessment": "passed 200",
+      "response_code": null
+    },
+    {
+      "name": "GET /v1/upload-sessions/{upload_ref}",
+      "method": "GET",
+      "path": "/v1/upload-sessions/0c2a6ceb-a88d-4835-9990-6aaee7241030",
+      "status": 200,
+      "assessment": "passed 200",
+      "response_code": null
+    },
+    {
+      "name": "POST /v1/upload-sessions/{upload_ref}/complete",
+      "method": "POST",
+      "path": "/v1/upload-sessions/0c2a6ceb-a88d-4835-9990-6aaee7241030/complete",
+      "status": 202,
+      "assessment": "passed; final state READY",
+      "response_code": null
+    },
+    {
+      "name": "DELETE /v1/upload-sessions/{upload_ref}",
+      "method": "DELETE",
+      "path": "/v1/upload-sessions/47c5c44b-1125-4c09-9436-3642ad0ae8b5",
+      "status": 202,
+      "assessment": "passed 202",
+      "response_code": null
+    }
+  ],
+  "expected_limitations": [
+    "AI success paths are reported separately; this contract pass used no AI dispatch.",
+    "The full Parent asset-attach path is the separate Modal-backed run and ended VISION_OUTCOME_UNKNOWN."
+  ]
+}

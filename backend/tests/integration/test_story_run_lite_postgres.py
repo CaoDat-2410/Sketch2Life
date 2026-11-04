@@ -9,9 +9,6 @@ from datetime import UTC, datetime, timedelta, tzinfo
 from typing import Self, cast
 
 import pytest
-from sqlalchemy import Table, create_engine, event, insert, select, text, update
-from sqlalchemy.exc import IntegrityError
-
 from sketch2life.application.ports.story_run_lite import (
     AdmittedAssetPair,
     AssetBinding,
@@ -28,6 +25,8 @@ from sketch2life.infrastructure.story_run_lite.composition import (
 )
 from sketch2life.infrastructure.story_run_lite.quarantine import QuarantineStore
 from sketch2life.infrastructure.story_run_lite.repository import SqlStoryRunLiteRepository
+from sqlalchemy import Table, create_engine, event, insert, select, text, update
+from sqlalchemy.exc import IntegrityError
 
 _PARENT = OwnerScopeKind.PARENT_ACCOUNT
 
@@ -81,6 +80,7 @@ def _create_run(repository: SqlStoryRunLiteRepository, owner: str) -> str:
         actor_scope_kind=_PARENT,
         actor_scope_ref=owner,
         profile_ref="synthetic-parent-demo",
+        child_age_months=60,
         key_sha256=_hash("create-run:" + owner),
         fingerprint_sha256=_hash("fingerprint-create-run:" + owner),
     )
@@ -162,12 +162,8 @@ def _open_upload_for_admission(
     )
     assert reservation.command_result.status_code == 202
     assert reservation.claim_version is not None
-    repository.finalize_complete_upload(
-        reservation, key_sha256=_hash("complete:" + name)
-    )
-    assert repository.open_upload_gate(
-        upload_id=upload_id, claim_version=reservation.claim_version
-    )
+    repository.finalize_complete_upload(reservation, key_sha256=_hash("complete:" + name))
+    assert repository.open_upload_gate(upload_id=upload_id, claim_version=reservation.claim_version)
     return reservation.claim_version
 
 
@@ -675,16 +671,18 @@ def test_cancel_racing_complete_aborts_upload_before_admission_and_cleans_stagin
     with engine.connect() as connection:
         assets = connection.execute(
             select(CoreAssetMetadataModel.asset_ref).where(
-                CoreAssetMetadataModel.asset_ref.in_(
-                    [original_ref, derived_ref]
-                )
+                CoreAssetMetadataModel.asset_ref.in_([original_ref, derived_ref])
             )
         ).all()
-        upload = connection.execute(
-            select(tables.upload_sessions).where(
-                tables.upload_sessions.c.upload_session_id == upload_id
+        upload = (
+            connection.execute(
+                select(tables.upload_sessions).where(
+                    tables.upload_sessions.c.upload_session_id == upload_id
+                )
             )
-        ).mappings().one()
+            .mappings()
+            .one()
+        )
     assert assets == []
     assert upload["state"] == UploadState.ABORTED.value
     assert not (quarantine._parts / upload_id).exists()
@@ -705,9 +703,7 @@ def test_cancel_racing_complete_aborts_upload_before_admission_and_cleans_stagin
 
 
 @pytest.mark.parametrize("winner", ["cancel", "admission"])
-def test_cancel_and_admission_finalizer_race_serializes_asset_commit(
-    story_db, winner: str
-) -> None:
+def test_cancel_and_admission_finalizer_race_serializes_asset_commit(story_db, winner: str) -> None:
     engine, repository = story_db
     owner = "parent-cancel-admission-race-" + winner + "-" + str(uuid.uuid4())
     run_id = _create_run(repository, owner)
@@ -819,16 +815,24 @@ def test_cancel_and_admission_finalizer_race_serializes_asset_commit(
     assert cancel_result.status_code == 202
     assert cancel_result.body["run_state"] == "DELETE_PENDING"
     with engine.connect() as connection:
-        upload = connection.execute(
-            select(tables.upload_sessions).where(
-                tables.upload_sessions.c.upload_session_id == upload_id
+        upload = (
+            connection.execute(
+                select(tables.upload_sessions).where(
+                    tables.upload_sessions.c.upload_session_id == upload_id
+                )
             )
-        ).mappings().one()
-        assets = connection.execute(
-            select(CoreAssetMetadataModel.asset_ref).where(
-                CoreAssetMetadataModel.asset_ref.in_([original_ref, derived_ref])
+            .mappings()
+            .one()
+        )
+        assets = (
+            connection.execute(
+                select(CoreAssetMetadataModel.asset_ref).where(
+                    CoreAssetMetadataModel.asset_ref.in_([original_ref, derived_ref])
+                )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
     if winner == "cancel":
         assert commit_order == ["cancel", "admission"]
         assert admission_result is False
@@ -895,20 +899,22 @@ def test_expiry_is_enforced_at_utc_boundary_for_get_put_complete_and_versions(
             .values(expires_at=fixed_now)
         )
     with pytest.raises(StoryRunLiteError) as expired_get:
-        repository.get_upload(
-            actor_scope_kind=_PARENT, actor_scope_ref=owner, upload_id=upload_id
-        )
+        repository.get_upload(actor_scope_kind=_PARENT, actor_scope_ref=owner, upload_id=upload_id)
     assert expired_get.value.status_code == 410
     assert expired_get.value.code == "UPLOAD_EXPIRED"
     assert not snapshot_path.exists()
     assert not (quarantine._parts / upload_id).exists()
 
     with engine.connect() as connection:
-        row = connection.execute(
-            select(tables.upload_sessions).where(
-                tables.upload_sessions.c.upload_session_id == upload_id
+        row = (
+            connection.execute(
+                select(tables.upload_sessions).where(
+                    tables.upload_sessions.c.upload_session_id == upload_id
+                )
             )
-        ).mappings().one()
+            .mappings()
+            .one()
+        )
         part_count = connection.execute(
             select(tables.upload_parts.c.upload_part_id).where(
                 tables.upload_parts.c.upload_session_id == upload_id
@@ -958,17 +964,25 @@ def test_expiry_is_enforced_at_utc_boundary_for_get_put_complete_and_versions(
     assert replay.command_result.replayed is True
     assert replay.command_result.body == completed.command_result.body
     with engine.connect() as connection:
-        row = connection.execute(
-            select(tables.upload_sessions).where(
-                tables.upload_sessions.c.upload_session_id == upload_id
+        row = (
+            connection.execute(
+                select(tables.upload_sessions).where(
+                    tables.upload_sessions.c.upload_session_id == upload_id
+                )
             )
-        ).mappings().one()
-        receipt = connection.execute(
-            select(tables.upload_command_receipts).where(
-                tables.upload_command_receipts.c.resource_ref == upload_id,
-                tables.upload_command_receipts.c.operation == "COMPLETE_UPLOAD",
+            .mappings()
+            .one()
+        )
+        receipt = (
+            connection.execute(
+                select(tables.upload_command_receipts).where(
+                    tables.upload_command_receipts.c.resource_ref == upload_id,
+                    tables.upload_command_receipts.c.operation == "COMPLETE_UPLOAD",
+                )
             )
-        ).mappings().one()
+            .mappings()
+            .one()
+        )
     assert row["state"] == UploadState.EXPIRED.value
     assert row["state_version"] == 2
     assert row["admission_gate_open"] is False
@@ -1092,22 +1106,30 @@ def test_expiry_uses_utc_time_after_story_run_lock_wait(
         assert result.code == "UPLOAD_EXPIRED"
 
     with engine.connect() as connection:
-        upload = connection.execute(
-            select(tables.upload_sessions).where(
-                tables.upload_sessions.c.upload_session_id == upload_id
+        upload = (
+            connection.execute(
+                select(tables.upload_sessions).where(
+                    tables.upload_sessions.c.upload_session_id == upload_id
+                )
             )
-        ).mappings().one()
+            .mappings()
+            .one()
+        )
         parts = connection.execute(
             select(tables.upload_parts.c.upload_part_id).where(
                 tables.upload_parts.c.upload_session_id == upload_id
             )
         ).all()
-        completion_receipts = connection.execute(
-            select(tables.upload_command_receipts).where(
-                tables.upload_command_receipts.c.resource_ref == upload_id,
-                tables.upload_command_receipts.c.operation == "COMPLETE_UPLOAD",
+        completion_receipts = (
+            connection.execute(
+                select(tables.upload_command_receipts).where(
+                    tables.upload_command_receipts.c.resource_ref == upload_id,
+                    tables.upload_command_receipts.c.operation == "COMPLETE_UPLOAD",
+                )
             )
-        ).mappings().all()
+            .mappings()
+            .all()
+        )
     assert upload["state"] == UploadState.EXPIRED.value
     assert upload["state_version"] == 2
     assert upload["admission_gate_open"] is False
@@ -1179,13 +1201,17 @@ def test_recovery_rechecks_expiry_after_wait_on_unfinished_upload_lock(
 
     recovery_time = deadline + timedelta(microseconds=1)
     with engine.connect() as connection:
-        before = connection.execute(
-            select(
-                tables.upload_sessions.c.upload_session_id,
-                tables.upload_sessions.c.state,
-                tables.upload_sessions.c.expires_at,
+        before = (
+            connection.execute(
+                select(
+                    tables.upload_sessions.c.upload_session_id,
+                    tables.upload_sessions.c.state,
+                    tables.upload_sessions.c.expires_at,
+                )
             )
-        ).mappings().all()
+            .mappings()
+            .all()
+        )
     expected_failed = {
         row["upload_session_id"]
         for row in before
@@ -1259,16 +1285,24 @@ def test_recovery_rechecks_expiry_after_wait_on_unfinished_upload_lock(
     assert not (repository._quarantine._parts / upload_id).exists()
     assert not snapshot_path.exists()
     with engine.connect() as connection:
-        row = connection.execute(
-            select(tables.upload_sessions).where(
-                tables.upload_sessions.c.upload_session_id == upload_id
+        row = (
+            connection.execute(
+                select(tables.upload_sessions).where(
+                    tables.upload_sessions.c.upload_session_id == upload_id
+                )
             )
-        ).mappings().one()
-        blocker = connection.execute(
-            select(tables.upload_sessions).where(
-                tables.upload_sessions.c.upload_session_id == blocker_upload_id
+            .mappings()
+            .one()
+        )
+        blocker = (
+            connection.execute(
+                select(tables.upload_sessions).where(
+                    tables.upload_sessions.c.upload_session_id == blocker_upload_id
+                )
             )
-        ).mappings().one()
+            .mappings()
+            .one()
+        )
     assert row["state"] == UploadState.EXPIRED.value
     assert row["state_version"] == 2
     assert blocker["state"] == UploadState.FAILED.value
@@ -1310,13 +1344,17 @@ def test_startup_recovery_expires_receiving_and_retries_staging_cleanup(story_db
             .values(expires_at=recovery_time - timedelta(seconds=1))
         )
     with engine.connect() as connection:
-        before = connection.execute(
-            select(
-                tables.upload_sessions.c.upload_session_id,
-                tables.upload_sessions.c.state,
-                tables.upload_sessions.c.expires_at,
+        before = (
+            connection.execute(
+                select(
+                    tables.upload_sessions.c.upload_session_id,
+                    tables.upload_sessions.c.state,
+                    tables.upload_sessions.c.expires_at,
+                )
             )
-        ).mappings().all()
+            .mappings()
+            .all()
+        )
     expected_expiring = {
         row["upload_session_id"]
         for row in before
@@ -1350,11 +1388,15 @@ def test_startup_recovery_expires_receiving_and_retries_staging_cleanup(story_db
     assert parts_path.exists()
     assert snapshot_path.exists()
     with engine.connect() as connection:
-        first_row = connection.execute(
-            select(tables.upload_sessions).where(
-                tables.upload_sessions.c.upload_session_id == upload_id
+        first_row = (
+            connection.execute(
+                select(tables.upload_sessions).where(
+                    tables.upload_sessions.c.upload_session_id == upload_id
+                )
             )
-        ).mappings().one()
+            .mappings()
+            .one()
+        )
     assert first_row["state"] == UploadState.EXPIRED.value
     assert first_row["state_version"] == 2
 
@@ -1368,10 +1410,14 @@ def test_startup_recovery_expires_receiving_and_retries_staging_cleanup(story_db
     assert not parts_path.exists()
     assert not snapshot_path.exists()
     with engine.connect() as connection:
-        row = connection.execute(
-            select(tables.upload_sessions).where(
-                tables.upload_sessions.c.upload_session_id == upload_id
+        row = (
+            connection.execute(
+                select(tables.upload_sessions).where(
+                    tables.upload_sessions.c.upload_session_id == upload_id
+                )
             )
-        ).mappings().one()
+            .mappings()
+            .one()
+        )
     assert row["state"] == UploadState.EXPIRED.value
     assert row["state_version"] == 2

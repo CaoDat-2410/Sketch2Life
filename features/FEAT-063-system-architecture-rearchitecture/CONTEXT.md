@@ -343,9 +343,81 @@ Historical statements below preserve prior decisions. Where they conflict with Q
 - S1 and S2 technical/runtime gates are VERIFIED. Strict end-to-end acceptance remains NOT VERIFIED only because the initial 83-path hash audit has one unrelated FEAT-063 roadmap mismatch outside the edit allowlist; that current file was preserved untouched. The other three hash changes are approved append-only FEAT-063 records. All 35 protected FEAT-061/FEAT-064 paths, including A2 and the three FEAT-061 documents, are byte-identical.
 - Goal-owned databases and local processes were cleaned up after verification. No A2 work, Modal/GPU/provider inference, real child data, or deployment occurred.
 
+## Modal AI setup scaffold — approved, awaiting owner environment setup (2026-11-03)
+
+- Owner approved exact scaffold plan `plan/MODAL_AI_SETUP_SCAFFOLD_20261103.md`, SHA-256 `7FE03A68DF76877457DF5C5F652FCB705669A624B2E07F7B6F317C9FB510E391`; approval is recorded in `approvals/TASK_APPROVAL.md`.
+- Canonical workflow source is FEAT-063 SRS v2.3-draft. The new `deployment/modal/srs_v23/` registry and two dev-only app skeletons do not lock model candidates or change backend provider selection.
+- All Modal stage handlers are intentionally unconfigured. Current dev settings are L4 for smaller candidate stages and L40S for the LTX video candidate; both are scaffolding values only. Parent/Teacher sketches remain opt-in; lesson/activity suggestion stays disabled while Q157/Q159 roles are unresolved.
+- Owner will provision Modal environment/secrets later. No Modal command, account resource, model call, GPU, actual `.env`, deployment, product test, or child data is used by this task.
+
 
 ## StoryRun-lite final baseline disposition — 2026-11-02
 
 - Owner selected B — Rebaseline 875. The exact current roadmap bytes are accepted as the baseline for that one path under an explicit SL-0/SL-8 exception; the initial B881 hash remains historical evidence and is not claimed to have been preserved.
 - The original baseline manifest and initial snapshot remain unchanged. The new owner-approved rebaseline record and post-decision snapshot are linked from `evidence/STORYRUN_LITE_SL0_SL8_REBASELINE_20261102.md`.
 - S1/S2 technical gates remain verified; the approved rebaseline closes the remaining baseline gate. A2 and all 35 protected FEAT-061/FEAT-064 paths remain byte-identical.
+
+## Modal drawing VLM L4 POC — 2026-11-03
+
+- Owner authorized the next Modal AI hosting work after creating the environment. Exact scope is approved in plan/MODAL_DRAWING_VLM_L4_POC_20261103.md (SHA-256 F2AF6433EFE812BBD8144CBCD3E4ECFDE09FCF0A9952280BCE814314A7008E72).
+- Canonical workflow source remains the SRS v2.3-draft. Qwen2.5-VL-7B is a bounded experimental candidate for the first drawing.analyze stage only; it is not a production default and does not enable any product flow.
+- Modal auth works and environment dev exists. Preflight inventory on 2026-11-03 found no apps, Volumes, or Secrets in dev; this month's dev metered-cost summary was 0.00. No POC app, model weights, or synthetic inference has yet been deployed/run at this context update.
+- Use only a generated synthetic butterfly drawing, two named Volume v2 resources, one private L4 function call, and no secret/public endpoint. Other AI workloads remain separate and are not claimed complete.
+
+## Modal AI hosting wave — 2026-11-03
+
+- Approved scope: `plan/MODAL_AI_HOSTING_WAVE_20261103.md`, SHA-256 `C8FCB03681F2145E727F89E55DDD159AA354814E30B868CD745B930A83FCA5BA`; owner explicitly authorized continuing Modal AI hosting after the dev environment was ready.
+- Four private dev apps now exist for drawing VLM, language/audio, FLUX image generation, and Wan video feasibility. Model weights are fetched directly from pinned Hugging Face revisions into Modal Volume v2; no user workstation upload is needed.
+- Qwen2.5-VL, Qwen2.5-7B-Instruct, faster-whisper large-v3, VieNeu-TTS v3 Turbo, MOSS Audio Tokenizer Nano ONNX, FLUX.2 Klein 4B, and Wan2.2 TI2V-5B checkpoints have completed download and verification. Their combined retained file footprint is 88.59 GiB; current Modal billing after download has not been checked.
+- Synthetic speech POC: VieNeu produced valid WAV; Whisper returned Vietnamese text with one lexical error (butterfly transcribed as a different word). FLUX produced a synthetic line-guide image in 1,202.53 seconds including queue/cold start. The corrective Qwen-VL inference later reached terminal success; this did not verify API result delivery. No duplicate calls or GPU fallback.
+- This work remains development-only. All `workloads.json` entries stay disabled; lesson suggestions, SAM2, video safety, and production model choice remain unresolved/deferred. LTX-2.5 remains gated; no terms or credentials were accepted/created.
+
+## Local API runtime availability smoke - 2026-11-03
+
+- Owner requested running the APIs. The live local Docker API returned HTTP 200 for `/health` and `/openapi.json`, but the active image started 2026-10-30 and has no source bind mount.
+- Its OpenAPI does not expose `/v1/story-runs` or HTTP routes to the new Modal apps; `GET /v1/story-runs/synthetic-smoke` returned 404. AI provider and StoryRun Modal configuration are unset.
+- No POST or model request was sent because the running API cannot dispatch to the new workers. See `evidence/API_RUNTIME_AVAILABILITY_SMOKE_20261103.md`. Backend-to-worker integration remains a separate task outside the approved hosting-wave plan.
+
+
+## Backend API to Modal drawing VLM vertical slice - 2026-11-03
+
+- Owner approved the isolated FEAT-063 adapter/test plan; current cumulative plan SHA-256 is `855235EA0B209A8B64699074C6D861734A5AC17CBD82B1E56E42F9FA9039D0F5`.
+- The existing synthetic StoryRun API is wired to the private `drawing.analyze` Modal function through the SDK and scratch Volume v2. The worker receives a versioned path/hash/size envelope; no public Modal HTTP endpoint or new credential is used.
+- A separate PostgreSQL 17.11 process under OS temp met the Windows-host loopback guard; migrations and the API upload/image-admission path passed. Existing API and database containers remain untouched.
+- Exactly one API-triggered call `fc-01M6GYB9EZHJ4TCPAKFPT20Z7G` later reached Modal terminal `success` after the API timed out. The result/output hash was not returned to the API; the StoryRun remains `AWAITING_RECONCILIATION` with `VISION_OUTCOME_UNKNOWN` / `OPERATOR_REVIEW`. Do not retry. At the owner's request, only `sketch2life-srs23-drawing-vlm-dev` was stopped and verified `State: stopped`; redeploy is required for future use.
+- The Qwen worker has no calibrated confidence; its mapped `0.0` is a legacy local DTO placeholder only and must not be treated as a confidence/safety score. Product workload entries remain disabled.
+- The bounded API wait returned `VISION_OUTCOME_UNKNOWN`; task-owned local API and PostgreSQL processes are stopped and their temp database/files are retained. Existing stack health is unchanged.
+- Evidence: `evidence/MODAL_BACKEND_API_DRAWING_VERTICAL_SLICE_20261103.md`.
+
+## Parent image-to-script API/AI retest - 2026-11-03
+
+- Ran the standalone StoryRun-lite Parent API against a fresh migrated task database and the generated synthetic butterfly image. Create-run, upload, ClamAV, normalization, and upload-ready operations passed.
+- The single API-triggered drawing analysis stayed queued for Modal L4 capacity; the API ended at `VISION_OUTCOME_UNKNOWN` / `AWAITING_RECONCILIATION`. Preserve the run; do not retry.
+- A single detached story worker request also returned no result during its bounded wait. The Parent subject-confirmation route was not reached, and the StoryRun-lite API has no script-generation route. No video was requested.
+- All four deployed Modal dev apps, the task API, and task PostgreSQL were stopped. Shared model Volumes were retained. Evidence: `evidence/PARENT_IMAGE_TO_SCRIPT_API_AI_RETEST_20261103.md`.
+
+## Parent generated-image, story, and activity retest - 2026-11-03/04
+
+- A new synthetic butterfly image completed the isolated StoryRun-lite upload, ClamAV/image-normalization admission, one Modal Qwen2.5-VL inference, and adult subject confirmation. The VLM returned `bướm`; API state reached `PREPARATION_REVIEW` / `SUCCEEDED`.
+- A separate direct Modal Qwen2.5-7B story worker returned five Vietnamese scenes. Its input was the confirmed topic, not the image pixels. The draft has factual butterfly-lifecycle errors and needs educator review.
+- The legacy activity-list HTTP route returned one curated catalog option and accepted selection. It uses a deterministic VLM fixture in a separate session and remains before-video, so it is not the SRS post-video outdoor activity flow.
+- Video calls: zero. All active Modal dev apps and the task API/PostgreSQL were stopped; ports 8002/5433 are closed. Existing API port 8000 and shared model Volumes were retained.
+- Full timing, API statuses, limitations, and evidence: `evidence/PARENT_GENERATED_IMAGE_TO_ACTIVITY_SELECTION_RETEST_20261103.md`.
+
+## AI flow SRS alignment and Teacher deck POC - 2026-11-04
+
+- StoryRun-lite now has a versioned Parent story revision contract/API, exact-age and adult-subject gates, bounded scene/time validation, immutable draft/rewrite rules, and a narrow butterfly lifecycle guard. Parent activity preselection is rejected by design; SRS activities remain after playable video.
+- Live synthetic image upload/admission and one Qwen2.5-VL call reached adult subject review. The story API's single Qwen call failed before model load with `MODAL_SCHEMA_UNSUPPORTED`; its old adapter reported `STORY_OUTCOME_UNKNOWN`. The local adapter now uses `sketch2life.modal.ai-request.v1` and maps terminal worker failures, but no live retry was sent.
+- Direct Teacher Deck Qwen call produced a 5-slide 16:9 DRAFT from the approved synthetic plan, with four drawing steps and exactly two approved activities. The FLUX visual call waited 468.339s without L4 capacity and produced no image. The HTML preview is text-only.
+- API surface: all 13 mounted StoryRun-lite operations were exercised. Story generation is the one live end-to-end API failure; the confirmation success path was not reached. Teacher Deck HTTP/session and integrated post-video Parent activity endpoints are not present in this isolated router.
+- Tests: 92 passed, 3 PostgreSQL-URL cases skipped; Ruff, compileall, and diff check passed. All Modal dev apps are stopped with zero tasks; both shared Volumes and shared Docker services are preserved.
+- Updated `deployment/modal/srs_v23/workloads.json` with observed POC outcomes; all workloads remain disabled. Parent Sketch Guide, SAM2, ASR/TTS, video, and lesson-plan suggestion were not called in this slice.
+- Evidence: `evidence/AI_FLOW_SRS_ALIGNMENT_AND_TEACHER_DECK_POC_20261104.md` and `evidence/assets/ai_flow_srs_alignment_20261104/`.
+## Full non-video AI retest - 2026-11-04
+
+- Owner explicitly authorized fresh Modal inference and testing all non-video AI workloads after the prior partial POC. Approved plan: `plan/AI_NONVIDEO_WORKLOAD_FULL_RETEST_20261104.md`; approval SHA-256 is recorded in `approvals/TASK_APPROVAL.md`.
+- Scope includes corrected Parent story/storyboard, drawing VLM, Parent Sketch Guide, Teacher deck, lesson visual, synthetic TTS-to-ASR, and one isolated SAM2.1 image-segmentation feasibility call. Video generation/composition are excluded; video-specific validators remain contract-only.
+- `lesson.plan.suggest` remains no-dispatch because the current SRS leaves requesting roles/model unresolved. All workloads remain disabled for product dispatch; only synthetic assets are used.
+- Retest complete. TTS and Whisper round-trip succeeded; fresh VLM, story, Parent Guide, Teacher Deck, lesson visual, and SAM2 inference attempts ended at the bounded queue timeout, with Modal explicitly reporting GPU_L4 capacity acquisition for Qwen workloads. No video calls occurred.
+- All 13 mounted StoryRun-lite operations passed 14 isolated contract checks; focused backend tests passed 46 with two legacy-fixture cases deselected. Targeted Ruff, compileall, and diff checks passed.
+- All deployed Modal dev apps are stopped with zero tasks. The task PostgreSQL container and pip-cache volume are removed; shared Docker services and Modal Volumes remain. Full result matrix: `evidence/AI_NONVIDEO_WORKLOAD_FULL_RETEST_RESULTS_20261104.md`.

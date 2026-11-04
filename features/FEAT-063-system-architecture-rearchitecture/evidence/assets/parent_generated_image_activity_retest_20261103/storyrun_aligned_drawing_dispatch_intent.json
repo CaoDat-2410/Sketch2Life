@@ -1,0 +1,11 @@
+{
+  "state": "DISPATCH_INTENT_RECORDED",
+  "run_ref": "aa84ff1a-410d-4953-96f4-cda22abc1e80",
+  "upload_ref": "a51f2d98-44c8-4789-8ec6-adb230627666",
+  "asset_ref": "5623c356-2199-4159-af4e-d643d421ba6f",
+  "derived_asset_ref": "1c9c23de-7e19-4588-9b5b-a9a257713f7a",
+  "image_sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949",
+  "created_at": "2026-11-03T23:48:58.942185+07:00",
+  "max_attempts": 1,
+  "video_enabled": false
+}

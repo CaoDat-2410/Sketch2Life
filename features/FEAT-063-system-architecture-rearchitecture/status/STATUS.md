@@ -1,5 +1,12 @@
 # Status
 
+## Modal AI setup scaffold — 2026-11-03
+
+- Lifecycle: COMPLETE for the exact dev-only scaffold in `plan/MODAL_AI_SETUP_SCAFFOLD_20261103.md` (SHA-256 `7FE03A68DF76877457DF5C5F652FCB705669A624B2E07F7B6F317C9FB510E391`).
+- Workload registry, versioned worker envelope, L4/L40S function skeletons, placeholder environment sample, setup guide, evidence and feature records are present under the approved allowlist.
+- Static Python/JSON parsing, `git diff --check`, and repository security validation passed. No product test was run.
+- No model handler, backend adapter, actual environment value, Modal resource, deployment, inference, or real-child data is included. Owner-side Modal environment setup is the next dependency.
+
 ## B3 manifest and owner decisions — 2026-10-31
 
 - B3 complete as a document: ownership matrix (18 boundaries, 18 shared-file rows, all co-signatures unsigned) and manifest with three migration-order options left open. Evidence: `evidence/B3_OWNERSHIP_MIGRATION_MANIFEST_20261031.md`, `evidence/B3_OWNER_MATRIX_20261031.csv`.
@@ -436,3 +443,70 @@ Runtime verification is **BLOCKED** at the PostgreSQL task-owned database gate: 
 - Local synthetic StoryRun routes/lifecycle are opt-in in the combined main app, guarded to loopback. Lesson and StoryRun upload tables are separated with verified migration compatibility. The clean/lesson-first/story-first/unknown-shape matrix passed; StoryRun PG **12 passed**, loopback **3 passed**, Lesson **6 passed**.
 - Owner-authorized empty `sketch2life` on PG17 loopback 5433 passed preflight and `upgrade heads`; main BE synthetic upload READY and one Modal inference returned **200 / SUCCEEDED**. Attach 202, SUBJECT_REVIEW, confirm 202, PREPARATION_REVIEW; ledger SUCCEEDED. Modal inference HTTP requests **1**.
 - Temporary app/processes stopped, DB and synthetic run retained. UI handoff: `artifacts/storyrun-lite/MAIN_BE_UI_HANDOFF_20261103.md`; evidence: `evidence/STORYRUN_LITE_MAIN_BE_INTEGRATION_20261103.md`. Local demo only; independent review and production identity remain open. No A2 change, stage, commit, push, merge or permanent deploy.
+
+## Modal drawing VLM L4 POC — 2026-11-03
+
+- Status: IN_PROGRESS under approved plan SHA-256 F2AF6433EFE812BBD8144CBCD3E4ECFDE09FCF0A9952280BCE814314A7008E72.
+- Preflight complete: Modal CLI 1.6.3 authentication succeeds; dev is present; no Modal apps, Volumes, or Secrets exist in dev; current-month dev metered-cost summary is 0.00.
+- Implementation/deployment/inference not yet run. Scope is one private Qwen2.5-VL-7B L4 app and exactly one synthetic drawing inference. Do not infer AI-fleet or product readiness from this task.
+
+## Modal AI hosting wave - 2026-11-03
+
+- **IN PROGRESS.** Approved plan SHA-256 `C8FCB03681F2145E727F89E55DDD159AA354814E30B868CD745B930A83FCA5BA`.
+- Four private dev apps are deployed: drawing VLM, language/audio, FLUX image, and Wan video candidate. All seven pinned checkpoints are downloaded directly from Hugging Face into Modal Volume v2; total retained file footprint is 95,121,275,282 bytes (88.59 GiB). Current account billing after downloads has not been checked.
+- Synthetic TTS and ASR calls succeeded; the Vietnamese transcript substituted one word. FLUX generated one synthetic three-panel line guide successfully (768x512, 158,296 bytes); elapsed time including queue/cold start was 1,202.53 seconds. Visual ordering, child usability, safety, and product quality remain unvalidated.
+- Corrective Qwen-VL call `fc-01M6GN62XVPDBR39205WQ35K9Q` later reached terminal `success`; no further Qwen story/storyboard or Wan inference has run. The later API-triggered drawing call is documented separately below; its result was not reconciled into the API run.
+- Next: collect the Qwen-VL result; run the remaining approved synthetic POCs sequentially if capacity permits; update workload/evidence records; run repository security validation. LTX-2.5 remains gated; lesson suggestion, SAM2, safety validation, and product enablement remain deferred.
+- Evidence: `evidence/MODAL_AI_HOSTING_WAVE_20261103.md`. No commit or push requested/performed.
+
+## Local API runtime availability smoke - 2026-11-03
+
+- **COMPLETE for read-only availability checks.** `/health` and `/openapi.json` on the running local Docker API returned HTTP 200; the documented StoryRun route probe returned HTTP 404.
+- The active image started 2026-10-30, has no source bind mount, exposes no StoryRun or new-Modal worker routes, and has no AI provider/StoryRun Modal configuration. No POST or provider inference was sent.
+- The new Modal worker requests therefore remain direct function POCs, not backend API requests. Wiring is outside the approved hosting-wave plan. Evidence: `evidence/API_RUNTIME_AVAILABILITY_SMOKE_20261103.md`. No code or database changes, commit, or push.
+
+
+## Backend API to Modal drawing VLM vertical slice - 2026-11-03
+
+- **PARTIAL / AWAITING RECONCILIATION** under the corrected approved plan hash `855235EA0B209A8B64699074C6D861734A5AC17CBD82B1E56E42F9FA9039D0F5`.
+- The private Modal SDK adapter is wired to the synthetic StoryRun API. Isolated PG17 migrations, API health/OpenAPI, CRUD, image upload, ClamAV, and Windows image normalization passed.
+- The previous Qwen-VL call reached `success`; exactly one API-triggered call was sent. `fc-01M6GYB9EZHJ4TCPAKFPT20Z7G` later reached Modal terminal `success` after the API had recorded `VISION_OUTCOME_UNKNOWN` / `AWAITING_RECONCILIATION` and `OPERATOR_REVIEW`. Its result/output hash was not committed to the API; no retry was sent. The drawing app is stopped per owner request; the API run still needs separate operator reconciliation.
+- Focused tests: 83 passed; Ruff passed; targeted Mypy passed with imported-module diagnostics silenced; `git diff --check` and repository security validation passed.
+- Evidence: `evidence/MODAL_BACKEND_API_DRAWING_VERTICAL_SLICE_20261103.md`. No commit, push, or merge.
+- The temporary Windows API/PostgreSQL processes and task-owned Docker API/PostgreSQL containers are stopped; their task data is retained. The pre-existing local API and service containers remain healthy and untouched.
+
+## Parent image-to-script API/AI retest - 2026-11-03
+
+- Test execution complete with external AI scheduling blockers. Isolated DB migrations and Parent run/upload APIs passed through upload readiness.
+- Vision attachment returned 202 after 904.056 seconds; final run state is `AWAITING_RECONCILIATION` with `VISION_OUTCOME_UNKNOWN`. Do not retry.
+- The detached story worker produced no result during a 436-second wait. Subject confirmation was not reached; no Parent script API exists in the standalone router. Video calls: 0.
+- Verified all four Modal dev apps stopped. Task API port 8002 and test PostgreSQL port 5433 are stopped. Shared model Volumes remain.
+- Full details: `evidence/PARENT_IMAGE_TO_SCRIPT_API_AI_RETEST_20261103.md`.
+
+## Parent generated-image, story, and activity-selection retest - 2026-11-04
+
+- **COMPLETE** under the approved synthetic-only plan; no video inference.
+- The first run was correctly blocked before provider dispatch because its run ID did not match the runtime pin. It was preserved. A replacement run with a matching pin completed image admission, one Modal drawing VLM call, adult confirmation, and one Modal story worker call.
+- VLM: `bướm`, call `fc-01M6H51D7MD2P4XS68S2DQEN53`, Modal execution 29.295 s after 595.263 s queue wait. Story: five scenes, call `fc-01M6H5P6TFKW6Q7ZKRX28JCTDD`, Modal execution 90.741 s after 202.845 s queue wait.
+- Activity API: one catalog card (`ACT-0102`) returned and selected successfully in its separate legacy fixture session; it is not integrated with StoryRun and is not the SRS post-video outdoor step.
+- Review finding: the story output incorrectly depicts a butterfly hatching and seeking a nest. Treat it as an unreviewed draft.
+- Shutdown verified: Modal drawing and language/audio apps stopped at 00:09:03 and 00:09:06 Asia/Saigon; all Modal dev app records report stopped. Task API 8002 and PostgreSQL 5433 are closed; pre-existing API 8000 remains available. Shared model Volumes were retained.
+- Evidence: `evidence/PARENT_GENERATED_IMAGE_TO_ACTIVITY_SELECTION_RETEST_20261103.md` and its task-scoped scripts/assets.
+
+## AI flow SRS alignment and Teacher deck POC - 2026-11-04
+
+**Status: PARTIAL / IMPLEMENTATION AND TEST EVIDENCE RECORDED.**
+
+- Implemented Parent story schema, revision APIs/persistence, age/subject/role/business-rule guards, and terminal Modal story-error classification. Live story call failed before model load because the prior client sent the drawing manifest schema; local adapter is corrected but has not been redeployed or live-retested.
+- Teacher Deck text POC succeeded (5-slide, 16:9 DRAFT); FLUX visual did not complete due unavailable L4 capacity. No generated visual is claimed.
+- All 13 mounted StoryRun-lite operations were exercised; the story-generation worker path is the live failure. Parent positive script confirmation was not reached. The activity list was not requested before video; Teacher Deck HTTP/session endpoint is not mounted in this API slice.
+- Verification: 92 passed, 3 PostgreSQL-URL cases skipped; Ruff, compileall, and diff check passed.
+- All Modal dev apps stopped and verified at zero tasks. Shared Volumes and shared Docker services retained. No commit/push.
+- See `evidence/AI_FLOW_SRS_ALIGNMENT_AND_TEACHER_DECK_POC_20261104.md`.
+## Full non-video AI workload retest - 2026-11-04
+
+**Status: PARTIAL / RETEST COMPLETE.** Owner-authorized fresh non-video attempts and API checks are complete. TTS/ASR succeeded; the fresh GPU-backed VLM, story, sketch-guide, Teacher Deck, lesson-visual, and SAM2 inferences timed out while waiting for Modal L4 capacity. Parent image analysis remains `AWAITING_RECONCILIATION`; do not retry. All 13 mounted StoryRun-lite operations passed 14 isolated contract checks, and 46 focused tests passed with two legacy-fixture cases deselected. Targeted Ruff, compileall, and diff checks passed. All Modal apps stopped with zero tasks; task DB/cache cleaned; shared services/Volumes preserved. No video call, product enablement, commit, or push. Evidence: `evidence/AI_NONVIDEO_WORKLOAD_FULL_RETEST_RESULTS_20261104.md`.
+
+## Owner-directed publication - 2026-11-04
+
+The owner authorized committing the reviewed pending FEAT-063 worktree and pushing the current branch `codex/feat063-modal-backend-completion-20261103` to a same-named remote branch. The required repository security validator will run before commit; this publication does not include a push to `dev` or changes to the canonical SRS.

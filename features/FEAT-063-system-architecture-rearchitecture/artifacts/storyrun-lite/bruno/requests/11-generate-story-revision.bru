@@ -1,0 +1,39 @@
+meta {
+  name: 11 Generate Parent story revision
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{runRef}}/story-revisions
+  body: json
+  auth: none
+}
+
+headers {
+  Idempotency-Key: {{generateStoryKey}}
+  If-Match: {{runETag}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "expected_understanding_revision": {{understandingRevision}},
+    "adult_confirmed_idea": "{{adultConfirmedIdea}}"
+  }
+}
+
+script:post-response {
+  bru.setVar("storyRevisionRef", res.body.story_revision_ref);
+  bru.setVar("storyRevisionNo", res.body.revision_no);
+  bru.setVar("storySha256", res.body.story_sha256);
+  bru.setVar("storyETag", res.headers.etag);
+}
+
+tests {
+  test("creates an adult-review story draft", function () {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody().status).to.equal("DRAFT");
+    expect(res.getBody().review_required).to.equal(true);
+  });
+}

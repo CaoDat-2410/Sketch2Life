@@ -1,18 +1,33 @@
 from __future__ import annotations
 
+import hashlib
+import io
+import json
+from contextlib import contextmanager
 from types import SimpleNamespace
 from unittest.mock import Mock
 
 import pytest
-
 from sketch2life.application.ports.story_run_lite import AssetBinding
+from sketch2life.domain.ai_jobs.completion import canonical_json
 from sketch2life.domain.story_run_lite import OwnerScopeKind
+from sketch2life.infrastructure.ai.modal_function_client import (
+    MODEL_ID,
+    MODEL_REVISION,
+    ModalDrawingFunctionClient,
+    ModalFunctionOutcomeUnknown,
+    ModalFunctionResult,
+    prepare_drawing_input,
+)
 from sketch2life.infrastructure.story_run_lite import photo_bridge as photo_bridge_module
 from sketch2life.infrastructure.story_run_lite.composition import (
     UnavailableLoopbackVision,
     _configured_vision,
 )
-from sketch2life.infrastructure.story_run_lite.photo_bridge import PhotoVisionBridge
+from sketch2life.infrastructure.story_run_lite.photo_bridge import (
+    ModalFunctionPhotoVisionBridge,
+    PhotoVisionBridge,
+)
 
 _LIVE_URL = "https://synthetic-example--vision.modal.run"
 _TEST_CREDENTIAL = "synthetic-modal-test-token"
@@ -304,3 +319,261 @@ def test_composition_rejects_ambiguous_live_configuration(
     with pytest.raises(ValueError) as error:
         _configured_vision(engine=object(), repository=object())  # type: ignore[arg-type]
     assert _TEST_CREDENTIAL not in str(error.value)
+
+
+def _tiny_png() -> bytes:
+    from PIL import Image
+
+    output = io.BytesIO()
+    Image.new("RGB", (12, 12), "white").save(output, format="PNG")
+    return output.getvalue()
+
+
+def _prepared_input():
+    source = _tiny_png()
+    return source, prepare_drawing_input(
+        source_bytes=source,
+        source_media_type="image/png",
+        expected_source_sha256=hashlib.sha256(source).hexdigest(),
+        job_id="synthetic-job",
+        generation_id="generation-1",
+        attempt_id="synthetic-attempt",
+    )
+
+
+def test_modal_drawing_input_is_hash_bound_and_contains_only_worker_references():
+    source, prepared = _prepared_input()
+    manifest = json.loads(prepared.manifest)
+
+    assert prepared.drawing_png.startswith(b"\x89PNG\r\n\x1a\n")
+    assert (
+        hashlib.sha256(source).hexdigest() != prepared.drawing_sha256
+        or source == prepared.drawing_png
+    )
+    assert manifest["asset"]["sha256"] == prepared.drawing_sha256
+    assert manifest["asset"]["size_bytes"] == len(prepared.drawing_png)
+    assert prepared.payload["workload"] == "drawing.analyze"
+    assert prepared.payload["input_manifest_sha256"] == prepared.manifest_sha256
+    assert set(prepared.payload) == {
+        "schema_version",
+        "environment",
+        "workload",
+        "job_id",
+        "generation_id",
+        "attempt_id",
+        "attempt_prefix",
+        "input_manifest_ref",
+        "input_manifest_sha256",
+        "input_bytes",
+    }
+    assert source not in repr(prepared.payload).encode("utf-8")
+
+
+def test_modal_function_client_stages_once_invokes_once_and_cleans_attempt_prefix():
+    source, prepared = _prepared_input()
+    writes: list[tuple[str, bytes]] = []
+
+    class Batch:
+        def put_file(self, stream, path):
+            writes.append((path, stream.read()))
+
+    class Volume:
+        @contextmanager
+        def batch_upload(self):
+            yield Batch()
+
+        def remove_file(self, path, *, recursive):
+            self.removed = (path, recursive)
+
+    output = {
+        "schema_version": "sketch2life.modal.worker-output.v1",
+        "workload": "drawing.analyze",
+        "job_id": prepared.payload["job_id"],
+        "generation_id": prepared.payload["generation_id"],
+        "attempt_id": prepared.payload["attempt_id"],
+        "input_sha256": prepared.drawing_sha256,
+        "model": {"id": MODEL_ID, "revision": MODEL_REVISION},
+        "result": {
+            "candidate_subject": "con bướm",
+            "visible_features": ["hai cặp cánh", "thân dài"],
+            "decision": "NEEDS_ADULT_CONFIRMATION",
+            "adult_confirmation_required": True,
+        },
+    }
+    handle = Mock()
+    handle.object_id = "fc-synthetic-test"
+    handle.get.return_value = output
+    function = Mock()
+    function.spawn.return_value = handle
+    volume = Volume()
+    result = ModalDrawingFunctionClient(volume=volume, function=function).invoke(prepared)
+
+    function.spawn.assert_called_once_with(prepared.payload)
+    handle.get.assert_called_once()
+    assert len(writes) == 2
+    assert writes[0] == (f"/{prepared.attempt_prefix}input/drawing.png", prepared.drawing_png)
+    assert writes[1] == (f"/{prepared.attempt_prefix}input/manifest.json", prepared.manifest)
+    assert volume.removed == (f"{prepared.attempt_prefix}input", True)
+    assert result.call_id == "fc-synthetic-test"
+    assert (
+        result.output_sha256 == hashlib.sha256(canonical_json(output).encode("utf-8")).hexdigest()
+    )
+    assert source not in repr(prepared.payload).encode("utf-8")
+
+
+def test_modal_function_timeout_keeps_scratch_input_for_pending_worker():
+    _source, prepared = _prepared_input()
+
+    class Batch:
+        def put_file(self, _stream, _path):
+            return None
+
+    class Volume:
+        removed = False
+
+        @contextmanager
+        def batch_upload(self):
+            yield Batch()
+
+        def remove_file(self, _path, *, recursive):
+            self.removed = True
+
+    handle = Mock()
+    handle.object_id = "fc-synthetic-pending"
+    handle.get.side_effect = TimeoutError()
+    function = Mock()
+    function.spawn.return_value = handle
+    volume = Volume()
+
+    with pytest.raises(ModalFunctionOutcomeUnknown) as error:
+        ModalDrawingFunctionClient(volume=volume, function=function, timeout_seconds=0.1).invoke(
+            prepared
+        )
+
+    assert error.value.call_id == "fc-synthetic-pending"
+    assert volume.removed is False
+    function.spawn.assert_called_once()
+
+
+def test_modal_function_composition_requires_only_pinned_synthetic_run(
+    clean_vision_env: pytest.MonkeyPatch,
+) -> None:
+    clean_vision_env.setenv("STORYRUN_LITE_VISION_MODE", "modal_function")
+    clean_vision_env.setenv("STORYRUN_LITE_MODAL_RUN_ID", _RUN_ID)
+    bridge = _configured_vision(engine=object(), repository=object())  # type: ignore[arg-type]
+    assert isinstance(bridge, ModalFunctionPhotoVisionBridge)
+    assert bridge._pinned_run_id == _RUN_ID
+
+
+def test_modal_function_composition_rejects_missing_or_legacy_credentials(
+    clean_vision_env: pytest.MonkeyPatch,
+) -> None:
+    clean_vision_env.setenv("STORYRUN_LITE_VISION_MODE", "modal_function")
+    with pytest.raises(ValueError, match="incomplete or ambiguous"):
+        _configured_vision(engine=object(), repository=object())  # type: ignore[arg-type]
+
+    clean_vision_env.setenv("STORYRUN_LITE_MODAL_RUN_ID", _RUN_ID)
+    clean_vision_env.setenv("STORYRUN_LITE_MODAL_TOKEN", _TEST_CREDENTIAL)
+    with pytest.raises(ValueError, match="incomplete or ambiguous") as error:
+        _configured_vision(engine=object(), repository=object())  # type: ignore[arg-type]
+    assert _TEST_CREDENTIAL not in str(error.value)
+
+
+def test_modal_function_bridge_persists_only_correlated_adult_review_output(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source, prepared = _prepared_input()
+    output = {
+        "schema_version": "sketch2life.modal.worker-output.v1",
+        "workload": "drawing.analyze",
+        "job_id": prepared.payload["job_id"],
+        "generation_id": prepared.payload["generation_id"],
+        "attempt_id": prepared.payload["attempt_id"],
+        "input_sha256": prepared.drawing_sha256,
+        "model": {"id": MODEL_ID, "revision": MODEL_REVISION},
+        "result": {
+            "candidate_subject": "con bướm",
+            "visible_features": ["hai cặp cánh"],
+            "decision": "NEEDS_ADULT_CONFIRMATION",
+            "adult_confirmation_required": True,
+        },
+    }
+    output_sha256 = hashlib.sha256(canonical_json(output).encode("utf-8")).hexdigest()
+    modal_result = ModalFunctionResult(
+        output=output,
+        call_id="fc-synthetic-success",
+        output_sha256=output_sha256,
+        elapsed_seconds=1.2,
+    )
+    repository = Mock()
+    repository.get_dispatch_context.return_value = {
+        "run_id": _RUN_ID,
+        "actor_scope_kind": OwnerScopeKind.PARENT_ACCOUNT.value,
+        "actor_scope_ref": "synthetic-parent-local-v1",
+        "provider_job_id": "synthetic-job",
+        "provider_attempt_id": "synthetic-attempt",
+        "derived_asset_ref": "synthetic-asset",
+        "derived_sha256": hashlib.sha256(source).hexdigest(),
+        "derived_media_type": "image/png",
+    }
+    repository.read_asset.return_value = source
+    client = Mock()
+    client.invoke.return_value = modal_result
+
+    class Guard:
+        state = SimpleNamespace(value="SENT")
+        response_metadata = SimpleNamespace(
+            status_code=None,
+            body_sha256=None,
+            body_complete=False,
+            json_object=False,
+            within_deadline=False,
+            bridge_validated=False,
+        )
+
+        def claim(self):
+            return None
+
+        def mark_sent(self):
+            return None
+
+        def record_response(self, **values):
+            for key, value in values.items():
+                setattr(self.response_metadata, key, value)
+
+        def mark_bridge_outcome_validated(self):
+            self.response_metadata.bridge_validated = True
+
+        def finalize(self, _state, _result_sha256):
+            return True
+
+    guard = Guard()
+    monkeypatch.setattr(photo_bridge_module, "InvocationLedger", Mock())
+    monkeypatch.setattr(photo_bridge_module, "InvocationLedgerGuard", Mock(return_value=guard))
+    bridge = ModalFunctionPhotoVisionBridge(
+        engine=Mock(),
+        repository=repository,
+        pinned_run_id=_RUN_ID,
+        client=client,
+    )
+    binding = AssetBinding(
+        asset_ref="synthetic-asset",
+        asset_version=1,
+        media_type="image/png",
+        sha256=hashlib.sha256(source).hexdigest(),
+        byte_size=len(source),
+        owner_scope_kind=OwnerScopeKind.PARENT_ACCOUNT,
+        owner_scope_ref="synthetic-parent-local-v1",
+    )
+    persist = Mock(return_value=True)
+
+    attempt = bridge.analyze(run_id=_RUN_ID, binding=binding, persist_success=persist)
+
+    assert attempt.state == "SUCCEEDED"
+    assert attempt.provider_invoked is True
+    assert attempt.result_committed is True
+    persisted = persist.call_args.args[0]
+    assert persisted.subject_label == "con bướm"
+    assert persisted.confidence == 0.0
+    assert persisted.result_snapshot["result"]["adult_confirmation_required"] is True
+    client.invoke.assert_called_once()

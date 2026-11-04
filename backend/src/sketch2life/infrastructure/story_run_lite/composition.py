@@ -16,14 +16,19 @@ from sqlalchemy.engine import make_url
 
 from sketch2life.application.ports.story_run_lite import (
     StoryRunLiteRepositoryPort,
+    StoryRunLiteStoryPort,
     StoryRunLiteVisionPort,
     VisionAttemptResult,
 )
 from sketch2life.application.services.story_run_lite import StoryRunLiteService
 from sketch2life.domain.story_run_lite import OwnerScopeKind
+from sketch2life.infrastructure.ai.modal_function_client import ModalStoryFunctionClient
 from sketch2life.infrastructure.story_run_lite.clamav import ClamAvScanner
 from sketch2life.infrastructure.story_run_lite.image_worker import WindowsJobObjectImageNormalizer
-from sketch2life.infrastructure.story_run_lite.photo_bridge import PhotoVisionBridge
+from sketch2life.infrastructure.story_run_lite.photo_bridge import (
+    ModalFunctionPhotoVisionBridge,
+    PhotoVisionBridge,
+)
 from sketch2life.infrastructure.story_run_lite.quarantine import QuarantineStore
 from sketch2life.infrastructure.story_run_lite.repository import SqlStoryRunLiteRepository
 
@@ -130,7 +135,31 @@ def _configured_vision(
             modal_live_token=modal_token,
             modal_live_run_id=modal_run,
         )
+    if mode == "modal_function":
+        if (
+            loopback is not None
+            or modal_url is not None
+            or modal_token is not None
+            or not modal_run
+        ):
+            raise ValueError(
+                "StoryRun-lite Modal function configuration is incomplete or ambiguous"
+            )
+        return ModalFunctionPhotoVisionBridge(
+            engine=engine,
+            repository=repository,
+            pinned_run_id=modal_run,
+        )
     raise ValueError("StoryRun-lite Vision mode is invalid")
+
+
+def _configured_story_generator() -> StoryRunLiteStoryPort | None:
+    mode = os.environ.get("STORYRUN_LITE_STORY_MODE", "disabled")
+    if mode == "disabled":
+        return None
+    if mode == "modal_function":
+        return ModalStoryFunctionClient()
+    raise ValueError("StoryRun-lite story generation mode is invalid")
 
 
 def build_runtime(*, main_demo: bool = False) -> StoryRunLiteRuntime | None:
@@ -141,10 +170,18 @@ def build_runtime(*, main_demo: bool = False) -> StoryRunLiteRuntime | None:
         return None
     safe_url, database_name = goal_database_url(value, main_demo=main_demo)
     if main_demo:
-        if any(os.environ.get(name) for name in (
-            "PGHOST", "PGHOSTADDR", "PGPORT", "PGDATABASE", "PGSERVICE", "PGSERVICEFILE",
-            "PGOPTIONS",
-        )):
+        if any(
+            os.environ.get(name)
+            for name in (
+                "PGHOST",
+                "PGHOSTADDR",
+                "PGPORT",
+                "PGDATABASE",
+                "PGSERVICE",
+                "PGSERVICEFILE",
+                "PGOPTIONS",
+            )
+        ):
             raise ValueError("StoryRun-lite main demo rejects PostgreSQL target overrides")
         main_value = os.environ.get("SKETCH2LIFE_DATABASE_URL")
         if not main_value:
@@ -154,7 +191,10 @@ def build_runtime(*, main_demo: bool = False) -> StoryRunLiteRuntime | None:
             main_url = make_url(main_value)
             story_url = make_url(safe_url)
             if (main_url.get_backend_name(), main_url.host, main_url.port, main_url.database) != (
-                story_url.get_backend_name(), story_url.host, story_url.port, story_url.database
+                story_url.get_backend_name(),
+                story_url.host,
+                story_url.port,
+                story_url.database,
             ):
                 raise ValueError
         except Exception:
@@ -180,11 +220,13 @@ def build_runtime(*, main_demo: bool = False) -> StoryRunLiteRuntime | None:
         scanner = ClamAvScanner(host=scanner_host, port=scanner_port)
         normalizer = WindowsJobObjectImageNormalizer(temporary_root=quarantine_root / "workers")
         vision = _configured_vision(engine, repository)
+        story_generator = _configured_story_generator()
         service = StoryRunLiteService(
             repository=repository,
             scanner=scanner,
             normalizer=normalizer,
             vision=vision,
+            story_generator=story_generator,
             story_references=repository,
             asset_admission=repository,
             actor_scope_kind=OwnerScopeKind.PARENT_ACCOUNT,
@@ -208,7 +250,7 @@ async def runtime_lifespan(app: Any, *, main_demo: bool = False) -> AsyncIterato
         runtime.repository.acquire_singleton_lock()
         locked = True
         runtime.repository.recover_after_restart()
-        if isinstance(runtime.vision, PhotoVisionBridge):
+        if isinstance(runtime.vision, (PhotoVisionBridge, ModalFunctionPhotoVisionBridge)):
             runtime.vision.reconcile_completed_results()
         app.state.story_run_lite_service = runtime.service
         app.state.story_run_lite_runtime = runtime

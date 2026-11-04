@@ -496,3 +496,193 @@
 - Explicitly excluded: unrelated FEAT-063 history, API route/auth/payload/runtime changes, remote ref changes beyond the already approved lease-guarded consolidation in Plan Rev46, and backend test-suite execution.
 - Acceptance criteria: AC1–AC5 in the hash-identified Plan Rev48.
 - Approval basis: this owner's direct request applies to the exact cleanup and acceptance criteria in Plan Rev48.
+
+## Modal AI setup scaffold — 2026-11-03
+
+- Status: COMPLETE for the exact dev-only configuration scaffold below; owner-side Modal environment setup remains separate.
+- Approver: Project owner, direct instruction in the current chat on 2026-11-03: “tạo mấy đó cho tôi đi, sau đó tôi sẽ setup env sau”.
+- Feature: FEAT-063 — whole-repository architecture redesign.
+- Approved plan: `plan/MODAL_AI_SETUP_SCAFFOLD_20261103.md`.
+- Approved plan SHA-256: `7FE03A68DF76877457DF5C5F652FCB705669A624B2E07F7B6F317C9FB510E391`.
+- Approved scope: create the SRS v2.3 workload registry; versioned path/hash-only Modal worker envelope; dev-only L4 and L40S Modal app skeletons with bounded resources and fail-closed unconfigured handlers; placeholder-only Modal environment example and owner setup guide; additive FEAT-063/global context, decision, status, source-register and evidence updates.
+- Explicit exclusions: model selection/benchmark, inference implementation, backend/provider/job/storage integration, edits to the existing Qwen3-VL app, actual `.env`/secrets, SRS/ADR/schema/API/Docker changes, Modal account/resource/deployment/GPU/provider operation, tests, child data, commit or push.
+- Acceptance criteria: AC1–AC8 in the hash-identified plan.
+- Approval basis: the owner’s direct instruction applies to this exact repository scaffold and does not approve live Modal setup; the owner will configure the Modal environment afterward.
+
+## Modal drawing VLM L4 POC — 2026-11-03
+
+- Status: APPROVED for the exact synthetic-only Modal dev POC below.
+- Approver: Project owner, direct instruction in the current chat on 2026-11-03: “tạo môi trường xong r, làm phần việc tiếp theo đi, cần AI nào thì host đó đi”.
+- Feature: FEAT-063 — system architecture rearchitecture.
+- Approved plan: `plan/MODAL_DRAWING_VLM_L4_POC_20261103.md`.
+- Approved plan SHA-256: `F2AF6433EFE812BBD8144CBCD3E4ECFDE09FCF0A9952280BCE814314A7008E72`.
+- Approved scope: add a separate private `drawing.analyze` Modal app for Modal `dev`; use the pinned Qwen2.5-VL-7B-Instruct revision and pinned runtime dependencies; create the two named Volume v2 resources only if absent; download weights; stage one generated synthetic butterfly drawing via the scratch Volume; perform exactly one bounded L4 inference; and add the task-specific evidence plus additive FEAT-063/global records listed in the plan.
+- Explicit exclusions: real child/media/profile/lesson data, MinIO/S3 access, public endpoint, new secret, backend/API/queue/quota integration, production model selection, other AI workloads, SRS/ADR/schema/Docker changes, broad product tests, commit, push, or merge.
+- Acceptance criteria: AC1–AC7 in the hash-identified plan.
+- Approval basis: the owner’s current instruction authorizes hosting the required next AI workload; the plan limits this first deployment to the first required vision stage and one synthetic inference, and makes no production-default claim.
+
+## Modal drawing VLM corrective retry A — 2026-11-03
+
+- Status: APPROVED for one corrective synthetic inference after the first call failed before model inference because the image lacked `torchvision`.
+- Approver/basis: the owner’s direct instruction in the current chat on 2026-11-03 authorizes continuing with the required AI hosting; this amendment records the single dependency-only correction within that scope.
+- Feature: FEAT-063 — system architecture rearchitecture.
+- Approved plan: `plan/MODAL_DRAWING_VLM_POC_CORRECTIVE_RETRY_A_20261103.md`.
+- Approved plan SHA-256: `E7279EEEEEE2DABDA3119090CCC705052D487EBF0AD4081D9E66910A76AA83BC`.
+- Approved scope: add `torchvision==0.22.1` compatible with pinned `torch==2.7.1`; redeploy the same private drawing VLM app to Modal `dev`; run exactly one corrective call against the same synthetic butterfly fixture; preserve the first failure and record the new result.
+- Explicit exclusions: any third call, model/GPU/precision/configuration change, alternate environment, new Secret, real child data, public endpoint, backend integration, other AI workload, SRS/ADR change, commit, push, or merge.
+- Acceptance criteria: AC1–AC4 in the hash-identified corrective plan.
+
+## Modal AI hosting wave — 2026-11-03
+
+- Status: APPROVED for the exact dev-only model hosting and synthetic proof-of-execution scope below.
+- Approver: Project owner, direct instruction in the current chat on 2026-11-03: “môi trường xong r, làm phần việc tiếp theo đi, cần AI nào thì host đó đi”.
+- Feature: FEAT-063 — system architecture rearchitecture.
+- Approved plan: `plan/MODAL_AI_HOSTING_WAVE_20261103.md`.
+- Approved plan SHA-256: `C8FCB03681F2145E727F89E55DDD159AA354814E30B868CD745B930A83FCA5BA`.
+- Approved scope: implement and deploy private Modal `dev` candidate workers for Qwen2.5-7B story/storyboard, faster-whisper large-v3, VieNeu-TTS v3 Turbo with its pinned ONNX codec, FLUX.2 Klein 4B, and a non-production Wan2.2 TI2V-5B video alternative benchmark; reuse existing Volume v2 resources; run at most one synthetic call per runnable model; for bounded POC media outputs up to 16 MiB, return bytes to the local runner and verify SHA-256; and record evidence plus additive FEAT-063 records.
+- Explicit exclusions: real child data, production/public endpoint, LTX-2.5 gated access/license/token/Secret, production model promotion or SRS amendment, lesson suggestions, SAM2, safety certification, backend/API/storage integration, extra retries after failure, commit, push, or merge.
+- Acceptance criteria: AC1–AC8 in the hash-identified plan.
+- Approval basis: the owner’s direct current instruction authorizes hosting the required AI candidates; the plan limits work to synthetic-only Modal `dev` experiments and preserves unresolved gates.
+
+## Local API runtime availability smoke - 2026-11-03
+
+- Status: APPROVED / COMPLETE for the exact read-only API smoke scope below.
+- Approver: Project owner, direct instruction in this chat: run the APIs.
+- Feature: FEAT-063 - system architecture rearchitecture.
+- Approved plan: `plan/API_RUNTIME_AVAILABILITY_SMOKE_20261103.md`.
+- Approved plan SHA-256: `7DA01D9CF5D5C4E98BA45C88815BBBE3589D0A5E9F94E512DDD9B995D570C5BA`.
+- Approved scope: GET the live local API health and OpenAPI documents; make one read-only GET route-availability probe; inspect only whether non-secret provider settings are present; record sanitized results.
+- Explicit exclusions: mutating API requests, backend/Modal integration, new routes, provider/model inference, database changes, container restart, credential reads, commit, push, or merge.
+- Result: read-only probes completed and evidence recorded in `evidence/API_RUNTIME_AVAILABILITY_SMOKE_20261103.md`; the running API has no StoryRun route or dispatch integration to the new Modal workers.
+
+## Backend API to Modal drawing VLM vertical slice - 2026-11-03
+
+- Status: APPROVED / IN PROGRESS for the isolated synthetic drawing-analysis API slice.
+- Approver and basis: the project owner directly authorized proceeding with the backend-to-Modal integration and requested that the APIs be exercised.
+- Feature: FEAT-063; canonical requirements remain the latest SRS in FEAT-063.
+- Plan: `plan/MODAL_BACKEND_API_DRAWING_VERTICAL_SLICE_20261103.md`.
+- Current cumulative plan SHA-256: `855235EA0B209A8B64699074C6D861734A5AC17CBD82B1E56E42F9FA9039D0F5`.
+- Approved implementation paths: `backend/pyproject.toml`, `backend/uv.lock` (Modal dependency lock only), `backend/Dockerfile` (existing image-admission extra only), the Modal/StoryRun adapter and composition files listed in the plan, its focused test file, and additive FEAT-063 records.
+- Approved verification: isolated API containers on loopback ports 8001/8002; temporary task-owned PostgreSQL databases and migrations; synthetic StoryRun CRUD; and, after the earlier call became terminal, exactly one API-triggered analysis of the generated synthetic butterfly fixture.
+- Database fallback: use the EDB PostgreSQL 17.11-4 Windows x64 binaries archive only in OS temp, verify its checksum, initialize an isolated data directory, bind only to 127.0.0.1:5433, and do not install a service or change system PATH.
+- Modal dispatch gate: prior call `fc-01M6GN62XVPDBR39205WQ35K9Q` reached terminal `success`; this permitted one API-triggered synthetic inference. If that new call becomes ambiguous, do not retry.
+- Linux host-network API limitation: do not bypass the Windows Job Object image-admission worker. The Linux CRUD fallback stays Vision-disabled; use the Windows-host runtime for image upload/admission and API inference.
+- Excluded: real child data, public Modal HTTP endpoint, new token/Secret, production auth/model selection, other AI workflow integrations, mutations to existing containers/databases, code outside approved paths, commit, push or merge.
+
+### Plan addendum 6 - owner instruction to stop the drawing app
+
+- Status: APPROVED and executed for the one app-stop action below.
+- Approver and basis: the project owner directly instructed that the app be stopped after the run.
+- Plan: `plan/MODAL_BACKEND_API_DRAWING_VERTICAL_SLICE_20261103.md`.
+- Current cumulative plan SHA-256: `855235EA0B209A8B64699074C6D861734A5AC17CBD82B1E56E42F9FA9039D0F5`.
+- Approved action: after the API-triggered call reached terminal success, stop only Modal dev app `sketch2life-srs23-drawing-vlm-dev`; verify it is stopped. Preserve shared Volumes/model files and leave every other Modal app untouched.
+- Result: `modal app stop ... --env dev --yes` completed successfully; Modal app info reported `State: stopped`. Redeploy is required before future use.
+- Boundary: this does not authorize retrying the call, reconciling or rewriting the API StoryRun, stopping other apps/services, deleting task data, commit, or push. The StoryRun remains `VISION_OUTCOME_UNKNOWN` / `AWAITING_RECONCILIATION` because the API did not persist the late result.
+
+## Parent image-to-script API and AI retest - 2026-11-03
+
+- Status: APPROVED / IN PROGRESS for the exact synthetic Parent API + AI script retest below.
+- Approver and basis: direct owner request in the current conversation to retest the Parent flow from one drawing, run AI, generate a sample script, report API failures, and skip video generation.
+- Plan: `plan/PARENT_IMAGE_TO_SCRIPT_API_AI_RETEST_20261103.md`.
+- Approved plan SHA-256: `4376140CE55FA3E612CEA111D0EA73EC2FAE6839CE3E8AAE584B69EA7E8CD1EB`.
+- Approved scope: one generated synthetic butterfly fixture and synthetic Parent profile; isolated new task DB and loopback API; all available upload, image-understanding, and subject-confirmation routes in the Parent path; exactly one direct private Modal `story.generate` call after adult confirmation; route/result inventory and task-local evidence.
+- Explicit exclusions: real child data, video/Wan/LTX/FFmpeg, ASR/TTS, FLUX, SAM2, lesson suggestions, Teacher flow, changing or retrying the prior ambiguous StoryRun, product/API implementation, model/workload enablement, existing application DB/containers, commit/push/merge.
+- Retry fence: at most one drawing inference and one script inference; an unknown outcome is never retried.
+- Cleanup: stop only task-owned local processes and the drawing/language-audio apps used in this retest; retain shared Volumes/model files and leave unused FLUX/video apps and existing project services untouched.
+
+## Parent workflow app shutdown amendment - 2026-11-03
+
+- Status: APPROVED / IN PROGRESS as a direct follow-up to the owner's instruction to run the simulated Parent flow and turn off the apps afterward.
+- Plan: `plan/PARENT_IMAGE_TO_SCRIPT_API_AI_RETEST_20261103.md`.
+- Current plan SHA-256: `D4FFF231654E81E54966219C15685D709E6859AFAFEE6009F4A08A666FE92DD8`.
+- Superseding cleanup authorization: stop each Modal app currently deployed in dev after the test reaches a terminal/unknown outcome and evidence is saved: drawing VLM, language/audio, FLUX image, and video candidate. Do not invoke FLUX/video, delete app records, or delete shared Volumes/model files.
+
+## Parent story-worker fallback after Modal L4 scheduling timeout - 2026-11-03
+
+- Status: APPROVED / IN PROGRESS under the owner's direct instruction to run the full simulated Parent workflow, test AI, generate a sample script, and omit video.
+- Plan: `plan/PARENT_IMAGE_TO_SCRIPT_API_AI_RETEST_20261103.md`.
+- Current plan SHA-256: `8491CBA56D6A44F60B2980D7A5D92ADD88A20F9CB8E85D40495D33016B7561B7`.
+- Authorized exception: after the one API drawing inference returned VISION_OUTCOME_UNKNOWN / AWAITING_RECONCILIATION, preserve it without retry; call the private story.generate worker exactly once with the visually verified synthetic butterfly topic, Vietnamese, and five scenes. Record this only as a detached worker test, not as Parent API end-to-end success. No video call.
+
+## Parent image-to-script API/AI retest - final execution record - 2026-11-03
+
+- Execution status: COMPLETE as a test run; functional acceptance is BLOCKED by Modal L4 scheduling and the missing Parent script API.
+- AC1: Partial. The isolated app started and API routes were exercised, but `/health`, `/openapi.json`, and `/` return 404 because they are not registered.
+- AC2: Pass. Synthetic image upload, SHA-256 validation, ClamAV, normalization, persistence, and `READY` state passed.
+- AC3/AC4: Not achieved. The one drawing dispatch returned `VISION_OUTCOME_UNKNOWN` / `AWAITING_RECONCILIATION`; subject confirmation was not called. No retry.
+- AC5: Not achieved. The one detached story worker returned no result during the bounded wait; no Parent API script route exists. No retry.
+- AC6: Pass for the zero-video requirement. Video inference count is zero; the report records tested route outcomes and the missing script API boundary.
+- AC7: Pass. All four deployed Modal dev apps and task-local API/PostgreSQL were stopped. Shared Volumes/model files remain; only task-specific input prefixes were removed.
+- Evidence: `evidence/PARENT_IMAGE_TO_SCRIPT_API_AI_RETEST_20261103.md` and `evidence/assets/parent_image_to_script_retest_20261103/`.
+- No product code was changed; no commit, push, or merge was requested or performed.
+
+## Parent generated-image and activity-selection retest — 2026-11-03
+
+- Status: APPROVED / IN PROGRESS for the exact synthetic API/AI retest scope below.
+- Approver and basis: direct owner instruction in the current chat to generate a new synthetic image, rerun the Parent workflow including a selectable activity list, record timings, and stop apps afterward.
+- Plan: `plan/PARENT_GENERATED_IMAGE_TO_ACTIVITY_SELECTION_RETEST_20261103.md`.
+- Approved plan SHA-256: `2510140F46377ABF47E357CFF81C89C0B10936EC1B3AA956A9524EA610AA84E2`.
+- Approved scope: one new synthetic ImageGen drawing; the isolated StoryRun-lite image/upload/subject path; at most one Modal drawing inference and one story-generation inference; and one synthetic in-process TestClient session using the existing activity HTTP route plus a deterministic VLM fixture to retrieve and select from the curated activity catalog.
+- Explicit exclusions: real child data, video inference, FLUX, SAM2, ASR/TTS, product code/API changes, schema changes, durable data in the existing project API, changing or retrying prior runs, stopping unrelated local project services, commit, push, or merge. The activity harness uses the codebase's test-only image decoder and must not be represented as passing ClamAV or production image normalization.
+- Important contract boundary: activity suggestions are currently exposed by a separate legacy demo session route before video; that route is not integrated with StoryRun-lite, the activity list is not AI-generated, and it does not satisfy SRS §31.5 post-video ordering. Evidence must state these limitations.
+- Retry fence: at most one drawing inference and one story-generation inference for this run; ambiguous outcomes are not retried.
+- Cleanup: stop task-owned API/PostgreSQL processes and every Modal app deployed in `dev`; preserve shared Volumes/models and leave the pre-existing local API on port 8000 and unrelated services running.
+
+## Parent generated-image retest - pre-dispatch recovery amendment - 2026-11-03
+
+- Status: APPROVED / IN PROGRESS under the owner's direct request to run the complete synthetic Parent flow, include selectable activities, record timing, and stop apps afterward.
+- Plan: `plan/PARENT_GENERATED_IMAGE_TO_ACTIVITY_SELECTION_RETEST_20261103.md`.
+- Amended plan SHA-256: `A28BB8F675EC3F1CFCC9C35EEEEAD86B35DDFAB7B6960F4F4EA37682C48DBC74`.
+- Recovery: the first StoryRun failed the local pinned-run-ID guard before any durable provider invocation. Preserve it as a setup failure; do not mutate or retry it. One replacement synthetic StoryRun may be created, and the API may be restarted with that exact generated run ID pinned before the image is attached.
+- Provider fence: across the whole task, dispatch at most one real drawing VLM call and at most one story-generation call. If the replacement attempt remains blocked before dispatch, stop without creating another run. No video or product/API/schema change is authorized.
+
+## Parent generated-image retest - final execution record - 2026-11-04
+
+- Execution status: COMPLETE under the direct owner request and approved synthetic-only plan; no video call.
+- Final plan SHA-256, including execution record: `9DDB22A054E777A4A5ADF7DB5C161FEF7DAE00646FB43A9DADA62BC3D121083E`.
+- Results: one actual Modal drawing inference succeeded with subject `bướm`; adult confirmation was accepted; one Modal story worker succeeded with five scenes; one legacy catalog activity was returned and selected using its deterministic test fixture.
+- Limitations: the StoryRun API has no script-generation endpoint; the activity route is a separate pre-video legacy session and returned one non-outdoor catalog item; generated story contains factual butterfly-lifecycle errors; video calls equal zero.
+- Cleanup: drawing/language Modal apps stopped, every listed dev app is stopped, task API/PostgreSQL ports 8002/5433 are closed, and pre-existing API 8000 plus shared model Volumes remain.
+- Evidence: `evidence/PARENT_GENERATED_IMAGE_TO_ACTIVITY_SELECTION_RETEST_20261103.md`. No commit or push was requested or performed.
+
+## AI flow SRS alignment and Teacher deck POC — 2026-11-04
+
+- Status: APPROVED / IN PROGRESS under the owner's direct instruction in the current conversation.
+- Plan: `plan/AI_FLOW_SRS_ALIGNMENT_AND_TEACHER_DECK_POC_20261104.md`.
+- Approved plan SHA-256: `20453BA46D206EA84A08970F949098130831AB15E0363E1D02410BBCF77B5A4A`.
+- Approved scope: SRS-compatible Parent story-draft contracts, persistence and review API; bounded Modal story generation with factual/schema guards; synthetic Teacher Sketch Deck worker plus one FLUX visual and local HTML preview; relevant API/AI tests and task-local evidence.
+- Explicit exclusions: video inference, real child data, real lesson documents, public publishing, production model promotion, SAM2, lesson suggestion, TTS/Whisper, `.env`/secret changes, editing the canonical SRS, commit/push/merge.
+- Retry fence: one attempt per AI workload; unknown provider outcomes are not retried. Preserve previous test evidence and unrelated worktree changes.
+- Cleanup: stop task-owned local services and all deployed Modal `dev` apps after evidence is complete; retain shared Volumes and model weights; do not delete apps or secrets.
+
+## AI flow plan amendment — include local StoryRun-lite contract snapshot — 2026-11-04
+
+- Status: APPROVED / IN PROGRESS under the same direct owner instruction and scope.
+- Reason: repository contract tests also validate `features/FEAT-063-system-architecture-rearchitecture/artifacts/storyrun-lite/openapi.json`; keeping that published local snapshot aligned is necessary to review the new story APIs and declared errors.
+- Amended plan: `plan/AI_FLOW_SRS_ALIGNMENT_AND_TEACHER_DECK_POC_20261104.md`.
+- Amended plan SHA-256: `88FB0E23FFC473FFC3E6643A1C21AB87F49F24EBF3851C8CF4AEE7C0EECEC0A3`.
+
+## AI flow plan amendment - Bruno requests for story revision APIs - 2026-11-04
+
+- Status: APPROVED / IN PROGRESS under the owner's direct instruction to fix the existing AI/API flow, align the contract with SRS business rules, test all relevant APIs, and report unavailable operations.
+- Reason: the new Parent story-revision API must be runnable and reviewable through the existing StoryRun-lite Bruno collection as well as the published OpenAPI contract.
+- Amended plan: `plan/AI_FLOW_SRS_ALIGNMENT_AND_TEACHER_DECK_POC_20261104.md`.
+- Amended plan SHA-256: `EFEB1E83E2CCEBDCD4478D9F6AEB0C95D4FA63E18A2B88320F1CB72EC91C5C23`.
+
+## Owner authorization - full non-video AI retest - 2026-11-04
+
+- Status: APPROVED / IN PROGRESS by the owner's direct instruction to authorize fresh inference, test every AI workload except video generation, and fix/retest concrete failures until success or a clear blocker.
+- Plan: `plan/AI_NONVIDEO_WORKLOAD_FULL_RETEST_20261104.md`.
+- Approved plan SHA-256: `006FBBBADA49E2C37631DCBBDE5980F6809442DB4B70B75110E0943564D95D26`.
+- This authorization supersedes the prior POC exclusions for TTS, Whisper, and synthetic SAM2 feasibility only. It does not authorize video generation, production enablement, real child data, or resolving lesson-suggestion role policy by inference.
+- Approved run rules: all synthetic data; one initial inference per callable non-video workload and at most one corrective call after a concrete fix; stop after a 10-minute GPU queue wait or any unknown outcome; no GPU/provider fallback; keep workloads disabled; stop all Modal dev apps after evidence is saved and retain Volumes.
+- No commit/push/merge authorization.
+
+## Owner authorization - commit and push FEAT-063 worktree - 2026-11-04
+
+- Status: APPROVED by the owner's direct instruction in the current conversation: “commit and push nhánh”.
+- Amended plan: `plan/AI_NONVIDEO_WORKLOAD_FULL_RETEST_20261104.md`.
+- Amended plan SHA-256: `77B9AF47D2F57C9D4CFCE279CDBFD436C2553EBF616A708EBA4F5483021C6EB0`.
+- Approved scope: commit the reviewed, non-sensitive pending changes in the current worktree and push `codex/feat063-modal-backend-completion-20261103` to a same-named `origin` branch.
+- Explicit exclusions: push to `dev`, force-push, `.env`/credentials/tokens/keys, real-child data, or edits to the canonical SRS.
+- Required check: run `python tools/validate_repository_security.py` before commit.

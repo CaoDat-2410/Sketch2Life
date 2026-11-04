@@ -1,0 +1,659 @@
+{
+  "started_at_local": "2026-11-03T23:34:00.527702+07:00",
+  "session_id": "a4f5ab2f-0538-494c-b817-9e55a77f81a0",
+  "image": {
+    "file": "synthetic_childlike_butterfly.png",
+    "sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949",
+    "byte_length": 1775882
+  },
+  "harness": {
+    "kind": "in-process FastAPI TestClient",
+    "vision": "existing deterministic test fixture; label set to visually verified synthetic topic 'bướm'",
+    "vision_calls": 1,
+    "activity_catalog": "current curated catalog service; no AI ranking call"
+  },
+  "activity_set": {
+    "contract_name": "ActivityRecommendationSetV3",
+    "contract_version": "3.0",
+    "session_id": "a4f5ab2f-0538-494c-b817-9e55a77f81a0",
+    "expected_session_version": 3,
+    "age_months": 60,
+    "confirmed_anchor_label": "bướm",
+    "topic_label_vi": "Cùng khám phá bướm!",
+    "total_count": 1,
+    "options": [
+      {
+        "contract_name": "ActivityRecommendationCardV2",
+        "contract_version": "2.0",
+        "priority": 1,
+        "activity_id": "ACT-0102",
+        "activity_version": 1,
+        "template_id": "TPL-ACT-0102-V1",
+        "template_version": 1,
+        "title_vi": "Ghép con vật với nơi sống",
+        "summary_vi": "Trẻ đặt thẻ con vật cạnh thẻ nơi sống phù hợp và gọi tên cặp ghép.",
+        "match_reason_vi": "Phù hợp với chủ đề cùng khám phá bướm! đã xác nhận.",
+        "duration_minutes": 12,
+        "age_label_vi": "3–6 tuổi",
+        "minimum_supervision": "NEARBY",
+        "supervision_label_vi": "Người lớn ở gần",
+        "material_labels_vi": [
+          "Vật mẫu thiên nhiên an toàn",
+          "Thẻ hình"
+        ],
+        "policy_constraints": [
+          "CAREGIVER_PRESENT"
+        ],
+        "fit_source": "DIRECT"
+      }
+    ],
+    "empty_reason": null
+  },
+  "selected_activity": {
+    "activity_id": "ACT-0102",
+    "title_vi": "Ghép con vật với nơi sống",
+    "activity_version": 1,
+    "selection_http_status": 200,
+    "result_status": "SUCCEEDED"
+  },
+  "timings": [
+    {
+      "step": "create_session",
+      "method": "POST",
+      "path": "/v1/sessions",
+      "http_status": 201,
+      "application_status": "SUCCEEDED",
+      "failure_code": null,
+      "observed_session_version": 0,
+      "elapsed_ms": 175.135
+    },
+    {
+      "step": "upload_generated_image",
+      "method": "POST",
+      "path": "/v1/sessions/a4f5ab2f-0538-494c-b817-9e55a77f81a0/media/image",
+      "http_status": 200,
+      "application_status": "SUCCEEDED",
+      "failure_code": null,
+      "observed_session_version": 1,
+      "elapsed_ms": 35.647
+    },
+    {
+      "step": "fixture_vision_understanding",
+      "method": "POST",
+      "path": "/v1/sessions/a4f5ab2f-0538-494c-b817-9e55a77f81a0/understanding",
+      "http_status": 200,
+      "application_status": "SUCCEEDED",
+      "failure_code": null,
+      "observed_session_version": 2,
+      "elapsed_ms": 7.508
+    },
+    {
+      "step": "adult_subject_confirmation",
+      "method": "POST",
+      "path": "/v1/sessions/a4f5ab2f-0538-494c-b817-9e55a77f81a0/gate-a/confirm",
+      "http_status": 200,
+      "application_status": "SUCCEEDED",
+      "failure_code": null,
+      "observed_session_version": 3,
+      "elapsed_ms": 35.119
+    },
+    {
+      "step": "activity_suggestions",
+      "method": "POST",
+      "path": "/v1/sessions/a4f5ab2f-0538-494c-b817-9e55a77f81a0/p1/activity-suggestions",
+      "http_status": 200,
+      "application_status": "SUCCEEDED",
+      "failure_code": null,
+      "observed_session_version": 3,
+      "elapsed_ms": 13.294
+    },
+    {
+      "step": "select_first_activity",
+      "method": "PUT",
+      "path": "/v1/sessions/a4f5ab2f-0538-494c-b817-9e55a77f81a0/p1-context",
+      "http_status": 200,
+      "application_status": "SUCCEEDED",
+      "failure_code": null,
+      "observed_session_version": 4,
+      "elapsed_ms": 7.478
+    }
+  ],
+  "total_elapsed_ms": 274.699,
+  "responses": {
+    "create_session": {
+      "contract_name": "MobileWorkflowResultV1",
+      "contract_version": "1.0",
+      "status": "SUCCEEDED",
+      "request_id": "b094011a-e7d9-4b48-8d0f-7d47e626dc8c",
+      "session_id": "a4f5ab2f-0538-494c-b817-9e55a77f81a0",
+      "expected_session_version": 0,
+      "observed_session_version": 0,
+      "provenance": {
+        "contract_name": "WorkflowResultProvenanceV1",
+        "contract_version": "1.0",
+        "producer": "APPLICATION",
+        "component": "ephemeral-session-service",
+        "component_version": "1.0",
+        "source_contracts": [
+          "MobileWorkflowCommandV1",
+          "SessionSnapshotV1"
+        ]
+      },
+      "payload": {
+        "contract_name": "SessionSnapshotV1",
+        "contract_version": "1.0",
+        "session_id": "a4f5ab2f-0538-494c-b817-9e55a77f81a0",
+        "version": 0,
+        "state": "CREATED",
+        "status": "ACTIVE",
+        "created_at": "2026-11-03T16:34:00.700534Z",
+        "updated_at": "2026-11-03T16:34:00.700534Z",
+        "expires_at": "2026-11-03T17:04:00.700534Z",
+        "last_job": null,
+        "durable": false
+      },
+      "failure": null
+    },
+    "upload_generated_image": {
+      "contract_name": "MobileWorkflowResultV1",
+      "contract_version": "1.0",
+      "status": "SUCCEEDED",
+      "request_id": "9b2d733a-7e54-4142-b68a-1f1d7013f3cb",
+      "session_id": "a4f5ab2f-0538-494c-b817-9e55a77f81a0",
+      "expected_session_version": 0,
+      "observed_session_version": 1,
+      "provenance": {
+        "contract_name": "WorkflowResultProvenanceV1",
+        "contract_version": "1.0",
+        "producer": "APPLICATION",
+        "component": "feat018-image-admission",
+        "component_version": "2.0",
+        "source_contracts": [
+          "Feat018ImageAdmission",
+          "ImageAdmissionReceiptV2"
+        ]
+      },
+      "payload": {
+        "contract_name": "ImageAdmissionReceiptV2",
+        "contract_version": "2.0",
+        "session_id": "a4f5ab2f-0538-494c-b817-9e55a77f81a0",
+        "decision": "ADMITTED",
+        "outcome": "ADMITTED",
+        "reason": null,
+        "original_image_ref": {
+          "artifact_ref": "artifact:de4f5075-f078-4a96-a643-ef32f3986935",
+          "sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949"
+        },
+        "source_content_type": "image/png",
+        "source_byte_length": 1775882,
+        "normalization_policy": "IDENTITY_V1",
+        "source_image_ref": {
+          "artifact_ref": "artifact:de4f5075-f078-4a96-a643-ef32f3986935",
+          "sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949"
+        },
+        "content_type": "image/png",
+        "byte_length": 1775882,
+        "width": 64,
+        "height": 64,
+        "guidance": "Image admitted",
+        "narration_status": "NOT_SUPPLIED"
+      },
+      "failure": null
+    },
+    "fixture_vision_understanding": {
+      "contract_name": "MobileWorkflowResultV1",
+      "contract_version": "1.0",
+      "status": "SUCCEEDED",
+      "request_id": "d47183f8-5cc2-4b4a-8e90-16c89c52a741",
+      "session_id": "a4f5ab2f-0538-494c-b817-9e55a77f81a0",
+      "expected_session_version": 1,
+      "observed_session_version": 2,
+      "provenance": {
+        "contract_name": "WorkflowResultProvenanceV1",
+        "contract_version": "1.0",
+        "producer": "VISION",
+        "component": "lightning-vision-v2-mapper",
+        "component_version": "1.0",
+        "source_contracts": [
+          "VisionUnderstandingResultV2",
+          "RawUnderstandingResultV1"
+        ]
+      },
+      "payload": {
+        "contract_name": "RawUnderstandingResultV1",
+        "contract_version": "1.0",
+        "correlation_id": "d47183f8-5cc2-4b4a-8e90-16c89c52a741",
+        "session_id": "a4f5ab2f-0538-494c-b817-9e55a77f81a0",
+        "source_image_ref": {
+          "artifact_ref": "artifact:de4f5075-f078-4a96-a643-ef32f3986935",
+          "sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949"
+        },
+        "gate_a_required": true,
+        "status": "SUCCEEDED",
+        "entities": [
+          {
+            "observation_id": "subject-1",
+            "label": {
+              "value": "bướm",
+              "language": {
+                "status": "DECLARED",
+                "tags": [
+                  "vi"
+                ],
+                "is_ground_truth": false
+              }
+            },
+            "confidence": 0.96,
+            "source": "VISION"
+          }
+        ],
+        "actions": [],
+        "relations": [],
+        "themes": [],
+        "ambiguous_regions": [],
+        "asr_claims": [],
+        "fused_claims": [],
+        "conflicts": [],
+        "uncertainty": null,
+        "uncertainty_status": "NOT_PROVIDED",
+        "narration_status": "NOT_SUPPLIED",
+        "asr_failure": null,
+        "provenance": {
+          "upstream_contract": "VisionUnderstandingResultV2",
+          "upstream_contract_version": "2.0",
+          "profile_id": "QWEN3_VL_8B_INSTRUCT_BF16_V1",
+          "profile_catalog_hash": "72651b96d2c2259344efcb6fb3349807d42b56079a5422530db09c1590f00947",
+          "adapter_version": "qwen3-vl-local-adapter-v2-b1",
+          "config_hash": "3082f03f32a1cb26e6f5c25fe73813039460129b0f18a15e647b9f5ff08e3267",
+          "model_provenance": {
+            "model_identifier": "Qwen/Qwen3-VL-8B-Instruct",
+            "model_revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+            "weight_source": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct",
+            "weight_sha256": null,
+            "weight_sha256_absence_reason": "SOURCE_DOES_NOT_PUBLISH_A_DIGEST",
+            "weight_license": "apache-2.0",
+            "dependency_pins": [
+              {
+                "package": "accelerate",
+                "version": "1.10.1"
+              },
+              {
+                "package": "qwen-vl-utils",
+                "version": "0.0.14"
+              },
+              {
+                "package": "torch",
+                "version": "2.8.0"
+              },
+              {
+                "package": "transformers",
+                "version": "4.57.6"
+              }
+            ]
+          }
+        },
+        "narration": {
+          "kind": "NONE",
+          "status": "NOT_SUPPLIED",
+          "transcript": null,
+          "language": null,
+          "provenance": "NONE"
+        },
+        "understanding_progress": {
+          "run_id": "d47183f8-5cc2-4b4a-8e90-16c89c52a741",
+          "stage": "TOPIC_READY",
+          "stage_status": "COMPLETED",
+          "sequence": 5,
+          "direction_revision": 0,
+          "source_status": {
+            "image": "ADMITTED",
+            "narration": "NOT_SUPPLIED",
+            "image_claim_ids": [
+              "subject-1"
+            ],
+            "narration_claim_ids": []
+          },
+          "image_claims": {
+            "count": 1,
+            "claim_ids": [
+              "subject-1"
+            ]
+          },
+          "narration_claims": {
+            "count": 0,
+            "claim_ids": []
+          },
+          "fused_claims": [],
+          "conflicts": [],
+          "topic": {
+            "text": "Cùng khám phá bướm qua những nét vẽ nổi bật trong bức tranh hôm nay",
+            "word_count": 15,
+            "support_state": "GROUNDED",
+            "support_claim_ids": [
+              "subject-1"
+            ],
+            "source_kinds": [
+              "VISION"
+            ],
+            "requires_adult_choice": false
+          },
+          "reason_codes": [],
+          "repair_attempted": false,
+          "provider_attempt_count": 1,
+          "gate_a_ready": true,
+          "terminal_failure": null,
+          "stages": [
+            {
+              "stage": "QUEUED",
+              "stage_status": "COMPLETED",
+              "sequence": 1
+            },
+            {
+              "stage": "NARRATION_READY",
+              "stage_status": "COMPLETED",
+              "sequence": 2,
+              "source_status": "NOT_SUPPLIED"
+            },
+            {
+              "stage": "IMAGE_CLAIMS_READY",
+              "stage_status": "COMPLETED",
+              "sequence": 3,
+              "claim_count": 1
+            },
+            {
+              "stage": "FUSION_READY",
+              "stage_status": "COMPLETED",
+              "sequence": 4,
+              "fused_claim_count": 0,
+              "conflict_count": 0
+            },
+            {
+              "stage": "TOPIC_READY",
+              "stage_status": "COMPLETED",
+              "sequence": 5
+            }
+          ]
+        },
+        "topic_directions": [
+          {
+            "direction_id": "topic-direction-1",
+            "priority": 1,
+            "title_vi": "Cùng khám phá bướm!",
+            "summary_vi": "Được ghép từ những chi tiết rõ nhất trong bức tranh.",
+            "primary_claim_id": "subject-1",
+            "source_claim_ids": [
+              "subject-1"
+            ],
+            "confidence_band": "HIGH",
+            "image_covered": true,
+            "narration_covered": false,
+            "requires_requery": false
+          }
+        ],
+        "subject_candidates": [
+          {
+            "candidate_id": "subject-1",
+            "label_vi": "bướm",
+            "confidence": 0.96,
+            "confidence_band": "HIGH",
+            "source_claim_ids": [
+              "subject-1"
+            ],
+            "relation_refs": []
+          }
+        ],
+        "subject_regions": {},
+        "subject_localization": {
+          "status": "NOT_REQUESTED",
+          "message_vi": "Chủ đề được tạo từ kết quả nhận diện ảnh và lời kể."
+        }
+      },
+      "failure": null
+    },
+    "adult_subject_confirmation": {
+      "contract_name": "MobileWorkflowResultV1",
+      "contract_version": "1.0",
+      "status": "SUCCEEDED",
+      "request_id": "0594792d-a2c3-4abd-8880-4a9b420aa248",
+      "session_id": "a4f5ab2f-0538-494c-b817-9e55a77f81a0",
+      "expected_session_version": 2,
+      "observed_session_version": 3,
+      "provenance": {
+        "contract_name": "WorkflowResultProvenanceV1",
+        "contract_version": "1.0",
+        "producer": "APPLICATION",
+        "component": "feat018-supervised-flow",
+        "component_version": "1.0",
+        "source_contracts": [
+          "GateAConfirmationV1",
+          "GateAConfirmationV2",
+          "P1ContextV1",
+          "P1ContextV4",
+          "ExperienceSpecV1"
+        ]
+      },
+      "payload": {
+        "gate_a_confirmation": {
+          "contract_name": "GateAConfirmationV1",
+          "contract_version": "1.0",
+          "session_id": "a4f5ab2f-0538-494c-b817-9e55a77f81a0",
+          "expected_session_version": 2,
+          "actor_ref": "demo:local",
+          "meaning_version": 1,
+          "confirmed_claim_ids": [
+            "subject-1"
+          ],
+          "correction": null
+        },
+        "anchor_set": {
+          "contract_name": "SemanticAnchorSetV1",
+          "contract_version": "1.0",
+          "anchor_set_id": "anchors-a4f5ab2f-0538-494c-b817-9e55a77f81a0-3",
+          "anchor_set_version": 1,
+          "source_artifact_id": "artifact:de4f5075-f078-4a96-a643-ef32f3986935",
+          "source_artifact_sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949",
+          "gate_a_status": "CONFIRMED",
+          "adult_confirmation_actor": "PROJECT_OWNER",
+          "primary_anchor": {
+            "anchor_id": "anchor-subject-1",
+            "kind": "subject",
+            "original_label": "bướm",
+            "normalized_label": "bướm",
+            "semantic_tags": [
+              "động vật",
+              "chuyển động"
+            ],
+            "confidence": 0.96,
+            "adult_confirmed": true,
+            "provenance": {
+              "source_artifact_id": "artifact:de4f5075-f078-4a96-a643-ef32f3986935",
+              "source_artifact_sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949",
+              "source_contract_name": "RawUnderstandingResultV1",
+              "source_contract_version": "1.0",
+              "source_claim_ids": [
+                "subject-1"
+              ],
+              "source_adult_assertion_id": null
+            }
+          },
+          "secondary_anchors": [],
+          "adult_correction_label": null
+        },
+        "primary_anchor_choices": [
+          {
+            "claim_id": "subject-1",
+            "label": "bướm",
+            "raw_label": "bướm",
+            "kind": "subject",
+            "confidence": 0.96
+          }
+        ],
+        "topic_asset_context": {
+          "contract_name": "PixiTopicCandidateContextV1",
+          "contract_version": "1.0",
+          "status": "NO_MATCH",
+          "confirmedTopicLabels": [
+            "Cùng khám phá bướm!",
+            "bướm"
+          ],
+          "confirmedTopicTags": [
+            "động vật",
+            "chuyển động"
+          ],
+          "candidates": [],
+          "missReason": "NO_APPROVED_ASSETS",
+          "authoringQueueProposal": {
+            "contract_name": "PixiTopicAssetAuthoringQueueProposalV1",
+            "contract_version": "1.0",
+            "status": "AWAITING_HUMAN_AUTHORING_REVIEW",
+            "topicLabels": [
+              "Cùng khám phá bướm!",
+              "bướm"
+            ],
+            "topicTags": [
+              "động vật",
+              "chuyển động"
+            ],
+            "reasonCode": "NO_APPROVED_ASSETS",
+            "originalArtPreserved": true,
+            "childMediaIncluded": false,
+            "providerGenerationRequested": false
+          }
+        },
+        "auto_rig_job": {
+          "contractName": "AutoRigJobV1",
+          "contractVersion": "1.0",
+          "jobId": "auto-rig-a4f5ab2f-0538-494c-b817-9e55a77f81a0",
+          "sessionId": "a4f5ab2f-0538-494c-b817-9e55a77f81a0",
+          "requestId": "0594792d-a2c3-4abd-8880-4a9b420aa248:auto-rig",
+          "status": "PARTIAL_SUCCESS",
+          "stage": "PACKAGING",
+          "progress": 100,
+          "displayMessageKey": "RIG_PREPARED_WITH_SAFE_FALLBACK",
+          "attempt": 1,
+          "selectedTier": "CUTOUT_MICRO_MOTION",
+          "failureCode": "SEGMENTATION_ADAPTER_UNAVAILABLE",
+          "retryable": false,
+          "createdAt": "2026-11-03T16:34:00.779218Z",
+          "updatedAt": "2026-11-03T16:34:00.779218Z"
+        }
+      },
+      "failure": null
+    },
+    "activity_suggestions": {
+      "contract_name": "MobileWorkflowResultV1",
+      "contract_version": "1.0",
+      "status": "SUCCEEDED",
+      "request_id": "52c47723-890b-4d11-8194-906f946e350d",
+      "session_id": "a4f5ab2f-0538-494c-b817-9e55a77f81a0",
+      "expected_session_version": 3,
+      "observed_session_version": 3,
+      "provenance": {
+        "contract_name": "WorkflowResultProvenanceV1",
+        "contract_version": "1.0",
+        "producer": "APPLICATION",
+        "component": "feat018-supervised-flow",
+        "component_version": "1.0",
+        "source_contracts": [
+          "GateAConfirmationV1",
+          "GateAConfirmationV2",
+          "P1ContextV1",
+          "P1ContextV4",
+          "ExperienceSpecV1"
+        ]
+      },
+      "payload": {
+        "contract_name": "ActivityRecommendationSetV3",
+        "contract_version": "3.0",
+        "session_id": "a4f5ab2f-0538-494c-b817-9e55a77f81a0",
+        "expected_session_version": 3,
+        "age_months": 60,
+        "confirmed_anchor_label": "bướm",
+        "topic_label_vi": "Cùng khám phá bướm!",
+        "total_count": 1,
+        "options": [
+          {
+            "contract_name": "ActivityRecommendationCardV2",
+            "contract_version": "2.0",
+            "priority": 1,
+            "activity_id": "ACT-0102",
+            "activity_version": 1,
+            "template_id": "TPL-ACT-0102-V1",
+            "template_version": 1,
+            "title_vi": "Ghép con vật với nơi sống",
+            "summary_vi": "Trẻ đặt thẻ con vật cạnh thẻ nơi sống phù hợp và gọi tên cặp ghép.",
+            "match_reason_vi": "Phù hợp với chủ đề cùng khám phá bướm! đã xác nhận.",
+            "duration_minutes": 12,
+            "age_label_vi": "3–6 tuổi",
+            "minimum_supervision": "NEARBY",
+            "supervision_label_vi": "Người lớn ở gần",
+            "material_labels_vi": [
+              "Vật mẫu thiên nhiên an toàn",
+              "Thẻ hình"
+            ],
+            "policy_constraints": [
+              "CAREGIVER_PRESENT"
+            ],
+            "fit_source": "DIRECT"
+          }
+        ],
+        "empty_reason": null
+      },
+      "failure": null
+    },
+    "select_first_activity": {
+      "contract_name": "MobileWorkflowResultV1",
+      "contract_version": "1.0",
+      "status": "SUCCEEDED",
+      "request_id": "7dc81fe3-26c2-4665-96f9-d0d20c1180f8",
+      "session_id": "a4f5ab2f-0538-494c-b817-9e55a77f81a0",
+      "expected_session_version": 3,
+      "observed_session_version": 4,
+      "provenance": {
+        "contract_name": "WorkflowResultProvenanceV1",
+        "contract_version": "1.0",
+        "producer": "APPLICATION",
+        "component": "feat018-supervised-flow",
+        "component_version": "1.0",
+        "source_contracts": [
+          "GateAConfirmationV1",
+          "GateAConfirmationV2",
+          "P1ContextV1",
+          "P1ContextV4",
+          "ExperienceSpecV1"
+        ]
+      },
+      "payload": {
+        "context": {
+          "session_id": "a4f5ab2f-0538-494c-b817-9e55a77f81a0",
+          "expected_session_version": 3,
+          "age_months": 60,
+          "readiness_ids": null,
+          "completed_activity_ids": null,
+          "available_material_option_ids": null,
+          "supervision_level": null,
+          "policy_flags": null,
+          "candidate_status": null,
+          "gate_a_confirmed": true,
+          "selected_activity_id": "ACT-0102",
+          "selected_activity_version": 1,
+          "selected_objective_id": null,
+          "selected_objective_version": null,
+          "contract_name": "P1ContextV4",
+          "contract_version": "4.0",
+          "caregiver_participating": false,
+          "candidate_selection_mode": "COMPLETE_TOPIC_AGE_LIST",
+          "discovery_policy": "TOPIC_AGE_SAFETY_DISCOVERY_V1",
+          "adult_participating": true
+        },
+        "missing_fields": []
+      },
+      "failure": null
+    }
+  },
+  "limitations": [
+    "This legacy demo API is a separate in-memory session from StoryRun-lite.",
+    "Activity suggestions are returned before video in this legacy route, unlike SRS §31.5 post-video lesson activities.",
+    "The image admission decoder and VLM are test fixtures; this run is not ClamAV/production-normalization evidence or a live AI result."
+  ]
+}

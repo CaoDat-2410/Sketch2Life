@@ -10,8 +10,6 @@ from typing import Any, cast
 import pytest
 from fastapi.routing import APIRoute
 from fastapi.testclient import TestClient
-from sqlalchemy.engine import Engine
-
 from sketch2life.application.ports.story_run_lite import (
     CommandResult,
     CoreAssetAdmissionPort,
@@ -26,6 +24,7 @@ from sketch2life.infrastructure.story_run_lite.quarantine import QuarantineStore
 from sketch2life.infrastructure.story_run_lite.repository import SqlStoryRunLiteRepository
 from sketch2life.interfaces.http.routers.story_run_lite import router
 from sketch2life.interfaces.http.story_run_lite_app import create_app
+from sqlalchemy.engine import Engine
 
 
 class _StubService:
@@ -33,17 +32,56 @@ class _StubService:
         self.part: tuple[object, ...] | None = None
 
     def create_run(self, payload, *, idempotency_key: str) -> CommandResult:
-        return CommandResult(201, {"profile": payload.profile_ref, "key": idempotency_key}, 1)
+        return CommandResult(
+            201,
+            {
+                "profile": payload.profile_ref,
+                "child_age_months": payload.child_age_months,
+                "key": idempotency_key,
+            },
+            1,
+        )
 
     def create_upload(self, payload, *, idempotency_key: str) -> CommandResult:
-        return CommandResult(
-            201, {"upload_ref": payload.target_ref, "key": idempotency_key}, 1
-        )
+        return CommandResult(201, {"upload_ref": payload.target_ref, "key": idempotency_key}, 1)
 
     def get_run(self, run_id: str) -> CommandResult:
         if run_id == "explode":
             raise RuntimeError("synthetic unexpected handler failure")
         return CommandResult(200, {"run_ref": run_id}, 1)
+
+    def generate_story_revision(
+        self, *, run_id: str, if_match: str | None, idempotency_key: str, **_values: object
+    ) -> CommandResult:
+        parse_etag_version(if_match)
+        return CommandResult(
+            201,
+            {
+                "run_ref": run_id,
+                "story_revision_ref": "00000000-0000-0000-0000-000000000042",
+                "key": idempotency_key,
+            },
+            2,
+        )
+
+    def get_story_revision(self, *, run_id: str, story_revision_id: str) -> CommandResult:
+        return CommandResult(200, {"run_ref": run_id, "story_revision_ref": story_revision_id}, 2)
+
+    def confirm_story_revision(
+        self,
+        *,
+        run_id: str,
+        story_revision_id: str,
+        if_match: str | None,
+        idempotency_key: str,
+        **_values: object,
+    ) -> CommandResult:
+        parse_etag_version(if_match)
+        return CommandResult(
+            200,
+            {"run_ref": run_id, "story_revision_ref": story_revision_id, "key": idempotency_key},
+            3,
+        )
 
     def attach_asset(self, *, if_match: str | None, **_values: object) -> CommandResult:
         parse_etag_version(if_match)
@@ -167,7 +205,7 @@ def _production_projection_client(engine: _FakeProjectionEngine) -> TestClient:
     return TestClient(create_app(service=service))
 
 
-def test_runtime_router_and_pinned_openapi_have_ten_operations() -> None:
+def test_runtime_router_and_pinned_openapi_have_thirteen_operations() -> None:
     runtime_operations = {
         (route.path, method.lower())
         for route in router.routes
@@ -191,11 +229,23 @@ def test_runtime_router_and_pinned_openapi_have_ten_operations() -> None:
         for method in item
         if method in {"get", "post", "put", "delete"}
     }
-    assert len(runtime_operations) == 10
+    assert len(runtime_operations) == 13
     assert runtime_operations == contract_operations
-    assert len({path for path, _method in contract_operations}) == 9
+    assert len({path for path, _method in contract_operations}) == 12
     assert ("/v1/story-runs/{run_ref}", "get") in contract_operations
     assert ("/v1/upload-sessions/{upload_ref}", "get") in contract_operations
+    assert ("/v1/story-runs/{run_ref}/story-revisions", "post") in contract_operations
+    assert (
+        "/v1/story-runs/{run_ref}/story-revisions/{story_revision_ref}",
+        "get",
+    ) in contract_operations
+    assert (
+        "/v1/story-runs/{run_ref}/story-revisions/{story_revision_ref}/confirmation",
+        "post",
+    ) in contract_operations
+    create_run_schema = contract["components"]["schemas"]["CreateRunRequest"]
+    assert "child_age_months" in create_run_schema["required"]
+    assert "default" not in create_run_schema["properties"]["child_age_months"]
     upload_schema = contract["components"]["schemas"]["UploadSession"]
     assert "PENDING" in upload_schema["properties"]["state"]["enum"]
     assert "derived_asset_ref" in upload_schema["properties"]
@@ -221,19 +271,20 @@ def test_runtime_router_and_pinned_openapi_have_ten_operations() -> None:
             "runRef": "run_ref",
             "uploadRef": "upload_ref",
             "partNo": "part_no",
+            "storyRevisionRef": "story_revision_ref",
         }.items():
             path = path.replace("{{" + variable + "}}", "{" + parameter + "}")
         bruno_operations.add((path, method_match.group(1)))
-    assert len(bruno_operations) == 10
+    assert len(bruno_operations) == 13
     assert bruno_operations == contract_operations
 
     put_responses = contract["paths"]["/v1/upload-sessions/{upload_ref}/parts/{part_no}"]["put"][
         "responses"
     ]
     assert {"410", "411", "415"}.issubset(put_responses)
-    assert "410" in contract["paths"]["/v1/upload-sessions/{upload_ref}/complete"]["post"][
-        "responses"
-    ]
+    assert (
+        "410" in contract["paths"]["/v1/upload-sessions/{upload_ref}/complete"]["post"]["responses"]
+    )
     precondition_operations = {
         ("/v1/story-runs/{run_ref}/assets", "post"),
         ("/v1/story-runs/{run_ref}/subject-confirmation", "post"),
@@ -257,6 +308,11 @@ def test_runtime_router_and_pinned_openapi_have_ten_operations() -> None:
         ("/v1/upload-sessions/{upload_ref}/parts/{part_no}", "put"),
         ("/v1/upload-sessions/{upload_ref}/complete", "post"),
         ("/v1/upload-sessions/{upload_ref}", "delete"),
+        ("/v1/story-runs/{run_ref}/story-revisions", "post"),
+        (
+            "/v1/story-runs/{run_ref}/story-revisions/{story_revision_ref}/confirmation",
+            "post",
+        ),
     }
     for path, method in validation_operations:
         assert "422" in contract["paths"][path][method]["responses"]
@@ -265,15 +321,11 @@ def test_runtime_router_and_pinned_openapi_have_ten_operations() -> None:
         for method, operation in path_item.items():
             if method not in {"get", "post", "put", "delete"}:
                 continue
-            assert operation["responses"]["500"]["$ref"] == (
-                "#/components/responses/InternalError"
-            )
+            assert operation["responses"]["500"]["$ref"] == ("#/components/responses/InternalError")
             for status, response in operation.get("responses", {}).items():
                 if status == "202":
                     headers = response.get("headers", {})
-                    assert {"Location", "Retry-After", "ETag", "Cache-Control"}.issubset(
-                        headers
-                    )
+                    assert {"Location", "Retry-After", "ETag", "Cache-Control"}.issubset(headers)
                     assert headers["Cache-Control"]["schema"]["const"] == "no-store"
 
     error_codes = set(contract["components"]["schemas"]["Error"]["properties"]["code"]["enum"])
@@ -281,9 +333,11 @@ def test_runtime_router_and_pinned_openapi_have_ten_operations() -> None:
         "ACTIVE_RUN_EXISTS",
         "ASSET_INVALID",
         "ASSET_SCOPE_MISMATCH",
+        "CHILD_AGE_REQUIRED",
         "COMMAND_RECOVERY_HOLD",
         "CONTENT_LENGTH_MISMATCH",
         "CONTENT_LENGTH_REQUIRED",
+        "EDUCATIONAL_FACT_CHECK_FAILED",
         "IMAGE_INFECTED",
         "IMAGE_INVALID",
         "IMAGE_NORMALIZATION_FAILED",
@@ -303,9 +357,16 @@ def test_runtime_router_and_pinned_openapi_have_ten_operations() -> None:
         "PRECONDITION_REQUIRED",
         "SCANNER_REJECTED",
         "SCANNER_UNAVAILABLE",
+        "SCRIPT_GENERATION_UNKNOWN",
         "SERVICE_NOT_READY",
         "STAGING_UNAVAILABLE",
         "STALE_REVISION",
+        "STALE_SUBJECT",
+        "STORY_GENERATION_NOT_CONFIGURED",
+        "STORY_OUTCOME_UNKNOWN",
+        "STORY_OUTPUT_INVALID",
+        "STORY_REWRITE_LIMIT_REACHED",
+        "STORY_REWRITE_NOT_ALLOWED",
         "UNSUPPORTED_MEDIA_TYPE",
         "UPLOAD_EXPIRED",
         "UPLOAD_INCOMPLETE",
@@ -385,9 +446,7 @@ def test_get_projection_runtime_error_codes_are_declared_by_openapi() -> None:
     }
     for schema_name, case in cases.items():
         operation = contract["paths"][case["path"]]["get"]
-        response_schema = operation["responses"]["200"]["content"]["application/json"][
-            "schema"
-        ]
+        response_schema = operation["responses"]["200"]["content"]["application/json"]["schema"]
         assert response_schema["$ref"] == f"#/components/schemas/{schema_name}"
         error_schema = schemas[schema_name]["properties"]["error"]
         assert error_schema["oneOf"][0]["$ref"] == "#/components/schemas/Error"
@@ -401,6 +460,7 @@ def test_get_run_projects_saved_error_code_through_production_repository() -> No
     now = datetime(2026, 11, 2, tzinfo=UTC)
     run_row = {
         "run_id": "run-projection-test",
+        "child_age_months": 60,
         "run_state": "FAILED",
         "revision": 1,
         "version": 2,
@@ -423,9 +483,7 @@ def test_get_run_projects_saved_error_code_through_production_repository() -> No
         / "openapi.json"
     )
     openapi = json.loads(openapi_path.read_text(encoding="utf-8"))
-    declared_codes = set(
-        openapi["components"]["schemas"]["Error"]["properties"]["code"]["enum"]
-    )
+    declared_codes = set(openapi["components"]["schemas"]["Error"]["properties"]["code"]["enum"])
 
     response = client.get("/v1/story-runs/run-projection-test")
 
@@ -457,9 +515,7 @@ def test_get_upload_projects_saved_error_code_through_production_repository() ->
     }
     engine = _FakeProjectionEngine(
         begin_results=[
-            _FakeProjectionResult(
-                row=SimpleNamespace(target_kind="STORY_RUN", target_ref=run_id)
-            ),
+            _FakeProjectionResult(row=SimpleNamespace(target_kind="STORY_RUN", target_ref=run_id)),
             _FakeProjectionResult(row={"run_id": run_id}),
             _FakeProjectionResult(row=upload_row),
             _FakeProjectionResult(rows=[]),
@@ -475,9 +531,7 @@ def test_get_upload_projects_saved_error_code_through_production_repository() ->
         / "openapi.json"
     )
     openapi = json.loads(openapi_path.read_text(encoding="utf-8"))
-    declared_codes = set(
-        openapi["components"]["schemas"]["Error"]["properties"]["code"]["enum"]
-    )
+    declared_codes = set(openapi["components"]["schemas"]["Error"]["properties"]["code"]["enum"])
 
     response = client.get(f"/v1/upload-sessions/{upload_id}")
 
@@ -496,13 +550,61 @@ def test_create_run_returns_a_strong_etag_and_validation_uses_error_envelope() -
     response = client.post(
         "/v1/story-runs",
         headers={"Idempotency-Key": "contract-run-1"},
-        json={"profile_ref": "synthetic-parent-demo"},
+        json={"profile_ref": "synthetic-parent-demo", "child_age_months": 60},
     )
     assert response.status_code == 201
     assert response.headers["ETag"] == '"v1"'
     assert response.json()["key"] == "contract-run-1"
 
     invalid = client.post("/v1/story-runs", json={"profile_ref": "unapproved"})
+    assert invalid.status_code == 422
+    assert invalid.json()["code"] == "INVALID_REQUEST"
+
+    missing_age = client.post(
+        "/v1/story-runs",
+        headers={"Idempotency-Key": "contract-run-missing-age"},
+        json={"profile_ref": "synthetic-parent-demo"},
+    )
+    assert missing_age.status_code == 422
+    assert missing_age.json()["code"] == "INVALID_REQUEST"
+
+
+def test_parent_story_revision_routes_validate_and_return_versioned_resources() -> None:
+    client = TestClient(create_app(service=cast(StoryRunLiteService, _StubService())))
+    run_ref = "00000000-0000-0000-0000-000000000001"
+    revision_ref = "00000000-0000-0000-0000-000000000042"
+    generated = client.post(
+        f"/v1/story-runs/{run_ref}/story-revisions",
+        headers={"Idempotency-Key": "generate-story-1", "If-Match": '"v1"'},
+        json={
+            "expected_understanding_revision": 1,
+            "adult_confirmed_idea": "A butterfly visits flowers",
+        },
+    )
+    assert generated.status_code == 201
+    assert generated.headers["ETag"] == '"v2"'
+    assert generated.json()["story_revision_ref"] == revision_ref
+
+    fetched = client.get(f"/v1/story-runs/{run_ref}/story-revisions/{revision_ref}")
+    assert fetched.status_code == 200
+    assert fetched.json()["story_revision_ref"] == revision_ref
+
+    confirmed = client.post(
+        f"/v1/story-runs/{run_ref}/story-revisions/{revision_ref}/confirmation",
+        headers={"Idempotency-Key": "confirm-story-1", "If-Match": '"v2"'},
+        json={
+            "expected_revision": 1,
+            "story_sha256": "a" * 64,
+        },
+    )
+    assert confirmed.status_code == 200
+    assert confirmed.headers["ETag"] == '"v3"'
+
+    invalid = client.post(
+        f"/v1/story-runs/{run_ref}/story-revisions",
+        headers={"Idempotency-Key": "generate-story-invalid", "If-Match": '"v1"'},
+        json={"expected_understanding_revision": 1, "activities": ["ACT-01"]},
+    )
     assert invalid.status_code == 422
     assert invalid.json()["code"] == "INVALID_REQUEST"
     assert "correlation_id" in invalid.json()

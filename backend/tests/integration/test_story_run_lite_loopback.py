@@ -17,8 +17,6 @@ from threading import Thread
 
 import pytest
 from PIL import Image
-from sqlalchemy import create_engine, text
-
 from sketch2life.application.ports.story_run_lite import (
     AdmittedAssetPair,
     AssetBinding,
@@ -46,6 +44,7 @@ from sketch2life.infrastructure.story_run_lite.quarantine import QuarantineStore
 from sketch2life.infrastructure.story_run_lite.repository import SqlStoryRunLiteRepository
 from sketch2life.infrastructure.vision_analysis.invocation_guard import InvocationLedgerGuard
 from sketch2life.infrastructure.vision_analysis.ledger import InvocationLedger, InvocationState
+from sqlalchemy import create_engine, text
 
 _PARENT = OwnerScopeKind.PARENT_ACCOUNT
 _TECHNICAL_ORGANIZATION_ID = "storyrun-lite-photo-bridge-v1"
@@ -179,6 +178,7 @@ def _create_attached_run(repository: SqlStoryRunLiteRepository, suffix: str):
         actor_scope_kind=_PARENT,
         actor_scope_ref=owner,
         profile_ref="synthetic-parent-demo",
+        child_age_months=60,
         key_sha256=hashlib.sha256(f"run:{suffix}:{owner}".encode()).hexdigest(),
         fingerprint_sha256=hashlib.sha256(f"run-fingerprint:{suffix}:{owner}".encode()).hexdigest(),
     )
@@ -326,9 +326,7 @@ def test_committed_story_result_recovers_sent_ledger_without_redispatch(
         == "SUBJECT_REVIEW"
     )
     pending_story_result = next(
-        row
-        for row in repository.pending_vision_ledger_reconciliation()
-        if row["run_id"] == run_id
+        row for row in repository.pending_vision_ledger_reconciliation() if row["run_id"] == run_id
     )
     expected_raw_body_sha256 = str(pending_story_result["raw_body_sha256"])
     assert bridge.reconcile_completed_results() == {"completed": 1, "unavailable": 0}

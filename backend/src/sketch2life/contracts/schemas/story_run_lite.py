@@ -15,6 +15,7 @@ class StrictRequest(BaseModel):
 
 class CreateRunRequest(StrictRequest):
     profile_ref: Literal["synthetic-parent-demo"]
+    child_age_months: int = Field(ge=36, le=120)
 
 
 class CreateUploadRequest(StrictRequest):

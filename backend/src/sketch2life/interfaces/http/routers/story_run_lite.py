@@ -10,6 +10,10 @@ from fastapi.responses import JSONResponse
 
 from sketch2life.application.ports.story_run_lite import CommandResult
 from sketch2life.application.services.story_run_lite import StoryRunLiteService
+from sketch2life.contracts.schemas.ai_story import (
+    ConfirmStoryRevisionRequest,
+    ParentStoryGenerationRequest,
+)
 from sketch2life.contracts.schemas.story_run_lite import (
     AttachAssetRequest,
     CancelRunRequest,
@@ -42,7 +46,12 @@ def _result(result: CommandResult) -> JSONResponse:
         headers["ETag"] = etag(int(version))
     if status_code == 202:
         if isinstance(body.get("run_ref"), str):
-            headers["Location"] = f"/v1/story-runs/{body['run_ref']}"
+            if isinstance(body.get("story_revision_ref"), str):
+                headers["Location"] = (
+                    f"/v1/story-runs/{body['run_ref']}/story-revisions/{body['story_revision_ref']}"
+                )
+            else:
+                headers["Location"] = f"/v1/story-runs/{body['run_ref']}"
         elif isinstance(body.get("upload_ref"), str):
             headers["Location"] = f"/v1/upload-sessions/{body['upload_ref']}"
         else:
@@ -94,6 +103,51 @@ def confirm_subject(
     return _result(
         _service(request).confirm_subject(
             run_id=run_ref,
+            request=payload,
+            if_match=if_match,
+            idempotency_key=idempotency_key,
+        )
+    )
+
+
+@router.post("/story-runs/{run_ref}/story-revisions")
+def generate_story_revision(
+    run_ref: str,
+    payload: ParentStoryGenerationRequest,
+    request: Request,
+    idempotency_key: Annotated[str, Header(alias="Idempotency-Key")],
+    if_match: Annotated[str | None, Header(alias="If-Match")] = None,
+) -> JSONResponse:
+    return _result(
+        _service(request).generate_story_revision(
+            run_id=run_ref,
+            request=payload,
+            if_match=if_match,
+            idempotency_key=idempotency_key,
+        )
+    )
+
+
+@router.get("/story-runs/{run_ref}/story-revisions/{story_revision_ref}")
+def get_story_revision(run_ref: str, story_revision_ref: str, request: Request) -> JSONResponse:
+    return _result(
+        _service(request).get_story_revision(run_id=run_ref, story_revision_id=story_revision_ref)
+    )
+
+
+@router.post("/story-runs/{run_ref}/story-revisions/{story_revision_ref}/confirmation")
+def confirm_story_revision(
+    run_ref: str,
+    story_revision_ref: str,
+    payload: ConfirmStoryRevisionRequest,
+    request: Request,
+    idempotency_key: Annotated[str, Header(alias="Idempotency-Key")],
+    if_match: Annotated[str | None, Header(alias="If-Match")] = None,
+) -> JSONResponse:
+    return _result(
+        _service(request).confirm_story_revision(
+            run_id=run_ref,
+            story_revision_id=story_revision_ref,
             request=payload,
             if_match=if_match,
             idempotency_key=idempotency_key,

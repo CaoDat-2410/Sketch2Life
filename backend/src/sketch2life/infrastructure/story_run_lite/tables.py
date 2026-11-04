@@ -217,6 +217,7 @@ story_runs = Table(
     Column("actor_scope_kind", String(32), nullable=False),
     Column("actor_scope_ref", String(128), nullable=False),
     Column("profile_ref", String(128), nullable=False),
+    Column("child_age_months", Integer, nullable=True),
     Column("run_state", String(32), nullable=False),
     Column("revision", BigInteger, nullable=False),
     Column("version", BigInteger, nullable=False),
@@ -247,8 +248,13 @@ story_runs = Table(
     CheckConstraint("revision > 0 AND version > 0", name="ck_story_run_versions"),
     CheckConstraint(
         "run_state IN ('INPUT_PROCESSING','SUBJECT_REVIEW',"
-        "'PREPARATION_REVIEW','DELETE_PENDING','FAILED')",
+        "'PREPARATION_REVIEW','SCRIPT_GENERATING','SCRIPT_GENERATION_UNKNOWN','SCRIPT_REVIEW',"
+        "'VIDEO_ADMISSION_PENDING','DELETE_PENDING','FAILED')",
         name="ck_story_run_state",
+    ),
+    CheckConstraint(
+        "child_age_months IS NULL OR child_age_months BETWEEN 36 AND 120",
+        name="ck_story_run_child_age_months",
     ),
     CheckConstraint(
         "job_state IS NULL OR job_state IN ('QUEUED','RUNNING','SUCCEEDED',"
@@ -374,7 +380,8 @@ story_command_receipts = Table(
         "actor_scope_kind IN ('PARENT_ACCOUNT','ORGANIZATION')", name="ck_story_receipt_actor_kind"
     ),
     CheckConstraint(
-        "operation IN ('CREATE_RUN','ATTACH_ASSET','CONFIRM_SUBJECT','CANCEL_RUN')",
+        "operation IN ('CREATE_RUN','ATTACH_ASSET','CONFIRM_SUBJECT','CANCEL_RUN',"
+        "'GENERATE_STORY_REVISION','CONFIRM_STORY_REVISION')",
         name="ck_story_receipt_operation",
     ),
     CheckConstraint(
@@ -430,6 +437,117 @@ review_decisions = Table(
     CheckConstraint("target_understanding_revision > 0", name="ck_story_review_target_revision"),
 )
 
+story_revisions = Table(
+    "story_revisions",
+    STORY_METADATA,
+    Column("story_revision_id", String(36), primary_key=True),
+    Column(
+        "run_id", String(36), ForeignKey("story.runs.run_id", ondelete="CASCADE"), nullable=False
+    ),
+    Column("revision_no", Integer, nullable=False),
+    Column("status", String(32), nullable=False),
+    Column("source_asset_sha256", String(64), nullable=False),
+    Column("understanding_revision", Integer, nullable=False),
+    Column("context_revision", Integer, nullable=False),
+    Column("story_sha256", String(64)),
+    Column("language", String(8)),
+    Column("title", String(120)),
+    Column("duration_ms", Integer),
+    Column("story_content", JSONB),
+    Column("schema_version", String(64), nullable=False),
+    Column("prompt_version", String(64), nullable=False),
+    Column("model_id", String(256), nullable=False),
+    Column("model_revision", String(128), nullable=False),
+    Column("request_sha256", String(64), nullable=False),
+    Column("provider_call_id", String(128)),
+    Column("created_at", DateTime(timezone=True), nullable=False, server_default=text("now()")),
+    UniqueConstraint("run_id", "revision_no", name="uq_story_revision_run_no"),
+    UniqueConstraint("run_id", "story_revision_id", name="uq_story_revision_run_owner"),
+    CheckConstraint("revision_no BETWEEN 1 AND 4", name="ck_story_revision_no"),
+    CheckConstraint(
+        "status IN ('GENERATING','DRAFT','CONFIRMED','SUPERSEDED',"
+        "'FAILED','AWAITING_RECONCILIATION')",
+        name="ck_story_revision_status",
+    ),
+    CheckConstraint(
+        "understanding_revision > 0 AND context_revision > 0", name="ck_story_revision_inputs"
+    ),
+    CheckConstraint(
+        "length(source_asset_sha256) = 64 AND length(request_sha256) = 64",
+        name="ck_story_revision_hashes",
+    ),
+    CheckConstraint(
+        "story_sha256 IS NULL OR length(story_sha256) = 64", name="ck_story_revision_content_hash"
+    ),
+    CheckConstraint(
+        "duration_ms IS NULL OR duration_ms BETWEEN 30000 AND 90000",
+        name="ck_story_revision_duration",
+    ),
+    CheckConstraint(
+        "(status IN ('GENERATING','FAILED','AWAITING_RECONCILIATION') AND story_sha256 IS NULL) OR "
+        "(status IN ('DRAFT','CONFIRMED','SUPERSEDED') AND story_sha256 IS NOT NULL AND "
+        "language = 'vi' AND title IS NOT NULL AND duration_ms IS NOT NULL "
+        "AND story_content IS NOT NULL)",
+        name="ck_story_revision_result_shape",
+    ),
+)
+Index("ix_story_revision_run_status", story_revisions.c.run_id, story_revisions.c.status)
+
+story_scenes = Table(
+    "story_scenes",
+    STORY_METADATA,
+    Column("scene_id", String(36), primary_key=True),
+    Column(
+        "story_revision_id",
+        String(36),
+        ForeignKey("story.story_revisions.story_revision_id", ondelete="CASCADE"),
+        nullable=False,
+    ),
+    Column("scene_index", Integer, nullable=False),
+    Column("title", String(100), nullable=False),
+    Column("action", String(500), nullable=False),
+    Column("visual_prompt", String(900), nullable=False),
+    Column("narration", String(500), nullable=False),
+    Column("start_ms", Integer, nullable=False),
+    Column("duration_ms", Integer, nullable=False),
+    Column("character_anchors", JSONB, nullable=False),
+    UniqueConstraint("story_revision_id", "scene_index", name="uq_story_scene_revision_index"),
+    CheckConstraint("scene_index BETWEEN 1 AND 15", name="ck_story_scene_index"),
+    CheckConstraint(
+        "start_ms >= 0 AND duration_ms BETWEEN 1000 AND 20000", name="ck_story_scene_timing"
+    ),
+)
+Index("ix_story_scene_revision_order", story_scenes.c.story_revision_id, story_scenes.c.scene_index)
+
+story_revision_reviews = Table(
+    "story_revision_reviews",
+    STORY_METADATA,
+    Column("review_id", String(36), primary_key=True),
+    Column("run_id", String(36), nullable=False),
+    Column("story_revision_id", String(36), nullable=False),
+    Column(
+        "command_receipt_id",
+        String(36),
+        ForeignKey("story.command_receipts.receipt_id", ondelete="RESTRICT"),
+        nullable=False,
+        unique=True,
+    ),
+    Column("actor_scope_kind", String(32), nullable=False),
+    Column("actor_scope_ref", String(128), nullable=False),
+    Column("decision", String(24), nullable=False),
+    Column("target_story_sha256", String(64), nullable=False),
+    Column("created_at", DateTime(timezone=True), nullable=False, server_default=text("now()")),
+    ForeignKeyConstraint(
+        ["run_id", "story_revision_id"],
+        ["story.story_revisions.run_id", "story.story_revisions.story_revision_id"],
+        ondelete="CASCADE",
+        name="fk_story_revision_review_owner",
+    ),
+    UniqueConstraint("story_revision_id", name="uq_story_revision_review_once"),
+    CheckConstraint("decision = 'CONFIRM'", name="ck_story_revision_review_decision"),
+    CheckConstraint("length(target_story_sha256) = 64", name="ck_story_revision_review_hash"),
+)
+
 
 __all__ = [
     "CORE_METADATA",
@@ -439,6 +557,9 @@ __all__ = [
     "review_decisions",
     "run_inputs",
     "story_command_receipts",
+    "story_revisions",
+    "story_scenes",
+    "story_revision_reviews",
     "story_runs",
     "understanding_revisions",
     "upload_command_receipts",

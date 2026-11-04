@@ -1,0 +1,78 @@
+{
+  "dispatch_intent": true,
+  "outcome": "HTTP_RESPONSE",
+  "records": [
+    {
+      "method": "POST",
+      "path": "/v1/story-runs/632b9ffa-59a8-43ad-8e6b-9540466aad78/assets",
+      "status": 202,
+      "elapsed_seconds": 904.056,
+      "etag": "\"v2\"",
+      "correlation_id": null,
+      "response": {
+        "run_ref": "632b9ffa-59a8-43ad-8e6b-9540466aad78",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 2,
+        "version": 2,
+        "target_revision": null,
+        "created_at": "2026-11-03T22:48:38.836412+07:00",
+        "updated_at": "2026-11-03T22:49:57.795652+07:00",
+        "job_state": "QUEUED",
+        "retryable": false,
+        "action_required": null,
+        "error": null,
+        "result": null
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/v1/story-runs/632b9ffa-59a8-43ad-8e6b-9540466aad78",
+      "status": 200,
+      "elapsed_seconds": 0.005,
+      "etag": "\"v4\"",
+      "correlation_id": null,
+      "response": {
+        "run_ref": "632b9ffa-59a8-43ad-8e6b-9540466aad78",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 2,
+        "version": 4,
+        "target_revision": null,
+        "created_at": "2026-11-03T22:48:38.836412+07:00",
+        "updated_at": "2026-11-03T23:05:01.780792+07:00",
+        "job_state": "AWAITING_RECONCILIATION",
+        "retryable": false,
+        "action_required": "OPERATOR_REVIEW",
+        "error": {
+          "code": "VISION_OUTCOME_UNKNOWN",
+          "message": "Vision outcome is unknown; do not retry automatically.",
+          "correlation_id": "1736564d-6f75-4ccd-9f56-bc39bdc78ba1",
+          "retryable": false,
+          "retry_after_seconds": null,
+          "field_errors": null
+        },
+        "result": null
+      }
+    }
+  ],
+  "final_run": {
+    "run_ref": "632b9ffa-59a8-43ad-8e6b-9540466aad78",
+    "run_state": "INPUT_PROCESSING",
+    "revision": 2,
+    "version": 4,
+    "target_revision": null,
+    "created_at": "2026-11-03T22:48:38.836412+07:00",
+    "updated_at": "2026-11-03T23:05:01.780792+07:00",
+    "job_state": "AWAITING_RECONCILIATION",
+    "retryable": false,
+    "action_required": "OPERATOR_REVIEW",
+    "error": {
+      "code": "VISION_OUTCOME_UNKNOWN",
+      "message": "Vision outcome is unknown; do not retry automatically.",
+      "correlation_id": "1736564d-6f75-4ccd-9f56-bc39bdc78ba1",
+      "retryable": false,
+      "retry_after_seconds": null,
+      "field_errors": null
+    },
+    "result": null
+  }
+}

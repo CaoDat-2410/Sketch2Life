@@ -1,0 +1,12 @@
+{
+  "state": "DISPATCH_INTENT_RECORDED",
+  "workload": "story.generate",
+  "app": "sketch2life-srs23-language-audio-dev",
+  "function": "generate-story-and-storyboard",
+  "topic": "bướm",
+  "language": "vi",
+  "scene_count": 5,
+  "input_source": "visually verified synthetic butterfly fixture label; detached from unresolved Parent API run",
+  "parent_subject_confirmation_api_passed": false,
+  "video_inference": false
+}

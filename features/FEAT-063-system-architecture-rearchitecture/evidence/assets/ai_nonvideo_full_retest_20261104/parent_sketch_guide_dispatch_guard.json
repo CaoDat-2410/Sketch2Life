@@ -1,0 +1,7 @@
+{
+  "state": "DISPATCH_INTENT_RECORDED",
+  "workload": "parent.sketch-guide.generate",
+  "created_at": "2026-11-04T17:36:25+07:00",
+  "input_policy": "generic topic and difficulty only; no child/profile/artwork data",
+  "max_attempts": 1
+}
