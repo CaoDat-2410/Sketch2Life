@@ -2,7 +2,7 @@
 
 **Date:** 2026-11-06 (Asia/Saigon)  
 **Plan:** `plan/PLAN_REV50_DEV_DUPLICATE_REPAIR_AND_MODAL_AI_INTEGRATION_20261106.md`  
-**State:** Local history repair and branch integration are staged for the merge commit; no remote update has occurred.
+**State:** Local merge completed; no remote update has occurred.
 
 ## Duplicate commit audit
 
@@ -19,7 +19,7 @@ Fetched `origin/dev` is `c98701b1e500906f396e773c79ec3bba55db2542`. The old loca
 
 The local `dev` ref was moved to the fetched `origin/dev` only after creating backup branch `backup/dev-before-dedup-20261106-575139a5` at the old tip. The primary checkout's HEAD, staged diff, unstaged diff, status listing, and contents of all 4,760 untracked files matched their pre-switch hashes.
 
-After integrating the selected Modal branch, `git cherry -v origin/dev HEAD` reported zero patch-equivalent duplicate commits and 78 new non-merge patches at that point. The six old local commit objects remain reachable from the backup branch; their commit messages and objects were not changed.
+After integrating both branches, `git rev-list --left-right --count origin/dev dev` returned `0 87`, and `git cherry -v origin/dev dev` reported 80 new patches and zero patch-equivalent duplicates. The six old local commit objects remain reachable from the backup branch; their commit messages and objects were not changed.
 
 ## Modal AI and SRS integration
 
@@ -33,4 +33,4 @@ After integrating the selected Modal branch, `git cherry -v origin/dev HEAD` rep
 
 - Repository security validation passed on the Modal worktree before its new commit: 6,583 publishable files scanned; no secrets or absolute machine paths found.
 - No tests, API requests, Modal/GPU calls, deployments, database changes, or provider calls were performed for this Git integration.
-- The merge is local. `origin/dev` has not been pushed to or rewritten. Final merge hash and final worktree security result will be recorded in the closeout.
+- The local merge commit is `370cb26d6e8c99c126f4a5a16df132eaa70c8e70`, with parents `b9e2ce0d57428edbf434d5c80640f0d5844e1421` and `c0262fd9c1118b770b3006ac3ee1020f3a2f45c4`. The final repository security validation passed on the merged tree: 6,558 publishable files scanned. `origin/dev` remains at `c98701b1e500906f396e773c79ec3bba55db2542`; nothing was pushed or rewritten.
