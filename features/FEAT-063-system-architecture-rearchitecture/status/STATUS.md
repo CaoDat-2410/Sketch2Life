@@ -1,5 +1,11 @@
 # Status
 
+## SRS v2.4 publication — Plan Rev44 (2026-11-06)
+
+- Lifecycle: COMPLETE. Commit `fa61c41bead365fe49f84d38abc5557e765ff6bf` was pushed to `origin/codex/feat063-srs-v24-asbuilt-20261106`, based on `origin/dev` at `c98701b1e500906f396e773c79ec3bba55db2542`.
+- Published the exact 16 documentation paths listed in Plan Rev44. No application/runtime changes or unrelated local work were included; the original checkout's pre-existing staged and unstaged changes remain untouched.
+- Repository security validation passed before commit and again before push (`publishable_files_scanned=5807`). No test suite was run for this documentation-only publication.
+
 ## As-built SRS alignment — Plan Rev43 (2026-11-06)
 
 - Lifecycle: REVIEW; canonical SRS and Data Table Register updated to v2.4-draft, unsigned.
