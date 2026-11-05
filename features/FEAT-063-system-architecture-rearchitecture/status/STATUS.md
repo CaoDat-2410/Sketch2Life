@@ -1,5 +1,23 @@
 # Status
 
+## As-built SRS alignment — Plan Rev43 (2026-11-06)
+
+- Lifecycle: REVIEW; canonical SRS and Data Table Register updated to v2.4-draft, unsigned.
+- SRS §§1–31 retain product target requirements; new §32 separates current local implementation observations from those targets.
+- Verified locally: OpenAPI 111 paths / 124 operations; database Alembic `20261028_ll_0001`; 41 application tables (34 `public`, 7 `lesson`). Full names and AI/database access boundary are in EV-063-33 and Data Table Register §§14.5–14.6.
+- AI direction updated per owner: Qwen3.5-VL, FLUX.3, Whisper, optional SAM 2.1, Modal inference. Q159 roles clarified. Modal dashboard presence is not claimed as backend end-to-end success; LTX-2.5 video remains unverified.
+- Verification: documentation cross-check and path-scoped diff review; no tests, database writes/migrations, provider/GPU invocation, deployment change, commit or push.
+- Plan/approval: Plan Rev43 authorization hash `000A4D0C22BB92666C60C4597BB5B8AEB126E0D4C1F654B610909CC7BBDED945`; current reviewed plan hash `1F10B3F447F7AFB59FAD847E6BE05F0C898B4CE4F6F51B0536258BBD1806F185`; approvals in root and feature `TASK_APPROVAL.md`.
+- Evidence: `evidence/EV-063-33_AS_BUILT_SRS_ALIGNMENT_20261106.md`.
+
+## Canonical SRS authority and legacy-context cleanup — Plan Rev42 (2026-11-01)
+
+- Lifecycle: REVIEW; repository-wide guidance and historical context notices are complete.
+- Current working SRS after Rev43: `artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` v2.4-draft. It remains unsigned; Rev42 itself did not change requirements or sign-off status.
+- Older SRS content and originals were preserved; older feature contexts now identify prior SRS references as historical/feature-local.
+- Verification and limits: EV-063-32. This is repository source-routing guidance; it cannot technically prevent manual access to archived files.
+- No product code, API, schema, database, test, provider, visual asset, commit, or push was included.
+
 ## Current Swagger cleanup — Plans Rev47–48 (2026-11-01)
 
 - Lifecycle: COMPLETE for the current-only documentation cleanup and local commit amendment; remote publication is pending GitHub authentication.
@@ -112,12 +130,12 @@
 - Evidence: EV-063-20, `evidence/BACKEND_BASIC_LESSON_CRUD_REPOSITORY_REVIEW_20261028.md`.
 - `approvals/TASK_APPROVAL.md` is unchanged. No source code, migration, test/build, live database, AI/Modal or deployment work was done.
 
-## Pending amendment — Plan Rev26 (2026-10-28)
+## Historical amendment — Plan Rev26 (status as of 2026-10-28)
 
-- Lifecycle: AWAITING_APPROVAL for a documentation-only AI model/Modal flow reassessment. Plan Rev26 SHA-256: `ECD0A0A6435193A903313409B699574FE9DB30BAAB8498A714A3FC54C75EEABC`.
+- Lifecycle at that time: AWAITING_APPROVAL for a documentation-only AI model/Modal flow reassessment. Plan Rev26 SHA-256: `ECD0A0A6435193A903313409B699574FE9DB30BAAB8498A714A3FC54C75EEABC`.
 - Research evidence: EV-063-19, `evidence/MODAL_HOSTED_AI_PIPELINE_REASSESSMENT_20261028.md`.
 - Historical Rev26 status: the v2.3 draft carried a stale 91/126 note, later corrected. Current SRS distinguishes v2.3 baseline 89/137 from the Rev31 92/140 implementation crosswalk; neither describes a live database.
-- Recommendations are not owner decisions. No model/provider/checkpoint is selected; Q11/Q13, quota-refund behavior and Teacher sample recovery remain open.
+- Rev26 recommendations were not owner decisions. Rev43 now records the current owner-directed AI development direction and resolves suggestion roles through Q159. Quota-refund behavior and Teacher sample recovery remain open.
 - No SRS/register/ADR content change, product implementation, database inspection, Modal operation, provider call, benchmark, GPU spend, test/build, deployment or real-child processing was performed.
 
 ## Historical product-design state - Plan Rev25 (extended by later records)

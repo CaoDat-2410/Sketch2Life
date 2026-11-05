@@ -1,9 +1,9 @@
 # Sketch2Life — Danh mục bảng dữ liệu
 
 **Tính năng:** FEAT-063 — Thiết kế lại kiến trúc toàn repository  
-**Trạng thái tài liệu:** Bản nháp v2.3 đồng bộ SRS; bổ sung platform lessons, share grants, school groups, Parent history/feedback và age 3–10; Q147–Q195 trace 49 owner answers; chưa sign-off
-**Phiên bản:** 2.3-draft
-**Cập nhật:** 2026-10-28  
+**Trạng thái tài liệu:** Bản nháp v2.4 đồng bộ SRS; giữ target platform/data model v2.3 và bổ sung snapshot database local hiện tại; chưa sign-off
+**Phiên bản:** 2.4-draft
+**Cập nhật:** 2026-11-06
 **SRS đi kèm:** [SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md](SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md)  
 **Điều kiện tạo diagram/PDF:** Chỉ tạo diagram khái niệm, logic và PDF sau khi chủ sở hữu phê duyệt cả hai tài liệu Markdown.
 
@@ -689,7 +689,7 @@ Không chạy migration, không truy cập database đang hoạt động, không
 
 ### 14.4 Rev31 backend implementation support tables (additive)
 
-The v2.3 product-design baseline at 89 active tables remains a draft. Rev31 implementation source adds three Lesson-owned persistence tables required to keep reusable-library uploads separate from occurrence-owned documents and to provide durable idempotent command receipts. The current implementation crosswalk is 38 retained/refactored + 54 new = 92 active, plus 48 legacy/read-only = 140 projected physical mappings. These counts are source-derived; no live database was inspected and no migration was applied. This crosswalk does not sign off the SRS content.
+The v2.3 product-design baseline at 89 active tables remains a draft. Rev31 implementation source adds three Lesson-owned persistence tables required to keep reusable-library uploads separate from occurrence-owned documents and to provide durable idempotent command receipts. The current implementation crosswalk is 38 retained/refactored + 54 new = 92 active, plus 48 legacy/read-only = 140 projected physical mappings. These counts are source-derived; at the time of Rev31 (2026-10-28), no live database was inspected and no migration was applied. The later local snapshot is recorded separately in §14.5. This crosswalk does not sign off the SRS content.
 
 | Owner | Rev31 table | Key fields and relationships | Purpose and lifecycle |
 |---|---|---|---|
@@ -698,3 +698,28 @@ The v2.3 product-design baseline at 89 active tables remains a draft. Rev31 impl
 | lesson | `lesson.command_receipts` | Composite owner/actor/scope/idempotency-key identity; request fingerprint; response snapshot; created timestamp | Exact retry replay and conflicting-key detection for Lesson commands. No upload bytes, child data or provider credentials. Receipt retention must follow the owning Lesson data lifecycle. |
 
 The generic Core upload purpose allowlist remains `PROFILE_IMAGE`, `RUN_ARTWORK`, `RUN_AUDIO` and `LESSON_SOURCE`; Rev31 exposes Lesson source upload only and does not change the existing media endpoints. These supporting tables supplement the 11 v2.3 platform tables; they do not replace or rename occurrence-owned `lesson.source_documents` / `lesson.document_revisions`.
+
+### 14.5 Rev43 local development database snapshot (2026-11-06)
+
+Read-only inspection of all non-system schemas in the local PostgreSQL database found only `public` and `lesson`, Alembic revision `20261028_ll_0001`, and **41 application base tables**: 34 in `public` and 7 in `lesson`. `public.alembic_version` is migration bookkeeping and is excluded from the 41 application-table count. The exact observed names are:
+
+| Schema | Tables observed | Count |
+|---|---|---:|
+| `public` | `be1_adult_identities`, `be1_child_turns`, `be1_classrooms`, `be1_consent_records`, `be1_data_lifecycle_requests`, `be1_device_grants`, `be1_enrollments`, `be1_gallery_snapshots`, `be1_group_drafts`, `be1_managed_profiles`, `be1_observations`, `be1_organization_assignments`, `be1_organizations`, `be1_parent_group_members`, `be1_parent_groups`, `be1_room_code_rate_limits`, `be1_session_command_receipts`, `be1_session_groups`, `be1_session_learning_stage_events`, `be1_session_learning_stages`, `be1_session_memberships`, `be1_session_outcomes`, `be1_session_room_codes`, `be1_sessions`, `core_aggregate_revisions`, `core_asset_metadata`, `core_audit_entries`, `core_canvas_checkpoints`, `core_canvas_operations`, `core_idempotency_receipts`, `core_outbox_consumer_receipts`, `core_outbox_events`, `core_upload_parts`, `core_upload_sessions` | 34 |
+| `lesson` | `access_grants`, `command_receipts`, `library_document_revisions`, `library_items`, `library_source_documents`, `library_versions`, `version_activities` | 7 |
+| **Application tables** |  | **41** |
+
+This local snapshot is not a production inventory and table presence alone does not prove an entity is active or used by a request. Relative to the target mapping in this register, the inspected database has no `ai_jobs`, `ai_policy`, `parent`, `story`, `billing` or `notifications` schemas/tables. Some older BE1/Core tables remain present. The target remains **92 active + 48 legacy/read-only = 140 projected physical mappings**; do not replace that target count with 41 or interpret the gap as a product-scope deletion. Read-only command, API snapshot and interpretation are recorded in `../evidence/EV-063-33_AS_BUILT_SRS_ALIGNMENT_20261106.md`.
+
+### 14.6 AI-to-database access boundary in the current build
+
+The target rule remains: AI providers/workers do not connect directly to PostgreSQL. The backend owns authorization, consent/eligibility checks, minimal context construction, asset staging, persistence, and validation of provider responses. Table presence below establishes only that a table exists in the inspected local database; it does not prove a specific AI request queried it.
+
+| Purpose | Local tables that may participate through backend | AI worker direct database access | Current evidence limit |
+|---|---|---|---|
+| Child/profile and learning context | `public.be1_managed_profiles`, `public.be1_consent_records`, `public.be1_observations` | None | Tables exist; no per-request SQL trace was inspected. Backend should construct only allowlisted `MemberFact`/context, not forward full profile/consent rows. |
+| Image/audio asset intake and lineage | `public.core_asset_metadata`, `public.core_upload_sessions`, `public.core_upload_parts` | None | Tables exist; local AI demo routes do not prove every uploaded artifact is persisted through these tables. |
+| Reviewed lesson inputs and versions | `lesson.library_items`, `lesson.library_versions`, `lesson.version_activities`, `lesson.library_source_documents`, `lesson.library_document_revisions`, `lesson.command_receipts` | None | Seven Lesson tables exist and library routes are mounted; AI generation is not proven connected. Raw source documents remain behind filtering/review gates. |
+| AI execution, policy, story and quota state | Target `ai_jobs.*`, `ai_policy.*`, `story.*`, `billing.*` and related Parent/notification tables | None | These target owner schemas are absent from this local DB. The main-app AI Jobs router is not mounted, so durable AI job/policy/story usage is not represented in the inspected schema/runtime. |
+
+Therefore, the current database inventory supports a precise distinction: there are **no AI worker-owned/direct-access tables** and no persisted AI Jobs/AI Policy/Story/Billing target tables in this local DB. The related Core/BE1/Lesson rows are backend-owned data that may be inputs or outputs under the target contract; actual row-level AI-workflow use requires query instrumentation and end-to-end verification. See SRS §32.4.

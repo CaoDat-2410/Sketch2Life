@@ -8,6 +8,7 @@ EV-063-13 records the pre-platform table-reduction and relationship-integrity ba
 | EV-063-37 | Current FE Swagger | SRS v2.2 implementation scope and live/snapshot parity | EV-063-37_SWAGGER_SRS_V22_SCOPE_20261101.md |
 | EV-063-38 | Swagger cleanup | Current-only file set, focused checks, and commit consolidation status | EV-063-38_SWAGGER_HISTORY_CLEANUP_20261101.md |
 |---|---|---|---|
+| EV-063-33 | As-built SRS alignment | Read-only reconciliation of canonical SRS with backend/router composition, mounted local OpenAPI, local PostgreSQL table inventory, AI/database access boundary and owner-supplied Modal dashboard observation; records target-versus-current implementation boundary | `EV-063-33_AS_BUILT_SRS_ALIGNMENT_20261106.md` |
 | EV-063-01 | Source review | Current table inventory, architecture conventions, app/backend/runtime baseline | `SOURCE_REGISTER.md` and SRS §3, §11–§14 |
 | EV-063-02 | Technical research | Official LTX/Modal capability and hardware requirements | SRS §9 and §19 |
 | EV-063-03 | Regulatory source review | Current law status and child data / AI design boundary | SRS §10 and §19 |
@@ -38,3 +39,6 @@ EV-063-13 records the pre-platform table-reduction and relationship-integrity ba
 | EV-063-27 | Legacy non-AI API regression | Record 77 active-route smoke responses, 109/110 non-DB tests, 3/4 BE1 tests, AI exclusions, candidate-route boundary, and the two failures | REV34_LEGACY_NON_AI_API_REGRESSION_20261029.md |
 | EV-063-28 | UI screen mockups and motion notes | Record 14 generated screen drafts, per-screen prompt/motion files, API/SRS mapping, image provenance/hashes, and visual review limits | EV-063-28_UI_MOCKUPS_AND_MOTION_NOTES_REV35_20261030.md |
 | EV-063-29 | UI component patterns and interaction states | Record nine reusable component/state boards, SRS/API mapping, motion notes, hashes, and current-versus-target API limits | EV-063-29_UI_COMPONENT_PATTERNS_REV36_20261030.md |
+| EV-063-30 | Complete API contract and local stack verification | Reconcile 135 API declarations with runtime OpenAPI; record the route-purpose/contract table, Docker status, HTTP probes, backend/API/frontend/workspace results, database heads and remaining MinIO/BE1/test blockers | EV-063-30_API_CONTRACT_AND_FULL_STACK_VERIFICATION_20261030.md |
+| EV-063-31 | UI mockup remediation Rev38 | Record the approved plan, AC-33 consistency correction, 23 screen/9 component PNG provenance and SHA-256 manifest, prompt/motion files, visual review, mounted-versus-target API boundaries, static inventory and remaining limitations | EV-063-31_UI_MOCKUP_REMEDIATION_REV38_20261030.md |
+| EV-063-32 | Canonical SRS authority and historical-context cleanup | Verify the FEAT-063 v2.3-draft source pointer, old-context notices, repository reading rules, and unchanged historical SRS hashes | `SRS_AUTHORITY_AND_LEGACY_CONTEXT_CLEANUP_20261101.md` |

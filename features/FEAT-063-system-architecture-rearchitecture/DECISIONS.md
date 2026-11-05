@@ -1,4 +1,4 @@
-# FEAT-063 decisions
+﻿# FEAT-063 decisions
 
 | ID | Decision | Authority/status |
 |---|---|---|
@@ -112,7 +112,6 @@
 | D-106 | The local backend uses one provider-neutral object-storage port with a Boto3 S3-compatible adapter. MinIO is the local Compose target; AWS S3 can use the same adapter with no endpoint override and the standard AWS credential chain/IAM role. This does not select the production provider. | Owner request on 2026-10-28; local-only implementation scope in approved Plan Rev30 |
 | D-107 | Pin the last upstream MinIO security release for the synthetic local demo only. The upstream Community repository is archived and its distribution is source-only; do not present this image as a maintained production choice. Keep the application boundary replaceable. | Official MinIO upstream README/repository and release history; reviewed 2026-10-28 |
 | D-108 | The storage demonstration routes are mounted only when `env=local` and `storage_example_enabled=true`; use generated object IDs, private bucket objects and backend-mediated reads. The example creates no Lesson/entity/database row and is not part of the Rev29 product API. | Approved Plan Rev30 scope and acceptance criteria |
-
 ## Historical independent review note through Rev25 (not a new product decision)
 
 At the time of the Rev25 review, the platform amendment was tracked in D-93-D-104, the Q147-Q195 trace, Plan Rev25 and EV-063-18; the records retained earlier history and did not themselves authorize implementation. Plan Rev31 and Addendum A now separately authorize the Lesson Library backend slice. The review recommendations remain technical findings, not product decisions. EV-063-24 records the implementation scope and limits.
@@ -143,7 +142,6 @@ EV-063-05 records an independent architecture audit in `evidence/INDEPENDENT_ARC
 | ID | Record | Basis |
 |---|---|---|
 | D-113 | Rev36 adds visual references for reusable controls, dialogs, toasts, API states, upload, quota, sharing and feedback. They distinguish Rev31 Lesson Library APIs from SRS target contracts and do not alter runtime behavior or lock app design tokens. Assets await owner visual review before application. | Approved Plan Rev36; EV-063-29 |
-
 ## Historical Swagger implementation decisions — summarized; FE view superseded by Rev45
 
 The older standalone Swagger plan/evidence notes were removed from the current tree under Plan Rev48. These rows preserve the relevant implementation and security boundaries.
@@ -162,3 +160,17 @@ The older standalone Swagger plan/evidence notes were removed from the current t
 | ID | Record | Basis |
 |---|---|---|
 | D-120 | Publish a separate FE OpenAPI projection containing only the 24 currently mounted organization/class/profile/consent and Teacher lesson-preparation/upload operations mapped to the owner-selected SRS v2.2 domains. Keep the full mounted schema internally for contract inventory; omit local/demo, collaborative-classroom, gallery, sharing, moderation, health, and unmounted candidate APIs from the FE view. Treat SRS §9.6 paths as proposals, state missing SRS flows, and do not invent endpoints or change runtime behavior. | Owner instruction, 2026-11-01; approved Plan Rev45; SRS v2.2 §9.6; EV-063-37 |
+
+## Current SRS and AI direction ? Plan Rev43
+
+| ID | Record | Basis |
+|---|---|---|
+| D-121 | Rev38 reconciles the unsigned SRS AC-33 wording with existing optional Parent guide and Teacher Deck decisions, and records 23 screen drafts plus nine component boards with mounted-versus-target API labels. This is a documentation/visual artifact record, not a new product decision or app token selection. | Approved Plan Rev38; owner UI review 2026-10-30; EV-063-31 |
+| D-122 | For current product requirements and target architecture, the canonical working SRS is FEAT-063 `SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` v2.3-draft. Older SRS copies and feature contexts are historical/feature-local only. The v2.3 draft is not thereby signed or made final. | Owner instruction 2026-11-01; approved Plan Rev42; `docs/context/SRS_AUTHORITY.md` |
+| D-123 | Resolve Q159: Platform Admin and Teacher may initiate AI lesson/activity suggestion; Parent may edit an authorized draft only. Generated content remains a draft behind human review/publication gates. This supersedes the lesson-suggestion-role item in D-104; its other open items remain open. | Owner clarification recorded in canonical SRS §31.12 on 2026-11-06 |
+| D-124 | Current AI development direction is Qwen3.5-VL, FLUX.3, Whisper and optional SAM 2.1 hosted through Modal. This is a development direction, not production stack approval; exact checkpoints, licenses, measured quality/cost and backend integration remain separate gates. | Owner direction recorded in canonical SRS §§31.12 and 32; Plan Rev43 |
+| D-125 | Canonical working SRS advances to v2.4-draft and adds an environment-specific as-built snapshot while preserving v2.3 product target requirements. This supersedes D-122's version pointer; the SRS remains unsigned. | Owner instruction 2026-11-06; approved Plan Rev43; `docs/context/SRS_AUTHORITY.md` |
+
+## Rev43 as-built SRS record (not a claim of full product acceptance)
+
+The canonical SRS v2.4-draft preserves the v2.3 target requirements and adds a dated as-built snapshot. Local OpenAPI, database and the owner-supplied Modal dashboard screenshot are evidence of different states; none alone proves end-to-end product acceptance. See SRS §32 and EV-063-33. The SRS remains unsigned.

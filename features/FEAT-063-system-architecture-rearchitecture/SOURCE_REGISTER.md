@@ -1,5 +1,22 @@
 # FEAT-063 source register
 
+## Rev43 as-built SRS alignment — current — 2026-11-06
+
+- Canonical working SRS: `artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` v2.4-draft; companion Data Table Register v2.4-draft. Both remain unsigned.
+- SRS §§1–31 preserve product/architecture target requirements; §32 and Data Table Register §14.5 record implementation status as observed locally on 2026-11-06.
+- Evidence sources: local read-only OpenAPI (111 paths / 124 operations); local PostgreSQL (`20261028_ll_0001`, 41 application tables); current router composition; owner-supplied Modal dev dashboard screenshot. AI-worker database boundary is in SRS §32.4 / Data Table Register §14.6. No Modal inference or deployment mutation was performed for this documentation update.
+- Owner AI direction: Qwen3.5-VL, FLUX.3, Whisper, optional SAM 2.1, hosted through Modal. As-built notes explicitly say backend end-to-end integration and video generation are not verified. Q159 is resolved: Platform Admin/Teacher initiate; Parent edits authorized drafts only.
+- Plan Rev43 authorization hash: `000A4D0C22BB92666C60C4597BB5B8AEB126E0D4C1F654B610909CC7BBDED945`; current reviewed plan hash: `1F10B3F447F7AFB59FAD847E6BE05F0C898B4CE4F6F51B0536258BBD1806F185`.
+- Evidence report: `evidence/EV-063-33_AS_BUILT_SRS_ALIGNMENT_20261106.md`.
+
+## Current product requirements authority — 2026-11-01
+
+- Canonical working SRS: `artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md`, v2.4-draft (2026-11-06). This remains a draft awaiting formal owner sign-off.
+- Matching data-model companion: `artifacts/DATA_TABLE_REGISTER.md`, v2.4-draft. It supports data-model work and does not create a second SRS authority.
+- Repository-wide agent instructions and the historical source map: `docs/context/SRS_AUTHORITY.md`.
+- Older feature SRS copies and old version claims in feature contexts are non-authoritative for current product intent; retained originals remain available for historical traceability.
+- Authority cleanup: Plan Rev42; approval in `approvals/TASK_APPROVAL.md`; verification evidence EV-063-32.
+
 ## Rev46 Swagger commit consolidation — current — 2026-11-01
 
 - Owner requested one commit for the current Swagger work and removal of the two preceding Swagger commits from `dev` history.
@@ -91,13 +108,13 @@
 - Repository review: EV-063-20 `evidence/BACKEND_BASIC_LESSON_CRUD_REPOSITORY_REVIEW_20261028.md`. Existing BE1 role/organization boundary is available; the generic learning_content router is candidate-only and not mounted in default composition.
 - No implementation or test approval was recorded under Rev27. SRS/Data Table Register v2.3 remain drafts; Plan Rev26 AI research status is independent and unchanged.
 
-## AI pipeline research — pending Plan Rev26 (2026-10-28)
+## Historical AI pipeline research — Plan Rev26 as of 2026-10-28 (current model direction superseded by Rev43)
 
-- Current canonical source remains SRS and Data Table Register v2.3-draft; Plan Rev25 does not authorize this new model-selection/AI-flow amendment.
-- Plan Rev26 is awaiting approval: `plan/PLAN_REV26_MODAL_HOSTED_AI_PIPELINE_REASSESSMENT_20261028.md` (SHA-256 `ECD0A0A6435193A903313409B699574FE9DB30BAAB8498A714A3FC54C75EEABC`).
-- Research/evidence: `evidence/MODAL_HOSTED_AI_PIPELINE_REASSESSMENT_20261028.md` (EV-063-19). Recommendations remain provisional; no model, checkpoint, GPU profile, quota policy or sample-recovery policy is selected.
+- At the time of this 2026-10-28 entry, the canonical source was SRS and Data Table Register v2.3-draft; Plan Rev25 did not authorize that model-selection/AI-flow amendment. This historical status is superseded by the owner direction recorded in Rev43 for current AI development.
+- Plan Rev26 was awaiting approval when recorded: `plan/PLAN_REV26_MODAL_HOSTED_AI_PIPELINE_REASSESSMENT_20261028.md` (SHA-256 `ECD0A0A6435193A903313409B699574FE9DB30BAAB8498A714A3FC54C75EEABC`). Rev43 supersedes its model and suggestion-role status for current work.
+- Research/evidence: `evidence/MODAL_HOSTED_AI_PIPELINE_REASSESSMENT_20261028.md` (EV-063-19). Rev26 recommendations remain historical; current AI development direction is recorded in Rev43. Quota-refund and sample-recovery policies remain open.
 
-## Official AI/Modal sources for pending research (2026-10-28)
+## Official AI/Modal sources for historical research (2026-10-28)
 
 - LTX-2.5 capabilities/system requirements/license and Modal GPU/LTX example: `https://docs.ltx.io/models/ltx-2-5`, `https://docs.ltx.io/open-source-model/getting-started/system-requirements`, `https://github.com/Lightricks/LTX-2/blob/main/LICENSE-2_x`, `https://modal.com/docs/guide/gpu`, `https://modal.com/docs/examples/ltx`.
 - FLUX 3/2 and Modal image example: `https://github.com/black-forest-labs/flux-3-image-klein`, `https://github.com/black-forest-labs/flux2`, `https://modal.com/docs/examples/image_to_image`.

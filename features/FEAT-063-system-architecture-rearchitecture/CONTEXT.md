@@ -1,5 +1,21 @@
 # FEAT-063 — Whole-repository architecture redesign
 
+## As-built SRS alignment — Plan Rev43 (2026-11-06)
+
+- Lifecycle: REVIEW; SRS v2.4-draft and matching Data Table Register add a current implementation snapshot without replacing the v2.3 target requirements.
+- Canonical SRS: `artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md`, v2.4-draft, unsigned. §32 distinguishes backend code, mounted API, local database and Modal dashboard observations from target behavior.
+- Read-only snapshot: local OpenAPI 111 paths / 124 operations; local PostgreSQL Alembic `20261028_ll_0001`, 41 application tables (34 `public`, 7 `lesson`). Full table list and AI/database access boundary are in EV-063-33 / Data Table Register §§14.5–14.6.
+- AI clarification: owner selected Qwen3.5-VL, FLUX.3, Whisper, optional SAM 2.1, with Modal as the inference-host direction; Q159 is resolved as Platform Admin + Teacher may initiate AI suggestions, Parent may edit authorized drafts only. Deployment and backend integration are separately qualified.
+- No requirements were deleted; API and database checks were read-only; no database writes/migrations or AI-provider calls were made for this amendment. The SRS remains unsigned. Approval: Plan Rev43 hash is recorded in root and feature approval registers.
+- Evidence: `evidence/EV-063-33_AS_BUILT_SRS_ALIGNMENT_20261106.md`.
+
+## Canonical SRS authority — 2026-11-01
+
+- The single canonical working SRS for current product requirements and target architecture is `artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md`, version `2.4-draft` (2026-11-06). It remains unsigned/draft; no final owner sign-off is implied.
+- Older feature SRS copies and contexts are historical or feature-local records only. Repository agents must follow `docs/context/SRS_AUTHORITY.md` and must not use old versions as current requirements.
+- The SRS and data-table register contents were not changed by this authority cleanup.
+- Plan Rev42 records the owner-authorized documentation scope; EV-063-32 records its verification.
+
 ## Swagger commit consolidation — Plan Rev46 (2026-11-01)
 
 - The owner authorized replacing the two tip Swagger commits with one consolidated commit and updating `origin/dev` by force-with-lease. Exact old tip `6d77d2ad` and parent Swagger commit `f68ed2b5` are replaced on `dev`; merge parent `111ae547` is retained.
@@ -121,13 +137,13 @@ The SRS and Data Table Register v2.3 remain unsigned product-design drafts. Rev3
 - The v2.3-draft logical baseline is 89 active + 48 legacy/read-only = 137 projected physical. Rev31 adds three Lesson support tables; the current source-derived implementation crosswalk is 92 active + 48 legacy/read-only = 140. These are not live database counts.
 - Source of truth: `artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` §31, `artifacts/DATA_TABLE_REGISTER.md` §14 and proposed ADR-0022. Do not lock a provider or final stack from this documentation amendment.
 
-## AI model and Modal pipeline reassessment — Plan Rev26 pending approval (2026-10-28)
+## Historical AI model and Modal pipeline reassessment — Plan Rev26 (status as of 2026-10-28)
 
 - Research note: `evidence/MODAL_HOSTED_AI_PIPELINE_REASSESSMENT_20261028.md` (EV-063-19).
-- Plan Rev26: `plan/PLAN_REV26_MODAL_HOSTED_AI_PIPELINE_REASSESSMENT_20261028.md`, SHA-256 `ECD0A0A6435193A903313409B699574FE9DB30BAAB8498A714A3FC54C75EEABC`; status AWAITING_APPROVAL for the exact documentation amendment.
-- Current canonical SRS and Data Table Register remain v2.3-draft. Research recommendations do not select a model/checkpoint, change a quota/sample rule, authorize a benchmark, or change the SRS.
+- Plan Rev26 was AWAITING_APPROVAL for its exact documentation amendment when recorded on 2026-10-28: `plan/PLAN_REV26_MODAL_HOSTED_AI_PIPELINE_REASSESSMENT_20261028.md`, SHA-256 `ECD0A0A6435193A903313409B699574FE9DB30BAAB8498A714A3FC54C75EEABC`. Rev43 supersedes its model and role status for current work.
+- Historical status as of 2026-10-28: v2.3-draft was canonical and the Rev26 research had not selected a model/checkpoint or authorized a benchmark. Rev43 supersedes that status for current SRS/model direction; no production model, quality benchmark or commercial choice is implied.
 - The v2.3 draft baseline and Rev31 implementation crosswalk are distinguished in the SRS: 89/137 and 92/140 respectively. Neither is a live database inventory; live-schema review and migration rehearsal remain open.
-- No code, live database, Modal account, model inference, GPU spend, benchmark, product test/build, generated media or real-child data was used. User answers Q11/Q13 remain open on who can initiate AI lesson suggestions.
+- No code, live database, Modal account, model inference, GPU spend, benchmark, product test/build, generated media or real-child data was used under Rev26. Q11/Q13 were open on 2026-10-28; Rev43 resolves the current suggestion roles through Q159. Quota-refund behavior and Teacher sample recovery remain open.
 
 ## Historical product baseline through Q146
 
@@ -161,7 +177,7 @@ Historical statements below preserve prior decisions. Where they conflict with Q
 - Parent target is apps/mobile (React Native 0.87 + TypeScript), using apps/ui-mobile as prior behavior reference. Teacher target is apps/teacher-ui (React 19 + Vite 8).
 - Backend target: Python 3.13/FastAPI/Pydantic v2/SQLAlchemy 2/Alembic modular monolith; PostgreSQL 17, Redis 8/RQ and MinIO. Python 3.13 is proposed within the current `<3.14` project range; current 3.12 workloads remain until approved compatibility work. Local Compose target adds API/worker, ClamAV scanner, OTel Collector, Prometheus, Grafana and Mailpit. Current Compose is smaller; uploads remain quarantined until clean scan and scanner errors fail closed.
 - Firebase Authentication only; no Firebase Storage, Firestore, Realtime Database or Firebase Messaging in this baseline. Browser push uses Web Push; Android push uses a non-Firebase provider adapter candidate pending synthetic POC.
-- Modal is backend-only. LTX-2.5 uses Modal L40S candidate; smaller ASR/VLM/LLM/TTS and Teacher Sketch stages may use L4 only after POC. Existing Qwen3-VL evidence is NO_GO; Qwen2.5-VL, Qwen2.5 story LLM, faster-whisper, VieNeu-TTS and an unspecified line-art generator remain candidates pending version/license/quality/latency/cost evidence.
+- Historical Plan Rev26 candidates as of 2026-10-28: Modal as AI host, LTX-2.5 on L40S, plus Qwen2.5-VL/story, faster-whisper, VieNeu-TTS and an unspecified line-art generator pending POC. Rev43 supersedes Qwen2.5 as the current AI development direction with the owner-selected Qwen3.5-VL/FLUX.3/Whisper/optional SAM 2.1 direction; the prior Qwen3-VL NO_GO applies only to the profile evaluated then. Video is still unverified and its development candidate is not a final model decision.
 - AI Jobs target discriminator is `STORY_RUN` (exactly one child/profile subject) or `LESSON_SKETCH_DECK` (no child/profile subject); they share dispatch infrastructure but write to distinct aggregates through distinct application completion commands. Sketch jobs have compute/rate caps but no Billing video-quota usage.
 - Domain rules remain independent of frameworks, databases, queues, providers and UI. Cross-module behavior uses versioned contracts and opaque references, not direct private-table coupling.
 - Local MinIO is not directly reachable from Modal. The SRS now specifies per-attempt Modal Volume scratch transfer, path/hash references, 48 MiB input/256 MiB output proposed synthetic caps, validation, cleanup and a real-data region gate; verify by a synthetic POC before video integration.

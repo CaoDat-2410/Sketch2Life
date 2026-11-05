@@ -1,5 +1,9 @@
 # Source register and authority boundary
 
+## Canonical product SRS — current working baseline
+
+Use `features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` v2.4-draft for all current product requirements and target architecture. It remains a draft pending formal owner sign-off. Its §32 is a local as-built snapshot and does not replace §§1–31 target requirements. Older feature SRS copies and contexts are historical/feature-local and do not override it. The detailed agent reading order and historical-source list are in `docs/context/SRS_AUTHORITY.md`.
+
 ## FEAT-063 FE Swagger SRS v2.2 and current-only cleanup — 2026-11-01
 
 The current FE-facing OpenAPI projection is features/FEAT-063-system-architecture-rearchitecture/artifacts/OPENAPI_FEAT063_REV45_20261101.json: 24 mounted operations across 17 paths and four tags, based on the owner-selected SRS v2.2 draft and current backend handlers. Plan Rev45 and EV-063-37 record scope and live/snapshot parity. Plans Rev46–48 record the approved one-commit history consolidation and removal of superseded standalone Swagger artifacts/notes. API runtime routes and behavior are unchanged by the cleanup.
@@ -42,17 +46,17 @@ Plan Rev28 (`features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV2
 
 Plan Rev27 (`features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV27_BACKEND_BASIC_LESSON_CRUD_DRAFT_20261028.md`, SHA-256 `984B54DE505A4C86B9334079D6FC9086A0E5ABC9E1736C21BC0734096454E3BD`) is preserved as the initial narrow recommendation and superseded by Rev28. EV-063-20 records its read-only repository review. It was not approved for implementation.
 
-## FEAT-063 platform lesson library and sharing — current source — 2026-10-28
+## Historical FEAT-063 platform lesson library and sharing — v2.3 baseline as of 2026-10-28
 
-The current full product SRS is features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md v2.3-draft, with DATA_TABLE_REGISTER.md v2.3-draft. Plan Rev25 is approved for this documentation-only amendment (SHA-256 90EDB84AE60864740A64863423F7F9C72052AFE757ED7427360FC6A29D8AB621); it does not sign off the SRS/register content or authorize implementation.
+At the time of Plan Rev25, the full product SRS and companion register were v2.3-draft. Rev43 advances the canonical document pointers to v2.4-draft and adds a local implementation snapshot while preserving the v2.3 product target. Plan Rev25 remains approved for its original documentation-only amendment (SHA-256 90EDB84AE60864740A64863423F7F9C72052AFE757ED7427360FC6A29D8AB621); it does not sign off the SRS/register content or authorize implementation.
 
 Owner answers 1–49 are traced as Q147–Q195. The platform layer adds reusable Montessori lessons, school-organization tenancy, scoped/revocable roles and child-profile sharing, filtered lesson authoring, visibility/publication, Parent history/feedback and school/Teacher/Parent quota. It preserves the existing Parent and Teacher flows and video pipeline. Parent outdoor activities appear after video; Parent and Teacher line-sketch generation is opt-in during the active session. The v2.3 draft baseline is 89 active + 48 legacy = 137 physical tables. Rev31 adds three Lesson support tables, yielding a source-derived 92 active + 48 legacy = 140 implementation crosswalk; neither is a live database result.
 
 The prior v2.2 SRS and Data Table Register are preserved under FEAT-063 artifacts with PRESERVED_20261028 filenames. ADR-0022 is proposed and does not lock a stack/provider. Remaining decisions and authority boundaries are recorded in FEAT-063 status and evidence. No product implementation, database/migration, provider call, test/build, deployment or real-child processing is authorized.
 
-## FEAT-063 AI model and Modal flow reassessment — pending approval — 2026-10-28
+## Historical FEAT-063 AI model and Modal flow reassessment — status as of 2026-10-28
 
-The owner requested research and candidate recommendations for Modal-hosted AI flows. Evidence is `features/FEAT-063-system-architecture-rearchitecture/evidence/MODAL_HOSTED_AI_PIPELINE_REASSESSMENT_20261028.md` (EV-063-19). Plan Rev26 (`features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV26_MODAL_HOSTED_AI_PIPELINE_REASSESSMENT_20261028.md`, SHA-256 `ECD0A0A6435193A903313409B699574FE9DB30BAAB8498A714A3FC54C75EEABC`) awaits approval. This is a research proposal only: v2.3 remains the canonical SRS/register; no model is selected, and no SRS amendment, Modal call, model benchmark or product implementation has been authorized or performed.
+The owner requested research and candidate recommendations for Modal-hosted AI flows. Evidence is `features/FEAT-063-system-architecture-rearchitecture/evidence/MODAL_HOSTED_AI_PIPELINE_REASSESSMENT_20261028.md` (EV-063-19). At the time of that 2026-10-28 research, Plan Rev26 (`features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV26_MODAL_HOSTED_AI_PIPELINE_REASSESSMENT_20261028.md`, SHA-256 `ECD0A0A6435193A903313409B699574FE9DB30BAAB8498A714A3FC54C75EEABC`) awaited approval and v2.3-draft was the canonical SRS/register. Rev43 supersedes that status for current AI development direction and role decisions; no production model, quality benchmark or commercial choice is implied by Rev43.
 
 ## Historical FEAT-063 Parent AI line-sketch clarification — 2026-10-28
 
