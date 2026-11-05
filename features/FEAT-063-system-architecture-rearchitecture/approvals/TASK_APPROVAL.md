@@ -903,3 +903,16 @@
 - Acceptance criteria: AC1–AC5 in the hash-identified Plan Rev44.
 - Exclusions: SRS sign-off; product/runtime/API/schema/database/migration/test/provider/deployment/secret changes; force-push or rewriting `dev`; publication of unrelated work.
 - Approval basis: the owner's direct instruction authorizes commit and push of the Rev43 documentation package as scoped in Plan Rev44.
+
+
+## FEAT-063 Plan Rev50 Addendum ? fast-forward publish repaired dev
+
+- **Status:** APPROVED / IN PROGRESS for the exact publication scope in the addendum plan.
+- **Approver:** Project owner, direct instruction on 2026-11-06: ?commit n?u c?n v? push.?
+- **Recorded timestamp:** 2026-11-06 06:43:00 Asia/Saigon.
+- **Feature:** FEAT-063 ? system architecture rearchitecture.
+- **Approved addendum:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV50_ADDENDUM_DEV_FAST_FORWARD_PUSH_20261106.md`.
+- **Plan SHA-256:** `B8D2C5D83BD5766080207F1F2F8283713A915BFB9EABB49645B95143AE6F3C25`.
+- **Scope:** security-validate and push only the repaired local `dev` to `origin/dev` using a regular fast-forward push; fetch and verify the exact resulting remote HEAD.
+- **Acceptance criteria:** AC50A.1?AC50A.5 in the hash-identified addendum.
+- **Exclusions:** force push/history rewrite, other refs, tests or provider calls, and unrelated checkout changes. This addendum supersedes only the earlier no-push boundary; all existing commit subjects/objects remain unchanged.
