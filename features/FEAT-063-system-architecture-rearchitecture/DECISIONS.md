@@ -227,3 +227,39 @@ For the owner's full-BE collection request, derive runnable operation coverage f
 ## D-132 — SRS v2.3 planning baseline for milestones 2–6 — 2026-11-03
 
 Use the existing SRS v2.3-draft unchanged as the planning baseline for BE milestones 2–6. Follow §8.1's Parent-before-Teacher ordering. The owner accepted the six-milestone roadmap for planning after independent review round 3; this does not sign the SRS or authorize implementation. Each milestone still requires its own detailed plan, acceptance criteria, data/migration boundary and explicit implementation approval. Unresolved model/version, line-sketch scheduling, optional lesson access, B0 provenance and other milestone gates remain open. Basis: owner confirmation “ok chốt đi”; SRS v2.3-draft §8.1; roadmap independent review round 3 ACCEPTED; `approvals/TASK_APPROVAL.md`, 2026-11-03.
+
+
+## Modal AI setup scaffold — 2026-11-03
+
+| ID | Decision | Basis |
+|---|---|---|
+| D-133 | Keep the SRS v2.3 Modal scaffold separate from the legacy Qwen3-VL Vision V2 app. Register all AI workload contracts, but keep model handlers unconfigured and fail closed until each model/runtime/license and data boundary is reviewed. Create only dev L4 and L40S app skeletons; the backend remains the sole job, authorization, quota, storage-transfer, and result authority. | Owner-approved Plan `MODAL_AI_SETUP_SCAFFOLD_20261103.md`; SRS v2.3-draft §§6.2–6.3, 9.5, 22, 24.3–27, 31.4–31.5 |
+
+| D-134 | For the first synthetic Modal model POC only, use Qwen2.5-VL-7B-Instruct at pinned Hugging Face revision cc594898137f460bfe9f0759e9844b3ce807cfb5 on one L4 for drawing.analyze; keep its Volume mount read-only at inference and require an adult confirmation signal in the output contract. This is an experimental profile, not a production model/default or a change to unresolved SRS model decisions. | Owner-approved Plan MODAL_DRAWING_VLM_L4_POC_20261103.md; official model card and Transformers docs; SRS v2.3-draft §§6.2–6.3, 24.3, 27, 29, 31 |
+
+| D-135 | Run the approved synthetic Modal hosting wave with immutable dev-only checkpoints: Qwen2.5-7B-Instruct for story/storyboard, faster-whisper large-v3 for ASR, VieNeu-TTS v3 Turbo plus MOSS Audio Tokenizer for TTS, FLUX.2 Klein 4B for a single line-guide candidate, and Wan2.2 TI2V-5B as an alternative video feasibility candidate. Download weights directly into the existing Modal Volume v2. Keep every workload disabled and retain SRS LTX-2.5 as the video candidate; do not promote any POC result to a production default. | Owner-approved plan `MODAL_AI_HOSTING_WAVE_20261103.md`; exact revisions and scopes in evidence; official model cards/runtime sources |
+| D-136 | Keep the approved GPU profiles while Modal L4 capacity is pending. Do not switch GPU type, add fallbacks, or issue duplicate inference calls without a separate plan/approval update. Continue CPU download and already-approved CPU speech POCs while preserving the pending L4 call IDs. | Approved plan stop rule; Modal reports active L4 capacity acquisition; evidence `MODAL_AI_HOSTING_WAVE_20261103.md` |
+
+| D-137 | For the first FEAT-063 backend-to-Modal slice, invoke only the private dev `drawing.analyze` function through the Modal SDK. Stage the admitted synthetic image and manifest in a unique scratch-volume prefix and pass only path/hash/size metadata to the worker. Keep the bridge pinned to one synthetic run and behind the existing A1 invocation ledger; an ambiguous result is never retried. | Owner-approved `MODAL_BACKEND_API_DRAWING_VERTICAL_SLICE_20261103.md`; SRS v2.3-draft drawing flow; Modal function-call/Volume contracts |
+| D-138 | Do not treat the Qwen2.5-VL worker's missing calibrated confidence as a model score. The legacy local StoryRun DTO temporarily carries `0.0` solely to satisfy its non-null field; no confidence or safety claim is derived from it. | Adapter result mapping; `evidence/MODAL_BACKEND_API_DRAWING_VERTICAL_SLICE_20261103.md` |
+
+## D-139 - Preserve ambiguous Parent AI outcomes
+
+For the 2026-11-03 synthetic Parent retest, an API response with `VISION_OUTCOME_UNKNOWN` remains unresolved and must not be retried or treated as successful subject recognition. A detached `story.generate` probe does not count as Parent API end-to-end script generation. The missing Parent script route and Modal scheduling limit remain explicit integration blockers.
+
+Source: `evidence/PARENT_IMAGE_TO_SCRIPT_API_AI_RETEST_20261103.md`; owner-approved retest plan and amendments.
+
+## D-140 - Story and Teacher deck POC boundaries
+
+Keep the Parent story input manifest distinct from drawing analysis (`sketch2life.modal.ai-request.v1` vs `sketch2life.modal.drawing-input.v1`). Classify known worker contract failures as terminal; preserve unknown outcomes without retry. Parent outdoor activities remain after playable video. Teacher Sketch Deck output and lesson visuals remain `DRAFT` and require the SRS review/publish gates. No second paid inference is authorized by the current one-call plan.
+
+Source: approved `plan/AI_FLOW_SRS_ALIGNMENT_AND_TEACHER_DECK_POC_20261104.md`; `evidence/AI_FLOW_SRS_ALIGNMENT_AND_TEACHER_DECK_POC_20261104.md`.
+## D-141 - Owner-authorized full non-video AI retest
+
+The owner supersedes the one-call/exclusion boundary in D-140 for a fresh synthetic-only FEAT-063 retest. Invoke every callable non-video candidate, allow at most one corrective inference after a concrete fix, and stop after a 10-minute GPU wait or unknown outcome. Add SAM2.1 Hiera-Small as a disposable image-only POC with a pinned official code commit; do not promote it or enable any workload. Keep lesson-plan suggestion blocked under unresolved SRS role rules and exclude all video generation.
+
+Source: owner instruction 2026-11-04; approved plan `plan/AI_NONVIDEO_WORKLOAD_FULL_RETEST_20261104.md`; official [SAM2 repository](https://github.com/facebookresearch/sam2) and [Modal GPU guide](https://modal.com/docs/guide/gpu).
+
+## Merge reconciliation for decision IDs - 2026-11-05
+
+The remote Modal decisions originally used D-127 through D-135; they are renumbered D-133 through D-141 here because the current branch already assigns D-127 through D-132. The remote D-120 FE OpenAPI entry duplicated the corrected canonical D-131 record and is not repeated.

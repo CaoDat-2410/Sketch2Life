@@ -16,6 +16,14 @@
 - Rev49 roadmap SHA-256 `9DF3FECF0FFF45972ADFB4D49A50E31773CBAD8832F0B5C5B625C9702CEB49CC`; Rev49 disposition SHA-256 `72150BEC8A624D03E6205CE40C2AA9A48942BCF8A1D7CA0A40BAF8CC60851A1E`.
 - This historical note incorrectly described the DTR discrepancy as unreproduced and assigned the OpenAPI decision D-130. Rev50 corrects those statements: DTR differs only by line endings; OpenAPI is D-131 because D-130 already identifies the full BE/Bruno decision.
 
+## Modal AI setup scaffold — 2026-11-03
+
+- Owner instruction: create the Modal configuration scaffold now; owner will configure environment values afterward.
+- Approved plan: `plan/MODAL_AI_SETUP_SCAFFOLD_20261103.md`, SHA-256 `7FE03A68DF76877457DF5C5F652FCB705669A624B2E07F7B6F317C9FB510E391`; exact approval is in `approvals/TASK_APPROVAL.md`.
+- Canonical source: `artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` v2.3-draft §§6.2–6.3, 9.5, 22, 24.3–27, 31.4–31.5. Rev26 remains a pending model/flow amendment and does not authorize candidate promotion.
+- Implementation: `deployment/modal/srs_v23/` contains the workload registry, path/hash-only contract, dev L4/L40S skeletons, placeholder environment sample and owner setup instructions. The existing legacy `deployment/modal/qwen_vision_v2.py` is unchanged.
+- Evidence: `evidence/MODAL_AI_SETUP_SCAFFOLD_20261103.md`. No Modal account operation/deploy/GPU, model inference, backend/storage integration, actual `.env`, product test, or child data is claimed.
+
 ## Rev42 Swagger review and local commit — current — 2026-10-30
 
 - Direct owner request: `coi và commit cho tui`. Plan Rev42 SHA-256 `E8A809729BDE4B83D0A6FD0AC21336C8F3721F55B7BDFA7431F1125922D026E8` authorizes review, focused verification and one local commit on `dev`; it excludes push.
@@ -243,3 +251,37 @@
 - Historical comparison: artifacts/API_INVENTORY_FEAT063_REV31_20261028.md and backend/src/sketch2life/interfaces/http/openapi_contract.py MOUNTED_OPERATIONS / UNMOUNTED_OPERATIONS. Current runtime adds one mounted pilot-profiles GET absent from the static Rev31 catalog; three local storage examples remain optional; 11 candidate declarations remain unmounted.
 - Deliverables: artifacts/be-full/openapi.runtime.json, artifacts/be-full/API_COVERAGE.csv, artifacts/be-full/bruno/, README and evidence/BE_FULL_BRUNO_COLLECTION_REPORT_20261103.md. Generator/validator helper scripts remain local-only and are excluded from the requested collection commit. Snapshot path is recorded in the report.
 - Validation: Bruno CLI 4.3.0 parsed and documented all 136 request names. Safe loopback smoke passed `GET /health` (200), process-local synthetic `POST /v1/sessions` (201), and `GET /v1/sessions/{session_id}` (200) with AI disabled and no DB URL. Sanitized transcript: evidence/BE_FULL_BRUNO_VALIDATION_20261103.log. DB-backed BE1/Lesson Library routes and StoryRun-lite runtime were not run. The MCP request-list tool exposes only the existing StoryRun-lite collection.
+
+## Modal drawing VLM L4 POC — 2026-11-03
+
+- Owner instruction: after Modal environment setup, continue and host the AI workload the system needs; exact bounded scope is approved in plan/MODAL_DRAWING_VLM_L4_POC_20261103.md, SHA-256 F2AF6433EFE812BBD8144CBCD3E4ECFDE09FCF0A9952280BCE814314A7008E72.
+- Canonical requirements: SRS v2.3-draft §§6.2–6.3, 24.3, 27, 29, 31; drawing VLM is the first AI stage. No production candidate is selected.
+- External sources: Qwen2.5-VL-7B model card/revision (Apache-2.0), Transformers v4.53.0 model documentation, Modal GPU and Volumes v2/model-weight docs; exact URLs and applicability are recorded in the approved plan and POC evidence.
+- Preflight: Modal CLI 1.6.3 authenticated; dev environment exists but app/volume/secret inventory is empty; current-month dev metered-cost summary 0.00. No inference has run at this point.
+
+## Modal AI hosting wave — 2026-11-03
+
+- Authority and pin: `plan/MODAL_AI_HOSTING_WAVE_20261103.md` (approved hash `C8FCB03681F2145E727F89E55DDD159AA354814E30B868CD745B930A83FCA5BA`); SRS v2.3-draft remains the canonical product source.
+- Runtime/model sources: official Modal GPU and Volume guides; Hugging Face model cards for Qwen2.5-7B-Instruct, faster-whisper large-v3, VieNeu-TTS v3 Turbo, MOSS Audio Tokenizer Nano ONNX, FLUX.2 Klein 4B, and Wan2.2 TI2V-5B; official Wan2.2 runtime pinned at `1ea34ff48f87168174e12956e200b1d908b1c5ff`. LTX-2.5 access remains gated and unused.
+- Results and limitations: `evidence/MODAL_AI_HOSTING_WAVE_20261103.md` records deployed apps/call IDs, 88.59 GiB of pinned checkpoints, and successful synthetic TTS-to-ASR and FLUX POCs. The corrective Qwen-VL call later reached terminal success. A separate API-triggered call later reached Modal success after API timeout, but its result was not persisted by the API; see the vertical-slice evidence. Modal billing after downloads has not been checked. No production readiness, model certification, or product enablement is claimed.
+
+## Local API runtime availability smoke - 2026-11-03
+
+- Owner-authorized read-only plan: `plan/API_RUNTIME_AVAILABILITY_SMOKE_20261103.md`, SHA-256 `7DA01D9CF5D5C4E98BA45C88815BBBE3589D0A5E9F94E512DDD9B995D570C5BA`.
+- Evidence: `evidence/API_RUNTIME_AVAILABILITY_SMOKE_20261103.md`. Local Compose `/health` and `/openapi.json` returned 200, but the active API image has no StoryRun route, AI provider is unset, and no HTTP route dispatches to the new Modal function apps. A read-only StoryRun GET returned 404; no mutation or inference request was sent.
+- The earlier one-request backend-to-temporary-Modal Vision success is separately recorded in `evidence/STORYRUN_LITE_MAIN_BE_INTEGRATION_20261103.md`; it is not evidence of integration to the current hosted workers.
+
+
+## Backend API to Modal drawing VLM vertical slice - 2026-11-03
+
+- Plan and owner authorization: `plan/MODAL_BACKEND_API_DRAWING_VERTICAL_SLICE_20261103.md`; operative approval and cumulative SHA-256 are in `approvals/TASK_APPROVAL.md`.
+- Modal function invocation: [official function invocation methods](https://modal.com/docs/guide/function-invocation-methods); deployed call history: [Modal function CLI](https://modal.com/docs/cli/latest/function); scratch storage uses [Modal Volumes](https://modal.com/docs/guide/volumes).
+- Temporary Windows PostgreSQL source: [PostgreSQL Windows download guidance](https://www.postgresql.org/download/windows/) identifies the EDB binary ZIP for advanced users. The downloaded EDB 17.11-4 archive was SHA-256 checked against the value recorded in [EnterpriseDB's installer repository](https://github.com/EnterpriseDB/edb-installers/issues/706).
+- Implementation and current call status: `evidence/MODAL_BACKEND_API_DRAWING_VERTICAL_SLICE_20261103.md`. The single API-triggered call reached Modal terminal `success` after the API timeout, but its result was not persisted by the API; the run still awaits operator reconciliation. The drawing app is stopped; no end-to-end API result or production readiness is inferred.
+
+| EV-063-40 | Parent image-to-script API/AI retest | Record synthetic Parent run/upload API results, Modal L4 scheduling timeout, unresolved subject confirmation, detached story worker unknown outcome, zero video calls, and verified shutdown of all deployed Modal dev apps | PARENT_IMAGE_TO_SCRIPT_API_AI_RETEST_20261103.md |
+| EV-063-41 | Parent generated-image, story, and activity-selection retest | Record synthetic image upload/admission, successful drawing VLM and direct story worker calls, legacy activity-list selection and boundary, timings, model-output factual errors, and verified shutdown | PARENT_GENERATED_IMAGE_TO_ACTIVITY_SELECTION_RETEST_20261103.md |
+
+| EV-063-42 | AI flow SRS alignment and Teacher deck POC | Record Parent story contract/business-rule correction, Modal schema failure and local adapter fix, synthetic Teacher deck text result, unavailable FLUX visual, 13-operation API matrix, tests, and verified shutdown | `evidence/AI_FLOW_SRS_ALIGNMENT_AND_TEACHER_DECK_POC_20261104.md` |
+| EV-063-43 | Full non-video AI workload retest | Approved scope for a fresh synthetic retest of all callable non-video Modal workloads, including bounded SAM2.1 feasibility; video generation excluded | `plan/AI_NONVIDEO_WORKLOAD_FULL_RETEST_20261104.md` |
+| EV-063-44 | Full non-video AI workload retest results | Record SRS-aligned backend changes, fresh synthetic Modal workload/API results, L4-capacity timeouts, 14 contract checks, focused tests, and verified shutdown/cleanup | `evidence/AI_NONVIDEO_WORKLOAD_FULL_RETEST_RESULTS_20261104.md` |

@@ -1,0 +1,47 @@
+{
+  "asr": {
+    "attempt_id": "attempt-a92718d02999",
+    "generation_id": "speech-v1",
+    "input_sha256": "7df0cb0ee15d20a04b87efe18a0e03b280353a442b192e3e248fe47561c58bfc",
+    "job_id": "modal-ai-hosting-20261103",
+    "model": {
+      "id": "Systran/faster-whisper-large-v3",
+      "revision": "edaa852ec7e145841d8ffdb056a99866b5f0a478"
+    },
+    "result": {
+      "language": "vi",
+      "language_probability": 1.0,
+      "segments": [
+        {
+          "end_seconds": 1.54,
+          "start_seconds": 0.0,
+          "text": "Con bước bay qua khu vườn đầy nắng."
+        }
+      ],
+      "text": "Con bước bay qua khu vườn đầy nắng."
+    },
+    "schema_version": "sketch2life.modal.worker-output.v1",
+    "workload": "asr.transcribe"
+  },
+  "asr_elapsed_seconds_including_cold_start": 32.224,
+  "audio_bytes": 169004,
+  "audio_file": "vieneu_synthetic_narration.wav",
+  "audio_sha256": "7df0cb0ee15d20a04b87efe18a0e03b280353a442b192e3e248fe47561c58bfc",
+  "tts": {
+    "attempt_id": "attempt-e0d10fc428a9",
+    "generation_id": "speech-v1",
+    "job_id": "modal-ai-hosting-20261103",
+    "model": {
+      "id": "pnnbao-ump/VieNeu-TTS-v3-Turbo",
+      "revision": "61b85e3d937fbbacb387714180e8182823512523"
+    },
+    "schema_version": "sketch2life.modal.worker-output.v1",
+    "workload": "tts.narration.generate"
+  },
+  "tts_asset": {
+    "content_type": "audio/wav",
+    "sha256": "7df0cb0ee15d20a04b87efe18a0e03b280353a442b192e3e248fe47561c58bfc",
+    "size_bytes": 169004
+  },
+  "tts_elapsed_seconds_including_cold_start": 19.667
+}

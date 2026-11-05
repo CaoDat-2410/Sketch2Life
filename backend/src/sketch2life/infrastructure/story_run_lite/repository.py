@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import logging
 from contextlib import suppress
 from datetime import UTC, datetime, timedelta
@@ -20,6 +21,7 @@ from sketch2life.application.ports.story_run_lite import (
     CommandResult,
     NormalizedImage,
     ScanVerdict,
+    StoryRevisionReservation,
     UploadReservation,
 )
 from sketch2life.domain.story_run_lite import (
@@ -357,6 +359,7 @@ class SqlStoryRunLiteRepository:
         actor_scope_kind: OwnerScopeKind,
         actor_scope_ref: str,
         profile_ref: str,
+        child_age_months: int,
         key_sha256: str,
         fingerprint_sha256: str,
     ) -> CommandResult:
@@ -434,6 +437,7 @@ class SqlStoryRunLiteRepository:
                         actor_scope_kind=actor_scope_kind.value,
                         actor_scope_ref=actor_scope_ref,
                         profile_ref=profile_ref,
+                        child_age_months=child_age_months,
                         run_state=RunState.INPUT_PROCESSING.value,
                         revision=1,
                         version=1,
@@ -1880,6 +1884,590 @@ class SqlStoryRunLiteRepository:
             row = self._owned_run(connection, actor_scope_kind, actor_scope_ref, run_id)
         return CommandResult(200, _run_body(row), int(row["version"]))
 
+    def reserve_story_revision(
+        self,
+        *,
+        actor_scope_kind: OwnerScopeKind,
+        actor_scope_ref: str,
+        run_id: str,
+        expected_version: int,
+        expected_understanding_revision: int,
+        adult_confirmed_idea: str,
+        rewrite_instruction: str | None,
+        key_sha256: str,
+        fingerprint_sha256: str,
+    ) -> StoryRevisionReservation:
+        now = datetime.now(UTC)
+        receipt_id = str(uuid4())
+        story_revision_id = str(uuid4())
+        identity = _identity(
+            actor_scope_kind,
+            actor_scope_ref,
+            "GENERATE_STORY_REVISION",
+            "STORY_RUN",
+            run_id,
+            key_sha256,
+        )
+        with self._engine.begin() as connection:
+            _lock_identity(connection, "story:" + ":".join(identity.values()))
+            existing = _existing_receipt(
+                connection, tables.story_command_receipts, identity, fingerprint_sha256
+            )
+            if existing is not None:
+                return StoryRevisionReservation(existing)
+            row = self._owned_run(connection, actor_scope_kind, actor_scope_ref, run_id, lock=True)
+            receipt_values = {
+                "receipt_id": receipt_id,
+                **identity,
+                "request_fingerprint_sha256": fingerprint_sha256,
+                "state": ReceiptState.PENDING.value,
+                "state_version": 1,
+                "created_at": now,
+            }
+            connection.execute(insert(tables.story_command_receipts).values(**receipt_values))
+            latest_understanding = (
+                connection.execute(
+                    select(tables.understanding_revisions)
+                    .where(
+                        tables.understanding_revisions.c.run_id == run_id,
+                        tables.understanding_revisions.c.revision_no
+                        == expected_understanding_revision,
+                    )
+                    .with_for_update()
+                )
+                .mappings()
+                .one_or_none()
+            )
+            revisions = (
+                connection.execute(
+                    select(tables.story_revisions)
+                    .where(tables.story_revisions.c.run_id == run_id)
+                    .order_by(tables.story_revisions.c.revision_no)
+                    .with_for_update()
+                )
+                .mappings()
+                .all()
+            )
+            latest_story = revisions[-1] if revisions else None
+            rejection: tuple[str, str] | None = None
+            if row["child_age_months"] is None:
+                rejection = (
+                    "CHILD_AGE_REQUIRED",
+                    "The Parent profile needs an exact age from 36 through 120 months "
+                    "before story generation.",
+                )
+            elif int(row["version"]) != expected_version:
+                rejection = ("STALE_REVISION", "Reload the StoryRun before generating a story.")
+            elif row["run_state"] not in {
+                RunState.PREPARATION_REVIEW.value,
+                RunState.SCRIPT_REVIEW.value,
+            }:
+                rejection = (
+                    "INVALID_STATE",
+                    "Confirm the drawing subject before generating a story.",
+                )
+            elif (
+                int(row["understanding_revision"] or 0) != expected_understanding_revision
+                or latest_understanding is None
+            ):
+                rejection = (
+                    "STALE_SUBJECT",
+                    "The confirmed subject revision is no longer current.",
+                )
+            elif len(revisions) >= 4:
+                rejection = (
+                    "STORY_REWRITE_LIMIT_REACHED",
+                    "A StoryRun allows one initial story and at most three AI rewrites.",
+                )
+            elif not revisions and rewrite_instruction is not None:
+                rejection = (
+                    "INVALID_STORY_REVISION",
+                    "The first story request cannot be a rewrite.",
+                )
+            elif revisions and (
+                not rewrite_instruction or latest_story["status"] not in {"DRAFT", "FAILED"}
+            ):
+                rejection = (
+                    "STORY_REWRITE_NOT_ALLOWED",
+                    "A rewrite requires an unconfirmed current draft or a failed draft attempt, "
+                    "plus an adult instruction.",
+                )
+            if rejection is not None:
+                code, message = rejection
+                body = _error_body(code, message, retryable=False)
+                _finalize_receipt(
+                    connection,
+                    tables.story_command_receipts,
+                    receipt_id,
+                    409,
+                    body,
+                    int(row["version"]),
+                    run_id,
+                    int(row["version"]),
+                    now,
+                )
+                return StoryRevisionReservation(CommandResult(409, body, int(row["version"])))
+
+            input_row = (
+                connection.execute(
+                    select(tables.run_inputs)
+                    .where(tables.run_inputs.c.run_id == run_id)
+                    .order_by(tables.run_inputs.c.input_revision.desc())
+                    .limit(1)
+                )
+                .mappings()
+                .one_or_none()
+            )
+            if input_row is None:
+                raise StoryRunLiteError(
+                    409, "INVALID_STATE", "The StoryRun has no admitted drawing."
+                )
+            snapshot = latest_understanding["result_snapshot"]
+            candidate = snapshot.get("result", snapshot) if isinstance(snapshot, dict) else {}
+            visible_features = (
+                candidate.get("visible_features", []) if isinstance(candidate, dict) else []
+            )
+            if not isinstance(visible_features, list):
+                visible_features = []
+            confirmed_subject = str(row["subject_label"] or "").strip()
+            if not confirmed_subject:
+                raise StoryRunLiteError(
+                    409, "SUBJECT_NOT_CONFIRMED", "Confirm the drawing subject first."
+                )
+            revision_no = len(revisions) + 1
+            context = {
+                "worker_input": {
+                    "schema_version": "sketch2life.story-generation-input.v1",
+                    "role": "PARENT",
+                    "language": "vi",
+                    "confirmed_subject": confirmed_subject,
+                    "understanding_revision": expected_understanding_revision,
+                    "drawing_sha256": str(input_row["original_sha256"]),
+                    "visible_features": [
+                        str(value)[:160] for value in visible_features[:4] if str(value).strip()
+                    ],
+                    "child_age_months": int(row["child_age_months"]),
+                    "context_revision": 1,
+                    "adult_confirmed_idea": adult_confirmed_idea,
+                    "rewrite_instruction": rewrite_instruction,
+                    "lesson_direction": None,
+                },
+                "confirmed_subject": confirmed_subject,
+                "model_id": "Qwen/Qwen2.5-7B-Instruct",
+                "model_revision": "a09a35458c702b33eeacc393d103063234e8bc28",
+                "prompt_version": "parent-story-v2.2026-11-04",
+            }
+            request_bytes = json.dumps(
+                context["worker_input"], ensure_ascii=False, sort_keys=True, separators=(",", ":")
+            ).encode("utf-8")
+            request_sha256 = hashlib.sha256(request_bytes).hexdigest()
+            new_version = int(row["version"]) + 1
+            connection.execute(
+                insert(tables.story_revisions).values(
+                    story_revision_id=story_revision_id,
+                    run_id=run_id,
+                    revision_no=revision_no,
+                    status="GENERATING",
+                    source_asset_sha256=str(input_row["original_sha256"]),
+                    understanding_revision=expected_understanding_revision,
+                    context_revision=1,
+                    schema_version="sketch2life.story-revision.v1",
+                    prompt_version=context["prompt_version"],
+                    model_id=context["model_id"],
+                    model_revision=context["model_revision"],
+                    request_sha256=request_sha256,
+                    created_at=now,
+                )
+            )
+            if latest_story is not None and latest_story["status"] == "DRAFT":
+                connection.execute(
+                    update(tables.story_revisions)
+                    .where(
+                        tables.story_revisions.c.story_revision_id
+                        == latest_story["story_revision_id"]
+                    )
+                    .values(status="SUPERSEDED")
+                )
+            connection.execute(
+                update(tables.story_runs)
+                .where(
+                    tables.story_runs.c.run_id == run_id,
+                    tables.story_runs.c.version == expected_version,
+                )
+                .values(
+                    run_state=RunState.SCRIPT_GENERATING.value,
+                    revision=tables.story_runs.c.revision + 1,
+                    version=new_version,
+                    job_state="RUNNING",
+                    retryable=False,
+                    action_required=None,
+                    error_code=None,
+                    updated_at=now,
+                )
+            )
+        pending = CommandResult(
+            202,
+            {
+                "run_ref": run_id,
+                "story_revision_ref": story_revision_id,
+                "revision_no": revision_no,
+                "state": "GENERATING",
+            },
+            new_version,
+        )
+        return StoryRevisionReservation(
+            pending,
+            story_revision_id=story_revision_id,
+            revision_no=revision_no,
+            command_receipt_id=receipt_id,
+            context=context,
+            claimed_version=new_version,
+        )
+
+    def complete_story_revision(
+        self,
+        *,
+        reservation: StoryRevisionReservation,
+        story: dict[str, object],
+        story_sha256: str,
+        model_id: str,
+        model_revision: str,
+        prompt_version: str,
+        schema_version: str,
+        provider_call_id: str,
+    ) -> CommandResult:
+        assert (
+            reservation.story_revision_id
+            and reservation.command_receipt_id
+            and reservation.claimed_version
+        )
+        now = datetime.now(UTC)
+        with self._engine.begin() as connection:
+            run_id = str(reservation.command_result.body["run_ref"])
+            row = (
+                connection.execute(
+                    select(tables.story_runs)
+                    .where(tables.story_runs.c.run_id == run_id)
+                    .with_for_update()
+                )
+                .mappings()
+                .one()
+            )
+            revision = (
+                connection.execute(
+                    select(tables.story_revisions)
+                    .where(
+                        tables.story_revisions.c.story_revision_id == reservation.story_revision_id
+                    )
+                    .with_for_update()
+                )
+                .mappings()
+                .one()
+            )
+            if (
+                row["run_state"] != RunState.SCRIPT_GENERATING.value
+                or int(row["version"]) != reservation.claimed_version
+                or revision["status"] != "GENERATING"
+            ):
+                raise StoryRunLiteError(
+                    409,
+                    "STALE_STORY_GENERATION",
+                    "The StoryRun changed while the story was generating.",
+                )
+            for scene in story["scenes"]:
+                connection.execute(
+                    insert(tables.story_scenes).values(
+                        scene_id=str(uuid4()),
+                        story_revision_id=reservation.story_revision_id,
+                        scene_index=scene["scene_index"],
+                        title=scene["title"],
+                        action=scene["action"],
+                        visual_prompt=scene["visual_prompt"],
+                        narration=scene["narration"],
+                        start_ms=scene["start_ms"],
+                        duration_ms=scene["duration_ms"],
+                        character_anchors=scene["character_anchors"],
+                    )
+                )
+            connection.execute(
+                update(tables.story_revisions)
+                .where(tables.story_revisions.c.story_revision_id == reservation.story_revision_id)
+                .values(
+                    status="DRAFT",
+                    story_sha256=story_sha256,
+                    language=story["language"],
+                    title=story["title"],
+                    duration_ms=story["duration_ms"],
+                    story_content=story["story"],
+                    schema_version=schema_version,
+                    prompt_version=prompt_version,
+                    model_id=model_id,
+                    model_revision=model_revision,
+                    provider_call_id=provider_call_id,
+                )
+            )
+            new_version = int(row["version"]) + 1
+            connection.execute(
+                update(tables.story_runs)
+                .where(
+                    tables.story_runs.c.run_id == run_id,
+                    tables.story_runs.c.version == reservation.claimed_version,
+                )
+                .values(
+                    run_state=RunState.SCRIPT_REVIEW.value,
+                    revision=tables.story_runs.c.revision + 1,
+                    version=new_version,
+                    job_state="SUCCEEDED",
+                    retryable=False,
+                    action_required="ADULT_SCRIPT_REVIEW",
+                    updated_at=now,
+                )
+            )
+            body = _story_revision_body(connection, reservation.story_revision_id)
+            _finalize_receipt(
+                connection,
+                tables.story_command_receipts,
+                reservation.command_receipt_id,
+                201,
+                body,
+                new_version,
+                run_id,
+                new_version,
+                now,
+            )
+        return CommandResult(201, body, new_version)
+
+    def fail_story_revision(
+        self, *, reservation: StoryRevisionReservation, error_code: str, outcome_unknown: bool
+    ) -> CommandResult:
+        assert (
+            reservation.story_revision_id
+            and reservation.command_receipt_id
+            and reservation.claimed_version
+        )
+        now = datetime.now(UTC)
+        run_id = str(reservation.command_result.body["run_ref"])
+        with self._engine.begin() as connection:
+            row = (
+                connection.execute(
+                    select(tables.story_runs)
+                    .where(tables.story_runs.c.run_id == run_id)
+                    .with_for_update()
+                )
+                .mappings()
+                .one()
+            )
+            state = "AWAITING_RECONCILIATION" if outcome_unknown else "FAILED"
+            run_state = (
+                RunState.SCRIPT_GENERATION_UNKNOWN.value
+                if outcome_unknown
+                else RunState.PREPARATION_REVIEW.value
+            )
+            connection.execute(
+                update(tables.story_revisions)
+                .where(tables.story_revisions.c.story_revision_id == reservation.story_revision_id)
+                .values(status=state)
+            )
+            new_version = int(row["version"]) + 1
+            connection.execute(
+                update(tables.story_runs)
+                .where(
+                    tables.story_runs.c.run_id == run_id,
+                    tables.story_runs.c.version == reservation.claimed_version,
+                )
+                .values(
+                    run_state=run_state,
+                    revision=tables.story_runs.c.revision + 1,
+                    version=new_version,
+                    job_state="AWAITING_RECONCILIATION" if outcome_unknown else "FAILED",
+                    retryable=False,
+                    action_required="OPERATOR_REVIEW" if outcome_unknown else None,
+                    error_code=error_code,
+                    updated_at=now,
+                )
+            )
+            body = _error_body(
+                error_code,
+                "The story request needs review and will not be resent automatically.",
+                retryable=False,
+            )
+            if outcome_unknown:
+                body.update(
+                    {
+                        "run_ref": run_id,
+                        "story_revision_ref": reservation.story_revision_id,
+                        "revision_no": reservation.revision_no,
+                        "state": state,
+                    }
+                )
+            else:
+                _finalize_receipt(
+                    connection,
+                    tables.story_command_receipts,
+                    reservation.command_receipt_id,
+                    502,
+                    body,
+                    new_version,
+                    run_id,
+                    new_version,
+                    now,
+                )
+        return CommandResult(202 if outcome_unknown else 502, body, new_version)
+
+    def get_story_revision(
+        self,
+        *,
+        actor_scope_kind: OwnerScopeKind,
+        actor_scope_ref: str,
+        run_id: str,
+        story_revision_id: str,
+    ) -> CommandResult:
+        with self._engine.connect() as connection:
+            self._owned_run(connection, actor_scope_kind, actor_scope_ref, run_id)
+            revision = (
+                connection.execute(
+                    select(tables.story_revisions).where(
+                        tables.story_revisions.c.run_id == run_id,
+                        tables.story_revisions.c.story_revision_id == story_revision_id,
+                    )
+                )
+                .mappings()
+                .one_or_none()
+            )
+            if revision is None:
+                raise StoryRunLiteError(404, "NOT_FOUND", "Story revision not found.")
+            body = _story_revision_body(connection, story_revision_id)
+        return CommandResult(200, body)
+
+    def confirm_story_revision(
+        self,
+        *,
+        actor_scope_kind: OwnerScopeKind,
+        actor_scope_ref: str,
+        run_id: str,
+        story_revision_id: str,
+        expected_version: int,
+        expected_revision: int,
+        story_sha256: str,
+        key_sha256: str,
+        fingerprint_sha256: str,
+    ) -> CommandResult:
+        now = datetime.now(UTC)
+        receipt_id = str(uuid4())
+        identity = _identity(
+            actor_scope_kind,
+            actor_scope_ref,
+            "CONFIRM_STORY_REVISION",
+            "STORY_RUN",
+            run_id,
+            key_sha256,
+        )
+        with self._engine.begin() as connection:
+            _lock_identity(connection, "story:" + ":".join(identity.values()))
+            existing = _existing_receipt(
+                connection, tables.story_command_receipts, identity, fingerprint_sha256
+            )
+            if existing is not None:
+                return existing
+            row = self._owned_run(connection, actor_scope_kind, actor_scope_ref, run_id, lock=True)
+            receipt_values = {
+                "receipt_id": receipt_id,
+                **identity,
+                "request_fingerprint_sha256": fingerprint_sha256,
+                "state": ReceiptState.PENDING.value,
+                "state_version": 1,
+                "created_at": now,
+            }
+            connection.execute(insert(tables.story_command_receipts).values(**receipt_values))
+            revision = (
+                connection.execute(
+                    select(tables.story_revisions)
+                    .where(
+                        tables.story_revisions.c.run_id == run_id,
+                        tables.story_revisions.c.story_revision_id == story_revision_id,
+                    )
+                    .with_for_update()
+                )
+                .mappings()
+                .one_or_none()
+            )
+            if revision is None:
+                raise StoryRunLiteError(404, "NOT_FOUND", "Story revision not found.")
+            if (
+                row["run_state"] != RunState.SCRIPT_REVIEW.value
+                or int(row["version"]) != expected_version
+                or int(revision["revision_no"]) != expected_revision
+                or revision["status"] != "DRAFT"
+                or revision["story_sha256"] != story_sha256
+                or int(revision["understanding_revision"])
+                != int(row["understanding_revision"] or 0)
+            ):
+                body = _error_body(
+                    "STALE_REVISION",
+                    "The story draft changed; reload and review the current revision.",
+                    retryable=False,
+                )
+                _finalize_receipt(
+                    connection,
+                    tables.story_command_receipts,
+                    receipt_id,
+                    409,
+                    body,
+                    int(row["version"]),
+                    run_id,
+                    int(row["version"]),
+                    now,
+                )
+                return CommandResult(409, body, int(row["version"]))
+            new_version = int(row["version"]) + 1
+            connection.execute(
+                update(tables.story_revisions)
+                .where(tables.story_revisions.c.story_revision_id == story_revision_id)
+                .values(status="CONFIRMED")
+            )
+            connection.execute(
+                update(tables.story_runs)
+                .where(
+                    tables.story_runs.c.run_id == run_id,
+                    tables.story_runs.c.version == expected_version,
+                )
+                .values(
+                    run_state=RunState.VIDEO_ADMISSION_PENDING.value,
+                    revision=tables.story_runs.c.revision + 1,
+                    version=new_version,
+                    action_required="VIDEO_ADMISSION_NOT_IMPLEMENTED",
+                    updated_at=now,
+                )
+            )
+            connection.execute(
+                insert(tables.story_revision_reviews).values(
+                    review_id=str(uuid4()),
+                    run_id=run_id,
+                    story_revision_id=story_revision_id,
+                    command_receipt_id=receipt_id,
+                    actor_scope_kind=actor_scope_kind.value,
+                    actor_scope_ref=actor_scope_ref,
+                    decision="CONFIRM",
+                    target_story_sha256=story_sha256,
+                    created_at=now,
+                )
+            )
+            body = _story_revision_body(connection, story_revision_id)
+            body["run_state"] = RunState.VIDEO_ADMISSION_PENDING.value
+            body["video_started"] = False
+            _finalize_receipt(
+                connection,
+                tables.story_command_receipts,
+                receipt_id,
+                200,
+                body,
+                new_version,
+                run_id,
+                new_version,
+                now,
+            )
+        return CommandResult(200, body, new_version)
+
     def confirm_subject(
         self,
         *,
@@ -2499,6 +3087,9 @@ def _run_body(row: Any) -> dict[str, object]:
         "run_state": str(row["run_state"]),
         "revision": int(row["revision"]),
         "version": int(row["version"]),
+        "child_age_months": int(row["child_age_months"])
+        if row["child_age_months"] is not None
+        else None,
         "target_revision": int(row["understanding_revision"])
         if row["understanding_revision"] is not None
         else None,
@@ -2516,7 +3107,70 @@ def _run_body(row: Any) -> dict[str, object]:
             "subject_label": str(row["subject_label"]),
             "confidence": float(row["confidence"]),
         }
+    if row["run_state"] == RunState.SCRIPT_REVIEW.value:
+        result["result"] = {"stage": "SCRIPT_REVIEW", "adult_confirmation_required": True}
     return result
+
+
+def _story_revision_body(connection: Connection, story_revision_id: str) -> dict[str, object]:
+    revision = (
+        connection.execute(
+            select(tables.story_revisions).where(
+                tables.story_revisions.c.story_revision_id == story_revision_id
+            )
+        )
+        .mappings()
+        .one()
+    )
+    scenes = (
+        connection.execute(
+            select(tables.story_scenes)
+            .where(tables.story_scenes.c.story_revision_id == story_revision_id)
+            .order_by(tables.story_scenes.c.scene_index)
+        )
+        .mappings()
+        .all()
+    )
+    body: dict[str, object] = {
+        "story_revision_ref": str(revision["story_revision_id"]),
+        "run_ref": str(revision["run_id"]),
+        "revision_no": int(revision["revision_no"]),
+        "status": str(revision["status"]),
+        "schema_version": str(revision["schema_version"]),
+        "prompt_version": str(revision["prompt_version"]),
+        "model": {"id": str(revision["model_id"]), "revision": str(revision["model_revision"])},
+        "source_asset_sha256": str(revision["source_asset_sha256"]),
+        "understanding_revision": int(revision["understanding_revision"]),
+        "context_revision": int(revision["context_revision"]),
+        "request_sha256": str(revision["request_sha256"]),
+        "story_sha256": revision["story_sha256"],
+        "provider_call_id": revision["provider_call_id"],
+        "created_at": _iso(revision["created_at"]),
+        "review_required": revision["status"] == "DRAFT",
+    }
+    if revision["story_sha256"] is not None:
+        body.update(
+            {
+                "language": str(revision["language"]),
+                "title": str(revision["title"]),
+                "duration_ms": int(revision["duration_ms"]),
+                "story": revision["story_content"],
+                "scenes": [
+                    {
+                        "scene_index": int(scene["scene_index"]),
+                        "title": str(scene["title"]),
+                        "action": str(scene["action"]),
+                        "visual_prompt": str(scene["visual_prompt"]),
+                        "narration": str(scene["narration"]),
+                        "start_ms": int(scene["start_ms"]),
+                        "duration_ms": int(scene["duration_ms"]),
+                        "character_anchors": scene["character_anchors"],
+                    }
+                    for scene in scenes
+                ],
+            }
+        )
+    return body
 
 
 def _part_body(part_number: int, size: int, sha256: str) -> dict[str, object]:
@@ -2536,6 +3190,9 @@ def _error_body(code: str, message: str, *, retryable: bool) -> dict[str, object
 
 def _error_for_code(code: str) -> dict[str, object]:
     messages = {
+        "EDUCATIONAL_FACT_CHECK_FAILED": (
+            "The story draft failed the configured educational fact checks."
+        ),
         "UPLOAD_EXPIRED": "Upload session has expired.",
         "UPLOAD_SESSION_STATE_CONFLICT": "Upload did not finish safely; create a new session.",
         "VISION_ATTEMPT_HOLD": "Vision outcome is held for operator review; it will not be resent.",
@@ -2544,6 +3201,21 @@ def _error_for_code(code: str) -> dict[str, object]:
         "SCANNER_REJECTED": "ClamAV rejected this snapshot.",
         "IMAGE_INVALID": "Image format or content is invalid.",
         "WORKER_LIMITS_UNAVAILABLE": "The OS-enforced image worker limits are unavailable.",
+        "SCRIPT_GENERATION_UNKNOWN": (
+            "The story worker outcome is unknown and requires reconciliation."
+        ),
+        "STALE_SUBJECT": (
+            "The confirmed drawing subject has changed; review the current subject first."
+        ),
+        "STORY_GENERATION_NOT_CONFIGURED": "Story generation is not configured for this runtime.",
+        "STORY_OUTCOME_UNKNOWN": "The story worker outcome is unknown and was not resent.",
+        "STORY_OUTPUT_INVALID": "The story worker returned an invalid draft.",
+        "STORY_REWRITE_LIMIT_REACHED": (
+            "A StoryRun allows one initial story and at most three AI rewrites."
+        ),
+        "STORY_REWRITE_NOT_ALLOWED": (
+            "A rewrite requires an unconfirmed current draft and an adult instruction."
+        ),
     }
     return _error_body(
         code, messages.get(code, "The request could not be completed."), retryable=False

@@ -1,0 +1,14 @@
+{
+  "state": "DISPATCH_INTENT_RECORDED",
+  "workload": "parent.sketch-guide.generate",
+  "app": "sketch2life-srs23-flux-image-dev",
+  "function": "generate-line-sketch-guide-candidate",
+  "prefix": "sketch2life/dev/0ddacbd7-4058-406d-88da-4b39be853cc6/0a0a2704-37ea-4f0a-8844-2f926f7eb5fc/81f0290d-367d-4a30-9658-b512fe331d3b/",
+  "job_id": "0ddacbd7-4058-406d-88da-4b39be853cc6",
+  "generation_id": "0a0a2704-37ea-4f0a-8844-2f926f7eb5fc",
+  "attempt_id": "81f0290d-367d-4a30-9658-b512fe331d3b",
+  "input_sha256": "0f28f8f178af4c345be15dea36577d2b7b2be4dc405ac331c24463f597c9b97e",
+  "manifest_sha256": "f714412b9aecf410f83a46b1c131e2e60ba1314e6e6ef41a041b725b0d52492b",
+  "created_at": "2026-11-04T17:36:25+07:00",
+  "max_attempts": 1
+}

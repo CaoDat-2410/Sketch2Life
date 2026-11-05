@@ -1,0 +1,32 @@
+meta {
+  name: 13 Confirm Parent story revision
+  type: http
+  seq: 13
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{runRef}}/story-revisions/{{storyRevisionRef}}/confirmation
+  body: json
+  auth: none
+}
+
+headers {
+  Idempotency-Key: {{confirmStoryKey}}
+  If-Match: {{storyETag}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "expected_revision": {{storyRevisionNo}},
+    "story_sha256": "{{storySha256}}"
+  }
+}
+
+tests {
+  test("confirms only the reviewed draft, without starting video", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().status).to.equal("CONFIRMED");
+    expect(res.getBody().video_started).to.equal(false);
+  });
+}

@@ -43,3 +43,27 @@ EV-063-13 records the pre-platform table-reduction and relationship-integrity ba
 | EV-063-27 | Legacy non-AI API regression | Record 77 active-route smoke responses, 109/110 non-DB tests, 3/4 BE1 tests, AI exclusions, candidate-route boundary, and the two failures | REV34_LEGACY_NON_AI_API_REGRESSION_20261029.md |
 | EV-063-28 | UI screen mockups and motion notes | Record 14 generated screen drafts, per-screen prompt/motion files, API/SRS mapping, image provenance/hashes, and visual review limits | EV-063-28_UI_MOCKUPS_AND_MOTION_NOTES_REV35_20261030.md |
 | EV-063-29 | UI component patterns and interaction states | Record nine reusable component/state boards, SRS/API mapping, motion notes, hashes, and current-versus-target API limits | EV-063-29_UI_COMPONENT_PATTERNS_REV36_20261030.md |
+| EV-063-30 | Modal AI hosting wave | Record pinned Modal dev deployments, 88.59 GiB of direct-to-Volume checkpoint downloads, synthetic TTS/ASR and FLUX results, later Qwen-VL call success, the separate unreconciled API call, stopped drawing app, and remaining readiness limits | MODAL_AI_HOSTING_WAVE_20261103.md |
+| EV-063-31 | Local API runtime availability smoke | Record live health/OpenAPI checks, missing StoryRun route and disabled provider configuration in the running Docker API, and why no request reached the newly deployed Modal workers | API_RUNTIME_AVAILABILITY_SMOKE_20261103.md |
+| EV-063-39 | Backend API to Modal drawing VLM vertical slice | Record adapter, isolated migrations, HTTP checks, Modal call success after API timeout, unreconciled StoryRun, and stopped drawing app | MODAL_BACKEND_API_DRAWING_VERTICAL_SLICE_20261103.md |
+
+| EV-063-40 | Parent image-to-script API/AI retest | `PARENT_IMAGE_TO_SCRIPT_API_AI_RETEST_20261103.md` | Parent run/upload routes passed through upload READY; Modal L4 drawing result and detached story result remained unknown; video calls zero; all deployed Modal dev apps stopped. |
+| EV-063-41 | Parent generated-image, story, and activity-selection retest | `PARENT_GENERATED_IMAGE_TO_ACTIVITY_SELECTION_RETEST_20261103.md` | New synthetic image; successful Modal drawing and five-scene story calls; legacy selectable activity; timing, factual issues, and verified shutdown. |
+
+## EV-063-42 - AI flow SRS alignment and Teacher deck POC
+
+- Full results/API matrix: [`AI_FLOW_SRS_ALIGNMENT_AND_TEACHER_DECK_POC_20261104.md`](AI_FLOW_SRS_ALIGNMENT_AND_TEACHER_DECK_POC_20261104.md).
+- Synthetic request/response traces, guards, Teacher Deck JSON/HTML preview, and FLUX provenance: `assets/ai_flow_srs_alignment_20261104/`.
+- Parent synthetic image and provenance: `assets/parent_generated_image_activity_retest_20261103/`.
+- Status: partial; live story generation failed on the deployed manifest schema before model inference, and FLUX produced no image because L4 capacity was unavailable. No retries were sent.
+## EV-063-43 - Full non-video AI workload retest
+
+- Approved plan and acceptance criteria: [`plan/AI_NONVIDEO_WORKLOAD_FULL_RETEST_20261104.md`](../plan/AI_NONVIDEO_WORKLOAD_FULL_RETEST_20261104.md).
+- Direct owner authorization is recorded in `approvals/TASK_APPROVAL.md`.
+- Outputs and timing are stored under `assets/ai_nonvideo_full_retest_20261104/`; video generation was excluded.
+
+## EV-063-44 - Full non-video AI workload retest results
+
+- Execution report: [`AI_NONVIDEO_WORKLOAD_FULL_RETEST_RESULTS_20261104.md`](AI_NONVIDEO_WORKLOAD_FULL_RETEST_RESULTS_20261104.md).
+- Per-workload dispatch, output, API contract, synthetic audio, SAM2 checkpoint, and timeout evidence: `assets/ai_nonvideo_full_retest_20261104/`.
+- Status: partial; TTS and ASR succeeded. Fresh GPU-backed inference attempts ended at bounded L4 queue timeouts. All Modal apps stopped with zero tasks; task DB/cache removed. No video inference or product enablement.

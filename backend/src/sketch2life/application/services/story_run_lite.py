@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import uuid
 from contextlib import suppress
 
@@ -12,9 +13,16 @@ from sketch2life.application.ports.story_run_lite import (
     ImageNormalizerPort,
     ImageSafetyScannerPort,
     StoryRunLiteRepositoryPort,
+    StoryRunLiteStoryPort,
     StoryRunLiteVisionPort,
     StoryRunReferencePort,
     ValidatedVisionResult,
+)
+from sketch2life.contracts.schemas.ai_story import (
+    ConfirmStoryRevisionRequest,
+    ParentStoryGenerationRequest,
+    StoryRevisionDraftV1,
+    validate_butterfly_lifecycle_v1,
 )
 from sketch2life.contracts.schemas.story_run_lite import (
     AttachAssetRequest,
@@ -46,6 +54,7 @@ class StoryRunLiteService:
         scanner: ImageSafetyScannerPort,
         normalizer: ImageNormalizerPort,
         vision: StoryRunLiteVisionPort,
+        story_generator: StoryRunLiteStoryPort | None = None,
         story_references: StoryRunReferencePort,
         asset_admission: CoreAssetAdmissionPort,
         actor_scope_kind: OwnerScopeKind = OwnerScopeKind.PARENT_ACCOUNT,
@@ -57,6 +66,7 @@ class StoryRunLiteService:
         self._scanner = scanner
         self._normalizer = normalizer
         self._vision = vision
+        self._story_generator = story_generator
         self._story_references = story_references
         self._asset_admission = asset_admission
         self._actor_scope_kind = actor_scope_kind
@@ -71,6 +81,7 @@ class StoryRunLiteService:
             actor_scope_kind=self._actor_scope_kind,
             actor_scope_ref=self._actor_scope_ref,
             profile_ref=request.profile_ref,
+            child_age_months=request.child_age_months,
             key_sha256=key_hash,
             fingerprint_sha256=fingerprint,
         )
@@ -435,6 +446,116 @@ class StoryRunLiteService:
             run_id=run_id,
             expected_version=expected_version,
             expected_understanding_revision=request.expected_understanding_revision,
+            key_sha256=key_hash,
+            fingerprint_sha256=fingerprint,
+        )
+
+    def generate_story_revision(
+        self,
+        *,
+        run_id: str,
+        request: ParentStoryGenerationRequest,
+        if_match: str | None,
+        idempotency_key: str,
+    ) -> CommandResult:
+        if self._story_generator is None:
+            raise StoryRunLiteError(
+                503,
+                "STORY_GENERATION_NOT_CONFIGURED",
+                "Story generation is not configured for this runtime.",
+                retryable=True,
+            )
+        expected_version = parse_etag_version(if_match)
+        key_hash = validate_idempotency_key(idempotency_key)
+        fingerprint = canonical_fingerprint(
+            method="POST",
+            path=f"/v1/story-runs/{run_id}/story-revisions",
+            request=request.model_dump(mode="json"),
+            expected_version=expected_version,
+        )
+        reservation = self._repository.reserve_story_revision(
+            actor_scope_kind=self._actor_scope_kind,
+            actor_scope_ref=self._actor_scope_ref,
+            run_id=run_id,
+            expected_version=expected_version,
+            expected_understanding_revision=request.expected_understanding_revision,
+            adult_confirmed_idea=request.adult_confirmed_idea,
+            rewrite_instruction=request.rewrite_instruction,
+            key_sha256=key_hash,
+            fingerprint_sha256=fingerprint,
+        )
+        if reservation.story_revision_id is None or reservation.context is None:
+            return reservation.command_result
+        try:
+            output, call_id = self._story_generator.generate(reservation.context)
+            revision = StoryRevisionDraftV1.model_validate(output)
+            validate_butterfly_lifecycle_v1(
+                revision, confirmed_subject=str(reservation.context["confirmed_subject"])
+            )
+            normalized = revision.model_dump(mode="json")
+            content_hash = hashlib.sha256(
+                json.dumps(
+                    normalized, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+                ).encode("utf-8")
+            ).hexdigest()
+            return self._repository.complete_story_revision(
+                reservation=reservation,
+                story=normalized,
+                story_sha256=content_hash,
+                model_id=str(reservation.context["model_id"]),
+                model_revision=str(reservation.context["model_revision"]),
+                prompt_version=str(reservation.context["prompt_version"]),
+                schema_version=revision.schema_version,
+                provider_call_id=call_id,
+            )
+        except Exception as exc:
+            outcome_unknown = bool(getattr(exc, "outcome_unknown", False))
+            code = getattr(exc, "code", None) or (
+                "STORY_OUTCOME_UNKNOWN"
+                if outcome_unknown
+                else "EDUCATIONAL_FACT_CHECK_FAILED"
+                if str(exc) == "EDUCATIONAL_FACT_CHECK_FAILED"
+                else "STORY_OUTPUT_INVALID"
+            )
+            return self._repository.fail_story_revision(
+                reservation=reservation,
+                error_code=code,
+                outcome_unknown=outcome_unknown,
+            )
+
+    def get_story_revision(self, *, run_id: str, story_revision_id: str) -> CommandResult:
+        return self._repository.get_story_revision(
+            actor_scope_kind=self._actor_scope_kind,
+            actor_scope_ref=self._actor_scope_ref,
+            run_id=run_id,
+            story_revision_id=story_revision_id,
+        )
+
+    def confirm_story_revision(
+        self,
+        *,
+        run_id: str,
+        story_revision_id: str,
+        request: ConfirmStoryRevisionRequest,
+        if_match: str | None,
+        idempotency_key: str,
+    ) -> CommandResult:
+        expected_version = parse_etag_version(if_match)
+        key_hash = validate_idempotency_key(idempotency_key)
+        fingerprint = canonical_fingerprint(
+            method="POST",
+            path=f"/v1/story-runs/{run_id}/story-revisions/{story_revision_id}/confirmation",
+            request=request.model_dump(mode="json"),
+            expected_version=expected_version,
+        )
+        return self._repository.confirm_story_revision(
+            actor_scope_kind=self._actor_scope_kind,
+            actor_scope_ref=self._actor_scope_ref,
+            run_id=run_id,
+            story_revision_id=story_revision_id,
+            expected_version=expected_version,
+            expected_revision=request.expected_revision,
+            story_sha256=request.story_sha256,
             key_sha256=key_hash,
             fingerprint_sha256=fingerprint,
         )

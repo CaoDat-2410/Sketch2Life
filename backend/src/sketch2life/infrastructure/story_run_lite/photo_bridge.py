@@ -35,8 +35,16 @@ from sketch2life.contracts.schemas.vision_v2 import (
     vision_profile_config_hash_v2,
 )
 from sketch2life.domain.ai_jobs.completion import canonical_json
+from sketch2life.domain.story_run_lite import OwnerScopeKind
 from sketch2life.domain.vision_analysis import document_sha256
 from sketch2life.infrastructure.ai.lightning_vision_v2 import LightningVisionV2Adapter
+from sketch2life.infrastructure.ai.modal_function_client import (
+    ModalDrawingFunctionClient,
+    ModalFunctionOutcomeUnknown,
+    ModalFunctionResult,
+    PreparedDrawingInput,
+    prepare_drawing_input,
+)
 from sketch2life.infrastructure.ai.vision_lexical_policy import (
     LexicalRegressionContentPolicy,
     synthetic_prohibited_lexicon,
@@ -255,34 +263,7 @@ class PhotoVisionBridge:
 
     def reconcile_completed_results(self) -> dict[str, int]:
         """Finish ledger rows for already committed Story results; never dispatch a request."""
-
-        complete = 0
-        unavailable = 0
-        ledger = InvocationLedger(self._engine)
-        rows = self._repository.pending_vision_ledger_reconciliation()
-        for row in rows:
-            try:
-                record = ledger.get(str(row["run_id"]))
-                if (
-                    record is None
-                    or record.job_id != row["provider_job_id"]
-                    or record.attempt_id != row["provider_attempt_id"]
-                    or record.organization_id != _TECHNICAL_ORGANIZATION_ID
-                    or record.state is not InvocationState.SENT
-                ):
-                    continue
-                if ledger.complete(
-                    run_id=record.run_id,
-                    job_id=record.job_id,
-                    attempt_id=record.attempt_id,
-                    organization_id=record.organization_id,
-                    state=InvocationState.SUCCEEDED.value,
-                    result_sha256=str(row["raw_body_sha256"]),
-                ):
-                    complete += 1
-            except Exception:
-                unavailable += 1
-        return {"completed": complete, "unavailable": unavailable}
+        return _reconcile_completed_results(self._engine, self._repository)
 
     def _request(self, run_id: str, binding: AssetBinding) -> VisionUnderstandingRequestV2:
         evidence = {
@@ -394,4 +375,259 @@ def _guard_response_ready(guard: InvocationLedgerGuard) -> bool:
     )
 
 
-__all__ = ["PhotoVisionBridge"]
+class ModalFunctionPhotoVisionBridge:
+    """Map the private drawing worker into the existing adult subject-review state."""
+
+    def __init__(
+        self,
+        *,
+        engine: Engine,
+        repository: StoryRunLiteRepositoryPort,
+        pinned_run_id: str,
+        client: ModalDrawingFunctionClient | None = None,
+    ) -> None:
+        try:
+            valid_run = str(UUID(pinned_run_id)) == pinned_run_id
+        except (TypeError, ValueError):
+            valid_run = False
+        if not valid_run:
+            raise ValueError("StoryRun-lite Modal function mode requires a canonical pinned run ID")
+        self._engine = engine
+        self._repository = repository
+        self._pinned_run_id = pinned_run_id
+        self._client = client or ModalDrawingFunctionClient()
+
+    def analyze(
+        self,
+        *,
+        run_id: str,
+        binding: AssetBinding,
+        persist_success: Callable[[ValidatedVisionResult], bool],
+    ) -> VisionAttemptResult:
+        if run_id != self._pinned_run_id:
+            return VisionAttemptResult(state="FAILED", error_code="VISION_ATTEMPT_HOLD")
+        if binding.media_type not in {"image/jpeg", "image/png"} or binding.byte_size > 5_000_000:
+            return VisionAttemptResult(state="FAILED", error_code="MODEL_INPUT_NOT_ADMITTED")
+
+        try:
+            context = self._repository.get_dispatch_context(run_id=run_id)
+            if (
+                context.get("run_id") != run_id
+                or context.get("actor_scope_kind") != OwnerScopeKind.PARENT_ACCOUNT.value
+                or context.get("actor_scope_ref") != "synthetic-parent-local-v1"
+                or context.get("derived_asset_ref") != binding.asset_ref
+                or context.get("derived_sha256") != binding.sha256
+                or context.get("derived_media_type") != binding.media_type
+            ):
+                return VisionAttemptResult(state="FAILED", error_code="VISION_ATTEMPT_HOLD")
+            source = self._repository.read_asset(binding.asset_ref)
+            prepared = prepare_drawing_input(
+                source_bytes=source,
+                source_media_type=binding.media_type,
+                expected_source_sha256=binding.sha256,
+                job_id=str(context["provider_job_id"]),
+                generation_id="generation-1",
+                attempt_id=str(context["provider_attempt_id"]),
+            )
+        except Exception:
+            return VisionAttemptResult(state="FAILED", error_code="MODEL_INPUT_NOT_ADMITTED")
+
+        guard = InvocationLedgerGuard(
+            ledger=InvocationLedger(self._engine),
+            run_id=run_id,
+            job_id=str(context["provider_job_id"]),
+            attempt_id=str(context["provider_attempt_id"]),
+            organization_id=_TECHNICAL_ORGANIZATION_ID,
+        )
+        if guard.claim() is not None:
+            return VisionAttemptResult(state="FAILED", error_code="VISION_ATTEMPT_HOLD")
+        if guard.mark_sent() is not None:
+            return VisionAttemptResult(state="FAILED", error_code="VISION_ATTEMPT_HOLD")
+
+        try:
+            result = self._client.invoke(prepared)
+        except ModalFunctionOutcomeUnknown as exc:
+            if exc.call_id is not None:
+                from structlog import get_logger
+
+                get_logger(__name__).warning(
+                    "modal_drawing_function_outcome_unknown",
+                    modal_call_id=exc.call_id,
+                )
+            return PhotoVisionBridge._terminal_unknown(guard, "VISION_OUTCOME_UNKNOWN")
+        except Exception:
+            return PhotoVisionBridge._terminal_unknown(guard, "VISION_OUTCOME_UNKNOWN")
+
+        if not _guard_response_ready_for_modal(guard, result):
+            return PhotoVisionBridge._terminal_unknown(guard, "VISION_RESPONSE_INVALID")
+        try:
+            label = _validate_modal_drawing_output(result, prepared)
+            canonical_document = canonical_json(result.output)
+            if len(canonical_document.encode("utf-8")) > 256 * 1024:
+                raise ValueError("Modal drawing result exceeds the StoryRun limit")
+            canonical_hash = document_sha256(canonical_document)
+            accepted = persist_success(
+                ValidatedVisionResult(
+                    result_snapshot=result.output,
+                    subject_label=label,
+                    # StoryRun-lite's legacy database column is non-null. The worker emits no
+                    # calibrated confidence score; 0.0 is the conservative review sentinel.
+                    confidence=0.0,
+                    canonical_result_sha256=canonical_hash,
+                    raw_body_sha256=result.output_sha256,
+                )
+            )
+        except Exception:
+            return PhotoVisionBridge._terminal_unknown(guard, "VISION_RESPONSE_INVALID")
+
+        guard.mark_bridge_outcome_validated()
+        if not accepted:
+            guard.finalize(InvocationTerminalState.FAILED, result.output_sha256)
+            return VisionAttemptResult(
+                state="FAILED",
+                error_code="VISION_RESULT_CAS_LOST",
+                provider_invoked=True,
+                result_committed=False,
+            )
+        if not guard.finalize(InvocationTerminalState.SUCCEEDED, result.output_sha256):
+            return VisionAttemptResult(
+                state="UNKNOWN",
+                error_code="VISION_LEDGER_FINALIZATION_UNKNOWN",
+                provider_invoked=True,
+                result_committed=True,
+            )
+        from structlog import get_logger
+
+        get_logger(__name__).info(
+            "modal_drawing_function_completed",
+            modal_call_id=result.call_id,
+            output_sha256=result.output_sha256,
+            elapsed_seconds=result.elapsed_seconds,
+        )
+        return VisionAttemptResult(state="SUCCEEDED", provider_invoked=True, result_committed=True)
+
+    def reconcile_completed_results(self) -> dict[str, int]:
+        return _reconcile_completed_results(self._engine, self._repository)
+
+
+def _guard_response_ready_for_modal(
+    guard: InvocationLedgerGuard, result: ModalFunctionResult
+) -> bool:
+    try:
+        output_bytes = canonical_json(result.output).encode("utf-8")
+        actual_hash = hashlib.sha256(output_bytes).hexdigest()
+    except (TypeError, ValueError):
+        return False
+    if actual_hash != result.output_sha256:
+        return False
+    guard.record_response(
+        status_code=200,
+        body_sha256=actual_hash,
+        body_complete=True,
+        json_object=True,
+        within_deadline=True,
+    )
+    return _guard_response_ready(guard)
+
+
+def _validate_modal_drawing_output(
+    result: ModalFunctionResult, prepared: PreparedDrawingInput
+) -> str:
+    from sketch2life.infrastructure.ai.modal_function_client import (
+        MODEL_ID,
+        MODEL_REVISION,
+        WORKER_OUTPUT_SCHEMA,
+    )
+
+    output = result.output
+    expected_top_level = {
+        "schema_version",
+        "workload",
+        "job_id",
+        "generation_id",
+        "attempt_id",
+        "input_sha256",
+        "model",
+        "result",
+    }
+    if not isinstance(output, dict) or set(output) != expected_top_level:
+        raise ValueError("Modal drawing output envelope is invalid")
+    payload = prepared.payload
+    if (
+        output.get("schema_version") != WORKER_OUTPUT_SCHEMA
+        or output.get("workload") != "drawing.analyze"
+        or output.get("job_id") != payload.get("job_id")
+        or output.get("generation_id") != payload.get("generation_id")
+        or output.get("attempt_id") != payload.get("attempt_id")
+        or output.get("input_sha256") != prepared.drawing_sha256
+    ):
+        raise ValueError("Modal drawing output correlation is invalid")
+    model = output.get("model")
+    if not isinstance(model, dict) or set(model) != {"id", "revision"}:
+        raise ValueError("Modal drawing model identity is invalid")
+    if model.get("id") != MODEL_ID or model.get("revision") != MODEL_REVISION:
+        raise ValueError("Modal drawing model identity is not the approved experiment")
+    candidate = output.get("result")
+    if not isinstance(candidate, dict) or set(candidate) != {
+        "candidate_subject",
+        "visible_features",
+        "decision",
+        "adult_confirmation_required",
+    }:
+        raise ValueError("Modal drawing result is invalid")
+    label = candidate.get("candidate_subject")
+    features = candidate.get("visible_features")
+    if (
+        not isinstance(label, str)
+        or not label.strip()
+        or len(label) > 100
+        or any(ord(character) < 32 for character in label)
+        or not isinstance(features, list)
+        or not 1 <= len(features) <= 4
+        or any(
+            not isinstance(item, str)
+            or not item.strip()
+            or len(item) > 160
+            or any(ord(character) < 32 for character in item)
+            for item in features
+        )
+        or candidate.get("decision") != "NEEDS_ADULT_CONFIRMATION"
+        or candidate.get("adult_confirmation_required") is not True
+    ):
+        raise ValueError("Modal drawing result does not satisfy adult review")
+    return label.strip()
+
+
+def _reconcile_completed_results(
+    engine: Engine, repository: StoryRunLiteRepositoryPort
+) -> dict[str, int]:
+    complete = 0
+    unavailable = 0
+    ledger = InvocationLedger(engine)
+    rows = repository.pending_vision_ledger_reconciliation()
+    for row in rows:
+        try:
+            record = ledger.get(str(row["run_id"]))
+            if (
+                record is None
+                or record.job_id != row["provider_job_id"]
+                or record.attempt_id != row["provider_attempt_id"]
+                or record.organization_id != _TECHNICAL_ORGANIZATION_ID
+                or record.state is not InvocationState.SENT
+            ):
+                continue
+            if ledger.complete(
+                run_id=record.run_id,
+                job_id=record.job_id,
+                attempt_id=record.attempt_id,
+                organization_id=record.organization_id,
+                state=InvocationState.SUCCEEDED.value,
+                result_sha256=str(row["raw_body_sha256"]),
+            ):
+                complete += 1
+        except Exception:
+            unavailable += 1
+    return {"completed": complete, "unavailable": unavailable}
+
+
+__all__ = ["ModalFunctionPhotoVisionBridge", "PhotoVisionBridge"]

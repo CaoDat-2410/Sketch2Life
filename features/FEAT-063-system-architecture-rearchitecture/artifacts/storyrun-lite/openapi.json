@@ -781,6 +781,231 @@
           }
         }
       }
+    },
+    "/v1/story-runs/{run_ref}/story-revisions": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/RunRef"
+        }
+      ],
+      "post": {
+        "tags": [
+          "Story runs"
+        ],
+        "operationId": "generateStoryRevision",
+        "summary": "Generate a Parent story draft from the confirmed drawing",
+        "description": "Uses server-owned age context, the confirmed subject and the current image understanding revision. Parent requests cannot contain activities. Generation is bounded to one initial revision and three AI rewrites; every output remains DRAFT until adult confirmation. This operation does not start video generation.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          },
+          {
+            "$ref": "#/components/parameters/IfMatch"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ParentStoryGenerationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Story draft persisted and ready for adult review",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoryRevision"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "description": "Private responses must not be cached.",
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Generation outcome needs polling/reconciliation; never auto-resend",
+            "headers": {
+              "Location": {
+                "$ref": "#/components/headers/Location"
+              },
+              "Retry-After": {
+                "$ref": "#/components/headers/RetryAfter"
+              },
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "Cache-Control": {
+                "description": "Private responses must not be cached.",
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoryGenerationStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "428": {
+            "$ref": "#/components/responses/PreconditionRequired"
+          },
+          "502": {
+            "$ref": "#/components/responses/Unavailable"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/story-runs/{run_ref}/story-revisions/{story_revision_ref}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/RunRef"
+        },
+        {
+          "$ref": "#/components/parameters/StoryRevisionRef"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Story runs"
+        ],
+        "operationId": "getStoryRevision",
+        "summary": "Read an owned immutable story revision and its ordered scenes",
+        "responses": {
+          "200": {
+            "description": "Story revision",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoryRevision"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "description": "Private responses must not be cached.",
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/v1/story-runs/{run_ref}/story-revisions/{story_revision_ref}/confirmation": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/RunRef"
+        },
+        {
+          "$ref": "#/components/parameters/StoryRevisionRef"
+        }
+      ],
+      "post": {
+        "tags": [
+          "Story runs"
+        ],
+        "operationId": "confirmStoryRevision",
+        "summary": "Confirm the exact reviewed story revision before downstream video admission",
+        "description": "Confirms only when If-Match, revision number, understanding revision, and story hash still match. It does not call video generation.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          },
+          {
+            "$ref": "#/components/parameters/IfMatch"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmStoryRevisionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Story revision confirmed; video has not started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoryRevision"
+                }
+              }
+            },
+            "headers": {
+              "Cache-Control": {
+                "description": "Private responses must not be cached.",
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "428": {
+            "$ref": "#/components/responses/PreconditionRequired"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -851,6 +1076,15 @@
           "type": "string",
           "pattern": "^[A-Fa-f0-9]{64}$"
         }
+      },
+      "StoryRevisionRef": {
+        "name": "story_revision_ref",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
       }
     },
     "headers": {
@@ -880,12 +1114,18 @@
         "type": "object",
         "additionalProperties": false,
         "required": [
-          "profile_ref"
+          "profile_ref",
+          "child_age_months"
         ],
         "properties": {
           "profile_ref": {
             "type": "string",
             "const": "synthetic-parent-demo"
+          },
+          "child_age_months": {
+            "type": "integer",
+            "minimum": 36,
+            "maximum": 120
           }
         }
       },
@@ -1001,7 +1241,8 @@
           "run_state",
           "revision",
           "version",
-          "updated_at"
+          "updated_at",
+          "child_age_months"
         ],
         "properties": {
           "run_ref": {
@@ -1013,6 +1254,10 @@
               "INPUT_PROCESSING",
               "SUBJECT_REVIEW",
               "PREPARATION_REVIEW",
+              "SCRIPT_GENERATING",
+              "SCRIPT_GENERATION_UNKNOWN",
+              "SCRIPT_REVIEW",
+              "VIDEO_ADMISSION_PENDING",
               "DELETE_PENDING",
               "FAILED"
             ]
@@ -1087,6 +1332,15 @@
                 "type": "null"
               }
             ]
+          },
+          "child_age_months": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 36,
+            "maximum": 120,
+            "description": "Exact profile age in months; null only on runs created before this contract."
           }
         }
       },
@@ -1285,7 +1539,16 @@
               "VISION_VISION_TIMEOUT",
               "WORKER_GATE_CLOSED",
               "WORKER_LIMITS_UNAVAILABLE",
-              "WORKER_TIMEOUT"
+              "WORKER_TIMEOUT",
+              "EDUCATIONAL_FACT_CHECK_FAILED",
+              "SCRIPT_GENERATION_UNKNOWN",
+              "STALE_SUBJECT",
+              "STORY_GENERATION_NOT_CONFIGURED",
+              "STORY_OUTCOME_UNKNOWN",
+              "STORY_OUTPUT_INVALID",
+              "STORY_REWRITE_LIMIT_REACHED",
+              "STORY_REWRITE_NOT_ALLOWED",
+              "CHILD_AGE_REQUIRED"
             ]
           },
           "message": {
@@ -1330,6 +1593,288 @@
             }
           }
         }
+      },
+      "ParentStoryGenerationRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "expected_understanding_revision"
+        ],
+        "properties": {
+          "expected_understanding_revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "adult_confirmed_idea": {
+            "type": "string",
+            "maxLength": 500,
+            "default": ""
+          },
+          "rewrite_instruction": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1,
+            "maxLength": 400
+          }
+        }
+      },
+      "ConfirmStoryRevisionRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "expected_revision",
+          "story_sha256"
+        ],
+        "properties": {
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "story_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        }
+      },
+      "StoryScene": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "scene_index",
+          "title",
+          "action",
+          "visual_prompt",
+          "narration",
+          "start_ms",
+          "duration_ms",
+          "character_anchors"
+        ],
+        "properties": {
+          "scene_index": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 15
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "action": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "visual_prompt": {
+            "type": "string",
+            "maxLength": 900
+          },
+          "narration": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "start_ms": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "duration_ms": {
+            "type": "integer",
+            "minimum": 1000,
+            "maximum": 20000
+          },
+          "character_anchors": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 6,
+            "items": {
+              "type": "string",
+              "maxLength": 120
+            }
+          }
+        }
+      },
+      "StoryRevision": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "story_revision_ref",
+          "run_ref",
+          "revision_no",
+          "status",
+          "schema_version",
+          "prompt_version",
+          "model",
+          "source_asset_sha256",
+          "understanding_revision",
+          "context_revision",
+          "request_sha256",
+          "story_sha256",
+          "provider_call_id",
+          "created_at",
+          "review_required"
+        ],
+        "properties": {
+          "story_revision_ref": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "run_ref": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision_no": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "GENERATING",
+              "DRAFT",
+              "CONFIRMED",
+              "SUPERSEDED",
+              "FAILED",
+              "AWAITING_RECONCILIATION"
+            ]
+          },
+          "schema_version": {
+            "type": "string",
+            "const": "sketch2life.story-revision.v1"
+          },
+          "prompt_version": {
+            "type": "string"
+          },
+          "model": {
+            "type": "object",
+            "required": [
+              "id",
+              "revision"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "revision": {
+                "type": "string"
+              }
+            }
+          },
+          "source_asset_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "understanding_revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "context_revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "request_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "story_sha256": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "provider_call_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "review_required": {
+            "type": "boolean"
+          },
+          "language": {
+            "type": "string",
+            "const": "vi"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "duration_ms": {
+            "type": "integer",
+            "minimum": 30000,
+            "maximum": 90000
+          },
+          "story": {
+            "type": "object",
+            "required": [
+              "opening",
+              "middle",
+              "ending"
+            ],
+            "properties": {
+              "opening": {
+                "type": "string"
+              },
+              "middle": {
+                "type": "string"
+              },
+              "ending": {
+                "type": "string"
+              }
+            }
+          },
+          "scenes": {
+            "type": "array",
+            "minItems": 5,
+            "maxItems": 15,
+            "items": {
+              "$ref": "#/components/schemas/StoryScene"
+            }
+          },
+          "run_state": {
+            "type": "string"
+          },
+          "video_started": {
+            "type": "boolean"
+          }
+        }
+      },
+      "StoryGenerationStatus": {
+        "type": "object",
+        "required": [
+          "run_ref",
+          "story_revision_ref",
+          "revision_no",
+          "state"
+        ],
+        "properties": {
+          "run_ref": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "story_revision_ref": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision_no": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "GENERATING",
+              "AWAITING_RECONCILIATION"
+            ]
+          }
+        },
+        "additionalProperties": true
       }
     },
     "responses": {

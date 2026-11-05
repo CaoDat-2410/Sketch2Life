@@ -79,6 +79,16 @@ class UploadReservation:
 
 
 @dataclass(frozen=True, slots=True)
+class StoryRevisionReservation:
+    command_result: CommandResult
+    story_revision_id: str | None = None
+    revision_no: int | None = None
+    command_receipt_id: str | None = None
+    context: dict[str, object] | None = None
+    claimed_version: int | None = None
+
+
+@dataclass(frozen=True, slots=True)
 class ValidatedVisionResult:
     result_snapshot: dict[str, object]
     subject_label: str
@@ -115,6 +125,10 @@ class StoryRunLiteVisionPort(Protocol):
     ) -> VisionAttemptResult: ...
 
 
+class StoryRunLiteStoryPort(Protocol):
+    def generate(self, payload: dict[str, object]) -> tuple[dict[str, object], str]: ...
+
+
 class StoryRunReferencePort(Protocol):
     def authorize_upload_target(
         self, *, actor_scope_kind: OwnerScopeKind, actor_scope_ref: str, run_id: str
@@ -149,6 +163,7 @@ class StoryRunLiteRepositoryPort(Protocol):
         actor_scope_kind: OwnerScopeKind,
         actor_scope_ref: str,
         profile_ref: str,
+        child_age_months: int,
         key_sha256: str,
         fingerprint_sha256: str,
     ) -> CommandResult: ...
@@ -218,6 +233,60 @@ class StoryRunLiteRepositoryPort(Protocol):
         run_id: str,
         expected_version: int,
         expected_understanding_revision: int,
+        key_sha256: str,
+        fingerprint_sha256: str,
+    ) -> CommandResult: ...
+
+    def reserve_story_revision(
+        self,
+        *,
+        actor_scope_kind: OwnerScopeKind,
+        actor_scope_ref: str,
+        run_id: str,
+        expected_version: int,
+        expected_understanding_revision: int,
+        adult_confirmed_idea: str,
+        rewrite_instruction: str | None,
+        key_sha256: str,
+        fingerprint_sha256: str,
+    ) -> StoryRevisionReservation: ...
+
+    def complete_story_revision(
+        self,
+        *,
+        reservation: StoryRevisionReservation,
+        story: dict[str, object],
+        story_sha256: str,
+        model_id: str,
+        model_revision: str,
+        prompt_version: str,
+        schema_version: str,
+        provider_call_id: str,
+    ) -> CommandResult: ...
+
+    def fail_story_revision(
+        self, *, reservation: StoryRevisionReservation, error_code: str, outcome_unknown: bool
+    ) -> CommandResult: ...
+
+    def get_story_revision(
+        self,
+        *,
+        actor_scope_kind: OwnerScopeKind,
+        actor_scope_ref: str,
+        run_id: str,
+        story_revision_id: str,
+    ) -> CommandResult: ...
+
+    def confirm_story_revision(
+        self,
+        *,
+        actor_scope_kind: OwnerScopeKind,
+        actor_scope_ref: str,
+        run_id: str,
+        story_revision_id: str,
+        expected_version: int,
+        expected_revision: int,
+        story_sha256: str,
         key_sha256: str,
         fingerprint_sha256: str,
     ) -> CommandResult: ...

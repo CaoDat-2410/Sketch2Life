@@ -1,0 +1,26 @@
+{
+  "tts": {
+    "call_id": "fc-01M6K08PBP4G4H9BZWTW9KRW06",
+    "elapsed_ms": 19574.19,
+    "audio_file": "synthetic_vietnamese_narration.wav",
+    "audio_sha256": "cb9bfd96950d6549dbd1b8ed633063b751936f1e53aaca049c09da4c5631e7e6",
+    "audio_size_bytes": 176684
+  },
+  "asr": {
+    "call_id": "fc-01M6K09DH9X3A136HZN3AY63KK",
+    "elapsed_ms": 22470.96,
+    "result": {
+      "language": "vi",
+      "language_probability": 1.0,
+      "text": "Con bướm bay qua khu vườn đầy nắng.",
+      "segments": [
+        {
+          "start_seconds": 0.0,
+          "end_seconds": 1.64,
+          "text": "Con bướm bay qua khu vườn đầy nắng."
+        }
+      ]
+    }
+  },
+  "finished_at": "2026-11-04T17:04:51+07:00"
+}

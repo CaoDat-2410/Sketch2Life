@@ -1,0 +1,25 @@
+{
+  "started_at": "2026-11-03T23:47:40.347062+07:00",
+  "ended_at": "2026-11-03T23:47:40.360081+07:00",
+  "method": "POST",
+  "path": "/v1/story-runs",
+  "http_status": 201,
+  "elapsed_ms": 12.299,
+  "headers": {
+    "ETag": "\"v1\""
+  },
+  "response": {
+    "run_ref": "aa84ff1a-410d-4953-96f4-cda22abc1e80",
+    "run_state": "INPUT_PROCESSING",
+    "revision": 1,
+    "version": 1,
+    "target_revision": null,
+    "created_at": "2026-11-03T23:47:40.351577+07:00",
+    "updated_at": "2026-11-03T23:47:40.351577+07:00",
+    "job_state": null,
+    "retryable": false,
+    "action_required": null,
+    "error": null,
+    "result": null
+  }
+}

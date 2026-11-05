@@ -1,0 +1,14 @@
+{
+  "state": "DISPATCH_INTENT_RECORDED",
+  "workload": "drawing.segment",
+  "app": "sketch2life-srs23-drawing-segment-dev",
+  "function": "segment-synthetic-drawing-candidate",
+  "job_id": "fe33db30-bdc6-4f75-8570-064df9d62f27",
+  "generation_id": "73b1ce62-4a8b-4620-a9f4-4f072c64cb60",
+  "attempt_id": "b82cc3e9-5356-4bed-9769-118b257acc4b",
+  "source_image_sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949",
+  "source_image_bytes": 1775882,
+  "started_at": "2026-11-04T17:21:00+07:00",
+  "max_attempts": 1,
+  "source_image_is_immutable": true
+}

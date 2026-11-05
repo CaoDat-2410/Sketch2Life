@@ -13,7 +13,6 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import Table, create_engine, event, insert, select, text, update
 from sqlalchemy.exc import IntegrityError
-
 from sketch2life.application.ports.story_run_lite import (
     AdmittedAssetPair,
     AssetBinding,
@@ -98,6 +97,7 @@ def _create_run(repository: SqlStoryRunLiteRepository, owner: str) -> str:
         actor_scope_kind=_PARENT,
         actor_scope_ref=owner,
         profile_ref="synthetic-parent-demo",
+        child_age_months=60,
         key_sha256=_hash("create-run:" + owner),
         fingerprint_sha256=_hash("fingerprint-create-run:" + owner),
     )
