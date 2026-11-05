@@ -108,6 +108,9 @@ from sketch2life.infrastructure.storage.in_memory_auto_rig_grants import (
 from sketch2life.infrastructure.storage.s3_compatible import Boto3S3CompatibleObjectStorage
 from sketch2life.infrastructure.story_run_lite.composition import runtime_lifespan
 from sketch2life.interfaces.http.be1_runtime import build_be1_runtime
+from sketch2life.infrastructure.vision_analysis.pilot_composition import (
+    build_default_pilot_vision,
+)
 from sketch2life.interfaces.http.demo_composition import (
     build_demo_stores,
     build_ephemeral_session_service,
@@ -725,7 +728,9 @@ def create_app(
     application.state.whiteboard_video_job_service = whiteboard_video_job_service
     application.state.story_video_job_service = story_video_job_service or StoryVideoJobService()
     application.state.storage_example_service = None
-    application.state.be1_runtime = build_be1_runtime(get_settings())
+    application.state.be1_runtime = build_be1_runtime(
+        get_settings(), pilot_vision_factory=build_default_pilot_vision
+    )
     application.state.lesson_library_storage = None
     application.state.lesson_document_parser = None
     application.state.lesson_document_scanner = None

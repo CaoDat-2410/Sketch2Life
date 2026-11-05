@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, status
@@ -13,12 +14,14 @@ from sqlalchemy.orm import Session
 
 from sketch2life.application.ports.identity import VerifiedPrincipal
 from sketch2life.contracts.schemas.be1_runtime import (
+    Be1PilotProfileListResponse,
     CreateAssignmentRequest,
     CreateClassRequest,
     CreateProfileRequest,
     RecordConsentRequest,
 )
 from sketch2life.domain.core_foundation import CoreRuleViolation, validate_age_months
+from sketch2life.domain.eligibility import PROOF_VERSION
 from sketch2life.infrastructure.persistence.be1_models import (
     AdultIdentityModel,
     ClassroomModel,
@@ -27,8 +30,14 @@ from sketch2life.infrastructure.persistence.be1_models import (
     ManagedProfileModel,
     OrganizationAssignmentModel,
     OrganizationModel,
+    SyntheticEligibilityProofModel,
 )
-from sketch2life.interfaces.http.be1_runtime import get_db, get_verified_adult
+from sketch2life.interfaces.http.be1_runtime import (
+    Be1Runtime,
+    get_db,
+    get_runtime,
+    get_verified_adult,
+)
 from sketch2life.interfaces.http.routers.be1_common import (
     BE1_ERROR_RESPONSES,
     audit,
@@ -38,12 +47,11 @@ from sketch2life.interfaces.http.routers.be1_common import (
     event,
     failure,
     get_class,
+    get_session,
     require_assignment,
 )
 
-router = APIRouter(
-    prefix="/api/be1/v1", tags=["BE1 registry"], responses=BE1_ERROR_RESPONSES
-)
+router = APIRouter(prefix="/api/be1/v1", tags=["BE1 registry"], responses=BE1_ERROR_RESPONSES)
 
 
 @router.get("/organizations/{organization_id}")
@@ -305,6 +313,79 @@ def list_profiles(
                 "age_months": row.age_months,
             }
             for row in rows
+        ],
+    }
+
+
+@router.get(
+    "/organizations/{organization_id}/sessions/{session_id}/pilot-profiles",
+    response_model=Be1PilotProfileListResponse,
+)
+def list_pilot_profiles(
+    organization_id: str,
+    session_id: str,
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    runtime: Be1Runtime = Depends(get_runtime),
+    db: Session = Depends(get_db),
+) -> dict[str, object]:
+    session = get_session(db, organization_id, session_id)
+    require_assignment(
+        db,
+        principal,
+        organization_id,
+        roles={"teacher", "school_admin"},
+        class_id=session.class_id,
+    )
+    if (
+        runtime.settings.env not in {"local", "test"}
+        or not runtime.settings.synthetic_pilot_enabled
+    ):
+        raise failure(
+            409,
+            "PILOT_PROFILE_LOOKUP_UNAVAILABLE",
+            "Synthetic pilot profile lookup is unavailable",
+        )
+    if session.state != "lobby":
+        raise failure(409, "SESSION_NOT_IN_LOBBY", "Pilot profiles are available only in the lobby")
+
+    purpose_ref = session.configuration.get("purpose_ref")
+    profiles: list[ManagedProfileModel] = []
+    if isinstance(purpose_ref, str) and purpose_ref:
+        now = datetime.now(UTC)
+        valid_proof = (
+            select(SyntheticEligibilityProofModel.evidence_id)
+            .where(
+                SyntheticEligibilityProofModel.organization_id == organization_id,
+                SyntheticEligibilityProofModel.class_id == session.class_id,
+                SyntheticEligibilityProofModel.child_profile_id == ManagedProfileModel.child_id,
+                SyntheticEligibilityProofModel.purpose_ref == purpose_ref,
+                SyntheticEligibilityProofModel.session_id == session_id,
+                SyntheticEligibilityProofModel.schema_version == PROOF_VERSION,
+                SyntheticEligibilityProofModel.data_origin == "SYNTHETIC_DEV",
+                SyntheticEligibilityProofModel.issued_at <= now,
+                SyntheticEligibilityProofModel.expires_at > now,
+                SyntheticEligibilityProofModel.revoked_at.is_(None),
+            )
+            .exists()
+        )
+        profiles = list(
+            db.scalars(
+                select(ManagedProfileModel)
+                .where(
+                    ManagedProfileModel.organization_id == organization_id,
+                    ManagedProfileModel.class_id == session.class_id,
+                    ManagedProfileModel.state == "active",
+                    ManagedProfileModel.data_origin == "SYNTHETIC_DEV",
+                    valid_proof,
+                )
+                .order_by(ManagedProfileModel.created_at)
+            ).all()
+        )
+    return {
+        "contract": "Be1PilotProfileListV1",
+        "items": [
+            {"child_id": profile.child_id, "display_name": profile.display_name}
+            for profile in profiles
         ],
     }
 

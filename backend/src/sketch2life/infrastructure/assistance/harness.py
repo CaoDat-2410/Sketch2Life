@@ -103,6 +103,9 @@ from sketch2life.infrastructure.vision_analysis.fakes import (
     TeacherGrant,
 )
 from sketch2life.infrastructure.vision_analysis.job_lineage import AiJobRepositoryLineage
+from sketch2life.infrastructure.vision_analysis.resolved_facts_context import (
+    ResolvedFactsAnalysisContext,
+)
 
 FIXTURE_START = datetime(2026, 10, 17, 13, 0, tzinfo=UTC)
 ORG = "org_fx_school_a"
@@ -445,8 +448,12 @@ def build_assistance_harness(*, auto_schedule: bool = True,
     provider = FakeVisionObservationProvider(clock=clock.now)
 
     holder: dict[str, AssistanceService] = {}
+    resolved_context = ResolvedFactsAnalysisContext(
+        lambda assistance_id: holder["service"].current_resolved_facts(assistance_id),
+        fallback=vision_context,
+    )
     vision = VisionAnalysisService(VisionAnalysisDependencies(
-        repository=vision_repository, authority=vision_authority, context=vision_context,
+        repository=vision_repository, authority=vision_authority, context=resolved_context,
         sources=vision_sources, admission=vision_admission,
         requests=AssistancePinPort(lambda: holder["service"]),
         jobs=AiJobRepositoryLineage(job_repository), provider=provider, clock=clock, ids=ids,

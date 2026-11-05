@@ -1,5 +1,21 @@
 # FEAT-063 source register
 
+## Six-milestone Parent/Teacher roadmap review — current local record, independent round 3 — 2026-11-03
+
+- Roadmap: `plan/BE_PARENT_TEACHER_VISION_DEMO_ROADMAP_20261102.md`, reviewed round 3 at SHA-256 `DED4B89D6A3F66FD0570EEA11E2240840C47DE607667544708C7C394F7F49C86`, then owner-accepted as planning baseline; current SHA-256 `A0A485EE421FBB1DA9DEC99DD8EC08279D14EAF27EC548AD6A0A4CE8F234F8FA`. Use the existing SRS v2.3-draft unchanged; it remains unsigned. No M2–M6 implementation is approved.
+- Review plans: Rev49 `plan/ROADMAP_REVIEW_FIX_PLAN_20261103.md` SHA-256 `BECC69238E5049649204E5F9C32D2CB9660E625B795E131C4A5553599D08901C`; Rev50 `plan/ROADMAP_REVIEW_FIX_PLAN_REV50_20261103.md` SHA-256 `0FFF0D9CAA01036E08A90120FC7067D38B564E80E72E4324B470D1E8E13C66DC`.
+- Rev50A backlog supplement: `plan/ROADMAP_REVIEW_FIX_PLAN_REV50A_BACKLOG_POINTER_20261103.md` SHA-256 `27288634F301B7430C531E17B51EE15D35B0EB3735C26925767111447849661D`; backlog current bytes SHA-256 `380BF9F813CF809E35D9EA6F843E33A0DF892BA886E8C366AEB1C0F757A57391`.
+- Current finding disposition and independent round-3 verdict **ACCEPTED**: `evidence/CLAUDE_ROADMAP_REVIEW_DISPOSITION_20261103.md`, SHA-256 `D44A754ECBF63E6DCB94D1037A6D76F39398D160BB9DAD9E6C6343FC77C9CDBB`. Review thread `01a1a205-1441-73e0-9170-6fdc4d591472` (`gpt-6-luna`, effort `max`); all 12 pinned hashes matched at review time. Owner's subsequent SRS baseline decision is D-132.
+- Owner accepted the reviewed roadmap as a planning baseline under `approvals/TASK_APPROVAL.md`; D-132 records use of the current SRS v2.3-draft unchanged, with Parent-before-Teacher ordering per §8.1. Each milestone still needs separate implementation approval.
+- Controlling sources: `artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` §§5–8.1, 11, 13, 14.1, 19, 22, 29, 31; `artifacts/DATA_TABLE_REGISTER.md` §§1, 5.6. SRS remains unsigned.
+- B0–B13 plan/report hashes differ by content, not only line endings. Owner reconfirmation or an addendum is required before the current plan is used as authority. DTR local CRLF/LF hash difference is line-ending-only; see disposition.
+- M1 independent review round 3 is ACCEPTED for synthetic local demo only. A2 closeout records ACCEPTED/COMPLETE within its plans/addenda but discloses shared-DB rows, Alembic reconciliation and mypy baseline debt. The A2→B1→B2 chain is separate; its active phase status must be read from its live implementation thread.
+
+## Six-milestone Parent/Teacher roadmap review — round-1 record (superseded) — 2026-11-03
+
+- Rev49 roadmap SHA-256 `9DF3FECF0FFF45972ADFB4D49A50E31773CBAD8832F0B5C5B625C9702CEB49CC`; Rev49 disposition SHA-256 `72150BEC8A624D03E6205CE40C2AA9A48942BCF8A1D7CA0A40BAF8CC60851A1E`.
+- This historical note incorrectly described the DTR discrepancy as unreproduced and assigned the OpenAPI decision D-130. Rev50 corrects those statements: DTR differs only by line endings; OpenAPI is D-131 because D-130 already identifies the full BE/Bruno decision.
+
 ## Rev42 Swagger review and local commit — current — 2026-10-30
 
 - Direct owner request: `coi và commit cho tui`. Plan Rev42 SHA-256 `E8A809729BDE4B83D0A6FD0AC21336C8F3721F55B7BDFA7431F1125922D026E8` authorizes review, focused verification and one local commit on `dev`; it excludes push.

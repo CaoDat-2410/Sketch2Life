@@ -74,7 +74,7 @@ Không có task nào trong backlog này tự cho phép thay đổi schema, sửa
 
 ## Disposition sau khi chuyển sang StoryRun-lite — 2026-11-02
 
-**Trạng thái điều phối:** B0–B13 ở đây là backlog lịch sử/DRAFT, không còn là thứ tự thực thi hiện hành và không được khởi chạy lại như một goal tổng. Lộ trình hiện hành là `BE_PARENT_TEACHER_VISION_DEMO_ROADMAP_20261102.md`. Mốc 1 chỉ gồm Goal StoryRun-lite S1→S2; không gắn task cũ B0–B13 vào demo. Giữ nguyên toàn bộ yêu cầu SRS có liên quan; việc này thay cách phân hoạch task, không xóa yêu cầu.
+**Trạng thái điều phối:** B0–B13 ở đây là backlog lịch sử/DRAFT, không còn là thứ tự thực thi hiện hành và không được khởi chạy lại như một goal tổng. Mapping milestone hiện hành sau review vòng 2 là `BE_PARENT_TEACHER_VISION_DEMO_ROADMAP_20261102.md` (FEAT-063); dùng roadmap đó cho phân bổ hiện tại, không dùng bảng lịch sử này làm approval. Mốc 1 chỉ gồm Goal StoryRun-lite S1→S2; không gắn task cũ B0–B13 vào demo. Giữ nguyên toàn bộ yêu cầu SRS có liên quan; việc này thay cách phân hoạch task, không xóa yêu cầu.
 
 | ID cũ | Disposition hiện tại | Nơi xử lý nếu còn cần |
 |---|---|---|
@@ -82,16 +82,16 @@ Không có task nào trong backlog này tự cho phép thay đổi schema, sửa
 | B1 | Crosswalk API/SRS đã được lập và cập nhật; đó là hồ sơ phân tích, không phải kiểm chứng runtime. Không chạy lại như một task trước demo. | Tra cứu khi lập plan các mốc 2–6; cập nhật riêng nếu contract SRS thay đổi. |
 | B2 | Quyết định thứ tự Parent đã được ghi ở mức tài liệu. Không giữ B2 cũ làm blocker của API StoryRun-lite. | Dùng quyết định đã ghi khi chốt các contract Parent phụ thuộc ở M3/M4; thiết kế vật lý phải có plan riêng. |
 | B3 | Manifest cũ là tài liệu đề xuất; các đồng ký còn `CHƯA KÝ`, nên không phải execution manifest/approval. | Nếu M2 cần ownership/migration chung, lập manifest mới trong plan M2 và lấy sign-off phù hợp. |
-| B4 | B4a thuộc synthetic eligibility của pilot canvas cũ, không lặp vào demo ảnh StoryRun. B4b về consent thật chưa được duyệt triển khai. | B4b được xem xét ở M2 trước khi mở identity/dữ liệu thật; B4a chỉ xem lại nếu giữ luồng canvas cũ. |
+| B4 | B4a thuộc synthetic eligibility của pilot canvas cũ, không lặp vào demo ảnh StoryRun. B4b consent thật chỉ có thể vào M2 sau OI-05..08; trước khi gate đạt, M2 phải từ chối `REAL` và `LEGACY_UNCLASSIFIED`. | B4b được xem xét ở M2 trước khi mở identity/dữ liệu thật; B4a chỉ xem lại nếu giữ luồng canvas cũ. |
 | B5 | Có implementation report; PostgreSQL replay acceptance bị skip nên không tuyên bố đã xác minh với dữ liệu receipt cũ. | Chỉ đưa vào M2/M6 nếu Parent Group/receipt legacy còn nằm trong sản phẩm được chọn. |
 | B6 | Task fence legacy của Rev36, không phải phần S1 hiện tại. Không chạy nguyên plan cũ. | M2/M6 nếu cutover/giữ route legacy được chọn; cần scope, ownership và approval mới. |
 | B7 | Task identity/profile/AI-job của Rev36; tên S1/S2 trong backlog này khác Goal StoryRun-lite S1→S2. Không chạy nguyên plan cũ. | Tách lại theo M2 và M6, giữ tương thích cần thiết theo contract mới. |
 | B8 | Smoke route demo cũ là tùy chọn và không chứng minh luồng StoryRun mới. Không dùng làm gate M1. | Không cần làm nếu chỉ xác nhận flow mới; live Modal của StoryRun, nếu owner yêu cầu, là lượt riêng sau S1→S2. |
 | B9 | Không còn là một gói triển khai đơn lẻ. | Phần input/media/transcript/subject/context vào M3; story, rewrite, storyboard và script confirmation vào M4. |
-| B10 | Không chạy như một task khối. | Admission/job nền vào M2; quota, budget, retry/regeneration, cancel, delete và thông báo vào M6, theo dependency đã duyệt. |
+| B10 | Không chạy như một task khối. | Theo roadmap hiện hành: idempotency/job foundation ở M2; Parent Billing quota grant/usage và AI compute admission ở M5; commerce đầy đủ cùng quota Teacher/school ở M6. Thông báo/cancel/late-result/purge thuộc từng phase tạo artifact. |
 | B11 | Yêu cầu video còn liên quan, nhưng POC cũ chưa phải approval/provider evidence. | M5 với plan riêng, benchmark synthetic và approval model/GPU/chi phí. |
 | B12 | Không phải goal độc lập. | Acceptance, CI và test tích hợp là cổng cho từng lát ở M2–M6. |
-| B13 | Backlog phân tích rộng, chưa phải scope đã chọn. | Rà tổ chức/roster/capacity ở M2/M6; Parent sketch ở M3 nếu được giữ; Teacher sketch ở M6 nếu được giữ; billing/lifecycle ở M6. Mỗi phần cần trace và plan riêng. |
+| B13 | Backlog phân tích rộng, chưa phải scope đã chọn. Q146 đã answered về sản phẩm; lịch triển khai Parent line-sketch, model/version, cost/license/safety/retention gates vẫn cần plan và owner decision tương ứng. | Theo roadmap hiện hành: Parent guide có thể ở M3 sau synthetic POC/model gates; Teacher sketch cùng tổ chức/roster/capacity ở M6; commerce/billing mở rộng ở M6. Mỗi phần cần trace và plan riêng. |
 
 **Phân biệt tên:** B6/B7 trong backlog cũ nói về các lát Rev36 “S1/S2/S3”. Chúng không đồng nghĩa với Goal StoryRun-lite S1→S2 đang làm. Thành công S1→S2 không tự đóng B0b/B3/B5 hay cho phép chạy các plan Rev36; ngược lại, các mục đó cũng không chặn bàn giao demo S1→S2.
 

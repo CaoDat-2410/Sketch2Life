@@ -512,3 +512,39 @@
 - **Pinned plan:** `plan/BE_FULL_BRUNO_COLLECTION_PLAN_20261103.md`, SHA-256 `4488A7B739FDCC80246AFB590DDFC229B6DCB37FEB9600C5B9501B160E5E80ED`.
 - **Authorized scope:** inventory current mounted runtime API contracts; create a separate full-BE runtime OpenAPI artifact, Bruno collection, operation coverage matrix, local validator, README and evidence under `artifacts/be-full/`; update FEAT-063 records and snapshot.
 - **Boundaries:** preserve StoryRun-lite collection and all 55 unrelated A2 paths; no BE route/schema/migration changes, no real child data/credentials, no external provider/Modal/GPU calls, no existing DB reset, no stage/commit/push/merge.
+
+## Plan Rev49 — six-milestone roadmap review corrections — 2026-11-03
+
+- **Status:** APPROVED / IN PROGRESS for documentation-only corrections to the six-milestone BE Parent/Teacher roadmap and a written disposition of the cloud review findings.
+- **Owner instruction:** “lấy những phần review của claude đúng và sửa và cũng chỉ ra cho nó tại sao chỗ đó của nó lại sai đi”.
+- **Plan:** `plan/ROADMAP_REVIEW_FIX_PLAN_20261103.md`.
+- **Plan SHA-256:** `BECC69238E5049649204E5F9C32D2CB9660E625B795E131C4A5553599D08901C`.
+- **Authorized scope:** update the six-milestone roadmap, FEAT-063 source register/context/decisions/status, and add `evidence/CLAUDE_ROADMAP_REVIEW_DISPOSITION_20261103.md` as detailed in the hash-pinned plan. Clarify SRS traceability and unresolved owner gates; correct stale status and renumber the duplicate OpenAPI decision as D-130; document the plan/report hash provenance discrepancy without rewriting historical claims.
+- **Boundaries:** do not edit the SRS, DTR, implementation, tests, migrations, FEAT-064 approval or A2/B1/B2 plans; do not access database, Modal/provider, network or remote refs; do not run test/validator suites, stage, commit, push or merge. Preserve all unrelated local changes byte-for-byte.
+
+## Plan Rev50 — six-milestone roadmap round-2 review corrections — 2026-11-03
+
+- **Status:** APPROVED / IN PROGRESS for the documentation-only corrections described below.
+- **Owner instruction:** continuation of the direct instruction to apply valid Claude review findings and explain conclusions that were incorrect or limited by cloud visibility.
+- **Plan:** `plan/ROADMAP_REVIEW_FIX_PLAN_REV50_20261103.md`.
+- **Plan SHA-256:** `0FFF0D9CAA01036E08A90120FC7067D38B564E80E72E4324B470D1E8E13C66DC`.
+- **Authorized scope:** update the six-milestone roadmap, FEAT-063 `DECISIONS.md`, `CONTEXT.md`, `SOURCE_REGISTER.md`, `status/STATUS.md`, and `evidence/CLAUDE_ROADMAP_REVIEW_DISPOSITION_20261103.md`; preserve the distinction between accepted local evidence and unsigned SRS/owner gates.
+- **Boundaries:** no SRS, DTR, B0 plan/report, source, test, migration or FEAT-064 file changes; no DB, Modal/provider, network, Git history/index/remote operation; no tests/validator suite, stage, commit, push or merge. Preserve unrelated worktree changes byte-for-byte.
+
+## Plan Rev50A — backlog pointer and B4b/B10/B13 disposition — 2026-11-03
+
+- **Status:** APPROVED / IN PROGRESS for this one-file documentation supplement.
+- **Owner instruction:** continuation of the direct request to apply valid findings from Claude's round-2 review.
+- **Plan:** `plan/ROADMAP_REVIEW_FIX_PLAN_REV50A_BACKLOG_POINTER_20261103.md`.
+- **Plan SHA-256:** `27288634F301B7430C531E17B51EE15D35B0EB3735C26925767111447849661D`.
+- **Authorized scope:** only `plan/BACKLOG_API_REV37_SRS23_MODAL_20261030.md`, for the current roadmap pointer and B4b/B10/B13 rows described in the hash-pinned plan.
+- **Boundaries:** preserve all other bytes; no SRS/DTR/source/test/migration, database, Modal/provider, network, Git history/index/remote, tests/validators, stage, commit, push or merge.
+
+## Owner acceptance — six-milestone roadmap and SRS v2.3 planning baseline — 2026-11-03
+
+- **Status:** APPROVED FOR PLANNING BASELINE ONLY; no M2–M6 implementation approval.
+- **Owner instruction:** the owner confirmed “ok chốt đi” after choosing to use the existing SRS v2.3 for M2–M6 without authoring or editing the SRS.
+- **Roadmap:** `plan/BE_PARENT_TEACHER_VISION_DEMO_ROADMAP_20261102.md`, current SHA-256 `A0A485EE421FBB1DA9DEC99DD8EC08279D14EAF27EC548AD6A0A4CE8F234F8FA`; independent review round 3 ACCEPTED the preceding reviewed bytes, then the owner acceptance was recorded in the roadmap.
+- **Accepted planning direction:** use the current SRS v2.3-draft unchanged as the planning baseline for milestones 2–6; follow its §8.1 Parent-before-Teacher ordering. The SRS remains unsigned and unmodified.
+- **Gates:** each milestone requires its own detailed plan, acceptance criteria, data/migration boundary and explicit implementation approval. Model/version, Parent line-sketch scheduling, optional lesson access, B0 provenance and other unresolved gates remain open until their relevant milestone.
+- **Excluded:** SRS sign-off or edits, implementation/goal launch, runtime/source/test/migration changes, database or provider operations, and Git history/index/remote operations.

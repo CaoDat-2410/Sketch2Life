@@ -1,5 +1,15 @@
 # FEAT-063 — Whole-repository architecture redesign
 
+## Six-milestone roadmap review — independent round 3 ACCEPTED — 2026-11-03
+
+The owner accepted the six-milestone Parent/Teacher roadmap as a planning baseline using the existing SRS v2.3-draft unchanged; the SRS remains unsigned. Independent read-only round 3 accepted the preceding roadmap bytes with no remaining finding in scope. The roadmap now records the owner's planning-baseline decision and follows SRS §8.1's Parent-before-Teacher ordering. No M2–M6 implementation is approved. Rev49 handled the initial review; Rev50 adds the round-2 quota/lesson/lifecycle/model/A2/B-ID gates and corrects the D-130 and DTR explanations; Rev50A synchronizes the historical backlog pointer and B4b/B10/B13 summaries. See `plan/ROADMAP_REVIEW_FIX_PLAN_REV50_20261103.md`, `plan/ROADMAP_REVIEW_FIX_PLAN_REV50A_BACKLOG_POINTER_20261103.md`, the roadmap, and `evidence/CLAUDE_ROADMAP_REVIEW_DISPOSITION_20261103.md`.
+
+M1 review round 3 is ACCEPTED for synthetic local demo scope. The local A2 closeout records ACCEPTED/COMPLETE within scope, while disclosing 58 retained synthetic rows in shared `sketch2life`, unreconciled physical schema/Alembic history, and one baseline mypy issue. These residuals remain M2 entry gates; no cleanup is authorized here. The A2→B1→B2 sequence is a separate FEAT-064 coordination chain and may temporarily take execution priority over M2–M6. The current phase must be checked in its active implementation thread; do not infer it from a draft goal or old closeout.
+
+The cloud reviewer was correct about the D-130 collision, D-114 summary duplication, B0–B13 plan provenance mismatch, and DTR line-ending explanation. Rev49's D-130 reassignment and DTR uncertainty were mistakes in our prior disposition, not cloud-review errors. The source-register and current-phase comments remain visibility limits when the cloud review has only remote refs; they do not establish the local state.
+
+Independent review round 3 was performed in thread `01a1a205-1441-73e0-9170-6fdc4d591472` (`gpt-6-luna`, effort `max`); all 12 pinned hashes matched and the verdict was **ACCEPTED** for the reviewed roadmap hash. The owner subsequently adopted the current SRS as the unchanged planning baseline and recorded D-132; this is not an implementation approval. See `evidence/CLAUDE_ROADMAP_REVIEW_DISPOSITION_20261103.md` for the verdict and remaining owner gates.
+
 ## B3 ownership manifest and owner decision slip — 2026-10-31
 
 B3 produced a documentation-only ownership, shared-file and migration-order manifest (`evidence/B3_OWNERSHIP_MIGRATION_MANIFEST_20261031.md` and `evidence/B3_OWNER_MATRIX_20261031.csv`): 18 source boundaries, 18 shared-file/migration rows, every co-signature `CHƯA KÝ`, and a static Alembic count of 22 revisions with 10 terminals by `down_revision` only or 9 when `depends_on` is counted. Migration options X/Y/Z, writers and signatures were left to the owner.

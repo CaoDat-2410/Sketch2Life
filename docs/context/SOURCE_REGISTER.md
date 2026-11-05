@@ -20,6 +20,18 @@ Catalog Rev37 (`API_CONTRACT_CATALOG_FEAT063_REV37_20261030.md`) is an owner-pro
 
 Owner requested importing current dev into feature/feat063-be-foundation for testing. Source dev tip `111ae547` and preservation/check details are recorded in FEAT-063 `evidence/notes/DEV_BACKEND_SYNC_20261030.md`. Existing upstream approvals remain tied to exact filenames and hashes; matching Rev33–36 numbers do not authorize the separate backend foundation plans. No provider, production migration or push authorization is inferred.
 
+## Remaining AI model research — 2026-10-30
+
+Owner requested model recommendations for line-sketch, consistency and safety. FEAT-063 records primary-source research in `evidence/notes/REMAINING_AI_MODEL_RECOMMENDATIONS_20261030.md`. This permits the recommendation record, not changes to SRS, implementation, model downloads, provider calls or production policies.
+
+## Video flow comparison and task-allocation steering — 2026-10-30
+
+Owner left task allocation to the backend team and asked whether the video flow differs from the old one. FEAT-063 `evidence/notes/VIDEO_FLOW_COMPARISON_20261030.md` records read-only source/SRS comparisons; no implementation, provider execution or new ownership allocation is authorized by that request.
+
+## FEAT-063 current-machine continuation — 2026-10-30
+
+Owner resumed work on the current machine after the local handoff. FEAT-063 records a bounded Rev36 delta review and a proposed S1 operation decision card; neither constitutes owner disposition, signature, implementation or live-operation approval. Rev36 remains the reviewed draft; runtime work awaits its applicable gates.
+
 ## FEAT-063 Rev36 review response — 2026-10-29
 
 Owner requested addressing the three P3 notes of the Rev35 independent review. `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV36_BACKEND_SRS23_ALIGNMENT_20261029.md` is the current plan draft for review; prior plans and approvals remain unchanged, and this does not authorize implementation.

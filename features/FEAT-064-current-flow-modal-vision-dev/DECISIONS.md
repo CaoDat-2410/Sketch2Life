@@ -34,3 +34,38 @@ Các đề xuất P-01–P-11 cần được chuyển thành hợp đồng/ADR v
 - **D-11 — T3, stroke profile/canvas:** B1–B4 `Đồng ý` với giá trị trong T0; server ghim profile immutable vào session, client gửi đúng version, mismatch/hạ cấp bị từ chối, session cũ không bị diễn giải lại. B5 chọn A và B6 chọn B nhưng tách task sau T3; B7 `Đồng ý`. B8 `Sửa`: T3 §1 nguồn mà phiếu viện dẫn không có trong nhánh hiện tại; không tự dựng allowlist, implementation bị block đến khi danh sách gốc được khôi phục hoặc được duyệt lại. Đây là quyết định thiết kế, không cấp quyền implementation.
 - **D-12 — operational follow-ups:** T12 PostgreSQL chờ database dùng-một-lần và `BE1_TEST_DATABASE_URL` được cấu hình cục bộ cùng approval riêng; B4b hoãn; cần báo Hiếu 31 test `test_live_image_demo_api.py` fail khi thiếu MinIO/AWS nhưng chưa gửi tin nhắn; D-114 được tham chiếu là D-119 trong nhánh Swagger hiện tại. Phiếu này không cấp quyền gửi tin.
 - Nguồn và phần hiệu chỉnh A3 sau source review: `evidence/OWNER_DECISIONS_T2B_T3_20261101.md`.
+
+## GOAL A2 — dùng database BE tổng hiện có (2026-11-03)
+
+- **D-13:** Chủ task yêu cầu A2 dùng database BE tổng hiện có `sketch2life` thay cho database task-owned riêng. Mục tiêu kỳ vọng theo quan sát trước là PostgreSQL 17.11, loopback `127.0.0.1:5433`, user/owner `postgres`; phiên triển khai phải xác minh lại danh tính chỉ đọc trước khi ghi. Chỉ dữ liệu synthetic mới do fixture A2 tạo được phép ghi/xóa theo chính ID của lượt đó. Cấm migration/schema change, reset/drop/truncate, dọn hàng cũ hay ảnh hưởng hàng BE hiện hữu. Quyết định chỉ mở gate DB của A2; không áp dụng cho B1/B2 và không thay thế launch riêng. Chi tiết: `plan/CHAIN_A2_MAIN_BE_DB_ADDENDUM_20261103.md`.
+
+### Review disposition for D-13 (2026-11-03; not a new owner decision)
+
+Independent review concluded **A2 Rev3 overall ACCEPTED / complete** within the approved A2 plans/addenda. This review disposition records completion of D-13's A2 scope; it does not expand D-13 to B1/B2 or authorize their execution. See `evidence/A2_REV3_INDEPENDENT_REVIEW_CLOSEOUT_20261103.md` for the reviewer thread and remaining evidence limitations.
+
+## GOAL B2 — quyết định owner và điều kiện review (2026-11-05)
+
+Các mục trong phần này không gán mã D-xx vì approval và ledger không quy định mã quyết định cho chúng.
+
+### Owner-recorded decisions and limits
+
+- Owner chấp nhận giới hạn T12: round-trip chỉ nhánh pilot_vision ở trạng thái trung gian với bảng pilot rỗng; không coi đây là round-trip toàn đồ thị hoặc có dữ liệu. Phần DB của test_migrations.py NOT RUN.
+- Owner chấp nhận mypy không có verdict cho test_be1_postgres_api.py làm giới hạn đã ghi. INTERNAL ERROR không phải PASS; chưa xác định lỗi đã tồn tại trước B2 hay phát sinh trong B2.
+- OpenAPI P3 được hoãn tới trước khi frontend/client tích hợp hai route POST submit/cancel.
+- OWNER_MODAL_CALL_APPROVED=NO; không có quyền gọi live từ các kết quả review này.
+
+### Independent review disposition — không phải owner acceptance
+
+Review vòng ba khuyến nghị ACCEPTED_WITH_CONDITIONS, không có P1. B2 vẫn NEEDS_REVISION cho tới khi owner quyết định riêng. N-1 yêu cầu test PostgreSQL mức route cho POST request/cancel trước D9 hoặc frontend. T13 chỉ chứng minh timeout của hàm script-local với stub. Stale-owner orphan B1 vẫn là điều kiện trước dữ liệu không synthetic hoặc provider. Mọi dữ kiện PostgreSQL là owner-run, chưa được reviewer xác minh bằng kết nối DB độc lập.
+
+## GOAL B2 — owner acceptance with conditions (2026-11-05)
+
+Các mục dưới đây không gán mã D-xx vì approval và ledger không quy định mã mới.
+
+Owner chấp nhận Goal B2 ở trạng thái ACCEPTED_WITH_CONDITIONS theo chỉ thị trực tiếp "Chấp nhận B2", dựa trên khuyến nghị review độc lập vòng ba cùng trạng thái, không có P1. Đây là quyết định owner; reviewer không quyết định thay owner.
+
+Phạm vi chấp nhận là T9, T13 và T12 theo plan B2 cho pilot local/test synthetic, default-off, loopback stub. T12 đóng có điều kiện: round-trip chỉ nhánh pilot_vision trạng thái trung gian với bảng pilot rỗng; không dữ liệu, không story_run_lite, không toàn đồ thị. Phần DB test_migrations.py NOT RUN; mypy test_be1_postgres_api.py NO VERDICT; dữ kiện PostgreSQL là owner-run.
+
+Điều kiện còn ràng buộc: OpenAPI P3 trước frontend/client; orphan stale-owner B1 trước dữ liệu không synthetic/provider; T13 chỉ là timeout của hàm script-local với stub; N-1 cần test PostgreSQL mức route child request → job → status trước D9/frontend; N-3 ghi nhận rerun dùng runner không pin hash và runner đối soát không còn trong thư mục script cục bộ, nguyên nhân chưa biết.
+
+Chấp nhận B2 không cho phép Modal/GPU/provider/live (`OWNER_MODAL_CALL_APPROVED=NO`), commit/push/merge/stage, xóa/dọn DB, gộp nhánh origin/codex/feat063-modal-backend-completion-20261103, bắt đầu goal sau B2, dùng dữ liệu không synthetic/provider thật hoặc tuyên bố production readiness.

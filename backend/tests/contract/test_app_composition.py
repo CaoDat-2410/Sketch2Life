@@ -1,6 +1,17 @@
 import json
 from pathlib import Path
+from types import SimpleNamespace
 
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+
+import sketch2life.interfaces.http.app as app_module
+import sketch2life.interfaces.http.be1_runtime as runtime_module
+from sketch2life.infrastructure.config.settings import Settings
+from sketch2life.infrastructure.persistence.database import CoreDatabaseConfigurationError
+from sketch2life.infrastructure.vision_analysis.pilot_composition import (
+    PilotVisionComposition,
+)
 from sketch2life.interfaces.http.app import (
     create_app,
     create_classroom_app,
@@ -70,6 +81,7 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
         "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/learning-stage",
         "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/learning-stage/advance",
         "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/outcome",
+        "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/pilot-profiles",
         "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/room-code/rotate",
         "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/roster",
         "/api/be1/v1/room-code/join",
@@ -81,6 +93,7 @@ def test_compatibility_app_keeps_be1_and_demo_services_on_app_state() -> None:
     application = create_app()
 
     assert application.state.be1_runtime is not None
+    assert application.state.be1_runtime.pilot_vision is None
     assert application.state.session_service is not None
     assert application.state.live_image_demo_service is not None
     assert application.state.supervised_flow_service is not None
@@ -98,6 +111,23 @@ def test_classroom_profile_excludes_process_local_demo_routes() -> None:
     assert application.state.live_image_demo_service is None
 
 
+def test_pilot_assistance_gate_fails_closed_when_disabled() -> None:
+    application = create_classroom_app()
+    settings = Settings(
+        env="local",
+        synthetic_pilot_enabled=False,
+        _env_file=None,  # type: ignore[call-arg]
+    )
+    runtime = SimpleNamespace(settings=settings, pilot_vision=None)
+    application.dependency_overrides[runtime_module.get_runtime] = lambda: runtime
+
+    with TestClient(application) as client:
+        response = client.post("/api/be1/v1/assistance-requests", json={})
+
+    assert response.status_code == 503
+    assert "PILOT_ASSISTANCE_DISABLED" in response.text
+
+
 def test_demo_profile_excludes_durable_classroom_routes() -> None:
     application = create_demo_app()
     paths = set(application.openapi()["paths"])
@@ -106,3 +136,73 @@ def test_demo_profile_excludes_durable_classroom_routes() -> None:
     assert "/api/be1/v1/health" not in paths
     assert application.state.session_service is not None
     assert application.state.live_image_demo_service is not None
+
+
+def test_real_app_composes_pilot_only_for_valid_local_synthetic_gate(
+    monkeypatch, tmp_path: Path
+) -> None:
+    settings = Settings(
+        env="test",
+        synthetic_pilot_enabled=True,
+        be1_artifact_root=tmp_path / "artifacts",
+        _env_file=None,  # type: ignore[call-arg]
+    )
+    monkeypatch.setattr(app_module, "get_settings", lambda: settings)
+    monkeypatch.setattr(
+        runtime_module,
+        "get_core_database_settings",
+        lambda: SimpleNamespace(database_url=None),
+    )
+
+    postgres_engine = create_engine(
+        "postgresql+psycopg://postgres:unused@127.0.0.1:5433/pilot_composition_test"
+    )
+    monkeypatch.setattr(runtime_module, "create_core_engine", lambda _url: postgres_engine)
+    application = create_app()
+    assert isinstance(application.state.be1_runtime.pilot_vision, PilotVisionComposition)
+    postgres_engine.dispose()
+
+    disabled_settings = settings.model_copy(update={"synthetic_pilot_enabled": False})
+    monkeypatch.setattr(app_module, "get_settings", lambda: disabled_settings)
+    disabled_engine = create_engine(
+        "postgresql+psycopg://postgres:unused@127.0.0.1:5433/pilot_composition_test"
+    )
+    monkeypatch.setattr(runtime_module, "create_core_engine", lambda _url: disabled_engine)
+    disabled = create_app()
+    assert disabled.state.be1_runtime.pilot_vision is None
+    disabled_engine.dispose()
+
+    monkeypatch.setattr(app_module, "get_settings", lambda: settings)
+    non_postgres_engine = create_engine("sqlite://")
+    monkeypatch.setattr(runtime_module, "create_core_engine", lambda _url: non_postgres_engine)
+    rejected = create_app()
+    assert rejected.state.be1_runtime.pilot_vision is None
+    non_postgres_engine.dispose()
+
+    staging_settings = Settings(
+        env="staging",
+        auth_provider="firebase",
+        firebase_project_id="synthetic-test-project",
+        synthetic_pilot_enabled=True,
+        _env_file=None,  # type: ignore[call-arg]
+    )
+    monkeypatch.setattr(app_module, "get_settings", lambda: staging_settings)
+    staging_engine = create_engine(
+        "postgresql+psycopg://postgres:unused@127.0.0.1:5433/pilot_composition_test"
+    )
+    monkeypatch.setattr(runtime_module, "create_core_engine", lambda _url: staging_engine)
+    staging = create_app()
+    assert staging.state.be1_runtime.pilot_vision is None
+    staging_engine.dispose()
+
+    monkeypatch.setattr(app_module, "get_settings", lambda: settings)
+    monkeypatch.setattr(
+        runtime_module,
+        "create_core_engine",
+        lambda _url: (_ for _ in ()).throw(
+            CoreDatabaseConfigurationError("synthetic missing database configuration")
+        ),
+    )
+    unavailable = create_app()
+    assert unavailable.state.be1_runtime.engine is None
+    assert unavailable.state.be1_runtime.pilot_vision is None

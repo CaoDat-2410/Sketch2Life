@@ -8,6 +8,7 @@ facts come from ports (fixtures in A1); nothing here is an adopted production po
 
 from __future__ import annotations
 
+import json
 from collections.abc import Mapping
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime, timedelta
@@ -82,6 +83,7 @@ from sketch2life.domain.assistance import (
     settle,
     terminate,
 )
+from sketch2life.domain.eligibility import EligibilityScope
 from sketch2life.domain.vision_analysis import (
     VISION_ANALYSIS_JOB_TYPE,
     AnalysisScope,
@@ -93,6 +95,35 @@ from sketch2life.domain.vision_analysis import (
 DECISION_ROUNDS = 3
 DEFAULT_POLL_AFTER_MS = 2000
 _TERMINAL_JOB_STATES = frozenset({"succeeded", "failed_exhausted", "blocked_unsafe", "cancelled"})
+_FACT_CONTEXT_REVISION_DOMAIN = b"sketch2life/context-revision/v1\n"
+_FACT_CONTEXT_REVISION_SCHEMA = "be1-fact-context-v2"
+_FACT_CONTEXT_REVISION_MAX = 0x7FFFFFFF
+
+
+def resolved_facts_context_revision(facts: ResolvedFacts) -> int:
+    """Bind typed contexts to all facts without making the revision hash self-referential.
+
+    Legacy fixtures without typed eligibility metadata retain their historical canvas
+    revision. The application layer mirrors the existing infrastructure equality-token
+    formula here instead of importing an outer-layer helper.
+    """
+
+    if not any(member.eligibility_basis is not None for member in facts.members):
+        return facts.context_revision
+    base_digest = replace(facts, context_revision=0).digest()
+    payload = json.dumps(
+        {
+            "resolved_facts_digest": base_digest,
+            "schema_version": _FACT_CONTEXT_REVISION_SCHEMA,
+        },
+        ensure_ascii=False,
+        allow_nan=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode("utf-8")
+    digest = sha256(_FACT_CONTEXT_REVISION_DOMAIN + payload).digest()
+    revision = int.from_bytes(digest[:4], "big") & _FACT_CONTEXT_REVISION_MAX
+    return revision or 1
 
 _ERRORS: Mapping[str, tuple[int, str]] = {
     "MALFORMED_REQUEST": (400, "The request is malformed."),
@@ -121,6 +152,21 @@ _AUTHORITY_ERRORS = {
     AuthorityReason.TURN_CLOSED: "TURN_CLOSED",
     AuthorityReason.ROLE_NOT_PERMITTED: "FORBIDDEN_SCOPE",
 }
+
+
+def _member_scope(
+    canvas: CanvasFacts,
+    audience: tuple[str, ...],
+    purpose_code: str,
+) -> EligibilityScope | None:
+    if len(audience) != 1:
+        return None
+    return EligibilityScope(
+        canvas.organization_id,
+        canvas.class_id,
+        audience[0],
+        purpose_code,
+    )
 _AUDIENCE_ERRORS = {
     "AUDIENCE_DUPLICATE": "DEPENDENCY_UNAVAILABLE",  # malformed owner data, refused
     "AUDIENCE_MISMATCH": "DEPENDENCY_UNAVAILABLE",
@@ -248,6 +294,7 @@ class AssistanceDependencies:
     ids: IdGeneratorPort
     auto_schedule: bool = True
     poll_after_ms: int = DEFAULT_POLL_AFTER_MS
+    analysis_only: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -338,7 +385,12 @@ class AssistanceService:
         policy = self._d.policy.current(canvas.organization_id, canvas.session_id)
         if policy is None:
             raise AssistanceError("POLICY_UNRESOLVED")
-        members = self._d.owner.members(canvas.organization_id, audience, policy.purpose_code)
+        members = self._d.owner.members(
+            canvas.organization_id,
+            audience,
+            policy.purpose_code,
+            scope=_member_scope(canvas, audience, policy.purpose_code),
+        )
         refusal = audience_refusal(
             audience,
             members,
@@ -373,6 +425,7 @@ class AssistanceService:
             context_revision=canvas.context_revision,
             source=source,
         )
+        facts = replace(facts, context_revision=resolved_facts_context_revision(facts))
         digest = facts.digest()
         identity = semantic_identity(
             facts, digest=digest, checkpoint_ref=command.checkpoint_ref,
@@ -387,8 +440,14 @@ class AssistanceService:
             debounce=debounce_key(canvas.canvas_id, target),
         )
 
-    def _audience(self, canvas: CanvasFacts,
-                  target: TargetScope) -> tuple[tuple[str, ...], int | None]:
+    def _audience(
+        self,
+        canvas: CanvasFacts,
+        target: TargetScope,
+        *,
+        owner: AssistanceOwnerPort | None = None,
+    ) -> tuple[tuple[str, ...], int | None]:
+        owner = owner or self._d.owner
         if target.kind is TargetKind.INDIVIDUAL:
             if canvas.mode == "personal":
                 if target.ref_id != canvas.personal_participant_id:
@@ -396,13 +455,13 @@ class AssistanceService:
                 return (target.ref_id,), None
             if canvas.group_id is None:
                 raise AssistanceError("FORBIDDEN_SCOPE")
-            roster = self._d.owner.roster(canvas.session_id, canvas.group_id)
+            roster = owner.roster(canvas.session_id, canvas.group_id)
             if roster is None or target.ref_id not in roster.members:
                 raise AssistanceError("FORBIDDEN_SCOPE")
             return (target.ref_id,), roster.revision
         if canvas.mode != "collaborative" or canvas.group_id != target.ref_id:
             raise AssistanceError("FORBIDDEN_SCOPE")
-        roster = self._d.owner.roster(canvas.session_id, target.ref_id)
+        roster = owner.roster(canvas.session_id, target.ref_id)
         if roster is None:
             raise AssistanceError("RESOURCE_NOT_FOUND")
         return tuple(roster.members), roster.revision
@@ -432,8 +491,16 @@ class AssistanceService:
         ):
             raise AssistanceError("FORBIDDEN_SCOPE")
 
-    def _resolve_source(self, canvas: CanvasFacts, ref: CheckpointRef) -> SourcePin:
-        resolved = self._d.sources.resolve(canvas.organization_id, canvas.canvas_id, ref)
+    def _resolve_source(
+        self,
+        canvas: CanvasFacts,
+        ref: CheckpointRef,
+        *,
+        sources: AssistanceSourcePort | None = None,
+    ) -> SourcePin:
+        resolved = (sources or self._d.sources).resolve(
+            canvas.organization_id, canvas.canvas_id, ref
+        )
         if resolved is None:
             raise AssistanceError("STALE_CONTEXT")
         snapshot = resolved.snapshot
@@ -885,16 +952,18 @@ class AssistanceService:
                 raise _Retry()
             updated = current
             if handoff is not None:
-                ref, intent = handoff
+                ref, candidate_intent = handoff
                 updated = hand_off(updated, ref, now)
-                tx.put_cache(org, updated.semantic_identity, CacheHit(
-                    updated.assistance_id, updated.request_revision, ref.job_id,
-                    ref.analysis_id, ref.analysis_revision))
-                tx.add_sketch_intent(intent)
                 tx.publish_request_fence(org)
                 tx.add_event(self._event("assistance.analysis_ready", updated, None))
-                tx.add_event(self._event("assistance.sketch_intent_simulated", updated,
-                                         intent.status))
+                if not self._d.analysis_only:
+                    intent = candidate_intent
+                    tx.put_cache(org, updated.semantic_identity, CacheHit(
+                        updated.assistance_id, updated.request_revision, ref.job_id,
+                        ref.analysis_id, ref.analysis_revision))
+                    tx.add_sketch_intent(intent)
+                    tx.add_event(self._event("assistance.sketch_intent_simulated", updated,
+                                             intent.status))
             elif transition is not None:
                 status, reason = transition
                 if status is RequestStatus.FAILED:
@@ -913,7 +982,7 @@ class AssistanceService:
                                          if updated.reservation is not None else None))
             if updated is not current:
                 tx.cas(expected_record_version=current.record_version, request=updated)
-        if intent is not None:
+        if intent is not None and not self._d.analysis_only:
             self._d.sketch_stage.request_sketch(intent)
         return updated
 
@@ -944,20 +1013,40 @@ class AssistanceService:
         )
         return (ref, intent), None
 
-    def _current_digest(self, request: AssistanceRequest) -> str | None:
-        """Recompute the owner-fact binding now, without any principal (§8.4)."""
+    def _current_resolved_facts(
+        self,
+        request: AssistanceRequest,
+        *,
+        owner: AssistanceOwnerPort | None = None,
+        sources: AssistanceSourcePort | None = None,
+    ) -> ResolvedFacts | None:
+        """Recompute the complete owner-fact binding, optionally on a caller's DB connection."""
 
         facts = request.facts
-        canvas = self._d.owner.canvas(facts.organization_id, facts.canvas_id)
+        owner = owner or self._d.owner
+        canvas = owner.canvas(facts.organization_id, facts.canvas_id)
         policy = self._d.policy.current(facts.organization_id, facts.session_id)
-        if canvas is None or policy is None or not canvas.session_active:
+        if (
+            canvas is None
+            or policy is None
+            or not canvas.session_active
+            or canvas.organization_id != facts.organization_id
+            or canvas.class_id != facts.class_id
+            or canvas.session_id != facts.session_id
+            or canvas.canvas_id != facts.canvas_id
+        ):
             return None
         try:
-            audience, roster_revision = self._audience(canvas, facts.target)
-            source = self._resolve_source(canvas, request.checkpoint_ref)
+            audience, roster_revision = self._audience(canvas, facts.target, owner=owner)
+            source = self._resolve_source(canvas, request.checkpoint_ref, sources=sources)
         except AssistanceError:
             return None
-        members = self._d.owner.members(facts.organization_id, audience, facts.purpose_code)
+        members = owner.members(
+            facts.organization_id,
+            audience,
+            facts.purpose_code,
+            scope=_member_scope(canvas, audience, facts.purpose_code),
+        )
         if audience_refusal(
             audience,
             members,
@@ -975,7 +1064,33 @@ class AssistanceService:
             age_policy_ref=canvas.age_policy_ref, policy_id=policy.policy_id,
             policy_version=policy.version, purpose_code=policy.purpose_code,
         )
-        return current.digest()
+        return replace(current, context_revision=resolved_facts_context_revision(current))
+
+    def current_resolved_facts(
+        self,
+        assistance_id: str,
+        *,
+        request: AssistanceRequest | None = None,
+        owner: AssistanceOwnerPort | None = None,
+        sources: AssistanceSourcePort | None = None,
+    ) -> ResolvedFacts | None:
+        """Recompute current facts, reusing a request already loaded by its caller if supplied."""
+
+        if request is not None:
+            if request.assistance_id != assistance_id:
+                return None
+        else:
+            with self._d.repository.transaction() as tx:
+                request = tx.get(assistance_id)
+        if request is None:
+            return None
+        return self._current_resolved_facts(request, owner=owner, sources=sources)
+
+    def _current_digest(self, request: AssistanceRequest) -> str | None:
+        """Compatibility wrapper for the historical freshness callers."""
+
+        current = self._current_resolved_facts(request)
+        return None if current is None else current.digest()
 
     # ================================================================ reads
     def pin(self, assistance_id: str) -> AssistancePin | None:
@@ -1000,6 +1115,13 @@ class AssistanceService:
                 contributor_participant_id=facts.contributor_participant_id,
                 audience_participant_ids=facts.audience,
                 purpose_code=facts.purpose_code,
+            ),
+            context_digest=(
+                # Legacy unspecified-basis fixtures keep their no-digest contract.
+                # Every scoped eligibility context, including synthetic, pins full facts.
+                f"sha256:{request.assistance_context_digest}"
+                if any(member.eligibility_basis is not None for member in facts.members)
+                else None
             ),
         )
 

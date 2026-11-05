@@ -136,6 +136,8 @@ Nếu DB chưa migrate, dừng Uvicorn và áp migration sau preflight mục 2, 
 
 **Dừng trước request 06 attach.** Mode `loopback` ở bước này chưa trỏ tới Vision stub nên chưa thực hiện inference. Dừng BE bằng Ctrl+C; giữ DB và ClamAV chạy.
 
+Sau mỗi lần khởi động BE, kiểm tra `GET /v1/story-runs/readiness` hoặc Bruno `12-get-readiness` trước khi tiếp tục. Kỳ vọng `200` với `status: ready`; `503 SERVICE_NOT_READY` nghĩa runtime chưa cấu hình hoặc đã mất quyền giữ singleton. `/health` của BE chỉ là liveness và có thể vẫn `ok` khi StoryRun không sẵn sàng. Sau mất lock cần khởi động lại process; probe không tự reconnect hoặc lấy lại lock.
+
 ## 6. Ghim run, khởi động lại BE và gọi Modal
 
 Trong cùng PowerShell BE, chọn đúng `run_ref` vừa tạo, base URL vừa kiểm tra và nhập bearer khớp Secret Modal bằng prompt ẩn. Không đặt URL/bearer vào code UI. Biến token tồn tại trong bộ nhớ process trong thời gian demo.
@@ -156,7 +158,9 @@ Remove-Item Env:STORYRUN_LITE_VISION_LOOPBACK_URL -ErrorAction SilentlyContinue
 .\.venv\Scripts\python.exe -m uvicorn sketch2life.main:app --host 127.0.0.1 --port 8778
 ```
 
-Chạy Bruno request 06 **một lần**, rồi 07 để đọc run, 08 để xác nhận, sau đó GET run lần nữa. `SUBJECT_REVIEW` chứa kết quả nhận dạng; xác nhận dùng revision/ETag hiện tại. `PREPARATION_REVIEW` là mốc cuối đã demo, chưa phải sinh truyện/video. Nếu timeout/reset hoặc kết quả không rõ sau khi đã gửi, kiểm tra run và ledger; không tự gửi lại attach hay tạo retry cho cùng attempt. Muốn demo ảnh khác cần run mới và khởi động lại BE với run UUID mới; không xóa marker hoặc tái sử dụng attempt cũ.
+Chạy Bruno request 06 **một lần**, rồi 07 để đọc run, 08 để xác nhận, sau đó chạy **`11-get-run-after-confirm`**. Request 11 assert `PREPARATION_REVIEW` và cập nhật ETag/revision; request 07 assert `SUBJECT_REVIEW` nên không dùng lại nó để kiểm tra sau confirm. Xác nhận phải dùng understanding revision/ETag hiện tại. `PREPARATION_REVIEW` là mốc cuối demo, chưa phải sinh truyện/video. Nếu timeout/reset hoặc kết quả không rõ sau khi đã gửi, kiểm tra run và ledger; không tự gửi lại attach hay tạo retry cho cùng attempt.
+
+Để demo ảnh thứ hai trên cùng DB, sau request 11 hãy chạy **`09-cancel-run`** với ETag/revision hiện tại và key cancel riêng. Kỳ vọng `202`, `DELETE_PENDING`: hệ thống đóng lượt demo, nhả active-owner slot và giữ run, ảnh đã admission, kết quả, receipt cũ. Sau đó dùng các idempotency key mới để tạo run/upload mới, gửi bytes bằng request 03, complete/poll tới READY. Dừng trước request 06, khởi động lại BE với UUID của run mới tại `STORYRUN_LITE_MODAL_RUN_ID`, rồi mới attach một lần. Không xóa DB, marker hay tái sử dụng attempt cũ. Cancel không chứng minh request đã SENT ở provider được dừng.
 
 Các bước Bruno mẫu được kiểm chứng với Vision stub; lượt Modal thật đã dùng HTTP helper tương đương, chưa chứng minh một lần chạy Bruno toàn bộ với Modal. Kiểm tra từng response thực tế thay vì suy ra kết quả từ log Modal. `repair_attempted=True` có thể xuất hiện dù chỉ có một HTTP request.
 

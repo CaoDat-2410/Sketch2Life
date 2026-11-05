@@ -1,5 +1,30 @@
 # Status
 
+## Six-milestone Parent/Teacher roadmap independent review round 3 — 2026-11-03
+
+- Documentation review **ACCEPTED** by an independent read-only Codex thread (`01a1a205-1441-73e0-9170-6fdc4d591472`, `gpt-6-luna`, effort `max`). Reviewer verified all 12 pinned hashes and reported no remaining finding in scope on the reviewed roadmap hash `DED4B89D6A3F66FD0570EEA11E2240840C47DE607667544708C7C394F7F49C86`.
+- Owner then accepted the roadmap as a planning baseline using the existing SRS v2.3-draft unchanged; Parent-before-Teacher follows SRS §8.1. Current roadmap hash after recording that owner decision is `A0A485EE421FBB1DA9DEC99DD8EC08279D14EAF27EC548AD6A0A4CE8F234F8FA`.
+- SRS remains unsigned and unmodified; no M2–M6 implementation is approved. Each milestone still requires its own detailed plan, acceptance criteria, data/migration boundary and explicit approval. Remaining model/version, line-sketch schedule, optional lesson access and B0 provenance gates remain open.
+- Evidence: `evidence/CLAUDE_ROADMAP_REVIEW_DISPOSITION_20261103.md`, SHA-256 `D44A754ECBF63E6DCB94D1037A6D76F39398D160BB9DAD9E6C6343FC77C9CDBB`.
+- Owner decision: D-132 in `DECISIONS.md`, recorded in `approvals/TASK_APPROVAL.md`; no tests/validators, DB or Modal/provider/network operation. Branch/HEAD remain `feature/feat063-be-foundation` / `b6dbfa68e66718f3f40902c093e9ebd634b1ebb9`; index remains empty.
+- Review was read-only: no tests/validators, DB, Modal/provider/network, or Git operations. Branch/HEAD remain `feature/feat063-be-foundation` / `b6dbfa68e66718f3f40902c093e9ebd634b1ebb9`; index remains empty. Existing local changes were preserved.
+
+## Six-milestone Parent/Teacher roadmap review round 2 — 2026-11-03 (superseded by round 3 ACCEPTED)
+
+- Documentation correction **FIXED — XONG-CHƯA REVIEW** under Plans Rev50 and Rev50A; roadmap remains DRAFT and SRS v2.3 remains unsigned. N1–N7 and the related P2/P3 notes are recorded with owner gates; no M2–M6 implementation is approved.
+- Corrected Rev49's D-130 reassignment: OpenAPI is now D-131; D-130 remains the full-BE/Bruno decision. Historical Swagger summaries no longer reuse D-114–D-119 as decision IDs. DTR mismatch is documented as line-ending-only; B0 plan/report provenance remains unresolved and needs owner confirmation before reuse as authority.
+- A2 local closeout remains ACCEPTED/COMPLETE within scope, with residuals disclosed (58 synthetic shared-DB rows, schema/Alembic reconciliation, mypy baseline). M2 must address these before migration; this task did not touch the DB. Current A2/B1/B2 launch status still comes from its active implementation thread.
+- Plan: `plan/ROADMAP_REVIEW_FIX_PLAN_REV50_20261103.md`, SHA-256 `0FFF0D9CAA01036E08A90120FC7067D38B564E80E72E4324B470D1E8E13C66DC`. Evidence: `evidence/CLAUDE_ROADMAP_REVIEW_DISPOSITION_20261103.md`.
+- Verification: `git diff --check` exit 0 (Git emitted only CRLF-normalization warnings); defined decision-ID duplicate scan found none; no placeholders remain. Roadmap SHA-256 `DED4B89D6A3F66FD0570EEA11E2240840C47DE607667544708C7C394F7F49C86`; disposition SHA-256 `3FF823141E8366DC4AA8090989AFD97640DC65D6791BF3178A1DE271ACBE85DF`.
+- No tests/validator suite, DB, Modal/provider or network call. Branch/HEAD remain `feature/feat063-be-foundation` / `b6dbfa68e66718f3f40902c093e9ebd634b1ebb9`; index is empty. Existing local source/A2 changes were preserved. No stage/commit/push/merge.
+
+## Six-milestone Parent/Teacher roadmap review round 1 — 2026-11-03 (superseded)
+
+- Documentation correction **COMPLETE** under Plan Rev49; the roadmap remains DRAFT. Accepted cloud findings are incorporated, unresolved product choices remain owner-gated, and no M2–M6 implementation approval is implied.
+- Local state checked: M1 review round 3 **ACCEPTED** for the synthetic local demo; A2 **ACCEPTED / COMPLETE** per the local FEAT-064 closeout. The latter is local-only and was not visible to the cloud reviewer. The local A2→B1→B2 document header says DRAFT; any later phase launch must be verified from the active FEAT-064 thread.
+- DTR pinned hash matches local bytes; B0–B13 current-plan/report hash mismatch remains a provenance gap and is explicitly documented. Duplicate decision ID was corrected to D-130.
+- Evidence: `evidence/CLAUDE_ROADMAP_REVIEW_DISPOSITION_20261103.md`. No tests, validator suite, DB, Modal/provider or network operation was run for this doc-only correction.
+
 ## B3 manifest and owner decisions — 2026-10-31
 
 - B3 complete as a document: ownership matrix (18 boundaries, 18 shared-file rows, all co-signatures unsigned) and manifest with three migration-order options left open. Evidence: `evidence/B3_OWNERSHIP_MIGRATION_MANIFEST_20261031.md`, `evidence/B3_OWNER_MATRIX_20261031.csv`.

@@ -9,7 +9,6 @@ from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
-
 from sketch2life.infrastructure.config.settings import get_core_database_settings, get_settings
 from sketch2life.interfaces.http.app import create_app
 from sketch2life.interfaces.http.openapi_contract import (
@@ -36,6 +35,23 @@ HTTP_METHODS = {"get", "post", "put", "patch", "delete", "options", "head"}
 UPLOAD_TRANSPORT_TOO_LARGE_OPERATIONS = {
     ("post", "/v1/sessions/{session_id}/media/audio"),
     ("post", "/v1/sessions/{session_id}/media/image"),
+}
+# T9's local/test-only candidate lookup is intentionally outside the pinned Rev37 catalog.
+PILOT_ONLY_OPERATIONS = {
+    (
+        "get",
+        "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/pilot-profiles",
+    ),
+    ("post", "/api/be1/v1/assistance-requests"),
+    ("post", "/api/be1/v1/assistance-requests/{assistance_id}/cancel"),
+    (
+        "get",
+        "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/assistance-requests/{assistance_id}/status",
+    ),
+    (
+        "get",
+        "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/teacher/assistance-requests/pending",
+    ),
 }
 CONTRACT_PARAMETER = re.compile(r"\b(path|query|header|cookie)\s+`([^`]+)`:\s*([^;]+)")
 CONTRACT_REQUEST_BODY = re.compile(
@@ -117,6 +133,7 @@ def test_swagger_ui_and_openapi_json_are_published(monkeypatch: pytest.MonkeyPat
 @pytest.fixture
 def runtime_openapi(monkeypatch: pytest.MonkeyPatch) -> Iterator[dict[str, Any]]:
     monkeypatch.setenv("SKETCH2LIFE_ENV", "local")
+    monkeypatch.setenv("SKETCH2LIFE_SYNTHETIC_PILOT_ENABLED", "true")
     monkeypatch.setenv("SKETCH2LIFE_STORAGE_EXAMPLE_ENABLED", "true")
     get_settings.cache_clear()
     get_core_database_settings.cache_clear()
@@ -172,9 +189,22 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
 
     assert spec["openapi"] == "3.1.0"
     assert spec["tags"] == public_tags(TAG_DESCRIPTIONS)
-    assert len(spec["paths"]) == 111
-    assert len(operations) == MOUNTED_OPERATION_COUNT == 124
-    assert set(operations) == set(MOUNTED_OPERATIONS)
+    assert len(operations) == 129
+    catalog_operations = set(operations) - PILOT_ONLY_OPERATIONS
+    catalog_paths = {path for _method, path in catalog_operations}
+    assert len(catalog_paths) == 111
+    assert len(catalog_operations) == MOUNTED_OPERATION_COUNT == 124
+    assert catalog_operations == set(MOUNTED_OPERATIONS)
+    assert set(operations) - set(MOUNTED_OPERATIONS) == PILOT_ONLY_OPERATIONS
+    assert PILOT_ONLY_OPERATIONS.isdisjoint(MOUNTED_OPERATIONS)
+    profile_lookup = operations[
+        (
+            "get",
+            "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/pilot-profiles",
+        )
+    ]
+    assert "x-contract-surface" not in profile_lookup
+    assert len(PILOT_ONLY_OPERATIONS) == 5
 
     for key, contract in MOUNTED_OPERATIONS.items():
         operation = operations[key]

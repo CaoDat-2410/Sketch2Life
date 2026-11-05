@@ -44,6 +44,7 @@ from sketch2life.domain.assistance import (
     ReservationState,
     TargetKind,
 )
+from sketch2life.domain.eligibility import EligibilityScope
 from sketch2life.infrastructure.ai_jobs.fakes import FakeOwnerFences, eligibility_fence_scope
 
 FIXTURE_MARKER = "FIXTURE_ONLY_NOT_DURABLE"
@@ -383,8 +384,20 @@ class FakeAssistanceOwner:
                                roster.revision)
         return roster
 
-    def members(self, organization_id: str, participant_ids: tuple[str, ...],
-                purpose_code: str) -> tuple[MemberFact, ...]:
+    def members(
+        self,
+        organization_id: str,
+        participant_ids: tuple[str, ...],
+        purpose_code: str,
+        *,
+        scope: EligibilityScope | None = None,
+    ) -> tuple[MemberFact, ...]:
+        if scope is not None and (
+            scope.organization_id != organization_id
+            or scope.child_id not in participant_ids
+            or scope.purpose_ref != purpose_code
+        ):
+            return ()
         facts: list[MemberFact] = []
         for participant in participant_ids:
             row = self.member_rows.get(participant)

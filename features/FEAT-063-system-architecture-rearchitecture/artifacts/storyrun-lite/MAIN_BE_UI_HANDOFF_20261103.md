@@ -8,6 +8,8 @@ The owner-approved local target is PostgreSQL 17 `127.0.0.1:5433/sketch2life`, w
 
 With the opt-in enabled, the main app's `/openapi.json` includes the namespaced StoryRun contract. The original standalone contract is `openapi.json` beside this file; the example requests are in `bruno/`.
 
+Use `GET /v1/story-runs/readiness` to monitor this demo runtime: 200 means its configured runtime currently owns the pinned singleton lock; 503 means it cannot accept StoryRun work. It is available in both standalone and opt-in main apps. `/health` remains main backend liveness and is not StoryRun readiness. If readiness latches lock loss, restart that instance rather than treating a still-healthy `/health` as permission to continue.
+
 | Step | Method and route | UI behavior |
 | --- | --- | --- |
 | Create | `POST /v1/story-runs` | Send an `Idempotency-Key`; retain `run_ref`, revision and response ETag. |
@@ -17,7 +19,8 @@ With the opt-in enabled, the main app's `/openapi.json` includes the namespaced 
 | Upload status | `GET /v1/upload-sessions/{upload_ref}` | Wait for `READY` and use the admitted `asset_ref`; surface failure states. |
 | Attach | `POST /v1/story-runs/{run_ref}/assets` | Send `asset_ref`, expected revision, `If-Match` and idempotency key; a response can wait for Vision. Do not blindly replay an ambiguous live attempt. |
 | Run status | `GET /v1/story-runs/{run_ref}` | Read the result at `SUBJECT_REVIEW` and retain the new ETag and understanding revision. |
-| Confirm | `POST /v1/story-runs/{run_ref}/subject-confirmation` | Confirm the current understanding revision with `If-Match` and an idempotency key; a 202 is followed by GET. |
-| Alternatives | `POST /v1/story-runs/{run_ref}/cancel`; `DELETE /v1/upload-sessions/{upload_ref}` | Cancel or abort using the contract's preconditions and idempotency rules. |
+| Confirm | `POST /v1/story-runs/{run_ref}/subject-confirmation` | Confirm the current understanding revision with `If-Match` and an idempotency key; use Bruno `11-get-run-after-confirm` to check `PREPARATION_REVIEW` and refresh the ETag/revision. |
+| Cancel / demo closeout | `POST /v1/story-runs/{run_ref}/cancel` | Cancel an eligible unfinished run or explicitly close the demo after `PREPARATION_REVIEW`; use the current revision/ETag and an idempotency key. `202` / `DELETE_PENDING` releases the active-owner slot and preserves the prior admitted assets, result and receipts. |
+| Abort upload | `DELETE /v1/upload-sessions/{upload_ref}` | Abort an eligible upload using the contract's preconditions and idempotency rules. |
 
-The smoke on 2026-11-03 reached `PREPARATION_REVIEW` after confirmation. This result does not cover later story/video stages. The current synthetic run and its assets remain in the local DB; do not delete or reset them to start a new test without an owner-approved lifecycle action.
+The smoke on 2026-11-03 reached `PREPARATION_REVIEW` after confirmation. This result does not cover later story/video stages. To repeat the demo on the same DB, read the confirmed run with request 11, close it explicitly with request 09, and start the next run using fresh idempotency keys. Follow the setup guide to re-pin the new run UUID before live attach. Keep the old run, assets and receipts; do not delete or reset the DB. The earlier live smoke is historical evidence, not proof that the revised repeat-run procedure has been rerun against Modal.

@@ -288,31 +288,51 @@ def test_real_http_writes_audits_outbox_and_enforces_assignment_scope(
     assert openapi_response.json()["info"]["title"] == "Sketch2Life FE API"
     openapi = accepted.app.state.runtime_openapi_schema
     be1_paths = [path for path in openapi["paths"] if path.startswith("/api/be1/v1/")]
-    assert len(be1_paths) == 50
+    assert len(be1_paths) == 55
     be1_operations = sum(
         1
         for path in be1_paths
         for method in openapi["paths"][path]
         if method in {"get", "post", "put", "patch", "delete"}
     )
-    assert be1_operations == 55
+    assert be1_operations == 60
     assert "HTTPBearer" in openapi["components"]["securitySchemes"]
     error_schema = openapi["components"]["schemas"]["Be1Error"]
     assert set(error_schema["properties"]) == {"code", "message", "request_id"}
     upload_response = openapi["paths"][
         "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/artifacts"
     ]["post"]["responses"]
-    assert {"413", "415", "503"}.issubset(upload_response)
+    assert (
+        "default" in upload_response
+        and "application/json" in upload_response["default"]["content"]
+        and upload_response["default"]["content"]["application/json"]["schema"]
+        == {"$ref": "#/components/schemas/Be1Error"}
+        and all(
+            status_code in upload_response["default"]["description"]
+            for status_code in ("413", "415", "503")
+        )
+    )
     download_response = openapi["paths"][
         "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/artifacts/{asset_ref}"
     ]["get"]["responses"]
-    assert "410" in download_response
+    assert (
+        "default" in download_response
+        and "application/json" in download_response["default"]["content"]
+        and download_response["default"]["content"]["application/json"]["schema"]
+        == {"$ref": "#/components/schemas/Be1Error"}
+        and "410" in download_response["default"]["description"]
+    )
 
 
 def test_room_code_start_revocation_stage_and_early_outcome_are_durable(
     acceptance_client: AcceptanceClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    from typing import Any, cast
+
+    import sketch2life.interfaces.http.be1_runtime as be1_runtime
+    import sketch2life.interfaces.http.routers.be1_canvas as be1_canvas
     import sketch2life.interfaces.http.routers.be1_sessions as be1_sessions
+    from starlette.requests import Request
 
     monkeypatch.setattr(be1_sessions, "consent_is_effective", lambda *args, **kwargs: True)
     accepted = acceptance_client
@@ -487,20 +507,32 @@ def test_room_code_start_revocation_stage_and_early_outcome_are_durable(
     assert no_drawing.json()["code"] == "DRAWING_RECEIPT_REQUIRED"
 
     operation_id = str(uuid4())
+    drawing_headers = {
+        "X-Be1-Grant": join.json()["grant_id"],
+        "X-Be1-Device-Key": device_key,
+        "Idempotency-Key": operation_id,
+    }
+    drawing_body = {
+        "operation_id": operation_id,
+        "turn_id": turn.json()["turn_id"],
+        "document_epoch": 1,
+        "expected_revision": 1,
+        "operation_payload": {"type": "stroke", "points": [{"x": 12, "y": 18}]},
+    }
+    pending_drawing = client.post(
+        _url(accepted, f"/sessions/{session_id}/canvas/operations"),
+        headers=drawing_headers,
+        json=drawing_body,
+    )
+    assert pending_drawing.status_code == 409, pending_drawing.text
+    assert pending_drawing.json()["code"] == "CONSENT_NOT_EFFECTIVE"
+
+    monkeypatch.setattr(be1_runtime, "consent_is_effective", lambda *args, **kwargs: True)
+    monkeypatch.setattr(be1_canvas, "consent_is_effective", lambda *args, **kwargs: True)
     drawing = client.post(
         _url(accepted, f"/sessions/{session_id}/canvas/operations"),
-        headers={
-            "X-Be1-Grant": join.json()["grant_id"],
-            "X-Be1-Device-Key": device_key,
-            "Idempotency-Key": operation_id,
-        },
-        json={
-            "operation_id": operation_id,
-            "turn_id": turn.json()["turn_id"],
-            "document_epoch": 1,
-            "expected_revision": 1,
-            "operation_payload": {"type": "stroke", "points": [{"x": 12, "y": 18}]},
-        },
+        headers=drawing_headers,
+        json=drawing_body,
     )
     assert drawing.status_code == 200, drawing.text
     assert drawing.json()["status"] == "accepted"
@@ -635,7 +667,15 @@ def test_room_code_start_revocation_stage_and_early_outcome_are_durable(
         assert stored_code.room_code_hmac != room_code
         assert stored_pending is not None and stored_pending.state == "revoked"
         assert stored_admitted is not None and stored_admitted.state == "admitted"
-        stored_attempts = db.scalar(select(Be1RoomCodeRateLimitModel.attempts))
+        source_request = Request({"type": "http", "client": cast(Any, client._transport).client})
+        source_hash = be1_sessions._room_code_source_hash(
+            accepted.app.state.be1_runtime, source_request
+        )
+        stored_attempts = db.scalar(
+            select(Be1RoomCodeRateLimitModel.attempts).where(
+                Be1RoomCodeRateLimitModel.source_hmac == source_hash
+            )
+        )
         assert stored_attempts is not None and len(stored_attempts) == 10
         stored_draft = db.get(Be1GroupDraftModel, first_advance.json()["saved_drafts"][0])
         assert stored_draft is not None and stored_draft.disposition == "save_draft"

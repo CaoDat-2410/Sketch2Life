@@ -67,7 +67,6 @@ _LEGAL_CANVAS = (
     "save_checkpoint",
     "read_latest_checkpoint",
     "restore_checkpoint",
-    "reconnect_canvas",
 )
 _Function = ast.FunctionDef | ast.AsyncFunctionDef
 
@@ -240,6 +239,59 @@ def test_five_other_canvas_sites_keep_the_legal_helper(name: str) -> None:
         "action",
     }
     assert not _reaches_evaluator(_CANVAS, name)
+
+
+def test_child_reconnect_uses_status_authority_and_typed_group_eligibility() -> None:
+    function = _function(_CANVAS, "reconnect_canvas")
+    calls = _calls(function)
+    source = ast.unparse(function)
+    assert "Depends(get_verified_device_status)" in source
+    assert "Depends(get_verified_device)" not in source
+    assert "_require_group_eligibility" in calls
+    assert "_require_group_consent" not in calls
+    assert _reaches_evaluator(_RUNTIME, "get_verified_device_status")
+
+
+def test_child_reconnect_response_exposes_nullable_profile_version_and_forbids_extras() -> None:
+    from pydantic import ValidationError
+    from sketch2life.contracts.schemas.be1_runtime import CanvasReconnectResponse
+
+    base = {
+        "contract": "Be1CanvasReconnectV1",
+        "canvas_id": "synthetic-group-001",
+        "turn_id": None,
+        "document_epoch": 1,
+        "current_revision": 0,
+        "checkpoint": None,
+        "operations": [],
+    }
+    profiled = CanvasReconnectResponse.model_validate(
+        {**base, "profile_version": "CanvasOperationProfileV1"}
+    )
+    legacy = CanvasReconnectResponse.model_validate({**base, "profile_version": None})
+    assert profiled.profile_version == "CanvasOperationProfileV1"
+    assert legacy.profile_version is None
+    with pytest.raises(ValidationError):
+        CanvasReconnectResponse.model_validate({**base, "unapproved_field": "ignored"})
+
+
+def test_teacher_pilot_profile_response_rejects_unapproved_fields() -> None:
+    from pydantic import ValidationError
+    from sketch2life.contracts.schemas.be1_runtime import Be1PilotProfileListResponse
+
+    with pytest.raises(ValidationError):
+        Be1PilotProfileListResponse.model_validate(
+            {
+                "contract": "Be1PilotProfileListV1",
+                "items": [
+                    {
+                        "child_id": "synthetic-child",
+                        "display_name": "Synthetic Profile",
+                        "age_months": 72,
+                    }
+                ],
+            }
+        )
 
 
 def test_legal_canvas_helper_is_not_widened_for_append() -> None:

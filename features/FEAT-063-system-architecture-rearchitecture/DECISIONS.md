@@ -188,24 +188,24 @@ EV-063-05 records an independent architecture audit in `evidence/INDEPENDENT_ARC
 
 | D-126 | For S1→S2 SL-0/SL-8 only, accept the current pre-existing local roadmap bytes (SHA-256 `875E93C59085DA9C38923DB85EEE50D15945CBD38EC27EC0B6389B93B3ECB8D4`) as an owner-approved rebaseline. Preserve the original B881 capture in the historical manifest; do not claim the original bytes were preserved or alter the roadmap. This is a baseline-scoping decision, not an architecture/product stack choice. | Owner reply “B — Rebaseline 875”; `evidence/STORYRUN_LITE_SL0_SL8_REBASELINE_20261102.md` |
 
-## Historical Swagger implementation decisions — summarized; FE view superseded by Rev45
+## Historical Swagger summaries — retained for traceability, not decision IDs; FE view superseded by Rev45
 
 The older standalone Swagger plan/evidence notes were removed from the current tree under Plan Rev48. These rows preserve the relevant implementation and security boundaries.
 
-| ID | Record | Basis |
+| Historical record | Summary | Basis |
 |---|---|---|
-| D-114 | The initial Swagger audit compared mounted routes with the Rev37 catalog and reported the upload 413 mismatch; no unmounted route was inferred. | Owner-approved prior Swagger work; detail notes retired under Plan Rev48 |
-| D-115 | Tags organize navigation by explicit route role or domain/workflow and do not grant authorization. | Owner-approved prior Swagger work; detail notes retired under Plan Rev48 |
-| D-116 | Local Demo examples use synthetic in-memory state and do not bypass protected-route authentication. | Owner-approved prior Swagger work; detail notes retired under Plan Rev48 |
-| D-117 | Swagger overview copy distinguishes mounted coverage from unmounted candidates. | Owner-approved prior Swagger work; detail notes retired under Plan Rev48 |
-| D-118 | Typed 413 handling is limited to exact image/audio routes and sanitizes echoed request/session identifiers and version values. | Owner-approved prior Swagger work; detail notes retired under Plan Rev48 |
-| D-119 | OpenAPI uses standard response fields and source-backed examples; runtime behavior is unchanged. | Owner-approved prior Swagger work; detail notes retired under Plan Rev48 |
+| Initial audit | Compared mounted routes with the Rev37 catalog and reported the upload 413 mismatch; no unmounted route was inferred. | Owner-approved prior Swagger work; detail notes retired under Plan Rev48 |
+| Navigation tags | Tags organize navigation by explicit route role or domain/workflow and do not grant authorization. | Owner-approved prior Swagger work; detail notes retired under Plan Rev48 |
+| Local Demo examples | Use synthetic in-memory state and do not bypass protected-route authentication. | Owner-approved prior Swagger work; detail notes retired under Plan Rev48 |
+| Overview copy | Distinguishes mounted coverage from unmounted candidates. | Owner-approved prior Swagger work; detail notes retired under Plan Rev48 |
+| Typed 413 handling | Limited to exact image/audio routes and sanitizes echoed request/session identifiers and version values. | Owner-approved prior Swagger work; detail notes retired under Plan Rev48 |
+| OpenAPI response examples | Uses standard response fields and source-backed examples; runtime behavior is unchanged. | Owner-approved prior Swagger work; detail notes retired under Plan Rev48 |
 
 ## FE-facing Swagger scope aligned to SRS v2.2 — Plan Rev45
 
 | ID | Record | Basis |
 |---|---|---|
-| D-120 | Publish a separate FE OpenAPI projection containing only the 24 currently mounted organization/class/profile/consent and Teacher lesson-preparation/upload operations mapped to the owner-selected SRS v2.2 domains. Keep the full mounted schema internally for contract inventory; omit local/demo, collaborative-classroom, gallery, sharing, moderation, health, and unmounted candidate APIs from the FE view. Treat SRS §9.6 paths as proposals, state missing SRS flows, and do not invent endpoints or change runtime behavior. | Owner instruction, 2026-11-01; approved Plan Rev45; SRS v2.2 §9.6; EV-063-37 |
+| D-131 | Publish a separate FE OpenAPI projection containing only the 24 currently mounted organization/class/profile/consent and Teacher lesson-preparation/upload operations mapped to the owner-selected SRS v2.2 domains. Keep the full mounted schema internally for contract inventory; omit local/demo, collaborative-classroom, gallery, sharing, moderation, health, and unmounted candidate APIs from the FE view. Treat SRS §9.6 paths as proposals, state missing SRS flows, and do not invent endpoints or change runtime behavior. | Owner instruction, 2026-11-01; approved Plan Rev45; SRS v2.2 §9.6; EV-063-37 |
 
 ## Milestone 1 demo closeout and review fixes — 2026-11-03
 
@@ -223,3 +223,7 @@ The approved M0 D1 cancel path is implemented after PREPARATION_REVIEW: the exis
 ## D-130 — Full BE API inventory source and Bruno separation — 2026-11-03
 
 For the owner's full-BE collection request, derive runnable operation coverage from the current internal runtime OpenAPI generated by the application factory, not the FE/SRS public projection or historical static declaration count. Keep default, StoryRun-lite opt-in, and local-storage opt-in exposure explicit per operation; list unmounted candidates without runnable requests. Store the collection under artifacts/be-full/bruno/ and preserve artifacts/storyrun-lite/bruno/. This is a contract inventory only: it does not change runtime/API behavior, authorize persistent-database execution, or authorize Modal/provider calls. Bruno CLI parsed the collection and a loopback smoke verified health plus the process-local guided-session create/read path; database-backed API routes remain outside the smoke. Basis: owner request after Milestone 1 acceptance and approved plan SHA-256 4488A7B739FDCC80246AFB590DDFC229B6DCB37FEB9600C5B9501B160E5E80ED.
+
+## D-132 — SRS v2.3 planning baseline for milestones 2–6 — 2026-11-03
+
+Use the existing SRS v2.3-draft unchanged as the planning baseline for BE milestones 2–6. Follow §8.1's Parent-before-Teacher ordering. The owner accepted the six-milestone roadmap for planning after independent review round 3; this does not sign the SRS or authorize implementation. Each milestone still requires its own detailed plan, acceptance criteria, data/migration boundary and explicit implementation approval. Unresolved model/version, line-sketch scheduling, optional lesson access, B0 provenance and other milestone gates remain open. Basis: owner confirmation “ok chốt đi”; SRS v2.3-draft §8.1; roadmap independent review round 3 ACCEPTED; `approvals/TASK_APPROVAL.md`, 2026-11-03.
