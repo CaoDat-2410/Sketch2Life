@@ -497,4 +497,4 @@ Owner-authorized FEAT-063 dev-only test added ordered L4/L40S/A10 GPU options, s
 
 - The six local-only `dev` commits were patch-equivalent to commits already in `origin/dev`; the old checkout and its staged, unstaged, and untracked work are preserved on a backup branch.
 - The selected Modal branch and its pending AI changes are integrated with the published FEAT-063 SRS v2.4-draft. The SRS remains unsigned and is the current canonical working source.
-- The six local commit copies were not rewritten or renamed. Local merge `370cb26d6e8c99c126f4a5a16df132eaa70c8e70` completed; `origin/dev` remains unchanged. Detailed refs, checksums, conflict decisions, and verification limits are recorded in `evidence/EV-063-54_DEV_HISTORY_AND_SRS_MERGE_20261106.md`.
+- The six local commit copies were not rewritten or renamed. Local merge `370cb26d6e8c99c126f4a5a16df132eaa70c8e70` completed and was fast-forward pushed; `origin/dev` now equals `0d15b1a0ae6e5373354d7ac35cc163e41b55c42e`. Detailed refs, checksums, conflict decisions, and verification limits are recorded in `evidence/EV-063-54_DEV_HISTORY_AND_SRS_MERGE_20261106.md`.

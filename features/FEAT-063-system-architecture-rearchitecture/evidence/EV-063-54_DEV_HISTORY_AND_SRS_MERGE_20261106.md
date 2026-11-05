@@ -2,7 +2,7 @@
 
 **Date:** 2026-11-06 (Asia/Saigon)  
 **Plan:** `plan/PLAN_REV50_DEV_DUPLICATE_REPAIR_AND_MODAL_AI_INTEGRATION_20261106.md`  
-**State:** Local merge completed; no remote update has occurred.
+**State:** Duplicate repair, local merge, and authorized fast-forward push are complete.
 
 ## Duplicate commit audit
 
@@ -33,4 +33,4 @@ After integrating both branches, `git rev-list --left-right --count origin/dev d
 
 - Repository security validation passed on the Modal worktree before its new commit: 6,583 publishable files scanned; no secrets or absolute machine paths found.
 - No tests, API requests, Modal/GPU calls, deployments, database changes, or provider calls were performed for this Git integration.
-- The local merge commit is `370cb26d6e8c99c126f4a5a16df132eaa70c8e70`, with parents `b9e2ce0d57428edbf434d5c80640f0d5844e1421` and `c0262fd9c1118b770b3006ac3ee1020f3a2f45c4`. The final repository security validation passed on the merged tree: 6,558 publishable files scanned. `origin/dev` remains at `c98701b1e500906f396e773c79ec3bba55db2542`; nothing was pushed or rewritten.
+- The local merge commit is `370cb26d6e8c99c126f4a5a16df132eaa70c8e70`, with parents `b9e2ce0d57428edbf434d5c80640f0d5844e1421` and `c0262fd9c1118b770b3006ac3ee1020f3a2f45c4`. The later owner-authorized fast-forward push advanced `origin/dev` from `c98701b1e500906f396e773c79ec3bba55db2542` to `0d15b1a0ae6e5373354d7ac35cc163e41b55c42e`. A fresh fetch confirmed local and remote `dev` match at `0d15b1a0ae6e5373354d7ac35cc163e41b55c42e`; no force option or history rewrite was used. The security validator passed immediately before push with 6,559 publishable files scanned. Nothing beyond `dev` was pushed.

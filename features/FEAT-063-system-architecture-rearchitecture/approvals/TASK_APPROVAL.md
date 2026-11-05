@@ -907,12 +907,20 @@
 
 ## FEAT-063 Plan Rev50 Addendum ? fast-forward publish repaired dev
 
-- **Status:** APPROVED / IN PROGRESS for the exact publication scope in the addendum plan.
+- **Status:** APPROVED / COMPLETE (fast-forward pushed) for the exact publication scope in the addendum plan.
 - **Approver:** Project owner, direct instruction on 2026-11-06: ?commit n?u c?n v? push.?
 - **Recorded timestamp:** 2026-11-06 06:43:00 Asia/Saigon.
 - **Feature:** FEAT-063 ? system architecture rearchitecture.
 - **Approved addendum:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV50_ADDENDUM_DEV_FAST_FORWARD_PUSH_20261106.md`.
-- **Plan SHA-256:** `B8D2C5D83BD5766080207F1F2F8283713A915BFB9EABB49645B95143AE6F3C25`.
+- **Approved plan SHA-256 at authorization:** `B8D2C5D83BD5766080207F1F2F8283713A915BFB9EABB49645B95143AE6F3C25`.
+- **Current plan SHA-256 after execution closeout:** `5959C210013C294178BF574A8645E218421DDB63D024D5022C68597D049E5C7C`.
 - **Scope:** security-validate and push only the repaired local `dev` to `origin/dev` using a regular fast-forward push; fetch and verify the exact resulting remote HEAD.
 - **Acceptance criteria:** AC50A.1?AC50A.5 in the hash-identified addendum.
 - **Exclusions:** force push/history rewrite, other refs, tests or provider calls, and unrelated checkout changes. This addendum supersedes only the earlier no-push boundary; all existing commit subjects/objects remain unchanged.
+
+
+### Execution closeout ? publication
+
+- `origin/dev` was fast-forwarded from `c98701b1e500906f396e773c79ec3bba55db2542` to `0d15b1a0ae6e5373354d7ac35cc163e41b55c42e`.
+- Fresh fetch confirmed remote and local `dev` match at `0d15b1a0ae6e5373354d7ac35cc163e41b55c42e`; working tree was clean.
+- Security validator passed; existing commit messages/objects were preserved.

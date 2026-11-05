@@ -138,4 +138,4 @@ The imported as-built SRS evidence keeps its original filename (`EV-063-33_AS_BU
 
 ## EV-063-54 ? dev duplicate repair and SRS integration
 
-Records the six patch-equivalent local `dev` commits, preservation backup, full Modal AI integration, SRS v2.4 conflict disposition, security boundary, and local-only merge. See [`EV-063-54_DEV_HISTORY_AND_SRS_MERGE_20261106.md`](EV-063-54_DEV_HISTORY_AND_SRS_MERGE_20261106.md).
+Records the six patch-equivalent local `dev` commits, preservation backup, full Modal AI integration, SRS v2.4 conflict disposition, security checks, and fast-forward publication to `origin/dev`. See [`EV-063-54_DEV_HISTORY_AND_SRS_MERGE_20261106.md`](EV-063-54_DEV_HISTORY_AND_SRS_MERGE_20261106.md).
