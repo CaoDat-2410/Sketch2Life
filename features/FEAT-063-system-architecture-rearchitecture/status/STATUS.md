@@ -510,3 +510,43 @@ Runtime verification is **BLOCKED** at the PostgreSQL task-owned database gate: 
 ## Owner-directed publication - 2026-11-04
 
 The owner authorized committing the reviewed pending FEAT-063 worktree and pushing the current branch `codex/feat063-modal-backend-completion-20261103` to a same-named remote branch. The required repository security validator will run before commit; this publication does not include a push to `dev` or changes to the canonical SRS.
+
+## 30-minute non-video AI queue retest - 2026-11-04
+
+**Status: PARTIAL / RETEST COMPLETE.** Fresh direct Modal worker calls used a 1,800-second client-side wait, preserving worker timeouts and model pins. Parent Sketch Guide succeeded in 36 seconds. Teacher Sketch Deck succeeded after 17m22 with a validated 5-slide DRAFT, four drawing steps, and two approved activities; its earlier NotFound was pre-dispatch on a stopped deployment. Drawing VLM, story/storyboard, lesson visual, and SAM2 reached the full queue wait without inference output; Modal logs confirmed GPU_L4 scheduling waits. Unknown calls were not retried. TTS/ASR were not repeated; video inference was zero. All Modal dev apps stopped with zero tasks at 22:00:30. Product workloads remain disabled; no commit or push. Evidence: evidence/AI_NONVIDEO_30MIN_QUEUE_RETEST_RESULTS_20261104.md.
+
+## Modal Qwen story readiness diagnostic - 2026-11-04
+
+**Status: COMPLETE / ROOT CAUSE IDENTIFIED; STORY OUTPUT NOT PRODUCED.** The temporary L4 probe loaded the pinned Qwen2.5-7B checkpoint and completed a technical token-generation smoke check in 26.194 s. The story calls stayed queued with no start time/container; Modal logs explicitly reported GPU_L4 capacity acquisition. This is a scheduling-capacity blocker before worker/model execution, not the 600-second worker timeout or a demonstrated model failure. Two calls were accidentally dispatched instead of the approved one; the first also remained queued for 63 seconds beyond the approved 30-minute cap after its runner was interrupted. Both were synthetic and neither reached inference. The scope and timing deviations and local result-wrapper error are documented in the report. Task-owned Modal apps are stopped, no active containers remain, and no product source/config/SRS was changed. See `evidence/MODAL_L4_QWEN_STORY_READINESS_DIAGNOSTIC_20261104.md`.
+
+
+## Modal serverless story latency experiment - 2026-11-05
+
+**Status: COMPLETE; scheduling/model startup improved, story output invalid.** The approved one-shot synthetic Parent story call was assigned an NVIDIA A10 from the ordered fallback configuration. Client dispatch-to-terminal elapsed time was 46.803 seconds; model loading took 12.634 seconds, prompt encoding 0.015 seconds, and generation 27.407 seconds for 722 tokens. The worker rejected its output with `MODAL_MODEL_OUTPUT_INVALID`; no second request was sent. Ruff and Python compile checks passed. The language/audio app was stopped with zero active tasks and shared Volumes retained. No video inference or production enablement. Details: `evidence/MODAL_SERVERLESS_STORY_LATENCY_EXPERIMENT_20261105.md`.
+
+## Modal Parent story parser/content boundary follow-up - 2026-11-05
+
+**Status: COMPLETE; synthetic story accepted by the existing contract.** The worker now asks Qwen for narrative content only and assigns scene indices/timing deterministically before the unchanged strict parser. One fresh synthetic request succeeded: five scenes, 30 seconds, backend `StoryRevisionDraftV1` and butterfly lifecycle checks passed. Dispatch-to-terminal was 56.073 seconds on NVIDIA L40S; generation took 26.137 seconds for 608 tokens. Focused tests: 46 passed; Ruff and Python compilation passed. The Modal app is stopped with zero tasks, scratch input removed, shared Volumes retained. No video/other AI call, SRS/API change, production enablement, commit, or push. Evidence: `evidence/MODAL_STORY_CONTENT_BOUNDARY_20261105.md`.
+
+## Parent StoryRun-lite API and AI retest - 2026-11-05
+
+**Status: COMPLETE WITH PARTIAL AI RESULTS.** The no-AI API matrix covered all 13 mounted operations in 22 checks; focused backend tests passed (154), and Modal story/parser tests passed (45, 1 skipped). The VLM API call remained unknown after 303.762 s and its endpoint took 304.333 s to return 202. The separate story API call returned 502 after 59.266 s because generated butterfly lifecycle facts failed semantic validation; no story draft was created. No video call. Task Modal apps and disposable PostgreSQL were stopped; shared services and Volumes were preserved. Evidence: `evidence/PARENT_STORY_API_RETEST_20261105.md`. No product source, API, or SRS contract was changed.
+
+## Rev44 AI API coverage and Qwen3.5 validation - 2026-11-05
+
+**Status: PARTIAL / IMPLEMENTATION AND TEST PASS, AI RESULTS MIXED.** The latest SRS copy and Q159 role rule are recorded. Qwen3.5-9B is pinned at the approved revision and loaded with Transformers 5.22.1. One Teacher Sketch Deck worker call passed its DRAFT/slide/activity contract. Drawing analysis returned unusable output. Story and lesson suggestion each failed before generation because LMFE's old Transformers adapter imported a removed Transformers 4 module; the adapter now uses LMFE 0.11.3 TokenEnforcer directly, with 59 focused Modal tests passing and a Modal CPU runtime-import check passing. No post-fix story/lesson inference was dispatched.
+
+VieNeu TTS produced audio; paired Whisper changed one word. FLUX.3 image generation is blocked by HTTP 401/no Modal HF Secret; SAM2 remains a prior 1,800-second GPU scheduling UNKNOWN; video was not run. Main backend OpenAPI has 24 operations/17 paths and no AI dispatch; StoryRun-lite's 13 operations are synthetic, and its two AI routes use non-durable in-process tasks. Backend API/contract tests: 79 passed, 6 skipped. All workload flags remain disabled.
+
+The task-owned drawing and language/audio apps were stopped with zero tasks; shared Volumes were retained. Repository security scan passed across 6,388 publishable files. Evidence: `evidence/AI_API_QWEN35_MODAL_VALIDATION_20261105.md`; API/workload crosswalk: `artifacts/AI_API_WORKLOAD_CATALOG_FEAT063_REV44_20261105.md`.
+
+## Rev45 non-video AI end-to-end verification - 2026-11-05
+
+**Status: PARTIAL; callable Qwen and speech workers verified, external blockers remain.** Fixed the LMFE parser's ASCII-only alphabet issue that allowed premature EOS inside Vietnamese strings. Synthetic Modal calls passed for drawing analysis (44.014s), Parent story/storyboard (113.381s), Teacher Deck (43.464s), lesson suggestion (61.636s), TTS (19.161s), and exact-text ASR (23.900s). Focused Modal/parser tests: 76 passed; backend API/OpenAPI tests: 61 passed, 6 skipped. Targeted Ruff, `py_compile`, repository security validation (6,556 files), and `git diff --check` passed.
+
+Parent Sketch Guide and lesson visuals were not dispatched because Modal `dev` still has no HF Secret; the prior FLUX.3 checkpoint request returned HTTP 401. Optional SAM2 was not re-dispatched; its last attempt waited 1,800 seconds for GPU scheduling without producing a mask. Current SAM2 GPU availability was not rechecked. No video was called; product workload switches remain disabled. Both task-used Modal apps were stopped and verified at zero tasks; shared Volumes were retained. See `evidence/AI_NONVIDEO_AI_END_TO_END_20261105.md` and `evidence/assets/ai_nonvideo_ai_end_to_end_20261105/`.
+
+
+## Rev46/46A ? Qwen3.5-only and FLUX images ? 2026-11-05
+
+**Status: COMPLETE.** Qwen2.5 is retired from active FEAT-063 configuration; all active Qwen candidates are pinned Qwen3.5-9B. Fixed FLUX3 checkpoint staging to include required Diffusers transformer and VAE files. One download and one inference each for Parent Sketch Guide and lesson visual passed with synthetic input; both outputs are DRAFT/review-required. Focused tests: 27 passed; Ruff and compileall passed. Modal FLUX app stopped with zero tasks; shared Volumes retained. No product API, SAM2, or video was called; workloads remain disabled. Evidence: `evidence/AI_QWEN35_FLUX_REV46A_COMPLETION_20261105.md`.

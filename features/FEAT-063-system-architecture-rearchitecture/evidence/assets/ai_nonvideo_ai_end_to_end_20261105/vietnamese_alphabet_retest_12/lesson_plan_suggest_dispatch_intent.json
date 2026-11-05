@@ -1,0 +1,15 @@
+{
+  "workload": "lesson.plan.suggest",
+  "app": "sketch2life-srs23-language-audio-dev",
+  "function": "suggest-lesson-plan",
+  "job_id": "6f69a939-b4c0-4471-80fe-7083b9cb6c82",
+  "generation_id": "9279085d-28bf-4a03-ac15-05a5a5d2a923",
+  "attempt_id": "06e8a51e-5d09-43bc-b85b-780e3473fbdb",
+  "input_sha256": "8e000ad3c8225cfb7c4324f7ba259ad9d9bc69f972f679d485fc4d599897f113",
+  "manifest_sha256": "010ac2f1f909aa56356e0fc62efe0b3582e64e2ddaacfe3c96ed379ba2e6be08",
+  "wait_limit_seconds": 600,
+  "started_at": "2026-11-05T19:05:12+07:00",
+  "outcome": "DISPATCH_FAILED_NO_CALL",
+  "state": "DISPATCH_INTENT_RECORDED",
+  "max_attempts": 1
+}

@@ -2,14 +2,21 @@ from __future__ import annotations
 
 import json
 import re
+import socket
+import threading
+import time
+import urllib.request
 from datetime import UTC, datetime
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, cast
 
 import pytest
+import uvicorn
 from fastapi.routing import APIRoute
 from fastapi.testclient import TestClient
+from sqlalchemy.engine import Engine
+
 from sketch2life.application.ports.story_run_lite import (
     CommandResult,
     CoreAssetAdmissionPort,
@@ -24,7 +31,6 @@ from sketch2life.infrastructure.story_run_lite.quarantine import QuarantineStore
 from sketch2life.infrastructure.story_run_lite.repository import SqlStoryRunLiteRepository
 from sketch2life.interfaces.http.routers.story_run_lite import router
 from sketch2life.interfaces.http.story_run_lite_app import create_app
-from sqlalchemy.engine import Engine
 
 
 class _StubService:
@@ -610,6 +616,83 @@ def test_parent_story_revision_routes_validate_and_return_versioned_resources() 
     assert "correlation_id" in invalid.json()
     assert invalid.json()["field_errors"]
     assert invalid.headers["Cache-Control"] == "no-store"
+
+
+def test_story_generation_http_accepts_before_background_ai_task_finishes() -> None:
+    class BackgroundService(_StubService):
+        def __init__(self) -> None:
+            super().__init__()
+            self.started = threading.Event()
+            self.finished = threading.Event()
+
+        def generate_story_revision(
+            self, *, run_id: str, idempotency_key: str, **values: object
+        ) -> CommandResult:
+            schedule = values["schedule"]
+            assert callable(schedule)
+            schedule(self.run_slow_worker, ())
+            return CommandResult(
+                202,
+                {
+                    "run_ref": run_id,
+                    "story_revision_ref": "00000000-0000-0000-0000-000000000042",
+                    "state": "GENERATING",
+                    "key": idempotency_key,
+                },
+                2,
+            )
+
+        def run_slow_worker(self) -> None:
+            self.started.set()
+            time.sleep(1.5)
+            self.finished.set()
+
+    service = BackgroundService()
+    application = create_app(service=cast(StoryRunLiteService, service))
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    sock.bind(("127.0.0.1", 0))
+    sock.listen(128)
+    host, port = sock.getsockname()
+    server = uvicorn.Server(
+        uvicorn.Config(application, log_level="critical", lifespan="off", access_log=False)
+    )
+    thread = threading.Thread(target=server.run, kwargs={"sockets": [sock]}, daemon=True)
+    thread.start()
+    try:
+        deadline = time.monotonic() + 5
+        while not server.started and time.monotonic() < deadline:
+            time.sleep(0.01)
+        assert server.started
+        request = urllib.request.Request(
+            f"http://{host}:{port}/v1/story-runs/run-42/story-revisions",
+            data=json.dumps(
+                {
+                    "expected_understanding_revision": 1,
+                    "adult_confirmed_idea": "A butterfly visits a flower",
+                }
+            ).encode(),
+            headers={
+                "Content-Type": "application/json",
+                "Idempotency-Key": "async-story-acceptance",
+                "If-Match": '"v1"',
+            },
+            method="POST",
+        )
+        started_at = time.monotonic()
+        with urllib.request.urlopen(request, timeout=5) as response:
+            elapsed = time.monotonic() - started_at
+            body = json.loads(response.read())
+            assert response.status == 202
+            assert response.headers["Location"].endswith(body["story_revision_ref"])
+        assert elapsed < 1.0
+        assert service.started.wait(timeout=1)
+        assert not service.finished.is_set()
+        assert service.finished.wait(timeout=3)
+    finally:
+        server.should_exit = True
+        thread.join(timeout=5)
+        sock.close()
 
 
 def test_common_internal_error_handler_matches_openapi_500_envelope() -> None:

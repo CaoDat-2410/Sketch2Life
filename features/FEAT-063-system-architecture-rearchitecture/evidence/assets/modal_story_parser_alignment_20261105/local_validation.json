@@ -1,0 +1,44 @@
+{
+  "recorded_at_local": "2026-11-05 Asia/Saigon",
+  "scope": "local pre-deployment Parent story parser checks only; no model inference in this record",
+  "pytest": {
+    "command": "python -m pytest -q deployment/modal/srs_v23/tests/test_parent_story_output_contract.py",
+    "result": "35 passed"
+  },
+  "ruff": {
+    "result": "passed",
+    "files": [
+      "deployment/modal/srs_v23/language_audio_app.py",
+      "deployment/modal/srs_v23/tests/test_parent_story_output_contract.py",
+      "features/FEAT-063-system-architecture-rearchitecture/evidence/scripts/run_modal_story_parser_alignment_20261105.py"
+    ]
+  },
+  "py_compile": {
+    "result": "passed",
+    "files": [
+      "deployment/modal/srs_v23/language_audio_app.py",
+      "deployment/modal/srs_v23/tests/test_parent_story_output_contract.py",
+      "features/FEAT-063-system-architecture-rearchitecture/evidence/scripts/run_modal_story_parser_alignment_20261105.py"
+    ]
+  },
+  "lm_format_enforcer_schema_probe": {
+    "package_version": "0.10.11",
+    "accepted": "valid StoryRevisionDraftV1 shape",
+    "rejected": [
+      "unknown property",
+      "four scenes",
+      "121-character title"
+    ]
+  },
+  "modal_app_pre_deploy": {
+    "app_name": "sketch2life-srs23-language-audio-dev",
+    "state": "stopped",
+    "tasks": 0
+  },
+  "video_calls": 0,
+  "source_sha256": {
+    "deployment/modal/srs_v23/language_audio_app.py": "7a3991ff0b8fc8522c2b3e7dba7af8334211f69af99eab75dbf67b1ae0191d40",
+    "deployment/modal/srs_v23/tests/test_parent_story_output_contract.py": "8d3b5361946f3e84552b985d8312cdc64721ab9fb7b20183ed0225eaf3f3711a",
+    "features/FEAT-063-system-architecture-rearchitecture/evidence/scripts/run_modal_story_parser_alignment_20261105.py": "7cccafd983fe1f2475a26272fd14d67ed626c77c4d623651c6799a9602131a0b"
+  }
+}

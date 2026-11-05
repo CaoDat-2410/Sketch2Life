@@ -1,0 +1,87 @@
+{
+  "last_updated_at": "2026-11-05T09:34:16+07:00",
+  "records": [
+    {
+      "code": "INVALID_REQUEST",
+      "elapsed_ms": 3.14,
+      "expected_statuses": [
+        422
+      ],
+      "method": "POST",
+      "name": "reject_missing_child_age",
+      "passed": true,
+      "response_fields": [
+        "code",
+        "correlation_id",
+        "field_errors",
+        "message",
+        "retryable"
+      ],
+      "retryable": false,
+      "route": "POST /v1/story-runs",
+      "status": 422
+    },
+    {
+      "code": "INVALID_REQUEST",
+      "elapsed_ms": 1.48,
+      "expected_statuses": [
+        201
+      ],
+      "method": "POST",
+      "name": "create_contract_run",
+      "passed": false,
+      "response_fields": [
+        "code",
+        "correlation_id",
+        "field_errors",
+        "message",
+        "retryable"
+      ],
+      "retryable": false,
+      "route": "POST /v1/story-runs",
+      "status": 422
+    },
+    {
+      "code": "INVALID_REQUEST",
+      "elapsed_ms": 2.03,
+      "expected_statuses": [
+        201
+      ],
+      "method": "POST",
+      "name": "create_parent_story_run",
+      "passed": false,
+      "response_fields": [
+        "code",
+        "correlation_id",
+        "field_errors",
+        "message",
+        "retryable"
+      ],
+      "retryable": false,
+      "route": "POST /v1/story-runs",
+      "status": 422
+    },
+    {
+      "code": "INVALID_REQUEST",
+      "elapsed_ms": 1.73,
+      "expected_statuses": [
+        201
+      ],
+      "method": "POST",
+      "name": "create_parent_story_run",
+      "passed": false,
+      "response_fields": [
+        "code",
+        "correlation_id",
+        "field_errors",
+        "message",
+        "retryable"
+      ],
+      "retryable": false,
+      "route": "POST /v1/story-runs",
+      "status": 422
+    }
+  ],
+  "records_contain_request_or_story_text": false,
+  "started_at": "2026-11-05T09:34:13+07:00"
+}

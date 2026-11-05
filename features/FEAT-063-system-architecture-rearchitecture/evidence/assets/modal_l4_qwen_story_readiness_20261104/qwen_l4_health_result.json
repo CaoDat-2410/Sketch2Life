@@ -1,0 +1,41 @@
+{
+  "schema_version": "sketch2life.modal.qwen-health-probe.v1",
+  "observed_at": "2026-11-04T22:43:50+07:00",
+  "diagnostic_app_id": "ap-eSKmVFFgZZRxcA7sjVwUiR",
+  "function_id": "fu-D1O8z3M6tRZ8Ztbdt4RGmq",
+  "call_id": "fc-01M6KKN9A6QZ4AYKPX0RM1KMD4",
+  "container_id": "ta-01M6KKN9K9ZDNXHF4F2TVQ7JBR",
+  "status": "READY",
+  "model_id": "Qwen/Qwen2.5-7B-Instruct",
+  "revision": "a09a35458c702b33eeacc393d103063234e8bc28",
+  "marker_model_id": "Qwen/Qwen2.5-7B-Instruct",
+  "marker_revision": "a09a35458c702b33eeacc393d103063234e8bc28",
+  "checkpoint_shards": [
+    "model-00001-of-00004.safetensors",
+    "model-00002-of-00004.safetensors",
+    "model-00003-of-00004.safetensors",
+    "model-00004-of-00004.safetensors"
+  ],
+  "gpu": {
+    "name": "NVIDIA L4",
+    "cuda_available": true,
+    "gpu_count": 1,
+    "torch_version": "2.7.1+cu126",
+    "total_memory_bytes": 23689363456,
+    "allocated_memory_bytes": 15240279040
+  },
+  "timings_seconds": {
+    "tokenizer_load": 0.538,
+    "model_load": 15.989,
+    "smoke_inference": 1.297,
+    "total": 26.194
+  },
+  "smoke_new_token_count": 8,
+  "smoke_text": " - Tin t\u1ee9c 24h\n",
+  "smoke_limit": "Technical token-generation check only; prompt did not use the worker's chat template and is not a semantic quality test.",
+  "local_result_collection": "Modal printed READY in the remote container logs; local Python 3.14 caller then failed to deserialize the returned object because torch was not installed locally.",
+  "shutdown": {
+    "stopped_at": "2026-11-04T22:43:54+07:00",
+    "active_tasks_after_stop": 0
+  }
+}

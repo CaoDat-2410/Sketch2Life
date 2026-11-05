@@ -1,0 +1,24 @@
+{
+  "observed_at": "2026-11-05T02:41:22+07:00",
+  "environment": "dev",
+  "task_owned_apps": [
+    {
+      "app_id": "ap-yyRNizBtBC0u7HiF2LGcT6",
+      "description": "sketch2life-srs23-language-audio-dev",
+      "state": "stopped",
+      "tasks": 0,
+      "created_at": "2026-11-05 02:37:43+07:00",
+      "stopped_at": "2026-11-05 02:41:22+07:00"
+    },
+    {
+      "app_id": "ap-c4Wz5goqSe4CSAf4jGfy8G",
+      "description": "sketch2life-srs23-language-audio-dev",
+      "state": "stopped",
+      "tasks": 0,
+      "created_at": "2026-11-05 02:37:11+07:00",
+      "stopped_at": "2026-11-05 02:37:17+07:00",
+      "note": "First deploy command stopped after the Windows charmap output error; no inference call was sent to this app record."
+    }
+  ],
+  "shared_volumes_retained": true
+}

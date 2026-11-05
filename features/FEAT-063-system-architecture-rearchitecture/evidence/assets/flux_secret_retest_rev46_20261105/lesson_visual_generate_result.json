@@ -1,0 +1,20 @@
+{
+  "app": "sketch2life-srs23-flux-image-dev",
+  "attempt_id": "f4ba90c8-b6e9-4548-b79a-6f1a2e7e3a04",
+  "attempt_prefix": "sketch2life/dev/eb1d3d95-bff6-4a14-b671-1600df3428b8/76e207cc-5aab-4d27-aa7b-7d9d380dc426/f4ba90c8-b6e9-4548-b79a-6f1a2e7e3a04/",
+  "call_id": "fc-01M6P63X55V3VXECDBW08CCNVW",
+  "dispatched_at": "2026-11-05T22:44:07.496+07:00",
+  "elapsed_ms": 61044.51,
+  "error_category": "AttributeError",
+  "error_type": "AttributeError",
+  "function": "generate-approved-lesson-visual-candidate",
+  "generation_id": "76e207cc-5aab-4d27-aa7b-7d9d380dc426",
+  "input_sha256": "54a0171e3871f01a8d503ca0a90d4a589d5638afda8ad8e24a715de95f5b7f02",
+  "job_id": "eb1d3d95-bff6-4a14-b671-1600df3428b8",
+  "manifest_sha256": "b27903e590cee86a672e5f2b7381b16ddfa9500b1c3dc4864538b0837b3aeb7e",
+  "max_attempts": 1,
+  "outcome": "FAILED_TERMINAL",
+  "scratch_input_removed": true,
+  "started_at": "2026-11-05T22:44:01.542+07:00",
+  "workload": "lesson.visual.generate"
+}

@@ -1,0 +1,6 @@
+{
+  "outcome": "FAILED_RUNNER",
+  "error_type": "UnboundLocalError",
+  "runner_elapsed_ms": 4.51,
+  "label": "drawing.analyze"
+}

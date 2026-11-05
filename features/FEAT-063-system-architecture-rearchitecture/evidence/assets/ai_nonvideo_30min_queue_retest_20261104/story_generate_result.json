@@ -1,0 +1,31 @@
+{
+  "state": "DISPATCH_INTENT_RECORDED",
+  "workload": "story.generate",
+  "app": "sketch2life-srs23-language-audio-dev",
+  "function": "generate-story-and-storyboard",
+  "job_id": "3265f7d2-154a-4bb3-8ed2-fe535e5f0894",
+  "generation_id": "47dcca4a-6414-4fde-ae8d-0afde6430467",
+  "attempt_id": "e191a562-a684-4dec-8c39-f030c1d66284",
+  "input_sha256": "b1ebd48251f72aa8aa847071701a3ed516838475d8de3999ef1257e03c379929",
+  "manifest_sha256": "0512e18c912e34e422a445d7565813b614dce891b492b98297e57b2591746600",
+  "wait_limit_seconds": 1800,
+  "synthetic_adult_confirmed_fixture": true,
+  "created_at": "2026-11-04T20:28:39+07:00",
+  "max_attempts": 1,
+  "outcome": "UNKNOWN_NO_RETRY",
+  "call_id": "fc-01M6KBZ7PDXR2NS0PR9R6X1TW1",
+  "dispatch_at": "2026-11-04T20:28:44+07:00",
+  "cancel": [
+    false,
+    "still_pending_after_cancel"
+  ],
+  "ended_at": "2026-11-04T20:58:46+07:00",
+  "post_stop_terminal_verification": {
+    "method": "Modal FunctionCall.from_id(call_id).get(timeout=0)",
+    "result": "RemoteError",
+    "app": "sketch2life-srs23-language-audio-dev",
+    "app_stopped_at": "2026-11-04T20:59:36+07:00",
+    "tasks_after_stop": 0,
+    "verified_after_stop": true
+  }
+}

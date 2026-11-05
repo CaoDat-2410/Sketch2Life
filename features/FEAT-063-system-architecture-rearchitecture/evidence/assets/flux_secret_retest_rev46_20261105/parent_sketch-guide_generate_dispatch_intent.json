@@ -1,0 +1,16 @@
+{
+  "app": "sketch2life-srs23-flux-image-dev",
+  "attempt_id": "e1b43a24-eb58-44d2-b7e8-f1a326c48d26",
+  "attempt_prefix": "sketch2life/dev/4f16dce3-4a91-46f0-90f8-74a16255a9f2/68560f69-6c92-4802-9e1b-647b22293bcd/e1b43a24-eb58-44d2-b7e8-f1a326c48d26/",
+  "child_data_in_request": false,
+  "function": "generate-line-sketch-guide-candidate",
+  "generation_id": "68560f69-6c92-4802-9e1b-647b22293bcd",
+  "input_sha256": "0f28f8f178af4c345be15dea36577d2b7b2be4dc405ac331c24463f597c9b97e",
+  "job_id": "4f16dce3-4a91-46f0-90f8-74a16255a9f2",
+  "manifest_sha256": "f714412b9aecf410f83a46b1c131e2e60ba1314e6e6ef41a041b725b0d52492b",
+  "max_attempts": 1,
+  "started_at": "2026-11-05T22:42:49.474+07:00",
+  "state": "DISPATCH_INTENT_RECORDED",
+  "synthetic_only": true,
+  "workload": "parent.sketch-guide.generate"
+}

@@ -1,0 +1,190 @@
+{
+  "plan": "PLAN_REV45_NONVIDEO_AI_END_TO_END_20261105.md",
+  "started_at": "2026-11-05T16:11:54+07:00",
+  "synthetic_only": true,
+  "image_fixture": "synthetic_childlike_butterfly.png",
+  "qwen_model": {
+    "id": "Qwen/Qwen3.5-9B",
+    "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
+  },
+  "max_wait_seconds_per_call": 600,
+  "video_called": false,
+  "image_generation_called": false,
+  "sam2_called": false,
+  "ended_at": "2026-11-05T16:19:59+07:00",
+  "results": [
+    {
+      "workload": "drawing.analyze",
+      "app": "sketch2life-srs23-drawing-vlm-dev",
+      "function": "analyze-drawing",
+      "job_id": "a790e835-fa35-4b70-bb34-b7fcb4cd7b1a",
+      "generation_id": "8ca58fff-7816-495a-a925-40b7d60a3c3b",
+      "attempt_id": "def2b8cd-39af-42a0-bc02-016d08098897",
+      "source_sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949",
+      "drawing_sha256": "f433b37a93f33accc5a10cbb81b18f8cf31d8de0868752c0fe6d9d8beb3ec8e0",
+      "wait_limit_seconds": 600,
+      "started_at": "2026-11-05T16:11:55+07:00",
+      "outcome": "SUCCEEDED",
+      "call_id": "fc-01M6NFNV3Q9C958HYM7H5P7H2G",
+      "dispatch_at": "2026-11-05T16:11:58+07:00",
+      "model": {
+        "id": "Qwen/Qwen3.5-9B",
+        "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
+      },
+      "candidate_subject": "bướm",
+      "visible_features": [
+        "cánh màu hồng và tím",
+        "thân màu vàng có vạch ngang",
+        "mặt cười đơn giản",
+        "anten cong ở đầu"
+      ],
+      "adult_confirmation_required": true,
+      "output_sha256": "1eeae4a81d2b3ad55632c2a733f26887735d7ad90e647a8742118e7a696eb289",
+      "ended_at": "2026-11-05T16:12:43+07:00",
+      "runner_elapsed_ms": 49403.66,
+      "label": "drawing.analyze"
+    },
+    {
+      "state": "DISPATCH_INTENT_RECORDED",
+      "workload": "story.generate",
+      "app": "sketch2life-srs23-language-audio-dev",
+      "function": "generate-story-and-storyboard",
+      "job_id": "cbfa97c1-f227-4afc-b606-45b7f0a5d633",
+      "generation_id": "94472f7c-9c31-4925-b543-3cf789d778f5",
+      "attempt_id": "322f21f0-2df7-4525-b79d-093d7bbb6fe6",
+      "input_sha256": "b1ebd48251f72aa8aa847071701a3ed516838475d8de3999ef1257e03c379929",
+      "manifest_sha256": "0512e18c912e34e422a445d7565813b614dce891b492b98297e57b2591746600",
+      "wait_limit_seconds": 600,
+      "synthetic_adult_confirmed_fixture": true,
+      "created_at": "2026-11-05T16:12:44+07:00",
+      "max_attempts": 1,
+      "outcome": "FAILED_TERMINAL",
+      "call_id": "fc-01M6NFQA40E05XTNWGXGGMB5J4",
+      "dispatch_at": "2026-11-05T16:12:46+07:00",
+      "error_type": "RuntimeError",
+      "ended_at": "2026-11-05T16:15:14+07:00",
+      "runner_elapsed_ms": 151218.02,
+      "label": "story.generate_storyboard"
+    },
+    {
+      "workload": "teacher.sketch-deck.generate",
+      "app": "sketch2life-srs23-language-audio-dev",
+      "function": "generate-teacher-sketch-deck",
+      "job_id": "6438dec0-e32c-4eb2-af12-ddc34b29d95b",
+      "generation_id": "36cc3ab5-b20d-4b8d-bec4-ffb6446ebaf2",
+      "attempt_id": "ecf906fc-2f43-4c22-a75e-b446811b98c0",
+      "input_sha256": "d4a7421d6d19fab19875f9143739b271275a7362b07fc29020076da15dec2b96",
+      "manifest_sha256": "472def81177a9c7a1a124efc32fddf611ce56d42efd59b35aa3db0fd91157f95",
+      "wait_limit_seconds": 600,
+      "started_at": "2026-11-05T16:15:15+07:00",
+      "outcome": "FAILED_TERMINAL",
+      "call_id": "fc-01M6NFVXJEFE3H3W4QJP7XNA5F",
+      "dispatch_at": "2026-11-05T16:15:17+07:00",
+      "error_type": "RuntimeError",
+      "ended_at": "2026-11-05T16:15:35+07:00",
+      "runner_elapsed_ms": 20504.98,
+      "label": "teacher.sketch_deck.generate"
+    },
+    {
+      "workload": "lesson.plan.suggest",
+      "app": "sketch2life-srs23-language-audio-dev",
+      "function": "suggest-lesson-plan",
+      "job_id": "bf985257-7b41-49ab-aadc-d8db957101e4",
+      "generation_id": "2be08f61-e674-4893-8208-757efe534e43",
+      "attempt_id": "cc9fd762-26e0-452a-b917-f7ce79ba6a8b",
+      "input_sha256": "8e000ad3c8225cfb7c4324f7ba259ad9d9bc69f972f679d485fc4d599897f113",
+      "manifest_sha256": "010ac2f1f909aa56356e0fc62efe0b3582e64e2ddaacfe3c96ed379ba2e6be08",
+      "wait_limit_seconds": 600,
+      "started_at": "2026-11-05T16:15:35+07:00",
+      "outcome": "FAILED_TERMINAL",
+      "call_id": "fc-01M6NFWMSDVC3SFWT6EM308DX1",
+      "dispatch_at": "2026-11-05T16:15:41+07:00",
+      "error_type": "RuntimeError",
+      "ended_at": "2026-11-05T16:19:15+07:00",
+      "runner_elapsed_ms": 220643.76,
+      "label": "lesson.plan.suggest"
+    },
+    {
+      "workload": "tts.narration.generate",
+      "function": "synthesize-vietnamese-narration",
+      "call_id": "fc-01M6NG392J3M62CYZX7NTDC9TH",
+      "elapsed_ms": 19049.25,
+      "outcome": "SUCCEEDED",
+      "output_sha256": "14414c88662b353327ed5f94feaffd9fb9e31f7bb01107b91a79ef3f12390da6",
+      "result": {
+        "schema_version": "sketch2life.modal.worker-output.v1",
+        "workload": "tts.narration.generate",
+        "job_id": "34bd8adb-5efe-4655-aed2-5f4073656712",
+        "generation_id": "93cec1f0-cf8f-46dc-a6b4-2754efc92cf9",
+        "attempt_id": "ff43a0ee-a706-457c-85f7-816a06ab45e4",
+        "model": {
+          "id": "pnnbao-ump/VieNeu-TTS-v3-Turbo",
+          "revision": "61b85e3d937fbbacb387714180e8182823512523"
+        },
+        "asset": {
+          "content_type": "audio/wav",
+          "size_bytes": 176684,
+          "sha256": "8d736992f4dab6a18cf3b32c17c7eba3364afd88283db7f11469036b844a9174"
+        },
+        "asset_file": "synthetic_vietnamese_narration.wav"
+      },
+      "runner_elapsed_ms": 19739.33,
+      "label": "tts.narration.generate"
+    },
+    {
+      "workload": "asr.transcribe",
+      "function": "transcribe-vietnamese-audio",
+      "call_id": "fc-01M6NG3Z6AX7FSHEW568W9257N",
+      "elapsed_ms": 22276.06,
+      "outcome": "SUCCEEDED",
+      "output_sha256": "1467004062294ed443962b327f2a2d82236ed37c783d013a50041c930b5bfea9",
+      "result": {
+        "schema_version": "sketch2life.modal.worker-output.v1",
+        "workload": "asr.transcribe",
+        "job_id": "40ca6dc9-344f-4024-9bca-423c8f688b39",
+        "generation_id": "83a06681-7177-4c4b-9127-603d2649d741",
+        "attempt_id": "b999f441-849d-498b-b467-111e28d3449d",
+        "input_sha256": "8d736992f4dab6a18cf3b32c17c7eba3364afd88283db7f11469036b844a9174",
+        "model": {
+          "id": "Systran/faster-whisper-large-v3",
+          "revision": "edaa852ec7e145841d8ffdb056a99866b5f0a478"
+        },
+        "result": {
+          "language": "vi",
+          "language_probability": 1.0,
+          "text": "Con bướm bay qua khu vườn đầy nắng.",
+          "segments": [
+            {
+              "start_seconds": 0.0,
+              "end_seconds": 1.6,
+              "text": "Con bướm bay qua khu vườn đầy nắng."
+            }
+          ]
+        }
+      },
+      "runner_elapsed_ms": 22972.16,
+      "label": "asr.transcribe",
+      "quality_check": {
+        "reference": "Con bướm bay qua khu vườn đầy nắng.",
+        "transcript": "Con bướm bay qua khu vườn đầy nắng.",
+        "word_error_rate": 0.0,
+        "exact_match": true,
+        "adult_confirmation_required": true
+      }
+    }
+  ],
+  "speech_audio": {
+    "channels": 1,
+    "sample_rate_hz": 48000,
+    "duration_seconds": 1.84,
+    "size_bytes": 176684
+  },
+  "summary": {
+    "drawing.analyze": "SUCCEEDED",
+    "story.generate_storyboard": "FAILED_TERMINAL",
+    "teacher.sketch_deck.generate": "FAILED_TERMINAL",
+    "lesson.plan.suggest": "FAILED_TERMINAL",
+    "tts.narration.generate": "SUCCEEDED",
+    "asr.transcribe": "SUCCEEDED"
+  }
+}

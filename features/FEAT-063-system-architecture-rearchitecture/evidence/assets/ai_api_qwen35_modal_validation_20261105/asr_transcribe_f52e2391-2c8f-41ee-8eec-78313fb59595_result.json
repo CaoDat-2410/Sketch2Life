@@ -1,0 +1,32 @@
+{
+  "workload": "asr.transcribe",
+  "function": "transcribe-vietnamese-audio",
+  "call_id": "fc-01M6NBXHY3BR862BXDWCQX66XJ",
+  "elapsed_ms": 31563.51,
+  "outcome": "SUCCEEDED",
+  "output_sha256": "9fb12e0373591448b11319bdd15a4b010e0fd523d00c17db19898769d28fd56a",
+  "result": {
+    "schema_version": "sketch2life.modal.worker-output.v1",
+    "workload": "asr.transcribe",
+    "job_id": "d7db9c31-7e73-4a61-b128-a9215eef4557",
+    "generation_id": "7c938646-aa02-413d-82b4-ece6dd256fcd",
+    "attempt_id": "f52e2391-2c8f-41ee-8eec-78313fb59595",
+    "input_sha256": "10b2f8992bfc55e1b00ee085bcce5ad89f21439743a206b8c13ad894e0dd214c",
+    "model": {
+      "id": "Systran/faster-whisper-large-v3",
+      "revision": "edaa852ec7e145841d8ffdb056a99866b5f0a478"
+    },
+    "result": {
+      "language": "vi",
+      "language_probability": 1.0,
+      "text": "Con đứng bay qua khu vườn đầy nắng.",
+      "segments": [
+        {
+          "start_seconds": 0.0,
+          "end_seconds": 1.7,
+          "text": "Con đứng bay qua khu vườn đầy nắng."
+        }
+      ]
+    }
+  }
+}

@@ -22,10 +22,10 @@ DRAWING_INPUT_SCHEMA = "sketch2life.modal.drawing-input.v1"
 STORY_INPUT_SCHEMA = "sketch2life.modal.ai-request.v1"
 WORKER_INPUT_SCHEMA = "sketch2life.modal.worker-input.v1"
 WORKER_OUTPUT_SCHEMA = "sketch2life.modal.worker-output.v1"
-MODEL_ID = "Qwen/Qwen2.5-VL-7B-Instruct"
-MODEL_REVISION = "cc594898137f460bfe9f0759e9844b3ce807cfb5"
-STORY_MODEL_ID = "Qwen/Qwen2.5-7B-Instruct"
-STORY_MODEL_REVISION = "a09a35458c702b33eeacc393d103063234e8bc28"
+MODEL_ID = "Qwen/Qwen3.5-9B"
+MODEL_REVISION = "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
+STORY_MODEL_ID = "Qwen/Qwen3.5-9B"
+STORY_MODEL_REVISION = "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
 MAX_INPUT_BYTES = 48 * 1024 * 1024
 MAX_MANIFEST_BYTES = 64 * 1024
 MAX_IMAGE_PIXELS = 2_000_000
@@ -169,7 +169,7 @@ class ModalDrawingFunctionClient:
         *,
         volume: Any | None = None,
         function: Any | None = None,
-        timeout_seconds: float = 900.0,
+        timeout_seconds: float = 1_800.0,
     ) -> None:
         if (volume is None) != (function is None):
             raise ValueError("Modal test doubles must supply both Volume and Function")
@@ -263,7 +263,7 @@ class ModalStoryFunctionClient:
         *,
         volume: Any | None = None,
         function: Any | None = None,
-        timeout_seconds: float = 1_200.0,
+        timeout_seconds: float = 1_800.0,
     ) -> None:
         if (volume is None) != (function is None):
             raise ValueError("Modal test doubles must supply both Volume and Function")

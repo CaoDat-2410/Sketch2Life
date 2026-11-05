@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from typing import Annotated, cast
 
-from fastapi import APIRouter, Header, Request
+from fastapi import APIRouter, BackgroundTasks, Header, Request
 from fastapi.responses import JSONResponse
 
 from sketch2life.application.ports.story_run_lite import CommandResult
@@ -37,7 +37,7 @@ def _service(request: Request) -> StoryRunLiteService:
     return cast(StoryRunLiteService, service)
 
 
-def _result(result: CommandResult) -> JSONResponse:
+def _result(result: CommandResult, background_tasks: BackgroundTasks | None = None) -> JSONResponse:
     body = result.body
     status_code = result.status_code
     version = result.resource_version
@@ -57,7 +57,19 @@ def _result(result: CommandResult) -> JSONResponse:
         else:
             raise RuntimeError("A 202 response must identify its pollable resource.")
         headers["Retry-After"] = _RETRY_AFTER_SECONDS
-    return JSONResponse(body, status_code=status_code, headers=headers)
+    response = JSONResponse(body, status_code=status_code, headers=headers)
+    if background_tasks is not None:
+        response.background = background_tasks
+    return response
+
+
+def _schedule_background_tasks(
+    background_tasks: BackgroundTasks,
+):
+    def schedule(task, args: tuple[object, ...]) -> None:
+        background_tasks.add_task(task, *args)
+
+    return schedule
 
 
 @router.post("/story-runs")
@@ -79,17 +91,19 @@ def attach_asset(
     run_ref: str,
     payload: AttachAssetRequest,
     request: Request,
+    background_tasks: BackgroundTasks,
     idempotency_key: Annotated[str, Header(alias="Idempotency-Key")],
     if_match: Annotated[str | None, Header(alias="If-Match")] = None,
 ) -> JSONResponse:
-    return _result(
-        _service(request).attach_asset(
-            run_id=run_ref,
-            request=payload,
-            if_match=if_match,
-            idempotency_key=idempotency_key,
-        )
+    service = _service(request)
+    result = service.attach_asset(
+        run_id=run_ref,
+        request=payload,
+        if_match=if_match,
+        idempotency_key=idempotency_key,
+        schedule=_schedule_background_tasks(background_tasks),
     )
+    return _result(result, background_tasks)
 
 
 @router.post("/story-runs/{run_ref}/subject-confirmation")
@@ -115,17 +129,19 @@ def generate_story_revision(
     run_ref: str,
     payload: ParentStoryGenerationRequest,
     request: Request,
+    background_tasks: BackgroundTasks,
     idempotency_key: Annotated[str, Header(alias="Idempotency-Key")],
     if_match: Annotated[str | None, Header(alias="If-Match")] = None,
 ) -> JSONResponse:
-    return _result(
-        _service(request).generate_story_revision(
-            run_id=run_ref,
-            request=payload,
-            if_match=if_match,
-            idempotency_key=idempotency_key,
-        )
+    service = _service(request)
+    result = service.generate_story_revision(
+        run_id=run_ref,
+        request=payload,
+        if_match=if_match,
+        idempotency_key=idempotency_key,
+        schedule=_schedule_background_tasks(background_tasks),
     )
+    return _result(result, background_tasks)
 
 
 @router.get("/story-runs/{run_ref}/story-revisions/{story_revision_ref}")

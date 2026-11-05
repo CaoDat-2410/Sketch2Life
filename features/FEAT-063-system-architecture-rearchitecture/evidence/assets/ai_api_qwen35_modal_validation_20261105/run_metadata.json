@@ -1,0 +1,20 @@
+{
+  "plan": "PLAN_REV44_AI_API_COVERAGE_QWEN35_MODAL_20261105.md",
+  "started_at": "2026-11-05T15:03:49+07:00",
+  "synthetic_only": true,
+  "qwen_model": {
+    "id": "Qwen/Qwen3.5-9B",
+    "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
+  },
+  "max_attempts_per_workload": 1,
+  "qwen_wait_limit_seconds": 1800,
+  "video_called": false,
+  "blocked_without_dispatch": {
+    "parent.sketch-guide.generate": "FLUX.3 checkpoint returned HTTP 401; no Modal HF Secret exists",
+    "lesson.visual.generate": "FLUX.3 checkpoint returned HTTP 401; no Modal HF Secret exists",
+    "drawing.segment": "prior 1,800-second GPU_L4 scheduling timeout; no retry",
+    "video.scene.generate": "deferred by owner",
+    "video.scene.validate": "deferred with video pipeline",
+    "video.final-safety.validate": "no policy/model selected; fail closed"
+  }
+}

@@ -16,7 +16,7 @@ _MODULE_DIR = Path(__file__).resolve().parent
 if str(_MODULE_DIR) not in sys.path:
     sys.path.insert(0, str(_MODULE_DIR))
 
-from contracts import (  # noqa: E402
+from contracts import (
     MAX_STAGED_INPUT_BYTES,
     WORKER_OUTPUT_SCHEMA,
     ModalWorkerInputV1,
@@ -34,6 +34,7 @@ SAM2_CHECKPOINT_URL = (
     "https://dl.fbaipublicfiles.com/segment_anything_2/092824/sam2.1_hiera_small.pt"
 )
 SAM2_CHECKPOINT_MAX_BYTES = 512 * 1024 * 1024
+SAM2_GPU_CANDIDATES = ("L40S", "L4", "A10")
 SAM2_CHECKPOINT_DIR = Path(MODEL_MOUNT) / "sam2.1_hiera_small" / SAM2_REPOSITORY_COMMIT
 SAM2_CHECKPOINT = SAM2_CHECKPOINT_DIR / "sam2.1_hiera_small.pt"
 SAM2_MARKER = SAM2_CHECKPOINT_DIR / "sketch2life-model-manifest.json"
@@ -143,7 +144,7 @@ def download_sam2_checkpoint() -> dict[str, Any]:
 @app.function(
     name="segment-synthetic-drawing-candidate",
     image=_inference_image,
-    gpu="L4",
+    gpu=list(SAM2_GPU_CANDIDATES),
     cpu=4.0,
     memory=24_576,
     volumes={

@@ -237,3 +237,57 @@ Source: approved `plan/AI_FLOW_SRS_ALIGNMENT_AND_TEACHER_DECK_POC_20261104.md`; 
 The owner supersedes the one-call/exclusion boundary in D-134 for a fresh synthetic-only FEAT-063 retest. Invoke every callable non-video candidate, allow at most one corrective inference after a concrete fix, and stop after a 10-minute GPU wait or unknown outcome. Add SAM2.1 Hiera-Small as a disposable image-only POC with a pinned official code commit; do not promote it or enable any workload. Keep lesson-plan suggestion blocked under unresolved SRS role rules and exclude all video generation.
 
 Source: owner instruction 2026-11-04; approved plan `plan/AI_NONVIDEO_WORKLOAD_FULL_RETEST_20261104.md`; official [SAM2 repository](https://github.com/facebookresearch/sam2) and [Modal GPU guide](https://modal.com/docs/guide/gpu).
+
+## D-136 - Owner-authorized 30-minute non-video queue retest
+
+For this fresh synthetic FEAT-063 retest, use a 1,800-second client-side wait for eligible non-video Modal calls without changing worker execution timeouts, model pins, GPU type, or product defaults. Use at most one fresh call per workload, do not retry unknown outcomes, and exclude all video inference. The longer wait allowed Teacher Sketch Deck to receive capacity after 17m22, but drawing analysis, story generation, lesson visuals, and SAM2 remained GPU_L4 capacity-blocked at 30 minutes. Treat these as queue outcomes, not model-quality results.
+
+Source: owner instruction 2026-11-04; approved plan plan/AI_NONVIDEO_30MIN_QUEUE_RETEST_20261104.md; execution evidence evidence/AI_NONVIDEO_30MIN_QUEUE_RETEST_RESULTS_20261104.md.
+
+
+## D-137 - Bounded Modal story serverless latency experiment
+
+For the 2026-11-05 FEAT-063 synthetic dev experiment only, retain L4 as the preferred GPU and allow ordered L40S/A10 alternatives, use four-worker Transformers parallel checkpoint loading for the story image, and set story scaledown to 120 seconds while keeping `min_containers=0` and `max_containers=1`. The observed A10 worker started and generated tokens, but the story output failed the existing parser. This is experimental evidence, not a production/default model or capacity guarantee. Do not infer story reliability from the latency result; any output-format fix or second inference needs its own scoped approval.
+
+Source: owner-approved `plan/MODAL_SERVERLESS_STORY_LATENCY_EXPERIMENT_20261105.md`; execution evidence `evidence/MODAL_SERVERLESS_STORY_LATENCY_EXPERIMENT_20261105.md`; Modal GPU/cold-start/memory-snapshot docs and Transformers v4.53.0 source.
+
+## D-138 - Keep generated story content separate from derived timeline metadata
+
+For the FEAT-063 Parent story worker, have Qwen produce only validated narrative content. The application deterministically assigns scene indices and timing, then validates the assembled result against the unchanged `sketch2life.story-revision.v1` worker parser and backend contract. The verified POC uses five 6-second scenes (30 seconds total), within the existing 5–15 scene and 30–90 second bounds. This reduces the model's output-format surface; it does not relax semantic validation or replace adult review. Treat this as a validated worker implementation decision, not a production-quality or capacity claim.
+
+Source: owner-approved `plan/MODAL_STORY_CONTENT_BOUNDARY_20261105.md`, SHA-256 `DEEC2263B3148A855AE090D1A513B1D57174CD9800FAC9BA8BC0E3A3F6F23917`; `evidence/MODAL_STORY_CONTENT_BOUNDARY_20261105.md`.
+
+## Review note - Parent StoryRun-lite API and AI retest - 2026-11-05
+
+No product or architecture decision changed in this retest. The API evidence records a VLM outcome that remained unknown after 303.762 seconds and a story response rejected by the existing semantic lifecycle validator. The successful parser-contract checks do not establish that the model content is valid. Preserve the parser and business-rule guards pending a separately scoped diagnosis. See `evidence/PARENT_STORY_API_RETEST_20261105.md`.
+
+## D-139 - Qwen3.5 constrained decoder compatibility
+
+For the FEAT-063 Qwen3.5-9B dev workers using Transformers 5.22.1, do not import LM Format Enforcer's Transformers adapter: it imports the removed Transformers 4 tokenizer module and masks the ImportError. Pin LMFE 0.11.3 and construct the provider-agnostic `TokenEnforcer` callback directly from the pinned Qwen tokenizer data. Keep the JSON Schema constraint active during generation and retain the existing strict worker/backend parsing after generation. Local constrained-token tests and a Modal CPU import check passed; post-fix story/lesson inference remains unverified because the Rev44 one-attempt cap was consumed. This is a dev implementation correction, not a model-quality or production decision.
+
+Source: `plan/PLAN_REV44_AI_API_COVERAGE_QWEN35_MODAL_20261105.md`; `evidence/AI_API_QWEN35_MODAL_VALIDATION_20261105.md`.
+
+## D-140 - AI suggestion role boundary (Q159)
+
+Platform Admin and Teacher may start a new AI lesson/activity/plan suggestion. Parent may edit an already-authorized draft or personal copy but may not start suggestion generation. All AI-generated content remains a private draft pending authorized human review. Preserve the current reviewed-input filter; do not send raw uploaded documents or extracted full text to the model.
+
+Source: owner clarification, 2026-11-05; additive amendment in the canonical FEAT-063 SRS §31.12; `artifacts/AI_API_WORKLOAD_CATALOG_FEAT063_REV44_20261105.md`.
+
+## D-141 - Preserve Vietnamese characters during constrained JSON generation
+
+For the pinned Qwen3.5/LMFE worker, extend LMFE's default character alphabet for Vietnamese and related Unicode characters before importing the parser. Keep generation-time schema constraints and strict post-generation/business-rule validation unchanged. Configure the alphabet at worker runtime rather than `Modal Image.env`, because Dockerfile ENV quoting rejects the apostrophe/backslash characters required by JSON strings. This is a worker implementation correction, not a model promotion or product API decision.
+
+Source: `plan/PLAN_REV45_NONVIDEO_AI_END_TO_END_20261105.md`; `evidence/AI_NONVIDEO_AI_END_TO_END_20261105.md`.
+
+## D-142 - Qwen3.5-only active development profile
+
+For active FEAT-063 Modal development workloads that use a Qwen VLM/LLM, use only `Qwen/Qwen3.5-9B` at revision `c202236235762e1c871ad0ccb60c8ee5ba337b9a`. Retire Qwen2.5 from active model selection and runtime configuration. Preserve existing Qwen2.5 decisions, test reports, and artifacts as historical evidence; do not delete shared Volumes. This does not approve Qwen3.5 as a production default or change non-Qwen workloads.
+
+Source: direct owner instruction, 2026-11-05; additive SRS clarification in §31.12; Plan Rev46.
+
+
+## D-143 ? Require complete Diffusers FLUX.3 modular checkpoint
+
+The pinned FEAT-063 FLUX.3 worker must stage and verify its required Diffusers modular components, including the indexed transformer shards and VAE files, before inference. A valid model marker does not make an incomplete component tree ready; if required files are absent, downloader restages them and inference fails closed until verification passes. Retain the existing pinned revisions and Modal Secret download boundary.
+
+Source: `plan/PLAN_REV46A_FLUX_COMPONENT_FILES_AND_FAILED_FLOW_RETEST_20261105.md`; official [BFL transformer files](https://huggingface.co/black-forest-labs/flux-3-image-klein/tree/main/transformer), [BFL VAE files](https://huggingface.co/black-forest-labs/flux-3-image-klein/tree/main/vae), and [Diffusers FLUX3 modular pipeline](https://huggingface.co/docs/diffusers/v0.42.0/api/pipelines/flux3); `evidence/AI_QWEN35_FLUX_REV46A_COMPLETION_20261105.md`.

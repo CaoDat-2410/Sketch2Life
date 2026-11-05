@@ -1,0 +1,15 @@
+{
+  "workload": "teacher.sketch-deck.generate",
+  "app": "sketch2life-srs23-language-audio-dev",
+  "function": "generate-teacher-sketch-deck",
+  "job_id": "ae716962-fd40-4707-867f-5da3470ee899",
+  "generation_id": "ad51cfbd-d577-4cc6-b6d8-bec8294b86b5",
+  "attempt_id": "52b71445-0545-452a-8f26-368b27d64912",
+  "input_sha256": "d4a7421d6d19fab19875f9143739b271275a7362b07fc29020076da15dec2b96",
+  "manifest_sha256": "472def81177a9c7a1a124efc32fddf611ce56d42efd59b35aa3db0fd91157f95",
+  "wait_limit_seconds": 600,
+  "started_at": "2026-11-05T17:34:34+07:00",
+  "outcome": "DISPATCH_FAILED_NO_CALL",
+  "state": "DISPATCH_INTENT_RECORDED",
+  "max_attempts": 1
+}

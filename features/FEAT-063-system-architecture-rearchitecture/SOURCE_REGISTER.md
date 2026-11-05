@@ -1,5 +1,12 @@
 # FEAT-063 source register
 
+## Parent StoryRun-lite API and AI retest — 2026-11-05
+
+- Owner requested a full mounted Parent API retest with AI routes included, per-call timings, and contract/business-rule findings. The amended execution plan is recorded under approval revision 43; the approved scope baseline SHA-256 is `0088A5AEA37D0B44D1A1DA291AF0CEE4CE469D0FEFED0692E8497F74C7B01B27`.
+- Canonical source: `artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md`, v2.3-draft, SHA-256 `DCBF9786FF8983E34F2D3B4EBAB76301D0C52A6C9DE72CD08D0816BBD0D983FC`. StoryRun-lite contract source: `artifacts/storyrun-lite/openapi.json`, SHA-256 `1257158CE5AFB0B92F9D7CC03E12B4DEFC4A4B009DB93A64242AC4646D3EAA8B`.
+- Outcome: the 13-operation HTTP matrix matched expected statuses. The live VLM ended unknown after 303.762 seconds; a separate fixture-backed story call returned 502 because the worker's semantic butterfly lifecycle guard rejected the output. No video or successful end-to-end AI flow is claimed.
+- Evidence: `evidence/PARENT_STORY_API_RETEST_20261105.md` and `evidence/assets/parent_story_api_retest_20261105/attempt_02/`. Task Modal apps and PostgreSQL were stopped; shared Docker services/Modal Volumes were retained. No product API or canonical SRS/OpenAPI changes were made.
+
 ## Modal AI setup scaffold — 2026-11-03
 
 - Owner instruction: create the Modal configuration scaffold now; owner will configure environment values afterward.
@@ -242,3 +249,49 @@
 | EV-063-42 | AI flow SRS alignment and Teacher deck POC | Record Parent story contract/business-rule correction, Modal schema failure and local adapter fix, synthetic Teacher deck text result, unavailable FLUX visual, 13-operation API matrix, tests, and verified shutdown | `evidence/AI_FLOW_SRS_ALIGNMENT_AND_TEACHER_DECK_POC_20261104.md` |
 | EV-063-43 | Full non-video AI workload retest | Approved scope for a fresh synthetic retest of all callable non-video Modal workloads, including bounded SAM2.1 feasibility; video generation excluded | `plan/AI_NONVIDEO_WORKLOAD_FULL_RETEST_20261104.md` |
 | EV-063-44 | Full non-video AI workload retest results | Record SRS-aligned backend changes, fresh synthetic Modal workload/API results, L4-capacity timeouts, 14 contract checks, focused tests, and verified shutdown/cleanup | `evidence/AI_NONVIDEO_WORKLOAD_FULL_RETEST_RESULTS_20261104.md` |
+
+## 30-minute non-video AI queue retest - 2026-11-04
+
+- Authority and bounds: owner instruction and approved plan plan/AI_NONVIDEO_30MIN_QUEUE_RETEST_20261104.md; canonical SRS v2.3-draft unchanged.
+- Runtime evidence: evidence/AI_NONVIDEO_30MIN_QUEUE_RETEST_RESULTS_20261104.md and per-workload records under evidence/assets/ai_nonvideo_30min_queue_retest_20261104/.
+- Modal logs showed GPU_L4 scheduling waits; Parent Sketch Guide and Teacher Sketch Deck returned validated synthetic outputs. Drawing, story, lesson visual, and SAM2 reached the 1,800-second bound without inference output. No video call; every dev app stopped with zero tasks.
+
+## Modal Qwen story readiness diagnostic - 2026-11-04
+
+- Owner authorization and execution boundary: `plan/MODAL_L4_QWEN_STORY_READINESS_DIAGNOSTIC_20261104.md`, SHA-256 `0D97D81769809F8E68362FF04B950ABC6E2EA67C6A844FEAFE563BAC624CECAB`; execution deviation (two story dispatches instead of one) is disclosed in `approvals/TASK_APPROVAL.md` and the report.
+- Canonical model source: FEAT-063 `artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` v2.3-draft §6.2 and the current Modal story worker pin. Qwen2.5-7B remains the story POC candidate; this diagnostic does not promote Qwen3 or change the SRS.
+- Evidence: `evidence/MODAL_L4_QWEN_STORY_READINESS_DIAGNOSTIC_20261104.md` and `evidence/assets/modal_l4_qwen_story_readiness_20261104/`. The health probe loaded the checkpoint; story calls remained unstarted while Modal acquired GPU_L4 capacity. No product source/API/SRS/runtime scaling configuration changed.
+
+
+## Modal serverless story latency experiment - 2026-11-05
+
+- Authority: owner-approved Plan revision 1, `plan/MODAL_SERVERLESS_STORY_LATENCY_EXPERIMENT_20261105.md`, SHA-256 `E18267CD3B9D5AC5F75F3A5F80DAD6958AEFF9EDCFF3A36C2C00BF579F2C8711`. FEAT-063 SRS v2.3-draft and pinned Qwen2.5 story candidate remain unchanged.
+- Primary runtime sources: [Modal GPU fallbacks](https://modal.com/docs/guide/gpu), [Modal cold-start performance](https://modal.com/docs/guide/cold-start), [Modal Memory Snapshots](https://modal.com/docs/guide/memory-snapshots), and [Transformers v4.53.0 model loader](https://github.com/huggingface/transformers/blob/v4.53.0/src/transformers/modeling_utils.py).
+- Result: one synthetic story call was assigned an NVIDIA A10, loaded the model through four checkpoint shards, and generated 722 tokens before the existing strict parser returned `MODAL_MODEL_OUTPUT_INVALID`. The Modal app was stopped with zero tasks; Volumes were retained. No model promotion or workload enablement.
+- Full timings, clock-boundary caveat, deployment notes, and asset paths: `evidence/MODAL_SERVERLESS_STORY_LATENCY_EXPERIMENT_20261105.md` and `evidence/assets/modal_serverless_story_latency_20261105/`.
+
+## Modal Parent story parser/content boundary follow-up — 2026-11-05
+
+- Authority: owner-approved `plan/MODAL_STORY_CONTENT_BOUNDARY_20261105.md`, SHA-256 `DEEC2263B3148A855AE090D1A513B1D57174CD9800FAC9BA8BC0E3A3F6F23917`. Canonical FEAT-063 SRS v2.3-draft and backend `StoryRevisionDraftV1` remain unchanged.
+- Result: one synthetic Parent story call succeeded with five scenes/30 seconds; strict worker parser, backend Pydantic contract and butterfly lifecycle check passed. The earlier broad `SCENE_FIELDS_INVALID` reason did not identify a retained raw field; the fix avoids asking the model to generate index/timing metadata.
+- Evidence: `evidence/MODAL_STORY_CONTENT_BOUNDARY_20261105.md` and `evidence/assets/modal_story_content_boundary_20261105/` (no raw story/prompt).
+- EV-063-48: Parent story content/timeline boundary implementation, focused tests, one synthetic Modal verification, and zero-task shutdown.
+
+## EV-063-50 - Rev44 AI API coverage and Qwen3.5 Modal validation
+
+- Approved plan and owner role decision: `plan/PLAN_REV44_AI_API_COVERAGE_QWEN35_MODAL_20261105.md`; approved hash is recorded in `approvals/TASK_APPROVAL.md`.
+- Catalog: `artifacts/AI_API_WORKLOAD_CATALOG_FEAT063_REV44_20261105.md`; maps all 14 workloads, mounted OpenAPI, StoryRun-lite fixture routes, SRS target APIs, roles, contracts, and missing/blocked surfaces.
+- Execution report: `evidence/AI_API_QWEN35_MODAL_VALIDATION_20261105.md`; call records and synthetic assets: `evidence/assets/ai_api_qwen35_modal_validation_20261105/`.
+- Results: one Teacher Deck Qwen3.5 worker contract pass; drawing output invalid; story and lesson generation failed before generation on LMFE/Transformers 5 import incompatibility, then passed local decoder tests and Modal CPU import readiness only; TTS generated audio and ASR substituted one word; FLUX.3 blocked by gated HTTP 401/no Secret; SAM2 remained prior GPU-capacity UNKNOWN; video not run.
+- Validation: 59 Modal worker/parser tests passed; 79 backend API/contract tests passed and 6 skipped. Modal apps were stopped with zero tasks; Volumes retained. Workloads remain disabled.
+
+\r\n
+
+
+## Current FEAT-063 model baseline and FLUX Rev46A ? 2026-11-05
+
+- Latest owner direction: retire Qwen2.5 from active FEAT-063 use and use only pinned `Qwen/Qwen3.5-9B` at `c202236235762e1c871ad0ccb60c8ee5ba337b9a`. This current direction supersedes older Qwen2.5 model-selection statements in earlier diagnostic entries; those entries remain historical evidence.
+- Current authority: canonical SRS `artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` ?6.2?6.3 and ?31.12; D-142; Plans Rev46/46A and their approved hashes in `approvals/TASK_APPROVAL.md`.
+- FLUX component source: official BFL `transformer/` and `vae/` repository trees and Diffusers v0.42.0 FLUX3 modular-pipeline documentation.
+- Result/evidence: `evidence/AI_QWEN35_FLUX_REV46A_COMPLETION_20261105.md` and `evidence/assets/flux_component_retest_rev46a_20261105/`; both synthetic image workers passed once after missing components were staged. No product HTTP API, video, or SAM2 inference was called.
+- The Modal dev app is stopped with zero tasks. Shared model/scratch Volumes are retained; workload flags remain disabled.

@@ -1,162 +1,162 @@
 {
   "schema_version": "sketch2life.modal.workload-registry.v1",
-  "source": "FEAT-063 SRS v2.3-draft, \u00a7\u00a76.2\u20136.3, 9.3\u20139.5, 22, 24.3\u201327, 31.4\u201331.5",
+  "source": "FEAT-063 SRS v2.3-draft, §§6.2–6.3, 9.3–9.5, 22, 24.3–27, 31.4–31.5",
   "deployment_environment": "dev",
-  "model_selection_status": "provisional; exact checkpoints and revisions are pinned for synthetic Modal dev POCs only; no production model is approved and all workloads remain disabled",
+  "model_selection_status": "dev test profile only: Qwen/Qwen3.5-9B@c202236235762e1c871ad0ccb60c8ee5ba337b9a for vision/text; FLUX.3 Image Klein and LTX-2.5 are gated candidates pending owner access/license and runtime validation; no production model is approved and all workloads remain disabled",
   "workloads": [
     {
       "id": "asr.transcribe",
       "execution_group": "l4",
       "candidate": "Systran/faster-whisper-large-v3@edaa852ec7e145841d8ffdb056a99866b5f0a478",
-      "candidate_status": "2026-11-04 fresh synthetic TTS→Whisper round-trip succeeded: Vietnamese transcript matched the generated line exactly; TTS 19.574s, ASR 22.471s. Broader accents, noisy audio, and timing remain unverified.",
+      "candidate_status": "2026-11-05 Rev45 paired synthetic TTS-to-ASR passed: 23.900s, language vi, probability 1.0, exact fixture transcript. Adult confirmation remains mandatory; broader Vietnamese quality is unverified.",
       "enabled": false,
       "inputs": "adult-recorded idea only; bounded audio and manifest reference",
       "human_gate": "adult reviews and confirms or corrects transcript",
       "quota_owner": "AI Policy compute ledger; not a sketch job",
-      "implementation_status": "synthetic-poc-success; disabled pending quality, policy, and product review"
+      "implementation_status": "Synthetic worker exact-text round-trip passed; adult transcript confirmation and broader quality evaluation remain; disabled"
     },
     {
       "id": "drawing.analyze",
       "execution_group": "l4",
-      "candidate": "Qwen2.5-VL-7B",
-      "candidate_status": "Prior synthetic API-triggered call completed in 47.262s and recognized butterfly; legacy DTO confidence 0.0 is uncalibrated. Fresh 2026-11-04 synthetic Parent API call timed out after 600s waiting for Modal L4; API recorded VISION_OUTCOME_UNKNOWN and held the run for reconciliation. No retry.",
+      "candidate": "Qwen/Qwen3.5-9B@c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "candidate_status": "2026-11-05 Rev45 synthetic Qwen3.5 inference passed in 44.014s; candidate subject and visible features were returned from a generated drawing. Adult confirmation is required. This is worker evidence, not a production Parent API.",
       "enabled": false,
       "inputs": "one validated drawing asset and allowlisted context; adult confirms proposed subject",
       "human_gate": "adult confirms or corrects subject before story generation",
       "quota_owner": "AI Policy compute ledger; video quota admission remains backend-owned",
-      "implementation_status": "private-dev-handler; prior synthetic success plus fresh capacity timeout; disabled"
+      "implementation_status": "Synthetic Qwen3.5 worker inference and output checks passed; adult-confirmation gate retained; authenticated durable Parent API remains absent; disabled"
     },
     {
       "id": "story.generate",
       "execution_group": "l4",
-      "candidate": "Qwen/Qwen2.5-7B-Instruct@a09a35458c702b33eeacc393d103063234e8bc28",
-      "candidate_status": "Backend adapter now sends the language-worker ai-request schema and validates the SRS story-revision contract. Fresh direct synthetic worker call waited 607.451s for GPU_L4 and timed out before inference; no story output. Positive Parent API draft and confirmation remain unverified.",
+      "candidate": "Qwen/Qwen3.5-9B@c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "candidate_status": "2026-11-05 Rev45 synthetic Qwen3.5 inference passed strict parsing and butterfly lifecycle checks in 113.381s with 5 scenes/30 seconds. Story and storyboard share one worker call. This is worker evidence, not a durable product API.",
       "enabled": false,
       "inputs": "confirmed subject, adult-confirmed transcript, and minimum approved context via manifest",
       "human_gate": "adult reviews and confirms script/story before video admission",
       "quota_owner": "backend admission and AI Policy reservation",
-      "implementation_status": "private-dev-handler; manifest fix tested locally; fresh Modal inference capacity-blocked; disabled"
+      "implementation_status": "Vietnamese Unicode constrained-decoder fix verified by Modal probes and successful synthetic story/storyboard inference; strict parser and semantic checks retained; product API remains fixture-only; disabled"
     },
     {
       "id": "storyboard.generate",
       "execution_group": "l4",
-      "candidate": "Qwen/Qwen2.5-7B-Instruct@a09a35458c702b33eeacc393d103063234e8bc28",
-      "candidate_status": "Combined story/storyboard worker uses the corrected language-worker ai-request schema. The shared fresh synthetic worker call waited 607.451s for GPU_L4 and timed out before inference; versioned output and production gates remain unverified.",
+      "candidate": "Qwen/Qwen3.5-9B@c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "candidate_status": "2026-11-05 Rev45 shared story/storyboard inference passed in 113.381s with 5 ordered scenes/30 seconds; adult script confirmation remains the gate before video admission.",
       "enabled": false,
-      "inputs": "approved story direction via manifest; output target is 5\u201315 scenes",
+      "inputs": "approved story direction via manifest; output target is 5–15 scenes",
       "human_gate": "same adult script-confirmation hash gates video admission",
       "quota_owner": "backend admission and AI Policy reservation",
-      "implementation_status": "private-dev-handler; manifest fix tested locally; fresh Modal inference capacity-blocked; disabled"
+      "implementation_status": "Same Qwen3.5 worker as story.generate; synthetic 5-scene output passed parser and lifecycle checks; no product video dispatch; disabled"
     },
     {
       "id": "parent.sketch-guide.generate",
       "execution_group": "l4",
-      "candidate": "black-forest-labs/FLUX.2-klein-4B@e7b7dc27f91deacad38e78976d1f2b499d76a294 (single-image POC only)",
-      "candidate_status": "Prior synthetic line-guide POC succeeded; fresh generic Parent guide request timed out after 604.071s without an image while waiting for Modal L4. Ordered-step quality and child usability remain unverified.",
+      "candidate": "black-forest-labs/flux-3-image-klein@09561231f44e41381c461caf53d5452005a60ac9 + black-forest-labs/flux-3-image-klein-pup@a57899549f8f6f64c6c4d88db30827d496ff76d0",
+      "candidate_status": "2026-11-05 Rev46A: after staging the missing Diffusers transformer/VAE components, one synthetic FLUX.3 inference passed in 65.772s (3 panels, 768x512, DRAFT). Visual/child usability still requires review; no authenticated product API exists.",
       "enabled": false,
       "inputs": "generic catalog topic and simple difficulty only; no child, profile, voice, photo, or drawing data",
       "human_gate": "adult explicitly enables it in-session; skip/failure does not block drawing",
       "quota_owner": "separate sketch compute/rate caps; never video quota",
-      "implementation_status": "prior synthetic POC; fresh attempt UNKNOWN_NO_RETRY; private dev only and disabled pending product, safety, and quality review"
+      "implementation_status": "Synthetic FLUX.3 worker and image contract passed once; adult review remains required; authenticated durable Parent API is absent; workload disabled"
     },
     {
       "id": "teacher.sketch-deck.generate",
       "execution_group": "l4",
-      "candidate": "Qwen/Qwen2.5-7B-Instruct@a09a35458c702b33eeacc393d103063234e8bc28 (text outline; visual is a separate workload)",
-      "candidate_status": "Prior direct synthetic Modal call generated a 5-slide, 16:9 Vietnamese DRAFT with four drawing steps and exactly two approved activities. Fresh 2026-11-04 call waited 603.068s for GPU_L4 and timed out; no new deck. No Teacher HTTP/session API.",
+      "candidate": "Qwen/Qwen3.5-9B@c202236235762e1c871ad0ccb60c8ee5ba337b9a (text outline; visual is a separate workload)",
+      "candidate_status": "2026-11-05 Rev45 synthetic Qwen3.5 inference passed in 43.464s: 5-slide 16:9 Vietnamese DRAFT, 4 drawing steps, and 2 approved activity references. Teacher API/session persistence is still absent.",
       "enabled": false,
       "inputs": "approved lesson-plan revision/hash and activities only; no roster, child profile, or artwork",
       "human_gate": "Teacher explicitly enables it in-session; only a current READY deck may be presented",
       "quota_owner": "separate sketch compute/rate caps; never video quota",
-      "implementation_status": "prior direct Modal text POC; fresh capacity timeout; no product Teacher API/session workflow; disabled"
+      "implementation_status": "Synthetic worker output and source refs validated; no authenticated durable Teacher occurrence/deck API; disabled"
     },
     {
       "id": "lesson.plan.suggest",
       "execution_group": "l4",
-      "candidate": "not selected",
-      "candidate_status": "requesting roles unresolved under SRS Q157/Q159",
+      "candidate": "Qwen/Qwen3.5-9B@c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "candidate_status": "2026-11-05 Rev45 synthetic Qwen3.5 inference passed in 61.636s and validated as draft_only=true: one outdoor activity, age-band-3-6, vi-VN. Authenticated durable API/job persistence remains absent.",
       "enabled": false,
       "inputs": "reviewed, allowlisted structured lesson fields only; never raw source document",
       "human_gate": "authorized human review and edit before publication",
       "quota_owner": "AI Policy compute ledger; commercial accounting unresolved",
-      "implementation_status": "disabled-pending-owner-decision"
+      "implementation_status": "LessonContentInputV1 draft adapter and synthetic inference passed; Admin/Teacher generation policy retained, Parent remains edit-only; durable product API remains absent; disabled"
     },
     {
       "id": "lesson.visual.generate",
       "execution_group": "l4-candidate",
-      "candidate": "black-forest-labs/FLUX.2-klein-4B@e7b7dc27f91deacad38e78976d1f2b499d76a294 (line-guide POC only)",
-      "candidate_status": "Prior synthetic FLUX visual call waited 468.339s without capacity. Fresh reviewed-plan call timed out after 608.026s waiting for Modal L4; no image. Lesson/activity visual quality is unverified.",
+      "candidate": "black-forest-labs/flux-3-image-klein@09561231f44e41381c461caf53d5452005a60ac9 + black-forest-labs/flux-3-image-klein-pup@a57899549f8f6f64c6c4d88db30827d496ff76d0",
+      "candidate_status": "2026-11-05 Rev46A: after staging the missing Diffusers transformer/VAE components, one synthetic FLUX.3 inference passed in 47.206s (3 panels, 768x432, DRAFT) with lesson revision/content-hash lineage matched. Educator review remains required.",
       "enabled": false,
       "inputs": "reviewed allowlisted lesson/activity content; never replace the child's original drawing",
       "human_gate": "private draft, provenance, safety check, and authorized review",
       "quota_owner": "separate AI Policy compute ledger",
-      "implementation_status": "two direct Modal attempts ended UNKNOWN_NO_RETRY without an asset; disabled"
+      "implementation_status": "Synthetic FLUX.3 visual worker, private DRAFT status, image contract, and lesson lineage passed once; authenticated durable product API and production safety review remain absent; disabled"
     },
     {
       "id": "drawing.segment",
       "execution_group": "deferred-optional",
       "candidate": "SAM 2.1 Hiera-Small pinned dev feasibility candidate; OpenCV/Pillow remains first-choice baseline",
-      "candidate_status": "Checkpoint download and SHA-256 verification succeeded (184416285 bytes); one synthetic segmentation call timed out after 602s waiting for GPU_L4. No mask; preservation and quality remain unverified.",
+      "candidate_status": "Prior synthetic attempt waited 1,800 seconds for GPU_L4 scheduling and ended UNKNOWN_NO_RETRY without inference or mask. Not re-dispatched in Rev44.",
       "enabled": false,
       "inputs": "validated drawing asset only; derived output retains source hash and lineage",
       "human_gate": "must preserve original and remain reversible",
       "quota_owner": "AI Policy compute ledger if later enabled",
-      "implementation_status": "private synthetic feasibility handler deployed; inference UNKNOWN_NO_RETRY; product workload disabled"
+      "implementation_status": "checkpoint verified; GPU capacity-blocked UNKNOWN_NO_RETRY; OpenCV/Pillow remains baseline; disabled"
     },
     {
       "id": "video.scene.generate",
       "execution_group": "l40s-video",
-      "candidate": "SRS candidate: LTX-2.5 per scene; alternative feasibility candidate: Wan-AI/Wan2.2-TI2V-5B@921dbaf3f1674a56f47e83fb80a34bac8a8f203e",
-      "candidate_status": "LTX-2.5 remains gated and unchanged; Wan2.2 private dev worker deployed and pinned checkpoint downloaded; one alternative synthetic inference remains",
+      "candidate": "Lightricks/LTX-2.5@49b093a39c19169a8a81721dcc541e07e945232f",
+      "candidate_status": "LTX-2.5 remains the SRS target. Video was explicitly deferred by the owner in this pass; no LTX or Wan inference was called.",
       "enabled": false,
       "inputs": "selected child's validated drawing/reference and adult-approved storyboard through isolated attempt staging",
       "human_gate": "adult script confirmation before admission; no final human video approval",
       "quota_owner": "backend reserves worst-case budget/quota once per accepted video request",
-      "implementation_status": "Wan2.2 alternative candidate deployed and weights ready; inference pending; LTX-2.5 remains contract-only; disabled"
+      "implementation_status": "contract-only; no LTX worker/readiness or video inference in this non-video pass; disabled"
     },
     {
       "id": "video.scene.validate",
       "execution_group": "l4-or-cpu",
       "candidate": "OpenCV metrics plus versioned VLM adapter",
-      "candidate_status": "thresholds and model profile require synthetic calibration",
+      "candidate_status": "Not called because video was deferred; validation model/threshold profile remains unselected.",
       "enabled": false,
       "inputs": "generated scene and approved identity/color/style/action anchors",
       "human_gate": "automated fail-closed scene gate; retry only within SRS limit",
       "quota_owner": "AI Policy compute ledger under accepted video request",
-      "implementation_status": "contract-only"
+      "implementation_status": "contract-only; not run; disabled"
     },
     {
       "id": "video.compose",
       "execution_group": "backend-cpu",
       "candidate": "FFmpeg deterministic worker; not an AI workload",
-      "candidate_status": "pin binary and validate decoded output",
+      "candidate_status": "Deterministic FFmpeg stage; not an AI workload and not exercised in this non-video pass.",
       "enabled": false,
       "inputs": "validated scene assets in storyboard order",
       "human_gate": "technical validation before narration/final safety",
       "quota_owner": "backend job orchestration",
-      "implementation_status": "outside-modal-scaffold"
+      "implementation_status": "outside Modal AI scaffold; no product pipeline test in this pass"
     },
     {
       "id": "tts.narration.generate",
       "execution_group": "l4",
       "candidate": "pnnbao-ump/VieNeu-TTS-v3-Turbo@61b85e3d937fbbacb387714180e8182823512523 + OpenMOSS-Team/MOSS-Audio-Tokenizer-Nano-ONNX@ceff0d0749bfb3fa2d61149794ec6feef0d1e1ae",
-      "candidate_status": "2026-11-04 fresh synthetic Vietnamese WAV POC succeeded in 19.574s (176684 bytes); Whisper round-trip matched the input line exactly. Pronunciation, timing quality, and legal review remain open.",
+      "candidate_status": "2026-11-05 Rev45 synthetic Vietnamese WAV generation passed in 19.161s (153,644 bytes). Paired ASR returned the exact fixture transcript. Broader quality review is still required.",
       "enabled": false,
       "inputs": "adult-approved story narration text; neutral adult Vietnamese preset voice; no voice cloning",
       "human_gate": "subtitle/audio timing validation; final output safety gate follows",
       "quota_owner": "AI Policy compute ledger under accepted video request",
-      "implementation_status": "synthetic-poc-success; disabled pending quality, policy, and product review"
+      "implementation_status": "Synthetic TTS and exact-text paired ASR round-trip passed; voice, safety, and product review remain; disabled"
     },
     {
       "id": "video.final-safety.validate",
       "execution_group": "l4-or-cpu",
       "candidate": "versioned safety policy plus OpenCV/VLM adapter; no model selected",
-      "candidate_status": "policy, threshold, and Vietnamese/child-safety evaluation unresolved",
+      "candidate_status": "No safety model/policy was selected and no final video was created or validated.",
       "enabled": false,
       "inputs": "final muxed video, narration, subtitles, and coverage manifest",
       "human_gate": "automatic fail-closed gate; no playback token unless coverage and policy pass",
       "quota_owner": "AI Policy compute ledger under accepted video request",
-      "implementation_status": "contract-only"
+      "implementation_status": "unimplemented and not called; playback remains fail-closed; disabled"
     }
   ]
 }
