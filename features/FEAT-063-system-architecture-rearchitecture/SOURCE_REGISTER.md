@@ -1,5 +1,16 @@
 # FEAT-063 source register
 
+
+## Rev43 as-built SRS alignment — current — 2026-11-06
+
+- Canonical working SRS: `artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` v2.4-draft; companion Data Table Register v2.4-draft. Both remain unsigned.
+- SRS §§1–31 preserve product/architecture target requirements; §32 and Data Table Register §14.5 record implementation status as observed locally on 2026-11-06.
+- Evidence sources: local read-only OpenAPI (111 paths / 124 operations); local PostgreSQL (`20261028_ll_0001`, 41 application tables); current router composition; owner-supplied Modal dev dashboard screenshot. AI-worker database boundary is in SRS §32.4 / Data Table Register §14.6. No Modal inference or deployment mutation was performed for this documentation update.
+- Owner AI direction: Qwen3.5-VL, FLUX.3, Whisper, optional SAM 2.1, hosted through Modal. As-built notes explicitly say backend end-to-end integration and video generation are not verified. Q159 is resolved: Platform Admin/Teacher initiate; Parent edits authorized drafts only.
+- Plan Rev43 authorization hash: `000A4D0C22BB92666C60C4597BB5B8AEB126E0D4C1F654B610909CC7BBDED945`; current reviewed plan hash: `1F10B3F447F7AFB59FAD847E6BE05F0C898B4CE4F6F51B0536258BBD1806F185`.
+- Evidence report: `evidence/EV-063-33_AS_BUILT_SRS_ALIGNMENT_20261106.md`.
+
+
 ## Parent StoryRun-lite API and AI retest — 2026-11-05
 
 - Owner requested a full mounted Parent API retest with AI routes included, per-call timings, and contract/business-rule findings. The amended execution plan is recorded under approval revision 43; the approved scope baseline SHA-256 is `0088A5AEA37D0B44D1A1DA291AF0CEE4CE469D0FEFED0692E8497F74C7B01B27`.

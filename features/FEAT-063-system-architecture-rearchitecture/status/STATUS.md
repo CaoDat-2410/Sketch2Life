@@ -550,3 +550,25 @@ Parent Sketch Guide and lesson visuals were not dispatched because Modal `dev` s
 ## Rev46/46A ? Qwen3.5-only and FLUX images ? 2026-11-05
 
 **Status: COMPLETE.** Qwen2.5 is retired from active FEAT-063 configuration; all active Qwen candidates are pinned Qwen3.5-9B. Fixed FLUX3 checkpoint staging to include required Diffusers transformer and VAE files. One download and one inference each for Parent Sketch Guide and lesson visual passed with synthetic input; both outputs are DRAFT/review-required. Focused tests: 27 passed; Ruff and compileall passed. Modal FLUX app stopped with zero tasks; shared Volumes retained. No product API, SAM2, or video was called; workloads remain disabled. Evidence: `evidence/AI_QWEN35_FLUX_REV46A_COMPLETION_20261105.md`.
+
+## SRS v2.4 publication — Plan Rev44 (2026-11-06)
+
+- Lifecycle: COMPLETE. Commit `fa61c41bead365fe49f84d38abc5557e765ff6bf` was pushed to `origin/codex/feat063-srs-v24-asbuilt-20261106`, based on `origin/dev` at `c98701b1e500906f396e773c79ec3bba55db2542`.
+- Published the exact 16 documentation paths listed in Plan Rev44. No application/runtime changes or unrelated local work were included; the original checkout's pre-existing staged and unstaged changes remain untouched.
+- Repository security validation passed before commit and again before push (`publishable_files_scanned=5807`). No test suite was run for this documentation-only publication.
+
+
+## As-built SRS alignment — Plan Rev43 (2026-11-06)
+
+- Lifecycle: REVIEW; canonical SRS and Data Table Register updated to v2.4-draft, unsigned.
+- SRS §§1–31 retain product target requirements; new §32 separates current local implementation observations from those targets.
+- Verified locally: OpenAPI 111 paths / 124 operations; database Alembic `20261028_ll_0001`; 41 application tables (34 `public`, 7 `lesson`). Full names and AI/database access boundary are in EV-063-33 and Data Table Register §§14.5–14.6.
+- AI direction updated per owner: Qwen3.5-VL, FLUX.3, Whisper, optional SAM 2.1, Modal inference. Q159 roles clarified. Modal dashboard presence is not claimed as backend end-to-end success; LTX-2.5 video remains unverified.
+- Verification: documentation cross-check and path-scoped diff review; no tests, database writes/migrations, provider/GPU invocation, deployment change, commit or push.
+- Plan/approval: Plan Rev43 authorization hash `000A4D0C22BB92666C60C4597BB5B8AEB126E0D4C1F654B610909CC7BBDED945`; current reviewed plan hash `1F10B3F447F7AFB59FAD847E6BE05F0C898B4CE4F6F51B0536258BBD1806F185`; approvals in root and feature `TASK_APPROVAL.md`.
+- Evidence: `evidence/EV-063-33_AS_BUILT_SRS_ALIGNMENT_20261106.md`.
+
+
+## Plan Rev50 ? local dev duplicate repair and Modal/SRS merge
+
+**Status: merge in progress; local only.** The six local duplicate patches were removed from `dev` ancestry after preserving the old dirty checkout on a backup branch. The Modal AI branch and pending changes are integrated; the SRS v2.4 branch is being merged with its approved SRS/Data Table Register preserved byte-for-byte. No tests or AI/provider calls were run. `origin/dev` remains unchanged. See `evidence/EV-063-54_DEV_HISTORY_AND_SRS_MERGE_20261106.md`.

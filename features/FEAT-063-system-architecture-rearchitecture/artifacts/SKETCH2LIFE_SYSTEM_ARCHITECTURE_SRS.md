@@ -1,9 +1,9 @@
 # Sketch2Life — Đặc tả yêu cầu phần mềm (SRS) và Kiến trúc đích
 
 **Feature:** FEAT-063 — Thiết kế lại kiến trúc toàn repository  
-**Trạng thái tài liệu:** Bản nháp v2.3 để chủ sở hữu rà soát; giữ baseline Parent/Teacher và pipeline video, bổ sung lesson platform, school tenancy, profile sharing có thể thu hồi, quản trị nội dung và quota đa scope (Q147–Q195)  
-**Phiên bản:** 2.3-draft  
-**Cập nhật:** 2026-10-28  
+**Trạng thái tài liệu:** Bản nháp v2.4 để chủ sở hữu rà soát; giữ nguyên yêu cầu đích v2.3 và bổ sung trạng thái as-built, cập nhật AI development direction và câu trả lời Q159; chưa sign-off
+**Phiên bản:** 2.4-draft
+**Cập nhật:** 2026-11-06
 **Tài liệu kèm theo:** [DATA_TABLE_REGISTER.md](DATA_TABLE_REGISTER.md)  
 **Cổng rà soát:** Đây là bản Markdown để xem xét. Chỉ tạo diagram conceptual/logical cuối và PDF sau khi chủ sở hữu duyệt cả hai tài liệu Markdown.
 
@@ -20,7 +20,7 @@
 | 2.1-draft | 2026-10-28 | Nhóm FEAT-063 (bản tổng hợp) | Bổ sung gợi ý ý tưởng sketch dạng chữ, tùy chọn cho Parent trước khi vẽ; làm rõ đây không phải Teacher AI Sketch Deck, không tạo tranh mẫu và không đổi thứ tự chụp-trước/xác nhận-chủ-thể-sau. Ghi nhận Q145; đề xuất khả năng AI tạo line-sketch được để mở ở Q146. | Bản nháp đang chờ chủ sở hữu rà soát; chưa có sign-off |
 | 2.2-draft | 2026-10-28 | Nhóm FEAT-063 (bản tổng hợp) | Theo làm rõ Q146, thay gợi ý chữ tĩnh tạm thời bằng line-sketch AI 3–5 bước tùy chọn cho Parent; thêm target/job, asset provenance/expiry, output safety và compute/rate accounting riêng. Teacher AI Sketch Deck vẫn là bước chính trong luồng Teacher. | Bản nháp đang chờ chủ sở hữu rà soát; chưa có sign-off |
 | 2.3-draft | 2026-10-28 | Nhóm FEAT-063 (bản tổng hợp) | Bổ sung lớp nền tảng lesson dùng lại, tổ chức trường, quyền Admin/Manager/Teacher/Parent, profile share có invitation/revoke, upload giáo án qua bộ lọc, Parent lesson history/feedback, quota theo scope và giới hạn tuổi 3–10. Giữ luồng Parent/Teacher và pipeline video; line-sketch chỉ sinh trong session khi người lớn bật. Bản v2.2 được lưu nguyên trạng để tra cứu lịch sử. | Bản nháp đang chờ chủ sở hữu rà soát; chưa có sign-off |
-| 2.3-draft amendment | 2026-11-05 | FEAT-063 owner clarification | Resolve Q159: Platform Admin and Teacher may initiate AI lesson/activity/plan suggestions; Parent may edit an existing draft/personal copy but cannot initiate new generation. Record Qwen/Qwen3.5-9B as a development-only VLM/LLM test checkpoint; this is not production model approval. | Additive owner clarification; SRS remains draft and unsigned |
+| 2.4-draft | 2026-11-06 | Nhóm FEAT-063 (bản tổng hợp) | Bổ sung ảnh chụp as-built từ backend/API/database local và Modal dev dashboard; phân biệt code, runtime, deployment và target; thay AI development direction theo owner (Qwen3.5-VL, FLUX.3, Whisper, SAM 2 tùy chọn); giải quyết Q159. Không xóa hoặc hạ các yêu cầu sản phẩm chưa triển khai. | Bản nháp chờ review; chưa có sign-off |
 
 | Vai trò sign-off | Người ký | Trạng thái |
 |---|---|---|
@@ -68,6 +68,7 @@
    - [Ma trận truy vết FR/NFR theo từng ID](#srs-30-3)
    - [Ma trận truy vết BR theo từng ID](#srs-30-4)
 31. [Nền tảng giáo án, chia sẻ và tích hợp luồng hiện hữu](#srs-31)
+32. [Trạng thái triển khai hiện tại (as-built snapshot)](#srs-32)
 
 <a id="srs-1"></a>
 ## 1. Mục đích và quyết định chính
@@ -387,7 +388,7 @@ Pipeline áp dụng cho Parent và Teacher, mỗi lần chỉ nhận một tranh
 | # | Giai đoạn | Đầu vào/đầu ra và kiểm soát | Công nghệ/ranh giới triển khai |
 |---:|---|---|---|
 | 1 | Tranh và ý tưởng | Một ảnh tranh bất biến của đúng một trẻ; người lớn nhập ý tưởng chữ và/hoặc xác nhận transcript Whisper. Activity list thuộc lesson và hiển thị sau video; không bắt Parent chọn activity trước khi tạo video. | Android camera/library hoặc Teacher browser camera/upload; upload API resumable; Whisper ASR adapter ưu tiên tiếng Việt. |
-| 2 | Hiểu tranh | VLM nhận diện ứng viên nhân vật/đồ vật/bối cảnh; lưu màu, hình dáng, nét vẽ, bố cục, visual anchors và uncertainty gắn với hash tranh. Các anchor chỉ mô tả bức tranh của trẻ được chọn. | VLM adapter; FEAT-063 development profile dùng duy nhất `Qwen/Qwen3.5-9B` tại revision `c202236235762e1c871ad0ccb60c8ee5ba337b9a`. Qwen2.5 đã retired khỏi active use; các lần thử trước chỉ giữ trong historical evidence. Đây chưa phải model mặc định production. Pydantic/JSON Schema validation. |
+| 2 | Hiểu tranh | VLM nhận diện ứng viên nhân vật/đồ vật/bối cảnh; lưu màu, hình dáng, nét vẽ, bố cục, visual anchors và uncertainty gắn với hash tranh. Các anchor chỉ mô tả bức tranh của trẻ được chọn. | Qwen3.5-VL là model phát triển theo hướng dẫn owner; chạy qua Modal. Pinned checkpoint, serving profile và structured-output conformance phải được xác nhận ở deployment manifest/POC. |
 | 3 | Xem xét input | Người lớn xem/xác nhận transcript và chủ thể; sửa subject tạo revision VLM mới trên đúng ảnh hash. Người lớn duyệt context tối thiểu. Teacher xác nhận lesson/activity đã duyệt; Parent activity list chỉ hiện sau khi video sẵn sàng. | Client Parent/Teacher + FastAPI application; `story.review_decisions`. |
 | 4 | Tạo story | LLM tạo mở đầu-diễn biến-kết thúc, nhân vật/hành động và lời kể tiếng Việt dựa trên tranh, ý tưởng đã xác nhận, activity, snapshot cá nhân hóa tối thiểu; Teacher thêm hướng kể từ plan. | Story Planner port, structured JSON output, prompt/policy version pin. |
 | 5 | Tạo storyboard | Chia nội dung thành 5–15 scene, tổng thời lượng do hệ thống chọn trong 30–90 giây; mục tiêu khoảng 6 giây/scene nhưng planner có thể điều chỉnh theo tổng thời lượng. Mỗi scene gồm action, image/video prompt có kiểm soát, narration segment, timing và character anchor. | LLM + versioned prompt template; scene lưu thành các row, không giữ danh sách vô hạn trong một JSON field. |
@@ -407,14 +408,16 @@ Pipeline áp dụng cho Parent và Teacher, mỗi lần chỉ nhận một tranh
 
 | Stage | Ứng viên | Hosting đề xuất | Trạng thái |
 |---|---|---|---|
-| ASR | Adapter faster-whisper hiện có | Modal L4 ứng viên | Chỉ dùng sau khi chốt version và đo chất lượng/độ trễ tiếng Việt |
-| VLM | `Qwen/Qwen3.5-9B` (development profile duy nhất) | Modal L4/L40S theo benchmark | Synthetic worker test đã qua; không phải mặc định production; quality/safety promotion còn mở |
-| Story LLM | `Qwen/Qwen3.5-9B` (dùng chung development profile) | Modal L4/L40S theo benchmark | Synthetic story/schema test đã qua; không phải mặc định production; quality/safety promotion còn mở |
+| ASR tiếng Việt | Whisper/faster-whisper theo hướng dẫn owner | Modal; dashboard dev có function `transcribe-vietnamese-audio` trên CPU | Model/checkpoint chưa xác nhận từ dashboard; phải đo tiếng Việt, latency và xác nhận transcript bởi người lớn. |
+| VLM + story/storyboard | Qwen3.5-VL theo hướng dẫn owner | Modal; profile GPU theo bộ nhớ và benchmark | Không dùng Qwen2.x cho luồng mới. Schema, safety, độ trễ, license và kết nối backend còn cần kiểm chứng. |
+| Sinh line-sketch và ảnh lesson | FLUX.3 theo hướng dẫn owner | Modal; dashboard dev có app tạo line-sketch candidate | Chưa xác nhận checkpoint cụ thể, quality/safety gate, license hoặc backend dispatch end-to-end. |
+| Vietnamese TTS | Function tổng hợp lời kể tiếng Việt trong Modal dev app | Modal CPU trên dashboard quan sát được | Model/checkpoint, chất lượng giọng và đồng bộ timing chưa được xác nhận. |
+| Segmentation ảnh | SAM 2.1 tùy chọn, sau bước xử lý ảnh xác định bằng OpenCV/Pillow | Modal là đích inference; backend hiện có adapter SAM 2.1 từ các slice cũ | Không bắt buộc V1; cần chuyển/kiểm chứng Modal, đo chất lượng mask và bảo toàn ảnh gốc/lineage. |
 | Teacher Sketch line-art generator | Provider port cho sinh ảnh line-art từng bước; model/checkpoint chưa chọn | Modal L4 là ứng viên; hosting chỉ chốt sau POC synthetic | Riêng với story-video; không nhận profile/ảnh trẻ và không trừ video quota |
 | Structured output | Pydantic v2 + JSON Schema có version | API/worker Python | Bắt buộc cho VLM, story/storyboard, Character Bible, sketch deck và safety result |
-| Reference/image preparation | Python + OpenCV + Pillow; SAM/SAM2 tùy chọn | Worker CPU/GPU theo benchmark | Tạo derived asset có hash/lineage; segmentation không bắt buộc V1 |
+| Reference/image preparation | Python + OpenCV + Pillow; SAM 2.1 tùy chọn | Modal worker khi bật segmentation | Tạo derived asset có hash/lineage; segmentation không bắt buộc V1; hiện chưa xác nhận Modal integration end-to-end. |
 | Giọng kể tiếng Việt | Ứng viên VieNeu-TTS | Modal L4 | Cần xác minh giọng người lớn trung tính, đồng bộ phụ đề và license |
-| Image-to-video | Pipeline self-host chính thức LTX-2.5 | Modal GPU L40S (48 GB) | Chủ sở hữu chọn loại GPU; model/runtime cụ thể và chi phí/độ trễ chưa benchmark |
+| Image-to-video | Pipeline self-host chính thức LTX-2.5 | Modal GPU L40S (48 GB) là target cần POC | Chưa kiểm chứng trong luồng hiện tại; dashboard dev có WAN candidate riêng, không xem đó là thay thế/duyệt cuối cho LTX-2.5. |
 | Kiểm tra consistency scene | OpenCV metrics + VLM/vision adapter có version | Modal L4 ứng viên hoặc worker CPU cho bước không cần GPU | Kiểm tra identity/color/style/action anchor sau khi sinh scene; chặn nếu sai ngưỡng hoặc kết quả không xác định |
 | Safety trên video hoàn chỉnh | Safety policy/model có version + kiểm tra frame, narration và phụ đề | Modal L4 ứng viên hoặc worker CPU theo POC | Chạy sau composition/TTS/subtitles; fail closed nếu coverage thiếu, có vi phạm hoặc kết quả không xác định; không cấp playback token |
 | Ghép video | FFmpeg | Container worker local | Pin binary và kiểm tra output |
@@ -1156,7 +1159,7 @@ Các mục §29.2 là điều kiện triển khai tương ứng với OI-05–OI
 - ADR-0001, ADR-0017, ADR-0018, ADR-0019, ADR-0020, ADR-0021 và ADR-0022 đề xuất.
 - Context, decisions, source register, approval, plan FEAT-063; khai báo bảng SQLAlchemy/Core hiện tại; danh sách Alembic revision, manifest và compose.yaml.
 - Bản nháp luồng/kiến trúc FEAT-062 trước đó; giả định PixiJS motion trong tài liệu cũ đã bị thay thế.
-- Phiếu quyết định runtime video FEAT-050 và bằng chứng multimodal FEAT-003. Bằng chứng hiện có của Qwen3-VL là NO_GO nên không chọn làm mặc định.
+- Phiếu quyết định runtime video FEAT-050 và bằng chứng multimodal FEAT-003. NO_GO chỉ áp dụng cho profile Qwen3-VL đã được đánh giá trước đó; không suy rộng sang Qwen3.5-VL. Qwen3.5-VL là hướng phát triển do owner chọn nhưng cần POC riêng.
 
 ### Nguồn kỹ thuật/pháp lý chính thức được đối chiếu ngày 2026-10-27
 - [Amazon S3 multipart upload limits](https://docs.aws.amazon.com/AmazonS3/latest/userguide/qfacts.html): multipart part tối thiểu 5 MiB (trừ part cuối); thiết kế application chunk này dùng object PUT riêng, không dùng S3 Multipart Upload API.
@@ -1180,7 +1183,7 @@ Các mục §29.2 là điều kiện triển khai tương ứng với OI-05–OI
 - [Index PostgreSQL 17](https://www.postgresql.org/docs/17/indexes.html) — tham chiếu index/partial index cho uniqueness phụ thuộc state.
 - [MoMo Subscription](https://developers.momo.vn/v3/docs/payment/api/wallet/subscription/) — luồng subscription định kỳ, tần suất, request ID và lịch thanh toán.
 - [Đặc tả kỹ thuật VNPAY Recurring Payment](https://sandbox.vnpayment.vn/apis/files/VNPAYGW_RecurringPayment_Techspec2.1.0-VN.pdf) — luồng recurring cho merchant. Phê duyệt merchant và hợp đồng cụ thể vẫn là cổng tích hợp.
-- [Qwen3.5-9B model card](https://huggingface.co/Qwen/Qwen3.5-9B), [VieNeu-TTS](https://huggingface.co/pnnbao-ump/VieNeu-TTS) — development candidates; no production default is approved.
+- [Model card Qwen3.5-9B](https://huggingface.co/Qwen/Qwen3.5-9B) — tham chiếu cho hướng Qwen3.5-VL development; checkpoint/runtime chính xác còn phải pin và kiểm chứng. [VieNeu-TTS](https://huggingface.co/pnnbao-ump/VieNeu-TTS) remains a historical candidate reference, not a selected TTS checkpoint.
 - [Luật số 91/2025/QH15 về Bảo vệ dữ liệu cá nhân](https://chinhphu.vn/?classid=1&docid=214590&orggroupid=1&pageid=27160) — hồ sơ văn bản Chính phủ; SRS không kết luận tuân thủ pháp luật; cần chuyên gia pháp lý/quyền riêng tư xem xét trước xử lý dữ liệu trẻ thật hoặc chuyển dữ liệu cho AI provider.
 - [Văn bản hợp nhất Luật Trẻ em số 108/VBHN-VPQH](https://vanban.chinhphu.vn/?classid=2629&docid=215227&pageid=27160) — văn bản hợp nhất chính thức làm bối cảnh an toàn trẻ em; dự án cần review pháp lý chuyên môn, không tự suy ra tuân thủ từ tài liệu kiến trúc.
 - [W3C WCAG 2.2](https://www.w3.org/TR/WCAG22/) — chuẩn accessibility cho nội dung web; target Level AA là yêu cầu thiết kế, chưa phải chứng nhận.
@@ -2355,7 +2358,7 @@ Mỗi requirement được liệt kê riêng để giữ đường truy vết ha
 | FR-PL-09 | M | Q157/Q158/Q164; BR-52 | §31.4, Teacher authoring | lesson.source_documents/document_revisions; structured lesson form | Template contract covers topic, age, objectives, drawing, knowledge, activities/materials/steps/safety and optional script. AC-50. | P0 platform foundation | DRAFT; format review pending |
 | FR-PL-10 | M | Q157/Q164/Q165; NFR-35 | §31.4, upload filter | lesson.source_documents; core asset hash/lineage; parser/filter version | Verify raw file/full text/images/metadata do not reach model input or telemetry; only allowlisted fields proceed. AC-50. | P0 platform foundation | DRAFT; parser/AV implementation gate |
 | FR-PL-11 | M | Q157/Q164; BR-52 | §31.4, human extraction review | lesson.document_revisions; structured draft | Teacher preview/correction is required before AI request; parser uncertainty returns a repairable result. AC-50. | P0 platform foundation | DRAFT; chưa sign-off |
-| FR-PL-12 | M | Q158/Q159; BR-53 | §31.4, AI draft boundary | lesson.library_versions; ai_jobs.job; access/review state | Confirm every AI output is DRAFT and cannot publish/show without authorized human review. AC-51. | P0 platform foundation | DRAFT; initiating roles open |
+| FR-PL-12 | M | Q158/Q159; BR-53 | §31.4, AI draft boundary | lesson.library_versions; ai_jobs.job; access/review state | Confirm every AI output is DRAFT and cannot publish/show without authorized human review. AC-51. | P0 platform foundation | DRAFT; initiating roles resolved; runtime/persistence gates pending |
 | FR-PL-13 | M | Q155/Q156; BR-50 | §31.2, lesson content | lesson.library_versions/version_activities | Validate drawing guidance, subject knowledge and multiple activity records with material/instruction/note fields. AC-47/52. | P0 platform foundation | DRAFT; chưa sign-off |
 | FR-PL-14 | M | Q158/Q169; NFR-37 | §31.2/31.4, visuals/slides | lesson.version_visual_assets; core.asset_lineage; ai_jobs.job | Generated activity/topic visuals and slide assets are versioned derived outputs with safety/review/provenance; source lesson and child artwork are not replaced. AC-51/65. | P0 platform foundation | DRAFT; provider/ownership open |
 | FR-PL-15 | M | Q167; BR-54 | §31.5, active-session option | lesson.sketch_deck_revisions/steps; ai_jobs.job; Parent temporary asset | Toggle on may create guide; toggle off creates no job, asset or quota event. AC-44/45/53. | P0 platform foundation | DRAFT; model/license/cost open |
@@ -2448,7 +2451,7 @@ BR là quy tắc nghiệp vụ; nguồn owner cụ thể được phân cụm t�
 
 Phần này là nguồn chuẩn v2.3 cho các điểm đã thay đổi: age scope 36–120 tháng thay cho 36–155 tháng; Teacher Sketch Deck và Parent Guide đều opt-in theo session; reusable lesson tách với occurrence; Parent hiển thị outdoor activities sau video; Parent/Teacher profile vẫn tách owner nhưng có grant chia sẻ; và hệ thống có role Platform Admin/School Manager. Các câu/ma trận v2.2 mâu thuẫn với các điểm này được xem là history và nhường cho yêu cầu có ID tại §31.8–§31.11.
 
-Không có quyết định công nghệ/provider mới ở phần này. Presenton, FLUX.3 và các công cụ khác chỉ là ứng viên; không khóa model, host, chi phí, giá bán hoặc schema triển khai. Toàn bộ phần này vẫn là draft; plan Rev25 chỉ duyệt sửa tài liệu, không duyệt product code hay migration.
+Không khóa stack production, giá, quota thương mại hoặc schema triển khai trong phần này. Theo hướng dẫn owner cập nhật ngày 2026-11-06, FLUX.3 được chọn làm hướng phát triển hiện tại cho line-sketch/lesson visuals trên Modal; Presenton vẫn là ứng viên cho bước bố cục slide. Checkpoint, license review, safety, chi phí và kết nối backend còn cần xác minh. Toàn bộ phần này vẫn là draft; Plan Rev25 chỉ duyệt sửa tài liệu, không duyệt product code hay migration.
 
 ### 31.2 Mô hình lesson reusable và occurrence
 
@@ -2496,7 +2499,7 @@ Teacher authoring có structured form và standardized lesson-document template.
 
 Upload đi qua quarantine/AV, parser và deterministic field mapper. Raw file gốc cùng hash/provenance được giữ riêng tư trong organization. Chỉ các field allowlist đã parse, validate, Teacher preview và Teacher sửa/xác nhận mới có thể tạo structured input cho AI. Không gửi nguyên giáo án, full extracted text, embedded image, metadata cá nhân hay file gốc sang AI. Parser/filter/validation chưa đạt thì dừng và trả lỗi có thể sửa; không âm thầm gửi raw document.
 
-AI hỗ trợ tạo lesson/activity/plan chỉ tạo draft; một người có quyền phải kiểm tra, sửa và publish. Có thể dùng AI để bổ sung outdoor activity khi catalog chưa đủ; mỗi đề xuất phải kèm mục tiêu, vật liệu, chuẩn bị, hướng dẫn từng bước và safety notes. Visual/slide generation là job riêng, optional, có review/provenance/safety. Theo owner clarification Q159 ngày 2026-11-05, Platform Admin và Teacher được khởi tạo lesson/activity/plan suggestion; Parent không được khởi tạo generation job nhưng có thể sửa draft/personal copy đã có quyền truy cập. Không sửa source version đã publish hoặc lesson version gốc.
+AI hỗ trợ tạo lesson/activity/plan chỉ tạo draft; một người có quyền phải kiểm tra, sửa và publish. Có thể dùng AI để bổ sung outdoor activity khi catalog chưa đủ; mỗi đề xuất phải kèm mục tiêu, vật liệu, chuẩn bị, hướng dẫn từng bước và safety notes. Visual/slide generation là job riêng, optional, có review/provenance/safety. Theo owner clarification ngày 2026-11-06, Platform Admin và Teacher được khởi tạo AI lesson/activity suggestion; Parent chỉ được chỉnh sửa draft được cấp quyền, không khởi tạo suggestion mới và không publish source version. Khi reuse lesson, Parent/Teacher có thể yêu cầu AI đề xuất chỉnh sửa cho draft/personal copy theo FR-PL-03; không sửa source version.
 
 ### 31.5 Luồng Parent, Teacher và video sau khi thêm platform
 
@@ -2605,16 +2608,15 @@ Video generation của Teacher sample dùng quota school/Teacher theo policy; Pa
 ### 31.10 Các quyết định còn mở
 
 1. Nhóm tuổi Montessori cụ thể bên trong 3–10.
-2. **Đã giải quyết Q159 ngày 2026-11-05:** Platform Admin và Teacher được khởi tạo AI lesson/activity/plan suggestion; Parent chỉ sửa draft/personal copy và không khởi tạo generation. Xem §31.12. Việc này không còn là câu hỏi mở.
-3. Parent được sửa trường nào trong personal copy.
-4. Parent lesson history là 30 hay 60 ngày; có thay theo plan/quota không.
-5. Cách chọn random child đại diện, eligibility, consent/guardian notification và cơ chế loại trừ.
-6. Default của script-following, chỗ được phép biến thể và cách Teacher/Parent override.
-7. Quota pool Teacher riêng hay nằm trong school, fallback/charge order khi có nhiều pool, quota/price của từng package và hành vi hết quota.
-8. Quyền publish public lesson do Platform Admin tạo và record review/moderation tương ứng; Teacher lesson cần Manager approval trước PUBLIC, SCHOOL-only không cần public approval.
-9. Field list chính xác của profile share và cách invitation được thu hồi/hết hạn.
-10. Visual asset/slide review, quyền sở hữu và approval khi AI tạo từ public lesson.
-11. Nội dung chính xác của câu trả lời ngắn “có, cho phép” tại answer 46; không mở rộng quyền ngoài phạm vi chắc chắn cho đến khi gắn lại câu hỏi tương ứng.
+2. Parent được sửa trường nào trong personal copy.
+3. Parent lesson history là 30 hay 60 ngày; có thay theo plan/quota không.
+4. Cách chọn random child đại diện, eligibility, consent/guardian notification và cơ chế loại trừ.
+5. Default của script-following, chỗ được phép biến thể và cách Teacher/Parent override.
+6. Quota pool Teacher riêng hay nằm trong school, fallback/charge order khi có nhiều pool, quota/price của từng package và hành vi hết quota.
+7. Quyền publish public lesson do Platform Admin tạo và record review/moderation tương ứng; Teacher lesson cần Manager approval trước PUBLIC, SCHOOL-only không cần public approval.
+8. Field list chính xác của profile share và cách invitation được thu hồi/hết hạn.
+9. Visual asset/slide review, quyền sở hữu và approval khi AI tạo từ public lesson.
+10. Nội dung chính xác của câu trả lời ngắn “có, cho phép” tại answer 46; không mở rộng quyền ngoài phạm vi chắc chắn cho đến khi gắn lại câu hỏi tương ứng.
 
 ### 31.11 Trace câu trả lời owner 1–49
 
@@ -2633,8 +2635,8 @@ Các số Q147–Q195 dưới đây là trace index cho 49 câu trả lời owne
 | Q155 | Tiếng Việt trước; chưa thêm ngôn ngữ khác. | NFR-38 |
 | Q156 | Giữ các yêu cầu nền hiện có theo lưu ý đã ghi trong SRS. | §31.1 |
 | Q157 | Có AI-assisted lesson từ bước vẽ, kiến thức chủ đề, video và hoạt động; có thể gợi ý activity/visual/slide. | §31.2/31.4; FR-PL-12–14 |
-| Q158 | Tạo draft; Presenton/FLUX.3 chỉ là ứng viên. | §31.1/31.4; FR-PL-14 |
-| Q159 | Câu trả lời ban đầu có mâu thuẫn về edit/suggest; được owner làm rõ ngày 2026-11-05: Platform Admin và Teacher được khởi tạo generation, Parent chỉ sửa draft/personal copy đã có. | §31.4; §31.10(2); §31.12 |
+| Q158 | Tạo draft; owner sau đó chọn FLUX.3 cho phát triển line-sketch/lesson visuals trên Modal; production approval và Presenton slide decision vẫn mở. | §31.1/31.4; §31.12; FR-PL-14 |
+| Q159 | Owner clarification ngày 2026-11-06: Platform Admin và Teacher được khởi tạo AI suggestion; Parent chỉ chỉnh sửa draft được cấp quyền. | §31.4; §31.12 |
 | Q160 | Lesson chữ; video mới dựa trên tranh trẻ, script có thể biên theo. | §31.2/31.5; FR-PL-17–18 |
 | Q161 | Giữ lesson đã dùng; revoke access trừ khi public lại. | §31.2; FR-PL-05; AC-60 |
 | Q162 | Hỗ trợ cả structured form lẫn template upload. | §31.4; FR-PL-09 |
@@ -2672,15 +2674,65 @@ Các số Q147–Q195 dưới đây là trace index cho 49 câu trả lời owne
 | Q194 | Tất cả workstream nêu ra đều nằm trong scope tài liệu. | §31.1–31.9 |
 | Q195 | Có thể thay đổi/thêm; không sửa/xóa toàn bộ nếu chưa được phép. | §31.1; plan Rev25; preserved v2.2 snapshot |
 
-### 31.12 Owner clarification and development-only AI test profile — 2026-11-05
-
-This subsection records an additive owner clarification. It does not remove or rewrite earlier answers, change the Parent/Teacher flow, or sign off the SRS.
-
-- **Q159 role resolution:** Platform Admin and Teacher may initiate new AI lesson/activity/plan suggestions, subject to their existing platform/organization authorization. Parent may edit an existing draft or personal copy they are authorized to access; Parent cannot initiate a new topic-based generation job. Every generated result remains a private draft until a person with publication authority reviews it. School Manager is not included as a generation role by this clarification.
-- **Development model test only:** For FEAT-063 Modal development tests, use only the official `Qwen/Qwen3.5-9B` checkpoint at immutable revision `c202236235762e1c871ad0ccb60c8ee5ba337b9a` for image understanding and structured text-generation workloads (story/storyboard, Teacher deck, and lesson suggestion). Qwen2.5 is retired from active FEAT-063 development use; earlier test records remain historical evidence. This is a scoped development test profile, not a production default, model-quality/safety approval, cost decision, or change to the target architecture's provider-neutral ports.
-- **Official checkpoint source:** [Qwen/Qwen3.5-9B model card](https://huggingface.co/Qwen/Qwen3.5-9B); the model is published as image-text-to-text and its repository commit is recorded in the FEAT-063 AI API/workload catalog and test evidence.
-
 
 ## Rev31 backend implementation crosswalk (additive; pending SRS content review)
 
 The v2.3 product-design baseline and requirements remain an unsigned draft. Rev31 implementation source adds three Lesson-owned support tables: `lesson.library_source_documents`, `lesson.library_document_revisions`, and `lesson.command_receipts`. They keep reusable-library uploads separate from occurrence-owned source documents and provide durable command idempotency. The current source-derived implementation crosswalk is 38 retained/refactored + 54 new = 92 active, plus 48 legacy/read-only = 140 projected physical mappings. This does not change product requirements, sign off the SRS/Data Table Register, or claim that the migration has run. See Data Table Register section 14.4 and EV-063-24.
+
+### 31.12 Owner clarifications after Q147–Q195 (2026-11-06)
+
+- **Q159 role resolution:** Platform Admin and Teacher may ask AI to draft lesson/activity suggestions. Parent may edit an authorized draft only; Parent cannot start topic-based suggestion generation or publish a source version. Every generated result remains a draft and follows human review/publication gates.
+- **AI development direction:** Qwen3.5-VL is the current owner-selected model family for drawing understanding and structured story/storyboard development; FLUX.3 is the current development direction for line-sketch and lesson visuals; Whisper is the speech-to-text direction; SAM 2.1 is optional for image segmentation. Modal is the inference-hosting direction. Exact checkpoints, runtime revisions, license/safety review, measured quality and costs are not approved by this documentation note.
+- These clarifications do not remove Parent/Teacher workflows, relax the filtered-lesson input gate, or claim that Modal is wired end-to-end into the main API. The current build snapshot is §32.
+
+<a id="srs-32"></a>
+## 32. Trạng thái triển khai hiện tại (as-built snapshot — 2026-11-06)
+
+Phần này mô tả môi trường phát triển được quan sát trong lần cập nhật Rev43. Nó không thay thế yêu cầu đích tại §§1–31, không đại diện production, và không biến code/config/deployment riêng lẻ thành bằng chứng đã đạt acceptance criteria.
+
+### 32.1 Backend, API và lưu trữ
+
+| Phạm vi | Trạng thái quan sát | Ý nghĩa |
+|---|---|---|
+| API local đang chạy | OpenAPI đọc từ `http://127.0.0.1:8000/openapi.json`: 111 path / 124 operation. Các nhóm route gồm BE1 runtime, child preferences, session/media/understanding và context/activity suggestion flows, renderer, story-video/whiteboard-video và Lesson Library. | Đây là runtime local tại thời điểm kiểm tra, không phải toàn bộ dedicated Parent APIs theo SRS; chi tiết route và mục đích từng API ở API Contract Catalog Rev37. |
+| AI Jobs API | Router implementation tồn tại nhưng chỉ được mount trong fixture app; không xuất hiện trong OpenAPI của main app. | AI job persistence/orchestration target chưa được đưa vào main API runtime. |
+| Lesson Library | CRUD lesson, source upload/revision, version, grant/invitation, parent group và moderation routes xuất hiện trong main OpenAPI. | API presence không chứng minh mọi SRS workflow (billing, publication review, lesson execution, feedback) đã hoàn chỉnh. |
+| Local PostgreSQL | Alembic revision `20261028_ll_0001`; 41 application tables: 34 trong `public`, 7 trong `lesson`; ngoài ra có `alembic_version`. | Đây là database local được đọc chỉ; không phải production inventory. Tên từng bảng nằm trong Data Table Register §14.5 và EV-063-33. |
+| Schema target | Data Table Register vẫn mô tả 92 active + 48 legacy/read-only = 140 bảng vật lý dự kiến. | Target source-derived count và local database count là hai phép đo khác nhau; không suy ra migration đã hoàn tất từ target count. |
+
+### 32.2 AI pipeline và Modal development deployment
+
+Backend code có provider adapters từ các slice trước, gồm Lightning-prefixed vision, ASR, activity-ranking, segmentation và story-video adapters. Trong code composition được rà soát, chưa thấy adapter nối main backend trực tiếp tới ba Modal dev apps dưới đây. Vì vậy, phân biệt “function/app thấy trên dashboard” với “request đi xuyên backend tới kết quả” là bắt buộc.
+
+| Capability | Hướng hiện tại | Bằng chứng/trạng thái tại Rev43 | Còn cần xác minh |
+|---|---|---|---|
+| Hiểu tranh và tạo structured story/storyboard | Qwen3.5-VL trên Modal | Owner chọn Qwen3.5-VL; Modal dashboard có function tên `generate-story-and-storyboard`. | Model/checkpoint chính xác không hiện trên ảnh dashboard; backend dispatch, schema conformance, safety, latency và end-to-end API chưa được xác nhận bởi Rev43. |
+| Parent line-sketch / lesson visual | FLUX.3 trên Modal | Dashboard có app `sketch2life-srs23-flux-image-dev`, function `generate-line-sketch-guide-candidate`, và function tải model đã pin. | Checkpoint/variant, thành công theo contract, safety review và kết nối main backend chưa được chứng minh ở lần tài liệu này. |
+| Ý tưởng giọng nói → text | Whisper/faster-whisper trên Modal | Dashboard có `transcribe-vietnamese-audio`. | Model revision/độ chính xác tiếng Việt; người lớn vẫn phải xác nhận transcript trước story generation. |
+| Lời kể tiếng Việt | Modal TTS | Dashboard có `synthesize-vietnamese-narration`. | TTS checkpoint, chất lượng/độ trễ và audio/subtitle timing chưa được xác nhận. |
+| Tách vùng tranh | SAM 2.1 tùy chọn | Backend có SAM 2.1 runtime/adapter từ các slice trước; chưa xác nhận deployment SAM 2.1 trên Modal. | Modal worker, mask benchmark, crop fallback và preservation/lineage. Không bắt buộc để tiếp tục luồng khi segmentation không đạt. |
+| Video | LTX-2.5/Modal L40S vẫn là SRS target riêng | Dashboard screenshot cho thấy app `sketch2life-srs23-video-candidate-dev` với worker `generate-wan-video-candidate`; video được để sau trong đợt kiểm tra hiện tại. | WAN là candidate thử nghiệm, không thay LTX-2.5 thành quyết định cuối; chưa chứng minh video end-to-end, consistency, TTS timing, safety hay playback theo SRS. |
+
+Dashboard observation đến từ ảnh do owner cung cấp. Tên function, trạng thái “live” và nhãn GPU chỉ ghi nhận deployment UI tại ảnh chụp; chúng không xác nhận model card, quyền truy cập, request thành công, độ chính xác, chi phí thực tế hoặc kết nối runtime với API. Rev43 không gọi inference, không khởi động GPU và không kiểm tra secrets.
+
+### 32.3 Phân biệt mức hoàn thành
+
+- **Có code/API:** backend có các route và provider adapters được liệt kê ở trên; OpenAPI xác nhận route được expose, nhưng Rev43 không xác nhận từng flow chạy thành công hay đang dispatch tới Modal.
+- **Có local persistence:** BE1/Core và Lesson Library có mặt trong database local với migration head đã nêu.
+- **Có Modal dev deployment quan sát được:** ba app dev trong bảng AI; đây chưa phải bằng chứng đã tích hợp vào backend main app.
+- **Chưa được xác nhận hoàn chỉnh:** AI Jobs main runtime/persistence, end-to-end route từ backend tới các Modal app, full video pipeline LTX-2.5, SAM 2.1 on Modal, production safety/licensing, billing/quota và mọi target table vắng mặt trong local DB snapshot.
+
+Các mục “chưa xác nhận” là trạng thái triển khai, không phải hủy yêu cầu. Parent và Teacher flow, lesson platform, phân quyền/chia sẻ, quota, kiểm duyệt và video pipeline vẫn là target SRS cho tới khi có quyết định owner mới được ghi rõ.
+
+### 32.4 Database tables và ranh giới truy cập AI
+
+AI worker/Modal function không được kết nối trực tiếp vào PostgreSQL. Theo kiến trúc đích, backend có trách nhiệm kiểm tra quyền/consent, đọc dữ kiện cần thiết, lọc payload và chuyển đúng asset/context đã allowlist cho provider. Database table được dùng bởi domain/backend không đồng nghĩa model trực tiếp đọc bảng đó.
+
+| Nhóm dữ liệu local hiện có | Bảng liên quan | Quan hệ dự kiến với AI | Điều Rev43 xác nhận |
+|---|---|---|---|
+| Hồ sơ/consent/ngữ cảnh lớp | `public.be1_managed_profiles`, `public.be1_consent_records`, `public.be1_observations` | Backend có thể dùng để kiểm tra eligibility và dựng facts tối thiểu đã duyệt; không gửi toàn bộ hồ sơ hay consent record cho model. | Các bảng tồn tại; không có query trace chứng minh chúng được đọc cho từng AI request. |
+| Asset/upload | `public.core_asset_metadata`, `public.core_upload_sessions`, `public.core_upload_parts` | Backend resolve/hash/lineage asset và gửi asset bytes/ref được allowlist; model không nhận DB credentials. | Các bảng tồn tại; không khẳng định mọi ảnh/âm thanh trong demo đã được lưu qua các bảng này. |
+| Lesson source và version | `lesson.library_items`, `lesson.library_versions`, `lesson.version_activities`, `lesson.library_source_documents`, `lesson.library_document_revisions`, `lesson.command_receipts` | AI chỉ được nhận trường lesson đã trích xuất, lọc và người lớn rà soát; không nhận nguyên giáo án/file gốc. | Các bảng tồn tại; Lesson Library routes được mount; chưa xác nhận AI lesson-generation đã dùng chúng end-to-end. |
+| AI job, policy, story và billing persistence target | `ai_jobs.*`, `ai_policy.*`, `story.*`, `parent.*`, `billing.*`, `notifications.*` | Dự kiến backend quản lý job/attempt, admission/reservation, story revisions/assets, quota và notifications; provider chỉ trả output theo contract. | Các schema/bảng này chưa có trong database local được kiểm tra; không có bằng chứng persisted job/attempt/quota/story record tại DB này. |
+
+Rev43 không quan sát SQL query trace, row-level activity hoặc telemetry theo AI request. Vì vậy, không thể kết luận bảng nào đang được model “sử dụng” trực tiếp. Kết luận chính xác hiện tại: **không có AI-owned persistence tables trong local DB snapshot; một số bảng Core/BE1/Lesson có thể được backend dùng làm nguồn/đích theo kiến trúc, nhưng lượt đọc/ghi thực tế cần instrument/test riêng.** Ma trận owner và chi tiết nằm ở Data Table Register §14.6.

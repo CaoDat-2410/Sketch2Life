@@ -1,5 +1,16 @@
 # FEAT-063 — Whole-repository architecture redesign
 
+
+## As-built SRS alignment — Plan Rev43 (2026-11-06)
+
+- Lifecycle: REVIEW; SRS v2.4-draft and matching Data Table Register add a current implementation snapshot without replacing the v2.3 target requirements.
+- Canonical SRS: `artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md`, v2.4-draft, unsigned. §32 distinguishes backend code, mounted API, local database and Modal dashboard observations from target behavior.
+- Read-only snapshot: local OpenAPI 111 paths / 124 operations; local PostgreSQL Alembic `20261028_ll_0001`, 41 application tables (34 `public`, 7 `lesson`). Full table list and AI/database access boundary are in EV-063-33 / Data Table Register §§14.5–14.6.
+- AI clarification: owner selected Qwen3.5-VL, FLUX.3, Whisper, optional SAM 2.1, with Modal as the inference-host direction; Q159 is resolved as Platform Admin + Teacher may initiate AI suggestions, Parent may edit authorized drafts only. Deployment and backend integration are separately qualified.
+- No requirements were deleted; API and database checks were read-only; no database writes/migrations or AI-provider calls were made for this amendment. The SRS remains unsigned. Approval: Plan Rev43 hash is recorded in root and feature approval registers.
+- Evidence: `evidence/EV-063-33_AS_BUILT_SRS_ALIGNMENT_20261106.md`.
+
+
 ## B3 ownership manifest and owner decision slip — 2026-10-31
 
 B3 produced a documentation-only ownership, shared-file and migration-order manifest (`evidence/B3_OWNERSHIP_MIGRATION_MANIFEST_20261031.md` and `evidence/B3_OWNER_MATRIX_20261031.csv`): 18 source boundaries, 18 shared-file/migration rows, every co-signature `CHƯA KÝ`, and a static Alembic count of 22 revisions with 10 terminals by `down_revision` only or 9 when `depends_on` is counted. Migration options X/Y/Z, writers and signatures were left to the owner.
@@ -480,3 +491,10 @@ Owner-authorized FEAT-063 dev-only test added ordered L4/L40S/A10 GPU options, s
 - Rev46A staging passed in 61.472s. Synthetic Parent Sketch Guide passed in 65.772s and synthetic lesson visual passed in 47.206s. Both returned 3-panel PNG DRAFT candidates with review required; lesson revision/content hash matched. Output visual review noted the lesson image's first panel is minimal and requires educator review for pedagogical clarity.
 - Modal app `ap-n5KrAmUnWNrKLYfDoQC5Ef` was stopped; final list showed zero tasks. Shared volumes retained. No Qwen, TTS/ASR, SAM2, video, or authenticated product API was invoked in Rev46A; every workload remains disabled.
 - Validation: 27 focused tests passed; Ruff, compileall, repository security validator, and diff check results are recorded in the completion report.
+
+
+## Plan Rev50 ? dev duplicate repair and Modal/SRS integration (2026-11-06)
+
+- The six local-only `dev` commits were patch-equivalent to commits already in `origin/dev`; the old checkout and its staged, unstaged, and untracked work are preserved on a backup branch.
+- The selected Modal branch and its pending AI changes are integrated with the published FEAT-063 SRS v2.4-draft. The SRS remains unsigned and is the current canonical working source.
+- The six local commit copies were not rewritten or renamed. Detailed refs, checksums, conflict decisions, and verification limits are recorded in `evidence/EV-063-54_DEV_HISTORY_AND_SRS_MERGE_20261106.md`.

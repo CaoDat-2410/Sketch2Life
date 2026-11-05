@@ -128,3 +128,14 @@ EV-063-13 records the pre-platform table-reduction and relationship-integrity ba
 - Dispatch/results and both generated images: `assets/flux_component_retest_rev46a_20261105/`.
 - Result: active Qwen config is Qwen3.5 only; FLUX staging, Parent Sketch Guide, and lesson visual passed once each. Both images are private synthetic DRAFTs; no product API, SAM2, or video call.
 - Verification: 27 focused tests passed; Ruff/compileall passed; app stopped with zero tasks and Volumes retained. Repository security validation passed across 6,581 publishable files; `git diff --check` passed.
+
+## SRS v2.4 evidence ID reconciliation
+
+The imported as-built SRS evidence keeps its original filename (`EV-063-33_AS_BUILT_SRS_ALIGNMENT_20261106.md`) because the approved Rev43/44 plans cite it. In this combined index it is assigned EV-063-53 to avoid colliding with the pre-existing Swagger EV-063-33 record. The source report itself is unchanged.
+
+| EV-063-53 | As-built SRS alignment | Read-only reconciliation of canonical SRS with backend/router composition, mounted local OpenAPI, local PostgreSQL table inventory, AI/database access boundary and owner-supplied Modal dashboard observation; records target-versus-current implementation boundary | `EV-063-33_AS_BUILT_SRS_ALIGNMENT_20261106.md` |
+
+
+## EV-063-54 ? dev duplicate repair and SRS integration
+
+Records the six patch-equivalent local `dev` commits, preservation backup, full Modal AI integration, SRS v2.4 conflict disposition, security boundary, and local-only merge. See [`EV-063-54_DEV_HISTORY_AND_SRS_MERGE_20261106.md`](EV-063-54_DEV_HISTORY_AND_SRS_MERGE_20261106.md).

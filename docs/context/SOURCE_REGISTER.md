@@ -1,5 +1,11 @@
 # Source register and authority boundary
 
+
+## Canonical product SRS — current working baseline
+
+Use `features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` v2.4-draft for all current product requirements and target architecture. It remains a draft pending formal owner sign-off. Its §32 is a local as-built snapshot and does not replace §§1–31 target requirements. Older feature SRS copies and contexts are historical/feature-local and do not override it. The detailed agent reading order and historical-source list are in `docs/context/SRS_AUTHORITY.md`.
+
+
 ## FEAT-063 Modal AI setup scaffold — 2026-11-03
 
 Owner request: create Modal setup artifacts now; owner will configure the environment later. Approved exact scope: `features/FEAT-063-system-architecture-rearchitecture/plan/MODAL_AI_SETUP_SCAFFOLD_20261103.md` (SHA-256 `7FE03A68DF76877457DF5C5F652FCB705669A624B2E07F7B6F317C9FB510E391`), with approval in the FEAT-063 task ledger. The canonical source is the FEAT-063 SRS v2.3-draft, not historical FEAT-062 copies. The added `deployment/modal/srs_v23/` directory is a dev-only, model-unconfigured scaffold. No Modal account operation, deployment, inference, GPU spend, actual secret/env edit, backend integration, product test or real-child data is performed by this task.
