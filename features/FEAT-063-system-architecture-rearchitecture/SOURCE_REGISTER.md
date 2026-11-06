@@ -321,3 +321,11 @@ Plan Rev51 SHA-256 at approval: `B20103A217D7A9623E02279CE0BD82D5BC61141518D820F
 - Runtime evidence: `evidence/nonvideo_modal_ai_reliability_20261106/runtime/`; synthetic calls only. Eight active non-video workers passed; optional SAM2 stayed gated; video was not called.
 - Verification: 97 Modal tests and 59 focused backend tests passed; Ruff, `py_compile`, and `git diff --check` passed. All task Modal apps stopped; disposable PostgreSQL container exited.
 - Product API gap: several worker-only workloads still have no authenticated durable API. The result report lists them as NOT_IMPLEMENTED; worker success is not represented as API integration.
+
+## Rev53 SAM 2.1 gate retest - 2026-11-06
+
+- Plan and scope: `plan/PLAN_REV53_SAM2_GATE_RETEST_20261106.md`; owner approval and approved SHA-256 are recorded in root and FEAT-063 `approvals/TASK_APPROVAL.md`.
+- Current product authority: FEAT-063 canonical SRS v2.4-draft. SAM 2.1 remains optional after an image-preparation POC; this retest does not enable a product workload.
+- Results: `evidence/sam2_gate_retest_20261106/RESULTS.md`; safe Modal dispatch/worker evidence and output mask are in the same folder. Visual review: `evidence/sam2_gate_retest_20261106/visual_review.md`.
+- Finding: prior rejection was an L4 envelope allowlist mismatch. One synthetic worker inference now passes with the pinned checkpoint, but the mask selects only the central butterfly body and misses the rest of the subject. Product registry remains disabled; OpenCV/Pillow remains the baseline.
+- Validation and cleanup: focused gate tests and Modal suite results are recorded in `RESULTS.md`; the dedicated Modal app was stopped with zero tasks. No video, real child data, product API dispatch, or production enablement was used.

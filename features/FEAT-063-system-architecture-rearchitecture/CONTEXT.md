@@ -525,3 +525,12 @@ Owner-authorized FEAT-063 dev-only test added ordered L4/L40S/A10 GPU options, s
 - Worker/caller phase logs retain only allowlisted diagnostics; no prompts, generated text, child/media payloads or raw Modal logs are persisted. Modal apps are stopped, the disposable PostgreSQL container is exited, and registry switches remain disabled.
 - Verification: 97 Modal tests and 59 focused backend tests passed; Ruff, Python compilation and `git diff --check` passed.
 - Full matrix, timings, root causes, API boundary, output hashes and cleanup evidence: `evidence/nonvideo_modal_ai_reliability_20261106/API_AND_AI_MODAL_RESULTS_20261106.md`.
+
+## Rev53 SAM 2.1 gate retest - 2026-11-06
+
+- Status: COMPLETE WITH FINDINGS under the approved one-shot synthetic scope. The L4 worker envelope now accepts `drawing.segment`; the product workload registry remains `enabled: false`.
+- Root cause of the previous pre-inference rejection: `drawing.segment` was missing from `contracts.py::L4_WORKLOADS`, while the dedicated worker used the L4 envelope. This was a parser allowlist mismatch, not a Modal GPU scheduling or checkpoint failure.
+- Live result: pinned SAM 2.1 Hiera-Small checkpoint preflight passed; one synthetic GPU inference passed at the worker/output-contract level. Model revision `2b90b9f5ceec907a1c18123530e92e794ad901a4`; checkpoint SHA-256 `6d1aa6f30de5c92224f8172114de081d104bbd23dd9dc5c58996f0cad5dc4d38`.
+- Quality limit: visual inspection shows the mask selects the central body only and misses the butterfly wings, head and antennae. This is a partial mask, not acceptable whole-object segmentation; SAM 2.1 remains an optional development candidate, and OpenCV/Pillow remains the baseline.
+- Timing: checkpoint call elapsed 27.051 s (worker 0.734 s; checkpoint already present); inference caller wait 31.896 s (worker 7.924 s); total run 61 s. No video call was made.
+- Cleanup: dedicated Modal app stopped and verified at 0 tasks; shared volumes/checkpoints retained. Full results and visual review: `evidence/sam2_gate_retest_20261106/RESULTS.md` and `visual_review.md`.

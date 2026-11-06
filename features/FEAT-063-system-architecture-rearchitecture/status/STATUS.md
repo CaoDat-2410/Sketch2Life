@@ -594,3 +594,12 @@ Parent Sketch Guide and lesson visuals were not dispatched because Modal `dev` s
 - Limits: Parent sketch guide, Teacher sketch deck, lesson suggestion/visual, and speech are worker-verified but do not yet have durable authenticated product API dispatch; recorded as NOT_IMPLEMENTED. Registry flags remain disabled.
 - Cleanup: task Modal app list empty after stop; disposable PostgreSQL container exited; shared volumes/checkpoints retained; no secret values read or changed.
 - Full results and evidence index: `evidence/nonvideo_modal_ai_reliability_20261106/API_AND_AI_MODAL_RESULTS_20261106.md`.
+
+## Rev53 SAM 2.1 gate retest - 2026-11-06
+
+- Status: COMPLETE WITH FINDINGS under the approved Plan Rev53; no push.
+- Root cause fixed: `drawing.segment` was omitted from the L4 worker envelope allowlist. The dedicated worker now passes parsing; the video execution group still rejects it.
+- Verification: pinned checkpoint preflight passed; one synthetic SAM 2.1 inference passed worker/output validation. Focused gate tests, Modal test suite, Ruff, compilation, repository security validation and diff checks are recorded in `evidence/sam2_gate_retest_20261106/RESULTS.md`.
+- Quality: mask output is valid and lineage-preserving, but visual review shows only the central butterfly body, missing both wings, head and antennae. SAM 2.1 is not product-ready based on this sample; `workloads.json` remains disabled and OpenCV/Pillow remains the baseline.
+- Runtime: checkpoint preflight caller elapsed 27.051 s; GPU inference caller wait 31.896 s; total run 61 s. No video was called.
+- Cleanup: `sketch2life-srs23-drawing-segment-dev` is stopped with 0 tasks; shared volumes/checkpoints were retained.

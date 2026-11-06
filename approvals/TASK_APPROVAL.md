@@ -108,3 +108,17 @@
 - **Current plan SHA-256 after formatting:** `6B3B1C25CD2A9974860A93551CDAD0FB3363DB38CB00D293ABB4818C9F0782D2`.
 - **Scope and exclusions:** exactly as stated in Plan Rev52; all nine registered non-video workloads, safe worker/caller telemetry, current mounted AI API flows, synthetic verification and task-app shutdown; no video, real child data, production enablement, secret-value access, shared database writes or push.
 - **Approval basis:** the owner's direct request authorizes the scoped implementation, synthetic Modal tests and local conventional commits after repository security validation.
+
+## FEAT-063 Plan Rev53 — one-shot SAM 2.1 gate retest
+
+- **Status:** APPROVED for the exact scope in Plan Rev53.
+- **Approver:** Project owner, direct instruction on 2026-11-06: “test lại sam2 đi, cho mở gate”.
+- **Recorded timestamp:** 2026-11-06 18:36:29 Asia/Saigon.
+- **Feature:** FEAT-063 — system architecture rearchitecture.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV53_SAM2_GATE_RETEST_20261106.md`.
+- **Approved plan SHA-256:** `C2695A200FF15253E88E52CC458DC0DA718A51E2B9F8A4EC37BCED198D1EE8B5`.
+- **Scope:** add the `drawing.segment` envelope to the narrow L4 worker allowlist, keep the product registry disabled, verify the pinned checkpoint through one CPU preflight, make at most one synthetic SAM2 GPU call in Modal `dev` with the existing 600-second worker timeout and 1,800-second wait bound, record safe stage-level evidence, then stop the task app.
+- **Acceptance criteria:** AC53.1–AC53.7 in the hash-identified plan.
+- **Exclusions:** production/product API enablement, real child media, repeated GPU calls, timeout increase absent worker-timeout evidence, video, secret-value access, shared database writes, Volume deletion, merge, push, or history rewrite.
+- **Approval basis:** this entry records the owner's direct authorization for the exact bounded gate-open test above; it does not approve SAM2 as a required V1 or production workload.
+- **Execution closeout:** COMPLETE WITH FINDINGS. The one synthetic worker call passed, while visual quality was partial (central body only); `workloads.json` remains disabled. Dedicated Modal app stopped with 0 tasks. See `features/FEAT-063-system-architecture-rearchitecture/evidence/sam2_gate_retest_20261106/RESULTS.md`.

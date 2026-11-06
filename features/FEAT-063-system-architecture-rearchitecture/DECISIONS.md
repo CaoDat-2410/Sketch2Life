@@ -318,3 +318,9 @@ Source: Plan Rev52 and `evidence/nonvideo_modal_ai_reliability_20261106/API_AND_
 Non-video Modal worker/caller diagnostics may retain correlation IDs, fixed phase names, elapsed time, pinned model/revision, GPU class, stable error code/type, and output size/hash. Parse only allowlisted structured fields. Never retain prompt or generated text, child/profile/roster data, image/audio payloads, tokens, raw exception text, or raw Modal log lines. An unobserved worker terminal event remains an unknown outcome and must not trigger automatic retry.
 
 Source: approved Plan Rev52 and its worker/API evidence. This is an active development observability decision, not production workload enablement.
+
+## D-147 - Keep SAM 2.1 optional after partial synthetic mask result
+
+The Rev53 fix adds `drawing.segment` only to the dedicated L4 worker envelope allowlist so a bounded dev inference can run. Keep the product workload registry disabled. The pinned SAM 2.1 worker and output contract passed once on a synthetic butterfly image, but visual review found only the central body in the mask; the wings, head and antennae were missed. Retain OpenCV/Pillow as the baseline and require a separately approved prompt/quality evaluation before considering product dispatch. This does not make SAM 2.1 a required V1 capability or production-approved model.
+
+Source: owner-approved Plan Rev53; `evidence/sam2_gate_retest_20261106/RESULTS.md` and `visual_review.md`; canonical SRS v2.4-draft.

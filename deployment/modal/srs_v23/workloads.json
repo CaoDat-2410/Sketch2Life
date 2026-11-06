@@ -96,12 +96,12 @@
       "id": "drawing.segment",
       "execution_group": "deferred-optional",
       "candidate": "SAM 2.1 Hiera-Small pinned dev feasibility candidate; OpenCV/Pillow remains first-choice baseline",
-      "candidate_status": "Prior synthetic attempt waited 1,800 seconds for GPU_L4 scheduling and ended UNKNOWN_NO_RETRY without inference or mask. Not re-dispatched in Rev44.",
+      "candidate_status": "Rev53 (2026-11-06): pinned SAM 2.1 synthetic worker inference succeeded once after the L4 envelope allowlist fix; checkpoint preflight passed. Visual review found only the central body selected, with wings/head/antennae missed. Feasibility only; product registry remains disabled pending a separate prompt/quality gate.",
       "enabled": false,
       "inputs": "validated drawing asset only; derived output retains source hash and lineage",
       "human_gate": "must preserve original and remain reversible",
       "quota_owner": "AI Policy compute ledger if later enabled",
-      "implementation_status": "checkpoint verified; GPU capacity-blocked UNKNOWN_NO_RETRY; OpenCV/Pillow remains baseline; disabled"
+      "implementation_status": "Rev53 worker/model execution verified on one synthetic input (checkpoint SHA-256 6d1aa6f30de5c92224f8172114de081d104bbd23dd9dc5c58996f0cad5dc4d38; SAM 2.1 Hiera-Small @ 2b90b9f5ceec907a1c18123530e92e794ad901a4); mask quality partial and not product-ready; OpenCV/Pillow remains baseline; enabled=false"
     },
     {
       "id": "video.scene.generate",

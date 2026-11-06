@@ -1,0 +1,155 @@
+{
+  "checkpoint_preflight": {
+    "call_id": "fc-01M6RAQ5GGTVTXXS86MC6CMCMK",
+    "checkpoint_sha256": "6d1aa6f30de5c92224f8172114de081d104bbd23dd9dc5c58996f0cad5dc4d38",
+    "checkpoint_size_bytes": 184416285,
+    "elapsed_ms": 27050.72,
+    "outcome": "SUCCEEDED",
+    "repository_commit": "2b90b9f5ceec907a1c18123530e92e794ad901a4"
+  },
+  "ended_at": "2026-11-06T18:43:59+07:00",
+  "inference": {
+    "call_id": "fc-01M6RAR0DZ9803WY2008ZJCYEJ",
+    "elapsed_ms": 31895.74,
+    "mask_content_type": "image/png",
+    "mask_dimensions": [
+      1254,
+      1254
+    ],
+    "mask_file": "sam2_synthetic_butterfly_mask.png",
+    "mask_sha256": "3154be67e848431f64db5c4a705aed0b1a5b209a7380c61b012e3b215f50283e",
+    "mask_size_bytes": 2797,
+    "model": {
+      "checkpoint_sha256": "6d1aa6f30de5c92224f8172114de081d104bbd23dd9dc5c58996f0cad5dc4d38",
+      "id": "facebookresearch/sam2.1-hiera-small",
+      "revision": "2b90b9f5ceec907a1c18123530e92e794ad901a4"
+    },
+    "outcome": "SUCCEEDED",
+    "result": {
+      "mask_area_ratio": 0.03343940538601833,
+      "mask_score": 0.7022931575775146,
+      "review_required": true,
+      "status": "DRAFT"
+    },
+    "source_image_sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949",
+    "source_image_size_bytes": 1775882,
+    "source_image_unchanged": true,
+    "video_calls": 0,
+    "worker_log_summary": {
+      "worker_binary_output_sha256": "75af9089421b3bdb6b623222ec930751b3ece915bbec363163f99d204bebb050",
+      "worker_diagnostic_code": null,
+      "worker_diagnostic_details": null,
+      "worker_duration_ms": 7924,
+      "worker_error_code": null,
+      "worker_error_type": null,
+      "worker_failure_boundary": "worker_succeeded",
+      "worker_gpu_class": "L40S|L4|A10",
+      "worker_last_stage": "terminal",
+      "worker_log_event_count": 22,
+      "worker_logs_available": true,
+      "worker_model_id": "facebookresearch/sam2.1-hiera-small",
+      "worker_model_revision": "2b90b9f5ceec907a1c18123530e92e794ad901a4",
+      "worker_output_sha256": "b50dd891c90f282dd667e3c17d0e021afc0e04bb1b85b276e54ca90c55b21c14",
+      "worker_output_size_bytes": 3723,
+      "worker_phase_history": [
+        {
+          "event": "worker_phase_started",
+          "stage": "input_envelope"
+        },
+        {
+          "duration_ms": 0,
+          "event": "worker_phase_succeeded",
+          "stage": "input_envelope"
+        },
+        {
+          "event": "worker_phase_started",
+          "stage": "workload_gate"
+        },
+        {
+          "duration_ms": 0,
+          "event": "worker_phase_succeeded",
+          "stage": "workload_gate"
+        },
+        {
+          "event": "worker_phase_started",
+          "stage": "scratch_volume_reload"
+        },
+        {
+          "duration_ms": 91,
+          "event": "worker_phase_succeeded",
+          "stage": "scratch_volume_reload"
+        },
+        {
+          "event": "worker_phase_started",
+          "stage": "drawing_asset_read_and_verify"
+        },
+        {
+          "duration_ms": 361,
+          "event": "worker_phase_succeeded",
+          "stage": "drawing_asset_read_and_verify"
+        },
+        {
+          "event": "worker_phase_started",
+          "stage": "checkpoint_verification"
+        },
+        {
+          "duration_ms": 401,
+          "event": "worker_phase_succeeded",
+          "stage": "checkpoint_verification"
+        },
+        {
+          "event": "worker_phase_started",
+          "stage": "image_preprocess"
+        },
+        {
+          "duration_ms": 35,
+          "event": "worker_phase_succeeded",
+          "stage": "image_preprocess"
+        },
+        {
+          "event": "worker_phase_started",
+          "stage": "sam2_model_load"
+        },
+        {
+          "duration_ms": 1230,
+          "event": "worker_phase_succeeded",
+          "stage": "sam2_model_load"
+        },
+        {
+          "event": "worker_phase_started",
+          "stage": "sam2_image_embedding"
+        },
+        {
+          "duration_ms": 344,
+          "event": "worker_phase_succeeded",
+          "stage": "sam2_image_embedding"
+        },
+        {
+          "event": "worker_phase_started",
+          "stage": "sam2_mask_inference"
+        },
+        {
+          "duration_ms": 246,
+          "event": "worker_phase_succeeded",
+          "stage": "sam2_mask_inference"
+        },
+        {
+          "event": "worker_phase_started",
+          "stage": "mask_encode_and_validate"
+        },
+        {
+          "duration_ms": 22,
+          "event": "worker_phase_succeeded",
+          "stage": "mask_encode_and_validate"
+        }
+      ],
+      "worker_started_observed": true,
+      "worker_terminal_event": "worker_succeeded"
+    },
+    "workload": "drawing.segment"
+  },
+  "inference_dispatched": true,
+  "started_at": "2026-11-06T18:42:58+07:00",
+  "status": "SUCCEEDED",
+  "video_calls": 0
+}

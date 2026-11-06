@@ -946,3 +946,16 @@
 - **Current plan SHA-256 after formatting:** `6B3B1C25CD2A9974860A93551CDAD0FB3363DB38CB00D293ABB4818C9F0782D2`.
 - **Scope and exclusions:** exactly as stated in Plan Rev52; all nine registered non-video workloads, safe worker/caller telemetry, current mounted AI API flows, synthetic verification and task-app shutdown; no video, real child data, production enablement, secret-value access, shared database writes or push.
 - **Approval basis:** the owner's direct request authorizes the scoped implementation, synthetic Modal tests and local conventional commits after repository security validation.
+
+## Plan Rev53 — one-shot SAM 2.1 gate retest
+
+- **Status:** APPROVED for the exact scope in Plan Rev53.
+- **Approver:** Project owner, direct instruction on 2026-11-06: “test lại sam2 đi, cho mở gate”.
+- **Recorded timestamp:** 2026-11-06 18:36:29 Asia/Saigon.
+- **Approved plan:** `plan/PLAN_REV53_SAM2_GATE_RETEST_20261106.md`.
+- **Approved plan SHA-256:** `C2695A200FF15253E88E52CC458DC0DA718A51E2B9F8A4EC37BCED198D1EE8B5`.
+- **Scope:** open only the `drawing.segment` envelope allowlist for its dedicated L4 Modal worker, keep `workloads.json` disabled, perform one CPU checkpoint preflight and at most one synthetic SAM2 GPU inference call with the existing 600-second worker timeout and 1,800-second caller wait bound, capture safe evidence and stop the app.
+- **Acceptance criteria:** AC53.1–AC53.7 in the approved plan.
+- **Exclusions:** production or product API enablement, real child media, repeated GPU calls, timeout increase without evidence, video, secret values, shared database writes, Volume deletion, merge or push.
+- **Approval basis:** the owner's direct request authorizes this bounded development-only retest and the narrow allowlist fix; no further approval is needed within this scope.
+- **Execution closeout:** COMPLETE WITH FINDINGS. Checkpoint preflight and one synthetic worker inference passed; visual review found only the central butterfly body in the mask. Product workload registry remains disabled. Dedicated Modal app stopped with 0 tasks. See `evidence/sam2_gate_retest_20261106/RESULTS.md`.
