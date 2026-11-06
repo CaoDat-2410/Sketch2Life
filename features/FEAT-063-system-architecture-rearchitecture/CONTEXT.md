@@ -506,3 +506,12 @@ Owner-authorized FEAT-063 dev-only test added ordered L4/L40S/A10 GPU options, s
 - Modal worker contracts: 79 pass, 2 skip. Qwen3.5, FLUX.3, TTS and Whisper artifacts were copied with SHA-256/provenance into the Rev51 result folder. Product API dispatch/persistence remains incomplete for several AI workloads.
 - SAM2's last attempt spent 1,800 seconds waiting for GPU capacity and returned no mask. No execution-time timeout was reproduced; Modal `dev` app inventory was empty, so no task app was deployed or needed shutdown.
 - No code change was justified by current evidence; keep the six API regression failures and Parent StoryRun-lite historical AI failures open for focused follow-up.
+
+
+## Plan Rev52 - non-video Modal AI reliability and observability
+
+- Status: APPROVED; implementation is proceeding on `feature/feat063-modal-ai-reliability-20261106`, based on `dev` commit `0fc773fa`.
+- Scope: all 9 non-video workload IDs in the current Modal registry, structured privacy-safe worker/caller logs, current mounted Parent AI routes, bounded synthetic calls, and task-app shutdown. Video remains excluded.
+- Baseline: prior worker successes are historical evidence; backend durable product APIs remain absent for several workloads. A worker pass will not be described as product API readiness.
+- Approved plan and SHA-256: `plan/PLAN_REV52_NONVIDEO_MODAL_AI_RELIABILITY_20261106.md`, `9703A6CFE3AAF6108A1443B4E7F93805481475A0C60C64C50414106441158938`.
+- No source implementation or Modal deployment has started before this approval record.

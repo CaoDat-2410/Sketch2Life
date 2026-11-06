@@ -310,3 +310,11 @@
 ## FEAT-063 Rev51 Modal AI and legacy API audit - 2026-11-06
 
 Plan Rev51 SHA-256 at approval: `B20103A217D7A9623E02279CE0BD82D5BC61141518D820FA683104057B1A6A2F`. Current SRS authority is FEAT-063 v2.4-draft. Live OpenAPI read-only snapshot reports 124 operations / 111 paths; backend API/contract suite reports 1,454 passed and 6 failed out of 1,460 collected; Modal worker contract suite reports 79 passed / 2 skipped. Existing successful synthetic AI outputs were copied, not regenerated. Full API operation inventory, worker/API distinction, failure causes, timings and artifact hashes are in `evidence/modal_ai_and_legacy_api_retest_20261106/`. No video inference, secret access, shared DB mutation, app deployment, or code fix was performed.
+
+
+## Plan Rev52 - non-video Modal AI reliability and observability
+
+- Canonical requirements: FEAT-063 SRS v2.4-draft, especially FR-P-03/04/11, FR-T-18/19/20, FR-AI-01/02/03/11/14/15 and BR-23/34/36/42-46.
+- Plan/approval: `plan/PLAN_REV52_NONVIDEO_MODAL_AI_RELIABILITY_20261106.md`; SHA-256 `9703A6CFE3AAF6108A1443B4E7F93805481475A0C60C64C50414106441158938`; approvals are in the root and feature task approval registers.
+- Baseline evidence: Rev51 consolidated API/worker report and `artifacts/AI_API_WORKLOAD_CATALOG_FEAT063_REV44_20261105.md`; old records are implementation evidence, not current product requirements.
+- Current evidence path: `evidence/nonvideo_modal_ai_reliability_20261106/` (execution in progress).

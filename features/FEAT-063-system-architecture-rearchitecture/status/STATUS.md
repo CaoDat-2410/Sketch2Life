@@ -580,3 +580,11 @@ Parent Sketch Guide and lesson visuals were not dispatched because Modal `dev` s
 - Six failing API/contract tests, their classifications, worker/API readiness gaps, timeout diagnosis, and full synthetic artifacts are recorded in `evidence/modal_ai_and_legacy_api_retest_20261106/API_TONG_HOP_VA_SAN_PHAM_AI_MODAL_20261106.md`.
 - No GPU inference was repeated. SAM2 remains blocked by documented GPU scheduling capacity; the current Modal `dev` app inventory was empty and no task app was deployed.
 - Open follow-ups: review legacy composition/BE1 test failures and implement durable product AI dispatch routes in a separately approved task.
+
+
+## Rev52 non-video Modal AI reliability - 2026-11-06
+
+- Status: IN_PROGRESS under the approved Plan Rev52.
+- Approved plan SHA-256: `9703A6CFE3AAF6108A1443B4E7F93805481475A0C60C64C50414106441158938`.
+- Work branch: `feature/feat063-modal-ai-reliability-20261106` from `dev` at `0fc773fa`.
+- No code/deployment change is recorded yet; evidence folder is being initialized.

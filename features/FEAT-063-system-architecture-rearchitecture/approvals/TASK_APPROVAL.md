@@ -934,3 +934,14 @@
 - **Approved plan SHA-256:** `B20103A217D7A9623E02279CE0BD82D5BC61141518D820FA683104057B1A6A2F`.
 - **Execution closeout SHA-256:** `1CD7EC57885C20484DD1FBB166C917DABF586C58BEFBE49FF2D2B3FDB1BA953C`.
 - **Scope and exclusions:** exactly as stated in Plan Rev51; no video calls, shared-database mutations, secrets, production enablement, unrelated legacy refactors, or push.
+
+## FEAT-063 Plan Rev52 - non-video Modal AI reliability and observability
+
+- **Status:** APPROVED for the exact scope in Plan Rev52.
+- **Approver:** Project owner, direct instruction on 2026-11-06 to continue fixing all non-video Modal AI, add worker logs that reveal failure causes, and keep running verification until the non-video work is complete.
+- **Recorded timestamp:** 2026-11-06 12:15:20 Asia/Saigon.
+- **Feature:** FEAT-063 - system architecture rearchitecture.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV52_NONVIDEO_MODAL_AI_RELIABILITY_20261106.md`.
+- **Approved plan SHA-256:** `9703A6CFE3AAF6108A1443B4E7F93805481475A0C60C64C50414106441158938`.
+- **Scope and exclusions:** exactly as stated in Plan Rev52; all nine registered non-video workloads, safe worker/caller telemetry, current mounted AI API flows, synthetic verification and task-app shutdown; no video, real child data, production enablement, secret-value access, shared database writes or push.
+- **Approval basis:** the owner's direct request authorizes the scoped implementation, synthetic Modal tests and local conventional commits after repository security validation.
