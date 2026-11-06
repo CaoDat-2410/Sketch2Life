@@ -24,6 +24,7 @@ from contracts import (  # noqa: E402
 )
 from worker_observability import (  # noqa: E402
     observed_worker,
+    refresh_worker_volume,
     worker_phase,
     worker_stage,
 )
@@ -64,6 +65,7 @@ scratch_volume = modal.Volume.from_name(
 download_image = (
     modal.Image.debian_slim(python_version="3.11")
     .add_local_file(str(_CONTRACTS_FILE), "/root/contracts.py", copy=True)
+    .add_local_file(str(_OBSERVABILITY_FILE), "/root/worker_observability.py", copy=True)
     .pip_install("huggingface_hub==0.33.4")
     .env({"HF_HUB_DISABLE_TELEMETRY": "1", "HF_XET_HIGH_PERFORMANCE": "1"})
 )
@@ -95,6 +97,11 @@ inference_image = (
     timeout=3_600,
     retries=0,
 )
+@observed_worker(
+    workload="model.download.drawing_vlm",
+    model_id=MODEL_ID,
+    model_revision=MODEL_REVISION,
+)
 def download_pinned_model() -> dict[str, Any]:
     """Download only the public immutable checkpoint into the dev weights Volume."""
 
@@ -102,14 +109,16 @@ def download_pinned_model() -> dict[str, Any]:
 
     model_path = Path(MODEL_DIR)
     marker_path = Path(MODEL_MANIFEST)
-    model_volume.reload()
+    with worker_phase("model_volume_reload"):
+        model_volume.reload()
     if marker_path.is_file():
         marker = json.loads(marker_path.read_text(encoding="utf-8"))
         if (
             marker.get("model_id") == MODEL_ID
             and marker.get("revision") == MODEL_REVISION
         ):
-            _ensure_checkpoint_files(model_path)
+            with worker_phase("checkpoint_validation"):
+                _ensure_checkpoint_files(model_path)
             return {
                 "status": "already_present",
                 "model_id": MODEL_ID,
@@ -119,27 +128,31 @@ def download_pinned_model() -> dict[str, Any]:
         raise RuntimeError("MODAL_MODEL_REVISION_MARKER_MISMATCH")
 
     model_path.mkdir(parents=True, exist_ok=True)
-    snapshot_download(
-        repo_id=MODEL_ID,
-        revision=MODEL_REVISION,
-        local_dir=str(model_path),
-    )
-    _ensure_checkpoint_files(model_path)
-    marker_path.write_text(
-        json.dumps(
-            {
-                "schema_version": "sketch2life.modal.model-manifest.v1",
-                "model_id": MODEL_ID,
-                "revision": MODEL_REVISION,
-                "license": MODEL_LICENSE,
-            },
-            ensure_ascii=False,
-            sort_keys=True,
-            separators=(",", ":"),
-        ),
-        encoding="utf-8",
-    )
-    model_volume.commit()
+    with worker_phase("checkpoint_download"):
+        snapshot_download(
+            repo_id=MODEL_ID,
+            revision=MODEL_REVISION,
+            local_dir=str(model_path),
+        )
+    with worker_phase("checkpoint_validation"):
+        _ensure_checkpoint_files(model_path)
+    with worker_phase("model_manifest_write"):
+        marker_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": "sketch2life.modal.model-manifest.v1",
+                    "model_id": MODEL_ID,
+                    "revision": MODEL_REVISION,
+                    "license": MODEL_LICENSE,
+                },
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            ),
+            encoding="utf-8",
+        )
+    with worker_phase("model_volume_commit"):
+        model_volume.commit()
     return {
         "status": "downloaded",
         "model_id": MODEL_ID,
@@ -179,6 +192,7 @@ def analyze_drawing(payload: dict[str, Any]) -> dict[str, Any]:
     if request.workload != "drawing.analyze":
         raise WorkerContractError("MODAL_WORKLOAD_NOT_ALLOWED")
 
+    refresh_worker_volume(scratch_volume)
     with worker_phase("input_asset_verify"):
         image_path, image_sha256 = _verify_staged_input(request)
     with worker_phase("model_load"):

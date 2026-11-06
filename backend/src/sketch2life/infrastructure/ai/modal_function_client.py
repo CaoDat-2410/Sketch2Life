@@ -48,8 +48,10 @@ _WORKER_LOG_EVENTS = {
 _LOGGER = get_logger(__name__)
 
 
-def summarize_worker_call_logs(call: Any, *, max_entries: int = 100) -> dict[str, Any]:
-    """Read only structured worker lifecycle events; never return raw Modal log text."""
+def summarize_worker_call_logs(
+    call: Any, *, max_entries: int = 100, max_log_wait_seconds: float = 0.5
+) -> dict[str, Any]:
+    """Read only structured worker events; tolerate Modal log indexing delay."""
 
     summary: dict[str, Any] = {
         "worker_logs_available": False,
@@ -60,56 +62,97 @@ def summarize_worker_call_logs(call: Any, *, max_entries: int = 100) -> dict[str
         "worker_error_code": None,
         "worker_error_type": None,
         "worker_duration_ms": None,
+        "worker_model_id": None,
+        "worker_model_revision": None,
+        "worker_gpu_class": None,
+        "worker_output_size_bytes": None,
+        "worker_output_sha256": None,
+        "worker_binary_output_sha256": None,
         "worker_failure_boundary": "worker_logs_unavailable",
     }
-    try:
-        entries = list(call.logs.tail(entries=max_entries))
-    except Exception:
-        return summary
-    summary["worker_logs_available"] = True
-    for entry in entries:
-        message = getattr(entry, "message", None)
-        if not isinstance(message, str):
-            continue
-        for line in message.splitlines():
-            try:
-                event = json.loads(line)
-            except (json.JSONDecodeError, TypeError):
+    events: list[dict[str, Any]] = []
+    logs_available = False
+    deadline = time.monotonic() + max(0.0, max_log_wait_seconds)
+    while True:
+        try:
+            entries = list(call.logs.tail(entries=max_entries))
+            logs_available = True
+        except Exception:
+            entries = []
+        events = []
+        for entry in entries:
+            message = getattr(entry, "message", None)
+            if not isinstance(message, str):
                 continue
-            if (
-                not isinstance(event, dict)
-                or event.get("schema_version") != _WORKER_LOG_SCHEMA
-                or event.get("event") not in _WORKER_LOG_EVENTS
-            ):
-                continue
-            summary["worker_log_event_count"] += 1
-            if event.get("event") == "worker_started":
-                summary["worker_started_observed"] = True
-            stage = event.get("stage")
-            if isinstance(stage, str) and _SAFE_LOG_STAGE.fullmatch(stage):
-                summary["worker_last_stage"] = stage
-            terminal = event.get("event")
-            if terminal in {"worker_succeeded", "worker_failed"}:
-                summary["worker_terminal_event"] = terminal
-                duration = event.get("duration_ms")
-                if isinstance(duration, int) and not isinstance(duration, bool) and duration >= 0:
-                    summary["worker_duration_ms"] = duration
-                code = event.get("error_code")
-                if isinstance(code, str) and _SAFE_LOG_CODE.fullmatch(code):
-                    summary["worker_error_code"] = code
-                error_type = event.get("error_type")
-                if isinstance(error_type, str) and re.fullmatch(
-                    r"[A-Za-z][A-Za-z0-9_]{0,63}", error_type
+            for line in message.splitlines():
+                try:
+                    event = json.loads(line)
+                except (json.JSONDecodeError, TypeError):
+                    continue
+                if (
+                    isinstance(event, dict)
+                    and event.get("schema_version") == _WORKER_LOG_SCHEMA
+                    and event.get("event") in _WORKER_LOG_EVENTS
                 ):
-                    summary["worker_error_type"] = error_type
+                    events.append(event)
+        terminal_observed = any(
+            event.get("event") in {"worker_succeeded", "worker_failed"}
+            for event in events
+        )
+        remaining = deadline - time.monotonic()
+        if terminal_observed or remaining <= 0:
+            break
+        time.sleep(min(0.25, remaining))
+
+    summary["worker_logs_available"] = logs_available
+    summary["worker_log_event_count"] = len(events)
+    for event in events:
+        if event.get("event") == "worker_started":
+            summary["worker_started_observed"] = True
+        stage = event.get("stage")
+        if isinstance(stage, str) and _SAFE_LOG_STAGE.fullmatch(stage):
+            summary["worker_last_stage"] = stage
+        for event_key, summary_key in (
+            ("model_id", "worker_model_id"),
+            ("model_revision", "worker_model_revision"),
+            ("gpu_class", "worker_gpu_class"),
+        ):
+            value = event.get(event_key)
+            if isinstance(value, str) and re.fullmatch(r"[A-Za-z0-9._:/-]{1,160}", value):
+                summary[summary_key] = value
+        if event.get("event") not in {"worker_succeeded", "worker_failed"}:
+            continue
+        summary["worker_terminal_event"] = event["event"]
+        duration = event.get("duration_ms")
+        if isinstance(duration, int) and not isinstance(duration, bool) and duration >= 0:
+            summary["worker_duration_ms"] = duration
+        code = event.get("error_code")
+        if isinstance(code, str) and _SAFE_LOG_CODE.fullmatch(code):
+            summary["worker_error_code"] = code
+        error_type = event.get("error_type")
+        if isinstance(error_type, str) and re.fullmatch(r"[A-Za-z][A-Za-z0-9_]{0,63}", error_type):
+            summary["worker_error_type"] = error_type
+        output_size = event.get("output_size_bytes")
+        if isinstance(output_size, int) and not isinstance(output_size, bool) and output_size >= 0:
+            summary["worker_output_size_bytes"] = output_size
+        for event_key, summary_key in (
+            ("output_sha256", "worker_output_sha256"),
+            ("binary_output_sha256", "worker_binary_output_sha256"),
+        ):
+            value = event.get(event_key)
+            if isinstance(value, str) and _SHA256.fullmatch(value):
+                summary[summary_key] = value
+
     if summary["worker_terminal_event"] == "worker_failed":
         summary["worker_failure_boundary"] = "worker_terminal_failure_observed"
     elif summary["worker_terminal_event"] == "worker_succeeded":
         summary["worker_failure_boundary"] = "worker_succeeded"
     elif summary["worker_started_observed"]:
         summary["worker_failure_boundary"] = "worker_started_without_terminal_event"
-    else:
+    elif summary["worker_log_event_count"]:
         summary["worker_failure_boundary"] = "worker_start_not_observed"
+    elif logs_available:
+        summary["worker_failure_boundary"] = "worker_events_not_observed"
     return summary
 
 

@@ -23,7 +23,12 @@ from contracts import (  # noqa: E402
     WorkerContractError,
     parse_worker_input,
 )
-from worker_observability import observed_worker, worker_phase, worker_stage  # noqa: E402
+from worker_observability import (  # noqa: E402
+    observed_worker,
+    refresh_worker_volume,
+    worker_phase,
+    worker_stage,
+)
 
 APP_NAME = "sketch2life-srs23-drawing-segment-dev"
 MODEL_VOLUME_NAME = "sketch2life-dev-model-weights-v2"
@@ -61,7 +66,7 @@ _contracts_file = _MODULE_DIR / "contracts.py"
 _observability_file = _MODULE_DIR / "worker_observability.py"
 _download_image = modal.Image.debian_slim(python_version="3.11").add_local_file(
     str(_contracts_file), "/root/contracts.py", copy=True
-)
+).add_local_file(str(_observability_file), "/root/worker_observability.py", copy=True)
 _inference_image = (
     modal.Image.debian_slim(python_version="3.11")
     .apt_install("git")
@@ -86,13 +91,20 @@ _inference_image = (
     timeout=600,
     retries=0,
 )
+@observed_worker(
+    workload="model.download.sam2",
+    model_id="facebookresearch/sam2.1-hiera-small",
+    model_revision=SAM2_REPOSITORY_COMMIT,
+)
 def download_sam2_checkpoint() -> dict[str, Any]:
     """Download one bounded public checkpoint to a new, isolated Volume path."""
 
-    model_volume.reload()
+    with worker_phase("model_volume_reload"):
+        model_volume.reload()
     if SAM2_MARKER.is_file() and SAM2_CHECKPOINT.is_file():
         marker = json.loads(SAM2_MARKER.read_text(encoding="utf-8"))
-        digest, size = _hash_file(SAM2_CHECKPOINT)
+        with worker_phase("checkpoint_validation"):
+            digest, size = _hash_file(SAM2_CHECKPOINT)
         if (
             marker.get("repository_commit") != SAM2_REPOSITORY_COMMIT
             or marker.get("checkpoint_sha256") != digest
@@ -111,6 +123,7 @@ def download_sam2_checkpoint() -> dict[str, Any]:
     digest = hashlib.sha256()
     total = 0
     with (
+        worker_phase("checkpoint_download"),
         urllib.request.urlopen(request, timeout=60) as response,
         SAM2_CHECKPOINT.open("wb") as target,
     ):
@@ -136,11 +149,13 @@ def download_sam2_checkpoint() -> dict[str, Any]:
         "license": "Apache-2.0",
         "cuda_extension": "disabled for this feasibility POC",
     }
-    SAM2_MARKER.write_text(
-        json.dumps(marker, ensure_ascii=False, sort_keys=True, separators=(",", ":")),
-        encoding="utf-8",
-    )
-    model_volume.commit()
+    with worker_phase("model_manifest_write"):
+        SAM2_MARKER.write_text(
+            json.dumps(marker, ensure_ascii=False, sort_keys=True, separators=(",", ":")),
+            encoding="utf-8",
+        )
+    with worker_phase("model_volume_commit"):
+        model_volume.commit()
     return {"status": "downloaded", **marker}
 
 
@@ -174,6 +189,7 @@ def segment_synthetic_drawing_candidate(payload: dict[str, Any]) -> dict[str, An
     worker_stage("workload_gate")
     if request.workload != "drawing.segment":
         raise WorkerContractError("MODAL_WORKLOAD_NOT_ALLOWED")
+    refresh_worker_volume(scratch_volume)
     with worker_phase("drawing_asset_read_and_verify"):
         image_path, source_sha256 = _read_drawing(request)
     with worker_phase("checkpoint_verification"):

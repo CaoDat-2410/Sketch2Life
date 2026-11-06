@@ -26,6 +26,7 @@ from contracts import (  # noqa: E402
 )
 from worker_observability import (  # noqa: E402
     observed_worker,
+    refresh_worker_volume,
     worker_phase,
     worker_stage,
 )
@@ -105,6 +106,7 @@ _observability_file = _MODULE_DIR / "worker_observability.py"
 _download_image = (
     modal.Image.debian_slim(python_version="3.11")
     .add_local_file(str(_contracts_file), "/root/contracts.py", copy=True)
+    .add_local_file(str(_observability_file), "/root/worker_observability.py", copy=True)
     .pip_install("huggingface_hub==0.33.4")
     .env({"HF_HUB_DISABLE_TELEMETRY": "1", "HF_XET_HIGH_PERFORMANCE": "1"})
 )
@@ -171,12 +173,14 @@ _asr_image = (
     timeout=3_600,
     retries=0,
 )
+@observed_worker(workload="model.download.language_audio")
 def download_language_audio_models() -> dict[str, Any]:
     """Download the exact public model revisions used by this POC wave."""
 
     from huggingface_hub import snapshot_download
 
-    model_volume.reload()
+    with worker_phase("model_volume_reload"):
+        model_volume.reload()
     records = [
         (
             TEXT_MODEL_ID,
@@ -208,11 +212,24 @@ def download_language_audio_models() -> dict[str, Any]:
         ),
     ]
     results: list[dict[str, str]] = []
+    download_stages = {
+        TEXT_MODEL_ID: "download_qwen_text_model",
+        ASR_MODEL_ID: "download_whisper_asr_model",
+        TTS_MODEL_ID: "download_vieneu_tts_model",
+        TTS_CODEC_ID: "download_moss_tts_codec",
+    }
+    checkpoint_stages = {
+        TEXT_MODEL_ID: "validate_qwen_text_model",
+        ASR_MODEL_ID: "validate_whisper_asr_model",
+        TTS_MODEL_ID: "validate_vieneu_tts_model",
+        TTS_CODEC_ID: "validate_moss_tts_codec",
+    }
     for model_id, revision, model_path, marker_path, license_name in records:
         if marker_path.is_file():
-            marker = json.loads(marker_path.read_text(encoding="utf-8"))
-            if marker.get("model_id") != model_id or marker.get("revision") != revision:
-                raise RuntimeError("MODAL_MODEL_REVISION_MARKER_MISMATCH")
+            with worker_phase(checkpoint_stages[model_id]):
+                marker = json.loads(marker_path.read_text(encoding="utf-8"))
+                if marker.get("model_id") != model_id or marker.get("revision") != revision:
+                    raise RuntimeError("MODAL_MODEL_REVISION_MARKER_MISMATCH")
             results.append(
                 {
                     "status": "already_present",
@@ -223,30 +240,36 @@ def download_language_audio_models() -> dict[str, Any]:
             continue
 
         model_path.mkdir(parents=True, exist_ok=True)
-        snapshot_download(
-            repo_id=model_id, revision=revision, local_dir=str(model_path)
-        )
-        marker_path.write_text(
-            json.dumps(
-                {
-                    "schema_version": "sketch2life.modal.model-manifest.v1",
-                    "model_id": model_id,
-                    "revision": revision,
-                    "license": license_name,
-                },
-                sort_keys=True,
-                separators=(",", ":"),
-            ),
-            encoding="utf-8",
-        )
+        with worker_phase(download_stages[model_id]):
+            snapshot_download(
+                repo_id=model_id, revision=revision, local_dir=str(model_path)
+            )
+        with worker_phase("model_manifest_write"):
+            marker_path.write_text(
+                json.dumps(
+                    {
+                        "schema_version": "sketch2life.modal.model-manifest.v1",
+                        "model_id": model_id,
+                        "revision": revision,
+                        "license": license_name,
+                    },
+                    sort_keys=True,
+                    separators=(",", ":"),
+                ),
+                encoding="utf-8",
+            )
         results.append(
             {"status": "downloaded", "model_id": model_id, "revision": revision}
         )
 
-    _verify_text_checkpoint(Path(TEXT_MODEL_DIR))
-    _verify_asr_checkpoint(Path(ASR_MODEL_DIR))
-    _verify_tts_checkpoint(Path(TTS_MODEL_DIR), Path(TTS_CODEC_DIR))
-    model_volume.commit()
+    with worker_phase("validate_qwen_text_model"):
+        _verify_text_checkpoint(Path(TEXT_MODEL_DIR))
+    with worker_phase("validate_whisper_asr_model"):
+        _verify_asr_checkpoint(Path(ASR_MODEL_DIR))
+    with worker_phase("validate_vieneu_tts_model"):
+        _verify_tts_checkpoint(Path(TTS_MODEL_DIR), Path(TTS_CODEC_DIR))
+    with worker_phase("model_volume_commit"):
+        model_volume.commit()
     return {"status": "ready", "models": results}
 
 
@@ -322,6 +345,7 @@ def generate_story_and_storyboard(payload: dict[str, Any]) -> dict[str, Any]:
     worker_stage("workload_gate")
     if request.workload != "story.generate":
         raise WorkerContractError("MODAL_WORKLOAD_NOT_ALLOWED")
+    refresh_worker_volume(scratch_volume)
     with worker_phase("input_manifest_read"):
         data = _read_json_asset(request, expected_asset="input/request.json")
     worker_stage("request_contract_validation")
@@ -583,6 +607,7 @@ def generate_teacher_sketch_deck(payload: dict[str, Any]) -> dict[str, Any]:
     worker_stage("workload_gate")
     if request.workload != "teacher.sketch-deck.generate":
         raise WorkerContractError("MODAL_WORKLOAD_NOT_ALLOWED")
+    refresh_worker_volume(scratch_volume)
     with worker_phase("input_manifest_read"):
         data = _read_json_asset(request, expected_asset="input/request.json")
     with worker_phase("approved_plan_contract_validation"):
@@ -733,6 +758,7 @@ def suggest_lesson_plan(payload: dict[str, Any]) -> dict[str, Any]:
     worker_stage("workload_gate")
     if request.workload != "lesson.plan.suggest":
         raise WorkerContractError("MODAL_WORKLOAD_NOT_ALLOWED")
+    refresh_worker_volume(scratch_volume)
     with worker_phase("input_manifest_read"):
         data = _read_json_asset(request, expected_asset="input/request.json")
     with worker_phase("lesson_request_validation"):
@@ -1354,6 +1380,7 @@ def synthesize_vietnamese_narration(payload: dict[str, Any]) -> dict[str, Any]:
     worker_stage("workload_gate")
     if request.workload != "tts.narration.generate":
         raise WorkerContractError("MODAL_WORKLOAD_NOT_ALLOWED")
+    refresh_worker_volume(scratch_volume)
     with worker_phase("input_manifest_read"):
         data = _read_json_asset(request, expected_asset="input/request.json")
     worker_stage("tts_request_validation")
@@ -1433,6 +1460,7 @@ def transcribe_vietnamese_audio(payload: dict[str, Any]) -> dict[str, Any]:
     worker_stage("workload_gate")
     if request.workload != "asr.transcribe":
         raise WorkerContractError("MODAL_WORKLOAD_NOT_ALLOWED")
+    refresh_worker_volume(scratch_volume)
     with worker_phase("audio_asset_read_and_verify"):
         audio_path, audio_sha256 = _read_binary_asset(
             request,

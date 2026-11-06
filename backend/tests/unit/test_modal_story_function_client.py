@@ -210,10 +210,64 @@ def test_worker_log_summary_keeps_allowlisted_diagnosis_only() -> None:
         "worker_error_code": "EDUCATIONAL_FACT_INVALID",
         "worker_error_type": "RuntimeError",
         "worker_duration_ms": 1234,
+        "worker_model_id": None,
+        "worker_model_revision": None,
+        "worker_gpu_class": None,
+        "worker_output_size_bytes": None,
+        "worker_output_sha256": None,
+        "worker_binary_output_sha256": None,
         "worker_failure_boundary": "worker_terminal_failure_observed",
     }
     assert "private prompt" not in repr(summary)
     assert "private generated story" not in repr(summary)
+
+
+
+def test_worker_log_summary_retries_until_terminal_event_is_indexed(monkeypatch) -> None:
+    class _Logs:
+        calls = 0
+
+        def tail(self, *, entries: int):
+            self.calls += 1
+            if self.calls == 1:
+                return []
+            return [
+                type(
+                    "Entry",
+                    (),
+                    {
+                        "message": json.dumps(
+                            {
+                                "schema_version": "sketch2life.modal.worker-event.v1",
+                                "event": "worker_succeeded",
+                                "workload": "asr.transcribe",
+                                "stage": "terminal",
+                                "duration_ms": 99,
+                                "model_id": "Systran/faster-whisper-large-v3",
+                                "model_revision": "abc123",
+                                "gpu_class": "cpu",
+                                "output_size_bytes": 42,
+                                "output_sha256": "a" * 64,
+                                "binary_output_sha256": "b" * 64,
+                                "private_text": "must not be surfaced",
+                            }
+                        )
+                    },
+                )()
+            ]
+
+    logs = _Logs()
+    monkeypatch.setattr(client_module.time, "sleep", lambda _delay: None)
+    summary = summarize_worker_call_logs(type("Call", (), {"logs": logs})())
+
+    assert logs.calls == 2
+    assert summary["worker_terminal_event"] == "worker_succeeded"
+    assert summary["worker_model_id"] == "Systran/faster-whisper-large-v3"
+    assert summary["worker_gpu_class"] == "cpu"
+    assert summary["worker_output_size_bytes"] == 42
+    assert summary["worker_output_sha256"] == "a" * 64
+    assert summary["worker_binary_output_sha256"] == "b" * 64
+    assert "must not be surfaced" not in repr(summary)
 
 
 def test_worker_log_summary_fails_closed_when_modal_logs_unavailable() -> None:

@@ -67,6 +67,28 @@ def _binary_size(value: Any) -> int:
     return 0
 
 
+
+def _binary_sha256(value: Any) -> str | None:
+    digest = hashlib.sha256()
+    count = 0
+
+    def visit(item: Any) -> None:
+        nonlocal count
+        if isinstance(item, (bytes, bytearray, memoryview)):
+            data = bytes(item)
+            digest.update(len(data).to_bytes(8, "big"))
+            digest.update(data)
+            count += 1
+        elif isinstance(item, dict):
+            for key in sorted(item, key=str):
+                visit(item[key])
+        elif isinstance(item, (list, tuple)):
+            for nested in item:
+                visit(nested)
+
+    visit(value)
+    return digest.hexdigest() if count else None
+
 def _json_shape(value: Any) -> Any:
     """Replace binary leaves without retaining any generated text or media bytes."""
     if isinstance(value, (bytes, bytearray, memoryview)):
@@ -124,6 +146,8 @@ class WorkerRun:
             "output_kind",
             "output_size_bytes",
             "binary_output_bytes",
+            "output_sha256",
+            "binary_output_sha256",
         }
         record.update({key: value for key, value in fields.items() if key in allowed})
         print(
@@ -146,6 +170,17 @@ class WorkerRun:
             )
         except (TypeError, ValueError):
             json_size = 0
+        try:
+            output_shape = json.dumps(
+                _json_shape(output),
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode("utf-8")
+            output_sha256 = hashlib.sha256(output_shape).hexdigest()
+        except (TypeError, ValueError):
+            output_sha256 = None
+        binary_output_sha256 = _binary_sha256(output)
         self.current_stage = "terminal"
         self.emit(
             "worker_succeeded",
@@ -153,6 +188,8 @@ class WorkerRun:
             output_kind="media" if binary_size else "json",
             output_size_bytes=json_size + binary_size,
             binary_output_bytes=binary_size,
+            output_sha256=output_sha256,
+            binary_output_sha256=binary_output_sha256,
         )
 
     def fail(self, exc: BaseException) -> None:
@@ -219,6 +256,15 @@ def worker_stage(name: str) -> None:
     run = _ACTIVE_RUN.get()
     if run is not None:
         run.mark_stage(name)
+
+
+def refresh_worker_volume(volume: Any) -> None:
+    """Refresh a mounted scratch Volume before reading a newly uploaded attempt."""
+    with worker_phase("scratch_volume_reload"):
+        try:
+            volume.reload()
+        except Exception:
+            raise RuntimeError("MODAL_SCRATCH_VOLUME_RELOAD_FAILED") from None
 
 
 def _safe_error_type(exc: BaseException) -> str:
