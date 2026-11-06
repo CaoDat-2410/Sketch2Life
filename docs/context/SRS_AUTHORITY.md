@@ -6,12 +6,12 @@ For all **current product requirements and target architecture**, use only:
 
 [`features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md`](../../features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md)
 
-- Version recorded in the document: `2.4-draft` (2026-11-06), adding an as-built status snapshot while preserving v2.3 target requirements.
+- Version recorded in the document: `2.5-draft` (2026-11-06), reconciling AI directions across target sections, preserving the product requirements, and separating dated local and `origin/dev` source observations from runtime evidence.
 - Authority: the project's canonical **working baseline** for current product intent and target architecture.
 - Approval state: still a draft awaiting formal owner sign-off. Calling it canonical does not claim it has been signed or approved as a final SRS.
-- Companion: `features/FEAT-063-system-architecture-rearchitecture/artifacts/DATA_TABLE_REGISTER.md` is the matching v2.4-draft data-model companion. It supports the SRS; it is not another product SRS.
+- Companion: `features/FEAT-063-system-architecture-rearchitecture/artifacts/DATA_TABLE_REGISTER.md` is the matching v2.5-draft data-model companion. It supports the SRS; it is not another product SRS.
 
-If an older SRS, feature context, plan, decision, screenshot, or generated artifact conflicts with the current product intent in this SRS, use the FEAT-063 v2.4-draft SRS. Treat §32 as an environment-specific implementation snapshot, not as a replacement for target requirements in §§1–31. Record unresolved or missing requirements as open questions; do not silently import an older value or imply formal approval.
+If an older SRS, feature context, plan, decision, screenshot, or generated artifact conflicts with the current product intent in this SRS, use the FEAT-063 v2.5-draft SRS. Treat §32 as dated, environment-specific implementation/source evidence, not as a replacement for target requirements in §§1–31. Record unresolved or missing requirements as open questions; do not silently import an older value or imply formal approval.
 
 ## Historical and feature-local records
 

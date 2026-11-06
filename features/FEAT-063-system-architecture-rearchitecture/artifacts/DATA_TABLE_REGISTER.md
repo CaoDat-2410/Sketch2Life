@@ -1,8 +1,8 @@
 # Sketch2Life — Danh mục bảng dữ liệu
 
 **Tính năng:** FEAT-063 — Thiết kế lại kiến trúc toàn repository  
-**Trạng thái tài liệu:** Bản nháp v2.4 đồng bộ SRS; giữ target platform/data model v2.3 và bổ sung snapshot database local hiện tại; chưa sign-off
-**Phiên bản:** 2.4-draft
+**Trạng thái tài liệu:** Bản nháp v2.5 đồng bộ package SRS; giữ nguyên target platform/data model và crosswalk Rev31, ghi nhận snapshot DB local Rev43; không sign-off
+**Phiên bản:** 2.5-draft
 **Cập nhật:** 2026-11-06
 **SRS đi kèm:** [SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md](SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md)  
 **Điều kiện tạo diagram/PDF:** Chỉ tạo diagram khái niệm, logic và PDF sau khi chủ sở hữu phê duyệt cả hai tài liệu Markdown.
@@ -26,7 +26,7 @@
 
 ## 1. Quy tắc đếm và tổng số đích
 
-Danh mục này đếm các mapping SQLAlchemy/Core production đã khai báo và các bảng logic đích được đề xuất. Danh mục không khẳng định cơ sở dữ liệu đã triển khai hiện có đủ mọi mapping đã khai báo. Chưa kiểm tra trực tiếp cơ sở dữ liệu đang chạy. Năm bảng fixture dùng để kiểm tra ranh giới quyền sở hữu chỉ phục vụ kiểm thử và được loại khỏi phép đếm.
+Danh mục này đếm các mapping SQLAlchemy/Core production đã khai báo và các bảng logic đích được đề xuất. Rev43 đã kiểm tra read-only database phát triển local: Alembic `20261028_ll_0001`, 41 application tables (34 `public`, 7 `lesson`); chi tiết ở §14.5. Kết quả đó không khẳng định database local có đủ mọi mapping nguồn hoặc mọi bảng đích, không đại diện production và không thay thế kiểm kê/migration rehearsal trước triển khai. Năm bảng fixture chỉ phục vụ kiểm thử và được loại khỏi phép đếm.
 
 | Phân loại | Số lượng | Cách xử lý |
 |---|---:|---|

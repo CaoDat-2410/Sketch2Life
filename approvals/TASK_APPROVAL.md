@@ -82,3 +82,25 @@
 - `origin/dev` was fast-forwarded from `c98701b1e500906f396e773c79ec3bba55db2542` to `0d15b1a0ae6e5373354d7ac35cc163e41b55c42e`.
 - Fresh fetch confirmed remote and local `dev` match at `0d15b1a0ae6e5373354d7ac35cc163e41b55c42e`; working tree was clean.
 - Security validator passed; existing commit messages/objects were preserved.
+
+## FEAT-063 Plan Rev45 — SRS system and code alignment
+
+- Status: `APPROVED` for the exact documentation-only scope in Plan Rev45; not SRS content sign-off.
+- Approver: Project owner, direct SRS review/update request on 2026-11-06.
+- Recorded timestamp: 2026-11-06 12:28:16 Asia/Saigon.
+- Plan: `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV45_SRS_SYSTEM_CODE_ALIGNMENT_20261106.md`.
+- Plan hashes: authorization `AD0554469128DD3DF13484DD7A78BAB42B99CB026C5D433D61D7D48E26950F1A`; approved scope addenda `E9F11167D6BFD1D9D341559B36C1003943460D48B98E0F88D0BDAFA3A2E0A385`, `3BE2B7AB19C69EB229768376B7BD1D041003C175D57B808BBE1BC2706D7BC453`, `1B8A1AD64F80A70D5BDA553311629787936900571B92BBB94433F83191C43175`; final local review `880EC6A2B3DB0B3FBC23A0386589EE2E1E3863E9295F3F1169D9BE7469752F46`.
+- Published-port plan SHA-256: `53102EBB02521BC747DA0E79971B1AA636371C4830D501A173D9D7971930C05C`; Plan Rev51 approves its path reindex as EV-063-55 because EV-063-34 is already assigned on `origin/dev`.
+- Scope: update the canonical SRS to v2.5-draft, reconcile existing AI directions and local source/runtime boundaries, and update matching authority/tracking records. The v2.5 SRS remains unsigned.
+
+## FEAT-063 Plan Rev51 — publish SRS v2.5 and reconcile latest dev source
+
+- Status: `APPROVED` for the exact publication scope in Plan Rev51.
+- Approver: Project owner, direct instruction in this conversation on 2026-11-06: “commit and push”.
+- Recorded timestamp: 2026-11-06 17:16:12 Asia/Saigon.
+- Approved plan: `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV51_PUBLISH_REV45_SRS_20261106.md`.
+- Plan SHA-256 at authorization: `919CD35DC42973A5FE06C9D99D56DC851B4FCDB1313E1AF0612CB525D78116A8`.
+- Scope: publish the v2.5-draft SRS/document package on a new branch from fetched `origin/dev` `4749451080f49243464d40a464b8f83a03ae77bb`; add a source-only §32.6 review of that tree; preserve newer remote records and exclude unrelated checkout work.
+- Acceptance criteria: AC1–AC8 in the hash-identified Plan Rev51.
+- Exclusions: code/API/schema/data/migration/test/build/provider/Modal/deployment/secret changes; SRS sign-off; push to `dev`; force-push/history rewrite; PR creation; and publication outside the manifest.
+- Approval basis: the owner's direct request authorizes commit and push of this reviewed SRS package under Plan Rev51, not publication of unrelated work.

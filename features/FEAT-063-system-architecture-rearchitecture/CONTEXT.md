@@ -1,5 +1,13 @@
 # FEAT-063 — Whole-repository architecture redesign
 
+## SRS v2.5 alignment and current dev-source review — Plans Rev45/Rev51 (2026-11-06)
+
+- Lifecycle: REVIEW; SRS/code review is complete and publication is in progress under Plan Rev51.
+- Canonical working SRS: `artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` v2.5-draft with matching Data Table Register v2.5-draft; neither has owner content sign-off.
+- Rev45 reconciles existing product directions and records the earlier local working-tree source snapshot. Rev51 adds §32.6 for fetched `origin/dev` `4749451080f49243464d40a464b8f83a03ae77bb`, preserving the distinction between main API, separate StoryRun-lite fixture integration, Modal dev workers, and product target requirements.
+- Current source review confirms code/configuration presence only. Main-app AI dispatch and durable AI Jobs remain gaps; separate StoryRun-lite background tasks do not satisfy the durable target. Existing Rev44–46 worker evidence is attributed but was not rerun for Rev51.
+- Evidence: `evidence/EV-063-55_SRS_SYSTEM_CODE_ALIGNMENT_REV45_20261106.md` and `evidence/EV-063-56_SRS_PUBLICATION_REV51_20261106.md`.
+
 
 ## As-built SRS alignment — Plan Rev43 (2026-11-06)
 

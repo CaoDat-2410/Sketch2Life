@@ -1,7 +1,15 @@
 # FEAT-063 source register
 
+## Rev45/Rev51 SRS alignment — current — 2026-11-06
 
-## Rev43 as-built SRS alignment — current — 2026-11-06
+- Canonical working SRS and companion: v2.5-draft, unsigned. §§1–31 remain product/architecture targets; §32 contains dated source/runtime observations.
+- Rev45 resolves inconsistent model-status statements in the target sections. Rev51 source review at fetched `origin/dev` `4749451080f49243464d40a464b8f83a03ae77bb` distinguishes the mounted main FastAPI composition from the separate StoryRun-lite/Modal development slice.
+- Main app has no mounted AI Jobs router or AI dispatch; StoryRun-lite uses separate in-process background tasks and is not durable production job orchestration. Dev model pins/workload results remain implementation evidence, not production approval.
+- Local OpenAPI/database numbers remain the Rev43 snapshot and were not revalidated in Rev51. No API, DB, Modal, model, test, or deployment operation was performed for this source review.
+- Evidence: `evidence/EV-063-55_SRS_SYSTEM_CODE_ALIGNMENT_REV45_20261106.md`; `evidence/EV-063-56_SRS_PUBLICATION_REV51_20261106.md`.
+
+
+## Rev43 as-built SRS alignment — historical snapshot — 2026-11-06
 
 - Canonical working SRS: `artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` v2.4-draft; companion Data Table Register v2.4-draft. Both remain unsigned.
 - SRS §§1–31 preserve product/architecture target requirements; §32 and Data Table Register §14.5 record implementation status as observed locally on 2026-11-06.
