@@ -344,4 +344,4 @@ Plan Rev51 SHA-256 at approval: `B20103A217D7A9623E02279CE0BD82D5BC61141518D820F
 - Current product authority after this integration: FEAT-063 `artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` v2.5-draft as directed by `docs/context/SRS_AUTHORITY.md`; it remains unsigned. Older SRS records in this register are historical evidence.
 - Matching companion: FEAT-063 `artifacts/DATA_TABLE_REGISTER.md` v2.5-draft.
 - Integrated source commits: SRS `fae180dcf3ea2771b41546aa6925b94636821df1`; AI `c6818490d0d889ab17dc9f8de3830987eb2a230d`.
-- Integration status/evidence: `evidence/EV-063-57_SRS_V25_AND_MODAL_AI_DEV_INTEGRATION_20261106.md`; local merges are complete, security validation and push are pending.
+- Integration status/evidence: `evidence/EV-063-57_SRS_V25_AND_MODAL_AI_DEV_INTEGRATION_20261106.md`; merges and normal publication to `origin/dev` are complete; remote-tip equality was verified.

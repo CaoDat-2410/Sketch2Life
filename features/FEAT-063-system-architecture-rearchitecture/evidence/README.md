@@ -162,4 +162,4 @@ Records the six patch-equivalent local `dev` commits, preservation backup, full 
 - Plan Rev54 and approval hash: `../plan/PLAN_REV54_MERGE_SRS_V25_AND_MODAL_AI_TO_DEV_20261106.md`, SHA-256 `C6882123DF3F1671AF7014784651E9F6A37AD799BA3763223BFC10C9E2A9F937`.
 - Integration report: [`EV-063-57_SRS_V25_AND_MODAL_AI_DEV_INTEGRATION_20261106.md`](EV-063-57_SRS_V25_AND_MODAL_AI_DEV_INTEGRATION_20261106.md).
 - Source commits: SRS `fae180dcf3ea2771b41546aa6925b94636821df1`; Modal AI `c6818490d0d889ab17dc9f8de3830987eb2a230d`.
-- Status: locally merged; repository security validation and `origin/dev` publication are pending.
+- Status: complete; `origin/dev` was verified at integration commit `47e5308a5c547df8dab5f3c560f949ee925f441e`; final closeout is also recorded on `dev`.
