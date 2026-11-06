@@ -585,6 +585,6 @@ Parent Sketch Guide and lesson visuals were not dispatched because Modal `dev` s
 ## Rev52 non-video Modal AI reliability - 2026-11-06
 
 - Status: IN_PROGRESS under the approved Plan Rev52.
-- Approved plan SHA-256: `9703A6CFE3AAF6108A1443B4E7F93805481475A0C60C64C50414106441158938`.
+- Approved plan SHA-256: `6B3B1C25CD2A9974860A93551CDAD0FB3363DB38CB00D293ABB4818C9F0782D2`.
 - Work branch: `feature/feat063-modal-ai-reliability-20261106` from `dev` at `0fc773fa`.
 - No code/deployment change is recorded yet; evidence folder is being initialized.

@@ -513,5 +513,5 @@ Owner-authorized FEAT-063 dev-only test added ordered L4/L40S/A10 GPU options, s
 - Status: APPROVED; implementation is proceeding on `feature/feat063-modal-ai-reliability-20261106`, based on `dev` commit `0fc773fa`.
 - Scope: all 9 non-video workload IDs in the current Modal registry, structured privacy-safe worker/caller logs, current mounted Parent AI routes, bounded synthetic calls, and task-app shutdown. Video remains excluded.
 - Baseline: prior worker successes are historical evidence; backend durable product APIs remain absent for several workloads. A worker pass will not be described as product API readiness.
-- Approved plan and SHA-256: `plan/PLAN_REV52_NONVIDEO_MODAL_AI_RELIABILITY_20261106.md`, `9703A6CFE3AAF6108A1443B4E7F93805481475A0C60C64C50414106441158938`.
+- Approved plan and SHA-256: `plan/PLAN_REV52_NONVIDEO_MODAL_AI_RELIABILITY_20261106.md`, `6B3B1C25CD2A9974860A93551CDAD0FB3363DB38CB00D293ABB4818C9F0782D2`.
 - No source implementation or Modal deployment has started before this approval record.

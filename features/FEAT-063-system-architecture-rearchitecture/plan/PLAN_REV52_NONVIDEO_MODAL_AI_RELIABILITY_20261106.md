@@ -1,8 +1,8 @@
 # FEAT-063 Plan Rev52 - non-video Modal AI reliability and observability
 
-**Date:** 2026-11-06 (Asia/Saigon)  
-**Feature:** FEAT-063 - system architecture rearchitecture  
-**Canonical product source:** FEAT-063 SRS v2.4-draft at `artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` (unsigned working baseline).  
+**Date:** 2026-11-06 (Asia/Saigon)
+**Feature:** FEAT-063 - system architecture rearchitecture
+**Canonical product source:** FEAT-063 SRS v2.4-draft at `artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` (unsigned working baseline).
 **Branch base:** `dev` at `0fc773fafeb6f5443538f283cb891c67d379d9c6`; work branch `feature/feat063-modal-ai-reliability-20261106`.
 
 ## Goal
