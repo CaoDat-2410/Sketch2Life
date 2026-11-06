@@ -171,3 +171,16 @@
 - Conflict handling retained both histories. SRS decision IDs D-144/D-145 were reassigned to D-148/D-149 to preserve all four records without duplicate IDs.
 - Evidence: `features/FEAT-063-system-architecture-rearchitecture/evidence/EV-063-57_SRS_V25_AND_MODAL_AI_DEV_INTEGRATION_20261106.md`.
 - Validation: `git diff --check` passed; `python tools/validate_repository_security.py` reported `REPOSITORY_SECURITY_VALID` with 6,731 publishable files scanned before commit and push. No force push or history rewrite.
+
+## FEAT-063 Plan Rev55 — remediate the v2.5 SRS review report
+
+- **Status:** APPROVED for the documentation-only scope in Plan Rev55.
+- **Approver:** Project owner, direct request on 2026-11-06 to read `Sketch2Life_Bao_cao_hop_nhat_Fix_1_luot_v2_5.docx` and fix its findings.
+- **Recorded timestamp:** 2026-11-06 23:31:23 Asia/Saigon.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV55_SRS_REPORT_REMEDIATION_20261106.md`.
+- **Approved plan SHA-256:** `7BDE505B1D34D18A7E7FD6E79C76827B512517E218199F234A7077887158690D`.
+- **Current plan SHA-256 after approval-state update:** `84F8BC7C95C780C9E066AFB21CB117C4DA7486032479BD84DF1BC679756A8E07`.
+- **Final plan SHA-256 at documentation closeout:** `FE9A7717E5D4A1573FAD5B86F02C82455769CFC3125C67FC221C2F66B671001E`.
+- **Scope:** assess M-01–M-16, D-01–D-20 and Q-01–Q-13 against the current canonical SRS, Data Table Register and attributable repository evidence; fix supported documentation contradictions; align target/as-built counts and authority pointers; record unsupported or unresolved decisions as OPEN/NOT SPECIFIED; update FEAT-063 trace/context/evidence records.
+- **Exclusions:** no code/API implementation, database DDL or migration, Modal/provider/runtime/deployment changes, real data, product test runs, diagrams/PDF before formal SRS sign-off, commit or push. No product/schema decision may be invented for unresolved questions.
+- **Approval basis:** the owner's direct instruction authorizes the documentation remediation described by this exact plan; formal SRS sign-off is not implied.

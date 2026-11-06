@@ -1,6 +1,14 @@
 # FEAT-063 — Whole-repository architecture redesign
 
-## SRS v2.5 alignment and current dev-source review — Plans Rev45/Rev51 (2026-11-06)
+## Rev55 SRS report remediation — current — 2026-11-06
+
+- Lifecycle: documentation remediation complete; feature remains in REVIEW. The SRS and Data Table Register are v2.6-draft and await formal owner sign-off.
+- The owner-provided report was reviewed item by item. See `artifacts/REPORT_REMEDIATION_CROSSWALK_REV55_20261106.md` for all 49 M/D/Q dispositions and `artifacts/ARCHITECTURE_DETAIL_CATALOG_REV55_20261106.md` for the supporting role, state, API, data, screen and package catalogs.
+- Canonical target requirements remain in SRS §§1–31. §32.7 records a static source snapshot at `1431ef81972b71303fd4a7909748fd3005769a3c`; it does not claim a live API/DB/AI acceptance result. Main-app AI Jobs and durable orchestration remain implementation gaps.
+- Counts distinguish 92 active + 48 legacy/read-only projected mappings (140 total), the historical 89/137 target baseline, the 89 source-declared mappings, and the 41-table local Rev43 DB snapshot.
+- Remaining questions are retained as OPEN; no product code, physical schema, provider/deployment configuration or tests were changed/run. Evidence: `evidence/EV-063-58_SRS_REVIEW_REPORT_REMEDIATION_REV55_20261106.md`.
+
+## SRS v2.5 alignment and current dev-source review — Plans Rev45/Rev51 (2026-11-06) — historical
 
 - Lifecycle: REVIEW; SRS/code review and initial publication are complete under Plan Rev51.
 - Canonical working SRS: `artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` v2.5-draft with matching Data Table Register v2.5-draft; neither has owner content sign-off.

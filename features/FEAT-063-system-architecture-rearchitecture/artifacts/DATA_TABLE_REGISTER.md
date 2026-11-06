@@ -1,8 +1,8 @@
 # Sketch2Life — Danh mục bảng dữ liệu
 
 **Tính năng:** FEAT-063 — Thiết kế lại kiến trúc toàn repository  
-**Trạng thái tài liệu:** Bản nháp v2.5 đồng bộ package SRS; giữ nguyên target platform/data model và crosswalk Rev31, ghi nhận snapshot DB local Rev43; không sign-off
-**Phiên bản:** 2.5-draft
+**Trạng thái tài liệu:** Bản nháp v2.6 đồng bộ package SRS; sửa count/owner-reference mismatches theo review Rev55; giữ crosswalk Rev31 và snapshot DB local Rev43 riêng biệt; không sign-off
+**Phiên bản:** 2.6-draft
 **Cập nhật:** 2026-11-06
 **SRS đi kèm:** [SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md](SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md)  
 **Điều kiện tạo diagram/PDF:** Chỉ tạo diagram khái niệm, logic và PDF sau khi chủ sở hữu phê duyệt cả hai tài liệu Markdown.
@@ -26,19 +26,21 @@
 
 ## 1. Quy tắc đếm và tổng số đích
 
-Danh mục này đếm các mapping SQLAlchemy/Core production đã khai báo và các bảng logic đích được đề xuất. Rev43 đã kiểm tra read-only database phát triển local: Alembic `20261028_ll_0001`, 41 application tables (34 `public`, 7 `lesson`); chi tiết ở §14.5. Kết quả đó không khẳng định database local có đủ mọi mapping nguồn hoặc mọi bảng đích, không đại diện production và không thay thế kiểm kê/migration rehearsal trước triển khai. Năm bảng fixture chỉ phục vụ kiểm thử và được loại khỏi phép đếm.
+Danh mục này phân biệt mapping production có trong source inventory, logical target mapping, legacy mapping được giữ lại và bảng thực sự quan sát trong một môi trường database. Rev43 local snapshot là read-only: Alembic `20261028_ll_0001`, 41 application tables (34 `public`, 7 `lesson`), chi tiết tại §14.5. Snapshot không đại diện production và không chứng minh target mapping đã migrate. Năm bảng fixture bị loại khỏi phép đếm.
 
-| Phân loại | Số lượng | Cách xử lý |
+| Phép đo | Số lượng | Ý nghĩa |
 |---|---:|---|
-| Bảng production hiện tại đã khai báo | 89 | Đối chiếu từ danh mục mapping hiện có trong repository | Rev31 adds three Lesson support mappings.
-| Bảng fixture chỉ dùng cho kiểm thử hiện tại | 5 | Loại khỏi số lượng production và bảng đích |
-| Bảng hiện tại được giữ/tái cấu trúc để tiếp tục hoạt động | 38 | Giữ chủ sở hữu module hiện tại; tối giản các ledger/registry trùng vòng đời |
-| Bảng đích chuẩn hóa mới | 54 | Gồm Parent/profile sharing, lesson library/visibility/delivery/feedback, school audience groups, Story, Billing/quota, Core asset/upload và AI job |
-| Tổng số bảng đích active | **92** | 38 + 54 |
-| Bảng hiện tại được đánh dấu legacy/chỉ đọc | 48 | Giữ nguyên bảng vật lý và các hàng; không đưa vào ERD đích |
-| Tổng số bảng production vật lý sau chuyển đổi schema đích | **140** | 92 bảng active + 48 bảng legacy được giữ lại |
+| Source-declared production mappings sau Rev31 | 89 | 38 retained/refactored + 48 legacy + 3 Lesson support source mappings; không phải active target count |
+| Retained/refactored target mappings | 38 | Duy trì owner hiện tại, tinh giản ledger/helper theo kế hoạch được duyệt |
+| New target mappings hiện hành | 54 | 51 target v2.3 + 3 Lesson support mappings Rev31 |
+| Active target mappings | **92** | 38 retained/refactored + 54 new |
+| Legacy/read-only mappings | **48** | Giữ nguyên vật lý, nằm ngoài active target graph |
+| Projected physical mappings | **140** | 92 active + 48 legacy; source-derived target, không phải database hiện đang chạy |
+| Historical v2.3 target | 89 active / 137 physical | 38 retained/refactored + 51 new + 48 legacy; superseded by the Rev31 target crosswalk |
+| Rev43 local DB snapshot (2026-11-06) | 41 application tables | 34 `public` + 7 `lesson`; local environment only |
+| Fixture tables | 5 | Test-only; excluded from production and target counts |
 
-Current source-declared mappings after Rev31: 38 retained/refactored + 48 legacy + 3 new Lesson support tables = 89. The target model is 38 retained/refactored + 54 new = 92 active; plus 48 legacy/read-only = 140 projected physical mappings. Five fixture tables are excluded. These counts are source-derived and do not describe a live database.
+The 54 new target mappings are specified across §§5 and 14.4: §5 enumerates the 51 v2.3 mappings; §14.4 adds the three Lesson-owned support mappings. No count in this table asserts that a migration ran or that all source rows have been reconciled.
 
 **Tinh gọn AI Policy:** 12 bảng registry bản sao provider được chuyển sang legacy/read-only; flow synthetic V1 theo dõi transfer và dọn scratch trên `ai_jobs.attempt`/`ai_jobs.job_events` cùng provenance của Core Asset. `ai_policy.resource_receipt` cũng trở thành legacy/read-only; với lệnh mới, `ai_policy.resource_event` mang idempotency key, fingerprint và snapshot kết quả cùng event/outbox metadata. Như vậy không có bảng ghi kép receipt/event và không có registry 12 bảng chỉ cần khi xử lý dữ liệu thật. Kích hoạt real-child-data/provider transfer vẫn bị chặn cho tới khi có review riêng về retention/ủy quyền; trước gate này phải duyệt lại việc cần tái lập registry provider.
 
@@ -70,6 +72,7 @@ Current source-declared mappings after Rev31: 38 retained/refactored + 48 legacy
 - Nội dung nhị phân như ảnh, âm thanh, giáo án và video được lưu trong object storage riêng tư. Hàng quan hệ lưu tham chiếu asset không mang ý nghĩa nghiệp vụ, hash, metadata media và lineage.
 - Mỗi hàng dùng xuyên vai trò, nếu đại diện cho dữ liệu do người dùng sở hữu, phải có `owner_scope_kind` và `owner_scope_ref` có kiểu rõ ràng. `organization_id` tiếp tục là khóa tổ chức cho dữ liệu Teacher hiện có; dữ liệu Parent dùng scope tài khoản Parent, tuyệt đối không tạo tổ chức giả. Giữ nguyên các cột organization legacy cho đến khi có migration tương thích được phê duyệt riêng.
 - Mỗi module sở hữu các bảng và thao tác ghi của mình. Cho phép khóa ngoại nội bộ trong một module/schema. Tham chiếu liên module là tham chiếu opaque có version, được kiểm tra qua application port; không tạo khóa ngoại chéo chủ sở hữu hoặc coupling SQL trực tiếp giữa các module.
+- Tên logic trong tài liệu dùng `schema.table`; physical SQL identifier dùng tên đúng như DDL/mapping triển khai (thường `snake_case`); tên Python model/module chỉ là source path. Không suy ra đổi tên schema/table từ cách viết dấu chấm hay gạch dưới.
 - Scope tài khoản Parent là PARENT_ACCOUNT; scope dữ liệu Teacher là ORGANIZATION. ID actor người lớn được suy ra ở server từ danh tính đã xác minh. Không bao giờ biểu diễn Parent thành một tổ chức giả.
 - Revision hồ sơ và snapshot run là bất biến. Cập nhật đối tượng đã duyệt tạo revision mới và làm mất hiệu lực các job dựa trên revision cũ.
 - Chỉ thu thập telemetry metadata không chứa nội dung. Không ghi prompt model, tên trẻ, transcript, byte media, URL ký số hoặc nội dung nhu cầu hỗ trợ vào log/sự kiện audit.
@@ -96,7 +99,7 @@ Hai giá trị trong cột trạng thái:
 | 10 | BE1 danh tính/tổ chức | be1_adult_identities | Retain/refactor | be1; projection principal Firebase đã xác minh; bổ sung `account_scope` loại trừ lẫn nhau cho Parent/Teacher, do server gán |
 | 11 | BE1 danh tính/tổ chức | be1_organization_assignments | Retain/refactor | be1; phân quyền/vai trò trong tổ chức |
 | 12 | BE1 danh sách lớp | be1_classrooms | Retain/refactor | be1; lớp đơn giản thuộc tổ chức, không mang ngữ nghĩa phòng/session trực tiếp |
-| 13 | BE1 danh sách lớp | be1_managed_profiles | Retain/refactor | be1; bản ghi đầu hồ sơ Teacher thuộc tổ chức; schema nguồn hiện khai báo tuổi 36–155 tháng; target v2.3 giới hạn 36–120 tháng và cần migration validator. `class_id` là projection enrollment; các trường consent tùy theo `data_origin` |
+| 13 | BE1 danh sách lớp | be1_managed_profiles | Retain/refactor | be1; source head hồ sơ Teacher thuộc tổ chức; source constraint cũ 36–155 tháng, target create/update 36–120 tháng. Không clamp/delete/đổi nghĩa profile legacy 121–155; migration/use disposition cần policy và data review riêng (Q-11). `class_id` là enrollment projection; consent phụ thuộc `data_origin` |
 | 14 | BE1 danh sách lớp | be1_enrollments | Retain/refactor | be1; lịch sử roster lớp canonical; mô hình đích bổ sung ràng buộc mỗi hồ sơ có tối đa một enrollment active (khai báo hiện tại chưa thực thi bất biến này) |
 | 15 | BE1 quyền riêng tư | be1_consent_records | Retain/refactor | be1; chỉ lưu bằng chứng mục đích/ủy quyền dùng dữ liệu thật; constraint state hiện tại chỉ có pending/revoked, chưa đủ cho xử lý dữ liệu thật sau này; demo dữ liệu tổng hợp không tạo consent record |
 | 16 | BE1 lifecycle | be1_data_lifecycle_requests | Retain/refactor | be1; điều phối lifecycle hồ sơ/run và receipt xóa |
@@ -114,7 +117,7 @@ Hai giá trị trong cột trạng thái:
 | 28 | BE1 runtime cộng tác | be1_child_turns | Legacy/read-only | không có lượt thao tác canvas của trẻ |
 | 29 | BE1 runtime cộng tác | be1_gallery_snapshots | Legacy/read-only | chỉ giữ gallery lịch sử; không tạo gallery nhóm mới |
 | 30 | BE1 runtime cộng tác | be1_observations | Legacy/read-only | giữ quan sát session cũ làm lịch sử; context người lớn mới dùng revision context hồ sơ BE1 |
-| 31 | AI job bền vững | ai_jobs.job | Retain/refactor | ai_jobs; bổ sung owner scope có kiểu, discriminator/target ref cho đúng một StoryRun, Teacher Sketch Deck, Parent Sketch Guide, Lesson Library Version hoặc Lesson Visual Asset; `story_run_ref` nullable theo target; Parent guide chỉ nhận generic topic/difficulty, không child/profile ref; `session_id` cũ và JSON nhiều subject/result/history giữ nguyên ý nghĩa legacy |
+| 31 | AI job bền vững | ai_jobs.job | Retain/refactor | ai_jobs; target có đúng một discriminator/ref có kiểu: `STORY_RUN`, `VIDEO_GENERATION`, `VIDEO_GENERATION_SCENE`, `LESSON_SOURCE_DOCUMENT`, `LESSON_LIBRARY_VERSION`, `LESSON_VERSION_VISUAL_ASSET`, `LESSON_SKETCH_DECK_REVISION` hoặc `PARENT_SKETCH_GUIDE`; `story_run_ref` nullable theo target; Parent guide chỉ nhận generic topic/difficulty, không child/profile ref; `session_id` và JSON nhiều subject/result/history giữ nguyên nghĩa legacy |
 | 32 | AI job bền vững | ai_jobs.attempt | Retain/refactor | ai_jobs; bản ghi attempt theo provider/stage có giới hạn |
 | 33 | AI job bền vững | ai_jobs.command_receipt | Retain/refactor | ai_jobs; idempotency command cho thao tác run/job |
 | 34 | AI job bền vững | ai_jobs.semantic_request | Retain/refactor | ai_jobs; loại request trùng theo một run, một input và revision context |
@@ -295,9 +298,9 @@ Khóa chính tổng hợp hiện tại của `ai_jobs.command_receipt` cần chu
 
 `ai_jobs.job.session_id`, `subject_refs`, `result_refs` và `history`, cùng `core_asset_metadata.source_refs`, giữ nguyên ý nghĩa đối với bản ghi legacy. Job mới dùng target-kind/ref có version để gắn đúng một StoryRun, Lesson Sketch Deck, Parent Sketch Guide, Lesson Library Version hoặc Lesson Visual Asset; Story job có target StoryRun đơn trị và resolve một profile từ run, Teacher Sketch job gắn occurrence/plan/deck refs, Parent guide target chỉ giữ generic topic/difficulty và không có child subject. `ai_jobs.job_events` là nguồn chuẩn cho tiến độ; Teacher deck output refs thuộc Lesson aggregate; Parent guide trả private Core Asset tạm có expiry/lineage, được purge theo lifecycle và không thuộc profile/StoryRun. Completion receipt chỉ giữ disposition/hash. Mảng JSON legacy mới để rỗng. Không bao giờ diễn giải lại mảng cũ như thể chúng mô tả run mới chỉ có một trẻ.
 
-## 5. Từ điển bảng đích mới (40 baseline tables)
+## 5. Từ điển bảng đích mới (51 v2.3 target mappings)
 
-Phần này mô tả 40 bảng mới trong baseline v2.2. Thêm 11 bảng platform được định nghĩa ở §14.1, nâng tổng từ điển logical target lên 51 bảng mới. Từ điển nêu chủ sở hữu, kiểu khóa/tham chiếu, dữ liệu chính, ràng buộc và lifecycle. Tên trường là tên thiết kế logic, không phải DDL có thể thực thi. Mọi ID đều opaque. Mỗi revision bất biến ghi nhận actor và timestamp. Mọi bảng chứa nội dung nằm trong lifecycle xóa của module sở hữu bảng đó.
+Phần này mô tả 51 new mappings của target v2.3 (baseline v2.2 lịch sử là 40). Ba Lesson-owned support mappings Rev31 được liệt kê bổ sung ở §14.4, nên tổng new target hiện hành là 54. Tên bảng/trường tại đây là thiết kế logical, không phải DDL có thể thực thi. Mọi ID là opaque; mọi revision bất biến ghi actor/time; lifecycle thuộc owner của bảng.
 
 ### 5.1 Asset lineage và upload-resume Core (3)
 
@@ -366,7 +369,7 @@ Parent và Teacher dùng chủ sở hữu vật lý riêng để giữ ranh gi�
 
 | Bảng | Khóa và tham chiếu | Trường logic | Ràng buộc và mục đích |
 |---|---|---|---|
-| story.runs | PK story_run_id; creator/actor ref; đúng một tham chiếu hồ sơ Parent hoặc Teacher opaque; occurrence/class refs tùy chọn | actor_role, owner_scope_kind/ref, profile_kind/ref, current_run_input_ref, activity_ref/version, lesson_plan_revision_ref, state, aggregate_revision, current_story_revision_ref, current_video_generation_ref, run_kind, `created_by_actor_ref`, `active_owner_parent_account_id` XOR `active_owner_teacher_id`, `owner_epoch`, `assignment_version`, started_at, last_meaningful_activity_at, adult_wait_started_at, finished_at, deleted_at | Thực thi XOR giữa hồ sơ Parent/Teacher. Parent không có tham chiếu org/class/lesson; Teacher cần lớp được phân quyền, occurrence, plan đã duyệt và đúng một trẻ. Chỉ một activity scalar. Profile revision và snapshot nằm trong input revision hiện hành, không lặp ở run. Partial unique index khóa run chưa đóng theo current owner field, không theo creator; DRAFT và admission pending vẫn giữ khóa. AI job đang hoạt động không phải adult-wait; `adult_wait_started_at` bắt đầu khi job kết thúc/lỗi và cần thao tác người lớn. Tại +144 giờ gửi inbox/push/email best-effort; tại +168 giờ VIDEO_READY→COMPLETED, adult-wait khác→ABANDONED; cả hai nhả khóa nhưng giữ nội dung đến khi người dùng xóa. Reassignment chuyển owner qua saga BE1/Story và thu hồi quyền creator cũ; `created_by_actor_ref` chỉ là provenance. Hủy người dùng chuyển DELETE_PENDING và xóa nội dung theo lifecycle. |
+| story.runs | PK story_run_id; creator/actor ref; đúng một tham chiếu hồ sơ Parent hoặc Teacher opaque; Teacher occurrence/class refs tùy chọn; optional typed opaque `lesson_version_ref`/content hash khi dùng preset (physical column/migration chưa được chốt) | actor_role, owner_scope_kind/ref, profile_kind/ref, current_run_input_ref, `lesson_version_ref_optional`, `lesson_version_hash_optional`, Teacher-only activity_ref/version and lesson_plan_revision_ref, state, aggregate_revision, current_story_revision_ref, current_video_generation_ref, run_kind, `created_by_actor_ref`, `active_owner_parent_account_id` XOR `active_owner_teacher_id`, `owner_epoch`, `assignment_version`, timestamps/lifecycle refs | XOR giữa hồ sơ Parent/Teacher. Parent không có org/class ref; có thể pin một version lesson được phép bằng typed opaque ref/hash, không FK và không `latest`. Parent không chọn activity trước video; activity list lấy từ pinned immutable lesson version sau video. Teacher sample cần lớp/occurrence/plan đã duyệt và đúng một activity. Profile revision/snapshot nằm trong input revision. Partial unique active owner lock, không theo creator; admission pending giữ lock. Reassignment chuyển quyền qua BE1/Story saga; creator chỉ là provenance. Hủy/chốt run theo BR-39/40. |
 | story.run_inputs | PK run_input_id; FK nội bộ story_run_id; unique `(story_run_id, input_revision)` | input_revision, drawing_asset_ref/version, typed_idea, voice_asset_ref/version, idea_source, source_profile_revision_ref, context_schema_version, approved_context_snapshot_jsonb_bounded, context_snapshot_hash, input_confirmed_by, input_confirmed_at, created_at | Một revision bất biến gom các đầu vào được gắn với cùng lần lập story: tranh, ý tưởng/transcript đã xác nhận, profile revision và context tối thiểu đã được người lớn duyệt. JSONB chỉ chứa danh sách nhỏ đã validate, allowlist, có version/hash/giới hạn; không phải kho profile hay run history. App history được đọc từ Story; context nhập tay vẫn thuộc Parent/BE1 profile-context entries. Hash/loại media/kích thước byte canonical trong Core Asset. Audio tối đa 2 phút/20 MB; không batch. |
 | story.transcript_revisions | PK transcript_revision_id; FK nội bộ run_input_id | revision_no, raw_transcript, adult_corrected_text, language, ASR_profile_ref, model_revision, config_hash, segment_timing_optional, state, reviewed_by, reviewed_at | Lưu Whisper gốc và bản người lớn sửa theo revision của đúng input. Bắt buộc người lớn xác nhận trước khi lập story. Xóa cùng lifecycle run. |
 | story.understanding_revisions | PK understanding_revision_id; FK nội bộ run_input_id | revision_no, source_asset_ref/version, VLM_profile_ref, model_revision, config_hash, structured_subjects, entities, setting, visual_anchors, uncertainty, state, created_at, confirmed_by, confirmed_at | Kết quả VLM được kiểm tra schema và gắn với chính xác version asset input bất biến. Hash asset canonical trong Core Asset. Người dùng sửa thì tạo revision VLM mới; không sửa kết quả cũ. |
@@ -601,7 +604,7 @@ Q01-Q146 form the historical product baseline; Q147-Q195 extend it. Preserve the
 | Quyết định | Quy tắc đã chốt | Ánh xạ dữ liệu đích |
 |---|---|---|
 | Q134 | `DRAFT` thuộc adult-wait; active owner/lock tách khỏi creator bất biến; reassignment chuyển quyền qua BE1/Story; emergency force-close chỉ metadata/audit và không cấp admin quyền media, không trả quota hay mở lại sample claim. | `story.runs.active_owner_parent_account_id`, `active_owner_teacher_id`, `created_by_actor_ref`, `owner_epoch`; transfer/audit metadata; không thêm bảng riêng cho force-close. |
-| Q135 | Thêm `core.upload_sessions` và `core.upload_parts`; mỗi application chunk tối đa 4 MiB là một object `PutObject`; backend kiểm tra liên tục/hash rồi bounded-assemble và ghi asset cuối bằng một `PutObject`; không dùng S3 Multipart Upload API. | Hai bảng Core chứa session/expiry và receipt/hash/size/object ref; `core_asset_metadata` chỉ mô tả asset hoàn tất. Các bảng này vẫn thuộc baseline sau khi gỡ các helper/snapshot trùng lặp; số đích hiện hành được D-83 chốt tại historical baseline 40 new, 78 active, 126 physical; v2.3 target 51 new, 89 active, 137 physical. |
+| Q135 | `core.upload_sessions`/`core.upload_parts`; application chunk tối đa 4 MiB qua PutObject; kiểm tra liên tục/hash rồi bounded assemble; không dùng S3 Multipart Upload API. | Hai bảng Core chứa session/expiry và receipt/hash/size/object ref; `core_asset_metadata` mô tả asset hoàn tất. Phép tính 40 new/78 active/126 physical từ D-83 và 51/89/137 là các baseline lịch sử. Target hiện hành sau Rev31 là 54 new/92 active/140 physical theo §1; không có migration claim. |
 | Q136 | Tại +144 giờ tạo inbox reminder, push best-effort và email best-effort nếu owner Parent/Teacher hiện tại có email đã xác minh; inbox là nguồn chuẩn. | `notifications.inbox_items` giữ notice/dedupe; `notifications.delivery_attempts` giữ trạng thái kênh, không lưu nội dung trẻ hay raw recipient email. |
 | Q137 | AI Sketch Deck chỉ phục vụ Teacher; Parent không dùng deck hoặc chọn trước chủ thể. Q146 bổ sung Parent AI line-sketch guide riêng, hoàn toàn tùy chọn. | Lesson deck sinh từ occurrence; Parent guide dùng `ai_jobs.job` target `PARENT_SKETCH_GUIDE`, private temporary Core Asset và AI Policy resource accounting; capture/VLM review flow vẫn giữ nguyên. |
 | Q138 | Mỗi hướng dẫn vẽ có chuỗi 3–5 line-sketch bước tăng dần, gợi ý bố cục/vị trí và nội dung ngắn phù hợp tuổi. | `lesson.sketch_deck_steps` và Core line-art assets; target age band thuộc occurrence/deck, không lấy từ một hồ sơ trẻ cụ thể. |
@@ -672,7 +675,7 @@ Các bảng dưới đây là 11 bảng logical target bổ sung; chúng không 
 8. lesson.version_visual_assets chỉ tham chiếu Core Asset version/lineage và AI Job provenance; hash/bytes/provider response không copy vào Lesson.
 9. Lesson text fields có thể đi vào model chỉ sau parser/filter allowlist và Teacher review. Raw upload source remains private and cannot be serialized into AI request.
 10. billing.video_quota_grants/video_quota_usage cần owner scopes PARENT_ACCOUNT, TEACHER_ACCOUNT và ORGANIZATION; exact grant source, allocation, package and charge priority phải chốt trước schema implementation.
-11. Product age validation đích là 36–120 tháng. Source BE1 constraint đang khai báo range cũ 36–155; migration plan phải thu hẹp có kiểm soát và giữ source/provenance.
+11. Product age validation đích là 36–120 tháng. Source BE1 hiện khai báo 36–155 tháng; không clamp/delete/đổi nghĩa hàng legacy 121–155 tự động. Lập migration/use policy có provenance, validation và owner approval riêng trước khi dùng hoặc chuyển các hàng đó (Q-11).
 12. Sketch, lesson draft, activity suggestion và visual/slide jobs dùng AI Jobs có target discriminator rõ. Bổ sung target LESSON_LIBRARY_VERSION và LESSON_VERSION_VISUAL_ASSET; không tạo bảng job/asset trùng lặp.
 
 ### 14.3 Câu hỏi data/schema còn mở

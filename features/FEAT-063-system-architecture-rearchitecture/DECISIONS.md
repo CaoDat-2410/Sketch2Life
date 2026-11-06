@@ -336,3 +336,10 @@ Source: approved Plan Rev52 and its worker/API evidence. This is an active devel
 The Rev53 fix adds `drawing.segment` only to the dedicated L4 worker envelope allowlist so a bounded dev inference can run. Keep the product workload registry disabled. The pinned SAM 2.1 worker and output contract passed once on a synthetic butterfly image, but visual review found only the central body in the mask; the wings, head and antennae were missed. Retain OpenCV/Pillow as the baseline and require a separately approved prompt/quality evaluation before considering product dispatch. This does not make SAM 2.1 a required V1 capability or production-approved model.
 
 Source: owner-approved Plan Rev53; `evidence/sam2_gate_retest_20261106/RESULTS.md` and `visual_review.md`; canonical SRS v2.4-draft.
+
+
+## D-150 — Rev55 report remediation and current SRS pointer
+
+The current canonical working SRS and companion Data Table Register are v2.6-draft and remain unsigned. Rev55 records dispositions for all M-01–M-16, D-01–D-20 and Q-01–Q-13 report findings, corrects supported cross-document contradictions, and keeps unsupported implementation claims and unresolved owner choices open. D-149 remains the historical v2.5 pointer and is superseded only as the current-version pointer. This record does not approve new product behavior, physical DDL, provider stack, or production readiness.
+
+Source: owner-approved Plan Rev55; artifacts/REPORT_REMEDIATION_CROSSWALK_REV55_20261106.md; evidence/EV-063-58_SRS_REVIEW_REPORT_REMEDIATION_REV55_20261106.md; docs/context/SRS_AUTHORITY.md.

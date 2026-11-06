@@ -1,6 +1,15 @@
 # FEAT-063 source register
 
-## Rev45/Rev51 SRS alignment — current — 2026-11-06
+## Rev55 report remediation — current — 2026-11-06
+
+- Canonical working SRS and companion Data Table Register: v2.6-draft, unsigned. §§1–31 remain the product/architecture target; §32 contains dated, environment-specific source snapshots.
+- Rev55 evaluates all M-01–M-16, D-01–D-20 and Q-01–Q-13 findings from the owner-provided v2.5 report. Dispositions and supporting target catalogs are in `artifacts/REPORT_REMEDIATION_CROSSWALK_REV55_20261106.md` and `artifacts/ARCHITECTURE_DETAIL_CATALOG_REV55_20261106.md`.
+- Static source baseline: `1431ef81972b71303fd4a7909748fd3005769a3c` (`origin/dev` at worktree creation). Main router composition does not mount `ai_jobs`; StoryRun-lite remains a separate app using in-process `BackgroundTasks`. This is source inspection only, not an API/runtime acceptance result.
+- Target count narrative is reconciled as 92 active + 48 legacy/read-only = 140 projected mappings; the 41-table local Rev43 DB observation and older 89/137 baseline remain separately labeled.
+- Unresolved report questions remain open, including quota precedence/pricing, media exception policy, sample eligibility, invitation acceptance, legacy-age handling and role mapping. No report-only value was silently adopted.
+- Evidence: `evidence/EV-063-58_SRS_REVIEW_REPORT_REMEDIATION_REV55_20261106.md`. No product test, API, database, migration, Modal/provider, deployment, commit or push was run for Rev55.
+
+## Rev45/Rev51 SRS alignment — historical — 2026-11-06
 
 - Canonical working SRS and companion: v2.5-draft, unsigned. §§1–31 remain product/architecture targets; §32 contains dated source/runtime observations.
 - Rev45 resolves inconsistent model-status statements in the target sections. Rev51 source review at fetched `origin/dev` `4749451080f49243464d40a464b8f83a03ae77bb` distinguishes the mounted main FastAPI composition from the separate StoryRun-lite/Modal development slice.

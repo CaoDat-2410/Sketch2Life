@@ -1,6 +1,15 @@
 # Status
 
-## SRS v2.5 alignment and current dev-source review — Plans Rev45/Rev51 (2026-11-06)
+## Rev55 SRS report remediation — current — 2026-11-06
+
+- Lifecycle: documentation scope complete; FEAT-063 remains in REVIEW. SRS and Data Table Register v2.6-draft remain unsigned.
+- All 16 M, 20 D and 13 Q report findings have dispositions in the Rev55 crosswalk. Supported contradictions and count narratives were reconciled; evidence-limited items and product choices remain OPEN.
+- Added architecture detail catalogs and a dated source-only snapshot for `1431ef81972b71303fd4a7909748fd3005769a3c`. Main `ai_jobs` mounting, authenticated AI workflows, durable job persistence and product API acceptance remain unverified/gaps.
+- Documentation review checks passed: 49/49 report IDs are uniquely dispositioned; relative links and the new SRS anchor resolve; `git diff --check` and Rev55 markdown whitespace scan pass.
+- Static documentation checks only. No product test, API, DB, migration, Modal/provider call or deployment was run. No commit or push was made.
+- Evidence: `evidence/EV-063-58_SRS_REVIEW_REPORT_REMEDIATION_REV55_20261106.md`.
+
+## SRS v2.5 alignment and current dev-source review — Plans Rev45/Rev51 (2026-11-06) — historical
 
 - Lifecycle: REVIEW; documentation/source review and Plan Rev51 package publication are complete.
 - SRS and Data Table Register are v2.5-draft and remain unsigned. §§1–31 preserve target requirements; §§32.5–32.6 label the local Rev45 and fetched `origin/dev` Rev51 source snapshots separately.
