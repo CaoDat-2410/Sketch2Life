@@ -17,11 +17,17 @@ _MODULE_DIR = Path(__file__).resolve().parent
 if str(_MODULE_DIR) not in sys.path:
     sys.path.insert(0, str(_MODULE_DIR))
 
-from contracts import (
+from contracts import (  # noqa: E402
     WORKER_OUTPUT_SCHEMA,
     ModalWorkerInputV1,
     WorkerContractError,
     parse_worker_input,
+)
+from worker_observability import (  # noqa: E402
+    observed_worker,
+    refresh_worker_volume,
+    worker_phase,
+    worker_stage,
 )
 
 APP_NAME = "sketch2life-srs23-flux-image-dev"
@@ -100,15 +106,18 @@ scratch_volume = modal.Volume.from_name(
 )
 
 _contracts_file = _MODULE_DIR / "contracts.py"
+_observability_file = _MODULE_DIR / "worker_observability.py"
 _download_image = (
     modal.Image.debian_slim(python_version="3.11")
     .add_local_file(str(_contracts_file), "/root/contracts.py", copy=True)
+    .add_local_file(str(_observability_file), "/root/worker_observability.py", copy=True)
     .pip_install("huggingface_hub==1.32.0")
     .env({"HF_HUB_DISABLE_TELEMETRY": "1", "HF_XET_HIGH_PERFORMANCE": "1"})
 )
 _inference_image = (
     modal.Image.debian_slim(python_version="3.11")
     .add_local_file(str(_contracts_file), "/root/contracts.py", copy=True)
+    .add_local_file(str(_observability_file), "/root/worker_observability.py", copy=True)
     .uv_pip_install("torch==2.7.1", "torchvision==0.22.1")
     .uv_pip_install(
         "diffusers==0.42.1",
@@ -146,21 +155,30 @@ _inference_image = (
     timeout=3_600,
     retries=0,
 )
+@observed_worker(
+    workload="model.download.flux3",
+    model_id=MODEL_ID,
+    model_revision=MODEL_REVISION,
+)
 def download_flux_model() -> dict[str, str]:
     """Stage both immutable FLUX.3 checkpoints in the existing dev Volume."""
 
-    _require_flux3_enabled()
+    with worker_phase("model_policy_check"):
+        _require_flux3_enabled()
 
     from huggingface_hub import snapshot_download
 
     marker = Path(MODEL_MARKER)
     model_path = Path(MODEL_DIR)
     pup_path = Path(PUP_DIR)
-    model_volume.reload()
+    with worker_phase("model_volume_reload"):
+        model_volume.reload()
     if marker.is_file():
         record = json.loads(marker.read_text(encoding="utf-8"))
-        _verify_record(record)
-        if _checkpoint_is_complete(model_path, pup_path):
+        with worker_phase("checkpoint_validation"):
+            _verify_record(record)
+            checkpoint_is_complete = _checkpoint_is_complete(model_path, pup_path)
+        if checkpoint_is_complete:
             return {
                 "status": "already_present",
                 "model_id": MODEL_ID,
@@ -170,35 +188,39 @@ def download_flux_model() -> dict[str, str]:
             }
 
     token = os.environ.get(HF_AUTH_ENV_KEY)
-    if not token:
-        raise RuntimeError("MODAL_HF_TOKEN_MISSING")
+    with worker_phase("credential_presence_check"):
+        if not token:
+            raise RuntimeError("MODAL_HF_TOKEN_MISSING")
     model_path.mkdir(parents=True, exist_ok=True)
     pup_path.mkdir(parents=True, exist_ok=True)
-    snapshot_download(
-        repo_id=MODEL_ID,
-        revision=MODEL_REVISION,
-        local_dir=str(model_path),
-        token=token,
-        allow_patterns=list(MODEL_ALLOW_PATTERNS),
-    )
-    snapshot_download(
-        repo_id=PUP_MODEL_ID,
-        revision=PUP_MODEL_REVISION,
-        local_dir=str(pup_path),
-        token=token,
-        allow_patterns=[
-            "config.json",
-            "generation_config.json",
-            "chat_template.jinja",
-            "preprocessor_config.json",
-            "processor_config.json",
-            "system_prompts.json",
-            "tokenizer.json",
-            "tokenizer_config.json",
-            "model.safetensors",
-        ],
-    )
-    _verify_checkpoint(model_path, pup_path)
+    with worker_phase("main_checkpoint_download"):
+        snapshot_download(
+            repo_id=MODEL_ID,
+            revision=MODEL_REVISION,
+            local_dir=str(model_path),
+            token=token,
+            allow_patterns=list(MODEL_ALLOW_PATTERNS),
+        )
+    with worker_phase("prompt_upsampler_download"):
+        snapshot_download(
+            repo_id=PUP_MODEL_ID,
+            revision=PUP_MODEL_REVISION,
+            local_dir=str(pup_path),
+            token=token,
+            allow_patterns=[
+                "config.json",
+                "generation_config.json",
+                "chat_template.jinja",
+                "preprocessor_config.json",
+                "processor_config.json",
+                "system_prompts.json",
+                "tokenizer.json",
+                "tokenizer_config.json",
+                "model.safetensors",
+            ],
+        )
+    with worker_phase("checkpoint_validation"):
+        _verify_checkpoint(model_path, pup_path)
     record = {
         "schema_version": "sketch2life.modal.model-manifest.v1",
         "model_id": MODEL_ID,
@@ -209,11 +231,13 @@ def download_flux_model() -> dict[str, str]:
         "prompt_upsampler_license": PUP_LICENSE,
         "prompt_upsampler_mode": "transformers-sequential-before-image-model",
     }
-    marker.write_text(
-        json.dumps(record, sort_keys=True, separators=(",", ":")),
-        encoding="utf-8",
-    )
-    model_volume.commit()
+    with worker_phase("model_manifest_write"):
+        marker.write_text(
+            json.dumps(record, sort_keys=True, separators=(",", ":")),
+            encoding="utf-8",
+        )
+    with worker_phase("model_volume_commit"):
+        model_volume.commit()
     return {
         "status": "downloaded",
         "model_id": MODEL_ID,
@@ -239,29 +263,44 @@ def download_flux_model() -> dict[str, str]:
     timeout=900,
     retries=0,
 )
+@observed_worker(
+    workload="parent.sketch-guide.generate",
+    model_id=MODEL_ID,
+    model_revision=MODEL_REVISION,
+    gpu_class="L40S",
+)
 def generate_line_sketch_guide_candidate(payload: dict[str, Any]) -> dict[str, Any]:
     """Generate a generic, non-child-specific step guide as a private candidate."""
 
-    _require_flux3_enabled()
-    request = parse_worker_input(payload, execution_group="l4")
+    with worker_phase("feature_gate"):
+        _require_flux3_enabled()
+    with worker_phase("input_envelope"):
+        request = parse_worker_input(payload, execution_group="l4")
+    worker_stage("workload_gate")
     if request.workload != "parent.sketch-guide.generate":
         raise WorkerContractError("MODAL_WORKLOAD_NOT_ALLOWED")
-    data = _read_json_asset(request)
-    _validate_sketch_guide_input(data)
-    _verify_marker()
+    refresh_worker_volume(scratch_volume)
+    with worker_phase("input_manifest_read"):
+        data = _read_json_asset(request)
+    with worker_phase("guide_request_validation"):
+        _validate_sketch_guide_input(data)
+    with worker_phase("checkpoint_verification"):
+        _verify_marker()
 
     prompt = _sketch_guide_scene_request(
         topic=data["topic"],
         difficulty=data["difficulty"],
         step_count=data["step_count"],
     )
+    worker_stage("gpu_preflight")
     image, expanded_prompt_sha256 = _generate_flux3_image(
         prompt=prompt,
         height=512,
         width=768,
         seed=20261105,
     )
-    image_bytes = _encode_png(image)
+    with worker_phase("image_encode_and_metadata"):
+        image_bytes = _encode_png(image)
     return {
         "schema_version": WORKER_OUTPUT_SCHEMA,
         "workload": request.workload,
@@ -297,27 +336,42 @@ def generate_line_sketch_guide_candidate(payload: dict[str, Any]) -> dict[str, A
     timeout=900,
     retries=0,
 )
+@observed_worker(
+    workload="lesson.visual.generate",
+    model_id=MODEL_ID,
+    model_revision=MODEL_REVISION,
+    gpu_class="L40S",
+)
 def generate_approved_lesson_visual_candidate(
     payload: dict[str, Any],
 ) -> dict[str, Any]:
     """Generate an unapproved visual from a reviewed lesson revision."""
 
-    _require_flux3_enabled()
-    request = parse_worker_input(payload, execution_group="l4")
+    with worker_phase("feature_gate"):
+        _require_flux3_enabled()
+    with worker_phase("input_envelope"):
+        request = parse_worker_input(payload, execution_group="l4")
+    worker_stage("workload_gate")
     if request.workload != "lesson.visual.generate":
         raise WorkerContractError("MODAL_WORKLOAD_NOT_ALLOWED")
-    data = _read_json_asset(request)
-    _validate_lesson_visual_input(data)
-    _verify_marker()
+    refresh_worker_volume(scratch_volume)
+    with worker_phase("input_manifest_read"):
+        data = _read_json_asset(request)
+    with worker_phase("approved_lesson_contract_validation"):
+        _validate_lesson_visual_input(data)
+    with worker_phase("checkpoint_verification"):
+        _verify_marker()
 
     prompt = _lesson_visual_scene_request(data)
+    worker_stage("gpu_preflight")
     image, expanded_prompt_sha256 = _generate_flux3_image(
         prompt=prompt,
         height=432,
         width=768,
         seed=20261105,
     )
-    image_bytes = _encode_png(image)
+    with worker_phase("image_encode_and_metadata"):
+        image_bytes = _encode_png(image)
     return {
         "schema_version": WORKER_OUTPUT_SCHEMA,
         "workload": request.workload,
@@ -436,32 +490,34 @@ def _generate_flux3_image(
     if not torch.cuda.is_available():
         raise RuntimeError("MODAL_GPU_UNAVAILABLE")
 
-    caption = _upsample_prompt(prompt, torch)
+    with worker_phase("prompt_upsampler_inference"):
+        caption = _upsample_prompt(prompt, torch)
     caption_hash = hashlib.sha256(caption.encode("utf-8")).hexdigest()
     gc.collect()
     torch.cuda.empty_cache()
 
     from diffusers import ModularPipeline
 
-    pipeline_spec = ModularPipeline.from_pretrained(
-        MODEL_DIR,
-        local_files_only=True,
-    )
-    blocks = pipeline_spec.blocks
-    if "prompt_upsampler" not in blocks.sub_blocks:
-        raise RuntimeError("MODAL_FLUX3_PROMPT_UPSAMPLER_BLOCK_MISSING")
-    blocks.sub_blocks.pop("prompt_upsampler")
-    pipeline = blocks.init_pipeline(MODEL_DIR)
-    del pipeline_spec, blocks
-    gc.collect()
-    torch.cuda.empty_cache()
+    with worker_phase("flux_model_load"):
+        pipeline_spec = ModularPipeline.from_pretrained(
+            MODEL_DIR,
+            local_files_only=True,
+        )
+        blocks = pipeline_spec.blocks
+        if "prompt_upsampler" not in blocks.sub_blocks:
+            raise RuntimeError("MODAL_FLUX3_PROMPT_UPSAMPLER_BLOCK_MISSING")
+        blocks.sub_blocks.pop("prompt_upsampler")
+        pipeline = blocks.init_pipeline(MODEL_DIR)
+        del pipeline_spec, blocks
+        gc.collect()
+        torch.cuda.empty_cache()
 
-    pipeline.load_components(
-        dtype={"vae": torch.float32, "default": torch.bfloat16},
-        local_files_only=True,
-    )
-    pipeline.to("cuda")
-    with torch.inference_mode():
+        pipeline.load_components(
+            dtype={"vae": torch.float32, "default": torch.bfloat16},
+            local_files_only=True,
+        )
+        pipeline.to("cuda")
+    with worker_phase("flux_image_inference"), torch.inference_mode():
         image = pipeline(
             prompt=caption,
             height=height,

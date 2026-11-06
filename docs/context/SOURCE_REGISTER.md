@@ -638,3 +638,8 @@ The implementation is limited to those approved source/test manifests. The focus
 ## FEAT-063 Rev51 - Modal AI and legacy API audit - 2026-11-06
 
 Use FEAT-063 SRS v2.4-draft as canonical product/architecture source. Plan Rev51 SHA-256 at approval: `B20103A217D7A9623E02279CE0BD82D5BC61141518D820FA683104057B1A6A2F`. Evidence folder `features/FEAT-063-system-architecture-rearchitecture/evidence/modal_ai_and_legacy_api_retest_20261106/` contains the 124-operation live API inventory, test results/failures, AI worker/API readiness matrix, shutdown inventory, and synthetic outputs with provenance. No inference or code fix was performed in this pass; SAM2's prior GPU-capacity wait is retained as the blocker.
+
+
+## FEAT-063 Plan Rev52 - non-video Modal AI reliability and observability
+
+Canonical requirements remain FEAT-063 SRS v2.4-draft. Owner-approved plan `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV52_NONVIDEO_MODAL_AI_RELIABILITY_20261106.md` has SHA-256 `6B3B1C25CD2A9974860A93551CDAD0FB3363DB38CB00D293ABB4818C9F0782D2`. Execution and safe per-call evidence will be recorded under `features/FEAT-063-system-architecture-rearchitecture/evidence/nonvideo_modal_ai_reliability_20261106/`. The scope excludes all video functions and preserves disabled workload switches.

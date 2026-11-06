@@ -39,6 +39,7 @@ from sketch2life.infrastructure.ai.modal_function_client import (
     WORKER_INPUT_SCHEMA,
     WORKER_OUTPUT_SCHEMA,
     prepare_drawing_input,
+    summarize_worker_call_logs,
 )
 
 OUT_DIR = FEATURE / "evidence" / "assets" / "ai_nonvideo_30min_queue_retest_20261104"
@@ -65,6 +66,19 @@ def identity() -> tuple[str, str, str]:
     return tuple(str(uuid.uuid4()) for _ in range(3))  # type: ignore[return-value]
 
 
+def worker_terminal_observed(call: Any | None) -> bool:
+    if call is None:
+        return False
+    try:
+        summary = summarize_worker_call_logs(call, max_log_wait_seconds=20)
+    except Exception:  # noqa: BLE001 - uncertain log lookup is not terminal evidence.
+        return False
+    return summary.get("worker_terminal_event") in {
+        "worker_succeeded",
+        "worker_failed",
+    }
+
+
 def cancel_and_check(call: Any) -> tuple[bool, str]:
     try:
         call.cancel(terminate_containers=True)
@@ -76,7 +90,9 @@ def cancel_and_check(call: Any) -> tuple[bool, str]:
     except TimeoutError:
         return False, "still_pending_after_cancel"
     except Exception as exc:
-        return True, f"terminal_{type(exc).__name__}"
+        if worker_terminal_observed(call):
+            return True, f"terminal_{type(exc).__name__}"
+        return False, "outcome_unconfirmed_after_cancel"
 
 
 def invoke_drawing() -> dict[str, Any]:
@@ -154,8 +170,15 @@ def invoke_drawing() -> dict[str, Any]:
         record["cancel"] = cancel_and_check(call) if call is not None else (False, "no_call")
         terminal = bool(record["cancel"][0])
     except Exception as exc:
-        terminal = call is not None
-        record.update({"outcome": "FAILED_TERMINAL" if terminal else "DISPATCH_FAILED_NO_CALL", "error_type": type(exc).__name__})
+        terminal = worker_terminal_observed(call)
+        outcome = (
+            "FAILED_TERMINAL"
+            if terminal
+            else "UNKNOWN_NO_RETRY"
+            if call is not None
+            else "DISPATCH_FAILED_NO_CALL"
+        )
+        record.update({"outcome": outcome, "error_type": type(exc).__name__})
     finally:
         record["ended_at"] = now()
         if terminal:
@@ -271,8 +294,15 @@ def invoke_story(
         record["cancel"] = cancel_and_check(call) if call is not None else (False, "no_call")
         terminal = bool(record["cancel"][0])
     except Exception as exc:
-        terminal = call is not None
-        record.update({"outcome": "FAILED_TERMINAL" if terminal else "DISPATCH_FAILED_NO_CALL", "error_type": type(exc).__name__})
+        terminal = worker_terminal_observed(call)
+        outcome = (
+            "FAILED_TERMINAL"
+            if terminal
+            else "UNKNOWN_NO_RETRY"
+            if call is not None
+            else "DISPATCH_FAILED_NO_CALL"
+        )
+        record.update({"outcome": outcome, "error_type": type(exc).__name__})
     finally:
         record["ended_at"] = now()
         if terminal:
@@ -372,8 +402,15 @@ def invoke_generic(
         record["cancel"] = cancel_and_check(call) if call is not None else (False, "no_call")
         terminal = bool(record["cancel"][0])
     except Exception as exc:
-        terminal = call is not None
-        record.update({"outcome": "FAILED_TERMINAL" if terminal else "DISPATCH_FAILED_NO_CALL", "error_type": type(exc).__name__})
+        terminal = worker_terminal_observed(call)
+        outcome = (
+            "FAILED_TERMINAL"
+            if terminal
+            else "UNKNOWN_NO_RETRY"
+            if call is not None
+            else "DISPATCH_FAILED_NO_CALL"
+        )
+        record.update({"outcome": outcome, "error_type": type(exc).__name__})
     finally:
         record["ended_at"] = now()
         if terminal:

@@ -1,0 +1,138 @@
+{
+  "call_id": "fc-01M6QX0TXDS9CGK6TACS1Q2C5D",
+  "elapsed_ms": 18375.71,
+  "function": "synthesize-vietnamese-narration",
+  "outcome": "SUCCEEDED",
+  "output_file": "synthetic_vietnamese_narration.wav",
+  "output_sha256": "72a7c993d64d0a0bd9e701b4b44bf1e030132fb954a690e864b6f1c788c359ea",
+  "result": {
+    "asset": {
+      "content_type": "audio/wav",
+      "sha256": "72a7c993d64d0a0bd9e701b4b44bf1e030132fb954a690e864b6f1c788c359ea",
+      "size_bytes": 169004
+    },
+    "asset_file": "synthetic_vietnamese_narration.wav",
+    "attempt_id": "93b0f9d5-11d6-472b-b979-c14d9dda756a",
+    "generation_id": "cb3d8343-9999-40de-b989-9913cd5fd5bf",
+    "job_id": "42317818-fbf8-4828-a0e0-8d9169ec10fd",
+    "model": {
+      "id": "pnnbao-ump/VieNeu-TTS-v3-Turbo",
+      "revision": "61b85e3d937fbbacb387714180e8182823512523"
+    },
+    "schema_version": "sketch2life.modal.worker-output.v1",
+    "workload": "tts.narration.generate"
+  },
+  "runner_elapsed_ms": 19062.99,
+  "worker_log_summary": {
+    "worker_binary_output_sha256": "59626c5f11e85be8fbe86dcd4045bb930482e303dad33ea576b953be690ef37b",
+    "worker_diagnostic_code": null,
+    "worker_diagnostic_details": null,
+    "worker_duration_ms": 9646,
+    "worker_error_code": null,
+    "worker_error_type": null,
+    "worker_failure_boundary": "worker_succeeded",
+    "worker_gpu_class": "cpu",
+    "worker_last_stage": "terminal",
+    "worker_log_event_count": 22,
+    "worker_logs_available": true,
+    "worker_model_id": "pnnbao-ump/VieNeu-TTS-v3-Turbo",
+    "worker_model_revision": "61b85e3d937fbbacb387714180e8182823512523",
+    "worker_output_sha256": "a4771af8020584580a67ea8fb18921dae2b6036ae0998329a4b9f321795fd88c",
+    "worker_output_size_bytes": 169522,
+    "worker_phase_history": [
+      {
+        "event": "worker_phase_started",
+        "stage": "input_envelope"
+      },
+      {
+        "duration_ms": 0,
+        "event": "worker_phase_succeeded",
+        "stage": "input_envelope"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "workload_gate"
+      },
+      {
+        "duration_ms": 0,
+        "event": "worker_phase_succeeded",
+        "stage": "workload_gate"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "scratch_volume_reload"
+      },
+      {
+        "duration_ms": 375,
+        "event": "worker_phase_succeeded",
+        "stage": "scratch_volume_reload"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "input_manifest_read"
+      },
+      {
+        "duration_ms": 344,
+        "event": "worker_phase_succeeded",
+        "stage": "input_manifest_read"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "tts_request_validation"
+      },
+      {
+        "duration_ms": 0,
+        "event": "worker_phase_succeeded",
+        "stage": "tts_request_validation"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "tts_checkpoint_verification"
+      },
+      {
+        "duration_ms": 145,
+        "event": "worker_phase_succeeded",
+        "stage": "tts_checkpoint_verification"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "tts_model_load"
+      },
+      {
+        "duration_ms": 7190,
+        "event": "worker_phase_succeeded",
+        "stage": "tts_model_load"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "tts_inference"
+      },
+      {
+        "duration_ms": 1460,
+        "event": "worker_phase_succeeded",
+        "stage": "tts_inference"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "audio_encode_and_validate"
+      },
+      {
+        "duration_ms": 36,
+        "event": "worker_phase_succeeded",
+        "stage": "audio_encode_and_validate"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "audio_output_contract_validation"
+      },
+      {
+        "duration_ms": 1,
+        "event": "worker_phase_succeeded",
+        "stage": "audio_output_contract_validation"
+      }
+    ],
+    "worker_started_observed": true,
+    "worker_terminal_event": "worker_succeeded"
+  },
+  "workload": "tts.narration.generate"
+}

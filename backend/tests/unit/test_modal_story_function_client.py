@@ -11,6 +11,7 @@ from sketch2life.infrastructure.ai import modal_function_client as client_module
 from sketch2life.infrastructure.ai.modal_function_client import (
     ModalFunctionExecutionFailed,
     ModalStoryFunctionClient,
+    summarize_worker_call_logs,
 )
 
 
@@ -160,3 +161,225 @@ def test_modal_remote_error_is_terminal_not_unknown() -> None:
 
     assert error.value.code == "STORY_WORKER_FAILED_TERMINAL"
     assert volume.removed_paths
+
+
+def test_worker_log_summary_keeps_allowlisted_diagnosis_only() -> None:
+    class _Logs:
+        def tail(self, *, entries: int):
+            assert entries == 500
+            return [
+                type(
+                    "Entry",
+                    (),
+                    {
+                        "message": json.dumps(
+                            {
+                                "schema_version": "sketch2life.modal.worker-event.v1",
+                                "event": "worker_started",
+                                "workload": "story.generate",
+                                "job_id": "job-safe-01",
+                                "stage": "worker_entrypoint",
+                                "prompt": "private prompt must be discarded",
+                            }
+                        )
+                        + "\n"
+                        + json.dumps(
+                            {
+                                "schema_version": "sketch2life.modal.worker-event.v1",
+                                "event": "worker_phase_started",
+                                "workload": "story.generate",
+                                "stage": "model_inference",
+                                "prompt": "phase private prompt",
+                            }
+                        )
+                        + "\n"
+                        + json.dumps(
+                            {
+                                "schema_version": "sketch2life.modal.worker-event.v1",
+                                "event": "worker_phase_failed",
+                                "workload": "story.generate",
+                                "stage": "model_inference",
+                                "duration_ms": 6500,
+                                "error_code": "MODEL_INFERENCE_TIMEOUT",
+                                "error_type": "InputCancellation",
+                                "generated_text": "discard this content",
+                            }
+                        )
+                        + "\n"
+                        + json.dumps(
+                            {
+                                "schema_version": "sketch2life.modal.worker-event.v1",
+                                "event": "worker_failed",
+                                "workload": "story.generate",
+                                "stage": "business_rule_validation",
+                                "duration_ms": 1234,
+                                "gpu_class": "L40S|L4|A10",
+                                "error_code": "MODAL_MODEL_OUTPUT_INVALID",
+                                "error_type": "RuntimeError",
+                                "generated_text": "private generated story",
+                            }
+                        )
+                        + "\n"
+                        + json.dumps(
+                            {
+                                "event": "story_output_rejected",
+                                "reason_code": "EDUCATIONAL_FACT_STAGE_MISSING",
+                                "generation_seconds": 6.5,
+                                "output_token_count": 812,
+                                "max_new_tokens": 4096,
+                                "token_limit_reached": False,
+                                "ended_with_model_eos": True,
+                                "decoded_character_count": 3812,
+                                "json_complete": True,
+                                "json_root_type": "dict",
+                                "json_root_key_count": 3,
+                                "field_key_counts": {
+                                    "narration": 5,
+                                    "generated_text": "private data omitted",
+                                },
+                                "story_field_diagnostics_available": True,
+                                "story_text_field_metric_count": 1,
+                                "story_incomplete_sentence_fields": [
+                                    "scenes[2].visual_prompt",
+                                    "private generated text",
+                                ],
+                                "story_text_field_metrics": [
+                                    {
+                                        "field": "scenes[2].visual_prompt",
+                                        "character_count": 27,
+                                        "max_length": 240,
+                                        "sentence_complete": False,
+                                    },
+                                    {
+                                        "field": "scenes[2].private_generated_text",
+                                        "character_count": 999,
+                                        "max_length": 999,
+                                    },
+                                ],
+                                "generated_text": "private story content",
+                            }
+                        )
+                    },
+                )()
+            ]
+
+    summary = summarize_worker_call_logs(type("Call", (), {"logs": _Logs()})())
+
+    assert summary == {
+        "worker_logs_available": True,
+        "worker_log_event_count": 4,
+        "worker_phase_history": [
+            {"event": "worker_phase_started", "stage": "model_inference"},
+            {
+                "event": "worker_phase_failed",
+                "stage": "model_inference",
+                "duration_ms": 6500,
+                "error_code": "MODEL_INFERENCE_TIMEOUT",
+                "error_type": "InputCancellation",
+            },
+        ],
+        "worker_started_observed": True,
+        "worker_terminal_event": "worker_failed",
+        "worker_last_stage": "business_rule_validation",
+        "worker_error_code": "MODAL_MODEL_OUTPUT_INVALID",
+        "worker_diagnostic_code": "EDUCATIONAL_FACT_STAGE_MISSING",
+        "worker_diagnostic_details": {
+            "event": "story_output_rejected",
+            "generation_seconds": 6.5,
+            "output_token_count": 812,
+            "max_new_tokens": 4096,
+            "token_limit_reached": False,
+            "ended_with_model_eos": True,
+            "decoded_character_count": 3812,
+            "json_complete": True,
+            "json_root_type": "dict",
+            "json_root_key_count": 3,
+            "field_key_counts": {"narration": 5},
+            "story_field_diagnostics_available": True,
+            "story_text_field_metric_count": 1,
+            "story_incomplete_sentence_fields": ["scenes[2].visual_prompt"],
+            "story_text_field_metrics": [
+                {
+                    "field": "scenes[2].visual_prompt",
+                    "character_count": 27,
+                    "max_length": 240,
+                    "sentence_complete": False,
+                }
+            ],
+        },
+        "worker_error_type": "RuntimeError",
+        "worker_duration_ms": 1234,
+        "worker_model_id": None,
+        "worker_model_revision": None,
+        "worker_gpu_class": "L40S|L4|A10",
+        "worker_output_size_bytes": None,
+        "worker_output_sha256": None,
+        "worker_binary_output_sha256": None,
+        "worker_failure_boundary": "worker_terminal_failure_observed",
+    }
+    assert "private prompt" not in repr(summary)
+    assert "private generated story" not in repr(summary)
+    assert "phase private prompt" not in repr(summary)
+    assert "discard this content" not in repr(summary)
+    assert "private story content" not in repr(summary)
+
+
+def test_worker_log_summary_retries_until_terminal_event_is_indexed(monkeypatch) -> None:
+    class _Logs:
+        calls = 0
+
+        def tail(self, *, entries: int):
+            self.calls += 1
+            if self.calls == 1:
+                return []
+            return [
+                type(
+                    "Entry",
+                    (),
+                    {
+                        "message": json.dumps(
+                            {
+                                "schema_version": "sketch2life.modal.worker-event.v1",
+                                "event": "worker_succeeded",
+                                "workload": "asr.transcribe",
+                                "stage": "terminal",
+                                "duration_ms": 99,
+                                "model_id": "Systran/faster-whisper-large-v3",
+                                "model_revision": "abc123",
+                                "gpu_class": "cpu",
+                                "output_size_bytes": 42,
+                                "output_sha256": "a" * 64,
+                                "binary_output_sha256": "b" * 64,
+                                "private_text": "must not be surfaced",
+                            }
+                        )
+                    },
+                )()
+            ]
+
+    logs = _Logs()
+    monkeypatch.setattr(client_module.time, "sleep", lambda _delay: None)
+    summary = summarize_worker_call_logs(type("Call", (), {"logs": logs})())
+
+    assert logs.calls == 2
+    assert summary["worker_terminal_event"] == "worker_succeeded"
+    assert summary["worker_diagnostic_code"] is None
+    assert summary["worker_model_id"] == "Systran/faster-whisper-large-v3"
+    assert summary["worker_gpu_class"] == "cpu"
+    assert summary["worker_output_size_bytes"] == 42
+    assert summary["worker_output_sha256"] == "a" * 64
+    assert summary["worker_binary_output_sha256"] == "b" * 64
+    assert "must not be surfaced" not in repr(summary)
+
+
+def test_worker_log_summary_fails_closed_when_modal_logs_unavailable() -> None:
+    class _Logs:
+        def tail(self, *, entries: int):
+            raise RuntimeError("provider diagnostic that must not be surfaced")
+
+    summary = summarize_worker_call_logs(type("Call", (), {"logs": _Logs()})())
+
+    assert summary["worker_logs_available"] is False
+    assert summary["worker_started_observed"] is False
+    assert summary["worker_diagnostic_code"] is None
+    assert "provider diagnostic" not in repr(summary)

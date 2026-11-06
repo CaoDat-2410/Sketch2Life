@@ -580,3 +580,26 @@ Parent Sketch Guide and lesson visuals were not dispatched because Modal `dev` s
 - Six failing API/contract tests, their classifications, worker/API readiness gaps, timeout diagnosis, and full synthetic artifacts are recorded in `evidence/modal_ai_and_legacy_api_retest_20261106/API_TONG_HOP_VA_SAN_PHAM_AI_MODAL_20261106.md`.
 - No GPU inference was repeated. SAM2 remains blocked by documented GPU scheduling capacity; the current Modal `dev` app inventory was empty and no task app was deployed.
 - Open follow-ups: review legacy composition/BE1 test failures and implement durable product AI dispatch routes in a separately approved task.
+
+
+## Rev52 non-video Modal AI reliability - 2026-11-06
+
+- Status: COMPLETE WITH FINDINGS under the approved Plan Rev52.
+- Approved plan SHA-256: `6B3B1C25CD2A9974860A93551CDAD0FB3363DB38CB00D293ABB4818C9F0782D2`.
+- Work branch: `feature/feat063-modal-ai-reliability-20261106` from `dev` at `0fc773fa`.
+- Changes: structured phase observability is in place for non-video Modal workers/caller log summaries. Story parsing now follows the SRS fields/business rules without the unsupported terminal-punctuation constraint; required schema, lifecycle, fact, timing, and scene-count checks remain.
+- Live worker result: all eight enabled non-video worker paths passed once after applicable fixes. Optional `drawing.segment` was attempted once and rejected by its disabled workload gate before inference (`MODAL_WORKLOAD_NOT_ALLOWED`). No video call was made.
+- Parent API: 33/33 expected request outcomes on 13 routes; one live Parent drawing HTTP-to-Modal dispatch passed. Story HTTP used a verified fixture; a separate live story worker call passed. Confirmation/resume reached `VIDEO_ADMISSION_PENDING`, with zero video calls.
+- Tests/quality: 97 Modal tests and 59 focused backend tests passed; targeted Ruff, `py_compile`, and `git diff --check` passed.
+- Limits: Parent sketch guide, Teacher sketch deck, lesson suggestion/visual, and speech are worker-verified but do not yet have durable authenticated product API dispatch; recorded as NOT_IMPLEMENTED. Registry flags remain disabled.
+- Cleanup: task Modal app list empty after stop; disposable PostgreSQL container exited; shared volumes/checkpoints retained; no secret values read or changed.
+- Full results and evidence index: `evidence/nonvideo_modal_ai_reliability_20261106/API_AND_AI_MODAL_RESULTS_20261106.md`.
+
+## Rev53 SAM 2.1 gate retest - 2026-11-06
+
+- Status: COMPLETE WITH FINDINGS under the approved Plan Rev53; no push.
+- Root cause fixed: `drawing.segment` was omitted from the L4 worker envelope allowlist. The dedicated worker now passes parsing; the video execution group still rejects it.
+- Verification: pinned checkpoint preflight passed; one synthetic SAM 2.1 inference passed worker/output validation. Focused gate tests, Modal test suite, Ruff, compilation, repository security validation and diff checks are recorded in `evidence/sam2_gate_retest_20261106/RESULTS.md`.
+- Quality: mask output is valid and lineage-preserving, but visual review shows only the central butterfly body, missing both wings, head and antennae. SAM 2.1 is not product-ready based on this sample; `workloads.json` remains disabled and OpenCV/Pillow remains the baseline.
+- Runtime: checkpoint preflight caller elapsed 27.051 s; GPU inference caller wait 31.896 s; total run 61 s. No video was called.
+- Cleanup: `sketch2life-srs23-drawing-segment-dev` is stopped with 0 tasks; shared volumes/checkpoints were retained.

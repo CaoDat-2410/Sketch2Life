@@ -15,16 +15,23 @@ _MODULE_DIR = Path(__file__).resolve().parent
 if str(_MODULE_DIR) not in sys.path:
     sys.path.insert(0, str(_MODULE_DIR))
 
-from contracts import (
+from contracts import (  # noqa: E402
     MAX_STAGED_INPUT_BYTES,
     WORKER_OUTPUT_SCHEMA,
     ModalWorkerInputV1,
     WorkerContractError,
     parse_worker_input,
 )
+from worker_observability import (  # noqa: E402
+    observed_worker,
+    refresh_worker_volume,
+    worker_phase,
+    worker_stage,
+)
 
 APP_NAME = "sketch2life-srs23-drawing-vlm-dev"
 _CONTRACTS_FILE = _MODULE_DIR / "contracts.py"
+_OBSERVABILITY_FILE = _MODULE_DIR / "worker_observability.py"
 MODEL_ID = "Qwen/Qwen3.5-9B"
 MODEL_REVISION = "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
 MODEL_LICENSE = "Apache-2.0"
@@ -58,12 +65,14 @@ scratch_volume = modal.Volume.from_name(
 download_image = (
     modal.Image.debian_slim(python_version="3.11")
     .add_local_file(str(_CONTRACTS_FILE), "/root/contracts.py", copy=True)
+    .add_local_file(str(_OBSERVABILITY_FILE), "/root/worker_observability.py", copy=True)
     .pip_install("huggingface_hub==0.33.4")
     .env({"HF_HUB_DISABLE_TELEMETRY": "1", "HF_XET_HIGH_PERFORMANCE": "1"})
 )
 inference_image = (
     modal.Image.debian_slim(python_version="3.11")
     .add_local_file(str(_CONTRACTS_FILE), "/root/contracts.py", copy=True)
+    .add_local_file(str(_OBSERVABILITY_FILE), "/root/worker_observability.py", copy=True)
     .uv_pip_install("torch==2.7.1", "torchvision==0.22.1")
     .uv_pip_install(
         "transformers==5.22.1",
@@ -88,6 +97,11 @@ inference_image = (
     timeout=3_600,
     retries=0,
 )
+@observed_worker(
+    workload="model.download.drawing_vlm",
+    model_id=MODEL_ID,
+    model_revision=MODEL_REVISION,
+)
 def download_pinned_model() -> dict[str, Any]:
     """Download only the public immutable checkpoint into the dev weights Volume."""
 
@@ -95,14 +109,16 @@ def download_pinned_model() -> dict[str, Any]:
 
     model_path = Path(MODEL_DIR)
     marker_path = Path(MODEL_MANIFEST)
-    model_volume.reload()
+    with worker_phase("model_volume_reload"):
+        model_volume.reload()
     if marker_path.is_file():
         marker = json.loads(marker_path.read_text(encoding="utf-8"))
         if (
             marker.get("model_id") == MODEL_ID
             and marker.get("revision") == MODEL_REVISION
         ):
-            _ensure_checkpoint_files(model_path)
+            with worker_phase("checkpoint_validation"):
+                _ensure_checkpoint_files(model_path)
             return {
                 "status": "already_present",
                 "model_id": MODEL_ID,
@@ -112,27 +128,31 @@ def download_pinned_model() -> dict[str, Any]:
         raise RuntimeError("MODAL_MODEL_REVISION_MARKER_MISMATCH")
 
     model_path.mkdir(parents=True, exist_ok=True)
-    snapshot_download(
-        repo_id=MODEL_ID,
-        revision=MODEL_REVISION,
-        local_dir=str(model_path),
-    )
-    _ensure_checkpoint_files(model_path)
-    marker_path.write_text(
-        json.dumps(
-            {
-                "schema_version": "sketch2life.modal.model-manifest.v1",
-                "model_id": MODEL_ID,
-                "revision": MODEL_REVISION,
-                "license": MODEL_LICENSE,
-            },
-            ensure_ascii=False,
-            sort_keys=True,
-            separators=(",", ":"),
-        ),
-        encoding="utf-8",
-    )
-    model_volume.commit()
+    with worker_phase("checkpoint_download"):
+        snapshot_download(
+            repo_id=MODEL_ID,
+            revision=MODEL_REVISION,
+            local_dir=str(model_path),
+        )
+    with worker_phase("checkpoint_validation"):
+        _ensure_checkpoint_files(model_path)
+    with worker_phase("model_manifest_write"):
+        marker_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": "sketch2life.modal.model-manifest.v1",
+                    "model_id": MODEL_ID,
+                    "revision": MODEL_REVISION,
+                    "license": MODEL_LICENSE,
+                },
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            ),
+            encoding="utf-8",
+        )
+    with worker_phase("model_volume_commit"):
+        model_volume.commit()
     return {
         "status": "downloaded",
         "model_id": MODEL_ID,
@@ -157,19 +177,30 @@ def download_pinned_model() -> dict[str, Any]:
     timeout=1_800,
     retries=0,
 )
+@observed_worker(
+    workload="drawing.analyze",
+    model_id=MODEL_ID,
+    model_revision=MODEL_REVISION,
+    gpu_class="L40S|L4|A10",
+)
 def analyze_drawing(payload: dict[str, Any]) -> dict[str, Any]:
     """Inspect one staged drawing and return a candidate requiring adult confirmation."""
 
-    request = parse_worker_input(payload, execution_group="l4")
+    with worker_phase("input_envelope"):
+        request = parse_worker_input(payload, execution_group="l4")
+    worker_stage("workload_gate")
     if request.workload != "drawing.analyze":
         raise WorkerContractError("MODAL_WORKLOAD_NOT_ALLOWED")
 
-    image_path, image_sha256 = _verify_staged_input(request)
-    model, processor = _load_model()
+    refresh_worker_volume(scratch_volume)
+    with worker_phase("input_asset_verify"):
+        image_path, image_sha256 = _verify_staged_input(request)
+    with worker_phase("model_load"):
+        model, processor = _load_model()
 
     from PIL import Image
 
-    with Image.open(image_path) as opened:
+    with worker_phase("image_preprocess"), Image.open(image_path) as opened:
         drawing = opened.convert("RGB")
 
     prompt = (
@@ -179,20 +210,21 @@ def analyze_drawing(payload: dict[str, Any]) -> dict[str, Any]:
         "là ‘chưa xác định’. visible_features gồm từ 1 đến 4 mô tả ngắn, cụ thể. "
         "Không viết lời dẫn hoặc nội dung ngoài JSON."
     )
-    messages = _drawing_messages(drawing, prompt)
-    inputs = processor.apply_chat_template(
-        messages,
-        tokenize=True,
-        add_generation_prompt=True,
-        enable_thinking=False,
-        return_dict=True,
-        return_tensors="pt",
-    ).to(model.device)
+    with worker_phase("prompt_encode"):
+        messages = _drawing_messages(drawing, prompt)
+        inputs = processor.apply_chat_template(
+            messages,
+            tokenize=True,
+            add_generation_prompt=True,
+            enable_thinking=False,
+            return_dict=True,
+            return_tensors="pt",
+        ).to(model.device)
 
     import torch
 
     tokenizer = processor.tokenizer
-    with torch.inference_mode():
+    with worker_phase("model_inference"), torch.inference_mode():
         output_ids = model.generate(
             **inputs,
             do_sample=False,
@@ -216,6 +248,7 @@ def analyze_drawing(payload: dict[str, Any]) -> dict[str, Any]:
         ),
         flush=True,
     )
+    worker_stage("model_output_validation")
     if generated_token_count == 0:
         raise RuntimeError("MODAL_MODEL_OUTPUT_EMPTY")
     answer = processor.batch_decode(
@@ -223,7 +256,8 @@ def analyze_drawing(payload: dict[str, Any]) -> dict[str, Any]:
         skip_special_tokens=True,
         clean_up_tokenization_spaces=False,
     )[0].strip()
-    candidate = _parse_candidate(answer)
+    with worker_phase("output_parse_and_contract_validation"):
+        candidate = _parse_candidate(answer)
 
     return {
         "schema_version": WORKER_OUTPUT_SCHEMA,

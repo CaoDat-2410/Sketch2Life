@@ -1,0 +1,20 @@
+{
+  "state": "DISPATCH_INTENT_RECORDED",
+  "created_at": "2026-11-06T14:34:49+07:00",
+  "recovery_fix": "stage_aware_wait_descriptor_binding_and_terminal_cleanup",
+  "synthetic_only": true,
+  "video_called": false,
+  "max_attempts_per_workload": 1,
+  "same_call_extension_only_after_worker_inference_stage": true,
+  "workloads": [
+    "drawing.analyze",
+    "story.generate/storyboard.generate",
+    "parent.sketch-guide.generate",
+    "teacher.sketch-deck.generate",
+    "lesson.plan.suggest",
+    "lesson.visual.generate",
+    "tts.narration.generate",
+    "asr.transcribe",
+    "drawing.segment"
+  ]
+}

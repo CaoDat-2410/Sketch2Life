@@ -146,3 +146,11 @@ Records the six patch-equivalent local `dev` commits, preservation backup, full 
 - Machine-readable API/workload/test matrices, read-only API probe, Modal app inventory, and SHA-256 provenance manifest are in the same folder.
 - 16 previously captured synthetic products and safe historical failures are grouped under its `products/` directory; originals remain in their source evidence folders.
 - Backend API/contract suite: 1,454 passed / 6 failed; Modal worker contracts: 79 passed / 2 skipped. No inference was dispatched in this retest.
+
+
+## Rev52 non-video Modal AI reliability and observability - 2026-11-06
+
+- Plan: `../plan/PLAN_REV52_NONVIDEO_MODAL_AI_RELIABILITY_20261106.md` (approved SHA-256 `9703A6CFE3AAF6108A1443B4E7F93805481475A0C60C64C50414106441158938`).
+- Results folder: `nonvideo_modal_ai_reliability_20261106/`.
+- Scope: structured worker/caller telemetry and synthetic verification for registered non-video Modal AI workloads; no video.
+- Status: in progress.

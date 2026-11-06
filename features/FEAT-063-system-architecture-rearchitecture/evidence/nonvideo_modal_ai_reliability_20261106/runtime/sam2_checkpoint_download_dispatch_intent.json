@@ -1,0 +1,8 @@
+{
+  "state": "DISPATCH_INTENT_RECORDED",
+  "stage": "checkpoint_download",
+  "app": "sketch2life-srs23-drawing-segment-dev",
+  "function": "download-sam2-hiera-small-checkpoint",
+  "started_at": "2026-11-06T13:08:53+07:00",
+  "max_attempts": 1
+}
