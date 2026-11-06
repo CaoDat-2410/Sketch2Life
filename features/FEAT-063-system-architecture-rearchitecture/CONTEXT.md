@@ -515,3 +515,13 @@ Owner-authorized FEAT-063 dev-only test added ordered L4/L40S/A10 GPU options, s
 - Baseline: prior worker successes are historical evidence; backend durable product APIs remain absent for several workloads. A worker pass will not be described as product API readiness.
 - Approved plan and SHA-256: `plan/PLAN_REV52_NONVIDEO_MODAL_AI_RELIABILITY_20261106.md`, `6B3B1C25CD2A9974860A93551CDAD0FB3363DB38CB00D293ABB4818C9F0782D2`.
 - No source implementation or Modal deployment has started before this approval record.
+
+## Rev52 completion - non-video Modal AI reliability
+
+- Status: COMPLETE WITH FINDINGS on `feature/feat063-modal-ai-reliability-20261106`; implementation and evidence are local to the isolated worktree.
+- Eight enabled non-video workers passed after the logging and story-contract fixes. Optional `drawing.segment` is still disabled and stops at its workload gate without inference. Video was not called.
+- Parent API verification covered 33 expected request outcomes and a separate four-request story confirmation/resume. Parent drawing used a live HTTP-to-Modal call; story HTTP used a validated fixture while its Modal worker was verified separately.
+- API readiness is not implied for worker-only workloads. Parent guide, Teacher deck, lesson suggestion/visual and speech product endpoints remain NOT_IMPLEMENTED; see the consolidated result report.
+- Worker/caller phase logs retain only allowlisted diagnostics; no prompts, generated text, child/media payloads or raw Modal logs are persisted. Modal apps are stopped, the disposable PostgreSQL container is exited, and registry switches remain disabled.
+- Verification: 97 Modal tests and 59 focused backend tests passed; Ruff, Python compilation and `git diff --check` passed.
+- Full matrix, timings, root causes, API boundary, output hashes and cleanup evidence: `evidence/nonvideo_modal_ai_reliability_20261106/API_AND_AI_MODAL_RESULTS_20261106.md`.

@@ -584,7 +584,13 @@ Parent Sketch Guide and lesson visuals were not dispatched because Modal `dev` s
 
 ## Rev52 non-video Modal AI reliability - 2026-11-06
 
-- Status: IN_PROGRESS under the approved Plan Rev52.
+- Status: COMPLETE WITH FINDINGS under the approved Plan Rev52.
 - Approved plan SHA-256: `6B3B1C25CD2A9974860A93551CDAD0FB3363DB38CB00D293ABB4818C9F0782D2`.
 - Work branch: `feature/feat063-modal-ai-reliability-20261106` from `dev` at `0fc773fa`.
-- No code/deployment change is recorded yet; evidence folder is being initialized.
+- Changes: structured phase observability is in place for non-video Modal workers/caller log summaries. Story parsing now follows the SRS fields/business rules without the unsupported terminal-punctuation constraint; required schema, lifecycle, fact, timing, and scene-count checks remain.
+- Live worker result: all eight enabled non-video worker paths passed once after applicable fixes. Optional `drawing.segment` was attempted once and rejected by its disabled workload gate before inference (`MODAL_WORKLOAD_NOT_ALLOWED`). No video call was made.
+- Parent API: 33/33 expected request outcomes on 13 routes; one live Parent drawing HTTP-to-Modal dispatch passed. Story HTTP used a verified fixture; a separate live story worker call passed. Confirmation/resume reached `VIDEO_ADMISSION_PENDING`, with zero video calls.
+- Tests/quality: 97 Modal tests and 59 focused backend tests passed; targeted Ruff, `py_compile`, and `git diff --check` passed.
+- Limits: Parent sketch guide, Teacher sketch deck, lesson suggestion/visual, and speech are worker-verified but do not yet have durable authenticated product API dispatch; recorded as NOT_IMPLEMENTED. Registry flags remain disabled.
+- Cleanup: task Modal app list empty after stop; disposable PostgreSQL container exited; shared volumes/checkpoints retained; no secret values read or changed.
+- Full results and evidence index: `evidence/nonvideo_modal_ai_reliability_20261106/API_AND_AI_MODAL_RESULTS_20261106.md`.

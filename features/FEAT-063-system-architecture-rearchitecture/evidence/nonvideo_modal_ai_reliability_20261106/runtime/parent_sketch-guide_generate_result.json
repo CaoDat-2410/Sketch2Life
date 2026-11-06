@@ -1,0 +1,17 @@
+{
+  "workload": "parent.sketch-guide.generate",
+  "app": "sketch2life-srs23-flux-image-dev",
+  "function": "generate-line-sketch-guide-candidate",
+  "job_id": "27ad2ffb-4777-4000-814b-ebd3317c274f",
+  "generation_id": "852a8350-6ee4-4e70-b34b-11d97b6b9e57",
+  "attempt_id": "25397fcd-be98-4eaa-921d-0546b448e4fe",
+  "input_sha256": "0f28f8f178af4c345be15dea36577d2b7b2be4dc405ac331c24463f597c9b97e",
+  "manifest_sha256": "f714412b9aecf410f83a46b1c131e2e60ba1314e6e6ef41a041b725b0d52492b",
+  "wait_limit_seconds": 1800,
+  "started_at": "2026-11-06T13:08:45+07:00",
+  "outcome": "FAILED_TERMINAL",
+  "call_id": "fc-01M6QQK5ZNFAE5WKPJVYFEXBXZ",
+  "dispatch_at": "2026-11-06T13:08:47+07:00",
+  "error_type": "TypeError",
+  "ended_at": "2026-11-06T13:08:47+07:00"
+}

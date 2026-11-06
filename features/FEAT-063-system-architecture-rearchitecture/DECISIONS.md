@@ -306,3 +306,15 @@ The SRS publication branch used D-122 through D-125 for these four records, whil
 For FEAT-063 development diagnosis, do not increase a Modal function's execution timeout to address evidence of GPU queue/capacity delay. Increase execution time only when logs show the worker started and was cut off by its execution deadline. If no worker-stage log exists, classify the outcome as unknown and do not retry unchanged. The Rev51 SAM2 record showed a 1,800-second GPU scheduling wait with no mask; the Parent VLM API record had no worker-stage log and remains per-request unknown.
 
 Source: owner-approved Plan Rev51; `evidence/modal_ai_and_legacy_api_retest_20261106/API_TONG_HOP_VA_SAN_PHAM_AI_MODAL_20261106.md`. This is a dev diagnostic rule, not a production timeout decision.
+
+## D-145 - Keep generated story validation aligned to the SRS contract
+
+The non-video story worker must validate the required `StoryRevisionDraftV1` fields, scene count, lifecycle facts, timeline, and applicable business rules. Do not require terminal punctuation unless the canonical SRS adds that requirement. Keep constrained-decoder field limits large enough for the defined content fields; a model output reaching an internal length cap is a generation/contract failure to diagnose, not a reason to silently truncate or skip required validation.
+
+Source: Plan Rev52 and `evidence/nonvideo_modal_ai_reliability_20261106/API_AND_AI_MODAL_RESULTS_20261106.md`; the canonical working SRS remains the product authority.
+
+## D-146 - Preserve privacy-safe Modal worker phase diagnostics
+
+Non-video Modal worker/caller diagnostics may retain correlation IDs, fixed phase names, elapsed time, pinned model/revision, GPU class, stable error code/type, and output size/hash. Parse only allowlisted structured fields. Never retain prompt or generated text, child/profile/roster data, image/audio payloads, tokens, raw exception text, or raw Modal log lines. An unobserved worker terminal event remains an unknown outcome and must not trigger automatic retry.
+
+Source: approved Plan Rev52 and its worker/API evidence. This is an active development observability decision, not production workload enablement.

@@ -1,0 +1,188 @@
+{
+  "app": "sketch2life-srs23-language-audio-dev",
+  "attempt_id": "c09b9c6c-95d9-4a29-b9ed-1d91a3332eb2",
+  "call_id": "fc-01M6QWSAJEFNHRD4TXBZKN685J",
+  "dispatch_at": "2026-11-06T14:39:31+07:00",
+  "ended_at": "2026-11-06T14:40:55+07:00",
+  "function": "suggest-lesson-plan",
+  "generation_id": "1ca5df8b-016e-4305-bb66-938ff91d222e",
+  "input_sha256": "7d7621480e4e0ed24c52ef621054a64ce1dffbca360a90aa7c2c9593fbdb74d4",
+  "job_id": "bf92d011-95a6-4ca1-a619-5988cd93a773",
+  "manifest_sha256": "384818cd318c7be34a91c888cc6e59cf48eb224ceb74c44799ac96676e2b6c77",
+  "outcome": "SUCCEEDED",
+  "output_sha256": "870ecd2d1126046bf5577a0d2803232dc5cc6f773d3aaa219bb705af84fee70e",
+  "result": {
+    "attempt_id": "c09b9c6c-95d9-4a29-b9ed-1d91a3332eb2",
+    "generation_id": "1ca5df8b-016e-4305-bb66-938ff91d222e",
+    "job_id": "bf92d011-95a6-4ca1-a619-5988cd93a773",
+    "model": {
+      "id": "Qwen/Qwen3.5-9B",
+      "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
+    },
+    "result": {
+      "content": {
+        "activities": [
+          {
+            "activity_kind": "outdoor",
+            "instructions_text": "1. Người lớn dẫn trẻ đi bộ chậm rãi trong khu vực đã chọn.\n2. Trẻ quan sát và chỉ ra những nơi có hoa hoặc cây lá xanh.\n3. Trẻ dùng kính để xem kỹ hình dáng cánh bướm từ xa.\n4. Trẻ vẽ lại hình dáng bướm hoặc ghi chú màu sắc vào sổ tay.\n5. Trẻ chụp ảnh (nếu có) hoặc mô tả lại điều mình thấy cho người lớn nghe",
+            "materials_text": "Kính bảo hộ, mũ lưới chống côn trùng, sổ tay ghi chép, bút màu, máy ảnh an toàn",
+            "objective": "Trẻ quan sát thực tế hình dáng, màu sắc và môi trường sống của bướm ngoài trời",
+            "observation_notes": "Theo dõi khả năng tập trung của trẻ khi quan sát chi tiết nhỏ. Ghi nhận phản ứng của trẻ khi thấy bướm bay. Kiểm tra xem trẻ có hiểu về sự di chuyển của bướm không. Đánh giá kỹ的观察力",
+            "preparation_text": "Chọn khu vườn an toàn, không có động vật nguy hiểm. Kiểm tra trang phục trẻ gọn gàng, không có dây thừng. Mang theo nước uống và khăn lau tay. Đảm bảo khu vực r",
+            "safety_notes": "Kiểm tra kỹ khu vực không có gai nhọn hoặc côn trùng độc. Đảm bảo trẻ không sờ tay trực tiếp vào bướm để tránh bị đốt. Người lớn luôn đi kèm sát bên trẻ trong suốt quá trình hoạt",
+            "title": "Tìm dấu vết bướm trong vườn"
+          }
+        ],
+        "drawing_steps_text": "1. Vẽ hình bầu dục làm thân bướm.\n2. Thêm hai cặp cánh đối xứng hai bên.\n3. Vẽ các chấm màu sắc trên cánh.\n4. Thêm râu và chân nhỏ ở thân.\n5. Tô màu theo ý thích của trẻ",
+        "drawing_subject": "bướm",
+        "locale": "vi-VN",
+        "objectives": [
+          "Quan sát hình dáng và vòng đời của bướm"
+        ],
+        "script_direction": null,
+        "script_following_allowed": false,
+        "subject_learning_notes": "Bướm trải qua 4 giai đoạn: trứng, sâu bướm, nhộng, bướm trưởng thành. Sâu bướm ăn lá cây để lớn lên. Nhộng là giai đoạn biến đổi hình thái. Bướm trưởng thành hút mật hoa để sinh tồn. Mỗi loài bướm có màu sắc và hoa văn riêng biệt giúp nhận biết loài đó trong tự nhiên",
+        "target_age_band_ref": "age-band-3-6",
+        "target_age_band_version": 1,
+        "title": "Khám phá vòng đời bướm ngoài trời",
+        "topic": "Con bướm"
+      },
+      "draft_only": true
+    },
+    "schema_version": "sketch2life.modal.worker-output.v1",
+    "workload": "lesson.plan.suggest"
+  },
+  "runner_elapsed_ms": 86655.15,
+  "started_at": "2026-11-06T14:39:29+07:00",
+  "validated_draft": {
+    "activity_count": 1,
+    "activity_kinds": [
+      "outdoor"
+    ],
+    "age_band_ref": "age-band-3-6",
+    "locale": "vi-VN",
+    "status": "DRAFT_ONLY"
+  },
+  "wait_limit_seconds": 1800,
+  "worker_log_summary": {
+    "worker_binary_output_sha256": null,
+    "worker_diagnostic_code": null,
+    "worker_diagnostic_details": null,
+    "worker_duration_ms": 81172,
+    "worker_error_code": null,
+    "worker_error_type": null,
+    "worker_failure_boundary": "worker_succeeded",
+    "worker_gpu_class": "L40S|L4|A10",
+    "worker_last_stage": "terminal",
+    "worker_log_event_count": 24,
+    "worker_logs_available": true,
+    "worker_model_id": "Qwen/Qwen3.5-9B",
+    "worker_model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+    "worker_output_sha256": "870ecd2d1126046bf5577a0d2803232dc5cc6f773d3aaa219bb705af84fee70e",
+    "worker_output_size_bytes": 2833,
+    "worker_phase_history": [
+      {
+        "event": "worker_phase_started",
+        "stage": "input_envelope"
+      },
+      {
+        "duration_ms": 0,
+        "event": "worker_phase_succeeded",
+        "stage": "input_envelope"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "workload_gate"
+      },
+      {
+        "duration_ms": 0,
+        "event": "worker_phase_succeeded",
+        "stage": "workload_gate"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "scratch_volume_reload"
+      },
+      {
+        "duration_ms": 206,
+        "event": "worker_phase_succeeded",
+        "stage": "scratch_volume_reload"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "input_manifest_read"
+      },
+      {
+        "duration_ms": 864,
+        "event": "worker_phase_succeeded",
+        "stage": "input_manifest_read"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "lesson_request_validation"
+      },
+      {
+        "duration_ms": 0,
+        "event": "worker_phase_succeeded",
+        "stage": "lesson_request_validation"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "checkpoint_verification"
+      },
+      {
+        "duration_ms": 161,
+        "event": "worker_phase_succeeded",
+        "stage": "checkpoint_verification"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "model_load"
+      },
+      {
+        "duration_ms": 26732,
+        "event": "worker_phase_succeeded",
+        "stage": "model_load"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "prompt_encoding"
+      },
+      {
+        "duration_ms": 54,
+        "event": "worker_phase_succeeded",
+        "stage": "prompt_encoding"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "constrained_decoder_setup"
+      },
+      {
+        "duration_ms": 3755,
+        "event": "worker_phase_succeeded",
+        "stage": "constrained_decoder_setup"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "model_inference"
+      },
+      {
+        "duration_ms": 49265,
+        "event": "worker_phase_succeeded",
+        "stage": "model_inference"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "output_parse_and_contract_validation"
+      },
+      {
+        "duration_ms": 0,
+        "event": "worker_phase_succeeded",
+        "stage": "output_parse_and_contract_validation"
+      }
+    ],
+    "worker_started_observed": true,
+    "worker_terminal_event": "worker_succeeded"
+  },
+  "workload": "lesson.plan.suggest"
+}

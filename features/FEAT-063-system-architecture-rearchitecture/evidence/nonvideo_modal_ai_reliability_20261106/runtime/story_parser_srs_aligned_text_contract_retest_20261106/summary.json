@@ -1,0 +1,166 @@
+{
+  "aliases": [
+    "storyboard.generate"
+  ],
+  "butterfly_lifecycle_valid": true,
+  "call_id": "fc-01M6R7JBH7SVC9B55STMA3F369",
+  "duration_ms": 30000,
+  "elapsed_seconds": 135.74,
+  "ended_at": "2026-11-06T17:50:09+07:00",
+  "model_id": "Qwen/Qwen3.5-9B",
+  "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+  "outcome": "SUCCEEDED",
+  "result_artifact": "story_generate_result.json",
+  "result_sha256": "467ce762ab997100ace92e16eece93e81a74966df3b3177dfbed24310089cefa",
+  "runner_error_type": null,
+  "runner_outcome": "SUCCEEDED",
+  "scene_action_nonempty": true,
+  "scene_count": 5,
+  "scene_narration_nonempty": true,
+  "scene_visual_prompt_nonempty": true,
+  "schema_valid": true,
+  "started_at": "2026-11-06T17:47:54+07:00",
+  "story_sections_nonempty": true,
+  "synthetic_only": true,
+  "video_calls": 0,
+  "worker_diagnostic_code": null,
+  "worker_log_summary": {
+    "worker_binary_output_sha256": null,
+    "worker_diagnostic_code": null,
+    "worker_diagnostic_details": null,
+    "worker_duration_ms": 107469,
+    "worker_error_code": null,
+    "worker_error_type": null,
+    "worker_failure_boundary": "worker_succeeded",
+    "worker_gpu_class": "L40S|L4|A10",
+    "worker_last_stage": "terminal",
+    "worker_log_event_count": 28,
+    "worker_logs_available": true,
+    "worker_model_id": "Qwen/Qwen3.5-9B",
+    "worker_model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+    "worker_output_sha256": "5bcb4906b4c1596c5960185f1cac7d146c9db94caa37fb07749bb11515b208e1",
+    "worker_output_size_bytes": 4732,
+    "worker_phase_history": [
+      {
+        "event": "worker_phase_started",
+        "stage": "input_envelope"
+      },
+      {
+        "duration_ms": 0,
+        "event": "worker_phase_succeeded",
+        "stage": "input_envelope"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "workload_gate"
+      },
+      {
+        "duration_ms": 0,
+        "event": "worker_phase_succeeded",
+        "stage": "workload_gate"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "scratch_volume_reload"
+      },
+      {
+        "duration_ms": 555,
+        "event": "worker_phase_succeeded",
+        "stage": "scratch_volume_reload"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "input_manifest_read"
+      },
+      {
+        "duration_ms": 684,
+        "event": "worker_phase_succeeded",
+        "stage": "input_manifest_read"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "request_contract_validation"
+      },
+      {
+        "duration_ms": 0,
+        "event": "worker_phase_succeeded",
+        "stage": "request_contract_validation"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "runtime_preparation"
+      },
+      {
+        "duration_ms": 2134,
+        "event": "worker_phase_succeeded",
+        "stage": "runtime_preparation"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "checkpoint_verification"
+      },
+      {
+        "duration_ms": 73,
+        "event": "worker_phase_succeeded",
+        "stage": "checkpoint_verification"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "model_load"
+      },
+      {
+        "duration_ms": 11577,
+        "event": "worker_phase_succeeded",
+        "stage": "model_load"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "prompt_encoding"
+      },
+      {
+        "duration_ms": 56,
+        "event": "worker_phase_succeeded",
+        "stage": "prompt_encoding"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "constrained_decoder_setup"
+      },
+      {
+        "duration_ms": 3703,
+        "event": "worker_phase_succeeded",
+        "stage": "constrained_decoder_setup"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "model_inference"
+      },
+      {
+        "duration_ms": 87941,
+        "event": "worker_phase_succeeded",
+        "stage": "model_inference"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "output_decode_and_parse"
+      },
+      {
+        "duration_ms": 1,
+        "event": "worker_phase_succeeded",
+        "stage": "output_decode_and_parse"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "business_rule_validation"
+      },
+      {
+        "duration_ms": 1,
+        "event": "worker_phase_succeeded",
+        "stage": "business_rule_validation"
+      }
+    ],
+    "worker_started_observed": true,
+    "worker_terminal_event": "worker_succeeded"
+  },
+  "workload": "story.generate"
+}

@@ -317,4 +317,7 @@ Plan Rev51 SHA-256 at approval: `B20103A217D7A9623E02279CE0BD82D5BC61141518D820F
 - Canonical requirements: FEAT-063 SRS v2.4-draft, especially FR-P-03/04/11, FR-T-18/19/20, FR-AI-01/02/03/11/14/15 and BR-23/34/36/42-46.
 - Plan/approval: `plan/PLAN_REV52_NONVIDEO_MODAL_AI_RELIABILITY_20261106.md`; SHA-256 `6B3B1C25CD2A9974860A93551CDAD0FB3363DB38CB00D293ABB4818C9F0782D2`; approvals are in the root and feature task approval registers.
 - Baseline evidence: Rev51 consolidated API/worker report and `artifacts/AI_API_WORKLOAD_CATALOG_FEAT063_REV44_20261105.md`; old records are implementation evidence, not current product requirements.
-- Current evidence path: `evidence/nonvideo_modal_ai_reliability_20261106/` (execution in progress).
+- Result: `evidence/nonvideo_modal_ai_reliability_20261106/API_AND_AI_MODAL_RESULTS_20261106.md` (complete with API-boundary findings).
+- Runtime evidence: `evidence/nonvideo_modal_ai_reliability_20261106/runtime/`; synthetic calls only. Eight active non-video workers passed; optional SAM2 stayed gated; video was not called.
+- Verification: 97 Modal tests and 59 focused backend tests passed; Ruff, `py_compile`, and `git diff --check` passed. All task Modal apps stopped; disposable PostgreSQL container exited.
+- Product API gap: several worker-only workloads still have no authenticated durable API. The result report lists them as NOT_IMPLEMENTED; worker success is not represented as API integration.

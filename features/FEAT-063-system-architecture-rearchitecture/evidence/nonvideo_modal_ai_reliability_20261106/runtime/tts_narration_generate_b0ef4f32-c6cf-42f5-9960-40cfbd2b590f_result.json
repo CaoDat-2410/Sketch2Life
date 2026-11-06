@@ -1,0 +1,8 @@
+{
+  "workload": "tts.narration.generate",
+  "function": "synthesize-vietnamese-narration",
+  "call_id": "fc-01M6QQKM51EX7R5HCVAZSDKEZ7",
+  "elapsed_ms": 2224.35,
+  "outcome": "UNKNOWN_NO_RETRY",
+  "error_type": "TypeError"
+}

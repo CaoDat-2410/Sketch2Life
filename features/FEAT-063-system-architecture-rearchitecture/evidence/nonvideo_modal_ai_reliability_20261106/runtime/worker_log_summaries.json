@@ -1,0 +1,114 @@
+[
+  {
+    "call_id": "fc-01M6QQJW6QSC8MVS4QJ7NKABSW",
+    "workload_ids": [
+      "drawing.analyze"
+    ],
+    "result_outcome": "FAILED_TERMINAL",
+    "worker_logs_available": true,
+    "worker_log_event_count": 8,
+    "worker_started_observed": true,
+    "worker_terminal_event": "worker_failed",
+    "worker_last_stage": "input_asset_verify",
+    "worker_error_code": "MODAL_INPUT_MANIFEST_MISSING",
+    "worker_error_type": "WorkerContractError",
+    "worker_duration_ms": 161,
+    "worker_failure_boundary": "worker_terminal_failure_observed"
+  },
+  {
+    "call_id": "fc-01M6QQKHABZZ8NZKTXX0Q7T15P",
+    "workload_ids": [
+      "lesson.plan.suggest"
+    ],
+    "result_outcome": "FAILED_TERMINAL",
+    "worker_logs_available": true,
+    "worker_log_event_count": 0,
+    "worker_started_observed": false,
+    "worker_terminal_event": null,
+    "worker_last_stage": null,
+    "worker_error_code": null,
+    "worker_error_type": null,
+    "worker_duration_ms": null,
+    "worker_failure_boundary": "worker_start_not_observed"
+  },
+  {
+    "call_id": "fc-01M6QQKBKG5SBDAAJMP47XDR8T",
+    "workload_ids": [
+      "lesson.visual.generate"
+    ],
+    "result_outcome": "FAILED_TERMINAL",
+    "worker_logs_available": true,
+    "worker_log_event_count": 0,
+    "worker_started_observed": false,
+    "worker_terminal_event": null,
+    "worker_last_stage": null,
+    "worker_error_code": null,
+    "worker_error_type": null,
+    "worker_duration_ms": null,
+    "worker_failure_boundary": "worker_start_not_observed"
+  },
+  {
+    "call_id": "fc-01M6QQK5ZNFAE5WKPJVYFEXBXZ",
+    "workload_ids": [
+      "parent.sketch-guide.generate"
+    ],
+    "result_outcome": "FAILED_TERMINAL",
+    "worker_logs_available": true,
+    "worker_log_event_count": 0,
+    "worker_started_observed": false,
+    "worker_terminal_event": null,
+    "worker_last_stage": null,
+    "worker_error_code": null,
+    "worker_error_type": null,
+    "worker_duration_ms": null,
+    "worker_failure_boundary": "worker_start_not_observed"
+  },
+  {
+    "call_id": "fc-01M6QQK348YEH1PZY930YD1YMD",
+    "workload_ids": [
+      "story.generate"
+    ],
+    "result_outcome": "FAILED_TERMINAL",
+    "worker_logs_available": true,
+    "worker_log_event_count": 8,
+    "worker_started_observed": true,
+    "worker_terminal_event": "worker_failed",
+    "worker_last_stage": "input_manifest_read",
+    "worker_error_code": "MODAL_INPUT_MANIFEST_MISSING",
+    "worker_error_type": "WorkerContractError",
+    "worker_duration_ms": 225,
+    "worker_failure_boundary": "worker_terminal_failure_observed"
+  },
+  {
+    "call_id": "fc-01M6QQK8SH3G3KBF9DPX60CNJB",
+    "workload_ids": [
+      "teacher.sketch-deck.generate"
+    ],
+    "result_outcome": "FAILED_TERMINAL",
+    "worker_logs_available": true,
+    "worker_log_event_count": 8,
+    "worker_started_observed": true,
+    "worker_terminal_event": "worker_failed",
+    "worker_last_stage": "input_manifest_read",
+    "worker_error_code": "MODAL_INPUT_MANIFEST_MISSING",
+    "worker_error_type": "WorkerContractError",
+    "worker_duration_ms": 213,
+    "worker_failure_boundary": "worker_terminal_failure_observed"
+  },
+  {
+    "call_id": "fc-01M6QQKM51EX7R5HCVAZSDKEZ7",
+    "workload_ids": [
+      "tts.narration.generate"
+    ],
+    "result_outcome": "UNKNOWN_NO_RETRY",
+    "worker_logs_available": true,
+    "worker_log_event_count": 0,
+    "worker_started_observed": false,
+    "worker_terminal_event": null,
+    "worker_last_stage": null,
+    "worker_error_code": null,
+    "worker_error_type": null,
+    "worker_duration_ms": null,
+    "worker_failure_boundary": "worker_start_not_observed"
+  }
+]

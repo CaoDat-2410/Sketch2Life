@@ -1,0 +1,16 @@
+{
+  "workload": "drawing.analyze",
+  "app": "sketch2life-srs23-drawing-vlm-dev",
+  "function": "analyze-drawing",
+  "job_id": "77fc6314-bb16-45a7-97d0-723b8025483b",
+  "generation_id": "7e6d8722-a90d-4754-8bf0-c91a9655a91f",
+  "attempt_id": "2e92a653-8002-4cd3-8618-bca888270a11",
+  "source_sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949",
+  "drawing_sha256": "f433b37a93f33accc5a10cbb81b18f8cf31d8de0868752c0fe6d9d8beb3ec8e0",
+  "wait_limit_seconds": 1800,
+  "started_at": "2026-11-06T14:34:50+07:00",
+  "outcome": "DISPATCH_FAILED_NO_CALL",
+  "state": "DISPATCH_INTENT_RECORDED",
+  "attempt_prefix": "sketch2life/dev/77fc6314-bb16-45a7-97d0-723b8025483b/7e6d8722-a90d-4754-8bf0-c91a9655a91f/2e92a653-8002-4cd3-8618-bca888270a11/",
+  "max_attempts": 1
+}
