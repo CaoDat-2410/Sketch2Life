@@ -56,6 +56,7 @@ INPUT_SCHEMA = "sketch2life.modal.ai-request.v1"
 MAX_MANIFEST_BYTES = 64 * 1024
 MAX_OUTPUT_BYTES = 16 * 1024 * 1024
 STORY_GENERATION_BUDGET = 4_096  # measured in output tokens
+STORY_WORKER_TIMEOUT_SECONDS = 1_800
 _SHA256 = re.compile(r"\A[0-9a-f]{64}\Z")
 
 
@@ -66,8 +67,7 @@ def _lmfe_vietnamese_json_alphabet() -> str:
 
     ascii_alphabet = (
         "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        "!@#$%^&*()_+-=[]{};:,./<>? `"
-        + "'\"\\"
+        "!@#$%^&*()_+-=[]{};:,./<>? `" + "'\"\\"
     )
     unicode_ranges = (
         (0x00A0, 0x0250),  # Latin-1 and Latin Extended-A/B.
@@ -106,14 +106,18 @@ _observability_file = _MODULE_DIR / "worker_observability.py"
 _download_image = (
     modal.Image.debian_slim(python_version="3.11")
     .add_local_file(str(_contracts_file), "/root/contracts.py", copy=True)
-    .add_local_file(str(_observability_file), "/root/worker_observability.py", copy=True)
+    .add_local_file(
+        str(_observability_file), "/root/worker_observability.py", copy=True
+    )
     .pip_install("huggingface_hub==0.33.4")
     .env({"HF_HUB_DISABLE_TELEMETRY": "1", "HF_XET_HIGH_PERFORMANCE": "1"})
 )
 _text_image = (
     modal.Image.debian_slim(python_version="3.11")
     .add_local_file(str(_contracts_file), "/root/contracts.py", copy=True)
-    .add_local_file(str(_observability_file), "/root/worker_observability.py", copy=True)
+    .add_local_file(
+        str(_observability_file), "/root/worker_observability.py", copy=True
+    )
     .uv_pip_install(
         "torch==2.7.1",
         "torchvision==0.22.1",
@@ -139,7 +143,9 @@ _story_text_image = _text_image.env(
 _tts_image = (
     modal.Image.debian_slim(python_version="3.11")
     .add_local_file(str(_contracts_file), "/root/contracts.py", copy=True)
-    .add_local_file(str(_observability_file), "/root/worker_observability.py", copy=True)
+    .add_local_file(
+        str(_observability_file), "/root/worker_observability.py", copy=True
+    )
     .pip_install(
         "vieneu==3.8.3",
         "onnxruntime==1.20.1",
@@ -155,7 +161,9 @@ _tts_image = (
 _asr_image = (
     modal.Image.debian_slim(python_version="3.11")
     .add_local_file(str(_contracts_file), "/root/contracts.py", copy=True)
-    .add_local_file(str(_observability_file), "/root/worker_observability.py", copy=True)
+    .add_local_file(
+        str(_observability_file), "/root/worker_observability.py", copy=True
+    )
     .pip_install("faster-whisper==1.2.1", "huggingface_hub==0.33.4")
     .env({"HF_HUB_DISABLE_TELEMETRY": "1"})
 )
@@ -228,7 +236,10 @@ def download_language_audio_models() -> dict[str, Any]:
         if marker_path.is_file():
             with worker_phase(checkpoint_stages[model_id]):
                 marker = json.loads(marker_path.read_text(encoding="utf-8"))
-                if marker.get("model_id") != model_id or marker.get("revision") != revision:
+                if (
+                    marker.get("model_id") != model_id
+                    or marker.get("revision") != revision
+                ):
                     raise RuntimeError("MODAL_MODEL_REVISION_MARKER_MISMATCH")
             results.append(
                 {
@@ -328,7 +339,7 @@ def check_qwen35_readiness() -> dict[str, Any]:
     min_containers=0,
     max_containers=1,
     scaledown_window=120,
-    timeout=1_800,
+    timeout=STORY_WORKER_TIMEOUT_SECONDS,
     retries=0,
 )
 @observed_worker(
@@ -336,6 +347,7 @@ def check_qwen35_readiness() -> dict[str, Any]:
     model_id=TEXT_MODEL_ID,
     model_revision=TEXT_MODEL_REVISION,
     gpu_class="L40S|L4|A10",
+    timeout_seconds=STORY_WORKER_TIMEOUT_SECONDS,
 )
 def generate_story_and_storyboard(payload: dict[str, Any]) -> dict[str, Any]:
     """Generate one adult-review Parent story revision matching the SRS scene contract."""
@@ -511,12 +523,16 @@ def generate_story_and_storyboard(payload: dict[str, Any]) -> dict[str, Any]:
                     else "story_output_invalid",
                     "reason_code": exc.reason_code,
                     "generation_seconds": round(generation_seconds, 3),
+                    "max_new_tokens": STORY_GENERATION_BUDGET,
+                    "token_limit_reached": output_token_count
+                    >= STORY_GENERATION_BUDGET,
                     "tokenizer_eos_token_id": tokenizer.eos_token_id,
                     "model_eos_token_id": model.generation_config.eos_token_id,
                     **_generation_output_diagnostics(
                         generated, input_ids.shape[-1], model
                     ),
                     **_json_output_diagnostics(text),
+                    **_story_output_field_diagnostics(text),
                     **_json_prefix_decoder_diagnostics(
                         prefix_allowed_tokens_fn,
                         generated=generated,
@@ -551,7 +567,9 @@ def generate_story_and_storyboard(payload: dict[str, Any]) -> dict[str, Any]:
     try:
         with worker_phase("business_rule_validation"):
             assembled = _assemble_parent_story_output(content)
-            result = _parse_story_output(json.dumps(assembled, ensure_ascii=False), data)
+            result = _parse_story_output(
+                json.dumps(assembled, ensure_ascii=False), data
+            )
     except StoryOutputValidationError as exc:
         print(
             json.dumps(
@@ -701,7 +719,9 @@ def generate_teacher_sketch_deck(payload: dict[str, Any]) -> dict[str, Any]:
         json.dumps(
             {
                 "event": "teacher_deck_tokens_generated",
-                "generation_seconds": round(time.perf_counter() - generation_started, 3),
+                "generation_seconds": round(
+                    time.perf_counter() - generation_started, 3
+                ),
                 "output_token_count": output_token_count,
                 "max_new_tokens": max_new_tokens,
                 "token_limit_reached": output_token_count >= max_new_tokens,
@@ -1275,8 +1295,7 @@ def _parse_teacher_guide(text: str, data: dict[str, Any]) -> list[dict[str, Any]
             or any(
                 not isinstance(candidate.get(field), str)
                 or not candidate[field].strip()
-                or len(candidate[field])
-                > (100 if field == "instruction" else 80)
+                or len(candidate[field]) > (100 if field == "instruction" else 80)
                 for field in ("instruction", "placement")
             )
         ):
@@ -1746,12 +1765,7 @@ def _parse_story_output(text: str, request: dict[str, Any]) -> dict[str, Any]:
         "duration_ms": data["duration_ms"],
         "scenes": checked_scenes,
     }
-    try:
-        _validate_butterfly_facts(result, str(request["confirmed_subject"]))
-    except RuntimeError as exc:
-        if str(exc) == "MODAL_EDUCATIONAL_FACT_CHECK_FAILED":
-            raise StoryOutputValidationError("EDUCATIONAL_FACT_INVALID") from exc
-        raise
+    _validate_butterfly_facts(result, str(request["confirmed_subject"]))
     return result
 
 
@@ -1786,8 +1800,12 @@ def _parse_story_content_output(text: str) -> dict[str, Any]:
     ):
         raise StoryOutputValidationError("CONTENT_FIELDS_INVALID")
 
+    normalized_story = {
+        key: story[key].strip() for key in ("opening", "middle", "ending")
+    }
+
     scene_keys = {"title", "action", "visual_prompt", "narration", "character_anchors"}
-    text_bounds = {"title": 60, "action": 180, "visual_prompt": 320, "narration": 180}
+    text_bounds = {"title": 60, "action": 180, "visual_prompt": 240, "narration": 180}
     checked_scenes: list[dict[str, Any]] = []
     for scene in scenes:
         if not isinstance(scene, dict) or set(scene) != scene_keys:
@@ -1820,7 +1838,7 @@ def _parse_story_content_output(text: str) -> dict[str, Any]:
 
     return {
         "title": title.strip(),
-        "story": {key: story[key].strip() for key in ("opening", "middle", "ending")},
+        "story": normalized_story,
         "scenes": checked_scenes,
     }
 
@@ -1847,12 +1865,95 @@ def _assemble_parent_story_output(content: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _story_output_field_diagnostics(text: str) -> dict[str, Any]:
+    """Describe story text fields without logging generated content."""
+
+    try:
+        value = json.loads(text)
+    except (json.JSONDecodeError, TypeError, ValueError):
+        return {"story_field_diagnostics_available": False}
+    if not isinstance(value, dict):
+        return {"story_field_diagnostics_available": False}
+
+    metrics: list[dict[str, Any]] = []
+    limits = {
+        "title": 80,
+        "opening": 300,
+        "middle": 300,
+        "ending": 300,
+        "scene_title": 40,
+        "action": 180,
+        "visual_prompt": 240,
+        "narration": 180,
+    }
+
+    def add_metric(path: str, field: str, field_value: Any) -> None:
+        if not isinstance(field_value, str):
+            metrics.append({"field": path, "value_type": type(field_value).__name__})
+            return
+        metric = {
+            "field": path,
+            "character_count": len(field_value.strip()),
+            "max_length": limits[field],
+        }
+        if field in {
+            "opening",
+            "middle",
+            "ending",
+            "action",
+            "visual_prompt",
+            "narration",
+        }:
+            metric["sentence_complete"] = _story_sentence_is_complete(field_value)
+        metrics.append(metric)
+
+    add_metric("title", "title", value.get("title"))
+    story = value.get("story")
+    if isinstance(story, dict):
+        for section in ("opening", "middle", "ending"):
+            if section in story:
+                add_metric(f"story.{section}", section, story[section])
+    scenes = value.get("scenes")
+    if isinstance(scenes, list):
+        for index, scene in enumerate(scenes, start=1):
+            if not isinstance(scene, dict):
+                metrics.append(
+                    {"field": f"scenes[{index}]", "value_type": type(scene).__name__}
+                )
+                continue
+            for field, key in (
+                ("scene_title", "title"),
+                ("action", "action"),
+                ("visual_prompt", "visual_prompt"),
+                ("narration", "narration"),
+            ):
+                if key in scene:
+                    add_metric(f"scenes[{index}].{key}", field, scene[key])
+
+    incomplete_fields = [
+        metric["field"]
+        for metric in metrics
+        if metric.get("sentence_complete") is False
+    ]
+    return {
+        "story_field_diagnostics_available": True,
+        "story_text_field_metric_count": len(metrics),
+        "story_incomplete_sentence_fields": incomplete_fields,
+        "story_text_field_metrics": metrics,
+    }
+
+
+def _story_sentence_is_complete(value: str) -> bool:
+    stripped = value.rstrip().rstrip("\"'”’»)]}")
+    return bool(stripped) and stripped[-1] in ".!?…"
+
+
 def _parent_story_content_json_schema() -> dict[str, Any]:
     scene_fields = {
         "title": {"type": "string", "minLength": 1, "maxLength": 40},
-        "action": {"type": "string", "minLength": 1, "maxLength": 120},
-        "visual_prompt": {"type": "string", "minLength": 1, "maxLength": 180},
-        "narration": {"type": "string", "minLength": 1, "maxLength": 120},
+        "action": {"type": "string", "minLength": 1, "maxLength": 180},
+        "visual_prompt": {"type": "string", "minLength": 1, "maxLength": 240},
+        "narration": {"type": "string", "minLength": 1, "maxLength": 180},
         "character_anchors": {
             "type": "array",
             "minItems": 1,
@@ -1863,11 +1964,11 @@ def _parent_story_content_json_schema() -> dict[str, Any]:
     return {
         "type": "object",
         "properties": {
-              "title": {"type": "string", "minLength": 1, "maxLength": 80},
+            "title": {"type": "string", "minLength": 1, "maxLength": 80},
             "story": {
                 "type": "object",
                 "properties": {
-                  key: {"type": "string", "minLength": 1, "maxLength": 180}
+                    key: {"type": "string", "minLength": 1, "maxLength": 300}
                     for key in ("opening", "middle", "ending")
                 },
                 "required": ["opening", "middle", "ending"],
@@ -2012,10 +2113,7 @@ def _build_json_prefix_allowed_tokens_fn(
         if isinstance(effective_eos_token_id, list)
         else (effective_eos_token_id,)
     )
-    if (
-        _CACHED_STORY_VOCAB_DATA is None
-        or eos_token_ids != _CACHED_STORY_EOS_IDS
-    ):
+    if _CACHED_STORY_VOCAB_DATA is None or eos_token_ids != _CACHED_STORY_EOS_IDS:
         _CACHED_STORY_VOCAB_DATA = _build_lmfe_tokenizer_data(
             tokenizer,
             TokenEnforcerTokenizerData,
@@ -2057,15 +2155,16 @@ def _build_json_prefix_allowed_tokens_fn(
         allowed_tokens = token_enforcer.get_allowed_tokens(input_ids.tolist())
         # LMFE 0.11.x returns TokenList; accept its public token list explicitly.
         values = getattr(allowed_tokens, "allowed_tokens", allowed_tokens)
-        parser_state = getattr(token_enforcer, "prefix_states", {}).get(
-            token_sequence
-        )
+        parser_state = getattr(token_enforcer, "prefix_states", {}).get(token_sequence)
         parser = getattr(parser_state, "parser", None)
         diagnostics["last_parser_state_class"] = type(parser).__name__
         can_end = getattr(parser, "can_end", None)
-        diagnostics["last_parser_can_end"] = bool(can_end()) if callable(can_end) else False
+        diagnostics["last_parser_can_end"] = (
+            bool(can_end()) if callable(can_end) else False
+        )
         diagnostics["last_model_eos_allowed"] = any(
-            token_id in values for token_id in _normalize_token_ids(effective_eos_token_id)
+            token_id in values
+            for token_id in _normalize_token_ids(effective_eos_token_id)
         )
         if type(parser).__name__ == "ForceStopParser":
             diagnostics["force_stop_parser_calls"] += 1
@@ -2132,13 +2231,10 @@ def _json_prefix_decoder_diagnostics(
     }
     if generated is not None and input_token_count is not None:
         generated_ids = [
-            int(token_id)
-            for token_id in generated[0, input_token_count:].tolist()
+            int(token_id) for token_id in generated[0, input_token_count:].tolist()
         ]
         final_token_id = generated_ids[-1] if generated_ids else None
-        eos_token_ids = _normalize_token_ids(
-            values.get("model_eos_token_ids", [])
-        )
+        eos_token_ids = _normalize_token_ids(values.get("model_eos_token_ids", []))
         if final_token_id is not None:
             result["final_model_eos_was_allowed_at_previous_prefix"] = (
                 final_token_id in eos_token_ids
@@ -2161,9 +2257,7 @@ def _json_prefix_decoder_diagnostics(
         decoder = getattr(prefix_allowed_tokens_fn, "decoder", None)
         if callable(decoder):
             tokens_for_decode = (
-                generated_ids[:-1]
-                if final_token_id in eos_token_ids
-                else generated_ids
+                generated_ids[:-1] if final_token_id in eos_token_ids else generated_ids
             )
             enforcer_text = decoder(tokens_for_decode)
             enforcer_shape = _json_output_diagnostics(enforcer_text)
@@ -2193,8 +2287,7 @@ def _json_prefix_decoder_diagnostics(
                 result["replay_parser_can_end"] = replay_parser.can_end()
                 result["replay_parser_error_count"] = replay_errors
                 result["incremental_vs_replay_can_end_mismatch"] = (
-                    bool(values.get("last_parser_can_end"))
-                    != replay_parser.can_end()
+                    bool(values.get("last_parser_can_end")) != replay_parser.can_end()
                 )
             except Exception:  # noqa: BLE001 - safe diagnostics must not mask AI errors.
                 result["replay_parser_diagnostic_error"] = True
@@ -2238,7 +2331,11 @@ def _build_lmfe_tokenizer_data(
         decoded_after_zero = tokenizer.decode([token_zero, token_id])
         decoded_token = tokenizer.decode([token_id])
         regular_tokens.append(
-            (token_id, decoded_after_zero[1:], len(decoded_after_zero) > len(decoded_token))
+            (
+                token_id,
+                decoded_after_zero[1:],
+                len(decoded_after_zero) > len(decoded_token),
+            )
         )
 
     return tokenizer_data_type(
@@ -2274,9 +2371,7 @@ def check_qwen35_decoder_readiness() -> dict[str, str]:
     return {
         "status": "ready",
         "transformers_version": transformers.__version__,
-        "lm_format_enforcer_version": importlib.metadata.version(
-            "lm-format-enforcer"
-        ),
+        "lm_format_enforcer_version": importlib.metadata.version("lm-format-enforcer"),
         "model_loader": AutoModelForMultimodalLM.__name__,
         "processor_loader": AutoProcessor.__name__,
         "schema_parser": JsonSchemaParser.__name__,
@@ -2334,9 +2429,7 @@ def probe_qwen35_constrained_decoder() -> dict[str, Any]:
     )
     schema = {
         "type": "object",
-        "properties": {
-            "value": {"type": "string", "minLength": 1, "maxLength": 4}
-        },
+        "properties": {"value": {"type": "string", "minLength": 1, "maxLength": 4}},
         "required": ["value"],
         "additionalProperties": False,
     }
@@ -2360,13 +2453,13 @@ def probe_qwen35_constrained_decoder() -> dict[str, Any]:
                     "eos_allowed": False,
                 }
             sequence.append(int(token_id))
-        allowed_after_candidate = prefix_fn(
-            0, torch.tensor(sequence, dtype=torch.long)
-        )
+        allowed_after_candidate = prefix_fn(0, torch.tensor(sequence, dtype=torch.long))
         return {
             "accepted": True,
             "blocked_token_index": None,
-            "eos_allowed": any(token_id in allowed_after_candidate for token_id in eos_token_ids),
+            "eos_allowed": any(
+                token_id in allowed_after_candidate for token_id in eos_token_ids
+            ),
         }
 
     valid_text = '{"value":"bướm"}'
@@ -2378,19 +2471,13 @@ def probe_qwen35_constrained_decoder() -> dict[str, Any]:
         '{"title":"t","story":{"opening":"o","middle":"m","ending":"e"},'
         '"scenes":[{"title":"t","action":"a","visual_prompt":"v","narration":"'
     )
-    story_overlong = check_candidate(
-        story_prefix + ("n" * 121), story_schema
-    )
+    story_overlong = check_candidate(story_prefix + ("n" * 121), story_schema)
     story_partial_vietnamese = check_candidate(
         story_prefix + "b" + chr(0x01B0) + chr(0x1EDB), story_schema
     )
     teacher_schema = _teacher_deck_json_schema(3)
-    teacher_prefix = (
-        '{"steps":[{"step_index":1,"instruction":"i","placement":"'
-    )
-    teacher_overlong = check_candidate(
-        teacher_prefix + ("p" * 81), teacher_schema
-    )
+    teacher_prefix = '{"steps":[{"step_index":1,"instruction":"i","placement":"'
+    teacher_overlong = check_candidate(teacher_prefix + ("p" * 81), teacher_schema)
     result = {
         "status": (
             "ready"
@@ -2418,7 +2505,9 @@ def probe_qwen35_constrained_decoder() -> dict[str, Any]:
             story_partial_vietnamese["accepted"]
             and not story_partial_vietnamese["eos_allowed"]
         ),
-        "teacher_nested_placement_overlength_rejected": not teacher_overlong["accepted"],
+        "teacher_nested_placement_overlength_rejected": not teacher_overlong[
+            "accepted"
+        ],
     }
     if result["status"] != "ready":
         raise RuntimeError("MODAL_QWEN35_CONSTRAINED_DECODER_PROBE_FAILED")
@@ -2447,9 +2536,7 @@ def probe_qwen35_generation_constraints() -> dict[str, Any]:
     tokenizer = processor.tokenizer
     schema = {
         "type": "object",
-        "properties": {
-            "value": {"type": "string", "minLength": 1, "maxLength": 4}
-        },
+        "properties": {"value": {"type": "string", "minLength": 1, "maxLength": 4}},
         "required": ["value"],
         "additionalProperties": False,
     }
@@ -2492,8 +2579,7 @@ def probe_qwen35_generation_constraints() -> dict[str, Any]:
         )
     generation_seconds = time.perf_counter() - generation_started
     generated_ids = [
-        int(token_id)
-        for token_id in generated[0, input_token_count:].tolist()
+        int(token_id) for token_id in generated[0, input_token_count:].tolist()
     ]
     all_generated_tokens_allowed = all(
         token_id in callback_allowed_by_length.get(input_token_count + offset, set())
@@ -2549,19 +2635,23 @@ def _parent_story_prompt(request: dict[str, Any]) -> str:
     folded_subject = _fold_vi(subject)
     if "buom" in folded_subject or "butterfly" in folded_subject:
         subject_facts = (
-            "Kiến thức bắt buộc về bướm: trứng nở thành sâu bướm; sâu bướm ăn lá, "
-            "lớn lên rồi hóa nhộng; "
-            "bướm trưởng thành chui ra khỏi nhộng. Dùng các cụm từ “trứng”, “sâu bướm”, “nhộng”, "
-            "“bướm trưởng thành” theo đúng thứ tự; trứng không nở thành bướm trưởng thành."
+            "Kiến thức bắt buộc về vòng đời bướm: opening phải nói về trứng; middle phải kể "
+            "sâu bướm ăn lá rồi hóa nhộng; ending phải kể bướm trưởng thành chui ra khỏi nhộng. "
+            "Giữ đúng thứ tự trứng → sâu bướm → nhộng → bướm trưởng thành. Không viết trứng nở "
+            "thành bướm trưởng thành."
         )
     return (
         "Tạo bản nháp story tiếng Việt, Montessori-inspired, lấy trẻ làm trung tâm. "
         "Trả đúng một JSON object: {title, story, scenes}. story có opening, middle, ending. "
         "Tạo đúng 5 cảnh nối tiếp. Mỗi scene chỉ có title, action, visual_prompt, narration, "
         "character_anchors; không thêm key khác. hệ thống sẽ tự thêm số thứ tự và thời gian. "
-        "Mọi câu ngắn, cụ thể, không lặp. Giới hạn: "
-        "title 80 ký tự; mỗi phần story 180; scene title 40; action 120; visual_prompt 180; "
-        "narration 120; 1-2 character_anchors, mỗi anchor 40 ký tự. "
+        "Mỗi phần story chỉ viết 1-2 câu hoàn chỉnh, mục tiêu 100-140 ký tự. Mỗi action là "
+        "một câu tiếng Việt ngắn, mục tiêu 45-70 ký tự, tối đa 180. Mỗi visual_prompt là một câu "
+        "tiếng Anh ngắn, mục tiêu 55-75 ký tự, tối đa 240. Narration mỗi cảnh gồm 1-2 câu ngắn, "
+        "Narration may use concise sentences. visual_prompt may be a short English phrase; terminal punctuation is optional. "
+        "Mọi câu ngắn, cụ thể, không lặp. Giới hạn tối đa: "
+        "title 80 ký tự; mỗi phần story 300; scene title 40; action 180; visual_prompt 240; "
+        "narration 180; 1-2 character_anchors, mỗi anchor 40 ký tự. "
         "Bám chủ thể người lớn xác nhận và đặc điểm nhìn thấy; giữ nhân vật nhất quán. Người lớn "
         "hướng dẫn, trẻ quan sát và tự khám phá. Không gán tên, cảm xúc, năng lực, danh tính hoặc "
         "chẩn đoán cho người vẽ; không có tên trẻ; không thêm activity, lời khuyên y tế, "
@@ -2590,7 +2680,9 @@ def _validate_butterfly_facts(story: dict[str, Any], subject: str) -> None:
     all_text = _fold_vi(
         " ".join(
             [
-                *story["story"].values(),
+                story["story"]["opening"],
+                story["story"]["middle"],
+                story["story"]["ending"],
                 *(
                     scene["action"] + " " + scene["narration"]
                     for scene in story["scenes"]
@@ -2604,11 +2696,24 @@ def _validate_butterfly_facts(story: dict[str, Any], subject: str) -> None:
         r"butterfly\s+(?:hatches|looks?\s+for|builds?\s+(?:a\s+)?nest)",
     )
     if any(re.search(pattern, all_text) for pattern in forbidden):
-        raise RuntimeError("MODAL_EDUCATIONAL_FACT_CHECK_FAILED")
-    phases = ("trung", "sau buom", "nhong", "buom truong thanh")
-    positions = [all_text.find(phase) for phase in phases]
-    if any(position < 0 for position in positions) or positions != sorted(positions):
-        raise RuntimeError("MODAL_EDUCATIONAL_FACT_CHECK_FAILED")
+        raise StoryOutputValidationError("EDUCATIONAL_FACT_FORBIDDEN_CLAIM")
+    lifecycle_text = _fold_vi(
+        " ".join(story["story"][section] for section in ("opening", "middle", "ending"))
+    )
+    phases = (
+        r"\btrung\b",
+        r"\b(?:sau\s+buom|au\s+trung)\b",
+        r"\bnhong\b",
+        r"\b(?:buom\s+truong\s+thanh|buom\s+(?:chui|bay)\s+ra\s+khoi\s+nhong)\b",
+    )
+    positions = [
+        (match.start() if (match := re.search(phase, lifecycle_text)) else None)
+        for phase in phases
+    ]
+    if any(position is None for position in positions):
+        raise StoryOutputValidationError("EDUCATIONAL_FACT_STAGE_MISSING")
+    if positions != sorted(positions):
+        raise StoryOutputValidationError("EDUCATIONAL_FACT_ORDER_INVALID")
 
 
 def _verify_marker(path: Path, model_id: str, revision: str) -> None:

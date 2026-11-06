@@ -44,22 +44,78 @@ _WORKER_LOG_EVENTS = {
     "worker_succeeded",
     "worker_failed",
 }
+_WORKER_DIAGNOSTIC_EVENTS = {
+    "story_output_invalid",
+    "story_output_truncated",
+    "story_output_rejected",
+}
+_DIAGNOSTIC_INTEGER_FIELDS = {
+    "output_token_count",
+    "max_new_tokens",
+    "final_token_id",
+    "tokenizer_eos_token_id",
+    "model_eos_token_id",
+    "decoded_character_count",
+    "json_error_position",
+    "unterminated_string_character_count",
+    "json_root_key_count",
+    "callback_calls",
+    "string_limit_boundary_checks",
+    "string_limit_boundary_violations",
+    "max_observed_string_length",
+    "max_active_string_limit",
+    "unbounded_active_string_calls",
+    "force_stop_parser_calls",
+    "story_text_field_metric_count",
+}
+_DIAGNOSTIC_BOOLEAN_FIELDS = {
+    "token_limit_reached",
+    "ended_with_model_eos",
+    "json_complete",
+    "last_parser_can_end",
+    "last_model_eos_allowed",
+    "story_field_diagnostics_available",
+}
+_DIAGNOSTIC_STRING_FIELDS = {
+    "json_error_type",
+    "json_root_type",
+    "last_parser_state_class",
+}
+_DIAGNOSTIC_FIELD_KEY_COUNTS = {
+    "title",
+    "action",
+    "visual_prompt",
+    "narration",
+    "instruction",
+    "placement",
+    "drawing_steps_text",
+    "subject_learning_notes",
+    "instructions_text",
+    "safety_notes",
+}
+_SAFE_STORY_FIELD = re.compile(
+    r"\A(?:title|story\.(?:opening|middle|ending)|"
+    r"scenes\[\d{1,2}\](?:\.(?:title|action|visual_prompt|narration))?)\Z"
+)
 
 _LOGGER = get_logger(__name__)
 
 
 def summarize_worker_call_logs(
-    call: Any, *, max_entries: int = 100, max_log_wait_seconds: float = 0.5
+    call: Any, *, max_entries: int = 500, max_log_wait_seconds: float = 0.5
 ) -> dict[str, Any]:
     """Read only structured worker events; tolerate Modal log indexing delay."""
 
     summary: dict[str, Any] = {
         "worker_logs_available": False,
         "worker_log_event_count": 0,
+        "worker_phase_history": [],
         "worker_started_observed": False,
         "worker_terminal_event": None,
         "worker_last_stage": None,
         "worker_error_code": None,
+        "worker_diagnostic_code": None,
+        "worker_diagnostic_details": None,
         "worker_error_type": None,
         "worker_duration_ms": None,
         "worker_model_id": None,
@@ -95,9 +151,17 @@ def summarize_worker_call_logs(
                     and event.get("event") in _WORKER_LOG_EVENTS
                 ):
                     events.append(event)
+                elif (
+                    isinstance(event, dict)
+                    and event.get("event") in _WORKER_DIAGNOSTIC_EVENTS
+                    and event.get("workload") in {None, "story.generate"}
+                    and isinstance(event.get("reason_code"), str)
+                    and _SAFE_LOG_CODE.fullmatch(event["reason_code"])
+                ):
+                    summary["worker_diagnostic_code"] = event["reason_code"]
+                    summary["worker_diagnostic_details"] = _safe_diagnostic_details(event)
         terminal_observed = any(
-            event.get("event") in {"worker_succeeded", "worker_failed"}
-            for event in events
+            event.get("event") in {"worker_succeeded", "worker_failed"} for event in events
         )
         remaining = deadline - time.monotonic()
         if terminal_observed or remaining <= 0:
@@ -106,10 +170,40 @@ def summarize_worker_call_logs(
 
     summary["worker_logs_available"] = logs_available
     summary["worker_log_event_count"] = len(events)
+    phase_history: list[dict[str, Any]] = []
     for event in events:
+        event_name = event.get("event")
+        stage = event.get("stage")
+        if (
+            event_name
+            in {
+                "worker_phase_started",
+                "worker_phase_succeeded",
+                "worker_phase_failed",
+            }
+            and isinstance(stage, str)
+            and _SAFE_LOG_STAGE.fullmatch(stage)
+            and len(phase_history) < 256
+        ):
+            phase: dict[str, Any] = {"event": event_name, "stage": stage}
+            duration = event.get("duration_ms")
+            if (
+                isinstance(duration, int)
+                and not isinstance(duration, bool)
+                and 0 <= duration <= 86_400_000
+            ):
+                phase["duration_ms"] = duration
+            code = event.get("error_code")
+            if isinstance(code, str) and _SAFE_LOG_CODE.fullmatch(code):
+                phase["error_code"] = code
+            error_type = event.get("error_type")
+            if isinstance(error_type, str) and re.fullmatch(
+                r"[A-Za-z][A-Za-z0-9_]{0,63}", error_type
+            ):
+                phase["error_type"] = error_type
+            phase_history.append(phase)
         if event.get("event") == "worker_started":
             summary["worker_started_observed"] = True
-        stage = event.get("stage")
         if isinstance(stage, str) and _SAFE_LOG_STAGE.fullmatch(stage):
             summary["worker_last_stage"] = stage
         for event_key, summary_key in (
@@ -118,7 +212,7 @@ def summarize_worker_call_logs(
             ("gpu_class", "worker_gpu_class"),
         ):
             value = event.get(event_key)
-            if isinstance(value, str) and re.fullmatch(r"[A-Za-z0-9._:/-]{1,160}", value):
+            if isinstance(value, str) and re.fullmatch(r"[A-Za-z0-9._:/|-]{1,160}", value):
                 summary[summary_key] = value
         if event.get("event") not in {"worker_succeeded", "worker_failed"}:
             continue
@@ -143,6 +237,7 @@ def summarize_worker_call_logs(
             if isinstance(value, str) and _SHA256.fullmatch(value):
                 summary[summary_key] = value
 
+    summary["worker_phase_history"] = phase_history
     if summary["worker_terminal_event"] == "worker_failed":
         summary["worker_failure_boundary"] = "worker_terminal_failure_observed"
     elif summary["worker_terminal_event"] == "worker_succeeded":
@@ -154,6 +249,112 @@ def summarize_worker_call_logs(
     elif logs_available:
         summary["worker_failure_boundary"] = "worker_events_not_observed"
     return summary
+
+
+def _safe_diagnostic_details(event: dict[str, Any]) -> dict[str, Any]:
+    """Retain bounded parser/model counters without generated or input text."""
+
+    details: dict[str, Any] = {"event": event["event"]}
+    for key in _DIAGNOSTIC_INTEGER_FIELDS:
+        value = event.get(key)
+        if isinstance(value, int) and not isinstance(value, bool) and value >= 0:
+            details[key] = value
+    for key in _DIAGNOSTIC_BOOLEAN_FIELDS:
+        value = event.get(key)
+        if isinstance(value, bool):
+            details[key] = value
+    seconds = event.get("generation_seconds")
+    if isinstance(seconds, (int, float)) and not isinstance(seconds, bool):
+        if 0 <= seconds < 86_400:
+            details["generation_seconds"] = round(float(seconds), 3)
+    for key in _DIAGNOSTIC_STRING_FIELDS:
+        value = event.get(key)
+        if isinstance(value, str) and re.fullmatch(r"[A-Za-z][A-Za-z0-9_]{0,63}", value):
+            details[key] = value
+    root_type = event.get("json_root_type")
+    if isinstance(root_type, str) and root_type in {
+        "dict",
+        "list",
+        "str",
+        "int",
+        "float",
+        "bool",
+        "NoneType",
+    }:
+        details["json_root_type"] = root_type
+    field_counts = event.get("field_key_counts")
+    if isinstance(field_counts, dict):
+        safe_counts = {
+            key: value
+            for key, value in field_counts.items()
+            if key in _DIAGNOSTIC_FIELD_KEY_COUNTS
+            and isinstance(value, int)
+            and not isinstance(value, bool)
+            and 0 <= value <= 100
+        }
+        if safe_counts:
+            details["field_key_counts"] = safe_counts
+    incomplete_fields = event.get("story_incomplete_sentence_fields")
+    if isinstance(incomplete_fields, list) and len(incomplete_fields) <= 32:
+        safe_fields = [
+            field
+            for field in incomplete_fields
+            if isinstance(field, str) and _SAFE_STORY_FIELD.fullmatch(field)
+        ]
+        if safe_fields:
+            details["story_incomplete_sentence_fields"] = safe_fields
+    field_metrics = event.get("story_text_field_metrics")
+    if isinstance(field_metrics, list) and len(field_metrics) <= 128:
+        safe_metrics: list[dict[str, Any]] = []
+        for metric in field_metrics:
+            if not isinstance(metric, dict):
+                continue
+            field = metric.get("field")
+            if not isinstance(field, str) or _SAFE_STORY_FIELD.fullmatch(field) is None:
+                continue
+            safe_metric: dict[str, Any] = {"field": field}
+            character_count = metric.get("character_count")
+            if (
+                isinstance(character_count, int)
+                and not isinstance(character_count, bool)
+                and 0 <= character_count <= 100_000
+            ):
+                safe_metric["character_count"] = character_count
+            max_length = metric.get("max_length")
+            if (
+                isinstance(max_length, int)
+                and not isinstance(max_length, bool)
+                and 0 <= max_length <= 10_000
+            ):
+                safe_metric["max_length"] = max_length
+            sentence_complete = metric.get("sentence_complete")
+            if isinstance(sentence_complete, bool):
+                safe_metric["sentence_complete"] = sentence_complete
+            value_type = metric.get("value_type")
+            if isinstance(value_type, str) and value_type in {
+                "NoneType",
+                "bool",
+                "int",
+                "float",
+                "str",
+                "list",
+                "dict",
+            }:
+                safe_metric["value_type"] = value_type
+            safe_metrics.append(safe_metric)
+        if safe_metrics:
+            details["story_text_field_metrics"] = safe_metrics
+    eos_ids = event.get("model_eos_token_ids")
+    if (
+        isinstance(eos_ids, list)
+        and len(eos_ids) <= 8
+        and all(
+            isinstance(value, int) and not isinstance(value, bool) and value >= 0
+            for value in eos_ids
+        )
+    ):
+        details["model_eos_token_ids"] = eos_ids
+    return details
 
 
 def _call_identity(payload: dict[str, Any]) -> dict[str, str]:
@@ -411,9 +612,7 @@ class ModalDrawingFunctionClient:
                         worker_last_stage=summary.get("worker_last_stage"),
                         **_call_identity(prepared.payload),
                     )
-                    raise ModalFunctionExecutionFailed(
-                        "DRAWING_WORKER_FAILED_TERMINAL"
-                    ) from None
+                    raise ModalFunctionExecutionFailed("DRAWING_WORKER_FAILED_TERMINAL") from None
                 raise ModalFunctionOutcomeUnknown(call_id) from exc
             terminal = True
             _LOGGER.info(

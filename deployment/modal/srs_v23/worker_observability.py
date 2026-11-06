@@ -40,7 +40,25 @@ def _safe_identity(payload: Any) -> dict[str, str]:
     return result
 
 
-def _error_code(exc: BaseException) -> str:
+def _error_code(
+    exc: BaseException,
+    *,
+    timeout_seconds: float | None = None,
+    elapsed_seconds: float | None = None,
+    stage: str | None = None,
+) -> str:
+    if type(exc).__name__ == "InputCancellation":
+        if (
+            timeout_seconds is not None
+            and elapsed_seconds is not None
+            and elapsed_seconds >= timeout_seconds * 0.98
+        ):
+            return (
+                "MODEL_INFERENCE_TIMEOUT"
+                if stage == "model_inference"
+                else "WORKER_TIMEOUT"
+            )
+        return "WORKER_CANCELLED"
     candidate = getattr(exc, "reason_code", None) or getattr(exc, "code", None)
     if candidate is None and isinstance(exc, (ValueError, RuntimeError)):
         candidate = str(exc)
@@ -67,7 +85,6 @@ def _binary_size(value: Any) -> int:
     return 0
 
 
-
 def _binary_sha256(value: Any) -> str | None:
     digest = hashlib.sha256()
     count = 0
@@ -88,6 +105,7 @@ def _binary_sha256(value: Any) -> str | None:
 
     visit(value)
     return digest.hexdigest() if count else None
+
 
 def _json_shape(value: Any) -> Any:
     """Replace binary leaves without retaining any generated text or media bytes."""
@@ -113,11 +131,13 @@ class WorkerRun:
         model_revision: str,
         gpu_class: str,
         payload: Any,
+        timeout_seconds: float | None,
     ) -> None:
         self.workload = workload
         self.model_id = model_id
         self.model_revision = model_revision
         self.gpu_class = gpu_class
+        self.timeout_seconds = timeout_seconds
         self.identity = _safe_identity(payload)
         self.started = time.perf_counter()
         self.current_stage = "worker_entrypoint"
@@ -193,21 +213,30 @@ class WorkerRun:
         )
 
     def fail(self, exc: BaseException) -> None:
+        elapsed_seconds = time.perf_counter() - self.started
+        error_code = _error_code(
+            exc,
+            timeout_seconds=self.timeout_seconds,
+            elapsed_seconds=elapsed_seconds,
+            stage=self.current_stage,
+        )
         if self._active_stage_started is not None:
             error_type = _safe_error_type(exc)
             self.failed_stage = self.current_stage
             self.emit(
                 "worker_phase_failed",
-                duration_ms=round((time.perf_counter() - self._active_stage_started) * 1000),
-                error_code=_error_code(exc),
+                duration_ms=round(
+                    (time.perf_counter() - self._active_stage_started) * 1000
+                ),
+                error_code=error_code,
                 error_type=error_type,
             )
             self._active_stage_started = None
         self.current_stage = self.failed_stage or self.current_stage
         self.emit(
             "worker_failed",
-            duration_ms=round((time.perf_counter() - self.started) * 1000),
-            error_code=_error_code(exc),
+            duration_ms=round(elapsed_seconds * 1000),
+            error_code=error_code,
             error_type=_safe_error_type(exc),
         )
 
@@ -224,7 +253,9 @@ class WorkerRun:
             return
         self.emit(
             "worker_phase_succeeded",
-            duration_ms=round((time.perf_counter() - self._active_stage_started) * 1000),
+            duration_ms=round(
+                (time.perf_counter() - self._active_stage_started) * 1000
+            ),
         )
         self._active_stage_started = None
 
@@ -275,7 +306,12 @@ def _safe_error_type(exc: BaseException) -> str:
 
 
 def observed_worker(
-    *, workload: str, model_id: str = "", model_revision: str = "", gpu_class: str = "cpu"
+    *,
+    workload: str,
+    model_id: str = "",
+    model_revision: str = "",
+    gpu_class: str = "cpu",
+    timeout_seconds: float | None = None,
 ) -> Callable[[_F], _F]:
     """Wrap a Modal entrypoint with safe start and terminal lifecycle events."""
 
@@ -289,6 +325,7 @@ def observed_worker(
                 model_revision=model_revision,
                 gpu_class=gpu_class,
                 payload=payload,
+                timeout_seconds=timeout_seconds,
             )
             token = _ACTIVE_RUN.set(run)
             run.start()

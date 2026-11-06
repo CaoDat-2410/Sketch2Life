@@ -57,7 +57,9 @@ def _valid_story() -> dict[str, Any]:
 
 
 def _parse(payload: dict[str, Any] | str) -> dict[str, Any]:
-    text = payload if isinstance(payload, str) else json.dumps(payload, ensure_ascii=False)
+    text = (
+        payload if isinstance(payload, str) else json.dumps(payload, ensure_ascii=False)
+    )
     return story_worker._parse_story_output(text, {"confirmed_subject": "bướm"})
 
 
@@ -69,7 +71,13 @@ def _valid_content() -> dict[str, Any]:
         "scenes": [
             {
                 key: scene[key]
-                for key in ("title", "action", "visual_prompt", "narration", "character_anchors")
+                for key in (
+                    "title",
+                    "action",
+                    "visual_prompt",
+                    "narration",
+                    "character_anchors",
+                )
             }
             for scene in story["scenes"]
         ],
@@ -77,7 +85,9 @@ def _valid_content() -> dict[str, Any]:
 
 
 def _parse_content(payload: dict[str, Any] | str) -> dict[str, Any]:
-    text = payload if isinstance(payload, str) else json.dumps(payload, ensure_ascii=False)
+    text = (
+        payload if isinstance(payload, str) else json.dumps(payload, ensure_ascii=False)
+    )
     return story_worker._parse_story_content_output(text)
 
 
@@ -104,20 +114,114 @@ def test_valid_model_content_is_assembled_and_matches_backend_contract() -> None
 
     assert backend_contract.model_dump() == parsed
     assert [scene["scene_index"] for scene in parsed["scenes"]] == [1, 2, 3, 4, 5]
-    assert [scene["start_ms"] for scene in parsed["scenes"]] == [0, 6_000, 12_000, 18_000, 24_000]
+    assert [scene["start_ms"] for scene in parsed["scenes"]] == [
+        0,
+        6_000,
+        12_000,
+        18_000,
+        24_000,
+    ]
     assert [scene["duration_ms"] for scene in parsed["scenes"]] == [6_000] * 5
     assert parsed["duration_ms"] == 30_000
 
 
-def test_parent_story_generation_schema_uses_compact_fields_with_srs_scene_count() -> None:
+def test_story_fact_validation_uses_canonical_order_after_json_key_reordering() -> None:
+    payload = _valid_story()
+    payload["story"] = {
+        "ending": payload["story"]["ending"],
+        "middle": payload["story"]["middle"],
+        "opening": payload["story"]["opening"],
+    }
+
+    parsed = _parse(payload)
+
+    assert list(parsed["story"]) == ["opening", "middle", "ending"]
+
+
+def test_story_parser_accepts_nonempty_text_without_terminal_punctuation() -> None:
+    content = _valid_content()
+    for key in tuple(content["story"]):
+        content["story"][key] = content["story"][key].rstrip(".")
+    for scene in content["scenes"]:
+        for field in ("action", "visual_prompt", "narration"):
+            scene[field] = scene[field].rstrip(".")
+
+    parsed = _parse_content(content)
+
+    assert all(value.strip() for value in parsed["story"].values())
+    assert all(scene["visual_prompt"] for scene in parsed["scenes"])
+
+
+def test_story_failure_diagnostics_identify_incomplete_field_without_text() -> None:
+    content = _valid_content()
+    content["scenes"][1]["visual_prompt"] = "A child studies a butterfly"
+
+    diagnostics = story_worker._story_output_field_diagnostics(
+        json.dumps(content, ensure_ascii=False)
+    )
+
+    assert diagnostics["story_field_diagnostics_available"] is True
+    assert diagnostics["story_incomplete_sentence_fields"] == [
+        "scenes[2].visual_prompt"
+    ]
+    visual_metric = next(
+        metric
+        for metric in diagnostics["story_text_field_metrics"]
+        if metric["field"] == "scenes[2].visual_prompt"
+    )
+    assert visual_metric == {
+        "field": "scenes[2].visual_prompt",
+        "character_count": 27,
+        "max_length": 240,
+        "sentence_complete": False,
+    }
+    assert "A child studies a butterfly" not in json.dumps(diagnostics)
+
+
+def test_story_parser_preserves_schema_valid_trailing_fragments() -> None:
+    content = _valid_content()
+    original_opening = content["story"]["opening"]
+    original_action = content["scenes"][0]["action"]
+    original_visual_prompt = content["scenes"][0]["visual_prompt"]
+    original_narration = content["scenes"][0]["narration"]
+    content["story"]["opening"] += " Then the sentence continues without punctuation"
+    content["scenes"][0]["action"] += " The child continues to observe"
+    content["scenes"][0]["visual_prompt"] += " with a green leaf in the foreground"
+    content["scenes"][0]["narration"] += " and the butterfly rests nearby"
+
+    parsed = _parse_content(content)
+
+    assert (
+        parsed["story"]["opening"]
+        == original_opening + " Then the sentence continues without punctuation"
+    )
+    assert (
+        parsed["scenes"][0]["action"]
+        == original_action + " The child continues to observe"
+    )
+    assert (
+        parsed["scenes"][0]["visual_prompt"]
+        == original_visual_prompt + " with a green leaf in the foreground"
+    )
+    assert (
+        parsed["scenes"][0]["narration"]
+        == original_narration + " and the butterfly rests nearby"
+    )
+
+
+def test_parent_story_generation_schema_uses_compact_fields_with_srs_scene_count() -> (
+    None
+):
     schema = story_worker._parent_story_content_json_schema()
     scene_schema = schema["properties"]["scenes"]
     scene_fields = scene_schema["items"]["properties"]
 
     assert scene_schema["minItems"] == scene_schema["maxItems"] == 5
-    assert scene_fields["visual_prompt"]["maxLength"] == 180
-    assert scene_fields["action"]["maxLength"] == 120
-    assert scene_fields["narration"]["maxLength"] == 120
+    assert scene_fields["visual_prompt"]["maxLength"] == 240
+    assert scene_fields["action"]["maxLength"] == 180
+    assert scene_fields["narration"]["maxLength"] == 180
+    assert schema["properties"]["story"]["properties"]["opening"]["maxLength"] == 300
+    assert "pattern" not in scene_fields["narration"]
     assert scene_fields["character_anchors"]["maxItems"] == 2
     assert story_worker.STORY_GENERATION_BUDGET == 4_096
 
@@ -190,9 +294,7 @@ def test_vietnamese_characters_keep_json_parser_inside_bounded_string(
     parser = JsonSchemaParser(
         {
             "type": "object",
-            "properties": {
-                "value": {"type": "string", "minLength": 1, "maxLength": 4}
-            },
+            "properties": {"value": {"type": "string", "minLength": 1, "maxLength": 4}},
             "required": ["value"],
             "additionalProperties": False,
         }
@@ -213,7 +315,10 @@ def test_vietnamese_characters_keep_json_parser_inside_bounded_string(
         (lambda value: value.update(extra="not allowed"), "CONTENT_SCHEMA_INVALID"),
         (lambda value: value.pop("title"), "CONTENT_SCHEMA_INVALID"),
         (lambda value: value.update(title="t" * 121), "CONTENT_FIELDS_INVALID"),
-        (lambda value: value.update(scenes=value["scenes"][:4]), "CONTENT_FIELDS_INVALID"),
+        (
+            lambda value: value.update(scenes=value["scenes"][:4]),
+            "CONTENT_FIELDS_INVALID",
+        ),
         (
             lambda value: value["scenes"][0].update(extra="not allowed"),
             "CONTENT_SCENE_SCHEMA_INVALID",
@@ -277,7 +382,10 @@ def test_parser_rejects_non_json_and_duplicate_keys(text: str, reason: str) -> N
         (lambda value: value.update(title="t" * 121), "STORY_FIELDS_INVALID"),
         (lambda value: value["story"].update(opening=""), "STORY_FIELDS_INVALID"),
         (lambda value: value["story"].update(middle="m" * 901), "STORY_FIELDS_INVALID"),
-        (lambda value: value.update(scenes=value["scenes"][:4]), "STORY_FIELDS_INVALID"),
+        (
+            lambda value: value.update(scenes=value["scenes"][:4]),
+            "STORY_FIELDS_INVALID",
+        ),
         (
             lambda value: value.update(scenes=value["scenes"] * 4),
             "STORY_FIELDS_INVALID",
@@ -316,8 +424,14 @@ def test_parser_rejects_non_json_and_duplicate_keys(text: str, reason: str) -> N
             lambda value: value["scenes"][0].update(character_anchors=[" "]),
             "SCENE_FIELDS_INVALID",
         ),
-        (lambda value: value["scenes"][0].update(scene_index=True), "SCENE_FIELDS_INVALID"),
-        (lambda value: value["scenes"][0].update(start_ms=False), "SCENE_FIELDS_INVALID"),
+        (
+            lambda value: value["scenes"][0].update(scene_index=True),
+            "SCENE_FIELDS_INVALID",
+        ),
+        (
+            lambda value: value["scenes"][0].update(start_ms=False),
+            "SCENE_FIELDS_INVALID",
+        ),
         (
             lambda value: value["scenes"][0].update(duration_ms=20_001),
             "SCENE_FIELDS_INVALID",
@@ -327,7 +441,10 @@ def test_parser_rejects_non_json_and_duplicate_keys(text: str, reason: str) -> N
             "SCENE_FIELDS_INVALID",
         ),
         (lambda value: value["scenes"][1].update(start_ms=5_000), "TIMELINE_INVALID"),
-        (lambda value: value["scenes"][0].update(duration_ms=5_000), "TIMELINE_INVALID"),
+        (
+            lambda value: value["scenes"][0].update(duration_ms=5_000),
+            "TIMELINE_INVALID",
+        ),
     ],
 )
 def test_parser_rejects_contract_violations(mutate: Any, reason: str) -> None:
@@ -339,7 +456,19 @@ def test_parser_rejects_contract_violations(mutate: Any, reason: str) -> None:
 def test_parser_rejects_butterfly_fact_failure_separately() -> None:
     payload = _valid_story()
     payload["story"]["ending"] = "Trứng nở thành bướm. Bướm đi tìm tổ."
-    _assert_rejected(payload, "EDUCATIONAL_FACT_INVALID")
+    _assert_rejected(payload, "EDUCATIONAL_FACT_FORBIDDEN_CLAIM")
+
+
+def test_parser_reports_missing_butterfly_stage_without_echoing_story_text() -> None:
+    payload = _valid_story()
+    payload["story"]["middle"] = "Một con vật quan sát chiếc lá xanh."
+    _assert_rejected(payload, "EDUCATIONAL_FACT_STAGE_MISSING")
+
+
+def test_parser_reports_butterfly_stages_in_wrong_order() -> None:
+    payload = _valid_story()
+    payload["story"]["middle"] = "Nhộng nằm yên, rồi sâu bướm bò ra."
+    _assert_rejected(payload, "EDUCATIONAL_FACT_ORDER_INVALID")
 
 
 def test_fact_validation_uses_canonical_story_section_order() -> None:
@@ -353,7 +482,9 @@ def test_fact_validation_uses_canonical_story_section_order() -> None:
     assert list(parsed["story"]) == ["opening", "middle", "ending"]
 
 
-def test_constrained_decoder_receives_worker_story_schema(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_constrained_decoder_receives_worker_story_schema(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     captured: dict[str, Any] = {}
     lmfe = ModuleType("lmformatenforcer")
     tokenenforcer = ModuleType("lmformatenforcer.tokenenforcer")
@@ -366,7 +497,9 @@ def test_constrained_decoder_receives_worker_story_schema(monkeypatch: pytest.Mo
         pass
 
     class FakeTokenEnforcer:
-        def __init__(self, tokenizer_data: object, parser: FakeJsonSchemaParser) -> None:
+        def __init__(
+            self, tokenizer_data: object, parser: FakeJsonSchemaParser
+        ) -> None:
             captured["tokenizer_data"] = tokenizer_data
             captured["parser"] = parser
 
@@ -415,7 +548,7 @@ def test_constrained_decoder_receives_worker_story_schema(monkeypatch: pytest.Mo
         schema["properties"]["scenes"]["items"]["properties"]["visual_prompt"][
             "maxLength"
         ]
-        == 180
+        == 240
     )
     assert "scene_index" not in schema["properties"]["scenes"]["items"]["properties"]
     assert "start_ms" not in schema["properties"]["scenes"]["items"]["properties"]
@@ -428,7 +561,9 @@ def test_lm_format_enforcer_accepts_only_structural_contract_shapes() -> None:
     lmfe = pytest.importorskip("lmformatenforcer")
     parser_config = pytest.importorskip("lmformatenforcer.characterlevelparser")
     valid = _valid_content()
-    alphabet_text = json.dumps(valid, ensure_ascii=False) + "unapproved_field" + ("x" * 121)
+    alphabet_text = (
+        json.dumps(valid, ensure_ascii=False) + "unapproved_field" + ("x" * 121)
+    )
     alphabet = "".join(sorted(set(alphabet_text)))
 
     def schema_allows(payload: dict[str, Any]) -> bool:
@@ -471,8 +606,8 @@ def test_transformers5_compatible_prefix_adapter_enforces_json_tokens(
             self,
             token_ids: list[int],
             *,
-                skip_special_tokens: bool = False,
-                clean_up_tokenization_spaces: bool = True,
+            skip_special_tokens: bool = False,
+            clean_up_tokenization_spaces: bool = True,
         ) -> str:
             del clean_up_tokenization_spaces
             return "".join(
@@ -518,7 +653,9 @@ def test_parent_story_prompt_spells_out_timeline_and_butterfly_order() -> None:
     assert "đúng 5 cảnh" in prompt
     assert "hệ thống sẽ tự thêm số thứ tự và thời gian" in prompt
     assert "start_ms lần lượt" not in prompt
-    assert "trứng”, “sâu bướm”, “nhộng”, “bướm trưởng thành” theo đúng thứ tự" in prompt
+    assert "opening phải nói về trứng" in prompt
+    assert "middle phải kể sâu bướm ăn lá rồi hóa nhộng" in prompt
+    assert "ending phải kể bướm trưởng thành chui ra khỏi nhộng" in prompt
 
     generic_prompt = story_worker._parent_story_prompt(
         {

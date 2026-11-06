@@ -9,6 +9,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from worker_observability import (  # noqa: E402
+    _error_code,
     observed_worker,
     refresh_worker_volume,
     worker_phase,
@@ -19,7 +20,9 @@ def _records(captured: str) -> list[dict[str, object]]:
     return [json.loads(line) for line in captured.splitlines() if line.startswith("{")]
 
 
-def test_worker_success_records_safe_phases_without_input_or_output_text(capsys) -> None:
+def test_worker_success_records_safe_phases_without_input_or_output_text(
+    capsys,
+) -> None:
     @observed_worker(
         workload="lesson.plan.suggest",
         model_id="Qwen/Qwen3.5-9B",
@@ -109,6 +112,36 @@ def test_worker_failure_does_not_emit_arbitrary_exception_message(capsys) -> Non
     assert "private input data" not in json.dumps(records)
 
 
+def test_modal_input_cancellation_near_configured_inference_deadline_is_timeout() -> (
+    None
+):
+    error = type("InputCancellation", (Exception,), {})()
+
+    assert (
+        _error_code(
+            error,
+            timeout_seconds=1_800,
+            elapsed_seconds=1_800.007,
+            stage="model_inference",
+        )
+        == "MODEL_INFERENCE_TIMEOUT"
+    )
+
+
+def test_modal_input_cancellation_before_deadline_is_cancellation() -> None:
+    error = type("InputCancellation", (Exception,), {})()
+
+    assert (
+        _error_code(
+            error,
+            timeout_seconds=1_800,
+            elapsed_seconds=120,
+            stage="model_inference",
+        )
+        == "WORKER_CANCELLED"
+    )
+
+
 def test_worker_rejects_unbounded_phase_labels() -> None:
     @observed_worker(workload="asr.transcribe")
     def run(_payload):
@@ -135,7 +168,9 @@ def test_refresh_worker_volume_emits_phase_events(capsys) -> None:
     run({})
     records = _records(capsys.readouterr().out)
     assert volume.reloaded is True
-    reload_events = [record for record in records if record.get("stage") == "scratch_volume_reload"]
+    reload_events = [
+        record for record in records if record.get("stage") == "scratch_volume_reload"
+    ]
     assert [record["event"] for record in reload_events] == [
         "worker_phase_started",
         "worker_phase_succeeded",

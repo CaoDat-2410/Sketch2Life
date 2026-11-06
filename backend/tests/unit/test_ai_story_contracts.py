@@ -75,13 +75,56 @@ def test_story_revision_requires_ordered_scenes_and_total_duration_between_30_an
         StoryRevisionDraftV1.model_validate(invalid)
 
 
+def test_story_contract_accepts_schema_valid_text_without_terminal_punctuation() -> None:
+    payload = _story()
+    payload["story"] = {key: value.rstrip(".") for key, value in payload["story"].items()}
+    for scene in payload["scenes"]:
+        for field in ("action", "visual_prompt", "narration"):
+            scene[field] = scene[field].rstrip(".")
+
+    parsed = StoryRevisionDraftV1.model_validate(payload)
+
+    assert not parsed.story["opening"].endswith(".")
+    assert not parsed.scenes[0].visual_prompt.endswith(".")
+
+
 def test_butterfly_fact_guard_accepts_lifecycle_and_rejects_prior_errors() -> None:
     valid = StoryRevisionDraftV1.model_validate(_story())
     validate_butterfly_lifecycle_v1(valid, confirmed_subject="bướm")
 
     invalid = StoryRevisionDraftV1.model_validate(_story(incorrect_lifecycle=True))
-    with pytest.raises(ValueError, match="EDUCATIONAL_FACT_CHECK_FAILED"):
+    with pytest.raises(ValueError, match="EDUCATIONAL_FACT_FORBIDDEN_CLAIM"):
         validate_butterfly_lifecycle_v1(invalid, confirmed_subject="butterfly")
+
+
+def test_butterfly_fact_guard_reports_missing_stage() -> None:
+    payload = _story()
+    payload["story"]["middle"] = "Một con vật quan sát chiếc lá xanh."
+    draft = StoryRevisionDraftV1.model_validate(payload)
+
+    with pytest.raises(ValueError, match="EDUCATIONAL_FACT_STAGE_MISSING"):
+        validate_butterfly_lifecycle_v1(draft, confirmed_subject="bướm")
+
+
+def test_butterfly_fact_guard_reports_stage_order_failure() -> None:
+    payload = _story()
+    payload["story"]["middle"] = "Nhộng nằm yên, rồi sâu bướm bò ra."
+    draft = StoryRevisionDraftV1.model_validate(payload)
+
+    with pytest.raises(ValueError, match="EDUCATIONAL_FACT_ORDER_INVALID"):
+        validate_butterfly_lifecycle_v1(draft, confirmed_subject="bướm")
+
+
+def test_butterfly_fact_guard_uses_story_section_order_not_mapping_key_order() -> None:
+    payload = _story()
+    payload["story"] = {
+        "ending": payload["story"]["ending"],
+        "middle": payload["story"]["middle"],
+        "opening": payload["story"]["opening"],
+    }
+    draft = StoryRevisionDraftV1.model_validate(payload)
+
+    validate_butterfly_lifecycle_v1(draft, confirmed_subject="butterfly")
 
 
 @pytest.mark.parametrize(
@@ -94,7 +137,7 @@ def test_butterfly_fact_guard_rejects_wrong_claim_even_when_all_phases_are_prese
     payload = _story()
     payload["story"]["ending"] += " " + incorrect_claim
     draft = StoryRevisionDraftV1.model_validate(payload)
-    with pytest.raises(ValueError, match="EDUCATIONAL_FACT_CHECK_FAILED"):
+    with pytest.raises(ValueError, match="EDUCATIONAL_FACT_FORBIDDEN_CLAIM"):
         validate_butterfly_lifecycle_v1(draft, confirmed_subject="bướm")
 
 
