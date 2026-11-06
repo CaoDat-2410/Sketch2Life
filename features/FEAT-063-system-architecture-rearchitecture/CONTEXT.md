@@ -7,7 +7,7 @@
 - Incorporated the report review and owner clarifications: Content Admin is a Platform Admin permission; child-media access for Platform Admin remains deny-by-default until a separate workflow is approved; Teacher video uses only the school organization quota.
 - Corrected Parent optional lesson-version pin and post-video activity ordering, invitation acceptance, all eight AI Job targets, video admission transitions, and the 92 active + 48 legacy = 140 current target count. The 89/137 count remains the historical v2.3 baseline.
 - Unresolved details remain open, including field-scope/expiry, school-wide invitation acceptor, personal-copy ownership/retention, admin media workflow, random sample eligibility/consent, publication approval, quota amounts/pricing/allocation, DDL, migration mapping and final diagrams.
-- Plan Rev52 and approval are recorded; evidence: evidence/EV-063-57_SRS_V25_CONTRADICTION_REVIEW_20261106.md. Owner has authorized publication on the same-named origin branch; mandatory validation is in progress. SRS remains unsigned.
+- Plan Rev52 and approval are recorded; evidence: evidence/EV-063-57_SRS_V25_CONTRADICTION_REVIEW_20261106.md. Owner-authorized package commit `ca3c5dda695dc8d325442921ace684364d0215b1` is pushed to `origin/docs/feat063-srs-conflict-remediation-20261106`; `git ls-remote` confirmed the same SHA. SRS remains unsigned.
 
 
 

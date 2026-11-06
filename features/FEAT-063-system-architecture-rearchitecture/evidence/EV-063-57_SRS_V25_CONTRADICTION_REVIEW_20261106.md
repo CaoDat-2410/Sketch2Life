@@ -61,7 +61,8 @@
 ## Review boundary
 
 - No code, API, DDL, migration, database, provider, runtime, test or build operation was performed for this remediation.
-- Final documentation diff was reviewed; git diff --check passed with no whitespace errors.
+- Final documentation diff was reviewed; `git diff --check` passed with no whitespace errors.
 - The SRS and companion Register are v2.6-draft and unsigned; diagrams requiring the still-open details remain gated by the owner-review sequence.
 - Review plan SHA-256: 9B6100D907B27302A90F194ADB20B0D67AE2811987F9A5C82DAC23B03B432D55.
-- Worktree/branch: isolated worktree / branch `docs/feat063-srs-conflict-remediation-20261106`. Publication is authorized and in progress; commit/push result will be recorded after verification.
+- Repository security validator passed before commit and push (`publishable_files_scanned=6565`; no absolute machine paths). No force push, `dev` update, PR, or merge was performed.
+- Worktree/branch: isolated worktree / branch `docs/feat063-srs-conflict-remediation-20261106`. Publication is complete: package commit `ca3c5dda695dc8d325442921ace684364d0215b1` was pushed to `origin/docs/feat063-srs-conflict-remediation-20261106`; fresh `git ls-remote` confirmed the remote SHA matches.
