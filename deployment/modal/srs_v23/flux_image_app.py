@@ -17,11 +17,16 @@ _MODULE_DIR = Path(__file__).resolve().parent
 if str(_MODULE_DIR) not in sys.path:
     sys.path.insert(0, str(_MODULE_DIR))
 
-from contracts import (
+from contracts import (  # noqa: E402
     WORKER_OUTPUT_SCHEMA,
     ModalWorkerInputV1,
     WorkerContractError,
     parse_worker_input,
+)
+from worker_observability import (  # noqa: E402
+    observed_worker,
+    worker_phase,
+    worker_stage,
 )
 
 APP_NAME = "sketch2life-srs23-flux-image-dev"
@@ -100,6 +105,7 @@ scratch_volume = modal.Volume.from_name(
 )
 
 _contracts_file = _MODULE_DIR / "contracts.py"
+_observability_file = _MODULE_DIR / "worker_observability.py"
 _download_image = (
     modal.Image.debian_slim(python_version="3.11")
     .add_local_file(str(_contracts_file), "/root/contracts.py", copy=True)
@@ -109,6 +115,7 @@ _download_image = (
 _inference_image = (
     modal.Image.debian_slim(python_version="3.11")
     .add_local_file(str(_contracts_file), "/root/contracts.py", copy=True)
+    .add_local_file(str(_observability_file), "/root/worker_observability.py", copy=True)
     .uv_pip_install("torch==2.7.1", "torchvision==0.22.1")
     .uv_pip_install(
         "diffusers==0.42.1",
@@ -239,29 +246,43 @@ def download_flux_model() -> dict[str, str]:
     timeout=900,
     retries=0,
 )
+@observed_worker(
+    workload="parent.sketch-guide.generate",
+    model_id=MODEL_ID,
+    model_revision=MODEL_REVISION,
+    gpu_class="L40S",
+)
 def generate_line_sketch_guide_candidate(payload: dict[str, Any]) -> dict[str, Any]:
     """Generate a generic, non-child-specific step guide as a private candidate."""
 
-    _require_flux3_enabled()
-    request = parse_worker_input(payload, execution_group="l4")
+    with worker_phase("feature_gate"):
+        _require_flux3_enabled()
+    with worker_phase("input_envelope"):
+        request = parse_worker_input(payload, execution_group="l4")
+    worker_stage("workload_gate")
     if request.workload != "parent.sketch-guide.generate":
         raise WorkerContractError("MODAL_WORKLOAD_NOT_ALLOWED")
-    data = _read_json_asset(request)
-    _validate_sketch_guide_input(data)
-    _verify_marker()
+    with worker_phase("input_manifest_read"):
+        data = _read_json_asset(request)
+    with worker_phase("guide_request_validation"):
+        _validate_sketch_guide_input(data)
+    with worker_phase("checkpoint_verification"):
+        _verify_marker()
 
     prompt = _sketch_guide_scene_request(
         topic=data["topic"],
         difficulty=data["difficulty"],
         step_count=data["step_count"],
     )
+    worker_stage("gpu_preflight")
     image, expanded_prompt_sha256 = _generate_flux3_image(
         prompt=prompt,
         height=512,
         width=768,
         seed=20261105,
     )
-    image_bytes = _encode_png(image)
+    with worker_phase("image_encode_and_metadata"):
+        image_bytes = _encode_png(image)
     return {
         "schema_version": WORKER_OUTPUT_SCHEMA,
         "workload": request.workload,
@@ -297,27 +318,41 @@ def generate_line_sketch_guide_candidate(payload: dict[str, Any]) -> dict[str, A
     timeout=900,
     retries=0,
 )
+@observed_worker(
+    workload="lesson.visual.generate",
+    model_id=MODEL_ID,
+    model_revision=MODEL_REVISION,
+    gpu_class="L40S",
+)
 def generate_approved_lesson_visual_candidate(
     payload: dict[str, Any],
 ) -> dict[str, Any]:
     """Generate an unapproved visual from a reviewed lesson revision."""
 
-    _require_flux3_enabled()
-    request = parse_worker_input(payload, execution_group="l4")
+    with worker_phase("feature_gate"):
+        _require_flux3_enabled()
+    with worker_phase("input_envelope"):
+        request = parse_worker_input(payload, execution_group="l4")
+    worker_stage("workload_gate")
     if request.workload != "lesson.visual.generate":
         raise WorkerContractError("MODAL_WORKLOAD_NOT_ALLOWED")
-    data = _read_json_asset(request)
-    _validate_lesson_visual_input(data)
-    _verify_marker()
+    with worker_phase("input_manifest_read"):
+        data = _read_json_asset(request)
+    with worker_phase("approved_lesson_contract_validation"):
+        _validate_lesson_visual_input(data)
+    with worker_phase("checkpoint_verification"):
+        _verify_marker()
 
     prompt = _lesson_visual_scene_request(data)
+    worker_stage("gpu_preflight")
     image, expanded_prompt_sha256 = _generate_flux3_image(
         prompt=prompt,
         height=432,
         width=768,
         seed=20261105,
     )
-    image_bytes = _encode_png(image)
+    with worker_phase("image_encode_and_metadata"):
+        image_bytes = _encode_png(image)
     return {
         "schema_version": WORKER_OUTPUT_SCHEMA,
         "workload": request.workload,
@@ -436,32 +471,34 @@ def _generate_flux3_image(
     if not torch.cuda.is_available():
         raise RuntimeError("MODAL_GPU_UNAVAILABLE")
 
-    caption = _upsample_prompt(prompt, torch)
+    with worker_phase("prompt_upsampler_inference"):
+        caption = _upsample_prompt(prompt, torch)
     caption_hash = hashlib.sha256(caption.encode("utf-8")).hexdigest()
     gc.collect()
     torch.cuda.empty_cache()
 
     from diffusers import ModularPipeline
 
-    pipeline_spec = ModularPipeline.from_pretrained(
-        MODEL_DIR,
-        local_files_only=True,
-    )
-    blocks = pipeline_spec.blocks
-    if "prompt_upsampler" not in blocks.sub_blocks:
-        raise RuntimeError("MODAL_FLUX3_PROMPT_UPSAMPLER_BLOCK_MISSING")
-    blocks.sub_blocks.pop("prompt_upsampler")
-    pipeline = blocks.init_pipeline(MODEL_DIR)
-    del pipeline_spec, blocks
-    gc.collect()
-    torch.cuda.empty_cache()
+    with worker_phase("flux_model_load"):
+        pipeline_spec = ModularPipeline.from_pretrained(
+            MODEL_DIR,
+            local_files_only=True,
+        )
+        blocks = pipeline_spec.blocks
+        if "prompt_upsampler" not in blocks.sub_blocks:
+            raise RuntimeError("MODAL_FLUX3_PROMPT_UPSAMPLER_BLOCK_MISSING")
+        blocks.sub_blocks.pop("prompt_upsampler")
+        pipeline = blocks.init_pipeline(MODEL_DIR)
+        del pipeline_spec, blocks
+        gc.collect()
+        torch.cuda.empty_cache()
 
-    pipeline.load_components(
-        dtype={"vae": torch.float32, "default": torch.bfloat16},
-        local_files_only=True,
-    )
-    pipeline.to("cuda")
-    with torch.inference_mode():
+        pipeline.load_components(
+            dtype={"vae": torch.float32, "default": torch.bfloat16},
+            local_files_only=True,
+        )
+        pipeline.to("cuda")
+    with worker_phase("flux_image_inference"), torch.inference_mode():
         image = pipeline(
             prompt=caption,
             height=height,

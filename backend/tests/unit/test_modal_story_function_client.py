@@ -11,6 +11,7 @@ from sketch2life.infrastructure.ai import modal_function_client as client_module
 from sketch2life.infrastructure.ai.modal_function_client import (
     ModalFunctionExecutionFailed,
     ModalStoryFunctionClient,
+    summarize_worker_call_logs,
 )
 
 
@@ -160,3 +161,68 @@ def test_modal_remote_error_is_terminal_not_unknown() -> None:
 
     assert error.value.code == "STORY_WORKER_FAILED_TERMINAL"
     assert volume.removed_paths
+
+
+def test_worker_log_summary_keeps_allowlisted_diagnosis_only() -> None:
+    class _Logs:
+        def tail(self, *, entries: int):
+            assert entries == 100
+            return [
+                type(
+                    "Entry",
+                    (),
+                    {
+                        "message": json.dumps(
+                            {
+                                "schema_version": "sketch2life.modal.worker-event.v1",
+                                "event": "worker_started",
+                                "workload": "story.generate",
+                                "job_id": "job-safe-01",
+                                "stage": "worker_entrypoint",
+                                "prompt": "private prompt must be discarded",
+                            }
+                        )
+                        + "\n"
+                        + json.dumps(
+                            {
+                                "schema_version": "sketch2life.modal.worker-event.v1",
+                                "event": "worker_failed",
+                                "workload": "story.generate",
+                                "stage": "business_rule_validation",
+                                "duration_ms": 1234,
+                                "error_code": "EDUCATIONAL_FACT_INVALID",
+                                "error_type": "RuntimeError",
+                                "generated_text": "private generated story",
+                            }
+                        )
+                    },
+                )()
+            ]
+
+    summary = summarize_worker_call_logs(type("Call", (), {"logs": _Logs()})())
+
+    assert summary == {
+        "worker_logs_available": True,
+        "worker_log_event_count": 2,
+        "worker_started_observed": True,
+        "worker_terminal_event": "worker_failed",
+        "worker_last_stage": "business_rule_validation",
+        "worker_error_code": "EDUCATIONAL_FACT_INVALID",
+        "worker_error_type": "RuntimeError",
+        "worker_duration_ms": 1234,
+        "worker_failure_boundary": "worker_terminal_failure_observed",
+    }
+    assert "private prompt" not in repr(summary)
+    assert "private generated story" not in repr(summary)
+
+
+def test_worker_log_summary_fails_closed_when_modal_logs_unavailable() -> None:
+    class _Logs:
+        def tail(self, *, entries: int):
+            raise RuntimeError("provider diagnostic that must not be surfaced")
+
+    summary = summarize_worker_call_logs(type("Call", (), {"logs": _Logs()})())
+
+    assert summary["worker_logs_available"] is False
+    assert summary["worker_started_observed"] is False
+    assert "provider diagnostic" not in repr(summary)

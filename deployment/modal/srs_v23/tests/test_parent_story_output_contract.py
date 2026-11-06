@@ -24,7 +24,7 @@ assert MODULE_SPEC is not None and MODULE_SPEC.loader is not None
 story_worker = importlib.util.module_from_spec(MODULE_SPEC)
 MODULE_SPEC.loader.exec_module(story_worker)
 
-from sketch2life.contracts.schemas.ai_story import StoryRevisionDraftV1
+from sketch2life.contracts.schemas.ai_story import StoryRevisionDraftV1  # noqa: E402
 
 
 def _valid_story() -> dict[str, Any]:
@@ -131,9 +131,8 @@ def test_generation_diagnostics_report_json_shape_without_generated_text() -> No
     )
 
     assert complete["json_complete"] is True
-    assert complete["json_root_keys"] == ["steps"]
+    assert complete["json_root_key_count"] == 1
     assert partial["json_complete"] is False
-    assert partial["unterminated_string_key"] == "instruction"
     assert partial["unterminated_string_character_count"] == len("unfinished")
     assert "unfinished" not in str(partial)
 
@@ -165,7 +164,8 @@ def test_lmfe_token_data_excludes_model_eos_from_regular_tokens() -> None:
             return [0] if text == "0" else [1]
 
         def decode(self, token_ids: list[int]) -> str:
-            return "".join({0: "0", 1: "x", 7: "<eos>", 9: "<special>"}.get(item, "�") for item in token_ids)
+            token_text = {0: "0", 1: "x", 7: "<eos>", 9: "<special>"}
+            return "".join(token_text.get(item, "�") for item in token_ids)
 
     tokenizer = FakeTokenizer()
     data = story_worker._build_lmfe_tokenizer_data(
@@ -411,7 +411,12 @@ def test_constrained_decoder_receives_worker_story_schema(monkeypatch: pytest.Mo
     assert schema["properties"]["scenes"]["minItems"] == 5
     assert schema["properties"]["scenes"]["maxItems"] == 5
     assert schema["properties"]["story"]["required"] == ["opening", "middle", "ending"]
-    assert schema["properties"]["scenes"]["items"]["properties"]["visual_prompt"]["maxLength"] == 180
+    assert (
+        schema["properties"]["scenes"]["items"]["properties"]["visual_prompt"][
+            "maxLength"
+        ]
+        == 180
+    )
     assert "scene_index" not in schema["properties"]["scenes"]["items"]["properties"]
     assert "start_ms" not in schema["properties"]["scenes"]["items"]["properties"]
     assert "duration_ms" not in schema["properties"]["scenes"]["items"]["properties"]

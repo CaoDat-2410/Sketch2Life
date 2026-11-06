@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import io
+import json
 import re
 import time
 import uuid
@@ -32,8 +33,96 @@ MAX_IMAGE_PIXELS = 2_000_000
 MAX_OUTPUT_BYTES = 256 * 1024
 _OPAQUE_ID = re.compile(r"\A[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}\Z")
 _SHA256 = re.compile(r"\A[0-9a-f]{64}\Z")
+_SAFE_LOG_CODE = re.compile(r"\A[A-Z][A-Z0-9_]{2,95}\Z")
+_SAFE_LOG_STAGE = re.compile(r"\A[a-z][a-z0-9_]{1,63}\Z")
+_WORKER_LOG_SCHEMA = "sketch2life.modal.worker-event.v1"
+_WORKER_LOG_EVENTS = {
+    "worker_started",
+    "worker_phase_started",
+    "worker_phase_succeeded",
+    "worker_phase_failed",
+    "worker_succeeded",
+    "worker_failed",
+}
 
 _LOGGER = get_logger(__name__)
+
+
+def summarize_worker_call_logs(call: Any, *, max_entries: int = 100) -> dict[str, Any]:
+    """Read only structured worker lifecycle events; never return raw Modal log text."""
+
+    summary: dict[str, Any] = {
+        "worker_logs_available": False,
+        "worker_log_event_count": 0,
+        "worker_started_observed": False,
+        "worker_terminal_event": None,
+        "worker_last_stage": None,
+        "worker_error_code": None,
+        "worker_error_type": None,
+        "worker_duration_ms": None,
+        "worker_failure_boundary": "worker_logs_unavailable",
+    }
+    try:
+        entries = list(call.logs.tail(entries=max_entries))
+    except Exception:
+        return summary
+    summary["worker_logs_available"] = True
+    for entry in entries:
+        message = getattr(entry, "message", None)
+        if not isinstance(message, str):
+            continue
+        for line in message.splitlines():
+            try:
+                event = json.loads(line)
+            except (json.JSONDecodeError, TypeError):
+                continue
+            if (
+                not isinstance(event, dict)
+                or event.get("schema_version") != _WORKER_LOG_SCHEMA
+                or event.get("event") not in _WORKER_LOG_EVENTS
+            ):
+                continue
+            summary["worker_log_event_count"] += 1
+            if event.get("event") == "worker_started":
+                summary["worker_started_observed"] = True
+            stage = event.get("stage")
+            if isinstance(stage, str) and _SAFE_LOG_STAGE.fullmatch(stage):
+                summary["worker_last_stage"] = stage
+            terminal = event.get("event")
+            if terminal in {"worker_succeeded", "worker_failed"}:
+                summary["worker_terminal_event"] = terminal
+                duration = event.get("duration_ms")
+                if isinstance(duration, int) and not isinstance(duration, bool) and duration >= 0:
+                    summary["worker_duration_ms"] = duration
+                code = event.get("error_code")
+                if isinstance(code, str) and _SAFE_LOG_CODE.fullmatch(code):
+                    summary["worker_error_code"] = code
+                error_type = event.get("error_type")
+                if isinstance(error_type, str) and re.fullmatch(
+                    r"[A-Za-z][A-Za-z0-9_]{0,63}", error_type
+                ):
+                    summary["worker_error_type"] = error_type
+    if summary["worker_terminal_event"] == "worker_failed":
+        summary["worker_failure_boundary"] = "worker_terminal_failure_observed"
+    elif summary["worker_terminal_event"] == "worker_succeeded":
+        summary["worker_failure_boundary"] = "worker_succeeded"
+    elif summary["worker_started_observed"]:
+        summary["worker_failure_boundary"] = "worker_started_without_terminal_event"
+    else:
+        summary["worker_failure_boundary"] = "worker_start_not_observed"
+    return summary
+
+
+def _call_identity(payload: dict[str, Any]) -> dict[str, str]:
+    return {
+        ref_key: hashlib.sha256(value.encode("utf-8")).hexdigest()[:16]
+        for key, ref_key in (
+            ("job_id", "job_ref"),
+            ("generation_id", "generation_ref"),
+            ("attempt_id", "attempt_ref"),
+        )
+        if isinstance((value := payload.get(key)), str) and _OPAQUE_ID.fullmatch(value)
+    }
 
 
 class ModalFunctionOutcomeUnknown(RuntimeError):
@@ -200,6 +289,13 @@ class ModalDrawingFunctionClient:
         terminal = False
         started = time.perf_counter()
         try:
+            upload_started = time.perf_counter()
+            _LOGGER.info(
+                "modal_worker_scratch_upload_started",
+                workload="drawing.analyze",
+                input_size_bytes=len(prepared.drawing_png) + len(prepared.manifest),
+                **_call_identity(prepared.payload),
+            )
             with volume.batch_upload() as batch:
                 batch.put_file(
                     io.BytesIO(prepared.drawing_png),
@@ -209,22 +305,82 @@ class ModalDrawingFunctionClient:
                     io.BytesIO(prepared.manifest),
                     f"/{prepared.attempt_prefix}input/manifest.json",
                 )
+            _LOGGER.info(
+                "modal_worker_scratch_upload_completed",
+                workload="drawing.analyze",
+                duration_ms=round((time.perf_counter() - upload_started) * 1000),
+                **_call_identity(prepared.payload),
+            )
 
+            _LOGGER.info(
+                "modal_worker_spawn_started",
+                workload="drawing.analyze",
+                **_call_identity(prepared.payload),
+            )
             call = function.spawn(prepared.payload)
             call_id = getattr(call, "object_id", None)
             if not isinstance(call_id, str) or not call_id.startswith("fc-"):
                 raise ModalFunctionOutcomeUnknown()
             _LOGGER.info(
-                "modal_drawing_function_started",
+                "modal_worker_spawn_completed",
                 modal_call_id=call_id,
                 workload="drawing.analyze",
-                drawing_sha256=prepared.drawing_sha256,
+                **_call_identity(prepared.payload),
+            )
+            _LOGGER.info(
+                "modal_worker_wait_started",
+                modal_call_id=call_id,
+                workload="drawing.analyze",
+                wait_timeout_seconds=self._timeout,
+                **_call_identity(prepared.payload),
             )
             try:
                 result = call.get(timeout=self._timeout)
             except TimeoutError as exc:
+                _LOGGER.warning(
+                    "modal_worker_wait_timed_out",
+                    modal_call_id=call_id,
+                    workload="drawing.analyze",
+                    elapsed_ms=round((time.perf_counter() - started) * 1000),
+                    **summarize_worker_call_logs(call),
+                    **_call_identity(prepared.payload),
+                )
+                raise ModalFunctionOutcomeUnknown(call_id) from exc
+            except Exception as exc:
+                summary = summarize_worker_call_logs(call)
+                _LOGGER.warning(
+                    "modal_worker_wait_failed",
+                    modal_call_id=call_id,
+                    workload="drawing.analyze",
+                    exception_type=type(exc).__name__,
+                    **summary,
+                    **_call_identity(prepared.payload),
+                )
+                if type(exc).__name__ == "RemoteError" and type(exc).__module__.startswith(
+                    "modal."
+                ):
+                    terminal = True
+                    _LOGGER.warning(
+                        "modal_drawing_worker_terminal_failure",
+                        modal_call_id=call_id,
+                        error_code="DRAWING_WORKER_FAILED_TERMINAL",
+                        worker_error_code=summary.get("worker_error_code"),
+                        worker_last_stage=summary.get("worker_last_stage"),
+                        **_call_identity(prepared.payload),
+                    )
+                    raise ModalFunctionExecutionFailed(
+                        "DRAWING_WORKER_FAILED_TERMINAL"
+                    ) from None
                 raise ModalFunctionOutcomeUnknown(call_id) from exc
             terminal = True
+            _LOGGER.info(
+                "modal_worker_wait_completed",
+                modal_call_id=call_id,
+                workload="drawing.analyze",
+                elapsed_ms=round((time.perf_counter() - started) * 1000),
+                **summarize_worker_call_logs(call),
+                **_call_identity(prepared.payload),
+            )
             if not isinstance(result, dict):
                 raise ModalFunctionOutcomeUnknown(call_id)
             try:
@@ -241,17 +397,32 @@ class ModalDrawingFunctionClient:
             )
         except ModalFunctionOutcomeUnknown:
             raise
+        except ModalFunctionExecutionFailed:
+            raise
         except Exception as exc:
             # Do not surface SDK diagnostics; a failure after dispatch is treated as ambiguous.
             raise ModalFunctionOutcomeUnknown(call_id) from exc
         finally:
             if terminal:
                 try:
+                    cleanup_started = time.perf_counter()
                     volume.remove_file(
                         f"{prepared.attempt_prefix}input",
                         recursive=True,
                     )
+                    _LOGGER.info(
+                        "modal_worker_scratch_cleanup_completed",
+                        workload="drawing.analyze",
+                        duration_ms=round((time.perf_counter() - cleanup_started) * 1000),
+                        **_call_identity(prepared.payload),
+                    )
                 except Exception as exc:
+                    _LOGGER.warning(
+                        "modal_worker_scratch_cleanup_failed",
+                        workload="drawing.analyze",
+                        exception_type=type(exc).__name__,
+                        **_call_identity(prepared.payload),
+                    )
                     raise ModalFunctionOutcomeUnknown(call_id) from exc
 
 
@@ -347,20 +518,67 @@ class ModalStoryFunctionClient:
         terminal = False
         started = time.perf_counter()
         try:
+            upload_started = time.perf_counter()
+            _LOGGER.info(
+                "modal_worker_scratch_upload_started",
+                workload="story.generate",
+                input_size_bytes=len(request_bytes) + len(manifest_bytes),
+                **_call_identity(payload),
+            )
             with volume.batch_upload() as batch:
                 batch.put_file(io.BytesIO(request_bytes), f"/{attempt_prefix}input/request.json")
                 batch.put_file(io.BytesIO(manifest_bytes), f"/{attempt_prefix}input/manifest.json")
+            _LOGGER.info(
+                "modal_worker_scratch_upload_completed",
+                workload="story.generate",
+                duration_ms=round((time.perf_counter() - upload_started) * 1000),
+                **_call_identity(payload),
+            )
+            _LOGGER.info(
+                "modal_worker_spawn_started",
+                workload="story.generate",
+                **_call_identity(payload),
+            )
             call = function.spawn(payload)
             call_id = getattr(call, "object_id", None)
             if not isinstance(call_id, str) or not call_id.startswith("fc-"):
                 raise ModalFunctionOutcomeUnknown()
+            _LOGGER.info(
+                "modal_worker_spawn_completed",
+                modal_call_id=call_id,
+                workload="story.generate",
+                **_call_identity(payload),
+            )
+            _LOGGER.info(
+                "modal_worker_wait_started",
+                modal_call_id=call_id,
+                workload="story.generate",
+                wait_timeout_seconds=self._timeout,
+                **_call_identity(payload),
+            )
             try:
                 output = call.get(timeout=self._timeout)
             except TimeoutError as exc:
+                _LOGGER.warning(
+                    "modal_worker_wait_timed_out",
+                    modal_call_id=call_id,
+                    workload="story.generate",
+                    elapsed_ms=round((time.perf_counter() - started) * 1000),
+                    **summarize_worker_call_logs(call),
+                    **_call_identity(payload),
+                )
                 raise ModalFunctionOutcomeUnknown(call_id) from exc
             except Exception as exc:
                 terminal = True
                 safe_text = str(exc)
+                _LOGGER.warning(
+                    "modal_worker_wait_failed",
+                    modal_call_id=call_id,
+                    workload="story.generate",
+                    exception_type=type(exc).__name__,
+                    **summarize_worker_call_logs(call),
+                    **_call_identity(payload),
+                )
                 terminal_worker_errors = {
                     "MODAL_EDUCATIONAL_FACT_CHECK_FAILED": "EDUCATIONAL_FACT_CHECK_FAILED",
                     "MODAL_MODEL_OUTPUT_INVALID": "STORY_OUTPUT_INVALID",
@@ -378,13 +596,37 @@ class ModalStoryFunctionClient:
                 }
                 for marker, code in terminal_worker_errors.items():
                     if marker in safe_text:
+                        _LOGGER.warning(
+                            "modal_worker_terminal_error_classified",
+                            modal_call_id=call_id,
+                            workload="story.generate",
+                            error_code=code,
+                            **summarize_worker_call_logs(call),
+                            **_call_identity(payload),
+                        )
                         raise ModalFunctionExecutionFailed(code) from None
                 if type(exc).__name__ == "RemoteError" and type(exc).__module__.startswith(
                     "modal."
                 ):
+                    _LOGGER.warning(
+                        "modal_worker_remote_failure_classified",
+                        modal_call_id=call_id,
+                        workload="story.generate",
+                        error_code="STORY_WORKER_FAILED_TERMINAL",
+                        **summarize_worker_call_logs(call),
+                        **_call_identity(payload),
+                    )
                     raise ModalFunctionExecutionFailed("STORY_WORKER_FAILED_TERMINAL") from None
                 raise ModalFunctionOutcomeUnknown(call_id) from exc
             terminal = True
+            _LOGGER.info(
+                "modal_worker_wait_completed",
+                modal_call_id=call_id,
+                workload="story.generate",
+                elapsed_ms=round((time.perf_counter() - started) * 1000),
+                **summarize_worker_call_logs(call),
+                **_call_identity(payload),
+            )
             if not isinstance(output, dict):
                 raise ModalFunctionExecutionFailed("STORY_OUTPUT_INVALID")
             output_bytes = canonical_json(output).encode("utf-8")
@@ -409,13 +651,27 @@ class ModalStoryFunctionClient:
             _LOGGER.info(
                 "modal_story_generation_completed",
                 modal_call_id=call_id,
-                output_sha256=hashlib.sha256(output_bytes).hexdigest(),
                 elapsed_seconds=round(time.perf_counter() - started, 3),
+                **_call_identity(payload),
             )
             return result, call_id
         except ModalFunctionOutcomeUnknown:
+            _LOGGER.warning(
+                "modal_story_generation_outcome_unknown",
+                modal_call_id=call_id,
+                workload="story.generate",
+                **_call_identity(payload),
+            )
             raise
-        except ModalFunctionExecutionFailed:
+        except ModalFunctionExecutionFailed as exc:
+            _LOGGER.warning(
+                "modal_story_generation_terminal_failure",
+                modal_call_id=call_id,
+                workload="story.generate",
+                error_code=exc.code,
+                **(summarize_worker_call_logs(call) if call_id else {}),
+                **_call_identity(payload),
+            )
             raise
         except Exception as exc:
             raise ModalFunctionOutcomeUnknown(call_id) from exc

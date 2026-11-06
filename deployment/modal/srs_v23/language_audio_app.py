@@ -18,11 +18,16 @@ _MODULE_DIR = Path(__file__).resolve().parent
 if str(_MODULE_DIR) not in sys.path:
     sys.path.insert(0, str(_MODULE_DIR))
 
-from contracts import (
+from contracts import (  # noqa: E402
     WORKER_OUTPUT_SCHEMA,
     ModalWorkerInputV1,
     WorkerContractError,
     parse_worker_input,
+)
+from worker_observability import (  # noqa: E402
+    observed_worker,
+    worker_phase,
+    worker_stage,
 )
 
 APP_NAME = "sketch2life-srs23-language-audio-dev"
@@ -96,6 +101,7 @@ scratch_volume = modal.Volume.from_name(
 )
 
 _contracts_file = _MODULE_DIR / "contracts.py"
+_observability_file = _MODULE_DIR / "worker_observability.py"
 _download_image = (
     modal.Image.debian_slim(python_version="3.11")
     .add_local_file(str(_contracts_file), "/root/contracts.py", copy=True)
@@ -105,6 +111,7 @@ _download_image = (
 _text_image = (
     modal.Image.debian_slim(python_version="3.11")
     .add_local_file(str(_contracts_file), "/root/contracts.py", copy=True)
+    .add_local_file(str(_observability_file), "/root/worker_observability.py", copy=True)
     .uv_pip_install(
         "torch==2.7.1",
         "torchvision==0.22.1",
@@ -130,6 +137,7 @@ _story_text_image = _text_image.env(
 _tts_image = (
     modal.Image.debian_slim(python_version="3.11")
     .add_local_file(str(_contracts_file), "/root/contracts.py", copy=True)
+    .add_local_file(str(_observability_file), "/root/worker_observability.py", copy=True)
     .pip_install(
         "vieneu==3.8.3",
         "onnxruntime==1.20.1",
@@ -145,6 +153,7 @@ _tts_image = (
 _asr_image = (
     modal.Image.debian_slim(python_version="3.11")
     .add_local_file(str(_contracts_file), "/root/contracts.py", copy=True)
+    .add_local_file(str(_observability_file), "/root/worker_observability.py", copy=True)
     .pip_install("faster-whisper==1.2.1", "huggingface_hub==0.33.4")
     .env({"HF_HUB_DISABLE_TELEMETRY": "1"})
 )
@@ -299,15 +308,23 @@ def check_qwen35_readiness() -> dict[str, Any]:
     timeout=1_800,
     retries=0,
 )
+@observed_worker(
+    workload="story.generate",
+    model_id=TEXT_MODEL_ID,
+    model_revision=TEXT_MODEL_REVISION,
+    gpu_class="L40S|L4|A10",
+)
 def generate_story_and_storyboard(payload: dict[str, Any]) -> dict[str, Any]:
     """Generate one adult-review Parent story revision matching the SRS scene contract."""
 
-    handler_started = time.perf_counter()
-    print(json.dumps({"event": "story_worker_started"}), flush=True)
-    request = parse_worker_input(payload, execution_group="l4")
+    with worker_phase("input_envelope"):
+        request = parse_worker_input(payload, execution_group="l4")
+    worker_stage("workload_gate")
     if request.workload != "story.generate":
         raise WorkerContractError("MODAL_WORKLOAD_NOT_ALLOWED")
-    data = _read_json_asset(request, expected_asset="input/request.json")
+    with worker_phase("input_manifest_read"):
+        data = _read_json_asset(request, expected_asset="input/request.json")
+    worker_stage("request_contract_validation")
     expected = {
         "schema_version",
         "role",
@@ -356,6 +373,7 @@ def generate_story_and_storyboard(payload: dict[str, Any]) -> dict[str, Any]:
     ):
         raise WorkerContractError("MODAL_INPUT_NOT_ALLOWED")
 
+    worker_stage("runtime_preparation")
     torch_import_started = time.perf_counter()
     import torch
 
@@ -374,9 +392,11 @@ def generate_story_and_storyboard(payload: dict[str, Any]) -> dict[str, Any]:
         ),
         flush=True,
     )
-    _verify_marker(Path(TEXT_MODEL_MARKER), TEXT_MODEL_ID, TEXT_MODEL_REVISION)
+    with worker_phase("checkpoint_verification"):
+        _verify_marker(Path(TEXT_MODEL_MARKER), TEXT_MODEL_ID, TEXT_MODEL_REVISION)
     model_load_started = time.perf_counter()
-    processor, model = _load_text_model()
+    with worker_phase("model_load"):
+        processor, model = _load_text_model()
     tokenizer = processor.tokenizer
     model_load_seconds = time.perf_counter() - model_load_started
     print(
@@ -397,14 +417,15 @@ def generate_story_and_storyboard(payload: dict[str, Any]) -> dict[str, Any]:
         {"role": "user", "content": prompt},
     ]
     encode_started = time.perf_counter()
-    encoded = processor.apply_chat_template(
-        messages,
-        tokenize=True,
-        add_generation_prompt=True,
-        enable_thinking=False,
-        return_tensors="pt",
-        return_dict=True,
-    ).to(model.device)
+    with worker_phase("prompt_encoding"):
+        encoded = processor.apply_chat_template(
+            messages,
+            tokenize=True,
+            add_generation_prompt=True,
+            enable_thinking=False,
+            return_tensors="pt",
+            return_dict=True,
+        ).to(model.device)
     input_ids = encoded["input_ids"]
     prompt_encode_seconds = time.perf_counter() - encode_started
     print(
@@ -425,10 +446,11 @@ def generate_story_and_storyboard(payload: dict[str, Any]) -> dict[str, Any]:
     generation_config.max_new_tokens = STORY_GENERATION_BUDGET
     generation_config.pad_token_id = _generation_pad_token_id(model, tokenizer)
     constraint_started = time.perf_counter()
-    prefix_allowed_tokens_fn = _build_story_prefix_allowed_tokens_fn(
-        tokenizer,
-        eos_token_id=model.generation_config.eos_token_id,
-    )
+    with worker_phase("constrained_decoder_setup"):
+        prefix_allowed_tokens_fn = _build_story_prefix_allowed_tokens_fn(
+            tokenizer,
+            eos_token_id=model.generation_config.eos_token_id,
+        )
     print(
         json.dumps(
             {
@@ -441,7 +463,7 @@ def generate_story_and_storyboard(payload: dict[str, Any]) -> dict[str, Any]:
         flush=True,
     )
     generation_started = time.perf_counter()
-    with torch.inference_mode():
+    with worker_phase("model_inference"), torch.inference_mode():
         generated = model.generate(
             **encoded,
             generation_config=generation_config,
@@ -449,9 +471,10 @@ def generate_story_and_storyboard(payload: dict[str, Any]) -> dict[str, Any]:
         )
     generation_seconds = time.perf_counter() - generation_started
     output_token_count = int(generated.shape[-1] - input_ids.shape[-1])
-    text = tokenizer.decode(
-        generated[0, input_ids.shape[-1] :], skip_special_tokens=True
-    )
+    with worker_phase("output_decode_and_parse"):
+        text = tokenizer.decode(
+            generated[0, input_ids.shape[-1] :], skip_special_tokens=True
+        )
     try:
         content = _parse_story_content_output(text)
     except StoryOutputValidationError as exc:
@@ -502,8 +525,9 @@ def generate_story_and_storyboard(payload: dict[str, Any]) -> dict[str, Any]:
         flush=True,
     )
     try:
-        assembled = _assemble_parent_story_output(content)
-        result = _parse_story_output(json.dumps(assembled, ensure_ascii=False), data)
+        with worker_phase("business_rule_validation"):
+            assembled = _assemble_parent_story_output(content)
+            result = _parse_story_output(json.dumps(assembled, ensure_ascii=False), data)
     except StoryOutputValidationError as exc:
         print(
             json.dumps(
@@ -518,15 +542,6 @@ def generate_story_and_storyboard(payload: dict[str, Any]) -> dict[str, Any]:
             flush=True,
         )
         raise RuntimeError("MODAL_MODEL_OUTPUT_INVALID") from exc
-    print(
-        json.dumps(
-            {
-                "event": "story_worker_completed",
-                "handler_seconds": round(time.perf_counter() - handler_started, 3),
-            }
-        ),
-        flush=True,
-    )
     return {
         "schema_version": WORKER_OUTPUT_SCHEMA,
         "workload": request.workload,
@@ -554,16 +569,28 @@ def generate_story_and_storyboard(payload: dict[str, Any]) -> dict[str, Any]:
     timeout=1_800,
     retries=0,
 )
+@observed_worker(
+    workload="teacher.sketch-deck.generate",
+    model_id=TEXT_MODEL_ID,
+    model_revision=TEXT_MODEL_REVISION,
+    gpu_class="L40S|L4|A10",
+)
 def generate_teacher_sketch_deck(payload: dict[str, Any]) -> dict[str, Any]:
     """Generate the ordered drawing-guide text for one reviewed-plan deck draft."""
 
-    request = parse_worker_input(payload, execution_group="l4")
+    with worker_phase("input_envelope"):
+        request = parse_worker_input(payload, execution_group="l4")
+    worker_stage("workload_gate")
     if request.workload != "teacher.sketch-deck.generate":
         raise WorkerContractError("MODAL_WORKLOAD_NOT_ALLOWED")
-    data = _read_json_asset(request, expected_asset="input/request.json")
-    _validate_teacher_deck_input(data)
-    _verify_marker(Path(TEXT_MODEL_MARKER), TEXT_MODEL_ID, TEXT_MODEL_REVISION)
-    processor, model = _load_text_model()
+    with worker_phase("input_manifest_read"):
+        data = _read_json_asset(request, expected_asset="input/request.json")
+    with worker_phase("approved_plan_contract_validation"):
+        _validate_teacher_deck_input(data)
+    with worker_phase("checkpoint_verification"):
+        _verify_marker(Path(TEXT_MODEL_MARKER), TEXT_MODEL_ID, TEXT_MODEL_REVISION)
+    with worker_phase("model_load"):
+        processor, model = _load_text_model()
     tokenizer = processor.tokenizer
     prompt = _teacher_deck_prompt(data)
     messages = [
@@ -576,24 +603,26 @@ def generate_teacher_sketch_deck(payload: dict[str, Any]) -> dict[str, Any]:
         },
         {"role": "user", "content": prompt},
     ]
-    encoded = processor.apply_chat_template(
-        messages,
-        tokenize=True,
-        add_generation_prompt=True,
-        enable_thinking=False,
-        return_tensors="pt",
-        return_dict=True,
-    ).to(model.device)
+    with worker_phase("prompt_encoding"):
+        encoded = processor.apply_chat_template(
+            messages,
+            tokenize=True,
+            add_generation_prompt=True,
+            enable_thinking=False,
+            return_tensors="pt",
+            return_dict=True,
+        ).to(model.device)
     import torch
 
     max_new_tokens = _teacher_deck_max_output_tokens(len(data["drawing_steps"]))
-    prefix_allowed_tokens_fn = _build_json_prefix_allowed_tokens_fn(
-        tokenizer,
-        _teacher_deck_json_schema(len(data["drawing_steps"])),
-        eos_token_id=model.generation_config.eos_token_id,
-    )
+    with worker_phase("constrained_decoder_setup"):
+        prefix_allowed_tokens_fn = _build_json_prefix_allowed_tokens_fn(
+            tokenizer,
+            _teacher_deck_json_schema(len(data["drawing_steps"])),
+            eos_token_id=model.generation_config.eos_token_id,
+        )
     generation_started = time.perf_counter()
-    with torch.inference_mode():
+    with worker_phase("model_inference"), torch.inference_mode():
         generated = model.generate(
             **encoded,
             do_sample=False,
@@ -610,7 +639,8 @@ def generate_teacher_sketch_deck(payload: dict[str, Any]) -> dict[str, Any]:
         generated[0, encoded["input_ids"].shape[-1] :], skip_special_tokens=True
     ).strip()
     try:
-        guide = _parse_teacher_guide(text, data)
+        with worker_phase("output_parse_and_contract_validation"):
+            guide = _parse_teacher_guide(text, data)
     except RuntimeError as exc:
         hit_limit = output_token_count >= max_new_tokens
         print(
@@ -660,7 +690,8 @@ def generate_teacher_sketch_deck(payload: dict[str, Any]) -> dict[str, Any]:
         ),
         flush=True,
     )
-    deck = _compose_teacher_deck(data, guide)
+    with worker_phase("approved_activity_mapping"):
+        deck = _compose_teacher_deck(data, guide)
     return {
         "schema_version": WORKER_OUTPUT_SCHEMA,
         "workload": request.workload,
@@ -688,48 +719,65 @@ def generate_teacher_sketch_deck(payload: dict[str, Any]) -> dict[str, Any]:
     timeout=1_800,
     retries=0,
 )
+@observed_worker(
+    workload="lesson.plan.suggest",
+    model_id=TEXT_MODEL_ID,
+    model_revision=TEXT_MODEL_REVISION,
+    gpu_class="L40S|L4|A10",
+)
 def suggest_lesson_plan(payload: dict[str, Any]) -> dict[str, Any]:
     """Generate structured Vietnamese lesson content from allowlisted reviewed fields."""
 
-    request = parse_worker_input(payload, execution_group="l4")
+    with worker_phase("input_envelope"):
+        request = parse_worker_input(payload, execution_group="l4")
+    worker_stage("workload_gate")
     if request.workload != "lesson.plan.suggest":
         raise WorkerContractError("MODAL_WORKLOAD_NOT_ALLOWED")
-    data = _read_json_asset(request, expected_asset="input/request.json")
-    _validate_lesson_suggestion_input(data)
-    _verify_marker(Path(TEXT_MODEL_MARKER), TEXT_MODEL_ID, TEXT_MODEL_REVISION)
-    processor, model = _load_text_model()
+    with worker_phase("input_manifest_read"):
+        data = _read_json_asset(request, expected_asset="input/request.json")
+    with worker_phase("lesson_request_validation"):
+        _validate_lesson_suggestion_input(data)
+    with worker_phase("checkpoint_verification"):
+        _verify_marker(Path(TEXT_MODEL_MARKER), TEXT_MODEL_ID, TEXT_MODEL_REVISION)
+    with worker_phase("model_load"):
+        processor, model = _load_text_model()
     tokenizer = processor.tokenizer
     messages = [
         {
             "role": "system",
             "content": (
                 "Bạn hỗ trợ người lớn soạn giáo án Montessori lấy trẻ làm trung tâm, tiếng Việt. "
-                "Chỉ tạo nội dung bản nháp theo chủ đề, độ tuổi, mục tiêu và hoạt động được yêu cầu. "
-                "Không tự xuất bản, không suy đoán dữ liệu về trẻ, không thêm hồ sơ, không tạo khẳng định "
-                "kiến thức thiếu căn cứ. Nội dung phải có vật liệu, chuẩn bị, từng bước thực hiện, quan sát "
+                "Chỉ tạo nội dung bản nháp theo chủ đề, độ tuổi, mục tiêu và hoạt động được "
+                "yêu cầu. "
+                "Không tự xuất bản, không suy đoán dữ liệu về trẻ, không thêm hồ sơ, "
+                "không tạo khẳng định "
+                "kiến thức thiếu căn cứ. Nội dung phải có vật liệu, chuẩn bị, từng bước "
+                "thực hiện, quan sát "
                 "và lưu ý an toàn cho từng hoạt động."
             ),
         },
         {"role": "user", "content": _lesson_suggestion_prompt(data)},
     ]
-    encoded = processor.apply_chat_template(
-        messages,
-        tokenize=True,
-        add_generation_prompt=True,
-        enable_thinking=False,
-        return_tensors="pt",
-        return_dict=True,
-    ).to(model.device)
+    with worker_phase("prompt_encoding"):
+        encoded = processor.apply_chat_template(
+            messages,
+            tokenize=True,
+            add_generation_prompt=True,
+            enable_thinking=False,
+            return_tensors="pt",
+            return_dict=True,
+        ).to(model.device)
     input_ids = encoded["input_ids"]
     max_new_tokens = _lesson_suggestion_max_output_tokens(data["activity_count"])
-    prefix_allowed_tokens_fn = _build_json_prefix_allowed_tokens_fn(
-        tokenizer,
-        _lesson_suggestion_json_schema(data),
-        eos_token_id=model.generation_config.eos_token_id,
-    )
+    with worker_phase("constrained_decoder_setup"):
+        prefix_allowed_tokens_fn = _build_json_prefix_allowed_tokens_fn(
+            tokenizer,
+            _lesson_suggestion_json_schema(data),
+            eos_token_id=model.generation_config.eos_token_id,
+        )
     import torch
 
-    with torch.inference_mode():
+    with worker_phase("model_inference"), torch.inference_mode():
         generated = model.generate(
             **encoded,
             do_sample=False,
@@ -742,7 +790,8 @@ def suggest_lesson_plan(payload: dict[str, Any]) -> dict[str, Any]:
         generated[0, input_ids.shape[-1] :], skip_special_tokens=True
     )
     try:
-        content = _parse_lesson_suggestion_content(text, data)
+        with worker_phase("output_parse_and_contract_validation"):
+            content = _parse_lesson_suggestion_content(text, data)
     except RuntimeError as exc:
         hit_limit = output_token_count >= max_new_tokens
         print(
@@ -865,9 +914,11 @@ def _lesson_suggestion_prompt(data: dict[str, Any]) -> str:
         "preparation_text, instructions_text, observation_notes, safety_notes, activity_kind. "
         "Mỗi mục tiêu, bước vẽ, ghi chú kiến thức và hoạt động phải cụ thể, ngắn gọn, phù hợp "
         "vai trò người lớn là quan sát/hỗ trợ và để trẻ tự làm. Không đưa lời thoại hay hướng dẫn "
-        "quá áp đặt. Dùng đúng activity_kind được yêu cầu cho mọi hoạt động. Không thay đổi chủ đề, "
+        "quá áp đặt. Dùng đúng activity_kind được yêu cầu cho mọi hoạt động. "
+        "Không thay đổi chủ đề, "
         "chủ thể vẽ, mục tiêu, độ tuổi hoặc script_following_allowed. Viết bằng tiếng Việt. "
-        "Nếu không thể đưa ra safety_notes cụ thể, hãy nêu rủi ro cần người lớn kiểm tra thay vì bỏ trống. "
+        "Nếu không thể đưa ra safety_notes cụ thể, hãy nêu rủi ro cần người lớn kiểm tra "
+        "thay vì bỏ trống. "
         f"Chủ đề: {data['topic']}. Chủ thể vẽ: {data['drawing_subject']}. "
         f"Tuổi mục tiêu: {data['target_age_months']} tháng. Mục tiêu đã nhập: "
         f"{json.dumps(data['objectives'], ensure_ascii=False)}. "
@@ -1133,7 +1184,8 @@ def _teacher_deck_prompt(data: dict[str, Any]) -> str:
         "Tạo DUY NHẤT JSON object "
         '{"steps":[{"step_index":1,"instruction":"...","placement":"..."}]}. '
         "Viết tiếng Việt thật ngắn: instruction tối đa 100 ký tự, placement tối đa 80 ký tự. "
-        "Mỗi instruction là một lời mời quan sát hoặc vẽ phù hợp tuổi; giữ nguyên thứ tự, hành động "
+        "Mỗi instruction là một lời mời quan sát hoặc vẽ phù hợp tuổi; giữ nguyên thứ tự, "
+        "hành động "
         "và vị trí đã duyệt. Không thêm chủ thể, vật liệu, mục tiêu, kiến thức hay activity. "
         "Không nhắc roster, không tạo PowerPoint, không markdown. "
         f"Chủ đề: {data['topic']}; tuổi mục tiêu {data['target_age_months']} tháng. "
@@ -1288,13 +1340,23 @@ def _compose_teacher_deck(
         SCRATCH_MOUNT: scratch_volume.with_mount_options(read_only=True),
     },
 )
+@observed_worker(
+    workload="tts.narration.generate",
+    model_id=TTS_MODEL_ID,
+    model_revision=TTS_MODEL_REVISION,
+    gpu_class="cpu",
+)
 def synthesize_vietnamese_narration(payload: dict[str, Any]) -> dict[str, Any]:
     """Generate one short synthetic sentence with the adult preset voice."""
 
-    request = parse_worker_input(payload, execution_group="l4")
+    with worker_phase("input_envelope"):
+        request = parse_worker_input(payload, execution_group="l4")
+    worker_stage("workload_gate")
     if request.workload != "tts.narration.generate":
         raise WorkerContractError("MODAL_WORKLOAD_NOT_ALLOWED")
-    data = _read_json_asset(request, expected_asset="input/request.json")
+    with worker_phase("input_manifest_read"):
+        data = _read_json_asset(request, expected_asset="input/request.json")
+    worker_stage("tts_request_validation")
     if set(data) != {"text", "voice"}:
         raise WorkerContractError("MODAL_INPUT_MANIFEST_INVALID")
     if (
@@ -1302,39 +1364,44 @@ def synthesize_vietnamese_narration(payload: dict[str, Any]) -> dict[str, Any]:
         or data["voice"] != "Hải Đăng"
     ):
         raise WorkerContractError("MODAL_INPUT_NOT_ALLOWED")
-    _verify_marker(Path(TTS_MODEL_MARKER), TTS_MODEL_ID, TTS_MODEL_REVISION)
-    _verify_marker(Path(TTS_CODEC_MARKER), TTS_CODEC_ID, TTS_CODEC_REVISION)
+    with worker_phase("tts_checkpoint_verification"):
+        _verify_marker(Path(TTS_MODEL_MARKER), TTS_MODEL_ID, TTS_MODEL_REVISION)
+        _verify_marker(Path(TTS_CODEC_MARKER), TTS_CODEC_ID, TTS_CODEC_REVISION)
 
     from vieneu import Vieneu
 
-    engine = Vieneu(
-        mode="v3turbo",
-        backbone_repo=TTS_MODEL_DIR,
-        device="cpu",
-        backend="onnx",
-        precision="fp32",
-        onnx_repo=TTS_MODEL_DIR,
-        onnx_dir=f"{TTS_MODEL_DIR}/onnx_update",
-        codec_repo=TTS_CODEC_DIR,
-        codec_dir=TTS_CODEC_DIR,
-        threads=4,
-    )
-    audio = engine.infer(
-        data["text"], voice=data["voice"], max_new_frames=160, max_chars=100
-    )
+    with worker_phase("tts_model_load"):
+        engine = Vieneu(
+            mode="v3turbo",
+            backbone_repo=TTS_MODEL_DIR,
+            device="cpu",
+            backend="onnx",
+            precision="fp32",
+            onnx_repo=TTS_MODEL_DIR,
+            onnx_dir=f"{TTS_MODEL_DIR}/onnx_update",
+            codec_repo=TTS_CODEC_DIR,
+            codec_dir=TTS_CODEC_DIR,
+            threads=4,
+        )
+    with worker_phase("tts_inference"):
+        audio = engine.infer(
+            data["text"], voice=data["voice"], max_new_frames=160, max_chars=100
+        )
     output_path = Path("/tmp/sketch2life-synthetic-narration.wav")
-    engine.save(audio, str(output_path))
-    output_bytes = output_path.read_bytes()
-    if not output_bytes.startswith(b"RIFF") or len(output_bytes) > MAX_OUTPUT_BYTES:
-        raise RuntimeError("MODAL_OUTPUT_INVALID")
-    return _media_response(
-        request,
-        "tts.narration.generate",
-        TTS_MODEL_ID,
-        TTS_MODEL_REVISION,
-        "audio/wav",
-        output_bytes,
-    )
+    with worker_phase("audio_encode_and_validate"):
+        engine.save(audio, str(output_path))
+        output_bytes = output_path.read_bytes()
+        if not output_bytes.startswith(b"RIFF") or len(output_bytes) > MAX_OUTPUT_BYTES:
+            raise RuntimeError("MODAL_OUTPUT_INVALID")
+    with worker_phase("audio_output_contract_validation"):
+        return _media_response(
+            request,
+            "tts.narration.generate",
+            TTS_MODEL_ID,
+            TTS_MODEL_REVISION,
+            "audio/wav",
+            output_bytes,
+        )
 
 
 @app.function(
@@ -1352,49 +1419,61 @@ def synthesize_vietnamese_narration(payload: dict[str, Any]) -> dict[str, Any]:
         SCRATCH_MOUNT: scratch_volume.with_mount_options(read_only=True),
     },
 )
+@observed_worker(
+    workload="asr.transcribe",
+    model_id=ASR_MODEL_ID,
+    model_revision=ASR_MODEL_REVISION,
+    gpu_class="cpu",
+)
 def transcribe_vietnamese_audio(payload: dict[str, Any]) -> dict[str, Any]:
     """Transcribe only the synthetic audio asset staged for this POC."""
 
-    request = parse_worker_input(payload, execution_group="l4")
+    with worker_phase("input_envelope"):
+        request = parse_worker_input(payload, execution_group="l4")
+    worker_stage("workload_gate")
     if request.workload != "asr.transcribe":
         raise WorkerContractError("MODAL_WORKLOAD_NOT_ALLOWED")
-    audio_path, audio_sha256 = _read_binary_asset(
-        request,
-        expected_asset="input/audio.wav",
-        expected_content_type="audio/wav",
-        signature=b"RIFF",
-    )
-    _verify_marker(Path(ASR_MODEL_MARKER), ASR_MODEL_ID, ASR_MODEL_REVISION)
+    with worker_phase("audio_asset_read_and_verify"):
+        audio_path, audio_sha256 = _read_binary_asset(
+            request,
+            expected_asset="input/audio.wav",
+            expected_content_type="audio/wav",
+            signature=b"RIFF",
+        )
+    with worker_phase("asr_checkpoint_verification"):
+        _verify_marker(Path(ASR_MODEL_MARKER), ASR_MODEL_ID, ASR_MODEL_REVISION)
 
     from faster_whisper import WhisperModel
 
-    model = WhisperModel(
-        ASR_MODEL_DIR,
-        device="cpu",
-        compute_type="int8",
-        cpu_threads=4,
-        num_workers=1,
-    )
-    segments, info = model.transcribe(
-        str(audio_path),
-        language="vi",
-        task="transcribe",
-        beam_size=5,
-        vad_filter=False,
-        condition_on_previous_text=False,
-    )
-    transcript_segments = []
-    for segment in segments:
-        transcript_segments.append(
-            {
-                "start_seconds": round(float(segment.start), 3),
-                "end_seconds": round(float(segment.end), 3),
-                "text": segment.text.strip()[:500],
-            }
+    with worker_phase("asr_model_load"):
+        model = WhisperModel(
+            ASR_MODEL_DIR,
+            device="cpu",
+            compute_type="int8",
+            cpu_threads=4,
+            num_workers=1,
         )
-        if len(transcript_segments) >= 32:
-            break
-    transcript = " ".join(item["text"] for item in transcript_segments).strip()
+    with worker_phase("asr_inference_and_decode"):
+        segments, info = model.transcribe(
+            str(audio_path),
+            language="vi",
+            task="transcribe",
+            beam_size=5,
+            vad_filter=False,
+            condition_on_previous_text=False,
+        )
+        transcript_segments = []
+        for segment in segments:
+            transcript_segments.append(
+                {
+                    "start_seconds": round(float(segment.start), 3),
+                    "end_seconds": round(float(segment.end), 3),
+                    "text": segment.text.strip()[:500],
+                }
+            )
+            if len(transcript_segments) >= 32:
+                break
+        transcript = " ".join(item["text"] for item in transcript_segments).strip()
     return {
         "schema_version": WORKER_OUTPUT_SCHEMA,
         "workload": request.workload,
@@ -1833,7 +1912,7 @@ def _json_output_diagnostics(text: str) -> dict[str, Any]:
         summary.update(
             {
                 "json_complete": False,
-                "json_error": exc.msg[:80],
+                "json_error_type": type(exc).__name__,
                 "json_error_position": exc.pos,
             }
         )
@@ -1843,7 +1922,6 @@ def _json_output_diagnostics(text: str) -> dict[str, Any]:
             flags=re.DOTALL,
         )
         if active_value is not None:
-            summary["unterminated_string_key"] = active_value.group("key")[:80]
             summary["unterminated_string_character_count"] = len(
                 active_value.group("value")
             )
@@ -1851,7 +1929,7 @@ def _json_output_diagnostics(text: str) -> dict[str, Any]:
         summary["json_complete"] = True
         summary["json_root_type"] = type(value).__name__
         if isinstance(value, dict):
-            summary["json_root_keys"] = sorted(str(key)[:80] for key in value)
+            summary["json_root_key_count"] = len(value)
     summary["field_key_counts"] = {
         key: text.count(json.dumps(key))
         for key in (
@@ -1908,7 +1986,7 @@ def _build_json_prefix_allowed_tokens_fn(
     )
     if (
         _CACHED_STORY_VOCAB_DATA is None
-        or _CACHED_STORY_EOS_IDS != eos_token_ids
+        or eos_token_ids != _CACHED_STORY_EOS_IDS
     ):
         _CACHED_STORY_VOCAB_DATA = _build_lmfe_tokenizer_data(
             tokenizer,
@@ -2443,7 +2521,8 @@ def _parent_story_prompt(request: dict[str, Any]) -> str:
     folded_subject = _fold_vi(subject)
     if "buom" in folded_subject or "butterfly" in folded_subject:
         subject_facts = (
-            "Kiến thức bắt buộc về bướm: trứng nở thành sâu bướm; sâu bướm ăn lá, lớn lên rồi hóa nhộng; "
+            "Kiến thức bắt buộc về bướm: trứng nở thành sâu bướm; sâu bướm ăn lá, "
+            "lớn lên rồi hóa nhộng; "
             "bướm trưởng thành chui ra khỏi nhộng. Dùng các cụm từ “trứng”, “sâu bướm”, “nhộng”, "
             "“bướm trưởng thành” theo đúng thứ tự; trứng không nở thành bướm trưởng thành."
         )
@@ -2457,7 +2536,8 @@ def _parent_story_prompt(request: dict[str, Any]) -> str:
         "narration 120; 1-2 character_anchors, mỗi anchor 40 ký tự. "
         "Bám chủ thể người lớn xác nhận và đặc điểm nhìn thấy; giữ nhân vật nhất quán. Người lớn "
         "hướng dẫn, trẻ quan sát và tự khám phá. Không gán tên, cảm xúc, năng lực, danh tính hoặc "
-        "chẩn đoán cho người vẽ; không có tên trẻ; không thêm activity, lời khuyên y tế, nguy hiểm, "
+        "chẩn đoán cho người vẽ; không có tên trẻ; không thêm activity, lời khuyên y tế, "
+        "nguy hiểm, "
         "bạo lực, quảng cáo hoặc bài học áp đặt. Story là DRAFT để người lớn rà soát. "
         f"Chủ thể đã xác nhận: {subject}. Đặc điểm nhìn thấy: "
         f"{json.dumps(features, ensure_ascii=False)}. Tuổi chính xác: {age} tháng. "
