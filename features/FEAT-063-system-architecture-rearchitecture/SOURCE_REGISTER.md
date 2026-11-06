@@ -1,6 +1,14 @@
 # FEAT-063 source register
 
-## Rev45/Rev51 SRS alignment — current — 2026-11-06
+## Rev52 SRS contradiction reconciliation — current — 2026-11-06
+
+- Canonical SRS and companion advance to v2.6-draft, unsigned. The review report is evidence only.
+- Owner decisions recorded in D-146: Content Admin is a Platform Admin permission; Platform Admin child-media access is deny-by-default pending a separately approved workflow; Teacher video usage draws only from school quota.
+- Current target count is 92 active + 48 legacy = 140 projected mappings; 89/137 is explicitly historical v2.3. No production inventory/DDL is claimed.
+- SRS, Data Table Register, Plan Rev52, approval and evidence are in the isolated remediation worktree; owner-authorized publication to the same-named origin branch is in progress.
+- Evidence: evidence/EV-063-57_SRS_V25_CONTRADICTION_REVIEW_20261106.md.
+
+## Rev45/Rev51 SRS alignment — historical publication record — 2026-11-06
 
 - Canonical working SRS and companion: v2.5-draft, unsigned. §§1–31 remain product/architecture targets; §32 contains dated source/runtime observations.
 - Rev45 resolves inconsistent model-status statements in the target sections. Rev51 source review at fetched `origin/dev` `4749451080f49243464d40a464b8f83a03ae77bb` distinguishes the mounted main FastAPI composition from the separate StoryRun-lite/Modal development slice.

@@ -3,9 +3,12 @@
 
 ## Canonical product SRS — current working baseline
 
-Use `features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` v2.5-draft for all current product requirements and target architecture. It remains a draft pending formal owner sign-off. Its §§1–31 define target requirements; §32 contains dated environment-specific runtime/source observations and does not replace them. Older feature SRS copies and contexts are historical/feature-local and do not override it. The detailed agent reading order and historical-source list are in `docs/context/SRS_AUTHORITY.md`.
+Use `features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` v2.6-draft for all current product requirements and target architecture. It remains a draft pending formal owner sign-off. Its §§1–31 define target requirements; §32 contains dated environment-specific runtime/source observations and does not replace them. Older feature SRS copies and contexts are historical/feature-local and do not override it. The detailed agent reading order and historical-source list are in `docs/context/SRS_AUTHORITY.md`.
 
-## FEAT-063 Rev45/Rev51 SRS alignment — current — 2026-11-06
+## FEAT-063 Rev52 SRS contradiction reconciliation — current — 2026-11-06
+
+Plan Rev52 aligns the canonical v2.6-draft SRS and Data Table Register with the user-supplied v2.5 review report and three direct owner clarifications. The report is analysis evidence, not requirement authority or SRS sign-off. The clarified rules are: content administration is a Platform Admin permission; Platform Admin child-media access is denied until a separate workflow is approved; Teacher video usage consumes only the school organization quota. The current target count is 92 active + 48 legacy = 140; 89/137 remains historical v2.3 baseline. See FEAT-063 D-146 and EV-063-57. Work remains local on docs/feat063-srs-conflict-remediation-20261106; no commit or push.
+## FEAT-063 Rev45/Rev51 SRS alignment — historical publication record — 2026-11-06
 
 Plan Rev45 reconciles the recorded AI development directions across target sections and adds a source crosswalk. Plan Rev51 supplements it with a read-only review of the fetched `origin/dev` source tree. §32.5 describes the earlier local working-tree snapshot; §32.6 describes commit `4749451080f49243464d40a464b8f83a03ae77bb` and does not claim a runtime retest. The SRS and companion remain unsigned. See FEAT-063 evidence EV-063-55 and EV-063-56.
 

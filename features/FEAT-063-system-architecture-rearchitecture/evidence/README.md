@@ -141,3 +141,10 @@ The imported as-built SRS evidence keeps its original filename (`EV-063-33_AS_BU
 ## EV-063-54 ? dev duplicate repair and SRS integration
 
 Records the six patch-equivalent local `dev` commits, preservation backup, full Modal AI integration, SRS v2.4 conflict disposition, security checks, and fast-forward publication to `origin/dev`. See [`EV-063-54_DEV_HISTORY_AND_SRS_MERGE_20261106.md`](EV-063-54_DEV_HISTORY_AND_SRS_MERGE_20261106.md).
+
+
+## EV-063-57 — Rev52 SRS contradiction reconciliation
+
+Maps report findings M01–M09, the additional current-count mismatch M10, D01–D12 and Q01–Q08 to corrected SRS/Register sections or remaining open items; records the three owner clarifications and report provenance.
+
+See [EV-063-57_SRS_V25_CONTRADICTION_REVIEW_20261106.md](EV-063-57_SRS_V25_CONTRADICTION_REVIEW_20261106.md).

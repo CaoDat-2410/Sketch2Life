@@ -1,6 +1,17 @@
 # FEAT-063 — Whole-repository architecture redesign
 
-## SRS v2.5 alignment and current dev-source review — Plans Rev45/Rev51 (2026-11-06)
+## Rev52 SRS contradiction reconciliation — 2026-11-06
+
+- Lifecycle: REVIEW; approved documentation-only SRS/Data Table Register reconciliation is complete; final diff reviewed and git diff --check passed.
+- Canonical working pair: SRS and Data Table Register v2.6-draft; both remain unsigned and do not have owner content sign-off.
+- Incorporated the report review and owner clarifications: Content Admin is a Platform Admin permission; child-media access for Platform Admin remains deny-by-default until a separate workflow is approved; Teacher video uses only the school organization quota.
+- Corrected Parent optional lesson-version pin and post-video activity ordering, invitation acceptance, all eight AI Job targets, video admission transitions, and the 92 active + 48 legacy = 140 current target count. The 89/137 count remains the historical v2.3 baseline.
+- Unresolved details remain open, including field-scope/expiry, school-wide invitation acceptor, personal-copy ownership/retention, admin media workflow, random sample eligibility/consent, publication approval, quota amounts/pricing/allocation, DDL, migration mapping and final diagrams.
+- Plan Rev52 and approval are recorded; evidence: evidence/EV-063-57_SRS_V25_CONTRADICTION_REVIEW_20261106.md. Owner has authorized publication on the same-named origin branch; mandatory validation is in progress. SRS remains unsigned.
+
+
+
+## Prior SRS v2.5 alignment and dev-source review — Plans Rev45/Rev51 (2026-11-06)
 
 - Lifecycle: REVIEW; SRS/code review and initial publication are complete under Plan Rev51.
 - Canonical working SRS: `artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` v2.5-draft with matching Data Table Register v2.5-draft; neither has owner content sign-off.

@@ -1,5 +1,17 @@
 # Task approval
 
+## Plan Rev52 — reconcile SRS review findings
+
+- **Status:** APPROVED for the exact documentation-only scope in Plan Rev52; the SRS and Data Table Register remain unsigned drafts.
+- **Approver:** Project owner, direct request on 2026-11-06: “đọc cái này và fix lại các cái mâu thuẫn, có thể hỏi 1 vài câu nếu cần”.
+- **Recorded date:** 2026-11-06, Asia/Saigon.
+- **Plan:** `plan/PLAN_REV52_SRS_CONTRADICTION_RECONCILIATION_20261106.md`.
+- **Plan SHA-256 at authorization:** `2EEBB0290B6A15C09135F2A7CB40A0D68DDC5CA8DFBE34CFA390F6428B747ABA`.
+- **Current reviewed plan SHA-256:** `CFA2214E1F1F4E02DDABA2D4952052D26493E0844CE0487A3108505BA14B06BF`.
+- **Scope:** correct only contradictions supported by current FEAT-063 requirements; update the v2.6-draft SRS/Register pair, evidence dispositions, and authority/tracking records. Keep open policy/schema items open unless the owner answers them.
+- **Not approved:** product implementation, schema/migration changes, tests/builds, production/provider/runtime operations, SRS sign-off, or commit/push.
+- **Approval basis:** direct owner request; this approves the scoped documentation review and does not provide answers to pending product questions.
+
 - Status: APPROVED for documentation-only SRS diagrams and detailed system-flow PDFs under plan revision 22: maintain one editable multi-page `.drawio` source, refresh the full-package PDF, and create a separate flow-only PDF at the owner-requested destination. Product implementation is not approved.
 - Approver: Project owner, direct 2026-10-27 request for a complete diagram package/PDF and subsequent direct request for an additional detailed PDF covering all system flows, superseding the earlier wait-for-Markdown-review gate for these outputs. This approves artifact creation only; it does not represent sign-off of the SRS/register content or product implementation.
 - Feature: FEAT-063 - Whole-repository architecture redesign.
@@ -953,3 +965,15 @@
 - Final reviewed Plan Rev51 SHA-256: `06DC756E35F621F8232E89ABE8CDBFFD7FFEF493D0EF09050F1D25A2E26EE394`.
 - Package commit `620386fb227e2d8b76c48e72ad22892e3b0c1c53` was pushed to `origin/docs/feat063-rev45-srs-code-alignment-20261106`; fresh fetch confirmed the remote SHA matched.
 - The security validator passed before the package commit and first push, scanning 6,563 publishable files each time. No force push or `dev` update was performed.
+
+
+## FEAT-063 Plan Rev52 addendum — publish SRS contradiction reconciliation
+
+- **Status:** APPROVED for the exact branch publication scope below; SRS content remains unsigned.
+- **Approver:** Project owner, direct instruction on 2026-11-06: “commit and push”.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV52_SRS_CONTRADICTION_RECONCILIATION_20261106.md`.
+- **Current reviewed plan SHA-256:** `9B6100D907B27302A90F194ADB20B0D67AE2811987F9A5C82DAC23B03B432D55`. Original documentation-scope authorization hash and history are retained in the Rev52 approval entry above.
+- **Scope:** commit only the 15 paths enumerated in the Plan Rev52 Publication addendum with subject `docs(FEAT-063): reconcile v2.5 SRS review findings`, then regular non-force push to `origin/docs/feat063-srs-conflict-remediation-20261106`.
+- **Exclusions:** force-push/history rewrite, `dev`, PR, merge, SRS sign-off, and any path outside the approved manifest.
+- **Required checks:** `python tools/validate_repository_security.py` before commit and before push; `git diff --check` must pass.
+- **Approval basis:** the owner’s latest direct instruction supersedes only Rev52’s former no-commit/no-push boundary; it does not expand product or SRS requirement scope.

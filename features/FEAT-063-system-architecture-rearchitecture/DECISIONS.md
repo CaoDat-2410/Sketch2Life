@@ -304,6 +304,18 @@ The canonical SRS and companion advance to v2.5-draft. Rev45 records the earlier
 
 Source: owner request in this conversation; approved Plans Rev45 and Rev51; evidence EV-063-55 and EV-063-56.
 
+## D-146 — Owner clarifications from Rev52 SRS contradiction review
+
+The owner clarified three items while reviewing the v2.5 contradiction report:
+
+- “Admin nội dung” is a permission of Platform Admin, not a separate product role. Content-review/publish/moderation permissions do not grant access to child profiles or media.
+- Platform Admin access to child media is deny-by-default. Every request remains denied until a separate owner-approved workflow exists. Approver, purpose/scope, expiry, audit detail and break-glass behavior remain open.
+- Teacher video generation consumes only the school organization quota for the occurrence. There is no Teacher-account quota pool or fallback. Parent retains a separate Parent-account quota.
+
+This supersedes only the Teacher-account quota scope and the prior ambiguity about the content-administration permission and Platform Admin media access. Included amounts, prices, Parent/school purchase and allocation details, and the admin media workflow remain open. It does not sign off the SRS or data model.
+
+Source: direct owner answers in this conversation; approved Plan Rev52; report SHA-256 23D1F4129E2FAA0D87E9F82B36D9459065367658E37B5F905596F565677DE2A9; evidence EV-063-57.
+
 ## SRS v2.4 publication decisions ? integration ID reconciliation
 
 The SRS publication branch used D-122 through D-125 for these four records, while the selected Modal branch already uses those identifiers for StoryRun implementation decisions. The records are assigned D-135 through D-138 in this combined register. The original SRS/approval commits and their messages are preserved; the canonical decisions and details remain in the v2.4 SRS.
