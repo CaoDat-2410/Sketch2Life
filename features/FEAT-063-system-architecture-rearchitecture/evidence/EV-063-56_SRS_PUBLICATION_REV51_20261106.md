@@ -5,7 +5,7 @@
 - Plan: `plan/PLAN_REV51_PUBLISH_REV45_SRS_20261106.md`.
 - Plan SHA-256 at authorization: `919CD35DC42973A5FE06C9D99D56DC851B4FCDB1313E1AF0612CB525D78116A8`.
 - Review base: fetched `origin/dev` commit `4749451080f49243464d40a464b8f83a03ae77bb`.
-- State: source review complete; publication result will be added after the approved commit/push steps.
+- State: REVIEW; source review and package publication are complete. This close-out record is carried in a follow-up documentation commit.
 
 ## Why the SRS includes a second source snapshot
 
@@ -39,4 +39,8 @@ The Rev45 review was prepared in the preserved local checkout before its history
 
 ## Publication result
 
-Pending. After Plan Rev51 execution, record the package commit SHA, branch push SHA, fresh-fetch result, security validator results, and final plan hash here.
+The exact 17-path package was committed as `620386fb227e2d8b76c48e72ad22892e3b0c1c53` (`docs(FEAT-063): publish SRS v2.5 alignment`) on `docs/feat063-rev45-srs-code-alignment-20261106` and pushed to origin without force. A fresh fetch confirmed `origin/docs/feat063-rev45-srs-code-alignment-20261106` matched the commit. The branch starts at fetched `origin/dev` `4749451080f49243464d40a464b8f83a03ae77bb`; `dev` was not changed.
+
+`python tools/validate_repository_security.py` passed before commit and before push. Each run reported `REPOSITORY_SECURITY_VALID`, scanned 6,563 publishable files, excluded environment files/seed accounts/credentials/signing keys/external reference documents, and found no absolute machine paths. `git diff --cached --check` was clean. No product tests, builds, API/runtime calls, DB queries, Modal/provider calls or deployment were run for Rev51.
+
+The original dirty checkout remains isolated. The package and companion are still unsigned drafts. The review close-out plan hash and any follow-up close-out commit are recorded in the final branch history; this report identifies the initial SRS package commit rather than trying to embed its own commit hash.

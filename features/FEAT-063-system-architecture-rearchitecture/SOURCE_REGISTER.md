@@ -7,6 +7,7 @@
 - Main app has no mounted AI Jobs router or AI dispatch; StoryRun-lite uses separate in-process background tasks and is not durable production job orchestration. Dev model pins/workload results remain implementation evidence, not production approval.
 - Local OpenAPI/database numbers remain the Rev43 snapshot and were not revalidated in Rev51. No API, DB, Modal, model, test, or deployment operation was performed for this source review.
 - Evidence: `evidence/EV-063-55_SRS_SYSTEM_CODE_ALIGNMENT_REV45_20261106.md`; `evidence/EV-063-56_SRS_PUBLICATION_REV51_20261106.md`.
+- Publication: Plan Rev51 package commit `620386fb227e2d8b76c48e72ad22892e3b0c1c53` was pushed on `docs/feat063-rev45-srs-code-alignment-20261106` and confirmed by fresh fetch. The SRS remains an unsigned draft.
 
 
 ## Rev43 as-built SRS alignment — historical snapshot — 2026-11-06
