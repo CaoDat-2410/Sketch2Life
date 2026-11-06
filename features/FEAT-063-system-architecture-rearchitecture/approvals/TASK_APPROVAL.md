@@ -995,9 +995,17 @@
 - **Approver:** Project owner, direct instruction on 2026-11-06 to merge the SRS-fix and AI branches into `dev`.
 - **Recorded timestamp:** 2026-11-06 19:06:22 Asia/Saigon.
 - **Approved plan:** `plan/PLAN_REV54_MERGE_SRS_V25_AND_MODAL_AI_TO_DEV_20261106.md`.
-- **Approved plan SHA-256:** `94D4CA003102F04D853E46493F539B6FC6A6888C909AA9142652AE1E82D4E350`.
+- **Approved plan SHA-256:** `C6882123DF3F1671AF7014784651E9F6A37AD799BA3763223BFC10C9E2A9F937`.
 - **Inputs:** SRS branch `origin/docs/feat063-rev45-srs-code-alignment-20261106` at `fae180dcf3ea2771b41546aa6925b94636821df1`; AI branch `origin/feature/feat063-modal-ai-reliability-20261106` at `c6818490d0d889ab17dc9f8de3830987eb2a230d`.
 - **Scope:** integrate both branches into `dev`, preserve commits and records, resolve only the two approval-register conflicts by keeping entries from both branches, validate security, then push normally to `origin/dev` and verify its tip.
-- **Acceptance criteria:** AC54.1–AC54.7 in the approved plan.
+- **Acceptance criteria:** AC54.1-AC54.8 in the approved plan.
 - **Boundaries:** SRS v2.5 remains unsigned; SAM2 remains disabled in the product registry; no force push, history rewrite, video inference, additional AI calls, or unrelated branches.
 - **Approval basis:** direct owner authorization for this integration and dev publication; this is not formal SRS content sign-off.
+
+### Plan Rev54 local execution checkpoint
+
+- Status: source merges completed on the approved integration branch; publication is not yet complete.
+- AI merge: `634e0e20f56cbfa6101ece6e67f3e4267a30ae92`; SRS merge: `6bbb375a359fb78f06585963b8ee9f7bfc2246ff`.
+- Conflict handling retained both histories. SRS decision IDs D-144/D-145 were reassigned to D-148/D-149 to preserve all four records without duplicate IDs.
+- Evidence: `evidence/EV-063-57_SRS_V25_AND_MODAL_AI_DEV_INTEGRATION_20261106.md`.
+- Pending: `git diff --check`, repository security validation, local `dev` fast-forward, normal push and remote-tip verification.

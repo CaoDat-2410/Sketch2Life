@@ -35,6 +35,11 @@ Integrate both already-published branches into `dev`, retaining their original c
 - **AC54.5 - Scope control:** no AI/API/schema/database/provider/runtime changes beyond those already committed on the selected AI branch; no unrelated branch commits or files.
 - **AC54.6 - Validation:** clean whitespace, passing repository security validator, and an explicit review of the two approval-file resolutions and final changed paths.
 - **AC54.7 - Publication:** normal fast-forward push to `origin/dev`; remote `dev` must match the final local `dev` commit. No force push or history rewrite.
+- **AC54.8 - Decision ID integrity:** all FEAT-063 decision IDs are unique after integration; preserve the two SRS decisions and two AI decisions even though the source branches reused D-144 and D-145.
+
+## Integration adjustment
+
+The merged `DECISIONS.md` exposed an append-only ID collision: the SRS branch used D-144/D-145 for SRS alignment/authority while the AI branch used the same IDs for queue-timeout diagnosis/story validation. Preserve all four records and their meanings; assign the SRS-only entries D-148/D-149 in the integrated register. No SRS requirement, AI rule, or source-branch commit is rewritten.
 
 ## Exclusions and evidence limits
 

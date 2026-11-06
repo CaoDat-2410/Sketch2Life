@@ -613,3 +613,11 @@ Parent Sketch Guide and lesson visuals were not dispatched because Modal `dev` s
 - Quality: mask output is valid and lineage-preserving, but visual review shows only the central butterfly body, missing both wings, head and antennae. SAM 2.1 is not product-ready based on this sample; `workloads.json` remains disabled and OpenCV/Pillow remains the baseline.
 - Runtime: checkpoint preflight caller elapsed 27.051 s; GPU inference caller wait 31.896 s; total run 61 s. No video was called.
 - Cleanup: `sketch2life-srs23-drawing-segment-dev` is stopped with 0 tasks; shared volumes/checkpoints were retained.
+
+## Plan Rev54 - SRS v2.5 and Modal AI integration to dev
+
+- Status: MERGED LOCALLY; repository security validation and normal push to `origin/dev` are pending.
+- Source branches: SRS `fae180dcf3ea2771b41546aa6925b94636821df1`; Modal AI `c6818490d0d889ab17dc9f8de3830987eb2a230d`.
+- Merge commits: AI `634e0e20f56cbfa6101ece6e67f3e4267a30ae92`; SRS `6bbb375a359fb78f06585963b8ee9f7bfc2246ff`.
+- SRS v2.5-draft is now the canonical working source and remains unsigned. SAM2 remains disabled in the product registry; all recorded quality limitations are preserved.
+- No new AI calls, video inference, database changes, runtime tests or product test suites were run during integration. Existing Rev52/Rev53 evidence is linked from EV-063-57.

@@ -543,3 +543,12 @@ Owner-authorized FEAT-063 dev-only test added ordered L4/L40S/A10 GPU options, s
 - Quality limit: visual inspection shows the mask selects the central body only and misses the butterfly wings, head and antennae. This is a partial mask, not acceptable whole-object segmentation; SAM 2.1 remains an optional development candidate, and OpenCV/Pillow remains the baseline.
 - Timing: checkpoint call elapsed 27.051 s (worker 0.734 s; checkpoint already present); inference caller wait 31.896 s (worker 7.924 s); total run 61 s. No video call was made.
 - Cleanup: dedicated Modal app stopped and verified at 0 tasks; shared volumes/checkpoints retained. Full results and visual review: `evidence/sam2_gate_retest_20261106/RESULTS.md` and `visual_review.md`.
+
+## Plan Rev54 - SRS v2.5 and Modal AI integration to dev
+
+- The approved SRS and Modal AI branches are merged locally on `codex/feat063-srs-ai-dev-integration-20261106`; merge commits are `634e0e20f56cbfa6101ece6e67f3e4267a30ae92` and `6bbb375a359fb78f06585963b8ee9f7bfc2246ff`.
+- FEAT-063 v2.5-draft is the canonical working SRS, still unsigned. Its SRS authority pointer and companion Data Table Register match the selected source branch byte-for-byte.
+- All four D-144/D-145 records are retained; SRS decisions were renumbered D-148/D-149 to keep the integrated decision register unique.
+- Rev52/Rev53 AI code and existing verification evidence are preserved. SAM2 remains product-disabled due to partial visual mask coverage. No AI/video runtime calls or test suites were rerun during this merge.
+- Detailed hashes, evidence limits and results: `evidence/EV-063-57_SRS_V25_AND_MODAL_AI_DEV_INTEGRATION_20261106.md`.
+- Current execution status: local integration complete; security validation and push to `origin/dev` pending.

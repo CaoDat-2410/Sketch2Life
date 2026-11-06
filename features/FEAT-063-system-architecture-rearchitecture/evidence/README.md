@@ -155,4 +155,11 @@ Records the six patch-equivalent local `dev` commits, preservation backup, full 
 - Plan: `../plan/PLAN_REV52_NONVIDEO_MODAL_AI_RELIABILITY_20261106.md` (approved SHA-256 `9703A6CFE3AAF6108A1443B4E7F93805481475A0C60C64C50414106441158938`).
 - Results folder: `nonvideo_modal_ai_reliability_20261106/`.
 - Scope: structured worker/caller telemetry and synthetic verification for registered non-video Modal AI workloads; no video.
-- Status: in progress.
+- Status: complete with findings; see `nonvideo_modal_ai_reliability_20261106/API_AND_AI_MODAL_RESULTS_20261106.md` and the Rev52 closeout below.
+
+## EV-063-57 - SRS v2.5 and Modal AI integration to dev
+
+- Plan Rev54 and approval hash: `../plan/PLAN_REV54_MERGE_SRS_V25_AND_MODAL_AI_TO_DEV_20261106.md`, SHA-256 `C6882123DF3F1671AF7014784651E9F6A37AD799BA3763223BFC10C9E2A9F937`.
+- Integration report: [`EV-063-57_SRS_V25_AND_MODAL_AI_DEV_INTEGRATION_20261106.md`](EV-063-57_SRS_V25_AND_MODAL_AI_DEV_INTEGRATION_20261106.md).
+- Source commits: SRS `fae180dcf3ea2771b41546aa6925b94636821df1`; Modal AI `c6818490d0d889ab17dc9f8de3830987eb2a230d`.
+- Status: locally merged; repository security validation and `origin/dev` publication are pending.

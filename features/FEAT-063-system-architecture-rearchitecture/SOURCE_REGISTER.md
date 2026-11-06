@@ -338,3 +338,10 @@ Plan Rev51 SHA-256 at approval: `B20103A217D7A9623E02279CE0BD82D5BC61141518D820F
 - Results: `evidence/sam2_gate_retest_20261106/RESULTS.md`; safe Modal dispatch/worker evidence and output mask are in the same folder. Visual review: `evidence/sam2_gate_retest_20261106/visual_review.md`.
 - Finding: prior rejection was an L4 envelope allowlist mismatch. One synthetic worker inference now passes with the pinned checkpoint, but the mask selects only the central butterfly body and misses the rest of the subject. Product registry remains disabled; OpenCV/Pillow remains the baseline.
 - Validation and cleanup: focused gate tests and Modal suite results are recorded in `RESULTS.md`; the dedicated Modal app was stopped with zero tasks. No video, real child data, product API dispatch, or production enablement was used.
+
+## Plan Rev54 - current SRS authority and Modal AI integration
+
+- Current product authority after this integration: FEAT-063 `artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` v2.5-draft as directed by `docs/context/SRS_AUTHORITY.md`; it remains unsigned. Older SRS records in this register are historical evidence.
+- Matching companion: FEAT-063 `artifacts/DATA_TABLE_REGISTER.md` v2.5-draft.
+- Integrated source commits: SRS `fae180dcf3ea2771b41546aa6925b94636821df1`; AI `c6818490d0d889ab17dc9f8de3830987eb2a230d`.
+- Integration status/evidence: `evidence/EV-063-57_SRS_V25_AND_MODAL_AI_DEV_INTEGRATION_20261106.md`; local merges are complete, security validation and push are pending.
