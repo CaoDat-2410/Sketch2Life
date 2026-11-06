@@ -292,6 +292,18 @@ The pinned FEAT-063 FLUX.3 worker must stage and verify its required Diffusers m
 
 Source: `plan/PLAN_REV46A_FLUX_COMPONENT_FILES_AND_FAILED_FLOW_RETEST_20261105.md`; official [BFL transformer files](https://huggingface.co/black-forest-labs/flux-3-image-klein/tree/main/transformer), [BFL VAE files](https://huggingface.co/black-forest-labs/flux-3-image-klein/tree/main/vae), and [Diffusers FLUX3 modular pipeline](https://huggingface.co/docs/diffusers/v0.42.0/api/pipelines/flux3); `evidence/AI_QWEN35_FLUX_REV46A_COMPLETION_20261105.md`.
 
+## D-144 — Rev45 AI direction consistency record
+
+Rev45 aligns already-recorded owner directions across the target SRS: Qwen3.5-VL for drawing understanding and structured story/storyboard development, FLUX.3 for line-sketch/lesson visuals, Whisper for ASR, optional SAM 2.1, and Modal as development hosting. LTX-2.5/Modal L40S remains the video target under Q144; WAN remains a candidate. This record does not approve production models, providers, checkpoints, or deployment.
+
+Source: canonical SRS §§6, 9, 31.12 and 32; existing owner records; Plan Rev45; evidence EV-063-55.
+
+## D-145 — Canonical SRS v2.5-draft and dated source snapshots
+
+The canonical SRS and companion advance to v2.5-draft. Rev45 records the earlier local source review; Rev51 separately records a read-only crosswalk of fetched `origin/dev`. Both remain subordinate to the target requirements and neither is runtime acceptance proof. This supersedes D-138 only for the canonical SRS version pointer; product scope, data model and production stack are not newly approved.
+
+Source: owner request in this conversation; approved Plans Rev45 and Rev51; evidence EV-063-55 and EV-063-56.
+
 ## SRS v2.4 publication decisions ? integration ID reconciliation
 
 The SRS publication branch used D-122 through D-125 for these four records, while the selected Modal branch already uses those identifiers for StoryRun implementation decisions. The records are assigned D-135 through D-138 in this combined register. The original SRS/approval commits and their messages are preserved; the canonical decisions and details remain in the v2.4 SRS.

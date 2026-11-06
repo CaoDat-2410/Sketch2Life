@@ -3,7 +3,11 @@
 
 ## Canonical product SRS — current working baseline
 
-Use `features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` v2.4-draft for all current product requirements and target architecture. It remains a draft pending formal owner sign-off. Its §32 is a local as-built snapshot and does not replace §§1–31 target requirements. Older feature SRS copies and contexts are historical/feature-local and do not override it. The detailed agent reading order and historical-source list are in `docs/context/SRS_AUTHORITY.md`.
+Use `features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` v2.5-draft for all current product requirements and target architecture. It remains a draft pending formal owner sign-off. Its §§1–31 define target requirements; §32 contains dated environment-specific runtime/source observations and does not replace them. Older feature SRS copies and contexts are historical/feature-local and do not override it. The detailed agent reading order and historical-source list are in `docs/context/SRS_AUTHORITY.md`.
+
+## FEAT-063 Rev45/Rev51 SRS alignment — current — 2026-11-06
+
+Plan Rev45 reconciles the recorded AI development directions across target sections and adds a source crosswalk. Plan Rev51 supplements it with a read-only review of the fetched `origin/dev` source tree. §32.5 describes the earlier local working-tree snapshot; §32.6 describes commit `4749451080f49243464d40a464b8f83a03ae77bb` and does not claim a runtime retest. The SRS and companion remain unsigned. See FEAT-063 evidence EV-063-55 and EV-063-56.
 
 
 ## FEAT-063 Modal AI setup scaffold — 2026-11-03

@@ -1,5 +1,15 @@
 # Status
 
+## SRS v2.5 alignment and current dev-source review — Plans Rev45/Rev51 (2026-11-06)
+
+- Lifecycle: REVIEW; documentation/source review and Plan Rev51 package publication are complete.
+- SRS and Data Table Register are v2.5-draft and remain unsigned. §§1–31 preserve target requirements; §§32.5–32.6 label the local Rev45 and fetched `origin/dev` Rev51 source snapshots separately.
+- Rev51 source base: `4749451080f49243464d40a464b8f83a03ae77bb`. Main API/AI Jobs, separate StoryRun-lite dispatch, Modal dev workers, and model pins are documented with current evidence and limits; no runtime/API/DB/provider checks were rerun.
+- Open: durable AI Jobs and authenticated main-app AI APIs; parent/teacher target flows; production profile, licensing, safety, latency/cost and video validation. SRS owner sign-off remains pending.
+- Plan Rev51 authorization is in root and feature `approvals/TASK_APPROVAL.md`.
+- Evidence: `evidence/EV-063-55_SRS_SYSTEM_CODE_ALIGNMENT_REV45_20261106.md` and `evidence/EV-063-56_SRS_PUBLICATION_REV51_20261106.md`.
+- Published: `docs/feat063-rev45-srs-code-alignment-20261106`, package commit `620386fb227e2d8b76c48e72ad22892e3b0c1c53`; fresh fetch confirmed the remote matched. Security validation passed before commit and push.
+
 ## Modal AI setup scaffold — 2026-11-03
 
 - Lifecycle: COMPLETE for the exact dev-only scaffold in `plan/MODAL_AI_SETUP_SCAFFOLD_20261103.md` (SHA-256 `7FE03A68DF76877457DF5C5F652FCB705669A624B2E07F7B6F317C9FB510E391`).
