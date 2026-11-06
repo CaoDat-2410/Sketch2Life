@@ -300,3 +300,9 @@ The SRS publication branch used D-122 through D-125 for these four records, whil
 | D-136 | Resolve Q159: Platform Admin and Teacher may initiate AI lesson/activity suggestion; Parent may edit an authorized draft only. Generated content remains a draft behind human review/publication gates. This supersedes the lesson-suggestion-role item in D-104; its other open items remain open. | Owner clarification recorded in canonical SRS §31.12 on 2026-11-06 |
 | D-137 | Current AI development direction is Qwen3.5-VL, FLUX.3, Whisper and optional SAM 2.1 hosted through Modal. This is a development direction, not production stack approval; exact checkpoints, licenses, measured quality/cost and backend integration remain separate gates. | Owner direction recorded in canonical SRS §§31.12 and 32; Plan Rev43 |
 | D-138 | Canonical working SRS advances to v2.4-draft and adds an environment-specific as-built snapshot while preserving v2.3 product target requirements. This supersedes D-122's version pointer; the SRS remains unsigned. | Owner instruction 2026-11-06; approved Plan Rev43; `docs/context/SRS_AUTHORITY.md` |
+
+## D-144 - Distinguish Modal queue delay from worker execution timeout
+
+For FEAT-063 development diagnosis, do not increase a Modal function's execution timeout to address evidence of GPU queue/capacity delay. Increase execution time only when logs show the worker started and was cut off by its execution deadline. If no worker-stage log exists, classify the outcome as unknown and do not retry unchanged. The Rev51 SAM2 record showed a 1,800-second GPU scheduling wait with no mask; the Parent VLM API record had no worker-stage log and remains per-request unknown.
+
+Source: owner-approved Plan Rev51; `evidence/modal_ai_and_legacy_api_retest_20261106/API_TONG_HOP_VA_SAN_PHAM_AI_MODAL_20261106.md`. This is a dev diagnostic rule, not a production timeout decision.

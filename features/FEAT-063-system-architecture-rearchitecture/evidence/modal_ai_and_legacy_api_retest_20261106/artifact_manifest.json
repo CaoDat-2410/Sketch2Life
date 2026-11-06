@@ -1,0 +1,153 @@
+{
+  "plan": "PLAN_REV51_MODAL_AI_AND_LEGACY_API_RETEST_20261106.md",
+  "files": [
+    {
+      "path": "products/qwen_drawing_analysis.json",
+      "source_evidence_path": "evidence/assets/ai_nonvideo_ai_end_to_end_20261105/vietnamese_alphabet_retest_12/drawing_analyze_result.json",
+      "size_bytes": 1187,
+      "sha256": "a77802ccb49563e875a2a1c5f680f26f94e1cddf5dcfe32f5c11661b777ce5e0",
+      "synthetic_only": true,
+      "generated_in_this_task": false,
+      "provenance_note": "Qwen3.5 synthetic drawing analysis; worker-level output, not product API proof."
+    },
+    {
+      "path": "products/qwen_story_worker_result.json",
+      "source_evidence_path": "evidence/assets/ai_nonvideo_ai_end_to_end_20261105/vietnamese_alphabet_retest_12/story_generate_result.json",
+      "size_bytes": 6262,
+      "sha256": "a46291c7b06065ed3ace343a1477453a17f89f288bfdf867c64eb05ef401fbc7",
+      "synthetic_only": true,
+      "generated_in_this_task": false,
+      "provenance_note": "Qwen3.5 synthetic story result; worker-level output, not persistent Parent API proof."
+    },
+    {
+      "path": "products/qwen_storyboard_worker_result.json",
+      "source_evidence_path": "evidence/assets/ai_nonvideo_ai_end_to_end_20261105/vietnamese_alphabet_retest_12/story_generate_storyboard_result.json",
+      "size_bytes": 6336,
+      "sha256": "171c4179203338f4652880ddc53707f99d61dc751f5eae32b4cb1442af181745",
+      "synthetic_only": true,
+      "generated_in_this_task": false,
+      "provenance_note": "Qwen3.5 synthetic storyboard result paired with the story worker output."
+    },
+    {
+      "path": "products/qwen_teacher_sketch_deck.json",
+      "source_evidence_path": "evidence/assets/ai_nonvideo_ai_end_to_end_20261105/vietnamese_alphabet_retest_12/teacher_sketch-deck_generate_result.json",
+      "size_bytes": 6983,
+      "sha256": "d58893adbcd38e5d3e1e847d8de5d7888144e5734044ad77b9715ca55236e77c",
+      "synthetic_only": true,
+      "generated_in_this_task": false,
+      "provenance_note": "Qwen3.5 synthetic Teacher deck draft."
+    },
+    {
+      "path": "products/qwen_lesson_plan_suggestion.json",
+      "source_evidence_path": "evidence/assets/ai_nonvideo_ai_end_to_end_20261105/vietnamese_alphabet_retest_12/lesson_plan_suggest_result.json",
+      "size_bytes": 3938,
+      "sha256": "eae8870b2c820d367c767f8a8c5e546aa6d561028073fec19182bd9b240884dc",
+      "synthetic_only": true,
+      "generated_in_this_task": false,
+      "provenance_note": "Qwen3.5 synthetic lesson suggestion; validated as draft_only=true."
+    },
+    {
+      "path": "products/synthetic_vietnamese_narration.wav",
+      "source_evidence_path": "evidence/assets/ai_nonvideo_ai_end_to_end_20261105/speech_retest_13/synthetic_vietnamese_narration.wav",
+      "size_bytes": 153644,
+      "sha256": "969bc864861624da7a620af4264b5bfb5bb14475f986896121859a0b6462a2df",
+      "synthetic_only": true,
+      "generated_in_this_task": false,
+      "provenance_note": "Synthetic VieNeu-TTS output used by the paired Whisper test."
+    },
+    {
+      "path": "products/whisper_asr_result.json",
+      "source_evidence_path": "evidence/assets/ai_nonvideo_ai_end_to_end_20261105/speech_retest_13/asr_transcribe_66a1054f-820a-4c2f-a123-ae88c7d79d9f_result.json",
+      "size_bytes": 1091,
+      "sha256": "5134309b62d914474e9e227aba3ce65a45a19dae04ce855d7a6325d7be7ac885",
+      "synthetic_only": true,
+      "generated_in_this_task": false,
+      "provenance_note": "Whisper transcription result for the synthetic TTS output."
+    },
+    {
+      "path": "products/flux_parent_sketch_guide.png",
+      "source_evidence_path": "evidence/assets/flux_component_retest_rev46a_20261105/parent_sketch_guide_candidate.png",
+      "size_bytes": 335324,
+      "sha256": "ee22f36b5b9a465bffd08c826f52bd8570436a7f900aca01dce08a4105d0686d",
+      "synthetic_only": true,
+      "generated_in_this_task": false,
+      "provenance_note": "Synthetic generic Parent line-sketch guide candidate; private DRAFT.",
+      "width": 768,
+      "height": 512
+    },
+    {
+      "path": "products/flux_parent_sketch_guide_result.json",
+      "source_evidence_path": "evidence/assets/flux_component_retest_rev46a_20261105/parent_sketch-guide_generate_result.json",
+      "size_bytes": 2339,
+      "sha256": "cf4370cda181de183635aa4786449ef750a8c16958390c37b520022713b1eeec",
+      "synthetic_only": true,
+      "generated_in_this_task": false,
+      "provenance_note": "FLUX.3 synthetic image-generation metadata and contract result."
+    },
+    {
+      "path": "products/flux_lesson_visual.png",
+      "source_evidence_path": "evidence/assets/flux_component_retest_rev46a_20261105/lesson_visual_candidate.png",
+      "size_bytes": 254114,
+      "sha256": "a5ca6981ec5418d9cfa13aa86a5adcf347753307d9111d79760f6f95365288b2",
+      "synthetic_only": true,
+      "generated_in_this_task": false,
+      "provenance_note": "Synthetic lesson visual candidate; private DRAFT.",
+      "width": 768,
+      "height": 432
+    },
+    {
+      "path": "products/flux_lesson_visual_result.json",
+      "source_evidence_path": "evidence/assets/flux_component_retest_rev46a_20261105/lesson_visual_generate_result.json",
+      "size_bytes": 2491,
+      "sha256": "30dd124b9b3be595e01387dff01abdfb856536722411a92bfc0ff993f1761d21",
+      "synthetic_only": true,
+      "generated_in_this_task": false,
+      "provenance_note": "FLUX.3 synthetic lesson visual metadata and lineage result."
+    },
+    {
+      "path": "products/sam2_timeout_result.json",
+      "source_evidence_path": "evidence/assets/ai_nonvideo_full_retest_20261104/sam2_segment_result.json",
+      "size_bytes": 249,
+      "sha256": "74af5cec58dd794ddc53a560ff864fe34c4777f8bcaf7cd69c83dbea9eea4be4",
+      "synthetic_only": true,
+      "generated_in_this_task": false,
+      "provenance_note": "Historical SAM 2.1 terminal unknown after GPU capacity wait; no mask generated."
+    },
+    {
+      "path": "products/parent_story_api_trace_safe.json",
+      "source_evidence_path": "evidence/assets/parent_story_api_retest_20261105/attempt_02/api_request_trace_safe.json",
+      "size_bytes": 26877,
+      "sha256": "b45109275f04378dd1b2e217abf16b150123327bec12d279e6de27fa28c294fa",
+      "synthetic_only": true,
+      "generated_in_this_task": false,
+      "provenance_note": "Safe synthetic StoryRun-lite API request trace from prior API integration attempt."
+    },
+    {
+      "path": "products/parent_story_api_result_summary_safe.json",
+      "source_evidence_path": "evidence/assets/parent_story_api_retest_20261105/attempt_02/retest_results_safe.json",
+      "size_bytes": 42547,
+      "sha256": "cb0e954c8a9a8c170cefd69c4fae0a4520cf0350663bab4087d644caadc754e9",
+      "synthetic_only": true,
+      "generated_in_this_task": false,
+      "provenance_note": "Safe summary of historical Parent API integration outcomes."
+    },
+    {
+      "path": "products/parent_story_api_drawing_unknown.json",
+      "source_evidence_path": "evidence/assets/parent_story_api_retest_20261105/attempt_02/drawing_analyze_modal_result_safe.json",
+      "size_bytes": 109,
+      "sha256": "65882b7ee374f69a7e6a80ca313e03ba48845225694493cd40ccb445229a9b6c",
+      "synthetic_only": true,
+      "generated_in_this_task": false,
+      "provenance_note": "Historical Parent API drawing-analysis outcome unknown."
+    },
+    {
+      "path": "products/parent_story_api_story_rejected.json",
+      "source_evidence_path": "evidence/assets/parent_story_api_retest_20261105/attempt_02/story_generate_modal_result_safe.json",
+      "size_bytes": 101,
+      "sha256": "6061c7e8937cdfd193fa621044406bb3812530c752e962067de9c272dc297b89",
+      "synthetic_only": true,
+      "generated_in_this_task": false,
+      "provenance_note": "Historical Parent API story output rejected by educational fact validation."
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "suite": "deployment/modal/srs_v23/tests",
+  "result": "PASS",
+  "passed": 79,
+  "failed": 0,
+  "skipped": 2,
+  "elapsed_seconds": 1.57,
+  "provider_calls": 0,
+  "runtime": "Python 3.12 disposable test container; pytest, modal 1.6.3, lm-format-enforcer 0.11.3"
+}

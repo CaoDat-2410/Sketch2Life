@@ -634,3 +634,7 @@ The implementation is limited to those approved source/test manifests. The focus
 - Approved scope and criteria: `features/FEAT-063-system-architecture-rearchitecture/plan/AI_NONVIDEO_WORKLOAD_FULL_RETEST_20261104.md`; execution results: `features/FEAT-063-system-architecture-rearchitecture/evidence/AI_NONVIDEO_WORKLOAD_FULL_RETEST_RESULTS_20261104.md`.
 - Fresh synthetic TTS→Whisper succeeded. GPU-backed VLM, story, FLUX, Teacher Deck, and SAM2 calls timed out at their approved queue bound; all 13 mounted StoryRun-lite operations passed 14 isolated contract checks. Video was excluded.
 - All Modal dev apps stopped at zero tasks; task-owned PostgreSQL/cache removed; shared Docker services and Modal Volumes retained. Product workloads remain disabled.
+
+## FEAT-063 Rev51 - Modal AI and legacy API audit - 2026-11-06
+
+Use FEAT-063 SRS v2.4-draft as canonical product/architecture source. Plan Rev51 SHA-256 at approval: `B20103A217D7A9623E02279CE0BD82D5BC61141518D820FA683104057B1A6A2F`. Evidence folder `features/FEAT-063-system-architecture-rearchitecture/evidence/modal_ai_and_legacy_api_retest_20261106/` contains the 124-operation live API inventory, test results/failures, AI worker/API readiness matrix, shutdown inventory, and synthetic outputs with provenance. No inference or code fix was performed in this pass; SAM2's prior GPU-capacity wait is retained as the blocker.

@@ -1,0 +1,23 @@
+[
+  {
+    "method": "GET",
+    "path": "/health",
+    "status": 200,
+    "elapsed_seconds": 0.042
+  },
+  {
+    "method": "GET",
+    "path": "/docs",
+    "status": 200,
+    "elapsed_seconds": 0.025
+  },
+  {
+    "method": "GET",
+    "path": "/openapi.json",
+    "status": 200,
+    "elapsed_seconds": 0.014,
+    "paths": 111,
+    "operations": 124,
+    "operation_ids_unique": true
+  }
+]

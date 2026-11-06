@@ -82,3 +82,17 @@
 - `origin/dev` was fast-forwarded from `c98701b1e500906f396e773c79ec3bba55db2542` to `0d15b1a0ae6e5373354d7ac35cc163e41b55c42e`.
 - Fresh fetch confirmed remote and local `dev` match at `0d15b1a0ae6e5373354d7ac35cc163e41b55c42e`; working tree was clean.
 - Security validator passed; existing commit messages/objects were preserved.
+
+## FEAT-063 Plan Rev51 — bounded Modal AI and legacy API retest
+
+- **Status:** APPROVED for the exact scope in Plan Rev51.
+- **Approver:** Project owner, direct instruction on 2026-11-06 to continue fixing Modal AI, diagnose and raise only proven execution timeouts, minimize inference usage, test existing APIs, consolidate all results/products in one folder, stop used Modal apps, and commit coherent fixes as they are completed.
+- **Recorded timestamp:** 2026-11-06 07:02:29 Asia/Saigon.
+- **Feature:** FEAT-063 — system architecture rearchitecture.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV51_MODAL_AI_AND_LEGACY_API_RETEST_20261106.md`.
+- **Approved plan SHA-256:** `B20103A217D7A9623E02279CE0BD82D5BC61141518D820FA683104057B1A6A2F`.
+- **Execution closeout SHA-256:** `1CD7EC57885C20484DD1FBB166C917DABF586C58BEFBE49FF2D2B3FDB1BA953C`.
+- **Scope:** reconcile all current non-video Modal AI workload evidence against SRS v2.4-draft; reuse already-passed synthetic artifacts; diagnose the unresolved optional SAM 2.1 capacity timeout and permit at most one bounded synthetic call; raise a timeout only if evidence shows execution was cut off by that timeout; run regression/contract coverage for the current 124-operation API surface and read-only live health/docs/OpenAPI checks; collect outputs and a consolidated API report in the plan's single FEAT-063 evidence folder; stop task-used Modal apps; make only directly related, reproducible AI/contract fixes and commit them separately after security validation.
+- **Acceptance criteria:** AC51.1–AC51.8 in the hash-identified plan.
+- **Exclusions:** video workloads; broad unrelated legacy refactors; writes/migrations to the shared development database; production enablement; secret/credential access; deleting Modal Volumes/checkpoints; force-push, merge, or push.
+- **Approval basis:** the owner's direct request authorizes the bounded test, AI worker and API regression actions, task-app cleanup, and commits exactly as limited by Plan Rev51.

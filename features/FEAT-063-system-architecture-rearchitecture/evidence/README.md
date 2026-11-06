@@ -139,3 +139,10 @@ The imported as-built SRS evidence keeps its original filename (`EV-063-33_AS_BU
 ## EV-063-54 ? dev duplicate repair and SRS integration
 
 Records the six patch-equivalent local `dev` commits, preservation backup, full Modal AI integration, SRS v2.4 conflict disposition, security checks, and fast-forward publication to `origin/dev`. See [`EV-063-54_DEV_HISTORY_AND_SRS_MERGE_20261106.md`](EV-063-54_DEV_HISTORY_AND_SRS_MERGE_20261106.md).
+
+## Rev51 bounded Modal AI and legacy API retest - 2026-11-06
+
+- Main report and complete API operation inventory: `modal_ai_and_legacy_api_retest_20261106/API_TONG_HOP_VA_SAN_PHAM_AI_MODAL_20261106.md`.
+- Machine-readable API/workload/test matrices, read-only API probe, Modal app inventory, and SHA-256 provenance manifest are in the same folder.
+- 16 previously captured synthetic products and safe historical failures are grouped under its `products/` directory; originals remain in their source evidence folders.
+- Backend API/contract suite: 1,454 passed / 6 failed; Modal worker contracts: 79 passed / 2 skipped. No inference was dispatched in this retest.

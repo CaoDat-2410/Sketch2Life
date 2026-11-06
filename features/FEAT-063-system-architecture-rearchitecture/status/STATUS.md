@@ -572,3 +572,11 @@ Parent Sketch Guide and lesson visuals were not dispatched because Modal `dev` s
 ## Plan Rev50 ? local dev duplicate repair and Modal/SRS merge
 
 **Status: COMPLETE ? fast-forward pushed to `origin/dev`.** The six local duplicate patches were removed from `dev` ancestry after preserving the old dirty checkout on a backup branch. The Modal AI branch and pending changes are integrated; the SRS v2.4 branch was merged with its approved SRS/Data Table Register preserved byte-for-byte. Final merge commit is `370cb26d6e8c99c126f4a5a16df132eaa70c8e70`; `git cherry` confirms zero duplicate patches relative to `origin/dev`. No tests or AI/provider calls were run. `origin/dev` now equals `0d15b1a0ae6e5373354d7ac35cc163e41b55c42e`. See `evidence/EV-063-54_DEV_HISTORY_AND_SRS_MERGE_20261106.md`.
+
+## Rev51 Modal AI and legacy API audit - 2026-11-06
+
+- Status: COMPLETE WITH FINDINGS; evidence-only closeout, no product code change.
+- Results: live OpenAPI 124 operations / 111 paths; 1,454/1,460 backend contract tests passed; 79 Modal worker contract tests passed and 2 skipped.
+- Six failing API/contract tests, their classifications, worker/API readiness gaps, timeout diagnosis, and full synthetic artifacts are recorded in `evidence/modal_ai_and_legacy_api_retest_20261106/API_TONG_HOP_VA_SAN_PHAM_AI_MODAL_20261106.md`.
+- No GPU inference was repeated. SAM2 remains blocked by documented GPU scheduling capacity; the current Modal `dev` app inventory was empty and no task app was deployed.
+- Open follow-ups: review legacy composition/BE1 test failures and implement durable product AI dispatch routes in a separately approved task.

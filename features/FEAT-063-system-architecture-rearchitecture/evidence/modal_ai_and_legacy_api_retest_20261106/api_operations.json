@@ -1,0 +1,2545 @@
+{
+  "source": "http://127.0.0.1:8000/openapi.json",
+  "retrieved_at_local": "2026-11-06T07:29:33+07:00",
+  "title": "Sketch2Life API",
+  "version": "1.0.0",
+  "path_count": 111,
+  "operation_count": 124,
+  "operations": [
+    {
+      "method": "POST",
+      "path": "/api/be1/v1/device-grants/{grant_id}/join-status",
+      "operation_id": "read_join_status_api_be1_v1_device_grants__grant_id__join_status_post",
+      "tags": [
+        "BE1 sessions"
+      ],
+      "purpose": "Read Join Status",
+      "responses": [
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/api/be1/v1/health",
+      "operation_id": "be1_health_api_be1_v1_health_get",
+      "tags": [
+        "BE1 runtime v1"
+      ],
+      "purpose": "Be1 Health",
+      "responses": [
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/api/be1/v1/organizations/{organization_id}",
+      "operation_id": "read_organization_api_be1_v1_organizations__organization_id__get",
+      "tags": [
+        "BE1 registry"
+      ],
+      "purpose": "Read Organization",
+      "responses": [
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/be1/v1/organizations/{organization_id}/assignments",
+      "operation_id": "create_assignment_api_be1_v1_organizations__organization_id__assignments_post",
+      "tags": [
+        "BE1 registry"
+      ],
+      "purpose": "Create Assignment",
+      "responses": [
+        "201",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/be1/v1/organizations/{organization_id}/assignments/{assignment_id}",
+      "operation_id": "revoke_assignment_api_be1_v1_organizations__organization_id__assignments__assignment_id__delete",
+      "tags": [
+        "BE1 registry"
+      ],
+      "purpose": "Revoke Assignment",
+      "responses": [
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/api/be1/v1/organizations/{organization_id}/classes",
+      "operation_id": "list_classes_api_be1_v1_organizations__organization_id__classes_get",
+      "tags": [
+        "BE1 registry"
+      ],
+      "purpose": "List Classes",
+      "responses": [
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/be1/v1/organizations/{organization_id}/classes",
+      "operation_id": "create_class_api_be1_v1_organizations__organization_id__classes_post",
+      "tags": [
+        "BE1 registry"
+      ],
+      "purpose": "Create Class",
+      "responses": [
+        "201",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/consents",
+      "operation_id": "list_consents_api_be1_v1_organizations__organization_id__classes__class_id__consents_get",
+      "tags": [
+        "BE1 registry"
+      ],
+      "purpose": "List Consents",
+      "responses": [
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/consents",
+      "operation_id": "record_consent_api_be1_v1_organizations__organization_id__classes__class_id__consents_post",
+      "tags": [
+        "BE1 registry"
+      ],
+      "purpose": "Record Consent",
+      "responses": [
+        "201",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/consents/{consent_id}/revoke",
+      "operation_id": "revoke_consent_api_be1_v1_organizations__organization_id__classes__class_id__consents__consent_id__revoke_post",
+      "tags": [
+        "BE1 registry"
+      ],
+      "purpose": "Revoke Consent",
+      "responses": [
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/observations",
+      "operation_id": "create_observation_api_be1_v1_organizations__organization_id__classes__class_id__observations_post",
+      "tags": [
+        "BE1 records and lifecycle"
+      ],
+      "purpose": "Create Observation",
+      "responses": [
+        "201",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles",
+      "operation_id": "list_profiles_api_be1_v1_organizations__organization_id__classes__class_id__profiles_get",
+      "tags": [
+        "BE1 registry"
+      ],
+      "purpose": "List Profiles",
+      "responses": [
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles",
+      "operation_id": "create_profile_api_be1_v1_organizations__organization_id__classes__class_id__profiles_post",
+      "tags": [
+        "BE1 registry"
+      ],
+      "purpose": "Create Profile",
+      "responses": [
+        "201",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}/portfolio",
+      "operation_id": "read_portfolio_api_be1_v1_organizations__organization_id__classes__class_id__profiles__child_id__portfolio_get",
+      "tags": [
+        "BE1 records and lifecycle"
+      ],
+      "purpose": "Read Portfolio",
+      "responses": [
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/be1/v1/organizations/{organization_id}/data-requests",
+      "operation_id": "create_data_request_api_be1_v1_organizations__organization_id__data_requests_post",
+      "tags": [
+        "BE1 records and lifecycle"
+      ],
+      "purpose": "Create Data Request",
+      "responses": [
+        "202",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/api/be1/v1/organizations/{organization_id}/data-requests/{request_id}",
+      "operation_id": "read_data_request_api_be1_v1_organizations__organization_id__data_requests__request_id__get",
+      "tags": [
+        "BE1 records and lifecycle"
+      ],
+      "purpose": "Read Data Request",
+      "responses": [
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/api/be1/v1/organizations/{organization_id}/gallery",
+      "operation_id": "list_gallery_api_be1_v1_organizations__organization_id__gallery_get",
+      "tags": [
+        "BE1 records and lifecycle"
+      ],
+      "purpose": "List Gallery",
+      "responses": [
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/be1/v1/organizations/{organization_id}/gallery",
+      "operation_id": "create_gallery_snapshot_api_be1_v1_organizations__organization_id__gallery_post",
+      "tags": [
+        "BE1 records and lifecycle"
+      ],
+      "purpose": "Create Gallery Snapshot",
+      "responses": [
+        "201",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/be1/v1/organizations/{organization_id}/gallery/{gallery_id}/annotations",
+      "operation_id": "annotate_gallery_api_be1_v1_organizations__organization_id__gallery__gallery_id__annotations_post",
+      "tags": [
+        "BE1 records and lifecycle"
+      ],
+      "purpose": "Annotate Gallery",
+      "responses": [
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/be1/v1/organizations/{organization_id}/gallery/{gallery_id}/publish",
+      "operation_id": "publish_gallery_api_be1_v1_organizations__organization_id__gallery__gallery_id__publish_post",
+      "tags": [
+        "BE1 records and lifecycle"
+      ],
+      "purpose": "Publish Gallery",
+      "responses": [
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/api/be1/v1/organizations/{organization_id}/me",
+      "operation_id": "current_assignments_api_be1_v1_organizations__organization_id__me_get",
+      "tags": [
+        "BE1 registry"
+      ],
+      "purpose": "Current Assignments",
+      "responses": [
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/be1/v1/organizations/{organization_id}/sessions",
+      "operation_id": "create_session_api_be1_v1_organizations__organization_id__sessions_post",
+      "tags": [
+        "BE1 sessions"
+      ],
+      "purpose": "Create Session",
+      "responses": [
+        "201",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}",
+      "operation_id": "read_session_api_be1_v1_organizations__organization_id__sessions__session_id__get",
+      "tags": [
+        "BE1 sessions"
+      ],
+      "purpose": "Read Session",
+      "responses": [
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/artifacts",
+      "operation_id": "upload_session_artifact_api_be1_v1_organizations__organization_id__sessions__session_id__artifacts_post",
+      "tags": [
+        "BE1 artifacts"
+      ],
+      "purpose": "Upload Session Artifact",
+      "responses": [
+        "201",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/artifacts/{asset_ref}",
+      "operation_id": "download_session_artifact_api_be1_v1_organizations__organization_id__sessions__session_id__artifacts__asset_ref__get",
+      "tags": [
+        "BE1 artifacts"
+      ],
+      "purpose": "Download Session Artifact",
+      "responses": [
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/canvas/operations",
+      "operation_id": "sync_canvas_operations_api_be1_v1_organizations__organization_id__sessions__session_id__canvas_operations_get",
+      "tags": [
+        "BE1 canvas"
+      ],
+      "purpose": "Sync Canvas Operations",
+      "responses": [
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/canvas/operations",
+      "operation_id": "append_canvas_operation_api_be1_v1_organizations__organization_id__sessions__session_id__canvas_operations_post",
+      "tags": [
+        "BE1 canvas"
+      ],
+      "purpose": "Append Canvas Operation",
+      "responses": [
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/completion",
+      "operation_id": "complete_session_api_be1_v1_organizations__organization_id__sessions__session_id__completion_post",
+      "tags": [
+        "BE1 sessions"
+      ],
+      "purpose": "Complete Session",
+      "responses": [
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/device-grants/{grant_id}/refresh",
+      "operation_id": "refresh_device_grant_api_be1_v1_organizations__organization_id__sessions__session_id__device_grants__grant_id__refresh_post",
+      "tags": [
+        "BE1 sessions"
+      ],
+      "purpose": "Refresh Device Grant",
+      "responses": [
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/finish",
+      "operation_id": "finish_session_api_be1_v1_organizations__organization_id__sessions__session_id__finish_post",
+      "tags": [
+        "BE1 sessions"
+      ],
+      "purpose": "Finish Session",
+      "responses": [
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/groups",
+      "operation_id": "create_group_api_be1_v1_organizations__organization_id__sessions__session_id__groups_post",
+      "tags": [
+        "BE1 sessions"
+      ],
+      "purpose": "Create Group",
+      "responses": [
+        "201",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/groups/{group_id}/checkpoints",
+      "operation_id": "save_checkpoint_api_be1_v1_organizations__organization_id__sessions__session_id__groups__group_id__checkpoints_post",
+      "tags": [
+        "BE1 canvas"
+      ],
+      "purpose": "Save Checkpoint",
+      "responses": [
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/groups/{group_id}/checkpoints/latest",
+      "operation_id": "read_latest_checkpoint_api_be1_v1_organizations__organization_id__sessions__session_id__groups__group_id__checkpoints_latest_get",
+      "tags": [
+        "BE1 canvas"
+      ],
+      "purpose": "Read Latest Checkpoint",
+      "responses": [
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/groups/{group_id}/control",
+      "operation_id": "control_group_api_be1_v1_organizations__organization_id__sessions__session_id__groups__group_id__control_post",
+      "tags": [
+        "BE1 sessions"
+      ],
+      "purpose": "Control Group",
+      "responses": [
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/groups/{group_id}/members/{child_id}",
+      "operation_id": "assign_member_to_group_api_be1_v1_organizations__organization_id__sessions__session_id__groups__group_id__members__child_id__put",
+      "tags": [
+        "BE1 sessions"
+      ],
+      "purpose": "Assign Member To Group",
+      "responses": [
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/groups/{group_id}/restore",
+      "operation_id": "restore_checkpoint_api_be1_v1_organizations__organization_id__sessions__session_id__groups__group_id__restore_post",
+      "tags": [
+        "BE1 canvas"
+      ],
+      "purpose": "Restore Checkpoint",
+      "responses": [
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/groups/{group_id}/turns/{child_id}",
+      "operation_id": "start_child_turn_api_be1_v1_organizations__organization_id__sessions__session_id__groups__group_id__turns__child_id__post",
+      "tags": [
+        "BE1 sessions"
+      ],
+      "purpose": "Start Child Turn",
+      "responses": [
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/join",
+      "operation_id": "request_device_join_api_be1_v1_organizations__organization_id__sessions__session_id__join_post",
+      "tags": [
+        "BE1 sessions"
+      ],
+      "purpose": "Request Device Join",
+      "responses": [
+        "202",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/join-requests",
+      "operation_id": "list_join_requests_api_be1_v1_organizations__organization_id__sessions__session_id__join_requests_get",
+      "tags": [
+        "BE1 sessions"
+      ],
+      "purpose": "List Join Requests",
+      "responses": [
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/join-requests/{grant_id}/admit",
+      "operation_id": "admit_device_api_be1_v1_organizations__organization_id__sessions__session_id__join_requests__grant_id__admit_post",
+      "tags": [
+        "BE1 sessions"
+      ],
+      "purpose": "Admit Device",
+      "responses": [
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/join-requests/{grant_id}/revoke",
+      "operation_id": "revoke_device_grant_api_be1_v1_organizations__organization_id__sessions__session_id__join_requests__grant_id__revoke_post",
+      "tags": [
+        "BE1 sessions"
+      ],
+      "purpose": "Revoke Device Grant",
+      "responses": [
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/learning-stage",
+      "operation_id": "read_learning_stage_api_be1_v1_organizations__organization_id__sessions__session_id__learning_stage_get",
+      "tags": [
+        "BE1 sessions"
+      ],
+      "purpose": "Read Learning Stage",
+      "responses": [
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/learning-stage/advance",
+      "operation_id": "advance_learning_stage_api_be1_v1_organizations__organization_id__sessions__session_id__learning_stage_advance_post",
+      "tags": [
+        "BE1 sessions"
+      ],
+      "purpose": "Advance Learning Stage",
+      "responses": [
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/lobby",
+      "operation_id": "open_lobby_api_be1_v1_organizations__organization_id__sessions__session_id__lobby_post",
+      "tags": [
+        "BE1 sessions"
+      ],
+      "purpose": "Open Lobby",
+      "responses": [
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/memberships/{membership_id}/help",
+      "operation_id": "request_help_api_be1_v1_organizations__organization_id__sessions__session_id__memberships__membership_id__help_post",
+      "tags": [
+        "BE1 sessions"
+      ],
+      "purpose": "Request Help",
+      "responses": [
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/memberships/{membership_id}/leave",
+      "operation_id": "leave_session_api_be1_v1_organizations__organization_id__sessions__session_id__memberships__membership_id__leave_post",
+      "tags": [
+        "BE1 sessions"
+      ],
+      "purpose": "Leave Session",
+      "responses": [
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/memberships/{membership_id}/progress",
+      "operation_id": "update_progress_api_be1_v1_organizations__organization_id__sessions__session_id__memberships__membership_id__progress_post",
+      "tags": [
+        "BE1 sessions"
+      ],
+      "purpose": "Update Progress",
+      "responses": [
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/outcome",
+      "operation_id": "read_session_outcome_api_be1_v1_organizations__organization_id__sessions__session_id__outcome_get",
+      "tags": [
+        "BE1 sessions"
+      ],
+      "purpose": "Read Session Outcome",
+      "responses": [
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/pause",
+      "operation_id": "pause_session_api_be1_v1_organizations__organization_id__sessions__session_id__pause_post",
+      "tags": [
+        "BE1 sessions"
+      ],
+      "purpose": "Pause Session",
+      "responses": [
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/reconnect",
+      "operation_id": "reconnect_canvas_api_be1_v1_organizations__organization_id__sessions__session_id__reconnect_get",
+      "tags": [
+        "BE1 canvas"
+      ],
+      "purpose": "Reconnect Canvas",
+      "responses": [
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/resume",
+      "operation_id": "resume_session_api_be1_v1_organizations__organization_id__sessions__session_id__resume_post",
+      "tags": [
+        "BE1 sessions"
+      ],
+      "purpose": "Resume Session",
+      "responses": [
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/room-code/rotate",
+      "operation_id": "rotate_room_code_api_be1_v1_organizations__organization_id__sessions__session_id__room_code_rotate_post",
+      "tags": [
+        "BE1 sessions"
+      ],
+      "purpose": "Rotate Room Code",
+      "responses": [
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/roster",
+      "operation_id": "read_session_roster_api_be1_v1_organizations__organization_id__sessions__session_id__roster_get",
+      "tags": [
+        "BE1 sessions"
+      ],
+      "purpose": "Read Session Roster",
+      "responses": [
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/start",
+      "operation_id": "start_session_api_be1_v1_organizations__organization_id__sessions__session_id__start_post",
+      "tags": [
+        "BE1 sessions"
+      ],
+      "purpose": "Start Session",
+      "responses": [
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/be1/v1/room-code/join",
+      "operation_id": "request_room_code_join_api_be1_v1_room_code_join_post",
+      "tags": [
+        "BE1 sessions"
+      ],
+      "purpose": "Request Room Code Join",
+      "responses": [
+        "202",
+        "401",
+        "403",
+        "404",
+        "409",
+        "410",
+        "413",
+        "415",
+        "422",
+        "429",
+        "500",
+        "503"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/dev/v1/storage-examples/lesson-source-documents",
+      "operation_id": "upload_lesson_source_example_api_dev_v1_storage_examples_lesson_source_documents_post",
+      "tags": [
+        "local-storage-example"
+      ],
+      "purpose": "Upload a local lesson-source storage example",
+      "responses": [
+        "201",
+        "422"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/dev/v1/storage-examples/lesson-source-documents/{object_id}",
+      "operation_id": "delete_lesson_source_example_api_dev_v1_storage_examples_lesson_source_documents__object_id__delete",
+      "tags": [
+        "local-storage-example"
+      ],
+      "purpose": "Delete a local lesson-source storage example",
+      "responses": [
+        "204",
+        "422"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/api/dev/v1/storage-examples/lesson-source-documents/{object_id}",
+      "operation_id": "download_lesson_source_example_api_dev_v1_storage_examples_lesson_source_documents__object_id__get",
+      "tags": [
+        "local-storage-example"
+      ],
+      "purpose": "Stream a local lesson-source storage example",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/api/lesson-library/v1/me/lesson-invitations",
+      "operation_id": "list_lesson_invitations_api_lesson_library_v1_me_lesson_invitations_get",
+      "tags": [
+        "Lesson Library v1"
+      ],
+      "purpose": "List Lesson Invitations",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/lesson-library/v1/me/lesson-invitations/{access_grant_id}/accept",
+      "operation_id": "accept_lesson_invitation_api_lesson_library_v1_me_lesson_invitations__access_grant_id__accept_post",
+      "tags": [
+        "Lesson Library v1"
+      ],
+      "purpose": "Accept Lesson Invitation",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/lesson-library/v1/me/lesson-invitations/{access_grant_id}/decline",
+      "operation_id": "decline_lesson_invitation_api_lesson_library_v1_me_lesson_invitations__access_grant_id__decline_post",
+      "tags": [
+        "Lesson Library v1"
+      ],
+      "purpose": "Decline Lesson Invitation",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/api/lesson-library/v1/me/lessons",
+      "operation_id": "list_parent_lessons_api_lesson_library_v1_me_lessons_get",
+      "tags": [
+        "Lesson Library v1"
+      ],
+      "purpose": "List Parent Lessons",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/api/lesson-library/v1/me/lessons/{lesson_id}",
+      "operation_id": "get_parent_lesson_api_lesson_library_v1_me_lessons__lesson_id__get",
+      "tags": [
+        "Lesson Library v1"
+      ],
+      "purpose": "Get Parent Lesson",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/api/lesson-library/v1/me/lessons/{lesson_id}/download",
+      "operation_id": "download_parent_lesson_api_lesson_library_v1_me_lessons__lesson_id__download_get",
+      "tags": [
+        "Lesson Library v1"
+      ],
+      "purpose": "Download Parent Lesson",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/api/lesson-library/v1/me/parent-group-invitations",
+      "operation_id": "list_parent_group_invitations_api_lesson_library_v1_me_parent_group_invitations_get",
+      "tags": [
+        "Lesson Library v1"
+      ],
+      "purpose": "List Parent Group Invitations",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/lesson-library/v1/me/parent-group-invitations/{membership_id}/accept",
+      "operation_id": "accept_parent_group_invitation_api_lesson_library_v1_me_parent_group_invitations__membership_id__accept_post",
+      "tags": [
+        "Lesson Library v1"
+      ],
+      "purpose": "Accept Parent Group Invitation",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/api/lesson-library/v1/organizations/{organization_id}/access-grants",
+      "operation_id": "list_access_grants_api_lesson_library_v1_organizations__organization_id__access_grants_get",
+      "tags": [
+        "Lesson Library v1"
+      ],
+      "purpose": "List Access Grants",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/lesson-library/v1/organizations/{organization_id}/access-grants/{access_grant_id}/decision",
+      "operation_id": "decide_access_grant_api_lesson_library_v1_organizations__organization_id__access_grants__access_grant_id__decision_post",
+      "tags": [
+        "Lesson Library v1"
+      ],
+      "purpose": "Decide Access Grant",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/api/lesson-library/v1/organizations/{organization_id}/lessons",
+      "operation_id": "list_lessons_api_lesson_library_v1_organizations__organization_id__lessons_get",
+      "tags": [
+        "Lesson Library v1"
+      ],
+      "purpose": "List Lessons",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/lesson-library/v1/organizations/{organization_id}/lessons",
+      "operation_id": "create_lesson_api_lesson_library_v1_organizations__organization_id__lessons_post",
+      "tags": [
+        "Lesson Library v1"
+      ],
+      "purpose": "Create Lesson",
+      "responses": [
+        "201",
+        "422"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}",
+      "operation_id": "archive_lesson_api_lesson_library_v1_organizations__organization_id__lessons__lesson_id__delete",
+      "tags": [
+        "Lesson Library v1"
+      ],
+      "purpose": "Archive Lesson",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}",
+      "operation_id": "get_lesson_api_lesson_library_v1_organizations__organization_id__lessons__lesson_id__get",
+      "tags": [
+        "Lesson Library v1"
+      ],
+      "purpose": "Get Lesson",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}",
+      "operation_id": "update_lesson_api_lesson_library_v1_organizations__organization_id__lessons__lesson_id__patch",
+      "tags": [
+        "Lesson Library v1"
+      ],
+      "purpose": "Update Lesson",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}/access-grants",
+      "operation_id": "create_access_grant_api_lesson_library_v1_organizations__organization_id__lessons__lesson_id__access_grants_post",
+      "tags": [
+        "Lesson Library v1"
+      ],
+      "purpose": "Create Access Grant",
+      "responses": [
+        "201",
+        "422"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}/access-grants/{access_grant_id}",
+      "operation_id": "revoke_access_grant_api_lesson_library_v1_organizations__organization_id__lessons__lesson_id__access_grants__access_grant_id__delete",
+      "tags": [
+        "Lesson Library v1"
+      ],
+      "purpose": "Revoke Access Grant",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}/source-documents/{source_document_id}",
+      "operation_id": "get_source_document_api_lesson_library_v1_organizations__organization_id__lessons__lesson_id__source_documents__source_document_id__get",
+      "tags": [
+        "Lesson Library v1"
+      ],
+      "purpose": "Get Source Document",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}/source-documents/{source_document_id}/revisions/{revision_id}",
+      "operation_id": "get_document_revision_api_lesson_library_v1_organizations__organization_id__lessons__lesson_id__source_documents__source_document_id__revisions__revision_id__get",
+      "tags": [
+        "Lesson Library v1"
+      ],
+      "purpose": "Get Document Revision",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}/upload-sessions",
+      "operation_id": "create_upload_session_api_lesson_library_v1_organizations__organization_id__lessons__lesson_id__upload_sessions_post",
+      "tags": [
+        "Lesson Library v1"
+      ],
+      "purpose": "Create Upload Session",
+      "responses": [
+        "201",
+        "422"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}/versions",
+      "operation_id": "create_lesson_version_api_lesson_library_v1_organizations__organization_id__lessons__lesson_id__versions_post",
+      "tags": [
+        "Lesson Library v1"
+      ],
+      "purpose": "Create Lesson Version",
+      "responses": [
+        "201",
+        "422"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/api/lesson-library/v1/organizations/{organization_id}/parent-groups",
+      "operation_id": "list_parent_groups_api_lesson_library_v1_organizations__organization_id__parent_groups_get",
+      "tags": [
+        "Lesson Library v1"
+      ],
+      "purpose": "List Parent Groups",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/lesson-library/v1/organizations/{organization_id}/parent-groups",
+      "operation_id": "create_parent_group_api_lesson_library_v1_organizations__organization_id__parent_groups_post",
+      "tags": [
+        "Lesson Library v1"
+      ],
+      "purpose": "Create Parent Group",
+      "responses": [
+        "201",
+        "422"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/lesson-library/v1/organizations/{organization_id}/parent-groups/{parent_group_id}/invitations",
+      "operation_id": "invite_parent_to_group_api_lesson_library_v1_organizations__organization_id__parent_groups__parent_group_id__invitations_post",
+      "tags": [
+        "Lesson Library v1"
+      ],
+      "purpose": "Invite Parent To Group",
+      "responses": [
+        "201",
+        "422"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/lesson-library/v1/organizations/{organization_id}/parent-groups/{parent_group_id}/members/{membership_id}",
+      "operation_id": "revoke_parent_group_membership_api_lesson_library_v1_organizations__organization_id__parent_groups__parent_group_id__members__membership_id__delete",
+      "tags": [
+        "Lesson Library v1"
+      ],
+      "purpose": "Revoke Parent Group Membership",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/lesson-library/v1/platform/lessons/{lesson_id}/moderation",
+      "operation_id": "moderate_lesson_api_lesson_library_v1_platform_lessons__lesson_id__moderation_patch",
+      "tags": [
+        "Lesson Library v1"
+      ],
+      "purpose": "Moderate Lesson",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/lesson-library/v1/upload-sessions/{upload_session_id}",
+      "operation_id": "abort_upload_session_api_lesson_library_v1_upload_sessions__upload_session_id__delete",
+      "tags": [
+        "Lesson Library v1"
+      ],
+      "purpose": "Abort Upload Session",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/api/lesson-library/v1/upload-sessions/{upload_session_id}",
+      "operation_id": "get_upload_session_api_lesson_library_v1_upload_sessions__upload_session_id__get",
+      "tags": [
+        "Lesson Library v1"
+      ],
+      "purpose": "Get Upload Session",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/api/lesson-library/v1/upload-sessions/{upload_session_id}/complete",
+      "operation_id": "complete_upload_api_lesson_library_v1_upload_sessions__upload_session_id__complete_post",
+      "tags": [
+        "Lesson Library v1"
+      ],
+      "purpose": "Complete Upload",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/lesson-library/v1/upload-sessions/{upload_session_id}/parts/{part_number}",
+      "operation_id": "upload_part_api_lesson_library_v1_upload_sessions__upload_session_id__parts__part_number__put",
+      "tags": [
+        "Lesson Library v1"
+      ],
+      "purpose": "Upload Part",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": true,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/health",
+      "operation_id": "health_health_get",
+      "tags": [
+        "health"
+      ],
+      "purpose": "Health",
+      "responses": [
+        "200"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "200 (0.042 s)",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/profile/preferences/classify",
+      "operation_id": "classify_preferences_v1_profile_preferences_classify_post",
+      "tags": [
+        "child-preferences"
+      ],
+      "purpose": "Classify Preferences",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/renderer/pixi-asset",
+      "operation_id": "read_renderer_pixi_asset_v1_renderer_pixi_asset_get",
+      "tags": [
+        "renderer"
+      ],
+      "purpose": "Read Renderer Pixi Asset",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/renderer/rig-mask",
+      "operation_id": "read_renderer_rig_mask_v1_renderer_rig_mask_get",
+      "tags": [
+        "renderer"
+      ],
+      "purpose": "Read Renderer Rig Mask",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/renderer/rig-package",
+      "operation_id": "read_renderer_rig_package_v1_renderer_rig_package_get",
+      "tags": [
+        "renderer"
+      ],
+      "purpose": "Read Renderer Rig Package",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/renderer/source",
+      "operation_id": "read_renderer_source_v1_renderer_source_get",
+      "tags": [
+        "renderer"
+      ],
+      "purpose": "Read Renderer Source",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions",
+      "operation_id": "create_session_v1_sessions_post",
+      "tags": [
+        "sessions"
+      ],
+      "purpose": "Create Session",
+      "responses": [
+        "201",
+        "422"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/sessions/{session_id}",
+      "operation_id": "get_session_v1_sessions__session_id__get",
+      "tags": [
+        "sessions"
+      ],
+      "purpose": "Get Session",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions/{session_id}/experience/prepare",
+      "operation_id": "prepare_experience_v1_sessions__session_id__experience_prepare_post",
+      "tags": [
+        "supervised-flow"
+      ],
+      "purpose": "Prepare Experience",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions/{session_id}/feedback",
+      "operation_id": "record_feedback_v1_sessions__session_id__feedback_post",
+      "tags": [
+        "supervised-flow"
+      ],
+      "purpose": "Record Feedback",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/sessions/{session_id}/gallery",
+      "operation_id": "read_gallery_v1_sessions__session_id__gallery_get",
+      "tags": [
+        "supervised-flow"
+      ],
+      "purpose": "Read Gallery",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions/{session_id}/gate-a/confirm",
+      "operation_id": "confirm_gate_a_v1_sessions__session_id__gate_a_confirm_post",
+      "tags": [
+        "supervised-flow"
+      ],
+      "purpose": "Confirm Gate A",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions/{session_id}/gate-b/approve",
+      "operation_id": "approve_gate_b_v1_sessions__session_id__gate_b_approve_post",
+      "tags": [
+        "supervised-flow"
+      ],
+      "purpose": "Approve Gate B",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions/{session_id}/handoff",
+      "operation_id": "complete_handoff_v1_sessions__session_id__handoff_post",
+      "tags": [
+        "supervised-flow"
+      ],
+      "purpose": "Complete Handoff",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions/{session_id}/media/audio",
+      "operation_id": "upload_audio_v1_sessions__session_id__media_audio_post",
+      "tags": [
+        "image-demo"
+      ],
+      "purpose": "Upload optional session-local narration audio",
+      "responses": [
+        "200",
+        "413",
+        "422"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions/{session_id}/media/image",
+      "operation_id": "upload_image_v1_sessions__session_id__media_image_post",
+      "tags": [
+        "image-demo"
+      ],
+      "purpose": "Upload and admit one synthetic non-child image",
+      "responses": [
+        "200",
+        "413",
+        "422"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions/{session_id}/media/retake",
+      "operation_id": "request_retake_v1_sessions__session_id__media_retake_post",
+      "tags": [
+        "supervised-flow"
+      ],
+      "purpose": "Request Retake",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "PUT",
+      "path": "/v1/sessions/{session_id}/p1-context",
+      "operation_id": "set_p1_context_v1_sessions__session_id__p1_context_put",
+      "tags": [
+        "supervised-flow"
+      ],
+      "purpose": "Set P1 Context",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions/{session_id}/p1-filter",
+      "operation_id": "run_p1_filter_v1_sessions__session_id__p1_filter_post",
+      "tags": [
+        "supervised-flow"
+      ],
+      "purpose": "Run P1 Filter",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions/{session_id}/p1/activity-suggestions",
+      "operation_id": "read_p1_activity_suggestions_v1_sessions__session_id__p1_activity_suggestions_post",
+      "tags": [
+        "supervised-flow"
+      ],
+      "purpose": "Read P1 Activity Suggestions",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions/{session_id}/p1/activity-suggestions/rank",
+      "operation_id": "rank_p1_activity_suggestions_v1_sessions__session_id__p1_activity_suggestions_rank_post",
+      "tags": [
+        "supervised-flow"
+      ],
+      "purpose": "Rank P1 Activity Suggestions",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/sessions/{session_id}/p1/context-candidates",
+      "operation_id": "read_p1_context_candidates_v1_sessions__session_id__p1_context_candidates_get",
+      "tags": [
+        "supervised-flow"
+      ],
+      "purpose": "Read P1 Context Candidates",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/sessions/{session_id}/p1/context-options",
+      "operation_id": "read_p1_context_options_v1_sessions__session_id__p1_context_options_get",
+      "tags": [
+        "supervised-flow"
+      ],
+      "purpose": "Read P1 Context Options",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions/{session_id}/p1/context-options",
+      "operation_id": "read_personalized_p1_context_options_v1_sessions__session_id__p1_context_options_post",
+      "tags": [
+        "supervised-flow"
+      ],
+      "purpose": "Read Personalized P1 Context Options",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions/{session_id}/p1/context-options/finalize",
+      "operation_id": "finalize_p1_context_options_v1_sessions__session_id__p1_context_options_finalize_post",
+      "tags": [
+        "supervised-flow"
+      ],
+      "purpose": "Finalize P1 Context Options",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions/{session_id}/renderer/launch",
+      "operation_id": "prepare_renderer_v1_sessions__session_id__renderer_launch_post",
+      "tags": [
+        "supervised-flow"
+      ],
+      "purpose": "Prepare Renderer",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/sessions/{session_id}/story-video-jobs",
+      "operation_id": "list_story_video_jobs_v1_sessions__session_id__story_video_jobs_get",
+      "tags": [
+        "story-video"
+      ],
+      "purpose": "List Story Video Jobs",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions/{session_id}/story-video-jobs",
+      "operation_id": "create_story_video_job_v1_sessions__session_id__story_video_jobs_post",
+      "tags": [
+        "story-video"
+      ],
+      "purpose": "Create Story Video Job",
+      "responses": [
+        "201",
+        "422"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/sessions/{session_id}/story-video/{job_id}",
+      "operation_id": "get_story_video_status_v1_sessions__session_id__story_video__job_id__get",
+      "tags": [
+        "story-video"
+      ],
+      "purpose": "Get Story Video Status",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/sessions/{session_id}/story-video/{job_id}/file",
+      "operation_id": "stream_story_video_v1_sessions__session_id__story_video__job_id__file_get",
+      "tags": [
+        "story-video"
+      ],
+      "purpose": "Stream Story Video",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions/{session_id}/understanding",
+      "operation_id": "run_understanding_v1_sessions__session_id__understanding_post",
+      "tags": [
+        "image-demo"
+      ],
+      "purpose": "Explicitly run optional narration then Vision V2 understanding",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/sessions/{session_id}/understanding/progress",
+      "operation_id": "read_understanding_progress_v1_sessions__session_id__understanding_progress_get",
+      "tags": [
+        "image-demo"
+      ],
+      "purpose": "Read the last sanitized understanding stage projection",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/sessions/{session_id}/whiteboard-video",
+      "operation_id": "get_whiteboard_video_status_v1_sessions__session_id__whiteboard_video_get",
+      "tags": [
+        "whiteboard-video"
+      ],
+      "purpose": "Get Whiteboard Video Status",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions/{session_id}/whiteboard-video-jobs",
+      "operation_id": "create_whiteboard_video_job_v1_sessions__session_id__whiteboard_video_jobs_post",
+      "tags": [
+        "whiteboard-video"
+      ],
+      "purpose": "Create Whiteboard Video Job",
+      "responses": [
+        "201",
+        "422"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/sessions/{session_id}/whiteboard-video/file",
+      "operation_id": "stream_whiteboard_video_v1_sessions__session_id__whiteboard_video_file_get",
+      "tags": [
+        "whiteboard-video"
+      ],
+      "purpose": "Stream Whiteboard Video",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/whiteboard/storyboards/preview",
+      "operation_id": "preview_storyboard_v1_whiteboard_storyboards_preview_post",
+      "tags": [
+        "whiteboard-storyboard"
+      ],
+      "purpose": "Preview Storyboard",
+      "responses": [
+        "200",
+        "422"
+      ],
+      "auth_required": false,
+      "direct_live_probe_status": "not_called",
+      "contract_suite": "backend/tests/contract ran; route-specific attribution was not captured"
+    }
+  ]
+}

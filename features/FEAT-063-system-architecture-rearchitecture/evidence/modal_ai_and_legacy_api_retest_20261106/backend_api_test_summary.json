@@ -1,0 +1,59 @@
+{
+  "suite": "backend/tests/contract",
+  "python_runtime": "3.12.16 in disposable container based on sketch2life-api image",
+  "collected": 1460,
+  "passed": 1454,
+  "failed": 6,
+  "skipped": 0,
+  "failed_tests": [
+    {
+      "id": "tests/contract/test_app_composition.py::test_compatibility_app_preserves_baseline_route_surface",
+      "classification": "default create_app composition differs from frozen FEAT-059 route baseline; 76 expected paths vs 17 default-profile paths; 68 missing/method-changed"
+    },
+    {
+      "id": "tests/contract/test_app_composition.py::test_classroom_profile_excludes_process_local_demo_routes",
+      "classification": "create_classroom_app omits root /health expected by test"
+    },
+    {
+      "id": "tests/contract/test_app_composition.py::test_demo_profile_excludes_durable_classroom_routes",
+      "classification": "create_demo_app publishes zero paths in this test environment; expected /v1/sessions"
+    },
+    {
+      "id": "tests/contract/test_be1_synthetic_pilot.py::test_five_other_canvas_sites_keep_the_legal_helper[reconnect_canvas]",
+      "classification": "static AST assertion expects direct _require_group_consent; implementation uses _require_group_eligibility; review call chain separately"
+    },
+    {
+      "id": "tests/contract/test_session_http_api.py::test_openapi_exposes_session_contract_but_not_legacy_audio_route",
+      "classification": "test app OpenAPI lacks /v1/sessions"
+    },
+    {
+      "id": "tests/contract/test_sketch_review_contracts.py::test_rv_c02_shared_pack_bytes_unchanged_from_baseline",
+      "classification": "test runner container has no git executable; test assertion not evaluated"
+    }
+  ],
+  "live_read_only_checks": [
+    {
+      "method": "GET",
+      "path": "/health",
+      "status": 200,
+      "elapsed_seconds": 0.042
+    },
+    {
+      "method": "GET",
+      "path": "/docs",
+      "status": 200,
+      "elapsed_seconds": 0.025
+    },
+    {
+      "method": "GET",
+      "path": "/openapi.json",
+      "status": 200,
+      "elapsed_seconds": 0.014,
+      "paths": 111,
+      "operations": 124,
+      "operation_ids_unique": true
+    }
+  ],
+  "per_operation_live_calls": 1,
+  "operation_test_attribution": "Not mapped individually; all 124 are in api_operations.json, direct live status recorded per operation, contract suite results are summarized above."
+}

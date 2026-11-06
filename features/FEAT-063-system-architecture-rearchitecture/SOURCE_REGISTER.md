@@ -306,3 +306,7 @@
 - FLUX component source: official BFL `transformer/` and `vae/` repository trees and Diffusers v0.42.0 FLUX3 modular-pipeline documentation.
 - Result/evidence: `evidence/AI_QWEN35_FLUX_REV46A_COMPLETION_20261105.md` and `evidence/assets/flux_component_retest_rev46a_20261105/`; both synthetic image workers passed once after missing components were staged. No product HTTP API, video, or SAM2 inference was called.
 - The Modal dev app is stopped with zero tasks. Shared model/scratch Volumes are retained; workload flags remain disabled.
+
+## FEAT-063 Rev51 Modal AI and legacy API audit - 2026-11-06
+
+Plan Rev51 SHA-256 at approval: `B20103A217D7A9623E02279CE0BD82D5BC61141518D820FA683104057B1A6A2F`. Current SRS authority is FEAT-063 v2.4-draft. Live OpenAPI read-only snapshot reports 124 operations / 111 paths; backend API/contract suite reports 1,454 passed and 6 failed out of 1,460 collected; Modal worker contract suite reports 79 passed / 2 skipped. Existing successful synthetic AI outputs were copied, not regenerated. Full API operation inventory, worker/API distinction, failure causes, timings and artifact hashes are in `evidence/modal_ai_and_legacy_api_retest_20261106/`. No video inference, secret access, shared DB mutation, app deployment, or code fix was performed.

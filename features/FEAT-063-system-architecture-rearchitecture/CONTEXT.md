@@ -498,3 +498,11 @@ Owner-authorized FEAT-063 dev-only test added ordered L4/L40S/A10 GPU options, s
 - The six local-only `dev` commits were patch-equivalent to commits already in `origin/dev`; the old checkout and its staged, unstaged, and untracked work are preserved on a backup branch.
 - The selected Modal branch and its pending AI changes are integrated with the published FEAT-063 SRS v2.4-draft. The SRS remains unsigned and is the current canonical working source.
 - The six local commit copies were not rewritten or renamed. Local merge `370cb26d6e8c99c126f4a5a16df132eaa70c8e70` completed and was fast-forward pushed; `origin/dev` now equals `0d15b1a0ae6e5373354d7ac35cc163e41b55c42e`. Detailed refs, checksums, conflict decisions, and verification limits are recorded in `evidence/EV-063-54_DEV_HISTORY_AND_SRS_MERGE_20261106.md`.
+
+## Rev51 Modal AI and legacy API audit - 2026-11-06
+
+- Current FEAT-063 SRS v2.4-draft remains canonical. Rev51 reused already-passed synthetic worker outputs and did not repeat GPU inference.
+- Live API returned 200 for `/health`, `/docs`, and `/openapi.json`; OpenAPI lists 124 operations / 111 paths. The API/contract suite collected 1,460 cases (1,454 pass, 6 fail); exact failures are in `evidence/modal_ai_and_legacy_api_retest_20261106/API_TONG_HOP_VA_SAN_PHAM_AI_MODAL_20261106.md`.
+- Modal worker contracts: 79 pass, 2 skip. Qwen3.5, FLUX.3, TTS and Whisper artifacts were copied with SHA-256/provenance into the Rev51 result folder. Product API dispatch/persistence remains incomplete for several AI workloads.
+- SAM2's last attempt spent 1,800 seconds waiting for GPU capacity and returned no mask. No execution-time timeout was reproduced; Modal `dev` app inventory was empty, so no task app was deployed or needed shutdown.
+- No code change was justified by current evidence; keep the six API regression failures and Parent StoryRun-lite historical AI failures open for focused follow-up.
