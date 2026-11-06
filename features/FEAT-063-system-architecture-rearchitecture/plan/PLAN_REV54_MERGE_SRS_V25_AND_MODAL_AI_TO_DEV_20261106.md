@@ -20,8 +20,8 @@ Integrate both already-published branches into `dev`, retaining their original c
 ## Approved procedure
 
 1. Create this integration plan and record the owner's approval before integrating source commits.
-2. Build on a temporary integration branch from the current local `dev` commit. Fast-forward to the AI branch, which already descends from that `dev` commit.
-3. Merge the SRS branch by a regular merge. Resolve only the two known approval-register conflicts by retaining both branches' complete approval histories; preserve each original source commit and message.
+2. Build on a temporary integration branch from the current local `dev` commit and commit this plan/approval first. Merge the AI branch with a regular two-parent merge because the approval commit is now ahead of its shared `dev` base. Resolve the approval-register conflicts by retaining all entries from both sides.
+3. Merge the SRS branch by a regular merge. Resolve the same two approval-register conflicts by retaining all entries from both branches; preserve each original source commit and message.
 4. Record the merge, exact branch/commit IDs, conflict resolution, authority transition to unsigned v2.5-draft, AI test evidence, and SAM2 product-disabled status in FEAT-063 context/source/status/evidence records.
 5. Review the merged path list and SRS authority pointers. Run `git diff --check` and `python tools/validate_repository_security.py` before each commit and push. Reuse branch test evidence; this integration task does not add or rerun product tests.
 6. Fast-forward local `dev` to the reviewed integration tip, push normally to `origin/dev`, fetch, and verify the remote hash equals local `dev`.

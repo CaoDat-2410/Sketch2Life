@@ -103,7 +103,7 @@
 - **Approver:** Project owner, direct instruction on 2026-11-06: “merge 2 cái nhánh nãy vào nhánh dev, gồm cái sửa srs và AI”.
 - **Recorded timestamp:** 2026-11-06 19:06:22 Asia/Saigon.
 - **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV54_MERGE_SRS_V25_AND_MODAL_AI_TO_DEV_20261106.md`.
-- **Approved plan SHA-256:** `8AFF550911B1123E129C7F7F0F1507E5C3979253F149303186698E0D31AE7E79`.
+- **Approved plan SHA-256:** `94D4CA003102F04D853E46493F539B6FC6A6888C909AA9142652AE1E82D4E350`.
 - **Scope:** integrate SRS branch `fae180dcf3ea2771b41546aa6925b94636821df1` and AI branch `c6818490d0d889ab17dc9f8de3830987eb2a230d` into `dev`; preserve all source commits; resolve the two approval-register conflicts by retaining both histories; run security validation and push normally to `origin/dev`.
 - **Acceptance criteria:** AC54.1–AC54.7 in the hash-identified plan.
 - **Boundaries:** SRS v2.5 remains an unsigned draft; SAM2 product workload remains disabled. No force push, history rewrite, video inference, new AI calls, or unrelated branch changes.
