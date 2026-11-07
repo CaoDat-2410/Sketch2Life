@@ -57,5 +57,6 @@
 - No product code, schema, migration, child data or provider configuration changed.
 - git diff --check: passed before commit review; staged-diff check is required before commit.
 - python tools/validate_repository_security.py: passed before commit (publishable_files_scanned=6571); it must be rerun immediately before push.
-- Commit/remote SHA and clean-worktree result: pending publication closeout in FEAT-063 status and approval records.
+- Package commit c5469153600ba8763f14715eb12f5792e8b5afe4 was pushed to origin/docs/feat063-diagram-readiness-20261107. A fresh git ls-remote returned the same SHA; local branch tracking showed the remote branch at the published commit with a clean worktree.
+- Repository security validation passed before package commit and push (publishable_files_scanned=6571 each time); git diff --cached --check passed on the exact 12-path manifest.
 - Final diagrams remain gated on owner sign-off and the open owner/technical decisions. All diagrams prepared by this pass are draft TO-BE inputs only.
