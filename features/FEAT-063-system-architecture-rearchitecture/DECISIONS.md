@@ -320,6 +320,10 @@ Source: direct owner answers in this conversation; approved Plan Rev52; report S
 
 The supplied v2.6 checklist is remediation guidance, not a decision record. This review adds no new product decision and does not supersede D-146. It preserves the known Content Admin/Platform Admin permission boundary, Platform Admin child-media deny-by-default, and Teacher school-only quota. Parent activity behavior without a lesson preset, plan supersession effects, role/permission persistence and resolver, legacy age handling, and physical audit/schema details remain OPEN pending owner or technical approval as applicable. See Plan Rev53 and EV-063-58.
 
+## Rev54 diagram checklist audit — no new product decision — 2026-11-07
+
+The follow-up checklist audit adds no product decision and does not change D-146. It carries forward the owner-resolved subparts for Teacher school-only quota/no Teacher pool, named Teacher grant acceptance/Parent revoke, Content Admin as a Platform Admin permission, and the School Manager product label. The current v2.7 SRS/Register specifies included-current-month then top-up FIFO within an eligible quota scope. Full Q-01–Q-13 items remain OPEN-OWNER where any part is unanswered. D-08 and D-09 are recorded PARTIAL against the current SRS/Register because school quota allocation and the Parent Profile–Managed Profile–Delivery Recipient identity/history contract remain unresolved. See Plan Rev54, the Rev54 crosswalk and EV-063-59.
+
 ## SRS v2.4 publication decisions — integration ID reconciliation
 
 The SRS publication branch used D-122 through D-125 for these four records, while the selected Modal branch already uses those identifiers for StoryRun implementation decisions. The records are assigned D-135 through D-138 in this combined register. The original SRS/approval commits and their messages are preserved; the canonical decisions and details remain in the v2.4 SRS.

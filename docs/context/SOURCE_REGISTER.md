@@ -640,6 +640,14 @@ The implementation is limited to those approved source/test manifests. The focus
 - Local Docker API `/health` and `/openapi.json` returned 200. Active image has no StoryRun route, AI provider is unset, and no route dispatches to the new private Modal functions; read-only StoryRun probe returned 404. No write or inference request was sent.
 - Full results and the separation from the earlier temporary-Modal StoryRun test are recorded in `features/FEAT-063-system-architecture-rearchitecture/evidence/API_RUNTIME_AVAILABILITY_SMOKE_20261103.md`.
 
+## FEAT-063 Rev54 v2.6 checklist audit and diagram readiness — 2026-11-07
+
+- Current product authority at baseline 98cc34a39af279560b5f8d39f18939a376535834 is the unsigned FEAT-063 SRS and Data Table Register v2.7-draft; see docs/context/SRS_AUTHORITY.md.
+- Historical checklist source set was read together at docs/feat063-v25-report-remediation-20261106 commit a711e78cf6586dd5b639d811e610a741efd7433d: SRS v2.6, Data Table Register v2.6, Architecture Detail Catalog Rev55 and Remediation Crosswalk Rev55. Rev55's static source point-in-time is commit 1431ef81972b71303fd4a7909748fd3005769a3c; not reverified by Rev54.
+- Plan Rev54 creates a full M/D/Q/R crosswalk and draft TO-BE diagram-input catalog; Q-01–Q-13 remain open as complete items. No product source, runtime, database, provider or final diagram was changed/verified.
+- Detailed evidence: features/FEAT-063-system-architecture-rearchitecture/evidence/EV-063-59_DIAGRAM_CHECKLIST_REVIEW_20261107.md; artifacts: DIAGRAM_READINESS_CROSSWALK_REV54_20261107.md and DIAGRAM_INPUT_CATALOG_V27_REV54_20261107.md.
+- Current status, checks, branch and remote publication SHA are maintained in features/FEAT-063-system-architecture-rearchitecture/status/STATUS.md and both approval registers.
+
 ## FEAT-063 full non-video AI retest — 2026-11-04
 
 - Approved scope and criteria: `features/FEAT-063-system-architecture-rearchitecture/plan/AI_NONVIDEO_WORKLOAD_FULL_RETEST_20261104.md`; execution results: `features/FEAT-063-system-architecture-rearchitecture/evidence/AI_NONVIDEO_WORKLOAD_FULL_RETEST_RESULTS_20261104.md`.

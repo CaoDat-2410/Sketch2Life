@@ -998,3 +998,16 @@
 - **Acceptance criteria:** AC1–AC7 in the hash-identified Plan Rev53.
 - **Exclusions:** product code/API/runtime/provider/database/DDL/migration/test/build/diagram changes; new owner decisions not supplied; formal SRS sign-off; paths outside the manifest.
 - **Approval basis:** the owner’s direct request authorizes this bounded SRS/Data Table Register review and correction. The checklist itself does not approve requirements.
+
+## FEAT-063 Plan Rev54 — v2.6 checklist audit and diagram readiness
+
+- **Status:** APPROVED for the exact documentation-only scope in Plan Rev54; this is not SRS content sign-off or approval of final diagrams.
+- **Approver:** Project owner, direct instruction on 2026-11-07: “check all these points and fix luôn, fix xong thì commit và push”.
+- **Recorded timestamp:** 2026-11-07 09:18:46 Asia/Saigon.
+- **Plan:** features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV54_DIAGRAM_READINESS_CROSSWALK_20261107.md.
+- **Plan SHA-256 at authorization:** FA962EC25E84F4056DA23CB82C181ED1ADE2DFBD7BF6D6C54E6597C5A0648DF0.
+- **Current reviewed plan SHA-256:** 8FD7667D8EA13E2D1F1DA92C4E58974A5F514DF11DF6DB7868EEA0B2A8FB8730.
+- **Scope:** AC1–AC8 in the hash-identified plan and only its 12-path manifest; audit all supplied M/D/Q/R items, create draft TO-BE diagram inputs and a traceable crosswalk, update FEAT-063/root tracking, then commit and normally push the named documentation branch.
+- **Acceptance criteria:** AC1–AC8 in Plan Rev54.
+- **Exclusions:** product code/API/runtime/provider/database/DDL/migration/tests/build; final diagrams; new owner decisions; SRS sign-off; PR/merge/dev/force-push; paths outside the manifest.
+- **Approval basis:** the owner’s direct task instruction authorizes review, documentation corrections and publication within this bounded scope. The checklist does not approve its own open product decisions.

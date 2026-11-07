@@ -1,5 +1,15 @@
 # FEAT-063 — Whole-repository architecture redesign
 
+## Rev54 v2.6 checklist audit and diagram readiness — 2026-11-07
+
+- Lifecycle: approved documentation review complete; publication checks and push closeout are recorded in status/STATUS.md.
+- Current authority remains the canonical SRS and Data Table Register v2.7-draft. Both are unsigned; this task creates no final diagram and claims no fresh as-built verification.
+- Read the owner-supplied v2.6 checklist sources together at Rev55 commit a711e78cf6586dd5b639d811e610a741efd7433d, then reconciled every M/D/Q/R code against the current 98cc34a baseline.
+- Added a TO-BE diagram input catalog and a full crosswalk. M-12 is logically resolved for school-only Teacher quota and current-month-included then top-up FIFO; M-04 and M-15 retain open role/grant details. D-08 and D-09 remain partial because allocation and identity-link details are not settled.
+- All Q-01–Q-13 remain OPEN-OWNER as complete checklist items. Existing direct owner clarifications are only scoped sub-decisions; no new product decision was made.
+- Parent no-preset activity behavior, plan supersession effects, role persistence/resolver, legacy age handling, audit schema/retention, physical DDL/migration, final screen/API detail and package verification remain open/evidence-gated.
+- See artifacts/DIAGRAM_INPUT_CATALOG_V27_REV54_20261107.md, artifacts/DIAGRAM_READINESS_CROSSWALK_REV54_20261107.md and evidence/EV-063-59_DIAGRAM_CHECKLIST_REVIEW_20261107.md.
+
 ## Rev53 v2.6 checklist reconciliation — 2026-11-07
 
 - Lifecycle: COMPLETE for the approved documentation reconciliation and normal publication.

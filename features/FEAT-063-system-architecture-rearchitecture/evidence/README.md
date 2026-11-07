@@ -155,3 +155,12 @@ See [EV-063-57_SRS_V25_CONTRADICTION_REVIEW_20261106.md](EV-063-57_SRS_V25_CONTR
 Records the owner-supplied checklist provenance and visual review, exact logical SRS/Register changes, every M/D/Q/R disposition, open policy/schema gates, scoped checks and publication status. The checklist is analysis evidence only; the v2.7-draft SRS remains unsigned.
 
 See [EV-063-58_SRS_V26_CHECKLIST_REMEDIATION_20261107.md](EV-063-58_SRS_V26_CHECKLIST_REMEDIATION_20261107.md).
+
+## EV-063-59 — Rev54 v2.6 checklist audit and diagram readiness
+
+Rechecks all M-01–M-16, D-01–D-20, Q-01–Q-13 and R-01–R-05 against the same-commit v2.6/Rev55 source set and current v2.7-draft SRS/Register. Records status corrections, owner clarifications by scope, future verification scenarios and the limits of the review.
+
+- Full code-by-code crosswalk: [DIAGRAM_READINESS_CROSSWALK_REV54_20261107.md](../artifacts/DIAGRAM_READINESS_CROSSWALK_REV54_20261107.md).
+- Draft TO-BE diagram inputs: [DIAGRAM_INPUT_CATALOG_V27_REV54_20261107.md](../artifacts/DIAGRAM_INPUT_CATALOG_V27_REV54_20261107.md).
+- Evidence: [EV-063-59_DIAGRAM_CHECKLIST_REVIEW_20261107.md](EV-063-59_DIAGRAM_CHECKLIST_REVIEW_20261107.md).
+- Status: documentary cross-check complete; final diagrams and as-built claims remain gated; SRS v2.7-draft remains unsigned.
