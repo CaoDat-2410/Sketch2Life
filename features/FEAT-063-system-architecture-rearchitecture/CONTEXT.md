@@ -2,11 +2,11 @@
 
 ## Rev53 v2.6 checklist reconciliation — 2026-11-07
 
-- Lifecycle: APPROVED; documentation reconciliation is in execution on an isolated worktree and publication remains pending.
+- Lifecycle: COMPLETE for the approved documentation reconciliation and normal publication.
 - Working pair target: SRS and Data Table Register v2.7-draft; both remain unsigned. The supplied checklist is analysis evidence only.
 - Reconcile exact optional LessonVersion ref/version/hash lineage through occurrence, plan revision and Teacher run; state video admission as separate owner transactions coordinated by an idempotent saga; normalize organization-admin labels to School Manager where current product role is established.
 - Keep Parent activity behavior without a lesson preset, plan supersession, role persistence/resolver, legacy age 121–155 handling, physical audit/retention, and DDL/migration details OPEN. Do not infer new owner decisions from the checklist.
-- Plan Rev53 and owner authorization are recorded in the root and feature approval registers. Completion evidence: `evidence/EV-063-58_SRS_V26_CHECKLIST_REMEDIATION_20261107.md`.
+- Plan Rev53 and owner authorization are recorded in the root and feature approval registers. Package commit `359b0b92384faad789f6006c37cc5f66760ad594` was pushed to `origin/docs/feat063-srs-v26-checklist-20261107` and confirmed by `git ls-remote`. Completion evidence: `evidence/EV-063-58_SRS_V26_CHECKLIST_REMEDIATION_20261107.md`.
 
 ## Rev52 SRS contradiction reconciliation — historical publication record — 2026-11-06
 

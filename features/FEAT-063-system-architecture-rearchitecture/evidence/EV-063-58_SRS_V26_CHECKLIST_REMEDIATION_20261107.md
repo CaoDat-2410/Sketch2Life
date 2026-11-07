@@ -102,6 +102,6 @@
 
 - Final path-scoped review is limited to the 15 paths listed in Plan Rev53. No DOCX/report copy or extracted pages are tracked.
 - `git diff --check`: PASS.
-- `python tools/validate_repository_security.py`: PASS; scanned 6,567 publishable files, with absolute machine paths absent. Run again immediately before commit and before push per repository rule.
+- `python tools/validate_repository_security.py`: PASS immediately before commit and again immediately before push; each run scanned 6,567 publishable files and reported no absolute machine paths.
 - Product tests/builds and provider/runtime/database operations: not run; outside this documentation scope.
-- Commit/push: pending normal publication to `origin/docs/feat063-srs-v26-checklist-20261107` after the required checks. No PR, merge, force-push or `dev` update is authorized.
+- Publication: package commit `359b0b92384faad789f6006c37cc5f66760ad594` was pushed normally to `origin/docs/feat063-srs-v26-checklist-20261107`. Fresh `git ls-remote` returned the same SHA. No PR, merge, force-push or `dev` update was performed.
