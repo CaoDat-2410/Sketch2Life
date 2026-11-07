@@ -6,6 +6,7 @@ EV-063-13 records the pre-platform table-reduction and relationship-integrity ba
 
 | ID | Type | Purpose | Artifact |
 |---|---|---|---|
+| EV-063-58 | Rev53 SRS v2.6 checklist remediation | Source/hash and visual-review provenance; detailed disposition of M-01–16, D-01–20, Q-01–13 and R-01–05; fixed/clarified/open gates and publication evidence | `EV-063-58_SRS_V26_CHECKLIST_REMEDIATION_20261107.md` |
 | EV-063-56 | Rev51 source review and publication | Current `origin/dev` API/Modal source crosswalk, publication results and scope limits | `EV-063-56_SRS_PUBLICATION_REV51_20261106.md` |
 | EV-063-55 | Rev45 SRS/code alignment | SRS model-role reconciliation and earlier local source crosswalk, reindexed to avoid the existing EV-063-34 collision | `EV-063-55_SRS_SYSTEM_CODE_ALIGNMENT_REV45_20261106.md` |
 | EV-063-37 | Current FE Swagger | SRS v2.2 implementation scope and live/snapshot parity | EV-063-37_SWAGGER_SRS_V22_SCOPE_20261101.md |
@@ -148,3 +149,9 @@ Records the six patch-equivalent local `dev` commits, preservation backup, full 
 Maps report findings M01–M09, the additional current-count mismatch M10, D01–D12 and Q01–Q08 to corrected SRS/Register sections or remaining open items; records the three owner clarifications and report provenance.
 
 See [EV-063-57_SRS_V25_CONTRADICTION_REVIEW_20261106.md](EV-063-57_SRS_V25_CONTRADICTION_REVIEW_20261106.md).
+
+## EV-063-58 — Rev53 v2.6 checklist remediation
+
+Records the owner-supplied checklist provenance and visual review, exact logical SRS/Register changes, every M/D/Q/R disposition, open policy/schema gates, scoped checks and publication status. The checklist is analysis evidence only; the v2.7-draft SRS remains unsigned.
+
+See [EV-063-58_SRS_V26_CHECKLIST_REMEDIATION_20261107.md](EV-063-58_SRS_V26_CHECKLIST_REMEDIATION_20261107.md).

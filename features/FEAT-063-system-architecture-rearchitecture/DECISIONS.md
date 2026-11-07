@@ -316,7 +316,11 @@ This supersedes only the Teacher-account quota scope and the prior ambiguity abo
 
 Source: direct owner answers in this conversation; approved Plan Rev52; report SHA-256 23D1F4129E2FAA0D87E9F82B36D9459065367658E37B5F905596F565677DE2A9; evidence EV-063-57.
 
-## SRS v2.4 publication decisions ? integration ID reconciliation
+## Rev53 checklist review note — no new owner decision — 2026-11-07
+
+The supplied v2.6 checklist is remediation guidance, not a decision record. This review adds no new product decision and does not supersede D-146. It preserves the known Content Admin/Platform Admin permission boundary, Platform Admin child-media deny-by-default, and Teacher school-only quota. Parent activity behavior without a lesson preset, plan supersession effects, role/permission persistence and resolver, legacy age handling, and physical audit/schema details remain OPEN pending owner or technical approval as applicable. See Plan Rev53 and EV-063-58.
+
+## SRS v2.4 publication decisions — integration ID reconciliation
 
 The SRS publication branch used D-122 through D-125 for these four records, while the selected Modal branch already uses those identifiers for StoryRun implementation decisions. The records are assigned D-135 through D-138 in this combined register. The original SRS/approval commits and their messages are preserved; the canonical decisions and details remain in the v2.4 SRS.
 

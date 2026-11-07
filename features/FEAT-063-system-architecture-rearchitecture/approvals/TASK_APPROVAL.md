@@ -984,3 +984,17 @@
 - Package commit `ca3c5dda695dc8d325442921ace684364d0215b1` was pushed to `origin/docs/feat063-srs-conflict-remediation-20261106` with a regular non-force push. Fresh `git ls-remote` returned the same SHA.
 - `python tools/validate_repository_security.py` passed before commit and push (`publishable_files_scanned=6565`); `git diff --check` passed.
 - No force push, `dev` update, PR, or merge was performed. The SRS and Data Table Register remain v2.6-draft and unsigned.
+
+
+## FEAT-063 Plan Rev53 — v2.6 checklist SRS reconciliation
+
+- **Status:** APPROVED for the exact documentation scope in Plan Rev53; not SRS content sign-off.
+- **Approver:** Project owner, direct request on 2026-11-07 to read the supplied checklist and continue fixing the SRS.
+- **Recorded date:** 2026-11-07, Asia/Saigon.
+- **Plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV53_SRS_V26_CHECKLIST_RECONCILIATION_20261107.md`.
+- **Plan SHA-256 at authorization:** `C35BD75F9C5844FFB9B297F9A3B5BAFC4136436C766639FBB18EE2E59C987AFE`.
+- **Current reviewed plan SHA-256:** `3DA78D1630040B78526767A2FD8D4C782EB96D894D63B1D30B6CE06ADC6AB48D`.
+- **Scope:** AC1–AC6 in Plan Rev53 and only its 15-path manifest. The earlier direct “commit and push” instruction in this same SRS remediation thread covers the regular push described by AC7; it does not authorize a PR, merge, force-push, or `dev` update.
+- **Acceptance criteria:** AC1–AC7 in the hash-identified Plan Rev53.
+- **Exclusions:** product code/API/runtime/provider/database/DDL/migration/test/build/diagram changes; new owner decisions not supplied; formal SRS sign-off; paths outside the manifest.
+- **Approval basis:** the owner’s direct request authorizes this bounded SRS/Data Table Register review and correction. The checklist itself does not approve requirements.

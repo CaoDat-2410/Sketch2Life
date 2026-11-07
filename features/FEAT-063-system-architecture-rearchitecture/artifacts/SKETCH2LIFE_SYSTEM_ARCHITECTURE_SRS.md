@@ -1,9 +1,9 @@
 # Sketch2Life — Đặc tả yêu cầu phần mềm (SRS) và Kiến trúc đích
 
 **Feature:** FEAT-063 — Thiết kế lại kiến trúc toàn repository  
-**Trạng thái tài liệu:** Bản nháp v2.6 để chủ sở hữu rà soát; hòa giải các mâu thuẫn trong rà soát Rev52 và ba làm rõ của chủ sở hữu; §§1–31 tiếp tục là yêu cầu đích, §32 là bằng chứng nguồn/as-built; chưa sign-off
-**Phiên bản:** 2.6-draft
-**Cập nhật:** 2026-11-06
+**Trạng thái tài liệu:** Bản nháp v2.7 để chủ sở hữu rà soát; đối chiếu checklist v2.6 và chuẩn hóa các hợp đồng logic đã có owner decision; §§1–31 tiếp tục là yêu cầu đích, §32 là bằng chứng nguồn/as-built; chưa sign-off
+**Phiên bản:** 2.7-draft
+**Cập nhật:** 2026-11-07
 **Tài liệu kèm theo:** [DATA_TABLE_REGISTER.md](DATA_TABLE_REGISTER.md)  
 **Cổng rà soát:** Đây là bản Markdown để xem xét. Chỉ tạo diagram conceptual/logical cuối và PDF sau khi chủ sở hữu duyệt cả hai tài liệu Markdown.
 
@@ -23,6 +23,7 @@
 | 2.4-draft | 2026-11-06 | Nhóm FEAT-063 (bản tổng hợp) | Bổ sung ảnh chụp as-built từ backend/API/database local và Modal dev dashboard; phân biệt code, runtime, deployment và target; thay AI development direction theo owner (Qwen3.5-VL, FLUX.3, Whisper, SAM 2 tùy chọn); giải quyết Q159. Không xóa hoặc hạ các yêu cầu sản phẩm chưa triển khai. | Bản nháp chờ review; chưa có sign-off |
 | 2.5-draft | 2026-11-06 | Nhóm FEAT-063 (bản tổng hợp) | Rà soát lại SRS với hướng sản phẩm và code hiện hành; thống nhất model direction tại §§2, 6, 9, 14 và 31; phân loại rõ target, development direction, candidate, code có mặt, API/runtime được quan sát và gate còn mở; bổ sung source-only crosswalk Rev45 và snapshot source `origin/dev` Rev51; sửa trạng thái local DB trong companion. Không thay quyết định sản phẩm chưa được owner chốt. | Bản nháp chờ owner review/sign-off |
 | 2.6-draft | 2026-11-06 | Nhóm FEAT-063 (bản tổng hợp) | Đối chiếu báo cáo rà soát v2.5; thống nhất quyền khởi tạo AI suggestion, vai trò/permission, quyền media mặc định deny, Parent lesson-version pin/activity timing, profile-share invitation, tám AI Job target, video-admission transitions và target count 92 active + 48 legacy. Ghi nhận owner clarifications: Content Admin là permission của Platform Admin; Platform Admin chưa được xem media trẻ mặc định; Teacher chỉ dùng quota school. Các chi tiết còn mở được giữ rõ. | Bản nháp chờ owner review/sign-off |
+| 2.7-draft | 2026-11-07 | Nhóm FEAT-063 (bản tổng hợp) | Đối chiếu checklist remediation v2.6; làm rõ pin LessonVersion theo version/hash qua occurrence, plan revision và StoryRun; thống nhất cách diễn đạt quota admission theo saga nhiều owner; chuẩn hóa nhãn School Manager; giữ hợp đồng Parent không preset, plan supersession, role persistence, legacy age và schema/audit chưa chốt ở trạng thái OPEN; sửa nhãn đếm mục lục Data Table Register mà không đổi target 92 + 48. | Bản nháp chờ owner review/sign-off |
 
 | Vai trò sign-off | Người ký | Trạng thái |
 |---|---|---|
@@ -169,7 +170,7 @@ Tài liệu tham khảo về yêu cầu được đối chiếu theo ISO/IEC/IEE
 | Vận hành/kỹ thuật | Sức khỏe dịch vụ, queue, model/provider, chi phí và phục hồi | Metrics đã redact, correlation ID, runbook, giới hạn/circuit breaker |
 | Privacy/legal/commercial reviewer | Dữ liệu trẻ, vai trò controller/processor, transfer, retention, payment/tax | Evidence và quyết định phê duyệt production; chưa được coi là hoàn thành |
 
-**Người dùng mục tiêu và môi trường:** Parent là người lớn dùng điện thoại Android, có thể không quen thuật ngữ AI; Teacher mầm non thao tác trên máy tính/laptop qua trình duyệt trong thời gian chuẩn bị buổi học; Admin tổ chức dùng web với quyền billing/roster tách biệt. V1 dùng tiếng Việt. Nếu camera/micro bị từ chối hoặc không sẵn sàng, phải có upload ảnh và nhập chữ thay thế. Repo hiện khai báo `minSdk 29` (Android 10), `targetSdk 36`, `compileSdk 37`; browser target là hai phiên bản stable gần nhất của Chrome/Edge desktop và phải được xác minh lại trong release gate.
+**Người dùng mục tiêu và môi trường:** Parent là người lớn dùng điện thoại Android, có thể không quen thuật ngữ AI; Teacher mầm non thao tác trên máy tính/laptop qua trình duyệt trong thời gian chuẩn bị buổi học; School Manager dùng web với quyền billing/roster theo organization. V1 dùng tiếng Việt. Nếu camera/micro bị từ chối hoặc không sẵn sàng, phải có upload ảnh và nhập chữ thay thế. Repo hiện khai báo `minSdk 29` (Android 10), `targetSdk 36`, `compileSdk 37`; browser target là hai phiên bản stable gần nhất của Chrome/Edge desktop và phải được xác minh lại trong release gate.
 
 **Bối cảnh tích hợp bằng văn bản** (diagram vẫn để sau khi duyệt Markdown):
 
@@ -218,11 +219,11 @@ BR-01 đến BR-46 ghi lại baseline sản phẩm/an toàn; BR-47 đến BR-60 
 | BR-02 | Mỗi tài khoản người lớn có tối đa một story run chưa kết thúc. Khóa gắn với owner hiện hành (`active_owner_parent_account_id` hoặc `active_owner_teacher_id`), tách khỏi `created_by_actor_ref` bất biến. Parent khóa theo tài khoản Parent; Teacher khóa theo giáo viên đang phụ trách. |
 | BR-03 | Parent và Teacher có account scope và lịch sử hồ sơ riêng; một Parent có thể mời Teacher/trường chia sẻ profile qua grant có purpose/scope/revoke. Principal và profile không tự hợp nhất; role claim từ client không cấp quyền. |
 | BR-04 | Lớp và hồ sơ trẻ Teacher thuộc tổ chức. Mỗi tổ chức có 10 slot lớp trong gói cơ bản trả phí. Capacity bổ sung mua theo một đơn giá/slot cấu hình được, theo tháng hoặc năm; không chia nhiều tier. Giá cụ thể thuộc cấu hình thương mại. |
-| BR-05 | Admin tổ chức phân công một Teacher phụ trách mỗi lớp. Một Teacher có thể phụ trách nhiều lớp. Mỗi hồ sơ trẻ tối đa một enrollment lớp đang hoạt động. |
+| BR-05 | School Manager của organization phân công một Teacher phụ trách mỗi lớp. Một Teacher có thể phụ trách nhiều lớp. Mỗi hồ sơ trẻ tối đa một enrollment lớp đang hoạt động. |
 | BR-06 | BE1 là nguồn chuẩn phân công hiện tại. Reassignment dùng workflow bền vững hai owner BE1/Story: đưa lớp vào transfer-pending/read-only, fence quyền và token cũ ngay, chuyển active-run owner/lock qua Story port rồi mới finalize Teacher mới; trong lúc pending không mở nội dung cho Teacher nào. `created_by_actor_ref` chỉ là provenance. Nếu Teacher mới có run active, Story từ chối chuyển lock và saga bù BE1 về assignment cũ; nếu bù mơ hồ, transfer giữ pending/read-only để đối soát; không hủy AI job hợp lệ chỉ vì đổi Teacher. Output chỉ được nhận nếu input/script/hash/occurrence và assignment version còn hợp lệ; chỉ Teacher hiện tại được xem. Admin mặc định không xem media. Teacher phụ trách xác nhận có audit trước khi chiếu mẫu cho lớp; người xem không có tài khoản, playback capability dùng lại hoặc quyền export. |
 | BR-07 | Teacher tạo/sửa hồ sơ trẻ bằng form nhập nhanh có cấu trúc, có thể nhập lại câu trả lời trên phiếu khảo sát phụ huynh. V1 không OCR hoặc import file phiếu. |
-| BR-08 | Lesson version có thể cấu hình một hoặc nhiều hoạt động ngoài trời với vật liệu/cách làm/ghi chú. Parent xem activity list sau khi video sẵn sàng; Teacher occurrence giữ flow hoạt động riêng theo lesson. |
-| BR-09 | Reusable lesson/version độc lập với occurrence. Occurrence pin lesson/version; video mẫu dùng đúng một trẻ/tranh; lesson activities hiển thị sau video, không phải điều kiện chọn trước cho Parent video. |
+| BR-08 | Lesson version có thể cấu hình một hoặc nhiều hoạt động ngoài trời với vật liệu/cách làm/ghi chú. Parent xem activities của lesson version đã pin sau khi video sẵn sàng; activity catalog behavior cho Parent run không preset còn OPEN tại §31.10. Teacher occurrence giữ flow hoạt động riêng theo lesson. |
+| BR-09 | Reusable lesson/version độc lập với occurrence. Occurrence pin optional lesson/version; video mẫu dùng đúng một trẻ/tranh; nếu Parent đã pin lesson version thì activities của version đó hiển thị sau video, không phải điều kiện chọn trước cho Parent video. Behavior của run không preset còn OPEN tại §31.10. |
 | BR-10 | Mỗi occurrence Teacher tạo tối đa một video mẫu có thể phát và đã qua kiểm tra an toàn, cho đúng một trẻ. Slot được claim nguyên tử tại video playable đầu tiên. Run lỗi kỹ thuật hoặc bị chặn an toàn trước lần claim đầu không chiếm slot. Sau khi claim, slot không mở lại khi video bị đánh dấu không phù hợp, bị ẩn, tạo lại thất bại/hết lượt, run bị xóa, hủy hoặc chuyển giáo viên; không có recovery run thứ hai cho occurrence đó. |
 | BR-11 | Một run có một request tạo video đầy đủ ban đầu và tối đa hai request tạo lại về chất lượng. Mỗi request video đầy đủ được chấp nhận tiêu thụ một slot giới hạn của run và một unit quota, kể cả khi sau đó lỗi kỹ thuật hoặc safety block. Retry scene tự động không tiêu thụ thêm request/unit. Mỗi lần tạo lại vẫn ở cùng run và phải quay lại xác nhận revision kịch bản. |
 | BR-12 | Video Teacher hoàn chỉnh, kể cả các lần tạo lại chất lượng, vẫn là video mẫu duy nhất của occurrence; tạo lại không cấp quyền chọn trẻ khác hoặc mở run mẫu độc lập thứ hai. |
@@ -245,7 +246,7 @@ BR-01 đến BR-46 ghi lại baseline sản phẩm/an toàn; BR-47 đến BR-60 
 | BR-29 | Slot lớp mua thêm được kích hoạt sau khi xác minh thanh toán và tính prorate cho phần thời gian còn lại của kỳ hiện tại; ngày gia hạn tiếp theo không đổi. |
 | BR-30 | Có thể tắt auto-renew. Capacity đã trả tiền còn hiệu lực đến hết kỳ. V1 không tự tính hoàn tiền prorate giữa kỳ; ngoại lệ xử lý thủ công ngoài hệ thống. |
 | BR-31 | Gia hạn thất bại bắt đầu 7 ngày grace. Hết grace thì hạn chế tạo lớp mới và story run mới; vẫn cho truy cập lớp, roster, lịch sử và quản lý thanh toán hiện có. |
-| BR-32 | Hạ capacity cần admin tổ chức chọn lớp sẽ tạm ngưng trước khi xác nhận. Ghi một sự kiện append-only cho từng lớp được chọn, có chung change-group ID và thời điểm hiệu lực. Lớp/roster/lịch sử tạm ngưng được giữ lại ở chế độ chỉ đọc; không xóa dữ liệu. |
+| BR-32 | Hạ capacity cần School Manager chọn lớp sẽ tạm ngưng trước khi xác nhận. Ghi một sự kiện append-only cho từng lớp được chọn, có chung change-group ID và thời điểm hiệu lực. Lớp/roster/lịch sử tạm ngưng được giữ lại ở chế độ chỉ đọc; không xóa dữ liệu. |
 | BR-33 | Thông báo billing gửi admin thanh toán trong app và email: nhắc trước hạn 7 ngày và 1 ngày, khi thanh toán thành công/thất bại và khi grace hết hạn. |
 | BR-34 | Audit hệ thống chỉ ghi metadata actor, action, resource và kết quả. Không ghi media, transcript, prompt, token, signed URL hoặc tên trẻ trong audit/log/metric label. |
 | BR-35 | Xóa hồ sơ trẻ Parent hoặc Teacher bắt đầu lifecycle theo owner scope: thu hồi quyền, chặn run mới, xóa context hồ sơ và nội dung run liên quan; chỉ giữ metadata audit/enrollment cần thiết. Không tác động hồ sơ thuộc scope khác. |
@@ -254,7 +255,7 @@ BR-01 đến BR-46 ghi lại baseline sản phẩm/an toàn; BR-47 đến BR-60 
 | BR-38 | Quota video theo tháng dương lịch `Asia/Ho_Chi_Minh`, tách riêng: Parent tính vào tài khoản Parent; Teacher tính vào tổ chức. Full-video request chỉ được xem là accepted sau khi AI Policy xác nhận compute reservation và Billing xác nhận quota admission bằng cùng idempotency key; Billing ghi đúng một usage unit trong transaction sở hữu riêng trước dispatch. Đây là saga nhiều owner, không phải transaction SQL xuyên module; receipt mơ hồ được đối soát trước dispatch. Mỗi accepted request vẫn tiêu thụ một unit kể cả khi sau đó lỗi provider/kỹ thuật hoặc safety block; không hoàn quota. Scene retry không phải request mới và không tiêu thụ thêm unit. Budget/quota admission bị từ chối không tạo accepted generation/job/usage, không chiếm run request cap và không dispatch. Hết quota thì từ chối request video mới bằng VIDEO_QUOTA_EXCEEDED, nhưng vẫn cho xem video/dữ liệu cũ và mua quota bổ sung. Billing sở hữu grant và immutable usage ledger; AI Policy chỉ hạch toán/reserve tài nguyên nền tảng (GPU/compute), không sở hữu product quota. Không lưu số dư còn lại mutable. Mức included cấu hình cho Parent account và school organization, chốt sau benchmark synthetic (Q115); Teacher sử dụng allowance của organization sở hữu occurrence. Dùng grant included hiện tại trước, sau đó top-up FIFO; included hết hạn cuối tháng, top-up carry-forward (Q117–Q118, Q124–Q126). Bắt đầu giữa tháng nhận đủ included (Q121); xóa run không hoàn unit (Q119); top-up một lần (Q120, Q128, Q132). |
 | BR-39 | Tất cả trạng thái chờ thao tác người lớn, kể cả `DRAFT`, bắt đầu adult-wait khi không còn AI job và cần command người lớn. Tại +144 giờ tạo đúng một inbox reminder theo dedupe key; thử push best-effort và email best-effort chỉ tới địa chỉ đã xác minh của owner hiện tại. Inbox là nguồn chuẩn; lỗi gửi email/push không đổi trạng thái run. Ở +168 giờ, `VIDEO_READY` thành `COMPLETED`, trạng thái adult-wait khác thành `ABANDONED`, nhả khóa owner nhưng giữ nội dung đến khi người dùng xóa. `VIDEO_ADMISSION_PENDING` là system work, không có idle timer; nếu admission bị từ chối, StoryRun về `SCRIPT_REVIEW` và bắt đầu adult-wait mới (Q133, Q136). |
 | BR-40 | Người lớn có thể hủy run chưa hoàn tất để nhả khóa ngay và xóa content theo lifecycle; xóa run hoàn tất xóa linked media/content. Request video accepted không được hoàn quota; Teacher sample claim thành công vẫn giữ. (Q123/Q128/Q133/Q134) |
-| BR-41 | Organization admin chỉ được force-close conflicting run trong emergency qua command có reason và metadata audit; admin không xem media, quota claim và sample claim được giữ nguyên. (Q134) |
+| BR-41 | School Manager của organization sở hữu lớp/run chỉ được force-close conflicting run trong emergency qua command tường minh có reason và metadata audit. Lệnh không cho phép xem media; quota claim và sample claim được giữ nguyên. Cách gán/lưu permission và actor resolver còn mở tại §31.10. (Q134) |
 | BR-42 | Teacher AI Sketch Deck chỉ có trong Teacher web. Cả Teacher deck và Parent line-sketch guide đều tùy chọn trong session, chỉ được tạo khi người lớn bật; disabled nghĩa là không có job. Parent chụp trước khi VLM review subject và không dùng Teacher deck. (Q137/Q141/Q146/Q167) |
 | BR-43 | Nếu Teacher bật deck, một occurrence dùng một deck revision chung cho plan đã duyệt, bao quát activities; giữ nền trắng, 3–5 bước, gợi ý bố cục và hướng dẫn ngắn. Deck chỉ được sinh sau toggle; khi plan đổi, deck stale và cần revision mới. (Q138–Q140/Q142/Q167) |
 | BR-44 | Teacher Deck và Parent Sketch Guide không tiêu quota video. Dùng giới hạn request và compute cost cap riêng; mức số cụ thể phải được benchmark/cấu hình. Cả hai sketch job không nhận profile/tranh trẻ làm context; Parent guide chỉ nhận topic chung/độ khó. (Q143/Q146) |
@@ -279,7 +280,7 @@ Parent có thể mở thư viện public, lesson được chia sẻ đích danh/
 8. AI tạo story/storyboard cá nhân hóa từ tranh, profile snapshot và lesson direction. Nếu script-following được bật cho lesson/run, dùng script làm hướng dẫn; nếu tắt thì tạo theo pipeline story hiện có. Parent có thể gợi ý tối đa ba lần viết lại, nhưng không chỉnh trực tiếp scene.
 9. Người lớn xem và xác nhận revision script/storyboard cuối. Nếu chủ thể không đúng, xác nhận người lớn trước khi sửa subject và yêu cầu AI gợi ý lại.
 10. Backend tạo video mới cho đúng child từ ảnh tranh đó theo pipeline §6.2.2; không tái sử dụng video của trẻ khác. Video có thể khác nhau theo artwork/profile nhưng theo hướng script nếu tùy chọn đó bật.
-11. Khi video đã playable, mới hiển thị danh sách một hoặc nhiều hoạt động ngoài trời trong lesson, gồm vật liệu, cách làm và ghi chú. Parent có thể dùng lesson để làm hoạt động với con.
+11. Chỉ sau khi video playable mới hiển thị activity list. Nếu run đã pin lesson version, dùng các hoạt động trong version đó, gồm vật liệu/cách làm/ghi chú; với run không có preset, có query catalog global hay không và contract response còn OPEN tại §31.10. Parent có thể dùng lesson để làm hoạt động với con.
 12. Chỉ mở playback sau kiểm tra kỹ thuật và safety. Parent có thể hoàn tất hoặc yêu cầu tạo lại tối đa hai lần; video cũ bị ẩn ngay khi request thay thế được nhận. Accepted video request tiêu thụ quota theo quy tắc Billing, kể cả lỗi kỹ thuật/provider/safety.
 13. Giữ reminder 144h, idle close 168h, cancel/delete lifecycle và private playback như baseline. Parent có thể xem feedback/reply lesson theo child profile share; đây không phải chat, không có completion toggle hoặc gửi tranh qua feedback.
 
@@ -327,7 +328,7 @@ Sau buổi học, Parent được liên kết có thể xem lesson đã dạy tr
 | Draft | Một trẻ và tranh nguồn được gắn với run | Backend bắt buộc chỉ có một profile ref |
 | Xem input | Ý tưởng người lớn tồn tại dạng text hoặc transcript để xem | Whisper chuyển giọng nói thành chữ, người lớn xác nhận |
 | Xem chủ thể | VLM trả cấu trúc chủ thể/entity/mức không chắc chắn | Người lớn xác nhận hoặc sửa; sửa sẽ chạy lại VLM |
-| Xem context | Snapshot profile tối thiểu và lesson/script direction nếu người lớn chọn đã được duyệt | Parent không chọn activity trước video; Parent activity list hiển thị sau video. Teacher run xác nhận activity đã duyệt theo occurrence trước generation. |
+| Xem context | Snapshot profile tối thiểu và lesson/script direction nếu người lớn chọn đã được duyệt | Parent không chọn activity trước video; activity list từ lesson version đã pin hiển thị sau video, còn no-preset catalog behavior OPEN tại §31.10. Teacher run xác nhận activity đã duyệt theo occurrence trước generation. |
 | Story draft | Tạo script có version và 5–15 scene | Output LLM phải khớp schema và safety policy |
 | Viết lại | Tạo revision story bất biến mới | Tối đa ba request viết lại sau bản đầu; xem xét từng revision |
 | Xác nhận script | Có hash revision script/storyboard đã xác nhận | Bắt buộc trước mỗi request tạo video |
@@ -355,8 +356,8 @@ Tên trạng thái dưới đây là giá trị đích ở domain. Nhãn UI ph�
 
 Quy tắc chuyển trạng thái:
 
-- Application command thực hiện chuyển trạng thái và lưu event/outbox trong transaction. Client không tự đặt state.
-- Bộ đếm viết lại story và request video tách riêng. Mỗi run có story đầu và tối đa ba lần viết lại; một request video ban đầu và tối đa hai request tạo lại chất lượng. Khi chấp nhận full-video request, transaction đồng thời tiêu thụ một request slot và một unit quota qua Billing ledger, kể cả khi request lỗi kỹ thuật/provider hoặc bị safety block sau đó; không hoàn quota. Retry scene tự động có giới hạn riêng và không tạo product-quota usage mới.
+- Mỗi application command đổi state và ghi event/outbox trong transaction do owner của aggregate đó sở hữu. Client không tự đặt state; một nghiệp vụ đi qua nhiều owner dùng contract, idempotency receipt và saga, không dùng transaction SQL xuyên module.
+- Bộ đếm viết lại story và request video tách riêng. Mỗi run có story đầu và tối đa ba lần viết lại; một request video ban đầu và tối đa hai request tạo lại chất lượng. Admission dùng cùng business command/idempotency key nhưng tách các transaction sở hữu: AI Policy tạo compute reservation; Billing kiểm tra quota scope và ghi usage unit/receipt; chỉ sau khi cả hai receipt được xác nhận thì Story ghi nhận accepted state, chiếm request slot và ghi outbox trong transaction Story riêng. Billing reject thì giải phóng reservation; receipt mơ hồ được tra cứu/đối soát bằng cùng key trước dispatch. Mỗi accepted request vẫn tiêu thụ một quota unit kể cả khi request lỗi kỹ thuật/provider hoặc bị safety block sau đó; không hoàn quota. Retry scene tự động có giới hạn riêng và không tạo product-quota usage mới.
 - Tạo lại video chất lượng phải quay về xem/xác nhận revision script hiện hành. Người lớn có thể giữ story hiện tại hoặc yêu cầu AI viết lại trong giới hạn trước khi xác nhận.
 - Retry scene kỹ thuật không tính thành lần viết lại story hoặc request tạo lại video. Run lỗi trước khi có output an toàn/phát được không chiếm slot video mẫu của occurrence Teacher.
 - VIDEO_READY yêu cầu đạt kiểm tra kỹ thuật và output-safety gate có version. Nếu gate không kiểm tra đủ media, thất bại hoặc trả kết quả không xác định thì chặn playback và đưa run về trạng thái chờ người lớn sửa/xác nhận script. Video đạt được phát ngay; người lớn có thể hoàn tất/tạo lại. VIDEO_READY tự COMPLETED sau 168 giờ adult-wait idle; các trạng thái chờ người lớn khác tự ABANDONED ở cùng deadline, sau nhắc tại giờ 144. Hai kết quả đóng run, nhả khóa và giữ nội dung. Không hoàn quota request đã nhận và không mở lại Teacher sample claim đã dùng.
@@ -463,7 +464,7 @@ Danh mục hiện có 80 FR riêng theo ID. AI Sketch cho Teacher là một lu�
 | FR-P-02 | M | Cho Parent tạo/chọn hồ sơ thuộc mình và gửi một ảnh tranh từ camera hoặc thư viện. |
 | FR-P-03 | M | Nhận ý tưởng dạng chữ, giọng nói tối đa 2 phút/20 MB hoặc cả hai; dùng Whisper chuyển giọng nói thành chữ và yêu cầu người lớn sửa/xác nhận. |
 | FR-P-04 | M | Phân tích ảnh tranh và cho người lớn sửa chủ thể; khi sửa, tạo revision diễn giải VLM mới. |
-| FR-P-05 | M | Sau video, hiển thị một hoặc nhiều hoạt động ngoài trời gắn với lesson version, gồm vật liệu/cách làm/ghi chú; activity catalog thêm có thể được đề xuất bởi AI nhưng cần review. Không yêu cầu Parent chọn activity trước khi tạo video. |
+| FR-P-05 | M | Sau video, hiển thị hoạt động ngoài trời gắn với lesson version đã pin (nếu run dùng preset), gồm vật liệu/cách làm/ghi chú; activity catalog global do `learning_content` sở hữu và chỉ version đã published, approved được trả như nội dung dùng được. Với run Parent không có preset, việc có trả catalog hay không, lọc/thứ tự/cardinality, version/hash snapshot, quyền truy cập, empty result và ảnh hưởng khi revoke/unpublish còn OPEN tại §31.10; không thêm catalog owner/bảng mới. Activity catalog bổ sung bằng AI vẫn là draft cần review. Không yêu cầu Parent chọn activity trước khi tạo video. |
 | FR-P-06 | M | Tạo context run tối thiểu từ revision hồ sơ đã chọn và yêu cầu người lớn xác nhận trước khi AI tạo story. |
 | FR-P-07 | M | Cho phép tối đa ba lần AI viết lại story sau bản đầu theo gợi ý của phụ huynh; không có điều khiển sửa trực tiếp scene/script. |
 | FR-P-08 | M | Yêu cầu người lớn xác nhận script/storyboard cuối trước khi tạo video. Hiển thị video ở VIDEO_READY ngay sau khi qua kiểm tra; giữ run active đến khi Parent bấm Hoàn tất/Tạo lại hoặc đủ 168 giờ adult-wait idle, khi run tự hoàn tất; không yêu cầu duyệt video cuối. |
@@ -476,13 +477,13 @@ Danh mục hiện có 80 FR riêng theo ID. AI Sketch cho Teacher là một lu�
 | ID | Ưu tiên | Yêu cầu |
 |---|---|---|
 | FR-T-01 | M | Cung cấp luồng Teacher trên web hiện có apps/teacher-ui. |
-| FR-T-02 | M | Cho admin tổ chức được phân quyền tạo lớp trong capacity, quản lý roster và phân công chính xác một Teacher phụ trách mỗi lớp. |
+| FR-T-02 | M | Cho School Manager được phân quyền của organization tạo lớp trong capacity, quản lý roster và phân công chính xác một Teacher phụ trách mỗi lớp. Cách lưu/resolver permission còn OPEN tại §31.10. |
 | FR-T-03 | M | Cung cấp 10 slot lớp trong subscription cơ bản trả phí của mỗi tổ chức, cộng slot đã mua; ngăn tạo lớp đồng thời vượt capacity đang hiệu lực. |
 | FR-T-04 | M | Cho Teacher tạo hồ sơ trẻ bằng form nhanh có cấu trúc; cho phép tên hiển thị trùng nhau và dùng ID nội bộ opaque. |
 | FR-T-05 | M | Giới hạn mỗi hồ sơ Teacher ở tối đa một enrollment lớp hoạt động; khi chuyển lớp thì đóng và lưu enrollment trước đó. |
 | FR-T-06 | M | Nhận giáo án PDF/PPTX/DOCX tối đa 25 MB và 100 trang/slide; từ chối file mã hóa/password; trả OCR_NOT_SUPPORTED với trang scan. |
 | FR-T-07 | M | Giữ file giáo án gốc và provenance của text trích xuất; cho sửa thành revision text bất biến mới; yêu cầu Teacher xem và duyệt trước khi dùng. |
-| FR-T-08 | M | Tạo occurrence và plan cho buổi dạy, pin reusable lesson/version nếu được chọn; lesson dùng như preset. Một occurrence có thể giữ nhiều activity; Teacher sample ghim một activity và một child/run như baseline. |
+| FR-T-08 | M | Tạo occurrence và plan cho buổi dạy, pin optional typed `LessonVersionRefV1` với version/hash chính xác khi chọn reusable lesson; plan revision và Teacher StoryRun giữ cùng lineage ref/hash đã pin, không resolve `latest`. Một occurrence có thể giữ nhiều activity; Teacher sample ghim một activity và một child/run như baseline. Cách lưu vật lý chờ DDL được duyệt. |
 | FR-T-09 | M | Hoạt động Teacher tự nhập chỉ tồn tại trong occurrence đó và cần Teacher phụ trách xác nhận bằng safety checklist. |
 | FR-T-10 | M | Cho Teacher dùng child đại diện được chọn ngẫu nhiên từ roster đủ điều kiện, xác nhận một activity đã duyệt và snapshot context tối thiểu cho run. |
 | FR-T-11 | M | Cho Teacher chụp bằng camera trình duyệt hoặc tải ảnh chụp bằng điện thoại. |
@@ -491,7 +492,7 @@ Danh mục hiện có 80 FR riêng theo ID. AI Sketch cho Teacher là một lu�
 | FR-T-14 | M | Quyền run/media theo Teacher phụ trách hiện tại. Reassignment/offboarding là saga idempotent: BE1 fence/revoke quyền và token cũ ngay, lớp thành read-only; Story chuyển `active_owner_teacher_id`/lock trong transaction riêng; BE1 finalize chỉ sau Story receipt. Trong pending không Teacher nào xem content. Nếu Teacher mới có active run, Story trả conflict và saga phục hồi assignment/quyền cũ; nếu compensation mơ hồ, giữ pending/read-only để reconcile. `created_by_actor_ref` chỉ truy vết. Không hủy AI job hợp lệ chỉ vì đổi assignment. Kết quả chỉ được nhận nếu run/input/script/activity/occurrence hashes còn hợp lệ, cùng org/class, không cancel/delete và transfer receipt hiện hành chứng minh owner mới; assignment version cũ/creator không cấp quyền. |
 | FR-T-15 | S | Hiển thị trạng thái và kết quả mẫu của từng occurrence; ở VIDEO_READY cho phép Teacher chiếu, Hoàn tất hoặc Tạo lại; sau 168 giờ adult-wait idle tự hoàn tất. Không có hành động chạy theo toàn roster/batch. |
 | FR-T-16 | M | Chỉ Teacher phụ trách hiện tại mới có thao tác chiếu cho lớp. Ghi xác nhận occurrence có audit; cấp playback authorization ngắn hạn, không cấp capability dùng lại cho thành viên lớp. Đây không phải duyệt video cuối. |
-| FR-T-17 | M | Cho phép admin tổ chức force-close conflicting Teacher run chỉ qua command emergency có reason bắt buộc và metadata audit. Đóng run thành ABANDONED, nhả active-owner lock, không xóa run/media hoặc cho admin xem nội dung; quota đã nhận và sample claim thành công vẫn còn. Force-close là bước tường minh trước khi retry reassignment, không phải hành vi tự động của ordinary reassignment. |
+| FR-T-17 | M | Cho phép School Manager của organization sở hữu lớp/run force-close conflicting Teacher run chỉ qua command emergency tường minh có reason bắt buộc và metadata audit. Đóng run thành ABANDONED, nhả active-owner lock, không xóa run/media hoặc cho School Manager xem nội dung; quota đã nhận và sample claim thành công vẫn còn. Force-close là bước tường minh trước khi retry reassignment, không phải hành vi tự động của ordinary reassignment. Cách gán/lưu permission, scope và resolver còn OPEN tại §31.10. |
 | FR-T-18 | M | Chỉ tạo Teacher Sketch Deck khi Teacher bật line-sketch guide trong session; nếu tắt thì không tạo job. Khi bật, deck revision dùng chung cho occurrence/plan đã duyệt, bao quát activity list và không nhận roster, profile hoặc tranh trẻ làm input. |
 | FR-T-19 | M | Hiển thị deck trong Teacher web như bề mặt trình chiếu 16:9 nền trắng, ít chữ. Teacher điều khiển Back/Next, chọn activity/chủ thể trong plan, skip hướng dẫn và yêu cầu tạo lại một sketch. Không yêu cầu sửa text/layout/freehand hoặc xuất PPTX. Trẻ vẽ bằng giấy; video story của trẻ được mở/phát trong cùng occurrence sau khi pipeline video hoàn tất. |
 | FR-T-20 | M | Pin deck vào plan revision/hash đã duyệt; khi plan thay đổi, đánh dấu deck cũ STALE và chặn trình chiếu cho đến khi có deck READY mới. Regenerate tạo revision bất biến mới và chỉ thay asset của sketch được chọn. Sketch AI dùng rate limit/cost cap riêng, không trừ hoặc ghi `billing.video_quota_usage`. |
@@ -730,7 +731,7 @@ Các route dưới đây là nhóm resource, chưa phải OpenAPI cuối. Ngoài
 | /v1/teacher/profiles | Tạo/sửa hồ sơ qua form và profile context |
 | /v1/lessons và /v1/lesson-occurrences | Import, extraction status, revision chỉnh sửa, plan occurrence và phê duyệt |
 | /v1/lesson-occurrences/{id}/sketch-decks | Sinh deck từ approved plan revision, đọc trạng thái/revision hiện hành, lấy step/asset refs và regenerate đúng một sketch step. Mỗi command kiểm occurrence assignment, plan hash, idempotency key và sketch-specific rate/cost admission. |
-| /v1/activities | Đọc catalog Parent đã phát hành; Teacher chọn activity theo quyền |
+| /v1/activities | Route đề xuất đọc catalog Parent đã published/approved; có expose cho Parent run không preset và response/filter contract còn OPEN tại §31.10; Teacher chọn activity theo quyền |
 | /v1/story-runs | Tạo run một trẻ, gửi tranh/ý tưởng, review stage, yêu cầu viết lại, xác nhận script, hoàn tất/xóa |
 | /v1/story-runs/{id} | Đọc StoryRunDetailV1 tổng hợp hiện trạng và timeline an toàn; backend compose từ Story, AI Jobs, Core Asset, Lesson/Billing ports tùy run, không có cross-schema SQL hoặc nhiều endpoint bắt frontend phải ghép |
 | /v1/jobs/{job_id} | Poll trạng thái AI job/stage có version và lỗi an toàn |
@@ -1337,7 +1338,7 @@ Việc tiếp nhận hồ sơ Teacher phục vụ cùng mục đích người d�
 | Actor chính | Parent |
 | Điều kiện tiên quyết | Parent có quyền với hồ sơ; người lớn này không có run chưa kết thúc nào khác. Lesson/activities là tùy chọn; catalog activity không phải điều kiện nhận request video. |
 | Kích hoạt | Parent bắt đầu tạo câu chuyện |
-| Luồng chính | Tạo run gắn một hồ sơ; nếu dùng lesson thì pin version → chụp/chọn một bức vẽ → nhập văn bản và/hoặc ghi âm → tải asset gốc lên → nếu có voice thì chuyển thành transcript → người lớn xác nhận/chỉnh transcript → VLM đề xuất chủ thể → người lớn xác nhận/chỉnh chủ thể → duyệt context snapshot tối thiểu và optional lesson/script direction, không chọn activity → AI tạo kịch bản/storyboard → Parent có thể yêu cầu viết lại trong giới hạn → Parent xác nhận kịch bản/storyboard cuối → video qua admission rồi chạy bất đồng bộ → API đánh dấu artifact sẵn sàng, cấp playback token và hiển thị activity list của lesson nếu có → Parent xem rồi kết thúc |
+| Luồng chính | Tạo run gắn một hồ sơ; nếu dùng lesson thì pin đúng version → chụp/chọn một bức vẽ → nhập văn bản và/hoặc ghi âm → tải asset gốc lên → nếu có voice thì chuyển thành transcript → người lớn xác nhận/chỉnh transcript → VLM đề xuất chủ thể → người lớn xác nhận/chỉnh chủ thể → duyệt context snapshot tối thiểu và optional lesson/script direction, không chọn activity → AI tạo kịch bản/storyboard → Parent có thể yêu cầu viết lại trong giới hạn → Parent xác nhận kịch bản/storyboard cuối → video qua admission rồi chạy bất đồng bộ → API đánh dấu artifact sẵn sàng và cấp playback token → sau video, hiển thị activity list theo lesson version đã pin nếu có; cách lấy activity cho run không có preset còn OPEN tại §31.10 → Parent xem rồi kết thúc |
 | Luồng thay thế | Từ chối audio quá dài/quá lớn trước inference; chỉnh transcript tạo revision mới; chỉnh chủ thể chạy lại VLM; người dùng có thể yêu cầu tối đa ba lần viết lại story; từ chối output model sai định dạng/cũ; hết retry kỹ thuật thì đánh dấu run thất bại; video sẵn sàng nhưng không phù hợp thì quay lại bước rà soát kịch bản trong giới hạn tạo lại để cải thiện chất lượng |
 | Hậu điều kiện | Run hoàn tất gắn một trẻ, context hồ sơ đã ghim, lesson version optional đã pin và provenance kịch bản/video bất biến; Parent activity selection không phải điều kiện hoàn tất. Artifact riêng tư có thể phát; không trả URL tải xuống. |
 | Dữ liệu/yêu cầu | story.*; ai_jobs.*; core.asset_metadata/core.asset_lineage; FR-P và FR-AI |
@@ -1346,7 +1347,7 @@ Việc tiếp nhận hồ sơ Teacher phục vụ cùng mục đích người d�
 
 | Hạng mục | Đặc tả |
 |---|---|
-| Actor chính | Teacher phụ trách; admin tổ chức có thể quản lý thành viên roster |
+| Actor chính | Teacher phụ trách; School Manager của organization có thể quản lý thành viên roster |
 | Điều kiện tiên quyết | Teacher có phân công tổ chức và lớp đang active; lớp còn trong giới hạn sức chứa |
 | Kích hoạt | Teacher chọn Thêm trẻ |
 | Luồng chính | Teacher nhập các trường có cấu trúc → backend xác minh trách nhiệm lớp và scope tổ chức → tạo head hồ sơ và revision bất biến → tạo enrollment active cho lớp đã chọn → hồ sơ xuất hiện trong roster lớp đó |
@@ -1378,15 +1379,15 @@ Việc tiếp nhận hồ sơ Teacher phục vụ cùng mục đích người d�
 | Hậu điều kiện | Tối đa một video mẫu có thể phát và đã qua kiểm tra an toàn được giữ cho occurrence. Video đó gắn với một trẻ và một hoạt động. |
 | Dữ liệu/yêu cầu | lesson.*, story.*, ai_jobs.*, billing.video_quota_grants/video_quota_usage; ai_policy.resource_* chỉ cho GPU/compute metering; notifications.inbox_items/push_endpoints; FR-T-10–16, FR-AI, FR-B-10–14, BR-09–17, BR-38 |
 
-### UC-06 — Admin tổ chức quản lý sức chứa và lớp
+### UC-06 — School Manager quản lý sức chứa và lớp
 
 | Hạng mục | Đặc tả |
 |---|---|
-| Actor chính | Admin tổ chức |
-| Điều kiện tiên quyết | Admin có quyền admin tổ chức; có thể đọc subscription/sức chứa |
-| Kích hoạt | Admin tạo lớp, mua slot, phân công Teacher hoặc hạ sức chứa |
-| Luồng chính | Backend đọc sức chứa hiệu lực từ Billing → transaction tạo lớp khóa/kiểm tra slot còn trống → tạo lớp → admin phân công một Teacher phụ trách → cấp quyền roster |
-| Luồng thay thế | Khi hết sức chứa, tạo lớp mới trả CLASS_CAPACITY_REACHED; admin có thể chuyển sang luồng billing để mua thêm sức chứa; các thao tác tạo lớp đồng thời được tuần tự hóa; lớp bị tạm ngưng chỉ xem được; khi hạ gói phải chọn lớp sẽ tạm ngưng |
+| Actor chính | School Manager của organization |
+| Điều kiện tiên quyết | School Manager có quyền quản lý lớp và có thể đọc subscription/sức chứa; cách lưu/resolver permission còn mở tại §31.10 |
+| Kích hoạt | School Manager tạo lớp, mua slot, phân công Teacher hoặc hạ sức chứa |
+| Luồng chính | Backend đọc sức chứa hiệu lực từ Billing → transaction tạo lớp khóa/kiểm tra slot còn trống → tạo lớp → School Manager phân công một Teacher phụ trách → cấp quyền roster |
+| Luồng thay thế | Khi hết sức chứa, tạo lớp mới trả CLASS_CAPACITY_REACHED; School Manager có thể chuyển sang luồng billing để mua thêm sức chứa; các thao tác tạo lớp đồng thời được tuần tự hóa; lớp bị tạm ngưng chỉ xem được; khi hạ gói phải chọn lớp sẽ tạm ngưng |
 | Hậu điều kiện | Số lớp active không vượt sức chứa hiệu lực; mỗi lớp cho phép ghi có một Teacher phụ trách; quyền xem media được quản lý riêng. |
 | Dữ liệu/yêu cầu | be1.classrooms/assignments; billing.capacity_periods; FR-T-02/03, FR-B |
 
@@ -1402,11 +1403,11 @@ Việc tiếp nhận hồ sơ Teacher phục vụ cùng mục đích người d�
 | Hậu điều kiện | Nội dung run bị xóa theo lifecycle. Invoice Billing và audit metadata tối thiểu không bị ảnh hưởng. Không có thao tác xóa video riêng hoặc thời gian chờ để khôi phục từ thùng rác. |
 | Dữ liệu/yêu cầu | be1.data_lifecycle_requests, core.asset_metadata/lineage, story.*; FR-C-08, BR-26 |
 
-### UC-08 — Admin billing của tổ chức gia hạn hoặc đổi sức chứa
+### UC-08 — School Manager gia hạn hoặc đổi sức chứa organization
 
 | Hạng mục | Đặc tả |
 |---|---|
-| Actor chính | Admin tổ chức có quyền billing |
+| Actor chính | School Manager của organization có permission billing |
 | Điều kiện tiên quyết | Tổ chức có liên hệ billing, kỳ billing được chọn và price version đã cấu hình |
 | Kích hoạt | Mua/nâng gói, đổi thiết lập tự gia hạn, đến hạn gia hạn, thanh toán thất bại hoặc hạ gói |
 | Luồng chính | Tạo snapshot invoice → bắt đầu thao tác subscription/thanh toán MoMo/VNPAY → xác minh callback provider → ghi event unique và payment attempt theo transaction → cập nhật subscription/sức chứa → đưa thông báo vào hàng đợi |
@@ -1450,25 +1451,25 @@ Việc tiếp nhận hồ sơ Teacher phục vụ cùng mục đích người d�
 | Hậu điều kiện | Run không còn chiếm khóa active ngay khi lệnh được chấp nhận; media/private content được xóa theo lifecycle; quota đã tiêu thụ và Teacher sample claim không được hoàn lại. |
 | Dữ liệu/yêu cầu | story.runs; be1.data_lifecycle_requests; ai_jobs.cancellation_notice; core.asset_metadata/lineage; FR-C-08, BR-26, BR-40 |
 
-### UC-12 — Admin tổ chức đổi Teacher phụ trách và offboard
+### UC-12 — School Manager đổi Teacher phụ trách và offboard
 
 | Hạng mục | Đặc tả |
 |---|---|
-| Actor chính | Admin tổ chức được cấp quyền quản lý lớp |
-| Điều kiện tiên quyết | Lớp active có Teacher hiện hành; replacement thuộc tổ chức/provisioned. Normal transfer chỉ nhận nếu không có active-run lock conflict; emergency force-close được admin tổ chức tường minh trước retry. |
-| Kích hoạt | Admin chọn đổi Teacher hoặc offboard Teacher hiện tại |
+| Actor chính | School Manager của organization được cấp quyền quản lý lớp |
+| Điều kiện tiên quyết | Lớp active có Teacher hiện hành; replacement thuộc tổ chức/provisioned. Normal transfer chỉ nhận nếu không có active-run lock conflict; emergency force-close được School Manager tường minh trước retry. |
+| Kích hoạt | School Manager chọn đổi Teacher hoặc offboard Teacher hiện tại |
 | Luồng chính | Backend preflight quyền/assignment version → BE1 ghi transfer-pending và revoke old access/token ngay, lớp thành read-only → Story owner-transfer command kiểm tra uniqueness và chuyển `active_owner_teacher_id`/lock trong Story transaction → BE1 finalize current assignment sau receipt → new Teacher được cấp access; giữ creator provenance; ghi audit metadata/inbox. Job hợp lệ tiếp tục, completion chỉ nhận theo input/hash/occurrence/assignment fence hiện hành. |
-| Luồng thay thế | Teacher mới có run active thì Story trả conflict; saga bù BE1 về assignment cũ và khôi phục quyền cũ nếu được xác minh. Nếu thao tác bù timeout/mơ hồ, giữ transfer-pending/read-only và reconcile cùng idempotency key; không cấp content cho Teacher cũ/mới trước khi trạng thái nhất quán. Admin có thể force-close run xung đột bằng emergency Story command có reason/audit metadata; status thành ABANDONED, khóa được nhả, không xóa media hoặc cho admin xem. Sau đó admin retry reassignment. Quota/sample claim giữ nguyên. |
+| Luồng thay thế | Teacher mới có run active thì Story trả conflict; saga bù BE1 về assignment cũ và khôi phục quyền cũ nếu được xác minh. Nếu thao tác bù timeout/mơ hồ, giữ transfer-pending/read-only và reconcile cùng idempotency key; không cấp content cho Teacher cũ/mới trước khi trạng thái nhất quán. School Manager của organization sở hữu lớp có thể force-close run xung đột bằng emergency Story command tường minh có reason/audit metadata; status thành ABANDONED, khóa được nhả, không xóa media hoặc cho School Manager xem. Sau đó School Manager retry reassignment. Quota/sample claim giữ nguyên; authorization persistence/resolver còn mở. |
 | Hậu điều kiện | Khi finalize, lớp có đúng một Teacher current; `created_by_actor_ref` không đổi; quyền mới chỉ mở sau lock receipt; admin không xem media. Transfer pending không cho tạo run. |
 | Dữ liệu/yêu cầu | be1.organization_assignments/classrooms; story.runs(active owner); core.audit_events; notifications.inbox_items; FR-T-02/14/17, BR-05/06/41; Q130/Q134 |
 
-### UC-13 — Provision Teacher và khôi phục tài khoản người lớn
+### UC-13 — School Manager provision Teacher và khôi phục tài khoản người lớn
 
 | Hạng mục | Đặc tả |
 |---|---|
-| Actor chính | Admin tổ chức và người lớn cần kích hoạt/khôi phục tài khoản |
-| Điều kiện tiên quyết | Kênh xác minh identity đã cấu hình; admin được xác thực; scope Parent/Teacher chưa bị tiết lộ qua public lookup |
-| Kích hoạt | Admin mời Teacher hoặc người lớn khởi tạo khôi phục tài khoản |
+| Actor chính | School Manager của organization và người lớn cần kích hoạt/khôi phục tài khoản |
+| Điều kiện tiên quyết | Kênh xác minh identity đã cấu hình; School Manager được xác thực; scope Parent/Teacher chưa bị tiết lộ qua public lookup |
+| Kích hoạt | School Manager mời Teacher hoặc người lớn khởi tạo khôi phục tài khoản |
 | Luồng chính | Backend tạo/đảm bảo Firebase Authentication identity trước, ghi BE1 identity ở trạng thái chờ xác minh và assignment chưa active → Firebase Admin SDK tạo email-verification/password-reset action link → notification email adapter gửi link → người nhận xác minh và hoàn tất sign-in → backend xác minh Firebase ID token cùng `email_verified` rồi kích hoạt scope/assignment theo policy → trả kết quả tổng quát không tiết lộ UID ở scope khác. Firebase quản lý action code; ứng dụng chỉ lưu trạng thái identity/assignment, không thêm invitation-token table. |
 | Luồng thay thế | Link hết hạn/đã dùng trả trạng thái tổng quát và cho admin gửi lại; conflict Parent/Teacher account trả `ACCOUNT_SETUP_UNAVAILABLE` chung; email provider lỗi giữ invitation pending và có retry hữu hạn; nếu Firebase Auth không phát/kiểm tra được action link, không kích hoạt account và chuyển yêu cầu sang trạng thái retryable. |
 | Hậu điều kiện | Không có role claim do client tự cấp; audit lưu metadata; không lưu action token hoặc raw recipient email trong app database/log; provider-managed activation link được dùng một lần/hết hạn. |
@@ -1574,8 +1575,8 @@ Backend kiểm tra role và permission ở mọi thao tác đọc/ghi, cấp pla
 |---|---|---|---|
 | POST /v1/parent/profiles | Parent | Trường hồ sơ có giới hạn; không có organization ID | 201 profile ref + revision |
 | GET/PATCH /v1/parent/profiles/{profile_id} | Parent sở hữu | PATCH có expected revision; tạo revision bất biến mới | 200 profile projection/revision hiện tại |
-| POST /v1/organizations/{org_id}/classes | Admin tổ chức | Kiểm tra sức chứa hiệu lực trong transaction | 201 class ref hoặc CLASS_CAPACITY_REACHED |
-| POST /v1/classes/{class_id}/assignments | Admin tổ chức | Chính xác một Teacher phụ trách active | 200 assignment revision |
+| POST /v1/organizations/{org_id}/classes | School Manager của organization | Kiểm tra sức chứa hiệu lực trong transaction | 201 class ref hoặc CLASS_CAPACITY_REACHED |
+| POST /v1/classes/{class_id}/assignments | School Manager của organization | Chính xác một Teacher phụ trách active | 200 assignment revision |
 | POST /v1/classes/{class_id}/profiles | Teacher được phân công | Trường hồ sơ có cấu trúc và expected class revision; một enrollment active | 201 profile/enrollment ref |
 | POST /v1/lesson-occurrences | Teacher được phân công | Class ref, nhãn/ngày occurrence; xác minh sức chứa/phân công | 201 occurrence ref |
 | POST /v1/lesson-occurrences/{id}/documents | Teacher được phân công | Attach asset ref từ upload session đã hoàn tất; chỉ PDF/PPTX/DOCX ≤25 MB/100 trang/slide; source hash do server xác minh | 202 extraction job + source ref |
@@ -1634,7 +1635,7 @@ Hình dạng route là contract sẽ chốt trong OpenAPI. Đặc biệt, body t
 |---|---|---|
 | Android Parent | Đăng nhập/khôi phục tài khoản; danh sách/biểu mẫu hồ sơ trẻ; lịch sử run; chụp/chọn tranh; ý tưởng văn bản/audio; rà soát transcript; xác nhận/chỉnh chủ thể; catalog hoạt động; rà soát context snapshot; rà soát script/storyboard; tiến độ job; trình phát video; Hoàn tất/hủy run; tóm tắt quota/mua thêm; xóa run đã hoàn tất | Yêu cầu quyền theo ngữ cảnh; từ chối camera vẫn cho tải ảnh từ thư viện; từ chối microphone vẫn cho nhập ý tưởng; tiếp tục stage sau khi app chạy nền; trạng thái quota lấy từ server; không có batch trẻ/gallery/export |
 | Web Teacher | Đăng nhập; chọn tổ chức/lớp; roster; biểu mẫu hồ sơ có cấu trúc; lesson occurrence; upload/trích xuất tài liệu; rà soát/chỉnh revision văn bản trích xuất; plan/objective/hướng truyện/checklist hoạt động; chọn trẻ; camera/upload; rà soát transcript/chủ thể/context; rà soát script; tiến độ job; trình phát video; xác nhận chiếu theo occurrence; Hoàn tất/hủy run; tóm tắt quota tổ chức/mua thêm; lịch sử run/occurrence | Chỉ hiện lớp được phân công; checklist an toàn chặn duyệt plan; occurrence hiển thị trạng thái một video mẫu; chiếu cần xác nhận; không tạo hàng loạt theo roster |
-| Admin tổ chức | Dashboard tổ chức; xem sức chứa lớp; tạo/archive/tạm ngưng lớp; phân công Teacher phụ trách; quản trị roster; kỳ billing/invoice/trạng thái thanh toán; tự gia hạn/hạ gói; quota tổ chức/mua thêm; inbox thông báo | Khi tạo lớp kiểm tra sức chứa hiệu lực; hạ gói yêu cầu chọn lớp; màn hình billing không bao giờ để lộ media/story của trẻ |
+| School Manager | Dashboard organization; xem sức chứa lớp; tạo/archive/tạm ngưng lớp; phân công Teacher phụ trách; quản trị roster; kỳ billing/invoice/trạng thái thanh toán; tự gia hạn/hạ gói; quota tổ chức/mua thêm; inbox thông báo | Khi tạo lớp kiểm tra sức chứa hiệu lực; hạ gói yêu cầu chọn lớp; màn hình billing không bao giờ để lộ media/story của trẻ |
 | Quản trị nội dung | Nháp/rà soát/xuất bản catalog hoạt động | Version đã xuất bản là bất biến; thay đổi tạo version mới cần rà soát |
 | Dashboard operator | Health, queue, trạng thái tổng hợp job, đối soát billing, backlog lifecycle | Chỉ metadata vận hành đã loại thông tin nhạy cảm; không drill-down hồ sơ/story/media |
 
@@ -2102,7 +2103,7 @@ Phần này quy định evidence cần tạo trong tương lai; không khẳng �
 | Parent gửi hai profile ID trong một run | 422 MULTI_CHILD_NOT_SUPPORTED; không tạo run/job/media |
 | Parent mở hai run đồng thời | Một run thành công; run còn lại nhận 409 ACTIVE_RUN_EXISTS |
 | Teacher chọn trẻ không active-enrolled trong lớp được giao | Từ chối authorization; không tạo story run |
-| Organization admin yêu cầu media của Teacher run | Từ chối, không tiết lộ private run content |
+| School Manager yêu cầu media của Teacher run | Từ chối, không tiết lộ private run content |
 | Teacher assignment bị thu hồi sau khi tạo run | Các lần xem profile/story/playback tiếp theo bị thu hồi; metadata audit ghi sự kiện |
 | Teacher import lesson mã hóa hoặc PDF chỉ có scan | File mã hóa bị từ chối; scan trả OCR_NOT_SUPPORTED; không gọi OCR provider |
 | Teacher sửa extraction | Tạo text revision bất biến mới; plan/run hash cũ không đổi |
@@ -2264,7 +2265,7 @@ Mỗi requirement được liệt kê riêng để giữ đường truy vết ha
 | FR-P-02 | M | BR-01/18/27 | UC-02/16 | parent.child_profiles; parent.profile_revisions; core.upload_sessions; core.asset_metadata | Android API walkthrough: owned profile, camera/library asset and ownership-mismatch cases. AC-02/13. | P1 | DRAFT; nguồn Q/BR là quyết định đã chốt khi có dẫn chiếu; chưa sign-off |
 | FR-P-03 | M | BR-23 | UC-02/16 | story.run_inputs; story.transcript_revisions; ai_jobs.job; core.asset_metadata | ASR fixtures: ≤2m accepted, over-limit rejected, corrected transcript required before story. AC-08/21. | P1 | DRAFT; nguồn Q/BR là quyết định đã chốt khi có dẫn chiếu; chưa sign-off |
 | FR-P-04 | M | BR-15/16 | UC-02/16 | story.understanding_revisions; story.run_inputs; story.review_decisions; core.asset_lineage | VLM fixtures: detection, correction and new interpretation revision pinned to asset hash. AC-08/19. | P1 | DRAFT; nguồn Q/BR là quyết định đã chốt khi có dẫn chiếu; chưa sign-off |
-| FR-P-05 | M | BR-08 | UC-02/16 | learning_content.record/version/review/receipt | Catalog query: published versions only; deterministic filtering/order plus age/safety boundaries. AC-05. | P1 | DRAFT; nguồn Q/BR là quyết định đã chốt khi có dẫn chiếu; chưa sign-off |
+| FR-P-05 | M | BR-08 | UC-02/16 | learning_content.record/version/review/receipt | Catalog owner/version gate: only published and approved content is eligible. Parent no-preset query, filter/order/cardinality, snapshot and empty/revoke behavior remain OPEN at §31.10. AC-05/52. | P1 | DRAFT; source Q/BR is a recorded decision when cited; not signed off |
 | FR-P-06 | M | BR-19/21 | UC-02/16 | parent.profile_revisions/context_entries; story.run_inputs; story.review_decisions | Snapshot API rejects unapproved context; pins selected profile revision and context hash on the immutable run-input revision. AC-08. | P1 | DRAFT; nguồn Q/BR là quyết định đã chốt khi có dẫn chiếu; chưa sign-off |
 | FR-P-07 | M | BR-13/14 | UC-02/16 | story.story_revisions; story.story_scenes; story.review_decisions; ai_jobs.job | Three rewrites accepted, fourth denied; no direct scene-edit endpoint. AC-06. | P1 | DRAFT; nguồn Q/BR là quyết định đã chốt khi có dẫn chiếu; chưa sign-off |
 | FR-P-08 | M | BR-14/15 | UC-02/16 | story.runs; story.story_revisions; story.review_decisions; story.video_generations | Script confirmation gate and playback after safety; verify 168h closeout/no video approval. AC-06/07/22. | P1 | DRAFT; nguồn Q/BR là quyết định đã chốt khi có dẫn chiếu; chưa sign-off |
@@ -2479,7 +2480,7 @@ Lesson library là nguồn nội dung có version, có thể chứa:
 - Video script direction có thể bật/tắt theo lesson hoặc lần dùng; khi bật, script là hướng dẫn nội dung, không buộc video hai trẻ giống hệt.
 - Nội dung canonical của lesson là chữ có cấu trúc. Visual assets/slide do AI tạo là lựa chọn riêng, có version, provenance và review; chúng minh họa lesson/activity hoặc session, không thay thế văn bản nguồn và không bao giờ thay ảnh tranh trẻ dùng cho video.
 
-Reusable lesson version độc lập với lesson occurrence của một lớp/buổi. Teacher hoặc Parent dùng lesson như preset; occurrence/StoryRun pin đúng typed LessonVersionRefV1/version nếu có dùng lesson; ref này optional khi không dùng lesson. Platform Admin và Teacher được khởi tạo AI đề xuất chỉnh sửa; Parent chỉ được sửa draft/personal copy đã được cấp quyền, không tự khởi tạo suggestion mới. Mọi chỉnh sửa tạo draft/version/copy có lineage và cần người có quyền review; không sửa ngược source version đã publish hay làm thay đổi occurrence/run cũ. Personal copy của Parent phải giữ source-version lineage; owner model, retention và field allowlist của một copy tái sử dụng còn mở tại §31.10.
+Reusable lesson version độc lập với lesson occurrence của một lớp/buổi. Teacher hoặc Parent dùng lesson như preset; occurrence, plan revision và StoryRun dùng cùng optional typed `LessonVersionRefV1` với version và content hash chính xác trong contract/snapshot khi preset được chọn. Teacher StoryRun pin tiếp đúng lesson version/hash và approved plan revision/hash; Parent StoryRun cũng pin version/hash khi dùng preset. Khi không dùng lesson, các ref vắng mặt; không phân giải `latest`, không retarget occurrence/run cũ. Điểm lưu vật lý và constraint cụ thể chờ DDL được duyệt. Platform Admin và Teacher được khởi tạo AI đề xuất chỉnh sửa; Parent chỉ được sửa draft/personal copy đã được cấp quyền, không tự khởi tạo suggestion mới. Mọi chỉnh sửa tạo draft/version/copy có lineage và cần người có quyền review; không sửa ngược source version đã publish hay làm thay đổi occurrence/run cũ. Personal copy của Parent phải giữ source-version lineage; owner model, retention và field allowlist của một copy tái sử dụng còn mở tại §31.10.
 
 Visibility của lesson là PRIVATE, SCHOOL, SELECTED_AUDIENCE hoặc PUBLIC. Teacher lesson mặc định thuộc trường. SCHOOL chỉ xem trong organization sở hữu; SELECTED_AUDIENCE cấp quyền cho nhóm Parent hoặc người được mời; PUBLIC có thể tìm kiếm và dùng trên toàn nền tảng. Teacher lesson chỉ chuyển PUBLIC sau khi School Manager duyệt. Platform Admin có thể duyệt/hide/disable nội dung theo quyền nền tảng. Lesson public có thể được dùng và remix; remix luôn tạo item/version nguồn mới có provenance đến lesson gốc. Khi unpublish/revoke, giữ nội dung và lịch sử đã dùng nhưng thu hồi quyền truy cập thư viện. Lesson content chỉ mở lại sau khi public lại hoặc cấp grant mới.
 
@@ -2494,7 +2495,7 @@ Khi một lesson đã được dùng rồi bị unpublish, giữ lesson version,
 | Teacher | Lớp/profile được phân công trong trường; tạo/sửa lesson; dùng lesson preset; nhập lesson qua template/form; bật/tắt sketch trong session; tạo video mẫu cho một child/run. |
 | Parent | Tài khoản Parent riêng; sở hữu child profile; có thể cấp/revoke profile share; dùng lesson PUBLIC/được cấp; xem lesson đã dạy theo profile share; tạo video mới cho con; gửi lesson feedback. |
 
-Permission rà soát/publish/moderate nội dung catalog/lesson được quản lý trong policy của Platform Admin; “Admin nội dung” không phải product role hay principal đăng nhập riêng. Permission đó không bao hàm quyền child profile/media.
+Permission rà soát/publish/moderate nội dung catalog/lesson được quản lý trong policy của Platform Admin; “Admin nội dung” không phải product role hay principal đăng nhập riêng. Permission đó không bao hàm quyền child profile/media. Trong phạm vi SRS hiện tại, nhãn lịch sử “Organization Admin/admin tổ chức” cho quản trị tenant được chuẩn hóa thành School Manager của organization sở hữu resource; đây là thống nhất tên role, không chốt cách lưu identity/assignment, permission grant, scope resolver hoặc revoke/audit mapping.
 
 Mỗi trường là một organization/tenant. Organization boundary bắt buộc cho lesson SCHOOL, SELECTED, occurrence, Parent groups, feedback, quota và audit. Admin toàn nền tảng có thể moderate nhưng vai trò Manager/Teacher/Parent không vượt tenant.
 
@@ -2506,6 +2507,7 @@ Parent và Teacher không dùng chung account và không chuyển quyền sở h
 | School lesson | Dùng khi school/group/invite grant active | Tạo/sửa lesson của trường | Xem/feedback; approve Teacher public publication | Moderation/hide, platform-wide |
 | Public lesson | Tìm/dùng/download theo capability | Dùng/remix hoặc tạo own version | Duyệt Teacher publication | Tạo/publish/moderate |
 | Occurrence and child media | Chỉ child/run của mình | Chỉ assigned child/run, grant còn hiệu lực | Deny | Deny-by-default; chưa có permission workflow được duyệt |
+| Emergency force-close conflicting Teacher run | Không được cấp trong SRS hiện tại | Không được cấp trong SRS hiện tại | School Manager của organization sở hữu lớp/run là actor đích cho command tường minh; cách cấp/lưu permission và resolver còn OPEN | Platform Admin/Content Admin không được cấp qua role/permission nội dung; child media vẫn deny |
 | Lesson feedback | Tạo và xem thread của mình | Xem/reply nếu thuộc occurrence/lớp được giao | Xem/reply trong school tenant | Xem/reply; output chỉ thuộc school thread |
 | Quota | Xem/mua Parent scope | Dùng Teacher/school scope theo package | Mua/allocate school quota | Quản lý platform policy/quota |
 
@@ -2521,9 +2523,9 @@ AI hỗ trợ tạo lesson/activity/plan chỉ tạo draft; một người có q
 
 ### 31.5 Luồng Parent, Teacher và video sau khi thêm platform
 
-Parent: chọn lesson được phép hoặc bắt đầu theo luồng đích → trẻ bắt đầu vẽ → trong lúc vẽ, người lớn có thể bật line-sketch guide hoặc bỏ qua → vẽ xong thì chụp ảnh tranh → VLM đề xuất chủ thể → người lớn xác nhận hoặc sửa subject → duyệt profile context tối thiểu và script nếu dùng lesson direction → chạy pipeline video theo yêu cầu tại §6 từ tranh trẻ → video qua technical/safety gates và playback private → hiển thị một hoặc nhiều outdoor activities đã định nghĩa trong lesson.
+Parent: chọn lesson được phép hoặc bắt đầu không dùng preset → trẻ bắt đầu vẽ → trong lúc vẽ, người lớn có thể bật line-sketch guide hoặc bỏ qua → vẽ xong thì chụp ảnh tranh → VLM đề xuất chủ thể → người lớn xác nhận hoặc sửa subject → duyệt profile context tối thiểu và script nếu dùng lesson direction → chạy pipeline video theo yêu cầu tại §6 từ tranh trẻ → video qua technical/safety gates và playback private → nếu run đã pin lesson version, hiển thị các outdoor activities trong version đó. Với run không có preset, việc có query catalog global `learning_content` hay không và contract trả về còn OPEN tại §31.10.
 
-Các hoạt động không được yêu cầu chọn trước khi video tạo. Activity list có materials/instructions/notes; activity catalog bổ sung do AI gợi ý cần human review. Parent có thể dùng lesson public hoặc lesson được share; chỉnh sửa chỉ áp dụng cho bản cá nhân, không ghi lên nguồn chung.
+Các hoạt động không được yêu cầu chọn trước khi video tạo. Catalog Parent toàn cục do `learning_content` sở hữu; chỉ version published/approved đủ điều kiện làm nội dung dùng được. Activity list có materials/instructions/notes; activity catalog bổ sung do AI gợi ý cần human review. Với run không có preset, việc trả 0..n catalog activities, filter/order, version/hash snapshot, permission, empty response và tác động revoke/unpublish chưa được chốt. Parent có thể dùng lesson public hoặc lesson được share; chỉnh sửa chỉ áp dụng cho bản cá nhân, không ghi lên nguồn chung.
 
 Teacher target flow giữ occurrence/video sample. Teacher có thể tạo occurrence từ lesson preset hoặc plan tự tạo. Khi đang dạy, line-sketch chỉ được tạo nếu Teacher bật; tắt nghĩa là không enqueue job và không tính quota sketch. Một trẻ đại diện được chọn ngẫu nhiên từ roster đủ điều kiện và Teacher kiểm tra lựa chọn; cơ chế chọn và consent cụ thể còn mở. Mỗi occurrence tối đa một sample video thành công theo baseline.
 
@@ -2560,7 +2562,7 @@ Video generation của Teacher sample trừ quota của school organization gắ
 | FR-PL-13 | M | Lesson version hỗ trợ drawing steps, subject-learning notes, age target, một hoặc nhiều activities với materials/instructions/notes và optional script direction. |
 | FR-PL-14 | M | Bao gồm khả năng tạo visual activity/topic assets hoặc session slides theo lựa chọn; ghi provenance/version/safety và không chọn provider cố định. Việc tạo asset trong từng lesson/session là tùy chọn. |
 | FR-PL-15 | M | Chỉ tạo Parent hoặc Teacher line-sketch khi người lớn bật trong session; disabled thì không có generation job. |
-| FR-PL-16 | M | Giữ thứ tự Parent draw → capture → video pipeline → lesson activity list; không yêu cầu chọn outdoor activity trước video. |
+| FR-PL-16 | M | Giữ thứ tự Parent draw → capture → video pipeline → activity list từ lesson version đã pin (nếu có); không yêu cầu chọn outdoor activity trước video. Contract lấy activity cho run không preset còn OPEN tại §31.10. |
 | FR-PL-17 | M | Lesson script-following bật/tắt theo lesson/usage; nếu bật thì giữ story direction nhưng video vẫn generation mới theo child drawing/profile. |
 | FR-PL-18 | M | Không tái sử dụng video giữa trẻ; mỗi video dùng ảnh tranh và profile context được duyệt của đúng child. |
 | FR-PL-19 | M | Khi subject mismatch, yêu cầu adult confirm/correct trước khi re-suggest; không tự đổi chủ thể âm thầm. |
@@ -2583,7 +2585,7 @@ Video generation của Teacher sample trừ quota của school organization gắ
 | BR-52 | Original teacher lesson upload được giữ riêng; chỉ structured allowlist đã Teacher review được phép đi vào AI. |
 | BR-53 | AI lesson/activity/visual outputs mặc định DRAFT; human review/publish bắt buộc trước khi public/show. |
 | BR-54 | Parent và Teacher line-sketch chỉ chạy khi người lớn bật trong session; tắt thì không có AI job. |
-| BR-55 | Parent flow đặt lesson activities sau khi video hoàn tất; activity selection không là điều kiện tạo video. |
+| BR-55 | Parent flow đặt activity list sau khi video hoàn tất; activity selection không là điều kiện tạo video. Nếu có preset, dùng activities của lesson version đã pin; hành vi catalog khi không có preset còn OPEN tại §31.10. |
 | BR-56 | Video luôn mới theo tranh của đúng trẻ; không tái sử dụng video child khác. Lesson script-following là optional direction. |
 | BR-57 | Child profile/run age range là 36–120 tháng; age bands bên trong range có version và boundary còn mở. |
 | BR-58 | Lesson audience có thể là group Parent hoặc người cụ thể; mỗi audience membership/grant có thể thu hồi. |
@@ -2637,6 +2639,11 @@ Video generation của Teacher sample trừ quota của school organization gắ
 10. Nội dung chính xác của câu trả lời ngắn “có, cho phép” tại answer 46; không mở rộng quyền ngoài phạm vi chắc chắn cho đến khi gắn lại câu hỏi tương ứng.
 11. Nếu Platform Admin cần hỗ trợ xem child media trong tương lai: ai duyệt từng yêu cầu, scope/purpose, thời hạn/expiry, audit detail và có hay không break-glass. Hiện tại mọi request đều bị deny; chưa có workflow.
 12. Personal copy của Parent là bản theo một lần dùng/run hay lesson reusable do Parent sở hữu; field allowlist, version/lineage và retention tương ứng.
+13. Parent run không có lesson preset có trả activity từ catalog global `learning_content` hay không; nếu có, điều kiện lọc/permission, cardinality, thứ tự, version/hash snapshot, cách trả empty result và ảnh hưởng của revoke/unpublish. Catalog owner và version được publish/approve đã xác định; không chọn activity trước video.
+14. Role/permission persistence và resolver: principal/actor ID, cách gán và thu hồi scope School Manager, permission force-close, Platform Admin và các permission nội dung, version/effective time, audit mapping. “Admin nội dung” là permission của Platform Admin; nhãn organization admin cho quản trị tenant được chuẩn hóa thành School Manager nhưng không quyết định physical identity model.
+15. Khi approved lesson plan revision bị supersede sau khi occurrence/run/job đã pin: accepted run/job có tiếp tục hay dừng ở từng state, ảnh hưởng tới Sketch Deck READY/STALE, occurrence approval, sample claim, quota và quyền chiếu; không retarget hoặc hủy/refund theo suy luận.
+16. Policy cho hồ sơ legacy hiện có nằm ngoài 36–120 tháng nhưng trong khoảng schema cũ 36–155 tháng: quyền read/edit/new run/archive/delete và migration/backfill. Không clamp, xóa hay viết lại giá trị nguồn nếu chưa có owner decision.
+17. Physical audit schema/field mapping và retention cho quyết định allow/deny hoặc hành động nhạy cảm, gồm actor/action/resource/tenant/purpose/reason/permission revision/correlation/timestamp. Giữ audit metadata-only; child-media access vẫn deny cho tới khi workflow được duyệt.
 
 ### 31.11 Trace câu trả lời owner 1–49
 

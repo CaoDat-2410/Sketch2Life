@@ -1,5 +1,13 @@
 # Status
 
+## Rev53 v2.6 checklist reconciliation — 2026-11-07
+
+- Lifecycle: READY FOR PUBLICATION; approved documentation changes are prepared within the exact package manifest.
+- Target pair: canonical SRS and Data Table Register v2.7-draft, unsigned. Owner formal sign-off is still pending.
+- Product changes are limited to supported logical clarifications. Parent no-preset activity, plan supersession, role persistence, legacy ages, audit schema/retention and physical DDL/migration remain open.
+- `git diff --check` and repository security validation pass; final path-scoped review is complete. Normal publication is pending. No product test/build/runtime/provider/database operation is in scope.
+- Plan/approval: Plan Rev53 and hash-identified approval are recorded in root and feature approval registers. Evidence is being prepared in `evidence/EV-063-58_SRS_V26_CHECKLIST_REMEDIATION_20261107.md`.
+
 ## Rev52 SRS contradiction reconciliation — 2026-11-06
 
 - Lifecycle: COMPLETE for the reviewed documentation package; publication to the isolated origin branch is verified.

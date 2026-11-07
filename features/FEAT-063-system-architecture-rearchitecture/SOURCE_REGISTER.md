@@ -1,6 +1,13 @@
 # FEAT-063 source register
 
-## Rev52 SRS contradiction reconciliation — current — 2026-11-06
+## Rev53 v2.6 checklist reconciliation — current — 2026-11-07
+
+- Canonical SRS and companion advance to v2.7-draft, unsigned. The supplied checklist is review evidence, not product-requirements authority.
+- Preserve D-146 owner decisions: Content Admin is a Platform Admin permission; Platform Admin child-media access stays deny-by-default pending a separately approved workflow; Teacher video uses only school organization quota.
+- Clarify exact optional LessonVersion ref/version/hash lineage, multi-owner admission saga, School Manager terminology, and the current 54 new / 92 active + 48 legacy = 140 target count. Preserve unresolved activity, supersession, role persistence, age-migration, audit, DDL and migration questions.
+- Worktree: isolated branch `docs/feat063-srs-v26-checklist-20261107`; publication pending. Evidence: `evidence/EV-063-58_SRS_V26_CHECKLIST_REMEDIATION_20261107.md`.
+
+## Rev52 SRS contradiction reconciliation — historical publication record — 2026-11-06
 
 - Canonical SRS and companion advance to v2.6-draft, unsigned. The review report is evidence only.
 - Owner decisions recorded in D-146: Content Admin is a Platform Admin permission; Platform Admin child-media access is deny-by-default pending a separately approved workflow; Teacher video usage draws only from school quota.
