@@ -164,3 +164,9 @@ Rechecks all M-01–M-16, D-01–D-20, Q-01–Q-13 and R-01–R-05 against the s
 - Draft TO-BE diagram inputs: [DIAGRAM_INPUT_CATALOG_V27_REV54_20261107.md](../artifacts/DIAGRAM_INPUT_CATALOG_V27_REV54_20261107.md).
 - Evidence: [EV-063-59_DIAGRAM_CHECKLIST_REVIEW_20261107.md](EV-063-59_DIAGRAM_CHECKLIST_REVIEW_20261107.md).
 - Status: documentary cross-check complete; final diagrams and as-built claims remain gated; SRS v2.7-draft remains unsigned.
+
+## EV-063-60 — two-agent diagram readiness assessment
+
+Records two independent reviews of the canonical FEAT-063 v2.7-draft SRS and Data Table Register for all requested diagram types. Includes per-diagram readiness, verified contradictions, open gates, and the distinction between target requirements and dated as-built evidence.
+
+See [EV-063-60_TWO_AGENT_DIAGRAM_READINESS_ASSESSMENT_20261107.md](EV-063-60_TWO_AGENT_DIAGRAM_READINESS_ASSESSMENT_20261107.md). The SRS/Register remain unsigned; no diagrams were created.
