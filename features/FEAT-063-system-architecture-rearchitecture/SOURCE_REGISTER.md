@@ -353,4 +353,5 @@
 - Source branch tip before update: 7d35ee3cd75ae7b34a71433daa2231781c9bc60c on docs/feat063-diagram-readiness-20261107.
 - Synchronized the ten remaining groups across SRS §31.10, Data Table Register §14.3, and artifacts/DIAGRAM_INPUT_CATALOG_V27_REV56_20261108.md.
 - Corrected UC-05/FR-T-10/FR-PL-20/AC-56 selection wording. Q-01 policy details remain OPEN; no new product decision or schema definition was inferred.
-- Evidence: evidence/EV-063-61_TEN_GROUP_DIAGRAM_READINESS_ALIGNMENT_20261108.md. No runtime/source/schema inspection, test/build, commit or push.
+- Evidence: evidence/EV-063-61_TEN_GROUP_DIAGRAM_READINESS_ALIGNMENT_20261108.md. No runtime/source/schema inspection, product test/build or migration.
+- Publication: package commit 09cfc5ca396016cbb7b238a5c744e004f7c7025a was pushed to origin/docs/feat063-diagram-readiness-20261107; fresh git ls-remote confirmed the same SHA. Repository security validation passed before commit and push (6,576 publishable files scanned).

@@ -23,5 +23,6 @@ Eligibility, consent/guardian notice, exclusion, reselection, no-eligible respon
 
 - No owner decision was closed. No new rule, schema/table, key, state, permission, DDL, endpoint, or final diagram was created.
 - Physical ERD remains blocked on approved DDL/constraints and approved source-to-target migration mapping. As-built diagrams still require current code/schema evidence. All 13 diagram handoff artifacts must later cite requirement/decision IDs and the same approved SRS/Register baseline; that baseline is not approved yet.
-- No product tests/builds, source/runtime/API/database/provider inspection, migration, security validation, commit, or push was run.
-- git diff --check: PASS for this documentation-only working-tree diff.
+- No product tests/builds, source/runtime/API/database/provider inspection, or migration was run.
+- `git diff --check`: PASS. Repository security validation passed before commit and push (`publishable_files_scanned=6576`).
+- Publication: commit `09cfc5ca396016cbb7b238a5c744e004f7c7025a` was pushed to `origin/docs/feat063-diagram-readiness-20261107`; fresh `git ls-remote` confirmed the same SHA.
