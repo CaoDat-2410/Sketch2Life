@@ -1,4 +1,7 @@
 # FEAT-063 decisions
+## Rev56 status note — 2026-11-08
+
+No owner/product decision was added or closed by the ten-group diagram-readiness alignment. Existing D/M/Q/R references and their settled subparts are preserved; Q-01 and all listed policy/technical questions remain at their recorded OPEN status. See artifacts/DIAGRAM_INPUT_CATALOG_V27_REV56_20261108.md.
 
 | ID | Decision | Authority/status |
 |---|---|---|

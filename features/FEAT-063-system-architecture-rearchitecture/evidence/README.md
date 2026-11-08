@@ -170,3 +170,5 @@ Rechecks all M-01–M-16, D-01–D-20, Q-01–Q-13 and R-01–R-05 against the s
 Records two independent reviews of the canonical FEAT-063 v2.7-draft SRS and Data Table Register for all requested diagram types. Includes per-diagram readiness, verified contradictions, open gates, and the distinction between target requirements and dated as-built evidence.
 
 See [EV-063-60_TWO_AGENT_DIAGRAM_READINESS_ASSESSMENT_20261107.md](EV-063-60_TWO_AGENT_DIAGRAM_READINESS_ASSESSMENT_20261107.md). The SRS/Register remain unsigned; no diagrams were created.
+
+- [EV-063-61 — Ten-group diagram-readiness alignment](EV-063-61_TEN_GROUP_DIAGRAM_READINESS_ALIGNMENT_20261108.md) — documentation-only synchronization; owner and technical gates remain open.

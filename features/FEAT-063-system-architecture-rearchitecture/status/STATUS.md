@@ -1,4 +1,12 @@
 # Status
+## Rev56 ten-group diagram-readiness alignment — 2026-11-08
+
+- Lifecycle: COMPLETE for the approved documentation-only synchronization on the isolated diagram-readiness branch.
+- SRS and Data Table Register remain v2.7-draft and unsigned. Rev56 adds a traceable successor input catalog and aligns UC-05, FR-T-10, FR-PL-20 and AC-56 to system random selection plus Teacher confirmation.
+- Q-01 eligibility/consent/reselection/no-eligible/evidence details and the other owner/technical gates remain OPEN; no settled requirement was reopened.
+- Physical ERD, final diagrams, and as-built diagram claims remain blocked by their stated approval/evidence gates.
+- git diff --check passed. No product tests/builds/runtime/provider/database checks, commit or push were performed.
+- Plan/approval and evidence: plan/PLAN_REV56_TEN_GROUP_DIAGRAM_READINESS_ALIGNMENT_20261108.md, approvals/TASK_APPROVAL.md, and evidence/EV-063-61_TEN_GROUP_DIAGRAM_READINESS_ALIGNMENT_20261108.md.
 
 ## Rev54 v2.6 checklist audit and diagram readiness — 2026-11-07
 

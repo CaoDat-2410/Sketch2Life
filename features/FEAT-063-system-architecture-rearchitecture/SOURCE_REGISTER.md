@@ -346,3 +346,11 @@
 - Teacher sample-child selection has conflicting wording; other unanswered diagram inputs remain open and are not inferred.
 - Evidence: evidence/EV-063-60_TWO_AGENT_DIAGRAM_READINESS_ASSESSMENT_20261107.md. Plan/approval: PLAN_REV55_TWO_AGENT_DIAGRAM_READINESS_ASSESSMENT_20261107.md and both TASK_APPROVAL.md records.
 - No SRS, Data Table Register, product code, schema or diagram was modified.
+
+## Rev56 ten-group diagram-readiness alignment — current — 2026-11-08
+
+- Canonical working SRS/Data Table Register: v2.7-draft at 98cc34a39af279560b5f8d39f18939a376535834; unsigned.
+- Source branch tip before update: 7d35ee3cd75ae7b34a71433daa2231781c9bc60c on docs/feat063-diagram-readiness-20261107.
+- Synchronized the ten remaining groups across SRS §31.10, Data Table Register §14.3, and artifacts/DIAGRAM_INPUT_CATALOG_V27_REV56_20261108.md.
+- Corrected UC-05/FR-T-10/FR-PL-20/AC-56 selection wording. Q-01 policy details remain OPEN; no new product decision or schema definition was inferred.
+- Evidence: evidence/EV-063-61_TEN_GROUP_DIAGRAM_READINESS_ALIGNMENT_20261108.md. No runtime/source/schema inspection, test/build, commit or push.

@@ -1,9 +1,9 @@
 # Sketch2Life — Danh mục bảng dữ liệu
 
 **Tính năng:** FEAT-063 — Thiết kế lại kiến trúc toàn repository  
-**Trạng thái tài liệu:** Bản nháp v2.7 đồng bộ package SRS; đối chiếu checklist remediation v2.6, giữ target platform/data model và crosswalk Rev31, ghi nhận snapshot DB local Rev43; chưa sign-off
+**Trạng thái tài liệu:** Bản nháp v2.7 đồng bộ package SRS; Rev56 đồng bộ mười nhóm readiness diagram, không thay đổi target data model/DDL; ghi nhận snapshot DB local Rev43; chưa sign-off
 **Phiên bản:** 2.7-draft
-**Cập nhật:** 2026-11-07
+**Cập nhật:** 2026-11-08
 **SRS đi kèm:** [SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md](SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md)  
 **Điều kiện tạo diagram/PDF:** Chỉ tạo diagram khái niệm, logic và PDF sau khi chủ sở hữu phê duyệt cả hai tài liệu Markdown.
 
@@ -687,7 +687,7 @@ Các bảng dưới đây là 11 bảng logical target bổ sung; chúng không 
 - Indexes/unique constraints cụ thể cho active audience grants, version pin, recipient snapshot và feedback reply.
 - Bên nào cấp/publish platform-admin-authored public lesson và record review nào được yêu cầu.
 - Parent history 30/60 ngày; sau unpublish vẫn giữ version/occurrence/history metadata nhưng lesson content chỉ mở lại khi public lại hoặc grant lại.
-- Chọn child sample random, consent eligibility và cách ghi snapshot trong occurrence.
+- Hệ thống chọn ngẫu nhiên child theo tập eligibility/consent policy được chủ sở hữu duyệt; Teacher xác nhận child/context trước run. Chi tiết eligibility, consent/guardian notice, exclusion, reselect, no-eligible behavior, selection evidence và snapshot trong occurrence còn OPEN theo Q-01.
 - Mapping triển khai/API và migration cho AI Job target-kind/ref/version; tập target sản phẩm gồm đủ tám loại theo SRS §9.5, §11.1 và §31.13.
 - Số included units/giá và quy trình Manager mua/allocate school quota cùng Parent package/top-up; scope Teacher-to-school và charge order included-current-month rồi top-up FIFO đã được chốt.
 - Parent run không có LessonVersion preset có query activity catalog global `learning_content` hay không; filter/permission, thứ tự/cardinality, exact version/hash snapshot, empty result và revoke/unpublish behavior còn OPEN. Nếu sau này được duyệt dùng catalog, chỉ dùng version published/approved và pin theo contract; không thêm catalog owner/bảng từ checklist.
@@ -699,6 +699,22 @@ Các bảng dưới đây là 11 bảng logical target bổ sung; chúng không 
 
 Không chạy migration, không truy cập database đang hoạt động, không gọi AI provider, không thực hiện product test/build và không tạo generated asset trong amendment này. Các entity trên là logical proposal; trước implementation phải có plan/approval riêng, kiểm tra migration hiện tại và giữ nguyên mọi row/ID/source asset.
 
+#### 14.3.1 Trace mười nhóm readiness diagram
+
+| Nhóm | Mapping/data anchor | Trạng thái | Việc còn phải đóng |
+|---|---|---|---|
+| 01 Teacher Random Child | Q-01/D-06; lesson.occurrences, be1 enrollment/profile refs, lesson.plan_activities, story.run_inputs | OPEN-OWNER | Policy eligibility/consent, reselect, no-eligible response, selection evidence and whether/how to record an occurrence-level selection snapshot remain open; system random selection and Teacher confirmation are aligned. Keep separate from the required context snapshot in run input. |
+| 02 Profile Sharing & Identity Matching | M-11/M-15/D-09/Q-04; parent.profile_share_grants, be1 managed profile refs, lesson.delivery_recipients | PARTIAL / OPEN-OWNER | Keep the fixed typed profile/grant/version refs and no-name-join fence; define the exact three-way link owner/cardinality, field scope, tenant, school/class invitation acceptor, expiry/revoke and permitted history after revoke. No cross-owner FK. |
+| 03 Role & Permission | D-07/Q-13/M-04; principals, organization assignments, permission/audit mapping | PARTIAL / OPEN-OWNER | Content Admin permission and media default deny remain settled; UC/screen label is Platform Admin (Content Admin permission), not a separate role. Principal/scope/resolver/version/revoke/force-close storage and enforcement remain open. |
+| 04 Plan Supersession | M-10; lesson occurrences/plan revisions/deck refs and Story/AI Job opaque refs | PARTIAL / OPEN-OWNER | Keep the exact version/hash pin and stale fence; decide effects by accepted/queued/running/ready and playable-output point on deck, approval, claim, quota, projection and stale output. No inferred table/state. |
+| 05 Parent without Lesson Preset | R-04; learning_content is catalog owner, optional source only | PARTIAL / OPEN-OWNER | Whether queried and, if approved, filter/access/order/cardinality, exact version/hash pin and response snapshot, empty result, revoke/unpublish behavior. Do not add a table by inference. |
+| 06 Remaining business policies | Q-02–Q-12; D-04/D-08/D-14; OI-06; §§5.7/8/14.3 | OPEN-OWNER / OPEN-TECHNICAL by item | School quota allocation/pricing, Parent personal copy, lesson publication/AI visual review, age bands, Parent history 30/60 days, script-following, legacy 121–155-month behavior and audit retention; owner/status per source records. |
+| 07 Physical Database & ERD | D-01–D-04/D-16; OI-11; 38 retained/refactored + 54 new active mappings; 48 legacy | OPEN-TECHNICAL | Approve Physical Data Dictionary/DDL: SQL type, NULL/DEFAULT, PK/FK, UNIQUE/CHECK, indexes/partial predicates and FK actions; approve source-field/backfill/migration mapping; distinguish target from code/schema-evidenced as-built. |
+| 08 State Machine & Activity | D-10/D-11; M-08–M-10/M-16; SRS §§6/22–23 | OPEN-OWNER / OPEN-TECHNICAL | Exhaustive transition matrix by aggregate/source state: event, actor, guard, effect, target state, timeout, retry, revoke, cancel and exception for all registered states. |
+| 09 API & Sequence | D-18/R-02/Q-02; SRS §21 and API Rev37 catalog | OPEN-TECHNICAL | Method/endpoint, request-response schema, errors, authorization, version, idempotency, event/outbox, async timeline, timeout, reconciliation and compensation; separate proposed contracts from mounted source evidence. |
+| 10 Screen Flow, Class & Package | D-17/D-19/D-20/OI-17; learning_content/ai_jobs/ai_policy owners | OPEN-DESIGN / OPEN-TECHNICAL | Screen IDs/navigation edges/back/cancel/resume/UI states; class attributes/methods/interfaces/ports; package ownership/dependency rules and current source import/cycle verification remain incomplete. No source-compliance claim from target layering alone. |
+
+These rows are trace links to existing readiness/question IDs, not new schema or policy decisions. See SRS §31.10 and DIAGRAM_INPUT_CATALOG_V27_REV56_20261108.md.
 ### 14.4 Rev31 backend implementation support tables (additive)
 
 The v2.3 product-design baseline at 89 active tables remains a draft. Rev31 implementation source adds three Lesson-owned persistence tables required to keep reusable-library uploads separate from occurrence-owned documents and to provide durable idempotent command receipts. The current implementation crosswalk is 38 retained/refactored + 54 new = 92 active, plus 48 legacy/read-only = 140 projected physical mappings. These counts are source-derived; at the time of Rev31 (2026-10-28), no live database was inspected and no migration was applied. The later local snapshot is recorded separately in §14.5. This crosswalk does not sign off the SRS content.

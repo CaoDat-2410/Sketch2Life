@@ -197,3 +197,30 @@
 - **Package commit:** 33c40d17ff77f31b1d128ce35c1f641a2fe6de8a was normally pushed to origin/docs/feat063-diagram-readiness-20261107; fresh git ls-remote confirmed the same SHA.
 - **Validation:** git diff --cached --check passed for the exact 10-path manifest. Repository security validator passed before package commit and push; each run scanned 6,573 publishable files.
 - **Limits:** No SRS sign-off, final diagrams, product tests/build/runtime/provider/database work, PR, merge, dev update, or force push.
+
+## FEAT-063 Plan Rev56 — ten-group diagram readiness alignment
+
+- Status: APPROVED for the exact documentation-only scope in Plan Rev56; not SRS content sign-off or final diagram approval.
+- Approver: Project owner, direct request on 2026-11-08: “fix cái này” with the ten-group checklist.
+- Recorded date: 2026-11-08, Asia/Saigon.
+- Plan: features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV56_TEN_GROUP_DIAGRAM_READINESS_ALIGNMENT_20261108.md.
+- Plan SHA-256 at authorization: 4CAFAF01879AB864ECDFAEF872A057F74BFC15B6D809AEA6855414C6574F7447.
+- Scope: AC1–AC8 in the hash-identified plan and only its 13-path manifest; align the sample-selection wording and cross-document readiness trace.
+- Exclusions: product code/API/schema/DDL/migration/tests/build/runtime/provider/database changes; owner policy closure; final diagrams; SRS sign-off; commit/push/PR/merge/dev update/force-push; paths outside the manifest.
+- Approval basis: the owner's direct request authorizes this bounded documentation update. The checklist does not approve its own OPEN decisions.
+
+### Plan Rev56 local review closeout
+
+- Reviewed plan SHA-256: 4CAFAF01879AB864ECDFAEF872A057F74BFC15B6D809AEA6855414C6574F7447.
+- git diff --check passed for the documentation-only working tree.
+- No commit/push or security validation was run because publication was not requested.
+- SRS/Register remain v2.7-draft and unsigned; open owner decisions and technical gates remain open.
+
+### Plan Rev56 publication authorization addendum — revision 2
+
+- Status: APPROVED for commit and push of the exact 13-path manifest in Plan Rev56 revision 2.
+- Approver: Project owner, direct instruction on 2026-11-08: “commit and push”.
+- Plan SHA-256: F17C145F2C3A61CA1983C2FF9B6DF287ABBFEA2E6DFBDDC4F1CD31481794EB45.
+- Target: `docs/feat063-diagram-readiness-20261107` to `origin/docs/feat063-diagram-readiness-20261107`, fast-forward only.
+- Commit message: `docs(FEAT-063): align ten diagram readiness gates`.
+- Limits: No paths outside the manifest, PR, merge, dev update, force-push, tests/builds, SRS sign-off, or final diagrams.

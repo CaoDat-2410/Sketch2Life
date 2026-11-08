@@ -1,4 +1,11 @@
 # FEAT-063 — Whole-repository architecture redesign
+## Rev56 ten-group diagram-readiness alignment — 2026-11-08
+
+- Lifecycle: COMPLETE for the bounded documentation-only synchronization; SRS/Data Table Register remain v2.7-draft and unsigned.
+- Aligned system random selection and Teacher confirmation across UC-05, FR-T-10, FR-PL-20, AC-56, the Teacher responsibility/screen/error traces and §5.2; retained Q185 as source wording with a current-flow note. Q-01 keeps eligibility, consent, exclusion, reselection, no-eligible handling and selection evidence/snapshot placement OPEN.
+- Mapped all ten remaining groups to existing SRS/Register and M/D/Q/R/OI references in the Rev56 catalog. Settled sub-decisions remain unchanged.
+- Physical ERD and final diagram approval remain gated; every final artifact must trace to requirement/decision IDs on one approved SRS/Register baseline. No new product policy, schema, state, permission, API, implementation, or as-built claim was produced.
+- Evidence: evidence/EV-063-61_TEN_GROUP_DIAGRAM_READINESS_ALIGNMENT_20261108.md; catalog: artifacts/DIAGRAM_INPUT_CATALOG_V27_REV56_20261108.md.
 
 ## Rev54 v2.6 checklist audit and diagram readiness — 2026-11-07
 

@@ -660,3 +660,7 @@ The implementation is limited to those approved source/test manifests. The focus
 - Assessment covers Context, Use Case, Workflow, Activity, Sequence, Screen Flow, Class, conceptual/logical/physical ERD, State Machine, System Architecture and Package. It distinguishes draftable inputs from final approval and physical-schema gates.
 - No canonical SRS/Register edits or final diagrams were made. Detailed findings: features/FEAT-063-system-architecture-rearchitecture/evidence/EV-063-60_TWO_AGENT_DIAGRAM_READINESS_ASSESSMENT_20261107.md.
 - Publication is scoped to docs/feat063-diagram-readiness-20261107; it does not update dev or sign off product requirements.
+
+## FEAT-063 Rev56 diagram-readiness alignment — 2026-11-08
+
+Canonical working source remains the FEAT-063 v2.7-draft SRS and matching Data Table Register; both unsigned. The ten-group readiness synchronization and the UC-05 system-selection/Teacher-confirmation wording are recorded in features/FEAT-063-system-architecture-rearchitecture/artifacts/DIAGRAM_INPUT_CATALOG_V27_REV56_20261108.md and evidence EV-063-61. Open owner decisions and technical gates remain open; no final diagram or as-built verification is claimed.
