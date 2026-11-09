@@ -232,6 +232,7 @@ def create_app(
     _composition_profile: Literal["combined", "classroom", "demo"] = "combined",
 ) -> FastAPI:
     """Create the compatibility or explicitly scoped classroom/demo HTTP app."""
+    _custom_session_service = session_service is not None
     storage_example_settings = get_settings()
     story_flag = os.environ.get("STORYRUN_LITE_MAIN_DEMO_ENABLED", "0")
     if story_flag not in {"0", "1"}:
@@ -1006,10 +1007,17 @@ def create_app(
         application.state.runtime_openapi_schema = schema
         return application.state.runtime_openapi_schema
 
-    def be1_openapi_schema() -> dict[str, object]:
-        if application.openapi_schema is not None:
-            return application.openapi_schema
+    def be1_openapi_schema(*, fe_projected: bool | None = None) -> dict[str, object]:
         runtime_schema = build_runtime_openapi_schema()
+        should_project = (
+            fe_projected
+            if fe_projected is not None
+            else (_composition_profile == "combined" and not _custom_session_service)
+        )
+        if not should_project:
+            return runtime_schema
+        if application.openapi_schema is not None and fe_projected is None:
+            return application.openapi_schema
         schema = project_srs_v22_openapi(runtime_schema)
         if story_demo_enabled:
             schema["paths"].update(
