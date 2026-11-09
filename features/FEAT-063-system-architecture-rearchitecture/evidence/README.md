@@ -6,6 +6,7 @@ EV-063-13 records the pre-platform table-reduction and relationship-integrity ba
 
 | ID | Type | Purpose | Artifact |
 |---|---|---|---|
+| EV-063-58 | Rev53 SRS v2.6 checklist remediation | Source/hash and visual-review provenance; detailed disposition of M-01–16, D-01–20, Q-01–13 and R-01–05; fixed/clarified/open gates and publication evidence | `EV-063-58_SRS_V26_CHECKLIST_REMEDIATION_20261107.md` |
 | EV-063-56 | Rev51 source review and publication | Current `origin/dev` API/Modal source crosswalk, publication results and scope limits | `EV-063-56_SRS_PUBLICATION_REV51_20261106.md` |
 | EV-063-55 | Rev45 SRS/code alignment | SRS model-role reconciliation and earlier local source crosswalk, reindexed to avoid the existing EV-063-34 collision | `EV-063-55_SRS_SYSTEM_CODE_ALIGNMENT_REV45_20261106.md` |
 | EV-063-37 | Current FE Swagger | SRS v2.2 implementation scope and live/snapshot parity | EV-063-37_SWAGGER_SRS_V22_SCOPE_20261101.md |
@@ -163,3 +164,34 @@ Records the six patch-equivalent local `dev` commits, preservation backup, full 
 - Integration report: [`EV-063-57_SRS_V25_AND_MODAL_AI_DEV_INTEGRATION_20261106.md`](EV-063-57_SRS_V25_AND_MODAL_AI_DEV_INTEGRATION_20261106.md).
 - Source commits: SRS `fae180dcf3ea2771b41546aa6925b94636821df1`; Modal AI `c6818490d0d889ab17dc9f8de3830987eb2a230d`.
 - Status: complete; `origin/dev` was verified at integration commit `47e5308a5c547df8dab5f3c560f949ee925f441e`; final closeout is also recorded on `dev`.
+
+## EV-063-57 — Rev52 SRS contradiction reconciliation
+
+Maps report findings M01–M09, the additional current-count mismatch M10, D01–D12 and Q01–Q08 to corrected SRS/Register sections or remaining open items; records the three owner clarifications and report provenance.
+
+See [EV-063-57_SRS_V25_CONTRADICTION_REVIEW_20261106.md](EV-063-57_SRS_V25_CONTRADICTION_REVIEW_20261106.md).
+
+## EV-063-58 — Rev53 v2.6 checklist remediation
+
+Records the owner-supplied checklist provenance and visual review, exact logical SRS/Register changes, every M/D/Q/R disposition, open policy/schema gates, scoped checks and publication status. The checklist is analysis evidence only; the v2.7-draft SRS remains unsigned.
+
+See [EV-063-58_SRS_V26_CHECKLIST_REMEDIATION_20261107.md](EV-063-58_SRS_V26_CHECKLIST_REMEDIATION_20261107.md).
+
+## EV-063-59 — Rev54 v2.6 checklist audit and diagram readiness
+
+Rechecks all M-01–M-16, D-01–D-20, Q-01–Q-13 and R-01–R-05 against the same-commit v2.6/Rev55 source set and current v2.7-draft SRS/Register. Records status corrections, owner clarifications by scope, future verification scenarios and the limits of the review.
+
+- Full code-by-code crosswalk: [DIAGRAM_READINESS_CROSSWALK_REV54_20261107.md](../artifacts/DIAGRAM_READINESS_CROSSWALK_REV54_20261107.md).
+- Draft TO-BE diagram inputs: [DIAGRAM_INPUT_CATALOG_V27_REV54_20261107.md](../artifacts/DIAGRAM_INPUT_CATALOG_V27_REV54_20261107.md).
+- Evidence: [EV-063-59_DIAGRAM_CHECKLIST_REVIEW_20261107.md](EV-063-59_DIAGRAM_CHECKLIST_REVIEW_20261107.md).
+- Status: documentary cross-check complete; final diagrams and as-built claims remain gated; SRS v2.7-draft remains unsigned.
+
+## EV-063-60 — two-agent diagram readiness assessment
+
+Records two independent reviews of the canonical FEAT-063 v2.7-draft SRS and Data Table Register for all requested diagram types. Includes per-diagram readiness, verified contradictions, open gates, and the distinction between target requirements and dated as-built evidence.
+
+See [EV-063-60_TWO_AGENT_DIAGRAM_READINESS_ASSESSMENT_20261107.md](EV-063-60_TWO_AGENT_DIAGRAM_READINESS_ASSESSMENT_20261107.md). The SRS/Register remain unsigned; no diagrams were created.
+
+- [EV-063-61 — Ten-group diagram-readiness alignment](EV-063-61_TEN_GROUP_DIAGRAM_READINESS_ALIGNMENT_20261108.md) — documentation-only synchronization; owner and technical gates remain open.
+
+| EV-063-62 | Rev57 substantive diagram-input remediation | Source-only baseline review, G01–G10 detailed requirements, 17-question decision map, 13 diagram readiness, physical/state/API/screen/class/package contracts and static import-cycle evidence | EV-063-62_REV57_SUBSTANTIVE_DIAGRAM_INPUT_REMEDIATION_20261109.md |

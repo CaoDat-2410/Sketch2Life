@@ -1,5 +1,17 @@
 # Task approval
 
+## Plan Rev52 — reconcile SRS review findings
+
+- **Status:** APPROVED for the exact documentation-only scope in Plan Rev52; the SRS and Data Table Register remain unsigned drafts.
+- **Approver:** Project owner, direct request on 2026-11-06: “đọc cái này và fix lại các cái mâu thuẫn, có thể hỏi 1 vài câu nếu cần”.
+- **Recorded date:** 2026-11-06, Asia/Saigon.
+- **Plan:** `plan/PLAN_REV52_SRS_CONTRADICTION_RECONCILIATION_20261106.md`.
+- **Plan SHA-256 at authorization:** `2EEBB0290B6A15C09135F2A7CB40A0D68DDC5CA8DFBE34CFA390F6428B747ABA`.
+- **Current reviewed plan SHA-256:** `CFA2214E1F1F4E02DDABA2D4952052D26493E0844CE0487A3108505BA14B06BF`.
+- **Scope:** correct only contradictions supported by current FEAT-063 requirements; update the v2.6-draft SRS/Register pair, evidence dispositions, and authority/tracking records. Keep open policy/schema items open unless the owner answers them.
+- **Not approved:** product implementation, schema/migration changes, tests/builds, production/provider/runtime operations, SRS sign-off, or commit/push.
+- **Approval basis:** direct owner request; this approves the scoped documentation review and does not provide answers to pending product questions.
+
 - Status: APPROVED for documentation-only SRS diagrams and detailed system-flow PDFs under plan revision 22: maintain one editable multi-page `.drawio` source, refresh the full-package PDF, and create a separate flow-only PDF at the owner-requested destination. Product implementation is not approved.
 - Approver: Project owner, direct 2026-10-27 request for a complete diagram package/PDF and subsequent direct request for an additional detailed PDF covering all system flows, superseding the earlier wait-for-Markdown-review gate for these outputs. This approves artifact creation only; it does not represent sign-off of the SRS/register content or product implementation.
 - Feature: FEAT-063 - Whole-repository architecture redesign.
@@ -1381,3 +1393,119 @@
 - **Not decided by this entry and still open:** acceptance of the six residual Ruff I001 diagnostics (already present at HEAD) as lint debt, with Ruff exit 1 still NO PASS; confirmation of the coordinator-run offline pytest reruns; authorisation to commit S1a-T. Ruff, `validate_repository_security.py` and `git diff --check` have not been re-run on the final PostgreSQL test file (NOT VERIFIED).
 - **Phase boundary:** this acceptance closes S1a-T only. It does not approve or launch S1a-P, S1b, S2, S3 or M3-M6; each needs its own Task Approval. The task database `sketch2life_m2_s1a` now holds 29 synthetic marker rows that no phase may clean up without a decision. No Modal, provider or network action is authorised. `OWNER_MODAL_CALL_APPROVED=NO` remains unchanged.
 - **Approval basis:** direct owner instruction in the current conversation, 2026-11-09 ("ACCEPTED"), after the closure record and the launcher log were presented.
+
+## FEAT-063 Plan Rev52 addendum — publish SRS contradiction reconciliation
+
+- **Status:** APPROVED for the exact branch publication scope below; SRS content remains unsigned.
+- **Approver:** Project owner, direct instruction on 2026-11-06: “commit and push”.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV52_SRS_CONTRADICTION_RECONCILIATION_20261106.md`.
+- **Current reviewed plan SHA-256:** `9B6100D907B27302A90F194ADB20B0D67AE2811987F9A5C82DAC23B03B432D55`. Original documentation-scope authorization hash and history are retained in the Rev52 approval entry above.
+- **Scope:** commit only the 15 paths enumerated in the Plan Rev52 Publication addendum with subject `docs(FEAT-063): reconcile v2.5 SRS review findings`, then regular non-force push to `origin/docs/feat063-srs-conflict-remediation-20261106`.
+- **Exclusions:** force-push/history rewrite, `dev`, PR, merge, SRS sign-off, and any path outside the approved manifest.
+- **Required checks:** `python tools/validate_repository_security.py` before commit and before push; `git diff --check` must pass.
+- **Approval basis:** the owner’s latest direct instruction supersedes only Rev52’s former no-commit/no-push boundary; it does not expand product or SRS requirement scope.
+
+
+### Execution closeout — Plan Rev52 publication
+
+- Package commit `ca3c5dda695dc8d325442921ace684364d0215b1` was pushed to `origin/docs/feat063-srs-conflict-remediation-20261106` with a regular non-force push. Fresh `git ls-remote` returned the same SHA.
+- `python tools/validate_repository_security.py` passed before commit and push (`publishable_files_scanned=6565`); `git diff --check` passed.
+- No force push, `dev` update, PR, or merge was performed. The SRS and Data Table Register remain v2.6-draft and unsigned.
+
+
+## FEAT-063 Plan Rev53 — v2.6 checklist SRS reconciliation
+
+- **Status:** APPROVED for the exact documentation scope in Plan Rev53; not SRS content sign-off.
+- **Approver:** Project owner, direct request on 2026-11-07 to read the supplied checklist and continue fixing the SRS.
+- **Recorded date:** 2026-11-07, Asia/Saigon.
+- **Plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV53_SRS_V26_CHECKLIST_RECONCILIATION_20261107.md`.
+- **Plan SHA-256 at authorization:** `C35BD75F9C5844FFB9B297F9A3B5BAFC4136436C766639FBB18EE2E59C987AFE`.
+- **Current reviewed plan SHA-256:** `3DA78D1630040B78526767A2FD8D4C782EB96D894D63B1D30B6CE06ADC6AB48D`.
+- **Scope:** AC1–AC6 in Plan Rev53 and only its 15-path manifest. The earlier direct “commit and push” instruction in this same SRS remediation thread covers the regular push described by AC7; it does not authorize a PR, merge, force-push, or `dev` update.
+- **Acceptance criteria:** AC1–AC7 in the hash-identified Plan Rev53.
+- **Exclusions:** product code/API/runtime/provider/database/DDL/migration/test/build/diagram changes; new owner decisions not supplied; formal SRS sign-off; paths outside the manifest.
+- **Approval basis:** the owner’s direct request authorizes this bounded SRS/Data Table Register review and correction. The checklist itself does not approve requirements.
+
+## FEAT-063 Plan Rev54 — v2.6 checklist audit and diagram readiness
+
+- **Status:** APPROVED for the exact documentation-only scope in Plan Rev54; this is not SRS content sign-off or approval of final diagrams.
+- **Approver:** Project owner, direct instruction on 2026-11-07: “check all these points and fix luôn, fix xong thì commit và push”.
+- **Recorded timestamp:** 2026-11-07 09:18:46 Asia/Saigon.
+- **Plan:** features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV54_DIAGRAM_READINESS_CROSSWALK_20261107.md.
+- **Plan SHA-256 at authorization:** FA962EC25E84F4056DA23CB82C181ED1ADE2DFBD7BF6D6C54E6597C5A0648DF0.
+- **Current reviewed plan SHA-256:** 8FD7667D8EA13E2D1F1DA92C4E58974A5F514DF11DF6DB7868EEA0B2A8FB8730.
+- **Scope:** AC1–AC8 in the hash-identified plan and only its 12-path manifest; audit all supplied M/D/Q/R items, create draft TO-BE diagram inputs and a traceable crosswalk, update FEAT-063/root tracking, then commit and normally push the named documentation branch.
+- **Acceptance criteria:** AC1–AC8 in Plan Rev54.
+- **Exclusions:** product code/API/runtime/provider/database/DDL/migration/tests/build; final diagrams; new owner decisions; SRS sign-off; PR/merge/dev/force-push; paths outside the manifest.
+- **Approval basis:** the owner’s direct task instruction authorizes review, documentation corrections and publication within this bounded scope. The checklist does not approve its own open product decisions.
+
+### Execution close-out — Plan Rev54 publication
+
+- **Recorded timestamp:** 2026-11-07 09:32:04 Asia/Saigon.
+- Package commit c5469153600ba8763f14715eb12f5792e8b5afe4 was pushed to origin/docs/feat063-diagram-readiness-20261107 using a normal push. Fresh git ls-remote confirmed the remote SHA matched.
+- git diff --cached --check passed for the exact 12-path manifest. python tools/validate_repository_security.py passed before commit and before push; each run scanned 6,571 publishable files.
+- No final SRS sign-off, PR, merge, dev push, force-push, product test/build/runtime/provider/database change or as-built verification occurred.
+
+## FEAT-063 Plan Rev55 — independent two-agent diagram readiness assessment
+
+- **Status:** APPROVED for the exact documentation-only scope in Plan Rev55; not SRS sign-off or approval of final diagrams.
+- **Approver:** Project owner, direct instruction on 2026-11-07: “up leen github di”, referring to publishing the immediately preceding two-agent SRS diagram-readiness assessment.
+- **Recorded date:** 2026-11-07, Asia/Saigon.
+- **Plan:** features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV55_TWO_AGENT_DIAGRAM_READINESS_ASSESSMENT_20261107.md.
+- **Plan SHA-256 at authorization:** B3EC54830EEDBE1D5C2DAE7391636103D4A28CD01A174C0EE6B090342078CE73.
+- **Scope:** AC1–AC8 in the hash-identified plan and only its 10-path manifest; publish the two independent reviews on docs/feat063-diagram-readiness-20261107.
+- **Exclusions:** product/SRS/DTR changes, final diagrams, DDL, tests/build/runtime/provider/database changes, PR/merge/dev/force-push, and paths outside the manifest.
+- **Approval basis:** the owner’s direct request authorizes recording and normally pushing this bounded assessment. It does not sign off the SRS, resolve open questions, or approve final diagrams.
+- **Current reviewed plan SHA-256:** 2F9387D44D4C2C7BA616FF3919BBFFFE43A757CDB9D45E2B3C62E8334A138EE4.
+
+### Execution close-out — Plan Rev55 publication
+
+- **Status:** COMPLETE.
+- **Package commit:** 33c40d17ff77f31b1d128ce35c1f641a2fe6de8a was normally pushed to origin/docs/feat063-diagram-readiness-20261107; fresh git ls-remote confirmed the same SHA.
+- **Validation:** git diff --cached --check passed for the exact 10-path manifest. Repository security validator passed before package commit and push; each run scanned 6,573 publishable files.
+- **Limits:** No SRS sign-off, final diagrams, product tests/build/runtime/provider/database work, PR, merge, dev update, or force push.
+
+## FEAT-063 Plan Rev56 — ten-group diagram readiness alignment
+
+- Status: APPROVED for the exact documentation-only scope in Plan Rev56; not SRS content sign-off or final diagram approval.
+- Approver: Project owner, direct request on 2026-11-08: “fix cái này” with the ten-group checklist.
+- Recorded date: 2026-11-08, Asia/Saigon.
+- Plan: features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV56_TEN_GROUP_DIAGRAM_READINESS_ALIGNMENT_20261108.md.
+- Plan SHA-256 at authorization: 4CAFAF01879AB864ECDFAEF872A057F74BFC15B6D809AEA6855414C6574F7447.
+- Scope: AC1–AC8 in the hash-identified plan and only its 13-path manifest; align the sample-selection wording and cross-document readiness trace.
+- Exclusions: product code/API/schema/DDL/migration/tests/build/runtime/provider/database changes; owner policy closure; final diagrams; SRS sign-off; commit/push/PR/merge/dev update/force-push; paths outside the manifest.
+- Approval basis: the owner's direct request authorizes this bounded documentation update. The checklist does not approve its own OPEN decisions.
+
+### Plan Rev56 initial local review checkpoint — before publication request
+
+- Reviewed plan SHA-256: 4CAFAF01879AB864ECDFAEF872A057F74BFC15B6D809AEA6855414C6574F7447.
+- git diff --check passed for the documentation-only working tree.
+- At this checkpoint, before the owner requested publication, no commit/push or security validation had been run.
+- SRS/Register remain v2.7-draft and unsigned; open owner decisions and technical gates remain open.
+
+### Plan Rev56 publication authorization addendum — revision 2
+
+- Status: APPROVED for commit and push of the exact 13-path manifest in Plan Rev56 revision 2.
+- Approver: Project owner, direct instruction on 2026-11-08: “commit and push”.
+- Plan SHA-256: F17C145F2C3A61CA1983C2FF9B6DF287ABBFEA2E6DFBDDC4F1CD31481794EB45.
+- Target: `docs/feat063-diagram-readiness-20261107` to `origin/docs/feat063-diagram-readiness-20261107`, fast-forward only.
+- Commit message: `docs(FEAT-063): align ten diagram readiness gates`.
+- Limits: No paths outside the manifest, PR, merge, dev update, force-push, tests/builds, SRS sign-off, or final diagrams.
+
+### Plan Rev56 publication execution closeout
+
+- Package commit `09cfc5ca396016cbb7b238a5c744e004f7c7025a` was pushed to `origin/docs/feat063-diagram-readiness-20261107` with a regular fast-forward push; fresh `git ls-remote` confirmed the same SHA.
+- `python tools/validate_repository_security.py` passed before commit and push (`publishable_files_scanned=6576`); `git diff --cached --check` passed for the exact 13-path manifest.
+- No tests/builds, PR, merge, dev update, force-push, SRS sign-off, or final diagrams were performed.
+
+## FEAT-063 Plan Rev57 — substantive diagram-input remediation
+
+- **Status:** APPROVED for the exact documentation-only scope in Plan Rev57; SRS and Data Table Register remain unsigned v2.7-draft.
+- **Approver:** Project owner, direct task request on 2026-11-09 to implement the supplied G01–G10 remediation requirements, followed by direct instruction to commit and push.
+- **Recorded date:** 2026-11-09, Asia/Saigon.
+- **Approved plan:** features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV57_DIAGRAM_INPUT_DETAIL_REMEDIATION_20261109.md.
+- **Plan SHA-256:** 5B5CD090913CE14651E0641AF768F4BB8154543E02E488B2075C65A26E5FADDC.
+- **Scope:** exact manifest and acceptance criteria in Plan Rev57; substantive SRS/Data Table Register amendments; Rev57 catalog, decision/trace/physical/state/API/screen/class-package/remediation artifacts; evidence and feature tracking updates. Read-only source verification at baseline ae5707ca188d01d9719ed959b62d768ae927912d.
+- **Exclusions:** product code/runtime/API/database/schema/data/migration/provider/secret/permission/cost changes, tests/build/deployment, final diagrams, SRS/DTR sign-off, PR/merge, and force push. Unanswered policy questions remain OPEN-OWNER.
+- **Publication:** owner explicitly authorized commit and push; only a normal fast-forward push of the scoped paths to docs/feat063-diagram-readiness-20261107 is authorized.
+- **Approval basis:** the direct user request authorizes this exact documentation and publication scope. It does not approve proposed requirements, settle owner decisions, or sign off SRS/DTR.

@@ -1,6 +1,21 @@
 # FEAT-063 source register
 
-## Rev45/Rev51 SRS alignment — current — 2026-11-06
+## Rev53 v2.6 checklist reconciliation — current — 2026-11-07
+
+- Canonical SRS and companion advance to v2.7-draft, unsigned. The supplied checklist is review evidence, not product-requirements authority.
+- Preserve D-146 owner decisions: Content Admin is a Platform Admin permission; Platform Admin child-media access stays deny-by-default pending a separately approved workflow; Teacher video uses only school organization quota.
+- Clarify exact optional LessonVersion ref/version/hash lineage, multi-owner admission saga, School Manager terminology, and the current 54 new / 92 active + 48 legacy = 140 target count. Preserve unresolved activity, supersession, role persistence, age-migration, audit, DDL and migration questions.
+- Worktree: isolated branch `docs/feat063-srs-v26-checklist-20261107`; package commit `359b0b92384faad789f6006c37cc5f66760ad594` was pushed normally and confirmed by `git ls-remote`. Evidence: `evidence/EV-063-58_SRS_V26_CHECKLIST_REMEDIATION_20261107.md`.
+
+## Rev52 SRS contradiction reconciliation — historical publication record — 2026-11-06
+
+- Canonical SRS and companion advance to v2.6-draft, unsigned. The review report is evidence only.
+- Owner decisions recorded in D-146: Content Admin is a Platform Admin permission; Platform Admin child-media access is deny-by-default pending a separately approved workflow; Teacher video usage draws only from school quota.
+- Current target count is 92 active + 48 legacy = 140 projected mappings; 89/137 is explicitly historical v2.3. No production inventory/DDL is claimed.
+- SRS, Data Table Register, Plan Rev52, approval and evidence are in the isolated remediation worktree; owner-authorized publication is complete; package commit `ca3c5dda695dc8d325442921ace684364d0215b1` matches the verified same-named origin branch.
+- Evidence: evidence/EV-063-57_SRS_V25_CONTRADICTION_REVIEW_20261106.md.
+
+## Rev45/Rev51 SRS alignment — historical publication record — 2026-11-06
 
 - Canonical working SRS and companion: v2.5-draft, unsigned. §§1–31 remain product/architecture targets; §32 contains dated source/runtime observations.
 - Rev45 resolves inconsistent model-status statements in the target sections. Rev51 source review at fetched `origin/dev` `4749451080f49243464d40a464b8f83a03ae77bb` distinguishes the mounted main FastAPI composition from the separate StoryRun-lite/Modal development slice.
@@ -388,3 +403,36 @@ Plan Rev51 SHA-256 at approval: `B20103A217D7A9623E02279CE0BD82D5BC61141518D820F
 - Matching companion: FEAT-063 `artifacts/DATA_TABLE_REGISTER.md` v2.5-draft.
 - Integrated source commits: SRS `fae180dcf3ea2771b41546aa6925b94636821df1`; AI `c6818490d0d889ab17dc9f8de3830987eb2a230d`.
 - Integration status/evidence: `evidence/EV-063-57_SRS_V25_AND_MODAL_AI_DEV_INTEGRATION_20261106.md`; merges and normal publication to `origin/dev` are complete; remote-tip equality was verified.
+
+## FEAT-063 Rev54 — v2.6 checklist audit and diagram readiness — 2026-11-07
+
+- Approved plan and exact documentation/publication scope: plan/PLAN_REV54_DIAGRAM_READINESS_CROSSWALK_20261107.md; hash-identified owner authorization is recorded in approvals/TASK_APPROVAL.md.
+- Current requirement sources: artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md and artifacts/DATA_TABLE_REGISTER.md v2.7-draft at baseline 98cc34a39af279560b5f8d39f18939a376535834; both remain unsigned.
+- Historical review sources: same-commit v2.6 SRS/Register, artifacts/ARCHITECTURE_DETAIL_CATALOG_REV55_20261106.md and artifacts/REPORT_REMEDIATION_CROSSWALK_REV55_20261106.md at a711e78cf6586dd5b639d811e610a741efd7433d. The Rev55 source observation at 1431ef81972b71303fd4a7909748fd3005769a3c is not a Rev54 verification.
+- Output: artifacts/DIAGRAM_READINESS_CROSSWALK_REV54_20261107.md and artifacts/DIAGRAM_INPUT_CATALOG_V27_REV54_20261107.md. EV-063-59 records source provenance, status adjustments, future tests and limits.
+- Q-01–Q-13 stay OPEN-OWNER as complete questions. No SRS/Register change was needed because the current v2.7 text already contains supported R-01/02/03/05 corrections and expressly preserves R-04 and other open requirements.
+
+## Rev55 independent diagram readiness assessment — current — 2026-11-07
+
+- Two independent agents assessed the same canonical SRS/Register baseline at commit 98cc34a39af279560b5f8d39f18939a376535834 (v2.7-draft, unsigned).
+- Assessment reports conditional draft readiness for most diagram types; Screen Flow lacks approved navigation transitions and physical ERD lacks final DDL/schema reconciliation.
+- Teacher sample-child selection has conflicting wording; other unanswered diagram inputs remain open and are not inferred.
+- Evidence: evidence/EV-063-60_TWO_AGENT_DIAGRAM_READINESS_ASSESSMENT_20261107.md. Plan/approval: PLAN_REV55_TWO_AGENT_DIAGRAM_READINESS_ASSESSMENT_20261107.md and both TASK_APPROVAL.md records.
+- No SRS, Data Table Register, product code, schema or diagram was modified.
+
+## Rev56 ten-group diagram-readiness alignment — current — 2026-11-08
+
+- Canonical working SRS/Data Table Register: v2.7-draft at 98cc34a39af279560b5f8d39f18939a376535834; unsigned.
+- Source branch tip before update: 7d35ee3cd75ae7b34a71433daa2231781c9bc60c on docs/feat063-diagram-readiness-20261107.
+- Synchronized the ten remaining groups across SRS §31.10, Data Table Register §14.3, and artifacts/DIAGRAM_INPUT_CATALOG_V27_REV56_20261108.md.
+- Corrected UC-05/FR-T-10/FR-PL-20/AC-56 selection wording. Q-01 policy details remain OPEN; no new product decision or schema definition was inferred.
+- Evidence: evidence/EV-063-61_TEN_GROUP_DIAGRAM_READINESS_ALIGNMENT_20261108.md. No runtime/source/schema inspection, product test/build or migration.
+- Publication: package commit 09cfc5ca396016cbb7b238a5c744e004f7c7025a was pushed to origin/docs/feat063-diagram-readiness-20261107; fresh git ls-remote confirmed the same SHA. Repository security validation passed before commit and push (6,576 publishable files scanned).
+
+## Rev57 substantive diagram-input remediation — current review — 2026-11-09
+
+- Canonical SRS/Data Table Register: v2.7-draft Rev57; unsigned; source baseline ae5707ca188d01d9719ed959b62d768ae927912d.
+- Read: Rev56 Catalog, Rev54 Crosswalk and EV-063-61; source-only inspection at the same SHA.
+- New artifacts: DIAGRAM_INPUT_CATALOG_V27_REV57_20261109.md; DECISION_REGISTER_REV57_20261109.md; DIAGRAM_TRACE_MATRIX_REV57_20261109.md; PHYSICAL_DATA_DICTIONARY_DRAFT_REV57_20261109.md; STATE_TRANSITION_MATRIX_REV57_20261109.md; API_EVENT_CONTRACTS_DRAFT_REV57_20261109.md; SCREEN_NAVIGATION_MAP_DRAFT_REV57_20261109.md; CLASS_PACKAGE_CONTRACTS_DRAFT_REV57_20261109.md; REMEDIATION_RESULT_REV57_20261109.md.
+- Evidence: EV-063-62_REV57_SUBSTANTIVE_DIAGRAM_INPUT_REMEDIATION_20261109.md.
+- Physical ERD, Activity, Sequence, Screen Flow, State Machine and Package remain blocked or draft; no final diagram was produced.

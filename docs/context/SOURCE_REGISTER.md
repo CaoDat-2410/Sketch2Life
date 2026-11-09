@@ -3,9 +3,16 @@
 
 ## Canonical product SRS — current working baseline
 
-Use `features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` v2.5-draft for all current product requirements and target architecture. It remains a draft pending formal owner sign-off. Its §§1–31 define target requirements; §32 contains dated environment-specific runtime/source observations and does not replace them. Older feature SRS copies and contexts are historical/feature-local and do not override it. The detailed agent reading order and historical-source list are in `docs/context/SRS_AUTHORITY.md`.
+Use `features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` v2.7-draft for all current product requirements and target architecture. It remains a draft pending formal owner sign-off. Its §§1–31 define target requirements; §32 contains dated environment-specific runtime/source observations and does not replace them. Older feature SRS copies and contexts are historical/feature-local and do not override it. The detailed agent reading order and historical-source list are in `docs/context/SRS_AUTHORITY.md`.
 
-## FEAT-063 Rev45/Rev51 SRS alignment — current — 2026-11-06
+## FEAT-063 Rev53 v2.6 checklist reconciliation — current — 2026-11-07
+
+Plan Rev53 reconciles the owner-supplied checklist against the canonical v2.6-draft SRS/Register and existing owner decisions. The package advances the unsigned working pair to v2.7-draft. It clarifies optional exact LessonVersion ref/version/hash lineage, video admission saga ownership, School Manager terminology, and the historical/current table-count label. No new product decision is inferred; no-preset Parent activity behavior, plan supersession, role persistence, legacy age handling, audit schema/retention, DDL and migration remain open. The checklist is review evidence, not requirements authority. Package commit `359b0b92384faad789f6006c37cc5f66760ad594` was pushed normally to `origin/docs/feat063-srs-v26-checklist-20261107` and confirmed by `git ls-remote`. See FEAT-063 D-146, Plan Rev53 and EV-063-58.
+
+## FEAT-063 Rev52 SRS contradiction reconciliation — historical publication record — 2026-11-06
+
+Plan Rev52 aligns the canonical v2.6-draft SRS and Data Table Register with the user-supplied v2.5 review report and three direct owner clarifications. The report is analysis evidence, not requirement authority or SRS sign-off. The clarified rules are: content administration is a Platform Admin permission; Platform Admin child-media access is denied until a separate workflow is approved; Teacher video usage consumes only the school organization quota. The current target count is 92 active + 48 legacy = 140; 89/137 remains historical v2.3 baseline. See FEAT-063 D-146 and EV-063-57. Package commit `ca3c5dda695dc8d325442921ace684364d0215b1` was pushed to `origin/docs/feat063-srs-conflict-remediation-20261106` and confirmed by remote ref.
+## FEAT-063 Rev45/Rev51 SRS alignment — historical publication record — 2026-11-06
 
 Plan Rev45 reconciles the recorded AI development directions across target sections and adds a source crosswalk. Plan Rev51 supplements it with a read-only review of the fetched `origin/dev` source tree. §32.5 describes the earlier local working-tree snapshot; §32.6 describes commit `4749451080f49243464d40a464b8f83a03ae77bb` and does not claim a runtime retest. The SRS and companion remain unsigned. See FEAT-063 evidence EV-063-55 and EV-063-56.
 
@@ -645,6 +652,14 @@ The implementation is limited to those approved source/test manifests. The focus
 - Local Docker API `/health` and `/openapi.json` returned 200. Active image has no StoryRun route, AI provider is unset, and no route dispatches to the new private Modal functions; read-only StoryRun probe returned 404. No write or inference request was sent.
 - Full results and the separation from the earlier temporary-Modal StoryRun test are recorded in `features/FEAT-063-system-architecture-rearchitecture/evidence/API_RUNTIME_AVAILABILITY_SMOKE_20261103.md`.
 
+## FEAT-063 Rev54 v2.6 checklist audit and diagram readiness — 2026-11-07
+
+- Current product authority at baseline 98cc34a39af279560b5f8d39f18939a376535834 is the unsigned FEAT-063 SRS and Data Table Register v2.7-draft; see docs/context/SRS_AUTHORITY.md.
+- Historical checklist source set was read together at docs/feat063-v25-report-remediation-20261106 commit a711e78cf6586dd5b639d811e610a741efd7433d: SRS v2.6, Data Table Register v2.6, Architecture Detail Catalog Rev55 and Remediation Crosswalk Rev55. Rev55's static source point-in-time is commit 1431ef81972b71303fd4a7909748fd3005769a3c; not reverified by Rev54.
+- Plan Rev54 creates a full M/D/Q/R crosswalk and draft TO-BE diagram-input catalog; Q-01–Q-13 remain open as complete items. No product source, runtime, database, provider or final diagram was changed/verified.
+- Detailed evidence: features/FEAT-063-system-architecture-rearchitecture/evidence/EV-063-59_DIAGRAM_CHECKLIST_REVIEW_20261107.md; artifacts: DIAGRAM_READINESS_CROSSWALK_REV54_20261107.md and DIAGRAM_INPUT_CATALOG_V27_REV54_20261107.md.
+- Current status, checks, branch and remote publication SHA are maintained in features/FEAT-063-system-architecture-rearchitecture/status/STATUS.md and both approval registers.
+
 ## FEAT-063 full non-video AI retest — 2026-11-04
 
 - Approved scope and criteria: `features/FEAT-063-system-architecture-rearchitecture/plan/AI_NONVIDEO_WORKLOAD_FULL_RETEST_20261104.md`; execution results: `features/FEAT-063-system-architecture-rearchitecture/evidence/AI_NONVIDEO_WORKLOAD_FULL_RETEST_RESULTS_20261104.md`.
@@ -659,3 +674,21 @@ Use FEAT-063 SRS v2.4-draft as canonical product/architecture source. Plan Rev51
 ## FEAT-063 Plan Rev52 - non-video Modal AI reliability and observability
 
 Canonical requirements remain FEAT-063 SRS v2.4-draft. Owner-approved plan `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV52_NONVIDEO_MODAL_AI_RELIABILITY_20261106.md` has SHA-256 `6B3B1C25CD2A9974860A93551CDAD0FB3363DB38CB00D293ABB4818C9F0782D2`. Execution and safe per-call evidence will be recorded under `features/FEAT-063-system-architecture-rearchitecture/evidence/nonvideo_modal_ai_reliability_20261106/`. The scope excludes all video functions and preserves disabled workload switches.
+
+## FEAT-063 Rev55 — independent two-agent diagram readiness assessment — 2026-11-07
+
+- Owner requested publication of the two-agent readiness assessment. Current product baseline is FEAT-063 SRS/Data Table Register v2.7-draft at 98cc34a39af279560b5f8d39f18939a376535834; both remain unsigned.
+- Assessment covers Context, Use Case, Workflow, Activity, Sequence, Screen Flow, Class, conceptual/logical/physical ERD, State Machine, System Architecture and Package. It distinguishes draftable inputs from final approval and physical-schema gates.
+- No canonical SRS/Register edits or final diagrams were made. Detailed findings: features/FEAT-063-system-architecture-rearchitecture/evidence/EV-063-60_TWO_AGENT_DIAGRAM_READINESS_ASSESSMENT_20261107.md.
+- Publication is scoped to docs/feat063-diagram-readiness-20261107; it does not update dev or sign off product requirements.
+
+## FEAT-063 Rev56 diagram-readiness alignment — 2026-11-08
+
+Canonical working source remains the FEAT-063 v2.7-draft SRS and matching Data Table Register; both unsigned. The ten-group readiness synchronization and the UC-05 system-selection/Teacher-confirmation wording are recorded in features/FEAT-063-system-architecture-rearchitecture/artifacts/DIAGRAM_INPUT_CATALOG_V27_REV56_20261108.md and evidence EV-063-61. Open owner decisions and technical gates remain open; no final diagram or as-built verification is claimed. Package commit 09cfc5ca396016cbb7b238a5c744e004f7c7025a was pushed to origin/docs/feat063-diagram-readiness-20261107 and verified with git ls-remote.
+
+## FEAT-063 Rev57 substantive diagram-input remediation — 2026-11-09
+
+- Fetched baseline: docs/feat063-diagram-readiness-20261107 at ae5707ca188d01d9719ed959b62d768ae927912d.
+- Canonical working SRS and Data Table Register contain Rev57 updates, remain v2.7-draft and unsigned.
+- Companion artifacts: Diagram Input Catalog, Decision Register, Diagram Trace Matrix, Physical Data Dictionary draft, State Transition Matrix, API/Event Contracts, Screen Navigation Map, Class/Package Contracts and Remediation Result, all Rev57 dated.
+- EV-063-62 records source-only inspection and verification limits. No runtime/database/migration/product test or deployment claim.

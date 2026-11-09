@@ -1,6 +1,42 @@
 # Status
+## Rev56 ten-group diagram-readiness alignment — 2026-11-08
 
-## SRS v2.5 alignment and current dev-source review — Plans Rev45/Rev51 (2026-11-06)
+- Lifecycle: COMPLETE for the approved documentation-only synchronization on the isolated diagram-readiness branch.
+- SRS and Data Table Register remain v2.7-draft and unsigned. Rev56 adds a traceable successor input catalog and aligns UC-05, FR-T-10, FR-PL-20 and AC-56 to system random selection plus Teacher confirmation.
+- Q-01 eligibility/consent/reselection/no-eligible/evidence details and the other owner/technical gates remain OPEN; no settled requirement was reopened.
+- Physical ERD, final diagrams, and as-built diagram claims remain blocked by their stated approval/evidence gates.
+- `git diff --check` passed; repository security validation passed before commit and push (`publishable_files_scanned=6576`). No product tests/builds or runtime/provider/database checks were performed.
+- Publication: commit `09cfc5ca396016cbb7b238a5c744e004f7c7025a` was pushed to `origin/docs/feat063-diagram-readiness-20261107`; fresh `git ls-remote` confirmed the same SHA.
+- Plan/approval and evidence: plan/PLAN_REV56_TEN_GROUP_DIAGRAM_READINESS_ALIGNMENT_20261108.md, approvals/TASK_APPROVAL.md, and evidence/EV-063-61_TEN_GROUP_DIAGRAM_READINESS_ALIGNMENT_20261108.md.
+
+## Rev54 v2.6 checklist audit and diagram readiness — 2026-11-07
+
+- Lifecycle: COMPLETE for the approved documentation review and package publication on the isolated branch.
+- Current canonical pair: SRS and Data Table Register v2.7-draft, unsigned. Rev54 publishes draft TO-BE diagram inputs only.
+- Disposition: M = 13 FIXED-LOGICAL, 2 PARTIAL, 1 OPEN-OWNER; D = 10 COVERED-LOGICAL, 7 PARTIAL, 3 OPEN; Q-01–Q-13 = OPEN-OWNER as complete checklist items; R-01/02/03/05 fixed in v2.7 and R-04 remains partial/open.
+- The review found D-09 remains partial: the current Register still leaves the exact Parent Profile–Managed Profile–Delivery Recipient link and post-revoke history behavior open. D-08 remains partial after quota-scope/charge-order clarification because school grant allocation/purchase remains open.
+- No new owner decision, product code/schema/migration/test/build/provider/runtime/source verification or final diagram was produced. See EV-063-59 and the Rev54 catalog/crosswalk.
+- Plan Rev54 and exact authorization are in both approval registers. Package commit c5469153600ba8763f14715eb12f5792e8b5afe4 was pushed to origin/docs/feat063-diagram-readiness-20261107; fresh git ls-remote returned the same SHA. git diff --cached --check passed. python tools/validate_repository_security.py passed before commit and push (publishable_files_scanned=6571 each time). The SRS and Data Table Register remain unsigned; no PR, merge or dev push was performed.
+
+## Rev53 v2.6 checklist reconciliation — 2026-11-07
+
+- Lifecycle: COMPLETE for the approved documentation package and normal branch publication.
+- Target pair: canonical SRS and Data Table Register v2.7-draft, unsigned. Owner formal sign-off is still pending.
+- Product changes are limited to supported logical clarifications. Parent no-preset activity, plan supersession, role persistence, legacy ages, audit schema/retention and physical DDL/migration remain open.
+- `git diff --check` passed. `python tools/validate_repository_security.py` passed immediately before commit and push (`publishable_files_scanned=6567`). Commit `359b0b92384faad789f6006c37cc5f66760ad594` was pushed to `origin/docs/feat063-srs-v26-checklist-20261107`; `git ls-remote` confirmed the same SHA at publication. No product test/build/runtime/provider/database operation was in scope.
+- Plan/approval: Plan Rev53 and hash-identified approval are recorded in root and feature approval registers. Evidence: `evidence/EV-063-58_SRS_V26_CHECKLIST_REMEDIATION_20261107.md`.
+
+## Rev52 SRS contradiction reconciliation — 2026-11-06
+
+- Lifecycle: COMPLETE for the reviewed documentation package; publication to the isolated origin branch is verified.
+- Canonical SRS and Data Table Register are v2.6-draft and remain unsigned. Product target requirements remain distinct from §32 source/runtime observations.
+- Incorporated the three owner clarifications and aligned role/permission boundaries, admin media default-deny, Parent lesson pin/activity timing, profile-share acceptance, AI Job targets, video admission transitions and current target table count.
+- Report items that lack owner answers remain open; no DDL, migration, code, product tests, build, provider or runtime operations were performed.
+- Plan Rev52 approvals are recorded in root and FEAT-063 approval registers. Package commit `ca3c5dda695dc8d325442921ace684364d0215b1` is pushed to `origin/docs/feat063-srs-conflict-remediation-20261106`; fresh `git ls-remote` confirmed the remote SHA matches. Evidence: evidence/EV-063-57_SRS_V25_CONTRADICTION_REVIEW_20261106.md.
+
+
+
+## Prior SRS v2.5 alignment and dev-source review — Plans Rev45/Rev51 (2026-11-06)
 
 - Lifecycle: REVIEW; documentation/source review and Plan Rev51 package publication are complete.
 - SRS and Data Table Register are v2.5-draft and remain unsigned. §§1–31 preserve target requirements; §§32.5–32.6 label the local Rev45 and fetched `origin/dev` Rev51 source snapshots separately.
@@ -663,3 +699,18 @@ Parent Sketch Guide and lesson visuals were not dispatched because Modal `dev` s
 - Merge commits: AI `634e0e20f56cbfa6101ece6e67f3e4267a30ae92`; SRS `6bbb375a359fb78f06585963b8ee9f7bfc2246ff`.
 - SRS v2.5-draft is now the canonical working source and remains unsigned. SAM2 remains disabled in the product registry; all recorded quality limitations are preserved.
 - No new AI calls, video inference, database changes, runtime tests or product test suites were run during integration. Existing Rev52/Rev53 evidence is linked from EV-063-57.
+
+## Rev55 — two-agent diagram readiness assessment
+
+- **Status:** COMPLETE — assessment published to origin/docs/feat063-diagram-readiness-20261107 at 33c40d17ff77f31b1d128ce35c1f641a2fe6de8a.
+- **Baseline:** SRS/Data Table Register v2.7-draft at 98cc34a39af279560b5f8d39f18939a376535834; unsigned.
+- **Outcome:** Most diagrams can be drafted with open questions annotated. Screen Flow needs screen-to-screen navigation decisions; physical ERD needs approved DDL and environment reconciliation. No final diagrams or product decisions were produced.
+- **Evidence:** evidence/EV-063-60_TWO_AGENT_DIAGRAM_READINESS_ASSESSMENT_20261107.md.
+
+## Plan Rev57 — substantive diagram-input remediation — PUBLISHED / PARTIAL
+
+- **Baseline:** fetched target branch at ae5707ca188d01d9719ed959b62d768ae927912d.
+- **Status:** documentation package published at db7f7e4df6e95e9549e17664ea8ef9be1c338d68 by normal fast-forward; remote ref verified.
+- **Outcome:** SRS/DTR Rev57 detail and companion contract artifacts published; 13 diagram inputs are explicitly DRAFT/BLOCKED as applicable. SRS/DTR remain unsigned and Q decisions remain open.
+- **Technical finding:** static source import scan found one cycle under infrastructure.canvas_render; ai_jobs router file is not included by the inspected main router composition.
+- **Evidence:** EV-063-62. No product tests/runtime/database/migration were run.
