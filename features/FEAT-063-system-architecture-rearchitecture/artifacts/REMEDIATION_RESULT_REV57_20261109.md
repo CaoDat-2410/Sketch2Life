@@ -45,4 +45,4 @@
 - Exact-scope manifest: PASS — 22 paths, no extra or missing path.
 - Repository security validator: PASS; 6,587 publishable files scanned.
 - No application tests/build, live API/OpenAPI, DB/schema query, migration, provider call or deployment was run.
-- Commit/push verification remains pending at this draft point. Owner and technical gates listed above remain open.
+- Substantive package commit db7f7e4df6e95e9549e17664ea8ef9be1c338d68 was pushed to the target branch by normal fast-forward; fresh git ls-remote verified the same SHA. Owner and technical gates listed above remain open.

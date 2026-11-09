@@ -39,4 +39,4 @@ No application tests/build, live API/OpenAPI call, database query, migration, pr
 - Exact scope manifest: PASS — 22 expected paths, 22 changed paths, no extra/missing paths.
 - Repository security validator: PASS; 6,587 publishable files scanned; secrets/environment/external references excluded as expected.
 - Application tests/build, live API/OpenAPI, DB/schema query, migration, provider, deployment: NOT RUN (outside documentation scope).
-- Commit and fast-forward push: pending at time this evidence text was drafted; record final refs after publication.
+- Substantive package commit db7f7e4df6e95e9549e17664ea8ef9be1c338d68 was pushed to origin/docs/feat063-diagram-readiness-20261107 as a normal fast-forward from ae5707ca188d01d9719ed959b62d768ae927912d. Fresh git ls-remote returned db7f7e4df6e95e9549e17664ea8ef9be1c338d68. Publication verified.

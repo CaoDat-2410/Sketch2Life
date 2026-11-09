@@ -626,10 +626,10 @@ Parent Sketch Guide and lesson visuals were not dispatched because Modal `dev` s
 - **Outcome:** Most diagrams can be drafted with open questions annotated. Screen Flow needs screen-to-screen navigation decisions; physical ERD needs approved DDL and environment reconciliation. No final diagrams or product decisions were produced.
 - **Evidence:** evidence/EV-063-60_TWO_AGENT_DIAGRAM_READINESS_ASSESSMENT_20261107.md.
 
-## Plan Rev57 — substantive diagram-input remediation — READY FOR COMMIT/PUSH
+## Plan Rev57 — substantive diagram-input remediation — PUBLISHED / PARTIAL
 
 - **Baseline:** fetched target branch at ae5707ca188d01d9719ed959b62d768ae927912d.
-- **Status:** documentation package and pre-publication checks complete; scoped commit and fast-forward push are pending.
-- **Outcome so far:** SRS/DTR Rev57 detail and companion contract artifacts created; 13 diagram inputs are explicitly DRAFT/BLOCKED as applicable. SRS/DTR remain unsigned and Q decisions remain open.
+- **Status:** documentation package published at db7f7e4df6e95e9549e17664ea8ef9be1c338d68 by normal fast-forward; remote ref verified.
+- **Outcome:** SRS/DTR Rev57 detail and companion contract artifacts published; 13 diagram inputs are explicitly DRAFT/BLOCKED as applicable. SRS/DTR remain unsigned and Q decisions remain open.
 - **Technical finding:** static source import scan found one cycle under infrastructure.canvas_render; ai_jobs router file is not included by the inspected main router composition.
 - **Evidence:** EV-063-62. No product tests/runtime/database/migration were run.
