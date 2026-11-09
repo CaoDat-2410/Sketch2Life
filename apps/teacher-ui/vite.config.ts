@@ -1,15 +1,21 @@
-import react from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite'
-import { defineConfig } from 'vitest/config'
+import { fileURLToPath } from "node:url";
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 
-// https://vite.dev/config/
+const nm = (pkg: string) => fileURLToPath(new URL(`./node_modules/${pkg}`, import.meta.url));
+
 export default defineConfig({
-  plugins: [
-    tailwindcss(),
-    react(),
-  ],
-  test: {
-    environment: 'jsdom',
-    restoreMocks: true,
+  plugins: [react()],
+  resolve: {
+    alias: {
+      "react/jsx-runtime": nm("react/jsx-runtime.js"),
+      "react/jsx-dev-runtime": nm("react/jsx-dev-runtime.js"),
+      "react-dom/client": nm("react-dom/client.js"),
+      react: nm("react"),
+      "react-dom": nm("react-dom"),
+      "react-router-dom": nm("react-router-dom"),
+      "@radix-ui/react-dialog": nm("@radix-ui/react-dialog"),
+      "@radix-ui/react-accordion": nm("@radix-ui/react-accordion"),
+    },
   },
-})
+});
