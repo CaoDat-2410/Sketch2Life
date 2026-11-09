@@ -260,12 +260,119 @@ The owner supersedes the one-call/exclusion boundary in D-140 for a fresh synthe
 
 Source: owner instruction 2026-11-04; approved plan `plan/AI_NONVIDEO_WORKLOAD_FULL_RETEST_20261104.md`; official [SAM2 repository](https://github.com/facebookresearch/sam2) and [Modal GPU guide](https://modal.com/docs/guide/gpu).
 
+## Merge note (2026-11-09) - decision identifier collision D-135 to D-149
+
+The branches `origin/dev` (Modal AI reliability and SRS v2.4 to v2.5 line) and `feature/feat063-be-foundation` (M2 line) numbered decisions independently, so identifiers D-135 to D-149 occur more than once with different content. Nothing was renumbered or edited. The entries between this note and the matching end note below were introduced by `origin/dev`; every other occurrence of an identifier in this file, including the table rows D-142 to D-171 after the end note, belongs to the M2 line. References to D-142 and above in M2 plans, approvals, specifications and launch instructions mean the M2 line. When an identifier is ambiguous, the dev entry is cited as `D-nnn (dev)`. Owner confirmation of this citation convention is pending.
+
+## D-136 - Owner-authorized 30-minute non-video queue retest
+
+For this fresh synthetic FEAT-063 retest, use a 1,800-second client-side wait for eligible non-video Modal calls without changing worker execution timeouts, model pins, GPU type, or product defaults. Use at most one fresh call per workload, do not retry unknown outcomes, and exclude all video inference. The longer wait allowed Teacher Sketch Deck to receive capacity after 17m22, but drawing analysis, story generation, lesson visuals, and SAM2 remained GPU_L4 capacity-blocked at 30 minutes. Treat these as queue outcomes, not model-quality results.
+
+Source: owner instruction 2026-11-04; approved plan plan/AI_NONVIDEO_30MIN_QUEUE_RETEST_20261104.md; execution evidence evidence/AI_NONVIDEO_30MIN_QUEUE_RETEST_RESULTS_20261104.md.
+
+
+## D-137 - Bounded Modal story serverless latency experiment
+
+For the 2026-11-05 FEAT-063 synthetic dev experiment only, retain L4 as the preferred GPU and allow ordered L40S/A10 alternatives, use four-worker Transformers parallel checkpoint loading for the story image, and set story scaledown to 120 seconds while keeping `min_containers=0` and `max_containers=1`. The observed A10 worker started and generated tokens, but the story output failed the existing parser. This is experimental evidence, not a production/default model or capacity guarantee. Do not infer story reliability from the latency result; any output-format fix or second inference needs its own scoped approval.
+
+Source: owner-approved `plan/MODAL_SERVERLESS_STORY_LATENCY_EXPERIMENT_20261105.md`; execution evidence `evidence/MODAL_SERVERLESS_STORY_LATENCY_EXPERIMENT_20261105.md`; Modal GPU/cold-start/memory-snapshot docs and Transformers v4.53.0 source.
+
+## D-138 - Keep generated story content separate from derived timeline metadata
+
+For the FEAT-063 Parent story worker, have Qwen produce only validated narrative content. The application deterministically assigns scene indices and timing, then validates the assembled result against the unchanged `sketch2life.story-revision.v1` worker parser and backend contract. The verified POC uses five 6-second scenes (30 seconds total), within the existing 5–15 scene and 30–90 second bounds. This reduces the model's output-format surface; it does not relax semantic validation or replace adult review. Treat this as a validated worker implementation decision, not a production-quality or capacity claim.
+
+Source: owner-approved `plan/MODAL_STORY_CONTENT_BOUNDARY_20261105.md`, SHA-256 `DEEC2263B3148A855AE090D1A513B1D57174CD9800FAC9BA8BC0E3A3F6F23917`; `evidence/MODAL_STORY_CONTENT_BOUNDARY_20261105.md`.
+
+## Review note - Parent StoryRun-lite API and AI retest - 2026-11-05
+
+No product or architecture decision changed in this retest. The API evidence records a VLM outcome that remained unknown after 303.762 seconds and a story response rejected by the existing semantic lifecycle validator. The successful parser-contract checks do not establish that the model content is valid. Preserve the parser and business-rule guards pending a separately scoped diagnosis. See `evidence/PARENT_STORY_API_RETEST_20261105.md`.
+
+## D-139 - Qwen3.5 constrained decoder compatibility
+
+For the FEAT-063 Qwen3.5-9B dev workers using Transformers 5.22.1, do not import LM Format Enforcer's Transformers adapter: it imports the removed Transformers 4 tokenizer module and masks the ImportError. Pin LMFE 0.11.3 and construct the provider-agnostic `TokenEnforcer` callback directly from the pinned Qwen tokenizer data. Keep the JSON Schema constraint active during generation and retain the existing strict worker/backend parsing after generation. Local constrained-token tests and a Modal CPU import check passed; post-fix story/lesson inference remains unverified because the Rev44 one-attempt cap was consumed. This is a dev implementation correction, not a model-quality or production decision.
+
+Source: `plan/PLAN_REV44_AI_API_COVERAGE_QWEN35_MODAL_20261105.md`; `evidence/AI_API_QWEN35_MODAL_VALIDATION_20261105.md`.
+
+## D-140 - AI suggestion role boundary (Q159)
+
+Platform Admin and Teacher may start a new AI lesson/activity/plan suggestion. Parent may edit an already-authorized draft or personal copy but may not start suggestion generation. All AI-generated content remains a private draft pending authorized human review. Preserve the current reviewed-input filter; do not send raw uploaded documents or extracted full text to the model.
+
+Source: owner clarification, 2026-11-05; additive amendment in the canonical FEAT-063 SRS §31.12; `artifacts/AI_API_WORKLOAD_CATALOG_FEAT063_REV44_20261105.md`.
+
+## D-141 - Preserve Vietnamese characters during constrained JSON generation
+
+For the pinned Qwen3.5/LMFE worker, extend LMFE's default character alphabet for Vietnamese and related Unicode characters before importing the parser. Keep generation-time schema constraints and strict post-generation/business-rule validation unchanged. Configure the alphabet at worker runtime rather than `Modal Image.env`, because Dockerfile ENV quoting rejects the apostrophe/backslash characters required by JSON strings. This is a worker implementation correction, not a model promotion or product API decision.
+
+Source: `plan/PLAN_REV45_NONVIDEO_AI_END_TO_END_20261105.md`; `evidence/AI_NONVIDEO_AI_END_TO_END_20261105.md`.
+
+## D-142 - Qwen3.5-only active development profile
+
+For active FEAT-063 Modal development workloads that use a Qwen VLM/LLM, use only `Qwen/Qwen3.5-9B` at revision `c202236235762e1c871ad0ccb60c8ee5ba337b9a`. Retire Qwen2.5 from active model selection and runtime configuration. Preserve existing Qwen2.5 decisions, test reports, and artifacts as historical evidence; do not delete shared Volumes. This does not approve Qwen3.5 as a production default or change non-Qwen workloads.
+
+Source: direct owner instruction, 2026-11-05; additive SRS clarification in §31.12; Plan Rev46.
+
+
+## D-143 ? Require complete Diffusers FLUX.3 modular checkpoint
+
+The pinned FEAT-063 FLUX.3 worker must stage and verify its required Diffusers modular components, including the indexed transformer shards and VAE files, before inference. A valid model marker does not make an incomplete component tree ready; if required files are absent, downloader restages them and inference fails closed until verification passes. Retain the existing pinned revisions and Modal Secret download boundary.
+
+Source: `plan/PLAN_REV46A_FLUX_COMPONENT_FILES_AND_FAILED_FLOW_RETEST_20261105.md`; official [BFL transformer files](https://huggingface.co/black-forest-labs/flux-3-image-klein/tree/main/transformer), [BFL VAE files](https://huggingface.co/black-forest-labs/flux-3-image-klein/tree/main/vae), and [Diffusers FLUX3 modular pipeline](https://huggingface.co/docs/diffusers/v0.42.0/api/pipelines/flux3); `evidence/AI_QWEN35_FLUX_REV46A_COMPLETION_20261105.md`.
+
+## D-148 — Rev45 AI direction consistency record
+
+Rev45 aligns already-recorded owner directions across the target SRS: Qwen3.5-VL for drawing understanding and structured story/storyboard development, FLUX.3 for line-sketch/lesson visuals, Whisper for ASR, optional SAM 2.1, and Modal as development hosting. LTX-2.5/Modal L40S remains the video target under Q144; WAN remains a candidate. This record does not approve production models, providers, checkpoints, or deployment.
+
+Source: canonical SRS §§6, 9, 31.12 and 32; existing owner records; Plan Rev45; evidence EV-063-55.
+
+## D-149 — Canonical SRS v2.5-draft and dated source snapshots
+
+The canonical SRS and companion advance to v2.5-draft. Rev45 records the earlier local source review; Rev51 separately records a read-only crosswalk of fetched `origin/dev`. Both remain subordinate to the target requirements and neither is runtime acceptance proof. This supersedes D-138 only for the canonical SRS version pointer; product scope, data model and production stack are not newly approved.
+
+Source: owner request in this conversation; approved Plans Rev45 and Rev51; evidence EV-063-55 and EV-063-56.
+
+## SRS v2.4 publication decisions ? integration ID reconciliation
+
+The SRS publication branch used D-122 through D-125 for these four records, while the selected Modal branch already uses those identifiers for StoryRun implementation decisions. The records are assigned D-135 through D-138 in this combined register. The original SRS/approval commits and their messages are preserved; the canonical decisions and details remain in the v2.4 SRS.
+
+| D-135 | For current product requirements and target architecture, the canonical working SRS is FEAT-063 `SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` v2.3-draft. Older SRS copies and feature contexts are historical/feature-local only. The v2.3 draft is not thereby signed or made final. | Owner instruction 2026-11-01; approved Plan Rev42; `docs/context/SRS_AUTHORITY.md` |
+| D-136 | Resolve Q159: Platform Admin and Teacher may initiate AI lesson/activity suggestion; Parent may edit an authorized draft only. Generated content remains a draft behind human review/publication gates. This supersedes the lesson-suggestion-role item in D-104; its other open items remain open. | Owner clarification recorded in canonical SRS §31.12 on 2026-11-06 |
+| D-137 | Current AI development direction is Qwen3.5-VL, FLUX.3, Whisper and optional SAM 2.1 hosted through Modal. This is a development direction, not production stack approval; exact checkpoints, licenses, measured quality/cost and backend integration remain separate gates. | Owner direction recorded in canonical SRS §§31.12 and 32; Plan Rev43 |
+| D-138 | Canonical working SRS advances to v2.4-draft and adds an environment-specific as-built snapshot while preserving v2.3 product target requirements. This supersedes D-122's version pointer; the SRS remains unsigned. | Owner instruction 2026-11-06; approved Plan Rev43; `docs/context/SRS_AUTHORITY.md` |
+
+## D-144 - Distinguish Modal queue delay from worker execution timeout
+
+For FEAT-063 development diagnosis, do not increase a Modal function's execution timeout to address evidence of GPU queue/capacity delay. Increase execution time only when logs show the worker started and was cut off by its execution deadline. If no worker-stage log exists, classify the outcome as unknown and do not retry unchanged. The Rev51 SAM2 record showed a 1,800-second GPU scheduling wait with no mask; the Parent VLM API record had no worker-stage log and remains per-request unknown.
+
+Source: owner-approved Plan Rev51; `evidence/modal_ai_and_legacy_api_retest_20261106/API_TONG_HOP_VA_SAN_PHAM_AI_MODAL_20261106.md`. This is a dev diagnostic rule, not a production timeout decision.
+
+## D-145 - Keep generated story validation aligned to the SRS contract
+
+The non-video story worker must validate the required `StoryRevisionDraftV1` fields, scene count, lifecycle facts, timeline, and applicable business rules. Do not require terminal punctuation unless the canonical SRS adds that requirement. Keep constrained-decoder field limits large enough for the defined content fields; a model output reaching an internal length cap is a generation/contract failure to diagnose, not a reason to silently truncate or skip required validation.
+
+Source: Plan Rev52 and `evidence/nonvideo_modal_ai_reliability_20261106/API_AND_AI_MODAL_RESULTS_20261106.md`; the canonical working SRS remains the product authority.
+
+## D-146 - Preserve privacy-safe Modal worker phase diagnostics
+
+Non-video Modal worker/caller diagnostics may retain correlation IDs, fixed phase names, elapsed time, pinned model/revision, GPU class, stable error code/type, and output size/hash. Parse only allowlisted structured fields. Never retain prompt or generated text, child/profile/roster data, image/audio payloads, tokens, raw exception text, or raw Modal log lines. An unobserved worker terminal event remains an unknown outcome and must not trigger automatic retry.
+
+Source: approved Plan Rev52 and its worker/API evidence. This is an active development observability decision, not production workload enablement.
+
+## D-147 - Keep SAM 2.1 optional after partial synthetic mask result
+
+The Rev53 fix adds `drawing.segment` only to the dedicated L4 worker envelope allowlist so a bounded dev inference can run. Keep the product workload registry disabled. The pinned SAM 2.1 worker and output contract passed once on a synthetic butterfly image, but visual review found only the central body in the mask; the wings, head and antennae were missed. Retain OpenCV/Pillow as the baseline and require a separately approved prompt/quality evaluation before considering product dispatch. This does not make SAM 2.1 a required V1 capability or production-approved model.
+
+Source: owner-approved Plan Rev53; `evidence/sam2_gate_retest_20261106/RESULTS.md` and `visual_review.md`; canonical SRS v2.4-draft.
+
 ## Merge reconciliation for decision IDs - 2026-11-05
 
 The remote Modal decisions originally used D-127 through D-135; they are renumbered D-133 through D-141 here because the current branch already assigns D-127 through D-132. The remote D-120 FE OpenAPI entry duplicated the corrected canonical D-131 record and is not repeated.
 
 
 ## M2 owner decisions for Draft 7 and S0-doc — 2026-11-06
+
+## End of the `origin/dev` block (2026-11-09)
+
+Entries below this line are the M2 line again. See the merge note above for the identifier collision.
 
 | ID | Owner decision | Basis |
 |---|---|---|

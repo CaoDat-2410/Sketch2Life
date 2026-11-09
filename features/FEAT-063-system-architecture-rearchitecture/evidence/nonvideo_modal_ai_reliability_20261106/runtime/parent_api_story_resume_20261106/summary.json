@@ -1,0 +1,307 @@
+{
+  "api_request_count": 7,
+  "api_request_results": [
+    {
+      "candidate_is_expected_subject": true,
+      "elapsed_ms": 38.64,
+      "expected_statuses": [
+        200
+      ],
+      "method": "GET",
+      "name": "read_existing_parent_run_before_story",
+      "passed": true,
+      "response_fields": [
+        "action_required",
+        "child_age_months",
+        "created_at",
+        "error",
+        "job_state",
+        "result",
+        "retryable",
+        "revision",
+        "run_ref",
+        "run_state",
+        "target_revision",
+        "updated_at",
+        "version"
+      ],
+      "result_field_names": [
+        "confidence",
+        "subject_label",
+        "understanding_revision"
+      ],
+      "retryable": false,
+      "revision": 3,
+      "route": "GET /v1/story-runs/{run_ref}",
+      "run_state": "SUBJECT_REVIEW",
+      "status": 200
+    },
+    {
+      "elapsed_ms": 22.76,
+      "expected_statuses": [
+        202
+      ],
+      "method": "POST",
+      "name": "confirm_ai_recognized_synthetic_subject",
+      "passed": true,
+      "response_fields": [
+        "action_required",
+        "child_age_months",
+        "created_at",
+        "error",
+        "job_state",
+        "result",
+        "retryable",
+        "revision",
+        "run_ref",
+        "run_state",
+        "target_revision",
+        "updated_at",
+        "version"
+      ],
+      "retryable": false,
+      "revision": 4,
+      "route": "POST /v1/story-runs/{run_ref}/subject-confirmation",
+      "run_state": "PREPARATION_REVIEW",
+      "status": 202
+    },
+    {
+      "elapsed_ms": 6.09,
+      "expected_statuses": [
+        200
+      ],
+      "method": "GET",
+      "name": "read_parent_run_before_story_generation",
+      "passed": true,
+      "response_fields": [
+        "action_required",
+        "child_age_months",
+        "created_at",
+        "error",
+        "job_state",
+        "result",
+        "retryable",
+        "revision",
+        "run_ref",
+        "run_state",
+        "target_revision",
+        "updated_at",
+        "version"
+      ],
+      "retryable": false,
+      "revision": 4,
+      "route": "GET /v1/story-runs/{run_ref}",
+      "run_state": "PREPARATION_REVIEW",
+      "status": 200
+    },
+    {
+      "elapsed_ms": 23.58,
+      "expected_statuses": [
+        202
+      ],
+      "method": "POST",
+      "name": "create_parent_story_revision_from_verified_modal_output_fixture",
+      "passed": true,
+      "response_fields": [
+        "revision_no",
+        "run_ref",
+        "state",
+        "story_revision_ref"
+      ],
+      "revision_no": 1,
+      "route": "POST /v1/story-runs/{run_ref}/story-revisions",
+      "state": "GENERATING",
+      "status": 202
+    },
+    {
+      "elapsed_ms": 18.35,
+      "expected_statuses": [
+        200
+      ],
+      "method": "GET",
+      "name": "poll_parent_story_revision_until_terminal",
+      "passed": true,
+      "response_fields": [
+        "context_revision",
+        "created_at",
+        "model",
+        "prompt_version",
+        "provider_call_id",
+        "request_sha256",
+        "review_required",
+        "revision_no",
+        "run_ref",
+        "schema_version",
+        "source_asset_sha256",
+        "status",
+        "story_revision_ref",
+        "story_sha256",
+        "understanding_revision"
+      ],
+      "revision_no": 1,
+      "route": "GET /v1/story-runs/{run_ref}/story-revisions/{story_revision_ref}",
+      "status": "GENERATING",
+      "understanding_revision": 1
+    },
+    {
+      "elapsed_ms": 11.62,
+      "expected_statuses": [
+        200
+      ],
+      "method": "GET",
+      "name": "poll_parent_story_revision_until_terminal",
+      "passed": true,
+      "response_fields": [
+        "context_revision",
+        "created_at",
+        "duration_ms",
+        "language",
+        "model",
+        "prompt_version",
+        "provider_call_id",
+        "request_sha256",
+        "review_required",
+        "revision_no",
+        "run_ref",
+        "scenes",
+        "schema_version",
+        "source_asset_sha256",
+        "status",
+        "story",
+        "story_revision_ref",
+        "story_sha256",
+        "title",
+        "understanding_revision"
+      ],
+      "revision_no": 1,
+      "route": "GET /v1/story-runs/{run_ref}/story-revisions/{story_revision_ref}",
+      "status": "DRAFT",
+      "story_sha256": "1f4c05e22ba9f5c790648284b356563a114e895ec160ac29582de01cde9c3e78",
+      "story_shape": {
+        "duration_ms": 30000,
+        "field_names": [
+          "context_revision",
+          "created_at",
+          "duration_ms",
+          "language",
+          "model",
+          "prompt_version",
+          "provider_call_id",
+          "request_sha256",
+          "review_required",
+          "revision_no",
+          "run_ref",
+          "scenes",
+          "schema_version",
+          "source_asset_sha256",
+          "status",
+          "story",
+          "story_revision_ref",
+          "story_sha256",
+          "title",
+          "understanding_revision"
+        ],
+        "language": "vi",
+        "scene_count": 5,
+        "scene_field_names": [
+          "action",
+          "character_anchors",
+          "duration_ms",
+          "narration",
+          "scene_index",
+          "start_ms",
+          "title",
+          "visual_prompt"
+        ],
+        "schema_version": "sketch2life.story-revision.v1",
+        "section_character_counts": {
+          "ending": 170,
+          "middle": 118,
+          "opening": 162
+        },
+        "section_names": [
+          "ending",
+          "middle",
+          "opening"
+        ]
+      },
+      "understanding_revision": 1
+    },
+    {
+      "code": "PRECONDITION_REQUIRED",
+      "elapsed_ms": 2.18,
+      "expected_statuses": [
+        200
+      ],
+      "method": "POST",
+      "name": "adult_confirms_parent_story_revision",
+      "passed": false,
+      "response_fields": [
+        "code",
+        "correlation_id",
+        "field_errors",
+        "message",
+        "retryable"
+      ],
+      "retryable": false,
+      "route": "POST /v1/story-runs/{run_ref}/story-revisions/{story_revision_ref}/confirmation",
+      "status": 428
+    }
+  ],
+  "api_requests": [],
+  "api_requests_all_expected": false,
+  "api_routes_exercised": [
+    "GET /v1/story-runs/{run_ref}",
+    "GET /v1/story-runs/{run_ref}/story-revisions/{story_revision_ref}",
+    "POST /v1/story-runs/{run_ref}/story-revisions",
+    "POST /v1/story-runs/{run_ref}/story-revisions/{story_revision_ref}/confirmation",
+    "POST /v1/story-runs/{run_ref}/subject-confirmation"
+  ],
+  "api_server_stopped": true,
+  "database": {
+    "container": "sketch2life-rev52-parent-api-pg-20261106",
+    "database_name": "storyrun_lite_feat063_rev52_20261106",
+    "database_owner_verified": true,
+    "host": "127.0.0.1",
+    "port": 5433,
+    "run_id": "945a2673-33ef-4690-9055-5f4991a8aa8f",
+    "run_state": "SUBJECT_REVIEW",
+    "story_revision_count_before": 0,
+    "synthetic_only": true,
+    "vision_job_state": "SUCCEEDED"
+  },
+  "elapsed_seconds": 2.179,
+  "ended_at": "2026-11-06T15:49:42+07:00",
+  "error_code": null,
+  "error_type": "RuntimeError",
+  "modal_calls": {
+    "drawing.analyze": 0,
+    "story.generate": 0
+  },
+  "started_at": "2026-11-06T15:49:40+07:00",
+  "status": "FAIL",
+  "story_api": {
+    "butterfly_lifecycle_valid": true,
+    "create_status": 202,
+    "fixture_dispatches": 1,
+    "modal_dispatches": 0,
+    "review_required": true,
+    "revision_ref": "313d83ce-9e6b-49ca-b1ec-bd056a4322aa",
+    "revision_status": "DRAFT",
+    "scene_count": 5,
+    "schema_valid": true,
+    "story_sha256": "1f4c05e22ba9f5c790648284b356563a114e895ec160ac29582de01cde9c3e78"
+  },
+  "story_fixture": {
+    "butterfly_lifecycle_valid_before_api": true,
+    "modal_call_for_api_route": false,
+    "scene_count": 5,
+    "schema_valid_before_api": true,
+    "source_artifact_sha256": "819f97540a5a35feb52a7453b5df26e9592b47978edac74f9731668fc450dc72",
+    "source_model_id": "Qwen/Qwen3.5-9B",
+    "source_model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+    "source_workload": "story.generate",
+    "trailing_fragments_normalized": true
+  },
+  "video_calls": 0
+}

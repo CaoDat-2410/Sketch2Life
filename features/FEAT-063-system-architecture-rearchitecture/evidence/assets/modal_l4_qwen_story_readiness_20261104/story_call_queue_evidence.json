@@ -1,0 +1,52 @@
+{
+  "schema_version": "sketch2life.modal.queue-diagnostic.v1",
+  "diagnostic_app_id": "ap-eSKmVFFgZZRxcA7sjVwUiR",
+  "diagnostic_function_id": "fu-D1O8z3M6tRZ8Ztbdt4RGmq",
+  "diagnostic_call_id": "fc-01M6KKN9A6QZ4AYKPX0RM1KMD4",
+  "diagnostic_container_id": "ta-01M6KKN9K9ZDNXHF4F2TVQ7JBR",
+  "language_app_id": "ap-b54DkVWHGM0HaQRNA6bCXB",
+  "story_function_id": "fu-a62mw2fRxW1Hu3ixHxwUIs",
+  "model_id": "Qwen/Qwen2.5-7B-Instruct",
+  "model_revision": "a09a35458c702b33eeacc393d103063234e8bc28",
+  "calls": [
+    {
+      "function_call_id": "fc-01M6KM0JNZSDCGR8DC2SHVFDH4",
+      "enqueued_at": "2026-11-04T15:49:30.953705Z",
+      "status_before_app_stop": "pending",
+      "started_at": null,
+      "container_id": null,
+      "wait_seconds_before_stop": 1863,
+      "cancel_requested_before_stop": true,
+      "post_cancel_poll": "still pending",
+      "post_stop_result": "RemoteError"
+    },
+    {
+      "function_call_id": "fc-01M6KMA2KYQTF3RA3CRPZW73K0",
+      "enqueued_at": "2026-11-04T15:54:42.191405Z",
+      "status_before_app_stop": "pending",
+      "started_at": null,
+      "container_id": null,
+      "wait_seconds_before_stop": 1552,
+      "cancel_requested_before_stop": true,
+      "post_cancel_poll": "still pending",
+      "post_stop_result": "RemoteError",
+      "local_result_record": "story_attempt_2/story_result.json"
+    }
+  ],
+  "modal_log_observation": {
+    "at": "2026-11-04T23:20:32+07:00",
+    "message": "Function generate-story-and-storyboard was waiting to be scheduled on a GPU_L4 worker; Modal was acquiring capacity."
+  },
+  "language_app_stopped_at": "2026-11-04T23:20:34+07:00",
+  "active_containers_after_stop": 0,
+  "model_inference_started": false,
+  "video_inference_started": false,
+  "execution_deviations": {
+    "approved_max_story_dispatches": 1,
+    "actual_story_dispatches": 2,
+    "first_call_queue_seconds_before_stop": 1863,
+    "approved_client_wait_cap_seconds": 1800,
+    "first_call_over_cap_seconds": 63,
+    "reason": "The first runner did not surface its Modal call ID before a second instrumented call was mistakenly dispatched; the first call remained queued after its runner was interrupted. Both remained unstarted and no model inference ran."
+  }
+}

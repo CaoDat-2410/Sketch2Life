@@ -1,0 +1,53 @@
+{
+  "state": "CALL_TERMINAL_SUCCESS",
+  "workload": "story.generate",
+  "app": "sketch2life-srs23-language-audio-dev",
+  "function": "generate-story-and-storyboard",
+  "job_id": "ad45c8c6-e881-46af-b769-522a1ffffd96",
+  "generation_id": "09690dd4-63e1-49b4-8bee-b18f10b0d716",
+  "attempt_id": "67cc20eb-5d59-419b-9fbf-6b793e9cc753",
+  "prefix": "sketch2life/dev/ad45c8c6-e881-46af-b769-522a1ffffd96/09690dd4-63e1-49b4-8bee-b18f10b0d716/67cc20eb-5d59-419b-9fbf-6b793e9cc753/",
+  "input_sha256": "ff008e934764bd3d7c33dfbd020fe99832af277d31e87f9cbc1982fb9dd66cb6",
+  "manifest_sha256": "05ba995a44fcee2a86da94ea838b4eaecb5d786e734f99731b9fd2a76e7c7c6c",
+  "synthetic_parent_fixture": true,
+  "source_drawing_sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949",
+  "wait_limit_seconds": 300,
+  "created_at": "2026-11-05T03:34:21.921+07:00",
+  "max_calls": 1,
+  "video_calls": 0,
+  "outcome": "SUCCEEDED",
+  "call_id": "fc-01M6M4APDR5QMGF8VA6PKJ66M5",
+  "dispatched_at": "2026-11-05T03:34:25.130+07:00",
+  "completed_at": "2026-11-05T03:35:21.203+07:00",
+  "scene_count": 5,
+  "duration_ms": 30000,
+  "story_output_sha256": "35a8330b1809a7f9b927b42ae290e54a2c7624dc078dc25cb88c610628771485",
+  "schema_validation": "passed",
+  "butterfly_lifecycle_validation": "passed",
+  "model": {
+    "id": "Qwen/Qwen2.5-7B-Instruct",
+    "revision": "a09a35458c702b33eeacc393d103063234e8bc28"
+  },
+  "ended_at": "2026-11-05T03:35:21.203+07:00",
+  "worker_logs": {
+    "state": "saved_and_refreshed_after_stop",
+    "exit_code": 0
+  },
+  "scratch_cleanup": "removed",
+  "client_dispatch_to_terminal_seconds": 56.073,
+  "worker_stage_metrics": {
+    "gpu": "NVIDIA L40S",
+    "torch_import_seconds": 1.728,
+    "model_load_seconds": 16.645,
+    "prompt_encode_seconds": 0.013,
+    "constraint_build_seconds": 3.412,
+    "generation_seconds": 26.137,
+    "output_token_count": 608,
+    "handler_seconds": 50.046
+  },
+  "app_after_stop": {
+    "app_id": "ap-WMgksDah3JVJTzQ5OU0cXn",
+    "state": "stopped",
+    "tasks": 0
+  }
+}

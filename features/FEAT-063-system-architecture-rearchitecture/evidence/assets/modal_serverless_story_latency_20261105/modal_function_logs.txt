@@ -1,0 +1,37 @@
+﻿2026-11-05 02:39:01+07:00 {"event": "story_worker_started"}
+2026-11-05 02:39:04+07:00 {"event": "story_runtime_ready", "gpu_name": "NVIDIA A10", "torch_import_seconds": 2.224}
+2026-11-05 02:39:09+07:00 
+2026-11-05 02:39:09+07:00 [1A
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]
+2026-11-05 02:39:16+07:00 
+2026-11-05 02:39:16+07:00 [1A
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:07<00:22,  7.41s/it]
+2026-11-05 02:39:17+07:00 
+2026-11-05 02:39:17+07:00 [1A
+2026-11-05 02:39:17+07:00 Loading checkpoint shards:  50%|█████     | 2/4 [00:07<00:06,  3.38s/it]
+2026-11-05 02:39:17+07:00 [1A
+2026-11-05 02:39:17+07:00 Loading checkpoint shards:  75%|███████▌  | 3/4 [00:08<00:01,  2.00s/it]
+2026-11-05 02:39:17+07:00 [1A
+2026-11-05 02:39:17+07:00 Loading checkpoint shards: 100%|██████████| 4/4 [00:08<00:00,  1.25s/it]
+2026-11-05 02:39:17+07:00 [1A
+2026-11-05 02:39:17+07:00 Loading checkpoint shards: 100%|██████████| 4/4 [00:08<00:00,  2.11s/it]
+2026-11-05 02:39:17+07:00 {"event": "story_model_loaded", "model_load_seconds": 12.634}
+2026-11-05 02:39:17+07:00 {"event": "story_prompt_encoded", "prompt_encode_seconds": 0.015}
+2026-11-05 02:39:17+07:00 The following generation flags are not valid and may be ignored: ['temperature', 'top_p', 'top_k']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+2026-11-05 02:39:17+07:00 The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+2026-11-05 02:39:45+07:00 {"event": "story_tokens_generated", "generation_seconds": 27.407, "output_token_count": 722}
+2026-11-05 02:39:45+07:00 Traceback (most recent call last):
+2026-11-05 02:39:45+07:00   File "/pkg/modal/_runtime/container_io_manager.py", line 987, in handle_input_exception
+2026-11-05 02:39:45+07:00     yield
+2026-11-05 02:39:45+07:00   File "/pkg/modal/_container_entrypoint.py", line 189, in run_input_sync
+2026-11-05 02:39:45+07:00     values = io_context.call_function_sync()
+2026-11-05 02:39:45+07:00              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-05 02:39:45+07:00   File "/pkg/modal/_runtime/container_io_manager.py", line 266, in call_function_sync
+2026-11-05 02:39:45+07:00     expected_value_or_values = self.finalized_function.callable(*args, **kwargs)
+2026-11-05 02:39:45+07:00                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-05 02:39:45+07:00   File "/root/language_audio_app.py", line 324, in generate_story_and_storyboard
+2026-11-05 02:39:45+07:00     result = _parse_story_output(text, data)
+2026-11-05 02:39:45+07:00              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-05 02:39:45+07:00   File "/root/language_audio_app.py", line 871, in _parse_story_output
+2026-11-05 02:39:45+07:00     raise RuntimeError("MODAL_MODEL_OUTPUT_INVALID")
+2026-11-05 02:39:45+07:00 RuntimeError: MODAL_MODEL_OUTPUT_INVALID

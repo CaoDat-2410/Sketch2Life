@@ -1,0 +1,13 @@
+{
+  "state": "DISPATCH_INTENT_RECORDED",
+  "workload": "tts.narration.generate",
+  "app": "sketch2life-srs23-language-audio-dev",
+  "function": "synthesize-vietnamese-narration",
+  "job_id": "34bd8adb-5efe-4655-aed2-5f4073656712",
+  "generation_id": "93cec1f0-cf8f-46dc-a6b4-2754efc92cf9",
+  "attempt_id": "ff43a0ee-a706-457c-85f7-816a06ab45e4",
+  "input_sha256": "a0468708913bb3792998c134ed106721b1c0799578ffca1c8c5660ecf2524cc1",
+  "manifest_sha256": "ae94d767d80a3700a3d1dca1a40a0edcc4108ab1f13e1661c8ef12f256956f72",
+  "created_at": "2026-11-05T16:19:16+07:00",
+  "max_attempts": 1
+}

@@ -1,0 +1,119 @@
+{
+  "plan": "PLAN_REV45_NONVIDEO_AI_END_TO_END_20261105.md",
+  "started_at": "2026-11-05T16:57:31+07:00",
+  "synthetic_only": true,
+  "image_fixture": "synthetic_childlike_butterfly.png",
+  "qwen_model": {
+    "id": "Qwen/Qwen3.5-9B",
+    "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
+  },
+  "max_wait_seconds_per_call": 600,
+  "video_called": false,
+  "image_generation_called": false,
+  "sam2_called": false,
+  "purpose": "After reducing lesson output bounds and adding decoder diagnostics, retest Parent VLM-to-story, Teacher deck, and lesson draft using one synthetic image.",
+  "ended_at": "2026-11-05T17:04:54+07:00",
+  "results": [
+    {
+      "workload": "drawing.analyze",
+      "app": "sketch2life-srs23-drawing-vlm-dev",
+      "function": "analyze-drawing",
+      "job_id": "15fae2de-9743-4cf2-ac4a-b2871e950593",
+      "generation_id": "ceda41f4-41b8-478c-93ec-59de7d09cd0a",
+      "attempt_id": "437010fe-d682-4a04-ac96-373da2f61249",
+      "source_sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949",
+      "drawing_sha256": "f433b37a93f33accc5a10cbb81b18f8cf31d8de0868752c0fe6d9d8beb3ec8e0",
+      "wait_limit_seconds": 600,
+      "started_at": "2026-11-05T16:57:32+07:00",
+      "outcome": "SUCCEEDED",
+      "call_id": "fc-01M6NJ9BQAB5YPD0THTF7JHR8T",
+      "dispatch_at": "2026-11-05T16:57:35+07:00",
+      "model": {
+        "id": "Qwen/Qwen3.5-9B",
+        "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
+      },
+      "candidate_subject": "bướm",
+      "visible_features": [
+        "cánh màu hồng và tím",
+        "thân màu vàng có vạch ngang",
+        "mặt cười đơn giản",
+        "anten cong ở đầu"
+      ],
+      "adult_confirmation_required": true,
+      "output_sha256": "407800a21c1084ea60f517968e734673728ebb96797042c7a4a48e0414882b90",
+      "ended_at": "2026-11-05T16:58:15+07:00",
+      "runner_elapsed_ms": 44580.1,
+      "label": "drawing.analyze"
+    },
+    {
+      "state": "DISPATCH_INTENT_RECORDED",
+      "workload": "story.generate",
+      "app": "sketch2life-srs23-language-audio-dev",
+      "function": "generate-story-and-storyboard",
+      "job_id": "5f14dfeb-ab6e-407e-b316-e99a4eaca085",
+      "generation_id": "55ab8010-2355-4b54-999b-7ed88ed896bb",
+      "attempt_id": "7592b107-b50d-4036-8e6a-ccc26196f880",
+      "input_sha256": "d45ba5b6aa61b7fdbcf8d768a8cc4150de8a493a1bbcc9b9c41391f49ef06cd2",
+      "manifest_sha256": "9469c5679a1eed2b22077c480f90bb0b2e6ae0cbcbe3d65bac0d9a7deb41810c",
+      "wait_limit_seconds": 600,
+      "synthetic_adult_confirmed_fixture": true,
+      "created_at": "2026-11-05T16:58:15+07:00",
+      "max_attempts": 1,
+      "outcome": "FAILED_TERMINAL",
+      "call_id": "fc-01M6NJARYGWE5YM0BMXR94E4XY",
+      "dispatch_at": "2026-11-05T16:58:21+07:00",
+      "error_type": "RuntimeError",
+      "ended_at": "2026-11-05T17:00:53+07:00",
+      "runner_elapsed_ms": 158117.37,
+      "label": "story.generate_storyboard",
+      "synthetic_adult_confirmation": {
+        "candidate_subject": "bướm",
+        "confirmed": true
+      }
+    },
+    {
+      "workload": "teacher.sketch-deck.generate",
+      "app": "sketch2life-srs23-language-audio-dev",
+      "function": "generate-teacher-sketch-deck",
+      "job_id": "1e0160b4-ee5b-4f2b-9e51-9a45839c4522",
+      "generation_id": "5d6050c3-9f3b-48f0-9fa9-b8244c3f8269",
+      "attempt_id": "5c1829be-5285-4ee7-ab7e-b7a64df67805",
+      "input_sha256": "d4a7421d6d19fab19875f9143739b271275a7362b07fc29020076da15dec2b96",
+      "manifest_sha256": "472def81177a9c7a1a124efc32fddf611ce56d42efd59b35aa3db0fd91157f95",
+      "wait_limit_seconds": 600,
+      "started_at": "2026-11-05T17:00:53+07:00",
+      "outcome": "FAILED_TERMINAL",
+      "call_id": "fc-01M6NJFG6C4D5XZ7WRFJABRB9B",
+      "dispatch_at": "2026-11-05T17:00:56+07:00",
+      "error_type": "RuntimeError",
+      "ended_at": "2026-11-05T17:02:13+07:00",
+      "runner_elapsed_ms": 80337.33,
+      "label": "teacher.sketch_deck.generate"
+    },
+    {
+      "workload": "lesson.plan.suggest",
+      "app": "sketch2life-srs23-language-audio-dev",
+      "function": "suggest-lesson-plan",
+      "job_id": "c3cbc023-9269-4f2f-a841-b4244d568ae8",
+      "generation_id": "c859d64f-98d3-49bd-9e79-dba4dc284d24",
+      "attempt_id": "e0eec125-332e-4b0a-bb27-1929c493e1a9",
+      "input_sha256": "8e000ad3c8225cfb7c4324f7ba259ad9d9bc69f972f679d485fc4d599897f113",
+      "manifest_sha256": "010ac2f1f909aa56356e0fc62efe0b3582e64e2ddaacfe3c96ed379ba2e6be08",
+      "wait_limit_seconds": 600,
+      "started_at": "2026-11-05T17:02:14+07:00",
+      "outcome": "FAILED_TERMINAL",
+      "call_id": "fc-01M6NJHYNNPGX4M4NEE90950ZR",
+      "dispatch_at": "2026-11-05T17:02:16+07:00",
+      "error_type": "RuntimeError",
+      "ended_at": "2026-11-05T17:04:53+07:00",
+      "runner_elapsed_ms": 160317.73,
+      "label": "lesson.plan.suggest"
+    }
+  ],
+  "summary": {
+    "drawing.analyze": "SUCCEEDED",
+    "story.generate_storyboard": "FAILED_TERMINAL",
+    "teacher.sketch_deck.generate": "FAILED_TERMINAL",
+    "lesson.plan.suggest": "FAILED_TERMINAL"
+  }
+}

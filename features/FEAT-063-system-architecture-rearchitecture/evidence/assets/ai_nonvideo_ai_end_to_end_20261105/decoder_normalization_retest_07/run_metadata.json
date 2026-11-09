@@ -1,0 +1,12 @@
+{
+  "started_at": "2026-11-05T18:31:25+07:00",
+  "synthetic_only": true,
+  "image_fixture": "synthetic_childlike_butterfly.png",
+  "qwen_model": {
+    "id": "Qwen/Qwen3.5-9B",
+    "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
+  },
+  "max_wait_seconds_per_call": 600,
+  "video_called": false,
+  "purpose": "Retest Parent story and Teacher Deck after matching the manual Qwen tokenizer adapter to LM Format Enforcer's official Transformers decoding normalization."
+}

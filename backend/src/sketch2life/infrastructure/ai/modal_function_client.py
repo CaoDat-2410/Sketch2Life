@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import io
+import json
 import re
 import time
 import uuid
@@ -22,18 +23,350 @@ DRAWING_INPUT_SCHEMA = "sketch2life.modal.drawing-input.v1"
 STORY_INPUT_SCHEMA = "sketch2life.modal.ai-request.v1"
 WORKER_INPUT_SCHEMA = "sketch2life.modal.worker-input.v1"
 WORKER_OUTPUT_SCHEMA = "sketch2life.modal.worker-output.v1"
-MODEL_ID = "Qwen/Qwen2.5-VL-7B-Instruct"
-MODEL_REVISION = "cc594898137f460bfe9f0759e9844b3ce807cfb5"
-STORY_MODEL_ID = "Qwen/Qwen2.5-7B-Instruct"
-STORY_MODEL_REVISION = "a09a35458c702b33eeacc393d103063234e8bc28"
+MODEL_ID = "Qwen/Qwen3.5-9B"
+MODEL_REVISION = "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
+STORY_MODEL_ID = "Qwen/Qwen3.5-9B"
+STORY_MODEL_REVISION = "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
 MAX_INPUT_BYTES = 48 * 1024 * 1024
 MAX_MANIFEST_BYTES = 64 * 1024
 MAX_IMAGE_PIXELS = 2_000_000
 MAX_OUTPUT_BYTES = 256 * 1024
 _OPAQUE_ID = re.compile(r"\A[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}\Z")
 _SHA256 = re.compile(r"\A[0-9a-f]{64}\Z")
+_SAFE_LOG_CODE = re.compile(r"\A[A-Z][A-Z0-9_]{2,95}\Z")
+_SAFE_LOG_STAGE = re.compile(r"\A[a-z][a-z0-9_]{1,63}\Z")
+_WORKER_LOG_SCHEMA = "sketch2life.modal.worker-event.v1"
+_WORKER_LOG_EVENTS = {
+    "worker_started",
+    "worker_phase_started",
+    "worker_phase_succeeded",
+    "worker_phase_failed",
+    "worker_succeeded",
+    "worker_failed",
+}
+_WORKER_DIAGNOSTIC_EVENTS = {
+    "story_output_invalid",
+    "story_output_truncated",
+    "story_output_rejected",
+}
+_DIAGNOSTIC_INTEGER_FIELDS = {
+    "output_token_count",
+    "max_new_tokens",
+    "final_token_id",
+    "tokenizer_eos_token_id",
+    "model_eos_token_id",
+    "decoded_character_count",
+    "json_error_position",
+    "unterminated_string_character_count",
+    "json_root_key_count",
+    "callback_calls",
+    "string_limit_boundary_checks",
+    "string_limit_boundary_violations",
+    "max_observed_string_length",
+    "max_active_string_limit",
+    "unbounded_active_string_calls",
+    "force_stop_parser_calls",
+    "story_text_field_metric_count",
+}
+_DIAGNOSTIC_BOOLEAN_FIELDS = {
+    "token_limit_reached",
+    "ended_with_model_eos",
+    "json_complete",
+    "last_parser_can_end",
+    "last_model_eos_allowed",
+    "story_field_diagnostics_available",
+}
+_DIAGNOSTIC_STRING_FIELDS = {
+    "json_error_type",
+    "json_root_type",
+    "last_parser_state_class",
+}
+_DIAGNOSTIC_FIELD_KEY_COUNTS = {
+    "title",
+    "action",
+    "visual_prompt",
+    "narration",
+    "instruction",
+    "placement",
+    "drawing_steps_text",
+    "subject_learning_notes",
+    "instructions_text",
+    "safety_notes",
+}
+_SAFE_STORY_FIELD = re.compile(
+    r"\A(?:title|story\.(?:opening|middle|ending)|"
+    r"scenes\[\d{1,2}\](?:\.(?:title|action|visual_prompt|narration))?)\Z"
+)
 
 _LOGGER = get_logger(__name__)
+
+
+def summarize_worker_call_logs(
+    call: Any, *, max_entries: int = 500, max_log_wait_seconds: float = 0.5
+) -> dict[str, Any]:
+    """Read only structured worker events; tolerate Modal log indexing delay."""
+
+    summary: dict[str, Any] = {
+        "worker_logs_available": False,
+        "worker_log_event_count": 0,
+        "worker_phase_history": [],
+        "worker_started_observed": False,
+        "worker_terminal_event": None,
+        "worker_last_stage": None,
+        "worker_error_code": None,
+        "worker_diagnostic_code": None,
+        "worker_diagnostic_details": None,
+        "worker_error_type": None,
+        "worker_duration_ms": None,
+        "worker_model_id": None,
+        "worker_model_revision": None,
+        "worker_gpu_class": None,
+        "worker_output_size_bytes": None,
+        "worker_output_sha256": None,
+        "worker_binary_output_sha256": None,
+        "worker_failure_boundary": "worker_logs_unavailable",
+    }
+    events: list[dict[str, Any]] = []
+    logs_available = False
+    deadline = time.monotonic() + max(0.0, max_log_wait_seconds)
+    while True:
+        try:
+            entries = list(call.logs.tail(entries=max_entries))
+            logs_available = True
+        except Exception:
+            entries = []
+        events = []
+        for entry in entries:
+            message = getattr(entry, "message", None)
+            if not isinstance(message, str):
+                continue
+            for line in message.splitlines():
+                try:
+                    event = json.loads(line)
+                except (json.JSONDecodeError, TypeError):
+                    continue
+                if (
+                    isinstance(event, dict)
+                    and event.get("schema_version") == _WORKER_LOG_SCHEMA
+                    and event.get("event") in _WORKER_LOG_EVENTS
+                ):
+                    events.append(event)
+                elif (
+                    isinstance(event, dict)
+                    and event.get("event") in _WORKER_DIAGNOSTIC_EVENTS
+                    and event.get("workload") in {None, "story.generate"}
+                    and isinstance(event.get("reason_code"), str)
+                    and _SAFE_LOG_CODE.fullmatch(event["reason_code"])
+                ):
+                    summary["worker_diagnostic_code"] = event["reason_code"]
+                    summary["worker_diagnostic_details"] = _safe_diagnostic_details(event)
+        terminal_observed = any(
+            event.get("event") in {"worker_succeeded", "worker_failed"} for event in events
+        )
+        remaining = deadline - time.monotonic()
+        if terminal_observed or remaining <= 0:
+            break
+        time.sleep(min(0.25, remaining))
+
+    summary["worker_logs_available"] = logs_available
+    summary["worker_log_event_count"] = len(events)
+    phase_history: list[dict[str, Any]] = []
+    for event in events:
+        event_name = event.get("event")
+        stage = event.get("stage")
+        if (
+            event_name
+            in {
+                "worker_phase_started",
+                "worker_phase_succeeded",
+                "worker_phase_failed",
+            }
+            and isinstance(stage, str)
+            and _SAFE_LOG_STAGE.fullmatch(stage)
+            and len(phase_history) < 256
+        ):
+            phase: dict[str, Any] = {"event": event_name, "stage": stage}
+            duration = event.get("duration_ms")
+            if (
+                isinstance(duration, int)
+                and not isinstance(duration, bool)
+                and 0 <= duration <= 86_400_000
+            ):
+                phase["duration_ms"] = duration
+            code = event.get("error_code")
+            if isinstance(code, str) and _SAFE_LOG_CODE.fullmatch(code):
+                phase["error_code"] = code
+            error_type = event.get("error_type")
+            if isinstance(error_type, str) and re.fullmatch(
+                r"[A-Za-z][A-Za-z0-9_]{0,63}", error_type
+            ):
+                phase["error_type"] = error_type
+            phase_history.append(phase)
+        if event.get("event") == "worker_started":
+            summary["worker_started_observed"] = True
+        if isinstance(stage, str) and _SAFE_LOG_STAGE.fullmatch(stage):
+            summary["worker_last_stage"] = stage
+        for event_key, summary_key in (
+            ("model_id", "worker_model_id"),
+            ("model_revision", "worker_model_revision"),
+            ("gpu_class", "worker_gpu_class"),
+        ):
+            value = event.get(event_key)
+            if isinstance(value, str) and re.fullmatch(r"[A-Za-z0-9._:/|-]{1,160}", value):
+                summary[summary_key] = value
+        if event.get("event") not in {"worker_succeeded", "worker_failed"}:
+            continue
+        summary["worker_terminal_event"] = event["event"]
+        duration = event.get("duration_ms")
+        if isinstance(duration, int) and not isinstance(duration, bool) and duration >= 0:
+            summary["worker_duration_ms"] = duration
+        code = event.get("error_code")
+        if isinstance(code, str) and _SAFE_LOG_CODE.fullmatch(code):
+            summary["worker_error_code"] = code
+        error_type = event.get("error_type")
+        if isinstance(error_type, str) and re.fullmatch(r"[A-Za-z][A-Za-z0-9_]{0,63}", error_type):
+            summary["worker_error_type"] = error_type
+        output_size = event.get("output_size_bytes")
+        if isinstance(output_size, int) and not isinstance(output_size, bool) and output_size >= 0:
+            summary["worker_output_size_bytes"] = output_size
+        for event_key, summary_key in (
+            ("output_sha256", "worker_output_sha256"),
+            ("binary_output_sha256", "worker_binary_output_sha256"),
+        ):
+            value = event.get(event_key)
+            if isinstance(value, str) and _SHA256.fullmatch(value):
+                summary[summary_key] = value
+
+    summary["worker_phase_history"] = phase_history
+    if summary["worker_terminal_event"] == "worker_failed":
+        summary["worker_failure_boundary"] = "worker_terminal_failure_observed"
+    elif summary["worker_terminal_event"] == "worker_succeeded":
+        summary["worker_failure_boundary"] = "worker_succeeded"
+    elif summary["worker_started_observed"]:
+        summary["worker_failure_boundary"] = "worker_started_without_terminal_event"
+    elif summary["worker_log_event_count"]:
+        summary["worker_failure_boundary"] = "worker_start_not_observed"
+    elif logs_available:
+        summary["worker_failure_boundary"] = "worker_events_not_observed"
+    return summary
+
+
+def _safe_diagnostic_details(event: dict[str, Any]) -> dict[str, Any]:
+    """Retain bounded parser/model counters without generated or input text."""
+
+    details: dict[str, Any] = {"event": event["event"]}
+    for key in _DIAGNOSTIC_INTEGER_FIELDS:
+        value = event.get(key)
+        if isinstance(value, int) and not isinstance(value, bool) and value >= 0:
+            details[key] = value
+    for key in _DIAGNOSTIC_BOOLEAN_FIELDS:
+        value = event.get(key)
+        if isinstance(value, bool):
+            details[key] = value
+    seconds = event.get("generation_seconds")
+    if isinstance(seconds, (int, float)) and not isinstance(seconds, bool):
+        if 0 <= seconds < 86_400:
+            details["generation_seconds"] = round(float(seconds), 3)
+    for key in _DIAGNOSTIC_STRING_FIELDS:
+        value = event.get(key)
+        if isinstance(value, str) and re.fullmatch(r"[A-Za-z][A-Za-z0-9_]{0,63}", value):
+            details[key] = value
+    root_type = event.get("json_root_type")
+    if isinstance(root_type, str) and root_type in {
+        "dict",
+        "list",
+        "str",
+        "int",
+        "float",
+        "bool",
+        "NoneType",
+    }:
+        details["json_root_type"] = root_type
+    field_counts = event.get("field_key_counts")
+    if isinstance(field_counts, dict):
+        safe_counts = {
+            key: value
+            for key, value in field_counts.items()
+            if key in _DIAGNOSTIC_FIELD_KEY_COUNTS
+            and isinstance(value, int)
+            and not isinstance(value, bool)
+            and 0 <= value <= 100
+        }
+        if safe_counts:
+            details["field_key_counts"] = safe_counts
+    incomplete_fields = event.get("story_incomplete_sentence_fields")
+    if isinstance(incomplete_fields, list) and len(incomplete_fields) <= 32:
+        safe_fields = [
+            field
+            for field in incomplete_fields
+            if isinstance(field, str) and _SAFE_STORY_FIELD.fullmatch(field)
+        ]
+        if safe_fields:
+            details["story_incomplete_sentence_fields"] = safe_fields
+    field_metrics = event.get("story_text_field_metrics")
+    if isinstance(field_metrics, list) and len(field_metrics) <= 128:
+        safe_metrics: list[dict[str, Any]] = []
+        for metric in field_metrics:
+            if not isinstance(metric, dict):
+                continue
+            field = metric.get("field")
+            if not isinstance(field, str) or _SAFE_STORY_FIELD.fullmatch(field) is None:
+                continue
+            safe_metric: dict[str, Any] = {"field": field}
+            character_count = metric.get("character_count")
+            if (
+                isinstance(character_count, int)
+                and not isinstance(character_count, bool)
+                and 0 <= character_count <= 100_000
+            ):
+                safe_metric["character_count"] = character_count
+            max_length = metric.get("max_length")
+            if (
+                isinstance(max_length, int)
+                and not isinstance(max_length, bool)
+                and 0 <= max_length <= 10_000
+            ):
+                safe_metric["max_length"] = max_length
+            sentence_complete = metric.get("sentence_complete")
+            if isinstance(sentence_complete, bool):
+                safe_metric["sentence_complete"] = sentence_complete
+            value_type = metric.get("value_type")
+            if isinstance(value_type, str) and value_type in {
+                "NoneType",
+                "bool",
+                "int",
+                "float",
+                "str",
+                "list",
+                "dict",
+            }:
+                safe_metric["value_type"] = value_type
+            safe_metrics.append(safe_metric)
+        if safe_metrics:
+            details["story_text_field_metrics"] = safe_metrics
+    eos_ids = event.get("model_eos_token_ids")
+    if (
+        isinstance(eos_ids, list)
+        and len(eos_ids) <= 8
+        and all(
+            isinstance(value, int) and not isinstance(value, bool) and value >= 0
+            for value in eos_ids
+        )
+    ):
+        details["model_eos_token_ids"] = eos_ids
+    return details
+
+
+def _call_identity(payload: dict[str, Any]) -> dict[str, str]:
+    return {
+        ref_key: hashlib.sha256(value.encode("utf-8")).hexdigest()[:16]
+        for key, ref_key in (
+            ("job_id", "job_ref"),
+            ("generation_id", "generation_ref"),
+            ("attempt_id", "attempt_ref"),
+        )
+        if isinstance((value := payload.get(key)), str) and _OPAQUE_ID.fullmatch(value)
+    }
 
 
 class ModalFunctionOutcomeUnknown(RuntimeError):
@@ -169,7 +502,7 @@ class ModalDrawingFunctionClient:
         *,
         volume: Any | None = None,
         function: Any | None = None,
-        timeout_seconds: float = 900.0,
+        timeout_seconds: float = 1_800.0,
     ) -> None:
         if (volume is None) != (function is None):
             raise ValueError("Modal test doubles must supply both Volume and Function")
@@ -200,6 +533,13 @@ class ModalDrawingFunctionClient:
         terminal = False
         started = time.perf_counter()
         try:
+            upload_started = time.perf_counter()
+            _LOGGER.info(
+                "modal_worker_scratch_upload_started",
+                workload="drawing.analyze",
+                input_size_bytes=len(prepared.drawing_png) + len(prepared.manifest),
+                **_call_identity(prepared.payload),
+            )
             with volume.batch_upload() as batch:
                 batch.put_file(
                     io.BytesIO(prepared.drawing_png),
@@ -209,22 +549,80 @@ class ModalDrawingFunctionClient:
                     io.BytesIO(prepared.manifest),
                     f"/{prepared.attempt_prefix}input/manifest.json",
                 )
+            _LOGGER.info(
+                "modal_worker_scratch_upload_completed",
+                workload="drawing.analyze",
+                duration_ms=round((time.perf_counter() - upload_started) * 1000),
+                **_call_identity(prepared.payload),
+            )
 
+            _LOGGER.info(
+                "modal_worker_spawn_started",
+                workload="drawing.analyze",
+                **_call_identity(prepared.payload),
+            )
             call = function.spawn(prepared.payload)
             call_id = getattr(call, "object_id", None)
             if not isinstance(call_id, str) or not call_id.startswith("fc-"):
                 raise ModalFunctionOutcomeUnknown()
             _LOGGER.info(
-                "modal_drawing_function_started",
+                "modal_worker_spawn_completed",
                 modal_call_id=call_id,
                 workload="drawing.analyze",
-                drawing_sha256=prepared.drawing_sha256,
+                **_call_identity(prepared.payload),
+            )
+            _LOGGER.info(
+                "modal_worker_wait_started",
+                modal_call_id=call_id,
+                workload="drawing.analyze",
+                wait_timeout_seconds=self._timeout,
+                **_call_identity(prepared.payload),
             )
             try:
                 result = call.get(timeout=self._timeout)
             except TimeoutError as exc:
+                _LOGGER.warning(
+                    "modal_worker_wait_timed_out",
+                    modal_call_id=call_id,
+                    workload="drawing.analyze",
+                    elapsed_ms=round((time.perf_counter() - started) * 1000),
+                    **summarize_worker_call_logs(call),
+                    **_call_identity(prepared.payload),
+                )
+                raise ModalFunctionOutcomeUnknown(call_id) from exc
+            except Exception as exc:
+                summary = summarize_worker_call_logs(call)
+                _LOGGER.warning(
+                    "modal_worker_wait_failed",
+                    modal_call_id=call_id,
+                    workload="drawing.analyze",
+                    exception_type=type(exc).__name__,
+                    **summary,
+                    **_call_identity(prepared.payload),
+                )
+                if type(exc).__name__ == "RemoteError" and type(exc).__module__.startswith(
+                    "modal."
+                ):
+                    terminal = True
+                    _LOGGER.warning(
+                        "modal_drawing_worker_terminal_failure",
+                        modal_call_id=call_id,
+                        error_code="DRAWING_WORKER_FAILED_TERMINAL",
+                        worker_error_code=summary.get("worker_error_code"),
+                        worker_last_stage=summary.get("worker_last_stage"),
+                        **_call_identity(prepared.payload),
+                    )
+                    raise ModalFunctionExecutionFailed("DRAWING_WORKER_FAILED_TERMINAL") from None
                 raise ModalFunctionOutcomeUnknown(call_id) from exc
             terminal = True
+            _LOGGER.info(
+                "modal_worker_wait_completed",
+                modal_call_id=call_id,
+                workload="drawing.analyze",
+                elapsed_ms=round((time.perf_counter() - started) * 1000),
+                **summarize_worker_call_logs(call),
+                **_call_identity(prepared.payload),
+            )
             if not isinstance(result, dict):
                 raise ModalFunctionOutcomeUnknown(call_id)
             try:
@@ -241,17 +639,32 @@ class ModalDrawingFunctionClient:
             )
         except ModalFunctionOutcomeUnknown:
             raise
+        except ModalFunctionExecutionFailed:
+            raise
         except Exception as exc:
             # Do not surface SDK diagnostics; a failure after dispatch is treated as ambiguous.
             raise ModalFunctionOutcomeUnknown(call_id) from exc
         finally:
             if terminal:
                 try:
+                    cleanup_started = time.perf_counter()
                     volume.remove_file(
                         f"{prepared.attempt_prefix}input",
                         recursive=True,
                     )
+                    _LOGGER.info(
+                        "modal_worker_scratch_cleanup_completed",
+                        workload="drawing.analyze",
+                        duration_ms=round((time.perf_counter() - cleanup_started) * 1000),
+                        **_call_identity(prepared.payload),
+                    )
                 except Exception as exc:
+                    _LOGGER.warning(
+                        "modal_worker_scratch_cleanup_failed",
+                        workload="drawing.analyze",
+                        exception_type=type(exc).__name__,
+                        **_call_identity(prepared.payload),
+                    )
                     raise ModalFunctionOutcomeUnknown(call_id) from exc
 
 
@@ -263,7 +676,7 @@ class ModalStoryFunctionClient:
         *,
         volume: Any | None = None,
         function: Any | None = None,
-        timeout_seconds: float = 1_200.0,
+        timeout_seconds: float = 1_800.0,
     ) -> None:
         if (volume is None) != (function is None):
             raise ValueError("Modal test doubles must supply both Volume and Function")
@@ -347,20 +760,67 @@ class ModalStoryFunctionClient:
         terminal = False
         started = time.perf_counter()
         try:
+            upload_started = time.perf_counter()
+            _LOGGER.info(
+                "modal_worker_scratch_upload_started",
+                workload="story.generate",
+                input_size_bytes=len(request_bytes) + len(manifest_bytes),
+                **_call_identity(payload),
+            )
             with volume.batch_upload() as batch:
                 batch.put_file(io.BytesIO(request_bytes), f"/{attempt_prefix}input/request.json")
                 batch.put_file(io.BytesIO(manifest_bytes), f"/{attempt_prefix}input/manifest.json")
+            _LOGGER.info(
+                "modal_worker_scratch_upload_completed",
+                workload="story.generate",
+                duration_ms=round((time.perf_counter() - upload_started) * 1000),
+                **_call_identity(payload),
+            )
+            _LOGGER.info(
+                "modal_worker_spawn_started",
+                workload="story.generate",
+                **_call_identity(payload),
+            )
             call = function.spawn(payload)
             call_id = getattr(call, "object_id", None)
             if not isinstance(call_id, str) or not call_id.startswith("fc-"):
                 raise ModalFunctionOutcomeUnknown()
+            _LOGGER.info(
+                "modal_worker_spawn_completed",
+                modal_call_id=call_id,
+                workload="story.generate",
+                **_call_identity(payload),
+            )
+            _LOGGER.info(
+                "modal_worker_wait_started",
+                modal_call_id=call_id,
+                workload="story.generate",
+                wait_timeout_seconds=self._timeout,
+                **_call_identity(payload),
+            )
             try:
                 output = call.get(timeout=self._timeout)
             except TimeoutError as exc:
+                _LOGGER.warning(
+                    "modal_worker_wait_timed_out",
+                    modal_call_id=call_id,
+                    workload="story.generate",
+                    elapsed_ms=round((time.perf_counter() - started) * 1000),
+                    **summarize_worker_call_logs(call),
+                    **_call_identity(payload),
+                )
                 raise ModalFunctionOutcomeUnknown(call_id) from exc
             except Exception as exc:
                 terminal = True
                 safe_text = str(exc)
+                _LOGGER.warning(
+                    "modal_worker_wait_failed",
+                    modal_call_id=call_id,
+                    workload="story.generate",
+                    exception_type=type(exc).__name__,
+                    **summarize_worker_call_logs(call),
+                    **_call_identity(payload),
+                )
                 terminal_worker_errors = {
                     "MODAL_EDUCATIONAL_FACT_CHECK_FAILED": "EDUCATIONAL_FACT_CHECK_FAILED",
                     "MODAL_MODEL_OUTPUT_INVALID": "STORY_OUTPUT_INVALID",
@@ -378,13 +838,37 @@ class ModalStoryFunctionClient:
                 }
                 for marker, code in terminal_worker_errors.items():
                     if marker in safe_text:
+                        _LOGGER.warning(
+                            "modal_worker_terminal_error_classified",
+                            modal_call_id=call_id,
+                            workload="story.generate",
+                            error_code=code,
+                            **summarize_worker_call_logs(call),
+                            **_call_identity(payload),
+                        )
                         raise ModalFunctionExecutionFailed(code) from None
                 if type(exc).__name__ == "RemoteError" and type(exc).__module__.startswith(
                     "modal."
                 ):
+                    _LOGGER.warning(
+                        "modal_worker_remote_failure_classified",
+                        modal_call_id=call_id,
+                        workload="story.generate",
+                        error_code="STORY_WORKER_FAILED_TERMINAL",
+                        **summarize_worker_call_logs(call),
+                        **_call_identity(payload),
+                    )
                     raise ModalFunctionExecutionFailed("STORY_WORKER_FAILED_TERMINAL") from None
                 raise ModalFunctionOutcomeUnknown(call_id) from exc
             terminal = True
+            _LOGGER.info(
+                "modal_worker_wait_completed",
+                modal_call_id=call_id,
+                workload="story.generate",
+                elapsed_ms=round((time.perf_counter() - started) * 1000),
+                **summarize_worker_call_logs(call),
+                **_call_identity(payload),
+            )
             if not isinstance(output, dict):
                 raise ModalFunctionExecutionFailed("STORY_OUTPUT_INVALID")
             output_bytes = canonical_json(output).encode("utf-8")
@@ -409,13 +893,27 @@ class ModalStoryFunctionClient:
             _LOGGER.info(
                 "modal_story_generation_completed",
                 modal_call_id=call_id,
-                output_sha256=hashlib.sha256(output_bytes).hexdigest(),
                 elapsed_seconds=round(time.perf_counter() - started, 3),
+                **_call_identity(payload),
             )
             return result, call_id
         except ModalFunctionOutcomeUnknown:
+            _LOGGER.warning(
+                "modal_story_generation_outcome_unknown",
+                modal_call_id=call_id,
+                workload="story.generate",
+                **_call_identity(payload),
+            )
             raise
-        except ModalFunctionExecutionFailed:
+        except ModalFunctionExecutionFailed as exc:
+            _LOGGER.warning(
+                "modal_story_generation_terminal_failure",
+                modal_call_id=call_id,
+                workload="story.generate",
+                error_code=exc.code,
+                **(summarize_worker_call_logs(call) if call_id else {}),
+                **_call_identity(payload),
+            )
             raise
         except Exception as exc:
             raise ModalFunctionOutcomeUnknown(call_id) from exc

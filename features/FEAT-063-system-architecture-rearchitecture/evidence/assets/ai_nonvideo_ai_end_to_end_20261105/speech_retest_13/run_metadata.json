@@ -1,0 +1,10 @@
+{
+  "plan": "PLAN_REV45_NONVIDEO_AI_END_TO_END_20261105.md",
+  "started_at": "2026-11-05T19:07:27+07:00",
+  "synthetic_only": true,
+  "workloads": [
+    "tts.narration.generate",
+    "asr.transcribe"
+  ],
+  "video_called": false
+}

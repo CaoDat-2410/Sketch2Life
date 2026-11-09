@@ -1,0 +1,18 @@
+{
+  "outcome": "SUCCEEDED",
+  "call_id": "fc-01M6KFEJNHV94NT6TW5EZE5VTE",
+  "elapsed_ms": 3114.66,
+  "started_at": "2026-11-04T21:29:31+07:00",
+  "ended_at": "2026-11-04T21:29:35+07:00",
+  "checkpoint": {
+    "status": "already_present",
+    "checkpoint_sha256": "6d1aa6f30de5c92224f8172114de081d104bbd23dd9dc5c58996f0cad5dc4d38",
+    "checkpoint_size_bytes": 184416285,
+    "checkpoint_url": "https://dl.fbaipublicfiles.com/segment_anything_2/092824/sam2.1_hiera_small.pt",
+    "cuda_extension": "disabled for this feasibility POC",
+    "license": "Apache-2.0",
+    "model_id": "facebookresearch/sam2.1-hiera-small",
+    "repository_commit": "2b90b9f5ceec907a1c18123530e92e794ad901a4",
+    "schema_version": "sketch2life.modal.model-manifest.v1"
+  }
+}

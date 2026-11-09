@@ -1,0 +1,53 @@
+{
+  "app": "sketch2life-srs23-flux-image-dev",
+  "asset_file": "parent_sketch_guide_candidate.png",
+  "attempt_id": "81aa3833-aa6e-44f3-9fc4-005d7de0644e",
+  "attempt_prefix": "sketch2life/dev/6ecea627-5631-460e-98ba-83052da6938c/afde8794-466b-4104-8729-637c37d6ccb7/81aa3833-aa6e-44f3-9fc4-005d7de0644e/",
+  "call_id": "fc-01M6P73WY59DN5FY9S8XZ7J7VA",
+  "completed_at": "2026-11-05T23:02:39.237+07:00",
+  "dispatched_at": "2026-11-05T23:01:35.836+07:00",
+  "elapsed_ms": 65772.3,
+  "function": "generate-line-sketch-guide-candidate",
+  "generation_id": "afde8794-466b-4104-8729-637c37d6ccb7",
+  "input_sha256": "0f28f8f178af4c345be15dea36577d2b7b2be4dc405ac331c24463f597c9b97e",
+  "job_id": "6ecea627-5631-460e-98ba-83052da6938c",
+  "manifest_sha256": "f714412b9aecf410f83a46b1c131e2e60ba1314e6e6ef41a041b725b0d52492b",
+  "max_attempts": 1,
+  "outcome": "SUCCEEDED",
+  "output_sha256": "9dd281ad5276e68f7131531894337311a5401f42618978f131b86f5ebd280ef5",
+  "result": {
+    "asset": {
+      "content_type": "image/png",
+      "height": 512,
+      "sha256": "ee22f36b5b9a465bffd08c826f52bd8570436a7f900aca01dce08a4105d0686d",
+      "size_bytes": 335324,
+      "width": 768
+    },
+    "attempt_id": "81aa3833-aa6e-44f3-9fc4-005d7de0644e",
+    "generation_id": "afde8794-466b-4104-8729-637c37d6ccb7",
+    "job_id": "6ecea627-5631-460e-98ba-83052da6938c",
+    "limitations": [
+      "synthetic candidate only; line-step ordering and child usability are unevaluated",
+      "not safety-approved, not registered as a product asset, and not publishable",
+      "no child, profile, drawing, voice, or image reference was used"
+    ],
+    "model": {
+      "image_generator": {
+        "id": "black-forest-labs/flux-3-image-klein",
+        "revision": "09561231f44e41381c461caf53d5452005a60ac9"
+      },
+      "prompt_upsampler": {
+        "id": "black-forest-labs/flux-3-image-klein-pup",
+        "revision": "a57899549f8f6f64c6c4d88db30827d496ff76d0"
+      }
+    },
+    "prompt_sha256": "112a7936f67f1423d60328a005acab923901d49238fa959bfcfde27492f795f0",
+    "review_required": true,
+    "schema_version": "sketch2life.modal.worker-output.v1",
+    "status": "DRAFT",
+    "workload": "parent.sketch-guide.generate"
+  },
+  "scratch_input_removed": true,
+  "started_at": "2026-11-05T23:01:33.465+07:00",
+  "workload": "parent.sketch-guide.generate"
+}

@@ -739,6 +739,329 @@
 - Explicit exclusions: push to `dev`, force-push, `.env`/credentials/tokens/keys, real-child data, or edits to the canonical SRS.
 - Required check: run `python tools/validate_repository_security.py` before commit.
 
+## Owner authorization - 30-minute non-video AI queue retest - 2026-11-04
+
+- Status: APPROVED by the owner's direct instruction to raise the wait to about 30 minutes and test again.
+- Plan: `plan/AI_NONVIDEO_30MIN_QUEUE_RETEST_20261104.md`.
+- Approved plan SHA-256: `E1C0B7AE0699635F44201ED816E2E8B39C08BD23E9B39B34D4CEA867C13A6606`.
+- Scope: one fresh direct Modal worker dispatch for each previously capacity-blocked non-video workload; client-side result wait is capped at 1,800 seconds. Story generation uses a synthetic adult-confirmed Parent fixture. Existing HTTP/API contract results are not repeated because this retest changes only the worker wait. TTS/ASR are not repeated because they succeeded.
+- Exclusions: all video inference, real child data, workload enablement, production configuration changes, canonical SRS changes, commit/push/merge.
+- Safeguards: never retry an old or unknown call; each new unknown is cancelled and recorded; stop every Modal `dev` app and verify zero tasks afterward; retain shared Volumes.
+
+## Owner authorization - Modal L4 Qwen story readiness diagnostic - 2026-11-04
+
+- Status: APPROVED / IN PROGRESS by the owner's latest direct instruction to open one additional container, run health/model readiness checks, then test the AI request only after readiness.
+- Plan: `plan/MODAL_L4_QWEN_STORY_READINESS_DIAGNOSTIC_20261104.md`.
+- Approved amended plan SHA-256: `0D97D81769809F8E68362FF04B950ABC6E2EA67C6A844FEAFE563BAC624CECAB`.
+- Amendment reason: Modal CLI confirms interactive `modal shell` is unsupported on Windows; use a temporary `modal run -` diagnostic app with the same dependency pins, L4 resources, model-volume mount, and loader settings. This changes execution mechanics only.
+- Scope: one temporary L4 container at a time using the existing synthetic Qwen2.5 story worker specification; validate GPU, checkpoint marker/files, and model load before at most one fresh synthetic story request. Result wait is capped at 1,800 seconds; unknown calls are not retried.
+- Exclusions: video, real child data, production changes, persistent scaling changes, code/SRS/API edits, commit/push/merge.
+- Cleanup: stop any task-owned Modal `dev` app, verify zero tasks, retain shared Volumes.
+
+### Execution closeout - 2026-11-04
+
+- Status: COMPLETE WITH EXECUTION DEVIATIONS. The readiness diagnostic completed and identified GPU_L4 scheduling capacity as the story blocker. The approved plan allowed at most one fresh story request; two were accidentally dispatched because the first runner did not surface its call ID before a second instrumented request was sent. The first call also remained queued 63 seconds past the approved 1,800-second cap while its runner was interrupted. Both requests used synthetic fixtures, neither reached a worker/container or model inference, cancellation was requested, and the task-owned apps were stopped. No further calls were made.
+- The second temporary runner saved its result record and then raised a local logging `TypeError` due to a duplicate `stage` argument. The report distinguishes this local wrapper error from the remote scheduling outcome.
+- Evidence: `evidence/MODAL_L4_QWEN_STORY_READINESS_DIAGNOSTIC_20261104.md` and `evidence/assets/modal_l4_qwen_story_readiness_20261104/`.
+- No product code, API, SRS, environment, persistent Modal scaling, model selection, or video inference was changed. No commit/push/merge was performed.
+
+## Owner authorization - Modal serverless Parent story latency experiment - 2026-11-05
+
+- Status: APPROVED / IN PROGRESS by the owner's direct instruction to try the serverless latency optimization after reviewing the Modal cold-start findings.
+- Plan: `plan/MODAL_SERVERLESS_STORY_LATENCY_EXPERIMENT_20261105.md`, revision 1.
+- Approved plan SHA-256: `E18267CD3B9D5AC5F75F3A5F80DAD6958AEFF9EDCFF3A36C2C00BF579F2C8711`.
+- Approved scope: one FEAT-063 `dev` story worker experiment with ordered GPU choices L4 → L40S → A10; story-only Transformers parallel shard loading (4 workers); privacy-safe phase/GPU timing logs; 120-second scaledown; exactly one fresh synthetic Parent story call with a 300-second client wait limit; stop the task-owned language/audio app after the run.
+- This is a narrowly scoped exception to D-130 and the prior no-fallback retest rule. It changes no production model/profile and does not enable any workload.
+- Explicit exclusions: video or other AI workload inference, real child data, API/SRS/business-rule/schema changes, model/runtime pin changes, persistent warm containers, GPU snapshots, retries/duplicate calls, deletion of shared Volumes, commit/push/merge.
+- Approval basis: owner's direct “ok, thử phương án đó đi” instruction and follow-up request to verify the screenshot's claims and find a faster serverless option.
+- Cleanup: cancel and record the single call if it remains pending at 300 seconds; stop only the task-owned language/audio Modal `dev` app, verify no active task/container, retain shared Volumes.
+
+
+### Execution closeout - 2026-11-05
+
+- Status: COMPLETE WITH STORY OUTPUT FAILURE; the approved one-call scope was followed. Exactly one fresh synthetic Parent story request was dispatched; no video or other AI workload was called.
+- Modal allocated an NVIDIA A10 through the ordered fallback configuration. The request reached model loading and token generation, then failed with the worker's existing `MODAL_MODEL_OUTPUT_INVALID` code. The output was not retried.
+- The task-owned language/audio app was stopped; Modal reported zero tasks. Shared Volumes were retained. Full timing, limitations, deployment history, and evidence paths are in `evidence/MODAL_SERVERLESS_STORY_LATENCY_EXPERIMENT_20261105.md`.
+- No commit, push, or merge was performed.
+
+## Plan revision 43 — include all mounted Parent AI API routes — 2026-11-05
+
+- Status: APPROVED / IN PROGRESS by the owner's direct clarification: “chạy bằng cả các API gọi AI để test luôn”.
+- Feature: FEAT-063 — system architecture rearchitecture.
+- Amended plan: `plan/PARENT_STORY_API_RETEST_20261105.md`, amendment revision 2.
+  - Approved amended plan SHA-256: `0088A5AEA37D0B44D1A1DA291AF0CEE4CE469D0FEFED0692E8497F74C7B01B27`.
+- Execution-closeout plan file SHA-256: `5C6985794D86E6FCCECADE18E9E4860D4B214C2CF8062BD6B5D4ED8AB1B8D46E` (records results/variance only; approved scope baseline above is unchanged).
+- Added scope: one real synthetic Modal-backed HTTP attempt for each mounted Parent AI route: `POST /v1/story-runs/{run_ref}/assets` (`drawing.analyze`) and `POST /v1/story-runs/{run_ref}/story-revisions` (combined `story.generate`/`storyboard.generate`). Maximum one dispatch per workload, sequential, 300-second wait cap per call, no retry.
+  - If drawing analysis fails, is unknown, or returns an unusable candidate, no VLM retry; the independent story API may be exercised once using a separate synthetic actor/run and deterministic vision fixture. Any such result must be labeled as fixture-backed, not a single uninterrupted AI end-to-end success.
+- The other 11 StoryRun-lite operations remain synthetic/no-AI contract checks. Modal workloads without a mounted Parent HTTP API are reported as unavailable API surface and are not invoked. Video remains excluded.
+- Execution closed 2026-11-05 with partial AI results: all 13 API operations covered; drawing VLM outcome unknown after the 300-second cap; story worker returned 502 after the factual lifecycle validator rejected output. Full measurements, contract findings, safe evidence, and verified shutdown: `evidence/PARENT_STORY_API_RETEST_20261105.md`.
+- Cleanup: stop the task-owned drawing-VLM and language/audio `dev` apps and the disposable PostgreSQL container; verify zero Modal tasks and leave shared Volumes/services untouched.
+- No product source, canonical SRS/OpenAPI, environment, secrets, workload enablement, shared database, commit, push, or merge is authorized by this amendment.
+
+## Plan revision 40 — Modal Parent story content/metadata boundary — 2026-11-05
+
+- Status: APPROVED / IN PROGRESS by the owner's direct instruction: “tiếp tục fix, đảm bảo đúng parser”.
+- Feature: FEAT-063 — system architecture rearchitecture.
+- Approved plan: `plan/MODAL_STORY_CONTENT_BOUNDARY_20261105.md`, revision 1.
+- Approved plan SHA-256: `DEEC2263B3148A855AE090D1A513B1D57174CD9800FAC9BA8BC0E3A3F6F23917`.
+- Scope: strictly parse a content-only internal Qwen output; deterministically add the five-scene 30-second timeline metadata; validate with the unchanged Parent worker parser, backend `StoryRevisionDraftV1`, and butterfly fact guard; run local focused checks; deploy only the FEAT-063 `dev` language/audio app; dispatch exactly one fresh synthetic Parent story call with a 300-second cap; stop the app and verify zero tasks; record privacy-safe evidence.
+- Explicit exclusions: no video or other AI workload, backend/API/domain/SRS/schema or business-rule change, model/dependency change, real child data, raw prompt/output retention, environment/secrets edits, persistent scaling change, GPU snapshot, Volume deletion, retry/duplicate inference, commit, push, or merge.
+- Approval basis: the direct owner instruction above authorizes continued fixing; this exact plan hash records the scope and one-call boundary. Plan revision 39's inference allowance was already consumed and is not reused.
+
+### Execution closeout — Plan revision 40 — 2026-11-05
+
+- Status: COMPLETE; one fresh synthetic Parent story call succeeded within the 300-second cap.
+- Result: five scenes / 30,000 ms; worker parser, backend `StoryRevisionDraftV1`, and butterfly lifecycle validation passed. No video or other AI workload was called.
+- Verification: 46 focused tests passed; Ruff and `py_compile` passed.
+- Cleanup: Modal app `ap-WMgksDah3JVJTzQ5OU0cXn` is stopped with zero tasks. Scratch request objects were removed; shared Volumes were retained.
+- Evidence: `evidence/MODAL_STORY_CONTENT_BOUNDARY_20261105.md` and `evidence/assets/modal_story_content_boundary_20261105/`.
+- No commit, push, or merge was performed.
+
+## Plan revision 41 — Parent StoryRun-lite API regression retest — 2026-11-05
+
+- Status: APPROVED / IN PROGRESS by the owner's direct request to retest the APIs, record per-call timings, and report failures, contract drift, and business-rule mismatches.
+- Feature: FEAT-063 — system architecture rearchitecture.
+- Approved plan: `plan/PARENT_STORY_API_RETEST_20261105.md`, revision 1.
+- Approved plan SHA-256: `E1C4CC11D117845CE00C225FC870EA9A357A722DA8C487D744CB4171D7B2F874`.
+- Scope: run focused StoryRun-lite tests; use an isolated disposable PostgreSQL container and database; exercise all 13 mounted HTTP operations and expected negative cases; run one synthetic Parent story flow through HTTP and the actual Modal story adapter with a 300-second cap; record safe per-call timings/statuses; stop only task-owned services and verify shutdown.
+- Explicit exclusions: no product/backend/SRS/OpenAPI change, no real-child data, drawing VLM/Teacher/video/other AI inference, no shared database/container shutdown, no `.env`/secret change, no workload enablement, no Modal Volume deletion, commit, push, or merge.
+- Test-fixture boundary: subject understanding is supplied by a deterministic synthetic adapter; only the story worker is an actual Modal inference. The plan does not claim drawing-VLM coverage.
+
+
+## Plan revision 38 ? Modal Parent story parser alignment ? 2026-11-05
+
+- Status: APPROVED for the exact scoped implementation, focused tests, one fresh synthetic Parent story request, and shutdown described below.
+- Approver: Project owner, direct 2026-11-05 instruction: ?ti?p t?c fix, ??m b?o ??ng parser?.
+- Feature: FEAT-063 ? system architecture rearchitecture.
+- Approved plan: `plan/MODAL_STORY_PARSER_ALIGNMENT_20261105.md`.
+- Approved plan SHA-256: `171D9250B095495D7CEAA8DE3E019B8DFFBAC36619899D586AEAC2A301EA2F3F`.
+- Approved scope: Align only the Parent Modal story worker with the existing FEAT-063/backend story contract; add pinned JSON-schema constrained generation; preserve all parser/business/fact rules; add focused local tests and safe reason-code diagnostics; deploy only the dev language/audio app; dispatch at most one fresh synthetic story request with a 300-second wait cap; stop the task-owned app and verify zero active tasks.
+- Explicit exclusions: No video or unrelated AI calls, backend/API/SRS/schema/business-rule/model-pin/product-workload changes, prompt/output retention, real child data, environment/secrets changes, Volume deletion, commit, push, or merge. No retry after an unknown or rejected inference.
+- Approval basis: The direct owner request above authorizes continued fixing; this exact hash records the implementation/test/one-call boundary.
+
+
+## Plan revision 39 ? Modal Parent story parser alignment, plan revision 2 ? 2026-11-05
+
+- Status: APPROVED as a clarification to Plan revision 38; implementation remains in progress.
+- Approver: Project owner, direct 2026-11-05 instruction: ?ti?p t?c fix, ??m b?o ??ng parser?.
+- Approved plan: `plan/MODAL_STORY_PARSER_ALIGNMENT_20261105.md`, revision 2.
+- Approved plan SHA-256: `58C763076FA3310E051BBBC0A2D0F508007463B4C128FE88707DE5AAD06771DE`.
+- Clarification: outer-whitespace normalization mirrors the existing backend Pydantic contract's `str_strip_whitespace=True`; no other coercion, truncation, or bypass is permitted. All approved call limits and exclusions in Plan revision 38 remain unchanged.
+
+## Plan revision 44 — AI API coverage and Qwen3.5 Modal alignment — 2026-11-05
+
+- Status: APPROVED / IN PROGRESS by the owner's direct request to align and implement the SRS AI APIs/workloads, use Qwen 3.5 VL, test the AI-backed APIs/models, and report failures; role clarification: “Admin + giáo viên; phụ huynh chỉ sửa bản nháp”.
+- Feature: FEAT-063 — system architecture rearchitecture.
+- Approved plan: `plan/PLAN_REV44_AI_API_COVERAGE_QWEN35_MODAL_20261105.md`.
+- Approved plan SHA-256: `59C1CC86C59C6BDFEE1E87ACF58A634830EC1DA399A758FCD4D1A35682E73157`.
+- Canonical SRS source: primary checkout's `features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md`, SHA-256 `7D88057653104A5F3BFD791135DDD22144DEE033FF82928AA6F86775E6FC1AF4`; synchronize this exact v2.3-draft before implementation and preserve all history.
+- Approved scope: additive SRS Q159 resolution; complete FEAT-063 AI API/workload mapping; dev-only Qwen/Qwen3.5-9B at immutable revision `c202236235762e1c871ad0ccb60c8ee5ba337b9a`; compatible Modal runtime; implement API/worker changes within plan allowlist; run bounded synthetic API and Modal AI verification; stop task-owned apps and record safe evidence.
+- Role rule: Platform Admin and Teacher may initiate new lesson/activity/plan AI suggestions; Parent may edit an existing draft/personal copy but may not initiate a new generation job. AI outputs remain private drafts pending human review.
+- Explicit exclusions: no production model promotion or workload enabling, real child data, actual `.env`/secret edits, destructive Volume/service actions, unrelated source changes, commit, push, or merge. Wan2.2 may not substitute for LTX-2.5; no video becomes playable unless every SRS gate, including final safety, passes.
+- Approval basis: owner's current task instruction plus the direct role clarification returned to the pending Q157/Q159 question; this exact plan hash records the approved scope.
+
+### Execution closeout — Plan revision 44 — 2026-11-05
+
+- Status: COMPLETE WITH PARTIAL AI RESULTS; the exact one-attempt-per-workload and no-video limits were followed.
+- Qwen3.5 runtime readiness passed. One Teacher Sketch Deck synthetic generation passed the worker contract. Drawing analysis failed with unusable decoded text. Story and lesson suggestion failed before generation because LMFE's Transformers adapter used a removed Transformers 4 import path; a direct LMFE 0.11.3 adapter now passes 59 focused Modal/parser tests and a Modal CPU import readiness call. Post-fix inference was not retried.
+- VieNeu TTS produced a synthetic WAV in 23.501s; paired Whisper completed in 31.564s but changed “bướm” to “đứng”. FLUX.3 remained blocked by HTTP 401/no Modal Hugging Face Secret. SAM2 retained prior `UNKNOWN_NO_RETRY` after 1,800 seconds waiting for GPU_L4. Video was deferred and not called.
+- Backend API/contract verification: 79 passed, 6 skipped. Main backend OpenAPI is 24 operations/17 paths with no AI dispatch; StoryRun-lite is a 13-operation fixture API whose AI tasks are process-local/non-durable. All workload flags remain disabled.
+- Exact call IDs, timings, API gaps, contract findings, and run evidence: `evidence/AI_API_QWEN35_MODAL_VALIDATION_20261105.md` and `artifacts/AI_API_WORKLOAD_CATALOG_FEAT063_REV44_20261105.md`.
+- Cleanup: task-owned drawing and language/audio Modal apps stopped with zero active tasks; shared model/scratch Volumes retained. No `.env`/secret changes, commit, push, or merge.
+- Security scan: `tools/validate_repository_security.py` passed across 6,388 publishable files. Post-approval plan edits only removed absolute machine paths and recorded execution status; they did not change scope. Current plan file SHA-256 is `053C74FF5A27EA0A2F719922B5717089AF4B9945787974E73234CF5B5E1D4C50`. Current synchronized SRS copy after the additive Q159/Qwen3.5 amendment has SHA-256 `6BADEBAAD6C28239CA9B759CF17C57A0405D7242B45F3411F40B7E8FEBDC8381`.
+
+## Plan revision 45 — Non-video AI flows end-to-end — 2026-11-05
+
+- Status: APPROVED / IN PROGRESS by the owner's direct instruction: “fix tiếp luồng AI đi, đảm bảo là chạy đc hết, chưa cần làm vid thôi”.
+- Feature: FEAT-063 — system architecture rearchitecture.
+- Approved plan: `plan/PLAN_REV45_NONVIDEO_AI_END_TO_END_20261105.md`.
+- Approved plan SHA-256: `F58C20E8CB82AB5AE1FE9370EDB58BFED2719CFCDCEA29909F0063E06C613A47`.
+- Scope: repair and verify all non-video AI workers in the plan, including Qwen3.5 drawing/story/deck/lesson outputs, ASR/TTS, image generation and optional SAM2; fix supported API/job integration using existing authenticated/domain/persistence boundaries; test with synthetic fixtures and terminal Modal results; stop task-owned apps and record evidence.
+- Role policy remains the owner-resolved Q159 rule: Platform Admin and Teacher can initiate lesson/activity/plan suggestions; Parent can edit an authorized existing draft/personal copy but cannot initiate new generation.
+- Explicit exclusions: all video generation and post-video stages; production workload enablement; real personal/child data; secret-value access or `.env` edits; destructive Volume operations; unrelated changes; commit, push, or merge.
+- Approval basis: the owner's direct instruction authorizes implementation and bounded dev inference tests. A model substitution is not authorized implicitly; FLUX.3 remains blocked pending owner choice if its Modal access cannot be configured.
+
+
+## Plan revision 46 ? Qwen3.5-only active profile and FLUX Secret retest ? 2026-11-05
+
+- Status: APPROVED / COMPLETE by the owner's direct instructions to retire Qwen 2 from active use, use Qwen 3.5, adapt the supplied Modal/Hugging Face Secret sample, test outstanding image workloads once, and stop the app afterward.
+- Feature: FEAT-063 ? system architecture rearchitecture.
+- Approved plan: `plan/PLAN_REV46_QWEN35_ONLY_FLUX_SECRET_RETEST_20261105.md`.
+- Approved plan SHA-256: `4F796831148D134B2EABB1CBF791AE1D41C341C9D0C736BED4ECCDC11632B51F`.
+- Scope: update active FEAT-063 SRS model selection to Qwen3.5 only while preserving historical evidence; bind FLUX.3 download to the owner-created Modal `dev` Secret `huggingface-secret` with required key `HF_TOKEN`; one model download and one synthetic inference each for Parent Sketch Guide and lesson visuals; validate outputs, record evidence, and stop the task-owned app.
+- The sample's Stable Diffusion 1.5 model is not selected; FLUX.3 remains the SRS image model. No token value will be read or exposed.
+- Explicit exclusions: video, optional SAM2 retry, repeated Qwen3.5/TTS/ASR calls, production enablement, real child data, historical-evidence deletion, Volume deletion, commit, push, or merge.
+
+
+- Execution closeout SHA-256: `9dc252d80ce46aeddb9eca1c10da6ad60e52c11907441cea2a3c426ecd324f8f`.
+
+## Plan revision 46A ? FLUX.3 component staging and failed-flow retest ? 2026-11-05
+
+- Status: APPROVED / COMPLETE by the owner's direct instructions to fix the non-video AI flows, ensure they run, use Qwen3.5, and test the supplied Modal/Hugging Face Secret integration.
+- Feature: FEAT-063 ? system architecture rearchitecture.
+- Approved plan: `plan/PLAN_REV46A_FLUX_COMPONENT_FILES_AND_FAILED_FLOW_RETEST_20261105.md`.
+- Approved plan SHA-256: `334ACE80E495EFD453BED980F78F5F9767ADD98C2F32617BCAD8DB87B74C2AE8`.
+- Scope: stage and verify the pinned Diffusers FLUX.3 `transformer/` and `vae/` components omitted from the Rev46 allowlist; one checkpoint-staging call; then one synthetic inference each for the two image workloads that failed terminally in Rev46. No successful workload is repeated.
+- The source failure was an incomplete checkpoint causing a missing transformer component, not Secret authorization or GPU scheduling. Use the existing `huggingface-secret` with required `HF_TOKEN`; do not inspect its value.
+- No Qwen story/drawing/deck/suggestion, TTS/ASR, SAM2, video, production enablement, real child data, Volume/checkpoint deletion, commit, push, or merge.
+- Approval basis: the owner's direct instructions in this conversation; exact scope and attempt cap are pinned by the plan hash above.
+
+- Execution closeout SHA-256: `ab24410c6d4b3bcc69cb9acbaf9d58bf7b7ff5bcd6e6785ddb126b8ce375434e`.
+
+
+## FEAT-063 Plan Rev50 ? local dev duplicate repair, Modal AI integration, and SRS authority
+
+- **Status:** APPROVED / COMPLETE LOCALLY (not pushed) for the exact scope in Plan Rev50.
+- **Approver:** Project owner, direct instruction on 2026-11-06 to fix duplicated `dev` commits without changing commit names; selected the full Modal AI branch and pending AI changes. The owner?s prior instruction to keep the newest FEAT-063 SRS canonical is also preserved.
+- **Recorded timestamp:** 2026-11-06 06:13:08 Asia/Saigon.
+- **Feature:** FEAT-063 ? system architecture rearchitecture.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV50_DEV_DUPLICATE_REPAIR_AND_MODAL_AI_INTEGRATION_20261106.md`.
+- **Approved plan SHA-256 at authorization:** `404B793E8A00438882A8CC0532013EC5CD7BB188577EF35713A73DC5EF696936`.
+- **Current plan SHA-256 after execution closeout:** `783E4EA92CED5BDFC041945653D5DC135CAD7E5D2EDF5830DEF627E31DCA473F`.
+- **Scope:** retain a backup of the current dirty checkout; reset only the local `dev` ref to `origin/dev` to remove six patch-equivalent local copies; commit the 269 manifested pending Modal changes (excluding retained pytest scratch directories); integrate the full Modal branch and the published FEAT-063 SRS v2.4 branch while preserving all existing commit objects/messages; record evidence and run the required repository security validator.
+- **Acceptance criteria:** AC50.1?AC50.7 in the hash-identified plan.
+- **Exclusions:** no push, force push, remote history rewrite, rebase, amend, squash, commit-message change, tests or provider calls, cleanup of the scratch directories, or modification of unrelated dirty checkout content.
+- **Approval basis:** direct owner instructions in the current and preceding conversation; this record authorizes only the exact plan scope above.
+
+### Execution closeout ? local dev merge
+
+- Local `dev` merge commit: `370cb26d6e8c99c126f4a5a16df132eaa70c8e70`.
+- Full Modal and SRS v2.4 histories are present; zero patch-equivalent duplicates remain relative to `origin/dev`.
+- Original dirty checkout is preserved on `backup/dev-before-dedup-20261106-575139a5`; the remote branch was not pushed or rewritten.
+- Security validation passed; product tests and AI/provider calls were not run.
+
+## Plan revision 43 — align SRS with the system under construction
+
+- Status: `APPROVED` for the exact documentation scope in Plan Rev43.
+- Approver: Project owner, direct instruction in this conversation on 2026-11-06: “update lại srs dựa trên hệ thống đang build hiện tại”.
+- Recorded timestamp: 2026-11-06 00:48:54 Asia/Saigon.
+- Feature: FEAT-063 — whole-repository architecture redesign.
+- Approved plan: `plan/PLAN_REV43_AS_BUILT_SRS_ALIGNMENT_20261106.md`.
+- Plan SHA-256 at authorization: `000A4D0C22BB92666C60C4597BB5B8AEB126E0D4C1F654B610909CC7BBDED945`. Current reviewed plan SHA-256: `1F10B3F447F7AFB59FAD847E6BE05F0C898B4CE4F6F51B0536258BBD1806F185`. Later edits record lifecycle completion and clarify AC2 with the AI/database boundary from the owner's adjacent table-use request; implementation scope remains documentation-only.
+- Scope: update the canonical SRS and data-model companion with separately labeled implementation status; reconcile current model/role decisions; record local API/database and owner-supplied Modal dashboard observations; update canonical authority pointers and FEAT-063 tracking/evidence records.
+- Acceptance criteria: AC1–AC7 in the hash-identified Plan Rev43.
+- Exclusions: product/runtime/API/schema/data/migration/test/provider/deployment/secret changes; paid GPU calls; SRS sign-off; edits to preserved historical SRS bodies or unrelated work; staging, commit or push.
+- Approval basis: the owner's direct request authorizes this documentation scope. It does not constitute formal product sign-off of the SRS.
+
+## Plan Rev44 — publish the as-built SRS alignment
+
+- Status: `APPROVED` for the exact documentation publication scope in Plan Rev44.
+- Approver: Project owner, direct instruction in this conversation on 2026-11-06: “commit and push”.
+- Recorded timestamp: 2026-11-06 05:29:51 Asia/Saigon.
+- Feature: FEAT-063 — whole-repository architecture redesign.
+- Approved plan: `plan/PLAN_REV44_PUBLISH_AS_BUILT_SRS_20261106.md`.
+- Plan SHA-256: `F54CD43EC4E42BB8B46E698D74688BB161929450793EAB301DC8CDC342EA3E47`.
+- Scope: publish only the exact 16 paths listed in Plan Rev44 on a new branch based on the fetched `origin/dev`; preserve unrelated staged/unstaged/untracked work in the original checkout.
+- Acceptance criteria: AC1–AC5 in the hash-identified Plan Rev44.
+- Exclusions: SRS sign-off; product/runtime/API/schema/database/migration/test/provider/deployment/secret changes; force-push or rewriting `dev`; publication of unrelated work.
+- Approval basis: the owner's direct instruction authorizes commit and push of the Rev43 documentation package as scoped in Plan Rev44.
+
+
+## FEAT-063 Plan Rev50 Addendum ? fast-forward publish repaired dev
+
+- **Status:** APPROVED / COMPLETE (fast-forward pushed) for the exact publication scope in the addendum plan.
+- **Approver:** Project owner, direct instruction on 2026-11-06: ?commit n?u c?n v? push.?
+- **Recorded timestamp:** 2026-11-06 06:43:00 Asia/Saigon.
+- **Feature:** FEAT-063 ? system architecture rearchitecture.
+- **Approved addendum:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV50_ADDENDUM_DEV_FAST_FORWARD_PUSH_20261106.md`.
+- **Approved plan SHA-256 at authorization:** `B8D2C5D83BD5766080207F1F2F8283713A915BFB9EABB49645B95143AE6F3C25`.
+- **Current plan SHA-256 after execution closeout:** `5959C210013C294178BF574A8645E218421DDB63D024D5022C68597D049E5C7C`.
+- **Scope:** security-validate and push only the repaired local `dev` to `origin/dev` using a regular fast-forward push; fetch and verify the exact resulting remote HEAD.
+- **Acceptance criteria:** AC50A.1?AC50A.5 in the hash-identified addendum.
+- **Exclusions:** force push/history rewrite, other refs, tests or provider calls, and unrelated checkout changes. This addendum supersedes only the earlier no-push boundary; all existing commit subjects/objects remain unchanged.
+
+
+### Execution closeout ? publication
+
+- `origin/dev` was fast-forwarded from `c98701b1e500906f396e773c79ec3bba55db2542` to `0d15b1a0ae6e5373354d7ac35cc163e41b55c42e`.
+- Fresh fetch confirmed remote and local `dev` match at `0d15b1a0ae6e5373354d7ac35cc163e41b55c42e`; working tree was clean.
+- Security validator passed; existing commit messages/objects were preserved.
+
+## Plan Rev45 — SRS system and code alignment
+
+- Status: `APPROVED` for the exact documentation-only scope in Plan Rev45; not SRS content sign-off.
+- Approver: Project owner, direct SRS review/update request on 2026-11-06.
+- Recorded timestamp: 2026-11-06 12:28:16 Asia/Saigon.
+- Plan: `plan/PLAN_REV45_SRS_SYSTEM_CODE_ALIGNMENT_20261106.md`.
+- Plan hashes: authorization `AD0554469128DD3DF13484DD7A78BAB42B99CB026C5D433D61D7D48E26950F1A`; approved scope addenda `E9F11167D6BFD1D9D341559B36C1003943460D48B98E0F88D0BDAFA3A2E0A385`, `3BE2B7AB19C69EB229768376B7BD1D041003C175D57B808BBE1BC2706D7BC453`, `1B8A1AD64F80A70D5BDA553311629787936900571B92BBB94433F83191C43175`; final local review `880EC6A2B3DB0B3FBC23A0386589EE2E1E3863E9295F3F1169D9BE7469752F46`.
+- Published-port plan SHA-256: `53102EBB02521BC747DA0E79971B1AA636371C4830D501A173D9D7971930C05C`; Plan Rev51 approves its path reindex as EV-063-55 because EV-063-34 is already assigned on `origin/dev`.
+- Scope: update the canonical SRS to v2.5-draft, reconcile existing AI directions and local source/runtime boundaries, and update matching authority/tracking records. The v2.5 SRS remains unsigned.
+
+## Plan Rev51 — publish SRS v2.5 and reconcile latest dev source
+
+- Status: `APPROVED` for the exact publication scope in Plan Rev51.
+- Approver: Project owner, direct instruction in this conversation on 2026-11-06: “commit and push”.
+- Recorded timestamp: 2026-11-06 17:16:12 Asia/Saigon.
+- Approved plan: `plan/PLAN_REV51_PUBLISH_REV45_SRS_20261106.md`.
+- Plan SHA-256 at authorization: `919CD35DC42973A5FE06C9D99D56DC851B4FCDB1313E1AF0612CB525D78116A8`.
+- Scope: publish the v2.5-draft SRS/document package on a new branch from fetched `origin/dev` `4749451080f49243464d40a464b8f83a03ae77bb`; add a source-only §32.6 review of that tree; preserve newer remote records and exclude unrelated checkout work.
+- Acceptance criteria: AC1–AC8 in the hash-identified Plan Rev51.
+- Exclusions: code/API/schema/data/migration/test/build/provider/Modal/deployment/secret changes; SRS sign-off; push to `dev`; force-push/history rewrite; PR creation; and publication outside the manifest.
+- Approval basis: the owner's direct request authorizes commit and push of this reviewed SRS package under Plan Rev51, not publication of unrelated work.
+
+### Plan Rev51 execution close-out
+
+- Recorded timestamp: 2026-11-06 17:33:39 Asia/Saigon.
+- Final reviewed Plan Rev51 SHA-256: `06DC756E35F621F8232E89ABE8CDBFFD7FFEF493D0EF09050F1D25A2E26EE394`.
+- Package commit `620386fb227e2d8b76c48e72ad22892e3b0c1c53` was pushed to `origin/docs/feat063-rev45-srs-code-alignment-20261106`; fresh fetch confirmed the remote SHA matched.
+- The security validator passed before the package commit and first push, scanning 6,563 publishable files each time. No force push or `dev` update was performed.
+
+## Plan Rev51 — bounded Modal AI and legacy API retest
+
+- **Status:** APPROVED; execution COMPLETE WITH FINDINGS.
+- **Approver:** Project owner, direct instruction on 2026-11-06 to continue fixing Modal AI, diagnose and raise only proven execution timeouts, minimize inference usage, test existing APIs, consolidate all results/products in one folder, stop used Modal apps, and commit coherent fixes as completed.
+- **Recorded timestamp:** 2026-11-06 07:02:29 Asia/Saigon.
+- **Approved plan:** `plan/PLAN_REV51_MODAL_AI_AND_LEGACY_API_RETEST_20261106.md`.
+- **Approved plan SHA-256:** `B20103A217D7A9623E02279CE0BD82D5BC61141518D820FA683104057B1A6A2F`.
+- **Execution closeout SHA-256:** `1CD7EC57885C20484DD1FBB166C917DABF586C58BEFBE49FF2D2B3FDB1BA953C`.
+- **Scope and exclusions:** exactly as stated in Plan Rev51; no video calls, shared-database mutations, secrets, production enablement, unrelated legacy refactors, or push.
+
+## FEAT-063 Plan Rev52 - non-video Modal AI reliability and observability
+
+- **Status:** APPROVED for the exact scope in Plan Rev52.
+- **Approver:** Project owner, direct instruction on 2026-11-06 to continue fixing all non-video Modal AI, add worker logs that reveal failure causes, and keep running verification until the non-video work is complete.
+- **Recorded timestamp:** 2026-11-06 12:15:20 Asia/Saigon.
+- **Feature:** FEAT-063 - system architecture rearchitecture.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV52_NONVIDEO_MODAL_AI_RELIABILITY_20261106.md`.
+- **Approved plan SHA-256:** `9703A6CFE3AAF6108A1443B4E7F93805481475A0C60C64C50414106441158938`.
+- **Current plan SHA-256 after formatting:** `6B3B1C25CD2A9974860A93551CDAD0FB3363DB38CB00D293ABB4818C9F0782D2`.
+- **Scope and exclusions:** exactly as stated in Plan Rev52; all nine registered non-video workloads, safe worker/caller telemetry, current mounted AI API flows, synthetic verification and task-app shutdown; no video, real child data, production enablement, secret-value access, shared database writes or push.
+- **Approval basis:** the owner's direct request authorizes the scoped implementation, synthetic Modal tests and local conventional commits after repository security validation.
+
+## Plan Rev53 — one-shot SAM 2.1 gate retest
+
+- **Status:** APPROVED for the exact scope in Plan Rev53.
+- **Approver:** Project owner, direct instruction on 2026-11-06: “test lại sam2 đi, cho mở gate”.
+- **Recorded timestamp:** 2026-11-06 18:36:29 Asia/Saigon.
+- **Approved plan:** `plan/PLAN_REV53_SAM2_GATE_RETEST_20261106.md`.
+- **Approved plan SHA-256:** `C2695A200FF15253E88E52CC458DC0DA718A51E2B9F8A4EC37BCED198D1EE8B5`.
+- **Scope:** open only the `drawing.segment` envelope allowlist for its dedicated L4 Modal worker, keep `workloads.json` disabled, perform one CPU checkpoint preflight and at most one synthetic SAM2 GPU inference call with the existing 600-second worker timeout and 1,800-second caller wait bound, capture safe evidence and stop the app.
+- **Acceptance criteria:** AC53.1–AC53.7 in the approved plan.
+- **Exclusions:** production or product API enablement, real child media, repeated GPU calls, timeout increase without evidence, video, secret values, shared database writes, Volume deletion, merge or push.
+- **Approval basis:** the owner's direct request authorizes this bounded development-only retest and the narrow allowlist fix; no further approval is needed within this scope.
+- **Execution closeout:** COMPLETE WITH FINDINGS. Checkpoint preflight and one synthetic worker inference passed; visual review found only the central butterfly body in the mask. Product workload registry remains disabled. Dedicated Modal app stopped with 0 tasks. See `evidence/sam2_gate_retest_20261106/RESULTS.md`.
+
+## Plan Rev54 - integrate SRS v2.5 and Modal AI into dev
+
+- **Status:** APPROVED for the exact integration scope in Plan Rev54.
+- **Approver:** Project owner, direct instruction on 2026-11-06 to merge the SRS-fix and AI branches into `dev`.
+- **Recorded timestamp:** 2026-11-06 19:06:22 Asia/Saigon.
+- **Approved plan:** `plan/PLAN_REV54_MERGE_SRS_V25_AND_MODAL_AI_TO_DEV_20261106.md`.
+- **Approved plan SHA-256:** `C6882123DF3F1671AF7014784651E9F6A37AD799BA3763223BFC10C9E2A9F937`.
+- **Inputs:** SRS branch `origin/docs/feat063-rev45-srs-code-alignment-20261106` at `fae180dcf3ea2771b41546aa6925b94636821df1`; AI branch `origin/feature/feat063-modal-ai-reliability-20261106` at `c6818490d0d889ab17dc9f8de3830987eb2a230d`.
+- **Scope:** integrate both branches into `dev`, preserve commits and records, resolve only the two approval-register conflicts by keeping entries from both branches, validate security, then push normally to `origin/dev` and verify its tip.
+- **Acceptance criteria:** AC54.1-AC54.8 in the approved plan.
+- **Boundaries:** SRS v2.5 remains unsigned; SAM2 remains disabled in the product registry; no force push, history rewrite, video inference, additional AI calls, or unrelated branches.
+- **Approval basis:** direct owner authorization for this integration and dev publication; this is not formal SRS content sign-off.
+
+### Plan Rev54 local execution checkpoint
+
+- Status: COMPLETE. Fast-forwarded local `dev` and pushed normally to `origin/dev`; the fetched remote matched integration commit `47e5308a5c547df8dab5f3c560f949ee925f441e`. A later closeout documentation commit was pushed normally as well.
+- AI merge: `634e0e20f56cbfa6101ece6e67f3e4267a30ae92`; SRS merge: `6bbb375a359fb78f06585963b8ee9f7bfc2246ff`.
+- Conflict handling retained both histories. SRS decision IDs D-144/D-145 were reassigned to D-148/D-149 to preserve all four records without duplicate IDs.
+- Evidence: `evidence/EV-063-57_SRS_V25_AND_MODAL_AI_DEV_INTEGRATION_20261106.md`.
+- Validation: `git diff --check` passed; `python tools/validate_repository_security.py` reported `REPOSITORY_SECURITY_VALID` with 6,731 publishable files scanned before commit and push. No force push or history rewrite.
+
 
 ## M2 S0-doc Task Approval — Draft 7 — 2026-11-06
 

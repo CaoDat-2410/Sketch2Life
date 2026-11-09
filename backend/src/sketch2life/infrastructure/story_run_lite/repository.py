@@ -2053,8 +2053,8 @@ class SqlStoryRunLiteRepository:
                     "lesson_direction": None,
                 },
                 "confirmed_subject": confirmed_subject,
-                "model_id": "Qwen/Qwen2.5-7B-Instruct",
-                "model_revision": "a09a35458c702b33eeacc393d103063234e8bc28",
+                "model_id": "Qwen/Qwen3.5-9B",
+                "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
                 "prompt_version": "parent-story-v2.2026-11-04",
             }
             request_bytes = json.dumps(

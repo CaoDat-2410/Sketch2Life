@@ -1,0 +1,823 @@
+{
+  "last_updated_at": "2026-11-06T14:59:26+07:00",
+  "records": [
+    {
+      "code": "INVALID_REQUEST",
+      "elapsed_ms": 2.91,
+      "expected_statuses": [
+        422
+      ],
+      "method": "POST",
+      "name": "reject_missing_child_age",
+      "passed": true,
+      "response_fields": [
+        "code",
+        "correlation_id",
+        "field_errors",
+        "message",
+        "retryable"
+      ],
+      "retryable": false,
+      "route": "POST /v1/story-runs",
+      "status": 422
+    },
+    {
+      "elapsed_ms": 34.54,
+      "expected_statuses": [
+        201
+      ],
+      "method": "POST",
+      "name": "create_contract_run",
+      "passed": true,
+      "response_fields": [
+        "action_required",
+        "child_age_months",
+        "created_at",
+        "error",
+        "job_state",
+        "result",
+        "retryable",
+        "revision",
+        "run_ref",
+        "run_state",
+        "target_revision",
+        "updated_at",
+        "version"
+      ],
+      "retryable": false,
+      "revision": 1,
+      "route": "POST /v1/story-runs",
+      "run_state": "INPUT_PROCESSING",
+      "status": 201
+    },
+    {
+      "code": "ACTIVE_RUN_EXISTS",
+      "elapsed_ms": 10.92,
+      "expected_statuses": [
+        409
+      ],
+      "method": "POST",
+      "name": "reject_duplicate_active_run",
+      "passed": true,
+      "response_fields": [
+        "code",
+        "correlation_id",
+        "field_errors",
+        "message",
+        "retry_after_seconds",
+        "retryable"
+      ],
+      "retryable": false,
+      "route": "POST /v1/story-runs",
+      "status": 409
+    },
+    {
+      "elapsed_ms": 6.77,
+      "expected_statuses": [
+        200
+      ],
+      "method": "GET",
+      "name": "read_contract_run",
+      "passed": true,
+      "response_fields": [
+        "action_required",
+        "child_age_months",
+        "created_at",
+        "error",
+        "job_state",
+        "result",
+        "retryable",
+        "revision",
+        "run_ref",
+        "run_state",
+        "target_revision",
+        "updated_at",
+        "version"
+      ],
+      "retryable": false,
+      "revision": 1,
+      "route": "GET /v1/story-runs/{run_ref}",
+      "run_state": "INPUT_PROCESSING",
+      "status": 200
+    },
+    {
+      "code": "NOT_FOUND",
+      "elapsed_ms": 8.2,
+      "expected_statuses": [
+        404,
+        409
+      ],
+      "method": "POST",
+      "name": "reject_unknown_asset",
+      "passed": true,
+      "response_fields": [
+        "code",
+        "correlation_id",
+        "field_errors",
+        "message",
+        "retryable"
+      ],
+      "retryable": false,
+      "route": "POST /v1/story-runs/{run_ref}/assets",
+      "status": 404
+    },
+    {
+      "code": "STALE_REVISION",
+      "elapsed_ms": 11.19,
+      "expected_statuses": [
+        409
+      ],
+      "method": "POST",
+      "name": "reject_subject_confirmation_before_analysis",
+      "passed": true,
+      "response_fields": [
+        "code",
+        "correlation_id",
+        "field_errors",
+        "message",
+        "retry_after_seconds",
+        "retryable"
+      ],
+      "retryable": false,
+      "route": "POST /v1/story-runs/{run_ref}/subject-confirmation",
+      "status": 409
+    },
+    {
+      "code": "INVALID_REQUEST",
+      "elapsed_ms": 1.65,
+      "expected_statuses": [
+        422
+      ],
+      "method": "POST",
+      "name": "reject_parent_activity_preselection",
+      "passed": true,
+      "response_fields": [
+        "code",
+        "correlation_id",
+        "field_errors",
+        "message",
+        "retryable"
+      ],
+      "retryable": false,
+      "route": "POST /v1/story-runs/{run_ref}/story-revisions",
+      "status": 422
+    },
+    {
+      "code": "INVALID_STATE",
+      "elapsed_ms": 15.14,
+      "expected_statuses": [
+        409
+      ],
+      "method": "POST",
+      "name": "reject_story_before_adult_subject_confirmation",
+      "passed": true,
+      "response_fields": [
+        "code",
+        "correlation_id",
+        "field_errors",
+        "message",
+        "retry_after_seconds",
+        "retryable"
+      ],
+      "retryable": false,
+      "route": "POST /v1/story-runs/{run_ref}/story-revisions",
+      "status": 409
+    },
+    {
+      "code": "NOT_FOUND",
+      "elapsed_ms": 6.65,
+      "expected_statuses": [
+        404
+      ],
+      "method": "GET",
+      "name": "read_missing_story_revision",
+      "passed": true,
+      "response_fields": [
+        "code",
+        "correlation_id",
+        "field_errors",
+        "message",
+        "retryable"
+      ],
+      "retryable": false,
+      "route": "GET /v1/story-runs/{run_ref}/story-revisions/{story_revision_ref}",
+      "status": 404
+    },
+    {
+      "code": "NOT_FOUND",
+      "elapsed_ms": 9.4,
+      "expected_statuses": [
+        404
+      ],
+      "method": "POST",
+      "name": "confirm_missing_story_revision",
+      "passed": true,
+      "response_fields": [
+        "code",
+        "correlation_id",
+        "field_errors",
+        "message",
+        "retryable"
+      ],
+      "retryable": false,
+      "route": "POST /v1/story-runs/{run_ref}/story-revisions/{story_revision_ref}/confirmation",
+      "status": 404
+    },
+    {
+      "elapsed_ms": 15.11,
+      "expected_statuses": [
+        202
+      ],
+      "method": "POST",
+      "name": "cancel_contract_run",
+      "passed": true,
+      "response_fields": [
+        "action_required",
+        "child_age_months",
+        "created_at",
+        "error",
+        "job_state",
+        "result",
+        "retryable",
+        "revision",
+        "run_ref",
+        "run_state",
+        "target_revision",
+        "updated_at",
+        "version"
+      ],
+      "retryable": false,
+      "revision": 2,
+      "route": "POST /v1/story-runs/{run_ref}/cancel",
+      "run_state": "DELETE_PENDING",
+      "status": 202
+    },
+    {
+      "elapsed_ms": 14.18,
+      "expected_statuses": [
+        201
+      ],
+      "method": "POST",
+      "name": "create_upload_target_run",
+      "passed": true,
+      "response_fields": [
+        "action_required",
+        "child_age_months",
+        "created_at",
+        "error",
+        "job_state",
+        "result",
+        "retryable",
+        "revision",
+        "run_ref",
+        "run_state",
+        "target_revision",
+        "updated_at",
+        "version"
+      ],
+      "retryable": false,
+      "revision": 1,
+      "route": "POST /v1/story-runs",
+      "run_state": "INPUT_PROCESSING",
+      "status": 201
+    },
+    {
+      "elapsed_ms": 18.35,
+      "expected_statuses": [
+        201
+      ],
+      "method": "POST",
+      "name": "create_upload_session",
+      "passed": true,
+      "response_fields": [
+        "asset_ref",
+        "derived_asset_ref",
+        "error",
+        "expires_at",
+        "max_parts",
+        "max_total_bytes",
+        "part_size_bytes",
+        "parts",
+        "state",
+        "upload_ref",
+        "version"
+      ],
+      "route": "POST /v1/upload-sessions",
+      "state": "RECEIVING",
+      "status": 201
+    },
+    {
+      "elapsed_ms": 22.82,
+      "expected_statuses": [
+        200
+      ],
+      "method": "PUT",
+      "name": "upload_image_part",
+      "passed": true,
+      "response_fields": [
+        "part_no",
+        "sha256",
+        "size_bytes"
+      ],
+      "route": "PUT /v1/upload-sessions/{upload_ref}/parts/{part_no}",
+      "status": 200
+    },
+    {
+      "elapsed_ms": 10.9,
+      "expected_statuses": [
+        200
+      ],
+      "method": "GET",
+      "name": "read_upload_session",
+      "passed": true,
+      "response_fields": [
+        "asset_ref",
+        "derived_asset_ref",
+        "error",
+        "expires_at",
+        "max_parts",
+        "max_total_bytes",
+        "part_size_bytes",
+        "parts",
+        "state",
+        "upload_ref",
+        "version"
+      ],
+      "route": "GET /v1/upload-sessions/{upload_ref}",
+      "state": "RECEIVING",
+      "status": 200
+    },
+    {
+      "elapsed_ms": 2033.11,
+      "expected_statuses": [
+        200,
+        202
+      ],
+      "method": "POST",
+      "name": "complete_upload_session",
+      "passed": true,
+      "response_fields": [
+        "asset_ref",
+        "derived_asset_ref",
+        "error",
+        "expires_at",
+        "max_parts",
+        "max_total_bytes",
+        "part_size_bytes",
+        "parts",
+        "state",
+        "upload_ref",
+        "version"
+      ],
+      "route": "POST /v1/upload-sessions/{upload_ref}/complete",
+      "state": "PENDING",
+      "status": 202
+    },
+    {
+      "elapsed_ms": 9.8,
+      "expected_statuses": [
+        200
+      ],
+      "method": "GET",
+      "name": "poll_upload_admission",
+      "passed": true,
+      "response_fields": [
+        "asset_ref",
+        "derived_asset_ref",
+        "error",
+        "expires_at",
+        "max_parts",
+        "max_total_bytes",
+        "part_size_bytes",
+        "parts",
+        "state",
+        "upload_ref",
+        "version"
+      ],
+      "route": "GET /v1/upload-sessions/{upload_ref}",
+      "state": "READY",
+      "status": 200
+    },
+    {
+      "elapsed_ms": 5.78,
+      "expected_statuses": [
+        200
+      ],
+      "method": "GET",
+      "name": "read_upload_target_run",
+      "passed": true,
+      "response_fields": [
+        "action_required",
+        "child_age_months",
+        "created_at",
+        "error",
+        "job_state",
+        "result",
+        "retryable",
+        "revision",
+        "run_ref",
+        "run_state",
+        "target_revision",
+        "updated_at",
+        "version"
+      ],
+      "retryable": false,
+      "revision": 1,
+      "route": "GET /v1/story-runs/{run_ref}",
+      "run_state": "INPUT_PROCESSING",
+      "status": 200
+    },
+    {
+      "elapsed_ms": 15.65,
+      "expected_statuses": [
+        202
+      ],
+      "method": "POST",
+      "name": "cancel_upload_target_run",
+      "passed": true,
+      "response_fields": [
+        "action_required",
+        "child_age_months",
+        "created_at",
+        "error",
+        "job_state",
+        "result",
+        "retryable",
+        "revision",
+        "run_ref",
+        "run_state",
+        "target_revision",
+        "updated_at",
+        "version"
+      ],
+      "retryable": false,
+      "revision": 2,
+      "route": "POST /v1/story-runs/{run_ref}/cancel",
+      "run_state": "DELETE_PENDING",
+      "status": 202
+    },
+    {
+      "elapsed_ms": 13.2,
+      "expected_statuses": [
+        201
+      ],
+      "method": "POST",
+      "name": "create_delete_target_run",
+      "passed": true,
+      "response_fields": [
+        "action_required",
+        "child_age_months",
+        "created_at",
+        "error",
+        "job_state",
+        "result",
+        "retryable",
+        "revision",
+        "run_ref",
+        "run_state",
+        "target_revision",
+        "updated_at",
+        "version"
+      ],
+      "retryable": false,
+      "revision": 1,
+      "route": "POST /v1/story-runs",
+      "run_state": "INPUT_PROCESSING",
+      "status": 201
+    },
+    {
+      "elapsed_ms": 14.23,
+      "expected_statuses": [
+        201
+      ],
+      "method": "POST",
+      "name": "create_pending_upload_for_delete",
+      "passed": true,
+      "response_fields": [
+        "asset_ref",
+        "derived_asset_ref",
+        "error",
+        "expires_at",
+        "max_parts",
+        "max_total_bytes",
+        "part_size_bytes",
+        "parts",
+        "state",
+        "upload_ref",
+        "version"
+      ],
+      "route": "POST /v1/upload-sessions",
+      "state": "RECEIVING",
+      "status": 201
+    },
+    {
+      "elapsed_ms": 16.01,
+      "expected_statuses": [
+        202
+      ],
+      "method": "DELETE",
+      "name": "delete_pending_upload",
+      "passed": true,
+      "response_fields": [
+        "asset_ref",
+        "derived_asset_ref",
+        "error",
+        "expires_at",
+        "max_parts",
+        "max_total_bytes",
+        "part_size_bytes",
+        "parts",
+        "state",
+        "upload_ref",
+        "version"
+      ],
+      "route": "DELETE /v1/upload-sessions/{upload_ref}",
+      "state": "ABORTED",
+      "status": 202
+    },
+    {
+      "elapsed_ms": 18.0,
+      "expected_statuses": [
+        201
+      ],
+      "method": "POST",
+      "name": "create_parent_story_run",
+      "passed": true,
+      "response_fields": [
+        "action_required",
+        "child_age_months",
+        "created_at",
+        "error",
+        "job_state",
+        "result",
+        "retryable",
+        "revision",
+        "run_ref",
+        "run_state",
+        "target_revision",
+        "updated_at",
+        "version"
+      ],
+      "retryable": false,
+      "revision": 1,
+      "route": "POST /v1/story-runs",
+      "run_state": "INPUT_PROCESSING",
+      "status": 201
+    },
+    {
+      "elapsed_ms": 5.24,
+      "expected_statuses": [
+        200
+      ],
+      "method": "GET",
+      "name": "read_new_parent_run",
+      "passed": true,
+      "response_fields": [
+        "action_required",
+        "child_age_months",
+        "created_at",
+        "error",
+        "job_state",
+        "result",
+        "retryable",
+        "revision",
+        "run_ref",
+        "run_state",
+        "target_revision",
+        "updated_at",
+        "version"
+      ],
+      "retryable": false,
+      "revision": 1,
+      "route": "GET /v1/story-runs/{run_ref}",
+      "run_state": "INPUT_PROCESSING",
+      "status": 200
+    },
+    {
+      "code": "INVALID_REQUEST",
+      "elapsed_ms": 1.75,
+      "expected_statuses": [
+        422
+      ],
+      "method": "POST",
+      "name": "reject_parent_activity_preselection",
+      "passed": true,
+      "response_fields": [
+        "code",
+        "correlation_id",
+        "field_errors",
+        "message",
+        "retryable"
+      ],
+      "retryable": false,
+      "route": "POST /v1/story-runs/{run_ref}/story-revisions",
+      "status": 422
+    },
+    {
+      "elapsed_ms": 19.67,
+      "expected_statuses": [
+        201
+      ],
+      "method": "POST",
+      "name": "create_parent_artwork_upload",
+      "passed": true,
+      "response_fields": [
+        "asset_ref",
+        "derived_asset_ref",
+        "error",
+        "expires_at",
+        "max_parts",
+        "max_total_bytes",
+        "part_size_bytes",
+        "parts",
+        "state",
+        "upload_ref",
+        "version"
+      ],
+      "route": "POST /v1/upload-sessions",
+      "state": "RECEIVING",
+      "status": 201
+    },
+    {
+      "elapsed_ms": 20.78,
+      "expected_statuses": [
+        200
+      ],
+      "method": "PUT",
+      "name": "upload_parent_artwork",
+      "passed": true,
+      "response_fields": [
+        "part_no",
+        "sha256",
+        "size_bytes"
+      ],
+      "route": "PUT /v1/upload-sessions/{upload_ref}/parts/{part_no}",
+      "status": 200
+    },
+    {
+      "elapsed_ms": 9.22,
+      "expected_statuses": [
+        200
+      ],
+      "method": "GET",
+      "name": "read_parent_upload_before_complete",
+      "passed": true,
+      "response_fields": [
+        "asset_ref",
+        "derived_asset_ref",
+        "error",
+        "expires_at",
+        "max_parts",
+        "max_total_bytes",
+        "part_size_bytes",
+        "parts",
+        "state",
+        "upload_ref",
+        "version"
+      ],
+      "route": "GET /v1/upload-sessions/{upload_ref}",
+      "state": "RECEIVING",
+      "status": 200
+    },
+    {
+      "elapsed_ms": 2061.24,
+      "expected_statuses": [
+        200,
+        202
+      ],
+      "method": "POST",
+      "name": "complete_parent_artwork_upload",
+      "passed": true,
+      "response_fields": [
+        "asset_ref",
+        "derived_asset_ref",
+        "error",
+        "expires_at",
+        "max_parts",
+        "max_total_bytes",
+        "part_size_bytes",
+        "parts",
+        "state",
+        "upload_ref",
+        "version"
+      ],
+      "route": "POST /v1/upload-sessions/{upload_ref}/complete",
+      "state": "PENDING",
+      "status": 202
+    },
+    {
+      "elapsed_ms": 12.56,
+      "expected_statuses": [
+        200
+      ],
+      "method": "GET",
+      "name": "poll_parent_artwork_admission",
+      "passed": true,
+      "response_fields": [
+        "asset_ref",
+        "derived_asset_ref",
+        "error",
+        "expires_at",
+        "max_parts",
+        "max_total_bytes",
+        "part_size_bytes",
+        "parts",
+        "state",
+        "upload_ref",
+        "version"
+      ],
+      "route": "GET /v1/upload-sessions/{upload_ref}",
+      "state": "READY",
+      "status": 200
+    },
+    {
+      "elapsed_ms": 6.65,
+      "expected_statuses": [
+        200
+      ],
+      "method": "GET",
+      "name": "read_parent_run_before_vision",
+      "passed": true,
+      "response_fields": [
+        "action_required",
+        "child_age_months",
+        "created_at",
+        "error",
+        "job_state",
+        "result",
+        "retryable",
+        "revision",
+        "run_ref",
+        "run_state",
+        "target_revision",
+        "updated_at",
+        "version"
+      ],
+      "retryable": false,
+      "revision": 1,
+      "route": "GET /v1/story-runs/{run_ref}",
+      "run_state": "INPUT_PROCESSING",
+      "status": 200
+    },
+    {
+      "elapsed_ms": 60.77,
+      "expected_statuses": [
+        202
+      ],
+      "method": "POST",
+      "name": "attach_artwork_and_dispatch_drawing_analysis_once",
+      "passed": true,
+      "response_fields": [
+        "action_required",
+        "child_age_months",
+        "created_at",
+        "error",
+        "job_state",
+        "result",
+        "retryable",
+        "revision",
+        "run_ref",
+        "run_state",
+        "target_revision",
+        "updated_at",
+        "version"
+      ],
+      "retryable": false,
+      "revision": 2,
+      "route": "POST /v1/story-runs/{run_ref}/assets",
+      "run_state": "INPUT_PROCESSING",
+      "status": 202
+    },
+    {
+      "elapsed_ms": 14.49,
+      "expected_statuses": [
+        200
+      ],
+      "method": "GET",
+      "name": "read_parent_run_after_vision",
+      "passed": true,
+      "response_fields": [
+        "action_required",
+        "child_age_months",
+        "created_at",
+        "error",
+        "job_state",
+        "result",
+        "retryable",
+        "revision",
+        "run_ref",
+        "run_state",
+        "target_revision",
+        "updated_at",
+        "version"
+      ],
+      "retryable": false,
+      "revision": 2,
+      "route": "GET /v1/story-runs/{run_ref}",
+      "run_state": "INPUT_PROCESSING",
+      "status": 200
+    }
+  ],
+  "records_contain_request_or_story_text": false,
+  "started_at": "2026-11-06T14:59:19+07:00"
+}

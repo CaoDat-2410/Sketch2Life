@@ -1,0 +1,240 @@
+{
+  "app": "sketch2life-srs23-language-audio-dev",
+  "attempt_id": "e4c37ced-6e15-4ca7-a494-b28254deb946",
+  "call_id": "fc-01M6QWJD201FPKJ41P9M0G84N9",
+  "created_at": "2026-11-06T14:35:42+07:00",
+  "dispatch_at": "2026-11-06T14:35:44+07:00",
+  "duration_ms": 30000,
+  "ended_at": "2026-11-06T14:37:05+07:00",
+  "function": "generate-story-and-storyboard",
+  "generation_id": "42fb3e89-7397-44b5-8bf6-286ab08e15bf",
+  "input_sha256": "e861e111af128e0bcd7185f48d6a0c5e4a84ae3c9390a6f1775347b669ca4e44",
+  "job_id": "1c459ad4-463f-4c04-8a14-1364d6a33073",
+  "manifest_sha256": "7a0d027ff830782c55d6215515409c818752e1eef07a96565ba292a428b04e85",
+  "max_attempts": 1,
+  "outcome": "SUCCEEDED",
+  "result": {
+    "duration_ms": 30000,
+    "language": "vi",
+    "scenes": [
+      {
+        "action": "Người lớn nhẹ nhàng chỉ vào một quả trứng màu trắng ngà dính trên lá cây xanh. Trẻ cúi đầu quan sát kỹ, nhận ra hình cầu",
+        "character_anchors": [
+          "Trẻ 60 tháng quan sát",
+          "Người lớn chỉ tay"
+        ],
+        "duration_ms": 6000,
+        "narration": "Đây là quả trứng của bướm. Nó rất nhỏ và nằm trên lá cây. Chúng ta cùng nhìn kỹ hình dáng của nó nhé, chờ đợi điều kỳ lạ",
+        "scene_index": 1,
+        "start_ms": 0,
+        "title": "Quả trứng nhỏ trên lá",
+        "visual_prompt": "Close-up macro shot of a tiny white egg on a green leaf, natural sunlight, shallow depth of field, realistic texture, no human faces, 60-month-old child observing from side, Mont风格"
+      },
+      {
+        "action": "Trứng đã biến mất, thay vào đó là một con sâu bướm nhỏ màu xanh đang bò trên mặt lá. Trẻ thấy rõ đầu và chân nhỏ của sâu",
+        "character_anchors": [
+          "Sâu bướm màu xanh",
+          "Trẻ quan sát kỹ"
+        ],
+        "duration_ms": 6000,
+        "narration": "Trứng đã nở ra con sâu bướm. Nó đang bò trên lá. Sâu bướm cần ăn lá để lớn lên, đây là bước đầu tiên của vòng đời bướm",
+        "scene_index": 2,
+        "start_ms": 6000,
+        "title": "Sâu bướm mới nở",
+        "visual_prompt": "A small green caterpillar just hatched from an egg on a leaf, detailed texture, natural lighting, child's hand gently nearby but not touching, realistic scale"
+      },
+      {
+        "action": "Sâu bướm đang gặm nhấm mép lá cây, lá bị ăn mất một góc. Trẻ thấy sâu lớn hơn chút so với lần trước khi mới nở",
+        "character_anchors": [
+          "Sâu bướm đang ăn",
+          "Lá cây bị gặm"
+        ],
+        "duration_ms": 6000,
+        "narration": "Sâu bướm ăn lá cây để lấy năng lượng. Nó đang lớn dần lên. Hãy xem lá cây thay đổi thế nào khi sâu ăn vào",
+        "scene_index": 3,
+        "start_ms": 12000,
+        "title": "Sâu bướm ăn lá",
+        "visual_prompt": "Green caterpillar eating the edge of a leaf, leaf damage visible, natural garden setting, soft focus background, child watching intently from a distance"
+      },
+      {
+        "action": "Sâu bướm đã biến mất, thay vào đó là một chiếc nhộng màu nâu nhạt treo lơ lửng trên cành cây. Trẻ nhìn thấy hình dáng dẻ",
+        "character_anchors": [
+          "Chiếc nhộng treo",
+          "Trẻ nhìn lên"
+        ],
+        "duration_ms": 6000,
+        "narration": "Sâu bướm đã tạo ra chiếc nhộng. Trong nhộng, cơ thể nó đang thay đổi lớn. Đây là giai đoạn chuyển hóa quan trọng trước",
+        "scene_index": 4,
+        "start_ms": 18000,
+        "title": "Chiếc nhộng hình thành",
+        "visual_prompt": "A brown chrysalis hanging from a tree branch, detailed texture, natural sunlight filtering through leaves, child observing from below, realistic proportions"
+      },
+      {
+        "action": "Bướm trưởng thành đã chui ra khỏi nhộng, đang đứng trên lá với hai đôi cánh rộng, thân thon và râu cong. Trẻ thấy bướm",
+        "character_anchors": [
+          "Bướm trưởng thành",
+          "Trẻ vui vẻ nhìn"
+        ],
+        "duration_ms": 6000,
+        "narration": "Bướm trưởng thành đã chui ra. Nó có hai đôi cánh rộng, thân hình thon và râu cong. Bây giờ nó có thể bay và hoàn thành",
+        "scene_index": 5,
+        "start_ms": 24000,
+        "title": "Bướm trưởng thành bay",
+        "visual_prompt": "A fully formed butterfly with wide wings, thin body, and curved antennae standing on a leaf, wings slightly wet, natural garden background, child watching"
+      }
+    ],
+    "schema_version": "sketch2life.story-revision.v1",
+    "story": {
+      "ending": "Bướm trưởng thành chui ra khỏi nhộng,抖抖 cánh ướt. Nó có hai đôi cánh rộng, thân hình thon và râu cong. Bướm bay nhẹ nhàng, hoàn thành vòng đời thật mà trẻ vừa chứng kiến.",
+      "middle": "Trứng nở ra con sâu bướm nhỏ. Sâu bướm ăn lá cây để lớn lên, sau đó tìm chỗ an toàn để tạo thành chiếc nhộng cứng cáp. Trong nhộng, cơ thể sắp chuyển hóa hoàn toàn để trở thành bướ",
+      "opening": "Người lớn chỉ vào một quả trứng nhỏ trên lá cây xanh mướt. Trẻ quan sát kỹ hình dáng bé tí của nó, chờ đợi sự thay đổi sắp xảy ra theo quy luật tự nhiên của bướm. Không có tên gọi,"
+    },
+    "title": "Vòng Đời Bướm: Từ Trứng Đến Bay Lượn"
+  },
+  "runner_elapsed_ms": 83336.63,
+  "scene_count": 5,
+  "state": "DISPATCH_INTENT_RECORDED",
+  "story_sha256": "34822b71e9a5c847ec884d48e6c3076f4f1e37dc1bc35c0957faf8c64aee0ca8",
+  "synthetic_adult_confirmed_fixture": true,
+  "title": "Vòng Đời Bướm: Từ Trứng Đến Bay Lượn",
+  "wait_limit_seconds": 1800,
+  "worker_log_summary": {
+    "worker_binary_output_sha256": null,
+    "worker_diagnostic_code": null,
+    "worker_diagnostic_details": null,
+    "worker_duration_ms": 78280,
+    "worker_error_code": null,
+    "worker_error_type": null,
+    "worker_failure_boundary": "worker_succeeded",
+    "worker_gpu_class": "L40S|L4|A10",
+    "worker_last_stage": "terminal",
+    "worker_log_event_count": 28,
+    "worker_logs_available": true,
+    "worker_model_id": "Qwen/Qwen3.5-9B",
+    "worker_model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+    "worker_output_sha256": "3f43da25cdc0649b17073ed9cac792c6a0dc2f41eeb4f54a404a86229c58b963",
+    "worker_output_size_bytes": 4647,
+    "worker_phase_history": [
+      {
+        "event": "worker_phase_started",
+        "stage": "input_envelope"
+      },
+      {
+        "duration_ms": 0,
+        "event": "worker_phase_succeeded",
+        "stage": "input_envelope"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "workload_gate"
+      },
+      {
+        "duration_ms": 0,
+        "event": "worker_phase_succeeded",
+        "stage": "workload_gate"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "scratch_volume_reload"
+      },
+      {
+        "duration_ms": 92,
+        "event": "worker_phase_succeeded",
+        "stage": "scratch_volume_reload"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "input_manifest_read"
+      },
+      {
+        "duration_ms": 390,
+        "event": "worker_phase_succeeded",
+        "stage": "input_manifest_read"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "request_contract_validation"
+      },
+      {
+        "duration_ms": 0,
+        "event": "worker_phase_succeeded",
+        "stage": "request_contract_validation"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "runtime_preparation"
+      },
+      {
+        "duration_ms": 2367,
+        "event": "worker_phase_succeeded",
+        "stage": "runtime_preparation"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "checkpoint_verification"
+      },
+      {
+        "duration_ms": 50,
+        "event": "worker_phase_succeeded",
+        "stage": "checkpoint_verification"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "model_load"
+      },
+      {
+        "duration_ms": 12019,
+        "event": "worker_phase_succeeded",
+        "stage": "model_load"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "prompt_encoding"
+      },
+      {
+        "duration_ms": 41,
+        "event": "worker_phase_succeeded",
+        "stage": "prompt_encoding"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "constrained_decoder_setup"
+      },
+      {
+        "duration_ms": 3184,
+        "event": "worker_phase_succeeded",
+        "stage": "constrained_decoder_setup"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "model_inference"
+      },
+      {
+        "duration_ms": 59576,
+        "event": "worker_phase_succeeded",
+        "stage": "model_inference"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "output_decode_and_parse"
+      },
+      {
+        "duration_ms": 1,
+        "event": "worker_phase_succeeded",
+        "stage": "output_decode_and_parse"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "business_rule_validation"
+      },
+      {
+        "duration_ms": 1,
+        "event": "worker_phase_succeeded",
+        "stage": "business_rule_validation"
+      }
+    ],
+    "worker_started_observed": true,
+    "worker_terminal_event": "worker_succeeded"
+  },
+  "workload": "story.generate"
+}

@@ -1,0 +1,25 @@
+{
+  "api_route": "POST /v1/story-runs/{run_ref}/story-revisions",
+  "created_at": "2026-11-05T09:41:27+07:00",
+  "max_dispatches": 1,
+  "model_id": "Qwen/Qwen2.5-7B-Instruct",
+  "model_revision": "a09a35458c702b33eeacc393d103063234e8bc28",
+  "state": "DISPATCH_INTENT_RECORDED",
+  "video_enabled": false,
+  "wait_cap_seconds": 300,
+  "worker_input_fields": [
+    "adult_confirmed_idea",
+    "child_age_months",
+    "confirmed_subject",
+    "context_revision",
+    "drawing_sha256",
+    "language",
+    "lesson_direction",
+    "rewrite_instruction",
+    "role",
+    "schema_version",
+    "understanding_revision",
+    "visible_features"
+  ],
+  "workload": "story.generate"
+}

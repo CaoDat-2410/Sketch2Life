@@ -1,0 +1,120 @@
+{
+  "call_id": "fc-01M6QXXXEWFT71Q69VMRNP1WCW",
+  "elapsed_ms": 39632.11,
+  "model_id": "Qwen/Qwen3.5-9B",
+  "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+  "outcome": "SUCCEEDED",
+  "output_sha256": "0403b0742f829dda22174998dccc3fd908c8d689f901acdb726bfea74d848f3c",
+  "worker_log_summary": {
+    "worker_binary_output_sha256": null,
+    "worker_diagnostic_code": null,
+    "worker_diagnostic_details": null,
+    "worker_duration_ms": 29822,
+    "worker_error_code": null,
+    "worker_error_type": null,
+    "worker_failure_boundary": "worker_succeeded",
+    "worker_gpu_class": "L40S|L4|A10",
+    "worker_last_stage": "terminal",
+    "worker_log_event_count": 22,
+    "worker_logs_available": true,
+    "worker_model_id": "Qwen/Qwen3.5-9B",
+    "worker_model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+    "worker_output_sha256": "0403b0742f829dda22174998dccc3fd908c8d689f901acdb726bfea74d848f3c",
+    "worker_output_size_bytes": 637,
+    "worker_phase_history": [
+      {
+        "event": "worker_phase_started",
+        "stage": "input_envelope"
+      },
+      {
+        "duration_ms": 0,
+        "event": "worker_phase_succeeded",
+        "stage": "input_envelope"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "workload_gate"
+      },
+      {
+        "duration_ms": 0,
+        "event": "worker_phase_succeeded",
+        "stage": "workload_gate"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "scratch_volume_reload"
+      },
+      {
+        "duration_ms": 489,
+        "event": "worker_phase_succeeded",
+        "stage": "scratch_volume_reload"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "input_asset_verify"
+      },
+      {
+        "duration_ms": 454,
+        "event": "worker_phase_succeeded",
+        "stage": "input_asset_verify"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "model_load"
+      },
+      {
+        "duration_ms": 13651,
+        "event": "worker_phase_succeeded",
+        "stage": "model_load"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "image_preprocess"
+      },
+      {
+        "duration_ms": 39,
+        "event": "worker_phase_succeeded",
+        "stage": "image_preprocess"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "prompt_encode"
+      },
+      {
+        "duration_ms": 230,
+        "event": "worker_phase_succeeded",
+        "stage": "prompt_encode"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "model_inference"
+      },
+      {
+        "duration_ms": 14956,
+        "event": "worker_phase_succeeded",
+        "stage": "model_inference"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "model_output_validation"
+      },
+      {
+        "duration_ms": 0,
+        "event": "worker_phase_succeeded",
+        "stage": "model_output_validation"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "output_parse_and_contract_validation"
+      },
+      {
+        "duration_ms": 0,
+        "event": "worker_phase_succeeded",
+        "stage": "output_parse_and_contract_validation"
+      }
+    ],
+    "worker_started_observed": true,
+    "worker_terminal_event": "worker_succeeded"
+  },
+  "workload": "drawing.analyze"
+}

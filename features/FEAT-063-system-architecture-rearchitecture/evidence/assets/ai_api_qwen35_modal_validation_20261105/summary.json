@@ -1,0 +1,344 @@
+{
+  "plan": "PLAN_REV44_AI_API_COVERAGE_QWEN35_MODAL_20261105.md",
+  "started_at": "2026-11-05T15:03:49+07:00",
+  "synthetic_only": true,
+  "qwen_model": {
+    "id": "Qwen/Qwen3.5-9B",
+    "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
+  },
+  "max_attempts_per_workload": 1,
+  "qwen_wait_limit_seconds": 1800,
+  "video_called": false,
+  "blocked_without_dispatch": {
+    "parent.sketch-guide.generate": "FLUX.3 checkpoint returned HTTP 401; no Modal HF Secret exists",
+    "lesson.visual.generate": "FLUX.3 checkpoint returned HTTP 401; no Modal HF Secret exists",
+    "drawing.segment": "prior 1,800-second GPU_L4 scheduling timeout; no retry",
+    "video.scene.generate": "deferred by owner",
+    "video.scene.validate": "deferred with video pipeline",
+    "video.final-safety.validate": "no policy/model selected; fail closed"
+  },
+  "ended_at": "2026-11-05T15:06:44+07:00",
+  "results": [
+    {
+      "label": "drawing.analyze",
+      "workload": "drawing.analyze",
+      "app": "sketch2life-srs23-drawing-vlm-dev",
+      "function": "analyze-drawing",
+      "job_id": "9f88ea74-09a1-4929-be24-49d45e0b9b67",
+      "generation_id": "7bf530f4-63c0-450a-a676-2d91b217920f",
+      "attempt_id": "953fda63-3701-4782-a90d-457515496d99",
+      "source_sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949",
+      "drawing_sha256": "f433b37a93f33accc5a10cbb81b18f8cf31d8de0868752c0fe6d9d8beb3ec8e0",
+      "wait_limit_seconds": 1800,
+      "started_at": "2026-11-05T15:03:50+07:00",
+      "outcome": "FAILED_TERMINAL",
+      "call_id": "fc-01M6NBS5J15QCCTBEBSS9PMV1P",
+      "dispatch_at": "2026-11-05T15:03:53+07:00",
+      "error_type": "RuntimeError",
+      "ended_at": "2026-11-05T15:04:17+07:00"
+    },
+    {
+      "label": "story.generate+storyboard.generate",
+      "state": "DISPATCH_INTENT_RECORDED",
+      "workload": "story.generate",
+      "app": "sketch2life-srs23-language-audio-dev",
+      "function": "generate-story-and-storyboard",
+      "job_id": "9e0fa732-1331-49da-b86b-07b9135f3092",
+      "generation_id": "4efc9f0c-2686-44d0-b160-480f085d3273",
+      "attempt_id": "3135abb8-e57a-4d81-8b1b-63bc2ebd3c78",
+      "input_sha256": "b1ebd48251f72aa8aa847071701a3ed516838475d8de3999ef1257e03c379929",
+      "manifest_sha256": "0512e18c912e34e422a445d7565813b614dce891b492b98297e57b2591746600",
+      "wait_limit_seconds": 1800,
+      "synthetic_adult_confirmed_fixture": true,
+      "created_at": "2026-11-05T15:04:18+07:00",
+      "max_attempts": 1,
+      "outcome": "FAILED_TERMINAL",
+      "call_id": "fc-01M6NBT067B8Q397JCPWXWQKPM",
+      "dispatch_at": "2026-11-05T15:04:20+07:00",
+      "error_type": "RuntimeError",
+      "ended_at": "2026-11-05T15:04:43+07:00",
+      "client_elapsed_ms": 26279.57
+    },
+    {
+      "label": "teacher.sketch-deck.generate",
+      "workload": "teacher.sketch-deck.generate",
+      "app": "sketch2life-srs23-language-audio-dev",
+      "function": "generate-teacher-sketch-deck",
+      "job_id": "4ec697ed-092a-4983-90fe-1a5201cd502a",
+      "generation_id": "15b2544f-d24b-45dd-8d27-573fefb4b3cc",
+      "attempt_id": "ab7d188f-9e29-4b67-b30c-4bbe28eed9d5",
+      "input_sha256": "d4a7421d6d19fab19875f9143739b271275a7362b07fc29020076da15dec2b96",
+      "manifest_sha256": "472def81177a9c7a1a124efc32fddf611ce56d42efd59b35aa3db0fd91157f95",
+      "wait_limit_seconds": 1800,
+      "started_at": "2026-11-05T15:04:44+07:00",
+      "outcome": "SUCCEEDED",
+      "call_id": "fc-01M6NBTT00BYWZ26Z6NC39GMNW",
+      "dispatch_at": "2026-11-05T15:04:46+07:00",
+      "slide_count": 5,
+      "drawing_step_count": 4,
+      "approved_activity_refs": [
+        "synthetic-activity-observe-butterfly",
+        "synthetic-activity-compare-flowers"
+      ],
+      "result": {
+        "schema_version": "sketch2life.modal.worker-output.v1",
+        "workload": "teacher.sketch-deck.generate",
+        "job_id": "4ec697ed-092a-4983-90fe-1a5201cd502a",
+        "generation_id": "15b2544f-d24b-45dd-8d27-573fefb4b3cc",
+        "attempt_id": "ab7d188f-9e29-4b67-b30c-4bbe28eed9d5",
+        "model": {
+          "id": "Qwen/Qwen3.5-9B",
+          "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
+        },
+        "result": {
+          "schema_version": "sketch2life.teacher-sketch-deck.v1",
+          "status": "DRAFT",
+          "plan_revision_ref": "synthetic-approved-butterfly-plan-v1",
+          "content_hash": "623788e3d6dd28bdc08014836707f003ed90692b1060bf421016c9ae6fd93e1e",
+          "aspect_ratio": "16:9",
+          "language": "vi",
+          "topic": "Con bướm",
+          "target_age_months": 60,
+          "subject_knowledge": [
+            "Vòng đời của bướm gồm trứng, sâu bướm, nhộng rồi đến bướm trưởng thành.",
+            "Sâu bướm nở từ trứng; bướm trưởng thành chui ra khỏi nhộng.",
+            "Nhiều loài bướm trưởng thành hút mật hoa bằng vòi dài."
+          ],
+          "slides": [
+            {
+              "slide_index": 1,
+              "kind": "orientation",
+              "title": "Con bướm",
+              "bullets": [
+                "Trẻ quan sát hình dáng và một số đặc điểm dễ nhận thấy của con bướm.",
+                "Trẻ tìm hiểu vòng đời của bướm bằng ngôn ngữ phù hợp lứa tuổi."
+              ],
+              "activity_ref": null
+            },
+            {
+              "slide_index": 2,
+              "kind": "drawing_guide",
+              "title": "Cùng quan sát và vẽ Con bướm",
+              "steps": [
+                {
+                  "step_index": 1,
+                  "instruction": "Hãy vẽ một đầu tròn nhỏ và thân dài mảnh ở giữa trang giấy, nhớ chừa khoảng trống hai bên nhé.",
+                  "placement": "Ở giữa trang giấy, chừa khoảng trống hai bên.",
+                  "source_action": "Vẽ đầu tròn nhỏ và thân dài mảnh.",
+                  "source_placement": "Ở giữa trang giấy, chừa khoảng trống hai bên."
+                },
+                {
+                  "step_index": 2,
+                  "instruction": "Bây giờ thêm hai cặp cánh lớn hai bên thân, cánh trên to hơn và cánh dưới nhỏ hơn cho cân đối.",
+                  "placement": "Cánh trên lớn hơn, cánh dưới nhỏ hơn và cân đối.",
+                  "source_action": "Thêm hai cặp cánh lớn hai bên thân.",
+                  "source_placement": "Cánh trên lớn hơn, cánh dưới nhỏ hơn và cân đối."
+                },
+                {
+                  "step_index": 3,
+                  "instruction": "Vẽ hai chiếc râu cong hướng lên trên gần đầu bướm nào.",
+                  "placement": "Hai râu hướng lên, gần đầu bướm.",
+                  "source_action": "Vẽ hai chiếc râu cong trên đầu.",
+                  "source_placement": "Hai râu hướng lên, gần đầu bướm."
+                },
+                {
+                  "step_index": 4,
+                  "instruction": "Thêm vài đường gân đơn giản rải nhẹ trên cánh, giữ lại nhiều khoảng trắng nhé.",
+                  "placement": "Rải nhẹ trên cánh, giữ nhiều khoảng trắng.",
+                  "source_action": "Thêm vài đường gân đơn giản trên cánh.",
+                  "source_placement": "Rải nhẹ trên cánh, giữ nhiều khoảng trắng."
+                }
+              ],
+              "activity_ref": null
+            },
+            {
+              "slide_index": 3,
+              "kind": "subject_exploration",
+              "title": "Cùng tìm hiểu về Con bướm",
+              "bullets": [
+                "Vòng đời của bướm gồm trứng, sâu bướm, nhộng rồi đến bướm trưởng thành.",
+                "Sâu bướm nở từ trứng; bướm trưởng thành chui ra khỏi nhộng.",
+                "Nhiều loài bướm trưởng thành hút mật hoa bằng vòi dài."
+              ],
+              "activity_ref": null
+            },
+            {
+              "slide_index": 4,
+              "kind": "approved_activity",
+              "title": "Quan sát bướm từ xa",
+              "activity_ref": "synthetic-activity-observe-butterfly",
+              "goal": [
+                "Luyện quan sát và nhận ra đặc điểm của bướm trong môi trường tự nhiên."
+              ],
+              "materials": [
+                "Sổ quan sát",
+                "Bút chì"
+              ],
+              "preparation": [
+                "Chọn khu vườn an toàn có hoa và đứng cùng trẻ."
+              ],
+              "instructions": [
+                "Quan sát bướm từ khoảng cách an toàn.",
+                "Mời trẻ kể điều mình nhìn thấy; không bắt hoặc chạm vào bướm."
+              ],
+              "safety_notes": [
+                "Người lớn luôn ở cạnh trẻ.",
+                "Không bắt, đuổi hoặc chạm vào côn trùng."
+              ]
+            },
+            {
+              "slide_index": 5,
+              "kind": "approved_activity",
+              "title": "Tìm những bông hoa khác nhau",
+              "activity_ref": "synthetic-activity-compare-flowers",
+              "goal": [
+                "So sánh hình dáng và màu sắc của các bông hoa thu hút bướm."
+              ],
+              "materials": [
+                "Thẻ quan sát bằng giấy"
+              ],
+              "preparation": [
+                "Chọn lối đi bằng phẳng, tránh cây có gai và khu vực xe cộ."
+              ],
+              "instructions": [
+                "Quan sát hai bông hoa khác nhau mà không ngắt hoa.",
+                "Mời trẻ mô tả điểm giống và khác nhau."
+              ],
+              "safety_notes": [
+                "Người lớn ở gần; không nếm hoặc bứt cây.",
+                "Rửa tay sau hoạt động ngoài trời."
+              ]
+            }
+          ],
+          "approved_activity_refs": [
+            "synthetic-activity-observe-butterfly",
+            "synthetic-activity-compare-flowers"
+          ],
+          "review_required": true
+        }
+      },
+      "output_sha256": "f752d066cf8385a01c29b8188985e371203aefc41d2fb6d509f6b766506a2549",
+      "ended_at": "2026-11-05T15:05:23+07:00",
+      "client_elapsed_ms": 40042.02
+    },
+    {
+      "label": "lesson.plan.suggest",
+      "workload": "lesson.plan.suggest",
+      "app": "sketch2life-srs23-language-audio-dev",
+      "function": "suggest-lesson-plan",
+      "job_id": "3d561ec8-cd65-4ac6-84cf-4c94fc6628ad",
+      "generation_id": "1c991a45-f2f2-47a0-9ce2-7593195b4ef2",
+      "attempt_id": "7f8bdebb-efa4-4f38-8acb-638dc045e75b",
+      "input_sha256": "154970809f10629c4061da79b55f194f0907fd7ff30fbf2bf4a2507a22ddf7da",
+      "manifest_sha256": "82417ed869697e657023773a478eb8693f34a1da8957002e93429bbd76078a63",
+      "wait_limit_seconds": 1800,
+      "started_at": "2026-11-05T15:05:24+07:00",
+      "outcome": "FAILED_TERMINAL",
+      "call_id": "fc-01M6NBW4AQ6GZZ43R8GN4EGSVB",
+      "dispatch_at": "2026-11-05T15:05:30+07:00",
+      "error_type": "RuntimeError",
+      "ended_at": "2026-11-05T15:05:46+07:00",
+      "client_elapsed_ms": 23106.47
+    },
+    {
+      "label": "tts.narration.generate",
+      "workload": "tts.narration.generate",
+      "function": "synthesize-vietnamese-narration",
+      "call_id": "fc-01M6NBWQJB2TP9V7CM3E9PB0KA",
+      "elapsed_ms": 23500.64,
+      "outcome": "SUCCEEDED",
+      "output_sha256": "4fd31afa493c9c7ce11100b942e402c5aff7d35089e10330bd0cc7f6fe2d3391",
+      "result": {
+        "schema_version": "sketch2life.modal.worker-output.v1",
+        "workload": "tts.narration.generate",
+        "job_id": "6ef58c16-96ab-4db8-b795-4f52734cbacb",
+        "generation_id": "b67955b3-81d8-459a-9ced-4579222bfad8",
+        "attempt_id": "fadfad50-0229-43d6-86d4-30a365d87277",
+        "model": {
+          "id": "pnnbao-ump/VieNeu-TTS-v3-Turbo",
+          "revision": "61b85e3d937fbbacb387714180e8182823512523"
+        },
+        "asset": {
+          "content_type": "audio/wav",
+          "size_bytes": 184364,
+          "sha256": "10b2f8992bfc55e1b00ee085bcce5ad89f21439743a206b8c13ad894e0dd214c"
+        },
+        "asset_file": "synthetic_vietnamese_narration.wav"
+      }
+    },
+    {
+      "label": "asr.transcribe",
+      "workload": "asr.transcribe",
+      "function": "transcribe-vietnamese-audio",
+      "call_id": "fc-01M6NBXHY3BR862BXDWCQX66XJ",
+      "elapsed_ms": 31563.51,
+      "outcome": "SUCCEEDED",
+      "output_sha256": "9fb12e0373591448b11319bdd15a4b010e0fd523d00c17db19898769d28fd56a",
+      "result": {
+        "schema_version": "sketch2life.modal.worker-output.v1",
+        "workload": "asr.transcribe",
+        "job_id": "d7db9c31-7e73-4a61-b128-a9215eef4557",
+        "generation_id": "7c938646-aa02-413d-82b4-ece6dd256fcd",
+        "attempt_id": "f52e2391-2c8f-41ee-8eec-78313fb59595",
+        "input_sha256": "10b2f8992bfc55e1b00ee085bcce5ad89f21439743a206b8c13ad894e0dd214c",
+        "model": {
+          "id": "Systran/faster-whisper-large-v3",
+          "revision": "edaa852ec7e145841d8ffdb056a99866b5f0a478"
+        },
+        "result": {
+          "language": "vi",
+          "language_probability": 1.0,
+          "text": "Con đứng bay qua khu vườn đầy nắng.",
+          "segments": [
+            {
+              "start_seconds": 0.0,
+              "end_seconds": 1.7,
+              "text": "Con đứng bay qua khu vườn đầy nắng."
+            }
+          ]
+        }
+      },
+      "roundtrip_elapsed_ms": 56414.49
+    }
+  ],
+  "speech_roundtrip": {
+    "tts_status": "SUCCEEDED",
+    "asr_status": "SUCCEEDED",
+    "transcript": "Con đứng bay qua khu vườn đầy nắng."
+  },
+  "decoder_runtime_readiness": {
+    "checked_at": "2026-11-05T15:31:46+07:00",
+    "status": "ready",
+    "transformers_version": "5.22.1",
+    "lm_format_enforcer_version": "0.11.3",
+    "model_loader": "AutoModelForMultimodalLM",
+    "processor_loader": "AutoProcessor",
+    "schema_parser": "JsonSchemaParser",
+    "token_enforcer": "TokenEnforcer",
+    "tokenizer_data": "TokenEnforcerTokenizerData",
+    "model_loaded": false,
+    "inference_performed": false
+  },
+  "modal_app_shutdown": {
+    "checked_at": "2026-11-05T15:31:46+07:00",
+    "environment": "dev",
+    "task_owned_apps": [
+      {
+        "name": "sketch2life-srs23-drawing-vlm-dev",
+        "app_id": "ap-hkLJ6XzSSB1ohM4vTIXpsf",
+        "state": "stopped",
+        "tasks": 0,
+        "stopped_at": "2026-11-05T15:31:31+07:00"
+      },
+      {
+        "name": "sketch2life-srs23-language-audio-dev",
+        "app_id": "ap-TIESD5wt8qWc7McHycT09D",
+        "state": "stopped",
+        "tasks": 0,
+        "stopped_at": "2026-11-05T15:31:36+07:00"
+      }
+    ],
+    "shared_volumes_deleted": false
+  },
+  "closeout_at": "2026-11-05T15:31:46+07:00"
+}

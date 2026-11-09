@@ -1,5 +1,15 @@
 # Status
 
+## SRS v2.5 alignment and current dev-source review — Plans Rev45/Rev51 (2026-11-06)
+
+- Lifecycle: REVIEW; documentation/source review and Plan Rev51 package publication are complete.
+- SRS and Data Table Register are v2.5-draft and remain unsigned. §§1–31 preserve target requirements; §§32.5–32.6 label the local Rev45 and fetched `origin/dev` Rev51 source snapshots separately.
+- Rev51 source base: `4749451080f49243464d40a464b8f83a03ae77bb`. Main API/AI Jobs, separate StoryRun-lite dispatch, Modal dev workers, and model pins are documented with current evidence and limits; no runtime/API/DB/provider checks were rerun.
+- Open: durable AI Jobs and authenticated main-app AI APIs; parent/teacher target flows; production profile, licensing, safety, latency/cost and video validation. SRS owner sign-off remains pending.
+- Plan Rev51 authorization is in root and feature `approvals/TASK_APPROVAL.md`.
+- Evidence: `evidence/EV-063-55_SRS_SYSTEM_CODE_ALIGNMENT_REV45_20261106.md` and `evidence/EV-063-56_SRS_PUBLICATION_REV51_20261106.md`.
+- Published: `docs/feat063-rev45-srs-code-alignment-20261106`, package commit `620386fb227e2d8b76c48e72ad22892e3b0c1c53`; fresh fetch confirmed the remote matched. Security validation passed before commit and push.
+
 ## Six-milestone Parent/Teacher roadmap independent review round 3 — 2026-11-03
 
 - Documentation review **ACCEPTED** by an independent read-only Codex thread (`01a1a205-1441-73e0-9170-6fdc4d591472`, `gpt-6-luna`, effort `max`). Reviewer verified all 12 pinned hashes and reported no remaining finding in scope on the reviewed roadmap hash `DED4B89D6A3F66FD0570EEA11E2240840C47DE607667544708C7C394F7F49C86`.
@@ -552,3 +562,104 @@ Runtime verification is **BLOCKED** at the PostgreSQL task-owned database gate: 
 ## Owner-directed publication - 2026-11-04
 
 The owner authorized committing the reviewed pending FEAT-063 worktree and pushing the current branch `codex/feat063-modal-backend-completion-20261103` to a same-named remote branch. The required repository security validator will run before commit; this publication does not include a push to `dev` or changes to the canonical SRS.
+
+## 30-minute non-video AI queue retest - 2026-11-04
+
+**Status: PARTIAL / RETEST COMPLETE.** Fresh direct Modal worker calls used a 1,800-second client-side wait, preserving worker timeouts and model pins. Parent Sketch Guide succeeded in 36 seconds. Teacher Sketch Deck succeeded after 17m22 with a validated 5-slide DRAFT, four drawing steps, and two approved activities; its earlier NotFound was pre-dispatch on a stopped deployment. Drawing VLM, story/storyboard, lesson visual, and SAM2 reached the full queue wait without inference output; Modal logs confirmed GPU_L4 scheduling waits. Unknown calls were not retried. TTS/ASR were not repeated; video inference was zero. All Modal dev apps stopped with zero tasks at 22:00:30. Product workloads remain disabled; no commit or push. Evidence: evidence/AI_NONVIDEO_30MIN_QUEUE_RETEST_RESULTS_20261104.md.
+
+## Modal Qwen story readiness diagnostic - 2026-11-04
+
+**Status: COMPLETE / ROOT CAUSE IDENTIFIED; STORY OUTPUT NOT PRODUCED.** The temporary L4 probe loaded the pinned Qwen2.5-7B checkpoint and completed a technical token-generation smoke check in 26.194 s. The story calls stayed queued with no start time/container; Modal logs explicitly reported GPU_L4 capacity acquisition. This is a scheduling-capacity blocker before worker/model execution, not the 600-second worker timeout or a demonstrated model failure. Two calls were accidentally dispatched instead of the approved one; the first also remained queued for 63 seconds beyond the approved 30-minute cap after its runner was interrupted. Both were synthetic and neither reached inference. The scope and timing deviations and local result-wrapper error are documented in the report. Task-owned Modal apps are stopped, no active containers remain, and no product source/config/SRS was changed. See `evidence/MODAL_L4_QWEN_STORY_READINESS_DIAGNOSTIC_20261104.md`.
+
+
+## Modal serverless story latency experiment - 2026-11-05
+
+**Status: COMPLETE; scheduling/model startup improved, story output invalid.** The approved one-shot synthetic Parent story call was assigned an NVIDIA A10 from the ordered fallback configuration. Client dispatch-to-terminal elapsed time was 46.803 seconds; model loading took 12.634 seconds, prompt encoding 0.015 seconds, and generation 27.407 seconds for 722 tokens. The worker rejected its output with `MODAL_MODEL_OUTPUT_INVALID`; no second request was sent. Ruff and Python compile checks passed. The language/audio app was stopped with zero active tasks and shared Volumes retained. No video inference or production enablement. Details: `evidence/MODAL_SERVERLESS_STORY_LATENCY_EXPERIMENT_20261105.md`.
+
+## Modal Parent story parser/content boundary follow-up - 2026-11-05
+
+**Status: COMPLETE; synthetic story accepted by the existing contract.** The worker now asks Qwen for narrative content only and assigns scene indices/timing deterministically before the unchanged strict parser. One fresh synthetic request succeeded: five scenes, 30 seconds, backend `StoryRevisionDraftV1` and butterfly lifecycle checks passed. Dispatch-to-terminal was 56.073 seconds on NVIDIA L40S; generation took 26.137 seconds for 608 tokens. Focused tests: 46 passed; Ruff and Python compilation passed. The Modal app is stopped with zero tasks, scratch input removed, shared Volumes retained. No video/other AI call, SRS/API change, production enablement, commit, or push. Evidence: `evidence/MODAL_STORY_CONTENT_BOUNDARY_20261105.md`.
+
+## Parent StoryRun-lite API and AI retest - 2026-11-05
+
+**Status: COMPLETE WITH PARTIAL AI RESULTS.** The no-AI API matrix covered all 13 mounted operations in 22 checks; focused backend tests passed (154), and Modal story/parser tests passed (45, 1 skipped). The VLM API call remained unknown after 303.762 s and its endpoint took 304.333 s to return 202. The separate story API call returned 502 after 59.266 s because generated butterfly lifecycle facts failed semantic validation; no story draft was created. No video call. Task Modal apps and disposable PostgreSQL were stopped; shared services and Volumes were preserved. Evidence: `evidence/PARENT_STORY_API_RETEST_20261105.md`. No product source, API, or SRS contract was changed.
+
+## Rev44 AI API coverage and Qwen3.5 validation - 2026-11-05
+
+**Status: PARTIAL / IMPLEMENTATION AND TEST PASS, AI RESULTS MIXED.** The latest SRS copy and Q159 role rule are recorded. Qwen3.5-9B is pinned at the approved revision and loaded with Transformers 5.22.1. One Teacher Sketch Deck worker call passed its DRAFT/slide/activity contract. Drawing analysis returned unusable output. Story and lesson suggestion each failed before generation because LMFE's old Transformers adapter imported a removed Transformers 4 module; the adapter now uses LMFE 0.11.3 TokenEnforcer directly, with 59 focused Modal tests passing and a Modal CPU runtime-import check passing. No post-fix story/lesson inference was dispatched.
+
+VieNeu TTS produced audio; paired Whisper changed one word. FLUX.3 image generation is blocked by HTTP 401/no Modal HF Secret; SAM2 remains a prior 1,800-second GPU scheduling UNKNOWN; video was not run. Main backend OpenAPI has 24 operations/17 paths and no AI dispatch; StoryRun-lite's 13 operations are synthetic, and its two AI routes use non-durable in-process tasks. Backend API/contract tests: 79 passed, 6 skipped. All workload flags remain disabled.
+
+The task-owned drawing and language/audio apps were stopped with zero tasks; shared Volumes were retained. Repository security scan passed across 6,388 publishable files. Evidence: `evidence/AI_API_QWEN35_MODAL_VALIDATION_20261105.md`; API/workload crosswalk: `artifacts/AI_API_WORKLOAD_CATALOG_FEAT063_REV44_20261105.md`.
+
+## Rev45 non-video AI end-to-end verification - 2026-11-05
+
+**Status: PARTIAL; callable Qwen and speech workers verified, external blockers remain.** Fixed the LMFE parser's ASCII-only alphabet issue that allowed premature EOS inside Vietnamese strings. Synthetic Modal calls passed for drawing analysis (44.014s), Parent story/storyboard (113.381s), Teacher Deck (43.464s), lesson suggestion (61.636s), TTS (19.161s), and exact-text ASR (23.900s). Focused Modal/parser tests: 76 passed; backend API/OpenAPI tests: 61 passed, 6 skipped. Targeted Ruff, `py_compile`, repository security validation (6,556 files), and `git diff --check` passed.
+
+Parent Sketch Guide and lesson visuals were not dispatched because Modal `dev` still has no HF Secret; the prior FLUX.3 checkpoint request returned HTTP 401. Optional SAM2 was not re-dispatched; its last attempt waited 1,800 seconds for GPU scheduling without producing a mask. Current SAM2 GPU availability was not rechecked. No video was called; product workload switches remain disabled. Both task-used Modal apps were stopped and verified at zero tasks; shared Volumes were retained. See `evidence/AI_NONVIDEO_AI_END_TO_END_20261105.md` and `evidence/assets/ai_nonvideo_ai_end_to_end_20261105/`.
+
+
+## Rev46/46A ? Qwen3.5-only and FLUX images ? 2026-11-05
+
+**Status: COMPLETE.** Qwen2.5 is retired from active FEAT-063 configuration; all active Qwen candidates are pinned Qwen3.5-9B. Fixed FLUX3 checkpoint staging to include required Diffusers transformer and VAE files. One download and one inference each for Parent Sketch Guide and lesson visual passed with synthetic input; both outputs are DRAFT/review-required. Focused tests: 27 passed; Ruff and compileall passed. Modal FLUX app stopped with zero tasks; shared Volumes retained. No product API, SAM2, or video was called; workloads remain disabled. Evidence: `evidence/AI_QWEN35_FLUX_REV46A_COMPLETION_20261105.md`.
+
+## SRS v2.4 publication — Plan Rev44 (2026-11-06)
+
+- Lifecycle: COMPLETE. Commit `fa61c41bead365fe49f84d38abc5557e765ff6bf` was pushed to `origin/codex/feat063-srs-v24-asbuilt-20261106`, based on `origin/dev` at `c98701b1e500906f396e773c79ec3bba55db2542`.
+- Published the exact 16 documentation paths listed in Plan Rev44. No application/runtime changes or unrelated local work were included; the original checkout's pre-existing staged and unstaged changes remain untouched.
+- Repository security validation passed before commit and again before push (`publishable_files_scanned=5807`). No test suite was run for this documentation-only publication.
+
+
+## As-built SRS alignment — Plan Rev43 (2026-11-06)
+
+- Lifecycle: REVIEW; canonical SRS and Data Table Register updated to v2.4-draft, unsigned.
+- SRS §§1–31 retain product target requirements; new §32 separates current local implementation observations from those targets.
+- Verified locally: OpenAPI 111 paths / 124 operations; database Alembic `20261028_ll_0001`; 41 application tables (34 `public`, 7 `lesson`). Full names and AI/database access boundary are in EV-063-33 and Data Table Register §§14.5–14.6.
+- AI direction updated per owner: Qwen3.5-VL, FLUX.3, Whisper, optional SAM 2.1, Modal inference. Q159 roles clarified. Modal dashboard presence is not claimed as backend end-to-end success; LTX-2.5 video remains unverified.
+- Verification: documentation cross-check and path-scoped diff review; no tests, database writes/migrations, provider/GPU invocation, deployment change, commit or push.
+- Plan/approval: Plan Rev43 authorization hash `000A4D0C22BB92666C60C4597BB5B8AEB126E0D4C1F654B610909CC7BBDED945`; current reviewed plan hash `1F10B3F447F7AFB59FAD847E6BE05F0C898B4CE4F6F51B0536258BBD1806F185`; approvals in root and feature `TASK_APPROVAL.md`.
+- Evidence: `evidence/EV-063-33_AS_BUILT_SRS_ALIGNMENT_20261106.md`.
+
+
+## Plan Rev50 ? local dev duplicate repair and Modal/SRS merge
+
+**Status: COMPLETE ? fast-forward pushed to `origin/dev`.** The six local duplicate patches were removed from `dev` ancestry after preserving the old dirty checkout on a backup branch. The Modal AI branch and pending changes are integrated; the SRS v2.4 branch was merged with its approved SRS/Data Table Register preserved byte-for-byte. Final merge commit is `370cb26d6e8c99c126f4a5a16df132eaa70c8e70`; `git cherry` confirms zero duplicate patches relative to `origin/dev`. No tests or AI/provider calls were run. `origin/dev` now equals `0d15b1a0ae6e5373354d7ac35cc163e41b55c42e`. See `evidence/EV-063-54_DEV_HISTORY_AND_SRS_MERGE_20261106.md`.
+
+## Rev51 Modal AI and legacy API audit - 2026-11-06
+
+- Status: COMPLETE WITH FINDINGS; evidence-only closeout, no product code change.
+- Results: live OpenAPI 124 operations / 111 paths; 1,454/1,460 backend contract tests passed; 79 Modal worker contract tests passed and 2 skipped.
+- Six failing API/contract tests, their classifications, worker/API readiness gaps, timeout diagnosis, and full synthetic artifacts are recorded in `evidence/modal_ai_and_legacy_api_retest_20261106/API_TONG_HOP_VA_SAN_PHAM_AI_MODAL_20261106.md`.
+- No GPU inference was repeated. SAM2 remains blocked by documented GPU scheduling capacity; the current Modal `dev` app inventory was empty and no task app was deployed.
+- Open follow-ups: review legacy composition/BE1 test failures and implement durable product AI dispatch routes in a separately approved task.
+
+
+## Rev52 non-video Modal AI reliability - 2026-11-06
+
+- Status: COMPLETE WITH FINDINGS under the approved Plan Rev52.
+- Approved plan SHA-256: `6B3B1C25CD2A9974860A93551CDAD0FB3363DB38CB00D293ABB4818C9F0782D2`.
+- Work branch: `feature/feat063-modal-ai-reliability-20261106` from `dev` at `0fc773fa`.
+- Changes: structured phase observability is in place for non-video Modal workers/caller log summaries. Story parsing now follows the SRS fields/business rules without the unsupported terminal-punctuation constraint; required schema, lifecycle, fact, timing, and scene-count checks remain.
+- Live worker result: all eight enabled non-video worker paths passed once after applicable fixes. Optional `drawing.segment` was attempted once and rejected by its disabled workload gate before inference (`MODAL_WORKLOAD_NOT_ALLOWED`). No video call was made.
+- Parent API: 33/33 expected request outcomes on 13 routes; one live Parent drawing HTTP-to-Modal dispatch passed. Story HTTP used a verified fixture; a separate live story worker call passed. Confirmation/resume reached `VIDEO_ADMISSION_PENDING`, with zero video calls.
+- Tests/quality: 97 Modal tests and 59 focused backend tests passed; targeted Ruff, `py_compile`, and `git diff --check` passed.
+- Limits: Parent sketch guide, Teacher sketch deck, lesson suggestion/visual, and speech are worker-verified but do not yet have durable authenticated product API dispatch; recorded as NOT_IMPLEMENTED. Registry flags remain disabled.
+- Cleanup: task Modal app list empty after stop; disposable PostgreSQL container exited; shared volumes/checkpoints retained; no secret values read or changed.
+- Full results and evidence index: `evidence/nonvideo_modal_ai_reliability_20261106/API_AND_AI_MODAL_RESULTS_20261106.md`.
+
+## Rev53 SAM 2.1 gate retest - 2026-11-06
+
+- Status: COMPLETE WITH FINDINGS under the approved Plan Rev53; no push.
+- Root cause fixed: `drawing.segment` was omitted from the L4 worker envelope allowlist. The dedicated worker now passes parsing; the video execution group still rejects it.
+- Verification: pinned checkpoint preflight passed; one synthetic SAM 2.1 inference passed worker/output validation. Focused gate tests, Modal test suite, Ruff, compilation, repository security validation and diff checks are recorded in `evidence/sam2_gate_retest_20261106/RESULTS.md`.
+- Quality: mask output is valid and lineage-preserving, but visual review shows only the central butterfly body, missing both wings, head and antennae. SAM 2.1 is not product-ready based on this sample; `workloads.json` remains disabled and OpenCV/Pillow remains the baseline.
+- Runtime: checkpoint preflight caller elapsed 27.051 s; GPU inference caller wait 31.896 s; total run 61 s. No video was called.
+- Cleanup: `sketch2life-srs23-drawing-segment-dev` is stopped with 0 tasks; shared volumes/checkpoints were retained.
+
+## Plan Rev54 - SRS v2.5 and Modal AI integration to dev
+
+- Status: COMPLETE WITH FINDINGS; the normal push succeeded and `origin/dev` was verified at `47e5308a5c547df8dab5f3c560f949ee925f441e`. Closeout documentation was then committed and published normally.
+- Source branches: SRS `fae180dcf3ea2771b41546aa6925b94636821df1`; Modal AI `c6818490d0d889ab17dc9f8de3830987eb2a230d`.
+- Merge commits: AI `634e0e20f56cbfa6101ece6e67f3e4267a30ae92`; SRS `6bbb375a359fb78f06585963b8ee9f7bfc2246ff`.
+- SRS v2.5-draft is now the canonical working source and remains unsigned. SAM2 remains disabled in the product registry; all recorded quality limitations are preserved.
+- No new AI calls, video inference, database changes, runtime tests or product test suites were run during integration. Existing Rev52/Rev53 evidence is linked from EV-063-57.

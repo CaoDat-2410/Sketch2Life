@@ -1,0 +1,28 @@
+{
+  "tts": {
+    "call_id": "fc-01M6NSQ9G0AKKPX8K1KHA8ZYC3",
+    "elapsed_ms": 19161.46,
+    "audio_file": "synthetic_vietnamese_narration.wav",
+    "audio_sha256": "969bc864861624da7a620af4264b5bfb5bb14475f986896121859a0b6462a2df",
+    "audio_size_bytes": 153644
+  },
+  "asr": {
+    "call_id": "fc-01M6NSQX455RM0V9ZY1Y5F4CEQ",
+    "elapsed_ms": 23900.25,
+    "result": {
+      "language": "vi",
+      "language_probability": 1.0,
+      "text": "Con b\u01b0\u1edbm bay qua khu v\u01b0\u1eddn \u0111\u1ea7y n\u1eafng.",
+      "segments": [
+        {
+          "start_seconds": 0.0,
+          "end_seconds": 1.4,
+          "text": "Con b\u01b0\u1edbm bay qua khu v\u01b0\u1eddn \u0111\u1ea7y n\u1eafng."
+        }
+      ]
+    }
+  },
+  "finished_at": "2026-11-05T19:08:11+07:00",
+  "started_at": "2026-11-05T19:07:27+07:00",
+  "ended_at": "2026-11-05T19:08:12+07:00"
+}

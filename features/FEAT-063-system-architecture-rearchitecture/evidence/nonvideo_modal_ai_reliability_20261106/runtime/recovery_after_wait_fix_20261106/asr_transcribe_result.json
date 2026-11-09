@@ -1,0 +1,125 @@
+{
+  "call_id": "fc-01M6QX21A2G58ASETSKD4GSK8H",
+  "elapsed_ms": 25877.96,
+  "function": "transcribe-vietnamese-audio",
+  "input_audio_sha256": "72a7c993d64d0a0bd9e701b4b44bf1e030132fb954a690e864b6f1c788c359ea",
+  "input_audio_source": "synthetic_vietnamese_narration.wav",
+  "outcome": "SUCCEEDED",
+  "output_sha256": "8f5e50dfd0282e0a967c0b94192becc5f05053d9b201b4272bf1813e4c095e64",
+  "quality_check": {
+    "adult_confirmation_required": true,
+    "reference": "Con bướm bay qua khu vườn đầy nắng.",
+    "transcript": "Con bướm bay qua khu vườn đầy nắng.",
+    "word_error_rate": 0.0
+  },
+  "result": {
+    "attempt_id": "a67c6027-b409-4add-ab40-655ab77628eb",
+    "generation_id": "b054a769-7a73-4ee8-b320-c8dfaa5861e8",
+    "input_sha256": "72a7c993d64d0a0bd9e701b4b44bf1e030132fb954a690e864b6f1c788c359ea",
+    "job_id": "c80c2c9c-0cfe-4754-9561-31bb8a6bd41a",
+    "model": {
+      "id": "Systran/faster-whisper-large-v3",
+      "revision": "edaa852ec7e145841d8ffdb056a99866b5f0a478"
+    },
+    "result": {
+      "language": "vi",
+      "language_probability": 1.0,
+      "segments": [
+        {
+          "end_seconds": 1.58,
+          "start_seconds": 0.0,
+          "text": "Con bướm bay qua khu vườn đầy nắng."
+        }
+      ],
+      "text": "Con bướm bay qua khu vườn đầy nắng."
+    },
+    "schema_version": "sketch2life.modal.worker-output.v1",
+    "workload": "asr.transcribe"
+  },
+  "runner_elapsed_ms": 26577.27,
+  "worker_log_summary": {
+    "worker_binary_output_sha256": null,
+    "worker_diagnostic_code": null,
+    "worker_diagnostic_details": null,
+    "worker_duration_ms": 17095,
+    "worker_error_code": null,
+    "worker_error_type": null,
+    "worker_failure_boundary": "worker_succeeded",
+    "worker_gpu_class": "cpu",
+    "worker_last_stage": "terminal",
+    "worker_log_event_count": 16,
+    "worker_logs_available": true,
+    "worker_model_id": "Systran/faster-whisper-large-v3",
+    "worker_model_revision": "edaa852ec7e145841d8ffdb056a99866b5f0a478",
+    "worker_output_sha256": "8f5e50dfd0282e0a967c0b94192becc5f05053d9b201b4272bf1813e4c095e64",
+    "worker_output_size_bytes": 643,
+    "worker_phase_history": [
+      {
+        "event": "worker_phase_started",
+        "stage": "input_envelope"
+      },
+      {
+        "duration_ms": 0,
+        "event": "worker_phase_succeeded",
+        "stage": "input_envelope"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "workload_gate"
+      },
+      {
+        "duration_ms": 0,
+        "event": "worker_phase_succeeded",
+        "stage": "workload_gate"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "scratch_volume_reload"
+      },
+      {
+        "duration_ms": 377,
+        "event": "worker_phase_succeeded",
+        "stage": "scratch_volume_reload"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "audio_asset_read_and_verify"
+      },
+      {
+        "duration_ms": 885,
+        "event": "worker_phase_succeeded",
+        "stage": "audio_asset_read_and_verify"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "asr_checkpoint_verification"
+      },
+      {
+        "duration_ms": 145,
+        "event": "worker_phase_succeeded",
+        "stage": "asr_checkpoint_verification"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "asr_model_load"
+      },
+      {
+        "duration_ms": 7590,
+        "event": "worker_phase_succeeded",
+        "stage": "asr_model_load"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "asr_inference_and_decode"
+      },
+      {
+        "duration_ms": 7672,
+        "event": "worker_phase_succeeded",
+        "stage": "asr_inference_and_decode"
+      }
+    ],
+    "worker_started_observed": true,
+    "worker_terminal_event": "worker_succeeded"
+  },
+  "workload": "asr.transcribe"
+}

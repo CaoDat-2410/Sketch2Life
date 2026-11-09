@@ -1,0 +1,11 @@
+{
+  "api_route": "POST /v1/story-runs/{run_ref}/assets",
+  "created_at": "2026-11-06T14:59:26+07:00",
+  "max_dispatches": 1,
+  "model_id": "Qwen/Qwen3.5-9B",
+  "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+  "state": "DISPATCH_INTENT_RECORDED",
+  "synthetic_artwork": true,
+  "video_enabled": false,
+  "workload": "drawing.analyze"
+}

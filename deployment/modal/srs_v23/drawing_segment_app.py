@@ -23,6 +23,12 @@ from contracts import (  # noqa: E402
     WorkerContractError,
     parse_worker_input,
 )
+from worker_observability import (  # noqa: E402
+    observed_worker,
+    refresh_worker_volume,
+    worker_phase,
+    worker_stage,
+)
 
 APP_NAME = "sketch2life-srs23-drawing-segment-dev"
 MODEL_VOLUME_NAME = "sketch2life-dev-model-weights-v2"
@@ -34,6 +40,7 @@ SAM2_CHECKPOINT_URL = (
     "https://dl.fbaipublicfiles.com/segment_anything_2/092824/sam2.1_hiera_small.pt"
 )
 SAM2_CHECKPOINT_MAX_BYTES = 512 * 1024 * 1024
+SAM2_GPU_CANDIDATES = ("L40S", "L4", "A10")
 SAM2_CHECKPOINT_DIR = Path(MODEL_MOUNT) / "sam2.1_hiera_small" / SAM2_REPOSITORY_COMMIT
 SAM2_CHECKPOINT = SAM2_CHECKPOINT_DIR / "sam2.1_hiera_small.pt"
 SAM2_MARKER = SAM2_CHECKPOINT_DIR / "sketch2life-model-manifest.json"
@@ -56,13 +63,15 @@ scratch_volume = modal.Volume.from_name(
 )
 
 _contracts_file = _MODULE_DIR / "contracts.py"
+_observability_file = _MODULE_DIR / "worker_observability.py"
 _download_image = modal.Image.debian_slim(python_version="3.11").add_local_file(
     str(_contracts_file), "/root/contracts.py", copy=True
-)
+).add_local_file(str(_observability_file), "/root/worker_observability.py", copy=True)
 _inference_image = (
     modal.Image.debian_slim(python_version="3.11")
     .apt_install("git")
     .add_local_file(str(_contracts_file), "/root/contracts.py", copy=True)
+    .add_local_file(str(_observability_file), "/root/worker_observability.py", copy=True)
     .uv_pip_install("torch==2.7.1", "torchvision==0.22.1")
     .env({"SAM2_BUILD_CUDA": "0", "HF_HUB_DISABLE_TELEMETRY": "1"})
     .uv_pip_install(f"git+https://github.com/facebookresearch/sam2.git@{SAM2_REPOSITORY_COMMIT}")
@@ -82,13 +91,20 @@ _inference_image = (
     timeout=600,
     retries=0,
 )
+@observed_worker(
+    workload="model.download.sam2",
+    model_id="facebookresearch/sam2.1-hiera-small",
+    model_revision=SAM2_REPOSITORY_COMMIT,
+)
 def download_sam2_checkpoint() -> dict[str, Any]:
     """Download one bounded public checkpoint to a new, isolated Volume path."""
 
-    model_volume.reload()
+    with worker_phase("model_volume_reload"):
+        model_volume.reload()
     if SAM2_MARKER.is_file() and SAM2_CHECKPOINT.is_file():
         marker = json.loads(SAM2_MARKER.read_text(encoding="utf-8"))
-        digest, size = _hash_file(SAM2_CHECKPOINT)
+        with worker_phase("checkpoint_validation"):
+            digest, size = _hash_file(SAM2_CHECKPOINT)
         if (
             marker.get("repository_commit") != SAM2_REPOSITORY_COMMIT
             or marker.get("checkpoint_sha256") != digest
@@ -107,6 +123,7 @@ def download_sam2_checkpoint() -> dict[str, Any]:
     digest = hashlib.sha256()
     total = 0
     with (
+        worker_phase("checkpoint_download"),
         urllib.request.urlopen(request, timeout=60) as response,
         SAM2_CHECKPOINT.open("wb") as target,
     ):
@@ -132,18 +149,20 @@ def download_sam2_checkpoint() -> dict[str, Any]:
         "license": "Apache-2.0",
         "cuda_extension": "disabled for this feasibility POC",
     }
-    SAM2_MARKER.write_text(
-        json.dumps(marker, ensure_ascii=False, sort_keys=True, separators=(",", ":")),
-        encoding="utf-8",
-    )
-    model_volume.commit()
+    with worker_phase("model_manifest_write"):
+        SAM2_MARKER.write_text(
+            json.dumps(marker, ensure_ascii=False, sort_keys=True, separators=(",", ":")),
+            encoding="utf-8",
+        )
+    with worker_phase("model_volume_commit"):
+        model_volume.commit()
     return {"status": "downloaded", **marker}
 
 
 @app.function(
     name="segment-synthetic-drawing-candidate",
     image=_inference_image,
-    gpu="L4",
+    gpu=list(SAM2_GPU_CANDIDATES),
     cpu=4.0,
     memory=24_576,
     volumes={
@@ -156,14 +175,25 @@ def download_sam2_checkpoint() -> dict[str, Any]:
     timeout=600,
     retries=0,
 )
+@observed_worker(
+    workload="drawing.segment",
+    model_id="facebookresearch/sam2.1-hiera-small",
+    model_revision=SAM2_REPOSITORY_COMMIT,
+    gpu_class="L40S|L4|A10",
+)
 def segment_synthetic_drawing_candidate(payload: dict[str, Any]) -> dict[str, Any]:
     """Create one point-prompted mask; never replace or mutate the source image."""
 
-    request = parse_worker_input(payload, execution_group="l4")
+    with worker_phase("input_envelope"):
+        request = parse_worker_input(payload, execution_group="l4")
+    worker_stage("workload_gate")
     if request.workload != "drawing.segment":
         raise WorkerContractError("MODAL_WORKLOAD_NOT_ALLOWED")
-    image_path, source_sha256 = _read_drawing(request)
-    marker = _verify_checkpoint()
+    refresh_worker_volume(scratch_volume)
+    with worker_phase("drawing_asset_read_and_verify"):
+        image_path, source_sha256 = _read_drawing(request)
+    with worker_phase("checkpoint_verification"):
+        marker = _verify_checkpoint()
 
     import numpy as np
     import torch
@@ -173,23 +203,26 @@ def segment_synthetic_drawing_candidate(payload: dict[str, Any]) -> dict[str, An
 
     if not torch.cuda.is_available():
         raise RuntimeError("MODAL_GPU_UNAVAILABLE")
-    with Image.open(image_path) as opened:
-        rgb = opened.convert("RGB")
-    width, height = rgb.size
+    with worker_phase("image_preprocess"):
+        with Image.open(image_path) as opened:
+            rgb = opened.convert("RGB")
+        width, height = rgb.size
     if width * height > MAX_IMAGE_PIXELS:
         raise WorkerContractError("MODAL_INPUT_IMAGE_INVALID")
 
-    model = build_sam2(
-        "configs/sam2.1/sam2.1_hiera_s.yaml",
-        str(SAM2_CHECKPOINT),
-        device="cuda",
-        apply_postprocessing=False,
-    )
-    predictor = SAM2ImagePredictor(model)
-    predictor.set_image(np.asarray(rgb))
+    with worker_phase("sam2_model_load"):
+        model = build_sam2(
+            "configs/sam2.1/sam2.1_hiera_s.yaml",
+            str(SAM2_CHECKPOINT),
+            device="cuda",
+            apply_postprocessing=False,
+        )
+        predictor = SAM2ImagePredictor(model)
+    with worker_phase("sam2_image_embedding"):
+        predictor.set_image(np.asarray(rgb))
     point_coords = np.array([[width * 0.5, height * 0.53]], dtype=np.float32)
     point_labels = np.array([1], dtype=np.int32)
-    with torch.inference_mode():
+    with worker_phase("sam2_mask_inference"), torch.inference_mode():
         masks, scores, _ = predictor.predict(
             point_coords=point_coords,
             point_labels=point_labels,
@@ -197,15 +230,16 @@ def segment_synthetic_drawing_candidate(payload: dict[str, Any]) -> dict[str, An
         )
     selected_index = int(np.argmax(scores))
     mask = np.asarray(masks[selected_index], dtype=np.bool_)
-    mask_bytes_buffer = __import__("io").BytesIO()
-    Image.fromarray(mask.astype(np.uint8) * 255, mode="L").save(
-        mask_bytes_buffer,
-        format="PNG",
-        optimize=True,
-    )
-    mask_bytes = mask_bytes_buffer.getvalue()
-    if not mask_bytes.startswith(b"\x89PNG\r\n\x1a\n") or len(mask_bytes) > MAX_OUTPUT_BYTES:
-        raise RuntimeError("SAM2_OUTPUT_INVALID")
+    with worker_phase("mask_encode_and_validate"):
+        mask_bytes_buffer = __import__("io").BytesIO()
+        Image.fromarray(mask.astype(np.uint8) * 255, mode="L").save(
+            mask_bytes_buffer,
+            format="PNG",
+            optimize=True,
+        )
+        mask_bytes = mask_bytes_buffer.getvalue()
+        if not mask_bytes.startswith(b"\x89PNG\r\n\x1a\n") or len(mask_bytes) > MAX_OUTPUT_BYTES:
+            raise RuntimeError("SAM2_OUTPUT_INVALID")
 
     return {
         "schema_version": WORKER_OUTPUT_SCHEMA,

@@ -5,13 +5,16 @@ from __future__ import annotations
 import hashlib
 import json
 import uuid
+from collections.abc import Callable
 from contextlib import suppress
 
 from sketch2life.application.ports.story_run_lite import (
+    AssetBinding,
     CommandResult,
     CoreAssetAdmissionPort,
     ImageNormalizerPort,
     ImageSafetyScannerPort,
+    StoryRevisionReservation,
     StoryRunLiteRepositoryPort,
     StoryRunLiteStoryPort,
     StoryRunLiteVisionPort,
@@ -318,6 +321,7 @@ class StoryRunLiteService:
         request: AttachAssetRequest,
         if_match: str | None,
         idempotency_key: str,
+        schedule: Callable[[Callable[..., None], tuple[object, ...]], None] | None = None,
     ) -> CommandResult:
         expected_version = parse_etag_version(if_match)
         key_hash = validate_idempotency_key(idempotency_key)
@@ -387,6 +391,15 @@ class StoryRunLiteService:
         ):
             return initial
 
+        if schedule is not None:
+            schedule(self.process_vision_attempt, (run_id, pair.derived, claimed_version))
+            return initial
+        self.process_vision_attempt(run_id, pair.derived, claimed_version)
+        return initial
+
+    def process_vision_attempt(
+        self, run_id: str, binding: AssetBinding, claimed_version: int
+    ) -> None:
         def persist(result: ValidatedVisionResult) -> bool:
             return self._repository.commit_vision_success(
                 run_id=run_id,
@@ -398,11 +411,7 @@ class StoryRunLiteService:
                 raw_body_sha256=result.raw_body_sha256,
             )
 
-        attempt = self._vision.analyze(
-            run_id=run_id,
-            binding=pair.derived,
-            persist_success=persist,
-        )
+        attempt = self._vision.analyze(run_id=run_id, binding=binding, persist_success=persist)
         if attempt.state == "UNKNOWN":
             self._repository.mark_vision_unknown(
                 run_id=run_id,
@@ -415,7 +424,6 @@ class StoryRunLiteService:
                 claimed_version=claimed_version,
                 error_code=attempt.error_code or "VISION_ATTEMPT_FAILED",
             )
-        return initial
 
     def get_run(self, run_id: str) -> CommandResult:
         return self._repository.get_run(
@@ -457,6 +465,7 @@ class StoryRunLiteService:
         request: ParentStoryGenerationRequest,
         if_match: str | None,
         idempotency_key: str,
+        schedule: Callable[[Callable[..., None], tuple[object, ...]], None] | None = None,
     ) -> CommandResult:
         if self._story_generator is None:
             raise StoryRunLiteError(
@@ -484,6 +493,14 @@ class StoryRunLiteService:
             key_sha256=key_hash,
             fingerprint_sha256=fingerprint,
         )
+        if reservation.story_revision_id is None or reservation.context is None:
+            return reservation.command_result
+        if schedule is not None:
+            schedule(self.complete_story_revision, (reservation,))
+            return reservation.command_result
+        return self.complete_story_revision(reservation)
+
+    def complete_story_revision(self, reservation: StoryRevisionReservation) -> CommandResult:
         if reservation.story_revision_id is None or reservation.context is None:
             return reservation.command_result
         try:

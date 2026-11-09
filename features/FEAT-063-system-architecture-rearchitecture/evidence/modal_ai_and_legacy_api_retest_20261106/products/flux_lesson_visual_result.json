@@ -1,0 +1,55 @@
+{
+  "app": "sketch2life-srs23-flux-image-dev",
+  "asset_file": "lesson_visual_candidate.png",
+  "attempt_id": "375c0b2c-68b1-4e0b-bf40-536e9ec8d46a",
+  "attempt_prefix": "sketch2life/dev/aa1770eb-716b-4d0d-a9fe-0837368b5249/7bab926a-499d-4921-ac4a-346cc071d591/375c0b2c-68b1-4e0b-bf40-536e9ec8d46a/",
+  "call_id": "fc-01M6P760MQCHW7YCJR5Q0QB3J8",
+  "completed_at": "2026-11-05T23:03:27.150+07:00",
+  "dispatched_at": "2026-11-05T23:02:45.160+07:00",
+  "elapsed_ms": 47205.54,
+  "function": "generate-approved-lesson-visual-candidate",
+  "generation_id": "7bab926a-499d-4921-ac4a-346cc071d591",
+  "input_sha256": "6f4a5e1cf26ace51c3f9afbc675c9ce6995c6f5201fefabdf309b61079f57a38",
+  "job_id": "aa1770eb-716b-4d0d-a9fe-0837368b5249",
+  "manifest_sha256": "9bceb40a626b5f273f77c0ec37cf6b224b4b0569d81511c95baed3205a09bb6e",
+  "max_attempts": 1,
+  "outcome": "SUCCEEDED",
+  "output_sha256": "501f768d1d06d3e041b5fec4e412f9b847cef08b750abb56c436d6da136b138d",
+  "result": {
+    "asset": {
+      "content_type": "image/png",
+      "height": 432,
+      "sha256": "a5ca6981ec5418d9cfa13aa86a5adcf347753307d9111d79760f6f95365288b2",
+      "size_bytes": 254114,
+      "width": 768
+    },
+    "attempt_id": "375c0b2c-68b1-4e0b-bf40-536e9ec8d46a",
+    "content_hash": "c156b62a6ad8418b60fc1b04a648ff1ade151dd591f06c190bd9488d2924ca3b",
+    "generation_id": "7bab926a-499d-4921-ac4a-346cc071d591",
+    "job_id": "aa1770eb-716b-4d0d-a9fe-0837368b5249",
+    "limitations": [
+      "synthetic lesson candidate; exact visual fidelity to approved steps is unevaluated",
+      "not safety-approved, not registered as a product asset, and not publishable",
+      "source lesson text and approved revision/hash are retained as provenance"
+    ],
+    "model": {
+      "image_generator": {
+        "id": "black-forest-labs/flux-3-image-klein",
+        "revision": "09561231f44e41381c461caf53d5452005a60ac9"
+      },
+      "prompt_upsampler": {
+        "id": "black-forest-labs/flux-3-image-klein-pup",
+        "revision": "a57899549f8f6f64c6c4d88db30827d496ff76d0"
+      }
+    },
+    "plan_revision_ref": "rev46a-synthetic-reviewed-lesson-v1",
+    "prompt_sha256": "f3e03e7c3651f600fbe3ff07e28da1076da1e5ca2954a0cf9176420d16ed0a2a",
+    "review_required": true,
+    "schema_version": "sketch2life.modal.worker-output.v1",
+    "status": "DRAFT",
+    "workload": "lesson.visual.generate"
+  },
+  "scratch_input_removed": true,
+  "started_at": "2026-11-05T23:02:39.944+07:00",
+  "workload": "lesson.visual.generate"
+}

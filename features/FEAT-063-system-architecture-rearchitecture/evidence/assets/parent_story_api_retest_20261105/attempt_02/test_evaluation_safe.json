@@ -1,0 +1,40 @@
+{
+  "overall_status": "FAIL_PARTIAL",
+  "captured_process_exit_code": 0,
+  "process_exit_code_was_misleading": true,
+  "harness_issue": "The first version did not promote recorded HTTP passed=false or Modal FAILED_OR_UNKNOWN outcomes to a nonzero process exit code. The harness was corrected after the captured run; no AI request was repeated.",
+  "no_ai_matrix": {
+    "http_requests": 22,
+    "distinct_operations_expected": 13,
+    "distinct_operations_covered": 13,
+    "all_expected_statuses": true,
+    "elapsed_seconds": 2.624
+  },
+  "ai_dispatches": {
+    "drawing_analyze": 1,
+    "story_generate": 1,
+    "video": 0
+  },
+  "failures": [
+    {
+      "route": "POST /v1/story-runs/{run_ref}/assets",
+      "http_status": 202,
+      "elapsed_ms": 304333.15,
+      "modal_outcome": "ModalFunctionOutcomeUnknown",
+      "database_state": "INPUT_PROCESSING / AWAITING_RECONCILIATION"
+    },
+    {
+      "route": "POST /v1/story-runs/{run_ref}/story-revisions",
+      "http_status": 502,
+      "elapsed_ms": 59265.75,
+      "api_error": "STORY_OUTPUT_INVALID",
+      "worker_reason": "EDUCATIONAL_FACT_INVALID"
+    }
+  ],
+  "video_calls": 0,
+  "raw_story_saved": false,
+  "prompt_saved": false,
+  "real_child_data_used": false,
+  "task_owned_modal_apps_stopped_with_zero_tasks": true,
+  "task_postgres_container_stopped": true
+}

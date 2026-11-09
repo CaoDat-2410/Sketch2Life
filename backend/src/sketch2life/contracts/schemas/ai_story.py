@@ -50,7 +50,7 @@ class StoryRevisionDraftV1(StrictAiModel):
             not isinstance(value, str) or not value.strip() or len(value) > 900
             for value in self.story.values()
         ):
-            raise ValueError("story must contain non-empty opening, middle, and ending")
+            raise ValueError("story must contain non-empty opening, middle, and ending sections")
         total = 0
         cursor = 0
         for expected_index, scene in enumerate(self.scenes, start=1):
@@ -77,7 +77,9 @@ def validate_butterfly_lifecycle_v1(story: StoryRevisionDraftV1, *, confirmed_su
     text = _fold(
         " ".join(
             [
-                *story.story.values(),
+                story.story["opening"],
+                story.story["middle"],
+                story.story["ending"],
                 *(f"{scene.action} {scene.narration}" for scene in story.scenes),
             ]
         )
@@ -88,12 +90,25 @@ def validate_butterfly_lifecycle_v1(story: StoryRevisionDraftV1, *, confirmed_su
         r"butterfly\s+(?:hatches|looks?\s+for|builds?\s+(?:a\s+)?nest)",
     )
     if any(re.search(pattern, text) for pattern in forbidden):
-        raise ValueError("EDUCATIONAL_FACT_CHECK_FAILED")
+        raise ValueError("EDUCATIONAL_FACT_FORBIDDEN_CLAIM")
 
-    required_stages = ("trung", "sau buom", "nhong", "buom truong thanh")
-    positions = [text.find(stage) for stage in required_stages]
-    if any(position < 0 for position in positions) or positions != sorted(positions):
-        raise ValueError("EDUCATIONAL_FACT_CHECK_FAILED")
+    lifecycle_text = _fold(
+        " ".join(story.story[section] for section in ("opening", "middle", "ending"))
+    )
+    required_stages = (
+        r"\btrung\b",
+        r"\b(?:sau\s+buom|au\s+trung)\b",
+        r"\bnhong\b",
+        r"\b(?:buom\s+truong\s+thanh|buom\s+(?:chui|bay)\s+ra\s+khoi\s+nhong)\b",
+    )
+    positions = [
+        (match.start() if (match := re.search(stage, lifecycle_text)) else None)
+        for stage in required_stages
+    ]
+    if any(position is None for position in positions):
+        raise ValueError("EDUCATIONAL_FACT_STAGE_MISSING")
+    if positions != sorted(positions):
+        raise ValueError("EDUCATIONAL_FACT_ORDER_INVALID")
 
 
 def _fold(value: str) -> str:

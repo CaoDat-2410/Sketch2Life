@@ -1,5 +1,15 @@
 # Source register and authority boundary
 
+
+## Canonical product SRS — current working baseline
+
+Use `features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` v2.5-draft for all current product requirements and target architecture. It remains a draft pending formal owner sign-off. Its §§1–31 define target requirements; §32 contains dated environment-specific runtime/source observations and does not replace them. Older feature SRS copies and contexts are historical/feature-local and do not override it. The detailed agent reading order and historical-source list are in `docs/context/SRS_AUTHORITY.md`.
+
+## FEAT-063 Rev45/Rev51 SRS alignment — current — 2026-11-06
+
+Plan Rev45 reconciles the recorded AI development directions across target sections and adds a source crosswalk. Plan Rev51 supplements it with a read-only review of the fetched `origin/dev` source tree. §32.5 describes the earlier local working-tree snapshot; §32.6 describes commit `4749451080f49243464d40a464b8f83a03ae77bb` and does not claim a runtime retest. The SRS and companion remain unsigned. See FEAT-063 evidence EV-063-55 and EV-063-56.
+
+
 ## FEAT-063 Modal AI setup scaffold — 2026-11-03
 
 Owner request: create Modal setup artifacts now; owner will configure the environment later. Approved exact scope: `features/FEAT-063-system-architecture-rearchitecture/plan/MODAL_AI_SETUP_SCAFFOLD_20261103.md` (SHA-256 `7FE03A68DF76877457DF5C5F652FCB705669A624B2E07F7B6F317C9FB510E391`), with approval in the FEAT-063 task ledger. The canonical source is the FEAT-063 SRS v2.3-draft, not historical FEAT-062 copies. The added `deployment/modal/srs_v23/` directory is a dev-only, model-unconfigured scaffold. No Modal account operation, deployment, inference, GPU spend, actual secret/env edit, backend integration, product test or real-child data is performed by this task.
@@ -640,3 +650,12 @@ The implementation is limited to those approved source/test manifests. The focus
 - Approved scope and criteria: `features/FEAT-063-system-architecture-rearchitecture/plan/AI_NONVIDEO_WORKLOAD_FULL_RETEST_20261104.md`; execution results: `features/FEAT-063-system-architecture-rearchitecture/evidence/AI_NONVIDEO_WORKLOAD_FULL_RETEST_RESULTS_20261104.md`.
 - Fresh synthetic TTS→Whisper succeeded. GPU-backed VLM, story, FLUX, Teacher Deck, and SAM2 calls timed out at their approved queue bound; all 13 mounted StoryRun-lite operations passed 14 isolated contract checks. Video was excluded.
 - All Modal dev apps stopped at zero tasks; task-owned PostgreSQL/cache removed; shared Docker services and Modal Volumes retained. Product workloads remain disabled.
+
+## FEAT-063 Rev51 - Modal AI and legacy API audit - 2026-11-06
+
+Use FEAT-063 SRS v2.4-draft as canonical product/architecture source. Plan Rev51 SHA-256 at approval: `B20103A217D7A9623E02279CE0BD82D5BC61141518D820FA683104057B1A6A2F`. Evidence folder `features/FEAT-063-system-architecture-rearchitecture/evidence/modal_ai_and_legacy_api_retest_20261106/` contains the 124-operation live API inventory, test results/failures, AI worker/API readiness matrix, shutdown inventory, and synthetic outputs with provenance. No inference or code fix was performed in this pass; SAM2's prior GPU-capacity wait is retained as the blocker.
+
+
+## FEAT-063 Plan Rev52 - non-video Modal AI reliability and observability
+
+Canonical requirements remain FEAT-063 SRS v2.4-draft. Owner-approved plan `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV52_NONVIDEO_MODAL_AI_RELIABILITY_20261106.md` has SHA-256 `6B3B1C25CD2A9974860A93551CDAD0FB3363DB38CB00D293ABB4818C9F0782D2`. Execution and safe per-call evidence will be recorded under `features/FEAT-063-system-architecture-rearchitecture/evidence/nonvideo_modal_ai_reliability_20261106/`. The scope excludes all video functions and preserves disabled workload switches.

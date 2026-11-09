@@ -25,6 +25,7 @@ L4_WORKLOADS = frozenset(
         "teacher.sketch-deck.generate",
         "lesson.plan.suggest",
         "lesson.visual.generate",
+        "drawing.segment",
         "video.scene.validate",
         "tts.narration.generate",
         "video.final-safety.validate",
