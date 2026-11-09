@@ -17,6 +17,9 @@ import {
   SceneItem,
 } from "../data/mockParentData";
 
+const isValidParentAge = (ageMonths: number) =>
+  Number.isInteger(ageMonths) && ageMonths >= 36 && ageMonths <= 120;
+
 export type VideoJobMode =
   | "ADMISSION_PENDING"
   | "QUEUED"
@@ -67,7 +70,7 @@ interface ParentContextValue {
     learningNotes?: string,
     supportNeedsNote?: string,
     consentAccepted?: boolean
-  ) => void;
+  ) => boolean;
   updateProfile: (
     id: string,
     displayName: string,
@@ -75,7 +78,7 @@ interface ParentContextValue {
     learningNotes?: string,
     supportNeedsNote?: string,
     interests?: string[]
-  ) => void;
+  ) => boolean;
   toggleProfileConsent: (id: string) => void;
   archiveProfile: (id: string) => void;
   restoreProfile: (id: string) => void;
@@ -106,8 +109,6 @@ interface ParentContextValue {
   transcriptRevision: number;
   transcriptConfirmed: boolean;
   confirmTranscript: () => void;
-  selectedActivityId: string;
-  setSelectedActivityId: (id: string) => void;
   contextSnapshotRevision: number;
   contextConfirmed: boolean;
   setContextConfirmed: (v: boolean) => void;
@@ -221,8 +222,6 @@ export function ParentProvider({ children }: { children: React.ReactNode }) {
   const [transcriptRevision, setTranscriptRevision] = useState(1);
   const [transcriptConfirmed, setTranscriptConfirmed] = useState(true);
 
-  // Activity selection
-  const [selectedActivityId, setSelectedActivityId] = useState("act-butterfly-1");
   const [contextSnapshotRevision, setContextSnapshotRevision] = useState(1);
   const [contextConfirmed, setContextConfirmed] = useState(true);
 
@@ -339,7 +338,8 @@ export function ParentProvider({ children }: { children: React.ReactNode }) {
     learningNotes = "Bé thích quan sát tranh ảnh và hoạt động ngoài trời.",
     supportNeedsNote = "Mặc định loại khỏi ngữ cảnh AI.",
     consentAccepted = true
-  ) => {
+  ): boolean => {
+    if (!isValidParentAge(ageMonths)) return false;
     const years = Math.max(3, Math.floor(ageMonths / 12));
     const newItem: ChildProfileItem = {
       id: `child-${Date.now()}`,
@@ -348,10 +348,10 @@ export function ParentProvider({ children }: { children: React.ReactNode }) {
       ageLabel: `${years} tuổi (${ageMonths} tháng)`,
       ageGroup:
         ageMonths < 48
-          ? "36–155 tháng · Mầm (3–4 tuổi)"
+          ? "36–120 tháng · Mầm (3–4 tuổi)"
           : ageMonths < 72
-          ? "36–155 tháng · Mẫu giáo (4–6 tuổi)"
-          : "36–155 tháng · Tiểu học (6–12 tuổi)",
+          ? "36–120 tháng · Mẫu giáo (4–6 tuổi)"
+          : "36–120 tháng · Tiểu học (6–10 tuổi)",
       interests: interests.length > 0 ? interests : ["Khám phá thiên nhiên", "Vẽ màu sáp"],
       learningNotes,
       supportNeedsNote,
@@ -363,6 +363,7 @@ export function ParentProvider({ children }: { children: React.ReactNode }) {
     setProfiles((prev) => [...prev, newItem]);
     setSelectedProfileId(newItem.id);
     showToast(`Đã tạo hồ sơ ${displayName} (${years} tuổi · ${ageMonths} tháng).`, "ok");
+    return true;
   };
 
   const updateProfile = (
@@ -372,7 +373,8 @@ export function ParentProvider({ children }: { children: React.ReactNode }) {
     learningNotes?: string,
     supportNeedsNote?: string,
     interests?: string[]
-  ) => {
+  ): boolean => {
+    if (!isValidParentAge(ageMonths)) return false;
     const years = Math.max(3, Math.floor(ageMonths / 12));
     setProfiles((prev) =>
       prev.map((p) =>
@@ -384,10 +386,10 @@ export function ParentProvider({ children }: { children: React.ReactNode }) {
               ageLabel: `${years} tuổi (${ageMonths} tháng)`,
               ageGroup:
                 ageMonths < 48
-                  ? "36–155 tháng · Mầm (3–4 tuổi)"
+                  ? "36–120 tháng · Mầm (3–4 tuổi)"
                   : ageMonths < 72
-                  ? "36–155 tháng · Mẫu giáo (4–6 tuổi)"
-                  : "36–155 tháng · Tiểu học (6–12 tuổi)",
+                  ? "36–120 tháng · Mẫu giáo (4–6 tuổi)"
+                  : "36–120 tháng · Tiểu học (6–10 tuổi)",
               learningNotes: learningNotes ?? p.learningNotes,
               supportNeedsNote: supportNeedsNote ?? p.supportNeedsNote,
               interests: interests ?? p.interests,
@@ -396,6 +398,7 @@ export function ParentProvider({ children }: { children: React.ReactNode }) {
       )
     );
     showToast(`Đã lưu cập nhật hồ sơ ${displayName}.`, "ok");
+    return true;
   };
 
   const toggleProfileConsent = (id: string) => {
@@ -759,8 +762,6 @@ export function ParentProvider({ children }: { children: React.ReactNode }) {
         transcriptRevision,
         transcriptConfirmed,
         confirmTranscript,
-        selectedActivityId,
-        setSelectedActivityId,
         contextSnapshotRevision,
         contextConfirmed,
         setContextConfirmed,

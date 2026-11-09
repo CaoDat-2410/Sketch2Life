@@ -174,31 +174,48 @@ export function TopBar({
           <Icon name="arrow-left" size={20} />
         </button>
       ) : (
-        <span style={{ width: 40 }} />
+        <span style={{ width: 44 }} />
       )}
       <div className="ttl">{title}</div>
-      {right ?? <span style={{ width: 40 }} />}
+      {right ?? <span style={{ width: 44 }} />}
     </div>
   );
 }
 
-const STEP_LABELS = ["Tùy chọn", "Chụp tranh", "Ý tưởng", "Hoạt động", "Kịch bản", "Video"];
+const STEP_LABELS = ["Tùy chọn", "Chụp tranh", "Ý tưởng", "Kịch bản", "Video"];
 export function StepChips({ current, optionalSkipped = false }: { current: number; optionalSkipped?: boolean }) {
-  const stepStatus = optionalSkipped && current > 1 ? "; bước tùy chọn đã bỏ qua" : "";
+  const stepStatus = optionalSkipped && current > 1 ? ", bước tùy chọn đã bỏ qua" : "";
   return (
-    <div className="steps" aria-label={`Bước ${current} trên 6: ${STEP_LABELS[current - 1] ?? ""}${stepStatus}`}>
+    <ol
+      className="steps"
+      aria-label={`Tiến trình câu chuyện: bước ${current} trên ${STEP_LABELS.length}${stepStatus}`}
+    >
       {STEP_LABELS.map((l, i) => {
         const n = i + 1;
         const skipped = optionalSkipped && current > 1 && n === 1;
         const cls = skipped ? "skipped" : n < current ? "done" : n === current ? "on" : "";
+        const status = skipped
+          ? "đã bỏ qua"
+          : n === current
+          ? "hiện tại"
+          : n < current
+          ? "đã hoàn tất"
+          : "sắp tới";
         return (
-          <span key={l} className={`step ${cls}`} title={`${n}. ${l}${skipped ? " · Đã bỏ qua" : ""}`}>
-            <i>{skipped ? "–" : n < current ? <Icon name="check" size={12} strokeWidth={3} /> : n}</i>
-            {i < STEP_LABELS.length - 1 && <span className={`bar${skipped ? " is-skipped" : ""}`} />}
-          </span>
+          <li
+            key={l}
+            className={`step ${cls}`}
+            aria-label={`Bước ${n}: ${l}, ${status}`}
+            aria-current={n === current ? "step" : undefined}
+          >
+            <i aria-hidden="true">
+              {skipped ? "–" : n < current ? <Icon name="check" size={12} strokeWidth={3} /> : n}
+            </i>
+            {i < STEP_LABELS.length - 1 && <span aria-hidden="true" className={`bar${skipped ? " is-skipped" : ""}`} />}
+          </li>
         );
       })}
-    </div>
+    </ol>
   );
 }
 

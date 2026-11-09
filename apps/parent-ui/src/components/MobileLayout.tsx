@@ -25,7 +25,7 @@ const QUICK_AGE_CHIPS = [
   { label: "3–4 tuổi", months: 42 },
   { label: "5–6 tuổi", months: 60 },
   { label: "7–8 tuổi", months: 90 },
-  { label: "9+ tuổi", months: 114 },
+  { label: "9–10 tuổi", months: 114 },
 ];
 
 export function MobileLayout({ children }: { children: React.ReactNode }) {
@@ -36,12 +36,10 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
     profiles,
     selectedProfileId,
     addProfile,
-    lessons,
-    selectedLessonId,
-    selectedActivityId,
     ideaTranscript,
     activeSheet,
     setActiveSheet,
+    setSkippedOptionalSetup,
     scriptRevision,
     scenes,
     confirmScriptAndStartVideo,
@@ -65,6 +63,7 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
   const [reason, setReason] = useState("Hình ảnh chưa giống bức vẽ của bé");
   const [newName, setNewName] = useState("");
   const [newMonths, setNewMonths] = useState("60");
+  const [newAgeError, setNewAgeError] = useState("");
   const [newInterests, setNewInterests] = useState("Vẽ tranh, Khám phá thiên nhiên");
 
   useEffect(() => {
@@ -86,14 +85,27 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
     profiles.find((p) => !p.archived && p.deletionStatus !== "DELETED") ||
     profiles[0];
 
-  const lesson = lessons.find((l) => l.id === selectedLessonId) ?? lessons[0];
-  const selectedAct =
-    lesson?.outdoorActivities.find((a) => a.id === selectedActivityId) ?? lesson?.outdoorActivities[0];
-
-  const isAuth = path === "/p11-authentication" || path === "/login";
+  const isAuth = path === "/p11-authentication" || path === "/login" || path === "/p14-password-recovery";
   const visibleTabs = isLocalPreview() ? TABS : TABS.filter((t) => t.path === "/p01-lesson-library" || t.path === "/p13-settings");
   const showTabs = !landscapeVideo && visibleTabs.some((t) => t.path === path);
+  const createShortcutIndex = Math.floor(visibleTabs.length / 2);
   const close = () => setActiveSheet(null);
+  const openStoryCapture = () => {
+    if (quotaRemaining <= 0) {
+      showToast("Bạn đã hết lượt tạo video. Bạn vẫn có thể chụp tranh và mua thêm lượt sau.", "warn");
+    }
+    setSkippedOptionalSetup(true);
+    navigate("/p04-capture-subject-confirmation");
+  };
+
+  const renderTab = (tab: (typeof TABS)[number]) => (
+    <NavLink key={tab.path} to={tab.path} className={({ isActive }) => `tab ${isActive ? "on" : ""}`}>
+      <span className="tab-ico">
+        <Icon name={tab.icon} size={20} />
+      </span>
+      {tab.label}
+    </NavLink>
+  );
 
   const REASONS = [
     "Hình ảnh chưa giống bức vẽ của bé",
@@ -103,8 +115,14 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="stage" data-theme={theme}>
-      <div className={`phone ${landscapeVideo ? "is-landscape" : ""}`} data-theme={theme} data-route={path.slice(1)}>
+      <div
+        className={`phone ${landscapeVideo ? "is-landscape" : ""}`}
+        data-theme={theme}
+        data-route={path.slice(1)}
+        data-safe-area={isAuth ? "page" : "shell"}
+      >
         <div className="phone-frame-bg" aria-hidden="true" />
+        {/* Desktop phone mock only; the OS owns the status bar on a real mobile viewport. */}
         {!isAuth && !landscapeVideo && (
           <div className="statusbar" aria-hidden="true">
             <span>9:41</span>
@@ -112,7 +130,7 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
           </div>
         )}
         <div className="scroll" key={path}>
-          {!isAuth && isLocalPreview() && (
+          {!isAuth && !landscapeVideo && isLocalPreview() && (
             <div
               role="status"
               title="Dữ liệu minh họa; thao tác không ghi vào backend."
@@ -125,15 +143,20 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         {showTabs && (
-          <nav className="tabbar" aria-label="Điều hướng chính" style={{ gridTemplateColumns: `repeat(${visibleTabs.length}, minmax(0, 1fr))` }}>
-            {visibleTabs.map((t) => (
-              <NavLink key={t.path} to={t.path} className={({ isActive }) => `tab ${isActive ? "on" : ""}`}>
-                <span className="tab-ico">
-                  <Icon name={t.icon} size={20} />
-                </span>
-                {t.label}
-              </NavLink>
-            ))}
+          <nav className="tabbar" aria-label="Điều hướng chính" style={{ gridTemplateColumns: `repeat(${visibleTabs.length + 1}, minmax(0, 1fr))` }}>
+            {visibleTabs.slice(0, createShortcutIndex).map(renderTab)}
+            <div className="tab-create-slot">
+              <button
+                type="button"
+                className="tab-create-action"
+                aria-label="Tạo câu chuyện mới bằng cách chụp tranh"
+                onClick={openStoryCapture}
+              >
+                <span className="tab-create-action__orb"><Icon name="camera" size={25} strokeWidth={2.2} /></span>
+                <span className="tab-create-action__label">Tạo</span>
+              </button>
+            </div>
+            {visibleTabs.slice(createShortcutIndex).map(renderTab)}
           </nav>
         )}
 
@@ -158,10 +181,6 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
               <div className="check done">
                 <span className="ck"><Icon name="check" size={15} strokeWidth={3} /></span>
                 <span>Ý tưởng câu chuyện: {ideaTranscript.trim() ? "Đã nhập ý tưởng" : "AI tự sáng tạo từ tranh"}</span>
-              </div>
-              <div className="check done">
-                <span className="ck"><Icon name="check" size={15} strokeWidth={3} /></span>
-                <span>Hoạt động đi kèm: {selectedAct?.title ?? "Hoạt động ngoài trời"}</span>
               </div>
               <div className="check done">
                 <span className="ck"><Icon name="check" size={15} strokeWidth={3} /></span>
@@ -241,19 +260,33 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
               />
             </div>
             <div>
-              <label className="field-label" htmlFor="new-child-months">Độ tuổi (36–155 tháng)</label>
+              <label className="field-label" htmlFor="new-child-months">Độ tuổi (36–120 tháng)</label>
               <div className="row">
                 <input
                   id="new-child-months"
                   className="input"
                   type="number"
+                  required
                   min={36}
-                  max={155}
+                  max={120}
+                  step={1}
+                  aria-invalid={!!newAgeError}
+                  aria-describedby="new-child-age-help"
+                  aria-errormessage={newAgeError ? "new-child-age-error" : undefined}
                   value={newMonths}
-                  onChange={(e) => setNewMonths(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    const months = Number(value);
+                    setNewMonths(value);
+                    setNewAgeError(Number.isInteger(months) && months >= 36 && months <= 120
+                      ? ""
+                      : "Nhập độ tuổi từ 36 đến 120 tháng bằng số nguyên.");
+                  }}
                 />
                 <span className="chip line">{Math.max(3, Math.floor((Number(newMonths) || 60) / 12))} tuổi</span>
               </div>
+              <p id="new-child-age-help" className="tiny">Nhập số tháng tuổi từ 36 đến 120.</p>
+              {newAgeError && <p id="new-child-age-error" className="sub" role="alert" style={{ color: "var(--danger)" }}>{newAgeError}</p>}
             </div>
             <div className="row wrap">
               {QUICK_AGE_CHIPS.map((b) => (
@@ -261,7 +294,11 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
                   key={b.label}
                   type="button"
                   className={`chip ${Number(newMonths) === b.months ? "on" : "line"}`}
-                  onClick={() => setNewMonths(String(b.months))}
+                  aria-pressed={Number(newMonths) === b.months}
+                  onClick={() => {
+                    setNewMonths(String(b.months));
+                    setNewAgeError("");
+                  }}
                 >
                   {b.label}
                 </button>
@@ -280,13 +317,22 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
             <Btn
               disabled={!newName.trim()}
               onClick={() => {
-                const m = Math.max(36, Math.min(155, Number(newMonths) || 60));
+                const m = Number(newMonths);
+                if (!Number.isInteger(m) || m < 36 || m > 120) {
+                  setNewAgeError("Nhập độ tuổi từ 36 đến 120 tháng bằng số nguyên.");
+                  return;
+                }
                 const ints = newInterests
                   .split(",")
                   .map((x) => x.trim())
                   .filter(Boolean);
-                addProfile(newName.trim(), m, ints);
+                if (!addProfile(newName.trim(), m, ints)) {
+                  setNewAgeError("Nhập độ tuổi từ 36 đến 120 tháng bằng số nguyên.");
+                  return;
+                }
                 setNewName("");
+                setNewMonths("60");
+                setNewAgeError("");
                 close();
               }}
             >

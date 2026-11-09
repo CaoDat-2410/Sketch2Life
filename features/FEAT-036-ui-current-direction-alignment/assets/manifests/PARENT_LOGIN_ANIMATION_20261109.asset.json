@@ -1,0 +1,39 @@
+{
+  "asset_id": "parent-login-animation-20261109",
+  "status": "APPLIED",
+  "brief": "Use the owner-provided animated splash background and pencil artwork in the existing Parent login hero while retaining the current product wordmark and blue UI palette.",
+  "source": {
+    "kind": "owner_provided_archive",
+    "file": "h-y-tri-n-khai-animated.zip",
+    "sha256": "CEA2152B2E0CF66D1C0D645D4451F2BBD6A2490E909232ABFC83DAF7BBD39AA4",
+    "entries": [
+      {
+        "path": "h-y-tri-n-khai-animated/public/assets/splash/background.png",
+        "sha256": "D2D4FC485A8B605EC56BE318913243C1D6CB884ABCA0C52351BEA3301F309F1F"
+      },
+      {
+        "path": "h-y-tri-n-khai-animated/public/assets/splash/pencil.png",
+        "sha256": "44266AD66B3EC94AD07D2BCC6F6899BACB546544E621F5A977FC30DFFBA55925"
+      }
+    ]
+  },
+  "generator": "Owner-provided PNGs; motion adapted with CSS in the existing React UI; no image generation or archive project execution.",
+  "approved_path": "features/FEAT-036-ui-current-direction-alignment/assets/approved/parent-login-animation/",
+  "applied_path": "features/FEAT-036-ui-current-direction-alignment/assets/applied/parent-login-animation/",
+  "files": [
+    {
+      "path": "background.png",
+      "sha256": "D2D4FC485A8B605EC56BE318913243C1D6CB884ABCA0C52351BEA3301F309F1F"
+    },
+    {
+      "path": "pencil.png",
+      "sha256": "44266AD66B3EC94AD07D2BCC6F6899BACB546544E621F5A977FC30DFFBA55925"
+    }
+  ],
+  "review": {
+    "status": "APPROVED",
+    "reviewer": "Project owner",
+    "reviewed_at": "2026-11-09",
+    "approval_basis": "Explicit owner request in Codex conversation to use the supplied animation for login while preserving current UI colors."
+  }
+}

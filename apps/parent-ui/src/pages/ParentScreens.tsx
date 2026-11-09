@@ -1,4 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
+import parentLoginBackground from "../../../../features/FEAT-036-ui-current-direction-alignment/assets/applied/parent-login-zip-splash/background.png?url";
+import parentLoginLogo from "../../../../features/FEAT-036-ui-current-direction-alignment/assets/applied/parent-login-zip-splash/logo.png?url";
+import parentLoginPencil from "../../../../features/FEAT-036-ui-current-direction-alignment/assets/applied/parent-login-zip-splash/pencil.png?url";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { VideoJobMode, useParent } from "../context/ParentContext";
 import {
@@ -35,7 +38,7 @@ const AGE_BANDS = [
   { key: "3-4", months: 42, title: "3 – 4 tuổi" },
   { key: "5-6", months: 60, title: "5 – 6 tuổi" },
   { key: "7-8", months: 90, title: "7 – 8 tuổi" },
-  { key: "9+", months: 114, title: "9+ tuổi" },
+  { key: "9-10", months: 114, title: "9–10 tuổi" },
 ];
 
 function subjectIcon(s: string) {
@@ -199,7 +202,6 @@ export function P01LessonLibraryPage() {
     lessons,
     setSelectedLessonId,
     selectedLessonId,
-    setSelectedActivityId,
     libraryState,
     setLibraryState,
     setSkippedOptionalSetup,
@@ -218,8 +220,6 @@ export function P01LessonLibraryPage() {
   const unread = notifications.filter((n) => n.unread).length;
   const tags = ["Tất cả", ...Array.from(new Set(lessons.flatMap((l) => l.tags)))];
   const shown = lessons.filter((l) => tag === "Tất cả" || l.tags.includes(tag));
-  const todayLesson = lessons.find((l) => l.id === selectedLessonId) ?? lessons[0];
-  const todayAct = todayLesson?.outdoorActivities[0];
   const recent = runHistory.filter((r) => r.lifecycleState !== "DELETED");
 
   if (!isLocalPreview()) return <ParentApiLibraryPage />;
@@ -435,26 +435,6 @@ export function P01LessonLibraryPage() {
         )}
       </div>
 
-      {todayAct && (
-        <>
-          <h2 className="h2">Gợi ý hoạt động</h2>
-          <button
-            type="button"
-            className="act-row"
-            onClick={() => {
-              setSelectedActivityId(todayAct.id);
-              nav("/p08b-outdoor-activity");
-            }}
-          >
-            <IconBadge name="sun" tone="accent" size={44} />
-            <span className="grow">
-              <span className="h3" style={{ display: "block" }}>{todayAct.title}</span>
-            </span>
-            <Icon name="arrow-right" size={18} />
-          </button>
-        </>
-      )}
-
       {/* FAQ remains at the bottom of Home and opens only when requested. */}
       <section className="s2l-help-card" aria-label="Trợ giúp">
         <Accordion
@@ -633,15 +613,9 @@ function ParentApiLessonDetail({ lessonId }: { lessonId: string }) {
         <ul>{lesson.objectives.map((item) => <li key={item}>{item}</li>)}</ul>
         <h2 className="h2">Hướng dẫn vẽ</h2>
         <p className="sub">{lesson.drawing_steps_text}</p>
-        <h2 className="h2">Hoạt động</h2>
-        {lesson.activities.map((activity, index) => <section className="card" key={`${activity.title}-${index}`}>
-          <h3 className="h3">{activity.title}</h3>
-          <p className="sub">{activity.objective}</p>
-          <p>{activity.instructions_text}</p>
-          {activity.materials_text && <p className="tiny">Chuẩn bị: {activity.materials_text}</p>}
-          {activity.preparation_text && <p className="tiny">Cách chuẩn bị: {activity.preparation_text}</p>}
-          {activity.safety_notes && <p className="tiny">An toàn: {activity.safety_notes}</p>}
-        </section>)}
+        <Note tone="blue" icon="sparkle">
+          Hoạt động của bài học sẽ xuất hiện sau khi video câu chuyện sẵn sàng.
+        </Note>
         <BackendNotice title="Chưa thể bắt đầu tạo story từ màn này" tone="warn">
           API hiện trả chi tiết giáo án; chưa có API Parent bền vững cho Story Run, tranh hoặc video.
         </BackendNotice>
@@ -1164,7 +1138,7 @@ export function P05ContextIdeaConfirmationPage() {
           disabled={!!audioError || isRecording || transcriptReview === "needed"}
           onClick={() => {
             setContextConfirmed(true);
-            nav("/p05b-activity-selection");
+            nav("/p06-story-review");
           }}
         >
           Tiếp tục <Icon name="arrow-right" size={18} />
@@ -1174,86 +1148,11 @@ export function P05ContextIdeaConfirmationPage() {
           onClick={() => {
             setIdeaTranscript("");
             setContextConfirmed(true);
-            nav("/p05b-activity-selection");
+            nav("/p06-story-review");
           }}
         >
           Bỏ qua
         </Soft>
-      </div>
-    </div>
-  );
-}
-
-/* =====================================================================
-   P05b · Chọn một hoạt động cho câu chuyện (Trang riêng)
-   ===================================================================== */
-export function P05bActivitySelectionPage() {
-  const nav = useNavigate();
-  const {
-    lessons,
-    selectedLessonId,
-    selectedActivityId,
-    setSelectedActivityId,
-    setContextConfirmed,
-    skippedOptionalSetup,
-  } = useParent();
-  const lesson = lessons.find((l) => l.id === selectedLessonId) ?? lessons[0];
-  const activities = lesson.outdoorActivities;
-  const currentActId = activities.some((a) => a.id === selectedActivityId)
-    ? selectedActivityId
-    : activities[0]?.id ?? "";
-
-  useEffect(() => {
-    if (currentActId && currentActId !== selectedActivityId) {
-      setSelectedActivityId(currentActId);
-    }
-  }, [currentActId, selectedActivityId, setSelectedActivityId]);
-
-  return (
-    <div className="page">
-      <TopBar title="Chọn hoạt động cho câu chuyện" onBack={() => nav("/p05-context-idea-confirmation")} />
-      <StepChips current={4} optionalSkipped={skippedOptionalSetup} />
-
-      <h1 className="h1">Chọn 1 hoạt động đi kèm</h1>
-      <p className="sub">Chọn hoạt động để cả nhà cùng khám phá sau khi xem video.</p>
-
-      <div className="stack">
-        {activities.map((a, idx) => {
-          const on = currentActId === a.id;
-          return (
-            <button
-              key={a.id}
-              type="button"
-              className={`age-opt ${on ? "on" : ""}`}
-              onClick={() => setSelectedActivityId(a.id)}
-            >
-              <span className="activity-thumb" aria-hidden="true">
-                <img src={storyArtSrc(lesson.coverKind)} alt="" />
-              </span>
-              <span className="grow">
-                <span className="h3" style={{ display: "block" }}>{a.title}</span>
-                <span className="sub" style={{ display: "block", marginTop: 2 }}>{a.materials.replace(/^Vật liệu:\s*/, "Chuẩn bị: ")}</span>
-                {a.safetyNote && (
-                  <span className="tiny" style={{ display: "block", marginTop: 4 }}>
-                    Có lưu ý an toàn trước khi bắt đầu
-                  </span>
-                )}
-              </span>
-              <span className="rd">{on && <Icon name="check" size={12} strokeWidth={3} />}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="cta-bar">
-        <Btn
-          onClick={() => {
-            setContextConfirmed(true);
-            nav("/p06-story-review");
-          }}
-        >
-          Tiếp theo: Duyệt kịch bản <Icon name="arrow-right" size={18} />
-        </Btn>
       </div>
     </div>
   );
@@ -1278,17 +1177,15 @@ export function P06StoryReviewPage() {
     skippedOptionalSetup,
     lessons,
     selectedLessonId,
-    selectedActivityId,
   } = useParent();
   const left = 3 - rewriteCount;
   const lesson = lessons.find((l) => l.id === selectedLessonId) ?? lessons[0];
-  const act = lesson.outdoorActivities.find((a) => a.id === selectedActivityId) ?? lesson.outdoorActivities[0];
   const storyHeading = skippedOptionalSetup ? `Hành trình của ${detectedSubject}` : lesson.title;
 
   return (
     <div className="page">
-      <TopBar title="Duyệt kịch bản câu chuyện" onBack={() => nav("/p05b-activity-selection")} />
-      <StepChips current={5} optionalSkipped={skippedOptionalSetup} />
+      <TopBar title="Duyệt kịch bản câu chuyện" onBack={() => nav("/p05-context-idea-confirmation")} />
+      <StepChips current={4} optionalSkipped={skippedOptionalSetup} />
 
       <Note tone="blue" icon="shield">
         Kiểm tra kịch bản 5 cảnh trước khi dùng 1 lượt tạo video.
@@ -1306,7 +1203,7 @@ export function P06StoryReviewPage() {
             <h1 className="h2">{storyHeading}</h1>
             <span className="chip line">Bản #{scriptRevision}</span>
           </div>
-          <div className="tiny">{detectedSubject} · {act?.title}</div>
+          <div className="tiny">{detectedSubject}</div>
         </div>
       </section>
 
@@ -1435,7 +1332,7 @@ export function P07VideoJobStatusPage() {
   return (
     <div className="page">
       <TopBar title="Tiến trình tạo video" onBack={() => nav("/p06-story-review")} />
-      <StepChips current={6} optionalSkipped={skippedOptionalSetup} />
+      <StepChips current={5} optionalSkipped={skippedOptionalSetup} />
       <div className="card stack" style={{ alignItems: "center", textAlign: "center" }}>
         <img className="process-art" src="/illustrations/kite-ai-guide.webp" alt="Bạn diều giấy đang khám phá bức tranh" />
         <h1 className="h1">
@@ -1508,7 +1405,6 @@ export function P07VideoJobStatusPage() {
    ===================================================================== */
 export function P08VideoAndActivitiesPage() {
   const nav = useNavigate();
-  const [bgmMuted, setBgmMuted] = useState(false);
   const {
     captionsEnabled,
     setCaptionsEnabled,
@@ -1608,7 +1504,8 @@ export function P08VideoAndActivitiesPage() {
             style={{
               border: 0,
               borderRadius: 10,
-              minHeight: 34,
+              minHeight: 44,
+              minWidth: 44,
               padding: "6px 10px",
               background: "#2563eb",
               color: "#ffffff",
@@ -1633,15 +1530,6 @@ export function P08VideoAndActivitiesPage() {
           >
             CC
           </button>
-          <button
-            type="button"
-            className="round-btn"
-            style={{ width: 36, height: 36, background: "rgba(255,255,255,0.14)", borderColor: "rgba(255,255,255,0.25)", color: "#ffffff" }}
-            aria-label={bgmMuted ? "Bật âm thanh nền" : "Tắt âm thanh nền"}
-            onClick={() => setBgmMuted(!bgmMuted)}
-          >
-            <Icon name={bgmMuted ? "volume-off" : "volume"} size={16} />
-          </button>
         </div>
       </div>
     );
@@ -1663,7 +1551,7 @@ export function P08VideoAndActivitiesPage() {
           </button>
         }
       />
-      <StepChips current={6} optionalSkipped={skippedOptionalSetup} />
+      <StepChips current={5} optionalSkipped={skippedOptionalSetup} />
 
       <div className="row between">
         <h1 className="h2">{videoTitle}</h1>
@@ -1691,14 +1579,6 @@ export function P08VideoAndActivitiesPage() {
             onClick={() => setCaptionsEnabled(!captionsEnabled)}
           >
             CC
-          </button>
-          <button
-            type="button"
-            className={`ccb ${!bgmMuted ? "on" : ""}`}
-            aria-label={bgmMuted ? "Bật nhạc nền" : "Tắt nhạc nền"}
-            onClick={() => setBgmMuted(!bgmMuted)}
-          >
-            <Icon name={bgmMuted ? "volume-off" : "volume"} size={13} />
           </button>
         </div>
       </div>
@@ -1748,98 +1628,56 @@ export function P08VideoAndActivitiesPage() {
    ===================================================================== */
 export function P08bOutdoorActivityPage() {
   const nav = useNavigate();
-  const { lessons, selectedLessonId, selectedActivityId, setHasActiveRun } = useParent();
+  const { lessons, selectedLessonId, setHasActiveRun } = useParent();
   const lesson = lessons.find((l) => l.id === selectedLessonId) ?? lessons[0];
   const activities = lesson.outdoorActivities;
-  const activity = activities.find((a) => a.id === selectedActivityId) ?? activities[0];
-
-  const [done, setDone] = useState<boolean[]>([false, false, false]);
   const [kidView, setKidView] = useState(false);
-
-  if (!activity) return null;
-
-  const checklistSteps = [
-    {
-      title: "Chuẩn bị cùng bố mẹ",
-      detail: activity.materials.replace(/^Vật liệu:\s*/, ""),
-      icon: "folder" as const,
-    },
-    {
-      title: "Thực hiện khám phá",
-      detail: activity.firstStep.replace(/^Bước \d+:\s*/, ""),
-      icon: "leaf" as const,
-    },
-    {
-      title: "Khoe thành quả",
-      detail: "Kể lại điều thú vị bé vừa quan sát được cùng bố mẹ",
-      icon: "star" as const,
-    },
-  ];
-
-  const doneCount = done.filter(Boolean).length;
 
   return (
     <div className="page">
-      <TopBar title="Hoạt động ngoài đời thật" onBack={() => nav("/p08-video-and-activities")} />
-
-      <div className="card row">
-        <IconBadge name="sun" tone="accent" size={50} />
-        <div className="grow">
-          <h1 className="h2">{activity.title}</h1>
-          <span className="chip amber" style={{ marginTop: 6 }}>Hoạt động đi kèm đã chọn</span>
-        </div>
-      </div>
+      <TopBar title="Hoạt động sau câu chuyện" onBack={() => nav("/p08-video-and-activities")} />
+      <h1 className="h1">Cùng khám phá hoạt động</h1>
+      <p className="sub">Các hoạt động trong bài học “{lesson.title}”.</p>
       <img className="outdoor-art" src="/illustrations/garden-discovery.webp" alt="Bé khám phá bướm trong vườn cùng bạn diều giấy" />
 
-      <div className="card stack">
-        <h2 className="h2">Dụng cụ chuẩn bị</h2>
-        <div className="row wrap">
-          {activity.materials
-            .replace(/^Vật liệu:\s*/, "")
-            .split(",")
-            .map((m) => (
-              <span key={m} className="chip mint">{m.trim()}</span>
-            ))}
-        </div>
-      </div>
-
-      {activity.safetyNote && (
-        <Note tone="amber" icon="shield">
-          <strong>Lưu ý an toàn:</strong> {activity.safetyNote}
-        </Note>
-      )}
-
       <div className="row between">
-        <h2 className="h2">3 bước thực hiện ({doneCount}/3)</h2>
+        <h2 className="h2">Hướng dẫn cho gia đình</h2>
         <div className="row" style={{ gap: 6 }}>
           <span className="tiny">Chế độ cho bé</span>
           <Switch on={kidView} label="Chế độ đưa máy cho bé" onChange={() => setKidView(!kidView)} />
         </div>
       </div>
 
-      <Progress value={(doneCount / 3) * 100} tone="mint" />
-
-      <div className="stack">
-        {checklistSteps.map((s, idx) => {
-          const isChecked = done[idx];
-          return (
-            <button
-              key={s.title}
-              type="button"
-              className={`kid-step ${kidView ? "large" : ""} ${isChecked ? "done" : ""}`}
-              aria-pressed={isChecked}
-              onClick={() => setDone(done.map((d, j) => (j === idx ? !d : d)))}
-            >
-              <IconBadge name={s.icon} tone={isChecked ? "mint" : "primary"} size={kidView ? 48 : 42} />
-              <span className="grow">
-                <span className="h3" style={{ display: "block", fontSize: kidView ? 16 : 14.5 }}>{s.title}</span>
-                <span className="sub" style={{ display: "block", marginTop: 2 }}>{s.detail}</span>
-              </span>
-              <span className="ck"><Icon name="check" size={18} strokeWidth={3} /></span>
-            </button>
-          );
-        })}
-      </div>
+      <section className="stack" aria-label="Danh sách hoạt động trong bài học">
+        {activities.map((activity) => (
+          <article key={activity.id} className="card stack" aria-labelledby={`activity-${activity.id}`}>
+            <div className="row">
+              <IconBadge name="sun" tone="accent" size={44} />
+              <h2 id={`activity-${activity.id}`} className="h2">{activity.title}</h2>
+            </div>
+            <div>
+              <h3 className="h3">Dụng cụ chuẩn bị</h3>
+              <p className="sub" style={{ fontSize: kidView ? 17 : undefined }}>
+                {activity.materials.replace(/^Vật liệu:\s*/, "")}
+              </p>
+            </div>
+            <div>
+              <h3 className="h3">Hướng dẫn</h3>
+              <p className="sub" style={{ fontSize: kidView ? 17 : undefined }}>
+                {activity.firstStep.replace(/^Bước \d+:\s*/, "")}
+              </p>
+            </div>
+            {activity.safetyNote && (
+              <Note tone="amber" icon="shield">
+                <strong>Lưu ý an toàn:</strong> {activity.safetyNote}
+              </Note>
+            )}
+          </article>
+        ))}
+        {activities.length === 0 && (
+          <div className="card sub">Bài học này chưa có hoạt động đi kèm.</div>
+        )}
+      </section>
 
       <div className="cta-bar">
         <Btn
@@ -1849,7 +1687,7 @@ export function P08bOutdoorActivityPage() {
             nav("/p08c-session-feedback");
           }}
         >
-          <Icon name="check" size={18} /> Hoàn tất hoạt động &amp; Tiếp tục
+          <Icon name="check" size={18} /> Hoàn tất câu chuyện
         </Btn>
       </div>
     </div>
@@ -2247,6 +2085,7 @@ export function P10ChildProfileDetailPage() {
 
   const [nameDraft, setNameDraft] = useState(child?.displayName ?? "");
   const [monthsDraft, setMonthsDraft] = useState(String(child?.ageMonths ?? 60));
+  const [ageError, setAgeError] = useState("");
   const [interestsDraft, setInterestsDraft] = useState(child?.interests.join(", ") ?? "");
   const [learningDraft, setLearningDraft] = useState(child?.learningNotes ?? "");
   const [supportDraft, setSupportDraft] = useState(child?.supportNeedsNote ?? "");
@@ -2274,17 +2113,23 @@ export function P10ChildProfileDetailPage() {
     );
   }
 
-  const years = Math.max(3, Math.floor((Number(monthsDraft) || child.ageMonths) / 12));
+  const draftAge = Number(monthsDraft);
+  const validDraftAge = Number.isInteger(draftAge) && draftAge >= 36 && draftAge <= 120;
+  const years = validDraftAge ? Math.floor(draftAge / 12) : null;
   const isDefault = selectedProfileId === child.id && !child.archived;
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    const m = Math.max(36, Math.min(155, Number(monthsDraft) || child.ageMonths));
+    const m = Number(monthsDraft);
+    if (!Number.isInteger(m) || m < 36 || m > 120) {
+      setAgeError("Nhập độ tuổi từ 36 đến 120 tháng bằng số nguyên.");
+      return;
+    }
     const ints = interestsDraft
       .split(",")
       .map((x) => x.trim())
       .filter(Boolean);
-    updateProfile(
+    const updated = updateProfile(
       child.id,
       nameDraft.trim() || child.displayName,
       m,
@@ -2292,6 +2137,7 @@ export function P10ChildProfileDetailPage() {
       supportDraft,
       ints.length > 0 ? ints : child.interests
     );
+    if (!updated) setAgeError("Nhập độ tuổi từ 36 đến 120 tháng bằng số nguyên.");
   };
 
   return (
@@ -2350,23 +2196,43 @@ export function P10ChildProfileDetailPage() {
         </div>
 
         <div>
-          <label className="field-label" htmlFor="child-detail-months">Độ tuổi (36–155 tháng · {years} tuổi)</label>
+          <label className="field-label" htmlFor="child-detail-months">
+            Độ tuổi (36–120 tháng{years !== null ? ` · ${years} tuổi` : ""})
+          </label>
           <input
             id="child-detail-months"
             className="input"
             type="number"
+            required
             min={36}
-            max={155}
+            max={120}
+            step={1}
+            aria-invalid={!!ageError}
+            aria-describedby="child-detail-age-help"
+            aria-errormessage={ageError ? "child-detail-age-error" : undefined}
             value={monthsDraft}
-            onChange={(e) => setMonthsDraft(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              const months = Number(value);
+              setMonthsDraft(value);
+              setAgeError(Number.isInteger(months) && months >= 36 && months <= 120
+                ? ""
+                : "Nhập độ tuổi từ 36 đến 120 tháng bằng số nguyên.");
+            }}
           />
+          <p id="child-detail-age-help" className="tiny">Nhập số tháng tuổi từ 36 đến 120.</p>
+          {ageError && <p id="child-detail-age-error" className="sub" role="alert" style={{ color: "var(--danger)" }}>{ageError}</p>}
           <div className="row wrap" style={{ marginTop: 8 }}>
             {AGE_BANDS.map((b) => (
               <button
                 key={b.key}
                 type="button"
                 className={`chip ${Number(monthsDraft) === b.months ? "on" : "line"}`}
-                onClick={() => setMonthsDraft(String(b.months))}
+                aria-pressed={Number(monthsDraft) === b.months}
+                onClick={() => {
+                  setMonthsDraft(String(b.months));
+                  setAgeError("");
+                }}
               >
                 {b.title}
               </button>
@@ -2462,37 +2328,191 @@ export function P10ChildProfileDetailPage() {
 }
 
 /* =====================================================================
-   P11 · Khởi động, giới thiệu, đăng nhập
+   P11 · Đăng nhập phụ huynh
    ===================================================================== */
+
+const clampProgress = (value: number) => Math.max(0, Math.min(1, value));
+const interpolate = (from: number, to: number, progress: number) => from + (to - from) * progress;
+
+function elasticOut(progress: number, amplitude = 1, period = 0.55) {
+  if (progress === 0 || progress === 1) return progress;
+  const phase = (period / (2 * Math.PI)) * Math.asin(1 / amplitude);
+  return amplitude * 2 ** (-10 * progress) * Math.sin(((progress - phase) * 2 * Math.PI) / period) + 1;
+}
+
+function backOut(progress: number, overshoot: number) {
+  const shifted = progress - 1;
+  return 1 + (overshoot + 1) * shifted ** 3 + overshoot * shifted ** 2;
+}
+
+function sineInOut(progress: number) {
+  return -(Math.cos(Math.PI * progress) - 1) / 2;
+}
+
+function ParentLoginSplashArt() {
+  return (
+    <div className="login-scene__art" aria-hidden="true">
+      <img className="login-scene__logo" src={parentLoginLogo} alt="" data-login-logo />
+      <img className="login-scene__pencil" src={parentLoginPencil} alt="" data-login-pencil />
+      {[
+        "sparkle--left",
+        "sparkle--right",
+        "sparkle--top",
+        "sparkle--bottom",
+      ].map((position) => (
+        <span className={`login-scene__sparkle ${position}`} data-login-sparkle key={position} />
+      ))}
+    </div>
+  );
+}
+
 export function P11AuthenticationPage() {
   const nav = useNavigate();
-  const [stage, setStage] = useState<"splash" | "onb" | "auth">("splash");
-  const [step, setStep] = useState(0);
-  const [register, setRegister] = useState(false);
-  const [email, setEmail] = useState("");
+  const recoveryState = useLocState<{ email?: string }>();
+  const sceneRef = useRef<HTMLElement | null>(null);
+  const [showSplash, setShowSplash] = useState(() => {
+    if (typeof window === "undefined" || window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return false;
+    try {
+      return window.sessionStorage.getItem("sketch2life.parent-login-splash-seen.v2") !== "true";
+    } catch {
+      return false;
+    }
+  });
+  const [email, setEmail] = useState(recoveryState.email ?? "");
   const [pw, setPw] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const { setIsAuthenticated, showToast } = useParent();
+  const localPreview = isLocalPreview();
+  const authAvailable = hasFirebaseAuthBridge();
 
-  const onb = [
-    { art: <img className="onboarding-art" src="/illustrations/child-story-hero.webp" alt="Bé khoe bức tranh bướm cùng bạn diều giấy" />, t: "Nét vẽ của con thành câu chuyện", d: "Chụp tranh của bé để bắt đầu một câu chuyện riêng." },
-    { art: <img className="onboarding-art" src="/illustrations/kite-ai-guide.webp" alt="Bạn diều giấy khám phá bức tranh" />, t: "Bé kể, AI giúp dựng phim", d: "Bé có thể kể bằng giọng nói hoặc nhập chữ. Bố mẹ duyệt trước khi tạo video." },
-    { art: <img className="onboarding-art" src="/illustrations/garden-discovery.webp" alt="Bé khám phá bướm ngoài vườn" />, t: "Cùng khám phá ngoài đời", d: "Mỗi câu chuyện gợi một hoạt động an toàn để cả nhà cùng chơi." },
-  ];
+  useEffect(() => {
+    const root = sceneRef.current;
+    if (!root) return;
 
-  const enter = async () => {
+    const logo = root.querySelector<HTMLImageElement>("[data-login-logo]");
+    const pencil = root.querySelector<HTMLImageElement>("[data-login-pencil]");
+    const sparkles = Array.from(root.querySelectorAll<HTMLElement>("[data-login-sparkle]"));
+    if (!logo || !pencil || sparkles.length !== 4) return;
+
+    const animatedElements = [logo, pencil, ...sparkles];
+    const originalStyles = animatedElements.map((element) => element.getAttribute("style"));
+    let preserveFinalStateOnCleanup = false;
+    const setFinalState = () => {
+      logo.style.opacity = "1";
+      logo.style.visibility = "visible";
+      logo.style.transform = "translateX(-50%) scale(1)";
+      pencil.style.opacity = "1";
+      pencil.style.visibility = "visible";
+      pencil.style.transform = "translate(-50%, calc(-50% - 7px)) rotate(1.5deg) scale(1)";
+      sparkles.forEach((sparkle) => {
+        sparkle.style.opacity = "0.9";
+        sparkle.style.visibility = "visible";
+        sparkle.style.transform = "scale(1) rotate(0deg)";
+      });
+    };
+    const restoreStyles = () => {
+      animatedElements.forEach((element, index) => {
+        const originalStyle = originalStyles[index];
+        if (originalStyle === null) element.removeAttribute("style");
+        else element.setAttribute("style", originalStyle ?? "");
+      });
+    };
+
+    const markSplashSeen = () => {
+      try {
+        window.sessionStorage.setItem("sketch2life.parent-login-splash-seen.v2", "true");
+      } catch {
+        // Continue to the login form if session storage is unavailable.
+      }
+    };
+
+    if (!showSplash) {
+      setFinalState();
+      preserveFinalStateOnCleanup = true;
+      return () => {
+        if (!preserveFinalStateOnCleanup) restoreStyles();
+      };
+    }
+
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+      setFinalState();
+      preserveFinalStateOnCleanup = true;
+      markSplashSeen();
+      setShowSplash(false);
+      return () => {
+        if (!preserveFinalStateOnCleanup) restoreStyles();
+      };
+    }
+
+    let frame = 0;
+    const startedAt = performance.now();
+    const update = (now: number) => {
+      const elapsed = (now - startedAt) / 1000;
+
+      const pencilEntrance = clampProgress((elapsed - 0.08) / 0.84);
+      const pencilEntranceEase = elasticOut(pencilEntrance, 1, 0.55);
+      const entranceY = interpolate(28, 0, pencilEntranceEase);
+      const entranceRotation = interpolate(-10, 3, pencilEntranceEase);
+      const entranceScale = interpolate(0.88, 1, pencilEntranceEase);
+      pencil.style.opacity = String(clampProgress(pencilEntranceEase));
+      pencil.style.visibility = pencilEntrance > 0 ? "visible" : "hidden";
+
+      const floatElapsed = Math.max(0, elapsed - 1.02);
+      const floatCycles = Math.min(floatElapsed / 0.34, 3);
+      const cycleIndex = Math.min(Math.floor(floatCycles), 2);
+      const cycleProgress = floatCycles >= 3 ? 1 : floatCycles - cycleIndex;
+      const floatProgress = cycleIndex % 2 === 0 ? cycleProgress : 1 - cycleProgress;
+      const floatEase = sineInOut(floatProgress);
+      const floatY = interpolate(0, -7, floatEase);
+      const floatRotation = interpolate(3, 1.5, floatEase);
+      pencil.style.transform = elapsed >= 1.02
+        ? `translate(-50%, calc(-50% + ${entranceY}vh + ${floatY}px)) rotate(${floatRotation}deg) scale(${entranceScale})`
+        : `translate(-50%, calc(-50% + ${entranceY}vh)) rotate(${entranceRotation}deg) scale(${entranceScale})`;
+
+      const logoProgress = clampProgress((elapsed - 0.38) / 0.52);
+      const logoEase = backOut(logoProgress, 1.55);
+      logo.style.opacity = String(clampProgress(logoEase));
+      logo.style.visibility = logoProgress > 0 ? "visible" : "hidden";
+      logo.style.transform = `translateX(-50%) translateY(${interpolate(-14, 0, logoEase)}px) scale(${interpolate(0.8, 1, logoEase)})`;
+
+      sparkles.forEach((sparkle, index) => {
+        const progress = clampProgress((elapsed - (0.74 + index * 0.05)) / 0.24);
+        const ease = backOut(progress, 2.4);
+        sparkle.style.opacity = String(clampProgress(0.9 * ease));
+        sparkle.style.visibility = progress > 0 ? "visible" : "hidden";
+        sparkle.style.transform = `scale(${interpolate(0.25, 1, ease)}) rotate(${interpolate(-28, 0, ease)}deg)`;
+      });
+
+      if (elapsed < 2.04) {
+        frame = requestAnimationFrame(update);
+      } else {
+        setFinalState();
+        preserveFinalStateOnCleanup = true;
+        markSplashSeen();
+        setShowSplash(false);
+      }
+    };
+
+    frame = requestAnimationFrame(update);
+    return () => {
+      cancelAnimationFrame(frame);
+      if (!preserveFinalStateOnCleanup) restoreStyles();
+    };
+  }, [showSplash]);
+
+  const openPreview = () => {
+    if (!localPreview) return;
     setAuthError(null);
-    if (isLocalPreview()) {
-      setIsAuthenticated(true);
-      showToast("Đang mở bản xem thử; dữ liệu không lưu vào backend.", "info");
-      nav("/p01-lesson-library");
-      return;
-    }
-    if (register) {
-      setAuthError("Đăng ký tài khoản được xử lý bởi Firebase; ứng dụng hiện chưa có luồng tạo tài khoản.");
-      return;
-    }
+    setIsAuthenticated(true);
+    showToast("Đang mở bản xem thử; dữ liệu không lưu vào backend.", "info");
+    nav("/p01-lesson-library");
+  };
+
+  const submitSignIn = async () => {
+    if (localPreview || !authAvailable || submitting) return;
+    setAuthError(null);
     setSubmitting(true);
     try {
       await signInAndResolveRole("parent", email, pw);
@@ -2506,96 +2526,117 @@ export function P11AuthenticationPage() {
     }
   };
 
-  if (stage === "splash") {
-    return (
-      <div className="splash">
-        <div style={{ zIndex: 1 }}>
-          <h1 style={{ margin: 0 }}><Wordmark size={44} /></h1>
-          <p className="sub" style={{ marginTop: 8 }}>Mỗi nét vẽ đều có một câu chuyện đang chờ{"\u00A0"}được{"\u00A0"}kể…</p>
-        </div>
-        <img className="splash-art" src="/illustrations/child-story-hero.webp" alt="Bé và bạn diều giấy mở cuốn truyện từ bức tranh" />
-        <div style={{ zIndex: 1, width: "100%" }}>
-          <Btn onClick={() => setStage("onb")}>Bắt đầu thôi</Btn>
-        </div>
-        <span className="hill" aria-hidden="true" />
-      </div>
-    );
-  }
-
-  if (stage === "onb") {
-    const s = onb[step];
-    return (
-      <div className="page onboarding-page" style={{ minHeight: "100%", justifyContent: "space-between", paddingTop: 20 }}>
-        <div className="row between">
-          <Wordmark size={22} />
-          <button type="button" className="ghost-link" onClick={() => setStage("auth")}>Bỏ qua</button>
-        </div>
-        <div className="stack" style={{ alignItems: "center", textAlign: "center" }}>
-          {s.art}
-          <h1 className="h1">{s.t}</h1>
-          <p className="sub">{s.d}</p>
-        </div>
-        <div className="stack">
-          <div className="dots" aria-label={`Bước ${step + 1} trên 3`}>
-            {onb.map((_, idx) => (
-              <i key={idx} className={idx === step ? "on" : ""} />
-            ))}
-          </div>
-          <Btn onClick={() => (step < 2 ? setStep(step + 1) : setStage("auth"))}>
-            {step < 2 ? "Tiếp theo" : "Bắt đầu hành trình"}
-          </Btn>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="page auth-page" style={{ paddingTop: 24 }}>
-      <div className="stack" style={{ alignItems: "center", textAlign: "center" }}>
-        <Wordmark size={34} />
-        <img className="auth-art" src="/illustrations/kite-ai-guide.webp" alt="Bạn diều giấy chào đón gia đình" />
-        <h1 className="h1">{register ? "Tạo tài khoản bố mẹ" : "Chào mừng bố mẹ"}</h1>
-      </div>
-      <form
-        className="stack"
-        onSubmit={(e) => {
-          e.preventDefault();
-          void enter();
-        }}
-      >
-        <div>
-          <label className="field-label" htmlFor="auth-email">Email đăng nhập</label>
-          <input
-            id="auth-email"
-            className="input"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="lan.nguyen@gmail.com"
-            autoComplete="email"
-          />
-        </div>
-        <div>
-          <label className="field-label" htmlFor="auth-password">Mật khẩu</label>
-          <input
-            id="auth-password"
-            className="input"
-            type="password"
-            value={pw}
-            onChange={(e) => setPw(e.target.value)}
-            placeholder="Nhập mật khẩu"
-            autoComplete={register ? "new-password" : "current-password"}
-          />
-        </div>
-        <Btn type="submit" disabled={submitting || (register && !isLocalPreview())}>{submitting ? "Đang xác thực…" : isLocalPreview() ? "Mở bản xem thử" : register ? "Tạo tài khoản" : "Đăng nhập"}</Btn>
-      </form>
-      {authError && <BackendNotice title="Không thể đăng nhập" tone="error">{authError}</BackendNotice>}
-      {!isLocalPreview() && !hasFirebaseAuthBridge() && <BackendNotice title="Firebase Authentication chưa được nối" tone="warn">Backend yêu cầu Firebase ID token. Không có tài khoản mẫu hoặc role tự chọn trong môi trường thật.</BackendNotice>}
-      {isLocalPreview() && <BackendModeNotice roleLabel="Phụ huynh" />}
-      <button type="button" className="ghost-link" onClick={() => setRegister(!register)}>
-        {register ? "Đã có tài khoản? Đăng nhập" : "Chưa có tài khoản? Đăng ký"}
-      </button>
-    </div>
+    <main
+      className="page auth-page login-page"
+      ref={sceneRef}
+      data-screen={showSplash ? "splash" : "login"}
+      aria-label={showSplash ? "Đang mở màn đăng nhập" : "Đăng nhập phụ huynh"}
+    >
+      <img className="login-scene__background" src={parentLoginBackground} alt="" aria-hidden="true" />
+      <span className="login-scene__color-wash" aria-hidden="true" />
+      <ParentLoginSplashArt />
+
+      {showSplash ? (
+        <p className="login-splash-status" role="status" aria-live="polite">Đang mở Sketch2Life</p>
+      ) : (
+      <section className="login-panel" aria-labelledby="login-title">
+        <header className="login-panel__heading">
+          <p className="login-eyebrow">Không gian phụ huynh</p>
+          <h1 className="h1" id="login-title">Đăng nhập</h1>
+          <p className="sub">Tiếp tục cùng câu chuyện của bé.</p>
+        </header>
+
+        <form
+          className="login-form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void submitSignIn();
+          }}
+        >
+          <div className="login-field">
+            <label className="field-label" htmlFor="auth-email">Email</label>
+            <input
+              id="auth-email"
+              className="input"
+              type="email"
+              inputMode="email"
+              autoCapitalize="none"
+              spellCheck={false}
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="ten@email.com"
+              autoComplete="email"
+            />
+          </div>
+
+          <div className="login-field">
+            <label className="field-label" htmlFor="auth-password">Mật khẩu</label>
+            <div className="login-password-field">
+              <input
+                id="auth-password"
+                className="input"
+                type={showPassword ? "text" : "password"}
+                required
+                value={pw}
+                onChange={(e) => setPw(e.target.value)}
+                placeholder="Nhập mật khẩu"
+                autoComplete="current-password"
+              />
+              <button
+                type="button"
+                className="login-password-toggle"
+                aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                aria-pressed={showPassword}
+                onClick={() => setShowPassword((visible) => !visible)}
+              >
+                {showPassword ? "Ẩn" : "Hiện"}
+              </button>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            className="login-recovery-link"
+            onClick={() => nav("/p14-password-recovery", { state: { email } })}
+          >
+            Quên mật khẩu?
+          </button>
+
+          <button
+            className="btn3d login-submit"
+            type="submit"
+            disabled={submitting || !authAvailable || localPreview}
+            aria-describedby={authError ? "login-feedback" : !authAvailable ? "login-auth-unavailable" : undefined}
+          >
+            {submitting ? "Đang xác thực…" : "Đăng nhập"}
+          </button>
+        </form>
+
+        {authError && <div className="login-feedback is-error" id="login-feedback" role="alert">{authError}</div>}
+        {!authAvailable && (
+          <div className="login-feedback is-unavailable" id="login-auth-unavailable" role="status">
+            {localPreview
+              ? "Đăng nhập tài khoản chưa được nối trong bản xem thử. Dùng nút mở bản xem thử bên dưới."
+              : "Đăng nhập chưa khả dụng trong phiên này. Vui lòng thử lại sau."}
+          </div>
+        )}
+
+        {localPreview && (
+          <section className="login-preview" aria-labelledby="login-preview-title">
+            <div className="login-preview-copy">
+              <h2 className="h3" id="login-preview-title">Chỉ muốn xem giao diện?</h2>
+              <p className="tiny">Bản xem thử dùng dữ liệu minh họa, không lưu.</p>
+            </div>
+            <button className="btn-soft login-preview-action" type="button" onClick={openPreview}>
+              Mở bản xem thử
+            </button>
+          </section>
+        )}
+      </section>
+      )}
+    </main>
   );
 }
 
@@ -2714,9 +2755,9 @@ export function P12VideoQuotaPage() {
 }
 
 /* =====================================================================
-   P13 · Cài đặt tách riêng (Theme Light/Dark, Tài khoản, Mật khẩu, OTP, 2FA, Đăng xuất)
+   P13 · Cài đặt tách riêng (Theme Light/Dark, Tài khoản, Mật khẩu, Đăng xuất)
    ===================================================================== */
-type SettingsSubView = "main" | "account" | "privacy" | "password" | "forgot" | "twofa";
+type SettingsSubView = "main" | "account" | "privacy" | "password";
 
 export function P13SettingsPage() {
   const nav = useNavigate();
@@ -2756,22 +2797,6 @@ export function P13SettingsPage() {
   const [newPw, setNewPw] = useState("");
   const [confirmPw, setConfirmPw] = useState("");
   const [pwError, setPwError] = useState("");
-
-  // Forgot password OTP state
-  const [recoveryEmail, setRecoveryEmail] = useState("lan.nguyen@gmail.com");
-  const [otpSent, setOtpSent] = useState(false);
-  const [otpCode, setOtpCode] = useState("");
-  const [resetPw, setResetPw] = useState("");
-
-  // 2FA state
-  const [twoFaEnabled, setTwoFaEnabled] = useState(true);
-  const [twoFaMethod, setTwoFaMethod] = useState<"APP" | "EMAIL">("APP");
-  const [backupCodes, setBackupCodes] = useState([
-    "S2L-8492-K1",
-    "S2L-3910-M7",
-    "S2L-6204-P3",
-    "S2L-1589-V9",
-  ]);
 
   if (subView === "account") {
     return (
@@ -2930,144 +2955,6 @@ export function P13SettingsPage() {
     );
   }
 
-  if (subView === "forgot") {
-    return (
-      <div className="page">
-        <TopBar title="Quên mật khẩu" onBack={() => setSubView("main")} />
-        <div className="card stack">
-          <h1 className="h2">Khôi phục bằng mã OTP</h1>
-          <p className="sub">Hệ thống sẽ gửi mã xác thực 6 chữ số tới địa chỉ email đăng ký của bố mẹ.</p>
-          <div>
-            <label className="field-label" htmlFor="recovery-email">Email đăng ký</label>
-            <input
-              id="recovery-email"
-              type="email"
-              className="input"
-              value={recoveryEmail}
-              onChange={(e) => setRecoveryEmail(e.target.value)}
-            />
-          </div>
-          <Soft
-            onClick={() => {
-              setOtpSent(true);
-              showToast(`Đã gửi mã OTP khôi phục tới ${recoveryEmail}.`, "info");
-            }}
-          >
-            <Icon name="message" size={16} /> {otpSent ? "Gửi lại mã OTP" : "Gửi mã OTP khôi phục"}
-          </Soft>
-
-          {otpSent && (
-            <div className="stack" style={{ paddingTop: 8, borderTop: "1px dashed var(--line)" }}>
-              <div>
-                <label className="field-label" htmlFor="otp-input">Mã xác thực OTP (6 số)</label>
-                <input
-                  id="otp-input"
-                  className="input"
-                  inputMode="numeric"
-                  placeholder="Ví dụ: 482910"
-                  value={otpCode}
-                  onChange={(e) => setOtpCode(e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="field-label" htmlFor="reset-pw-input">Mật khẩu mới</label>
-                <input
-                  id="reset-pw-input"
-                  type="password"
-                  className="input"
-                  placeholder="Tối thiểu 8 ký tự"
-                  value={resetPw}
-                  onChange={(e) => setResetPw(e.target.value)}
-                />
-              </div>
-              <Btn
-                disabled={otpCode.trim().length < 4 || resetPw.length < 8}
-                onClick={() => {
-                  setOtpSent(false);
-                  setOtpCode("");
-                  setResetPw("");
-                  showToast("Đã đặt lại mật khẩu thành công.", "ok");
-                  setSubView("main");
-                }}
-              >
-                Xác nhận đặt lại mật khẩu
-              </Btn>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  if (subView === "twofa") {
-    return (
-      <div className="page">
-        <TopBar title="Bảo mật 2 lớp (2FA)" onBack={() => setSubView("main")} />
-        <div className="card stack">
-          <div className="row between">
-            <div>
-              <h1 className="h2">Xác thực 2 lớp</h1>
-              <p className="sub">Tăng cường bảo vệ tài khoản phụ huynh khi đăng nhập trên thiết bị mới.</p>
-            </div>
-            <Switch
-              on={twoFaEnabled}
-              label="Bật bảo mật 2 lớp"
-              onChange={() => {
-                const next = !twoFaEnabled;
-                setTwoFaEnabled(next);
-                showToast(next ? "Đã bật bảo mật 2 lớp (2FA)." : "Đã tắt bảo mật 2 lớp.", next ? "ok" : "warn");
-              }}
-            />
-          </div>
-
-          {twoFaEnabled && (
-            <>
-              <h2 className="h3">Phương thức nhận mã</h2>
-              <div className="seg" role="radiogroup" aria-label="Phương thức 2FA">
-                <button
-                  type="button"
-                  className={twoFaMethod === "APP" ? "on" : ""}
-                  onClick={() => setTwoFaMethod("APP")}
-                >
-                  Authenticator
-                </button>
-                <button
-                  type="button"
-                  className={twoFaMethod === "EMAIL" ? "on" : ""}
-                  onClick={() => setTwoFaMethod("EMAIL")}
-                >
-                  Email OTP
-                </button>
-              </div>
-            </>
-          )}
-        </div>
-
-        <div className="card stack">
-          <div className="row between">
-            <h2 className="h2">Mã khôi phục dự phòng</h2>
-            <span className="chip mint">Dùng 1 lần</span>
-          </div>
-          <p className="sub">Lưu giữ các mã này ở nơi an toàn để đăng nhập khi không có điện thoại bên cạnh.</p>
-          <div className="code-grid">
-            {backupCodes.map((c) => (
-              <span key={c} className="code-pill">{c}</span>
-            ))}
-          </div>
-          <Soft
-            small
-            onClick={() => {
-              setBackupCodes(["S2L-7712-A4", "S2L-5038-C8", "S2L-9146-D2", "S2L-2680-F5"]);
-              showToast("Đã tạo bộ mã khôi phục dự phòng mới.", "info");
-            }}
-          >
-            <Icon name="refresh" size={15} /> Tạo bộ mã mới
-          </Soft>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="page">
       <TopBar title="Cài đặt" back={false} />
@@ -3178,23 +3065,6 @@ export function P13SettingsPage() {
           <Icon name="chevron-right" size={18} color="var(--ink-3)" />
         </button>
 
-        <button type="button" className="list-item" onClick={() => setSubView("forgot")}>
-          <IconBadge name="lock" tone="neutral" />
-          <span className="grow">
-            <span className="h3" style={{ display: "block" }}>Quên mật khẩu</span>
-            <span className="tiny" style={{ display: "block" }}>Nhận mã khôi phục OTP qua email</span>
-          </span>
-          <Icon name="chevron-right" size={18} color="var(--ink-3)" />
-        </button>
-
-        <button type="button" className="list-item" onClick={() => setSubView("twofa")}>
-          <IconBadge name="shield" tone="primary" />
-          <span className="grow">
-            <span className="h3" style={{ display: "block" }}>Bảo mật 2 lớp (2FA)</span>
-            <span className="tiny" style={{ display: "block" }}>{twoFaEnabled ? "Đang bật · Đã có mã dự phòng" : "Đang tắt"}</span>
-          </span>
-          <Icon name="chevron-right" size={18} color="var(--ink-3)" />
-        </button>
       </div>
 
       {/* Separated Destructive Action: Logout */}
@@ -3211,5 +3081,106 @@ export function P13SettingsPage() {
         </Soft>
       </div>
     </div>
+  );
+}
+
+function RecoveryEnvelopeIcon({ size = 24 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+      <rect x="3.5" y="5.5" width="17" height="13" rx="3" />
+      <path d="m5 8 7 5 7-5" />
+    </svg>
+  );
+}
+
+export function P14PasswordRecoveryPage() {
+  const nav = useNavigate();
+  const routeState = useLocState<{ email?: string }>();
+  const [email, setEmail] = useState(routeState.email ?? "");
+  const [attempted, setAttempted] = useState(false);
+
+  return (
+    <main className="page recovery-page" aria-labelledby="recovery-title">
+      <header className="recovery-topbar">
+        <button
+          type="button"
+          className="recovery-back-link"
+          onClick={() => nav("/p11-authentication", { state: { email } })}
+        >
+          <span className="recovery-back-link__icon"><Icon name="arrow-left" size={17} /></span>
+          <span>Về đăng nhập</span>
+        </button>
+        <Wordmark size={20} />
+      </header>
+
+      <section className="recovery-card" aria-describedby="recovery-description">
+        <div className="recovery-art" aria-hidden="true">
+          <span className="recovery-art__halo" />
+          <span className="recovery-art__ring" />
+          <span className="recovery-art__spark recovery-art__spark--one" />
+          <span className="recovery-art__spark recovery-art__spark--two" />
+          <span className="recovery-art__mail"><RecoveryEnvelopeIcon size={31} /></span>
+          <span className="recovery-art__lock"><Icon name="lock" size={16} /></span>
+        </div>
+
+        <header className="recovery-heading">
+          <p className="recovery-eyebrow">BẢO MẬT TÀI KHOẢN</p>
+          <h1 className="h1" id="recovery-title">Quên mật khẩu?</h1>
+          <p className="sub" id="recovery-description">
+            Nhập email gắn với tài khoản để nhận hướng dẫn khi dịch vụ khả dụng.
+          </p>
+        </header>
+
+        <form
+          className="recovery-form"
+          onSubmit={(event) => {
+            event.preventDefault();
+            setAttempted(true);
+          }}
+        >
+          <div className="recovery-field">
+            <div className="recovery-field__label-row">
+              <label className="field-label" htmlFor="recovery-email">Email đăng ký</label>
+              <span className="recovery-field__hint-label">Email của bạn</span>
+            </div>
+            <div className="recovery-input-wrap">
+              <span className="recovery-input-wrap__icon" aria-hidden="true"><RecoveryEnvelopeIcon size={19} /></span>
+              <input
+                id="recovery-email"
+                className="input"
+                type="email"
+                inputMode="email"
+                autoCapitalize="none"
+                autoComplete="email"
+                required
+                value={email}
+                onChange={(event) => {
+                  setEmail(event.target.value);
+                  setAttempted(false);
+                }}
+                placeholder="ten@email.com"
+              />
+            </div>
+          </div>
+
+          <div className={`recovery-notice${attempted ? " is-attempted" : ""}`} role={attempted ? "alert" : "status"} aria-live={attempted ? "assertive" : "polite"}>
+            <span className="recovery-notice__icon" aria-hidden="true">
+              <Icon name={attempted ? "alert" : "info"} size={18} />
+            </span>
+            <span className="recovery-notice__copy">
+              <strong>{attempted ? "Chưa thể gửi hướng dẫn" : "Khôi phục chưa khả dụng"}</strong>
+              <span>Dịch vụ gửi email chưa được kết nối. Chưa có thư nào được gửi.</span>
+            </span>
+          </div>
+
+          <button className="btn3d recovery-submit" type="submit">
+            <span>Gửi hướng dẫn khôi phục</span>
+            <Icon name="arrow-right" size={18} />
+          </button>
+        </form>
+
+        <p className="recovery-footnote"><Icon name="lock" size={14} /> Khôi phục tài khoản Sketch2Life</p>
+      </section>
+    </main>
   );
 }

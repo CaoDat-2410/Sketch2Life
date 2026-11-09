@@ -1,6 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import "./styles/tokens.css";
+import "./styles/parent-login-animation.css";
 import "../../shared/parent-ui.css";
 import "../../shared/ui-primitives.css";
 import App from "./App";

@@ -205,8 +205,8 @@ h1, h2, h3, p { margin: 0; }
 .topbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 0; }
 .topbar .ttl { font-size: 16px; font-weight: 800; text-align: center; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--ink); }
 .round-btn {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 14px;
   border: 1px solid var(--line);
   background: var(--surface);
@@ -342,7 +342,7 @@ h1, h2, h3, p { margin: 0; }
 .btn3d.danger:active:not(:disabled) {
   box-shadow: 0 2px 2px #7f1d1d, 0 4px 8px rgba(220, 38, 38, 0.28);
 }
-.btn3d.sm { padding: 10px 14px; min-height: 40px; font-size: 13.5px; border-radius: 15px; width: auto; }
+.btn3d.sm { padding: 10px 14px; min-height: 44px; font-size: 13.5px; border-radius: 15px; width: auto; }
 
 .btn-soft {
   border: 1.5px solid var(--line);
@@ -364,7 +364,7 @@ h1, h2, h3, p { margin: 0; }
   transition: transform 0.12s, box-shadow 0.12s;
 }
 .btn-soft:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 2px rgba(15, 36, 71, 0.12); }
-.btn-soft.sm { width: auto; min-height: 38px; padding: 8px 12px; font-size: 12.5px; border-radius: 14px; }
+.btn-soft.sm { width: auto; min-height: 44px; padding: 8px 12px; font-size: 12.5px; border-radius: 14px; }
 .btn-soft.red { color: var(--danger); }
 [data-theme="dark"] .btn-soft.red { color: #fca5a5; }
 .btn-soft:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -385,7 +385,7 @@ h1, h2, h3, p { margin: 0; }
   white-space: nowrap;
   flex-shrink: 0;
 }
-button.chip { cursor: pointer; transition: transform 0.12s; }
+button.chip { min-width: 44px; min-height: 44px; cursor: pointer; transition: transform 0.12s; }
 button.chip:active { transform: scale(0.95); }
 .chip.on { background: #2563eb; color: #ffffff; box-shadow: 0 3px 2px var(--primary-edge); }
 .chip.amber { background: var(--accent-50); color: var(--accent-ink); }
@@ -396,7 +396,7 @@ button.chip:active { transform: scale(0.95); }
 .chip.line { background: var(--surface); border-color: var(--line); color: var(--ink-2); }
 
 /* ---------- StepChips ---------- */
-.steps { display: flex; align-items: center; justify-content: center; gap: 5px; }
+.steps { display: flex; align-items: center; justify-content: center; gap: 5px; list-style: none; margin: 0; padding: 0; }
 .step { display: flex; align-items: center; gap: 5px; }
 .step i {
   width: 26px;
@@ -846,8 +846,9 @@ button.chip:active { transform: scale(0.95); }
 .player .ccb {
   border: 0;
   border-radius: 8px;
-  min-height: 28px;
-  padding: 4px 8px;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 4px 10px;
   font-size: 11px;
   font-weight: 800;
   background: rgba(15, 23, 42, 0.72);
@@ -1063,7 +1064,7 @@ button.chip:active { transform: scale(0.95); }
 .ledger { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px dashed var(--line); font-size: 12.5px; }
 .ledger:last-child { border-bottom: 0; }
 
-/* ---------- Switch, Settings Lists & 2FA Codes ---------- */
+/* ---------- Switches & Settings Lists ---------- */
 .switch { width: 50px; height: 30px; border-radius: 15px; border: 0; background: #64748b; position: relative; flex-shrink: 0; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.22); transition: background 0.2s; }
 .switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #ffffff; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25); transition: transform 0.2s; }
 .switch.on { background: var(--mint); }
@@ -1073,19 +1074,6 @@ button.chip:active { transform: scale(0.95); }
 .list-item { display: flex; align-items: center; gap: 12px; padding: 11px 0; width: 100%; border: 0; background: none; text-align: left; }
 .list-item + .list-item { border-top: 1px dashed var(--line); }
 .hr { height: 1px; background: var(--line); border: 0; margin: 4px 0; }
-
-.code-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.code-pill {
-  padding: 9px 10px;
-  border-radius: 12px;
-  background: var(--surface-2);
-  color: var(--ink);
-  font-size: 13px;
-  font-weight: 700;
-  text-align: center;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.04em;
-}
 
 /* ---------- Onboarding / splash / auth ---------- */
 .splash { flex: 1; min-height: 100%; border-radius: 40px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 40px 24px 30px; text-align: center; background: linear-gradient(180deg, #7dd3fc 0%, #bfdbfe 45%, #ecfdf5 100%); color: #0f2447; position: relative; overflow: hidden; }
