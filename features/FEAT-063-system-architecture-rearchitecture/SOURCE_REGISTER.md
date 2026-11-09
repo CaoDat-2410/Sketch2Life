@@ -1,6 +1,10 @@
 # FEAT-063 source register
+## Rev60 SRS source baseline — current — 2026-11-09
 
-## Rev53 v2.6 checklist reconciliation — current — 2026-11-07
+The canonical SRS is v2.7-draft Rev60, based on the latest published FEAT-063 source Rev57 at `f21c6f34af1ee045caf9a0621e38376a2bfde390`. The matching target-branch Data Table Register remains v2.7-draft Rev57 and is unchanged. Rev58–Rev60 are local SRS documentation amendments; owner choices and technical gates remain open. Evidence: EV-063-65; scoped publication is approved in Plan Rev60.
+
+
+## Rev53 v2.6 checklist reconciliation — historical — 2026-11-07
 
 - Canonical SRS and companion advance to v2.7-draft, unsigned. The supplied checklist is review evidence, not product-requirements authority.
 - Preserve D-146 owner decisions: Content Admin is a Platform Admin permission; Platform Admin child-media access stays deny-by-default pending a separately approved workflow; Teacher video uses only school organization quota.

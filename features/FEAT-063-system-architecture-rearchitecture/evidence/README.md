@@ -6,6 +6,7 @@ EV-063-13 records the pre-platform table-reduction and relationship-integrity ba
 
 | ID | Type | Purpose | Artifact |
 |---|---|---|---|
+| EV-063-65 | SRS v2.7 Rev57 rebase and note reconciliation | Source selection, preserved Rev57 sections, Rev58/59 carry-forward, counts, quota/privacy/Q cross-references and publication scope | `EV-063-65_SRS_REBASE_V27_REV60_20261109.md` |
 | EV-063-58 | Rev53 SRS v2.6 checklist remediation | Source/hash and visual-review provenance; detailed disposition of M-01–16, D-01–20, Q-01–13 and R-01–05; fixed/clarified/open gates and publication evidence | `EV-063-58_SRS_V26_CHECKLIST_REMEDIATION_20261107.md` |
 | EV-063-56 | Rev51 source review and publication | Current `origin/dev` API/Modal source crosswalk, publication results and scope limits | `EV-063-56_SRS_PUBLICATION_REV51_20261106.md` |
 | EV-063-55 | Rev45 SRS/code alignment | SRS model-role reconciliation and earlier local source crosswalk, reindexed to avoid the existing EV-063-34 collision | `EV-063-55_SRS_SYSTEM_CODE_ALIGNMENT_REV45_20261106.md` |

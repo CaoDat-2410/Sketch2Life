@@ -6,7 +6,7 @@ For all **current product requirements and target architecture**, use only:
 
 [`features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md`](../../features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md)
 
-- Version recorded in the document: `2.7-draft` (2026-11-07), reconciling the owner-supplied v2.6 checklist while preserving unresolved product and technical questions and separating dated source observations from runtime evidence.
+- Version recorded in the document: `2.7-draft`, Rev60 (2026-11-09), based on the latest published FEAT-063 SRS Rev57 at `f21c6f34af1ee045caf9a0621e38376a2bfde390` and carrying forward local Rev58–Rev60 documentation amendments. It remains unsigned.
 - Authority: the project's canonical **working baseline** for current product intent and target architecture.
 - Approval state: still a draft awaiting formal owner sign-off. Calling it canonical does not claim it has been signed or approved as a final SRS.
 - Companion: `features/FEAT-063-system-architecture-rearchitecture/artifacts/DATA_TABLE_REGISTER.md` is the matching v2.7-draft data-model companion. It supports the SRS; it is not another product SRS.
@@ -35,6 +35,6 @@ Do not delete, rename, or rewrite these historical sources as part of ordinary f
 
 This is a repository instruction and source-routing rule. It cannot prevent someone from manually opening a historical file, so old records retain explicit local context notices where they mention prior SRS authority.
 
-## Current FEAT-063 pointer after Rev57
+## Current FEAT-063 pointer after Rev60
 
-As of 2026-11-09, the canonical working product source remains features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md and its companion DATA_TABLE_REGISTER.md, both v2.7-draft Rev57 and unsigned. Rev57 adds design detail and source-only verification; it does not close OPEN-OWNER decisions or supersede the TO-BE/AS-BUILT separation. Diagram Input Catalog Rev57 is a readiness handoff, not a competing requirements source.
+As of 2026-11-09, the canonical working product source is features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md v2.7-draft Rev60, based on published Rev57 with documentation-only Rev58–Rev60 amendments. The matching DATA_TABLE_REGISTER.md remains v2.7-draft Rev57 and is unchanged by this SRS update. Both remain unsigned. The update does not close OPEN-OWNER decisions or supersede the TO-BE/AS-BUILT separation. Diagram Input Catalog Rev57 remains a readiness handoff, not a competing requirements source.

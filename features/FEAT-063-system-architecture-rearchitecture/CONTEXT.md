@@ -1,4 +1,10 @@
 # FEAT-063 — Whole-repository architecture redesign
+## Rev60 SRS source rebase — 2026-11-09
+
+- Owner selected the latest published SRS, v2.7-draft Rev57 at `f21c6f34af1ee045caf9a0621e38376a2bfde390`; the current SRS document-control revision is Rev60 and remains unsigned.
+- The target-branch companion Data Table Register remains v2.7-draft Rev57 and was not modified. CI source facts and target release requirements are distinguished; all 17 owner questions and physical/diagram gates remain open.
+- Scoped publication to the same docs branch was explicitly authorized after the required repository security validation. See Plan Rev60 and EV-063-65.
+
 ## Rev56 ten-group diagram-readiness alignment — 2026-11-08
 
 - Lifecycle: COMPLETE for the bounded documentation-only synchronization; SRS/Data Table Register remain v2.7-draft and unsigned.

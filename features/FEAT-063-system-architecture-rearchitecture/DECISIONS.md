@@ -343,3 +343,7 @@ This documentation review makes no product or architecture decision. It records 
 ## Rev57 — no new approved product decision
 
 Rev57 adds TO-BE/PROPOSED design contracts and maps all 17 SRS §31.10 questions to Q-01–Q-13 where applicable. It does not create a new business decision or close an OPEN-OWNER item. The static source review found one infrastructure import cycle in canvas_render; this is a technical finding, not an approved architecture exception. See EV-063-62 and the Rev57 contracts.
+
+## Rev60 SRS source routing — no new product decision
+
+The owner selected the latest published FEAT-063 SRS v2.7-draft Rev57 (`f21c6f34af1ee045caf9a0621e38376a2bfde390`) as the source baseline for the canonical Rev60 working document. This records document authority only; it creates no product requirement, does not change the matching v2.7-draft Rev57 Data Table Register, and does not close any OPEN-OWNER item. See Plan Rev60 and EV-063-65.

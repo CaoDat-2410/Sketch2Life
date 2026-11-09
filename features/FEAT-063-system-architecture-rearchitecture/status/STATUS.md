@@ -1,4 +1,11 @@
 # Status
+## Rev60 SRS source rebase — 2026-11-09
+
+- Lifecycle: COMPLETE for the SRS-only rebase and scoped publication. Canonical SRS: v2.7-draft Rev60 based on published Rev57; unsigned.
+- Preserved Rev57 §§32.6–32.7, moved the CI source snapshot to §32.8, and retained the 17 `OPEN-OWNER` decisions. Matching target-branch DTR remains v2.7-draft Rev57 and unchanged.
+- The owner authorized a normal push of the scoped SRS and task records to `docs/feat063-diagram-readiness-20261107` after repository security validation. No unrelated workspace changes are in scope.
+- Evidence: evidence/EV-063-65_SRS_REBASE_V27_REV60_20261109.md; plan and approval: Plan Rev60.
+
 ## Rev56 ten-group diagram-readiness alignment — 2026-11-08
 
 - Lifecycle: COMPLETE for the approved documentation-only synchronization on the isolated diagram-readiness branch.

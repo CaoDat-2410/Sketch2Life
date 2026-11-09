@@ -1,6 +1,6 @@
 # Project context ledger
 
-> **Current product SRS:** use [`features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md`](../../features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md), v2.7-draft, as the single canonical working baseline. It remains unsigned; §§1–31 define target requirements and §32 separates environment-specific runtime/source observations. Older feature contexts/SRS documents are historical or feature-local. See [`SRS_AUTHORITY.md`](SRS_AUTHORITY.md).
+> **Current product SRS:** use [`features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md`](../../features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md), v2.7-draft Rev60 (based on published Rev57), as the single canonical working baseline. It remains unsigned; §§1–31 define target requirements and §32 separates environment-specific runtime/source observations. Older feature contexts/SRS documents are historical or feature-local. See [`SRS_AUTHORITY.md`](SRS_AUTHORITY.md).
 
 ## FEAT-057 Rev5 review and offline BE2 internal regression — 2026-10-21
 

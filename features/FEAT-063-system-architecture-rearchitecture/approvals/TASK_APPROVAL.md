@@ -1082,3 +1082,13 @@
 - **Exclusions:** product code/runtime/API/database/schema/data/migration/provider/secret/permission/cost changes, tests/build/deployment, final diagrams, SRS/DTR sign-off, PR/merge, and force push. Unanswered policy questions remain OPEN-OWNER.
 - **Publication:** owner explicitly authorized commit and push; only a normal fast-forward push of the scoped paths to docs/feat063-diagram-readiness-20261107 is authorized.
 - **Approval basis:** the direct user request authorizes this exact documentation and publication scope. It does not approve proposed requirements, settle owner decisions, or sign off SRS/DTR.
+
+## FEAT-063 Plan Rev60 — rebase SRS to v2.7 Rev57 and scoped publication
+
+- **Status:** APPROVED for the exact SRS rebase and documentation publication scope below.
+- **Approver:** Project owner, direct request that SRS is v2.7 and latest must be checked; follow-up direct instruction `push lên luôn đi`; and selection of local Git after the validator/browser constraint was explained (2026-11-09).
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV60_REBASE_SRS_TO_V27_REV57_20261109.md`.
+- **Plan SHA-256:** `871A302181BB18329F63EF47CE8D0ABF5A528F89F9449CD80F7D1DD63CE030FF`.
+- **Scope:** Rebase SRS onto published v2.7-draft Rev57, carry forward Rev58–Rev59 work, update scoped authority/evidence/status records, run `python tools/validate_repository_security.py`, commit only the allowlisted documentation, and normally push to existing `docs/feat063-diagram-readiness-20261107`.
+- **Boundaries:** No force-push, merge, product tests, code/API/DB/migration/deployment changes, SRS sign-off or closure of owner questions. No unrelated workspace file is authorized for this commit.
+- **Approval basis:** This is authorization to publish the documentation change only; it is not owner sign-off of the SRS or approval of proposed/OPEN product decisions.

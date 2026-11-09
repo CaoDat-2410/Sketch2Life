@@ -5,7 +5,11 @@
 
 Use `features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` v2.7-draft for all current product requirements and target architecture. It remains a draft pending formal owner sign-off. Its §§1–31 define target requirements; §32 contains dated environment-specific runtime/source observations and does not replace them. Older feature SRS copies and contexts are historical/feature-local and do not override it. The detailed agent reading order and historical-source list are in `docs/context/SRS_AUTHORITY.md`.
 
-## FEAT-063 Rev53 v2.6 checklist reconciliation — current — 2026-11-07
+## FEAT-063 Rev60 SRS source rebase and scoped publication — current — 2026-11-09
+
+Owner correction selected the latest published FEAT-063 source: v2.7-draft Rev57 at `f21c6f34af1ee045caf9a0621e38376a2bfde390`. The canonical SRS now records Rev60 while retaining Rev57 as its source baseline; the matching target-branch Data Table Register remains v2.7-draft Rev57 and is unchanged. The six-group note is review input, not a source of owner decisions. See Plan Rev60, approval record, and EV-063-65.
+
+## FEAT-063 Rev53 v2.6 checklist reconciliation — historical publication record — 2026-11-07
 
 Plan Rev53 reconciles the owner-supplied checklist against the canonical v2.6-draft SRS/Register and existing owner decisions. The package advances the unsigned working pair to v2.7-draft. It clarifies optional exact LessonVersion ref/version/hash lineage, video admission saga ownership, School Manager terminology, and the historical/current table-count label. No new product decision is inferred; no-preset Parent activity behavior, plan supersession, role persistence, legacy age handling, audit schema/retention, DDL and migration remain open. The checklist is review evidence, not requirements authority. Package commit `359b0b92384faad789f6006c37cc5f66760ad594` was pushed normally to `origin/docs/feat063-srs-v26-checklist-20261107` and confirmed by `git ls-remote`. See FEAT-063 D-146, Plan Rev53 and EV-063-58.
 
