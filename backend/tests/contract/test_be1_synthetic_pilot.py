@@ -305,17 +305,41 @@ def test_progress_and_help_keep_legal_only_consent(name: str) -> None:
     assert not _reaches_evaluator(_SESSIONS, name)
 
 
-def test_registry_and_records_do_not_gain_a_synthetic_path() -> None:
+def test_registry_synthetic_creation_does_not_widen_consent_evaluator_paths() -> None:
     for suffix in ("be1_registry", "be1_records"):
         module = f"sketch2life.interfaces.http.routers.{suffix}"
         for node in _tree(module).body:
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                if suffix == "be1_registry" and node.name == "create_profile":
+                    continue
                 assert not _reaches_evaluator(module, node.name)
+
+    registry = "sketch2life.interfaces.http.routers.be1_registry"
+    profile_creation = _function(registry, "create_profile")
+    assert not _reaches_evaluator(registry, "create_profile")
+    assert not _has_effective_sql(profile_creation)
+    assert {"SYNTHETIC_DEV", "SYNTHETIC_FIXTURE"} <= {
+        node.value
+        for node in ast.walk(profile_creation)
+        if isinstance(node, ast.Constant) and isinstance(node.value, str)
+    }
+    token_hex_calls = [
+        call
+        for call in ast.walk(profile_creation)
+        if isinstance(call, ast.Call)
+        and isinstance(call.func, ast.Attribute)
+        and call.func.attr == "token_hex"
+        and isinstance(call.func.value, ast.Name)
+        and call.func.value.id == "secrets"
+    ]
+    assert len(token_hex_calls) == 1
+    assert len(token_hex_calls[0].args) == 1
+    assert not token_hex_calls[0].keywords
+    assert isinstance(token_hex_calls[0].args[0], ast.Constant)
+    assert token_hex_calls[0].args[0].value == 12
+
     records = "sketch2life.interfaces.http.routers.be1_records"
     assert "consent_is_effective" in _calls(_function(records, "_require_contributors_consent"))
-    assert _has_effective_sql(
-        _function("sketch2life.interfaces.http.routers.be1_registry", "create_profile")
-    )
 
 
 @pytest.mark.parametrize("name", ("upload_session_artifact", "download_session_artifact"))

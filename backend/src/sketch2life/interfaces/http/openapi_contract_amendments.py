@@ -184,21 +184,13 @@ SYNTHETIC_RESPONSE_EXAMPLES: dict[tuple[str, str], dict[str, Any]] = {
         "organization_id": "org-example-001",
         "assignments": [{"role": "teacher", "class_id": "class-example-001"}],
     },
-    ("post", "/api/be1/v1/organizations/{organization_id}/assignments"): {
+    ("post", "/api/be1/v1/classes/{class_id}/assignments"): {
         "contract": "Be1AdultAssignmentV1",
         "assignment_id": "assignment-example-001",
         "subject": "adult-example-002",
         "role": "teacher",
         "class_id": "class-example-001",
         "active": True,
-    },
-    (
-        "delete",
-        "/api/be1/v1/organizations/{organization_id}/assignments/{assignment_id}",
-    ): {
-        "contract": "Be1AdultAssignmentV1",
-        "assignment_id": "assignment-example-001",
-        "active": False,
     },
     ("get", "/api/be1/v1/organizations/{organization_id}/classes"): {
         "contract": "Be1ClassListV1",
@@ -234,11 +226,11 @@ SYNTHETIC_RESPONSE_EXAMPLES: dict[tuple[str, str], dict[str, Any]] = {
         "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles",
     ): {
         "contract": "Be1ManagedProfileV1",
-        "child_id": "child-example-001",
+        "child_id": "synthetic-aaaaaaaaaaaaaaaaaaaaaaaa",
         "class_id": "class-example-001",
-        "display_name": "Example Learner",
+        "display_name": "Synthetic Learner",
         "age_months": 60,
-        "consent_state": "effective",
+        "data_origin": "SYNTHETIC_DEV",
     },
     (
         "post",
@@ -834,9 +826,6 @@ SYNTHETIC_MULTIPART_EXAMPLES: dict[
 NULLABLE_RESPONSE_FIELDS: dict[tuple[str, str], tuple[tuple[str, ...], ...]] = {
     ("get", "/api/be1/v1/organizations/{organization_id}/me"): (
         ("assignments", "*", "class_id"),
-    ),
-    ("post", "/api/be1/v1/organizations/{organization_id}/assignments"): (
-        ("class_id",),
     ),
     ("post", "/api/be1/v1/organizations/{organization_id}/sessions"): (
         ("started_at",),

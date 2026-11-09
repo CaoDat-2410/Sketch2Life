@@ -5,11 +5,12 @@
 
 from __future__ import annotations
 
+import secrets
 from datetime import UTC, datetime
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, status
-from sqlalchemy import select
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from sketch2life.application.ports.identity import VerifiedPrincipal
@@ -43,7 +44,6 @@ from sketch2life.interfaces.http.routers.be1_common import (
     audit,
     commit,
     consent_is_effective,
-    deny_pending_consent,
     event,
     failure,
     get_class,
@@ -52,6 +52,34 @@ from sketch2life.interfaces.http.routers.be1_common import (
 )
 
 router = APIRouter(prefix="/api/be1/v1", tags=["BE1 registry"], responses=BE1_ERROR_RESPONSES)
+
+
+def _scope_denied() -> HTTPException:
+    return failure(403, "SCOPE_DENIED", "Access to this resource is not permitted")
+
+
+def _require_m2_assignment(
+    db: Session,
+    principal: VerifiedPrincipal,
+    organization_id: str,
+    *,
+    roles: set[str],
+    class_id: str | None = None,
+) -> tuple[OrganizationAssignmentModel, ...]:
+    try:
+        return require_assignment(
+            db,
+            principal,
+            organization_id,
+            roles=roles,
+            class_id=class_id,
+        )
+    except HTTPException as exc:
+        detail = exc.detail
+        code = detail.get("code") if isinstance(detail, dict) else None
+        if exc.status_code == 403 and code in {"ADULT_NOT_ASSIGNED", "SCOPE_DENIED"}:
+            raise _scope_denied() from None
+        raise
 
 
 @router.get("/organizations/{organization_id}")
@@ -98,42 +126,57 @@ def current_assignments(
     }
 
 
-@router.post("/organizations/{organization_id}/assignments", status_code=status.HTTP_201_CREATED)
-def create_assignment(
-    organization_id: str,
+@router.post("/classes/{class_id}/assignments", status_code=status.HTTP_201_CREATED)
+def assign_class_teacher(
+    class_id: str,
     payload: CreateAssignmentRequest,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
 ) -> dict[str, object]:
-    require_assignment(db, principal, organization_id, roles={"school_admin"})
-    if payload.class_id is not None:
-        get_class(db, organization_id, payload.class_id)
+    classroom = db.scalar(
+        select(ClassroomModel)
+        .where(ClassroomModel.class_id == class_id, ClassroomModel.state == "active")
+        .with_for_update()
+    )
+    if classroom is None:
+        raise _scope_denied()
+    organization_id = classroom.organization_id
+    _require_m2_assignment(
+        db,
+        principal,
+        organization_id,
+        roles={"school_admin"},
+        class_id=class_id,
+    )
+    active_teacher_count = db.scalar(
+        select(func.count())
+        .select_from(OrganizationAssignmentModel)
+        .where(
+            OrganizationAssignmentModel.organization_id == organization_id,
+            OrganizationAssignmentModel.class_id == class_id,
+            OrganizationAssignmentModel.role == "teacher",
+            OrganizationAssignmentModel.active.is_(True),
+        )
+    )
+    if active_teacher_count:
+        raise failure(
+            409,
+            "CLASS_TEACHER_EXISTS",
+            "Class already has an active Teacher",
+        )
     existing_identity = db.get(AdultIdentityModel, payload.subject)
     if existing_identity is None:
         db.add(AdultIdentityModel(subject=payload.subject, issuer=principal.issuer, state="active"))
         db.flush()
     elif existing_identity.issuer != principal.issuer:
         raise failure(409, "IDENTITY_ISSUER_MISMATCH", "Identity belongs to a different provider")
-    duplicate = db.scalar(
-        select(OrganizationAssignmentModel.assignment_id).where(
-            OrganizationAssignmentModel.organization_id == organization_id,
-            OrganizationAssignmentModel.subject == payload.subject,
-            OrganizationAssignmentModel.class_id.is_(None)
-            if payload.class_id is None
-            else OrganizationAssignmentModel.class_id == payload.class_id,
-            OrganizationAssignmentModel.role == payload.role,
-            OrganizationAssignmentModel.active.is_(True),
-        )
-    )
-    if duplicate is not None:
-        raise failure(409, "ASSIGNMENT_EXISTS", "Active assignment already exists")
     assignment_id = str(uuid4())
     row = OrganizationAssignmentModel(
         assignment_id=assignment_id,
         organization_id=organization_id,
         subject=payload.subject,
-        class_id=payload.class_id,
-        role=payload.role,
+        class_id=class_id,
+        role="teacher",
         active=True,
     )
     db.add(row)
@@ -151,54 +194,17 @@ def create_assignment(
         organization_id=organization_id,
         aggregate_id=organization_id,
         event_type="be1.identity.assignment_created.v1",
-        payload={"assignment_id": assignment_id, "role": payload.role},
+        payload={"assignment_id": assignment_id, "role": "teacher"},
     )
     commit(db)
     return {
         "contract": "Be1AdultAssignmentV1",
         "assignment_id": assignment_id,
         "subject": payload.subject,
-        "role": payload.role,
-        "class_id": payload.class_id,
+        "role": "teacher",
+        "class_id": class_id,
         "active": True,
     }
-
-
-@router.delete("/organizations/{organization_id}/assignments/{assignment_id}")
-def revoke_assignment(
-    organization_id: str,
-    assignment_id: str,
-    principal: VerifiedPrincipal = Depends(get_verified_adult),
-    db: Session = Depends(get_db),
-) -> dict[str, object]:
-    require_assignment(db, principal, organization_id, roles={"school_admin"})
-    row = db.scalar(
-        select(OrganizationAssignmentModel).where(
-            OrganizationAssignmentModel.organization_id == organization_id,
-            OrganizationAssignmentModel.assignment_id == assignment_id,
-            OrganizationAssignmentModel.active.is_(True),
-        )
-    )
-    if row is None:
-        raise failure(404, "ASSIGNMENT_NOT_FOUND", "Active assignment was not found")
-    row.active = False
-    audit(
-        db,
-        organization_id=organization_id,
-        actor=principal.subject,
-        action="identity.assignment.revoke",
-        resource_type="adult_assignment",
-        resource_id=assignment_id,
-    )
-    event(
-        db,
-        organization_id=organization_id,
-        aggregate_id=organization_id,
-        event_type="be1.identity.assignment_revoked.v1",
-        payload={"assignment_id": assignment_id},
-    )
-    commit(db)
-    return {"contract": "Be1AdultAssignmentV1", "assignment_id": assignment_id, "active": False}
 
 
 @router.get("/organizations/{organization_id}/classes")
@@ -233,7 +239,7 @@ def create_class(
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
 ) -> dict[str, object]:
-    require_assignment(db, principal, organization_id, roles={"school_admin"})
+    _require_m2_assignment(db, principal, organization_id, roles={"school_admin"})
     class_id = str(uuid4())
     record = ClassroomModel(
         class_id=class_id,
@@ -399,38 +405,43 @@ def create_profile(
     class_id: str,
     payload: CreateProfileRequest,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
+    runtime: Be1Runtime = Depends(get_runtime),
     db: Session = Depends(get_db),
 ) -> dict[str, object]:
     if payload.class_id != class_id:
         raise failure(422, "CLASS_SCOPE_MISMATCH", "Class in body must match the route")
-    require_assignment(
-        db, principal, organization_id, roles={"school_admin", "teacher"}, class_id=class_id
-    )
-    get_class(db, organization_id, class_id)
-    consent = db.scalar(
-        select(ConsentRecordModel).where(
-            ConsentRecordModel.organization_id == organization_id,
-            ConsentRecordModel.class_id == class_id,
-            ConsentRecordModel.child_id == payload.child_id,
-            ConsentRecordModel.consent_id == payload.consent_id,
-            ConsentRecordModel.purpose_ref == payload.purpose_ref,
-            ConsentRecordModel.state == "effective",
+    if (
+        runtime.settings.env not in {"local", "test"}
+        or not runtime.settings.synthetic_pilot_enabled
+    ):
+        raise failure(
+            409,
+            "SYNTHETIC_PROFILE_CREATION_UNAVAILABLE",
+            "Synthetic profile creation is unavailable",
+        )
+    classroom = db.scalar(
+        select(ClassroomModel).where(
+            ClassroomModel.organization_id == organization_id,
+            ClassroomModel.class_id == class_id,
+            ClassroomModel.state == "active",
         )
     )
-    if consent is None:
-        deny_pending_consent(
-            db,
-            organization_id=organization_id,
-            actor=principal.subject,
-            resource_type="child_profile",
-            resource_id=payload.child_id,
-            action="profile.create",
-        )
+    if classroom is None:
+        raise _scope_denied()
+    assignments = _require_m2_assignment(
+        db,
+        principal,
+        organization_id,
+        roles={"teacher"},
+        class_id=class_id,
+    )
+    if not any(row.class_id == class_id and row.role == "teacher" for row in assignments):
+        raise _scope_denied()
     try:
-        validate_age_months(payload.age_months)
+        validate_age_months(payload.age_months, maximum_months=120)
     except CoreRuleViolation as exc:
         raise failure(422, exc.code.value, str(exc)) from None
-    child_id = payload.child_id
+    child_id = f"synthetic-{secrets.token_hex(12)}"
     profile = ManagedProfileModel(
         child_id=child_id,
         organization_id=organization_id,
@@ -438,9 +449,10 @@ def create_profile(
         display_name=payload.display_name,
         age_months=payload.age_months,
         age_revision=1,
-        age_source="ADULT_DECLARED",
-        consent_id=payload.consent_id,
-        consent_purpose_ref=payload.purpose_ref,
+        age_source="SYNTHETIC_FIXTURE",
+        consent_id=None,
+        consent_purpose_ref=None,
+        data_origin="SYNTHETIC_DEV",
         created_by=principal.subject,
     )
     enrollment = EnrollmentModel(
@@ -474,7 +486,7 @@ def create_profile(
         "class_id": class_id,
         "display_name": profile.display_name,
         "age_months": profile.age_months,
-        "consent_state": "effective",
+        "data_origin": profile.data_origin,
     }
 
 

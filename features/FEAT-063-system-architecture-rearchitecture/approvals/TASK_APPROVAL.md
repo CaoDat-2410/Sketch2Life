@@ -738,3 +738,323 @@
 - Approved scope: commit the reviewed, non-sensitive pending changes in the current worktree and push `codex/feat063-modal-backend-completion-20261103` to a same-named `origin` branch.
 - Explicit exclusions: push to `dev`, force-push, `.env`/credentials/tokens/keys, real-child data, or edits to the canonical SRS.
 - Required check: run `python tools/validate_repository_security.py` before commit.
+
+
+## M2 S0-doc Task Approval — Draft 7 — 2026-11-06
+
+- **Status:** APPROVED for S0-doc documentation scope only; NOT LAUNCHED. Creating this approval does not launch S0-doc. A separate execution session may create the evidence file only after a separate owner instruction.
+- **Owner decision records:** D-142 through D-146 in DECISIONS.md.
+- **Plan:** plan/M2_PARENT_TEACHER_FOUNDATION_PLAN_DRAFT7_20261106.md.
+- **Plan SHA-256:** BB3C9F165731B1AEE261265270526B791FEE7BD622CE7D614514F2622DEFD099.
+- **Baseline:** branch feature/feat063-be-foundation; HEAD dd70685eae58aaaefea3e567f5c23d09345a8513; parents 1e109b1726f327ac9383457b0dbdd535ef5c6518 and fb834771c24957bb8e289fb95d21410b14181e57. If HEAD changes, reconfirm before use.
+- **Pinned inputs:** Draft 7 §§1.1–1.3; all 17 source paths and full SHA-256 values pinned there were rechecked before this approval was recorded.
+- **Approved scope:** S0-doc only, as defined in Draft 7 §3: reconcile source requirements, schema mappings, owner decisions, B0 provenance and migration graph by reading source. No application/project commands or database access.
+- **Read-only inputs (exactly the S0-doc row in Draft 7 §8):** Mọi tài liệu pin ở §1; features/FEAT-063-system-architecture-rearchitecture/SOURCE_REGISTER.md; features/FEAT-063-system-architecture-rearchitecture/evidence/COMMIT_WHITESPACE_NORMALIZATION_20261103.md; Draft 1/2/3/4 của plan này; backend/alembic/versions/20261104_story_revisions.py; backend/src/sketch2life/infrastructure/persistence/core_models.py; .claude/handoff/logs/GB2_T12_OFFLINE_20261105A/offline-check.txt (local, git-ignore); hồ sơ governance.
+- **Existing files permitted to modify:** none.
+- **One new file permitted:** features/FEAT-063-system-architecture-rearchitecture/evidence/M2_S0_DOC_SOURCE_RECONCILIATION_20261106.md. This path was absent when approval was recorded. Record its SHA-256 only after the separate execution session creates it; do not predeclare a hash. No other new file is authorized.
+- **Snapshot:** no separate snapshot file is authorized by this record; if the S0-doc evidence task determines a repository-standard manifest is required, stop and obtain a scope update before creating another file.
+- **Command ceiling:** read-only file inspection and read-only Git metadata only: rev-parse, status, log, diff --name-status, diff --numstat, diff --shortstat, show, and SHA-256 calculation. No test, validator, mypy, Alembic, database connection, Modal/provider/network, stage/commit/push/merge, or edits to source, tests, migrations, SRS, DTR, roadmap or governance.
+- **Exit criteria (copied from Draft 7 §3, S0-doc row):** Requirement có source ID; unknown được gắn nhãn; route/table/owner/M2-AT có crosswalk; B0 provenance được owner disposition hoặc vẫn block; các giới hạn evidence được ghi; không claim implementation approval.
+- **Stop gate (copied from Draft 7 §3, S0-doc row):** Hash lệch, owner assumption bị coi là quyết định, hoặc cần DB/file ngoài approval thì dừng.
+- Owner decision ảnh hưởng S0-doc: §9.7 B0 provenance đã có disposition (xác nhận tương đương cho file B0 plan, xem Ghi A mục 3), nên tiêu chí thoát S0-doc về B0 được thỏa; §9.5 schema convergence: chỉ lập bản đối chiếu để owner xem, không migrate. Các mục §9.1–9.4, §9.6 không chặn S0-doc.
+- **Exclusions:** no S0-owner-run, S1a, S1b, S2, S3, M3–M6, implementation, source/test/migration change, DB work, provider or Modal work.
+- **Validity:** this approval is limited to S0-doc and ends after the S0-doc evidence is created and independently reviewed. It does not authorize the separate execution session to start without a separate owner instruction. No later phase is opened.
+- **Approval basis:** direct owner instruction in the current conversation, 2026-11-06; Draft 7 SHA-256 above.
+## M2 S0-doc Evidence Correction Addendum — 2026-11-06
+
+- **Status:** APPROVED for evidence correction only; NOT LAUNCHED. Creating this addendum does not launch the correction. A separate execution session may start only after a separate owner instruction.
+- **Owner decision record:** D-147 in DECISIONS.md.
+- **Relates to:** entry "M2 S0-doc Task Approval — Draft 7 — 2026-11-06" and evidence SHA-256 473D132DD8442A131A70AF7103A0346B50AA08A6D41E2562DA5FC4BA95667D9F (must match before any edit; stop if it differs).
+- **Baseline:** branch feature/feat063-be-foundation; HEAD dd70685eae58aaaefea3e567f5c23d09345a8513. If HEAD changes, reconfirm before use.
+- **Existing file permitted to modify:** features/FEAT-063-system-architecture-rearchitecture/evidence/M2_S0_DOC_SOURCE_RECONCILIATION_20261106.md only.
+- **Permitted passages (and nothing else):** (E1) the §1 bullet about the S0-doc Task Approval, to state that the approval's historical status is NOT LAUNCHED, that it does not launch S0-doc by itself, and that execution began from a direct owner instruction in conversation on 2026-11-06 not separately recorded in the repository records read; (E2) the BR-49 row of the §2 crosswalk and the F-01 bullet in §2.2, to list the tables outside the M2 BR-49 slice with DTR owners, attribute the lesson/feedback/quota scope to SRS §31.8.1, state that quota owner scopes remain open per DTR §14.2 item 10, and describe the roadmap listing accurately; (E3) the D-144 §9.7 bullet in §5, to state that the read-only comparison was performed by the coordinator per D-144, that D-144's Basis column also says "owner-supplied comparison", and that S0-doc records this per D-144 without re-verifying the snapshot (outside its allowlist). Optional E4 only if the owner says so in the execution instruction.
+- **New files:** none. No other existing file may be modified.
+- **Command ceiling:** read-only file inspection, read-only Git metadata and SHA-256 calculation, plus the single text edit of the evidence file. No test, validator, mypy, Alembic, database, Modal/provider/network, stage/commit/push/merge, or edits to source, tests, migrations, SRS, DTR, roadmap, Draft files or governance.
+- **After the edit:** compute the new SHA-256 (do not predeclare it); a separate focused independent re-review of the diff and the six S0-doc exit criteria is required before any closure record.
+- **Exclusions:** no S0-doc closure, no S0-owner-run, S1a, S1b, S2, S3, M3–M6, no implementation, DB work, migration, provider or Modal work.
+- **Validity:** ends after the corrected evidence is independently re-reviewed. No later phase is opened.
+- **Approval basis:** direct owner instruction in the current conversation, 2026-11-06 (Phương án A).
+
+## M2 S0-doc Evidence Correction Addendum 2 — 2026-11-06
+
+- **Status:** APPROVED for a second, narrower evidence correction only; NOT LAUNCHED. Creating this addendum does not launch the correction. A separate execution session may start only after a separate owner instruction.
+- **Owner decision record:** D-149 in DECISIONS.md.
+- **Relates to:** "M2 S0-doc Evidence Correction Addendum — 2026-11-06" and evidence SHA-256 E9048877338C74F123355AF938DBB1C8B2A6915EBC0D824CADF3180E8D44CF79 (must match before any edit; stop if it differs).
+- **Baseline:** branch feature/feat063-be-foundation; HEAD dd70685eae58aaaefea3e567f5c23d09345a8513. If HEAD changes, reconfirm before use.
+- **Reason:** independent re-review of the corrected evidence returned NEEDS_REVISION (0 P1, 2 P2, 1 P3), all in the E2a cell; E1, E2b and E3 are kept unchanged.
+- **Existing file permitted to modify:** features/FEAT-063-system-architecture-rearchitecture/evidence/M2_S0_DOC_SOURCE_RECONCILIATION_20261106.md only.
+- **Permitted change (and nothing else):** replace the BR-49 "Logical tables / owners theo DTR" cell (section 2 crosswalk, evidence line 51) by the owner-approved text whose UTF-8 SHA-256 is 794B3DB496EB6F873F446ED1E737223EEAC380B4882783C5BCB0E98B43A33DB1. The text must stay on one line with no pipe character. This replacement supersedes the clause "state that quota owner scopes remain open per DTR section 14.2 item 10" of the first addendum.
+- **Expected result:** evidence SHA-256 1BB71300A6A22487311A8D39EECB0EB1CE2664CB471EC2DAF45DA8DE2E244001, 146 lines, LF, no BOM, CR=0 (a deterministic check, not a pre-recorded outcome of review).
+- **Must not change:** every other line of the evidence and every other file. No new files.
+- **Command ceiling:** read-only file inspection, read-only Git metadata and SHA-256 calculation, plus the single text edit of the evidence file. No test, validator, mypy, Alembic, database, Modal/provider/network, stage/commit/push/merge, or edits to source, tests, migrations, SRS, DTR, roadmap, Draft files or governance.
+- **After the edit:** a separate focused independent re-review of this one cell and the six S0-doc exit criteria is required before any closure record.
+- **Exclusions:** no S0-doc closure, no S0-owner-run, S1a, S1b, S2, S3, M3–M6, no implementation, DB work, migration, provider or Modal work.
+- **Validity:** ends after the corrected evidence is independently re-reviewed. No later phase is opened.
+- **Approval basis:** direct owner instruction in the current conversation, 2026-11-06 ("Duyệt, soạn prompt").
+
+## M2 S0-doc Closure Record — 2026-11-06
+
+- **Status:** S0-DOC CLOSED at documentation scope only. No later phase is opened.
+- **Owner decision record:** D-150 in DECISIONS.md.
+- **Evidence:** features/FEAT-063-system-architecture-rearchitecture/evidence/M2_S0_DOC_SOURCE_RECONCILIATION_20261106.md, SHA-256 1BB71300A6A22487311A8D39EECB0EB1CE2664CB471EC2DAF45DA8DE2E244001.
+- **Review:** independent re-review of this exact evidence returned ACCEPT_WITH_CONDITIONS (0 P1, 0 P2, 2 P3); conditions and notes are recorded in D-150.
+- **Baseline:** branch feature/feat063-be-foundation; HEAD dd70685eae58aaaefea3e567f5c23d09345a8513.
+- **Not opened and not approved:** S0-owner-run (needs its own approval with database name/identity, runner, restore method, synthetic-only proof, read-only script and command), S1a, S1b, S2, S3, M3–M6, any implementation, database work, migration, provider or Modal work. OWNER_MODAL_CALL_APPROVED=NO is unchanged.
+- **Carry-forward:** see D-150 (Draft 8 items and open route/code mismatches).
+- **Approval basis:** direct owner instruction in the current conversation, 2026-11-06.
+
+## M2 S0-owner-run Task Approval — 2026-11-07
+
+- **Status:** APPROVED for one read-only owner-run only; NOT LAUNCHED. Creating this approval does not launch the run. The owner launches only by a separate instruction. No later phase is opened.
+- **Owner decision records:** D-152 and D-153 in DECISIONS.md.
+- **Approval spec:** plan/M2_S0_OWNER_RUN_APPROVAL_DRAFT6_20261107.md, SHA-256 6B4978C9B941C371D1EFFA654308C43B605A9823B056F2F89B6808005B82D9DE. This is the S0-owner-run approval spec, not the M2 plan with the same Draft number.
+- **Plan:** plan/M2_PARENT_TEACHER_FOUNDATION_PLAN_DRAFT10_20261106.md, SHA-256 7539D642FFD95A9A21C99A0C17C5095FF1443E19538017A92789F631D633E2B1.
+- **Baseline:** branch feature/feat063-be-foundation; HEAD dd70685eae58aaaefea3e567f5c23d09345a8513. If HEAD changes, reconfirm before use.
+- **Script:** evidence/scripts/m2_s0_owner_run_readonly_20261107_r4.py, SHA-256 C28527CE531A4C1816B04BB4BA071B3F237CAD0AC7E95794A04CC86A2FABADB5. Any byte change voids this approval.
+- **K3 static-AST manifest:** read-only inspection of exactly these 28 revision files; verify every SHA-256 again before launch. This is the owner-approved expansion from the 9 files in Draft 10 §8. Do not import revisions or application modules.
+
+| Revision file | SHA-256 |
+|---|---|
+| backend/alembic/versions/20261014_0001_core_persistence.py | 55F415847B3E8AB5A96023CFC58C9C229056213AF92690865CF70F728290535C |
+| backend/alembic/versions/20261014_0002_be1_runtime.py | 08014F5F5CD8A48FC21102090776128712EDEA1D04703853F9A0CC78CADAC520 |
+| backend/alembic/versions/20261014_0003_canvas_payload.py | 194A831C661CA84C796557CCCF762715F6C0CC0E747521D588D1F30E1A5BB9E5 |
+| backend/alembic/versions/20261014_0004_be1_constraint_names.py | AB15DFCE0738D994B14B337A03B34F7365BBBC67AFFE3BB01F24901F87BAFFFD |
+| backend/alembic/versions/20261015_ai_0001_ai_jobs_schema.py | D86BD759FCB5DC644C94007FCA3650C6315903EC39EE4DA99579C4E23E656714 |
+| backend/alembic/versions/20261017_ap_0001_policy_lifecycle.py | 81F84E9B3C4C7929018EB0A82ABED1DC2581811BB178EC6097E3134BBD8D765A |
+| backend/alembic/versions/20261017_ap_0002_effective_scope.py | 35DBAA33A4F41EC69A01E03D688AF9B9238145EE0006D54CA67C115D0987CDE7 |
+| backend/alembic/versions/20261017_ap_0003_resource_ledger.py | FEE3A90E27691B90B1D45E6DE7D14C3DB77311EBE86414051B55C75D02AB1924 |
+| backend/alembic/versions/20261017_ap_0004_copy_inventory.py | 3EC8747A198941C9C4B36C4FDD0E08986355F0B2334589951EEA99BBF20AC2E7 |
+| backend/alembic/versions/20261017_ap_0005_copy_evidence.py | 9E364BF938C2D6B6714FDE8C2A2527AAB84D3DD378C1AE16C0578FD86B9B8C12 |
+| backend/alembic/versions/20261017_lc_0001_content_publication.py | DA2B372442A7CF234B8C1FC0FC7472B5A068FE8F832B6465C1BC1E4D2FE2F498 |
+| backend/alembic/versions/20261018_ap_0006_copy_operations.py | B266744B3792E0E68347FA674B374A54D14CC33E4776106ADE91E2E407C447F7 |
+| backend/alembic/versions/20261018_ap_0007_copy_delivery.py | 3BF400A165F5D681017FFE1AADEEAEB724BFFF5992289FB21331F5247C479E52 |
+| backend/alembic/versions/20261018_ap_0008_delivery_authority.py | 9D8171F8B00C603FD350E32B6D6412B049A504F47B4D4F92355D654C86B71E05 |
+| backend/alembic/versions/20261018_ap_0009_copy_resolution.py | 465A3421BC54895D2969AE95B1E3A9425689D1ED38B1CD6BCD8FE29D9B961A44 |
+| backend/alembic/versions/20261018_kv_0001_knowledge_video.py | E7EFE124ECBFC5D1E280529DBA3B05EB2B00DCE04C24BF9EAC11BCE516B15D87 |
+| backend/alembic/versions/20261018_vr_0001_video_review.py | 3E489443949C0934B414E4A69C6BD01B09782F4653042803C79291D66B415FC7 |
+| backend/alembic/versions/20261019_ae_0001_activity_execution.py | 56993DC8CE1507D471ED3E3052F99A3A05B9D26C64E979822198946CD9EF9C30 |
+| backend/alembic/versions/20261019_pa_0001_preset_automation.py | D2A8B958D6BD9411D040E3358F5568E2C728C1095D5395D55532916ACC5182E8 |
+| backend/alembic/versions/20261019_vf_0001_video_failure.py | 0520CB0EB850D1BB4A267571F30937677908E505B77E221D1F0C90EE806FD178 |
+| backend/alembic/versions/20261024_0005_classroom_srs_contracts.py | E533FC15447222C334A82CD162DC01FEB7B94221B402552D774CBD11E7D7289C |
+| backend/alembic/versions/20261028_ll_0001_lesson_library.py | 733836723A95834C721E6CD0CA3527D73EA6EFE089B2F109A956EA484DFE1D83 |
+| backend/alembic/versions/20261031_be1_synthetic_eligibility.py | 421F695FE49193C4A2EDCAC66B4461D8AFCB47B825813918E0083B21BC1483FC |
+| backend/alembic/versions/20261101_be1_age_provenance.py | 2A634DC4DDF00326AFEF4079F7795A185D458DE2DB65BA6FD3C40291BBA5614E |
+| backend/alembic/versions/20261102_pilot_vision.py | 6335AD224708AEC8251447A296458854B663FC7DD763EFB184E4AFF156E86BD9 |
+| backend/alembic/versions/20261102_story_run_lite.py | D5E5F85EA3A7545538D6F1DE1E17D3869FD9AA7A543F870EAD54297F70D6E143 |
+| backend/alembic/versions/20261103_story_upload_compat.py | F16346F5D0D320B22AF0767F387FE066ED3683D57DDD380804424B5A837CA166 |
+| backend/alembic/versions/20261104_story_revisions.py | 3618BEF0ECCB0E01EE61F65E1065F7AE8EA6297FE0781D965588614D0F1C37F8 |
+
+- **Owner-reported target and roles:** PostgreSQL native Windows instance, localhost/127.0.0.1 port 5433, database sketch2life, user postgres; expected major version 17. Dump header was reported as PostgreSQL 17.11. The service-to-port/database relationship has not been verified by this coordinator through a DB connection. Executor: Person 2 / AnhKhoaa157. Restore and database-preservation owner: Person 2 / AnhKhoaa157.
+- **Dump and restore evidence (owner-provided):** dump file sketch2life-s0-owner-run-20261107.dump, outside the repository, SHA-256 AAD9B4CDBD0C1B11B017846A6B99449747981A8822443E0DC9BDA6B47740371A. Owner reports pg_restore --list returned a valid header, 583 TOC entries and PostgreSQL 17.11. A restore trial was not performed; the owner accepts this disposition. This listing does not establish that a restore was tested.
+- **Mypy decision:** NOT RUN in this approval, by owner choice A. There is no mypy command, version command, mypy output file, or cache authorized here. The D-144 §9.6 baseline remains outstanding for a separate run or approval.
+- **Approved scope:** exactly one execution of the r4 read-only inventory script and K1–K6 checks as defined in approval spec Draft 6. No migration, Alembic CLI, write, cleanup of the 58 historical rows, write-phase database, or S1a/S1b/S2/S3/M3–M6.
+- **Read-only inputs:** the 28 revision files above for static-AST only; .gitignore; backend/pyproject.toml; backend/alembic/env.py was read in Draft 6's non-executable P2 appendix and is included only as read-only source context. This does not authorize any Alembic CLI or P2 operation. Other approval-spec and plan documents are read only.
+- **Existing files permitted to modify:** none.
+- **New files permitted only after a separate launch instruction:** inventory.json and inventory.txt in a new run directory under .claude/handoff/logs/M2_S0_OWNER_RUN_20261107/. The directory must not exist before launch; r4 creates it and does not overwrite outputs. No mypy outputs or cache are permitted under choice A. Runtime artifacts are never committed.
+- **Command ceiling:** the single command below, at most one run and 1800 seconds. No retry without a new approval. Password is entered only at the script's hidden getpass prompt, never in the command line, environment, file, log, chat or transcript. The owner manually monitors the ceiling and presses Ctrl+C at 1800 seconds; r4 handles KeyboardInterrupt and exits 130. Timeout, interruption, missing output or absent safety verdict is NOT RUN, never PASS. No other command is authorized.
+
+    & .\backend\.venv\Scripts\python.exe .\features\FEAT-063-system-architecture-rearchitecture\evidence\scripts\m2_s0_owner_run_readonly_20261107_r4.py --expect-db sketch2life --out-dir .claude\handoff\logs\M2_S0_OWNER_RUN_20261107 --alembic-method static-ast
+
+- **Owner launch preconditions:** copy all 13 checks below into the separate launch instruction and tick each only after verifying it. Every checkbox remains unticked in this approval; any unticked or unverified item blocks execution.
+
+- [ ] OWNER XÁC NHẬN: dump/restore point ngoài repo; ghi tên file/hash dump và đã thử restore hay chưa.
+- [ ] OWNER XÁC NHẬN: PostgreSQL native instance, database và identity manifest khớp target đã duyệt; target dự kiến 127.0.0.1:5433, sketch2life, postgres.
+- [ ] OWNER XÁC NHẬN: database chỉ dùng cho inventory read-only, không phải write-phase.
+- [ ] OWNER XÁC NHẬN: current identity là postgres trên target đã xác minh. A2 history ghi role postgres là user/owner ngày 2026-11-03; owner chưa kiểm tra privilege hiện tại, nên least-privilege không được tuyên bố đạt. Không tạo role mới; script vẫn chỉ chạy transaction READ ONLY.
+- [ ] OWNER XÁC NHẬN: password chỉ nhập tại getpass ẩn; không command line, env, file, log hoặc chat.
+- [ ] OWNER XÁC NHẬN: PGHOST, PGPORT, PGUSER trong shell riêng đúng target; không có biến password/service/file/options override.
+- [ ] OWNER XÁC NHẬN: script chạy trong shell riêng không chứa biến môi trường nào có ://; chặn rộng là chủ ý và có thể từ chối vì biến không liên quan, khi đó phải dùng shell sạch.
+- [ ] OWNER XÁC NHẬN: .claude/handoff/logs/ đang bị ignore; chấp thuận script đọc .gitignore ngoài allowlist Draft 10 §8.
+- [ ] OWNER XÁC NHẬN: git status trên backend/alembic/versions sạch trước khi chạy.
+- [ ] OWNER XÁC NHẬN: 26-table A2 delta liệt kê trong Draft 6 khớp với tổng +58 rows; checkbox này xác nhận delta/count map, không tự xác nhận nguồn gốc synthetic. Bằng chứng synthetic-only cho application rows và bảng thiếu provenance là mục riêng.
+- [ ] OWNER XÁC NHẬN: đã chọn P1 hoặc ghi K3 NOT RUN; không suy ra lựa chọn.
+- [ ] OWNER XÁC NHẬN: dùng literal loopback; không bật `--allow-nonlocal-host` và không đổi connection để lách guard.
+- [ ] OWNER XÁC NHẬN: mypy = NOT RUN under this approval, per owner choice A; no mypy command, mypy output artifact, or mypy cache is authorized.
+
+- **Known conditions carried from Draft 6 review:** (1) the approved order is r4 only; mypy is NOT RUN under owner choice A; (2) postgres privilege is unverified and least-privilege is not met; (3) K1 checks the database name only, so the owner must independently verify the instance, port 5433, PostgreSQL 17 and user postgres, then compare actual version/table counts with the historical expectation of 117 tables, 82 total rows and 9 public.alembic_version rows as of 2026-11-03; far fewer tables suggests the wrong instance; (4) K5 never PASS; K5 for the 15 baseline application rows is NOT RUN because synthetic-only proof was not provided; (5) exit-code mapping and gate states are as in Draft 6, including LockNotAvailable outside K5 -> exit 6; (6) Docker container and native-service observations are historical, not identity evidence.
+- **Review recommendations and amendments:** four independent chat-only reviews of Draft 1–4/r1–r4 and one quick Draft 6 review are recommendations, not approval. The quick review was session local_1d5dc947-6f8a-4602-b786-ce62296f1bd9, ACCEPT_WITH_CONDITIONS, 0 P1/0 P2/6 P3. Its amendments are folded here without editing Draft 6: P3-1 r4 creates the run directory before any authorized follow-up (none under choice A); P3-2 this record distinguishes Approval spec Draft 6 from M2 Plan Draft 10 and labels hashes; P3-3 format only; P3-4 the Draft 6 change inventory omitted the privilege wording change, fixed run-directory ID replacing the old placeholder, the new blocking-conditions section, removal of the age_source warning in K5, and the host-guard sentence; P3-5 POSTGRES_USER=portgres is the value observed in the stopped Docker container configuration, an apparent typo not independently verified, with all other values in that observation historical; P3-6 this record pins Draft 6's hash above. These notes do not change scope or grant authority beyond the single r4 run.
+- **Exit criteria:** after the owner-run, compare inventory with the historical expectation and record discrepancies; a separate closure record is required to end this phase. K5 NOT RUN remains NOT RUN and is never reported as PASS.
+- **Stop gate:** any pin/hash/manifest mismatch; mismatch in instance, version, port, user or DB identity; K1/K2 failure; any non-synthetic origin bucket; any need to write or migrate; missing safety verdict; or any unticked precondition means stop, report and leave the database untouched. Do not switch shells or rephrase commands to bypass a gate.
+- **Exclusions:** no S1a, S1b, S2, S3, M3–M6; no implementation, migration, writes, cleanup of the 58 rows, Modal/provider, or network calls. Do not put password, connection URL, token or row data in chat, logs or Git. OWNER_MODAL_CALL_APPROVED=NO remains unchanged.
+- **Validity:** limited to one run of the pinned r4 script. It ends after a closure record or if the script/spec hash changes. Every later phase needs its own Task Approval.
+- **Approval basis:** direct owner instruction in the current conversation, 2026-11-07; D-152 and D-153; approval spec Draft 6, r4 and Plan Draft 10 hashes above.
+
+## M2 S0-owner-run Closure Record — 2026-11-07
+
+- **Status:** S0-OWNER-RUN CLOSED at the scope of the single read-only run; no later phase is opened.
+- **Owner decision record:** D-154 in DECISIONS.md.
+- **Run:** one owner-run execution of script r4 on 2026-11-07 (UTC 10:16:07), owner-reported exit code 0, inventory stop code NONE, under M2 S0-owner-run Task Approval — 2026-11-07.
+- **Pins:** approval spec Draft 6 SHA-256 6B4978C9B941C371D1EFFA654308C43B605A9823B056F2F89B6808005B82D9DE; script r4 SHA-256 C28527CE531A4C1816B04BB4BA071B3F237CAD0AC7E95794A04CC86A2FABADB5.
+- **Results (local, git-ignored, not committed):** inventory.json SHA-256 E4529F541002D840C3F2E1D25F24D00E7B92A65720E3036EB59BA71FD04DB64F; inventory.txt SHA-256 E37B07E82DB8E22B53F93D12F9400912271AD25135EB4103A99DFA2EDAB51025.
+- **Observed inventory:** database sketch2life, PostgreSQL 17.11; 12 schemas, 117 tables, 986 columns, 460 constraints, 205 indexes, 231 CHECK constraints, 82 total rows across 37 populated tables, including 9 rows in public.alembic_version. The 117-table per-table count map matches the A2 post-failed-teardown snapshot exactly.
+- **Gate outcomes:** K1 PASS (database name only), K2 PASS, K3 FAIL, K4 COLLECTED (source comparison NOT RUN), K5 NOT RUN, K6 COLLECTED (definitions only), K7 NOT RUN. These are the recorded gate states; they do not establish synthetic-only proof, schema equivalence or mypy.
+- **K3 discrepancy:** database revision 20261103_story_upload_compat differs from static source head 20261104_story_revisions; no migration was run. Schema story has only command_receipts, review_decisions, run_inputs, runs and understanding_revisions.
+- **K5 limitation:** only public.be1_managed_profiles and public.be1_synthetic_eligibility_proofs have data_origin (one SYNTHETIC_DEV row each, no non-synthetic bucket); 115 tables lack data_origin. Owner proof for 15 baseline application rows was not supplied, so K5 remains NOT RUN for that scope. The inventory k5_not_run_tables list is empty, which is not proof.
+- **K6 collected definitions (not interpreted):** ck_be1_profile_age_months: CHECK (age_months >= 36 AND age_months <= 155); ck_be1_profile_origin_consent_refs: CHECK (data_origin::text = 'REAL'::text AND consent_id IS NOT NULL AND consent_purpose_ref IS NOT NULL OR data_origin::text = 'SYNTHETIC_DEV'::text AND consent_id IS NULL AND consent_purpose_ref IS NULL OR data_origin::text = 'LEGACY_UNCLASSIFIED'::text). F-6 remains open for owner decision.
+- **Not opened and not approved:** S1a, S1b, S2, S3, M3–M6, implementation, migration, any write, cleanup of the 58 rows, mypy run, provider or Modal work. OWNER_MODAL_CALL_APPROVED=NO is unchanged.
+- **Carry-forward:** K4 source comparison and F-1, F-2, F-4, F-6, C5 and age source to the S1a Task Approval; D-144 §9.6 mypy baseline remains outstanding; schema-only copy database for S1a/S2 is not created; dump remains outside the repository. See D-154.
+- **Approval basis:** direct owner instruction in the current conversation, 2026-11-07; D-152 and D-153; approval spec Draft 6 and script r4 hashes above.
+
+
+## M2 Baseline Run Approval — 2026-11-08
+
+- **Status:** APPROVED / NOT LAUNCHED. This approval is limited to the single owner-run baseline procedure pinned below; it does not establish that the baseline was run or accepted.
+- **Owner decision record:** D-159, B7.
+- **Specification:** `plan/M2_BASELINE_RUN_APPROVAL_FINAL_20261107.md` — SHA-256 `A671DBD85B9622CB754C5CECB807BBBBA2C920CD76F0A22ABBA44F4A12DC1A18`.
+- **Launch instruction:** `plan/M2_BASELINE_LAUNCH_INSTRUCTION_20261107_R2.md` — SHA-256 `C132EF91AD7C06A82EB27D09D82B0662E77CDD795B9BC2F935B281822EAA9178`.
+- **Independent review:** cold, read-only review returned READY (0 P1, 0 P2, 1 P3) in session `01a1b996-cc5d-7f80-8cb6-69a7fa3c0b1c`. The reviewer verified the pinned specification, launch instruction and 17 source pins. The non-blocking P3 records that Git `--quiet` emitted non-fatal stderr warnings in the review workspace while both commands returned 0, whereas the launch instruction describes Boolean-only output. This observation is recorded here; the pinned instruction was not changed.
+- **Execution boundary:** owner-run only, NOT LAUNCHED. The owner must satisfy and tick every run-time precondition at launch and follow the pinned command, capture, timeout and stop gates. This entry does not approve S1a-T, write a Baseline Closure Record, or open any later phase. `OWNER_MODAL_CALL_APPROVED=NO` remains unchanged.
+- **Approval basis:** direct owner goal message, 2026-11-08; no owner name or signature recorded.
+
+## M2 Baseline Closure Acceptance — 2026-11-08
+
+- **Status:** ACCEPTED by the owner for the exact baseline closure record only: `plan/M2_BASELINE_CLOSURE_RECORD_20261108.md`, SHA-256 `65588C6876F653F3A0B17E227B8845E63EA2F6C77FB78756A91925DEBA9626D6`. The record itself is unchanged; this append-only entry records the subsequent owner acceptance and the provenance correction below.
+- **Independent review:** round 3 returned `READY_FOR_OWNER_REVIEW` (0 P1, 0 P2, 2 P3). The two P3 notes are retained without editing the Closure Record: the phrase “log directory above” at line 17 could be more explicit; and the static evidence could mention that `test_synthetic_eligibility.py` directly exercises `PostgresCoreStore.create_synthetic_profile` with inputs rejected by the synthetic-identity guard before its session block. These are review notes, not implementation approval.
+- **Required provenance correction (this entry only):** the reading/scanning attributed to the owner in Closure Record lines 96, 98 and 108 was performed read-only by the Claude coordinator: inspection of `backend/tests/unit/test_be1_fact_reader.py` lines 252–272, the 24 baseline logs, and the 25 files under `tmp/M2_BASELINE_RUN_20261107/`. The owner read the reported results and accepted the listed narrow exemptions as owner decisions; the owner did not perform those scans. No URI, credential or token values are reproduced here.
+- **Accepted test and static-check limits:** for acceptance, pytest is `NOT RUN / NO VERDICT` because `pytest.stdout.txt` has no official aggregate summary; its exit code 1 is raw data only, and no passed-test count is inferred. Strict mypy reported 255 errors across 50 files and Ruff reported 202 findings; both are baseline data, not PASS. `git diff --check` exited 2.
+- **Accepted sequence deviation:** the three validators and `git diff --check` were run after pytest ended without an official summary, despite the stop condition in the baseline specification. This deviation is disclosed and accepted as part of this closure; it does not change pytest to PASS or provide a pytest verdict.
+- **Accepted timing/provenance deviation:** `DECISIONS.md` was written at 13:29:01 before the owner-run baseline interval (13:34:40–13:44:28). The R3 launch instruction, approval specification and launcher were written at 13:38:49, 13:42:48 and 13:43:01 during that interval. All 17 pinned source hashes still matched after the run. This is a disclosed timing overlap, not a pin mismatch.
+- **Phase boundary:** this acceptance closes only the baseline closure record. It does not launch or approve S1a-T, S1a-P, S1b, S2, S3 or M3–M6; no implementation, database write, migration, provider or Modal work is authorized. A separate Task Approval and launch instruction remain required for any later phase. `OWNER_MODAL_CALL_APPROVED=NO` remains unchanged.
+- **Approval basis:** direct owner instruction in the current conversation, 2026-11-08, accepting the exact reviewed Closure Record with the provenance correction above.
+
+## M2 S1a-T Approval — 2026-11-08
+
+- **Status:** APPROVED / NOT LAUNCHED. This entry records approval of the S1a-T task defined by the pinned R5 specification. No S1a-T launch was performed by the coordinator.
+- **Owner decision record:** D-159 B7 and D-162. This entry is recorded only after the independent R5 round-3 review returned READY with 0 P1 and 0 P2.
+- **Approval specification:** `plan/M2_S1A_T_APPROVAL_SPEC_FINAL_20261107_R5.md` — SHA-256 `934D2E69DAEA293CC68BDD55EED8713CE59E0EAB0E1CA758FB9420B34EAC9345`.
+- **Launch instruction:** `plan/M2_S1A_T_LAUNCH_INSTRUCTION_20261107_R5.md` — SHA-256 `9CBCE84B4AB579D0857AC153DC2FC59DAFB255468E1AFC29D338566B9EDAFAAC`.
+- **Guarded owner launcher:** `evidence/scripts/m2_s1a_t_owner_run_20261107_r5.py` — SHA-256 `DA7F4A4D6502F927C7EC1F29F112A283E7960F831F2183CD07C09E61EE488FA0`.
+- **Baseline prerequisite:** The owner-accepted `M2 Baseline Closure Acceptance — 2026-11-08` at line 909 above satisfies the S1a-T baseline-closure prerequisite. It accepts only `plan/M2_BASELINE_CLOSURE_RECORD_20261108.md`, SHA-256 `65588C6876F653F3A0B17E227B8845E63EA2F6C77FB78756A91925DEBA9626D6`.
+- **Independent review:** Fresh cold read-only review, round 3 (final), returned READY (0 P1 / 0 P2 / 1 P3), session `01a1badf-4d36-7c02-8a4c-e7ab2ae6c998`. The non-blocking P3 notes inherited R2/R4 launcher-version wording at specification lines 64 and 79; the reviewed behavior is present in R5 and this note does not change the approved scope.
+- **Execution boundary:** APPROVED / NOT LAUNCHED. This entry records no execution. Any owner-run must follow the exact pinned R5 launch instruction, including its launch-time gates and stop conditions. `OWNER_MODAL_CALL_APPROVED=NO` remains unchanged. S1a-P, S1b, S2, S3 and M3–M6 remain closed.
+- **Approval basis:** direct owner instruction in the current conversation, 2026-11-08, conditional on the independent R5 review returning READY with 0 P1 and 0 P2; D-159 B7 and D-162.
+
+## M2 S1a-T Approval Addendum — 2026-11-08
+
+- **Status:** APPROVED / NOT LAUNCHED. This addendum resolves the route and age-validation wording conflict for the already approved S1a-T scope. No implementation, test, database, Alembic, or launcher execution had occurred when this addendum was recorded.
+- **Owner decision record:** D-163 in `DECISIONS.md`.
+- **Route resolution:** The sole existing `POST /api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles` handler is the R5 Teacher synthetic profile/enrollment operation. It will implement the R5 contract; the former consent-bound `ADULT_DECLARED` create behavior is removed from this method/path. Consumers outside the repository (frontend and Bruno) are NOT VERIFIED. `ADULT_DECLARED` remains a valid model/check/reader value.
+- **Age compatibility:** Keep `validate_age_months` default at 36–155 for existing callers; apply an explicit maximum of 120 only to new Teacher input and `CreateProfileRequest`. Preserve existing values and the database CHECK; no clamp, `child_age.py`, or migration.
+- **R5 artifacts (unchanged):** specification `plan/M2_S1A_T_APPROVAL_SPEC_FINAL_20261107_R5.md` SHA-256 `934D2E69DAEA293CC68BDD55EED8713CE59E0EAB0E1CA758FB9420B34EAC9345`; launch instruction `plan/M2_S1A_T_LAUNCH_INSTRUCTION_20261107_R5.md` SHA-256 `9CBCE84B4AB579D0857AC153DC2FC59DAFB255468E1AFC29D338566B9EDAFAAC`; guarded launcher `evidence/scripts/m2_s1a_t_owner_run_20261107_r5.py` SHA-256 `DA7F4A4D6502F927C7EC1F29F112A283E7960F831F2183CD07C09E61EE488FA0`.
+- **DECISIONS pin supersession:** Current `DECISIONS.md` SHA-256 is `$decisionHash`. By owner decision D-163, this current hash supersedes only the old `DECISIONS.md` hash stated in R5 §1/§5 and the R5 launch instruction. Those R5 files remain unchanged; their other pins and the three artifact hashes above are unchanged. The R5 launcher does not validate a `DECISIONS.md` hash.
+- **Execution boundary:** This addendum preserves APPROVED / NOT LAUNCHED. Continue implementation only after an independent cold review of D-163 and this addendum returns READY with 0 P1 and 0 P2, then within the existing S1a-T scope. It does not approve the owner PostgreSQL launcher; that remains owner-only and is not to be run by the implementation session. `OWNER_MODAL_CALL_APPROVED=NO` remains unchanged. S1a-P, S1b, S2, S3 and M3–M6 remain closed.
+- **Approval basis:** direct owner instruction in the current conversation, 2026-11-08; D-163; existing S1a-T Approval entry.
+
+## M2 S1a-T Approval Addendum 2 — 2026-11-08
+
+- **Status:** APPROVED / NOT LAUNCHED. This addendum records owner dispositions only; no implementation, test, database, Alembic, or launcher execution occurred as part of recording it.
+- **Owner decision record:** D-164 in `DECISIONS.md`; D-164 corrects D-163's provenance wording without modifying D-163.
+- **Bruno 013 disposition:** Bruno 013 is an in-repository historical artifact, treated like Bruno 004/005 under R5 §5. It remains unchanged and outside the S1a-T edit allowlist. Its old request body is documented debt, not PASS; no R6 is created.
+- **Consumer provenance correction:** the Teacher UI profile service calls GET list only; Bruno 013 is in this repository. Actual POST consumers outside the repository remain NOT VERIFIED.
+- **Prior pin correction:** the DECISIONS pin in the preceding Addendum 1 at line 939 contains a literal dollar-prefixed `decisionHash` placeholder caused by string interpolation; it is not a SHA-256 value. This addendum records the actual DECISIONS.md SHA-256 after D-164 as `E1F5A5ACCFF412302CE1A543F2FB597D38AC8A0D6E4CCF7E1FC4C3F4B9AA5180`. By owner decision, that hash supersedes only the old DECISIONS.md pin in R5 §1/§5 and the R5 launch instruction. The R5 files remain unchanged; no other pin is superseded. The R5 launcher does not validate a DECISIONS.md hash.
+- **R5 artifacts unchanged:** specification `plan/M2_S1A_T_APPROVAL_SPEC_FINAL_20261107_R5.md` — SHA-256 `934D2E69DAEA293CC68BDD55EED8713CE59E0EAB0E1CA758FB9420B34EAC9345`; launch instruction `plan/M2_S1A_T_LAUNCH_INSTRUCTION_20261107_R5.md` — SHA-256 `9CBCE84B4AB579D0857AC153DC2FC59DAFB255468E1AFC29D338566B9EDAFAAC`; guarded launcher `evidence/scripts/m2_s1a_t_owner_run_20261107_r5.py` — SHA-256 `DA7F4A4D6502F927C7EC1F29F112A283E7960F831F2183CD07C09E61EE488FA0`.
+- **Execution boundary:** APPROVED / NOT LAUNCHED remains unchanged. Continue only if a new independent cold review of D-164 and this addendum returns READY with 0 P1 and 0 P2, then within the existing S1a-T scope. The owner launcher remains owner-only and must not be run by the implementation session. `OWNER_MODAL_CALL_APPROVED=NO`; S1a-P, S1b, S2, S3 and M3–M6 remain closed.
+- **Approval basis:** direct owner instruction in the current conversation, 2026-11-08; D-164; existing S1a-T approval entry.
+
+## M2 S1a-T Approval R6 — 2026-11-08
+
+- **Status:** APPROVED / NOT LAUNCHED. This entry records the R6 approval and does not launch S1a-T.
+- **Owner decision record:** D-165 authorizes the narrow R6 revision. D-163 and D-164 continue to govern the sole Teacher profile handler and Bruno 013; no new product rule is introduced here.
+- **R6 approval specification:** `features/FEAT-063-system-architecture-rearchitecture/plan/M2_S1A_T_APPROVAL_SPEC_FINAL_20261107_R6.md` — SHA-256 `664E300F5CAA01DA41E17F5E48025F58D2681F6A676E2CAD1973859F19E04479`.
+- **R6 launch instruction:** `features/FEAT-063-system-architecture-rearchitecture/plan/M2_S1A_T_LAUNCH_INSTRUCTION_20261107_R6.md` — SHA-256 `F8E2DB8463AC6511C9D0EFC716A1E9076A390EBBC5DF1043125EBB8B989023D9`.
+- **R6 guarded launcher:** `features/FEAT-063-system-architecture-rearchitecture/evidence/scripts/m2_s1a_t_owner_run_20261107_r6.py` — SHA-256 `F3D7992FABFEB848085C5BBD55780EE158894BA197DBA054CD205487219B7A55`.
+- **Decision pin:** `DECISIONS.md` through D-165 — SHA-256 `08581083E65E2EF5FF3D74EBE419517098FD5D6020C9F68D90E432FECE308F0F`; this replaces the R5 decision pin for R6 execution.
+- **Historical records:** the R5 approval and its two addenda remain historical. R6 artifact pins supersede R5 for execution; all other approved R5 scope, allowlist, business rules, ceilings and stop gates remain in force, with D-163 and D-164 continuing to govern.
+- **Baseline prerequisite:** the `M2 Baseline Closure Acceptance` entry at line 909 remains ACCEPTED and its closure record SHA-256 is `65588C6876F653F3A0B17E227B8845E63EA2F6C77FB78756A91925DEBA9626D6`.
+- **Independent review:** fresh cold read-only R6 review, round 1, session `01a1bc07-9363-7a80-917f-44f1124382ad`: READY, 0 P1, 0 P2, 1 P3. The non-blocking P3 at `backend/tests/contract/test_be1_synthetic_pilot.py:326` notes the `secrets.token_hex(12)` AST assertion does not explicitly reject keyword arguments; reviewer suggested `assert not token_hex_calls[0].keywords`. This note records the finding; it does not modify source or tests.
+- **Prior offline attempt:** NOT RUN / NO VERDICT because its official pytest summary was suppressed by the redundant quiet flag; preserve the existing logs. The stdout SHA-256 is `424952E38FEA88EAA90959CEF7C7F65DE9563B9B25C45160B423190BD38127D5`.
+- **Execution state:** no R6 test rerun, launcher, database, Alembic, validator, mypy, Ruff, Docker, Modal or provider operation occurred. The two existing output base directories remain a launcher stop gate and must be resolved by the owner before any future launch. A corrected pytest rerun still requires a separate owner instruction.
+- **Not opened:** S1a-P, S1b, S2, S3 and M3-M6. `OWNER_MODAL_CALL_APPROVED=NO` remains unchanged.
+- **Approval basis:** owner authorization D-165 and the round-1 independent R6 review recommendation; approval is limited to S1a-T and remains NOT LAUNCHED.
+
+## M2 S1a-T Approval Addendum 3 — 2026-11-08
+
+- **Status:** APPROVED / NOT LAUNCHED. This addendum approves only the post-code verification continuation described here; it does not launch S1a-T or the PostgreSQL launcher.
+- **Owner decision record:** D-166 in `DECISIONS.md`.
+- **Decision pin supersession:** the new `DECISIONS.md` SHA-256 is `758A76E4C949B6EFD6107E66A2283D1AB0E3C95B318F4B52C29E2EB0EEEEBB29`. It supersedes the prior D-165 decision pin for the DECISIONS rows in R6 section 1 and section 5 and the DECISIONS row in the R6 launch instruction. The R6 specification, launch instruction and launcher artifact hashes are unchanged; the R6 files themselves are not edited by this addendum. The R6 launcher does not check the DECISIONS hash directly.
+- **R6 artifacts unchanged:** specification SHA-256 `664E300F5CAA01DA41E17F5E48025F58D2681F6A676E2CAD1973859F19E04479`; launch instruction SHA-256 `F8E2DB8463AC6511C9D0EFC716A1E9076A390EBBC5DF1043125EBB8B989023D9`; launcher SHA-256 `F3D7992FABFEB848085C5BBD55780EE158894BA197DBA054CD205487219B7A55`.
+- **Authorized offline verification:** one corrected offline pytest invocation using the R6 command without a redundant explicit `-q`; the previous attempt remains invalid NOT RUN / NO VERDICT, with its logs preserved. Each remaining post-code command in R6 section 3 may run once. Only a genuine code failure with an official result or an independent review request permits an in-allowlist fix and one additional run of affected commands (two total per command). No retry to obtain a pass, flag/shell/test-selection change, or further retry is authorized.
+- **Output preservation:** new logs and caches may be placed under the two existing ignored S1a-T output bases using unique new names only. Existing files must not be overwritten, removed or edited. The owner will rename both output bases before any PostgreSQL launcher use.
+- **Review:** independent cold code review must use a new session, up to three rounds under D-166. A round 3 result with P1/P2 requires stopping and returning to the owner.
+- **Execution state:** no post-code command has been run under D-166 at the time of this addendum. PostgreSQL tests, the owner launcher, DB/Alembic, Modal/provider are not authorized here. `OWNER_MODAL_CALL_APPROVED=NO` remains unchanged.
+- **Not opened:** S1a-P, S1b, S2, S3 and M3-M6 remain closed. The S1a-T PostgreSQL launcher remains owner-only.
+- **Approval basis:** direct owner authorization after R6 approval, current conversation; D-166.
+## M2 S1a-T Approval Addendum 4 — 2026-11-09
+
+- **Status:** APPROVED / NOT LAUNCHED. This addendum authorizes only the bounded offline correction and checks recorded below; it does not launch S1a-T or the PostgreSQL launcher.
+- **Owner decision record:** D-167 in `DECISIONS.md`.
+- **Decision pin supersession:** DECISIONS.md SHA-256 after D-167 is `040FB22E7BA2B63A3EC9492216FB97FD73C0183F33547FD366229A59A8822A11`. It replaces the preceding DECISIONS pin for R6 sections 1 and 5 and the DECISIONS row in the R6 launch instruction. The R6 files remain unchanged.
+- **Static root-cause record:** `tmp/m2-s1a-t-impl/S1A_T_STATIC_ROOT_CAUSE_20261109.md`, SHA-256 `C894DF2B076D5F6F9D12A2DE3351A3CD7B23AE41F84F00EE29375001B039F075`.
+- **R6 artifact pins unchanged:** specification `664E300F5CAA01DA41E17F5E48025F58D2681F6A676E2CAD1973859F19E04479`; launch instruction `F8E2DB8463AC6511C9D0EFC716A1E9076A390EBBC5DF1043125EBB8B989023D9`; guarded launcher `F3D7992FABFEB848085C5BBD55780EE158894BA197DBA054CD205487219B7A55`.
+- **Permitted test edit:** exactly the three D-167 locations in `backend/tests/contract/test_app_composition.py`; each reads `application.state.runtime_openapi_schema["paths"]` after exactly one `application.openapi()` call. Expected sets, assertions and exact-delta checks remain unchanged.
+- **Composition/OpenAPI:** exactly one final third invocation under the R6 section 3 command, with new run id and basetemp/log names. FAIL, absent official summary, timeout, PermissionError, or missing safety verdict is a stop; no further composition invocation is authorized.
+- **Mypy:** accepted only by R6 section 6 normalized baseline comparison: 255 diagnostics / 50 files; 0 new / 0 vanished. Mypy is not rerun. Exit 1 is NO PASS, never PASS; 8 allowlisted diagnostics remain untouched baseline debt.
+- **Remaining post-code checks:** run Ruff on the R6-approved Python paths, `validate_harness.py`, `validate_repository_security.py`, `validate_architecture.py`, and `git diff --check` once each, using the R6 commands and ceilings. A genuine code failure with an official result or independent-review request may authorize one in-allowlist fix and one additional invocation of the affected non-composition command only; no shell/flag/selection changes and no retry to obtain a pass.
+- **Output and review:** preserve all existing logs. Write new outputs under the two existing approved output bases with unique names only. After the required commands return official results, use a new cold read-only independent review session, under D-166 limits (maximum three rounds and existing stop gates).
+- **Execution state at approval:** no command has yet run under D-167. No PostgreSQL, launcher, database, Alembic, Docker, Modal, provider or network operation is authorized. `OWNER_MODAL_CALL_APPROVED=NO`; S1a-P, S1b, S2, S3 and M3-M6 remain closed.
+- **Approval basis:** direct owner instruction in this conversation, 2026-11-09; D-167 and D-166.
+## M2 S1a-T Approval Addendum 5 — 2026-11-09
+
+- **Status:** APPROVED / NOT LAUNCHED. This addendum authorizes only the narrow exact-delta correction and one final composition/OpenAPI invocation; it does not launch S1a-T or the PostgreSQL launcher.
+- **Owner decision record:** D-168 in `DECISIONS.md`.
+- **Decision pin supersession:** DECISIONS.md SHA-256 after D-168 is `FF2220AD57CA2A265C05E2FD849A581AE443D753CF7D2EF6844B3453FC2511CB`. It supersedes the prior decision pin for R6 sections 1 and 5 and the DECISIONS row in the R6 launch instruction. R6 artifacts remain unchanged.
+- **R6 artifacts unchanged:** specification `664E300F5CAA01DA41E17F5E48025F58D2681F6A676E2CAD1973859F19E04479`; launch instruction `F8E2DB8463AC6511C9D0EFC716A1E9076A390EBBC5DF1043125EBB8B989023D9`; guarded launcher `F3D7992FABFEB848085C5BBD55780EE158894BA197DBA054CD205487219B7A55`.
+- **Prior composition result:** owner disposition of run `r6retry_2ea7b5600e98466d93f4ed7906ae1bdd`, stdout SHA-256 `79A18B44B05185BAC09D72D1675437991093953231966A1DA21BE19362C3E7B6`: official summary `1 failed, 7 passed, 1 error in 22.44s`, exit 1. Setup `FileNotFoundError [WinError 3]` was caused by the missing basetemp parent; the exact-delta failure consisted of the four unchanged pilot-assistance routes listed in D-168.
+- **Permitted test edit:** add only the four D-168 route strings to the exact-delta expected set in `backend/tests/contract/test_app_composition.py`. All other assertions, expected sets, ordering, and test structure remain unchanged.
+- **Final composition/OpenAPI invocation:** exactly one, using R6 section 3, cwd `backend`, the R6 executable/selection/flags, run id `r6run4_4d8327e54db74ccfab1a0ee9d6f6a84b`, and basetemp `..\tmp\M2_S1A_T_20261107\r6run4_4d8327e54db74ccfab1a0ee9d6f6a84b\composition-openapi`. The run parent must already exist and be empty; do not create it, change permissions, or reuse any old log name. This is the last composition invocation regardless of result.
+- **Remaining post-code commands:** only after an official composition PASS, run Ruff on approved Python paths, `validate_harness.py`, `validate_repository_security.py`, `validate_architecture.py`, and `git diff --check` once each per R6/D-167. A missing safety verdict is NOT RUN and stops the sequence. Mypy is not rerun; exit 1 remains NO PASS under D-167.
+- **Review/output:** after the required commands have official results, use a fresh cold read-only independent review session, maximum three rounds under D-166; preserve old logs and use only unique new output names. No further composition run is allowed even if review requests a composition-affecting change.
+- **Execution state at approval:** no command has yet run under D-168. No PostgreSQL, owner launcher, database, Alembic, Docker, Modal, provider or network action is authorized. `OWNER_MODAL_CALL_APPROVED=NO`; S1a-P, S1b, S2, S3 and M3-M6 remain closed.
+- **Approval basis:** direct owner instruction in the current conversation, 2026-11-09; D-168 and D-167.
+
+## M2 S1a-T Approval Addendum 6 — 2026-11-09
+
+- **Status:** APPROVED / NOT LAUNCHED. This addendum records only the accepted owner-run composition/OpenAPI result and the continuation to the remaining post-code commands; it does not launch S1a-T or the PostgreSQL launcher.
+- **Owner decision record:** D-169 in `DECISIONS.md`.
+- **Decision pin supersession:** DECISIONS.md SHA-256 after D-169 is `A4FEE34E345EE4E325377523240CB46072434F745570E4681B8E056FBB891BD4`. It supersedes the prior decision pin for R6 sections 1 and 5 and the DECISIONS row in the R6 launch instruction. R6 artifacts remain unchanged.
+- **R6 artifacts unchanged:** specification `664E300F5CAA01DA41E17F5E48025F58D2681F6A676E2CAD1973859F19E04479`; launch instruction `F8E2DB8463AC6511C9D0EFC716A1E9076A390EBBC5DF1043125EBB8B989023D9`; guarded launcher `F3D7992FABFEB848085C5BBD55780EE158894BA197DBA054CD205487219B7A55`.
+- **Composition/OpenAPI result:** owner-run `r6owner_d5281b1e47fe4f71a736a2ffdde9e6df`, exit 0, `9 passed in 34.20s`; stdout SHA-256 `21BB5CD7E56DCB165321D85CEBCB03BA59251CBA5B81CF9873E74772FF40ECAA`, stderr SHA-256 `E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855`, exit-file SHA-256 `13BF7B3039C63BF5A50491FA3CFD8EB4E699D1BA1436315AEF9CBE5711530354`. History: Codex runs `r6retry_2ea7b5600e98466d93f4ed7906ae1bdd` (`1 failed, 7 passed, 1 error`) and `r6run4_4d8327e54db74ccfab1a0ee9d6f6a84b` (`8 passed, 1 error`, sandbox `PermissionError` at tmp_path setup) are preserved and unedited. No further composition run is authorized.
+- **Remaining post-code commands:** Ruff on approved Python paths, `validate_harness.py`, `validate_repository_security.py`, `validate_architecture.py` and `git diff --check`, once each per R6/D-167. A missing safety verdict is NOT RUN. Mypy is not rerun (exit 1 = NO PASS, 0 new diagnostics versus baseline).
+- **Review/output:** after the required commands have official results, a fresh cold read-only independent review session, maximum three rounds under D-166; unique new output names only.
+- **Execution state at approval:** none of the remaining post-code commands has run under D-169. No PostgreSQL, owner launcher, database, Alembic, Docker, Modal, provider or network action is authorized. `OWNER_MODAL_CALL_APPROVED=NO`; S1a-P, S1b, S2, S3 and M3-M6 remain closed.
+- **Approval basis:** direct owner instruction in the current conversation, 2026-11-09; D-169, D-168 and D-167.
+
+## M2 S1a-T Approval Addendum 7 — 2026-11-09
+
+- **Status:** APPROVED / NOT LAUNCHED. This addendum authorizes only R7 artifact preparation, the named offline test edits, the explicitly bounded offline checks, and independent review. It does not launch S1a-T.
+- **Owner decision record:** D-170 in `DECISIONS.md`.
+- **Decision pin:** `DECISIONS.md` after D-170: SHA-256 `5BBFF2927B53B9EA7CF00DF195B7828B3F9CD7E54D41FC765FD19646AE6F1EFC`; this supersedes the prior D-169 pin where R7 records current governance.
+- **R6 history:** R6 specification SHA-256 `664E300F5CAA01DA41E17F5E48025F58D2681F6A676E2CAD1973859F19E04479`; launch instruction `F8E2DB8463AC6511C9D0EFC716A1E9076A390EBBC5DF1043125EBB8B989023D9`; launcher `F3D7992FABFEB848085C5BBD55780EE158894BA197DBA054CD205487219B7A55`. R6 files remain unchanged. R7 is to be created as new files and independently reviewed.
+- **Permitted R7 launcher change:** use `host(inet_server_addr())` at each server-address query, preserving loopback validation with `ipaddress.ip_address(...).is_loopback`; synchronize required artifact and decision pins. No other guard, business, allowlist, ceiling or stop-gate change.
+- **Permitted PostgreSQL-test changes:** in the new-path `test_m2_s1a_teacher_postgres.py`, fix loopback identity parsing, seed a marker-formatted class directly through the ORM, set `SKETCH2LIFE_BE1_ARTIFACT_ROOT` to `tmp_path`, and add the R6 §4 Teacher-scope/age/persistence/race cases listed in D-170. Use only existing markers for every written table; if an action writes an unmarked or unlisted table, stop without changing launcher markers. PostgreSQL execution remains owner-only and is not authorized by this addendum.
+- **Permitted synthetic-pilot test edit:** add only `assert not token_hex_calls[0].keywords` beside the existing token-hex assertions in `test_be1_synthetic_pilot.py`.
+- **Explicit exclusions:** no `backend/src`, no composition/OpenAPI test edits or reruns, no changes to R6 files, no scope/allowlist or business-rule changes. P3-5 through P3-9 and mypy P3-10 remain report-only debt.
+- **Authorized offline commands:** one third Ruff run on the same 14 approved Python paths; one third offline pytest run for the changed suite selection; one each of `validate_harness.py`, `validate_repository_security.py`, `validate_architecture.py`, and `git diff --check`, using R6 commands and ceilings with new unique logs. No mypy or composition rerun. Missing safety verdict is NOT RUN. Any official failure/error stops the sequence and is recorded verbatim; no retries or command substitutions.
+- **Review gate:** a new cold read-only independent reviewer, not a subagent, reviews R7 pins/diffs, P2-1/2/3 and P3-4/12 closure, marker and data-ceiling accounting, race determinism, report/log agreement, and R7 launcher approval selection. R7 entry may be appended only after READY or READY WITH NOTES with 0 P1/0 P2, within D-166 round limits.
+- **Open owner decisions:** acceptance of the six baseline Ruff I001 findings, and confirmation of who ran the second offline pytest after the B009 edit, remain OPEN and must be reported as waiting.
+- **Execution state at approval:** no command has run under D-170. `OWNER_MODAL_CALL_APPROVED=NO`; no PostgreSQL, owner launcher, DB, Alembic, Docker, Modal, provider or network action; S1a-P, S1b, S2, S3 and M3-M6 remain closed.
+- **Approval basis:** direct owner instruction in the current conversation, 2026-11-09; D-170 and D-163 through D-169.
+
+## M2 S1a-T Approval R7 — 2026-11-09
+
+- **Status:** APPROVED / NOT LAUNCHED. This entry records the R7 approval for the owner-run PostgreSQL acceptance of S1a-T and does not launch it. The owner launches the R7 launcher once, after renaming both output directories.
+- **Owner decision record:** D-170 and D-171 in `DECISIONS.md`. D-163 and D-164 continue to govern the Teacher profile handler and Bruno 013; no new product rule is introduced here.
+- **R7 approval specification:** `features/FEAT-063-system-architecture-rearchitecture/plan/M2_S1A_T_APPROVAL_SPEC_FINAL_20261107_R7.md` — SHA-256 `D79EB097CBFC775F0FD411F94A743B8E2074EAE289BC60316E10CF263DC16E59`.
+- **R7 launch instruction:** `features/FEAT-063-system-architecture-rearchitecture/plan/M2_S1A_T_LAUNCH_INSTRUCTION_20261107_R7.md` — SHA-256 `395D43DE5C14559D8E6333CCCA853A0BDAA9D5954EB5332BD74AA2B1B415F200`.
+- **R7 guarded launcher:** `features/FEAT-063-system-architecture-rearchitecture/evidence/scripts/m2_s1a_t_owner_run_20261107_r7.py` — SHA-256 `D4016330DA42D38035F1ED14C95A51026C81AEFF31F9F72F1FA364028370DFB3`.
+- **Decision pin:** `DECISIONS.md` through D-171 — SHA-256 `CAD56F5754C823B813AF49B0CA438E8332B9C3CE354CEB5513D4F73A134CB151`. The DECISIONS row in section 5 of the R7 specification still carries the earlier post-D-170 value; section 1 of the specification and the launch instruction carry this value, and this value governs. The launcher does not read it.
+- **Historical records:** the R5 approval, the R6 approval and Approval Addenda 1 to 7 remain historical. R7 artifact pins supersede R6 for the launcher run; all other approved scope, allowlist, business rules, ceilings and stop gates remain in force, with D-163, D-164, D-170 and D-171 governing.
+- **Baseline prerequisite:** the `M2 Baseline Closure Acceptance` entry remains ACCEPTED and its closure record SHA-256 is `65588C6876F653F3A0B17E227B8845E63EA2F6C77FB78756A91925DEBA9626D6`.
+- **Independent reviews (fresh, cold, read-only, Claude sessions):** code round 1 READY WITH NOTES (0 P1, 3 P2, 10 P3); round 2 of the R7 package and code BLOCKED (1 P1, 2 P2, 6 P3), fixed by D-171 item 12; final round (R7 package round 2, code round 3) READY WITH NOTES (0 P1, 0 P2, 5 P3), session `local_e5f8f4a6-b6e3-487b-9301-3a107cbd6065`. Carried P3 notes: the section 5 DECISIONS pin is stale and superseded as stated above; the specification's list of secret-scan patterns omits the URL-scheme pattern the launcher also applies; Ruff, `validate_repository_security.py` and `git diff --check` have not been re-run on the final PostgreSQL test file (NOT VERIFIED); the earlier P3 items 5 to 9 remain recorded debt.
+- **Execution state:** nothing has run under R7 against PostgreSQL. The launcher has never been executed end to end and the PostgreSQL test has never run on a database. Owner-run composition/OpenAPI result: 9 passed, exit 0. The output directories `.claude/handoff/logs/M2_S1A_T_20261107` and `tmp/M2_S1A_T_20261107` still exist and are a launcher stop gate until the owner renames them.
+- **Not opened:** S1a-P, S1b, S2, S3 and M3-M6. `OWNER_MODAL_CALL_APPROVED=NO` remains unchanged. Acceptance of the six residual Ruff I001 diagnostics, confirmation of the coordinator-run offline pytest runs, and ACCEPTED for S1a-T remain owner decisions.
+- **Approval basis:** direct owner instruction in the current conversation, 2026-11-09 (choice "record the R7 entry"); D-170 and D-171; the final independent review report.
+
+## M2 S1a-T Closure Acceptance — 2026-11-09
+
+- **Status:** ACCEPTED by the owner for S1a-T on the exact evidence in `features/FEAT-063-system-architecture-rearchitecture/evidence/M2_S1A_T_CLOSURE_RECORD_20261109.md`, SHA-256 `D2ACD33F03E28C961F30270F310F27913257D39A28CEC8281D29ADAE5D285FDE`. The record is unchanged; this append-only entry records the owner's acceptance. Owner words: "ACCEPTED".
+- **Evidence accepted:** the R7 owner-run PostgreSQL acceptance (run `f7fe88273c7f4dd89b3913efeac6f8fb`: pytest `1 passed in 5.81s`, exit 0, pre-run inventory `PASS_EMPTY`, post-run inventory `MARKER_COUNTS_MATCH` with 29 marker rows); the owner-run composition/OpenAPI result (9 passed, exit 0); offline pytest (574 passed, 1 deselected); strict mypy by baseline comparison under D-167 (exit 1 stays NO PASS); the independent reviews recorded in the R7 approval entry.
+- **Provenance disclosed:** the closure record itself was written by the Claude coordinator and was not independently reviewed; the underlying R7 package and code received three independent review rounds. Several post-code commands (Ruff, three validators, `git diff --check`, offline pytest reruns) were run by the coordinator at the owner's instruction after the Codex sandbox could not write its cache and temporary directories; the composition result and the PostgreSQL result were run by the owner.
+- **Not decided by this entry and still open:** acceptance of the six residual Ruff I001 diagnostics (already present at HEAD) as lint debt, with Ruff exit 1 still NO PASS; confirmation of the coordinator-run offline pytest reruns; authorisation to commit S1a-T. Ruff, `validate_repository_security.py` and `git diff --check` have not been re-run on the final PostgreSQL test file (NOT VERIFIED).
+- **Phase boundary:** this acceptance closes S1a-T only. It does not approve or launch S1a-P, S1b, S2, S3 or M3-M6; each needs its own Task Approval. The task database `sketch2life_m2_s1a` now holds 29 synthetic marker rows that no phase may clean up without a decision. No Modal, provider or network action is authorised. `OWNER_MODAL_CALL_APPROVED=NO` remains unchanged.
+- **Approval basis:** direct owner instruction in the current conversation, 2026-11-09 ("ACCEPTED"), after the closure record and the launcher log were presented.

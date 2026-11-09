@@ -1,13 +1,21 @@
 import json
+from collections.abc import Iterator
 from pathlib import Path
 from types import SimpleNamespace
 
+import pytest
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 
 import sketch2life.interfaces.http.app as app_module
 import sketch2life.interfaces.http.be1_runtime as runtime_module
-from sketch2life.infrastructure.config.settings import Settings
+from sketch2life.infrastructure.config.settings import (
+    CoreDatabaseSettings,
+    Settings,
+    get_core_database_settings,
+    get_settings,
+)
 from sketch2life.infrastructure.persistence.database import CoreDatabaseConfigurationError
 from sketch2life.infrastructure.vision_analysis.pilot_composition import (
     PilotVisionComposition,
@@ -17,6 +25,36 @@ from sketch2life.interfaces.http.app import (
     create_classroom_app,
     create_demo_app,
 )
+
+
+@pytest.fixture(autouse=True)
+def _disable_dotenv_for_composition_tests(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
+    monkeypatch.setitem(Settings.model_config, "env_file", None)
+    monkeypatch.setitem(CoreDatabaseSettings.model_config, "env_file", None)
+    monkeypatch.setenv("SKETCH2LIFE_ENV", "test")
+    monkeypatch.setenv("STORYRUN_LITE_MAIN_DEMO_ENABLED", "0")
+    monkeypatch.setenv(
+        "SKETCH2LIFE_DATABASE_URL", "postgresql+psycopg://localhost:9/s1at_closed"
+    )
+    get_settings.cache_clear()
+    get_core_database_settings.cache_clear()
+    assert Settings.model_config.get("env_file") is None
+    assert CoreDatabaseSettings.model_config.get("env_file") is None
+    try:
+        yield
+    finally:
+        get_settings.cache_clear()
+        get_core_database_settings.cache_clear()
+
+
+def _mounted_route_methods(application: FastAPI) -> dict[str, list[str]]:
+    application.openapi()
+    paths = application.state.runtime_openapi_schema["paths"]
+    http_methods = {"get", "post", "put", "patch", "delete", "options", "head"}
+    return {
+        path: sorted(method.upper() for method in path_item if method.lower() in http_methods)
+        for path, path_item in paths.items()
+    }
 
 
 def test_compatibility_app_preserves_baseline_route_surface() -> None:
@@ -34,11 +72,13 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
         entry["path"]: sorted(entry["methods"])
         for entry in expected_entries
     }
-    openapi = create_app().openapi()
-    actual = {
-        path: sorted(method.upper() for method in operations)
-        for path, operations in openapi["paths"].items()
-    }
+    expected.pop("/api/be1/v1/organizations/{organization_id}/assignments", None)
+    expected.pop(
+        "/api/be1/v1/organizations/{organization_id}/assignments/{assignment_id}", None
+    )
+    application = create_app()
+    # OpenAPI is an SRS projection; inspect mounted routes for the full legacy surface.
+    actual = _mounted_route_methods(application)
     # Frozen method/path pairs from the FEAT-063 Rev32 API purpose catalog.
     library = "/api/lesson-library/v1"
     organization = f"{library}/organizations/{{organization_id}}"
@@ -76,6 +116,7 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
     # reviewed FEAT-060 classroom and FEAT-063 Lesson Library contracts.
     assert expected.items() <= actual.items()
     assert set(actual) - set(expected) == {
+        "/api/be1/v1/classes/{class_id}/assignments",
         "/api/be1/v1/device-grants/{grant_id}/join-status",
         "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/completion",
         "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/learning-stage",
@@ -85,6 +126,10 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
         "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/room-code/rotate",
         "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/roster",
         "/api/be1/v1/room-code/join",
+        "/api/be1/v1/assistance-requests",
+        "/api/be1/v1/assistance-requests/{assistance_id}/cancel",
+        "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/assistance-requests/{assistance_id}/status",
+        "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/teacher/assistance-requests/pending",
     } | set(lesson_library_methods)
     assert {path: actual[path] for path in lesson_library_methods} == lesson_library_methods
 
@@ -101,7 +146,8 @@ def test_compatibility_app_keeps_be1_and_demo_services_on_app_state() -> None:
 
 def test_classroom_profile_excludes_process_local_demo_routes() -> None:
     application = create_classroom_app()
-    paths = set(application.openapi()["paths"])
+    application.openapi()
+    paths = set(application.state.runtime_openapi_schema["paths"])
 
     assert "/health" in paths
     assert "/api/be1/v1/health" in paths
@@ -130,7 +176,8 @@ def test_pilot_assistance_gate_fails_closed_when_disabled() -> None:
 
 def test_demo_profile_excludes_durable_classroom_routes() -> None:
     application = create_demo_app()
-    paths = set(application.openapi()["paths"])
+    application.openapi()
+    paths = set(application.state.runtime_openapi_schema["paths"])
 
     assert "/v1/sessions" in paths
     assert "/api/be1/v1/health" not in paths

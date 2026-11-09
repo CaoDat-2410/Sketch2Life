@@ -67,6 +67,7 @@ def acceptance_client(monkeypatch: pytest.MonkeyPatch, tmp_path) -> Iterator[Acc
     monkeypatch.setenv("SKETCH2LIFE_DATABASE_URL", database_url)
     monkeypatch.setenv("SKETCH2LIFE_AUTH_PROVIDER", "development")
     monkeypatch.setenv("SKETCH2LIFE_ENV", "test")
+    monkeypatch.setenv("SKETCH2LIFE_SYNTHETIC_PILOT_ENABLED", "true")
     monkeypatch.setenv("SKETCH2LIFE_ROOM_CODE_HMAC_KEY", "synthetic-test-key-" + "x" * 40)
     monkeypatch.setenv("SKETCH2LIFE_BE1_ARTIFACT_ROOT", str(tmp_path / "artifacts"))
     get_settings.cache_clear()
@@ -711,7 +712,34 @@ def test_pending_consent_stays_pending_and_blocks_profile_admission_and_canvas(
     assert class_response.status_code == 201, class_response.text
     class_id = class_response.json()["class_id"]
 
-    child_id = f"synthetic-child-{uuid4()}"
+    assignment = client.post(
+        f"/api/be1/v1/classes/{class_id}/assignments",
+        json={"subject": accepted.subject},
+    )
+    assert assignment.status_code == 201, assignment.text
+    assert assignment.json()["role"] == "teacher"
+    assert assignment.json()["class_id"] == class_id
+
+    profile_response = client.post(
+        _url(accepted, f"/classes/{class_id}/profiles"),
+        json={
+            "class_id": class_id,
+            "display_name": "Synthetic Child",
+            "age_months": 36,
+        },
+    )
+    assert profile_response.status_code == 201, profile_response.text
+    synthetic_child_id = profile_response.json()["child_id"]
+    assert synthetic_child_id.startswith("synthetic-")
+    assert len(synthetic_child_id.removeprefix("synthetic-")) == 24
+    assert profile_response.json()["data_origin"] == "SYNTHETIC_DEV"
+    assert "consent_state" not in profile_response.json()
+
+    profile_list = client.get(_url(accepted, f"/classes/{class_id}/profiles"))
+    assert profile_list.status_code == 409
+    assert profile_list.json()["code"] == "CONSENT_NOT_EFFECTIVE"
+
+    child_id = f"synthetic-pending-child-{uuid4()}"
     consent_response = client.post(
         _url(accepted, f"/classes/{class_id}/consents"),
         json={
@@ -725,20 +753,6 @@ def test_pending_consent_stays_pending_and_blocks_profile_admission_and_canvas(
     consent = consent_response.json()
     assert consent["state"] == "pending"
     assert consent["effective"] is False
-
-    profile_response = client.post(
-        _url(accepted, f"/classes/{class_id}/profiles"),
-        json={
-            "child_id": child_id,
-            "class_id": class_id,
-            "consent_id": consent["consent_id"],
-            "purpose_ref": "synthetic-purpose-pending",
-            "display_name": "Synthetic Child",
-            "age_months": 36,
-        },
-    )
-    assert profile_response.status_code == 409
-    assert profile_response.json()["code"] == "CONSENT_NOT_EFFECTIVE"
 
     session_response = client.post(
         _url(accepted, "/sessions"),
@@ -771,8 +785,7 @@ def test_pending_consent_stays_pending_and_blocks_profile_admission_and_canvas(
     assert repeated_join.json().keys() == join.json().keys()
 
     grant_id = join.json()["grant_id"]
-    # Seed a synthetic legacy/stale profile in the disposable database to reach the
-    # admission consent check after the public profile-create path has already denied.
+    # Seed a synthetic legacy/stale profile to reach the consent-bound admission check.
     with accepted.app.state.be1_runtime.session_factory.begin() as db:
         db.add(
             ManagedProfileModel(

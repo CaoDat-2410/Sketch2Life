@@ -274,13 +274,16 @@ def authorize_action(
         raise CoreRuleViolation(CoreErrorCode.FORBIDDEN_ROLE, "required capability is not granted")
 
 
-def validate_age_months(age_months: int) -> None:
-    """Validate the owner-confirmed 36–155 completed-month product boundary."""
+def validate_age_months(age_months: int, *, maximum_months: int = 155) -> None:
+    """Validate completed months, keeping 36–155 as the existing default boundary."""
 
     if isinstance(age_months, bool) or not isinstance(age_months, int):
         raise CoreRuleViolation(CoreErrorCode.AGE_OUT_OF_RANGE, "age must be completed months")
-    if not 36 <= age_months <= 155:
-        raise CoreRuleViolation(CoreErrorCode.AGE_OUT_OF_RANGE, "age is outside 36–155 months")
+    if not 36 <= age_months <= maximum_months:
+        raise CoreRuleViolation(
+            CoreErrorCode.AGE_OUT_OF_RANGE,
+            f"age is outside 36–{maximum_months} months",
+        )
 
 
 @dataclass(frozen=True, slots=True)

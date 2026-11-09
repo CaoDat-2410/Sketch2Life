@@ -4,6 +4,7 @@ import importlib.util
 import io
 from collections.abc import Callable
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Protocol, cast
 
 import pytest
@@ -107,7 +108,7 @@ def test_age_provenance_migration_offline_sql_is_scoped_and_reversible() -> None
     assert "drop table" not in downgrade_sql
 
 
-def test_registry_profile_creation_records_adult_declared_age_source(
+def test_registry_profile_creation_records_synthetic_age_and_origin(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     class FakeSession:
@@ -115,7 +116,7 @@ def test_registry_profile_creation_records_adult_declared_age_source(
             self.rows: list[object] = []
 
         def scalar(self, _statement: object) -> object:
-            return object()
+            return SimpleNamespace(class_id="synthetic-class")
 
         def add_all(self, rows: list[object]) -> None:
             self.rows.extend(rows)
@@ -123,8 +124,11 @@ def test_registry_profile_creation_records_adult_declared_age_source(
         def flush(self) -> None:
             return None
 
-    monkeypatch.setattr(be1_registry, "require_assignment", lambda *args, **kwargs: None)
-    monkeypatch.setattr(be1_registry, "get_class", lambda *args, **kwargs: object())
+    assignment = SimpleNamespace(class_id="synthetic-class", role="teacher")
+    monkeypatch.setattr(
+        be1_registry, "require_assignment", lambda *args, **kwargs: (assignment,)
+    )
+    monkeypatch.setattr(be1_registry.secrets, "token_hex", lambda _length: "a" * 24)
     monkeypatch.setattr(be1_registry, "audit", lambda *args, **kwargs: None)
     monkeypatch.setattr(be1_registry, "event", lambda *args, **kwargs: None)
     monkeypatch.setattr(be1_registry, "commit", lambda *args, **kwargs: None)
@@ -136,21 +140,29 @@ def test_registry_profile_creation_records_adult_declared_age_source(
         token_id="synthetic-token",
     )
 
-    be1_registry.create_profile(
+    response = be1_registry.create_profile(
         "synthetic-org",
         "synthetic-class",
         CreateProfileRequest(
-            child_id="synthetic-child",
             class_id="synthetic-class",
-            consent_id="synthetic-consent",
-            purpose_ref="synthetic-purpose",
             display_name="Synthetic profile",
             age_months=60,
         ),
         principal,
-        db,  # type: ignore[arg-type]
+        runtime=cast(
+            be1_registry.Be1Runtime,
+            SimpleNamespace(
+                settings=SimpleNamespace(env="test", synthetic_pilot_enabled=True)
+            ),
+        ),
+        db=db,  # type: ignore[arg-type]
     )
 
     profile = next(row for row in db.rows if isinstance(row, ManagedProfileModel))
     assert profile.age_revision == 1
-    assert profile.age_source == "ADULT_DECLARED"
+    assert profile.age_source == "SYNTHETIC_FIXTURE"
+    assert profile.data_origin == "SYNTHETIC_DEV"
+    assert profile.consent_id is None
+    assert profile.consent_purpose_ref is None
+    assert response["child_id"] == "synthetic-" + "a" * 24
+    assert response["data_origin"] == "SYNTHETIC_DEV"

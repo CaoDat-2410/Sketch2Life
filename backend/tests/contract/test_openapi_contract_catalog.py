@@ -9,7 +9,12 @@ from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
-from sketch2life.infrastructure.config.settings import get_core_database_settings, get_settings
+from sketch2life.infrastructure.config.settings import (
+    CoreDatabaseSettings,
+    Settings,
+    get_core_database_settings,
+    get_settings,
+)
 from sketch2life.interfaces.http.app import create_app
 from sketch2life.interfaces.http.openapi_contract import (
     MOUNTED_OPERATION_COUNT,
@@ -32,6 +37,28 @@ from sketch2life.interfaces.http.openapi_srs_v22 import (
 )
 
 HTTP_METHODS = {"get", "post", "put", "patch", "delete", "options", "head"}
+
+
+@pytest.fixture(autouse=True)
+def _disable_dotenv_for_composition_tests(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
+    monkeypatch.setitem(Settings.model_config, "env_file", None)
+    monkeypatch.setitem(CoreDatabaseSettings.model_config, "env_file", None)
+    monkeypatch.setenv("SKETCH2LIFE_ENV", "test")
+    monkeypatch.setenv("STORYRUN_LITE_MAIN_DEMO_ENABLED", "0")
+    monkeypatch.setenv(
+        "SKETCH2LIFE_DATABASE_URL", "postgresql+psycopg://localhost:9/s1at_closed"
+    )
+    get_settings.cache_clear()
+    get_core_database_settings.cache_clear()
+    assert Settings.model_config.get("env_file") is None
+    assert CoreDatabaseSettings.model_config.get("env_file") is None
+    try:
+        yield
+    finally:
+        get_settings.cache_clear()
+        get_core_database_settings.cache_clear()
+
+
 UPLOAD_TRANSPORT_TOO_LARGE_OPERATIONS = {
     ("post", "/v1/sessions/{session_id}/media/audio"),
     ("post", "/v1/sessions/{session_id}/media/image"),
@@ -189,11 +216,11 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
 
     assert spec["openapi"] == "3.1.0"
     assert spec["tags"] == public_tags(TAG_DESCRIPTIONS)
-    assert len(operations) == 129
+    assert len(operations) == 128
     catalog_operations = set(operations) - PILOT_ONLY_OPERATIONS
     catalog_paths = {path for _method, path in catalog_operations}
-    assert len(catalog_paths) == 111
-    assert len(catalog_operations) == MOUNTED_OPERATION_COUNT == 124
+    assert len(catalog_paths) == 110
+    assert len(catalog_operations) == MOUNTED_OPERATION_COUNT == 123
     assert catalog_operations == set(MOUNTED_OPERATIONS)
     assert set(operations) - set(MOUNTED_OPERATIONS) == PILOT_ONLY_OPERATIONS
     assert PILOT_ONLY_OPERATIONS.isdisjoint(MOUNTED_OPERATIONS)
@@ -205,6 +232,41 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
     ]
     assert "x-contract-surface" not in profile_lookup
     assert len(PILOT_ONLY_OPERATIONS) == 5
+
+    assert (
+        "post",
+        "/api/be1/v1/organizations/{organization_id}/assignments",
+    ) not in operations
+    assert (
+        "delete",
+        "/api/be1/v1/organizations/{organization_id}/assignments/{assignment_id}",
+    ) not in operations
+    assignment_key = ("post", "/api/be1/v1/classes/{class_id}/assignments")
+    assert assignment_key in operations
+    assignment_body = operations[assignment_key]["requestBody"]["content"][
+        "application/json"
+    ]
+    assignment_schema_name = next(iter(_schema_refs(assignment_body["schema"])))
+    assert set(spec["components"]["schemas"][assignment_schema_name]["properties"]) == {
+        "subject"
+    }
+
+    profile_key = (
+        "post",
+        "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles",
+    )
+    profile_body = operations[profile_key]["requestBody"]["content"][
+        "application/json"
+    ]
+    profile_schema_name = next(iter(_schema_refs(profile_body["schema"])))
+    profile_schema = spec["components"]["schemas"][profile_schema_name]
+    assert set(profile_schema["properties"]) == {
+        "class_id",
+        "display_name",
+        "age_months",
+    }
+    assert profile_schema["properties"]["age_months"]["minimum"] == 36
+    assert profile_schema["properties"]["age_months"]["maximum"] == 120
 
     for key, contract in MOUNTED_OPERATIONS.items():
         operation = operations[key]

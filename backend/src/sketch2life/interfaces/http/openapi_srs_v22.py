@@ -9,11 +9,7 @@ SRS_V22_INCLUDED_OPERATIONS: frozenset[tuple[str, str]] = frozenset(
     {
         ("get", "/api/be1/v1/organizations/{organization_id}"),
         ("get", "/api/be1/v1/organizations/{organization_id}/me"),
-        ("post", "/api/be1/v1/organizations/{organization_id}/assignments"),
-        (
-            "delete",
-            "/api/be1/v1/organizations/{organization_id}/assignments/{assignment_id}",
-        ),
+        ("post", "/api/be1/v1/classes/{class_id}/assignments"),
         ("get", "/api/be1/v1/organizations/{organization_id}/classes"),
         ("post", "/api/be1/v1/organizations/{organization_id}/classes"),
         (
