@@ -664,3 +664,10 @@ The implementation is limited to those approved source/test manifests. The focus
 ## FEAT-063 Rev56 diagram-readiness alignment — 2026-11-08
 
 Canonical working source remains the FEAT-063 v2.7-draft SRS and matching Data Table Register; both unsigned. The ten-group readiness synchronization and the UC-05 system-selection/Teacher-confirmation wording are recorded in features/FEAT-063-system-architecture-rearchitecture/artifacts/DIAGRAM_INPUT_CATALOG_V27_REV56_20261108.md and evidence EV-063-61. Open owner decisions and technical gates remain open; no final diagram or as-built verification is claimed. Package commit 09cfc5ca396016cbb7b238a5c744e004f7c7025a was pushed to origin/docs/feat063-diagram-readiness-20261107 and verified with git ls-remote.
+
+## FEAT-063 Rev57 substantive diagram-input remediation — 2026-11-09
+
+- Fetched baseline: docs/feat063-diagram-readiness-20261107 at ae5707ca188d01d9719ed959b62d768ae927912d.
+- Canonical working SRS and Data Table Register contain Rev57 updates, remain v2.7-draft and unsigned.
+- Companion artifacts: Diagram Input Catalog, Decision Register, Diagram Trace Matrix, Physical Data Dictionary draft, State Transition Matrix, API/Event Contracts, Screen Navigation Map, Class/Package Contracts and Remediation Result, all Rev57 dated.
+- EV-063-62 records source-only inspection and verification limits. No runtime/database/migration/product test or deployment claim.

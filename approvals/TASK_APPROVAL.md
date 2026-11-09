@@ -230,3 +230,15 @@
 - Package commit `09cfc5ca396016cbb7b238a5c744e004f7c7025a` was pushed to `origin/docs/feat063-diagram-readiness-20261107` with a regular fast-forward push; fresh `git ls-remote` confirmed the same SHA.
 - `python tools/validate_repository_security.py` passed before commit and push (`publishable_files_scanned=6576`); `git diff --cached --check` passed for the exact 13-path manifest.
 - No tests/builds, PR, merge, dev update, force-push, SRS sign-off, or final diagrams were performed.
+
+## FEAT-063 Plan Rev57 — substantive diagram-input remediation
+
+- **Status:** APPROVED for the exact documentation-only scope in Plan Rev57; SRS and Data Table Register remain unsigned v2.7-draft.
+- **Approver:** Project owner, direct task request on 2026-11-09 to implement the supplied G01–G10 remediation requirements, followed by direct instruction to commit and push.
+- **Recorded date:** 2026-11-09, Asia/Saigon.
+- **Approved plan:** features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV57_DIAGRAM_INPUT_DETAIL_REMEDIATION_20261109.md.
+- **Plan SHA-256:** 5B5CD090913CE14651E0641AF768F4BB8154543E02E488B2075C65A26E5FADDC.
+- **Scope:** exact manifest and acceptance criteria in Plan Rev57; substantive SRS/Data Table Register amendments; Rev57 catalog, decision/trace/physical/state/API/screen/class-package/remediation artifacts; evidence and feature tracking updates. Read-only source verification at baseline ae5707ca188d01d9719ed959b62d768ae927912d.
+- **Exclusions:** product code/runtime/API/database/schema/data/migration/provider/secret/permission/cost changes, tests/build/deployment, final diagrams, SRS/DTR sign-off, PR/merge, and force push. Unanswered policy questions remain OPEN-OWNER.
+- **Publication:** owner explicitly authorized commit and push; only a normal fast-forward push of the scoped paths to docs/feat063-diagram-readiness-20261107 is authorized.
+- **Approval basis:** the direct user request authorizes this exact documentation and publication scope. It does not approve proposed requirements, settle owner decisions, or sign off SRS/DTR.

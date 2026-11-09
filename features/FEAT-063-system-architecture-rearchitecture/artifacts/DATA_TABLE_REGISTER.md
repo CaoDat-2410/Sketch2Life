@@ -1,5 +1,7 @@
 # Sketch2Life — Danh mục bảng dữ liệu
 
+**Revision note:** v2.7-draft / Rev57 (2026-11-09). This remains an unsigned target data register. It preserves 38 retained/refactored + 54 new = 92 active, plus 48 legacy/read-only = 140 projected mappings. Rev43's 41-table local snapshot is not a production or target count.
+
 **Tính năng:** FEAT-063 — Thiết kế lại kiến trúc toàn repository  
 **Trạng thái tài liệu:** Bản nháp v2.7 đồng bộ package SRS; Rev56 đồng bộ mười nhóm readiness diagram, không thay đổi target data model/DDL; ghi nhận snapshot DB local Rev43; chưa sign-off
 **Phiên bản:** 2.7-draft
@@ -751,3 +753,30 @@ The target rule remains: AI providers/workers do not connect directly to Postgre
 | AI execution, policy, story and quota state | Target `ai_jobs.*`, `ai_policy.*`, `story.*`, `billing.*` and related Parent/notification tables | None | These target owner schemas are absent from this local DB. The main-app AI Jobs router is not mounted, so durable AI job/policy/story usage is not represented in the inspected schema/runtime. |
 
 Therefore, the current database inventory supports a precise distinction: there are **no AI worker-owned/direct-access tables** and no persisted AI Jobs/AI Policy/Story/Billing target tables in this local DB. The related Core/BE1/Lesson rows are backend-owned data that may be inputs or outputs under the target contract; actual row-level AI-workflow use requires query instrumentation and end-to-end verification. See SRS §32.4.
+
+## 14.7 Rev57 diagram-input detail and physical gate
+
+Rev57 adds logical detail to the existing 92-active/48-legacy target without treating logical names as deployed tables. The companion artifact PHYSICAL_DATA_DICTIONARY_DRAFT_REV57_20261109.md enumerates every active target mapping and identifies what can be populated from this Register versus what remains blocked pending approved DDL/schema evidence.
+
+| Concern | Data design contract now explicit | Physical decision/evidence still open |
+|---|---|---|
+| Teacher selection evidence | Selection uses the occurrence's school/class context and only current typed references. Run-input context remains a separate required snapshot. No occurrence selection-snapshot table is added by this revision. | Whether a metadata-only selection evidence envelope is persisted, exact fields/key/index, retention and race/claim mechanism remain Q-01 / D-06 / OI-11. |
+| Profile identity and sharing | Parent profile, school managed profile, grant and delivery recipient remain separate concepts with owner-issued opaque typed references. No name-based join and no cross-owner SQL FK. Recipient resolution requires current tenant/grant contract. | Link owner, cardinality, optionality, field scope, tenant acceptance, expiry/revoke and post-revoke history remain Q-04 / D-09. Do not add a guessed FK or table. |
+| Role and permission | BE1 assignment and owning service contracts are read through server-side authorization; child media defaults deny. Content Admin remains a Platform Admin permission. | Principal/role/grant physical model, resolver version/audit shape and force-close authorization fields are not approved; do not map to new tables. |
+| Plan and lesson pin | Typed LessonVersionRefV1 is optional and pins exact version/hash across approved occurrence/plan/run. Owner boundary uses opaque reference. | Supersession effect, stale visibility, claim and receipt compensation remain OPEN in §31.10(15); no latest lookup or cross-owner FK. |
+| Parent no-preset activity | If queried, catalog-owned approved/published versions are read after video; no activity is a video input. No catalog table is added. | Whether to query, filters, permission, ordering, cardinality, response and history effects remain SRS §31.10(13)/R-04. |
+| Product and compute quota | Parent and school organization are the product-quota scopes; Teacher uses the occurrence organization; current-month included units precede top-up FIFO. Compute reservation is AI Policy-owned. | Amounts/prices/purchase allocation and the approved multi-owner receipt/migration model remain Q-02/Q-12; never assume a cross-owner atomic SQL transaction. |
+| States and contracts | Owner-scoped state/event/receipt/outbox responsibilities are linked in STATE_TRANSITION_MATRIX_REV57_20261109.md and API_EVENT_CONTRACTS_DRAFT_REV57_20261109.md. | Missing lifecycle fields/states, API mounting, DDL constraints and retention require owner or technical review. |
+| Counts and physical status | Target remains 38 + 54 = 92 active mappings, 48 legacy/read-only, 140 projected mappings. | All SQL type/null/default/key/index/FK-action declarations and migration approval remain physical gates. Rev43 local 41-table snapshot is a dated local observation only. |
+
+The source-to-target crosswalk in §§3–4.1 is a logical preservation/refactor map. It is not yet a complete migration script: backfill ordering, row-level validation queries, reconciliation tolerances, rollback checkpoints and approval per migration step are not specified for all 38 retained/refactored mappings. New-target mappings are not evidence that tables exist. No migration, DDL, database query or data change was executed for Rev57.
+
+### 14.8 Requirement and lifecycle contract links
+
+- G01 and G02 logical reference/cardinality limits: see SRS §§5.2, 31.3 and Decision Register Rev57; unresolved selection evidence and profile-link fields remain OPEN-OWNER.
+- G03 resolver is a proposed application contract only; physical role/permission persistence is not inferred from existing assignment or content tables.
+- G04 exact version/hash pins and stale fences use the existing Lesson/Story owner boundary; supersession outcomes remain OPEN-OWNER.
+- G05 Parent no-preset behavior adds no table. A catalog lookup, if approved, reads the catalog owner's existing version contract after video.
+- G06 policy questions are listed individually in Decision Register Rev57 and remain unsigned until recorded owner approval.
+- G08/G09 state and message rows are draft design contracts, not mounted route, persisted state, schema or event-bus evidence.
+- G10 module ownership is target-only. The current source import scan and route-composition observations are in EV-063-62; they do not approve the package diagram.

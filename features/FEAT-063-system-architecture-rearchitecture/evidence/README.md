@@ -172,3 +172,5 @@ Records two independent reviews of the canonical FEAT-063 v2.7-draft SRS and Dat
 See [EV-063-60_TWO_AGENT_DIAGRAM_READINESS_ASSESSMENT_20261107.md](EV-063-60_TWO_AGENT_DIAGRAM_READINESS_ASSESSMENT_20261107.md). The SRS/Register remain unsigned; no diagrams were created.
 
 - [EV-063-61 — Ten-group diagram-readiness alignment](EV-063-61_TEN_GROUP_DIAGRAM_READINESS_ALIGNMENT_20261108.md) — documentation-only synchronization; owner and technical gates remain open.
+
+| EV-063-62 | Rev57 substantive diagram-input remediation | Source-only baseline review, G01–G10 detailed requirements, 17-question decision map, 13 diagram readiness, physical/state/API/screen/class/package contracts and static import-cycle evidence | EV-063-62_REV57_SUBSTANTIVE_DIAGRAM_INPUT_REMEDIATION_20261109.md |

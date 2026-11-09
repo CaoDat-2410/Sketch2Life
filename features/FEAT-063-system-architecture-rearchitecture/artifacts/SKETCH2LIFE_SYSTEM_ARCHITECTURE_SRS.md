@@ -25,6 +25,7 @@
 | 2.6-draft | 2026-11-06 | Nhóm FEAT-063 (bản tổng hợp) | Đối chiếu báo cáo rà soát v2.5; thống nhất quyền khởi tạo AI suggestion, vai trò/permission, quyền media mặc định deny, Parent lesson-version pin/activity timing, profile-share invitation, tám AI Job target, video-admission transitions và target count 92 active + 48 legacy. Ghi nhận owner clarifications: Content Admin là permission của Platform Admin; Platform Admin chưa được xem media trẻ mặc định; Teacher chỉ dùng quota school. Các chi tiết còn mở được giữ rõ. | Bản nháp chờ owner review/sign-off |
 | 2.7-draft | 2026-11-07 | Nhóm FEAT-063 (bản tổng hợp) | Đối chiếu checklist remediation v2.6; làm rõ pin LessonVersion theo version/hash qua occurrence, plan revision và StoryRun; thống nhất cách diễn đạt quota admission theo saga nhiều owner; chuẩn hóa nhãn School Manager; giữ hợp đồng Parent không preset, plan supersession, role persistence, legacy age và schema/audit chưa chốt ở trạng thái OPEN; sửa nhãn đếm mục lục Data Table Register mà không đổi target 92 + 48. | Bản nháp chờ owner review/sign-off |
 | 2.7-draft / Rev56 | 2026-11-08 | Nhóm FEAT-063 (bản tổng hợp) | Đồng bộ checklist mười nhóm readiness với Data Table Register và Diagram Input Catalog; thống nhất UC-05/FR-T-10/FR-PL-20/AC-56 cho hệ thống chọn ngẫu nhiên và Teacher xác nhận theo policy được duyệt; giữ Q-01, các owner decision và technical gates OPEN; không đổi policy đã chốt, target 92 + 48 hoặc sign-off. | Bản nháp chờ owner review/sign-off |
+| 2.7-draft / Rev57 | 2026-11-09 | Nhóm FEAT-063 (bản tổng hợp) | Bổ sung đặc tả chi tiết G01–G10, decision register, trace matrix và các hợp đồng đầu vào diagram; sửa UC-14/§21.5 actor về Platform Admin (Content Admin permission); bổ sung package target; phân biệt TO-BE/PROPOSED với AS-BUILT kiểm chứng tại baseline Rev56. Các policy/technical gate chưa được duyệt tiếp tục OPEN; không tạo diagram final, DDL, migration hoặc sign-off. | Bản nháp chờ owner review/sign-off |
 
 | Vai trò sign-off | Người ký | Trạng thái |
 |---|---|---|
@@ -209,6 +210,10 @@ Xác thực chỉ dùng Firebase Authentication. Backend xác minh ID token và 
 
 Tài khoản Parent và Teacher bắt buộc tách biệt, kể cả khi một người lớn đảm nhiệm cả hai vai. Parent có thể mời một Teacher phụ trách/trường chia sẻ các trường hồ sơ được chọn; grant ghi bên cấp/nhận, scope, purpose, status, thời hạn và revoke, và không đổi owner của profile. Mỗi trường là một tenant; mọi lesson, feedback và member group được kiểm tra theo organization. Mỗi hồ sơ Teacher tối đa một enrollment lớp active; profile cross-role resolve chỉ qua contract/grant versioned.
 
+
+
+**Hợp đồng resolver quyền đích (TO-BE / PROPOSED):** API/application phải phân quyền phía server theo principal đã xác thực, role/permission assignment có hiệu lực, organization/class scope, resource/action và revision grant đang hiệu lực. Resolver trả allow hoặc deny cùng reason nội bộ và revision dùng để quyết định; thiếu assignment, scope, resource mapping hoặc không kiểm tra được version thì deny. Revoke làm vô hiệu quyết định cache theo revision cũ và chặn read/token mới cùng job chưa được accept. Đây là hợp đồng logic để thiết kế, chưa phải tên bảng, endpoint hay implementation đã kiểm chứng. Parent không đọc roster trường; School Manager chỉ có tenant scope được gán; Platform Admin không đọc child profile/media nhờ role hoặc Content Admin permission. Force-close chỉ giữ nguyên quy tắc BR-41: School Manager của organization sở hữu lớp/run có thể gửi emergency command tường minh, kèm reason và metadata audit, không đọc media và không xóa quota/sample claim. Cách gán, resolver, người được ủy quyền cụ thể, audit fields/retention tiếp tục OPEN tại Q-13 và §31.10(14),(17).
+
 <a id="srs-4"></a>
 ## 4. Quy tắc nghiệp vụ
 
@@ -308,6 +313,23 @@ Teacher có thể tạo lesson reusable của trường hoặc dùng bản publi
 15. Teacher phụ trách xác nhận riêng việc chiếu video cho cả lớp ở occurrence đó. Đây là xác nhận audience/use, không phải duyệt video. Khi không còn AI job và video sẵn sàng, Teacher có thể hoàn tất hoặc tạo lại; adult-wait/nhắc 144h/đóng 168h, hủy run, giữ media đến xóa và quota không hoàn theo các quy tắc chung.
 
 Sau buổi học, Parent được liên kết có thể xem lesson đã dạy trong cửa sổ history đang được quyết định, tải nội dung còn quyền truy cập và gửi feedback riêng trong tenant đó.
+
+
+#### Decision table UC-05 — chọn trẻ mẫu (TO-BE)
+
+Hệ thống tính tập ứng viên theo policy version đã được chủ sở hữu duyệt rồi chọn ngẫu nhiên đúng một trẻ; Teacher chỉ xem và xác nhận child/context. Bảng dưới phân biệt invariant đã chốt với các guard cần duyệt. “State unchanged” nghĩa là không phát minh occurrence/run state mới; transition cụ thể phải dùng state đã có tại §§6/22–23.
+
+| Case | Guard/input | Action | Response and target state | Evidence / decision |
+|---|---|---|---|---|
+| Tập đủ điều kiện có ít nhất 1 trẻ | Candidate set được dựng từ roster/enrollment của lớp occurrence, Teacher assignment còn hiệu lực và các grant/consent/exclusion inputs mà policy được duyệt yêu cầu. Tập điều kiện chính xác OPEN. | Server chọn ngẫu nhiên một typed child/recipient reference; trả đúng một lựa chọn cho assigned Teacher. | Hiển thị child/context đã lọc để Teacher xem; chưa tạo/accept StoryRun cho tới khi Teacher xác nhận. Occurrence giữ state hiện hành. | Q-01 quyết định policy version, thuật toán và selection evidence. Run-input context snapshot sau xác nhận vẫn bắt buộc riêng. |
+| Tập rỗng | Không candidate thỏa policy đã duyệt. | Không fallback sang profile khác, không cho Teacher tự chọn ngoài tập. | Không tạo sample run; thông báo không có lựa chọn hợp lệ và giữ occurrence ở state hiện hành. Nội dung/error code và việc cho thử lại OPEN. | Q-01; response/error code, audit event và việc có ghi selection attempt OPEN. |
+| Grant/consent không còn hợp lệ trước khi trả lựa chọn hoặc confirm | Server kiểm tra lại version/hiệu lực trước mỗi lần đọc/command; revoke phải chặn read/token mới và job chưa accepted. | Deny command và không đưa child media/context vào response; không accept job. | Màn hình denied/refresh theo error handling §21.6; outcome cho selection đang chờ (clear, retain hidden hay yêu cầu selection mới) OPEN. | Ghi nhận allow/deny metadata theo policy hiện hành; retention/field schema OPEN §31.10(17). |
+| Teacher không xác nhận hoặc đóng màn hình | Chưa có command confirm gắn đúng occurrence/selection/input revision. | Không tạo hoặc accept StoryRun. | Giữ state hiện hành; timeout, expiry của lựa chọn và resume behavior OPEN. | Event/audit cho confirm/decline/timeout và thời gian giữ lựa chọn OPEN. |
+| Teacher yêu cầu chọn lại | Selection trước chưa được confirm hoặc đã bị vô hiệu bởi grant/policy. | Chỉ chạy lại lựa chọn nếu policy cho phép; không mặc định unlimited reselection. | Trả một lựa chọn mới nếu được phép; nếu không, trả policy-denied/empty outcome. Nhánh cho phép, số lần và handling lựa chọn cũ OPEN. | Q-01 quyết định reselection và evidence liên kết các lần thử. |
+| Hai request đồng thời claim cùng occurrence | Compare-and-set/serialized command phải kiểm tra occurrence revision và one-successful-sample invariant. Cơ chế vật lý chưa duyệt. | Tối đa một command có thể ghi nhận successful sample cho occurrence; request trùng idempotent hoặc conflict theo contract được duyệt. | Winner tiếp tục flow; loser không thể tạo successful sample thứ hai. Run/quota của request đã accepted xử lý theo receipt/quota rules hiện hành; reconciliation contract còn cần review. | Q-01 + D-06; exact claim timing, key/index và audit evidence OPEN; không tạo cross-owner transaction. |
+| Revoke xảy ra trong lúc Teacher chờ xác nhận | Grant revision hiện tại khác revision dùng để tạo view hoặc consent hết hiệu lực theo policy. | Re-authorize khi confirm; deny nếu quyền không còn. | Không accept job chưa accepted. Với job đã accepted, không retarget hoặc tự hủy; áp dụng grant/job policy đã duyệt, hiện còn OPEN cho trường hợp này. | Q-04 / D-09; permission revision và correlation cần được trace; retention OPEN. |
+
+**Không lưu selection snapshot ở cấp occurrence như một quyết định mặc định.** Run-input context snapshot bắt buộc chỉ được tạo từ dữ liệu tối thiểu đã duyệt sau xác nhận. Một evidence envelope metadata-only có thể đem review (occurrence ref, policy version, selected typed ref, timestamp, confirmation revision, outcome/reason); đây là nội dung PROPOSED, chưa là field list/retention đã được duyệt. Không lưu seed có thể tái nhận diện hoặc child media trong audit theo suy luận.
 
 ### 5.3 Tổ chức và thanh toán
 
@@ -473,6 +495,18 @@ Danh mục hiện có 80 FR riêng theo ID. AI Sketch cho Teacher là một lu�
 | FR-P-10 | S | Hiển thị stage và lỗi dễ hiểu, có thể khôi phục; không đưa prompt/diagnostic model vào UI. |
 | FR-P-11 | S | Trong drawing session, Parent có thể bật hoặc bỏ qua một AI line-sketch guide 3–5 bước cho chủ đề chung và độ khó đơn giản. Chỉ gửi topic/độ khó cùng phiên bản hợp đồng guide; không gửi dữ liệu hồ sơ, tuổi cụ thể, giọng nói, ảnh hay tranh trẻ. Chỉ hiển thị output đã qua kiểm tra schema, line-art, an toàn, media và malware/AV; output chỉ người yêu cầu được xem, có provenance và là asset tạm với expiry/cleanup. Không gắn với profile/StoryRun, không tiêu video quota và không chặn capture khi skip/lỗi/timeout/limit/output rejection. Chủ thể tranh trẻ tiếp tục được review sau capture. |
 
+
+#### Nhánh Parent không có Lesson Preset — contract decision (UC-02/FR-P-05)
+
+Outdoor activities luôn xuất hiện sau video; catalog lookup không phải input/gate để bắt đầu hoặc hoàn tất video. Khi không có lesson version pin, owner phải chọn một trong hai nhánh dưới đây; Rev57 không chọn thay.
+
+| Policy option | Query/response rule | Permission/filter/version requirements | Empty, error and revoke | Status |
+|---|---|---|---|---|
+| Không query catalog | Không gọi learning_content; không tạo danh sách hoạt động mặc định. UI biểu thị không có activity gắn với lesson cho run này và vẫn cho phép hoàn tất/xem video. | Không tạo catalog permission hay snapshot. | Không biến thành lỗi video; trạng thái “không cung cấp danh sách” phải phân biệt với lỗi hệ thống. Exact UI copy/response enum OPEN. | OPEN-OWNER SRS §31.10(13) / R-04. |
+| Query catalog sau video | Chỉ truy vấn sau khi video sẵn sàng/playable; không yêu cầu Parent chọn trước. | Cần owner phê duyệt published+approved version, server-side permission, filter fields/schema, thứ tự, cardinality, version/hash pin hoặc snapshot. Catalog schema không có taxonomy typed cho một số filter; không dùng field chưa có. | Phân biệt zero eligible result, denied, revoked/unpublished và service unavailable; không trả bản đã bị thu hồi như nội dung mới. Hành vi history/in-flight sau revoke và response contract OPEN. | OPEN-OWNER SRS §31.10(13) / R-04. |
+
+Cả hai phương án giữ UC-18/FR-P-05 behavior cho preset: exact lesson-version/hash đã pin, activity list sau video. Không thêm bảng catalog; không dùng latest thay version pin. Decision Register ghi rõ owner, lựa chọn, tác động và nơi cập nhật sau khi duyệt.
+
 ### 7.3 Luồng Giáo viên và tổ chức
 
 | ID | Ưu tiên | Yêu cầu |
@@ -486,7 +520,7 @@ Danh mục hiện có 80 FR riêng theo ID. AI Sketch cho Teacher là một lu�
 | FR-T-07 | M | Giữ file giáo án gốc và provenance của text trích xuất; cho sửa thành revision text bất biến mới; yêu cầu Teacher xem và duyệt trước khi dùng. |
 | FR-T-08 | M | Tạo occurrence và plan cho buổi dạy, pin optional typed `LessonVersionRefV1` với version/hash chính xác khi chọn reusable lesson; plan revision và Teacher StoryRun giữ cùng lineage ref/hash đã pin, không resolve `latest`. Một occurrence có thể giữ nhiều activity; Teacher sample ghim một activity và một child/run như baseline. Cách lưu vật lý chờ DDL được duyệt. |
 | FR-T-09 | M | Hoạt động Teacher tự nhập chỉ tồn tại trong occurrence đó và cần Teacher phụ trách xác nhận bằng safety checklist. |
-| FR-T-10 | M | Hệ thống chọn ngẫu nhiên một child từ roster đủ điều kiện theo eligibility/consent policy đã được chủ sở hữu duyệt; Teacher xem và xác nhận child/context trước khi tạo run. Ghim một activity đã duyệt và snapshot context tối thiểu vào run. Eligibility, consent, reselect, no-eligible behavior và selection evidence còn OPEN theo Q-01. |
+| FR-T-10 | M | Hệ thống chọn ngẫu nhiên một child từ roster đủ điều kiện theo eligibility/consent policy đã được chủ sở hữu duyệt; Teacher xem và xác nhận child/context trước khi tạo run; không có nhánh Teacher tự chọn child tùy ý. Case/response/evidence đồng bộ theo decision table UC-05 tại §5.2 và Q-01. Ghim một activity đã duyệt và snapshot context tối thiểu vào run. Eligibility, consent, reselect, no-eligible behavior và selection evidence còn OPEN theo Q-01. |
 | FR-T-11 | M | Cho Teacher chụp bằng camera trình duyệt hoặc tải ảnh chụp bằng điện thoại. |
 | FR-T-12 | M | Cho Teacher đặt hướng story theo giáo án/plan lớp đã duyệt và yêu cầu tối đa ba lần AI viết lại; mỗi lần tạo video đều phải xác nhận script. |
 | FR-T-13 | M | Thực thi tối đa một video mẫu phát được và đạt safety cho mỗi occurrence. Lỗi kỹ thuật hoặc safety block trước lần playback/claim đầu không chiếm slot. Sau claim đầu, không mở lại slot dù video bị từ chối/ẩn, các lần tạo lại thất bại/hết lượt, run bị xóa/hủy hoặc đổi Teacher. |
@@ -636,14 +670,17 @@ Mỗi module sở hữu bảng và quyền ghi của mình. Giao tiếp module d
       domain/
         identity/ organization/ roster/ parent_profiles/ profile_context/
         lesson/ story/ billing/ notifications/ assets/
+        learning_content/ ai_jobs/ ai_policy/ (domain owners, proposed)
       application/
         commands/ queries/ services/ ports/ policies/
+        learning_content/ ai_jobs/ ai_policy/ (owner use cases and ports, proposed)
       contracts/
         http/v1/ events/v1/ jobs/v1/ schemas/
       interfaces/
         http/routers/ dependencies/ workers/ schedules/
       infrastructure/
         persistence/ object_storage/ queue/ identity/
+        learning_content/ ai_jobs/ ai_policy/ (adapters only, proposed)
         ai/modal/ payments/momo/ payments/vnpay/ email/ telemetry/
     backend/alembic/                   Migration có version, nhóm theo owner bảng
     infra/                             Docker Compose profile và monitoring config
@@ -1480,7 +1517,7 @@ Việc tiếp nhận hồ sơ Teacher phục vụ cùng mục đích người d�
 
 | Hạng mục | Đặc tả |
 |---|---|
-| Actor chính | Quản trị nội dung |
+| Actor chính | Platform Admin (Content Admin permission) |
 | Điều kiện tiên quyết | Actor có quyền catalog; safety/content checklist và catalog schema version đang hiệu lực |
 | Kích hoạt | Tạo, duyệt, phát hành, sửa hoặc retire một hoạt động ngoài trời |
 | Luồng chính | Tạo immutable catalog revision → validate age/context/accessibility/safety metadata → reviewer khác hoặc quyền review độc lập phê duyệt → publish có effective time → Parent chỉ nhận version đã published; Teacher activity snapshot ghim đúng version |
@@ -1637,7 +1674,7 @@ Hình dạng route là contract sẽ chốt trong OpenAPI. Đặc biệt, body t
 | Android Parent | Đăng nhập/khôi phục tài khoản; danh sách/biểu mẫu hồ sơ trẻ; lịch sử run; chụp/chọn tranh; ý tưởng văn bản/audio; rà soát transcript; xác nhận/chỉnh chủ thể; catalog hoạt động; rà soát context snapshot; rà soát script/storyboard; tiến độ job; trình phát video; Hoàn tất/hủy run; tóm tắt quota/mua thêm; xóa run đã hoàn tất | Yêu cầu quyền theo ngữ cảnh; từ chối camera vẫn cho tải ảnh từ thư viện; từ chối microphone vẫn cho nhập ý tưởng; tiếp tục stage sau khi app chạy nền; trạng thái quota lấy từ server; không có batch trẻ/gallery/export |
 | Web Teacher | Đăng nhập; chọn tổ chức/lớp; roster; biểu mẫu hồ sơ có cấu trúc; lesson occurrence; upload/trích xuất tài liệu; rà soát/chỉnh revision văn bản trích xuất; plan/objective/hướng truyện/checklist hoạt động; xem/xác nhận child do hệ thống chọn ngẫu nhiên theo policy đã duyệt; camera/upload; rà soát transcript/chủ thể/context; rà soát script; tiến độ job; trình phát video; xác nhận chiếu theo occurrence; Hoàn tất/hủy run; tóm tắt quota tổ chức/mua thêm; lịch sử run/occurrence | Chỉ hiện lớp được phân công; checklist an toàn chặn duyệt plan; occurrence hiển thị trạng thái một video mẫu; chiếu cần xác nhận; không tạo hàng loạt theo roster |
 | School Manager | Dashboard organization; xem sức chứa lớp; tạo/archive/tạm ngưng lớp; phân công Teacher phụ trách; quản trị roster; kỳ billing/invoice/trạng thái thanh toán; tự gia hạn/hạ gói; quota tổ chức/mua thêm; inbox thông báo | Khi tạo lớp kiểm tra sức chứa hiệu lực; hạ gói yêu cầu chọn lớp; màn hình billing không bao giờ để lộ media/story của trẻ |
-| Quản trị nội dung | Nháp/rà soát/xuất bản catalog hoạt động | Version đã xuất bản là bất biến; thay đổi tạo version mới cần rà soát |
+| Platform Admin — Quản trị nội dung | Nháp/rà soát/xuất bản catalog hoạt động | Version đã xuất bản là bất biến; thay đổi tạo version mới cần rà soát |
 | Dashboard operator | Health, queue, trạng thái tổng hợp job, đối soát billing, backlog lifecycle | Chỉ metadata vận hành đã loại thông tin nhạy cảm; không drill-down hồ sơ/story/media |
 
 Màn hình run giải thích thời điểm cần người lớn nhập liệu. Không hiển thị phần trăm bịa đặt. Trẻ hoặc người lớn không thể duyệt chỉ bằng cách đi qua các màn hình; xác nhận phải là command gắn với revision hash chính xác.
@@ -2514,6 +2551,18 @@ Parent và Teacher không dùng chung account và không chuyển quyền sở h
 
 Permission checks chạy server-side cho mọi resource operation. Mất assignment, revoke share, unpublish/hide hoặc rời organization phải invalidate grant/cache/download/playback capability liên quan; không suy quyền từ UI role claim.
 
+
+#### Mapping logic và quyết định chia sẻ hồ sơ
+
+| Concept | Canonical owner | Logical reference | Cardinality/optionality | Authorization and history |
+|---|---|---|---|---|
+| Parent Child Profile | Parent profile domain | Parent-owned profile reference | Parent có thể có nhiều child profile; link sang school profile không bắt buộc. Exact one-to-one/one-to-many mapping chưa được duyệt. | Parent là owner; không hợp nhất với School Managed Profile. |
+| School Managed Profile | BE1/School tenant | School-managed profile reference trong organization scope | Enrollment/Teacher assignment theo các bất biến BE1 hiện có; link identity với Parent profile là optional và Q-04 gated. | Roster access cần role, organization, class assignment và active link/grant. |
+| Delivery Recipient | Lesson delivery domain | Opaque recipient reference kết hợp với tenant/occurrence contract | Một recipient trong một occurrence delivery; cách resolve từ Parent/School profile và uniqueness giữa hai loại profile OPEN. | Recipient không trở thành canonical profile; history giữ typed link/provenance theo retention policy chưa chốt. |
+| Profile Share Grant / Invitation | Grant owner chưa được xác định physical | Versioned opaque grant reference; sender/recipient/purpose/scope đi qua contract | Named Teacher acceptor cho invitation trực tiếp đã chốt; school-wide/class audience acceptance và cardinality OPEN. | Parent revoke; revoke chặn read/token mới và job chưa accepted. Accepted job, existing history, expiry/renewal/offboarding detail OPEN. |
+
+Không match theo tên, ngày sinh hoặc thuộc tính gần đúng. Trước khi tạo logical link, application phải kiểm tra invitation/grant version, tenant, recipient principal đã xác thực, purpose, field scope và consent theo policy được duyệt. Màn hình chỉ liệt kê link đã được xác thực. Mọi link liên-owner là opaque typed reference/version qua port; cấm SQL FK xuyên owner. Field allowlist, whole-school/class acceptance, expiry, revoke race, retained history và delivery behavior sau revoke tiếp tục Q-04/§31.10(8), không được suy ra từ một FK hoặc từ tên hiển thị.
+
 ### 31.4 Authoring, upload filtering và AI assistance
 
 Teacher authoring có structured form và standardized lesson-document template. Template nêu rõ topic, age band, objectives, drawing steps, subject knowledge, activities, materials, instructions, safety notes và optional script direction. Giữ giới hạn upload v2.2 (PDF/PPTX/DOCX tối đa 25 MB/100 trang, không OCR scan, từ chối file encrypted/password-protected) cho tới khi có quyết định mới.
@@ -2567,7 +2616,7 @@ Video generation của Teacher sample trừ quota của school organization gắ
 | FR-PL-17 | M | Lesson script-following bật/tắt theo lesson/usage; nếu bật thì giữ story direction nhưng video vẫn generation mới theo child drawing/profile. |
 | FR-PL-18 | M | Không tái sử dụng video giữa trẻ; mỗi video dùng ảnh tranh và profile context được duyệt của đúng child. |
 | FR-PL-19 | M | Khi subject mismatch, yêu cầu adult confirm/correct trước khi re-suggest; không tự đổi chủ thể âm thầm. |
-| FR-PL-20 | M | Hệ thống chọn ngẫu nhiên một child theo eligibility/consent policy đã được chủ sở hữu duyệt; Teacher xác nhận child/context trước run; giữ tối đa một successful sample mỗi occurrence. Reselect/no-eligible/evidence còn OPEN theo Q-01. |
+| FR-PL-20 | M | Hệ thống chọn ngẫu nhiên một child theo eligibility/consent policy đã được chủ sở hữu duyệt; Teacher xác nhận child/context trước run; giữ tối đa một successful sample mỗi occurrence. Bảng case → guard → action → response/state → evidence tại §5.2 là contract đích; reselect/no-eligible/evidence vẫn OPEN theo Q-01. |
 | FR-PL-21 | M | Parent xem lesson đã dạy cho child liên kết và lesson public/được share, theo history window có cấu hình; 30/60 ngày đang mở. |
 | FR-PL-22 | M | Parent tải lesson được phép và gửi lesson feedback; Teacher/Manager/Admin có thể xem/reply trong phạm vi school; không có direct chat, completion toggle hoặc ảnh tranh trong feedback. |
 | FR-PL-23 | M | School groups và named recipients được dùng làm audience cho lesson share; membership và grants có thể thu hồi. |
@@ -2593,6 +2642,22 @@ Video generation của Teacher sample trừ quota của school organization gắ
 | BR-59 | Parent gửi feedback gắn lesson delivery; Teacher/Manager/Admin phản hồi trong school scope; không mở direct chat hoặc media upload. |
 | BR-60 | Billing sở hữu quota usage theo Parent-account hoặc school-organization scope; Teacher usage dùng school scope của occurrence và không có pool tài khoản Teacher. AI Policy tiếp tục sở hữu compute reservation. Included/package amounts, prices, school allocation and purchase flow remain open; included-current-month then top-up FIFO applies within each scope. |
 
+
+### 31.8.2 Approved plan supersession — behavior matrix
+
+Invariant in every row: an accepted occurrence/run/job retains the exact approved plan revision and LessonVersionRefV1 version/hash it accepted; it is never silently retargeted to latest. Completion must pass the existing expected-revision/input/context/lesson hash fence before writing to its owning aggregate. This matrix leaves owner-selected visibility, continuation/cancellation and business compensation open.
+
+| Supersession arrives while old pinned work is… | Technical invariant | StoryRun / AI Job | Sketch Deck / approval / occurrence | Sample claim / quota / projection | Owner choice still required |
+|---|---|---|---|---|---|
+| Accepted, not yet queued | Preserve accepted plan/hash and admission receipts; idempotent replay resolves to same accepted intent. | Do not retarget. Whether accepted work continues or is stopped is OPEN; if stopped, cancellation and accepted-cost behavior must be approved. | Old deck stays associated with old plan hash; whether visible as READY or marked STALE immediately is OPEN. Existing approval does not transfer to new plan. | Do not release/change existing receipts by inference; whether projection is hidden pending new review is OPEN. | Continue vs stop; deck visibility; quota/sample claim and projection. |
+| Queued | Fence dequeue/worker start by expected revision; a late queue message must not substitute the new plan. | Continue pinned job or request cooperative cancel is OPEN; retries reuse same command/idempotency identity. | New deck revision may be generated separately; old output remains linked to old hash. Whether old is visible is OPEN. | No second successful sample; allocation/receipt stays with accepted command pending owner policy. | Continue/cancel behavior and whether a replacement occurrence/run is required. |
+| Running | Completion compares exact pinned hashes and expected revision; duplicate callback/replay is idempotent. | Do not rewrite input. Cancellation may be requested only under approved policy; provider outcome unknown requires reconciliation. | Late result remains attached to originating revision; marking STALE and hiding it are separate policy decisions. | Existing accepted quota receipt follows current no-refund rule; sample claim follows current playable-success invariant. Projection must not overwrite new revision. | Continue/cancel, display/stale handling, approval invalidation. |
+| Ready but not yet played/projected | Preserve exact output provenance; validate current revision before publication/playback action. | Job terminal result remains on the original job; no rerun/retarget on read. | Whether old deck/video remains playable, is hidden, or marked STALE is OPEN; new approval cannot be inferred. | Do not create a second successful sample; projection target must be revision-fenced. | Visibility/playability and whether a new approval/occurrence is required. |
+| Failed | Retain failure against the accepted old revision for audit/reconciliation. | Retry only under the existing bounded retry and idempotency policy; no implicit new-plan retry. | New plan may have independent work; old failure does not approve or invalidate it. | No inferred quota refund; pre-playable Teacher failure does not consume the successful sample slot under existing rule. | Whether a new command is allowed and its cost/claim behavior. |
+| Cancelled | Keep cancellation receipt and old pin; reject late completion by expected revision/state fence. | Do not restart against the new plan on replay. | No silent approval/deck transfer. | Existing accepted product quota rule remains; exact occurrence reuse/claim behavior for replacement is OPEN. | Whether cancellation frees any non-quota capacity, creates replacement work, or changes projection. |
+
+No transition in this table is a newly approved state. Exact stale/cancel events, owner command and audit fields must be closed before state diagrams or DDL are approved. Cross-owner billing and AI Policy receipts remain separate owner transactions joined by idempotent saga/reconciliation, never a shared SQL transaction.
+
 ### 31.9 Yêu cầu phi chức năng và acceptance bổ sung
 
 | ID | Ưu tiên | Yêu cầu phi chức năng |
@@ -2615,7 +2680,7 @@ Video generation của Teacher sample trừ quota của school organization gắ
 | AC-53 | Parent/Teacher không bật line-sketch | Session bắt đầu vẽ | Không tạo sketch AI job, asset hoặc quota usage. |
 | AC-54 | Parent hoặc Teacher bật script-following | Adult xác nhận script và yêu cầu video | Video mới được tạo từ tranh trẻ; direction được theo nhưng hình ảnh/clip được cá nhân hóa và không reuse video khác. |
 | AC-55 | VLM subject confidence/mapping không hợp với tranh | Adult sửa subject | Hệ thống yêu cầu xác nhận, tạo revision mới và mới sau đó gợi ý lại. |
-| AC-56 | Teacher occurrence có roster được đánh giá theo eligibility/consent policy đã được chủ sở hữu duyệt | Hệ thống tạo yêu cầu video mẫu | Hệ thống chọn ngẫu nhiên một child trong tập đủ điều kiện; Teacher xem và xác nhận child/context trước run; occurrence vẫn tối đa một successful sample. Case không có child đủ điều kiện phải được kiểm tra trước khi chốt policy; expected outcome/state, attempt/run handling, response, reselect và evidence OPEN theo Q-01; không suy diễn fallback. |
+| AC-56 | Teacher occurrence có roster được đánh giá theo eligibility/consent policy đã được chủ sở hữu duyệt | Hệ thống tạo yêu cầu video mẫu | Hệ thống chọn ngẫu nhiên một child trong tập đủ điều kiện; Teacher xem và xác nhận child/context trước run; occurrence vẫn tối đa một successful sample. Case không có child đủ điều kiện phải được kiểm tra theo decision table §5.2 trước khi chốt policy; expected outcome/state, attempt/run handling, response, reselect và evidence OPEN theo Q-01; không suy diễn fallback. |
 | AC-57 | Parent profile có grant với Teacher trường A | Principal organization B đọc profile/feedback | Bị từ chối, không tiết lộ resource tồn tại hoặc nội dung. |
 | AC-58 | Teacher/Manager/Admin reply feedback của Parent | Parent thuộc trường A mở feedback | Chỉ người có quyền của trường A thấy thread; không mở chat hoặc media attachment. |
 | AC-59 | Platform Admin/Teacher dùng lesson PUBLIC và yêu cầu AI đề xuất chỉnh sửa | Generation hoàn tất; người có quyền review output | Tạo draft/personal copy có lineage; source version và occurrence cũ không đổi. Parent không khởi tạo suggestion; chỉ sửa draft được cấp quyền. |
@@ -2645,6 +2710,9 @@ Video generation của Teacher sample trừ quota của school organization gắ
 15. Khi approved lesson plan revision bị supersede sau khi occurrence/run/job đã pin: accepted run/job có tiếp tục hay dừng ở từng state, ảnh hưởng tới Sketch Deck READY/STALE, occurrence approval, sample claim, quota và quyền chiếu; không retarget hoặc hủy/refund theo suy luận.
 16. Policy cho hồ sơ legacy hiện có nằm ngoài 36–120 tháng nhưng trong khoảng schema cũ 36–155 tháng: quyền read/edit/new run/archive/delete và migration/backfill. Không clamp, xóa hay viết lại giá trị nguồn nếu chưa có owner decision.
 17. Physical audit schema/field mapping và retention cho quyết định allow/deny hoặc hành động nhạy cảm, gồm actor/action/resource/tenant/purpose/reason/permission revision/correlation/timestamp. Giữ audit metadata-only; child-media access vẫn deny cho tới khi workflow được duyệt.
+
+
+Rev57 có Decision Register riêng, ánh xạ từng Q-01–Q-13 và đủ 17 câu hỏi đánh số ở §31.10 tới phương án/hệ quả, owner theo vai trò chưa được chỉ định và mục cần cập nhật sau khi duyệt. Bảng này không làm thay đổi trạng thái OPEN-OWNER/OPEN-TECHNICAL trong SRS.
 
 ### 31.10.1 Theo dõi mười nhóm readiness cho diagram
 
@@ -2832,3 +2900,11 @@ Rev51 đọc source tree tại commit `4749451080f49243464d40a464b8f83a03ae77bb`
 | API và database snapshots | Evidence hiện hành của AI API coverage ghi main OpenAPI 24/17 và StoryRun-lite 13/12; local DB 41 bảng vẫn là snapshot Rev43 riêng. | Đây là các mốc theo môi trường/evidence khác nhau, không phải target count, migration completion hay production inventory. | Rev51 không tái chạy OpenAPI, query DB hoặc migration. |
 
 Source/evidence được đối chiếu: `router_composition.py`, `story_run_lite_app.py`, `routers/story_run_lite.py`, `infrastructure/ai/modal_function_client.py`, `infrastructure/story_run_lite/photo_bridge.py`, `routers/ai_jobs.py`, `deployment/modal/srs_v23/workloads.json`, `AI_API_QWEN35_MODAL_VALIDATION_20261105.md`, `AI_NONVIDEO_AI_END_TO_END_20261105.md`, `AI_QWEN35_FLUX_REV46A_COMPLETION_20261105.md`, và `EV-063-54_DEV_HISTORY_AND_SRS_MERGE_20261106.md`. EV-063-56 ghi commit nguồn, đường dẫn, phân loại, giới hạn và việc không chạy lại runtime.
+
+### 32.7 Rev57 source-only verification at docs baseline
+
+On 2026-11-09, a read-only source review was performed at repository commit ae5707ca188d01d9719ed959b62d768ae927912d, the fetched Rev56 baseline. The main FastAPI composition includes the configured health, BE1, demo/story and Lesson Library routers in router_composition.py; routers/ai_jobs.py exists in source but is not included by that composition. This is source-level mount inspection only, not a live route/OpenAPI check. Source trees for learning_content, ai_jobs and ai_policy are present; their existence does not prove every target port or workflow is integrated.
+
+A static Python AST import scan covered 559 modules under backend/src/sketch2life. It found no outward-layer import edges under the checked domain/application rule and one import cycle between infrastructure.canvas_render and infrastructure.canvas_render.renderer. The cycle is a source finding for G10, not a product decision or evidence of runtime failure; package readiness stays blocked until reviewed. The scan did not evaluate dynamic imports, dependency-injection wiring or cross-language package graphs.
+
+No live database, production schema, migration, API process, provider, test suite or deployment was inspected or run in Rev57. Section 32.7 supplements but does not replace the historical, environment-specific observations in §§32.1–32.6. §§1–31 remain the v2.7-draft target; no SRS/DTR sign-off is implied.

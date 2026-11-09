@@ -625,3 +625,11 @@ Parent Sketch Guide and lesson visuals were not dispatched because Modal `dev` s
 - **Baseline:** SRS/Data Table Register v2.7-draft at 98cc34a39af279560b5f8d39f18939a376535834; unsigned.
 - **Outcome:** Most diagrams can be drafted with open questions annotated. Screen Flow needs screen-to-screen navigation decisions; physical ERD needs approved DDL and environment reconciliation. No final diagrams or product decisions were produced.
 - **Evidence:** evidence/EV-063-60_TWO_AGENT_DIAGRAM_READINESS_ASSESSMENT_20261107.md.
+
+## Plan Rev57 — substantive diagram-input remediation — READY FOR COMMIT/PUSH
+
+- **Baseline:** fetched target branch at ae5707ca188d01d9719ed959b62d768ae927912d.
+- **Status:** documentation package and pre-publication checks complete; scoped commit and fast-forward push are pending.
+- **Outcome so far:** SRS/DTR Rev57 detail and companion contract artifacts created; 13 diagram inputs are explicitly DRAFT/BLOCKED as applicable. SRS/DTR remain unsigned and Q decisions remain open.
+- **Technical finding:** static source import scan found one cycle under infrastructure.canvas_render; ai_jobs router file is not included by the inspected main router composition.
+- **Evidence:** EV-063-62. No product tests/runtime/database/migration were run.

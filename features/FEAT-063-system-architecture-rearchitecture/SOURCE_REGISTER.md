@@ -355,3 +355,11 @@
 - Corrected UC-05/FR-T-10/FR-PL-20/AC-56 selection wording. Q-01 policy details remain OPEN; no new product decision or schema definition was inferred.
 - Evidence: evidence/EV-063-61_TEN_GROUP_DIAGRAM_READINESS_ALIGNMENT_20261108.md. No runtime/source/schema inspection, product test/build or migration.
 - Publication: package commit 09cfc5ca396016cbb7b238a5c744e004f7c7025a was pushed to origin/docs/feat063-diagram-readiness-20261107; fresh git ls-remote confirmed the same SHA. Repository security validation passed before commit and push (6,576 publishable files scanned).
+
+## Rev57 substantive diagram-input remediation — current review — 2026-11-09
+
+- Canonical SRS/Data Table Register: v2.7-draft Rev57; unsigned; source baseline ae5707ca188d01d9719ed959b62d768ae927912d.
+- Read: Rev56 Catalog, Rev54 Crosswalk and EV-063-61; source-only inspection at the same SHA.
+- New artifacts: DIAGRAM_INPUT_CATALOG_V27_REV57_20261109.md; DECISION_REGISTER_REV57_20261109.md; DIAGRAM_TRACE_MATRIX_REV57_20261109.md; PHYSICAL_DATA_DICTIONARY_DRAFT_REV57_20261109.md; STATE_TRANSITION_MATRIX_REV57_20261109.md; API_EVENT_CONTRACTS_DRAFT_REV57_20261109.md; SCREEN_NAVIGATION_MAP_DRAFT_REV57_20261109.md; CLASS_PACKAGE_CONTRACTS_DRAFT_REV57_20261109.md; REMEDIATION_RESULT_REV57_20261109.md.
+- Evidence: EV-063-62_REV57_SUBSTANTIVE_DIAGRAM_INPUT_REMEDIATION_20261109.md.
+- Physical ERD, Activity, Sequence, Screen Flow, State Machine and Package remain blocked or draft; no final diagram was produced.

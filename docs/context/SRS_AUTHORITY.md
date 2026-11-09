@@ -34,3 +34,7 @@ Do not delete, rename, or rewrite these historical sources as part of ordinary f
 5. Open old SRS copies only when a task explicitly requires historical comparison or traceability; identify them as superseded in the result.
 
 This is a repository instruction and source-routing rule. It cannot prevent someone from manually opening a historical file, so old records retain explicit local context notices where they mention prior SRS authority.
+
+## Current FEAT-063 pointer after Rev57
+
+As of 2026-11-09, the canonical working product source remains features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md and its companion DATA_TABLE_REGISTER.md, both v2.7-draft Rev57 and unsigned. Rev57 adds design detail and source-only verification; it does not close OPEN-OWNER decisions or supersede the TO-BE/AS-BUILT separation. Diagram Input Catalog Rev57 is a readiness handoff, not a competing requirements source.

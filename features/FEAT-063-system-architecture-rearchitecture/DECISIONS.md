@@ -339,3 +339,7 @@ The SRS publication branch used D-122 through D-125 for these four records, whil
 ## Rev55 — no new product decision: two-agent diagram readiness
 
 This documentation review makes no product or architecture decision. It records a two-agent assessment of the canonical v2.7-draft baseline only. Teacher sample-child selection remains inconsistent across UC-05 and the random-selection requirements; Parent no-preset activity lookup, plan supersession, role resolver/invitation, and physical schema remain open. Parent activity timing itself is role-specific and consistent: Parent does not preselect an activity; Teacher includes one approved activity for a sample run. See EV-063-60.
+
+## Rev57 — no new approved product decision
+
+Rev57 adds TO-BE/PROPOSED design contracts and maps all 17 SRS §31.10 questions to Q-01–Q-13 where applicable. It does not create a new business decision or close an OPEN-OWNER item. The static source review found one infrastructure import cycle in canvas_render; this is a technical finding, not an approved architecture exception. See EV-063-62 and the Rev57 contracts.
