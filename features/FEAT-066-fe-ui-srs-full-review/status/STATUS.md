@@ -1,6 +1,6 @@
 # FEAT-066 status
 
-- Status: MANUAL_UI_REVIEW_COMPLETE_SECURITY_VALIDATION_PASSED_PENDING_INTEGRATION
+- Status: IMPLEMENTATION_AND_INTEGRATION_COMPLETE
 - Updated: 2026-11-10 (Asia/Bangkok)
 - Active plan: revision 7; SHA-256 `72F462DCECE9DC2545368094FBA86E68AC3992589FD448CED5E76E82F057FD36`.
 - Approval: `APPROVED_FOR_IMPLEMENTATION` for plan revision 7; direct user request and matching hash recorded in `approvals/TASK_APPROVAL.md` before code edits.
@@ -92,13 +92,13 @@ Revision 4 code commit `c43f4b0a` and status commit `55485a07` were pushed witho
 - Captured before/after desktop 1440x900 and narrow 390x844 login screenshots for all three apps under FEAT-066-EV-008.
 - Manual checks: 0 horizontal overflow at both widths; narrow submit remains visible in 844px; portal links work; Tab focus has a visible outline; Enter opens Teacher; Platform Admin link opens its correct route; reduced-motion state is static; forced WebGL context loss exposes fallback.
 - Authenticated login was not exercised because the local preview has no Firebase bridge and no credentials were supplied. Teacher/Manager backend assignment resolution and Platform Admin role discovery remain outside this FE-only change; Platform Admin API blocker is recorded as ROLE_DISCOVERY_UNAVAILABLE (501). Production URLs must be configured through the documented VITE_S2L_*_LOGIN_URL variables.
-- No automated tests or builds were run. Repository security validation passed on the final reviewed diff: 6,867 publishable files scanned, with no absolute machine paths. Commit/integration remain pending.
+- No automated tests or builds were run. Repository security validation passed on the final reviewed diff: 6,867 publishable files scanned, with no absolute machine paths. Implementation commit 89d8785d is on codex/fe-ui-web-remediation and was pushed non-force to origin/feature/fe-ui-full-remediation.
 ## Revision 7 three-role auth UI review (2026-11-10)
 
 - Shared `/login` pages map Teacher, School Manager, and Platform Admin to the SRS §3 role values and expose the other two local web portal destinations. Keyboard navigation and active-role semantics are recorded in FEAT-066-EV-008.
 - The first 390px capture found overlapping heading/description spacing. Mobile margins were corrected, then all six role/viewport combinations were recaptured. At 390x844, submit bottoms are 731px (Teacher), 731px (School Manager), and 750px (Platform Admin); all have 390px document width. At 1440x900, all pages fit without overflow.
 - Three.js local rendering, reduced-motion static rendering, context-loss CSS fallback, and keyboard activation were reviewed. Real sign-in was not attempted; Platform Admin role discovery remains blocked by the existing API. Details and screenshots are in FEAT-066-EV-008.
-- Repository security validation passed on the final reviewed diff: 6,867 publishable files scanned, with no absolute machine paths. Commit and integration have not occurred.
+- Repository security validation passed on the final reviewed diff: 6,867 publishable files scanned, with no absolute machine paths. Implementation commit 89d8785d was pushed non-force to origin/codex/fe-ui-web-remediation and origin/feature/fe-ui-full-remediation.
 ## Revision 7 auth UI integration (2026-11-10)
 
 - Commit `89d8785d` (`feat(auth): redesign three web portal login pages`) was pushed fast-forward without force to `origin/codex/fe-ui-web-remediation` and `origin/feature/fe-ui-full-remediation`.
