@@ -939,3 +939,237 @@ __all__ = [
     "PreparedDrawingInput",
     "prepare_drawing_input",
 ]
+
+
+@dataclass(frozen=True, slots=True)
+class ModalJsonFunctionResult:
+    output: dict[str, Any]
+    call_id: str
+    elapsed_seconds: float
+
+
+_JSON_WORKERS: dict[str, tuple[str, str, int]] = {
+    "parent.sketch-guide.generate": (
+        "sketch2life-srs23-flux-image-dev",
+        "generate-line-sketch-guide-candidate",
+        900,
+    ),
+    "lesson.plan.suggest": (
+        "sketch2life-srs23-language-audio-dev",
+        "suggest-lesson-plan",
+        1_800,
+    ),
+    "teacher.sketch-deck.generate": (
+        "sketch2life-srs23-language-audio-dev",
+        "generate-teacher-sketch-deck",
+        1_800,
+    ),
+    "lesson.visual.generate": (
+        "sketch2life-srs23-flux-image-dev",
+        "generate-approved-lesson-visual-candidate",
+        900,
+    ),
+}
+
+
+class ModalJsonFunctionClient:
+    """Stage one versioned JSON input and invoke an allowlisted non-video worker."""
+
+    def __init__(
+        self,
+        *,
+        volume: Any | None = None,
+        function_resolver: Any | None = None,
+        timeout_seconds: int | None = None,
+    ) -> None:
+        self._volume = volume
+        self._function_resolver = function_resolver
+        self._timeout = timeout_seconds
+
+    def invoke(self, workload: str, request_data: dict[str, Any]) -> ModalJsonFunctionResult:
+        worker = _JSON_WORKERS.get(workload)
+        if worker is None:
+            raise ValueError("Modal workload is not enabled for this API")
+        app_name, function_name, worker_timeout = worker
+        timeout = self._timeout or worker_timeout
+        if timeout <= 0 or timeout > worker_timeout:
+            raise ValueError("Modal wait timeout exceeds the approved workload limit")
+
+        request_bytes = canonical_json(request_data).encode("utf-8")
+        if not request_bytes or len(request_bytes) > MAX_MANIFEST_BYTES:
+            raise ValueError("Modal JSON input exceeds the manifest limit")
+        job_id, generation_id, attempt_id = (str(uuid.uuid4()) for _ in range(3))
+        attempt_prefix = f"sketch2life/{ENVIRONMENT_NAME}/{job_id}/{generation_id}/{attempt_id}/"
+        manifest_bytes = canonical_json(
+            {
+                "schema_version": STORY_INPUT_SCHEMA,
+                "asset": {
+                    "path": "input/request.json",
+                    "content_type": "application/json",
+                    "size_bytes": len(request_bytes),
+                    "sha256": hashlib.sha256(request_bytes).hexdigest(),
+                },
+            }
+        ).encode("utf-8")
+        payload = {
+            "schema_version": WORKER_INPUT_SCHEMA,
+            "environment": ENVIRONMENT_NAME,
+            "workload": workload,
+            "job_id": job_id,
+            "generation_id": generation_id,
+            "attempt_id": attempt_id,
+            "attempt_prefix": attempt_prefix,
+            "input_manifest_ref": "input/manifest.json",
+            "input_manifest_sha256": hashlib.sha256(manifest_bytes).hexdigest(),
+            "input_bytes": len(request_bytes) + len(manifest_bytes),
+        }
+        volume = self._volume
+        function = None
+        if volume is None:
+            import modal
+
+            volume = modal.Volume.from_name(
+                SCRATCH_VOLUME_NAME, environment_name=ENVIRONMENT_NAME, version=2
+            )
+        if self._function_resolver is None:
+            import modal
+
+            function = modal.Function.from_name(
+                app_name, function_name, environment_name=ENVIRONMENT_NAME
+            )
+        else:
+            function = self._function_resolver(app_name, function_name)
+
+        started = time.perf_counter()
+        call: Any | None = None
+        terminal = False
+        try:
+            _LOGGER.info(
+                "modal_worker_scratch_upload_started",
+                workload=workload,
+                input_size_bytes=len(request_bytes) + len(manifest_bytes),
+                **_call_identity(payload),
+            )
+            with volume.batch_upload() as batch:
+                batch.put_file(io.BytesIO(request_bytes), f"/{attempt_prefix}input/request.json")
+                batch.put_file(io.BytesIO(manifest_bytes), f"/{attempt_prefix}input/manifest.json")
+            _LOGGER.info(
+                "modal_worker_scratch_upload_completed",
+                workload=workload,
+                duration_ms=round((time.perf_counter() - started) * 1000),
+                **_call_identity(payload),
+            )
+            call = function.spawn(payload)
+            call_id = getattr(call, "object_id", None)
+            if not isinstance(call_id, str) or not call_id.startswith("fc-"):
+                raise ModalFunctionOutcomeUnknown()
+            _LOGGER.info(
+                "modal_worker_spawn_completed",
+                modal_call_id=call_id,
+                workload=workload,
+                **_call_identity(payload),
+            )
+            try:
+                output = call.get(timeout=timeout)
+            except TimeoutError as exc:
+                _LOGGER.warning(
+                    "modal_worker_wait_timed_out",
+                    modal_call_id=call_id,
+                    workload=workload,
+                    wait_timeout_seconds=timeout,
+                    elapsed_ms=round((time.perf_counter() - started) * 1000),
+                    **summarize_worker_call_logs(call),
+                    **_call_identity(payload),
+                )
+                raise ModalFunctionOutcomeUnknown(call_id) from exc
+            except Exception as exc:
+                terminal = True
+                _LOGGER.warning(
+                    "modal_worker_wait_failed",
+                    modal_call_id=call_id,
+                    workload=workload,
+                    exception_type=type(exc).__name__,
+                    **summarize_worker_call_logs(call),
+                    **_call_identity(payload),
+                )
+                raise ModalFunctionExecutionFailed("MODAL_WORKER_FAILED_TERMINAL") from None
+
+            terminal = True
+            if (
+                not isinstance(output, dict)
+                or output.get("schema_version") != WORKER_OUTPUT_SCHEMA
+                or output.get("workload") != workload
+                or output.get("job_id") != job_id
+                or output.get("generation_id") != generation_id
+                or output.get("attempt_id") != attempt_id
+            ):
+                raise ModalFunctionExecutionFailed("MODAL_OUTPUT_CONTRACT_INVALID")
+            asset = output.get("asset")
+            if isinstance(asset, dict):
+                image_bytes = asset.get("bytes")
+                if (
+                    not isinstance(image_bytes, bytes)
+                    or not image_bytes
+                    or len(image_bytes) > 16 * 1024 * 1024
+                ):
+                    raise ModalFunctionExecutionFailed("MODAL_OUTPUT_CONTRACT_INVALID")
+            _LOGGER.info(
+                "modal_worker_wait_completed",
+                modal_call_id=call_id,
+                workload=workload,
+                elapsed_ms=round((time.perf_counter() - started) * 1000),
+                **summarize_worker_call_logs(call),
+                **_call_identity(payload),
+            )
+            return ModalJsonFunctionResult(
+                output=output,
+                call_id=call_id,
+                elapsed_seconds=round(time.perf_counter() - started, 3),
+            )
+        except (ModalFunctionExecutionFailed, ModalFunctionOutcomeUnknown):
+            raise
+        except Exception as exc:
+            call_id = getattr(call, "object_id", None)
+            _LOGGER.warning(
+                "modal_worker_invocation_failed",
+                modal_call_id=call_id if isinstance(call_id, str) else None,
+                workload=workload,
+                exception_type=type(exc).__name__,
+                **_call_identity(payload),
+            )
+            raise ModalFunctionOutcomeUnknown(
+                call_id if isinstance(call_id, str) else None
+            ) from exc
+        finally:
+            if terminal:
+                try:
+                    volume.remove_file(f"{attempt_prefix}input", recursive=True)
+                except Exception as exc:
+                    _LOGGER.warning(
+                        "modal_worker_scratch_cleanup_failed",
+                        workload=workload,
+                        exception_type=type(exc).__name__,
+                        **_call_identity(payload),
+                    )
+                    raise ModalFunctionOutcomeUnknown(
+                        getattr(call, "object_id", None)
+                    ) from exc
+
+
+__all__ = [
+    "APP_NAME",
+    "ENVIRONMENT_NAME",
+    "FUNCTION_NAME",
+    "MODEL_ID",
+    "MODEL_REVISION",
+    "FLUX_MODEL_PROVENANCE",
+    "ModalDrawingFunctionClient",
+    "ModalStoryFunctionClient",
+    "ModalJsonFunctionClient",
+    "ModalJsonFunctionResult",
+    "ModalFunctionOutcomeUnknown",
+    "ModalFunctionExecutionFailed",
+    "ModalFunctionResult",
+    "PreparedDrawingInput",
+    "prepare_drawing_input",
+]

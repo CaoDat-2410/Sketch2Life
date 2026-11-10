@@ -28,6 +28,12 @@ router = APIRouter(prefix="/v1/sessions", tags=["image-demo"])
 @router.post(
     "/{session_id}/media/image",
     response_model=MobileWorkflowResultV1,
+    responses={
+        413: {
+            "model": MobileWorkflowResultV1,
+            "description": "Upload exceeds the transport body limit.",
+        }
+    },
     summary="Upload and admit one synthetic non-child image",
 )
 async def upload_image(
@@ -100,6 +106,12 @@ async def upload_image(
 @router.post(
     "/{session_id}/media/audio",
     response_model=MobileWorkflowResultV1,
+    responses={
+        413: {
+            "model": MobileWorkflowResultV1,
+            "description": "Narration upload exceeds the transport body limit.",
+        }
+    },
     summary="Upload optional session-local narration audio",
 )
 async def upload_audio(

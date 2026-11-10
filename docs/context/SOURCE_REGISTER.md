@@ -1,6 +1,13 @@
 # Source register and authority boundary
 
 
+## Current FEAT-063 implementation record — Rev60 SRS / Rev61–65 work
+
+- **Product requirement authority:** `features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md`, v2.7-draft, Rev60 working copy; unsigned. The companion Data Table Register is not an alternate SRS.
+- **Execution records:** FEAT-063 plans Rev58–Rev65 and approvals/status/evidence under the same feature folder. EV-063-71–73 cover Firebase account and role flows; EV-063-74 records a partial Parent/Teacher UI-to-Modal run; EV-063-75 records the live Teacher Sketch Deck presentation.
+- **Limits:** no video inference was performed in Rev64–65. Parent story generation was blocked by invalid Qwen JSON; this is recorded as a failure/blocker, not a passing flow. Teacher output remains a draft requiring review.
+
+
 ## Canonical product SRS — current working baseline
 
 Use `features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` v2.7-draft for all current product requirements and target architecture. It remains a draft pending formal owner sign-off. Its §§1–31 define target requirements; §32 contains dated environment-specific runtime/source observations and does not replace them. Older feature SRS copies and contexts are historical/feature-local and do not override it. The detailed agent reading order and historical-source list are in `docs/context/SRS_AUTHORITY.md`.

@@ -1,5 +1,54 @@
 # FEAT-063 source register
 
+## Rev65 Teacher Sketch Deck presentation UI — current — 2026-11-10
+
+- Product authority: FEAT-063 SRS v2.7-draft, Rev60 working copy (unsigned), §§6.2.1, FR-T-19, UC-17, BR-43 and NFR-33.
+- Implementation: `apps/teacher-ui/src/components/TeacherDeckPresentation.tsx` renders the current versioned DRAFT slides; `apps/teacher-ui/src/pages/ModalAiLessonFlowPage.tsx` opens the viewer and supplies the existing FLUX composite lesson visual.
+- API boundary: the deck endpoint returns ordered slide data; the separate lesson-visual endpoint returns one composite drawing guide image. There are no per-slide image references or single-step regeneration route. UI does not fabricate either.
+- Live UI evidence, Modal request IDs/model pins, build, activity-scroll remediation, Parent Android environment blocker, worker terminal-event gap and cleanup: `evidence/EV-063-75_TEACHER_PRESENTATION_UI_20261110.md`.
+
+## Rev64 Parent/Teacher Modal UI E2E — current — 2026-11-10
+
+- Product authority: current FEAT-063 SRS v2.7-draft, §§5.1–5.2, 6.2, 7, 9, 21, 25, 28–29 and 31.4–31.5. Video remains deferred by the owner's earlier direction; fixture/API-only runs cannot satisfy the requested UI E2E.
+- Owner authorization and approved scope: `plan/PLAN_REV64_PARENT_TEACHER_MODAL_E2E_20261110.md`, scope SHA-256 `C6A217BB2114C7D64621E6B50E3A92F6E7E20063866EF6977667F40581BBF9A3`, recorded in `approvals/TASK_APPROVAL.md`. Execution-plan SHA-256: `B791E6E552FF16A6A99D5758D7A2226FA6DD561AE852A40DF6BC2B87E32015C8`.
+- Runtime evidence: real Parent signup/role resolution and FLUX guide display passed; Qwen drawing analysis failed because a 256-token output was truncated and rejected by the strict JSON parser (`MODAL_MODEL_OUTPUT_INVALID`), while the API surfaced 504 `MODAL_OUTCOME_UNKNOWN` about 7 seconds before the worker terminal event. Parent story was not called. Teacher role resolution, Qwen lesson suggestion, Qwen Sketch Deck and FLUX lesson visual passed in the actual Teacher UI; lesson file upload/parser was not exercised. No fixture or video inference. Three task-used Modal apps were stopped and verified at zero tasks. Detailed operation times, gaps, screenshots and safe logs: `evidence/EV-063-74_PARENT_TEACHER_MODAL_E2E_20261110.md`.
+
+## Rev63 role-based authentication and Firebase account recovery — current — 2026-11-10
+
+- Product authority: `docs/context/SRS_AUTHORITY.md` and canonical FEAT-063 SRS v2.7-draft, §§3, 7 (FR-C-01/FR-O-09), UC-13, §31.3 and open §31.10(14). This implementation does not claim UC-13 verification/email delivery or the broader open resolver questions are complete.
+- Owner authorization and exact paths: `plan/PLAN_REV63_ROLE_BASED_AUTH_AND_ACCOUNT_RECOVERY_20261110.md`, latest approved SHA-256 `120FF1994CE81BD6D6A25BD37543B748D5EDDD26A35D57F18903C7E0559DA048`, recorded in `approvals/TASK_APPROVAL.md`. Compose passes the root `.env` bootstrap email to the API container.
+- Firebase Auth provider behavior: [Firebase Admin Python Auth reference](https://firebase.google.com/docs/reference/admin/python/firebase_admin.auth) — user provisioning, account lookup, and `get_users` batching (up to 100 identifiers per call).
+- Runtime evidence: Alembic heads including the new role migration applied to disposable PostgreSQL; synthetic Firebase Parent registration and Platform Admin account/role lifecycle passed; actual HTTP registration and invalid-token response passed. The root `.env` Web API key was corrected to the owner's supplied Web config; Identity Toolkit probe and synthetic reset/sign-in/change-password lifecycle passed, with cleanup and no email sent. Admin/Teacher Web builds and Parent mobile typecheck passed. Role-gated business cases used a test principal override, not a verified Firebase ID token; no interactive browser flow ran. Full Compose startup could not pull MinIO (HTTP 401), so isolated API/PostgreSQL containers were stopped/removed after the run; pre-existing services and volumes were preserved and synthetic identities were deleted. See `evidence/EV-063-73_ROLE_BASED_AUTH_AND_RECOVERY_20261110.md`.
+
+## Rev62 backend Firebase Auth registration — historical slice, extended by Rev63 — 2026-11-10
+
+## Rev62 backend Firebase Auth registration — current — 2026-11-10
+
+- Product authority: `docs/context/SRS_AUTHORITY.md` and canonical FEAT-063 `artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` v2.7-draft, §§3, 7 (FR-C-01, FR-O-09), and UC-13. UC-13 is the full target onboarding workflow; Plan Rev62 implements only local Firebase identity creation.
+- Owner authorization: direct request to complete backend account creation and verify a Firebase Auth identity; exact scope and final Plan SHA-256 `1C245F296FDFBBEACDEF3AEC6D1D1C9AF21122A457490F3AE801DEEB11532FDE` are in `approvals/TASK_APPROVAL.md`.
+- [Firebase Admin Python Auth reference](https://firebase.google.com/docs/reference/admin/python/firebase_admin.auth) — server-side `create_user` parameters and behavior.
+- [Firebase Auth REST API](https://firebase.google.com/docs/reference/rest/auth) — email/password sign-in through Identity Toolkit using the Web API key.
+- [Firebase Android setup](https://firebase.google.com/docs/android/setup) — native Android SDK configuration and `google-services.json` requirements; compared with the current REST-based client.
+- [Firebase API key guidance](https://firebase.google.com/docs/projects/api-keys) — Firebase key/project matching, Identity Toolkit allowlist, and invalid-key troubleshooting.
+- Runtime evidence: one live backend request and Admin lookup passed; REST sign-in returned `API key not valid`. See `evidence/EV-063-72_BACKEND_FIREBASE_ACCOUNT_REGISTRATION_20261110.md`. No key, password, token, or service-account contents are recorded.
+
+## Rev61 single-root Firebase Auth configuration — historical setup, signup superseded by Rev62 — 2026-11-10
+
+- Plan Rev61 SHA-256 `27D6D8735FF1F23D9B31F0152AD80EEB0A33085CDC5A1C5096AE1E8452950D30`; approval recorded in `approvals/TASK_APPROVAL.md`.
+- Canonical working SRS remains FEAT-063 v2.7-draft with local amendments through Rev60; it was not edited by Rev61.
+- A single ignored root `.env` supplies Compose, Teacher Web and Parent Android. Compose passes Firebase Admin Base64 only to the API; Vite/Babel expose only the allow-listed public client keys. No nested Firebase env or service-account JSON file is required in the project.
+- At Rev61, Parent sign-up/sign-in both used Firebase Authentication REST endpoints through `AuthSessionPort`; Rev62 moves account creation to backend Firebase Admin and keeps REST for sign-in/refresh. Admin SDK verification accepts Base64 service-account JSON and validates the credential project ID. No live Firebase request or account creation was performed at Rev61.
+- The owner-supplied Admin key is stored only in ignored root `.env`; `firebase-admin` 7.7.0 is installed in the local `backend/.venv`. Local Admin app initialization/disposal and project matching passed; no live token verification was made. Full evidence and remaining limits: `evidence/EV-063-71_SINGLE_ROOT_ENV_FIREBASE_AUTH_20261110.md`.
+
+## Rev60 SRS rebase to v2.7 Rev57 — current — 2026-11-09
+
+- Canonical local SRS: v2.7-draft, based on latest FEAT-063 Rev57 at commit `f21c6f34af1ee045caf9a0621e38376a2bfde390`, with local Rev58–Rev60 amendments; output SHA-256 `70DA43A35106E8C02B4BB8FCCB9628C0376C9E7EA6CFC51909ACB569703B218B`.
+- Rev57 §§32.6–32.7 are retained; Rev58 current-CI source snapshot is §32.8. §25.5 contains source-vs-target CI/CD separation; §28.2 retains the v2.7 case table and adds the temporary synthetic no-eligible assumption.
+- Count arithmetic is 86 pre-Rev31 source mappings, 89 current source crosswalk, historical v2.3 89/137, target 92/140, local snapshot 41. Seventeen questions remain `OPEN-OWNER`; Q183→§31.10(3), Q192→§31.10(10). Quota scopes and child-media deny-by-default are consistent with the recorded Rev52 clarification.
+- The owner-supplied Rev57 six-group note (SHA-256 `1135F27038AFAC5DA51C69572C080EA29702068AA98CF720C49666CFE3FD08EA`) was used as an SRS consistency checklist; it supplies no new owner answers or physical-schema evidence. DTR and diagrams are unchanged; local DTR remains labeled v2.5-draft.
+- Source SRS blob `a979fe2740cb965015ab3ed0606bd5d293c3a75f`; plan SHA-256 `966FA9E4F375E6A33A8C56D21410FFB7D6828E0EEC1A5F3B29A524FDE0021D69`; approval is in root and feature `TASK_APPROVAL.md`. Evidence: `evidence/EV-063-65_SRS_REBASE_V27_REV60_20261109.md`.
+
+
 ## Rev53 v2.6 checklist reconciliation — current — 2026-11-07
 
 - Canonical SRS and companion advance to v2.7-draft, unsigned. The supplied checklist is review evidence, not product-requirements authority.

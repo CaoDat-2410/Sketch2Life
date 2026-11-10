@@ -1,4 +1,46 @@
 # FEAT-063 decisions
+
+## Rev60 SRS source-baseline record (not a product requirement decision)
+
+| ID | Record | Basis |
+|---|---|---|
+| D-124 | For current SRS source routing, the owner selected the latest FEAT-063 v2.7-draft Rev57 at commit `f21c6f34af1ee045caf9a0621e38376a2bfde390` as the baseline for the local canonical SRS. Local Rev58–Rev60 amendments are documentation-only; this does not imply SRS sign-off, diagram approval, DTR alignment or closure of any OPEN decision. | Owner correction in this conversation; approved Plan Rev60; EV-063-65 |
+
+## Rev61 single-root Firebase Auth setup
+
+| ID | Record | Basis |
+|---|---|---|
+| D-125 | Rev61 established one ignored repository-root `.env` shared by Compose, Teacher Web and Parent Android. Only public Firebase client settings are compiled into app clients; Firebase Admin service-account JSON is Base64-encoded and passed only to the backend API. Rev61 initially created Parent identities through client REST; Plan Rev62 supersedes that signup-creation path with backend Firebase Admin registration while keeping REST for sign-in. The backend verifies ID tokens and does not store a second password. Secret values are environment-specific and must not be recorded here. | Owner instruction and approved Plan Rev61; EV-063-71; superseded for signup creation by Plan Rev62 / D-126 |
+
+## Rev62 backend Firebase Auth registration — implementation records
+
+| ID | Record | Basis |
+|---|---|---|
+| D-126 | Added local-only `POST /api/auth/v1/registrations` backed by Firebase Admin and routed Parent signup through it before Firebase Auth REST sign-in. The API creates an unverified identity only; it does not accept role claims or provision BE1 account scope/profile. This is an implementation slice, not a change to target SRS onboarding. | Owner direct request; approved Plan Rev62 final SHA-256 `1C245F296FDFBBEACDEF3AEC6D1D1C9AF21122A457490F3AE801DEEB11532FDE`; EV-063-72 |
+| D-127 | One live backend request created a synthetic identity visible through Firebase Admin. Firebase Auth REST rejected the supplied Web API key as invalid; the real Parent sign-in remains unverified pending a valid project Web API key. The current REST-based Android client does not require Firebase Android app registration. | Live smoke and official Firebase Auth/API-key/Android setup docs; EV-063-72 |
+
+## Rev63 role-based authentication and account recovery — implementation records
+
+| ID | Record | Basis |
+|---|---|---|
+| D-128 | Store the single application role and role revision on the existing BE1 adult identity. Parent registration assigns `parent` server-side; clients cannot submit/claim a role. Teacher and management Web routes resolve role from `/api/auth/v1/me`. Ambiguous legacy identities remain unassigned, are denied protected routes, and can be resolved by Platform Admin. | Owner direct implementation request; approved Plan Rev63; FEAT-063 current SRS §§3, 7, UC-13, §31.3; EV-063-73 |
+| D-129 | Platform Admin creates Firebase identities and assigns application roles through the backend API; role/state changes are audited and synchronized with Firebase disable/revoke. The first Platform Admin is provisioned by a one-time operator command from the root `.env`, not by a committed seed credential or automatic app-start seed. Email/display name are sourced from Firebase Auth on authorized reads and are not persisted in app tables/audit. | Owner direct request; approved Plan Rev63; UC-13 privacy boundary; EV-063-73 |
+| D-130 | Parent Android, Teacher Web and management Web use Firebase Auth reset/change-password flows. Admin Web requests password-reset email after account creation; email-verification activation and production delivery remain open UC-13 work. No Android Firebase app registration is required by the existing REST-based client. | Owner direct request; Firebase Auth client integration; EV-063-73; Firebase Android setup source in Rev62 register |
+| D-131 | Rev63 E2E evidence confirms the additive role migration and backend account/role business flows on disposable PostgreSQL with synthetic Firebase identities. The owner-provided Web API key was absent from the root `.env` value; correcting it allowed the Identity Toolkit reset/sign-in/change-password lifecycle to pass. Interactive Web/Android UI and signed Firebase-token role-gate behavior remain unverified; role cases used an injected test principal. Keep these as open acceptance gates. | Manual E2E, Firebase Admin and HTTP observations; EV-063-73; not a change to target product requirements |
+
+## Rev64 Parent/Teacher UI-to-Modal E2E gate
+
+| ID | Record | Basis |
+|---|---|---|
+| D-132 | Fixture, API-only or smoke-only runs do not count as Parent/Teacher E2E; acceptance requires real UI actions, backend role resolution, live Modal inference, and the result shown in each UI. The Modal source exists on `dev` at `1431ef81972b71303fd4a7909748fd3005769a3c`; Nov 6 evidence records successful synthetic Qwen3.5/FLUX worker calls and confirms the apps were stopped at 0 tasks after testing. Those earlier worker/API results do not prove UI acceptance. Current Rev64 work must restore the approved non-video source, connect role-protected backend routes and UI, deploy the existing apps for one bounded test per operation, then stop them. Do not change secrets, weights, Volumes, GPU configuration, or call video. | Owner direct E2E instructions and prior Modal-hosting/test/stop requests; approved Plan Rev64; EV-063-74; Rev52/Rev44 evidence; canonical SRS v2.7-draft §§5.1–5.2, 6.2, 31.4–31.5 |
+
+## Rev64 execution record (as-built observation, not a product requirement decision)
+
+| ID | Record | Basis |
+|---|---|---|
+| D-133 | The bounded Rev64 UI run was PARTIAL: Parent Firebase role and optional FLUX guide passed, but Qwen drawing understanding returned invalid 256-token JSON and blocked Parent story; Teacher role, Qwen lesson suggestion, Qwen Sketch Deck and FLUX lesson visual passed through the UI. Teacher raw upload/parser was not exercised. The Qwen worker completed inference and logged `MODAL_MODEL_OUTPUT_INVALID`; the backend had already surfaced HTTP 504 `MODAL_OUTCOME_UNKNOWN`. This execution note adds no product requirement and does not promote the model/provider to production. | EV-063-74; approved Plan Rev64 and execution evidence; canonical SRS v2.7-draft |
+| D-134 | As-built Rev65: Teacher Web presents the validated DRAFT deck on an interactive white 16:9 canvas. It shows the existing single composite FLUX guide on the drawing slide and scrolls longer activity details within the slide. It does not create per-slide images, persistence, publication, or a new backend contract. | Owner instruction; approved Plan Rev65; EV-063-75; canonical SRS v2.7-draft |
+
 ## Rev56 status note — 2026-11-08
 
 No owner/product decision was added or closed by the ten-group diagram-readiness alignment. Existing D/M/Q/R references and their settled subparts are preserved; Q-01 and all listed policy/technical questions remain at their recorded OPEN status. See artifacts/DIAGRAM_INPUT_CATALOG_V27_REV56_20261108.md.

@@ -1509,3 +1509,190 @@
 - **Exclusions:** product code/runtime/API/database/schema/data/migration/provider/secret/permission/cost changes, tests/build/deployment, final diagrams, SRS/DTR sign-off, PR/merge, and force push. Unanswered policy questions remain OPEN-OWNER.
 - **Publication:** owner explicitly authorized commit and push; only a normal fast-forward push of the scoped paths to docs/feat063-diagram-readiness-20261107 is authorized.
 - **Approval basis:** the direct user request authorizes this exact documentation and publication scope. It does not approve proposed requirements, settle owner decisions, or sign off SRS/DTR.
+
+## Plan Rev59 — align the canonical SRS to the supplied review note
+
+- Status: `APPROVED` for the exact SRS-only documentation scope in Plan Rev59.
+- Approver: Project owner, direct request in the current conversation on 2026-11-09: “fix lại srs dựa trên cái này”.
+- Plan: `plan/PLAN_REV59_SRS_ALIGNMENT_TO_REVIEW_NOTE_20261109.md`, SHA-256 `199E8F7916848032726AFE5B20C26DA24E91B37115B981BBCFA53FFAFE16579F`.
+- Scope: reconcile current data counts and existing Teacher/school-vs-Parent quota and child-media deny-by-default wording; update NFR-16/36 and AC-09/32/42/61/64, Q193 trace and §31.10 cross-references; expand §31.10 to 17 explicit unanswered owner questions; record a Rev59 SRS change row; retain canonical v2.5-draft status; update feature-local traceability records.
+- Boundaries: no Rev57 authority promotion, no DTR/diagram/code/API/database/migration/secret/deployment changes, no tests/build, no branch switch, commit or push.
+- Approval does not close owner decisions or approve the SRS for final diagrams, physical ERD, implementation, or production.
+
+## Plan Rev60 — rebase the working SRS to v2.7 Rev57
+
+- Status: `APPROVED` for the exact SRS baseline/authority correction and carry-forward scope in Plan Rev60.
+- Approver: Project owner, direct correction in the current conversation on 2026-11-09: latest expected SRS is v2.7; check the newest source.
+- Plan: `plan/PLAN_REV60_REBASE_SRS_TO_V27_REV57_20261109.md`, SHA-256 `966FA9E4F375E6A33A8C56D21410FFB7D6828E0EEC1A5F3B29A524FDE0021D69`.
+- Source baseline: remote read-only branch `docs/feat063-diagram-readiness-20261107`, commit `f21c6f34af1ee045caf9a0621e38376a2bfde390`, SRS v2.7-draft / Rev57. `dev` and `main` remain distinct and are not changed.
+- Scope: rebase the canonical SRS to v2.7 Rev57; preserve Rev58 CI/CD and Rev59 corrections; preserve Rev57 §§32.6–32.7 and add the Rev58 source snapshot as §32.8; update authority/source pointers and FEAT-063 evidence records.
+- Boundaries: no DTR, diagram, BM04, code, API, database, migration or deployment edits; no test/build/CI run, fetch, branch switch, merge, commit or push. All 17 owner questions remain open and the SRS remains unsigned.
+
+## Plan Rev61 — Single root .env for Firebase Auth and Docker — 2026-11-10
+
+- **Status:** APPROVED for the exact scope and path manifest in Plan Rev61.
+- **Approver:** Project owner, direct instruction in this conversation: use only the repository root, do not split setup across checkouts/app-local env files, and make one root .env sufficient for the Firebase/Docker configuration.
+- **Plan:** `plan/PLAN_REV61_SINGLE_ROOT_ENV_FIREBASE_AUTH_20261110.md`.
+- **Plan SHA-256:** `27D6D8735FF1F23D9B31F0152AD80EEB0A33085CDC5A1C5096AE1E8452950D30`.
+- **Scope:** Root .env config for Docker API Firebase Admin verification, existing Teacher Vite Firebase client, and Parent Android client; Parent Firebase Auth adapter and sign-in/sign-up via AuthSessionPort; backend Admin verifier support for local Base64 service-account JSON; focused verification and FEAT-063 tracking.
+- **Exclusions:** No sibling checkout/worktree edits, live Firebase account/provider request, database mutation/migration, AI/Modal request, Docker service lifecycle operation, Parent profile/StoryRun API, commit, push, or deployment. .env and credentials remain local and ignored.
+- **Approval basis:** Direct owner request authorizes this scope. The backend verifies Firebase ID tokens; Firebase client creates/signs in the identity. No duplicate backend password store is added.
+
+## Plan Rev62 — Parent account registration through backend and Firebase Auth — 2026-11-10
+
+- **Status:** APPROVED for the exact implementation and verification scope in Plan Rev62.
+- **Approver:** Project owner, direct request in this conversation: finish backend account registration, run it, and verify the account appears in Firebase. The owner also confirmed the current Firebase project has only the Web app and asked whether Android registration is required; this plan keeps the existing REST-based Android client and does not add an Android SDK app.
+- **Plan:** `plan/PLAN_REV62_BACKEND_FIREBASE_ACCOUNT_REGISTRATION_20261110.md`.
+- **Plan SHA-256:** `6EF290FAE2F697E4646304DF80E02435CEF964880FF2AD7A1DDA6AA965D5B905`.
+- **Scope:** Local-only versioned backend registration API using Firebase Admin; Parent mobile signup through that API followed by Firebase Auth REST sign-in; one-root-env non-secret API base URL; focused automated tests; one live synthetic Firebase Auth creation and Admin lookup; FEAT-063 tracking/evidence per Plan Rev62 manifest.
+- **Limits:** No DB identity/Parent role/profile provisioning, verification action link or delivery, full UC-13 onboarding, production availability, distributed throttling, Firebase data products, Android native Firebase SDK, or `google-services.json`. A unique synthetic account remains in the Firebase project for owner inspection; its password and all tokens/credentials are not recorded.
+- **Approval basis:** The owner's direct request authorizes implementing and testing this exact backend-to-Firebase account creation slice. It does not authorize commit/push or broader production onboarding.
+
+### Plan Rev62 scope addendum — frozen API route-surface test
+
+- **Status:** APPROVED for adding `backend/tests/contract/test_app_composition.py` to the exact Plan Rev62 manifest.
+- **Approver:** Project owner, same direct request to implement and test the backend registration API. The existing composition test freezes the entire mounted API route surface, so it must explicitly account for the new approved registration route.
+- **Updated Plan SHA-256:** `4595A9559B32E74883B82F82467C42149ECC3F322C65621227A50E7CECB6E691`.
+- **Scope change:** Add only `backend/tests/contract/test_app_composition.py` to the manifest to update the expected route surface. No other Plan Rev62 criteria, exclusions, or paths change.
+- **Supersession:** This addendum supersedes the original Plan Rev62 hash `6EF290FAE2F697E4646304DF80E02435CEF964880FF2AD7A1DDA6AA965D5B905` for the exact path addition above.
+
+### Plan Rev62 review outcome and final plan hash
+
+- **Status:** APPROVED for the implementation outcome and evidence recording under the unchanged Plan Rev62 scope.
+- **Approver:** Project owner, original direct instruction to implement and test backend Firebase account creation.
+- **Final Plan SHA-256:** `688AEACECC6AA1BD5324BA29D81EDE62E79C425C41774D8B50ED972CB31F2991`.
+- **Outcome recorded:** Backend account creation and Firebase Admin lookup passed for one retained synthetic account. Focused backend/mobile checks passed. Live Firebase Auth REST sign-in returned `API key not valid`; Plan Rev62 records this as an external configuration blocker and leaves the overall lifecycle in REVIEW.
+- **Scope:** Outcome/evidence text only; the path manifest, acceptance criteria, exclusions, and authorization boundary are unchanged.
+- **Supersession:** This record supersedes the reviewed Plan Rev62 hash `4595A9559B32E74883B82F82467C42149ECC3F322C65621227A50E7CECB6E691` only as the final lifecycle/outcome hash. The original path-scope addendum remains in force.
+
+### Plan Rev62 final verification update
+
+- **Status:** APPROVED for recording the final focused-test count and Compose configuration check under the unchanged Plan Rev62 scope.
+- **Approver:** Project owner, original direct implementation/test request.
+- **Final Plan SHA-256:** `1C245F296FDFBBEACDEF3AEC6D1D1C9AF21122A457490F3AE801DEEB11532FDE`.
+- **Updated evidence:** Parent auth Jest is 6/6 after adding safe messaging for Firebase's invalid-key response; `docker compose config -q` also passed. Backend focused tests remain 18/18 and mobile TypeScript/Ruff checks passed. No Docker service was started.
+- **Supersession:** This record supersedes the prior Plan Rev62 outcome hash `688AEACECC6AA1BD5324BA29D81EDE62E79C425C41774D8B50ED972CB31F2991` only for the final verification count/outcome. Scope and approval boundaries are unchanged.
+
+## Plan Rev63 — Server-managed roles, account administration and Firebase recovery — 2026-11-10
+
+- **Status:** APPROVED for the exact implementation and path manifest in Plan Rev63.
+- **Approver:** Project owner, direct request in this conversation: assign Parent role on Parent app registration; restrict Teacher accounts to Teacher Web; seed a Platform Admin account through the project setup; let Platform Admin create accounts and manage roles; and implement Firebase password change/reset flows.
+- **Plan:** `plan/PLAN_REV63_ROLE_BASED_AUTH_AND_ACCOUNT_RECOVERY_20261110.md`.
+- **Plan SHA-256:** `F8941BE4ED931128CCA0BDBA00E3EA0DCFFF404514B895450688608DC979C257`.
+- **Scope:** PostgreSQL-backed product roles, authenticated role resolver, Parent role registration, Platform Admin account CRUD/role/state management, one-time bootstrap command using root `.env`, app role gates, Firebase password reset/change UI, additive migration and FEAT-063 contract/evidence updates.
+- **Architecture boundary:** Firebase Authentication remains the identity provider; PostgreSQL resolves application role; no client role claims, password table, Firebase data products, child-media access for Platform Admin, or implicit Teacher class assignment.
+- **Limits:** No live Firebase account creation (no bootstrap email supplied; current Firebase Web API key previously returned an invalid-key response), no database migration execution (Docker engine unavailable), no tests added or run, no commit/push. The implementation must not be described as live-verified or production-ready.
+- **Approval basis:** The owner's direct implementation request. This approval does not authorize changing unrelated dirty files, adding/running tests, committing, pushing, or publishing credentials.
+
+### Plan Rev63 scope addendum — schema register and assignment-role enforcement
+
+- **Status:** APPROVED for the path-manifest expansion below.
+- **Approver:** Project owner, same direct request to implement account roles and admin role management.
+- **Updated Plan SHA-256:** `3B8335F4BE0432AA45C22C9CF9D34F98B79AD793DCADF7BB6A0E486FEC2EFCF5`.
+- **Added paths:** `artifacts/DATA_TABLE_REGISTER.md` to document the account-role columns on the existing identity record; `backend/src/sketch2life/interfaces/http/routers/be1_registry.py` to prevent School Managers assigning a Firebase subject that has no server-provisioned Teacher role.
+- **Scope effect:** No new product role, API operation or external service. No new database table; the additive migration extends `be1_adult_identities`.
+- **Supersession:** This addendum supersedes the original Plan Rev63 hash `F8941BE4ED931128CCA0BDBA00E3EA0DCFFF404514B895450688608DC979C257` for the two added paths only.
+
+### Plan Rev63 scope addendum — root environment loading in Admin Web
+
+- **Status:** APPROVED for the path-manifest expansion below.
+- **Approver:** Project owner, prior direct instruction that the project must use one root `.env` for all apps.
+- **Updated Plan SHA-256:** `715910E003385EBA365F96CCDE6F85AC80B47C9BD93AD3F3B2B3D9D1DBF819E7`.
+- **Added path:** `apps/admin-ui/vite.config.ts` so management Web reads Firebase public config and backend base URL from the single repository-root `.env`, matching Teacher Web.
+- **Scope effect:** Configuration loading only; no nested `.env`, credentials or service-account file is added.
+- **Supersession:** This addendum supersedes the previous Plan Rev63 hash `3B8335F4BE0432AA45C22C9CF9D34F98B79AD793DCADF7BB6A0E486FEC2EFCF5`.
+
+### Plan Rev63 scope clarification — provider-owned profile fields
+
+- **Status:** APPROVED as a privacy constraint within the existing account-management scope.
+- **Authority:** Canonical FEAT-063 SRS UC-13 requires the application not to persist raw recipient email/action links in app data or logs. Account list still needs an email label for the authorized Platform Admin UI.
+- **Updated Plan SHA-256:** `8489261CD8D5078B1D6D0708193C253069B773F431FD99F554D37B12338E717D`.
+- **Decision:** Do not persist email or display name in PostgreSQL, audit, or logs. Resolve those profile fields from Firebase Auth at account-list/read time and return them only to an authorized Platform Admin. The remaining path manifest is unchanged.
+- **Supersession:** This clarification supersedes Plan Rev63 hash `715910E003385EBA365F96CCDE6F85AC80B47C9BD93AD3F3B2B3D9D1DBF819E7` for the storage boundary only.
+
+### Plan Rev63 scope addendum — Docker bootstrap environment
+
+- **Status:** APPROVED for the exact `compose.yaml` change below.
+- **Approver:** Project owner, prior direct instruction to configure Firebase/auth through Docker with one repository-root `.env`, together with the current request for the Platform Admin seed flow.
+- **Updated Plan SHA-256:** `5AB1135E922EA080786909A17CA20492765295386AB8C6231740A33E50D8CE70`.
+- **Added path:** root `compose.yaml`.
+- **Scope:** Pass `SKETCH2LIFE_PLATFORM_ADMIN_BOOTSTRAP_EMAIL` from the root `.env` to the API container and stop forwarding the retired subject allowlist. No Docker lifecycle operation or live account/bootstrap action is authorized by this addendum.
+- **Supersession:** This addendum supersedes the prior Plan Rev63 hash `8489261CD8D5078B1D6D0708193C253069B773F431FD99F554D37B12338E717D` only for the exact Docker environment mapping above.
+
+### Plan Rev63 scope addendum — end-to-end acceptance run
+
+- **Status:** APPROVED for the exact manual E2E acceptance scope in the updated Plan Rev63.
+- **Approver:** Project owner, direct request in this conversation on 2026-11-10: “test end to end luồng này cho tôi đi”.
+- **Updated Plan SHA-256:** `120FF1994CE81BD6D6A25BD37543B748D5EDDD26A35D57F18903C7E0559DA048`.
+- **Scope:** Start only required local Docker services; run the additive role migration on a dedicated disposable `rev63_e2e` database; exercise APIs and role-gated UI/auth flows with synthetic identities in the configured Firebase dev project; attempt reset/change-password verification without using a real email recipient; record evidence and cleanup.
+- **Boundaries:** Preserve pre-existing running services/volumes; do not reset the shared database; no child data, secrets in output, test source changes, production-provider operations, deployment, commit or push. Delete only the disposable database and Firebase identities created for this E2E run when safe.
+- **Supersession:** This addendum supersedes the prior Plan Rev63 SHA-256 `5AB1135E922EA080786909A17CA20492765295386AB8C6231740A33E50D8CE70` only for the stated E2E test/runtime scope. All earlier implementation paths and constraints remain in force.
+
+## Plan Rev64 — Parent/Teacher Modal AI integration and E2E evidence
+
+- **Status:** APPROVED for the exact integration and synthetic E2E scope in Plan Rev64.
+- **Approver:** Project owner, direct request in this conversation on 2026-11-10: start/connect the Parent and Teacher flows to Modal AI, run both workflows, and capture screenshot evidence.
+- **Plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV64_PARENT_TEACHER_MODAL_E2E_20261110.md`.
+- **Plan SHA-256:** `F0970725FDFB2250EE1B8F8C9041C60A0930B4AB06B66B00F99244674BAF54E6`.
+- **Approved scope:** inspect existing Modal dev functions; connect the Parent and Teacher app/API vertical slices to deployed non-video Modal AI functions where the real contract is confirmed; run a bounded synthetic-data E2E using the root `.env`, disposable `rev64_e2e` PostgreSQL and synthetic Firebase identities; capture runtime screenshots/logs inside the feature evidence folder; update FEAT-063 records.
+- **Explicit limits:** no video generation, production deployment, Modal app/secret/model changes, real child data, real email, shared DB mutation, commit or push. Preserve pre-existing Docker services and volumes. No Lightning fallback. Call at most once per distinct AI operation in each role flow; stop a provider path after its first contract/provider failure.
+- **Owner authorization:** direct request above. The previous owner direction to defer video generation remains in force because this request does not explicitly re-enable video.
+- **Scope clarification:** The owner explicitly directed that both real workflows be connected and tested, with no fixture testing. Fixture behavior may remain as historical/dev source, but invoking it or counting a fixture response as pass is excluded from this acceptance run. This clarification supersedes the earlier Plan Rev64 SHA-256 `29CBB696835D7AEF66B780383DBA6E7B3061082832F5C3266C349A1C6DC5C3A6`.
+- **UI-driven E2E clarification:** Acceptance requires each role flow to be driven through its actual UI to backend and live Modal inference, with the result displayed in that UI. Backend-only/API-only calls, `/health`, build and typecheck are supporting/preflight checks only and do not count as workflow acceptance. This supersedes the immediately prior Plan Rev64 SHA-256 `735B2C7009E6EB488376FB2DF232A0E8FA2B339E616A5D78788CB65C20212EBA`.
+- **Approval-state correction:** Marked the exact approved scope as `APPROVED` in the Plan status field; no scope changed. This supersedes Plan Rev64 SHA-256 `AB58C03BF24B75E25D77929664C5654A9D1993D6F00B9C325C62CDAED3EDEB4C`.
+- **Factual-baseline correction:** The plan now records that Modal SDK 1.6.3 is installed in ignored `backend/.venv`, while the authenticated `docaodat24-10` profile has no apps listed in default or `dev`. This corrects an outdated preflight statement only; no scope or authorization changed. Updated Plan SHA-256: `4B2AB48CABCEE45FB61400DA04A8EEE5193DBB2289D64DA25AC351292DB83E5F`.
+- **Source/deployment scope correction:** The owner pointed to the existing Modal source on `dev` and requested the two real UI-to-Modal flows. Prior approval already requires running Modal AI and stopping apps after use. The revised plan may therefore restore the exact non-video worker source from `dev`, deploy the three existing non-video apps into `docaodat24-10/dev` for this run, reuse existing Secrets/Volumes without changing them, and stop/verify zero active tasks after testing. This does not authorize video or any Secret/model/Volume changes. Updated Plan SHA-256: `C3C4F807E9A1431711FB3D4A2635250CB78FFD52E6CDDC49C3C62EE9A8907F89`.
+- **Plan Rev64 scope addendum — Firebase clock-skew handling for UI acceptance:**
+  - **Status:** APPROVED within the owner's direct request to connect and run the real Parent and Teacher UI-to-backend-to-Modal flows.
+  - **Observed blocker:** Firebase minted an ID token whose `iat` was 9 seconds ahead of the local backend clock. `iss` and `aud` matched `sketch2life-dev`; `/api/auth/v1/me` returned `401 INVALID_IDENTITY_TOKEN` before role resolution, so no AI request was sent.
+  - **Approved change:** Add only `backend/src/sketch2life/infrastructure/identity/firebase_token_verifier.py` to the Rev64 manifest and pass a 10-second `clock_skew_seconds` tolerance to Firebase Admin `verify_id_token`. Signature, issuer, audience, revocation, account role and authorization checks remain unchanged. No token claim is rewritten and no client-side bypass is allowed.
+  - **Updated Plan SHA-256:** `E5144F14EF064F189D8269C556EC7243A278C374C8771DA41DF2EBB7C5E906D9`.
+  - **Supersession:** This addendum supersedes Plan Rev64 hash `C3C4F807E9A1431711FB3D4A2635250CB78FFD52E6CDDC49C3C62EE9A8907F89` for the exact verifier path and bounded tolerance above; all other scope limits remain in force.
+- **Plan Rev64 scope addendum — one recovery call after confirmed Parent UI crash:**
+  - **Status:** APPROVED within the owner's direct request to make both real UI-to-Modal workflows run end to end.
+  - **Observed failure:** The initial Parent line-sketch call completed on Modal, but the Parent app crashed before rendering the image because React Native rejected `accessibilityRole="status"`. The result was not persisted in app state.
+  - **Approved exception:** After replacing the unsupported role with `accessibilityLiveRegion="polite"`, permit exactly one additional `parent.sketch-guide.generate` invocation through the Parent UI to verify rendering. No other operation gets a retry; provider, contract, timeout and safety failures still stop that operation. No video is authorized.
+  - **Updated Plan SHA-256:** `C6A217BB2114C7D64621E6B50E3A92F6E7E20063866EF6977667F40581BBF9A3`.
+  - **Supersession:** This addendum supersedes Plan Rev64 hash `E5144F14EF064F189D8269C556EC7243A278C374C8771DA41DF2EBB7C5E906D9` only for this single recovery call; other limits remain unchanged.
+
+### Plan Rev64 scope addendum — Parent Auth screen accessibility repair
+
+- **Status:** APPROVED under the owner’s direct request to exercise the real Parent UI through backend and Modal, including necessary UI fixes.
+- **Added path:** `apps/mobile/src/features/auth/ParentAuthScreen.tsx`.
+- **Change:** Replace an unsupported React Native status accessibility role with `accessibilityLiveRegion="polite"` so the real Parent auth screen can render. No authentication behavior or API contract changed.
+- **Plan SHA-256 after execution record:** `B791E6E552FF16A6A99D5758D7A2226FA6DD561AE852A40DF6BC2B87E32015C8`.
+- **Supersession:** This addendum supersedes the prior execution-scope plan SHA `C6A217BB2114C7D64621E6B50E3A92F6E7E20063866EF6977667F40581BBF9A3` for the exact additional Parent Auth UI path above. Existing call limits, video exclusion and cleanup boundaries remain in force.
+
+### Plan Rev64 execution outcome — 2026-11-10
+
+- **Lifecycle:** PARTIAL; the plan’s full Parent and Teacher acceptance criteria were not all met.
+- **Final plan SHA-256:** `B791E6E552FF16A6A99D5758D7A2226FA6DD561AE852A40DF6BC2B87E32015C8`.
+- **Evidence SHA-256:** `13249D065D10271FA112D9EE24AF76E80961AAED767A6437774CA969EE8C06E6` (`evidence/EV-063-74_PARENT_TEACHER_MODAL_E2E_20261110.md`). Sanitized run log SHA-256: `069C5F698A5DF5A6949FD8D6E22B6A6B8C9DA559766C37CCEACB317CEF35D230`.
+- **Result:** Parent signup/role resolution and optional FLUX sketch guide passed through Android UI. Parent Qwen drawing-understanding failed strict output parsing after 256 generated tokens; API surfaced 504 `MODAL_OUTCOME_UNKNOWN` before Modal logged terminal `MODAL_MODEL_OUTPUT_INVALID`; no retry or story call was made. Teacher role resolution, Qwen lesson suggestion, Qwen Sketch Deck and FLUX lesson visual passed through Teacher UI. Lesson-file upload/parser and Parent story review remain untested.
+- **Cleanup:** Three task-used Modal apps stopped at zero tasks; two synthetic Firebase identities and `rev64_e2e` removed; task-started Postgres/Redis and emulator stopped; existing API/ClamAV services preserved. No video, commit or push.
+- **Authorization basis:** The owner’s direct request to connect and run both actual UI flows; this entry records observed outcomes and the narrow UI repair, without changing canonical SRS requirements.
+
+### Plan Rev64 recovery scope clarification — disposable Parent test identity
+
+- **Status:** APPROVED under the owner's direct instructions to make the non-video AI workflows work and exercise the real Parent UI-to-backend-to-Modal path.
+- **Observed cleanup state:** The synthetic Firebase identities and `rev64_e2e` database used by the first run were deleted as documented. They cannot be reused for the recovery.
+- **Approved scope:** Create one fresh synthetic Parent identity and recreate only the disposable `rev64_e2e` database needed for exactly one drawing-understanding recovery request through the Parent UI; if valid, allow one first story-generation request through that UI. Delete the identity and database afterward. No real child data.
+- **Plan SHA-256:** `0117AE6EB5FE0FE65ABC59DCC439EADA485FB3F49B6E0BD1223232D4A52848BF`.
+- **Supersession:** This clarification supersedes the Plan Rev64 recovery addendum hash `AA39A1D85D86A5D0B058F3E08876A07D6A0EBA15CBA830B25811DC0340D7491B` only for test identity/database provisioning. The one-call limits, 512-token cap, strict schema/parser, no-video boundary, no other Modal workload, and app-stop requirement remain in force.
+
+## Plan Rev65 — Teacher Sketch Deck presentation UI
+
+- **Status:** APPROVED for the exact UI scope and file manifest in Plan Rev65.
+- **Approver:** Project owner, direct instruction on 2026-11-10 to implement the Teacher presentation interface so generated slides and their visuals display in Teacher Web according to the FEAT-063 SRS.
+- **Plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV65_TEACHER_PRESENTATION_UI_20261110.md`.
+- **Plan SHA-256:** `FA7878EBC92E657B797FCD9A47BF4EA04610E18279351FBF516B52EFF134989C`.
+- **Scope:** Render the existing versioned DRAFT deck as an interactive white 16:9 slide viewer, display the existing FLUX composite lesson visual on the drawing-guide slide, and provide ephemeral navigation/step-skip controls. Verify through Teacher Web with live Modal results where available.
+- **Known contract boundary:** Existing API returns a single composite guide image; it has no per-slide image refs or single-step regeneration operation. Do not fabricate per-slide assets or silently regenerate the whole deck as a single-step operation. The UI remains DRAFT/review-required and does not add persistence, publication, export, backend/Modal contract or video behavior.
+
+## Rev61–Rev65 scoped publication authorization — 2026-11-10
+
+- **Status:** APPROVED for a normal commit and push of the scoped Rev58–Rev65 FEAT-063 SRS/auth/Parent/Teacher/Modal/presentation changes collected in this branch.
+- **Approver:** Project owner, direct instruction: “commit and push”.
+- **Branch:** `codex/feat063-parent-teacher-modal-ui`, based on `origin/feature/feat063-be-foundation` at `4b7f07cc`.
+- **Publication boundary:** Push this feature branch only. Do not merge to `dev`, force-push, or include `.env`, credentials, seed accounts, real child data, unrelated feature work, or the separate Rev66 diagram-review plan.
+- **Supersession:** This direct publication request supersedes earlier plan-specific “no commit/push” exclusions only for publishing the approved implementation/evidence already completed; it does not authorize new runtime/cloud actions or SRS sign-off.

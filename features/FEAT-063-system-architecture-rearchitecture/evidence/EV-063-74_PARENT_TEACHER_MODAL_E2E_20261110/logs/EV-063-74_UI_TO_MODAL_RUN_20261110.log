@@ -1,0 +1,39 @@
+Sketch2Life Rev64 UI-to-Modal E2E run
+Observed: 2026-11-10 (Asia/Saigon, UTC+07)
+Source: local dev and origin/dev = 1431ef81972b71303fd4a7909748fd3005769a3c
+Execution checkout: backup/dev-before-dedup-20261106-575139a5
+Test inputs: synthetic Firebase Parent/Teacher identities and generated canvas drawing only
+Exclusions: no fixtures, video inference, payment, real child data, audio, Whisper, SAM2, tokens or secrets in this log
+
+MODAL SOURCE / DEPLOYMENT
+- `dev` contains `deployment/modal/srs_v23/drawing_vlm_app.py`, `flux_image_app.py`, `language_audio_app.py` and backend Modal workload dispatch source.
+- Apps were temporarily deployed into `docaodat24-10/dev`; existing Modal Secrets/Volumes were reused unchanged.
+- After the run, the three task-used apps were STOPPED with tasks=0: drawing-vlm, language-audio, flux-image. An older already-stopped drawing app entry was left untouched.
+
+PARENT UI FLOW
+- Firebase registration through Android UI and backend role resolution: PASS (`parent`).
+- `POST /api/parent/v1/ai/sketch-guides`: PASS after one approved UI-render recovery. FLUX3 guide rendered in the app. First Modal call `fc-01M71GXM2S1WBM9JA5H8FCK1NH` completed but the UI crashed on an unsupported accessibility role. After the accessibility fix, recovery call `fc-01M71HHC75E6P2HRZKA2AXBQ5G` rendered successfully. Recovery API elapsed 52.921 s; worker elapsed 49.906 s; model `black-forest-labs/flux-3-image-klein`, revision `09561231f44e41381c461caf53d5452005a60ac9`.
+- Synthetic butterfly drawing was entered in the real Parent canvas, transferred through the canvas UI action, then submitted through the Parent UI.
+- `POST /api/parent/v1/ai/drawing-understandings`: FAIL. Request `f54c995f-64dd-43cf-bc22-622f34b74de3`; Modal call `fc-01M71JFYS8YR7V5CM5TC6MABTX`; model `Qwen/Qwen3.5-9B`, revision `c202236235762e1c871ad0ccb60c8ee5ba337b9a`.
+  - Modal spawn started 08:52:10 +07. API returned HTTP 504 `MODAL_OUTCOME_UNKNOWN` at 08:52:54 (+07), about 44 s after request start.
+  - Worker model load: 17.755 s. Model inference: 18.555 s. Model emitted 256 tokens.
+  - At 08:53:01 (+07), worker logged terminal `MODAL_MODEL_OUTPUT_INVALID`; strict JSON parser raised `JSONDecodeError: Unterminated string` at line 4, column 5, character 74. The worker terminal failure arrived about 7 s after the API response. No retry was made.
+- Parent story/storyboard was not called: no valid candidate was available for adult confirmation. No video was attempted.
+
+TEACHER WEB FLOW
+- Firebase sign-in and `/api/auth/v1/me` role gate: PASS (`teacher`). The built-in screen switcher opened the current AI authoring page.
+- `POST /api/teacher/v1/organizations/{org_id}/ai/lesson-plan-suggestions`: PASS. Request `bc5a5efc-d81d-4066-b68b-28c34faf343f`; HTTP 200; about 130 s total, worker wait 125.503 s; Qwen3.5-9B at revision `c202236235762e1c871ad0ccb60c8ee5ba337b9a`. Output: 5 steps, 2 activities. Teacher reviewed and edited inaccurate/unsafe draft content in the UI.
+- `POST /api/teacher/v1/organizations/{org_id}/ai/sketch-decks`: PASS; HTTP 200; about 60 s. UI displayed a 5-slide DRAFT with two approved activity references; Qwen3.5-9B.
+- `POST /api/teacher/v1/organizations/{org_id}/ai/lesson-visuals`: PASS; HTTP 200; about 65 s. FLUX visual 768x432 displayed in the UI; model revision `09561231f44e41381c461caf53d5452005a60ac9`.
+- Teacher raw lesson-file upload/parser/review was not exercised; the current screen accepts structured lesson fields.
+
+SUPPORTING CHECKS AND CLEANUP
+- Parent mobile `npm run typecheck`: PASS.
+- Ruff check for `firebase_token_verifier.py`: PASS.
+- Deleted 2 synthetic Firebase users and the temporary test credential file.
+- Dropped disposable database `rev64_e2e` and verified it absent.
+- Stopped task-started `sketch2life-postgres-1`, `sketch2life-redis-1`, and emulator `emulator-5554`. Preserved pre-existing `sketch2life-api-1` and `sketch2life-clamav-1`.
+- No commit or push.
+
+SECURITY / PRIVACY
+- This log intentionally excludes account identifiers, passwords, ID tokens, service-account values, prompts, image bytes, raw model output, transcripts, and child data.

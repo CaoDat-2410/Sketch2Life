@@ -44,7 +44,8 @@ services:
 
   minio-init:
     build:
-      context: ./backend
+      context: .
+      dockerfile: backend/Dockerfile
     command: ["python", "-m", "sketch2life.infrastructure.storage.ensure_local_bucket"]
     environment:
       SKETCH2LIFE_ENV: local
@@ -70,7 +71,8 @@ services:
 
   api:
     build:
-      context: ./backend
+      context: .
+      dockerfile: backend/Dockerfile
     environment:
       SKETCH2LIFE_ENV: local
       SKETCH2LIFE_API_HOST: 0.0.0.0
@@ -85,7 +87,14 @@ services:
       SKETCH2LIFE_STORAGE_EXAMPLE_MAX_UPLOAD_BYTES: ${SKETCH2LIFE_STORAGE_EXAMPLE_MAX_UPLOAD_BYTES:-10485760}
       SKETCH2LIFE_CLAMAV_HOST: clamav
       SKETCH2LIFE_CLAMAV_PORT: 3310
-      SKETCH2LIFE_PLATFORM_ADMIN_SUBJECTS: ${SKETCH2LIFE_PLATFORM_ADMIN_SUBJECTS:-}
+      SKETCH2LIFE_PLATFORM_ADMIN_BOOTSTRAP_EMAIL: ${SKETCH2LIFE_PLATFORM_ADMIN_BOOTSTRAP_EMAIL:-}
+      SKETCH2LIFE_AUTH_PROVIDER: ${SKETCH2LIFE_AUTH_PROVIDER:-development}
+      SKETCH2LIFE_FIREBASE_PROJECT_ID: ${SKETCH2LIFE_FIREBASE_PROJECT_ID:-}
+      SKETCH2LIFE_FIREBASE_ADMIN_JSON_BASE64: ${SKETCH2LIFE_FIREBASE_ADMIN_JSON_BASE64:-}
+      SKETCH2LIFE_FIREBASE_CHECK_REVOKED_TOKENS: ${SKETCH2LIFE_FIREBASE_CHECK_REVOKED_TOKENS:-true}
+      SKETCH2LIFE_AI_PROVIDER: ${SKETCH2LIFE_AI_PROVIDER:-disabled}
+      MODAL_TOKEN_ID: ${MODAL_TOKEN_ID:-}
+      MODAL_TOKEN_SECRET: ${MODAL_TOKEN_SECRET:-}
     ports:
       - "127.0.0.1:${SKETCH2LIFE_API_PORT:-8000}:8000"
     depends_on:

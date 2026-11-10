@@ -81,6 +81,9 @@ whiteboard-renderer = [
   # Keep the renderer compatible with both NumPy 1.26 and newer environments.
   "numpy>=1.26,<2",
 ]
+modal = [
+  "modal==1.6.3",
+]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/sketch2life"]

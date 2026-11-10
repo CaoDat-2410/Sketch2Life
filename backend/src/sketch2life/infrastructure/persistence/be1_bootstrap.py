@@ -43,6 +43,7 @@ async def _provision(display_name: str, id_token: str) -> tuple[str, str]:
                     subject=principal.subject,
                     issuer=principal.issuer,
                     state="active",
+                    account_role="school_manager",
                 )
             )
             session.add(

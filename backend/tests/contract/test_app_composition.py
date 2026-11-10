@@ -130,7 +130,18 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
         "/api/be1/v1/assistance-requests/{assistance_id}/cancel",
         "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/assistance-requests/{assistance_id}/status",
         "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/teacher/assistance-requests/pending",
-    } | set(lesson_library_methods)
+    } | set(lesson_library_methods) | {
+        "/api/auth/v1/registrations",
+        "/api/auth/v1/me",
+        "/api/platform-admin/v1/accounts",
+        "/api/platform-admin/v1/accounts/{account_id}",
+        "/api/parent/v1/ai/sketch-guides",
+        "/api/parent/v1/ai/drawing-understandings",
+        "/api/parent/v1/ai/storyboards",
+        "/api/teacher/v1/organizations/{organization_id}/ai/lesson-plan-suggestions",
+        "/api/teacher/v1/organizations/{organization_id}/ai/sketch-decks",
+        "/api/teacher/v1/organizations/{organization_id}/ai/lesson-visuals",
+    }
     assert {path: actual[path] for path in lesson_library_methods} == lesson_library_methods
 
 

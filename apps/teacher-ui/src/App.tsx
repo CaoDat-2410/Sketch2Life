@@ -15,18 +15,37 @@ import { VideoKnowledgePage } from './pages/VideoKnowledgePage'
 import { OfflineActivitiesPage } from './pages/OfflineActivitiesPage'
 import { ObservationFeedbackPage } from './pages/ObservationFeedbackPage'
 import { LearningPortfolioPage } from './pages/LearningPortfolioPage'
-import { ContentAuthoringPage } from './pages/ContentAuthoringPage'
+import { ModalAiLessonFlowPage } from './pages/ModalAiLessonFlowPage'
 import { TemplatesAutomationPage } from './pages/TemplatesAutomationPage'
 
 function TeacherAccessGate() {
-  const [state, setState] = useState<'loading' | 'signed-in' | 'signed-out'>('loading')
+  const [state, setState] = useState<'loading' | 'signed-in' | 'signed-out' | 'forbidden' | 'error'>('loading')
+  const [message, setMessage] = useState('')
 
-  useEffect(() => authService.observe((user) => setState(user ? 'signed-in' : 'signed-out')), [])
+  useEffect(() => authService.observe((user) => {
+    if (!user) {
+      setState('signed-out')
+      return
+    }
+    authService.getAccountRole().then((role) => {
+      if (role === 'teacher') setState('signed-in')
+      else {
+        setMessage('Tài khoản này không được cấp quyền Giáo viên.')
+        setState('forbidden')
+      }
+    }).catch((cause: unknown) => {
+      setMessage(cause instanceof Error ? cause.message : 'Không xác minh được vai trò tài khoản.')
+      setState('error')
+    })
+  }), [])
 
   if (state === 'loading') {
     return <main className="p-8 text-slate-600">Đang xác minh tài khoản giáo viên…</main>
   }
   if (state === 'signed-out') return <Navigate to="/login" replace />
+  if (state === 'forbidden' || state === 'error') {
+    return <main className="m-8 max-w-xl rounded-2xl border border-amber-200 bg-amber-50 p-6 text-amber-950"><h1 className="text-xl font-bold">Không thể mở Teacher Web</h1><p className="mt-2 text-sm">{message}</p><button onClick={() => void authService.logout().then(() => { window.location.assign('/login') })} className="mt-4 rounded-lg border border-amber-300 bg-white px-4 py-2 text-sm font-semibold">Đăng nhập tài khoản khác</button></main>
+  }
   return <TeacherLayout />
 }
 
@@ -94,7 +113,7 @@ export default function App() {
           <Route path="portfolio" element={<PrototypeOnly title="Hồ sơ học tập"><LearningPortfolioPage /></PrototypeOnly>} />
 
           {/* T13 — Soạn nội dung */}
-          <Route path="library/authoring" element={<PrototypeOnly title="Soạn nội dung"><ContentAuthoringPage /></PrototypeOnly>} />
+          <Route path="library/authoring" element={<ModalAiLessonFlowPage />} />
 
           {/* T14 — Mẫu phiên & tự động hóa */}
           <Route path="settings" element={<PrototypeOnly title="Mẫu phiên và tự động hóa"><TemplatesAutomationPage /></PrototypeOnly>} />
