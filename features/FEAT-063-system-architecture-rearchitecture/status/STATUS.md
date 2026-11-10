@@ -770,3 +770,12 @@ Parent Sketch Guide and lesson visuals were not dispatched because Modal `dev` s
 - Rev57 §§32.6–32.7 retained; Rev58 source snapshot at §32.8. Seventeen `OPEN-OWNER` decisions remain; DTR remains a separate local v2.5-draft and was not edited.
 - Output SHA-256: `70DA43A35106E8C02B4BB8FCCB9628C0376C9E7EA6CFC51909ACB569703B218B`. Evidence: `evidence/EV-063-65_SRS_REBASE_V27_REV60_20261109.md`.
 - No product tests/build/CI run, database/provider/secret operation, deployment, commit or push was performed. Diagram readiness, physical schema and formal SRS sign-off remain open.
+
+## Parent Android profile, consent, and story flow — Plan Rev67 (2026-11-10)
+
+- Lifecycle: **IMPLEMENTED — STATIC REVIEW ONLY**. The bounded Parent UI/API/migration slice is present; runtime acceptance and database migration application were not performed under the approved plan.
+- Included: Parent profile revision CRUD/archive, explicit versioned authorization grant/revoke, StoryRun create/resume/context snapshot, physical JPEG/PNG capture/upload, subject confirmation, story draft/rewrite/confirmation, and optional topic-only sketch guide.
+- Consent policy is supplied through the root `.env`; the repository template has blank placeholders and the application fails closed until both text and version are configured. No policy copy or credentials were committed.
+- Static results: TypeScript PASS; Python compile PASS; migration revision graph PASS (30 files, 12 prior heads joined, no unresolved references); repository security validator PASS (7,157 files); `git diff --check` PASS. Ruff/Alembic CLI were not installed; ESLint could not load the configured `jest/globals` environment.
+- No product test suite, live Modal/Firebase operation, database migration, Docker lifecycle, or video call was run. Full Parent SRS flow is not complete: voice/Whisper, video and activities, corrected-subject VLM rerun, history/cancel/delete, durable job reconciliation, and sketch-guide cleanup/safety remain.
+- Detailed scope, changed API routes and limitations: `artifacts/PARENT_API_CONTRACT_REV67_20261110.md`; evidence: `evidence/EV-063-76_PARENT_ANDROID_PROFILE_CONSENT_STORY_FLOW_20261110.md`.

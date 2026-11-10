@@ -1696,3 +1696,29 @@
 - **Branch:** `codex/feat063-parent-teacher-modal-ui`, based on `origin/feature/feat063-be-foundation` at `4b7f07cc`.
 - **Publication boundary:** Push this feature branch only. Do not merge to `dev`, force-push, or include `.env`, credentials, seed accounts, real child data, unrelated feature work, or the separate Rev66 diagram-review plan.
 - **Supersession:** This direct publication request supersedes earlier plan-specific “no commit/push” exclusions only for publishing the approved implementation/evidence already completed; it does not authorize new runtime/cloud actions or SRS sign-off.
+
+## Plan Rev67 — Parent Android capture-to-AI flow
+
+- **Status:** APPROVED for the bounded implementation and local integration described below.
+- **Approver:** Project owner, direct request in this conversation to continue fixing the Parent flow, connect its APIs to UI, and merge to `dev`.
+- **Plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV67_PARENT_ANDROID_CAPTURE_AI_FLOW_20261110.md`.
+- **Plan SHA-256:** `7003587DFD9709D746F5FB51C8C73533C84EB0962BEBFF91C5930533CB34F975`.
+- **Approved scope:** Replace the digital drawing canvas with physical drawing camera/library capture; allow bounded JPEG/PNG upload through the existing Parent drawing API; pass the adult's optional idea to story generation; require explicit subject and context confirmation; render the existing versioned story contract as readable scenes; preserve safe worker failure codes; add scoped implementation/evidence records; review and fast-forward the feature result into local `dev` after history checks.
+- **Boundaries:** No video inference, live Modal calls, Firebase/role changes, profile/consent or durable StoryRun implementation, voice/Whisper integration, activity policy decision, Docker lifecycle, force push, or push to `origin/dev`. No automatic retry after timeout/outcome unknown. No secrets, seed accounts, or real child data.
+- **Supersession:** This entry supersedes the earlier “do not merge to `dev`” feature-branch publication boundary only for a local, reviewed integration into `dev`. It does not authorize pushing `dev`.
+
+### Plan Rev67 scope expansion — Parent profiles, consent, and StoryRun context
+
+- **Status:** APPROVED for the expanded scope in the updated Plan Rev67.
+- **Approver:** Project owner, direct clarification: “Làm luôn profile, consent và migration”; owner confirmed consent was approved and asked to proceed.
+- **Updated Plan SHA-256:** `DB1F3E371B59610026980240DF90AEB2D3A510179810C233373F6B08D3489E36`.
+- **Added scope:** Parent-owned profile CRUD with immutable revisions; explicit versioned data-authorization acceptance/revoke; additive PostgreSQL migration; authenticated Parent StoryRun creation; DTR-aligned context snapshot and asset lineage persisted in Story/Core records; UI profile selection and saved subject/story confirmation.
+- **Consent configuration boundary:** Read policy version/text from the single root `.env`; fail closed if missing. The owner has approved proceeding, but no consent copy/version was supplied in chat or present in the canonical SRS. Do not invent a production/legal policy in source or use real-child data in validation.
+- **Supersession:** This addendum supersedes the earlier Rev67 Plan SHA-256 `7003587DFD9709D746F5FB51C8C73533C84EB0962BEBFF91C5930533CB34F975` and expands its approved scope. No other files/actions outside the updated manifest are approved.
+
+### Plan Rev67 manifest clarification — versioned run contract and resume
+
+- **Status:** APPROVED as an implementation-detail clarification under the owner's direct request to finish and connect the Parent workflow.
+- **Plan SHA-256:** `0991C06B3052A0E78634AA6CB00FF3015EC7C9A338E8A2A529B7F0696438F0B5`.
+- **Manifest additions:** `contracts/schemas/parent_story_runs.py` and a `GET /api/parent/v1/story-runs/active/current` contract so the mobile UI can resume an already persisted active run after reopening.
+- **Boundary:** The resumed route returns only the authenticated Parent's own StoryRun; it introduces no cross-account lookup, additional AI workload, video call or remote publication.

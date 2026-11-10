@@ -481,3 +481,7 @@ This documentation review makes no product or architecture decision. It records 
 ## Rev57 — no new approved product decision
 
 Rev57 adds TO-BE/PROPOSED design contracts and maps all 17 SRS §31.10 questions to Q-01–Q-13 where applicable. It does not create a new business decision or close an OPEN-OWNER item. The static source review found one infrastructure import cycle in canvas_render; this is a technical finding, not an approved architecture exception. See EV-063-62 and the Rev57 contracts.
+
+## Rev67 — no new product decision
+
+This implementation follows the owner-approved scope for Parent profiles, explicit versioned data authorization, StoryRun context snapshots, and the Parent camera-to-story UI. It does not resolve any OPEN-OWNER item or amend the canonical SRS. Consent-policy copy/version remain deployment configuration; the application fails closed while either is blank. The owner approved proceeding but did not provide literal policy text/version in this thread, so none was fabricated.

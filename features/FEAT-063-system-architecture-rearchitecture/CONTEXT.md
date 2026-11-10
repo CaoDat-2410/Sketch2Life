@@ -669,3 +669,12 @@ The owner requested publication of the immediately preceding two-agent assessmen
 ## Plan Rev57 — substantive diagram-input remediation
 
 The owner authorized substantive documentation updates for G01–G10 and explicitly requested commit/push. Work is scoped by Plan Rev57 and its approval record, based on fetched Rev56 SHA ae5707ca188d01d9719ed959b62d768ae927912d. SRS and Data Table Register remain v2.7-draft and unsigned. Owner decisions are not resolved by this package. Source review is limited to the selected commit; no product code, database or migration was changed.
+
+## Plan Rev67 — Parent Android profile, consent, and story flow — 2026-11-10
+
+- Implemented the approved Parent slice: Parent-owned profile revisions and versioned consent, authenticated StoryRun context snapshots/resume, physical drawing camera/gallery upload, adult subject confirmation, structured story generation/rewrite/review, and optional topic-only line-sketch dispatch.
+- Added an additive PostgreSQL migration and the versioned API contract in `artifacts/PARENT_API_CONTRACT_REV67_20261110.md`. Product SRS remains the unsigned v2.7-draft with local amendments through Rev60; this implementation note does not change requirements.
+- Consent text/version are read from the single root `.env` through blank placeholders in `.env.example`; empty configuration fails closed. The owner approved proceeding but did not provide copy/version in this thread, so no legal text was invented and no real-child data was used.
+- Static review: mobile TypeScript passed; changed Python files compiled; migration graph AST review found no missing parent revisions and the new migration joins all 12 pre-existing heads into one. Repository security validator passed (7,157 publishable files); `git diff --check` passed.
+- Limits: no product tests, database migration application, Docker, Firebase, or live Modal request was run under this plan. Ruff and Alembic CLI were unavailable in the local Python environment; ESLint was blocked by the repository's unresolved `jest/globals` plugin configuration.
+- Remaining Parent SRS gaps include second VLM reinterpretation after adult subject correction, voice/Whisper, video generation/playback and subsequent activities, history/cancel/delete, durable AI-job reconciliation, and temporary sketch-guide cleanup/safety validation. See the API contract and `evidence/EV-063-76_PARENT_ANDROID_PROFILE_CONSENT_STORY_FLOW_20261110.md`.

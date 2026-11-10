@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Literal
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -18,17 +19,14 @@ class ParentSketchGuideRequestV1(StrictRequest):
 
 
 class ParentDrawingAnalysisRequestV1(StrictRequest):
+    story_run_id: UUID
     image_base64: str = Field(min_length=16, max_length=6_700_000)
+    media_type: Literal["image/jpeg", "image/png"]
 
 
 class ParentStoryRequestV1(StrictRequest):
-    confirmed_subject: str = Field(min_length=1, max_length=160)
-    visible_features: list[str] = Field(min_length=1, max_length=4)
-    child_age_months: int = Field(ge=36, le=120)
-    drawing_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
-    understanding_revision: int = Field(ge=1)
-    context_revision: int = Field(ge=1)
-    adult_confirmed_idea: str = Field(default="", max_length=500)
+    expected_understanding_revision: int = Field(ge=1)
+    rewrite_instruction: str | None = Field(default=None, min_length=1, max_length=400)
 
 
 class TeacherLessonSuggestionRequestV1(StrictRequest):

@@ -27,6 +27,9 @@ importers:
       react-native:
         specifier: 0.87.0
         version: 0.87.0(@babel/core@7.29.7(supports-color@8.1.1))(@react-native-community/cli@20.2.0(supports-color@8.1.1)(typescript@5.9.3))(@react-native/metro-config@0.87.0(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.18)(react@19.2.8)(supports-color@8.1.1)
+      react-native-image-picker:
+        specifier: 8.3.0
+        version: 8.3.0(react-native@0.87.0(@babel/core@7.29.7(supports-color@8.1.1))(@react-native-community/cli@20.2.0(supports-color@8.1.1)(typescript@5.9.3))(@react-native/metro-config@0.87.0(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.18)(react@19.2.8)(supports-color@8.1.1))(react@19.2.8)
       react-native-webview:
         specifier: ^14.0.1
         version: 14.0.1(react-native@0.87.0(@babel/core@7.29.7(supports-color@8.1.1))(@react-native-community/cli@20.2.0(supports-color@8.1.1)(typescript@5.9.3))(@react-native/metro-config@0.87.0(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.18)(react@19.2.8)(supports-color@8.1.1))(react@19.2.8)
@@ -4678,6 +4681,12 @@ packages:
 
   react-is@18.3.1:
     resolution: {integrity: sha512-/LLMVyas0ljjAtoYiPqYiL8VWXzUUdThrmU5+n20DZv+a+ClRoevUzw5JxU+Ieh5/c87ytoTBV9G1FiKfNJdmg==}
+
+  react-native-image-picker@8.3.0:
+    resolution: {integrity: sha512-f45QERBBWAFS8BEIKeQ9bcuBQFr3myWaNlkTnG4bY8BtsYJa/ChM0jzN6V9xBKzNPjMo9uFyUuNKjQWddNKZ9w==}
+    peerDependencies:
+      react: '*'
+      react-native: '*'
 
   react-native-svg@15.8.0:
     resolution: {integrity: sha512-KHJzKpgOjwj1qeZzsBjxNdoIgv2zNCO9fVcoq2TEhTRsVV5DGTZ9JzUZwybd7q4giT/H3RdtqC3u44dWdO0Ffw==}
@@ -11460,6 +11469,11 @@ snapshots:
   react-is@16.13.1: {}
 
   react-is@18.3.1: {}
+
+  react-native-image-picker@8.3.0(react-native@0.87.0(@babel/core@7.29.7(supports-color@8.1.1))(@react-native-community/cli@20.2.0(supports-color@8.1.1)(typescript@5.9.3))(@react-native/metro-config@0.87.0(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.18)(react@19.2.8)(supports-color@8.1.1))(react@19.2.8):
+    dependencies:
+      react: 19.2.8
+      react-native: 0.87.0(@babel/core@7.29.7(supports-color@8.1.1))(@react-native-community/cli@20.2.0(supports-color@8.1.1)(typescript@5.9.3))(@react-native/metro-config@0.87.0(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.18)(react@19.2.8)(supports-color@8.1.1)
 
   react-native-svg@15.8.0(react-native@0.76.9(@babel/core@7.29.7(supports-color@8.1.1))(@babel/preset-env@7.29.7(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@react-native-community/cli@20.2.0(supports-color@8.1.1)(typescript@5.9.3))(@types/react@18.3.31)(react@18.3.1)(supports-color@8.1.1))(react@18.3.1):
     dependencies:
