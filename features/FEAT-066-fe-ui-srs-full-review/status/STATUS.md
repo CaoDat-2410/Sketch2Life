@@ -66,3 +66,10 @@ Revision 4 code commit `c43f4b0a` and status commit `55485a07` were pushed witho
 - `git diff --check`: PASS; only CRLF-to-LF normalization warnings were printed for edited Markdown files.
 - `python tools/validate_harness.py`: FAIL only because the unrelated untracked FEAT-070 feature directory lacks `evidence/raw`, `evidence/screenshots`, `evidence/metrics`, and `evidence/notes`. Left untouched because FEAT-070 is outside this approved scope.
 - No tests/builds were run.
+
+## Double-check integration result
+
+- Commit `cebeb2e9` contains the final in-scope Settings wording correction plus EV-007 screenshots, observations, and FEAT-066 context/decision/status updates.
+- `python tools/validate_repository_security.py` passed immediately before push.
+- Non-force push to `origin/feature/fe-ui-full-remediation` succeeded; target advanced from `bd55ffd8` to `cebeb2e9`.
+- No Parent/root/FEAT-070 changes were included. The local `codex/fe-ui-web-remediation` branch remains the active worktree branch.
