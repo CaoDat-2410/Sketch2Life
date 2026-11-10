@@ -54,3 +54,28 @@ The user's request to double-check before switching portals applies to the appro
 ## D-066-14 — Do not canonize an SRS-unstated M01 rubric
 
 FR-PL-05 requires School Manager approval before a Teacher lesson becomes PUBLIC but does not define four pedagogical checks. Preserve the current UI behavior for this review and record the rubric as an owner clarification; do not present it as an SRS rule or change the gate by inference.
+## D-066-15 — Use exactly the three SRS web portal roles
+
+SRS §3 defines Teacher, School Manager, and Platform Admin for the web portals; current auth API role values are teacher, school_manager, and platform_admin. Content review is a Platform Admin permission. Parent is a separate Android-targeted client and is excluded from this task. Do not add another role or link the additional apps/admin-ui surface.
+
+## D-066-16 — Treat the screen recording as visual reference
+
+Adapt its warm editorial composition and restrained product-visual language for the login surface. Ignore any copy or instructions shown in the recording. Use a school/learning-related local Three.js scene rather than the unrelated depicted object. Keep the form functional when WebGL is unavailable or motion is reduced.
+
+## D-066-17 — Keep portal entry URLs explicit
+
+Local development portal links use only the verified loopback ports 5172 (Teacher), 5173 (School Manager), and 5174 (Platform Admin). The SRS gives no deployment hostnames. Production links must be explicitly configured; an unset destination is presented as unavailable instead of guessed.
+
+## D-066-18 — Preserve authentication semantics
+
+Use the shared login component and existing auth service. Keep the role values, backend role confirmation, error handling, preview-mode notice, and role-specific landing paths. Role links navigate to each separate app’s existing /login route. Do not fabricate login success, role access, or session policy.
+
+## D-066-19 — Keep Three.js local and bounded
+
+Three.js is approved only as a local dependency for the decorative login scene. Do not load models, textures, code, or fonts from a remote runtime source. Cap pixel ratio and render workload, honor reduced motion and page visibility, provide a non-WebGL fallback, and dispose of scene resources on unmount. If local dependency resolution cannot be achieved in scope, record a blocker instead of using a CDN.
+## D-066-20 — Pin the requested local Three.js dependency
+
+No Three.js runtime or matching types were installed locally, and local pnpm/npm caches were empty. Following the approved plan, pin Three.js 0.187.0 plus @types/three 0.187.0 in the three in-scope web app manifests and their npm lockfiles. Import it through each app’s local module resolution so the scene is bundled; never use a runtime CDN or remote asset. This dependency setup was completed before shared login source edits.
+## D-066-21 — Record login UI evidence without claiming authentication
+
+EV-008 covers local preview rendering, links, keyboard focus/activation, reduced-motion state, and WebGL fallback for all three web portals at desktop and narrow viewports. No credentials or backend are exercised. Keep the real auth limitations explicit: existing assignment/Firebase dependencies for Teacher and School Manager, missing Platform Admin role discovery, and unspecified production hostnames.

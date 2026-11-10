@@ -1,0 +1,84 @@
+{
+  "scope": "Local-only UI interaction review; HTTPS blocked; no credentials or product API submitted.",
+  "accessibilitySemantics": [
+    {
+      "role": "main",
+      "name": "",
+      "current": null
+    },
+    {
+      "role": "link",
+      "name": "Sketch2Life — đăng nhập",
+      "current": null
+    },
+    {
+      "role": "navigation",
+      "name": "Chọn cổng đăng nhập",
+      "current": null
+    },
+    {
+      "role": "heading",
+      "name": "Điều phối để sáng tạo.",
+      "current": null
+    },
+    {
+      "role": "heading",
+      "name": "Chào mừng trở lại.",
+      "current": null
+    },
+    {
+      "role": "link",
+      "name": "01 Teacher MỞ CỔNG",
+      "current": null
+    },
+    {
+      "role": "link",
+      "name": "02 School Manager ĐANG MỞ",
+      "current": null
+    },
+    {
+      "role": "link",
+      "name": "03 Platform Admin MỞ CỔNG",
+      "current": null
+    },
+    {
+      "role": "button",
+      "name": "Vào bản xem thử",
+      "current": null
+    },
+    {
+      "role": "textbox",
+      "name": "Email tài khoản",
+      "current": null
+    }
+  ],
+  "keyboardFocus": {
+    "tag": "A",
+    "text": "01\nTeacher\nMỞ CỔNG",
+    "href": "http://127.0.0.1:5172/login",
+    "outline": "solid"
+  },
+  "keyboardEnterNavigation": {
+    "url": "http://127.0.0.1:5172/login",
+    "title": "Sketch2Life - Giáo viên",
+    "heading": "Dạy học\nmở lối mới."
+  },
+  "platformAdminRoleLink": {
+    "url": "http://127.0.0.1:5174/login",
+    "title": "Sketch2Life - Quản trị nền tảng",
+    "heading": "Vận hành\nđáng tin cậy."
+  },
+  "reducedMotion": {
+    "preference": true,
+    "animationState": "reduced-motion",
+    "webglReady": true
+  },
+  "contextLossRequested": true,
+  "fallbackAfterContextLoss": {
+    "canvasReady": false,
+    "sceneReady": "false",
+    "fallbackVisibility": "visible",
+    "documentWidth": 1440,
+    "viewportWidth": 1440
+  }
+}

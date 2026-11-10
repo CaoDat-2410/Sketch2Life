@@ -1,11 +1,11 @@
 # FEAT-066 status
 
-- Status: `IMPLEMENTATION_VALIDATED`
+- Status: MANUAL_UI_REVIEW_COMPLETE_SECURITY_VALIDATION_PASSED_PENDING_INTEGRATION
 - Updated: 2026-11-10 (Asia/Bangkok)
-- Active plan: revision 6; SHA-256 `25E24871660A892C3380A359EA5285C6148B4C47FC75248C35D71FAC303231C9`.
-- Approval: `APPROVED_FOR_IMPLEMENTATION`; revision 5 approval/hash preceded logout source edits, and revision 6 approval/hash preceded flow-guide authoring. Both direct user requests are recorded in `approvals/TASK_APPROVAL.md`.
+- Active plan: revision 7; SHA-256 `72F462DCECE9DC2545368094FBA86E68AC3992589FD448CED5E76E82F057FD36`.
+- Approval: `APPROVED_FOR_IMPLEMENTATION` for plan revision 7; direct user request and matching hash recorded in `approvals/TASK_APPROVAL.md` before code edits.
 - Product baseline: FEAT-063 SRS v2.7-draft Rev57, SHA-256 `BE0D656966FDE91BA7CD5C914C319EF301D137985EF5CC91B94F36FEBCF61FB5`, still unsigned.
-- Scope remains only `apps/school-manager-ui` and FEAT-066 governance/evidence in worktree `F:/Github/Sketch2Life-worktrees/fe-ui-web-remediation`, branch `codex/fe-ui-web-remediation`.
+- Current revision 7 scope: `apps/shared` login and existing `/login` pages in `apps/school-manager-ui`, `apps/teacher-ui`, and `apps/platform-admin-ui`, plus FEAT-066 governance/evidence in worktree `F:/Github/Sketch2Life-worktrees/fe-ui-web-remediation`, branch `codex/fe-ui-web-remediation`. Parent, dashboards, additional Admin, and backend remain excluded.
 
 ## Follow-up finding and resolution
 
@@ -73,3 +73,29 @@ Revision 4 code commit `c43f4b0a` and status commit `55485a07` were pushed witho
 - `python tools/validate_repository_security.py` passed immediately before push.
 - Non-force push to `origin/feature/fe-ui-full-remediation` succeeded; target advanced from `bd55ffd8` to `cebeb2e9`.
 - No Parent/root/FEAT-070 changes were included. The local `codex/fe-ui-web-remediation` branch remains the active worktree branch.
+
+## Revision 7 approval checkpoint (2026-11-10)
+
+- Plan revision 7 is approved for implementation; SHA-256 72F462DCECE9DC2545368094FBA86E68AC3992589FD448CED5E76E82F057FD36 matches approvals/TASK_APPROVAL.md.
+- Canonical SRS remains v2.7-draft Rev57 and unsigned. The approved roles are Teacher, School Manager, and Platform Admin; Parent is excluded.
+- At this checkpoint, product-code edits have not started. The current task is limited to shared login UI and the three existing web /login routes. The recording is a visual reference only.
+- Starting worktree status was verified on codex/fe-ui-web-remediation. Existing dirty files are root approvals/TASK_APPROVAL.md, Parent UI files, and untracked FEAT-070; they are unrelated and will remain untouched.
+## Revision 7 dependency checkpoint (2026-11-10)
+
+- Local pnpm store path did not exist; npm cache contained no Three.js packages.
+- Installed exact Three.js 0.187.0 and @types/three 0.187.0 from the official npm registry in school-manager-ui, teacher-ui, and platform-admin-ui after approval hash verification. Dependency install scripts/audit were disabled. Runtime remains locally bundled; no CDN or model source is planned.
+- Only the three approved app manifests and applicable npm lockfiles changed at this dependency step. No shared login source changes or tests/builds have run yet.
+## Revision 7 implementation and manual review
+
+- Shared login redesign completed for Teacher, School Manager, and Platform Admin. The three existing app routes and their role/auth mappings remain separate.
+- Added the lazy local Three.js sculpture and pinned runtime/type packages only in the three in-scope web apps. No CDN/runtime assets were used.
+- Captured before/after desktop 1440x900 and narrow 390x844 login screenshots for all three apps under FEAT-066-EV-008.
+- Manual checks: 0 horizontal overflow at both widths; narrow submit remains visible in 844px; portal links work; Tab focus has a visible outline; Enter opens Teacher; Platform Admin link opens its correct route; reduced-motion state is static; forced WebGL context loss exposes fallback.
+- Authenticated login was not exercised because the local preview has no Firebase bridge and no credentials were supplied. Teacher/Manager backend assignment resolution and Platform Admin role discovery remain outside this FE-only change; Platform Admin API blocker is recorded as ROLE_DISCOVERY_UNAVAILABLE (501). Production URLs must be configured through the documented VITE_S2L_*_LOGIN_URL variables.
+- No automated tests or builds were run. Repository security validation passed on the final reviewed diff: 6,867 publishable files scanned, with no absolute machine paths. Commit/integration remain pending.
+## Revision 7 three-role auth UI review (2026-11-10)
+
+- Shared `/login` pages map Teacher, School Manager, and Platform Admin to the SRS §3 role values and expose the other two local web portal destinations. Keyboard navigation and active-role semantics are recorded in FEAT-066-EV-008.
+- The first 390px capture found overlapping heading/description spacing. Mobile margins were corrected, then all six role/viewport combinations were recaptured. At 390x844, submit bottoms are 731px (Teacher), 731px (School Manager), and 750px (Platform Admin); all have 390px document width. At 1440x900, all pages fit without overflow.
+- Three.js local rendering, reduced-motion static rendering, context-loss CSS fallback, and keyboard activation were reviewed. Real sign-in was not attempted; Platform Admin role discovery remains blocked by the existing API. Details and screenshots are in FEAT-066-EV-008.
+- Repository security validation passed on the final reviewed diff: 6,867 publishable files scanned, with no absolute machine paths. Commit and integration have not occurred.
