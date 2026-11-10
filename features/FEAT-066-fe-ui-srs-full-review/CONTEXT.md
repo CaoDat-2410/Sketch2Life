@@ -70,3 +70,18 @@ The shared login page now identifies Teacher (teacher), School Manager (school_m
 Manual Edge review of all three loopback routes at 1440x900 and 390x844 passed the layout/overflow checks. Narrow submit buttons remained inside the viewport; local role links worked; keyboard focus and Enter navigation worked; reduced motion rendered a static scene; forced WebGL loss displayed the CSS fallback. Screenshots and observations are FEAT-066-EV-008. No real credentials, Firebase bridge, backend, production data, automated tests, or builds were used.
 
 The browser remained in the existing local-preview mode, so the real credential flow was not end-to-end exercised. Existing Teacher and School Manager assignment checks still depend on backend/Firebase configuration. Platform Admin real sign-in remains blocked by the existing missing role-discovery API (ROLE_DISCOVERY_UNAVAILABLE, 501). Production portal URLs remain deployment configuration dependencies, not SRS-defined values.
+## Revision 8 — approved School Manager flow audit and school-theme refresh (2026-11-10)
+
+The user directly authorized a fresh School Manager review against the current canonical FEAT-063 SRS and a preschool-to-primary school style refresh. Plan revision 8 is approved; exact plan SHA-256 is C71F0824DC4A7E4901912BB2D8883B954BA6F2ED438BAB9F9C0871CBE3B54D7C and matches the feature-local approvals/TASK_APPROVAL.md entry before product edits. Canonical SRS v2.7-draft Rev57 SHA-256 remains BE0D656966FDE91BA7CD5C914C319EF301D137985EF5CC91B94F36FEBCF61FB5, unsigned. Use §§1–31 only; §32 is as-built evidence.
+
+The pre-redesign flow audit is recorded in evidence/notes/SCHOOL_MANAGER_WEB_SRS_FLOW_AUDIT_REV57_20261110.md. Current UI coverage is incomplete against §21.5: M01 grant review and read-only class/roster have relevant API support; dashboard and quota are fixture-only; capacity-safe class lifecycle, Manager Teacher lifecycle/transfer, billing/invoice/payment/subscription, quota/top-up, inbox and school feedback reply lack compatible contracts. Preserve explicit unavailable states and the child-media privacy boundary.
+
+The worktree root/branch/status were reverified. Pre-existing root task-approval, Parent UI and FEAT-070 modifications are out of scope and untouched. The root FEAT-066 inventory has no root-only path to bring into the active worktree; matching old files will not overwrite current records. At this checkpoint, UI code edits have not started; the approved scope is authenticated apps/school-manager-ui screens only plus FEAT-066 evidence/governance.
+
+
+## Revision 8 implementation and manual review complete (2026-11-10)
+
+- Applied the approved school-office palette and responsive styling to the authenticated School Manager shell, M01 and M02 only. Changed App stylesheet loading order and local Manager presentation classes; no shared styles, APIs, auth logic, business rules, packages or assets were added.
+- Completed local browser review and saved EV-010. Across 16 route/viewport observations (1440x900, 768x1024, 390x844), horizontal overflow count is 0 and out-of-viewport disabled-action count is 0. M01 request-changes, arrow/Home/End tab movement, linked panel semantics and keyboard logout were manually checked in preview.
+- SRS flow completeness remains partial. See EV-009/EV-010 for the supported reads/review flow and missing organization summary, capacity/lifecycle, Teacher lifecycle, billing, quota, inbox and school feedback contracts. These states remain explicitly unavailable; no price/policy or child-media access was inferred.
+- No root-only FEAT-066 file was missing from the active worktree, so nothing was copied. Root checkout and pre-existing unrelated worktree changes remain untouched.

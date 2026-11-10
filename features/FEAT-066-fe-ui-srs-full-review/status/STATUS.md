@@ -1,11 +1,11 @@
 # FEAT-066 status
 
-- Status: IMPLEMENTATION_AND_INTEGRATION_COMPLETE
+- Status: IMPLEMENTATION_AND_MANUAL_REVIEW_COMPLETE; API_DEPENDENCIES_REMAIN
 - Updated: 2026-11-10 (Asia/Bangkok)
-- Active plan: revision 7; SHA-256 `72F462DCECE9DC2545368094FBA86E68AC3992589FD448CED5E76E82F057FD36`.
-- Approval: `APPROVED_FOR_IMPLEMENTATION` for plan revision 7; direct user request and matching hash recorded in `approvals/TASK_APPROVAL.md` before code edits.
+- Active plan: revision 8; SHA-256 `C71F0824DC4A7E4901912BB2D8883B954BA6F2ED438BAB9F9C0871CBE3B54D7C`.
+- Approval: `APPROVED_FOR_IMPLEMENTATION` for revision 8; direct user approval and matching hash recorded in feature-local `approvals/TASK_APPROVAL.md` before product-code edits.
 - Product baseline: FEAT-063 SRS v2.7-draft Rev57, SHA-256 `BE0D656966FDE91BA7CD5C914C319EF301D137985EF5CC91B94F36FEBCF61FB5`, still unsigned.
-- Current revision 7 scope: `apps/shared` login and existing `/login` pages in `apps/school-manager-ui`, `apps/teacher-ui`, and `apps/platform-admin-ui`, plus FEAT-066 governance/evidence in worktree `F:/Github/Sketch2Life-worktrees/fe-ui-web-remediation`, branch `codex/fe-ui-web-remediation`. Parent, dashboards, additional Admin, and backend remain excluded.
+- Current revision 8 scope: authenticated School Manager screens in `apps/school-manager-ui` plus FEAT-066 governance/evidence in the authorized worktree; all other portals/backend remain excluded.
 
 ## Follow-up finding and resolution
 
@@ -105,3 +105,20 @@ Revision 4 code commit `c43f4b0a` and status commit `55485a07` were pushed witho
 - Repository security validation passed immediately before commit and push: 6,867 publishable files scanned; no absolute machine paths.
 - The local `feature/fe-ui-full-remediation` worktree was not checked out or modified because it contains unrelated changes. Its remote branch is now advanced to the reviewed commit.
 - Unrelated root approval, Parent UI changes, and FEAT-070 evidence remain unstaged and unmodified.
+
+## Revision 8 approval and flow audit checkpoint
+
+- Plan SHA-256: C71F0824DC4A7E4901912BB2D8883B954BA6F2ED438BAB9F9C0871CBE3B54D7C; feature-local approval ledger match verified before code edits.
+- SRS: v2.7-draft Rev57; canonical hash BE0D656966FDE91BA7CD5C914C319EF301D137985EF5CC91B94F36FEBCF61FB5, awaiting formal owner sign-off.
+- Flow completeness result: incomplete against §21.5. Current API and UI coverage with exact gaps is documented in evidence/notes/SCHOOL_MANAGER_WEB_SRS_FLOW_AUDIT_REV57_20261110.md.
+- Implementation has not started at this checkpoint. Next authorized step: restyle the authenticated School Manager shell/M01/M02 only and manually review local routes.
+
+
+## Revision 8 implementation and review result (2026-11-10)
+
+- Status: implementation and requested manual UI review complete for the approved FE-only scope; School Manager production flow coverage remains incomplete due to API/contracts listed in EV-009/EV-010.
+- Plan revision 8 SHA-256 C71F0824DC4A7E4901912BB2D8883B954BA6F2ED438BAB9F9C0871CBE3B54D7C matches feature-local direct-user approval.
+- Canonical baseline remains unsigned SRS v2.7-draft Rev57, SHA-256 BE0D656966FDE91BA7CD5C914C319EF301D137985EF5CC91B94F36FEBCF61FB5.
+- Final manual capture: 16 route/viewport observations across 1440x900, 768x1024 and 390x844; 0 horizontal-overflow pages and 0 disabled actions outside the viewport. M01 count separation, tab keyboard/ARIA semantics, unavailable inbox/static organization context and logout were checked in local preview.
+- Evidence: evidence/notes/SCHOOL_MANAGER_WEB_THEME_REVIEW_REV57_20261110.md and evidence/screenshots/school-manager-theme-final/ (EV-010).
+- No automated tests/builds or backend/provider/production calls were run. Existing unrelated root approval, Parent UI and FEAT-070 changes remain unstaged and untouched.

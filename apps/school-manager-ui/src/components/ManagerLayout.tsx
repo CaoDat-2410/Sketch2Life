@@ -4,7 +4,6 @@ import { Logo } from "./Logo";
 import { MgIcon, MgIconName } from "./MgIcon";
 import { BackendModeNotice, isLocalPreview } from "../../../shared/backendApi";
 import { RoleHelp } from "../../../shared/RoleHelp";
-import "../styles/mg-manage.css";
 
 const SIDEBAR_ITEMS: { to: string; label: string; icon: MgIconName; matchSection?: string }[] = [
   { to: "/m02-organization-management", label: "Tổng quan", icon: "home" },
@@ -73,7 +72,7 @@ export function ManagerLayout({
         </nav>
 
         <div className="mg-profile">
-          <span className="mg-avatar" style={{ background: "#DBEAFE", color: "#2563EB" }}>HT</span>
+          <span className="mg-avatar mg-avatar--profile">HT</span>
           <div className="mg-profile-text">
             <div className="mg-profile-name">{previewMode ? "Hiệu trưởng Minh" : "Quản lý trường"}</div>
             <div className="mg-profile-sub">{previewMode ? "Dữ liệu xem thử" : "Role được backend xác nhận"}</div>
@@ -100,7 +99,7 @@ export function ManagerLayout({
             <span>Hộp thư chưa khả dụng</span>
           </div>
           <div className="mg-org-context">
-            <span className="mg-avatar" style={{ width: 28, height: 28, background: "#FEF3C7", color: "#B45309" }}>
+            <span className="mg-avatar mg-avatar--organization">
               <MgIcon name="school" size={14} />
             </span>
             {previewMode ? "Trường Mầm non Ánh Dương" : "Tổ chức theo assignment"}

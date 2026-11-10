@@ -79,3 +79,27 @@ No Three.js runtime or matching types were installed locally, and local pnpm/npm
 ## D-066-21 — Record login UI evidence without claiming authentication
 
 EV-008 covers local preview rendering, links, keyboard focus/activation, reduced-motion state, and WebGL fallback for all three web portals at desktop and narrow viewports. No credentials or backend are exercised. Keep the real auth limitations explicit: existing assignment/Firebase dependencies for Teacher and School Manager, missing Platform Admin role discovery, and unspecified production hostnames.
+## D-066-22 — Revision 8 is School Manager-only and approved directly
+
+The user's direct request on 2026-11-10 authorizes a fresh SRS v2.7-draft Rev57 flow audit and a school-themed refresh of authenticated School Manager web screens. Plan revision 8 SHA-256 `C71F0824DC4A7E4901912BB2D8883B954BA6F2ED438BAB9F9C0871CBE3B54D7C` is matched in the feature-local approval ledger before product-code edits. No root checkout or other worktree is in scope.
+
+## D-066-23 — Missing APIs stay visibly unavailable
+
+Treat class capacity/lifecycle, Teacher provisioning/selection/transfer, billing/invoice/payment/subscription, organization quota/top-up, notification inbox and school feedback reply as blocked until compatible API/contracts exist. Do not use fixture data or success feedback to imply a transaction. Preserve the SRS privacy boundary and unresolved pricing/policy questions.
+
+## D-066-24 — Scope the school theme to the authenticated Manager app
+
+Use a warm paper/chalk, forest/leaf, muted marigold/clay palette with restrained surface treatment. Keep the design professional for adult school staff. Scope tokens/styles to the local Manager shell; do not modify shared login styling, shared/global tokens, other portals or add external/generated imagery.
+
+## D-066-25 — Do not copy files from the root checkout
+
+The reviewed recursive FEAT-066 inventories showed no file path present only in root and missing from the authorized worktree. The root subset is stale/different on some matching paths; preserve it and do not overwrite the newer active worktree records.
+
+
+## D-066-26 — Keep the school theme local to authenticated School Manager
+
+Load the local manager stylesheet after shared styles so scoped selectors win without editing shared/global styles. Keep the school-office palette and responsive shell in apps/school-manager-ui only; do not restyle the shared login or add images, packages or business behavior. Revision 8 visual review is recorded as EV-010.
+
+## D-066-27 — Report flow completeness from contracts, not preview appearance
+
+EV-009/EV-010 establish that the current School Manager UI is incomplete against SRS §21.5. Keep fixture metrics labeled and API-blocked actions unavailable. Read-only class/roster and M01 grant review have relevant contracts; capacity-safe class lifecycle, Manager Teacher lifecycle, billing, organization quota/top-up, inbox and school feedback reply do not. No backend or policy assumptions are introduced.

@@ -6,6 +6,7 @@ import { WebPortalLoginPage } from "../../shared/WebPortalLoginPage";
 import { M01PublicationReviewPage, M02OrganizationManagementPage } from "./pages/ManagerScreens";
 import "../../shared/portal-ui.css";
 import "../../shared/ui-primitives.css";
+import "./styles/mg-manage.css";
 
 function ManagerPortalRoutes() {
   const location = useLocation();

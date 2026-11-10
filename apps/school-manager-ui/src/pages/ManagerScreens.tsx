@@ -14,7 +14,6 @@ import {
   type Be1Class,
   type LessonSummary,
 } from "../../../shared/backendApi";
-import "../styles/mg-manage.css";
 
 type Toast = (text: string, kind?: "ok" | "info" | "warn" | "err") => void;
 
@@ -685,7 +684,7 @@ export function M02OrganizationManagementPage() {
                 <tbody>
                   {TEACHERS.map((t) => (
                     <tr key={t.id}>
-                      <td><div className="mg-cell"><span className="mg-avatar" style={{ background: t.bg, color: t.fg }}>{t.initials}</span>{t.name}</div></td>
+                      <td><div className="mg-cell"><span className="mg-avatar mg-avatar--teacher">{t.initials}</span>{t.name}</div></td>
                       <td>{t.role}</td>
                       <td><ActivePill /></td>
                     </tr>
