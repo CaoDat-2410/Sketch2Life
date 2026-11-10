@@ -42,3 +42,9 @@ Revision 4 code commit `c43f4b0a` and status commit `55485a07` were pushed witho
 - It enumerates login/tenant context, dashboard, class capacity/lifecycle, Teacher provisioning/assignment/transfer, roster, billing/subscription, organization quota, inbox, M01 lesson review, school-scoped feedback, privacy checkpoints, and logout.
 - Every flow is tied to SRS v2.7 references, current UI route/absence, source-checked API support, safe local review steps, expected result, and backend blocker.
 - Evidence index entry: FEAT-066-EV-006. It does not authorize production/backend calls or change the FE-only implementation scope.
+
+## Integration result
+
+- Commit `52e84c15` contains the School Manager logout action, the Rev57 sequential flow guide, and the associated QA screenshots/observations.
+- Pushed non-force to `origin/feature/fe-ui-full-remediation` on 2026-11-10; remote target advanced from `55485a07` to `52e84c15`.
+- Source changes were made only in `F:/Github/Sketch2Life-worktrees/fe-ui-web-remediation` on `codex/fe-ui-web-remediation`. Unrelated Parent UI, root approval, and FEAT-070 worktree changes were not staged or modified.
