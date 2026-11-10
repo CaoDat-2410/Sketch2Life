@@ -1,37 +1,44 @@
 # FEAT-066 status
 
-- Status: `IMPLEMENTATION_INTEGRATED`
+- Status: `IMPLEMENTATION_VALIDATED`
 - Updated: 2026-11-10 (Asia/Bangkok)
-- Plan revision: 4; approved plan SHA-256 `D9780223AB395C1B5A9942F4011B749A2A15E3D66283A178F768AF9E9AC0CCB6`.
-- Approval: `APPROVED_FOR_IMPLEMENTATION`, directly authorized by the user before product code changes. This does not approve or sign off the SRS.
+- Active plan: revision 6; SHA-256 `25E24871660A892C3380A359EA5285C6148B4C47FC75248C35D71FAC303231C9`.
+- Approval: `APPROVED_FOR_IMPLEMENTATION`; revision 5 approval/hash preceded logout source edits, and revision 6 approval/hash preceded flow-guide authoring. Both direct user requests are recorded in `approvals/TASK_APPROVAL.md`.
 - Product baseline: FEAT-063 SRS v2.7-draft Rev57, SHA-256 `BE0D656966FDE91BA7CD5C914C319EF301D137985EF5CC91B94F36FEBCF61FB5`, still unsigned.
-- Scope: `apps/school-manager-ui` and FEAT-066 governance/evidence only, in worktree `F:/Github/Sketch2Life-worktrees/fe-ui-web-remediation`, branch `codex/fe-ui-web-remediation`. Parent mobile and other portals/backend remain out of scope.
+- Scope remains only `apps/school-manager-ui` and FEAT-066 governance/evidence in worktree `F:/Github/Sketch2Life-worktrees/fe-ui-web-remediation`, branch `codex/fe-ui-web-remediation`.
 
-## Completed
+## Follow-up finding and resolution
 
-- M01 local preview separates approved and change-request counts, marks preview decisions as local-only, and provides linked accessible tabs with keyboard navigation.
-- Header inbox now reports unavailable without an unread dot or false button. Organization context no longer looks like a dropdown.
-- M02 responsive title/actions and quota controls wrap at 390px with 44px touch targets; unsupported controls do not mutate fixture data or claim success.
-- Existing API-backed class listing remains. API-mode roster read uses the existing profile endpoint and displays display names only. Media/story are neither fetched nor shown.
-- API inventory and unresolved FE/backend dependencies are documented in `evidence/notes/SCHOOL_MANAGER_WEB_REMEDIATION_REV57_20261110.md` (EV-003).
-- Before/after local captures and manual review observations are recorded as EV-004 under `evidence/screenshots/remediation-before/` and `evidence/screenshots/remediation-after/`. Reviewed login, M01, M02 dashboard, teachers, classes, quota and settings at 1440x900 and 390x844. No page-level horizontal overflow, remaining title/button overlap, or clipped quota actions were observed.
-- Preview result after request changes: pending 2, approved 0, request changes 1. ArrowRight tab behavior and tab/panel relationships were checked in the browser DOM.
-- Existing local preview was reused at `http://127.0.0.1:5173/`; process belongs to this worktree and listens only on `127.0.0.1`. No backend/provider, credentials, production data, or real child data were used.
+Before revision 5, the authenticated M02 dashboard and settings routes lacked a visible logout control. Revision 5 exposes `TeacherContext.logout` from ManagerLayout; that existing handler clears the web role/auth session keys, invokes configured Firebase sign-out when present, and causes protected routes to return to `/login`. AC12–AC13 were manually verified and the results are recorded as EV-005. The SRS does not list a School Manager logout screen/control in §21.5; this is a user-reported FE defect, not a newly inferred product requirement.
 
-## Remaining API/backend dependencies
+## Previously completed revision 4 work
 
-Capacity-safe class create and class archive/suspend; School Manager teacher directory/assignment selection; roster add/edit/transfer lifecycle; billing, invoices, payments and subscription; organization quota summary/top-up; notification inbox; and school-scoped feedback reply. These are visibly unavailable where applicable and enumerated in EV-003. No pricing or commercial policy was inferred from the unsigned SRS.
+M01 outcome counters, accessible tabs, unavailable inbox state, static organization context and M02 responsive/unavailable states remain implemented and integrated. The before/after route review remains in EV-004; its plan hash was `D9780223AB395C1B5A9942F4011B749A2A15E3D66283A178F768AF9E9AC0CCB6`. Existing API dependencies and limits are recorded in EV-003.
 
-## Validation
+## Revision 5 approved verification criteria
 
-- `python tools/validate_repository_security.py`: passed (`REPOSITORY_SECURITY_VALID`, 6,808 publishable files scanned; secret and external-reference categories excluded; no absolute machine paths).
-- `python tools/validate_harness.py`: passed.
-- `python tools/validate_architecture.py`: passed.
-- `python tools/validate_skeleton.py`: passed.
-- `git diff --check`: passed.
-- No automated tests or build were added or run, per request.
-- Remediation commit: `c43f4b0a` (`fix(school-manager-ui): remediate reviewed web issues`).
-## Integration result
+- Show logout on authenticated M01 and M02 pages using the existing callback.
+- Manually test sign-out from M02 dashboard/settings at 1440x900 and 390x844; confirm `/login`, removal of `s2l-web-role` and `s2l-web-authenticated`, and protected-route redirect after logout.
+- Save before/after screenshots and interaction observations inside FEAT-066 evidence. No production backend, provider, credential, or real user data.
+- No automated tests/builds unless the user asks. Run repository security validation before commit/push; retain non-force integration behavior and preserve unrelated worktree edits.
 
-- Pushed without force to `origin/feature/fe-ui-full-remediation`; remote advanced from `95433b3a` to `c43f4b0a`.
-- The existing local destination worktree `F:/Github/Sketch2Life-worktrees/fe-ui-full-remediation` contains unrelated uncommitted Parent mobile/UI and FEAT-036/067/068/069 changes. It was not merged into or rewritten; the update was pushed directly from the clean remediation worktree.
+## Revision 5 logout verification
+
+- Added a visible `Đăng xuất` button to the shared authenticated Manager sidebar and reused `TeacherContext.logout`.
+- Manual browser review passed on dashboard and settings at 1440x900 and 390x844. The button remained visible, was keyboard-focusable with Enter activation, and measured 44x44px in the collapsed narrow sidebar.
+- Each logout returned to `/login`, removed `s2l-web-role` and `s2l-web-authenticated`, and a direct attempt to revisit the protected route remained at `/login`.
+- Screenshots, route/session observations, and capture helper are recorded as FEAT-066-EV-005. Preview used only a synthetic local session; Firebase sign-out was not configured or tested.
+- No tests/builds/scanners were run. Repository security validation remains required before commit/push.
+
+## Integration history
+
+Revision 4 code commit `c43f4b0a` and status commit `55485a07` were pushed without force to `origin/feature/fe-ui-full-remediation`. The separate local target worktree contains unrelated uncommitted Parent mobile/UI and FEAT-036/067/068/069 changes and remains untouched.
+
+
+
+## Revision 6 flow-guide deliverable
+
+- Added `evidence/notes/SCHOOL_MANAGER_WEB_FLOW_TEST_GUIDE_V27.md` after plan revision 6 and approval recorded the direct request.
+- It enumerates login/tenant context, dashboard, class capacity/lifecycle, Teacher provisioning/assignment/transfer, roster, billing/subscription, organization quota, inbox, M01 lesson review, school-scoped feedback, privacy checkpoints, and logout.
+- Every flow is tied to SRS v2.7 references, current UI route/absence, source-checked API support, safe local review steps, expected result, and backend blocker.
+- Evidence index entry: FEAT-066-EV-006. It does not authorize production/backend calls or change the FE-only implementation scope.

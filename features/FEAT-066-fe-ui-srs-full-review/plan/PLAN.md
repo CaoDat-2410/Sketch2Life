@@ -1,7 +1,7 @@
 # FEAT-066 — School Manager web remediation against canonical SRS Rev57
 
 - Status: `APPROVED_FOR_SCHOOL_MANAGER_WEB_IMPLEMENTATION`
-- Plan revision: 4
+- Plan revision: 6
 - Updated: 2026-11-10 (Asia/Bangkok)
 - Worktree: `F:/Github/Sketch2Life-worktrees/fe-ui-web-remediation`
 - Branch: `codex/fe-ui-web-remediation`
@@ -15,6 +15,8 @@ Use only `F:/Github/Sketch2Life/docs/context/SRS_AUTHORITY.md` and the canonical
 
 - Revision 3 was approved for a read-only School Manager source and local-preview audit only. That audit is complete and remains recorded in `evidence/notes/SCHOOL_MANAGER_WEB_UX_REVIEW_REV57_20261110.md`.
 - The user directly approved School Manager web remediation in the current instruction on 2026-11-10. This revision supersedes the read-only restriction of revision 3 for the scope below.
+- During manual flow testing, the user identified the missing dashboard logout as a critical usability issue. Revision 5 adds a focused School Manager sign-out control using the existing session logout handler; this is a user-reported follow-up within the already authorized FE-only scope, not a new SRS requirement.
+- The user then requested a complete School Manager web flow checklist from SRS v2.7 to test each flow sequentially. Revision 6 adds a traceable FEAT-066 guide that distinguishes target requirements from current API/UI availability; it does not add code or broaden into other portals.
 - Do not begin product-code edits until `approvals/TASK_APPROVAL.md` records this revision as approved and contains this plan's verified SHA-256.
 
 ## Goal
@@ -27,8 +29,9 @@ Correct the confirmed School Manager web UI defects and implement SRS-required o
 
 - `apps/school-manager-ui` only, including School Manager login, M01 publication review and M02 dashboard, teachers, classes, quota, and settings routes.
 - FEAT-066 governance and evidence needed to approve, document, and verify this work.
+- A flow-by-flow School Manager web test guide in FEAT-066 evidence, traced to SRS v2.7 sections, current routes, API/contract support, expected behavior, and known blockers.
 - Read-only inspection of existing backend/API/OpenAPI contracts to determine which School Manager capabilities can be integrated without backend changes.
-- M01 approval versus change-request state/count correctness; notification inbox behavior; narrow and desktop reflow; accessible review tabs; removal of the misleading organization dropdown cue.
+- M01 approval versus change-request state/count correctness; notification inbox behavior; narrow and desktop reflow; accessible review tabs; removal of the misleading organization dropdown cue; visible logout on authenticated School Manager routes.
 - Contract-supported class capacity/create/archive/suspend, Teacher assignment, roster, billing/invoice/payment state, subscription, quota, notification inbox, and feedback reply flows. Unsupported operations must be presented as unavailable, with no fake success message or transaction.
 
 ### Excluded
@@ -52,11 +55,14 @@ Correct the confirmed School Manager web UI defects and implement SRS-required o
 - AC9: Manually review `/login`, M01, and M02 dashboard, teachers, classes, quota, and settings at `http://127.0.0.1:5173/`, bound to loopback. Capture before/after screenshots in FEAT-066 evidence at desktop (1440×900) and narrow (390×844); check the port before starting or reusing the preview.
 - AC10: Verify the M01 change-request count, inbox/unavailable behavior, tab keyboard and semantic behavior, and absence of M02 overlap/clipping. Record actual steps and limitations in FEAT-066 evidence.
 - AC11: Update FEAT-066 context, decisions, evidence, and status after meaningful implementation and review steps. Keep all modified product files under `apps/school-manager-ui` and all other modified files under FEAT-066.
+- AC12: On every authenticated School Manager route, provide an obvious, keyboard-accessible “Đăng xuất” control. It must call the existing `logout` context handler, clear the existing web session state/Firebase auth through that handler, and return to `/login`; direct visits to protected routes after logout must remain at login. Do not add new auth/session policy or backend behavior.
+- AC13: Manually verify logout from M02 dashboard/settings at desktop (1440×900) and narrow (390×844), record route/session result and screenshots in FEAT-066 evidence, and confirm the button remains reachable in the collapsed sidebar.
+- AC14: Provide a sequential test guide covering every School Manager screen/flow in SRS §21.5 and the related School Manager use cases/requirements. For each flow, cite SRS references, route or missing route, API/contract support, safe test steps, expected result, and current blocked/unavailable state. Separate target behavior from the FE-only implementation; do not use §32 or infer open commercial policy.
 
 ## Implementation and review constraints
 
 - Use local fixture/preview state only and inspect compatible API contracts without credentials. Do not call a production backend, external provider, or external service.
 - Bind the Vite preview only to `127.0.0.1:5173`; reuse an existing local preview if it belongs to this app and check the port before starting it.
-- Preserve Vietnamese labels, existing design primitives, visible keyboard focus, responsive behavior, and explicit unavailable/error states.
+- Preserve Vietnamese labels, existing design primitives, visible keyboard focus, responsive behavior, and explicit unavailable/error states. Reuse the existing logout callback; do not add provider calls, new credentials, or a separate sign-out state machine.
 - Do not run automated tests, scanners, or builds under this authorization. Do not add tests. Report manual verification only.
 - Before committing or pushing, run `python tools/validate_repository_security.py` from the repository root as required by AGENTS.md. Do not force-push.

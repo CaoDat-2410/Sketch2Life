@@ -28,9 +28,9 @@ function ManagerPortalRoutes() {
 
 function ManagerPortalFrame() {
   const location = useLocation();
-  const { toast } = useTeacher();
+  const { toast, logout } = useTeacher();
   const routes = <ManagerPortalRoutes />;
-  return location.pathname === "/login" ? routes : <ManagerLayout toast={toast}>{routes}</ManagerLayout>;
+  return location.pathname === "/login" ? routes : <ManagerLayout toast={toast} onLogout={logout}>{routes}</ManagerLayout>;
 }
 
 export function App() {

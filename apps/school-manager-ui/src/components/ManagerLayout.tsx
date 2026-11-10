@@ -23,9 +23,11 @@ const SCREEN_NAMES: Record<string, string> = {
 export function ManagerLayout({
   children,
   toast,
+  onLogout,
 }: {
   children: React.ReactNode;
   toast: { kind: "ok" | "info" | "warn" | "err"; text: string } | null;
+  onLogout: () => void;
 }) {
   const location = useLocation();
   const currentTitle = SCREEN_NAMES[location.pathname] ?? "Quản lý trường";
@@ -77,6 +79,16 @@ export function ManagerLayout({
             <div className="mg-profile-sub">{previewMode ? "Dữ liệu xem thử" : "Role được backend xác nhận"}</div>
           </div>
         </div>
+        <button
+          type="button"
+          className="mg-logout-btn"
+          onClick={onLogout}
+          aria-label="Đăng xuất"
+          title="Đăng xuất khỏi cổng Quản lý trường"
+        >
+          <MgIcon name="logout" size={18} />
+          <span className="mg-logout-label">Đăng xuất</span>
+        </button>
       </aside>
 
       <div className="mg-main-wrap">
