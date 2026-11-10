@@ -1,6 +1,6 @@
 # FEAT-066 status
 
-- Status: `IMPLEMENTATION_VALIDATED`
+- Status: `IMPLEMENTATION_INTEGRATED`
 - Updated: 2026-11-10 (Asia/Bangkok)
 - Plan revision: 4; approved plan SHA-256 `D9780223AB395C1B5A9942F4011B749A2A15E3D66283A178F768AF9E9AC0CCB6`.
 - Approval: `APPROVED_FOR_IMPLEMENTATION`, directly authorized by the user before product code changes. This does not approve or sign off the SRS.
@@ -30,4 +30,8 @@ Capacity-safe class create and class archive/suspend; School Manager teacher dir
 - `python tools/validate_skeleton.py`: passed.
 - `git diff --check`: passed.
 - No automated tests or build were added or run, per request.
-- FEAT-066 status describes implementation and validation. Commit and non-force integration to `feature/fe-ui-full-remediation` are carried out separately as the final delivery step.
+- Remediation commit: `c43f4b0a` (`fix(school-manager-ui): remediate reviewed web issues`).
+## Integration result
+
+- Pushed without force to `origin/feature/fe-ui-full-remediation`; remote advanced from `95433b3a` to `c43f4b0a`.
+- The existing local destination worktree `F:/Github/Sketch2Life-worktrees/fe-ui-full-remediation` contains unrelated uncommitted Parent mobile/UI and FEAT-036/067/068/069 changes. It was not merged into or rewritten; the update was pushed directly from the clean remediation worktree.
