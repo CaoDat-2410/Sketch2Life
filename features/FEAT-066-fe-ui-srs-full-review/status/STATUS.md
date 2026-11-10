@@ -122,3 +122,9 @@ Revision 4 code commit `c43f4b0a` and status commit `55485a07` were pushed witho
 - Final manual capture: 16 route/viewport observations across 1440x900, 768x1024 and 390x844; 0 horizontal-overflow pages and 0 disabled actions outside the viewport. M01 count separation, tab keyboard/ARIA semantics, unavailable inbox/static organization context and logout were checked in local preview.
 - Evidence: evidence/notes/SCHOOL_MANAGER_WEB_THEME_REVIEW_REV57_20261110.md and evidence/screenshots/school-manager-theme-final/ (EV-010).
 - No automated tests/builds or backend/provider/production calls were run. Existing unrelated root approval, Parent UI and FEAT-070 changes remain unstaged and untouched.
+
+## Revision 8 integration result (2026-11-10)
+
+- School Manager theme and flow-review commit: c3cf2f0d19ce6c07e1da796a661a2039118561e9.
+- Pushed without force to origin/codex/fe-ui-web-remediation and origin/feature/fe-ui-full-remediation. Both remote branches advanced from 9a901ae9 to c3cf2f0d.
+- Active worktree remains F:/Github/Sketch2Life-worktrees/fe-ui-web-remediation on codex/fe-ui-web-remediation. Pre-existing root approval, Parent UI and FEAT-070 modifications remain outside the commit.
