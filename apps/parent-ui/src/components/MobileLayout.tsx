@@ -188,14 +188,14 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
               </div>
             </div>
             <Note tone="blue" icon="video">
-              Dùng <strong>1 lượt video</strong> từ tài khoản của bạn (còn {quotaRemaining} lượt). Lượt đã dùng không thể hoàn lại.
+              Dùng <strong>1 lượt video</strong> từ tài khoản của bạn. Sau khi yêu cầu được chấp nhận, còn <strong>{Math.max(0, quotaRemaining - 1)} lượt</strong>. Lượt đã dùng không thể hoàn lại.
             </Note>
             <Btn
               tone="mint"
               disabled={quotaRemaining <= 0}
               onClick={() => {
-                confirmScriptAndStartVideo();
-                if (quotaRemaining > 0) navigate("/p07-video-job-status");
+                const accepted = confirmScriptAndStartVideo();
+                if (accepted) navigate("/p07-video-job-status");
               }}
             >
               <Icon name="video" size={18} /> Tạo video ngay

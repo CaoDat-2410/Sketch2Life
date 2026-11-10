@@ -18,7 +18,7 @@ import {
 const SAFETY_RULES = [
   {
     icon: Users,
-    bg: 'bg-[#E6F0FF] text-[#1565F9]',
+    bg: 'bg-[#E8EAFF] text-[#1F2DE6]',
     title: 'Giáo viên duyệt từng gợi ý AI',
     desc: 'Mỗi gợi ý AI phải được giáo viên duyệt trước khi gửi cho trẻ.',
   },
@@ -82,14 +82,14 @@ export function AiPolicyPage() {
       {/* Full-width Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-[24px] font-extrabold text-[#0F1F38] tracking-tight leading-tight">
+          <h1 className="text-[24px] font-extrabold text-[#0B0C0E] tracking-tight leading-tight">
             Chính sách AI
           </h1>
           <p className="text-[13px] text-slate-500 mt-0.5 font-medium">
             Chính sách có phiên bản • áp dụng theo phạm vi.
           </p>
         </div>
-        <button className="flex items-center gap-2 bg-[#1565F9] hover:bg-blue-700 text-white text-[12.5px] font-semibold px-3.5 py-2 rounded-xl transition shadow-sm cursor-pointer whitespace-nowrap shrink-0">
+        <button className="flex items-center gap-2 bg-[#1F2DE6] hover:bg-blue-700 text-white text-[12.5px] font-semibold px-3.5 py-2 rounded-xl transition shadow-sm cursor-pointer whitespace-nowrap shrink-0">
           <FilePlus size={14} />
           <span>Tạo bản nháp</span>
         </button>
@@ -131,7 +131,7 @@ export function AiPolicyPage() {
         {/* LEFT — Cài đặt an toàn */}
         <div className="col-span-7 bg-white rounded-2xl border border-slate-200/70 p-4 shadow-[0_1px_3px_rgba(15,23,42,0.02)]">
           <div className="flex items-center gap-2 mb-0.5">
-            <div className="w-6.5 h-6.5 bg-[#E6F0FF] text-[#1565F9] rounded-lg flex items-center justify-center">
+            <div className="w-6.5 h-6.5 bg-[#E8EAFF] text-[#1F2DE6] rounded-lg flex items-center justify-center">
               <Shield size={14} strokeWidth={2.2} />
             </div>
             <h2 className="text-[15px] font-bold text-slate-900">
@@ -167,7 +167,7 @@ export function AiPolicyPage() {
                       <p className="text-[11.5px] text-slate-500 mt-0.5">{r.desc}</p>
                     </div>
                   </div>
-                  <span className="flex items-center gap-1.5 text-[11.5px] font-semibold text-[#1565F9] bg-[#EAF2FF] px-3 py-1.5 rounded-xl flex-shrink-0 ml-3 whitespace-nowrap">
+                  <span className="flex items-center gap-1.5 text-[11.5px] font-semibold text-[#1F2DE6] bg-[#E8EAFF] px-3 py-1.5 rounded-xl flex-shrink-0 ml-3 whitespace-nowrap">
                     <Lock size={12} />
                     <span>Bắt buộc</span>
                   </span>
@@ -182,7 +182,7 @@ export function AiPolicyPage() {
           <div>
             <div className="flex items-center justify-between mb-2.5">
               <div className="flex items-center gap-2">
-                <div className="w-6.5 h-6.5 bg-[#E6F0FF] text-[#1565F9] rounded-lg flex items-center justify-center">
+                <div className="w-6.5 h-6.5 bg-[#E8EAFF] text-[#1F2DE6] rounded-lg flex items-center justify-center">
                   <FileText size={14} strokeWidth={2.2} />
                 </div>
                 <p className="font-bold text-slate-900 text-[15px]">Bản nháp P2</p>
@@ -246,7 +246,7 @@ export function AiPolicyPage() {
       {/* Bottom 2-Column Section: Mức hỗ trợ AI + Ngân sách và giới hạn */}
       <div className="grid grid-cols-12 gap-4">
         <div className="col-span-6 bg-white rounded-2xl border border-slate-200/70 p-3 px-4 shadow-[0_1px_3px_rgba(15,23,42,0.02)] flex items-start gap-3">
-          <div className="w-8 h-8 bg-[#E6F0FF] text-[#1565F9] rounded-xl flex items-center justify-center shrink-0 mt-0.5">
+          <div className="w-8 h-8 bg-[#E8EAFF] text-[#1F2DE6] rounded-xl flex items-center justify-center shrink-0 mt-0.5">
             <SlidersHorizontal size={16} />
           </div>
           <div>
@@ -259,7 +259,7 @@ export function AiPolicyPage() {
         </div>
 
         <div className="col-span-6 bg-white rounded-2xl border border-slate-200/70 p-3 px-4 shadow-[0_1px_3px_rgba(15,23,42,0.02)] flex items-start gap-3">
-          <div className="w-8 h-8 bg-[#E6F0FF] text-[#1565F9] rounded-xl flex items-center justify-center shrink-0 mt-0.5">
+          <div className="w-8 h-8 bg-[#E8EAFF] text-[#1F2DE6] rounded-xl flex items-center justify-center shrink-0 mt-0.5">
             <Database size={16} />
           </div>
           <div>
@@ -274,12 +274,12 @@ export function AiPolicyPage() {
 
       {/* Bottom Action Bar & Watermark */}
       <div className="flex items-center justify-between gap-4">
-        <div className="flex-1 bg-[#EAF3FF]/90 border border-blue-200/80 rounded-2xl p-1.5 px-3 flex items-center gap-2">
-          <button className="flex items-center gap-1.5 bg-[#1565F9] hover:bg-blue-700 text-white text-[12.5px] font-semibold px-3.5 py-1.5 rounded-xl transition cursor-pointer shadow-sm whitespace-nowrap shrink-0">
+        <div className="flex-1 bg-[#E8EAFF]/90 border border-blue-200/80 rounded-2xl p-1.5 px-3 flex items-center gap-2">
+          <button className="flex items-center gap-1.5 bg-[#1F2DE6] hover:bg-blue-700 text-white text-[12.5px] font-semibold px-3.5 py-1.5 rounded-xl transition cursor-pointer shadow-sm whitespace-nowrap shrink-0">
             <Search size={13.5} />
             <span>Kiểm tra bản nháp</span>
           </button>
-          <button className="flex items-center gap-1.5 border border-blue-200 bg-white text-[#1565F9] text-[12.5px] font-semibold px-3.5 py-1.5 rounded-xl hover:bg-blue-50 transition cursor-pointer whitespace-nowrap shrink-0">
+          <button className="flex items-center gap-1.5 border border-blue-200 bg-white text-[#1F2DE6] text-[12.5px] font-semibold px-3.5 py-1.5 rounded-xl hover:bg-blue-50 transition cursor-pointer whitespace-nowrap shrink-0">
             <List size={13.5} />
             <span>Xem thay đổi</span>
           </button>

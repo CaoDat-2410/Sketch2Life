@@ -26,10 +26,10 @@ const INITIAL: LessonRow[] = [
   { id: "mod-1", title: "Hệ Mặt Trời", version: "Bản 2", owner: "Trần Minh Anh", initials: "MA", category: "Vũ trụ", scope: "Toàn nền tảng", status: "Đang công khai", updatedAt: "28/10/2026", emoji: "🪐", bg: "#E0E7FF" },
   { id: "mod-2", title: "Cây xanh quanh em", version: "Bản 1", owner: "Nguyễn Hoài Nam", initials: "HN", category: "Thực vật", scope: "Trong trường", status: "Chờ duyệt", updatedAt: "29/10/2026", emoji: "🌱", bg: "#D1FAE5" },
   { id: "mod-3", title: "Vòng đời bướm", version: "Bản 3", owner: "Lê Thu Hà", initials: "TH", category: "Khoa học tự nhiên", scope: "Toàn nền tảng", status: "Đang công khai", updatedAt: "30/10/2026", emoji: "🦋", bg: "#FEF3C7" },
-  { id: "mod-4", title: "Đại dương kỳ thú", version: "Bản 1", owner: "Phạm Gia Bảo", initials: "GB", category: "Động vật", scope: "Trong trường", status: "Đang công khai", updatedAt: "27/10/2026", emoji: "🐬", bg: "#DBEAFE" },
-  { id: "mod-5", title: "Tái chế rác thải", version: "Bản 2", owner: "Đỗ Quang Huy", initials: "QH", category: "Môi trường", scope: "Toàn nền tảng", status: "Đã ẩn", updatedAt: "25/10/2026", emoji: "♻️", bg: "#F1F5F9" },
+  { id: "mod-4", title: "Đại dương kỳ thú", version: "Bản 1", owner: "Phạm Gia Bảo", initials: "GB", category: "Động vật", scope: "Trong trường", status: "Đang công khai", updatedAt: "27/10/2026", emoji: "🐬", bg: "#E8EAFF" },
+  { id: "mod-5", title: "Tái chế rác thải", version: "Bản 2", owner: "Đỗ Quang Huy", initials: "QH", category: "Môi trường", scope: "Toàn nền tảng", status: "Đã ẩn", updatedAt: "25/10/2026", emoji: "♻️", bg: "#E2E5EA" },
   { id: "mod-6", title: "Khủng long thời tiền sử", version: "Bản 1", owner: "Ngô Thùy Linh", initials: "TL", category: "Lịch sử tự nhiên", scope: "Toàn nền tảng", status: "Đang công khai", updatedAt: "21/10/2026", emoji: "🦖", bg: "#FEE2E2" },
-  { id: "mod-7", title: "Vòng tuần hoàn nước", version: "Bản 1", owner: "Vũ Đức Tài", initials: "ĐT", category: "Khoa học tự nhiên", scope: "Trong trường", status: "Chờ duyệt", updatedAt: "20/10/2026", emoji: "💧", bg: "#EFF6FF" },
+  { id: "mod-7", title: "Vòng tuần hoàn nước", version: "Bản 1", owner: "Vũ Đức Tài", initials: "ĐT", category: "Khoa học tự nhiên", scope: "Trong trường", status: "Chờ duyệt", updatedAt: "20/10/2026", emoji: "💧", bg: "#E8EAFF" },
   { id: "mod-8", title: "Cơ thể con người", version: "Bản 1", owner: "Nguyễn Thảo Vy", initials: "TV", category: "Sinh học", scope: "Toàn nền tảng", status: "Đã ẩn", updatedAt: "18/10/2026", emoji: "🫀", bg: "#F5F3FF" },
 ];
 
@@ -108,7 +108,7 @@ export function A01ContentModerationPage({ showToast }: { showToast: Toast }) {
         {STATUS_FILTERS.map((s) => (
           <button key={s} type="button" className={`mg-chip-btn${statusFilter === s ? " is-active" : ""}`} aria-pressed={statusFilter === s} onClick={() => setStatusFilter(s)}>{s}</button>
         ))}
-        <span style={{ width: 1, height: 24, background: "#CBD5E1" }} />
+        <span style={{ width: 1, height: 24, background: "#B9C0CC" }} />
         {SCOPE_FILTERS.map((s) => (
           <button key={s} type="button" className={`mg-chip-btn${scopeFilter === s ? " is-active" : ""}`} aria-pressed={scopeFilter === s} onClick={() => setScopeFilter(s)}>{s}</button>
         ))}
@@ -134,7 +134,7 @@ export function A01ContentModerationPage({ showToast }: { showToast: Toast }) {
                         <span>{r.title}<div className="mg-item-sub">{r.version}</div></span>
                       </div>
                     </td>
-                    <td><div className="mg-cell"><span className="mg-avatar" style={{ width: 28, height: 28, background: "#DBEAFE", color: "#1D4ED8", fontSize: 11 }}>{r.initials}</span><span style={{ fontWeight: 600 }}>{r.owner}</span></div></td>
+                    <td><div className="mg-cell"><span className="mg-avatar" style={{ width: 28, height: 28, background: "#E8EAFF", color: "#1B25C5", fontSize: 11 }}>{r.initials}</span><span style={{ fontWeight: 600 }}>{r.owner}</span></div></td>
                     <td><span className={`mg-pill ${r.scope === "Toàn nền tảng" ? "info" : "off"}`}><MgIcon name={r.scope === "Toàn nền tảng" ? "globe" : "school"} size={13} /> {r.scope}</span></td>
                     <td><StatusPill status={r.status} /></td>
                     <td className="mg-item-sub">{r.updatedAt}</td>
@@ -317,7 +317,7 @@ export function A02PlatformOperationsPage({ showToast }: { showToast: Toast }) {
               <div className="mg-stack">
                 {activities.map((act) => (
                   <div key={act} className="mg-meta-row">
-                    <span style={{ color: "#0F172A", fontWeight: 700 }}>{act}</span>
+                    <span style={{ color: "#0B0C0E", fontWeight: 700 }}>{act}</span>
                     <span className="mg-pill ok">Đang phát hành</span>
                   </div>
                 ))}
@@ -382,7 +382,7 @@ export function A02PlatformOperationsPage({ showToast }: { showToast: Toast }) {
                 {AUDIT.map((a) => (
                   <tr key={a.time + a.action}>
                     <td className="mg-item-sub">{a.time}</td>
-                    <td><div className="mg-cell"><span className="mg-avatar" style={{ width: 28, height: 28, background: "#DBEAFE", color: "#1D4ED8", fontSize: 11 }}>{a.initials}</span>{a.who}</div></td>
+                    <td><div className="mg-cell"><span className="mg-avatar" style={{ width: 28, height: 28, background: "#E8EAFF", color: "#1B25C5", fontSize: 11 }}>{a.initials}</span>{a.who}</div></td>
                     <td>{a.action}</td>
                     <td>{a.target}</td>
                     <td><span className="mg-pill ok"><MgIcon name="check" size={13} /> Thành công</span></td>

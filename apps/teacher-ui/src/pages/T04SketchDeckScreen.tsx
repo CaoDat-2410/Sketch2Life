@@ -195,14 +195,14 @@ export function T04SessionSketchDeckPage() {
                   margin: 0,
                   fontSize: 22,
                   fontWeight: 800,
-                  color: fullscreen ? "#F8FAFC" : undefined,
+                  color: fullscreen ? "#F6F7F9" : undefined,
                 }}
               >
                 {currentActivity.title}
               </h1>
               <div
                 className="tw-meta"
-                style={{ fontSize: 13, color: fullscreen ? "#CBD5E1" : undefined }}
+                style={{ fontSize: 13, color: fullscreen ? "#B9C0CC" : undefined }}
               >
                 Giáo án: {currentLesson?.title} · {cls.className} · Bản vẽ #{deckRevision}
               </div>
@@ -288,7 +288,7 @@ export function T04SessionSketchDeckPage() {
                     background: "#16233A",
                     padding: "18px 22px",
                     borderRadius: 18,
-                    color: "#F8FAFC",
+                    color: "#F6F7F9",
                   }
                 : { padding: "18px 22px", borderRadius: 18 }
             }
@@ -299,7 +299,7 @@ export function T04SessionSketchDeckPage() {
                   margin: 0,
                   fontSize: 24,
                   fontWeight: 800,
-                  color: fullscreen ? "#F8FAFC" : undefined,
+                  color: fullscreen ? "#F6F7F9" : undefined,
                 }}
               >
                 {currentStepMeta.title}
@@ -313,7 +313,7 @@ export function T04SessionSketchDeckPage() {
                 fontSize: 17,
                 lineHeight: 1.55,
                 marginTop: 8,
-                color: fullscreen ? "#E2E8F0" : undefined,
+                color: fullscreen ? "#CBD0D8" : undefined,
               }}
             >
               {currentStepMeta.instruction}

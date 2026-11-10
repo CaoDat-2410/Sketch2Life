@@ -1,11 +1,11 @@
 # FEAT-066 status
 
-- Status: IMPLEMENTATION_AND_MANUAL_REVIEW_COMPLETE; API_DEPENDENCIES_REMAIN
+- Status: THREE_ROLE_FLOW_AUDIT_COMPLETE; REMEDIATION_DEFERRED
 - Updated: 2026-11-10 (Asia/Bangkok)
-- Active plan: revision 8; SHA-256 `C71F0824DC4A7E4901912BB2D8883B954BA6F2ED438BAB9F9C0871CBE3B54D7C`.
-- Approval: `APPROVED_FOR_IMPLEMENTATION` for revision 8; direct user approval and matching hash recorded in feature-local `approvals/TASK_APPROVAL.md` before product-code edits.
+- Active plan: revision 13 (prior logout scope), SHA-256 5DF172969F85296D5A1100BB288337CD0EEFF06373CC157DE719EA59B3C6029B; no remediation plan is approved.
+- Approval: revision 13 approval covers prior logout implementation only; current revision 14 request authorizes audit/reporting and explicitly defers product changes.
 - Product baseline: FEAT-063 SRS v2.7-draft Rev57, SHA-256 `BE0D656966FDE91BA7CD5C914C319EF301D137985EF5CC91B94F36FEBCF61FB5`, still unsigned.
-- Current revision 8 scope: authenticated School Manager screens in `apps/school-manager-ui` plus FEAT-066 governance/evidence in the authorized worktree; all other portals/backend remain excluded.
+- Current scope: FEAT-066-EV-016 three-role source/contract audit only. Product remediation requires a separate plan and approval after user review.
 
 ## Follow-up finding and resolution
 
@@ -116,7 +116,7 @@ Revision 4 code commit `c43f4b0a` and status commit `55485a07` were pushed witho
 
 ## Revision 8 implementation and review result (2026-11-10)
 
-- Status: implementation and requested manual UI review complete for the approved FE-only scope; School Manager production flow coverage remains incomplete due to API/contracts listed in EV-009/EV-010.
+- Status: THREE_ROLE_FLOW_AUDIT_COMPLETE; REMEDIATION_DEFERRED
 - Plan revision 8 SHA-256 C71F0824DC4A7E4901912BB2D8883B954BA6F2ED438BAB9F9C0871CBE3B54D7C matches feature-local direct-user approval.
 - Canonical baseline remains unsigned SRS v2.7-draft Rev57, SHA-256 BE0D656966FDE91BA7CD5C914C319EF301D137985EF5CC91B94F36FEBCF61FB5.
 - Final manual capture: 16 route/viewport observations across 1440x900, 768x1024 and 390x844; 0 horizontal-overflow pages and 0 disabled actions outside the viewport. M01 count separation, tab keyboard/ARIA semantics, unavailable inbox/static organization context and logout were checked in local preview.
@@ -128,3 +128,71 @@ Revision 4 code commit `c43f4b0a` and status commit `55485a07` were pushed witho
 - School Manager theme and flow-review commit: c3cf2f0d19ce6c07e1da796a661a2039118561e9.
 - Pushed without force to origin/codex/fe-ui-web-remediation and origin/feature/fe-ui-full-remediation. Both remote branches advanced from 9a901ae9 to c3cf2f0d.
 - Active worktree remains F:/Github/Sketch2Life-worktrees/fe-ui-web-remediation on codex/fe-ui-web-remediation. Pre-existing root approval, Parent UI and FEAT-070 modifications remain outside the commit.
+
+## Revision 9 dashboard palette preview — ready for review (2026-11-10)
+
+- Status: THREE_ROLE_FLOW_AUDIT_COMPLETE; REMEDIATION_DEFERRED
+- Direct user authorization and matching plan revision 9 SHA-256 03FF50D8330884BB815CCF8D8E68186F250DBE70279D6EC9FBD163423EFB24AC were recorded before product-code edits.
+- Added a route-scoped Cool Grey + Cobalt preview on the default M02 dashboard. Other Manager routes remain on revision 8 colors.
+- Manual local capture at 1440x900 and 390x844: no horizontal overflow; primary action remains inside viewport. M02 teachers and M01 computed colors remain unchanged.
+- Evidence: evidence/notes/SCHOOL_MANAGER_WEB_COBALT_PREVIEW_20261110.md; evidence/screenshots/school-manager-cobalt-preview/.
+- Preview is on the loopback FE at http://127.0.0.1:5173/m02-organization-management. It is uncommitted and unpushed. No tests/builds ran.
+
+## Revision 10 — approved web-wide branding rollout (2026-11-10)
+
+- Status: THREE_ROLE_FLOW_AUDIT_COMPLETE; REMEDIATION_DEFERRED
+- Direct user instruction: use the supplied image as logo and apply the bright Cool Grey + Cobalt palette across the browser web apps.
+- Plan revision: 10. Exact SHA-256 is recorded in approvals/TASK_APPROVAL.md.
+- In scope: parent-ui browser preview, school-manager-ui, teacher-ui, platform-admin-ui, admin-ui and apps/shared web branding/styles. Native/mobile and historical parent-web are excluded.
+- The SRS remains unsigned v2.7-draft Rev57 and does not specify colors.
+
+
+## Revision 10 implementation result — 2026-11-10
+
+- Implemented the supplied logo and shared bright palette across the five in-scope browser apps and shared web styles. Plan rev10 and approval hash remain matched.
+- Manual local review saved as EV-012: 18 desktop/narrow captures, 0 horizontal document overflow, updated brand visible on shared portal shells, and narrow M01/M02 layouts remain within the viewport.
+- Remaining review limitations: Admin UI dev preview could not start because offline npm cache lacks `@tailwindcss/vite` (`ENOTCACHED`); Parent `/p11-authentication` redirects to the already-authenticated local Parent library fixture. Source changes are present for both browser packages; no network, credentials or changes to auth behavior were used to bypass these limitations.
+- No tests/builds, commit/push, APIs, backend, mobile, or unrelated existing worktree files were changed. Security validator was not run because no commit/push is being prepared.
+- Evidence: `evidence/notes/WEB_BRAND_ROLLOUT_V10_20261110.md`; captures and observations: `evidence/screenshots/web-brand-rollout-v10/`.
+## Revision 11 — approved three-role dashboard icon refresh (2026-11-10)
+
+- Status: THREE_ROLE_FLOW_AUDIT_COMPLETE; REMEDIATION_DEFERRED
+- Direct user request and matching plan revision 11 SHA-256 `0B2B90980B2D2CB491DCCC15BC1E22ED6FFCEBD3D8B21AEADE795670B9875BC1` are recorded in the feature-local approval ledger.
+- Scope: authenticated dashboard iconography (shell and route content) in School Manager, Teacher and Platform Admin web role apps, plus FEAT-066 governance/evidence.
+- Canonical baseline: FEAT-063 v2.7-draft Rev57, SHA-256 `BE0D656966FDE91BA7CD5C914C319EF301D137985EF5CC91B94F36FEBCF61FB5`, unsigned.
+- Next: implement the local icon family, manually review 1440x900 and 390x844 captures for each role, then record evidence. No tests/builds, commit, or push.
+
+## Revision 11 — implementation and manual UI review complete (2026-11-10)
+
+- Status: THREE_ROLE_FLOW_AUDIT_COMPLETE; REMEDIATION_DEFERRED
+- Plan/approval SHA-256: 0B2B90980B2D2CB491DCCC15BC1E22ED6FFCEBD3D8B21AEADE795670B9875BC1.
+- Updated the shared local SVG icon family for Teacher, School Manager and Platform Admin dashboard shells/content while preserving existing navigation and role behavior.
+- EV-013: six local captures at 1440×900 and 390×844; no horizontal overflow, Vite error overlay, or observed runtime errors; nav icon tiles are 32×32px.
+- No tests/builds, commit or push. Existing unrelated worktree changes remain untouched.
+- Evidence note: evidence/notes/WEB_DASHBOARD_ICON_REFRESH_V11_20261110.md; screenshots/observations: evidence/screenshots/web-dashboard-icons-v11/.
+## Revision 12 — shared login font correction complete (2026-11-10)
+
+- Status: THREE_ROLE_FLOW_AUDIT_COMPLETE; REMEDIATION_DEFERRED
+- Plan/approval SHA-256: 00D41575B3D5912DE9A2CB2D1080DC9D588C91E366D762B79092DC7F618FBCC7.
+- Updated the shared login headline font rules in apps/shared/portal-login.css: existing Vietnamese-capable sans stack, upright accent, 700 weight, improved tracking and line height.
+- EV-014 records six Teacher, School Manager and Platform Admin /login captures at 1440×900 and 390×844. No overflow, Vite overlay, or runtime errors; existing per-origin preview storage was restored.
+- No automated tests/builds, commit or push. Existing unrelated worktree changes remain untouched.
+- Evidence: evidence/notes/WEB_LOGIN_FONT_FIX_V12_20261110.md; evidence/screenshots/web-login-font-v12/.
+## Revision 13 — three-role logout controls complete (2026-11-10)
+
+- Status: THREE_ROLE_FLOW_AUDIT_COMPLETE; REMEDIATION_DEFERRED
+- Plan/approval SHA-256: 5DF172969F85296D5A1100BB288337CD0EEFF06373CC157DE719EA59B3C6029B.
+- Teacher logout moved to the sidebar account area and remains visible as a named icon button in the collapsed rail. School Manager's existing sidebar button was retained. Platform Admin now has a sidebar button wired through AdminPortalFrame to the existing logout handler.
+- EV-015 records six desktop/narrow dashboard captures. All controls were visible/in-viewport with no horizontal overflow; pointer activation in each role cleared role/auth session keys and returned to /login. Focus outline: 3px cobalt. No runtime errors.
+- No automated tests/builds, commit or push. Existing unrelated worktree changes remain untouched.
+- Evidence: evidence/notes/WEB_ROLE_LOGOUT_V13_20261110.md; evidence/screenshots/web-logout-v13/.
+## Revision 14 — three-role flow audit complete (2026-11-10)
+
+- Current request completed as a source/contract audit only; detailed findings are FEAT-066-EV-016.
+- Scope: Teacher, School Manager and Platform Admin web apps. No Parent, additional Admin UI, mobile, backend or UX implementation.
+- SRS: canonical FEAT-063 v2.7-draft Rev57 verified against authority at SHA-256 BE0D656966FDE91BA7CD5C914C319EF301D137985EF5CC91B94F36FEBCF61FB5; unsigned. §32 excluded from target requirements.
+- Main P1 blockers: Teacher run/occurrence/projection and extraction review; School Manager exact-version content review, class/Teacher lifecycle, billing/quota/inbox/feedback; Platform Admin backend login, moderation, catalog and operations APIs.
+- P2 findings and owner-open items are separated in EV-016. Existing logout controls, M01 counters, unavailable inbox signal and privacy-minimal roster are not counted as current defects.
+- No application source/API changed; no tests/builds, production/backend/provider access, commit or push.
+- Git verified root and branch, but git status --short --branch failed with fatal: this operation must be run in a work tree; worktree was left intact. No attempt was made to repair Git metadata or touch the main checkout.
+- Product remediation remains unapproved and must have its own plan/acceptance checkpoint after user review.

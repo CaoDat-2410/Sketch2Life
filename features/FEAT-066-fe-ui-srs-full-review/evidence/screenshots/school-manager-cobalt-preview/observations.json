@@ -1,0 +1,88 @@
+{
+  "captures": [
+    {
+      "file": "m02-dashboard-desktop.png",
+      "route": "/m02-organization-management",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "shellClass": "mg-shell mg-shell--palette-preview",
+      "canvasToken": "#EEF0F3",
+      "shellBackground": "rgb(238, 240, 243)",
+      "accentToken": "#1F2DE6",
+      "dashboardTitle": "Quản lý trường",
+      "inboxStatus": "Hộp thư chưa khả dụng",
+      "organizationContextTag": "DIV",
+      "actions": [
+        {
+          "text": "Duyệt bài học công khai",
+          "height": 46,
+          "insideViewport": true
+        }
+      ]
+    },
+    {
+      "file": "m02-dashboard-narrow.png",
+      "route": "/m02-organization-management",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "shellClass": "mg-shell mg-shell--palette-preview",
+      "canvasToken": "#EEF0F3",
+      "shellBackground": "rgb(238, 240, 243)",
+      "accentToken": "#1F2DE6",
+      "dashboardTitle": "Quản lý trường",
+      "inboxStatus": "Hộp thư chưa khả dụng",
+      "organizationContextTag": "DIV",
+      "actions": [
+        {
+          "text": "Duyệt bài học công khai",
+          "height": 46,
+          "insideViewport": true
+        }
+      ]
+    }
+  ],
+  "routeScope": [
+    {
+      "route": "/m02-organization-management?section=teachers",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "shellClass": "mg-shell",
+      "canvasToken": "#F3F1E8",
+      "shellBackground": "rgb(243, 241, 232)",
+      "accentToken": "#3D6848",
+      "dashboardTitle": "Quản lý trường",
+      "inboxStatus": "Hộp thư chưa khả dụng",
+      "organizationContextTag": "DIV",
+      "actions": []
+    },
+    {
+      "route": "/m01-publication-review",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "shellClass": "mg-shell",
+      "canvasToken": "#F3F1E8",
+      "shellBackground": "rgb(243, 241, 232)",
+      "accentToken": "#3D6848",
+      "dashboardTitle": "Duyệt giáo án công khai",
+      "inboxStatus": "Hộp thư chưa khả dụng",
+      "organizationContextTag": "DIV",
+      "actions": []
+    }
+  ]
+}

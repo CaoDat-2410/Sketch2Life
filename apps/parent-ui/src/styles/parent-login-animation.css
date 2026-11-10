@@ -65,13 +65,15 @@
 }
 
 .login-scene__logo {
-  top: clamp(4.5rem, 11.5vh, 7.2rem);
+  top: clamp(2.5rem, 7vh, 4.5rem);
   left: 50%;
   z-index: 2;
-  width: min(79vw, 21rem);
+  width: min(38vw, 10rem);
+  aspect-ratio: 1;
+  object-fit: contain;
   transform: translateX(-50%) translateY(-14px) scale(0.8);
   transform-origin: center;
-  filter: hue-rotate(-16deg) saturate(0.8) drop-shadow(0 8px 14px rgba(29, 78, 216, 0.12));
+  filter: drop-shadow(0 8px 14px rgb(31 45 230 / 14%));
 }
 
 .login-scene__pencil {
@@ -113,7 +115,7 @@
   border: 1px solid rgba(213, 227, 247, 0.95);
   border-radius: 22px;
   background: rgba(255, 255, 255, 0.91);
-  box-shadow: 0 14px 34px rgba(30, 64, 175, 0.16);
+  box-shadow: 0 14px 34px rgba(31, 45, 230, 0.16);
   -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
 }
@@ -128,8 +130,9 @@
 }
 
 .login-page[data-screen="login"] .login-scene__logo {
-  top: clamp(3.8rem, 8vh, 4.8rem);
-  width: min(72vw, 19rem);
+  top: clamp(2.8rem, 6vh, 3.8rem);
+  width: min(36vw, 9rem);
+  aspect-ratio: 1;
   transition: top 420ms ease, width 420ms ease;
 }
 
@@ -337,7 +340,7 @@
   place-items: center;
   border: 1px solid rgba(49, 94, 251, 0.12);
   border-radius: 23px;
-  background: linear-gradient(145deg, #ffffff 6%, #edf2ff 96%);
+  background: linear-gradient(145deg, #ffffff 6%, #E8EAFF 96%);
   box-shadow: 0 11px 22px rgba(49, 94, 251, 0.17), inset 0 1px 0 rgba(255, 255, 255, 0.92);
   color: var(--primary-fg);
   transform: rotate(-5deg);
@@ -468,32 +471,35 @@
 }
 [data-theme="dark"] .login-feedback.is-unavailable {
   border-color: rgba(124, 184, 255, 0.28);
-  background: rgba(37, 99, 235, 0.16);
+  background: rgba(31, 45, 230, 0.16);
   color: var(--ink);
 }
 
 @media (max-height: 650px) {
   .login-page { padding: 10px 12px max(10px, env(safe-area-inset-bottom)); }
-  .login-scene__logo { top: 4rem; }
-  .login-scene__pencil { height: min(47svh, 92vw); }
-  .login-panel { gap: 8px; padding: 12px; }
-  .login-form { gap: 8px; }
-  .login-page[data-screen="login"] .login-scene__logo { top: 3.4rem; }
-  .login-page[data-screen="login"] .login-scene__pencil { top: 25%; height: min(20svh, 54vw); }
-  .recovery-card { padding: 19px 17px 17px; }
-  .recovery-art { height: 94px; margin-bottom: 5px; transform: scale(0.88); }
-  .recovery-heading { gap: 6px; margin-bottom: 17px; }
-  .recovery-heading .h1 { font-size: 24px; }
-  .recovery-form { gap: 11px; }
-  .recovery-footnote { margin-top: 13px; }
+  .login-scene__logo {
+  top: clamp(2.5rem, 7vh, 4.5rem);
+  left: 50%;
+  z-index: 2;
+  width: min(38vw, 10rem);
+  aspect-ratio: 1;
+  object-fit: contain;
+  transform: translateX(-50%) translateY(-14px) scale(0.8);
+  transform-origin: center;
+  filter: drop-shadow(0 8px 14px rgb(31 45 230 / 14%));
 }
 
 @media (max-width: 22rem) {
-  .login-scene__logo { top: 4rem; width: min(79vw, 21rem); }
-  .login-scene__pencil { height: min(47svh, 92vw); }
-  .login-panel { padding: 11px; }
-  .recovery-card { padding: 18px 15px 16px; border-radius: 23px; }
-  .recovery-heading .h1 { font-size: 23px; }
+  .login-scene__logo {
+  top: clamp(2.5rem, 7vh, 4.5rem);
+  left: 50%;
+  z-index: 2;
+  width: min(38vw, 10rem);
+  aspect-ratio: 1;
+  object-fit: contain;
+  transform: translateX(-50%) translateY(-14px) scale(0.8);
+  transform-origin: center;
+  filter: drop-shadow(0 8px 14px rgb(31 45 230 / 14%));
 }
 
 @media (prefers-reduced-motion: reduce) {

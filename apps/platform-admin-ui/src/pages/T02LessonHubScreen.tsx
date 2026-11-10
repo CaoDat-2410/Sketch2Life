@@ -1204,7 +1204,7 @@ export function T03DocumentImportReviewPage() {
             }}
           >
             <div className="tw-row" style={{ justifyContent: "center", gap: 10 }}>
-              <Icon name="upload" size={24} color="#2563EB" />
+              <Icon name="upload" size={24} color="#1F2DE6" />
               <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700 }}>Kéo thả tệp giáo án vào đây</h2>
             </div>
             <p className="tw-sub" style={{ fontSize: 13.5 }}>

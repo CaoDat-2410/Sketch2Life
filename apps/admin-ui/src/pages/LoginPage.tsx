@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react'
 import loginBg from '../assets/login-bg.png'
-import loginLogoIcon from '../assets/login-logo-icon.png'
+import loginLogoIcon from '../../../shared/assets/sketch2life-brand-art-20261110.jpg'
 import { authService } from '../services/authService'
 
 export function LoginPage() {
@@ -28,7 +28,7 @@ export function LoginPage() {
   }
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-[#F8FCFE] select-none">
+    <div className="relative w-screen h-screen overflow-hidden bg-[#EEF0F3] select-none">
       {/* Full background illustration matching A00-dang-nhap.png */}
       <img
         src={loginBg}
@@ -36,20 +36,11 @@ export function LoginPage() {
         className="absolute inset-0 w-full h-full object-cover object-left-bottom pointer-events-none"
       />
 
-      {/* Left brand header: Sketch2Life + centered "Cổng quản trị" badge */}
+      {/* User-supplied Sketch2Life artwork and the existing Admin portal label. */}
       <div className="absolute top-0 left-0 w-[46%] pt-10 lg:pt-12 flex flex-col items-center justify-center z-10 pointer-events-none">
-        <div className="flex items-center justify-center gap-3">
-          <img
-            src={loginLogoIcon}
-            alt="Sketch2Life Icon"
-            className="w-12 h-12 object-contain shrink-0"
-          />
-          <span className="text-[38px] font-extrabold tracking-tight leading-none text-[#0B2240]">
-            Sketch<span className="text-[#1565F9]">2</span>Life
-          </span>
-        </div>
+        <img src={loginLogoIcon} alt="Vẽ cùng Heo 3D — Sketch2Life" className="h-[116px] w-[116px] object-contain shrink-0 rounded-2xl shadow-sm" />
         <div className="mt-3 flex justify-center w-full">
-          <span className="inline-flex items-center justify-center bg-[#C2E7FF] text-[#1565F9] text-[15px] font-bold px-6 py-1.5 rounded-full whitespace-nowrap">
+          <span className="inline-flex items-center justify-center bg-[#DDE0FF] text-[#1F2DE6] text-[15px] font-bold px-6 py-1.5 rounded-full whitespace-nowrap">
             Cổng quản trị
           </span>
         </div>
@@ -57,11 +48,11 @@ export function LoginPage() {
 
       {/* Right login card positioned to match A00-dang-nhap.png */}
       <div className="relative z-10 w-full h-full flex items-center justify-end pr-[5.8%] lg:pr-[6.2%]">
-        <div className="w-[584px] max-w-[90vw] bg-white rounded-[24px] shadow-[0_12px_40px_rgba(15,41,66,0.06)] border border-slate-100/80 px-10 py-10 flex flex-col justify-between min-h-[650px]">
+        <div className="w-[584px] max-w-[90vw] bg-white rounded-[24px] shadow-[0_12px_40px_rgba(11,12,14,0.06)] border border-slate-100/80 px-10 py-10 flex flex-col justify-between min-h-[650px]">
           <div className="my-auto">
             {/* Heading */}
             <div className="text-center mb-9">
-              <h1 className="text-[34px] font-extrabold text-[#0F1F38] tracking-tight">
+              <h1 className="text-[34px] font-extrabold text-[#0B0C0E] tracking-tight">
                 Đăng nhập quản trị
               </h1>
               <p className="text-[16px] text-slate-500 mt-2.5 font-medium">
@@ -124,7 +115,7 @@ export function LoginPage() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full bg-[#1565F9] hover:bg-blue-700 disabled:opacity-60 text-white font-bold py-4 rounded-2xl text-[17px] transition-colors shadow-[0_4px_14px_rgba(21,101,249,0.28)] cursor-pointer"
+                  className="w-full bg-[#1F2DE6] hover:bg-blue-700 disabled:opacity-60 text-white font-bold py-4 rounded-2xl text-[17px] transition-colors shadow-[0_4px_14px_rgba(31, 45, 230,0.28)] cursor-pointer"
                 >
                   {submitting ? 'Đang xác minh…' : 'Đăng nhập'}
                 </button>
@@ -134,7 +125,7 @@ export function LoginPage() {
               <div className="text-right pt-0.5">
                 <button
                   type="button"
-                  className="text-[15px] text-[#1565F9] hover:underline font-semibold"
+                  className="text-[15px] text-[#1F2DE6] hover:underline font-semibold"
                 >
                   Quên mật khẩu?
                 </button>

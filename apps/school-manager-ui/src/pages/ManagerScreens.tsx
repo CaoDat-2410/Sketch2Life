@@ -23,7 +23,7 @@ type Toast = (text: string, kind?: "ok" | "info" | "warn" | "err") => void;
 const PENDING = [
   { id: "rev-1", title: "Vòng đời bướm (Bản 3)", teacher: "Cô Thảo", initials: "CT", timeAgo: "2 giờ trước", emoji: "🦋", bg: "#FEF3C7" },
   { id: "rev-2", title: "Cây xanh quanh em (Bản 1)", teacher: "Cô Lan", initials: "CL", timeAgo: "1 ngày trước", emoji: "🌱", bg: "#D1FAE5" },
-  { id: "rev-3", title: "Đại dương kỳ thú (Bản 2)", teacher: "Cô Mai", initials: "CM", timeAgo: "2 ngày trước", emoji: "🐬", bg: "#DBEAFE" },
+  { id: "rev-3", title: "Đại dương kỳ thú (Bản 2)", teacher: "Cô Mai", initials: "CM", timeAgo: "2 ngày trước", emoji: "🐬", bg: "#E8EAFF" },
 ];
 
 const CRITERIA = [
@@ -292,7 +292,7 @@ export function M01PublicationReviewPage({ showToast }: { showToast: Toast }) {
               <div className="mg-grow">
                 <h2 className="mg-card-title" style={{ fontSize: 20 }}>{lesson.title}</h2>
                 <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 6, flexWrap: "wrap" }}>
-                  <span className="mg-avatar" style={{ width: 28, height: 28, background: "#DBEAFE", color: "#1D4ED8", fontSize: 11 }}>{lesson.initials}</span>
+                  <span className="mg-avatar" style={{ width: 28, height: 28, background: "#E8EAFF", color: "#1B25C5", fontSize: 11 }}>{lesson.initials}</span>
                   <span className="mg-item-sub" style={{ fontWeight: 700 }}>{lesson.teacher}</span>
                   <span className="mg-pill warn"><MgIcon name="clock" size={13} /> Chờ duyệt</span>
                 </div>
@@ -401,7 +401,7 @@ export function M01PublicationReviewPage({ showToast }: { showToast: Toast }) {
    M02 — Quản lý trường
    ══════════════════════════════════════════════════════════════════ */
 const TEACHERS = [
-  { id: "t1", name: "Cô Thảo", role: "Giáo viên", initials: "CT", bg: "#DBEAFE", fg: "#1D4ED8" },
+  { id: "t1", name: "Cô Thảo", role: "Giáo viên", initials: "CT", bg: "#E8EAFF", fg: "#1B25C5" },
   { id: "t2", name: "Cô Mai", role: "Giáo viên", initials: "CM", bg: "#FEF3C7", fg: "#92400E" },
 ];
 
@@ -492,7 +492,7 @@ function ManagerApiOrganizationPage() {
         <div className="mg-card-head"><h2 className="mg-card-title"><span className="mg-ico-chip sm mg-tone-mint"><MgIcon name="calendar" size={18} /></span>Lớp được API trả về</h2></div>
         <div className="mg-table-wrap"><table className="mg-table"><thead><tr><th>Tên lớp</th><th>class_id</th><th>Trạng thái</th><th>Roster</th></tr></thead><tbody>
           {classes.map((item) => <tr key={item.class_id}><td><div className="mg-cell"><span className="mg-ico-chip sm mg-tone-blue"><MgIcon name="school" size={16} /></span>{item.display_name}</div></td><td><code>{item.class_id}</code></td><td><span className="mg-pill ok">{item.state}</span></td><td><button type="button" className="mg-link" aria-expanded={rosterClassId === item.class_id} onClick={() => setRosterClassId((current) => current === item.class_id ? "" : item.class_id)}>{rosterClassId === item.class_id ? "Đóng roster" : "Xem roster"}</button></td></tr>)}
-          {!loading && classes.length === 0 && <tr><td colSpan={4} style={{ textAlign: "center", color: "#475569" }}>Backend chưa trả về lớp nào trong phạm vi tài khoản.</td></tr>}
+          {!loading && classes.length === 0 && <tr><td colSpan={4} style={{ textAlign: "center", color: "#5D6470" }}>Backend chưa trả về lớp nào trong phạm vi tài khoản.</td></tr>}
         </tbody></table></div>
       </section>
       {rosterClassId && <section className="mg-card" aria-labelledby="manager-roster-title">

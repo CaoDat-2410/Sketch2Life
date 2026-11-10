@@ -82,10 +82,10 @@ export function ProgressiveWhiteboardSvg({
       style={{ display: "block", background: "#FFFFFF" }}
     >
       {/* Subtle classroom composition guide lines */}
-      <line x1="320" y1="24" x2="320" y2="336" stroke="#E2E8F0" strokeWidth="1.5" strokeDasharray="6 6" />
-      <line x1="48" y1="180" x2="592" y2="180" stroke="#E2E8F0" strokeWidth="1.5" strokeDasharray="6 6" />
+      <line x1="320" y1="24" x2="320" y2="336" stroke="#CBD0D8" strokeWidth="1.5" strokeDasharray="6 6" />
+      <line x1="48" y1="180" x2="592" y2="180" stroke="#CBD0D8" strokeWidth="1.5" strokeDasharray="6 6" />
 
-      <g fill="none" stroke="#0F172A" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round">
+      <g fill="none" stroke="#0B0C0E" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round">
         {theme === "butterfly" && (
           <>
             <circle cx="320" cy="106" r="24" />
@@ -107,8 +107,8 @@ export function ProgressiveWhiteboardSvg({
             )}
             {stepNum >= 4 && (
               <>
-                <circle cx="238" cy="154" r="18" stroke="#2563EB" />
-                <circle cx="402" cy="154" r="18" stroke="#2563EB" />
+                <circle cx="238" cy="154" r="18" stroke="#1F2DE6" />
+                <circle cx="402" cy="154" r="18" stroke="#1F2DE6" />
                 <circle cx="256" cy="244" r="11" stroke="#D97706" />
                 <circle cx="384" cy="244" r="11" stroke="#D97706" />
               </>
@@ -130,7 +130,7 @@ export function ProgressiveWhiteboardSvg({
             )}
             {stepNum >= 3 && (
               <>
-                <circle cx="396" cy="176" r="3.5" fill="#0F172A" />
+                <circle cx="396" cy="176" r="3.5" fill="#0B0C0E" />
                 <path d="M388 192 Q 398 200 408 190" strokeWidth="4" />
                 <path d="M380 150 C 374 128, 360 126, 356 134" strokeWidth="4.5" />
                 <path d="M396 150 C 406 128, 420 128, 424 136" strokeWidth="4.5" />
@@ -182,19 +182,19 @@ export function ProgressiveWhiteboardSvg({
             {stepNum >= 2 && (
               <>
                 <path d="M404 136 C 384 136, 382 108, 404 104 C 414 82, 454 82, 464 102 C 488 104, 486 136, 462 136 Z" />
-                <circle cx="256" cy="118" r="3" fill="#0F172A" />
-                <circle cx="304" cy="118" r="3" fill="#0F172A" />
+                <circle cx="256" cy="118" r="3" fill="#0B0C0E" />
+                <circle cx="304" cy="118" r="3" fill="#0B0C0E" />
                 <path d="M268 132 Q 280 142 292 132" strokeWidth="4" />
               </>
             )}
             {stepNum >= 3 && (
               <>
-                <line x1="214" y1="184" x2="198" y2="218" stroke="#2563EB" />
-                <line x1="272" y1="188" x2="256" y2="224" stroke="#2563EB" />
-                <line x1="332" y1="184" x2="316" y2="218" stroke="#2563EB" />
-                <line x1="418" y1="164" x2="402" y2="198" stroke="#2563EB" />
-                <line x1="242" y1="240" x2="228" y2="270" stroke="#2563EB" />
-                <line x1="358" y1="236" x2="344" y2="266" stroke="#2563EB" />
+                <line x1="214" y1="184" x2="198" y2="218" stroke="#1F2DE6" />
+                <line x1="272" y1="188" x2="256" y2="224" stroke="#1F2DE6" />
+                <line x1="332" y1="184" x2="316" y2="218" stroke="#1F2DE6" />
+                <line x1="418" y1="164" x2="402" y2="198" stroke="#1F2DE6" />
+                <line x1="242" y1="240" x2="228" y2="270" stroke="#1F2DE6" />
+                <line x1="358" y1="236" x2="344" y2="266" stroke="#1F2DE6" />
               </>
             )}
             {stepNum >= 4 && (
@@ -220,7 +220,7 @@ export function ProgressiveWhiteboardSvg({
             )}
             {stepNum >= 3 && (
               <>
-                <circle cx="242" cy="168" r="5" fill="#0F172A" />
+                <circle cx="242" cy="168" r="5" fill="#0B0C0E" />
                 <path d="M214 194 Q 228 204 240 194" strokeWidth="4" />
                 <path d="M272 146 Q 288 180 272 214" />
                 <path d="M318 158 Q 332 172 318 186" strokeWidth="4" />
@@ -229,8 +229,8 @@ export function ProgressiveWhiteboardSvg({
             )}
             {stepNum >= 4 && (
               <>
-                <circle cx="158" cy="142" r="9" stroke="#2563EB" strokeWidth="4" />
-                <circle cx="142" cy="106" r="13" stroke="#2563EB" strokeWidth="4" />
+                <circle cx="158" cy="142" r="9" stroke="#1F2DE6" strokeWidth="4" />
+                <circle cx="142" cy="106" r="13" stroke="#1F2DE6" strokeWidth="4" />
                 <path d="M126 320 C 114 282, 142 252, 128 214" stroke="#059669" />
                 <path d="M518 320 C 504 278, 534 248, 518 208" stroke="#059669" />
               </>

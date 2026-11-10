@@ -61,7 +61,7 @@ export function DataRequestsPage() {
         <div className={`${selectedRow ? 'col-span-8' : 'col-span-12'} flex flex-col space-y-4 min-w-0`}>
           {/* Header */}
           <div>
-            <h1 className="text-[25px] font-extrabold text-[#0F1F38] tracking-tight leading-tight">
+            <h1 className="text-[25px] font-extrabold text-[#0B0C0E] tracking-tight leading-tight">
               Consent &amp; yêu cầu dữ liệu
             </h1>
             <p className="text-[13.5px] text-slate-500 mt-1 font-medium">
@@ -86,7 +86,7 @@ export function DataRequestsPage() {
                     }}
                     className={`px-4 py-2 text-[13.5px] rounded-t-xl border-b-2 transition -mb-px cursor-pointer whitespace-nowrap shrink-0 ${
                       isActive
-                        ? 'bg-white border-[#1565F9] text-[#1565F9] font-bold shadow-[0_-1px_3px_rgba(15,23,42,0.03)]'
+                        ? 'bg-white border-[#1F2DE6] text-[#1F2DE6] font-bold shadow-[0_-1px_3px_rgba(15,23,42,0.03)]'
                         : 'bg-slate-200/60 border-transparent text-slate-600 font-medium hover:text-slate-900'
                     }`}
                   >
@@ -97,11 +97,11 @@ export function DataRequestsPage() {
             </div>
 
             <div className="flex items-center gap-2 pb-1.5 shrink-0">
-              <button className="flex items-center gap-1.5 bg-[#1565F9] hover:bg-blue-700 text-white text-[13px] font-semibold px-3.5 py-2 rounded-xl shadow-sm transition cursor-pointer whitespace-nowrap shrink-0">
+              <button className="flex items-center gap-1.5 bg-[#1F2DE6] hover:bg-blue-700 text-white text-[13px] font-semibold px-3.5 py-2 rounded-xl shadow-sm transition cursor-pointer whitespace-nowrap shrink-0">
                 <FilePlus size={15} className="shrink-0" />
                 <span>Ghi nhận consent</span>
               </button>
-              <button className="flex items-center gap-1.5 bg-[#EAF2FF] border border-blue-300/90 hover:bg-blue-100 text-[#1565F9] text-[13px] font-semibold px-3.5 py-2 rounded-xl transition cursor-pointer whitespace-nowrap shrink-0">
+              <button className="flex items-center gap-1.5 bg-[#E8EAFF] border border-blue-300/90 hover:bg-blue-100 text-[#1F2DE6] text-[13px] font-semibold px-3.5 py-2 rounded-xl transition cursor-pointer whitespace-nowrap shrink-0">
                 <Send size={14} className="shrink-0" />
                 <span>Tiếp nhận yêu cầu</span>
               </button>
@@ -143,7 +143,7 @@ export function DataRequestsPage() {
             <div className="border border-slate-100 rounded-xl overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-[#F4F7FB] border-b border-slate-100">
+                  <tr className="bg-[#EEF0F3] border-b border-slate-100">
                     {[
                       'Mã học sinh',
                       'Lớp học',
@@ -224,7 +224,7 @@ export function DataRequestsPage() {
                 <button className="w-8 h-8 border border-slate-200 rounded-lg flex items-center justify-center hover:bg-slate-50 text-slate-500">
                   <ChevronLeft size={14} />
                 </button>
-                <button className="w-8 h-8 border border-[#3B82F6] bg-[#EFF6FF] text-[#1565F9] rounded-lg flex items-center justify-center text-[13px] font-bold">
+                <button className="w-8 h-8 border border-[#3B82F6] bg-[#E8EAFF] text-[#1F2DE6] rounded-lg flex items-center justify-center text-[13px] font-bold">
                   1
                 </button>
                 <button className="w-8 h-8 border border-slate-200 rounded-lg flex items-center justify-center hover:bg-slate-50 text-slate-500">
@@ -257,7 +257,7 @@ export function DataRequestsPage() {
 
               {/* Student header card */}
               <div className="border border-slate-200/70 rounded-2xl p-2.5 px-3 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-[#E6F0FF] flex items-center justify-center text-[#1565F9] shrink-0">
+                <div className="w-10 h-10 rounded-2xl bg-[#E8EAFF] flex items-center justify-center text-[#1F2DE6] shrink-0">
                   <GraduationCap size={20} />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -358,11 +358,11 @@ export function DataRequestsPage() {
             {/* Bottom actions */}
             <div className="px-4 pb-3 pt-1">
               <div className="flex items-center gap-1.5">
-                <button className="inline-flex items-center justify-center gap-1 bg-[#1565F9] hover:bg-blue-700 text-white text-[11px] font-semibold py-2 px-2.5 rounded-xl transition shadow-sm cursor-pointer whitespace-nowrap shrink-0">
+                <button className="inline-flex items-center justify-center gap-1 bg-[#1F2DE6] hover:bg-blue-700 text-white text-[11px] font-semibold py-2 px-2.5 rounded-xl transition shadow-sm cursor-pointer whitespace-nowrap shrink-0">
                   <FileText size={12} className="shrink-0" />
                   <span>Yêu cầu bổ sung</span>
                 </button>
-                <button className="inline-flex items-center justify-center gap-1 bg-[#EAF2FF] border border-blue-200 hover:bg-blue-100 text-[#1565F9] text-[11px] font-semibold py-2 px-2.5 rounded-xl transition cursor-pointer whitespace-nowrap shrink-0">
+                <button className="inline-flex items-center justify-center gap-1 bg-[#E8EAFF] border border-blue-200 hover:bg-blue-100 text-[#1F2DE6] text-[11px] font-semibold py-2 px-2.5 rounded-xl transition cursor-pointer whitespace-nowrap shrink-0">
                   <Clock size={12} className="shrink-0" />
                   <span>Xem lịch sử</span>
                 </button>

@@ -1,0 +1,209 @@
+{
+  "note": "Manual loopback dashboard review; per-origin preview storage was restored after screenshots and logout button pointer interactions.",
+  "captures": [
+    {
+      "app": "Teacher",
+      "file": "teacher-dashboard-desktop.png",
+      "found": true,
+      "route": "/t01-lesson-workspace",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1430,
+      "horizontalOverflow": false,
+      "text": "Đăng xuất",
+      "accessibleName": "Đăng xuất khỏi cổng Giáo viên",
+      "title": "Đăng xuất khỏi cổng Giáo viên",
+      "visible": true,
+      "inViewport": true,
+      "rect": {
+        "x": 14,
+        "y": 834,
+        "width": 219,
+        "height": 46
+      },
+      "focusable": true,
+      "viteError": false
+    },
+    {
+      "app": "Teacher",
+      "file": "teacher-dashboard-narrow.png",
+      "found": true,
+      "route": "/t01-lesson-workspace",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "text": "",
+      "accessibleName": "Đăng xuất khỏi cổng Giáo viên",
+      "title": "Đăng xuất khỏi cổng Giáo viên",
+      "visible": true,
+      "inViewport": true,
+      "rect": {
+        "x": 16,
+        "y": 780,
+        "width": 48,
+        "height": 48
+      },
+      "focusable": true,
+      "viteError": false
+    },
+    {
+      "app": "School Manager",
+      "file": "school-manager-dashboard-desktop.png",
+      "found": true,
+      "route": "/m02-organization-management",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "text": "Đăng xuất",
+      "accessibleName": "Đăng xuất",
+      "title": "Đăng xuất khỏi cổng Quản lý trường",
+      "visible": true,
+      "inViewport": true,
+      "rect": {
+        "x": 16,
+        "y": 840,
+        "width": 219,
+        "height": 44
+      },
+      "focusable": true,
+      "viteError": false
+    },
+    {
+      "app": "School Manager",
+      "file": "school-manager-dashboard-narrow.png",
+      "found": true,
+      "route": "/m02-organization-management",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "text": "Đăng xuất",
+      "accessibleName": "Đăng xuất",
+      "title": "Đăng xuất khỏi cổng Quản lý trường",
+      "visible": true,
+      "inViewport": true,
+      "rect": {
+        "x": 259,
+        "y": 140,
+        "width": 119,
+        "height": 54
+      },
+      "focusable": true,
+      "viteError": false
+    },
+    {
+      "app": "Platform Admin",
+      "file": "platform-admin-dashboard-desktop.png",
+      "found": true,
+      "route": "/a02-platform-operations",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "text": "Đăng xuất",
+      "accessibleName": "Đăng xuất khỏi cổng Quản trị nền tảng",
+      "title": "Đăng xuất khỏi cổng Quản trị nền tảng",
+      "visible": true,
+      "inViewport": true,
+      "rect": {
+        "x": 14,
+        "y": 836,
+        "width": 219,
+        "height": 44
+      },
+      "focusable": true,
+      "viteError": false
+    },
+    {
+      "app": "Platform Admin",
+      "file": "platform-admin-dashboard-narrow.png",
+      "found": true,
+      "route": "/a02-platform-operations",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "text": "",
+      "accessibleName": "Đăng xuất khỏi cổng Quản trị nền tảng",
+      "title": "Đăng xuất khỏi cổng Quản trị nền tảng",
+      "visible": true,
+      "inViewport": true,
+      "rect": {
+        "x": 16,
+        "y": 780,
+        "width": 48,
+        "height": 48
+      },
+      "focusable": true,
+      "viteError": false
+    }
+  ],
+  "logoutResults": [
+    {
+      "app": "Teacher",
+      "focus": {
+        "found": true,
+        "focused": true,
+        "outlineWidth": "3px",
+        "outlineStyle": "solid",
+        "outlineColor": "rgb(31, 45, 230)",
+        "accessibleName": "Đăng xuất khỏi cổng Giáo viên"
+      },
+      "activation": "pointer",
+      "logout": {
+        "route": "/login",
+        "roleCleared": true,
+        "authCleared": true
+      }
+    },
+    {
+      "app": "School Manager",
+      "focus": {
+        "found": true,
+        "focused": true,
+        "outlineWidth": "3px",
+        "outlineStyle": "solid",
+        "outlineColor": "rgb(31, 45, 230)",
+        "accessibleName": "Đăng xuất"
+      },
+      "activation": "pointer",
+      "logout": {
+        "route": "/login",
+        "roleCleared": true,
+        "authCleared": true
+      }
+    },
+    {
+      "app": "Platform Admin",
+      "focus": {
+        "found": true,
+        "focused": true,
+        "outlineWidth": "3px",
+        "outlineStyle": "solid",
+        "outlineColor": "rgb(31, 45, 230)",
+        "accessibleName": "Đăng xuất khỏi cổng Quản trị nền tảng"
+      },
+      "activation": "pointer",
+      "logout": {
+        "route": "/login",
+        "roleCleared": true,
+        "authCleared": true
+      }
+    }
+  ],
+  "runtimeErrors": []
+}

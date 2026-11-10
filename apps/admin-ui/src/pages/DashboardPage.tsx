@@ -45,7 +45,7 @@ export function DashboardPage() {
       {/* Page header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-[24px] font-extrabold text-[#0F1F38] tracking-tight leading-tight">
+          <h1 className="text-[24px] font-extrabold text-[#0B0C0E] tracking-tight leading-tight">
             Tổng quan
           </h1>
           <p className="text-[13px] text-slate-500 mt-0.5 font-medium">
@@ -59,7 +59,7 @@ export function DashboardPage() {
               <span>Hôm nay</span>
               <ChevronDown size={13} className="text-slate-400 ml-1" />
             </button>
-            <button className="flex items-center gap-2 bg-[#1565F9] hover:bg-blue-700 text-white text-[12.5px] font-semibold px-3.5 py-1.5 rounded-xl transition shadow-sm cursor-pointer whitespace-nowrap">
+            <button className="flex items-center gap-2 bg-[#1F2DE6] hover:bg-blue-700 text-white text-[12.5px] font-semibold px-3.5 py-1.5 rounded-xl transition shadow-sm cursor-pointer whitespace-nowrap">
               <RefreshCw size={13.5} />
               <span>Làm mới</span>
             </button>
@@ -83,8 +83,8 @@ export function DashboardPage() {
 
         {/* Card 2 */}
         <div className="bg-white rounded-2xl border border-slate-200/70 p-3.5 px-4 shadow-[0_1px_3px_rgba(15,23,42,0.02)] flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-2xl bg-[#E6F0FF] flex items-center justify-center shrink-0">
-            <div className="w-6 h-6 rounded-full bg-[#1565F9] text-white flex items-center justify-center">
+          <div className="w-11 h-11 rounded-2xl bg-[#E8EAFF] flex items-center justify-center shrink-0">
+            <div className="w-6 h-6 rounded-full bg-[#1F2DE6] text-white flex items-center justify-center">
               <Play size={11.5} fill="currentColor" className="ml-0.5" />
             </div>
           </div>
@@ -124,7 +124,7 @@ export function DashboardPage() {
           <div>
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <div className="w-6.5 h-6.5 bg-[#E6F0FF] text-[#1565F9] rounded-lg flex items-center justify-center">
+                <div className="w-6.5 h-6.5 bg-[#E8EAFF] text-[#1F2DE6] rounded-lg flex items-center justify-center">
                   <Layout size={14} strokeWidth={2.2} />
                 </div>
                 <h2 className="text-[15px] font-bold text-slate-900">Phiên hiện hành</h2>
@@ -136,7 +136,7 @@ export function DashboardPage() {
             </div>
 
             <div className="flex items-center gap-3.5">
-              <div className="w-14 h-14 bg-[#EBF3FF] rounded-2xl flex items-center justify-center flex-shrink-0 text-[#1565F9]">
+              <div className="w-14 h-14 bg-[#EBF3FF] rounded-2xl flex items-center justify-center flex-shrink-0 text-[#1F2DE6]">
                 <BookOpen size={26} strokeWidth={1.9} />
               </div>
               <div className="space-y-1">
@@ -162,7 +162,7 @@ export function DashboardPage() {
           <div className="pt-2.5 mt-3 border-t border-slate-100 flex justify-end">
             <button
               onClick={() => navigate('/monitoring')}
-              className="flex items-center gap-1.5 bg-[#1565F9] hover:bg-blue-700 text-white text-[12.5px] font-semibold px-3.5 py-2 rounded-xl transition cursor-pointer shadow-sm"
+              className="flex items-center gap-1.5 bg-[#1F2DE6] hover:bg-blue-700 text-white text-[12.5px] font-semibold px-3.5 py-2 rounded-xl transition cursor-pointer shadow-sm"
             >
               <span>Xem trạng thái</span>
               <ChevronRight size={14} />
@@ -173,7 +173,7 @@ export function DashboardPage() {
         {/* Sức khỏe hệ thống */}
         <div className="col-span-5 bg-white rounded-2xl border border-slate-200/70 p-4 shadow-[0_1px_3px_rgba(15,23,42,0.02)]">
           <div className="flex items-center gap-2 mb-2">
-            <div className="w-6.5 h-6.5 bg-[#E6F0FF] text-[#1565F9] rounded-lg flex items-center justify-center">
+            <div className="w-6.5 h-6.5 bg-[#E8EAFF] text-[#1F2DE6] rounded-lg flex items-center justify-center">
               <Settings size={14} strokeWidth={2.2} />
             </div>
             <h2 className="text-[15px] font-bold text-slate-900">Sức khỏe hệ thống</h2>
@@ -195,7 +195,7 @@ export function DashboardPage() {
 
             <div className="flex items-center justify-between py-2">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-[#E6F0FF] text-[#1565F9] flex items-center justify-center">
+                <div className="w-8 h-8 rounded-xl bg-[#E8EAFF] text-[#1F2DE6] flex items-center justify-center">
                   <Database size={16} />
                 </div>
                 <span className="text-[13px] font-bold text-slate-800">Lưu checkpoint</span>
@@ -225,7 +225,7 @@ export function DashboardPage() {
       {/* Việc cần xử lý */}
       <div className="bg-white rounded-2xl border border-slate-200/70 p-4 shadow-[0_1px_3px_rgba(15,23,42,0.02)]">
         <div className="flex items-center gap-2 mb-2.5">
-          <div className="w-6.5 h-6.5 bg-[#E6F0FF] text-[#1565F9] rounded-lg flex items-center justify-center">
+          <div className="w-6.5 h-6.5 bg-[#E8EAFF] text-[#1F2DE6] rounded-lg flex items-center justify-center">
             <List size={14} strokeWidth={2.2} />
           </div>
           <h2 className="text-[15px] font-bold text-slate-900">Việc cần xử lý</h2>
@@ -234,7 +234,7 @@ export function DashboardPage() {
         <div className="border border-slate-100 rounded-xl overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-[#F4F7FB] border-b border-slate-100">
+              <tr className="bg-[#EEF0F3] border-b border-slate-100">
                 <th className="text-left px-3.5 py-2 text-[12px] font-semibold text-slate-600">
                   Mô tả
                 </th>
@@ -268,7 +268,7 @@ export function DashboardPage() {
                   <td className="px-3.5 py-2.5 whitespace-nowrap">
                     <button
                       onClick={() => navigate('/monitoring')}
-                      className="inline-flex items-center justify-center w-28 bg-[#EAF2FF] hover:bg-blue-100 text-[#1565F9] border border-blue-200/80 text-[12.5px] font-semibold py-1.5 rounded-xl transition cursor-pointer whitespace-nowrap"
+                      className="inline-flex items-center justify-center w-28 bg-[#E8EAFF] hover:bg-blue-100 text-[#1F2DE6] border border-blue-200/80 text-[12.5px] font-semibold py-1.5 rounded-xl transition cursor-pointer whitespace-nowrap"
                     >
                       {t.action}
                     </button>
@@ -283,9 +283,9 @@ export function DashboardPage() {
       {/* Bottom info banner + watermark */}
       <div className="flex items-center justify-between gap-4">
         {showBanner ? (
-          <div className="flex-1 flex items-center justify-between bg-[#EAF3FF] border border-blue-200/90 rounded-xl px-3.5 py-2 text-[12px] text-[#1565F9] font-semibold">
+          <div className="flex-1 flex items-center justify-between bg-[#E8EAFF] border border-blue-200/90 rounded-xl px-3.5 py-2 text-[12px] text-[#1F2DE6] font-semibold">
             <div className="flex items-center gap-2">
-              <span className="w-4.5 h-4.5 rounded-full bg-[#1565F9] text-white flex items-center justify-center text-[10.5px] font-bold shrink-0">
+              <span className="w-4.5 h-4.5 rounded-full bg-[#1F2DE6] text-white flex items-center justify-center text-[10.5px] font-bold shrink-0">
                 i
               </span>
               <span>Phạm vi một trường • Dữ liệu tổng hợp theo quyền.</span>

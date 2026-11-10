@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import parentLoginBackground from "../../../../features/FEAT-036-ui-current-direction-alignment/assets/applied/parent-login-zip-splash/background.png?url";
-import parentLoginLogo from "../../../../features/FEAT-036-ui-current-direction-alignment/assets/applied/parent-login-zip-splash/logo.png?url";
+import parentLoginLogo from "../../../shared/assets/sketch2life-brand-art-20261110.jpg?url";
 import parentLoginPencil from "../../../../features/FEAT-036-ui-current-direction-alignment/assets/applied/parent-login-zip-splash/pencil.png?url";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { VideoJobMode, useParent } from "../context/ParentContext";
@@ -1487,7 +1487,7 @@ export function P08VideoAndActivitiesPage() {
             <button
               type="button"
               className="round-btn"
-              style={{ width: 64, height: 64, borderRadius: 32, marginTop: 8, background: "#ffffff", color: "#1d4ed8" }}
+              style={{ width: 64, height: 64, borderRadius: 32, marginTop: 8, background: "#ffffff", color: "#1B25C5" }}
               aria-label="Phát video"
               onClick={handlePlayToggle}
             >
@@ -1507,7 +1507,7 @@ export function P08VideoAndActivitiesPage() {
               minHeight: 44,
               minWidth: 44,
               padding: "6px 10px",
-              background: "#2563eb",
+              background: "#1F2DE6",
               color: "#ffffff",
               display: "inline-flex",
               alignItems: "center",
@@ -2681,7 +2681,7 @@ export function P12VideoQuotaPage() {
               cy="88"
               r={R}
               fill="none"
-              stroke={quotaRemaining === 0 ? "#ef4444" : "#2563eb"}
+              stroke={quotaRemaining === 0 ? "#ef4444" : "#1F2DE6"}
               strokeWidth="16"
               strokeLinecap="round"
               strokeDasharray={`${C * frac} ${C}`}

@@ -21,8 +21,8 @@ const INCIDENTS = [
     desc: 'Video chưa hoàn thành',
     scope: 'Phiên S-024',
     status: 'Đang xử lý',
-    statusColor: 'text-[#1565F9] bg-[#E8F1FF]',
-    dotColor: 'bg-[#1565F9]',
+    statusColor: 'text-[#1F2DE6] bg-[#E8EAFF]',
+    dotColor: 'bg-[#1F2DE6]',
     handler: 'QT Minh',
   },
   {
@@ -67,7 +67,7 @@ export function MonitoringPage() {
       {/* Full-width Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-[24px] font-extrabold text-[#0F1F38] tracking-tight leading-tight">
+          <h1 className="text-[24px] font-extrabold text-[#0B0C0E] tracking-tight leading-tight">
             Giám sát &amp; sự cố
           </h1>
           <p className="text-[13px] text-slate-500 mt-0.5 font-medium">
@@ -81,7 +81,7 @@ export function MonitoringPage() {
               <span>Hôm nay</span>
               <ChevronDown size={13} className="text-slate-400 ml-1" />
             </button>
-            <button className="flex items-center gap-2 bg-[#1565F9] hover:bg-blue-700 text-white text-[12.5px] font-semibold px-3.5 py-1.5 rounded-xl transition shadow-sm cursor-pointer whitespace-nowrap">
+            <button className="flex items-center gap-2 bg-[#1F2DE6] hover:bg-blue-700 text-white text-[12.5px] font-semibold px-3.5 py-1.5 rounded-xl transition shadow-sm cursor-pointer whitespace-nowrap">
               <RefreshCw size={13.5} />
               <span>Làm mới</span>
             </button>
@@ -172,7 +172,7 @@ export function MonitoringPage() {
           <div className="border border-slate-100 rounded-xl overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-[#F4F7FB] border-b border-slate-100">
+                <tr className="bg-[#EEF0F3] border-b border-slate-100">
                   {['Mã', 'Mô tả', 'Phạm vi', 'Trạng thái', 'Người xử lý'].map((h) => (
                     <th
                       key={h}
@@ -243,7 +243,7 @@ export function MonitoringPage() {
               </div>
 
               {/* Metadata box */}
-              <div className="bg-[#F8FAFC] border border-slate-100 rounded-xl p-2.5 px-3 space-y-1 text-[12px] mb-2.5">
+              <div className="bg-[#F6F7F9] border border-slate-100 rounded-xl p-2.5 px-3 space-y-1 text-[12px] mb-2.5">
                 <div className="flex items-center">
                   <span className="text-slate-500 w-32 shrink-0">Mã tương quan</span>
                   <span className="flex items-center gap-1.5 text-slate-800 font-medium">
@@ -263,8 +263,8 @@ export function MonitoringPage() {
                 </div>
                 <div className="flex items-center">
                   <span className="text-slate-500 w-32 shrink-0">Trạng thái</span>
-                  <span className="flex items-center gap-1.5 text-[#1565F9] font-semibold">
-                    <span className="w-2 h-2 rounded-full bg-[#1565F9]" />
+                  <span className="flex items-center gap-1.5 text-[#1F2DE6] font-semibold">
+                    <span className="w-2 h-2 rounded-full bg-[#1F2DE6]" />
                     {sel.status}
                   </span>
                 </div>
@@ -312,11 +312,11 @@ export function MonitoringPage() {
 
             {/* Action buttons */}
             <div className="flex gap-2.5 mt-2.5 pt-1">
-              <button className="flex-1 flex items-center justify-center gap-1.5 bg-[#1565F9] hover:bg-blue-700 text-white text-[12.5px] font-semibold py-2 rounded-xl transition shadow-sm cursor-pointer whitespace-nowrap">
+              <button className="flex-1 flex items-center justify-center gap-1.5 bg-[#1F2DE6] hover:bg-blue-700 text-white text-[12.5px] font-semibold py-2 rounded-xl transition shadow-sm cursor-pointer whitespace-nowrap">
                 <Users size={14} />
                 <span>Phân công</span>
               </button>
-              <button className="flex-1 flex items-center justify-center gap-1.5 border border-[#1565F9] bg-white text-[#1565F9] text-[12.5px] font-semibold py-2 rounded-xl hover:bg-blue-50 transition cursor-pointer whitespace-nowrap">
+              <button className="flex-1 flex items-center justify-center gap-1.5 border border-[#1F2DE6] bg-white text-[#1F2DE6] text-[12.5px] font-semibold py-2 rounded-xl hover:bg-blue-50 transition cursor-pointer whitespace-nowrap">
                 <BookOpen size={14} />
                 <span>Mở runbook</span>
               </button>
@@ -328,9 +328,9 @@ export function MonitoringPage() {
       {/* Bottom banner & watermark */}
       <div className="flex items-center justify-between gap-4">
         {showBanner ? (
-          <div className="flex-1 flex items-center justify-between bg-[#EAF3FF] border border-blue-200/90 rounded-xl px-3.5 py-2 text-[12px] text-[#1565F9] font-semibold">
+          <div className="flex-1 flex items-center justify-between bg-[#E8EAFF] border border-blue-200/90 rounded-xl px-3.5 py-2 text-[12px] text-[#1F2DE6] font-semibold">
             <div className="flex items-center gap-2">
-              <span className="w-4.5 h-4.5 rounded-full bg-[#1565F9] text-white flex items-center justify-center text-[10.5px] font-bold shrink-0">
+              <span className="w-4.5 h-4.5 rounded-full bg-[#1F2DE6] text-white flex items-center justify-center text-[10.5px] font-bold shrink-0">
                 i
               </span>
               <span>Chỉ hiển thị dữ liệu vận hành đã lược bỏ thông tin nhạy cảm.</span>

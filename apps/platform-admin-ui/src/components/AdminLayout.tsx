@@ -18,9 +18,11 @@ const SIDEBAR_ITEMS: { to: string; label: string; icon: MgIconName; matchPanel?:
 export function AdminLayout({
   children,
   toast,
+  onLogout,
 }: {
   children: React.ReactNode;
   toast: { kind: "ok" | "info" | "warn" | "err"; text: string } | null;
+  onLogout: () => void;
 }) {
   const location = useLocation();
   const currentPanel = new URLSearchParams(location.search).get("panel");
@@ -71,6 +73,16 @@ export function AdminLayout({
             <div className="mg-profile-sub">{previewMode ? "Dữ liệu xem thử" : "Role chưa xác minh từ BE"}</div>
           </div>
         </div>
+        <button
+          type="button"
+          className="mg-logout-btn"
+          onClick={onLogout}
+          aria-label="Đăng xuất khỏi cổng Quản trị nền tảng"
+          title="Đăng xuất khỏi cổng Quản trị nền tảng"
+        >
+          <MgIcon name="logout" size={18} />
+          <span className="mg-logout-label">Đăng xuất</span>
+        </button>
       </aside>
 
       <div className="mg-main-wrap">
@@ -81,7 +93,7 @@ export function AdminLayout({
             <span className="mg-dot" />
           </button>
           <span className="mg-org-pill">
-            <span className="mg-avatar" style={{ width: 28, height: 28, background: "#DBEAFE", color: "#2563EB", fontSize: 12 }}>A</span>
+            <span className="mg-avatar" style={{ width: 28, height: 28, background: "#E8EAFF", color: "#1F2DE6", fontSize: 12 }}>A</span>
             {previewMode ? "Quản trị viên" : "Phiên chưa xác minh role"}
             <MgIcon name="chevdown" size={14} />
           </span>

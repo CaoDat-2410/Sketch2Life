@@ -487,7 +487,7 @@ export function BackendNotice({
   tone?: "info" | "warn" | "error" | "success";
 }) {
   const palette = {
-    info: { background: "#eff6ff", border: "#bfdbfe", color: "#1e3a8a" },
+    info: { background: "#E8EAFF", border: "#C7CCFF", color: "#192477" },
     warn: { background: "#fffbeb", border: "#fde68a", color: "#78350f" },
     error: { background: "#fef2f2", border: "#fecaca", color: "#7f1d1d" },
     success: { background: "#ecfdf5", border: "#a7f3d0", color: "#064e3b" },
@@ -534,19 +534,19 @@ export function ApiUnavailableView({
   return (
     <main style={{ maxWidth: 760, margin: "7vh auto", padding: 24 }}>
       <BackendModeNotice roleLabel="đã đăng nhập" />
-      <section aria-labelledby="unavailable-title" style={{ padding: 24, border: "1px solid #dbe3ef", borderRadius: 14, background: "#fff", color: "#17233b" }}>
+      <section aria-labelledby="unavailable-title" style={{ padding: 24, border: "1px solid #dbe3ef", borderRadius: 14, background: "#fff", color: "#0B0C0E" }}>
         <h1 id="unavailable-title" style={{ margin: "0 0 8px", fontSize: 24 }}>Màn hình này chưa sẵn sàng</h1>
         <p style={{ margin: "0 0 16px", lineHeight: 1.55, color: "#46536a" }}>
           Chức năng này chưa được kết nối trong phiên hiện tại. Thử quay lại màn trước; dữ liệu minh họa chỉ có trong bản xem thử.
         </p>
-        <button type="button" onClick={() => window.history.back()} style={{ minHeight: 44, padding: "0 16px", border: 0, borderRadius: 9, background: "#315efb", color: "#fff", font: "inherit", fontWeight: 650, cursor: "pointer" }}>
+        <button type="button" onClick={() => window.history.back()} style={{ minHeight: 44, padding: "0 16px", border: 0, borderRadius: 9, background: "#1F2DE6", color: "#fff", font: "inherit", fontWeight: 650, cursor: "pointer" }}>
           Quay lại
         </button>
         <details style={{ marginTop: 18, color: "#526078", fontSize: 13 }}>
           <summary style={{ minHeight: 40, display: "inline-flex", alignItems: "center", cursor: "pointer", fontWeight: 600 }}>Thông tin kỹ thuật</summary>
           <strong style={{ display: "block", marginTop: 4 }}>{title}</strong>
           <p style={{ lineHeight: 1.5 }}>{detail}</p>
-          <code style={{ display: "inline-block", padding: "6px 8px", border: "1px solid #e1e7f0", borderRadius: 6, background: "#f6f8fc", color: "#344563" }}>{endpoint}</code>
+          <code style={{ display: "inline-block", padding: "6px 8px", border: "1px solid #CBD0D8", borderRadius: 6, background: "#F6F7F9", color: "#343A46" }}>{endpoint}</code>
         </details>
       </section>
     </main>

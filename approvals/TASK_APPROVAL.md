@@ -171,3 +171,13 @@
 - Conflict handling retained both histories. SRS decision IDs D-144/D-145 were reassigned to D-148/D-149 to preserve all four records without duplicate IDs.
 - Evidence: `features/FEAT-063-system-architecture-rearchitecture/evidence/EV-063-57_SRS_V25_AND_MODAL_AI_DEV_INTEGRATION_20261106.md`.
 - Validation: `git diff --check` passed; `python tools/validate_repository_security.py` reported `REPOSITORY_SECURITY_VALID` with 6,731 publishable files scanned before commit and push. No force push or history rewrite.
+
+## FEAT-070 Plan Rev1 — Parent Web video admission demo fix
+
+- Status: APPROVED for the exact scope in the hash-identified plan.
+- Approver: Project owner, direct request in chat on 2026-11-10 to fix the P06 story-review quota/navigation issue and run one complete SRS-aligned local FE demo flow.
+- Approved plan: features/FEAT-070-parent-web-video-admission-demo-fix/plan/PLAN.md.
+- Plan SHA-256: 5CCF6FC2B5F130C98D6DE5743277FC50BAAAC8AEE10AB8F36504FCECC4FF26A2.
+- Scope: Parent UI local preview quota admission and P06-to-P07 transition; accurate post-use quota copy; one manual synthetic preview flow through P08; feature-local evidence.
+- Exclusions: SRS changes/sign-off, resolving Parent Web target-client status, API/backend/auth/billing/provider integration, automated tests/builds, commit/push, deployment, and publishing.
+- Approval basis: the user's direct instruction authorizes this bounded demo correction and manual FE walkthrough. Quota rejection when exhausted remains in place.

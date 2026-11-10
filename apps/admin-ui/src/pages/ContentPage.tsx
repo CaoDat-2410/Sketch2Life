@@ -72,7 +72,7 @@ export function ContentPage() {
     <div className="px-6 py-4 space-y-3.5 max-w-[1440px] mx-auto">
       {/* Full-width Header */}
       <div>
-        <h1 className="text-[25px] font-extrabold text-[#0F1F38] tracking-tight leading-tight">
+        <h1 className="text-[25px] font-extrabold text-[#0B0C0E] tracking-tight leading-tight">
           Quản trị nội dung học tập
         </h1>
         <p className="text-[13.5px] text-slate-500 mt-0.5 font-medium">
@@ -90,7 +90,7 @@ export function ContentPage() {
               onClick={() => setActiveTab(t.key)}
               className={`flex items-center gap-2 px-4 py-2 text-[13.5px] rounded-t-xl border-b-2 transition -mb-px cursor-pointer whitespace-nowrap shrink-0 ${
                 isActive
-                  ? 'bg-white border-[#1565F9] text-[#1565F9] font-bold shadow-[0_-1px_3px_rgba(15,23,42,0.03)]'
+                  ? 'bg-white border-[#1F2DE6] text-[#1F2DE6] font-bold shadow-[0_-1px_3px_rgba(15,23,42,0.03)]'
                   : 'border-transparent text-slate-600 font-medium hover:text-slate-900'
               }`}
             >
@@ -142,7 +142,7 @@ export function ContentPage() {
                   onClick={() => setSelected(c.id)}
                   className={`rounded-2xl border p-3.5 cursor-pointer transition ${
                     isSel
-                      ? 'border-[#3B82F6] bg-[#EFF6FF]/70 shadow-[0_1px_4px_rgba(21,101,249,0.08)]'
+                      ? 'border-[#3B82F6] bg-[#E8EAFF]/70 shadow-[0_1px_4px_rgba(31, 45, 230,0.08)]'
                       : 'border-slate-200/70 bg-white hover:border-slate-300'
                   }`}
                 >
@@ -169,7 +169,7 @@ export function ContentPage() {
                           >
                             {c.typeTag}
                           </span>
-                          <span className="text-[11.5px] font-bold text-[#1565F9] bg-[#DCEBFF] px-2 py-0.5 rounded-lg whitespace-nowrap shrink-0">
+                          <span className="text-[11.5px] font-bold text-[#1F2DE6] bg-[#E8EAFF] px-2 py-0.5 rounded-lg whitespace-nowrap shrink-0">
                             {c.version}
                           </span>
                           <span className="text-[11.5px] font-medium text-slate-600 bg-slate-100 px-2.5 py-0.5 rounded-lg whitespace-nowrap shrink-0">
@@ -209,7 +209,7 @@ export function ContentPage() {
                         >
                           {item.typeTag}
                         </span>
-                        <span className="text-[11px] font-bold text-[#1565F9] bg-[#DCEBFF] px-2 py-0.5 rounded-lg">
+                        <span className="text-[11px] font-bold text-[#1F2DE6] bg-[#E8EAFF] px-2 py-0.5 rounded-lg">
                           {item.version}
                         </span>
                         <span className="text-[11px] font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-lg">
@@ -227,7 +227,7 @@ export function ContentPage() {
                     <p className="text-[11.5px] text-slate-500 truncate">
                       Cập nhật: {item.date} • Tạo bởi: {item.author}
                     </p>
-                    <button className="flex items-center gap-1 text-[11.5px] text-[#1565F9] border border-blue-300 bg-[#F2F7FF] px-2.5 py-1 rounded-xl hover:bg-blue-100 font-semibold transition whitespace-nowrap shrink-0">
+                    <button className="flex items-center gap-1 text-[11.5px] text-[#1F2DE6] border border-blue-300 bg-[#E8EAFF] px-2.5 py-1 rounded-xl hover:bg-blue-100 font-semibold transition whitespace-nowrap shrink-0">
                       <Clock size={11.5} />
                       <span>Xem lịch sử phiên bản</span>
                     </button>
@@ -239,7 +239,7 @@ export function ContentPage() {
               <div className="grid grid-cols-2 gap-2.5">
                 {/* 1. Nguồn tham khảo */}
                 <div className="border border-slate-200/70 rounded-2xl p-3 flex items-start gap-2.5">
-                  <div className="w-8 h-8 bg-[#E6F0FF] text-[#1565F9] rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <div className="w-8 h-8 bg-[#E8EAFF] text-[#1F2DE6] rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
                     <BookOpen size={16} />
                   </div>
                   <div className="min-w-0">
@@ -319,8 +319,8 @@ export function ContentPage() {
               </div>
 
               {/* 5. Nhận xét của người duyệt */}
-              <div className="bg-[#EAF3FF]/80 rounded-2xl p-3 flex items-start gap-2.5">
-                <MessageSquare size={17} className="text-[#1565F9] shrink-0 mt-0.5" />
+              <div className="bg-[#E8EAFF]/80 rounded-2xl p-3 flex items-start gap-2.5">
+                <MessageSquare size={17} className="text-[#1F2DE6] shrink-0 mt-0.5" />
                 <div>
                   <p className="text-[13px] font-bold text-slate-900">Nhận xét của người duyệt</p>
                   <p className="text-[12px] text-slate-600 mt-0.5">
@@ -333,17 +333,17 @@ export function ContentPage() {
             {/* Bottom buttons */}
             <div className="pt-3 flex flex-col items-end gap-1.5">
               <div className="flex items-center gap-3">
-                <button className="flex items-center justify-center gap-2 border border-[#1565F9] bg-white text-[#1565F9] text-[13px] font-semibold px-4 py-2 rounded-xl hover:bg-blue-50 transition cursor-pointer whitespace-nowrap">
+                <button className="flex items-center justify-center gap-2 border border-[#1F2DE6] bg-white text-[#1F2DE6] text-[13px] font-semibold px-4 py-2 rounded-xl hover:bg-blue-50 transition cursor-pointer whitespace-nowrap">
                   <Edit2 size={14} />
                   <span>Yêu cầu chỉnh sửa</span>
                 </button>
-                <button className="flex items-center justify-center gap-2 bg-[#1565F9] hover:bg-blue-700 text-white text-[13px] font-semibold px-5 py-2 rounded-xl transition shadow-sm cursor-pointer whitespace-nowrap">
+                <button className="flex items-center justify-center gap-2 bg-[#1F2DE6] hover:bg-blue-700 text-white text-[13px] font-semibold px-5 py-2 rounded-xl transition shadow-sm cursor-pointer whitespace-nowrap">
                   <Check size={15} />
                   <span>Duyệt phiên bản</span>
                 </button>
               </div>
               <div className="flex items-center gap-1.5 text-[11.5px] text-slate-500">
-                <span className="w-4 h-4 rounded-full bg-[#1565F9] text-white flex items-center justify-center text-[10px] font-bold shrink-0">
+                <span className="w-4 h-4 rounded-full bg-[#1F2DE6] text-white flex items-center justify-center text-[10px] font-bold shrink-0">
                   i
                 </span>
                 <span>Chỉ xuất bản khi đủ quyền và hoàn tất review.</span>

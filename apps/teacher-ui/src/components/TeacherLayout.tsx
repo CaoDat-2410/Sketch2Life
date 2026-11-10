@@ -154,7 +154,7 @@ export function TeacherLayout({ children }: { children: React.ReactNode }) {
 
   const navLink = (key: string, to: string, label: string, icon: IconName, active: boolean) => (
     <NavLink key={key} to={to} aria-label={label} className={"tw-nav-item" + (active ? " is-on" : "")}>
-      <Icon name={icon} size={19} />
+      <span className="mg-nav-ico" aria-hidden="true"><Icon name={icon} size={19} /></span>
       <span className="tw-lbl">{label}</span>
     </NavLink>
   );
@@ -193,7 +193,7 @@ export function TeacherLayout({ children }: { children: React.ReactNode }) {
                   onClick={() => setTeachingOpen((open) => !open)}
                 >
                   <span className="tw-row" style={{ gap: 10 }}>
-                    <Icon name="sparkle" size={18} />
+                    <span className="mg-nav-ico" aria-hidden="true"><Icon name="sparkle" size={18} /></span>
                     <span className="tw-lbl">Bài giảng trên lớp</span>
                   </span>
                   <span className={"tw-nav-group-chev" + (teachingOpen ? " is-open" : "")}>
@@ -248,6 +248,16 @@ export function TeacherLayout({ children }: { children: React.ReactNode }) {
             <div className="tw-meta" style={{ fontSize: 12 }} title={previewMode ? "Dữ liệu minh họa, không lưu vào backend." : undefined}>{previewMode && activeRole === "TEACHER" ? "Xem thử · không lưu" : previewMode ? "Trường Ánh Dương · dữ liệu mẫu" : "Quyền theo phiên backend"}</div>
           </div>
         </div>
+        <button
+          type="button"
+          className="tw-side-logout"
+          onClick={handleLogout}
+          aria-label="Đăng xuất khỏi cổng Giáo viên"
+          title="Đăng xuất khỏi cổng Giáo viên"
+        >
+          <span aria-hidden="true"><Icon name="log-out" size={18} /></span>
+          <span className="tw-side-logout-label">Đăng xuất</span>
+        </button>
       </aside>
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
@@ -337,14 +347,7 @@ export function TeacherLayout({ children }: { children: React.ReactNode }) {
               </button>
             )}
 
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="tw-btn is-ghost is-sm"
-              title="Đăng xuất khỏi hệ thống"
-            >
-              Đăng xuất
-            </button>
+
           </div>
         </header>
 

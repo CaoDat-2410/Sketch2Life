@@ -184,7 +184,7 @@ export function T06SampleStoryRunPage() {
             style={{
               aspectRatio: "16 / 10",
               background: "#FFFDF7",
-              border: "2px dashed #93C5FD",
+              border: "2px dashed #4652ED",
               borderRadius: 18,
               display: "flex",
               alignItems: "center",
@@ -195,8 +195,8 @@ export function T06SampleStoryRunPage() {
             aria-label="Ảnh chụp tranh vẽ sáp màu chú bướm trên giấy A4 của bé"
           >
             <svg viewBox="0 0 260 150" width="88%" height="88%" aria-hidden="true">
-              <path d="M124 62 C 62 12, 36 86, 124 98" fill="#93C5FD" stroke="#1D4ED8" strokeWidth="4.5" strokeLinecap="round" />
-              <path d="M136 62 C 198 12, 224 86, 136 98" fill="#93C5FD" stroke="#1D4ED8" strokeWidth="4.5" strokeLinecap="round" />
+              <path d="M124 62 C 62 12, 36 86, 124 98" fill="#4652ED" stroke="#1B25C5" strokeWidth="4.5" strokeLinecap="round" />
+              <path d="M136 62 C 198 12, 224 86, 136 98" fill="#4652ED" stroke="#1B25C5" strokeWidth="4.5" strokeLinecap="round" />
               <path d="M124 98 C 72 108, 84 144, 126 118" fill="#FDE68A" stroke="#D97706" strokeWidth="4.5" strokeLinecap="round" />
               <path d="M136 98 C 188 108, 176 144, 134 118" fill="#FDE68A" stroke="#D97706" strokeWidth="4.5" strokeLinecap="round" />
               <ellipse cx="130" cy="92" rx="9" ry="34" fill="#1E293B" />
@@ -701,7 +701,7 @@ export function T07VideoPresentationConfirmationPage() {
               padding: "6px 12px",
               borderRadius: 9999,
               background: "rgba(15, 23, 42, 0.72)",
-              color: "#E2E8F0",
+              color: "#CBD0D8",
               fontSize: 13,
               fontWeight: 600,
             }}

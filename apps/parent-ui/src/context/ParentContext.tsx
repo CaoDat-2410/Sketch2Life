@@ -121,7 +121,7 @@ interface ParentContextValue {
   setRewriteSuggestion: (v: string) => void;
   requestAiRewrite: () => void;
   scriptConfirmed: boolean;
-  confirmScriptAndStartVideo: () => void;
+  confirmScriptAndStartVideo: () => boolean;
   videoJobMode: VideoJobMode;
   setVideoJobMode: (m: VideoJobMode) => void;
   videoRegenCount: number;
@@ -493,10 +493,10 @@ export function ParentProvider({ children }: { children: React.ReactNode }) {
     ]);
   };
 
-  const confirmScriptAndStartVideo = () => {
+  const confirmScriptAndStartVideo = (): boolean => {
     if (quotaRemaining <= 0) {
       showToast("Đã hết lượt tạo video. Vui lòng mua thêm lượt.", "warn");
-      return;
+      return false;
     }
     setScriptConfirmed(true);
     setHasActiveRun(true);
@@ -512,6 +512,7 @@ export function ParentProvider({ children }: { children: React.ReactNode }) {
       "Xem tiến trình"
     );
     showToast(`Đã duyệt kịch bản Bản #${scriptRevision} và bắt đầu tạo video.`, "ok");
+    return true;
   };
 
   const reportVideoUnsuitableAndRegenerate = (reason: string): boolean => {

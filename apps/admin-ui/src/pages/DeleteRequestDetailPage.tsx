@@ -1,4 +1,4 @@
-﻿import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import {
   ChevronLeft,
   Shield,
@@ -80,7 +80,7 @@ export function DeleteRequestDetailPage() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-[24px] font-extrabold text-[#0F1F38] tracking-tight leading-tight">
+          <h1 className="text-[24px] font-extrabold text-[#0B0C0E] tracking-tight leading-tight">
             Yêu cầu xóa dữ liệu
           </h1>
           <p className="text-[13px] text-slate-500 mt-0.5 font-medium">
@@ -156,7 +156,7 @@ export function DeleteRequestDetailPage() {
         {/* Right Card (5 cols) */}
         <div className="col-span-5 bg-white border border-slate-200/70 rounded-2xl p-3.5 px-4 shadow-[0_1px_3px_rgba(15,23,42,0.02)] flex flex-col justify-between space-y-2">
           <div className="flex items-center gap-2">
-            <div className="w-6.5 h-6.5 bg-[#E6F0FF] text-[#1565F9] rounded-lg flex items-center justify-center">
+            <div className="w-6.5 h-6.5 bg-[#E8EAFF] text-[#1F2DE6] rounded-lg flex items-center justify-center">
               <Shield size={14} strokeWidth={2.2} />
             </div>
             <h2 className="text-[15px] font-bold text-slate-900">Tác động và lưu ý</h2>
@@ -164,12 +164,12 @@ export function DeleteRequestDetailPage() {
 
           <div className="space-y-2 flex-1 flex flex-col justify-center">
             {/* Box 1: Team contribution */}
-            <div className="p-2.5 px-3 bg-[#EAF3FF] rounded-xl border border-blue-200/60 flex items-start gap-2.5">
-              <span className="w-4.5 h-4.5 rounded-full bg-[#1565F9] text-white flex items-center justify-center text-[10.5px] font-bold shrink-0 mt-0.5">
+            <div className="p-2.5 px-3 bg-[#E8EAFF] rounded-xl border border-blue-200/60 flex items-start gap-2.5">
+              <span className="w-4.5 h-4.5 rounded-full bg-[#1F2DE6] text-white flex items-center justify-center text-[10.5px] font-bold shrink-0 mt-0.5">
                 i
               </span>
               <div>
-                <p className="text-[12.5px] font-bold text-[#1565F9]">
+                <p className="text-[12.5px] font-bold text-[#1F2DE6]">
                   Bảo vệ phần đóng góp của các bạn cùng nhóm
                 </p>
                 <p className="text-[11.5px] text-slate-700 leading-snug mt-0.5">
@@ -197,7 +197,7 @@ export function DeleteRequestDetailPage() {
         <div className="flex items-center justify-between relative">
           {/* Connector Line: blue for 1..4 (75%), gray for 4..5 (25%) */}
           <div className="absolute top-3 left-12 right-12 h-[2px] bg-slate-200 z-0">
-            <div className="h-full w-[75%] bg-[#1565F9]" />
+            <div className="h-full w-[75%] bg-[#1F2DE6]" />
           </div>
 
           {STEPS.map((step) => (
@@ -205,7 +205,7 @@ export function DeleteRequestDetailPage() {
               <div
                 className={`w-6 h-6 rounded-full flex items-center justify-center text-[11.5px] font-bold transition ${
                   step.done
-                    ? 'bg-[#1565F9] text-white'
+                    ? 'bg-[#1F2DE6] text-white'
                     : 'bg-white border-2 border-slate-300 text-slate-500'
                 }`}
               >
@@ -223,7 +223,7 @@ export function DeleteRequestDetailPage() {
       {/* Row 3: Storage detail table */}
       <div className="bg-white border border-slate-200/70 rounded-2xl p-3 px-4 shadow-[0_1px_3px_rgba(15,23,42,0.02)]">
         <div className="flex items-center gap-2 mb-1.5">
-          <div className="w-6.5 h-6.5 rounded-lg bg-[#E6F0FF] flex items-center justify-center text-[#1565F9]">
+          <div className="w-6.5 h-6.5 rounded-lg bg-[#E8EAFF] flex items-center justify-center text-[#1F2DE6]">
             <List size={14} strokeWidth={2.2} />
           </div>
           <h2 className="text-[15px] font-bold text-slate-900">Chi tiết xử lý theo nơi lưu</h2>
@@ -232,7 +232,7 @@ export function DeleteRequestDetailPage() {
         <div className="border border-slate-100 rounded-xl overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-[#F4F7FB] border-b border-slate-100">
+              <tr className="bg-[#EEF0F3] border-b border-slate-100">
                 <th className="px-3.5 py-2 text-left text-[11.5px] font-semibold text-slate-600">
                   Nơi lưu
                 </th>
@@ -267,7 +267,7 @@ export function DeleteRequestDetailPage() {
                             row.resultColor === 'green'
                               ? 'bg-[#10B981]'
                               : row.resultColor === 'blue'
-                              ? 'bg-[#1565F9]'
+                              ? 'bg-[#1F2DE6]'
                               : row.resultColor === 'amber'
                               ? 'bg-[#F59E0B]'
                               : 'bg-[#EF4444]'
@@ -288,12 +288,12 @@ export function DeleteRequestDetailPage() {
                             className={`inline-flex items-center gap-1.5 text-[11.5px] font-semibold px-2.5 py-0.5 rounded-full whitespace-nowrap shrink-0 ${
                               row.badge.color === 'green'
                                 ? 'bg-[#E2F7EB] text-[#059669]'
-                                : 'bg-[#E6F0FF] text-[#1565F9]'
+                                : 'bg-[#E8EAFF] text-[#1F2DE6]'
                             }`}
                           >
                             <span
                               className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-white shrink-0 ${
-                                row.badge.color === 'green' ? 'bg-[#10B981]' : 'bg-[#1565F9]'
+                                row.badge.color === 'green' ? 'bg-[#10B981]' : 'bg-[#1F2DE6]'
                               }`}
                             >
                               <Check size={9} strokeWidth={3} />
@@ -339,7 +339,7 @@ export function DeleteRequestDetailPage() {
             <RotateCcw size={13.5} />
             <span>Thử lại bước lỗi</span>
           </button>
-          <button className="flex items-center gap-1.5 bg-[#1565F9] hover:bg-blue-700 text-white text-[12.5px] font-semibold px-3.5 py-1.5 rounded-xl shadow-sm transition cursor-pointer whitespace-nowrap">
+          <button className="flex items-center gap-1.5 bg-[#1F2DE6] hover:bg-blue-700 text-white text-[12.5px] font-semibold px-3.5 py-1.5 rounded-xl shadow-sm transition cursor-pointer whitespace-nowrap">
             <Folder size={14} />
             <span>Xem bằng chứng theo quyền</span>
           </button>

@@ -103,3 +103,45 @@ Load the local manager stylesheet after shared styles so scoped selectors win wi
 ## D-066-27 — Report flow completeness from contracts, not preview appearance
 
 EV-009/EV-010 establish that the current School Manager UI is incomplete against SRS §21.5. Keep fixture metrics labeled and API-blocked actions unavailable. Read-only class/roster and M01 grant review have relevant contracts; capacity-safe class lifecycle, Manager Teacher lifecycle, billing, organization quota/top-up, inbox and school feedback reply do not. No backend or policy assumptions are introduced.
+
+## D-066-28 — Treat the cobalt palette as a dashboard-only experiment
+
+The user directly requested a visual preview on the default M02 dashboard. Scope the route marker and palette tokens to that route only; keep M01 and M02 teachers/classes/quota/settings on revision 8 styling. Do not treat the preview as a permanent system decision or SRS requirement.
+
+## D-066-29 — Use the skill's first software/saas palette result
+
+The design-taste-frontend palette-deal returned cool-grey-cobalt first. Use its generated #EEF0F3 background, #E2E5EA surface, #0B0C0E ink, #5D6470 muted text and #1F2DE6 action with white text. The logo's blue is compatible. Preserve existing semantic status colors and information; do not invent business behavior.
+
+## D-066-30 — Keep the palette experiment limited to the default dashboard
+
+EV-011 records the generated Cool Grey + Cobalt palette on /m02-organization-management only. The preview is an experiment for owner review, not an SRS-derived or permanent product decision. M02 subsections and M01 retain the earlier colors; status semantics and application behavior stay intact.
+
+## D-066-31 — Apply the supplied brand art and bright cobalt palette across browser UIs
+
+The direct user request authorizes the attached image as the web logo and the approved Cool Grey + Cobalt direction across the five existing browser app packages and their shared styles. Parent Android and all native apps remain excluded. The parent-ui and admin-ui sources are styled only as existing browser UIs; this does not establish new product roles or flows. Keep status semantics, behavior and privacy intact.
+
+
+## D-066-32 — Supersede dashboard-only palette preview with direct cross-web adoption
+
+The user's revision 10 request authorizes the supplied artwork and Cool Grey + Cobalt across all five existing browser apps and shared web styles. This supersedes the dashboard-only limit in D-066-28/D-066-30. Keep the palette recorded as a visual decision, not an SRS requirement, and preserve semantic status colors and all existing behavior/privacy boundaries.
+
+## D-066-33 — Keep visual validation offline and report unavailable previews
+
+Reuse only loopback servers from the authorized worktree. If an included app cannot run because a package is missing, use the local cache with manifest/lockfile writes disabled. If the package is unavailable offline, do not reach the registry or use an unrelated checkout; document the limitation and leave its source implementation reviewable.
+## D-066-34 — Share a local icon family across the three SRS web roles
+
+Use one local inline-SVG icon family for the authenticated School Manager, Teacher, and Platform Admin dashboard shells and content icons. Keep symbols recognizable, with consistent rounded strokes and restrained duotone fills that use the existing Cool Grey + Cobalt palette. Avoid external icon providers, font downloads, and new packages. Preserve all labels, routes, actions, access checks, and accessibility names. This is a visual choice, not an SRS requirement.
+
+## D-066-35 — Use the shared Vietnamese-capable sans-serif stack for login headlines
+
+The direct font-fix request authorizes a bounded typography correction in apps/shared/portal-login.css. Login headlines inherit the existing Be Vietnam Pro, Segoe UI, and system sans-serif stack; the accent span stays upright and uses the same weight/tracking, with enough line height to keep Vietnamese marks clear. This is a visual/accessibility-quality correction, not an SRS requirement. Preserve the shared page layout, role copy, routes and auth behavior; do not add font downloads or dependencies.
+## D-066-36 — Keep logout visible beside each role's account identity
+
+The direct user request authorizes one logout control in each SRS web-role shell. Keep the action beside the profile at the bottom of the sidebar, where it remains visible on narrow screens. Reuse the existing logout handler and route guard. The Teacher control moves from its top bar to the sidebar; School Manager keeps its existing sidebar control; Platform Admin receives the missing control. Narrow collapsed sidebars retain a labeled-in-accessibility icon button. Do not add auth policy, backend behavior, or new routes.
+## D-066-37 — Keep the three-role review read-only
+
+The direct user request authorizes an audit/listing for Teacher, School Manager and Platform Admin only and defers UX/product fixes. Use only FEAT-063 v2.7-draft Rev57 §§1–31 as current requirements; treat feature-local notes as implementation evidence and §32 as as-built evidence. Do not infer product policy from fixture data or resolve SRS OPEN items during review.
+
+## D-066-38 — Separate UI defects from API/backend and owner blockers
+
+For FEAT-066-EV-016, classify product flows as blocked when the current UI/API adapter cannot complete them; record the missing/partial contract as a dependency, not as a completed mock action. Preserve unavailable states, privacy boundaries and open commercial/eligibility decisions. Do not modify application source until the user selects a remediation scope.

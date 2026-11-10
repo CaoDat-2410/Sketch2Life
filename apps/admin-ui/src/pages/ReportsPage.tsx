@@ -46,8 +46,8 @@ function LineChart() {
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto">
       <defs>
         <linearGradient id="reportAreaGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#93C5FD" stopOpacity="0.45" />
-          <stop offset="100%" stopColor="#EFF6FF" stopOpacity="0.05" />
+          <stop offset="0%" stopColor="#4652ED" stopOpacity="0.45" />
+          <stop offset="100%" stopColor="#E8EAFF" stopOpacity="0.05" />
         </linearGradient>
       </defs>
 
@@ -59,7 +59,7 @@ function LineChart() {
             y1={yOf(v)}
             x2={W - PAD.right}
             y2={yOf(v)}
-            stroke="#E2E8F0"
+            stroke="#CBD0D8"
             strokeWidth="1"
           />
           <text
@@ -80,7 +80,7 @@ function LineChart() {
         y1={PAD.top}
         x2={PAD.left}
         y2={yOf(0)}
-        stroke="#CBD5E1"
+        stroke="#B9C0CC"
         strokeWidth="1"
       />
 
@@ -92,7 +92,7 @@ function LineChart() {
           y1={PAD.top}
           x2={p.x}
           y2={yOf(0)}
-          stroke="#E2E8F0"
+          stroke="#CBD0D8"
           strokeWidth="1"
           strokeDasharray="3 3"
         />
@@ -105,7 +105,7 @@ function LineChart() {
       <path
         d={linePath}
         fill="none"
-        stroke="#1565F9"
+        stroke="#1F2DE6"
         strokeWidth="2.2"
         strokeLinejoin="round"
       />
@@ -117,7 +117,7 @@ function LineChart() {
           cx={p.x}
           cy={p.y}
           r="5"
-          fill="#1565F9"
+          fill="#1F2DE6"
           stroke="white"
           strokeWidth="2"
         />
@@ -131,7 +131,7 @@ function LineChart() {
           y={H - 8}
           textAnchor="middle"
           fontSize="11.5"
-          fill="#475569"
+          fill="#5D6470"
         >
           {p.week}
         </text>
@@ -143,7 +143,7 @@ function LineChart() {
         y1={yOf(0)}
         x2={W - PAD.right}
         y2={yOf(0)}
-        stroke="#CBD5E1"
+        stroke="#B9C0CC"
         strokeWidth="1"
       />
     </svg>
@@ -177,7 +177,7 @@ export function ReportsPage() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-[24px] font-extrabold text-[#0F1F38] tracking-tight leading-tight">
+          <h1 className="text-[24px] font-extrabold text-[#0B0C0E] tracking-tight leading-tight">
             Báo cáo theo phạm vi
           </h1>
           <p className="text-[13px] text-slate-500 mt-0.5 font-medium">
@@ -189,7 +189,7 @@ export function ReportsPage() {
             <FileText size={14} className="text-slate-600" />
             <span>Tạo báo cáo</span>
           </button>
-          <button className="flex items-center gap-2 bg-[#1565F9] hover:bg-blue-700 text-white text-[12.5px] font-semibold px-3.5 py-1.5 rounded-xl shadow-sm transition cursor-pointer whitespace-nowrap">
+          <button className="flex items-center gap-2 bg-[#1F2DE6] hover:bg-blue-700 text-white text-[12.5px] font-semibold px-3.5 py-1.5 rounded-xl shadow-sm transition cursor-pointer whitespace-nowrap">
             <Upload size={14} />
             <span>Yêu cầu xuất</span>
           </button>
@@ -261,7 +261,7 @@ export function ReportsPage() {
         {/* Line chart */}
         <div className="col-span-8 bg-white border border-slate-200/70 rounded-2xl p-3.5 px-4 shadow-[0_1px_3px_rgba(15,23,42,0.02)]">
           <div className="flex items-center gap-2 mb-1">
-            <div className="w-6.5 h-6.5 bg-[#E6F0FF] text-[#1565F9] rounded-lg flex items-center justify-center">
+            <div className="w-6.5 h-6.5 bg-[#E8EAFF] text-[#1F2DE6] rounded-lg flex items-center justify-center">
               <BarChart2 size={14} strokeWidth={2.2} />
             </div>
             <h2 className="text-[15px] font-bold text-slate-900">Tổng phiên tích lũy</h2>
@@ -272,8 +272,8 @@ export function ReportsPage() {
         {/* Definition panel */}
         <div className="col-span-4 bg-white border border-slate-200/70 rounded-2xl p-3.5 px-4 shadow-[0_1px_3px_rgba(15,23,42,0.02)]">
           <div className="flex items-center gap-2 mb-3">
-            <div className="w-6.5 h-6.5 rounded-lg bg-[#E6F0FF] flex items-center justify-center">
-              <span className="w-4 h-4 rounded-full bg-[#1565F9] text-white flex items-center justify-center text-[10px] font-bold">
+            <div className="w-6.5 h-6.5 rounded-lg bg-[#E8EAFF] flex items-center justify-center">
+              <span className="w-4 h-4 rounded-full bg-[#1F2DE6] text-white flex items-center justify-center text-[10px] font-bold">
                 i
               </span>
             </div>
@@ -315,7 +315,7 @@ export function ReportsPage() {
       {/* Reports table */}
       <div className="bg-white border border-slate-200/70 rounded-2xl p-3.5 px-4 shadow-[0_1px_3px_rgba(15,23,42,0.02)]">
         <div className="flex items-center gap-2 mb-2.5">
-          <div className="w-6.5 h-6.5 bg-[#E6F0FF] text-[#1565F9] rounded-lg flex items-center justify-center">
+          <div className="w-6.5 h-6.5 bg-[#E8EAFF] text-[#1F2DE6] rounded-lg flex items-center justify-center">
             <FileText size={14} strokeWidth={2.2} />
           </div>
           <h2 className="text-[15px] font-bold text-slate-900">Báo cáo đã tạo</h2>
@@ -324,7 +324,7 @@ export function ReportsPage() {
         <div className="border border-slate-100 rounded-xl overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-[#F4F7FB] border-b border-slate-100">
+              <tr className="bg-[#EEF0F3] border-b border-slate-100">
                 {[
                   'Mã báo cáo',
                   'Tên báo cáo',
@@ -371,7 +371,7 @@ export function ReportsPage() {
                   </td>
                   <td className="px-3.5 py-2 whitespace-nowrap">
                     <div className="flex items-center gap-3">
-                      <button className="inline-flex items-center justify-center bg-[#EAF2FF] hover:bg-blue-100 border border-blue-200/80 text-[#1565F9] text-[12.5px] font-semibold px-4 py-1 rounded-xl transition cursor-pointer whitespace-nowrap shrink-0">
+                      <button className="inline-flex items-center justify-center bg-[#E8EAFF] hover:bg-blue-100 border border-blue-200/80 text-[#1F2DE6] text-[12.5px] font-semibold px-4 py-1 rounded-xl transition cursor-pointer whitespace-nowrap shrink-0">
                         Xem
                       </button>
                       <button className="text-slate-400 hover:text-slate-600 p-1">
@@ -389,9 +389,9 @@ export function ReportsPage() {
       {/* Bottom info banner + watermark */}
       <div className="flex items-center justify-between gap-4">
         {showBanner ? (
-          <div className="flex-1 flex items-center justify-between bg-[#EAF3FF] border border-blue-200/90 rounded-xl px-3.5 py-2 text-[12px] text-[#1565F9] font-semibold">
+          <div className="flex-1 flex items-center justify-between bg-[#E8EAFF] border border-blue-200/90 rounded-xl px-3.5 py-2 text-[12px] text-[#1F2DE6] font-semibold">
             <div className="flex items-center gap-2">
-              <span className="w-4.5 h-4.5 rounded-full bg-[#1565F9] text-white flex items-center justify-center text-[10.5px] font-bold shrink-0">
+              <span className="w-4.5 h-4.5 rounded-full bg-[#1F2DE6] text-white flex items-center justify-center text-[10.5px] font-bold shrink-0">
                 i
               </span>
               <span>Dữ liệu nhóm nhỏ cần kiểm tra trước khi chia sẻ.</span>

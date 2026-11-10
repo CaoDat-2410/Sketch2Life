@@ -28,9 +28,9 @@ function AdminPortalRoutes() {
 
 function AdminPortalFrame() {
   const location = useLocation();
-  const { toast } = useTeacher();
+  const { toast, logout } = useTeacher();
   const routes = <AdminPortalRoutes />;
-  return location.pathname === "/login" ? routes : <AdminLayout toast={toast}>{routes}</AdminLayout>;
+  return location.pathname === "/login" ? routes : <AdminLayout toast={toast} onLogout={logout}>{routes}</AdminLayout>;
 }
 
 export function App() {

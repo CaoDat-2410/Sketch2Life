@@ -33,12 +33,12 @@ const USERS: UserItem[] = [
   {
     id: 'gv-an',
     initials: 'GA',
-    avatarBg: 'bg-[#DCEBFF]',
-    avatarText: 'text-[#1565F9]',
+    avatarBg: 'bg-[#E8EAFF]',
+    avatarText: 'text-[#1F2DE6]',
     name: 'GV An',
     subtitle: 'Giáo viên',
     role: 'Giáo viên',
-    roleColor: 'text-[#1565F9] bg-[#E8F1FF]',
+    roleColor: 'text-[#1F2DE6] bg-[#E8EAFF]',
     scope: 'Lớp Lá',
     status: 'Đang hoạt động',
     statusColor: 'text-[#059669] bg-[#E2F7EB]',
@@ -53,7 +53,7 @@ const USERS: UserItem[] = [
     name: 'GV Bình',
     subtitle: 'Giáo viên',
     role: 'Giáo viên',
-    roleColor: 'text-[#1565F9] bg-[#E8F1FF]',
+    roleColor: 'text-[#1F2DE6] bg-[#E8EAFF]',
     scope: 'Lớp Hoa',
     status: 'Chờ nhận lời mời',
     statusColor: 'text-[#D97706] bg-[#FEF3C7]',
@@ -93,14 +93,14 @@ export function UsersPage() {
           {/* Header */}
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h1 className="text-[25px] font-extrabold text-[#0F1F38] tracking-tight leading-tight">
+              <h1 className="text-[25px] font-extrabold text-[#0B0C0E] tracking-tight leading-tight">
                 Người dùng &amp; vai trò
               </h1>
               <p className="text-[13.5px] text-slate-500 mt-1 font-medium">
                 Quản lý tài khoản người lớn và quyền theo lớp.
               </p>
             </div>
-            <button className="inline-flex items-center justify-center gap-2 bg-[#1565F9] hover:bg-blue-700 text-white text-[13px] font-semibold px-4 py-2.5 rounded-xl transition shadow-sm cursor-pointer whitespace-nowrap shrink-0">
+            <button className="inline-flex items-center justify-center gap-2 bg-[#1F2DE6] hover:bg-blue-700 text-white text-[13px] font-semibold px-4 py-2.5 rounded-xl transition shadow-sm cursor-pointer whitespace-nowrap shrink-0">
               <UserPlus size={15} className="shrink-0" />
               <span>Mời người dùng</span>
             </button>
@@ -153,7 +153,7 @@ export function UsersPage() {
             <div className="border border-slate-100 rounded-xl overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-[#F4F7FB] border-b border-slate-100 text-slate-600">
+                  <tr className="bg-[#EEF0F3] border-b border-slate-100 text-slate-600">
                     <th className="text-left py-2.5 pl-3 pr-2 text-[12px] font-semibold whitespace-nowrap">
                       Tài khoản
                     </th>
@@ -264,7 +264,7 @@ export function UsersPage() {
                     onClick={() => setActiveTab(tab)}
                     className={`px-4 py-2 text-[13px] font-semibold border-b-2 transition -mb-px ${
                       activeTab === tab
-                        ? 'border-[#1565F9] text-[#1565F9]'
+                        ? 'border-[#1F2DE6] text-[#1F2DE6]'
                         : 'border-transparent text-slate-500 hover:text-slate-800'
                     }`}
                   >
@@ -292,7 +292,7 @@ export function UsersPage() {
                       <div className="flex items-center justify-between">
                         <span className="text-slate-500 text-[13px]">Phạm vi lớp</span>
                         <span className="flex items-center gap-2 text-[12.5px] font-semibold text-slate-800 border border-slate-200 rounded-xl px-3 py-1 w-40">
-                          <BookOpen size={13.5} className="text-[#1565F9] shrink-0" />
+                          <BookOpen size={13.5} className="text-[#1F2DE6] shrink-0" />
                           <span className="truncate">{selectedUser.scope}</span>
                         </span>
                       </div>
@@ -345,8 +345,8 @@ export function UsersPage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 bg-[#EAF3FF] rounded-xl px-3 py-2 text-[11.5px] text-slate-700 font-medium">
-                      <span className="w-4 h-4 rounded-full bg-[#1565F9] text-white flex items-center justify-center text-[10px] font-bold shrink-0">
+                    <div className="flex items-center gap-2 bg-[#E8EAFF] rounded-xl px-3 py-2 text-[11.5px] text-slate-700 font-medium">
+                      <span className="w-4 h-4 rounded-full bg-[#1F2DE6] text-white flex items-center justify-center text-[10px] font-bold shrink-0">
                         i
                       </span>
                       <span>Không có quyền nội dung trẻ ngoài phạm vi được cấp.</span>
@@ -376,7 +376,7 @@ export function UsersPage() {
 
             {/* Action buttons */}
             <div className="flex gap-3 pt-3">
-              <button className="flex-1 flex items-center justify-center gap-2 border border-blue-200 bg-[#EAF2FF] text-[#1565F9] text-[13px] font-semibold py-2 rounded-xl hover:bg-blue-100 transition cursor-pointer whitespace-nowrap">
+              <button className="flex-1 flex items-center justify-center gap-2 border border-blue-200 bg-[#E8EAFF] text-[#1F2DE6] text-[13px] font-semibold py-2 rounded-xl hover:bg-blue-100 transition cursor-pointer whitespace-nowrap">
                 <Edit2 size={14} />
                 <span>Sửa phân công</span>
               </button>

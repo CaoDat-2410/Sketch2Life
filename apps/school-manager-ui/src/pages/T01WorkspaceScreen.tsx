@@ -677,7 +677,7 @@ export function T01LessonWorkspacePage() {
           style={{
             width: 84,
             height: 84,
-            background: "linear-gradient(145deg, #2563EB, #1D4ED8)",
+            background: "linear-gradient(145deg, #1F2DE6, #1B25C5)",
             color: "#FFFFFF",
           }}
           aria-hidden="true"
@@ -760,7 +760,7 @@ export function T01LessonWorkspacePage() {
                   width: 10,
                   height: 10,
                   borderRadius: "50%",
-                  background: n.unread ? "#2563EB" : "#94A3B8",
+                  background: n.unread ? "#1F2DE6" : "#94A3B8",
                   flexShrink: 0,
                 }}
               />

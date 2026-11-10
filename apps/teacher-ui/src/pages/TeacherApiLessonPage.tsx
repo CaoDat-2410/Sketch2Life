@@ -266,9 +266,9 @@ export function TeacherApiLessonPage() {
             <label className="tw-row" style={{ gap: 8, fontWeight: 650 }}><input type="checkbox" checked={content.script_following_allowed} onChange={(event) => updateContent({ script_following_allowed: event.target.checked })} /> Cho phép bám theo định hướng kịch bản</label>
           </div>
 
-          <div className="tw-card" style={{ marginTop: 18, padding: 16, background: "#F8FAFC" }}>
+          <div className="tw-card" style={{ marginTop: 18, padding: 16, background: "#F6F7F9" }}>
             <div className="tw-row tw-between"><h3 className="tw-h2" style={{ fontSize: 17 }}>Hoạt động thực hành</h3><button type="button" className="tw-btn is-ghost is-sm" disabled={content.activities.length >= 24} onClick={() => updateContent({ activities: [...content.activities, blankActivity()] })}><Icon name="plus" size={15} /> Thêm hoạt động</button></div>
-            {content.activities.map((activity, index) => <fieldset key={index} style={{ border: "1px solid #CBD5E1", borderRadius: 14, padding: 14, margin: "12px 0" }}>
+            {content.activities.map((activity, index) => <fieldset key={index} style={{ border: "1px solid #B9C0CC", borderRadius: 14, padding: 14, margin: "12px 0" }}>
               <legend style={{ padding: "0 6px", fontWeight: 750 }}>Hoạt động {index + 1}</legend>
               <div style={{ display: "grid", gap: 10 }}>
                 <label className="tw-label" style={fieldStyle}>Tên hoạt động<input className="tw-input" style={inputStyle} maxLength={160} required value={activity.title} onChange={(event) => updateActivity(index, { title: event.target.value })} /></label>

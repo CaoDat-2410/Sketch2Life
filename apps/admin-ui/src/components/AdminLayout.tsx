@@ -17,7 +17,7 @@ import {
   LogOut,
   School,
 } from 'lucide-react'
-import sidebarLogo from '../assets/sidebar-logo.png'
+import sidebarLogo from '../../../shared/assets/sketch2life-brand-art-20261110.jpg'
 import { authService } from '../services/authService'
 
 const NAV_ITEMS = [
@@ -71,7 +71,7 @@ export function AdminLayout() {
   const pageTitle = PAGE_TITLES[location.pathname] ?? 'Tổng quan'
 
   return (
-    <div className="flex h-screen bg-[#F4F7FB] overflow-hidden select-none">
+    <div className="flex h-screen bg-[#EEF0F3] overflow-hidden select-none">
       {/* ── Sidebar ─────────────────────────────────── */}
       <aside className="w-[224px] flex-shrink-0 bg-[#F8FBFF] border-r border-slate-200/70 flex flex-col justify-between">
         <div>
@@ -102,8 +102,8 @@ export function AdminLayout() {
                 className={({ isActive }) =>
                   `flex items-center gap-3.5 px-4 py-2.5 rounded-xl text-[14px] transition-colors ${
                     isActive
-                      ? 'bg-[#E2EEFF] text-[#1D63F2] font-semibold'
-                      : 'text-[#334155] font-medium hover:bg-slate-100/80 hover:text-slate-900'
+                      ? 'bg-[#E8EAFF] text-[#1F2DE6] font-semibold'
+                      : 'text-[#343A46] font-medium hover:bg-slate-100/80 hover:text-slate-900'
                   }`
                 }
               >
@@ -112,7 +112,7 @@ export function AdminLayout() {
                     <Icon
                       size={18}
                       strokeWidth={isActive ? 2.2 : 1.9}
-                      className={isActive ? 'text-[#1D63F2]' : 'text-[#475569]'}
+                      className={isActive ? 'text-[#1F2DE6]' : 'text-[#5D6470]'}
                     />
                     <span>{label}</span>
                   </>
@@ -126,7 +126,7 @@ export function AdminLayout() {
         <div className="m-3 p-2 bg-[#F4F8FD] border border-slate-200/80 rounded-2xl space-y-0.5">
           <div className="flex items-center justify-between px-2.5 py-2 rounded-xl hover:bg-white/70 cursor-pointer transition">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-[#DCEBFF] text-[#1D63F2] text-xs font-bold flex items-center justify-center">
+              <div className="w-8 h-8 rounded-full bg-[#E8EAFF] text-[#1F2DE6] text-xs font-bold flex items-center justify-center">
                 QT
               </div>
               <span className="text-[14px] font-bold text-slate-800">Quản trị viên</span>
@@ -174,7 +174,7 @@ export function AdminLayout() {
           {/* Right controls */}
           <div className="flex items-center gap-3.5">
             {/* School selector */}
-            <button className="flex items-center gap-2.5 bg-[#F1F5F9] hover:bg-slate-200/70 text-slate-700 text-[13px] font-semibold px-3.5 py-2 rounded-xl transition-colors">
+            <button className="flex items-center gap-2.5 bg-[#E2E5EA] hover:bg-slate-200/70 text-slate-700 text-[13px] font-semibold px-3.5 py-2 rounded-xl transition-colors">
               <School size={16} className="text-slate-600" />
               <span>Tổ chức đã xác minh qua BE1</span>
               <ChevronDown size={14} className="text-slate-500 ml-0.5" />
@@ -226,7 +226,7 @@ export function AdminLayout() {
             </div>
 
             {/* Avatar */}
-            <div className="w-9 h-9 rounded-full bg-[#DCEBFF] text-[#1D63F2] text-[13px] font-bold flex items-center justify-center">
+            <div className="w-9 h-9 rounded-full bg-[#E8EAFF] text-[#1F2DE6] text-[13px] font-bold flex items-center justify-center">
               QT
             </div>
           </div>

@@ -33,7 +33,7 @@ const DATA_POLICIES = [
   },
   {
     icon: Users,
-    iconBg: 'bg-[#E6F0FF] text-[#1565F9]',
+    iconBg: 'bg-[#E8EAFF] text-[#1F2DE6]',
     name: 'Hồ sơ trẻ',
     desc: 'Thông tin phục vụ quản lý và tổ chức lớp học.',
     retention: 'Cần hoàn thiện',
@@ -88,7 +88,7 @@ export function SettingsPage() {
       {/* Full-width Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-[25px] font-extrabold text-[#0F1F38] tracking-tight leading-tight">
+          <h1 className="text-[25px] font-extrabold text-[#0B0C0E] tracking-tight leading-tight">
             Cấu hình &amp; vòng đời dữ liệu
           </h1>
           <p className="text-[13.5px] text-slate-500 mt-0.5 font-medium">
@@ -96,13 +96,13 @@ export function SettingsPage() {
           </p>
         </div>
         <div className="flex items-center gap-3 shrink-0">
-          <div className="flex items-center gap-2.5 border border-slate-200/80 bg-[#F4F7FB] rounded-xl px-3.5 py-2 text-[13px] text-slate-600 font-medium whitespace-nowrap">
+          <div className="flex items-center gap-2.5 border border-slate-200/80 bg-[#EEF0F3] rounded-xl px-3.5 py-2 text-[13px] text-slate-600 font-medium whitespace-nowrap">
             <span>Phiên bản đang hiệu lực</span>
             <span className="bg-[#D1FAE5] text-[#059669] font-bold px-2.5 py-0.5 rounded-lg text-[12px]">
               v1
             </span>
           </div>
-          <button className="flex items-center gap-2 bg-[#1565F9] hover:bg-blue-700 text-white text-[13px] font-semibold px-4 py-2 rounded-xl shadow-sm transition cursor-pointer whitespace-nowrap shrink-0">
+          <button className="flex items-center gap-2 bg-[#1F2DE6] hover:bg-blue-700 text-white text-[13px] font-semibold px-4 py-2 rounded-xl shadow-sm transition cursor-pointer whitespace-nowrap shrink-0">
             <FilePlus size={15} />
             <span>Tạo bản nháp</span>
           </button>
@@ -120,11 +120,11 @@ export function SettingsPage() {
                 onClick={() => setActiveTab(t.key)}
                 className={`flex items-center gap-2 px-5 py-2 text-[13.5px] rounded-xl transition cursor-pointer whitespace-nowrap ${
                   isActive
-                    ? 'bg-[#E6F0FF] text-[#1565F9] font-bold'
+                    ? 'bg-[#E8EAFF] text-[#1F2DE6] font-bold'
                     : 'text-slate-700 font-medium hover:bg-slate-50'
                 }`}
               >
-                <Icon size={16} className={isActive ? 'text-[#1565F9]' : 'text-slate-600'} />
+                <Icon size={16} className={isActive ? 'text-[#1F2DE6]' : 'text-slate-600'} />
                 <span>{t.label}</span>
               </button>
               {idx < TABS.length - 1 && <div className="h-5 w-px bg-slate-200 mx-1.5" />}
@@ -141,7 +141,7 @@ export function SettingsPage() {
             <>
               <div>
                 <div className="flex items-start gap-2.5 mb-3">
-                  <div className="w-8 h-8 rounded-xl bg-[#E6F0FF] flex items-center justify-center text-[#1565F9] shrink-0 mt-0.5">
+                  <div className="w-8 h-8 rounded-xl bg-[#E8EAFF] flex items-center justify-center text-[#1F2DE6] shrink-0 mt-0.5">
                     <Database size={16} strokeWidth={2.2} />
                   </div>
                   <div>
@@ -157,7 +157,7 @@ export function SettingsPage() {
                 <div className="border border-slate-100 rounded-xl overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="bg-[#F4F7FB] border-b border-slate-100">
+                      <tr className="bg-[#EEF0F3] border-b border-slate-100">
                         <th className="px-3.5 py-2.5 text-left text-[12px] font-semibold text-slate-600 whitespace-nowrap">
                           Loại dữ liệu
                         </th>
@@ -227,12 +227,12 @@ export function SettingsPage() {
               </div>
 
               {/* Footer info callout */}
-              <div className="mt-3 px-3.5 py-2.5 bg-[#EAF3FF] border border-blue-200/80 rounded-xl flex items-start gap-2.5">
-                <span className="w-5 h-5 rounded-full bg-[#1565F9] text-white flex items-center justify-center text-[11px] font-bold shrink-0 mt-0.5">
+              <div className="mt-3 px-3.5 py-2.5 bg-[#E8EAFF] border border-blue-200/80 rounded-xl flex items-start gap-2.5">
+                <span className="w-5 h-5 rounded-full bg-[#1F2DE6] text-white flex items-center justify-center text-[11px] font-bold shrink-0 mt-0.5">
                   i
                 </span>
                 <div>
-                  <p className="text-[12.5px] font-bold text-[#1565F9]">
+                  <p className="text-[12.5px] font-bold text-[#1F2DE6]">
                     Không đổi ngầm policy đang được pin trong phiên.
                   </p>
                   <p className="text-[11.5px] text-slate-600 mt-0.5">
@@ -252,7 +252,7 @@ export function SettingsPage() {
         <div className="col-span-4 bg-white border border-slate-200/70 rounded-2xl p-4 px-5 shadow-[0_1px_3px_rgba(15,23,42,0.02)] flex flex-col justify-between min-w-0">
           <div className="space-y-3.5">
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-[#E6F0FF] text-[#1565F9] flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-2xl bg-[#E8EAFF] text-[#1F2DE6] flex items-center justify-center shrink-0">
                 <FileText size={20} />
               </div>
               <div>
@@ -288,7 +288,7 @@ export function SettingsPage() {
 
               <div className="flex items-center">
                 <div className="flex items-center gap-2.5 text-slate-600 w-36 shrink-0">
-                  <div className="w-6.5 h-6.5 rounded-lg bg-[#E6F0FF] text-[#1565F9] flex items-center justify-center">
+                  <div className="w-6.5 h-6.5 rounded-lg bg-[#E8EAFF] text-[#1F2DE6] flex items-center justify-center">
                     <Calendar size={14} />
                   </div>
                   <span>Ngày tạo</span>
@@ -339,7 +339,7 @@ export function SettingsPage() {
 
           {/* Actions */}
           <div className="space-y-2.5 pt-3 border-t border-slate-100">
-            <button className="w-full flex items-center justify-center gap-2 border border-[#1565F9] text-[#1565F9] hover:bg-blue-50 font-semibold text-[13px] py-2 rounded-xl transition cursor-pointer whitespace-nowrap">
+            <button className="w-full flex items-center justify-center gap-2 border border-[#1F2DE6] text-[#1F2DE6] hover:bg-blue-50 font-semibold text-[13px] py-2 rounded-xl transition cursor-pointer whitespace-nowrap">
               <Search size={14} />
               <span>Kiểm tra bản nháp</span>
             </button>

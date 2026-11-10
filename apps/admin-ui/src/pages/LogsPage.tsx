@@ -54,7 +54,7 @@ export function LogsPage() {
         <div className={`${selectedLog ? 'col-span-8' : 'col-span-12'} flex flex-col gap-3.5 min-w-0`}>
           {/* Header */}
           <div>
-            <h1 className="text-[25px] font-extrabold text-[#0F1F38] tracking-tight leading-tight">
+            <h1 className="text-[25px] font-extrabold text-[#0B0C0E] tracking-tight leading-tight">
               Nhật ký kiểm toán
             </h1>
             <p className="text-[13.5px] text-slate-500 mt-1 font-medium">
@@ -140,7 +140,7 @@ export function LogsPage() {
             <div className="border border-slate-100 rounded-xl overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-[#F4F7FB] border-b border-slate-100">
+                  <tr className="bg-[#EEF0F3] border-b border-slate-100">
                     <th className="px-3 py-2.5 text-left text-[12px] font-semibold text-slate-600 whitespace-nowrap">
                       <div className="flex items-center gap-1.5">
                         <span>Thời điểm</span>
@@ -173,7 +173,7 @@ export function LogsPage() {
                         key={row.time + row.actor}
                         onClick={() => setSelectedLog(row)}
                         className={`cursor-pointer transition ${
-                          isSelected ? 'bg-[#DCEBFF]/65' : 'hover:bg-slate-50/70'
+                          isSelected ? 'bg-[#E8EAFF]/65' : 'hover:bg-slate-50/70'
                         }`}
                       >
                         <td className="px-3 py-3.5 text-slate-800 font-medium text-[13px] whitespace-nowrap">
@@ -217,9 +217,9 @@ export function LogsPage() {
 
           {/* Footer info banner */}
           {showBanner && (
-            <div className="flex items-center justify-between gap-3 bg-[#EAF3FF] border border-blue-200/90 rounded-xl px-4 py-2 text-[12.5px] text-[#1565F9] font-semibold">
+            <div className="flex items-center justify-between gap-3 bg-[#E8EAFF] border border-blue-200/90 rounded-xl px-4 py-2 text-[12.5px] text-[#1F2DE6] font-semibold">
               <div className="flex items-center gap-2.5">
-                <span className="w-5 h-5 rounded-full bg-[#1565F9] text-white flex items-center justify-center text-[11px] font-bold shrink-0">
+                <span className="w-5 h-5 rounded-full bg-[#1F2DE6] text-white flex items-center justify-center text-[11px] font-bold shrink-0">
                   i
                 </span>
                 <span>Nhật ký đã lược bỏ dữ liệu nhạy cảm • Chỉ đọc.</span>
@@ -237,11 +237,11 @@ export function LogsPage() {
           <div className="flex items-center justify-between pt-0.5">
             <span className="text-[12.5px] text-slate-600">Đã hiển thị 3 kết quả</span>
             <div className="flex items-center gap-2.5">
-              <button className="flex items-center gap-2 border border-slate-200 bg-white hover:bg-blue-50 text-[#1565F9] text-[13px] font-semibold px-3.5 py-2 rounded-xl shadow-sm transition cursor-pointer whitespace-nowrap">
+              <button className="flex items-center gap-2 border border-slate-200 bg-white hover:bg-blue-50 text-[#1F2DE6] text-[13px] font-semibold px-3.5 py-2 rounded-xl shadow-sm transition cursor-pointer whitespace-nowrap">
                 <LinkIcon size={14} />
                 <span>Liên kết sự cố</span>
               </button>
-              <button className="flex items-center gap-2 bg-[#1565F9] hover:bg-blue-700 text-white text-[13px] font-semibold px-3.5 py-2 rounded-xl shadow-sm transition cursor-pointer whitespace-nowrap">
+              <button className="flex items-center gap-2 bg-[#1F2DE6] hover:bg-blue-700 text-white text-[13px] font-semibold px-3.5 py-2 rounded-xl shadow-sm transition cursor-pointer whitespace-nowrap">
                 <Download size={14} />
                 <span>Xuất nhật ký theo quyền</span>
               </button>
@@ -358,7 +358,7 @@ export function LogsPage() {
                 {selectedLog.resultColor === 'red' && (
                   <div className="pt-2.5 border-t border-slate-100">
                     <p className="text-[12.5px] font-medium text-slate-600 mb-1.5">Lý do từ chối</p>
-                    <div className="w-full text-[12.5px] text-slate-700 rounded-xl p-3 bg-[#F4F7FB] leading-relaxed">
+                    <div className="w-full text-[12.5px] text-slate-700 rounded-xl p-3 bg-[#EEF0F3] leading-relaxed">
                       Tài khoản không có quyền truy cập vào tài nguyên này theo chính sách hiện hành.
                     </div>
                   </div>
