@@ -1,4 +1,5 @@
 import React from "react";
+import type { ChildGender } from "../data/mockParentData";
 import { useNavigate } from "react-router-dom";
 import { Icon } from "./Icon";
 import type { IconName } from "./Icon";
@@ -129,8 +130,8 @@ export function ParentAvatarSvg({ size = 28 }: { size?: number }) {
   );
 }
 
-export function ChildAvatarSvg({ variant = 0, size = 34 }: { variant?: number; size?: number }) {
-  const isBoy = variant % 2 === 1;
+export function ChildAvatarSvg({ gender, size = 34 }: { gender: ChildGender; size?: number }) {
+  const isBoy = gender === "male";
   return (
     <svg width={size} height={size} viewBox="0 0 48 48" aria-hidden="true">
       <circle cx="24" cy="24" r="22" fill={isBoy ? "#d1fae5" : "#fef3c7"} />
@@ -154,6 +155,62 @@ export function ChildAvatarSvg({ variant = 0, size = 34 }: { variant?: number; s
   );
 }
 
+export function ChildGenderField({
+  idPrefix,
+  value,
+  onChange,
+}: {
+  idPrefix: string;
+  value: ChildGender | "";
+  onChange: (gender: ChildGender) => void;
+}) {
+  const options: { value: ChildGender; label: string; avatarLabel: string }[] = [
+    { value: "male", label: "Nam", avatarLabel: "Avatar bé trai" },
+    { value: "female", label: "Nữ", avatarLabel: "Avatar bé gái" },
+  ];
+  const helpId = idPrefix + "-help";
+
+  return (
+    <fieldset className="child-gender-fieldset">
+      <legend className="field-label">Giới tính *</legend>
+      <div className="child-gender-options">
+        {options.map((option) => {
+          const selected = value === option.value;
+          const inputId = idPrefix + "-" + option.value;
+          return (
+            <label
+              key={option.value}
+              className={"child-gender-option" + (selected ? " is-selected" : "")}
+            >
+              <input
+                id={inputId}
+                className="child-gender-radio"
+                type="radio"
+                name={idPrefix}
+                value={option.value}
+                checked={selected}
+                required
+                aria-describedby={helpId}
+                onChange={() => onChange(option.value)}
+              />
+              {selected && (
+                <span className="child-gender-check" aria-hidden="true">
+                  <Icon name="check" size={14} />
+                </span>
+              )}
+              <span className="child-gender-preview"><ChildAvatarSvg gender={option.value} size={48} /></span>
+              <span className="child-gender-label">{option.label}</span>
+              <span className="child-gender-description">{option.avatarLabel}</span>
+            </label>
+          );
+        })}
+      </div>
+      <p className="child-gender-help" id={helpId}>
+        Avatar sẽ hiển thị theo giới tính bạn chọn.
+      </p>
+    </fieldset>
+  );
+}
 /* ---------- Primitives ---------- */
 export function TopBar({
   title,
@@ -303,8 +360,8 @@ export function Note({
   );
 }
 
-export function Switch({ on, onChange, label }: { on: boolean; onChange: () => void; label: string }) {
-  return <button type="button" className={`switch ${on ? "on" : ""}`} role="switch" aria-checked={on} aria-label={label} onClick={onChange} />;
+export function Switch({ on, onChange, label, className = "" }: { on: boolean; onChange: () => void; label: string; className?: string }) {
+  return <button type="button" className={[`switch`, className, on ? "on" : ""].filter(Boolean).join(" ")} role="switch" aria-checked={on} aria-label={label} onClick={onChange} />;
 }
 
 export function Waveform({ live }: { live: boolean }) {

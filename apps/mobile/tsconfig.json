@@ -1,15 +1,30 @@
 {
-  "extends": "@react-native/typescript-config",
+  "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@app/*": ["src/app/*"],
-      "@bridge/*": ["src/bridge/*"],
-      "@features/*": ["src/features/*"],
-      "@infrastructure/*": ["src/infrastructure/*"],
-      "@shared/*": ["src/shared/*"]
+      "@app/*": [
+        "src/app/*"
+      ],
+      "@bridge/*": [
+        "src/bridge/*"
+      ],
+      "@features/*": [
+        "src/features/*"
+      ],
+      "@infrastructure/*": [
+        "src/infrastructure/*"
+      ],
+      "@shared/*": [
+        "src/shared/*"
+      ]
     },
     "strict": true
   },
-  "include": ["index.js", "src/**/*.ts", "src/**/*.tsx", "__tests__/**/*.ts"]
+  "include": [
+    "index.js",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "__tests__/**/*.ts"
+  ]
 }

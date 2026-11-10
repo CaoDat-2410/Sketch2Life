@@ -6,6 +6,8 @@ Keep the mobile client focused on user interaction, device capabilities, playbac
 
 The active target is Android only. Namespace/application ID is `com.sketch2life.mobile`; minSdk/targetSdk/compileSdk are 29/36/37. Child, parent, and guide experiences are role modes composed inside one application, not separate native apps.
 
+The active `apps/mobile` client uses Expo SDK 58 and Expo CLI over React Native. Expo supplies app configuration, module autolinking, Metro defaults, and the development-client workflow; React Native remains the UI runtime. The existing Android project is retained as the source of current Gradle build settings. `apps/ui-mobile` is a separate legacy SDK 52 reference app. See ADR-0023.
+
 ## Directory contract
 
 ```text

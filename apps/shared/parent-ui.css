@@ -387,3 +387,157 @@ button.age-opt { height: auto; }
 html[data-theme="dark"] .page:has(.hero-create) {
   background: linear-gradient(180deg, #13233d 0%, #101b2e 54%);
 }
+/* Parent tablet layouts — touch-first iPad viewports. */
+@media (min-width: 700px) and (min-height: 600px) and (pointer: coarse) and (hover: none) {
+  .phone .page:not(.auth-page) {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 1080px;
+    margin-inline: auto;
+    padding: 22px max(26px, env(safe-area-inset-right)) max(36px, env(safe-area-inset-bottom)) max(26px, env(safe-area-inset-left));
+    gap: 22px;
+  }
+
+  .phone .scroll > [role="status"]:first-child {
+    width: min(calc(100% - 52px), 1028px);
+    margin: 16px auto 0 !important;
+  }
+
+  .phone .tabbar {
+    box-sizing: border-box;
+    width: min(100%, 1000px);
+    align-self: center;
+    border-radius: 22px 22px 0 0;
+    padding: 10px 20px max(16px, env(safe-area-inset-bottom));
+  }
+
+  .phone .tabbar .tab,
+  .phone .tabbar .tab-create-slot {
+    min-height: 60px;
+  }
+
+  .phone .tabbar .tab {
+    font-size: 12px;
+  }
+
+  .phone .tabbar .tab-create-action {
+    top: -28px;
+    min-height: 84px;
+  }
+
+  .phone .tabbar .tab-create-action__orb {
+    width: 64px;
+    height: 64px;
+    flex-basis: 64px;
+  }
+
+  .phone .page:not(.auth-page) .btn3d:not(.sm) {
+    min-height: 52px;
+  }
+
+  .phone .page:not(.auth-page) .child-pill {
+    min-height: 48px;
+  }
+
+  .phone .page:not(.auth-page):has(.hero-create) {
+    padding-top: 22px;
+    gap: 22px;
+  }
+
+  .phone .page:not(.auth-page):has(.hero-create) .hero-create,
+  .phone .page:not(.auth-page):has(.hero-create) .hero-create:active {
+    grid-template-columns: 52px minmax(0, 1fr) clamp(100px, 13vw, 132px);
+    min-height: 150px;
+    gap: 14px;
+    padding: 16px 18px;
+  }
+
+  .phone .page:not(.auth-page):has(.hero-create) .hero-create .plus {
+    width: 52px;
+    height: 52px;
+  }
+
+  .phone .page:not(.auth-page):has(.hero-create) .hero-kite {
+    width: clamp(100px, 13vw, 132px);
+    height: 136px;
+  }
+
+  .phone .page:not(.auth-page):has(.hero-create) .story-card .thumb {
+    height: 140px;
+  }
+}
+
+@media (min-width: 1000px) and (orientation: landscape) and (pointer: coarse) and (hover: none) {
+  .phone .page:not(.auth-page) {
+    padding-top: 18px;
+    gap: 18px;
+  }
+
+  .phone .page:not(.auth-page):has(.hero-create) {
+    gap: 14px;
+  }
+
+  .phone .page:not(.auth-page):has(.hero-create) .hero-create,
+  .phone .page:not(.auth-page):has(.hero-create) .hero-create:active {
+    min-height: 132px;
+  }
+
+  .phone .page:not(.auth-page):has(.hero-create) .story-card .thumb {
+    height: 108px;
+  }
+
+  .phone .page:has(.gauge) {
+    display: grid;
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+    align-content: start;
+    gap: 22px 28px;
+  }
+
+  .phone .page:has(.gauge) > .topbar {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  .phone .page:has(.gauge) > .card:has(.gauge) {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: start;
+    min-height: 100%;
+  }
+
+  .phone .page:has(.gauge) > h2 {
+    grid-column: 2;
+    grid-row: 2;
+    align-self: end;
+  }
+
+  .phone .page:has(.gauge) > .row:has(.pack) {
+    grid-column: 2;
+    grid-row: 3;
+  }
+
+  .phone .page:has(.gauge) > .row.wrap {
+    grid-column: 2;
+    grid-row: 4;
+  }
+
+  .phone .page:has(.gauge) > .note {
+    grid-column: 2;
+    grid-row: 5;
+  }
+
+  .phone .page:has(.gauge) > .btn3d {
+    grid-column: 2;
+    grid-row: 6;
+  }
+
+  .phone .page:has(.gauge) > .sec-head {
+    grid-column: 1 / -1;
+    grid-row: 7;
+  }
+
+  .phone .page:has(.gauge) > .card:last-child {
+    grid-column: 1 / -1;
+    grid-row: 8;
+  }
+}

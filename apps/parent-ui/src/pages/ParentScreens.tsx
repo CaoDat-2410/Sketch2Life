@@ -4,6 +4,7 @@ import parentLoginLogo from "../../../../features/FEAT-036-ui-current-direction-
 import parentLoginPencil from "../../../../features/FEAT-036-ui-current-direction-alignment/assets/applied/parent-login-zip-splash/pencil.png?url";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { VideoJobMode, useParent } from "../context/ParentContext";
+import type { ChildGender, ChildProfileItem } from "../data/mockParentData";
 import {
   BackendModeNotice,
   BackendNotice,
@@ -21,6 +22,7 @@ import { Accordion, AccordionContent, AccordionHeader, AccordionItem, AccordionT
 import {
   Btn,
   ChildAvatarSvg,
+  ChildGenderField,
   GRADS,
   Note,
   ParentAvatarSvg,
@@ -200,14 +202,13 @@ export function P01LessonLibraryPage() {
     selectedProfileId,
     setSelectedProfileId,
     lessons,
-    setSelectedLessonId,
     selectedLessonId,
     libraryState,
     setLibraryState,
-    setSkippedOptionalSetup,
+    startStoryDraft,
+    pinStoryLesson,
     setGuideTopic,
     runHistory,
-    quotaRemaining,
     notifications,
     setActiveSheet,
     hasActiveRun,
@@ -217,10 +218,20 @@ export function P01LessonLibraryPage() {
 
   const activeProfiles = profiles.filter((p) => !p.archived && p.deletionStatus !== "DELETED");
   const activeChild = activeProfiles.find((p) => p.id === selectedProfileId) ?? activeProfiles[0] ?? profiles[0];
+  const activeRunInProgress = hasActiveRun && videoJobMode !== "DELETED" && videoJobMode !== "DELETE_PENDING";
   const unread = notifications.filter((n) => n.unread).length;
   const tags = ["Tất cả", ...Array.from(new Set(lessons.flatMap((l) => l.tags)))];
   const shown = lessons.filter((l) => tag === "Tất cả" || l.tags.includes(tag));
   const recent = runHistory.filter((r) => r.lifecycleState !== "DELETED");
+  const startCapture = () => {
+    if (activeRunInProgress) {
+      showToast("Hãy hoàn tất câu chuyện đang thực hiện trước khi bắt đầu câu chuyện mới.", "info");
+      nav(videoJobMode === "READY" ? "/p08-video-and-activities" : "/p07-video-job-status");
+      return;
+    }
+    startStoryDraft(true);
+    nav("/p04-capture-subject-confirmation");
+  };
 
   if (!isLocalPreview()) return <ParentApiLibraryPage />;
 
@@ -235,8 +246,7 @@ export function P01LessonLibraryPage() {
               type="button"
               className="ghost-link"
               onClick={() => {
-                setSkippedOptionalSetup(true);
-                nav("/p04-capture-subject-confirmation");
+                startCapture();
               }}
             >
               Bỏ qua
@@ -247,12 +257,7 @@ export function P01LessonLibraryPage() {
         <h1 className="h1">Gợi ý chủ đề cho bé</h1>
         <p className="sub">Bước này là tùy chọn. Nếu bé đã có sẵn tranh vẽ, bố mẹ có thể vào thẳng bước chụp ảnh.</p>
 
-        <Soft
-          onClick={() => {
-            setSkippedOptionalSetup(true);
-            nav("/p04-capture-subject-confirmation");
-          }}
-        >
+        <Soft disabled={activeRunInProgress} onClick={startCapture}>
           <Icon name="camera" size={18} /> Bỏ qua · Chụp tranh ngay
         </Soft>
 
@@ -293,9 +298,8 @@ export function P01LessonLibraryPage() {
                 type="button"
                 className={`topic ${l.id === selectedLessonId ? "on" : ""}`}
                 onClick={() => {
-                  setSelectedLessonId(l.id);
+                  pinStoryLesson(l.id);
                   setGuideTopic(l.topic);
-                  setSkippedOptionalSetup(false);
                   nav("/p02-lesson-detail");
                 }}
               >
@@ -330,7 +334,7 @@ export function P01LessonLibraryPage() {
       {/* Compact 1-tap active child selector bar */}
       <div className="child-bar" role="region" aria-label="Hồ sơ bé đang chọn">
         <div className="child-pills">
-          {activeProfiles.map((p, idx) => {
+          {activeProfiles.map((p) => {
             const on = activeChild?.id === p.id;
             const yrs = Math.max(3, Math.floor(p.ageMonths / 12));
             return (
@@ -341,7 +345,7 @@ export function P01LessonLibraryPage() {
                 aria-pressed={on}
                 onClick={() => setSelectedProfileId(p.id)}
               >
-                <ChildAvatarSvg variant={idx} size={22} />
+                <ChildAvatarSvg gender={p.gender} size={22} />
                 <span>{p.displayName} · {yrs}t</span>
               </button>
             );
@@ -356,26 +360,28 @@ export function P01LessonLibraryPage() {
       <button
         type="button"
         className="hero-create"
-        onClick={() => {
-          if (quotaRemaining <= 0) {
-            showToast("Bạn đã hết lượt tạo video. Bạn vẫn có thể chụp tranh và mua thêm lượt sau.", "warn");
-          }
-          setSkippedOptionalSetup(true);
-          nav("/p04-capture-subject-confirmation");
-        }}
+        disabled={activeRunInProgress}
+        aria-label={activeRunInProgress
+          ? "Đang có câu chuyện chưa hoàn tất. Hoàn tất trước khi tạo câu chuyện mới."
+          : "Tạo câu chuyện mới bằng cách chụp tranh"}
+        onClick={startCapture}
       >
-        <span className="plus"><Icon name="camera" size={26} strokeWidth={2.4} /></span>
+        <span className="plus"><Icon name={activeRunInProgress ? "video" : "camera"} size={26} strokeWidth={2.4} /></span>
         <span className="grow">
-          <span className="t" style={{ display: "block" }}>Tạo câu chuyện mới</span>
-          <span className="s" style={{ display: "block" }}>Chụp tranh để bắt đầu</span>
+          <span className="t" style={{ display: "block" }}>
+            {activeRunInProgress ? "Câu chuyện đang thực hiện" : "Tạo câu chuyện mới"}
+          </span>
+          <span className="s" style={{ display: "block" }}>
+            {activeRunInProgress ? "Hoàn tất câu chuyện hiện tại trước khi tạo mới" : "Chụp tranh để bắt đầu"}
+          </span>
         </span>
         <img className="hero-kite" src="/illustrations/child-story-hero.webp" alt="" aria-hidden="true" />
       </button>
-
       {/* Secondary Optional Entry: Topic & Drawing Guide */}
       <Soft
+        disabled={activeRunInProgress}
         onClick={() => {
-          setSkippedOptionalSetup(false);
+          startStoryDraft(false);
           setView("topics");
         }}
       >
@@ -1008,10 +1014,22 @@ export function P05ContextIdeaConfirmationPage() {
     ideaTranscript,
     setIdeaTranscript,
     setContextConfirmed,
+    confirmContextSnapshot,
+    contextConfirmed,
+    contextSnapshotRevision,
+    profiles,
+    storyProfileId,
+    lessons,
+    currentRunLessonId,
+    subjectConfirmed,
     detectedSubject,
     skippedOptionalSetup,
     showToast,
   } = useParent();
+  const activeProfile = profiles.find((profile) => profile.id === storyProfileId) ?? profiles[0];
+  const runLesson = currentRunLessonId
+    ? lessons.find((lesson) => lesson.id === currentRunLessonId)
+    : undefined;
 
   useEffect(() => {
     if (!isRecording) return;
@@ -1131,27 +1149,70 @@ export function P05ContextIdeaConfirmationPage() {
         </div>
       </div>
 
+      <section className="card stack" aria-labelledby="context-review-title">
+        <div>
+          <h2 className="h2" id="context-review-title">Duyệt thông tin cá nhân hóa</h2>
+          <p className="tiny">
+            Hồ sơ đang dùng: {activeProfile?.displayName ?? "Bé"} ·{" "}
+            {contextConfirmed ? "Bản duyệt #" + contextSnapshotRevision : "Chưa duyệt"}
+          </p>
+        </div>
+        <div className="stack" style={{ gap: 9 }}>
+          <div>
+            <div className="tiny">Nhóm tuổi</div>
+            <div className="sub">{activeProfile?.ageGroup ?? "Chưa có thông tin"}</div>
+          </div>
+          <div>
+            <div className="tiny">Sở thích</div>
+            <div className="sub">
+              {activeProfile?.interests.length ? activeProfile.interests.join(", ") : "Chưa có thông tin"}
+            </div>
+          </div>
+          <div>
+            <div className="tiny">Ghi chú học tập</div>
+            <div className="sub">{activeProfile?.learningNotes || "Chưa có thông tin"}</div>
+          </div>
+          <div>
+            <div className="tiny">Hướng truyện đã chọn</div>
+            <div className="sub">{runLesson?.title ?? "Không dùng bài học preset"}</div>
+          </div>
+        </div>
+        <Note tone="blue" icon="shield">
+          Tên, tên gọi thân mật và ghi chú nhu cầu hỗ trợ được loại khỏi ngữ cảnh AI theo mặc định.
+        </Note>
+        <button
+          type="button"
+          className={contextConfirmed ? "transcript-review-btn is-checked" : "transcript-review-btn"}
+          role="checkbox"
+          aria-checked={contextConfirmed}
+          onClick={() => contextConfirmed ? setContextConfirmed(false) : confirmContextSnapshot()}
+        >
+          <span aria-hidden="true">
+            {contextConfirmed ? <Icon name="check" size={14} strokeWidth={3} /> : null}
+          </span>
+          {contextConfirmed ? "Đã xem và duyệt thông tin trên" : "Tôi đã xem và duyệt thông tin trên"}
+        </button>
+      </section>
+
       {audioError && <Note tone="red" icon="mic">{audioError}</Note>}
 
       <div className="cta-bar">
         <Btn
-          disabled={!!audioError || isRecording || transcriptReview === "needed"}
+          disabled={!!audioError || isRecording || transcriptReview === "needed" || !contextConfirmed || !subjectConfirmed}
           onClick={() => {
-            setContextConfirmed(true);
             nav("/p06-story-review");
           }}
         >
           Tiếp tục <Icon name="arrow-right" size={18} />
         </Btn>
         <Soft
-          disabled={isRecording}
+          disabled={isRecording || transcriptReview === "needed" || !contextConfirmed || !subjectConfirmed}
           onClick={() => {
             setIdeaTranscript("");
-            setContextConfirmed(true);
             nav("/p06-story-review");
           }}
         >
-          Bỏ qua
+          Bỏ qua ý tưởng
         </Soft>
       </div>
     </div>
@@ -1172,14 +1233,24 @@ export function P06StoryReviewPage() {
     requestAiRewrite,
     setActiveSheet,
     quotaRemaining,
+    contextConfirmed,
+    subjectConfirmed,
+    scriptConfirmed,
+    hasActiveRun,
+    videoJobMode,
     lastUnsuitableReason,
     detectedSubject,
     skippedOptionalSetup,
     lessons,
     selectedLessonId,
+    currentRunLessonId,
   } = useParent();
   const left = 3 - rewriteCount;
-  const lesson = lessons.find((l) => l.id === selectedLessonId) ?? lessons[0];
+  const acceptedJobInProgress =
+    hasActiveRun && ["ADMISSION_PENDING", "QUEUED", "RUNNING", "SAFETY_VALIDATING", "RECONCILING"].includes(videoJobMode);
+  const scriptAlreadyAccepted = scriptConfirmed || acceptedJobInProgress;
+  const lessonId = currentRunLessonId ?? selectedLessonId;
+  const lesson = lessons.find((l) => l.id === lessonId) ?? lessons[0];
   const storyHeading = skippedOptionalSetup ? `Hành trình của ${detectedSubject}` : lesson.title;
 
   return (
@@ -1190,6 +1261,16 @@ export function P06StoryReviewPage() {
       <Note tone="blue" icon="shield">
         Kiểm tra kịch bản 5 cảnh trước khi dùng 1 lượt tạo video.
       </Note>
+      {!subjectConfirmed && (
+        <Note tone="amber" icon="info">
+          Quay lại bước chụp tranh để xác nhận chủ thể trước khi tiếp tục.
+        </Note>
+      )}
+      {!contextConfirmed && (
+        <Note tone="amber" icon="info">
+          Quay lại bước ý tưởng để xem và duyệt ngữ cảnh cá nhân hóa.
+        </Note>
+      )}
       {lastUnsuitableReason && (
         <Note tone="amber" icon="refresh">
           Lý do tạo lại lần trước: {lastUnsuitableReason}
@@ -1240,23 +1321,36 @@ export function P06StoryReviewPage() {
           aria-label="Gợi ý cho AI viết lại kịch bản"
           placeholder="Ví dụ: Thêm chi tiết chú bướm bay qua vườn hoa..."
         />
-        <Soft disabled={left <= 0} onClick={requestAiRewrite}>
+        <Soft disabled={left <= 0 || scriptAlreadyAccepted} onClick={requestAiRewrite}>
           <Icon name="refresh" size={16} /> {left > 0 ? `Viết lại với AI (còn ${left} lần)` : "Đã hết 3 lần viết lại"}
         </Soft>
       </div>
 
       <div className="cta-bar">
-        {quotaRemaining <= 0 && (
+        {scriptAlreadyAccepted ? (
+          <>
+            <Note tone="mint" icon="check">
+              Yêu cầu cho kịch bản này đã được nhận. Tiếp tục theo dõi tiến trình video.
+            </Note>
+            <Btn onClick={() => nav(videoJobMode === "READY" ? "/p08-video-and-activities" : "/p07-video-job-status")}>
+              Tiếp tục câu chuyện
+            </Btn>
+          </>
+        ) : quotaRemaining <= 0 && (
           <Note tone="red" icon="lock">
             Tài khoản đã hết lượt tạo video. Bố mẹ mua thêm lượt để tiếp tục nhé.
           </Note>
         )}
-        {quotaRemaining <= 0 ? (
+        {scriptAlreadyAccepted ? null : quotaRemaining <= 0 ? (
           <Btn tone="amber" onClick={() => nav("/p12-video-quota")}>
             Mua thêm lượt tạo
           </Btn>
         ) : (
-          <Btn tone="mint" onClick={() => setActiveSheet("CONFIRM_SCRIPT")}>
+          <Btn
+            tone="mint"
+            disabled={!subjectConfirmed || !contextConfirmed}
+            onClick={() => setActiveSheet("CONFIRM_SCRIPT")}
+          >
             <Icon name="check" size={19} /> Duyệt kịch bản &amp; Tạo video
           </Btn>
         )}
@@ -1278,7 +1372,14 @@ const NEXT_MODE: Partial<Record<VideoJobMode, VideoJobMode>> = {
 
 export function P07VideoJobStatusPage() {
   const nav = useNavigate();
-  const { videoJobMode, setVideoJobMode, cancelPurgeStep, setActiveSheet, skippedOptionalSetup } = useParent();
+  const {
+    videoJobMode,
+    setVideoJobMode,
+    cancelPurgeStep,
+    setActiveSheet,
+    skippedOptionalSetup,
+    recordCurrentStoryReady,
+  } = useParent();
 
   useEffect(() => {
     const next = NEXT_MODE[videoJobMode];
@@ -1286,6 +1387,10 @@ export function P07VideoJobStatusPage() {
     const t = window.setTimeout(() => setVideoJobMode(next), 3200);
     return () => window.clearTimeout(t);
   }, [videoJobMode, setVideoJobMode]);
+
+  useEffect(() => {
+    if (videoJobMode === "READY") recordCurrentStoryReady();
+  }, [videoJobMode, recordCurrentStoryReady]);
 
   const stageOf: Partial<Record<VideoJobMode, number>> = {
     ADMISSION_PENDING: 0,
@@ -1415,18 +1520,21 @@ export function P08VideoAndActivitiesPage() {
     selectedLessonId,
     setActiveSheet,
     videoRegenCount,
+    videoJobMode,
+    currentRunLessonId,
     landscapeVideo,
     setLandscapeVideo,
     autoLandscapeOnPlay,
     setAutoLandscapeOnPlay,
   } = useParent();
 
-  const lesson = lessons.find((l) => l.id === selectedLessonId) ?? lessons[0];
+  const lessonId = currentRunLessonId ?? selectedLessonId;
+  const lesson = lessons.find((l) => l.id === lessonId) ?? lessons[0];
   const videoTitle = skippedOptionalSetup ? `Câu chuyện của ${detectedSubject}` : lesson.title;
   const videoArt = storyArtSrc(skippedOptionalSetup ? detectedSubject : lesson.coverKind);
 
   const [playing, setPlaying] = useState(false);
-  const [prog, setProg] = useState(25);
+  const [prog, setProg] = useState(0);
 
   useEffect(() => {
     if (!playing) return;
@@ -1441,6 +1549,15 @@ export function P08VideoAndActivitiesPage() {
     }, 150);
     return () => window.clearInterval(t);
   }, [playing]);
+
+  useEffect(() => {
+    if (videoJobMode === "READY") return;
+    nav("/p07-video-job-status", { replace: true });
+  }, [videoJobMode, nav]);
+
+  if (videoJobMode !== "READY") {
+    return <div className="page" role="status" aria-live="polite">Đang kiểm tra video trước khi mở phát…</div>;
+  }
 
   const handlePlayToggle = () => {
     if (!playing) {
@@ -1628,16 +1745,37 @@ export function P08VideoAndActivitiesPage() {
    ===================================================================== */
 export function P08bOutdoorActivityPage() {
   const nav = useNavigate();
-  const { lessons, selectedLessonId, setHasActiveRun } = useParent();
-  const lesson = lessons.find((l) => l.id === selectedLessonId) ?? lessons[0];
-  const activities = lesson.outdoorActivities;
+  const {
+    lessons,
+    selectedLessonId,
+    currentRunLessonId,
+    skippedOptionalSetup,
+    videoJobMode,
+    completeCurrentStoryRun,
+  } = useParent();
+  const lessonId = currentRunLessonId ?? selectedLessonId;
+  const lesson = lessons.find((l) => l.id === lessonId) ?? lessons[0];
+  const hasPinnedLesson = !skippedOptionalSetup && currentRunLessonId !== null;
+  const activities = hasPinnedLesson ? lesson.outdoorActivities : [];
   const [kidView, setKidView] = useState(false);
+
+  useEffect(() => {
+    if (videoJobMode !== "READY") nav("/p07-video-job-status", { replace: true });
+  }, [videoJobMode, nav]);
+
+  if (videoJobMode !== "READY") {
+    return <div className="page" role="status" aria-live="polite">Hoạt động sẽ mở sau khi video sẵn sàng.</div>;
+  }
 
   return (
     <div className="page">
       <TopBar title="Hoạt động sau câu chuyện" onBack={() => nav("/p08-video-and-activities")} />
-      <h1 className="h1">Cùng khám phá hoạt động</h1>
-      <p className="sub">Các hoạt động trong bài học “{lesson.title}”.</p>
+      <h1 className="h1">{hasPinnedLesson ? "Cùng khám phá hoạt động" : "Hoạt động sau câu chuyện"}</h1>
+      <p className="sub">
+        {hasPinnedLesson
+          ? "Các hoạt động trong bài học “" + lesson.title + "”."
+          : "Câu chuyện này không ghim bài học; bản xem thử chưa thiết lập danh sách hoạt động cho trường hợp này."}
+      </p>
       <img className="outdoor-art" src="/illustrations/garden-discovery.webp" alt="Bé khám phá bướm trong vườn cùng bạn diều giấy" />
 
       <div className="row between">
@@ -1675,7 +1813,14 @@ export function P08bOutdoorActivityPage() {
           </article>
         ))}
         {activities.length === 0 && (
-          <div className="card sub">Bài học này chưa có hoạt động đi kèm.</div>
+          <div className="card stack" role="status">
+            <h2 className="h2">{hasPinnedLesson ? "Bài học chưa có hoạt động" : "Chưa có hoạt động gắn với câu chuyện này"}</h2>
+            <p className="sub">
+              {hasPinnedLesson
+                ? "Bố mẹ vẫn có thể hoàn tất câu chuyện."
+                : "Bố mẹ vẫn có thể hoàn tất câu chuyện mà không cần chọn hoạt động."}
+            </p>
+          </div>
         )}
       </section>
 
@@ -1683,7 +1828,7 @@ export function P08bOutdoorActivityPage() {
         <Btn
           tone="mint"
           onClick={() => {
-            setHasActiveRun(false);
+            completeCurrentStoryRun();
             nav("/p08c-session-feedback");
           }}
         >
@@ -1701,7 +1846,7 @@ const QUICK_FEEDBACK_TAGS = ["Bé rất thích", "Dễ thực hiện", "Hình �
 
 export function P08cSessionFeedbackPage() {
   const nav = useNavigate();
-  const { sendFeedback, setHasActiveRun, showToast } = useParent();
+  const { sendFeedback, completeCurrentStoryRun, showToast } = useParent();
   const [rating, setRating] = useState(5);
   const [selectedTags, setSelectedTags] = useState<string[]>(["Bé rất thích"]);
   const [note, setNote] = useState("");
@@ -1793,7 +1938,7 @@ export function P08cSessionFeedbackPage() {
           onClick={() => {
             const summary = `[${rating} sao] ${selectedTags.join(", ")}${note.trim() ? ` — ${note.trim()}` : ""}`;
             sendFeedback(summary, true);
-            setHasActiveRun(false);
+            completeCurrentStoryRun();
             showToast("Cảm ơn bố mẹ! Đã lưu đánh giá và kết thúc phiên.", "ok");
             nav("/p01-lesson-library");
           }}
@@ -1802,7 +1947,7 @@ export function P08cSessionFeedbackPage() {
         </Btn>
         <Soft
           onClick={() => {
-            setHasActiveRun(false);
+            completeCurrentStoryRun();
             nav("/p01-lesson-library");
           }}
         >
@@ -2003,12 +2148,60 @@ export function P09HistoryFeedbackPage() {
   );
 }
 
+interface ProfileListRowProps {
+  profile: ChildProfileItem;
+  selectedProfileId: string;
+  onSelect: (profileId: string) => void;
+  onOpenDetails: (profileId: string) => void;
+}
+
+function ProfileListRow({ profile, selectedProfileId, onSelect, onOpenDetails }: ProfileListRowProps) {
+  const ageLabel = compactAgeLabel(profile.ageMonths);
+  const isSelectable = !profile.archived && profile.deletionStatus === "ACTIVE";
+  const isSelected = isSelectable && selectedProfileId === profile.id;
+  const statusLabel = isSelected ? "Đang dùng" : profile.archived ? "Đã lưu" : isSelectable ? "Chọn" : "Đang xóa";
+  const selectionLabel = isSelectable
+    ? `${isSelected ? "Đang dùng" : "Chuyển sang"} hồ sơ ${profile.displayName}, ${ageLabel}`
+    : `Hồ sơ ${profile.displayName}, ${statusLabel.toLowerCase()}`;
+
+  return (
+    <li className="profile-list-item">
+      <button
+        type="button"
+        className={`profile-row ${isSelected ? "is-selected" : ""}`}
+        aria-label={selectionLabel}
+        aria-pressed={isSelected}
+        disabled={!isSelectable}
+        onClick={() => onSelect(profile.id)}
+      >
+        <span className="profile-avatar"><ChildAvatarSvg gender={profile.gender} size={42} /></span>
+        <span className="profile-row-copy">
+          <span className="h3 profile-name">{profile.displayName}</span>
+          <span className="profile-age">{ageLabel}</span>
+        </span>
+        <span className={`profile-status ${isSelected ? "is-current" : isSelectable ? "is-selectable" : "is-archived"}`}>
+          {statusLabel}
+        </span>
+      </button>
+      <button
+        type="button"
+        className="profile-row-details"
+        aria-label={`Chi tiết hồ sơ ${profile.displayName}`}
+        title="Xem chi tiết hồ sơ"
+        onClick={() => onOpenDetails(profile.id)}
+      >
+        <Icon name="chevron-right" size={18} color="var(--ink-3)" />
+      </button>
+    </li>
+  );
+}
+
 /* =====================================================================
    P10 · Hồ sơ của bé — Danh sách / Bảng tối giản
    ===================================================================== */
 export function P10ChildProfilesPage() {
   const nav = useNavigate();
-  const { profiles, selectedProfileId, setActiveSheet } = useParent();
+  const { profiles, selectedProfileId, setSelectedProfileId, setActiveSheet } = useParent();
   const visibleProfiles = profiles.filter((p) => p.deletionStatus !== "DELETED");
 
   return (
@@ -2033,27 +2226,15 @@ export function P10ChildProfilesPage() {
         </div>
       ) : (
         <ul className="profile-table" aria-label="Danh sách hồ sơ trẻ">
-          {visibleProfiles.map((p, index) => {
-            const ageLabel = compactAgeLabel(p.ageMonths);
-            const isSelected = selectedProfileId === p.id && !p.archived;
-            const statusLabel = isSelected ? "Đang dùng" : p.archived ? "Đã lưu" : null;
+          {visibleProfiles.map((p) => {
             return (
-              <li key={p.id} className="profile-list-item">
-                <button
-                  type="button"
-                  className={`profile-row ${isSelected ? "is-selected" : ""}`}
-                  aria-label={`Mở hồ sơ ${p.displayName}, ${ageLabel}${statusLabel ? `, ${statusLabel.toLowerCase()}` : ""}`}
-                  onClick={() => nav(`/p10-child-profiles/${p.id}`)}
-                >
-                  <span className="profile-avatar"><ChildAvatarSvg variant={index} size={42} /></span>
-                  <span className="profile-row-copy">
-                    <span className="h3 profile-name">{p.displayName}</span>
-                    <span className="profile-age">{ageLabel}</span>
-                  </span>
-                  {statusLabel && <span className={`profile-status ${isSelected ? "is-current" : "is-archived"}`}>{statusLabel}</span>}
-                  <Icon name="chevron-right" size={18} color="var(--ink-3)" />
-                </button>
-              </li>
+              <ProfileListRow
+                key={p.id}
+                profile={p}
+                selectedProfileId={selectedProfileId}
+                onSelect={setSelectedProfileId}
+                onOpenDetails={(profileId) => nav(`/p10-child-profiles/${profileId}`)}
+              />
             );
           })}
         </ul>
@@ -2080,10 +2261,10 @@ export function P10ChildProfileDetailPage() {
     showToast,
   } = useParent();
 
-  const childIdx = profiles.findIndex((p) => p.id === childId);
-  const child = childIdx >= 0 ? profiles[childIdx] : undefined;
+  const child = profiles.find((profile) => profile.id === childId);
 
   const [nameDraft, setNameDraft] = useState(child?.displayName ?? "");
+  const [genderDraft, setGenderDraft] = useState<ChildGender>(child?.gender ?? "female");
   const [monthsDraft, setMonthsDraft] = useState(String(child?.ageMonths ?? 60));
   const [ageError, setAgeError] = useState("");
   const [interestsDraft, setInterestsDraft] = useState(child?.interests.join(", ") ?? "");
@@ -2094,6 +2275,7 @@ export function P10ChildProfileDetailPage() {
   useEffect(() => {
     if (!child) return;
     setNameDraft(child.displayName);
+    setGenderDraft(child.gender);
     setMonthsDraft(String(child.ageMonths));
     setInterestsDraft(child.interests.join(", "));
     setLearningDraft(child.learningNotes);
@@ -2116,7 +2298,7 @@ export function P10ChildProfileDetailPage() {
   const draftAge = Number(monthsDraft);
   const validDraftAge = Number.isInteger(draftAge) && draftAge >= 36 && draftAge <= 120;
   const years = validDraftAge ? Math.floor(draftAge / 12) : null;
-  const isDefault = selectedProfileId === child.id && !child.archived;
+  const isCurrent = selectedProfileId === child.id && !child.archived && child.deletionStatus === "ACTIVE";
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -2135,7 +2317,8 @@ export function P10ChildProfileDetailPage() {
       m,
       learningDraft,
       supportDraft,
-      ints.length > 0 ? ints : child.interests
+      ints.length > 0 ? ints : child.interests,
+      genderDraft
     );
     if (!updated) setAgeError("Nhập độ tuổi từ 36 đến 120 tháng bằng số nguyên.");
   };
@@ -2147,40 +2330,29 @@ export function P10ChildProfileDetailPage() {
       <div className="card row between">
         <div className="row">
           <span className="avatar" style={{ overflow: "hidden" }}>
-            <ChildAvatarSvg variant={childIdx} size={48} />
+            <ChildAvatarSvg gender={genderDraft} size={48} />
           </span>
           <div>
             <h1 className="h2">{child.displayName}</h1>
             <div className="tiny">{child.ageLabel}</div>
           </div>
         </div>
-        {isDefault ? (
-          <span className="chip mint">Mặc định</span>
-        ) : !child.archived ? (
+        {isCurrent ? (
+          <span className="chip mint">Đang dùng</span>
+        ) : !child.archived && child.deletionStatus === "ACTIVE" ? (
           <Soft
             small
             onClick={() => {
               setSelectedProfileId(child.id);
-              showToast(`Đã chọn ${child.displayName} làm hồ sơ mặc định.`, "ok");
+              showToast(`Đang dùng hồ sơ ${child.displayName}.`, "ok");
             }}
           >
-            Chọn mặc định
+            Dùng hồ sơ này
           </Soft>
         ) : (
-          <span className="chip line">Đã lưu trữ</span>
+          <span className="chip line">{child.archived ? "Đã lưu trữ" : "Đang xóa"}</span>
         )}
       </div>
-
-      {!isDefault && !child.archived && (
-        <Soft
-          onClick={() => {
-            setSelectedProfileId(child.id);
-            showToast(`Đã chọn ${child.displayName} làm hồ sơ mặc định.`, "ok");
-          }}
-        >
-          <Icon name="check" size={16} /> Chọn làm hồ sơ mặc định
-        </Soft>
-      )}
 
       <form className="card stack" onSubmit={handleSave}>
         <h2 className="h2">Thông tin chi tiết</h2>
@@ -2195,6 +2367,11 @@ export function P10ChildProfileDetailPage() {
           />
         </div>
 
+        <ChildGenderField
+          idPrefix={"child-detail-gender-" + child.id}
+          value={genderDraft}
+          onChange={setGenderDraft}
+        />
         <div>
           <label className="field-label" htmlFor="child-detail-months">
             Độ tuổi (36–120 tháng{years !== null ? ` · ${years} tuổi` : ""})
@@ -2596,13 +2773,25 @@ export function P11AuthenticationPage() {
             </div>
           </div>
 
-          <button
-            type="button"
-            className="login-recovery-link"
-            onClick={() => nav("/p14-password-recovery", { state: { email } })}
-          >
-            Quên mật khẩu?
-          </button>
+          <div className="login-auth-links">
+            <button
+              type="button"
+              className="login-recovery-link"
+              onClick={() => nav("/p14-password-recovery", { state: { email } })}
+            >
+              Quên mật khẩu?
+            </button>
+            <div className="login-register-prompt">
+              <span>Chưa có tài khoản?</span>
+              <button
+                type="button"
+                className="login-register-link"
+                onClick={() => nav("/p15-parent-registration", { state: { email } })}
+              >
+                Đăng ký
+              </button>
+            </div>
+          </div>
 
           <button
             className="btn3d login-submit"
@@ -2618,7 +2807,7 @@ export function P11AuthenticationPage() {
         {!authAvailable && (
           <div className="login-feedback is-unavailable" id="login-auth-unavailable" role="status">
             {localPreview
-              ? "Đăng nhập tài khoản chưa được nối trong bản xem thử. Dùng nút mở bản xem thử bên dưới."
+              ? "Đăng nhập chưa khả dụng trong bản xem thử."
               : "Đăng nhập chưa khả dụng trong phiên này. Vui lòng thử lại sau."}
           </div>
         )}
@@ -2627,7 +2816,7 @@ export function P11AuthenticationPage() {
           <section className="login-preview" aria-labelledby="login-preview-title">
             <div className="login-preview-copy">
               <h2 className="h3" id="login-preview-title">Chỉ muốn xem giao diện?</h2>
-              <p className="tiny">Bản xem thử dùng dữ liệu minh họa, không lưu.</p>
+              <p className="tiny">Dữ liệu minh họa · không lưu.</p>
             </div>
             <button className="btn-soft login-preview-action" type="button" onClick={openPreview}>
               Mở bản xem thử
@@ -2649,8 +2838,6 @@ export function P12VideoQuotaPage() {
   const [showAll, setShowAll] = useState(false);
   const {
     quotaRemaining,
-    quotaUsed,
-    quotaTotal,
     simulateTopupPurchase,
     paymentStatus,
     usageLedger,
@@ -2663,101 +2850,227 @@ export function P12VideoQuotaPage() {
     { n: 5, p: "45.000đ" },
     { n: 10, p: "79.000đ" },
   ];
-  const R = 70;
-  const C = 2 * Math.PI * R;
-  const frac = quotaTotal > 0 ? quotaUsed / quotaTotal : 0;
+  const isPending = paymentStatus === "PENDING";
   const rows = showAll ? usageLedger : usageLedger.slice(0, 3);
 
   return (
-    <div className="page">
+    <div className="page quota-page" data-screen="p12-video-quota">
       <TopBar title="Lượt tạo video" back={false} />
-      <div className="card stack" style={{ alignItems: "center" }}>
-        <h1 className="h2">Số dư lượt tạo trong tháng</h1>
-        <div className="gauge" role="img" aria-label={`Đã dùng ${quotaUsed} trên ${quotaTotal} lượt`}>
-          <svg width="176" height="176" viewBox="0 0 176 176">
-            <circle className="track" cx="88" cy="88" r={R} fill="none" strokeWidth="16" />
-            <circle
-              cx="88"
-              cy="88"
-              r={R}
-              fill="none"
-              stroke={quotaRemaining === 0 ? "#ef4444" : "#2563eb"}
-              strokeWidth="16"
-              strokeLinecap="round"
-              strokeDasharray={`${C * frac} ${C}`}
-            />
-          </svg>
-          <div className="mid">
-            <span className="big">{quotaUsed}/{quotaTotal}</span>
-            <span className="tiny">lượt đã dùng</span>
-          </div>
-        </div>
-        <div className="row wrap" style={{ justifyContent: "center" }}>
-          <span className="chip">Định kỳ còn {includedQuotaRemaining}</span>
-          <span className="chip amber">Mua thêm còn {topupQuotaRemaining}</span>
-        </div>
-        {quotaRemaining === 0 && (
-          <Note tone="red" icon="lock">
-            Đã hết lượt. Mua thêm gói lượt bên dưới để tạo video mới.
-          </Note>
-        )}
-      </div>
 
-      <h2 className="h2">Mua thêm lượt</h2>
-      <div className="row">
-        {packs.map((p, idx) => (
-          <button key={p.n} type="button" className={`pack ${pack === idx ? "on" : ""}`} onClick={() => setPack(idx)}>
-            <span className="n">+{p.n}</span>
-            <span className="p">{p.p}</span>
-          </button>
-        ))}
-      </div>
-      <div className="row wrap">
-        {(["MoMo", "VNPAY"] as const).map((m) => (
-          <button key={m} type="button" className={`chip ${method === m ? "on" : "line"}`} onClick={() => setMethod(m)}>
-            {m}
-          </button>
-        ))}
-        {paymentStatus === "PENDING" && <span className="chip amber">Đang xử lý…</span>}
-        {paymentStatus === "SUCCEEDED" && <span className="chip mint">Giao dịch minh họa xong</span>}
-        {paymentStatus === "FAILED" && <span className="chip red">Chưa thanh toán được</span>}
-      </div>
-      <Note tone="amber" icon="info">Bản xem thử: thanh toán chỉ mô phỏng, không phát sinh giao dịch thật.</Note>
-      <Btn
-        tone="amber"
-        disabled={paymentStatus === "PENDING"}
-        onClick={() => simulateTopupPurchase(packs[pack].n, method, "SUCCEEDED")}
-      >
-        Thử mua +{packs[pack].n} lượt ({packs[pack].p})
-      </Btn>
+      <header className="quota-heading">
+        <span className="quota-kicker">
+          <Icon name="sparkle" size={16} />
+          Góc sáng tạo của gia đình
+        </span>
+        <h1 className="h1">Mỗi bức vẽ, một câu chuyện</h1>
+        <p className="sub">Theo dõi lượt tạo và chọn thêm lượt khi gia đình cần.</p>
+      </header>
 
-      <div className="sec-head">
-        <h2 className="h2">Lịch sử sử dụng lượt</h2>
-        {usageLedger.length > 3 && (
-          <button type="button" className="more" onClick={() => setShowAll(!showAll)}>
-            {showAll ? "Thu gọn" : "Xem thêm"}
-          </button>
-        )}
-      </div>
-      <div className="card">
-        {rows.map((l) => (
-          <div key={l.id} className="ledger">
-            <span className={`chip ${l.tone === "ok" ? "mint" : l.tone === "err" ? "red" : "amber"}`}>{l.delta}</span>
-            <div className="grow">
-              <div className="h3">{l.runTitle}</div>
-              <div className="tiny">{l.date}</div>
+      <div className="quota-main-grid">
+        <section
+          className={"card quota-balance" + (quotaRemaining === 0 ? " is-empty" : "")}
+          aria-labelledby="quota-balance-title"
+        >
+          <div className="quota-balance-heading">
+            <div>
+              <span className="quota-section-label">SỔ LƯỢT CỦA GIA ĐÌNH</span>
+              <h2 id="quota-balance-title" className="h2">Lượt còn sẵn sàng</h2>
+            </div>
+            <div className="quota-balance-art" aria-hidden="true">
+              <span className="quota-art-orbit quota-art-orbit-a" />
+              <span className="quota-art-orbit quota-art-orbit-b" />
+              <span className="quota-art-icon"><Icon name="video" size={30} /></span>
+              <span className="quota-art-sparkle"><Icon name="sparkle" size={17} /></span>
             </div>
           </div>
-        ))}
+
+          <div className="quota-balance-value" aria-live="polite">
+            <span className="quota-count">{quotaRemaining}</span>
+            <span className="quota-count-copy">
+              <strong>lượt</strong>
+              <span>{quotaRemaining === 0 ? "Đã dùng hết lượt hiện có" : "có thể tạo video mới"}</span>
+            </span>
+          </div>
+
+          <p className="quota-balance-hint">
+            Mỗi video mới dùng 1 lượt. Lượt định kỳ được dùng trước lượt mua thêm.
+          </p>
+
+          <div className="quota-buckets" role="group" aria-label="Chi tiết số lượt còn lại">
+            <div className="quota-bucket quota-bucket-monthly">
+              <span className="quota-bucket-icon" aria-hidden="true"><Icon name="refresh" size={17} /></span>
+              <span className="quota-bucket-copy">
+                <strong>Lượt định kỳ</strong>
+                <span>Theo tháng</span>
+              </span>
+              <span className="quota-bucket-number">{includedQuotaRemaining}</span>
+            </div>
+            <div className="quota-bucket quota-bucket-topup">
+              <span className="quota-bucket-icon" aria-hidden="true"><Icon name="star" size={17} /></span>
+              <span className="quota-bucket-copy">
+                <strong>Lượt mua thêm</strong>
+                <span>Dùng sau lượt định kỳ</span>
+              </span>
+              <span className="quota-bucket-number">{topupQuotaRemaining}</span>
+            </div>
+          </div>
+        </section>
+
+        <section className="card quota-purchase" aria-labelledby="quota-purchase-title">
+          <div className="quota-purchase-heading">
+            <span className="quota-section-label">THÊM LƯỢT KỂ CHUYỆN</span>
+            <h2 id="quota-purchase-title" className="h2">Chọn gói lượt</h2>
+            <p className="sub">Các gói và mức giá dưới đây chỉ dùng cho bản xem thử.</p>
+          </div>
+
+          <fieldset className="quota-fieldset" disabled={isPending}>
+            <legend className="quota-legend">Gói lượt tạo video</legend>
+            <div className="quota-packages">
+              {packs.map((item, idx) => (
+                <label
+                  key={item.n}
+                  className={"quota-choice quota-package-choice" + (pack === idx ? " is-selected" : "")}
+                >
+                  <input
+                    className="quota-choice-input"
+                    type="radio"
+                    name="quota-package"
+                    value={String(idx)}
+                    checked={pack === idx}
+                    onChange={() => setPack(idx)}
+                    aria-label={"Gói thêm " + item.n + " lượt, giá minh họa " + item.p}
+                  />
+                  <span className="quota-package-card">
+                    <span className="quota-package-count">+{item.n}</span>
+                    <span className="quota-package-unit">lượt</span>
+                    <span className="quota-package-price">{item.p}</span>
+                    {pack === idx && (
+                      <span className="quota-selected-tag" aria-hidden="true">
+                        <Icon name="check" size={12} />
+                      </span>
+                    )}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+
+          <fieldset className="quota-fieldset quota-payment-fieldset" disabled={isPending}>
+            <legend className="quota-legend">Phương thức trong bản demo</legend>
+            <div className="quota-methods">
+              {(["MoMo", "VNPAY"] as const).map((item) => (
+                <label
+                  key={item}
+                  className={"quota-choice quota-method-choice" + (method === item ? " is-selected" : "")}
+                >
+                  <input
+                    className="quota-choice-input"
+                    type="radio"
+                    name="quota-payment-method"
+                    value={item}
+                    checked={method === item}
+                    onChange={() => setMethod(item)}
+                    aria-label={item + ", phương thức thanh toán mô phỏng"}
+                  />
+                  <span className="quota-method-card">
+                    <span className="quota-method-label">{item}</span>
+                    {method === item && <Icon name="check" size={17} />}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+
+          {paymentStatus !== "IDLE" && (
+            <div
+              className={"quota-payment-state is-" + paymentStatus.toLowerCase()}
+              role="status"
+              aria-live="polite"
+              aria-atomic="true"
+            >
+              <Icon
+                name={paymentStatus === "FAILED" ? "alert" : paymentStatus === "SUCCEEDED" ? "check" : "refresh"}
+                size={18}
+              />
+              <span>
+                {paymentStatus === "PENDING"
+                  ? "Đang mô phỏng giao dịch…"
+                  : paymentStatus === "SUCCEEDED"
+                  ? "Đã mô phỏng xong. Lượt mới đã được cộng vào số dư."
+                  : "Giao dịch mô phỏng chưa hoàn tất. Lượt chưa được cộng."}
+              </span>
+            </div>
+          )}
+
+          <Note tone="amber" icon="info">
+            Bản xem thử: lựa chọn gói và thanh toán chỉ mô phỏng, không phát sinh giao dịch thật.
+          </Note>
+
+          <button
+            type="button"
+            className="quota-cta"
+            disabled={isPending}
+            aria-busy={isPending}
+            onClick={() => simulateTopupPurchase(packs[pack].n, method, "SUCCEEDED")}
+          >
+            <span>{isPending ? "Đang mô phỏng…" : "Mô phỏng mua +" + packs[pack].n + " lượt · " + packs[pack].p}</span>
+            <Icon name={isPending ? "refresh" : "arrow-right"} size={19} />
+          </button>
+        </section>
       </div>
+
+      <section className="quota-history" aria-labelledby="quota-history-title">
+        <div className="quota-history-heading">
+          <div>
+            <span className="quota-section-label">NHỮNG LẦN ĐÃ DÙNG</span>
+            <h2 id="quota-history-title" className="h2">Lịch sử lượt tạo</h2>
+          </div>
+          {usageLedger.length > 3 && (
+            <button
+              type="button"
+              className={"quota-history-toggle" + (showAll ? " is-expanded" : "")}
+              aria-expanded={showAll}
+              aria-controls="quota-ledger-list"
+              onClick={() => setShowAll(!showAll)}
+            >
+              {showAll ? "Thu gọn" : "Xem tất cả"}
+              <Icon name="chevron-down" size={16} />
+            </button>
+          )}
+        </div>
+
+        <div className="card quota-history-card">
+          {rows.length > 0 ? (
+            <ul className="quota-ledger-list" id="quota-ledger-list">
+              {rows.map((entry) => (
+                <li className="quota-ledger-entry" key={entry.id}>
+                  <span className={"quota-ledger-delta is-" + entry.tone}>{entry.delta}</span>
+                  <div className="quota-ledger-copy">
+                    <strong>{entry.runTitle}</strong>
+                    <span>{entry.sourceBucket}</span>
+                  </div>
+                  <span className="quota-ledger-date">{entry.date}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="quota-history-empty">
+              <span className="quota-empty-icon" aria-hidden="true"><Icon name="book" size={21} /></span>
+              <div>
+                <strong>Chưa có lượt nào trong lịch sử</strong>
+                <span>Lịch sử sẽ hiện ở đây sau khi gia đình dùng hoặc thêm lượt.</span>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
     </div>
   );
 }
-
 /* =====================================================================
    P13 · Cài đặt tách riêng (Theme Light/Dark, Tài khoản, Mật khẩu, Đăng xuất)
    ===================================================================== */
-type SettingsSubView = "main" | "account" | "privacy" | "password";
+type SettingsSubView = "main" | "account" | "security";
 
 export function P13SettingsPage() {
   const nav = useNavigate();
@@ -2766,6 +3079,7 @@ export function P13SettingsPage() {
   const {
     profiles,
     selectedProfileId,
+    setSelectedProfileId,
     setActiveSheet,
     theme,
     setTheme,
@@ -2800,94 +3114,96 @@ export function P13SettingsPage() {
 
   if (subView === "account") {
     return (
-      <div className="page">
-        <TopBar title="Tài khoản & Tùy chọn" onBack={() => setSubView("main")} />
+      <div className="page settings-detail-page settings-account-page">
+        <TopBar title="Tài khoản & cài đặt" onBack={() => setSubView("main")} />
         <form
-          className="card stack"
+          className="card stack settings-info-card"
           onSubmit={(e) => {
             e.preventDefault();
             showToast("Đã cập nhật thông tin tài khoản phụ huynh.", "ok");
           }}
         >
           <h1 className="h2">Thông tin phụ huynh</h1>
-          <div>
-            <label className="field-label" htmlFor="acc-name">Họ và tên</label>
-            <input id="acc-name" className="input" value={parentName} onChange={(e) => setParentName(e.target.value)} />
-          </div>
-          <div>
-            <label className="field-label" htmlFor="acc-email">Email liên hệ</label>
-            <input id="acc-email" type="email" className="input" value={parentEmail} onChange={(e) => setParentEmail(e.target.value)} />
+          <div className="settings-form-fields">
+            <div>
+              <label className="field-label" htmlFor="acc-name">Họ và tên</label>
+              <input id="acc-name" autoComplete="name" className="input" value={parentName} onChange={(e) => setParentName(e.target.value)} />
+            </div>
+            <div>
+              <label className="field-label" htmlFor="acc-email">Email liên hệ</label>
+              <input id="acc-email" type="email" autoComplete="email" className="input" value={parentEmail} onChange={(e) => setParentEmail(e.target.value)} />
+            </div>
           </div>
           <Btn type="submit">Lưu thông tin</Btn>
         </form>
 
-        <div className="card">
-          <div className="list-item">
-            <IconBadge name="bell" tone="primary" />
-            <span className="grow">
-              <span className="h3" style={{ display: "block" }}>Thông báo đẩy</span>
-              <span className="tiny" style={{ display: "block" }}>Khi video xong &amp; nhắc hạn 144h/168h</span>
-            </span>
-            <Switch on={pushEndpointActive} label="Nhận thông báo đẩy" onChange={() => setPushEndpointActive(!pushEndpointActive)} />
+        <section className="settings-preferences-section" aria-labelledby="settings-preferences-title">
+          <h2 className="h2 settings-preferences-title" id="settings-preferences-title">Tùy chọn video</h2>
+          <div className="card settings-preferences-card">
+            <div className="list-item settings-preference-row">
+              <IconBadge name="bell" tone="primary" />
+              <span className="grow">
+                <span className="h3" style={{ display: "block" }}>Thông báo đẩy</span>
+                <span className="tiny" style={{ display: "block" }}>Khi video xong &amp; nhắc hạn 144h/168h</span>
+              </span>
+              <Switch className="settings-switch" on={pushEndpointActive} label="Nhận thông báo đẩy" onChange={() => setPushEndpointActive(!pushEndpointActive)} />
+            </div>
+            <div className="list-item settings-preference-row">
+              <IconBadge name="video" tone="accent" />
+              <span className="grow">
+                <span className="h3" style={{ display: "block" }}>Phụ đề tiếng Việt mặc định</span>
+                <span className="tiny" style={{ display: "block" }}>Hiển thị lời kể trên khung phát video</span>
+              </span>
+              <Switch className="settings-switch" on={captionsEnabled} label="Phụ đề tiếng Việt mặc định" onChange={() => setCaptionsEnabled(!captionsEnabled)} />
+            </div>
+            <div className="list-item settings-preference-row">
+              <IconBadge name="rotate" tone="mint" />
+              <span className="grow">
+                <span className="h3" style={{ display: "block" }}>Tự mở ngang 16:9 khi phát</span>
+                <span className="tiny" style={{ display: "block" }}>Tối ưu không gian xem video cho bé</span>
+              </span>
+              <Switch className="settings-switch" on={autoLandscapeOnPlay} label="Tự động mở ngang khi phát" onChange={() => setAutoLandscapeOnPlay(!autoLandscapeOnPlay)} />
+            </div>
           </div>
-          <div className="list-item">
-            <IconBadge name="video" tone="accent" />
-            <span className="grow">
-              <span className="h3" style={{ display: "block" }}>Phụ đề tiếng Việt mặc định</span>
-              <span className="tiny" style={{ display: "block" }}>Hiển thị lời kể trên khung phát video</span>
-            </span>
-            <Switch on={captionsEnabled} label="Phụ đề tiếng Việt mặc định" onChange={() => setCaptionsEnabled(!captionsEnabled)} />
-          </div>
-          <div className="list-item">
-            <IconBadge name="rotate" tone="mint" />
-            <span className="grow">
-              <span className="h3" style={{ display: "block" }}>Tự mở ngang 16:9 khi phát</span>
-              <span className="tiny" style={{ display: "block" }}>Tối ưu không gian xem video cho bé</span>
-            </span>
-            <Switch on={autoLandscapeOnPlay} label="Tự động mở ngang khi phát" onChange={() => setAutoLandscapeOnPlay(!autoLandscapeOnPlay)} />
-          </div>
-        </div>
+        </section>
       </div>
     );
   }
 
-  if (subView === "privacy") {
+  if (subView === "security") {
     return (
-      <div className="page">
-        <TopBar title="Quyền riêng tư & Dữ liệu AI" onBack={() => setSubView("main")} />
-        <h1 className="h2">Bảo vệ dữ liệu trẻ em</h1>
-        <Note tone="blue" icon="shield">
-          Tài khoản Phụ huynh tách biệt với tài khoản Trường học và Giáo viên.
-        </Note>
-        <div className="card stack">
-          <div className="flat-box mint">
-            <h2 className="h3">Ẩn tên thật khỏi AI</h2>
-            <p className="sub" style={{ marginTop: 4 }}>
-              Tên thật của bé được ẩn trước khi gửi nội dung tới AI.
-            </p>
+      <div className="page settings-detail-page settings-security-page">
+        <TopBar title="Bảo mật" onBack={() => setSubView("main")} />
+        <section className="card stack settings-security-card" aria-labelledby="security-privacy-title">
+          <h1 className="h2" id="security-privacy-title">Quyền riêng tư &amp; Dữ liệu AI</h1>
+          <div className="settings-policy-stack">
+            <Note tone="blue" icon="shield">
+              Tài khoản Phụ huynh tách biệt với tài khoản Trường học và Giáo viên.
+            </Note>
+            <div className="flat-box mint settings-policy-card">
+              <h2 className="h3">Ẩn tên thật khỏi AI</h2>
+              <p className="sub">
+                Tên thật của bé được ẩn trước khi gửi nội dung tới AI.
+              </p>
+            </div>
+            <div className="flat-box amber settings-policy-card">
+              <h2 className="h3">Ghi chú hỗ trợ không gửi cho AI</h2>
+              <p className="sub">
+                Chỉ phụ huynh xem ghi chú này; không gửi cho AI.
+              </p>
+            </div>
           </div>
-          <div className="flat-box amber">
-            <h2 className="h3">Ghi chú hỗ trợ không gửi cho AI</h2>
-            <p className="sub" style={{ marginTop: 4 }}>
-              Chỉ phụ huynh xem ghi chú này; không gửi cho AI.
-            </p>
-          </div>
-        </div>
+        </section>
 
-        <h2 className="h2">Quyền truy cập hồ sơ</h2>
-        <Note tone="blue" icon="shield">
-          Hồ sơ trẻ chỉ thuộc tài khoản Phụ huynh, không chia sẻ giữa các tài khoản.
-        </Note>
-      </div>
-    );
-  }
+        <section className="card stack settings-access-card" aria-labelledby="security-access-title">
+          <h2 className="h2" id="security-access-title">Quyền truy cập hồ sơ</h2>
+          <Note tone="blue" icon="shield">
+            Hồ sơ trẻ chỉ thuộc tài khoản Phụ huynh, không chia sẻ giữa các tài khoản.
+          </Note>
+        </section>
 
-  if (subView === "password") {
-    return (
-      <div className="page">
-        <TopBar title="Đổi mật khẩu" onBack={() => setSubView("main")} />
         <form
-          className="card stack"
+          className="card stack settings-password-form"
           onSubmit={(e) => {
             e.preventDefault();
             if (!curPw || !newPw) {
@@ -2907,42 +3223,49 @@ export function P13SettingsPage() {
             setNewPw("");
             setConfirmPw("");
             showToast("Đã đổi mật khẩu thành công.", "ok");
-            setSubView("main");
           }}
         >
-          <h1 className="h2">Cập nhật mật khẩu đăng nhập</h1>
-          <div>
-            <label className="field-label" htmlFor="cur-pw">Mật khẩu hiện tại *</label>
-            <input
-              id="cur-pw"
-              type="password"
-              className="input"
-              value={curPw}
-              onChange={(e) => setCurPw(e.target.value)}
-              autoComplete="current-password"
-            />
+          <div className="settings-card-heading">
+            <IconBadge name="key" tone="accent" />
+            <div className="settings-card-heading-copy">
+              <h2 className="h2">Đổi mật khẩu</h2>
+              <p className="sub">Cập nhật mật khẩu đăng nhập của phụ huynh.</p>
+            </div>
           </div>
-          <div>
-            <label className="field-label" htmlFor="new-pw">Mật khẩu mới (tối thiểu 8 ký tự) *</label>
-            <input
-              id="new-pw"
-              type="password"
-              className="input"
-              value={newPw}
-              onChange={(e) => setNewPw(e.target.value)}
-              autoComplete="new-password"
-            />
-          </div>
-          <div>
-            <label className="field-label" htmlFor="confirm-pw">Nhập lại mật khẩu mới *</label>
-            <input
-              id="confirm-pw"
-              type="password"
-              className="input"
-              value={confirmPw}
-              onChange={(e) => setConfirmPw(e.target.value)}
-              autoComplete="new-password"
-            />
+          <div className="settings-form-fields">
+            <div>
+              <label className="field-label" htmlFor="cur-pw">Mật khẩu hiện tại *</label>
+              <input
+                id="cur-pw"
+                type="password"
+                className="input"
+                value={curPw}
+                onChange={(e) => setCurPw(e.target.value)}
+                autoComplete="current-password"
+              />
+            </div>
+            <div>
+              <label className="field-label" htmlFor="new-pw">Mật khẩu mới (tối thiểu 8 ký tự) *</label>
+              <input
+                id="new-pw"
+                type="password"
+                className="input"
+                value={newPw}
+                onChange={(e) => setNewPw(e.target.value)}
+                autoComplete="new-password"
+              />
+            </div>
+            <div>
+              <label className="field-label" htmlFor="confirm-pw">Nhập lại mật khẩu mới *</label>
+              <input
+                id="confirm-pw"
+                type="password"
+                className="input"
+                value={confirmPw}
+                onChange={(e) => setConfirmPw(e.target.value)}
+                autoComplete="new-password"
+              />
+            </div>
           </div>
           {pwError && (
             <div role="alert">
@@ -2954,12 +3277,11 @@ export function P13SettingsPage() {
       </div>
     );
   }
-
   return (
     <div className="page">
       <TopBar title="Cài đặt" back={false} />
 
-      <div className="card row">
+      <div className="card row parent-account-summary">
         <span className="avatar" style={{ overflow: "hidden" }}>
           <ParentAvatarSvg size={48} />
         </span>
@@ -2967,7 +3289,18 @@ export function P13SettingsPage() {
           <h1 className="h2">{parentName}</h1>
           <div className="tiny">{parentEmail}</div>
         </div>
-        <span className="chip mint">Phụ huynh</span>
+        <div className="parent-account-actions">
+          <span className="chip mint parent-account-role">Phụ huynh</span>
+          <button
+            type="button"
+            className="parent-account-edit"
+            aria-label="Chỉnh sửa thông tin tài khoản phụ huynh"
+            title="Chỉnh sửa thông tin tài khoản"
+            onClick={() => setSubView("account")}
+          >
+            <Icon name="edit" size={17} />
+          </button>
+        </div>
       </div>
 
       <section id="child-profiles" ref={childProfilesRef} className="card stack" aria-labelledby="child-profiles-title">
@@ -2981,29 +3314,15 @@ export function P13SettingsPage() {
           <p className="sub" style={{ margin: 0 }}>Chưa có hồ sơ bé.</p>
         ) : (
           <ul className="profile-table" aria-label="Danh sách hồ sơ trẻ">
-            {visibleProfiles.map((profile, index) => {
-              const ageLabel = compactAgeLabel(profile.ageMonths);
-              const isSelected = selectedProfileId === profile.id && !profile.archived;
-              const statusLabel = isSelected ? "Đang dùng" : profile.archived ? "Đã lưu" : null;
-              return (
-                <li key={profile.id} className="profile-list-item">
-                  <button
-                    type="button"
-                    className={`profile-row ${isSelected ? "is-selected" : ""}`}
-                    aria-label={`Mở hồ sơ ${profile.displayName}, ${ageLabel}${statusLabel ? `, ${statusLabel.toLowerCase()}` : ""}`}
-                    onClick={() => nav(`/p10-child-profiles/${profile.id}`)}
-                  >
-                    <span className="profile-avatar"><ChildAvatarSvg variant={index} size={42} /></span>
-                    <span className="profile-row-copy">
-                      <span className="h3 profile-name">{profile.displayName}</span>
-                      <span className="profile-age">{ageLabel}</span>
-                    </span>
-                    {statusLabel && <span className={`profile-status ${isSelected ? "is-current" : "is-archived"}`}>{statusLabel}</span>}
-                    <Icon name="chevron-right" size={18} color="var(--ink-3)" />
-                  </button>
-                </li>
-              );
-            })}
+            {visibleProfiles.map((profile) => (
+              <ProfileListRow
+                key={profile.id}
+                profile={profile}
+                selectedProfileId={selectedProfileId}
+                onSelect={setSelectedProfileId}
+                onOpenDetails={(profileId) => nav(`/p10-child-profiles/${profileId}`)}
+              />
+            ))}
           </ul>
         )}
       </section>
@@ -3038,29 +3357,20 @@ export function P13SettingsPage() {
       {/* Settings sub-pages navigation */}
       <h2 className="h2">Tài khoản &amp; Bảo mật</h2>
       <div className="card">
-        <button type="button" className="list-item" onClick={() => setSubView("account")}>
+        <button type="button" className="list-item settings-category-row" onClick={() => setSubView("account")}>
           <IconBadge name="user" tone="primary" />
           <span className="grow">
-            <span className="h3" style={{ display: "block" }}>Tài khoản &amp; Tùy chọn</span>
-            <span className="tiny" style={{ display: "block" }}>Thông tin phụ huynh, thông báo, phụ đề</span>
+            <span className="h3" style={{ display: "block" }}>Tài khoản &amp; cài đặt</span>
+            <span className="tiny" style={{ display: "block" }}>Hồ sơ phụ huynh, thông báo, phụ đề &amp; video</span>
           </span>
           <Icon name="chevron-right" size={18} color="var(--ink-3)" />
         </button>
 
-        <button type="button" className="list-item" onClick={() => setSubView("privacy")}>
+        <button type="button" className="list-item settings-category-row" onClick={() => setSubView("security")}>
           <IconBadge name="shield" tone="mint" />
           <span className="grow">
-            <span className="h3" style={{ display: "block" }}>Quyền riêng tư &amp; Dữ liệu AI</span>
-            <span className="tiny" style={{ display: "block" }}>Chính sách riêng tư &amp; kết nối</span>
-          </span>
-          <Icon name="chevron-right" size={18} color="var(--ink-3)" />
-        </button>
-
-        <button type="button" className="list-item" onClick={() => setSubView("password")}>
-          <IconBadge name="key" tone="accent" />
-          <span className="grow">
-            <span className="h3" style={{ display: "block" }}>Đổi mật khẩu</span>
-            <span className="tiny" style={{ display: "block" }}>Cập nhật mật khẩu hiện tại</span>
+            <span className="h3" style={{ display: "block" }}>Bảo mật</span>
+            <span className="tiny" style={{ display: "block" }}>Quyền riêng tư, dữ liệu AI &amp; đổi mật khẩu</span>
           </span>
           <Icon name="chevron-right" size={18} color="var(--ink-3)" />
         </button>
@@ -3084,12 +3394,149 @@ export function P13SettingsPage() {
   );
 }
 
-function RecoveryEnvelopeIcon({ size = 24 }: { size?: number }) {
+export function P15ParentRegistrationPage() {
+  const nav = useNavigate();
+  const routeState = useLocState<{ email?: string }>();
+  const [email, setEmail] = useState(routeState.email ?? "");
+  const [registrationPassword, setRegistrationPassword] = useState("");
+  const [passwordConfirmation, setPasswordConfirmation] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [attempted, setAttempted] = useState(false);
+
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
-      <rect x="3.5" y="5.5" width="17" height="13" rx="3" />
-      <path d="m5 8 7 5 7-5" />
-    </svg>
+    <main
+      className="page auth-page login-page recovery-page registration-page"
+      data-screen="login"
+      aria-label="Đăng ký phụ huynh"
+    >
+      <img className="login-scene__background" src={parentLoginBackground} alt="" aria-hidden="true" />
+      <span className="login-scene__color-wash" aria-hidden="true" />
+      <ParentLoginSplashArt />
+
+      <section
+        className="login-panel recovery-panel registration-panel"
+        aria-labelledby="registration-title"
+        aria-describedby="registration-description"
+      >
+        <div className="recovery-panel__topbar">
+          <button
+            type="button"
+            className="recovery-back-link"
+            onClick={() => nav("/p11-authentication", { state: { email } })}
+          >
+            <Icon name="arrow-left" size={16} />
+            <span>Về đăng nhập</span>
+          </button>
+        </div>
+
+        <header className="login-panel__heading recovery-heading">
+          <p className="login-eyebrow">Không gian phụ huynh</p>
+          <h1 className="h1" id="registration-title">Đăng ký</h1>
+          <p className="sub" id="registration-description">
+            Tạo tài khoản phụ huynh trên Sketch2Life.
+          </p>
+        </header>
+
+        <form
+          className="login-form recovery-form registration-form"
+          onSubmit={(event) => {
+            event.preventDefault();
+            setAttempted(true);
+          }}
+        >
+          <div className="login-field">
+            <label className="field-label" htmlFor="registration-email">Email</label>
+            <input
+              id="registration-email"
+              className="input"
+              type="email"
+              inputMode="email"
+              autoCapitalize="none"
+              spellCheck={false}
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(event) => {
+                setEmail(event.target.value);
+                setAttempted(false);
+              }}
+              placeholder="ten@email.com"
+            />
+          </div>
+
+          <div className="login-field">
+            <label className="field-label" htmlFor="registration-password">Mật khẩu</label>
+            <div className="login-password-field">
+              <input
+                id="registration-password"
+                className="input"
+                type={showPassword ? "text" : "password"}
+                autoComplete="new-password"
+                required
+                value={registrationPassword}
+                onChange={(event) => setRegistrationPassword(event.target.value)}
+                placeholder="Tạo mật khẩu"
+              />
+              <button
+                type="button"
+                className="login-password-toggle"
+                aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                aria-pressed={showPassword}
+                onClick={() => setShowPassword((visible) => !visible)}
+              >
+                {showPassword ? "Ẩn" : "Hiện"}
+              </button>
+            </div>
+          </div>
+
+          <div className="login-field">
+            <label className="field-label" htmlFor="registration-confirm-password">Nhập lại mật khẩu</label>
+            <div className="login-password-field">
+              <input
+                id="registration-confirm-password"
+                className="input"
+                type={showConfirmation ? "text" : "password"}
+                autoComplete="new-password"
+                required
+                value={passwordConfirmation}
+                onChange={(event) => setPasswordConfirmation(event.target.value)}
+                placeholder="Nhập lại mật khẩu"
+              />
+              <button
+                type="button"
+                className="login-password-toggle"
+                aria-label={showConfirmation ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                aria-pressed={showConfirmation}
+                onClick={() => setShowConfirmation((visible) => !visible)}
+              >
+                {showConfirmation ? "Ẩn" : "Hiện"}
+              </button>
+            </div>
+          </div>
+
+          <div
+            className="login-feedback is-unavailable registration-feedback"
+            id="registration-feedback"
+            role="status"
+            aria-live="polite"
+          >
+            <strong>{attempted ? "Chưa thể tạo tài khoản" : "Đăng ký chưa khả dụng"}</strong>
+            <span>
+              Luồng đăng ký chưa được kết nối. Chưa có tài khoản nào được tạo.
+            </span>
+          </div>
+
+          <button
+            className="btn3d login-submit registration-submit"
+            type="submit"
+            aria-describedby="registration-feedback"
+          >
+            Đăng ký
+          </button>
+        </form>
+      </section>
+    </main>
   );
 }
 
@@ -3100,86 +3547,82 @@ export function P14PasswordRecoveryPage() {
   const [attempted, setAttempted] = useState(false);
 
   return (
-    <main className="page recovery-page" aria-labelledby="recovery-title">
-      <header className="recovery-topbar">
-        <button
-          type="button"
-          className="recovery-back-link"
-          onClick={() => nav("/p11-authentication", { state: { email } })}
-        >
-          <span className="recovery-back-link__icon"><Icon name="arrow-left" size={17} /></span>
-          <span>Về đăng nhập</span>
-        </button>
-        <Wordmark size={20} />
-      </header>
+    <main
+      className="page auth-page login-page recovery-page"
+      data-screen="login"
+      aria-labelledby="recovery-title"
+    >
+      <img className="login-scene__background" src={parentLoginBackground} alt="" aria-hidden="true" />
+      <span className="login-scene__color-wash" aria-hidden="true" />
+      <ParentLoginSplashArt />
 
-      <section className="recovery-card" aria-describedby="recovery-description">
-        <div className="recovery-art" aria-hidden="true">
-          <span className="recovery-art__halo" />
-          <span className="recovery-art__ring" />
-          <span className="recovery-art__spark recovery-art__spark--one" />
-          <span className="recovery-art__spark recovery-art__spark--two" />
-          <span className="recovery-art__mail"><RecoveryEnvelopeIcon size={31} /></span>
-          <span className="recovery-art__lock"><Icon name="lock" size={16} /></span>
+      <section className="login-panel recovery-panel" aria-describedby="recovery-description">
+        <div className="recovery-panel__topbar">
+          <button
+            type="button"
+            className="recovery-back-link"
+            onClick={() => nav("/p11-authentication", { state: { email } })}
+          >
+            <Icon name="arrow-left" size={16} />
+            <span>Về đăng nhập</span>
+          </button>
         </div>
 
-        <header className="recovery-heading">
-          <p className="recovery-eyebrow">BẢO MẬT TÀI KHOẢN</p>
+        <header className="login-panel__heading recovery-heading">
+          <p className="login-eyebrow">Không gian phụ huynh</p>
           <h1 className="h1" id="recovery-title">Quên mật khẩu?</h1>
           <p className="sub" id="recovery-description">
-            Nhập email gắn với tài khoản để nhận hướng dẫn khi dịch vụ khả dụng.
+            Nhập email gắn với tài khoản.
           </p>
         </header>
 
         <form
-          className="recovery-form"
+          className="login-form recovery-form"
           onSubmit={(event) => {
             event.preventDefault();
             setAttempted(true);
           }}
         >
-          <div className="recovery-field">
-            <div className="recovery-field__label-row">
-              <label className="field-label" htmlFor="recovery-email">Email đăng ký</label>
-              <span className="recovery-field__hint-label">Email của bạn</span>
-            </div>
-            <div className="recovery-input-wrap">
-              <span className="recovery-input-wrap__icon" aria-hidden="true"><RecoveryEnvelopeIcon size={19} /></span>
-              <input
-                id="recovery-email"
-                className="input"
-                type="email"
-                inputMode="email"
-                autoCapitalize="none"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(event) => {
-                  setEmail(event.target.value);
-                  setAttempted(false);
-                }}
-                placeholder="ten@email.com"
-              />
-            </div>
+          <div className="login-field">
+            <label className="field-label" htmlFor="recovery-email">Email</label>
+            <input
+              id="recovery-email"
+              className="input"
+              type="email"
+              inputMode="email"
+              autoCapitalize="none"
+              spellCheck={false}
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(event) => {
+                setEmail(event.target.value);
+                setAttempted(false);
+              }}
+              placeholder="ten@email.com"
+              aria-describedby="recovery-feedback"
+            />
           </div>
 
-          <div className={`recovery-notice${attempted ? " is-attempted" : ""}`} role={attempted ? "alert" : "status"} aria-live={attempted ? "assertive" : "polite"}>
-            <span className="recovery-notice__icon" aria-hidden="true">
-              <Icon name={attempted ? "alert" : "info"} size={18} />
+          <div
+            className={"login-feedback recovery-feedback" + (attempted ? " is-attempted" : " is-unavailable")}
+            id="recovery-feedback"
+            role={attempted ? "alert" : "status"}
+            aria-live={attempted ? "assertive" : "polite"}
+          >
+            <span className="recovery-feedback__icon" aria-hidden="true">
+              <Icon name={attempted ? "alert" : "info"} size={16} />
             </span>
-            <span className="recovery-notice__copy">
+            <span className="recovery-feedback__copy">
               <strong>{attempted ? "Chưa thể gửi hướng dẫn" : "Khôi phục chưa khả dụng"}</strong>
               <span>Dịch vụ gửi email chưa được kết nối. Chưa có thư nào được gửi.</span>
             </span>
           </div>
 
-          <button className="btn3d recovery-submit" type="submit">
-            <span>Gửi hướng dẫn khôi phục</span>
-            <Icon name="arrow-right" size={18} />
+          <button className="btn3d login-submit recovery-submit" type="submit">
+            Gửi hướng dẫn khôi phục
           </button>
         </form>
-
-        <p className="recovery-footnote"><Icon name="lock" size={14} /> Khôi phục tài khoản Sketch2Life</p>
       </section>
     </main>
   );

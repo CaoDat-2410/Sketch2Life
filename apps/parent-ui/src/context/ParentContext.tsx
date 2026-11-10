@@ -1,7 +1,8 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
-import { isLocalPreview } from "../../../shared/backendApi";
+import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { backendApi, hasFirebaseAuthBridge, isLocalPreview } from "../../../shared/backendApi";
 import {
   AccessGrantItem,
+  ChildGender,
   ChildProfileItem,
   INITIAL_GRANTS,
   INITIAL_LESSONS,
@@ -59,14 +60,17 @@ interface ParentContextValue {
   theme: ThemeMode;
   setTheme: (t: ThemeMode) => void;
   isAuthenticated: boolean;
+  authSessionReady: boolean;
   setIsAuthenticated: (v: boolean) => void;
   profiles: ChildProfileItem[];
   selectedProfileId: string;
   setSelectedProfileId: (id: string) => void;
+  storyProfileId: string;
   addProfile: (
     displayName: string,
     ageMonths: number,
     interests: string[],
+    gender: ChildGender,
     learningNotes?: string,
     supportNeedsNote?: string,
     consentAccepted?: boolean
@@ -77,7 +81,8 @@ interface ParentContextValue {
     ageMonths: number,
     learningNotes?: string,
     supportNeedsNote?: string,
-    interests?: string[]
+    interests?: string[],
+    gender?: ChildGender
   ) => boolean;
   toggleProfileConsent: (id: string) => void;
   archiveProfile: (id: string) => void;
@@ -86,6 +91,9 @@ interface ParentContextValue {
   lessons: LessonCardItem[];
   selectedLessonId: string;
   setSelectedLessonId: (id: string) => void;
+  currentRunLessonId: string | null;
+  startStoryDraft: (skipOptionalSetup: boolean) => void;
+  pinStoryLesson: (id: string) => void;
   libraryState: Ui05LibraryState;
   setLibraryState: (s: Ui05LibraryState) => void;
   skippedOptionalSetup: boolean;
@@ -113,6 +121,8 @@ interface ParentContextValue {
   contextConfirmed: boolean;
   setContextConfirmed: (v: boolean) => void;
   confirmContextSnapshot: () => void;
+  recordCurrentStoryReady: () => void;
+  completeCurrentStoryRun: () => void;
   scenes: SceneItem[];
   scriptRevision: number;
   scriptHash: string;
@@ -121,7 +131,7 @@ interface ParentContextValue {
   setRewriteSuggestion: (v: string) => void;
   requestAiRewrite: () => void;
   scriptConfirmed: boolean;
-  confirmScriptAndStartVideo: () => void;
+  confirmScriptAndStartVideo: () => boolean;
   videoJobMode: VideoJobMode;
   setVideoJobMode: (m: VideoJobMode) => void;
   videoRegenCount: number;
@@ -201,11 +211,45 @@ const ParentContext = createContext<ParentContextValue | null>(null);
 
 export function ParentProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<ThemeMode>(getInitialTheme);
-  const [isAuthenticated, setIsAuthenticated] = useState(isLocalPreview());
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authSessionReady, setAuthSessionReady] = useState(() => !hasFirebaseAuthBridge());
+
+  useEffect(() => {
+    const auth = typeof window === "undefined" ? undefined : window.sketch2lifeAuth;
+    if (!auth?.getIdToken) {
+      setIsAuthenticated(false);
+      setAuthSessionReady(true);
+      return;
+    }
+
+    let active = true;
+    void auth.getIdToken()
+      .then(async (token) => {
+        if (!token) return false;
+        await backendApi.parentLessons();
+        return true;
+      })
+      .then((hasParentAccess) => {
+        if (active) setIsAuthenticated(hasParentAccess);
+      })
+      .catch(() => {
+        if (active) setIsAuthenticated(false);
+      })
+      .finally(() => {
+        if (active) setAuthSessionReady(true);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const [profiles, setProfiles] = useState<ChildProfileItem[]>(INITIAL_PROFILES);
   const [selectedProfileId, setSelectedProfileId] = useState("child-minh");
+  const [storyProfileId, setStoryProfileId] = useState("child-minh");
   const [lessons] = useState<LessonCardItem[]>(INITIAL_LESSONS);
   const [selectedLessonId, setSelectedLessonId] = useState("lesson-butterfly");
+  const [currentRunLessonId, setCurrentRunLessonId] = useState<string | null>(null);
   const [libraryState, setLibraryState] = useState<Ui05LibraryState>("NORMAL");
   const [skippedOptionalSetup, setSkippedOptionalSetup] = useState<boolean>(true);
   const [guideEnabled, setGuideEnabled] = useState(true);
@@ -231,10 +275,13 @@ export function ParentProvider({ children }: { children: React.ReactNode }) {
   const [scriptHash, setScriptHash] = useState("sha256:8f4b2c...e91a");
   const [rewriteCount, setRewriteCount] = useState(0);
   const [rewriteSuggestion, setRewriteSuggestion] = useState("Thêm cảnh bướm ghé một bông hoa");
-  const [scriptConfirmed, setScriptConfirmed] = useState(false);
+  // The seeded run is already active, so its script has already been accepted.
+  // New drafts explicitly reset this flag in startStoryDraft.
+  const [scriptConfirmed, setScriptConfirmed] = useState(true);
 
   // Video job & playback landscape mode
   const [videoJobMode, setVideoJobMode] = useState<VideoJobMode>("RUNNING");
+  const [currentDemoRunId, setCurrentDemoRunId] = useState("run-demo-active");
   const [videoRegenCount, setVideoRegenCount] = useState(0);
   const [lastUnsuitableReason, setLastUnsuitableReason] = useState("");
   const [cancelPurgeStep, setCancelPurgeStep] = useState(0);
@@ -331,19 +378,109 @@ export function ParentProvider({ children }: { children: React.ReactNode }) {
     setContextConfirmed(true);
   };
 
+  const startStoryDraft = useCallback((skipOptionalSetup: boolean) => {
+    setCurrentDemoRunId("run-demo-" + Date.now());
+    setStoryProfileId(selectedProfileId);
+    setCurrentRunLessonId(null);
+    setSkippedOptionalSetup(skipOptionalSetup);
+    setGuideEnabled(!skipOptionalSetup);
+    setDetectedSubjectState("Con bướm");
+    setSubjectRevision(1);
+    setSubjectConfirmed(false);
+    setAudioMode("VALID");
+    setIsRecording(false);
+    setIdeaTranscriptState("");
+    setTranscriptRevision(1);
+    setTranscriptConfirmed(true);
+    setContextSnapshotRevision(0);
+    setContextConfirmed(false);
+    setScenes(INITIAL_SCENES);
+    setScriptRevision(1);
+    setScriptHash("sha256:8f4b2c...e91a");
+    setRewriteCount(0);
+    setRewriteSuggestion("Thêm cảnh bướm ghé một bông hoa");
+    setScriptConfirmed(false);
+    setVideoJobMode("ADMISSION_PENDING");
+    setVideoRegenCount(0);
+    setLastUnsuitableReason("");
+    setLandscapeVideo(false);
+    setActiveSheet(null);
+  }, [selectedProfileId]);
+
+  const pinStoryLesson = (id: string) => {
+    setSelectedLessonId(id);
+    setCurrentRunLessonId(id);
+    setSkippedOptionalSetup(false);
+  };
+
+  const buildCurrentRunHistoryRecord = (
+    lifecycleState: RunHistoryRecord["lifecycleState"],
+    note: string
+  ): RunHistoryRecord => {
+    const profile = profiles.find((item) => item.id === storyProfileId) ?? profiles[0];
+    const lesson = currentRunLessonId
+      ? lessons.find((item) => item.id === currentRunLessonId)
+      : undefined;
+    return {
+      id: currentDemoRunId,
+      title: lesson?.title ?? "Câu chuyện của " + detectedSubject,
+      childName: (profile?.displayName ?? "Bé").replace(/^Bé\s*/i, ""),
+      ageLabel: profile?.ageLabel ?? "",
+      date: new Date().toLocaleDateString("vi-VN"),
+      lifecycleState,
+      idleHours: 0,
+      scriptRevision,
+      regenUsed: videoRegenCount,
+      note,
+    };
+  };
+
+  const recordCurrentStoryReady = useCallback(() => {
+    const readyRecord = buildCurrentRunHistoryRecord(
+      "VIDEO_READY_144H",
+      "Video đã sẵn sàng phát trong bản xem thử."
+    );
+    setRunHistory((prev) => {
+      const existing = prev.find((record) => record.id === currentDemoRunId);
+      if (existing && ["COMPLETED", "DELETE_PENDING", "DELETED"].includes(existing.lifecycleState)) {
+        return prev;
+      }
+      return existing
+        ? prev.map((record) => record.id === currentDemoRunId ? { ...record, ...readyRecord } : record)
+        : [readyRecord, ...prev];
+    });
+  }, [currentDemoRunId, currentRunLessonId, detectedSubject, profiles, scriptRevision, storyProfileId, videoRegenCount, lessons]);
+
+  const completeCurrentStoryRun = useCallback(() => {
+    const completedRecord = buildCurrentRunHistoryRecord(
+      "COMPLETED",
+      "Đã hoàn tất câu chuyện trong bản xem thử."
+    );
+    setHasActiveRun(false);
+    setRunHistory((prev) => {
+      const existing = prev.find((record) => record.id === currentDemoRunId);
+      if (existing?.lifecycleState === "COMPLETED") return prev;
+      return existing
+        ? prev.map((record) => record.id === currentDemoRunId ? { ...record, ...completedRecord } : record)
+        : [completedRecord, ...prev];
+    });
+  }, [currentDemoRunId, currentRunLessonId, detectedSubject, profiles, scriptRevision, storyProfileId, videoRegenCount, lessons]);
+
   const addProfile = (
     displayName: string,
     ageMonths: number,
     interests: string[],
+    gender: ChildGender,
     learningNotes = "Bé thích quan sát tranh ảnh và hoạt động ngoài trời.",
     supportNeedsNote = "Mặc định loại khỏi ngữ cảnh AI.",
     consentAccepted = true
   ): boolean => {
-    if (!isValidParentAge(ageMonths)) return false;
+    if (!isValidParentAge(ageMonths) || (gender !== "male" && gender !== "female")) return false;
     const years = Math.max(3, Math.floor(ageMonths / 12));
     const newItem: ChildProfileItem = {
       id: `child-${Date.now()}`,
       displayName,
+      gender,
       ageMonths,
       ageLabel: `${years} tuổi (${ageMonths} tháng)`,
       ageGroup:
@@ -372,9 +509,10 @@ export function ParentProvider({ children }: { children: React.ReactNode }) {
     ageMonths: number,
     learningNotes?: string,
     supportNeedsNote?: string,
-    interests?: string[]
+    interests?: string[],
+    gender?: ChildGender
   ): boolean => {
-    if (!isValidParentAge(ageMonths)) return false;
+    if (!isValidParentAge(ageMonths) || (gender !== undefined && gender !== "male" && gender !== "female")) return false;
     const years = Math.max(3, Math.floor(ageMonths / 12));
     setProfiles((prev) =>
       prev.map((p) =>
@@ -383,6 +521,7 @@ export function ParentProvider({ children }: { children: React.ReactNode }) {
               ...p,
               displayName,
               ageMonths,
+              gender: gender ?? p.gender,
               ageLabel: `${years} tuổi (${ageMonths} tháng)`,
               ageGroup:
                 ageMonths < 48
@@ -444,6 +583,10 @@ export function ParentProvider({ children }: { children: React.ReactNode }) {
   };
 
   const requestAiRewrite = () => {
+    if (scriptConfirmed) {
+      showToast("Kịch bản đã được duyệt và yêu cầu video đã được nhận.", "info");
+      return;
+    }
     if (rewriteCount >= 3) {
       showToast("Đã dùng tối đa 3/3 lần viết lại kịch bản trong phiên này.", "warn");
       return;
@@ -493,10 +636,33 @@ export function ParentProvider({ children }: { children: React.ReactNode }) {
     ]);
   };
 
-  const confirmScriptAndStartVideo = () => {
+  const confirmScriptAndStartVideo = (): boolean => {
+    if (!subjectConfirmed) {
+      showToast("Vui lòng xác nhận chủ thể từ bức tranh trước.", "warn");
+      return false;
+    }
+    if (!contextConfirmed) {
+      showToast("Vui lòng duyệt ngữ cảnh cá nhân hóa trước.", "warn");
+      return false;
+    }
+    if (scriptConfirmed) {
+      showToast("Yêu cầu cho kịch bản này đã được nhận. Hãy tiếp tục theo dõi tiến trình.", "info");
+      return false;
+    }
+    const admissionAlreadyInProgress = [
+      "ADMISSION_PENDING",
+      "QUEUED",
+      "RUNNING",
+      "SAFETY_VALIDATING",
+      "RECONCILING",
+    ].includes(videoJobMode);
+    if (hasActiveRun && admissionAlreadyInProgress) {
+      showToast("Video của câu chuyện này đã được nhận. Hãy tiếp tục theo dõi tiến trình.", "info");
+      return false;
+    }
     if (quotaRemaining <= 0) {
       showToast("Đã hết lượt tạo video. Vui lòng mua thêm lượt.", "warn");
-      return;
+      return false;
     }
     setScriptConfirmed(true);
     setHasActiveRun(true);
@@ -512,6 +678,7 @@ export function ParentProvider({ children }: { children: React.ReactNode }) {
       "Xem tiến trình"
     );
     showToast(`Đã duyệt kịch bản Bản #${scriptRevision} và bắt đầu tạo video.`, "ok");
+    return true;
   };
 
   const reportVideoUnsuitableAndRegenerate = (reason: string): boolean => {
@@ -726,10 +893,12 @@ export function ParentProvider({ children }: { children: React.ReactNode }) {
         theme,
         setTheme,
         isAuthenticated,
+        authSessionReady,
         setIsAuthenticated,
         profiles,
         selectedProfileId,
         setSelectedProfileId,
+        storyProfileId,
         addProfile,
         updateProfile,
         toggleProfileConsent,
@@ -739,6 +908,9 @@ export function ParentProvider({ children }: { children: React.ReactNode }) {
         lessons,
         selectedLessonId,
         setSelectedLessonId,
+        currentRunLessonId,
+        startStoryDraft,
+        pinStoryLesson,
         libraryState,
         setLibraryState,
         skippedOptionalSetup,
@@ -766,6 +938,8 @@ export function ParentProvider({ children }: { children: React.ReactNode }) {
         contextConfirmed,
         setContextConfirmed,
         confirmContextSnapshot,
+        recordCurrentStoryReady,
+        completeCurrentStoryRun,
         scenes,
         scriptRevision,
         scriptHash,

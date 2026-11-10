@@ -32,9 +32,12 @@ export interface LessonCardItem {
   }[];
 }
 
+export type ChildGender = "male" | "female";
+
 export interface ChildProfileItem {
   id: string;
   displayName: string;
+  gender: ChildGender;
   ageMonths: number;
   ageLabel: string;
   ageGroup: string;
@@ -114,6 +117,7 @@ export const INITIAL_PROFILES: ChildProfileItem[] = [
   {
     id: "child-minh",
     displayName: "Bé Minh",
+    gender: "female",
     ageMonths: 60,
     ageLabel: "5 tuổi (60 tháng)",
     ageGroup: "36–120 tháng · Mẫu giáo (4–5 tuổi)",
@@ -128,6 +132,7 @@ export const INITIAL_PROFILES: ChildProfileItem[] = [
   {
     id: "child-an",
     displayName: "Bé An",
+    gender: "male",
     ageMonths: 48,
     ageLabel: "4 tuổi (48 tháng)",
     ageGroup: "36–120 tháng · Mầm (3–4 tuổi)",

@@ -2,7 +2,7 @@
 
 ```text
 CAPSTONE/
-├─ apps/mobile/                   # Android-only React Native shell + native project
+├─ apps/mobile/                   # Android-only Expo + React Native app + retained native project
 ├─ backend/                       # Python/FastAPI modular monolith
 ├─ packages/art-renderer/         # isolated PixiJS/GSAP WebView package
 ├─ packages/contracts/            # schemas, generated types, fixtures

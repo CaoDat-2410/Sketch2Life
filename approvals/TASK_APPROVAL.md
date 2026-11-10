@@ -171,3 +171,165 @@
 - Conflict handling retained both histories. SRS decision IDs D-144/D-145 were reassigned to D-148/D-149 to preserve all four records without duplicate IDs.
 - Evidence: `features/FEAT-063-system-architecture-rearchitecture/evidence/EV-063-57_SRS_V25_AND_MODAL_AI_DEV_INTEGRATION_20261106.md`.
 - Validation: `git diff --check` passed; `python tools/validate_repository_security.py` reported `REPOSITORY_SECURITY_VALID` with 6,731 publishable files scanned before commit and push. No force push or history rewrite.
+
+## Revision 13 authorization — Restore Parent registration UI and auth link
+
+- Approved plan: features/FEAT-036-ui-current-direction-alignment/plan/PLAN_REV13_PARENT_REGISTRATION_UI_AND_AUTH_LINK.md
+- Plan revision: 13
+- Plan SHA-256: 0832F08952DA8B48342EE61FA257EAB2BD46DBC4EDBF101D8C593D77DDC951D5
+- Approval status: APPROVED
+- Prepared / approved: 2026-11-10
+- Reviewer / approver: Project owner (explicit instruction in this conversation)
+
+### Authorization recorded
+
+The owner requested: “Thiếu đăng ký lấy lại UI và đường dẫn đăng ký ở UI auth cho tôi đi”. This authorizes a visual-only Parent registration page and a registration entry on the Parent sign-in screen.
+
+### Approval boundaries
+
+- Add the registration screen and sign-in link in the existing Parent auth visual system.
+- Preserve email navigation state; do not pass passwords through route state.
+- Do not create accounts, call auth/backend services, send email or verification codes, or display a false success state. Parent registration flow remains open in the canonical SRS.
+- Reuse existing assets and dependencies. No SRS or other portal changes.
+- Automated tests/builds, deployment, publishing, commit, and push are outside this approval.
+## Revision 14 authorization — Optimize Parent auth layout for tablets
+
+- Approved plan: features/FEAT-036-ui-current-direction-alignment/plan/PLAN_REV14_TABLET_AUTH_LAYOUT.md
+- Plan revision: 14
+- Plan SHA-256: 75ABC318C5869E545B3796328C594F9617F7D7DF3D18AED5ABC810DDE24F42DC
+- Approval status: APPROVED
+- Prepared / approved: 2026-11-10
+- Reviewer / approver: Project owner (explicit instruction in this conversation)
+
+### Authorization recorded
+
+The owner requested: “Sau đó tối ưu cho các thiết bị tablet ipad đồ lun cho tôi”. This authorizes responsive presentation changes for the Parent sign-in, password-recovery, and registration screens.
+
+### Approval boundaries
+
+- Add tablet-specific layout, spacing, typography, touch target, and safe-area treatment for the three Parent auth screens.
+- Preserve the existing phone presentation and all current route/state behavior.
+- Do not add authentication/account behavior, backend calls, assets, dependencies, or SRS changes. Parent registration/recovery requirements and Parent Web target scope remain open.
+- Automated tests/builds, deployment, publishing, commit, and push are outside this approval.
+## Revision 15 authorization — Parent auth guard on hard refresh
+
+- Approved plan: features/FEAT-036-ui-current-direction-alignment/plan/PLAN_REV15_PARENT_REFRESH_AUTH_GUARD.md
+- Plan revision: 15
+- Plan SHA-256: B5852BC76683922E1BC578AC06DD9B8FFDFB0003A4D645B69B5B1C0A15058A34
+- Approval status: APPROVED by explicit owner request on 2026-11-10.
+- Authorized behavior: if Parent has no session on direct load or F5, replace the route with /p11-authentication. Preserve an existing real auth session when the current bridge confirms its token. Local demo preview requires explicit user action and does not persist across reload.
+- Boundaries: keep Firebase configuration and backend token/role guards; do not create fake sessions or change API/backend behavior. No tests/builds, deployment, publishing, commit, or push.
+## Revision 16 authorization — Optimize Parent UI for iPad
+
+- Approved plan: features/FEAT-036-ui-current-direction-alignment/plan/PLAN_REV16_PARENT_TABLET_LAYOUT.md
+- Plan revision: 16
+- Plan SHA-256: A48D81C858DB9B5E6AEC754AE466DDD2C6460875D11F73DBB70A6DF939AD5932
+- Approval status: APPROVED by explicit owner request on 2026-11-10.
+- Authorized scope: improve Parent app shell and selected screens for iPad portrait/landscape; keep phone and auth layouts, route behavior, Firebase configuration, backend/API behavior, and product requirements unchanged.
+- Verification boundary: manual local visual review only; no automated tests/builds, deployment, publishing, commit, or push.
+
+## FEAT-070 Plan Rev2 — Parent Web P06-to-P07 quota admission on active preview
+
+- Status: APPROVED for the exact scope in the hash-identified plan.
+- Approver: Project owner, direct chat instruction on 2026-11-10, including the follow-up that the bug persists and asks for a deep end-to-end review.
+- Approved plan: features/FEAT-070-parent-web-video-admission-demo-fix/plan/PLAN.md.
+- Plan SHA-256: F37487038B338BAE850AD33ABC622E4023E637861134B8B1F798EEC4B5FC2BAA.
+- Runtime diagnosis: port 5171 serves apps/parent-ui from fe-ui-full-remediation; the initial web-remediation patch was not loaded there. A one-unit physical click on the active preview consumes quota and closes P06 confirmation but leaves the route at P06.
+- Scope: return admission result from ParentContext; navigate to P07 only on acceptance; show post-use quota copy; physically re-run the synthetic route on port 5171 and record evidence.
+- Exclusions: changes to FEAT-036/067/068/069 or their in-progress files, SRS changes/sign-off, API/backend/auth/billing/provider integration, automated tests/builds, commit/push, deployment, and publishing.
+- Approval basis: user's direct request to fix P06, run the complete FE-only SRS demo, and follow-up authorization to investigate the persisting failure in detail.
+
+## FEAT-071 Plan Rev1 — Parent profile one-tap switching
+
+- Status: APPROVED for the exact scope in the hash-identified plan.
+- Approver: Project owner, direct instruction on 2026-11-10 after review of the plan: “lên plan xong sửa cho tôi đi”.
+- Approved plan: `features/FEAT-071-parent-profile-one-tap-switch/plan/PLAN.md`.
+- Plan SHA-256: `08DFAD14941DA13838860069C63A8821776E108418087508DB704AE7F3BDA511`.
+- Scope: one-tap active child selection from P13 and P10; keep profile details/editing as a separate action; reflect the selected child in existing Parent UI state; session-only local FE preview.
+- Boundaries: no auth/account switching, API/backend, persistence, SRS changes, or payment changes. Preserve existing in-flight FEAT-036/067/068/069 changes, including the auth diff in `ParentScreens.tsx`.
+- Verification: manual local-preview review only. Automated tests/builds, commit, push, deployment, and publishing are excluded.
+
+## FEAT-072 Plan Rev1 — Refresh Parent video quota screen
+
+- Status: APPROVED for the exact scope in the hash-identified plan.
+- Approver: Project owner, direct instruction on 2026-11-10.
+- Approved plan: features/FEAT-072-parent-video-quota-visual-refresh/plan/PLAN.md.
+- Plan SHA-256: A45145F858A5DB6DB2000D5BD3649FB8907681E5EEB080DC802C24EF6732067D.
+- Authorization recorded: “Dùng skill sửa lại toàn bộ giao diện lượt tạo này sao cho mới mẻ hợp với phong cách trẻ em mà SRS đề ra”.
+- Scope: visual and interaction-presentation redesign of Parent P12 quota and top-up screen; retain existing local demo data, simulated purchase behavior, route, and ledger behavior; responsive phone/tablet presentation and manual review on the active port-5171 preview.
+- Product authority: FEAT-063 SRS v2.7-draft from the main checkout per its SRS_AUTHORITY.md, SHA-256 BE0D656966FDE91BA7CD5C914C319EF301D137985EF5CC91B94F36FEBCF61FB5; awaiting formal owner sign-off. The target worktree still contains stale v2.5 authority copies and these will not be used or edited.
+- Boundaries: no API/auth/persistence/billing/quota policy/price/package/SRS changes; no generated external assets; preserve all other worktree changes. No automated tests/builds, commit, push, deployment, or publication.
+
+## FEAT-073 Plan Rev1 — Child profile gender and matching avatar
+
+- Status: APPROVED for the exact scope in the hash-identified plan.
+- Approver: Project owner, direct instruction on 2026-11-10.
+- Approved plan: features/FEAT-073-parent-profile-gender-avatar/plan/PLAN.md.
+- Plan SHA-256: 76623107BBEBFFC10BFD92EC3A158685816998928CAA1CD1D9C85047D0FFD36B.
+- Authorization recorded: “phần tạo hồ sơ thiếu giới tính nữa ví dụ như là giới tính nam thì avatar là đứa bé trai nếu là con gái thì là avatar đứa bé gái á”.
+- Scope: add a local FE demo gender choice on child-profile creation and editing, drive the avatar from the saved choice, and update all Parent profile avatar views.
+- Product authority: FEAT-063 SRS v2.7-draft from the main checkout per its SRS_AUTHORITY.md, SHA-256 BE0D656966FDE91BA7CD5C914C319EF301D137985EF5CC91B94F36FEBCF61FB5; awaiting formal owner sign-off. The target worktree has stale v2.5 authority copies, which remain unchanged.
+- Product question: the canonical SRS defines age range and profile context but does not specify gender. Keep the field local to the requested demo UI; do not add an API/schema/SRS requirement or use it in AI context.
+- Boundaries: no API/backend/persistence/analytics/consent/auth changes; preserve existing profile workflows and in-flight worktree changes. No automated tests/builds, commit, push, deployment, or publication.
+
+## FEAT-074 Plan Rev1 — Parent settings grouped into two categories
+
+- Status: APPROVED for the exact scope in the hash-identified plan.
+- Approver: Project owner, direct request in this conversation on 2026-11-10.
+- Approved plan: features/FEAT-074-parent-settings-two-groups/plan/PLAN.md.
+- Plan SHA-256: E2E9A9BA756C205D9EECB5BACE12B4E1A4698E950EF61DE0DD57681694124098.
+- Authorization recorded: “Cái này gom hết vào 2 cái là đầu tiên là tài khoản cài đặt và cuối cùng là bảo mật đc k ? phân đều ra á”.
+- Scope: replace the three P13 account/security navigation rows with two categories. “Tài khoản & cài đặt” contains existing parent details and preferences; “Bảo mật” contains existing privacy/AI-data information, profile-access information, and password change. Preserve all existing behavior.
+- Product authority: FEAT-063 SRS v2.7-draft from the main checkout per its SRS_AUTHORITY.md, SHA-256 BE0D656966FDE91BA7CD5C914C319EF301D137985EF5CC91B94F36FEBCF61FB5; awaiting formal owner sign-off.
+- Boundaries: presentation/navigation only; no API, backend, authentication, persistence, SRS, or product-policy changes. No automated tests/builds, commit, push, deployment, or publication.
+
+## FEAT-075 Plan Rev1 — Final Parent FE demo-flow SRS UI/UX review
+
+- Status: APPROVED for the exact scope in the hash-identified plan.
+- Approver: Project owner, direct request in this conversation on 2026-11-10.
+- Approved plan: features/FEAT-075-parent-srs-flow-final-review/plan/PLAN.md.
+- Plan SHA-256: EB66C2DBDBE39112BE6385A2B2DD8EC76D747D8D4441B5DB4B7B6DFA9BB1F504.
+- Authorization: “Sau đó check UI/UX theo luồng của SRS lần cuối cho tôi có lỗi thì sửa ko thì trả báo cáo đã check gì chạy luồng như nào cho tôi và đợi yêu cầu tiếp theo”.
+- Worktree: F:/Github/Sketch2Life-worktrees/fe-ui-full-remediation, as explicitly directed by the user; do not transfer changes to the main checkout.
+- Scope: manually run the complete synthetic Parent FE story-to-video flow; audit SRS-required navigation, confirmations, rewrite/retry/quota/status gates, playback, post-video activities, feedback/history and responsive interaction; fix only reproduced Parent FE defects and record evidence.
+- Product authority: FEAT-063 SRS v2.7-draft Rev57, SHA-256 BE0D656966FDE91BA7CD5C914C319EF301D137985EF5CC91B94F36FEBCF61FB5; unsigned.
+- Boundaries: no API/backend/provider/auth/persistence/payment/SRS/policy change; preserve open questions and all existing worktree changes. No automated tests/builds, commit, push, deploy or publication.
+
+## FEAT-076 Plan Rev1 — Native React Native Parent demo flow
+
+- Status: APPROVED for the exact scope in the hash-identified plan.
+- Approver: Project owner, direct instruction in the active conversation on 2026-11-10: “V thì build 1 bản qua react native bỏ vào đó cho tôi đi”.
+- Worktree: F:/Github/Sketch2Life-worktrees/fe-ui-full-remediation, previously specified by the owner.
+- Approved plan: features/FEAT-076-parent-react-native-parent-flow/plan/PLAN.md, Rev1.
+- Plan SHA-256: AA96EF0084537C37F3E2017DBF8FDE03D3B96E0100F509B1675C12DD07962360.
+- Scope: deliver a native React Native synthetic Parent story-to-video demo flow; fix P06 preflight to P07 status/READY navigation; add profile gender/avatar and one-tap selection; align quota/settings screens with the recently reviewed Parent UI; build a local Android debug APK if prerequisites are available.
+- Product authority: FEAT-063 SRS v2.7-draft Rev57, SHA-256 BE0D656966FDE91BA7CD5C914C319EF301D137985EF5CC91B94F36FEBCF61FB5; unsigned working baseline.
+- Boundaries: no API/backend/auth provider/persistence/payment/device/media/provider integration; no SRS/schema/policy decisions; keep no-preset activity policy open. No release signing, commit, push, deploy, or publication. Preserve unrelated files and do not modify the web app or Fixture lab.
+
+## FEAT-077 Plan Rev1 — Parent account edit entry point
+
+- Status: APPROVED for the exact scope in the hash-identified plan.
+- Approver: Project owner, direct instruction in the active conversation on 2026-11-10.
+- Worktree: F:/Github/Sketch2Life-worktrees/fe-ui-full-remediation, previously specified by the owner.
+- Approved plan: features/FEAT-077-parent-account-edit-entry-point/plan/PLAN.md, Rev1.
+- Plan SHA-256: D55D1E729A4DA220C2714843CCE0F6D2A70130CE512FD80E40B517A69ED09546.
+- Scope: preserve the two outer settings groups and add an accessible edit action beside the Parent account summary in web and React Native; web opens its existing account form, native edits only local demo snapshot values.
+- Product authority: FEAT-063 SRS v2.7-draft Rev57, SHA-256 BE0D656966FDE91BA7CD5C914C319EF301D137985EF5CC91B94F36FEBCF61FB5; unsigned working baseline.
+- Boundaries: no API/backend/authentication/persistence/SRS/security-policy changes, generated/external assets, commit, push, deployment, or publication. Preserve unrelated worktree changes.
+## FEAT-078 Plan Rev1 — Parent account and security page UX
+
+- Status: APPROVED for the exact scope in the hash-identified plan.
+- Approver: Project owner, direct instruction in the active conversation on 2026-11-10 to reorganize the two supplied UX pages using the skill.
+- Worktree: F:/Github/Sketch2Life-worktrees/fe-ui-full-remediation.
+- Approved plan: features/FEAT-078-parent-settings-pages-ux/plan/PLAN.md, Rev1.
+- Plan SHA-256: FC1E54AF4E2CA7BA7605E1EF3EBFD745439D2DB5072E023922FEEAFBE3CCC284.
+- Scope: reorganize the Parent web account and security subviews; preserve content, settings actions, privacy wording, form validation, feedback, and navigation.
+- Product authority: FEAT-063 SRS v2.7-draft Rev57, SHA-256 BE0D656966FDE91BA7CD5C914C319EF301D137985EF5CC91B94F36FEBCF61FB5, per active AGENTS.md; unsigned working baseline.
+- Boundaries: no API/backend/authentication/persistence/SRS/security-policy changes, generated/external assets, commit, push, deployment, or publication. Preserve unrelated worktree changes.
+
+## Owner authorization — one local commit for current worktree (2026-11-11)
+
+- Status: APPROVED by direct project owner instruction in the active conversation: stop emulator work, gather the worktree changes into one commit, use an English message, and commit everything.
+- Scope: one local commit covering all current tracked and untracked worktree changes that pass repository security checks, including the Parent UI work and mobile Expo base.
+- Commit message: `fix(mobile): rebuild Expo base for emulator compatibility`.
+- Boundary: local commit only; no push, merge, rebase, or deployment was requested. Existing feature implementation scopes and product requirements remain unchanged.

@@ -23,11 +23,26 @@ export function AccessibleDialog({
   container,
   children,
 }: AccessibleDialogProps) {
+  const returnFocusRef = React.useRef<HTMLElement | null>(null);
+
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal container={container ?? undefined}>
         <DialogPrimitive.Overlay className={`s2l-dialog-overlay ${className.includes("is-sheet") ? "is-sheet" : ""}`.trim()} />
-        <DialogPrimitive.Content className={`s2l-dialog-content ${className}`.trim()}>
+        <DialogPrimitive.Content
+          className={`s2l-dialog-content ${className}`.trim()}
+          onOpenAutoFocus={() => {
+            returnFocusRef.current = document.activeElement instanceof HTMLElement
+              ? document.activeElement
+              : null;
+          }}
+          onCloseAutoFocus={(event) => {
+            const returnTarget = returnFocusRef.current;
+            if (!returnTarget?.isConnected) return;
+            event.preventDefault();
+            returnTarget.focus();
+          }}
+        >
           <DialogPrimitive.Title className="s2l-sr-only">{title}</DialogPrimitive.Title>
           {description && <DialogPrimitive.Description className="s2l-sr-only">{description}</DialogPrimitive.Description>}
           {showClose && (

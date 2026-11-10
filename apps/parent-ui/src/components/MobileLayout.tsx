@@ -1,16 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useParent } from "../context/ParentContext";
+import type { ChildGender } from "../data/mockParentData";
 import { isLocalPreview } from "../../../shared/backendApi";
 import { Icon } from "./Icon";
 import type { IconName } from "./Icon";
-import { Btn, Note, Sheet, Soft, StatusBarIcons } from "./Kit";
+import { Btn, ChildGenderField, Note, Sheet, Soft, StatusBarIcons } from "./Kit";
 
 const TABS: { path: string; label: string; icon: IconName }[] = [
-  { path: "/p01-lesson-library", label: "Trang chủ", icon: "home" },
-  { path: "/p09-history-feedback", label: "Lịch sử", icon: "book" },
-  { path: "/p12-video-quota", label: "Lượt tạo", icon: "star" },
-  { path: "/p13-settings", label: "Cài đặt", icon: "settings" },
+  { path: "/p01-lesson-library", label: "Trang chủ", icon: "nav-home" },
+  { path: "/p09-history-feedback", label: "Lịch sử", icon: "nav-history" },
+  { path: "/p12-video-quota", label: "Lượt tạo", icon: "nav-credits" },
+  { path: "/p13-settings", label: "Cài đặt", icon: "nav-settings" },
 ];
 
 const CAT_ICON: Record<string, { icon: IconName; tone: string }> = {
@@ -34,12 +35,12 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
   const {
     theme,
     profiles,
-    selectedProfileId,
+    storyProfileId,
     addProfile,
     ideaTranscript,
     activeSheet,
     setActiveSheet,
-    setSkippedOptionalSetup,
+    startStoryDraft,
     scriptRevision,
     scenes,
     confirmScriptAndStartVideo,
@@ -47,6 +48,11 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
     setDetectedSubject,
     setSubjectConfirmed,
     quotaRemaining,
+    hasActiveRun,
+    videoJobMode,
+    contextConfirmed,
+    subjectConfirmed,
+    scriptConfirmed,
     videoRegenCount,
     reportVideoUnsuitableAndRegenerate,
     triggerCancelIncompleteRun,
@@ -62,9 +68,12 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
   const [subjectDraft, setSubjectDraft] = useState(detectedSubject);
   const [reason, setReason] = useState("Hình ảnh chưa giống bức vẽ của bé");
   const [newName, setNewName] = useState("");
+  const [newGender, setNewGender] = useState<ChildGender | "">("");
   const [newMonths, setNewMonths] = useState("60");
   const [newAgeError, setNewAgeError] = useState("");
   const [newInterests, setNewInterests] = useState("Vẽ tranh, Khám phá thiên nhiên");
+  const ageMonths = Number(newMonths);
+  const isNewAgeValid = Number.isInteger(ageMonths) && ageMonths >= 36 && ageMonths <= 120;
 
   useEffect(() => {
     if (activeSheet === "EDIT_SUBJECT") {
@@ -81,20 +90,38 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
   }, [path, landscapeVideo, setLandscapeVideo]);
 
   const activeChild =
-    profiles.find((p) => p.id === selectedProfileId && !p.archived && p.deletionStatus !== "DELETED") ||
+    profiles.find((p) => p.id === storyProfileId && !p.archived && p.deletionStatus !== "DELETED") ||
     profiles.find((p) => !p.archived && p.deletionStatus !== "DELETED") ||
     profiles[0];
+  const hasContinuableRun = hasActiveRun && videoJobMode !== "DELETED" && videoJobMode !== "DELETE_PENDING";
+  const acceptedJobInProgress = hasActiveRun && [
+    "ADMISSION_PENDING",
+    "QUEUED",
+    "RUNNING",
+    "SAFETY_VALIDATING",
+    "RECONCILING",
+  ].includes(videoJobMode);
 
-  const isAuth = path === "/p11-authentication" || path === "/login" || path === "/p14-password-recovery";
+  const isAuth = [
+    "/p11-authentication",
+    "/login",
+    "/p14-password-recovery",
+    "/p15-parent-registration",
+  ].includes(path);
   const visibleTabs = isLocalPreview() ? TABS : TABS.filter((t) => t.path === "/p01-lesson-library" || t.path === "/p13-settings");
   const showTabs = !landscapeVideo && visibleTabs.some((t) => t.path === path);
   const createShortcutIndex = Math.floor(visibleTabs.length / 2);
   const close = () => setActiveSheet(null);
   const openStoryCapture = () => {
+    if (hasContinuableRun) {
+      showToast("Hãy hoàn tất câu chuyện đang thực hiện trước khi bắt đầu câu chuyện mới.", "info");
+      navigate(videoJobMode === "READY" ? "/p08-video-and-activities" : "/p07-video-job-status");
+      return;
+    }
     if (quotaRemaining <= 0) {
       showToast("Bạn đã hết lượt tạo video. Bạn vẫn có thể chụp tranh và mua thêm lượt sau.", "warn");
     }
-    setSkippedOptionalSetup(true);
+    startStoryDraft(true);
     navigate("/p04-capture-subject-confirmation");
   };
 
@@ -143,17 +170,19 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         {showTabs && (
-          <nav className="tabbar" aria-label="Điều hướng chính" style={{ gridTemplateColumns: `repeat(${visibleTabs.length + 1}, minmax(0, 1fr))` }}>
+          <nav className="tabbar" aria-label="Điều hướng chính" data-tab-count={visibleTabs.length + 1}>
             {visibleTabs.slice(0, createShortcutIndex).map(renderTab)}
             <div className="tab-create-slot">
               <button
                 type="button"
                 className="tab-create-action"
-                aria-label="Tạo câu chuyện mới bằng cách chụp tranh"
+                aria-label={hasContinuableRun ? "Tiếp tục câu chuyện đang thực hiện" : "Tạo câu chuyện mới bằng cách chụp tranh"}
                 onClick={openStoryCapture}
               >
-                <span className="tab-create-action__orb"><Icon name="camera" size={25} strokeWidth={2.2} /></span>
-                <span className="tab-create-action__label">Tạo</span>
+                <span className="tab-create-action__orb">
+                  <Icon name={hasContinuableRun ? "video" : "nav-create"} size={25} strokeWidth={2.2} />
+                </span>
+                <span className="tab-create-action__label">{hasContinuableRun ? "Tiếp tục" : "Tạo"}</span>
               </button>
             </div>
             {visibleTabs.slice(createShortcutIndex).map(renderTab)}
@@ -182,20 +211,28 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
                 <span className="ck"><Icon name="check" size={15} strokeWidth={3} /></span>
                 <span>Ý tưởng câu chuyện: {ideaTranscript.trim() ? "Đã nhập ý tưởng" : "AI tự sáng tạo từ tranh"}</span>
               </div>
+              <div className={contextConfirmed ? "check done" : "check fail"}>
+                <span className="ck">
+                  {contextConfirmed && <Icon name="check" size={15} strokeWidth={3} />}
+                </span>
+                <span>Ngữ cảnh cá nhân hóa {contextConfirmed ? "đã được duyệt" : "chưa được duyệt"}</span>
+              </div>
               <div className="check done">
                 <span className="ck"><Icon name="check" size={15} strokeWidth={3} /></span>
                 <span>Kịch bản {scenes.length} cảnh đã duyệt (Bản #{scriptRevision})</span>
               </div>
             </div>
-            <Note tone="blue" icon="video">
-              Dùng <strong>1 lượt video</strong> từ tài khoản của bạn (còn {quotaRemaining} lượt). Lượt đã dùng không thể hoàn lại.
+            <Note tone={acceptedJobInProgress || scriptConfirmed ? "mint" : "blue"} icon={acceptedJobInProgress || scriptConfirmed ? "check" : "video"}>
+              {acceptedJobInProgress || scriptConfirmed
+                ? "Yêu cầu tạo video cho câu chuyện này đã được nhận. Tiếp tục theo dõi tiến trình, không dùng thêm lượt."
+                : <>Dùng <strong>1 lượt video</strong> từ tài khoản của bạn. Sau khi yêu cầu được chấp nhận, còn <strong>{Math.max(0, quotaRemaining - 1)} lượt</strong>. Lượt đã dùng không thể hoàn lại.</>}
             </Note>
             <Btn
               tone="mint"
-              disabled={quotaRemaining <= 0}
+              disabled={quotaRemaining <= 0 || !contextConfirmed || !subjectConfirmed || scriptConfirmed || acceptedJobInProgress}
               onClick={() => {
-                confirmScriptAndStartVideo();
-                if (quotaRemaining > 0) navigate("/p07-video-job-status");
+                const accepted = confirmScriptAndStartVideo();
+                if (accepted) navigate("/p07-video-job-status");
               }}
             >
               <Icon name="video" size={18} /> Tạo video ngay
@@ -259,6 +296,11 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
                 placeholder="Ví dụ: Bé Bông"
               />
             </div>
+            <ChildGenderField
+              idPrefix="new-child-gender"
+              value={newGender}
+              onChange={setNewGender}
+            />
             <div>
               <label className="field-label" htmlFor="new-child-months">Độ tuổi (36–120 tháng)</label>
               <div className="row">
@@ -315,9 +357,10 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
               />
             </div>
             <Btn
-              disabled={!newName.trim()}
+              disabled={!newName.trim() || !newGender || !isNewAgeValid}
               onClick={() => {
-                const m = Number(newMonths);
+                if (!newGender) return;
+                const m = ageMonths;
                 if (!Number.isInteger(m) || m < 36 || m > 120) {
                   setNewAgeError("Nhập độ tuổi từ 36 đến 120 tháng bằng số nguyên.");
                   return;
@@ -326,11 +369,12 @@ export function MobileLayout({ children }: { children: React.ReactNode }) {
                   .split(",")
                   .map((x) => x.trim())
                   .filter(Boolean);
-                if (!addProfile(newName.trim(), m, ints)) {
+                if (!addProfile(newName.trim(), m, ints, newGender)) {
                   setNewAgeError("Nhập độ tuổi từ 36 đến 120 tháng bằng số nguyên.");
                   return;
                 }
                 setNewName("");
+                setNewGender("");
                 setNewMonths("60");
                 setNewAgeError("");
                 close();

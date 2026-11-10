@@ -1,4 +1,6 @@
-export const FIXTURE_FLOW_CONTRACT_VERSION = '1.0' as const;
+import {LEGACY_FIXTURE_CONTRACTS as FIXTURE_CONTRACTS, LEGACY_FIXTURE_FLOW_CONTRACT_VERSION} from '../../infrastructure/demo/legacyFixtureFixtures';
+
+export const FIXTURE_FLOW_CONTRACT_VERSION = LEGACY_FIXTURE_FLOW_CONTRACT_VERSION;
 
 export type FixtureFlowStep =
   | 'capture'
@@ -36,19 +38,7 @@ export type FixtureFlowAction =
   | Readonly<{type: 'SUBMIT_FEEDBACK'}>
   | Readonly<{type: 'RESET'}>;
 
-export const FIXTURE_CONTRACTS = Object.freeze({
-  sessionId: 'session-fixture-001',
-  sourceArtifactId: 'synthetic-drawing-fixture-001',
-  sourceArtifactVersion: 1,
-  activityId: 'ACT-0004',
-  activityVersion: 2,
-  objectiveId: 'OBJ_OBJECT_PERMANENCE',
-  objectiveVersion: 1,
-  understandingLabel: 'butterfly',
-  understandingConfidence: 0.94,
-  rendererPlanId: 'integration-butterfly-reveal',
-  contractVersion: FIXTURE_FLOW_CONTRACT_VERSION,
-});
+export {FIXTURE_CONTRACTS};
 
 export function createInitialFixtureFlow(): FixtureFlowState {
   return {

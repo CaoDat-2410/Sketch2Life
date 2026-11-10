@@ -18,6 +18,7 @@ import {
   P10ChildProfileDetailPage,
   P11AuthenticationPage,
   P14PasswordRecoveryPage,
+  P15ParentRegistrationPage,
   P12VideoQuotaPage,
   P13SettingsPage,
 } from "./pages/ParentScreens";
@@ -27,12 +28,18 @@ function apiOrPreview(element: React.ReactNode, title: string, endpoint: string,
 }
 
 function ParentRoutes() {
-  const { isAuthenticated } = useParent();
+  const { isAuthenticated, authSessionReady } = useParent();
   const location = useLocation();
   const loginPath = location.pathname === "/p11-authentication" || location.pathname === "/login";
   const recoveryPath = location.pathname === "/p14-password-recovery";
-  if (!isAuthenticated && !loginPath && !recoveryPath) return <Navigate to="/p11-authentication" replace />;
-  if (isAuthenticated && loginPath) return <Navigate to="/p01-lesson-library" replace />;
+  const registrationPath = location.pathname === "/p15-parent-registration";
+  if (!authSessionReady) {
+    return <main role="status" aria-live="polite">Đang kiểm tra phiên đăng nhập…</main>;
+  }
+  if (!isAuthenticated && !loginPath && !recoveryPath && !registrationPath) {
+    return <Navigate to="/p11-authentication" replace />;
+  }
+  if (isAuthenticated && (loginPath || registrationPath)) return <Navigate to="/p01-lesson-library" replace />;
 
   return (
     <Routes>
@@ -53,6 +60,7 @@ function ParentRoutes() {
       <Route path="/p10-child-profiles/:childId" element={apiOrPreview(<P10ChildProfileDetailPage />, "Chi tiết hồ sơ trẻ", "/api/*", "Chưa có Parent API để đọc hoặc sửa hồ sơ trẻ.")} />
       <Route path="/p11-authentication" element={<P11AuthenticationPage />} />
       <Route path="/p14-password-recovery" element={<P14PasswordRecoveryPage />} />
+      <Route path="/p15-parent-registration" element={<P15ParentRegistrationPage />} />
       <Route path="/p12-video-quota" element={apiOrPreview(<P12VideoQuotaPage />, "Quota video", "/api/*", "Backend hiện chưa có Parent API về video quota, thanh toán hoặc top-up.")} />
       <Route path="/p13-settings" element={apiOrPreview(<P13SettingsPage />, "Cài đặt tài khoản chưa nối API", "/api/*", "Backend hiện chưa có API Parent cho mật khẩu, email, thông báo hoặc tuỳ chọn tài khoản. Giao diện cài đặt chỉ dùng trong bản xem thử.")} />
       <Route path="*" element={<Navigate to="/p01-lesson-library" replace />} />

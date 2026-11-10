@@ -19,6 +19,10 @@ This is the single detailed snapshot of the system as it exists now. It separate
 
 Reference handbooks and sprint workbooks inform the baseline but do not authorize implementation. Their originals and rendered extracts are external local references and are not published in this repository.
 
+## Active mobile toolchain checkpoint — 2026-11-10
+
+The active Parent Android app is `apps/mobile`, now configured with Expo SDK 58, React Native 0.88.1, React 19.3, Expo CLI, and a development client. The retained native project keeps `com.sketch2life.mobile`, minSdk 29, targetSdk 36, and compileSdk 37. This dated checkpoint supersedes only the older mobile framework/tooling snapshot in this baseline; it does not claim API integration or alter product requirements. See FEAT-079 and ADR-0023.
+
 ## 2. Product objective
 
 Sketch2Life turns a child's drawing and narration into a short personalized learning experience, then transitions the child to a physical Montessori activity and captures parent/guide feedback.

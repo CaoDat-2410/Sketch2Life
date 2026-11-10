@@ -1,0 +1,494 @@
+/* Shape-based rules keep iPad layouts active in desktop responsive previews.
+   Coarse-pointer rules also catch widescreen tablets such as 16:10 Android devices. */
+
+@media (min-width: 700px) and (max-width: 1440px) and (min-height: 620px) and (max-aspect-ratio: 31 / 20),
+       (min-width: 700px) and (max-width: 1440px) and (min-height: 620px) and (pointer: coarse) {
+  .stage {
+    box-sizing: border-box;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: clamp(12px, 1.8vw, 24px);
+    align-items: center;
+  }
+
+  .phone:not(.is-landscape) {
+    width: min(100%, 1120px);
+    max-width: 1120px;
+    height: calc(100dvh - 32px);
+    min-height: 0;
+    overflow: hidden;
+    border-radius: 28px;
+  }
+
+  .phone:not(.is-landscape) > .phone-frame-bg {
+    inset: 0;
+    border: 1px solid var(--line);
+    border-radius: 28px;
+    box-shadow: 0 20px 64px -40px rgb(20 43 83 / 38%);
+  }
+
+  .phone .statusbar { display: none; }
+
+  .phone .scroll {
+    min-height: 0;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--line) transparent;
+  }
+
+  .phone .page:not(.auth-page) {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 820px;
+    min-width: 0;
+    margin-inline: auto;
+    padding: clamp(24px, 3.2vw, 36px) clamp(24px, 4.4vw, 40px) max(40px, env(safe-area-inset-bottom));
+    gap: clamp(18px, 2.2vw, 26px);
+  }
+
+  .phone .page > * { min-width: 0; }
+  .phone .page .h1 { font-size: clamp(28px, 3.2vw, 38px); line-height: 1.18; }
+  .phone .page .h2 { font-size: clamp(20px, 2.25vw, 25px); line-height: 1.3; }
+  .phone .page .h3 { font-size: clamp(16px, 1.7vw, 19px); line-height: 1.35; }
+  .phone .page .sub { font-size: clamp(15px, 1.55vw, 17px); line-height: 1.6; }
+  .phone .page .tiny { font-size: 13px; line-height: 1.45; }
+
+  .phone .page .card { padding: clamp(18px, 2.2vw, 26px); border-radius: 18px; }
+  .phone .page .card.tight { padding: 16px 18px; }
+  .phone .page .round-btn { width: 48px; height: 48px; border-radius: 16px; }
+  .phone .page .input,
+  .phone .page .textarea { min-height: 52px; font-size: 16px; }
+  .phone .page button.chip { min-height: 44px; padding-inline: 14px; font-size: 14px; }
+  .phone .page .btn3d:not(.sm),
+  .phone .page .btn-soft:not(.sm) { min-height: 54px; padding-inline: 20px; font-size: 15px; }
+  .phone .page .act-row { min-height: 76px; padding: 14px; }
+  .phone .page .profile-row { min-height: 82px; padding: 12px; }
+  .phone .page .cta-bar { gap: 12px; margin-top: 8px; }
+
+  .phone .tabbar {
+    box-sizing: border-box;
+    width: min(100%, 820px);
+    max-width: 820px;
+    align-self: center;
+    margin-inline: auto;
+    border-radius: 22px 22px 0 0;
+    padding: 12px 24px max(16px, env(safe-area-inset-bottom));
+  }
+
+  .phone .tabbar .tab,
+  .phone .tabbar .tab-create-slot { min-height: 64px; }
+  .phone .tabbar .tab { font-size: 13px; }
+  .phone .tabbar[data-tab-count="3"] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .phone .tabbar[data-tab-count="5"] { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .phone .tabbar .tab-create-action { top: -31px; min-height: 86px; }
+  .phone .tabbar .tab-create-action__orb { width: 68px; height: 68px; flex-basis: 68px; }
+
+  .phone .page:has(.hero-create) .hero-create,
+  .phone .page:has(.hero-create) .hero-create:active {
+    min-height: 164px;
+    grid-template-columns: 54px minmax(0, 1fr) clamp(116px, 16vw, 150px);
+    gap: 16px;
+    padding: 18px 22px;
+    border-radius: 22px;
+  }
+
+  .phone .page:has(.hero-create) .hero-create .plus { width: 54px; height: 54px; }
+  .phone .page:has(.hero-create) .hero-create .t { max-width: 18ch; font-size: clamp(19px, 2.2vw, 25px); }
+  .phone .page:has(.hero-create) .hero-create .s { font-size: 15px; }
+  .phone .page:has(.hero-create) .hero-kite { width: clamp(116px, 16vw, 150px); height: 148px; }
+  .phone .page:has(.hero-create) .story-card .thumb { height: clamp(144px, 19vw, 188px); }
+
+  .phone .page .topic-grid { gap: 16px; }
+  .phone .page .topic { min-height: 218px; padding: 14px; border-radius: 18px; }
+  .phone .page .topic .cov { height: clamp(112px, 17vw, 152px); border-radius: 14px; }
+  .phone .page .paper { width: min(100%, 620px); margin-inline: auto; }
+  .phone .page .drawing-preview { max-height: 50dvh; }
+  .phone .page .outdoor-art { height: clamp(220px, 34vw, 360px); max-height: 42dvh; }
+
+  .phone .login-page {
+    box-sizing: border-box;
+    display: grid;
+    width: 100%;
+    max-width: none;
+    min-height: 100%;
+    grid-template-columns: minmax(0, 1fr) minmax(340px, 440px);
+    align-items: center;
+    justify-content: stretch;
+    gap: clamp(20px, 5vw, 72px);
+    padding: max(28px, env(safe-area-inset-top)) clamp(24px, 4.2vw, 52px) max(28px, env(safe-area-inset-bottom));
+  }
+
+  .phone .login-page[data-screen="splash"] {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .phone .login-page .login-panel {
+    grid-column: 2;
+    width: min(100%, 440px);
+    margin: auto 0 auto auto;
+    padding: clamp(22px, 2.6vw, 32px);
+    gap: 16px;
+    border-radius: 26px;
+  }
+
+  .phone .login-page .login-panel__heading .h1 { font-size: clamp(30px, 3.2vw, 38px); }
+  .phone .login-page .login-panel__heading .sub { font-size: 15px; }
+  .phone .login-page .login-form { gap: 14px; }
+  .phone .login-page .input { min-height: 54px; font-size: 16px; }
+  .phone .login-page .login-submit,
+  .phone .login-page .login-preview-action { min-height: 54px; font-size: 15px; }
+  .phone .login-page .login-scene__logo,
+  .phone .login-page .login-scene__pencil { left: 27%; }
+  .phone .login-page[data-screen="login"] .login-scene__logo { top: 20%; width: min(34vw, 330px); }
+  .phone .login-page[data-screen="login"] .login-scene__pencil { top: 62%; height: min(34vh, 350px); }
+  .phone .recovery-page .login-scene__logo,
+  .phone .registration-page .login-scene__logo { top: 20%; left: 27%; width: min(34vw, 330px); }
+  .phone .recovery-page .login-scene__pencil,
+  .phone .registration-page .login-scene__pencil { top: 62%; left: 27%; height: min(34vh, 350px); }
+}
+
+@media (min-width: 780px) and (max-width: 899px) and (orientation: portrait) and (min-height: 700px) {
+  .phone .page .topic-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .phone .page:has(.outdoor-art) > section.stack { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .phone .page:has(.gauge) {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    align-content: start;
+    gap: 20px 24px;
+  }
+  .phone .page:has(.gauge) > * { grid-column: 1 / -1; }
+  .phone .page:has(.gauge) > .topbar,
+  .phone .page:has(.gauge) > .sec-head { grid-column: 1 / -1; }
+  .phone .page:has(.gauge) > .card:has(.gauge) { grid-column: 1 / 7; grid-row: 2 / span 5; align-self: start; min-height: 100%; }
+  .phone .page:has(.gauge) > .h2,
+  .phone .page:has(.gauge) > .row:has(.pack),
+  .phone .page:has(.gauge) > .row.wrap,
+  .phone .page:has(.gauge) > .note,
+  .phone .page:has(.gauge) > .btn3d { grid-column: 7 / -1; }
+  .phone .page:has(.gauge) > .sec-head,
+  .phone .page:has(.gauge) > .card:not(:has(.gauge)) { grid-column: 1 / -1; }
+}
+
+@media (min-width: 900px) and (max-width: 1440px) and (orientation: landscape) and (min-height: 600px) and (max-aspect-ratio: 31 / 20),
+       (min-width: 900px) and (max-width: 1440px) and (orientation: landscape) and (min-height: 600px) and (pointer: coarse) {
+  .stage { padding: 12px; }
+
+  .phone:not(.is-landscape) {
+    display: grid;
+    width: min(100%, 1320px);
+    max-width: 1320px;
+    height: calc(100dvh - 24px);
+    grid-template-columns: 92px minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    border-radius: 26px;
+  }
+
+  .phone:not(.is-landscape) > .phone-frame-bg { border-radius: 26px; }
+
+  .phone:not(.is-landscape) > .scroll {
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 0;
+    padding-right: env(safe-area-inset-right);
+  }
+
+  .phone:not(.is-landscape) > .tabbar {
+    box-sizing: border-box;
+    display: flex;
+    width: auto;
+    max-width: none;
+    min-width: 0;
+    height: 100%;
+    grid-column: 1;
+    grid-row: 1;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 8px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: max(20px, env(safe-area-inset-top)) 8px max(20px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+    border-top: 0;
+    border-right: 1px solid var(--line);
+    border-radius: 24px 0 0 24px;
+    box-shadow: 4px 0 18px -16px rgb(15 36 71 / 24%);
+  }
+
+  .phone:not(.is-landscape) > .tabbar .tab {
+    width: 100%;
+    min-height: 68px;
+    flex: 0 0 auto;
+    gap: 5px;
+    padding: 7px 3px;
+    border-radius: 15px;
+    font-size: 11px;
+    white-space: normal;
+    text-align: center;
+  }
+
+  .phone:not(.is-landscape) > .tabbar .tab.on { background: var(--primary-50); }
+  .phone:not(.is-landscape) > .tabbar .tab.on .tab-ico { background: transparent; box-shadow: none; }
+  .phone:not(.is-landscape) > .tabbar .tab .tab-ico { width: 42px; height: 38px; }
+  .phone:not(.is-landscape) > .tabbar .tab-create-slot { width: 100%; min-height: 82px; flex: 0 0 auto; align-items: center; }
+  .phone:not(.is-landscape) > .tabbar .tab-create-action {
+    position: static;
+    width: 100%;
+    min-width: 0;
+    min-height: 78px;
+    transform: none;
+  }
+  .phone:not(.is-landscape) > .tabbar .tab-create-action__orb { width: 52px; height: 52px; flex-basis: 52px; border-width: 3px; }
+
+  .phone:not(.is-landscape)[data-route="p11-authentication"],
+  .phone:not(.is-landscape)[data-route="p14-password-recovery"],
+  .phone:not(.is-landscape)[data-route="p15-parent-registration"] { grid-template-columns: minmax(0, 1fr); }
+  .phone:not(.is-landscape)[data-route="p11-authentication"] > .scroll,
+  .phone:not(.is-landscape)[data-route="p14-password-recovery"] > .scroll,
+  .phone:not(.is-landscape)[data-route="p15-parent-registration"] > .scroll { grid-column: 1; }
+
+  .phone .page:not(.auth-page) {
+    max-width: 1240px;
+    padding: 28px clamp(32px, 4vw, 52px) max(36px, env(safe-area-inset-bottom));
+    gap: 20px;
+  }
+
+  .phone .page .topbar { min-height: 58px; }
+  .phone .page .topbar .ttl { font-size: 21px; }
+  .phone .page .topic-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+  .phone .page .topic { min-height: 230px; }
+  .phone .page .topic .cov { height: clamp(120px, 16vh, 178px); }
+
+  .phone[data-route="p01-lesson-library"] .page:has(.hero-create) {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    align-content: start;
+    gap: 18px 22px;
+  }
+  .phone[data-route="p01-lesson-library"] .page:has(.hero-create) > * { grid-column: 1 / -1; }
+  .phone[data-route="p01-lesson-library"] .page:has(.hero-create) > .hero-create { grid-column: 1 / 9; min-height: 156px; }
+  .phone[data-route="p01-lesson-library"] .page:has(.hero-create) > .hero-create + .btn-soft { grid-column: 9 / -1; align-self: center; min-height: 116px; }
+  .phone[data-route="p01-lesson-library"] .page:has(.hero-create) .hscroll { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+  .phone[data-route="p01-lesson-library"] .page:has(.hero-create) .story-card .thumb { height: clamp(144px, 19vh, 190px); }
+
+  .phone .page:has(.drawing-step-picker),
+  .phone .page:has(.cap-grid),
+  .phone .page:has(.age-opt),
+  .phone .page:has(.story-review-summary),
+  .phone .page:has(.player),
+  .phone .page:has(.outdoor-art),
+  .phone .page:has(.parent-feedback-history),
+  .phone[data-route="p13-settings"] .page:has(#child-profiles),
+  .phone[data-route^="p10-child-profiles"] .page:has(form.card) {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    align-content: start;
+    gap: 18px 24px;
+  }
+
+  .phone .page:has(.drawing-step-picker) > *,
+  .phone .page:has(.cap-grid) > *,
+  .phone .page:has(.age-opt) > *,
+  .phone .page:has(.story-review-summary) > *,
+  .phone .page:has(.player) > *,
+  .phone .page:has(.outdoor-art) > *,
+  .phone .page:has(.parent-feedback-history) > *,
+  .phone[data-route="p13-settings"] .page:has(#child-profiles) > *,
+  .phone[data-route^="p10-child-profiles"] .page:has(form.card) > * { grid-column: 1 / -1; }
+
+  .phone .page:has(.drawing-step-picker) > .paper,
+  .phone .page:has(.cap-grid) > .paper,
+  .phone .page:has(.age-opt) > .paper,
+  .phone .page:has(.story-review-summary) > .story-review-summary,
+  .phone .page:has(.player) > .player,
+  .phone .page:has(.outdoor-art) > .outdoor-art,
+  .phone .page:has(.parent-feedback-history) > .parent-feedback-history { grid-column: 1 / 7; align-self: start; }
+
+  .phone .page:has(.drawing-step-picker) > .card.row,
+  .phone .page:has(.cap-grid) > .cap-grid,
+  .phone .page:has(.story-review-summary) > .story-review-summary + .card.stack,
+  .phone .page:has(.player) > .player + .btn-soft,
+  .phone .page:has(.outdoor-art) > .row.between,
+  .phone .page:has(.parent-feedback-history) > .row.wrap { grid-column: 7 / -1; align-self: center; }
+
+  .phone .page:has(.cap-grid) > .paper + .note,
+  .phone .page:has(.age-opt) > .paper + .note,
+  .phone .page:has(.age-opt) > .paper + .note + .row.between,
+  .phone .page:has(.age-opt) > .paper + .note + .row.between + .stack,
+  .phone .page:has(.cap-grid) > .cap-grid + .note,
+  .phone .page:has(.cap-grid) > .tip-list,
+  .phone .page:has(.drawing-step-picker) > .cta-bar,
+  .phone .page:has(.story-review-summary) > .story-review-summary + .card.stack + .card.stack,
+  .phone .page:has(.story-review-summary) > .cta-bar,
+  .phone .page:has(.player) > .player + .btn-soft + .card,
+  .phone .page:has(.player) > .note,
+  .phone .page:has(.player) > .cta-bar { grid-column: 7 / -1; }
+
+  .phone .page:has(.cap-grid) > .paper + .note { align-self: end; }
+  .phone .page:has(.age-opt) > .paper + .note,
+  .phone .page:has(.age-opt) > .paper + .note + .row.between,
+  .phone .page:has(.age-opt) > .paper + .note + .row.between + .stack,
+  .phone .page:has(.age-opt) > .cta-bar { grid-column: 7 / -1; }
+  .phone .page:has(.cap-grid) > .cap-grid { align-self: start; }
+  .phone .page:has(.story-review-summary) > .story-review-summary { grid-column: 1 / -1; }
+  .phone .page:has(.story-review-summary) > .story-review-summary + .card.stack { grid-column: 1 / 8; }
+  .phone .page:has(.story-review-summary) > .story-review-summary + .card.stack + .card.stack,
+  .phone .page:has(.story-review-summary) > .cta-bar { grid-column: 8 / -1; }
+  .phone .page:has(.player) > .player { grid-column: 1 / 8; width: 100%; min-height: 0; aspect-ratio: 16 / 9; align-self: start; }
+  .phone .page:has(.player) > .player + .btn-soft,
+  .phone .page:has(.player) > .player + .btn-soft + .card,
+  .phone .page:has(.player) > .note,
+  .phone .page:has(.player) > .cta-bar { grid-column: 8 / -1; }
+  .phone .page:has(.player) > .row.between { grid-column: 1 / -1; }
+  .phone .page:has(.outdoor-art) > .topbar { grid-column: 1 / -1; grid-row: 1; }
+  .phone .page:has(.outdoor-art) > .h1 { grid-column: 1 / -1; grid-row: 2; }
+  .phone .page:has(.outdoor-art) > .sub { grid-column: 1 / -1; grid-row: 3; }
+  .phone .page:has(.outdoor-art) > .outdoor-art {
+    grid-column: 1 / 7;
+    grid-row: 4 / 7;
+    height: clamp(240px, 36vh, 420px);
+    max-height: none;
+    align-self: start;
+  }
+  .phone .page:has(.outdoor-art) > .row.between {
+    grid-column: 7 / -1;
+    grid-row: 4;
+    align-self: center;
+  }
+  .phone .page:has(.outdoor-art) > section.stack {
+    grid-column: 7 / -1;
+    grid-row: 5 / span 3;
+    grid-template-columns: 1fr;
+    align-self: start;
+  }
+  .phone .page:has(.outdoor-art) > .cta-bar { grid-column: 7 / -1; grid-row: 8; }
+
+  .phone .page:has(.parent-feedback-history) > .parent-feedback-history { grid-column: 1 / 6; grid-row: 2 / span 3; }
+  .phone .page:has(.parent-feedback-history) > .row.between,
+  .phone .page:has(.parent-feedback-history) > .row.wrap,
+  .phone .page:has(.parent-feedback-history) > .selected-run-card { grid-column: 6 / -1; }
+  .phone .page:has(.parent-feedback-history) > .selected-run-card { align-self: start; }
+
+  .phone[data-route="p13-settings"] .page:has(#child-profiles) > .topbar { grid-column: 1 / -1; }
+  .phone[data-route="p13-settings"] .page:has(#child-profiles) > .card.row { grid-column: 1 / 7; }
+  .phone[data-route="p13-settings"] .page:has(#child-profiles) > #child-profiles { grid-column: 1 / 7; grid-row: span 2; align-self: start; }
+  .phone[data-route="p13-settings"] .page:has(#child-profiles) > #child-profiles + .card.stack,
+  .phone[data-route="p13-settings"] .page:has(#child-profiles) > #child-profiles + .card.stack + h2,
+  .phone[data-route="p13-settings"] .page:has(#child-profiles) > #child-profiles + .card.stack + h2 + .card,
+  .phone[data-route="p13-settings"] .page:has(#child-profiles) > #child-profiles + .card.stack + h2 + .card + div { grid-column: 7 / -1; }
+
+  .phone[data-route^="p10-child-profiles"] .page:has(form.card) > .topbar { grid-column: 1 / -1; }
+  .phone[data-route^="p10-child-profiles"] .page:has(form.card) > .card.row.between,
+  .phone[data-route^="p10-child-profiles"] .page:has(form.card) > .btn-soft { grid-column: 1 / 6; align-self: start; }
+  .phone[data-route^="p10-child-profiles"] .page:has(form.card) > form.card { grid-column: 6 / -1; grid-row: 2 / span 4; }
+  .phone[data-route^="p10-child-profiles"] .page:has(form.card) > .cta-bar { grid-column: 6 / -1; }
+
+  .phone .page:has(.gauge) {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    align-content: start;
+    gap: 18px 24px;
+  }
+  .phone .page:has(.gauge) > * { grid-column: 1 / -1; }
+  .phone .page:has(.gauge) > .card:has(.gauge) { grid-column: 1 / 7; grid-row: 2 / span 5; align-self: start; min-height: 100%; }
+  .phone .page:has(.gauge) > .h2,
+  .phone .page:has(.gauge) > .row:has(.pack),
+  .phone .page:has(.gauge) > .row.wrap,
+  .phone .page:has(.gauge) > .note,
+  .phone .page:has(.gauge) > .btn3d { grid-column: 7 / -1; }
+  .phone .page:has(.gauge) > .sec-head,
+  .phone .page:has(.gauge) > .card:not(:has(.gauge)) { grid-column: 1 / -1; }
+
+  .phone.is-landscape {
+    display: flex;
+    width: 100vw;
+    max-width: none;
+    height: 100dvh;
+    border-radius: 0;
+  }
+  .stage:has(> .phone.is-landscape) { padding: 0; }
+  .phone.is-landscape > .phone-frame-bg { border: 0; border-radius: 0; box-shadow: none; }
+  .phone.is-landscape > .scroll { grid-column: auto; grid-row: auto; padding: 0; }
+
+  .phone .login-page {
+    grid-template-columns: minmax(0, 1fr) minmax(380px, 480px);
+    gap: clamp(40px, 8vw, 132px);
+    padding-inline: clamp(40px, 7vw, 104px);
+  }
+  .phone .login-page .login-panel { width: min(100%, 480px); }
+  .phone .login-page .login-scene__logo,
+  .phone .login-page .login-scene__pencil { left: 28%; }
+  .phone .login-page[data-screen="login"] .login-scene__logo { width: min(30vw, 360px); }
+
+  .phone .page:has(.gauge) > .card:has(.gauge) { grid-row: 2 / span 5; }
+}
+
+@media (min-width: 700px) and (max-width: 1440px) and (orientation: landscape) and (max-height: 760px) and (max-aspect-ratio: 31 / 20),
+       (min-width: 700px) and (max-width: 1440px) and (orientation: landscape) and (max-height: 760px) and (pointer: coarse) {
+  .phone .page:not(.auth-page) { padding-top: 20px; gap: 16px; }
+  .phone .page:has(.hero-create) .hero-create { min-height: 132px; }
+  .phone .page:has(.hero-create) .story-card .thumb { height: 128px; }
+  .phone .page .outdoor-art { max-height: 34dvh; }
+}
+
+@media (min-width: 700px) and (max-width: 1440px) and (max-aspect-ratio: 31 / 20),
+       (min-width: 700px) and (max-width: 1440px) and (pointer: coarse) {
+  .phone[data-safe-area="shell"] { padding-top: env(safe-area-inset-top); }
+  .phone[data-safe-area="page"] { padding-top: 0; }
+  .phone .page .row,
+  .phone .page .stack,
+  .phone .page .card { min-width: 0; }
+  .phone .page :is(p, li, .tiny, .sub) { overflow-wrap: anywhere; }
+  .phone .page img { max-width: 100%; }
+}
+
+@media (min-width: 720px) and (min-height: 620px) {
+  .phone .page.quota-page .quota-main-grid {
+    display: grid;
+    grid-template-columns: minmax(0, .94fr) minmax(0, 1.06fr);
+    align-items: start;
+    gap: 20px;
+  }
+
+  .phone .page.quota-page .quota-balance,
+  .phone .page.quota-page .quota-purchase {
+    min-width: 0;
+    padding: clamp(20px, 2.4vw, 28px);
+  }
+
+  .phone .page.quota-page .quota-balance {
+    justify-content: flex-start;
+    gap: 20px;
+  }
+
+  .phone .page.quota-page .quota-count {
+    font-size: clamp(68px, 8vw, 88px);
+  }
+
+  .phone .page.quota-page .quota-packages,
+  .phone .page.quota-page .quota-methods { gap: 11px; }
+
+  .phone .page.quota-page .quota-package-card {
+    min-height: 118px;
+    border-radius: 21px;
+  }
+
+  .phone .page.quota-page .quota-ledger-entry {
+    grid-template-columns: minmax(112px, auto) minmax(0, 1fr) auto;
+    gap: 12px;
+  }
+
+  .phone .page.quota-page .quota-ledger-date {
+    grid-column: auto;
+    text-align: right;
+  }
+}
+
+@media (max-width: 420px) {
+  .phone .page.quota-page .quota-heading .h1 { font-size: 21px; }
+  .phone .page.quota-page .quota-balance-art { transform: scale(.9); transform-origin: top right; }
+  .phone .page.quota-page .quota-history-heading { align-items: center; }
+}

@@ -22,3 +22,7 @@
 2. Which Runpod region/GPU/model profile meets the later production benchmark and data-residency requirement?
 3. Which AWS region/services and S3 bucket lifecycle policy will be selected for production?
 4. Which monitoring/crash-reporting provider will be accepted after privacy/redaction review?
+
+## Mobile framework answer supersession — 2026-11-10
+
+The 2026-08-24 answer above (“bare React Native CLI 0.87”) remains historical. At the owner's direct request, FEAT-079 and ADR-0023 move the active `apps/mobile` app to Expo SDK 58 with React Native 0.88.1 and React 19.3. The app remains Android-only with the same application ID and SDK levels. `apps/ui-mobile` remains a separate Expo SDK 52 reference app. This is a scoped developer-tooling decision, not a change to product requirements or the unsigned SRS.

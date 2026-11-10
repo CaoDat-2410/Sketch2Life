@@ -1,0 +1,1576 @@
+[
+  {
+    "name": "parent-auth-834x1194",
+    "viewport": {
+      "width": 834,
+      "height": 1194,
+      "orientation": "portrait",
+      "coarsePointer": false
+    },
+    "route": "p11-authentication",
+    "shell": {
+      "width": 804,
+      "height": 1162,
+      "columns": "none"
+    },
+    "page": {
+      "width": 804,
+      "scrollWidth": 804
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 804,
+      "scrollWidth": 804
+    },
+    "tabs": null,
+    "documentScrollWidth": 834
+  },
+  {
+    "name": "parent-recovery-834x1194",
+    "viewport": {
+      "width": 834,
+      "height": 1194,
+      "orientation": "portrait",
+      "coarsePointer": false
+    },
+    "route": "p14-password-recovery",
+    "shell": {
+      "width": 804,
+      "height": 1162,
+      "columns": "none"
+    },
+    "page": {
+      "width": 804,
+      "scrollWidth": 804
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 804,
+      "scrollWidth": 804
+    },
+    "tabs": null,
+    "documentScrollWidth": 834
+  },
+  {
+    "name": "parent-registration-834x1194",
+    "viewport": {
+      "width": 834,
+      "height": 1194,
+      "orientation": "portrait",
+      "coarsePointer": false
+    },
+    "route": "p15-parent-registration",
+    "shell": {
+      "width": 804,
+      "height": 1162,
+      "columns": "none"
+    },
+    "page": {
+      "width": 804,
+      "scrollWidth": 804
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 804,
+      "scrollWidth": 804
+    },
+    "tabs": null,
+    "documentScrollWidth": 834
+  },
+  {
+    "name": "parent-auth-1194x834",
+    "viewport": {
+      "width": 1194,
+      "height": 834,
+      "orientation": "landscape",
+      "coarsePointer": false
+    },
+    "route": "p11-authentication",
+    "shell": {
+      "width": 1170,
+      "height": 810,
+      "columns": "1169.98px"
+    },
+    "page": {
+      "width": 1170,
+      "scrollWidth": 1170
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 1170,
+      "scrollWidth": 1170
+    },
+    "tabs": null,
+    "documentScrollWidth": 1194
+  },
+  {
+    "name": "parent-recovery-1194x834",
+    "viewport": {
+      "width": 1194,
+      "height": 834,
+      "orientation": "landscape",
+      "coarsePointer": false
+    },
+    "route": "p14-password-recovery",
+    "shell": {
+      "width": 1170,
+      "height": 810,
+      "columns": "1170px"
+    },
+    "page": {
+      "width": 1170,
+      "scrollWidth": 1170
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 1170,
+      "scrollWidth": 1170
+    },
+    "tabs": null,
+    "documentScrollWidth": 1194
+  },
+  {
+    "name": "parent-registration-1194x834",
+    "viewport": {
+      "width": 1194,
+      "height": 834,
+      "orientation": "landscape",
+      "coarsePointer": false
+    },
+    "route": "p15-parent-registration",
+    "shell": {
+      "width": 1170,
+      "height": 810,
+      "columns": "1170px"
+    },
+    "page": {
+      "width": 1170,
+      "scrollWidth": 1170
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 1170,
+      "scrollWidth": 1170
+    },
+    "tabs": null,
+    "documentScrollWidth": 1194
+  },
+  {
+    "name": "parent-home-834x1194",
+    "viewport": {
+      "width": 834,
+      "height": 1194,
+      "orientation": "portrait",
+      "coarsePointer": false
+    },
+    "route": "p01-lesson-library",
+    "shell": {
+      "width": 804,
+      "height": 1162,
+      "columns": "none"
+    },
+    "page": {
+      "width": 804,
+      "scrollWidth": 804
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 804,
+      "scrollWidth": 804
+    },
+    "tabs": {
+      "display": "grid",
+      "width": 804,
+      "height": 93,
+      "count": "5"
+    },
+    "documentScrollWidth": 834
+  },
+  {
+    "name": "parent-home-1194x834",
+    "viewport": {
+      "width": 1194,
+      "height": 834,
+      "orientation": "landscape",
+      "coarsePointer": false
+    },
+    "route": "p01-lesson-library",
+    "shell": {
+      "width": 1170,
+      "height": 810,
+      "columns": "92px 1077.94px"
+    },
+    "page": {
+      "width": 1068,
+      "scrollWidth": 1068
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 1068,
+      "scrollWidth": 1068
+    },
+    "tabs": {
+      "display": "flex",
+      "width": 76,
+      "height": 810,
+      "count": "5"
+    },
+    "documentScrollWidth": 1194
+  },
+  {
+    "name": "parent-lesson-detail-834x1194",
+    "viewport": {
+      "width": 834,
+      "height": 1194,
+      "orientation": "portrait",
+      "coarsePointer": false
+    },
+    "route": "p02-lesson-detail",
+    "shell": {
+      "width": 804,
+      "height": 1162,
+      "columns": "none"
+    },
+    "page": {
+      "width": 804,
+      "scrollWidth": 804
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 804,
+      "scrollWidth": 804
+    },
+    "tabs": null,
+    "documentScrollWidth": 834
+  },
+  {
+    "name": "parent-lesson-detail-1194x834",
+    "viewport": {
+      "width": 1194,
+      "height": 834,
+      "orientation": "landscape",
+      "coarsePointer": false
+    },
+    "route": "p02-lesson-detail",
+    "shell": {
+      "width": 1155,
+      "height": 811,
+      "columns": "92px 1062.91px"
+    },
+    "page": {
+      "width": 1053,
+      "scrollWidth": 1053
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 1053,
+      "scrollWidth": 1053
+    },
+    "tabs": null,
+    "documentScrollWidth": 1179
+  },
+  {
+    "name": "parent-drawing-guide-834x1194",
+    "viewport": {
+      "width": 834,
+      "height": 1194,
+      "orientation": "portrait",
+      "coarsePointer": false
+    },
+    "route": "p03-drawing-line-guide",
+    "shell": {
+      "width": 804,
+      "height": 1162,
+      "columns": "none"
+    },
+    "page": {
+      "width": 794,
+      "scrollWidth": 794
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 794,
+      "scrollWidth": 794
+    },
+    "tabs": null,
+    "documentScrollWidth": 834
+  },
+  {
+    "name": "parent-drawing-guide-1194x834",
+    "viewport": {
+      "width": 1194,
+      "height": 834,
+      "orientation": "landscape",
+      "coarsePointer": false
+    },
+    "route": "p03-drawing-line-guide",
+    "shell": {
+      "width": 1170,
+      "height": 810,
+      "columns": "92px 1077.94px"
+    },
+    "page": {
+      "width": 1068,
+      "scrollWidth": 1068
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 1068,
+      "scrollWidth": 1068
+    },
+    "tabs": null,
+    "documentScrollWidth": 1194
+  },
+  {
+    "name": "parent-capture-834x1194",
+    "viewport": {
+      "width": 834,
+      "height": 1194,
+      "orientation": "portrait",
+      "coarsePointer": false
+    },
+    "route": "p04-capture-subject-confirmation",
+    "shell": {
+      "width": 804,
+      "height": 1162,
+      "columns": "none"
+    },
+    "page": {
+      "width": 804,
+      "scrollWidth": 804
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 804,
+      "scrollWidth": 804
+    },
+    "tabs": null,
+    "documentScrollWidth": 834
+  },
+  {
+    "name": "parent-capture-1194x834",
+    "viewport": {
+      "width": 1194,
+      "height": 834,
+      "orientation": "landscape",
+      "coarsePointer": false
+    },
+    "route": "p04-capture-subject-confirmation",
+    "shell": {
+      "width": 1170,
+      "height": 810,
+      "columns": "92px 1077.94px"
+    },
+    "page": {
+      "width": 1068,
+      "scrollWidth": 1068
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 1068,
+      "scrollWidth": 1068
+    },
+    "tabs": null,
+    "documentScrollWidth": 1194
+  },
+  {
+    "name": "parent-story-context-834x1194",
+    "viewport": {
+      "width": 834,
+      "height": 1194,
+      "orientation": "portrait",
+      "coarsePointer": false
+    },
+    "route": "p05-context-idea-confirmation",
+    "shell": {
+      "width": 804,
+      "height": 1162,
+      "columns": "none"
+    },
+    "page": {
+      "width": 804,
+      "scrollWidth": 804
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 804,
+      "scrollWidth": 804
+    },
+    "tabs": null,
+    "documentScrollWidth": 834
+  },
+  {
+    "name": "parent-story-context-1194x834",
+    "viewport": {
+      "width": 1194,
+      "height": 834,
+      "orientation": "landscape",
+      "coarsePointer": false
+    },
+    "route": "p05-context-idea-confirmation",
+    "shell": {
+      "width": 1170,
+      "height": 810,
+      "columns": "92px 1077.94px"
+    },
+    "page": {
+      "width": 1078,
+      "scrollWidth": 1078
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 1078,
+      "scrollWidth": 1078
+    },
+    "tabs": null,
+    "documentScrollWidth": 1194
+  },
+  {
+    "name": "parent-story-review-834x1194",
+    "viewport": {
+      "width": 834,
+      "height": 1194,
+      "orientation": "portrait",
+      "coarsePointer": false
+    },
+    "route": "p06-story-review",
+    "shell": {
+      "width": 804,
+      "height": 1162,
+      "columns": "none"
+    },
+    "page": {
+      "width": 794,
+      "scrollWidth": 794
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 794,
+      "scrollWidth": 794
+    },
+    "tabs": null,
+    "documentScrollWidth": 834
+  },
+  {
+    "name": "parent-story-review-1194x834",
+    "viewport": {
+      "width": 1194,
+      "height": 834,
+      "orientation": "landscape",
+      "coarsePointer": false
+    },
+    "route": "p06-story-review",
+    "shell": {
+      "width": 1155,
+      "height": 811,
+      "columns": "92px 1062.91px"
+    },
+    "page": {
+      "width": 1053,
+      "scrollWidth": 1053
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 1053,
+      "scrollWidth": 1053
+    },
+    "tabs": null,
+    "documentScrollWidth": 1179
+  },
+  {
+    "name": "parent-video-status-834x1194",
+    "viewport": {
+      "width": 834,
+      "height": 1194,
+      "orientation": "portrait",
+      "coarsePointer": false
+    },
+    "route": "p07-video-job-status",
+    "shell": {
+      "width": 804,
+      "height": 1162,
+      "columns": "none"
+    },
+    "page": {
+      "width": 804,
+      "scrollWidth": 804
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 804,
+      "scrollWidth": 804
+    },
+    "tabs": null,
+    "documentScrollWidth": 834
+  },
+  {
+    "name": "parent-video-status-1194x834",
+    "viewport": {
+      "width": 1194,
+      "height": 834,
+      "orientation": "landscape",
+      "coarsePointer": false
+    },
+    "route": "p07-video-job-status",
+    "shell": {
+      "width": 1170,
+      "height": 810,
+      "columns": "92px 1077.94px"
+    },
+    "page": {
+      "width": 1068,
+      "scrollWidth": 1068
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 1068,
+      "scrollWidth": 1068
+    },
+    "tabs": null,
+    "documentScrollWidth": 1194
+  },
+  {
+    "name": "parent-video-834x1194",
+    "viewport": {
+      "width": 834,
+      "height": 1194,
+      "orientation": "portrait",
+      "coarsePointer": false
+    },
+    "route": "p08-video-and-activities",
+    "shell": {
+      "width": 804,
+      "height": 1162,
+      "columns": "none"
+    },
+    "page": {
+      "width": 804,
+      "scrollWidth": 804
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 804,
+      "scrollWidth": 804
+    },
+    "tabs": null,
+    "documentScrollWidth": 834
+  },
+  {
+    "name": "parent-video-1194x834",
+    "viewport": {
+      "width": 1194,
+      "height": 834,
+      "orientation": "landscape",
+      "coarsePointer": false
+    },
+    "route": "p08-video-and-activities",
+    "shell": {
+      "width": 1170,
+      "height": 810,
+      "columns": "92px 1077.94px"
+    },
+    "page": {
+      "width": 1068,
+      "scrollWidth": 1068
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 1068,
+      "scrollWidth": 1068
+    },
+    "tabs": null,
+    "documentScrollWidth": 1194
+  },
+  {
+    "name": "parent-outdoor-activities-834x1194",
+    "viewport": {
+      "width": 834,
+      "height": 1194,
+      "orientation": "portrait",
+      "coarsePointer": false
+    },
+    "route": "p08b-outdoor-activity",
+    "shell": {
+      "width": 804,
+      "height": 1162,
+      "columns": "none"
+    },
+    "page": {
+      "width": 794,
+      "scrollWidth": 794
+    },
+    "outdoorArt": {
+      "x": 52,
+      "y": 254,
+      "width": 721,
+      "height": 284,
+      "naturalWidth": 960,
+      "naturalHeight": 877,
+      "display": "block",
+      "visibility": "visible",
+      "opacity": "1",
+      "objectFit": "contain",
+      "gridRow": "auto",
+      "gridColumn": "auto"
+    },
+    "outdoorLayout": [
+      {
+        "tag": "DIV",
+        "className": "topbar",
+        "x": 52,
+        "y": 86,
+        "width": 721,
+        "height": 56,
+        "gridRow": "auto",
+        "gridColumn": "auto"
+      },
+      {
+        "tag": "H1",
+        "className": "h1",
+        "x": 52,
+        "y": 160,
+        "width": 721,
+        "height": 33,
+        "gridRow": "auto",
+        "gridColumn": "auto"
+      },
+      {
+        "tag": "P",
+        "className": "sub",
+        "x": 52,
+        "y": 211,
+        "width": 721,
+        "height": 24,
+        "gridRow": "auto",
+        "gridColumn": "auto"
+      },
+      {
+        "tag": "IMG",
+        "className": "outdoor-art",
+        "x": 52,
+        "y": 254,
+        "width": 721,
+        "height": 284,
+        "gridRow": "auto",
+        "gridColumn": "auto"
+      },
+      {
+        "tag": "DIV",
+        "className": "row between",
+        "x": 52,
+        "y": 556,
+        "width": 721,
+        "height": 30,
+        "gridRow": "auto",
+        "gridColumn": "auto"
+      },
+      {
+        "tag": "SECTION",
+        "className": "stack",
+        "x": 52,
+        "y": 604,
+        "width": 721,
+        "height": 522,
+        "gridRow": "auto",
+        "gridColumn": "auto"
+      },
+      {
+        "tag": "DIV",
+        "className": "cta-bar",
+        "x": 52,
+        "y": 1152,
+        "width": 721,
+        "height": 54,
+        "gridRow": "auto",
+        "gridColumn": "auto"
+      }
+    ],
+    "scroll": {
+      "clientWidth": 794,
+      "scrollWidth": 794
+    },
+    "tabs": null,
+    "documentScrollWidth": 834
+  },
+  {
+    "name": "parent-outdoor-activities-1194x834",
+    "viewport": {
+      "width": 1194,
+      "height": 834,
+      "orientation": "landscape",
+      "coarsePointer": false
+    },
+    "route": "p08b-outdoor-activity",
+    "shell": {
+      "width": 1170,
+      "height": 810,
+      "columns": "92px 1077.94px"
+    },
+    "page": {
+      "width": 1068,
+      "scrollWidth": 1068
+    },
+    "outdoorArt": {
+      "x": 152,
+      "y": 267,
+      "width": 474,
+      "height": 300,
+      "naturalWidth": 960,
+      "naturalHeight": 877,
+      "display": "block",
+      "visibility": "visible",
+      "opacity": "1",
+      "objectFit": "contain",
+      "gridRow": "4 / 7",
+      "gridColumn": "1 / 7"
+    },
+    "outdoorLayout": [
+      {
+        "tag": "DIV",
+        "className": "topbar",
+        "x": 152,
+        "y": 83,
+        "width": 972,
+        "height": 58,
+        "gridRow": "1",
+        "gridColumn": "1 / -1"
+      },
+      {
+        "tag": "H1",
+        "className": "h1",
+        "x": 152,
+        "y": 159,
+        "width": 972,
+        "height": 45,
+        "gridRow": "2",
+        "gridColumn": "1 / -1"
+      },
+      {
+        "tag": "P",
+        "className": "sub",
+        "x": 152,
+        "y": 222,
+        "width": 972,
+        "height": 27,
+        "gridRow": "3",
+        "gridColumn": "1 / -1"
+      },
+      {
+        "tag": "IMG",
+        "className": "outdoor-art",
+        "x": 152,
+        "y": 267,
+        "width": 474,
+        "height": 300,
+        "gridRow": "4 / 7",
+        "gridColumn": "1 / 7"
+      },
+      {
+        "tag": "DIV",
+        "className": "row between",
+        "x": 650,
+        "y": 267,
+        "width": 474,
+        "height": 33,
+        "gridRow": "4",
+        "gridColumn": "7 / -1"
+      },
+      {
+        "tag": "SECTION",
+        "className": "stack",
+        "x": 650,
+        "y": 317,
+        "width": 474,
+        "height": 665,
+        "gridRow": "5 / span 3",
+        "gridColumn": "7 / -1"
+      },
+      {
+        "tag": "DIV",
+        "className": "cta-bar",
+        "x": 650,
+        "y": 1008,
+        "width": 474,
+        "height": 54,
+        "gridRow": "8",
+        "gridColumn": "7 / -1"
+      }
+    ],
+    "scroll": {
+      "clientWidth": 1068,
+      "scrollWidth": 1068
+    },
+    "tabs": null,
+    "documentScrollWidth": 1194
+  },
+  {
+    "name": "parent-session-feedback-834x1194",
+    "viewport": {
+      "width": 834,
+      "height": 1194,
+      "orientation": "portrait",
+      "coarsePointer": false
+    },
+    "route": "p08c-session-feedback",
+    "shell": {
+      "width": 804,
+      "height": 1162,
+      "columns": "none"
+    },
+    "page": {
+      "width": 804,
+      "scrollWidth": 804
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 804,
+      "scrollWidth": 804
+    },
+    "tabs": null,
+    "documentScrollWidth": 834
+  },
+  {
+    "name": "parent-session-feedback-1194x834",
+    "viewport": {
+      "width": 1194,
+      "height": 834,
+      "orientation": "landscape",
+      "coarsePointer": false
+    },
+    "route": "p08c-session-feedback",
+    "shell": {
+      "width": 1170,
+      "height": 810,
+      "columns": "92px 1077.94px"
+    },
+    "page": {
+      "width": 1068,
+      "scrollWidth": 1068
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 1068,
+      "scrollWidth": 1068
+    },
+    "tabs": null,
+    "documentScrollWidth": 1194
+  },
+  {
+    "name": "parent-history-834x1194",
+    "viewport": {
+      "width": 834,
+      "height": 1194,
+      "orientation": "portrait",
+      "coarsePointer": false
+    },
+    "route": "p09-history-feedback",
+    "shell": {
+      "width": 804,
+      "height": 1162,
+      "columns": "none"
+    },
+    "page": {
+      "width": 804,
+      "scrollWidth": 804
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 804,
+      "scrollWidth": 804
+    },
+    "tabs": {
+      "display": "grid",
+      "width": 804,
+      "height": 93,
+      "count": "5"
+    },
+    "documentScrollWidth": 834
+  },
+  {
+    "name": "parent-history-1194x834",
+    "viewport": {
+      "width": 1194,
+      "height": 834,
+      "orientation": "landscape",
+      "coarsePointer": false
+    },
+    "route": "p09-history-feedback",
+    "shell": {
+      "width": 1170,
+      "height": 810,
+      "columns": "92px 1077.94px"
+    },
+    "page": {
+      "width": 1068,
+      "scrollWidth": 1068
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 1068,
+      "scrollWidth": 1068
+    },
+    "tabs": {
+      "display": "flex",
+      "width": 76,
+      "height": 810,
+      "count": "5"
+    },
+    "documentScrollWidth": 1194
+  },
+  {
+    "name": "parent-quota-834x1194",
+    "viewport": {
+      "width": 834,
+      "height": 1194,
+      "orientation": "portrait",
+      "coarsePointer": false
+    },
+    "route": "p12-video-quota",
+    "shell": {
+      "width": 804,
+      "height": 1162,
+      "columns": "none"
+    },
+    "page": {
+      "width": 804,
+      "scrollWidth": 804
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 804,
+      "scrollWidth": 804
+    },
+    "tabs": {
+      "display": "grid",
+      "width": 804,
+      "height": 93,
+      "count": "5"
+    },
+    "documentScrollWidth": 834
+  },
+  {
+    "name": "parent-quota-1194x834",
+    "viewport": {
+      "width": 1194,
+      "height": 834,
+      "orientation": "landscape",
+      "coarsePointer": false
+    },
+    "route": "p12-video-quota",
+    "shell": {
+      "width": 1155,
+      "height": 811,
+      "columns": "92px 1062.91px"
+    },
+    "page": {
+      "width": 1053,
+      "scrollWidth": 1053
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 1053,
+      "scrollWidth": 1053
+    },
+    "tabs": {
+      "display": "flex",
+      "width": 76,
+      "height": 811,
+      "count": "5"
+    },
+    "documentScrollWidth": 1179
+  },
+  {
+    "name": "parent-settings-834x1194",
+    "viewport": {
+      "width": 834,
+      "height": 1194,
+      "orientation": "portrait",
+      "coarsePointer": false
+    },
+    "route": "p13-settings",
+    "shell": {
+      "width": 804,
+      "height": 1162,
+      "columns": "none"
+    },
+    "page": {
+      "width": 804,
+      "scrollWidth": 804
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 804,
+      "scrollWidth": 804
+    },
+    "tabs": {
+      "display": "grid",
+      "width": 804,
+      "height": 93,
+      "count": "5"
+    },
+    "documentScrollWidth": 834
+  },
+  {
+    "name": "parent-settings-1194x834",
+    "viewport": {
+      "width": 1194,
+      "height": 834,
+      "orientation": "landscape",
+      "coarsePointer": false
+    },
+    "route": "p13-settings",
+    "shell": {
+      "width": 1170,
+      "height": 810,
+      "columns": "92px 1077.98px"
+    },
+    "page": {
+      "width": 1068,
+      "scrollWidth": 1068
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 1068,
+      "scrollWidth": 1068
+    },
+    "tabs": {
+      "display": "flex",
+      "width": 76,
+      "height": 810,
+      "count": "5"
+    },
+    "documentScrollWidth": 1194
+  },
+  {
+    "name": "parent-child-profile-834x1194",
+    "viewport": {
+      "width": 834,
+      "height": 1194,
+      "orientation": "portrait",
+      "coarsePointer": false
+    },
+    "route": "p10-child-profiles/child-minh",
+    "shell": {
+      "width": 804,
+      "height": 1162,
+      "columns": "none"
+    },
+    "page": {
+      "width": 794,
+      "scrollWidth": 794
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 794,
+      "scrollWidth": 794
+    },
+    "tabs": null,
+    "documentScrollWidth": 834
+  },
+  {
+    "name": "parent-child-profile-1194x834",
+    "viewport": {
+      "width": 1194,
+      "height": 834,
+      "orientation": "landscape",
+      "coarsePointer": false
+    },
+    "route": "p10-child-profiles/child-minh",
+    "shell": {
+      "width": 1155,
+      "height": 811,
+      "columns": "92px 1062.91px"
+    },
+    "page": {
+      "width": 1053,
+      "scrollWidth": 1053
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 1053,
+      "scrollWidth": 1053
+    },
+    "tabs": null,
+    "documentScrollWidth": 1179
+  },
+  {
+    "name": "parent-home-744x1133",
+    "viewport": {
+      "width": 744,
+      "height": 1133,
+      "orientation": "portrait",
+      "coarsePointer": false
+    },
+    "route": "p01-lesson-library",
+    "shell": {
+      "width": 717,
+      "height": 1101,
+      "columns": "none"
+    },
+    "page": {
+      "width": 717,
+      "scrollWidth": 717
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 717,
+      "scrollWidth": 717
+    },
+    "tabs": {
+      "display": "grid",
+      "width": 717,
+      "height": 93,
+      "count": "5"
+    },
+    "documentScrollWidth": 744
+  },
+  {
+    "name": "parent-home-768x1024",
+    "viewport": {
+      "width": 768,
+      "height": 1024,
+      "orientation": "portrait",
+      "coarsePointer": false
+    },
+    "route": "p01-lesson-library",
+    "shell": {
+      "width": 740,
+      "height": 992,
+      "columns": "none"
+    },
+    "page": {
+      "width": 730,
+      "scrollWidth": 730
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 730,
+      "scrollWidth": 730
+    },
+    "tabs": {
+      "display": "grid",
+      "width": 740,
+      "height": 93,
+      "count": "5"
+    },
+    "documentScrollWidth": 768
+  },
+  {
+    "name": "parent-home-810x1080",
+    "viewport": {
+      "width": 810,
+      "height": 1080,
+      "orientation": "portrait",
+      "coarsePointer": false
+    },
+    "route": "p01-lesson-library",
+    "shell": {
+      "width": 781,
+      "height": 1048,
+      "columns": "none"
+    },
+    "page": {
+      "width": 771,
+      "scrollWidth": 771
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 771,
+      "scrollWidth": 771
+    },
+    "tabs": {
+      "display": "grid",
+      "width": 781,
+      "height": 93,
+      "count": "5"
+    },
+    "documentScrollWidth": 810
+  },
+  {
+    "name": "parent-home-820x1180",
+    "viewport": {
+      "width": 820,
+      "height": 1180,
+      "orientation": "portrait",
+      "coarsePointer": false
+    },
+    "route": "p01-lesson-library",
+    "shell": {
+      "width": 791,
+      "height": 1148,
+      "columns": "none"
+    },
+    "page": {
+      "width": 791,
+      "scrollWidth": 791
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 791,
+      "scrollWidth": 791
+    },
+    "tabs": {
+      "display": "grid",
+      "width": 791,
+      "height": 93,
+      "count": "5"
+    },
+    "documentScrollWidth": 820
+  },
+  {
+    "name": "parent-home-1024x768",
+    "viewport": {
+      "width": 1024,
+      "height": 768,
+      "orientation": "landscape",
+      "coarsePointer": false
+    },
+    "route": "p01-lesson-library",
+    "shell": {
+      "width": 1000,
+      "height": 744,
+      "columns": "92px 908px"
+    },
+    "page": {
+      "width": 898,
+      "scrollWidth": 898
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 898,
+      "scrollWidth": 898
+    },
+    "tabs": {
+      "display": "flex",
+      "width": 76,
+      "height": 744,
+      "count": "5"
+    },
+    "documentScrollWidth": 1024
+  },
+  {
+    "name": "parent-home-1080x810",
+    "viewport": {
+      "width": 1080,
+      "height": 810,
+      "orientation": "landscape",
+      "coarsePointer": false
+    },
+    "route": "p01-lesson-library",
+    "shell": {
+      "width": 1056,
+      "height": 786,
+      "columns": "92px 964px"
+    },
+    "page": {
+      "width": 954,
+      "scrollWidth": 954
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 954,
+      "scrollWidth": 954
+    },
+    "tabs": {
+      "display": "flex",
+      "width": 76,
+      "height": 786,
+      "count": "5"
+    },
+    "documentScrollWidth": 1080
+  },
+  {
+    "name": "parent-home-1180x820",
+    "viewport": {
+      "width": 1180,
+      "height": 820,
+      "orientation": "landscape",
+      "coarsePointer": false
+    },
+    "route": "p01-lesson-library",
+    "shell": {
+      "width": 1156,
+      "height": 796,
+      "columns": "92px 1064px"
+    },
+    "page": {
+      "width": 1054,
+      "scrollWidth": 1054
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 1054,
+      "scrollWidth": 1054
+    },
+    "tabs": {
+      "display": "flex",
+      "width": 76,
+      "height": 796,
+      "count": "5"
+    },
+    "documentScrollWidth": 1180
+  },
+  {
+    "name": "parent-home-1133x744",
+    "viewport": {
+      "width": 1133,
+      "height": 744,
+      "orientation": "landscape",
+      "coarsePointer": false
+    },
+    "route": "p01-lesson-library",
+    "shell": {
+      "width": 1109,
+      "height": 720,
+      "columns": "92px 1017px"
+    },
+    "page": {
+      "width": 1007,
+      "scrollWidth": 1007
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 1007,
+      "scrollWidth": 1007
+    },
+    "tabs": {
+      "display": "flex",
+      "width": 76,
+      "height": 720,
+      "count": "5"
+    },
+    "documentScrollWidth": 1133
+  },
+  {
+    "name": "parent-home-1032x1376",
+    "viewport": {
+      "width": 1032,
+      "height": 1376,
+      "orientation": "portrait",
+      "coarsePointer": false
+    },
+    "route": "p01-lesson-library",
+    "shell": {
+      "width": 980,
+      "height": 1343,
+      "columns": "none"
+    },
+    "page": {
+      "width": 820,
+      "scrollWidth": 820
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 980,
+      "scrollWidth": 980
+    },
+    "tabs": {
+      "display": "grid",
+      "width": 820,
+      "height": 93,
+      "count": "5"
+    },
+    "documentScrollWidth": 1017
+  },
+  {
+    "name": "parent-home-1376x1032",
+    "viewport": {
+      "width": 1376,
+      "height": 1032,
+      "orientation": "landscape",
+      "coarsePointer": false
+    },
+    "route": "p01-lesson-library",
+    "shell": {
+      "width": 1320,
+      "height": 1008,
+      "columns": "92px 1227.8px"
+    },
+    "page": {
+      "width": 1228,
+      "scrollWidth": 1228
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 1228,
+      "scrollWidth": 1228
+    },
+    "tabs": {
+      "display": "flex",
+      "width": 76,
+      "height": 1008,
+      "count": "5"
+    },
+    "documentScrollWidth": 1376
+  },
+  {
+    "name": "parent-home-1194x834-ipad-touch",
+    "viewport": {
+      "width": 1194,
+      "height": 834,
+      "orientation": "landscape",
+      "coarsePointer": true
+    },
+    "route": "p01-lesson-library",
+    "shell": {
+      "width": 1170,
+      "height": 810,
+      "columns": "92px 1078px"
+    },
+    "page": {
+      "width": 1068,
+      "scrollWidth": 1068
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 1068,
+      "scrollWidth": 1068
+    },
+    "tabs": {
+      "display": "flex",
+      "width": 76,
+      "height": 810,
+      "count": "5"
+    },
+    "documentScrollWidth": 1194
+  },
+  {
+    "name": "parent-home-1280x800-tablet-touch",
+    "viewport": {
+      "width": 1280,
+      "height": 800,
+      "orientation": "landscape",
+      "coarsePointer": true
+    },
+    "route": "p01-lesson-library",
+    "shell": {
+      "width": 1256,
+      "height": 776,
+      "columns": "92px 1164px"
+    },
+    "page": {
+      "width": 1154,
+      "scrollWidth": 1154
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 1154,
+      "scrollWidth": 1154
+    },
+    "tabs": {
+      "display": "flex",
+      "width": 76,
+      "height": 776,
+      "count": "5"
+    },
+    "documentScrollWidth": 1280
+  },
+  {
+    "name": "parent-desktop-1366x768",
+    "viewport": {
+      "width": 1366,
+      "height": 768,
+      "orientation": "landscape",
+      "coarsePointer": false
+    },
+    "route": "p01-lesson-library",
+    "shell": {
+      "width": 409,
+      "height": 728,
+      "columns": "none"
+    },
+    "page": {
+      "width": 409,
+      "scrollWidth": 409
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 409,
+      "scrollWidth": 409
+    },
+    "tabs": {
+      "display": "grid",
+      "width": 409,
+      "height": 69,
+      "count": "5"
+    },
+    "documentScrollWidth": 1366
+  },
+  {
+    "name": "parent-desktop-1440x900",
+    "viewport": {
+      "width": 1440,
+      "height": 900,
+      "orientation": "landscape",
+      "coarsePointer": false
+    },
+    "route": "p01-lesson-library",
+    "shell": {
+      "width": 408,
+      "height": 852,
+      "columns": "none"
+    },
+    "page": {
+      "width": 408,
+      "scrollWidth": 408
+    },
+    "outdoorArt": null,
+    "outdoorLayout": null,
+    "scroll": {
+      "clientWidth": 408,
+      "scrollWidth": 408
+    },
+    "tabs": {
+      "display": "grid",
+      "width": 408,
+      "height": 69,
+      "count": "5"
+    },
+    "documentScrollWidth": 1440
+  }
+]

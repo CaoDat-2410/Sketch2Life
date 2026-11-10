@@ -211,3 +211,25 @@ current FEAT-063 SRS requires MFA for organization and billing administrators bu
 Parent-account 2FA or supported methods; this decision leaves that open question unresolved. The
 password-change row and other settings remain. Evidence is recorded in
 `evidence/notes/PARENT_2FA_REMOVAL_AND_UI_RELEASE_20261110.md`.
+
+## D-036-23 — Compact Parent preview and align recovery with auth UI
+
+On 2026-11-10 the owner requested a smaller local-preview area on Parent sign-in and asked for the forgot-password page to use the auth UI format. Approved plan revision 12 has SHA-256 28ECAF08E925A1DE55C675062027639A34DFE0C2C2F32F2B017B3328E39F9DFC. The preview panel is compact with a 44 px action; password recovery reuses the existing approved auth background and form/panel styling. Email prefill, return navigation, and the unavailable no-send state remain. No authentication or backend behavior changed. Parent recovery UX and Parent Web target scope remain open in FEAT-063 SRS v2.7-draft. Evidence is recorded in evidence/notes/PARENT_AUTH_UI_REFINEMENT_20261110.md; rendered PNGs remain local under evidence/screenshots/parent-auth-revision12/ because of the repository ignore rule.
+
+## D-036-24 — Restore Parent registration UI and auth entry
+
+On 2026-11-10 the owner requested the missing registration UI and its sign-in entry. Approved plan revision 13 has SHA-256 0832F08952DA8B48342EE61FA257EAB2BD46DBC4EDBF101D8C593D77DDC951D5. The Parent sign-in page links to /p15-parent-registration, which follows the existing auth visual system and returns to sign-in with the email preserved. The page is visual-only: it performs no account creation, auth/backend call, verification, or false success. Parent registration UX remains open in the canonical FEAT-063 SRS v2.7-draft. Evidence is recorded in evidence/notes/PARENT_REGISTRATION_UI_AND_AUTH_ENTRY_20261110.md; screenshots remain local under evidence/screenshots/parent-registration-rev13/ because of the repository ignore rule.
+## D-036-25 — Optimize Parent auth presentation for tablets
+
+On 2026-11-10 the owner requested tablet/iPad optimization for the Parent auth UI. Approved plan revision 14, SHA-256 75ABC318C5869E545B3796328C594F9617F7D7DF3D18AED5ABC810DDE24F42DC, applies a two-column composition to sign-in, password recovery, and registration on touch-first tablet viewports, with larger controls and safe-area spacing. Phone layouts remain unchanged. This is presentation-only and does not decide the open Parent Web, registration, or recovery requirements in canonical FEAT-063 SRS v2.7-draft. Rendered evidence is recorded in evidence/notes/PARENT_AUTH_TABLET_LAYOUT_20261110.md.
+## D-036-26 — Require a session before restoring Parent routes
+
+The owner requested that refreshing a Parent demo route without a session return to /p11-authentication. Plan revision 15, SHA-256 B5852BC76683922E1BC578AC06DD9B8FFDFB0003A4D645B69B5B1C0A15058A34, removes the local-preview-is-authenticated default and defers protected-route decisions until the existing auth bridge token and backend Parent-access checks complete. Local preview requires an explicit action and is not persisted. Firebase config and backend role validation are unchanged. Evidence is in evidence/notes/PARENT_AUTH_REFRESH_GUARD_20261110.md.
+
+## D-036-27 — Optimize Parent presentation for iPad
+
+On 2026-11-10 the owner requested continued local FE work to optimize Parent UI for tablets/iPads. Approved plan revision 16, SHA-256 A48D81C858DB9B5E6AEC754AE466DDD2C6460875D11F73DBB70A6DF939AD5932, adds touch-first spacing, bounded tablet content/navigation, larger controls, and a landscape quota layout while preserving phone and auth layouts. Screenshots cover Home, history, capture, quota, settings, and a phone regression viewport. A small landscape Home density refinement was applied after the screenshots; final rendered review remains pending because this tool session could not access the local browser/CDP socket. Firebase, auth/API behavior, assets, dependencies, and product requirements are unchanged. Evidence is recorded in evidence/notes/PARENT_TABLET_LAYOUT_REVIEW_20261110.md.
+
+## D-036-28 — Record whole-FE review against canonical SRS Rev57
+
+On 2026-11-10 the owner requested a complete UI review against the latest SRS. The read-only review uses FEAT-063 v2.7-draft Rev57 from the main checkout, SHA-256 `BE0D656966FDE91BA7CD5C914C319EF301D137985EF5CC91B94F36FEBCF61FB5`; the SRS is still unsigned. It covers Parent Android/mobile, the `apps/ui-mobile` reference, Parent web, Teacher, School Manager, Platform Admin, shared UI/auth/API code, and the extra `apps/admin-ui`. Findings and resolved Parent points are in `evidence/notes/FE_UI_FULL_SRS_REVIEW_REV57_20261110.md`. This review approves no implementation and does not close SRS open questions. No code, tests/builds, backend/provider calls, or release actions were performed.

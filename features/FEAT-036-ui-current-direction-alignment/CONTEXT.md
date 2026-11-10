@@ -205,3 +205,44 @@ product direction recorded in the owner-approved SRS and current ADRs.
   open and does not alter administrator requirements.
 - Verification and the consolidated release scope are recorded in
   `evidence/notes/PARENT_2FA_REMOVAL_AND_UI_RELEASE_20261110.md`.
+
+## Parent auth preview compaction and recovery alignment — 2026-11-10
+
+- The owner explicitly requested a smaller local-preview panel and a password-recovery screen using the Parent auth visual format. Plan revision 12 is approved in approvals/TASK_APPROVAL.md with its exact hash.
+- The local-preview-only unavailable message and supporting copy are shorter. The preview card is a compact responsive row; its action remains 44 px high.
+- The dedicated password-recovery route now reuses the approved login background artwork, wash, auth panel, heading, field, button, and focus styling. Email prefill, return-to-login navigation, and the truthful unavailable notice remain. No email, OTP, backend/auth operation, or success state was added.
+- Rendered mobile evidence was captured at 375×812 and 320×568 using the local Vite preview. FEAT-036 evidence note PARENT_AUTH_UI_REFINEMENT_20261110.md records screenshot hashes, measured bounds, HTTP 200 route/module checks, and the diff-check result. The PNGs are local-only under evidence/screenshots/parent-auth-revision12/ because the repository ignore rule excludes these screenshot files.
+- No new or generated assets or dependencies were added. The canonical FEAT-063 SRS v2.7-draft still leaves Parent account-recovery UX and Parent Web target scope open; this visual-only change does not resolve either question. The task worktree’s SRS authority snapshot remains v2.5-draft and is recorded as authority drift.
+
+## Parent registration UI and auth entry — 2026-11-10
+
+- The owner requested restoring the Parent registration UI and its entry point on sign-in. Plan revision 13 is approved in approvals/TASK_APPROVAL.md with hash 0832F08952DA8B48342EE61FA257EAB2BD46DBC4EDBF101D8C593D77DDC951D5.
+- The sign-in page now links to /p15-parent-registration. The page follows the approved Parent auth visual system and includes email, password, password confirmation, visibility controls, and return navigation. Email travels through route state; passwords do not.
+- This is a visual-only registration surface. It does not create accounts or call auth/backend services and does not show success. The canonical FEAT-063 SRS v2.7-draft still leaves Parent registration UX open; this change does not resolve that product question.
+- Rendered review at 375×812 and 320×568, route/module HTTP 200 checks, bounds, and screenshot hashes are recorded in evidence/notes/PARENT_REGISTRATION_UI_AND_AUTH_ENTRY_20261110.md. Screenshots are local-only under evidence/screenshots/parent-registration-rev13/ per the ignore rule.
+## Parent auth tablet responsiveness — 2026-11-10
+
+- The owner requested tablet/iPad optimization after the sign-in, recovery, and registration UI refinements. Approved plan revision 14 (SHA-256 75ABC318C5869E545B3796328C594F9617F7D7DF3D18AED5ABC810DDE24F42DC) adds a touch-first tablet composition while preserving phone layouts.
+- On touch-first viewports from 700 px wide, existing auth artwork and the 420 px form panel are arranged in two columns with safe-area padding and larger touch controls. Existing assets were reused; no dependencies or auth behavior changed.
+- Rendered local review covered 768×1024 portrait and 1024×768 landscape for sign-in, recovery, and registration, with no horizontal overflow. Evidence and screenshot hashes are in evidence/notes/PARENT_AUTH_TABLET_LAYOUT_20261110.md.
+- This resolves responsive presentation only. Parent Web target-client scope and Parent registration/recovery UX remain open in canonical FEAT-063 SRS v2.7-draft; the task worktree's v2.5 authority snapshot remains drifted.
+## Parent demo refresh and auth guard — 2026-11-10
+
+- The owner reported that refreshing /p01-lesson-library in the local Parent demo without a backend session left the app on the lesson menu; they specified that a missing session must return to /p11-authentication. Approved plan revision 15 has SHA-256 B5852BC76683922E1BC578AC06DD9B8FFDFB0003A4D645B69B5B1C0A15058A34.
+- Root cause was ParentContext treating isLocalPreview() as an authenticated session. On localhost without an auth bridge, this returned true on every new page load.
+- Parent now starts signed out, allows local preview only after explicit user selection, and checks the existing Firebase bridge token plus backendApi.parentLessons() before resolving protected routes. Missing token or Parent access sends the user to authentication; Firebase configuration and backend guards remain unchanged.
+- Manual local browser evidence and limits are recorded in evidence/notes/PARENT_AUTH_REFRESH_GUARD_20261110.md. The local session is intentionally in-memory; reloading clears the demo preview.
+
+## Parent tablet/iPad layout — 2026-11-10
+
+- The owner asked to continue local FE work by optimizing Parent UI for tablets and iPads. Plan revision 16 is approved for responsive presentation only; the canonical FEAT-063 v2.7-draft remains the working SRS authority, and its Parent Web target-client question stays open.
+- Tablet rules apply only to touch-first non-auth Parent screens. They center page content and bottom navigation on landscape tablets, use safe-area-aware spacing, enlarge primary controls, and arrange the quota screen in two columns in landscape. A landscape-only Home density rule was added after the initial screenshot review.
+- The local Vite preview remains active on port 5171. Captured synthetic screenshots cover Home, history, capture, quota, and settings in portrait and landscape plus a phone Home check. The final landscape Home density rule was not re-captured because this tool session could not access the local browser/CDP socket; that verification limitation is documented in the evidence note.
+- No Firebase configuration, auth/API behavior, product requirement, asset, or dependency changed. No tests/builds, deployment, commit, or push were performed.
+
+## Whole-FE SRS re-review — 2026-11-10
+
+- The owner asked for a complete FE review against the latest SRS. The review uses FEAT-063 v2.7-draft Rev57 from the main checkout (SHA-256 `BE0D656966FDE91BA7CD5C914C319EF301D137985EF5CC91B94F36FEBCF61FB5`), still unsigned. The feature worktree's source register still points to v2.5-draft; this drift is documented, not silently adopted.
+- Scope includes Parent Android fixture/product boundary, `apps/ui-mobile` as reference, Parent web, Teacher, School Manager, Platform Admin, shared auth/API UI, and the extra `apps/admin-ui` surface. The 37-screen capture archive is historical synthetic evidence from commit c384dcc; current Parent fixes were source-reviewed and are not inferred from those old screenshots.
+- The current Parent activity order, 36–120 month validation, removal of completion/BGM controls, and refresh guard align with the reviewed SRS clauses. Remaining findings and integration gaps are recorded in `evidence/notes/FE_UI_FULL_SRS_REVIEW_REV57_20261110.md` and indexed as FEAT-036-EV-010.
+- This was read-only for product source: no code fix, test/build, backend/provider call, approval, deployment, commit, or push was performed. The SRS remains a draft; open questions such as Parent no-preset activities and Teacher random-selection eligibility remain open.

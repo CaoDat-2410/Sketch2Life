@@ -231,3 +231,56 @@ another machine.
 - Include the existing owner-approved FEAT-036 UI work present in this worktree in one commit.
 - Push one commit to the current feature branch. Do not include secrets or unrelated worktree files.
 - Automated tests/builds, deployment, and site publishing are not authorized.
+
+
+## Revision 12 authorization — Compact Parent preview and align password recovery with auth UI
+
+- Approved plan: plan/PLAN_REV12_COMPACT_AUTH_PREVIEW_AND_RECOVERY_UI.md
+- Plan revision: 12
+- Plan SHA-256: 28ECAF08E925A1DE55C675062027639A34DFE0C2C2F32F2B017B3328E39F9DFC
+- Approval status: APPROVED
+- Prepared / approved: 2026-11-10
+- Reviewer / approver: Project owner (explicit instruction in this conversation)
+
+### Authorization recorded
+
+The owner requested: “Thu gọn cái này lại cho tôi và làm UI phần quên mật khẩu theo format của UI auth đi”. This authorizes the compact local-preview panel and visual alignment of the existing Parent password-recovery page described in plan revision 12.
+
+### Approval boundaries
+
+- Change only the Parent sign-in preview UI and password-recovery presentation.
+- Preserve email prefill, return-to-login behavior, the unavailable recovery state, and truthful no-send/no-OTP/no-success behavior.
+- Do not change authentication, backend/API behavior, account-recovery requirements, the SRS, or other portals.
+- Reuse existing approved assets; add no asset, dependency, or product behavior.
+- Automated tests/builds, deployment, publishing, commit, and push are outside this approval.
+## Revision 13 authorization — Restore Parent registration UI and auth entry
+
+- Approved plan: plan/PLAN_REV13_PARENT_REGISTRATION_UI_AND_AUTH_LINK.md
+- Plan revision: 13
+- Plan SHA-256: 0832F08952DA8B48342EE61FA257EAB2BD46DBC4EDBF101D8C593D77DDC951D5
+- Approval status: APPROVED by explicit owner request on 2026-11-10.
+- Scope: visual-only registration route and sign-in entry. No account creation, auth/backend calls, email/verification, or false success state.
+
+## Revision 14 authorization — Optimize Parent auth layout for tablets
+
+- Approved plan: plan/PLAN_REV14_TABLET_AUTH_LAYOUT.md
+- Plan revision: 14
+- Plan SHA-256: 75ABC318C5869E545B3796328C594F9617F7D7DF3D18AED5ABC810DDE24F42DC
+- Approval status: APPROVED by explicit owner request on 2026-11-10.
+- Scope: responsive presentation for Parent sign-in, recovery, and registration. Preserve phone layouts and route behavior; no auth/backend behavior, assets, dependencies, or SRS changes.
+## Revision 15 authorization — Parent auth guard on hard refresh
+
+- Approved plan: features/FEAT-036-ui-current-direction-alignment/plan/PLAN_REV15_PARENT_REFRESH_AUTH_GUARD.md
+- Plan revision: 15
+- Plan SHA-256: B5852BC76683922E1BC578AC06DD9B8FFDFB0003A4D645B69B5B1C0A15058A34
+- Approval status: APPROVED by explicit owner request on 2026-11-10.
+- Authorized behavior: if Parent has no session on direct load or F5, replace the route with /p11-authentication. Preserve an existing real auth session when the current bridge confirms its token. Local demo preview requires explicit user action and does not persist across reload.
+- Boundaries: keep Firebase configuration and backend token/role guards; do not create fake sessions or change API/backend behavior. No tests/builds, deployment, publishing, commit, or push.
+## Revision 16 authorization — Optimize Parent UI for iPad
+
+- Approved plan: features/FEAT-036-ui-current-direction-alignment/plan/PLAN_REV16_PARENT_TABLET_LAYOUT.md
+- Plan revision: 16
+- Plan SHA-256: A48D81C858DB9B5E6AEC754AE466DDD2C6460875D11F73DBB70A6DF939AD5932
+- Approval status: APPROVED by explicit owner request on 2026-11-10.
+- Authorized scope: improve Parent app shell and selected screens for iPad portrait/landscape; keep phone and auth layouts, route behavior, Firebase configuration, backend/API behavior, and product requirements unchanged.
+- Verification boundary: manual local visual review only; no automated tests/builds, deployment, publishing, commit, or push.

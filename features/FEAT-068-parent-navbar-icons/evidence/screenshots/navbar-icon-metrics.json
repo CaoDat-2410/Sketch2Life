@@ -1,0 +1,185 @@
+[
+  {
+    "name": "phone-390x844",
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "coarsePointer": false
+    },
+    "shell": {
+      "width": 390,
+      "columns": "none"
+    },
+    "nav": {
+      "width": 390,
+      "scrollWidth": 390,
+      "labels": [
+        "Trang chủ",
+        "Lịch sử",
+        "Lượt tạo",
+        "Cài đặt"
+      ],
+      "icons": [
+        {
+          "viewBox": "0 0 24 24",
+          "pathCount": 4,
+          "circleCount": 0,
+          "ellipseCount": 0,
+          "strokeWidth": "2px"
+        },
+        {
+          "viewBox": "0 0 24 24",
+          "pathCount": 3,
+          "circleCount": 0,
+          "ellipseCount": 0,
+          "strokeWidth": "2px"
+        },
+        {
+          "viewBox": "0 0 24 24",
+          "pathCount": 2,
+          "circleCount": 1,
+          "ellipseCount": 0,
+          "strokeWidth": "2.2px"
+        },
+        {
+          "viewBox": "0 0 24 24",
+          "pathCount": 3,
+          "circleCount": 0,
+          "ellipseCount": 1,
+          "strokeWidth": "2px"
+        },
+        {
+          "viewBox": "0 0 24 24",
+          "pathCount": 1,
+          "circleCount": 3,
+          "ellipseCount": 0,
+          "strokeWidth": "2px"
+        }
+      ],
+      "createLabel": "Tạo câu chuyện mới bằng cách chụp tranh"
+    },
+    "documentScrollWidth": 390
+  },
+  {
+    "name": "ipad-portrait-834x1194",
+    "viewport": {
+      "width": 834,
+      "height": 1194,
+      "coarsePointer": false
+    },
+    "shell": {
+      "width": 804,
+      "columns": "none"
+    },
+    "nav": {
+      "width": 804,
+      "scrollWidth": 804,
+      "labels": [
+        "Trang chủ",
+        "Lịch sử",
+        "Lượt tạo",
+        "Cài đặt"
+      ],
+      "icons": [
+        {
+          "viewBox": "0 0 24 24",
+          "pathCount": 4,
+          "circleCount": 0,
+          "ellipseCount": 0,
+          "strokeWidth": "2px"
+        },
+        {
+          "viewBox": "0 0 24 24",
+          "pathCount": 3,
+          "circleCount": 0,
+          "ellipseCount": 0,
+          "strokeWidth": "2px"
+        },
+        {
+          "viewBox": "0 0 24 24",
+          "pathCount": 2,
+          "circleCount": 1,
+          "ellipseCount": 0,
+          "strokeWidth": "2.2px"
+        },
+        {
+          "viewBox": "0 0 24 24",
+          "pathCount": 3,
+          "circleCount": 0,
+          "ellipseCount": 1,
+          "strokeWidth": "2px"
+        },
+        {
+          "viewBox": "0 0 24 24",
+          "pathCount": 1,
+          "circleCount": 3,
+          "ellipseCount": 0,
+          "strokeWidth": "2px"
+        }
+      ],
+      "createLabel": "Tạo câu chuyện mới bằng cách chụp tranh"
+    },
+    "documentScrollWidth": 834
+  },
+  {
+    "name": "ipad-landscape-1194x834",
+    "viewport": {
+      "width": 1194,
+      "height": 834,
+      "coarsePointer": false
+    },
+    "shell": {
+      "width": 1170,
+      "columns": "92px 1078px"
+    },
+    "nav": {
+      "width": 76,
+      "scrollWidth": 75,
+      "labels": [
+        "Trang chủ",
+        "Lịch sử",
+        "Lượt tạo",
+        "Cài đặt"
+      ],
+      "icons": [
+        {
+          "viewBox": "0 0 24 24",
+          "pathCount": 4,
+          "circleCount": 0,
+          "ellipseCount": 0,
+          "strokeWidth": "2px"
+        },
+        {
+          "viewBox": "0 0 24 24",
+          "pathCount": 3,
+          "circleCount": 0,
+          "ellipseCount": 0,
+          "strokeWidth": "2px"
+        },
+        {
+          "viewBox": "0 0 24 24",
+          "pathCount": 2,
+          "circleCount": 1,
+          "ellipseCount": 0,
+          "strokeWidth": "2.2px"
+        },
+        {
+          "viewBox": "0 0 24 24",
+          "pathCount": 3,
+          "circleCount": 0,
+          "ellipseCount": 1,
+          "strokeWidth": "2px"
+        },
+        {
+          "viewBox": "0 0 24 24",
+          "pathCount": 1,
+          "circleCount": 3,
+          "ellipseCount": 0,
+          "strokeWidth": "2px"
+        }
+      ],
+      "createLabel": "Tạo câu chuyện mới bằng cách chụp tranh"
+    },
+    "documentScrollWidth": 1194
+  }
+]

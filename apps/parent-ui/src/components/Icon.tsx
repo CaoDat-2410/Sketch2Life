@@ -6,7 +6,7 @@ export type IconName =
   | "info" | "close" | "download" | "star" | "heart" | "video" | "plus" | "sun" | "moon" | "palette"
   | "wifi-off" | "chevron-down" | "chevron-right" | "share" | "message" | "trash" | "settings" | "shield"
   | "folder" | "bell" | "mic" | "stop" | "maximize" | "minimize" | "rotate" | "key" | "logout"
-  | "volume" | "volume-off" | "help" | "edit";
+  | "volume" | "volume-off" | "help" | "edit" | "nav-home" | "nav-history" | "nav-create" | "nav-credits" | "nav-settings";
 
 const PATHS: Record<IconName, React.ReactNode> = {
   home: (<><path d="M3.5 10.5L12 3.5l8.5 7" /><path d="M5.5 9.2v9.3a1.5 1.5 0 0 0 1.5 1.5h10a1.5 1.5 0 0 0 1.5-1.5V9.2" /><path d="M9.5 20v-5.5a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1V20" /></>),
@@ -59,6 +59,11 @@ const PATHS: Record<IconName, React.ReactNode> = {
   "volume-off": (<><path d="M11 5L6 9H3v6h3l5 4V5Z" /><path d="M21 9l-6 6M15 9l6 6" /></>),
   help: (<><circle cx="12" cy="12" r="8.5" /><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .8-1 1.7M12 16.8h.01" /></>),
   edit: (<path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5Z" />),
+  "nav-home": (<><path d="M4 10.4 12 4l8 6.4" /><path d="M6.4 9v9.1A1.9 1.9 0 0 0 8.3 20h7.4a1.9 1.9 0 0 0 1.9-1.9V9" /><path d="M10 20v-5.6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1V20" /><path d="M16 6.7v-2h2v3.6" /></>),
+  "nav-history": (<><path d="M3.5 11a8.5 8.5 0 1 1 .2 2.5" /><path d="M3.5 4.5V11H10" /><path d="M12 7.5v4.8l3.2 2" /></>),
+  "nav-create": (<><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.2a1 1 0 0 0 .8-.4L9.6 4h4.8l1.1 1.6a1 1 0 0 0 .8.4h1.2A2.5 2.5 0 0 1 20 8.5v8A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5v-8Z" /><circle cx="12" cy="12.5" r="3.1" /><path d="M18.5 2.8v4.4M16.3 5h4.4" /></>),
+  "nav-credits": (<><ellipse cx="12" cy="6.5" rx="7.2" ry="3.2" /><path d="M4.8 6.5v5.4c0 1.8 3.2 3.3 7.2 3.3s7.2-1.5 7.2-3.3V6.5" /><path d="M4.8 11.9v5.3c0 1.8 3.2 3.3 7.2 3.3s7.2-1.5 7.2-3.3v-5.3" /><path d="M12 8v4" /></>),
+  "nav-settings": (<><path d="M4 6h7M15 6h5M4 12h3M11 12h9M4 18h9M17 18h3" /><circle cx="13" cy="6" r="2" /><circle cx="9" cy="12" r="2" /><circle cx="15" cy="18" r="2" /></>),
 };
 
 export function Icon({

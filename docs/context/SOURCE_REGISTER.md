@@ -1,5 +1,16 @@
 # Source register and authority boundary
 
+## Active mobile Expo migration sources — 2026-11-10
+
+FEAT-079 uses these official Expo sources for framework compatibility and incremental integration of the retained Android project. They establish tooling guidance only; the product SRS remains the product-requirements authority.
+
+- Expo SDK 58 reference: <https://docs.expo.dev/versions/v58.0.0/> — SDK/RN/React and Android API-level compatibility checked for the active app.
+- Existing React Native adoption overview: <https://docs.expo.dev/bare/overview/> — Expo adoption boundary for an existing React Native application.
+- Install Expo modules in an existing app: <https://docs.expo.dev/bare/installing-expo-modules/> — native autolinking and project integration guidance.
+- Expo Build Properties SDK 58: <https://docs.expo.dev/versions/v58.0.0/sdk/build-properties/> — app-config plugin for Android SDK values when Prebuild is used.
+- Expo Dev Client SDK 58: <https://docs.expo.dev/versions/v58.0.0/sdk/dev-client/> — custom development client workflow.
+
+
 
 ## Canonical product SRS — current working baseline
 
