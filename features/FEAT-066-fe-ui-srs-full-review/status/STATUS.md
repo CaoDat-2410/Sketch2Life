@@ -99,3 +99,9 @@ Revision 4 code commit `c43f4b0a` and status commit `55485a07` were pushed witho
 - The first 390px capture found overlapping heading/description spacing. Mobile margins were corrected, then all six role/viewport combinations were recaptured. At 390x844, submit bottoms are 731px (Teacher), 731px (School Manager), and 750px (Platform Admin); all have 390px document width. At 1440x900, all pages fit without overflow.
 - Three.js local rendering, reduced-motion static rendering, context-loss CSS fallback, and keyboard activation were reviewed. Real sign-in was not attempted; Platform Admin role discovery remains blocked by the existing API. Details and screenshots are in FEAT-066-EV-008.
 - Repository security validation passed on the final reviewed diff: 6,867 publishable files scanned, with no absolute machine paths. Commit and integration have not occurred.
+## Revision 7 auth UI integration (2026-11-10)
+
+- Commit `89d8785d` (`feat(auth): redesign three web portal login pages`) was pushed fast-forward without force to `origin/codex/fe-ui-web-remediation` and `origin/feature/fe-ui-full-remediation`.
+- Repository security validation passed immediately before commit and push: 6,867 publishable files scanned; no absolute machine paths.
+- The local `feature/fe-ui-full-remediation` worktree was not checked out or modified because it contains unrelated changes. Its remote branch is now advanced to the reviewed commit.
+- Unrelated root approval, Parent UI changes, and FEAT-070 evidence remain unstaged and unmodified.
