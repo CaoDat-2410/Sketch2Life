@@ -46,3 +46,11 @@ Revision 5 verification: the shared logout action passed the four local dashboar
 ## D-066-12 — Trace School Manager UI test flows to canonical SRS and actual contracts
 
 The sequential flow guide covers the School Manager screens in SRS §21.5 and related use cases/requirements. For each flow, distinguish target behavior, current FE route/state, source-checked API support, and missing dependencies. Treat local fixtures as visual/interaction evidence only, retain open SRS policy questions, and do not infer requirements from §32 or simulate unavailable backend operations. See FEAT-066-EV-006.
+
+## D-066-13 — Keep the second-pass verification School Manager-only
+
+The user's request to double-check before switching portals applies to the approved School Manager implementation scope and FEAT-066 evidence. Reuse only local fixture preview and source/contract inspection; do not touch Parent, Teacher, Admin, or backend code. Record live-preview findings separately from API capability. See EV-007.
+
+## D-066-14 — Do not canonize an SRS-unstated M01 rubric
+
+FR-PL-05 requires School Manager approval before a Teacher lesson becomes PUBLIC but does not define four pedagogical checks. Preserve the current UI behavior for this review and record the rubric as an owner clarification; do not present it as an SRS rule or change the gate by inference.

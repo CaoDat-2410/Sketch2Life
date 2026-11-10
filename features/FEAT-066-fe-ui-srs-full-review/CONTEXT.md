@@ -47,3 +47,7 @@ During sequential School Manager flow review, the user identified that the authe
 ## Revision 6 — sequential School Manager flow guide
 
 The user requested a step-by-step list of all School Manager web flows in canonical SRS v2.7. `evidence/notes/SCHOOL_MANAGER_WEB_FLOW_TEST_GUIDE_V27.md` traces §21.5 and related UCs/FRs to current routes, contract support, safe test steps, expected target behavior, and gaps. The guide distinguishes local fixture review from flows requiring backend APIs; it does not use §32 snapshots or infer open commercial policy. Approval and plan hash are recorded before guide creation.
+
+## Revision 6 double-check — School Manager only (2026-11-10)
+
+The user asked for a complete second pass over School Manager before switching to another portal. The approved plan remains revision 6 (SHA-256 `25E24871660A892C3380A359EA5285C6148B4C47FC75248C35D71FAC303231C9`); no scope expansion was made. A fresh local capture at 1440x900 and 390x844 reconfirmed M01 outcome counts/tabs, unavailable inbox, static organization context, and M02 layout. The settings label implying monthly-only renewal was corrected to the generic unavailable label `Tự động gia hạn`. Detailed observations and remaining contract dependencies are in `evidence/notes/SCHOOL_MANAGER_WEB_DOUBLE_CHECK_REV57_20261110.md` (EV-007) and `evidence/screenshots/double-check/`. M01's four-item approval rubric is not stated in FR-PL-05; it is recorded for owner clarification, not silently treated as an SRS requirement. Parent/Admin/Teacher portal work remains outside this verification.

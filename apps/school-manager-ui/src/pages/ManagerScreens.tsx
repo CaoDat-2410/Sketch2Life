@@ -773,7 +773,7 @@ export function M02OrganizationManagementPage() {
           </div>
           <div className="mg-meta">
             <div className="mg-meta-row">
-              <span>Tự động gia hạn gói hàng tháng (MoMo / VNPAY)</span>
+              <span>Tự động gia hạn</span>
               <button
                 type="button"
                 className="mg-btn sm soft"

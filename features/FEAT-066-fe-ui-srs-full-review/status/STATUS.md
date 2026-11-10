@@ -48,3 +48,21 @@ Revision 4 code commit `c43f4b0a` and status commit `55485a07` were pushed witho
 - Commit `52e84c15` contains the School Manager logout action, the Rev57 sequential flow guide, and the associated QA screenshots/observations.
 - Pushed non-force to `origin/feature/fe-ui-full-remediation` on 2026-11-10; remote target advanced from `55485a07` to `52e84c15`.
 - Source changes were made only in `F:/Github/Sketch2Life-worktrees/fe-ui-web-remediation` on `codex/fe-ui-web-remediation`. Unrelated Parent UI, root approval, and FEAT-070 worktree changes were not staged or modified.
+
+## Revision 6 School Manager double-check (2026-11-10)
+
+- Re-read the canonical authority and verified FEAT-063 v2.7-draft Rev57 SHA-256 `BE0D656966FDE91BA7CD5C914C319EF301D137985EF5CC91B94F36FEBCF61FB5`; it remains unsigned.
+- Confirmed repository root/worktree `F:/Github/Sketch2Life-worktrees/fe-ui-web-remediation`, branch `codex/fe-ui-web-remediation`, starting HEAD `bd55ffd8cff06d0f395f1afa5a8a8ac4081d5c75`. Existing unrelated root approval, Parent UI, and FEAT-070 worktree changes remain unstaged and untouched.
+- Reused loopback School Manager Vite preview at 127.0.0.1:5173 (PID 19084); recaptured `/login`, M01 and all M02 sections at 1440x900 and 390x844 in EV-007. No backend/provider/credentials/real data; no automated tests or builds.
+- Confirmed M01 request-change counters `pending=2`, `approved=0`, `requested_changes=1`; tab/panel ARIA references and ArrowRight selection/focus; static inbox status with no unread dot; static organization context; no document horizontal overflow. Narrow class/quota actions remain inside the viewport; the class table uses an internal horizontal scroll region.
+- Double-check removed an unsupported monthly-only implication from the unavailable auto-renew label (`Tự động gia hạn`). M01's four-check approval rubric is unlisted in FR-PL-05 and remains an owner clarification, not an inferred SRS requirement.
+- Existing contract blockers remain: capacity-safe class creation/archive/suspend; Teacher directory/provisioning/assignment transfer; group flow; invoice/payment/subscription; organization quota/top-up; inbox; school feedback reply. Class list/profile-list read and M01 access-grant list/decision are source-checked, not authenticated end-to-end runtime tested. Child media remains absent.
+- Detailed evidence: `evidence/notes/SCHOOL_MANAGER_WEB_DOUBLE_CHECK_REV57_20261110.md`; screenshots and capture observations: `evidence/screenshots/double-check/`. EV-007 added to `evidence/README.md`.
+- Current review is complete for the School Manager FE scope. Other portals may be reviewed after this handoff; no other portal has been checked or modified in this step.
+## Repository validation results
+
+- `python tools/validate_repository_security.py`: PASS (`REPOSITORY_SECURITY_VALID`; 6,845 publishable files scanned).
+- `python tools/validate_architecture.py`: PASS.
+- `git diff --check`: PASS; only CRLF-to-LF normalization warnings were printed for edited Markdown files.
+- `python tools/validate_harness.py`: FAIL only because the unrelated untracked FEAT-070 feature directory lacks `evidence/raw`, `evidence/screenshots`, `evidence/metrics`, and `evidence/notes`. Left untouched because FEAT-070 is outside this approved scope.
+- No tests/builds were run.
