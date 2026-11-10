@@ -20,7 +20,7 @@ function ManagerPortalRoutes() {
       <Route path="/" element={<Navigate to={isAuthenticated ? "/m02-organization-management" : "/login"} replace />} />
       <Route path="/login" element={<WebPortalLoginPage portalRole="MANAGER" onLogin={loginAsRole} />} />
       <Route path="/m01-publication-review" element={<M01PublicationReviewPage showToast={showToast} />} />
-      <Route path="/m02-organization-management" element={<M02OrganizationManagementPage showToast={showToast} />} />
+      <Route path="/m02-organization-management" element={<M02OrganizationManagementPage />} />
       <Route path="*" element={<Navigate to="/m02-organization-management" replace />} />
     </Routes>
   );

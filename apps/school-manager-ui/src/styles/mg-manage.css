@@ -17,9 +17,9 @@
 .mg-top { height: 64px; padding: 0 28px; display: flex; align-items: center; justify-content: flex-end; gap: 12px; position: sticky; top: 0; z-index: 10; background: rgba(255, 255, 255, 0.82); backdrop-filter: blur(8px); border-bottom: 1px solid #E2E8F0; }
 .mg-top-btn { width: 40px; height: 40px; border-radius: 9999px; border: 1px solid #E2E8F0; background: #FFFFFF; display: inline-flex; align-items: center; justify-content: center; color: #475569; cursor: pointer; box-shadow: 0 3px 1px #E2E8F0; position: relative; flex-shrink: 0; }
 .mg-top-btn:active { transform: translateY(2px); box-shadow: 0 1px 1px #E2E8F0; }
-.mg-top-btn .mg-dot { position: absolute; top: 8px; right: 9px; width: 9px; height: 9px; border-radius: 9999px; background: #F59E0B; border: 2px solid #FFFFFF; }
-.mg-org-pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px 6px 8px; border-radius: 9999px; background: #FFFFFF; border: 1px solid #E2E8F0; font-size: 13px; font-weight: 700; box-shadow: 0 3px 1px #E2E8F0; white-space: nowrap; flex-shrink: 0; }
-.mg-main { padding: 28px; max-width: 1360px; width: 100%; }
+.mg-inbox-unavailable { display: inline-flex; align-items: center; gap: 7px; min-height: 40px; padding: 6px 10px; border: 1px solid #FED7AA; border-radius: 14px; background: #FFF7ED; color: #9A3412; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.mg-org-context { display: inline-flex; align-items: center; gap: 8px; padding: 4px 0; color: #334155; font-size: 13px; font-weight: 700; white-space: normal; flex-shrink: 1; }
+.mg-main { box-sizing: border-box; padding: 28px; max-width: 1360px; width: 100%; }
 .mg-toast { margin: 14px 28px 0; padding: 12px 16px; border-radius: 16px; font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 10px; border: 1px solid #E2E8F0; box-shadow: 0 6px 16px -6px rgba(15, 23, 42, 0.12); }
 .mg-toast.ok { background: #E6F8F0; color: #047857; }
 .mg-toast.info { background: #EFF6FF; color: #1D4ED8; }
@@ -83,7 +83,7 @@
 .mg-btn.rose { background: #FEE2E2; color: #9F1239; box-shadow: 0 4px 1px #FCA5A5; }
 .mg-btn:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 1px rgba(15, 23, 42, 0.15); }
 .mg-btn:disabled { background: #E2E8F0; color: #475569; box-shadow: 0 4px 1px #CBD5E1; cursor: not-allowed; }
-.mg-link { background: none; border: none; color: #1D4ED8; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; flex-shrink: 0; }
+.mg-link { background: none; border: none; color: #1D4ED8; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; flex-shrink: 0; min-height: 44px; }
 .mg-link:focus-visible { outline: 3px solid #93C5FD; border-radius: 8px; }
 
 .mg-list { display: flex; flex-direction: column; gap: 10px; }
@@ -118,6 +118,12 @@
 .mg-tab { border: none; background: transparent; padding: 8px 16px; border-radius: 9999px; font-family: inherit; font-size: 13px; font-weight: 800; color: #475569; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
 .mg-tab.is-active { background: #FFFFFF; color: #1D4ED8; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.1); }
 .mg-tab:focus-visible { outline: 3px solid #93C5FD; }
+.mg-tabpanel:focus-visible { outline: 3px solid #93C5FD; outline-offset: 3px; border-radius: 12px; }
+.mg-unavailable-note { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border: 1px solid #FED7AA; border-radius: 16px; background: #FFF7ED; color: #7C2D12; font-size: 13px; line-height: 1.5; }
+.mg-unavailable-note .mg-pill { margin-top: 1px; }
+.mg-grid-2 > .mg-unavailable-note { grid-column: 1 / -1; }
+.mg-unavailable-note p { margin: 0; }
+.mg-class-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 
 .mg-table-wrap { overflow-x: auto; border-radius: 16px; }
 .mg-table { width: 100%; border-collapse: separate; border-spacing: 0 6px; font-size: 13.5px; }
@@ -157,6 +163,27 @@
   .mg-side .mg-label, .mg-side .mg-profile-text, .mg-side .mg-role-chip { display: none; }
   .mg-nav-item { justify-content: center; padding: 8px; }
 }
+@media (max-width: 640px) {
+  .mg-main { padding: 12px; }
+  .mg-top { height: auto; min-height: 64px; padding: 8px 12px; gap: 8px; flex-wrap: wrap; }
+  .mg-inbox-unavailable { min-height: 44px; white-space: normal; }
+  .mg-org-context { max-width: 100%; flex-wrap: wrap; }
+  .mg-unavailable-note { flex-wrap: wrap; }
+  .mg-unavailable-note > div { min-width: 0; flex: 1 1 100%; }
+  .mg-card { padding: 14px; }
+  .mg-card-head { align-items: flex-start; flex-wrap: wrap; }
+  .mg-card-head > .mg-card-title { flex: 1 1 100%; }
+  .mg-meta-row { align-items: flex-start; flex-wrap: wrap; }
+  .mg-meta-row span:last-child { white-space: normal; }
+  .mg-class-actions { width: 100%; flex-direction: column; }
+  .mg-class-actions .mg-btn { width: 100%; min-height: 44px; height: auto; white-space: normal; }
+  .mg-kpi-row { flex-wrap: wrap; align-items: center; }
+  .mg-kpi-row > .mg-grow { flex: 1 1 calc(100% - 64px); }
+  .mg-kpi-row > .mg-btn { width: calc(100% - 58px); min-width: 0; min-height: 44px; height: auto; margin-left: 58px; padding: 8px 12px; white-space: normal; flex: 1 1 auto; }
+  .mg-btn.sm { min-height: 44px; height: auto; padding-top: 8px; padding-bottom: 8px; }
+  .mg-tabs { display: flex; max-width: 100%; flex-wrap: wrap; border-radius: 16px; }
+  .mg-tab { min-height: 44px; white-space: normal; text-align: center; }
+}
 @media (prefers-reduced-motion: reduce) {
   .mg-btn, .mg-item, .mg-nav-item, .mg-bar > span, .mg-check, .mg-top-btn { transition: none; }
   .mg-btn:active:not(:disabled), .mg-top-btn:active { transform: none; }
@@ -178,6 +205,8 @@
 [data-theme="dark"] .mg-input, [data-theme="dark"] .mg-textarea, [data-theme="dark"] .mg-chip-btn { background: #0F1829; border-color: #314768; color: #F8FAFC; }
 [data-theme="dark"] .mg-chip-btn.is-active { background: #2563EB; border-color: #2563EB; color: #FFFFFF; }
 [data-theme="dark"] .mg-tabs { background: #131E31; }
+[data-theme="dark"] .mg-inbox-unavailable, [data-theme="dark"] .mg-unavailable-note { background: #332512; border-color: #6B4A1B; color: #FDE68A; }
+[data-theme="dark"] .mg-org-context { color: #E2E8F0; }
 [data-theme="dark"] .mg-tab { color: #CBD5E1; }
 [data-theme="dark"] .mg-tab.is-active { background: #2563EB; color: #FFFFFF; }
 [data-theme="dark"] .mg-check { background: #17253D; border-color: #2B3F5E; color: #E2E8F0; }

@@ -83,17 +83,16 @@ export function ManagerLayout({
         <header className="mg-top">
           <span className="sr-only" style={{ position: "absolute", left: -9999 }}>{currentTitle}</span>
           <RoleHelp role="MANAGER" />
-          <button type="button" className="mg-top-btn" aria-label="Thông báo">
-            <MgIcon name="bell" size={18} />
-            <span className="mg-dot" />
-          </button>
-          <span className="mg-org-pill">
+          <div className="mg-inbox-unavailable" role="status" aria-label="Hộp thư thông báo chưa khả dụng" title="API hộp thư thông báo chưa được cung cấp">
+            <MgIcon name="bell" size={17} />
+            <span>Hộp thư chưa khả dụng</span>
+          </div>
+          <div className="mg-org-context">
             <span className="mg-avatar" style={{ width: 28, height: 28, background: "#FEF3C7", color: "#B45309" }}>
               <MgIcon name="school" size={14} />
             </span>
             {previewMode ? "Trường Mầm non Ánh Dương" : "Tổ chức theo assignment"}
-            <MgIcon name="chevdown" size={14} />
-          </span>
+          </div>
         </header>
 
         {toast && (
