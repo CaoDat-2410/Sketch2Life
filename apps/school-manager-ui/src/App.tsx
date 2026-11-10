@@ -6,6 +6,7 @@ import { WebPortalLoginPage } from "../../shared/WebPortalLoginPage";
 import { M01PublicationReviewPage, M02OrganizationManagementPage } from "./pages/ManagerScreens";
 import "../../shared/portal-ui.css";
 import "../../shared/ui-primitives.css";
+import "./styles/mg-manage.css";
 
 function ManagerPortalRoutes() {
   const location = useLocation();
@@ -20,7 +21,7 @@ function ManagerPortalRoutes() {
       <Route path="/" element={<Navigate to={isAuthenticated ? "/m02-organization-management" : "/login"} replace />} />
       <Route path="/login" element={<WebPortalLoginPage portalRole="MANAGER" onLogin={loginAsRole} />} />
       <Route path="/m01-publication-review" element={<M01PublicationReviewPage showToast={showToast} />} />
-      <Route path="/m02-organization-management" element={<M02OrganizationManagementPage showToast={showToast} />} />
+      <Route path="/m02-organization-management" element={<M02OrganizationManagementPage />} />
       <Route path="*" element={<Navigate to="/m02-organization-management" replace />} />
     </Routes>
   );
@@ -28,9 +29,9 @@ function ManagerPortalRoutes() {
 
 function ManagerPortalFrame() {
   const location = useLocation();
-  const { toast } = useTeacher();
+  const { toast, logout } = useTeacher();
   const routes = <ManagerPortalRoutes />;
-  return location.pathname === "/login" ? routes : <ManagerLayout toast={toast}>{routes}</ManagerLayout>;
+  return location.pathname === "/login" ? routes : <ManagerLayout toast={toast} onLogout={logout}>{routes}</ManagerLayout>;
 }
 
 export function App() {

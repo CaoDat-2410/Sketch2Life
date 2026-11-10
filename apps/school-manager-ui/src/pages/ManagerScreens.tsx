@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useId, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { MgIcon } from "../components/MgIcon";
 import {
@@ -14,7 +14,6 @@ import {
   type Be1Class,
   type LessonSummary,
 } from "../../../shared/backendApi";
-import "../styles/mg-manage.css";
 
 type Toast = (text: string, kind?: "ok" | "info" | "warn" | "err") => void;
 
@@ -152,14 +151,23 @@ export function M01PublicationReviewPage({ showToast }: { showToast: Toast }) {
   const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState("rev-1");
   const [tab, setTab] = useState<"CONTENT" | "DIFF">("CONTENT");
+  const tabPrefix = useId();
+  const contentTabId = tabPrefix + "-content-tab";
+  const diffTabId = tabPrefix + "-diff-tab";
+  const contentPanelId = tabPrefix + "-content-panel";
+  const diffPanelId = tabPrefix + "-diff-panel";
+  const contentTabRef = useRef<HTMLButtonElement>(null);
+  const diffTabRef = useRef<HTMLButtonElement>(null);
   const [publicScope, setPublicScope] = useState(false);
   const [checks, setChecks] = useState([false, false, false, false]);
   const [feedback, setFeedback] = useState("");
-  const [done, setDone] = useState<string[]>([]);
+  const [approvedIds, setApprovedIds] = useState<string[]>([]);
+  const [changeRequestedIds, setChangeRequestedIds] = useState<string[]>([]);
 
   if (!isLocalPreview()) return <ManagerApiReviewPage showToast={showToast} />;
 
-  const queue = PENDING.filter((p) => !done.includes(p.id));
+  const handledIds = new Set([...approvedIds, ...changeRequestedIds]);
+  const queue = PENDING.filter((p) => !handledIds.has(p.id));
   const lesson = queue.find((l) => l.id === selectedId) ?? queue[0];
   const doneCount = checks.filter(Boolean).length;
   const ready = doneCount === 4 && publicScope;
@@ -175,9 +183,13 @@ export function M01PublicationReviewPage({ showToast }: { showToast: Toast }) {
     resetForm();
   };
 
-  const finish = (id: string) => {
+  const finish = (id: string, outcome: "APPROVED" | "REQUESTED_CHANGES") => {
     const rest = queue.filter((q) => q.id !== id);
-    setDone((d) => [...d, id]);
+    if (outcome === "APPROVED") {
+      setApprovedIds((items) => items.includes(id) ? items : [...items, id]);
+    } else {
+      setChangeRequestedIds((items) => items.includes(id) ? items : [...items, id]);
+    }
     if (rest[0]) setSelectedId(rest[0].id);
     resetForm();
   };
@@ -188,8 +200,8 @@ export function M01PublicationReviewPage({ showToast }: { showToast: Toast }) {
       showToast("Hãy chọn phạm vi Công khai và tích đủ 4 tiêu chí.", "warn");
       return;
     }
-    showToast(`Đã duyệt công khai "${lesson.title}".`, "ok");
-    finish(lesson.id);
+    showToast(`Bản xem thử: "${lesson.title}" đã chuyển sang trạng thái Đã duyệt cục bộ; chưa gửi tới API.`, "info");
+    finish(lesson.id, "APPROVED");
   };
 
   const reject = () => {
@@ -198,8 +210,21 @@ export function M01PublicationReviewPage({ showToast }: { showToast: Toast }) {
       showToast("Hãy ghi rõ nội dung cần chỉnh sửa trước khi gửi.", "warn");
       return;
     }
-    showToast(`Đã ghi nhận góp ý cho ${lesson.teacher}: “${feedback.trim()}”`, "info");
-    finish(lesson.id);
+    showToast(`Bản xem thử: yêu cầu chỉnh sửa cho ${lesson.teacher} chỉ đổi trạng thái cục bộ; chưa gửi tới API.`, "info");
+    finish(lesson.id, "REQUESTED_CHANGES");
+  };
+
+  const handleTabKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    let nextTab: "CONTENT" | "DIFF" | null = null;
+    if (event.key === "ArrowRight") nextTab = tab === "CONTENT" ? "DIFF" : "CONTENT";
+    if (event.key === "ArrowLeft") nextTab = tab === "CONTENT" ? "DIFF" : "CONTENT";
+    if (event.key === "Home") nextTab = "CONTENT";
+    if (event.key === "End") nextTab = "DIFF";
+    if (!nextTab) return;
+    event.preventDefault();
+    setTab(nextTab);
+    if (nextTab === "CONTENT") contentTabRef.current?.focus();
+    else diffTabRef.current?.focus();
   };
 
   return (
@@ -216,7 +241,8 @@ export function M01PublicationReviewPage({ showToast }: { showToast: Toast }) {
         </div>
         <div className="mg-hero-pills">
           <span className="mg-pill warn"><MgIcon name="clock" size={13} /> Chờ duyệt: {queue.length}</span>
-          <span className="mg-pill ok"><MgIcon name="check" size={13} /> Đã duyệt: {done.length}</span>
+          <span className="mg-pill ok"><MgIcon name="check" size={13} /> Đã duyệt: {approvedIds.length}</span>
+          <span className="mg-pill info">Yêu cầu chỉnh sửa: {changeRequestedIds.length}</span>
           <button type="button" className="mg-btn sm soft" onClick={() => navigate("/m02-organization-management")}>
             <MgIcon name="school" size={15} /> Về tổng quan trường
           </button>
@@ -236,7 +262,7 @@ export function M01PublicationReviewPage({ showToast }: { showToast: Toast }) {
           <div className="mg-list">
             {queue.length === 0 && (
               <div className="mg-item" style={{ cursor: "default", justifyContent: "center" }}>
-                <span className="mg-pill ok"><MgIcon name="check" size={14} /> Đã duyệt hết</span>
+                <span className="mg-pill off">Không còn yêu cầu chờ duyệt</span>
               </div>
             )}
             {queue.map((q) => (
@@ -273,18 +299,20 @@ export function M01PublicationReviewPage({ showToast }: { showToast: Toast }) {
               </div>
             </div>
 
-            <div className="mg-tabs" role="tablist">
-              <button type="button" role="tab" aria-selected={tab === "CONTENT"} className={`mg-tab${tab === "CONTENT" ? " is-active" : ""}`} onClick={() => setTab("CONTENT")}>Nội dung</button>
-              <button type="button" role="tab" aria-selected={tab === "DIFF"} className={`mg-tab${tab === "DIFF" ? " is-active" : ""}`} onClick={() => setTab("DIFF")}>So sánh phiên bản</button>
+            <div className="mg-tabs" role="tablist" aria-label="Thông tin giáo án">
+              <button type="button" id={contentTabId} ref={contentTabRef} role="tab" aria-controls={contentPanelId} aria-selected={tab === "CONTENT"} tabIndex={tab === "CONTENT" ? 0 : -1} className={`mg-tab${tab === "CONTENT" ? " is-active" : ""}`} onKeyDown={handleTabKeyDown} onClick={() => setTab("CONTENT")}>Nội dung</button>
+              <button type="button" id={diffTabId} ref={diffTabRef} role="tab" aria-controls={diffPanelId} aria-selected={tab === "DIFF"} tabIndex={tab === "DIFF" ? 0 : -1} className={`mg-tab${tab === "DIFF" ? " is-active" : ""}`} onKeyDown={handleTabKeyDown} onClick={() => setTab("DIFF")}>So sánh phiên bản</button>
             </div>
 
-            {tab === "DIFF" && (
+            <section id={diffPanelId} role="tabpanel" aria-labelledby={diffTabId} tabIndex={0} className="mg-tabpanel" hidden={tab !== "DIFF"}>
               <div className="mg-meta">
                 <div className="mg-meta-row"><span>Bản trước</span><span>Bản 2</span></div>
                 <div className="mg-meta-row"><span>Bản đề nghị</span><span>Bản 3</span></div>
                 <div className="mg-meta-row"><span>Thay đổi</span><span className="mg-pill info">3 cảnh</span></div>
               </div>
-            )}
+            </section>
+
+            <section id={contentPanelId} role="tabpanel" aria-labelledby={contentTabId} tabIndex={0} className="mg-tabpanel" hidden={tab !== "CONTENT"}>
 
             {/* Phạm vi */}
             <div className="mg-scope">
@@ -356,6 +384,7 @@ export function M01PublicationReviewPage({ showToast }: { showToast: Toast }) {
                 <MgIcon name="check" size={18} /> Duyệt công khai
               </button>
             </div>
+            </section>
           </section>
         ) : (
           <section className="mg-card" style={{ alignItems: "center", padding: 48 }}>
@@ -390,13 +419,24 @@ const ActivePill = () => (
   <span className="mg-pill ok"><MgIcon name="check" size={13} /> Hoạt động</span>
 );
 
-function ManagerApiOrganizationPage({ showToast }: { showToast: Toast }) {
+function UnavailableNote({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="mg-unavailable-note" role="note">
+      <span className="mg-pill off">Chưa khả dụng</span>
+      <div><strong>{title}</strong><p>{children}</p></div>
+    </div>
+  );
+}
+
+function ManagerApiOrganizationPage() {
   const [classes, setClasses] = useState<Be1Class[]>([]);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [displayName, setDisplayName] = useState("");
   const [reload, setReload] = useState(0);
+  const [rosterClassId, setRosterClassId] = useState("");
+  const [roster, setRoster] = useState<Array<{ child_id: string; class_id: string; display_name: string; age_months: number }>>([]);
+  const [rosterLoading, setRosterLoading] = useState(false);
+  const [rosterError, setRosterError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -426,71 +466,66 @@ function ManagerApiOrganizationPage({ showToast }: { showToast: Toast }) {
     return () => { active = false; };
   }, [reload]);
 
-  const create = async (event: React.FormEvent) => {
-    event.preventDefault();
-    const name = displayName.trim();
-    if (!name || name.length > 200) {
-      setError("Tên lớp phải có từ 1 đến 200 ký tự.");
-      return;
-    }
-    setSaving(true);
-    setError(null);
-    try {
-      const created = await backendApi.createClass(configuredOrganizationId(), name);
-      setDisplayName("");
-      showToast(`Đã tạo lớp “${created.display_name}”.`, "ok");
-      setReload((value) => value + 1);
-    } catch (cause) {
-      setError(backendMessage(cause));
-    } finally {
-      setSaving(false);
-    }
-  };
+  useEffect(() => {
+    if (!rosterClassId) return;
+    let active = true;
+    setRoster([]);
+    setRosterError(null);
+    setRosterLoading(true);
+    backendApi.profiles(configuredOrganizationId(), rosterClassId)
+      .then((page) => { if (active) setRoster(page.items); })
+      .catch((cause: unknown) => { if (active) setRosterError(backendMessage(cause)); })
+      .finally(() => { if (active) setRosterLoading(false); });
+    return () => { active = false; };
+  }, [rosterClassId]);
 
   return (
     <div className="mg-page">
       <BackendModeNotice roleLabel="Quản lý trường" />
       <div className="mg-hero">
-        <div className="mg-hero-left"><span className="mg-hero-badge"><MgIcon name="school" size={30} /></span><div><h1 className="mg-title">Lớp học trong tổ chức</h1><div className="mg-sub">Danh sách và tạo lớp theo assignment school_admin của tài khoản.</div></div></div>
+        <div className="mg-hero-left"><span className="mg-hero-badge"><MgIcon name="school" size={30} /></span><div><h1 className="mg-title">Lớp học trong tổ chức</h1><div className="mg-sub">Danh sách lớp và roster được API trả về trong assignment school_admin.</div></div></div>
         <div className="mg-hero-pills"><span className="mg-pill info">{classes.length} lớp trong phạm vi API</span><button type="button" className="mg-btn sm soft" disabled={loading} onClick={() => setReload((value) => value + 1)}><MgIcon name="list" size={15} /> Tải lại</button></div>
       </div>
-      {error && <BackendNotice title="Không tải hoặc tạo được lớp" tone="error">{error}</BackendNotice>}
+      {error && <BackendNotice title="Không tải được lớp" tone="error">{error}</BackendNotice>}
       {loading && <BackendNotice title="Đang tải lớp">Đang kiểm tra assignment và phạm vi được backend cấp.</BackendNotice>}
       <section className="mg-card">
         <div className="mg-card-head"><h2 className="mg-card-title"><span className="mg-ico-chip sm mg-tone-mint"><MgIcon name="calendar" size={18} /></span>Lớp được API trả về</h2></div>
-        <div className="mg-table-wrap"><table className="mg-table"><thead><tr><th>Tên lớp</th><th>class_id</th><th>Trạng thái</th></tr></thead><tbody>
-          {classes.map((item) => <tr key={item.class_id}><td><div className="mg-cell"><span className="mg-ico-chip sm mg-tone-blue"><MgIcon name="school" size={16} /></span>{item.display_name}</div></td><td><code>{item.class_id}</code></td><td><span className="mg-pill ok">{item.state}</span></td></tr>)}
-          {!loading && classes.length === 0 && <tr><td colSpan={3} style={{ textAlign: "center", color: "#475569" }}>Backend chưa trả về lớp nào trong phạm vi tài khoản.</td></tr>}
+        <div className="mg-table-wrap"><table className="mg-table"><thead><tr><th>Tên lớp</th><th>class_id</th><th>Trạng thái</th><th>Roster</th></tr></thead><tbody>
+          {classes.map((item) => <tr key={item.class_id}><td><div className="mg-cell"><span className="mg-ico-chip sm mg-tone-blue"><MgIcon name="school" size={16} /></span>{item.display_name}</div></td><td><code>{item.class_id}</code></td><td><span className="mg-pill ok">{item.state}</span></td><td><button type="button" className="mg-link" aria-expanded={rosterClassId === item.class_id} onClick={() => setRosterClassId((current) => current === item.class_id ? "" : item.class_id)}>{rosterClassId === item.class_id ? "Đóng roster" : "Xem roster"}</button></td></tr>)}
+          {!loading && classes.length === 0 && <tr><td colSpan={4} style={{ textAlign: "center", color: "#475569" }}>Backend chưa trả về lớp nào trong phạm vi tài khoản.</td></tr>}
         </tbody></table></div>
       </section>
-      <section className="mg-card">
-        <div className="mg-card-head"><h2 className="mg-card-title">Tạo lớp</h2></div>
-        <form onSubmit={(event) => void create(event)} style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <input className="mg-input" style={{ flex: "1 1 260px" }} aria-label="Tên lớp mới" maxLength={200} value={displayName} onChange={(event) => setDisplayName(event.target.value)} placeholder="Tên lớp, tối đa 200 ký tự" />
-          <button type="submit" className="mg-btn primary" disabled={saving || loading || !displayName.trim()}><MgIcon name="plus" size={16} />{saving ? "Đang tạo…" : "Tạo lớp"}</button>
-        </form>
-      </section>
-      <BackendNotice title="Các mục quản lý chưa có API trong BE đã đọc" tone="warn">
-        Hệ thống hiện hỗ trợ xem danh sách và tạo lớp. Chưa có chức năng quản lý giáo viên, nhóm phụ huynh, hạn mức video, thanh toán và cài đặt gói ở màn này.
+      {rosterClassId && <section className="mg-card" aria-labelledby="manager-roster-title">
+        <div className="mg-card-head"><h2 id="manager-roster-title" className="mg-card-title">Roster lớp: {classes.find((item) => item.class_id === rosterClassId)?.display_name ?? "Đang tải…"}</h2></div>
+        {rosterError && <BackendNotice title="Không tải được roster" tone="error">{rosterError}</BackendNotice>}
+        {rosterLoading && <BackendNotice title="Đang tải roster">Đang đọc hồ sơ được API cho phép trong phạm vi lớp.</BackendNotice>}
+        {!rosterLoading && !rosterError && roster.length === 0 && <BackendNotice title="Roster trống">API không trả về hồ sơ nào trong lớp này.</BackendNotice>}
+        {!rosterLoading && !rosterError && roster.length > 0 && <div className="mg-list">{roster.map((profile) => <div className="mg-item" key={profile.child_id} style={{ cursor: "default" }}><span className="mg-ico-chip sm mg-tone-blue"><MgIcon name="users" size={16} /></span><span className="mg-item-title">{profile.display_name}</span></div>)}</div>}
+        <div className="mg-privacy"><MgIcon name="lock" size={18} /> Chỉ hiển thị tên hồ sơ cần cho roster; ảnh, video và story không được tải hoặc hiển thị.</div>
+      </section>}
+      <BackendNotice title="Các luồng School Manager chưa khả dụng" tone="warn">
+        <ul>
+          <li>Capacity và tạo lớp: API hiện không kiểm tra capacity hiệu lực khi tạo lớp; tạo lớp bị chặn cho tới khi có contract capacity-safe.</li>
+          <li>Archive/tạm ngưng lớp: chưa có endpoint tương ứng.</li>
+          <li>Phân công Teacher: có endpoint assignment nhưng chưa có danh bạ để chọn Teacher theo organization.</li>
+          <li>Billing, invoice, payment, subscription, quota summary/top-up, notification inbox và feedback reply: chưa có API phù hợp trong contract đã rà.</li>
+        </ul>
       </BackendNotice>
     </div>
   );
 }
 
-export function M02OrganizationManagementPage({ showToast }: { showToast: Toast }) {
+export function M02OrganizationManagementPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const section = new URLSearchParams(location.search).get("section");
-  const [extraSlots, setExtraSlots] = useState(0);
-  const [extraQuota, setExtraQuota] = useState(0);
-  const [autoRenew, setAutoRenew] = useState(true);
 
-  if (!isLocalPreview()) return <ManagerApiOrganizationPage showToast={showToast} />;
+  if (!isLocalPreview()) return <ManagerApiOrganizationPage />;
 
   const usedSlots = 8;
-  const totalSlots = 10 + extraSlots;
-  const quotaLeft = 86 + extraQuota;
-  const quotaTotal = 100 + extraQuota;
+  const totalSlots = 10;
+  const quotaLeft = 86;
+  const quotaTotal = 100;
 
   const showTeachers = section === "teachers";
   const showClasses = section === "classes";
@@ -579,11 +614,13 @@ export function M02OrganizationManagementPage({ showToast }: { showToast: Toast 
               </button>
             </div>
           </section>
+          <UnavailableNote title="Billing và phản hồi feedback chưa khả dụng">Chưa có API School Manager để xem invoice/payment, đổi subscription, đọc quota tổ chức hoặc phản hồi feedback theo trường. Số liệu dashboard là fixture xem thử.</UnavailableNote>
         </>
       )}
 
       {showQuota && (
         <div className="mg-grid-2">
+          <UnavailableNote title="Capacity và quota trường" >API chưa có capacity summary hoặc organization quota summary/top-up; các số trên trang này chỉ là fixture xem thử.</UnavailableNote>
           <div className="mg-kpi blue">
             <div className="mg-kpi-row">
               <span className="mg-ico-chip mg-tone-blue"><MgIcon name="school" size={24} /></span>
@@ -594,12 +631,10 @@ export function M02OrganizationManagementPage({ showToast }: { showToast: Toast 
               <button
                 type="button"
                 className="mg-btn sm soft"
-                onClick={() => {
-                  setExtraSlots((s) => s + 1);
-                  showToast("Đã minh họa thêm 1 suất lớp; không phát sinh thanh toán.", "info");
-                }}
+                disabled
+                title="Chưa có API capacity hoặc thanh toán để thêm suất lớp"
               >
-                <MgIcon name="plus" size={15} /> Thêm suất lớp
+                <MgIcon name="plus" size={15} /> Thêm suất lớp · Chưa khả dụng
               </button>
             </div>
             <div className="mg-bar" role="progressbar" aria-valuenow={usedSlots} aria-valuemin={0} aria-valuemax={totalSlots} aria-label="Lớp đang dùng">
@@ -617,12 +652,10 @@ export function M02OrganizationManagementPage({ showToast }: { showToast: Toast 
               <button
                 type="button"
                 className="mg-btn sm mint"
-                onClick={() => {
-                  setExtraQuota((q) => q + 10);
-                  showToast("Đã minh họa thêm 10 lượt video; không phát sinh thanh toán.", "info");
-                }}
+                disabled
+                title="Chưa có API quota summary hoặc thanh toán"
               >
-                <MgIcon name="plus" size={15} /> Mua +10 lượt
+                <MgIcon name="plus" size={15} /> Mua lượt · Chưa khả dụng
               </button>
             </div>
             <div className="mg-bar" role="progressbar" aria-valuenow={quotaLeft} aria-valuemin={0} aria-valuemax={quotaTotal} aria-label="Lượt video còn lại">
@@ -635,13 +668,14 @@ export function M02OrganizationManagementPage({ showToast }: { showToast: Toast 
       {showTeachers && (
         <div className="mg-grid-2">
           <section className="mg-card">
+            <UnavailableNote title="Mời và phân công Teacher">API có ghi assignment nhưng chưa có danh bạ Teacher để chọn đúng người trong organization.</UnavailableNote>
             <div className="mg-card-head">
               <h2 className="mg-card-title">
                 <span className="mg-ico-chip sm mg-tone-blue"><MgIcon name="users" size={18} /></span>
                 Giáo viên phụ trách <span className="mg-pill info">{TEACHERS.length}</span>
               </h2>
-              <button type="button" className="mg-btn sm primary" onClick={() => showToast("Đã minh họa lời mời; chưa gửi email thật.", "info")}>
-                <MgIcon name="userplus" size={16} /> Mời giáo viên
+              <button type="button" className="mg-btn sm primary" disabled title="Chưa có luồng tìm/chọn Teacher theo organization">
+                <MgIcon name="userplus" size={16} /> Mời giáo viên · Chưa khả dụng
               </button>
             </div>
             <div className="mg-table-wrap">
@@ -650,7 +684,7 @@ export function M02OrganizationManagementPage({ showToast }: { showToast: Toast 
                 <tbody>
                   {TEACHERS.map((t) => (
                     <tr key={t.id}>
-                      <td><div className="mg-cell"><span className="mg-avatar" style={{ background: t.bg, color: t.fg }}>{t.initials}</span>{t.name}</div></td>
+                      <td><div className="mg-cell"><span className="mg-avatar mg-avatar--teacher">{t.initials}</span>{t.name}</div></td>
                       <td>{t.role}</td>
                       <td><ActivePill /></td>
                     </tr>
@@ -661,13 +695,14 @@ export function M02OrganizationManagementPage({ showToast }: { showToast: Toast 
           </section>
 
           <section className="mg-card">
+            <UnavailableNote title="Nhóm phụ huynh chưa nối trong màn này">Không có dữ liệu nhóm từ API ở chế độ xem thử; nút đồng bộ bị tắt để tránh giả lập thao tác.</UnavailableNote>
             <div className="mg-card-head">
               <h2 className="mg-card-title">
                 <span className="mg-ico-chip sm mg-tone-amber"><MgIcon name="users" size={18} /></span>
                 Nhóm phụ huynh <span className="mg-pill info">{PARENT_GROUPS.length}</span>
               </h2>
-              <button type="button" className="mg-btn sm soft" onClick={() => showToast("Bản xem thử chưa đồng bộ dữ liệu phụ huynh.", "info")}>
-                <MgIcon name="gear" size={16} /> Đồng bộ
+              <button type="button" className="mg-btn sm soft" disabled title="Luồng nhóm phụ huynh chưa được nối trong giao diện này">
+                <MgIcon name="gear" size={16} /> Đồng bộ · Chưa khả dụng
               </button>
             </div>
             <div className="mg-table-wrap">
@@ -690,14 +725,15 @@ export function M02OrganizationManagementPage({ showToast }: { showToast: Toast 
 
       {showClasses && (
         <section className="mg-card">
+          <UnavailableNote title="Tạo lớp theo capacity, archive và tạm ngưng">API hiện không kiểm tra capacity hiệu lực khi tạo lớp và chưa có endpoint archive/suspend. Thao tác tạo lớp bị tắt để không vượt capacity.</UnavailableNote>
           <div className="mg-card-head">
             <h2 className="mg-card-title">
               <span className="mg-ico-chip sm mg-tone-mint"><MgIcon name="calendar" size={18} /></span>
                 Lớp &amp; suất học <span className="mg-pill info">{CLASSES.length}</span>
             </h2>
-            <div style={{ display: "flex", gap: 10 }}>
-              <button type="button" className="mg-btn sm primary" onClick={() => showToast("Bản xem thử chưa tạo lớp thật. Mục này sẽ mở biểu mẫu khi backend hỗ trợ.", "info")}>
-                <MgIcon name="plus" size={16} /> Tạo lớp mới
+            <div className="mg-class-actions" style={{ display: "flex", gap: 10 }}>
+              <button type="button" className="mg-btn sm primary" disabled title="API chưa có capacity-safe class creation">
+                <MgIcon name="plus" size={16} /> Tạo lớp · Chưa khả dụng
               </button>
               <button type="button" className="mg-btn sm soft" onClick={() => navigate("/m02-organization-management?section=quota")}>
                 <MgIcon name="chart" size={16} /> Xem lượt video
@@ -726,25 +762,24 @@ export function M02OrganizationManagementPage({ showToast }: { showToast: Toast 
 
       {showSettings && (
         <section className="mg-card">
+          <UnavailableNote title="Subscription và billing chưa khả dụng">Chưa có API để đọc hoặc đổi subscription, auto-renew, invoice hay payment. Không hiển thị giá hoặc chính sách giả định.</UnavailableNote>
           <div className="mg-card-head">
             <h2 className="mg-card-title">
               <span className="mg-ico-chip sm mg-tone-blue"><MgIcon name="gear" size={18} /></span>
               Cài đặt gói trường và quyền riêng tư
             </h2>
-            <span className="mg-pill ok">Gói 10 lớp cơ bản</span>
+            <span className="mg-pill off">Thông tin gói chưa kết nối</span>
           </div>
           <div className="mg-meta">
             <div className="mg-meta-row">
-              <span>Tự động gia hạn gói hàng tháng (MoMo / VNPAY)</span>
+              <span>Tự động gia hạn</span>
               <button
                 type="button"
-                className={`mg-btn sm ${autoRenew ? "mint" : "soft"}`}
-                onClick={() => {
-                  setAutoRenew((v) => !v);
-                  showToast("Đã thay đổi tùy chọn gia hạn minh họa trong phiên.", "info");
-                }}
+                className="mg-btn sm soft"
+                disabled
+                title="Chưa có API subscription để thay đổi auto-renew"
               >
-                {autoRenew ? "Đang bật" : "Đang tắt"}
+                Chưa khả dụng
               </button>
             </div>
             <div className="mg-meta-row">

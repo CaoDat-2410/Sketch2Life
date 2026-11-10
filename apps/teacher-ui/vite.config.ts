@@ -16,6 +16,7 @@ export default defineConfig({
       "react-router-dom": nm("react-router-dom"),
       "@radix-ui/react-dialog": nm("@radix-ui/react-dialog"),
       "@radix-ui/react-accordion": nm("@radix-ui/react-accordion"),
+      "three": nm("three"),
     },
   },
 });

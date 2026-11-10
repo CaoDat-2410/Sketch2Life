@@ -4,7 +4,6 @@ import { Logo } from "./Logo";
 import { MgIcon, MgIconName } from "./MgIcon";
 import { BackendModeNotice, isLocalPreview } from "../../../shared/backendApi";
 import { RoleHelp } from "../../../shared/RoleHelp";
-import "../styles/mg-manage.css";
 
 const SIDEBAR_ITEMS: { to: string; label: string; icon: MgIconName; matchSection?: string }[] = [
   { to: "/m02-organization-management", label: "Tổng quan", icon: "home" },
@@ -23,9 +22,11 @@ const SCREEN_NAMES: Record<string, string> = {
 export function ManagerLayout({
   children,
   toast,
+  onLogout,
 }: {
   children: React.ReactNode;
   toast: { kind: "ok" | "info" | "warn" | "err"; text: string } | null;
+  onLogout: () => void;
 }) {
   const location = useLocation();
   const currentTitle = SCREEN_NAMES[location.pathname] ?? "Quản lý trường";
@@ -71,29 +72,38 @@ export function ManagerLayout({
         </nav>
 
         <div className="mg-profile">
-          <span className="mg-avatar" style={{ background: "#DBEAFE", color: "#2563EB" }}>HT</span>
+          <span className="mg-avatar mg-avatar--profile">HT</span>
           <div className="mg-profile-text">
             <div className="mg-profile-name">{previewMode ? "Hiệu trưởng Minh" : "Quản lý trường"}</div>
             <div className="mg-profile-sub">{previewMode ? "Dữ liệu xem thử" : "Role được backend xác nhận"}</div>
           </div>
         </div>
+        <button
+          type="button"
+          className="mg-logout-btn"
+          onClick={onLogout}
+          aria-label="Đăng xuất"
+          title="Đăng xuất khỏi cổng Quản lý trường"
+        >
+          <MgIcon name="logout" size={18} />
+          <span className="mg-logout-label">Đăng xuất</span>
+        </button>
       </aside>
 
       <div className="mg-main-wrap">
         <header className="mg-top">
           <span className="sr-only" style={{ position: "absolute", left: -9999 }}>{currentTitle}</span>
           <RoleHelp role="MANAGER" />
-          <button type="button" className="mg-top-btn" aria-label="Thông báo">
-            <MgIcon name="bell" size={18} />
-            <span className="mg-dot" />
-          </button>
-          <span className="mg-org-pill">
-            <span className="mg-avatar" style={{ width: 28, height: 28, background: "#FEF3C7", color: "#B45309" }}>
+          <div className="mg-inbox-unavailable" role="status" aria-label="Hộp thư thông báo chưa khả dụng" title="API hộp thư thông báo chưa được cung cấp">
+            <MgIcon name="bell" size={17} />
+            <span>Hộp thư chưa khả dụng</span>
+          </div>
+          <div className="mg-org-context">
+            <span className="mg-avatar mg-avatar--organization">
               <MgIcon name="school" size={14} />
             </span>
             {previewMode ? "Trường Mầm non Ánh Dương" : "Tổ chức theo assignment"}
-            <MgIcon name="chevdown" size={14} />
-          </span>
+          </div>
         </header>
 
         {toast && (

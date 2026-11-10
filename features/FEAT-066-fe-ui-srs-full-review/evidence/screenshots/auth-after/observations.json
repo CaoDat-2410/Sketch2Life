@@ -1,0 +1,390 @@
+{
+  "phase": "after",
+  "source": "isolated headless Edge; only loopback Vite apps; HTTPS requests blocked; no credentials submitted",
+  "observations": [
+    {
+      "portal": "teacher",
+      "viewport": "desktop",
+      "file": "teacher-desktop.png",
+      "title": "Sketch2Life - Giáo viên",
+      "route": "/login",
+      "viewportWidth": 1440,
+      "documentWidth": 1440,
+      "documentHeight": 900,
+      "horizontalOverflow": false,
+      "headings": [
+        "Dạy học\nmở lối mới.",
+        "Chào mừng trở lại."
+      ],
+      "links": [
+        {
+          "text": "Sketch2Life\nWEB PORTALS",
+          "href": "http://127.0.0.1:5172/login"
+        },
+        {
+          "text": "01\nTeacher\nĐANG MỞ",
+          "href": "http://127.0.0.1:5172/login"
+        },
+        {
+          "text": "02\nSchool Manager\nMỞ CỔNG",
+          "href": "http://127.0.0.1:5173/login"
+        },
+        {
+          "text": "03\nPlatform Admin\nMỞ CỔNG",
+          "href": "http://127.0.0.1:5174/login"
+        }
+      ],
+      "labels": [
+        "Email tài khoản"
+      ],
+      "form": {
+        "busy": "false",
+        "inputTypes": [
+          "email"
+        ],
+        "labels": [
+          "Email tài khoản"
+        ],
+        "submitLabel": "Vào bản xem thử\n↗",
+        "submitBottom": 634.5625
+      },
+      "roleNavigation": {
+        "label": "Chọn cổng đăng nhập",
+        "currentRole": "01\nTeacher\nĐANG MỞ",
+        "destinationCount": 3,
+        "unavailableCount": 0,
+        "minimumTouchHeight": 55
+      },
+      "scene": {
+        "webglReady": true,
+        "canvasWidth": 520,
+        "canvasHeight": 243,
+        "canvasAccessible": true,
+        "reducedMotion": false,
+        "animationState": "running",
+        "fallbackVisibility": "hidden"
+      },
+      "text": "Sketch2Life\nWEB PORTALS\n01\nTeacher\nĐANG MỞ\n02\nSchool Manager\nMỞ CỔNG\n03\nPlatform Admin\nMỞ CỔNG\n\n01 / TEACHER PORTAL\n\nGiáo viên\nDạy học\nmở lối mới.\n\nLớp được phân công và giáo án trong tổ chức của bạn.\n\nSECURE ACCESS\n·\n01\n\nChào mừng trở lại.\n\nĐăng nhập bằng tài khoản được cấp cho giáo viên.\n\ni\nXem thử cục bộ · Không lưu dữ liệu.\n\nEmail tài khoản\nVào bản xem thử\n↗\nSKETCH2LIFE · LEARNING SPACE\nHỌC TẬP / SÁNG TẠO\nSKETCH2LIFE / WEB AUTHENTICATION\nCổng truy cập theo vai trò"
+    },
+    {
+      "portal": "teacher",
+      "viewport": "narrow",
+      "file": "teacher-narrow.png",
+      "title": "Sketch2Life - Giáo viên",
+      "route": "/login",
+      "viewportWidth": 390,
+      "documentWidth": 390,
+      "documentHeight": 982,
+      "horizontalOverflow": false,
+      "headings": [
+        "Dạy học\nmở lối mới.",
+        "Chào mừng trở lại."
+      ],
+      "links": [
+        {
+          "text": "Sketch2Life\nWEB PORTALS",
+          "href": "http://127.0.0.1:5172/login"
+        },
+        {
+          "text": "01\nTeacher\nĐANG MỞ",
+          "href": "http://127.0.0.1:5172/login"
+        },
+        {
+          "text": "02\nSchool Manager\nMỞ CỔNG",
+          "href": "http://127.0.0.1:5173/login"
+        },
+        {
+          "text": "03\nPlatform Admin\nMỞ CỔNG",
+          "href": "http://127.0.0.1:5174/login"
+        }
+      ],
+      "labels": [
+        "Email tài khoản"
+      ],
+      "form": {
+        "busy": "false",
+        "inputTypes": [
+          "email"
+        ],
+        "labels": [
+          "Email tài khoản"
+        ],
+        "submitLabel": "Vào bản xem thử\n↗",
+        "submitBottom": 730.53125
+      },
+      "roleNavigation": {
+        "label": "Chọn cổng đăng nhập",
+        "currentRole": "01\nTeacher\nĐANG MỞ",
+        "destinationCount": 3,
+        "unavailableCount": 0,
+        "minimumTouchHeight": 48
+      },
+      "scene": {
+        "webglReady": true,
+        "canvasWidth": 354,
+        "canvasHeight": 135,
+        "canvasAccessible": true,
+        "reducedMotion": false,
+        "animationState": "running",
+        "fallbackVisibility": "hidden"
+      },
+      "text": "Sketch2Life\nWEB PORTALS\n01\nTeacher\nĐANG MỞ\n02\nSchool Manager\nMỞ CỔNG\n03\nPlatform Admin\nMỞ CỔNG\n\n01 / TEACHER PORTAL\n\nGiáo viên\nDạy học\nmở lối mới.\n\nLớp được phân công và giáo án trong tổ chức của bạn.\n\nSECURE ACCESS\n·\n01\n\nChào mừng trở lại.\n\nĐăng nhập bằng tài khoản được cấp cho giáo viên.\n\ni\nXem thử cục bộ · Không lưu dữ liệu.\n\nEmail tài khoản\nVào bản xem thử\n↗\nSKETCH2LIFE · LEARNING SPACE\nHỌC TẬP / SÁNG TẠO\nSKETCH2LIFE / WEB AUTHENTICATION\nCổng truy cập theo vai trò"
+    },
+    {
+      "portal": "school-manager",
+      "viewport": "desktop",
+      "file": "school-manager-desktop.png",
+      "title": "Sketch2Life - Quản lý trường",
+      "route": "/login",
+      "viewportWidth": 1440,
+      "documentWidth": 1440,
+      "documentHeight": 900,
+      "horizontalOverflow": false,
+      "headings": [
+        "Điều phối\nđể sáng tạo.",
+        "Chào mừng trở lại."
+      ],
+      "links": [
+        {
+          "text": "Sketch2Life\nWEB PORTALS",
+          "href": "http://127.0.0.1:5173/login"
+        },
+        {
+          "text": "01\nTeacher\nMỞ CỔNG",
+          "href": "http://127.0.0.1:5172/login"
+        },
+        {
+          "text": "02\nSchool Manager\nĐANG MỞ",
+          "href": "http://127.0.0.1:5173/login"
+        },
+        {
+          "text": "03\nPlatform Admin\nMỞ CỔNG",
+          "href": "http://127.0.0.1:5174/login"
+        }
+      ],
+      "labels": [
+        "Email tài khoản"
+      ],
+      "form": {
+        "busy": "false",
+        "inputTypes": [
+          "email"
+        ],
+        "labels": [
+          "Email tài khoản"
+        ],
+        "submitLabel": "Vào bản xem thử\n↗",
+        "submitBottom": 634.5625
+      },
+      "roleNavigation": {
+        "label": "Chọn cổng đăng nhập",
+        "currentRole": "02\nSchool Manager\nĐANG MỞ",
+        "destinationCount": 3,
+        "unavailableCount": 0,
+        "minimumTouchHeight": 55
+      },
+      "scene": {
+        "webglReady": true,
+        "canvasWidth": 520,
+        "canvasHeight": 243,
+        "canvasAccessible": true,
+        "reducedMotion": false,
+        "animationState": "running",
+        "fallbackVisibility": "hidden"
+      },
+      "text": "Sketch2Life\nWEB PORTALS\n01\nTeacher\nMỞ CỔNG\n02\nSchool Manager\nĐANG MỞ\n03\nPlatform Admin\nMỞ CỔNG\n\n02 / SCHOOL MANAGER\n\nQuản lý trường\nĐiều phối\nđể sáng tạo.\n\nLớp học và yêu cầu giáo án công khai trong tổ chức.\n\nSECURE ACCESS\n·\n02\n\nChào mừng trở lại.\n\nĐăng nhập bằng tài khoản được cấp cho quản lý trường.\n\ni\nXem thử cục bộ · Không lưu dữ liệu.\n\nEmail tài khoản\nVào bản xem thử\n↗\nSKETCH2LIFE · LEARNING SPACE\nHỌC TẬP / SÁNG TẠO\nSKETCH2LIFE / WEB AUTHENTICATION\nCổng truy cập theo vai trò"
+    },
+    {
+      "portal": "school-manager",
+      "viewport": "narrow",
+      "file": "school-manager-narrow.png",
+      "title": "Sketch2Life - Quản lý trường",
+      "route": "/login",
+      "viewportWidth": 390,
+      "documentWidth": 390,
+      "documentHeight": 982,
+      "horizontalOverflow": false,
+      "headings": [
+        "Điều phối\nđể sáng tạo.",
+        "Chào mừng trở lại."
+      ],
+      "links": [
+        {
+          "text": "Sketch2Life\nWEB PORTALS",
+          "href": "http://127.0.0.1:5173/login"
+        },
+        {
+          "text": "01\nTeacher\nMỞ CỔNG",
+          "href": "http://127.0.0.1:5172/login"
+        },
+        {
+          "text": "02\nSchool Manager\nĐANG MỞ",
+          "href": "http://127.0.0.1:5173/login"
+        },
+        {
+          "text": "03\nPlatform Admin\nMỞ CỔNG",
+          "href": "http://127.0.0.1:5174/login"
+        }
+      ],
+      "labels": [
+        "Email tài khoản"
+      ],
+      "form": {
+        "busy": "false",
+        "inputTypes": [
+          "email"
+        ],
+        "labels": [
+          "Email tài khoản"
+        ],
+        "submitLabel": "Vào bản xem thử\n↗",
+        "submitBottom": 730.53125
+      },
+      "roleNavigation": {
+        "label": "Chọn cổng đăng nhập",
+        "currentRole": "02\nSchool Manager\nĐANG MỞ",
+        "destinationCount": 3,
+        "unavailableCount": 0,
+        "minimumTouchHeight": 48
+      },
+      "scene": {
+        "webglReady": true,
+        "canvasWidth": 354,
+        "canvasHeight": 135,
+        "canvasAccessible": true,
+        "reducedMotion": false,
+        "animationState": "running",
+        "fallbackVisibility": "hidden"
+      },
+      "text": "Sketch2Life\nWEB PORTALS\n01\nTeacher\nMỞ CỔNG\n02\nSchool Manager\nĐANG MỞ\n03\nPlatform Admin\nMỞ CỔNG\n\n02 / SCHOOL MANAGER\n\nQuản lý trường\nĐiều phối\nđể sáng tạo.\n\nLớp học và yêu cầu giáo án công khai trong tổ chức.\n\nSECURE ACCESS\n·\n02\n\nChào mừng trở lại.\n\nĐăng nhập bằng tài khoản được cấp cho quản lý trường.\n\ni\nXem thử cục bộ · Không lưu dữ liệu.\n\nEmail tài khoản\nVào bản xem thử\n↗\nSKETCH2LIFE · LEARNING SPACE\nHỌC TẬP / SÁNG TẠO\nSKETCH2LIFE / WEB AUTHENTICATION\nCổng truy cập theo vai trò"
+    },
+    {
+      "portal": "platform-admin",
+      "viewport": "desktop",
+      "file": "platform-admin-desktop.png",
+      "title": "Sketch2Life - Quản trị nền tảng",
+      "route": "/login",
+      "viewportWidth": 1440,
+      "documentWidth": 1440,
+      "documentHeight": 900,
+      "horizontalOverflow": false,
+      "headings": [
+        "Vận hành\nđáng tin cậy.",
+        "Chào mừng trở lại."
+      ],
+      "links": [
+        {
+          "text": "Sketch2Life\nWEB PORTALS",
+          "href": "http://127.0.0.1:5174/login"
+        },
+        {
+          "text": "01\nTeacher\nMỞ CỔNG",
+          "href": "http://127.0.0.1:5172/login"
+        },
+        {
+          "text": "02\nSchool Manager\nMỞ CỔNG",
+          "href": "http://127.0.0.1:5173/login"
+        },
+        {
+          "text": "03\nPlatform Admin\nĐANG MỞ",
+          "href": "http://127.0.0.1:5174/login"
+        }
+      ],
+      "labels": [
+        "Email tài khoản"
+      ],
+      "form": {
+        "busy": "false",
+        "inputTypes": [
+          "email"
+        ],
+        "labels": [
+          "Email tài khoản"
+        ],
+        "submitLabel": "Vào bản xem thử\n↗",
+        "submitBottom": 634.5625
+      },
+      "roleNavigation": {
+        "label": "Chọn cổng đăng nhập",
+        "currentRole": "03\nPlatform Admin\nĐANG MỞ",
+        "destinationCount": 3,
+        "unavailableCount": 0,
+        "minimumTouchHeight": 55
+      },
+      "scene": {
+        "webglReady": true,
+        "canvasWidth": 520,
+        "canvasHeight": 243,
+        "canvasAccessible": true,
+        "reducedMotion": false,
+        "animationState": "running",
+        "fallbackVisibility": "hidden"
+      },
+      "text": "Sketch2Life\nWEB PORTALS\n01\nTeacher\nMỞ CỔNG\n02\nSchool Manager\nMỞ CỔNG\n03\nPlatform Admin\nĐANG MỞ\n\n03 / PLATFORM ADMIN\n\nQuản trị nền tảng\nVận hành\nđáng tin cậy.\n\nCổng nền tảng chỉ mở sau khi backend xác nhận quyền quản trị.\n\nSECURE ACCESS\n·\n03\n\nChào mừng trở lại.\n\nĐăng nhập bằng tài khoản được cấp cho quản trị nền tảng.\n\ni\nXem thử cục bộ · Không lưu dữ liệu.\n\nEmail tài khoản\nVào bản xem thử\n↗\nSKETCH2LIFE · LEARNING SPACE\nHỌC TẬP / SÁNG TẠO\nSKETCH2LIFE / WEB AUTHENTICATION\nCổng truy cập theo vai trò"
+    },
+    {
+      "portal": "platform-admin",
+      "viewport": "narrow",
+      "file": "platform-admin-narrow.png",
+      "title": "Sketch2Life - Quản trị nền tảng",
+      "route": "/login",
+      "viewportWidth": 390,
+      "documentWidth": 390,
+      "documentHeight": 1001,
+      "horizontalOverflow": false,
+      "headings": [
+        "Vận hành\nđáng tin cậy.",
+        "Chào mừng trở lại."
+      ],
+      "links": [
+        {
+          "text": "Sketch2Life\nWEB PORTALS",
+          "href": "http://127.0.0.1:5174/login"
+        },
+        {
+          "text": "01\nTeacher\nMỞ CỔNG",
+          "href": "http://127.0.0.1:5172/login"
+        },
+        {
+          "text": "02\nSchool Manager\nMỞ CỔNG",
+          "href": "http://127.0.0.1:5173/login"
+        },
+        {
+          "text": "03\nPlatform Admin\nĐANG MỞ",
+          "href": "http://127.0.0.1:5174/login"
+        }
+      ],
+      "labels": [
+        "Email tài khoản"
+      ],
+      "form": {
+        "busy": "false",
+        "inputTypes": [
+          "email"
+        ],
+        "labels": [
+          "Email tài khoản"
+        ],
+        "submitLabel": "Vào bản xem thử\n↗",
+        "submitBottom": 749.71875
+      },
+      "roleNavigation": {
+        "label": "Chọn cổng đăng nhập",
+        "currentRole": "03\nPlatform Admin\nĐANG MỞ",
+        "destinationCount": 3,
+        "unavailableCount": 0,
+        "minimumTouchHeight": 48
+      },
+      "scene": {
+        "webglReady": true,
+        "canvasWidth": 354,
+        "canvasHeight": 135,
+        "canvasAccessible": true,
+        "reducedMotion": false,
+        "animationState": "running",
+        "fallbackVisibility": "hidden"
+      },
+      "text": "Sketch2Life\nWEB PORTALS\n01\nTeacher\nMỞ CỔNG\n02\nSchool Manager\nMỞ CỔNG\n03\nPlatform Admin\nĐANG MỞ\n\n03 / PLATFORM ADMIN\n\nQuản trị nền tảng\nVận hành\nđáng tin cậy.\n\nCổng nền tảng chỉ mở sau khi backend xác nhận quyền quản trị.\n\nSECURE ACCESS\n·\n03\n\nChào mừng trở lại.\n\nĐăng nhập bằng tài khoản được cấp cho quản trị nền tảng.\n\ni\nXem thử cục bộ · Không lưu dữ liệu.\n\nEmail tài khoản\nVào bản xem thử\n↗\nSKETCH2LIFE · LEARNING SPACE\nHỌC TẬP / SÁNG TẠO\nSKETCH2LIFE / WEB AUTHENTICATION\nCổng truy cập theo vai trò"
+    }
+  ]
+}

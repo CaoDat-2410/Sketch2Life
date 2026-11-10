@@ -1,0 +1,80 @@
+{
+  "route": "/m01-publication-review",
+  "localPreview": true,
+  "initialTabs": {
+    "tabs": [
+      {
+        "id": ":r7:-content-tab",
+        "controls": ":r7:-content-panel",
+        "selected": "true",
+        "tabIndex": 0
+      },
+      {
+        "id": ":r7:-diff-tab",
+        "controls": ":r7:-diff-panel",
+        "selected": "false",
+        "tabIndex": -1
+      }
+    ],
+    "panels": [
+      {
+        "id": ":r7:-diff-panel",
+        "labelledby": ":r7:-diff-tab",
+        "hidden": true
+      },
+      {
+        "id": ":r7:-content-panel",
+        "labelledby": ":r7:-content-tab",
+        "hidden": false
+      }
+    ],
+    "activeId": ":r7:-content-tab"
+  },
+  "afterArrowRight": {
+    "activeId": ":r7:-diff-tab",
+    "selected": "true",
+    "tabIndex": 0
+  },
+  "afterHome": {
+    "activeId": ":r7:-content-tab",
+    "selected": "true"
+  },
+  "afterEnd": {
+    "activeId": ":r7:-diff-tab",
+    "selected": "true"
+  },
+  "afterArrowLeft": {
+    "activeId": ":r7:-content-tab",
+    "selected": "true"
+  },
+  "afterRequestChanges": {
+    "counts": [
+      "Chờ duyệt: 2",
+      "Đã duyệt: 0",
+      "Yêu cầu chỉnh sửa: 1",
+      "2",
+      "Chờ",
+      "Chờ",
+      "Chờ duyệt",
+      "3 cảnh",
+      "0/4"
+    ],
+    "bodyText": "Sketch2Life\nQuản lý trường\nTổng quan\nGiáo viên & nhóm\nLớp & suất học\nLượt video\nDuyệt công khai\nCài đặt\nHT\nHiệu trưởng Minh\nDữ liệu xem thử\nĐăng xuất\nDuyệt công khai\nTrợ giúp\nHộp thư chưa khả dụng\nTrường Mầm non Ánh Dương\nBản xem thử: yêu cầu chỉnh sửa cho Cô Thảo chỉ đổi trạng thái cục bộ; chưa gửi tới API.\nXem thử · Dữ liệu minh họa, không lưu\nDuyệt giáo án công khai\nKiểm tra 4 tiêu chí sư phạm trước khi phát hành cho toàn trường\nChờ duyệt: 2\nĐã duyệt: 0\nYêu cầu chỉnh sửa: 1\nVề tổng quan trườn",
+    "apiPreviewNotice": "Hộp thư chưa khả dụng"
+  },
+  "narrowLogoutTarget": {
+    "text": "Đăng xuất",
+    "ariaLabel": "Đăng xuất",
+    "width": 117,
+    "height": 54,
+    "insideViewport": true
+  },
+  "afterKeyboardLogout": {
+    "route": "/login",
+    "role": null,
+    "authenticated": null,
+    "loginHeading": [
+      "Điều phối\nđể sáng tạo."
+    ]
+  }
+}
