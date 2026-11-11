@@ -493,3 +493,11 @@ Plan Rev51 SHA-256 at approval: `B20103A217D7A9623E02279CE0BD82D5BC61141518D820F
 - API contract: `artifacts/PARENT_API_CONTRACT_REV67_20261110.md`; implementation adds Parent profile/data-authorization and StoryRun APIs alongside the existing AI routes.
 - Database source: `backend/alembic/versions/20261110_parent_profile_story_context.py`; it joins the twelve existing migration heads and adds Parent profile/revision/authorization storage plus StoryRun context/input lineage fields.
 - Evidence: `evidence/EV-063-76_PARENT_ANDROID_PROFILE_CONSENT_STORY_FLOW_20261110.md`. Verification was static only; no PostgreSQL upgrade, tests, Docker, Firebase or Modal call was performed for this slice.
+
+## Rev78/78A/78B Parent catalog-first activity implementation — 2026-11-11
+
+- Product baseline: FEAT-063 SRS v2.7-draft Rev60, unsigned. D-172 records the owner's later catalog-first direction; no SRS text was changed and the SRS open item remains.
+- Implementation: Parent catalog eligibility/selection, minimized Modal context, exact-version lesson pin snapshot persistence, fallback quality gate and Expo Parent activity/story UI. The new additive migration is source-only and has not been applied to PostgreSQL.
+- Plans/approval: plan/PLAN_REV78_PARENT_CATALOG_FIRST_ACTIVITY_SUGGESTIONS_20261111.md, plan/PLAN_REV78A_PARENT_ACTIVITY_GATE_REFINEMENT_20261111.md and publication/migration addendum Rev78B; approval is recorded in approvals/TASK_APPROVAL.md.
+- Evidence: evidence/EV-063-87_PARENT_FULL_API_UI_E2E_20261111/API_PARENT_E2E_REPORT.md with selected synthetic workflow screenshots and safe JSON runtime records.
+- Verification boundary: 28 focused tests passed before the final publication checks; final publication checks are recorded in status/STATUS.md. No video; the last live fallback inference had no output and no gate verdict.

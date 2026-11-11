@@ -6,7 +6,9 @@ from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+from sketch2life.contracts.schemas.lesson_library import LessonActivityInputV1
 
 
 class ParentStoryRunCreateRequestV1(BaseModel):
@@ -15,9 +17,17 @@ class ParentStoryRunCreateRequestV1(BaseModel):
     parent_profile_id: UUID
     expected_profile_revision_id: UUID
     consent_policy_version: str = Field(min_length=1, max_length=80)
-    topic: str = Field(min_length=1, max_length=120)
+    topic: str = Field(default="", max_length=120)
     adult_confirmed_idea: str = Field(default="", max_length=500)
     context_confirmed: Literal[True]
+    lesson_id: str | None = Field(default=None, min_length=1, max_length=256)
+    lesson_version_id: str | None = Field(default=None, min_length=1, max_length=256)
+
+    @model_validator(mode="after")
+    def lesson_pin_is_complete(self) -> ParentStoryRunCreateRequestV1:
+        if (self.lesson_id is None) != (self.lesson_version_id is None):
+            raise ValueError("lesson_id and lesson_version_id must be provided together")
+        return self
 
 
 class ParentRunContextSnapshotV1(BaseModel):
@@ -32,6 +42,25 @@ class ParentRunContextSnapshotV1(BaseModel):
     topic: str = Field(max_length=120)
     adult_confirmed_idea: str = Field(max_length=500)
     consent_policy_version: str = Field(min_length=1, max_length=80)
+
+
+class ParentLessonPinSnapshotV1(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True, strict=True)
+
+    schema_version: Literal["sketch2life.parent-lesson-pin.v1"]
+    lesson_id: str = Field(min_length=1, max_length=256)
+    version_id: str = Field(min_length=1, max_length=256)
+    version_no: int = Field(ge=1)
+    content_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    target_age_band_ref: str | None = Field(default=None, min_length=1, max_length=256)
+    target_age_band_version: int | None = Field(default=None, ge=1)
+    title: str = Field(min_length=1, max_length=160)
+    topic: str = Field(min_length=1, max_length=120)
+    drawing_subject: str = Field(min_length=1, max_length=160)
+    subject_learning_notes: str = Field(min_length=1, max_length=5000)
+    script_direction: str | None = Field(default=None, max_length=2000)
+    script_following_allowed: bool
+    activities: list[LessonActivityInputV1] = Field(min_length=1, max_length=24)
 
 
 class ParentDrawingCandidateV1(BaseModel):
@@ -86,6 +115,7 @@ class ParentStoryRunResponseV1(BaseModel):
     context_revision: int
     context_snapshot: ParentRunContextSnapshotV1
     context_snapshot_sha256: str
+    lesson_pin_snapshot: ParentLessonPinSnapshotV1 | None = None
     current_input_revision: int | None
     understanding_revision: int | None
     subject_label: str | None

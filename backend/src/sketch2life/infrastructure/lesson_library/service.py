@@ -1889,6 +1889,20 @@ class LessonLibraryService:
             )
         return {"contract": "ParentLessonPageV1", "items": items, "next_cursor": next_cursor}
 
+    def list_parent_activity_catalog(
+        self, *, parent_principal_ref: str, limit: int = 500,
+    ) -> list[dict[str, Any]]:
+        """Return Parent-readable published/shared lesson versions for internal AI selection."""
+
+        if not 1 <= limit <= 500:
+            fail(422, "INVALID_REQUEST", "catalog limit must be between 1 and 500")
+        rows = self._parent_access_rows(
+            parent_principal_ref=parent_principal_ref,
+            capability="VIEW",
+            limit=limit,
+        )
+        return [self._parent_detail(row) for row in rows[:limit]]
+
     def get_parent_lesson(
         self, *, parent_principal_ref: str, lesson_id: str,
     ) -> dict[str, Any]:
@@ -2026,13 +2040,15 @@ class LessonLibraryService:
         return self._full_content(version)
 
     def _parent_detail(self, row: dict[str, Any], *, export: bool = False) -> dict[str, Any]:
-        content = self._full_content_from_access(row)
+        version = self._load_version(row["version_id"])
+        content = self._full_content(version)
         activity_items = content.pop("activities")
         return {
             "contract": "LessonExportV1" if export else "ParentLessonDetailV1",
             "lesson_id": row["lesson_id"],
             "version_id": row["version_id"],
             "version_no": row["version_no"],
+            "content_sha256": version["structured_content_hash"],
             **content,
             "activities": activity_items,
             "access_source": row["access_source"],

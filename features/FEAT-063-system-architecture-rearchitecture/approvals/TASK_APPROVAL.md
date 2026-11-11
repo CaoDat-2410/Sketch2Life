@@ -1722,3 +1722,11 @@
 - **Plan SHA-256:** `0991C06B3052A0E78634AA6CB00FF3015EC7C9A338E8A2A529B7F0696438F0B5`.
 - **Manifest additions:** `contracts/schemas/parent_story_runs.py` and a `GET /api/parent/v1/story-runs/active/current` contract so the mobile UI can resume an already persisted active run after reopening.
 - **Boundary:** The resumed route returns only the authenticated Parent's own StoryRun; it introduces no cross-account lookup, additional AI workload, video call or remote publication.
+
+## Plan Rev78 and Rev78A — Parent catalog-first suggestions and quality gate
+
+- Status: APPROVED by the project owner through direct instructions on 2026-11-11.
+- Rev78 plan: plan/PLAN_REV78_PARENT_CATALOG_FIRST_ACTIVITY_SUGGESTIONS_20261111.md; SHA-256 127E471CD737E0E1C2A4FD33FF49B2A7790A814C1F8FD7B85A1BFEBC2C27E408.
+- Rev78A plan: plan/PLAN_REV78A_PARENT_ACTIVITY_GATE_REFINEMENT_20261111.md; SHA-256 03F777103B23A56FDEC398CA940094A62DF26EDE28B35DA56BE4FBA96C077183.
+- Rev78 authorizes catalog-first Parent activity selection from Parent-accessible published/shared lesson versions, minimized context to Qwen3.5, and exactly three gated fallback drafts only when no catalog activity is suitable. Rev78A authorizes the limited prose-format relaxation while preserving hard safety/business gates and one synthetic inference attempt.
+- Rev78B plan SHA-256: B4FB3B7C9B202B8FE9A95C09751320409FA18B6051A86A61ECACE4F11A288ED0. The owner's direct request on 2026-11-11 authorizes the exact implementation manifest, one feature commit and push, merge into dev, and push dev. Rev78B supersedes only the earlier no-migration assumption and no-publication limits. The canonical Rev60 SRS remains unsigned and unchanged; its no-preset activity question remains open for SRS reconciliation.

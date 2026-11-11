@@ -1,0 +1,64 @@
+import React, { useState } from 'react';
+import { Text, View } from 'react-native';
+import type { ParentLessonDelivery } from '../../domain/types';
+import { Card, Field, Notice, PrimaryButton, ScreenFrame, SectionTitle, palette } from '../components/ui';
+
+type Props = {
+  deliveries: ParentLessonDelivery[];
+  loading: boolean;
+  error: string;
+  hasMore: boolean;
+  onLoad: () => void;
+  onLoadMore: () => void;
+  onSubmitFeedback: (occurrenceId: string, text: string) => Promise<void>;
+  onBack: () => void;
+};
+
+export function LessonHistoryScreen(props: Props): React.JSX.Element {
+  return (
+    <ScreenFrame title="Bài đã học" subtitle="Các bài giáo viên đã dạy trong 30 ngày gần đây." onBack={props.onBack}>
+      {props.error ? <Notice text={props.error} tone="error" /> : null}
+      {!props.deliveries.length && !props.loading ? <Card>
+        <SectionTitle>Chưa có bài học để xem</SectionTitle>
+        <Text style={{ color: palette.muted, lineHeight: 20 }}>Bài sẽ hiện khi giáo viên đã chia sẻ hồ sơ và ghi nhận buổi dạy.</Text>
+        <PrimaryButton label="Tải lại" onPress={props.onLoad} />
+      </Card> : null}
+      {props.deliveries.map((delivery) => <DeliveryCard key={delivery.occurrence_id} delivery={delivery} loading={props.loading} onSubmit={props.onSubmitFeedback} />)}
+      {props.loading ? <Notice text="Đang tải bài đã học…" /> : null}
+      {props.hasMore ? <PrimaryButton label="Xem thêm" busy={props.loading} onPress={props.onLoadMore} /> : null}
+    </ScreenFrame>
+  );
+}
+
+function DeliveryCard({ delivery, loading, onSubmit }: {
+  delivery: ParentLessonDelivery;
+  loading: boolean;
+  onSubmit: (occurrenceId: string, text: string) => Promise<void>;
+}): React.JSX.Element {
+  const [feedback, setFeedback] = useState(delivery.feedback?.feedback_text ?? '');
+  const [error, setError] = useState('');
+  async function send(): Promise<void> {
+    setError('');
+    try {
+      await onSubmit(delivery.occurrence_id, feedback);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Không gửi được góp ý.');
+    }
+  }
+
+  return <Card>
+    <SectionTitle>{delivery.title}</SectionTitle>
+    <Text style={{ color: palette.muted, fontSize: 13 }}>{delivery.topic} · {new Date(delivery.delivered_at).toLocaleDateString('vi-VN')}</Text>
+    {delivery.feedback ? <View style={{ gap: 8 }}>
+      <Text style={{ color: palette.ink, fontWeight: '700' }}>Góp ý của bạn</Text>
+      <Text style={{ color: palette.muted, lineHeight: 20 }}>{delivery.feedback.feedback_text}</Text>
+    </View> : null}
+    {delivery.replies.map((reply) => <View key={reply.reply_id} style={{ borderLeftWidth: 3, borderLeftColor: '#A8C3FF', paddingLeft: 10, gap: 4 }}>
+      <Text style={{ color: palette.ink, fontWeight: '700' }}>Phản hồi của giáo viên</Text>
+      <Text style={{ color: palette.muted, lineHeight: 20 }}>{reply.reply_text}</Text>
+    </View>)}
+    <Field label={delivery.feedback ? 'Cập nhật góp ý' : 'Góp ý về bài học'} value={feedback} onChangeText={setFeedback} multiline maxLength={1200} placeholder="Chia sẻ nhận xét với giáo viên" />
+    {error ? <Notice text={error} tone="error" /> : null}
+    <PrimaryButton label={delivery.feedback ? 'Cập nhật góp ý' : 'Gửi góp ý'} busy={loading} disabled={!feedback.trim()} onPress={() => void send()} />
+  </Card>;
+}

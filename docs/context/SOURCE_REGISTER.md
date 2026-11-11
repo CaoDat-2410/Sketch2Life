@@ -699,3 +699,7 @@ Canonical working source remains the FEAT-063 v2.7-draft SRS and matching Data T
 - Canonical working SRS and Data Table Register contain Rev57 updates, remain v2.7-draft and unsigned.
 - Companion artifacts: Diagram Input Catalog, Decision Register, Diagram Trace Matrix, Physical Data Dictionary draft, State Transition Matrix, API/Event Contracts, Screen Navigation Map, Class/Package Contracts and Remediation Result, all Rev57 dated.
 - EV-063-62 records source-only inspection and verification limits. No runtime/database/migration/product test or deployment claim.
+
+## FEAT-063 Rev78 — Parent catalog-first activity suggestions — 2026-11-11
+
+Owner direction: Parent activity suggestions use Parent-accessible published/shared lesson versions as the candidate catalog; Qwen selects using minimized profile, confirmed drawing, topic and narration context; only when no candidate fits may it produce three temporary quality-gated drafts. Exact lesson version/hash and content are snapshotted on the StoryRun input. Evidence and publication status are in FEAT-063 EV-063-87 and plan Rev78B. The canonical v2.7-draft Rev60 SRS remains unsigned and unchanged; its no-preset activity item remains open for reconciliation.

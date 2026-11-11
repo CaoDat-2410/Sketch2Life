@@ -36,6 +36,7 @@ class ParentStoryRunService:
         policy_version: str,
         topic: str,
         adult_confirmed_idea: str,
+        lesson_pin_snapshot: dict[str, object] | None = None,
     ) -> ParentStoryRunRecord:
         if not accepted_policy_version.strip():
             raise ParentStoryRunServiceError(422, "PARENT_CONSENT_VERSION_REQUIRED")
@@ -43,7 +44,9 @@ class ParentStoryRunService:
             raise ParentStoryRunServiceError(409, "PARENT_CONSENT_POLICY_CHANGED")
         normalized_topic = topic.strip()
         normalized_idea = adult_confirmed_idea.strip()
-        if not _SAFE_TOPIC.search(normalized_topic) or len(normalized_topic) > 120:
+        if (normalized_topic and not _SAFE_TOPIC.search(normalized_topic)) or len(
+            normalized_topic
+        ) > 120:
             raise ParentStoryRunServiceError(422, "PARENT_STORY_TOPIC_INVALID")
         if len(normalized_idea) > 500:
             raise ParentStoryRunServiceError(422, "PARENT_STORY_IDEA_TOO_LONG")
@@ -56,6 +59,7 @@ class ParentStoryRunService:
             run_id=str(uuid.uuid4()),
             topic=normalized_topic,
             adult_confirmed_idea=normalized_idea,
+            lesson_pin_snapshot=lesson_pin_snapshot,
         )
 
     def get_run(

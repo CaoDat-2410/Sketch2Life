@@ -1,4 +1,13 @@
 # Status
+
+## Rev78/78A/78B Parent catalog-first activity — publication in progress (2026-11-11)
+
+- Implementation status: source changes and exact lesson-pin migration are present on codex/feat063-parent-catalog-20261111. Migration is additive and has not been applied to a database.
+- Local verification: backend focused tests 28/28; Parent UI tests 26/26; Expo TypeScript check passed after installing the complete workspace dependency graph; Python compilation and Alembic head check passed. Ruff passed on the new catalog service/port/tests; a broader run on modified legacy modules reports lint diagnostics and is not clean. Repository security validator passed: 7,225 publishable files scanned; no absolute machine paths detected. The optional microphone/transcript UI path is outside Rev78 and its audio API is not present in this branch; it was not validated.
+- Live AI: the one approved post-refinement synthetic Modal inference was cancelled after 976.326 seconds before output; quality-gate verdict is unknown. Catalog-match path is not live-verified because the dev catalog had zero eligible published/shared activities. Video was not called.
+- Publication status: pending feature commit/push, merge into dev and push dev. The local dev baseline is 21 commits ahead of origin/dev; the publication includes those existing commits without history rewriting.
+- Canonical SRS is v2.7-draft Rev60, unsigned and unchanged. Owner catalog-first direction is D-172; SRS reconciliation remains open.
+
 ## Rev56 ten-group diagram-readiness alignment — 2026-11-08
 
 - Lifecycle: COMPLETE for the approved documentation-only synchronization on the isolated diagram-readiness branch.

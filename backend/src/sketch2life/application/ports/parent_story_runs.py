@@ -37,6 +37,7 @@ class ParentStoryRunRecord:
     error_code: str | None
     created_at: datetime
     updated_at: datetime
+    lesson_pin_snapshot: dict[str, Any] | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -83,6 +84,7 @@ class ParentStoryRunRepositoryPort(Protocol):
         run_id: str,
         topic: str,
         adult_confirmed_idea: str,
+        lesson_pin_snapshot: dict[str, Any] | None = None,
     ) -> ParentStoryRunRecord: ...
 
     def get_run(

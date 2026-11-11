@@ -45,6 +45,7 @@ class SqlParentStoryRunRepository:
         run_id: str,
         topic: str,
         adult_confirmed_idea: str,
+        lesson_pin_snapshot: dict[str, Any] | None = None,
     ) -> ParentStoryRunRecord:
         self._require_policy(policy_version)
         profile = self._session.scalar(
@@ -91,6 +92,8 @@ class SqlParentStoryRunRepository:
             "consent_policy_version": policy_version,
         }
         context_hash = _sha256_json(context)
+        lesson_pin = dict(lesson_pin_snapshot) if lesson_pin_snapshot is not None else None
+        lesson_pin_hash = _sha256_json(lesson_pin) if lesson_pin is not None else None
         run_input_id = str(uuid4())
         try:
             self._session.execute(
@@ -122,6 +125,8 @@ class SqlParentStoryRunRepository:
                     context_revision=1,
                     context_snapshot=context,
                     context_snapshot_sha256=context_hash,
+                    lesson_pin_snapshot=lesson_pin,
+                    lesson_pin_snapshot_sha256=lesson_pin_hash,
                     context_confirmed_by=owner_subject,
                     context_confirmed_at=now,
                     created_at=now,
@@ -194,6 +199,11 @@ class SqlParentStoryRunRepository:
             context_revision=int(input_row["context_revision"]),
             context_snapshot=dict(input_row["context_snapshot"]),
             context_snapshot_sha256=str(input_row["context_snapshot_sha256"]),
+            lesson_pin_snapshot=(
+                dict(input_row["lesson_pin_snapshot"])
+                if input_row["lesson_pin_snapshot"] is not None
+                else None
+            ),
             current_input_revision=(
                 int(run["current_input_revision"])
                 if run["current_input_revision"] is not None
@@ -339,6 +349,12 @@ class SqlParentStoryRunRepository:
                     context_revision=previous["context_revision"],
                     context_snapshot=previous["context_snapshot"],
                     context_snapshot_sha256=previous["context_snapshot_sha256"],
+                    lesson_pin_snapshot=(
+                        None
+                        if previous["lesson_pin_snapshot"] is None
+                        else dict(previous["lesson_pin_snapshot"])
+                    ),
+                    lesson_pin_snapshot_sha256=previous["lesson_pin_snapshot_sha256"],
                     context_confirmed_by=previous["context_confirmed_by"],
                     context_confirmed_at=previous["context_confirmed_at"],
                     created_at=now,

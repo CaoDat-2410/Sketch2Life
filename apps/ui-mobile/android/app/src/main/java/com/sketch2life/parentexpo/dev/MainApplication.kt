@@ -1,4 +1,4 @@
-package com.sketch2life.mobile
+package com.sketch2life.parentexpo.dev
 
 import android.app.Application
 import android.content.res.Configuration

@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from sketch2life.application.ports.identity import VerifiedPrincipal
@@ -17,6 +17,7 @@ from sketch2life.application.services.parent_story_runs import (
 )
 from sketch2life.contracts.schemas.parent_story_runs import (
     ParentActiveStoryRunEnvelopeV1,
+    ParentLessonPinSnapshotV1,
     ParentStoryRevisionConfirmationRequestV1,
     ParentStoryRunCreateRequestV1,
     ParentStoryRunEnvelopeV1,
@@ -25,11 +26,13 @@ from sketch2life.contracts.schemas.parent_story_runs import (
     ParentSubjectConfirmationResponseV1,
 )
 from sketch2life.infrastructure.config.settings import get_settings
+from sketch2life.infrastructure.lesson_library.service import LessonLibraryError
 from sketch2life.infrastructure.persistence.be1_models import AdultIdentityModel
 from sketch2life.infrastructure.persistence.parent_story_repository import (
     SqlParentStoryRunRepository,
 )
 from sketch2life.interfaces.http.be1_runtime import get_db, get_verified_adult
+from sketch2life.interfaces.http.routers.lesson_library import get_lesson_library_service
 
 router = APIRouter(prefix="/api/parent/v1/story-runs", tags=["Parent StoryRuns v1"])
 
@@ -69,6 +72,7 @@ def _response(record) -> ParentStoryRunResponseV1:
         context_revision=record.context_revision,
         context_snapshot=record.context_snapshot,
         context_snapshot_sha256=record.context_snapshot_sha256,
+        lesson_pin_snapshot=record.lesson_pin_snapshot,
         current_input_revision=record.current_input_revision,
         understanding_revision=record.understanding_revision,
         subject_label=record.subject_label,
@@ -94,11 +98,45 @@ def _response(record) -> ParentStoryRunResponseV1:
 )
 def create_parent_story_run(
     payload: ParentStoryRunCreateRequestV1,
+    request: Request,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
 ) -> ParentStoryRunEnvelopeV1:
     identity = _require_parent(db, principal)
     service, policy_version = _service(db)
+    lesson_pin_snapshot = None
+    if payload.lesson_id is not None:
+        lesson_service = get_lesson_library_service(request, db)
+        try:
+            lesson = lesson_service.get_parent_lesson(
+                parent_principal_ref=principal.subject,
+                lesson_id=payload.lesson_id,
+            )
+        except LessonLibraryError as exc:
+            raise HTTPException(
+                status_code=exc.status_code,
+                detail={"code": exc.code, "message": exc.message},
+            ) from None
+        if lesson.get("version_id") != payload.lesson_version_id:
+            raise HTTPException(status_code=409, detail={"code": "PARENT_LESSON_VERSION_STALE"})
+        lesson_pin_snapshot = ParentLessonPinSnapshotV1.model_validate(
+            {
+                "schema_version": "sketch2life.parent-lesson-pin.v1",
+                "lesson_id": lesson["lesson_id"],
+                "version_id": lesson["version_id"],
+                "version_no": lesson["version_no"],
+                "content_sha256": lesson["content_sha256"],
+                "target_age_band_ref": lesson["target_age_band_ref"],
+                "target_age_band_version": lesson["target_age_band_version"],
+                "title": lesson["title"],
+                "topic": lesson["topic"],
+                "drawing_subject": lesson["drawing_subject"],
+                "subject_learning_notes": lesson["subject_learning_notes"],
+                "script_direction": lesson["script_direction"],
+                "script_following_allowed": lesson["script_following_allowed"],
+                "activities": lesson["activities"],
+            }
+        ).model_dump(mode="json")
     record = _invoke(
         service.create_run,
         owner_subject=principal.subject,
@@ -109,6 +147,7 @@ def create_parent_story_run(
         policy_version=policy_version,
         topic=payload.topic,
         adult_confirmed_idea=payload.adult_confirmed_idea,
+        lesson_pin_snapshot=lesson_pin_snapshot,
     )
     return ParentStoryRunEnvelopeV1(request_id=uuid4(), story_run=_response(record))
 

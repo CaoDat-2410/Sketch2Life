@@ -27,6 +27,16 @@ MODEL_ID = "Qwen/Qwen3.5-9B"
 MODEL_REVISION = "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
 STORY_MODEL_ID = "Qwen/Qwen3.5-9B"
 STORY_MODEL_REVISION = "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
+FLUX_MODEL_PROVENANCE = {
+    "image_generator": {
+        "id": "black-forest-labs/flux-3-image-klein",
+        "revision": "09561231f44e41381c461caf53d5452005a60ac9",
+    },
+    "prompt_upsampler": {
+        "id": "black-forest-labs/flux-3-image-klein-pup",
+        "revision": "a57899549f8f6f64c6c4d88db30827d496ff76d0",
+    },
+}
 MAX_INPUT_BYTES = 48 * 1024 * 1024
 MAX_MANIFEST_BYTES = 64 * 1024
 MAX_IMAGE_PIXELS = 2_000_000
@@ -957,6 +967,11 @@ _JSON_WORKERS: dict[str, tuple[str, str, int]] = {
     "lesson.plan.suggest": (
         "sketch2life-srs23-language-audio-dev",
         "suggest-lesson-plan",
+        1_800,
+    ),
+    "parent.activity.suggest": (
+        "sketch2life-srs23-language-audio-dev",
+        "suggest-parent-activities",
         1_800,
     ),
     "teacher.sketch-deck.generate": (

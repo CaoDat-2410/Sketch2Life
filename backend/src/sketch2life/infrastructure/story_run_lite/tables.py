@@ -308,6 +308,8 @@ run_inputs = Table(
     Column("context_revision", Integer),
     Column("context_snapshot", JSONB),
     Column("context_snapshot_sha256", String(64)),
+    Column("lesson_pin_snapshot", JSONB),
+    Column("lesson_pin_snapshot_sha256", String(64)),
     Column("context_confirmed_by", String(256)),
     Column("context_confirmed_at", DateTime(timezone=True)),
     Column("created_at", DateTime(timezone=True), nullable=False, server_default=text("now()")),
@@ -359,6 +361,13 @@ run_inputs = Table(
         "AND context_confirmed_by IS NOT NULL AND context_confirmed_at IS NOT NULL "
         "AND octet_length(context_snapshot::text) <= 8192)",
         name="ck_story_run_input_parent_context",
+    ),
+    CheckConstraint(
+        "(lesson_pin_snapshot IS NULL AND lesson_pin_snapshot_sha256 IS NULL) OR "
+        "(lesson_pin_snapshot IS NOT NULL AND lesson_pin_snapshot_sha256 IS NOT NULL "
+        "AND length(lesson_pin_snapshot_sha256) = 64 "
+        "AND octet_length(lesson_pin_snapshot::text) <= 1048576)",
+        name="ck_story_run_input_lesson_pin_snapshot",
     ),
 )
 
