@@ -1,0 +1,76 @@
+"""Application services for the synthetic Parent profile foundation."""
+
+from __future__ import annotations
+
+from uuid import UUID
+
+from sketch2life.application.ports.identity import VerifiedPrincipal
+from sketch2life.application.ports.parent_profiles import (
+    ParentCommandResult,
+    ParentProfileRepository,
+)
+from sketch2life.domain.parent_profiles import (
+    ParentProfileError,
+    ProfileSnapshot,
+    validate_snapshot,
+)
+
+
+class ParentProfileService:
+    def __init__(self, repository: ParentProfileRepository, *, synthetic_enabled: bool) -> None:
+        self._repository = repository
+        self._synthetic_enabled = synthetic_enabled
+
+    def create_profile(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        snapshot: ProfileSnapshot,
+        idempotency_key: str,
+        request_id: str,
+    ) -> ParentCommandResult:
+        self._validate_key(idempotency_key)
+        validate_snapshot(snapshot)
+        if not self._synthetic_enabled:
+            raise ParentProfileError(
+                409,
+                "SYNTHETIC_PROFILE_CREATION_UNAVAILABLE",
+                "Synthetic Parent profile creation is unavailable",
+            )
+        return self._repository.create_profile(
+            principal=principal,
+            snapshot=snapshot,
+            idempotency_key=idempotency_key,
+            request_id=request_id,
+        )
+
+    def get_profile(
+        self, *, principal: VerifiedPrincipal, profile_id: UUID
+    ) -> dict[str, object]:
+        return self._repository.get_profile(principal=principal, profile_id=profile_id)
+
+    def patch_profile(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        profile_id: UUID,
+        expected_revision: int,
+        snapshot: ProfileSnapshot,
+        idempotency_key: str,
+        request_id: str,
+    ) -> ParentCommandResult:
+        self._validate_key(idempotency_key)
+        validate_snapshot(snapshot)
+        return self._repository.patch_profile(
+            principal=principal,
+            profile_id=profile_id,
+            expected_revision=expected_revision,
+            snapshot=snapshot,
+            idempotency_key=idempotency_key,
+            request_id=request_id,
+        )
+
+    @staticmethod
+    def _validate_key(value: str) -> None:
+        if not 1 <= len(value) <= 128 or any(ord(char) < 33 or ord(char) > 126 for char in value):
+            raise ParentProfileError(400, "INVALID_REQUEST", "The idempotency key is invalid")

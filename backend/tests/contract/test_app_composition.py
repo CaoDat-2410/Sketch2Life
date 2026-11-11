@@ -113,7 +113,7 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
     }
 
     # Preserve the full pre-integration route surface while allowing only the
-    # reviewed FEAT-060 classroom and FEAT-063 Lesson Library contracts.
+    # reviewed classroom, Parent profile, and Lesson Library contracts.
     assert expected.items() <= actual.items()
     assert set(actual) - set(expected) == {
         "/api/be1/v1/classes/{class_id}/assignments",
@@ -130,6 +130,8 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
         "/api/be1/v1/assistance-requests/{assistance_id}/cancel",
         "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/assistance-requests/{assistance_id}/status",
         "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/teacher/assistance-requests/pending",
+        "/v1/parent/profiles",
+        "/v1/parent/profiles/{profile_id}",
     } | set(lesson_library_methods)
     assert {path: actual[path] for path in lesson_library_methods} == lesson_library_methods
 
@@ -151,6 +153,8 @@ def test_classroom_profile_excludes_process_local_demo_routes() -> None:
 
     assert "/health" in paths
     assert "/api/be1/v1/health" in paths
+    assert "/v1/parent/profiles" in paths
+    assert "/v1/parent/profiles/{profile_id}" in paths
     assert "/v1/sessions" not in paths
     assert "/v1/profile/preferences/classify" not in paths
     assert application.state.session_service is None
@@ -181,6 +185,8 @@ def test_demo_profile_excludes_durable_classroom_routes() -> None:
 
     assert "/v1/sessions" in paths
     assert "/api/be1/v1/health" not in paths
+    assert "/v1/parent/profiles" not in paths
+    assert "/v1/parent/profiles/{profile_id}" not in paths
     assert application.state.session_service is not None
     assert application.state.live_image_demo_service is not None
 

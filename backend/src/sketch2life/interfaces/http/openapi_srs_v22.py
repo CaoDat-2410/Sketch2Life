@@ -7,6 +7,9 @@ from typing import Any
 
 SRS_V22_INCLUDED_OPERATIONS: frozenset[tuple[str, str]] = frozenset(
     {
+        ("post", "/v1/parent/profiles"),
+        ("get", "/v1/parent/profiles/{profile_id}"),
+        ("patch", "/v1/parent/profiles/{profile_id}"),
         ("get", "/api/be1/v1/organizations/{organization_id}"),
         ("get", "/api/be1/v1/organizations/{organization_id}/me"),
         ("post", "/api/be1/v1/classes/{class_id}/assignments"),
@@ -88,6 +91,13 @@ SRS_V22_OPERATION_TAGS: dict[tuple[str, str], str] = {
 }
 SRS_V22_OPERATION_TAGS.update(
     {
+        key: "Parent Profiles"
+        for key in SRS_V22_INCLUDED_OPERATIONS
+        if key[1].startswith("/v1/parent/profiles")
+    }
+)
+SRS_V22_OPERATION_TAGS.update(
+    {
         key: "Teacher — Lesson Preparation"
         for key in SRS_V22_INCLUDED_OPERATIONS
         if key[1].startswith("/api/lesson-library/v1/organizations/")
@@ -144,6 +154,10 @@ SRS_V22_TAGS: list[dict[str, str]] = [
         "name": "Lesson Document Upload",
         "description": "Upload source documents and track upload sessions.",
     },
+    {
+        "name": "Parent Profiles",
+        "description": "Create, read, and revise synthetic Parent-owned profiles.",
+    },
 ]
 
 SRS_V22_OPENAPI_DESCRIPTION = "\n\n".join(
@@ -151,7 +165,7 @@ SRS_V22_OPENAPI_DESCRIPTION = "\n\n".join(
         "Implemented FE APIs aligned to SRS v2.2: organization, class, profile, consent, and "
         "Teacher lesson preparation.",
         "Bearer authentication and role/resource access are checked per operation.",
-        "Not available yet: Parent profile/story/activity; Teacher occurrence, Sketch Deck, "
+        "Not available yet: Parent story/activity; Teacher occurrence, Sketch Deck, "
         "sample video; job/playback; quota/payment; notifications.",
         "SRS §9.6 lists proposed routes. This page documents current backend paths only.",
     )

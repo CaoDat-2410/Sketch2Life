@@ -7,8 +7,9 @@ from sketch2life.interfaces.http.routers.child_preferences import (
     router as child_preferences_router,
 )
 from sketch2life.interfaces.http.routers.health import router as health_router
-from sketch2life.interfaces.http.routers.lesson_library import router as lesson_library_router
 from sketch2life.interfaces.http.routers.images import router as images_router
+from sketch2life.interfaces.http.routers.lesson_library import router as lesson_library_router
+from sketch2life.interfaces.http.routers.parent_profiles import router as parent_profiles_router
 from sketch2life.interfaces.http.routers.pilot_assistance import router as pilot_assistance_router
 from sketch2life.interfaces.http.routers.sessions import router as sessions_router
 from sketch2life.interfaces.http.routers.story_video import router as story_video_router
@@ -28,6 +29,7 @@ def mount_classroom_routers(
     """Mount the durable classroom health and BE1 runtime route group."""
     application.include_router(health_router)
     application.include_router(be1_runtime_router)
+    application.include_router(parent_profiles_router)
     if include_pilot_assistance:
         application.include_router(pilot_assistance_router)
 

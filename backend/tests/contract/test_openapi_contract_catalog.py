@@ -216,11 +216,11 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
 
     assert spec["openapi"] == "3.1.0"
     assert spec["tags"] == public_tags(TAG_DESCRIPTIONS)
-    assert len(operations) == 128
+    assert len(operations) == 131
     catalog_operations = set(operations) - PILOT_ONLY_OPERATIONS
     catalog_paths = {path for _method, path in catalog_operations}
-    assert len(catalog_paths) == 110
-    assert len(catalog_operations) == MOUNTED_OPERATION_COUNT == 123
+    assert len(catalog_paths) == 112
+    assert len(catalog_operations) == MOUNTED_OPERATION_COUNT == 126
     assert catalog_operations == set(MOUNTED_OPERATIONS)
     assert set(operations) - set(MOUNTED_OPERATIONS) == PILOT_ONLY_OPERATIONS
     assert PILOT_ONLY_OPERATIONS.isdisjoint(MOUNTED_OPERATIONS)
@@ -384,12 +384,22 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
                     "$ref": "#/components/schemas/Be1Error"
                 }
 
+    parent_get = operations[("get", "/v1/parent/profiles/{profile_id}")]
+    invalid_uuid_response = parent_get["responses"]["400"]
+    assert "ParentErrorResponse" in _schema_refs(
+        invalid_uuid_response["content"]["application/json"]["schema"]
+    )
+    parent_patch = operations[("patch", "/v1/parent/profiles/{profile_id}")]
+    assert "ParentProfileView" in _schema_refs(
+        parent_patch["responses"]["200"]["content"]["application/json"]["schema"]
+    )
+
     candidate_keys = {(item["method"], item["path"]) for item in UNMOUNTED_OPERATIONS}
     assert len(candidate_keys) == UNMOUNTED_OPERATION_COUNT == 11
     assert not candidate_keys.intersection(operations)
     assert not _extension_keys(spec)
 
-    assert len(spec["tags"]) == 18
+    assert len(spec["tags"]) == 19
     assert all(tag.get("description") for tag in spec["tags"])
 
     operation_ids = [operation["operationId"] for operation in operations.values()]

@@ -14,6 +14,10 @@ from types import ModuleType, SimpleNamespace
 from typing import Any, cast
 
 import pytest
+from sqlalchemy import CheckConstraint, Table
+from sqlalchemy.dialects import postgresql
+from sqlalchemy.schema import CreateTable
+
 from sketch2life.domain.eligibility import (
     BASIS_VERSION,
     PROOF_VERSION,
@@ -31,9 +35,6 @@ from sketch2life.infrastructure.persistence.be1_models import (
     ManagedProfileModel,
     SyntheticEligibilityProofModel,
 )
-from sqlalchemy import CheckConstraint, Table
-from sqlalchemy.dialects import postgresql
-from sqlalchemy.schema import CreateTable
 
 NOW = datetime(2026, 10, 31, 5, 0, tzinfo=UTC)
 SCOPE = EligibilityScope("synthetic-org", "synthetic-class", "synthetic-child", "vision-pilot")
@@ -453,16 +454,16 @@ def test_new_revision_is_a_single_short_child_of_the_confirmed_parent() -> None:
 
 def test_head_counts_by_both_methods_match_the_derived_expectation() -> None:
     graph = _revision_graph()
-    assert len(graph) == 25  # 22 baseline scripts plus synthetic, age, and pilot-vision revisions
+    assert len(graph) == 29  # Existing graph plus synthetic, age, vision and Parent revisions.
     down_targets = {target for down, _ in graph.values() for target in down}
     dependency_targets = down_targets | {target for _, dep in graph.values() for target in dep}
     heads_down_only = {rev for rev in graph if rev not in down_targets}
     heads_with_depends = {rev for rev in graph if rev not in dependency_targets}
-    # The age revision remains a down_revision leaf; the pilot revision depends on age and AI,
-    # so it adds a down_revision-only head and becomes the dependency-aware terminal head.
-    assert (len(heads_down_only), len(heads_with_depends)) == (11, 9)
+    # Parent is an independent root; the existing BE1 and pilot graph remains unchanged.
+    assert (len(heads_down_only), len(heads_with_depends)) == (13, 10)
     assert "20261101_be1_age_0001" in heads_down_only
-    assert "20261102_pv_0001" in heads_with_depends
+    assert "20261102_pv_0001" in heads_down_only
+    assert "20261102_pv_0001" not in heads_with_depends
     assert "20261031_be1_se_0001" not in heads_down_only
 
 

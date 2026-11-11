@@ -12,7 +12,7 @@ CONTRACT_REVISION: Final = "FEAT-063 Rev37"
 SOURCE_FILE_NAME: Final = 'API_CONTRACT_CATALOG_FEAT063_REV37_20261030.md'
 SOURCE_SHA256: Final = '56FC8BEA01360E11F73E45B2D43AC1897540B30BC8AE524CDE1ECEFACFBB1B88'
 DECLARED_OPERATION_COUNT: Final = 135
-MOUNTED_OPERATION_COUNT: Final = 123
+MOUNTED_OPERATION_COUNT: Final = 126
 UNMOUNTED_OPERATION_COUNT: Final = 11
 TAG_DESCRIPTIONS: Final[dict[str, str]] = {'BE1 — Organizations & Classes': 'Organization membership, class setup, profiles, assignments, '
                                   'and consents.',
@@ -35,6 +35,7 @@ TAG_DESCRIPTIONS: Final[dict[str, str]] = {'BE1 — Organizations & Classes': 'O
                                              'and parent-group administration.',
  'Parent — Invitations & Lesson Library': 'Parent invitations, memberships, lesson discovery, and '
                                           'lesson downloads.',
+ 'Parent Profiles': 'Create, read, and revise synthetic Parent-owned profiles.',
  'Parent & School Manager — Group Membership': 'Parent-group membership revocation available to '
                                                'the parent or school manager.',
  'Platform Admin — Moderation': 'Platform-level lesson moderation.',
@@ -10907,6 +10908,77 @@ MOUNTED_OPERATIONS[('post', '/api/be1/v1/classes/{class_id}/assignments')] = {  
                          'description': 'An unexpected server error occurred',
                          'media_type': 'application/json',
                          'schema_name': 'Be1Error'})}
+
+MOUNTED_OPERATIONS[('post', '/v1/parent/profiles')] = {
+    'purpose': 'Create a synthetic Parent-owned profile and its first immutable revision.',
+    'request_inputs': 'header `Idempotency-Key*`: string; header `X-Request-ID`: string; '
+                      'application/json (required): CreateParentProfileRequest '
+                      '{display_name*:string, age_months*:integer, interests_summary:string|null}',
+    'surface': 'Parent / profile foundation',
+    'tag': 'Parent Profiles',
+    'handler': 'parent_profiles.py::create_parent_profile',
+    'authentication': 'HTTPBearer (bearer)',
+    'verification': 'S1a-P synthetic-only contract; persistence acceptance is owner-run',
+    'responses': (
+        {'status': '201', 'description': 'Profile created', 'media_type': 'application/json',
+         'schema_name': 'ParentProfileReference'},
+        {'status': '400', 'description': 'The request is invalid', 'media_type': 'application/json',
+         'schema_name': 'ParentErrorResponse'},
+        {'status': '401', 'description': 'Authentication is required or invalid',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '409', 'description': 'The request conflicts with profile state',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '503', 'description': 'A required service is unavailable',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+    ),
+}
+MOUNTED_OPERATIONS[('get', '/v1/parent/profiles/{profile_id}')] = {
+    'purpose': 'Read the current revision of a profile owned by the verified Parent principal.',
+    'request_inputs': 'path `profile_id*`: uuid; header `X-Request-ID`: string',
+    'surface': 'Parent / profile foundation',
+    'tag': 'Parent Profiles',
+    'handler': 'parent_profiles.py::read_parent_profile',
+    'authentication': 'HTTPBearer (bearer)',
+    'verification': 'S1a-P ownership and IDOR contract; persistence acceptance is owner-run',
+    'responses': (
+        {'status': '200', 'description': 'Current profile revision', 'media_type': 'application/json',
+         'schema_name': 'ParentProfileView'},
+        {'status': '400', 'description': 'The request is invalid',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '401', 'description': 'Authentication is required or invalid',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '404', 'description': 'The profile was not found', 'media_type': 'application/json',
+         'schema_name': 'ParentErrorResponse'},
+        {'status': '503', 'description': 'A required service is unavailable',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+    ),
+}
+MOUNTED_OPERATIONS[('patch', '/v1/parent/profiles/{profile_id}')] = {
+    'purpose': 'Append the next full immutable profile snapshot with an expected revision.',
+    'request_inputs': 'path `profile_id*`: uuid; header `Idempotency-Key*`: string; '
+                      'header `X-Request-ID`: string; application/json (required): '
+                      'PatchParentProfileRequest {expected_revision*:integer, display_name*:string, '
+                      'age_months*:integer, interests_summary:string|null}',
+    'surface': 'Parent / profile foundation',
+    'tag': 'Parent Profiles',
+    'handler': 'parent_profiles.py::patch_parent_profile',
+    'authentication': 'HTTPBearer (bearer)',
+    'verification': 'S1a-P revision and idempotency contract; persistence acceptance is owner-run',
+    'responses': (
+        {'status': '200', 'description': 'Profile revision appended', 'media_type': 'application/json',
+         'schema_name': 'ParentProfileView'},
+        {'status': '400', 'description': 'The request is invalid', 'media_type': 'application/json',
+         'schema_name': 'ParentErrorResponse'},
+        {'status': '401', 'description': 'Authentication is required or invalid',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '404', 'description': 'The profile was not found', 'media_type': 'application/json',
+         'schema_name': 'ParentErrorResponse'},
+        {'status': '409', 'description': 'The request conflicts with profile state',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '503', 'description': 'A required service is unavailable',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+    ),
+}
 
 UNMOUNTED_OPERATIONS: Final[tuple[UnmountedOperationMetadata, ...]] = ({'method': 'post',
   'path': '/api/collaboration/v1/activity-assignments',

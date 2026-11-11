@@ -107,10 +107,10 @@ from sketch2life.infrastructure.storage.in_memory_auto_rig_grants import (
 )
 from sketch2life.infrastructure.storage.s3_compatible import Boto3S3CompatibleObjectStorage
 from sketch2life.infrastructure.story_run_lite.composition import runtime_lifespan
-from sketch2life.interfaces.http.be1_runtime import build_be1_runtime
 from sketch2life.infrastructure.vision_analysis.pilot_composition import (
     build_default_pilot_vision,
 )
+from sketch2life.interfaces.http.be1_runtime import build_be1_runtime
 from sketch2life.interfaces.http.demo_composition import (
     build_demo_stores,
     build_ephemeral_session_service,
@@ -294,19 +294,71 @@ def create_app(
 
     @application.middleware("http")
     async def be1_request_context(request: Request, call_next):
-        if not request.url.path.startswith(("/api/be1/v1", "/api/lesson-library/v1")):
+        if not request.url.path.startswith(
+            ("/api/be1/v1", "/api/lesson-library/v1", "/v1/parent/profiles")
+        ):
             return await call_next(request)
         supplied_id = request.headers.get("X-Request-ID", "")
         request_id = supplied_id if _SAFE_ID.fullmatch(supplied_id) else str(uuid4())
-        request.state.be1_request_id = request_id
+        if request.url.path.startswith("/v1/parent/profiles"):
+            request.state.parent_request_id = request_id
+        else:
+            request.state.be1_request_id = request_id
         response = await call_next(request)
-        response.headers["X-Request-ID"] = request_id
+        if not (
+            request.url.path.startswith("/v1/parent/profiles")
+            and response.headers.get("X-Request-ID")
+        ):
+            response.headers["X-Request-ID"] = request_id
         return response
 
     @application.exception_handler(StarletteHTTPException)
     async def handle_http_exception(
         request: Request, exc: StarletteHTTPException
     ) -> JSONResponse:
+        if request.url.path.startswith("/v1/parent/profiles"):
+            detail = exc.detail if isinstance(exc.detail, dict) else {}
+            safe_messages = {
+                "AUTH_REQUIRED": "A verified bearer token is required",
+                "INVALID_TOKEN": "The bearer token could not be verified",
+                "TOKEN_EXPIRED": "The bearer token has expired",
+                "IDENTITY_PROVIDER_UNAVAILABLE": "Identity verification is unavailable",
+                "PARENT_STORE_UNAVAILABLE": "The profile store is unavailable",
+                "PROFILE_NOT_FOUND": "Profile was not found",
+                "INVALID_REQUEST": "The request is invalid",
+                "INVALID_IDEMPOTENCY_KEY": "The idempotency key conflicts with an earlier request",
+                "SYNTHETIC_PROFILE_CREATION_UNAVAILABLE": (
+                    "Synthetic Parent profile creation is unavailable"
+                ),
+                "STALE_REVISION": "The profile revision is stale",
+            }
+            default_codes = {
+                400: "INVALID_REQUEST",
+                401: "INVALID_TOKEN",
+                404: "PROFILE_NOT_FOUND",
+                409: "INVALID_REQUEST",
+                503: "PARENT_STORE_UNAVAILABLE",
+            }
+            code = detail.get("code", default_codes.get(exc.status_code, "REQUEST_FAILED"))
+            if not isinstance(code, str) or code not in safe_messages:
+                code = default_codes.get(exc.status_code, "REQUEST_FAILED")
+            request_id = getattr(request.state, "parent_request_id", str(uuid4()))
+            return JSONResponse(
+                status_code=exc.status_code,
+                content={
+                    "code": code,
+                    "message": safe_messages.get(code, "The request could not be completed"),
+                    "correlation_id": request_id,
+                    "retryable": exc.status_code in {429, 503},
+                    "request_id": request_id,
+                    **(
+                        {"current_version": detail["current_version"]}
+                        if type(detail.get("current_version")) is int
+                        else {}
+                    ),
+                },
+                headers={**(exc.headers or {}), "X-Request-ID": request_id},
+            )
         if request.url.path.startswith("/api/lesson-library/v1"):
             detail = exc.detail if isinstance(exc.detail, dict) else {}
             status_codes = {
@@ -378,6 +430,19 @@ def create_app(
     ) -> JSONResponse:
         if story_demo_enabled and _story_run_lite_path(request.url.path):
             return await story_validation_error_response(request, exc)
+        if request.url.path.startswith("/v1/parent/profiles"):
+            request_id = getattr(request.state, "parent_request_id", str(uuid4()))
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "code": "INVALID_REQUEST",
+                    "message": "The request is invalid",
+                    "correlation_id": request_id,
+                    "retryable": False,
+                    "request_id": request_id,
+                },
+                headers={"X-Request-ID": request_id},
+            )
         if request.url.path.startswith("/api/be1/v1"):
             error = Be1Error(
                 code="REQUEST_VALIDATION_FAILED",
@@ -489,6 +554,24 @@ def create_app(
                 content={
                     "code": "INTERNAL_SERVER_ERROR",
                     "message": "The server could not complete the request",
+                    "request_id": request_id,
+                },
+                headers={"X-Request-ID": request_id},
+            )
+        if request.url.path.startswith("/v1/parent/profiles"):
+            request_id = getattr(request.state, "parent_request_id", str(uuid4()))
+            _LOGGER.error(
+                "parent_unhandled_exception request_id=%s exception_type=%s",
+                request_id,
+                type(exc).__name__,
+            )
+            return JSONResponse(
+                status_code=500,
+                content={
+                    "code": "INTERNAL_SERVER_ERROR",
+                    "message": "The server could not complete the request",
+                    "correlation_id": request_id,
+                    "retryable": False,
                     "request_id": request_id,
                 },
                 headers={"X-Request-ID": request_id},
@@ -843,7 +926,7 @@ def create_app(
                     response["status"]: response for response in effective_responses
                 }
                 runtime_responses = operation.setdefault("responses", {})
-                if path.startswith("/api/be1/v1/"):
+                if path.startswith(("/api/be1/v1/", "/v1/parent/profiles")):
                     for status in tuple(runtime_responses):
                         if status not in declared_responses:
                             del runtime_responses[status]
@@ -879,7 +962,9 @@ def create_app(
                             }
                         }
         for path, path_item in schema.get("paths", {}).items():
-            if not path.startswith("/api/be1/v1/") or not isinstance(path_item, dict):
+            if not path.startswith(("/api/be1/v1/", "/v1/parent/profiles")) or not isinstance(
+                path_item, dict
+            ):
                 continue
             for operation in path_item.values():
                 if not isinstance(operation, dict) or "responses" not in operation:
