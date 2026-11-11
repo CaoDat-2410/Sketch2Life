@@ -200,3 +200,7 @@ See [EV-063-60_TWO_AGENT_DIAGRAM_READINESS_ASSESSMENT_20261107.md](EV-063-60_TWO
 - [EV-063-61 — Ten-group diagram-readiness alignment](EV-063-61_TEN_GROUP_DIAGRAM_READINESS_ALIGNMENT_20261108.md) — documentation-only synchronization; owner and technical gates remain open.
 
 | EV-063-62 | Rev57 substantive diagram-input remediation | Source-only baseline review, G01–G10 detailed requirements, 17-question decision map, 13 diagram readiness, physical/state/API/screen/class/package contracts and static import-cycle evidence | EV-063-62_REV57_SUBSTANTIVE_DIAGRAM_INPUT_REMEDIATION_20261109.md |
+
+## EV-063-87 — Parent non-video API/UI and Rev78 activity suggestions
+
+Records synthetic Parent signup/profile/context, drawing analysis, activity suggestion and story-draft path; catalog/fallback contract, worker logs summarized as safe JSON, quality-gate outcomes, runtime timings and limitations. Selected screenshots show subject confirmation, activity suggestion/review and story result. No video was called. The final Rev78A inference was cancelled before output; the gate verdict is unknown. The migration was not applied to PostgreSQL.

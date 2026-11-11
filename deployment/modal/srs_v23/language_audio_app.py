@@ -8,6 +8,7 @@ import os
 import re
 import sys
 import time
+import unicodedata
 from copy import deepcopy
 from pathlib import Path
 from typing import Any
@@ -58,6 +59,15 @@ MAX_OUTPUT_BYTES = 16 * 1024 * 1024
 STORY_GENERATION_BUDGET = 4_096  # measured in output tokens
 STORY_WORKER_TIMEOUT_SECONDS = 1_800
 _SHA256 = re.compile(r"\A[0-9a-f]{64}\Z")
+_PARENT_ACTIVITY_ALLOWED_TAGS = {
+    "nature", "animals", "insects", "plants", "colors", "water", "movement",
+    "art", "music", "building", "sky_and_weather",
+}
+_PARENT_ACTIVITY_PII_PATTERNS = (
+    re.compile(r"\b[^\s@]+@[^\s@]+\.[A-Za-z]{2,}\b"),
+    re.compile(r"(?<!\d)(?:\+?\d[\d .()\-]{7,}\d)(?!\d)"),
+    re.compile(r"\b(?:https?://|www\.)\S+", re.IGNORECASE),
+)
 
 
 def _lmfe_vietnamese_json_alphabet() -> str:
@@ -893,6 +903,476 @@ def suggest_lesson_plan(payload: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+@app.function(
+    name="suggest-parent-activities",
+    image=_story_text_image,
+    gpu=["L40S", "L4", "A10"],
+    cpu=4.0,
+    memory=32_768,
+    volumes={
+        MODEL_MOUNT: model_volume.with_mount_options(read_only=True),
+        SCRATCH_MOUNT: scratch_volume.with_mount_options(read_only=True),
+    },
+    min_containers=0,
+    max_containers=1,
+    scaledown_window=120,
+    timeout=1_800,
+    retries=0,
+)
+@observed_worker(
+    workload="parent.activity.suggest",
+    model_id=TEXT_MODEL_ID,
+    model_revision=TEXT_MODEL_REVISION,
+    gpu_class="L40S|L4|A10",
+)
+def suggest_parent_activities(payload: dict[str, Any]) -> dict[str, Any]:
+    """Select authorized lesson activities first; draft three only when none fit."""
+
+    with worker_phase("input_envelope"):
+        request = parse_worker_input(payload, execution_group="l4")
+    worker_stage("workload_gate")
+    if request.workload != "parent.activity.suggest":
+        raise WorkerContractError("MODAL_WORKLOAD_NOT_ALLOWED")
+    refresh_worker_volume(scratch_volume)
+    with worker_phase("input_manifest_read"):
+        data = _read_json_asset(request, expected_asset="input/request.json")
+    with worker_phase("parent_activity_request_validation"):
+        _validate_parent_activity_suggestion_input(data)
+    with worker_phase("checkpoint_verification"):
+        _verify_marker(Path(TEXT_MODEL_MARKER), TEXT_MODEL_ID, TEXT_MODEL_REVISION)
+    with worker_phase("model_load"):
+        processor, model = _load_text_model()
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                "Bạn chọn hoạt động Montessori ngoài trời phù hợp cho một trẻ theo context đã được "
+                "người lớn xác nhận. Dùng tuổi, topic, chủ thể/đặc điểm tranh, tag sở thích và "
+                "adult_confirmed_idea để đánh giá độ phù hợp. Trước hết chỉ chọn "
+                "từ candidate_activities; "
+                "nếu phù hợp, trả CATALOG_MATCH và 1–5 candidate_ref cùng lý do ngắn. "
+                "Không sửa nội dung candidate. Nếu không có candidate phù hợp, "
+                "trả NO_MATCH và đúng "
+                "3 hoạt động nháp. Viết thật ngắn, đủ câu, không lặp cảnh báo. Objective một câu; "
+                "materials và preparation mỗi phần tối đa một câu; instructions có 2–3 bước ngắn; "
+                "observation và safety mỗi phần một câu. "
+                "Trong preparation hoặc instructions của MỖI "
+                "hoạt động phải ghi rõ một địa điểm ngoài trời như 'ngoài trời', 'khu vườn', "
+                "'công viên' hoặc 'sân nhà'; activity_kind một mình chưa đủ. "
+                "Trong instructions_text, dùng chính xác cụm 'trẻ tự chọn' và ít nhất một từ "
+                "'quan sát', 'khám phá', 'thử nghiệm', 'so sánh' hoặc 'phân loại'. Ba hoạt động "
+                "phải khác mục tiêu, vật liệu chính và cách làm: quan sát trực tiếp; so sánh/phân "
+                "loại thẻ giấy do người lớn chuẩn bị; vận động mô phỏng. Không lặp quy trình. "
+                "Không dùng kéo, keo dán, vật trẻ tự nhặt, hoặc cắt/dán. Người lớn chuẩn bị môi "
+                "trường, quan sát và hỗ trợ. "
+                "Hoạt động phải an toàn, phù hợp age_band_months. Không suy đoán tên, năng lực, "
+                "chẩn đoán hoặc hoàn cảnh cá nhân. Không đưa vật sắc/nóng/độc, nguy cơ giao thông "
+                "hoặc nước sâu, kéo, vật lạ trẻ nhặt được, hay yêu cầu y tế. "
+                "Chỉ dùng chữ tiếng Việt/Latin; không chèn chữ Hán hay ngôn ngữ khác. Không bịa kiến thức "
+                "về hành vi hoặc vòng đời con vật. "
+                "Chỉ trả JSON theo schema. Draft cần người lớn xem lại."
+            ),
+        },
+        {"role": "user", "content": _parent_activity_suggestion_prompt(data)},
+    ]
+    with worker_phase("prompt_encoding"):
+        encoded = processor.apply_chat_template(
+            messages,
+            tokenize=True,
+            add_generation_prompt=True,
+            enable_thinking=False,
+            return_tensors="pt",
+            return_dict=True,
+        ).to(model.device)
+    input_ids = encoded["input_ids"]
+    max_new_tokens = 1_000
+    with worker_phase("constrained_decoder_setup"):
+        prefix_allowed_tokens_fn = _build_json_prefix_allowed_tokens_fn(
+            processor.tokenizer,
+            _parent_activity_suggestion_json_schema(
+                has_candidates=bool(data["candidate_activities"])
+            ),
+            eos_token_id=model.generation_config.eos_token_id,
+        )
+    import torch
+
+    with worker_phase("model_inference"), torch.inference_mode():
+        generated = model.generate(
+            **encoded,
+            do_sample=False,
+            max_new_tokens=max_new_tokens,
+            pad_token_id=_generation_pad_token_id(model, processor.tokenizer),
+            prefix_allowed_tokens_fn=prefix_allowed_tokens_fn,
+        )
+    output_token_count = int(generated.shape[-1] - input_ids.shape[-1])
+    text = processor.tokenizer.decode(
+        generated[0, input_ids.shape[-1] :], skip_special_tokens=True
+    )
+    try:
+        with worker_phase("output_parse_and_contract_validation"):
+            parsed = _parse_parent_activity_suggestions(
+                text, expected_age_band=data["age_band_months"]
+            )
+    except (RuntimeError, ValueError) as exc:
+        hit_limit = output_token_count >= max_new_tokens
+        print(
+            json.dumps(
+                {
+                    "event": "parent_activity_suggestions_output_truncated"
+                    if hit_limit
+                    else "parent_activity_suggestions_output_invalid",
+                    "reason_code": str(exc),
+                    "output_token_count": output_token_count,
+                    "max_new_tokens": max_new_tokens,
+                    "tokenizer_eos_token_id": processor.tokenizer.eos_token_id,
+                    "model_eos_token_id": model.generation_config.eos_token_id,
+                    **_json_prefix_decoder_diagnostics(
+                        prefix_allowed_tokens_fn,
+                        generated=generated,
+                        input_token_count=input_ids.shape[-1],
+                    ),
+                },
+                sort_keys=True,
+            ),
+            flush=True,
+        )
+        if hit_limit:
+            raise RuntimeError("MODAL_MODEL_OUTPUT_TRUNCATED") from exc
+        raise
+    print(
+        json.dumps(
+            {
+                "event": "parent_activity_suggestions_tokens_generated",
+                "output_token_count": output_token_count,
+                "max_new_tokens": max_new_tokens,
+                "token_limit_reached": output_token_count >= max_new_tokens,
+                "decision": parsed["decision"],
+                "selected_candidate_count": len(parsed["selected_candidates"]),
+                "fallback_activity_count": len(parsed["fallback_activities"]),
+                "tokenizer_eos_token_id": processor.tokenizer.eos_token_id,
+                "model_eos_token_id": model.generation_config.eos_token_id,
+                **_json_prefix_decoder_diagnostics(prefix_allowed_tokens_fn),
+            },
+            sort_keys=True,
+        ),
+        flush=True,
+    )
+    return {
+        "schema_version": WORKER_OUTPUT_SCHEMA,
+        "workload": request.workload,
+        "job_id": request.job_id,
+        "generation_id": request.generation_id,
+        "attempt_id": request.attempt_id,
+        "model": {"id": TEXT_MODEL_ID, "revision": TEXT_MODEL_REVISION},
+        "result": {
+            "schema_version": "sketch2life.parent-activity-suggestions.v2",
+            **parsed,
+        },
+    }
+
+
+def _validate_parent_activity_suggestion_input(data: dict[str, Any]) -> None:
+    expected = {
+        "schema_version",
+        "age_band_ref",
+        "topic",
+        "adult_confirmed_idea",
+        "confirmed_subject",
+        "visible_features",
+        "age_band_months",
+        "profile_interest_tags",
+        "narration_interest_tags",
+        "candidate_activities",
+    }
+    if (
+        not isinstance(data, dict)
+        or set(data) != expected
+        or data.get("schema_version") != "sketch2life.parent-activity-suggest-input.v3"
+        or not isinstance(data.get("age_band_ref"), str)
+        or re.fullmatch(r"age-(?:36-71|72-107|108-120)-months-v1", data["age_band_ref"]) is None
+        or not isinstance(data.get("topic"), str)
+        or len(data["topic"]) > 120
+        or not isinstance(data.get("adult_confirmed_idea"), str)
+        or len(data["adult_confirmed_idea"]) > 300
+        or not isinstance(data.get("confirmed_subject"), str)
+        or not 1 <= len(data["confirmed_subject"].strip()) <= 160
+        or not isinstance(data.get("visible_features"), list)
+        or not 1 <= len(data["visible_features"]) <= 4
+        or any(
+            not isinstance(value, str) or not value.strip() or len(value) > 160
+            for value in data["visible_features"]
+        )
+        or data.get("age_band_months") not in {"36-71", "72-107", "108-120"}
+        or not isinstance(data.get("profile_interest_tags"), list)
+        or len(data["profile_interest_tags"]) > 12
+        or any(not isinstance(tag, str) or len(tag) > 32 for tag in data["profile_interest_tags"])
+        or not isinstance(data.get("narration_interest_tags"), list)
+        or len(data["narration_interest_tags"]) > 12
+        or any(not isinstance(tag, str) or len(tag) > 32 for tag in data["narration_interest_tags"])
+        or not isinstance(data.get("candidate_activities"), list)
+        or len(data["candidate_activities"]) > 12
+    ):
+        raise WorkerContractError("MODAL_INPUT_NOT_ALLOWED")
+    context_labels = [
+        data["topic"],
+        data["adult_confirmed_idea"],
+        data["confirmed_subject"],
+        *data["visible_features"],
+    ]
+    if any(
+        pattern.search(label)
+        for pattern in _PARENT_ACTIVITY_PII_PATTERNS
+        for label in context_labels
+    ):
+        raise WorkerContractError("MODAL_INPUT_NOT_ALLOWED")
+    if any(
+        tag not in _PARENT_ACTIVITY_ALLOWED_TAGS
+        for tag in (*data["profile_interest_tags"], *data["narration_interest_tags"])
+    ):
+        raise WorkerContractError("MODAL_INPUT_NOT_ALLOWED")
+    expected_candidate = {
+        "candidate_ref", "lesson_topic", "drawing_subject", "age_band_months", "activity"
+    }
+    expected_activity = {
+        "title", "objective", "materials_text", "preparation_text", "instructions_text",
+        "observation_notes", "safety_notes", "activity_kind",
+    }
+    candidate_field_limits = {
+        "title": 160,
+        "objective": 400,
+        "materials_text": 300,
+        "preparation_text": 300,
+        "instructions_text": 700,
+        "observation_notes": 300,
+        "safety_notes": 300,
+    }
+    for candidate in data["candidate_activities"]:
+        if (
+            not isinstance(candidate, dict)
+            or set(candidate) != expected_candidate
+            or not isinstance(candidate.get("candidate_ref"), str)
+            or re.fullmatch(r"C[0-9]{3}", candidate["candidate_ref"]) is None
+            or not isinstance(candidate.get("lesson_topic"), str)
+            or len(candidate["lesson_topic"]) > 120
+            or not isinstance(candidate.get("drawing_subject"), str)
+            or len(candidate["drawing_subject"]) > 160
+            or candidate.get("age_band_months") != data["age_band_months"]
+            or not isinstance(candidate.get("activity"), dict)
+            or set(candidate["activity"]) != expected_activity
+            or candidate["activity"].get("activity_kind") != "outdoor"
+            or any(
+                not isinstance(candidate["activity"].get(field), str)
+                or len(candidate["activity"][field]) > limit
+                for field, limit in candidate_field_limits.items()
+            )
+        ):
+            raise WorkerContractError("MODAL_INPUT_NOT_ALLOWED")
+    refs = [candidate["candidate_ref"] for candidate in data["candidate_activities"]]
+    if len(set(refs)) != len(refs):
+        raise WorkerContractError("MODAL_INPUT_NOT_ALLOWED")
+
+
+def _parent_activity_suggestion_prompt(data: dict[str, Any]) -> str:
+    return (
+        "Đọc context và candidate_activities dạng JSON dưới đây. Chọn candidate chỉ khi nó phù hợp "
+        "với tuổi, chủ đề, chủ thể/đặc điểm tranh, tag sở thích và adult_confirmed_idea. "
+        "Nếu không candidate nào phù hợp, tạo đúng ba hoạt động ngoài trời an toàn. "
+        "Dùng đúng ba cách khác nhau: (1) quan sát trực tiếp, không cần vật liệu; "
+        "(2) so sánh/phân loại thẻ giấy do người lớn chuẩn bị; (3) vận động mô phỏng ngoài trời. "
+        "Không lặp mục tiêu, vật liệu chính hoặc các bước. Không dùng kéo, keo dán, cắt/dán, "
+        "và không cho trẻ nhặt vật lạ. "
+        "Mỗi instructions_text phải có đúng cụm 'trẻ tự chọn' và một từ: quan sát, khám phá, thử nghiệm, "
+        "so sánh hoặc phân loại. Người lớn chuẩn bị và hỗ trợ; không giao kéo cho trẻ. "
+        "Trong preparation_text hoặc instructions_text, ghi rõ một cụm: 'ngoài trời', 'khu vườn', "
+        "'công viên' hoặc 'sân nhà'. Chỉ dùng chữ Latin tiếng Việt, không chèn chữ Hán; "
+        "không bịa kiến thức về con vật. "
+        "Viết ngắn gọn bằng tiếng Việt. Objective tối đa 80 ký tự, preparation 85, instructions 150, "
+        "safety 80; bốn trường này phải là câu trọn vẹn kết thúc bằng dấu chấm, chấm hỏi hoặc chấm than. "
+        "Materials tối đa 60 ký tự và observation tối đa 70 ký tự; viết thành cụm từ/danh sách ngắn, "
+        "không cần câu hoàn chỉnh. Lý do tối đa 120 ký tự. "
+        "Instructions có hai bước ngắn; tránh câu ghép dài và không lặp ý. "
+        "Ưu tiên vật liệu an toàn, có sẵn, phù hợp tuổi. "
+        "Sao chép age_band_months nguyên văn. Các khóa JSON: decision, selected_candidates, "
+        "no_match_reason, age_band_months, fallback_activities. Với CATALOG_MATCH, chọn 1–5 refs, "
+        "không trả fallback và để no_match_reason rỗng. Với NO_MATCH, để refs rỗng và ghi lý do "
+        "tối đa 120 ký tự; fallback_activities phải có đúng 3 mục.\n"
+        "fallback_activities đúng 3.\n"
+        f"INPUT={json.dumps(data, ensure_ascii=False, separators=(',', ':'))}"
+    )
+
+
+def _parent_activity_suggestion_json_schema(*, has_candidates: bool = True) -> dict[str, Any]:
+    activity = {
+        "type": "object",
+        "additionalProperties": False,
+        "properties": {
+            "title": {"type": "string", "minLength": 1, "maxLength": 60},
+            "objective": {"type": "string", "pattern": "^.{0,79}[.!?]$"},
+            "materials_text": {"type": "string", "maxLength": 60},
+            "preparation_text": {"type": "string", "pattern": "^.{0,84}[.!?]$"},
+            "instructions_text": {"type": "string", "pattern": "^.{0,149}[.!?]$"},
+            "observation_notes": {"type": "string", "maxLength": 70},
+            "safety_notes": {"type": "string", "pattern": "^.{0,79}[.!?]$"},
+            "activity_kind": {"type": "string", "enum": ["outdoor"]},
+        },
+        "required": [
+            "title",
+            "objective",
+            "materials_text",
+            "preparation_text",
+            "instructions_text",
+            "observation_notes",
+            "safety_notes",
+            "activity_kind",
+        ],
+    }
+    selection = {
+        "type": "object",
+        "additionalProperties": False,
+        "properties": {
+            "candidate_ref": {"type": "string", "pattern": "^C[0-9]{3}$"},
+            "match_reason": {"type": "string", "minLength": 1, "maxLength": 180},
+        },
+        "required": ["candidate_ref", "match_reason"],
+    }
+    decision = {
+        "type": "string",
+        "enum": ["CATALOG_MATCH", "NO_MATCH"] if has_candidates else ["NO_MATCH"],
+    }
+    fallback_minimum = 0 if has_candidates else 3
+    fallback_maximum = 3
+    reason_schema = {"type": "string", "maxLength": 120}
+    if not has_candidates:
+        reason_schema["minLength"] = 1
+    return {
+        "type": "object",
+        "additionalProperties": False,
+        "properties": {
+            "decision": decision,
+            "selected_candidates": {
+                "type": "array",
+                "minItems": 0,
+                "maxItems": 0 if not has_candidates else 5,
+                "items": selection,
+            },
+            "no_match_reason": reason_schema,
+            "age_band_months": {"type": "string", "enum": ["36-71", "72-107", "108-120"]},
+            "fallback_activities": {
+                "type": "array",
+                "minItems": fallback_minimum,
+                "maxItems": fallback_maximum,
+                "items": activity,
+            },
+        },
+        "required": [
+            "decision", "selected_candidates", "no_match_reason", "age_band_months",
+            "fallback_activities",
+        ],
+    }
+
+
+def _parse_parent_activity_suggestions(
+    text: str, *, expected_age_band: str
+) -> dict[str, Any]:
+    try:
+        value = json.loads(text)
+    except json.JSONDecodeError as exc:
+        raise RuntimeError("MODAL_MODEL_OUTPUT_INVALID_JSON") from exc
+    expected = {
+        "decision", "selected_candidates", "no_match_reason", "age_band_months",
+        "fallback_activities",
+    }
+    if not isinstance(value, dict) or set(value) != expected:
+        raise RuntimeError("MODAL_MODEL_OUTPUT_INVALID_ROOT_SHAPE")
+    if value["age_band_months"] != expected_age_band:
+        raise RuntimeError("MODAL_MODEL_OUTPUT_INVALID_AGE_BAND")
+    selections = value["selected_candidates"]
+    no_match_reason = value["no_match_reason"]
+    if (
+        not isinstance(selections, list)
+        or len(selections) > 5
+        or not isinstance(no_match_reason, str)
+        or len(no_match_reason) > 120
+        or value["decision"] not in {"CATALOG_MATCH", "NO_MATCH"}
+    ):
+        raise RuntimeError("MODAL_MODEL_OUTPUT_INVALID_SELECTION_ENVELOPE")
+    normalized_selections: list[dict[str, str]] = []
+    for selection in selections:
+        if (
+            not isinstance(selection, dict)
+            or set(selection) != {"candidate_ref", "match_reason"}
+            or not isinstance(selection.get("candidate_ref"), str)
+            or re.fullmatch(r"C[0-9]{3}", selection["candidate_ref"]) is None
+            or not isinstance(selection.get("match_reason"), str)
+            or not 1 <= len(selection["match_reason"].strip()) <= 180
+        ):
+            raise RuntimeError("MODAL_MODEL_OUTPUT_INVALID_SELECTION_ITEM")
+        normalized_selections.append(
+            {
+                "candidate_ref": selection["candidate_ref"],
+                "match_reason": selection["match_reason"].strip(),
+            }
+        )
+    if len({item["candidate_ref"] for item in normalized_selections}) != len(normalized_selections):
+        raise RuntimeError("MODAL_MODEL_OUTPUT_INVALID_DUPLICATE_SELECTION")
+    fallback_activities = value["fallback_activities"]
+    fields = {
+        "title": 60,
+        "objective": 80,
+        "materials_text": 60,
+        "preparation_text": 85,
+        "instructions_text": 150,
+        "observation_notes": 70,
+        "safety_notes": 80,
+    }
+    if not isinstance(fallback_activities, list) or len(fallback_activities) > 3:
+        raise RuntimeError("MODAL_MODEL_OUTPUT_INVALID_FALLBACK_COUNT")
+    normalized_activities: list[dict[str, str]] = []
+    for item in fallback_activities:
+        if not isinstance(item, dict) or set(item) != {*fields, "activity_kind"}:
+            raise RuntimeError("MODAL_MODEL_OUTPUT_INVALID_ACTIVITY_SHAPE")
+        if any(
+            not isinstance(item.get(key), str)
+            or len(item[key]) > limit
+            or (key in {"title", "objective", "instructions_text"} and not item[key].strip())
+            for key, limit in fields.items()
+        ) or item.get("activity_kind") != "outdoor":
+            raise RuntimeError("MODAL_MODEL_OUTPUT_INVALID_ACTIVITY_FIELD")
+        if any(
+            character.isalpha() and "LATIN" not in unicodedata.name(character, "")
+            for field_value in item.values()
+            if isinstance(field_value, str)
+            for character in field_value
+        ):
+            raise RuntimeError("MODAL_MODEL_OUTPUT_INVALID_NON_LATIN_SCRIPT")
+        if any(
+            item[field].strip()
+            and not item[field].strip().endswith((".", "!", "?", "…"))
+            for field in ("objective", "preparation_text", "instructions_text", "safety_notes")
+        ):
+            raise RuntimeError("MODAL_MODEL_OUTPUT_INCOMPLETE_TEXT")
+        normalized_activities.append(
+            {key: item[key].strip() for key in fields} | {"activity_kind": "outdoor"}
+        )
+    decision = value["decision"]
+    if decision == "CATALOG_MATCH":
+        if (
+            not 1 <= len(normalized_selections) <= 5
+            or normalized_activities
+            or no_match_reason.strip()
+        ):
+            raise RuntimeError("MODAL_MODEL_OUTPUT_INVALID_CATALOG_SHAPE")
+    elif normalized_selections or len(normalized_activities) != 3 or not no_match_reason.strip():
+        raise RuntimeError("MODAL_MODEL_OUTPUT_INVALID_FALLBACK_SHAPE")
+    return {
+        "decision": decision,
+        "selected_candidates": normalized_selections,
+        "no_match_reason": no_match_reason.strip(),
+        "age_band_months": expected_age_band,
+        "fallback_activities": normalized_activities,
+    }
+
+
 def _validate_lesson_suggestion_input(data: dict[str, Any]) -> None:
     expected = {
         "schema_version",
@@ -1615,6 +2095,7 @@ def _read_binary_asset(
     ):
         raise WorkerContractError("MODAL_INPUT_HASH_MISMATCH")
     return asset_path, digest
+
 
 
 def _media_response(

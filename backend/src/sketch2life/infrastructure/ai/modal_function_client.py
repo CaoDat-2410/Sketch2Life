@@ -27,9 +27,7 @@ MODEL_ID = "Qwen/Qwen3.5-9B"
 MODEL_REVISION = "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
 STORY_MODEL_ID = "Qwen/Qwen3.5-9B"
 STORY_MODEL_REVISION = "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
-# Must equal the "model" field returned by the Flux worker's _model_provenance()
-# in deployment/modal/srs_v23/flux_image_app.py (MODEL_*/PUP_MODEL_* constants).
-FLUX_MODEL_PROVENANCE: dict[str, dict[str, str]] = {
+FLUX_MODEL_PROVENANCE = {
     "image_generator": {
         "id": "black-forest-labs/flux-3-image-klein",
         "revision": "09561231f44e41381c461caf53d5452005a60ac9",
@@ -969,6 +967,11 @@ _JSON_WORKERS: dict[str, tuple[str, str, int]] = {
     "lesson.plan.suggest": (
         "sketch2life-srs23-language-audio-dev",
         "suggest-lesson-plan",
+        1_800,
+    ),
+    "parent.activity.suggest": (
+        "sketch2life-srs23-language-audio-dev",
+        "suggest-parent-activities",
         1_800,
     ),
     "teacher.sketch-deck.generate": (

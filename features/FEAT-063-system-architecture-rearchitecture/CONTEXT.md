@@ -1,5 +1,11 @@
 # FEAT-063 — Whole-repository architecture redesign
 
+## Rev78 Parent catalog-first activity publication — 2026-11-11
+
+- Feature commit `34b92194867e915040aae1a1178dee0e526a60c3` was pushed to `origin/codex/feat063-parent-catalog-20261111`, fast-forward merged into `dev`, and pushed. Fresh remote verification confirmed both refs at the same SHA; the `dev` update also published the 21 pre-existing local `dev` commits. The remote reported the pull-request-only rule was bypassed for the owner-authorized push; no history was rewritten.
+- The repository security validator passed before pushing `dev` (`publishable_files_scanned=7223`). Implementation/test results and live-inference limitations are recorded in `status/STATUS.md` and `evidence/EV-063-87_PARENT_FULL_API_UI_E2E_20261111/API_PARENT_E2E_REPORT.md`.
+- The v2.7-draft Rev60 SRS remains unchanged and unsigned; D-172 remains task-scoped pending formal SRS reconciliation.
+
 ## Teacher Sketch Deck presentation UI — Plan Rev65 (2026-11-10)
 
 - Implemented and verified the Teacher presentation surface in the real Teacher Web UI with live Modal output: 4-slide Qwen3.5 DRAFT and FLUX composite image on the drawing-guide slide. Activity content scrolls inside the fixed 16:9 slide so safety notes remain reachable.
@@ -669,3 +675,21 @@ The owner requested publication of the immediately preceding two-agent assessmen
 ## Plan Rev57 — substantive diagram-input remediation
 
 The owner authorized substantive documentation updates for G01–G10 and explicitly requested commit/push. Work is scoped by Plan Rev57 and its approval record, based on fetched Rev56 SHA ae5707ca188d01d9719ed959b62d768ae927912d. SRS and Data Table Register remain v2.7-draft and unsigned. Owner decisions are not resolved by this package. Source review is limited to the selected commit; no product code, database or migration was changed.
+
+## Plan Rev67 — Parent Android profile, consent, and story flow — 2026-11-10
+
+- Implemented the approved Parent slice: Parent-owned profile revisions and versioned consent, authenticated StoryRun context snapshots/resume, physical drawing camera/gallery upload, adult subject confirmation, structured story generation/rewrite/review, and optional topic-only line-sketch dispatch.
+- Added an additive PostgreSQL migration and the versioned API contract in `artifacts/PARENT_API_CONTRACT_REV67_20261110.md`. Product SRS remains the unsigned v2.7-draft with local amendments through Rev60; this implementation note does not change requirements.
+- Consent text/version are read from the single root `.env` through blank placeholders in `.env.example`; empty configuration fails closed. The owner approved proceeding but did not provide copy/version in this thread, so no legal text was invented and no real-child data was used.
+- Static review: mobile TypeScript passed; changed Python files compiled; migration graph AST review found no missing parent revisions and the new migration joins all 12 pre-existing heads into one. Repository security validator passed (7,157 publishable files); `git diff --check` passed.
+- Limits: no product tests, database migration application, Docker, Firebase, or live Modal request was run under this plan. Ruff and Alembic CLI were unavailable in the local Python environment; ESLint was blocked by the repository's unresolved `jest/globals` plugin configuration.
+- Remaining Parent SRS gaps include second VLM reinterpretation after adult subject correction, voice/Whisper, video generation/playback and subsequent activities, history/cancel/delete, durable AI-job reconciliation, and temporary sketch-guide cleanup/safety validation. See the API contract and `evidence/EV-063-76_PARENT_ANDROID_PROFILE_CONSENT_STORY_FLOW_20261110.md`.
+
+## Parent catalog-first activity suggestions and publication — Plans Rev78/78A/78B (2026-11-11)
+
+- The owner-directed flow uses activities from published/shared lesson versions that the Parent may access. AI receives bounded candidates and minimized profile, drawing, topic and adult-confirmed narration context; it selects catalog activities or returns exactly three temporary drafts when none fit. Backend quality/safety rules remain hard gates.
+- The Expo Parent activity/story screens call the existing Parent-owned API boundary. The ACT demo catalog is not used as a production candidate source.
+- Exact lesson pin data now persists on StoryRun input revisions, including version/hash, age-band reference/version and activity content. Migration 20261110_parent_lesson_pin follows 20261110_parent_profile_story_context. The migration has not been applied to PostgreSQL.
+- Focused Parent service/worker tests previously passed 28/28; one post-refinement Modal inference was cancelled after 976.326 seconds before output, so the live quality-gate result remains unknown. Dev catalog had zero eligible published/shared activities. Video was not called.
+- The canonical SRS remains v2.7-draft Rev60 and unsigned. The user's catalog-first clarification is recorded as D-172; SRS reconciliation remains open.
+- Plan, approval and synthetic evidence: plan/PLAN_REV78_PARENT_CATALOG_FIRST_ACTIVITY_SUGGESTIONS_20261111.md, plan/PLAN_REV78A_PARENT_ACTIVITY_GATE_REFINEMENT_20261111.md, plan/PLAN_REV78B_PARENT_CATALOG_PIN_AND_PUBLICATION_20261111.md, and evidence/EV-063-87_PARENT_FULL_API_UI_E2E_20261111/.

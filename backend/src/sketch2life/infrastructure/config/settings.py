@@ -44,6 +44,11 @@ class Settings(BaseSettings):
     # FEAT-064 dev pilot: synthetic eligibility is honored only when this is on in local/test.
     synthetic_pilot_enabled: bool = False
 
+    # Parent data authorization policy is configured in the single repository-root .env.
+    # Empty values deliberately disable profile creation and StoryRun admission.
+    parent_consent_policy_version: str = ""
+    parent_consent_policy_text: str = ""
+
     auth_provider: Literal["development", "firebase"] = "development"
     firebase_project_id: str = ""
     firebase_credentials_file: Path | None = None

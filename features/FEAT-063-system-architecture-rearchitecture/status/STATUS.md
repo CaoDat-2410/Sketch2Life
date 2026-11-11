@@ -1,4 +1,14 @@
 # Status
+
+## Rev78/78A/78B Parent catalog-first activity — published to dev (2026-11-11)
+
+- Implementation status: source changes and exact lesson-pin migration are present on codex/feat063-parent-catalog-20261111. Migration is additive and has not been applied to a database.
+- Local verification: backend focused tests 28/28; Parent UI tests 26/26; Expo TypeScript check passed after installing the complete workspace dependency graph; Python compilation and Alembic head check passed. Ruff passed on the new catalog service/port/tests; a broader run on modified legacy modules reports lint diagnostics and is not clean. Repository security validator passed: 7,225 publishable files scanned; no absolute machine paths detected. The optional microphone/transcript UI path is outside Rev78 and its audio API is not present in this branch; it was not validated.
+- Live AI: the one approved post-refinement synthetic Modal inference was cancelled after 976.326 seconds before output; quality-gate verdict is unknown. Catalog-match path is not live-verified because the dev catalog had zero eligible published/shared activities. Video was not called.
+- Publication: feature commit `34b92194867e915040aae1a1178dee0e526a60c3` is on `origin/codex/feat063-parent-catalog-20261111`; it was fast-forward merged into `dev`, and both `origin/dev` and the feature ref were verified at the same SHA. The `dev` push included 21 existing local commits and was a normal fast-forward; no history was rewritten. GitHub reported that the repository's pull-request-only rule was bypassed for this explicitly owner-authorized push.
+- Repository security validator passed immediately before the `dev` push (`publishable_files_scanned=7223`; environment files, seed accounts, credentials, signing keys and external reference documents excluded; no absolute machine paths).
+- Canonical SRS is v2.7-draft Rev60, unsigned and unchanged. Owner catalog-first direction is D-172; SRS reconciliation remains open.
+
 ## Rev56 ten-group diagram-readiness alignment — 2026-11-08
 
 - Lifecycle: COMPLETE for the approved documentation-only synchronization on the isolated diagram-readiness branch.
@@ -770,3 +780,12 @@ Parent Sketch Guide and lesson visuals were not dispatched because Modal `dev` s
 - Rev57 §§32.6–32.7 retained; Rev58 source snapshot at §32.8. Seventeen `OPEN-OWNER` decisions remain; DTR remains a separate local v2.5-draft and was not edited.
 - Output SHA-256: `70DA43A35106E8C02B4BB8FCCB9628C0376C9E7EA6CFC51909ACB569703B218B`. Evidence: `evidence/EV-063-65_SRS_REBASE_V27_REV60_20261109.md`.
 - No product tests/build/CI run, database/provider/secret operation, deployment, commit or push was performed. Diagram readiness, physical schema and formal SRS sign-off remain open.
+
+## Parent Android profile, consent, and story flow — Plan Rev67 (2026-11-10)
+
+- Lifecycle: **IMPLEMENTED — STATIC REVIEW ONLY**. The bounded Parent UI/API/migration slice is present; runtime acceptance and database migration application were not performed under the approved plan.
+- Included: Parent profile revision CRUD/archive, explicit versioned authorization grant/revoke, StoryRun create/resume/context snapshot, physical JPEG/PNG capture/upload, subject confirmation, story draft/rewrite/confirmation, and optional topic-only sketch guide.
+- Consent policy is supplied through the root `.env`; the repository template has blank placeholders and the application fails closed until both text and version are configured. No policy copy or credentials were committed.
+- Static results: TypeScript PASS; Python compile PASS; migration revision graph PASS (30 files, 12 prior heads joined, no unresolved references); repository security validator PASS (7,157 files); `git diff --check` PASS. Ruff/Alembic CLI were not installed; ESLint could not load the configured `jest/globals` environment.
+- No product test suite, live Modal/Firebase operation, database migration, Docker lifecycle, or video call was run. Full Parent SRS flow is not complete: voice/Whisper, video and activities, corrected-subject VLM rerun, history/cancel/delete, durable job reconciliation, and sketch-guide cleanup/safety remain.
+- Detailed scope, changed API routes and limitations: `artifacts/PARENT_API_CONTRACT_REV67_20261110.md`; evidence: `evidence/EV-063-76_PARENT_ANDROID_PROFILE_CONSENT_STORY_FLOW_20261110.md`.

@@ -237,6 +237,7 @@ story_runs = Table(
     Column("dispatch_claimed_version", BigInteger),
     Column("error_code", String(64)),
     Column("active_owner_parent_account_id", String(128)),
+    Column("current_input_revision", Integer),
     Column("created_at", DateTime(timezone=True), nullable=False, server_default=text("now()")),
     Column("updated_at", DateTime(timezone=True), nullable=False, server_default=text("now()")),
     UniqueConstraint(
@@ -247,9 +248,13 @@ story_runs = Table(
     ),
     CheckConstraint("revision > 0 AND version > 0", name="ck_story_run_versions"),
     CheckConstraint(
+        "current_input_revision IS NULL OR current_input_revision > 0",
+        name="ck_story_run_current_input_revision",
+    ),
+    CheckConstraint(
         "run_state IN ('INPUT_PROCESSING','SUBJECT_REVIEW',"
         "'PREPARATION_REVIEW','SCRIPT_GENERATING','SCRIPT_GENERATION_UNKNOWN','SCRIPT_REVIEW',"
-        "'VIDEO_ADMISSION_PENDING','DELETE_PENDING','FAILED')",
+        "'VIDEO_ADMISSION_PENDING','DELETE_PENDING','FAILED','COMPLETED')",
         name="ck_story_run_state",
     ),
     CheckConstraint(
@@ -286,30 +291,83 @@ run_inputs = Table(
         "run_id", String(36), ForeignKey("story.runs.run_id", ondelete="CASCADE"), nullable=False
     ),
     Column("input_revision", Integer, nullable=False),
-    Column("original_asset_ref", String(256), nullable=False),
-    Column("original_asset_version", Integer, nullable=False),
-    Column("original_sha256", String(64), nullable=False),
-    Column("original_media_type", String(32), nullable=False),
-    Column("original_size_bytes", BigInteger, nullable=False),
-    Column("derived_asset_ref", String(256), nullable=False),
-    Column("derived_asset_version", Integer, nullable=False),
-    Column("derived_sha256", String(64), nullable=False),
-    Column("derived_media_type", String(32), nullable=False),
-    Column("derived_size_bytes", BigInteger, nullable=False),
+    Column("typed_idea", String(500)),
+    Column("idea_source", String(16)),
+    Column("original_asset_ref", String(256)),
+    Column("original_asset_version", Integer),
+    Column("original_sha256", String(64)),
+    Column("original_media_type", String(32)),
+    Column("original_size_bytes", BigInteger),
+    Column("derived_asset_ref", String(256)),
+    Column("derived_asset_version", Integer),
+    Column("derived_sha256", String(64)),
+    Column("derived_media_type", String(32)),
+    Column("derived_size_bytes", BigInteger),
+    Column("source_profile_revision_ref", String(36)),
+    Column("data_authorization_id", String(36)),
+    Column("context_revision", Integer),
+    Column("context_snapshot", JSONB),
+    Column("context_snapshot_sha256", String(64)),
+    Column("lesson_pin_snapshot", JSONB),
+    Column("lesson_pin_snapshot_sha256", String(64)),
+    Column("context_confirmed_by", String(256)),
+    Column("context_confirmed_at", DateTime(timezone=True)),
     Column("created_at", DateTime(timezone=True), nullable=False, server_default=text("now()")),
     UniqueConstraint("run_id", "input_revision", name="uq_story_run_input_revision"),
     UniqueConstraint("run_id", "run_input_id", name="uq_story_run_input_owner"),
     CheckConstraint(
-        "input_revision > 0 AND original_asset_version > 0 AND derived_asset_version > 0",
+        "input_revision > 0 AND ("
+        "(original_asset_ref IS NULL AND original_asset_version IS NULL "
+        "AND original_sha256 IS NULL AND original_media_type IS NULL AND original_size_bytes IS NULL "
+        "AND derived_asset_ref IS NULL AND derived_asset_version IS NULL "
+        "AND derived_sha256 IS NULL AND derived_media_type IS NULL AND derived_size_bytes IS NULL) OR "
+        "(original_asset_ref IS NOT NULL AND original_asset_version IS NOT NULL "
+        "AND original_asset_version > 0 AND original_sha256 IS NOT NULL "
+        "AND original_media_type IS NOT NULL AND original_size_bytes IS NOT NULL "
+        "AND original_size_bytes > 0 AND derived_asset_ref IS NOT NULL "
+        "AND derived_asset_version IS NOT NULL AND derived_asset_version > 0 "
+        "AND derived_sha256 IS NOT NULL AND derived_media_type IS NOT NULL "
+        "AND derived_size_bytes IS NOT NULL AND derived_size_bytes > 0))",
         name="ck_story_run_input_versions",
     ),
     CheckConstraint(
-        "length(original_sha256) = 64 AND length(derived_sha256) = 64",
+        "(typed_idea IS NULL AND idea_source IS NULL) OR "
+        "(typed_idea IS NOT NULL AND length(typed_idea) BETWEEN 1 AND 500 "
+        "AND idea_source = 'TEXT')",
+        name="ck_story_run_input_typed_idea",
+    ),
+    CheckConstraint(
+        "(original_sha256 IS NULL AND derived_sha256 IS NULL) OR "
+        "(original_sha256 IS NOT NULL AND derived_sha256 IS NOT NULL "
+        "AND length(original_sha256) = 64 AND length(derived_sha256) = 64)",
         name="ck_story_run_input_hashes",
     ),
     CheckConstraint(
-        "original_size_bytes BETWEEN 1 AND 20971520 AND derived_size_bytes BETWEEN 1 AND 5000000",
+        "(original_size_bytes IS NULL AND derived_size_bytes IS NULL) OR "
+        "(original_size_bytes IS NOT NULL AND derived_size_bytes IS NOT NULL "
+        "AND original_size_bytes BETWEEN 1 AND 20971520 "
+        "AND derived_size_bytes BETWEEN 1 AND 5000000)",
         name="ck_story_run_input_sizes",
+    ),
+    CheckConstraint(
+        "(context_snapshot IS NULL AND context_snapshot_sha256 IS NULL "
+        "AND context_revision IS NULL AND source_profile_revision_ref IS NULL "
+        "AND data_authorization_id IS NULL AND context_confirmed_by IS NULL "
+        "AND context_confirmed_at IS NULL) OR "
+        "(context_snapshot IS NOT NULL AND context_snapshot_sha256 IS NOT NULL "
+        "AND length(context_snapshot_sha256) = 64 AND context_revision IS NOT NULL "
+        "AND context_revision > 0 "
+        "AND source_profile_revision_ref IS NOT NULL AND data_authorization_id IS NOT NULL "
+        "AND context_confirmed_by IS NOT NULL AND context_confirmed_at IS NOT NULL "
+        "AND octet_length(context_snapshot::text) <= 8192)",
+        name="ck_story_run_input_parent_context",
+    ),
+    CheckConstraint(
+        "(lesson_pin_snapshot IS NULL AND lesson_pin_snapshot_sha256 IS NULL) OR "
+        "(lesson_pin_snapshot IS NOT NULL AND lesson_pin_snapshot_sha256 IS NOT NULL "
+        "AND length(lesson_pin_snapshot_sha256) = 64 "
+        "AND octet_length(lesson_pin_snapshot::text) <= 1048576)",
+        name="ck_story_run_input_lesson_pin_snapshot",
     ),
 )
 

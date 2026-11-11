@@ -1,0 +1,44 @@
+{
+  "evidence_id": "EV-063-87-REV78A-INFERENCE-01",
+  "plan": "PLAN_REV78A_PARENT_ACTIVITY_GATE_REFINEMENT_20261111.md",
+  "test": "one synthetic Parent activity fallback inference, followed by the application quality gate",
+  "started_at_utc": "2026-11-11T14:56:35.255847+00:00",
+  "finished_at_utc": "2026-11-11T15:12:51.581472+00:00",
+  "elapsed_seconds": 976.326,
+  "model_id": "Qwen/Qwen3.5-9B",
+  "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+  "modal_call_id": "fc-01M75HS5EDVSVC60CJ33KGPCY6",
+  "workload": "parent.activity.suggest",
+  "catalog_candidate_count": 0,
+  "age_band_months": "72-107",
+  "worker_started": true,
+  "worker_last_stage": "model_inference",
+  "model_load_ms": 12672,
+  "constrained_decoder_setup_ms": 2833,
+  "terminal_worker_event": null,
+  "worker_output": null,
+  "quality_gate_result": "NOT_REACHED",
+  "client_result": "ModalFunctionExecutionFailed after cancellation",
+  "cancellation_reason": "No worker event after model_inference for over 16 minutes; stop avoidable GPU use. The exact FunctionCall was cancelled without stopping the deployed app or retrying.",
+  "performance_warnings": [
+    "causal_conv1d is not installed; Transformers used the slower reference PyTorch implementation.",
+    "flash-linear-attention is not installed; Transformers used the slower reference PyTorch implementation."
+  ],
+  "modal_app_after_cancel": {
+    "name": "sketch2life-srs23-language-audio-dev",
+    "state": "deployed",
+    "active_tasks_at_immediate_followup": 1,
+    "active_tasks_after_scale_down": 0,
+    "note": "The app remains deployed; the single task count returned to zero after scale-down. No Modal dev app was stopped."
+  },
+  "local_verification": {
+    "focused_pytest": "28 passed",
+    "ruff": "passed",
+    "py_compile": "passed"
+  },
+  "limitations": [
+    "The worker returned no generated activities, so the live application quality-gate outcome is unknown.",
+    "This was one synthetic direct-worker request; no authenticated HTTP/UI workflow was run.",
+    "No video, real-child data, secret inspection, or retry was performed."
+  ]
+}
