@@ -56,7 +56,7 @@ The first worker's exact three drafts and retrospective gate result are preserve
 - The live dev catalog had no eligible published/shared activity. Automated tests cover candidate selection and versioned hydration, but the deployed catalog-match path remains unverified.
 - The Docker API container was not rebuilt/restarted after the final quality-gate change, and the authenticated Parent endpoint was not re-run after the worker fix. The final test was a direct Modal worker call followed by the actual application service and an offline replay, not a post-fix full HTTP/UI E2E.
 - The isolated test DB contains only synthetic test data. A test-only Firebase identity from the earlier failed harness may remain in the dev Firebase project; no credentials were saved or printed. No `.env` or Modal secret was inspected or changed.
-- No video API, Lightning adapter, commit, push, or Modal app stop was performed.
+- During the runtime test, no video API or Lightning adapter was used, and no Modal app stop was performed. Git publication was completed afterward: commit `34b92194867e915040aae1a1178dee0e526a60c3` is verified on both `origin/codex/feat063-parent-catalog-20261111` and `origin/dev` after a fast-forward merge. The `dev` push included its 21 pre-existing local commits; GitHub reported that the pull-request-only rule was bypassed for the owner-authorized push.
 
 ## Publication-scope local verification
 
@@ -64,5 +64,5 @@ The first worker's exact three drafts and retrospective gate result are preserve
 - Expo Parent tests: 26 passed; TypeScript typecheck passed with the full workspace dependency graph installed from the local pnpm store.
 - Python compilation passed; Alembic reports 20261110_parent_lesson_pin as the single joined head across the existing migration branches.
 - Ruff passes on the new catalog service/port and focused tests. A broader check of touched legacy modules still reports lint diagnostics in those modules; this closeout does not claim the whole legacy codebase is Ruff-clean.
-- Repository security validation passed before publication: 7,225 publishable files scanned; environment files, seed accounts, credentials, signing keys and external reference documents excluded; no absolute machine paths found. Git publication results will be recorded after push/merge.
+- Repository security validation passed before publication: 7,223 publishable files scanned; environment files, seed accounts, credentials, signing keys and external reference documents excluded; no absolute machine paths found.
 - The Alembic migration was not applied to PostgreSQL. No live Parent HTTP/UI retest was run after Rev78A because its sole approved Modal inference returned no output and the catalog was empty; no video was called.

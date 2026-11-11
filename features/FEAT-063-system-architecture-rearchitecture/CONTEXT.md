@@ -1,5 +1,11 @@
 # FEAT-063 — Whole-repository architecture redesign
 
+## Rev78 Parent catalog-first activity publication — 2026-11-11
+
+- Feature commit `34b92194867e915040aae1a1178dee0e526a60c3` was pushed to `origin/codex/feat063-parent-catalog-20261111`, fast-forward merged into `dev`, and pushed. Fresh remote verification confirmed both refs at the same SHA; the `dev` update also published the 21 pre-existing local `dev` commits. The remote reported the pull-request-only rule was bypassed for the owner-authorized push; no history was rewritten.
+- The repository security validator passed before pushing `dev` (`publishable_files_scanned=7223`). Implementation/test results and live-inference limitations are recorded in `status/STATUS.md` and `evidence/EV-063-87_PARENT_FULL_API_UI_E2E_20261111/API_PARENT_E2E_REPORT.md`.
+- The v2.7-draft Rev60 SRS remains unchanged and unsigned; D-172 remains task-scoped pending formal SRS reconciliation.
+
 ## Teacher Sketch Deck presentation UI — Plan Rev65 (2026-11-10)
 
 - Implemented and verified the Teacher presentation surface in the real Teacher Web UI with live Modal output: 4-slide Qwen3.5 DRAFT and FLUX composite image on the drawing-guide slide. Activity content scrolls inside the fixed 16:9 slide so safety notes remain reachable.
