@@ -301,18 +301,25 @@ def create_app(
     @application.middleware("http")
     async def be1_request_context(request: Request, call_next):
         if not request.url.path.startswith(
-            ("/api/be1/v1", "/api/lesson-library/v1", "/v1/parent/profiles")
+            (
+                "/api/be1/v1",
+                "/api/lesson-library/v1",
+                "/v1/parent/profiles",
+                "/v1/story-runs",
+            )
         ):
             return await call_next(request)
         supplied_id = request.headers.get("X-Request-ID", "")
         request_id = supplied_id if _SAFE_ID.fullmatch(supplied_id) else str(uuid4())
         if request.url.path.startswith("/v1/parent/profiles"):
             request.state.parent_request_id = request_id
+        elif request.url.path.startswith("/v1/story-runs"):
+            request.state.story_request_id = request_id
         else:
             request.state.be1_request_id = request_id
         response = await call_next(request)
         if not (
-            request.url.path.startswith("/v1/parent/profiles")
+            request.url.path.startswith(("/v1/parent/profiles", "/v1/story-runs"))
             and response.headers.get("X-Request-ID")
         ):
             response.headers["X-Request-ID"] = request_id
@@ -322,6 +329,60 @@ def create_app(
     async def handle_http_exception(
         request: Request, exc: StarletteHTTPException
     ) -> JSONResponse:
+        if request.url.path.startswith("/v1/story-runs"):
+            detail = exc.detail if isinstance(exc.detail, dict) else {}
+            status_codes = {
+                400: "INVALID_REQUEST",
+                401: "AUTH_REQUIRED",
+                403: "ACTION_NOT_ALLOWED",
+                404: "RESOURCE_NOT_FOUND",
+                409: "INVALID_STATE_TRANSITION",
+                413: "MEDIA_TOO_LARGE",
+                415: "UNSUPPORTED_MEDIA_TYPE",
+                422: "INVALID_REQUEST",
+                429: "RATE_LIMITED",
+                500: "INTERNAL_SERVER_ERROR",
+                502: "PROVIDER_BAD_RESPONSE",
+                503: "PROVIDER_UNAVAILABLE",
+                504: "PROVIDER_UNAVAILABLE",
+            }
+            safe_messages = {
+                "ACTIVE_RUN_EXISTS": "Đã có một lượt kể chuyện đang hoạt động.",
+                "ACTION_NOT_ALLOWED": "Tài khoản không được phép thực hiện thao tác này.",
+                "AUTH_REQUIRED": "Vui lòng xác thực lại tài khoản.",
+                "INVALID_IDEMPOTENCY_KEY": "Khóa yêu cầu trùng với nội dung khác.",
+                "INVALID_REQUEST": "Yêu cầu không hợp lệ.",
+                "INVALID_STATE_TRANSITION": "Lượt kể chuyện chưa ở trạng thái phù hợp.",
+                "PROFILE_CONTEXT_NOT_CONFIRMED": "Vui lòng xác nhận thông tin lượt kể chuyện.",
+                "PROVIDER_BAD_RESPONSE": "Không thể hoàn tất yêu cầu hiện tại.",
+                "PROVIDER_UNAVAILABLE": "Dịch vụ tạm thời chưa sẵn sàng.",
+                "RATE_LIMITED": "Bạn đã gửi quá nhiều yêu cầu. Vui lòng thử lại sau.",
+                "RESOURCE_NOT_FOUND": "Không tìm thấy tài nguyên được yêu cầu.",
+                "STALE_REVISION": "Thông tin đã thay đổi. Vui lòng tải lại và xác nhận lại.",
+                "UNSUPPORTED_MEDIA_TYPE": "Định dạng nội dung không được hỗ trợ.",
+            }
+            raw_code = detail.get("code", status_codes.get(exc.status_code, "REQUEST_FAILED"))
+            code = (
+                raw_code
+                if isinstance(raw_code, str)
+                and re.fullmatch(r"[A-Z][A-Z0-9_]{0,63}", raw_code)
+                else status_codes.get(exc.status_code, "REQUEST_FAILED")
+            )
+            request_id = getattr(request.state, "story_request_id", str(uuid4()))
+            retry_after = exc.headers.get("Retry-After") if exc.headers else None
+            retry_after_seconds = int(retry_after) if retry_after and retry_after.isdigit() else None
+            return JSONResponse(
+                status_code=exc.status_code,
+                content={
+                    "code": code,
+                    "message": safe_messages.get(code, "Không thể hoàn tất yêu cầu."),
+                    "correlation_id": request_id,
+                    "retryable": exc.status_code in {429, 502, 503, 504},
+                    "retry_after_seconds": retry_after_seconds,
+                    "field_errors": None,
+                },
+                headers={**(exc.headers or {}), "X-Request-ID": request_id},
+            )
         if request.url.path.startswith("/v1/parent/profiles"):
             detail = exc.detail if isinstance(exc.detail, dict) else {}
             safe_messages = {
@@ -436,6 +497,31 @@ def create_app(
     ) -> JSONResponse:
         if story_demo_enabled and _story_run_lite_path(request.url.path):
             return await story_validation_error_response(request, exc)
+        if request.url.path.startswith("/v1/story-runs"):
+            request_id = getattr(request.state, "story_request_id", str(uuid4()))
+            safe_fields = []
+            for issue in exc.errors():
+                location = issue.get("loc", ())
+                field_parts = [str(part) for part in location if str(part) not in {"body", "query"}]
+                field = ".".join(
+                    part if part.isidentifier() else "item" if part.isdigit() else "field"
+                    for part in field_parts[:6]
+                ) or "request"
+                safe_fields.append(
+                    {"field": field[:120], "code": "INVALID_FIELD", "message": "Giá trị trường không hợp lệ."}
+                )
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "code": "INVALID_REQUEST",
+                    "message": "Yêu cầu không khớp với hợp đồng API.",
+                    "correlation_id": request_id,
+                    "retryable": False,
+                    "retry_after_seconds": None,
+                    "field_errors": safe_fields or None,
+                },
+                headers={"X-Request-ID": request_id},
+            )
         if request.url.path.startswith("/v1/parent/profiles"):
             request_id = getattr(request.state, "parent_request_id", str(uuid4()))
             return JSONResponse(
@@ -548,6 +634,25 @@ def create_app(
     async def handle_unexpected_exception(request: Request, exc: Exception):
         if story_demo_enabled and _story_run_lite_path(request.url.path):
             return await story_unexpected_error_response(request, exc)
+        if request.url.path.startswith("/v1/story-runs"):
+            request_id = getattr(request.state, "story_request_id", str(uuid4()))
+            _LOGGER.error(
+                "parent_story_run_unhandled_exception request_id=%s exception_type=%s",
+                request_id,
+                type(exc).__name__,
+            )
+            return JSONResponse(
+                status_code=500,
+                content={
+                    "code": "INTERNAL_SERVER_ERROR",
+                    "message": "Không thể hoàn tất yêu cầu.",
+                    "correlation_id": request_id,
+                    "retryable": False,
+                    "retry_after_seconds": None,
+                    "field_errors": None,
+                },
+                headers={"X-Request-ID": request_id},
+            )
         if request.url.path.startswith("/api/lesson-library/v1"):
             request_id = getattr(request.state, "be1_request_id", str(uuid4()))
             _LOGGER.error(
@@ -828,7 +933,7 @@ def create_app(
     application.state.lesson_document_parser = None
     application.state.lesson_document_scanner = None
     if _composition_profile == "combined":
-        mount_all_routers(application)
+        mount_all_routers(application, include_parent_story_runs=not story_demo_enabled)
         if story_demo_enabled:
             application.include_router(story_run_lite_router)
     elif _composition_profile == "classroom":

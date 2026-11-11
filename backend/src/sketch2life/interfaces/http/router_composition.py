@@ -58,7 +58,9 @@ def mount_demo_routers(application: FastAPI) -> None:
     application.include_router(story_video_router)
 
 
-def mount_all_routers(application: FastAPI) -> None:
+def mount_all_routers(
+    application: FastAPI, *, include_parent_story_runs: bool = True
+) -> None:
     """Preserve the original compatibility app's router registration order."""
     settings = application.state.be1_runtime.settings
     include_pilot_assistance = settings.env == "test" or (
@@ -72,5 +74,6 @@ def mount_all_routers(application: FastAPI) -> None:
     application.include_router(lesson_library_router)
     application.include_router(parent_ai_router)
     application.include_router(parent_profiles_router)
-    application.include_router(parent_story_runs_router)
+    if include_parent_story_runs:
+        application.include_router(parent_story_runs_router)
     application.include_router(teacher_ai_router)

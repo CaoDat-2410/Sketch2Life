@@ -12,7 +12,7 @@ CONTRACT_REVISION: Final = "FEAT-063 Rev37"
 SOURCE_FILE_NAME: Final = 'API_CONTRACT_CATALOG_FEAT063_REV37_20261030.md'
 SOURCE_SHA256: Final = '56FC8BEA01360E11F73E45B2D43AC1897540B30BC8AE524CDE1ECEFACFBB1B88'
 DECLARED_OPERATION_COUNT: Final = 135
-MOUNTED_OPERATION_COUNT: Final = 126
+MOUNTED_OPERATION_COUNT: Final = 132
 UNMOUNTED_OPERATION_COUNT: Final = 11
 TAG_DESCRIPTIONS: Final[dict[str, str]] = {'BE1 — Organizations & Classes': 'Organization membership, class setup, profiles, assignments, '
                                   'and consents.',
@@ -36,6 +36,7 @@ TAG_DESCRIPTIONS: Final[dict[str, str]] = {'BE1 — Organizations & Classes': 'O
  'Parent — Invitations & Lesson Library': 'Parent invitations, memberships, lesson discovery, and '
                                           'lesson downloads.',
  'Parent Profiles': 'Create, read, and revise synthetic Parent-owned profiles.',
+ 'Parent StoryRuns': 'Proposed Parent StoryRun create, read, and confirmation slice.',
  'Parent & School Manager — Group Membership': 'Parent-group membership revocation available to '
                                                'the parent or school manager.',
  'Platform Admin — Moderation': 'Platform-level lesson moderation.',
@@ -10977,6 +10978,169 @@ MOUNTED_OPERATIONS[('patch', '/v1/parent/profiles/{profile_id}')] = {
          'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
         {'status': '503', 'description': 'A required service is unavailable',
          'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+    ),
+}
+
+MOUNTED_OPERATIONS[('post', '/v1/story-runs')] = {
+    'purpose': 'Create a Parent StoryRun from one owned synthetic profile and an optional pinned lesson version.',
+    'request_inputs': 'header `Idempotency-Key*`: string; application/json (required): '
+                      'ParentStoryRunCreateRequestV1 {parent_profile_id*:uuid, topic:string, '
+                      'adult_confirmed_idea:string, lesson_version:ParentLessonVersionRefV1|null}',
+    'surface': 'Parent / StoryRun integration proposal',
+    'tag': 'Parent StoryRuns',
+    'handler': 'parent_story_runs.py::create_parent_story_run',
+    'authentication': 'HTTPBearer (bearer)',
+    'verification': 'Rev60 §21.2 alignment; context confirmation remains a proposal',
+    'responses': (
+        {'status': '201', 'description': 'StoryRun created', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryRunEnvelopeV1'},
+        {'status': '400', 'description': 'The request is invalid', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '401', 'description': 'Authentication is required', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '403', 'description': 'The action is not allowed', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '404', 'description': 'The requested resource was not found', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '409', 'description': 'An active run already exists or the version is stale',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '422', 'description': 'Validation uses the standard error envelope',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '503', 'description': 'A required service is unavailable', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '500', 'description': 'An unexpected error occurred', 'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+    ),
+}
+MOUNTED_OPERATIONS[('get', '/v1/story-runs/{run_id}')] = {
+    'purpose': 'Read one Parent StoryRun owned by the verified principal.',
+    'request_inputs': 'path `run_id*`: uuid',
+    'surface': 'Parent / StoryRun integration proposal',
+    'tag': 'Parent StoryRuns',
+    'handler': 'parent_story_runs.py::get_parent_story_run',
+    'authentication': 'HTTPBearer (bearer)',
+    'verification': 'Rev60 §21.2 resource-read path',
+    'responses': (
+        {'status': '200', 'description': 'StoryRun resource', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryRunEnvelopeV1'},
+        {'status': '401', 'description': 'Authentication is required', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '403', 'description': 'The action is not allowed', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '404', 'description': 'The requested resource was not found',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '503', 'description': 'A required service is unavailable', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '500', 'description': 'An unexpected error occurred', 'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+    ),
+}
+MOUNTED_OPERATIONS[('get', '/v1/story-runs/active/current')] = {
+    'purpose': 'Resume the verified Parent principal’s active StoryRun, if one exists.',
+    'request_inputs': 'No path/query/header/body input declared in OpenAPI',
+    'surface': 'Parent / StoryRun integration proposal',
+    'tag': 'Parent StoryRuns',
+    'handler': 'parent_story_runs.py::get_active_parent_story_run',
+    'authentication': 'HTTPBearer (bearer)',
+    'verification': 'Proposed active-run locator; Rev60 does not name this exact path',
+    'responses': (
+        {'status': '200', 'description': 'Active StoryRun or null', 'media_type': 'application/json',
+         'schema_name': 'ParentActiveStoryRunEnvelopeV1'},
+        {'status': '401', 'description': 'Authentication is required', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '403', 'description': 'The action is not allowed', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '503', 'description': 'A required service is unavailable', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '500', 'description': 'An unexpected error occurred', 'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+    ),
+}
+MOUNTED_OPERATIONS[('post', '/v1/story-runs/{run_id}/context-confirmation')] = {
+    'purpose': 'Confirm the pinned Parent context snapshot before story generation.',
+    'request_inputs': 'path `run_id*`: uuid; header `Idempotency-Key*`: string; '
+                      'application/json (required): ParentContextConfirmationRequestV1 '
+                      '{expected_context_revision*:integer, context_snapshot_sha256*:string, confirmed*:true}',
+    'surface': 'Parent / StoryRun integration proposal',
+    'tag': 'Parent StoryRuns',
+    'handler': 'parent_story_runs.py::confirm_parent_story_context',
+    'authentication': 'HTTPBearer (bearer)',
+    'verification': 'Rev60 §21.2 path; request fields are a proposal',
+    'responses': (
+        {'status': '200', 'description': 'Context snapshot confirmation recorded',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryRunEnvelopeV1'},
+        {'status': '400', 'description': 'The idempotency key is invalid',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '401', 'description': 'Authentication is required', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '403', 'description': 'The action is not allowed', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '404', 'description': 'The requested resource was not found',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '409', 'description': 'The snapshot or run state is stale',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '422', 'description': 'Validation uses the standard error envelope',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '503', 'description': 'A required service is unavailable', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '500', 'description': 'An unexpected error occurred', 'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+    ),
+}
+MOUNTED_OPERATIONS[('post', '/v1/story-runs/{run_id}/subject-confirmation')] = {
+    'purpose': 'Persist adult confirmation of a drawing-understanding subject.',
+    'request_inputs': 'path `run_id*`: uuid; header `Idempotency-Key*`: string; '
+                      'application/json (required): ParentSubjectConfirmationRequestV1 '
+                      '{expected_understanding_revision*:integer, confirmed_subject*:string}',
+    'surface': 'Parent / StoryRun integration proposal',
+    'tag': 'Parent StoryRuns',
+    'handler': 'parent_story_runs.py::confirm_parent_story_subject',
+    'authentication': 'HTTPBearer (bearer)',
+    'verification': 'Rev60 §21.2 path; command contract is a proposal',
+    'responses': (
+        {'status': '200', 'description': 'Subject confirmation recorded', 'media_type': 'application/json',
+         'schema_name': 'ParentSubjectConfirmationResponseV1'},
+        {'status': '400', 'description': 'The idempotency key is invalid',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '401', 'description': 'Authentication is required', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '403', 'description': 'The action is not allowed', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '404', 'description': 'The requested resource was not found',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '409', 'description': 'The run or understanding revision is stale',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '422', 'description': 'Validation uses the standard error envelope',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '503', 'description': 'A required service is unavailable', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '500', 'description': 'An unexpected error occurred', 'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+    ),
+}
+MOUNTED_OPERATIONS[('post', '/v1/story-runs/{run_id}/script-confirmation')] = {
+    'purpose': 'Persist adult confirmation of the current generated story revision.',
+    'request_inputs': 'path `run_id*`: uuid; header `Idempotency-Key*`: string; '
+                      'application/json (required): ParentStoryRevisionConfirmationRequestV1 '
+                      '{expected_revision*:integer, story_sha256*:string}',
+    'surface': 'Parent / StoryRun integration proposal',
+    'tag': 'Parent StoryRuns',
+    'handler': 'parent_story_runs.py::confirm_parent_story_revision',
+    'authentication': 'HTTPBearer (bearer)',
+    'verification': 'Rev60 §21.2 path; command contract is a proposal',
+    'responses': (
+        {'status': '200', 'description': 'Story revision confirmation recorded',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryRunEnvelopeV1'},
+        {'status': '400', 'description': 'The idempotency key is invalid',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '401', 'description': 'Authentication is required', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '403', 'description': 'The action is not allowed', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '404', 'description': 'The requested resource was not found',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '409', 'description': 'The run or story revision is stale',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '422', 'description': 'Validation uses the standard error envelope',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '503', 'description': 'A required service is unavailable', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '500', 'description': 'An unexpected error occurred', 'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
     ),
 }
 

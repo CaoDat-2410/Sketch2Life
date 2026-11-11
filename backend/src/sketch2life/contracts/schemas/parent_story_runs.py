@@ -6,28 +6,26 @@ from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field
 
 from sketch2life.contracts.schemas.lesson_library import LessonActivityInputV1
+
+
+class ParentLessonVersionRefV1(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True, strict=True)
+
+    lesson_id: str = Field(min_length=1, max_length=256)
+    version_id: str = Field(min_length=1, max_length=256)
+    content_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
 
 
 class ParentStoryRunCreateRequestV1(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True, strict=True)
 
     parent_profile_id: UUID
-    expected_profile_revision_id: UUID
-    consent_policy_version: str = Field(min_length=1, max_length=80)
     topic: str = Field(default="", max_length=120)
     adult_confirmed_idea: str = Field(default="", max_length=500)
-    context_confirmed: Literal[True]
-    lesson_id: str | None = Field(default=None, min_length=1, max_length=256)
-    lesson_version_id: str | None = Field(default=None, min_length=1, max_length=256)
-
-    @model_validator(mode="after")
-    def lesson_pin_is_complete(self) -> ParentStoryRunCreateRequestV1:
-        if (self.lesson_id is None) != (self.lesson_version_id is None):
-            raise ValueError("lesson_id and lesson_version_id must be provided together")
-        return self
+    lesson_version: ParentLessonVersionRefV1 | None = None
 
 
 class ParentRunContextSnapshotV1(BaseModel):
@@ -38,10 +36,9 @@ class ParentRunContextSnapshotV1(BaseModel):
         pattern=r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
     )
     age_months: int = Field(ge=36, le=120)
-    interests_summary: str = Field(max_length=800)
+    interests_summary: str = Field(max_length=2000)
     topic: str = Field(max_length=120)
     adult_confirmed_idea: str = Field(max_length=500)
-    consent_policy_version: str = Field(min_length=1, max_length=80)
 
 
 class ParentLessonPinSnapshotV1(BaseModel):
@@ -113,6 +110,7 @@ class ParentStoryRunResponseV1(BaseModel):
     parent_profile_id: UUID
     profile_revision_ref: UUID
     context_revision: int
+    context_confirmed: bool
     context_snapshot: ParentRunContextSnapshotV1
     context_snapshot_sha256: str
     lesson_pin_snapshot: ParentLessonPinSnapshotV1 | None = None
@@ -139,6 +137,21 @@ class ParentStoryRunEnvelopeV1(BaseModel):
     story_run: ParentStoryRunResponseV1
 
 
+class ParentStoryErrorFieldV1(BaseModel):
+    field: str
+    code: str
+    message: str
+
+
+class ParentStoryErrorEnvelopeV1(BaseModel):
+    code: str
+    message: str
+    correlation_id: str
+    retryable: bool
+    retry_after_seconds: int | None = None
+    field_errors: list[ParentStoryErrorFieldV1] | None = None
+
+
 class ParentActiveStoryRunEnvelopeV1(BaseModel):
     request_id: UUID
     story_run: ParentStoryRunResponseV1 | None
@@ -149,6 +162,14 @@ class ParentSubjectConfirmationRequestV1(BaseModel):
 
     expected_understanding_revision: int = Field(ge=1)
     confirmed_subject: str = Field(min_length=1, max_length=160)
+
+
+class ParentContextConfirmationRequestV1(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    expected_context_revision: int = Field(ge=1)
+    context_snapshot_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    confirmed: Literal[True]
 
 
 class ParentSubjectConfirmationResponseV1(BaseModel):
@@ -174,7 +195,11 @@ class ParentStoryRevisionConfirmationRequestV1(BaseModel):
 
 __all__ = [
     "ParentDrawingCandidateV1",
+    "ParentContextConfirmationRequestV1",
+    "ParentLessonVersionRefV1",
     "ParentRunContextSnapshotV1",
+    "ParentStoryErrorEnvelopeV1",
+    "ParentStoryErrorFieldV1",
     "ParentStoryDisplayV1",
     "ParentStoryRevisionConfirmationRequestV1",
     "ParentStoryRevisionRequestV1",

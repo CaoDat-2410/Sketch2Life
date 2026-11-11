@@ -25,10 +25,6 @@ from sketch2life.application.ports.lesson_documents import (
 )
 from sketch2life.application.ports.object_storage import ObjectStorageFailure
 from sketch2life.application.ports.parent_story_runs import ParentStoryRunError
-from sketch2life.application.services.parent_activity_suggestions import (
-    ParentActivitySuggestionError,
-    ParentActivitySuggestionService,
-)
 from sketch2life.application.services.parent_story_runs import (
     ParentStoryRunService,
     ParentStoryRunServiceError,
@@ -38,8 +34,6 @@ from sketch2life.contracts.schemas.ai_story import (
     validate_butterfly_lifecycle_v1,
 )
 from sketch2life.contracts.schemas.modal_ai import (
-    ParentActivitySuggestionRequestV1,
-    ParentActivitySuggestionResponseV2,
     ParentDrawingAnalysisRequestV1,
     ParentSketchGuideRequestV1,
     ParentStoryRequestV1,
@@ -57,16 +51,14 @@ from sketch2life.infrastructure.ai.modal_function_client import (
     prepare_drawing_input,
 )
 from sketch2life.infrastructure.config.settings import get_settings
-from sketch2life.infrastructure.lesson_library.parent_activity_catalog import (
-    LessonLibraryParentActivityCatalogAdapter,
-)
-from sketch2life.infrastructure.lesson_library.service import LessonLibraryService
 from sketch2life.infrastructure.persistence.be1_models import AdultIdentityModel
 from sketch2life.infrastructure.persistence.parent_story_repository import (
     SqlParentStoryRunRepository,
 )
+from sketch2life.infrastructure.persistence.parent_story_profile_lookup import (
+    SqlParentStoryProfileLookup,
+)
 from sketch2life.interfaces.http.be1_runtime import get_db, get_verified_adult
-from sketch2life.interfaces.http.routers.lesson_library import get_lesson_library_service
 
 router = APIRouter(prefix="/api/parent/v1/ai", tags=["Parent AI v1"])
 _LOGGER = get_logger(__name__)
@@ -92,13 +84,6 @@ def _require_modal_dev() -> None:
             status_code=503,
             detail={"code": "MODAL_AI_NOT_ENABLED"},
         )
-
-
-def _policy_version() -> str:
-    value = get_settings().parent_consent_policy_version.strip()
-    if not value or not get_settings().parent_consent_policy_text.strip():
-        raise HTTPException(status_code=503, detail={"code": "PARENT_CONSENT_POLICY_UNAVAILABLE"})
-    return value
 
 
 def _provider_error(exc: Exception, *, request_id: str, workload: str) -> HTTPException:
@@ -128,7 +113,10 @@ def _provider_error(exc: Exception, *, request_id: str, workload: str) -> HTTPEx
 
 
 def _story_service(db: Session) -> ParentStoryRunService:
-    return ParentStoryRunService(SqlParentStoryRunRepository(db))
+    return ParentStoryRunService(
+        SqlParentStoryRunRepository(db),
+        SqlParentStoryProfileLookup(db),
+    )
 
 
 def _story_response(record) -> ParentStoryRunResponseV1:
@@ -138,6 +126,7 @@ def _story_response(record) -> ParentStoryRunResponseV1:
         parent_profile_id=record.parent_profile_id,
         profile_revision_ref=record.profile_revision_ref,
         context_revision=record.context_revision,
+        context_confirmed=record.context_confirmed,
         context_snapshot=record.context_snapshot,
         context_snapshot_sha256=record.context_snapshot_sha256,
         lesson_pin_snapshot=record.lesson_pin_snapshot,
@@ -156,119 +145,6 @@ def _story_response(record) -> ParentStoryRunResponseV1:
         created_at=record.created_at,
         updated_at=record.updated_at,
     )
-
-
-@router.post(
-    "/story-runs/{run_id}/activity-suggestions",
-    response_model=ParentActivitySuggestionResponseV2,
-    summary="Select Parent-accessible lesson activities or create quality-gated drafts",
-)
-def suggest_parent_activities(
-    run_id: UUID,
-    payload: ParentActivitySuggestionRequestV1,
-    principal: VerifiedPrincipal = Depends(get_verified_adult),
-    db: Session = Depends(get_db),
-    lesson_library: LessonLibraryService = Depends(get_lesson_library_service),
-) -> ParentActivitySuggestionResponseV2:
-    _require_parent(db, principal)
-    request_id = str(uuid4())
-    policy_version = _policy_version()
-    try:
-        run = _story_service(db).get_run(
-            owner_subject=principal.subject,
-            policy_version=policy_version,
-            run_id=str(run_id),
-        )
-    except ParentStoryRunError as exc:
-        raise HTTPException(status_code=exc.status_code, detail={"code": exc.code}) from None
-    if (
-        run.run_state != "PREPARATION_REVIEW"
-        or run.understanding_revision != payload.expected_understanding_revision
-        or not run.subject_label
-        or run.candidate is None
-    ):
-        raise HTTPException(
-            status_code=409,
-            detail={"code": "PARENT_SUBJECT_CONFIRMATION_REQUIRED"},
-        )
-
-    _require_modal_dev()
-    visible_features = run.candidate.get("visible_features")
-    if not isinstance(visible_features, list) or not visible_features:
-        raise HTTPException(
-            status_code=409,
-            detail={"code": "PARENT_VISIBLE_FEATURES_UNAVAILABLE"},
-        )
-    suggestion_service = ParentActivitySuggestionService(
-        LessonLibraryParentActivityCatalogAdapter(lesson_library)
-    )
-    try:
-        prepared = suggestion_service.prepare(
-            parent_principal_ref=principal.subject,
-            context_snapshot=run.context_snapshot,
-            subject_label=run.subject_label,
-            visible_features=visible_features,
-            pinned_lesson_snapshot=run.lesson_pin_snapshot,
-        )
-    except ParentActivitySuggestionError as exc:
-        status_code = 409 if exc.code.startswith("PARENT_") else 502
-        raise HTTPException(status_code=status_code, detail={"code": exc.code}) from None
-    try:
-        result = ModalJsonFunctionClient().invoke(
-            "parent.activity.suggest", prepared.worker_input
-        )
-    except (ModalFunctionOutcomeUnknown, ModalFunctionExecutionFailed) as exc:
-        raise _provider_error(
-            exc, request_id=request_id, workload="parent.activity.suggest"
-        ) from None
-    output = result.output
-    if output.get("workload") != "parent.activity.suggest":
-        raise HTTPException(status_code=502, detail={"code": "MODAL_OUTPUT_CONTRACT_INVALID"})
-    raw_result = output.get("result")
-    if (
-        not isinstance(raw_result, dict)
-        or raw_result.get("schema_version")
-        != "sketch2life.parent-activity-suggestions.v2"
-    ):
-        raise HTTPException(status_code=502, detail={"code": "MODAL_OUTPUT_CONTRACT_INVALID"})
-    try:
-        response = suggestion_service.resolve(
-            prepared=prepared,
-            raw_result=raw_result,
-            request_id=request_id,
-            story_run_id=str(run_id),
-            understanding_revision=payload.expected_understanding_revision,
-            modal_call_id=result.call_id,
-        )
-        response_model = ParentActivitySuggestionResponseV2.model_validate(response)
-    except (ParentActivitySuggestionError, TypeError, ValidationError) as exc:
-        code = (
-            exc.code
-            if isinstance(exc, ParentActivitySuggestionError)
-            else "MODAL_OUTPUT_CONTRACT_INVALID"
-        )
-        _LOGGER.warning(
-            "parent_activity_output_rejected",
-            request_id=request_id,
-            error_code=code,
-            quality_gate_reason=(
-                exc.diagnostic_code
-                if isinstance(exc, ParentActivitySuggestionError)
-                else None
-            ),
-        )
-        raise HTTPException(status_code=502, detail={"code": code}) from None
-    _LOGGER.info(
-        "parent_activity_suggestions_completed",
-        request_id=request_id,
-        modal_call_id=result.call_id,
-        workload="parent.activity.suggest",
-        elapsed_seconds=result.elapsed_seconds,
-        selection_mode=response_model.selection_mode,
-        catalog_candidate_count=response_model.catalog_candidate_count,
-        activity_count=len(response_model.activities),
-    )
-    return response_model
 
 
 @router.post("/sketch-guides", summary="Generate an optional generic line-sketch guide")
@@ -331,14 +207,12 @@ def analyze_drawing(
 ) -> dict[str, object]:
     _require_parent(db, principal)
     _require_modal_dev()
-    policy_version = _policy_version()
     request_id = str(uuid4())
     run_id = str(payload.story_run_id)
     repository = SqlParentStoryRunRepository(db)
     try:
         current = repository.read_current_input(
-            owner_subject=principal.subject,
-            policy_version=policy_version,
+            principal=principal,
             run_id=run_id,
         )
     except ParentStoryRunError as exc:
@@ -398,8 +272,7 @@ def analyze_drawing(
             metadata={"sha256": prepared.drawing_sha256, "source-ref": original_asset_ref},
         )
         repository.attach_artwork(
-            owner_subject=principal.subject,
-            policy_version=policy_version,
+            principal=principal,
             run_id=run_id,
             original_asset_ref=original_asset_ref,
             original_sha256=source_hash,
@@ -434,7 +307,7 @@ def analyze_drawing(
         code = "DRAWING_OUTCOME_UNKNOWN" if isinstance(exc, ModalFunctionOutcomeUnknown) else exc.code
         try:
             repository.fail_drawing_analysis(
-                owner_subject=principal.subject,
+                principal=principal,
                 run_id=run_id,
                 error_code=code,
                 outcome_unknown=isinstance(exc, ModalFunctionOutcomeUnknown),
@@ -452,7 +325,7 @@ def analyze_drawing(
         unknown = ModalFunctionOutcomeUnknown()
         try:
             repository.fail_drawing_analysis(
-                owner_subject=principal.subject,
+                principal=principal,
                 run_id=run_id,
                 error_code="MODAL_ADAPTER_OUTCOME_UNKNOWN",
                 outcome_unknown=True,
@@ -464,7 +337,7 @@ def analyze_drawing(
     raw_candidate = result.output.get("result")
     if not isinstance(raw_candidate, dict) or raw_candidate.get("adult_confirmation_required") is not True:
         repository.fail_drawing_analysis(
-            owner_subject=principal.subject,
+            principal=principal,
             run_id=run_id,
             error_code="MODAL_OUTPUT_CONTRACT_INVALID",
             outcome_unknown=False,
@@ -485,7 +358,7 @@ def analyze_drawing(
         or not 0 <= float(confidence_value) <= 1
     ):
         repository.fail_drawing_analysis(
-            owner_subject=principal.subject,
+            principal=principal,
             run_id=run_id,
             error_code="MODAL_OUTPUT_CONTRACT_INVALID",
             outcome_unknown=False,
@@ -501,8 +374,7 @@ def analyze_drawing(
     result_snapshot = {"result": candidate}
     try:
         understanding_revision = repository.record_understanding(
-            owner_subject=principal.subject,
-            policy_version=policy_version,
+            principal=principal,
             run_id=run_id,
             result_snapshot=result_snapshot,
             candidate_subject=candidate_subject or "UNCONFIRMED",
@@ -542,14 +414,12 @@ def generate_story_revision(
 ) -> dict[str, object]:
     _require_parent(db, principal)
     _require_modal_dev()
-    policy_version = _policy_version()
     request_id = str(uuid4())
     repository = SqlParentStoryRunRepository(db)
-    service = ParentStoryRunService(repository)
+    service = _story_service(db)
     try:
         reservation = service.reserve_story_revision(
-            owner_subject=principal.subject,
-            policy_version=policy_version,
+            principal=principal,
             run_id=str(run_id),
             expected_understanding_revision=payload.expected_understanding_revision,
             rewrite_instruction=payload.rewrite_instruction,
@@ -566,8 +436,7 @@ def generate_story_revision(
     except (ModalFunctionOutcomeUnknown, ModalFunctionExecutionFailed) as exc:
         code = "STORY_OUTCOME_UNKNOWN" if isinstance(exc, ModalFunctionOutcomeUnknown) else exc.code
         repository.fail_story_revision(
-            owner_subject=principal.subject,
-            policy_version=policy_version,
+            principal=principal,
             reservation=reservation,
             error_code=code,
             outcome_unknown=isinstance(exc, ModalFunctionOutcomeUnknown),
@@ -575,8 +444,7 @@ def generate_story_revision(
         raise _provider_error(exc, request_id=request_id, workload="story.generate") from None
     except ValueError:
         repository.fail_story_revision(
-            owner_subject=principal.subject,
-            policy_version=policy_version,
+            principal=principal,
             reservation=reservation,
             error_code="STORY_INPUT_CONTRACT_INVALID",
             outcome_unknown=False,
@@ -593,8 +461,7 @@ def generate_story_revision(
             exception_type=type(exc).__name__,
         )
         repository.fail_story_revision(
-            owner_subject=principal.subject,
-            policy_version=policy_version,
+            principal=principal,
             reservation=reservation,
             error_code="STORY_OUTCOME_UNKNOWN",
             outcome_unknown=True,
@@ -621,8 +488,7 @@ def generate_story_revision(
             else "STORY_OUTPUT_INVALID"
         )
         repository.fail_story_revision(
-            owner_subject=principal.subject,
-            policy_version=policy_version,
+            principal=principal,
             reservation=reservation,
             error_code=code,
             outcome_unknown=False,
@@ -639,8 +505,7 @@ def generate_story_revision(
     ).hexdigest()
     record = repository.complete_story_revision(
         reservation=reservation,
-        owner_subject=principal.subject,
-        policy_version=policy_version,
+        principal=principal,
         story=normalized_story,
         story_sha256=story_hash,
         provider_call_id=modal_call_id,
