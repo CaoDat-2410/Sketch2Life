@@ -13,6 +13,7 @@ import {
   User,
 } from 'lucide-react'
 import logoIcon from '../assets/logo-icon.png'
+import { authService } from '../services/authService'
 
 const NAV_ITEMS = [
   { key: 'home',      to: '/',          label: 'Tổng quan',     icon: Home,      match: (p: string) => p === '/' },
@@ -59,6 +60,7 @@ export function TeacherLayout() {
   const location = useLocation()
   const navigate = useNavigate()
   const [showQuickNav, setShowQuickNav] = useState(false)
+  const [showPasswordChange, setShowPasswordChange] = useState(false)
   const breadcrumb = getBreadcrumb(location.pathname)
 
   return (
@@ -122,7 +124,14 @@ export function TeacherLayout() {
           </div>
 
           <button
-            onClick={() => navigate('/login')}
+            onClick={() => setShowPasswordChange(true)}
+            className="w-full mb-2 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-[14px] font-medium text-slate-700 transition-colors cursor-pointer"
+          >
+            <span>Đổi mật khẩu</span>
+          </button>
+
+          <button
+            onClick={() => void authService.logout().then(() => navigate('/login', { replace: true }))}
             className="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-[14px] font-medium text-slate-700 transition-colors cursor-pointer"
           >
             <LogOut size={16} className="text-slate-600" />
@@ -198,6 +207,49 @@ export function TeacherLayout() {
           <Outlet />
         </main>
       </div>
+      {showPasswordChange && <PasswordChangeDialog onClose={() => setShowPasswordChange(false)} />}
+    </div>
+  )
+}
+
+function PasswordChangeDialog({ onClose }: { onClose: () => void }) {
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmation, setConfirmation] = useState('')
+  const [message, setMessage] = useState('')
+  const [busy, setBusy] = useState(false)
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4" role="presentation">
+      <form
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="teacher-password-title"
+        onSubmit={(event) => {
+          event.preventDefault()
+          setMessage('')
+          if (newPassword.length < 6 || newPassword !== confirmation) {
+            setMessage('Mật khẩu mới cần ít nhất 6 ký tự và hai ô phải trùng nhau.')
+            return
+          }
+          setBusy(true)
+          void authService.changePassword(currentPassword, newPassword)
+            .then(() => setMessage('Đã đổi mật khẩu.'))
+            .catch(() => setMessage('Không thể đổi mật khẩu. Kiểm tra mật khẩu hiện tại rồi thử lại.'))
+            .finally(() => setBusy(false))
+        }}
+        className="w-full max-w-md space-y-4 rounded-2xl bg-white p-6 shadow-xl"
+      >
+        <h2 id="teacher-password-title" className="text-xl font-bold text-slate-900">Đổi mật khẩu</h2>
+        <input aria-label="Mật khẩu hiện tại" type="password" autoComplete="current-password" required value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} placeholder="Mật khẩu hiện tại" className="w-full rounded-xl border border-slate-200 px-3 py-2.5" />
+        <input aria-label="Mật khẩu mới" type="password" autoComplete="new-password" minLength={6} required value={newPassword} onChange={(event) => setNewPassword(event.target.value)} placeholder="Mật khẩu mới" className="w-full rounded-xl border border-slate-200 px-3 py-2.5" />
+        <input aria-label="Xác nhận mật khẩu mới" type="password" autoComplete="new-password" minLength={6} required value={confirmation} onChange={(event) => setConfirmation(event.target.value)} placeholder="Nhập lại mật khẩu mới" className="w-full rounded-xl border border-slate-200 px-3 py-2.5" />
+        {message && <p role="status" className="text-sm text-slate-700">{message}</p>}
+        <div className="flex justify-end gap-2">
+          <button type="button" onClick={onClose} className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold">Đóng</button>
+          <button type="submit" disabled={busy} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">{busy ? 'Đang lưu…' : 'Cập nhật'}</button>
+        </div>
+      </form>
     </div>
   )
 }

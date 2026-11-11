@@ -12,14 +12,22 @@ export function LoginPage() {
   const [showPass, setShowPass] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setSubmitting(true)
     setError('')
+    setNotice('')
     try {
       await authService.login({ email, pass: password })
-      navigate('/', { replace: true })
+      const role = await authService.getAccountRole()
+      if (role === 'platform_admin') navigate('/users', { replace: true })
+      else if (role === 'school_manager') navigate('/classes', { replace: true })
+      else {
+        await authService.logout()
+        setError('Tài khoản này không được cấp quyền vào trang quản trị.')
+      }
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Không thể đăng nhập.')
     } finally {
@@ -71,6 +79,7 @@ export function LoginPage() {
 
             <form onSubmit={handleSubmit} className="space-y-6">
               {error && <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">{error}</div>}
+              {notice && <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{notice}</div>}
               {/* Email */}
               <div>
                 <label htmlFor="admin-email" className="block text-[15px] font-bold text-slate-800 mb-2">
@@ -134,6 +143,20 @@ export function LoginPage() {
               <div className="text-right pt-0.5">
                 <button
                   type="button"
+                  onClick={() => {
+                    setError('')
+                    setNotice('')
+                    if (!email.trim()) {
+                      setError('Nhập email để nhận hướng dẫn đặt lại mật khẩu.')
+                      return
+                    }
+                    setSubmitting(true)
+                    void authService.resetPassword(email).then(() => {
+                      setNotice('Nếu email đã đăng ký, hướng dẫn đặt lại mật khẩu sẽ được gửi.')
+                    }).catch(() => {
+                      setNotice('Nếu email đã đăng ký, hướng dẫn đặt lại mật khẩu sẽ được gửi.')
+                    }).finally(() => setSubmitting(false))
+                  }}
                   className="text-[15px] text-[#1565F9] hover:underline font-semibold"
                 >
                   Quên mật khẩu?

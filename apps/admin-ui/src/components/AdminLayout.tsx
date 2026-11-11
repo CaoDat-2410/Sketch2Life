@@ -61,10 +61,17 @@ const QUICK_SCREENS = [
   { code: 'A10', label: 'Cấu hình & vòng đời dữ liệu', to: '/settings' },
 ]
 
-export function AdminLayout() {
+export function AdminLayout({ role }: { role: 'school_manager' | 'platform_admin' }) {
   const location = useLocation()
   const navigate = useNavigate()
   const [showQuickNav, setShowQuickNav] = useState(false)
+  const [showPasswordChange, setShowPasswordChange] = useState(false)
+  const visibleNav = role === 'platform_admin'
+    ? NAV_ITEMS.filter((item) => item.to === '/users')
+    : NAV_ITEMS.filter((item) => item.to !== '/users')
+  const visibleQuickScreens = role === 'platform_admin'
+    ? QUICK_SCREENS.filter((item) => item.to === '/users')
+    : QUICK_SCREENS.filter((item) => item.to !== '/users')
 
   const isDeleteDetail = location.pathname.startsWith('/data-requests/')
   const detailId = isDeleteDetail ? location.pathname.split('/')[2] : null
@@ -94,7 +101,7 @@ export function AdminLayout() {
 
           {/* Nav items */}
           <nav className="px-3 space-y-1">
-            {NAV_ITEMS.map(({ to, label, icon: Icon, end }) => (
+            {visibleNav.map(({ to, label, icon: Icon, end }) => (
               <NavLink
                 key={to}
                 to={to}
@@ -129,10 +136,16 @@ export function AdminLayout() {
               <div className="w-8 h-8 rounded-full bg-[#DCEBFF] text-[#1D63F2] text-xs font-bold flex items-center justify-center">
                 QT
               </div>
-              <span className="text-[14px] font-bold text-slate-800">Quản trị viên</span>
+              <span className="text-[14px] font-bold text-slate-800">{role === 'platform_admin' ? 'Quản trị nền tảng' : 'Quản lý trường'}</span>
             </div>
             <ChevronRight size={15} className="text-slate-400" />
           </div>
+          <button
+            onClick={() => setShowPasswordChange(true)}
+            className="flex items-center gap-3 w-full px-3 py-2 text-[13px] font-medium text-slate-600 hover:bg-white/70 rounded-xl transition-colors"
+          >
+            <span>Đổi mật khẩu</span>
+          </button>
           <button
             onClick={() => void authService.logout().then(() => navigate('/login', { replace: true }))}
             className="flex items-center gap-3 w-full px-3 py-2 text-[14px] font-medium text-slate-600 hover:text-red-600 hover:bg-red-50/60 rounded-xl transition-colors"
@@ -174,11 +187,11 @@ export function AdminLayout() {
           {/* Right controls */}
           <div className="flex items-center gap-3.5">
             {/* School selector */}
-            <button className="flex items-center gap-2.5 bg-[#F1F5F9] hover:bg-slate-200/70 text-slate-700 text-[13px] font-semibold px-3.5 py-2 rounded-xl transition-colors">
+            {role === 'school_manager' && <button className="flex items-center gap-2.5 bg-[#F1F5F9] hover:bg-slate-200/70 text-slate-700 text-[13px] font-semibold px-3.5 py-2 rounded-xl transition-colors">
               <School size={16} className="text-slate-600" />
               <span>Tổ chức đã xác minh qua BE1</span>
               <ChevronDown size={14} className="text-slate-500 ml-0.5" />
-            </button>
+            </button>}
 
             {/* Notification bell + Quick Screen Switcher */}
             <div className="relative">
@@ -203,7 +216,7 @@ export function AdminLayout() {
                     </button>
                   </div>
                   <div className="max-h-80 overflow-y-auto py-1">
-                    {QUICK_SCREENS.map((sc) => (
+                    {visibleQuickScreens.map((sc) => (
                       <button
                         key={sc.code}
                         onClick={() => {
@@ -237,6 +250,49 @@ export function AdminLayout() {
           <Outlet />
         </main>
       </div>
+      {showPasswordChange && <PasswordChangeDialog onClose={() => setShowPasswordChange(false)} />}
+    </div>
+  )
+}
+
+function PasswordChangeDialog({ onClose }: { onClose: () => void }) {
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmation, setConfirmation] = useState('')
+  const [message, setMessage] = useState('')
+  const [busy, setBusy] = useState(false)
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4">
+      <form
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="admin-password-title"
+        onSubmit={(event) => {
+          event.preventDefault()
+          setMessage('')
+          if (newPassword.length < 6 || newPassword !== confirmation) {
+            setMessage('Mật khẩu mới cần ít nhất 6 ký tự và hai ô phải trùng nhau.')
+            return
+          }
+          setBusy(true)
+          void authService.changePassword(currentPassword, newPassword)
+            .then(() => setMessage('Đã đổi mật khẩu.'))
+            .catch(() => setMessage('Không thể đổi mật khẩu. Kiểm tra mật khẩu hiện tại rồi thử lại.'))
+            .finally(() => setBusy(false))
+        }}
+        className="w-full max-w-md space-y-4 rounded-2xl bg-white p-6 shadow-xl"
+      >
+        <h2 id="admin-password-title" className="text-xl font-bold text-slate-900">Đổi mật khẩu</h2>
+        <input aria-label="Mật khẩu hiện tại" type="password" autoComplete="current-password" required value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} placeholder="Mật khẩu hiện tại" className="w-full rounded-xl border border-slate-200 px-3 py-2.5" />
+        <input aria-label="Mật khẩu mới" type="password" autoComplete="new-password" minLength={6} required value={newPassword} onChange={(event) => setNewPassword(event.target.value)} placeholder="Mật khẩu mới" className="w-full rounded-xl border border-slate-200 px-3 py-2.5" />
+        <input aria-label="Xác nhận mật khẩu mới" type="password" autoComplete="new-password" minLength={6} required value={confirmation} onChange={(event) => setConfirmation(event.target.value)} placeholder="Nhập lại mật khẩu mới" className="w-full rounded-xl border border-slate-200 px-3 py-2.5" />
+        {message && <p role="status" className="text-sm text-slate-700">{message}</p>}
+        <div className="flex justify-end gap-2">
+          <button type="button" onClick={onClose} className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold">Đóng</button>
+          <button type="submit" disabled={busy} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">{busy ? 'Đang lưu…' : 'Cập nhật'}</button>
+        </div>
+      </form>
     </div>
   )
 }

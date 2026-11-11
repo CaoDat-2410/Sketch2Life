@@ -11,6 +11,7 @@ export function LoginPage() {
   const [showPw, setShowPw] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -91,6 +92,7 @@ export function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {error && <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-[13px] font-medium text-rose-700">{error}</div>}
+            {notice && <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-[13px] font-medium text-emerald-800">{notice}</div>}
             {/* Email */}
             <div>
               <label htmlFor="teacher-email" className="block text-[14px] font-semibold text-[#0F172A] mb-2">
@@ -154,6 +156,20 @@ export function LoginPage() {
             <div className="text-right pt-0.5">
               <button
                 type="button"
+                onClick={() => {
+                  setError('')
+                  setNotice('')
+                  if (!email.trim()) {
+                    setError('Nhập email để nhận hướng dẫn đặt lại mật khẩu.')
+                    return
+                  }
+                  setSubmitting(true)
+                  void authService.resetPassword(email).then(() => {
+                    setNotice('Nếu email đã đăng ký, hướng dẫn đặt lại mật khẩu sẽ được gửi.')
+                  }).catch(() => {
+                    setNotice('Nếu email đã đăng ký, hướng dẫn đặt lại mật khẩu sẽ được gửi.')
+                  }).finally(() => setSubmitting(false))
+                }}
                 className="text-[#1D63F2] hover:underline text-[14px] font-semibold"
               >
                 Quên mật khẩu?

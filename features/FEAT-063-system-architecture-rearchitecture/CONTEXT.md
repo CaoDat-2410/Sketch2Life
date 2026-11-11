@@ -1,4 +1,51 @@
 # FEAT-063 — Whole-repository architecture redesign
+
+## Teacher Sketch Deck presentation UI — Plan Rev65 (2026-11-10)
+
+- Implemented and verified the Teacher presentation surface in the real Teacher Web UI with live Modal output: 4-slide Qwen3.5 DRAFT and FLUX composite image on the drawing-guide slide. Activity content scrolls inside the fixed 16:9 slide so safety notes remain reachable.
+- Teacher slice PASS; the broader Parent/Teacher E2E remains PARTIAL. This run did not execute Parent Android because the isolated host had no `adb`, Android SDK/platform-tools, or emulator. The Rev64 Parent 256-token output failure remains the last live result; the approved 512-token worker change was not exercised through Parent UI.
+- Build and sanitized timings, worker-log limitation, screenshots and cleanup are recorded in `evidence/EV-063-75_TEACHER_PRESENTATION_UI_20261110.md`.
+
+## Parent/Teacher Modal E2E — Plan Rev64 (2026-11-10)
+
+- Owner requires UI-driven Parent Android and Teacher Web workflows through Firebase role resolution → backend → live Modal inference → visible UI result. Fixture and backend-only runs do not count; video remains deferred. Last approved scope SHA-256: `C6A217BB2114C7D64621E6B50E3A92F6E7E20063866EF6977667F40581BBF9A3`; execution plan SHA-256: `B791E6E552FF16A6A99D5758D7A2226FA6DD561AE852A40DF6BC2B87E32015C8`.
+- Initial preflight found the Parent fixture and Teacher prototype surfaces and an empty Modal app list. The owner was correct that source/deployment definitions exist on `dev`: local `dev` and `origin/dev` both point to `1431ef81972b71303fd4a7909748fd3005769a3c`. Apps were redeployed temporarily from that source for this test.
+- Execution result is PARTIAL. Real Parent signup/role resolution and optional FLUX line-sketch passed after one approved UI-render recovery. Parent Qwen drawing understanding failed strict JSON parsing after generating 256 tokens; API returned 504 `MODAL_OUTCOME_UNKNOWN` before the worker logged terminal `MODAL_MODEL_OUTPUT_INVALID`. Parent story was not called because no candidate was available for adult confirmation. Real Teacher role resolution and Qwen lesson suggestion, Qwen Sketch Deck and FLUX lesson visual passed through Teacher UI; raw lesson-file upload/parser review was not exercised.
+- Cleanup completed: three task-used Modal apps STOPPED at zero tasks; synthetic Firebase users and `rev64_e2e` removed; task-started Postgres/Redis and emulator stopped; pre-existing API/ClamAV preserved. No video, commit or push. Full timings and screenshots: `evidence/EV-063-74_PARENT_TEACHER_MODAL_E2E_20261110.md` and its `logs/`/`screenshots/` subfolders.
+
+## Server-managed roles and account recovery — Plan Rev63 (2026-11-10)
+
+- Added a single server-side product role on `be1_adult_identities`: Parent, Teacher, School Manager, or Platform Admin. Parent signup is assigned Parent by the backend; Teacher Web accepts only the Teacher role; management Web routes are split between School Manager class access and Platform Admin account management.
+- Platform Admin can list/search/page accounts, create Firebase identities with a selected role, change roles, and disable/re-enable accounts. Role changes are audited and revoke incompatible active school assignments. Email/display name are read from Firebase Auth for authorized Platform Admin responses and are not persisted in PostgreSQL/audit records. Legacy identities with ambiguous roles appear unassigned and are denied protected routes until an admin assigns a role. Compose passes the root `.env` bootstrap email to the API container and no longer forwards the retired subject allowlist.
+- Admin Web requests a Firebase password-reset email after account creation. Parent Android, Teacher Web and management Web include Firebase password reset and authenticated password change. The initial Platform Admin is provisioned by the explicit command `python -m sketch2life.infrastructure.identity.bootstrap_platform_admin`, configured with `SKETCH2LIFE_PLATFORM_ADMIN_BOOTSTRAP_EMAIL` in the repository-root `.env` after the additive migration.
+- E2E update (2026-11-10): all Alembic heads were applied to disposable PostgreSQL; backend Parent registration, account/role lifecycle and authorization scenarios passed with synthetic identities. Real HTTP Parent registration and safe invalid-token mapping passed. Role-gated business cases used an injected test principal rather than a Firebase-signed token. The root `.env` Web API key differed from the owner-provided Web config and was corrected; a non-mutating Firebase probe and synthetic Identity Toolkit reset/sign-in/change-password lifecycle then passed. The synthetic user was deleted and no email was sent. Admin/Teacher builds and mobile typecheck passed, but interactive UI flows were not run. Full Compose startup hit a MinIO registry HTTP 401, so isolated temporary API/PostgreSQL containers were used and then removed. Existing services/volumes were preserved, synthetic identities were deleted, and no admin seed remains. UC-13 email-verification activation/delivery and production shared throttling remain open.
+- Contract/evidence: `artifacts/AUTH_ROLE_API_CONTRACT_REV63_20261110.md`, `evidence/EV-063-73_ROLE_BASED_AUTH_AND_RECOVERY_20261110.md`. Plan Rev63 approval/hash and boundaries are recorded in `approvals/TASK_APPROVAL.md`.
+
+## Backend Firebase Auth registration — Plan Rev62 historical state (extended by Rev63, 2026-11-10)
+
+- Implemented local-only `POST /api/auth/v1/registrations`. Parent signup now calls the backend first, then Firebase Auth REST sign-in. The backend creates an unverified Firebase Auth identity and does not accept a role or expose UID/password.
+- Verification: focused backend tests 18/18 passed; Parent auth Jest 6/6 passed; TypeScript, Ruff, and `docker compose config -q` passed. A live backend request returned 201 and Firebase Admin found `synthetic Firebase identity (identifier redacted)` in `sketch2life-dev`, `email_verified=false`.
+- Live REST sign-in is still blocked: Firebase returns `API key not valid` for the owner-supplied Web API key, even after aligning the root `.env` value to the provided string. The synthetic account is retained but its random password was discarded; no second account was created.
+- Under Rev62, registration was local-only and did not persist role. Rev63 makes the route public with a bounded process-local limiter and adds backend Parent role persistence. Email-verification action delivery/activation and production shared throttling remain unimplemented.
+- Evidence: `evidence/EV-063-72_BACKEND_FIREBASE_ACCOUNT_REGISTRATION_20261110.md`; contract: `artifacts/AUTH_REGISTRATION_API_CONTRACT_REV62.md`. Plan Rev62 lifecycle is REVIEW; approval and hashes are in `approvals/TASK_APPROVAL.md`.
+- The live request used FastAPI `TestClient`, not a running Docker container. No Docker service lifecycle, DB/migration, commit, or push occurred.
+
+## Single-root Firebase Auth configuration — Plan Rev61 (2026-11-10)
+
+- Work was confined to `the repository root`; no sibling checkout/worktree was edited, created or removed during this slice.
+- Local Firebase configuration is now read from one ignored repository-root `.env`. Compose forwards Admin verification settings only to the API; Teacher Vite and Parent Android read only public `VITE_FIREBASE_*` values from that same file.
+- At Rev61, Parent Android's AuthSessionPort used Firebase REST for email/password signup, sign-in, refresh, and sign-out. Plan Rev62 supersedes only the signup-creation step with backend-first registration; REST sign-in/refresh/sign-out remain. Parent role/profile provisioning and the full Parent workflow remain separate backend work.
+- The owner supplied the Firebase Admin service-account JSON from Downloads; its Base64 value is now in the ignored root `.env`, and `SKETCH2LIFE_AUTH_PROVIDER=firebase`. The local Admin SDK accepted the credential and its project ID matches `sketch2life-dev`; no live token verification was performed.
+- Evidence and limits: `evidence/EV-063-71_SINGLE_ROOT_ENV_FIREBASE_AUTH_20261110.md`. No live Firebase request, account creation, Docker service lifecycle operation, database change, commit or push was performed.
+
+## SRS baseline correction and Rev57 note reconciliation — Plan Rev60 (2026-11-09)
+
+- Owner correction selects the latest FEAT-063 SRS source, v2.7-draft Rev57 at commit `f21c6f34af1ee045caf9a0621e38376a2bfde390`; local working SRS now carries amendments through Rev60 and remains unsigned.
+- Rev57 §§32.6–32.7 are preserved; Rev58 CI snapshot is §32.8. §25.5 separates existing GitHub Actions CI from a target CD/release flow; §28.2 retains the acceptance scenarios and labels no-eligible as a temporary test assumption.
+- Counts distinguish 86 pre-Rev31 mappings, 89 current source mappings, historical v2.3 89/137, current target 92/140, and local runtime snapshot 41. Seventeen owner decisions remain `OPEN-OWNER`; Q183 and Q192 point to §31.10 items 3 and 10.
+- The supplied six-group note is reflected only where supported inside SRS; physical schema evidence, diagram artifacts and owner answers remain open. DTR is unchanged and still locally labeled v2.5-draft.
+- Evidence: `evidence/EV-063-65_SRS_REBASE_V27_REV60_20261109.md`; Plan Rev60 and approval hashes are in root and feature registers.
+
 ## Rev56 ten-group diagram-readiness alignment — 2026-11-08
 
 - Lifecycle: COMPLETE for the bounded documentation-only synchronization; SRS/Data Table Register remain v2.7-draft and unsigned.

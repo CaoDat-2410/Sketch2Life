@@ -24,6 +24,7 @@ from sketch2life.application.ports.activity_ranker import ActivityRankerPort
 from sketch2life.application.ports.child_preference_classifier import (
     ChildPreferenceClassifierPort,
 )
+from sketch2life.application.ports.identity import IdentityAccountProvisioner
 from sketch2life.application.ports.pixi_motion_cycle import PixiMotionCycleIssue
 from sketch2life.application.ports.pixi_show_planner import PixiShowPlannerPort
 from sketch2life.application.services.auto_rig import AutoRigService
@@ -89,6 +90,9 @@ from sketch2life.infrastructure.catalog.workflow_metadata import FileWorkflowCat
 from sketch2life.infrastructure.config.settings import Settings, get_settings
 from sketch2life.infrastructure.documents.clamav_scanner import ClamAvScanner
 from sketch2life.infrastructure.documents.lesson_parser import DeterministicLessonDocumentParser
+from sketch2life.infrastructure.identity.firebase_admin_account_provisioner import (
+    FirebaseAdminAccountProvisioner,
+)
 from sketch2life.infrastructure.media.whiteboard_pipeline_factory import (
     build_lightning_whiteboard_mvp_pipeline,
 )
@@ -138,6 +142,7 @@ from sketch2life.interfaces.http.router_composition import (
     mount_demo_routers,
 )
 from sketch2life.interfaces.http.routers.storage_examples import router as storage_examples_router
+from sketch2life.interfaces.http.routers.auth_registration import RegistrationRateLimiter
 from sketch2life.interfaces.http.routers.story_run_lite import router as story_run_lite_router
 from sketch2life.interfaces.http.routers.story_run_lite import (
     story_error_response,
@@ -232,6 +237,7 @@ def create_app(
     whiteboard_video_job_service: WhiteboardVideoJobService | None = None,
     whiteboard_video_pipeline: WhiteboardVideoPipeline | None = None,
     story_video_job_service: StoryVideoJobService | None = None,
+    identity_account_provisioner: IdentityAccountProvisioner | None = None,
     _composition_profile: Literal["combined", "classroom", "demo"] = "combined",
 ) -> FastAPI:
     """Create the compatibility or explicitly scoped classroom/demo HTTP app."""
@@ -814,6 +820,10 @@ def create_app(
     application.state.be1_runtime = build_be1_runtime(
         get_settings(), pilot_vision_factory=build_default_pilot_vision
     )
+    application.state.identity_account_provisioner = (
+        identity_account_provisioner or FirebaseAdminAccountProvisioner(storage_example_settings)
+    )
+    application.state.registration_rate_limiter = RegistrationRateLimiter()
     application.state.lesson_library_storage = None
     application.state.lesson_document_parser = None
     application.state.lesson_document_scanner = None

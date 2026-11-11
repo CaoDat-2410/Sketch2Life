@@ -2,7 +2,15 @@
 
 from fastapi import FastAPI
 
+from sketch2life.interfaces.http.routers.auth_registration import (
+    router as auth_registration_router,
+)
 from sketch2life.interfaces.http.routers.be1_runtime import router as be1_runtime_router
+from sketch2life.interfaces.http.routers.parent_ai import router as parent_ai_router
+from sketch2life.interfaces.http.routers.platform_admin_accounts import (
+    router as platform_admin_accounts_router,
+)
+from sketch2life.interfaces.http.routers.teacher_ai import router as teacher_ai_router
 from sketch2life.interfaces.http.routers.child_preferences import (
     router as child_preferences_router,
 )
@@ -26,7 +34,9 @@ from sketch2life.interfaces.http.routers.whiteboard_video import router as white
 def mount_classroom_routers(
     application: FastAPI, *, include_pilot_assistance: bool = True
 ) -> None:
-    """Mount the durable classroom health and BE1 runtime route group."""
+    """Mount durable identity, classroom health, and BE1 runtime route groups."""
+    application.include_router(auth_registration_router)
+    application.include_router(platform_admin_accounts_router)
     application.include_router(health_router)
     application.include_router(be1_runtime_router)
     application.include_router(parent_profiles_router)
@@ -58,3 +68,5 @@ def mount_all_routers(application: FastAPI) -> None:
     )
     mount_demo_routers(application)
     application.include_router(lesson_library_router)
+    application.include_router(parent_ai_router)
+    application.include_router(teacher_ai_router)

@@ -337,7 +337,7 @@ def test_expired_firebase_sdk_type_is_preserved_and_maps_to_token_expired(
     parent_client: tuple[TestClient, Be1Runtime], monkeypatch: pytest.MonkeyPatch
 ) -> None:
     client, runtime = parent_client
-    monkeypatch.setattr(verifier_module, "_firebase_app", lambda *_args: object())
+    monkeypatch.setattr(verifier_module, "get_firebase_admin_app", lambda *_args: object())
 
     def raise_expired(*_args: object, **_kwargs: object) -> None:
         raise ExpiredIdTokenError("synthetic expiry fixture", None)  # type: ignore[no-untyped-call]
@@ -363,7 +363,7 @@ def test_invalid_firebase_token_maps_separately_from_expired(
     parent_client: tuple[TestClient, Be1Runtime], monkeypatch: pytest.MonkeyPatch
 ) -> None:
     client, _runtime = parent_client
-    monkeypatch.setattr(verifier_module, "_firebase_app", lambda *_args: object())
+    monkeypatch.setattr(verifier_module, "get_firebase_admin_app", lambda *_args: object())
 
     def raise_invalid(*_args: object, **_kwargs: object) -> None:
         raise InvalidIdTokenError("synthetic invalid fixture", None)  # type: ignore[no-untyped-call]
