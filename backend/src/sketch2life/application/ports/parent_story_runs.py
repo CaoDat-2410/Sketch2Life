@@ -74,6 +74,9 @@ class ParentStoryRevisionReservation:
     source_asset_sha256: str
     worker_input: dict[str, Any]
     request_sha256: str
+    receipt_id: str
+    replayed: bool = False
+    replay_body: dict[str, Any] | None = None
 
 
 class ParentStoryRunRepositoryPort(Protocol):
@@ -166,6 +169,7 @@ class ParentStoryRunRepositoryPort(Protocol):
         run_id: str,
         expected_understanding_revision: int,
         rewrite_instruction: str | None,
+        idempotency_key: str,
         story_revision_id: str,
         model_id: str,
         model_revision: str,

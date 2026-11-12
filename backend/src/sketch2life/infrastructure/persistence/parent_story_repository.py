@@ -753,12 +753,71 @@ class SqlParentStoryRunRepository:
         run_id: str,
         expected_understanding_revision: int,
         rewrite_instruction: str | None,
+        idempotency_key: str,
         story_revision_id: str,
         model_id: str,
         model_revision: str,
         prompt_version: str,
     ) -> ParentStoryRevisionReservation:
         run = self._owned_run(principal, run_id, lock=True)
+        operation = "GENERATE_STORY_REVISION"
+        scope_kind = "STORY_RUN"
+        key_hash = _idempotency_key_hash(idempotency_key)
+        fingerprint = _sha256_json(
+            {
+                "expected_understanding_revision": expected_understanding_revision,
+                "rewrite_instruction": rewrite_instruction,
+                "model_id": model_id,
+                "model_revision": model_revision,
+                "prompt_version": prompt_version,
+            }
+        )
+        self._lock_idempotency(
+            principal=principal,
+            operation=operation,
+            scope_kind=scope_kind,
+            scope_ref=run_id,
+            key_hash=key_hash,
+        )
+        replay = self._find_idempotency_receipt(
+            principal=principal,
+            operation=operation,
+            scope_kind=scope_kind,
+            scope_ref=run_id,
+            key_hash=key_hash,
+            fingerprint=fingerprint,
+        )
+        if replay is not None:
+            if replay["state"] == "PENDING":
+                raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
+            replay_body = replay["response_body"]
+            if not isinstance(replay_body, dict):
+                raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE")
+            replay_error = replay_body.get("error_code")
+            if isinstance(replay_error, str):
+                replay_status = replay["response_status"]
+                if type(replay_status) is not int or replay_status not in {502, 504}:
+                    raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE")
+                raise ParentStoryRunError(replay_status, replay_error)
+            try:
+                replay_reservation = ParentStoryRevisionReservation(
+                    run_id=run_id,
+                    story_revision_id=str(replay_body["story_revision_id"]),
+                    revision_no=int(replay_body["revision_no"]),
+                    understanding_revision=int(replay_body["understanding_revision"]),
+                    context_revision=int(replay_body["context_revision"]),
+                    source_asset_sha256=str(replay_body["source_asset_sha256"]),
+                    worker_input={},
+                    request_sha256=fingerprint,
+                    receipt_id=str(replay["receipt_id"]),
+                    replayed=True,
+                    replay_body=replay_body,
+                )
+            except (KeyError, TypeError, ValueError):
+                raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE") from None
+            self._session.commit()
+            return replay_reservation
+
         if run["run_state"] not in {"PREPARATION_REVIEW", "SCRIPT_REVIEW"}:
             raise ParentStoryRunError(409, "PARENT_STORY_RUN_NOT_READY_FOR_SCRIPT")
         understanding = self._latest_understanding(run_id)
@@ -833,6 +892,17 @@ class SqlParentStoryRunRepository:
         now = datetime.now(UTC)
         new_version = int(run["version"]) + 1
         try:
+            receipt_id = self._store_pending_idempotency_receipt(
+                principal=principal,
+                operation=operation,
+                scope_kind=scope_kind,
+                scope_ref=run_id,
+                key_hash=key_hash,
+                fingerprint=fingerprint,
+                run_id=run_id,
+                resource_version=new_version,
+                now=now,
+            )
             if latest_story is not None and latest_story["status"] == "DRAFT":
                 self._session.execute(
                     update(story_tables.story_revisions)
@@ -885,6 +955,7 @@ class SqlParentStoryRunRepository:
             source_asset_sha256=str(input_row["original_sha256"]),
             worker_input=worker_input,
             request_sha256=request_hash,
+            receipt_id=receipt_id,
         )
 
     def complete_story_revision(
@@ -910,6 +981,7 @@ class SqlParentStoryRunRepository:
             raise ParentStoryRunError(409, "PARENT_STORY_REVISION_NOT_GENERATING")
         now = datetime.now(UTC)
         sections = story["story"]
+        new_version = int(run["version"]) + 1
         try:
             self._session.execute(
                 update(story_tables.story_revisions)
@@ -953,12 +1025,45 @@ class SqlParentStoryRunRepository:
                     retryable=False,
                     result_sha256=story_sha256,
                     error_code=None,
-                    version=story_tables.story_runs.c.version + 1,
+                    version=new_version,
                     revision=story_tables.story_runs.c.revision + 1,
                     updated_at=now,
                 )
             )
+            receipt_update = self._session.execute(
+                update(story_tables.story_command_receipts)
+                .where(
+                    story_tables.story_command_receipts.c.receipt_id
+                    == reservation.receipt_id,
+                    story_tables.story_command_receipts.c.state == "PENDING",
+                )
+                .values(
+                    state="FINAL",
+                    response_status=200,
+                    response_resource_version=new_version,
+                    response_body={
+                        "story_revision_id": reservation.story_revision_id,
+                        "revision_no": reservation.revision_no,
+                        "understanding_revision": reservation.understanding_revision,
+                        "context_revision": reservation.context_revision,
+                        "source_asset_sha256": reservation.source_asset_sha256,
+                        "story_sha256": story_sha256,
+                        "modal_call_id": provider_call_id,
+                        "model_id": model_id,
+                        "model_revision": model_revision,
+                    },
+                    resource_ref=reservation.run_id,
+                    resource_version=new_version,
+                    state_version=story_tables.story_command_receipts.c.state_version + 1,
+                    finalized_at=now,
+                )
+            )
+            if receipt_update.rowcount != 1:
+                self._session.rollback()
+                raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE")
             self._session.commit()
+        except ParentStoryRunError:
+            raise
         except SQLAlchemyError:
             self._session.rollback()
             raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE") from None
@@ -980,6 +1085,7 @@ class SqlParentStoryRunRepository:
         revision_state = "AWAITING_RECONCILIATION" if outcome_unknown else "FAILED"
         run_state = "SCRIPT_GENERATION_UNKNOWN" if outcome_unknown else "FAILED"
         job_state = "AWAITING_RECONCILIATION" if outcome_unknown else "FAILED"
+        new_version = int(run["version"]) + 1
         values: dict[str, Any] = {
             "status": revision_state,
             "updated_at": now,
@@ -1004,12 +1110,35 @@ class SqlParentStoryRunRepository:
                     active_owner_parent_account_id=(
                         run["active_owner_parent_account_id"] if outcome_unknown else None
                     ),
-                    version=story_tables.story_runs.c.version + 1,
+                    version=new_version,
                     revision=story_tables.story_runs.c.revision + 1,
                     updated_at=now,
                 )
             )
+            receipt_update = self._session.execute(
+                update(story_tables.story_command_receipts)
+                .where(
+                    story_tables.story_command_receipts.c.receipt_id
+                    == reservation.receipt_id,
+                    story_tables.story_command_receipts.c.state == "PENDING",
+                )
+                .values(
+                    state="FINAL",
+                    response_status=504 if outcome_unknown else 502,
+                    response_resource_version=new_version,
+                    response_body={"error_code": error_code},
+                    resource_ref=reservation.run_id,
+                    resource_version=new_version,
+                    state_version=story_tables.story_command_receipts.c.state_version + 1,
+                    finalized_at=now,
+                )
+            )
+            if receipt_update.rowcount != 1:
+                self._session.rollback()
+                raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE")
             self._session.commit()
+        except ParentStoryRunError:
+            raise
         except SQLAlchemyError:
             self._session.rollback()
             raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE") from None
@@ -1249,6 +1378,43 @@ class SqlParentStoryRunRepository:
                 state_version=1,
                 created_at=now,
                 finalized_at=now,
+            )
+        )
+        return receipt_id
+
+    def _store_pending_idempotency_receipt(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        operation: str,
+        scope_kind: str,
+        scope_ref: str,
+        key_hash: str,
+        fingerprint: str,
+        run_id: str,
+        resource_version: int,
+        now: datetime,
+    ) -> str:
+        receipt_id = str(uuid4())
+        self._session.execute(
+            insert(story_tables.story_command_receipts).values(
+                receipt_id=receipt_id,
+                actor_scope_kind=_OWNER_SCOPE_KIND,
+                actor_scope_ref=_principal_scope_ref(principal),
+                operation=operation,
+                idempotency_scope_kind=scope_kind,
+                idempotency_scope_ref=scope_ref,
+                idempotency_key_sha256=key_hash,
+                request_fingerprint_sha256=fingerprint,
+                state="PENDING",
+                response_status=None,
+                response_resource_version=None,
+                response_body=None,
+                resource_ref=run_id,
+                resource_version=resource_version,
+                state_version=1,
+                created_at=now,
+                finalized_at=None,
             )
         )
         return receipt_id

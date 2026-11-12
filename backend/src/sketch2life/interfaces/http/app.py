@@ -161,6 +161,15 @@ def _story_run_lite_path(path: str) -> bool:
     ))
 
 
+def _legacy_parent_story_revision_path(path: str) -> bool:
+    prefix = "/api/parent/v1/ai/story-runs/"
+    suffix = "/story-revisions"
+    if not path.startswith(prefix) or not path.endswith(suffix):
+        return False
+    run_id = path[len(prefix) : -len(suffix)]
+    return bool(run_id) and "/" not in run_id
+
+
 def _loopback(address: object) -> bool:
     try:
         return ip_address(str(address)).is_loopback
@@ -304,16 +313,19 @@ def create_app(
             (
                 "/api/be1/v1",
                 "/api/lesson-library/v1",
+                "/api/parent/v1/ai/story-runs/",
                 "/v1/parent/profiles",
                 "/v1/story-runs",
             )
-        ):
+        ) and not _legacy_parent_story_revision_path(request.url.path):
             return await call_next(request)
         supplied_id = request.headers.get("X-Request-ID", "")
         request_id = supplied_id if _SAFE_ID.fullmatch(supplied_id) else str(uuid4())
         if request.url.path.startswith("/v1/parent/profiles"):
             request.state.parent_request_id = request_id
-        elif request.url.path.startswith("/v1/story-runs"):
+        elif request.url.path.startswith("/v1/story-runs") or (
+            _legacy_parent_story_revision_path(request.url.path)
+        ):
             request.state.story_request_id = request_id
         else:
             request.state.be1_request_id = request_id
@@ -329,7 +341,9 @@ def create_app(
     async def handle_http_exception(
         request: Request, exc: StarletteHTTPException
     ) -> JSONResponse:
-        if request.url.path.startswith("/v1/story-runs"):
+        if request.url.path.startswith("/v1/story-runs") or (
+            _legacy_parent_story_revision_path(request.url.path)
+        ):
             detail = exc.detail if isinstance(exc.detail, dict) else {}
             status_codes = {
                 400: "INVALID_REQUEST",
@@ -497,11 +511,21 @@ def create_app(
     ) -> JSONResponse:
         if story_demo_enabled and _story_run_lite_path(request.url.path):
             return await story_validation_error_response(request, exc)
-        if request.url.path.startswith("/v1/story-runs"):
+        if request.url.path.startswith("/v1/story-runs") or (
+            _legacy_parent_story_revision_path(request.url.path)
+        ):
             request_id = getattr(request.state, "story_request_id", str(uuid4()))
             safe_fields = []
+            invalid_idempotency_key = False
             for issue in exc.errors():
                 location = issue.get("loc", ())
+                if (
+                    _legacy_parent_story_revision_path(request.url.path)
+                    and len(location) >= 2
+                    and location[0] == "header"
+                    and location[1] == "Idempotency-Key"
+                ):
+                    invalid_idempotency_key = True
                 field_parts = [str(part) for part in location if str(part) not in {"body", "query"}]
                 field = ".".join(
                     part if part.isidentifier() else "item" if part.isdigit() else "field"
@@ -510,11 +534,20 @@ def create_app(
                 safe_fields.append(
                     {"field": field[:120], "code": "INVALID_FIELD", "message": "Giá trị trường không hợp lệ."}
                 )
+            error_code = (
+                "INVALID_IDEMPOTENCY_KEY"
+                if invalid_idempotency_key
+                else "INVALID_REQUEST"
+            )
             return JSONResponse(
                 status_code=400,
                 content={
-                    "code": "INVALID_REQUEST",
-                    "message": "Yêu cầu không khớp với hợp đồng API.",
+                    "code": error_code,
+                    "message": (
+                        "Khóa yêu cầu không hợp lệ."
+                        if invalid_idempotency_key
+                        else "Yêu cầu không khớp với hợp đồng API."
+                    ),
                     "correlation_id": request_id,
                     "retryable": False,
                     "retry_after_seconds": None,
@@ -634,7 +667,9 @@ def create_app(
     async def handle_unexpected_exception(request: Request, exc: Exception):
         if story_demo_enabled and _story_run_lite_path(request.url.path):
             return await story_unexpected_error_response(request, exc)
-        if request.url.path.startswith("/v1/story-runs"):
+        if request.url.path.startswith("/v1/story-runs") or (
+            _legacy_parent_story_revision_path(request.url.path)
+        ):
             request_id = getattr(request.state, "story_request_id", str(uuid4()))
             _LOGGER.error(
                 "parent_story_run_unhandled_exception request_id=%s exception_type=%s",

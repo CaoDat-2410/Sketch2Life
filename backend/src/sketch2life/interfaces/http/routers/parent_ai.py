@@ -12,7 +12,9 @@ from io import BytesIO
 from math import isfinite
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, Response
 from pydantic import ValidationError
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
@@ -195,6 +197,8 @@ def generate_sketch_guide(
     }
 
 
+# Keep this legacy artwork-ingestion flow outside I2. It writes source and
+# derived assets, mutates StoryRun state, and invokes ModalDrawingFunctionClient.
 @router.post(
     "/drawing-understandings",
     summary="Store and analyze Parent artwork for an authenticated StoryRun",
@@ -409,6 +413,10 @@ def analyze_drawing(
 def generate_story_revision(
     run_id: UUID,
     payload: ParentStoryRequestV1,
+    response: Response,
+    idempotency_key: Annotated[
+        str, Header(alias="Idempotency-Key", min_length=1, max_length=200)
+    ],
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
 ) -> dict[str, object]:
@@ -423,12 +431,29 @@ def generate_story_revision(
             run_id=str(run_id),
             expected_understanding_revision=payload.expected_understanding_revision,
             rewrite_instruction=payload.rewrite_instruction,
+            idempotency_key=idempotency_key,
             model_id=STORY_MODEL_ID,
             model_revision=STORY_MODEL_REVISION,
             prompt_version=_STORY_PROMPT_VERSION,
         )
     except (ParentStoryRunError, ParentStoryRunServiceError) as exc:
         raise HTTPException(status_code=exc.status_code, detail={"code": exc.code}) from None
+    response.headers["Idempotency-Replayed"] = str(reservation.replayed).lower()
+    if reservation.replayed:
+        replay_body = reservation.replay_body or {}
+        record = repository.get_run(principal=principal, run_id=str(run_id))
+        return {
+            "request_id": request_id,
+            "modal_call_id": replay_body.get("modal_call_id"),
+            "story_run": _story_response(record),
+            "story": record.story_content,
+            "story_sha256": replay_body.get("story_sha256"),
+            "review_required": True,
+            "model": {
+                "id": replay_body.get("model_id"),
+                "revision": replay_body.get("model_revision"),
+            },
+        }
     try:
         raw_story, modal_call_id = ModalStoryFunctionClient().generate(
             {"worker_input": reservation.worker_input}

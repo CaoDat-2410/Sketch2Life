@@ -10,6 +10,7 @@ from sqlalchemy import create_engine
 
 import sketch2life.interfaces.http.app as app_module
 import sketch2life.interfaces.http.be1_runtime as runtime_module
+import sketch2life.interfaces.http.routers.parent_ai as parent_ai_module
 from sketch2life.infrastructure.config.settings import (
     CoreDatabaseSettings,
     Settings,
@@ -155,6 +156,25 @@ def test_compatibility_app_keeps_be1_and_demo_services_on_app_state() -> None:
     assert application.state.session_service is not None
     assert application.state.live_image_demo_service is not None
     assert application.state.supervised_flow_service is not None
+
+
+def test_legacy_parent_story_revision_requires_idempotency_and_uses_srs_error_envelope() -> None:
+    application = create_app()
+    application.dependency_overrides[parent_ai_module.get_verified_adult] = lambda: object()
+    application.dependency_overrides[parent_ai_module.get_db] = lambda: object()
+
+    with TestClient(application) as client:
+        response = client.post(
+            "/api/parent/v1/ai/story-runs/01234567-89ab-cdef-0123-456789abcdef/story-revisions",
+            json={"expected_understanding_revision": 1},
+        )
+
+    assert response.status_code == 400
+    body = response.json()
+    assert body["code"] == "INVALID_IDEMPOTENCY_KEY"
+    assert body["correlation_id"]
+    assert body["retryable"] is False
+    assert "detail" not in body
 
 
 def test_classroom_profile_excludes_process_local_demo_routes() -> None:
