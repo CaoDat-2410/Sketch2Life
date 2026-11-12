@@ -150,7 +150,7 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
         "/api/platform-admin/v1/accounts/{account_id}",
         "/api/parent/v1/ai/sketch-guides",
         "/api/parent/v1/ai/drawing-understandings",
-        "/api/parent/v1/ai/storyboards",
+        "/api/parent/v1/ai/story-runs/{run_id}/story-revisions",
         "/api/teacher/v1/organizations/{organization_id}/ai/lesson-plan-suggestions",
         "/api/teacher/v1/organizations/{organization_id}/ai/sketch-decks",
         "/api/teacher/v1/organizations/{organization_id}/ai/lesson-visuals",
