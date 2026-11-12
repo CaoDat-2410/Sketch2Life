@@ -1,0 +1,13 @@
+{
+  "expo": {
+    "name": "Sketch2Life Kids",
+    "slug": "sketch2life-kids",
+    "scheme": "sketch2life",
+    "version": "1.0.0",
+    "orientation": "landscape",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "plugins": ["expo-router"],
+    "android": { "adaptiveIcon": { "backgroundColor": "#EAF7FF" } }
+  }
+}

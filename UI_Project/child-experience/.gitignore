@@ -1,0 +1,26 @@
+# Logs
+/logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Dependencies
+node_modules/
+
+# Expo and Bundler
+.expo/
+dist/
+dist-ssr/
+*.local
+
+# Browser / automation profile directories
+.phone-profile-*
+
+# Editor directories
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.suo
