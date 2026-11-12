@@ -27,6 +27,23 @@ _ASSET_COLUMNS = (
 
 
 def upgrade() -> None:
+    # This revision cannot reconstruct immutable Parent context for pre-existing
+    # StoryRuns. Fail closed instead of leaving legacy active runs without a
+    # current input pointer that the new API can serve.
+    op.execute(
+        sa.text(
+            """
+            DO $i2_story_baseline$
+            BEGIN
+                IF EXISTS (SELECT 1 FROM story.runs LIMIT 1) THEN
+                    RAISE EXCEPTION
+                        'I2 requires an empty story.runs baseline; review legacy StoryRuns first';
+                END IF;
+            END;
+            $i2_story_baseline$;
+            """
+        )
+    )
     op.add_column("runs", sa.Column("current_input_revision", sa.Integer(), nullable=True), schema="story")
     op.create_check_constraint(
         "ck_story_run_current_input_revision",
