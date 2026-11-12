@@ -1,0 +1,8 @@
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import { Workspace } from '../../shared/webWorkspace';
+import '../../shared/webWorkspace.css';
+import '../../shared/roleDashboards.css';
+import '../../shared/roleFlows.css';
+import '../../shared/visualPolish.css';
+createRoot(document.getElementById('root')!).render(<React.StrictMode><Workspace role="manager" /></React.StrictMode>);
