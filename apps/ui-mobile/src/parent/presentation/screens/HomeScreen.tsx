@@ -1,7 +1,8 @@
 import React from 'react';
-import { Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { ParentProfile, StoryRun } from '../../domain/types';
 import { Card, Notice, PrimaryButton, ScreenFrame, SecondaryButton, SectionTitle, palette } from '../components/ui';
+import { buildHomeProfileSummary } from './catalogViewModel';
 
 type Props = {
   profiles: ParentProfile[];
@@ -38,38 +39,35 @@ export function HomeScreen({
   onResumeRun,
   onSignOut,
 }: Props): React.JSX.Element {
+  const profileSummary = buildHomeProfileSummary(profiles);
+
   return (
     <ScreenFrame title="Trang chủ" subtitle="Cùng con bắt đầu một hành trình khám phá mới.">
       {error ? <Notice text={error} tone="warning" /> : null}
-      {activeRun ? (
-        <Card>
-          <SectionTitle>Buổi học đang mở</SectionTitle>
-          <Text style={{ color: palette.muted, fontSize: 14, lineHeight: 20 }}>
-            Hoàn tất buổi hiện tại trước khi bắt đầu buổi mới.
-          </Text>
-          <PrimaryButton label="Tiếp tục buổi đang mở" onPress={onResumeRun} />
-        </Card>
-      ) : (
-        <Card>
-          <SectionTitle>Bắt đầu cùng con</SectionTitle>
-          <Text style={{ color: palette.muted, fontSize: 14, lineHeight: 20 }}>
-            Chụp bức vẽ của con để khám phá chủ đề, hoạt động và câu chuyện.
-          </Text>
-          <PrimaryButton label="Bắt đầu buổi vẽ" onPress={onStart} />
-        </Card>
-      )}
 
-      <Card>
-        <SectionTitle>Hồ sơ của bé</SectionTitle>
-        <Text style={{ color: palette.muted, fontSize: 14, lineHeight: 20 }}>
-          {profiles.length === 0
-            ? 'Tạo hồ sơ để lưu độ tuổi và sở thích cho từng buổi.'
-            : `${profiles.length} hồ sơ đã sẵn sàng.`}
+      <Card style={styles.featureCard}>
+        <View style={styles.featureMark} accessible={false}>
+          <Text style={styles.featureMarkText}>{activeRun ? '↗' : '＋'}</Text>
+        </View>
+        <SectionTitle>{activeRun ? 'Buổi học đang mở' : 'Bắt đầu cùng con'}</SectionTitle>
+        <Text style={styles.featureDescription}>
+          {activeRun
+            ? 'Hoàn tất buổi hiện tại trước khi bắt đầu buổi mới.'
+            : 'Chụp bức vẽ của con để khám phá chủ đề, hoạt động và câu chuyện.'}
         </Text>
-        <SecondaryButton label="Xem hồ sơ" onPress={onManageProfiles} />
+        <PrimaryButton
+          label={activeRun ? 'Tiếp tục buổi đang mở' : 'Bắt đầu buổi vẽ'}
+          onPress={activeRun ? onResumeRun : onStart}
+        />
       </Card>
 
-      <Card>
+      <Card style={styles.profileCard}>
+        <SectionTitle>{profileSummary.title}</SectionTitle>
+        <Text style={styles.bodyText}>{profileSummary.description}</Text>
+        <SecondaryButton label={profileSummary.actionLabel} onPress={onManageProfiles} />
+      </Card>
+
+      <Card style={styles.familyCard}>
         <SectionTitle>Không gian của gia đình</SectionTitle>
         <SecondaryButton label="Xem bài giảng" onPress={onOpenLessons} />
         <SecondaryButton label="Tài khoản và bảo mật" onPress={onOpenAccount} />
@@ -81,15 +79,63 @@ export function HomeScreen({
         <SecondaryButton label="Chia sẻ hồ sơ với giáo viên" onPress={onOpenSharing} />
       </Card>
 
-      <View style={{ paddingTop: 4 }}>
-        <Text
-          accessibilityRole="button"
-          onPress={onSignOut}
-          style={{ color: palette.blue, fontWeight: '700', textAlign: 'center', padding: 12 }}
-        >
-          Đăng xuất
-        </Text>
-      </View>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Đăng xuất"
+        onPress={onSignOut}
+        style={styles.signOut}
+      >
+        <Text style={styles.signOutText}>Đăng xuất</Text>
+      </Pressable>
     </ScreenFrame>
   );
 }
+
+const styles = StyleSheet.create({
+  featureCard: {
+    backgroundColor: palette.paleBlue,
+    borderColor: '#D4E5FF',
+    padding: 18,
+  },
+  featureMark: {
+    width: 46,
+    height: 46,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: palette.white,
+  },
+  featureMarkText: {
+    color: palette.blue,
+    fontSize: 27,
+    lineHeight: 31,
+    fontWeight: '700',
+  },
+  featureDescription: {
+    color: palette.muted,
+    fontSize: 14,
+    lineHeight: 21,
+  },
+  profileCard: {
+    padding: 18,
+  },
+  bodyText: {
+    color: palette.muted,
+    fontSize: 14,
+    lineHeight: 21,
+  },
+  familyCard: {
+    gap: 10,
+  },
+  signOut: {
+    minHeight: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 12,
+  },
+  signOutText: {
+    color: palette.blue,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+});

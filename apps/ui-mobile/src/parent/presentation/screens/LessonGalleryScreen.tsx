@@ -1,7 +1,8 @@
-import React from 'react';
-import { Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { LessonDetail, LessonInvitation, LessonSummary, ParentGroupInvitation } from '../../domain/types';
 import { Card, ChoiceRow, Notice, PrimaryButton, ScreenFrame, SecondaryButton, SectionTitle, TextButton, palette } from '../components/ui';
+import { ALL_LESSONS_TOPIC, buildLessonCatalogViewModel } from './catalogViewModel';
 
 type Props = {
   lessons: LessonSummary[];
@@ -23,6 +24,10 @@ type Props = {
 
 export function LessonGalleryScreen(props: Props): React.JSX.Element {
   const isPicker = props.mode === 'picker';
+  const [selectedTopic, setSelectedTopic] = useState(ALL_LESSONS_TOPIC);
+  const catalog = buildLessonCatalogViewModel(props.lessons, selectedTopic);
+  const showTopicFilters = !isPicker && catalog.topics.length > 1;
+
   return (
     <ScreenFrame
       title={isPicker ? 'Chọn bài giảng' : 'Thư viện bài giảng'}
@@ -31,17 +36,34 @@ export function LessonGalleryScreen(props: Props): React.JSX.Element {
       onBack={props.onBack}
     >
       {props.error ? <Notice text={props.error} tone="error" /> : null}
-      {props.loading ? <Card><Text style={{ color: palette.muted }}>Đang tải thư viện…</Text></Card> : null}
+      {props.loading ? <Card><Text style={styles.mutedText}>Đang tải thư viện…</Text></Card> : null}
+
       {props.selectedLesson ? (
-        <Card>
+        <Card style={styles.detailCard}>
           <SectionTitle>{props.selectedLesson.title}</SectionTitle>
-          <Text style={{ color: palette.muted, fontSize: 14 }}>{props.selectedLesson.topic} · phiên bản {props.selectedLesson.version_no}</Text>
-          <Text style={{ color: palette.ink, fontSize: 14, lineHeight: 20 }}>{props.selectedLesson.drawing_steps_text}</Text>
-          <Text style={{ color: palette.ink, fontSize: 14, lineHeight: 20 }}>{props.selectedLesson.subject_learning_notes}</Text>
+          <Text style={styles.detailMeta}>
+            {props.selectedLesson.topic} · phiên bản {props.selectedLesson.version_no}
+          </Text>
+          <View style={styles.detailSection}>
+            <Text style={styles.sectionLabel}>Hướng dẫn vẽ</Text>
+            <Text style={styles.bodyText}>{props.selectedLesson.drawing_steps_text}</Text>
+          </View>
+          <View style={styles.detailSection}>
+            <Text style={styles.sectionLabel}>Điểm khám phá cùng bé</Text>
+            <Text style={styles.bodyText}>{props.selectedLesson.subject_learning_notes}</Text>
+          </View>
+          {props.selectedLesson.objectives.length > 0 ? (
+            <View style={styles.detailSection}>
+              <Text style={styles.sectionLabel}>Mục tiêu</Text>
+              {props.selectedLesson.objectives.map((objective, index) => (
+                <Text key={`${objective}-${index}`} style={styles.bodyText}>• {objective}</Text>
+              ))}
+            </View>
+          ) : null}
           {props.selectedLesson.activities.map((activity, index) => (
-            <View key={`${activity.title}-${index}`} style={{ gap: 4 }}>
-              <Text style={{ color: palette.ink, fontWeight: '700' }}>{activity.title}</Text>
-              <Text style={{ color: palette.muted, fontSize: 13, lineHeight: 19 }}>{activity.objective}</Text>
+            <View key={`${activity.title}-${index}`} style={styles.activity}>
+              <Text style={styles.activityTitle}>{activity.title}</Text>
+              <Text style={styles.activityDescription}>{activity.objective}</Text>
             </View>
           ))}
           <PrimaryButton
@@ -51,10 +73,41 @@ export function LessonGalleryScreen(props: Props): React.JSX.Element {
           />
         </Card>
       ) : null}
-      <Card>
-        <SectionTitle>Bài giảng</SectionTitle>
-        {props.lessons.length === 0 && !props.loading ? <Text style={{ color: palette.muted }}>Chưa có bài giảng được chia sẻ.</Text> : null}
-        {props.lessons.map((lesson) => (
+
+      <Card style={styles.catalogCard}>
+        <View style={styles.catalogHeading}>
+          <SectionTitle>Bài giảng</SectionTitle>
+        </View>
+
+        {showTopicFilters ? (
+          <View style={styles.topicFilters}>
+            {catalog.topics.map((topic) => {
+              const selected = catalog.selectedTopic === topic;
+              return (
+                <Pressable
+                  key={topic}
+                  accessibilityRole="button"
+                  accessibilityLabel={topic}
+                  accessibilityState={{ selected }}
+                  onPress={() => setSelectedTopic(topic)}
+                  style={({ pressed }) => [
+                    styles.topicChip,
+                    selected && styles.topicChipSelected,
+                    pressed && styles.topicChipPressed,
+                  ]}
+                >
+                  <Text style={[styles.topicChipText, selected && styles.topicChipTextSelected]}>{topic}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        ) : null}
+
+        {catalog.emptyState === 'no-lessons' && !props.loading ? (
+          <Text style={styles.emptyText}>Chưa có bài giảng được chia sẻ.</Text>
+        ) : null}
+
+        {catalog.visibleLessons.map((lesson) => (
           <ChoiceRow
             key={`${lesson.lesson_id}:${lesson.version_id}`}
             title={lesson.title}
@@ -63,32 +116,166 @@ export function LessonGalleryScreen(props: Props): React.JSX.Element {
             onPress={() => props.onOpenLesson(lesson.lesson_id)}
           />
         ))}
-        {props.loadingId ? <Text style={{ color: palette.muted, fontSize: 13 }}>Đang tải nội dung…</Text> : null}
+
+        {props.loadingId ? <Text style={styles.loadingDetail}>Đang tải nội dung…</Text> : null}
       </Card>
-      {!isPicker ? <>
-        <Card>
-          <SectionTitle>Lời mời bài giảng</SectionTitle>
-          {props.lessonInvitations.length === 0 ? <Text style={{ color: palette.muted }}>Không có lời mời đang chờ.</Text> : null}
-          {props.lessonInvitations.filter((item) => item.state === 'PENDING' || item.state === 'INVITED').map((item) => (
-            <View key={item.access_grant_id} style={{ gap: 5, borderTopWidth: 1, borderTopColor: '#E6EDF5', paddingTop: 10 }}>
-              <Text style={{ color: palette.ink, fontWeight: '700' }}>Bài giảng được mời chia sẻ</Text>
-              <Text style={{ color: palette.muted, fontSize: 12 }}>Hết hạn: {item.expires_at ?? 'không ghi hạn'}</Text>
-              <PrimaryButton label="Chấp nhận" onPress={() => props.onAcceptLessonInvitation(item.access_grant_id)} />
-              <TextButton label="Từ chối lời mời" onPress={() => props.onDeclineLessonInvitation(item.access_grant_id)} />
-            </View>
-          ))}
-        </Card>
-        <Card>
-          <SectionTitle>Lời mời nhóm phụ huynh</SectionTitle>
-          {props.groupInvitations.length === 0 ? <Text style={{ color: palette.muted }}>Không có lời mời đang chờ.</Text> : null}
-          {props.groupInvitations.filter((item) => item.state === 'INVITED').map((item) => (
-            <View key={item.membership_id} style={{ gap: 5 }}>
-              <Text style={{ color: palette.ink }}>Nhóm phụ huynh · {item.membership_id}</Text>
-              <SecondaryButton label="Chấp nhận lời mời" onPress={() => props.onAcceptGroupInvitation(item.membership_id)} />
-            </View>
-          ))}
-        </Card>
-      </> : <SecondaryButton label="Tiếp tục không dùng bài giảng" onPress={props.onBack} />}
+
+      {!isPicker ? (
+        <>
+          <Card style={styles.invitationCard}>
+            <SectionTitle>Lời mời bài giảng</SectionTitle>
+            {props.lessonInvitations.length === 0 ? (
+              <Text style={styles.emptyText}>Không có lời mời đang chờ.</Text>
+            ) : null}
+            {props.lessonInvitations
+              .filter((item) => item.state === 'PENDING' || item.state === 'INVITED')
+              .map((item) => (
+                <View key={item.access_grant_id} style={styles.invitationItem}>
+                  <Text style={styles.invitationTitle}>Bài giảng được mời chia sẻ</Text>
+                  <Text style={styles.invitationMeta}>Hết hạn: {item.expires_at ?? 'không ghi hạn'}</Text>
+                  <PrimaryButton label="Chấp nhận" onPress={() => props.onAcceptLessonInvitation(item.access_grant_id)} />
+                  <TextButton label="Từ chối lời mời" onPress={() => props.onDeclineLessonInvitation(item.access_grant_id)} />
+                </View>
+              ))}
+          </Card>
+
+          <Card style={styles.invitationCard}>
+            <SectionTitle>Lời mời nhóm phụ huynh</SectionTitle>
+            {props.groupInvitations.length === 0 ? (
+              <Text style={styles.emptyText}>Không có lời mời đang chờ.</Text>
+            ) : null}
+            {props.groupInvitations
+              .filter((item) => item.state === 'INVITED')
+              .map((item) => (
+                <View key={item.membership_id} style={styles.invitationItem}>
+                  <Text style={styles.invitationTitle}>Nhóm phụ huynh · {item.membership_id}</Text>
+                  <SecondaryButton
+                    label="Chấp nhận lời mời"
+                    onPress={() => props.onAcceptGroupInvitation(item.membership_id)}
+                  />
+                </View>
+              ))}
+          </Card>
+        </>
+      ) : (
+        <SecondaryButton label="Tiếp tục không dùng bài giảng" onPress={props.onBack} />
+      )}
     </ScreenFrame>
   );
 }
+
+const styles = StyleSheet.create({
+  detailCard: {
+    padding: 18,
+  },
+  detailMeta: {
+    color: palette.muted,
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  detailSection: {
+    gap: 5,
+  },
+  sectionLabel: {
+    color: palette.ink,
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  bodyText: {
+    color: palette.ink,
+    fontSize: 14,
+    lineHeight: 21,
+  },
+  activity: {
+    gap: 4,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: palette.border,
+    paddingTop: 10,
+  },
+  activityTitle: {
+    color: palette.ink,
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: '700',
+  },
+  activityDescription: {
+    color: palette.muted,
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  catalogCard: {
+    padding: 18,
+  },
+  catalogHeading: {
+    minHeight: 26,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  topicFilters: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  topicChip: {
+    minHeight: 48,
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: palette.border,
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    backgroundColor: palette.white,
+  },
+  topicChipSelected: {
+    borderColor: palette.blue,
+    backgroundColor: palette.paleBlue,
+  },
+  topicChipPressed: {
+    opacity: 0.78,
+  },
+  topicChipText: {
+    color: palette.muted,
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: '700',
+  },
+  topicChipTextSelected: {
+    color: palette.blue,
+  },
+  emptyText: {
+    color: palette.muted,
+    fontSize: 14,
+    lineHeight: 21,
+  },
+  mutedText: {
+    color: palette.muted,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  loadingDetail: {
+    color: palette.muted,
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  invitationCard: {
+    padding: 18,
+  },
+  invitationItem: {
+    gap: 7,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: palette.border,
+    paddingTop: 10,
+  },
+  invitationTitle: {
+    color: palette.ink,
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: '700',
+  },
+  invitationMeta: {
+    color: palette.muted,
+    fontSize: 12,
+    lineHeight: 18,
+  },
+});
