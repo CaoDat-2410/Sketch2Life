@@ -179,13 +179,12 @@ SRS_V22_TAGS: list[dict[str, str]] = [
 
 SRS_V22_OPENAPI_DESCRIPTION = "\n\n".join(
     (
-        "Implemented FE APIs include accepted Parent profiles and a proposed Parent StoryRun "
-        "slice alongside organization, class, consent, and Teacher lesson preparation.",
-        "Bearer authentication and role/resource access are checked per operation.",
-        "Not available yet: Parent activity catalog; Teacher occurrence, Sketch Deck, "
-        "sample video; job/playback; quota/payment; notifications.",
-        "Parent context, subject, and script confirmation operation details remain proposals.",
-        "This projection documents current backend paths and does not indicate final SRS approval.",
+        "Implemented FE APIs cover Parent profiles, a proposed Parent StoryRun slice, "
+        "organization/class management, consent, and Teacher lesson preparation.",
+        "Authentication and role/resource access are checked per operation.",
+        "Parent activity catalog, Teacher occurrence, Sketch Deck, sample video, jobs/playback, "
+        "quota/payment, and notifications are unavailable.",
+        "Proposed Parent confirmations and draft SRS status remain subject to approval.",
     )
 )
 

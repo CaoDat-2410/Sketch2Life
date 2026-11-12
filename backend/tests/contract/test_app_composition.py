@@ -77,6 +77,16 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
     expected.pop(
         "/api/be1/v1/organizations/{organization_id}/assignments/{assignment_id}", None
     )
+    expected.update(
+        {
+            "/v1/story-runs": ["POST"],
+            "/v1/story-runs/active/current": ["GET"],
+            "/v1/story-runs/{run_id}": ["GET"],
+            "/v1/story-runs/{run_id}/context-confirmation": ["POST"],
+            "/v1/story-runs/{run_id}/subject-confirmation": ["POST"],
+            "/v1/story-runs/{run_id}/script-confirmation": ["POST"],
+        }
+    )
     application = create_app()
     # OpenAPI is an SRS projection; inspect mounted routes for the full legacy surface.
     actual = _mounted_route_methods(application)
