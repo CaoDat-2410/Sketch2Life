@@ -1,0 +1,155 @@
+/* Shared visual corrections for the role workspaces. */
+.web-sidebar-user {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.web-sidebar-user-avatar {
+  display: grid;
+  flex: 0 0 36px;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  overflow: hidden;
+  border: 1px solid #d9e7dc;
+  border-radius: 50%;
+  background: linear-gradient(145deg, var(--accent-soft), #fffefa 82%);
+  color: var(--accent-dark);
+  box-shadow: 0 3px 8px #26463312;
+}
+
+.web-sidebar-user-avatar svg {
+  width: 21px;
+  height: 21px;
+}
+
+.web-sidebar-user-copy {
+  display: grid;
+  flex: 1 1 auto;
+  gap: 2px;
+  min-width: 0;
+}
+
+.web-sidebar-user-copy strong,
+.web-sidebar-user-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.web-sidebar-user-copy strong {
+  color: #40584c;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.web-sidebar-user-copy small {
+  color: #65786d;
+  font-size: 10px;
+}
+
+.web-app--nav-collapsed .web-sidebar-footer {
+  justify-content: center;
+  gap: 4px;
+}
+
+.web-app--nav-collapsed .web-sidebar-user {
+  flex: 0 0 30px;
+  width: 30px;
+  min-width: 30px;
+}
+
+.web-app--nav-collapsed .web-sidebar-user-avatar {
+  flex-basis: 30px;
+  width: 30px;
+  height: 30px;
+}
+
+.web-app--nav-collapsed .web-sidebar-user-copy {
+  display: none;
+}
+
+.web-app--nav-collapsed .web-sidebar-footer .web-logout--compact {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+}
+
+@media (max-width: 900px) {
+  .web-app--nav-collapsed .web-sidebar-user {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+  }
+
+  .web-app--nav-collapsed .web-sidebar-user-avatar {
+    flex-basis: 36px;
+    width: 36px;
+    height: 36px;
+  }
+
+  .web-app--nav-collapsed .web-sidebar-user-copy {
+    display: grid;
+  }
+
+  .web-app--nav-collapsed .web-sidebar-footer .web-logout--compact {
+    width: 42px;
+    height: 42px;
+  }
+}
+
+.web-app select,
+.unified-auth select {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  padding-right: 44px !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='m4 6 4 4 4-4' stroke='%235F7568' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 15px center !important;
+  background-size: 14px 14px !important;
+  cursor: pointer;
+}
+
+.flow-field select {
+  min-height: 46px;
+}
+
+.flow-note + .flow-primary,
+.web-detail-boundary + .web-primary,
+.web-modal-note + .web-modal-actions,
+.feedback-preview-note + .feedback-layout {
+  margin-top: 16px;
+}
+
+.web-detail-boundary + .web-primary {
+  margin-bottom: 0;
+}
+
+.dashboard-kpi:active {
+  transform: translateY(-1px) scale(.995);
+}
+
+.web-sidebar-user-avatar,
+.dashboard-kpi {
+  transition: transform 180ms cubic-bezier(.2,.8,.2,1), box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.web-sidebar-user-avatar:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 11px #2646331a;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .web-sidebar-user-avatar,
+  .dashboard-kpi {
+    transition: none !important;
+  }
+
+  .dashboard-kpi:active,
+  .web-sidebar-user-avatar:hover {
+    transform: none !important;
+  }
+}

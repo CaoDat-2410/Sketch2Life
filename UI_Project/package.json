@@ -1,0 +1,24 @@
+{
+  "name": "sketch2life-frontends",
+  "private": true,
+  "workspaces": [
+    "parent-ui",
+    "teacher-ui",
+    "school-manager-ui",
+    "platform-admin-ui",
+    "web-ui"
+  ],
+  "scripts": {
+    "dev": "node dev-all.mjs",
+    "build": "npm run build --workspaces",
+    "dev:parent": "npm run dev -w parent-ui",
+    "dev:teacher": "npm run dev -w teacher-ui",
+    "dev:manager": "npm run dev -w school-manager-ui",
+    "dev:admin": "npm run dev -w platform-admin-ui",
+    "dev:web": "npm run dev -w web-ui"
+  },
+  "dependencies": {
+    "@radix-ui/react-accordion": "^1.3.1",
+    "@radix-ui/react-dialog": "^1.3.1"
+  }
+}

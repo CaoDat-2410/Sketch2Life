@@ -1,0 +1,55 @@
+/* Restrained staff expression of the illustrated Parent brand. */
+:root {
+  --color-paper: #f3f8fc;
+  --color-paper-2: #ebf3f9;
+  --color-ink: #142f5c;
+  --color-ink-2: #405777;
+  --color-muted: #536986;
+  --color-rule: #dceaf7;
+  --color-accent: #0879ed;
+  --color-accent-soft: #e8f4ff;
+  --bg: #f3f8fc;
+  --surface-2: #eef6fd;
+  --line: #dceaf7;
+  --ink: #142f5c;
+  --ink-2: #405777;
+  --ink-3: #536986;
+  --primary: #0879ed;
+  --primary-600: #0759b9;
+  --primary-50: #e8f4ff;
+  --primary-100: #d9eeff;
+  --tw-ink: #142f5c;
+  --tw-ink-2: #405777;
+  --tw-sub-ink: #536986;
+  --tw-border: #dceaf7;
+  --tw-sky-ink: #0879ed;
+  --grad-primary: #0879ed;
+}
+body, .tw-shell, .mg-shell, .tw-top, .mg-top, .tw-hero-bg { background: #f3f8fc; color: #142f5c; }
+.tw-side, .mg-side { background: #163b64; --color-ink: #fff; }
+.tw-side .tw-nav-item.is-on, .mg-nav-item.is-active { background: #e7f4ff; color: #12345c; }
+.tw-card, .tw-kpi, .mg-card, .mg-kpi { border-color: #dceaf7; }
+.tw-card.is-sky, .mg-hero { background: #e7f4ff; }
+.tw-card.is-sky > .tw-avatar[style], .tw-avatar.is-sky, .mg-hero-badge { background: #0879ed !important; color: #fff; }
+.tw-title, .tw-top-title, .mg-title, .mg-kpi-num, .mg-item-title, .mg-stat-num { color: #142f5c; }
+.tw-sub, .tw-meta, .mg-sub, .mg-kpi-label, .mg-item-sub { color: #536986; }
+.tw-btn, .tw-btn.is-mint, .mg-btn.primary, .mg-btn.mint { background: #0879ed; border-color: #0879ed; color: #fff; }
+.tw-btn:hover:not(:disabled), .tw-btn.is-mint:hover:not(:disabled), .mg-btn.primary:hover:not(:disabled) { background: #0759b9; }
+.tw-btn.is-ghost, .mg-btn.soft { background: #fff; color: #0759b9; border-color: #cbdff2; }
+.tw-chip, .mg-pill.info { background: #e8f4ff; color: #0759b9; }
+.tw-chip.is-mint, .mg-pill.ok { background: #e3f7ee; color: #0e705a; }
+.tw-ico, .tw-ico.is-mint, .mg-tone-blue, .mg-tone-mint { background: #e8f4ff; color: #0759b9; }
+.tw-tab-seg.is-on, .mg-tab.is-active { color: #0759b9; box-shadow: inset 0 -3px #0879ed; }
+.tw-role-btn.is-on, .mg-link { color: #0759b9; }
+.tw-input:focus, .mg-input:focus, .mg-textarea:focus { border-color: #0879ed; box-shadow: 0 0 0 3px #d9eeff; }
+.mg-page > .mg-grid-2:has(> .mg-kpi), .mg-page > .mg-grid-3:has(> .mg-kpi), .tw-status-strip { border-color: #dceaf7; }
+.mg-page > .mg-grid-2 > .mg-kpi + .mg-kpi, .mg-page > .mg-grid-3 > .mg-kpi + .mg-kpi, .tw-status-strip .tw-kpi + .tw-kpi { border-color: #dceaf7; }
+.mg-kpi-num.blue, .mg-kpi-num.mint, .mg-kpi-num.amber { color: #0759b9; }
+.mg-bar > span.blue, .mg-bar > span.mint { background: #0879ed; }
+.mg-chip-btn.is-active { background: #0879ed; border-color: #0879ed; }
+.mg-item.is-active { border-color: #0879ed; background: #e8f4ff; }
+.mg-scope-box.from, .mg-scope-box.to.is-on, .mg-check.is-on { background: #e8f4ff; color: #0759b9; border-color: #b3d8fc; }
+.mg-check.is-on .mg-check-box { background: #0879ed; border-color: #0879ed; }
+.backend-preview-notice { color: #715217; border-color: #eee1bd; }
+::selection { background: #b5e4ff; color: #112f5c; }
+:focus-visible { outline-color: #0879ed; }
