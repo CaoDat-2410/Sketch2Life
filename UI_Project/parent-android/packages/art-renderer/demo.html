@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sketch2Life Art Renderer POC</title>
+    <style>
+      body { margin: 0; background: #eef5f0; color: #263238; font-family: system-ui, sans-serif; }
+      main { max-width: 900px; margin: 24px auto; padding: 0 16px; }
+      #stage { width: 800px; max-width: 100%; margin-top: 16px; border: 2px solid #7ea97e; background: white; }
+      canvas { display: block; max-width: 100%; height: auto; }
+      button { margin-right: 8px; padding: 8px 12px; }
+      pre { min-height: 4rem; padding: 12px; overflow: auto; background: #172025; color: #e1f0e4; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Standalone original-art animation POC</h1>
+      <p>Fixture only: no backend, mobile app, model, or generated product visual is used.</p>
+      <button id="play" type="button">Play butterfly fixture</button>
+      <button id="fallback" type="button">Play fallback fixture</button>
+      <div id="stage"></div>
+      <pre id="events" aria-live="polite"></pre>
+    </main>
+    <script type="module" src="/demo/main.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,46 @@
+{
+  "expo": {
+    "name": "Sketch2Life",
+    "slug": "sketch2life",
+    "description": "Sketch2Life AI-powered Montessori learning companion app for children.",
+    "version": "1.0.0",
+    "orientation": "default",
+    "icon": "./assets/images/icon_butterfly.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/images/screen1_splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#EFF6FF"
+    },
+    "web": {
+      "favicon": "./assets/images/icon_butterfly.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Cho phép chọn một ảnh tổng hợp để kiểm tra Sketch2Life.",
+          "cameraPermission": false
+        }
+      ],
+      [
+        "expo-av",
+        {
+          "microphonePermission": "Cho phép người lớn ghi lời kể cho hoạt động của trẻ khi chủ động chạm nút ghi âm."
+        }
+      ],
+      "./plugins/withDebugCleartextTraffic"
+    ],
+    "android": {
+      "package": "com.sketch2life.mobile",
+      "blockedPermissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_VIDEO"
+      ]
+    }
+  }
+}

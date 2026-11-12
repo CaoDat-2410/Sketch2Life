@@ -1,0 +1,15 @@
+{
+  "name": "sketch2life-parent-android-ui",
+  "private": true,
+  "version": "0.0.0",
+  "packageManager": "pnpm@11.19.0",
+  "engines": { "node": ">=22.13.0" },
+  "scripts": {
+    "start": "pnpm --filter @sketch2life/mobile start",
+    "android": "pnpm --filter @sketch2life/mobile android",
+    "start:ui-mobile": "pnpm --filter sketch2life-mobile start",
+    "android:ui-mobile": "pnpm --filter sketch2life-mobile android",
+    "typecheck": "pnpm --filter @sketch2life/mobile typecheck",
+    "typecheck:ui-mobile": "pnpm --filter sketch2life-mobile typecheck"
+  }
+}
