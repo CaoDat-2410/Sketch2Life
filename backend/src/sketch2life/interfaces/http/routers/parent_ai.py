@@ -10,9 +10,8 @@ import hashlib
 import json
 from io import BytesIO
 from math import isfinite
-from uuid import UUID, uuid4
-
 from typing import Annotated
+from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, Response
 from pydantic import ValidationError
@@ -54,11 +53,11 @@ from sketch2life.infrastructure.ai.modal_function_client import (
 )
 from sketch2life.infrastructure.config.settings import get_settings
 from sketch2life.infrastructure.persistence.be1_models import AdultIdentityModel
-from sketch2life.infrastructure.persistence.parent_story_repository import (
-    SqlParentStoryRunRepository,
-)
 from sketch2life.infrastructure.persistence.parent_story_profile_lookup import (
     SqlParentStoryProfileLookup,
+)
+from sketch2life.infrastructure.persistence.parent_story_repository import (
+    SqlParentStoryRunRepository,
 )
 from sketch2life.interfaces.http.be1_runtime import get_db, get_verified_adult
 

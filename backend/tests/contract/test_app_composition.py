@@ -10,7 +10,6 @@ from sqlalchemy import create_engine
 
 import sketch2life.interfaces.http.app as app_module
 import sketch2life.interfaces.http.be1_runtime as runtime_module
-import sketch2life.interfaces.http.routers.parent_ai as parent_ai_module
 from sketch2life.infrastructure.config.settings import (
     CoreDatabaseSettings,
     Settings,
@@ -26,6 +25,7 @@ from sketch2life.interfaces.http.app import (
     create_classroom_app,
     create_demo_app,
 )
+from sketch2life.interfaces.http.be1_runtime import get_db, get_verified_adult
 
 
 @pytest.fixture(autouse=True)
@@ -160,8 +160,8 @@ def test_compatibility_app_keeps_be1_and_demo_services_on_app_state() -> None:
 
 def test_legacy_parent_story_revision_requires_idempotency_and_uses_srs_error_envelope() -> None:
     application = create_app()
-    application.dependency_overrides[parent_ai_module.get_verified_adult] = lambda: object()
-    application.dependency_overrides[parent_ai_module.get_db] = lambda: object()
+    application.dependency_overrides[get_verified_adult] = lambda: object()
+    application.dependency_overrides[get_db] = lambda: object()
 
     with TestClient(application) as client:
         response = client.post(

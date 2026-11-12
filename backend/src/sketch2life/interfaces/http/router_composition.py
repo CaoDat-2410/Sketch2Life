@@ -6,27 +6,26 @@ from sketch2life.interfaces.http.routers.auth_registration import (
     router as auth_registration_router,
 )
 from sketch2life.interfaces.http.routers.be1_runtime import router as be1_runtime_router
-from sketch2life.interfaces.http.routers.parent_ai import router as parent_ai_router
-from sketch2life.interfaces.http.routers.parent_profiles import router as parent_profiles_router
-from sketch2life.interfaces.http.routers.parent_story_runs import router as parent_story_runs_router
-from sketch2life.interfaces.http.routers.platform_admin_accounts import (
-    router as platform_admin_accounts_router,
-)
-from sketch2life.interfaces.http.routers.teacher_ai import router as teacher_ai_router
 from sketch2life.interfaces.http.routers.child_preferences import (
     router as child_preferences_router,
 )
 from sketch2life.interfaces.http.routers.health import router as health_router
 from sketch2life.interfaces.http.routers.images import router as images_router
 from sketch2life.interfaces.http.routers.lesson_library import router as lesson_library_router
+from sketch2life.interfaces.http.routers.parent_ai import router as parent_ai_router
 from sketch2life.interfaces.http.routers.parent_profiles import router as parent_profiles_router
+from sketch2life.interfaces.http.routers.parent_story_runs import router as parent_story_runs_router
 from sketch2life.interfaces.http.routers.pilot_assistance import router as pilot_assistance_router
+from sketch2life.interfaces.http.routers.platform_admin_accounts import (
+    router as platform_admin_accounts_router,
+)
 from sketch2life.interfaces.http.routers.sessions import router as sessions_router
 from sketch2life.interfaces.http.routers.story_video import router as story_video_router
 from sketch2life.interfaces.http.routers.supervised_flow import renderer_source_router
 from sketch2life.interfaces.http.routers.supervised_flow import (
     router as supervised_flow_router,
 )
+from sketch2life.interfaces.http.routers.teacher_ai import router as teacher_ai_router
 from sketch2life.interfaces.http.routers.whiteboard_storyboard import (
     router as whiteboard_storyboard_router,
 )

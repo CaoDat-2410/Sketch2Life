@@ -5,22 +5,24 @@ from __future__ import annotations
 import hashlib
 import hmac
 import json
+from collections.abc import Mapping
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, cast
 from uuid import UUID, uuid4
 
 from sqlalchemy import insert, select, text, update
+from sqlalchemy.engine import CursorResult, RowMapping
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from sketch2life.application.ports.identity import VerifiedPrincipal
+from sketch2life.application.ports.parent_story_profile_lookup import ParentStoryProfileReference
 from sketch2life.application.ports.parent_story_runs import (
     ParentStoryInputRecord,
     ParentStoryRevisionReservation,
     ParentStoryRunError,
     ParentStoryRunRecord,
 )
-from sketch2life.application.ports.identity import VerifiedPrincipal
-from sketch2life.application.ports.parent_story_profile_lookup import ParentStoryProfileReference
 from sketch2life.infrastructure.persistence.core_models import CoreAssetMetadataModel
 from sketch2life.infrastructure.story_run_lite import tables as story_tables
 
@@ -1030,33 +1032,36 @@ class SqlParentStoryRunRepository:
                     updated_at=now,
                 )
             )
-            receipt_update = self._session.execute(
-                update(story_tables.story_command_receipts)
-                .where(
-                    story_tables.story_command_receipts.c.receipt_id
-                    == reservation.receipt_id,
-                    story_tables.story_command_receipts.c.state == "PENDING",
-                )
-                .values(
-                    state="FINAL",
-                    response_status=200,
-                    response_resource_version=new_version,
-                    response_body={
-                        "story_revision_id": reservation.story_revision_id,
-                        "revision_no": reservation.revision_no,
-                        "understanding_revision": reservation.understanding_revision,
-                        "context_revision": reservation.context_revision,
-                        "source_asset_sha256": reservation.source_asset_sha256,
-                        "story_sha256": story_sha256,
-                        "modal_call_id": provider_call_id,
-                        "model_id": model_id,
-                        "model_revision": model_revision,
-                    },
-                    resource_ref=reservation.run_id,
-                    resource_version=new_version,
-                    state_version=story_tables.story_command_receipts.c.state_version + 1,
-                    finalized_at=now,
-                )
+            receipt_update = cast(
+                CursorResult[Any],
+                self._session.execute(
+                    update(story_tables.story_command_receipts)
+                    .where(
+                        story_tables.story_command_receipts.c.receipt_id
+                        == reservation.receipt_id,
+                        story_tables.story_command_receipts.c.state == "PENDING",
+                    )
+                    .values(
+                        state="FINAL",
+                        response_status=200,
+                        response_resource_version=new_version,
+                        response_body={
+                            "story_revision_id": reservation.story_revision_id,
+                            "revision_no": reservation.revision_no,
+                            "understanding_revision": reservation.understanding_revision,
+                            "context_revision": reservation.context_revision,
+                            "source_asset_sha256": reservation.source_asset_sha256,
+                            "story_sha256": story_sha256,
+                            "modal_call_id": provider_call_id,
+                            "model_id": model_id,
+                            "model_revision": model_revision,
+                        },
+                        resource_ref=reservation.run_id,
+                        resource_version=new_version,
+                        state_version=story_tables.story_command_receipts.c.state_version + 1,
+                        finalized_at=now,
+                    )
+                ),
             )
             if receipt_update.rowcount != 1:
                 self._session.rollback()
@@ -1115,23 +1120,26 @@ class SqlParentStoryRunRepository:
                     updated_at=now,
                 )
             )
-            receipt_update = self._session.execute(
-                update(story_tables.story_command_receipts)
-                .where(
-                    story_tables.story_command_receipts.c.receipt_id
-                    == reservation.receipt_id,
-                    story_tables.story_command_receipts.c.state == "PENDING",
-                )
-                .values(
-                    state="FINAL",
-                    response_status=504 if outcome_unknown else 502,
-                    response_resource_version=new_version,
-                    response_body={"error_code": error_code},
-                    resource_ref=reservation.run_id,
-                    resource_version=new_version,
-                    state_version=story_tables.story_command_receipts.c.state_version + 1,
-                    finalized_at=now,
-                )
+            receipt_update = cast(
+                CursorResult[Any],
+                self._session.execute(
+                    update(story_tables.story_command_receipts)
+                    .where(
+                        story_tables.story_command_receipts.c.receipt_id
+                        == reservation.receipt_id,
+                        story_tables.story_command_receipts.c.state == "PENDING",
+                    )
+                    .values(
+                        state="FINAL",
+                        response_status=504 if outcome_unknown else 502,
+                        response_resource_version=new_version,
+                        response_body={"error_code": error_code},
+                        resource_ref=reservation.run_id,
+                        resource_version=new_version,
+                        state_version=story_tables.story_command_receipts.c.state_version + 1,
+                        finalized_at=now,
+                    )
+                ),
             )
             if receipt_update.rowcount != 1:
                 self._session.rollback()
@@ -1325,7 +1333,7 @@ class SqlParentStoryRunRepository:
         scope_ref: str,
         key_hash: str,
         fingerprint: str,
-    ):
+    ) -> RowMapping | None:
         receipt = self._session.execute(
             select(story_tables.story_command_receipts).where(
                 story_tables.story_command_receipts.c.actor_scope_kind == _OWNER_SCOPE_KIND,
@@ -1419,7 +1427,7 @@ class SqlParentStoryRunRepository:
         )
         return receipt_id
 
-    def _current_input(self, run):
+    def _current_input(self, run: Mapping[str, Any]) -> RowMapping:
         revision = run["current_input_revision"]
         if revision is None:
             raise ParentStoryRunError(409, "PARENT_STORY_CONTEXT_UNAVAILABLE")

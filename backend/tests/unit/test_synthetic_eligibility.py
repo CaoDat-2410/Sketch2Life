@@ -454,7 +454,9 @@ def test_new_revision_is_a_single_short_child_of_the_confirmed_parent() -> None:
 
 def test_head_counts_by_both_methods_match_the_derived_expectation() -> None:
     graph = _revision_graph()
-    assert len(graph) == 30  # Existing graph plus synthetic, age, vision, Parent and account-role revisions.
+    # Existing graph plus synthetic, age, vision, Parent, account-role, and
+    # Story context revisions.
+    assert len(graph) == 31
     down_targets = {target for down, _ in graph.values() for target in down}
     dependency_targets = down_targets | {target for _, dep in graph.values() for target in dep}
     heads_down_only = {rev for rev in graph if rev not in down_targets}

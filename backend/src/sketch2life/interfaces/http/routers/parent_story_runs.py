@@ -4,7 +4,8 @@
 
 from __future__ import annotations
 
-from typing import Annotated
+from collections.abc import Callable
+from typing import Annotated, Any
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
@@ -30,23 +31,29 @@ from sketch2life.contracts.schemas.parent_story_runs import (
 )
 from sketch2life.infrastructure.lesson_library.service import LessonLibraryError
 from sketch2life.infrastructure.persistence.be1_models import AdultIdentityModel
-from sketch2life.infrastructure.persistence.parent_story_repository import (
-    SqlParentStoryRunRepository,
-)
 from sketch2life.infrastructure.persistence.parent_story_profile_lookup import (
     SqlParentStoryProfileLookup,
+)
+from sketch2life.infrastructure.persistence.parent_story_repository import (
+    SqlParentStoryRunRepository,
 )
 from sketch2life.interfaces.http.be1_runtime import get_db, get_verified_adult
 from sketch2life.interfaces.http.routers.lesson_library import get_lesson_library_service
 
 router = APIRouter(prefix="/v1/story-runs", tags=["Parent StoryRuns"])
-_PARENT_STORY_ERROR_RESPONSES = {
+_PARENT_STORY_ERROR_RESPONSES: dict[int | str, dict[str, Any]] = {
     400: {"model": ParentStoryErrorEnvelopeV1, "description": "The request is invalid."},
     401: {"model": ParentStoryErrorEnvelopeV1, "description": "Authentication is required."},
     403: {"model": ParentStoryErrorEnvelopeV1, "description": "The action is not allowed."},
     404: {"model": ParentStoryErrorEnvelopeV1, "description": "The resource was not found."},
-    409: {"model": ParentStoryErrorEnvelopeV1, "description": "The request conflicts with current state."},
-    422: {"model": ParentStoryErrorEnvelopeV1, "description": "Validation uses the standard error envelope."},
+    409: {
+        "model": ParentStoryErrorEnvelopeV1,
+        "description": "The request conflicts with current state.",
+    },
+    422: {
+        "model": ParentStoryErrorEnvelopeV1,
+        "description": "Validation uses the standard error envelope.",
+    },
     503: {"model": ParentStoryErrorEnvelopeV1, "description": "A required service is unavailable."},
     500: {"model": ParentStoryErrorEnvelopeV1, "description": "An unexpected error occurred."},
 }
@@ -71,7 +78,7 @@ def _require_parent(db: Session, principal: VerifiedPrincipal) -> AdultIdentityM
     return identity
 
 
-def _invoke(callable_, **kwargs):
+def _invoke[ResultT](callable_: Callable[..., ResultT], **kwargs: Any) -> ResultT:
     try:
         return callable_(**kwargs)
     except (ParentStoryRunError, ParentStoryRunServiceError) as exc:

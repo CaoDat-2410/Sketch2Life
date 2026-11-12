@@ -7,7 +7,7 @@ from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from ipaddress import ip_address
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 from urllib.parse import urlsplit
 from uuid import uuid4
 
@@ -141,8 +141,8 @@ from sketch2life.interfaces.http.router_composition import (
     mount_classroom_routers,
     mount_demo_routers,
 )
-from sketch2life.interfaces.http.routers.storage_examples import router as storage_examples_router
 from sketch2life.interfaces.http.routers.auth_registration import RegistrationRateLimiter
+from sketch2life.interfaces.http.routers.storage_examples import router as storage_examples_router
 from sketch2life.interfaces.http.routers.story_run_lite import router as story_run_lite_router
 from sketch2life.interfaces.http.routers.story_run_lite import (
     story_error_response,
@@ -344,7 +344,7 @@ def create_app(
         if request.url.path.startswith("/v1/story-runs") or (
             _legacy_parent_story_revision_path(request.url.path)
         ):
-            detail = exc.detail if isinstance(exc.detail, dict) else {}
+            detail: dict[str, Any] = exc.detail if isinstance(exc.detail, dict) else {}
             status_codes = {
                 400: "INVALID_REQUEST",
                 401: "AUTH_REQUIRED",
@@ -384,7 +384,9 @@ def create_app(
             )
             request_id = getattr(request.state, "story_request_id", str(uuid4()))
             retry_after = exc.headers.get("Retry-After") if exc.headers else None
-            retry_after_seconds = int(retry_after) if retry_after and retry_after.isdigit() else None
+            retry_after_seconds = (
+                int(retry_after) if retry_after and retry_after.isdigit() else None
+            )
             return JSONResponse(
                 status_code=exc.status_code,
                 content={
@@ -532,7 +534,11 @@ def create_app(
                     for part in field_parts[:6]
                 ) or "request"
                 safe_fields.append(
-                    {"field": field[:120], "code": "INVALID_FIELD", "message": "Giá trị trường không hợp lệ."}
+                    {
+                        "field": field[:120],
+                        "code": "INVALID_FIELD",
+                        "message": "Giá trị trường không hợp lệ.",
+                    }
                 )
             error_code = (
                 "INVALID_IDEMPOTENCY_KEY"

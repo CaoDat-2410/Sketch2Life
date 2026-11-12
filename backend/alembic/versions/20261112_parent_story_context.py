@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import sqlalchemy as sa
-from alembic import op
 from sqlalchemy.dialects import postgresql
+
+from alembic import op
 
 revision = "20261112_parent_story_context"
 down_revision = "20261104_story_revisions"
@@ -44,7 +45,9 @@ def upgrade() -> None:
             """
         )
     )
-    op.add_column("runs", sa.Column("current_input_revision", sa.Integer(), nullable=True), schema="story")
+    op.add_column(
+        "runs", sa.Column("current_input_revision", sa.Integer(), nullable=True), schema="story"
+    )
     op.create_check_constraint(
         "ck_story_run_current_input_revision",
         "runs",
@@ -78,9 +81,11 @@ def upgrade() -> None:
         "ck_story_run_input_versions",
         "run_inputs",
         "input_revision > 0 AND ((original_asset_ref IS NULL AND original_asset_version IS NULL "
-        "AND original_sha256 IS NULL AND original_media_type IS NULL AND original_size_bytes IS NULL "
+        "AND original_sha256 IS NULL AND original_media_type IS NULL "
+        "AND original_size_bytes IS NULL "
         "AND derived_asset_ref IS NULL AND derived_asset_version IS NULL "
-        "AND derived_sha256 IS NULL AND derived_media_type IS NULL AND derived_size_bytes IS NULL) OR "
+        "AND derived_sha256 IS NULL AND derived_media_type IS NULL "
+        "AND derived_size_bytes IS NULL) OR "
         "(original_asset_ref IS NOT NULL AND original_asset_version IS NOT NULL "
         "AND original_asset_version > 0 AND original_sha256 IS NOT NULL "
         "AND original_media_type IS NOT NULL AND original_size_bytes IS NOT NULL "
@@ -108,28 +113,57 @@ def upgrade() -> None:
         schema="story",
     )
 
-    op.add_column("run_inputs", sa.Column("source_profile_revision_ref", sa.String(36), nullable=True), schema="story")
-    op.add_column("run_inputs", sa.Column("typed_idea", sa.String(500), nullable=True), schema="story")
-    op.add_column("run_inputs", sa.Column("idea_source", sa.String(16), nullable=True), schema="story")
-    op.add_column("run_inputs", sa.Column("context_revision", sa.Integer(), nullable=True), schema="story")
+    op.add_column(
+        "run_inputs",
+        sa.Column("source_profile_revision_ref", sa.String(36), nullable=True),
+        schema="story",
+    )
+    op.add_column(
+        "run_inputs", sa.Column("typed_idea", sa.String(500), nullable=True), schema="story"
+    )
+    op.add_column(
+        "run_inputs", sa.Column("idea_source", sa.String(16), nullable=True), schema="story"
+    )
+    op.add_column(
+        "run_inputs", sa.Column("context_revision", sa.Integer(), nullable=True), schema="story"
+    )
     op.add_column(
         "run_inputs",
         sa.Column("context_snapshot", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
         schema="story",
     )
-    op.add_column("run_inputs", sa.Column("context_snapshot_sha256", sa.String(64), nullable=True), schema="story")
     op.add_column(
-        "run_inputs", sa.Column("lesson_pin_snapshot", postgresql.JSONB(astext_type=sa.Text()), nullable=True), schema="story"
+        "run_inputs",
+        sa.Column("context_snapshot_sha256", sa.String(64), nullable=True),
+        schema="story",
     )
-    op.add_column("run_inputs", sa.Column("lesson_pin_snapshot_sha256", sa.String(64), nullable=True), schema="story")
-    op.add_column("run_inputs", sa.Column("context_confirmed_by", sa.String(256), nullable=True), schema="story")
-    op.add_column("run_inputs", sa.Column("context_confirmed_at", sa.DateTime(timezone=True), nullable=True), schema="story")
+    op.add_column(
+        "run_inputs",
+        sa.Column("lesson_pin_snapshot", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
+        schema="story",
+    )
+    op.add_column(
+        "run_inputs",
+        sa.Column("lesson_pin_snapshot_sha256", sa.String(64), nullable=True),
+        schema="story",
+    )
+    op.add_column(
+        "run_inputs",
+        sa.Column("context_confirmed_by", sa.String(256), nullable=True),
+        schema="story",
+    )
+    op.add_column(
+        "run_inputs",
+        sa.Column("context_confirmed_at", sa.DateTime(timezone=True), nullable=True),
+        schema="story",
+    )
 
     op.create_check_constraint(
         "ck_story_run_input_typed_idea",
         "run_inputs",
         "(typed_idea IS NULL AND idea_source IS NULL) OR "
-        "(typed_idea IS NOT NULL AND length(typed_idea) BETWEEN 1 AND 500 AND idea_source = 'TEXT')",
+        "(typed_idea IS NOT NULL AND length(typed_idea) BETWEEN 1 AND 500 "
+        "AND idea_source = 'TEXT')",
         schema="story",
     )
     op.create_check_constraint(

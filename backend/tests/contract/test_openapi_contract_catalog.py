@@ -216,11 +216,11 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
 
     assert spec["openapi"] == "3.1.0"
     assert spec["tags"] == public_tags(TAG_DESCRIPTIONS)
-    assert len(operations) == 131
+    assert len(operations) == 137
     catalog_operations = set(operations) - PILOT_ONLY_OPERATIONS
     catalog_paths = {path for _method, path in catalog_operations}
-    assert len(catalog_paths) == 112
-    assert len(catalog_operations) == MOUNTED_OPERATION_COUNT == 126
+    assert len(catalog_paths) == 118
+    assert len(catalog_operations) == MOUNTED_OPERATION_COUNT == 132
     assert catalog_operations == set(MOUNTED_OPERATIONS)
     assert set(operations) - set(MOUNTED_OPERATIONS) == PILOT_ONLY_OPERATIONS
     assert PILOT_ONLY_OPERATIONS.isdisjoint(MOUNTED_OPERATIONS)
