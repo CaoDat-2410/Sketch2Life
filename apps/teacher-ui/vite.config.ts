@@ -1,22 +1,20 @@
-import { fileURLToPath } from "node:url";
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
+import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { defineConfig } from 'vitest/config'
 
-const nm = (pkg: string) => fileURLToPath(new URL(`./node_modules/${pkg}`, import.meta.url));
+const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
 
+// https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
-  resolve: {
-    alias: {
-      "react/jsx-runtime": nm("react/jsx-runtime.js"),
-      "react/jsx-dev-runtime": nm("react/jsx-dev-runtime.js"),
-      "react-dom/client": nm("react-dom/client.js"),
-      react: nm("react"),
-      "react-dom": nm("react-dom"),
-      "react-router-dom": nm("react-router-dom"),
-      "@radix-ui/react-dialog": nm("@radix-ui/react-dialog"),
-      "@radix-ui/react-accordion": nm("@radix-ui/react-accordion"),
-      "three": nm("three"),
-    },
+  envDir: repositoryRoot,
+  plugins: [
+    tailwindcss(),
+    react(),
+  ],
+  test: {
+    environment: 'jsdom',
+    restoreMocks: true,
   },
-});
+})

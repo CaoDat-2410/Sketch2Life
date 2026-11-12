@@ -19,3 +19,10 @@ Use existing Parent tokens, typography, colors, and components. Increase tablet 
 ## D-067-05 — Presentation-only change
 
 Do not infer tablet-specific product requirements from older feature records. Keep Parent flows, auth, data, API contracts, and backend behavior unchanged; treat the signed-off product behavior as outside this responsive styling scope. The current canonical SRS remains a v2.7-draft awaiting owner sign-off.
+
+## D-067-06 — Record PR #24 mobile base exclusion and recovery
+
+- Decision: the PR #24 result on feature/fe-ui-full-remediation uses apps/mobile and apps/ui-mobile from dev; apps/ui-mobile is from commit 34b92194867e915040aae1a1178dee0e526a60c3.
+- Record: target commit 4f5d7f5f27b612efc7b6424f1cc939b124703250 and FEAT-079 are not carried in the resulting tree. Both remain in feature/fe-ui-full-remediation history and can be recovered.
+- Recovery commands and the pinned source/target SHAs are in evidence/EV-067-02_PR24_MOBILE_BASE_RECOVERY_20261112.md.
+- This records the separate PR #24 sync requested by the owner; it does not expand FEAT-067's Parent tablet UI implementation scope.

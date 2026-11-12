@@ -1,37 +1,4 @@
 {
-  "expo": {
-    "name": "Sketch2Life",
-    "slug": "sketch2life",
-    "version": "1.0.0",
-    "orientation": "default",
-    "platforms": [
-      "android"
-    ],
-    "android": {
-      "package": "com.sketch2life.mobile",
-      "versionCode": 1,
-      "blockedPermissions": [
-        "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO",
-        "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.WRITE_EXTERNAL_STORAGE",
-        "android.permission.READ_MEDIA_IMAGES",
-        "android.permission.READ_MEDIA_VIDEO"
-      ]
-    },
-    "plugins": [
-      [
-        "expo-build-properties",
-        {
-          "android": {
-            "minSdkVersion": 29,
-            "compileSdkVersion": 37,
-            "targetSdkVersion": 36,
-            "buildToolsVersion": "37.0.0",
-            "kotlinVersion": "2.2.0"
-          }
-        }
-      ]
-    ]
-  }
+  "name": "Sketch2LifeMobile",
+  "displayName": "Sketch2Life"
 }

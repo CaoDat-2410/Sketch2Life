@@ -1,17 +1,19 @@
-# Dependencies
-node_modules/
-
-# Build output
-dist/
-.vite/
-
-# Logs & OS files
+# Logs
+/logs
 *.log
 npm-debug.log*
-.DS_Store
-Thumbs.db
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
-# Local env files
-.env
-.env.local
-.env.*.local
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo

@@ -1,73 +1,126 @@
-import React from "react";
-import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { TeacherProvider, useTeacher } from "./context/TeacherContext";
-import { TeacherLayout } from "./components/TeacherLayout";
-import { WebPortalLoginPage } from "../../shared/WebPortalLoginPage";
-import { ApiUnavailableView, isLocalPreview } from "../../shared/backendApi";
-import { TeacherApiLessonPage } from "./pages/TeacherApiLessonPage";
-import { TeacherApiImportPage } from "./pages/TeacherApiImportPage";
-import {
-  T01LessonWorkspacePage,
-  T02LessonAuthoringPage,
-  T03DocumentImportReviewPage,
-  T04SessionSketchDeckPage,
-  T05ClassesAndChildrenPage,
-  T05ClassDetailPage,
-  T06SampleStoryRunPage,
-  T07VideoPresentationConfirmationPage,
-  T08TeacherSettingsPage,
-} from "./pages/TeacherScreens";
-import "../../shared/portal-ui.css";
-import "../../shared/ui-primitives.css";
+import { useEffect, useState, type ReactNode } from 'react'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { TeacherLayout } from './components/TeacherLayout'
+import { authService } from './services/authService'
+import { LoginPage } from './pages/LoginPage'
+import { HomePage } from './pages/HomePage'
+import { ClassesProfilesPage } from './pages/ClassesProfilesPage'
+import { SessionSetupPage } from './pages/SessionSetupPage'
+import { SessionLobbyPage } from './pages/SessionLobbyPage'
+import { SessionOrchestratePage } from './pages/SessionOrchestratePage'
+import { GroupWorkspacePage } from './pages/GroupWorkspacePage'
+import { AiSuggestionReviewPage } from './pages/AiSuggestionReviewPage'
+import { ClassGalleryPage } from './pages/ClassGalleryPage'
+import { VideoKnowledgePage } from './pages/VideoKnowledgePage'
+import { OfflineActivitiesPage } from './pages/OfflineActivitiesPage'
+import { ObservationFeedbackPage } from './pages/ObservationFeedbackPage'
+import { LearningPortfolioPage } from './pages/LearningPortfolioPage'
+import { ModalAiLessonFlowPage } from './pages/ModalAiLessonFlowPage'
+import { TemplatesAutomationPage } from './pages/TemplatesAutomationPage'
 
-const ROLE_HOME = "/t01-lesson-workspace";
-const ROLE = "TEACHER" as const;
+function TeacherAccessGate() {
+  const [state, setState] = useState<'loading' | 'signed-in' | 'signed-out' | 'forbidden' | 'error'>('loading')
+  const [message, setMessage] = useState('')
 
-function ApiOrPreview({ children, title, endpoint }: { children: React.ReactNode; title: string; endpoint: string }) {
-  if (isLocalPreview()) return <>{children}</>;
-  return <ApiUnavailableView
-    title={title}
-    endpoint={endpoint}
-    detail="Màn này vẫn có giao diện xem thử, nhưng chưa được nối tới API sản phẩm đã đọc. Dữ liệu hoặc thao tác minh họa không được phép xuất hiện trong phiên backend."
-  />;
-}
+  useEffect(() => authService.observe((user) => {
+    if (!user) {
+      setState('signed-out')
+      return
+    }
+    authService.getAccountRole().then((role) => {
+      if (role === 'teacher') setState('signed-in')
+      else {
+        setMessage('Tài khoản này không được cấp quyền Giáo viên.')
+        setState('forbidden')
+      }
+    }).catch((cause: unknown) => {
+      setMessage(cause instanceof Error ? cause.message : 'Không xác minh được vai trò tài khoản.')
+      setState('error')
+    })
+  }), [])
 
-function TeacherPortalRoutes() {
-  const location = useLocation();
-  const { currentRole, isAuthenticated, loginAsRole, logout } = useTeacher();
-
-  if (isAuthenticated && currentRole !== ROLE) {
-    return <main className="tw-hero-bg" style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 24 }}><section className="tw-card" role="alert"><h1 className="tw-h2">Phiên đăng nhập không thuộc cổng Giáo viên</h1><p className="tw-sub">Đăng xuất phiên hiện tại để tiếp tục. Cổng này không hiển thị màn hình của role khác.</p><button type="button" className="tw-btn" onClick={logout}>Đăng xuất và quay lại</button></section></main>;
+  if (state === 'loading') {
+    return <main className="p-8 text-slate-600">Đang xác minh tài khoản giáo viên…</main>
   }
-  if (location.pathname !== "/login" && !isAuthenticated) return <Navigate to="/login" replace />;
-  if (location.pathname === "/login" && isAuthenticated) return <Navigate to={ROLE_HOME} replace />;
-
-  return (
-    <Routes>
-      <Route path="/" element={<Navigate to={isAuthenticated ? ROLE_HOME : "/login"} replace />} />
-      <Route path="/login" element={<WebPortalLoginPage portalRole={ROLE} onLogin={loginAsRole} />} />
-      <Route path={ROLE_HOME} element={<T01LessonWorkspacePage />} />
-      <Route path="/t05-classes-and-children" element={<T05ClassesAndChildrenPage />} />
-      <Route path="/t05-classes-and-children/:classId" element={<T05ClassDetailPage />} />
-      <Route path="/t02-lesson-authoring" element={isLocalPreview() ? <T02LessonAuthoringPage /> : <TeacherApiLessonPage />} />
-      <Route path="/t03-document-import-review" element={isLocalPreview() ? <T03DocumentImportReviewPage /> : <TeacherApiImportPage />} />
-      <Route path="/t04-session-sketch-deck" element={<ApiOrPreview title="AI Sketch Deck chưa thuộc luồng API/SRS hiện hành" endpoint="Lesson Library API không có endpoint cho lớp vẽ cộng tác" ><T04SessionSketchDeckPage /></ApiOrPreview>} />
-      <Route path="/t06-sample-story-run" element={<ApiOrPreview title="Chưa có API Teacher cho Story Run sản phẩm" endpoint="Không có endpoint lesson-library cho story/video" ><T06SampleStoryRunPage /></ApiOrPreview>} />
-      <Route path="/t07-video-presentation-confirmation" element={<ApiOrPreview title="Chưa có API sản phẩm cho trình chiếu video" endpoint="Không có endpoint sản phẩm tương ứng trong API đã nối" ><T07VideoPresentationConfirmationPage /></ApiOrPreview>} />
-      <Route path="/t08-settings" element={<ApiOrPreview title="Chưa có API hồ sơ và cài đặt Teacher" endpoint="Không có endpoint profile/settings trong nhóm API đã đọc" ><T08TeacherSettingsPage /></ApiOrPreview>} />
-      <Route path="*" element={<Navigate to={ROLE_HOME} replace />} />
-    </Routes>
-  );
+  if (state === 'signed-out') return <Navigate to="/login" replace />
+  if (state === 'forbidden' || state === 'error') {
+    return <main className="m-8 max-w-xl rounded-2xl border border-amber-200 bg-amber-50 p-6 text-amber-950"><h1 className="text-xl font-bold">Không thể mở Teacher Web</h1><p className="mt-2 text-sm">{message}</p><button onClick={() => void authService.logout().then(() => { window.location.assign('/login') })} className="mt-4 rounded-lg border border-amber-300 bg-white px-4 py-2 text-sm font-semibold">Đăng nhập tài khoản khác</button></main>
+  }
+  return <TeacherLayout />
 }
 
-export function App() {
+function PrototypeOnly({ title, children }: { title: string; children: ReactNode }) {
+  const location = useLocation()
+  if (new URLSearchParams(location.search).get('demo') === '1') return children
+  return (
+    <main className="mx-auto max-w-3xl space-y-4 px-7 py-8">
+      <p className="text-sm font-semibold text-amber-800">Bản mẫu · chưa nối API đã duyệt</p>
+      <h1 className="text-2xl font-bold text-slate-900">{title} chưa được nối BE1/BE2</h1>
+      <p className="text-sm text-slate-700">Trang này vẫn có dữ liệu và thao tác demo. Không dùng nó để ghi nhận kết quả lớp học thật. Chỉ mở demo rõ ràng bằng đường dẫn có <code>?demo=1</code>.</p>
+      <a className="inline-block font-semibold text-blue-800 underline" href={`${location.pathname}?demo=1`}>Mở bản demo</a>
+    </main>
+  )
+}
+
+export default function App() {
   return (
     <BrowserRouter>
-      <TeacherProvider>
-        <TeacherLayout><TeacherPortalRoutes /></TeacherLayout>
-      </TeacherProvider>
-    </BrowserRouter>
-  );
-}
+      <Routes>
+        {/* T00 — Đăng nhập giáo viên */}
+        <Route path="/login" element={<LoginPage />} />
 
-export default App;
+        {/* Protected Teacher UI Routes */}
+        <Route path="/" element={<TeacherAccessGate />}>
+          {/* T01 — Trang chủ giáo viên (Tổng quan) */}
+          <Route index element={<PrototypeOnly title="Trang tổng quan"><HomePage /></PrototypeOnly>} />
+
+          {/* T02 — Lớp và hồ sơ trẻ */}
+          <Route path="classes" element={<PrototypeOnly title="Lớp học và hồ sơ"><ClassesProfilesPage /></PrototypeOnly>} />
+
+          {/* T03 — Thiết lập phiên học */}
+          <Route path="session/setup" element={<SessionSetupPage />} />
+
+          {/* T04 — Phòng chờ & tiếp nhận */}
+          <Route path="session/lobby" element={<SessionLobbyPage />} />
+
+          {/* T05 — Điều phối lớp */}
+          <Route path="session" element={<Navigate to="/session/orchestrate" replace />} />
+          <Route path="session/orchestrate" element={<SessionOrchestratePage />} />
+
+          {/* T06 — Không gian nhóm */}
+          <Route path="session/group" element={<PrototypeOnly title="Không gian nhóm"><GroupWorkspacePage /></PrototypeOnly>} />
+
+          {/* T07 & T07b — Duyệt gợi ý AI */}
+          <Route path="ai-review" element={<PrototypeOnly title="Duyệt gợi ý AI"><AiSuggestionReviewPage stale={false} /></PrototypeOnly>} />
+          <Route path="ai-review/stale" element={<PrototypeOnly title="Gợi ý AI cũ"><AiSuggestionReviewPage stale={true} /></PrototypeOnly>} />
+
+          {/* T08 — Phòng tranh của lớp */}
+          <Route path="library" element={<Navigate to="/library/gallery" replace />} />
+          <Route path="library/gallery" element={<PrototypeOnly title="Phòng tranh"><ClassGalleryPage /></PrototypeOnly>} />
+
+          {/* T09, T09b, T09c — Kiến thức & video */}
+          <Route path="session/video" element={<PrototypeOnly title="Kiến thức và video"><VideoKnowledgePage mode="review" /></PrototypeOnly>} />
+          <Route path="session/video/generating" element={<PrototypeOnly title="Tạo video"><VideoKnowledgePage mode="generating" /></PrototypeOnly>} />
+          <Route path="session/video/error" element={<PrototypeOnly title="Lỗi tạo video"><VideoKnowledgePage mode="error" /></PrototypeOnly>} />
+
+          {/* T10 — Hoạt động ngoài màn hình */}
+          <Route path="library/offline" element={<PrototypeOnly title="Hoạt động ngoài màn hình"><OfflineActivitiesPage /></PrototypeOnly>} />
+
+          {/* T11 — Phản hồi & quan sát */}
+          <Route path="portfolio/observation" element={<ObservationFeedbackPage />} />
+
+          {/* T12 — Hồ sơ học tập */}
+          <Route path="portfolio" element={<PrototypeOnly title="Hồ sơ học tập"><LearningPortfolioPage /></PrototypeOnly>} />
+
+          {/* T13 — Soạn nội dung */}
+          <Route path="library/authoring" element={<ModalAiLessonFlowPage />} />
+
+          {/* T14 — Mẫu phiên & tự động hóa */}
+          <Route path="settings" element={<PrototypeOnly title="Mẫu phiên và tự động hóa"><TemplatesAutomationPage /></PrototypeOnly>} />
+        </Route>
+
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
+  )
+}

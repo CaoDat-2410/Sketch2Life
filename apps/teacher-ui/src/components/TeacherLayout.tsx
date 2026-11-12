@@ -1,420 +1,255 @@
-import React, { useEffect, useState } from "react";
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { Logo } from "./Logo";
-import { useTeacher } from "../context/TeacherContext";
-import { Icon, IconName } from "./Icon";
-import { RoleHelp } from "../../../shared/RoleHelp";
-import { BackendModeNotice, isLocalPreview } from "../../../shared/backendApi";
-import { AccessibleDialog } from "../../../shared/ui";
+import { useState } from 'react'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
+import {
+  Home,
+  Users,
+  BookOpen,
+  Sparkles,
+  Image as ImageIcon,
+  BarChart2,
+  Settings,
+  LogOut,
+  Bell,
+  User,
+} from 'lucide-react'
+import logoIcon from '../assets/logo-icon.png'
+import { authService } from '../services/authService'
 
-type NavItem = { to: string; label: string; icon: IconName; matchView?: string | null };
+const NAV_ITEMS = [
+  { key: 'home',      to: '/',          label: 'Tổng quan',     icon: Home,      match: (p: string) => p === '/' },
+  { key: 'classes',   to: '/classes',   label: 'Lớp học',       icon: Users,     match: (p: string) => p.startsWith('/classes') },
+  { key: 'session',   to: '/session/orchestrate', label: 'Phiên học', icon: BookOpen, match: (p: string) => p.startsWith('/session') },
+  { key: 'ai-review', to: '/ai-review', label: 'Duyệt AI',      icon: Sparkles,  match: (p: string) => p.startsWith('/ai-review') },
+  { key: 'library',   to: '/library/gallery', label: 'Thư viện', icon: ImageIcon, match: (p: string) => p.startsWith('/library') },
+  { key: 'portfolio', to: '/portfolio', label: 'Hồ sơ học tập', icon: BarChart2, match: (p: string) => p.startsWith('/portfolio') },
+  { key: 'settings',  to: '/settings',  label: 'Cài đặt',       icon: Settings,  match: (p: string) => p.startsWith('/settings') },
+]
 
-const TEACHER_TOP_NAV: NavItem[] = [
-  { to: "/t01-lesson-workspace", label: "Tổng quan", icon: "home", matchView: null },
-  { to: "/t05-classes-and-children", label: "Lớp & Học sinh", icon: "users", matchView: null },
-];
+const ALL_SCREENS = [
+  { code: 'T00', label: 'Đăng nhập giáo viên', to: '/login' },
+  { code: 'T01', label: 'Trang chủ giáo viên', to: '/' },
+  { code: 'T02', label: 'Lớp học & hồ sơ trẻ', to: '/classes' },
+  { code: 'T03', label: 'Thiết lập phiên học', to: '/session/setup' },
+  { code: 'T04', label: 'Phòng chờ & tiếp nhận', to: '/session/lobby' },
+  { code: 'T05', label: 'Điều phối lớp', to: '/session/orchestrate' },
+  { code: 'T06', label: 'Không gian nhóm', to: '/session/group' },
+  { code: 'T07', label: 'Duyệt từng gợi ý AI (Hợp lệ)', to: '/ai-review' },
+  { code: 'T07b', label: 'Gợi ý không còn hợp lệ', to: '/ai-review/stale' },
+  { code: 'T08', label: 'Phòng tranh của lớp', to: '/library/gallery' },
+  { code: 'T09', label: 'Duyệt video', to: '/session/video' },
+  { code: 'T09b', label: 'Đang tạo video', to: '/session/video/generating' },
+  { code: 'T09c', label: 'Lỗi video: giáo viên quyết định', to: '/session/video/error' },
+  { code: 'T10', label: 'Hoạt động ngoài màn hình', to: '/library/offline' },
+  { code: 'T11', label: 'Phản hồi & quan sát', to: '/portfolio/observation' },
+  { code: 'T12', label: 'Hồ sơ học tập', to: '/portfolio' },
+  { code: 'T13', label: 'Soạn nội dung', to: '/library/authoring' },
+  { code: 'T14', label: 'Mẫu phiên & tự động hóa', to: '/settings' },
+]
 
-const TEACHER_TEACHING_GROUP: NavItem[] = [
-  { to: "/t02-lesson-authoring", label: "Quản lý giáo án", icon: "book" },
-  { to: "/t04-session-sketch-deck", label: "AI Assisted", icon: "palette" },
-  { to: "/t06-sample-story-run", label: "Tạo video mẫu", icon: "video" },
-  { to: "/t07-video-presentation-confirmation", label: "Chiếu trên lớp", icon: "play" },
-];
-
-const TEACHER_BOTTOM_NAV: NavItem[] = [
-  { to: "/t01-lesson-workspace?view=library", label: "Thư viện công khai", icon: "star", matchView: "library" },
-  { to: "/t01-lesson-workspace?view=history", label: "Lịch sử & Báo cáo", icon: "clock", matchView: "history" },
-  { to: "/t01-lesson-workspace?view=settings", label: "Hồ sơ cá nhân", icon: "user", matchView: "settings" },
-  { to: "/t08-settings", label: "Cài đặt", icon: "settings", matchView: null },
-];
-
-const MANAGER_NAV_ITEMS: { to: string; label: string; icon: IconName; matchSection?: string }[] = [
-  { to: "/m02-organization-management", label: "Tổng quan", icon: "home" },
-  { to: "/m02-organization-management?section=teachers", label: "Giáo viên & nhóm", icon: "users", matchSection: "teachers" },
-  { to: "/m02-organization-management?section=classes", label: "Lớp & slot", icon: "book", matchSection: "classes" },
-  { to: "/m02-organization-management?section=quota", label: "Quota", icon: "video", matchSection: "quota" },
-  { to: "/m01-publication-review", label: "Duyệt công khai", icon: "check" },
-  { to: "/m02-organization-management?section=settings", label: "Cài đặt", icon: "settings", matchSection: "settings" },
-];
-
-const ADMIN_NAV_ITEMS: { to: string; label: string; icon: IconName; matchPanel?: string }[] = [
-  { to: "/a02-platform-operations", label: "Tổng quan", icon: "home" },
-  { to: "/a02-platform-operations?panel=orgs", label: "Tổ chức", icon: "users", matchPanel: "orgs" },
-  { to: "/a01-content-moderation", label: "Thư viện bài học", icon: "book" },
-  { to: "/a02-platform-operations?panel=catalog", label: "Danh mục hoạt động", icon: "leaf", matchPanel: "catalog" },
-  { to: "/a02-platform-operations?panel=quota", label: "Quota & chính sách", icon: "lock", matchPanel: "quota" },
-  { to: "/a02-platform-operations?panel=audit", label: "Nhật ký", icon: "clock", matchPanel: "audit" },
-];
-
-const SCREEN_NAMES: Record<string, string> = {
-  "/t01-lesson-workspace": "Tổng quan",
-  "/t02-lesson-authoring": "Quản lý giáo án",
-  "/t03-document-import-review": "Nhập tài liệu giáo án",
-  "/t04-session-sketch-deck": "AI Assisted · Bảng vẽ lớp học",
-  "/t05-classes-and-children": "Lớp & Học sinh",
-  "/t06-sample-story-run": "Tạo video mẫu",
-  "/t07-video-presentation-confirmation": "Chiếu trên lớp",
-  "/t08-settings": "Cài đặt",
-  "/m01-publication-review": "Duyệt giáo án công khai",
-  "/m02-organization-management": "Quản lý trường học",
-  "/a01-content-moderation": "Kiểm duyệt nội dung",
-  "/a02-platform-operations": "Vận hành nền tảng",
-};
-
-const TEACHING_GROUP_PATHS = new Set([
-  "/t02-lesson-authoring",
-  "/t03-document-import-review",
-  "/t04-session-sketch-deck",
-  "/t06-sample-story-run",
-  "/t07-video-presentation-confirmation",
-]);
-
-export function TeacherLayout({ children }: { children: React.ReactNode }) {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const {
-    currentRole,
-    isAuthenticated,
-    logout,
-    assignedClasses,
-    activeClassId,
-    setActiveClassId,
-    orgIncludedQuota,
-    orgTopupQuota,
-    teacherNotifications,
-    toast,
-    archiveModalTarget,
-    setArchiveModalTarget,
-    deleteLesson,
-    showToast,
-  } = useTeacher();
-
-  const [teachingOpen, setTeachingOpen] = useState(true);
-  const previewMode = isLocalPreview();
-
-  const isInTeachingGroup = TEACHING_GROUP_PATHS.has(location.pathname);
-
-  useEffect(() => {
-    if (isInTeachingGroup) {
-      setTeachingOpen(true);
-    }
-  }, [isInTeachingGroup]);
-
-  if (location.pathname === "/login" || !isAuthenticated) {
-    return <main>{children}</main>;
+function getBreadcrumb(pathname: string): { parent: string; current: string } {
+  if (pathname === '/session/group') {
+    return { parent: 'Điều phối lớp', current: 'Nhóm Lá' }
   }
-
-  const activeRole = currentRole;
-
-  const searchParams = new URLSearchParams(location.search);
-  const currentView = searchParams.get("view");
-  const currentSection = searchParams.get("section");
-  const currentPanel = searchParams.get("panel");
-
-  let currentTitle = SCREEN_NAMES[location.pathname] ?? "Sketch2Life";
-  if (location.pathname.startsWith("/t05-classes-and-children/")) {
-    const classIdParam = location.pathname.replace("/t05-classes-and-children/", "");
-    const foundCls = assignedClasses.find((c) => c.id === classIdParam);
-    currentTitle = foundCls ? `${foundCls.className} · Danh sách học sinh` : "Chi tiết lớp học";
-  } else if (location.pathname === "/t01-lesson-workspace") {
-    if (currentView === "library") currentTitle = "Thư viện công khai";
-    else if (currentView === "history") currentTitle = "Lịch sử & Báo cáo";
-    else if (currentView === "settings") currentTitle = "Hồ sơ cá nhân";
-    else if (currentView === "feedback") currentTitle = "Thông báo hệ thống";
+  if (pathname === '/library/authoring') {
+    return { parent: 'Thư viện', current: 'Bản nháp' }
   }
+  return { parent: 'Mầm Xanh', current: 'Lớp Mầm Xanh' }
+}
 
-  const unreadCount = teacherNotifications.filter((n) => n.unread).length;
-
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
-
-  const isTeacherItemActive = (item: NavItem): boolean => {
-    if (item.matchView) {
-      return location.pathname === "/t01-lesson-workspace" && currentView === item.matchView;
-    }
-    if (item.to === "/t01-lesson-workspace") {
-      return location.pathname === "/t01-lesson-workspace" && !currentView;
-    }
-    if (item.to === "/t05-classes-and-children") {
-      return (
-        location.pathname === "/t05-classes-and-children" ||
-        location.pathname.startsWith("/t05-classes-and-children/")
-      );
-    }
-    if (item.to === "/t02-lesson-authoring") {
-      return (
-        location.pathname === "/t02-lesson-authoring" ||
-        location.pathname === "/t03-document-import-review"
-      );
-    }
-    return location.pathname === item.to;
-  };
-
-  const navLink = (key: string, to: string, label: string, icon: IconName, active: boolean) => (
-    <NavLink key={key} to={to} aria-label={label} className={"tw-nav-item" + (active ? " is-on" : "")}>
-      <Icon name={icon} size={19} />
-      <span className="tw-lbl">{label}</span>
-    </NavLink>
-  );
-
-  const roleName = previewMode
-    ? activeRole === "TEACHER" ? "Cô Thảo" : activeRole === "MANAGER" ? "Hiệu trưởng Minh" : "Quản trị viên"
-    : "Tài khoản đã xác thực";
-  const roleLabel = activeRole === "TEACHER" ? "Giáo viên" : activeRole === "MANAGER" ? "Quản lý trường" : "Quản trị nền tảng";
-  const roleIcon: IconName = activeRole === "TEACHER" ? "palette" : activeRole === "MANAGER" ? "users" : "lock";
-  const roleTone = activeRole === "TEACHER" ? "is-sky" : activeRole === "MANAGER" ? "is-mint" : "is-amber";
+export function TeacherLayout() {
+  const location = useLocation()
+  const navigate = useNavigate()
+  const [showQuickNav, setShowQuickNav] = useState(false)
+  const [showPasswordChange, setShowPasswordChange] = useState(false)
+  const breadcrumb = getBreadcrumb(location.pathname)
 
   return (
-    <div className="tw-shell">
-      <aside className="tw-side">
-        <div className="s2l-side-brand">
-          <Logo height={30} />
-          <span className="s2l-role-chip">
-            <span aria-hidden="true"><Icon name={roleIcon} size={14} /></span>
-            {roleLabel}
-          </span>
+    <div className="flex h-screen overflow-hidden bg-[#F6F9FC] text-[#0F172A]">
+      {/* ── Left Sidebar ── */}
+      <aside className="w-[238px] flex-shrink-0 bg-white border-r border-slate-200/70 flex flex-col justify-between select-none">
+        <div>
+          {/* Brand Logo */}
+          <div
+            onClick={() => navigate('/')}
+            className="flex items-center gap-2.5 px-5 pt-5 pb-5 cursor-pointer"
+          >
+            <img
+              src={logoIcon}
+              alt="Sketch2Life"
+              className="w-10 h-10 object-contain flex-shrink-0"
+            />
+            <div className="leading-tight">
+              <div className="text-[19px] font-extrabold text-[#1E50E2] tracking-tight">
+                Sketch2Life
+              </div>
+              <div className="text-[12.5px] font-medium text-slate-600 mt-0.5">
+                Giáo viên
+              </div>
+            </div>
+          </div>
+
+          {/* Navigation Menu */}
+          <nav className="px-3 space-y-1">
+            {NAV_ITEMS.map(({ key, to, label, icon: Icon, match }) => {
+              const active = match(location.pathname)
+              return (
+                <button
+                  key={key}
+                  onClick={() => navigate(to)}
+                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[14px] transition-all cursor-pointer ${
+                    active
+                      ? 'bg-[#1D63F2] text-white font-semibold shadow-sm'
+                      : 'text-[#1E293B] font-medium hover:bg-slate-100/80'
+                  }`}
+                >
+                  <Icon
+                    size={18}
+                    strokeWidth={active ? 2.2 : 1.9}
+                    className={active ? 'text-white' : 'text-[#334155]'}
+                  />
+                  <span>{label}</span>
+                </button>
+              )
+            })}
+          </nav>
         </div>
 
-        <nav className="tw-nav" aria-label="Điều hướng cổng web">
-          {activeRole === "TEACHER" && (
-            <>
-              {TEACHER_TOP_NAV.map((item) =>
-                navLink(item.label, item.to, item.label, item.icon, isTeacherItemActive(item))
-              )}
-
-              <div className="tw-nav-group">
-                <button
-                  type="button"
-                  className={"tw-nav-group-btn" + (isInTeachingGroup ? " has-active" : "")}
-                  aria-label="Bài giảng trên lớp"
-                  aria-expanded={teachingOpen}
-                  onClick={() => setTeachingOpen((open) => !open)}
-                >
-                  <span className="tw-row" style={{ gap: 10 }}>
-                    <Icon name="sparkle" size={18} />
-                    <span className="tw-lbl">Bài giảng trên lớp</span>
-                  </span>
-                  <span className={"tw-nav-group-chev" + (teachingOpen ? " is-open" : "")}>
-                    <Icon name="chevron-down" size={16} />
-                  </span>
-                </button>
-
-                {teachingOpen && (
-                  <div className="tw-nav-group-list">
-              {(previewMode ? TEACHER_TEACHING_GROUP : TEACHER_TEACHING_GROUP.filter((item) => item.to === "/t02-lesson-authoring" || item.to === "/t03-document-import-review")).map((item) =>
-                navLink(item.label, item.to, item.label, item.icon, isTeacherItemActive(item))
-              )}
-                  </div>
-                )}
-              </div>
-
-              <div className="tw-nav-divider" role="separator" />
-
-              {previewMode && TEACHER_BOTTOM_NAV.map((item) =>
-                navLink(item.label, item.to, item.label, item.icon, isTeacherItemActive(item))
-              )}
-            </>
-          )}
-
-          {activeRole === "MANAGER" &&
-            MANAGER_NAV_ITEMS.map((item) => {
-              const active =
-                item.to === "/m01-publication-review"
-                  ? location.pathname === "/m01-publication-review"
-                  : location.pathname === "/m02-organization-management" &&
-                    (item.matchSection ? currentSection === item.matchSection : !currentSection);
-              return navLink(item.label, item.to, item.label, item.icon, active);
-            })}
-
-          {activeRole === "ADMIN" &&
-            ADMIN_NAV_ITEMS.map((item) => {
-              const active =
-                item.to === "/a01-content-moderation"
-                  ? location.pathname === "/a01-content-moderation"
-                  : location.pathname === "/a02-platform-operations" &&
-                    (item.matchPanel ? currentPanel === item.matchPanel : !currentPanel);
-              return navLink(item.label, item.to, item.label, item.icon, active);
-            })}
-        </nav>
-
-        <div className="tw-item tw-row" style={{ padding: 10, borderRadius: 18, gap: 10, marginTop: 8 }}>
-          <span className={`tw-avatar is-sm ${roleTone}`} aria-hidden="true">
-            <Icon name={roleIcon} size={18} />
-          </span>
-          <div className="tw-lbl" style={{ minWidth: 0 }}>
-            <div style={{ fontWeight: 700, fontSize: 14 }}>{roleName}</div>
-            <div className="tw-meta" style={{ fontSize: 12 }} title={previewMode ? "Dữ liệu minh họa, không lưu vào backend." : undefined}>{previewMode && activeRole === "TEACHER" ? "Xem thử · không lưu" : previewMode ? "Trường Ánh Dương · dữ liệu mẫu" : "Quyền theo phiên backend"}</div>
+        {/* Sidebar Footer */}
+        <div className="px-3.5 pb-4 pt-3 border-t border-slate-100 space-y-2.5">
+          <div className="flex items-center gap-2.5 px-1.5 py-1">
+            <div className="w-7 h-7 rounded-full bg-slate-200/90 flex items-center justify-center text-slate-600">
+              <User size={15} strokeWidth={2.2} />
+            </div>
+            <span className="text-[14px] font-medium text-slate-700">Giáo viên</span>
           </div>
+
+          <button
+            onClick={() => setShowPasswordChange(true)}
+            className="w-full mb-2 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-[14px] font-medium text-slate-700 transition-colors cursor-pointer"
+          >
+            <span>Đổi mật khẩu</span>
+          </button>
+
+          <button
+            onClick={() => void authService.logout().then(() => navigate('/login', { replace: true }))}
+            className="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-[14px] font-medium text-slate-700 transition-colors cursor-pointer"
+          >
+            <LogOut size={16} className="text-slate-600" />
+            <span>Đăng xuất</span>
+          </button>
         </div>
       </aside>
 
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
-        <header className="tw-top">
-          <div className="tw-row">
-            <div className="tw-top-title">{currentTitle}</div>
+      {/* ── Main Content Area ── */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Topbar */}
+        <header className="h-12 bg-white border-b border-slate-200/70 flex items-center justify-between px-7 flex-shrink-0 relative">
+          {/* Breadcrumb */}
+          <div className="flex items-center gap-2 text-[13.5px] text-slate-500">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none" className="text-slate-400">
+              <path
+                d="M8 1.5L9.6 6.4L14.5 8L9.6 9.6L8 14.5L6.4 9.6L1.5 8L6.4 6.4L8 1.5Z"
+                stroke="currentColor"
+                strokeWidth="1.4"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <span className="text-slate-600 font-medium">{breadcrumb.parent}</span>
+            <span className="text-slate-300">/</span>
+            <span className="text-slate-600 font-medium">{breadcrumb.current}</span>
           </div>
 
-          <div className="tw-row" style={{ gap: 10 }}>
-            <RoleHelp role="TEACHER" />
-            {activeRole === "TEACHER" && previewMode && (
-              <select
-                aria-label="Chọn lớp phụ trách"
-                className="tw-input"
-                style={{ width: 148, padding: "7px 12px", fontSize: 13.5, fontWeight: 600, borderRadius: 9999 }}
-                value={activeClassId}
-                onChange={(e) => {
-                  const nextId = e.target.value;
-                  setActiveClassId(nextId);
-                  const found = assignedClasses.find((c) => c.id === nextId);
-                  if (found) {
-                    showToast(
-                      `Đã chuyển sang ${found.className}.`,
-                      found.rbacState === "UNASSIGNED_403" ? "err" : "info"
-                    );
-                  }
-                  if (location.pathname.startsWith("/t05-classes-and-children/")) {
-                    navigate(`/t05-classes-and-children/${nextId}`);
-                  }
-                }}
-              >
-                {assignedClasses.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.className}
-                  </option>
-                ))}
-              </select>
-            )}
-
-            {activeRole !== "ADMIN" && previewMode && (
-              <button
-                type="button"
-                className="tw-chip is-amber"
-                style={{ cursor: "pointer", fontFamily: "inherit" }}
-                title="Lượt tạo video còn lại"
-                onClick={() => {
-                  if (activeRole === "TEACHER") navigate("/t07-video-presentation-confirmation");
-                  else navigate("/m02-organization-management?section=quota");
-                }}
-              >
-                <Icon name="sparkle" size={14} /> {orgIncludedQuota + orgTopupQuota} lượt
-              </button>
-            )}
-
-            {activeRole === "TEACHER" && previewMode && (
-              <button
-                type="button"
-                aria-label={`Thông báo hệ thống (${unreadCount} chưa đọc)`}
-                className="tw-ico"
-                style={{ width: 40, height: 40, border: 0, cursor: "pointer", position: "relative", borderRadius: 14 }}
-                onClick={() => navigate("/t01-lesson-workspace?view=feedback")}
-              >
-                <Icon name="message" size={18} />
-                {unreadCount > 0 && (
-                  <span
-                    style={{
-                      position: "absolute",
-                      top: -3,
-                      right: -3,
-                      minWidth: 18,
-                      height: 18,
-                      padding: "0 4px",
-                      borderRadius: 9,
-                      background: "#DC2626",
-                      color: "#FFFFFF",
-                      fontSize: 11,
-                      fontWeight: 700,
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontVariantNumeric: "tabular-nums",
-                    }}
-                  >
-                    {unreadCount}
-                  </span>
-                )}
-              </button>
-            )}
-
+          {/* Right side: Notification Bell (click to open quick screen switcher) */}
+          <div className="relative">
             <button
-              type="button"
-              onClick={handleLogout}
-              className="tw-btn is-ghost is-sm"
-              title="Đăng xuất khỏi hệ thống"
+              onClick={() => setShowQuickNav(!showQuickNav)}
+              title="Chuyển nhanh màn hình (T00 - T14)"
+              className="relative w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
             >
-              Đăng xuất
+              <Bell size={18} className="text-slate-600 fill-slate-600" />
+              <span className="absolute top-1 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white" />
             </button>
+
+            {showQuickNav && (
+              <div className="absolute right-0 top-10 w-72 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 max-h-[80vh] overflow-y-auto">
+                <div className="px-3 py-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                  Danh sách 18 màn hình (T00–T14)
+                </div>
+                {ALL_SCREENS.map((scr) => {
+                  const isCurrent = location.pathname === scr.to
+                  return (
+                    <button
+                      key={scr.code}
+                      onClick={() => {
+                        setShowQuickNav(false)
+                        navigate(scr.to)
+                      }}
+                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-[13px] transition cursor-pointer ${
+                        isCurrent
+                          ? 'bg-[#EFF6FF] text-[#1D63F2] font-bold'
+                          : 'text-slate-700 hover:bg-slate-50 font-medium'
+                      }`}
+                    >
+                      <span className="w-10 text-[11.5px] font-mono font-bold text-slate-400">
+                        {scr.code}
+                      </span>
+                      <span className="truncate">{scr.label}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
           </div>
         </header>
 
-        {toast && (
-          <div
-            role="status"
-            aria-live="polite"
-            className={`tw-row tw-toast is-${toast.kind}`}
-          >
-            <Icon
-              name={
-                toast.kind === "ok"
-                  ? "check"
-                  : toast.kind === "warn"
-                  ? "alert"
-                  : toast.kind === "err"
-                  ? "close"
-                  : "info"
-              }
-              size={18}
-            />
-            <span>{toast.text}</span>
-          </div>
-        )}
-
-        <main className="tw-main">{previewMode && activeRole !== "TEACHER" && <BackendModeNotice roleLabel="Giáo viên" />}{children}</main>
+        {/* Page Outlet */}
+        <main className="flex-1 overflow-y-auto">
+          <Outlet />
+        </main>
       </div>
-
-      <AccessibleDialog
-        open={Boolean(archiveModalTarget)}
-        onOpenChange={(open) => !open && setArchiveModalTarget(null)}
-        title="Xóa & lưu trữ giáo án?"
-        description="Xác nhận chuyển giáo án khỏi danh sách đang hoạt động vào kho lưu trữ."
-        className="tw-modal"
-        showClose={false}
-      >
-        {archiveModalTarget && (
-          <>
-            <div className="tw-row">
-              <span className="tw-ico is-rose" aria-hidden="true">
-                <Icon name="trash" size={22} />
-              </span>
-              <h2 style={{ margin: 0, fontSize: 19, fontWeight: 650 }}>
-                Xóa & lưu trữ giáo án?
-              </h2>
-            </div>
-            <p className="tw-sub">
-              Giáo án <strong>“{archiveModalTarget.title}”</strong> ({archiveModalTarget.version}) sẽ được xóa khỏi danh sách đang hoạt động và chuyển vào kho lưu trữ. Các buổi học đã lên lịch trước đó vẫn giữ nguyên bản chụp hiện tại.
-            </p>
-            <div className="tw-row" style={{ justifyContent: "flex-end", gap: 10 }}>
-              <button
-                type="button"
-                className="tw-btn is-ghost is-sm"
-                onClick={() => setArchiveModalTarget(null)}
-              >
-                Hủy bỏ
-              </button>
-              <button
-                type="button"
-                className="tw-btn is-danger is-sm"
-                onClick={() => {
-                  deleteLesson(archiveModalTarget.id);
-                }}
-              >
-                <Icon name="trash" size={16} /> Xác nhận xóa
-              </button>
-            </div>
-          </>
-        )}
-      </AccessibleDialog>
+      {showPasswordChange && <PasswordChangeDialog onClose={() => setShowPasswordChange(false)} />}
     </div>
-  );
+  )
+}
+
+function PasswordChangeDialog({ onClose }: { onClose: () => void }) {
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmation, setConfirmation] = useState('')
+  const [message, setMessage] = useState('')
+  const [busy, setBusy] = useState(false)
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4" role="presentation">
+      <form
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="teacher-password-title"
+        onSubmit={(event) => {
+          event.preventDefault()
+          setMessage('')
+          if (newPassword.length < 6 || newPassword !== confirmation) {
+            setMessage('Mật khẩu mới cần ít nhất 6 ký tự và hai ô phải trùng nhau.')
+            return
+          }
+          setBusy(true)
+          void authService.changePassword(currentPassword, newPassword)
+            .then(() => setMessage('Đã đổi mật khẩu.'))
+            .catch(() => setMessage('Không thể đổi mật khẩu. Kiểm tra mật khẩu hiện tại rồi thử lại.'))
+            .finally(() => setBusy(false))
+        }}
+        className="w-full max-w-md space-y-4 rounded-2xl bg-white p-6 shadow-xl"
+      >
+        <h2 id="teacher-password-title" className="text-xl font-bold text-slate-900">Đổi mật khẩu</h2>
+        <input aria-label="Mật khẩu hiện tại" type="password" autoComplete="current-password" required value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} placeholder="Mật khẩu hiện tại" className="w-full rounded-xl border border-slate-200 px-3 py-2.5" />
+        <input aria-label="Mật khẩu mới" type="password" autoComplete="new-password" minLength={6} required value={newPassword} onChange={(event) => setNewPassword(event.target.value)} placeholder="Mật khẩu mới" className="w-full rounded-xl border border-slate-200 px-3 py-2.5" />
+        <input aria-label="Xác nhận mật khẩu mới" type="password" autoComplete="new-password" minLength={6} required value={confirmation} onChange={(event) => setConfirmation(event.target.value)} placeholder="Nhập lại mật khẩu mới" className="w-full rounded-xl border border-slate-200 px-3 py-2.5" />
+        {message && <p role="status" className="text-sm text-slate-700">{message}</p>}
+        <div className="flex justify-end gap-2">
+          <button type="button" onClick={onClose} className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold">Đóng</button>
+          <button type="submit" disabled={busy} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">{busy ? 'Đang lưu…' : 'Cập nhật'}</button>
+        </div>
+      </form>
+    </div>
+  )
 }
