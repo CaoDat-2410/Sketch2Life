@@ -1,12 +1,55 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { BrandMark } from './BrandMark';
 import { hasRoleFlow, RoleFlowPage } from './roleFlows';
+import { backendApi, BackendApiError, configuredOrganizationId, hasFirebaseAuthBridge, type Be1Class, type LessonSummary } from './backendApi';
+import './apiDataStates.css';
 
 export type Role = 'teacher' | 'manager' | 'admin';
 type IconKey = 'grid' | 'book' | 'class' | 'spark' | 'video' | 'file' | 'users' | 'check' | 'chart' | 'shield' | 'bell' | 'settings' | 'search' | 'plus' | 'arrow' | 'chevron' | 'menu' | 'close' | 'clock' | 'filter' | 'download' | 'more' | 'eye' | 'send' | 'message' | 'layer' | 'link' | 'alert' | 'edit';
 type NavItem = { id: string; label: string; icon: IconKey; group?: string };
 type RecordItem = { id: string; title: string; subtitle: string; meta: string; status: string; tone: 'green' | 'amber' | 'blue' | 'gray' | 'red' };
 type Config = { displayName: string; name: string; scope: string; greeting: string; heading: string; description: string; heroTag: string; heroAction: string; heroTarget: string; nav: NavItem[]; metrics: { value: string; label: string; note: string }[] };
+type ApiSnapshot = {
+  status: 'preview' | 'loading' | 'connected' | 'unavailable' | 'error';
+  message?: string;
+  lessonRows?: RecordItem[];
+  classRows?: RecordItem[];
+  assignedClassCount?: number;
+};
+
+function lessonRowsFromApi(items: LessonSummary[]): RecordItem[] {
+  return items.map((lesson) => {
+    const state: Record<string, { label: string; tone: RecordItem['tone'] }> = {
+      DRAFT: { label: 'Bản nháp', tone: 'amber' },
+      PENDING_REVIEW: { label: 'Chờ duyệt', tone: 'blue' },
+      CHANGES_REQUESTED: { label: 'Cần bổ sung', tone: 'red' },
+      APPROVED: { label: 'Đã duyệt', tone: 'green' },
+    };
+    const current = state[lesson.review_state] ?? { label: lesson.review_state, tone: 'gray' as const };
+    return {
+      id: lesson.lesson_id,
+      title: lesson.title,
+      subtitle: `${lesson.topic} · ${lesson.activity_count} hoạt động`,
+      meta: `v${lesson.current_version_no} · ${lesson.visibility}`,
+      status: current.label,
+      tone: current.tone,
+    };
+  });
+}
+
+function classRowsFromApi(items: Be1Class[]): RecordItem[] {
+  return items.map((item) => {
+    const active = item.state.toLocaleLowerCase('en') === 'active';
+    return {
+      id: item.class_id,
+      title: item.display_name,
+      subtitle: 'Lớp trong tổ chức hiện tại',
+      meta: item.class_id,
+      status: active ? 'Đang hoạt động' : item.state,
+      tone: active ? 'green' : 'gray',
+    };
+  });
+}
 
 const paths: Record<IconKey, React.ReactNode> = {
   grid: <><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></>,
@@ -102,8 +145,8 @@ type DashMetric = { label: string; value: number | string; note: string; icon: I
 function DashIntro({ role, title, description, action, onAction }: { role: Role; title: string; description: string; action: string; onAction: () => void }) {
   return <header className={`dash-intro dash-intro--${role}`}><div className="dash-intro-copy"><span className="dash-overline"><Icon name={role === 'teacher' ? 'book' : role === 'manager' ? 'class' : 'shield'} size={17}/>{config[role].scope.toLocaleUpperCase('vi')}</span><p>{config[role].greeting}</p><h1>{title}</h1><span className="dash-intro-description">{description}</span><button className="dashboard-primary" onClick={onAction}>{action}<Icon name="arrow" size={17}/></button></div><div className="dashboard-welcome-art dash-intro-art"><HeroArt role={role}/></div></header>;
 }
-function DashMetrics({ items, go }: { items: DashMetric[]; go: (id: string) => void }) {
-  return <section className="dashboard-kpi-grid" aria-label="Chỉ số minh họa">{items.map((metric, index) => <button className="dashboard-kpi" key={metric.label} onClick={() => go(metric.target)} style={{ animationDelay: `${index * 45}ms` }}><span className="dashboard-kpi-top"><span className="dashboard-kpi-icon"><Icon name={metric.icon} size={20}/></span><Icon name="arrow" size={15}/></span><span className="dashboard-kpi-label">{metric.label}</span><strong>{typeof metric.value === 'number' ? String(metric.value).padStart(2, '0') : metric.value}</strong><small>{metric.note}</small></button>)}</section>;
+function DashMetrics({ items, go, label = 'Chỉ số minh họa' }: { items: DashMetric[]; go: (id: string) => void; label?: string }) {
+  return <section className="dashboard-kpi-grid" aria-label={label}>{items.map((metric, index) => <button className="dashboard-kpi" key={metric.label} onClick={() => go(metric.target)} style={{ animationDelay: `${index * 45}ms` }}><span className="dashboard-kpi-top"><span className="dashboard-kpi-icon"><Icon name={metric.icon} size={20}/></span><Icon name="arrow" size={15}/></span><span className="dashboard-kpi-label">{metric.label}</span><strong>{typeof metric.value === 'number' ? String(metric.value).padStart(2, '0') : metric.value}</strong><small>{metric.note}</small></button>)}</section>;
 }
 function DashBarList({ rows, total }: { rows: { label: string; value: number; tone: string }[]; total: number }) {
   return <div className="dashboard-bars">{rows.map((row) => <div className="dashboard-bar-row" key={row.label}><div><strong>{row.label}</strong><span>{row.value}</span></div><span className="dashboard-bar-track"><i className={`dashboard-bar-fill dashboard-bar-fill--${row.tone}`} style={{ width: `${total ? row.value / total * 100 : 0}%` }}/></span></div>)}</div>;
@@ -155,7 +198,54 @@ function Dashboard({ role, go, openAction }: { role: Role; go: (id: string) => v
   return role === 'teacher' ? <TeacherDashboard go={go} openAction={openAction}/> : role === 'manager' ? <ManagerDashboard go={go} openAction={openAction}/> : <AdminDashboard go={go}/>;
 }
 
-function CollectionPage({ role, page, items, search, setSearch, filter, setFilter, select, openAction, go }: { role: Role; page: string; items: RecordItem[]; search: string; setSearch: (v: string) => void; filter: string; setFilter: (v: string) => void; select: (id: string) => void; openAction: (type: string) => void; go: (id: string) => void }) {
+function ConnectedApiDashboard({ role, go, lessonRows = [], classRows = [], assignedClassCount = 0 }: {
+  role: 'teacher' | 'manager';
+  go: (id: string) => void;
+  lessonRows?: RecordItem[];
+  classRows?: RecordItem[];
+  assignedClassCount?: number;
+}) {
+  const pendingCount = lessonRows.filter((item) => item.status === 'Chờ duyệt').length;
+  const draftCount = lessonRows.filter((item) => item.status === 'Bản nháp').length;
+  const activeClassCount = classRows.filter((item) => item.status === 'Đang hoạt động').length;
+  const title = role === 'teacher' ? 'Giáo án và phân công của bạn.' : 'Lớp học trong tổ chức.';
+  const description = role === 'teacher'
+    ? 'Các chỉ số được tổng hợp từ API giáo án và phân công hiện có.'
+    : 'Danh sách và trạng thái lớp được tải từ API tổ chức.';
+  const metrics: DashMetric[] = role === 'teacher'
+    ? [
+      { label: 'Giáo án', value: lessonRows.length, note: 'Đã tải từ Lesson Library', icon: 'book', target: 'lessons' },
+      { label: 'Bản nháp', value: draftCount, note: 'Revision đang ở trạng thái nháp', icon: 'edit', target: 'lessons' },
+      { label: 'Lớp được phân công', value: assignedClassCount, note: 'Từ BE1 assignments', icon: 'class', target: 'classes' },
+      { label: 'Chờ duyệt', value: pendingCount, note: 'Theo trạng thái version', icon: 'check', target: 'lessons' },
+    ]
+    : [
+      { label: 'Tổng số lớp', value: classRows.length, note: 'Trong tổ chức hiện tại', icon: 'class', target: 'classes' },
+      { label: 'Đang hoạt động', value: activeClassCount, note: 'Theo trạng thái lớp từ BE1', icon: 'check', target: 'classes' },
+    ];
+  const rows = role === 'teacher' ? lessonRows.slice(0, 4) : classRows.slice(0, 4);
+  const target = role === 'teacher' ? 'lessons' : 'classes';
+  return <div className={`role-dashboard role-dashboard--${role}`}>
+    <DashIntro role={role} title={title} description={description} action={role === 'teacher' ? 'Mở giáo án' : 'Mở danh sách lớp'} onAction={() => go(target)}/>
+    <div className="dashboard-section-label"><span>TỔNG QUAN</span><span>Dữ liệu API · chỉ số được tổng hợp từ các route hiện có</span></div>
+    <DashMetrics items={metrics} go={go} label="Chỉ số tổng hợp từ API"/>
+    <section className="web-panel api-dashboard-list">
+      <PanelTitle eyebrow={role === 'teacher' ? 'LESSON LIBRARY' : 'BE1'} title={role === 'teacher' ? 'Nội dung gần đây' : 'Lớp trong tổ chức'} action={role === 'teacher' ? 'Xem giáo án' : 'Xem lớp'} onAction={() => go(target)}/>
+      {rows.length ? <div className="commerce-table"><div className="commerce-table-head"><span>{role === 'teacher' ? 'GIÁO ÁN' : 'LỚP HỌC'}</span><span>TRẠNG THÁI</span></div>{rows.map((item) => <button type="button" key={item.id} onClick={() => go(target)}><span className="dash-list-icon"><Icon name={role === 'teacher' ? 'book' : 'class'} size={18}/></span><span><strong>{item.title}</strong><small>{item.subtitle}</small></span><Status item={item}/></button>)}</div> : <div className="web-empty"><strong>Chưa có dữ liệu trong phạm vi này</strong><p>API hiện tại không trả về mục nào.</p></div>}
+    </section>
+  </div>;
+}
+
+function ApiDashboardUnavailable({ role, snapshot, retry, go }: { role: 'teacher' | 'manager'; snapshot: ApiSnapshot; retry: () => void; go: (id: string) => void }) {
+  const isTeacher = role === 'teacher';
+  return <div className={`role-dashboard role-dashboard--${role}`}>
+    <DashIntro role={role} title="Tổng quan theo dữ liệu đã xác thực." description={isTeacher ? 'Giáo án và phân công cần phiên đăng nhập cùng tổ chức hợp lệ.' : 'Danh sách lớp cần phiên đăng nhập cùng organization ID.'} action={isTeacher ? 'Mở giáo án' : 'Mở lớp học'} onAction={() => go(isTeacher ? 'lessons' : 'classes')}/>
+    <WorkspaceApiNotice snapshot={snapshot} onRetry={retry}/>
+    <section className="web-panel api-dashboard-list"><PanelTitle eyebrow="API STATUS" title="Chưa hiển thị số liệu mẫu trong chế độ kết nối"/><p className="dash-panel-note">Khi xác thực hoặc API chưa sẵn sàng, trang này không dùng số liệu fixture để thay thế kết quả thật.</p></section>
+  </div>;
+}
+
+function CollectionPage({ role, page, items, search, setSearch, filter, setFilter, select, openAction, go, loading = false, unavailable = false, sourceLabel = 'Dữ liệu minh họa · chưa đồng bộ BE' }: { role: Role; page: string; items: RecordItem[]; search: string; setSearch: (v: string) => void; filter: string; setFilter: (v: string) => void; select: (id: string) => void; openAction: (type: string) => void; go: (id: string) => void; loading?: boolean; unavailable?: boolean; sourceLabel?: string }) {
   const labels: Record<string, [string, string, string]> = {
     lessons: ['Giáo án', 'Tạo, theo dõi và chia sẻ những bài học của lớp.', 'Soạn giáo án'], classes: ['Lớp học', 'Danh sách lớp trong phạm vi phân công.', 'Thêm lớp'], teachers: ['Giáo viên & phân công', 'Mỗi lớp có một giáo viên phụ trách hiện tại.', 'Xem phân công'], review: ['Duyệt giáo án', 'Xem phiên bản và quyết định trong quyền nhà trường.', 'Xem hướng dẫn'], moderation: ['Duyệt nội dung', 'Kiểm tra nội dung theo quyền Content Admin.', 'Xem chính sách'], catalog: ['Danh mục hoạt động', 'Chỉ nội dung đã duyệt và phát hành mới tới người dùng.', 'Tạo bản nháp'], organizations: ['Tổ chức', 'Theo dõi đơn vị sử dụng nền tảng.', 'Thêm tổ chức'], feedback: ['Phản hồi giáo án', 'Trao đổi trong đúng giáo án và tổ chức.', 'Xem phạm vi'], sharing: ['Chia sẻ giáo án', 'Cấp quyền cho đúng phụ huynh hoặc nhóm.', 'Tạo lời mời']
   };
@@ -163,7 +253,22 @@ function CollectionPage({ role, page, items, search, setSearch, filter, setFilte
   const filtered = items.filter((item) => (filter === 'all' || item.status === filter) && `${item.title} ${item.subtitle}`.toLocaleLowerCase('vi').includes(search.toLocaleLowerCase('vi')));
   const statuses = [...new Set(items.map((item) => item.status))];
   return <><header className="web-page-head"><div><span className="web-eyebrow">{config[role].scope.toLocaleUpperCase('vi')}</span><h1>{title}</h1><p>{description}</p></div>{!(role === 'teacher' && page === 'classes') && <button className="web-primary" onClick={() => page === 'teachers' ? go('assignment') : openAction(page === 'lessons' ? 'new-lesson' : page === 'classes' ? 'new-class' : page === 'organizations' ? 'new-organization' : page === 'catalog' ? 'new-activity' : `info-${page}`)}><Icon name={['lessons','classes','organizations','catalog','sharing'].includes(page) ? 'plus' : 'eye'} size={17}/>{action}</button>}</header>
-    <section className="web-panel web-table-panel"><div className="web-toolbar"><label className="web-search"><Icon name="search" size={18}/><span className="web-sr-only">Tìm kiếm {title.toLowerCase()}</span><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={`Tìm trong ${title.toLowerCase()}...`}/></label><div className="web-filter" role="group" aria-label="Lọc theo trạng thái"><button className={filter === 'all' ? 'active' : ''} onClick={() => setFilter('all')}>Tất cả</button>{statuses.map((status) => <button key={status} className={filter === status ? 'active' : ''} onClick={() => setFilter(status)}>{status}</button>)}</div></div><div className="web-list-heading"><span>NỘI DUNG</span><span>PHIÊN BẢN / PHẠM VI</span><span>TRẠNG THÁI</span><span className="web-sr-only">Mở chi tiết</span></div><div className="web-record-list">{filtered.map((item) => <button key={item.id} onClick={() => select(item.id)} className="web-record"><span className="web-record-main"><span className="web-record-avatar"><Icon name={page === 'classes' || page === 'organizations' ? 'class' : page === 'teachers' ? 'users' : page === 'moderation' || page === 'catalog' ? 'shield' : 'book'} size={20}/></span><span><strong>{item.title}</strong><small>{item.subtitle}</small></span></span><span className="web-record-meta">{item.meta}</span><Status item={item}/><Icon name="chevron" size={18}/></button>)}{!filtered.length && <div className="web-empty"><Icon name="search" size={22}/><strong>Không có kết quả phù hợp</strong><p>Thử từ khóa hoặc trạng thái khác.</p><button onClick={() => { setSearch(''); setFilter('all'); }}>Xóa bộ lọc</button></div>}</div><div className="web-list-foot"><span>{filtered.length} mục trong bản xem trước</span><span>Dữ liệu minh họa · chưa đồng bộ BE</span></div></section></>;
+    <section className="web-panel web-table-panel"><div className="web-toolbar"><label className="web-search"><Icon name="search" size={18}/><span className="web-sr-only">Tìm kiếm {title.toLowerCase()}</span><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={`Tìm trong ${title.toLowerCase()}...`}/></label><div className="web-filter" role="group" aria-label="Lọc theo trạng thái"><button className={filter === 'all' ? 'active' : ''} onClick={() => setFilter('all')}>Tất cả</button>{statuses.map((status) => <button key={status} className={filter === status ? 'active' : ''} onClick={() => setFilter(status)}>{status}</button>)}</div></div><div className="web-list-heading"><span>NỘI DUNG</span><span>PHIÊN BẢN / PHẠM VI</span><span>TRẠNG THÁI</span><span className="web-sr-only">Mở chi tiết</span></div><div className="web-record-list">{loading ? <div className="web-empty" role="status"><strong>Đang tải dữ liệu…</strong><p>Đang đọc từ API của vai trò này.</p></div> : unavailable ? <div className="web-empty" role="alert"><strong>Chưa tải được danh sách từ API</strong><p>Không hiển thị dữ liệu mẫu thay cho kết quả thật. Kiểm tra trạng thái kết nối ở phía trên.</p></div> : filtered.map((item) => <button key={item.id} onClick={() => select(item.id)} className="web-record"><span className="web-record-main"><span className="web-record-avatar"><Icon name={page === 'classes' || page === 'organizations' ? 'class' : page === 'teachers' ? 'users' : page === 'moderation' || page === 'catalog' ? 'shield' : 'book'} size={20}/></span><span><strong>{item.title}</strong><small>{item.subtitle}</small></span></span><span className="web-record-meta">{item.meta}</span><Status item={item}/><Icon name="chevron" size={18}/></button>)}{!loading && !unavailable && !filtered.length && <div className="web-empty"><Icon name="search" size={22}/><strong>Không có kết quả phù hợp</strong><p>Thử từ khóa hoặc trạng thái khác.</p><button onClick={() => { setSearch(''); setFilter('all'); }}>Xóa bộ lọc</button></div>}</div><div className="web-list-foot"><span>{unavailable ? '—' : filtered.length} mục</span><span>{sourceLabel}</span></div></section></>;
+}
+
+function WorkspaceApiNotice({ snapshot, onRetry }: { snapshot: ApiSnapshot; onRetry: () => void }) {
+  const titles: Record<ApiSnapshot['status'], string> = {
+    preview: 'Bản xem trước · dữ liệu minh họa, chưa đồng bộ backend.',
+    loading: 'Đang tải dữ liệu theo quyền tài khoản…',
+    connected: 'Đã tải dữ liệu từ API của vai trò này.',
+    unavailable: 'Chưa thể tải dữ liệu thật.',
+    error: 'Không tải được dữ liệu từ API.',
+  };
+  return <section className={`workspace-api-state workspace-api-state--${snapshot.status}`} role="status" aria-live="polite">
+    <span className="workspace-api-state__dot" aria-hidden="true"/>
+    <div><strong>{titles[snapshot.status]}</strong>{snapshot.message && <p>{snapshot.message}</p>}</div>
+    {(snapshot.status === 'error' || snapshot.status === 'unavailable') && <button type="button" onClick={onRetry}>Thử lại</button>}
+  </section>;
 }
 
 function useDialogFocus(close: () => void) {
@@ -188,7 +293,7 @@ function useDialogFocus(close: () => void) {
   return dialogRef;
 }
 
-function DetailPanel({ item, page, close, openAction }: { item: RecordItem; page: string; close: () => void; openAction: (type: string) => void }) { const dialogRef = useDialogFocus(close); return <div className="web-modal-overlay web-detail-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) close(); }}><section ref={dialogRef} tabIndex={-1} className="web-modal web-detail-modal" role="dialog" aria-modal="true" aria-labelledby="web-detail-title"><button className="web-icon-button web-modal-close" onClick={close} aria-label="Đóng chi tiết"><Icon name="close"/></button><span className="web-eyebrow">CHI TIẾT {page.toLocaleUpperCase('vi')}</span><h2 id="web-detail-title">{item.title}</h2><p>{item.subtitle}</p><Status item={item}/><div className="web-detail-art"><Icon name={page === 'classes' ? 'class' : page === 'organizations' ? 'chart' : 'book'} size={37}/><span/><span/></div><dl><div><dt>Phạm vi</dt><dd>{item.meta}</dd></div><div><dt>Trạng thái</dt><dd>{item.status}</dd></div><div><dt>Nguồn</dt><dd>Dữ liệu minh họa cho UI</dd></div></dl><div className="web-detail-boundary"><Icon name="shield" size={18}/><p>Thao tác thật cần xác thực, quyền hợp lệ và dữ liệu từ API của vai trò này.</p></div><button className="web-primary" onClick={() => openAction(`detail-${page}`)}>Xem bước tiếp theo<Icon name="arrow" size={16}/></button><button className="web-subtle" onClick={close}>Quay lại danh sách</button></section></div>; }
+function DetailPanel({ item, page, close, openAction, sourceLabel }: { item: RecordItem; page: string; close: () => void; openAction: (type: string) => void; sourceLabel: string }) { const dialogRef = useDialogFocus(close); return <div className="web-modal-overlay web-detail-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) close(); }}><section ref={dialogRef} tabIndex={-1} className="web-modal web-detail-modal" role="dialog" aria-modal="true" aria-labelledby="web-detail-title"><button className="web-icon-button web-modal-close" onClick={close} aria-label="Đóng chi tiết"><Icon name="close"/></button><span className="web-eyebrow">CHI TIẾT {page.toLocaleUpperCase('vi')}</span><h2 id="web-detail-title">{item.title}</h2><p>{item.subtitle}</p><Status item={item}/><div className="web-detail-art"><Icon name={page === 'classes' ? 'class' : page === 'organizations' ? 'chart' : 'book'} size={37}/><span/><span/></div><dl><div><dt>Phạm vi</dt><dd>{item.meta}</dd></div><div><dt>Trạng thái</dt><dd>{item.status}</dd></div><div><dt>Nguồn</dt><dd>{sourceLabel}</dd></div></dl><div className="web-detail-boundary"><Icon name="shield" size={18}/><p>Thao tác thật cần xác thực, quyền hợp lệ và dữ liệu từ API của vai trò này.</p></div><button className="web-primary" onClick={() => openAction(`detail-${page}`)}>Xem bước tiếp theo<Icon name="arrow" size={16}/></button><button className="web-subtle" onClick={close}>Quay lại danh sách</button></section></div>; }
 
 function LessonAuthoringDialog({ close, confirm }: { close: () => void; confirm: (name: string, subtitle?: string, meta?: string) => void }) {
   const [step, setStep] = useState(0);
@@ -284,19 +389,79 @@ export function Workspace({ role, onLogout }: { role: Role; onLogout?: () => voi
   const [noticeOpen, setNoticeOpen] = useState(false);
   const [toast, setToast] = useState('');
   const [additions, setAdditions] = useState<Record<string, RecordItem[]>>({});
+  const [apiRetry, setApiRetry] = useState(0);
+  const [apiSnapshot, setApiSnapshot] = useState<ApiSnapshot>(() => role === 'admin' || !hasFirebaseAuthBridge()
+    ? { status: 'preview' }
+    : configuredOrganizationId()
+      ? { status: 'loading' }
+      : { status: 'unavailable', message: 'Thiếu organization ID trong cấu hình runtime; không thay bằng dữ liệu mẫu.' });
   useEffect(() => { const change = () => setPage(readPage()); window.addEventListener('hashchange', change); return () => window.removeEventListener('hashchange', change); }, [role]);
   useEffect(() => { const activeSection = sections.find((section) => section.items.some((item) => item.id === page)); if (activeSection) setClosedSections(sections.filter((section) => section.label !== 'TỔNG QUAN' && section.label !== activeSection.label).map((section) => section.label)); }, [page, sections]);
   useEffect(() => { const viewport = window.matchMedia('(max-width: 900px)'); const sync = () => { if (viewport.matches) { setNavCollapsed(false); setOpenRailGroup(null); } }; sync(); viewport.addEventListener('change', sync); return () => viewport.removeEventListener('change', sync); }, []);
   useEffect(() => { if (!toast) return; const id = window.setTimeout(() => setToast(''), 3500); return () => window.clearTimeout(id); }, [toast]);
+  useEffect(() => {
+    let active = true;
+    if (role === 'admin') return;
+    if (!hasFirebaseAuthBridge()) {
+      setApiSnapshot({ status: 'preview' });
+      return;
+    }
+    const organizationId = configuredOrganizationId();
+    if (!organizationId) {
+      setApiSnapshot({ status: 'unavailable', message: 'Thiếu organization ID trong cấu hình runtime; không thay bằng dữ liệu mẫu.' });
+      return;
+    }
+    setApiSnapshot({ status: 'loading' });
+    const load = async () => {
+      try {
+        if (role === 'teacher') {
+          const [lessonPage, assignmentPage] = await Promise.all([
+            backendApi.lessons(organizationId),
+            backendApi.assignments(organizationId),
+          ]);
+          if (!active) return;
+          setApiSnapshot({
+            status: 'connected',
+            lessonRows: lessonRowsFromApi(lessonPage.items),
+            assignedClassCount: assignmentPage.assignments.filter((item) => item.role === 'teacher' && item.class_id !== null && item.active !== false).length,
+          });
+          return;
+        }
+        const classPage = await backendApi.classes(organizationId);
+        if (!active) return;
+        setApiSnapshot({ status: 'connected', classRows: classRowsFromApi(classPage.items) });
+      } catch (error) {
+        if (!active) return;
+        setApiSnapshot({
+          status: 'error',
+          message: error instanceof BackendApiError ? error.message : 'Kiểm tra phiên đăng nhập và kết nối backend rồi thử lại.',
+        });
+      }
+    };
+    void load();
+    return () => { active = false; };
+  }, [role, apiRetry]);
   const go = (id: string) => { if (!ids.includes(id)) return; window.location.hash = id; setPage(id); setSearch(''); setFilter('all'); setSelected(null); setMobileMenu(false); setOpenRailGroup(null); setNoticeOpen(false); window.scrollTo({ top: 0, behavior: 'smooth' }); };
   const collectionKey = page === 'sharing' ? 'lessons' : page;
-  const items = useMemo(() => [...(additions[collectionKey] ?? []), ...(collections[collectionKey] ?? [])], [collectionKey, additions]);
+  const apiCollectionKey = role === 'teacher' && collectionKey === 'lessons' ? 'lessons' : role === 'manager' && collectionKey === 'classes' ? 'classes' : null;
+  const apiCollectionRows = apiCollectionKey === 'lessons' ? apiSnapshot.lessonRows : apiCollectionKey === 'classes' ? apiSnapshot.classRows : undefined;
+  const apiCollectionLoading = Boolean(apiCollectionKey && apiSnapshot.status === 'loading');
+  const apiCollectionConnected = Boolean(apiCollectionKey && apiSnapshot.status === 'connected');
+  const apiCollectionBlocked = Boolean(apiCollectionKey && ['error', 'unavailable'].includes(apiSnapshot.status));
+  const items = useMemo(() => {
+    if (apiCollectionKey) {
+      if (apiSnapshot.status === 'preview') return [...(additions[collectionKey] ?? []), ...(collections[collectionKey] ?? [])];
+      if (apiSnapshot.status === 'connected') return [...(additions[collectionKey] ?? []), ...(apiCollectionRows ?? [])];
+      return [];
+    }
+    return [...(additions[collectionKey] ?? []), ...(collections[collectionKey] ?? [])];
+  }, [apiCollectionKey, apiCollectionRows, apiSnapshot.status, collectionKey, additions]);
   const selectedItem = items.find((item) => item.id === selected) ?? null;
   const onCreate = (name: string, subtitle?: string, meta?: string) => { const key = dialog === 'new-lesson' ? 'lessons' : dialog === 'new-class' ? 'classes' : dialog === 'new-organization' ? 'organizations' : 'catalog'; const newItem: RecordItem = { id: `preview-${Date.now()}`, title: name, subtitle: subtitle || 'Vừa thêm trong bản xem trước', meta: meta || 'Bản nháp', status: 'Bản nháp', tone: 'amber' }; setAdditions((current) => ({ ...current, [key]: [newItem, ...(current[key] ?? [])] })); setDialog(null); setToast('Đã thêm bản nháp trong phiên xem trước; chưa ghi lên BE.'); go(key); };
-  return <div className={`web-app web-app--${role} ${navCollapsed ? 'web-app--nav-collapsed' : ''}`}><a className="web-skip" href="#main-content" onClick={(event) => { event.preventDefault(); window.requestAnimationFrame(() => document.getElementById("main-content")?.focus()); }}>Bỏ qua điều hướng</a><aside className={`web-sidebar ${mobileMenu ? 'is-open' : ''}`}><div className="web-brand"><BrandMark size={41}/><div className="web-brand-copy"><strong>Sketch<span>2</span>Life</strong><small>{c.scope}</small></div><button className="web-icon-button web-collapse-toggle" onClick={() => { setNavCollapsed((value) => !value); setOpenRailGroup(null); }} aria-label={navCollapsed ? 'Mở rộng menu' : 'Thu gọn menu'} aria-expanded={!navCollapsed} title={navCollapsed ? 'Mở rộng menu' : 'Thu gọn menu'}><Icon name="chevron" size={17}/></button><button className="web-icon-button web-mobile-close" onClick={() => setMobileMenu(false)} aria-label="Đóng menu"><Icon name="close"/></button></div><div className="web-role-card" title={c.name}><span><Icon name={role === 'teacher' ? 'book' : role === 'manager' ? 'class' : 'shield'} size={20}/></span><div><strong>{c.name}</strong><small>Bản xem trước</small></div></div><nav className="web-nav" aria-label={`Điều hướng ${c.name}`}>{sections.map((section) => <section className={["web-nav-section", section.label === "TỔNG QUAN" ? "web-nav-section--overview" : "", openRailGroup === section.label ? "is-rail-open" : "", section.items.some((item) => item.id === page) ? "has-active-page" : ""].filter(Boolean).join(" ")} key={section.label}><button type="button" className="web-nav-group" title={section.label} onClick={() => { if (section.label === 'TỔNG QUAN') return; if (navCollapsed) { setOpenRailGroup((current) => current === section.label ? null : section.label); return; } setClosedSections((current) => current.includes(section.label) ? current.filter((label) => label !== section.label) : [...current, section.label]); }} aria-expanded={section.label === 'TỔNG QUAN' || (navCollapsed ? openRailGroup === section.label : !closedSections.includes(section.label))} aria-controls={`nav-section-${role}-${section.label.replace(/[^a-z0-9]+/gi, '-')}`}><Icon name={section.items[0]?.icon ?? 'grid'} size={18}/><span>{section.label}</span><Icon name="chevron" size={14}/></button><div id={`nav-section-${role}-${section.label.replace(/[^a-z0-9]+/gi, '-')}`} className={`web-nav-section-items ${(section.label !== 'TỔNG QUAN' && (navCollapsed ? openRailGroup !== section.label : closedSections.includes(section.label))) ? 'is-collapsed' : ''}`}>{section.items.map((item) => <button key={item.id} title={navCollapsed ? item.label : undefined} className={page === item.id ? 'active' : ''} onClick={() => go(item.id)} aria-current={page === item.id ? 'page' : undefined}><Icon name={item.icon} size={19}/><span>{item.label}</span>{page === item.id && <i/>}</button>)}</div></section>)}</nav><div className="web-sidebar-footer"><div className="web-sidebar-user" title={`Tài khoản xem trước: ${c.displayName} · ${c.name}`}><span className="web-sidebar-user-avatar" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.2" fill="currentColor"/><path d="M5 20c.5-3.6 2.8-5.6 7-5.6s6.5 2 7 5.6" fill="currentColor"/></svg></span><span className="web-sidebar-user-copy"><strong>{c.displayName}</strong><small>{c.name} · Bản xem trước</small></span></div>{onLogout && (navCollapsed ? <button className="web-logout web-logout--compact" onClick={onLogout} aria-label="Đăng xuất và đổi tài khoản" title="Đăng xuất"><Icon name="arrow" size={18}/></button> : <button className="web-logout" onClick={onLogout} aria-label="Đăng xuất và đổi tài khoản">Đăng xuất</button>)}</div></aside>{navCollapsed && openRailGroup && <button className="web-rail-dismiss" onClick={() => setOpenRailGroup(null)} aria-label="Đóng nhóm menu"/>}{mobileMenu && <button className="web-mobile-scrim" onClick={() => setMobileMenu(false)} aria-label="Đóng menu"/>}
-    <div className="web-main-frame"><header className="web-topbar"><button className="web-icon-button web-menu-toggle" onClick={() => setMobileMenu(true)} aria-label="Mở menu"><Icon name="menu"/></button><div className="web-breadcrumb"><span>Sketch2Life</span><Icon name="chevron" size={15}/><strong>{c.nav.find((item) => item.id === page)?.label ?? 'Tổng quan'}</strong></div><div className="web-top-actions"><span className="web-preview-chip"><i/> Chế độ xem trước</span><button className="web-icon-button" onClick={() => setNoticeOpen((value) => !value)} aria-label="Mở thông báo" aria-expanded={noticeOpen}><Icon name="bell" size={20}/></button></div>{noticeOpen && <div className="web-popover"><strong>Thông báo</strong><p>Chưa có thông báo từ API cho tài khoản xem trước.</p><button onClick={() => setNoticeOpen(false)}>Đóng</button></div>}</header>
-      <main id="main-content" tabIndex={-1} className="web-content">{page === 'home' ? <Dashboard role={role} go={go} openAction={setDialog}/> : hasRoleFlow(role,page) ? <RoleFlowPage role={role} page={page}/> : ['lessons','classes','teachers','review','moderation','catalog','organizations','feedback','sharing'].includes(page) ? <CollectionPage role={role} page={page} items={role === 'teacher' && page === 'classes' ? items.filter((item) => item.subtitle.includes('Cô Mai')) : items} search={search} setSearch={setSearch} filter={filter} setFilter={setFilter} select={setSelected} openAction={setDialog} go={go}/> : <FeaturePage role={role} page={page} go={go} openAction={setDialog}/>}<footer className="web-footer"><span>Sketch2Life · {c.name}</span><span>Giao diện xem trước · không kết nối dữ liệu thật</span></footer></main></div>
-    {selectedItem && <DetailPanel item={selectedItem} page={page} close={() => setSelected(null)} openAction={(type) => { setSelected(null); setDialog(type); }}/ >}{dialog === 'new-lesson' ? <LessonAuthoringDialog close={() => setDialog(null)} confirm={onCreate}/> : dialog && <ActionDialog type={dialog} close={() => setDialog(null)} confirm={onCreate}/ >}{toast && <div className="web-toast" role="status"><Icon name="check" size={17}/>{toast}</div>}
+  return <div className={`web-app web-app--${role} ${navCollapsed ? 'web-app--nav-collapsed' : ''}`}><a className="web-skip" href="#main-content" onClick={(event) => { event.preventDefault(); window.requestAnimationFrame(() => document.getElementById("main-content")?.focus()); }}>Bỏ qua điều hướng</a><aside className={`web-sidebar ${mobileMenu ? 'is-open' : ''}`}><div className="web-brand"><BrandMark size={41}/><div className="web-brand-copy"><strong>Sketch<span>2</span>Life</strong><small>{c.scope}</small></div><button className="web-icon-button web-collapse-toggle" onClick={() => { setNavCollapsed((value) => !value); setOpenRailGroup(null); }} aria-label={navCollapsed ? 'Mở rộng menu' : 'Thu gọn menu'} aria-expanded={!navCollapsed} title={navCollapsed ? 'Mở rộng menu' : 'Thu gọn menu'}><Icon name="chevron" size={17}/></button><button className="web-icon-button web-mobile-close" onClick={() => setMobileMenu(false)} aria-label="Đóng menu"><Icon name="close"/></button></div><div className="web-role-card" title={c.name}><span><Icon name={role === 'teacher' ? 'book' : role === 'manager' ? 'class' : 'shield'} size={20}/></span><div><strong>{c.name}</strong><small>{apiSnapshot.status === 'connected' ? 'Dữ liệu API' : apiSnapshot.status === 'error' || apiSnapshot.status === 'unavailable' ? 'API chưa sẵn sàng' : 'Bản xem trước'}</small></div></div><nav className="web-nav" aria-label={`Điều hướng ${c.name}`}>{sections.map((section) => <section className={["web-nav-section", section.label === "TỔNG QUAN" ? "web-nav-section--overview" : "", openRailGroup === section.label ? "is-rail-open" : "", section.items.some((item) => item.id === page) ? "has-active-page" : ""].filter(Boolean).join(" ")} key={section.label}><button type="button" className="web-nav-group" title={section.label} onClick={() => { if (section.label === 'TỔNG QUAN') return; if (navCollapsed) { setOpenRailGroup((current) => current === section.label ? null : section.label); return; } setClosedSections((current) => current.includes(section.label) ? current.filter((label) => label !== section.label) : [...current, section.label]); }} aria-expanded={section.label === 'TỔNG QUAN' || (navCollapsed ? openRailGroup === section.label : !closedSections.includes(section.label))} aria-controls={`nav-section-${role}-${section.label.replace(/[^a-z0-9]+/gi, '-')}`}><Icon name={section.items[0]?.icon ?? 'grid'} size={18}/><span>{section.label}</span><Icon name="chevron" size={14}/></button><div id={`nav-section-${role}-${section.label.replace(/[^a-z0-9]+/gi, '-')}`} className={`web-nav-section-items ${(section.label !== 'TỔNG QUAN' && (navCollapsed ? openRailGroup !== section.label : closedSections.includes(section.label))) ? 'is-collapsed' : ''}`}>{section.items.map((item) => <button key={item.id} title={navCollapsed ? item.label : undefined} className={page === item.id ? 'active' : ''} onClick={() => go(item.id)} aria-current={page === item.id ? 'page' : undefined}><Icon name={item.icon} size={19}/><span>{item.label}</span>{page === item.id && <i/>}</button>)}</div></section>)}</nav><div className="web-sidebar-footer"><div className="web-sidebar-user" title={`Tài khoản xem trước: ${c.displayName} · ${c.name}`}><span className="web-sidebar-user-avatar" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.2" fill="currentColor"/><path d="M5 20c.5-3.6 2.8-5.6 7-5.6s6.5 2 7 5.6" fill="currentColor"/></svg></span><span className="web-sidebar-user-copy"><strong>{c.displayName}</strong><small>{c.name} · {apiSnapshot.status === 'connected' ? 'Dữ liệu API' : apiSnapshot.status === 'error' || apiSnapshot.status === 'unavailable' ? 'API chưa sẵn sàng' : 'Bản xem trước'}</small></span></div>{onLogout && (navCollapsed ? <button className="web-logout web-logout--compact" onClick={onLogout} aria-label="Đăng xuất và đổi tài khoản" title="Đăng xuất"><Icon name="arrow" size={18}/></button> : <button className="web-logout" onClick={onLogout} aria-label="Đăng xuất và đổi tài khoản">Đăng xuất</button>)}</div></aside>{navCollapsed && openRailGroup && <button className="web-rail-dismiss" onClick={() => setOpenRailGroup(null)} aria-label="Đóng nhóm menu"/>}{mobileMenu && <button className="web-mobile-scrim" onClick={() => setMobileMenu(false)} aria-label="Đóng menu"/>}
+    <div className="web-main-frame"><header className="web-topbar"><button className="web-icon-button web-menu-toggle" onClick={() => setMobileMenu(true)} aria-label="Mở menu"><Icon name="menu"/></button><div className="web-breadcrumb"><span>Sketch2Life</span><Icon name="chevron" size={15}/><strong>{c.nav.find((item) => item.id === page)?.label ?? 'Tổng quan'}</strong></div><div className="web-top-actions"><span className={`web-preview-chip ${apiSnapshot.status === 'connected' ? 'web-preview-chip--api' : ''}`}><i/>{apiSnapshot.status === 'connected' ? 'Dữ liệu API' : apiSnapshot.status === 'loading' ? 'Đang tải API' : apiSnapshot.status === 'error' || apiSnapshot.status === 'unavailable' ? 'API chưa sẵn sàng' : 'Chế độ xem trước'}</span><button className="web-icon-button" onClick={() => setNoticeOpen((value) => !value)} aria-label="Mở thông báo" aria-expanded={noticeOpen}><Icon name="bell" size={20}/></button></div>{noticeOpen && <div className="web-popover"><strong>Thông báo</strong><p>Nhánh bàn giao chưa có API inbox/thông báo cho vai trò này.</p><button onClick={() => setNoticeOpen(false)}>Đóng</button></div>}</header>
+      <main id="main-content" tabIndex={-1} className="web-content">{page === 'home' ? role === 'admin' || apiSnapshot.status === 'preview' ? <Dashboard role={role} go={go} openAction={setDialog}/> : apiSnapshot.status === 'connected' ? <ConnectedApiDashboard role={role} go={go} lessonRows={apiSnapshot.lessonRows} classRows={apiSnapshot.classRows} assignedClassCount={apiSnapshot.assignedClassCount}/> : <ApiDashboardUnavailable role={role} snapshot={apiSnapshot} retry={() => setApiRetry((value) => value + 1)} go={go}/> : <>{apiCollectionKey && <WorkspaceApiNotice snapshot={apiSnapshot} onRetry={() => setApiRetry((value) => value + 1)}/>}{hasRoleFlow(role,page) ? <RoleFlowPage role={role} page={page}/> : ['lessons','classes','teachers','review','moderation','catalog','organizations','feedback','sharing'].includes(page) ? <CollectionPage role={role} page={page} items={items} loading={apiCollectionLoading} unavailable={apiCollectionBlocked} sourceLabel={apiCollectionConnected ? (additions[collectionKey]?.length ? 'API · có bản nháp cục bộ trong phiên xem trước' : 'Dữ liệu API · chỉ đọc') : apiCollectionBlocked ? 'API chưa khả dụng · không hiển thị dữ liệu mẫu' : 'Dữ liệu minh họa · chưa đồng bộ BE'} search={search} setSearch={setSearch} filter={filter} setFilter={setFilter} select={setSelected} openAction={setDialog} go={go}/> : <FeaturePage role={role} page={page} go={go} openAction={setDialog}/>}</>}<footer className="web-footer"><span>Sketch2Life · {c.name}</span><span>{apiSnapshot.status === 'connected' ? 'Dữ liệu API chỉ áp dụng cho màn hình có endpoint tương ứng' : 'Giao diện xem trước · không kết nối dữ liệu thật'}</span></footer></main></div>
+    {selectedItem && <DetailPanel item={selectedItem} page={page} sourceLabel={selectedItem.id.startsWith('preview-') ? 'Bản nháp cục bộ trong phiên' : apiSnapshot.status === 'connected' ? 'API Lesson Library / BE1' : 'Dữ liệu minh họa cho UI'} close={() => setSelected(null)} openAction={(type) => { setSelected(null); setDialog(type); }}/ >}{dialog === 'new-lesson' ? <LessonAuthoringDialog close={() => setDialog(null)} confirm={onCreate}/> : dialog && <ActionDialog type={dialog} close={() => setDialog(null)} confirm={onCreate}/ >}{toast && <div className="web-toast" role="status"><Icon name="check" size={17}/>{toast}</div>}
   </div>;
 }
 

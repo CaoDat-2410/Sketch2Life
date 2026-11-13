@@ -1,14 +1,20 @@
 # FEAT-069 — Leader review UI/UX remediation
 
-- **State:** IN_PROGRESS under the exact approved Plan Rev2 scope. Rev1 is published; Rev2 completes the remaining leader-review UI items as review prototypes while preserving the canonical SRS/API boundary.
+- **State:** IN_PROGRESS under the exact approved Plan Rev3 scope. Rev1 and Rev2 are published; Rev3 adds limited API-backed read states to the existing review UI while preserving the canonical SRS/API boundary.
 - **Branch:** `FE_UI_Project_Ver2`.
 - **Goal:** Close the leader-review UI gaps that can be implemented without changing current product requirements or inventing backend behavior.
 - **Authority:** `docs/context/SRS_AUTHORITY.md`; canonical working requirements are FEAT-063 SRS v2.5-draft, still awaiting owner sign-off.
 - **Review input:** owner-provided local Codex attachment containing the leader transcript. The source stays local and is treated as feedback to reconcile, not as a replacement for current SRS/API contracts.
-- **Baseline:** FEAT-068 is complete and published on this branch. The current UI source is preview-first: Parent business state is local; web role business data is local; an auth bridge and main-app identity endpoint are absent.
+- **Baseline:** FEAT-068 and FEAT-069 Rev2 are complete and published on this branch. Parent business state remains local preview. Web workspaces now have conditional read wiring for Teacher lessons/assignments and Manager classes, but the delivery checkout still lacks the expected auth bridge and `/api/auth/v1/me` handler for ordinary authenticated role resolution.
 - **UI source selection:** The user confirmed `UI_Project/` is the primary UI/UX to update and that top-level `apps/` contains legacy UI outside this handoff. Rev2 implementation and run instructions target only `UI_Project/` workspaces.
 - **Parent mobile entry:** `UI_Project/parent-android/apps/mobile` is the Android APK host; `ParentWebPreview` loads the bundled `UI_Project/parent-ui` page. The separate `parent-android/apps/ui-mobile` workspace is not the target for this review task.
-- **Latest API comparison:** A read-only audit of the permitted newer backend source `origin/feature/feat063-m2-parent-teacher-foundation@5c07c94e` found Parent profile/story routers that are absent from `FE_UI_Project_Ver2@2518dc07`. Treat those newer routes as future source context only; the deliverable must label them unavailable unless mounted in the branch teammates clone.
+- **Latest API comparison:** A read-only audit of the permitted newer backend source `origin/feature/feat063-m2-parent-teacher-foundation@5c07c94e86826447d975ef2757aa1fefdc876c8c` found Parent profile/story and AI routes absent from the delivery baseline `FE_UI_Project_Ver2@ae2a8c8165aa1d11b62a7005a9e28d8c0ea8c046`. Treat those newer routes as future source context only; the deliverable labels them unavailable unless mounted in the branch teammates clone.
+
+## Rev3 current scope and implementation status
+
+Plan Rev3 is the active approved plan and supersedes Rev2 for current work; its approved Parent Library addendum is recorded separately. In `UI_Project/shared/webWorkspace.tsx`, authenticated mode conditionally reads Teacher Lesson Library lessons plus BE1 assignments, or School Manager BE1 classes, when the runtime supplies both the Firebase token bridge and organization ID. In `UI_Project/parent-ui`, authenticated mode conditionally reads Parent public/shared lessons, invitations and selected lesson details, and submits invitation accept/decline only after an explicit user action. Teacher/Manager dashboards derive supported summary values from their API responses. API failure/unavailable states do not fall back to fixture rows. Without an auth bridge, screens remain explicitly labeled preview mode. Platform Admin remains preview-only because this delivery branch has no moderation queue-list API. Parent profile/story/photo/ASR/AI/video/playback state remains preview-only because those route families are not mounted in this delivery composition.
+
+This frontend wiring does not establish that the team can log in end-to-end: the client references `GET /api/auth/v1/me`, but the handler and bridge are not present in this checkout. No API calls or writes were made during implementation or review. The exact route, branch and screen mapping is recorded in `evidence/notes/API_UI_CROSSWALK_REV3.md`.
 
 ## Approved scope
 
@@ -31,6 +37,6 @@
 
 ## Current progress
 
-Rev1 implementation and publication are complete. The user has now explicitly authorized the full leader-review UI scope under Plan Rev2. Rev2 follows the leader's requested presentation order as a local UI prototype where it differs from the unsigned canonical SRS, and does not modify that SRS or make backend/schema/API changes. Implementation has not started until this Rev2 approval record was completed.
+Rev1 and Rev2 implementation/publication are complete. The user has explicitly authorized the API-aligned frontend work under Plan Rev3. Rev3 preserves the leader-review prototype behaviors from Rev2 where already approved, adds limited conditional API-backed read views for current mounted routes, and does not modify the unsigned canonical SRS or backend/schema/auth/API contracts. Any Rev2 behavior that conflicts with the SRS or lacks a mounted API remains visibly preview-only and is tracked as an open decision.
 
 The Rev1 builds passed and its screenshots are in `evidence/`. The supplied emulator could not install the rebuilt APK because Android's Package Manager returned `Failure calling service package: Broken pipe (32)` and the emulator log showed system-server/GMS death; no emulator data was wiped. Rev2 will rebuild and visually inspect the final output and record the emulator limitation if it persists.

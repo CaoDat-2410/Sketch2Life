@@ -27,3 +27,7 @@ The user confirmed that `UI_Project/` is the project's primary UI/UX and that th
 ## D-069-07 — Parent APK presentation target
 
 The Parent UI shown in the browser is the bundle rendered inside `UI_Project/parent-android/apps/mobile` by `ParentWebPreview`. Keep `UI_Project/parent-ui` as the canonical Parent UI implementation and ensure the Android debug APK packages that same bundle. The separate `UI_Project/parent-android/apps/ui-mobile` workspace is not the target of this leader-review task.
+
+## D-069-08 — Rev3 conditional API reads and truth states
+
+The approved Rev3 scope connects only current, mounted read contracts that can be safely scoped by an injected Firebase token bridge and organization ID: Teacher Lesson Library lessons, Teacher BE1 assignments, and School Manager BE1 classes. Teacher/Manager dashboard measures are derived from those returned rows, not from a dedicated analytics endpoint. Without auth/config, retain labeled preview data; with auth/config but missing organization context or failed reads, show unavailable/error states and do not replace API results with fixtures. Keep Teacher/Manager writes, Parent operations, Platform Admin queue, and all routes present only on the read-only comparison branch preview-only. Do not claim a full live workflow or connected login until the delivery branch has a supported identity bridge/handler and missing contracts.

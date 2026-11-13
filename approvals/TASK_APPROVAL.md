@@ -258,3 +258,24 @@
 - Plan Rev2 remains the approved implementation plan and hash identified above. Its delivery target is `UI_Project/` only.
 - Read-only comparison against permitted backend source `origin/feature/feat063-m2-parent-teacher-foundation@5c07c94e` found additional Parent profile/story routers absent from the handoff branch `FE_UI_Project_Ver2@2518dc07`. These are not advertised as available to teammates cloning the handoff branch.
 - No legacy UI source from top-level `apps/` was copied or registered as a run target.
+
+## FEAT-069 Plan Rev3 — API-aligned UI/UX completion
+
+- **Status:** APPROVED for the exact frontend-only scope in Plan Rev3.
+- **Approver:** Project owner, direct instruction in this conversation: “dựa vào API đang có để build UIUX lên đi ... giúp tôi check xem các API để mình làm UIUX đúng ... hoàn chỉnh 100% yêu cầu của leader”.
+- **Recorded timestamp:** 2026-11-14 02:30:58 Asia/Saigon.
+- **Feature:** FEAT-069 — Leader review UI/UX remediation.
+- **Approved plan:** `features/FEAT-069-leader-uiux-review-remediation/plan/PLAN_REV3.md`.
+- **Plan revision:** 3.
+- **Approved plan SHA-256:** `21A1FB640990D078793918AFCA651394FBACB42BFD0F80C173B28A385BFCAEB9`.
+- **Scope:** Align the Parent Android and three web role workspaces with current delivery-branch API contracts and the leader review; distinguish mounted endpoints from allowed newer-branch references; preserve preview-only behavior wherever identity or routes are missing; build, visually review, update feature evidence, validate repository security, and publish normally to the previously authorized branch if fast-forwardable.
+- **Acceptance criteria:** AC1–AC10 in the hash-identified Plan Rev3.
+- **Exclusions:** backend/API/schema/auth/provider/SRS changes or route merges; live API/AI calls or database writes during implementation/QA; forbidden branches as source; legacy `apps/` and Child Expo; force push/history rewrite; automated tests.
+- **Approval basis:** the owner's direct request authorizes this bounded frontend work. It does not authorize backend integration changes or claim missing runtime services are working.
+
+## FEAT-069 Plan Rev3 Parent Library addendum approval
+
+- **Status:** APPROVED for `features/FEAT-069-leader-uiux-review-remediation/plan/PLAN_REV3_ADDENDUM_PARENT_LIBRARY.md`.
+- **Approver:** Project owner, direct request in this conversation to build UI/UX against the APIs currently present in the project and complete the leader's requirements.
+- **Scope:** conditionally read the current Parent public/shared Lesson Library and invitation APIs when the Firebase token bridge exists; fetch selected lesson detail on demand; use the typed invitation accept/decline operation only after user selection; preserve preview/no-fallback error states; leave Parent profile/story/AI/video unsupported flows preview-only.
+- **Exclusions:** backend/API/auth/schema/SRS changes, live API calls during implementation/QA, unsupported Parent flows, user/child data, automated tests.
