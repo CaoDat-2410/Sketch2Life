@@ -15,3 +15,15 @@ Use a compact confirmation dialog in place of a separate context-selection page.
 ## D-069-04 — API data boundary
 
 Teacher role screens remain preview-only until an authenticated principal and organization context can be resolved through a supported bridge and mounted endpoint. Do not seed tenant IDs or claim fixture counts came from backend.
+
+## D-069-05 — Rev2 leader review prototype scope
+
+The user explicitly approved completing all remaining leader-review UI items under Plan Rev2. For reviewability, the Parent pre-video activity sequence and local gender control may be shown in preview UI even though they differ from or are absent from the canonical SRS/API. Keep FEAT-063 SRS v2.5-draft unchanged, label simulated AI/data states honestly, preserve the required adult context confirmation, and record these product decisions as unresolved pending formal owner/SRS sign-off.
+
+## D-069-06 — UI source boundary and current-branch API availability
+
+The user confirmed that `UI_Project/` is the project's primary UI/UX and that the top-level `apps/` tree is legacy UI that must not be used for this handoff. Keep the approved Parent Android/WebView and three-role web workspaces under `UI_Project/` as the implementation and run targets. Do not copy, launch, or register top-level `apps/` UI workspaces as part of this feature. A read-only comparison against the permitted newer backend source `origin/feature/feat063-m2-parent-teacher-foundation` at `5c07c94e` showed Parent profile/story routers there that are absent from the delivery branch `FE_UI_Project_Ver2` at `2518dc07`; only routes mounted in the delivery branch may be described as available to a teammate cloning this branch. Keep other Parent operations preview-only until their routes are present and authenticated in the delivery branch.
+
+## D-069-07 — Parent APK presentation target
+
+The Parent UI shown in the browser is the bundle rendered inside `UI_Project/parent-android/apps/mobile` by `ParentWebPreview`. Keep `UI_Project/parent-ui` as the canonical Parent UI implementation and ensure the Android debug APK packages that same bundle. The separate `UI_Project/parent-android/apps/ui-mobile` workspace is not the target of this leader-review task.

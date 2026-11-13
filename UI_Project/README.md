@@ -1,10 +1,10 @@
 # Sketch2Life UI Project
 
-Thư mục này gom các source UI hiện có cho bốn role, các giao diện dùng chung và trải nghiệm riêng cho trẻ:
+Đây là workspace UIUX chính dùng cho review và bàn giao. Parent được đóng gói vào app Android; Teacher, School Manager và Platform Admin là các portal web.
 
-- `parent-ui` — Parent web preview.
-- `parent-android/apps/ui-mobile` — giao diện mobile Expo/React Native cùng màn hình và assets.
-- `parent-android/apps/mobile` — app React Native/Android native và luồng fixture hiện tại.
+- `parent-ui` — source giao diện Parent; được bundling thành asset cục bộ trong app Android. Vite preview chỉ để xem nhanh trên web.
+- `parent-android/apps/mobile` — app Android native là entry point Parent trên máy ảo/thiết bị.
+- `parent-android/apps/ui-mobile` — workspace mobile Expo riêng, không phải entry point Parent được bàn giao trong flow này.
 - `parent-android/packages/art-renderer` — package renderer nội bộ dùng bởi workspace mobile.
 - `teacher-ui` — Teacher web.
 - `school-manager-ui` — School Manager web.
@@ -12,9 +12,8 @@ Thư mục này gom các source UI hiện có cho bốn role, các giao diện d
 - `web-ui` — cổng web chung, gồm đăng nhập/kích hoạt cho ba role web.
 - `shared` — shell, dashboard, role flows và style dùng chung.
 - `design-references` — mockup màn hình và bảng component/motion Rev38 để tham khảo; không phải implementation/API contract.
-- `child-experience` — ứng dụng UI dành riêng cho trải nghiệm của trẻ trong checkout dự án.
 
-Hai thư mục `parent-android/apps/ui-mobile` và `parent-android/apps/mobile` là hai workspace mobile riêng biệt có sẵn trong source; chúng được giữ riêng, không gộp code vào nhau.
+Parent Android dùng bundle từ `parent-ui`, không cần gọi Parent dev server ở cổng 5171 khi mở APK. Không dùng các giao diện Expo/Child cũ làm entry point cho lần bàn giao này.
 
 ## Chạy các workspace web
 
@@ -28,28 +27,35 @@ npm run build
 npm run dev
 ```
 
-`npm run dev` mở các preview ở cổng 5171–5175. Có thể chạy riêng bằng `npm run dev:parent`, `npm run dev:teacher`, `npm run dev:manager`, `npm run dev:admin` hoặc `npm run dev:web`.
+`npm run dev` mở web preview ở cổng 5171–5175: Parent preview ở 5171, Teacher ở 5172, School Manager ở 5173, Platform Admin ở 5174 và web portal chung ở 5175. Có thể chạy riêng bằng `npm run dev:parent`, `npm run dev:teacher`, `npm run dev:manager`, `npm run dev:admin` hoặc `npm run dev:web`.
+
+Để kiểm tra ba role web, dùng các địa chỉ Teacher, School Manager và Platform Admin sau khi chạy `npm run dev`. Parent preview ở 5171 là cùng UI source được đóng gói vào Android, không thay cho kiểm tra APK trên máy ảo.
 
 ## Chạy Parent mobile
 
-Tại `parent-android`:
+Tại `parent-android`, cài dependency rồi mở Metro:
 
 ```powershell
 pnpm install
 pnpm start
 ```
 
-Lệnh này chạy app `@sketch2life/mobile`. Để chạy workspace Expo UI, dùng `pnpm start:ui-mobile`. Với Android SDK/emulator đã cấu hình, `pnpm android` chạy app native; `pnpm android:ui-mobile` chạy app Expo Android.
-
-## Chạy Child experience
-
-Tại `child-experience`:
+Trong terminal khác, chạy app Parent trên emulator Android đã mở:
 
 ```powershell
-npm ci
-npm start
+pnpm android
 ```
 
-Các source mobile và child được lấy từ working tree cục bộ của checkout `Sketch2Life-be-dev-2026-11-07`, nhánh `dev`, HEAD `1431ef81`, gồm cả thay đổi chưa commit tại máy. Đây không phải xác nhận phiên bản mới nhất trên GitHub. Cache dependency, output build/Gradle/CMake và thiết lập SDK theo máy đã được loại khỏi folder. UI preview/source không đồng nghĩa API/backend đã tích hợp đầy đủ.
+Lệnh này chạy app `@sketch2life/mobile`, đóng gói `parent-ui` vào WebView cục bộ. Không dùng `pnpm android:ui-mobile` cho Parent APK.
+
+Để tạo APK debug để cài trực tiếp hoặc lưu làm artifact:
+
+```powershell
+pnpm --dir apps/mobile android:apk:debug
+```
+
+Sau khi clone, cài dependency web bằng `npm ci` tại `UI_Project`, rồi cài dependency Android bằng `pnpm install` tại `UI_Project/parent-android`. Cần Android SDK, JDK và emulator theo cấu hình React Native của workspace. Gradle tự build bundle Parent từ `parent-ui`; APK debug chứa UI mới nhất của checkout, không cần kết nối máy chủ Vite.
+
+Các portal và app hiện vẫn có màn hình fixture/preview. UI preview/source không đồng nghĩa API/backend đã được tích hợp đầy đủ.
 
 

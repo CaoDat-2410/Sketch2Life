@@ -237,3 +237,24 @@
 - **Acceptance criteria:** AC1–AC10 in the hash-identified Plan Rev1.
 - **Exclusions:** backend/API/database/auth/schema/SRS/provider/deployment changes; shared API writes; live ASR/AI calls; unsupported gender field; Parent outdoor activities before video; removal of required context/script confirmation; generated raster assets; Child Expo changes; force push/history rewrite.
 - **Approval basis:** the user's direct request authorizes this bounded implementation. Leader transcript text is feedback, not a change to canonical product/SRS/API requirements.
+
+## FEAT-069 Plan Rev2 — complete leader review UI/UX items
+
+- **Status:** APPROVED for the exact UI-only scope in Plan Rev2.
+- **Approver:** Project owner, direct instruction in this conversation: “nói chung giờ tôi muốn bạn đáp ứng toàn bộ yêu cầu của leader được không, tôi đã cung cấp hết dữ liệu cần có để bạn làm rồi đó”.
+- **Recorded timestamp:** 2026-11-14 01:28:17 Asia/Saigon.
+- **Feature:** FEAT-069 — Leader review UI/UX remediation.
+- **Approved plan:** `features/FEAT-069-leader-uiux-review-remediation/plan/PLAN_REV2.md`.
+- **Plan revision:** 2.
+- **Approved plan SHA-256:** `6239B3640D367A2EA847DDA97F1FAE5DB9978222F4E3362E43BBD5065BB3B6ED`.
+- **Scope:** complete the remaining Parent/Teacher leader-review UI items as review prototypes; keep SRS v2.5-draft canonical, preserve adult context confirmation, mark the requested pre-video activity and local gender field as proposed preview behavior, and disclose unavailable API/AI paths; build, visually inspect, document evidence, validate repository security, and push normally to the previously authorized branch if fast-forwardable.
+- **Acceptance criteria:** AC1–AC12 in the hash-identified Plan Rev2.
+- **Exclusions:** backend/API/auth/schema/database/SRS/provider changes, API writes, live AI/ASR, persistent gender, child data/media, automated tests, release signing, Child Expo changes, force push/history rewrite.
+- **Approval basis:** this direct user request authorizes the UI-only implementation against the full leader transcript. It does not sign off the unsigned canonical SRS or authorize backend contract changes.
+
+## FEAT-069 source boundary checkpoint — 2026-11-14
+
+- The project owner confirmed `UI_Project/` is the primary UI/UX to revise and the top-level `apps/` tree is legacy UI excluded from this handoff. The owner reiterated that the work should satisfy the leader's complete review.
+- Plan Rev2 remains the approved implementation plan and hash identified above. Its delivery target is `UI_Project/` only.
+- Read-only comparison against permitted backend source `origin/feature/feat063-m2-parent-teacher-foundation@5c07c94e` found additional Parent profile/story routers absent from the handoff branch `FE_UI_Project_Ver2@2518dc07`. These are not advertised as available to teammates cloning the handoff branch.
+- No legacy UI source from top-level `apps/` was copied or registered as a run target.

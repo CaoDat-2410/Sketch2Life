@@ -29,8 +29,16 @@
 .teacher-session-actions { margin-top: 16px; }
 .teacher-session-actions>button { min-height: 42px; }
 .teacher-session-deck-choice { border-color: #d7c991; background: #fff8e5; }
+.teacher-session-sequence { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; margin: 13px 0 3px; padding: 9px; border: 1px solid #dbe5d9; border-radius: 11px; background: #f8faf5; }
+.teacher-session-sequence span { color: #788479; font-size: 9px; font-weight: 800; }
+.teacher-session-sequence span.is-current { color: #1f6949; }
+.teacher-session-sequence span.is-done { color: #476c53; }
+.teacher-session-sequence i { color: #9aa79a; font-size: 10px; font-style: normal; }
+.teacher-session-sequence span.is-current::after { display: inline-block; width: 5px; height: 5px; margin: 0 0 1px 5px; border-radius: 50%; background: #2e8a5d; content: ''; }
+.teacher-session-sample-gate .flow-secondary { flex: none; min-height: 40px; padding: 0 12px; white-space: nowrap; }
+.teacher-session-sample-gate .preview-state { display: block; color: #755e2f; font-size: 9px; font-weight: 900; letter-spacing: .08em; }
 
 @media (max-width: 760px) {
   .teacher-session-interaction,.teacher-session-sample-gate { align-items: stretch; flex-direction: column; }
-  .teacher-session-interaction button,.teacher-session-sample-gate .flow-primary { width: 100%; justify-content: center; }
+  .teacher-session-interaction button,.teacher-session-sample-gate .flow-primary,.teacher-session-sample-gate .flow-secondary { width: 100%; justify-content: center; }
 }

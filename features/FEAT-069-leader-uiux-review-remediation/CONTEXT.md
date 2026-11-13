@@ -1,11 +1,14 @@
 # FEAT-069 — Leader review UI/UX remediation
 
-- **State:** IMPLEMENTED under the exact approved Plan Rev1 scope; final build and web review passed. Actual installation of the new APK on the supplied emulator remains blocked by that emulator's Android Package Manager service failure.
+- **State:** IN_PROGRESS under the exact approved Plan Rev2 scope. Rev1 is published; Rev2 completes the remaining leader-review UI items as review prototypes while preserving the canonical SRS/API boundary.
 - **Branch:** `FE_UI_Project_Ver2`.
 - **Goal:** Close the leader-review UI gaps that can be implemented without changing current product requirements or inventing backend behavior.
 - **Authority:** `docs/context/SRS_AUTHORITY.md`; canonical working requirements are FEAT-063 SRS v2.5-draft, still awaiting owner sign-off.
 - **Review input:** owner-provided local Codex attachment containing the leader transcript. The source stays local and is treated as feedback to reconcile, not as a replacement for current SRS/API contracts.
 - **Baseline:** FEAT-068 is complete and published on this branch. The current UI source is preview-first: Parent business state is local; web role business data is local; an auth bridge and main-app identity endpoint are absent.
+- **UI source selection:** The user confirmed `UI_Project/` is the primary UI/UX to update and that top-level `apps/` contains legacy UI outside this handoff. Rev2 implementation and run instructions target only `UI_Project/` workspaces.
+- **Parent mobile entry:** `UI_Project/parent-android/apps/mobile` is the Android APK host; `ParentWebPreview` loads the bundled `UI_Project/parent-ui` page. The separate `parent-android/apps/ui-mobile` workspace is not the target for this review task.
+- **Latest API comparison:** A read-only audit of the permitted newer backend source `origin/feature/feat063-m2-parent-teacher-foundation@5c07c94e` found Parent profile/story routers that are absent from `FE_UI_Project_Ver2@2518dc07`. Treat those newer routes as future source context only; the deliverable must label them unavailable unless mounted in the branch teammates clone.
 
 ## Approved scope
 
@@ -28,6 +31,6 @@
 
 ## Current progress
 
-The leader transcript and canonical SRS/API crosswalk were read. Compatible Parent and Teacher UI changes are implemented. The five web workspaces build, Parent Android TypeScript checks pass, and the Android debug APK builds. Parent and all three web role entries were visually reviewed in the browser; captures and commands are stored under this feature's evidence directory. Installing the rebuilt APK on the supplied emulator could not be verified because Android's Package Manager returned `Failure calling service package: Broken pipe (32)` and the emulator log showed system-server/GMS death. No emulator data was wiped.
+Rev1 implementation and publication are complete. The user has now explicitly authorized the full leader-review UI scope under Plan Rev2. Rev2 follows the leader's requested presentation order as a local UI prototype where it differs from the unsigned canonical SRS, and does not modify that SRS or make backend/schema/API changes. Implementation has not started until this Rev2 approval record was completed.
 
-Unresolved product/API conflicts and preview-only integration boundaries remain in `evidence/notes/OPEN_QUESTIONS.md`. They do not block the approved UI remediation scope; they do prevent claiming that every leader suggestion is already authorized by the canonical SRS or backed by a live API.
+The Rev1 builds passed and its screenshots are in `evidence/`. The supplied emulator could not install the rebuilt APK because Android's Package Manager returned `Failure calling service package: Broken pipe (32)` and the emulator log showed system-server/GMS death; no emulator data was wiped. Rev2 will rebuild and visually inspect the final output and record the emulator limitation if it persists.
