@@ -46,6 +46,8 @@
 .kid-view-toggle strong { color: #435341; font-size: 13px; }
 .kid-view-toggle small { color: #72806e; font-size: 11px; }
 .activity-page__card { margin: 11px 0; padding: 16px; border: 1px solid #e2e6d5; border-radius: 20px; background: #fffdf7; box-shadow: 0 6px 16px #526d4512; }
+.activity-page__card.is-selected { border-color: #28715a; box-shadow: 0 0 0 3px #28715a18, 0 8px 20px #526d451a; }
+.activity-page__select { width: 100%; margin-top: 14px; }
 .activity-page__title { display: flex; align-items: center; gap: 10px; }
 .activity-page__title span { display: grid; place-items: center; flex: 0 0 36px; width: 36px; height: 36px; border-radius: 12px; color: #4e724b; background: #e8f1df; font-size: 12px; font-weight: 900; }
 .activity-page__title h3 { margin: 0; color: #354b39; font: 500 18px/1.25 Fredoka, sans-serif; }

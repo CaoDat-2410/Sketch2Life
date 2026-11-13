@@ -55,3 +55,26 @@ The approved Rev2 UI scope and Rev3 API-aware screens are implemented in source.
 - CUA review of Parent `/` and both Library tabs confirmed the no-auth preview badge/disclosure, public/shared categories, invitation card and mobile shell. Teacher and Manager preview screens show source labels in this no-auth checkout. Connected API mode was not runtime-tested because no auth bridge/config is present.
 - The emulator returned `sys.boot_completed=1`, but installing the new APK did not respond within about 40 seconds. A read-only `pm path com.sketch2life.mobile` check also hung and was interrupted. No wipe/reset was performed. This APK is build-verified but still not runtime-verified on this emulator.
 - `git diff --check` and `python tools/validate_repository_security.py` passed; the security validator scanned 7,577 publishable files and found no absolute machine paths. The implementation was committed as `be8aa646` and pushed normally as a fast-forward from `ae2a8c81` to `origin/FE_UI_Project_Ver2`. No automated tests were run.
+
+## Rev4 UI-only closeout
+
+Plan: `plan/PLAN_REV4_UI_ONLY.md`, SHA-256 `EE85CB380638985969419A38646B1D72383C74CC390027C903D1950C387FF4C3`. The owner clarified that APIs are business-flow references only and asked for the leader-requested UI/UX without API integration. Rev4 removes the Rev3 API client/auth bridge conditions from the role interfaces.
+
+### Current UI behavior
+
+- Parent Settings is accessible only from the Family Profile page; the home header and story flow no longer show the Settings gear.
+- Parent activity selection happens after the story/video preview, in accordance with the leader disposition and canonical FEAT-063 SRS. Parent preview video remains explicitly unavailable.
+- The unsupported gender field is removed from Parent profile UI.
+- Teacher, School Manager, and Platform Admin remain role-specific web previews with demonstration data. Current role UIs make no backend API/auth requests; AI, playback, persistence and operational metrics are not represented as live capabilities.
+
+### Rev4 verification
+
+| Command / review | Result |
+|---|---|
+| `npm run build` from `UI_Project` | Passed for all five workspaces: Parent, Teacher, School Manager, Platform Admin and shared web portal. |
+| `pnpm --dir apps/mobile typecheck` from `UI_Project/parent-android` | Passed. |
+| `pnpm --dir apps/mobile android:apk:debug` with `ANDROID_HOME` and `ANDROID_SDK_ROOT` set to the installed local Android SDK | Passed; Gradle reported `BUILD SUCCESSFUL in 1m 26s`. The package includes `parent-ui-webview.html` (424,924 bytes). APK: `UI_Project/parent-android/apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk`. |
+| Manual visual review in CUA | Parent home showed no Settings button; Family Profile showed the Settings button and opened the existing Settings sheet. History → completed story → “Xem hoạt động cùng bé” reached the post-story activity page, and selecting an activity updated its selected state. Teacher, School Manager and Platform Admin previews were also visually reviewed. |
+| API/auth behavior | Source search found no `backendApi`, auth bridge, or `fetch(` in the current Parent/shared role UI files. No API/auth calls were made. |
+
+No automated tests were added or run. The Rev4 APK packaging passed, but installation/runtime on the supplied emulator was not retried in this closeout; earlier install/package-manager attempts stalled. No emulator wipe/reset was performed. The CUA session visually inspected the screens; no new screenshots were saved, so the existing PNGs remain historical captures.

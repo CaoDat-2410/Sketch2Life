@@ -31,3 +31,7 @@ The Parent UI shown in the browser is the bundle rendered inside `UI_Project/par
 ## D-069-08 — Rev3 conditional API reads and truth states
 
 The approved Rev3 scope connects only current, mounted read contracts that can be safely scoped by an injected Firebase token bridge and organization ID: Teacher Lesson Library lessons, Teacher BE1 assignments, and School Manager BE1 classes. Teacher/Manager dashboard measures are derived from those returned rows, not from a dedicated analytics endpoint. Without auth/config, retain labeled preview data; with auth/config but missing organization context or failed reads, show unavailable/error states and do not replace API results with fixtures. Keep Teacher/Manager writes, Parent operations, Platform Admin queue, and all routes present only on the read-only comparison branch preview-only. Do not claim a full live workflow or connected login until the delivery branch has a supported identity bridge/handler and missing contracts.
+
+## D-069-09 — Rev4 UI-only scope supersedes API wiring
+
+The owner clarified that APIs are reference material for understanding business flow and are not to be joined to the UI. Rev4 removes the conditional API/auth calls added in Rev3; all four role workspaces remain visibly labeled previews with local demonstration data. Follow the leader disposition for Parent: show activities after the story/video preview, omit unsupported child gender, and show the Settings entry only on the Family Profile page. Do not modify backend/API/auth/schema/SRS or send requests to a service.

@@ -51,3 +51,14 @@
 - **Scope:** conditionally read the current Parent public/shared Lesson Library and invitation APIs when the Firebase token bridge exists; fetch selected lesson detail on demand; use the typed invitation accept/decline operation only after user selection; preserve preview/no-fallback error states; leave Parent profile/story/AI/video unsupported flows preview-only.
 - **Exclusions:** backend/API/auth/schema/SRS changes, live API calls during implementation/QA, unsupported Parent flows, user/child data, automated tests.
 - **Approval basis:** direct owner instruction; see exact limits in the addendum.
+
+## Plan Rev4 UI-only clarification approval
+
+- **Status:** APPROVED for this exact UI-only scope.
+- **Approver:** Project owner, direct clarification in this conversation: “cứ làm UIUX theo đúng yêu cầu của leader là được không phải ghép hay nối API gì cả”.
+- **Approved plan:** `plan/PLAN_REV4_UI_ONLY.md`.
+- **Plan revision:** 4.
+- **Approved plan SHA-256:** `EE85CB380638985969419A38646B1D72383C74CC390027C903D1950C387FF4C3`.
+- **Scope:** Use API/source only as business-flow reference; remove conditional API/auth wiring; align role UI flows with the leader disposition, including post-video Parent activities and no unsupported gender field; show Parent Settings only on the Family Profile page; visually verify and build the UI workspaces and Parent APK.
+- **Exclusions:** backend/API/auth/schema/database/SRS changes; live calls/writes; real child data/media; legacy `apps/`, Child Expo; automated tests; force push/history rewrite.
+- **Approval basis:** direct owner clarification supersedes the prior Rev3 interpretation for current UI work.

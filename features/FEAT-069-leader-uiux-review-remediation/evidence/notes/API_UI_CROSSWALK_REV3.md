@@ -1,3 +1,7 @@
+# Historical note (Rev4)
+
+This crosswalk documents source/API routes for business-flow reference. The conditional frontend API/auth wiring described below was removed under Plan Rev4 after the owner clarified that the request is UI/UX only. Current Parent and web role previews do not call these routes; see `../README.md` and `EXECUTION.md` for current behavior and verification.
+
 # FEAT-069 Rev3 API-to-UI crosswalk
 
 - Captured: 2026-11-14 (Asia/Saigon).

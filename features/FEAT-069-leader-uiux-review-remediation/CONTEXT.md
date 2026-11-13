@@ -1,22 +1,26 @@
 # FEAT-069 — Leader review UI/UX remediation
 
-- **State:** IN_PROGRESS under the exact approved Plan Rev3 scope. Rev1 and Rev2 are published; Rev3 adds limited API-backed read states to the existing review UI while preserving the canonical SRS/API boundary.
+- **State:** IN_PROGRESS under approved Plan Rev4 UI-only clarification. Rev1–Rev3 are historical publications. Rev4 removes conditional API/auth calls added in Rev3 and aligns UI behavior with the leader disposition.
 - **Branch:** `FE_UI_Project_Ver2`.
 - **Goal:** Close the leader-review UI gaps that can be implemented without changing current product requirements or inventing backend behavior.
 - **Authority:** `docs/context/SRS_AUTHORITY.md`; canonical working requirements are FEAT-063 SRS v2.5-draft, still awaiting owner sign-off.
 - **Review input:** owner-provided local Codex attachment containing the leader transcript. The source stays local and is treated as feedback to reconcile, not as a replacement for current SRS/API contracts.
-- **Baseline:** FEAT-068 and FEAT-069 Rev2 are complete and published on this branch. Parent business state remains local preview. Web workspaces now have conditional read wiring for Teacher lessons/assignments and Manager classes, but the delivery checkout still lacks the expected auth bridge and `/api/auth/v1/me` handler for ordinary authenticated role resolution.
+- **Current implementation:** API/source records are used only to understand business concepts and role boundaries. Parent, Teacher, School Manager, and Platform Admin remain labeled UI previews; none of these UI workspaces invokes the backend client or auth bridge.
 - **UI source selection:** The user confirmed `UI_Project/` is the primary UI/UX to update and that top-level `apps/` contains legacy UI outside this handoff. Rev2 implementation and run instructions target only `UI_Project/` workspaces.
 - **Parent mobile entry:** `UI_Project/parent-android/apps/mobile` is the Android APK host; `ParentWebPreview` loads the bundled `UI_Project/parent-ui` page. The separate `parent-android/apps/ui-mobile` workspace is not the target for this review task.
 - **Latest API comparison:** A read-only audit of the permitted newer backend source `origin/feature/feat063-m2-parent-teacher-foundation@5c07c94e86826447d975ef2757aa1fefdc876c8c` found Parent profile/story and AI routes absent from the delivery baseline `FE_UI_Project_Ver2@ae2a8c8165aa1d11b62a7005a9e28d8c0ea8c046`. Treat those newer routes as future source context only; the deliverable labels them unavailable unless mounted in the branch teammates clone.
 
-## Rev3 current scope and implementation status
+## Rev4 current UI-only scope
 
-Plan Rev3 is the active approved plan and supersedes Rev2 for current work; its approved Parent Library addendum is recorded separately. In `UI_Project/shared/webWorkspace.tsx`, authenticated mode conditionally reads Teacher Lesson Library lessons plus BE1 assignments, or School Manager BE1 classes, when the runtime supplies both the Firebase token bridge and organization ID. In `UI_Project/parent-ui`, authenticated mode conditionally reads Parent public/shared lessons, invitations and selected lesson details, and submits invitation accept/decline only after an explicit user action. Teacher/Manager dashboards derive supported summary values from their API responses. API failure/unavailable states do not fall back to fixture rows. Without an auth bridge, screens remain explicitly labeled preview mode. Platform Admin remains preview-only because this delivery branch has no moderation queue-list API. Parent profile/story/photo/ASR/AI/video/playback state remains preview-only because those route families are not mounted in this delivery composition.
+The owner clarified that the deliverable is the leader-requested UI/UX and that API details are business-flow reference only. The exact approved plan and hash are in `plan/PLAN_REV4_UI_ONLY.md` and both approval registers. Rev4 shows Parent Settings only on the Family Profile page, removes the unsupported gender field, and makes lesson activities available after the story preview instead of during story setup. Parent video generation remains a clearly labeled preview state. Teacher, School Manager, and Platform Admin remain role-specific web previews with local demonstration data and no API/auth calls.
+
+## Rev3 historical implementation (superseded by Rev4)
+
+Plan Rev3 and its Parent Library addendum were approved and published historically; Rev4 supersedes their API-wiring behavior for the current deliverable. Rev3 briefly added conditional Parent Lesson Library/invitation reads and Teacher/Manager reads when an auth bridge was injected. Rev4 removes those calls at the owner's clarification that API/source details are business-flow reference only. The Rev3 source-to-route record remains in `evidence/notes/API_UI_CROSSWALK_REV3.md` for historical traceability, not as current runtime behavior.
 
 This frontend wiring does not establish that the team can log in end-to-end: the client references `GET /api/auth/v1/me`, but the handler and bridge are not present in this checkout. No API calls or writes were made during implementation or review. The exact route, branch and screen mapping is recorded in `evidence/notes/API_UI_CROSSWALK_REV3.md`.
 
-## Approved scope
+## Prior approved scope (historical Rev2)
 
 - Make Parent lesson selection visible in the story setup flow, clearly distinguish public system lessons from school/teacher-shared lessons, and retain in-place details.
 - Improve the optional pre-capture line-sketch preview into a topic-aware, step-by-step guide while clearly identifying it as static until the approved AI route is mounted.
@@ -35,7 +39,7 @@ This frontend wiring does not establish that the team can log in end-to-end: the
 - Do not change backend/API/schema/auth/provider/SRS, run AI/provider requests, send writes to a shared backend, or modify the legacy Child Expo workspace.
 - No generated bitmap assets are in scope. Use existing approved assets and code-native layout/illustration only.
 
-## Current progress
+## Prior progress record (historical Rev1–Rev3)
 
 Rev1 and Rev2 implementation/publication are complete. The user has explicitly authorized the API-aligned frontend work under Plan Rev3. Rev3 preserves the leader-review prototype behaviors from Rev2 where already approved, adds limited conditional API-backed read views for current mounted routes, and does not modify the unsigned canonical SRS or backend/schema/auth/API contracts. Any Rev2 behavior that conflicts with the SRS or lacks a mounted API remains visibly preview-only and is tracked as an open decision.
 

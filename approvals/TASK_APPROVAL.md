@@ -279,3 +279,14 @@
 - **Approver:** Project owner, direct request in this conversation to build UI/UX against the APIs currently present in the project and complete the leader's requirements.
 - **Scope:** conditionally read the current Parent public/shared Lesson Library and invitation APIs when the Firebase token bridge exists; fetch selected lesson detail on demand; use the typed invitation accept/decline operation only after user selection; preserve preview/no-fallback error states; leave Parent profile/story/AI/video unsupported flows preview-only.
 - **Exclusions:** backend/API/auth/schema/SRS changes, live API calls during implementation/QA, unsupported Parent flows, user/child data, automated tests.
+
+## FEAT-069 Plan Rev4 — UI-only clarification
+
+- **Status:** APPROVED for the exact UI-only scope in Plan Rev4.
+- **Approver:** Project owner, direct clarification in this conversation: “tôi muốn là bạn xây UIUX theo đúng yêu cầu của leader thôi”.
+- **Approved plan:** `features/FEAT-069-leader-uiux-review-remediation/plan/PLAN_REV4_UI_ONLY.md`.
+- **Plan revision:** 4.
+- **Approved plan SHA-256:** `EE85CB380638985969419A38646B1D72383C74CC390027C903D1950C387FF4C3`.
+- **Scope:** Use API/source contracts only as business-flow reference; remove UI API/auth calls; align Parent/Teacher/School Manager/Platform Admin UI with the leader review disposition; show Parent Settings only on the Family Profile page; build and inspect workspaces and Parent APK; update evidence/status/source records; validate security and publish normally to the previously authorized branch.
+- **Exclusions:** backend/API/auth/schema/database/SRS/provider changes; live API/AI calls or writes; child data/media; legacy top-level `apps/` and Child Expo; automated tests; force push/history rewrite.
+- **Approval basis:** This direct owner clarification supersedes the Rev3 API-wiring interpretation for current work. It does not alter the canonical SRS.
