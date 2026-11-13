@@ -83,6 +83,25 @@ body{min-width:0}
 .web-modal--wide{width:min(760px,100%);max-height:calc(100dvh - 36px);overflow-y:auto}.lesson-authoring-progress{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:19px 0 23px}.lesson-authoring-progress>span{display:flex;align-items:center;gap:8px;min-width:0;color:#859389;font-size:11px;font-weight:700}.lesson-authoring-progress i{display:grid;place-items:center;flex:none;width:27px;height:27px;border:1px solid #dce6dc;border-radius:50%;background:#fff;color:#7b8d7e;font-size:11px;font-style:normal}.lesson-authoring-progress .is-current{color:var(--accent)}.lesson-authoring-progress .is-current i,.lesson-authoring-progress .is-done i{border-color:var(--accent);background:var(--accent);color:white}.lesson-authoring-fields{min-height:240px}.lesson-authoring-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.lesson-authoring-grid label{display:grid;align-content:start;gap:7px;color:#3e5948;font-size:12px;font-weight:700}.lesson-authoring-grid input,.lesson-authoring-grid select,.lesson-authoring-grid textarea{width:100%;min-height:44px;padding:10px 12px;border:1px solid #cbd9cc;border-radius:10px;background:white;color:var(--ink);font:500 13px/1.5 'Be Vietnam Pro',system-ui,sans-serif;outline:none}.lesson-authoring-grid textarea{resize:vertical}.lesson-authoring-grid input:focus,.lesson-authoring-grid select:focus,.lesson-authoring-grid textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}.lesson-authoring-wide{grid-column:1/-1}
 @media(max-width:560px){.lesson-authoring-grid{grid-template-columns:1fr}.lesson-authoring-wide{grid-column:auto}.lesson-authoring-progress{gap:4px}.lesson-authoring-progress>span{gap:4px;font-size:10px}.lesson-authoring-fields{min-height:0}.web-modal--wide{padding:26px 20px}}
 
+/* FEAT-068: centered record details and readable shared web states. */
+.web-detail-overlay{z-index:100;overflow-y:auto}
+.web-detail-modal{width:min(560px,100%);max-height:calc(100dvh - 40px);overflow-y:auto;padding:32px}
+.web-detail-modal h2{max-width:calc(100% - 28px);margin:8px 0;color:#263f34;font:800 25px/1.2 'DM Sans','Be Vietnam Pro',sans-serif}
+.web-detail-modal>p{color:#50675a;font-size:12px;line-height:1.55}
+.web-detail-modal .web-status{margin-top:5px}
+.web-detail-modal .web-detail-art{height:135px;margin:18px 0}
+.web-detail-modal dl{display:grid;gap:0;margin:0}
+.web-detail-modal dl>div{display:flex;justify-content:space-between;gap:15px;padding:12px 0;border-bottom:1px solid var(--line)}
+.web-detail-modal dt{color:#596d60;font-size:11px}
+.web-detail-modal dd{margin:0;color:#2d4838;font-size:11px;font-weight:800;text-align:right}
+.web-detail-modal>.web-primary,.web-detail-modal>.web-subtle{width:100%;margin-top:9px}
+.web-detail-modal .web-detail-boundary{margin:16px 0}
+.web-detail-modal .web-detail-boundary p{color:#425b4b;font-size:11px;line-height:1.5}
+.web-page-head p,.web-metric p,.web-record-main small,.web-record-meta,.web-list-foot,.web-feature-side p,.web-step p,.web-setting-row small{color:#566b5d}
+.web-status--blue{color:#315f79}
+.web-modal-overlay :focus-visible,.web-detail-overlay :focus-visible{outline:3px solid #8b6a2c;outline-offset:3px}
+@media(max-width:560px){.web-detail-modal{padding:26px 20px}.web-detail-modal h2{font-size:22px}}
+
 /* Keep Overview fixed; expose the remaining navigation progressively in a compact rail. */
 .web-nav-group>svg:first-child{display:none}
 .web-nav-section--overview>.web-nav-group{pointer-events:none;cursor:default}

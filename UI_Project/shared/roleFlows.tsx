@@ -191,6 +191,63 @@ function TeacherSampleSelection({choice, onChange}: {choice: SampleChoice; onCha
   </section>;
 }
 
+const teacherSessionActivities = [
+  { id: 'observe', title: 'Quan sát một bông hoa', prompt: 'Con nhìn thấy những màu sắc và hình dạng nào?', materials: 'Một bông hoa hoặc cây nhỏ' },
+  { id: 'draw', title: 'Vẽ khu vườn nhỏ', prompt: 'Mời bé vẽ nơi chú bướm muốn ghé thăm.', materials: 'Giấy và bút màu' },
+  { id: 'colors', title: 'Tìm màu trong vườn', prompt: 'Cùng bé tìm ba màu con thấy quanh mình.', materials: 'Không cần vật liệu' },
+] as const;
+
+const teacherSketchSlides = [
+  { title: 'Bắt đầu bằng hình lớn', note: 'Phác một hình tròn hoặc bầu dục cho bông hoa.' },
+  { title: 'Thêm cánh và thân', note: 'Mời bé chọn số cánh và nét thân theo ý mình.' },
+  { title: 'Thêm màu con thích', note: 'Bé tự chọn màu và kể điều bé quan sát được.' },
+] as const;
+
+function TeacherSessionWorkspace() {
+  const [className, setClassName] = useState('Lớp Lá 1');
+  const [lessonId, setLessonId] = useState('garden');
+  const [activityId, setActivityId] = useState<(typeof teacherSessionActivities)[number]['id']>('observe');
+  const [started, setStarted] = useState(false);
+  const [ended, setEnded] = useState(false);
+  const [deckEnabled, setDeckEnabled] = useState(false);
+  const [slideIndex, setSlideIndex] = useState(0);
+  const [drawingFile, setDrawingFile] = useState('');
+  const [notice, setNotice] = useState('');
+  const activity = teacherSessionActivities.find((item) => item.id === activityId) ?? teacherSessionActivities[0];
+  const lessonTitle = lessonId === 'garden' ? 'Khám phá khu vườn · v1.4' : 'Bầu trời kỳ diệu · v2.0';
+  const slide = teacherSketchSlides[slideIndex];
+
+  return <div className="flow-page teacher-session-page">
+    <header className="flow-heading"><span>BUỔI DẠY · BẢN XEM TRƯỚC</span><h1>{ended ? 'Buổi dạy đã kết thúc' : started ? 'Không gian buổi dạy' : 'Chuẩn bị cùng lớp'}</h1><p>Ghim lớp, phiên bản giáo án và hoạt động để chuẩn bị nội dung trình bày.</p></header>
+    <div className="feedback-preview-note" role="note"><strong>Chưa kết nối occurrence / run API</strong><span>Lớp, plan và trạng thái bên dưới là fixture trong trình duyệt; chưa mở phiên dạy thật hoặc gửi dữ liệu trẻ.</span></div>
+    <div className="teacher-session-layout">
+      <section className="teacher-session-setup" aria-label="Cấu hình buổi dạy">
+        <div className="teacher-session-panel-heading"><span className="flow-eyebrow">THÔNG TIN BUỔI DẠY</span><b>PREVIEW</b></div>
+        <label className="teacher-session-field">Lớp được phân công<select value={className} disabled={started && !ended} onChange={(event) => setClassName(event.target.value)}><option>Lớp Lá 1</option><option>Lớp Chồi 2</option></select></label>
+        <label className="teacher-session-field">Giáo án · phiên bản<select value={lessonId} disabled={started && !ended} onChange={(event) => setLessonId(event.target.value)}><option value="garden">Khám phá khu vườn · v1.4</option><option value="sky">Bầu trời kỳ diệu · v2.0</option></select></label>
+        <div className="teacher-session-field"><span>Hoạt động đã ghim</span><div className="teacher-session-activity-list">{teacherSessionActivities.map((item) => <button type="button" key={item.id} disabled={started && !ended} className={activityId === item.id ? 'is-selected' : ''} onClick={() => setActivityId(item.id)} aria-pressed={activityId === item.id}><span><strong>{item.title}</strong><small>{item.materials}</small></span><i>{activityId === item.id ? '✓' : ''}</i></button>)}</div></div>
+        <label className="teacher-session-deck-choice"><input type="checkbox" checked={deckEnabled} disabled={ended} onChange={(event) => { setDeckEnabled(event.target.checked); setSlideIndex(0); }}/><span><strong>Hiện Sketch Deck tùy chọn</strong><small>Deck minh họa 16:9, không tạo AI job.</small></span></label>
+        <a className="teacher-session-plan-link" href="#occurrences">Xem plan và chuẩn bị occurrence <span aria-hidden="true">→</span></a>
+        {!started ? <button type="button" className="flow-primary teacher-session-start" onClick={() => { setStarted(true); setEnded(false); setNotice('Buổi dạy chỉ được mở trong phiên xem trước này; backend chưa nhận lệnh.'); }}>Bắt đầu buổi dạy · preview <span aria-hidden="true">→</span></button> : null}
+        {ended ? <button type="button" className="flow-secondary teacher-session-start" onClick={() => { setStarted(false); setEnded(false); setNotice(''); setDrawingFile(''); }}>Chuẩn bị buổi khác</button> : null}
+      </section>
+
+      <section className="teacher-session-stage" aria-label="Nội dung buổi dạy">
+        <div className="teacher-session-stage-heading"><div><span className="flow-eyebrow">{className.toLocaleUpperCase('vi')} · {lessonTitle}</span><h2>{ended ? 'Tóm tắt buổi dạy' : activity.title}</h2></div><span className={`teacher-session-status${started && !ended ? ' is-active' : ''}`}>{ended ? 'ĐÃ KẾT THÚC · PREVIEW' : started ? 'ĐANG DIỄN RA · PREVIEW' : 'CHƯA BẮT ĐẦU'}</span></div>
+        {!started ? <div className="teacher-session-empty"><span>01</span><strong>Sẵn sàng trình bày hoạt động</strong><p>Chọn lớp, giáo án và hoạt động ở cột bên. Nội dung có thể rà soát trước khi mở buổi dạy.</p><div className="teacher-session-activity-preview"><b>{activity.title}</b><span>{activity.prompt}</span></div></div> : ended ? <div className="teacher-session-ended" role="status"><strong>Buổi dạy mẫu đã kết thúc.</strong><p>Không có session, học sinh, ảnh hoặc kết quả nào được lưu lên máy chủ.</p><span>{activity.title} · {drawingFile ? `Ảnh đã chọn: ${drawingFile}` : 'Chưa chọn ảnh tranh'}</span></div> : <>
+          <article className="teacher-session-activity-card"><span>HOẠT ĐỘNG ĐÃ CHỌN</span><strong>{activity.title}</strong><p>{activity.prompt}</p><small>Chuẩn bị: {activity.materials}</small></article>
+          {deckEnabled ? <div className="teacher-session-deck"><div className="teacher-session-deck-stage"><span>SKETCH DECK · MINH HỌA TĨNH · {slideIndex + 1}/3</span><div className={`teacher-session-sketch teacher-session-sketch--${slideIndex + 1}`} aria-hidden="true"><i/><b/><em/></div><strong>{slide.title}</strong><small>{slide.note}</small></div><div className="teacher-session-deck-controls"><button type="button" disabled={slideIndex === 0} onClick={() => setSlideIndex((index) => Math.max(0, index - 1))}>← Trước</button><span>Bước {slideIndex + 1} / 3</span><button type="button" disabled={slideIndex === teacherSketchSlides.length - 1} onClick={() => setSlideIndex((index) => Math.min(teacherSketchSlides.length - 1, index + 1))}>Tiếp →</button><button type="button" className="teacher-session-skip" onClick={() => { setDeckEnabled(false); setNotice('Đã bỏ qua Sketch Deck; hoạt động vẫn tiếp tục trong preview.'); }}>Bỏ qua deck</button></div></div> : <div className="teacher-session-no-deck"><span>Sketch Deck đang tắt</span><p>Hoạt động và buổi dạy vẫn tiếp tục bình thường; không có AI job hoặc deck được tạo.</p></div>}
+          <label className="teacher-session-photo"><span><strong>Ảnh tranh minh họa · tùy chọn</strong><small>Chọn tệp trên máy để xem tên; chưa tải ảnh lên.</small></span><input type="file" accept="image/*" onChange={(event) => { setDrawingFile(event.target.files?.[0]?.name ?? ''); setNotice(''); }}/>{drawingFile && <b>{drawingFile}</b>}</label>
+          <div className="teacher-session-actions"><a className="flow-secondary" href="#sample">Mở luồng video mẫu <span aria-hidden="true">→</span></a><button type="button" className="flow-primary" onClick={() => { setEnded(true); setNotice('Buổi dạy kết thúc trong phiên xem trước; không gửi lệnh đến server.'); }}>Kết thúc buổi dạy · preview</button></div>
+        </>}
+        {notice && <p className="teacher-session-notice" role="status">{notice}</p>}
+        <p className="teacher-session-boundary">Tranh và media của trẻ không được dùng từ màn này. Luồng video mẫu riêng yêu cầu eligibility, consent và xác nhận từ API.</p>
+      </section>
+    </div>
+    <FlowRecoveryDisclosure title="Buổi dạy của giáo viên" boundary="Mở occurrence, ghim revision, roster, consent, run và playback cần API authenticated cùng quyền lớp hiện hành."/>
+  </div>;
+}
+
 function ManagerTransferWorkbench() {
   const [className, setClassName] = useState('Lớp Lá 1');
   const [replacement, setReplacement] = useState('Cô Trần Lan');
@@ -626,7 +683,8 @@ const deckSpec: Flow = { title: 'Bộ hướng dẫn nét vẽ', description: 'T
 ] };
 
 export function RoleFlowPage({ role, page }: { role: Role; page: string }) {
-  if (page === 'sample' && role === 'teacher') return <TeacherSampleFlow key={`${role}-${page}`}/>;
+  if (page === 'session' && role === 'teacher') return <TeacherSessionWorkspace key={`${role}-${page}`}/>;
+  if (page === 'sample' && role === 'teacher') return <WizardPage key={`${role}-${page}`} spec={flowSpecs.sample}/>;
   if (page === 'transfers' && role === 'manager') return <ManagerTransferWorkbench key={`${role}-${page}`}/>;
   if (page === 'deck' && role === 'teacher') return <WizardPage key={`${role}-${page}`} spec={deckSpec}/>;
   if (page === 'feedback') return <FeedbackInboxPage key={`${role}-${page}`} role={role}/>;
@@ -640,7 +698,7 @@ export function RoleFlowPage({ role, page }: { role: Role; page: string }) {
   if (page === 'capacity' && role === 'manager') return <ManagerClassConsole key={`${role}-${page}`} mode="capacity"/>;
   if (page === 'billing' && role === 'manager') return <ManagerBillingConsole key={`${role}-${page}`}/>;
   const allowed: Record<Role, string[]> = {
-    teacher: ['teacher-scope','import','occurrences','children','sample','presentation','run-control','history','quota','inbox','sharing'],
+    teacher: ['teacher-scope','import','occurrences','session','children','sample','presentation','run-control','history','quota','inbox','sharing'],
     manager: ['assignment','roster','groups','teachers','review','transfers','capacity','class-lifecycle','billing','quota','notifications'],
     admin: ['moderation','catalog','accounts','jobs','health','billing-ops','audit','notifications'],
   };
@@ -651,6 +709,6 @@ export function RoleFlowPage({ role, page }: { role: Role; page: string }) {
 }
 
 export function hasRoleFlow(role: Role, page: string): boolean {
-  return page === 'feedback' || (role === 'teacher' && page === 'deck') || ({ teacher: ['teacher-scope','import','occurrences','children','sample','presentation','run-control','history','quota','inbox','sharing'], manager: ['assignment','roster','groups','teachers','review','transfers','capacity','class-lifecycle','billing','quota','notifications'], admin: ['moderation','catalog','accounts','jobs','health','billing-ops','audit','notifications'] } as Record<Role,string[]>)[role].includes(page);
+  return page === 'feedback' || (role === 'teacher' && page === 'deck') || ({ teacher: ['teacher-scope','import','occurrences','session','children','sample','presentation','run-control','history','quota','inbox','sharing'], manager: ['assignment','roster','groups','teachers','review','transfers','capacity','class-lifecycle','billing','quota','notifications'], admin: ['moderation','catalog','accounts','jobs','health','billing-ops','audit','notifications'] } as Record<Role,string[]>)[role].includes(page);
 }
 

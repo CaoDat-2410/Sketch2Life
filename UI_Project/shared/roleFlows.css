@@ -7,6 +7,83 @@
 @media(max-width:550px){.flow-job-stages{grid-template-columns:1fr}.flow-video-footer{align-items:flex-start;flex-direction:column}.flow-video-paper{border-width:5px}}
 .feedback-preview-note{display:flex;gap:10px;align-items:flex-start;padding:13px 16px;border:1px solid #ead7a2;border-radius:12px;background:#fff9e9;color:#6f5a27;font-size:12px;line-height:1.5}.feedback-preview-note strong{flex:none}.feedback-preview-note span{color:#85754c}.feedback-layout{display:grid;grid-template-columns:minmax(290px,.9fr) minmax(0,1.2fr);gap:16px;margin-top:16px}.feedback-list-panel,.feedback-detail-panel{min-width:0;padding:20px;border:1px solid #e0e8df;border-radius:17px;background:#fffefa;box-shadow:0 7px 24px #294b3708}.feedback-tools{display:grid;gap:12px}.feedback-search,.feedback-reply-field{display:grid;gap:7px;color:#40584c;font-size:12px;font-weight:700}.feedback-search input,.feedback-reply-field textarea{width:100%;min-height:43px;padding:11px 12px;border:1px solid #ccd9ce;border-radius:10px;background:white;color:#243e39;font:inherit;font-weight:500;outline:none}.feedback-reply-field textarea{min-height:130px;resize:vertical;line-height:1.55}.feedback-search input:focus,.feedback-reply-field textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}.feedback-filters{display:flex;flex-wrap:wrap;gap:6px}.feedback-filters button{min-height:36px;padding:0 11px;border:1px solid #e0e8df;border-radius:999px;background:#fff;color:#66776d;font-size:11px;font-weight:700}.feedback-filters button.is-active{border-color:var(--accent);background:var(--accent-soft);color:var(--accent-dark)}.feedback-entry-list{display:grid;gap:8px;margin-top:14px}.feedback-entry{display:grid;gap:7px;width:100%;padding:13px;border:1px solid #e5ebe3;border-radius:12px;background:#fff;text-align:left;color:#51665a;transition:border-color 160ms,background 160ms,transform 160ms}.feedback-entry:hover{border-color:#b5cdbd;transform:translateY(-1px)}.feedback-entry.is-selected{border-color:var(--accent);background:var(--accent-soft)}.feedback-entry-top{display:flex;justify-content:space-between;gap:10px}.feedback-entry-top strong,.feedback-entry b{color:#29463a;font-size:12px}.feedback-entry-top small,.feedback-entry i{color:#7f8e83;font-size:10px;font-style:normal}.feedback-entry>span:not(.feedback-entry-top){font-size:11px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.feedback-entry i{justify-self:start;padding:4px 8px;border-radius:99px;background:#f2f5ef}.feedback-count{display:block;margin-top:12px;color:#77877c;font-size:11px}.feedback-detail-panel{align-self:start}.feedback-detail-panel h2{margin:8px 0 15px;color:#273f35;font:800 21px/1.25 'DM Sans','Be Vietnam Pro',sans-serif}.feedback-message{padding:16px;border-radius:12px;background:#f5f7f1;color:#3f584b;font-size:13px;line-height:1.6}.feedback-reply-field{margin-top:22px}.feedback-reply-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:9px}.feedback-reply-foot small{color:#7b8a80;font-size:11px}.feedback-reply-foot button,.feedback-sent button,.feedback-empty button{min-height:40px;padding:0 13px;border:0;border-radius:10px;background:var(--accent);color:white;font-size:11px;font-weight:800}.feedback-reply-foot button:disabled{opacity:.45;cursor:not-allowed}.feedback-sent{margin:15px 0;padding:13px;border:1px solid #c9dfca;border-radius:12px;background:#f0f8ee}.feedback-sent strong{font-size:12px;color:#3b6746}.feedback-sent p{color:#4a6251;font-size:12px;line-height:1.5}.feedback-sent button{border:1px solid #b4cbb7;background:transparent;color:#46684e}.feedback-boundary,.feedback-notice{font-size:11px;line-height:1.5;color:#75857a}.feedback-notice{color:#35724d;font-weight:700}.feedback-empty{display:grid;justify-items:start;gap:8px;padding:25px 12px;color:#728378;font-size:12px}.feedback-empty button{background:var(--accent-soft);color:var(--accent-dark)}
 @media(max-width:820px){.feedback-layout{grid-template-columns:1fr}.feedback-list-panel,.feedback-detail-panel{padding:16px}}
+
+/* FEAT-068: Teacher session workbench and higher-contrast interaction states. */
+.teacher-session-layout{display:grid;grid-template-columns:minmax(270px,.72fr) minmax(0,1.45fr);gap:16px;align-items:start}
+.teacher-session-setup,.teacher-session-stage{min-width:0;padding:20px;border:1px solid #d6e1d8;border-radius:17px;background:#fffefa;box-shadow:0 7px 24px #294b3708}
+.teacher-session-panel-heading,.teacher-session-stage-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.teacher-session-panel-heading>b{padding:5px 8px;border-radius:99px;background:#edf4ec;color:#366749;font-size:9px;letter-spacing:.06em}
+.teacher-session-field{display:grid;gap:7px;margin:15px 0;color:#344f3e;font-size:11px;font-weight:800}
+.teacher-session-field>select{width:100%;min-height:42px;padding:0 11px;border:1px solid #bacdbd;border-radius:9px;background:#fff;color:#263f34;font:600 12px 'Be Vietnam Pro',system-ui,sans-serif}
+.teacher-session-activity-list{display:grid;gap:6px}
+.teacher-session-activity-list>button{display:flex;align-items:center;justify-content:space-between;gap:9px;min-height:53px;padding:9px 10px;border:1px solid #dce6dc;border-radius:10px;background:white;color:#405a48;text-align:left}
+.teacher-session-activity-list>button.is-selected{border-color:#6d9b7a;background:#eff6ed;box-shadow:0 0 0 2px #9dc8a322}
+.teacher-session-activity-list>button>span{display:grid;gap:4px}
+.teacher-session-activity-list strong{font-size:11px}
+.teacher-session-activity-list small{color:#596f61;font-size:10px}
+.teacher-session-activity-list i{display:grid;place-items:center;flex:none;width:22px;height:22px;border:1px solid #c9d9cc;border-radius:50%;color:#287250;font-size:12px;font-style:normal;font-weight:900}
+.teacher-session-deck-choice{display:flex;align-items:flex-start;gap:9px;margin:13px 0;padding:11px;border:1px solid #e4dfc7;border-radius:11px;background:#fff9e9}
+.teacher-session-deck-choice input{flex:none;width:17px;height:17px;margin:1px 0 0;accent-color:#2c7254}
+.teacher-session-deck-choice>span{display:grid;gap:4px}
+.teacher-session-deck-choice strong{color:#354e3c;font-size:10px}
+.teacher-session-deck-choice small{color:#5c6d5e;font-size:10px;line-height:1.45}
+.teacher-session-plan-link{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:40px;color:#296c50;font-size:10px;font-weight:800;text-decoration:none}
+.teacher-session-plan-link:hover{text-decoration:underline}
+.teacher-session-start{width:100%;min-height:42px;margin-top:12px}
+.teacher-session-stage-heading{align-items:center;padding-bottom:14px;border-bottom:1px solid #e1e9e0}
+.teacher-session-stage-heading h2{margin:3px 0 0;color:#263f34;font:800 19px/1.25 'DM Sans','Be Vietnam Pro',sans-serif}
+.teacher-session-stage-heading .flow-eyebrow{max-width:460px;margin-bottom:0;color:#355e48;line-height:1.5}
+.teacher-session-status{flex:none;padding:6px 9px;border-radius:99px;background:#eef1ed;color:#43594a;font-size:9px;font-weight:900;text-align:center}
+.teacher-session-status.is-active{background:#e4f2e6;color:#236540}
+.teacher-session-empty{display:grid;justify-items:start;gap:8px;min-height:255px;align-content:center;padding:20px 4px}
+.teacher-session-empty>span{display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:#e8f1e4;color:#2e6f4c;font-weight:900}
+.teacher-session-empty>strong{color:#294839;font-size:15px}
+.teacher-session-empty>p,.teacher-session-ended>p{max-width:530px;margin:0;color:#52685a;font-size:11px;line-height:1.55}
+.teacher-session-activity-preview{display:grid;gap:6px;width:100%;margin-top:7px;padding:14px;border:1px solid #dbe6d8;border-radius:12px;background:#f6f9f3}
+.teacher-session-activity-preview b{color:#355640;font-size:12px}
+.teacher-session-activity-preview span{color:#506758;font-size:11px;line-height:1.5}
+.teacher-session-activity-card{display:grid;gap:7px;margin:14px 0;padding:15px;border:1px solid #d8e4d8;border-radius:13px;background:#f5f8f1}
+.teacher-session-activity-card>span{color:#4b7155;font-size:9px;font-weight:900;letter-spacing:.1em}
+.teacher-session-activity-card strong{color:#2b4c3a;font-size:14px}
+.teacher-session-activity-card p{margin:0;color:#3d5a47;font-size:12px;line-height:1.5}
+.teacher-session-activity-card small{color:#526b58;font-size:10px}
+.teacher-session-deck{margin:14px 0}
+.teacher-session-deck-stage{position:relative;display:grid;place-items:center;align-content:center;gap:8px;min-height:245px;overflow:hidden;padding:17px;border:1px solid #dfe8df;border-radius:14px;background:#fff;text-align:center;box-shadow:inset 0 0 0 9px #f7f9f5}
+.teacher-session-deck-stage>span{color:#4a7156;font-size:9px;font-weight:900;letter-spacing:.11em}
+.teacher-session-deck-stage>strong{color:#2e4d3a;font:800 17px 'DM Sans','Be Vietnam Pro',sans-serif}
+.teacher-session-deck-stage>small{max-width:440px;color:#4f6656;font-size:10px;line-height:1.45}
+.teacher-session-sketch{position:relative;width:91px;height:83px;margin:5px 0;border:3px solid #669578;border-radius:50% 48% 42% 40%;transform:rotate(-8deg)}
+.teacher-session-sketch i,.teacher-session-sketch b,.teacher-session-sketch em{position:absolute;display:block;border:2px solid #6b9d7c;border-radius:50%}
+.teacher-session-sketch i{top:-16px;left:22px;width:39px;height:35px;background:#fff}
+.teacher-session-sketch b{right:-21px;bottom:1px;width:33px;height:29px;background:#fff}
+.teacher-session-sketch em{bottom:-14px;left:25px;width:36px;height:22px;background:#fff}
+.teacher-session-sketch--2{transform:rotate(4deg) scale(1.05)}
+.teacher-session-sketch--3{border-color:#d5ad53;background:linear-gradient(135deg,#fff 0 45%,#f7e4a9 46% 60%,#fff 61%)}
+.teacher-session-deck-controls{display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin-top:9px}
+.teacher-session-deck-controls button{min-height:36px;padding:0 10px;border:1px solid #bed0c0;border-radius:8px;background:#fff;color:#345e45;font-size:10px;font-weight:800}
+.teacher-session-deck-controls button:disabled{opacity:.45;cursor:not-allowed}
+.teacher-session-deck-controls>span{margin:0 auto;color:#4e6555;font-size:10px;font-weight:700}
+.teacher-session-deck-controls .teacher-session-skip{margin-left:auto;background:#f6f8f3}
+.teacher-session-no-deck{margin:14px 0;padding:16px;border:1px dashed #cbd8cb;border-radius:12px;background:#f8faf6}
+.teacher-session-no-deck>span{color:#315b42;font-size:11px;font-weight:900}
+.teacher-session-no-deck p{margin:5px 0 0;color:#52685a;font-size:10px;line-height:1.5}
+.teacher-session-photo{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px 12px;align-items:center;margin:14px 0;padding:13px;border:1px solid #d8e1d8;border-radius:12px;background:#fff}
+.teacher-session-photo>span{display:grid;gap:4px}
+.teacher-session-photo strong{color:#304d3a;font-size:10px}
+.teacher-session-photo small{color:#586c5d;font-size:10px;line-height:1.4}
+.teacher-session-photo input{max-width:210px;color:#314e3c;font-size:10px}
+.teacher-session-photo>b{grid-column:1/-1;overflow-wrap:anywhere;color:#356c4e;font-size:10px}
+.teacher-session-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:8px;margin-top:12px}
+.teacher-session-actions>a{display:inline-flex;align-items:center;gap:7px;text-decoration:none}
+.teacher-session-actions>button{min-height:38px}
+.teacher-session-ended{display:grid;gap:9px;min-height:210px;align-content:center;padding:15px}
+.teacher-session-ended>strong{color:#2f6243;font-size:15px}
+.teacher-session-ended>span{padding:11px;border-radius:10px;background:#f1f5ed;color:#3d5d47;font-size:10px}
+.teacher-session-notice{padding:10px 12px;border-radius:9px;background:#eff6eb;color:#315d43;font-size:10px;line-height:1.45}
+.teacher-session-boundary{margin:13px 0 0;color:#52675a;font-size:10px;line-height:1.5}
+.teacher-session-page :focus-visible{outline:3px solid #8b6a2c;outline-offset:3px}
+@media(max-width:850px){.teacher-session-layout{grid-template-columns:1fr}.teacher-session-setup,.teacher-session-stage{padding:16px}}
+@media(max-width:520px){.teacher-session-stage-heading{align-items:flex-start;flex-direction:column}.teacher-session-photo{grid-template-columns:1fr}.teacher-session-photo input{max-width:100%}.teacher-session-actions{justify-content:stretch}.teacher-session-actions>*{flex:1;justify-content:center}}
 @media(prefers-reduced-motion:reduce){.feedback-entry{transition:none}}
 .flow-invoice-panel{margin-top:16px;padding:17px;border:1px solid #e2e9e1;border-radius:14px;background:#fbfcf8}.flow-invoice-title{display:flex;align-items:center;justify-content:space-between;gap:10px}.flow-invoice-title strong{color:#355341;font-size:13px}.flow-invoice-title span{padding:5px 9px;border-radius:99px;background:#f5edda;color:#876c2e;font-size:10px;font-weight:800}.flow-invoice-panel>p{color:#718175;font-size:11px;line-height:1.5}.flow-invoice-panel dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0}.flow-invoice-panel dl>div{display:flex;justify-content:space-between;gap:8px;padding:10px;border-radius:9px;background:white}.flow-invoice-panel dt{color:#7b8b7e;font-size:10px}.flow-invoice-panel dd{margin:0;color:#455e4b;font-size:10px;font-weight:800;text-align:right}.flow-invoice-actions{display:flex;gap:8px}.flow-invoice-actions button{min-height:37px;padding:0 12px;border:1px solid #d8e2d7;border-radius:9px;background:#f5f7f3;color:#68796e;font-size:10px;font-weight:700}
 @media(max-width:480px){.flow-invoice-panel dl{grid-template-columns:1fr}}

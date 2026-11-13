@@ -1,5 +1,19 @@
 # Task approval register
 
+## FEAT-068 Plan Rev1 — complete UI/UX coverage for Parent and web roles
+
+- Status: `APPROVED` for the exact scope in Plan revision 1.
+- Approver: Project owner/requester, direct instruction on 2026-11-13 to make the decisions and complete the project UI/UX using the supplied review, mockups, source, and API context.
+- Recorded timestamp: 2026-11-13 21:36:04 Asia/Saigon.
+- Feature: FEAT-068 — Complete UI/UX coverage for Parent and web roles.
+- Approved plan: `features/FEAT-068-project-uiux-coverage/plan/PLAN.md`.
+- Plan revision: 1.
+- Plan SHA-256 at authorization: `35D36C4520DEA25051ACFCE64AD455CB19BFC5EC637E702892BCDF3590BA6990`.
+- Scope: Parent Android and the Teacher, School Manager, and Platform Admin web workspaces; align UI with FEAT-063 SRS v2.5-draft and actual API mounts; implement honest preview/unavailable states for missing API flows; preserve the current Android host and three web roles; verify builds and emulator/browser UI; update feature/source records; run security validation; commit and push normally to `origin/FE_UI_Project_Ver2`.
+- Acceptance criteria: AC1–AC9 in the hash-identified Plan Rev1.
+- Boundaries: no backend/API/schema/auth/data changes, no SRS edit/sign-off, no Child Expo deletion, no generated or unapproved raster assets, no release signing, no force-push/history rewrite.
+- Approval basis: requester instruction in this conversation: “bạn cứ quyết định hết cho tôi đi, miễn sao là cuối cùng có đầy đủ toàn bộ UIUX của toàn bộ dự án là được ... bạn cứ dựa vào những gì tôi cung cấp cho bạn á, mà bạn làm cho tôi nhé”. The earlier explicit instruction to publish this UIUX work on the current branch remains applicable.
+
 ## FEAT-067 Plan Rev2 — single-file Parent Android app and branch publication
 
 - Status: `APPROVED` for the exact scope in Plan revision 2.
