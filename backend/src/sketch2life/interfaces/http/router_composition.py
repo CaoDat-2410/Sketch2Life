@@ -72,7 +72,6 @@ def mount_all_routers(
     mount_demo_routers(application)
     application.include_router(lesson_library_router)
     application.include_router(parent_ai_router)
-    application.include_router(parent_profiles_router)
     if include_parent_story_runs:
         application.include_router(parent_story_runs_router)
     application.include_router(teacher_ai_router)

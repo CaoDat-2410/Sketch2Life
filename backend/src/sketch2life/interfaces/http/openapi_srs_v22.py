@@ -8,8 +8,10 @@ from typing import Any
 SRS_V22_INCLUDED_OPERATIONS: frozenset[tuple[str, str]] = frozenset(
     {
         ("post", "/v1/parent/profiles"),
+        ("get", "/v1/parent/profiles"),
         ("get", "/v1/parent/profiles/{profile_id}"),
         ("patch", "/v1/parent/profiles/{profile_id}"),
+        ("delete", "/v1/parent/profiles/{profile_id}"),
         ("post", "/v1/story-runs"),
         ("get", "/v1/story-runs/{run_id}"),
         ("get", "/v1/story-runs/active/current"),
@@ -169,7 +171,7 @@ SRS_V22_TAGS: list[dict[str, str]] = [
     },
     {
         "name": "Parent Profiles",
-        "description": "Create, read, and revise synthetic Parent-owned profiles.",
+        "description": "Parent profiles: create, list, read, revise, request deletion.",
     },
     {
         "name": "Parent StoryRuns",

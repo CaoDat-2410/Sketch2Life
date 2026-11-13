@@ -8,6 +8,7 @@ from sketch2life.contracts.schemas.parent_profiles import PatchParentProfileRequ
 from sketch2life.domain.parent_profiles import (
     ParentProfileError,
     ProfileSnapshot,
+    ProfileState,
     request_fingerprint,
     validate_snapshot,
 )
@@ -46,6 +47,11 @@ def test_patch_omission_and_explicit_null_have_the_same_normalized_hash() -> Non
 @pytest.mark.parametrize("age_months", [36, 120])
 def test_parent_age_bounds_include_endpoints(age_months: int) -> None:
     validate_snapshot(ProfileSnapshot("Mina", age_months, None))
+
+
+def test_profile_state_exposes_active_and_delete_pending_values() -> None:
+    assert ProfileState.ACTIVE.value == "ACTIVE"
+    assert ProfileState.DELETE_PENDING.value == "DELETE_PENDING"
 
 
 @pytest.mark.parametrize("age_months", [35, 121, True])

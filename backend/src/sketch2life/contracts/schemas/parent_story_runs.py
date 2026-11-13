@@ -22,7 +22,8 @@ class ParentLessonVersionRefV1(BaseModel):
 class ParentStoryRunCreateRequestV1(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True, strict=True)
 
-    parent_profile_id: UUID
+    # FastAPI validates parsed JSON values in Python mode, where UUIDs arrive as strings.
+    parent_profile_id: UUID = Field(strict=False)
     topic: str = Field(default="", max_length=120)
     adult_confirmed_idea: str = Field(default="", max_length=500)
     lesson_version: ParentLessonVersionRefV1 | None = None
