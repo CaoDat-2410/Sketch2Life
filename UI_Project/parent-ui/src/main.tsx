@@ -7,6 +7,7 @@ import './wonder.css';
 import './auth.css';
 import './scene.css';
 import './coverage.css';
+import './leaderReview.css';
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

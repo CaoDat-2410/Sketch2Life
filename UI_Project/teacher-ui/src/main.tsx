@@ -5,4 +5,5 @@ import '../../shared/webWorkspace.css';
 import '../../shared/roleDashboards.css';
 import '../../shared/roleFlows.css';
 import '../../shared/visualPolish.css';
+import '../../shared/teacherReview.css';
 createRoot(document.getElementById('root')!).render(<React.StrictMode><Workspace role="teacher" /></React.StrictMode>);

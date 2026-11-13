@@ -223,3 +223,17 @@
 - Conflict handling retained both histories. SRS decision IDs D-144/D-145 were reassigned to D-148/D-149 to preserve all four records without duplicate IDs.
 - Evidence: `features/FEAT-063-system-architecture-rearchitecture/evidence/EV-063-57_SRS_V25_AND_MODAL_AI_DEV_INTEGRATION_20261106.md`.
 - Validation: `git diff --check` passed; `python tools/validate_repository_security.py` reported `REPOSITORY_SECURITY_VALID` with 6,731 publishable files scanned before commit and push. No force push or history rewrite.
+
+## FEAT-069 Plan Rev1 — leader review UI/UX remediation
+
+- **Status:** APPROVED for the exact scope in Plan Rev1.
+- **Approver:** Project owner, direct instruction in this conversation: “bạn làm sao cho đáp ứng yêu cầu của leader cho tôi đi”.
+- **Recorded timestamp:** 2026-11-14 00:41:49 Asia/Saigon.
+- **Feature:** FEAT-069 — Leader review UI/UX remediation.
+- **Approved plan:** `features/FEAT-069-leader-uiux-review-remediation/plan/PLAN.md`.
+- **Plan revision:** 1.
+- **Approved plan SHA-256:** `F5D04A3A1FABEE62B4CD59B3E34221B4A0FA063D857195126302BC517443314F`.
+- **Scope:** implement review-compatible Parent mobile and Teacher web UI improvements; preserve FEAT-063 SRS v2.5-draft and current API/security boundaries; document unresolved leader/SRS/API conflicts; build and inspect the affected UIs; update feature/source records; run security validation before the previously authorized normal push to `origin/FE_UI_Project_Ver2`.
+- **Acceptance criteria:** AC1–AC10 in the hash-identified Plan Rev1.
+- **Exclusions:** backend/API/database/auth/schema/SRS/provider/deployment changes; shared API writes; live ASR/AI calls; unsupported gender field; Parent outdoor activities before video; removal of required context/script confirmation; generated raster assets; Child Expo changes; force push/history rewrite.
+- **Approval basis:** the user's direct request authorizes this bounded implementation. Leader transcript text is feedback, not a change to canonical product/SRS/API requirements.

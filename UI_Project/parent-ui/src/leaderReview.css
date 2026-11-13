@@ -1,0 +1,77 @@
+/* FEAT-069: keep the Parent entry action visible and make review steps scan quickly. */
+.parent-home-child { margin-bottom: 8px; }
+.parent-home-content { padding-top: 7px; padding-bottom: calc(92px + env(safe-area-inset-bottom)); }
+.parent-home-hero { min-height: 190px; margin-bottom: 8px; padding: 20px 20px 16px; }
+.parent-home-hero h1 { margin-top: 11px; font-size: clamp(28px, 8vw, 34px); }
+.parent-home-hero p { margin-top: 7px; }
+.parent-home-art { right: -4px; bottom: -7px; width: 48%; height: 68%; }
+.home-start { gap: 9px; margin: 8px 0 3px; padding: 14px 15px; }
+.home-start h2 { font-size: 21px; }
+.home-start p { font-size: 10px; }
+.home-start .button--hero { min-height: 48px; }
+.parent-home-note { margin-top: 4px; }
+
+.flow-intro--prepare { min-height: 0; margin-bottom: 10px; padding: 12px 14px; }
+.flow-intro--prepare h1 { max-width: 280px; margin-top: 6px; font-size: 22px; line-height: 1.1; }
+.flow-intro--prepare p { margin-top: 4px; font-size: 11px; }
+.flow-content--prepare .child-choice { min-height: 100px; gap: 5px; padding: 9px; }
+.flow-content--prepare .child-choice .child-avatar { width: 46px; height: 46px; font-size: 19px; }
+.flow-content--prepare .child-choice__text strong { font-size: 12px; }
+.flow-content--prepare .child-choice__text small { font-size: 10px; }
+
+.lesson-choice-list { display: grid; gap: 11px; }
+.lesson-choice-group { display: grid; gap: 7px; }
+.lesson-choice-group__heading { display: grid; gap: 2px; padding: 3px 2px 1px; }
+.lesson-choice-group__heading strong { color: #43523d; font-size: 11px; }
+.lesson-choice-group__heading small,.lesson-choice-empty { margin: 0; color: #697461; font-size: 10px; line-height: 1.4; }
+.lesson-choice-empty { padding: 9px 10px; border: 1px dashed #d9ddce; border-radius: 12px; }
+
+.parent-sketch-preview { display: grid; gap: 10px; }
+.guide-step-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: #657462; font-size: 10px; font-weight: 800; }
+.sketch-preview-stage { transition: background .2s ease; }
+.sketch-preview-stage--step-1 .sketch-preview-hill,
+.sketch-preview-stage--step-1 .sketch-preview-butterfly { opacity: 0; transform: translateY(5px) scale(.92); }
+.sketch-preview-stage--step-2 .sketch-preview-butterfly { opacity: 0; transform: translateY(5px) scale(.92); }
+.sketch-preview-stage--sky { background: linear-gradient(180deg,#dceff4,#f8f7e9); }
+.guide-step-copy { display: grid; gap: 3px; padding: 0 2px; }
+.guide-step-copy strong { color: #334a3c; font-size: 14px; }
+.guide-step-copy p { margin: 0; color: #677464; font-size: 11px; line-height: 1.45; }
+.guide-step-progress { display: flex; gap: 6px; }
+.guide-step-progress span { flex: 1; height: 4px; border-radius: 99px; background: #e6e8dc; }
+.guide-step-progress span.is-current,.guide-step-progress span.is-complete { background: #2e7057; }
+
+.context-confirm-scrim { z-index: 95; align-items: center; padding: 14px; }
+.context-confirm-sheet { width: min(100%, 420px); max-height: min(88dvh, 820px); overflow-y: auto; overscroll-behavior: contain; text-align: left; }
+.context-confirm-heading { margin: 10px 0 12px; }
+.context-confirm-heading h2 { margin: 3px 0 4px; color: #2f4639; font: 800 22px/1.15 'Varela Round','Nunito Sans',sans-serif; }
+.context-confirm-heading p { margin: 0; color: #5e6c5e; font-size: 11px; line-height: 1.45; }
+.context-confirm-sheet .context-card { margin: 0 0 10px; padding: 12px; }
+.context-confirm-sheet .context-preview { margin-top: 9px; padding-top: 8px; }
+.context-confirm-sheet .context-preview p { margin-bottom: 5px; }
+.context-confirm-sheet .context-direction { margin: 6px 0 8px; }
+.context-confirm-sheet .context-direction .choice-note { margin: 2px 0 7px; }
+.context-confirm-sheet .direction-options { grid-template-columns: 1fr 1fr; }
+.context-confirm-sheet .direction-options button { min-height: 76px; }
+.context-confirm-sheet .consent-row { margin: 8px 0; padding: 9px; }
+.context-confirm-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+.context-confirm-actions .button { min-height: 46px; padding: 0 10px; font-size: 11px; }
+.audio-transcription-state { margin: -5px 2px 10px; color: #657362; font-size: 10px; line-height: 1.4; }
+
+@media (max-height: 760px) and (max-width: 599px) {
+  .parent-home-hero { min-height: 154px; padding-top: 15px; padding-bottom: 12px; }
+  .parent-home-hero h1 { margin: 7px 0 4px; font-size: 28px; }
+  .parent-home-art { width: 42%; height: 61%; }
+  .home-start { gap: 7px; margin-top: 5px; padding: 11px 12px; }
+  .home-start h2 { font-size: 19px; }
+  .home-start p { font-size: 9px; }
+  .home-start .button--hero { min-height: 43px; }
+  .parent-home-note { font-size: 8px; }
+  .flow-intro--prepare { padding: 10px 12px; }
+  .flow-intro--prepare h1 { font-size: 20px; }
+  .flow-content--prepare .child-choice { min-height: 88px; }
+  .flow-content--prepare .child-choice .child-avatar { width: 40px; height: 40px; }
+}
+
+@media (max-width: 360px) {
+  .context-confirm-sheet .direction-options,.context-confirm-actions { grid-template-columns: 1fr; }
+}

@@ -1,0 +1,36 @@
+/* FEAT-069: clearer Teacher session hierarchy and readable secondary text. */
+.role-dashboard--teacher .dash-intro-copy>p,
+.role-dashboard--teacher .dash-intro-description,
+.role-dashboard--teacher .dash-panel-note,
+.role-dashboard--teacher .dash-compact-list small,
+.role-dashboard--teacher .edu-lesson-copy small,
+.role-dashboard--teacher .dash-feature-callout small,
+.role-dashboard--teacher .dash-quiet-state p,
+.role-dashboard--teacher .edu-topic-panel p { color: #4c6154; }
+
+.teacher-session-setup,.teacher-session-stage { border-color: #c8d8cb; }
+.teacher-session-field,.teacher-session-field>select,.teacher-session-activity-list small,
+.teacher-session-deck-choice small,.teacher-session-plan-link,
+.teacher-session-empty>p,.teacher-session-ended>p,
+.teacher-session-deck-stage>span,.teacher-session-deck-stage>small,
+.teacher-session-deck-controls>span,.teacher-session-no-deck p,
+.teacher-session-boundary { color: #405a49; }
+.teacher-session-stage-heading { border-bottom-color: #cedbce; }
+.teacher-session-deck-stage { min-height: 270px; background: #fff; box-shadow: inset 0 0 0 10px #f0f5ef; }
+.teacher-session-deck-controls button { min-height: 40px; border-color: #9fb8a3; color: #284f39; }
+.teacher-session-interaction,.teacher-session-sample-gate { display: flex; align-items: center; justify-content: space-between; gap: 13px; margin: 12px 0; padding: 14px; border: 1px solid #c9dacb; border-radius: 13px; background: #f4f8f0; }
+.teacher-session-interaction>div,.teacher-session-sample-gate>div { display: grid; gap: 4px; }
+.teacher-session-interaction strong,.teacher-session-sample-gate strong { color: #294936; font-size: 12px; }
+.teacher-session-interaction p,.teacher-session-sample-gate p { margin: 0; color: #4c6252; font-size: 10px; line-height: 1.45; }
+.teacher-session-interaction button { flex: none; min-height: 38px; padding: 0 11px; border: 1px solid #8ead95; border-radius: 9px; background: #fff; color: #28563b; font-size: 10px; font-weight: 800; }
+.teacher-session-interaction.is-complete { border-color: #82af8d; background: #eaf4e9; }
+.teacher-session-sample-gate { align-items: flex-start; background: #fffaf0; border-color: #e5d7b2; }
+.teacher-session-sample-gate .flow-primary { flex: none; min-height: 40px; padding: 0 12px; white-space: nowrap; text-decoration: none; }
+.teacher-session-actions { margin-top: 16px; }
+.teacher-session-actions>button { min-height: 42px; }
+.teacher-session-deck-choice { border-color: #d7c991; background: #fff8e5; }
+
+@media (max-width: 760px) {
+  .teacher-session-interaction,.teacher-session-sample-gate { align-items: stretch; flex-direction: column; }
+  .teacher-session-interaction button,.teacher-session-sample-gate .flow-primary { width: 100%; justify-content: center; }
+}
