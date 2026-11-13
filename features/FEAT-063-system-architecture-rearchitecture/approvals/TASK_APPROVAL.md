@@ -2844,3 +2844,19 @@ Run 4, same ten approved files: `1 failed, 125 passed in 75.59s`; only the uncha
 | `backend/tests/unit/test_parent_profiles_service.py` | `B9B3346B766E821B2712FFED1B7CA858AD5C29284D107B8175480DECDD44F218` | `49FB5493AFD8544A36617F09B701510D87978388698D5B2B164A072823CCCB7B` | 10243 | `99A82152F2DA3D72BB085FB7A967EB3113FB98CF743637EC6FB0681DEF57989C` |
 
 Real-PostgreSQL PATCH, DELETE, and list are `NOT VERIFIED`; this remains an open item for a scratch DB before merge to `dev`. Production BE1 role-adapter PostgreSQL behavior is `NOT COVERED` under D-190; Codex did not query the DB. Second Gate P2 attempt and cleanup are `NOT AUTHORIZED` / `NOT RUN`. Post-final-edit validators and `git diff --check` are `NOT RUN`. Formal acceptance and canonical closure-record installation are `NOT RECORDED`, pending explicit owner `ACCEPTED`. Database, Alembic, runner, Docker, Modal, provider, network, stage, commit, and push actions by Codex during drafting are `NOT RUN`.
+
+## M2 S1a-P2 Close-out Addendum - 2026-11-13 (ACCEPTED WITH KNOWN GAP)
+
+- **Status:** ACCEPTED WITH KNOWN GAP
+- **Owner decision record:** D-194 (appended; D-193 is now present)
+- **Task Approval prefix SHA-256:** F009A6298B3B1857F825FAE57287B76B24F074E5D66BAE26BA1CBAB6AEC1C1B2
+- **Expected DECISIONS.md after D-194 through D-197:** 190063 bytes, SHA-256 `BDC6FB0A5F5B350F1C3DDD21175277FB169B618BFFE8075567FBF485B02F813C`
+- **Scope:** S1a-P2 close-out disposition using existing evidence only; no Gate P2 retry, database cleanup, or S2/S3 phase opening is authorized. OWNER_MODAL_CALL_APPROVED=NO.
+
+This append records the owner's formal acceptance of the S1a-P2 close-out as ACCEPTED WITH KNOWN GAP. It reconciles the conflicting labels by a new record; the earlier DRAFT / NOT ACCEPTED text remains unchanged as history. D-193 is present in `features/FEAT-063-system-architecture-rearchitecture/DECISIONS.md`; the prior addendum's note that D-193 was not appended is stale and is superseded here.
+
+The accepted close-out is based on the existing `features/FEAT-063-system-architecture-rearchitecture/evidence/M2_S1A_P2_CLOSURE_RECORD_20261112.md` (SHA-256 `0C1801119F17D98FBD4ADA2C7D884530DFAB4A068AF88DE7C74525ADA61F40E4`) with `features/FEAT-063-system-architecture-rearchitecture/evidence/M2_S1A_P2_REAL_POSTGRES_EVIDENCE_ADDENDUM_20261113.md` (SHA-256 `6BB4A6EA6F477B44486A4E518766099CC2DA9A97246DE7ADAD08E4C00C891485`) as supporting evidence. Gate P2 attempt 1 remains FAILED with `GATE_P2_POST_INVENTORY_MISMATCH`; its approval remains CONSUMED. No second Gate P2 attempt is authorized, and the three synthetic rows remain without cleanup.
+
+The real-PostgreSQL addendum records owner-observed scratch-database results and is not the M2 task-database Gate P2 result. It does not change the failed/consumed gate or D-190: the production BE1 role adapter remains NOT COVERED. This acceptance preserves the known gap and authorizes no database action, retry, cleanup, migration, implementation, or later phase.
+
+This addendum does not approve or launch S2 or S3 and does not create an allowlist, command ceiling, or gate approval. The completed-file post-append byte count and digest are recorded in the session close-out because a file cannot contain its own final digest without changing that digest.
