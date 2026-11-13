@@ -7,4 +7,5 @@ Status: implementation verified under approved Plan Rev2; publication pending.
 - `screenshots/parent-app-lessons.png`: Lessons tab.
 - `screenshots/parent-app-profile.png`: Profile tab.
 - `screenshots/parent-app-story-flow.png`: Story creation entry flow.
+- `screenshots/parent-app-clean-clone.png`: Parent home from the APK built in a clean clone.
 - `notes/EXECUTION.md`: production builds, emulator launch and navigation, packaged asset inspection, and role web URL checks.

@@ -12,7 +12,9 @@
 
 ## Web workspaces
 
-`npm run build` completed successfully for all five `UI_Project` workspaces: Parent, Teacher, School Manager, Platform Admin, and the unified web portal. Existing local servers returned HTTP 200:
+In a fresh shallow clone of `FE_UI_Project_Ver2`, both lockfile installs succeeded (`npm ci` from `UI_Project` and `pnpm install --frozen-lockfile` from `UI_Project/parent-android`). The mobile TypeScript typecheck and Windows debug APK build then succeeded from that clone. The clone-built APK was installed on the emulator and rendered the Parent home (`../screenshots/parent-app-clean-clone.png`). An initial clone nested under a long temporary path exceeded Windows' 260-character CMake limit; repeating the verification from a short clone path succeeded. The Android README now calls this out.
+
+`npm run build` completed for all five `UI_Project` workspaces: Parent, Teacher, School Manager, Platform Admin, and the unified web portal. Existing local servers returned HTTP 200:
 
 - `http://127.0.0.1:5171/` — Parent web preview
 - `http://127.0.0.1:5172/` — Teacher
@@ -25,3 +27,5 @@ The other role source workspaces were not changed.
 ## Scope limits
 
 This is a Parent UI prototype hosted by a React Native Android shell. Its screens remain mock UI and are not evidence of production backend/auth integration. Native camera and microphone integration are outside this task.
+
+`npm ci` reported one moderate and one high advisory for the Vite/esbuild toolchain. The suggested Vite fix is a major-version upgrade and was not included in this UI packaging change.

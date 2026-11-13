@@ -55,6 +55,8 @@ pnpm --dir apps/mobile android:apk:debug
 
 The debug app still needs Metro for its React Native host bundle. The Parent screen itself is packaged locally; no `pnpm --dir ../parent-ui dev` server is needed. Teacher, School Manager, and Platform Admin remain separate web workspaces under `UI_Project`.
 
+After a fresh clone, install the two dependency workspaces once: run `npm ci` from `UI_Project`, then `pnpm install` from `UI_Project/parent-android`. The Android Gradle task invokes the sibling Parent Vite build, so both lockfiles must be installed before the first APK build.
+
 ## State rules
 
 - Use server-state caching for API data; do not mirror the whole session into an unrelated global store.
