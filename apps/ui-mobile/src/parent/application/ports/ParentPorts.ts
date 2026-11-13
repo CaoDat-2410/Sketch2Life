@@ -11,13 +11,28 @@ import type {
   ParentNotification,
   ParentNotificationPage,
   ParentProfile,
+  ParentProfileCreateV1,
+  ParentProfileDeletePendingV1,
+  ParentProfilePageV1,
+  ParentProfilePatchV1,
+  ParentProfileRecordV1,
+  ParentProfileReferenceV1,
+  ParentProfileViewV1,
   ParentProfileShareGrant,
   ParentProfileSharePage,
   ParentRunLifecycleReceipt,
+  ParentActiveStoryRunEnvelopeV1,
   ParentTranscriptConfirmation,
   ParentStoryRunHistoryPage,
   ParentUser,
   ParentVideoQuota,
+  ParentStoryContextConfirmationV1,
+  ParentStoryRevisionResultV1,
+  ParentStoryRunCreateV1,
+  ParentStoryRunEnvelopeV1,
+  ParentStoryRunV1,
+  ParentStoryScriptConfirmationV1,
+  ParentStorySubjectConfirmationV1,
   StoryRun,
   SuggestedActivity,
 } from '../../domain/types';
@@ -38,9 +53,21 @@ export interface AuthTokenPort {
 
 export type ParentDrawingMediaType = 'image/jpeg' | 'image/png';
 
+/** An identity is created once for an action and retained unchanged for retries. */
+export type ParentActionIdentity = string;
+
+export function createParentActionIdentity(): ParentActionIdentity {
+  return `parent-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 14)}`;
+}
+
 export interface ParentApiPort {
   getConsentPolicy(): Promise<{ request_id: string; policy: ConsentPolicy }>;
   listProfiles(): Promise<{ request_id: string; profiles: ParentProfile[] }>;
+  listProfilesV1(limit?: number, cursor?: string | null): Promise<ParentProfilePageV1>;
+  getProfileV1(profileId: string): Promise<ParentProfileRecordV1>;
+  createProfileV1(input: ParentProfileCreateV1, actionIdentity: ParentActionIdentity): Promise<ParentProfileReferenceV1>;
+  patchProfileV1(profileId: string, input: ParentProfilePatchV1, actionIdentity: ParentActionIdentity): Promise<ParentProfileViewV1>;
+  requestProfileDeletionV1(profileId: string, actionIdentity: ParentActionIdentity): Promise<ParentProfileDeletePendingV1>;
   createProfile(input: ProfileCreateInput): Promise<{ request_id: string; profile: ParentProfile }>;
   updateProfile(profileId: string, input: ProfileUpdateInput): Promise<{ request_id: string; profile: ParentProfile }>;
   grantAuthorization(profileId: string, policyVersion: string): Promise<{ request_id: string; profile: ParentProfile }>;
@@ -48,6 +75,8 @@ export interface ParentApiPort {
   archiveProfile(profileId: string): Promise<{ request_id: string; profile: ParentProfile }>;
   getActiveStoryRun(): Promise<{ request_id: string; story_run: StoryRun | null }>;
   getStoryRun(runId: string): Promise<{ request_id: string; story_run: StoryRun }>;
+  getActiveStoryRunV1(): Promise<ParentActiveStoryRunEnvelopeV1>;
+  getStoryRunV1(runId: string): Promise<ParentStoryRunEnvelopeV1>;
   listStoryRuns(profileId?: string, cursor?: string | null): Promise<ParentStoryRunHistoryPage>;
   cancelStoryRun(runId: string): Promise<ParentRunLifecycleReceipt>;
   deleteStoryRun(runId: string): Promise<ParentRunLifecycleReceipt>;
@@ -60,6 +89,11 @@ export interface ParentApiPort {
   acceptParentGroupInvitation(membershipId: string): Promise<unknown>;
   generateSketchGuide(topic: string): Promise<SketchGuideResult>;
   createStoryRun(input: StoryRunCreateInput): Promise<{ request_id: string; story_run: StoryRun }>;
+  createStoryRunV1(input: ParentStoryRunCreateV1, actionIdentity: ParentActionIdentity): Promise<ParentStoryRunEnvelopeV1>;
+  confirmStoryRunContextV1(runId: string, input: ParentStoryContextConfirmationV1, actionIdentity: ParentActionIdentity): Promise<ParentStoryRunEnvelopeV1>;
+  confirmStoryRunSubjectV1(runId: string, revision: number, subject: string, actionIdentity: ParentActionIdentity): Promise<ParentStorySubjectConfirmationV1>;
+  confirmStoryRunScriptV1(runId: string, revision: number, sha256: string, actionIdentity: ParentActionIdentity): Promise<ParentStoryScriptConfirmationV1>;
+  createStoryRevisionV1(runId: string, revision: number, rewriteInstruction: string | undefined, actionIdentity: ParentActionIdentity): Promise<ParentStoryRevisionResultV1>;
   analyzeDrawing(storyRunId: string, imageBase64: string, mediaType: ParentDrawingMediaType): Promise<DrawingUnderstandingResult>;
   confirmSubject(storyRunId: string, revision: number, subject: string): Promise<SubjectConfirmationResult>;
   suggestActivities(storyRunId: string, revision: number): Promise<ActivitySuggestionResult>;

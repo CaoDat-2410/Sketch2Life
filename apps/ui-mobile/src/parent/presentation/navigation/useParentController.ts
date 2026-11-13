@@ -1,31 +1,48 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { ParentApplicationError } from '../../application/ParentApplicationError';
+import { createParentActionIdentity } from '../../application/ports/ParentPorts';
+import type { ParentActionIdentity } from '../../application/ports/ParentPorts';
 import type { ParentApplicationModule } from '../../application/ports/ParentApplicationModule';
 import { parseStoryDraft } from '../../domain/storyDraft';
 import type {
   ParentAudioTranscription,
-  ConsentPolicy,
   LessonDetail,
   LessonInvitation,
   LessonSummary,
   ParentCandidate,
   ParentGroupInvitation,
-  ParentProfile,
+  ParentProfileDeletePendingV1,
+  ParentProfileViewV1,
+  ParentStoryRunV1,
   ParentUser,
   StoryDraft,
   StoryRun,
   SuggestedActivity,
 } from '../../domain/types';
 import type { AppStep, SelectedAudio, SelectedPhoto, TimedEvent } from './workflowTypes';
+import {
+  canBeginContextStep,
+  isProfileDeletionPending,
+  lessonVersionPinFromDetail,
+  mergeProfilePage,
+  nextProfileCursor,
+  reconcileProfileRecord,
+  safeParentFlowErrorMessage,
+  safeProfileFieldMessages,
+  selectProfileById,
+} from './parentFlowV1';
 
 export function useParentController(application: ParentApplicationModule) {
   const [step, setStep] = useState<AppStep>('auth');
-  const [policy, setPolicy] = useState<ConsentPolicy | null>(null);
   const [currentUser, setCurrentUser] = useState<ParentUser | null>(null);
-  const [profiles, setProfiles] = useState<ParentProfile[]>([]);
-  const [profile, setProfile] = useState<ParentProfile | null>(null);
-  const [profileBeingEdited, setProfileBeingEdited] = useState<ParentProfile | null>(null);
-  const [activeRun, setActiveRun] = useState<StoryRun | null>(null);
+  const [profiles, setProfiles] = useState<ParentProfileViewV1[]>([]);
+  const [profile, setProfile] = useState<ParentProfileViewV1 | null>(null);
+  const [selectedProfileId, setSelectedProfileId] = useState('');
+  const [profileBeingEdited, setProfileBeingEdited] = useState<ParentProfileViewV1 | null>(null);
+  const [pendingDeletions, setPendingDeletions] = useState<ParentProfileDeletePendingV1[]>([]);
+  const [pendingDeletionLoadingId, setPendingDeletionLoadingId] = useState('');
+  const [profileFieldErrors, setProfileFieldErrors] = useState(safeProfileFieldMessages(null));
+  const [activeRun, setActiveRun] = useState<ParentStoryRunV1 | null>(null);
   const [topic, setTopic] = useState('');
   const [idea, setIdea] = useState('');
   const [lesson, setLesson] = useState<LessonDetail | null>(null);
@@ -49,6 +66,8 @@ export function useParentController(application: ParentApplicationModule) {
   const [transcriptText, setTranscriptText] = useState('');
   const [transcriptError, setTranscriptError] = useState('');
   const [run, setRun] = useState<StoryRun | null>(null);
+  const [contextRun, setContextRun] = useState<ParentStoryRunV1 | null>(null);
+  const [contextConfirmed, setContextConfirmed] = useState(false);
   const [candidate, setCandidate] = useState<ParentCandidate | null>(null);
   const [subject, setSubject] = useState('');
   const [understandingRevision, setUnderstandingRevision] = useState(0);
@@ -67,6 +86,11 @@ export function useParentController(application: ParentApplicationModule) {
   const [error, setError] = useState('');
   const [authError, setAuthError] = useState('');
   const [bootstrapBusy, setBootstrapBusy] = useState(false);
+  const profileCreateAction = useRef<RetainedActionIdentity | null>(null);
+  const profilePatchActions = useRef(new Map<string, RetainedActionIdentity>());
+  const profileDeleteActions = useRef(new Map<string, RetainedActionIdentity>());
+  const storyRunCreateAction = useRef<RetainedActionIdentity | null>(null);
+  const contextConfirmationAction = useRef<RetainedActionIdentity | null>(null);
 
   async function timeRequest<T>(stage: string, request: () => Promise<T>): Promise<T> {
     const started = Date.now();
@@ -86,6 +110,23 @@ export function useParentController(application: ParentApplicationModule) {
     }
   }
 
+  async function loadAllProfiles(): Promise<ParentProfileViewV1[]> {
+    let cursor: string | null = null;
+    let loaded: ParentProfileViewV1[] = [];
+    const seenCursors = new Set<string>();
+    do {
+      const page = await application.profiles.listPageV1(25, cursor);
+      loaded = mergeProfilePage(loaded, page);
+      const nextCursor = nextProfileCursor(page);
+      if (nextCursor !== null && seenCursors.has(nextCursor)) {
+        throw new ParentApplicationError('INVALID_LIMIT', 'Profile pagination cursor did not advance.');
+      }
+      if (nextCursor !== null) seenCursors.add(nextCursor);
+      cursor = nextCursor;
+    } while (cursor !== null);
+    return loaded;
+  }
+
   async function loadParentData(): Promise<void> {
     setBootstrapBusy(true);
     setError('');
@@ -94,46 +135,38 @@ export function useParentController(application: ParentApplicationModule) {
       if (!user) throw new Error('Không tìm thấy phiên đăng nhập.');
       setCurrentUser(user);
       setStep('home');
-      const [policyResult, profilesResult, activeResult] = await Promise.allSettled([
-        application.profiles.getConsentPolicy(),
-        application.profiles.listProfiles(),
-        application.learning.getActiveRun(),
+      const [profilesResult, activeResult] = await Promise.allSettled([
+        loadAllProfiles(),
+        application.learning.getActiveRunV1(),
       ]);
-      if (policyResult.status === 'fulfilled') setPolicy(policyResult.value.policy);
-      else setError(displayError(policyResult.reason));
       if (profilesResult.status === 'rejected') {
-        setError(displayError(profilesResult.reason));
+        setError(safeParentFlowErrorMessage(profilesResult.reason));
         return;
       }
-      const activeProfiles = profilesResult.value.profiles.filter((item) => item.state === 'ACTIVE');
+      const activeProfiles = profilesResult.value;
       setProfiles(activeProfiles);
       if (activeResult.status === 'fulfilled') {
         setActiveRun(activeResult.value.story_run);
         const saved = activeResult.value.story_run;
-        if (saved) restoreRun(saved, activeProfiles);
+        if (saved) {
+          const selected = selectProfileById(activeProfiles, saved.parent_profile_id);
+          if (selected) {
+            setProfile(selected);
+            setSelectedProfileId(selected.profile_id);
+          }
+          if (saved.run_state === 'CONTEXT_PENDING') {
+            setContextRun(saved);
+            setContextConfirmed(false);
+          }
+        }
       } else {
-        setError((previous) => previous || `Không kiểm tra được buổi đang mở: ${displayError(activeResult.reason)}`);
+        setError((previous) => previous || safeParentFlowErrorMessage(activeResult.reason));
       }
     } catch (cause) {
       setAuthError(displayError(cause));
     } finally {
       setBootstrapBusy(false);
     }
-  }
-
-  function restoreRun(saved: StoryRun, availableProfiles = profiles): void {
-    setRun(saved);
-    setProfile(availableProfiles.find((item) => item.parent_profile_id === saved.parent_profile_id) ?? null);
-    setTopic(saved.context_snapshot.topic);
-    setIdea(saved.context_snapshot.adult_confirmed_idea);
-    setCandidate(saved.candidate);
-    setSubject(saved.subject_label ?? saved.candidate?.candidate_subject ?? '');
-    setUnderstandingRevision(saved.understanding_revision ?? 0);
-    const parsed = parseStoryDraft(saved.story);
-    setStory(parsed);
-    setStorySha256(saved.story_sha256 ?? '');
-    if (saved.story_status === 'CONFIRMED') setStoryConfirmed(true);
-    else if (parsed || saved.candidate) setError('Có một buổi học đang mở. Chọn “Tiếp tục buổi đang mở” ở Trang chủ để quay lại.');
   }
 
   async function authenticate(action: 'signin' | 'signup', email: string, password: string): Promise<void> {
@@ -163,119 +196,152 @@ export function useParentController(application: ParentApplicationModule) {
     }
   }
 
-  async function createProfile(input: { displayName: string; ageMonths: number; interests: string }): Promise<ParentProfile> {
-    if (!policy) throw new Error('Chưa tải được nội dung quyền xử lý.');
+  async function createProfile(input: { displayName: string; ageMonths: number; interests: string }): Promise<ParentProfileViewV1> {
+    const displayName = input.displayName.trim();
+    const interests = input.interests.trim();
+    const signature = JSON.stringify([displayName, input.ageMonths, interests || null]);
+    const actionIdentity = retainedActionIdentity(profileCreateAction, signature);
     setBusy('profile');
     setError('');
+    setProfileFieldErrors({});
     try {
-      const response = await application.profiles.create({
+      const created = await application.profiles.createV1({
         age_months: input.ageMonths,
-        display_name: input.displayName.trim(),
-        interests_summary: input.interests.trim(),
-        consent_accepted: true,
-        consent_policy_version: policy.policy_version,
-      });
-      setProfiles((items) => [response.profile, ...items]);
-      setProfile(response.profile);
-      return response.profile;
+        display_name: displayName,
+        interests_summary: interests || null,
+      }, actionIdentity);
+      const record = await application.profiles.getV1(created.profile_id);
+      const reconciled = reconcileProfileRecord(profiles, pendingDeletions, record);
+      setProfiles(reconciled.profiles);
+      setPendingDeletions(reconciled.pendingDeletions);
+      if (record.state !== 'ACTIVE') {
+        throw new ParentApplicationError('INVALID_STATE_TRANSITION', 'The new profile is not active.');
+      }
+      setProfile(record);
+      setSelectedProfileId(record.profile_id);
+      profileCreateAction.current = null;
+      return record;
     } catch (cause) {
-      setError(displayError(cause));
+      setError(safeParentFlowErrorMessage(cause));
+      setProfileFieldErrors(safeProfileFieldMessages(cause));
       throw cause;
     } finally {
       setBusy('');
     }
   }
 
-  async function createProfileAndReturn(input: { displayName: string; ageMonths: number; interests: string }): Promise<ParentProfile> {
+  async function createProfileAndReturn(input: { displayName: string; ageMonths: number; interests: string }): Promise<ParentProfileViewV1> {
     const created = await createProfile(input);
     setStep('profile');
     return created;
   }
 
-  async function updateProfile(input: { displayName: string; ageMonths: number; interests: string }): Promise<ParentProfile> {
-    if (!profileBeingEdited) throw new Error('Chưa chọn hồ sơ cần cập nhật.');
+  async function updateProfile(input: { displayName: string; ageMonths: number; interests: string }): Promise<ParentProfileViewV1> {
+    if (!profileBeingEdited) throw new ParentApplicationError('INVALID_STATE_TRANSITION', 'No profile is selected.');
+    const target = profileBeingEdited;
+    const displayName = input.displayName.trim();
+    const interests = input.interests.trim();
+    const patch = {
+      expected_revision: target.revision_no,
+      age_months: input.ageMonths,
+      display_name: displayName,
+      interests_summary: interests || null,
+    };
+    const signature = JSON.stringify(patch);
+    const actionIdentity = retainedMapActionIdentity(profilePatchActions.current, target.profile_id, signature);
     setBusy('profile-update');
     setError('');
+    setProfileFieldErrors({});
     try {
-      const { profile: revised } = await application.profiles.revise(profileBeingEdited.parent_profile_id, {
-        expected_revision: profileBeingEdited.current_revision.revision,
-        age_months: input.ageMonths,
-        display_name: input.displayName.trim(),
-        interests_summary: input.interests.trim(),
-      });
-      setProfiles((items) => items.map((item) => item.parent_profile_id === revised.parent_profile_id ? revised : item));
-      setProfile(revised);
+      const outcome = await application.profiles.patchV1(target.profile_id, patch, actionIdentity);
+      const reconciled = reconcileProfileRecord(profiles, pendingDeletions, outcome.profile);
+      setProfiles(reconciled.profiles);
+      setPendingDeletions(reconciled.pendingDeletions);
+      if (outcome.status === 'STALE') {
+        if (outcome.profile.state === 'ACTIVE') {
+          setProfileBeingEdited(outcome.profile);
+          setProfile(outcome.profile);
+          setSelectedProfileId(outcome.profile.profile_id);
+          setError(safeParentFlowErrorMessage({ code: 'STALE_REVISION' }));
+          return outcome.profile;
+        }
+        setProfileBeingEdited(null);
+        setError(safeParentFlowErrorMessage({ code: 'INVALID_STATE_TRANSITION' }));
+        throw new ParentApplicationError('INVALID_STATE_TRANSITION', 'The profile is no longer active.');
+      }
+      setProfile(outcome.profile);
+      setSelectedProfileId(outcome.profile.profile_id);
       setProfileBeingEdited(null);
+      profilePatchActions.current.delete(target.profile_id);
       setStep('profile');
-      return revised;
+      return outcome.profile;
     } catch (cause) {
-      setError(displayError(cause));
+      setError(safeParentFlowErrorMessage(cause));
+      setProfileFieldErrors(safeProfileFieldMessages(cause));
       throw cause;
     } finally {
       setBusy('');
     }
   }
 
-  async function authorizeProfile(target: ParentProfile): Promise<void> {
-    if (!policy) return;
-    setBusy('authorize');
-    setError('');
-    try {
-      const { profile: updated } = await application.profiles.grantAuthorization(target.parent_profile_id, policy.policy_version);
-      replaceProfile(updated);
-    } catch (cause) {
-      setError(displayError(cause));
-    } finally {
-      setBusy('');
-    }
-  }
-
-  async function revokeProfileAuthorization(target: ParentProfile): Promise<void> {
-    setBusy('revoke');
-    setError('');
-    try {
-      const { profile: updated } = await application.profiles.revokeAuthorization(target.parent_profile_id);
-      replaceProfile(updated);
-    } catch (cause) {
-      setError(displayError(cause));
-    } finally {
-      setBusy('');
-    }
-  }
-
-  async function archiveProfile(target: ParentProfile): Promise<void> {
-    setBusy('archive');
-    setError('');
-    try {
-      await application.profiles.archive(target.parent_profile_id);
-      setProfiles((items) => items.filter((item) => item.parent_profile_id !== target.parent_profile_id));
-      if (profile?.parent_profile_id === target.parent_profile_id) setProfile(null);
-    } catch (cause) {
-      setError(displayError(cause));
-    } finally {
-      setBusy('');
-    }
-  }
-
-  function replaceProfile(updated: ParentProfile): void {
-    setProfiles((items) => items.map((item) => item.parent_profile_id === updated.parent_profile_id ? updated : item));
-    if (profile?.parent_profile_id === updated.parent_profile_id) setProfile(updated);
-  }
-
-  function continueWithProfile(target: ParentProfile): void {
-    setError('');
-    if (!target.authorization_current) {
-      setError('Cần xác nhận quyền xử lý dữ liệu còn hiệu lực trước khi tiếp tục.');
-      return;
-    }
-    if (activeRun) {
-      setError(`Hồ sơ đã có buổi học đang mở (${activeRun.run_state}). Không tạo buổi mới để tránh trùng dữ liệu.`);
-      return;
-    }
+  function selectProfile(target: ParentProfileViewV1): void {
     setProfile(target);
+    setSelectedProfileId(target.profile_id);
+    setError('');
+    setProfileFieldErrors({});
+  }
+
+  async function requestProfileDeletion(target: ParentProfileViewV1): Promise<void> {
+    if (isProfileDeletionPending(target.profile_id, pendingDeletions)) return;
+    const actionIdentity = retainedMapActionIdentity(profileDeleteActions.current, target.profile_id, target.profile_id);
+    setBusy('profile-delete');
+    setError('');
+    try {
+      const pending = await application.profiles.requestDeletionV1(target.profile_id, actionIdentity);
+      const reconciled = reconcileProfileRecord(profiles, pendingDeletions, pending);
+      setProfiles(reconciled.profiles);
+      setPendingDeletions(reconciled.pendingDeletions);
+      if (selectedProfileId === target.profile_id) {
+        setProfile(null);
+        setSelectedProfileId('');
+      }
+      await refreshPendingDeletion(target.profile_id);
+    } catch (cause) {
+      setError(safeParentFlowErrorMessage(cause));
+      if (cause instanceof ParentApplicationError && cause.code === 'INVALID_STATE_TRANSITION') {
+        await refreshPendingDeletion(target.profile_id);
+      }
+    } finally {
+      setBusy('');
+    }
+  }
+
+  async function refreshPendingDeletion(profileId: string): Promise<void> {
+    setPendingDeletionLoadingId(profileId);
+    try {
+      const record = await application.profiles.getV1(profileId);
+      const reconciled = reconcileProfileRecord(profiles, pendingDeletions, record);
+      setProfiles(reconciled.profiles);
+      setPendingDeletions(reconciled.pendingDeletions);
+      if (record.state === 'ACTIVE') profileDeleteActions.current.delete(profileId);
+    } catch (cause) {
+      setError(safeParentFlowErrorMessage(cause));
+    } finally {
+      setPendingDeletionLoadingId('');
+    }
+  }
+
+  function continueWithProfile(target: ParentProfileViewV1): void {
+    setError('');
+    if (activeRun) {
+      setError(safeParentFlowErrorMessage({ code: 'ACTIVE_RUN_EXISTS' }));
+      return;
+    }
+    resetWorkflow();
+    setProfile(target);
+    setSelectedProfileId(target.profile_id);
     setStep('topic');
   }
-
   async function openLessons(mode: 'gallery' | 'picker' = 'picker'): Promise<void> {
     setGalleryMode(mode);
     setGalleryLesson(null);
@@ -364,66 +430,75 @@ export function useParentController(application: ParentApplicationModule) {
     setTranscriptError('');
   }
 
-  async function confirmContextAndAnalyze(): Promise<void> {
+  async function createContextRun(): Promise<void> {
     if (busy) return;
-    if (!profile || !policy || !photo) {
-      setError('Chọn hồ sơ, xác nhận quyền và chụp ảnh trước khi tiếp tục.');
+    const lessonPin = lessonVersionPinFromDetail(lesson);
+    const canStart = Boolean(profile) && canBeginContextStep({
+      profileId: profile?.profile_id ?? '', topic, adultIdea: idea, lessonPin,
+    });
+    if (!canStart || !profile || !lessonPin) {
+      const code = !profile || !topic.trim() || !idea.trim() ? 'PARENT_CONTEXT_REQUIRED' : 'PARENT_LESSON_PIN_REQUIRED';
+      setError(safeParentFlowErrorMessage({ code }));
       return;
     }
-    if (activeRun && activeRun.run_id !== run?.run_id) {
-      setError(`Đã có buổi học đang mở (${activeRun.run_state}); không tạo thêm buổi mới.`);
+    if (activeRun && activeRun.run_id !== contextRun?.run_id) {
+      setError(safeParentFlowErrorMessage({ code: 'ACTIVE_RUN_EXISTS' }));
       return;
     }
-    let currentRun = run;
+
+    const signature = JSON.stringify([profile.profile_id, topic.trim(), idea.trim(), lessonPin]);
+    const actionIdentity = retainedActionIdentity(storyRunCreateAction, signature);
+    setBusy('context-create');
+    setError('');
     try {
-      setError('');
-      if (!currentRun) {
-        setBusy('understanding');
-        const { story_run: createdRun } = await application.learning.createRunForDrawing({
-          profile,
-          policyVersion: policy.policy_version,
-          topic,
-          adultIdea: idea,
-          imageBase64: photo.base64,
-          contextConfirmed: true,
-          lesson,
-        });
-        currentRun = createdRun;
-        setRun(createdRun);
-        setActiveRun(createdRun);
-      }
-
-      if (audio && !audioAttempted) {
-        const audioRun = currentRun;
-        if (!audioRun) throw new Error('Không tạo được buổi học để gắn bản ghi âm.');
-        setAudioAttempted(true);
-        setTranscript(null);
-        setTranscriptText('');
-        setTranscriptError('');
-        setStep('transcript-review');
-        setBusy('transcription');
-        try {
-          const receipt = await timeRequest('Whisper · nhận dạng ý tưởng', () => application.learning.transcribeAudio(
-            audioRun.run_id,
-            { uri: audio.uri, file_name: audio.fileName, media_type: audio.mediaType },
-          ));
-          setTranscript(receipt);
-          setTranscriptText(receipt.transcript_raw);
-        } catch (cause) {
-          setTranscriptError(displayError(cause));
-        } finally {
-          setBusy('');
-        }
-        return;
-      }
-
-      await analyzeDrawingForRun(currentRun);
+      const result = await application.learning.createRunBeforeDrawingV1({
+        profileId: profile.profile_id,
+        topic,
+        adultIdea: idea,
+        lessonPin,
+        actionIdentity,
+      });
+      setContextRun(result.story_run);
+      setActiveRun(result.story_run);
     } catch (cause) {
-      setError(displayError(cause));
+      setError(safeParentFlowErrorMessage(cause));
+    } finally {
       setBusy('');
     }
   }
 
+  async function openContextReview(): Promise<void> {
+    setContextRun(null);
+    setContextConfirmed(false);
+    setStep('context');
+    await createContextRun();
+  }
+
+  async function confirmContext(): Promise<void> {
+    if (busy || !contextRun) return;
+    const signature = JSON.stringify([
+      contextRun.run_id,
+      contextRun.context_revision,
+      contextRun.context_snapshot_sha256,
+    ]);
+    const actionIdentity = retainedActionIdentity(contextConfirmationAction, signature);
+    setBusy('context-confirmation');
+    setError('');
+    try {
+      const result = await application.learning.confirmRunContextV1(contextRun, actionIdentity);
+      setContextRun(result.story_run);
+      setActiveRun(result.story_run);
+      setContextConfirmed(true);
+      setActivityAttempted(true);
+      setActivities([]);
+      setActivitySource('');
+      setActivityError('');
+    } catch (cause) {
+      setError(safeParentFlowErrorMessage(cause));
+    } finally {
+      setBusy('');
+    }
+  }
   async function analyzeDrawingForRun(targetRun: StoryRun): Promise<void> {
     if (!photo) return;
     setBusy('understanding');
@@ -442,7 +517,7 @@ export function useParentController(application: ParentApplicationModule) {
       try {
         const [latestRun, latestActiveRun] = await Promise.all([
           application.learning.getRun(targetRun.run_id),
-          application.learning.getActiveRun(),
+          application.learning.getActiveRunV1(),
         ]);
         setRun(latestRun.story_run);
         setActiveRun(latestActiveRun.story_run);
@@ -511,24 +586,11 @@ export function useParentController(application: ParentApplicationModule) {
   }
 
   async function requestActivities(): Promise<void> {
-    if (!run || !understandingRevision || activityAttempted) return;
     setActivityAttempted(true);
-    setBusy('activity');
+    setActivities([]);
+    setActivitySource('');
     setActivityError('');
-    try {
-      const receipt = await timeRequest(
-        'Qwen3.5 · chọn hoạt động phù hợp',
-        () => application.learning.suggestActivities(run.run_id, understandingRevision),
-      );
-      setActivities(receipt.activities);
-      setActivitySource(receipt.selection_mode);
-    } catch (cause) {
-      setActivityError(displayError(cause));
-    } finally {
-      setBusy('');
-    }
   }
-
   async function requestStory(instruction?: string): Promise<void> {
     if (!run || !understandingRevision || (storyAttempted && !instruction) || (rewriteCount >= 3 && instruction)) return;
     setStoryAttempted(true);
@@ -566,7 +628,7 @@ export function useParentController(application: ParentApplicationModule) {
     try {
       const receipt = await application.learning.confirmStory(run.run_id, run.story_revision_no, storySha256);
       setRun(receipt.story_run);
-      setActiveRun(receipt.story_run);
+      setActiveRun(null);
       setStoryConfirmed(true);
       setStep('handoff');
     } catch (cause) {
@@ -578,13 +640,21 @@ export function useParentController(application: ParentApplicationModule) {
 
   function resumeActiveRun(): void {
     if (!activeRun) return;
-    restoreRun(activeRun);
-    if (activeRun.story_status === 'CONFIRMED') setStep('handoff');
-    else if (parseStoryDraft(activeRun.story)) setStep('story');
-    else if (activeRun.candidate) setStep('understanding');
-    else setError('Buổi đang mở chưa có dữ liệu đủ để khôi phục màn tiếp theo. Không tạo buổi mới để tránh trùng.');
+    const selected = selectProfileById(profiles, activeRun.parent_profile_id);
+    if (selected) {
+      setProfile(selected);
+      setSelectedProfileId(selected.profile_id);
+    }
+    if (activeRun.run_state === 'CONTEXT_PENDING') {
+      setContextRun(activeRun);
+      setContextConfirmed(false);
+      setTopic(activeRun.context_snapshot.topic);
+      setIdea(activeRun.context_snapshot.adult_confirmed_idea);
+      setStep('context');
+      return;
+    }
+    setError('Buổi học đang mở đã qua bước ngữ cảnh. Không thể tiếp tục trong bước kiểm tra này.');
   }
-
   async function changePassword(currentPassword: string, nextPassword: string): Promise<void> {
     setAccountError('');
     setBusy('password');
@@ -612,7 +682,9 @@ export function useParentController(application: ParentApplicationModule) {
     setCurrentUser(null);
     setProfiles([]);
     setProfile(null);
-    setPolicy(null);
+    setSelectedProfileId('');
+    setProfileBeingEdited(null);
+    setPendingDeletions([]);
     setActiveRun(null);
     setStep('auth');
     setAuthError('');
@@ -621,28 +693,37 @@ export function useParentController(application: ParentApplicationModule) {
 
   function resetWorkflow(): void {
     setTopic(''); setIdea(''); setLesson(null); setPhoto(null); setRun(null); setCandidate(null); setSubject('');
+    setContextRun(null); setContextConfirmed(false); setProfileFieldErrors({});
     setAudioValue(null); setAudioAttempted(false); setTranscript(null); setTranscriptText(''); setTranscriptError('');
     setUnderstandingRevision(0); setActivities([]); setActivitySource(''); setActivityAttempted(false); setActivityError('');
     setStory(null); setStorySha256(''); setStoryAttempted(false); setStoryConfirmed(false); setRewriteCount(0); setRewriteInstruction('');
     setGuideBase64(''); setGuideEnabled(false); setEvents([]); setError(''); setBusy('');
+    profileCreateAction.current = null;
+    profilePatchActions.current.clear();
+    profileDeleteActions.current.clear();
+    storyRunCreateAction.current = null;
+    contextConfirmationAction.current = null;
   }
 
   return {
-    step, setStep, policy, currentUser, profiles, profile, setProfile, profileBeingEdited, setProfileBeingEdited,
+    step, setStep, currentUser, profiles, profile, setProfile, selectedProfileId, profileBeingEdited, setProfileBeingEdited,
+    pendingDeletions, pendingDeletionLoadingId, profileFieldErrors,
     publicSettings: application.publicSettings,
     activeRun, topic, setTopic, idea, setIdea, lesson, setLesson, lessons, lessonLoading, lessonLoadingId, lessonError,
     galleryMode, galleryLesson, lessonInvitations, groupInvitations, accountError, guideEnabled, setGuideEnabled,
     guideBase64, guideBusy, guideError, photo, setPhoto, audio, setAudio, transcript, transcriptText, setTranscriptText,
     transcriptError, audioAttempted, transcriptBusy: busy === 'transcription' || busy === 'transcript-confirmation',
-    run, candidate, subject, setSubject, understandingRevision,
+    run, contextRun, contextConfirmed, candidate, subject, setSubject, understandingRevision,
     activities, activitySource, activityAttempted, activityError, story, storySha256, storyAttempted,
     storyConfirmed, rewriteCount, rewriteInstruction, setRewriteInstruction, events, busy, error, authError, bootstrapBusy,
-    loadParentData, authenticate, signInWithGoogle, resetPassword, createProfileAndReturn, updateProfile, authorizeProfile,
-    revokeProfileAuthorization, archiveProfile, continueWithProfile, openLessons, chooseLesson, acceptLessonInvitation,
-    declineLessonInvitation, acceptGroupInvitation, createGuide, confirmContextAndAnalyze,
+    loadParentData, authenticate, signInWithGoogle, resetPassword, createProfileAndReturn, updateProfile,
+    selectProfile, requestProfileDeletion, refreshPendingDeletion, continueWithProfile, openLessons, chooseLesson, acceptLessonInvitation,
+    declineLessonInvitation, acceptGroupInvitation, createGuide, openContextReview, confirmContext,
     confirmReviewedTranscript, continueWithoutAudio, confirmSubject,
     requestActivities, requestStory, confirmStory, resumeActiveRun, changePassword, resetCurrentPassword, signOut,
+    retryContextCreation: createContextRun,
     resetWorkflow, backToProfile: () => { setStep('profile'); setError(''); },
+    clearProfileFormErrors: () => setProfileFieldErrors({}),
     clearError: () => setError(''),
   };
 }
@@ -660,4 +741,31 @@ function requestIdOf(value: unknown): string | undefined {
     return typeof requestId === 'string' ? requestId : undefined;
   }
   return undefined;
+}
+
+type RetainedActionIdentity = {
+  signature: string;
+  identity: ParentActionIdentity;
+};
+
+function retainedActionIdentity(
+  reference: { current: RetainedActionIdentity | null },
+  signature: string,
+): ParentActionIdentity {
+  if (!reference.current || reference.current.signature !== signature) {
+    reference.current = { signature, identity: createParentActionIdentity() };
+  }
+  return reference.current.identity;
+}
+
+function retainedMapActionIdentity(
+  actions: Map<string, RetainedActionIdentity>,
+  action: string,
+  signature: string,
+): ParentActionIdentity {
+  const current = actions.get(action);
+  if (current?.signature === signature) return current.identity;
+  const retained = { signature, identity: createParentActionIdentity() };
+  actions.set(action, retained);
+  return retained.identity;
 }

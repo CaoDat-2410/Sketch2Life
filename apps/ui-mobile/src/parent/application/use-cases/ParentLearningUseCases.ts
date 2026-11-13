@@ -1,5 +1,18 @@
-import type { AudioUploadInput, ParentApiPort, ParentDrawingMediaType, StoryRunCreateInput } from '../ports/ParentPorts';
-import type { LessonDetail, ParentProfile } from '../../domain/types';
+import type {
+  AudioUploadInput,
+  ParentActionIdentity,
+  ParentApiPort,
+  ParentDrawingMediaType,
+  StoryRunCreateInput,
+} from '../ports/ParentPorts';
+import type {
+  LessonDetail,
+  ParentActiveStoryRunEnvelopeV1,
+  ParentLessonVersionPinV1,
+  ParentProfile,
+  ParentStoryRunEnvelopeV1,
+  ParentStoryRunV1,
+} from '../../domain/types';
 import { ParentApplicationError } from '../ParentApplicationError';
 
 export class ParentLearningUseCases {
@@ -7,7 +20,59 @@ export class ParentLearningUseCases {
 
   getActiveRun() { return this.api.getActiveStoryRun(); }
   getRun(runId: string) { return this.api.getStoryRun(runId); }
+  getActiveRunV1(): Promise<ParentActiveStoryRunEnvelopeV1> { return this.api.getActiveStoryRunV1(); }
+  getRunV1(runId: string) { return this.api.getStoryRunV1(runId); }
   generateSketchGuide(topic: string) { return this.api.generateSketchGuide(topic); }
+  async createRunBeforeDrawingV1(input: {
+    profileId: string;
+    topic: string;
+    adultIdea: string;
+    lessonPin: ParentLessonVersionPinV1;
+    actionIdentity: ParentActionIdentity;
+  }): Promise<ParentStoryRunEnvelopeV1> {
+    const profileId = input.profileId.trim();
+    const topic = input.topic.trim();
+    const adultIdea = input.adultIdea.trim();
+    const pin = input.lessonPin;
+    if (!profileId || !topic || !adultIdea) {
+      throw new ParentApplicationError('PARENT_CONTEXT_REQUIRED', 'Hãy chọn hồ sơ và nhập ý tưởng trước khi bắt đầu.');
+    }
+    if (!pin?.lesson_id.trim() || !pin.version_id.trim() || !pin.content_sha256.trim()) {
+      throw new ParentApplicationError('PARENT_LESSON_PIN_REQUIRED', 'Hãy chọn bài học trước khi bắt đầu.');
+    }
+    try {
+      return await this.api.createStoryRunV1({
+        parent_profile_id: profileId,
+        topic,
+        adult_confirmed_idea: adultIdea,
+        lesson_version: {
+          lesson_id: pin.lesson_id,
+          version_id: pin.version_id,
+          content_sha256: pin.content_sha256,
+        },
+      }, input.actionIdentity);
+    } catch (error) {
+      if (!(error instanceof ParentApplicationError) || error.code !== 'ACTIVE_RUN_EXISTS') throw error;
+      const active = await this.api.getActiveStoryRunV1();
+      if (active.story_run) {
+        return {
+          ...(active.request_id === undefined ? {} : { request_id: active.request_id }),
+          story_run: active.story_run,
+        };
+      }
+      throw error;
+    }
+  }
+  confirmRunContextV1(run: ParentStoryRunV1, actionIdentity: ParentActionIdentity) {
+    if (!run.run_id.trim() || run.context_revision < 1 || !run.context_snapshot_sha256.trim()) {
+      throw new ParentApplicationError('PARENT_CONTEXT_SNAPSHOT_INVALID', 'Chưa thể xác nhận ngữ cảnh của buổi học này.');
+    }
+    return this.api.confirmStoryRunContextV1(run.run_id, {
+      expected_context_revision: run.context_revision,
+      context_snapshot_sha256: run.context_snapshot_sha256,
+      confirmed: true,
+    }, actionIdentity);
+  }
   createRunForDrawing(input: {
     profile: ParentProfile;
     policyVersion: string;
@@ -44,6 +109,10 @@ export class ParentLearningUseCases {
     if (!subject.trim()) throw new ParentApplicationError('PARENT_SUBJECT_REQUIRED', 'Xác nhận chủ thể của bức vẽ trước.');
     return this.api.confirmSubject(runId, revision, subject);
   }
+  confirmSubjectV1(runId: string, revision: number, subject: string, actionIdentity: ParentActionIdentity) {
+    if (!subject.trim()) throw new ParentApplicationError('PARENT_SUBJECT_REQUIRED', 'Xác nhận chủ thể của bức vẽ trước.');
+    return this.api.confirmStoryRunSubjectV1(runId, revision, subject, actionIdentity);
+  }
   suggestActivities(runId: string, revision: number) { return this.api.suggestActivities(runId, revision); }
   generateStory(runId: string, revision: number, rewriteInstruction?: string, rewriteCount = 0) {
     if (rewriteInstruction?.trim() && rewriteCount >= 3) {
@@ -53,6 +122,12 @@ export class ParentLearningUseCases {
   }
   confirmStory(runId: string, revision: number, sha256: string) {
     return this.api.confirmStory(runId, revision, sha256);
+  }
+  confirmScriptV1(runId: string, revision: number, sha256: string, actionIdentity: ParentActionIdentity) {
+    return this.api.confirmStoryRunScriptV1(runId, revision, sha256, actionIdentity);
+  }
+  createStoryRevisionV1(runId: string, revision: number, rewriteInstruction: string | undefined, actionIdentity: ParentActionIdentity) {
+    return this.api.createStoryRevisionV1(runId, revision, rewriteInstruction, actionIdentity);
   }
 
   transcribeAudio(runId: string, audio: AudioUploadInput) {

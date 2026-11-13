@@ -1,12 +1,12 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import type { ParentProfile, StoryRun } from '../../domain/types';
+import type { ParentProfileViewV1, ParentStoryRunV1 } from '../../domain/types';
 import { Card, Notice, PrimaryButton, ScreenFrame, SecondaryButton, SectionTitle, palette } from '../components/ui';
-import { buildHomeProfileSummary } from './catalogViewModel';
 
 type Props = {
-  profiles: ParentProfile[];
-  activeRun: StoryRun | null;
+  profiles: ParentProfileViewV1[];
+  selectedProfile: ParentProfileViewV1 | null;
+  activeRun: ParentStoryRunV1 | null;
   error: string;
   onStart: () => void;
   onManageProfiles: () => void;
@@ -24,6 +24,7 @@ type Props = {
 
 export function HomeScreen({
   profiles,
+  selectedProfile,
   activeRun,
   error,
   onStart,
@@ -39,7 +40,13 @@ export function HomeScreen({
   onResumeRun,
   onSignOut,
 }: Props): React.JSX.Element {
-  const profileSummary = buildHomeProfileSummary(profiles);
+  const profileSummary = {
+    title: 'Hồ sơ của bé',
+    description: profiles.length === 0
+      ? 'Tạo hồ sơ để lưu độ tuổi và sở thích cho từng buổi.'
+      : `${profiles.length} hồ sơ đã sẵn sàng.`,
+    actionLabel: 'Xem hồ sơ',
+  };
 
   return (
     <ScreenFrame title="Trang chủ" subtitle="Cùng con bắt đầu một hành trình khám phá mới.">
@@ -63,6 +70,7 @@ export function HomeScreen({
 
       <Card style={styles.profileCard}>
         <SectionTitle>{profileSummary.title}</SectionTitle>
+        {selectedProfile ? <Text style={styles.selectedProfile}>Bé đang chọn: {selectedProfile.display_name}</Text> : null}
         <Text style={styles.bodyText}>{profileSummary.description}</Text>
         <SecondaryButton label={profileSummary.actionLabel} onPress={onManageProfiles} />
       </Card>
@@ -122,6 +130,12 @@ const styles = StyleSheet.create({
   bodyText: {
     color: palette.muted,
     fontSize: 14,
+    lineHeight: 21,
+  },
+  selectedProfile: {
+    color: palette.ink,
+    fontSize: 14,
+    fontWeight: '700',
     lineHeight: 21,
   },
   familyCard: {

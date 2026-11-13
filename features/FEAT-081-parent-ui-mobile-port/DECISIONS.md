@@ -22,3 +22,21 @@ These decisions authorize this feature's recorded Wave 1 approval only. Implemen
 - Reference: ADR-0023-feat081-mobile-ui-target.md.
 - Basis: direct owner instruction 2026-11-12.
 - Exact DECISIONS.md SHA-256 immediately before appending D-009: 35CC570FABE7144ECB8B9B3AE098E484A4E432D7FEDE5448FD6FACFCC3997CB9.
+## D-010 - FEAT-081 Wave 2 API wiring plan approval (not launch)
+
+- Decision: Approve Wave 2 API wiring for FEAT-081 under `plan/PLAN_REVISION_3.md`, an exact copy of the owner-pinned R2 draft. Wave 2 is APPROVED / NOT LAUNCHED. The plan's `DRAFT` header is superseded by Addendum 4; no implementation is launched by this decision.
+- Owner product decisions:
+  1. Tomorrow's StoryRun requires a lesson preset/version pin.
+  2. `drawing-understandings` stays unchanged and receives no added `Idempotency-Key`.
+  3. Consent and data-authorization calls stay removed; no consent-return path is designed here.
+  4. `activity-suggestions` is not mounted; use the existing Activity screen skip action.
+  5. Use synthetic profiles; restore existing profiles through the profile list route.
+  6. `OWNER_MODAL_CALL_APPROVED=NO`; the owner-run flow stops before `drawing-understandings`.
+- Launch gates: 2A and 2B are separate. 2A requires a separate explicit owner launch instruction. 2B requires its own instruction after 2A passes.
+- S1a-P2 basis: The pending, not-yet-ACCEPTED list/delete/Parent-role-gate contract is accepted as the working basis for 2A and may change slightly. Any change after S1a-P2 acceptance is handled by a new addendum.
+- Wave 2 baseline: Owner-run results at 2026-11-12 23:56 and 2026-11-13 00:15 on bytes identical to commit `3c75b10d` are the baselines: `pnpm run test` reported 4 files / 29 tests passed and `UI_COPY_AND_RECOVERY_VALID`; typecheck had no diagnostics; `validate_harness`, `validate_repository_security`, `validate_architecture`, and `git diff --check` all exited 0. These results consume the baseline invocation of each command in the approved ceilings.
+- Command ceilings: `pnpm run test` 3 total; `pnpm run typecheck` 3 total; each of `validate_harness`, `validate_repository_security`, `validate_architecture`, and `git diff --check` 2 total. The baseline invocation is consumed.
+- Pinned plan: `plan/PLAN_REVISION_3.md`, 34,224 bytes, SHA-256 `73A5873DB1F37366A7A4C69C97ED2F4A81B565C3777E10C3C0F63341FF41DA1E`.
+- Previous DECISIONS prefix pin: 3,950 bytes, SHA-256 `3952CB3BCA12ABD21109B3F209A181CF3B91F3D1D01FAEEB5DA64ABFD64A3805`.
+- Post-append DECISIONS.md byte length and SHA-256 are recorded in Addendum 4, status/context, and the command ledger after this append.
+- Basis: direct owner approval dated 2026-11-13.

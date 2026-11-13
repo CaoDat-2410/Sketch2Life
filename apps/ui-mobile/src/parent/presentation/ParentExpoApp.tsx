@@ -3,6 +3,7 @@ import { ActivityIndicator, StatusBar, Text, View } from 'react-native';
 import type { ParentApplicationModule } from '../application/ports/ParentApplicationModule';
 import type { ParentMainTab } from './screens/ParentBottomBar';
 import type { AppStep } from './navigation/workflowTypes';
+import { selectProfileById } from './navigation/parentFlowV1';
 import { useParentController } from './navigation/useParentController';
 import { useParentPlatformController } from './navigation/useParentPlatformController';
 import { AccountScreen } from './screens/AccountScreen';
@@ -34,32 +35,33 @@ type Props = { application: ParentApplicationModule };
 export default function ParentExpoApp({ application }: Props): React.JSX.Element {
   const parent = useParentController(application);
   const platform = useParentPlatformController(application);
+  const selectedProfile = selectProfileById(parent.profiles, parent.selectedProfileId);
 
   function openHistory(): void {
     parent.setStep('history');
-    void platform.loadRuns(parent.profile?.parent_profile_id);
+    void platform.loadRuns(parent.profile?.profile_id);
   }
 
   function openSharing(): void {
-    const selected = parent.profile ?? parent.profiles[0] ?? null;
+    const selected = parent.profile ?? selectedProfile;
     if (!selected) {
       parent.setStep('profile');
       return;
     }
-    parent.setProfile(selected);
+    parent.selectProfile(selected);
     parent.setStep('profile-sharing');
-    void platform.loadShares(selected.parent_profile_id);
+    void platform.loadShares(selected.profile_id);
   }
 
   function openDeliveredLessons(): void {
-    const selected = parent.profile ?? parent.profiles[0] ?? null;
+    const selected = parent.profile ?? selectedProfile;
     if (!selected) {
       parent.setStep('profile');
       return;
     }
-    parent.setProfile(selected);
+    parent.selectProfile(selected);
     parent.setStep('lesson-history');
-    void platform.loadDeliveries(selected.parent_profile_id);
+    void platform.loadDeliveries(selected.profile_id);
   }
 
   function openNotifications(): void {
@@ -79,9 +81,7 @@ export default function ParentExpoApp({ application }: Props): React.JSX.Element
     if (tab === 'lessons') return void parent.openLessons('gallery');
     if (parent.activeRun) return parent.resumeActiveRun();
 
-    const selectedProfile = parent.profiles.find((item) => item.parent_profile_id === parent.profile?.parent_profile_id)
-      ?? parent.profiles[0];
-    if (selectedProfile?.authorization_current) parent.continueWithProfile(selectedProfile);
+    if (selectedProfile) parent.continueWithProfile(selectedProfile);
     else parent.setStep('profile');
   }
 
@@ -115,16 +115,17 @@ export default function ParentExpoApp({ application }: Props): React.JSX.Element
   if (parent.step === 'profile') {
     return mainSection('profiles', <ProfileScreen
       profiles={parent.profiles}
-      selectedProfileId={parent.profile?.parent_profile_id ?? parent.profiles[0]?.parent_profile_id ?? ''}
+      pendingDeletions={parent.pendingDeletions}
+      selectedProfileId={parent.selectedProfileId}
       activeRun={parent.activeRun}
       busy={parent.busy}
+      pendingDeletionLoadingId={parent.pendingDeletionLoadingId}
       error={parent.error}
-      onSelect={parent.setProfile}
-      onCreate={() => parent.setStep('profile-create')}
-      onEdit={(profile) => { parent.setProfileBeingEdited(profile); parent.setStep('profile-edit'); }}
-      onAuthorize={(profile) => void parent.authorizeProfile(profile)}
-      onRevoke={(profile) => void parent.revokeProfileAuthorization(profile)}
-      onArchive={(profile) => void parent.archiveProfile(profile)}
+      onSelect={parent.selectProfile}
+      onCreate={() => { parent.clearProfileFormErrors(); parent.setProfileBeingEdited(null); parent.setStep('profile-create'); }}
+      onEdit={(profile) => { parent.clearProfileFormErrors(); parent.setProfileBeingEdited(profile); parent.setStep('profile-edit'); }}
+      onRequestDeletion={(profile) => void parent.requestProfileDeletion(profile)}
+      onRefreshPendingDeletion={(profileId) => void parent.refreshPendingDeletion(profileId)}
       onContinue={parent.continueWithProfile}
       onResumeRun={parent.resumeActiveRun}
       onBackHome={() => { parent.clearError(); parent.setStep('home'); }}
@@ -134,6 +135,7 @@ export default function ParentExpoApp({ application }: Props): React.JSX.Element
   if (parent.step === 'home') {
     return mainSection('home', <HomeScreen
       profiles={parent.profiles}
+      selectedProfile={selectedProfile}
       activeRun={parent.activeRun}
       error={parent.error}
       onStart={() => { parent.clearError(); parent.setStep('profile'); }}
@@ -154,11 +156,12 @@ export default function ParentExpoApp({ application }: Props): React.JSX.Element
   if (parent.step === 'profile-create' || parent.step === 'profile-edit') {
     const isEditing = parent.step === 'profile-edit';
     return <ProfileFormScreen
+      key={isEditing ? parent.profileBeingEdited?.revision_no : 'create'}
       mode={isEditing ? 'edit' : 'create'}
       profile={parent.profileBeingEdited}
-      policy={parent.policy}
       busy={parent.busy === 'profile' || parent.busy === 'profile-update'}
       error={parent.error}
+      fieldErrors={parent.profileFieldErrors}
       onCreate={parent.createProfileAndReturn}
       onUpdate={parent.updateProfile}
       onBack={() => { parent.clearError(); parent.setStep('profile'); }}
@@ -234,14 +237,14 @@ export default function ParentExpoApp({ application }: Props): React.JSX.Element
     loading={platform.runsBusy}
     error={platform.runsError}
     hasMore={Boolean(platform.runsCursor)}
-    onLoad={() => void platform.loadRuns(parent.profile?.parent_profile_id)}
+    onLoad={() => void platform.loadRuns(parent.profile?.profile_id)}
     onLoadMore={() => void platform.loadRuns(undefined, platform.runsCursor)}
     onCancel={(runId) => void platform.cancelRun(runId)}
     onDelete={(runId) => void platform.deleteRun(runId)}
     onBack={() => parent.setStep('home')}
   />);
   if (parent.step === 'profile-sharing') return mainSection('home', <ProfileSharingScreen
-    profile={parent.profile ?? parent.profiles[0] ?? null}
+    profile={parent.profile ?? selectedProfile}
     grants={platform.shares}
     loading={platform.sharesBusy}
     error={platform.sharesError}
@@ -254,7 +257,7 @@ export default function ParentExpoApp({ application }: Props): React.JSX.Element
     loading={platform.deliveriesBusy}
     error={platform.deliveriesError}
     hasMore={Boolean(platform.deliveriesCursor)}
-    onLoad={() => { const id = parent.profile?.parent_profile_id; if (id) void platform.loadDeliveries(id); }}
+    onLoad={() => { const id = parent.profile?.profile_id; if (id) void platform.loadDeliveries(id); }}
     onLoadMore={() => void platform.loadDeliveries(platform.deliveriesProfileId, platform.deliveriesCursor)}
     onSubmitFeedback={platform.submitFeedback}
     onBack={() => parent.setStep('home')}
@@ -284,7 +287,7 @@ function renderLearningStep(parent: ReturnType<typeof useParentController>): Rea
     onGuideToggle={parent.setGuideEnabled}
     onGenerateGuide={() => void parent.createGuide()}
     onOpenLessons={() => void parent.openLessons('picker')}
-    onContinue={() => parent.setStep('capture')}
+    onContinue={() => void parent.openContextReview()}
     onBack={parent.backToProfile}
   />;
   if (step === 'lessons') return <LessonPickerScreen
@@ -297,19 +300,17 @@ function renderLearningStep(parent: ReturnType<typeof useParentController>): Rea
     onClear={() => { parent.setLesson(null); parent.setStep('topic'); }}
     onBack={() => parent.setStep('topic')}
   />;
-  if (step === 'capture') return <CaptureScreen photo={parent.photo} stepLabel={stepLabel(2, 2)} onPhoto={parent.setPhoto} onContinue={() => parent.setStep('context')} onBack={() => parent.setStep('topic')} />;
-  if (step === 'context' && parent.profile && parent.policy && parent.photo) return <ContextScreen
+  if (step === 'capture') return <CaptureScreen photo={parent.photo} stepLabel={stepLabel(2, 2)} onPhoto={parent.setPhoto} onContinue={() => void parent.openContextReview()} onBack={() => parent.setStep('topic')} />;
+  if (step === 'context') return <ContextScreen
     profile={parent.profile}
-    policyVersion={parent.policy.policy_version}
-    topic={parent.topic}
-    idea={parent.idea}
-    lesson={parent.lesson}
-    photo={parent.photo}
-    stepLabel={stepLabel(3, 3)}
-    busy={parent.busy === 'understanding' || parent.busy === 'transcription'}
+    contextRun={parent.contextRun}
+    busy={parent.busy === 'context-create' || parent.busy === 'context-confirmation'}
+    confirmed={parent.contextConfirmed}
     error={parent.error}
-    onConfirm={() => void parent.confirmContextAndAnalyze()}
-    onBack={() => parent.setStep('capture')}
+    onRetryCreate={() => void parent.retryContextCreation()}
+    onConfirm={() => void parent.confirmContext()}
+    onContinue={() => parent.setStep('activity')}
+    onBack={() => parent.setStep('topic')}
   />;
   if (step === 'transcript-review') return <TranscriptReviewScreen
     stepLabel={stepLabel(4, 4)}
@@ -341,7 +342,7 @@ function renderLearningStep(parent: ReturnType<typeof useParentController>): Rea
     error={parent.activityError}
     onSuggest={() => void parent.requestActivities()}
     onSkip={() => parent.setStep('story')}
-    onBack={() => parent.setStep('understanding')}
+    onBack={() => parent.setStep('context')}
   />;
   if (step === 'story') return <StoryScreen
     stepLabel={stepLabel(6, 7)}

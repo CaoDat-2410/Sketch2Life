@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Text, View } from 'react-native';
-import type { ParentProfile, ParentProfileShareGrant } from '../../domain/types';
+import type { ParentProfileShareGrant, ParentProfileViewV1 } from '../../domain/types';
 import { Card, Field, Notice, PrimaryButton, ScreenFrame, SectionTitle, TextButton, palette } from '../components/ui';
 
 type Props = {
-  profile: ParentProfile | null;
+  profile: ParentProfileViewV1 | null;
   grants: ParentProfileShareGrant[];
   loading: boolean;
   error: string;
@@ -22,27 +22,25 @@ export function ProfileSharingScreen(props: Props): React.JSX.Element {
     try {
       await props.onInvite(teacherSubject);
       setTeacherSubject('');
-    } catch (cause) {
-      setFormError(cause instanceof Error ? cause.message : 'Không gửi được lời mời.');
+    } catch {
+      setFormError('Chưa gửi được lời mời. Vui lòng kiểm tra lại rồi thử sau.');
     }
   }
 
   return (
-    <ScreenFrame title="Chia sẻ hồ sơ" subtitle={props.profile?.current_revision.display_name ?? 'Chọn hồ sơ của bé trước.'} onBack={props.onBack}>
-      {!props.profile ? <Notice text="Chọn một hồ sơ trẻ để quản lý quyền chia sẻ." tone="warning" /> : null}
-      {props.profile && !props.profile.authorization_current
-        ? <Notice text="Hồ sơ chưa có quyền xử lý dữ liệu hiện hành nên chưa thể chia sẻ." tone="warning" />
-        : null}
-      {props.profile?.authorization_current ? <Card>
+    <ScreenFrame title="Chia sẻ hồ sơ" subtitle={props.profile?.display_name ?? 'Chọn hồ sơ của bé trước.'} onBack={props.onBack}>
+      {!props.profile ? <Notice text="Chọn một hồ sơ để quản lý việc chia sẻ." tone="warning" /> : <Card>
         <SectionTitle>Mời giáo viên</SectionTitle>
-        <Text style={{ color: palette.muted, lineHeight: 20 }}>Nhập mã tài khoản giáo viên. Lời mời chưa cấp quyền xem cho đến khi giáo viên chấp nhận và liên kết đúng hồ sơ.</Text>
+        <Text style={{ color: palette.muted, lineHeight: 20 }}>
+          Nhập mã tài khoản giáo viên. Lời mời chỉ có hiệu lực khi giáo viên chấp nhận.
+        </Text>
         <Field label="Mã tài khoản giáo viên" value={teacherSubject} onChangeText={setTeacherSubject} autoCapitalize="none" />
         {formError ? <Notice text={formError} tone="error" /> : null}
         <PrimaryButton label="Gửi lời mời" busy={props.loading} disabled={!teacherSubject.trim()} onPress={() => void submit()} />
-      </Card> : null}
-      {props.error ? <Notice text={props.error} tone="error" /> : null}
+      </Card>}
+      {props.error ? <Notice text="Chưa tải được thông tin chia sẻ. Vui lòng thử lại sau." tone="error" /> : null}
       <Card>
-        <SectionTitle>Quyền đang có</SectionTitle>
+        <SectionTitle>Quyền chia sẻ</SectionTitle>
         {!props.grants.length ? <Text style={{ color: palette.muted }}>Chưa có lời mời hoặc quyền chia sẻ.</Text> : null}
         {props.grants.map((grant) => <ViewGrant key={grant.grant_id} grant={grant} loading={props.loading} onRevoke={props.onRevoke} />)}
       </Card>
@@ -56,7 +54,7 @@ function ViewGrant({ grant, loading, onRevoke }: { grant: ParentProfileShareGran
     <Text style={{ color: palette.ink, fontWeight: '800' }}>{shareStateLabel(grant.state)}</Text>
     <Text style={{ color: palette.muted, fontSize: 13 }}>Giáo viên: {grant.teacher_subject}</Text>
     {grant.expires_at ? <Text style={{ color: palette.muted, fontSize: 13 }}>Có hiệu lực đến {new Date(grant.expires_at).toLocaleDateString('vi-VN')}</Text> : null}
-    {canRevoke ? <TextButton label="Thu hồi quyền" disabled={loading} onPress={() => onRevoke(grant.grant_id)} /> : null}
+    {canRevoke ? <TextButton label="Thu hồi quyền chia sẻ" disabled={loading} onPress={() => onRevoke(grant.grant_id)} /> : null}
   </Card>;
 }
 

@@ -1,41 +1,66 @@
 import React from 'react';
-import { Image, Text, View } from 'react-native';
-import type { LessonDetail, ParentProfile } from '../../domain/types';
-import type { SelectedPhoto } from '../navigation/workflowTypes';
-import { Card, Notice, PrimaryButton, ScreenFrame, SectionTitle, palette } from '../components/ui';
+import { ActivityIndicator, Text } from 'react-native';
+import type { ParentProfileViewV1, ParentStoryRunV1 } from '../../domain/types';
+import { Card, Notice, PrimaryButton, ScreenFrame, SectionTitle, SecondaryButton, palette } from '../components/ui';
 
 type Props = {
-  profile: ParentProfile;
-  policyVersion: string;
-  topic: string;
-  idea: string;
-  lesson: LessonDetail | null;
-  photo: SelectedPhoto;
-  stepLabel: string;
+  profile: ParentProfileViewV1 | null;
+  contextRun: ParentStoryRunV1 | null;
   busy: boolean;
+  confirmed: boolean;
   error: string;
+  onRetryCreate: () => void;
   onConfirm: () => void;
+  onContinue: () => void;
   onBack: () => void;
 };
 
 export function ContextScreen(props: Props): React.JSX.Element {
+  const snapshot = props.contextRun?.context_snapshot;
+  const lessonPin = props.contextRun?.lesson_pin_snapshot;
+
   return (
-    <ScreenFrame title="Xác nhận trước khi tiếp tục" subtitle="Người lớn kiểm tra đúng hồ sơ và bức tranh trước khi tạo buổi học." step={props.stepLabel} onBack={props.onBack}>
-      <Card>
+    <ScreenFrame
+      title="Kiểm tra ngữ cảnh"
+      subtitle="Người lớn xem lại chủ đề và gợi ý trước khi xác nhận buổi học."
+      onBack={props.onBack}
+    >
+      {props.profile ? <Card>
         <SectionTitle>Hồ sơ được chọn</SectionTitle>
-        <Text style={{ color: palette.ink, fontSize: 16, fontWeight: '700' }}>{props.profile.current_revision.display_name} · {props.profile.current_revision.age_months} tháng</Text>
-        <Text style={{ color: palette.muted, fontSize: 13 }}>Quyền xử lý: {props.policyVersion} · revision {props.profile.current_revision.revision}</Text>
-      </Card>
+        <Text style={{ color: palette.ink, fontSize: 16, fontWeight: '700' }}>
+          {props.profile.display_name} · {props.profile.age_months} tháng
+        </Text>
+      </Card> : null}
+
       <Card>
-        <View style={{ width: '100%', height: 220, borderRadius: 13, backgroundColor: '#F2F6FB', overflow: 'hidden' }}><Image source={{ uri: props.photo.uri }} resizeMode="contain" style={{ width: '100%', height: '100%' }} /></View>
-        <SectionTitle>Chủ đề và gợi ý</SectionTitle>
-        <Text style={{ color: palette.ink, fontSize: 14 }}>Chủ đề: {props.topic.trim() || 'để AI tìm hiểu từ tranh'}</Text>
-        {props.idea.trim() ? <Text style={{ color: palette.muted, fontSize: 14 }}>Ý tưởng: {props.idea.trim()}</Text> : null}
-        {props.lesson ? <Notice text={`Giáo án đã pin: ${props.lesson.title} · phiên bản ${props.lesson.version_no}`} tone="success" /> : <Text style={{ color: palette.muted, fontSize: 13 }}>Không dùng giáo án mẫu.</Text>}
+        <SectionTitle>Chủ đề và gợi ý từ người lớn</SectionTitle>
+        {snapshot ? <>
+          <Text style={{ color: palette.ink, fontSize: 14, lineHeight: 21 }}>Chủ đề: {snapshot.topic}</Text>
+          <Text style={{ color: palette.muted, fontSize: 14, lineHeight: 21 }}>Gợi ý: {snapshot.adult_confirmed_idea}</Text>
+          {snapshot.interests_summary ? <Text style={{ color: palette.muted, fontSize: 13, lineHeight: 19 }}>
+            Sở thích đã lưu: {snapshot.interests_summary}
+          </Text> : null}
+        </> : props.busy ? <ActivityIndicator color={palette.blue} /> : <Text style={{ color: palette.muted }}>
+          Chưa tải được nội dung buổi học. Hãy thử lại.
+        </Text>}
+        {lessonPin ? <Notice text="Bài học đã chọn được gắn với buổi học này." tone="success" /> : null}
       </Card>
+
       {props.error ? <Notice text={props.error} tone="error" /> : null}
-      <PrimaryButton label="Xác nhận và phân tích tranh" busy={props.busy} onPress={props.onConfirm} />
-      <Text style={{ color: palette.muted, textAlign: 'center', fontSize: 12, lineHeight: 18 }}>Ảnh chỉ được gửi sau khi bạn xác nhận màn này.</Text>
+      {props.confirmed ? <>
+        <Notice text="Ngữ cảnh đã được xác nhận." tone="success" />
+        <SecondaryButton label="Tiếp tục" disabled={props.busy} onPress={props.onContinue} />
+      </> : props.contextRun ? <PrimaryButton
+        label="Xác nhận ngữ cảnh"
+        busy={props.busy}
+        disabled={props.busy}
+        onPress={props.onConfirm}
+      /> : <PrimaryButton
+        label="Thử lại bước này"
+        busy={props.busy}
+        disabled={props.busy}
+        onPress={props.onRetryCreate}
+      />}
     </ScreenFrame>
   );
 }

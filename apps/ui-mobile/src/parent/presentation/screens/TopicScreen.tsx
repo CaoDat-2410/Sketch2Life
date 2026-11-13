@@ -81,10 +81,10 @@ export function TopicScreen(props: Props): React.JSX.Element {
   }
 
   return (
-    <ScreenFrame title="Chọn chủ đề" subtitle="Bạn có thể để trống. Ảnh tranh vẫn là bước bắt buộc." step={props.stepLabel} onBack={props.onBack}>
+    <ScreenFrame title="Chọn chủ đề" subtitle="Nhập chủ đề và gợi ý, rồi xem lại ngữ cảnh của buổi học." step={props.stepLabel} onBack={props.onBack}>
       <Card>
-        <Field label="Chủ đề (tùy chọn)" value={props.topic} onChangeText={props.onTopic} placeholder="Ví dụ: con bướm" />
-        <Field label="Ý tưởng của người lớn (tùy chọn)" value={props.idea} onChangeText={props.onIdea} placeholder="Điều bé đang tò mò…" multiline />
+        <Field label="Chủ đề" value={props.topic} onChangeText={props.onTopic} placeholder="Ví dụ: con bướm" />
+        <Field label="Ý tưởng của người lớn" value={props.idea} onChangeText={props.onIdea} placeholder="Điều bé đang tò mò…" multiline />
         <SectionTitle>Hoặc ghi âm ý tưởng</SectionTitle>
         <Text style={{ color: palette.muted, fontSize: 13 }}>Tối đa 2 phút. Transcript sẽ được người lớn xem và sửa trước khi dùng.</Text>
         {recording ? <>
@@ -99,8 +99,8 @@ export function TopicScreen(props: Props): React.JSX.Element {
       </Card>
       <Card>
         <SectionTitle>Giáo án mẫu</SectionTitle>
-        {props.lesson ? <Notice text={`Đã chọn: ${props.lesson.title}`} tone="success" /> : <Text style={{ color: palette.muted, fontSize: 14 }}>Không chọn giáo án cũng được.</Text>}
-        <SecondaryButton label={props.lesson ? 'Đổi giáo án' : 'Chọn giáo án (tùy chọn)'} onPress={props.onOpenLessons} />
+        {props.lesson ? <Notice text={`Đã chọn: ${props.lesson.title}`} tone="success" /> : <Text style={{ color: palette.muted, fontSize: 14 }}>Hãy chọn một bài học cho buổi học này.</Text>}
+        <SecondaryButton label={props.lesson ? 'Đổi bài học' : 'Chọn bài học'} onPress={props.onOpenLessons} />
       </Card>
       <Card>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
@@ -111,7 +111,7 @@ export function TopicScreen(props: Props): React.JSX.Element {
         {props.guideError ? <Notice text={props.guideError} tone="error" /> : null}
         {props.guideBase64 ? <Image accessibilityLabel="Gợi ý line sketch được tạo bởi AI" source={{ uri: `data:image/png;base64,${props.guideBase64}` }} resizeMode="contain" style={{ width: '100%', height: 240, backgroundColor: '#fff', borderRadius: 12 }} /> : null}
       </Card>
-      <PrimaryButton label="Tiếp tục đến chụp tranh" disabled={props.guideBusy} onPress={props.onContinue} />
+      <PrimaryButton label="Tiếp tục xem ngữ cảnh" disabled={props.guideBusy} onPress={props.onContinue} />
     </ScreenFrame>
   );
 }

@@ -278,3 +278,114 @@ export type StoryDraft = {
 };
 
 export type LessonPin = NonNullable<StoryRun['lesson_pin_snapshot']>;
+
+/** I2 profile reference returned by the versioned parent-profile routes. */
+export type ParentProfileReferenceV1 = {
+  profile_id: string;
+  revision_no: number;
+  revision_hash: string;
+};
+
+/** Active profile view. The list route contains active profiles only. */
+export type ParentProfileViewV1 = ParentProfileReferenceV1 & {
+  state: 'ACTIVE';
+  display_name: string;
+  age_months: number;
+  age_band_ref: string | null;
+  age_band_version: string | null;
+  interests_summary: string | null;
+  data_origin: string;
+};
+
+/** GET-by-ID may return this view while an asynchronous deletion is pending. */
+export type ParentProfileDeletePendingV1 = {
+  profile_id: string;
+  state: 'DELETE_PENDING';
+  request_id: string;
+};
+
+export type ParentProfileRecordV1 = ParentProfileViewV1 | ParentProfileDeletePendingV1;
+
+export type ParentProfilePageV1 = {
+  items: ParentProfileViewV1[];
+  next_cursor: string | null;
+  request_id: string;
+};
+
+export type ParentProfileCreateV1 = {
+  display_name: string;
+  age_months: number;
+  interests_summary?: string | null;
+};
+
+export type ParentProfilePatchV1 = {
+  expected_revision: number;
+  display_name: string;
+  age_months: number;
+  interests_summary?: string | null;
+};
+
+export type ParentLessonVersionPinV1 = {
+  lesson_id: string;
+  version_id: string;
+  content_sha256: string;
+};
+
+/** V1 context contract intentionally has no consent-policy field. */
+export type ParentStoryContextV1 = {
+  topic: string;
+  adult_confirmed_idea: string;
+  age_months?: number;
+  interests_summary?: string | null;
+};
+
+/** V1 StoryRun is separate from the legacy consent-bearing StoryRun type. */
+export type ParentStoryRunV1 = {
+  run_id: string;
+  run_state: string;
+  parent_profile_id: string;
+  context_revision: number;
+  context_snapshot: ParentStoryContextV1;
+  context_snapshot_sha256: string;
+  lesson_pin_snapshot?: ParentLessonVersionPinV1 | null;
+};
+
+export type ParentStoryRunCreateV1 = {
+  parent_profile_id: string;
+  topic: string;
+  adult_confirmed_idea: string;
+  lesson_version: ParentLessonVersionPinV1;
+};
+
+export type ParentStoryRunEnvelopeV1 = {
+  request_id?: string;
+  story_run: ParentStoryRunV1;
+};
+
+export type ParentActiveStoryRunEnvelopeV1 = {
+  request_id?: string;
+  story_run: ParentStoryRunV1 | null;
+};
+
+export type ParentStoryContextConfirmationV1 = {
+  expected_context_revision: number;
+  context_snapshot_sha256: string;
+  confirmed: true;
+};
+
+export type ParentStorySubjectConfirmationV1 = {
+  request_id?: string;
+  story_run_id: string;
+  understanding_revision: number;
+  decision: string;
+};
+
+export type ParentStoryScriptConfirmationV1 = ParentStoryRunEnvelopeV1;
+
+export type ParentStoryRevisionResultV1 = {
+  request_id?: string;
+  modal_call_id?: string;
+  story?: unknown;
+  story_sha256?: string;
+  story_run?: ParentStoryRunV1;
+};

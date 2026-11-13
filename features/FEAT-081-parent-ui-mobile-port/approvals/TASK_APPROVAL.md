@@ -122,3 +122,186 @@ The coordinator confirmed that the pre-Addendum-2 hash `23655F15D57812ACE465255C
 This acceptance does not cover backend/API wiring; Android runtime behavior beyond "ran"; the deferred active-child label, which requires a separately approved later wave; later waves (Wave 2 plan R2 is a draft, not approved, and not launched); a move to `apps/mobile`; or any SRS change. `OWNER_MODAL_CALL_APPROVED=NO`.
 
 This acceptance authorizes no stage, commit, or push. The Wave 1 commit requires a separate explicit owner instruction. The post-append byte length and SHA-256 of this approval file are recorded in the contemporaneous status/context checkpoint and command ledger after this append.
+## Addendum 4 - FEAT-081 Wave 2 plan approval
+
+- Status: APPROVED.
+- Launch status: NOT LAUNCHED.
+- Authority: direct owner approval from Person 2 dated 2026-11-13; D-010 records the owner decisions and command baselines.
+- Wave 1: committed as `3c75b10d` on `feature/fe-mobile-remediation`; not pushed.
+- Approved plan: `plan/PLAN_REVISION_3.md`, copied verbatim from `tmp/fe081-wave2/WAVE2_API_WIRING_PLAN_DRAFT_R2_20261112.md`, 34,224 bytes, SHA-256 `73A5873DB1F37366A7A4C69C97ED2F4A81B565C3777E10C3C0F63341FF41DA1E`.
+- The `DRAFT` header in PLAN_REVISION_3.md is superseded by this approval addendum. The plan approval does not launch Wave 2.
+- Pre-append TASK_APPROVAL.md pin for this addendum: 11,058 bytes, SHA-256 `CFD32E6B3B3053F150AA6A73028051760A5B7AEEDBD6420DB7895BC3CCF4B266`.
+- DECISIONS.md after appending D-010: 6,312 bytes, SHA-256 `B1D747786B88AC0F0F4DCCE4221099687764752E45B2D90D6080C9E79FD165FC`. The previous DECISIONS.md prefix was 3,950 bytes, SHA-256 `3952CB3BCA12ABD21109B3F209A181CF3B91F3D1D01FAEEB5DA64ABFD64A3805`.
+- Post-append TASK_APPROVAL.md size and SHA-256 are recorded in the status/context checkpoints and the command ledger after this append.
+
+### Owner decisions and launch gates
+
+D-010 records the six adopted product decisions: require a lesson preset/version pin; leave `drawing-understandings` unchanged with no added `Idempotency-Key`; keep consent/data-authorization removed; use the existing Activity skip instead of `activity-suggestions`; use synthetic profiles and restore them through the list route; and retain `OWNER_MODAL_CALL_APPROVED=NO` with the owner-run flow stopping before `drawing-understandings`.
+
+2A and 2B are separate launch gates. 2A requires a separate explicit owner launch instruction. 2B requires its own explicit owner instruction after 2A passes. This addendum approves the plan only and authorizes no implementation or runtime operation.
+
+The pending, not-yet-ACCEPTED S1a-P2 list/delete/Parent-role-gate contract is accepted as the working basis for 2A and may change slightly. Any change after S1a-P2 acceptance must be handled by a new addendum.
+
+### Exact Wave 2 allowlists
+
+`Both` rows apply to both checkpoint manifests. E means editable existing path; N means a new path; R means read-only; H means hash-only and must remain byte-identical. All E/H byte and SHA-256 pins below are copied from the refreshed R2 table and were rechecked against the working tree before approval.
+
+| Checkpoint | Mode | Exact path | Pinned bytes | Pinned SHA-256 |
+|---|---|---|---:|---|
+| 2A | E | `apps/ui-mobile/src/parent/infrastructure/http/ParentApi.ts` | 16,805 | `B448B9F13A153D2F90E1BAD6A284488117B4458223C1239FC2865F850438B918` |
+| 2A | E | `apps/ui-mobile/src/parent/application/ports/ParentPorts.ts` | 6,318 | `52041644201401DB3CEDCBC7E9C34B7954B715FA80505990ACCB9897CC87D284` |
+| 2A | E | `apps/ui-mobile/src/parent/application/ports/ParentApplicationModule.ts` | 1,766 | `0635F3E3C3278C8582C071A57E18C0ACB3EA3A766BD6A89167C5DA6D36E6F73B` |
+| 2A | E | `apps/ui-mobile/src/parent/application/ParentApplicationError.ts` | 252 | `B62AC222CF5CDE6915ED23EE7052A82AA636BD1F1B7603E5D3E4413D0E7E4165` |
+| 2A | E | `apps/ui-mobile/src/parent/domain/types.ts` | 7,338 | `76293E25E2F3157A7EC4053703CED9F25D9213DB0347FF2B59DDE44FFD18AD24` |
+| 2A | E | `apps/ui-mobile/src/parent/application/use-cases/ParentProfileUseCases.ts` | 1,472 | `9035F49E23B8077131B1EC6AB8386FF8833CB5E6908AD7C595E79219C2E8DED1` |
+| 2A | E | `apps/ui-mobile/src/parent/application/use-cases/ParentLearningUseCases.ts` | 3,563 | `F24500EF6F17C105F723B9B6EAC83924A66056C3F9608E418EB546BE4050E464` |
+| 2A | N | `apps/ui-mobile/tests/parentApiI2Contract.test.ts` | absent | n/a |
+| 2A | N | `apps/ui-mobile/tests/parentLearningI2.test.ts` | absent | n/a |
+| Both | H | `apps/ui-mobile/package.json` | 2,081 | `AC8C5AB17D61B4DD126D28D9918CB4E4EB5C40EEFD3B4C965D9597294B9CD9FF` |
+| Both | H | `pnpm-lock.yaml` | 470,780 | `5D778524730134CAFE360564408CBF45030B476C99A69CCD32897BAB55559A72` |
+| Both | H | `apps/ui-mobile/app.json` | 1,560 | `9489E92A02306F6F0C1F575F3FF1C1FB9331BCB58ED2FD52E49880781F2D0651` |
+| Both | H | `apps/ui-mobile/app.config.js` | 1,578 | `8D78BFAE71EF705299603BD4F6FBE74388756BBEEE93A1C6F1C4D99341ED1F43` |
+| Both | H | `apps/ui-mobile/metro.config.js` | 2,145 | `068C704CC6F14F15178424B584DF4FD36169C221A57C534FD39D59C209E7B5A1` |
+| Both | H | `apps/ui-mobile/tsconfig.json` | 147 | `B16D29C183DA613864125B17F2C6EC4E19419EF3E47E7C207FD8E7622F941130` |
+| Both | H | `apps/ui-mobile/src/parent/presentation/components/ui.tsx` | 11,444 | `722636038EE8CBDFA36A90F6D102ABB4F69A43DC5B6848978EEC8795DFFDB773` |
+| Both | H | `apps/ui-mobile/src/parent/infrastructure/config.ts` | 1,049 | `F0C1E0198460E9A432E81D9E8724BCC35CD030CA8C411F2050503F1C87C0FF07` |
+| Both | H | `apps/ui-mobile/src/parent/infrastructure/auth/ParentAuth.ts` | 10,305 | `BBFEEF77C3CABD2632AFE7EE96D6996509C809BB8521FBD80326223961DD6077` |
+| 2B | E | `apps/ui-mobile/src/parent/presentation/navigation/useParentController.ts` | 26,476 | `E9626384DC22C9F8A2F74E9F5683D9F53DACE6596DF8FE16A80CE49CCDC3ABEF` |
+| 2B | E | `apps/ui-mobile/src/parent/presentation/ParentExpoApp.tsx` | 15,960 | `7319EFF269ED8C714E7AC1AD5F5BB91277E4F3ECB022E59473169C20F9D84C12` |
+| 2B | E | `apps/ui-mobile/src/parent/presentation/screens/ContextScreen.tsx` | 2,499 | `B1E96B75C4E2396CDE249A4D7B191D22F50F673A6490A3CDDF0C6F5B715758B2` |
+| 2B | E | `apps/ui-mobile/src/parent/presentation/screens/ProfileFormScreen.tsx` | 4,780 | `99EC05ABBE0C0460668CEE8418B3CF071945580ADC28311EE72A54EC12BA59E6` |
+| 2B | E | `apps/ui-mobile/src/parent/presentation/screens/ProfileScreen.tsx` | 3,928 | `36C7C0732AF25DFAC7911C9B44E55253C2A358EB05CC1BDB03CCF5A869139773` |
+| 2B | E | `apps/ui-mobile/src/parent/presentation/screens/ProfileSharingScreen.tsx` | 3,771 | `F0BA4F7FA51E887161CFBF88DC1A1C6` |
+| 2B | E | `apps/ui-mobile/src/parent/presentation/screens/HomeScreen.tsx` | 4,349 | `A09E8BC37C30DCFB293B68172119DB62C06DF93D1201C068BCC79958433B28E3` |
+
+| Both | R | `apps/ui-mobile/src/parent/presentation/navigation/workflowTypes.ts` | read-only | n/a |
+| Both | R | `apps/ui-mobile/src/parent/presentation/screens/ActivityScreen.tsx` | read-only | n/a |
+| Both | R | `apps/ui-mobile/src/parent/application/use-cases/ParentLessonUseCases.ts` | read-only | n/a |
+| Both | R | `apps/ui-mobile/src/parent/application/use-cases/ParentPlatformUseCases.ts` | read-only | n/a |
+| Both | R | `apps/ui-mobile/src/parent/presentation/navigation/useParentPlatformController.ts` | read-only | n/a |
+| Both | R | `apps/ui-mobile/src/parent/ParentModule.ts` | read-only | n/a |
+| Both | R | `apps/ui-mobile/tests/mainFlowSafety.test.mjs` | read-only | n/a |
+| Both | R | `apps/ui-mobile/tests/storyDraft.test.ts` | read-only | n/a |
+| Both | R | `apps/ui-mobile/tests/apiRetryIdentity.test.mjs` | read-only | n/a |
+| Both | R | `.worktrees/dev-on-s1ap/features/FEAT-063-system-architecture-rearchitecture/plan/M2_INTEGRATION_DEV_ON_S1AP_CHANGES_VS_DEV_20261112.md` | read-only | n/a |
+| Both | R | `.worktrees/dev-on-s1ap/tmp/dev-on-s1ap/FE_API_MIGRATION_GUIDE_apps-mobile.md` | read-only | n/a |
+| Both | R | `backend/src/sketch2life/interfaces/http/routers/parent_profiles.py` | read-only | n/a |
+| Both | R | `backend/src/sketch2life/contracts/schemas/parent_profiles.py` | read-only | n/a |
+| Both | R | `backend/src/sketch2life/domain/parent_profiles.py` | read-only | n/a |
+
+### Command ceilings and owner baselines
+
+| Command | Total ceiling | Baseline accounting | Remaining planned use |
+|---|---:|---|---|
+| `pnpm run test` from `apps/ui-mobile` | 3 | Baseline consumed by owner-run results at 2026-11-12 23:56 and 2026-11-13 00:15. | One post-2A and one post-2B run. |
+| `pnpm run typecheck` from `apps/ui-mobile` | 3 | Baseline consumed by owner-run results at 2026-11-12 23:56 and 2026-11-13 00:15. | One post-2A and one post-2B run. |
+| `python tools/validate_harness.py` from repository root | 2 | Baseline invocation consumed; owner reported exit 0. | One final post-2B run. |
+| `python tools/validate_repository_security.py` from repository root | 2 | Baseline invocation consumed; owner reported exit 0. | One final post-2B run. |
+| `python tools/validate_architecture.py` from repository root | 2 | Baseline invocation consumed; owner reported exit 0. | One final post-2B run. |
+| `git diff --check` from repository root | 2 | Baseline invocation consumed; owner reported exit 0. | One final post-2B run. |
+
+The owner-run baseline evidence is 4 test files / 29 tests passed, `UI_COPY_AND_RECOVERY_VALID`, typecheck with no diagnostics, and all three validators plus `git diff --check` exiting 0. The owner reports these bytes were identical to commit `3c75b10d`.
+
+### Acceptance criteria
+
+**Checkpoint 2A**
+
+- **2A-AC1:** Fake-fetch tests prove list query encoding and `items`/`next_cursor` pagination, create/read/patch/delete methods and response shapes, required idempotency headers, and no network access.
+- **2A-AC2:** Fake-response tests cover pending deletion, `ACTIVE_RUN_EXISTS`, `STALE_REVISION`, role-denied `ACTION_NOT_ALLOWED`, `PARENT_STORE_UNAVAILABLE`, and field errors in supported top-level/nested forms; safe error metadata is retained where present.
+- **2A-AC3:** Fake-port tests verify the tomorrow scenario requires a selected lesson pin, maps its IDs/hash exactly, omits legacy consent/profile-revision/context fields, and delegates explicit context confirmation. Drawing-understanding has no added idempotency header.
+- **2A-AC4:** `pnpm run test` and `pnpm run typecheck` pass at the post-2A checkpoint. These are the only 2A acceptance checks.
+- **2A-AC5:** Only 2A E/N paths change; all common H pins remain byte-identical.
+
+**Checkpoint 2B**
+
+- **2B-AC1:** Parent list pages restore existing synthetic profiles through `next_cursor`; fresh synthetic profile creation is followed by GET-by-ID before the profile is used.
+- **2B-AC2:** Profile create/edit/delete UI shows safe field/role/store errors; a 202 deletion request remains visibly pending and is not represented as completed.
+- **2B-AC3:** Home receives the selected profile via an explicit prop from `ParentExpoApp`; it does not infer selection from `profiles`.
+- **2B-AC4:** The selected lesson pin is required for tomorrow's StoryRun create; the server context is presented and explicitly confirmed. The existing Activity skip is used; `activity-suggestions` is never called.
+- **2B-AC5:** `pnpm run test` and `pnpm run typecheck` pass after the UI migration; H pins remain byte-identical; repository validators and `git diff --check` stay within their separate ceilings.
+- **2B-AC6 - owner-run pre-Modal acceptance:** Using the scratch/integration service and synthetic profile data, run only these steps: authenticate Parent; list synthetic profiles; restore/read a listed profile or create a synthetic profile and GET it by ID; select a lesson pin; create the StoryRun with that pin; display and confirm the returned context. Stop immediately after successful context confirmation and before `POST /api/parent/v1/ai/drawing-understandings`. No drawing upload/analysis or story revision is allowed while `OWNER_MODAL_CALL_APPROVED=NO`. This is a pre-Modal contract acceptance, not a full Parent story completion.
+- **2B-AC7:** No path outside the 2B E paths changes; shared H pins remain byte-identical; no code is staged or published under this plan.
+
+### Additional 2A compatibility requirements
+
+2A may not break the 29 existing tests established by the owner-run baseline. Do not remove `authorization_state`, `authorization_policy_version`, or `authorization_current` from `apps/ui-mobile/src/parent/domain/types.ts`; the Wave 1 fixture in `apps/ui-mobile/tests/catalogViewModel.test.ts` uses those fields.
+
+The post-append Addendum 4 approval-file byte length and SHA-256 are recorded in the status/context checkpoints and command ledger after this append. This addendum approves the plan only; status remains NOT LAUNCHED until a separate 2A launch instruction.
+## Addendum 4 correction - ProfileSharingScreen pin
+
+The 2B E-pin for `apps/ui-mobile/src/parent/presentation/screens/ProfileSharingScreen.tsx` in the preceding Addendum 4 table was truncated during transcription. The correct R2 and working-tree pin is 3,771 bytes, SHA-256 `F0BA4F7FA51E887161CFBF88DC1A553540596616B7DAFBE35990FA75E494C1C4`. This append-only correction supersedes only that table cell; all other Addendum 4 entries remain unchanged.
+## Addendum 5 - FEAT-081 Wave 2A launch
+
+- Status: LAUNCHED (Wave 2A only).
+- Checkpoint 2B: NOT LAUNCHED; it requires its own explicit owner instruction after 2A passes.
+- Authority: direct owner launch instruction from Person 2 dated 2026-11-13, under Addendum 4 and `plan/PLAN_REVISION_3.md`.
+- Approved plan pin: `plan/PLAN_REVISION_3.md`, 34,224 bytes, SHA-256 `73A5873DB1F37366A7A4C69C97ED2F4A81B565C3777E10C3C0F63341FF41DA1E`.
+- Pre-append `TASK_APPROVAL.md` pin: 23,557 bytes, SHA-256 `D6BFFDDC0009A3C02347C65EC74D732D257253EDFFC5F5EBABE068F358D931CE`.
+- Scope: implement only the seven 2A E paths and two 2A N tests from Addendum 4. No 2B file, H file, or other application path is authorized for editing.
+- Record-keeping scope clarification: exactly one additional Wave 2A record path is authorized, `features/FEAT-081-parent-ui-mobile-port/evidence/IMPLEMENTATION_REPORT_WAVE2A_20261113.md`, mode N (new documentation file), and no other new path. This is a record-keeping scope clarification, not a widening of the code allowlist. The 2B report path needs its own authorization in the 2B launch instruction.
+- The post-append `TASK_APPROVAL.md` byte length and SHA-256 are recorded in the status/context checkpoint and command ledger after this append.
+
+### Owner authorization (verbatim)
+
+```text
+OWNER AUTHORIZATION (Person 2, 2026-11-13): I authorize exactly one additional record path for Wave 2A: features/FEAT-081-parent-ui-mobile-port/evidence/IMPLEMENTATION_REPORT_WAVE2A_20261113.md, mode N (new documentation file), and no other new path. This is a record-keeping scope clarification, not a widening of the code allowlist. Record this authorization verbatim in Addendum 5 and the ledger. The 2B report path needs its own authorization in the 2B launch instruction.
+```
+### Addendum 5 review reference (append-only continuation)
+
+- Cold review: `tmp/fe081-wave2/REVIEW_R2_ROUND1_20261113.md`; verdict `NEEDS REVISION`.
+- Person 2 accepts the review findings and directs their application to Wave 2A within the existing 2A allowlist. The 2B findings remain outside this launch and are reserved for the separate 2B launch addendum.
+### Addendum 6 - FEAT-081 Wave 2A post-run rework authorization
+
+Status: Wave 2A remains LAUNCHED while this bounded rework is in progress; Wave 2B remains NOT LAUNCHED and requires its separate owner instruction.
+
+Pre-append approval pin: 25,709 bytes / SHA-256 `773B46FFFB1D30BFE6626A2363EE2EEB2DE9072EBCF16ECA54B3E39A8E4BE0D9`.
+
+The coordinator post-2A run on 2026-11-13 is consumed and showed one failing test plus one unhandled rejection, with the 29 existing tests passing; typecheck reported one error. The test stdout was 1,254 bytes / SHA-256 `73CEF8FD2CEAA89F694F476DE1AFAB3D4EC9556D1C6FD23B4A7DD99D633D2FE8`; typecheck stdout was 460 bytes / SHA-256 `E82F8D4EA4E79C715E3CEC72027BA21D49DFAB72B1490A4352313092675D7071`. The bounded rework corrects the asynchronous lesson-pin assertion/unhandled rejection and introduces a separate nullable active-story-run envelope. It remains within the seven 2A E paths and two 2A N tests; it adds no path and changes no H, 2B, or R file.
+
+### Additional command ceiling (owner wording)
+
+```text
+one additional coordinator-run pnpm run test and one additional pnpm run typecheck for this 2A rework only (total test 4, typecheck 4); the single post-2B run of each stays. The post-2A run above is consumed.
+```
+
+The extra coordinator run is the third test and third typecheck invocation, reserved for this 2A rework. The fourth invocation of each remains the single post-2B run. Existing validator and `git diff --check` ceilings remain unchanged. Codex is not authorized to run checks, stage, commit, or push.
+
+## Addendum 7 - FEAT-081 Wave 2B launch
+
+- Status: LAUNCHED (Wave 2B only). Wave 2A has passed its coordinator post-run; Wave 1 remains accepted and committed as `3c75b10d` on `feature/fe-mobile-remediation` (not pushed). Wave 2A remains uncommitted. Wave 2 is to be one commit after 2B; nothing is committed now.
+- Authority: direct owner launch from Person 2 dated 2026-11-13, under Addendum 4 and `plan/PLAN_REVISION_3.md` (34,224 bytes / SHA-256 `73A5873DB1F37366A7A4C69C97ED2F4A81B565C3777E10C3C0F63341FF41DA1E`). The older plan text describing the `1f5bb0b5` snapshot and Wave 1 as uncommitted/awaiting acceptance is superseded by the accepted Wave 1 records.
+- Pre-append `TASK_APPROVAL.md` pin: 27,265 bytes / SHA-256 `64ABD9A8D94B84731965F99324E1E481B14B6005B2E0FF32F2505CACAC7B3E62`.
+- The seven 2B E paths remain exactly those in Addendum 4: `useParentController.ts`, `ParentExpoApp.tsx`, `ContextScreen.tsx`, `ProfileFormScreen.tsx`, `ProfileScreen.tsx`, `ProfileSharingScreen.tsx`, and `HomeScreen.tsx` under `apps/ui-mobile/src/parent/presentation/`.
+- The owner-approved additional N code/test paths are exactly `apps/ui-mobile/src/parent/presentation/navigation/parentFlowV1.ts` and `apps/ui-mobile/tests/parentFlowV1.test.ts`. The owner-approved additional N record path is exactly `features/FEAT-081-parent-ui-mobile-port/evidence/IMPLEMENTATION_REPORT_WAVE2B_20261113.md`. No other new path is authorized. The nine shared H paths remain frozen at their Addendum 4 pins; R paths stay read-only. The 2A files remain unchanged unless a 2B defect requires an owner-approved correction.
+- Test ceiling: exactly one coordinator-run `pnpm run test` post-2B invocation remains (run 4/4). Typecheck ceiling: exactly one coordinator-run `pnpm run typecheck` post-2B invocation remains (run 4/4). Each validator and `git diff --check` has one owner-run final invocation remaining (2/2).
+- No test, typecheck, validator, `git diff --check`, install, Android, or network command is authorized for Codex. No stage, commit, or push is authorized now. `OWNER_MODAL_CALL_APPROVED=NO`; stop the owner-run flow after explicit context confirmation, before drawing-understanding or story-revisions.
+
+### Owner-approved additional paths (verbatim)
+
+```text
+AUTHORIZATION (code allowlist additions, owner-approved, recorded verbatim): exactly two NEW paths in addition to the seven 2B E paths: apps/ui-mobile/src/parent/presentation/navigation/parentFlowV1.ts (pure, framework-free helpers) and apps/ui-mobile/tests/parentFlowV1.test.ts (Vitest, fake data only). Reason: the review found no offline test path for 2B-AC1..AC4 and the package has no React renderer, so the testable behavior must be pure functions. One new documentation path: features/FEAT-081-parent-ui-mobile-port/evidence/IMPLEMENTATION_REPORT_WAVE2B_20261113.md. No other new path.
+```
+
+## Addendum 8 - FEAT-081 Wave 2B post-run rework authorization
+
+- Status: Wave 2B remains LAUNCHED; this bounded rework is authorized. Wave 2A remains unchanged. Wave 2 is not accepted and remains uncommitted.
+- Pre-append `TASK_APPROVAL.md` pin: 30,117 bytes / SHA-256 `3123895D0E3122500EFAD65A9B93E551ADBBF6CC90F9EC2FA54B45B815CCACAB`.
+- Coordinator post-2B result (log `tmp/fe081-impl/coordinator_post2B_20261113T094306/`): `pnpm run test` passed 7 files / 52 tests and printed `UI_COPY_AND_RECOVERY_VALID`; stdout 628 bytes / SHA-256 `3FF0E0E8F869264D2C37971F5957EE54BBF980CA4596E2B40D874E236A222D93`. `pnpm run typecheck` reported one TS2322 at `ProfileScreen.tsx(67,13)` because `SecondaryButton` does not accept `busy`; stdout 462 bytes / SHA-256 `65F77633BF2A331072B35FA76618B5A56C6895D70C64EC00E3DBA75467597358`. The owner reports all 20 pins matched.
+- Fix only the `ProfileScreen.tsx` shared-button prop mismatch within the existing 2B allowlist. Recheck other shared-component prop usages against the declarations in the frozen `components/ui.tsx`; do not edit that H file.
+- Copy-only authorization is limited to text in `apps/ui-mobile/src/parent/presentation/screens/TopicScreen.tsx`: remove copy saying a photo is required or that the next step is photo capture. Make no logic, prop, or layout changes. Its pre-edit pin was recorded in the command ledger. Read `scripts/validate-ui-copy.mjs` and preserve its copy rules; Codex must not run it.
+- No H, R, or 2A file may be edited. Scope is limited to the existing 2B allowlist, the two already-authorized 2B helper/test paths, TopicScreen text only, and the already-authorized 2B report/status/context/ledger records.
+
+### Owner command-ceiling direction (verbatim)
+
+```text
+one additional coordinator-run pnpm run test and one additional pnpm run typecheck for this 2B rework only (total 5 each); the final validators and git diff --check stay at one owner-run final run each.
+```
+
+This consumes the original post-2B run as invocation 4/5 and authorizes one coordinator rework invocation 5/5 for both test and typecheck. The single owner final invocation for each validator and `git diff --check` remains unchanged. Codex is not authorized to run any of these checks or to install, use Android tooling, access the network, stage, commit, or push.
+
+### Owner rework and copy authorization (verbatim)
+
+```text
+1) Fix ProfileScreen.tsx only inside the 2B allowlist: remove the busy prop and express the busy state with disabled plus a changed label (for example "Dang gui yeu cau..." with proper Vietnamese diacritics consistent with the other copy). Do NOT edit components/ui.tsx (H pin). Re-check every other use of props that may not exist on shared components in the 2B files (read the prop types in ui.tsx) and fix any similar mismatch now so the next typecheck is clean.
+2) Copy-only authorization: you may edit apps/ui-mobile/src/parent/presentation/screens/TopicScreen.tsx for TEXT ONLY, so that it no longer says a photo is required or that the next step is photo capture (the app now routes to the context step). No logic, prop or layout change; re-hash the file first and record its pin before and after; keep UI_COPY_AND_RECOVERY_VALID passing by following the rules of scripts/validate-ui-copy.mjs (read it).
+```
