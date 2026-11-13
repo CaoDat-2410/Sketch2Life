@@ -7,3 +7,14 @@
 - **Security validation:** `python tools/validate_repository_security.py` passed immediately before the implementation commit and again immediately before its push. `git diff --cached --check` passed before commit.
 - **Scope:** Parent/Teacher UI remediation plus FEAT-069 approval, status and evidence. No backend, API, schema, auth, SRS, child media, or Child Expo changes were pushed.
 - **Runtime caveat:** the debug APK artifact built successfully, but installing that build on the supplied emulator remains blocked by its Android Package Manager failure. See `EXECUTION.md`.
+
+## FEAT-069 Plan Rev2 — leader review UI completion — 2026-11-14
+
+- **Target:** `origin/FE_UI_Project_Ver2`
+- **Implementation commit:** `258d0923` (`feat(ui): complete leader review UI previews`)
+- **Parent commit:** `2518dc074eba9d970306f82ceff8998d37f13535`
+- **Push:** normal fast-forward, completed 2026-11-14 (Asia/Saigon); remote advanced from `2518dc07` to `258d0923`.
+- **Security validation:** `python tools/validate_repository_security.py` passed before commit and immediately before push. `git diff --cached --check` passed before commit. The validator scanned 7,573 publishable files and confirmed no absolute machine paths.
+- **Scope delivered:** Parent/Teacher preview updates, `UI_Project/README.md`, approved plan/approval records, feature status/evidence and source register. No backend, API, schema, auth, database, SRS, child media or legacy top-level `apps/` changes were pushed.
+- **Runtime caveat:** all five web builds, Parent Android typecheck and debug APK packaging passed; the final APK could not be installed/opened on the supplied emulator because its Package Manager stalled. No wipe/reset was performed. See `EXECUTION.md`.
+- **Known product boundary:** the pre-video activity sequence follows the leader-review prototype but conflicts with the unsigned FEAT-063 SRS v2.5-draft. Gender, mismatch analysis and multiple auth/AI/story integrations are local preview-only or unavailable; see `OPEN_QUESTIONS.md`.
