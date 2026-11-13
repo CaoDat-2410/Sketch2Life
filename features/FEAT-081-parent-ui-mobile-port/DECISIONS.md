@@ -40,3 +40,45 @@ These decisions authorize this feature's recorded Wave 1 approval only. Implemen
 - Previous DECISIONS prefix pin: 3,950 bytes, SHA-256 `3952CB3BCA12ABD21109B3F209A181CF3B91F3D1D01FAEEB5DA64ABFD64A3805`.
 - Post-append DECISIONS.md byte length and SHA-256 are recorded in Addendum 4, status/context, and the command ledger after this append.
 - Basis: direct owner approval dated 2026-11-13.
+
+## D-011 - FEAT-081 Wave 3 native P03-P06 flow and boundaries (plan approval; not launch)
+
+1. P03 step source: parse only explicit separators in drawing_steps_text; never invent step boundaries; a version-pinned structured steps array is a later BE question.
+   Reason: Keeps each displayed instruction traceable to the selected lesson version and avoids fabricated steps.
+2. Missing guide: approved optional empty state with a continue-to-capture action.
+   Reason: A missing optional guide must not block the parent from continuing.
+3. Flow order: topic and idea, then P03 guide, then V1 create and context confirmation, then capture after context confirmation.
+   Reason: Preserves the committed V1 context-confirmation gate before capture.
+4. Audio idea: the typed adult idea stays required until the BE provides a pre-run transcription path.
+   Reason: The current V1 create path needs an adult idea before the run exists.
+5. Modal: OWNER_MODAL_CALL_APPROVED=NO for all of Wave 3. Code and fake-data tests only. Stop before drawing-understandings and story-revisions calls. Runtime acceptance of P04-P06 real AI steps is deferred until the AI fix lands and a bounded Modal approval exists.
+   Reason: Prevents an unapproved provider call and avoids claiming unverified real-AI acceptance.
+6. P06 boundary: stop before P07 and video. Do not start video admission. The BE lane must confirm the V1 script-confirmation semantics before any launch.
+   Reason: Keeps video outside this wave and avoids relying on an unverified endpoint effect.
+7. Story V1 fields: if the response lacks the exact revision/hash fields needed to confirm the displayed version, stop and request an additive contract allowlist; never guess.
+   Reason: Adult confirmation must apply to the exact displayed script version.
+8. Guide illustration (whole-topic sketch): out of Wave 3, kept separate.
+   Reason: The whole-topic sketch is not a per-step guide image and is outside the bounded flow port.
+9. Ownership: apps/ui-mobile is the owner's UI base, built to follow the flow; the owner will later restyle layout and look. CaoDat changes only the AI side and does not edit mobile. There is no shared-file ownership risk in apps/ui-mobile. Wave 3 ports flow and data behavior only; no visual polish.
+   Reason: Keeps Wave 3 limited to native flow/data behavior and avoids visual restyling work.
+10. P05 audio/transcription: OUT OF WAVE 3. The typed adult idea remains the only input path; do not edit TranscriptReviewScreen.tsx or the existing audio capture UI.
+    Reason: No Parent transcription or transcript-confirmation route was found; exclusion preserves Decision 4 and avoids relying on an unsupported contract.
+
+### Wave 3 no-Modal boundary
+
+OWNER_MODAL_CALL_APPROVED=NO for every Wave 3 activity. This permits code and fake-data tests only. No drawing-understandings or story-revisions call may be made, and real-AI runtime acceptance for P04-P06 remains deferred until the AI fix lands and the owner records bounded Modal approval.
+
+- Basis: direct owner approval from Person 2 dated 2026-11-13.
+- Pre-append DECISIONS.md pin: 6,312 bytes / SHA-256 prefix B1D74778.
+
+
+## D-012 - FEAT-081 Wave 3 V1 story-revision read-model clarification (not a new launch)
+
+- Clarification of D-011 decision 7; this is not a new launch.
+- Coordinator code reading, not a runtime result: backend `ParentStoryRunResponseV1` / `_story_response` returns `story_revision_no`, `story_sha256`, `story_status`, `story`, and other run fields inside `story_run` on GET/POST `/v1/story-runs` and POST `/api/parent/v1/ai/story-runs/{run_id}/story-revisions`.
+- The frozen mobile `ParentStoryRunV1` declaration in `apps/ui-mobile/src/parent/domain/types.ts` omits those story fields.
+- Wave 3 may add a local, runtime-validated read model only in `apps/ui-mobile/src/parent/presentation/navigation/parentFlowV1.ts`: `story_revision_no` must be an integer greater than or equal to 1 and `story_sha256` must match `^[0-9a-f]{64}$`. If either value is absent or invalid, confirmation is blocked and no confirmation request is sent.
+- `types.ts`, `ParentApi.ts`, `ParentPorts.ts`, `ParentApplicationModule.ts`, and `ParentLearningUseCases.ts` remain frozen H paths and byte-identical; no H path is authorized for edit. Cleanup of declared types is deferred to a later route-wiring task.
+- If a runtime response lacks either required story field, stop and request an additive allowlist under D-011 decision 7.
+- Basis: direct owner decision from Person 2 dated 2026-11-13.
+- Pre-append `DECISIONS.md` pin: 9,467 bytes / SHA-256 prefix `B589A16E`.

@@ -305,3 +305,35 @@ This consumes the original post-2B run as invocation 4/5 and authorizes one coor
 1) Fix ProfileScreen.tsx only inside the 2B allowlist: remove the busy prop and express the busy state with disabled plus a changed label (for example "Dang gui yeu cau..." with proper Vietnamese diacritics consistent with the other copy). Do NOT edit components/ui.tsx (H pin). Re-check every other use of props that may not exist on shared components in the 2B files (read the prop types in ui.tsx) and fix any similar mismatch now so the next typecheck is clean.
 2) Copy-only authorization: you may edit apps/ui-mobile/src/parent/presentation/screens/TopicScreen.tsx for TEXT ONLY, so that it no longer says a photo is required or that the next step is photo capture (the app now routes to the context step). No logic, prop or layout change; re-hash the file first and record its pin before and after; keep UI_COPY_AND_RECOVERY_VALID passing by following the rules of scripts/validate-ui-copy.mjs (read it).
 ```
+
+## Addendum 9 - FEAT-081 Wave 3 plan approval
+
+- Status: Plan Revision 4 APPROVED; Wave 3 NOT LAUNCHED.
+- Authority: direct owner approval from Person 2 dated 2026-11-13. This approves the plan only and does not launch implementation.
+- Approved plan pin: features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_4.md, 18,717 bytes / SHA-256 `6D3FEF1B2C24595EBC4F6499368330C485471AF59A4E9C974CF1F5C97BD71E0A`.
+- Pre-append DECISIONS.md pin: 6,312 bytes / SHA-256 prefix `B1D74778`.
+- Post-append DECISIONS.md pin: 9,467 bytes / SHA-256 prefix `B589A16E`.
+- Pre-append TASK_APPROVAL.md pin: 33,408 bytes / SHA-256 `DD0AE7A3E219EE4A6FF2DC362F07BDD3E45AADE8BE6EDA1FAE7CCD6A3A20E390`.
+- Scope: The complete 10 E paths, 17 H paths, and R path list are exactly those in the pinned plan. Owner-authorized new paths are exactly `apps/ui-mobile/src/parent/presentation/screens/DrawingGuideScreen.tsx`, `features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_4.md`, and `features/FEAT-081-parent-ui-mobile-port/evidence/IMPLEMENTATION_REPORT_WAVE3_20261113.md`. No other new path is authorized.
+- Test ceiling: `pnpm run test` from `apps/ui-mobile`, 2 coordinator-run invocations total (baseline and post-implementation). Codex runs none.
+- Typecheck ceiling: `pnpm run typecheck` from `apps/ui-mobile`, 2 coordinator-run invocations total (baseline and post-implementation). Codex runs none.
+- As in the plan, `python tools/validate_harness.py`, `python tools/validate_repository_security.py`, `python tools/validate_architecture.py`, and `git diff --check` each have a ceiling of 2; Codex runs none.
+- OWNER_MODAL_CALL_APPROVED=NO.
+
+A separate explicit launch instruction is still required before Wave 3 implementation. This approval does not authorize implementation, tests, runtime work, staging, commit, or push.
+
+## Addendum 10 - FEAT-081 Wave 3 V1 story-revision read-model clarification
+
+- Status: Plan Revision 4 remains APPROVED; Wave 3 remains LAUNCHED; D-012 clarification recorded.
+- Authority: direct owner decision from Person 2 dated 2026-11-13. This clarifies D-011 decision 7 and does not create a new launch.
+- Approved plan pin: `features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_4.md`, 18,717 bytes / SHA-256 `6D3FEF1B2C24595EBC4F6499368330C485471AF59A4E9C974CF1F5C97BD71E0A`.
+- Pre-append `DECISIONS.md` pin: 9,467 bytes / SHA-256 prefix `B589A16E`.
+- Post-append `DECISIONS.md` pin: 10,914 bytes / SHA-256 prefix `5AD97606`.
+- Pre-append `TASK_APPROVAL.md` pin: 35,223 bytes / SHA-256 `17C9036671C2CCB40FE51A9DDD403DF3FB9AB52EED8A2DED6178ED862531D088`.
+- Scope: the 10 E paths, 17 H paths, and R path list remain exactly those in Plan Revision 4; no path or allowlist change is authorized. The runtime-validated story read model may live only in `apps/ui-mobile/src/parent/presentation/navigation/parentFlowV1.ts`. No H path is authorized for edit.
+- Test ceiling: `pnpm run test` from `apps/ui-mobile`, 2 coordinator-run invocations total (baseline and post-implementation). Codex runs none.
+- Typecheck ceiling: `pnpm run typecheck` from `apps/ui-mobile`, 2 coordinator-run invocations total (baseline and post-implementation). Codex runs none.
+- As in the plan, `python tools/validate_harness.py`, `python tools/validate_repository_security.py`, `python tools/validate_architecture.py`, and `git diff --check` each have a ceiling of 2; Codex runs none.
+- OWNER_MODAL_CALL_APPROVED=NO.
+
+This clarification does not change the existing Wave 3 launch status.

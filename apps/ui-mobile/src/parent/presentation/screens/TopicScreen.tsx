@@ -15,6 +15,8 @@ type Props = {
   guideError: string;
   lesson: LessonDetail | null;
   stepLabel: string;
+  canContinue: boolean;
+  error: string;
   onTopic: (value: string) => void;
   onIdea: (value: string) => void;
   onAudio: (audio: SelectedAudio | null) => void;
@@ -81,7 +83,7 @@ export function TopicScreen(props: Props): React.JSX.Element {
   }
 
   return (
-    <ScreenFrame title="Chọn chủ đề" subtitle="Nhập chủ đề và gợi ý, rồi xem lại ngữ cảnh của buổi học." step={props.stepLabel} onBack={props.onBack}>
+    <ScreenFrame title="Chọn chủ đề" subtitle="Nhập chủ đề và gợi ý của người lớn trước khi xem hướng dẫn từng bước." step={props.stepLabel} onBack={props.onBack}>
       <Card>
         <Field label="Chủ đề" value={props.topic} onChangeText={props.onTopic} placeholder="Ví dụ: con bướm" />
         <Field label="Ý tưởng của người lớn" value={props.idea} onChangeText={props.onIdea} placeholder="Điều bé đang tò mò…" multiline />
@@ -111,7 +113,8 @@ export function TopicScreen(props: Props): React.JSX.Element {
         {props.guideError ? <Notice text={props.guideError} tone="error" /> : null}
         {props.guideBase64 ? <Image accessibilityLabel="Gợi ý line sketch được tạo bởi AI" source={{ uri: `data:image/png;base64,${props.guideBase64}` }} resizeMode="contain" style={{ width: '100%', height: 240, backgroundColor: '#fff', borderRadius: 12 }} /> : null}
       </Card>
-      <PrimaryButton label="Tiếp tục xem ngữ cảnh" disabled={props.guideBusy} onPress={props.onContinue} />
+      {props.error ? <Notice text={props.error} tone="error" /> : null}
+      <PrimaryButton label="Xem hướng dẫn từng bước" disabled={!props.canContinue || props.guideBusy} onPress={props.onContinue} />
     </ScreenFrame>
   );
 }

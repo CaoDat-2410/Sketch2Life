@@ -1,6 +1,7 @@
 import type {
   LessonDetail,
   ParentLessonVersionPinV1,
+  ParentCandidate,
   ParentProfileDeletePendingV1,
   ParentProfilePageV1,
   ParentProfileRecordV1,
@@ -85,6 +86,193 @@ export function canBeginContextStep(input: {
   );
 }
 
+export type DrawingGuideParseResult =
+  | { kind: 'steps'; steps: string[] }
+  | { kind: 'empty'; reason: 'missing' | 'ambiguous' };
+
+export function parseDrawingGuideSteps(value: string | null | undefined): DrawingGuideParseResult {
+  const text = value?.trim() ?? '';
+  if (!text) return { kind: 'empty', reason: 'missing' };
+
+  const lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  const numbered = lines.map((line) => {
+    const match = line.match(/^(?:(?:step|bước)\s*)?(\d+)\s*[.)、:：-]\s*(.+)$/i);
+    return match ? { number: Number(match[1]), text: match[2].trim() } : null;
+  });
+  if (numbered.every((item): item is { number: number; text: string } => item !== null)) {
+    const isSequential = numbered.every((item, index) => item.number === index + 1 && Boolean(item.text));
+    return isSequential
+      ? { kind: 'steps', steps: numbered.map((item) => item.text) }
+      : { kind: 'empty', reason: 'ambiguous' };
+  }
+
+  const bullets = lines.map((line) => line.match(/^[-*•]\s+(.+)$/));
+  if (bullets.every((match) => match !== null)) {
+    const steps = bullets.map((match) => match?.[1].trim() ?? '');
+    return steps.every(Boolean)
+      ? { kind: 'steps', steps }
+      : { kind: 'empty', reason: 'ambiguous' };
+  }
+
+  return { kind: 'empty', reason: 'ambiguous' };
+}
+
+export function clampDrawingGuideIndex(index: number, stepCount: number): number {
+  if (!Number.isFinite(index) || stepCount <= 0) return 0;
+  return Math.min(Math.max(Math.trunc(index), 0), stepCount - 1);
+}
+
+export function moveDrawingGuideIndex(index: number, stepCount: number, direction: -1 | 1): number {
+  return clampDrawingGuideIndex(index + direction, stepCount);
+}
+
+export function canContinueToCapture(contextConfirmed: boolean): boolean {
+  return contextConfirmed;
+}
+
+export function canAnalyzeDrawing(input: {
+  runId: string | null | undefined;
+  contextConfirmed: boolean;
+  photoSelected: boolean;
+}): boolean {
+  return Boolean(input.runId?.trim() && input.contextConfirmed && input.photoSelected);
+}
+
+export function canConfirmDrawingSubject(input: {
+  runId: string | null | undefined;
+  candidatePresent: boolean;
+  understandingRevision: number | null | undefined;
+  subject: string;
+  explicitAdultAction: boolean;
+}): boolean {
+  return Boolean(
+    input.runId?.trim()
+    && input.candidatePresent
+    && Number.isInteger(input.understandingRevision)
+    && (input.understandingRevision ?? 0) >= 1
+    && input.subject.trim()
+    && input.explicitAdultAction,
+  );
+}
+
+export function readDrawingCandidate(value: unknown): ParentCandidate | null {
+  if (!isRecord(value) || !Array.isArray(value.visible_features)) return null;
+  if (!value.visible_features.every((feature) => typeof feature === 'string')) return null;
+  if (typeof value.confidence !== 'number' || !Number.isFinite(value.confidence)
+    || value.confidence < 0 || value.confidence > 1) return null;
+  if (value.adult_confirmation_required !== true || typeof value.decision !== 'string') return null;
+  if (value.candidate_subject !== undefined && value.candidate_subject !== null
+    && typeof value.candidate_subject !== 'string') return null;
+
+  return {
+    candidate_subject: typeof value.candidate_subject === 'string' ? value.candidate_subject : null,
+    visible_features: [...value.visible_features],
+    confidence: value.confidence,
+    adult_confirmation_required: true,
+    decision: value.decision,
+  };
+}
+
+export type ValidatedStoryRevisionReadModel = {
+  runId: string;
+  storyRevisionNo: number;
+  storySha256: string;
+  storyStatus: string | null;
+  story: unknown;
+};
+
+export type StoryRevisionReadModelResult =
+  | { kind: 'valid'; value: ValidatedStoryRevisionReadModel }
+  | {
+      kind: 'invalid';
+      reason:
+        | 'STORY_RUN_MISSING'
+        | 'RUN_ID_MISMATCH'
+        | 'STORY_REVISION_NO_MISSING'
+        | 'STORY_REVISION_NO_INVALID'
+        | 'STORY_SHA256_MISSING'
+        | 'STORY_SHA256_INVALID';
+    };
+
+/** Read nested revision pins validated at runtime; shared ParentStoryRunV1 stays frozen. */
+export function readStoryRevisionReadModel(
+  value: unknown,
+  expectedRunId: string,
+): StoryRevisionReadModelResult {
+  if (!isRecord(value) || !isRecord(value.story_run)) {
+    return { kind: 'invalid', reason: 'STORY_RUN_MISSING' };
+  }
+
+  const storyRun = value.story_run;
+  if (typeof storyRun.run_id !== 'string' || storyRun.run_id !== expectedRunId) {
+    return { kind: 'invalid', reason: 'RUN_ID_MISMATCH' };
+  }
+  if (storyRun.story_revision_no === undefined || storyRun.story_revision_no === null) {
+    return { kind: 'invalid', reason: 'STORY_REVISION_NO_MISSING' };
+  }
+  if (!Number.isInteger(storyRun.story_revision_no) || Number(storyRun.story_revision_no) < 1) {
+    return { kind: 'invalid', reason: 'STORY_REVISION_NO_INVALID' };
+  }
+  if (storyRun.story_sha256 === undefined || storyRun.story_sha256 === null || storyRun.story_sha256 === '') {
+    return { kind: 'invalid', reason: 'STORY_SHA256_MISSING' };
+  }
+  if (typeof storyRun.story_sha256 !== 'string' || !/^[0-9a-f]{64}$/.test(storyRun.story_sha256)) {
+    return { kind: 'invalid', reason: 'STORY_SHA256_INVALID' };
+  }
+
+  return {
+    kind: 'valid',
+    value: {
+      runId: storyRun.run_id,
+      storyRevisionNo: storyRun.story_revision_no as number,
+      storySha256: storyRun.story_sha256,
+      storyStatus: typeof storyRun.story_status === 'string' ? storyRun.story_status : null,
+      story: storyRun.story,
+    },
+  };
+}
+
+export function canRequestStoryRevision(input: {
+  runId: string | null | undefined;
+  understandingRevision: number | null | undefined;
+  storyPresent: boolean;
+  storyAttempted: boolean;
+  rewriteCount: number;
+  rewriteInstruction: string;
+  storyConfirmed: boolean;
+  subjectConfirmed: boolean;
+  allowSameActionRetry: boolean;
+}): boolean {
+  if (!input.runId?.trim() || !Number.isInteger(input.understandingRevision)
+    || (input.understandingRevision ?? 0) < 1 || input.storyConfirmed || !input.subjectConfirmed) return false;
+
+  const isRewrite = Boolean(input.rewriteInstruction.trim());
+  if (!isRewrite) return !input.storyPresent && (!input.storyAttempted || input.allowSameActionRetry);
+  return input.storyPresent && (input.rewriteCount < 3 || input.allowSameActionRetry);
+}
+
+export function canConfirmDisplayedStory(input: {
+  runId: string | null | undefined;
+  displayedRunId: string | null | undefined;
+  storyPresent: boolean;
+  subjectConfirmed: boolean;
+  storyConfirmed: boolean;
+  storyRevisionNo: number | null | undefined;
+  storySha256: string | null | undefined;
+}): boolean {
+  return Boolean(
+    input.runId?.trim()
+    && input.displayedRunId === input.runId
+    && input.storyPresent
+    && input.subjectConfirmed
+    && !input.storyConfirmed
+    && Number.isInteger(input.storyRevisionNo)
+    && (input.storyRevisionNo ?? 0) >= 1
+    && typeof input.storySha256 === 'string'
+    && /^[0-9a-f]{64}$/.test(input.storySha256),
+  );
+}
+
 export function safeParentFlowErrorMessage(error: unknown): string {
   const code = readErrorCode(error);
   const messages: Record<string, string> = {
@@ -96,6 +284,13 @@ export function safeParentFlowErrorMessage(error: unknown): string {
     PARENT_LESSON_PIN_REQUIRED: 'Hãy chọn một bài học trước khi bắt đầu.',
     PARENT_CONTEXT_REQUIRED: 'Hãy chọn hồ sơ và nhập chủ đề cùng gợi ý trước khi tiếp tục.',
     PARENT_CONTEXT_SNAPSHOT_INVALID: 'Chưa thể xác nhận ngữ cảnh của buổi học này.',
+    PARENT_CONTEXT_NOT_CONFIRMED: 'Người lớn cần xác nhận ngữ cảnh trước khi tiếp tục.',
+    PARENT_DRAWING_REQUIRED: 'Hãy chọn ảnh tranh trước khi tiếp tục xem xét.',
+    PARENT_DRAWING_RESULT_INVALID: 'Chưa thể đọc kết quả xem xét tranh. Hãy kiểm tra trạng thái trước khi gửi lại.',
+    PARENT_SUBJECT_CONFIRMATION_INVALID: 'Chưa thể xác nhận chủ thể của bức tranh.',
+    PARENT_STORY_REVISION_INVALID: 'Chưa thể xác nhận đúng phiên bản kịch bản. Hãy kiểm tra lại buổi học.',
+    PARENT_STORY_NOT_CONFIRMABLE: 'Kịch bản chưa có đủ thông tin để xác nhận.',
+    PARENT_STORY_REWRITE_LIMIT: 'Đã dùng hết 3 lượt gợi ý viết lại.',
     INVALID_LIMIT: 'Chưa tải được danh sách hồ sơ. Vui lòng thử lại.',
   };
   return (code && messages[code]) || 'Chưa thể hoàn tất thao tác. Vui lòng thử lại sau.';

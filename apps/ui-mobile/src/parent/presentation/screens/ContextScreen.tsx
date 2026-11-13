@@ -6,13 +6,14 @@ import { Card, Notice, PrimaryButton, ScreenFrame, SectionTitle, SecondaryButton
 type Props = {
   profile: ParentProfileViewV1 | null;
   contextRun: ParentStoryRunV1 | null;
+  stepLabel: string;
   busy: boolean;
   confirmed: boolean;
   error: string;
   onRetryCreate: () => void;
   onConfirm: () => void;
   onContinue: () => void;
-  onBack: () => void;
+  onBack?: () => void;
 };
 
 export function ContextScreen(props: Props): React.JSX.Element {
@@ -23,6 +24,7 @@ export function ContextScreen(props: Props): React.JSX.Element {
     <ScreenFrame
       title="Kiểm tra ngữ cảnh"
       subtitle="Người lớn xem lại chủ đề và gợi ý trước khi xác nhận buổi học."
+      step={props.stepLabel}
       onBack={props.onBack}
     >
       {props.profile ? <Card>
@@ -41,7 +43,7 @@ export function ContextScreen(props: Props): React.JSX.Element {
             Sở thích đã lưu: {snapshot.interests_summary}
           </Text> : null}
         </> : props.busy ? <ActivityIndicator color={palette.blue} /> : <Text style={{ color: palette.muted }}>
-          Chưa tải được nội dung buổi học. Hãy thử lại.
+          Hãy chuẩn bị buổi học để xem lại chủ đề và gợi ý.
         </Text>}
         {lessonPin ? <Notice text="Bài học đã chọn được gắn với buổi học này." tone="success" /> : null}
       </Card>
@@ -56,7 +58,7 @@ export function ContextScreen(props: Props): React.JSX.Element {
         disabled={props.busy}
         onPress={props.onConfirm}
       /> : <PrimaryButton
-        label="Thử lại bước này"
+        label={props.error ? 'Thử lại' : 'Tạo buổi học'}
         busy={props.busy}
         disabled={props.busy}
         onPress={props.onRetryCreate}

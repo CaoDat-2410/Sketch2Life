@@ -8,6 +8,7 @@ import { Card, Notice, PrimaryButton, SecondaryButton, ScreenFrame, palette } fr
 type Props = {
   photo: SelectedPhoto | null;
   stepLabel: string;
+  canAnalyze: boolean;
   onPhoto: (photo: SelectedPhoto) => void;
   onContinue: () => void;
   onBack: () => void;
@@ -19,7 +20,7 @@ function resolveImageMediaType(base64: string): SelectedPhoto['mediaType'] | nul
   return null;
 }
 
-export function CaptureScreen({ photo, stepLabel, onPhoto, onContinue, onBack }: Props): React.JSX.Element {
+export function CaptureScreen({ photo, stepLabel, canAnalyze, onPhoto, onContinue, onBack }: Props): React.JSX.Element {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
@@ -66,8 +67,8 @@ export function CaptureScreen({ photo, stepLabel, onPhoto, onContinue, onBack }:
         <SecondaryButton label="Chọn từ thư viện ảnh" disabled={busy} onPress={() => void chooseImage('gallery')} />
         {error ? <Notice text={error} tone="error" /> : null}
       </Card>
-      <Notice text="Cần có ảnh trước khi tạo buổi học hoặc gửi tranh đi phân tích." />
-      <PrimaryButton label="Xem lại thông tin buổi học" disabled={!photo || busy} onPress={onContinue} />
+      <Notice text="Cần có ảnh trước khi gửi tranh đi xem xét." />
+      <PrimaryButton label="Tiếp tục xem xét tranh" disabled={!photo || !canAnalyze || busy} onPress={onContinue} />
     </ScreenFrame>
   );
 }

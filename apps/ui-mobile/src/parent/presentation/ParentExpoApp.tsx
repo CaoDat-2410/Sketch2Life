@@ -3,7 +3,13 @@ import { ActivityIndicator, StatusBar, Text, View } from 'react-native';
 import type { ParentApplicationModule } from '../application/ports/ParentApplicationModule';
 import type { ParentMainTab } from './screens/ParentBottomBar';
 import type { AppStep } from './navigation/workflowTypes';
-import { selectProfileById } from './navigation/parentFlowV1';
+import {
+  canAnalyzeDrawing,
+  canBeginContextStep,
+  canConfirmDisplayedStory,
+  lessonVersionPinFromDetail,
+  selectProfileById,
+} from './navigation/parentFlowV1';
 import { useParentController } from './navigation/useParentController';
 import { useParentPlatformController } from './navigation/useParentPlatformController';
 import { AccountScreen } from './screens/AccountScreen';
@@ -11,6 +17,7 @@ import { ActivityScreen } from './screens/ActivityScreen';
 import { AuthScreen } from './screens/AuthScreen';
 import { CaptureScreen } from './screens/CaptureScreen';
 import { ContextScreen } from './screens/ContextScreen';
+import { DrawingGuideScreen } from './screens/DrawingGuideScreen';
 import { HandoffScreen } from './screens/HandoffScreen';
 import { HomeScreen } from './screens/HomeScreen';
 import { LessonGalleryScreen } from './screens/LessonGalleryScreen';
@@ -24,7 +31,6 @@ import { SettingsScreen } from './screens/SettingsScreen';
 import { StoryHistoryScreen } from './screens/StoryHistoryScreen';
 import { ProfileSharingScreen } from './screens/ProfileSharingScreen';
 import { LessonHistoryScreen } from './screens/LessonHistoryScreen';
-import { TranscriptReviewScreen } from './screens/TranscriptReviewScreen';
 import { StoryScreen } from './screens/StoryScreen';
 import { TopicScreen } from './screens/TopicScreen';
 import { UnderstandingScreen } from './screens/UnderstandingScreen';
@@ -268,9 +274,25 @@ export default function ParentExpoApp({ application }: Props): React.JSX.Element
 
 function renderLearningStep(parent: ReturnType<typeof useParentController>): React.JSX.Element {
   const step: AppStep = parent.step;
-  const hasAudio = Boolean(parent.audio);
-  const stepLabel = (plain: number, withAudio: number): string =>
-    hasAudio ? `${withAudio} / 8` : `${plain} / 7`;
+  const stepLabel = (number: number): string => `${number} / 7`;
+  const lessonPin = lessonVersionPinFromDetail(parent.lesson);
+  const canOpenGuide = canBeginContextStep({
+    profileId: parent.profile?.profile_id ?? '', topic: parent.topic, adultIdea: parent.idea, lessonPin,
+  });
+  const canAnalyze = canAnalyzeDrawing({
+    runId: parent.contextRun?.run_id,
+    contextConfirmed: parent.contextConfirmed,
+    photoSelected: Boolean(parent.photo),
+  });
+  const canConfirmStory = canConfirmDisplayedStory({
+    runId: parent.contextRun?.run_id,
+    displayedRunId: parent.storyDisplayedRunId,
+    storyPresent: Boolean(parent.story),
+    subjectConfirmed: parent.subjectConfirmed,
+    storyConfirmed: parent.storyConfirmed,
+    storyRevisionNo: parent.storyRevisionNo,
+    storySha256: parent.storySha256,
+  });
   if (step === 'topic') return <TopicScreen
     topic={parent.topic}
     idea={parent.idea}
@@ -280,15 +302,25 @@ function renderLearningStep(parent: ReturnType<typeof useParentController>): Rea
     guideBusy={parent.guideBusy}
     guideError={parent.guideError}
     lesson={parent.lesson}
-    stepLabel={stepLabel(1, 1)}
+    stepLabel={stepLabel(1)}
+    canContinue={canOpenGuide}
+    error={parent.error}
     onTopic={parent.setTopic}
     onIdea={parent.setIdea}
     onAudio={parent.setAudio}
     onGuideToggle={parent.setGuideEnabled}
     onGenerateGuide={() => void parent.createGuide()}
     onOpenLessons={() => void parent.openLessons('picker')}
-    onContinue={() => void parent.openContextReview()}
+    onContinue={parent.openDrawingGuide}
     onBack={parent.backToProfile}
+  />;
+  if (step === 'drawing-guide' && parent.lesson) return <DrawingGuideScreen
+    lesson={parent.lesson}
+    stepLabel={stepLabel(2)}
+    currentIndex={parent.drawingGuideIndex}
+    onIndexChange={parent.setDrawingGuideIndex}
+    onContinue={parent.openContextReview}
+    onBack={() => parent.setStep('topic')}
   />;
   if (step === 'lessons') return <LessonPickerScreen
     lessons={parent.lessons}
@@ -300,41 +332,38 @@ function renderLearningStep(parent: ReturnType<typeof useParentController>): Rea
     onClear={() => { parent.setLesson(null); parent.setStep('topic'); }}
     onBack={() => parent.setStep('topic')}
   />;
-  if (step === 'capture') return <CaptureScreen photo={parent.photo} stepLabel={stepLabel(2, 2)} onPhoto={parent.setPhoto} onContinue={() => void parent.openContextReview()} onBack={() => parent.setStep('topic')} />;
   if (step === 'context') return <ContextScreen
     profile={parent.profile}
     contextRun={parent.contextRun}
+    stepLabel={stepLabel(3)}
     busy={parent.busy === 'context-create' || parent.busy === 'context-confirmation'}
     confirmed={parent.contextConfirmed}
     error={parent.error}
     onRetryCreate={() => void parent.retryContextCreation()}
     onConfirm={() => void parent.confirmContext()}
-    onContinue={() => parent.setStep('activity')}
-    onBack={() => parent.setStep('topic')}
+    onContinue={parent.continueToCapture}
+    onBack={parent.contextRun ? undefined : () => parent.setStep('drawing-guide')}
   />;
-  if (step === 'transcript-review') return <TranscriptReviewScreen
-    stepLabel={stepLabel(4, 4)}
-    transcript={parent.transcript}
-    text={parent.transcriptText}
-    busy={parent.transcriptBusy || parent.busy === 'understanding'}
-    error={parent.transcriptError}
-    onText={parent.setTranscriptText}
-    onConfirm={() => void parent.confirmReviewedTranscript()}
-    onContinueWithoutAudio={() => void parent.continueWithoutAudio()}
+  if (step === 'capture') return <CaptureScreen
+    photo={parent.photo}
+    stepLabel={stepLabel(4)}
+    canAnalyze={canAnalyze}
+    onPhoto={parent.setPhoto}
+    onContinue={() => void parent.analyzeDrawingForCurrentRun()}
     onBack={() => parent.setStep('context')}
   />;
   if (step === 'understanding' && parent.candidate) return <UnderstandingScreen
     candidate={parent.candidate}
-    stepLabel={stepLabel(4, 5)}
+    stepLabel={stepLabel(5)}
     subject={parent.subject}
     busy={parent.busy === 'subject'}
     error={parent.error}
     onSubject={parent.setSubject}
     onConfirm={() => void parent.confirmSubject()}
-    onBack={() => parent.setStep('context')}
+    onBack={() => parent.setStep('capture')}
   />;
   if (step === 'activity') return <ActivityScreen
-    stepLabel={stepLabel(5, 6)}
+    stepLabel={stepLabel(6)}
     activities={parent.activities}
     source={parent.activitySource}
     busy={parent.busy === 'activity'}
@@ -345,18 +374,19 @@ function renderLearningStep(parent: ReturnType<typeof useParentController>): Rea
     onBack={() => parent.setStep('context')}
   />;
   if (step === 'story') return <StoryScreen
-    stepLabel={stepLabel(6, 7)}
+    stepLabel={stepLabel(7)}
     story={parent.story}
     rewriteCount={parent.rewriteCount}
     rewriteInstruction={parent.rewriteInstruction}
     busy={parent.busy === 'story' || parent.busy === 'rewrite' || parent.busy === 'confirm-story'}
     attempted={parent.storyAttempted}
-    canConfirm={Boolean(parent.run?.story_revision_no && parent.storySha256)}
+    canConfirm={canConfirmStory}
     error={parent.error}
     confirmed={parent.storyConfirmed}
     onRewriteInstruction={parent.setRewriteInstruction}
     onGenerate={() => void parent.requestStory()}
     onRewrite={() => void parent.requestStory(parent.rewriteInstruction)}
+    onRetry={() => void parent.requestStory(undefined, true)}
     onConfirm={() => void parent.confirmStory()}
     onBack={() => parent.setStep('activity')}
   />;

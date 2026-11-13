@@ -5,7 +5,6 @@ import type { ParentActionIdentity } from '../../application/ports/ParentPorts';
 import type { ParentApplicationModule } from '../../application/ports/ParentApplicationModule';
 import { parseStoryDraft } from '../../domain/storyDraft';
 import type {
-  ParentAudioTranscription,
   LessonDetail,
   LessonInvitation,
   LessonSummary,
@@ -16,16 +15,22 @@ import type {
   ParentStoryRunV1,
   ParentUser,
   StoryDraft,
-  StoryRun,
   SuggestedActivity,
 } from '../../domain/types';
 import type { AppStep, SelectedAudio, SelectedPhoto, TimedEvent } from './workflowTypes';
 import {
+  canAnalyzeDrawing,
   canBeginContextStep,
+  canConfirmDisplayedStory,
+  canConfirmDrawingSubject,
+  canContinueToCapture,
+  canRequestStoryRevision,
   isProfileDeletionPending,
   lessonVersionPinFromDetail,
   mergeProfilePage,
+  readStoryRevisionReadModel,
   nextProfileCursor,
+  readDrawingCandidate,
   reconcileProfileRecord,
   safeParentFlowErrorMessage,
   safeProfileFieldMessages,
@@ -59,23 +64,22 @@ export function useParentController(application: ParentApplicationModule) {
   const [guideBase64, setGuideBase64] = useState('');
   const [guideBusy, setGuideBusy] = useState(false);
   const [guideError, setGuideError] = useState('');
+  const [drawingGuideIndex, setDrawingGuideIndex] = useState(0);
   const [photo, setPhoto] = useState<SelectedPhoto | null>(null);
   const [audio, setAudioValue] = useState<SelectedAudio | null>(null);
-  const [audioAttempted, setAudioAttempted] = useState(false);
-  const [transcript, setTranscript] = useState<ParentAudioTranscription | null>(null);
-  const [transcriptText, setTranscriptText] = useState('');
-  const [transcriptError, setTranscriptError] = useState('');
-  const [run, setRun] = useState<StoryRun | null>(null);
   const [contextRun, setContextRun] = useState<ParentStoryRunV1 | null>(null);
   const [contextConfirmed, setContextConfirmed] = useState(false);
   const [candidate, setCandidate] = useState<ParentCandidate | null>(null);
   const [subject, setSubject] = useState('');
+  const [subjectConfirmed, setSubjectConfirmed] = useState(false);
   const [understandingRevision, setUnderstandingRevision] = useState(0);
   const [activities, setActivities] = useState<SuggestedActivity[]>([]);
   const [activitySource, setActivitySource] = useState('');
   const [activityAttempted, setActivityAttempted] = useState(false);
   const [activityError, setActivityError] = useState('');
   const [story, setStory] = useState<StoryDraft | null>(null);
+  const [storyDisplayedRunId, setStoryDisplayedRunId] = useState('');
+  const [storyRevisionNo, setStoryRevisionNo] = useState<number | null>(null);
   const [storySha256, setStorySha256] = useState('');
   const [storyAttempted, setStoryAttempted] = useState(false);
   const [storyConfirmed, setStoryConfirmed] = useState(false);
@@ -91,6 +95,10 @@ export function useParentController(application: ParentApplicationModule) {
   const profileDeleteActions = useRef(new Map<string, RetainedActionIdentity>());
   const storyRunCreateAction = useRef<RetainedActionIdentity | null>(null);
   const contextConfirmationAction = useRef<RetainedActionIdentity | null>(null);
+  const subjectConfirmationAction = useRef<RetainedActionIdentity | null>(null);
+  const storyRevisionAction = useRef<RetainedActionIdentity | null>(null);
+  const scriptConfirmationAction = useRef<RetainedActionIdentity | null>(null);
+  const drawingAnalysisInFlight = useRef(false);
 
   async function timeRequest<T>(stage: string, request: () => Promise<T>): Promise<T> {
     const started = Date.now();
@@ -424,10 +432,6 @@ export function useParentController(application: ParentApplicationModule) {
 
   function setAudio(value: SelectedAudio | null): void {
     setAudioValue(value);
-    setAudioAttempted(false);
-    setTranscript(null);
-    setTranscriptText('');
-    setTranscriptError('');
   }
 
   async function createContextRun(): Promise<void> {
@@ -460,6 +464,7 @@ export function useParentController(application: ParentApplicationModule) {
       });
       setContextRun(result.story_run);
       setActiveRun(result.story_run);
+      storyRunCreateAction.current = null;
     } catch (cause) {
       setError(safeParentFlowErrorMessage(cause));
     } finally {
@@ -468,10 +473,39 @@ export function useParentController(application: ParentApplicationModule) {
   }
 
   async function openContextReview(): Promise<void> {
-    setContextRun(null);
-    setContextConfirmed(false);
+    const lessonPin = lessonVersionPinFromDetail(lesson);
+    if (!canBeginContextStep({
+      profileId: profile?.profile_id ?? '', topic, adultIdea: idea, lessonPin,
+    })) {
+      const code = !profile || !topic.trim() || !idea.trim() ? 'PARENT_CONTEXT_REQUIRED' : 'PARENT_LESSON_PIN_REQUIRED';
+      setError(safeParentFlowErrorMessage({ code }));
+      return;
+    }
+    setError('');
     setStep('context');
-    await createContextRun();
+  }
+
+  function openDrawingGuide(): void {
+    const lessonPin = lessonVersionPinFromDetail(lesson);
+    if (!canBeginContextStep({
+      profileId: profile?.profile_id ?? '', topic, adultIdea: idea, lessonPin,
+    })) {
+      const code = !profile || !topic.trim() || !idea.trim() ? 'PARENT_CONTEXT_REQUIRED' : 'PARENT_LESSON_PIN_REQUIRED';
+      setError(safeParentFlowErrorMessage({ code }));
+      return;
+    }
+    setError('');
+    setDrawingGuideIndex(0);
+    setStep('drawing-guide');
+  }
+
+  function continueToCapture(): void {
+    if (!contextRun || !canContinueToCapture(contextConfirmed)) {
+      setError(safeParentFlowErrorMessage({ code: 'PARENT_CONTEXT_NOT_CONFIRMED' }));
+      return;
+    }
+    setError('');
+    setStep('capture');
   }
 
   async function confirmContext(): Promise<void> {
@@ -489,7 +523,9 @@ export function useParentController(application: ParentApplicationModule) {
       setContextRun(result.story_run);
       setActiveRun(result.story_run);
       setContextConfirmed(true);
-      setActivityAttempted(true);
+      contextConfirmationAction.current = null;
+      setSubjectConfirmed(false);
+      setActivityAttempted(false);
       setActivities([]);
       setActivitySource('');
       setActivityError('');
@@ -499,87 +535,83 @@ export function useParentController(application: ParentApplicationModule) {
       setBusy('');
     }
   }
-  async function analyzeDrawingForRun(targetRun: StoryRun): Promise<void> {
-    if (!photo) return;
+  async function analyzeDrawingForRun(runId: string | null | undefined): Promise<void> {
+    if (busy || drawingAnalysisInFlight.current) return;
+    const selectedPhoto = photo;
+    if (typeof runId !== 'string'
+      || !canAnalyzeDrawing({ runId, contextConfirmed, photoSelected: Boolean(selectedPhoto) })
+      || !selectedPhoto) {
+      setError(safeParentFlowErrorMessage({ code: contextConfirmed ? 'PARENT_DRAWING_REQUIRED' : 'PARENT_CONTEXT_NOT_CONFIRMED' }));
+      return;
+    }
+    drawingAnalysisInFlight.current = true;
     setBusy('understanding');
     setError('');
+    setCandidate(null);
+    setSubject('');
+    setSubjectConfirmed(false);
+    setUnderstandingRevision(0);
     try {
       const understanding = await timeRequest(
         'Qwen3.5-VL · hiểu tranh',
-        () => application.learning.understandDrawing(targetRun.run_id, photo.base64, photo.mediaType),
+        () => application.learning.understandDrawing(runId, selectedPhoto.base64, selectedPhoto.mediaType),
       );
-      if (!understanding.candidate) throw new Error('API phản hồi nhưng thiếu candidate chủ thể.');
-      setCandidate(understanding.candidate);
-      setSubject(understanding.candidate.candidate_subject ?? '');
-      setUnderstandingRevision(understanding.understanding_revision ?? 1);
+      const returnedCandidate = readDrawingCandidate(understanding.candidate);
+      const revision = understanding.understanding_revision;
+      if (!returnedCandidate || typeof revision !== 'number' || !Number.isInteger(revision) || revision < 1) {
+        setError(safeParentFlowErrorMessage({ code: 'PARENT_DRAWING_RESULT_INVALID' }));
+        return;
+      }
+      setCandidate(returnedCandidate);
+      setSubject(returnedCandidate.candidate_subject ?? '');
+      setUnderstandingRevision(revision);
+      setSubjectConfirmed(false);
       setStep('understanding');
     } catch (cause) {
-      try {
-        const [latestRun, latestActiveRun] = await Promise.all([
-          application.learning.getRun(targetRun.run_id),
-          application.learning.getActiveRunV1(),
-        ]);
-        setRun(latestRun.story_run);
-        setActiveRun(latestActiveRun.story_run);
-      } catch {
-        // Preserve the original AI failure when the follow-up state refresh also fails.
-      }
-      setError(displayError(cause));
+      setError(safeParentFlowErrorMessage(cause));
     } finally {
+      drawingAnalysisInFlight.current = false;
       setBusy('');
     }
   }
 
-  async function confirmReviewedTranscript(): Promise<void> {
-    if (busy) return;
-    if (!run || !transcript) {
-      setTranscriptError('Chưa có bản nhận dạng để xác nhận. Bạn có thể tiếp tục không dùng âm thanh.');
-      return;
-    }
-    setTranscriptError('');
-    setBusy('transcript-confirmation');
-    let confirmedText: string | null = null;
-    try {
-      const receipt = await timeRequest('Parent · xác nhận transcript', () => application.learning.confirmTranscript(
-        run.run_id,
-        transcript.transcript_revision_no,
-        transcriptText,
-      ));
-      confirmedText = receipt.transcript_text;
-      setIdea(receipt.transcript_text);
-    } catch (cause) {
-      setTranscriptError(displayError(cause));
-    } finally {
-      setBusy('');
-    }
-    if (confirmedText !== null) await analyzeDrawingForRun(run);
-  }
-
-  async function continueWithoutAudio(): Promise<void> {
-    if (!run) {
-      setTranscriptError('Chưa tạo được buổi học. Quay lại bước xác nhận rồi thử tiếp.');
-      return;
-    }
-    setTranscript(null);
-    setTranscriptText('');
-    await analyzeDrawingForRun(run);
+  async function analyzeDrawingForCurrentRun(): Promise<void> {
+    await analyzeDrawingForRun(contextRun?.run_id);
   }
 
   async function confirmSubject(): Promise<void> {
-    if (!run || !candidate || !subject.trim() || !understandingRevision) return;
+    if (busy) return;
+    const runId = contextRun?.run_id;
+    if (!canConfirmDrawingSubject({
+      runId,
+      candidatePresent: Boolean(candidate),
+      understandingRevision,
+      subject,
+      explicitAdultAction: true,
+    }) || !runId) {
+      setError(safeParentFlowErrorMessage({ code: 'PARENT_SUBJECT_REQUIRED' }));
+      return;
+    }
+    const confirmedSubject = subject.trim();
+    const signature = JSON.stringify([runId, understandingRevision, confirmedSubject]);
+    const actionIdentity = retainedActionIdentity(subjectConfirmationAction, signature);
     setBusy('subject');
     setError('');
     try {
-      const response = await application.learning.confirmSubject(run.run_id, understandingRevision, subject.trim());
+      const response = await application.learning.confirmSubjectV1(runId, understandingRevision, confirmedSubject, actionIdentity);
+      if (response.story_run_id !== runId || response.understanding_revision !== understandingRevision) {
+        throw new ParentApplicationError('PARENT_SUBJECT_CONFIRMATION_INVALID', 'Subject confirmation did not match the reviewed result.');
+      }
       setUnderstandingRevision(response.understanding_revision);
-      setRun((current) => current ? { ...current, subject_label: subject.trim(), run_state: 'PREPARATION_REVIEW' } : current);
-      setCandidate({ ...candidate, candidate_subject: subject.trim(), decision: 'CONFIRMED_BY_ADULT' });
+      setCandidate((current) => current ? { ...current, candidate_subject: confirmedSubject, decision: response.decision } : current);
+      setSubjectConfirmed(true);
       setActivityAttempted(false);
       setActivities([]);
       setActivityError('');
       setStep('activity');
+      subjectConfirmationAction.current = null;
     } catch (cause) {
-      setError(displayError(cause));
+      setError(safeParentFlowErrorMessage(cause));
     } finally {
       setBusy('');
     }
@@ -591,48 +623,93 @@ export function useParentController(application: ParentApplicationModule) {
     setActivitySource('');
     setActivityError('');
   }
-  async function requestStory(instruction?: string): Promise<void> {
-    if (!run || !understandingRevision || (storyAttempted && !instruction) || (rewriteCount >= 3 && instruction)) return;
+  async function requestStory(instruction?: string, allowSameActionRetry = false): Promise<void> {
+    if (busy) return;
+    const runId = contextRun?.run_id;
+    const normalizedInstruction = instruction?.trim() ?? '';
+    const signature = runId ? JSON.stringify([runId, understandingRevision, normalizedInstruction || null]) : '';
+    const sameRetainedAction = Boolean(signature && storyRevisionAction.current?.signature === signature);
+    const canRequest = canRequestStoryRevision({
+      runId,
+      understandingRevision,
+      storyPresent: Boolean(story),
+      storyAttempted,
+      rewriteCount,
+      rewriteInstruction: normalizedInstruction,
+      storyConfirmed,
+      subjectConfirmed,
+      allowSameActionRetry: allowSameActionRetry || sameRetainedAction,
+    });
+    if (!canRequest || !runId) {
+      const code = normalizedInstruction && rewriteCount >= 3 ? 'PARENT_STORY_REWRITE_LIMIT' : 'PARENT_STORY_REVISION_INVALID';
+      setError(safeParentFlowErrorMessage({ code }));
+      return;
+    }
+    const isNewAction = !sameRetainedAction;
+    const actionIdentity = retainedActionIdentity(storyRevisionAction, signature);
+    const isRewrite = Boolean(normalizedInstruction);
     setStoryAttempted(true);
-    if (instruction) setRewriteCount((count) => count + 1);
-    setBusy(instruction ? 'rewrite' : 'story');
+    if (isRewrite && isNewAction) setRewriteCount((count) => count + 1);
+    setBusy(isRewrite ? 'rewrite' : 'story');
     setError('');
     try {
-      const { updatedRun, parsed, hash } = await timeRequest(
-        instruction ? 'Qwen3.5 · viết lại kịch bản' : 'Qwen3.5 · tạo kịch bản',
-        async () => {
-          const receipt = await application.learning.generateStory(run.run_id, understandingRevision, instruction, rewriteCount);
-          const nextRun = receipt.story_run ?? (await application.learning.getRun(run.run_id)).story_run;
-          const parsedStory = parseStoryDraft(receipt.story ?? nextRun.story);
-          if (!parsedStory) throw new Error('Story không khớp schema story-revision.v1 (cần 5–15 cảnh, 30–90 giây).');
-          const storyHash = receipt.story_sha256 ?? nextRun.story_sha256 ?? '';
-          if (!storyHash) throw new Error('Story response thiếu story_sha256.');
-          return { updatedRun: nextRun, parsed: parsedStory, hash: storyHash };
-        },
+      const receipt = await timeRequest(
+        isRewrite ? 'Qwen3.5 · viết lại kịch bản' : 'Qwen3.5 · tạo kịch bản',
+        () => application.learning.createStoryRevisionV1(
+          runId,
+          understandingRevision,
+          normalizedInstruction || undefined,
+          actionIdentity,
+        ),
       );
-      setRun(updatedRun);
-      setStory(parsed);
-      setStorySha256(hash);
+      const readModel = readStoryRevisionReadModel(receipt, runId);
+      if (readModel.kind !== 'valid') {
+        throw new ParentApplicationError('PARENT_STORY_REVISION_INVALID', 'Story response lacks a validated revision pin.');
+      }
+      const parsedStory = parseStoryDraft(readModel.value.story);
+      if (!parsedStory) {
+        throw new ParentApplicationError('PARENT_STORY_REVISION_INVALID', 'Story response does not match the required schema.');
+      }
+      setStory(parsedStory);
+      setStoryDisplayedRunId(readModel.value.runId);
+      setStoryRevisionNo(readModel.value.storyRevisionNo);
+      setStorySha256(readModel.value.storySha256);
       setRewriteInstruction('');
+      storyRevisionAction.current = null;
     } catch (cause) {
-      setError(displayError(cause));
+      setError(safeParentFlowErrorMessage(cause));
     } finally {
       setBusy('');
     }
   }
 
   async function confirmStory(): Promise<void> {
-    if (!run || !story || !storySha256 || !run.story_revision_no) return;
+    if (busy) return;
+    const runId = contextRun?.run_id;
+    if (!canConfirmDisplayedStory({
+      runId,
+      displayedRunId: storyDisplayedRunId,
+      storyPresent: Boolean(story),
+      subjectConfirmed,
+      storyConfirmed,
+      storyRevisionNo,
+      storySha256,
+    }) || !runId || storyRevisionNo === null) {
+      setError(safeParentFlowErrorMessage({ code: 'PARENT_STORY_NOT_CONFIRMABLE' }));
+      return;
+    }
+    const signature = JSON.stringify([runId, storyRevisionNo, storySha256]);
+    const actionIdentity = retainedActionIdentity(scriptConfirmationAction, signature);
     setBusy('confirm-story');
     setError('');
     try {
-      const receipt = await application.learning.confirmStory(run.run_id, run.story_revision_no, storySha256);
-      setRun(receipt.story_run);
+      const receipt = await application.learning.confirmScriptV1(runId, storyRevisionNo, storySha256, actionIdentity);
+      setContextRun(receipt.story_run);
       setActiveRun(null);
       setStoryConfirmed(true);
-      setStep('handoff');
+      scriptConfirmationAction.current = null;
     } catch (cause) {
-      setError(displayError(cause));
+      setError(safeParentFlowErrorMessage(cause));
     } finally {
       setBusy('');
     }
@@ -692,17 +769,21 @@ export function useParentController(application: ParentApplicationModule) {
   }
 
   function resetWorkflow(): void {
-    setTopic(''); setIdea(''); setLesson(null); setPhoto(null); setRun(null); setCandidate(null); setSubject('');
+    setTopic(''); setIdea(''); setLesson(null); setPhoto(null); setCandidate(null); setSubject('');
     setContextRun(null); setContextConfirmed(false); setProfileFieldErrors({});
-    setAudioValue(null); setAudioAttempted(false); setTranscript(null); setTranscriptText(''); setTranscriptError('');
-    setUnderstandingRevision(0); setActivities([]); setActivitySource(''); setActivityAttempted(false); setActivityError('');
-    setStory(null); setStorySha256(''); setStoryAttempted(false); setStoryConfirmed(false); setRewriteCount(0); setRewriteInstruction('');
+    setAudioValue(null); setDrawingGuideIndex(0); setUnderstandingRevision(0); setSubjectConfirmed(false);
+    setActivities([]); setActivitySource(''); setActivityAttempted(false); setActivityError('');
+    setStory(null); setStoryDisplayedRunId(''); setStoryRevisionNo(null); setStorySha256('');
+    setStoryAttempted(false); setStoryConfirmed(false); setRewriteCount(0); setRewriteInstruction('');
     setGuideBase64(''); setGuideEnabled(false); setEvents([]); setError(''); setBusy('');
     profileCreateAction.current = null;
     profilePatchActions.current.clear();
     profileDeleteActions.current.clear();
     storyRunCreateAction.current = null;
     contextConfirmationAction.current = null;
+    subjectConfirmationAction.current = null;
+    storyRevisionAction.current = null;
+    scriptConfirmationAction.current = null;
   }
 
   return {
@@ -711,16 +792,17 @@ export function useParentController(application: ParentApplicationModule) {
     publicSettings: application.publicSettings,
     activeRun, topic, setTopic, idea, setIdea, lesson, setLesson, lessons, lessonLoading, lessonLoadingId, lessonError,
     galleryMode, galleryLesson, lessonInvitations, groupInvitations, accountError, guideEnabled, setGuideEnabled,
-    guideBase64, guideBusy, guideError, photo, setPhoto, audio, setAudio, transcript, transcriptText, setTranscriptText,
-    transcriptError, audioAttempted, transcriptBusy: busy === 'transcription' || busy === 'transcript-confirmation',
-    run, contextRun, contextConfirmed, candidate, subject, setSubject, understandingRevision,
-    activities, activitySource, activityAttempted, activityError, story, storySha256, storyAttempted,
+    guideBase64, guideBusy, guideError, photo, setPhoto, audio, setAudio,
+    contextRun, contextConfirmed, candidate, subject, setSubject, subjectConfirmed, understandingRevision,
+    activities, activitySource, activityAttempted, activityError, story, storyDisplayedRunId, storyRevisionNo,
+    storySha256, storyAttempted,
     storyConfirmed, rewriteCount, rewriteInstruction, setRewriteInstruction, events, busy, error, authError, bootstrapBusy,
     loadParentData, authenticate, signInWithGoogle, resetPassword, createProfileAndReturn, updateProfile,
     selectProfile, requestProfileDeletion, refreshPendingDeletion, continueWithProfile, openLessons, chooseLesson, acceptLessonInvitation,
-    declineLessonInvitation, acceptGroupInvitation, createGuide, openContextReview, confirmContext,
-    confirmReviewedTranscript, continueWithoutAudio, confirmSubject,
-    requestActivities, requestStory, confirmStory, resumeActiveRun, changePassword, resetCurrentPassword, signOut,
+    declineLessonInvitation, acceptGroupInvitation, createGuide, openDrawingGuide, openContextReview, confirmContext,
+    continueToCapture, analyzeDrawingForCurrentRun, confirmSubject,
+    requestActivities, requestStory, confirmStory, drawingGuideIndex, setDrawingGuideIndex,
+    resumeActiveRun, changePassword, resetCurrentPassword, signOut,
     retryContextCreation: createContextRun,
     resetWorkflow, backToProfile: () => { setStep('profile'); setError(''); },
     clearProfileFormErrors: () => setProfileFieldErrors({}),

@@ -15,6 +15,7 @@ type Props = {
   confirmed: boolean;
   onRewriteInstruction: (value: string) => void;
   onGenerate: () => void;
+  onRetry: () => void;
   onRewrite: () => void;
   onConfirm: () => void;
   onBack: () => void;
@@ -24,7 +25,10 @@ export function StoryScreen(props: Props): React.JSX.Element {
   return (
     <ScreenFrame title="Câu chuyện từ bức vẽ" subtitle="Đọc lại nội dung. Bạn có thể gửi gợi ý viết lại, không sửa trực tiếp từng cảnh." step={props.stepLabel} onBack={props.onBack}>
       {props.error ? <Notice text={props.error} tone="error" /> : null}
-      {!props.story ? <Card><Text style={{ color: palette.muted, fontSize: 14, lineHeight: 21 }}>Kịch bản được cá nhân hóa theo tranh và chủ thể đã xác nhận.</Text>{props.attempted ? <Notice text="Yêu cầu đã được gửi. Để tránh tạo bản trùng, không gửi lại tự động; kiểm tra trạng thái buổi học hoặc mã lỗi phía trên." tone="warning" /> : <PrimaryButton label="Tạo kịch bản bằng AI" busy={props.busy} onPress={props.onGenerate} />}</Card> : (
+      {!props.story ? <Card><Text style={{ color: palette.muted, fontSize: 14, lineHeight: 21 }}>Kịch bản được cá nhân hóa theo tranh và chủ thể đã xác nhận.</Text>{props.attempted ? <>
+        <Notice text="Yêu cầu chưa có kết quả hiển thị. Không tự gửi lại; bạn có thể chọn gửi lại cùng yêu cầu." tone="warning" />
+        <SecondaryButton label="Gửi lại cùng yêu cầu" disabled={props.busy} onPress={props.onRetry} />
+      </> : <PrimaryButton label="Tạo kịch bản bằng AI" busy={props.busy} onPress={props.onGenerate} />}</Card> : (
         <>
           <Card>
             <Text style={{ color: palette.blue, fontSize: 12, fontWeight: '800' }}>BẢN NHÁP · {props.story.language.toUpperCase()}</Text>
@@ -46,7 +50,7 @@ export function StoryScreen(props: Props): React.JSX.Element {
           {!props.confirmed ? <Card>
             <Field label={`Gợi ý viết lại (còn ${Math.max(0, 3 - props.rewriteCount)} lần)`} value={props.rewriteInstruction} onChangeText={props.onRewriteInstruction} placeholder="Ví dụ: kể chậm hơn, thêm chi tiết về cánh bướm…" multiline editable={props.rewriteCount < 3 && !props.busy} />
             {props.rewriteCount < 3 ? <SecondaryButton label="Gửi gợi ý viết lại" disabled={!props.rewriteInstruction.trim() || props.busy} onPress={props.onRewrite} /> : null}
-            <Notice text="Người lớn duyệt kịch bản cuối trước khi có thể chuyển sang bước video." />
+            <Notice text="Người lớn xem lại và xác nhận kịch bản cuối để hoàn tất bước này." />
             <PrimaryButton label="Xác nhận kịch bản này" busy={props.busy} disabled={!props.canConfirm} onPress={props.onConfirm} />
           </Card> : <Notice text="Kịch bản đã được người lớn xác nhận." tone="success" />}
         </>
