@@ -1,5 +1,6 @@
 # Task approval
 
+- Status: APPROVED
 - Authorization: APPROVED for the exact scope in Plan revision 1.
 - Approver: Project owner/requester, direct instruction in this conversation on 2026-11-13: the Parent UI at the supplied local URL should be a mobile app running on the emulator.
 - Approved plan: `features/FEAT-067-parent-ui-android-app/plan/PLAN.md`.
