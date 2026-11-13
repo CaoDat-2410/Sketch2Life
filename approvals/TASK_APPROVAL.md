@@ -1,5 +1,43 @@
 # Task approval register
 
+## FEAT-067 Plan Rev2 — single-file Parent Android app and branch publication
+
+- Status: `APPROVED` for the exact scope in Plan revision 2.
+- Approver: Project owner/requester, direct instruction in this conversation on 2026-11-13 to fix the Parent app, push to the current branch, and keep the other three role UIs running on web.
+- Recorded date: 2026-11-13, Asia/Saigon.
+- Feature: FEAT-067 — Package and publish the Parent UI Android app.
+- Approved plan: `features/FEAT-067-parent-ui-android-app/plan/PLAN.md`.
+- Plan SHA-256 at authorization: `AA95104B3BBD97B7B6F9C1B71D0828AFE90074DA90D16AEA5AFAC94E3D37239B`.
+- Scope: inline the Parent Vite production build into a local HTML asset packaged by `apps/mobile`; run the Parent app on the supplied emulator; preserve and build Teacher, School Manager, and Platform Admin web workspaces; document teammate commands; run the repository security validator; commit and push normally to `origin/FE_UI_Project_Ver2`.
+- Publication includes the completed FEAT-066 accessibility fix/evidence; this owner instruction supersedes its earlier no-push exclusion for this branch publication.
+- Boundaries: no force-push, release signing, product/API/auth/data changes, generated artwork, Child Expo deletion, or changes to the other role web source.
+
+## FEAT-067 Plan Rev1 — Parent UI Android app packaging
+
+- Status: `APPROVED` for the exact scope in Plan revision 1.
+- Approver: Project owner/requester, direct instruction in this conversation on 2026-11-13: wants the Parent UI at the supplied local URL to run as a mobile app on the emulator.
+- Recorded date: 2026-11-13, Asia/Saigon.
+- Feature: FEAT-067 — Package the Parent UI as an Android app.
+- Approved plan: `features/FEAT-067-parent-ui-android-app/plan/PLAN.md`.
+- Plan SHA-256 at authorization: `573665CDB90780B309557197A06EB8941BD893A4262118FF9959DE5DCF8AFAA8`.
+- Scope: bundle `UI_Project/parent-ui`'s Vite output into the existing `UI_Project/parent-android/apps/mobile` React Native Android app, render it in a local WebView, then build/install and verify on the supplied emulator.
+- Exclusions: native screen-by-screen rewrite, Child Expo deletion, product-flow/backend/auth/API/data changes, generated artwork, release signing, commit, push, or unrelated cleanup.
+- Approval basis: the user clarified that the Parent UI at `http://127.0.0.1:5171/` is the mobile app they want on the VM; a locally bundled hybrid app preserves that exact UI without depending on the web dev server.
+
+## FEAT-066 Plan Rev1 — Parent Android preview accessibility-role fix
+
+- Status: `APPROVED` for the exact scope in Plan revision 1.
+- Approver: Project owner/requester, direct instruction in this conversation on 2026-11-13: wants the Parent mobile UI running on the provided emulator and supplied the screenshot of its RedBox failure.
+- Recorded timestamp: 2026-11-13 15:46:46 Asia/Saigon.
+- Feature: FEAT-066 — Parent Android preview accessibility-role fix.
+- Approved plan: `features/FEAT-066-parent-android-accessibility-role-fix/plan/PLAN.md`.
+- Plan SHA-256 at authorization: `AF8C0F3C1D273108D80692FB80F001165A284EFB398A743978629C16BDC70C57`.
+- Scope: change only the two invalid `accessibilityRole="tabbar"` wrappers in the native Parent Android app to `tablist`; build/install the debug APK; run preview and lesson library on the connected emulator; record evidence in FEAT-066.
+- Acceptance criteria: AC1–AC5 in the hash-identified Plan Rev1.
+- Exclusions: Child Expo source deletion, `apps/ui-mobile` changes, product/auth/design/backend/API/data changes, commit, push, and unrelated cleanup.
+- Approval basis: the direct request to run the Parent UI on the emulator, together with the supplied crash screenshot, authorizes the minimal correction required for that outcome.
+- Execution closeout: COMPLETE. The Parent Android preview and lesson library were verified on `emulator-5554`; runtime/build evidence is in `features/FEAT-066-parent-android-accessibility-role-fix/evidence/`. The original authorization hash above remains the approved scope.
+
 ## FEAT-063 Plan Rev43 — as-built SRS alignment
 
 - Status: `APPROVED` for the exact documentation scope in Plan Rev43.

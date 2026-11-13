@@ -1,8 +1,8 @@
 import type {ReactElement} from 'react';
 
-import {ParentNavigator} from './navigation/ParentNavigator';
+import {ParentWebPreview} from './ParentWebPreview';
 
-/** Parent UI preview composition; authentication and server-backed actions remain gated. */
+/** Loads the existing Parent visual prototype from assets bundled in the Android app. */
 export function AppRoot(): ReactElement {
-  return <ParentNavigator />;
+  return <ParentWebPreview />;
 }

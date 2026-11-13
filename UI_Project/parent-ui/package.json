@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "build": "vite build"
+    "build": "vite build",
+    "build:android": "vite build && node scripts/create-webview-bundle.mjs"
   },
   "dependencies": {
     "react": "^18.3.1",

@@ -72,6 +72,12 @@ def enableProguardInReleaseBuilds = false
  */
 def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
+def frontendRootDir = rootProject.file('../../../../')
+def parentUiDir = new File(frontendRootDir, 'parent-ui')
+def parentUiDistDir = new File(parentUiDir, 'dist')
+def packagedParentUiAssets = layout.buildDirectory.dir('generated/parentUiAssets').get().asFile
+def npmCommand = System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows') ? 'npm.cmd' : 'npm'
+
 android {
     ndkVersion rootProject.ext.ndkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
@@ -93,6 +99,34 @@ android {
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
         }
     }
+    sourceSets {
+        main {
+            assets.srcDir(packagedParentUiAssets)
+        }
+    }
+}
+
+tasks.register('buildParentUi', Exec) {
+    workingDir frontendRootDir
+    commandLine npmCommand, 'run', 'build:android', '--workspace=parent-ui'
+    inputs.files(fileTree(parentUiDir) {
+        exclude 'node_modules/**', 'dist/**'
+    })
+    inputs.file(new File(frontendRootDir, 'package-lock.json'))
+    outputs.dir(parentUiDistDir)
+}
+
+tasks.register('packageParentUiAssets', Sync) {
+    dependsOn tasks.named('buildParentUi')
+    from(new File(parentUiDistDir, 'parent-ui-webview.html')) {
+        into 'parent-ui'
+        rename { 'index.html' }
+    }
+    into packagedParentUiAssets
+}
+
+tasks.named('preBuild').configure {
+    dependsOn tasks.named('packageParentUiAssets')
 }
 
 dependencies {

@@ -31,6 +31,30 @@ Server state and session truth come from the backend. Client state is limited to
 - `src/infrastructure`: HTTP, secure storage, device/media APIs.
 - `src/shared`: presentation primitives and client-only utilities.
 
+## Run the Parent UI preview on Android
+
+The Android app currently opens the Parent UI prototype from `UI_Project/parent-ui` inside the React Native app. Gradle runs the Parent Vite Android build, inlines its CSS/JavaScript into one HTML file, and packages that file into the APK. The installed app does not need the Parent web dev server on port 5171.
+
+From `UI_Project/parent-android`, start Metro in one terminal:
+
+```powershell
+pnpm start
+```
+
+In a second terminal, install and launch the app on the connected emulator:
+
+```powershell
+pnpm android
+```
+
+For an APK build without launching it:
+
+```powershell
+pnpm --dir apps/mobile android:apk:debug
+```
+
+The debug app still needs Metro for its React Native host bundle. The Parent screen itself is packaged locally; no `pnpm --dir ../parent-ui dev` server is needed. Teacher, School Manager, and Platform Admin remain separate web workspaces under `UI_Project`.
+
 ## State rules
 
 - Use server-state caching for API data; do not mirror the whole session into an unrelated global store.
@@ -50,6 +74,6 @@ Build artifacts:
 
 Visual assets follow `generated -> review -> approved -> applied`. Runtime code may reference only approved/applied assets.
 
-## Current fixture harness
+## Current Parent app entry
 
-`src/app/AppRoot.tsx` currently mounts the approved fixture-only flow in `src/features/fixture/FixtureFlowScreen.tsx`. It is a reviewable UI harness, not a production provider client: the AI proposal is deterministic, the original drawing preview is synthetic, and all progression is guarded by the versioned session state machine. Live AI will be added only through a separately approved backend adapter feature.
+`src/app/AppRoot.tsx` mounts the Parent web prototype in a local WebView for this review build. The approved native fixture flow remains in `src/features/fixture/FixtureFlowScreen.tsx` but is not the active app entry. This preview does not connect the prototype's mock screens to a production backend or provider client. Native Parent flows and backend integration remain separate product work.

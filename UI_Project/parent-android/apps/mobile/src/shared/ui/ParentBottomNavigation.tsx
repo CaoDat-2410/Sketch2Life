@@ -16,7 +16,7 @@ export function ParentBottomNavigation({
   onNavigate,
 }: Readonly<{activeRoute: ParentRoute; onNavigate: (route: ParentRoute) => void}>): React.JSX.Element {
   return (
-    <View accessibilityRole="tabbar" style={styles.bar}>
+    <View accessibilityRole="tablist" style={styles.bar}>
       {items.map((item) => {
         const selected = item.route === activeRoute;
         return (

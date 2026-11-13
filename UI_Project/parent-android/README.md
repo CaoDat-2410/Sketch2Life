@@ -1,12 +1,8 @@
-# Parent Android and mobile UI sources
+# Parent Android app workspace
 
-This workspace preserves both mobile clients present in the local project checkout, plus their shared renderer:
+The current Parent Android target is `apps/mobile`, an Android-only React Native app. Its app entry opens the Parent prototype from the sibling `UI_Project/parent-ui` workspace in a locally bundled WebView, so the emulator shows the same Parent UI as the browser preview.
 
-- `apps/mobile`: Android-only React Native 0.87 app boundary and native Android project.
-- `apps/ui-mobile`: Expo/React Native mobile UX with its own screens and visual assets.
-- `packages/art-renderer`: local PixiJS/GSAP renderer package referenced by both mobile workspace manifests.
-
-The two apps are separate source workspaces and are kept side by side; neither has been merged into the other. This bundle was copied from the local working tree of checkout `Sketch2Life-be-dev-2026-11-07`, branch `dev`, HEAD `1431ef81`, including local uncommitted UI source. It is not verified as the latest GitHub revision. Dependency caches, generated build/Gradle/CMake outputs, signing materials, and machine-specific Android SDK settings are excluded.
+`apps/ui-mobile` is a separate legacy Expo experience. It is not the Parent Android app target; both source workspaces remain side by side.
 
 ## Install
 
@@ -16,25 +12,28 @@ Use Node.js 22.13+ and pnpm 11.19+. From this folder:
 pnpm install
 ```
 
-## Start
+## Run Parent on an Android emulator
 
-For the React Native Android app:
+From this folder, start the React Native host bundle in one terminal:
 
 ```powershell
 pnpm start
 ```
 
-Then in a second terminal with an Android SDK/emulator configured:
+In a second terminal with an Android SDK and emulator configured:
 
 ```powershell
 pnpm android
 ```
 
-For the Expo mobile UI:
+The debug app uses Metro on port 8081 for its React Native host. The Parent UI itself is packaged locally in the Android app and does not need the Vite preview on port 5171.
+
+To build the debug APK without launching it:
 
 ```powershell
-pnpm start:ui-mobile
+pnpm --dir apps/mobile android:apk:debug
 ```
 
-Both app manifests and the workspace lock/config are included. API/backend behavior is not added by this source bundle.
+## Other workspaces
 
+Teacher, School Manager, Platform Admin, and the unified web portal stay under `UI_Project` as web workspaces. Start them from `UI_Project` with `npm run dev:teacher`, `npm run dev:manager`, `npm run dev:admin`, or `npm run dev:web`.

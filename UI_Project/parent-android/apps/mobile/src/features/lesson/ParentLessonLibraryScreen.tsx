@@ -22,7 +22,7 @@ export function ParentLessonLibraryScreen({state, dispatch, onNavigate}: ParentF
       {state.activeRunChild ? <InfoBanner title="Phiên bản đang được ghim" body="Không thể đổi giáo án giữa run; hãy hoàn tất hoặc hủy run trước." tone="warning" /> : null}
       <ParentSectionHeading eyebrow="CẢM HỨNG CHO BÉ" title="Thư viện giáo án" />
       <Text style={styles.subtitle}>Chọn một hướng kể chuyện. Phiên bản gốc được giữ nguyên.</Text>
-      <View accessibilityRole="tabbar" style={styles.filters}>
+      <View accessibilityRole="tablist" style={styles.filters}>
         {categories.map((item) => <Pressable key={item} accessibilityRole="tab" accessibilityState={{selected: category === item}} onPress={() => setCategory(item)} style={[styles.filter, category === item ? styles.filterActive : undefined]}><Text style={[styles.filterText, category === item ? styles.filterTextActive : undefined]}>{item}</Text></Pressable>)}
       </View>
       <View style={styles.list}>

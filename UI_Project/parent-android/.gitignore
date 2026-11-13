@@ -1,0 +1,9 @@
+# Android and React Native build outputs
+**/.gradle/
+**/build/
+**/.cxx/
+**/local.properties
+
+# Package manager dependencies
+**/node_modules/
+**/.pnpm-store/
