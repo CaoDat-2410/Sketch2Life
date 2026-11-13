@@ -50,6 +50,12 @@ from sketch2life.contracts.schemas.mobile_workflow import (
     WorkflowFailureV1,
     WorkflowResultProvenanceV1,
 )
+from sketch2life.contracts.schemas.parent_profiles import (
+    CreateParentProfileRequest,
+    PatchParentProfileRequest,
+    parent_error_payload,
+    parent_field_errors,
+)
 from sketch2life.contracts.schemas.scene_exploration import SourceRegionV1
 from sketch2life.domain.story_run_lite import StoryRunLiteError
 from sketch2life.infrastructure.ai.lightning_activity_ranker import LightningActivityRanker
@@ -337,10 +343,13 @@ def create_app(
                     "Synthetic Parent profile creation is unavailable"
                 ),
                 "STALE_REVISION": "The profile revision is stale",
+                "ACTION_NOT_ALLOWED": "The action is not allowed",
+                "INVALID_STATE_TRANSITION": "The profile cannot be changed in its current state",
             }
             default_codes = {
                 400: "INVALID_REQUEST",
                 401: "INVALID_TOKEN",
+                403: "ACTION_NOT_ALLOWED",
                 404: "PROFILE_NOT_FOUND",
                 409: "INVALID_REQUEST",
                 503: "PARENT_STORE_UNAVAILABLE",
@@ -349,20 +358,32 @@ def create_app(
             if not isinstance(code, str) or code not in safe_messages:
                 code = default_codes.get(exc.status_code, "REQUEST_FAILED")
             request_id = getattr(request.state, "parent_request_id", str(uuid4()))
+            field_errors = detail.get("field_errors")
+            safe_field_errors = (
+                field_errors
+                if isinstance(field_errors, list)
+                and all(
+                    isinstance(item, dict)
+                    and isinstance(item.get("field"), str)
+                    and isinstance(item.get("code"), str)
+                    for item in field_errors
+                )
+                else None
+            )
             return JSONResponse(
                 status_code=exc.status_code,
-                content={
-                    "code": code,
-                    "message": safe_messages.get(code, "The request could not be completed"),
-                    "correlation_id": request_id,
-                    "retryable": exc.status_code in {429, 503},
-                    "request_id": request_id,
-                    **(
-                        {"current_version": detail["current_version"]}
+                content=parent_error_payload(
+                    code=code,
+                    message=safe_messages.get(code, "The request could not be completed"),
+                    request_id=request_id,
+                    retryable=exc.status_code in {429, 503},
+                    field_errors=safe_field_errors,
+                    current_version=(
+                        detail["current_version"]
                         if type(detail.get("current_version")) is int
-                        else {}
+                        else None
                     ),
-                },
+                ),
                 headers={**(exc.headers or {}), "X-Request-ID": request_id},
             )
         if request.url.path.startswith("/api/lesson-library/v1"):
@@ -440,13 +461,12 @@ def create_app(
             request_id = getattr(request.state, "parent_request_id", str(uuid4()))
             return JSONResponse(
                 status_code=400,
-                content={
-                    "code": "INVALID_REQUEST",
-                    "message": "The request is invalid",
-                    "correlation_id": request_id,
-                    "retryable": False,
-                    "request_id": request_id,
-                },
+                content=parent_error_payload(
+                    code="INVALID_REQUEST",
+                    message="The request is invalid",
+                    request_id=request_id,
+                    field_errors=parent_field_errors(exc.errors()),
+                ),
                 headers={"X-Request-ID": request_id},
             )
         if request.url.path.startswith("/api/be1/v1"):
@@ -888,6 +908,17 @@ def create_app(
             routes=application.routes,
             tags=application.openapi_tags,
         )
+        components = schema.setdefault("components", {})
+        schemas = components.setdefault("schemas", {})
+        if isinstance(schemas, dict):
+            for parent_request_model in (
+                CreateParentProfileRequest,
+                PatchParentProfileRequest,
+            ):
+                model_schema = parent_request_model.model_json_schema(
+                    ref_template="#/components/schemas/{model}"
+                )
+                schemas[parent_request_model.__name__] = model_schema
         bearer_scheme = (
             schema.get("components", {})
             .get("securitySchemes", {})

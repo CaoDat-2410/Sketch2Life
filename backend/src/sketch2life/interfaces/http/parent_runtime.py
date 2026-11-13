@@ -13,10 +13,14 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from sketch2life.application.ports.identity import VerifiedPrincipal
+from sketch2life.application.ports.parent_roles import ParentRoleReader
 from sketch2life.application.services.parent_profiles import ParentProfileService
 from sketch2life.domain.parent_profiles import ParentProfileError
 from sketch2life.infrastructure.identity.firebase_token_verifier import (
     IdentityVerificationUnavailable,
+)
+from sketch2life.infrastructure.persistence.be1_parent_role_adapter import (
+    Be1ParentRoleAdapter,
 )
 from sketch2life.infrastructure.persistence.parent_profile_repository import (
     SqlParentProfileRepository,
@@ -113,6 +117,20 @@ def get_parent_profile_service(
     return ParentProfileService(SqlParentProfileRepository(db), synthetic_enabled=enabled)
 
 
+def get_parent_role_reader(
+    runtime: Be1Runtime = Depends(get_runtime),
+) -> ParentRoleReader:
+    if runtime.session_factory is None:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "PARENT_STORE_UNAVAILABLE",
+                "message": "The profile store is unavailable",
+            },
+        )
+    return Be1ParentRoleAdapter(runtime.session_factory)
+
+
 def parent_request_id(request: Request) -> str:
     return getattr(request.state, "parent_request_id", "")
 
@@ -127,6 +145,7 @@ __all__ = [
     "get_parent_db",
     "get_parent_principal",
     "get_parent_profile_service",
+    "get_parent_role_reader",
     "get_parent_runtime",
     "parent_idempotency_key",
     "parent_request_id",

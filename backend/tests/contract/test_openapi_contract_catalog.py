@@ -216,11 +216,13 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
 
     assert spec["openapi"] == "3.1.0"
     assert spec["tags"] == public_tags(TAG_DESCRIPTIONS)
-    assert len(operations) == 131
+    # The 11 PR #22 candidates remain intentionally outside the Rev37 catalog.
+    # The two approved Parent operations move the composed total from 131 to 133.
+    assert len(operations) == 133
     catalog_operations = set(operations) - PILOT_ONLY_OPERATIONS
     catalog_paths = {path for _method, path in catalog_operations}
     assert len(catalog_paths) == 112
-    assert len(catalog_operations) == MOUNTED_OPERATION_COUNT == 126
+    assert len(catalog_operations) == MOUNTED_OPERATION_COUNT == 128
     assert catalog_operations == set(MOUNTED_OPERATIONS)
     assert set(operations) - set(MOUNTED_OPERATIONS) == PILOT_ONLY_OPERATIONS
     assert PILOT_ONLY_OPERATIONS.isdisjoint(MOUNTED_OPERATIONS)
@@ -393,6 +395,20 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
     assert "ParentProfileView" in _schema_refs(
         parent_patch["responses"]["200"]["content"]["application/json"]["schema"]
     )
+    parent_get_schemas = _schema_refs(
+        parent_get["responses"]["200"]["content"]["application/json"]["schema"]
+    )
+    assert {"ParentProfileView", "ParentProfileDeletePendingView"} <= parent_get_schemas
+    parent_list = operations[("get", "/v1/parent/profiles")]
+    assert "ParentProfileListView" in _schema_refs(
+        parent_list["responses"]["200"]["content"]["application/json"]["schema"]
+    )
+    parent_delete = operations[("delete", "/v1/parent/profiles/{profile_id}")]
+    assert "ParentProfileDeletePendingView" in _schema_refs(
+        parent_delete["responses"]["202"]["content"]["application/json"]["schema"]
+    )
+    assert "403" in parent_list["responses"]
+    assert "403" in parent_delete["responses"]
 
     candidate_keys = {(item["method"], item["path"]) for item in UNMOUNTED_OPERATIONS}
     assert len(candidate_keys) == UNMOUNTED_OPERATION_COUNT == 11

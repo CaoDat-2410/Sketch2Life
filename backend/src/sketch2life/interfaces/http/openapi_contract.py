@@ -12,7 +12,7 @@ CONTRACT_REVISION: Final = "FEAT-063 Rev37"
 SOURCE_FILE_NAME: Final = 'API_CONTRACT_CATALOG_FEAT063_REV37_20261030.md'
 SOURCE_SHA256: Final = '56FC8BEA01360E11F73E45B2D43AC1897540B30BC8AE524CDE1ECEFACFBB1B88'
 DECLARED_OPERATION_COUNT: Final = 135
-MOUNTED_OPERATION_COUNT: Final = 126
+MOUNTED_OPERATION_COUNT: Final = 128
 UNMOUNTED_OPERATION_COUNT: Final = 11
 TAG_DESCRIPTIONS: Final[dict[str, str]] = {'BE1 — Organizations & Classes': 'Organization membership, class setup, profiles, assignments, '
                                   'and consents.',
@@ -10926,7 +10926,31 @@ MOUNTED_OPERATIONS[('post', '/v1/parent/profiles')] = {
          'schema_name': 'ParentErrorResponse'},
         {'status': '401', 'description': 'Authentication is required or invalid',
          'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '403', 'description': 'The action is not allowed',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
         {'status': '409', 'description': 'The request conflicts with profile state',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '503', 'description': 'A required service is unavailable',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+    ),
+}
+MOUNTED_OPERATIONS[('get', '/v1/parent/profiles')] = {
+    'purpose': 'List active profiles owned by the verified Parent principal.',
+    'request_inputs': 'query `limit`: integer (default 25, maximum 100); query `cursor`: string; '
+                      'header `X-Request-ID`: string',
+    'surface': 'Parent / profile foundation',
+    'tag': 'Parent Profiles',
+    'handler': 'parent_profiles.py::list_parent_profiles',
+    'authentication': 'HTTPBearer (bearer)',
+    'verification': 'S1a-P2 owner-scoped keyset list; persistence acceptance is owner-run',
+    'responses': (
+        {'status': '200', 'description': 'Active profiles and the next cursor',
+         'media_type': 'application/json', 'schema_name': 'ParentProfileListView'},
+        {'status': '400', 'description': 'The request is invalid',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '401', 'description': 'Authentication is required or invalid',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '403', 'description': 'The action is not allowed',
          'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
         {'status': '503', 'description': 'A required service is unavailable',
          'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
@@ -10947,8 +10971,36 @@ MOUNTED_OPERATIONS[('get', '/v1/parent/profiles/{profile_id}')] = {
          'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
         {'status': '401', 'description': 'Authentication is required or invalid',
          'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '403', 'description': 'The action is not allowed',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
         {'status': '404', 'description': 'The profile was not found', 'media_type': 'application/json',
          'schema_name': 'ParentErrorResponse'},
+        {'status': '503', 'description': 'A required service is unavailable',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+    ),
+}
+MOUNTED_OPERATIONS[('delete', '/v1/parent/profiles/{profile_id}')] = {
+    'purpose': 'Request deletion of an owned Parent profile without purging its content.',
+    'request_inputs': 'path `profile_id*`: uuid; header `Idempotency-Key*`: string; '
+                      'header `X-Request-ID`: string',
+    'surface': 'Parent / profile foundation',
+    'tag': 'Parent Profiles',
+    'handler': 'parent_profiles.py::request_parent_profile_deletion',
+    'authentication': 'HTTPBearer (bearer)',
+    'verification': 'S1a-P2 idempotent deletion request; PostgreSQL evidence is owner-run',
+    'responses': (
+        {'status': '202', 'description': 'Deletion request accepted',
+         'media_type': 'application/json', 'schema_name': 'ParentProfileDeletePendingView'},
+        {'status': '400', 'description': 'The request is invalid',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '401', 'description': 'Authentication is required or invalid',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '403', 'description': 'The action is not allowed',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '404', 'description': 'The profile was not found',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '409', 'description': 'The request conflicts with profile state',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
         {'status': '503', 'description': 'A required service is unavailable',
          'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
     ),
@@ -10970,6 +11022,8 @@ MOUNTED_OPERATIONS[('patch', '/v1/parent/profiles/{profile_id}')] = {
         {'status': '400', 'description': 'The request is invalid', 'media_type': 'application/json',
          'schema_name': 'ParentErrorResponse'},
         {'status': '401', 'description': 'Authentication is required or invalid',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '403', 'description': 'The action is not allowed',
          'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
         {'status': '404', 'description': 'The profile was not found', 'media_type': 'application/json',
          'schema_name': 'ParentErrorResponse'},

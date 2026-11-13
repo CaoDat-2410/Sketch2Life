@@ -2,19 +2,26 @@
 
 from __future__ import annotations
 
+import base64
+import binascii
 import hashlib
 import hmac
+import json
 from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
-from sqlalchemy import select, text
+from sqlalchemy import and_, or_, select, text
 from sqlalchemy.orm import Session
 
 from sketch2life.application.ports.identity import VerifiedPrincipal
-from sketch2life.application.ports.parent_profiles import ParentCommandResult
+from sketch2life.application.ports.parent_profiles import (
+    ParentCommandResult,
+    ParentProfileListResult,
+)
 from sketch2life.domain.parent_profiles import (
     ParentProfileError,
     ProfileSnapshot,
+    ProfileState,
     request_fingerprint,
 )
 from sketch2life.infrastructure.persistence.parent_models import (
@@ -86,12 +93,81 @@ class SqlParentProfileRepository:
             )
             return ParentCommandResult(201, body)
 
-    def get_profile(
+    def assert_profile_owned(
         self, *, principal: VerifiedPrincipal, profile_id: UUID
+    ) -> None:
+        with self._session.begin():
+            self._owned_profile(principal, profile_id, lock=False, include_pending=True)
+
+    def get_profile(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        profile_id: UUID,
+        request_id: str,
     ) -> dict[str, object]:
-        profile = self._owned_profile(principal, profile_id, lock=False)
+        profile = self._owned_profile(
+            principal, profile_id, lock=False, include_pending=True
+        )
+        if profile.state == ProfileState.DELETE_PENDING:
+            return {
+                "profile_id": str(profile.parent_profile_id),
+                "state": ProfileState.DELETE_PENDING.value,
+                "request_id": request_id,
+            }
+        if profile.state != ProfileState.ACTIVE:
+            raise ParentProfileError(404, "PROFILE_NOT_FOUND", "Profile was not found")
         revision = self._current_revision(profile)
         return self._view(profile, revision)
+
+    def list_profiles(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        limit: int,
+        cursor: str | None,
+    ) -> ParentProfileListResult:
+        if not 1 <= limit <= 100:
+            raise ParentProfileError(
+                400,
+                "INVALID_REQUEST",
+                "The request is invalid",
+                field_errors=[{"field": "limit", "code": "OUT_OF_RANGE"}],
+            )
+        cursor_position = self._decode_cursor(cursor) if cursor is not None else None
+        statement = select(ParentChildProfileModel).where(
+            ParentChildProfileModel.owner_issuer == principal.issuer,
+            ParentChildProfileModel.owner_subject == principal.subject,
+            ParentChildProfileModel.state == ProfileState.ACTIVE.value,
+            ParentChildProfileModel.deleted_at.is_(None),
+        )
+        if cursor_position is not None:
+            created_at, profile_id = cursor_position
+            statement = statement.where(
+                or_(
+                    ParentChildProfileModel.created_at > created_at,
+                    and_(
+                        ParentChildProfileModel.created_at == created_at,
+                        ParentChildProfileModel.parent_profile_id > profile_id,
+                    ),
+                )
+            )
+        profiles = list(
+            self._session.scalars(
+                statement.order_by(
+                    ParentChildProfileModel.created_at,
+                    ParentChildProfileModel.parent_profile_id,
+                ).limit(limit + 1)
+            )
+        )
+        has_more = len(profiles) > limit
+        page = profiles[:limit]
+        items = [self._view(profile, self._current_revision(profile)) for profile in page]
+        next_cursor = None
+        if has_more and page:
+            last = page[-1]
+            next_cursor = self._encode_cursor(last.created_at, last.parent_profile_id)
+        return ParentProfileListResult(items=items, next_cursor=next_cursor)
 
     def patch_profile(
         self,
@@ -116,11 +192,36 @@ class SqlParentProfileRepository:
         )
         with self._session.begin():
             self._lock_scope(principal, operation, resource_scope, key_hash)
+            profile = self._owned_profile(
+                principal, profile_id, lock=True, include_pending=True
+            )
             replay = self._find_receipt(principal, operation, resource_scope, key_hash)
             if replay is not None:
+                if (
+                    profile.state == ProfileState.DELETE_PENDING
+                    and replay.response_status == 200
+                    and hmac.compare_digest(replay.request_fingerprint, fingerprint)
+                ):
+                    return ParentCommandResult(
+                        409,
+                        self._error_body(
+                            "INVALID_STATE_TRANSITION",
+                            "The profile cannot be changed in its current state",
+                            request_id,
+                        ),
+                    )
                 return self._replay_or_reject(replay, fingerprint)
 
-            profile = self._owned_profile(principal, profile_id, lock=True)
+            if profile.state == ProfileState.DELETE_PENDING:
+                pending_body = self._error_body(
+                    "INVALID_STATE_TRANSITION",
+                    "The profile cannot be changed in its current state",
+                    request_id,
+                )
+                return ParentCommandResult(409, pending_body)
+            if profile.state != ProfileState.ACTIVE:
+                raise ParentProfileError(404, "PROFILE_NOT_FOUND", "Profile was not found")
+
             if profile.current_revision_no != expected_revision:
                 request_body = self._error_body(
                     "STALE_REVISION",
@@ -164,22 +265,135 @@ class SqlParentProfileRepository:
             )
             return ParentCommandResult(200, body)
 
+    def delete_profile(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        profile_id: UUID,
+        idempotency_key: str,
+        request_id: str,
+    ) -> ParentCommandResult:
+        operation = "delete_profile"
+        resource_scope = str(profile_id)
+        key_hash = hashlib.sha256(idempotency_key.encode("ascii")).digest()
+        fingerprint = request_fingerprint(
+            operation=operation,
+            resource_scope=resource_scope,
+            payload={"profile_id": str(profile_id)},
+        )
+        with self._session.begin():
+            self._lock_scope(principal, operation, resource_scope, key_hash)
+            replay = self._find_receipt(principal, operation, resource_scope, key_hash)
+            if replay is not None:
+                return self._replay_or_reject(replay, fingerprint)
+
+            profile = self._owned_profile(
+                principal, profile_id, lock=True, include_pending=True
+            )
+            if profile.state == ProfileState.DELETE_PENDING:
+                conflict_body = self._error_body(
+                    "INVALID_STATE_TRANSITION",
+                    "The profile cannot be changed in its current state",
+                    request_id,
+                )
+                return ParentCommandResult(409, conflict_body)
+            if profile.state != ProfileState.ACTIVE:
+                raise ParentProfileError(404, "PROFILE_NOT_FOUND", "Profile was not found")
+
+            profile.state = ProfileState.DELETE_PENDING.value
+            profile.updated_at = datetime.now(UTC)
+            body: dict[str, object] = {
+                "profile_id": str(profile.parent_profile_id),
+                "state": ProfileState.DELETE_PENDING.value,
+                "request_id": request_id,
+            }
+            self._store_receipt(
+                principal,
+                operation,
+                resource_scope,
+                key_hash,
+                fingerprint,
+                202,
+                body,
+            )
+            return ParentCommandResult(202, body)
+
     def _owned_profile(
-        self, principal: VerifiedPrincipal, profile_id: UUID, *, lock: bool
+        self,
+        principal: VerifiedPrincipal,
+        profile_id: UUID,
+        *,
+        lock: bool,
+        include_pending: bool = False,
     ) -> ParentChildProfileModel:
         statement = select(ParentChildProfileModel).where(
             ParentChildProfileModel.parent_profile_id == profile_id,
             ParentChildProfileModel.owner_issuer == principal.issuer,
             ParentChildProfileModel.owner_subject == principal.subject,
-            ParentChildProfileModel.state == "ACTIVE",
             ParentChildProfileModel.deleted_at.is_(None),
         )
+        if not include_pending:
+            statement = statement.where(
+                ParentChildProfileModel.state == ProfileState.ACTIVE.value
+            )
         if lock:
             statement = statement.with_for_update()
         profile = self._session.scalar(statement)
         if profile is None:
             raise ParentProfileError(404, "PROFILE_NOT_FOUND", "Profile was not found")
         return profile
+
+    @staticmethod
+    def _encode_cursor(created_at: datetime, profile_id: UUID) -> str:
+        payload = json.dumps(
+            {
+                "created_at": created_at.isoformat(),
+                "profile_id": str(profile_id),
+                "v": 1,
+            },
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+        return base64.urlsafe_b64encode(payload).decode("ascii").rstrip("=")
+
+    @staticmethod
+    def _decode_cursor(cursor: str) -> tuple[datetime, UUID]:
+        try:
+            if not cursor or len(cursor) > 2048:
+                raise ValueError
+            encoded = cursor.encode("ascii")
+            payload = base64.b64decode(
+                encoded + b"=" * (-len(encoded) % 4), altchars=b"-_", validate=True
+            )
+            decoded = json.loads(payload)
+            if not isinstance(decoded, dict) or set(decoded) != {
+                "created_at",
+                "profile_id",
+                "v",
+            }:
+                raise ValueError
+            if type(decoded["v"]) is not int or decoded["v"] != 1:
+                raise ValueError
+            raw_created_at = decoded["created_at"]
+            raw_profile_id = decoded["profile_id"]
+            if not isinstance(raw_created_at, str) or not isinstance(raw_profile_id, str):
+                raise ValueError
+            created_at = datetime.fromisoformat(raw_created_at)
+            if created_at.tzinfo is None or created_at.utcoffset() is None:
+                raise ValueError
+            return created_at, UUID(raw_profile_id)
+        except (
+            binascii.Error,
+            json.JSONDecodeError,
+            UnicodeEncodeError,
+            ValueError,
+        ) as exc:
+            raise ParentProfileError(
+                400,
+                "INVALID_REQUEST",
+                "The request is invalid",
+                field_errors=[{"field": "cursor", "code": "INVALID_FORMAT"}],
+            ) from exc
 
     def _current_revision(self, profile: ParentChildProfileModel) -> ParentProfileRevisionModel:
         revision = self._session.scalar(

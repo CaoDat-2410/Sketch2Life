@@ -159,13 +159,16 @@ def test_compatibility_app_keeps_be1_and_demo_services_on_app_state() -> None:
 
 def test_classroom_profile_excludes_process_local_demo_routes() -> None:
     application = create_classroom_app()
-    application.openapi()
+    openapi = application.openapi()
     paths = set(application.state.runtime_openapi_schema["paths"])
 
     assert "/health" in paths
     assert "/api/be1/v1/health" in paths
     assert "/v1/parent/profiles" in paths
     assert "/v1/parent/profiles/{profile_id}" in paths
+    assert "get" in openapi["paths"]["/v1/parent/profiles"]
+    assert "post" in openapi["paths"]["/v1/parent/profiles"]
+    assert "delete" in openapi["paths"]["/v1/parent/profiles/{profile_id}"]
     assert "/v1/sessions" not in paths
     assert "/v1/profile/preferences/classify" not in paths
     assert application.state.session_service is None
@@ -191,13 +194,15 @@ def test_pilot_assistance_gate_fails_closed_when_disabled() -> None:
 
 def test_demo_profile_excludes_durable_classroom_routes() -> None:
     application = create_demo_app()
-    application.openapi()
+    openapi = application.openapi()
     paths = set(application.state.runtime_openapi_schema["paths"])
 
     assert "/v1/sessions" in paths
     assert "/api/be1/v1/health" not in paths
     assert "/v1/parent/profiles" not in paths
     assert "/v1/parent/profiles/{profile_id}" not in paths
+    assert "/v1/parent/profiles" not in openapi["paths"]
+    assert "/v1/parent/profiles/{profile_id}" not in openapi["paths"]
     assert application.state.session_service is not None
     assert application.state.live_image_demo_service is not None
 
