@@ -30,6 +30,11 @@ RESTORE_CHECKPOINT_RESPONSE_DESCRIPTIONS = {
     "500": "The server could not complete the request.",
     "503": "Production checkpoint storage has not been selected.",
 }
+_RESPONSE_DESCRIPTIONS_BY_STATUS = {
+    "400": "The request is invalid",
+    "409": "The request conflicts with current state",
+    "422": "The request does not match the API contract",
+}
 RESTORE_CHECKPOINT_ERROR_EXAMPLES: dict[str, dict[str, Any]] = {
     "401": {
         "authenticationRequired": {
@@ -1250,6 +1255,16 @@ def published_responses(
     operation_key: tuple[str, str], responses: Sequence[Mapping[str, Any]]
 ) -> tuple[dict[str, Any], ...]:
     """Publish concise common errors; keep known Restore Checkpoint failures explicit."""
+
+    def response_row(source: Mapping[str, Any]) -> dict[str, Any]:
+        row = dict(source)
+        status = str(row["status"])
+        if not isinstance(row.get("description"), str) or not row["description"].strip():
+            row["description"] = _RESPONSE_DESCRIPTIONS_BY_STATUS.get(
+                status, f"HTTP {status} response"
+            )
+        return row
+
     binary_override = BINARY_SUCCESS_RESPONSES.get(operation_key)
     if operation_key == RESTORE_CHECKPOINT_OPERATION_KEY:
         rows: list[dict[str, Any]] = []
@@ -1257,14 +1272,14 @@ def published_responses(
             status = str(source["status"])
             if status not in RESTORE_CHECKPOINT_STATUS_CODES:
                 continue
-            row = dict(source)
+            row = response_row(source)
             row["description"] = RESTORE_CHECKPOINT_RESPONSE_DESCRIPTIONS[status]
             rows.append(row)
         return tuple(rows)
     if not operation_key[1].startswith("/api/be1/v1/"):
         published = []
         for source in responses:
-            row = dict(source)
+            row = response_row(source)
             if binary_override and str(row["status"]).startswith("2"):
                 row["media_type"] = binary_override[0]
                 row["schema_name"] = "binary"
@@ -1276,7 +1291,7 @@ def published_responses(
     grouped_statuses: list[str] = []
     grouped_schema = "Be1Error"
     for source in responses:
-        row = dict(source)
+        row = response_row(source)
         status = str(row["status"])
         if binary_override and status.startswith("2"):
             row["media_type"] = binary_override[0]

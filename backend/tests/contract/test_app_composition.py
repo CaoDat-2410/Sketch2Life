@@ -25,6 +25,7 @@ from sketch2life.interfaces.http.app import (
     create_classroom_app,
     create_demo_app,
 )
+from sketch2life.interfaces.http.be1_runtime import get_db, get_verified_adult
 
 
 @pytest.fixture(autouse=True)
@@ -76,6 +77,16 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
     expected.pop(
         "/api/be1/v1/organizations/{organization_id}/assignments/{assignment_id}", None
     )
+    expected.update(
+        {
+            "/v1/story-runs": ["POST"],
+            "/v1/story-runs/active/current": ["GET"],
+            "/v1/story-runs/{run_id}": ["GET"],
+            "/v1/story-runs/{run_id}/context-confirmation": ["POST"],
+            "/v1/story-runs/{run_id}/subject-confirmation": ["POST"],
+            "/v1/story-runs/{run_id}/script-confirmation": ["POST"],
+        }
+    )
     application = create_app()
     # OpenAPI is an SRS projection; inspect mounted routes for the full legacy surface.
     actual = _mounted_route_methods(application)
@@ -113,7 +124,7 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
     }
 
     # Preserve the full pre-integration route surface while allowing only the
-    # reviewed FEAT-060 classroom and FEAT-063 Lesson Library contracts.
+    # reviewed classroom, Parent profile, and Lesson Library contracts.
     assert expected.items() <= actual.items()
     assert set(actual) - set(expected) == {
         "/api/be1/v1/classes/{class_id}/assignments",
@@ -130,6 +141,8 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
         "/api/be1/v1/assistance-requests/{assistance_id}/cancel",
         "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/assistance-requests/{assistance_id}/status",
         "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/teacher/assistance-requests/pending",
+        "/v1/parent/profiles",
+        "/v1/parent/profiles/{profile_id}",
     } | set(lesson_library_methods) | {
         "/api/auth/v1/registrations",
         "/api/auth/v1/me",
@@ -137,7 +150,7 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
         "/api/platform-admin/v1/accounts/{account_id}",
         "/api/parent/v1/ai/sketch-guides",
         "/api/parent/v1/ai/drawing-understandings",
-        "/api/parent/v1/ai/storyboards",
+        "/api/parent/v1/ai/story-runs/{run_id}/story-revisions",
         "/api/teacher/v1/organizations/{organization_id}/ai/lesson-plan-suggestions",
         "/api/teacher/v1/organizations/{organization_id}/ai/sketch-decks",
         "/api/teacher/v1/organizations/{organization_id}/ai/lesson-visuals",
@@ -155,13 +168,37 @@ def test_compatibility_app_keeps_be1_and_demo_services_on_app_state() -> None:
     assert application.state.supervised_flow_service is not None
 
 
+def test_legacy_parent_story_revision_requires_idempotency_and_uses_srs_error_envelope() -> None:
+    application = create_app()
+    application.dependency_overrides[get_verified_adult] = lambda: object()
+    application.dependency_overrides[get_db] = lambda: object()
+
+    with TestClient(application) as client:
+        response = client.post(
+            "/api/parent/v1/ai/story-runs/01234567-89ab-cdef-0123-456789abcdef/story-revisions",
+            json={"expected_understanding_revision": 1},
+        )
+
+    assert response.status_code == 400
+    body = response.json()
+    assert body["code"] == "INVALID_IDEMPOTENCY_KEY"
+    assert body["correlation_id"]
+    assert body["retryable"] is False
+    assert "detail" not in body
+
+
 def test_classroom_profile_excludes_process_local_demo_routes() -> None:
     application = create_classroom_app()
-    application.openapi()
+    openapi = application.openapi()
     paths = set(application.state.runtime_openapi_schema["paths"])
 
     assert "/health" in paths
     assert "/api/be1/v1/health" in paths
+    assert "/v1/parent/profiles" in paths
+    assert "/v1/parent/profiles/{profile_id}" in paths
+    assert "get" in openapi["paths"]["/v1/parent/profiles"]
+    assert "post" in openapi["paths"]["/v1/parent/profiles"]
+    assert "delete" in openapi["paths"]["/v1/parent/profiles/{profile_id}"]
     assert "/v1/sessions" not in paths
     assert "/v1/profile/preferences/classify" not in paths
     assert application.state.session_service is None
@@ -187,11 +224,15 @@ def test_pilot_assistance_gate_fails_closed_when_disabled() -> None:
 
 def test_demo_profile_excludes_durable_classroom_routes() -> None:
     application = create_demo_app()
-    application.openapi()
+    openapi = application.openapi()
     paths = set(application.state.runtime_openapi_schema["paths"])
 
     assert "/v1/sessions" in paths
     assert "/api/be1/v1/health" not in paths
+    assert "/v1/parent/profiles" not in paths
+    assert "/v1/parent/profiles/{profile_id}" not in paths
+    assert "/v1/parent/profiles" not in openapi["paths"]
+    assert "/v1/parent/profiles/{profile_id}" not in openapi["paths"]
     assert application.state.session_service is not None
     assert application.state.live_image_demo_service is not None
 

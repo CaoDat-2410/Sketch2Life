@@ -7,7 +7,7 @@ from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from ipaddress import ip_address
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 from urllib.parse import urlsplit
 from uuid import uuid4
 
@@ -49,6 +49,12 @@ from sketch2life.contracts.schemas.mobile_workflow import (
     MobileWorkflowResultV1,
     WorkflowFailureV1,
     WorkflowResultProvenanceV1,
+)
+from sketch2life.contracts.schemas.parent_profiles import (
+    CreateParentProfileRequest,
+    PatchParentProfileRequest,
+    parent_error_payload,
+    parent_field_errors,
 )
 from sketch2life.contracts.schemas.scene_exploration import SourceRegionV1
 from sketch2life.domain.story_run_lite import StoryRunLiteError
@@ -111,10 +117,10 @@ from sketch2life.infrastructure.storage.in_memory_auto_rig_grants import (
 )
 from sketch2life.infrastructure.storage.s3_compatible import Boto3S3CompatibleObjectStorage
 from sketch2life.infrastructure.story_run_lite.composition import runtime_lifespan
-from sketch2life.interfaces.http.be1_runtime import build_be1_runtime
 from sketch2life.infrastructure.vision_analysis.pilot_composition import (
     build_default_pilot_vision,
 )
+from sketch2life.interfaces.http.be1_runtime import build_be1_runtime
 from sketch2life.interfaces.http.demo_composition import (
     build_demo_stores,
     build_ephemeral_session_service,
@@ -141,8 +147,8 @@ from sketch2life.interfaces.http.router_composition import (
     mount_classroom_routers,
     mount_demo_routers,
 )
-from sketch2life.interfaces.http.routers.storage_examples import router as storage_examples_router
 from sketch2life.interfaces.http.routers.auth_registration import RegistrationRateLimiter
+from sketch2life.interfaces.http.routers.storage_examples import router as storage_examples_router
 from sketch2life.interfaces.http.routers.story_run_lite import router as story_run_lite_router
 from sketch2life.interfaces.http.routers.story_run_lite import (
     story_error_response,
@@ -159,6 +165,15 @@ def _story_run_lite_path(path: str) -> bool:
     return any(path == base or path.startswith(base + "/") for base in (
         "/v1/story-runs", "/v1/upload-sessions"
     ))
+
+
+def _legacy_parent_story_revision_path(path: str) -> bool:
+    prefix = "/api/parent/v1/ai/story-runs/"
+    suffix = "/story-revisions"
+    if not path.startswith(prefix) or not path.endswith(suffix):
+        return False
+    run_id = path[len(prefix) : -len(suffix)]
+    return bool(run_id) and "/" not in run_id
 
 
 def _loopback(address: object) -> bool:
@@ -300,19 +315,154 @@ def create_app(
 
     @application.middleware("http")
     async def be1_request_context(request: Request, call_next):
-        if not request.url.path.startswith(("/api/be1/v1", "/api/lesson-library/v1")):
+        if not request.url.path.startswith(
+            (
+                "/api/be1/v1",
+                "/api/lesson-library/v1",
+                "/api/parent/v1/ai/story-runs/",
+                "/v1/parent/profiles",
+                "/v1/story-runs",
+            )
+        ) and not _legacy_parent_story_revision_path(request.url.path):
             return await call_next(request)
         supplied_id = request.headers.get("X-Request-ID", "")
         request_id = supplied_id if _SAFE_ID.fullmatch(supplied_id) else str(uuid4())
-        request.state.be1_request_id = request_id
+        if request.url.path.startswith("/v1/parent/profiles"):
+            request.state.parent_request_id = request_id
+        elif request.url.path.startswith("/v1/story-runs") or (
+            _legacy_parent_story_revision_path(request.url.path)
+        ):
+            request.state.story_request_id = request_id
+        else:
+            request.state.be1_request_id = request_id
         response = await call_next(request)
-        response.headers["X-Request-ID"] = request_id
+        if not (
+            request.url.path.startswith(("/v1/parent/profiles", "/v1/story-runs"))
+            and response.headers.get("X-Request-ID")
+        ):
+            response.headers["X-Request-ID"] = request_id
         return response
 
     @application.exception_handler(StarletteHTTPException)
     async def handle_http_exception(
         request: Request, exc: StarletteHTTPException
     ) -> JSONResponse:
+        if request.url.path.startswith("/v1/story-runs") or (
+            _legacy_parent_story_revision_path(request.url.path)
+        ):
+            detail: dict[str, Any] = exc.detail if isinstance(exc.detail, dict) else {}
+            status_codes = {
+                400: "INVALID_REQUEST",
+                401: "AUTH_REQUIRED",
+                403: "ACTION_NOT_ALLOWED",
+                404: "RESOURCE_NOT_FOUND",
+                409: "INVALID_STATE_TRANSITION",
+                413: "MEDIA_TOO_LARGE",
+                415: "UNSUPPORTED_MEDIA_TYPE",
+                422: "INVALID_REQUEST",
+                429: "RATE_LIMITED",
+                500: "INTERNAL_SERVER_ERROR",
+                502: "PROVIDER_BAD_RESPONSE",
+                503: "PROVIDER_UNAVAILABLE",
+                504: "PROVIDER_UNAVAILABLE",
+            }
+            safe_messages = {
+                "ACTIVE_RUN_EXISTS": "Đã có một lượt kể chuyện đang hoạt động.",
+                "ACTION_NOT_ALLOWED": "Tài khoản không được phép thực hiện thao tác này.",
+                "AUTH_REQUIRED": "Vui lòng xác thực lại tài khoản.",
+                "INVALID_IDEMPOTENCY_KEY": "Khóa yêu cầu trùng với nội dung khác.",
+                "INVALID_REQUEST": "Yêu cầu không hợp lệ.",
+                "INVALID_STATE_TRANSITION": "Lượt kể chuyện chưa ở trạng thái phù hợp.",
+                "PROFILE_CONTEXT_NOT_CONFIRMED": "Vui lòng xác nhận thông tin lượt kể chuyện.",
+                "PROVIDER_BAD_RESPONSE": "Không thể hoàn tất yêu cầu hiện tại.",
+                "PROVIDER_UNAVAILABLE": "Dịch vụ tạm thời chưa sẵn sàng.",
+                "RATE_LIMITED": "Bạn đã gửi quá nhiều yêu cầu. Vui lòng thử lại sau.",
+                "RESOURCE_NOT_FOUND": "Không tìm thấy tài nguyên được yêu cầu.",
+                "STALE_REVISION": "Thông tin đã thay đổi. Vui lòng tải lại và xác nhận lại.",
+                "UNSUPPORTED_MEDIA_TYPE": "Định dạng nội dung không được hỗ trợ.",
+            }
+            raw_code = detail.get("code", status_codes.get(exc.status_code, "REQUEST_FAILED"))
+            code = (
+                raw_code
+                if isinstance(raw_code, str)
+                and re.fullmatch(r"[A-Z][A-Z0-9_]{0,63}", raw_code)
+                else status_codes.get(exc.status_code, "REQUEST_FAILED")
+            )
+            request_id = getattr(request.state, "story_request_id", str(uuid4()))
+            retry_after = exc.headers.get("Retry-After") if exc.headers else None
+            retry_after_seconds = (
+                int(retry_after) if retry_after and retry_after.isdigit() else None
+            )
+            return JSONResponse(
+                status_code=exc.status_code,
+                content={
+                    "code": code,
+                    "message": safe_messages.get(code, "Không thể hoàn tất yêu cầu."),
+                    "correlation_id": request_id,
+                    "retryable": exc.status_code in {429, 502, 503, 504},
+                    "retry_after_seconds": retry_after_seconds,
+                    "field_errors": None,
+                },
+                headers={**(exc.headers or {}), "X-Request-ID": request_id},
+            )
+        if request.url.path.startswith("/v1/parent/profiles"):
+            detail = exc.detail if isinstance(exc.detail, dict) else {}
+            safe_messages = {
+                "AUTH_REQUIRED": "A verified bearer token is required",
+                "INVALID_TOKEN": "The bearer token could not be verified",
+                "TOKEN_EXPIRED": "The bearer token has expired",
+                "IDENTITY_PROVIDER_UNAVAILABLE": "Identity verification is unavailable",
+                "PARENT_STORE_UNAVAILABLE": "The profile store is unavailable",
+                "PROFILE_NOT_FOUND": "Profile was not found",
+                "INVALID_REQUEST": "The request is invalid",
+                "INVALID_IDEMPOTENCY_KEY": "The idempotency key conflicts with an earlier request",
+                "SYNTHETIC_PROFILE_CREATION_UNAVAILABLE": (
+                    "Synthetic Parent profile creation is unavailable"
+                ),
+                "STALE_REVISION": "The profile revision is stale",
+                "ACTION_NOT_ALLOWED": "The action is not allowed",
+                "INVALID_STATE_TRANSITION": "The profile cannot be changed in its current state",
+            }
+            default_codes = {
+                400: "INVALID_REQUEST",
+                401: "INVALID_TOKEN",
+                403: "ACTION_NOT_ALLOWED",
+                404: "PROFILE_NOT_FOUND",
+                409: "INVALID_REQUEST",
+                503: "PARENT_STORE_UNAVAILABLE",
+            }
+            code = detail.get("code", default_codes.get(exc.status_code, "REQUEST_FAILED"))
+            if not isinstance(code, str) or code not in safe_messages:
+                code = default_codes.get(exc.status_code, "REQUEST_FAILED")
+            request_id = getattr(request.state, "parent_request_id", str(uuid4()))
+            field_errors = detail.get("field_errors")
+            safe_field_errors = (
+                field_errors
+                if isinstance(field_errors, list)
+                and all(
+                    isinstance(item, dict)
+                    and isinstance(item.get("field"), str)
+                    and isinstance(item.get("code"), str)
+                    for item in field_errors
+                )
+                else None
+            )
+            return JSONResponse(
+                status_code=exc.status_code,
+                content=parent_error_payload(
+                    code=code,
+                    message=safe_messages.get(code, "The request could not be completed"),
+                    request_id=request_id,
+                    retryable=exc.status_code in {429, 503},
+                    field_errors=safe_field_errors,
+                    current_version=(
+                        detail["current_version"]
+                        if type(detail.get("current_version")) is int
+                        else None
+                    ),
+                ),
+                headers={**(exc.headers or {}), "X-Request-ID": request_id},
+            )
         if request.url.path.startswith("/api/lesson-library/v1"):
             detail = exc.detail if isinstance(exc.detail, dict) else {}
             status_codes = {
@@ -384,6 +534,73 @@ def create_app(
     ) -> JSONResponse:
         if story_demo_enabled and _story_run_lite_path(request.url.path):
             return await story_validation_error_response(request, exc)
+        if request.url.path.startswith("/v1/story-runs") or (
+            _legacy_parent_story_revision_path(request.url.path)
+        ):
+            request_id = getattr(request.state, "story_request_id", str(uuid4()))
+            safe_fields = []
+            invalid_idempotency_key = False
+            for issue in exc.errors():
+                location = issue.get("loc", ())
+                if (
+                    len(location) >= 2
+                    and location[0] == "header"
+                    and location[1] == "Idempotency-Key"
+                ):
+                    invalid_idempotency_key = True
+                field_parts = [
+                    str(part)
+                    for part in location
+                    if str(part) not in {"body", "query", "header"}
+                ]
+                field = ".".join(
+                    part
+                    if part.isidentifier() or part == "Idempotency-Key"
+                    else "item"
+                    if part.isdigit()
+                    else "field"
+                    for part in field_parts[:6]
+                ) or "request"
+                safe_fields.append(
+                    {
+                        "field": field[:120],
+                        "code": "INVALID_FIELD",
+                        "message": "Giá trị trường không hợp lệ.",
+                    }
+                )
+            error_code = (
+                "INVALID_IDEMPOTENCY_KEY"
+                if invalid_idempotency_key
+                else "INVALID_REQUEST"
+            )
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "code": error_code,
+                    "message": (
+                        "Khóa yêu cầu không hợp lệ."
+                        if invalid_idempotency_key
+                        else "Yêu cầu không khớp với hợp đồng API."
+                    ),
+                    "correlation_id": request_id,
+                    "retryable": False,
+                    "retry_after_seconds": None,
+                    "field_errors": safe_fields or None,
+                },
+                headers={"X-Request-ID": request_id},
+            )
+        if request.url.path.startswith("/v1/parent/profiles"):
+            request_id = getattr(request.state, "parent_request_id", str(uuid4()))
+            return JSONResponse(
+                status_code=400,
+                content=parent_error_payload(
+                    code="INVALID_REQUEST",
+                    message="The request is invalid",
+                    request_id=request_id,
+                    field_errors=parent_field_errors(exc.errors()),
+                ),
+                headers={"X-Request-ID": request_id},
+            )
         if request.url.path.startswith("/api/be1/v1"):
             error = Be1Error(
                 code="REQUEST_VALIDATION_FAILED",
@@ -483,6 +700,27 @@ def create_app(
     async def handle_unexpected_exception(request: Request, exc: Exception):
         if story_demo_enabled and _story_run_lite_path(request.url.path):
             return await story_unexpected_error_response(request, exc)
+        if request.url.path.startswith("/v1/story-runs") or (
+            _legacy_parent_story_revision_path(request.url.path)
+        ):
+            request_id = getattr(request.state, "story_request_id", str(uuid4()))
+            _LOGGER.error(
+                "parent_story_run_unhandled_exception request_id=%s exception_type=%s",
+                request_id,
+                type(exc).__name__,
+            )
+            return JSONResponse(
+                status_code=500,
+                content={
+                    "code": "INTERNAL_SERVER_ERROR",
+                    "message": "Không thể hoàn tất yêu cầu.",
+                    "correlation_id": request_id,
+                    "retryable": False,
+                    "retry_after_seconds": None,
+                    "field_errors": None,
+                },
+                headers={"X-Request-ID": request_id},
+            )
         if request.url.path.startswith("/api/lesson-library/v1"):
             request_id = getattr(request.state, "be1_request_id", str(uuid4()))
             _LOGGER.error(
@@ -495,6 +733,24 @@ def create_app(
                 content={
                     "code": "INTERNAL_SERVER_ERROR",
                     "message": "The server could not complete the request",
+                    "request_id": request_id,
+                },
+                headers={"X-Request-ID": request_id},
+            )
+        if request.url.path.startswith("/v1/parent/profiles"):
+            request_id = getattr(request.state, "parent_request_id", str(uuid4()))
+            _LOGGER.error(
+                "parent_unhandled_exception request_id=%s exception_type=%s",
+                request_id,
+                type(exc).__name__,
+            )
+            return JSONResponse(
+                status_code=500,
+                content={
+                    "code": "INTERNAL_SERVER_ERROR",
+                    "message": "The server could not complete the request",
+                    "correlation_id": request_id,
+                    "retryable": False,
                     "request_id": request_id,
                 },
                 headers={"X-Request-ID": request_id},
@@ -745,7 +1001,7 @@ def create_app(
     application.state.lesson_document_parser = None
     application.state.lesson_document_scanner = None
     if _composition_profile == "combined":
-        mount_all_routers(application)
+        mount_all_routers(application, include_parent_story_runs=not story_demo_enabled)
         if story_demo_enabled:
             application.include_router(story_run_lite_router)
     elif _composition_profile == "classroom":
@@ -805,6 +1061,17 @@ def create_app(
             routes=application.routes,
             tags=application.openapi_tags,
         )
+        components = schema.setdefault("components", {})
+        schemas = components.setdefault("schemas", {})
+        if isinstance(schemas, dict):
+            for parent_request_model in (
+                CreateParentProfileRequest,
+                PatchParentProfileRequest,
+            ):
+                model_schema = parent_request_model.model_json_schema(
+                    ref_template="#/components/schemas/{model}"
+                )
+                schemas[parent_request_model.__name__] = model_schema
         bearer_scheme = (
             schema.get("components", {})
             .get("securitySchemes", {})
@@ -833,6 +1100,18 @@ def create_app(
                 contract = MOUNTED_OPERATIONS.get((method.lower(), path))
                 if contract is None:
                     continue
+                expected_handler = contract["handler"].rsplit("::", maxsplit=1)[-1]
+                mounted_handler = next(
+                    (
+                        getattr(getattr(route, "endpoint", None), "__name__", None)
+                        for route in application.routes
+                        if getattr(route, "path", None) == path
+                        and method.upper() in (getattr(route, "methods", None) or ())
+                    ),
+                    None,
+                )
+                if mounted_handler != expected_handler:
+                    continue
                 operation["description"] = contract["purpose"]
                 if (method.lower(), path) == (
                     "post",
@@ -853,7 +1132,7 @@ def create_app(
                     response["status"]: response for response in effective_responses
                 }
                 runtime_responses = operation.setdefault("responses", {})
-                if path.startswith("/api/be1/v1/"):
+                if path.startswith(("/api/be1/v1/", "/v1/parent/profiles")):
                     for status in tuple(runtime_responses):
                         if status not in declared_responses:
                             del runtime_responses[status]
@@ -872,6 +1151,18 @@ def create_app(
                         runtime_responses[status] = response
                     else:
                         response["description"] = declared["description"]
+                    if (
+                        status == "422"
+                        and path.startswith("/v1/parent/profiles")
+                        and declared["media_type"]
+                    ):
+                        response["content"] = {
+                            declared["media_type"]: {
+                                "schema": _contract_response_schema(
+                                    declared["schema_name"], schema
+                                )
+                            }
+                        }
                     if declared["media_type"] and declared["schema_name"] == "object":
                         response_schema = (
                             response.get("content", {})
@@ -889,7 +1180,9 @@ def create_app(
                             }
                         }
         for path, path_item in schema.get("paths", {}).items():
-            if not path.startswith("/api/be1/v1/") or not isinstance(path_item, dict):
+            if not path.startswith(("/api/be1/v1/", "/v1/parent/profiles")) or not isinstance(
+                path_item, dict
+            ):
                 continue
             for operation in path_item.values():
                 if not isinstance(operation, dict) or "responses" not in operation:

@@ -80,6 +80,23 @@ PILOT_ONLY_OPERATIONS = {
         "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/teacher/assistance-requests/pending",
     ),
 }
+PR22_UNCATALOGUED_OPERATIONS = {
+    # Mounted PR #22 routes that are intentionally outside the Rev37 metadata map.
+    ("post", "/api/auth/v1/registrations"),
+    ("get", "/api/auth/v1/me"),
+    ("get", "/api/platform-admin/v1/accounts"),
+    ("post", "/api/platform-admin/v1/accounts"),
+    ("patch", "/api/platform-admin/v1/accounts/{account_id}"),
+    ("post", "/api/parent/v1/ai/sketch-guides"),
+    ("post", "/api/parent/v1/ai/drawing-understandings"),
+    ("post", "/api/parent/v1/ai/story-runs/{run_id}/story-revisions"),
+    (
+        "post",
+        "/api/teacher/v1/organizations/{organization_id}/ai/lesson-plan-suggestions",
+    ),
+    ("post", "/api/teacher/v1/organizations/{organization_id}/ai/sketch-decks"),
+    ("post", "/api/teacher/v1/organizations/{organization_id}/ai/lesson-visuals"),
+}
 CONTRACT_PARAMETER = re.compile(r"\b(path|query|header|cookie)\s+`([^`]+)`:\s*([^;]+)")
 CONTRACT_REQUEST_BODY = re.compile(
     r"([A-Za-z0-9.+_-]+/[A-Za-z0-9.+_-]+)(?:\s+\((required|optional)\))?:\s*"
@@ -216,14 +233,16 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
 
     assert spec["openapi"] == "3.1.0"
     assert spec["tags"] == public_tags(TAG_DESCRIPTIONS)
-    assert len(operations) == 128
-    catalog_operations = set(operations) - PILOT_ONLY_OPERATIONS
+    assert len(operations) == 150
+    catalog_operations = set(MOUNTED_OPERATIONS)
     catalog_paths = {path for _method, path in catalog_operations}
-    assert len(catalog_paths) == 110
-    assert len(catalog_operations) == MOUNTED_OPERATION_COUNT == 123
-    assert catalog_operations == set(MOUNTED_OPERATIONS)
-    assert set(operations) - set(MOUNTED_OPERATIONS) == PILOT_ONLY_OPERATIONS
+    assert len(catalog_paths) == 118
+    assert len(catalog_operations) == MOUNTED_OPERATION_COUNT == 134
+    assert set(operations) - catalog_operations == (
+        PILOT_ONLY_OPERATIONS | PR22_UNCATALOGUED_OPERATIONS
+    )
     assert PILOT_ONLY_OPERATIONS.isdisjoint(MOUNTED_OPERATIONS)
+    assert PR22_UNCATALOGUED_OPERATIONS.isdisjoint(MOUNTED_OPERATIONS)
     profile_lookup = operations[
         (
             "get",
@@ -232,6 +251,7 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
     ]
     assert "x-contract-surface" not in profile_lookup
     assert len(PILOT_ONLY_OPERATIONS) == 5
+    assert len(PR22_UNCATALOGUED_OPERATIONS) == 11
 
     assert (
         "post",
@@ -384,12 +404,36 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
                     "$ref": "#/components/schemas/Be1Error"
                 }
 
+    parent_get = operations[("get", "/v1/parent/profiles/{profile_id}")]
+    invalid_uuid_response = parent_get["responses"]["400"]
+    assert "ParentErrorResponse" in _schema_refs(
+        invalid_uuid_response["content"]["application/json"]["schema"]
+    )
+    parent_patch = operations[("patch", "/v1/parent/profiles/{profile_id}")]
+    assert "ParentProfileView" in _schema_refs(
+        parent_patch["responses"]["200"]["content"]["application/json"]["schema"]
+    )
+    parent_get_schemas = _schema_refs(
+        parent_get["responses"]["200"]["content"]["application/json"]["schema"]
+    )
+    assert {"ParentProfileView", "ParentProfileDeletePendingView"} <= parent_get_schemas
+    parent_list = operations[("get", "/v1/parent/profiles")]
+    assert "ParentProfileListView" in _schema_refs(
+        parent_list["responses"]["200"]["content"]["application/json"]["schema"]
+    )
+    parent_delete = operations[("delete", "/v1/parent/profiles/{profile_id}")]
+    assert "ParentProfileDeletePendingView" in _schema_refs(
+        parent_delete["responses"]["202"]["content"]["application/json"]["schema"]
+    )
+    assert "403" in parent_list["responses"]
+    assert "403" in parent_delete["responses"]
+
     candidate_keys = {(item["method"], item["path"]) for item in UNMOUNTED_OPERATIONS}
     assert len(candidate_keys) == UNMOUNTED_OPERATION_COUNT == 11
     assert not candidate_keys.intersection(operations)
     assert not _extension_keys(spec)
 
-    assert len(spec["tags"]) == 18
+    assert len(spec["tags"]) == 19
     assert all(tag.get("description") for tag in spec["tags"])
 
     operation_ids = [operation["operationId"] for operation in operations.values()]

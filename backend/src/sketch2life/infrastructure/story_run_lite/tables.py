@@ -304,7 +304,6 @@ run_inputs = Table(
     Column("derived_media_type", String(32)),
     Column("derived_size_bytes", BigInteger),
     Column("source_profile_revision_ref", String(36)),
-    Column("data_authorization_id", String(36)),
     Column("context_revision", Integer),
     Column("context_snapshot", JSONB),
     Column("context_snapshot_sha256", String(64)),
@@ -352,20 +351,21 @@ run_inputs = Table(
     CheckConstraint(
         "(context_snapshot IS NULL AND context_snapshot_sha256 IS NULL "
         "AND context_revision IS NULL AND source_profile_revision_ref IS NULL "
-        "AND data_authorization_id IS NULL AND context_confirmed_by IS NULL "
+        "AND context_confirmed_by IS NULL "
         "AND context_confirmed_at IS NULL) OR "
         "(context_snapshot IS NOT NULL AND context_snapshot_sha256 IS NOT NULL "
-        "AND length(context_snapshot_sha256) = 64 AND context_revision IS NOT NULL "
-        "AND context_revision > 0 "
-        "AND source_profile_revision_ref IS NOT NULL AND data_authorization_id IS NOT NULL "
-        "AND context_confirmed_by IS NOT NULL AND context_confirmed_at IS NOT NULL "
-        "AND octet_length(context_snapshot::text) <= 8192)",
+        "AND context_snapshot_sha256 ~ '^[0-9a-f]{64}$' "
+        "AND context_revision IS NOT NULL AND context_revision > 0 "
+        "AND source_profile_revision_ref IS NOT NULL "
+        "AND ((context_confirmed_by IS NULL AND context_confirmed_at IS NULL) OR "
+        "(context_confirmed_by IS NOT NULL AND context_confirmed_at IS NOT NULL)) "
+        "AND octet_length(context_snapshot::text) <= 32768)",
         name="ck_story_run_input_parent_context",
     ),
     CheckConstraint(
         "(lesson_pin_snapshot IS NULL AND lesson_pin_snapshot_sha256 IS NULL) OR "
         "(lesson_pin_snapshot IS NOT NULL AND lesson_pin_snapshot_sha256 IS NOT NULL "
-        "AND length(lesson_pin_snapshot_sha256) = 64 "
+        "AND lesson_pin_snapshot_sha256 ~ '^[0-9a-f]{64}$' "
         "AND octet_length(lesson_pin_snapshot::text) <= 1048576)",
         name="ck_story_run_input_lesson_pin_snapshot",
     ),
@@ -438,8 +438,8 @@ story_command_receipts = Table(
         "actor_scope_kind IN ('PARENT_ACCOUNT','ORGANIZATION')", name="ck_story_receipt_actor_kind"
     ),
     CheckConstraint(
-        "operation IN ('CREATE_RUN','ATTACH_ASSET','CONFIRM_SUBJECT','CANCEL_RUN',"
-        "'GENERATE_STORY_REVISION','CONFIRM_STORY_REVISION')",
+        "operation IN ('CREATE_RUN','ATTACH_ASSET','CONFIRM_SUBJECT','CONFIRM_CONTEXT',"
+        "'CANCEL_RUN','GENERATE_STORY_REVISION','CONFIRM_STORY_REVISION')",
         name="ck_story_receipt_operation",
     ),
     CheckConstraint(

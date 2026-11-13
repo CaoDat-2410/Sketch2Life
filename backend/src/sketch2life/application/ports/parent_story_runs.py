@@ -5,6 +5,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Protocol
+from uuid import UUID
+
+from sketch2life.application.ports.identity import VerifiedPrincipal
+from sketch2life.application.ports.parent_story_profile_lookup import ParentStoryProfileReference
 
 
 class ParentStoryRunError(RuntimeError):
@@ -18,9 +22,10 @@ class ParentStoryRunError(RuntimeError):
 class ParentStoryRunRecord:
     run_id: str
     run_state: str
-    parent_profile_id: str
-    profile_revision_ref: str
+    parent_profile_id: UUID
+    profile_revision_ref: UUID
     context_revision: int
+    context_confirmed: bool
     context_snapshot: dict[str, Any]
     context_snapshot_sha256: str
     current_input_revision: int | None
@@ -51,13 +56,12 @@ class ParentStoryInputRecord:
     derived_asset_ref: str | None
     derived_sha256: str | None
     derived_size_bytes: int | None
-    source_profile_revision_ref: str
-    data_authorization_id: str
+    source_profile_revision_ref: UUID
     context_revision: int
     context_snapshot: dict[str, Any]
     context_snapshot_sha256: str
-    context_confirmed_by: str
-    context_confirmed_at: datetime
+    context_confirmed_by: str | None
+    context_confirmed_at: datetime | None
 
 
 @dataclass(frozen=True, slots=True)
@@ -70,36 +74,58 @@ class ParentStoryRevisionReservation:
     source_asset_sha256: str
     worker_input: dict[str, Any]
     request_sha256: str
+    receipt_id: str
+    replayed: bool = False
+    replay_body: dict[str, Any] | None = None
 
 
 class ParentStoryRunRepositoryPort(Protocol):
+    def replay_create_run(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        account_id: str,
+        parent_profile_id: UUID,
+        idempotency_key: str,
+        topic: str,
+        adult_confirmed_idea: str,
+        lesson_version_ref: dict[str, str] | None = None,
+    ) -> ParentStoryRunRecord | None: ...
+
     def create_run(
         self,
         *,
-        owner_subject: str,
+        principal: VerifiedPrincipal,
         account_id: str,
-        parent_profile_id: str,
-        expected_profile_revision_ref: str,
-        policy_version: str,
+        profile: ParentStoryProfileReference,
+        idempotency_key: str,
         run_id: str,
         topic: str,
         adult_confirmed_idea: str,
+        lesson_version_ref: dict[str, str] | None = None,
         lesson_pin_snapshot: dict[str, Any] | None = None,
     ) -> ParentStoryRunRecord: ...
 
-    def get_run(
-        self, *, owner_subject: str, policy_version: str, run_id: str
-    ) -> ParentStoryRunRecord: ...
+    def get_run(self, *, principal: VerifiedPrincipal, run_id: str) -> ParentStoryRunRecord: ...
 
     def get_active_run(
-        self, *, owner_subject: str, account_id: str, policy_version: str
+        self, *, principal: VerifiedPrincipal, account_id: str
     ) -> ParentStoryRunRecord | None: ...
+
+    def confirm_context(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        run_id: str,
+        expected_context_revision: int,
+        expected_context_snapshot_sha256: str,
+        idempotency_key: str,
+    ) -> ParentStoryRunRecord: ...
 
     def attach_artwork(
         self,
         *,
-        owner_subject: str,
-        policy_version: str,
+        principal: VerifiedPrincipal,
         run_id: str,
         original_asset_ref: str,
         original_sha256: str,
@@ -113,14 +139,13 @@ class ParentStoryRunRepositoryPort(Protocol):
     ) -> ParentStoryInputRecord: ...
 
     def read_current_input(
-        self, *, owner_subject: str, policy_version: str, run_id: str
+        self, *, principal: VerifiedPrincipal, run_id: str
     ) -> ParentStoryInputRecord: ...
 
     def record_understanding(
         self,
         *,
-        owner_subject: str,
-        policy_version: str,
+        principal: VerifiedPrincipal,
         run_id: str,
         result_snapshot: dict[str, Any],
         candidate_subject: str,
@@ -130,21 +155,21 @@ class ParentStoryRunRepositoryPort(Protocol):
     def confirm_subject(
         self,
         *,
-        owner_subject: str,
-        policy_version: str,
+        principal: VerifiedPrincipal,
         run_id: str,
         expected_understanding_revision: int,
         confirmed_subject: str,
+        idempotency_key: str,
     ) -> int: ...
 
     def reserve_story_revision(
         self,
         *,
-        owner_subject: str,
-        policy_version: str,
+        principal: VerifiedPrincipal,
         run_id: str,
         expected_understanding_revision: int,
         rewrite_instruction: str | None,
+        idempotency_key: str,
         story_revision_id: str,
         model_id: str,
         model_revision: str,
@@ -155,8 +180,7 @@ class ParentStoryRunRepositoryPort(Protocol):
         self,
         *,
         reservation: ParentStoryRevisionReservation,
-        owner_subject: str,
-        policy_version: str,
+        principal: VerifiedPrincipal,
         story: dict[str, Any],
         story_sha256: str,
         provider_call_id: str,
@@ -167,25 +191,24 @@ class ParentStoryRunRepositoryPort(Protocol):
     def fail_story_revision(
         self,
         *,
-        owner_subject: str,
-        policy_version: str,
+        principal: VerifiedPrincipal,
         reservation: ParentStoryRevisionReservation,
         error_code: str,
         outcome_unknown: bool,
     ) -> None: ...
 
     def fail_drawing_analysis(
-        self, *, owner_subject: str, run_id: str, error_code: str, outcome_unknown: bool
+        self, *, principal: VerifiedPrincipal, run_id: str, error_code: str, outcome_unknown: bool
     ) -> None: ...
 
     def confirm_story_revision(
         self,
         *,
-        owner_subject: str,
-        policy_version: str,
+        principal: VerifiedPrincipal,
         run_id: str,
         expected_revision: int,
         expected_story_sha256: str,
+        idempotency_key: str,
     ) -> ParentStoryRunRecord: ...
 
 

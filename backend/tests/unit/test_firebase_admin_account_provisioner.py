@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from types import SimpleNamespace
+
 import pytest
 from firebase_admin import auth
 
@@ -25,7 +27,7 @@ def test_creates_unverified_identity_without_role_claims(monkeypatch: pytest.Mon
     monkeypatch.setattr(
         auth,
         "create_user",
-        lambda **kwargs: calls.append(kwargs),
+        lambda **kwargs: calls.append(kwargs) or SimpleNamespace(uid="synthetic-subject"),
     )
 
     adapter.FirebaseAdminAccountProvisioner(settings()).create_password_account(
@@ -37,6 +39,7 @@ def test_creates_unverified_identity_without_role_claims(monkeypatch: pytest.Mon
         {
             "email": "parent@example.test",
             "password": "synthetic-password",
+            "display_name": None,
             "email_verified": False,
             "disabled": False,
             "app": "fake-app",

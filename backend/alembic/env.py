@@ -7,6 +7,7 @@ it never reflects or drops objects in other schemas.
 
 from __future__ import annotations
 
+import os
 from logging.config import fileConfig
 
 from sqlalchemy import create_engine
@@ -33,6 +34,7 @@ from sketch2life.infrastructure.lesson_library.tables import (
 from sketch2life.infrastructure.persistence import be1_models as _be1_models  # noqa: F401
 from sketch2life.infrastructure.persistence import parent_models as _parent_models  # noqa: F401
 from sketch2life.infrastructure.persistence.core_models import CorePersistenceBase
+from sketch2life.infrastructure.persistence.parent_models import ParentPersistenceBase
 from sketch2life.infrastructure.preset_automation.tables import METADATA as PRESET_METADATA
 from sketch2life.infrastructure.preset_automation.tables import SCHEMA as PRESET_SCHEMA
 from sketch2life.infrastructure.story_run_lite.tables import (
@@ -83,6 +85,8 @@ _MANAGED_SCHEMAS.add(PILOT_VISION_SCHEMA)
 target_metadata.append(STORY_RUN_LITE_CORE_METADATA)
 target_metadata.append(STORY_RUN_LITE_METADATA)
 _MANAGED_SCHEMAS.add("story")
+target_metadata.append(ParentPersistenceBase.metadata)
+_MANAGED_SCHEMAS.add("parent")
 
 
 def _include_name(name: str | None, type_: str, parent_names: object) -> bool:
@@ -92,8 +96,12 @@ def _include_name(name: str | None, type_: str, parent_names: object) -> bool:
 
 
 def _database_url() -> str:
-    configured = get_core_database_settings().database_url
-    value = configured.get_secret_value() if configured is not None else None
+    parent_value = os.environ.get("S1A_P_ALEMBIC_DATABASE_URL")
+    if parent_value is not None:
+        value = parent_value
+    else:
+        configured = get_core_database_settings().database_url
+        value = configured.get_secret_value() if configured is not None else None
     if not value:
         raise RuntimeError("SKETCH2LIFE_DATABASE_URL must be provided at runtime")
     try:

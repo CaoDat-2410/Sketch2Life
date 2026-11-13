@@ -1,95 +1,69 @@
-"""Persistence port for Parent profiles and explicit data authorizations."""
+"""Persistence port for Parent profile commands and projections."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
 from typing import Protocol
+from uuid import UUID
 
-from sketch2life.domain.parent_profiles import ParentProfileRevisionInput
-
-
-class ParentProfileRepositoryError(RuntimeError):
-    def __init__(self, status_code: int, code: str) -> None:
-        self.status_code = status_code
-        self.code = code
-        super().__init__(code)
+from sketch2life.application.ports.identity import VerifiedPrincipal
+from sketch2life.domain.parent_profiles import ProfileSnapshot
 
 
 @dataclass(frozen=True, slots=True)
-class ParentProfileRevisionRecord:
-    profile_revision_id: str
-    revision_no: int
-    age_months: int
-    display_name: str
-    interests_summary: str
-    revision_hash: str
-    created_at: datetime
+class ParentCommandResult:
+    status_code: int
+    body: dict[str, object]
 
 
 @dataclass(frozen=True, slots=True)
-class ParentProfileRecord:
-    parent_profile_id: str
-    state: str
-    current_revision: ParentProfileRevisionRecord
-    authorization_state: str | None
-    authorization_policy_version: str | None
-    created_at: datetime
-    updated_at: datetime
+class ParentProfileListResult:
+    items: list[dict[str, object]]
+    next_cursor: str | None
 
 
-class ParentProfileRepositoryPort(Protocol):
-    def list_profiles(self, *, owner_subject: str) -> list[ParentProfileRecord]: ...
-
-    def get_profile(
-        self, *, owner_subject: str, parent_profile_id: str
-    ) -> ParentProfileRecord | None: ...
+class ParentProfileRepository(Protocol):
+    def assert_profile_owned(
+        self, *, principal: VerifiedPrincipal, profile_id: UUID
+    ) -> None: ...
 
     def create_profile(
         self,
         *,
-        owner_subject: str,
-        profile_id: str,
-        revision_id: str,
-        authorization_id: str,
-        revision: ParentProfileRevisionInput,
-        revision_hash: str,
-        policy_version: str,
-        consent_text_sha256: str,
-    ) -> ParentProfileRecord: ...
+        principal: VerifiedPrincipal,
+        snapshot: ProfileSnapshot,
+        idempotency_key: str,
+        request_id: str,
+    ) -> ParentCommandResult: ...
 
-    def revise_profile(
+    def get_profile(
+        self, *, principal: VerifiedPrincipal, profile_id: UUID, request_id: str
+    ) -> dict[str, object]: ...
+
+    def list_profiles(
         self,
         *,
-        owner_subject: str,
-        parent_profile_id: str,
+        principal: VerifiedPrincipal,
+        limit: int,
+        cursor: str | None,
+    ) -> ParentProfileListResult: ...
+
+    def patch_profile(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        profile_id: UUID,
         expected_revision: int,
-        revision_id: str,
-        revision: ParentProfileRevisionInput,
-        revision_hash: str,
-        policy_version: str,
-    ) -> ParentProfileRecord: ...
+        snapshot: ProfileSnapshot,
+        idempotency_key: str,
+        request_id: str,
+    ) -> ParentCommandResult: ...
 
-    def grant_authorization(
+    def delete_profile(
         self,
         *,
-        owner_subject: str,
-        parent_profile_id: str,
-        authorization_id: str,
-        policy_version: str,
-        consent_text_sha256: str,
-    ) -> ParentProfileRecord: ...
-
-    def revoke_authorization(
-        self, *, owner_subject: str, parent_profile_id: str
-    ) -> ParentProfileRecord: ...
-
-    def archive_profile(self, *, owner_subject: str, parent_profile_id: str) -> ParentProfileRecord: ...
-
-
-__all__ = [
-    "ParentProfileRecord",
-    "ParentProfileRepositoryError",
-    "ParentProfileRepositoryPort",
-    "ParentProfileRevisionRecord",
-]
+        principal: VerifiedPrincipal,
+        profile_id: UUID,
+        idempotency_key: str,
+        request_id: str,
+    ) -> ParentCommandResult: ...

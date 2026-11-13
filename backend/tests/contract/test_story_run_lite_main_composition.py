@@ -42,8 +42,9 @@ def test_disabled_preserves_default_surface_and_does_not_start_runtime(monkeypat
     build = Mock(side_effect=AssertionError("unexpected database startup"))
     monkeypatch.setattr(composition, "build_runtime", build)
     with TestClient(create_app()) as client:
-        assert client.get("/v1/story-runs/synthetic").status_code == 404
-        assert client.get("/v1/story-runs/readiness").status_code == 404
+        # With the local demo off, the Parent router captures the dynamic run path.
+        assert client.get("/v1/story-runs/synthetic").status_code == 503
+        assert client.get("/v1/story-runs/readiness").status_code == 503
     build.assert_not_called()
 
 
