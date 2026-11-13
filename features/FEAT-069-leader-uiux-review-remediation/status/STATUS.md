@@ -1,7 +1,7 @@
 # Status
 
 - **Feature:** FEAT-069 — Leader review UI/UX remediation.
-- **State:** IN_PROGRESS under approved Plan Rev3; Rev1 and Rev2 are already published.
+- **State:** IN_PROGRESS — approved Rev3 implementation is published; full live role workflows remain open because authentication/runtime wiring and several required APIs are absent from this branch.
 - **Approved plans:** Rev1, Rev2, Rev3 and the Rev3 Parent Library addendum. Exact plan hashes/approvals are recorded in `plan/` and feature/root approval registers.
 - **Branch:** `FE_UI_Project_Ver2`.
 - **Rev3 implementation:** Parent public/shared library, invitations, selected lesson details, and user-triggered invitation accept/decline are conditionally connected to mounted Lesson Library API operations. Teacher lesson list and assignment reads plus School Manager class reads are conditionally connected when Firebase auth bridge and organization context are injected. Dashboard counts are derived from those responses. Loading/error/unavailable UI states prevent fixture fallback in connected mode. Parent profile/story/AI/media and Platform Admin stay preview-only because the delivery branch lacks their complete APIs/moderation queue-list route.
@@ -10,4 +10,5 @@
 - **Verified builds:** after all Rev3 and Parent addendum code, all five web workspaces built successfully; Parent Android `pnpm --dir apps/mobile typecheck` and debug APK packaging passed. The APK embeds the current Parent bundle. No automated tests were run. CUA reviewed Parent home/library preview and the three web role previews; connected API mode is not runtime-tested because auth/runtime configuration is absent.
 - **Runtime limitations:** no API request was sent during implementation/review. The delivery checkout has no Firebase bridge or `/api/auth/v1/me` handler, so end-to-end login is not verified. The emulator reported boot complete, but installing the final APK and a read-only package path check both stalled at Android Package Manager; no wipe/reset was performed.
 - **Open product/integration gaps:** see `evidence/notes/OPEN_QUESTIONS.md`. Rev3 does not claim 100% live API workflows; it completes the bounded UI preview plus the current conditional read screens.
-- **Next closeout steps:** run the repository security validator immediately before commit and again before push; commit and normal fast-forward push to the previously authorized `origin/FE_UI_Project_Ver2`, then update publication/status records.
+- **Publication:** Rev3 implementation commit `be8aa646` is pushed by normal fast-forward to `origin/FE_UI_Project_Ver2`; security validation passed immediately before the push. Exact record is in `evidence/notes/PUBLICATION.md`.
+- **Remaining closeout:** no further Rev3 code work is pending in this bounded plan. End-to-end auth, missing Parent/Teacher/Admin APIs, the leader/SRS sequence conflict, and emulator Package Manager failure remain open; see `evidence/notes/OPEN_QUESTIONS.md` and `evidence/notes/EXECUTION.md`.

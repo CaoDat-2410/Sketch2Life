@@ -18,3 +18,13 @@
 - **Scope delivered:** Parent/Teacher preview updates, `UI_Project/README.md`, approved plan/approval records, feature status/evidence and source register. No backend, API, schema, auth, database, SRS, child media or legacy top-level `apps/` changes were pushed.
 - **Runtime caveat:** all five web builds, Parent Android typecheck and debug APK packaging passed; the final APK could not be installed/opened on the supplied emulator because its Package Manager stalled. No wipe/reset was performed. See `EXECUTION.md`.
 - **Known product boundary:** the pre-video activity sequence follows the leader-review prototype but conflicts with the unsigned FEAT-063 SRS v2.5-draft. Gender, mismatch analysis and multiple auth/AI/story integrations are local preview-only or unavailable; see `OPEN_QUESTIONS.md`.
+
+## FEAT-069 Plan Rev3 — API-aligned UI/UX — 2026-11-14
+
+- **Target:** `origin/FE_UI_Project_Ver2`
+- **Implementation commit:** `be8aa646` (`feat(ui): align role workspaces with mounted APIs`)
+- **Parent commit:** `ae2a8c8165aa1d11b62a7005a9e28d8c0ea8c046`
+- **Push:** normal fast-forward, completed 2026-11-14 (Asia/Saigon); remote advanced from `ae2a8c81` to `be8aa646`.
+- **Security validation:** `python tools/validate_repository_security.py` passed immediately before the implementation commit and again immediately before its push. The push-time validator scanned 7,577 publishable files and found no absolute machine paths. `git diff --cached --check` passed before commit.
+- **Scope delivered:** conditional Parent Lesson Library/invitation reads and user-triggered responses; Teacher lessons/assignment and School Manager class reads; explicit connected-mode loading/error/unavailable states. No backend, API, schema, auth, SRS or excluded-branch source was changed.
+- **Runtime caveats:** five UI builds, Parent Android typecheck and debug APK packaging passed. Live auth/API mode was not runtime-tested because the checkout lacks the auth bridge and `/api/auth/v1/me`; emulator install and package lookup stalled at Android Package Manager. See `EXECUTION.md` and `OPEN_QUESTIONS.md`.
