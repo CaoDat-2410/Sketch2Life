@@ -1,6 +1,6 @@
 # FEAT-069 — Leader review UI/UX remediation
 
-- **State:** IN_PROGRESS under approved Plan Rev4 UI-only clarification. Rev1–Rev3 are historical publications. Rev4 removes conditional API/auth calls added in Rev3 and aligns UI behavior with the leader disposition.
+- **State:** COMPLETE under approved Plan Rev4 UI-only clarification. Rev1–Rev3 are historical publications. Rev4 removes conditional API/auth calls added in Rev3 and aligns UI behavior with the leader disposition; published as `11294211911506a7dae73a5ab78aee0bb51311f0` to `origin/FE_UI_Project_Ver2`.
 - **Branch:** `FE_UI_Project_Ver2`.
 - **Goal:** Close the leader-review UI gaps that can be implemented without changing current product requirements or inventing backend behavior.
 - **Authority:** `docs/context/SRS_AUTHORITY.md`; canonical working requirements are FEAT-063 SRS v2.5-draft, still awaiting owner sign-off.

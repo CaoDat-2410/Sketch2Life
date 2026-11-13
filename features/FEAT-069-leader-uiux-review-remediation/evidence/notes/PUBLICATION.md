@@ -28,3 +28,13 @@
 - **Security validation:** `python tools/validate_repository_security.py` passed immediately before the implementation commit and again immediately before its push. The push-time validator scanned 7,577 publishable files and found no absolute machine paths. `git diff --cached --check` passed before commit.
 - **Scope delivered:** conditional Parent Lesson Library/invitation reads and user-triggered responses; Teacher lessons/assignment and School Manager class reads; explicit connected-mode loading/error/unavailable states. No backend, API, schema, auth, SRS or excluded-branch source was changed.
 - **Runtime caveats:** five UI builds, Parent Android typecheck and debug APK packaging passed. Live auth/API mode was not runtime-tested because the checkout lacks the auth bridge and `/api/auth/v1/me`; emulator install and package lookup stalled at Android Package Manager. See `EXECUTION.md` and `OPEN_QUESTIONS.md`.
+
+## FEAT-069 Plan Rev4 — UI-only clarification — 2026-11-14
+
+- **Target:** `origin/FE_UI_Project_Ver2`
+- **Implementation commit:** `11294211911506a7dae73a5ab78aee0bb51311f0` (`feat(ui): keep role previews UI-only`)
+- **Parent commit:** `26de23d54f16917c3c98230df36a5da6dd039238`
+- **Push:** normal fast-forward, completed 2026-11-14 (Asia/Saigon); remote advanced from `26de23d5` to `11294211`.
+- **Security validation:** `python tools/validate_repository_security.py` passed before commit and immediately before push; the push-time run scanned 7,577 publishable files and found no absolute machine paths. `git diff --cached --check` passed before commit.
+- **Scope delivered:** removed frontend API/auth conditionals; Parent Settings is available only from Family Profile; removed unsupported Parent gender controls and the pre-video activity step; retained Teacher, School Manager and Platform Admin as web previews. No backend, API, auth, schema, SRS or legacy Child Expo change was made.
+- **Verification:** five UI workspace builds, Parent Android typecheck, debug APK packaging and visual role walkthrough passed. No automated tests were run. APK installation/runtime on the supplied emulator was not retried; the previous Package Manager stall remains the limit. See `EXECUTION.md`.
