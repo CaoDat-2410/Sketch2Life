@@ -1,5 +1,12 @@
 # FEAT-069 evidence index
 
+## Rev11 Parent green action palette
+
+| Evidence | Scope | What it establishes | Limitations |
+|---|---|---|---|
+| `notes/REV11_PARENT_GREEN_ACTION_PALETTE_20261114.md` | Plan Rev11 AC1–AC5 | Explains the late CSS override, green palette correction, five-workspace build and live Parent phone-preview observation | Focused color review only; no saved screenshot, automated tests, Android runtime, API behavior or formal leader sign-off |
+| `../plan/PLAN_REV11_PARENT_GREEN_ACTION_PALETTE.md` | Exact approved scope | Hash-identified approval for Parent palette correction and verification | Does not approve API integration, SRS change or other workspaces |
+
 ## Rev10 Admin/Manager visual refinement
 
 | Evidence | Scope | What it establishes | Limitations |

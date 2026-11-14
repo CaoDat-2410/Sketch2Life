@@ -1,5 +1,14 @@
 # FEAT-069 execution record
 
+## Rev11 Parent green action palette
+
+Date: 2026-11-14 (Asia/Saigon). Approved plan: `plan/PLAN_REV11_PARENT_GREEN_ACTION_PALETTE.md`, SHA-256 `A4C80795D266BE6220FD426F2425294C1331E2346FEB1BBFBEC0E39E8A547614`.
+
+- Root cause: `rev8.css` is imported after the earlier Parent green layers and explicitly reset `.button--hero`/`.button--primary` to blue. The selected `Tất cả` filter was already green in `coverage.css`.
+- Updated the effective Parent palette in `UI_Project/parent-ui/src/rev8.css`: main/secondary buttons, focus ring, text links, active bottom navigation and create action are green. The gold arrow circle is unchanged.
+- `npm run build` from `UI_Project/` passed all five workspaces. `git diff --check` passed. Live CUA visual review at `http://127.0.0.1:5171/` showed the Parent phone home and green `.button--hero` (“Tiếp tục kể” for the current local active-story fixture); the `Bắt đầu kể` state uses the same class. Source review confirmed the selected filter uses the same `#3f7559` base.
+- No automated tests were run, no screenshot file was saved, and no API/backend/auth/data/flow behavior changed. No APK runtime claim is made.
+
 ## Rev9 continuous mockup action outcomes
 
 Date: 2026-11-14 (Asia/Saigon). Approved plan: `plan/PLAN_REV9_CONTINUOUS_MOCKUP_FLOWS.md`, SHA-256 `29B3B3F10C87B329FB5AF327DC5767CCEE7E5CF14CCFC047CA239B1B1C62EBFC`.

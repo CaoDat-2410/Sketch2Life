@@ -1,9 +1,9 @@
 :root {
   --ink: #233746;
   --ink-soft: #506370;
-  --blue: #285f7b;
-  --blue-deep: #204c65;
-  --sky: #e7f0f2;
+  --blue: #3f7559;
+  --blue-deep: #2f6349;
+  --sky: #e8f0e8;
   --warm: #f6f4ec;
   --orange: #d3ad59;
   --orange-dark: #62512d;
@@ -80,35 +80,35 @@ body {
 .button--hero,
 .button--primary {
   color: #fff;
-  background: #285f7b;
-  box-shadow: 0 4px #204c65;
+  background: #3f7559;
+  box-shadow: 0 4px #28543e;
 }
 
 .button--hero:hover,
 .button--primary:hover {
   color: #fff;
-  background: #204c65;
+  background: #32674c;
 }
 
 .home-start .button--hero {
   color: #fff;
-  background: #285f7b;
-  box-shadow: 0 4px #204c65;
+  background: #3f7559;
+  box-shadow: 0 4px #28543e;
 }
 
 .home-start .button--hero:hover {
   color: #fff;
-  background: #204c65;
+  background: #32674c;
 }
 
 .button--secondary {
-  color: #294e62;
-  border-color: #cbd8da;
-  background: #e8eff0;
+  color: #35694f;
+  border-color: #ceddce;
+  background: #edf3e9;
 }
 
 .button--secondary:hover {
-  background: #dce8ea;
+  background: #e1ecdf;
 }
 
 .button:focus-visible,
@@ -117,13 +117,13 @@ a:focus-visible,
 input:focus-visible,
 textarea:focus-visible,
 select:focus-visible {
-  outline: 3px solid #397f9d;
+  outline: 3px solid #5b9871;
   outline-offset: 3px;
 }
 
 .text-button,
 .link-button {
-  color: #285f7b;
+  color: #367555;
 }
 
 .lesson-setup-toggle,
@@ -147,7 +147,7 @@ select:focus-visible {
 
 .bottom-nav button.is-active,
 .bottom-nav button[aria-current='page'] {
-  color: #285f7b;
+  color: #367555;
 }
 
 .bottom-nav__create,
@@ -157,11 +157,11 @@ select:focus-visible {
 
 .bottom-nav__create-icon {
   color: #fff;
-  background: #285f7b;
-  box-shadow: 0 3px 10px rgb(32 76 101 / 24%);
+  background: #3f7559;
+  box-shadow: 0 3px 10px rgb(40 84 62 / 24%);
 }
 
 .bottom-nav button.is-active .bottom-nav__icon {
-  color: #285f7b;
-  background: #e1edf0;
+  color: #367555;
+  background: #e2eee2;
 }

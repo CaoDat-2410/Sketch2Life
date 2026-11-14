@@ -127,3 +127,14 @@
 - **Scope:** Refine layout, styling, typography, spacing, focus/selected/disabled states and responsive behavior on the three shown UI_Project/shared/roleFlows.tsx surfaces, using existing Rev38 visual guidance and local fixtures.
 - **Exclusions:** No API/auth/network/backend/schema/SRS/business-flow/data changes; no live payment/AI/provider operations; no generated imagery, hosting deployment, tests, legacy Expo or top-level legacy apps/; no force push.
 - **Approval basis:** Direct owner authorization for this UI/UX refinement; no formal leader acceptance or SRS change is implied.
+
+## Plan Rev11 — Parent green action palette
+
+- **Status:** APPROVED for the exact UI-only scope in `plan/PLAN_REV11_PARENT_GREEN_ACTION_PALETTE.md`.
+- **Approver:** Project owner, direct instruction with screenshots to change the shown primary colors to green.
+- **Recorded timestamp:** 2026-11-14 (Asia/Saigon).
+- **Plan revision:** 11.
+- **Plan SHA-256:** `A4C80795D266BE6220FD426F2425294C1331E2346FEB1BBFBEC0E39E8A547614`.
+- **Scope:** Correct Parent UI stylesheet cascade so the “Bắt đầu kể” primary action matches the selected “Tất cả” green interaction palette, preserve gold icon accents and unrelated semantic colors, then build and visually review the Parent preview.
+- **Exclusions:** No API/network/auth/backend/schema/SRS/data/flow changes; no changes to other role workspaces, legacy `apps/` or Child Expo; no generated raster assets; no automated tests; no force push/history rewrite.
+- **Approval basis:** Direct owner request. The target shade is inferred from the selected green control in the supplied screenshot; this does not imply leader sign-off or production/API readiness.

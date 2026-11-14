@@ -1,6 +1,12 @@
 # FEAT-069 — Leader review UI/UX remediation
 
-## Current approved work — Rev10 web visual refinement
+## Current approved work — Rev11 Parent green action palette
+
+The owner supplied a blue Parent start-action screenshot beside the green selected “Tất cả” control and requested the shown colors be changed to green. Plan Rev11 corrects the late `rev8.css` overrides so Parent primary/secondary actions, focus, links, and active navigation use the same calm green family; the gold arrow stays. Parent preview builds and the phone-sized home were visually checked. See `plan/PLAN_REV11_PARENT_GREEN_ACTION_PALETTE.md` and `evidence/notes/REV11_PARENT_GREEN_ACTION_PALETTE_20261114.md`. No API, flow, data, or backend behavior changed.
+
+FEAT-063 SRS v2.5-draft remains unsigned and canonical; Rev38 is visual proposal material. This focused palette correction is not formal leader acceptance or Android APK runtime verification.
+
+## Prior approved work — Rev10 web visual refinement
 
 Plan Rev10 polishes the three web screens shown in the owner's latest screenshots: Platform Admin Activity Catalog, Platform Admin quota/reconciliation, and School Manager publication review. It separates the catalog composer/list/detail, gives reconciliation cards readable status and detail hierarchy, and styles the review queue, version/visibility context, checklist, and decision controls. Desktop and narrow responsive previews were reviewed; all five `UI_Project/` workspaces build. The Parent, Teacher, API/backend and other role flows are unchanged. All actions and values remain local previews. See `plan/PLAN_REV10_WEB_VISUAL_REFINEMENT.md` and `evidence/notes/REV10_VISUAL_REFINEMENT_20261114.md`.
 

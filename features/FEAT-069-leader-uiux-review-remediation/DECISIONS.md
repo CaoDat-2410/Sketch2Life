@@ -1,5 +1,9 @@
 # Feature decisions
 
+## D-069-22 — Parent actions align to green active states
+
+For the owner-requested Parent palette adjustment, use the existing selected “Tất cả” green (`#3f7559`) as the primary-action base. Apply coordinated darker greens for hover/pressed and focus states; keep warning/danger semantics and gold icon accents. This is a UI-only styling decision, does not establish a system-wide approved brand token, and makes no SRS/API change. Evidence: `evidence/notes/REV11_PARENT_GREEN_ACTION_PALETTE_20261114.md`.
+
 ## D-069-21 — Rev10 visual refinement preserves preview business flows
 
 Improve the catalog composer/list/detail hierarchy, invoice and callback status cards, and School Manager publication queue/review detail using the existing role color system and local preview data. Keep the Manager's four mandatory review gates and disabled-until-complete approval state; distinguish current school visibility from requested public visibility. No business state, route, API/auth/network call, persistence, payment operation, product contract, or SRS behavior changes. This approval covers the three supplied screenshot surfaces only, not formal project-wide or leader acceptance.
