@@ -6,7 +6,7 @@ type IconName = 'home' | 'clock' | 'user' | 'spark' | 'star' | 'expand' | 'arrow
 type HistoryTab = 'stories' | 'lessons';
 type HistoryStatus = 'all' | 'open' | 'completed';
 
-type Child = { id: string; name: string; ageMonths: number; tone: string; initial: string; nickname?: string; supportNeeds?: string; photoUrl?: string; interests?: string; observations?: string; achievements?: string; externalExperiences?: string };
+type Child = { id: string; name: string; ageMonths: number; tone: string; initial: string; gender: 'girl' | 'boy' | 'unspecified'; nickname?: string; supportNeeds?: string; photoUrl?: string; interests?: string; observations?: string; achievements?: string; externalExperiences?: string };
 type ProfileContextField = 'interests' | 'observations' | 'achievements' | 'externalExperiences';
 type StoryFeedback = { rating: number; tags: string[]; note: string };
 type Story = { id: number; title: string; date: string; childId: string; child: string; color: string; subtitle: string; status?: 'active' | 'ready' | 'completed'; lessonId?: string | null; hidden?: boolean; sessionFeedback?: StoryFeedback };
@@ -19,8 +19,8 @@ type AppNotice = { id: string; title: string; body: string; date: string; read: 
 type RunRecord = { id: string; childId: string; lessonId: string | null; step: Step; status: 'active' | 'ready'; rewriteCount: number; regenCount: number; scriptFollowing: 'lesson' | 'free' | null; needsRegeneration?: boolean };
 
 const children: Child[] = [
-  { id: 'an', name: 'Bé An', ageMonths: 60, tone: 'peach', initial: 'A' },
-  { id: 'minh', name: 'Bé Minh', ageMonths: 84, tone: 'lavender', initial: 'M' },
+  { id: 'an', name: 'Bé An', ageMonths: 60, tone: 'peach', initial: 'A', gender: 'girl' },
+  { id: 'minh', name: 'Bé Minh', ageMonths: 84, tone: 'lavender', initial: 'M', gender: 'boy' },
 ];
 
 const lessons = [
@@ -319,6 +319,10 @@ function formatChildAge(ageMonths: number) {
   return months ? `${years} tuổi ${months} tháng` : `${years} tuổi`;
 }
 
+function formatChildGender(gender: Child['gender']) {
+  return gender === 'girl' ? 'Bé gái' : gender === 'boy' ? 'Bé trai' : 'Chưa chọn giới tính';
+}
+
 function ChildAvatar({ child, size = 'md' }: { child: Child; size?: 'sm' | 'md' | 'lg' }) {
   return <span className={`child-avatar child-avatar--${child.tone} child-avatar--${size}`} aria-hidden="true">{child.photoUrl ? <img src={child.photoUrl} alt="" /> : <span>{child.initial}</span>}<i /></span>;
 }
@@ -341,6 +345,7 @@ function App() {
   const [showLessonOptions, setShowLessonOptions] = useState(true);
   const [guideTopic, setGuideTopic] = useState('Khu vườn');
   const [guideStepIndex, setGuideStepIndex] = useState(0);
+  const [guideDifficulty, setGuideDifficulty] = useState<'Nhẹ nhàng' | 'Thêm chi tiết'>('Nhẹ nhàng');
   const [guideGenerated, setGuideGenerated] = useState(false);
   const [subject, setSubject] = useState('Bướm');
   const [subjectCorrection, setSubjectCorrection] = useState('Bướm');
@@ -351,10 +356,12 @@ function App() {
   const [isRecording, setIsRecording] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [audioFileName, setAudioFileName] = useState('');
+  const [transcriptionStatus, setTranscriptionStatus] = useState<'idle' | 'transcribing' | 'complete' | 'error'>('idle');
   const [recordingError, setRecordingError] = useState('');
   const mediaRecorder = useRef<MediaRecorder | null>(null);
   const audioChunks = useRef<BlobPart[]>([]);
   const recordingTimer = useRef<number | null>(null);
+  const transcriptionTimer = useRef<number | null>(null);
   const flowContentRef = useRef<HTMLElement | null>(null);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [photoName, setPhotoName] = useState('');
@@ -383,6 +390,7 @@ function App() {
   const [childName, setChildName] = useState('');
   const [childAgeYears, setChildAgeYears] = useState('');
   const [childAgeMonths, setChildAgeMonths] = useState('0');
+  const [childGender, setChildGender] = useState<Child['gender']>('unspecified');
   const [childNickname, setChildNickname] = useState('');
   const [childSupport, setChildSupport] = useState('');
   const [childInterests, setChildInterests] = useState('');
@@ -395,6 +403,7 @@ function App() {
   const [scriptFollowing, setScriptFollowing] = useState<'lesson' | 'free' | null>(null);
   const [selectedActivityId, setSelectedActivityId] = useState<string | null>(null);
   const [mismatchModalOpen, setMismatchModalOpen] = useState(false);
+  const [mismatchPreviewResult, setMismatchPreviewResult] = useState<'mismatch' | 'aligned'>('mismatch');
   const [mismatchDemoChoice, setMismatchDemoChoice] = useState<'lesson' | 'free'>('lesson');
   const [toast, setToast] = useState('');
   const [showAllSubjects, setShowAllSubjects] = useState(false);
@@ -444,17 +453,12 @@ function App() {
   const selectedLessonDetail = availableLessons.find((lesson) => lesson.id === selectedLessonDetailId) ?? availableLessons[0];
   const authReady = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(authEmail.trim()) && authPassword.length > 0;
   const signupReady = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(signupEmail.trim()) && signupPassword.length >= 6 && signupPassword.length <= 128 && signupConfirm === signupPassword;
-  const guideSteps = selectedLesson?.id === 'sky'
-    ? [
-      { title: 'Chọn một hình lớn trên trời', detail: 'Bắt đầu bằng một đám mây hoặc hình tròn thật đơn giản.' },
-      { title: 'Thêm nét cong', detail: 'Vẽ thêm đường viền theo cách bé quan sát được.' },
-      { title: 'Kể điều bé nhìn thấy', detail: 'Bé tự chọn màu và tưởng tượng hình dạng của mình.' },
-    ]
-    : [
-      { title: 'Bắt đầu bằng hình lớn', detail: 'Chọn một bông hoa, chiếc lá hoặc hình bé muốn vẽ.' },
-      { title: 'Thêm nét và chi tiết', detail: 'Vẽ thân, cánh hoặc nét nhỏ theo ý tưởng của bé.' },
-      { title: 'Chọn màu theo ý mình', detail: 'Bé tự quyết định màu sắc; không cần giống mẫu.' },
-    ];
+  const topicObject = guideTopic.toLocaleLowerCase('vi').includes('trời') ? 'đám mây' : guideTopic.toLocaleLowerCase('vi').includes('đại dương') ? 'con cá' : guideTopic.toLocaleLowerCase('vi').includes('vũ trụ') ? 'hành tinh' : guideTopic.toLocaleLowerCase('vi').includes('vườn') ? 'bông hoa' : 'hình bé thích';
+  const guideSteps = [
+    { title: 'Bắt đầu bằng một hình lớn', detail: `Vẽ một ${topicObject} bằng hình tròn, bầu dục hoặc nét cong thật đơn giản.` },
+    { title: 'Thêm nét gợi ý chủ đề', detail: guideDifficulty === 'Thêm chi tiết' ? `Thêm hai hoặc ba nét nhỏ để bức tranh gợi nhớ đến ${guideTopic.toLocaleLowerCase('vi')}.` : `Thêm một chi tiết mà bé thấy vui trong chủ đề ${guideTopic.toLocaleLowerCase('vi')}.` },
+    { title: 'Chọn màu và kể theo cách riêng', detail: 'Bé tự chọn màu, có thể đổi ý hoặc bỏ qua gợi ý bất cứ lúc nào.' },
+  ];
   const guideStep = guideSteps[guideStepIndex] ?? guideSteps[0];
 
   useEffect(() => {
@@ -462,6 +466,17 @@ function App() {
     const timer = window.setTimeout(() => setToast(''), 2600);
     return () => window.clearTimeout(timer);
   }, [toast]);
+
+  useEffect(() => () => {
+    if (transcriptionTimer.current) window.clearTimeout(transcriptionTimer.current);
+  }, []);
+
+  useEffect(() => {
+    if (screen === 'flow' && step === 'review' && selectedLesson && mismatchPreviewResult === 'mismatch') {
+      setMismatchDemoChoice(scriptFollowing ?? 'lesson');
+      setMismatchModalOpen(true);
+    }
+  }, [screen, step, selectedLessonId, mismatchPreviewResult]);
 
   useEffect(() => {
     if (screen === 'flow') flowContentRef.current?.scrollTo(0, 0);
@@ -505,16 +520,18 @@ function App() {
     setPhotoName('');
     setAudioUrl(null);
     setAudioFileName('');
+    setTranscriptionStatus('idle');
     setRecordingError('');
     setSubject('Bướm');
     setSubjectCorrection('Bướm');
     setIdea('');
+    setTranscriptionStatus('idle');
     setRewriteSuggestion('');
     setScriptModifier('');
     setSelectedActivityId(null);
     setMismatchModalOpen(false);
     const initialLessonId = presetForNextRun;
-    setGuideTopic(lessons.find((lesson) => lesson.id === initialLessonId)?.title ?? 'Khu vườn');
+    setGuideTopic(initialLessonId === 'sky' ? 'Bầu trời' : 'Khu vườn');
     setPresetForNextRun(null);
     setSelectedLessonId(initialLessonId);
     setShowLessonOptions(true);
@@ -633,6 +650,13 @@ function App() {
     setPhotoName(file.name);
   };
 
+  const useSampleDrawing = () => {
+    const sampleDrawing = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 800"><rect width="640" height="800" rx="36" fill="#fffdf4"/><path d="M42 610 Q170 510 310 610T598 594V760H42Z" fill="#e3edcf"/><circle cx="485" cy="140" r="58" fill="#f6d57a"/><path d="M160 514 Q195 390 242 326 Q305 368 314 502" fill="none" stroke="#5e9872" stroke-width="17" stroke-linecap="round"/><g fill="#f6c977" stroke="#b77c4f" stroke-width="8"><ellipse cx="235" cy="314" rx="44" ry="59"/><ellipse cx="305" cy="314" rx="44" ry="59"/><ellipse cx="235" cy="388" rx="38" ry="47"/><ellipse cx="305" cy="388" rx="38" ry="47"/></g><circle cx="270" cy="350" r="14" fill="#426457"/><path d="M408 545v-98m0 0c-42-20-40-65-3-62 32 2 31 33 3 62m0 0c36-12 63 4 51 34-10 24-33 21-51-34" fill="none" stroke="#4e855f" stroke-width="14" stroke-linecap="round"/><g fill="#efb86d"><circle cx="408" cy="424" r="37"/><circle cx="371" cy="451" r="30"/><circle cx="446" cy="451" r="30"/><circle cx="408" cy="464" r="30"/></g><path d="M110 685q58-34 116 0m118 22q66-42 128-2" fill="none" stroke="#97b985" stroke-width="10" stroke-linecap="round"/><text x="55" y="84" fill="#426457" font-family="sans-serif" font-size="25" font-weight="700">Tranh mẫu minh họa</text></svg>`;
+    setPhotoUrl(`data:image/svg+xml;charset=utf-8,${encodeURIComponent(sampleDrawing)}`);
+    setPhotoName('Tranh mẫu minh họa');
+    setMismatchPreviewResult('mismatch');
+  };
+
   const removeStory = (id: number) => {
     setStories((current) => current.filter((story) => story.id !== id));
     if (activeRun && Number(activeRun.id) === id) { setActiveRun(null); setStep('prepare'); setScreen('history'); }
@@ -649,6 +673,16 @@ function App() {
     setToast('Đã đổi chủ thể gợi ý trong bản xem trước; chưa chạy phân tích AI.');
   };
 
+  const runSampleTranscription = () => {
+    if (transcriptionTimer.current) window.clearTimeout(transcriptionTimer.current);
+    setTranscriptionStatus('transcribing');
+    transcriptionTimer.current = window.setTimeout(() => {
+      setIdea((current) => current.trim() ? current : 'Con muốn kể về chú bướm đang tìm một vệt nắng ấm trong khu vườn.');
+      setTranscriptionStatus('complete');
+      setContextConfirmed(false);
+    }, 650);
+  };
+
   const handleAudioFile = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -660,7 +694,7 @@ function App() {
     probe.onloadedmetadata = () => {
       if (probe.duration > 120) { URL.revokeObjectURL(nextUrl); setRecordingError('Tệp âm thanh dài hơn giới hạn 2 phút.'); return; }
       setAudioUrl((previous) => { if (previous) URL.revokeObjectURL(previous); return nextUrl; });
-      setAudioFileName(file.name); setRecordingError(''); setContextConfirmed(false);
+      setAudioFileName(file.name); setRecordingError(''); setContextConfirmed(false); runSampleTranscription();
     };
     probe.onerror = () => {
       URL.revokeObjectURL(nextUrl);
@@ -696,10 +730,10 @@ function App() {
       recorder.onstop = () => {
         const blob = new Blob(audioChunks.current, { type: recorder.mimeType || 'audio/webm' });
         stream.getTracks().forEach((track) => track.stop());
-        if (!blob.size) { setRecordingError('Chưa ghi được âm thanh. Hãy thử lại.'); return; }
-        if (blob.size > 20 * 1024 * 1024) { setRecordingError('Bản ghi vượt giới hạn cho phép.'); return; }
+        if (!blob.size) { setRecordingError('Chưa ghi được âm thanh. Hãy thử lại.'); setTranscriptionStatus('error'); return; }
+        if (blob.size > 20 * 1024 * 1024) { setRecordingError('Bản ghi vượt giới hạn cho phép.'); setTranscriptionStatus('error'); return; }
         setAudioUrl((previous) => { if (previous) URL.revokeObjectURL(previous); return URL.createObjectURL(blob); });
-        setAudioFileName('Bản ghi giọng nói'); setContextConfirmed(false);
+        setAudioFileName('Bản ghi giọng nói'); setContextConfirmed(false); runSampleTranscription();
       };
       mediaRecorder.current = recorder;
       recorder.start();
@@ -708,6 +742,7 @@ function App() {
     } catch {
       openedStream?.getTracks().forEach((track) => track.stop());
       setRecordingError('Chưa có quyền dùng micro.');
+      setTranscriptionStatus('error');
     }
   };
 
@@ -779,11 +814,11 @@ function App() {
       return;
     }
     if (childEditingId) {
-      setProfiles((current) => current.map((child) => child.id === childEditingId ? { ...child, name: childName.trim(), ageMonths, nickname: childNickname.trim() || undefined, supportNeeds: childSupport.trim() || undefined, photoUrl: childPhotoUrl ?? undefined, interests: childInterests.trim() || undefined, observations: childObservations.trim() || undefined, achievements: childAchievements.trim() || undefined, externalExperiences: childExperiences.trim() || undefined, initial: childName.trim().slice(-1).toUpperCase() } : child));
+      setProfiles((current) => current.map((child) => child.id === childEditingId ? { ...child, name: childName.trim(), ageMonths, gender: childGender, nickname: childNickname.trim() || undefined, supportNeeds: childSupport.trim() || undefined, photoUrl: childPhotoUrl ?? undefined, interests: childInterests.trim() || undefined, observations: childObservations.trim() || undefined, achievements: childAchievements.trim() || undefined, externalExperiences: childExperiences.trim() || undefined, initial: childName.trim().slice(-1).toUpperCase() } : child));
       setStories((current) => current.map((story) => story.childId === childEditingId ? { ...story, child: childName.trim() } : story));
       setDeliveries((current) => current.map((delivery) => delivery.childId === childEditingId ? { ...delivery, child: childName.trim() } : delivery));
     } else {
-      const child: Child = { id: `child-${Date.now()}`, name: childName.trim(), ageMonths, nickname: childNickname.trim() || undefined, supportNeeds: childSupport.trim() || undefined, photoUrl: childPhotoUrl ?? undefined, interests: childInterests.trim() || undefined, observations: childObservations.trim() || undefined, achievements: childAchievements.trim() || undefined, externalExperiences: childExperiences.trim() || undefined, tone: profiles.length % 2 ? 'lavender' : 'peach', initial: childName.trim().slice(-1).toUpperCase() };
+      const child: Child = { id: `child-${Date.now()}`, name: childName.trim(), ageMonths, gender: childGender, nickname: childNickname.trim() || undefined, supportNeeds: childSupport.trim() || undefined, photoUrl: childPhotoUrl ?? undefined, interests: childInterests.trim() || undefined, observations: childObservations.trim() || undefined, achievements: childAchievements.trim() || undefined, externalExperiences: childExperiences.trim() || undefined, tone: profiles.length % 2 ? 'lavender' : 'peach', initial: childName.trim().slice(-1).toUpperCase() };
       setProfiles((current) => [...current, child]);
       setSelectedChildId(child.id);
     }
@@ -816,6 +851,7 @@ function App() {
     setChildName(child?.name ?? '');
     setChildAgeYears(child ? String(Math.floor(child.ageMonths / 12)) : '');
     setChildAgeMonths(child ? String(child.ageMonths % 12) : '0');
+    setChildGender(child?.gender ?? 'unspecified');
     setChildNickname(child?.nickname ?? '');
     setChildSupport(child?.supportNeeds ?? '');
     setChildInterests(child?.interests ?? '');
@@ -884,7 +920,7 @@ function App() {
             <div className="child-choice-list">
               {profiles.map((child) => <button key={child.id} className={`child-choice ${selectedChildId === child.id ? 'is-selected' : ''}`} onClick={() => { setSelectedChildId(child.id); setContextConfirmed(false); setActiveRun((run) => run ? { ...run, childId: child.id } : run); }} aria-pressed={selectedChildId === child.id}>
                 <ChildAvatar child={child} size="lg" />
-                <span className="child-choice__text"><strong>{child.name}</strong><small>{formatChildAge(child.ageMonths)}</small></span>
+                <span className="child-choice__text"><strong>{child.name}</strong><small>{formatChildAge(child.ageMonths)} · {formatChildGender(child.gender)}</small></span>
                 <span className="radio-mark"><Icon name="check" size={14} /></span>
               </button>)}
             </div>
@@ -900,7 +936,7 @@ function App() {
               {[{ title: 'Giáo án công khai trên hệ thống', note: 'Giáo án mẫu có thể dùng như preset.', items: publicLessons }, { title: 'Giáo án trường / giáo viên gửi', note: 'Chỉ hiện nội dung đã được chia sẻ cho gia đình.', items: sharedLessons }].map((group) => <section className="lesson-choice-group" key={group.title} aria-label={group.title}>
                 <div className="lesson-choice-group__heading"><strong>{group.title}</strong><small>{group.note}</small></div>
                 {group.items.length ? group.items.map((lesson) => <article key={lesson.id} className={`lesson-choice-card ${selectedLessonId === lesson.id ? 'is-selected' : ''}`}>
-                    <button className="lesson-choice" onClick={() => { setSelectedLessonId(lesson.id); setGuideTopic(lesson.title); setShowLessonOptions(false); setScriptFollowing('lesson'); setSelectedActivityId(null); setContextConfirmed(false); setActiveRun((run) => run ? { ...run, lessonId: lesson.id, scriptFollowing: 'lesson' } : run); }} aria-pressed={selectedLessonId === lesson.id}>
+                    <button className="lesson-choice" onClick={() => { setSelectedLessonId(lesson.id); setGuideTopic(lesson.id === 'sky' ? 'Bầu trời' : 'Khu vườn'); setShowLessonOptions(false); setScriptFollowing('lesson'); setSelectedActivityId(null); setContextConfirmed(false); setActiveRun((run) => run ? { ...run, lessonId: lesson.id, scriptFollowing: 'lesson' } : run); }} aria-pressed={selectedLessonId === lesson.id}>
                     <span className={`lesson-icon lesson-icon--${lesson.color}`}><Icon name="book" size={20} /></span>
                     <span className="lesson-choice__text"><strong>{lesson.title}</strong><small>{lesson.meta} · {lesson.version}</small></span>
                     <span className="radio-mark"><Icon name="check" size={14} /></span>
@@ -919,8 +955,9 @@ function App() {
         </>;
       case 'guide':
         return <>
-          <div className="flow-intro"><span className="flow-intro__eyebrow"><Icon name="spark" size={14} /> GỢI Ý VẼ · TÙY CHỌN</span><h1>Cùng bé phác vài nét nhé.</h1><p>Chủ đề: {guideTopic}. Gợi ý dưới đây là minh họa tĩnh, chưa gọi AI.</p></div>
-          <section className="parent-sketch-preview" aria-label={`Gợi ý vẽ tĩnh · bước ${guideStepIndex + 1} trên ${guideSteps.length}`}><div className="guide-step-header"><span className="preview-state">BẢN MINH HỌA · CHƯA TẠO AI</span><span>{String(guideStepIndex + 1).padStart(2, '0')} / {String(guideSteps.length).padStart(2, '0')}</span></div><div className={`sketch-preview-stage sketch-preview-stage--step-${guideStepIndex + 1} ${selectedLesson?.id === 'sky' ? 'sketch-preview-stage--sky' : ''}`} aria-hidden="true"><span className="sketch-preview-sun"/><span className="sketch-preview-hill"/><span className="sketch-preview-butterfly">✦</span><span className="sketch-preview-flower"/><span className="sketch-preview-trail"/></div><div className="guide-step-copy"><strong>{guideStep.title}</strong><p>{guideStep.detail}</p></div><div className="guide-step-progress" aria-label={`Bước ${guideStepIndex + 1} trên ${guideSteps.length}`}>{guideSteps.map((item, index) => <span key={item.title} className={index === guideStepIndex ? 'is-current' : index < guideStepIndex ? 'is-complete' : ''} />)}</div></section>
+          <div className="flow-intro"><span className="flow-intro__eyebrow"><Icon name="spark" size={14} /> GỢI Ý VẼ · TÙY CHỌN</span><h1>Cùng bé phác vài nét nhé.</h1><p>Gợi ý chung theo chủ đề, không dùng hồ sơ hay ảnh của bé.</p></div>
+          <section className="guide-options-card" aria-label="Tùy chỉnh gợi ý vẽ"><label htmlFor="guide-topic">Chủ đề gợi ý</label><select id="guide-topic" className="text-field" value={guideTopic} onChange={(event) => { setGuideTopic(event.target.value); setGuideStepIndex(0); }}><option>Khu vườn</option><option>Bầu trời</option><option>Đại dương</option><option>Vũ trụ</option></select><span className="guide-options-label">Mức gợi ý</span><div className="guide-difficulty-choice" role="group" aria-label="Mức độ gợi ý">{(['Nhẹ nhàng', 'Thêm chi tiết'] as const).map((level) => <button type="button" key={level} className={guideDifficulty === level ? 'is-selected' : ''} onClick={() => { setGuideDifficulty(level); setGuideStepIndex(0); }} aria-pressed={guideDifficulty === level}>{level}</button>)}</div></section>
+          <section className="parent-sketch-preview" aria-label={`Gợi ý vẽ tĩnh · bước ${guideStepIndex + 1} trên ${guideSteps.length}`}><div className="guide-step-header"><span className="preview-state">BẢN MINH HỌA · CHƯA TẠO AI</span><span>{String(guideStepIndex + 1).padStart(2, '0')} / {String(guideSteps.length).padStart(2, '0')}</span></div><div className={`sketch-preview-stage sketch-preview-stage--step-${guideStepIndex + 1} ${guideTopic === 'Bầu trời' ? 'sketch-preview-stage--sky' : ''}`} aria-hidden="true"><span className="sketch-preview-sun"/><span className="sketch-preview-hill"/><span className="sketch-preview-butterfly">✦</span><span className="sketch-preview-flower"/><span className="sketch-preview-trail"/></div><div className="guide-step-copy"><strong>{guideStep.title}</strong><p>{guideStep.detail}</p></div><div className="guide-step-progress" aria-label={`Bước ${guideStepIndex + 1} trên ${guideSteps.length}`}>{guideSteps.map((item, index) => <span key={item.title} className={index === guideStepIndex ? 'is-current' : index < guideStepIndex ? 'is-complete' : ''} />)}</div><div className="guide-step-controls"><button type="button" className="button button--secondary" disabled={guideStepIndex === 0} onClick={() => setGuideStepIndex((index) => Math.max(0, index - 1))}>Bước trước</button><span>Bước {guideStepIndex + 1} / {guideSteps.length}</span></div></section>
           <button type="button" className="text-button text-button--center" onClick={() => { setGuideEnabled(false); setGuideStepIndex(0); setStep('capture'); setActiveRun((run) => run ? { ...run, step: 'capture' } : run); }}>Bỏ qua gợi ý vẽ</button>
         </>;
       case 'capture':
@@ -939,6 +976,7 @@ function App() {
             <input id="camera-input" className="visually-hidden" type="file" accept="image/*" capture="environment" onChange={handlePhoto} aria-label="Chụp ảnh tranh" />
             <input id="gallery-input" className="visually-hidden" type="file" accept="image/*" onChange={handlePhoto} aria-label="Chọn ảnh tranh từ thư viện" />
           </div>
+          <button type="button" className="text-button text-button--center capture-sample-action" onClick={useSampleDrawing}>Dùng tranh mẫu minh họa để xem luồng</button>
           <div className="inline-note"><Icon name="lock" size={16} /><span>Ảnh chỉ ở trong phiên xem trước này; chưa rời khỏi thiết bị.</span></div>
         </>;
       case 'review':
@@ -955,7 +993,7 @@ function App() {
             <button className="text-button" onClick={() => setShowAllSubjects((value) => !value)}><Icon name="edit" size={15} /> {showAllSubjects ? 'Thu gọn' : 'Chỉnh chủ thể'}</button>
             {showAllSubjects && <div className="custom-subject"><input className="text-field" value={subjectCorrection} maxLength={40} onChange={(event) => setSubjectCorrection(event.target.value)} aria-label="Chủ thể ba mẹ muốn sửa" placeholder="Nhập chủ thể khác" /><button className="button button--secondary" onClick={() => applySubjectCorrection(subjectCorrection)}>Áp dụng chủ thể</button></div>}
           </section>
-          {selectedLesson && <button type="button" className="mismatch-preview-trigger" onClick={() => { setMismatchDemoChoice(scriptFollowing ?? 'lesson'); setMismatchModalOpen(true); }}><Icon name="refresh" size={16} /><span><strong>Thử tình huống chủ thể lệch giáo án</strong><small>Mô phỏng cách ba mẹ chọn hướng kể · chưa có AI phân tích</small></span><Icon name="chevron" size={17} /></button>}
+          {selectedLesson && <section className={`mismatch-preview-result ${mismatchPreviewResult === 'mismatch' ? 'is-mismatch' : 'is-aligned'}`} aria-live="polite"><div><span className="preview-state">KẾT QUẢ MẪU · CHƯA CÓ AI PHÂN TÍCH</span><strong>{mismatchPreviewResult === 'mismatch' ? 'Chủ thể gợi ý chưa khớp với mục tiêu giáo án' : 'Chủ thể gợi ý đang phù hợp với giáo án'}</strong><small>Ba mẹ là người quyết định hướng kể tiếp theo.</small></div><div className="mismatch-preview-actions"><button type="button" onClick={() => setMismatchPreviewResult((result) => result === 'mismatch' ? 'aligned' : 'mismatch')}>{mismatchPreviewResult === 'mismatch' ? 'Xem tình huống khớp' : 'Xem tình huống lệch'}</button>{mismatchPreviewResult === 'mismatch' && <button type="button" onClick={() => { setMismatchDemoChoice(scriptFollowing ?? 'lesson'); setMismatchModalOpen(true); }}>Chọn hướng kể</button>}</div></section>}
           <div className="inline-note"><Icon name="lock" size={16} /><span>Chủ thể và nội dung phân tích ở đây là minh họa; thay đổi chỉ tác động trong phiên xem trước.</span></div>
         </>;
       case 'idea':
@@ -970,7 +1008,9 @@ function App() {
             <span className="record-button__icon"><Icon name="mic" size={20} /></span><span><strong>{isRecording ? 'Đang ghi âm · chạm để dừng' : 'Ghi âm ý tưởng'}</strong><small>Tùy chọn</small></span><span className="record-wave" aria-hidden="true"><i /><i /><i /><i /><i /></span>
           </button>}
           {ideaMode === 'initial' && <label className="audio-upload">{audioFileName ? `Đã ghi âm · ${audioFileName}` : 'Chọn tệp âm thanh'}<input className="visually-hidden" type="file" accept="audio/*" capture="user" onChange={handleAudioFile} /></label>}
-          {audioUrl && <><div className="audio-ready"><Icon name="check" size={16} /><span>{audioFileName} · có trong phiên xem trước</span><button type="button" onClick={() => { URL.revokeObjectURL(audioUrl); setAudioUrl(null); setAudioFileName(''); setContextConfirmed(false); }}>Xóa</button></div><audio className="audio-player" controls src={audioUrl} aria-label="Nghe lại bản ghi ý tưởng" /><p className="audio-transcription-state" role="note">Nhận dạng giọng nói chưa kết nối. Nhập hoặc chỉnh lời kể ngay trong ô ý tưởng phía trên.</p></>}
+          {ideaMode === 'initial' && <button type="button" className="text-button text-button--center audio-sample-action" onClick={runSampleTranscription}>Xem luồng ghi âm thành chữ bằng dữ liệu mẫu</button>}
+          {audioUrl && <><div className="audio-ready"><Icon name="check" size={16} /><span>{audioFileName} · chỉ lưu trong phiên này</span><button type="button" onClick={() => { URL.revokeObjectURL(audioUrl); setAudioUrl(null); setAudioFileName(''); setTranscriptionStatus('idle'); setIdea(''); setContextConfirmed(false); }}>Xóa</button></div><audio className="audio-player" controls src={audioUrl} aria-label="Nghe lại bản ghi ý tưởng" /></>}
+          {ideaMode === 'initial' && transcriptionStatus !== 'idle' && <div className={`audio-transcription-state audio-transcription-state--${transcriptionStatus}`} role="status" aria-live="polite">{transcriptionStatus === 'transcribing' ? <><span className="transcription-spinner"/> Đang chuẩn bị bản chép mẫu…</> : transcriptionStatus === 'complete' ? <><Icon name="check" size={16}/><span><strong>Bản chép mẫu đã thêm vào ô ý tưởng.</strong><small>Đây là văn bản minh họa, chưa chạy nhận dạng giọng nói. Ba mẹ có thể sửa trực tiếp.</small></span></> : <><Icon name="refresh" size={16}/><span><strong>Chưa có bản chép.</strong><small>Thử tạo lại bản minh họa hoặc nhập ý tưởng bằng bàn phím.</small></span><button type="button" onClick={runSampleTranscription}>Thử lại</button></>}</div>}
           {ideaMode === 'rewrite' && <div className="soft-card soft-card--blue"><Icon name="edit" size={18} /><p>Ba mẹ sẽ xem lại kịch bản trước khi tạo video.</p></div>}
         </>;
       case 'script':
@@ -1061,7 +1101,7 @@ function App() {
     <PageHeader title="Hồ sơ gia đình" subtitle="Chọn hồ sơ cho câu chuyện" onBack={() => setScreen('home')} />
     <main className="subpage-content">
       <div className="profile-selection-hint">Hồ sơ đang chọn: <strong>{profiles.length ? selectedChild.name : 'Chưa có hồ sơ'}</strong></div>
-      <section className="profile-list">{profiles.map((child) => <article className={`profile-card profile-card--editable ${selectedChildId === child.id ? 'is-selected' : ''}`} key={child.id}><button className="profile-card__select" onClick={() => { setSelectedChildId(child.id); setToast(`Đã chọn ${child.name}`); }} aria-pressed={selectedChildId === child.id}><ChildAvatar child={child} size="lg" /><span><strong>{child.name}</strong><small>{formatChildAge(child.ageMonths)} · Hồ sơ gia đình</small></span><span className="radio-mark"><Icon name="check" size={14} /></span></button><button className="icon-button profile-edit" aria-label={`Xem hồ sơ ${child.name}`} onClick={() => { setDetailChildId(child.id); setScreen('child-detail'); }}><Icon name="chevron" size={19} /></button></article>)}<button className="add-profile" onClick={() => beginChildForm()}><span><Icon name="plus" size={19} /></span> Thêm hồ sơ trẻ</button></section>
+      <section className="profile-list">{profiles.map((child) => <article className={`profile-card profile-card--editable ${selectedChildId === child.id ? 'is-selected' : ''}`} key={child.id}><button className="profile-card__select" onClick={() => { setSelectedChildId(child.id); setToast(`Đã chọn ${child.name}`); }} aria-pressed={selectedChildId === child.id}><ChildAvatar child={child} size="lg" /><span><strong>{child.name}</strong><small>{formatChildAge(child.ageMonths)} · {formatChildGender(child.gender)}</small></span><span className="radio-mark"><Icon name="check" size={14} /></span></button><button className="icon-button profile-edit" aria-label={`Xem hồ sơ ${child.name}`} onClick={() => { setDetailChildId(child.id); setScreen('child-detail'); }}><Icon name="chevron" size={19} /></button></article>)}<button className="add-profile" onClick={() => beginChildForm()}><span><Icon name="plus" size={19} /></span> Thêm hồ sơ trẻ</button></section>
       <div className="profile-actions-hint"><Icon name="settings" size={17} /><span>Cài đặt, chia sẻ và quyền riêng tư mở từ biểu tượng bánh răng.</span></div>
       <div className="prototype-note">Thay đổi hồ sơ trong bản xem trước chỉ có hiệu lực trong phiên này.</div>
     </main>
@@ -1070,7 +1110,7 @@ function App() {
   const renderChildDetail = () => <>
     <PageHeader title="Hồ sơ của bé" subtitle="Thông tin do gia đình quản lý" onBack={() => setScreen('profile')} />
     <main className="subpage-content">
-      <section className="child-detail-card"><ChildAvatar child={detailChild} size="lg" /><div><h2>{detailChild.name}</h2><p>{formatChildAge(detailChild.ageMonths)}</p></div></section>
+      <section className="child-detail-card"><ChildAvatar child={detailChild} size="lg" /><div><h2>{detailChild.name}</h2><p>{formatChildAge(detailChild.ageMonths)} · {formatChildGender(detailChild.gender)}</p></div></section>
       <div className="quota-row"><span>Biệt danh</span><strong>{detailChild.nickname || 'Chưa thêm'}</strong></div>
       <div className="child-detail-note"><span>Nhu cầu hỗ trợ</span><p>{detailChild.supportNeeds || 'Chưa thêm thông tin.'}</p></div>
       {profileContextFields.some((field) => detailChild[field.key]) && <section className="child-context-summary"><h3>Điều ba mẹ ghi nhận</h3>{profileContextFields.filter((field) => detailChild[field.key]).map((field) => <div key={field.key}><strong>{field.label}</strong><p>{detailChild[field.key]}</p></div>)}</section>}
@@ -1248,9 +1288,11 @@ function App() {
     <PageHeader title={childEditingId ? 'Sửa hồ sơ trẻ' : 'Thêm hồ sơ trẻ'} subtitle="Hồ sơ do Parent quản lý" onBack={() => setScreen('profile')} />
     <main className="subpage-content">
       <div className="privacy-banner"><Icon name="lock" size={18} /><p>Tên hiển thị và độ tuổi giúp ba mẹ quản lý hồ sơ. Biệt danh, nhu cầu hỗ trợ và ảnh không gửi cho AI theo mặc định.</p></div>
-      <div className="child-photo-form"><ChildAvatar child={{ id: 'draft', name: childName || 'Trẻ', ageMonths: (Number(childAgeYears) || 0) * 12 + (Number(childAgeMonths) || 0), initial: childName.trim().slice(-1).toUpperCase() || '?', tone: 'peach', photoUrl: childPhotoUrl ?? undefined }} size="lg" /><div><strong>Ảnh hồ sơ</strong><small>Một ảnh từ camera hoặc thư viện</small><div className="child-photo-actions"><button onClick={() => document.getElementById('child-camera')?.click()}>Chụp ảnh</button><button onClick={() => document.getElementById('child-gallery')?.click()}>Chọn ảnh</button></div></div><input id="child-camera" className="visually-hidden" type="file" accept="image/*" capture="user" onChange={handleChildPhoto} /><input id="child-gallery" className="visually-hidden" type="file" accept="image/*" onChange={handleChildPhoto} /></div>
+      <div className="child-photo-form"><ChildAvatar child={{ id: 'draft', name: childName || 'Trẻ', ageMonths: (Number(childAgeYears) || 0) * 12 + (Number(childAgeMonths) || 0), initial: childName.trim().slice(-1).toUpperCase() || '?', tone: 'peach', gender: childGender, photoUrl: childPhotoUrl ?? undefined }} size="lg" /><div><strong>Ảnh hồ sơ</strong><small>Một ảnh từ camera hoặc thư viện</small><div className="child-photo-actions"><button onClick={() => document.getElementById('child-camera')?.click()}>Chụp ảnh</button><button onClick={() => document.getElementById('child-gallery')?.click()}>Chọn ảnh</button></div></div><input id="child-camera" className="visually-hidden" type="file" accept="image/*" capture="user" onChange={handleChildPhoto} /><input id="child-gallery" className="visually-hidden" type="file" accept="image/*" onChange={handleChildPhoto} /></div>
       <label className="field-label" htmlFor="child-name">Tên hiển thị <span>Bắt buộc</span></label><input id="child-name" className="text-field" value={childName} onChange={(event) => setChildName(event.target.value)} placeholder="Ví dụ: Bé An" />
       <div className="age-fields"><div><label className="field-label" htmlFor="child-age-years">Tuổi <span>3–10</span></label><input id="child-age-years" className="text-field" inputMode="numeric" type="number" min="3" max="10" step="1" value={childAgeYears} onChange={(event) => setChildAgeYears(event.target.value)} placeholder="Số năm" /></div><div><label className="field-label" htmlFor="child-age-months">Tháng lẻ <span>0–11</span></label><input id="child-age-months" className="text-field" inputMode="numeric" type="number" min="0" max="11" step="1" value={childAgeMonths} onChange={(event) => setChildAgeMonths(event.target.value)} placeholder="Số tháng" /></div></div>
+      <label className="field-label" htmlFor="child-gender">Giới tính <span>Tùy chọn</span></label><select id="child-gender" className="text-field" value={childGender} onChange={(event) => setChildGender(event.target.value as Child['gender'])}><option value="unspecified">Chưa chọn</option><option value="girl">Bé gái</option><option value="boy">Bé trai</option></select>
+      <div className="preview-inline-note" role="note"><strong>Trường giới tính đang ở dạng UI mẫu</strong><span>Thuộc tính này chưa có trong SRS/API hiện hành và chỉ lưu trong phiên xem trước.</span></div>
       <label className="field-label" htmlFor="child-nickname">Biệt danh <span>Tùy chọn</span></label><input id="child-nickname" className="text-field" value={childNickname} onChange={(event) => setChildNickname(event.target.value)} placeholder="Chỉ lưu trong hồ sơ" />
       <details className="child-context-form"><summary>Thêm điều ba mẹ biết về bé <Icon name="chevron" size={17} /></summary><p>Những mục này chỉ lưu trong hồ sơ. Mỗi lần tạo chuyện, ba mẹ chọn riêng mục nào được dùng.</p>
         <label className="field-label" htmlFor="child-interests">Sở thích <span>Tùy chọn</span></label><textarea id="child-interests" className="idea-field" rows={2} maxLength={300} value={childInterests} onChange={(event) => setChildInterests(event.target.value)} placeholder="Ví dụ: thích quan sát bướm" />

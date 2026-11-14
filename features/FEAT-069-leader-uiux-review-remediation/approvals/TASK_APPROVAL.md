@@ -62,3 +62,13 @@
 - **Scope:** Use API/source only as business-flow reference; remove conditional API/auth wiring; align role UI flows with the leader disposition, including post-video Parent activities and no unsupported gender field; show Parent Settings only on the Family Profile page; visually verify and build the UI workspaces and Parent APK.
 - **Exclusions:** backend/API/auth/schema/database/SRS changes; live calls/writes; real child data/media; legacy `apps/`, Child Expo; automated tests; force push/history rewrite.
 - **Approval basis:** direct owner clarification supersedes the prior Rev3 interpretation for current UI work.
+
+## Plan Rev5 — complete API-informed UI preview states
+
+- **Status:** APPROVED for the exact UI-only scope in `plan/PLAN_REV5_PREVIEW_COMPLETION.md`.
+- **Approver:** Project owner, direct request in this conversation to complete the mismatch, speech-to-text, drawing-guide and Teacher Dashboard UI from source/API references; add gender to Parent profile and child selection; and run the UI for review.
+- **Plan revision:** 5.
+- **Approved plan SHA-256:** `F49F00D71E5E0D84B2EA695A1BB63010DA2E82E8A8FAC356542BDA145279262A`.
+- **Scope:** UI-only; no API calls. Mismatch-result preview modal, editable fixture transcript states, optional generic-topic drawing guide, source-shaped Teacher Dashboard preview, and local-only gender controls on Parent profile and child picker. Build and run the UI for review.
+- **Exclusions:** backend/API/auth/schema/SRS changes, live service calls/writes, persisted gender, real child data, legacy top-level `apps/` implementation, automated tests and history rewrite.
+- **Approval basis:** direct owner instruction. The canonical SRS is not amended; gender remains a preview-only product question.

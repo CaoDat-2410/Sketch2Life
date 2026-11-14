@@ -8,6 +8,7 @@ import './auth.css';
 import './scene.css';
 import './coverage.css';
 import './leaderReview.css';
+import './rev5.css';
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

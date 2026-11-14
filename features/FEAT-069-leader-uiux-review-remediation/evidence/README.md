@@ -1,11 +1,11 @@
 # FEAT-069 evidence index
 
-Evidence for the leader-review UI remediation, captured 2026-11-14 (Asia/Saigon). Rev4 is the active UI-only scope: source/API details inform business-flow decisions, but the UI makes no backend/API/auth calls. Rev1–Rev3 are historical publications; FEAT-063 SRS v2.5-draft remains unsigned and canonical.
+Evidence for the leader-review UI remediation, captured 2026-11-14 (Asia/Saigon). Rev5 is the current UI-only scope: source/API details inform business-flow decisions, but the UI makes no backend/API/auth calls. Gender, mismatch analysis, transcript and guide output are local preview fixtures; FEAT-063 SRS v2.5-draft remains unsigned and canonical.
 
 | Evidence | AC | What it establishes | Limitations |
 |---|---|---|---|
-| `notes/EXECUTION.md` | AC2, AC7–AC12 | Rev4 builds/typecheck/APK packaging and manual visual review of Parent + three web roles; historical walkthroughs and emulator installation blocker | Browser screenshots were inspected live; saved PNGs below are historical Rev1 captures. Rev4 APK runtime on the supplied emulator is unverified. |
-| `notes/OPEN_QUESTIONS.md` | AC3–AC7, AC11 | Leader/SRS conflict and missing APIs, with explicit preview-only treatment | Requires owner/SRS/API resolution before product behavior or persistence is claimed. |
+| `notes/EXECUTION.md` | AC1–AC7 | Rev5 builds/typecheck/APK packaging and live visual review of Parent guide, transcript, mismatch, profile gender, and Teacher dashboard | Screens were inspected live; saved PNGs below are historical Rev1 captures. APK runtime on the supplied emulator may remain unverified. |
+| `notes/OPEN_QUESTIONS.md` | AC1–AC7 | Gender/SRS gap, local analysis/transcript fixtures and API boundaries | Requires SRS/API/owner reconciliation before any fixture is treated as live product behavior or persisted. |
 | `notes/API_UI_CROSSWALK_REV3.md` | AC1–AC9 | Historical source-to-route mapping used to understand business flow | Rev3 conditional API wiring was removed in Rev4; this crosswalk does not describe current runtime UI behavior. |
 | `notes/SOURCE_PROVENANCE_REV2.md` | AC11–AC12 | Approved branch/source boundary and permitted backend comparison | Branch source comparison is read-only context; current delivery branch remains the clone target. |
 | `screenshots/parent-home.png` | AC8 | Parent home hierarchy, create CTA, global settings and center create action | Historical Rev1 browser preview capture; not a Rev2 APK capture. |

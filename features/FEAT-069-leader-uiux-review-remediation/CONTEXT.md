@@ -10,7 +10,13 @@
 - **Parent mobile entry:** `UI_Project/parent-android/apps/mobile` is the Android APK host; `ParentWebPreview` loads the bundled `UI_Project/parent-ui` page. The separate `parent-android/apps/ui-mobile` workspace is not the target for this review task.
 - **Latest API comparison:** A read-only audit of the permitted newer backend source `origin/feature/feat063-m2-parent-teacher-foundation@5c07c94e86826447d975ef2757aa1fefdc876c8c` found Parent profile/story and AI routes absent from the delivery baseline `FE_UI_Project_Ver2@ae2a8c8165aa1d11b62a7005a9e28d8c0ea8c046`. Treat those newer routes as future source context only; the deliverable labels them unavailable unless mounted in the branch teammates clone.
 
-## Rev4 current UI-only scope
+## Rev5 preview completion — current scope
+
+The owner approved `plan/PLAN_REV5_PREVIEW_COMPLETION.md` (SHA-256 `F49F00D71E5E0D84B2EA695A1BB63010DA2E82E8A8FAC356542BDA145279262A`). Continue to treat APIs as business-flow references only. Parent now demonstrates the post-capture lesson-mismatch choice, editable offline transcript fixture, generic topic/difficulty drawing guide, and the user-requested gender field in profile and child selection. Teacher Dashboard counts are derived only from local lesson-summary and assignment fixture rows shaped after the reviewed source contracts; no analytics endpoint is claimed.
+
+The gender field is explicitly UI-only and session-local because canonical FEAT-063 SRS v2.5-draft and the reviewed API contracts do not define it. Mismatch analysis, speech transcription, drawing-guide content and all Teacher Dashboard values remain fixtures. No API, auth, AI, ASR, schema, backend, or SRS behavior is changed. `UI_Project/parent-android/apps/mobile` continues to package the canonical `UI_Project/parent-ui` WebView.
+
+## Rev4 current UI-only scope — historical
 
 The owner clarified that the deliverable is the leader-requested UI/UX and that API details are business-flow reference only. The exact approved plan and hash are in `plan/PLAN_REV4_UI_ONLY.md` and both approval registers. Rev4 shows Parent Settings only on the Family Profile page, removes the unsupported gender field, and makes lesson activities available after the story preview instead of during story setup. Parent video generation remains a clearly labeled preview state. Teacher, School Manager, and Platform Admin remain role-specific web previews with local demonstration data and no API/auth calls.
 
@@ -33,8 +39,8 @@ This frontend wiring does not establish that the team can log in end-to-end: the
 ## Out of scope / open product decisions
 
 - Do not move Parent outdoor activities before playable video; FR-P-05 and FR-PL-16 expressly put them after video.
-- Do not add a persisted child gender field absent from current SRS and API data models.
-- Do not add the leader-described mismatch-direction modal unless an owner-approved SRS/API decision defines the analysis state and behavior. Preserve the existing post-capture lesson-direction choice.
+- Do not persist the UI-only gender field or represent it as a canonical product/API field unless FEAT-063 SRS/data contracts are formally reconciled.
+- Do not represent the mismatch modal or transcript sample as live image analysis/ASR. Their preview fixture behavior is authorized only for UI review.
 - Do not claim live speech-to-text, AI line sketch, teacher dashboard data, or generated “Show Slide” output when the corresponding mounted authenticated API and runtime identity context are unavailable.
 - Do not change backend/API/schema/auth/provider/SRS, run AI/provider requests, send writes to a shared backend, or modify the legacy Child Expo workspace.
 - No generated bitmap assets are in scope. Use existing approved assets and code-native layout/illustration only.

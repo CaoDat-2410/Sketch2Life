@@ -290,3 +290,14 @@
 - **Scope:** Use API/source contracts only as business-flow reference; remove UI API/auth calls; align Parent/Teacher/School Manager/Platform Admin UI with the leader review disposition; show Parent Settings only on the Family Profile page; build and inspect workspaces and Parent APK; update evidence/status/source records; validate security and publish normally to the previously authorized branch.
 - **Exclusions:** backend/API/auth/schema/database/SRS/provider changes; live API/AI calls or writes; child data/media; legacy top-level `apps/` and Child Expo; automated tests; force push/history rewrite.
 - **Approval basis:** This direct owner clarification supersedes the Rev3 API-wiring interpretation for current work. It does not alter the canonical SRS.
+
+## FEAT-069 Plan Rev5 — complete API-informed UI preview states
+
+- **Status:** APPROVED for the exact UI-only scope in Plan Rev5.
+- **Approver:** Project owner, direct request in this conversation to complete the mismatch, speech-to-text, drawing-guide and Teacher Dashboard UI from source/API references; add gender to Parent profile and child selection; and run the UI for review.
+- **Approved plan:** `features/FEAT-069-leader-uiux-review-remediation/plan/PLAN_REV5_PREVIEW_COMPLETION.md`.
+- **Plan revision:** 5.
+- **Approved plan SHA-256:** `F49F00D71E5E0D84B2EA695A1BB63010DA2E82E8A8FAC356542BDA145279262A`.
+- **Scope:** UI-only preview updates. Use permitted source/API contracts as business-flow reference, without API calls. Add a clearly labeled local mismatch scenario/modal, editable sample transcript states, complete optional generic-topic guide states, a contract-shaped Teacher dashboard preview, and a local-only Parent gender field shown in profile and child selection. Build and run the UI for owner review.
+- **Exclusions:** backend/API/auth/schema/SRS changes; live ASR/AI/API calls or writes; persisted gender or real child data; prohibited branch source; legacy top-level `apps/` as implementation target; automated tests; force push/history rewrite.
+- **Approval basis:** direct owner instruction. This does not sign off or revise FEAT-063 SRS v2.5-draft; gender remains a UI-only proposal pending product/data-model reconciliation.

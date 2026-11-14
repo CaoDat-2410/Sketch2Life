@@ -58,4 +58,12 @@ Sau khi clone, cài dependency web bằng `npm ci` tại `UI_Project`, rồi cà
 
 Các portal và app hiện vẫn có màn hình fixture/preview. UI preview/source không đồng nghĩa API/backend đã được tích hợp đầy đủ.
 
+## Luồng xem thử Rev5
+
+- Trong Parent, vào **Bắt đầu kể** để xem giới tính ngay trong bộ chọn hồ sơ. Mở **Hồ sơ** để xem/sửa trường giới tính; giá trị này chỉ nằm trong phiên UI preview vì SRS/API hiện tại chưa định nghĩa thuộc tính đó.
+- Có thể bật **Thêm gợi ý vẽ trước khi chụp** để xem ba bước tĩnh, đổi chủ đề/mức gợi ý, quay lại hoặc bỏ qua. Không gọi AI.
+- Ở bước chụp, nút **Dùng tranh mẫu minh họa để xem luồng** giúp đi tiếp mà không tải ảnh. Bản phân tích cục bộ mặc định mô phỏng tình huống lệch giáo án để kiểm tra modal chọn hướng kể; đây không phải phân tích ảnh thật.
+- Ở bước ý tưởng, **Xem luồng ghi âm thành chữ bằng dữ liệu mẫu** đưa một transcript mẫu vào ô có thể chỉnh sửa. Ghi âm thật cần quyền micro; nhận dạng giọng nói chưa được kết nối.
+- Teacher Dashboard hiển thị danh sách fixture theo khái niệm giáo án, trạng thái hiển thị/xét duyệt và phân công. Các con số được tính từ fixture đang hiển thị, không phải số liệu API hay analytics.
+
 

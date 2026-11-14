@@ -1,14 +1,15 @@
 # Status
 
 - **Feature:** FEAT-069 — Leader review UI/UX remediation.
-- **State:** COMPLETE under the approved Rev4 UI-only plan. Parent, Teacher, School Manager, and Platform Admin UI work is updated, verified and published.
-- **Active plan:** `plan/PLAN_REV4_UI_ONLY.md`, SHA-256 `EE85CB380638985969419A38646B1D72383C74CC390027C903D1950C387FF4C3`.
+- **State:** Rev5 implementation is complete locally under the approved preview-completion plan; final APK install/runtime on the supplied emulator is still unverified because Android Package Manager did not return from `adb install`.
+- **Active plan:** `plan/PLAN_REV5_PREVIEW_COMPLETION.md`, SHA-256 `F49F00D71E5E0D84B2EA695A1BB63010DA2E82E8A8FAC356542BDA145279262A`.
 - **Branch:** `FE_UI_Project_Ver2`.
-- **Current scope:** APIs are used only as business-flow reference. The four role workspaces do not invoke `backendApi`, an auth bridge, `fetch`, or a backend request; their data remains visibly labeled as preview/demo data.
-- **Parent UI:** Settings is only available from the Family Profile page. Unsupported gender controls and the pre-video activity-selection step are removed. Lesson activities are reached from a story after its video preview. Story/video generation remains an honest unavailable preview.
-- **Teacher UI:** Existing high-contrast workspace, single top-bar notification entry, centered details, and navigable class → lesson → session → slide/Sketch → interaction → separate sample preview remain in place.
-- **Other web roles:** School Manager and Platform Admin remain role-specific workspaces with preview data and no server-action claims.
-- **Verification:** `npm run build` passed all five UI workspaces. Parent Android typecheck passed. Debug APK packaging passed after setting the process SDK path to the existing local Android SDK. CUA visually reviewed Parent home/profile/settings/story activity and all three web role workspaces. No automated tests were run.
-- **APK:** `UI_Project/parent-android/apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk`. Packaging passed; emulator installation was not repeated in Rev4. Earlier install and package lookup attempts stalled at Android Package Manager; no wipe/reset was performed.
-- **Historical Rev3:** commit `be8aa646` and its API crosswalk remain as historical records. Rev4 reverted the UI-level API wiring; see `evidence/notes/EXECUTION.md` and `evidence/notes/OPEN_QUESTIONS.md`.
-- **Publication:** commit `11294211911506a7dae73a5ab78aee0bb51311f0` (`feat(ui): keep role previews UI-only`) was pushed as a normal fast-forward from `26de23d54f16917c3c98230df36a5da6dd039238` to `origin/FE_UI_Project_Ver2` on 2026-11-14 (Asia/Saigon). Security validation passed before commit and immediately before push; see `evidence/notes/PUBLICATION.md`.
+- **Current scope:** APIs and source are business-flow references only. Parent, Teacher, School Manager, Platform Admin and shared web preview do not invoke `backendApi`, auth, `fetch`, or a backend request; data/actions remain local preview fixtures.
+- **Parent UI:** Settings remains available only from Family Profile. Added a fixture mismatch review with two follow-up directions, an editable sample transcript flow, topic/difficulty-based three-step drawing guide, and gender display/edit on child selection and Family Profile. Gender is local preview state because the canonical unsigned FEAT-063 SRS and reviewed contracts do not define it.
+- **Teacher UI:** Dashboard totals and lists derive from local lesson-summary and assignment-shaped fixtures informed by the source contracts; no analytics endpoint or live API is claimed. Existing navigable class → lesson → session → slide/Sketch → interaction → separate sample preview remains in place.
+- **Other web roles:** School Manager and Platform Admin remain role-specific web workspaces with clearly labeled preview data and no server-action claims.
+- **Verification:** `npm run build` passed all five UI workspaces. Parent Android typecheck passed. Debug APK packaging passed with the local Android SDK. Parent (including mismatch modal and gender/transcript flows) and Teacher dashboard were visually reviewed in the local preview; no automated tests were run.
+- **Preview:** Parent `http://127.0.0.1:5171/`; Teacher `http://127.0.0.1:5172/`; School Manager `http://127.0.0.1:5173/`; Platform Admin `http://127.0.0.1:5174/`; shared web portal `http://127.0.0.1:5175/`.
+- **APK:** `UI_Project/parent-android/apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk` (built 2026-11-14). Emulator had booted, but installation produced no response and was interrupted; no app launch or runtime behavior is claimed. No emulator wipe/reset was performed.
+- **Historical records:** Rev3 API crosswalk/commit remain historical. Rev4 removed UI-level API wiring; Rev5 remains UI-only. See `evidence/notes/EXECUTION.md` and `evidence/notes/OPEN_QUESTIONS.md`.
+- **Previous publication:** commit `11294211911506a7dae73a5ab78aee0bb51311f0` (`feat(ui): keep role previews UI-only`) was previously pushed as a normal fast-forward to `origin/FE_UI_Project_Ver2`; Rev5 changes are not yet included in that commit.

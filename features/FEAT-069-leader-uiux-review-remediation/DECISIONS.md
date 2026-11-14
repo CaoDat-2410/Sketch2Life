@@ -35,3 +35,19 @@ The approved Rev3 scope connects only current, mounted read contracts that can b
 ## D-069-09 — Rev4 UI-only scope supersedes API wiring
 
 The owner clarified that APIs are reference material for understanding business flow and are not to be joined to the UI. Rev4 removes the conditional API/auth calls added in Rev3; all four role workspaces remain visibly labeled previews with local demonstration data. Follow the leader disposition for Parent: show activities after the story/video preview, omit unsupported child gender, and show the Settings entry only on the Family Profile page. Do not modify backend/API/auth/schema/SRS or send requests to a service.
+
+## D-069-10 — Rev5 post-capture mismatch preview
+
+The owner directly requested a Parent flow for the leader's drawing-versus-lesson mismatch feedback. Show the choice modal when the local post-capture fixture reports a mismatch, and carry the chosen direction into story review. This is a deterministic UI fixture, not image analysis or an API decision; FEAT-063 SRS remains unchanged.
+
+## D-069-11 — Rev5 gender display is session-local UI only
+
+The owner directly requested gender in the Parent profile and child picker. Include an optional local field for UI review and mark the values as sample/session-only. The current canonical SRS/API does not define this attribute; do not persist it or treat it as an approved product data model.
+
+## D-069-12 — Rev5 voice and drawing-guide fixtures
+
+Keep the Parent audio workflow editable and reviewable, with a plainly labeled offline transcript sample and recoverable empty/error states. The three-step drawing guide may vary only by generic topic and selected difficulty. Do not request microphone permission during visual review or call ASR, AI or other services.
+
+## D-069-13 — Rev5 Teacher Dashboard contract-shaped preview
+
+Use local fixture rows matching the concepts in the reviewed lesson summary and active assignment contracts. Dashboard counts must be traceable to those rows; do not show topic analytics or imply a live connection. Empty/unavailable UI may be shown as a fallback, but the present in-repo sample is ready-state only.

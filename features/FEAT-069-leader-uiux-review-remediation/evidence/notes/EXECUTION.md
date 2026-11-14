@@ -80,3 +80,27 @@ Plan: `plan/PLAN_REV4_UI_ONLY.md`, SHA-256 `EE85CB380638985969419A38646B1D72383C
 No automated tests were added or run. The Rev4 APK packaging passed, but installation/runtime on the supplied emulator was not retried in this closeout; earlier install/package-manager attempts stalled. No emulator wipe/reset was performed. The CUA session visually inspected the screens; no new screenshots were saved, so the existing PNGs remain historical captures.
 
 Repository security validation passed before commit (7,578 publishable files scanned) and immediately before push (7,577 publishable files scanned); both runs reported no absolute machine paths. `git diff --cached --check` passed. Commit `11294211911506a7dae73a5ab78aee0bb51311f0` was pushed normally as a fast-forward from `26de23d54f16917c3c98230df36a5da6dd039238` to `origin/FE_UI_Project_Ver2`.
+
+## Rev5 preview completion
+
+Plan: `../plan/PLAN_REV5_PREVIEW_COMPLETION.md`, SHA-256 `F49F00D71E5E0D84B2EA695A1BB63010DA2E82E8A8FAC356542BDA145279262A`. Scope is preview-only. The source/API contracts informed screen states and Teacher dashboard vocabulary; no API, authentication, analytics, ASR, persistence, or AI request was wired or issued.
+
+### Verification
+
+| Command / review | Result |
+|---|---|
+| `npm run build` from `UI_Project` | Passed all five workspaces (Parent, Teacher, School Manager, Platform Admin, shared web portal), including the final Parent sample artwork and transcript affordance changes. |
+| `pnpm typecheck` from `UI_Project/parent-android` | Passed (`tsc --noEmit`). |
+| `pnpm --filter @sketch2life/mobile android:apk:debug` with `ANDROID_HOME` and `ANDROID_SDK_ROOT` set to the existing local SDK | Passed; Gradle reported `BUILD SUCCESSFUL in 1m 4s`. It generated the self-contained `parent-ui-webview.html` bundle (433,611 bytes). APK: `UI_Project/parent-android/apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk` (131,832,792 bytes). |
+| `git diff --check` | Passed; Git noted CRLF-to-LF normalization for `UI_Project/README.md`. |
+| Manual CUA visual review | Reviewed Parent child picker, profile gender edit, guide topic/difficulty/three steps, local sample artwork, sample transcript insertion, mismatch decision modal and subsequent script direction; reviewed Teacher dashboard fixture totals, lessons, assignment and preview disclosure. Live screenshots were inspected but not saved as new evidence images; files under `screenshots/` remain historical Rev1 captures. |
+
+No automated tests were run. Gender is a session-only fixture because the canonical FEAT-063 SRS and current reviewed contracts do not define it. Transcript and drawing analysis are illustrative local states and do not prove ASR or AI functionality.
+
+### Browser preview and Android runtime
+
+The preferred workspace URLs returned HTTP 200 with the expected page titles: Parent `5171`, Teacher `5172`, School Manager `5173`, Platform Admin `5174`, and shared portal `5175`. Parent's served module included the new sample-transcript action. An additional `npm run dev` launcher found those ports already occupied and selected fallback ports; those extra instances were stopped while the already-running previews were left intact. The tested handoff URLs are recorded in `STATUS.md`.
+
+The supplied Android emulator reached `sys.boot_completed=1`. `adb install -r` of the newly built APK produced no response for an extended period and was interrupted. The app was not launched; emulator runtime is unverified. No device data was wiped/reset. The APK is build-verified and available at the path above.
+
+No real child media/profile data was used. No mic permission, API request, backend write, or provider request was made.
