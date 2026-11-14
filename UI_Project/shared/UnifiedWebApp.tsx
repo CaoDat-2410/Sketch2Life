@@ -42,7 +42,7 @@ function InvitationActivationFlow({onBack}: {onBack: () => void}) {
       ? {name: 'Cô Nguyễn Mai', email: 'teacher.demo@example.test', code: 'S2L-DEMO-TEACHER'}
       : {name: 'Thầy Trần Minh', email: 'manager.demo@example.test', code: 'S2L-DEMO-MANAGER'};
     if (fullName.trim() !== expectedInvite.name || email.trim().toLocaleLowerCase('vi') !== expectedInvite.email || inviteCode.trim() !== expectedInvite.code) {
-      setError('Thông tin chưa khớp lời mời. Bấm "Điền lời mời mẫu" để điền nhanh.');
+      setError('Thông tin chưa khớp lời mời. Bấm "Điền thông tin gợi ý" để điền nhanh.');
       return;
     }
     setStage('credentials');
@@ -78,7 +78,7 @@ function InvitationActivationFlow({onBack}: {onBack: () => void}) {
       <label>Mã mời<input value={inviteCode} onChange={(event) => setInviteCode(event.target.value)} required autoComplete="off" placeholder="Nhập mã từ tổ chức"/></label>
       <label>Loại tài khoản mời<select value={inviteRole} onChange={(event) => { setInviteRole(event.target.value as 'teacher' | 'manager'); setError(''); setFullName(''); setEmail(''); setInviteCode(''); }}><option value="teacher">Giáo viên</option><option value="manager">Quản lý trường</option></select></label>
       <label>Trạng thái lời mời<select value={scenario} onChange={(event) => { setScenario(event.target.value as InvitationPreviewScenario); setError(''); }}><option value="valid">Lời mời còn hiệu lực</option><option value="invalid">Không khớp / không tồn tại</option><option value="expired">Lời mời hết hạn</option><option value="used">Lời mời đã dùng</option></select></label>
-      <div className="activation-demo-note"><strong>Điền nhanh thông tin</strong><span>Hỗ trợ điền nhanh thông tin lời mời để kiểm tra luồng kích hoạt.</span><button type="button" className="unified-auth-link" onClick={useDemoInvite}>Điền lời mời mẫu</button></div>
+      <div className="activation-demo-note"><strong>Điền nhanh thông tin</strong><span>Hỗ trợ điền nhanh thông tin lời mời để kiểm tra luồng kích hoạt.</span><button type="button" className="unified-auth-link" onClick={useDemoInvite}>Điền thông tin gợi ý</button></div>
       {error ? <p className="unified-auth-error" role="alert">{error}</p> : null}
       <button type="submit" className="unified-auth-submit">Kiểm tra lời mời <span aria-hidden="true">→</span></button>
     </form> : null}

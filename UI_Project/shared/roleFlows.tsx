@@ -35,8 +35,8 @@ const flowSpecs: Record<string, Flow> = {
     { eyebrow: '01 · KIỂM TRA', title: 'Đúng buổi, đúng video', summary: 'Video phải đạt kiểm tra an toàn và đang ở VIDEO_READY.', fields: [{ id: 'occurrence', label: 'Buổi dạy', kind: 'select', options: ['Bầu trời kỳ diệu · Lớp Lá 1 · v2.0 · đã duyệt'], required: true }, { id: 'presentationConfirm', label: 'Tôi đang phụ trách lớp và đã kiểm tra nội dung trước khi chiếu', kind: 'checkbox', required: true }] },
     { eyebrow: '02 · TRÌNH CHIẾU', title: 'Bề mặt trình chiếu', summary: 'Video mở trong cùng occurrence, không tạo bản sao công khai.' },
   ] },
-  'run-control': { title: 'Hoàn tất hoặc hủy run', description: 'Kết thúc đúng run mẫu đang thuộc lớp và occurrence của bạn.', boundary: 'Lệnh thật cần run revision, quyền Teacher hiện hành, idempotency key và lifecycle server.', steps: [
-    { eyebrow: '01 · RUN HIỆN HÀNH', title: 'Kiểm tra run', summary: 'Trạng thái video và quyền sở hữu phải được tải mới từ server.', fields: [{ id: 'run', label: 'Run đang phụ trách', kind: 'select', options: ['Khám phá khu vườn · Lớp Lá 1'], required: true }] },
+  'run-control': { title: 'Hoàn tất hoặc hủy phiên chạy', description: 'Kết thúc đúng phiên chạy đang thuộc lớp và buổi dạy của bạn.', boundary: 'Lệnh thật cần run revision, quyền Teacher hiện hành, idempotency key và lifecycle server.', steps: [
+    { eyebrow: '01 · PHIÊN CHẠY', title: 'Kiểm tra phiên chạy', summary: 'Trạng thái video và quyền sở hữu phải được tải mới từ server.', fields: [{ id: 'run', label: 'Phiên đang phụ trách', kind: 'select', options: ['Khám phá khu vườn · Lớp Lá 1'], required: true }] },
     { eyebrow: '02 · QUYẾT ĐỊNH', title: 'Chọn cách kết thúc', summary: 'Hoàn tất giữ video hợp lệ; hủy run chưa hoàn tất sẽ nhả khóa và đi vào lifecycle xóa.', fields: [{ id: 'runAction', label: 'Hành động', kind: 'select', options: ['Hoàn tất run', 'Hủy run chưa hoàn tất'], required: true }, { id: 'runReason', label: 'Ghi chú cho lịch sử', kind: 'textarea', required: true, placeholder: 'Ghi ngắn gọn lý do và bối cảnh' }, { id: 'runConfirm', label: 'Tôi đã kiểm tra đúng run và hiểu quota đã dùng không được hoàn', kind: 'checkbox', required: true }] },
   ] },
   'teacher-scope': { title: 'Tổ chức và lớp phụ trách', description: 'Chỉ mở những lớp có assignment còn hiệu lực của Giáo viên.', boundary: 'Danh sách tổ chức, lớp và quyền đọc phải do BE1 trả theo principal; preview không cấp quyền.', steps: [
@@ -97,7 +97,7 @@ const flowSpecs: Record<string, Flow> = {
 };
 
 const operationSpecs: Record<string, Operation> = {
-  history: { title: 'Lịch sử buổi dạy', description: 'Theo dõi occurrence và run mẫu theo lớp đang phụ trách.', boundary: 'Trạng thái thật và quyền đọc media cần Story/Lesson API.', items: [{ title: 'Khám phá khu vườn', detail: 'Lớp Lá 1 · Sáng nay', state: 'Đang chuẩn bị' }, { title: 'Bầu trời kỳ diệu', detail: 'Lớp Lá 1 · Hôm qua', state: 'Đã hoàn tất' }] },
+  history: { title: 'Lịch sử buổi dạy', description: 'Theo dõi buổi học và lượt chạy theo lớp đang phụ trách.', boundary: 'Trạng thái thật và quyền đọc media cần Story/Lesson API.', items: [{ title: 'Khám phá khu vườn', detail: 'Lớp Lá 1 · Sáng nay', state: 'Đang chuẩn bị' }, { title: 'Bầu trời kỳ diệu', detail: 'Lớp Lá 1 · Hôm qua', state: 'Đã hoàn tất' }] },
   quota: { title: 'Lượt tạo video của trường', description: 'Giáo viên chỉ xem quota organization; Quản lý trường xem entitlement và kỳ.', boundary: 'Số còn lại, usage và grant phải lấy từ Billing. Quyền mua thêm quota đang OPEN.', items: [{ title: 'Lượt trong kỳ', detail: '12 / 20 lượt còn lại trong tháng', state: 'Đang áp dụng' }, { title: 'Yêu cầu đã nhận', detail: 'Mỗi request accepted dùng một lượt, kể cả lỗi', state: 'Quy tắc hệ thống' }, { title: 'Video đã lưu', detail: 'Hết quota vẫn xem được nội dung cũ', state: 'Quyền truy cập' }] },
   inbox: { title: 'Hộp thư thông báo', description: 'Thông báo trong app là nguồn chuẩn; push/email chỉ hỗ trợ.', boundary: 'Inbox thật cần Notifications API, quyền tài khoản và trạng thái đã đọc.', items: [{ title: 'Chưa có thông báo mới', detail: 'Nhắc lịch buổi học và trạng thái video sẽ hiển thị tại đây.', state: 'Trống' }] },
   notifications: { title: 'Thông báo tổ chức', description: 'Nhắc gia hạn trước 7 ngày và 1 ngày, cập nhật thanh toán.', boundary: 'Ngày hạn và trạng thái chỉ lấy từ Billing/Notifications.', items: [{ title: 'Gia hạn và thanh toán', detail: 'Nhắc trước 7 ngày và 1 ngày khi đến hạn kỳ dịch vụ', state: 'Theo kỳ' }, { title: 'Phân công và lớp', detail: 'Sự kiện thuộc organization của bạn', state: 'Theo quyền' }] },
@@ -321,7 +321,7 @@ function TeacherSessionWorkspace({ onNavigate }: { onNavigate?: (id: string) => 
     <header className="flow-heading"><span>BUỔI DẠY</span><h1>{ended ? 'Buổi dạy đã kết thúc' : started ? 'Không gian buổi dạy' : 'Chuẩn bị cùng lớp'}</h1><p>{started && !ended ? 'Đi lần lượt từng bước: chiếu gợi ý nét vẽ → tổ chức hoạt động → quay/chụp tranh mẫu & chiếu video.' : 'Chọn lớp được phân công, giáo án và hoạt động trước khi bắt đầu.'}</p></header>
     <div className="teacher-session-layout">
       <section className="teacher-session-setup" aria-label="Cấu hình buổi dạy">
-        <div className="teacher-session-panel-heading"><span className="flow-eyebrow">THÔNG TIN BUỔI DẠY</span><b>MÃ MẪU: {lesson.joinCode}</b></div>
+        <div className="teacher-session-panel-heading"><span className="flow-eyebrow">THÔNG TIN BUỔI DẠY</span><b>MÃ LỚP: {lesson.joinCode}</b></div>
         <label className="teacher-session-field">1 · Lớp được phân công<select value={className} disabled={started && !ended} onChange={(event) => setClassName(event.target.value)}><option value="Lớp Lá 1">Lớp Lá 1 · Cô Mai phụ trách</option></select></label>
         <label className="teacher-session-field">2 · Giáo án đã duyệt<select value={lessonId} disabled={started && !ended} onChange={(event) => handleLessonChange(event.target.value as SessionLessonId)}>{teacherSessionLessons.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
         <div className="teacher-session-field"><span>3 · Chọn hoạt động đã ghim</span><div className="teacher-session-activity-list">{lesson.activities.map((item) => <button type="button" key={item.id} disabled={started && !ended} className={activity.id === item.id ? 'is-selected' : ''} onClick={() => setActivityId(item.id)} aria-pressed={activity.id === item.id}><span><strong>{item.title}</strong><small>{item.materials}</small></span><i>{activity.id === item.id ? '✓' : ''}</i></button>)}</div></div>
@@ -344,17 +344,18 @@ function TeacherSessionWorkspace({ onNavigate }: { onNavigate?: (id: string) => 
           <span className={ended ? 'is-done' : ''}>04 · Hoàn tất</span>
         </div>
 
+        <div key={`${sessionStage}-${sampleStep}`} className="teacher-session-stage-body">
         {!started ? <div className="teacher-session-empty">
           <span>01</span>
           <strong>Sẵn sàng vào tiết — {className}</strong>
           <p>{lesson.label}. Bấm “Bắt đầu buổi học” để chiếu slide gợi ý nét vẽ hoặc vào thẳng hoạt động tương tác.</p>
           <div className="teacher-session-activity-preview"><b>{activity.title}</b><span>{activity.prompt}</span><small>An toàn: {activity.safety}</small></div>
         </div> : ended ? <div className="teacher-session-ended" role="status">
-          <strong>Buổi dạy mẫu đã hoàn tất.</strong>
+          <strong>Buổi dạy đã hoàn tất.</strong>
           <p>{sampleVideoShown ? 'Video mẫu đã được trình chiếu cho lớp và kết thúc buổi dạy.' : 'Buổi dạy đã kết thúc.'}</p>
           <span>{lesson.label} · {activity.title}</span>
         </div> : sessionStage === 'slides' ? <section className="teacher-session-deck" aria-label="Trình chiếu slide và Sketch">
-          <div className="teacher-session-deck-stage">
+          <div key={`${lessonId}-${slideIndex}`} className="teacher-session-deck-stage">
             <span>SHOW SLIDE · SKETCH · BƯỚC {slideIndex + 1}/3 · TỶ LỆ 16:9</span>
             <TeacherSessionSketchArt lessonId={lessonId} slideIndex={slideIndex} />
             <strong>{slide.title}</strong>
@@ -449,9 +450,10 @@ function TeacherSessionWorkspace({ onNavigate }: { onNavigate?: (id: string) => 
             </div>
           </div>}
 
-          {onNavigate && <a className="teacher-session-plan-link teacher-session-plan-link--subtle" href="#sample" onClick={(event) => { event.preventDefault(); onNavigate('sample'); }}>Hoặc mở luồng kiểm thử Video mẫu độc lập (#sample) <span aria-hidden="true">→</span></a>}
+          {onNavigate && <a className="teacher-session-plan-link teacher-session-plan-link--subtle" href="#sample" onClick={(event) => { event.preventDefault(); onNavigate('sample'); }}>Hoặc mở quy trình Video mẫu độc lập (#sample) <span aria-hidden="true">→</span></a>}
         </section>}
         {started && !ended && <div className="teacher-session-actions"><button type="button" className="flow-secondary" onClick={() => { setSessionStage('ended'); setNotice('Buổi học đã kết thúc.'); }}>Kết thúc buổi học</button></div>}
+        </div>
         {notice && <p className="teacher-session-notice" role="status">{notice}</p>}
       </section>
     </div>

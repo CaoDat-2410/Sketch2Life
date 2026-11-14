@@ -402,11 +402,163 @@
   color: #4a6256;
 }
 
+/* FEAT-069 Rev18 — GPU Motion Choreography, Sketch Stroke Reveal & Tactile Micro-interactions */
+@keyframes s2lScreenStageEnter {
+  from { opacity: 0; transform: translate3d(0, 8px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes s2lParentStepEnter {
+  from { opacity: 0; transform: translate3d(12px, 0, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes s2lSheetSpring {
+  from { opacity: 0; transform: translate3d(0, 24px, 0) scale(0.985); }
+  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+
+@keyframes s2lScrimFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes s2lSketchDraw {
+  from { opacity: 0.25; transform: scale(0.965); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes s2lSketchStroke {
+  from { stroke-dashoffset: 600; opacity: 0.3; }
+  to { stroke-dashoffset: 0; opacity: 1; }
+}
+
+@keyframes s2lMicPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+@keyframes s2lSpin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes s2lToastSlideUp {
+  from { opacity: 0; transform: translate3d(0, 12px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+.screen-stage {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  animation: s2lScreenStageEnter 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.flow-content {
+  animation: s2lParentStepEnter 230ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.guide-sketch-stage-wrap {
+  animation: s2lSketchDraw 300ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.guide-sketch-stage-wrap .sketch-preview-svg :is(path, circle, rect, ellipse, line, polyline, polygon) {
+  stroke-dasharray: 600;
+  stroke-dashoffset: 0;
+  animation: s2lSketchStroke 340ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.guide-step-copy {
+  animation: s2lScreenStageEnter 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.guide-step-progress span {
+  transition: background-color 180ms ease, transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.guide-step-progress span.is-current {
+  transform: scale(1.15);
+}
+
+.scrim {
+  animation: s2lScrimFade 170ms ease both;
+}
+
+.settings-sheet,
+.confirm-sheet,
+.lesson-preview-sheet,
+.mismatch-preview-sheet {
+  animation: s2lSheetSpring 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.toast-message {
+  animation: s2lToastSlideUp 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.record-button.is-recording .record-button__icon {
+  animation: s2lMicPulse 1100ms ease-in-out infinite;
+}
+
+.transcription-spinner {
+  animation: s2lSpin 900ms linear infinite;
+}
+
+.phone-shell .button,
+.phone-shell .hero-cta,
+.phone-shell .nav-create-fab,
+.phone-shell .nav-item,
+.phone-shell .choice-card,
+.phone-shell .library-option-card,
+.phone-shell .child-choice,
+.phone-shell .subject-chip,
+.phone-shell .guide-chip {
+  transition: transform 150ms cubic-bezier(0.22, 1, 0.36, 1), background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.phone-shell .button:active:not(:disabled),
+.phone-shell .hero-cta:active,
+.phone-shell .nav-create-fab:active,
+.phone-shell .choice-card:active,
+.phone-shell .library-option-card:active,
+.phone-shell .child-choice:active,
+.phone-shell .subject-chip:active,
+.phone-shell .guide-chip:active {
+  transform: scale(0.97);
+}
+
+.job-recovery-disclosure {
+  margin-top: 8px;
+  border: 1px solid #d4dfd7;
+  border-radius: 12px;
+  background: #f6faf6;
+  padding: 8px 12px;
+}
+
+.job-recovery-disclosure summary {
+  cursor: pointer;
+  color: #2c5b43;
+  font-size: 12px;
+  font-weight: 700;
+  list-style: none;
+}
+
+.job-recovery-disclosure summary::-webkit-details-marker {
+  display: none;
+}
+
+.job-recovery-disclosure__actions {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .phone-shell *,
   .phone-shell *::before,
   .phone-shell *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }

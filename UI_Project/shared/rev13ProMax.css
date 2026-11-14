@@ -672,3 +672,101 @@
 .web-app .web-feature-grid.web-feature-grid--single {
   grid-template-columns: minmax(0, 1fr);
 }
+
+/* FEAT-069 Rev18 — Classroom Session Launcher & GPU Motion Choreography */
+@keyframes s2lWebStageEnter {
+  from { opacity: 0; transform: translate3d(0, 8px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes s2lSessionSlideReveal {
+  from { opacity: 0.2; transform: scale(0.975); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.web-stage-enter {
+  animation: s2lWebStageEnter 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.teacher-session-stage-body {
+  animation: s2lWebStageEnter 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.teacher-session-deck-stage {
+  animation: s2lSessionSlideReveal 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.web-app .teacher-session-launcher {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  min-width: 0;
+  margin: 16px 0;
+  padding: 20px 22px;
+  border: 1px solid #cfddd2;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #eef6ee, #fff9e9);
+  box-shadow: 0 8px 22px rgba(27, 52, 44, 0.05);
+}
+
+.web-app .teacher-session-launcher h2 {
+  margin: 6px 0 5px;
+  color: #1f3930;
+  font-size: 20px;
+  line-height: 1.25;
+}
+
+.web-app .teacher-session-launcher p,
+.web-app .teacher-session-launcher small {
+  display: block;
+  margin: 0 0 4px;
+  color: #4a6054;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.web-app .teacher-session-launcher .web-primary {
+  flex: none;
+}
+
+.web-app .web-primary,
+.web-app .web-subtle,
+.web-app .web-hub-tab,
+.web-app .teacher-sample-substeps button,
+.web-app .flow-primary,
+.web-app .flow-secondary {
+  transition: transform 150ms cubic-bezier(0.22, 1, 0.36, 1), background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.web-app .web-primary:active:not(:disabled),
+.web-app .web-subtle:active:not(:disabled),
+.web-app .web-hub-tab:active:not(:disabled),
+.web-app .teacher-sample-substeps button:active:not(:disabled),
+.web-app .flow-primary:active:not(:disabled),
+.web-app .flow-secondary:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+@media (max-width: 900px) {
+  .web-app .teacher-session-launcher {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .web-app .teacher-session-launcher .web-primary {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .web-app *,
+  .web-app *::before,
+  .web-app *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

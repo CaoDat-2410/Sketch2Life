@@ -1,5 +1,12 @@
 # FEAT-069 evidence index
 
+## Rev18 Git Source Parity, Dashboard Cleanup & GPU Motion (`UI_Project/`)
+
+| Evidence | Scope | What it establishes | Limitations |
+|---|---|---|---|
+| `notes/REV18_GIT_PARITY_AND_PROMAX_MOTION_20261114.md` | Plan Rev18, AC18.1–AC18.5 | Cross-checks `UI_Project/` against `origin/dev` backend routes (`parent_story_runs.py`, `parent_ai.py`, `parent_profiles.py`, `teacher_ai.py`, `lesson_library.py`, `be1_registry.py`, `be1_sessions.py`), `origin/feature/fe-mobile-remediation`, `FEAT-063` SRS `v2.5-draft`, and Leader's checklist; documents Teacher Dashboard `.teacher-session-launcher`, residual copy cleanup, GPU-only motion choreography + `prefers-reduced-motion`, 5-workspace `vite build`, live `browser` subagent verification across host-verified `http://localhost:5171`–`5175` (inspected `final_step_145.png`), and 5/5 policy checks | Browser-local fixtures only; no API/auth/payment integration; open SRS conflicts (`gender`, auto context, pre-video activity timing) preserved |
+| `../plan/PLAN_REV18_GIT_PARITY_AND_PROMAX_MOTION.md` | Exact approved scope | Hash-identified approval (`6E363D2923898FBF119FDE162C20EC9B785718AE7470BD628A3F2CD5205830A3`) for UI-only parity cleanup and motion polish inside `UI_Project/` | Does not authorize backend/API changes, SRS modifications, or legacy `apps/` edits |
+
 ## Rev17 Remove Preview/API Warning Banners (`UI_Project/`)
 
 | Evidence | Scope | What it establishes | Limitations |

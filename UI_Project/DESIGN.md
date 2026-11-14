@@ -46,3 +46,8 @@ Pending formal owner/product resolution in `FEAT-069` & SRS `v2.5-draft`:
 - Automatic profile context application vs explicit pre-story manual context confirmation gate (SRS §5.1).
 - Public lesson browsing/copying vs invitation/assignment-only parent lesson discovery (SRS §5.1 / §31).
 - Teacher inline session sample execution vs separated `sample` endpoint permissions/consent verification rules (SRS §5.2).
+
+## 6. Motion & Responsive Polish
+
+- **GPU-Only Choreography (`rev13ProMax.css`):** Screen changes (`.screen-stage`), web workspace routes (`.web-stage-enter`), flow steps (`.flow-content`), 3-step SVG sketch reveals (`.guide-sketch-stage-wrap .sketch-preview-svg`, `.teacher-session-deck-stage`), scrims/bottom sheets/modals, and toast notifications animate strictly via `transform` and `opacity` (`150–340ms`), preserving zero layout shift (`CLS = 0`).
+- **Tactile & Reduced Motion:** Interactive buttons, cards, and chips provide crisp active press scaling (`scale(0.97)`), while `@media (prefers-reduced-motion: reduce)` halts all animations, transitions, and infinite pulse loops cleanly.

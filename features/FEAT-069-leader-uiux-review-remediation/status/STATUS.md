@@ -1,5 +1,13 @@
 # Status
 
+## Rev18 Git Source Parity Audit, Dashboard Cleanup & UI/UX Pro Max GPU Motion (`UI_Project/`) — 2026-11-14
+
+- **State:** Implemented, build-verified across all 5 `UI_Project/` workspaces, visually verified via live headless browser across host-verified `http://localhost:5171`–`5175`, and validated against repository policy scripts; prepared for commit & fast-forward push to `origin/FE_UI_Project_Ver2`.
+- **Approved plan:** `plan/PLAN_REV18_GIT_PARITY_AND_PROMAX_MOTION.md`, SHA-256 `6E363D2923898FBF119FDE162C20EC9B785718AE7470BD628A3F2CD5205830A3`, recorded in both root and feature `TASK_APPROVAL.md` registers.
+- **Changes:** Replaced ungrounded `TeacherDashboard` `nextSession`/`feedback` widgets with API-grounded `.teacher-session-launcher` (`UI_Project/shared/webWorkspace.tsx`), cleaned remaining mock/dev copy across `UI_Project/{parent-ui/src/App.tsx, shared/{UnifiedWebApp.tsx, roleFlows.tsx}}`, transitioned `submitAuthPreview` directly to `home`, and added GPU-only (`transform`, `opacity`) transition/sketch/modal/button choreography with `prefers-reduced-motion: reduce` support (`parent-ui/src/rev13ProMax.css`, `shared/rev13ProMax.css`). Updated `UI_Project/DESIGN.md`.
+- **Verification:** Residual copy scan across `UI_Project/{parent-ui,shared}` (`0` dev/mock disclaimer hits), `npm --prefix UI_Project run build` (`EXIT=0` across all 5 workspaces), live `browser` subagent verification across host-verified `http://localhost:5171`–`5175` (`blocked_origins: none`, `0` console/page errors, `0` horizontal overflow across `375x812`, `390x844`, `1440x900`, inspected screenshot `final_step_145.png`), `git diff --check` (`EXIT=0`), and all 5 `tools/validate_*.py` checks (`EXIT=0`).
+- **Limits:** Offline browser-local UI prototype only (no live backend/API/auth/payment/AI integration); open SRS conflicts (`gender`, auto context, pre-video activity timing) preserved; canonical `FEAT-063` SRS `v2.5-draft` remains unsigned and untouched. Details: `evidence/notes/REV18_GIT_PARITY_AND_PROMAX_MOTION_20261114.md`.
+
 ## Rev17 Remove Preview/API Warning Banners (`UI_Project/`) — 2026-11-14
 
 - **State:** Implemented, build-verified across all 5 `UI_Project/` workspaces, visually verified via live headless browser across all 5 apps (`http://localhost:5196`–`5200`), and validated against repository policy scripts; prepared for commit & fast-forward push to `origin/FE_UI_Project_Ver2`.

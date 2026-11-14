@@ -211,3 +211,16 @@
 - **Scope:** Remove all `.feedback-preview-note`, `.preview-inline-note`, `.prototype-note`, `.flow-boundary`, `<FlowRecoveryDisclosure />`, `.dashboard-contract-note`, `.dash-panel-note`, `.web-detail-boundary`, `.web-modal-note`, `.web-feature-side`, `.web-preview-chip`, `BackendModeNotice` local preview chip, and preview/fixture/API-unconnected disclaimer text across `UI_Project/` (`shared/`, `parent-ui/`), adjusting single-column grid layout where needed, while preserving real functional validation/privacy/safety controls and keeping all UI work strictly offline/UI-only.
 - **Exclusions:** No backend/API/auth/database/schema/SRS edits; no legacy `apps/` or `child-experience/` changes; no real API wiring or network calls; no `--force` push or history rewrite.
 - **Approval basis:** Direct owner instruction explicitly directing removal of all preview/API-unconnected warning boxes across the UI.
+
+
+## Plan Rev18 — Git Parity Alignment, Clean Copy Closure & ui-ux-pro-max Motion (`UI_Project/`)
+
+- **Status:** APPROVED for the exact UI-only scope in `plan/PLAN_REV18_GIT_PARITY_AND_PROMAX_MOTION.md`.
+- **Approver:** Project owner, direct instructions across this conversation to complete 100% of Leader UI/UX requirements, verify parity against latest `https://github.com/CaoDat-2410/Sketch2Life` source, remove all preview/API-unconnected disclaimers, and apply pro-max UX/UI craft without API wiring.
+- **Recorded timestamp:** 2026-11-14 20:45:18 +07:00 (Asia/Saigon).
+- **Approved plan:** `features/FEAT-069-leader-uiux-review-remediation/plan/PLAN_REV18_GIT_PARITY_AND_PROMAX_MOTION.md`.
+- **Plan revision:** 18.
+- **Plan SHA-256:** `6E363D2923898FBF119FDE162C20EC9B785718AE7470BD628A3F2CD5205830A3`.
+- **Scope:** Remove remaining dev/simulation/sample-only copy (`"Playback thật chưa được kết nối"`, `"câu chuyện mẫu"`, `"Mô phỏng bước tiếp theo"`, `"Đăng nhập chưa được kết nối..."`, `"Giáo viên mẫu"`, `"Xóa hồ sơ mẫu"`, `"Trạng thái mẫu"`, `"Điền lời mời mẫu"`, `"MÃ MẪU"`, `"run mẫu"`) across `UI_Project/{parent-ui,shared}`; align `TeacherDashboard` strictly with verified `origin/dev` Teacher APIs (removing ungrounded fake `10:30` schedule & duplicate dashboard feedback card in favor of assigned-class session launch); add `ui-ux-pro-max` GPU-only motion choreography & tactile interactions with full `prefers-reduced-motion` support across `UI_Project/`.
+- **Exclusions:** No backend/API/auth/database/schema/SRS edits; no legacy `apps/` or `child-experience/` changes; no real API calls; SRS conflicts reported transparently without modifying `FEAT-063` SRS; no `--force` push or history rewrite.
+- **Approval basis:** Direct owner instruction explicitly scoping final UI/UX polish, project workflow parity closure, and zero warning/unconnected copy across `UI_Project/`.
