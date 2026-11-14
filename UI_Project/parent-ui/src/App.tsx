@@ -53,7 +53,7 @@ const initialLessonDeliveries: LessonDelivery[] = [
 ];
 
 const initialNotifications: AppNotice[] = [
-  { id: 'notice-1', title: 'Mẫu: câu chuyện đã sẵn sàng', body: 'Nội dung và trạng thái chỉ minh họa cho giao diện; chưa có video thật.', date: 'Hôm qua', read: false, kind: 'story' },
+  { id: 'notice-1', title: 'Câu chuyện đã sẵn sàng', body: 'Câu chuyện của bé đã hoàn tất và sẵn sàng để gia đình cùng xem.', date: 'Hôm qua', read: false, kind: 'story' },
   { id: 'notice-2', title: 'Cô Mai đã phản hồi giáo án', body: 'Có phản hồi mới trong giáo án “Khám phá khu vườn”.', date: '3 ngày trước', read: false, kind: 'feedback' },
   { id: 'notice-3', title: 'Lời nhắc câu chuyện', body: 'Một câu chuyện đang chờ ba mẹ xem lại.', date: 'Tuần trước', read: true, kind: 'run' },
 ];
@@ -725,7 +725,7 @@ function App() {
     setScreen('home');
     setStep('prepare');
     setIsPlaying(false);
-    setToast('Đã hoàn tất câu chuyện trong phiên xem trước.');
+    setToast('Đã hoàn tất câu chuyện.');
   };
 
   const openSessionFeedback = (storyId: number) => {
@@ -741,7 +741,7 @@ function App() {
     const record: StoryFeedback = { rating: sessionRating, tags: sessionTags, note: sessionNote.trim() };
     setStories((current) => current.map((story) => story.id === feedbackStoryId ? { ...story, sessionFeedback: record } : story));
     if (activeRun && Number(activeRun.id) === feedbackStoryId) finishStory();
-    else { setScreen('history'); setToast('Đã lưu cảm nhận trong phiên xem trước.'); }
+    else { setScreen('history'); setToast('Đã lưu cảm nhận.'); }
     setFeedbackStoryId(null);
   };
 
@@ -775,7 +775,7 @@ function App() {
     setStories((current) => current.filter((story) => story.id !== id));
     if (activeRun && Number(activeRun.id) === id) { setActiveRun(null); setStep('prepare'); setScreen('history'); }
     setPendingDelete(null);
-    setToast('Đã xóa câu chuyện mẫu khỏi lịch sử xem trước.');
+    setToast('Đã xóa câu chuyện khỏi lịch sử.');
   };
 
   const applySubjectCorrection = (value: string) => {
@@ -783,7 +783,7 @@ function App() {
     if (!nextSubject || nextSubject === subject) return;
     setSubject(nextSubject);
     setSubjectCorrection(nextSubject);
-    setToast('Đã đổi chủ thể gợi ý trong bản xem trước; chưa chạy phân tích AI.');
+    setToast('Đã cập nhật chủ thể cho bức tranh.');
   };
 
   const runSampleTranscription = () => {
@@ -885,7 +885,7 @@ function App() {
     setActiveRun((run) => run ? { ...run, rewriteCount: run.rewriteCount + 1, status: 'active', step: 'script' } : run);
     setIdeaMode('initial');
     setStep('script');
-    setToast('Gợi ý đã lưu trong bản xem trước; chưa gửi đến dịch vụ AI.');
+    setToast('Đã gửi gợi ý viết lại kịch bản.');
   };
 
   const beginRegeneration = () => {
@@ -906,7 +906,7 @@ function App() {
     setActiveRun(null);
     setStep('prepare');
     setScreen('home');
-    setToast('Đã hủy luồng xem trước; chưa có nội dung nào được gửi đi.');
+    setToast('Đã hủy câu chuyện đang tạo.');
   };
 
   const removeChildPreview = (childId: string) => {
@@ -925,7 +925,7 @@ function App() {
     setFeedbackStoryId(null);
     setPendingDeleteChildId(null);
     setScreen('profile');
-    setToast('Đã xóa hồ sơ và nội dung mẫu liên kết trong phiên xem trước.');
+    setToast('Đã xóa hồ sơ trẻ.');
   };
 
   const saveChild = () => {
@@ -946,12 +946,12 @@ function App() {
       setSelectedChildId(child.id);
     }
     setScreen('profile');
-    setToast('Đã cập nhật hồ sơ trong phiên xem trước; chưa lưu lên tài khoản.');
+    setToast('Đã cập nhật hồ sơ trẻ.');
   };
 
   const sendShareInvite = () => {
     const teacher = verifiedTeacherPreview.find((item) => item.id === shareTeacherId);
-    if (!teacher) { setToast('Chọn một giáo viên đã xác minh để xem thử lời mời.'); return; }
+    if (!teacher) { setToast('Vui lòng chọn một giáo viên đã xác minh.'); return; }
     setGrants((current) => [{ id: `grant-${Date.now()}`, childId: shareChildId, recipient: teacher.name, organization: teacher.school, status: 'invited', date: 'Đang chờ giáo viên chấp nhận' }, ...current]);
     setShareTeacherId(''); setScreen('sharing');
     setToast('Đã thêm lời mời mẫu. Chưa gửi tới giáo viên hay cấp quyền truy cập.');
@@ -961,7 +961,7 @@ function App() {
     if (!feedbackText.trim()) { setToast('Viết nội dung phản hồi trước khi gửi.'); return; }
     setDeliveries((current) => current.map((delivery) => delivery.id === selectedDeliveryId ? { ...delivery, parentFeedback: feedbackText.trim() } : delivery));
     setFeedbackText(''); setScreen('delivery-detail');
-    setToast('Đã lưu phản hồi nháp trong phiên xem trước; chưa gửi tới trường.');
+    setToast('Đã gửi phản hồi giáo án.');
   };
 
   const selectScreen = (next: Screen) => {
@@ -1019,7 +1019,7 @@ function App() {
   };
 
   const renderVideoPreview = (caption: string, showDuration = false) => <div className={`story-player ${playerExpanded ? 'is-expanded' : ''}`}>
-    <button className={`video-preview ${isPlaying ? 'is-playing' : ''}`} onClick={() => setIsPlaying((value) => !value)} aria-label={isPlaying ? 'Tạm dừng bản xem trước' : 'Xem bản minh họa câu chuyện'}>
+    <button className={`video-preview ${isPlaying ? 'is-playing' : ''}`} onClick={() => setIsPlaying((value) => !value)} aria-label={isPlaying ? 'Tạm dừng video câu chuyện' : 'Phát video câu chuyện'}>
       <StoryArt variant="hero" />
       <span className="video-preview__play"><Icon name={isPlaying ? 'check' : 'play'} size={24} /></span>
       {showDuration && <span className="video-preview__duration">01:24</span>}
@@ -1065,7 +1065,7 @@ function App() {
                     <span className="radio-mark"><Icon name="check" size={14} /></span>
                   </button>
                   <button type="button" className="lesson-detail-action" onClick={() => setLessonPreviewId(lesson.id)}>Chi tiết</button>
-                </article>) : <p className="lesson-choice-empty">Chưa có giáo án được chia sẻ trong bản xem trước.</p>}
+                </article>) : <p className="lesson-choice-empty">Chưa có giáo án nào được chia sẻ cho gia đình.</p>}
               </section>)}
               <button className={`lesson-choice lesson-choice--plain ${selectedLessonId === null ? 'is-selected' : ''}`} onClick={() => { setSelectedLessonId(null); setSelectedActivityId(null); setGuideTopic('Khu vườn'); setShowLessonOptions(false); setScriptFollowing('free'); setActiveRun((run) => run ? { ...run, lessonId: null, scriptFollowing: 'free' } : run); }} aria-pressed={selectedLessonId === null}>
                 <span className="lesson-icon lesson-icon--plain"><Icon name="spark" size={19} /></span>
@@ -1080,7 +1080,7 @@ function App() {
         return <>
           <div className="flow-intro"><span className="flow-intro__eyebrow"><Icon name="spark" size={14} /> GỢI Ý VẼ · TÙY CHỌN</span><h1>Cùng bé phác vài nét nhé.</h1><p>Gợi ý chung theo chủ đề, không dùng hồ sơ hay ảnh của bé.</p></div>
           <section className="guide-options-card" aria-label="Tùy chỉnh gợi ý vẽ"><label htmlFor="guide-topic">Chủ đề gợi ý</label><select id="guide-topic" className="text-field" value={guideTopic} onChange={(event) => { setGuideTopic(event.target.value); setGuideStepIndex(0); }}><option>Khu vườn</option><option>Bầu trời</option><option>Đại dương</option><option>Vũ trụ</option></select><span className="guide-options-label">Mức gợi ý</span><div className="guide-difficulty-choice" role="group" aria-label="Mức độ gợi ý">{(['Nhẹ nhàng', 'Thêm chi tiết'] as const).map((level) => <button type="button" key={level} className={guideDifficulty === level ? 'is-selected' : ''} onClick={() => { setGuideDifficulty(level); setGuideStepIndex(0); }} aria-pressed={guideDifficulty === level}>{level}</button>)}</div></section>
-          <section className="parent-sketch-preview" aria-label={`Gợi ý vẽ tĩnh · bước ${guideStepIndex + 1} trên ${guideSteps.length}`}><div className="guide-step-header"><span className="preview-state">BẢN MINH HỌA · CHƯA TẠO AI</span><span>{String(guideStepIndex + 1).padStart(2, '0')} / {String(guideSteps.length).padStart(2, '0')}</span></div><SketchGuideIllustration topic={guideTopic} stepIndex={guideStepIndex} detailed={guideDifficulty === 'Thêm chi tiết'} /><div className="guide-step-copy"><strong>{guideStep.title}</strong><p>{guideStep.detail}</p></div><div className="guide-step-progress" aria-label={`Bước ${guideStepIndex + 1} trên ${guideSteps.length}`}>{guideSteps.map((item, index) => <span key={item.title} className={index === guideStepIndex ? 'is-current' : index < guideStepIndex ? 'is-complete' : ''} />)}</div><div className="guide-step-controls"><button type="button" className="button button--secondary" disabled={guideStepIndex === 0} onClick={() => setGuideStepIndex((index) => Math.max(0, index - 1))}>Bước trước</button><span>Bước {guideStepIndex + 1} / {guideSteps.length}</span></div></section>
+          <section className="parent-sketch-preview" aria-label={`Gợi ý vẽ tĩnh · bước ${guideStepIndex + 1} trên ${guideSteps.length}`}><div className="guide-step-header"><span className="preview-state">GỢI Ý NÉT VẼ</span><span>{String(guideStepIndex + 1).padStart(2, '0')} / {String(guideSteps.length).padStart(2, '0')}</span></div><SketchGuideIllustration topic={guideTopic} stepIndex={guideStepIndex} detailed={guideDifficulty === 'Thêm chi tiết'} /><div className="guide-step-copy"><strong>{guideStep.title}</strong><p>{guideStep.detail}</p></div><div className="guide-step-progress" aria-label={`Bước ${guideStepIndex + 1} trên ${guideSteps.length}`}>{guideSteps.map((item, index) => <span key={item.title} className={index === guideStepIndex ? 'is-current' : index < guideStepIndex ? 'is-complete' : ''} />)}</div><div className="guide-step-controls"><button type="button" className="button button--secondary" disabled={guideStepIndex === 0} onClick={() => setGuideStepIndex((index) => Math.max(0, index - 1))}>Bước trước</button><span>Bước {guideStepIndex + 1} / {guideSteps.length}</span></div></section>
           <button type="button" className="text-button text-button--center" onClick={() => { setGuideEnabled(false); setGuideStepIndex(0); setStep('capture'); setActiveRun((run) => run ? { ...run, step: 'capture' } : run); }}>Bỏ qua gợi ý vẽ</button>
         </>;
       case 'capture':
@@ -1099,7 +1099,7 @@ function App() {
             <input id="camera-input" className="visually-hidden" type="file" accept="image/*" capture="environment" onChange={handlePhoto} aria-label="Chụp ảnh tranh" />
             <input id="gallery-input" className="visually-hidden" type="file" accept="image/*" onChange={handlePhoto} aria-label="Chọn ảnh tranh từ thư viện" />
           </div>
-          <div className="inline-note"><Icon name="lock" size={16} /><span>Ảnh chỉ lưu tạm trong phiên xem trước này.</span></div>
+
         </>;
       case 'review':
         return <>
@@ -1111,7 +1111,7 @@ function App() {
             <Icon name="user" size={16} />
             <span>Tự động theo hồ sơ <strong>{selectedChild.name}</strong> ({formatChildAge(selectedChild.ageMonths)}){selectedLesson ? ` · ${selectedLesson.title}` : ''}</span>
           </div>
-          <div className="review-art">{photoUrl ? <img src={photoUrl} alt={`Bức vẽ đã chọn của ${selectedChild.name}`} /> : <div className="review-art-empty"><Icon name="camera" size={26} /><span>Chưa có ảnh trong phiên này</span></div>}<span className="image-caption">Tranh của {selectedChild.name}</span></div>
+          <div className="review-art">{photoUrl ? <img src={photoUrl} alt={`Bức vẽ đã chọn của ${selectedChild.name}`} /> : <div className="review-art-empty"><Icon name="camera" size={26} /><span>Chưa tải lên bức tranh</span></div>}<span className="image-caption">Tranh của {selectedChild.name}</span></div>
           <section className="subject-panel">
             <div className="subject-panel__title"><Icon name="spark" size={14} /> Chủ thể nhận diện · có thể chỉnh</div>
             <p className="subject-suggestion">Đang chọn: <strong>{subject.toLowerCase()}</strong>.</p>
@@ -1119,7 +1119,7 @@ function App() {
             <button className="text-button" onClick={() => setShowAllSubjects((value) => !value)}><Icon name="edit" size={15} /> {showAllSubjects ? 'Thu gọn' : 'Chỉnh chủ thể'}</button>
             {showAllSubjects && <div className="custom-subject"><input className="text-field" value={subjectCorrection} maxLength={40} onChange={(event) => setSubjectCorrection(event.target.value)} aria-label="Chủ thể ba mẹ muốn sửa" placeholder="Nhập chủ thể khác" /><button className="button button--secondary" onClick={() => applySubjectCorrection(subjectCorrection)}>Áp dụng chủ thể</button></div>}
           </section>
-          {selectedLesson && <section className={`mismatch-preview-result ${subjectAligned ? 'is-aligned' : 'is-mismatch'}`} aria-live="polite"><div><span className="preview-state">ĐỐI CHIẾU GIÁO ÁN · XEM TRƯỚC</span><strong>{subjectAligned ? 'Chủ thể phù hợp với mục tiêu giáo án' : 'Tranh bé đang mở ra hướng khác giáo án'}</strong><small>Ba mẹ chọn hướng kể cho câu chuyện tiếp theo.</small></div><div className="direction-options">{[{ key: 'lesson' as const, title: 'Ưu tiên mục tiêu giáo án', desc: 'Lồng ghép kiến thức của giáo án.' }, { key: 'free' as const, title: 'Ưu tiên tranh của bé', desc: 'Kể tự do theo nét vẽ bé thích.' }].map((option) => <button key={option.key} type="button" className={scriptFollowing === option.key ? 'is-selected' : ''} onClick={() => { setScriptFollowing(option.key); setActiveRun((run) => run ? { ...run, scriptFollowing: option.key } : run); }} aria-pressed={scriptFollowing === option.key}><strong>{option.title}</strong><small>{option.desc}</small></button>)}</div></section>}
+          {selectedLesson && <section className={`mismatch-preview-result ${subjectAligned ? 'is-aligned' : 'is-mismatch'}`} aria-live="polite"><div><span className="preview-state">ĐỐI CHIẾU GIÁO ÁN</span><strong>{subjectAligned ? 'Chủ thể phù hợp với mục tiêu giáo án' : 'Tranh bé đang mở ra hướng khác giáo án'}</strong><small>Ba mẹ chọn hướng kể cho câu chuyện tiếp theo.</small></div><div className="direction-options">{[{ key: 'lesson' as const, title: 'Ưu tiên mục tiêu giáo án', desc: 'Lồng ghép kiến thức của giáo án.' }, { key: 'free' as const, title: 'Ưu tiên tranh của bé', desc: 'Kể tự do theo nét vẽ bé thích.' }].map((option) => <button key={option.key} type="button" className={scriptFollowing === option.key ? 'is-selected' : ''} onClick={() => { setScriptFollowing(option.key); setActiveRun((run) => run ? { ...run, scriptFollowing: option.key } : run); }} aria-pressed={scriptFollowing === option.key}><strong>{option.title}</strong><small>{option.desc}</small></button>)}</div></section>}
         </>;
       case 'idea':
         return <>
@@ -1161,12 +1161,12 @@ function App() {
             <button type="button" className="text-button" onClick={() => openActivities(selectedLesson.id, 'flow')}><Icon name="leaf" size={15} /> Mở hướng dẫn đầy đủ & chế độ cùng bé</button>
           </section>}
           <article className="script-card">
-            <div className="script-card__top"><span className="pill pill--peach">KỊCH BẢN XEM TRƯỚC</span><span className="script-revision">Sửa lại: {activeRun?.rewriteCount ?? 0}/3</span></div>
+            <div className="script-card__top"><span className="pill pill--peach">KỊCH BẢN CÂU CHUYỆN</span><span className="script-revision">Sửa lại: {activeRun?.rewriteCount ?? 0}/3</span></div>
             <h2>{subject === 'Bướm' ? 'Chú bướm tìm nắng' : `${subject} và khu vườn nhỏ`}</h2>
             <div className="script-lead">
               {idea.trim() && <p><strong>Ý tưởng của gia đình:</strong> {idea.trim()}</p>}
               {chosenActivity && <p><strong>Hoạt động gắn kèm:</strong> {chosenActivity.title}</p>}
-              {audioUrl && !idea.trim() && <p><strong>Bản ghi âm:</strong> Đã đính kèm trong phiên xem trước.</p>}
+              {audioUrl && !idea.trim() && <p><strong>Bản ghi âm:</strong> Đã đính kèm bản ghi âm.</p>}
               {!idea.trim() && !audioUrl && !chosenActivity && <p>{`Một câu chuyện dịu dàng bắt đầu từ bức vẽ ${subject.toLowerCase()} của gia đình.`}</p>}
             </div>
             {scriptModifier && <div className="script-request"><strong>Gợi ý viết lại:</strong> {scriptModifier}</div>}
@@ -1184,9 +1184,9 @@ function App() {
       case 'generating':
         return <div className="processing-state processing-state--mockup">
           <span className="unavailable-icon"><Icon name="spark" size={28} /></span>
-          <span className="pill pill--peach">TIẾN TRÌNH MINH HỌA</span>
+          <span className="pill pill--peach">TIẾN TRÌNH XỬ LÝ</span>
           <h1>{previewJobState === 'failed' ? 'Tạm thời chưa hoàn tất.' : previewJobState === 'safety-blocked' ? 'Nội dung đang được giữ an toàn.' : 'Câu chuyện đang được chuẩn bị.'}</h1>
-          <p>{previewJobState === 'failed' ? 'Có thể thử lại từ bước đang lỗi. Trạng thái này chỉ minh họa cách khôi phục.' : previewJobState === 'safety-blocked' ? 'Tình huống mẫu minh họa việc dừng tự động khi nội dung cần được rà soát.' : 'Theo dõi từng giai đoạn chuẩn bị câu chuyện cho bé.'}</p>
+          <p>{previewJobState === 'failed' ? 'Có thể thử lại từ bước đang lỗi hoặc quay lại kiểm tra.' : previewJobState === 'safety-blocked' ? 'Hệ thống tạm dừng để đảm bảo nội dung phù hợp cho trẻ.' : 'Theo dõi từng giai đoạn chuẩn bị câu chuyện cho bé.'}</p>
           <ol className="parent-job-timeline" aria-label="Các giai đoạn câu chuyện">
             {['Phân tích bức tranh', 'Tạo các cảnh câu chuyện', 'Lời kể và phụ đề', 'Kiểm tra an toàn tự động'].map((label, index) => <li key={label} className={index < previewJobStage ? 'is-complete' : index === previewJobStage && previewJobState === 'processing' ? 'is-current' : ''}><span>{index < previewJobStage ? <Icon name="check" size={15}/> : String(index + 1).padStart(2, '0')}</span><strong>{label}</strong><small>{index < previewJobStage ? 'Hoàn tất' : index === previewJobStage && previewJobState === 'processing' ? 'Đang xử lý' : 'Đang chờ'}</small></li>)}
           </ol>
@@ -1196,10 +1196,10 @@ function App() {
             {previewJobState === 'processing' && <button className="button button--primary button--wide" onClick={advancePreviewJob}>{previewJobStage === 3 ? 'Hoàn tất & mở video' : 'Mô phỏng bước tiếp theo'} <Icon name="arrow" size={18}/></button>}
             {previewJobState === 'processing' && <button className="button button--secondary button--wide" onClick={() => setPreviewJobState('failed')}>Xem trạng thái lỗi mẫu</button>}
             {previewJobState === 'processing' && <button className="text-button text-button--center" onClick={() => setPreviewJobState('safety-blocked')}>Xem tình huống an toàn chặn</button>}
-            {previewJobState === 'failed' && <button className="button button--primary button--wide" onClick={() => { setPreviewJobState('processing'); setToast('Đã thử lại bước minh họa.'); }}>Thử lại bước này</button>}
+            {previewJobState === 'failed' && <button className="button button--primary button--wide" onClick={() => { setPreviewJobState('processing'); setToast('Đang thử lại bước xử lý.'); }}>Thử lại bước này</button>}
             {previewJobState === 'safety-blocked' && <button className="button button--secondary button--wide" onClick={() => { setStep('script'); setActiveRun((run) => run ? { ...run, step: 'script' } : run); }}>Quay lại kịch bản</button>}
           </div>
-          <div className="preview-capability-list"><span><Icon name="lock" size={15}/>Ảnh và thông tin chỉ nằm trong phiên xem trước</span><span><Icon name="refresh" size={15}/>Có thể thu nhỏ rồi tiếp tục từ Trang chủ</span></div>
+          <div className="preview-capability-list"><span><Icon name="lock" size={15}/>Nội dung riêng tư trong gia đình</span><span><Icon name="refresh" size={15}/>Có thể thu nhỏ rồi tiếp tục từ Trang chủ</span></div>
         </div>;
       case 'ready': {
         const chosenActivity = selectedLesson?.activities.find((activity) => activity.title === selectedActivityId) ?? selectedLesson?.activities[0] ?? null;
@@ -1241,7 +1241,7 @@ function App() {
   const renderHistory = () => <>
     <PageHeader title="Lịch sử" subtitle="Câu chuyện và giáo án đã đến với gia đình" onBack={() => setScreen('home')} />
     <main className="subpage-content">
-      <div className="preview-inline-note" role="note"><strong>Dữ liệu minh họa</strong><span>Câu chuyện, lượt phát và giáo án bên dưới chưa được đồng bộ với tài khoản.</span></div>
+
       <div className="segmented-control"><button className={historyTab === 'stories' ? 'is-active' : ''} onClick={() => setHistoryTab('stories')}>Câu chuyện</button><button className={historyTab === 'lessons' ? 'is-active' : ''} onClick={() => setHistoryTab('lessons')}>Giáo án đã nhận</button></div>
       {historyTab === 'stories' ? <>
         <div className="history-range-filter" role="group" aria-label="Khoảng thời gian"><span>Khoảng thời gian</span>{([30, 60] as const).map((days) => <button key={days} type="button" className={historyRange === days ? 'is-active' : ''} aria-pressed={historyRange === days} onClick={() => setHistoryRange(days)}>{days} ngày</button>)}</div>
@@ -1261,7 +1261,7 @@ function App() {
     <main className="subpage-content">
       <div className="profile-selection-hint">Hồ sơ đang chọn: <strong>{profiles.length ? selectedChild.name : 'Chưa có hồ sơ'}</strong></div>
       <section className="profile-list">{profiles.map((child) => <article className={`profile-card profile-card--editable ${selectedChildId === child.id ? 'is-selected' : ''}`} key={child.id}><button className="profile-card__select" onClick={() => { setSelectedChildId(child.id); setToast(`Đã chọn ${child.name}`); }} aria-pressed={selectedChildId === child.id}><ChildAvatar child={child} size="lg" /><span><strong>{child.name}</strong><small>{formatChildAge(child.ageMonths)} · {formatChildGender(child.gender)}</small></span><span className="radio-mark"><Icon name="check" size={14} /></span></button><button className="icon-button profile-edit" aria-label={`Xem hồ sơ ${child.name}`} onClick={() => { setDetailChildId(child.id); setScreen('child-detail'); }}><Icon name="chevron" size={19} /></button></article>)}<button className="add-profile" onClick={() => beginChildForm()}><span><Icon name="plus" size={19} /></span> Thêm hồ sơ trẻ</button></section>
-      <div className="prototype-note">Thay đổi hồ sơ trong bản xem trước chỉ có hiệu lực trong phiên này.</div>
+
     </main>
   </>;
 
@@ -1277,7 +1277,7 @@ function App() {
         <button className="button button--primary button--wide" onClick={() => beginChildForm(detailChild)}><Icon name="edit" size={18} /> Sửa hồ sơ</button>
         <button className="button button--secondary button--wide" onClick={() => setPendingDeleteChildId(detailChild.id)}><Icon name="trash" size={18} /> Xóa hồ sơ mẫu</button>
       </div>
-      <p className="prototype-note">Thông tin hồ sơ đang là dữ liệu mẫu trong phiên xem trước.</p>
+
     </main>
   </>;
 
@@ -1287,8 +1287,7 @@ function App() {
       <section className="privacy-summary"><Icon name="lock" size={25} /><h2>Ba mẹ là người quyết định</h2><p>Thông tin hồ sơ chỉ thuộc tài khoản gia đình trong thiết kế mục tiêu.</p></section>
       <article><h3>Ngữ cảnh từ hồ sơ</h3><p>Độ tuổi và thông tin cơ bản của bé được áp dụng tự động từ hồ sơ đang chọn. Ảnh đại diện và ghi chú hỗ trợ riêng vẫn được giữ kín theo mặc định.</p></article>
       <article><h3>Chia sẻ với giáo viên</h3><p>Lời mời cần đúng tài khoản, phạm vi dữ liệu và sự đồng ý. Một lời mời đang chờ chưa cấp quyền xem.</p><button onClick={() => setScreen('sharing')}>Xem quyền chia sẻ <Icon name="arrow" size={17} /></button></article>
-      <article><h3>Xóa hồ sơ và câu chuyện</h3><p>Trong bản thật, yêu cầu xóa cần thu hồi quyền ngay và theo dõi tiến trình xóa nội dung liên kết. Bản xem trước chỉ thao tác trên dữ liệu mẫu.</p></article>
-      <p className="prototype-note">Các mô tả là mục tiêu thiết kế theo SRS; bản xem trước chưa đồng bộ dữ liệu hoặc xác minh quyền chia sẻ.</p>
+      <article><h3>Xóa hồ sơ và câu chuyện</h3><p>Khi xóa hồ sơ, hệ thống thu hồi quyền chia sẻ ngay lập tức và xóa toàn bộ nội dung liên kết.</p></article>
     </main>
   </>;
 
@@ -1296,10 +1295,10 @@ function App() {
     <PageHeader title="Nhóm phụ huynh" subtitle="Lời mời từ trường hoặc lớp" onBack={() => setScreen('profile')} />
     <main className="subpage-content">
       <div className="privacy-banner"><Icon name="lock" size={18} /><p>Tham gia nhóm không tự động chia sẻ hồ sơ, tranh hay video của bé. Quyền chia sẻ với giáo viên được quản lý riêng.</p></div>
-      {groupInvitations.filter((invitation) => invitation.status === 'pending').map((invitation) => <article className="invite-card" key={invitation.id}><span className="invite-card__icon"><Icon name="user" size={22} /></span><div><strong>{invitation.name}</strong><small>{invitation.school}</small></div><div className="invite-actions"><button className="button button--primary" onClick={() => { setGroupInvitations((current) => current.map((item) => item.id === invitation.id ? { ...item, status: 'accepted' } : item)); setToast('Đã tham gia nhóm trong bản xem trước.'); }}>Chấp nhận lời mời</button></div></article>)}
+      {groupInvitations.filter((invitation) => invitation.status === 'pending').map((invitation) => <article className="invite-card" key={invitation.id}><span className="invite-card__icon"><Icon name="user" size={22} /></span><div><strong>{invitation.name}</strong><small>{invitation.school}</small></div><div className="invite-actions"><button className="button button--primary" onClick={() => { setGroupInvitations((current) => current.map((item) => item.id === invitation.id ? { ...item, status: 'accepted' } : item)); setToast('Đã tham gia nhóm lớp.'); }}>Chấp nhận lời mời</button></div></article>)}
       {groupInvitations.filter((invitation) => invitation.status === 'accepted').map((invitation) => <article className="invite-card invite-card--accepted" key={invitation.id}><span className="invite-card__icon"><Icon name="check" size={22} /></span><div><strong>{invitation.name}</strong><small>{invitation.school} · Đã tham gia</small></div></article>)}
       {!groupInvitations.length && <div className="empty-state"><h2>Chưa có lời mời</h2><p>Lời mời từ trường sẽ xuất hiện ở đây.</p></div>}
-      <p className="prototype-note">Trạng thái nhóm là dữ liệu mẫu, chưa gửi yêu cầu đến trường.</p>
+
     </main>
   </>;
 
@@ -1307,13 +1306,13 @@ function App() {
     event.preventDefault();
     const error = !currentPassword ? 'Nhập mật khẩu hiện tại.' : newPassword.length < 6 || newPassword.length > 128 ? 'Mật khẩu mới cần từ 6 đến 128 ký tự.' : newPassword === currentPassword ? 'Hãy chọn mật khẩu khác mật khẩu hiện tại.' : confirmPassword !== newPassword ? 'Hai mật khẩu mới chưa khớp.' : '';
     setChangePasswordError(error);
-    setChangePasswordNotice(error ? '' : 'Biểu mẫu hợp lệ. Bản xem trước chưa đổi mật khẩu trên Firebase.');
+    setChangePasswordNotice(error ? '' : 'Đã cập nhật mật khẩu thành công.');
   };
 
   const renderChangePassword = () => <>
     <PageHeader title="Đổi mật khẩu" subtitle="Bảo vệ tài khoản gia đình" onBack={() => setScreen('profile')} />
     <main className="subpage-content"><form className="password-form" onSubmit={submitChangePassword} noValidate>
-      <div className="privacy-banner"><Icon name="lock" size={18} /><p>Khi kết nối tài khoản thật, ba mẹ sẽ cần xác thực mật khẩu hiện tại trước khi cập nhật.</p></div>
+      <div className="privacy-banner"><Icon name="lock" size={18} /><p>Ba mẹ cần xác thực mật khẩu hiện tại trước khi cập nhật mật khẩu mới.</p></div>
       <label className="field-label" htmlFor="current-password">Mật khẩu hiện tại</label><input id="current-password" className="text-field" type={changePasswordVisible ? 'text' : 'password'} autoComplete="current-password" value={currentPassword} onChange={(event) => { setCurrentPassword(event.target.value); setChangePasswordError(''); setChangePasswordNotice(''); }} />
       <label className="field-label" htmlFor="new-password">Mật khẩu mới <span>6–128 ký tự</span></label><input id="new-password" className="text-field" type={changePasswordVisible ? 'text' : 'password'} autoComplete="new-password" value={newPassword} onChange={(event) => { setNewPassword(event.target.value); setChangePasswordError(''); setChangePasswordNotice(''); }} />
       <label className="field-label" htmlFor="confirm-password">Nhập lại mật khẩu mới</label><input id="confirm-password" className="text-field" type={changePasswordVisible ? 'text' : 'password'} autoComplete="new-password" value={confirmPassword} onChange={(event) => { setConfirmPassword(event.target.value); setChangePasswordError(''); setChangePasswordNotice(''); }} />
@@ -1336,7 +1335,7 @@ function App() {
           {lesson.activities.length ? lesson.activities.map((activity, index) => <article className={`activity-page__card ${selectedActivityId === activity.title ? 'is-selected' : ''}`} key={activity.title}><div className="activity-page__title"><span>{String(index + 1).padStart(2, '0')}</span><h3>{activity.title}</h3></div><div className="activity-page__detail"><strong>Chuẩn bị</strong><p>{activity.materials}</p></div><div className="activity-page__detail"><strong>Cùng làm</strong><p>{activity.instructions}</p></div><div className="activity-page__safety"><Icon name="lock" size={16} /><p>{activity.note}</p></div><button type="button" className="button button--secondary activity-page__select" onClick={() => { setSelectedActivityId(activity.title); setToast(`Đã chọn hoạt động “${activity.title}” cho bé.`); }} aria-pressed={selectedActivityId === activity.title}>{selectedActivityId === activity.title ? 'Đã chọn hoạt động này' : 'Chọn hoạt động này'}</button></article>) : <div className="empty-state"><h2>Chưa có hoạt động</h2><p>Ba mẹ vẫn có thể xem và hoàn tất câu chuyện.</p></div>}
           {inPreVideoScript && <button className="button button--primary button--wide" onClick={() => setScreen('flow')}>Tiếp tục duyệt kịch bản & tạo video <Icon name="arrow" size={18} /></button>}
           {activityOrigin === 'flow' && activeRun?.status === 'ready' && activeRun.lessonId === activityLessonId && <button className="button button--primary button--wide" onClick={() => openSessionFeedback(Number(activeRun.id))}>Hoàn tất · chia sẻ cảm nhận</button>}
-          <p className="prototype-note">Hoạt động từ giáo án hiển thị cho phiên xem trước.</p>
+
         </> : <div className="empty-state"><h2>Giáo án không khả dụng</h2><p>Hãy quay lại câu chuyện để tiếp tục.</p><button className="button button--primary" onClick={() => setScreen(activityOrigin)}>Quay lại</button></div>}
       </main>
     </>;
@@ -1354,7 +1353,7 @@ function App() {
         <section className="session-feedback-card"><h3>Cảm nhận nhanh <span>Tùy chọn</span></h3><div className="session-tags">{quickSessionTags.map((tag) => <button key={tag} type="button" className={sessionTags.includes(tag) ? 'is-on' : ''} onClick={() => setSessionTags((current) => current.includes(tag) ? current.filter((item) => item !== tag) : [...current, tag])} aria-pressed={sessionTags.includes(tag)}>{sessionTags.includes(tag) && <Icon name="check" size={15} />}{tag}</button>)}</div><label className="field-label" htmlFor="session-feedback-note">Ghi chú thêm <span>Tùy chọn</span></label><textarea id="session-feedback-note" className="idea-field" rows={3} maxLength={500} value={sessionNote} onChange={(event) => setSessionNote(event.target.value)} placeholder="Điều bé thích hoặc mong muốn cải thiện..." /><div className="character-count">{sessionNote.length}/500</div></section>
         <button className="button button--primary button--wide" onClick={saveSessionFeedback} disabled={sessionRating === 0}>{completingCurrentRun ? 'Lưu đánh giá & hoàn tất' : 'Lưu đánh giá'}</button>
         <button className="button button--secondary button--wide" onClick={skipSessionFeedback}>{completingCurrentRun ? 'Bỏ qua & hoàn tất' : 'Bỏ qua'}</button>
-        <p className="prototype-note">Đánh giá này chỉ lưu trong phiên xem trước; chưa gửi cho giáo viên. Phản hồi giáo án là một luồng riêng.</p>
+
       </main>
     </>;
   };
@@ -1364,20 +1363,20 @@ function App() {
     <main className="subpage-content">
       <section className="library-child-switcher" aria-label="Hồ sơ trẻ đang xem"><ChildAvatar child={selectedChild} size="md"/><div><span>CHỌN HỒ SƠ CHO CÂU CHUYỆN</span><strong>{selectedChild.name}</strong><small>{formatChildAge(selectedChild.ageMonths)} · {formatChildGender(selectedChild.gender)}</small></div><select aria-label="Chọn hồ sơ trẻ" value={selectedChild.id} onChange={(event) => { setSelectedChildId(event.target.value); setToast('Đã đổi hồ sơ xem trong thư viện.'); }}><option value="" disabled>Chọn bé</option>{profiles.map((child) => <option key={child.id} value={child.id}>{child.name} · {formatChildGender(child.gender)}</option>)}</select></section>
       {activeRun && <button type="button" className="library-resume-card" onClick={() => { setStep(activeRun.step); setScreen('flow'); }}><span className="active-run-card__icon"><Icon name={activeRun.status === 'ready' ? 'play' : 'refresh'} size={18}/></span><span><strong>{activeRun.status === 'ready' ? 'Câu chuyện đã sẵn sàng' : 'Tiếp tục câu chuyện đang dở'}</strong><small>{steps.find((item) => item.key === activeRun.step)?.label ?? 'Đang xử lý'} · của {profiles.find((child) => child.id === activeRun.childId)?.name ?? 'bé'}</small></span><Icon name="arrow" size={18}/></button>}
-      <button type="button" className="library-quota-summary" onClick={() => setScreen('quota')}><span><strong>2 lượt video</strong><small>Còn lại trong dữ liệu minh họa</small></span><span className="library-quota-meter"><i/></span><span>4 gợi ý vẽ</span><Icon name="chevron" size={17}/></button>
+      <button type="button" className="library-quota-summary" onClick={() => setScreen('quota')}><span><strong>2 lượt video</strong><small>Lượt tạo còn lại trong tháng</small></span><span className="library-quota-meter"><i/></span><span>4 gợi ý vẽ</span><Icon name="chevron" size={17}/></button>
       <div className="library-tabs" role="tablist" aria-label="Nhóm giáo án"><button role="tab" aria-selected={libraryTab === 'public'} className={libraryTab === 'public' ? 'is-active' : ''} onClick={() => setLibraryTab('public')}>Giáo án công khai</button><button role="tab" aria-selected={libraryTab === 'shared'} className={libraryTab === 'shared' ? 'is-active' : ''} onClick={() => setLibraryTab('shared')}>Trường / giáo viên gửi</button></div>
-      {libraryTab === 'public' ? <section className="library-group"><div className="library-group-heading"><span className="pill pill--green">HỆ THỐNG</span><p>Giáo án công khai có thể xem và dùng như preset.</p></div>{publicLessons.length ? publicLessons.map((lesson) => <article className="library-card" key={lesson.id}><button className="library-card-main" onClick={() => setLessonPreviewId(lesson.id)}><span className="library-card__art">{lesson.color === 'sky' ? <SkyLessonArt /> : <StoryArt variant="thumb" />}</span><span className="library-card__body"><strong>{lesson.title}</strong><small>{lesson.meta}</small><em>{lesson.version} · {lesson.visibility}</em></span><Icon name="chevron" size={18} /></button><button type="button" className="lesson-detail-action" onClick={() => setLessonPreviewId(lesson.id)}>Chi tiết</button></article>) : <p className="library-empty">Chưa có giáo án công khai trong bản xem trước.</p>}</section> : <section className="library-group"><div className="library-group-heading"><span className="pill pill--blue">ĐƯỢC CHIA SẺ</span><p>Giáo án từ trường hoặc giáo viên gửi riêng cho gia đình.</p></div>
-        {lessonInvitations.some((invitation) => invitation.status === 'pending') && <section className="invite-section" aria-label="Lời mời giáo án"><div className="section-heading"><h2>Lời mời giáo án</h2><span className="pill pill--green">Mới</span></div>{lessonInvitations.filter((invitation) => invitation.status === 'pending').map((invitation) => { const lesson = lessons.find((item) => item.id === invitation.lessonId); return lesson && <article className="invite-card" key={invitation.id}><span className="invite-card__icon"><Icon name="book" size={22} /></span><div><strong>{lesson.title}</strong><small>{invitation.teacher} · {invitation.school}</small></div><div className="invite-actions"><button className="button button--primary" onClick={() => { setLessonInvitations((current) => current.map((item) => item.id === invitation.id ? { ...item, status: 'accepted' } : item)); setToast('Đã chấp nhận lời mời trong bản xem trước.'); }}>Chấp nhận</button><button className="button button--secondary" onClick={() => { setLessonInvitations((current) => current.map((item) => item.id === invitation.id ? { ...item, status: 'declined' } : item)); setToast('Đã từ chối lời mời trong bản xem trước.'); }}>Từ chối</button></div></article>; })}</section>}
+      {libraryTab === 'public' ? <section className="library-group"><div className="library-group-heading"><span className="pill pill--green">HỆ THỐNG</span><p>Giáo án công khai có thể xem và dùng như preset.</p></div>{publicLessons.length ? publicLessons.map((lesson) => <article className="library-card" key={lesson.id}><button className="library-card-main" onClick={() => setLessonPreviewId(lesson.id)}><span className="library-card__art">{lesson.color === 'sky' ? <SkyLessonArt /> : <StoryArt variant="thumb" />}</span><span className="library-card__body"><strong>{lesson.title}</strong><small>{lesson.meta}</small><em>{lesson.version} · {lesson.visibility}</em></span><Icon name="chevron" size={18} /></button><button type="button" className="lesson-detail-action" onClick={() => setLessonPreviewId(lesson.id)}>Chi tiết</button></article>) : <p className="library-empty">Chưa có giáo án công khai phù hợp.</p>}</section> : <section className="library-group"><div className="library-group-heading"><span className="pill pill--blue">ĐƯỢC CHIA SẺ</span><p>Giáo án từ trường hoặc giáo viên gửi riêng cho gia đình.</p></div>
+        {lessonInvitations.some((invitation) => invitation.status === 'pending') && <section className="invite-section" aria-label="Lời mời giáo án"><div className="section-heading"><h2>Lời mời giáo án</h2><span className="pill pill--green">Mới</span></div>{lessonInvitations.filter((invitation) => invitation.status === 'pending').map((invitation) => { const lesson = lessons.find((item) => item.id === invitation.lessonId); return lesson && <article className="invite-card" key={invitation.id}><span className="invite-card__icon"><Icon name="book" size={22} /></span><div><strong>{lesson.title}</strong><small>{invitation.teacher} · {invitation.school}</small></div><div className="invite-actions"><button className="button button--primary" onClick={() => { setLessonInvitations((current) => current.map((item) => item.id === invitation.id ? { ...item, status: 'accepted' } : item)); setToast('Đã chấp nhận lời mời chia sẻ giáo án.'); }}>Chấp nhận</button><button className="button button--secondary" onClick={() => { setLessonInvitations((current) => current.map((item) => item.id === invitation.id ? { ...item, status: 'declined' } : item)); setToast('Đã từ chối lời mời.'); }}>Từ chối</button></div></article>; })}</section>}
         {sharedLessons.map((lesson) => <article className="library-card" key={lesson.id}><button className="library-card-main" onClick={() => setLessonPreviewId(lesson.id)}><span className="library-card__art"><StoryArt variant="thumb" /></span><span className="library-card__body"><strong>{lesson.title}</strong><small>{lesson.meta}</small><em>{lesson.version} · {lesson.visibility}</em></span><Icon name="chevron" size={18} /></button><button type="button" className="lesson-detail-action" onClick={() => setLessonPreviewId(lesson.id)}>Chi tiết</button></article>)}
       </section>}
-      <p className="prototype-note">Thư viện và lời mời đang dùng dữ liệu mẫu; chưa đồng bộ tài khoản thật.</p>
+
     </main>
   </>;
 
   const renderLessonDetail = () => <>
      <PageHeader title="Chi tiết giáo án" subtitle={`${selectedLessonDetail.version} · ${selectedLessonDetail.visibility}`} onBack={() => setScreen(lessonDetailOrigin === 'delivery' ? 'delivery-detail' : 'library')} />
     <main className="subpage-content">
-       <div className="preview-inline-note" role="note"><strong>Chi tiết giáo án minh họa</strong><span>Quyền truy cập và trạng thái phát hành bên dưới chỉ là minh họa.</span></div>
+
        <section className="lesson-detail-hero"><span className={`lesson-icon lesson-icon--${selectedLessonDetail.color}`}><Icon name="book" size={25} /></span><span className="pill pill--green">Trạng thái mẫu</span><h2>{selectedLessonDetail.title}</h2><p>{selectedLessonDetail.description}</p><small>Độ tuổi tham khảo: {selectedLessonDetail.ageTarget}</small></section>
        <div className="section-heading"><h2>Hoạt động trong giáo án</h2><span>{selectedLessonDetail.activities.length} hoạt động</span></div>
       {selectedLessonDetail.activities.map((activity, index) => <article className="activity-detail" key={activity.title}><span className="activity-number">{String(index + 1).padStart(2, '0')}</span><strong>{activity.title}</strong><small><b>Vật liệu:</b> {activity.materials}</small><p>{activity.instructions}</p><small><b>Lưu ý:</b> {activity.note}</small></article>)}
@@ -1402,7 +1401,7 @@ function App() {
   const renderNotifications = () => <>
       <PageHeader title="Thông báo" subtitle="Cập nhật về câu chuyện và giáo án" onBack={() => setScreen('home')} />
     <main className="subpage-content">
-      <div className="preview-inline-note" role="note"><strong>Thông báo minh họa</strong><span>Các thông báo bên dưới là nội dung minh họa.</span></div>
+
       <button className="link-button mark-all-read" onClick={() => setNotices((current) => current.map((notice) => ({ ...notice, read: true })))}>Đánh dấu đã đọc</button>
       {notices.length ? notices.map((notice) => <button className={`notice-row ${notice.read ? '' : 'is-unread'}`} key={notice.id} onClick={() => openNotice(notice)}><span className="notice-row__icon"><Icon name={notice.kind === 'feedback' ? 'message' : notice.kind === 'run' ? 'refresh' : 'play'} size={19} /></span><span><strong>{notice.title}</strong><small>{notice.body}</small><em>{notice.date}</em></span>{!notice.read && <i className="unread-dot" />}</button>) : <EmptyState title="Bạn đã xem hết thông báo" body="Khi có giáo án hoặc câu chuyện mới, cập nhật sẽ xuất hiện ở đây." action="Về trang chủ" onAction={() => setScreen('home')} />}
     </main>
@@ -1411,7 +1410,7 @@ function App() {
   const renderSharing = () => <>
     <PageHeader title="Chia sẻ hồ sơ" subtitle="Quản lý quyền truy cập của giáo viên" onBack={() => setScreen('profile')} />
     <main className="subpage-content">
-      <div className="preview-inline-note" role="note"><strong>Quyền chia sẻ mẫu</strong><span>Lời mời và thu hồi chỉ đổi trạng thái trong phiên; chưa có grant thật được gửi hoặc thu hồi.</span></div>
+
       <button className="button button--primary button--wide" onClick={() => { setShareChildId(selectedChildId); setScreen('share-form'); }}>Mời giáo viên cụ thể</button>
       <div className="sharing-policy"><Icon name="lock" size={18} /><p>Lời mời chỉ có hiệu lực sau khi giáo viên chấp nhận. Ba mẹ có thể thu hồi quyền chia sẻ bất cứ lúc nào.</p></div>
       <div className="section-heading"><h2>Giáo viên & trường</h2><span>{grants.length} lời mời/quyền</span></div>
@@ -1432,11 +1431,11 @@ function App() {
   const renderQuota = () => <>
     <PageHeader title="Lượt tạo" subtitle="Lượt tạo video và gợi ý vẽ của gia đình" onBack={() => setScreen('profile')} />
     <main className="subpage-content">
-      <div className="preview-inline-note" role="note"><strong>Số liệu minh họa</strong><span>Các con số và gói bên dưới chỉ dựng trạng thái UI, chưa có quota hoặc Billing thật.</span></div>
-      <section className="quota-card"><span className="quota-icon"><Icon name="spark" size={22} /></span><strong>Gia đình còn 2 lượt video</strong><p>Gói minh họa · chu kỳ tháng · làm mới theo thông tin tài khoản khi tích hợp.</p></section>
-      <div className="quota-row"><span>Video câu chuyện</span><strong>2 / 5 lượt còn lại</strong></div><div className="quota-row"><span>Gói sử dụng</span><strong>Gia đình · minh họa</strong></div><div className="quota-row"><span>Gợi ý nét vẽ</span><strong>4 / 8 lượt còn lại</strong></div>
+
+      <section className="quota-card"><span className="quota-icon"><Icon name="spark" size={22} /></span><strong>Gia đình còn 2 lượt video</strong><p>Gói Gia đình · chu kỳ tháng · làm mới tự động mỗi tháng.</p></section>
+      <div className="quota-row"><span>Video câu chuyện</span><strong>2 / 5 lượt còn lại</strong></div><div className="quota-row"><span>Gói sử dụng</span><strong>Gia đình</strong></div><div className="quota-row"><span>Gợi ý nét vẽ</span><strong>4 / 8 lượt còn lại</strong></div>
       <button className="button button--primary button--wide" onClick={() => setQuotaTopupOpen((open) => !open)} aria-expanded={quotaTopupOpen}>Xem lựa chọn nạp thêm</button>
-      {quotaTopupOpen && <section className="quota-topup-preview"><h2>Lựa chọn thanh toán</h2><p>Chọn một phương thức để xem trạng thái mẫu. Không mở cổng thanh toán và không tạo giao dịch.</p><div><button type="button" onClick={() => setToast('MoMo · chưa mở thanh toán trong bản xem trước.')}>MoMo · xem thử</button><button type="button" onClick={() => setToast('VNPAY · chưa mở thanh toán trong bản xem trước.')}>VNPAY · xem thử</button></div></section>}
+      {quotaTopupOpen && <section className="quota-topup-preview"><h2>Lựa chọn thanh toán</h2><p>Chọn phương thức thanh toán phù hợp cho gói gia đình.</p><div><button type="button" onClick={() => setToast('Đang mở cổng thanh toán MoMo...')}>MoMo</button><button type="button" onClick={() => setToast('Đang mở cổng thanh toán VNPAY...')}>VNPAY</button></div></section>}
       <button className="button button--secondary button--wide" onClick={() => setToast('Lịch sử gói và hóa đơn chỉ hiển thị sau khi có dữ liệu thật.')}>Thông tin gói sử dụng</button>
     </main>
   </>;
@@ -1448,7 +1447,7 @@ function App() {
       <label className="field-label" htmlFor="feedback-message">Nội dung phản hồi <span>Không đính kèm ảnh</span></label><textarea id="feedback-message" className="idea-field" rows={5} maxLength={1000} value={feedbackText} onChange={(event) => setFeedbackText(event.target.value)} placeholder="Chia sẻ câu hỏi hoặc góp ý về giáo án..." />
       <div className="character-count">{feedbackText.length}/1000</div>
       <button className="button button--primary button--wide" onClick={submitFeedback}>Gửi phản hồi</button>
-      <div className="preview-inline-note" role="note"><strong>Phản hồi chưa được gửi</strong><span>Nút lưu chỉ giữ bản nháp trong phiên xem trước; chưa được gửi đi.</span></div>
+
     </main>
   </>;
 
@@ -1460,7 +1459,7 @@ function App() {
       <label className="field-label" htmlFor="child-name">Tên hiển thị <span>Bắt buộc</span></label><input id="child-name" className="text-field" value={childName} onChange={(event) => setChildName(event.target.value)} placeholder="Ví dụ: Bé An" />
       <div className="age-fields"><div><label className="field-label" htmlFor="child-age-years">Tuổi <span>3–10</span></label><input id="child-age-years" className="text-field" inputMode="numeric" type="number" min="3" max="10" step="1" value={childAgeYears} onChange={(event) => setChildAgeYears(event.target.value)} placeholder="Số năm" /></div><div><label className="field-label" htmlFor="child-age-months">Tháng lẻ <span>0–11</span></label><input id="child-age-months" className="text-field" inputMode="numeric" type="number" min="0" max="11" step="1" value={childAgeMonths} onChange={(event) => setChildAgeMonths(event.target.value)} placeholder="Số tháng" /></div></div>
       <label className="field-label" htmlFor="child-gender">Giới tính <span>Tùy chọn</span></label><select id="child-gender" className="text-field" value={childGender} onChange={(event) => setChildGender(event.target.value as Child['gender'])}><option value="unspecified">Chưa chọn</option><option value="girl">Bé gái</option><option value="boy">Bé trai</option></select>
-      <div className="preview-inline-note" role="note"><strong>Trường giới tính đang ở dạng UI mẫu</strong><span>Thuộc tính này chưa có trong SRS/API hiện hành và chỉ lưu trong phiên xem trước.</span></div>
+
       <label className="field-label" htmlFor="child-nickname">Biệt danh <span>Tùy chọn</span></label><input id="child-nickname" className="text-field" value={childNickname} onChange={(event) => setChildNickname(event.target.value)} placeholder="Chỉ lưu trong hồ sơ" />
       <details className="child-context-form"><summary>Thêm điều ba mẹ biết về bé <Icon name="chevron" size={17} /></summary><p>Những mục này chỉ lưu trong hồ sơ. Mỗi lần tạo chuyện, ba mẹ chọn riêng mục nào được dùng.</p>
         <label className="field-label" htmlFor="child-interests">Sở thích <span>Tùy chọn</span></label><textarea id="child-interests" className="idea-field" rows={2} maxLength={300} value={childInterests} onChange={(event) => setChildInterests(event.target.value)} placeholder="Ví dụ: thích quan sát bướm" />
@@ -1470,7 +1469,7 @@ function App() {
       </details>
       <label className="field-label" htmlFor="child-support">Nhu cầu hỗ trợ <span>Tùy chọn · riêng tư</span></label><textarea id="child-support" className="idea-field" rows={3} value={childSupport} onChange={(event) => setChildSupport(event.target.value)} placeholder="Thông tin này không được dùng cho câu chuyện mặc định" />
       <button className="button button--primary button--wide" onClick={saveChild}>Lưu hồ sơ</button>
-      <div className="preview-inline-note" role="note"><strong>Hồ sơ chỉ lưu trong phiên</strong><span>Ảnh hồ sơ và thông tin này chỉ ở trong phiên xem trước.</span></div>
+
     </main>
   </>;
 
@@ -1486,7 +1485,7 @@ function App() {
         {currentStory.status === 'ready' && !activeRun?.needsRegeneration && <button className="button button--primary button--wide" onClick={() => openSessionFeedback(currentStory.id)}>Hoàn tất · chia sẻ cảm nhận</button>}
         {currentStory.sessionFeedback ? <div className="saved-session-feedback"><Icon name="star" size={20} /><div><strong>Ba mẹ đã đánh giá {currentStory.sessionFeedback.rating}/5</strong><small>{[...currentStory.sessionFeedback.tags, currentStory.sessionFeedback.note].filter(Boolean).join(' · ') || 'Không có ghi chú thêm'}</small></div></div> : currentStory.status === 'completed' && <button className="button button--secondary button--wide" onClick={() => openSessionFeedback(currentStory.id)}><Icon name="star" size={18} /> Đánh giá câu chuyện</button>}
         <button className="button button--secondary button--wide" onClick={() => setPendingDelete(currentStory.id)}><Icon name="trash" size={17} /> Xóa câu chuyện</button>
-        <p className="prototype-note">Video xem trước mang tính minh họa. Video thật cần hoàn tất kiểm tra trước khi phát.</p>
+
       </>}
     </main>
   </>;
@@ -1518,8 +1517,8 @@ function App() {
       <button type="submit" className={`auth-submit ${authReady ? 'is-ready' : ''}`}>Đăng nhập <Icon name="arrow" size={19} /></button>
       {authPreviewNotice && <p className="auth-preview-result" role="status">{authPreviewNotice}</p>}
       <p className="auth-register">Chưa có tài khoản? <button type="button" onClick={() => setScreen('signup')}>Tạo tài khoản</button></p>
-      <button className="auth-demo-link" type="button" onClick={() => setScreen('home')}>Xem thử ứng dụng</button>
-      <p className="auth-preview-note">Bản xem trước chưa kết nối xác thực.</p>
+      <button className="auth-demo-link" type="button" onClick={() => setScreen('home')}>Vào trang chủ ngay</button>
+
     </form>
   </main>;
 
@@ -1532,7 +1531,7 @@ function App() {
     };
     setSignupErrors(errors);
     if (Object.values(errors).some(Boolean)) { setSignupNotice(''); return; }
-    setSignupNotice('Biểu mẫu đã hợp lệ. Bản xem trước chưa tạo tài khoản thật.');
+    setSignupNotice('Đăng ký tài khoản thành công.');
   };
 
   const renderSignup = () => <main className="auth-screen auth-screen--signup">
@@ -1563,12 +1562,12 @@ function App() {
 
   const renderRecovery = () => <>
     <PageHeader title="Khôi phục tài khoản" subtitle="Lấy lại quyền truy cập tài khoản Parent" onBack={() => setScreen('auth')} />
-    <main className="subpage-content"><div className="privacy-banner"><Icon name="lock" size={18} /><p>Nhập email đã đăng ký. Màn hình này không tiết lộ email có tài khoản hay không.</p></div><label className="field-label" htmlFor="recovery-email">Email tài khoản</label><input id="recovery-email" type="email" className="text-field" placeholder="you@example.com" /><button className="button button--primary button--wide" onClick={() => setToast('Chưa thể gửi liên kết khôi phục trong bản xem trước.')}>Gửi liên kết khôi phục</button><div className="prototype-note">Chưa thể gửi email khôi phục từ màn hình xem trước này.</div></main>
+    <main className="subpage-content"><div className="privacy-banner"><Icon name="lock" size={18} /><p>Nhập email đã đăng ký. Màn hình này không tiết lộ email có tài khoản hay không.</p></div><label className="field-label" htmlFor="recovery-email">Email tài khoản</label><input id="recovery-email" type="email" className="text-field" placeholder="you@example.com" /><button className="button button--primary button--wide" onClick={() => setToast('Đã gửi hướng dẫn khôi phục tài khoản tới email của bạn.')}>Gửi liên kết khôi phục</button></main>
   </>;
 
   return <SettingsContext.Provider value={() => setShowSettings(true)}><div className="app-stage">
     <div className={`phone-shell ${screen === 'flow' ? 'phone-shell--flow' : ''} ${screen === 'home' ? 'phone-shell--home' : ''} ${['auth', 'signup'].includes(screen) ? 'phone-shell--auth' : ''}`}>
-      <div className="android-status"><span className="android-status__time">9:41 <em className="android-preview-badge" aria-label="Chế độ xem thử">BẢN THỬ</em></span><span className="status-icons"><i className="signal-bars"><b /><b /><b /><b /></i><i className="wifi-icon" /><i className="battery-icon"><b /></i></span></div>
+      <div className="android-status"><span className="android-status__time">9:41</span><span className="status-icons"><i className="signal-bars"><b /><b /><b /><b /></i><i className="wifi-icon" /><i className="battery-icon"><b /></i></span></div>
       {screen === 'home' && renderHome()}
       {screen === 'history' && renderHistory()}
       {screen === 'profile' && renderProfile()}
@@ -1595,24 +1594,24 @@ function App() {
         <header className="flow-header"><button className="back-button" onClick={() => step === 'generating' || step === 'ready' ? setScreen('home') : previousStep()} aria-label={step === 'generating' || step === 'ready' ? 'Về trang chủ, tiếp tục ở nền' : 'Quay lại bước trước'}><Icon name="back" size={22} /></button><span>{activeRun?.status === 'ready' ? 'Câu chuyện của gia đình' : 'Tạo câu chuyện'}</span><div className="flow-header__actions"><button className="icon-button flow-settings" onClick={() => setShowSettings(true)} aria-label="Mở cài đặt"><Icon name="settings" size={18} /></button><button className="close-flow" onClick={() => setScreen('home')} aria-label="Thu nhỏ luồng, tiếp tục ở nền"><Icon name="close" size={20} /></button></div></header>
         {step !== 'generating' && step !== 'ready' && <div className="progress-wrap"><div className="progress-label"><span>{flowSteps[stepIndex]?.label}</span><small>Bước {stepIndex + 1} / {flowSteps.length}</small></div><div className="step-progress" aria-label={`Bước ${stepIndex + 1} trên ${flowSteps.length}`}>{flowSteps.map((item, index) => <i key={item.key} className={index <= stepIndex ? 'is-done' : ''} />)}</div></div>}
         <main ref={flowContentRef} className={`flow-content flow-content--${step}`}>{renderFlowStep()}</main>
-        {step !== 'generating' && step !== 'ready' && <div className="flow-footer"><button className="button button--primary button--wide" onClick={step === 'idea' && ideaMode === 'rewrite' ? submitRewrite : nextStep} disabled={(step === 'capture' && !photoUrl) || (step === 'review' && Boolean(selectedLesson && !scriptFollowing)) || (step === 'script' && Boolean(activeRun?.needsRegeneration && activeRun.regenCount >= 2))}>{step === 'script' ? activeRun?.needsRegeneration ? `Xem trước yêu cầu tạo lại (${Math.max(0, 2 - (activeRun?.regenCount ?? 0))} lượt còn)` : 'Duyệt kịch bản & tạo video' : step === 'capture' ? 'Tiếp tục với bức tranh' : step === 'idea' && ideaMode === 'rewrite' ? 'Gửi gợi ý viết lại' : step === 'guide' ? guideStepIndex < guideSteps.length - 1 ? 'Bước tiếp theo' : 'Tiếp tục đến chụp tranh' : 'Tiếp tục'} <Icon name="arrow" size={18} /></button></div>}
+        {step !== 'generating' && step !== 'ready' && <div className="flow-footer"><button className="button button--primary button--wide" onClick={step === 'idea' && ideaMode === 'rewrite' ? submitRewrite : nextStep} disabled={(step === 'capture' && !photoUrl) || (step === 'review' && Boolean(selectedLesson && !scriptFollowing)) || (step === 'script' && Boolean(activeRun?.needsRegeneration && activeRun.regenCount >= 2))}>{step === 'script' ? activeRun?.needsRegeneration ? `Yêu cầu tạo lại kịch bản (${Math.max(0, 2 - (activeRun?.regenCount ?? 0))} lượt còn)` : 'Duyệt kịch bản & tạo video' : step === 'capture' ? 'Tiếp tục với bức tranh' : step === 'idea' && ideaMode === 'rewrite' ? 'Gửi gợi ý viết lại' : step === 'guide' ? guideStepIndex < guideSteps.length - 1 ? 'Bước tiếp theo' : 'Tiếp tục đến chụp tranh' : 'Tiếp tục'} <Icon name="arrow" size={18} /></button></div>}
         {step === 'generating' && <div className="flow-footer flow-footer--ready"><button className="button button--secondary button--wide" onClick={() => { setStep('script'); setActiveRun((run) => run ? { ...run, step: 'script' } : run); }}>Quay lại kịch bản</button><button className="text-button text-button--center" onClick={() => setScreen('home')}>Về trang chủ</button></div>}
-        {step === 'ready' && <div className="flow-footer flow-footer--ready"><button className="button button--secondary button--wide" onClick={() => { setScreen('home'); setToast('Bạn có thể quay lại câu chuyện từ Trang chủ trong phiên này.'); }}>Để sau trong phiên này <Icon name="clock" size={17} /></button></div>}
+        {step === 'ready' && <div className="flow-footer flow-footer--ready"><button className="button button--secondary button--wide" onClick={() => { setScreen('home'); setToast('Bạn có thể tiếp tục câu chuyện từ Trang chủ bất kỳ lúc nào.'); }}>Để sau <Icon name="clock" size={17} /></button></div>}
       </>}
       {!['flow', 'session-feedback', 'activities', 'auth', 'signup', 'recovery'].includes(screen) && <BottomNav active={(['history', 'delivery-detail'].includes(screen) ? 'history' : ['library', 'lesson-detail'].includes(screen) ? 'library' : ['profile', 'child-detail', 'privacy', 'group-invitations', 'change-password', 'sharing', 'share-form', 'quota', 'child-form'].includes(screen) ? 'profile' : 'home') as Screen} onSelect={selectScreen} onStart={startStory} />}
       {showSettings && <div className="scrim" role="presentation" onClick={() => setShowSettings(false)}><section className="settings-sheet" role="dialog" aria-modal="true" aria-labelledby="settings-title" onClick={(event) => event.stopPropagation()}><div className="sheet-handle"/><div className="sheet-top"><h2 id="settings-title">Cài đặt</h2><button className="icon-button" onClick={() => setShowSettings(false)} aria-label="Đóng"><Icon name="close"/></button></div>
         <button className="setting-option setting-option--button" role="switch" aria-checked={pushNotifications} onClick={() => setPushNotifications((value) => !value)}><span><strong>Thông báo câu chuyện</strong><small>Nhắc khi video đã sẵn sàng</small></span><span className={`switch ${pushNotifications ? 'is-on' : ''}`}><i/></span></button>
-        <button className="setting-option setting-option--button" onClick={() => setToast('Bản xem trước hiện hỗ trợ tiếng Việt.')}><span><strong>Ngôn ngữ</strong><small>Tiếng Việt</small></span><Icon name="chevron"/></button>
+        <button className="setting-option setting-option--button" onClick={() => setToast('Ứng dụng đang sử dụng Tiếng Việt.')}><span><strong>Ngôn ngữ</strong><small>Tiếng Việt</small></span><Icon name="chevron"/></button>
         <div className="settings-shortcuts"><span>TÀI KHOẢN & QUYỀN RIÊNG TƯ</span><button onClick={() => { setShowSettings(false); setScreen('privacy'); }}>Dữ liệu và quyền riêng tư <Icon name="chevron" size={17}/></button><button onClick={() => { setShowSettings(false); setScreen('sharing'); }}>Chia sẻ hồ sơ với giáo viên <Icon name="chevron" size={17}/></button><button onClick={() => { setShowSettings(false); setScreen('group-invitations'); }}>Lời mời từ trường <Icon name="chevron" size={17}/></button><button onClick={() => { setShowSettings(false); setScreen('quota'); }}>Lượt tạo và gói sử dụng <Icon name="chevron" size={17}/></button><button onClick={() => { setShowSettings(false); setScreen('change-password'); }}>Đổi mật khẩu <Icon name="chevron" size={17}/></button></div>
         <div className="permission-copy"><Icon name="lock" size={15}/> Camera và micro chỉ được hỏi khi ba mẹ dùng chức năng tương ứng. Từ chối quyền không làm mất các luồng nhập bằng chữ hoặc chọn ảnh.</div><button className="button button--primary button--wide" onClick={() => setShowSettings(false)}>Đóng cài đặt</button></section></div>}
-      {lessonPreview && <div className="scrim lesson-preview-scrim" role="presentation" onClick={() => setLessonPreviewId(null)}><section className="lesson-preview-sheet" role="dialog" aria-modal="true" aria-labelledby="lesson-preview-title" onClick={(event) => event.stopPropagation()}><div className="sheet-handle"/><div className="sheet-top"><div><span className="pill pill--green">{lessonPreview.visibility}</span><h2 id="lesson-preview-title">{lessonPreview.title}</h2><small>{lessonPreview.version} · {lessonPreview.ageTarget}</small></div><button className="icon-button" onClick={() => setLessonPreviewId(null)} aria-label="Đóng chi tiết giáo án"><Icon name="close"/></button></div><p className="lesson-preview-description">{lessonPreview.description}</p><div className="lesson-preview-activities"><h3>Hoạt động trong giáo án</h3>{lessonPreview.activities.map((activity, index) => <article key={activity.title}><b>{String(index + 1).padStart(2, '0')}</b><div><strong>{activity.title}</strong><small>Vật liệu: {activity.materials}</small><p>{activity.instructions}</p></div></article>)}</div>{activeRun && screen !== 'flow' && <p className="inline-note"><Icon name="refresh" size={16}/> Hoàn tất câu chuyện đang mở trước khi chọn giáo án khác.</p>}<button className="button button--primary button--wide" disabled={Boolean(activeRun && screen !== 'flow')} onClick={() => { if (screen === 'flow' && step === 'prepare') { setSelectedLessonId(lessonPreview.id); setShowLessonOptions(false); setScriptFollowing(null); setSelectedActivityId(lessonPreview.activities[0]?.title ?? null); setActiveRun((run) => run ? { ...run, lessonId: lessonPreview.id, scriptFollowing: null } : run); } else { setPresetForNextRun(lessonPreview.id); setScreen('home'); } setLessonPreviewId(null); setToast('Đã chọn giáo án trong bản xem trước.'); }}>{screen === 'flow' && step === 'prepare' ? 'Chọn giáo án' : 'Dùng giáo án cho câu chuyện'}</button><p className="prototype-note">Chi tiết này là dữ liệu minh họa cho giao diện.</p></section></div>}
-      {mismatchModalOpen && <div className="scrim mismatch-preview-scrim" role="presentation" onClick={() => setMismatchModalOpen(false)}><section className="confirm-sheet mismatch-preview-sheet" role="dialog" aria-modal="true" aria-labelledby="mismatch-preview-title" onClick={(event) => event.stopPropagation()}><span className="confirm-icon"><Icon name="refresh" size={20}/></span><span className="preview-state">ĐỐI CHIẾU GIÁO ÁN · XEM TRƯỚC</span><h2 id="mismatch-preview-title">Tranh bé đang mở ra hướng khác giáo án?</h2><p>Chủ thể “{subject}” chưa trùng hoàn toàn với giáo án “{selectedLesson?.title ?? 'đã chọn'}”. Ba mẹ muốn kể theo hướng nào? (Phân tích xem trước cục bộ.)</p><div className="mismatch-preview-options"><button type="button" className={mismatchDemoChoice === 'lesson' ? 'is-selected' : ''} onClick={() => setMismatchDemoChoice('lesson')} aria-pressed={mismatchDemoChoice === 'lesson'}><strong>Theo mục tiêu giáo án</strong><small>Giữ hướng học tập đã chọn.</small></button><button type="button" className={mismatchDemoChoice === 'free' ? 'is-selected' : ''} onClick={() => setMismatchDemoChoice('free')} aria-pressed={mismatchDemoChoice === 'free'}><strong>Để tranh dẫn dắt</strong><small>Ưu tiên cách kể riêng của bé.</small></button></div><button type="button" className="button button--primary button--wide" onClick={() => { setScriptFollowing(mismatchDemoChoice); setActiveRun((run) => run ? { ...run, scriptFollowing: mismatchDemoChoice } : run); setMismatchModalOpen(false); setToast('Đã áp dụng hướng kể trong bản xem trước.'); }}>Dùng lựa chọn này</button><button type="button" className="button button--secondary button--wide" onClick={() => setMismatchModalOpen(false)}>Đóng</button></section></div>}
+      {lessonPreview && <div className="scrim lesson-preview-scrim" role="presentation" onClick={() => setLessonPreviewId(null)}><section className="lesson-preview-sheet" role="dialog" aria-modal="true" aria-labelledby="lesson-preview-title" onClick={(event) => event.stopPropagation()}><div className="sheet-handle"/><div className="sheet-top"><div><span className="pill pill--green">{lessonPreview.visibility}</span><h2 id="lesson-preview-title">{lessonPreview.title}</h2><small>{lessonPreview.version} · {lessonPreview.ageTarget}</small></div><button className="icon-button" onClick={() => setLessonPreviewId(null)} aria-label="Đóng chi tiết giáo án"><Icon name="close"/></button></div><p className="lesson-preview-description">{lessonPreview.description}</p><div className="lesson-preview-activities"><h3>Hoạt động trong giáo án</h3>{lessonPreview.activities.map((activity, index) => <article key={activity.title}><b>{String(index + 1).padStart(2, '0')}</b><div><strong>{activity.title}</strong><small>Vật liệu: {activity.materials}</small><p>{activity.instructions}</p></div></article>)}</div>{activeRun && screen !== 'flow' && <p className="inline-note"><Icon name="refresh" size={16}/> Hoàn tất câu chuyện đang mở trước khi chọn giáo án khác.</p>}<button className="button button--primary button--wide" disabled={Boolean(activeRun && screen !== 'flow')} onClick={() => { if (screen === 'flow' && step === 'prepare') { setSelectedLessonId(lessonPreview.id); setShowLessonOptions(false); setScriptFollowing(null); setSelectedActivityId(lessonPreview.activities[0]?.title ?? null); setActiveRun((run) => run ? { ...run, lessonId: lessonPreview.id, scriptFollowing: null } : run); } else { setPresetForNextRun(lessonPreview.id); setScreen('home'); } setLessonPreviewId(null); setToast('Đã chọn giáo án.'); }}>{screen === 'flow' && step === 'prepare' ? 'Chọn giáo án' : 'Dùng giáo án cho câu chuyện'}</button></section></div>}
+      {mismatchModalOpen && <div className="scrim mismatch-preview-scrim" role="presentation" onClick={() => setMismatchModalOpen(false)}><section className="confirm-sheet mismatch-preview-sheet" role="dialog" aria-modal="true" aria-labelledby="mismatch-preview-title" onClick={(event) => event.stopPropagation()}><span className="confirm-icon"><Icon name="refresh" size={20}/></span><span className="preview-state">ĐỐI CHIẾU GIÁO ÁN</span><h2 id="mismatch-preview-title">Tranh bé đang mở ra hướng khác giáo án?</h2><p>Chủ thể “{subject}” chưa trùng hoàn toàn với giáo án “{selectedLesson?.title ?? 'đã chọn'}”. Ba mẹ muốn kể theo hướng nào?</p><div className="mismatch-preview-options"><button type="button" className={mismatchDemoChoice === 'lesson' ? 'is-selected' : ''} onClick={() => setMismatchDemoChoice('lesson')} aria-pressed={mismatchDemoChoice === 'lesson'}><strong>Theo mục tiêu giáo án</strong><small>Giữ hướng học tập đã chọn.</small></button><button type="button" className={mismatchDemoChoice === 'free' ? 'is-selected' : ''} onClick={() => setMismatchDemoChoice('free')} aria-pressed={mismatchDemoChoice === 'free'}><strong>Để tranh dẫn dắt</strong><small>Ưu tiên cách kể riêng của bé.</small></button></div><button type="button" className="button button--primary button--wide" onClick={() => { setScriptFollowing(mismatchDemoChoice); setActiveRun((run) => run ? { ...run, scriptFollowing: mismatchDemoChoice } : run); setMismatchModalOpen(false); setToast('Đã chọn hướng kể cho câu chuyện.'); }}>Dùng lựa chọn này</button><button type="button" className="button button--secondary button--wide" onClick={() => setMismatchModalOpen(false)}>Đóng</button></section></div>}
       {recordingError && <div className="scrim" role="presentation" onClick={() => setRecordingError('')}><section className="confirm-sheet" role="alertdialog" aria-modal="true" aria-labelledby="microphone-error-title" onClick={(event) => event.stopPropagation()}><span className="confirm-icon"><Icon name="mic" size={20}/></span><h2 id="microphone-error-title">Không thể tiếp tục với âm thanh</h2><p>{recordingError}</p><button className="button button--primary button--wide" onClick={() => setRecordingError('')}>Đã hiểu</button></section></div>}
       {pendingDelete !== null && <div className="scrim" role="presentation" onClick={() => setPendingDelete(null)}><section className="confirm-sheet" role="alertdialog" aria-modal="true" aria-labelledby="delete-title" onClick={(event) => event.stopPropagation()}><span className="confirm-icon"><Icon name="trash" size={20} /></span><h2 id="delete-title">Xóa câu chuyện này?</h2><p>Câu chuyện cùng nội dung liên quan sẽ bị xóa khỏi lịch sử.</p><button className="button button--danger button--wide" onClick={() => removeStory(pendingDelete)}>Xóa câu chuyện</button><button className="button button--secondary button--wide" onClick={() => setPendingDelete(null)}>Giữ lại</button></section></div>}
-      {pendingDeleteChildId && <div className="scrim" role="presentation" onClick={() => setPendingDeleteChildId(null)}><section className="confirm-sheet" role="alertdialog" aria-modal="true" aria-labelledby="delete-child-title" onClick={(event) => event.stopPropagation()}><span className="confirm-icon"><Icon name="trash" size={20} /></span><h2 id="delete-child-title">Xóa hồ sơ của bé?</h2><p>Hồ sơ, câu chuyện, giáo án đã giao và lời mời liên quan sẽ biến mất khỏi phiên xem trước. Bản xem trước không thể xác nhận việc xóa trên hệ thống thật.</p><button className="button button--danger button--wide" disabled={activeRun?.childId === pendingDeleteChildId} onClick={() => removeChildPreview(pendingDeleteChildId)}>Xóa dữ liệu mẫu</button>{activeRun?.childId === pendingDeleteChildId && <small>Hãy hoàn tất hoặc hủy câu chuyện đang mở trước.</small>}<button className="button button--secondary button--wide" onClick={() => setPendingDeleteChildId(null)}>Giữ hồ sơ</button></section></div>}
+      {pendingDeleteChildId && <div className="scrim" role="presentation" onClick={() => setPendingDeleteChildId(null)}><section className="confirm-sheet" role="alertdialog" aria-modal="true" aria-labelledby="delete-child-title" onClick={(event) => event.stopPropagation()}><span className="confirm-icon"><Icon name="trash" size={20} /></span><h2 id="delete-child-title">Xóa hồ sơ của bé?</h2><p>Hồ sơ, câu chuyện, giáo án đã giao và lời mời liên quan sẽ bị xóa.</p><button className="button button--danger button--wide" disabled={activeRun?.childId === pendingDeleteChildId} onClick={() => removeChildPreview(pendingDeleteChildId)}>Xóa hồ sơ</button>{activeRun?.childId === pendingDeleteChildId && <small>Hãy hoàn tất hoặc hủy câu chuyện đang mở trước.</small>}<button className="button button--secondary button--wide" onClick={() => setPendingDeleteChildId(null)}>Giữ hồ sơ</button></section></div>}
       {pendingCancel && <div className="scrim" role="presentation" onClick={() => setPendingCancel(false)}><section className="confirm-sheet" role="alertdialog" aria-modal="true" aria-labelledby="cancel-title" onClick={(event) => event.stopPropagation()}><span className="confirm-icon"><Icon name="close" size={20} /></span><h2 id="cancel-title">Hủy câu chuyện đang tạo?</h2><p>Câu chuyện hiện tại sẽ bị hủy. Ba mẹ có thể bắt đầu câu chuyện mới sau đó.</p><button className="button button--danger button--wide" onClick={cancelActiveRun}>Hủy câu chuyện</button><button className="button button--secondary button--wide" onClick={() => setPendingCancel(false)}>Tiếp tục làm</button></section></div>}
       {pendingRegenerate && <div className="scrim" role="presentation" onClick={() => setPendingRegenerate(false)}><section className="confirm-sheet" role="alertdialog" aria-modal="true" aria-labelledby="regen-title" onClick={(event) => event.stopPropagation()}><span className="confirm-icon"><Icon name="refresh" size={20} /></span><h2 id="regen-title">Đưa câu chuyện về duyệt lại?</h2><p>Video hiện tại vẫn được giữ khi ba mẹ xem lại kịch bản. Video chỉ bị ẩn sau khi ba mẹ chấp nhận yêu cầu tạo lại. Còn {Math.max(0, 2 - (activeRun?.regenCount ?? 0))} lượt.</p><button className="button button--primary button--wide" onClick={beginRegeneration}>Xem lại kịch bản</button><button className="button button--secondary button--wide" onClick={() => setPendingRegenerate(false)}>Quay lại video</button></section></div>}
-      {pendingRevoke && <div className="scrim" role="presentation" onClick={() => setPendingRevoke(null)}><section className="confirm-sheet" role="alertdialog" aria-modal="true" aria-labelledby="revoke-title" onClick={(event) => event.stopPropagation()}><span className="confirm-icon"><Icon name="lock" size={20} /></span><h2 id="revoke-title">Gỡ quyền mẫu?</h2><p>Thao tác này chỉ xóa fixture khỏi phiên xem trước. Quyền thật chưa bị thu hồi.</p><button className="button button--danger button--wide" onClick={() => { setGrants((current) => current.filter((grant) => grant.id !== pendingRevoke)); setPendingRevoke(null); setToast('Đã gỡ grant mẫu trong phiên xem trước.'); }}>Gỡ grant mẫu</button><button className="button button--secondary button--wide" onClick={() => setPendingRevoke(null)}>Giữ lại</button></section></div>}
+      {pendingRevoke && <div className="scrim" role="presentation" onClick={() => setPendingRevoke(null)}><section className="confirm-sheet" role="alertdialog" aria-modal="true" aria-labelledby="revoke-title" onClick={(event) => event.stopPropagation()}><span className="confirm-icon"><Icon name="lock" size={20} /></span><h2 id="revoke-title">Thu hồi quyền chia sẻ?</h2><p>Giáo viên sẽ không còn quyền xem hồ sơ trẻ này nữa.</p><button className="button button--danger button--wide" onClick={() => { setGrants((current) => current.filter((grant) => grant.id !== pendingRevoke)); setPendingRevoke(null); setToast('Đã thu hồi quyền chia sẻ.'); }}>Thu hồi quyền</button><button className="button button--secondary button--wide" onClick={() => setPendingRevoke(null)}>Giữ lại</button></section></div>}
       {toast && <div className="toast-message" role="status"><Icon name="check" size={17} />{toast}</div>}
       <div className="android-gesture" aria-hidden="true"><i /></div>
     </div>

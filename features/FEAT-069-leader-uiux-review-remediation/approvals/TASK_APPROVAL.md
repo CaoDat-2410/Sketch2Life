@@ -198,3 +198,16 @@
 - **Scope:** Restore `Repository policy checks` (`tools/validate_harness.py`) by adding 0-byte `.gitkeep` placeholders under `evidence/raw/` and `evidence/metrics/` for `FEAT-068` and `FEAT-069`, normalizing `- Status: APPROVED` formatting in `FEAT-068/approvals/TASK_APPROVAL.md` (preserving existing authorization scope verbatim) and `FEAT-069/approvals/TASK_APPROVAL.md`, updating `FEAT-069` records, verifying all 5 policy validators and clean-clone tracking, and committing/pushing normally (fast-forward) to `origin/FE_UI_Project_Ver2`.
 - **Exclusions:** No runtime/UI/backend/CI-workflow/SRS/schema changes; no `--force` push or history rewrite.
 - **Approval basis:** Direct owner instruction explicitly directing resolution of the GitHub `4/5` CI failure.
+
+
+## Plan Rev17 — Remove Preview/API-Unconnected Warning Banners (`UI_Project/`)
+
+- **Status:** APPROVED for the exact UI-only scope in `plan/PLAN_REV17_REMOVE_PREVIEW_WARNING_BANNERS.md`.
+- **Approver:** Project owner, direct instruction in this conversation attaching a screenshot of the `"Chưa kết nối Lesson Grant API · Preview không gửi email, cấp quyền đọc hoặc xác nhận lời mời thật."` warning box and requesting removal of all similar warnings across the UI (`"mấy cái cảnh bảo như này bạn bỏ hết cho tôi được không, mấy cái giống như cái trên bỏ hết giúp tôi"`).
+- **Recorded timestamp:** 2026-11-14 19:29:52 +07:00 (Asia/Saigon).
+- **Approved plan:** `features/FEAT-069-leader-uiux-review-remediation/plan/PLAN_REV17_REMOVE_PREVIEW_WARNING_BANNERS.md`.
+- **Plan revision:** 17.
+- **Plan SHA-256:** `ED0E1D90E681F4EC2B08BA2EDB2DD4ADACD60C4ACE99F264DBBCC6B35CF39261`.
+- **Scope:** Remove all `.feedback-preview-note`, `.preview-inline-note`, `.prototype-note`, `.flow-boundary`, `<FlowRecoveryDisclosure />`, `.dashboard-contract-note`, `.dash-panel-note`, `.web-detail-boundary`, `.web-modal-note`, `.web-feature-side`, `.web-preview-chip`, `BackendModeNotice` local preview chip, and preview/fixture/API-unconnected disclaimer text across `UI_Project/` (`shared/`, `parent-ui/`), adjusting single-column grid layout where needed, while preserving real functional validation/privacy/safety controls and keeping all UI work strictly offline/UI-only.
+- **Exclusions:** No backend/API/auth/database/schema/SRS edits; no legacy `apps/` or `child-experience/` changes; no real API wiring or network calls; no `--force` push or history rewrite.
+- **Approval basis:** Direct owner instruction explicitly directing removal of all preview/API-unconnected warning boxes across the UI.

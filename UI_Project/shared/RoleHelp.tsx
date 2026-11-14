@@ -20,7 +20,7 @@ const HELP_CONTENT: Record<PortalRole, { title: string; intro: string; entries: 
     entries: [
       { question: "Duyệt giáo án công khai thế nào?", answer: "Mở hàng chờ, xem nội dung và đánh dấu đủ bốn tiêu chí. Chọn phạm vi công khai trước khi duyệt; khi yêu cầu chỉnh sửa, ghi rõ nội dung cần bổ sung." },
       { question: "Thêm hoặc kiểm tra lớp ở đâu?", answer: "Mở mục Lớp & chỗ học để xem danh sách hoặc tạo lớp. Giáo viên và nhóm phụ huynh nằm trong mục Giáo viên & nhóm." },
-      { question: "Lượt tạo video được quản lý ở đâu?", answer: "Mở mục Lượt tạo để xem hạn mức và phần đã sử dụng. Bản xem thử không thực hiện giao dịch thật." },
+      { question: "Lượt tạo video được quản lý ở đâu?", answer: "Mở mục Lượt tạo để xem hạn mức và phần đã sử dụng." },
     ],
   },
   ADMIN: {
@@ -28,8 +28,8 @@ const HELP_CONTENT: Record<PortalRole, { title: string; intro: string; entries: 
     intro: "Lối tắt cho kiểm duyệt và theo dõi dịch vụ.",
     entries: [
       { question: "Ẩn hoặc hiện lại giáo án ở đâu?", answer: "Mở Thư viện bài học, chọn giáo án và kiểm tra nội dung. Khi ẩn, nhập lý do để người gửi biết cần sửa gì." },
-      { question: "Kiểm tra trạng thái dịch vụ thế nào?", answer: "Mở Tổng quan rồi chọn Kiểm tra lại. Nếu không kết nối được, thử lại sau; trang sẽ phân biệt mục nào backend hiện chưa hỗ trợ." },
-      { question: "Vì sao một số mục không có dữ liệu?", answer: "Các thao tác chỉ xuất hiện khi có API tương ứng. Bản xem thử dùng dữ liệu minh họa và không lưu thay đổi quản trị." },
+      { question: "Kiểm tra trạng thái dịch vụ thế nào?", answer: "Mở Tổng quan rồi chọn Kiểm tra lại để cập nhật trạng thái các dịch vụ hệ thống." },
+      { question: "Vì sao một số mục chưa có dữ liệu?", answer: "Dữ liệu chỉ hiển thị theo phạm vi phân quyền và trạng thái hoạt động của từng tổ chức." },
     ],
   },
 };

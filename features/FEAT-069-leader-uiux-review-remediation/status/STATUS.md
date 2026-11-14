@@ -1,5 +1,13 @@
 # Status
 
+## Rev17 Remove Preview/API Warning Banners (`UI_Project/`) — 2026-11-14
+
+- **State:** Implemented, build-verified across all 5 `UI_Project/` workspaces, visually verified via live headless browser across all 5 apps (`http://localhost:5196`–`5200`), and validated against repository policy scripts; prepared for commit & fast-forward push to `origin/FE_UI_Project_Ver2`.
+- **Approved plan:** `plan/PLAN_REV17_REMOVE_PREVIEW_WARNING_BANNERS.md`, SHA-256 `ED0E1D90E681F4EC2B08BA2EDB2DD4ADACD60C4ACE99F264DBBCC6B35CF39261`, recorded in both root and feature `TASK_APPROVAL.md` registers.
+- **Changes:** Removed all dev/preview/API-unconnected warning boxes (13 `.feedback-preview-note`, 8 `.preview-inline-note`, 10+ `.prototype-note`, `.flow-boundary`, `<FlowRecoveryDisclosure />`, `.dashboard-contract-note`, `.dash-panel-note`, `.web-detail-boundary`, `.web-modal-note`, `.web-feature-side`, `.web-preview-chip`, `BackendModeNotice` local chip, `.android-preview-badge` `BẢN THỬ`, Admin `tw-item is-amber`), switched `FeaturePage` to `.web-feature-grid--single` (`UI_Project/shared/rev13ProMax.css`), and stripped remaining `· preview` / `· fixture` / `minh họa` / `Bản xem trước` disclaimer copy across `UI_Project/shared/{roleFlows.tsx,webWorkspace.tsx,UnifiedWebApp.tsx,RoleHelp.tsx,backendApi.tsx,WebPortalLoginPage.tsx}` and `UI_Project/parent-ui/src/App.tsx`.
+- **Verification:** Clean `scan_note_classes.py` & `scan_phrases_context.py` audits (`0` warning boxes/preview copy in rendered UI), `npm --prefix UI_Project run build` (`EXIT=0` across all 5 workspaces), live `browser` subagent verification across host-verified `http://localhost:5196`–`5200` (`blocked_origins: none`, `0` console errors, `0` forbidden selectors/strings, inspected screenshot `final_step_137.png`), `git diff --check` (`EXIT=0`), and all 5 `tools/validate_*.py` checks (`EXIT=0`).
+- **Limits:** Offline browser-local UI prototype only (no live backend/API/auth/payment/AI integration); canonical `FEAT-063` SRS `v2.5-draft` remains unsigned and untouched. Details: `evidence/notes/REV17_REMOVE_PREVIEW_WARNINGS_20261114.md`.
+
 ## Rev16 CI Feature Harness Compliance (`4/5` -> `5/5`) — 2026-11-14
 
 - **State:** Implemented and verified locally across all 5 CI repository policy validators (`validate_harness.py`, `validate_skeleton.py`, `validate_architecture.py`, `validate_repository_security.py`, `validate_team_allocation.py` all `EXIT=0`).

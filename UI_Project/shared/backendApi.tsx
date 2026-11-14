@@ -500,11 +500,7 @@ export function BackendNotice({
 
 export function BackendModeNotice({ roleLabel }: { roleLabel: string }) {
   if (isLocalPreview()) {
-    return (
-      <div className="backend-preview-notice" role="status" aria-label={`Bản xem thử ${roleLabel}`}>
-        Xem thử · Dữ liệu minh họa, không lưu
-      </div>
-    );
+    return null;
   }
   if (!hasFirebaseAuthBridge()) {
     return (
@@ -535,7 +531,7 @@ export function ApiUnavailableView({
       <section aria-labelledby="unavailable-title" style={{ padding: 24, border: "1px solid #dbe3ef", borderRadius: 14, background: "#fff", color: "#17233b" }}>
         <h1 id="unavailable-title" style={{ margin: "0 0 8px", fontSize: 24 }}>Màn hình này chưa sẵn sàng</h1>
         <p style={{ margin: "0 0 16px", lineHeight: 1.55, color: "#46536a" }}>
-          Chức năng này chưa được kết nối trong phiên hiện tại. Thử quay lại màn trước; dữ liệu minh họa chỉ có trong bản xem thử.
+          Nội dung này hiện chưa khả dụng. Vui lòng quay lại màn hình trước.
         </p>
         <button type="button" onClick={() => window.history.back()} style={{ minHeight: 44, padding: "0 16px", border: 0, borderRadius: 9, background: "#315efb", color: "#fff", font: "inherit", fontWeight: 650, cursor: "pointer" }}>
           Quay lại

@@ -1,5 +1,12 @@
 # FEAT-069 evidence index
 
+## Rev17 Remove Preview/API Warning Banners (`UI_Project/`)
+
+| Evidence | Scope | What it establishes | Limitations |
+|---|---|---|---|
+| `notes/REV17_REMOVE_PREVIEW_WARNINGS_20261114.md` | Plan Rev17, AC1–AC4 | Documents removal of all 13 `.feedback-preview-note`, 8 `.preview-inline-note`, 10+ `.prototype-note`, `.flow-boundary`, `<FlowRecoveryDisclosure />`, `.dashboard-contract-note`, `.dash-panel-note`, `.web-detail-boundary`, `.web-modal-note`, `.web-feature-side`, `.web-preview-chip`, `BẢN THỬ`, Admin `is-amber`, and `preview`/`fixture`/`minh họa` copy across `UI_Project/`, single-column `.web-feature-grid--single` layout fix, 5-workspace `vite build`, live browser verification (`http://localhost:5196`–`5200`), and 5/5 policy validators | UI-only local fixtures; no API/auth/payment/AI connections; canonical FEAT-063 SRS `v2.5-draft` remains unsigned |
+| `../plan/PLAN_REV17_REMOVE_PREVIEW_WARNING_BANNERS.md` | Exact approved scope | Hash-identified approval (`ED0E1D90E681F4EC2B08BA2EDB2DD4ADACD60C4ACE99F264DBBCC6B35CF39261`) for UI-only removal of preview/API warning clutter inside `UI_Project/` | Does not authorize backend/API changes, SRS modifications, or legacy `apps/` edits |
+
 ## Rev16 CI feature harness compliance (`4/5` -> `5/5`)
 
 | Evidence | Scope | What it establishes | Limitations |

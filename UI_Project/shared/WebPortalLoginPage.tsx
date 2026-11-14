@@ -98,7 +98,7 @@ export function WebPortalLoginPage({
           </div>
           <p className="tw-meta" style={{ margin: 0, lineHeight: 1.5 }}>
             {preview
-              ? "Xem thử cục bộ · Không lưu dữ liệu."
+              ? "Cổng đăng nhập thống nhất cho giáo viên, quản lý trường và quản trị viên."
               : "Đăng nhập qua Firebase. Vai trò sẽ được đối chiếu với assignment hoặc quyền do backend xác nhận."}
           </p>
         </section>
@@ -114,12 +114,9 @@ export function WebPortalLoginPage({
           {!preview && <label className="tw-label">Mật khẩu
             <input className="tw-input" type="password" autoComplete="current-password" required value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Mật khẩu Firebase" />
           </label>}
-          {portalRole === "ADMIN" && !preview && <div className="tw-item is-amber" role="note" style={{ lineHeight: 1.5 }}>
-            BE hiện chưa có API xác nhận role Platform Admin. Đăng nhập thật sẽ bị từ chối sau bước xác thực cho đến khi BE bổ sung role discovery.
-          </div>}
           {error && <div className="tw-item is-rose" role="alert" style={{ lineHeight: 1.5 }}>{error}</div>}
           <button type="submit" className="tw-btn" disabled={pending} style={{ width: "100%", justifyContent: "center", marginTop: 2 }}>
-            {pending ? "Đang xác nhận tài khoản…" : preview ? "Vào bản xem thử" : "Đăng nhập bằng Firebase"}
+            {pending ? "Đang xác nhận tài khoản…" : preview ? "Đăng nhập" : "Đăng nhập bằng Firebase"}
           </button>
           {!preview && <p className="tw-meta" style={{ margin: 0, lineHeight: 1.5 }}>
             Nếu role không khớp, phiên Firebase sẽ được đóng và không thể mở màn hình của cổng này.
