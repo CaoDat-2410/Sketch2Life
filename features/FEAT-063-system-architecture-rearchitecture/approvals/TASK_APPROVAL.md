@@ -2860,3 +2860,34 @@ The accepted close-out is based on the existing `features/FEAT-063-system-archit
 The real-PostgreSQL addendum records owner-observed scratch-database results and is not the M2 task-database Gate P2 result. It does not change the failed/consumed gate or D-190: the production BE1 role adapter remains NOT COVERED. This acceptance preserves the known gap and authorizes no database action, retry, cleanup, migration, implementation, or later phase.
 
 This addendum does not approve or launch S2 or S3 and does not create an allowlist, command ceiling, or gate approval. The completed-file post-append byte count and digest are recorded in the session close-out because a file cannot contain its own final digest without changing that digest.
+## M2 S2 Specification Approval — Draft 18 with D-204 — 2026-11-14
+
+- **Status:** APPROVED / NOT LAUNCHED.
+- **Owner decision record:** D-205.
+- **Task Approval prefix SHA-256:** 0D4E434C2D932C5FBF09D7BAE75DBA46CD29835AA41884FBFEBFC2A36C5DA73A (404,042 bytes).
+- **Canonical SRS:** FEAT-063 v2.7-draft Rev67, unsigned, 634,291 bytes; SHA-256 B704163C9AAF7BB198D8578699F75DB8766C2226A52CD48B0ED1314AF5E21996.
+- **Specification:** Draft 18, 101,153 bytes; SHA-256 5CA09CC6F9D936C1BA74772251F4D3A9C0480F3E6F82818FE11114205FD3E331.
+- **Independent review:** Draft 18 cold review, READY with no P1/P2/P3 findings, 5,169 bytes; SHA-256 4CE583BA092D140C62E7F1600E4B58778569885D7F7E3B62FB812839DD09835B.
+- **Decision record:** DECISIONS.md after D-205, 208,462 bytes; SHA-256 D75F1E51203C7199F305EB49A4265413617F7116D2C55DCB8AE8E4681FF485FF.
+- **Scope:** Bounded M2 S2 specification under D-196 through D-205. The image-first, activity-selection, context/lesson-pin, post-playback, /v1/jobs, and purge/provider/job-cancellation differences remain explicitly recorded deviations; this approval does not claim full Rev67 conformance.
+- **Approval boundary:** This approves the specification only. It authorizes no code edit, implementation, implementation allowlist, command ceiling, database or migration action, provider or Modal call, network use, gate, stage, commit, push, or launch. A separate reviewed implementation allowlist and owner launch prompt are required.
+- **Approval basis:** Owner instruction in the current conversation on 2026-11-14 to complete the SRS re-check and approval-preparation steps if the re-check passed; D-205; the pinned Draft 18 review.
+- OWNER_MODAL_CALL_APPROVED=NO.
+
+This specification approval preserves the existing S2 scope decisions and records their deviations. It does not amend the SRS or decide deferred S2/S3 requirements.
+## M2 S2 Implementation Allowlist Approval — Draft 1 — 2026-11-14
+
+- **Status:** APPROVED / NOT LAUNCHED.
+- **Owner approval decision:** D-207.
+- **Task Approval prefix:** 405,907 bytes; SHA-256 `AE1410D5DF706A77AD4AF25CDED6B368D0F3392BAB74B8A967397784F00FDDBC`.
+- **Canonical working SRS:** FEAT-063 v2.7-draft Rev67, unsigned; 634,291 bytes; SHA-256 `B704163C9AAF7BB198D8578699F75DB8766C2226A52CD48B0ED1314AF5E21996`.
+- **Specification:** Draft 18 remains approved only as the bounded S2 specification under D-205; its recorded deviations remain in force.
+- **Implementation allowlist:** `features/FEAT-063-system-architecture-rearchitecture/plan/M2_S2_IMPLEMENTATION_ALLOWLIST_DRAFT1_20261114.md`, 14,768 bytes; SHA-256 `7DCEEB785C2121D250B7C016EDC2030E2CD7912F87BE537F07CC8B359A2A0CE8`.
+- **Independent review:** `features/FEAT-063-system-architecture-rearchitecture/evidence/M2_S2_IMPLEMENTATION_ALLOWLIST_COLD_REVIEW_R2_20261114.md`, READY WITH NOTES; 0 P1, 0 P2, 1 P3; 2,715 bytes; SHA-256 `6872DA02B2CD88644AED71BA039D9ABBD38F243639DD44EDCCBAF2000C57645D`.
+- **Scope:** Only the 15 E paths, 4 N paths, 6 R references, and command ceilings in the pinned allowlist. D-204 fixes the exact HTTP 202 success body. D-206 requires top-level integer `current_version` only on the cancel route's HTTP 409 `STALE_REVISION`; D-201 `run_revision` remains in the successful `story_run` response.
+- **P3 follow-up:** Current-version details for stale errors on routes other than cancel remain outside this allowlist and require separate SRS-alignment review. No route may be added to this implementation scope to address that follow-up.
+- **Command ceilings:** Targeted backend tests, mypy, Ruff each have at most 2 runs; harness, architecture, and repository-security validators each have 1 final run; `git diff --check` has 1 final run, exactly as specified in the allowlist. No database/migration, Docker, install, network, provider, or Modal command is authorized.
+- **Launch boundary:** This approves the bounded implementation allowlist only. Implementation remains NOT LAUNCHED and may start only after the owner pastes the separate pinned launch prompt into the BE session. `OWNER_MODAL_CALL_APPROVED=NO`.
+- **Current decisions record:** DECISIONS.md after D-207, 212,068 bytes; SHA-256 `191D68D7344FE2146E75F339185065234D092887C341AB487FB2DBEA8511C2BF`.
+
+No implementation, tests, validators, database operation, or launch is claimed by this approval record.

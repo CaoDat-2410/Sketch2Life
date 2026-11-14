@@ -1,9 +1,9 @@
 # Source register and authority boundary
 
 
-## Current FEAT-063 implementation record — Rev60 SRS / Rev61–65 work
+## Current FEAT-063 implementation record — Rev67 SRS / Rev61–67 work
 
-- **Product requirement authority:** `features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md`, v2.7-draft, Rev60 working copy; unsigned. The companion Data Table Register is not an alternate SRS.
+- **Product requirement authority:** `features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md`, v2.7-draft Rev67 (2026-11-13), canonical working copy under D-203; unsigned. The companion Data Table Register is not an alternate SRS.
 - **Execution records:** FEAT-063 plans Rev58–Rev65 and approvals/status/evidence under the same feature folder. EV-063-71–73 cover Firebase account and role flows; EV-063-74 records a partial Parent/Teacher UI-to-Modal run; EV-063-75 records the live Teacher Sketch Deck presentation.
 - **Limits:** no video inference was performed in Rev64–65. Parent story generation was blocked by invalid Qwen JSON; this is recorded as a failure/blocker, not a passing flow. Teacher output remains a draft requiring review.
 
@@ -702,4 +702,11 @@ Canonical working source remains the FEAT-063 v2.7-draft SRS and matching Data T
 
 ## FEAT-063 Rev78 — Parent catalog-first activity suggestions — 2026-11-11
 
-Owner direction: Parent activity suggestions use Parent-accessible published/shared lesson versions as the candidate catalog; Qwen selects using minimized profile, confirmed drawing, topic and narration context; only when no candidate fits may it produce three temporary quality-gated drafts. Exact lesson version/hash and content are snapshotted on the StoryRun input. Evidence and publication status are in FEAT-063 EV-063-87 and plan Rev78B. The canonical v2.7-draft Rev60 SRS remains unsigned and unchanged; its no-preset activity item remains open for reconciliation.
+Owner direction: Parent activity suggestions use Parent-accessible published/shared lesson versions as the candidate catalog; Qwen selects using minimized profile, confirmed drawing, topic and narration context; only when no candidate fits may it produce three temporary quality-gated drafts. Exact lesson version/hash and content are snapshotted on the StoryRun input. Evidence and publication status are in FEAT-063 EV-063-87 and plan Rev78B. The canonical v2.7-draft Rev60 SRS remains unsigned and unchanged; its no-preset activity item remains open for reconciliation.## FEAT-063 M2 S2 specification approval — 2026-11-14
+
+D-205 approves M2 S2 Draft 18 as a bounded specification only: APPROVED / NOT LAUNCHED. The adopted SRS remains unsigned Rev67 under D-203. Recorded deviations under D-196/D-198/D-199 are not product conformance. D-204 specifies the route-specific cancel HTTP 202 body as request_id, story_run, and purge_state=PENDING; the shared response model has no purge_state field. Implementation remains gated on the separately reviewed and approved allowlist and an explicit owner launch prompt. OWNER_MODAL_CALL_APPROVED=NO.
+
+Evidence pins: Draft 18 101153 bytes / 5CA09CC6F9D936C1BA74772251F4D3A9C0480F3E6F82818FE11114205FD3E331; cold review 5169 bytes / 4CE583BA092D140C62E7F1600E4B58778569885D7F7E3B62FB812839DD09835B; Rev67 634291 bytes / B704163C9AAF7BB198D8578699F75DB8766C2226A52CD48B0ED1314AF5E21996.
+## FEAT-063 M2 S2 implementation allowlist review — 2026-11-14
+
+Implementation Allowlist Draft 1 received an independent READY WITH NOTES review (0 P1, 0 P2, 1 P3); the report is `features/FEAT-063-system-architecture-rearchitecture/evidence/M2_S2_IMPLEMENTATION_ALLOWLIST_COLD_REVIEW_20261114.md`. The reviewed scope is pinned to D-204/D-205/D-206 and Rev67. The P3 follow-up for stale-revision response details on routes outside the cancel endpoint remains separate; do not expand this allowlist. No implementation has launched; a separate pinned owner prompt is required. OWNER_MODAL_CALL_APPROVED=NO.
