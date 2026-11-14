@@ -48,3 +48,13 @@
 - **Security validation:** `python tools/validate_repository_security.py` passed before commit and immediately before push; both runs scanned 7,579 publishable files and found no absolute machine paths. `git diff --cached --check` passed before commit.
 - **Scope delivered:** Parent mismatch review, sample transcript, topic/difficulty-based drawing guide and preview-only gender; Teacher dashboard derived from contract-shaped local fixtures; Rev5 plan, approvals, status, decisions and evidence. No backend, API, auth, schema, or excluded-branch source was changed.
 - **Verification:** all five UI builds, Parent Android typecheck, debug APK packaging and local browser workspace responses passed. The APK install attempt on the booted emulator stalled at Android Package Manager and was interrupted; runtime is not claimed. See `EXECUTION.md`.
+
+## FEAT-069 Plan Rev6 — Parent home and Rev38 audit — 2026-11-14
+
+- **Target:** `origin/FE_UI_Project_Ver2`
+- **Implementation commit:** `f353b9e4afed9d8d33c26e9ac426079de504da56` (`feat(ui): remove duplicate parent home profile card`)
+- **Parent commit:** `8337ede2af44cef04cbd6624fbd7d63bdc7f90c6`
+- **Push:** normal fast-forward, completed 2026-11-14 (Asia/Saigon); remote advanced from `8337ede2` to `f353b9e4`.
+- **Security validation:** `python tools/validate_repository_security.py` passed before commit and immediately before push; both runs scanned 7,582 publishable files and found no absolute machine paths. `git diff --cached --check` passed before commit.
+- **Scope delivered:** removed the duplicate Parent home selected-child card, refined responsive home spacing, and recorded the Rev38 flow comparison with the unresolved SRS order conflict. No API/auth integration or generated raster assets were added.
+- **Verification:** all five UI workspace builds and focused Parent browser check passed. No tests or APK rebuild/runtime check were performed in this step. See `EXECUTION.md` and `REV38_FLOW_ALIGNMENT_20261114.md`.

@@ -7,6 +7,7 @@
 - **Parent home:** Removed the duplicate selected-child summary. Child choice remains in story setup and Family Profile. Local Parent preview check confirmed the create-story CTA and navigation remain.
 - **Build:** `npm run build` from `UI_Project` passed all five workspaces; `git diff --check` passed. No tests were added/run and no APK runtime check was performed in this step.
 - **Product boundary:** Rev38 is generated proposal material; FEAT-063 SRS v2.5-draft remains the current unsigned working SRS. The review found the Parent idea/subject ordering conflict plus incomplete import, video job/playback, Manager publication checklist and Admin operational states. All role UIs remain offline previews; no API/auth behavior is claimed.
+- **Publication:** Implementation commit `f353b9e4afed9d8d33c26e9ac426079de504da56` was pushed normally as a fast-forward from `8337ede2` to `origin/FE_UI_Project_Ver2`. Security validation passed before commit and immediately before push. See `evidence/notes/PUBLICATION.md`.
 
 - **Feature:** FEAT-069 — Leader review UI/UX remediation.
 - **State:** Rev5 implementation is complete and published under the approved preview-completion plan; final APK install/runtime on the supplied emulator is still unverified because Android Package Manager did not return from `adb install`.

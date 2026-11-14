@@ -689,6 +689,6 @@ Canonical requirements remain FEAT-063 SRS v2.4-draft. Owner-approved plan `feat
 
 ## FEAT-069 Plan Rev6 and Rev38 flow review — 2026-11-14
 
-- Exact Parent home adjustment approval and plan SHA-256 are recorded in `features/FEAT-069-leader-uiux-review-remediation/plan/PLAN_REV6_PARENT_HOME.md` and both approval registers. The duplicate selected-child home summary was removed; child selection remains in story setup and Family Profile.
+- Exact Parent home adjustment approval and plan SHA-256 are recorded in `features/FEAT-069-leader-uiux-review-remediation/plan/PLAN_REV6_PARENT_HOME.md` and both approval registers. The duplicate selected-child home summary was removed; child selection remains in story setup and Family Profile. Implementation commit `f353b9e4` was pushed normally to `origin/FE_UI_Project_Ver2`.
 - `features/FEAT-069-leader-uiux-review-remediation/evidence/notes/REV38_FLOW_ALIGNMENT_20261114.md` compares current `UI_Project/` screens with the owner-provided Rev38 screen/component indexes and FEAT-063 SRS v2.5-draft. It finds partial—not complete—alignment and records the Parent idea/subject order conflict and role-specific gaps.
 - Rev38 indexes and visual tokens are generated proposals, not approved requirements. FEAT-063 SRS v2.5-draft remains the canonical unsigned working authority. All UI previews remain disconnected from API/auth; current evidence is a five-workspace build and focused browser check of Parent home, not APK runtime or a full end-to-end walkthrough.
