@@ -1,5 +1,12 @@
 # FEAT-069 evidence index
 
+## Rev20 Parent UX Friction & Copy Polish (`UI_Project/parent-ui/`)
+
+| Evidence | Scope | What it establishes | Limitations |
+|---|---|---|---|
+| `notes/REV20_PARENT_UX_POLISH_20261114.md` | Plan Rev20, AC20.1–AC20.4 | Documents Parent residual copy cleanup (`'lời mời mẫu'`, `'preset'`, `'Kiểm tra thông tin đổi mật khẩu'`, `'Tiếp tục tiến trình'`), `generating` auto-advance `useEffect` + pause via `.job-recovery-disclosure`, `.home-preset-pill` indicator on Home, `toggleRecording` fallback alignment, Step 1 `.guide-option` ordering + `.flow-content--prepare` compact rhythm, 5-workspace `vite build`, live `375x812` browser check (`http://localhost:5171`, `final_step_110.png`), and 5/5 repository policy validators | Browser-local UI prototype only (no live backend/API/auth/ASR/VLM wiring); open SRS conflicts remain untouched |
+| `../plan/PLAN_REV20_PARENT_UX_POLISH.md` | Exact approved scope | Hash-identified approval (`485DF1D4E64538014453BE93CA4DEFBEF26B676D534B0AC060671B901BE9B8E2`) strictly for Parent UX and copy polish inside `UI_Project/parent-ui/` | Does not authorize backend/API changes, `apps/` edits, CI edits, or SRS changes |
+
 ## Rev19 Fix Flaky Async `useEffect` Race in `apps/admin-ui` CI (`4/5` -> `5/5`)
 
 | Evidence | Scope | What it establishes | Limitations |

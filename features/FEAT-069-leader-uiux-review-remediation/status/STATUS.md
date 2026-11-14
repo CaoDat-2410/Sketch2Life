@@ -1,5 +1,13 @@
 # Status
 
+## Rev20 Parent UX Friction & Copy Polish (`UI_Project/parent-ui/`) — 2026-11-14
+
+- **State:** Implemented, build-verified across all 5 `UI_Project/` workspaces, live-verified at `375x812` via headless browser (`http://localhost:5171`), and prepared for policy validation + commit/push to `origin/FE_UI_Project_Ver2`.
+- **Approved plan:** `plan/PLAN_REV20_PARENT_UX_POLISH.md`, SHA-256 `485DF1D4E64538014453BE93CA4DEFBEF26B676D534B0AC060671B901BE9B8E2`, recorded in both root and feature `TASK_APPROVAL.md` registers.
+- **Changes:** Cleaned remaining residual strings in `UI_Project/parent-ui/src/App.tsx`, added deterministic `generating` auto-advance `useEffect` (`0 -> 1 -> 2 -> 3 -> ready`) with recovery pause, rendered `.home-preset-pill` inside `.home-start` for library pre-selection, aligned `toggleRecording` error state, and moved `.guide-option` before `.prepare-lesson` with `.flow-content--prepare` compact spacing in `UI_Project/parent-ui/src/rev13ProMax.css`.
+- **Verification:** Residual copy scan (`0` hits for `'lời mời mẫu'`, `'Kiểm tra thông tin đổi mật khẩu'`, `'Tiếp tục tiến trình'`, `0` user-visible `'preset'`), `npm --prefix UI_Project run build` (`EXIT=0` across all 5 workspaces), live `browser` subagent verification (`BROWSER_HOST_FACTS`: `visited_origins: http://localhost:5171`, `blocked_origins: none`, `0` console/page errors, `0` horizontal overflow at `375x812`, inspected `final_step_110.png`), `git diff --check`, and all 5 `tools/validate_*.py` checks.
+- **Limits:** Offline browser-local UI prototype only (no live backend/API/auth/ASR/VLM/payment wiring); canonical `FEAT-063` SRS `v2.5-draft` remains unsigned and untouched. Details: `evidence/notes/REV20_PARENT_UX_POLISH_20261114.md`.
+
 ## Rev19 Fix Flaky Async `useEffect` Race in `apps/admin-ui` CI (`4/5` -> `5/5`) — 2026-11-14
 
 - **State:** Implemented and verified locally across `npm run check --prefix apps/admin-ui` (repeated `vitest run` `2/2` passes), `git diff --check`, and all 5 policy validators; pushing to `origin/FE_UI_Project_Ver2` to verify `5/5` green checks on GitHub Actions.

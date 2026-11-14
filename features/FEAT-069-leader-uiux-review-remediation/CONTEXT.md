@@ -1,6 +1,10 @@
 # FEAT-069 — Leader review UI/UX remediation
 
-## Current approved work — Rev19 Fix Flaky Async `useEffect` Race in `apps/admin-ui` CI (`4/5` -> `5/5`)
+## Current approved work — Rev20 Parent UX Friction & Copy Polish (`UI_Project/parent-ui/`)
+
+Under approved Plan Rev20 (`plan/PLAN_REV20_PARENT_UX_POLISH.md`, SHA-256 `485DF1D4E64538014453BE93CA4DEFBEF26B676D534B0AC060671B901BE9B8E2`), removed the final five Parent UI/UX friction points inside `UI_Project/parent-ui/` (`App.tsx`, `rev13ProMax.css`): replaced remaining residual/technical strings (`'lời mời mẫu'`, `'preset'`, `'Kiểm tra thông tin đổi mật khẩu'`, `'Tiếp tục tiến trình'`), added deterministic `useEffect` auto-advance (`0 -> 1 -> 2 -> 3 -> ready`) on `'generating'` that pauses when inspecting recovery/safety states, added `.home-preset-pill` with clear control on Homepage for pre-selected lessons, made `toggleRecording` fallback state consistent (`transcriptionStatus('error')`), and positioned `.guide-option` above `.prepare-lesson` with `.flow-content--prepare` compact mobile spacing. Strictly UI-only with zero backend, `apps/`, CI, or `FEAT-063` SRS modifications. See `evidence/notes/REV20_PARENT_UX_POLISH_20261114.md`.
+
+## Prior approved work — Rev19 Fix Flaky Async `useEffect` Race in `apps/admin-ui` CI (`4/5` -> `5/5`)
 
 Under approved Plan Rev19 (`plan/PLAN_REV19_ADMIN_UI_TEST_RACE.md`, SHA-256 `9BAF0070DCDFECBB368491E04A1D4575A7D3321B7AF0CB1434F18E936383797D`), resolved the intermittent GitHub Actions failure (`Admin UI checks` check-run `132472499432` on commit `21ca31f0`: `apps/admin-ui/src/__tests__/app.test.tsx:44` `expected "listClasses" to be called once, but got 0 times`). Wrapped the passive-effect `classService.listClasses()` assertion in `await waitFor(...)` and awaited the settled empty-state text (`'BE1 chưa trả lớp nào cho tài khoản này.'`) without relaxing assertions or altering runtime code, `UI_Project/`, `backend/`, CI workflows, or canonical `FEAT-063` SRS `v2.5-draft`. See `evidence/notes/REV19_ADMIN_UI_TEST_RACE_20261114.md`.
 

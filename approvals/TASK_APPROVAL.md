@@ -463,3 +463,15 @@
 - **Scope:** Deterministically `waitFor` `classService.listClasses().toHaveBeenCalledOnce()` and await the settled empty BE1 state in `apps/admin-ui/src/__tests__/app.test.tsx` without relaxing any assertion or modifying runtime code/CI configuration; record Rev19 governance evidence and push fast-forward to `origin/FE_UI_Project_Ver2`.
 - **Exclusions:** No assertion relaxation; no `UI_Project/`, `backend/`, `apps/child-ui/`, `apps/teacher-ui/`, `apps/admin-ui/src/pages/`, `.github/workflows/ci.yml`, `tools/validate_*.py`, or canonical `FEAT-063` SRS edits.
 - **Approval basis:** Direct owner instruction explicitly directing resolution of the GitHub Actions `4/5` CI failure on commit `21ca31f0`.
+
+
+## Plan Rev20 — Parent UX Friction & Copy Polish (`UI_Project/parent-ui/`)
+
+- **Status:** APPROVED for the exact UI-only scope in `features/FEAT-069-leader-uiux-review-remediation/plan/PLAN_REV20_PARENT_UX_POLISH.md`.
+- **Approver:** Project owner, direct instruction approving the 5 identified UX/copy improvements (`"ok, làm giúp tôi đi"`).
+- **Recorded timestamp:** 2026-11-14 23:10:10 +07:00 (Asia/Saigon).
+- **Plan revision:** 20.
+- **Plan SHA-256:** `485DF1D4E64538014453BE93CA4DEFBEF26B676D534B0AC060671B901BE9B8E2`.
+- **Scope:** Clean residual wording (`sendShareInvite`, `'preset'` -> natural Vietnamese, `'Cập nhật mật khẩu'`), auto-advance `'generating'` progress stages (`0 -> 1 -> 2 -> 3 -> ready`) when `previewJobState === 'processing'`, display `.home-preset-pill` on Home when `presetForNextRun` is set, make `toggleRecording` mic fallback consistent, and refine Step 1 `prepare` ergonomics for `375x812`.
+- **Exclusions:** UI-only inside `UI_Project/parent-ui/`; zero backend, API, `apps/`, CI, or canonical `FEAT-063` SRS edits.
+- **Approval basis:** Direct owner approval in conversation (`"ok, làm giúp tôi đi"`).
