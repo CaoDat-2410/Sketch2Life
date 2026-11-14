@@ -2,12 +2,12 @@
 
 ## Rev9 continuous mockup action outcomes — 2026-11-14
 
-- **State:** UI changes, all-workspace build, representative browser flow review, and repository security validation are complete locally under approved Plan Rev9. Normal publication to the already-authorized branch remains pending.
+- **State:** UI changes, all-workspace build, representative browser flow review, repository security validation, and normal fast-forward publication are complete under approved Plan Rev9. Commit `8d523fa3` is on `origin/FE_UI_Project_Ver2`.
 - **Approved plan:** `plan/PLAN_REV9_CONTINUOUS_MOCKUP_FLOWS.md`, SHA-256 `29B3B3F10C87B329FB5AF327DC5767CCEE7E5CF14CCFC047CA239B1B1C62EBFC`; recorded in the root and feature task approval registers.
 - **Scope:** Primary `UI_Project/` previews only. Generic Teacher lesson detail flow removed; draft edit/resubmit path added; preview submission/outcome copy clarified; all `WizardPage` completions have named continuations; Manager review now opens the next queue item; read-only operational detail closes with explicit wording.
-- **Verification:** `npm run build` passed all five workspaces. Parent guide step 2 → 3 → capture was observed and capture blocks continuation without an image. Manager's four-gate review enabled approval, displayed a local result and opened the next pending fixture. Teacher submit/pending row and Admin moderation were observed in this preview session; draft edit itself was not manually clicked. `git diff --check` and `python tools/validate_repository_security.py` passed after the implementation/docs edits.
+- **Verification:** `npm run build` passed all five workspaces. Parent guide step 2 → 3 → capture was observed and capture blocks continuation without an image. Manager's four-gate review enabled approval, displayed a local result and opened the next pending fixture. Teacher submit/pending row and Admin moderation were observed in this preview session; draft edit itself was not manually clicked. `git diff --check` passed; security validation passed before commit and immediately before push.
 - **Limits:** No automated tests, APIs, auth, uploads, AI/ASR, payment, persistent writes or Android runtime verification. Rev38 parity is partial; Parent ordering/activity timing conflict with the canonical v2.5-draft SRS, Teacher/Manager queues are independent fixtures, gender lacks a contract, and live business operations remain unavailable. This is not formal leader/SRS acceptance.
-- **Evidence:** `evidence/notes/REV9_ACTION_OUTCOME_CROSSWALK_20261114.md`, plus the Rev8 full audit for source/API limitations.
+- **Evidence:** `evidence/notes/REV9_ACTION_OUTCOME_CROSSWALK_20261114.md`, plus the Rev8 full audit for source/API limitations. Publication: `evidence/notes/PUBLICATION.md`.
 
 ## Rev8 full UI audit and visual polish — 2026-11-14
 

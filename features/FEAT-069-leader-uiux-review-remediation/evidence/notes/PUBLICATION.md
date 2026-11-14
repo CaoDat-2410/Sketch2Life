@@ -79,3 +79,14 @@
 - **Security validation:** `python tools/validate_repository_security.py` passed before commit and immediately before push; both runs scanned 7,582 publishable files and found no absolute machine paths. `git diff --cached --check` passed before commit.
 - **Scope delivered:** removed the duplicate Parent home selected-child card, refined responsive home spacing, and recorded the Rev38 flow comparison with the unresolved SRS order conflict. No API/auth integration or generated raster assets were added.
 - **Verification:** all five UI workspace builds and focused Parent browser check passed. No tests or APK rebuild/runtime check were performed in this step. See `EXECUTION.md` and `REV38_FLOW_ALIGNMENT_20261114.md`.
+
+## FEAT-069 Plan Rev9 — continuous mockup action outcomes — 2026-11-14
+
+- **Target:** `origin/FE_UI_Project_Ver2`
+- **Implementation commit:** `8d523fa3e947955b5a2e964ee5312439aa83b75a` (`feat(ui): clarify role preview flow outcomes`)
+- **Parent commit:** `60862e43bac952af4e23e2216130faf59f46b716`
+- **Push:** normal fast-forward, completed 2026-11-14 (Asia/Saigon); remote advanced from `60862e43` to `8d523fa3`.
+- **Plan/approval:** Rev9 plan SHA-256 `29B3B3F10C87B329FB5AF327DC5767CCEE7E5CF14CCFC047CA239B1B1C62EBFC`; approval recorded in root and feature task ledgers.
+- **Security:** `python tools/validate_repository_security.py` passed before commit and immediately before push, scanning 7,591 publishable files; no absolute machine paths were found. `git diff --cached --check` passed before commit.
+- **Scope delivered:** context-specific Teacher detail and draft actions, named role wizard continuations, Manager next-request preview, and explicit read-only disclosure outcomes; historical v2.2 versus current v2.5 flow comparison recorded. No API/backend/auth, real data, or legacy Expo workspace change.
+- **Verification limits:** five UI workspace builds passed; representative Parent, Teacher, Manager and Admin flows were reviewed. No automated tests, Android typecheck/APK rebuild, or emulator runtime check were performed in Rev9. See `EXECUTION.md`, `OPEN_QUESTIONS.md`, and `REV9_ACTION_OUTCOME_CROSSWALK_20261114.md`.
