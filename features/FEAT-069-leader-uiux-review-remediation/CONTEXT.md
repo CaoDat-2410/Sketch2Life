@@ -1,5 +1,8 @@
 # FEAT-069 — Leader review UI/UX remediation
 
+- **Current review:** Rev38 screen/component references were compared with current `UI_Project/` source and canonical FEAT-063 SRS v2.5-draft. The review result is **partial alignment, not full flow parity**; see `evidence/notes/REV38_FLOW_ALIGNMENT_20261114.md`. Rev38 is generated visual proposal material, not an approved contract.
+- **Rev6 home adjustment:** The redundant “Đang dùng hồ sơ” summary was removed from Parent home. Child selection remains in the story-start flow and Family Profile. The five-workspace build passed; the local Parent preview was reopened and confirmed the card is absent while “Bắt đầu kể” and primary navigation remain. See `plan/PLAN_REV6_PARENT_HOME.md` and `evidence/notes/EXECUTION.md`.
+
 - **State:** COMPLETE under approved Plan Rev4 UI-only clarification. Rev1–Rev3 are historical publications. Rev4 removes conditional API/auth calls added in Rev3 and aligns UI behavior with the leader disposition; published as `11294211911506a7dae73a5ab78aee0bb51311f0` to `origin/FE_UI_Project_Ver2`.
 - **Branch:** `FE_UI_Project_Ver2`.
 - **Goal:** Close the leader-review UI gaps that can be implemented without changing current product requirements or inventing backend behavior.

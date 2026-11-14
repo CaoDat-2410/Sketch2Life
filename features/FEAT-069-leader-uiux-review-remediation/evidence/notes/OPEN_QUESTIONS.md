@@ -1,5 +1,14 @@
 # FEAT-069 remaining UI/product questions
 
+## Rev38 comparison questions — 2026-11-14
+
+- Parent sequence in the current preview shows subject review before idea/transcript/context. Canonical FEAT-063 v2.5-draft §5.1 orders capture → idea/transcript → subject review → context confirmation, while Rev38 P04/P05 visually proposes the former order. This is an unresolved flow conflict; retain the canonical SRS sequence as the working target until the owner formally resolves/signs off the requirement.
+- Rev38 P01 places a child-selection entry in Lesson Library. The owner's latest request removes the duplicate selected-child card from home, while current selection is available at story start and Family Profile. Decide separately whether Library also needs a child switcher; do not restore the home card as a workaround.
+- Rev38 P03 combines guide and active drawing; current guide is a separate static pre-capture screen. Confirm interaction placement before changing the story-start workflow.
+- Rev38 P07/P08 show resumable job stages and playable video; current UI honestly presents unavailable preview states. These cannot be made operational by UI-only work without approved contracts/runtime.
+- Rev38 T03/M01 propose extraction-field review and checklist-gated publication. Current UI does not fully represent those steps. Future implementation should first scope the fixture-only visual states and verify them against current SRS; no API connection is implied.
+- Rev38 design tokens, gender/profile semantics, quota/payment figures, role navigation scope, and Admin operational controls remain proposal/open questions. The v2.5-draft SRS stays authoritative and unsigned.
+
 ## Rev5 current disposition
 
 - Parent now includes an optional gender control and shows its value in the child picker because the owner explicitly requested it. FEAT-063 SRS v2.5-draft and the reviewed API contracts do not define gender. It is a local UI preview field only; product ownership must reconcile it before persistence or handoff as a canonical profile attribute.

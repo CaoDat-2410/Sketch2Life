@@ -72,3 +72,14 @@
 - **Scope:** UI-only; no API calls. Mismatch-result preview modal, editable fixture transcript states, optional generic-topic drawing guide, source-shaped Teacher Dashboard preview, and local-only gender controls on Parent profile and child picker. Build and run the UI for review.
 - **Exclusions:** backend/API/auth/schema/SRS changes, live service calls/writes, persisted gender, real child data, legacy top-level `apps/` implementation, automated tests and history rewrite.
 - **Approval basis:** direct owner instruction. The canonical SRS is not amended; gender remains a preview-only product question.
+
+## Plan Rev6 — streamline and polish Parent home
+
+- **Status:** APPROVED for the exact scope in `plan/PLAN_REV6_PARENT_HOME.md`.
+- **Approver:** Project owner, direct instruction in this conversation: remove the “ĐANG DÙNG HỒ SƠ” home card because a child is already selected at story start, and make the homepage visually polished.
+- **Recorded timestamp:** 2026-11-14 11:02:48 Asia/Saigon.
+- **Plan revision:** 6.
+- **Approved plan SHA-256:** `B5AF1EB11C4DB22B2F4EC60F78786D5E62A3025E5638531BCC00BE0C24BA8CB1`.
+- **Scope:** UI-only removal of the duplicate selected-child home card; refine Parent home hero/spacing; keep profile and story-start selection behavior; build and review the running Parent preview; record evidence/status.
+- **Exclusions:** API/auth/persistence/data-model/SRS/backend changes; changes to other workspaces or legacy `apps/`/Child Expo; new child data/media/assets; automated tests; history rewrite.
+- **Approval basis:** direct owner request. No other product or backend behavior is authorized by this approval.

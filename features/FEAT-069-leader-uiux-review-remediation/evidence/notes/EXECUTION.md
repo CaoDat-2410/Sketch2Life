@@ -1,5 +1,17 @@
 # FEAT-069 execution record
 
+## Rev6 Parent home and Rev38 flow audit
+
+Date: 2026-11-14 (Asia/Saigon)
+Approved scope: `plan/PLAN_REV6_PARENT_HOME.md`, SHA-256 `B5AF1EB11C4DB22B2F4EC60F78786D5E62A3025E5638531BCC00BE0C24BA8CB1`.
+
+- Removed the redundant selected-child summary from `UI_Project/parent-ui/src/App.tsx` and its styles. The child's selection remains in story setup and Family Profile. Added responsive Parent home layout refinements in `src/rev6.css`; no generated visual assets or API/auth wiring were added.
+- `npm run build` from `UI_Project`: passed all five workspaces (Parent, Teacher, School Manager, Platform Admin and shared web portal).
+- `git diff --check`: passed.
+- Parent `http://127.0.0.1:5171/`: reopened after the change. The accessibility tree showed the home hero, “Bắt đầu kể” CTA and primary navigation and no “ĐANG DÙNG HỒ SƠ” card. This was a focused browser check, not a full Parent or Android runtime walkthrough.
+- Read-only Rev38 comparison: see `REV38_FLOW_ALIGNMENT_20261114.md`. Result is partial alignment, not full parity. The UI/role workspaces remain local preview fixtures and do not make API/auth requests.
+- No automated tests were added or run. No APK rebuild/install was performed in this Rev6 step; the browser page is a web preview, not proof of APK runtime.
+
 Date: 2026-11-14 (Asia/Saigon)
 Branch: `FE_UI_Project_Ver2`
 Review basis: approved `plan/PLAN_REV2.md`, leader transcript referenced in `CONTEXT.md`, FEAT-063 SRS v2.5-draft and the mounted API/source crosswalk.

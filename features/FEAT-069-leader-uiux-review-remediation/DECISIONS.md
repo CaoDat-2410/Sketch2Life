@@ -1,5 +1,13 @@
 # Feature decisions
 
+## D-069-14 — Parent home selected-profile summary
+
+The owner requested removing the “Đang dùng hồ sơ” summary from Parent home because the child is selected when starting a story. Remove only that duplicate home card; preserve child selection in story setup and Family Profile. Do not add a global home profile card back while reviewing Rev38. Rev6 implementation and browser check are recorded in `evidence/notes/EXECUTION.md`.
+
+## D-069-15 — Rev38 references are proposals; audit gaps stay explicit
+
+Use the leader-provided Rev38 screen/component folders as visual and flow review references, not as approved product/API contracts. Current product target remains FEAT-063 SRS v2.5-draft, unsigned. The read-only comparison found partial alignment, including a Parent idea/subject ordering conflict that must remain open; do not silently copy Rev38 or describe fixture states as connected capabilities. See `evidence/notes/REV38_FLOW_ALIGNMENT_20261114.md`.
+
 ## D-069-01 — Canonical product requirements
 
 Use FEAT-063 SRS v2.5-draft as the working target. Leader transcript items that conflict with it remain open owner questions; do not silently change activity order, child-profile data, or AI flow contracts.

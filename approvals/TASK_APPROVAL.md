@@ -273,6 +273,17 @@
 - **Exclusions:** backend/API/schema/auth/provider/SRS changes or route merges; live API/AI calls or database writes during implementation/QA; forbidden branches as source; legacy `apps/` and Child Expo; force push/history rewrite; automated tests.
 - **Approval basis:** the owner's direct request authorizes this bounded frontend work. It does not authorize backend integration changes or claim missing runtime services are working.
 
+## Plan Rev6 — streamline and polish Parent home
+
+- **Status:** APPROVED for the exact scope in `features/FEAT-069-leader-uiux-review-remediation/plan/PLAN_REV6_PARENT_HOME.md`.
+- **Approver:** Project owner, direct instruction in this conversation: remove the “ĐANG DÙNG HỒ SƠ” home card because the child is selected when starting a story, and visually polish the homepage.
+- **Recorded timestamp:** 2026-11-14 11:02:48 Asia/Saigon.
+- **Plan revision:** 6.
+- **Approved plan SHA-256:** `B5AF1EB11C4DB22B2F4EC60F78786D5E62A3025E5638531BCC00BE0C24BA8CB1`.
+- **Scope:** Remove the redundant selected-child card from Parent home; rebalance responsive spacing/hero emphasis while preserving story-start child selection, profile controls, notification, active-run resume and primary navigation; build and review the Parent preview; update feature evidence/status.
+- **Exclusions:** API/auth/persistence/data-model/SRS/backend changes, other role workspaces, legacy `apps/`/Child Expo, new child data/media/assets, automated tests and history rewrite.
+- **Approval basis:** direct owner instruction; it approves the exact UI-only scope and no other product/backend changes.
+
 ## FEAT-069 Plan Rev3 Parent Library addendum approval
 
 - **Status:** APPROVED for `features/FEAT-069-leader-uiux-review-remediation/plan/PLAN_REV3_ADDENDUM_PARENT_LIBRARY.md`.

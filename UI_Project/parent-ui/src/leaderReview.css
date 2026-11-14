@@ -1,5 +1,4 @@
 /* FEAT-069: keep the Parent entry action visible and make review steps scan quickly. */
-.parent-home-child { margin-bottom: 8px; }
 .parent-home-content { padding-top: 7px; padding-bottom: calc(92px + env(safe-area-inset-bottom)); }
 .parent-home-hero { min-height: 190px; margin-bottom: 8px; padding: 20px 20px 16px; }
 .parent-home-hero h1 { margin-top: 11px; font-size: clamp(28px, 8vw, 34px); }
