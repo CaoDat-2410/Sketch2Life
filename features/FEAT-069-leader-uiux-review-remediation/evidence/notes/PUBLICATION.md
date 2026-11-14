@@ -1,5 +1,16 @@
 # FEAT-069 publication record
 
+## FEAT-069 Plan Rev8 — full UI audit and polish — 2026-11-14
+
+- **Target:** `origin/FE_UI_Project_Ver2`
+- **Implementation commit:** `c9c93e65` (`feat(ui): align mockups with SRS and calm palette`)
+- **Parent commit:** `c8017a55`
+- **Push:** normal fast-forward, completed 2026-11-14 (Asia/Saigon); remote advanced from `c8017a55` to `c9c93e65`.
+- **Security validation:** passed before commit and immediately before push; each run scanned 7,589 publishable files, excluded environment/credential/seed files, and found no absolute machine paths. `git diff --cached --check` passed before commit.
+- **Scope delivered:** Parent story flow order aligned to FEAT-063 SRS v2.5-draft, post-image direction review, removed sample-drawing action, editable transcript behavior, and a calmer palette across Parent mobile, Teacher, School Manager, Platform Admin and shared portal. No API/auth/backend integration or legacy UI tree changes.
+- **Verification:** all five UI builds, Parent Android typecheck and debug APK packaging passed. Browser visual review covered Parent setup/capture and all web entry surfaces. ADB could not start, so APK install/runtime remains unverified. No automated tests were run. See `EXECUTION.md` and the Rev8 audit note.
+- **Limits:** SRS v2.5-draft remains unsigned; outdoor-activity timing conflicts with leader review, gender has no canonical contract, and several complete workflows are still fixture-only/unavailable from the current API composition. This is not formal leader sign-off or API readiness.
+
 ## FEAT-069 Plan Rev7 — whole-project mockup flows — 2026-11-14
 
 - **Target:** `origin/FE_UI_Project_Ver2`

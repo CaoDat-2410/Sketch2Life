@@ -702,3 +702,9 @@ Canonical requirements remain FEAT-063 SRS v2.4-draft. Owner-approved plan `feat
 - Parent stays the Android WebView app; the three staff workspaces stay web and the unified portal supplies role selection/sign-in previews. Five UI builds, Parent Android typecheck and debug APK packaging passed. ADB currently has no attached device, so APK installation/runtime is not claimed.
 - Manual browser review covered Parent profile spacing and settings placement, Teacher's three-step fixture import, Manager's four-check publication gate, Admin status-specific moderation and all five role entry previews. Narrow web workflow rails and preview notices now remain readable without horizontal clipping.
 - The prototype follows the owner-requested Rev38 Parent sequence for this mockup; its conflict with the canonical unsigned FEAT-063 SRS v2.5-draft §5.1 remains an open product decision. The SRS and API/backend are unchanged.
+
+## FEAT-069 Plan Rev8 — full UI audit and palette polish — 2026-11-14
+
+- Rev8 aligns the Parent flow ordering to current FEAT-063 SRS v2.5-draft §5.1, keeps sample transcript/profile gender as UI fixtures, removes the sample-drawing action, and softens colors across all five `UI_Project/` workspaces. It adds no API/auth/backend calls and changes no canonical requirements or contracts.
+- Commit `c9c93e65` was pushed normally to `origin/FE_UI_Project_Ver2`. All five UI builds, Parent Android typecheck and debug APK packaging passed; APK emulator runtime was not verified because the local ADB daemon failed.
+- The leader review's outdoor-activity timing remains in conflict with the SRS, gender remains without a canonical contract, and API composition gaps remain. Rev8 is not formal leader/SRS sign-off.

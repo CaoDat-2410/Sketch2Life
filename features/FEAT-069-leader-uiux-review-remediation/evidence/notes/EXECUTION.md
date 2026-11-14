@@ -10,8 +10,8 @@ Date: 2026-11-14 (Asia/Saigon). Approved plan: `plan/PLAN_REV8_FULL_UI_AUDIT_AND
 - Current five-workspace production build: passed. Parent Android typecheck: passed. Gradle `:app:assembleDebug`: `BUILD SUCCESSFUL`; its `buildParentUi` task generated the self-contained Parent WebView HTML and included it in the APK. APK path: `UI_Project/parent-android/apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk`.
 - Runtime caveat: `adb devices -l` failed to start the local ADB daemon (`could not read ok from ADB Server` / `cannot connect to daemon`). The APK was not installed or launched on an emulator.
 - Source/API review: Lesson Library and BE1 operations support parts of the mockup vocabulary; demo media/session routes are not evidence of a durable Parent story/AI workflow. The main composition omits the durable `ai_jobs` router, while StoryRun-lite is conditionally enabled. Role screens use local fixtures; no request was made. Refer to the Rev8 audit note for the per-role crosswalk and remaining conflicts.
-- `git diff --check` passed. `python tools/validate_repository_security.py` passed before commit preparation, scanning 7,589 publishable files; absolute machine paths were absent and environment/credential/seed files were excluded.
-- No automated tests were run. Normal push and remote confirmation are recorded in `notes/PUBLICATION.md` after final closeout.
+- `git diff --check` passed. `python tools/validate_repository_security.py` passed before commit and immediately before push, scanning 7,589 publishable files; absolute machine paths were absent and environment/credential/seed files were excluded.
+- No automated tests were run. Commit `c9c93e65` was pushed normally as a fast-forward from `c8017a55` to `origin/FE_UI_Project_Ver2`; see `notes/PUBLICATION.md`.
 
 ## Rev7 whole-project mockup pass
 

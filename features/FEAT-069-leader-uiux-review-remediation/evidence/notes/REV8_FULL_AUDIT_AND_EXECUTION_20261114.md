@@ -60,6 +60,6 @@ This is source-route and visual-state coverage, not a formal leader acceptance r
 - `pnpm --filter @sketch2life/mobile typecheck` from `UI_Project/parent-android`: passed.
 - `:app:assembleDebug` with `ANDROID_HOME` / `ANDROID_SDK_ROOT` pointed to the installed local Android SDK: `BUILD SUCCESSFUL`; the Gradle build ran the Parent UI Android bundle and packaged it into the app. Artifact: `UI_Project/parent-android/apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk`.
 - Android runtime: not verified. `adb devices -l` could not start the local ADB daemon (`cannot connect to daemon`), so this APK was not installed or launched on the emulator.
-- `git diff --check` passed. `python tools/validate_repository_security.py` passed before commit preparation, scanning 7,589 publishable files; absolute machine paths were absent and environment/credential/seed files were excluded.
-- Normal push and remote confirmation are recorded in `notes/PUBLICATION.md` after final closeout.
+- `git diff --check` passed. `python tools/validate_repository_security.py` passed before commit and immediately before push, scanning 7,589 publishable files; absolute machine paths were absent and environment/credential/seed files were excluded.
+- Commit `c9c93e65` (`feat(ui): align mockups with SRS and calm palette`) was pushed normally as a fast-forward from `c8017a55` to `origin/FE_UI_Project_Ver2`. See `notes/PUBLICATION.md`.
 - No automated tests were added or run.
