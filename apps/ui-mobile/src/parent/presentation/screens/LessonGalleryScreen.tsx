@@ -4,6 +4,28 @@ import type { LessonDetail, LessonInvitation, LessonSummary, ParentGroupInvitati
 import { Card, ChoiceRow, Notice, PrimaryButton, ScreenFrame, SecondaryButton, SectionTitle, TextButton, palette } from '../components/ui';
 import { ALL_LESSONS_TOPIC, buildLessonCatalogViewModel } from './catalogViewModel';
 
+function lessonInvitationStateLabel(state: string): string {
+  switch (state.toUpperCase()) {
+    case 'PENDING':
+    case 'INVITED': return 'Đang chờ phản hồi';
+    case 'ACCEPTED':
+    case 'ACTIVE': return 'Đã được chấp nhận';
+    case 'DECLINED': return 'Đã từ chối';
+    case 'REVOKED': return 'Đã thu hồi';
+    case 'EXPIRED': return 'Đã hết hạn';
+    default: return 'Chưa xác định trạng thái';
+  }
+}
+
+function parentGroupInvitationStateLabel(state: ParentGroupInvitation['state']): string {
+  switch (state) {
+    case 'INVITED': return 'Đang chờ bạn chấp nhận';
+    case 'ACTIVE': return 'Đã tham gia';
+    case 'REVOKED': return 'Đã thu hồi';
+    case 'EXPIRED': return 'Đã hết hạn';
+  }
+}
+
 type Props = {
   lessons: LessonSummary[];
   selectedLesson: LessonDetail | null;
@@ -31,8 +53,8 @@ export function LessonGalleryScreen(props: Props): React.JSX.Element {
   return (
     <ScreenFrame
       title={isPicker ? 'Chọn bài giảng' : 'Thư viện bài giảng'}
-      subtitle={isPicker ? 'Đây là tùy chọn. Có thể tiếp tục không cần bài giảng.' : 'Bài giảng được chia sẻ hoặc công khai cho phụ huynh.'}
-      step={isPicker ? 'Tùy chọn' : undefined}
+      subtitle={isPicker ? 'Chọn và ghim phiên bản bài giảng bạn muốn dùng.' : 'Bài giảng được chia sẻ hoặc công khai cho phụ huynh.'}
+      step={isPicker ? 'Thư viện' : undefined}
       onBack={props.onBack}
     >
       {props.error ? <Notice text={props.error} tone="error" /> : null}
@@ -42,8 +64,9 @@ export function LessonGalleryScreen(props: Props): React.JSX.Element {
         <Card style={styles.detailCard}>
           <SectionTitle>{props.selectedLesson.title}</SectionTitle>
           <Text style={styles.detailMeta}>
-            {props.selectedLesson.topic} · phiên bản {props.selectedLesson.version_no}
+            {props.selectedLesson.topic} · phiên bản {props.selectedLesson.version_no} · mã {props.selectedLesson.version_id}
           </Text>
+          <Text style={styles.detailMeta}>SHA-256: {props.selectedLesson.content_sha256}</Text>
           <View style={styles.detailSection}>
             <Text style={styles.sectionLabel}>Hướng dẫn vẽ</Text>
             <Text style={styles.bodyText}>{props.selectedLesson.drawing_steps_text}</Text>
@@ -103,7 +126,7 @@ export function LessonGalleryScreen(props: Props): React.JSX.Element {
           </View>
         ) : null}
 
-        {catalog.emptyState === 'no-lessons' && !props.loading ? (
+        {catalog.emptyState === 'no-lessons' && !props.loading && !props.error ? (
           <Text style={styles.emptyText}>Chưa có bài giảng được chia sẻ.</Text>
         ) : null}
 
@@ -111,8 +134,8 @@ export function LessonGalleryScreen(props: Props): React.JSX.Element {
           <ChoiceRow
             key={`${lesson.lesson_id}:${lesson.version_id}`}
             title={lesson.title}
-            detail={`${lesson.topic} · ${lesson.activity_count} hoạt động · ${lesson.access_source === 'PUBLIC' ? 'Công khai' : 'Được chia sẻ'}`}
-            selected={props.selectedLesson?.lesson_id === lesson.lesson_id}
+            detail={`${lesson.topic} · phiên bản ${lesson.version_id} · ${lesson.activity_count} hoạt động · ${lesson.access_source === 'PUBLIC' ? 'Công khai' : 'Được chia sẻ'}`}
+            selected={props.selectedLesson?.lesson_id === lesson.lesson_id && props.selectedLesson.version_id === lesson.version_id}
             onPress={() => props.onOpenLesson(lesson.lesson_id)}
           />
         ))}
@@ -124,42 +147,47 @@ export function LessonGalleryScreen(props: Props): React.JSX.Element {
         <>
           <Card style={styles.invitationCard}>
             <SectionTitle>Lời mời bài giảng</SectionTitle>
-            {props.lessonInvitations.length === 0 ? (
+            {!props.loading && !props.error && props.lessonInvitations.length === 0 ? (
               <Text style={styles.emptyText}>Không có lời mời đang chờ.</Text>
             ) : null}
-            {props.lessonInvitations
-              .filter((item) => item.state === 'PENDING' || item.state === 'INVITED')
-              .map((item) => (
+            {props.lessonInvitations.map((item) => {
+              const canRespond = item.state.toUpperCase() === 'PENDING' || item.state.toUpperCase() === 'INVITED';
+              const actionBusy = props.loadingId === item.access_grant_id;
+              return (
                 <View key={item.access_grant_id} style={styles.invitationItem}>
                   <Text style={styles.invitationTitle}>Bài giảng được mời chia sẻ</Text>
-                  <Text style={styles.invitationMeta}>Hết hạn: {item.expires_at ?? 'không ghi hạn'}</Text>
-                  <PrimaryButton label="Chấp nhận" onPress={() => props.onAcceptLessonInvitation(item.access_grant_id)} />
-                  <TextButton label="Từ chối lời mời" onPress={() => props.onDeclineLessonInvitation(item.access_grant_id)} />
+                  <Text style={styles.invitationMeta}>Trạng thái từ máy chủ: {lessonInvitationStateLabel(item.state)}</Text>
+                  {canRespond ? <>
+                    <PrimaryButton label={actionBusy ? 'Đang kiểm tra…' : 'Chấp nhận'} busy={actionBusy} disabled={Boolean(props.loadingId)} onPress={() => props.onAcceptLessonInvitation(item.access_grant_id)} />
+                    <TextButton label="Từ chối lời mời" disabled={Boolean(props.loadingId)} onPress={() => props.onDeclineLessonInvitation(item.access_grant_id)} />
+                  </> : null}
                 </View>
-              ))}
+              );
+            })}
           </Card>
 
           <Card style={styles.invitationCard}>
             <SectionTitle>Lời mời nhóm phụ huynh</SectionTitle>
-            {props.groupInvitations.length === 0 ? (
+            {!props.loading && !props.error && props.groupInvitations.length === 0 ? (
               <Text style={styles.emptyText}>Không có lời mời đang chờ.</Text>
             ) : null}
-            {props.groupInvitations
-              .filter((item) => item.state === 'INVITED')
-              .map((item) => (
+            {props.groupInvitations.map((item) => {
+              const actionBusy = props.loadingId === item.membership_id;
+              return (
                 <View key={item.membership_id} style={styles.invitationItem}>
-                  <Text style={styles.invitationTitle}>Nhóm phụ huynh · {item.membership_id}</Text>
-                  <SecondaryButton
-                    label="Chấp nhận lời mời"
+                  <Text style={styles.invitationTitle}>Nhóm phụ huynh</Text>
+                  <Text style={styles.invitationMeta}>Trạng thái từ máy chủ: {parentGroupInvitationStateLabel(item.state)}</Text>
+                  {item.state === 'INVITED' ? <SecondaryButton
+                    label={actionBusy ? 'Đang kiểm tra…' : 'Chấp nhận lời mời'}
+                    disabled={Boolean(props.loadingId)}
                     onPress={() => props.onAcceptGroupInvitation(item.membership_id)}
-                  />
+                  /> : null}
                 </View>
-              ))}
+              );
+            })}
           </Card>
         </>
-      ) : (
-        <SecondaryButton label="Tiếp tục không dùng bài giảng" onPress={props.onBack} />
-      )}
+      ) : null}
     </ScreenFrame>
   );
 }

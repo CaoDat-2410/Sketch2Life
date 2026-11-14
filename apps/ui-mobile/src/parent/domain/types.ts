@@ -264,6 +264,9 @@ export type ParentLessonDeliveryPage = {
 export type StoryDraft = {
   schema_version: 'sketch2life.story-revision.v1';
   language: 'vi';
+  revisionId?: string;
+  revisionNo?: number;
+  sha256?: string;
   title: string;
   story: { opening: string; middle: string; ending: string };
   duration_ms: number;
@@ -340,21 +343,49 @@ export type ParentStoryContextV1 = {
 };
 
 /** V1 StoryRun is separate from the legacy consent-bearing StoryRun type. */
+export type ParentLessonPinSnapshotV1 = ParentLessonVersionPinV1 & {
+  schema_version?: 'sketch2life.parent-lesson-pin.v1';
+  version_no?: number;
+  target_age_band_ref?: string | null;
+  target_age_band_version?: number | null;
+  title?: string;
+  topic?: string;
+  drawing_subject?: string;
+  subject_learning_notes?: string;
+  script_direction?: string | null;
+  script_following_allowed?: boolean;
+  activities?: Activity[];
+};
+
 export type ParentStoryRunV1 = {
   run_id: string;
   run_state: string;
   parent_profile_id: string;
+  profile_revision_ref?: string;
   context_revision: number;
+  context_confirmed?: boolean;
   context_snapshot: ParentStoryContextV1;
   context_snapshot_sha256: string;
-  lesson_pin_snapshot?: ParentLessonVersionPinV1 | null;
+  lesson_pin_snapshot?: ParentLessonPinSnapshotV1 | null;
+  current_input_revision?: number | null;
+  understanding_revision?: number | null;
+  subject_label?: string | null;
+  candidate?: ParentCandidate | null;
+  story_revision_id?: string | null;
+  story_revision_no?: number | null;
+  story_status?: string | null;
+  story_sha256?: string | null;
+  story?: unknown;
+  job_state?: string | null;
+  retryable?: boolean;
+  error_code?: string | null;
 };
 
 export type ParentStoryRunCreateV1 = {
   parent_profile_id: string;
   topic: string;
   adult_confirmed_idea: string;
-  lesson_version: ParentLessonVersionPinV1;
+  lesson_version?: ParentLessonVersionPinV1 | null;
 };
 
 export type ParentStoryRunEnvelopeV1 = {

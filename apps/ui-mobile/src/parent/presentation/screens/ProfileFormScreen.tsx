@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { Card, Field, Notice, PrimaryButton, ScreenFrame, SecondaryButton } from '../components/ui';
+import { Card, ChoiceRow, Field, Notice, PrimaryButton, ScreenFrame, SecondaryButton, SectionTitle } from '../components/ui';
 import type { ParentProfileViewV1 } from '../../domain/types';
 import { CHILD_AGE_RANGE_MESSAGE, isSupportedChildAge } from '../../domain/profileRules';
 import type { ProfileFieldMessages } from '../navigation/parentFlowV1';
+import { toParentProfileMutationInput } from '../navigation/workflowTypes';
+import type { ChildGenderDraft } from '../navigation/workflowTypes';
 
 type ProfileFormInput = { displayName: string; ageMonths: number; interests: string };
 
@@ -21,12 +23,13 @@ export function ProfileFormScreen({ mode, profile = null, busy, error, fieldErro
   const [displayName, setDisplayName] = useState(profile?.display_name ?? '');
   const [ageMonths, setAgeMonths] = useState(String(profile?.age_months ?? 72));
   const [interests, setInterests] = useState(profile?.interests_summary ?? '');
+  const [childGender, setChildGender] = useState<ChildGenderDraft>('');
   const isCreate = mode === 'create';
   const parsedAge = Number(ageMonths);
   const ageValid = isSupportedChildAge(parsedAge);
 
   function submit(): void {
-    const input = { displayName, ageMonths: parsedAge, interests };
+    const input = toParentProfileMutationInput({ displayName, ageMonths: parsedAge, interests, childGender });
     const action = isCreate ? onCreate : onUpdate;
     void action(input).catch(() => undefined);
   }
@@ -61,6 +64,29 @@ export function ProfileFormScreen({ mode, profile = null, busy, error, fieldErro
           placeholder="Thiên nhiên, côn trùng…"
         />
         {fieldErrors.interests_summary ? <Notice text={fieldErrors.interests_summary} tone="error" /> : null}
+      </Card>
+
+      <Card>
+        <SectionTitle>Giới tính của trẻ (không bắt buộc)</SectionTitle>
+        <ChoiceRow
+          title="Bé trai"
+          selected={childGender === 'boy'}
+          onPress={() => setChildGender((current) => current === 'boy' ? '' : 'boy')}
+        />
+        <ChoiceRow
+          title="Bé gái"
+          selected={childGender === 'girl'}
+          onPress={() => setChildGender((current) => current === 'girl' ? '' : 'girl')}
+        />
+        <ChoiceRow
+          title="Không muốn trả lời"
+          selected={childGender === 'prefer_not_to_say'}
+          onPress={() => setChildGender((current) => current === 'prefer_not_to_say' ? '' : 'prefer_not_to_say')}
+        />
+        <Notice
+          text="Cơ sở đồng ý cho trường này đang chờ xác nhận. Lựa chọn chỉ là bản nháp; chưa được gửi, lưu hoặc dùng để tạo câu chuyện."
+          tone="warning"
+        />
       </Card>
 
       <Card>

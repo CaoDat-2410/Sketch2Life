@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Text, View } from 'react-native';
 import { Card, Field, Notice, PrimaryButton, SecondaryButton, palette } from '../components/ui';
 import { GoogleSignInButton } from '../components/GoogleSignInButton';
+import { safeParentIdentityErrorMessage } from '../navigation/workflowTypes';
 
 type Props = {
   busy: boolean;
@@ -21,7 +22,7 @@ export function AuthScreen({ busy, error, googleAndroidClientId, googleWebClient
   const [feedback, setFeedback] = useState('');
   const [feedbackTone, setFeedbackTone] = useState<'success' | 'error'>('success');
   return (
-    <View style={{ flex: 1, backgroundColor: '#F6F9FC', justifyContent: 'center', padding: 20 }}>
+    <View style={{ flex: 1, backgroundColor: palette.background, justifyContent: 'center', padding: 20 }}>
       <View style={{ width: '100%', maxWidth: 440, alignSelf: 'center', gap: 18 }}>
         <View style={{ gap: 8 }}>
           <Text style={{ fontSize: 16, color: palette.blue, fontWeight: '800', letterSpacing: 0.7 }}>SKETCH2LIFE</Text>
@@ -42,10 +43,10 @@ export function AuthScreen({ busy, error, googleAndroidClientId, googleWebClient
             if (!email.trim()) { setFeedbackTone('error'); setFeedback('Nhập email để nhận liên kết đặt lại mật khẩu.'); return; }
             void onReset(email)
               .then(() => { setFeedbackTone('success'); setFeedback('Nếu email đã đăng ký, hướng dẫn đặt lại mật khẩu sẽ được gửi tới hộp thư.'); })
-              .catch((cause: unknown) => { setFeedbackTone('error'); setFeedback(cause instanceof Error ? cause.message : 'Không gửi được email đặt lại mật khẩu.'); });
-          }} accessibilityRole="button" style={{ color: palette.blue, textAlign: 'center', fontWeight: '700', padding: 8 }}>Quên mật khẩu?</Text> : <Text style={{ color: palette.muted, fontSize: 12, lineHeight: 18 }}>Tài khoản được tạo trên Firebase Authentication và backend Sketch2Life.</Text>}
-          <View style={{ height: 1, backgroundColor: '#E3EAF2' }} />
-          <GoogleSignInButton busy={busy} googleAndroidClientId={googleAndroidClientId} googleWebClientId={googleWebClientId} onIdToken={onGoogleSignIn} onError={(message) => { setFeedbackTone('error'); setFeedback(message); }} />
+              .catch((cause: unknown) => { setFeedbackTone('error'); setFeedback(safeParentIdentityErrorMessage(cause)); });
+          }} accessibilityRole="button" style={{ color: palette.blue, textAlign: 'center', fontWeight: '700', minHeight: 44, textAlignVertical: 'center', padding: 8 }}>Quên mật khẩu?</Text> : <Text style={{ color: palette.muted, fontSize: 12, lineHeight: 18 }}>Tài khoản được tạo trên Firebase Authentication và backend Sketch2Life.</Text>}
+          <View style={{ height: 1, backgroundColor: palette.disabledSurface }} />
+          <GoogleSignInButton busy={busy} googleAndroidClientId={googleAndroidClientId} googleWebClientId={googleWebClientId} onIdToken={onGoogleSignIn} onError={() => { setFeedbackTone('error'); setFeedback('Chưa thể đăng nhập bằng Google. Hãy thử lại hoặc dùng email.'); }} />
         </Card>
       </View>
     </View>

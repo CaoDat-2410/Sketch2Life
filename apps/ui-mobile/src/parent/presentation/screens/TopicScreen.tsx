@@ -56,7 +56,8 @@ export function TopicScreen(props: Props): React.JSX.Element {
       setRecording(result.recording);
       setRecordingSeconds(0);
     } catch (cause) {
-      setRecordingError(cause instanceof Error ? cause.message : 'Không thể bắt đầu ghi âm.');
+      void cause;
+      setRecordingError('Chưa thể dùng micro. Bạn vẫn có thể nhập ý tưởng bằng văn bản.');
     } finally {
       setRecordingBusy(false);
     }
@@ -74,7 +75,8 @@ export function TopicScreen(props: Props): React.JSX.Element {
       setRecording(null);
       setRecordingSeconds(0);
     } catch (cause) {
-      setRecordingError(cause instanceof Error ? cause.message : 'Không thể hoàn tất bản ghi.');
+      void cause;
+      setRecordingError('Chưa thể lưu bản ghi âm. Hãy thử lại hoặc nhập ý tưởng bằng văn bản.');
       setRecording(null);
     } finally {
       setRecordingBusy(false);
@@ -83,10 +85,10 @@ export function TopicScreen(props: Props): React.JSX.Element {
   }
 
   return (
-    <ScreenFrame title="Chọn chủ đề" subtitle="Nhập chủ đề và gợi ý của người lớn trước khi xem hướng dẫn từng bước." step={props.stepLabel} onBack={props.onBack}>
+    <ScreenFrame title="Chọn chủ đề" subtitle="Chủ đề và ý tưởng có thể bổ sung, nhưng cần ghim một phiên bản bài giảng để xem hướng dẫn từng bước." step={props.stepLabel} onBack={props.onBack}>
       <Card>
-        <Field label="Chủ đề" value={props.topic} onChangeText={props.onTopic} placeholder="Ví dụ: con bướm" />
-        <Field label="Ý tưởng của người lớn" value={props.idea} onChangeText={props.onIdea} placeholder="Điều bé đang tò mò…" multiline />
+        <Field label="Chủ đề (không bắt buộc)" value={props.topic} onChangeText={props.onTopic} placeholder="Ví dụ: con bướm" />
+        <Field label="Ý tưởng của người lớn (không bắt buộc)" value={props.idea} onChangeText={props.onIdea} placeholder="Điều bé đang tò mò…" multiline />
         <SectionTitle>Hoặc ghi âm ý tưởng</SectionTitle>
         <Text style={{ color: palette.muted, fontSize: 13 }}>Tối đa 2 phút. Transcript sẽ được người lớn xem và sửa trước khi dùng.</Text>
         {recording ? <>
@@ -101,7 +103,7 @@ export function TopicScreen(props: Props): React.JSX.Element {
       </Card>
       <Card>
         <SectionTitle>Giáo án mẫu</SectionTitle>
-        {props.lesson ? <Notice text={`Đã chọn: ${props.lesson.title}`} tone="success" /> : <Text style={{ color: palette.muted, fontSize: 14 }}>Hãy chọn một bài học cho buổi học này.</Text>}
+        {props.lesson ? <Notice text={`Đã chọn: ${props.lesson.title} · phiên bản ${props.lesson.version_id} · SHA-256 ${props.lesson.content_sha256}`} tone="success" /> : <Text style={{ color: palette.muted, fontSize: 14 }}>Hãy chọn và ghim một phiên bản bài giảng để tiếp tục.</Text>}
         <SecondaryButton label={props.lesson ? 'Đổi bài học' : 'Chọn bài học'} onPress={props.onOpenLessons} />
       </Card>
       <Card>

@@ -62,3 +62,6 @@ features/FEAT-057-be2-01-14-offline-integration/plan/CROSS_LANE_X01_X05_SLICE_PL
 features/FEAT-057-be2-01-14-offline-integration/plan/CROSS_LANE_X01_X05_SLICE_PLAN_REV3_20261021.md whitespace=-blank-at-eof
 features/FEAT-057-be2-01-14-offline-integration/plan/CROSS_LANE_X01_X05_SLICE_PLAN_REV5_DRAFT_20261021.md whitespace=-blank-at-eof
 features/FEAT-057-be2-01-14-offline-integration/evidence/notes/BE2_07_01_08_PERSISTED_FLOW_HANDOFF_DRAFT_20261022.md whitespace=cr-at-eol,-blank-at-eof,-blank-at-eol
+# Preserve byte-level hashes of FEAT-081 Wave R plans pinned by SHA-256 in the FEAT-081 decisions, approvals and reports (CRLF and trailing blank line as approved).
+features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_5.md -text whitespace=cr-at-eol,-blank-at-eof
+features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_7.md -text whitespace=cr-at-eol,-blank-at-eof

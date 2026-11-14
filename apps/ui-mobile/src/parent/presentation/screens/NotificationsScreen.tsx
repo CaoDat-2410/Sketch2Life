@@ -1,9 +1,11 @@
 import React from 'react';
 import { Text } from 'react-native';
+import type { ParentCapabilityState } from '../../application/ports/ParentCapabilityPorts';
 import type { ParentNotification } from '../../domain/types';
 import { Card, Notice, PrimaryButton, ScreenFrame, SectionTitle, TextButton, palette } from '../components/ui';
 
 type Props = {
+  capability: ParentCapabilityState;
   items: ParentNotification[];
   loading: boolean;
   error: string;
@@ -15,6 +17,12 @@ type Props = {
 };
 
 export function NotificationsScreen(props: Props): React.JSX.Element {
+  if (props.capability.state === 'unavailable') {
+    return <ScreenFrame title="Thông báo" subtitle="Trạng thái tính năng" onBack={props.onBack}>
+      <Notice text="Hộp thư chưa khả dụng vì chưa có hợp đồng dịch vụ được xác nhận. Danh sách chưa tải không có nghĩa là bạn chưa có thông báo; lời nhắc và đóng buổi do máy chủ quản lý." tone="warning" />
+    </ScreenFrame>;
+  }
+
   return (
     <ScreenFrame title="Thông báo" subtitle="Cập nhật trong ứng dụng." onBack={props.onBack}>
       {props.error ? <Notice text={props.error} tone="error" /> : null}

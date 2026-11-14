@@ -1,5 +1,6 @@
 import { parentConfig } from '../config';
 import { ParentApplicationError, type ParentApplicationErrorMetadata, type ParentSafeFieldError } from '../../application/ParentApplicationError';
+import type { ParentCapabilityId } from '../../application/ports/ParentCapabilityPorts';
 import type {
   AuthTokenPort,
   ParentActionIdentity,
@@ -50,6 +51,16 @@ export class ParentApiError extends ParentApplicationError {
   }
 }
 
+export class ParentApiUnavailableError extends ParentApiError {
+  readonly state = 'unavailable' as const;
+  readonly reason = 'route-not-in-be-handoff' as const;
+
+  constructor(readonly capability: ParentCapabilityId) {
+    super('CAPABILITY_UNAVAILABLE', 'local-unavailable');
+    this.name = 'ParentApiUnavailableError';
+  }
+}
+
 export class ParentApi implements ParentApiPort {
   constructor(
     private readonly auth: AuthTokenPort,
@@ -58,11 +69,11 @@ export class ParentApi implements ParentApiPort {
   ) {}
 
   getConsentPolicy() {
-    return this.request<{ request_id: string; policy: ConsentPolicy }>('/api/parent/v1/consent-policy', 'GET');
+    return this.unavailable<{ request_id: string; policy: ConsentPolicy }>('consent');
   }
 
   listProfiles() {
-    return this.request<{ request_id: string; profiles: ParentProfile[] }>('/api/parent/v1/child-profiles', 'GET');
+    return this.unavailable<{ request_id: string; profiles: ParentProfile[] }>('profiles');
   }
 
   listProfilesV1(limit = 25, cursor?: string | null) {
@@ -118,7 +129,8 @@ export class ParentApi implements ParentApiPort {
     consent_accepted: true;
     consent_policy_version: string;
   }) {
-    return this.request<{ request_id: string; profile: ParentProfile }>('/api/parent/v1/child-profiles', 'POST', input);
+    void input;
+    return this.unavailable<{ request_id: string; profile: ParentProfile }>('profiles');
   }
 
   updateProfile(profileId: string, input: {
@@ -127,41 +139,34 @@ export class ParentApi implements ParentApiPort {
     display_name: string;
     interests_summary: string;
   }) {
-    return this.request<{ request_id: string; profile: ParentProfile }>(
-      `/api/parent/v1/child-profiles/${encodeURIComponent(profileId)}`,
-      'PATCH',
-      input,
-    );
+    void profileId;
+    void input;
+    return this.unavailable<{ request_id: string; profile: ParentProfile }>('profiles');
   }
 
   grantAuthorization(profileId: string, policyVersion: string) {
-    return this.request<{ request_id: string; profile: ParentProfile }>(
-      `/api/parent/v1/child-profiles/${encodeURIComponent(profileId)}/data-authorizations`,
-      'POST',
-      { consent_accepted: true, consent_policy_version: policyVersion },
-    );
+    void profileId;
+    void policyVersion;
+    return this.unavailable<{ request_id: string; profile: ParentProfile }>('consent');
   }
 
   revokeAuthorization(profileId: string) {
-    return this.request<{ request_id: string; profile: ParentProfile }>(
-      `/api/parent/v1/child-profiles/${encodeURIComponent(profileId)}/data-authorizations`,
-      'DELETE',
-    );
+    void profileId;
+    return this.unavailable<{ request_id: string; profile: ParentProfile }>('consent');
   }
 
   archiveProfile(profileId: string) {
-    return this.request<{ request_id: string; profile: ParentProfile }>(
-      `/api/parent/v1/child-profiles/${encodeURIComponent(profileId)}`,
-      'DELETE',
-    );
+    void profileId;
+    return this.unavailable<{ request_id: string; profile: ParentProfile }>('profiles');
   }
 
   getActiveStoryRun() {
-    return this.request<{ request_id: string; story_run: StoryRun | null }>('/api/parent/v1/story-runs/active/current', 'GET');
+    return this.unavailable<{ request_id: string; story_run: StoryRun | null }>('story-creation');
   }
 
   getStoryRun(runId: string) {
-    return this.request<{ request_id: string; story_run: StoryRun }>(`/api/parent/v1/story-runs/${encodeURIComponent(runId)}`, 'GET');
+    void runId;
+    return this.unavailable<{ request_id: string; story_run: StoryRun }>('story-creation');
   }
 
   getActiveStoryRunV1() {
@@ -236,30 +241,19 @@ export class ParentApi implements ParentApiPort {
   }
 
   listStoryRuns(profileId?: string, cursor?: string | null) {
-    const query = new URLSearchParams({ limit: '20' });
-    if (profileId) query.set('profile_id', profileId);
-    if (cursor) query.set('cursor', cursor);
-    return this.request<ParentStoryRunHistoryPage>(`/api/parent/v1/story-runs?${query.toString()}`, 'GET');
+    void profileId;
+    void cursor;
+    return this.unavailable<ParentStoryRunHistoryPage>('run-history');
   }
 
   cancelStoryRun(runId: string) {
-    return this.request<ParentRunLifecycleReceipt>(
-      `/api/parent/v1/story-runs/${encodeURIComponent(runId)}/cancel`,
-      'POST',
-      undefined,
-      30_000,
-      { 'Idempotency-Key': createIdempotencyKey() },
-    );
+    void runId;
+    return this.unavailable<ParentRunLifecycleReceipt>('run-history');
   }
 
   deleteStoryRun(runId: string) {
-    return this.request<ParentRunLifecycleReceipt>(
-      `/api/parent/v1/story-runs/${encodeURIComponent(runId)}`,
-      'DELETE',
-      undefined,
-      30_000,
-      { 'Idempotency-Key': createIdempotencyKey() },
-    );
+    void runId;
+    return this.unavailable<ParentRunLifecycleReceipt>('run-history');
   }
 
   listLessons() {
@@ -338,7 +332,8 @@ export class ParentApi implements ParentApiPort {
     lesson_id?: string;
     lesson_version_id?: string;
   }) {
-    return this.request<{ request_id: string; story_run: StoryRun }>('/api/parent/v1/story-runs', 'POST', input);
+    void input;
+    return this.unavailable<{ request_id: string; story_run: StoryRun }>('story-creation');
   }
 
   analyzeDrawing(storyRunId: string, imageBase64: string, mediaType: ParentDrawingMediaType) {
@@ -356,17 +351,16 @@ export class ParentApi implements ParentApiPort {
   }
 
   confirmSubject(storyRunId: string, revision: number, subject: string) {
-    return this.request<{ request_id: string; story_run_id: string; understanding_revision: number; decision: string }>(
-      `/api/parent/v1/story-runs/${encodeURIComponent(storyRunId)}/subject-confirmations`,
-      'POST',
-      { expected_understanding_revision: revision, confirmed_subject: subject },
-    );
+    void storyRunId;
+    void revision;
+    void subject;
+    return this.unavailable<{ request_id: string; story_run_id: string; understanding_revision: number; decision: string }>('story-creation');
   }
 
   suggestActivities(storyRunId: string, revision: number) {
     void storyRunId;
     void revision;
-    return Promise.reject(new ParentApiError('ROUTE_NOT_MOUNTED', 'local-request')) as Promise<{
+    return this.unavailable<{
       request_id: string;
       modal_call_id?: string;
       contract: 'ParentActivitySuggestionResponseV2';
@@ -374,7 +368,7 @@ export class ParentApi implements ParentApiPort {
       catalog_candidate_count: number;
       review_required: true;
       activities: SuggestedActivity[];
-    }>;
+    }>('story-creation');
   }
 
   generateStory(storyRunId: string, revision: number, rewriteInstruction?: string) {
@@ -391,124 +385,73 @@ export class ParentApi implements ParentApiPort {
   }
 
   confirmStory(storyRunId: string, revision: number, sha256: string) {
-    return this.request<{ request_id: string; story_run: StoryRun }>(
-      `/api/parent/v1/story-runs/${encodeURIComponent(storyRunId)}/story-revision-confirmations`,
-      'POST',
-      { expected_revision: revision, story_sha256: sha256 },
-    );
+    void storyRunId;
+    void revision;
+    void sha256;
+    return this.unavailable<{ request_id: string; story_run: StoryRun }>('story-creation');
   }
 
-  async transcribeAudio(storyRunId: string, audio: { uri: string; file_name: string; media_type: string }) {
-    const baseUrl = this.apiBaseUrl.replace(/\/+$/, '');
-    if (!baseUrl) throw new Error('Thiếu SKETCH2LIFE_MOBILE_API_BASE_URL trong .env gốc.');
-    const requestId = `parent-expo-${Date.now().toString(36)}`;
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 650_000);
-    const form = new FormData();
-    form.append('audio', {
-      uri: audio.uri,
-      name: audio.file_name,
-      type: audio.media_type,
-    } as unknown as Blob);
-    try {
-      const response = await this.fetcher(
-        `${baseUrl}/api/parent/v1/story-runs/${encodeURIComponent(storyRunId)}/audio-transcriptions`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${await this.auth.getIdToken()}`,
-            Accept: 'application/json',
-            'X-Request-ID': requestId,
-            'Idempotency-Key': createIdempotencyKey(),
-          },
-          body: form,
-          signal: controller.signal,
-        },
-      );
-      const payload = await response.json().catch(() => null) as Record<string, unknown> | null;
-      if (!response.ok) {
-        throw apiErrorFromResponse(payload, response.status, requestId, response.headers);
-      }
-      if (!payload || typeof payload !== 'object') throw new ParentApiError('INVALID_API_RESPONSE', requestId, response.status);
-      return payload as unknown as ParentAudioTranscription;
-    } catch (error) {
-      if (error instanceof ParentApiError) throw error;
-      if (error instanceof Error && error.name === 'AbortError') {
-        throw new ParentApiError('REQUEST_TIMEOUT', requestId, 408);
-      }
-      throw new ParentApiError('NETWORK_ERROR', requestId);
-    } finally {
-      clearTimeout(timeout);
-    }
+  transcribeAudio(storyRunId: string, audio: { uri: string; file_name: string; media_type: string }) {
+    void storyRunId;
+    void audio;
+    return this.unavailable<ParentAudioTranscription>('story-creation');
   }
 
   confirmTranscript(storyRunId: string, revision: number, transcriptText: string) {
-    return this.request<ParentTranscriptConfirmation>(
-      `/api/parent/v1/story-runs/${encodeURIComponent(storyRunId)}/transcript-confirmations`,
-      'POST',
-      { expected_revision: revision, transcript_text: transcriptText },
-    );
+    void storyRunId;
+    void revision;
+    void transcriptText;
+    return this.unavailable<ParentTranscriptConfirmation>('story-creation');
   }
 
   listProfileShares(profileId: string) {
-    return this.request<ParentProfileSharePage>(
-      `/api/parent/v1/child-profiles/${encodeURIComponent(profileId)}/shares`, 'GET',
-    );
+    void profileId;
+    return this.unavailable<ParentProfileSharePage>('profile-sharing');
   }
 
   createProfileShare(profileId: string, teacherSubject: string) {
-    return this.request<{ request_id: string; grant: ParentProfileShareGrant }>(
-      `/api/parent/v1/child-profiles/${encodeURIComponent(profileId)}/shares`,
-      'POST',
-      { teacher_subject: teacherSubject },
-      30_000,
-      { 'Idempotency-Key': createIdempotencyKey() },
-    );
+    void profileId;
+    void teacherSubject;
+    return this.unavailable<{ request_id: string; grant: ParentProfileShareGrant }>('profile-sharing');
   }
 
   revokeProfileShare(profileId: string, grantId: string) {
-    return this.request<{ request_id: string; grant: ParentProfileShareGrant }>(
-      `/api/parent/v1/child-profiles/${encodeURIComponent(profileId)}/shares/${encodeURIComponent(grantId)}`,
-      'DELETE',
-    );
+    void profileId;
+    void grantId;
+    return this.unavailable<{ request_id: string; grant: ParentProfileShareGrant }>('profile-sharing');
   }
 
   listLessonDeliveries(profileId: string, cursor?: string | null) {
-    const query = new URLSearchParams({ profile_id: profileId, limit: '20' });
-    if (cursor) query.set('cursor', cursor);
-    return this.request<ParentLessonDeliveryPage>(
-      `/api/lesson-library/v1/me/deliveries?${query.toString()}`, 'GET',
-    );
+    void profileId;
+    void cursor;
+    return this.unavailable<ParentLessonDeliveryPage>('lesson-history');
   }
 
   submitLessonFeedback(occurrenceId: string, profileId: string, feedbackText: string) {
-    return this.request<{
+    void occurrenceId;
+    void profileId;
+    void feedbackText;
+    return this.unavailable<{
       contract: 'LessonDeliveryFeedbackV1';
       feedback_id: string;
       feedback_text: string;
       created_at: string;
       updated_at: string;
-    }>(
-      `/api/lesson-library/v1/me/deliveries/${encodeURIComponent(occurrenceId)}/feedback`,
-      'POST',
-      { parent_profile_id: profileId, feedback_text: feedbackText },
-    );
+    }>('lesson-history');
   }
 
   listNotifications(cursor?: string | null) {
-    const query = new URLSearchParams({ limit: '20' });
-    if (cursor) query.set('cursor', cursor);
-    return this.request<ParentNotificationPage>(`/api/notifications/v1/inbox?${query.toString()}`, 'GET');
+    void cursor;
+    return this.unavailable<ParentNotificationPage>('notifications');
   }
 
   markNotificationRead(notificationId: string) {
-    return this.request<ParentNotification>(
-      `/api/notifications/v1/inbox/${encodeURIComponent(notificationId)}/read`, 'POST',
-    );
+    void notificationId;
+    return this.unavailable<ParentNotification>('notifications');
   }
 
   getVideoQuota() {
-    return this.request<ParentVideoQuota>('/api/billing/v1/video-quota', 'GET');
+    return this.unavailable<ParentVideoQuota>('quota');
   }
 
   private async request<T>(
@@ -552,6 +495,10 @@ export class ParentApi implements ParentApiPort {
       clearTimeout(timeout);
     }
   }
+
+  private unavailable<T>(capability: ParentCapabilityId): Promise<T> {
+    return Promise.reject(new ParentApiUnavailableError(capability));
+  }
 }
 
 function apiErrorMessage(code: string): string {
@@ -566,6 +513,7 @@ function apiErrorMessage(code: string): string {
     INVALID_STATE_TRANSITION: 'Trạng thái hồ sơ đã thay đổi. Hãy tải lại hồ sơ.',
     INVALID_LIMIT: 'Không thể tải danh sách hồ sơ lúc này.',
     ROUTE_NOT_MOUNTED: 'Tính năng này chưa sẵn sàng.',
+    CAPABILITY_UNAVAILABLE: 'Tính năng này chưa có tuyến dịch vụ được xác nhận.',
     IDEMPOTENCY_KEY_INVALID: 'Thao tác chưa thể gửi. Vui lòng bắt đầu lại thao tác.',
     PARENT_PROFILE_NOT_AUTHORIZED: 'Hồ sơ chưa có quyền xử lý dữ liệu còn hiệu lực.',
     PARENT_STORY_ACTIVE_RUN_EXISTS: 'Hồ sơ đang có một buổi học chưa hoàn tất.',

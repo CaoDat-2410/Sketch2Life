@@ -63,6 +63,32 @@ export class ParentLearningUseCases {
       throw error;
     }
   }
+  async createRunAfterPhotoV1(input: {
+    profileId: string;
+    topic: string;
+    adultIdea: string;
+    lessonPin: ParentLessonVersionPinV1 | null;
+    actionIdentity: ParentActionIdentity;
+  }): Promise<ParentStoryRunEnvelopeV1> {
+    const profileId = input.profileId.trim();
+    const pin = input.lessonPin;
+    if (!profileId) {
+      throw new ParentApplicationError('PARENT_CONTEXT_REQUIRED', 'Hãy chọn hồ sơ trước khi tiếp tục.');
+    }
+    if (!pin?.lesson_id.trim() || !pin.version_id.trim() || !/^[0-9a-f]{64}$/.test(pin.content_sha256)) {
+      throw new ParentApplicationError('PARENT_LESSON_PIN_REQUIRED', 'Hãy chọn và ghim một phiên bản bài học trước khi bắt đầu.');
+    }
+    return this.api.createStoryRunV1({
+      parent_profile_id: profileId,
+      topic: input.topic.trim(),
+      adult_confirmed_idea: input.adultIdea.trim(),
+      lesson_version: {
+        lesson_id: pin.lesson_id,
+        version_id: pin.version_id,
+        content_sha256: pin.content_sha256,
+      },
+    }, input.actionIdentity);
+  }
   confirmRunContextV1(run: ParentStoryRunV1, actionIdentity: ParentActionIdentity) {
     if (!run.run_id.trim() || run.context_revision < 1 || !run.context_snapshot_sha256.trim()) {
       throw new ParentApplicationError('PARENT_CONTEXT_SNAPSHOT_INVALID', 'Chưa thể xác nhận ngữ cảnh của buổi học này.');

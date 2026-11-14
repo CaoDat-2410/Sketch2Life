@@ -21,17 +21,17 @@ import { DrawingGuideScreen } from './screens/DrawingGuideScreen';
 import { HandoffScreen } from './screens/HandoffScreen';
 import { HomeScreen } from './screens/HomeScreen';
 import { LessonGalleryScreen } from './screens/LessonGalleryScreen';
+import { LessonHistoryScreen } from './screens/LessonHistoryScreen';
 import { LessonPickerScreen } from './screens/LessonPickerScreen';
 import { NotificationsScreen } from './screens/NotificationsScreen';
 import { ParentBottomBar } from './screens/ParentBottomBar';
 import { ProfileFormScreen } from './screens/ProfileFormScreen';
 import { ProfileScreen } from './screens/ProfileScreen';
-import { QuotaScreen } from './screens/QuotaScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
-import { StoryHistoryScreen } from './screens/StoryHistoryScreen';
 import { ProfileSharingScreen } from './screens/ProfileSharingScreen';
-import { LessonHistoryScreen } from './screens/LessonHistoryScreen';
 import { StoryScreen } from './screens/StoryScreen';
+import { StoryHistoryScreen } from './screens/StoryHistoryScreen';
+import { QuotaScreen } from './screens/QuotaScreen';
 import { TopicScreen } from './screens/TopicScreen';
 import { UnderstandingScreen } from './screens/UnderstandingScreen';
 import { Notice, palette, ScreenFrame } from './components/ui';
@@ -39,6 +39,13 @@ import { Notice, palette, ScreenFrame } from './components/ui';
 type Props = { application: ParentApplicationModule };
 
 export default function ParentExpoApp({ application }: Props): React.JSX.Element {
+  return <>
+    <StatusBar barStyle="dark-content" backgroundColor={palette.background} />
+    <ParentExpoAppContent application={application} />
+  </>;
+}
+
+function ParentExpoAppContent({ application }: Props): React.JSX.Element {
   const parent = useParentController(application);
   const platform = useParentPlatformController(application);
   const selectedProfile = selectProfileById(parent.profiles, parent.selectedProfileId);
@@ -85,7 +92,10 @@ export default function ParentExpoApp({ application }: Props): React.JSX.Element
     if (tab === 'home') return parent.setStep('home');
     if (tab === 'profiles') return parent.setStep('profile');
     if (tab === 'lessons') return void parent.openLessons('gallery');
-    if (parent.activeRun) return parent.resumeActiveRun();
+    if (parent.activeRun) {
+      void parent.resumeActiveRun();
+      return;
+    }
 
     if (selectedProfile) parent.continueWithProfile(selectedProfile);
     else parent.setStep('profile');
@@ -96,23 +106,20 @@ export default function ParentExpoApp({ application }: Props): React.JSX.Element
   }
 
   if (parent.step === 'auth') {
-    return <>
-      <StatusBar barStyle="dark-content" backgroundColor="#F6F9FC" />
-      <AuthScreen
-        busy={parent.busy === 'auth' || parent.bootstrapBusy}
-        error={parent.authError || (parent.bootstrapBusy ? 'Đang xác thực tài khoản và tải hồ sơ…' : '')}
-        googleAndroidClientId={parent.publicSettings.googleAndroidClientId}
-        googleWebClientId={parent.publicSettings.googleWebClientId}
-        onSignIn={(email, password) => parent.authenticate('signin', email, password)}
-        onSignUp={(email, password) => parent.authenticate('signup', email, password)}
-        onReset={parent.resetPassword}
-        onGoogleSignIn={parent.signInWithGoogle}
-      />
-    </>;
+    return <AuthScreen
+      busy={parent.busy === 'auth' || parent.bootstrapBusy}
+      error={parent.authError || (parent.bootstrapBusy ? 'Đang xác thực tài khoản và tải hồ sơ…' : '')}
+      googleAndroidClientId={parent.publicSettings.googleAndroidClientId}
+      googleWebClientId={parent.publicSettings.googleWebClientId}
+      onSignIn={(email, password) => parent.authenticate('signin', email, password)}
+      onSignUp={(email, password) => parent.authenticate('signup', email, password)}
+      onReset={parent.resetPassword}
+      onGoogleSignIn={parent.signInWithGoogle}
+    />;
   }
 
   if (parent.bootstrapBusy) {
-    return <View style={{ flex: 1, backgroundColor: '#F6F9FC', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+    return <View style={{ flex: 1, backgroundColor: palette.background, alignItems: 'center', justifyContent: 'center', gap: 12 }}>
       <ActivityIndicator color={palette.blue} />
       <Text style={{ color: palette.muted }}>Đang tải hồ sơ và quyền xử lý…</Text>
     </View>;
@@ -126,6 +133,7 @@ export default function ParentExpoApp({ application }: Props): React.JSX.Element
       activeRun={parent.activeRun}
       busy={parent.busy}
       pendingDeletionLoadingId={parent.pendingDeletionLoadingId}
+      consentState={parent.consentState}
       error={parent.error}
       onSelect={parent.selectProfile}
       onCreate={() => { parent.clearProfileFormErrors(); parent.setProfileBeingEdited(null); parent.setStep('profile-create'); }}
@@ -222,6 +230,7 @@ export default function ParentExpoApp({ application }: Props): React.JSX.Element
   }
 
   if (parent.step === 'notifications') return mainSection('home', <NotificationsScreen
+    capability={platform.capabilities.notifications}
     items={platform.notifications}
     loading={platform.notificationsBusy}
     error={platform.notificationsError}
@@ -232,6 +241,7 @@ export default function ParentExpoApp({ application }: Props): React.JSX.Element
     onBack={() => parent.setStep('home')}
   />);
   if (parent.step === 'quota') return mainSection('home', <QuotaScreen
+    capability={platform.capabilities.quota}
     quota={platform.quota}
     loading={platform.quotaBusy}
     error={platform.quotaError}
@@ -239,14 +249,15 @@ export default function ParentExpoApp({ application }: Props): React.JSX.Element
     onBack={() => parent.setStep('home')}
   />);
   if (parent.step === 'history') return mainSection('home', <StoryHistoryScreen
+    capability={platform.capabilities.runs}
     runs={platform.runs}
     loading={platform.runsBusy}
     error={platform.runsError}
     hasMore={Boolean(platform.runsCursor)}
     onLoad={() => void platform.loadRuns(parent.profile?.profile_id)}
-    onLoadMore={() => void platform.loadRuns(undefined, platform.runsCursor)}
-    onCancel={(runId) => void platform.cancelRun(runId)}
-    onDelete={(runId) => void platform.deleteRun(runId)}
+    onLoadMore={() => void platform.loadRuns(parent.profile?.profile_id, platform.runsCursor)}
+    onCancel={(id) => void platform.cancelRun(id)}
+    onDelete={(id) => void platform.deleteRun(id)}
     onBack={() => parent.setStep('home')}
   />);
   if (parent.step === 'profile-sharing') return mainSection('home', <ProfileSharingScreen
@@ -254,25 +265,32 @@ export default function ParentExpoApp({ application }: Props): React.JSX.Element
     grants={platform.shares}
     loading={platform.sharesBusy}
     error={platform.sharesError}
+    capability={platform.shareCapability}
+    inviteState={platform.shareInviteState}
+    revokeState={platform.shareRevokeState}
     onInvite={platform.inviteTeacher}
-    onRevoke={(grantId) => void platform.revokeShare(grantId)}
+    onRevoke={platform.revokeShare}
     onBack={() => parent.setStep('home')}
   />);
   if (parent.step === 'lesson-history') return mainSection('home', <LessonHistoryScreen
+    capability={platform.capabilities.deliveries}
     deliveries={platform.deliveries}
     loading={platform.deliveriesBusy}
     error={platform.deliveriesError}
     hasMore={Boolean(platform.deliveriesCursor)}
-    onLoad={() => { const id = parent.profile?.profile_id; if (id) void platform.loadDeliveries(id); }}
-    onLoadMore={() => void platform.loadDeliveries(platform.deliveriesProfileId, platform.deliveriesCursor)}
-    onSubmitFeedback={platform.submitFeedback}
+    onLoad={() => void platform.loadDeliveries(parent.profile?.profile_id ?? '')}
+    onLoadMore={() => void platform.loadDeliveries(parent.profile?.profile_id ?? '', platform.deliveriesCursor)}
+    onSubmitFeedback={(id, text) => platform.submitFeedback(id, text).then(() => undefined)}
     onBack={() => parent.setStep('home')}
   />);
 
-  return renderLearningStep(parent);
+  return renderLearningStep(parent, platform);
 }
 
-function renderLearningStep(parent: ReturnType<typeof useParentController>): React.JSX.Element {
+function renderLearningStep(
+  parent: ReturnType<typeof useParentController>,
+  platform: ReturnType<typeof useParentPlatformController>,
+): React.JSX.Element {
   const step: AppStep = parent.step;
   const stepLabel = (number: number): string => `${number} / 7`;
   const lessonPin = lessonVersionPinFromDetail(parent.lesson);
@@ -374,6 +392,8 @@ function renderLearningStep(parent: ReturnType<typeof useParentController>): Rea
     onBack={() => parent.setStep('context')}
   />;
   if (step === 'story') return <StoryScreen
+    videoCapability={platform.capabilities.video}
+    jobStage={platform.videoJobStage}
     stepLabel={stepLabel(7)}
     story={parent.story}
     rewriteCount={parent.rewriteCount}
@@ -393,7 +413,9 @@ function renderLearningStep(parent: ReturnType<typeof useParentController>): Rea
   if (step === 'handoff') return <HandoffScreen
     storyTitle={parent.story?.title ?? ''}
     events={parent.events}
-    onRestart={() => { parent.resetWorkflow(); parent.setStep('home'); }}
+    videoCapability={platform.capabilities.video}
+    jobStage={platform.videoJobStage}
+    onResumeActiveRun={parent.resumeActiveRun}
   />;
 
   return <ScreenFrame title="Không thể mở bước này" subtitle="Dữ liệu buổi học chưa đủ để tiếp tục." onBack={parent.backToProfile}>

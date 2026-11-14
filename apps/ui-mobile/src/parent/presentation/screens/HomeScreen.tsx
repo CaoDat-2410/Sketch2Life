@@ -2,6 +2,7 @@ import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { ParentProfileViewV1, ParentStoryRunV1 } from '../../domain/types';
 import { Card, Notice, PrimaryButton, ScreenFrame, SecondaryButton, SectionTitle, palette } from '../components/ui';
+import { PARENT_RUN_PREFLIGHT_UNAVAILABLE_MESSAGE } from '../navigation/workflowTypes';
 
 type Props = {
   profiles: ParentProfileViewV1[];
@@ -64,6 +65,7 @@ export function HomeScreen({
         </Text>
         <PrimaryButton
           label={activeRun ? 'Tiếp tục buổi đang mở' : 'Bắt đầu buổi vẽ'}
+          disabled={!activeRun && error === PARENT_RUN_PREFLIGHT_UNAVAILABLE_MESSAGE}
           onPress={activeRun ? onResumeRun : onStart}
         />
       </Card>

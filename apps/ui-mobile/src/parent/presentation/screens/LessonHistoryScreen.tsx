@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Text, View } from 'react-native';
+import type { ParentCapabilityState } from '../../application/ports/ParentCapabilityPorts';
 import type { ParentLessonDelivery } from '../../domain/types';
 import { Card, Field, Notice, PrimaryButton, ScreenFrame, SectionTitle, palette } from '../components/ui';
 
 type Props = {
+  capability: ParentCapabilityState;
   deliveries: ParentLessonDelivery[];
   loading: boolean;
   error: string;
@@ -15,6 +17,12 @@ type Props = {
 };
 
 export function LessonHistoryScreen(props: Props): React.JSX.Element {
+  if (props.capability.state === 'unavailable') {
+    return <ScreenFrame title="Bài đã học" subtitle="Trạng thái tính năng" onBack={props.onBack}>
+      <Notice text="Lịch sử bài đã học, tải nội dung và gửi góp ý chưa khả dụng vì chưa có hợp đồng dịch vụ được xác nhận. Không có dữ liệu rỗng hoặc thao tác gửi nào được suy ra." tone="warning" />
+    </ScreenFrame>;
+  }
+
   return (
     <ScreenFrame title="Bài đã học" subtitle="Các bài giáo viên đã dạy trong 30 ngày gần đây." onBack={props.onBack}>
       {props.error ? <Notice text={props.error} tone="error" /> : null}

@@ -1,9 +1,11 @@
 import React from 'react';
 import { Text } from 'react-native';
+import type { ParentCapabilityState } from '../../application/ports/ParentCapabilityPorts';
 import type { StoryRun } from '../../domain/types';
 import { Card, ConfirmButton, Notice, PrimaryButton, ScreenFrame, SectionTitle, palette } from '../components/ui';
 
 type Props = {
+  capability: ParentCapabilityState;
   runs: StoryRun[];
   loading: boolean;
   error: string;
@@ -18,6 +20,12 @@ type Props = {
 const TERMINAL_STATES = new Set(['COMPLETED', 'FAILED', 'ABANDONED', 'DELETE_PENDING', 'DELETED']);
 
 export function StoryHistoryScreen(props: Props): React.JSX.Element {
+  if (props.capability.state === 'unavailable') {
+    return <ScreenFrame title="Lịch sử hoạt động" subtitle="Trạng thái tính năng" onBack={props.onBack}>
+      <Notice text="Lịch sử buổi học và các thao tác hủy hoặc xóa chưa khả dụng vì chưa có hợp đồng dịch vụ được xác nhận. Không có thay đổi trạng thái nào được gửi." tone="warning" />
+    </ScreenFrame>;
+  }
+
   return (
     <ScreenFrame title="Lịch sử hoạt động" subtitle="Các buổi đã lưu trong tài khoản." onBack={props.onBack}>
       {props.error ? <Notice text={props.error} tone="error" /> : null}

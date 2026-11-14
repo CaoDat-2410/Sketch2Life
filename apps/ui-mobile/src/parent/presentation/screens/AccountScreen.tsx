@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Text, View } from 'react-native';
 import type { ParentUser } from '../../domain/types';
 import { Card, Field, Notice, PrimaryButton, ScreenFrame, SecondaryButton, SectionTitle, palette } from '../components/ui';
+import { safeParentIdentityErrorMessage } from '../navigation/workflowTypes';
 
 type Props = {
   user: ParentUser | null;
@@ -26,7 +27,7 @@ export function AccountScreen({ user, busy, error, onChangePassword, onResetPass
       setNextPassword('');
       setFeedback('Mật khẩu đã được cập nhật trên Firebase Authentication.');
     } catch (cause) {
-      setFeedback(cause instanceof Error ? cause.message : 'Không đổi được mật khẩu.');
+      setFeedback(safeParentIdentityErrorMessage(cause));
     }
   }
 
@@ -50,7 +51,7 @@ export function AccountScreen({ user, busy, error, onChangePassword, onResetPass
         {error ? <Notice text={error} tone="error" /> : null}
         {feedback ? <Notice text={feedback} tone={feedback.includes('đã được cập nhật') ? 'success' : 'error'} /> : null}
         <PrimaryButton label="Cập nhật mật khẩu" busy={busy} disabled={!currentPassword || nextPassword.length < 6} onPress={() => void updatePassword()} />
-        <SecondaryButton label="Gửi email đặt lại mật khẩu" onPress={() => { setFeedback(''); void onResetPassword().then(() => setFeedback('Nếu email đã đăng ký, hướng dẫn đặt lại mật khẩu sẽ được gửi tới hộp thư.')).catch((cause: unknown) => setFeedback(cause instanceof Error ? cause.message : 'Không gửi được email.')); }} />
+        <SecondaryButton label="Gửi email đặt lại mật khẩu" onPress={() => { setFeedback(''); void onResetPassword().then(() => setFeedback('Nếu email đã đăng ký, hướng dẫn đặt lại mật khẩu sẽ được gửi tới hộp thư.')).catch((cause: unknown) => setFeedback(safeParentIdentityErrorMessage(cause))); }} />
       </Card>
       <SecondaryButton label="Đăng xuất" onPress={onSignOut} />
     </ScreenFrame>

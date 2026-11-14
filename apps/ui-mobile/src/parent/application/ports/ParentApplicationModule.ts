@@ -41,23 +41,13 @@ export interface ParentApplicationModule {
     | 'listGroupInvitations'
     | 'acceptGroupInvitation'>;
   learning: Pick<ParentLearningUseCases,
-    | 'getActiveRun'
-    | 'getRun'
     | 'getRunV1'
-    | 'createRunBeforeDrawingV1'
+    | 'createRunAfterPhotoV1'
     | 'confirmRunContextV1'
     | 'confirmSubjectV1'
     | 'confirmScriptV1'
     | 'createStoryRevisionV1'
-    | 'generateSketchGuide'
-    | 'createRunForDrawing'
-    | 'understandDrawing'
-    | 'confirmSubject'
-    | 'suggestActivities'
-    | 'generateStory'
-    | 'confirmStory'
-    | 'transcribeAudio'
-    | 'confirmTranscript'> & {
+    | 'understandDrawing'> & {
       getActiveRunV1(): Promise<ParentActiveStoryRunEnvelopeV1>;
     };
   platform: Pick<ParentPlatformUseCases,

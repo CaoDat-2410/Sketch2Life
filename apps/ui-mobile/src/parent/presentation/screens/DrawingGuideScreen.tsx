@@ -1,12 +1,8 @@
 import React from 'react';
 import { Text } from 'react-native';
 import type { LessonDetail } from '../../domain/types';
-import {
-  clampDrawingGuideIndex,
-  moveDrawingGuideIndex,
-  parseDrawingGuideSteps,
-} from '../navigation/parentFlowV1';
 import { Card, Notice, PrimaryButton, ScreenFrame, SectionTitle, SecondaryButton, palette } from '../components/ui';
+import { clampDrawingGuideIndex, parseDrawingGuideSteps } from '../navigation/parentFlowV1';
 
 type Props = {
   lesson: LessonDetail;
@@ -19,48 +15,32 @@ type Props = {
 
 export function DrawingGuideScreen(props: Props): React.JSX.Element {
   const guide = parseDrawingGuideSteps(props.lesson.drawing_steps_text);
-  const steps = guide.kind === 'steps' ? guide.steps : [];
-  const currentIndex = clampDrawingGuideIndex(props.currentIndex, steps.length);
-  const isLastStep = currentIndex >= steps.length - 1;
-
+  const stepCount = guide.kind === 'steps' ? guide.steps.length : 0;
+  const currentIndex = clampDrawingGuideIndex(props.currentIndex, stepCount);
   return (
     <ScreenFrame
       title="Hướng dẫn vẽ từng bước"
-      subtitle="Gợi ý này không bắt buộc. Người lớn có thể xem từng bước trước khi chụp tranh."
+      subtitle="Hướng dẫn là tùy chọn. Người lớn có thể tiếp tục chọn ảnh."
       step={props.stepLabel}
       onBack={props.onBack}
     >
       <Card>
-        <SectionTitle>Các bước gợi ý</SectionTitle>
+        <SectionTitle>{props.lesson.title}</SectionTitle>
+        <Text style={{ color: palette.muted, fontSize: 14, lineHeight: 21 }}>
+          Phiên bản bài học đã ghim vẫn được giữ nguyên trong buổi học.
+        </Text>
         {guide.kind === 'steps' ? <>
-          <Text accessibilityLiveRegion="polite" style={{ color: palette.blue, fontSize: 14, fontWeight: '800' }}>
-            Bước {currentIndex + 1} trên {steps.length}
+          <Text accessibilityRole="header" style={{ color: palette.ink, fontSize: 16, fontWeight: '800' }}>
+            Bước {currentIndex + 1} / {stepCount}
           </Text>
-          <Text accessibilityRole="text" style={{ color: palette.ink, fontSize: 17, lineHeight: 26 }}>
-            {steps[currentIndex]}
-          </Text>
+          <Text style={{ color: palette.ink, fontSize: 15, lineHeight: 23 }}>{guide.steps[currentIndex]}</Text>
           <SecondaryButton
-            label="Bước trước"
-            disabled={currentIndex === 0}
-            onPress={() => props.onIndexChange(moveDrawingGuideIndex(currentIndex, steps.length, -1))}
+            label={currentIndex + 1 < stepCount ? 'Bước tiếp theo' : 'Quay lại bước đầu'}
+            onPress={() => props.onIndexChange(currentIndex + 1 < stepCount ? currentIndex + 1 : 0)}
           />
-          {!isLastStep ? <PrimaryButton
-            label="Bước tiếp theo"
-            onPress={() => props.onIndexChange(moveDrawingGuideIndex(currentIndex, steps.length, 1))}
-          /> : null}
-        </> : <Notice
-          text={guide.reason === 'missing'
-            ? 'Bài học này chưa có hướng dẫn vẽ theo bước. Bạn vẫn có thể tiếp tục.'
-            : 'Hướng dẫn chưa được chia thành từng bước rõ ràng. Bạn vẫn có thể tiếp tục.'}
-        />}
+        </> : <Notice text="Hướng dẫn 4–8 bước có thứ tự hiện chưa khả dụng. Bạn vẫn có thể tiếp tục." tone="warning" />}
       </Card>
-      {guide.kind === 'steps' ? <SecondaryButton label="Bỏ qua hướng dẫn" onPress={props.onContinue} /> : null}
-      <PrimaryButton
-        label={guide.kind === 'steps' && !isLastStep ? 'Tiếp tục đến bước tiếp theo' : 'Tiếp tục'}
-        onPress={guide.kind === 'steps' && !isLastStep
-          ? () => props.onIndexChange(moveDrawingGuideIndex(currentIndex, steps.length, 1))
-          : props.onContinue}
-      />
+      <PrimaryButton label="Tiếp tục chọn ảnh" onPress={props.onContinue} />
     </ScreenFrame>
   );
 }

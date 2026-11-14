@@ -337,3 +337,125 @@ A separate explicit launch instruction is still required before Wave 3 implement
 - OWNER_MODAL_CALL_APPROVED=NO.
 
 This clarification does not change the existing Wave 3 launch status.
+
+## Addendum 11 - FEAT-081 Wave V plan approval
+
+- Status: Plan Revision 5 APPROVED; Wave V NOT LAUNCHED.
+- Authority: Direct owner approval from Person 2 dated 2026-11-13. This approves the plan only and does not launch implementation.
+- Approved plan pin: features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_5.md, 49,834 bytes / SHA-256 73A706C2A241AC2CF4F8A48946672F1B9549FE44023DEA8FBC4A12E0E089FE67.
+- Pre-append DECISIONS.md pin: 10,914 bytes / SHA-256 prefix 5AD97606.
+- Post-append DECISIONS.md pin: 13613 bytes / SHA-256 prefix 4FC79E32.
+- Pre-append TASK_APPROVAL.md pin: 36896 bytes / SHA-256 7D83589D3E70650C6620E3EFEDB1EE58290365070ED6E79EE3989FEA1D7D8554.
+- Scope: The 25 E paths, six N paths, 35 H paths and 17 R paths are exactly those pinned in features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_5.md. ui.tsx is the only H path opened as E in V0; every other H path, package.json and pnpm-lock.yaml remain byte-identical. No route, filter, detail view, state, behavior, test, contract, package, lockfile, dependency or copied asset change is authorized. No copy changes are authorized except text strictly required by layout with owner approval; because apps/ui-mobile/scripts/validate-ui-copy.mjs does not scan Parent screens, compare every edited string before/after. Owner emulator acceptance is per checkpoint; screenshots are not committed and the report records references and the owner result only.
+- Test ceiling: pnpm run test from apps/ui-mobile, 2 coordinator-run invocations per checkpoint. Codex runs none.
+- Typecheck ceiling: pnpm run typecheck from apps/ui-mobile, 2 coordinator-run invocations per checkpoint. Codex runs none.
+- As in the plan, python tools/validate_harness.py, python tools/validate_repository_security.py, python tools/validate_architecture.py, and git diff --check each have a ceiling of 2 owner-run invocations per checkpoint. Codex runs none.
+- OWNER_MODAL_CALL_APPROVED=NO.
+
+A separate explicit launch instruction is required for each checkpoint V0-V4. This approval does not authorize implementation, tests, runtime work, staging, commit or push.
+
+## Addendum 12 - FEAT-081 Wave R Plan Revision 7 approval
+
+- Status: Plan Revision 7 APPROVED; Wave R NOT LAUNCHED.
+- Authority: Direct owner approval from Person 2 dated 2026-11-13. This approves the plan only and does not launch implementation.
+- Approved plan pin: features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_7.md, 70,512 bytes / SHA-256 7979A7A990C36F159303F3B011D56626CCAA1AB998A6C7C9C7CB25F47ED024C9.
+- Pre-append DECISIONS.md pin: 13,613 bytes / SHA-256 4FC79E32E838C5A07E01CA601F28AED35B437334FE4D73493E84BB5DF4F94FB3.
+- Post-append DECISIONS.md pin: 25,930 bytes / SHA-256 EAB5F1F30B08CCB50E3A081FE85C0D4F5E6A453BE68E320A78C6E17D2DBE43C8.
+- Pre-append TASK_APPROVAL.md pin: 39,015 bytes / SHA-256 2F5D9304F3555A9DC28B7A8EB87DB9958A890EA161F5E39486811DD755C8380C.
+- Scope: The 43 E paths, eight N paths, 17 H paths and 24 R paths, including their byte counts and full SHA-256 pins, are exactly those listed in Section 11 of features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_7.md. The plan's eight N rows are the only checkpoint paths authorized for creation if their checkpoint is separately launched:
+  - apps/ui-mobile/src/parent/application/ports/ParentCapabilityPorts.ts
+  - apps/ui-mobile/src/parent/infrastructure/unavailable/ParentUnavailableCapabilityAdapter.ts
+  - apps/ui-mobile/tests/parentSrsBehavior.test.ts
+  - features/FEAT-081-parent-ui-mobile-port/evidence/IMPLEMENTATION_REPORT_WAVER_R0_20261113.md
+  - features/FEAT-081-parent-ui-mobile-port/evidence/IMPLEMENTATION_REPORT_WAVER_R1_20261113.md
+  - features/FEAT-081-parent-ui-mobile-port/evidence/IMPLEMENTATION_REPORT_WAVER_R2_20261113.md
+  - features/FEAT-081-parent-ui-mobile-port/evidence/IMPLEMENTATION_REPORT_WAVER_R3_20261113.md
+  - features/FEAT-081-parent-ui-mobile-port/evidence/IMPLEMENTATION_REPORT_WAVER_R4_20261113.md
+  The exact 18 former-H paths reclassified E are those listed with rationale in Plan Revision 7 Section 12 and D-014. All other H paths remain frozen, including the package manifest and repository lockfile. No other checkpoint path is authorized. Visual gate: OI-17 sign-off is deferred until the owner reviews R0 emulator screenshots; screenshots remain local and synthetic. Backend boundary: only routes listed in the BE handoff may use real adapters; absent routes use typed unavailable ports in the normal app and fakes only in tests; never show fake success. No package, dependency, lockfile, copied-asset, provider, Modal, or absent-route wiring change is authorized.
+- Test ceiling: pnpm run test from apps/ui-mobile, at most two coordinator-run invocations per checkpoint, one baseline and one post-implementation. Codex runs none.
+- Typecheck ceiling: pnpm run typecheck from apps/ui-mobile, at most two coordinator-run invocations per checkpoint, one baseline and one post-implementation. Codex runs none.
+- As in the plan, validate_harness, validate_repository_security, validate_architecture, and git diff --check each have a ceiling of two owner-run invocations per checkpoint, plus one owner emulator review. Codex runs none. No install, network, backend, or Modal command is authorized.
+- OWNER_MODAL_CALL_APPROVED=NO.
+
+A separate explicit launch instruction is required for each checkpoint R0, R1, R2, R3 and R4. This approval does not authorize implementation, tests, runtime work, staging, commit or push.
+
+## Addendum 13 - FEAT-081 Wave R backend-boundary clarification
+
+- Status: Plan Revision 7 remains APPROVED; checkpoints R1-R4 launched by the owner in this run; route clarification recorded in D-015; no scope, allowlist, pin, ceiling or checkpoint change.
+- Authority: Direct owner clarification from Person 2 dated 2026-11-13. This records the route boundary and implementation clarifications without changing scope, allowlist, pins, command ceilings or checkpoint sequence.
+- Approved plan pin: features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_7.md, 70,512 bytes / SHA-256 7979A7A990C36F159303F3B011D56626CCAA1AB998A6C7C9C7CB25F47ED024C9.
+- Pre-append DECISIONS.md pin: 25,930 bytes / SHA-256 EAB5F1F30B08CCB50E3A081FE85C0D4F5E6A453BE68E320A78C6E17D2DBE43C8.
+- Post-append DECISIONS.md pin: 31,797 bytes / SHA-256 5FD6A07D52A29018D4FC841BBB59FE74329A88B0AC642B316D290A1B4C7A172E.
+- Pre-append TASK_APPROVAL.md pin: 42,374 bytes / SHA-256 647B9891CEB65DF652CC00D887E3B4D652DEB8EB3D5E2F107F6D49E195F0A007.
+- Scope: D-015 records the owner-authorized REAL and ABSENT route table, runtime-verification status, frozen-H rule and R0-path and regression-test clarifications. Plan Revision 7, its E/H/R/N allowlist, pins, per-checkpoint ceilings and R1-R4 sequence remain unchanged. The BE handoff note remains unchanged.
+- Test ceiling: pnpm run test from apps/ui-mobile, at most two coordinator-run invocations per checkpoint, one baseline and one post-implementation. Codex runs none.
+- Typecheck ceiling: pnpm run typecheck from apps/ui-mobile, at most two coordinator-run invocations per checkpoint, one baseline and one post-implementation. Codex runs none.
+- As in the plan, validate_harness, validate_repository_security and validate_architecture, plus git diff --check, each have a ceiling of two owner-run invocations per checkpoint, plus one owner emulator review. Codex runs none. No install, network, backend or Modal command is authorized.
+- OWNER_MODAL_CALL_APPROVED=NO.
+
+This clarification records the route boundary for the already-launched R1-R4 sequence. It does not alter checkpoint scope, allowlist, pins, ceilings, or launch status.
+## Addendum 14 - FEAT-081 Wave R owner clarification (consent non-blocking, no-preset unavailable)
+
+- Status: Plan Revision 7 remains APPROVED; the owner clarification is recorded in D-016; no scope, allowlist, pin, ceiling or checkpoint change.
+- Authority: Direct owner clarification from Person 2 dated 2026-11-13 in tmp/fe081-waveR2/GOAL_RESUME_ADDENDUM_1.md. Consent-unavailable state is informational and non-blocking; confirmed denial or revocation remains blocking. No-preset without an exact lesson pin is NOT AVAILABLE pending an approved backend contract.
+- Approved plan pin: features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_7.md, 70,512 bytes / SHA-256 7979A7A990C36F159303F3B011D56626CCAA1AB998A6C7C9C7CB25F47ED024C9.
+- Pre-append DECISIONS.md pin: 31,797 bytes / SHA-256 5FD6A07D52A29018D4FC841BBB59FE74329A88B0AC642B316D290A1B4C7A172E.
+- Post-append DECISIONS.md pin: 33,745 bytes / SHA-256 B89A61951B304EE28AF41DBDF3348B57B9E54FB0E98638975B952205BBCF604F.
+- Pre-append TASK_APPROVAL.md pin: 44,535 bytes / SHA-256 6A2D2C54414884752253A15E15BE288104829DC14AADDA27EB5EA44CFFEED2D4.
+- Scope: D-016 records the consent and no-preset behavior plus the accepted typed-unavailable boundaries for personal-copy lineage and Parent-group invitation decline. Plan Revision 7, its file allowlist, pins, per-checkpoint ceilings and R1-R4 sequence remain unchanged. No absent route is treated as success.
+- Test ceiling: pnpm run test from apps/ui-mobile, at most two coordinator-run invocations per checkpoint, one baseline and one post-implementation. Codex runs none.
+- Typecheck ceiling: pnpm run typecheck from apps/ui-mobile, at most two coordinator-run invocations per checkpoint, one baseline and one post-implementation. Codex runs none.
+- As in the plan, validate_harness, validate_repository_security and validate_architecture, plus git diff --check, each have a ceiling of two owner-run invocations per checkpoint, plus one owner emulator review. Codex runs none. No install, network, backend or Modal command is authorized.
+- OWNER_MODAL_CALL_APPROVED=NO.
+
+This clarification does not alter the checkpoint scope, allowlist, pins, ceilings or launch status. No post-append TASK_APPROVAL.md pin is recorded.
+
+Addendum 15 - FEAT-081 Wave R owner clarification (R3/R4 backend-boundary rule, O1-O3)
+
+- Status: Plan Revision 7 remains APPROVED; the owner clarification is recorded in D-017; no scope, allowlist, pin, ceiling or checkpoint sequence change.
+- Authority: Direct owner clarification from Person 2 dated 2026-11-13 in tmp/fe081-waveR2/GOAL_RESUME_ADDENDUM_2.md. Missing backend operations and fields remain typed unavailable in the normal app; tests may use fakes only; no fake success is allowed. The owner’s O1 activity exception is an explicit deviation from SRS BR-15 and FR-P-05, not SRS conformance.
+- Approved plan pin: features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_7.md, 70,512 bytes / SHA-256 7979A7A990C36F159303F3B011D56626CCAA1AB998A6C7C9C7CB25F47ED024C9.
+- Pre-append DECISIONS.md pin: 33,745 bytes / SHA-256 B89A61951B304EE28AF41DBDF3348B57B9E54FB0E98638975B952205BBCF604F.
+- Post-append DECISIONS.md pin: 37,125 bytes / SHA-256 D08056B7F07E07AB4D5DE8861126338E66E532094745B81CE214F0F6235EE833.
+- Pre-append TASK_APPROVAL.md pin: 46,767 bytes / SHA-256 B47A3B98DA89F24A8AE786747517E9BEEB0805E0B6EBA55E7D379F9010404AFC.
+- Scope: D-017 records owner decisions O1-O3 and the typed-unavailable rule for routes and fields absent from the D-015 route table. R3 mismatch inference is unavailable; adult subject correction remains revision-bound; activity is informational and is not sent to story revision; story generation is not blocked by activity selection; only resume-active-run is offered. Plan Revision 7, its allowlist, pins, checkpoint sequence and backend route set remain unchanged. No fake success is shown.
+- Test ceiling: pnpm run test from apps/ui-mobile, at most two coordinator-run invocations per checkpoint, one baseline and one post-implementation. Codex runs none.
+- Typecheck ceiling: pnpm run typecheck from apps/ui-mobile, at most two coordinator-run invocations per checkpoint, one baseline and one post-implementation. Codex runs none.
+- As in the plan, validate_harness, validate_repository_security and validate_architecture, plus git diff --check, each have a ceiling of two owner-run invocations per checkpoint, plus one owner emulator review. Codex runs none. No install, network, backend, provider or Modal command is authorized.
+- OWNER_MODAL_CALL_APPROVED=NO.
+
+This clarification does not alter the checkpoint scope, allowlist, pins, ceilings or launch status. No post-append TASK_APPROVAL.md pin is recorded.
+
+Addendum 16 - FEAT-081 Wave R post-emulator correction PE1 (top bar background and double status-bar inset)
+
+- Status: Plan Revision 7 remains APPROVED; the owner-requested PE1 correction is recorded in D-018; the existing plan allowlist, other file pins, and checkpoint sequence do not change.
+- Authority: Direct owner task from Person 2 dated 2026-11-14 after emulator review of the Home screen top bar. The observed light-blue status-bar band and redundant cream inset are addressed only within the existing approved E/N scope.
+- Approved plan pin: features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_7.md, 70,512 bytes / SHA-256 7979A7A990C36F159303F3B011D56626CCAA1AB998A6C7C9C7CB25F47ED024C9.
+- Pre-append DECISIONS.md pin: 37,125 bytes / SHA-256 D08056B7F07E07AB4D5DE8861126338E66E532094745B81CE214F0F6235EE833.
+- Post-append DECISIONS.md pin: 39,150 bytes / SHA-256 A0CA10FDA558EF8024028E17507CCD1C87947F122E6E1C3045C05AAE52C7498D.
+- Pre-append TASK_APPROVAL.md pin: 49,234 bytes / SHA-256 5B52EA77CF22525D59F3AD175F99A3DD30FF0CD2476C04C9DD2A767DB931923E.
+- Scope: PE1 is limited to apps/ui-mobile/src/parent/presentation/components/ui.tsx, apps/ui-mobile/src/parent/presentation/ParentExpoApp.tsx, and apps/ui-mobile/tests/parentSrsBehavior.test.ts, all existing Plan Revision 7 E/N paths, plus the R0 evidence report and tmp/fe081-waveR2/run_state/RUN_STATE.md. Android native files, app.json, package files, and every H row remain untouched. The plan, allowlist, pins of other files, and checkpoint sequence do not change.
+- Test ceiling: ONE additional coordinator pnpm run test run for PE1. Codex runs none.
+- Typecheck ceiling: ONE additional coordinator pnpm run typecheck run for PE1. Codex runs none.
+- Validator ceiling: ONE additional owner run of validate_harness, validate_repository_security, validate_architecture, and git diff --check for PE1. Codex runs none.
+- Emulator review: ONE owner re-check, limited to the top bar area and the Home, Lessons, Start, and Profiles tabs. Codex runs no emulator command or review.
+- OWNER_MODAL_CALL_APPROVED=NO.
+
+This correction does not change the checkpoint sequence. No post-append TASK_APPROVAL.md pin is recorded.
+
+Addendum 17 - FEAT-081 Wave R post-emulator correction PE2 (age-band absence is non-blocking)
+
+- Status: Plan Revision 7 remains APPROVED; the owner-requested PE2 correction is recorded in D-019; the existing plan allowlist, other file pins, and checkpoint sequence do not change.
+- Authority: Direct owner task from Person 2 dated 2026-11-14 after emulator review. PE2 follows PE1 and is completed before the shared coordinator post-run set.
+- Approved plan pin: features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_7.md, 70,512 bytes / SHA-256 7979A7A990C36F159303F3B011D56626CCAA1AB998A6C7C9C7CB25F47ED024C9.
+- Pre-append DECISIONS.md pin: 39,150 bytes / SHA-256 A0CA10FDA558EF8024028E17507CCD1C87947F122E6E1C3045C05AAE52C7498D.
+- Post-append DECISIONS.md pin: 41,836 bytes / SHA-256 73915C90B13A5A53B1A44D66B078EA041D0C0307070333466F959EE9DAC7E1E1.
+- Pre-append TASK_APPROVAL.md pin: 51,425 bytes / SHA-256 4FD887AD73C71B8A632078B8F581A37367A53C137AB7077FC1516BA45EB1F641.
+- Scope: PE2 is limited to apps/ui-mobile/src/parent/presentation/navigation/workflowTypes.ts, apps/ui-mobile/src/parent/presentation/navigation/useParentController.ts, apps/ui-mobile/src/parent/presentation/screens/ProfileScreen.tsx, apps/ui-mobile/src/parent/presentation/screens/HomeScreen.tsx only if needed, apps/ui-mobile/tests/parentFlowV1.test.ts, and apps/ui-mobile/tests/parentSrsBehavior.test.ts, all existing Plan Revision 7 E/N paths, plus the R1 evidence report and tmp/fe081-waveR2/run_state/RUN_STATE.md. No H row, native file, package file, plan, or allowlist is changed.
+- Test ceiling: ONE additional coordinator pnpm run test run, shared by PE1 and PE2. Codex runs none.
+- Typecheck ceiling: ONE additional coordinator pnpm run typecheck run, shared by PE1 and PE2. Codex runs none.
+- Validator ceiling: ONE additional owner run of validate_harness, validate_repository_security, validate_architecture, and git diff --check, shared by PE1 and PE2. Codex runs none.
+- Emulator review: ONE owner re-check, covering the PE1 top bar area and Home, Lessons, Start, and Profiles tabs, now including the profile card and Start flow. Codex runs no emulator command or review.
+- OWNER_MODAL_CALL_APPROVED=NO.
+
+PE2 adds no command runs and does not change the checkpoint sequence. No post-append TASK_APPROVAL.md pin is recorded.
