@@ -1,7 +1,7 @@
 # Status
 
 - **Feature:** FEAT-069 — Leader review UI/UX remediation.
-- **State:** Rev5 implementation is complete locally under the approved preview-completion plan; final APK install/runtime on the supplied emulator is still unverified because Android Package Manager did not return from `adb install`.
+- **State:** Rev5 implementation is complete and published under the approved preview-completion plan; final APK install/runtime on the supplied emulator is still unverified because Android Package Manager did not return from `adb install`.
 - **Active plan:** `plan/PLAN_REV5_PREVIEW_COMPLETION.md`, SHA-256 `F49F00D71E5E0D84B2EA695A1BB63010DA2E82E8A8FAC356542BDA145279262A`.
 - **Branch:** `FE_UI_Project_Ver2`.
 - **Current scope:** APIs and source are business-flow references only. Parent, Teacher, School Manager, Platform Admin and shared web preview do not invoke `backendApi`, auth, `fetch`, or a backend request; data/actions remain local preview fixtures.
@@ -12,4 +12,4 @@
 - **Preview:** Parent `http://127.0.0.1:5171/`; Teacher `http://127.0.0.1:5172/`; School Manager `http://127.0.0.1:5173/`; Platform Admin `http://127.0.0.1:5174/`; shared web portal `http://127.0.0.1:5175/`.
 - **APK:** `UI_Project/parent-android/apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk` (built 2026-11-14). Emulator had booted, but installation produced no response and was interrupted; no app launch or runtime behavior is claimed. No emulator wipe/reset was performed.
 - **Historical records:** Rev3 API crosswalk/commit remain historical. Rev4 removed UI-level API wiring; Rev5 remains UI-only. See `evidence/notes/EXECUTION.md` and `evidence/notes/OPEN_QUESTIONS.md`.
-- **Previous publication:** commit `11294211911506a7dae73a5ab78aee0bb51311f0` (`feat(ui): keep role previews UI-only`) was previously pushed as a normal fast-forward to `origin/FE_UI_Project_Ver2`; Rev5 changes are not yet included in that commit.
+- **Publication:** Rev5 implementation commit `0a2cdd75` (`feat(ui): complete leader preview flows`) was pushed as a normal fast-forward from `35f2f055` to `origin/FE_UI_Project_Ver2` on 2026-11-14 (Asia/Saigon). Security validation passed before commit and immediately before push. See `evidence/notes/PUBLICATION.md`.

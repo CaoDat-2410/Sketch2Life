@@ -38,3 +38,13 @@
 - **Security validation:** `python tools/validate_repository_security.py` passed before commit and immediately before push; the push-time run scanned 7,577 publishable files and found no absolute machine paths. `git diff --cached --check` passed before commit.
 - **Scope delivered:** removed frontend API/auth conditionals; Parent Settings is available only from Family Profile; removed unsupported Parent gender controls and the pre-video activity step; retained Teacher, School Manager and Platform Admin as web previews. No backend, API, auth, schema, SRS or legacy Child Expo change was made.
 - **Verification:** five UI workspace builds, Parent Android typecheck, debug APK packaging and visual role walkthrough passed. No automated tests were run. APK installation/runtime on the supplied emulator was not retried; the previous Package Manager stall remains the limit. See `EXECUTION.md`.
+
+## FEAT-069 Plan Rev5 — preview completion — 2026-11-14
+
+- **Target:** `origin/FE_UI_Project_Ver2`
+- **Implementation commit:** `0a2cdd75` (`feat(ui): complete leader preview flows`)
+- **Parent commit:** `35f2f055`
+- **Push:** normal fast-forward, completed 2026-11-14 (Asia/Saigon); remote advanced from `35f2f055` to `0a2cdd75`.
+- **Security validation:** `python tools/validate_repository_security.py` passed before commit and immediately before push; both runs scanned 7,579 publishable files and found no absolute machine paths. `git diff --cached --check` passed before commit.
+- **Scope delivered:** Parent mismatch review, sample transcript, topic/difficulty-based drawing guide and preview-only gender; Teacher dashboard derived from contract-shaped local fixtures; Rev5 plan, approvals, status, decisions and evidence. No backend, API, auth, schema, or excluded-branch source was changed.
+- **Verification:** all five UI builds, Parent Android typecheck, debug APK packaging and local browser workspace responses passed. The APK install attempt on the booted emulator stalled at Android Package Manager and was interrupted; runtime is not claimed. See `EXECUTION.md`.
