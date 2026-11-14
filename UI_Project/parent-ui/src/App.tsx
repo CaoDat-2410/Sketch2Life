@@ -5,11 +5,12 @@ type Step = 'prepare' | 'guide' | 'capture' | 'idea' | 'review' | 'script' | 'ge
 type IconName = 'home' | 'clock' | 'user' | 'spark' | 'star' | 'expand' | 'arrow' | 'back' | 'camera' | 'upload' | 'book' | 'check' | 'lock' | 'play' | 'mic' | 'edit' | 'plus' | 'chevron' | 'settings' | 'close' | 'leaf' | 'trash' | 'bell' | 'search' | 'share' | 'download' | 'message' | 'calendar' | 'file' | 'logout' | 'refresh' | 'mail' | 'eye' | 'eyeOff';
 type HistoryTab = 'stories' | 'lessons';
 type HistoryStatus = 'all' | 'open' | 'completed';
+type PreviewJobState = 'processing' | 'failed' | 'safety-blocked';
 
 type Child = { id: string; name: string; ageMonths: number; tone: string; initial: string; gender: 'girl' | 'boy' | 'unspecified'; nickname?: string; supportNeeds?: string; photoUrl?: string; interests?: string; observations?: string; achievements?: string; externalExperiences?: string };
 type ProfileContextField = 'interests' | 'observations' | 'achievements' | 'externalExperiences';
 type StoryFeedback = { rating: number; tags: string[]; note: string };
-type Story = { id: number; title: string; date: string; childId: string; child: string; color: string; subtitle: string; status?: 'active' | 'ready' | 'completed'; lessonId?: string | null; hidden?: boolean; sessionFeedback?: StoryFeedback };
+type Story = { id: number; title: string; date: string; dateDaysAgo?: number; childId: string; child: string; color: string; subtitle: string; status?: 'active' | 'ready' | 'completed'; lessonId?: string | null; hidden?: boolean; sessionFeedback?: StoryFeedback };
 type LessonDelivery = { id: string; lessonId: string; title: string; childId: string; child: string; date: string; school: string; teacher: string; teacherReply?: string; parentFeedback?: string };
 type ShareGrant = { id: string; childId: string; recipient: string; organization: string; status: 'invited' | 'active'; date: string };
 type VerifiedTeacher = { id: string; name: string; school: string };
@@ -41,7 +42,7 @@ const profileContextFields: { key: ProfileContextField; label: string }[] = [
 
 const initialStories: Story[] = [
   { id: 1, title: 'Chú bướm tìm nắng', date: 'Hôm qua', childId: 'an', child: 'Bé An', color: 'sun', subtitle: 'Một chuyến đi qua khu vườn', status: 'completed', lessonId: 'garden' },
-  { id: 2, title: 'Con thuyền giấy nhỏ', date: 'Thứ Hai', childId: 'minh', child: 'Bé Minh', color: 'sea', subtitle: 'Hành trình trên dòng suối', status: 'completed', lessonId: null },
+  { id: 2, title: 'Con thuyền giấy nhỏ', date: '6 tuần trước', dateDaysAgo: 42, childId: 'minh', child: 'Bé Minh', color: 'sea', subtitle: 'Hành trình trên dòng suối', status: 'completed', lessonId: null },
 ];
 
 const initialLessonDeliveries: LessonDelivery[] = [
@@ -70,8 +71,8 @@ const steps: { key: Step; label: string }[] = [
   { key: 'prepare', label: 'Chuẩn bị' },
   { key: 'guide', label: 'Gợi ý vẽ' },
   { key: 'capture', label: 'Chụp tranh' },
-  { key: 'idea', label: 'Ý tưởng' },
   { key: 'review', label: 'Chủ thể' },
+  { key: 'idea', label: 'Ý tưởng & ngữ cảnh' },
   { key: 'script', label: 'Kịch bản' },
   { key: 'generating', label: 'Tạo video' },
   { key: 'ready', label: 'Hoàn tất' },
@@ -381,6 +382,7 @@ function App() {
   const [lessonDetailOrigin, setLessonDetailOrigin] = useState<'library' | 'delivery'>('library');
   const [historyTab, setHistoryTab] = useState<HistoryTab>('stories');
   const [historyStatus, setHistoryStatus] = useState<HistoryStatus>('all');
+  const [historyRange, setHistoryRange] = useState<30 | 60>(30);
   const [notices, setNotices] = useState<AppNotice[]>(initialNotifications);
   const [grants, setGrants] = useState(initialShareGrants);
   const [feedbackText, setFeedbackText] = useState('');
@@ -410,6 +412,10 @@ function App() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [captionsEnabled, setCaptionsEnabled] = useState(true);
   const [playerExpanded, setPlayerExpanded] = useState(false);
+  const [previewJobState, setPreviewJobState] = useState<PreviewJobState>('processing');
+  const [previewJobStage, setPreviewJobStage] = useState(0);
+  const [videoPreviewFinished, setVideoPreviewFinished] = useState(false);
+  const [quotaTopupOpen, setQuotaTopupOpen] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [pushNotifications, setPushNotifications] = useState(true);
   const [pendingDelete, setPendingDelete] = useState<number | null>(null);
@@ -448,7 +454,7 @@ function App() {
   const flowSteps = steps.filter((item) => !['generating', 'ready'].includes(item.key) && (item.key !== 'guide' || guideEnabled));
   const stepIndex = flowSteps.findIndex((item) => item.key === step);
   const currentStory = stories.find((story) => story.id === selectedStoryId) ?? null;
-  const visibleStories = stories.filter((story) => !story.hidden && (historyStatus === 'all' || (historyStatus === 'open' ? story.status === 'ready' || story.status === 'active' : story.status === 'completed')));
+  const visibleStories = stories.filter((story) => !story.hidden && (historyRange === 60 || (story.dateDaysAgo ?? 0) <= 30) && (historyStatus === 'all' || (historyStatus === 'open' ? story.status === 'ready' || story.status === 'active' : story.status === 'completed')));
   const selectedDelivery = deliveries.find((delivery) => delivery.id === selectedDeliveryId) ?? deliveries[0];
   const selectedLessonDetail = availableLessons.find((lesson) => lesson.id === selectedLessonDetailId) ?? availableLessons[0];
   const authReady = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(authEmail.trim()) && authPassword.length > 0;
@@ -558,11 +564,13 @@ function App() {
       }
     }
     if (step === 'script') { acceptScript(); return; }
-    const currentSteps = flowSteps;
-    const next = currentSteps[Math.min(stepIndex + 1, currentSteps.length - 1)];
-    const resolvedNext = step === 'idea' && !audioUrl ? currentSteps.find((item) => item.key === 'review') : next;
-    setStep(resolvedNext?.key ?? 'review');
-    setActiveRun((run) => run ? { ...run, step: resolvedNext?.key ?? 'review' } : run);
+    if (step === 'idea' && !contextConfirmed) {
+      setToast('Rà soát và xác nhận ngữ cảnh tối thiểu trước khi xem kịch bản.');
+      return;
+    }
+    const next = flowSteps[Math.min(stepIndex + 1, flowSteps.length - 1)];
+    setStep(next?.key ?? 'review');
+    setActiveRun((run) => run ? { ...run, step: next?.key ?? 'review' } : run);
   };
 
   const previousStep = () => {
@@ -586,12 +594,21 @@ function App() {
       setToast('Đã hết 2 lượt tạo lại video cho câu chuyện này.');
       return;
     }
-    if (!contextConfirmed) {
-      setToast('Rà soát và xác nhận ngữ cảnh trong kịch bản trước khi tiếp tục.');
+    setStep('generating');
+    setPreviewJobStage(0);
+    setPreviewJobState('processing');
+    setVideoPreviewFinished(false);
+    setActiveRun((run) => run ? { ...run, status: 'active', step: 'generating' } : run);
+  };
+
+  const advancePreviewJob = () => {
+    if (previewJobState !== 'processing') return;
+    if (previewJobStage >= 3) {
+      setStep('ready');
+      setActiveRun((run) => run ? { ...run, status: 'ready', step: 'ready' } : run);
       return;
     }
-    setStep('generating');
-    setActiveRun((run) => run ? { ...run, status: 'active', step: 'generating' } : run);
+    setPreviewJobStage((stage) => Math.min(3, stage + 1));
   };
 
   const finishStory = () => {
@@ -1011,6 +1028,14 @@ function App() {
           {ideaMode === 'initial' && <button type="button" className="text-button text-button--center audio-sample-action" onClick={runSampleTranscription}>Xem luồng ghi âm thành chữ bằng dữ liệu mẫu</button>}
           {audioUrl && <><div className="audio-ready"><Icon name="check" size={16} /><span>{audioFileName} · chỉ lưu trong phiên này</span><button type="button" onClick={() => { URL.revokeObjectURL(audioUrl); setAudioUrl(null); setAudioFileName(''); setTranscriptionStatus('idle'); setIdea(''); setContextConfirmed(false); }}>Xóa</button></div><audio className="audio-player" controls src={audioUrl} aria-label="Nghe lại bản ghi ý tưởng" /></>}
           {ideaMode === 'initial' && transcriptionStatus !== 'idle' && <div className={`audio-transcription-state audio-transcription-state--${transcriptionStatus}`} role="status" aria-live="polite">{transcriptionStatus === 'transcribing' ? <><span className="transcription-spinner"/> Đang chuẩn bị bản chép mẫu…</> : transcriptionStatus === 'complete' ? <><Icon name="check" size={16}/><span><strong>Bản chép mẫu đã thêm vào ô ý tưởng.</strong><small>Đây là văn bản minh họa, chưa chạy nhận dạng giọng nói. Ba mẹ có thể sửa trực tiếp.</small></span></> : <><Icon name="refresh" size={16}/><span><strong>Chưa có bản chép.</strong><small>Thử tạo lại bản minh họa hoặc nhập ý tưởng bằng bàn phím.</small></span><button type="button" onClick={runSampleTranscription}>Thử lại</button></>}</div>}
+          {ideaMode === 'initial' && <section className="context-review-section context-review-section--compact" aria-labelledby="context-review-title">
+            <div className="section-heading"><h2 id="context-review-title">Rà soát ngữ cảnh</h2><span className="optional-label">Trước khi viết chuyện</span></div>
+            <div className="context-card"><div className="context-card__top"><span className="settings-row__icon settings-row__icon--blue"><Icon name="lock" size={19} /></span><div><strong>Thông tin tối thiểu cho câu chuyện</strong><small>Tên, ảnh hồ sơ và nhu cầu hỗ trợ không tự thêm vào nội dung.</small></div></div>
+              <div className="context-preview"><span>Nhóm tuổi</span><p>{formatChildAge(selectedChild.ageMonths)}</p><span>Chủ thể đã xác nhận</span><p>{subject}</p><span>Ý tưởng</span><p>{idea.trim() || (audioUrl ? 'Có bản ghi âm; chưa có lời chép tự động.' : 'Không có nội dung bổ sung')}</p>{selectedLesson && <><span>Giáo án & phiên bản</span><p>{selectedLesson.title} · {selectedLesson.version}</p></>}</div>
+            </div>
+            {selectedLesson && <div className="context-direction"><div className="section-heading"><h3>Hướng kể</h3><span className="optional-label">Cho câu chuyện này</span></div><div className="direction-options"><button type="button" className={scriptFollowing === 'lesson' ? 'is-selected' : ''} onClick={() => { setScriptFollowing('lesson'); setContextConfirmed(false); setActiveRun((run) => run ? { ...run, scriptFollowing: 'lesson' } : run); }} aria-pressed={scriptFollowing === 'lesson'}><strong>Theo mục tiêu giáo án</strong><small>Giữ hướng học tập đã chọn.</small></button><button type="button" className={scriptFollowing === 'free' ? 'is-selected' : ''} onClick={() => { setScriptFollowing('free'); setContextConfirmed(false); setActiveRun((run) => run ? { ...run, scriptFollowing: 'free' } : run); }} aria-pressed={scriptFollowing === 'free'}><strong>Để tranh dẫn dắt</strong><small>Ưu tiên câu chuyện riêng từ bức vẽ.</small></button></div></div>}
+            <label className="consent-row consent-row--confirm"><input type="checkbox" checked={contextConfirmed} onChange={(event) => setContextConfirmed(event.target.checked)} /><span><strong>Tôi xác nhận ngữ cảnh tối thiểu cho câu chuyện này</strong><small>Chỉ áp dụng cho lần xem trước hiện tại.</small></span></label>
+          </section>}
           {ideaMode === 'rewrite' && <div className="soft-card soft-card--blue"><Icon name="edit" size={18} /><p>Ba mẹ sẽ xem lại kịch bản trước khi tạo video.</p></div>}
         </>;
       case 'script':
@@ -1031,25 +1056,28 @@ function App() {
             <div className="story-scene"><span>05</span><p>Cùng nhau, hai bạn tìm được nơi rực rỡ nhất để bắt đầu một ngày vui.</p></div>
             <div className="script-card__footer"><Icon name="lock" size={15} /><span>{scriptFollowing === 'lesson' ? 'Ưu tiên mục tiêu giáo án đã chọn' : 'Ưu tiên ý tưởng riêng của gia đình'} · riêng tư</span></div>
           </article>
-          <section className="context-review-section" aria-labelledby="context-review-title">
-            <div className="section-heading"><h2 id="context-review-title">Rà soát thông tin cho câu chuyện này</h2><span className="optional-label">Bắt buộc</span></div>
-            <div className="context-card"><div className="context-card__top"><span className="settings-row__icon settings-row__icon--blue"><Icon name="lock" size={19} /></span><div><strong>Ngữ cảnh được chọn</strong><small>Tên, ảnh hồ sơ và nhu cầu hỗ trợ không được thêm mặc định.</small></div></div>
-              <div className="context-preview"><span>Nhóm tuổi</span><p>{formatChildAge(selectedChild.ageMonths)}</p>{idea.trim() ? <><span>Ý tưởng đã nhập</span><p>{idea.trim()}</p></> : audioUrl ? <><span>Ý tưởng</span><p>Chưa có lời kể được nhập. Bản ghi âm chưa được chép tự động.</p></> : <><span>Ý tưởng</span><p>Không có nội dung bổ sung</p></>}<span>Chủ thể đã rà soát</span><p>{subject}</p>{selectedLesson && <><span>Giáo án đã chọn</span><p>{selectedLesson.title} · {selectedLesson.version}</p></>}</div>
-            </div>
-            {selectedLesson && <div className="context-direction"><div className="section-heading"><h3>Hướng kể</h3><span className="optional-label">Cho câu chuyện này</span></div><div className="direction-options"><button type="button" className={scriptFollowing === 'lesson' ? 'is-selected' : ''} onClick={() => { setScriptFollowing('lesson'); setContextConfirmed(false); setActiveRun((run) => run ? { ...run, scriptFollowing: 'lesson' } : run); }} aria-pressed={scriptFollowing === 'lesson'}><strong>Theo mục tiêu giáo án</strong><small>Giữ hướng học tập đã chọn.</small></button><button type="button" className={scriptFollowing === 'free' ? 'is-selected' : ''} onClick={() => { setScriptFollowing('free'); setContextConfirmed(false); setActiveRun((run) => run ? { ...run, scriptFollowing: 'free' } : run); }} aria-pressed={scriptFollowing === 'free'}><strong>Để tranh dẫn dắt</strong><small>Ưu tiên câu chuyện riêng từ bức vẽ.</small></button></div></div>}
-            <label className="consent-row consent-row--confirm"><input type="checkbox" checked={contextConfirmed} onChange={(event) => setContextConfirmed(event.target.checked)} /><span><strong>Tôi xác nhận ngữ cảnh trên cho câu chuyện này</strong><small>Chỉ áp dụng cho lần xem trước hiện tại.</small></span></label>
-          </section>
           {activeRun?.needsRegeneration && <div className="soft-card soft-card--blue"><Icon name="lock" size={18} /><p>Video cũ còn trong tài khoản cho đến khi ba mẹ duyệt yêu cầu tạo lại. Khi chấp nhận, video cũ sẽ bị ẩn ngay.</p><button className="text-button" onClick={() => { setSelectedStoryId(Number(activeRun.id)); setScreen('run-detail'); }}>Xem video cũ</button></div>}
           <button className="text-button text-button--center" onClick={requestRewrite} disabled={(activeRun?.rewriteCount ?? 0) >= 3}><Icon name="edit" size={15} /> Gửi gợi ý viết lại ({Math.max(0, 3 - (activeRun?.rewriteCount ?? 0))} lượt còn lại)</button>
         </>;
       case 'generating':
-        return <div className="processing-state processing-state--unavailable">
-          <span className="unavailable-icon"><Icon name="clock" size={28} /></span>
-          <span className="pill pill--peach">BẢN XEM TRƯỚC</span>
-          <h1>Chưa thể gửi yêu cầu tạo video.</h1>
-          <p>Bản giao diện này chưa tạo video thật. Kịch bản và ảnh vẫn chỉ nằm trong phiên xem trước.</p>
-          <div className="preview-capability-list"><span><Icon name="check" size={15}/>Ảnh và thông tin chưa rời khỏi thiết bị</span><span><Icon name="clock" size={15}/>Video thật chưa sẵn sàng</span></div>
-          <button className="text-button text-button--center" onClick={() => { setStep('script'); setActiveRun((run) => run ? { ...run, step: 'script' } : run); }}>Quay lại kịch bản</button>
+        return <div className="processing-state processing-state--mockup">
+          <span className="unavailable-icon"><Icon name="spark" size={28} /></span>
+          <span className="pill pill--peach">TIẾN TRÌNH MINH HỌA</span>
+          <h1>{previewJobState === 'failed' ? 'Tạm thời chưa hoàn tất.' : previewJobState === 'safety-blocked' ? 'Nội dung đang được giữ an toàn.' : 'Câu chuyện đang được chuẩn bị.'}</h1>
+          <p>{previewJobState === 'failed' ? 'Có thể thử lại từ bước đang lỗi. Trạng thái này chỉ minh họa cách khôi phục.' : previewJobState === 'safety-blocked' ? 'Tình huống mẫu minh họa việc dừng tự động khi nội dung cần được rà soát.' : 'Theo dõi từng giai đoạn. Không hiển thị phần trăm hoặc thời gian hoàn tất dự đoán.'}</p>
+          <ol className="parent-job-timeline" aria-label="Các giai đoạn câu chuyện">
+            {['Phân tích bức tranh', 'Tạo các cảnh câu chuyện', 'Lời kể và phụ đề', 'Kiểm tra an toàn tự động'].map((label, index) => <li key={label} className={index < previewJobStage ? 'is-complete' : index === previewJobStage && previewJobState === 'processing' ? 'is-current' : ''}><span>{index < previewJobStage ? <Icon name="check" size={15}/> : String(index + 1).padStart(2, '0')}</span><strong>{label}</strong><small>{index < previewJobStage ? 'Hoàn tất · minh họa' : index === previewJobStage && previewJobState === 'processing' ? 'Đang xử lý · minh họa' : 'Đang chờ · minh họa'}</small></li>)}
+          </ol>
+          {previewJobState === 'failed' && <div className="parent-job-alert" role="alert"><strong>Đã xảy ra lỗi tạm thời</strong><span>Giữ nguyên bản nháp trong phiên xem trước. Có thể thử lại giai đoạn minh họa này.</span></div>}
+          {previewJobState === 'safety-blocked' && <div className="parent-job-alert parent-job-alert--safety" role="status"><strong>Đã dừng ở bước kiểm tra an toàn</strong><span>Không mở video hoặc hoạt động cho đến khi nội dung được xử lý.</span></div>}
+          <div className="parent-job-actions">
+            {previewJobState === 'processing' && <button className="button button--primary button--wide" onClick={advancePreviewJob}>{previewJobStage === 3 ? 'Hoàn tất trạng thái minh họa' : 'Mô phỏng bước tiếp theo'} <Icon name="arrow" size={18}/></button>}
+            {previewJobState === 'processing' && <button className="button button--secondary button--wide" onClick={() => setPreviewJobState('failed')}>Xem trạng thái lỗi mẫu</button>}
+            {previewJobState === 'processing' && <button className="text-button text-button--center" onClick={() => setPreviewJobState('safety-blocked')}>Xem tình huống an toàn chặn</button>}
+            {previewJobState === 'failed' && <button className="button button--primary button--wide" onClick={() => { setPreviewJobState('processing'); setToast('Đã thử lại bước minh họa.'); }}>Thử lại bước này</button>}
+            {previewJobState === 'safety-blocked' && <button className="button button--secondary button--wide" onClick={() => { setStep('script'); setActiveRun((run) => run ? { ...run, step: 'script' } : run); }}>Quay lại kịch bản</button>}
+          </div>
+          <div className="preview-capability-list"><span><Icon name="lock" size={15}/>Ảnh và thông tin chỉ nằm trong phiên xem trước</span><span><Icon name="refresh" size={15}/>Có thể thu nhỏ rồi tiếp tục từ Trang chủ</span></div>
         </div>;
       case 'ready':
         return <>
@@ -1061,8 +1089,9 @@ function App() {
           </div>
           {renderVideoPreview(`Câu chuyện riêng của ${selectedChild.name}.`, true)}
           <div className="private-badge"><Icon name="lock" size={15} /> Video và playback chỉ là minh họa</div>
-          {selectedLesson && <section className="activity-callout"><span className="activity-callout__icon"><Icon name="leaf" size={22} /></span><div><strong>{selectedActivityId ? 'Hoạt động đã chọn' : 'Thử cùng bé nhé'}</strong><small>{selectedActivityId ?? `${selectedLesson.activities.length} hoạt động sau câu chuyện · ${selectedLesson.title}`}</small></div><button onClick={() => openActivities(selectedLesson.id, 'flow')} aria-label="Xem hoạt động sau câu chuyện"><Icon name="arrow" size={18} /></button></section>}
-          <div className="ready-actions"><button className="button button--primary button--wide" onClick={() => openSessionFeedback(Number(activeRun?.id))}>Hoàn tất · chia sẻ cảm nhận</button><button className="text-button text-button--center" disabled={(activeRun?.regenCount ?? 0) >= 2} onClick={() => setPendingRegenerate(true)}>{(activeRun?.regenCount ?? 0) >= 2 ? 'Đã dùng tối đa 2 lượt tạo lại' : `Đánh dấu video không phù hợp · còn ${2 - (activeRun?.regenCount ?? 0)} lượt tạo lại`}</button></div>
+          <button type="button" className="button button--secondary button--wide parent-playback-finish" onClick={() => setVideoPreviewFinished(true)} disabled={videoPreviewFinished}>{videoPreviewFinished ? 'Đã xem xong bản minh họa' : 'Đánh dấu đã xem hết bản minh họa'}</button>
+          {selectedLesson && (videoPreviewFinished ? <section className="activity-callout"><span className="activity-callout__icon"><Icon name="leaf" size={22} /></span><div><strong>{selectedActivityId ? 'Hoạt động đã chọn' : 'Thử cùng bé nhé'}</strong><small>{selectedActivityId ?? `${selectedLesson.activities.length} hoạt động sau câu chuyện · ${selectedLesson.title}`}</small></div><button onClick={() => openActivities(selectedLesson.id, 'flow')} aria-label="Xem hoạt động sau câu chuyện"><Icon name="arrow" size={18} /></button></section> : <section className="activity-callout activity-callout--locked"><span className="activity-callout__icon"><Icon name="lock" size={20} /></span><div><strong>Hoạt động mở sau câu chuyện</strong><small>Xem hết bản minh họa để tiếp tục giáo án {selectedLesson.title}.</small></div></section>)}
+          <div className="ready-actions"><button className="button button--primary button--wide" onClick={() => openSessionFeedback(Number(activeRun?.id))} disabled={!videoPreviewFinished}>Hoàn tất · chia sẻ cảm nhận</button><button className="text-button text-button--center" disabled={(activeRun?.regenCount ?? 0) >= 2} onClick={() => setPendingRegenerate(true)}>{(activeRun?.regenCount ?? 0) >= 2 ? 'Đã dùng tối đa 2 lượt tạo lại' : `Đánh dấu video không phù hợp · còn ${2 - (activeRun?.regenCount ?? 0)} lượt tạo lại`}</button></div>
         </>;
     }
   };
@@ -1085,6 +1114,7 @@ function App() {
       <div className="preview-inline-note" role="note"><strong>Dữ liệu minh họa</strong><span>Câu chuyện, lượt phát và giáo án bên dưới chưa được đồng bộ với tài khoản.</span></div>
       <div className="segmented-control"><button className={historyTab === 'stories' ? 'is-active' : ''} onClick={() => setHistoryTab('stories')}>Câu chuyện</button><button className={historyTab === 'lessons' ? 'is-active' : ''} onClick={() => setHistoryTab('lessons')}>Giáo án đã nhận</button></div>
       {historyTab === 'stories' ? <>
+        <div className="history-range-filter" role="group" aria-label="Khoảng thời gian"><span>Khoảng thời gian</span>{([30, 60] as const).map((days) => <button key={days} type="button" className={historyRange === days ? 'is-active' : ''} aria-pressed={historyRange === days} onClick={() => setHistoryRange(days)}>{days} ngày</button>)}</div>
         <div className="history-summary"><span className="history-summary__icon"><Icon name="book" size={21} /></span><div><strong>{stories.filter((story) => !story.hidden).length} câu chuyện mẫu</strong><small>Playback thật chưa được kết nối</small></div></div>
         <div className="history-filters" role="group" aria-label="Lọc câu chuyện">{([['all', 'Tất cả'], ['open', 'Chờ hoàn tất'], ['completed', 'Đã hoàn tất']] as const).map(([value, label]) => <button key={value} className={historyStatus === value ? 'is-active' : ''} onClick={() => setHistoryStatus(value)} aria-pressed={historyStatus === value}>{label}</button>)}</div>
         {visibleStories.length ? <div className="history-list">{visibleStories.map((story) => <StoryRow key={story.id} story={story} large profiles={profiles} onOpen={() => openStory(story)} onDelete={() => setPendingDelete(story.id)} />)}</div> : historyStatus !== 'all' ? <div className="history-filter-empty"><Icon name="book" size={21} /><p>Chưa có câu chuyện ở trạng thái này.</p><button onClick={() => setHistoryStatus('all')}>Xem tất cả</button></div> : <EmptyState title="Chưa có câu chuyện nào" body="Bức vẽ đầu tiên của bé có thể bắt đầu một chuyến phiêu lưu." action="Bắt đầu kể chuyện" onAction={startStory} />}
@@ -1114,8 +1144,10 @@ function App() {
       <div className="child-detail-note"><span>Nhu cầu hỗ trợ</span><p>{detailChild.supportNeeds || 'Chưa thêm thông tin.'}</p></div>
       {profileContextFields.some((field) => detailChild[field.key]) && <section className="child-context-summary"><h3>Điều ba mẹ ghi nhận</h3>{profileContextFields.filter((field) => detailChild[field.key]).map((field) => <div key={field.key}><strong>{field.label}</strong><p>{detailChild[field.key]}</p></div>)}</section>}
       <div className="privacy-banner"><Icon name="lock" size={18} /><p>Trước mỗi câu chuyện, ba mẹ rà soát ngữ cảnh tối thiểu. Tên, ảnh hồ sơ và nhu cầu hỗ trợ không được gửi theo mặc định.</p></div>
-      <button className="button button--primary button--wide" onClick={() => beginChildForm(detailChild)}><Icon name="edit" size={18} /> Sửa hồ sơ</button>
-      <button className="button button--secondary button--wide" onClick={() => setPendingDeleteChildId(detailChild.id)}><Icon name="trash" size={18} /> Xóa hồ sơ mẫu</button>
+      <div className="child-detail-actions">
+        <button className="button button--primary button--wide" onClick={() => beginChildForm(detailChild)}><Icon name="edit" size={18} /> Sửa hồ sơ</button>
+        <button className="button button--secondary button--wide" onClick={() => setPendingDeleteChildId(detailChild.id)}><Icon name="trash" size={18} /> Xóa hồ sơ mẫu</button>
+      </div>
       <p className="prototype-note">Thông tin hồ sơ đang là dữ liệu mẫu trong phiên xem trước.</p>
     </main>
   </>;
@@ -1199,6 +1231,9 @@ function App() {
   const renderLibrary = () => <>
     <PageHeader title="Thư viện giáo án" subtitle="Bản công khai và nội dung được gửi đến gia đình" onBack={() => setScreen('home')} />
     <main className="subpage-content">
+      <section className="library-child-switcher" aria-label="Hồ sơ trẻ đang xem"><ChildAvatar child={selectedChild} size="md"/><div><span>CHỌN HỒ SƠ CHO CÂU CHUYỆN</span><strong>{selectedChild.name}</strong><small>{formatChildAge(selectedChild.ageMonths)} · {formatChildGender(selectedChild.gender)}</small></div><select aria-label="Chọn hồ sơ trẻ" value={selectedChild.id} onChange={(event) => { setSelectedChildId(event.target.value); setToast('Đã đổi hồ sơ xem trong thư viện.'); }}><option value="" disabled>Chọn bé</option>{profiles.map((child) => <option key={child.id} value={child.id}>{child.name} · {formatChildGender(child.gender)}</option>)}</select></section>
+      {activeRun && <button type="button" className="library-resume-card" onClick={() => { setStep(activeRun.step); setScreen('flow'); }}><span className="active-run-card__icon"><Icon name={activeRun.status === 'ready' ? 'play' : 'refresh'} size={18}/></span><span><strong>{activeRun.status === 'ready' ? 'Câu chuyện đã sẵn sàng' : 'Tiếp tục câu chuyện đang dở'}</strong><small>{steps.find((item) => item.key === activeRun.step)?.label ?? 'Đang xử lý'} · của {profiles.find((child) => child.id === activeRun.childId)?.name ?? 'bé'}</small></span><Icon name="arrow" size={18}/></button>}
+      <button type="button" className="library-quota-summary" onClick={() => setScreen('quota')}><span><strong>2 lượt video</strong><small>Còn lại trong dữ liệu minh họa</small></span><span className="library-quota-meter"><i/></span><span>4 gợi ý vẽ</span><Icon name="chevron" size={17}/></button>
       <div className="library-tabs" role="tablist" aria-label="Nhóm giáo án"><button role="tab" aria-selected={libraryTab === 'public'} className={libraryTab === 'public' ? 'is-active' : ''} onClick={() => setLibraryTab('public')}>Giáo án công khai</button><button role="tab" aria-selected={libraryTab === 'shared'} className={libraryTab === 'shared' ? 'is-active' : ''} onClick={() => setLibraryTab('shared')}>Trường / giáo viên gửi</button></div>
       {libraryTab === 'public' ? <section className="library-group"><div className="library-group-heading"><span className="pill pill--green">HỆ THỐNG</span><p>Giáo án công khai có thể xem và dùng như preset.</p></div>{publicLessons.length ? publicLessons.map((lesson) => <article className="library-card" key={lesson.id}><button className="library-card-main" onClick={() => setLessonPreviewId(lesson.id)}><span className="library-card__art">{lesson.color === 'sky' ? <SkyLessonArt /> : <StoryArt variant="thumb" />}</span><span className="library-card__body"><strong>{lesson.title}</strong><small>{lesson.meta}</small><em>{lesson.version} · {lesson.visibility}</em></span><Icon name="chevron" size={18} /></button><button type="button" className="lesson-detail-action" onClick={() => setLessonPreviewId(lesson.id)}>Chi tiết</button></article>) : <p className="library-empty">Chưa có giáo án công khai trong bản xem trước.</p>}</section> : <section className="library-group"><div className="library-group-heading"><span className="pill pill--blue">ĐƯỢC CHIA SẺ</span><p>Giáo án từ trường hoặc giáo viên gửi riêng cho gia đình.</p></div>
         {lessonInvitations.some((invitation) => invitation.status === 'pending') && <section className="invite-section" aria-label="Lời mời giáo án"><div className="section-heading"><h2>Lời mời giáo án</h2><span className="pill pill--green">Mới</span></div>{lessonInvitations.filter((invitation) => invitation.status === 'pending').map((invitation) => { const lesson = lessons.find((item) => item.id === invitation.lessonId); return lesson && <article className="invite-card" key={invitation.id}><span className="invite-card__icon"><Icon name="book" size={22} /></span><div><strong>{lesson.title}</strong><small>{invitation.teacher} · {invitation.school}</small></div><div className="invite-actions"><button className="button button--primary" onClick={() => { setLessonInvitations((current) => current.map((item) => item.id === invitation.id ? { ...item, status: 'accepted' } : item)); setToast('Đã chấp nhận lời mời trong bản xem trước.'); }}>Chấp nhận</button><button className="button button--secondary" onClick={() => { setLessonInvitations((current) => current.map((item) => item.id === invitation.id ? { ...item, status: 'declined' } : item)); setToast('Đã từ chối lời mời trong bản xem trước.'); }}>Từ chối</button></div></article>; })}</section>}
@@ -1266,9 +1301,12 @@ function App() {
   const renderQuota = () => <>
     <PageHeader title="Lượt tạo" subtitle="Lượt tạo video và gợi ý vẽ của gia đình" onBack={() => setScreen('profile')} />
     <main className="subpage-content">
-      <section className="quota-card"><span className="quota-icon"><Icon name="spark" size={22} /></span><strong>Chưa có số liệu lượt tạo</strong><p>Thông tin lượt tạo và gói sử dụng sẽ hiển thị tại đây khi tài khoản có dữ liệu.</p></section>
-      <div className="quota-row"><span>Video câu chuyện</span><strong>—</strong></div><div className="quota-row"><span>Gói sử dụng</span><strong>Chưa có thông tin</strong></div><div className="quota-row"><span>Gợi ý nét vẽ</span><strong>—</strong></div>
-      <button className="button button--secondary button--wide" onClick={() => setToast('Thông tin gói sử dụng chưa có cho tài khoản này.')}>Thông tin gói sử dụng</button>
+      <div className="preview-inline-note" role="note"><strong>Số liệu minh họa</strong><span>Các con số và gói bên dưới chỉ dựng trạng thái UI, chưa có quota hoặc Billing thật.</span></div>
+      <section className="quota-card"><span className="quota-icon"><Icon name="spark" size={22} /></span><strong>Gia đình còn 2 lượt video</strong><p>Gói minh họa · chu kỳ tháng · làm mới theo thông tin tài khoản khi tích hợp.</p></section>
+      <div className="quota-row"><span>Video câu chuyện</span><strong>2 / 5 lượt còn lại</strong></div><div className="quota-row"><span>Gói sử dụng</span><strong>Gia đình · minh họa</strong></div><div className="quota-row"><span>Gợi ý nét vẽ</span><strong>4 / 8 lượt còn lại</strong></div>
+      <button className="button button--primary button--wide" onClick={() => setQuotaTopupOpen((open) => !open)} aria-expanded={quotaTopupOpen}>Xem lựa chọn nạp thêm</button>
+      {quotaTopupOpen && <section className="quota-topup-preview"><h2>Lựa chọn thanh toán</h2><p>Chọn một phương thức để xem trạng thái mẫu. Không mở cổng thanh toán và không tạo giao dịch.</p><div><button type="button" onClick={() => setToast('MoMo · chưa mở thanh toán trong bản xem trước.')}>MoMo · xem thử</button><button type="button" onClick={() => setToast('VNPAY · chưa mở thanh toán trong bản xem trước.')}>VNPAY · xem thử</button></div></section>}
+      <button className="button button--secondary button--wide" onClick={() => setToast('Lịch sử gói và hóa đơn chỉ hiển thị sau khi có dữ liệu thật.')}>Thông tin gói sử dụng</button>
     </main>
   </>;
 
@@ -1443,7 +1481,7 @@ function App() {
         <header className="flow-header"><button className="back-button" onClick={() => step === 'generating' || step === 'ready' ? setScreen('home') : previousStep()} aria-label={step === 'generating' || step === 'ready' ? 'Về trang chủ, tiếp tục ở nền' : 'Quay lại bước trước'}><Icon name="back" size={22} /></button><span>{activeRun?.status === 'ready' ? 'Câu chuyện của gia đình' : 'Tạo câu chuyện'}</span><button className="close-flow" onClick={() => setScreen('home')} aria-label="Thu nhỏ luồng, tiếp tục ở nền"><Icon name="close" size={20} /></button></header>
         {step !== 'generating' && step !== 'ready' && <div className="progress-wrap"><div className="progress-label"><span>{flowSteps[stepIndex]?.label}</span><small>Bước {stepIndex + 1} / {flowSteps.length}</small></div><div className="step-progress" aria-label={`Bước ${stepIndex + 1} trên ${flowSteps.length}`}>{flowSteps.map((item, index) => <i key={item.key} className={index <= stepIndex ? 'is-done' : ''} />)}</div></div>}
         <main ref={flowContentRef} className={`flow-content flow-content--${step}`}>{renderFlowStep()}</main>
-        {step !== 'generating' && step !== 'ready' && <div className="flow-footer"><button className="button button--primary button--wide" onClick={step === 'idea' && ideaMode === 'rewrite' ? submitRewrite : nextStep} disabled={(step === 'capture' && !photoUrl) || (step === 'script' && (!contextConfirmed || Boolean(activeRun?.needsRegeneration && activeRun.regenCount >= 2)))}>{step === 'script' ? activeRun?.needsRegeneration ? `Xem trước yêu cầu tạo lại (${Math.max(0, 2 - (activeRun?.regenCount ?? 0))} lượt còn)` : 'Duyệt kịch bản & tiếp tục' : step === 'capture' ? 'Tiếp tục với bức tranh' : step === 'idea' && ideaMode === 'rewrite' ? 'Gửi gợi ý viết lại' : step === 'guide' ? guideStepIndex < guideSteps.length - 1 ? 'Bước tiếp theo' : 'Tiếp tục đến chụp tranh' : 'Tiếp tục'} <Icon name="arrow" size={18} /></button>{step === 'script' && !contextConfirmed && <small className="footer-helper">Rà soát và xác nhận thông tin trên màn hình để tiếp tục.</small>}</div>}
+        {step !== 'generating' && step !== 'ready' && <div className="flow-footer"><button className="button button--primary button--wide" onClick={step === 'idea' && ideaMode === 'rewrite' ? submitRewrite : nextStep} disabled={(step === 'capture' && !photoUrl) || (step === 'idea' && ideaMode === 'initial' && !contextConfirmed) || (step === 'script' && Boolean(activeRun?.needsRegeneration && activeRun.regenCount >= 2))}>{step === 'script' ? activeRun?.needsRegeneration ? `Xem trước yêu cầu tạo lại (${Math.max(0, 2 - (activeRun?.regenCount ?? 0))} lượt còn)` : 'Duyệt kịch bản & tiếp tục' : step === 'capture' ? 'Tiếp tục với bức tranh' : step === 'idea' && ideaMode === 'rewrite' ? 'Gửi gợi ý viết lại' : step === 'guide' ? guideStepIndex < guideSteps.length - 1 ? 'Bước tiếp theo' : 'Tiếp tục đến chụp tranh' : 'Tiếp tục'} <Icon name="arrow" size={18} /></button>{step === 'idea' && ideaMode === 'initial' && !contextConfirmed && <small className="footer-helper">Xác nhận ngữ cảnh tối thiểu để mở bước xem kịch bản.</small>}</div>}
         {step === 'generating' && <div className="flow-footer flow-footer--ready"><button className="button button--secondary button--wide" onClick={() => { setStep('script'); setActiveRun((run) => run ? { ...run, step: 'script' } : run); }}>Quay lại kịch bản</button><button className="text-button text-button--center" onClick={() => setScreen('home')}>Về trang chủ</button></div>}
         {step === 'ready' && <div className="flow-footer flow-footer--ready"><button className="button button--secondary button--wide" onClick={() => { setScreen('home'); setToast('Bạn có thể quay lại câu chuyện từ Trang chủ trong phiên này.'); }}>Để sau trong phiên này <Icon name="clock" size={17} /></button></div>}
       </>}

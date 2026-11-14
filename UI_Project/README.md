@@ -58,12 +58,13 @@ Sau khi clone, cài dependency web bằng `npm ci` tại `UI_Project`, rồi cà
 
 Các portal và app hiện vẫn có màn hình fixture/preview. UI preview/source không đồng nghĩa API/backend đã được tích hợp đầy đủ.
 
-## Luồng xem thử Rev5
+## Luồng xem thử Rev7 — mockup toàn dự án
 
-- Trong Parent, vào **Bắt đầu kể** để xem giới tính ngay trong bộ chọn hồ sơ. Mở **Hồ sơ** để xem/sửa trường giới tính; giá trị này chỉ nằm trong phiên UI preview vì SRS/API hiện tại chưa định nghĩa thuộc tính đó.
-- Có thể bật **Thêm gợi ý vẽ trước khi chụp** để xem ba bước tĩnh, đổi chủ đề/mức gợi ý, quay lại hoặc bỏ qua. Không gọi AI.
-- Ở bước chụp, nút **Dùng tranh mẫu minh họa để xem luồng** giúp đi tiếp mà không tải ảnh. Bản phân tích cục bộ mặc định mô phỏng tình huống lệch giáo án để kiểm tra modal chọn hướng kể; đây không phải phân tích ảnh thật.
-- Ở bước ý tưởng, **Xem luồng ghi âm thành chữ bằng dữ liệu mẫu** đưa một transcript mẫu vào ô có thể chỉnh sửa. Ghi âm thật cần quyền micro; nhận dạng giọng nói chưa được kết nối.
-- Teacher Dashboard hiển thị danh sách fixture theo khái niệm giáo án, trạng thái hiển thị/xét duyệt và phân công. Các con số được tính từ fixture đang hiển thị, không phải số liệu API hay analytics.
+- Parent: bắt đầu ở **Bắt đầu kể** để chọn hồ sơ (có tuổi/giới tính) và giáo án; có thể bật gợi ý vẽ; chụp tranh mẫu; rà soát/sửa chủ thể; thêm ý tưởng hoặc transcript mẫu; xác nhận ngữ cảnh; duyệt kịch bản; xem job/video minh họa; hoạt động giáo án chỉ mở sau khi đánh dấu đã xem hết bản minh họa. **Thư viện**, **Lịch sử**, **Hồ sơ**, **Quota**, đăng nhập/kích hoạt và khôi phục có luồng xem trước riêng. Settings chỉ mở từ **Hồ sơ**; không có thẻ hồ sơ trẻ lặp lại trên Home.
+- Teacher web: dashboard, soạn giáo án theo cấu trúc, nhập tài liệu → rà soát trường trích xuất mẫu → xác nhận, lớp/roster, chuẩn bị buổi dạy/Sketch Deck tùy chọn, kể chuyện mẫu và xác nhận trình chiếu.
+- School Manager web: theo dõi giáo viên/nhóm/lớp/slot/quota; duyệt đúng version với bốn cổng xác nhận; nút duyệt chỉ bật sau khi đủ bốn điều kiện, yêu cầu sửa cần lý do.
+- Platform Admin web: tổng quan vận hành và kiểm duyệt danh mục với bộ lọc, version, trạng thái cùng hành động phù hợp trạng thái.
+- Unified portal: ba vai trò Giáo viên, Quản lý trường và Quản trị nền tảng có màn hình đăng nhập/kích hoạt dạng mockup.
+- Tất cả số liệu và chuyển trạng thái là fixture trong trình duyệt; không gọi API/auth, không gửi file, không gọi AI/ASR, không thanh toán hoặc ghi dữ liệu. Thứ tự Parent theo Rev38 chỉ áp dụng trong prototype; xung đột với SRS v2.5-draft vẫn cần leader/owner giải quyết.
 
 

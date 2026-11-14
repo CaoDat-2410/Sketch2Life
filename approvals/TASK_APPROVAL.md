@@ -312,3 +312,15 @@
 - **Scope:** UI-only preview updates. Use permitted source/API contracts as business-flow reference, without API calls. Add a clearly labeled local mismatch scenario/modal, editable sample transcript states, complete optional generic-topic guide states, a contract-shaped Teacher dashboard preview, and a local-only Parent gender field shown in profile and child selection. Build and run the UI for owner review.
 - **Exclusions:** backend/API/auth/schema/SRS changes; live ASR/AI/API calls or writes; persisted gender or real child data; prohibited branch source; legacy top-level `apps/` as implementation target; automated tests; force push/history rewrite.
 - **Approval basis:** direct owner instruction. This does not sign off or revise FEAT-063 SRS v2.5-draft; gender remains a UI-only proposal pending product/data-model reconciliation.
+
+## FEAT-069 Plan Rev7 — complete project UI mockup flows
+
+- **Status:** APPROVED for the exact UI-only scope in Plan Rev7.
+- **Approver:** Project owner, direct instruction in this conversation: complete mockups for the whole project following the leader's flow; use sample data so later API work replaces data rather than redesigning screens; do not integrate API now. Owner also supplied a Parent profile screenshot showing action buttons touching/overlapping.
+- **Approved plan:** `features/FEAT-069-leader-uiux-review-remediation/plan/PLAN_REV7_ALL_UI_MOCKUP_FLOWS.md`.
+- **Recorded timestamp:** 2026-11-14 11:26:40 Asia/Saigon.
+- **Plan revision:** 7.
+- **Approved plan SHA-256:** `EF292106848FEAF341591D5DA002DA679F08E19BBBAF719F41F379536166C39F`.
+- **Scope:** Complete Parent P01–P12, Teacher T01–T07, School Manager M01–M02, Platform Admin A01–A02 and shared UI01–UI09 as reachable local fixture mockup flows in `UI_Project/`; add Parent profile action spacing fix; use the Rev38 requested visual guidance; run builds, Parent Android typecheck/APK packaging, manual review and repository security validation.
+- **Exclusions:** API/auth/network calls or integration; backend/schema/database/SRS changes; persistent data, real child/user data, provider/AI/ASR, email/payment actions; legacy top-level `apps/` and Child Expo; generated bitmap assets; automated tests; force push/history rewrite.
+- **Conflict note:** Rev38 and current unsigned FEAT-063 v2.5-draft disagree on Parent idea/subject ordering. The visual mockup will follow the owner's explicit request for Rev38 sequencing only; the SRS remains unchanged and the product conflict remains open.

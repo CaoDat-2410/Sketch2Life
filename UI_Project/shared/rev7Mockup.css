@@ -1,0 +1,73 @@
+.teacher-next-session-grid{display:grid;grid-template-columns:minmax(280px,.82fr) minmax(0,1.18fr);gap:14px;margin:16px 0}
+.teacher-next-session,.teacher-feedback-summary{min-width:0;padding:19px;border:1px solid #dce8e7;border-radius:17px;background:#fffefa;box-shadow:0 8px 24px #24444a0a}
+.teacher-next-session{display:flex;align-items:center;justify-content:space-between;gap:16px;background:linear-gradient(135deg,#eef6fc,#fff9e9)}
+.teacher-next-session h2{margin:7px 0 5px;color:#284b53;font:800 21px/1.2 'DM Sans','Be Vietnam Pro',sans-serif}
+.teacher-next-session p,.teacher-next-session small{display:block;margin:0 0 5px;color:#6e817e;font-size:11px;line-height:1.5}
+.teacher-next-session .web-primary{flex:none}
+.teacher-feedback-summary .web-panel-title{margin-bottom:6px}
+.teacher-feedback-summary .dash-compact-list>button,.teacher-feedback-summary>button{display:flex;align-items:center;gap:10px;width:100%;padding:10px 0;border:0;border-bottom:1px solid #edf0ed;background:transparent;color:#405c56;text-align:left}
+.teacher-feedback-summary>button:last-child{border-bottom:0}
+.teacher-feedback-summary>button>span:nth-child(2){display:grid;flex:1;gap:4px;min-width:0}
+.teacher-feedback-summary>button strong{font-size:10px}
+.teacher-feedback-summary>button small,.teacher-feedback-summary>button em{color:#829087;font-size:9px;font-style:normal;line-height:1.4}
+.teacher-feedback-summary>button em{flex:none}
+
+.manager-publication-workbench{display:grid;grid-template-columns:minmax(275px,.78fr) minmax(0,1.42fr);gap:14px;align-items:start}
+.manager-publication-queue,.manager-publication-detail{min-width:0;padding:18px;border:1px solid #dfe7e5;border-radius:17px;background:#fffefa;box-shadow:0 8px 28px #1f42420b}
+.manager-publication-queue>.catalog-list-head{margin-bottom:11px}
+.manager-publication-queue>.catalog-list-head>span{display:grid;place-items:center;min-width:29px;height:29px;border-radius:50%;background:#eaf3fb;color:#3b76ad;font-size:11px;font-weight:800}
+.manager-publication-queue>.catalog-records{margin-top:0}
+.manager-publication-queue .catalog-records>button{align-items:flex-start;min-height:74px}
+.manager-publication-queue .catalog-records>button .preview-state{max-width:108px;text-align:center}
+.manager-publication-queue .catalog-records>button.is-selected{border-color:#a9c7dd;background:#f0f7fc}
+.manager-publication-detail{display:grid;gap:13px}
+.manager-publication-title{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.manager-publication-title h2{margin:5px 0;color:#284a50;font:800 22px/1.2 'DM Sans','Be Vietnam Pro',sans-serif}
+.manager-publication-title p{margin:0;color:#7d8c87;font-size:10px}
+.manager-requested-visibility{display:grid;gap:4px;min-width:168px;padding:11px 12px;border:1px solid #e9dcac;border-radius:12px;background:#fff9e7}
+.manager-requested-visibility small{color:#887c58;font-size:9px}
+.manager-requested-visibility strong{color:#665c3e;font-size:10px}
+.manager-publication-tabs{display:flex;gap:5px;padding:4px;border-radius:11px;background:#f2f6f5}
+.manager-publication-tabs button{min-height:36px;padding:0 13px;border:0;border-radius:8px;background:transparent;color:#70817c;font-size:10px;font-weight:800}
+.manager-publication-tabs button.is-active{background:#fff;color:#356c94;box-shadow:0 2px 8px #23454d12}
+.manager-review-content{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.manager-review-content section{min-width:0;padding:13px;border:1px solid #e5ece6;border-radius:12px;background:#f8faf5}
+.manager-review-content section>span{color:#477b8d;font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.manager-review-content p,.manager-review-content ol{margin:7px 0 0;color:#526961;font-size:10px;line-height:1.55}
+.manager-review-content ol{padding-left:18px}
+.manager-version-history{display:grid;gap:0;padding:2px 6px}
+.manager-version-history p{display:flex;align-items:center;gap:10px;margin:0;padding:12px 3px;border-bottom:1px solid #edf1ed;color:#536861;font-size:10px}
+.manager-version-history p:last-child{border-bottom:0}
+.manager-version-history i{width:9px;height:9px;border-radius:50%;background:#84aa9a;box-shadow:0 0 0 4px #edf4ed}
+.manager-review-checklist{display:grid;gap:9px;padding:14px;border:1px solid #dce8e6;border-radius:14px;background:linear-gradient(130deg,#f1f8f5,#f5f9fc)}
+.manager-review-checklist>div{display:grid;gap:4px;margin-bottom:2px}
+.manager-review-checklist>div>strong{color:#385c59;font-size:11px}
+.manager-review-checklist label{display:flex;align-items:flex-start;gap:9px;color:#526a62;font-size:10px;line-height:1.4}
+.manager-review-checklist input{flex:none;width:16px;height:16px;margin:0;accent-color:#3479bd}
+.manager-publication-actions{display:flex;align-items:center;flex-wrap:wrap;gap:10px}
+.manager-publication-actions>span{color:#7b8983;font-size:9px}
+.manager-publication-actions .flow-primary{min-height:39px;padding:0 14px}
+.manager-change-request{display:grid;justify-items:start;gap:8px;padding-top:12px;border-top:1px solid #e8ede8}
+.manager-change-request label{display:grid;gap:6px;width:100%;color:#61746d;font-size:10px;font-weight:700}
+.manager-change-request textarea{width:100%;min-height:72px;padding:10px;border:1px solid #dce5dd;border-radius:10px;background:#fff;color:#334f47;font:500 11px/1.5 'Be Vietnam Pro',sans-serif;resize:vertical}
+.manager-change-request .flow-secondary{min-height:37px;padding:0 12px}
+.moderation-effective-status{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:10px;background:#f5f8f5}
+.moderation-effective-status>span{color:#6d8076;font-size:10px;font-weight:700}
+.moderation-status-action{display:grid;gap:10px}
+.moderation-status-action p{margin:0;color:#697d73;font-size:10px;line-height:1.5}
+.moderation-status-action .flow-primary,.moderation-status-action .flow-danger{justify-self:start;min-height:38px;padding:0 13px}
+.web-app .flow-primary{background:linear-gradient(135deg,#397bb4,#2e689f);box-shadow:0 6px 15px #2d6fa01c}
+.web-app .flow-secondary{border-color:#e5d49b;background:#fff8e2;color:#665a34}
+.web-app .flow-primary:disabled{box-shadow:none}
+
+/* Narrow web workspaces: show every step and keep preview notices readable without sideways scrolling. */
+@media(max-width:560px){
+  .web-app .feedback-preview-note{display:grid;gap:4px}
+  .web-app .feedback-preview-note strong{flex:none}
+  .web-app .flow-rail{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch;gap:4px;overflow:visible}
+  .web-app .flow-rail>button{min-width:0;width:100%;min-height:40px;gap:7px;padding:6px;font-size:10px;line-height:1.3}
+  .web-app .flow-rail>button>span{width:24px;height:24px;border-radius:8px}
+}
+
+@media(max-width:900px){.manager-publication-workbench,.teacher-next-session-grid{grid-template-columns:1fr}.teacher-next-session{align-items:flex-start;flex-direction:column}.teacher-next-session .web-primary{width:100%;justify-content:center}}
+@media(max-width:560px){.manager-publication-queue,.manager-publication-detail,.teacher-next-session,.teacher-feedback-summary{padding:14px}.manager-publication-title{flex-direction:column}.manager-requested-visibility{width:100%;min-width:0}.manager-review-content{grid-template-columns:1fr}.manager-publication-queue .catalog-records>button .preview-state{max-width:94px}.manager-publication-actions{align-items:flex-start;flex-direction:column}.manager-publication-actions .flow-primary{width:100%}.manager-change-request .flow-secondary{width:100%}}

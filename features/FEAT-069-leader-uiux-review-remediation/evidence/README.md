@@ -1,5 +1,13 @@
 # FEAT-069 evidence index
 
+## Rev7 whole-project mockup completion
+
+| Evidence | Scope | What it establishes | Limitations |
+|---|---|---|---|
+| `notes/EXECUTION.md` — Rev7 entry | AC1–AC8 | Five-workspace build, Parent Android typecheck/APK packaging, Parent profile spacing, Teacher import confirmation, Manager four-gate behavior, Admin moderation, role preview startup and device availability | Screens were inspected live but no new screenshots were saved. ADB has no attached Android emulator, so APK runtime is unverified. All UI actions are fixtures; the prototype order conflict remains open. |
+| `notes/OPEN_QUESTIONS.md` — Rev7 disposition | AC2–AC7 | States which transitions are present and which capabilities remain visual-only | Does not replace SRS v2.5-draft owner sign-off or leader acceptance. |
+| `plan/PLAN_REV7_ALL_UI_MOCKUP_FLOWS.md` | AC1–AC8 | Exact approved scope, roles, flows and acceptance criteria | Rev38 is a visual proposal; API contracts may evolve. |
+
 ## Rev38 flow audit and Rev6 home verification
 
 | Evidence | Scope | What it establishes | Limitations |

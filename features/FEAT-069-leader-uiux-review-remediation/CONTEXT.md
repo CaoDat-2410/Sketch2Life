@@ -1,5 +1,11 @@
 # FEAT-069 — Leader review UI/UX remediation
 
+## Current approved work — Rev7 complete mockup pass
+
+The owner approved a whole-project UI mockup completion pass for `UI_Project/` using the Rev38 leader folders as the visual/flow reference. Parent is the mobile Android WebView experience; Teacher, School Manager, Platform Admin and the unified role portal are web workspaces. Rev7 adds local-only sample transitions across P01–P12, T01–T07, M01–M02, A01–A02 and shared UI01–UI09, plus responsive spacing for the Parent profile actions and narrow web workflow rails. No API/auth/backend/persistence behavior is connected. See `plan/PLAN_REV7_ALL_UI_MOCKUP_FLOWS.md`, `evidence/notes/EXECUTION.md` and `status/STATUS.md`.
+
+The prototype follows the owner-requested Rev38 Parent order (capture → subject check → idea/context → script) even though FEAT-063 SRS v2.5-draft §5.1 has a different order. This is a visual mockup choice, not a signed product requirement; the SRS stays unchanged and the conflict remains open. Gender, AI/transcription/job/playback/quota/payment values remain fixture states. APK packaging is verified; no Android device is currently attached to ADB for runtime installation.
+
 - **Current review:** Rev38 screen/component references were compared with current `UI_Project/` source and canonical FEAT-063 SRS v2.5-draft. The review result is **partial alignment, not full flow parity**; see `evidence/notes/REV38_FLOW_ALIGNMENT_20261114.md`. Rev38 is generated visual proposal material, not an approved contract.
 - **Rev6 home adjustment:** The redundant “Đang dùng hồ sơ” summary was removed from Parent home. Child selection remains in the story-start flow and Family Profile. The five-workspace build passed; the local Parent preview was reopened and confirmed the card is absent while “Bắt đầu kể” and primary navigation remain. See `plan/PLAN_REV6_PARENT_HOME.md` and `evidence/notes/EXECUTION.md`.
 

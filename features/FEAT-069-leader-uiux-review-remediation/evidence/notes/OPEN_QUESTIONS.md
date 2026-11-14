@@ -1,5 +1,13 @@
 # FEAT-069 remaining UI/product questions
 
+## Rev7 current disposition — mockup completion, 2026-11-14
+
+- The UI-only prototype now follows the owner-requested Rev38 Parent order: prepare/optional guide → capture → adult subject review → idea/transcript and context confirmation → script review → local job stages → sample video → activities after the preview is marked finished. This differs from FEAT-063 SRS v2.5-draft §5.1. The order is implemented only for the mockup; product ownership still needs to resolve/sign off the SRS conflict before the flow is treated as canonical.
+- Rev38 Parent Library now has a child-profile switcher; the duplicate selected-child card remains absent from Home per the owner's request. Settings remains reachable only in Family Profile. Gender shows in profile and child selection as session-only fixture data, not as an approved data/API field.
+- Teacher document import now shows upload → editable extraction fields → adult confirmation using local sample values. The selected file is not parsed or uploaded. Teacher lesson/session/sample-video paths, Manager publication/organization decisions, and Admin moderation/operations transitions are local previews.
+- Quota counts and MoMo/VNPAY choices are display-only; they do not launch a payment flow. Job stages and video playback are illustrative. No AI/ASR/image-analysis, auth, persistence, external URL, or API call is made.
+- Rev38 tokens/role navigation and generated screens remain visual proposals. Formal leader acceptance and SRS v2.5-draft owner sign-off remain outside this implementation; record remaining feedback separately instead of claiming approval.
+
 ## Rev38 comparison questions — 2026-11-14
 
 - Parent sequence in the current preview shows subject review before idea/transcript/context. Canonical FEAT-063 v2.5-draft §5.1 orders capture → idea/transcript → subject review → context confirmation, while Rev38 P04/P05 visually proposes the former order. This is an unresolved flow conflict; retain the canonical SRS sequence as the working target until the owner formally resolves/signs off the requirement.

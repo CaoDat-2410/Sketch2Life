@@ -10,6 +10,7 @@ import './coverage.css';
 import './leaderReview.css';
 import './rev5.css';
 import './rev6.css';
+import './rev7.css';
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

@@ -1,5 +1,13 @@
 # Feature decisions
 
+## D-069-16 — Whole-project Rev38 mockup pass stays fixture-only
+
+The owner asked for complete UI mockup flows across the project, with sample values that can later be replaced by approved API data without redesigning screens. Implement Parent P01–P12 as the Android WebView UI and the three staff roles plus the shared sign-in portal as web previews. Use Rev38 for the prototype's visual flow, but keep FEAT-063 SRS v2.5-draft authoritative and unsigned; the Parent subject/idea ordering conflict is documented rather than changing the SRS. No API/auth/network, upload, payment, AI, or persistent data behavior is in scope.
+
+## D-069-17 — Small-screen workflow clarity
+
+Role workflow steps and preview boundary notes must stay readable in a narrow viewport. At widths up to 560px, show the step rail as a compact two-column grid and stack explanatory notes, avoiding a clipped sideways step rail. The wide web workspaces keep their existing layout.
+
 ## D-069-14 — Parent home selected-profile summary
 
 The owner requested removing the “Đang dùng hồ sơ” summary from Parent home because the child is selected when starting a story. Remove only that duplicate home card; preserve child selection in story setup and Family Profile. Do not add a global home profile card back while reviewing Rev38. Rev6 implementation and browser check are recorded in `evidence/notes/EXECUTION.md`.

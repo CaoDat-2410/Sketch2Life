@@ -1,14 +1,14 @@
-# Rev38 UI/UX flow alignment review
+# Rev38 UI/UX flow alignment review — pre-Rev7 snapshot
 
 Date: 2026-11-14 (Asia/Saigon)
 Branch: `FE_UI_Project_Ver2`
-Scope: read-only comparison of the current `UI_Project/` UI against the leader-provided Rev38 screen and component indexes, with current product flow checked against FEAT-063 SRS v2.5-draft.
+Scope: read-only comparison of the `UI_Project/` source before Rev7 implementation against the leader-provided Rev38 screen and component indexes, with current product flow checked against FEAT-063 SRS v2.5-draft. This is a historical gap audit; Rev7 implementation and verification are recorded in `evidence/notes/EXECUTION.md`.
 
 ## Authority and method
 
 The references reviewed were `UI_Project/design-references/ui-mockups-rev38-20261030/SCREEN_INDEX.md`, `ui-components-rev38-20261030/COMPONENT_INDEX.md`, current role UI source, and `features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` §5.1 and relevant Parent/Teacher requirements. Representative boards opened for visual inspection were P01, P03, P07, T03, M01, A01, UI01 and UI06. Rev38 labels itself as generated visual drafts; it is based on SRS v2.3/API Rev37 and says its visual tokens are not implementation contracts. FEAT-063 v2.5-draft is the current working SRS and remains unsigned. Therefore this review reports resemblance/alignment, not formal product sign-off.
 
-The comparison is a source and design review, not a complete click-through of every route. The five UI workspaces were production-built. Parent home was reopened in the local browser after the Rev6 change and its accessibility tree was checked. No API/auth requests were made; the workspaces remain local previews.
+The comparison is a source and design review, not a complete click-through of every route. The five UI workspaces were production-built. Parent home was reopened in the local browser after the Rev6 change and its accessibility tree was checked. The comparison predates Rev7's fixture-flow implementation; it should not be read as the current route inventory. No API/auth requests were made; the workspaces remain local previews.
 
 ## Screen flow comparison
 

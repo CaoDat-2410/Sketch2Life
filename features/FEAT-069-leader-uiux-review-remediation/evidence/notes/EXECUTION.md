@@ -1,5 +1,21 @@
 # FEAT-069 execution record
 
+## Rev7 whole-project mockup pass
+
+Date: 2026-11-14 (Asia/Saigon). Approved plan: `plan/PLAN_REV7_ALL_UI_MOCKUP_FLOWS.md`, SHA-256 `EF292106848FEAF341591D5DA002DA679F08E19BBBAF719F41F379536166C39F`.
+
+- `npm run build` from `UI_Project`: passed for Parent, Teacher, School Manager, Platform Admin and shared web portal.
+- `pnpm --filter @sketch2life/mobile typecheck` from `UI_Project/parent-android`: passed.
+- `pnpm --filter @sketch2life/mobile android:apk:debug` with the existing Android SDK environment: passed (`BUILD SUCCESSFUL`). APK: `UI_Project/parent-android/apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk` (131,832,792 bytes; 2026-11-14 11:42 Asia/Saigon).
+- `git diff --check`: passed. `python tools/validate_repository_security.py`: passed before commit, scanned 7,585 publishable files, found no absolute machine paths; environment/credential/seed files were excluded.
+- Started the five Vite previews. Since default ports were occupied, this run assigned Parent `5195`, Teacher `5193`, School Manager `5194`, Platform Admin `5191`, and shared portal `5192`. These ports can change on another machine/run.
+- Manual CUA review: Parent home has no duplicate selected-child summary; the Family Profile owns Settings; Child Profile shows age/gender and separated “Sửa hồ sơ” / “Xóa hồ sơ mẫu” actions. Teacher import reached all three steps with a temporary local PDF fixture, loaded editable sample fields, showed its confirmation gate, and finished with the explicit no-backend disclosure. The fixture file was removed after review. Manager's approve control was disabled at zero checks and became enabled after all four local checks. Admin moderation showed status-specific preview actions. The role dashboards and unified web entry rendered. Screenshots were inspected live; no new PNGs were saved, so older files in `evidence/screenshots/` remain historical.
+- Narrow-width refinement: preview notices stack and role workflow steps remain fully visible in a two-column grid at widths ≤560px, avoiding the previous horizontally clipped step rail.
+- Android install check: `adb devices -l` returned an empty device list (the ADB daemon started successfully during the elevated check). No emulator is currently attached; APK runtime behavior is therefore not claimed. No device reset/wipe occurred.
+- No automated tests were added or run. No API/auth/backend/provider requests, external uploads, or persistent data writes were made. Rev38 Parent order remains a visual mockup decision in conflict with unsigned SRS v2.5-draft §5.1.
+
+The Dev preview tabs remain open for review in the current desktop session. Start previews from `UI_Project` with `npm run dev`; if the default ports are occupied, use the actual ports printed by Vite.
+
 ## Rev6 Parent home and Rev38 flow audit
 
 Date: 2026-11-14 (Asia/Saigon)

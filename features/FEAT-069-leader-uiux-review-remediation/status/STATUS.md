@@ -1,5 +1,16 @@
 # Status
 
+## Rev7 whole-project mockup completion — 2026-11-14
+
+- **State:** Implementation and local-browser review complete within the approved UI-only plan; publication is the remaining repository step. This is a complete mockup pass, not formal leader sign-off or production/API completion.
+- **Approved plan:** `plan/PLAN_REV7_ALL_UI_MOCKUP_FLOWS.md`, SHA-256 `EF292106848FEAF341591D5DA002DA679F08E19BBBAF719F41F379536166C39F`, recorded in both task-approval registers.
+- **Scope delivered:** Parent P01–P12; Teacher T01–T07; School Manager M01–M02; Platform Admin A01–A02; shared UI01–UI09; responsive workflow rails/preview notices; profile action spacing. Only `UI_Project/` app source changed. Legacy top-level `apps/`, APIs, backend, schemas/auth, database, SRS and Rev38 source boards are unchanged.
+- **Visual/interaction review:** Parent home and child profile detail reviewed; profile edit/delete actions are visibly separated and Settings appears only under Family Profile. Teacher dashboard and the full local document-import sample path were reviewed. Manager publication checklist starts disabled and becomes enabled only after all four checks. Admin moderation status-based actions and all five role entry pages were reviewed. Actual preview ports from this run: Parent `http://localhost:5195/`, Teacher `http://localhost:5193/`, School Manager `http://localhost:5194/`, Platform Admin `http://localhost:5191/`, shared web portal `http://localhost:5192/`. `npm run dev` may select different fallback ports if defaults are occupied.
+- **Build/package:** All five UI workspaces, Parent Android typecheck and debug APK packaging passed; artifact is `UI_Project/parent-android/apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk`. Current `adb devices -l` returned no attached device, so installation/runtime on an Android emulator is not claimed.
+- **Repository checks:** `git diff --check` passed. `python tools/validate_repository_security.py` passed, scanning 7,585 publishable files; absolute machine paths were absent and environment/credential/seed files were excluded.
+- **Preview limits:** Fixtures are fictional and session-local; no API/auth/network/persistence, file parsing/upload, AI/ASR, real payment, or backend action is present. FEAT-063 SRS v2.5-draft remains unsigned; the prototype's Rev38 Parent order is an explicit open product conflict.
+- No automated tests were added or run, per the approved task rules. Normal commit/push publication details will follow after the final pre-push security validation.
+
 ## Rev6 closeout and Rev38 review — 2026-11-14
 
 - **State:** Rev6 Parent home adjustment is implemented and build-verified. Rev38 comparison is complete as a source/design review. Overall alignment to the two leader folders is **partial, not 100%**; the exact findings are in `evidence/notes/REV38_FLOW_ALIGNMENT_20261114.md`.

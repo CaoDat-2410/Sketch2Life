@@ -83,3 +83,14 @@
 - **Scope:** UI-only removal of the duplicate selected-child home card; refine Parent home hero/spacing; keep profile and story-start selection behavior; build and review the running Parent preview; record evidence/status.
 - **Exclusions:** API/auth/persistence/data-model/SRS/backend changes; changes to other workspaces or legacy `apps/`/Child Expo; new child data/media/assets; automated tests; history rewrite.
 - **Approval basis:** direct owner request. No other product or backend behavior is authorized by this approval.
+
+## Plan Rev7 — complete project UI mockup flows
+
+- **Status:** APPROVED for the exact UI-only scope in `plan/PLAN_REV7_ALL_UI_MOCKUP_FLOWS.md`.
+- **Approver:** Project owner, direct instruction in this conversation to complete mockups for the whole project's UI/UX according to the leader-provided flow, use sample data so future API wiring changes data rather than screen design, and not integrate API now. Owner also supplied a Parent profile screenshot showing action buttons touching/overlapping.
+- **Recorded timestamp:** 2026-11-14 11:26:40 Asia/Saigon.
+- **Plan revision:** 7.
+- **Plan SHA-256:** `EF292106848FEAF341591D5DA002DA679F08E19BBBAF719F41F379536166C39F`.
+- **Scope:** Reachable mockup flows for Parent P01–P12, Teacher T01–T07, School Manager M01–M02, Platform Admin A01–A02 and shared UI01–UI09 under `UI_Project/`, plus Parent profile action spacing fix. Use Rev38 as the requested UI flow reference and local typed fixture data/state only.
+- **Exclusions:** API/auth/network integration; backend, schema, database, SRS or provider changes; real child/user data; real email/payment/AI/ASR actions or persistence; legacy top-level `apps/` and Child Expo; generated bitmap assets; automated tests; force push/history rewrite.
+- **Conflict note:** The Rev38 Parent sequence differs from current unsigned FEAT-063 SRS v2.5-draft. Rev38 sequencing is approved only for this visual prototype per the owner's direct request; SRS requirements remain unchanged and the conflict remains an open product question.
