@@ -324,3 +324,15 @@
 - **Scope:** Complete Parent P01–P12, Teacher T01–T07, School Manager M01–M02, Platform Admin A01–A02 and shared UI01–UI09 as reachable local fixture mockup flows in `UI_Project/`; add Parent profile action spacing fix; use the Rev38 requested visual guidance; run builds, Parent Android typecheck/APK packaging, manual review and repository security validation.
 - **Exclusions:** API/auth/network calls or integration; backend/schema/database/SRS changes; persistent data, real child/user data, provider/AI/ASR, email/payment actions; legacy top-level `apps/` and Child Expo; generated bitmap assets; automated tests; force push/history rewrite.
 - **Conflict note:** Rev38 and current unsigned FEAT-063 v2.5-draft disagree on Parent idea/subject ordering. The visual mockup will follow the owner's explicit request for Rev38 sequencing only; the SRS remains unchanged and the product conflict remains open.
+
+## FEAT-069 Plan Rev8 — full UI flow audit and visual polish
+
+- **Status:** APPROVED for the exact UI-only scope in Plan Rev8.
+- **Approver:** Project owner, direct instruction in this conversation to recheck the entire system against the leader's two Rev38 folders, review notes, current source and available API contracts; add missing UI mockups; use fictional values; improve UX and calm the colors; and keep the screens ready for later API data substitution without another UI redesign.
+- **Recorded timestamp:** 2026-11-14 (Asia/Saigon).
+- **Approved plan:** `features/FEAT-069-leader-uiux-review-remediation/plan/PLAN_REV8_FULL_UI_AUDIT_AND_POLISH.md`.
+- **Plan revision:** 8.
+- **Approved plan SHA-256:** `1DD3518361F10CD518E152D5EC70EE3CB19F8734587EFA15A875DEFD161A7FE9`.
+- **Scope:** Audit all five primary UI workspaces against Rev38, leader review, FEAT-063 SRS v2.5-draft and source/API evidence; correct Parent flow ordering and post-image direction choice; remove the sample-drawing action; rebalance colors; retain fixture-only role flows; build/package and manually review.
+- **Exclusions:** API/auth/network/backend/schema/SRS/data changes; persistence, external AI/ASR, payments, uploads, real user/child data, legacy `apps/` and Child Expo, generated raster assets, automated tests and history rewrite.
+- **Approval basis:** Direct owner instruction. The plan preserves SRS authority and explicitly keeps outdoor-activity timing, gender contract and API coverage gaps open; it does not claim formal leader acceptance or production readiness.

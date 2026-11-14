@@ -1,5 +1,12 @@
 # FEAT-069 evidence index
 
+## Rev8 full flow audit and visual polish
+
+| Evidence | Scope | What it establishes | Limitations |
+|---|---|---|---|
+| `notes/REV8_FULL_AUDIT_AND_EXECUTION_20261114.md` | Plan Rev8, AC1–AC8 | All Rev38 IDs mapped to current mockup surfaces; Parent SRS-order correction; source/API boundaries; colors reviewed; five workspace builds, Parent typecheck and debug APK package | No emulator launch because ADB daemon failed; no APIs were called; leader/SRS conflict and unsupported contracts remain open; no new PNG screenshot was saved |
+| `plan/PLAN_REV8_FULL_UI_AUDIT_AND_POLISH.md` | Exact approved scope | Hash-identified UI-only audit, correction, color and verification scope | Does not approve API integration, SRS change or formal leader sign-off |
+
 ## Rev7 whole-project mockup completion
 
 | Evidence | Scope | What it establishes | Limitations |

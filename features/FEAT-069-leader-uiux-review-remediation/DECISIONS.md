@@ -1,5 +1,13 @@
 # Feature decisions
 
+## D-069-18 — Rev8 follows canonical Parent order and stays fixture-only
+
+Under Plan Rev8, FEAT-063 SRS v2.5-draft §5.1 is the working authority over the generated Rev38 sequence. Parent now captures → accepts idea/voice input → confirms the suggested subject → reviews minimum context and selects lesson-vs-drawing direction → confirms script. The mismatch choice only appears after the captured-image mock result. This supersedes D-069-16's Rev38 Parent order for the current prototype, without changing the unsigned SRS. All UI workspaces remain local previews; API contracts inform the screen shape, but no API/auth/network call or persistent data action is added.
+
+## D-069-19 — Rev38 color direction is a calm UI proposal
+
+Apply a dark readable blue primary, muted yellow accent and mint support colors with softer neutral surfaces and visible keyboard focus across Parent and staff web previews. Rev38 tokens guide this UI pass only; they are not approved production design tokens. Preserve existing role/workflow structure and reserve danger colors for danger/error states.
+
 ## D-069-16 — Whole-project Rev38 mockup pass stays fixture-only
 
 The owner asked for complete UI mockup flows across the project, with sample values that can later be replaced by approved API data without redesigning screens. Implement Parent P01–P12 as the Android WebView UI and the three staff roles plus the shared sign-in portal as web previews. Use Rev38 for the prototype's visual flow, but keep FEAT-063 SRS v2.5-draft authoritative and unsigned; the Parent subject/idea ordering conflict is documented rather than changing the SRS. No API/auth/network, upload, payment, AI, or persistent data behavior is in scope.

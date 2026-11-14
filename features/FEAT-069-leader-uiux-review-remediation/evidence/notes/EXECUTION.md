@@ -1,5 +1,18 @@
 # FEAT-069 execution record
 
+## Rev8 full UI audit and polish
+
+Date: 2026-11-14 (Asia/Saigon). Approved plan: `plan/PLAN_REV8_FULL_UI_AUDIT_AND_POLISH.md`, SHA-256 `1DD3518361F10CD518E152D5EC70EE3CB19F8734587EFA15A875DEFD161A7FE9`.
+
+- Corrected the Parent mockup order to capture → idea/audio transcript → subject review → context/direction → script, matching canonical FEAT-063 SRS v2.5-draft §5.1. Lesson-vs-drawing selection is unset before image review and required only after the mock result; the mismatch modal retains both choices.
+- Removed the end-user sample-drawing button and drawing fixture function. The capture page now exposes camera/gallery inputs only. Transcript preview merges into the editable field without deleting existing text and status/error copy is shorter.
+- Added post-stylesheet Rev8 color layers to Parent and the Teacher, Manager, Admin, and shared portal entrypoints. Browser review covered Parent home/setup/capture and all four web surfaces; role-specific screens and layouts remain unchanged.
+- Current five-workspace production build: passed. Parent Android typecheck: passed. Gradle `:app:assembleDebug`: `BUILD SUCCESSFUL`; its `buildParentUi` task generated the self-contained Parent WebView HTML and included it in the APK. APK path: `UI_Project/parent-android/apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk`.
+- Runtime caveat: `adb devices -l` failed to start the local ADB daemon (`could not read ok from ADB Server` / `cannot connect to daemon`). The APK was not installed or launched on an emulator.
+- Source/API review: Lesson Library and BE1 operations support parts of the mockup vocabulary; demo media/session routes are not evidence of a durable Parent story/AI workflow. The main composition omits the durable `ai_jobs` router, while StoryRun-lite is conditionally enabled. Role screens use local fixtures; no request was made. Refer to the Rev8 audit note for the per-role crosswalk and remaining conflicts.
+- `git diff --check` passed. `python tools/validate_repository_security.py` passed before commit preparation, scanning 7,589 publishable files; absolute machine paths were absent and environment/credential/seed files were excluded.
+- No automated tests were run. Normal push and remote confirmation are recorded in `notes/PUBLICATION.md` after final closeout.
+
 ## Rev7 whole-project mockup pass
 
 Date: 2026-11-14 (Asia/Saigon). Approved plan: `plan/PLAN_REV7_ALL_UI_MOCKUP_FLOWS.md`, SHA-256 `EF292106848FEAF341591D5DA002DA679F08E19BBBAF719F41F379536166C39F`.

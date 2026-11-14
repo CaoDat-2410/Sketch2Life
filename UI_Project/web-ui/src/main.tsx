@@ -6,4 +6,5 @@ import '../../shared/roleDashboards.css';
 import '../../shared/unifiedWeb.css';
 import '../../shared/roleFlows.css';
 import '../../shared/visualPolish.css';
+import '../../shared/rev8ColorSystem.css';
 createRoot(document.getElementById('root')!).render(<React.StrictMode><UnifiedWebApp/></React.StrictMode>);

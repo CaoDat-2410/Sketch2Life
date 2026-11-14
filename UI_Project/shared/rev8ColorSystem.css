@@ -1,0 +1,177 @@
+.web-app {
+  --accent: #285f7b;
+  --accent-dark: #204c65;
+  --accent-soft: #e4edf0;
+  --hero: #214f68;
+  --hero-2: #326f82;
+  --ink: #243746;
+  --muted: #526571;
+  --line: #d4dddf;
+  --surface: #fffefa;
+  --canvas: #f1f3f1;
+}
+
+.web-app--manager {
+  --accent: #2d6878;
+  --accent-dark: #245564;
+  --accent-soft: #e2edef;
+  --hero: #245564;
+  --hero-2: #367687;
+}
+
+.web-app--admin {
+  --accent: #375f7b;
+  --accent-dark: #294c65;
+  --accent-soft: #e5edf2;
+  --hero: #294e67;
+  --hero-2: #466f89;
+}
+
+.web-app {
+  color: var(--ink);
+  background: var(--canvas);
+}
+
+.web-app :is(input, select, textarea) {
+  border-color: #c9d4d7;
+  color: #243746;
+}
+
+.web-app :is(input, select, textarea):focus-visible,
+.web-app :is(button, a, [tabindex]):focus-visible {
+  outline: 3px solid #397f9d;
+  outline-offset: 2px;
+}
+
+.web-app :is(.web-sidebar, .web-main, .web-content) {
+  color: var(--ink);
+}
+
+.web-app :is(.web-card, .dash-panel, .dash-metric, .web-detail-modal, .web-modal) {
+  border-color: var(--line);
+  background-color: var(--surface);
+}
+
+.web-app :is(.web-page-title, .web-page-head h1, .dash-heading h1, .dash-panel h2, .dash-panel h3) {
+  color: #243746;
+}
+
+.web-app :is(.dash-overline, .web-sidebar-nav a.is-active, .web-sidebar-nav button.is-active) {
+  color: var(--accent-dark);
+}
+
+.web-app .web-hero {
+  background: linear-gradient(115deg, var(--hero), var(--hero-2));
+}
+
+.web-app .web-hero-kicker {
+  color: #f2f6f4;
+}
+
+.web-app .web-hero-description {
+  color: #e5eef0;
+}
+
+.web-app .web-hero-cta {
+  color: #263f4a;
+  background: #e8d9a5;
+}
+
+.web-app .web-primary,
+.web-app .dashboard-primary {
+  color: #fff;
+  background: var(--accent-dark);
+}
+
+.web-app .web-primary:hover,
+.web-app .dashboard-primary:hover {
+  background: var(--accent);
+}
+
+.web-app .web-subtle {
+  color: #294e62;
+  border-color: #cad6d8;
+  background: #f3f6f5;
+}
+
+.unified-auth {
+  color: #243746;
+  background: radial-gradient(circle at 8% 12%, #dce9ec 0, transparent 29%), radial-gradient(circle at 95% 86%, #e4ece6 0, transparent 29%), #f1f3f1;
+}
+
+.unified-auth-shell {
+  border-color: #d6e0e1;
+  background: #fffefa;
+  box-shadow: 0 24px 70px rgb(35 55 70 / 12%);
+}
+
+.unified-auth-story {
+  background: linear-gradient(145deg, #dce9ed, #eaf0e8 58%, #f1ecd9);
+}
+
+.unified-auth-kicker {
+  color: #285f7b;
+}
+
+.unified-auth-story > p,
+.unified-auth-heading > p,
+.unified-auth-form-wrap > p {
+  color: #526571;
+}
+
+.unified-role-list button.is-selected {
+  border-color: #9fbac5;
+  background: #e6eff1;
+  color: #244c62;
+}
+
+.unified-preview-actions > span {
+  color: #50636b;
+}
+
+.unified-preview-actions button {
+  color: #2c4654;
+  background: #e5d39c;
+  box-shadow: 0 4px 0 #cbb97d;
+}
+
+.unified-preview-actions button:hover {
+  background: #dcc88d;
+}
+
+.unified-auth-form input,
+.unified-auth-form select {
+  border-color: #c9d4d7;
+  color: #243746;
+}
+
+.unified-auth-form input:focus,
+.unified-auth-form select:focus {
+  border-color: #397f9d;
+  box-shadow: 0 0 0 3px #e1edf0;
+}
+
+.unified-auth-submit {
+  color: #fff;
+  background: #285f7b;
+}
+
+.unified-auth-submit:hover {
+  background: #204c65;
+}
+
+.unified-auth-link {
+  color: #285f7b;
+}
+
+.unified-auth-note {
+  color: #4f6069;
+  background: #edf2f0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .unified-auth-art,
+  .web-hero-art {
+    animation: none;
+  }
+}

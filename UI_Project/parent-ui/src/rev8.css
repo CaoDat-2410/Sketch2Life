@@ -1,0 +1,167 @@
+:root {
+  --ink: #233746;
+  --ink-soft: #506370;
+  --blue: #285f7b;
+  --blue-deep: #204c65;
+  --sky: #e7f0f2;
+  --warm: #f6f4ec;
+  --orange: #d3ad59;
+  --orange-dark: #62512d;
+  --yellow: #e8d9a5;
+  --green: #4e7568;
+  --line: #d4ddda;
+  --surface: #fffef9;
+  --shadow: 0 22px 55px rgb(35 55 70 / 14%);
+  --soft-shadow: 0 5px 16px rgb(35 55 70 / 7%);
+  color: var(--ink);
+  background: #eff2f1;
+}
+
+html,
+body {
+  color: var(--ink);
+  background: #eff2f1;
+}
+
+.app-stage {
+  color: var(--ink);
+  background: radial-gradient(ellipse at 50% 8%, #fffef9 0, #f0f3f1 57%, #e8eeec);
+}
+
+.phone-shell {
+  color: var(--ink);
+  background: #faf9f2;
+  box-shadow: 0 25px 70px rgb(35 55 70 / 16%);
+}
+
+.android-status {
+  color: var(--ink);
+  background: #faf9f2;
+}
+
+.android-gesture i {
+  background: var(--ink);
+}
+
+.hero-card {
+  border-color: #d3dfdf;
+  background: linear-gradient(155deg, #e5eff1, #edf2eb 72%, #f2edda);
+  box-shadow: 0 9px 22px rgb(36 72 88 / 10%);
+}
+
+.hero-card h1,
+.section-heading h2,
+.subpage-header h1,
+.flow-intro h1,
+.empty-state h2,
+.script-card h2,
+.processing-state h1,
+.sheet-top h2,
+.confirm-sheet h2 {
+  color: #243b4a;
+}
+
+.hero-card p,
+.section-heading > span,
+.flow-intro p,
+.field-label > span,
+.footer-helper {
+  color: #526873;
+}
+
+.eyebrow {
+  color: #315f70;
+}
+
+.home-start h2 {
+  color: #243b4a;
+}
+
+.button--hero,
+.button--primary {
+  color: #fff;
+  background: #285f7b;
+  box-shadow: 0 4px #204c65;
+}
+
+.button--hero:hover,
+.button--primary:hover {
+  color: #fff;
+  background: #204c65;
+}
+
+.home-start .button--hero {
+  color: #fff;
+  background: #285f7b;
+  box-shadow: 0 4px #204c65;
+}
+
+.home-start .button--hero:hover {
+  color: #fff;
+  background: #204c65;
+}
+
+.button--secondary {
+  color: #294e62;
+  border-color: #cbd8da;
+  background: #e8eff0;
+}
+
+.button--secondary:hover {
+  background: #dce8ea;
+}
+
+.button:focus-visible,
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 3px solid #397f9d;
+  outline-offset: 3px;
+}
+
+.text-button,
+.link-button {
+  color: #285f7b;
+}
+
+.lesson-setup-toggle,
+.context-card,
+.subject-panel,
+.library-child-switcher,
+.library-resume-card,
+.soft-card {
+  border-color: #d4ddda;
+}
+
+.consent-row--confirm {
+  background: #e6efe9;
+  color: #294f43;
+}
+
+.bottom-nav {
+  border-color: #d5dedb;
+  background: #fbfaf5;
+}
+
+.bottom-nav button.is-active,
+.bottom-nav button[aria-current='page'] {
+  color: #285f7b;
+}
+
+.bottom-nav__create,
+.bottom-nav__create-button {
+  color: #fff !important;
+}
+
+.bottom-nav__create-icon {
+  color: #fff;
+  background: #285f7b;
+  box-shadow: 0 3px 10px rgb(32 76 101 / 24%);
+}
+
+.bottom-nav button.is-active .bottom-nav__icon {
+  color: #285f7b;
+  background: #e1edf0;
+}

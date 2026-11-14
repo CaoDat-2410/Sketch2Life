@@ -94,3 +94,14 @@
 - **Scope:** Reachable mockup flows for Parent P01–P12, Teacher T01–T07, School Manager M01–M02, Platform Admin A01–A02 and shared UI01–UI09 under `UI_Project/`, plus Parent profile action spacing fix. Use Rev38 as the requested UI flow reference and local typed fixture data/state only.
 - **Exclusions:** API/auth/network integration; backend, schema, database, SRS or provider changes; real child/user data; real email/payment/AI/ASR actions or persistence; legacy top-level `apps/` and Child Expo; generated bitmap assets; automated tests; force push/history rewrite.
 - **Conflict note:** The Rev38 Parent sequence differs from current unsigned FEAT-063 SRS v2.5-draft. Rev38 sequencing is approved only for this visual prototype per the owner's direct request; SRS requirements remain unchanged and the conflict remains an open product question.
+
+## Plan Rev8 — full UI flow audit and visual polish
+
+- **Status:** APPROVED for the exact UI-only scope in `plan/PLAN_REV8_FULL_UI_AUDIT_AND_POLISH.md`.
+- **Approver:** Project owner, direct instruction in this conversation to recheck all UI workspaces against the two leader Rev38 folders, review notes, current source and available API contracts; add missing mockups; use fictional values; improve UX and tone down bright colors; and avoid needing a UI redesign when APIs are connected later.
+- **Recorded timestamp:** 2026-11-14 (Asia/Saigon).
+- **Plan revision:** 8.
+- **Plan SHA-256:** `1DD3518361F10CD518E152D5EC70EE3CB19F8734587EFA15A875DEFD161A7FE9`.
+- **Scope:** Audit all five primary `UI_Project/` workspaces against Rev38, leader review, current SRS and source/API evidence; fix Parent sequencing/context/priority/sample-image gaps; calm and harmonize the palette; keep fixture-only behavior; build/package and visually inspect.
+- **Exclusions:** API/auth/network/backend/schema/SRS/data-model changes; real values/persistence; external AI/ASR, payment, upload, mail, or production operations; legacy `apps/` and Child Expo; generated raster assets; automated tests; history rewrite.
+- **Open constraints:** SRS v2.5-draft is canonical and unsigned. Keep Parent outdoor activities after the story/video as SRS §5.1 specifies, pending resolution of the leader-review conflict; gender remains a local preview field pending a canonical contract. This approval does not constitute leader sign-off or API readiness.

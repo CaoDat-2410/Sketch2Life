@@ -1,5 +1,16 @@
 # Status
 
+## Rev8 full UI audit and visual polish — 2026-11-14
+
+- **State:** UI changes, verification, and repository security validation are complete under approved Plan Rev8; normal fast-forward publication is pending.
+- **Approved plan:** `plan/PLAN_REV8_FULL_UI_AUDIT_AND_POLISH.md`, SHA-256 `1DD3518361F10CD518E152D5EC70EE3CB19F8734587EFA15A875DEFD161A7FE9`.
+- **Scope delivered:** Parent order corrected to SRS v2.5-draft; post-image mismatch/direction choice; context review after subject; removed sample image action; transcript text remains editable and preserves typed input; calmer palette across Parent mobile, three staff web roles and shared portal.
+- **Coverage:** All Rev38 screen/component IDs remain reachable in the mockup workspaces, with local-only and unavailable states documented. Parent Settings-only-on-Profile, no selected-profile home card, and UI-only gender remain intact.
+- **Verification:** All five `UI_Project` workspace builds passed. Parent Android typecheck passed. Gradle debug APK packaging passed and included the Parent UI WebView bundle. ADB daemon failed to start, so APK install/runtime is not claimed. Browser visual review covered Parent home/setup/capture and all four web entry surfaces. No automated tests were added or run.
+- **Repository security:** `git diff --check` passed. `python tools/validate_repository_security.py` passed before commit preparation, scanning 7,589 publishable files; absolute machine paths were absent and environment/credential/seed files were excluded.
+- **Product/API limits:** SRS v2.5-draft remains unsigned. The leader's outdoor-activity timing conflicts with SRS §5.1; gender lacks a canonical contract; full Parent story/AI/video and several staff-role operations/metrics remain unavailable or fixture-only. This is not 100% formal leader/API sign-off.
+- **Evidence:** `evidence/notes/REV8_FULL_AUDIT_AND_EXECUTION_20261114.md`.
+
 ## Rev7 whole-project mockup completion — 2026-11-14
 
 - **State:** Implementation, local-browser review, and normal publication are complete within the approved UI-only plan. Commit `806c0aca` is on `origin/FE_UI_Project_Ver2`. This is a complete mockup pass, not formal leader sign-off or production/API completion.

@@ -1,5 +1,14 @@
 # FEAT-069 remaining UI/product questions
 
+## Rev8 current disposition — full flow audit, 2026-11-14
+
+- Current working SRS v2.5-draft §5.1 now governs the Parent mockup sequence: capture → idea/transcript → subject review → minimum context and post-image direction choice → script. The prior Rev7 prototype followed the generated Rev38 subject-before-idea order; Rev8 supersedes that visual choice without changing the SRS.
+- The leader review's request to select outdoor activity before video conflicts with SRS §5.1, which places configured activities after playable video. Current UI keeps the SRS order pending owner/leader resolution; do not claim full leader sign-off.
+- Parent image analysis/transcription/job/video, profile CRUD/gender, quotas and all role mutations/metrics remain fixtures or unavailable states. Current contracts support parts of Lesson Library, import/review, access grants, moderation updates and BE1 organization/class operations, but do not establish the entire workflow as durable API behavior.
+- Gender remains a local-only value because no canonical data/API contract was found. Parent Settings remains only under Family Profile. No sample drawing button is present.
+- The visual review covers browser previews; APK debug packaging passes, but ADB could not start its daemon in this environment, so emulator runtime was not verified.
+- Formal leader acceptance and SRS v2.5 owner sign-off remain outstanding. See `REV8_FULL_AUDIT_AND_EXECUTION_20261114.md` for the screen/API crosswalk and build evidence.
+
 ## Rev7 current disposition — mockup completion, 2026-11-14
 
 - The UI-only prototype now follows the owner-requested Rev38 Parent order: prepare/optional guide → capture → adult subject review → idea/transcript and context confirmation → script review → local job stages → sample video → activities after the preview is marked finished. This differs from FEAT-063 SRS v2.5-draft §5.1. The order is implemented only for the mockup; product ownership still needs to resolve/sign off the SRS conflict before the flow is treated as canonical.

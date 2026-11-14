@@ -659,6 +659,8 @@ Canonical requirements remain FEAT-063 SRS v2.4-draft. Owner-approved plan `feat
 
 ## FEAT-069 leader review UI/UX remediation — 2026-11-14
 
+- Plan Rev8 is approved for a whole-project UI-only audit/polish of the five primary `UI_Project/` surfaces using the leader-provided Rev38 folders and review notes, current FEAT-063 SRS v2.5-draft, current delivery-branch UI/API client source and mounted backend router composition. Plan SHA-256: `1DD3518361F10CD518E152D5EC70EE3CB19F8734587EFA15A875DEFD161A7FE9`; approval is in both FEAT-069 and root task ledgers. Rev8 follows the unsigned SRS order for Parent idea/subject/context and documents the leader's activity-order conflict. UI flows remain fixture-only; no API integration, SRS edit or backend change is authorized.
+
 - Rev1 is recorded in `features/FEAT-069-leader-uiux-review-remediation/plan/PLAN.md` and was published to `origin/FE_UI_Project_Ver2` at `d7b83422249030b26f34c6bd058c4046cb38604f`.
 - Rev2 exact scope/approval is recorded in `plan/PLAN_REV2.md`, the feature approval file and the root task approval register. Owner-provided leader feedback is reconciled against current FEAT-063 SRS v2.5-draft and FEAT-068's API crosswalk; SRS v2.5-draft remains the canonical, unsigned working source.
 - Rev2 updates Parent and Teacher screens under `UI_Project/`: the Parent APK continues to embed `parent-ui`; Parent preview adds a distinct three-step static guide, simulated mismatch choice, shared idea/transcript field, required in-script context confirmation, lesson-tied pre-video activity preview and local-only gender field. Teacher preview advances through slide/Sketch, activity interaction and separate sample/eligibility gate. Old top-level `apps/` UI is not used as a delivery target.

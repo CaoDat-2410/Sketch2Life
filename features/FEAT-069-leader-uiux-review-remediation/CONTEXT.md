@@ -1,6 +1,12 @@
 # FEAT-069 — Leader review UI/UX remediation
 
-## Current approved work — Rev7 complete mockup pass
+## Current approved work — Rev8 full audit and visual polish
+
+The owner approved a full audit of the five primary `UI_Project/` workspaces against both leader Rev38 folders, the leader review action items, current source/API evidence, and FEAT-063 SRS v2.5-draft. Rev8 keeps all flows as local fixtures, corrects Parent to the canonical SRS order (idea/transcript before subject/context review), defers lesson-vs-drawing choice until the post-image review, removes the sample-drawing action, and softens the colors across Parent and web. See `plan/PLAN_REV8_FULL_UI_AUDIT_AND_POLISH.md` and `evidence/notes/REV8_FULL_AUDIT_AND_EXECUTION_20261114.md`.
+
+The review confirms every Rev38 ID P01–P12, T01–T07, M01–M02, A01–A02 and UI01–UI09 has a reachable mockup or a documented local-only state. This is not 100% formal leader/API sign-off: activity timing conflicts with the leader review, gender has no canonical contract, and full Parent story/AI plus some role APIs are not available in the delivery branch. Parent remains the Android WebView experience; staff roles and the unified portal remain web. Settings remains only on Family Profile and the Parent Home child card remains absent.
+
+## Prior implementation baseline — Rev7 complete mockup pass
 
 The owner approved a whole-project UI mockup completion pass for `UI_Project/` using the Rev38 leader folders as the visual/flow reference. Parent is the mobile Android WebView experience; Teacher, School Manager, Platform Admin and the unified role portal are web workspaces. Rev7 adds local-only sample transitions across P01–P12, T01–T07, M01–M02, A01–A02 and shared UI01–UI09, plus responsive spacing for the Parent profile actions and narrow web workflow rails. No API/auth/backend/persistence behavior is connected. See `plan/PLAN_REV7_ALL_UI_MOCKUP_FLOWS.md`, `evidence/notes/EXECUTION.md` and `status/STATUS.md`.
 

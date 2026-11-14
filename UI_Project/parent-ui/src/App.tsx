@@ -71,8 +71,8 @@ const steps: { key: Step; label: string }[] = [
   { key: 'prepare', label: 'Chuẩn bị' },
   { key: 'guide', label: 'Gợi ý vẽ' },
   { key: 'capture', label: 'Chụp tranh' },
-  { key: 'review', label: 'Chủ thể' },
-  { key: 'idea', label: 'Ý tưởng & ngữ cảnh' },
+  { key: 'idea', label: 'Ý tưởng & ghi âm' },
+  { key: 'review', label: 'Chủ thể & ngữ cảnh' },
   { key: 'script', label: 'Kịch bản' },
   { key: 'generating', label: 'Tạo video' },
   { key: 'ready', label: 'Hoàn tất' },
@@ -511,15 +511,16 @@ function App() {
       setSelectedChildId(activeRun.childId);
       setSelectedLessonId(activeRun.lessonId);
       setShowLessonOptions(activeRun.step === 'prepare' || Boolean(activeRun.lessonId));
-      setScriptFollowing(activeRun.lessonId ? activeRun.scriptFollowing ?? 'lesson' : 'free');
-      setActiveRun((run) => run && run.scriptFollowing === null ? { ...run, scriptFollowing: run.lessonId ? 'lesson' : 'free' } : run);
+      const beforeAnalysis = ['prepare', 'guide', 'capture', 'idea'].includes(activeRun.step);
+      setScriptFollowing(activeRun.lessonId ? beforeAnalysis ? null : activeRun.scriptFollowing : 'free');
+      setActiveRun((run) => run && beforeAnalysis && run.lessonId ? { ...run, scriptFollowing: null } : run);
       setScreen('flow');
       return;
     }
     setGuideStepIndex(0);
     setContextConfirmed(false);
     setGuideEnabled(false);
-    setScriptFollowing(presetForNextRun ? 'lesson' : 'free');
+    setScriptFollowing(presetForNextRun ? null : 'free');
     if (photoUrl) URL.revokeObjectURL(photoUrl);
     if (audioUrl) URL.revokeObjectURL(audioUrl);
     setPhotoUrl(null);
@@ -544,9 +545,10 @@ function App() {
     setContextConfirmed(false);
     setSelectedActivityId(null);
     setMismatchModalOpen(false);
-    setScriptFollowing(initialLessonId ? 'lesson' : 'free');
+    setScriptFollowing(initialLessonId ? null : 'free');
     setStep('prepare');
-    setActiveRun({ id: String(Date.now()), childId: selectedChildId, lessonId: initialLessonId, step: 'prepare', status: 'active', rewriteCount: 0, regenCount: 0, scriptFollowing: initialLessonId ? 'lesson' : 'free' });
+    setMismatchPreviewResult('mismatch');
+    setActiveRun({ id: String(Date.now()), childId: selectedChildId, lessonId: initialLessonId, step: 'prepare', status: 'active', rewriteCount: 0, regenCount: 0, scriptFollowing: initialLessonId ? null : 'free' });
     setScreen('flow');
   };
 
@@ -556,7 +558,8 @@ function App() {
       return;
     }
     if (step === 'prepare') {
-      setActiveRun((run) => run ? { ...run, lessonId: selectedLessonId, scriptFollowing: selectedLessonId ? 'lesson' : 'free' } : run);
+      setScriptFollowing(selectedLessonId ? null : 'free');
+      setActiveRun((run) => run ? { ...run, lessonId: selectedLessonId, scriptFollowing: selectedLessonId ? null : 'free' } : run);
       if (guideEnabled) {
         setStep('guide');
         setActiveRun((run) => run ? { ...run, step: 'guide' } : run);
@@ -564,7 +567,11 @@ function App() {
       }
     }
     if (step === 'script') { acceptScript(); return; }
-    if (step === 'idea' && !contextConfirmed) {
+    if (step === 'review' && selectedLesson && !scriptFollowing) {
+      setToast('Chọn hướng kể sau khi rà soát kết quả phân tích.');
+      return;
+    }
+    if (step === 'review' && !contextConfirmed) {
       setToast('Rà soát và xác nhận ngữ cảnh tối thiểu trước khi xem kịch bản.');
       return;
     }
@@ -667,13 +674,6 @@ function App() {
     setPhotoName(file.name);
   };
 
-  const useSampleDrawing = () => {
-    const sampleDrawing = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 800"><rect width="640" height="800" rx="36" fill="#fffdf4"/><path d="M42 610 Q170 510 310 610T598 594V760H42Z" fill="#e3edcf"/><circle cx="485" cy="140" r="58" fill="#f6d57a"/><path d="M160 514 Q195 390 242 326 Q305 368 314 502" fill="none" stroke="#5e9872" stroke-width="17" stroke-linecap="round"/><g fill="#f6c977" stroke="#b77c4f" stroke-width="8"><ellipse cx="235" cy="314" rx="44" ry="59"/><ellipse cx="305" cy="314" rx="44" ry="59"/><ellipse cx="235" cy="388" rx="38" ry="47"/><ellipse cx="305" cy="388" rx="38" ry="47"/></g><circle cx="270" cy="350" r="14" fill="#426457"/><path d="M408 545v-98m0 0c-42-20-40-65-3-62 32 2 31 33 3 62m0 0c36-12 63 4 51 34-10 24-33 21-51-34" fill="none" stroke="#4e855f" stroke-width="14" stroke-linecap="round"/><g fill="#efb86d"><circle cx="408" cy="424" r="37"/><circle cx="371" cy="451" r="30"/><circle cx="446" cy="451" r="30"/><circle cx="408" cy="464" r="30"/></g><path d="M110 685q58-34 116 0m118 22q66-42 128-2" fill="none" stroke="#97b985" stroke-width="10" stroke-linecap="round"/><text x="55" y="84" fill="#426457" font-family="sans-serif" font-size="25" font-weight="700">Tranh mẫu minh họa</text></svg>`;
-    setPhotoUrl(`data:image/svg+xml;charset=utf-8,${encodeURIComponent(sampleDrawing)}`);
-    setPhotoName('Tranh mẫu minh họa');
-    setMismatchPreviewResult('mismatch');
-  };
-
   const removeStory = (id: number) => {
     setStories((current) => current.filter((story) => story.id !== id));
     if (activeRun && Number(activeRun.id) === id) { setActiveRun(null); setStep('prepare'); setScreen('history'); }
@@ -694,7 +694,8 @@ function App() {
     if (transcriptionTimer.current) window.clearTimeout(transcriptionTimer.current);
     setTranscriptionStatus('transcribing');
     transcriptionTimer.current = window.setTimeout(() => {
-      setIdea((current) => current.trim() ? current : 'Con muốn kể về chú bướm đang tìm một vệt nắng ấm trong khu vườn.');
+      const transcript = 'Con muốn kể về chú bướm đang tìm một vệt nắng ấm trong khu vườn.';
+      setIdea((current) => current.includes(transcript) ? current : [current.trim(), transcript].filter(Boolean).join('\n'));
       setTranscriptionStatus('complete');
       setContextConfirmed(false);
     }, 650);
@@ -704,12 +705,12 @@ function App() {
     const file = event.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith('audio/')) { setRecordingError('Tệp đã chọn không phải âm thanh.'); return; }
-    if (file.size > 20 * 1024 * 1024) { setRecordingError('Tệp âm thanh vượt quá giới hạn 20 MB.'); return; }
+    if (file.size > 20 * 1024 * 1024) { setRecordingError('Tệp quá lớn. Hãy chọn bản ghi ngắn hơn.'); return; }
     const nextUrl = URL.createObjectURL(file);
     const probe = new Audio();
     probe.preload = 'metadata';
     probe.onloadedmetadata = () => {
-      if (probe.duration > 120) { URL.revokeObjectURL(nextUrl); setRecordingError('Tệp âm thanh dài hơn giới hạn 2 phút.'); return; }
+      if (probe.duration > 120) { URL.revokeObjectURL(nextUrl); setRecordingError('Bản ghi quá dài. Hãy chọn tệp ngắn hơn.'); return; }
       setAudioUrl((previous) => { if (previous) URL.revokeObjectURL(previous); return nextUrl; });
       setAudioFileName(file.name); setRecordingError(''); setContextConfirmed(false); runSampleTranscription();
     };
@@ -953,7 +954,7 @@ function App() {
               {[{ title: 'Giáo án công khai trên hệ thống', note: 'Giáo án mẫu có thể dùng như preset.', items: publicLessons }, { title: 'Giáo án trường / giáo viên gửi', note: 'Chỉ hiện nội dung đã được chia sẻ cho gia đình.', items: sharedLessons }].map((group) => <section className="lesson-choice-group" key={group.title} aria-label={group.title}>
                 <div className="lesson-choice-group__heading"><strong>{group.title}</strong><small>{group.note}</small></div>
                 {group.items.length ? group.items.map((lesson) => <article key={lesson.id} className={`lesson-choice-card ${selectedLessonId === lesson.id ? 'is-selected' : ''}`}>
-                    <button className="lesson-choice" onClick={() => { setSelectedLessonId(lesson.id); setGuideTopic(lesson.id === 'sky' ? 'Bầu trời' : 'Khu vườn'); setShowLessonOptions(false); setScriptFollowing('lesson'); setSelectedActivityId(null); setContextConfirmed(false); setActiveRun((run) => run ? { ...run, lessonId: lesson.id, scriptFollowing: 'lesson' } : run); }} aria-pressed={selectedLessonId === lesson.id}>
+                    <button className="lesson-choice" onClick={() => { setSelectedLessonId(lesson.id); setGuideTopic(lesson.id === 'sky' ? 'Bầu trời' : 'Khu vườn'); setShowLessonOptions(false); setScriptFollowing(null); setSelectedActivityId(null); setContextConfirmed(false); setActiveRun((run) => run ? { ...run, lessonId: lesson.id, scriptFollowing: null } : run); }} aria-pressed={selectedLessonId === lesson.id}>
                     <span className={`lesson-icon lesson-icon--${lesson.color}`}><Icon name="book" size={20} /></span>
                     <span className="lesson-choice__text"><strong>{lesson.title}</strong><small>{lesson.meta} · {lesson.version}</small></span>
                     <span className="radio-mark"><Icon name="check" size={14} /></span>
@@ -993,7 +994,6 @@ function App() {
             <input id="camera-input" className="visually-hidden" type="file" accept="image/*" capture="environment" onChange={handlePhoto} aria-label="Chụp ảnh tranh" />
             <input id="gallery-input" className="visually-hidden" type="file" accept="image/*" onChange={handlePhoto} aria-label="Chọn ảnh tranh từ thư viện" />
           </div>
-          <button type="button" className="text-button text-button--center capture-sample-action" onClick={useSampleDrawing}>Dùng tranh mẫu minh họa để xem luồng</button>
           <div className="inline-note"><Icon name="lock" size={16} /><span>Ảnh chỉ ở trong phiên xem trước này; chưa rời khỏi thiết bị.</span></div>
         </>;
       case 'review':
@@ -1011,6 +1011,14 @@ function App() {
             {showAllSubjects && <div className="custom-subject"><input className="text-field" value={subjectCorrection} maxLength={40} onChange={(event) => setSubjectCorrection(event.target.value)} aria-label="Chủ thể ba mẹ muốn sửa" placeholder="Nhập chủ thể khác" /><button className="button button--secondary" onClick={() => applySubjectCorrection(subjectCorrection)}>Áp dụng chủ thể</button></div>}
           </section>
           {selectedLesson && <section className={`mismatch-preview-result ${mismatchPreviewResult === 'mismatch' ? 'is-mismatch' : 'is-aligned'}`} aria-live="polite"><div><span className="preview-state">KẾT QUẢ MẪU · CHƯA CÓ AI PHÂN TÍCH</span><strong>{mismatchPreviewResult === 'mismatch' ? 'Chủ thể gợi ý chưa khớp với mục tiêu giáo án' : 'Chủ thể gợi ý đang phù hợp với giáo án'}</strong><small>Ba mẹ là người quyết định hướng kể tiếp theo.</small></div><div className="mismatch-preview-actions"><button type="button" onClick={() => setMismatchPreviewResult((result) => result === 'mismatch' ? 'aligned' : 'mismatch')}>{mismatchPreviewResult === 'mismatch' ? 'Xem tình huống khớp' : 'Xem tình huống lệch'}</button>{mismatchPreviewResult === 'mismatch' && <button type="button" onClick={() => { setMismatchDemoChoice(scriptFollowing ?? 'lesson'); setMismatchModalOpen(true); }}>Chọn hướng kể</button>}</div></section>}
+          <section className="context-review-section" aria-labelledby="context-review-title">
+            <div className="section-heading"><h2 id="context-review-title">Rà soát ngữ cảnh</h2><span className="optional-label">Sau khi xác nhận chủ thể</span></div>
+            <div className="context-card"><div className="context-card__top"><span className="settings-row__icon settings-row__icon--blue"><Icon name="lock" size={19} /></span><div><strong>Thông tin tối thiểu cho câu chuyện</strong><small>Tên, ảnh hồ sơ và nhu cầu hỗ trợ không tự thêm vào nội dung.</small></div></div>
+              <div className="context-preview"><span>Nhóm tuổi</span><p>{formatChildAge(selectedChild.ageMonths)}</p><span>Chủ thể đã xác nhận</span><p>{subject}</p><span>Ý tưởng</span><p>{idea.trim() || (audioUrl ? 'Có bản ghi âm; chưa có lời chép tự động.' : 'Không có nội dung bổ sung')}</p>{selectedLesson && <><span>Giáo án & phiên bản</span><p>{selectedLesson.title} · {selectedLesson.version}</p></>}</div>
+            </div>
+            {selectedLesson && <div className="context-direction"><div className="section-heading"><h3>Hướng kể</h3><span className="optional-label">Chọn sau khi xem kết quả mẫu</span></div><div className="direction-options"><button type="button" className={scriptFollowing === 'lesson' ? 'is-selected' : ''} onClick={() => { setScriptFollowing('lesson'); setContextConfirmed(false); setActiveRun((run) => run ? { ...run, scriptFollowing: 'lesson' } : run); }} aria-pressed={scriptFollowing === 'lesson'}><strong>Theo mục tiêu giáo án</strong><small>Giữ hướng học tập đã chọn.</small></button><button type="button" className={scriptFollowing === 'free' ? 'is-selected' : ''} onClick={() => { setScriptFollowing('free'); setContextConfirmed(false); setActiveRun((run) => run ? { ...run, scriptFollowing: 'free' } : run); }} aria-pressed={scriptFollowing === 'free'}><strong>Để tranh dẫn dắt</strong><small>Ưu tiên câu chuyện riêng từ bức vẽ.</small></button></div></div>}
+            <label className="consent-row consent-row--confirm"><input type="checkbox" checked={contextConfirmed} onChange={(event) => setContextConfirmed(event.target.checked)} /><span><strong>Tôi xác nhận ngữ cảnh tối thiểu cho câu chuyện này</strong><small>Chỉ áp dụng cho lần xem trước hiện tại.</small></span></label>
+          </section>
           <div className="inline-note"><Icon name="lock" size={16} /><span>Chủ thể và nội dung phân tích ở đây là minh họa; thay đổi chỉ tác động trong phiên xem trước.</span></div>
         </>;
       case 'idea':
@@ -1025,17 +1033,8 @@ function App() {
             <span className="record-button__icon"><Icon name="mic" size={20} /></span><span><strong>{isRecording ? 'Đang ghi âm · chạm để dừng' : 'Ghi âm ý tưởng'}</strong><small>Tùy chọn</small></span><span className="record-wave" aria-hidden="true"><i /><i /><i /><i /><i /></span>
           </button>}
           {ideaMode === 'initial' && <label className="audio-upload">{audioFileName ? `Đã ghi âm · ${audioFileName}` : 'Chọn tệp âm thanh'}<input className="visually-hidden" type="file" accept="audio/*" capture="user" onChange={handleAudioFile} /></label>}
-          {ideaMode === 'initial' && <button type="button" className="text-button text-button--center audio-sample-action" onClick={runSampleTranscription}>Xem luồng ghi âm thành chữ bằng dữ liệu mẫu</button>}
           {audioUrl && <><div className="audio-ready"><Icon name="check" size={16} /><span>{audioFileName} · chỉ lưu trong phiên này</span><button type="button" onClick={() => { URL.revokeObjectURL(audioUrl); setAudioUrl(null); setAudioFileName(''); setTranscriptionStatus('idle'); setIdea(''); setContextConfirmed(false); }}>Xóa</button></div><audio className="audio-player" controls src={audioUrl} aria-label="Nghe lại bản ghi ý tưởng" /></>}
-          {ideaMode === 'initial' && transcriptionStatus !== 'idle' && <div className={`audio-transcription-state audio-transcription-state--${transcriptionStatus}`} role="status" aria-live="polite">{transcriptionStatus === 'transcribing' ? <><span className="transcription-spinner"/> Đang chuẩn bị bản chép mẫu…</> : transcriptionStatus === 'complete' ? <><Icon name="check" size={16}/><span><strong>Bản chép mẫu đã thêm vào ô ý tưởng.</strong><small>Đây là văn bản minh họa, chưa chạy nhận dạng giọng nói. Ba mẹ có thể sửa trực tiếp.</small></span></> : <><Icon name="refresh" size={16}/><span><strong>Chưa có bản chép.</strong><small>Thử tạo lại bản minh họa hoặc nhập ý tưởng bằng bàn phím.</small></span><button type="button" onClick={runSampleTranscription}>Thử lại</button></>}</div>}
-          {ideaMode === 'initial' && <section className="context-review-section context-review-section--compact" aria-labelledby="context-review-title">
-            <div className="section-heading"><h2 id="context-review-title">Rà soát ngữ cảnh</h2><span className="optional-label">Trước khi viết chuyện</span></div>
-            <div className="context-card"><div className="context-card__top"><span className="settings-row__icon settings-row__icon--blue"><Icon name="lock" size={19} /></span><div><strong>Thông tin tối thiểu cho câu chuyện</strong><small>Tên, ảnh hồ sơ và nhu cầu hỗ trợ không tự thêm vào nội dung.</small></div></div>
-              <div className="context-preview"><span>Nhóm tuổi</span><p>{formatChildAge(selectedChild.ageMonths)}</p><span>Chủ thể đã xác nhận</span><p>{subject}</p><span>Ý tưởng</span><p>{idea.trim() || (audioUrl ? 'Có bản ghi âm; chưa có lời chép tự động.' : 'Không có nội dung bổ sung')}</p>{selectedLesson && <><span>Giáo án & phiên bản</span><p>{selectedLesson.title} · {selectedLesson.version}</p></>}</div>
-            </div>
-            {selectedLesson && <div className="context-direction"><div className="section-heading"><h3>Hướng kể</h3><span className="optional-label">Cho câu chuyện này</span></div><div className="direction-options"><button type="button" className={scriptFollowing === 'lesson' ? 'is-selected' : ''} onClick={() => { setScriptFollowing('lesson'); setContextConfirmed(false); setActiveRun((run) => run ? { ...run, scriptFollowing: 'lesson' } : run); }} aria-pressed={scriptFollowing === 'lesson'}><strong>Theo mục tiêu giáo án</strong><small>Giữ hướng học tập đã chọn.</small></button><button type="button" className={scriptFollowing === 'free' ? 'is-selected' : ''} onClick={() => { setScriptFollowing('free'); setContextConfirmed(false); setActiveRun((run) => run ? { ...run, scriptFollowing: 'free' } : run); }} aria-pressed={scriptFollowing === 'free'}><strong>Để tranh dẫn dắt</strong><small>Ưu tiên câu chuyện riêng từ bức vẽ.</small></button></div></div>}
-            <label className="consent-row consent-row--confirm"><input type="checkbox" checked={contextConfirmed} onChange={(event) => setContextConfirmed(event.target.checked)} /><span><strong>Tôi xác nhận ngữ cảnh tối thiểu cho câu chuyện này</strong><small>Chỉ áp dụng cho lần xem trước hiện tại.</small></span></label>
-          </section>}
+          {ideaMode === 'initial' && transcriptionStatus !== 'idle' && <div className={`audio-transcription-state audio-transcription-state--${transcriptionStatus}`} role="status" aria-live="polite">{transcriptionStatus === 'transcribing' ? <><span className="transcription-spinner"/> Đang chuẩn bị bản chép mẫu…</> : transcriptionStatus === 'complete' ? <><Icon name="check" size={16}/><span><strong>Đã thêm bản chép minh họa vào ô trên.</strong><small>Ba mẹ có thể sửa trực tiếp.</small></span></> : <><Icon name="refresh" size={16}/><span><strong>Chưa có bản chép.</strong><small>Thử lại hoặc nhập ý tưởng bằng bàn phím.</small></span><button type="button" onClick={runSampleTranscription}>Thử lại</button></>}</div>}
           {ideaMode === 'rewrite' && <div className="soft-card soft-card--blue"><Icon name="edit" size={18} /><p>Ba mẹ sẽ xem lại kịch bản trước khi tạo video.</p></div>}
         </>;
       case 'script':
@@ -1481,7 +1480,7 @@ function App() {
         <header className="flow-header"><button className="back-button" onClick={() => step === 'generating' || step === 'ready' ? setScreen('home') : previousStep()} aria-label={step === 'generating' || step === 'ready' ? 'Về trang chủ, tiếp tục ở nền' : 'Quay lại bước trước'}><Icon name="back" size={22} /></button><span>{activeRun?.status === 'ready' ? 'Câu chuyện của gia đình' : 'Tạo câu chuyện'}</span><button className="close-flow" onClick={() => setScreen('home')} aria-label="Thu nhỏ luồng, tiếp tục ở nền"><Icon name="close" size={20} /></button></header>
         {step !== 'generating' && step !== 'ready' && <div className="progress-wrap"><div className="progress-label"><span>{flowSteps[stepIndex]?.label}</span><small>Bước {stepIndex + 1} / {flowSteps.length}</small></div><div className="step-progress" aria-label={`Bước ${stepIndex + 1} trên ${flowSteps.length}`}>{flowSteps.map((item, index) => <i key={item.key} className={index <= stepIndex ? 'is-done' : ''} />)}</div></div>}
         <main ref={flowContentRef} className={`flow-content flow-content--${step}`}>{renderFlowStep()}</main>
-        {step !== 'generating' && step !== 'ready' && <div className="flow-footer"><button className="button button--primary button--wide" onClick={step === 'idea' && ideaMode === 'rewrite' ? submitRewrite : nextStep} disabled={(step === 'capture' && !photoUrl) || (step === 'idea' && ideaMode === 'initial' && !contextConfirmed) || (step === 'script' && Boolean(activeRun?.needsRegeneration && activeRun.regenCount >= 2))}>{step === 'script' ? activeRun?.needsRegeneration ? `Xem trước yêu cầu tạo lại (${Math.max(0, 2 - (activeRun?.regenCount ?? 0))} lượt còn)` : 'Duyệt kịch bản & tiếp tục' : step === 'capture' ? 'Tiếp tục với bức tranh' : step === 'idea' && ideaMode === 'rewrite' ? 'Gửi gợi ý viết lại' : step === 'guide' ? guideStepIndex < guideSteps.length - 1 ? 'Bước tiếp theo' : 'Tiếp tục đến chụp tranh' : 'Tiếp tục'} <Icon name="arrow" size={18} /></button>{step === 'idea' && ideaMode === 'initial' && !contextConfirmed && <small className="footer-helper">Xác nhận ngữ cảnh tối thiểu để mở bước xem kịch bản.</small>}</div>}
+        {step !== 'generating' && step !== 'ready' && <div className="flow-footer"><button className="button button--primary button--wide" onClick={step === 'idea' && ideaMode === 'rewrite' ? submitRewrite : nextStep} disabled={(step === 'capture' && !photoUrl) || (step === 'review' && !contextConfirmed) || (step === 'review' && Boolean(selectedLesson && !scriptFollowing)) || (step === 'script' && Boolean(activeRun?.needsRegeneration && activeRun.regenCount >= 2))}>{step === 'script' ? activeRun?.needsRegeneration ? `Xem trước yêu cầu tạo lại (${Math.max(0, 2 - (activeRun?.regenCount ?? 0))} lượt còn)` : 'Duyệt kịch bản & tiếp tục' : step === 'capture' ? 'Tiếp tục với bức tranh' : step === 'idea' && ideaMode === 'rewrite' ? 'Gửi gợi ý viết lại' : step === 'guide' ? guideStepIndex < guideSteps.length - 1 ? 'Bước tiếp theo' : 'Tiếp tục đến chụp tranh' : 'Tiếp tục'} <Icon name="arrow" size={18} /></button>{step === 'review' && !contextConfirmed && <small className="footer-helper">Xác nhận ngữ cảnh tối thiểu để mở bước xem kịch bản.</small>}</div>}
         {step === 'generating' && <div className="flow-footer flow-footer--ready"><button className="button button--secondary button--wide" onClick={() => { setStep('script'); setActiveRun((run) => run ? { ...run, step: 'script' } : run); }}>Quay lại kịch bản</button><button className="text-button text-button--center" onClick={() => setScreen('home')}>Về trang chủ</button></div>}
         {step === 'ready' && <div className="flow-footer flow-footer--ready"><button className="button button--secondary button--wide" onClick={() => { setScreen('home'); setToast('Bạn có thể quay lại câu chuyện từ Trang chủ trong phiên này.'); }}>Để sau trong phiên này <Icon name="clock" size={17} /></button></div>}
       </>}
@@ -1491,7 +1490,7 @@ function App() {
         <button className="setting-option setting-option--button" onClick={() => setToast('Bản xem trước hiện hỗ trợ tiếng Việt.')}><span><strong>Ngôn ngữ</strong><small>Tiếng Việt</small></span><Icon name="chevron"/></button>
         <div className="settings-shortcuts"><span>TÀI KHOẢN & QUYỀN RIÊNG TƯ</span><button onClick={() => { setShowSettings(false); setScreen('privacy'); }}>Dữ liệu và quyền riêng tư <Icon name="chevron" size={17}/></button><button onClick={() => { setShowSettings(false); setScreen('sharing'); }}>Chia sẻ hồ sơ với giáo viên <Icon name="chevron" size={17}/></button><button onClick={() => { setShowSettings(false); setScreen('group-invitations'); }}>Lời mời từ trường <Icon name="chevron" size={17}/></button><button onClick={() => { setShowSettings(false); setScreen('quota'); }}>Lượt tạo và gói sử dụng <Icon name="chevron" size={17}/></button><button onClick={() => { setShowSettings(false); setScreen('change-password'); }}>Đổi mật khẩu <Icon name="chevron" size={17}/></button></div>
         <div className="permission-copy"><Icon name="lock" size={15}/> Camera và micro chỉ được hỏi khi ba mẹ dùng chức năng tương ứng. Từ chối quyền không làm mất các luồng nhập bằng chữ hoặc chọn ảnh.</div><button className="button button--primary button--wide" onClick={() => setShowSettings(false)}>Đóng cài đặt</button></section></div>}
-      {lessonPreview && <div className="scrim lesson-preview-scrim" role="presentation" onClick={() => setLessonPreviewId(null)}><section className="lesson-preview-sheet" role="dialog" aria-modal="true" aria-labelledby="lesson-preview-title" onClick={(event) => event.stopPropagation()}><div className="sheet-handle"/><div className="sheet-top"><div><span className="pill pill--green">{lessonPreview.visibility}</span><h2 id="lesson-preview-title">{lessonPreview.title}</h2><small>{lessonPreview.version} · {lessonPreview.ageTarget}</small></div><button className="icon-button" onClick={() => setLessonPreviewId(null)} aria-label="Đóng chi tiết giáo án"><Icon name="close"/></button></div><p className="lesson-preview-description">{lessonPreview.description}</p><div className="lesson-preview-activities"><h3>Hoạt động trong giáo án</h3>{lessonPreview.activities.map((activity, index) => <article key={activity.title}><b>{String(index + 1).padStart(2, '0')}</b><div><strong>{activity.title}</strong><small>Vật liệu: {activity.materials}</small><p>{activity.instructions}</p></div></article>)}</div>{activeRun && screen !== 'flow' && <p className="inline-note"><Icon name="refresh" size={16}/> Hoàn tất câu chuyện đang mở trước khi chọn giáo án khác.</p>}<button className="button button--primary button--wide" disabled={Boolean(activeRun && screen !== 'flow')} onClick={() => { if (screen === 'flow' && step === 'prepare') { setSelectedLessonId(lessonPreview.id); setShowLessonOptions(false); setScriptFollowing('lesson'); setSelectedActivityId(null); setActiveRun((run) => run ? { ...run, lessonId: lessonPreview.id, scriptFollowing: 'lesson' } : run); } else { setPresetForNextRun(lessonPreview.id); setScreen('home'); } setLessonPreviewId(null); setToast('Đã chọn giáo án trong bản xem trước.'); }}>{screen === 'flow' && step === 'prepare' ? 'Chọn giáo án' : 'Dùng giáo án cho câu chuyện'}</button><p className="prototype-note">Chi tiết này là dữ liệu minh họa cho giao diện.</p></section></div>}
+      {lessonPreview && <div className="scrim lesson-preview-scrim" role="presentation" onClick={() => setLessonPreviewId(null)}><section className="lesson-preview-sheet" role="dialog" aria-modal="true" aria-labelledby="lesson-preview-title" onClick={(event) => event.stopPropagation()}><div className="sheet-handle"/><div className="sheet-top"><div><span className="pill pill--green">{lessonPreview.visibility}</span><h2 id="lesson-preview-title">{lessonPreview.title}</h2><small>{lessonPreview.version} · {lessonPreview.ageTarget}</small></div><button className="icon-button" onClick={() => setLessonPreviewId(null)} aria-label="Đóng chi tiết giáo án"><Icon name="close"/></button></div><p className="lesson-preview-description">{lessonPreview.description}</p><div className="lesson-preview-activities"><h3>Hoạt động trong giáo án</h3>{lessonPreview.activities.map((activity, index) => <article key={activity.title}><b>{String(index + 1).padStart(2, '0')}</b><div><strong>{activity.title}</strong><small>Vật liệu: {activity.materials}</small><p>{activity.instructions}</p></div></article>)}</div>{activeRun && screen !== 'flow' && <p className="inline-note"><Icon name="refresh" size={16}/> Hoàn tất câu chuyện đang mở trước khi chọn giáo án khác.</p>}<button className="button button--primary button--wide" disabled={Boolean(activeRun && screen !== 'flow')} onClick={() => { if (screen === 'flow' && step === 'prepare') { setSelectedLessonId(lessonPreview.id); setShowLessonOptions(false); setScriptFollowing(null); setSelectedActivityId(null); setActiveRun((run) => run ? { ...run, lessonId: lessonPreview.id, scriptFollowing: null } : run); } else { setPresetForNextRun(lessonPreview.id); setScreen('home'); } setLessonPreviewId(null); setToast('Đã chọn giáo án trong bản xem trước.'); }}>{screen === 'flow' && step === 'prepare' ? 'Chọn giáo án' : 'Dùng giáo án cho câu chuyện'}</button><p className="prototype-note">Chi tiết này là dữ liệu minh họa cho giao diện.</p></section></div>}
       {mismatchModalOpen && <div className="scrim mismatch-preview-scrim" role="presentation" onClick={() => setMismatchModalOpen(false)}><section className="confirm-sheet mismatch-preview-sheet" role="dialog" aria-modal="true" aria-labelledby="mismatch-preview-title" onClick={(event) => event.stopPropagation()}><span className="confirm-icon"><Icon name="refresh" size={20}/></span><span className="preview-state">TÌNH HUỐNG MÔ PHỎNG · CHƯA CÓ AI PHÂN TÍCH</span><h2 id="mismatch-preview-title">Chủ thể gợi ý chưa theo giáo án?</h2><p>Đây là tình huống minh họa để ba mẹ tự chọn hướng kể. Ứng dụng chưa đối chiếu tranh với giáo án.</p><div className="mismatch-preview-options"><button type="button" className={mismatchDemoChoice === 'lesson' ? 'is-selected' : ''} onClick={() => setMismatchDemoChoice('lesson')} aria-pressed={mismatchDemoChoice === 'lesson'}><strong>Theo mục tiêu giáo án</strong><small>Giữ hướng học tập đã chọn.</small></button><button type="button" className={mismatchDemoChoice === 'free' ? 'is-selected' : ''} onClick={() => setMismatchDemoChoice('free')} aria-pressed={mismatchDemoChoice === 'free'}><strong>Để tranh dẫn dắt</strong><small>Ưu tiên cách kể riêng của bé.</small></button></div><button type="button" className="button button--primary button--wide" onClick={() => { setScriptFollowing(mismatchDemoChoice); setActiveRun((run) => run ? { ...run, scriptFollowing: mismatchDemoChoice } : run); setContextConfirmed(false); setMismatchModalOpen(false); setToast('Đã áp dụng lựa chọn hướng kể trong bản xem trước.'); }}>Dùng lựa chọn này</button><button type="button" className="button button--secondary button--wide" onClick={() => setMismatchModalOpen(false)}>Đóng</button></section></div>}
       {recordingError && <div className="scrim" role="presentation" onClick={() => setRecordingError('')}><section className="confirm-sheet" role="alertdialog" aria-modal="true" aria-labelledby="microphone-error-title" onClick={(event) => event.stopPropagation()}><span className="confirm-icon"><Icon name="mic" size={20}/></span><h2 id="microphone-error-title">Không thể tiếp tục với âm thanh</h2><p>{recordingError}</p><button className="button button--primary button--wide" onClick={() => setRecordingError('')}>Đã hiểu</button></section></div>}
       {pendingDelete !== null && <div className="scrim" role="presentation" onClick={() => setPendingDelete(null)}><section className="confirm-sheet" role="alertdialog" aria-modal="true" aria-labelledby="delete-title" onClick={(event) => event.stopPropagation()}><span className="confirm-icon"><Icon name="trash" size={20} /></span><h2 id="delete-title">Xóa câu chuyện này?</h2><p>Câu chuyện cùng nội dung liên quan sẽ bị xóa khỏi lịch sử.</p><button className="button button--danger button--wide" onClick={() => removeStory(pendingDelete)}>Xóa câu chuyện</button><button className="button button--secondary button--wide" onClick={() => setPendingDelete(null)}>Giữ lại</button></section></div>}
