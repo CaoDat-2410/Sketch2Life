@@ -1,5 +1,13 @@
 # Status
 
+## Rev19 Fix Flaky Async `useEffect` Race in `apps/admin-ui` CI (`4/5` -> `5/5`) — 2026-11-14
+
+- **State:** Implemented and verified locally across `npm run check --prefix apps/admin-ui` (repeated `vitest run` `2/2` passes), `git diff --check`, and all 5 policy validators; pushing to `origin/FE_UI_Project_Ver2` to verify `5/5` green checks on GitHub Actions.
+- **Approved plan:** `plan/PLAN_REV19_ADMIN_UI_TEST_RACE.md`, SHA-256 `9BAF0070DCDFECBB368491E04A1D4575A7D3321B7AF0CB1434F18E936383797D`, recorded in both root and feature `TASK_APPROVAL.md` registers.
+- **Changes:** Added `waitFor(() => expect(classService.listClasses).toHaveBeenCalledOnce())` and `await screen.findByText('BE1 chưa trả lớp nào cho tài khoản này.')` in `apps/admin-ui/src/__tests__/app.test.tsx` to eliminate the React 19 passive `useEffect` scheduling race behind GitHub Actions check-run `132472499432` (`4/5` on `21ca31f0`).
+- **Verification:** `npm run check --prefix apps/admin-ui` (`EXIT=0`, `tsc -b`, `vite build`, `oxlint` 0 errors, `vitest run` `2/2` twice cleanly), `git diff --check` (`EXIT=0`), and all 5 `tools/validate_*.py` checks (`EXIT=0`).
+- **Limits:** Test synchronization fix only; runtime code in `apps/admin-ui`, `UI_Project/`, `backend/`, and canonical `FEAT-063` SRS `v2.5-draft` remain untouched. Details: `evidence/notes/REV19_ADMIN_UI_TEST_RACE_20261114.md`.
+
 ## Rev18 Git Source Parity Audit, Dashboard Cleanup & UI/UX Pro Max GPU Motion (`UI_Project/`) — 2026-11-14
 
 - **State:** Implemented, build-verified across all 5 `UI_Project/` workspaces, visually verified via live headless browser across host-verified `http://localhost:5171`–`5175`, and validated against repository policy scripts; prepared for commit & fast-forward push to `origin/FE_UI_Project_Ver2`.

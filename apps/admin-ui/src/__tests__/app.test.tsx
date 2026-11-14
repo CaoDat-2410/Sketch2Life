@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { User } from 'firebase/auth'
 import App from '../App'
@@ -41,7 +41,8 @@ describe('Admin UI authorization and connected class route', () => {
     expect(await screen.findByRole('heading', { name: 'Lớp học' })).toBeTruthy()
     expect(login).toHaveBeenCalledWith({ email: 'admin@example.test', pass: 'test-password' })
     expect(classService.currentAssignments).toHaveBeenCalledOnce()
-    expect(classService.listClasses).toHaveBeenCalledOnce()
+    await waitFor(() => expect(classService.listClasses).toHaveBeenCalledOnce())
+    expect(await screen.findByText('BE1 chưa trả lớp nào cho tài khoản này.')).toBeTruthy()
   })
 
   it('does not render unsupported mock administration screens', async () => {

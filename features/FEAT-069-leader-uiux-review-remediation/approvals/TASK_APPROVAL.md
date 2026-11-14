@@ -224,3 +224,16 @@
 - **Scope:** Remove remaining dev/simulation/sample-only copy (`"Playback thật chưa được kết nối"`, `"câu chuyện mẫu"`, `"Mô phỏng bước tiếp theo"`, `"Đăng nhập chưa được kết nối..."`, `"Giáo viên mẫu"`, `"Xóa hồ sơ mẫu"`, `"Trạng thái mẫu"`, `"Điền lời mời mẫu"`, `"MÃ MẪU"`, `"run mẫu"`) across `UI_Project/{parent-ui,shared}`; align `TeacherDashboard` strictly with verified `origin/dev` Teacher APIs (removing ungrounded fake `10:30` schedule & duplicate dashboard feedback card in favor of assigned-class session launch); add `ui-ux-pro-max` GPU-only motion choreography & tactile interactions with full `prefers-reduced-motion` support across `UI_Project/`.
 - **Exclusions:** No backend/API/auth/database/schema/SRS edits; no legacy `apps/` or `child-experience/` changes; no real API calls; SRS conflicts reported transparently without modifying `FEAT-063` SRS; no `--force` push or history rewrite.
 - **Approval basis:** Direct owner instruction explicitly scoping final UI/UX polish, project workflow parity closure, and zero warning/unconnected copy across `UI_Project/`.
+
+
+## Plan Rev19 — Fix Flaky Async `useEffect` Race in `apps/admin-ui` CI Check (`4/5` -> `5/5`)
+
+- **Status:** APPROVED for the exact scope in `plan/PLAN_REV19_ADMIN_UI_TEST_RACE.md`.
+- **Approver:** Project owner, direct instruction uploading commit `21ca31f0` CI `4/5` failure screenshot (`"nó báo lỗi nè"`).
+- **Recorded timestamp:** 2026-11-14 22:45:35 +07:00 (Asia/Saigon).
+- **Approved plan:** `features/FEAT-069-leader-uiux-review-remediation/plan/PLAN_REV19_ADMIN_UI_TEST_RACE.md`.
+- **Plan revision:** 19.
+- **Plan SHA-256:** `9BAF0070DCDFECBB368491E04A1D4575A7D3321B7AF0CB1434F18E936383797D`.
+- **Scope:** Deterministically `waitFor` `classService.listClasses().toHaveBeenCalledOnce()` and await the settled empty BE1 state in `apps/admin-ui/src/__tests__/app.test.tsx` without relaxing any assertion or modifying runtime code/CI configuration; record Rev19 governance evidence and push fast-forward to `origin/FE_UI_Project_Ver2`.
+- **Exclusions:** No assertion relaxation; no `UI_Project/`, `backend/`, `apps/child-ui/`, `apps/teacher-ui/`, `apps/admin-ui/src/pages/`, `.github/workflows/ci.yml`, `tools/validate_*.py`, or canonical `FEAT-063` SRS edits.
+- **Approval basis:** Direct owner instruction explicitly directing resolution of the GitHub Actions `4/5` CI failure on commit `21ca31f0`.

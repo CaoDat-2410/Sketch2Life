@@ -1,5 +1,12 @@
 # FEAT-069 evidence index
 
+## Rev19 Fix Flaky Async `useEffect` Race in `apps/admin-ui` CI (`4/5` -> `5/5`)
+
+| Evidence | Scope | What it establishes | Limitations |
+|---|---|---|---|
+| `notes/REV19_ADMIN_UI_TEST_RACE_20261114.md` | Plan Rev19, AC19.1–AC19.4 | Documents GitHub Actions check-run `132472499432` root cause (`ClassesPage` passive `useEffect` vs synchronous heading commit race in `apps/admin-ui/src/__tests__/app.test.tsx`), `waitFor` + settled-UI fix, repeated passing `npm run check --prefix apps/admin-ui` & `vitest run`, and 5/5 policy validators | Test-timing stabilization only; does not modify `apps/admin-ui` runtime components or `UI_Project/` |
+| `../plan/PLAN_REV19_ADMIN_UI_TEST_RACE.md` | Exact approved scope | Hash-identified approval (`9BAF0070DCDFECBB368491E04A1D4575A7D3321B7AF0CB1434F18E936383797D`) strictly for awaiting the passive `listClasses` effect in `apps/admin-ui/src/__tests__/app.test.tsx` | Does not relax assertions or touch `UI_Project/`, `backend/`, CI, or SRS |
+
 ## Rev18 Git Source Parity, Dashboard Cleanup & GPU Motion (`UI_Project/`)
 
 | Evidence | Scope | What it establishes | Limitations |
