@@ -131,7 +131,7 @@
 .preview-state--active,.catalog-status--published{background:#e5f5e9;color:#317149}
 .preview-state--paused,.catalog-status--review{background:#fff4df;color:#8b6826}
 .preview-state--archived,.catalog-status--other{background:#f0f1ed;color:#747d72}
-.catalog-status--draft{background:#eaf1ff;color:#4b6ea6}
+.catalog-status--draft{background:#ebf3ec;color:#345b43}
 .manager-class-detail h2,.catalog-detail-panel h2,.moderation-detail-panel h2,.billing-overview h2{margin:7px 0;color:#2e4938;font:800 20px/1.25 'DM Sans','Be Vietnam Pro',sans-serif}
 .manager-class-detail>p,.catalog-detail-panel>p,.moderation-detail-panel>p,.billing-overview>p{color:#718276;font-size:11px;line-height:1.55}
 .manager-class-actions,.manager-action-buttons{display:flex;flex-wrap:wrap;gap:7px;margin:14px 0}

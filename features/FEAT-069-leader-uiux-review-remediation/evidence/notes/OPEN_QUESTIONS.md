@@ -1,5 +1,11 @@
 # FEAT-069 remaining UI/product questions
 
+## Rev13 leader-flow & UX Pro Max disposition — 2026-11-14
+
+- To match the leader review walkthrough across all screens, Rev13 moves Parent outdoor activity selection before video generation (`script` step via `.prevideo-activity-panel`), replaces the blocking context tick with an automatic child-profile pill (`.auto-context-pill`), exposes Discord-style global Settings on all Parent headers, and keeps `Giới tính` in profile editing as session-local fixture data.
+- **Unresolved canonical SRS conflicts preserved:** FEAT-063 SRS `v2.5-draft` §5.1 still defines outdoor activities post-video and requires adult context confirmation (FR-P-06), and reviewed backend contracts do not yet define `gender`. Resolve and sign off these differences before live backend wiring rather than silently altering the SRS.
+- Five-workspace browser inspection (`375x812` mobile, `1440x900` desktop) confirmed layout, Settings modal, 2-tab lesson library, pre-video activity placement, centered Teacher modal (`CHI TIẾT GIÁO ÁN`), calm green contrast, `"Tạo mới"` FAB contrast, and single-chevron `<select>` rendering; backend API, live ASR/VLM/video generation, Android APK install, and automated UI test suites remain outside this UI-only milestone.
+
 ## Rev9 action-continuity disposition — 2026-11-14
 
 - The specific generic Teacher modal and other read-only detail disclosures were clarified; a Teacher draft can now reopen its editor, and generic wizard completion routes have named next steps. Read the Rev9 crosswalk for all current outcomes. This removes UI ambiguity but does not make the underlying workflow persistent or server-backed.

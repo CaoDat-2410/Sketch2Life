@@ -1,63 +1,48 @@
-# Sketch2Life Design System
+# Sketch2Life UI Design System (`UI_Project/`)
 
-## Design direction
+Design token and interaction specification for the official `UI_Project/` frontend prototypes (`parent-ui`, `teacher-ui`, `school-manager-ui`, `platform-admin-ui`, `web-ui`). All views in `UI_Project/` are UI/UX prototypes with browser-local fixtures (backend APIs are not connected here).
 
-Sketch2Life turns children's drawings and narration into stories and real-world activities. The Parent Android app should feel like a calm, illustrated story companion: one warm yellow creation moment, blue actions, original story artwork, and plain, reassuring steps. Teacher, School Manager, and Platform Admin use a shared web workspace with clear navigation, original page illustrations, warm paper surfaces, and an accent for each role.
+## 1. Color Tokens (Warm Forest-Sage Storybook Palette)
 
-The user-provided screens and video are visual references, not source copy or workflow authority. Product content and flows follow the repository's current SRS authority (2.7-draft Rev60 at the 12 November 2026 audit), leader review notes, and verified application behavior. Open decisions remain open in the interface.
-
-## Visual tokens
-
-| Token | Value | Use |
+| Token / Role | Parent Mobile (`parent-ui`) | Web Roles (`teacher`, `manager`, `admin`, `web-ui`) |
 | --- | --- | --- |
-| Brand blue | `#315EFB` | Main actions, focus, active states |
-| Deep blue | `#244CD8` | Hover and strong links |
-| Story yellow | `#F4C84E` | Parent creation moment and small warmth cues |
-| Ink | `#17233B` | Main text |
-| Secondary ink | `#46536A` | Supporting copy |
-| Muted ink | `#68758A` | Metadata |
-| Canvas | `#F6F8FC` | Parent stage and web workspace |
-| Surface | `#FFFFFF` | Forms, cards, navigation |
-| Rule | `#E1E7F0` | Borders and separators |
-| Success | `#16835F` | Success state only |
-| Danger | `#AF4646` | Destructive state only |
+| Primary Brand / Action | `#3f7559` -> `#28543e` (`--brand-primary`) | `#2e6b53` / `#28543e` |
+| Ink / Body Text | `#1f3930` (`--ink`), `#475f53` (`--ink-soft`) | `#1b342c` (`--ink`), `#4a6054` (`--muted`) |
+| Canvas / Surface | `#fbf7ea` cream, `#fffefa` card | `#eef2ee` canvas, `#fffefa` card |
+| Soft Tint / Badges | `#e7f0e6` sage wash, `#eff6ef` soft banner | `#ebf3ec` draft/info wash, `#dfe8dd` borders |
+| Warm Storybook Accent | `#f5d279` / `#f4c84e` gold, `#d99a58` terracotta | `#f7cb70` gold highlights |
+| Error / Alert | `#964133` coral text, `#fff4ef` soft surface | `#964133` / `#fde9e5` |
 
-Use Baloo 2 for short Parent story headings, DM Sans for web workspace headings, and Be Vietnam Pro for reading and controls across all roles. Follow an 8px spacing rhythm and soft, low shadows. Web workspaces use warm paper neutrals with role accents: Teacher `#2E735D`, School Manager `#326A78`, Platform Admin `#536D9A`. Yellow `#F6D57E` draws attention to the primary dashboard action. Status color is always paired with a label or icon.
+High-contrast text (`WCAG AA >= 4.5:1`) and minimum `44px` touch targets are enforced across interactive buttons, nav items, filters, and modal controls (`rev13ProMax.css`).
 
-## Parent Android expression
+## 2. Typography
 
-- Design mobile-first and preserve the existing four destinations: Trang chủ, Lịch sử, Lượt tạo, and Cài đặt. Child profiles remain inside Settings.
-- Use a full-height Android-sized canvas; respect safe areas and keep fixed navigation from covering scroll content.
-- Translate the supplied mobile reference's cozy illustrated scenes, rounded character art, compact dashboard hierarchy, and bold dark CTA into original Sketch2Life story artwork. Use warm cream, sage, honey yellow, and charcoal surfaces; keep project blue in the brand mark and focus treatment.
-- Use a restrained storybook depth: soft paper layering, one expressive home illustration, tactile buttons, and purposeful motion. Keep the rest of the interface calm and scannable.
-- Adapt the reference's visual language to drawing-to-story creation; do not add unrelated streaks, coins, or reward mechanics to the Parent workflow.
-- Use 48px minimum Android touch targets, clear pressed feedback, predictable back/continue actions, and visible focus states.
-- Keep motion short and purposeful. Respect reduced-motion settings; never make essential progress depend on animation.
-- Keep the lesson optional and pin its exact version before drawing. Do not add activity selection before video creation; show activities after the video only when the family pinned a lesson. Keep script review before video creation and feedback at the end of the completed session.
-- Use concise visible labels and one-line helper copy; put secondary explanations inside disclosure panels or the relevant confirmation step.
-- Maintain readable light and dark themes, reduced motion, visible keyboard focus, and descriptive accessible names for icon-only controls.
+- **Display / Headings:** `'Baloo 2'`, `'Varela Round'`, `'Fredoka'`, `'DM Sans'`, sans-serif.
+- **UI Body & Controls:** `'Be Vietnam Pro'`, `'Nunito Sans'`, sans-serif (full Vietnamese diacritic legibility, tabular numbers on metrics/step indicators).
 
-## Web workspace expression
+## 3. Parent Mobile App (`UI_Project/parent-ui/`)
 
-- `web-ui` is the single entry point for Teacher, School Manager, and Platform Admin. It presents login, invitation-based activation preview, and account recovery preview before the role-specific workspaces. Real role resolution uses Firebase Authentication and `/api/auth/v1/me`; the existing BE registration endpoint is Parent-only, so the web activation form must not claim to create accounts.
-- All three web roles share DM Sans headings, Be Vietnam Pro body text, a light paper canvas, white navigation rail, thin separators, and rounded surfaces. Role accents distinguish teaching, school operations, and platform operations.
-- Keep Teacher, School Manager, and Platform Admin navigation and routes role-specific. No role may reveal another role's workspace.
-- Keep the teacher teaching tasks grouped under “Bài giảng trên lớp”; keep settings separate. Place lesson sharing with lesson management.
-- Use page titles, concise section labels, status chips, tables, and compact KPI strips to prioritize important information. Avoid nested cards and repeated explanatory paragraphs.
-- Each role follows a different user-supplied dashboard reference: Teacher uses the Education layout with lesson progress, topic bars, class and sharing cards; School Manager uses the Project Management layout with class assignment progress, review work, teacher workload, and milestones; Platform Admin uses the E-Commerce layout with grouped content columns, catalog and moderation tables, organization status, and an operations snapshot. Keep the Sketch2Life shell, role colors, and data labels consistent across all three.
-- Each dashboard has four role-specific KPI links. Derive preview counts and visualizations from the same fixture collections shown in lists. Do not invent growth trends, deadlines, or real-time telemetry. Teacher class data is limited to the signed-in teacher's assigned class in the preview.
-- Keep dimensional motion to the paper illustration and short interaction feedback: a shallow 3D tilt, gentle floating, brief KPI lift, and chart reveal. Page changes use a short fade and upward arrival. Motion is optional and disabled by `prefers-reduced-motion`; text and actions never depend on it.
-- Use dialogs only for confirmation or protected focus. Dialogs must support Escape, outside dismissal when safe, focus management, and a visible close or cancel action.
-- The three role workspaces are UI previews. Search, filters, detail drawers, local drafts, and workflow steps work in the browser. Do not present a preview operation as a backend mutation. Restore role-specific API integration after the contracts are confirmed; see `WEB_UI_SCOPE.md` and `WEB_FEATURE_AUDIT.md`.
+- **Minimal Homepage:** Hero storytelling card + quick start/resume CTA; omits dynamic recent-story carousels on Home to keep mobile scrolling light and avoid extra backend loads.
+- **Bottom Navigation Bar:** 5 balanced slots — `Trang chủ`, `Lịch sử`, central circular `+ Tạo mới` FAB, `Giáo án` (split into *Giáo án công khai trên hệ thống* & *Giáo án trường / giáo viên gửi*), and `Hồ sơ`.
+- **Profile & Global Settings Separation:** Profile screen manages child profiles (including `Giới tính`, `Độ tuổi`, `Ghi chú`), while account, sharing, invitations, quota, privacy, and password live in the global top-right gear `Cài đặt` drawer.
+- **Story Creation Workflow:**
+  1. `prepare`: Select Child Profile + optional Lesson selector with in-place `"Chi tiết"` modal + optional `"Thêm gợi ý vẽ trước khi chụp"` toggle.
+  2. `guide` (optional): Interactive 3-step progressive vector line-sketch illustrations tailored per topic (`Khu vườn`, `Bầu trời`, `Đại dương`, `Vũ trụ`) and detail level (`Nhẹ nhàng` / `Thêm chi tiết`).
+  3. `capture`: Camera/Gallery upload preview (no developer `"Dùng ảnh mẫu"` button in UI).
+  4. `idea`: Direct voice-to-text into the story idea box + clean audio upload & modal error reporting without verbose helper text.
+  5. `review`: Automatic profile context pill (no redundant pre-story context screen), subject confirmation/editing chips, and automatic divergence dialog prompting `"Ưu tiên mục tiêu giáo án"` vs `"Ưu tiên tranh của bé"` whenever detected subject diverges from the selected lesson.
+  6. `script`: Pre-video Activity selection (`Hoạt động cùng bé`) embedded before video generation, plus rewrite requests & script review.
+  7. `generating` -> `ready`: Multi-stage job progress + Story Player (CC & fullscreen) + unlocked activity playback & quick family feedback.
 
-## Component and accessibility rules
+## 4. Web Portals (`teacher-ui`, `school-manager-ui`, `platform-admin-ui`, `web-ui`)
 
-- Radix Dialog and Accordion primitives provide focus management, keyboard behavior, and disclosure states. Keep the wrappers in `shared/ui.tsx` and theme them with shared design tokens.
-- Use the project's existing SVG icon components. Do not use emoji as interface icons.
-- Labels stay visible with form controls; errors appear next to the relevant control. Keep feedback and progress states legible without relying on color alone.
-- Maintain a visible 3px focus ring, minimum 44px touch targets on Parent, and reduced-motion support.
-- Preserve the documented workflow and permission boundaries while adding backend integration. Preview data is labeled explicitly until the corresponding API is connected.
+- **Unified Forest-Green Palette:** Shared brand marks, active sidebar tabs, KPI charts, modals, and `HeroArt` illustrations use the cohesive forest-sage system (`#2e6b53` / `#cbe0cf` / `#fffefa`).
+- **Consolidated Task Hubs:** Overlapping sidebar views are grouped into multi-tab workspaces (`Teacher: 8 items`, `School Manager: 8 items`, `Platform Admin: 9 items`) with URL hash aliases and a topbar Bell notification/inbox shortcut.
+- **Teacher End-to-End Session (`Buổi dạy`):** Supports assigned class scope (`Lớp Lá 1`), approved lessons (`Bầu trời kỳ diệu`, `Khám phá khu vườn`, `Hành trình của hạt mầm`), optional 16:9 SVG line-sketch slides, interactive classroom activity, and inline sample flow (`3A` eligibility/consent confirmation -> `3B` temporary drawing upload, subject & idea -> `3C` script review -> `3D` preview video playback & class presentation confirmation) without leaving `#session`.
 
-## Brand
+## 5. Open UI-vs-SRS Alignment Notes
 
-Keep the Sketch2Life name. Use the shared drawing-page mark in `shared/BrandMark.tsx`: a white drawing page, a blue story stroke, and one small yellow spark. Parent illustrations remain original project assets and are used sparingly at story moments.
+Pending formal owner/product resolution in `FEAT-069` & SRS `v2.5-draft`:
+- Automatic profile context application vs explicit pre-story manual context confirmation gate (SRS §5.1).
+- Public lesson browsing/copying vs invitation/assignment-only parent lesson discovery (SRS §5.1 / §31).
+- Teacher inline session sample execution vs separated `sample` endpoint permissions/consent verification rules (SRS §5.2).

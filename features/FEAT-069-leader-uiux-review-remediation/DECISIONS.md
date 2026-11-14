@@ -1,5 +1,13 @@
 # Feature decisions
 
+## D-069-24 — Rev14 Web sidebar consolidation via unified tabbed hubs & alias routing
+
+To reduce sidebar sprawl and align navigation with real role workflows while keeping every SRS `v2.5-draft` gate and confirmation intact, consolidate fragmented web sidebar pages in `UI_Project/shared/webWorkspace.tsx` & `roleFlows.tsx` into tabbed hubs (`Teacher 18 -> 8`, `School Manager 15 -> 8`, `Platform Admin 12 -> 9`) driven by `workspaceHubs` and `resolveRoute(role, rawId)`. Keep all legacy hash/button target IDs (`import`, `sharing`, `children`, `teacher-scope`, `occurrences`, `deck`, `sample`, `presentation`, `run-control`, `inbox`, `class-lifecycle`, `capacity`, `assignment`, `transfers`, `roster`, `quota`, `notifications`, `jobs`, `audit`) resolving to their parent hub and exact tab so dashboard cards, detail modals, and wizard continuations continue working cleanly. Allow Teacher's reviewed document-import preview to save a local `Bản nháp` back into `Giáo án -> Thư viện & soạn mới` after explicit Teacher confirmation, without adding real parsing or backend persistence. Evidence: `evidence/notes/REV14_WEB_SIDEBAR_CONSOLIDATION_20261114.md`.
+
+## D-069-23 — Rev13 Leader UX completion & persona-tuned visual system
+
+Under approved Plan Rev13 (`UI_Project/` as sole target UI; legacy `apps/` excluded), prioritize the leader-reviewed Parent UX flow (non-blocking `.auto-context-pill`, inline `.prevideo-activity-panel` before video generation, global Discord-style Settings modal across headers, live-streamed fixture text into `#story-idea`) alongside cohesive green/sage/paper/gold UX Pro Max polish across Parent Mobile WebView and Staff/Portal Web (`UI_Project/parent-ui/src/rev13ProMax.css`, `UI_Project/shared/rev13ProMax.css`). Treat pre-video activity timing, non-blocking context confirmation, and session-local `gender` as UI preview implementations while keeping FEAT-063 SRS `v2.5-draft` unmodified and tracking conflicts explicitly in `evidence/notes/OPEN_QUESTIONS.md`. Evidence: `evidence/notes/REV13_LEADER_UX_PRO_MAX_20261114.md`.
+
 ## D-069-22 — Parent actions align to green active states
 
 For the owner-requested Parent palette adjustment, use the existing selected “Tất cả” green (`#3f7559`) as the primary-action base. Apply coordinated darker greens for hover/pressed and focus states; keep warning/danger semantics and gold icon accents. This is a UI-only styling decision, does not establish a system-wide approved brand token, and makes no SRS/API change. Evidence: `evidence/notes/REV11_PARENT_GREEN_ACTION_PALETTE_20261114.md`.
@@ -87,3 +95,7 @@ Keep the Parent audio workflow editable and reviewable, with a plainly labeled o
 ## D-069-13 — Rev5 Teacher Dashboard contract-shaped preview
 
 Use local fixture rows matching the concepts in the reviewed lesson summary and active assignment contracts. Dashboard counts must be traceable to those rows; do not show topic analytics or imply a live connection. Empty/unavailable UI may be shown as a fallback, but the present in-repo sample is ready-state only.
+
+## D-069-14 — Rev15 UX-aligned Parent flow & Teacher inline Session preview (UI-only)
+
+The project owner instructed bringing all remaining UI/UX items on `UI_Project/` to 100% completion for leader UI/UX verification without connecting backend APIs (`Plan Rev15`). For Parent `review`, developer-facing test toggles (`.mismatch-preview-actions`) are omitted from the main card; mismatch vs alignment is derived locally from `isSubjectAlignedWithLesson(selectedLessonId, subject)` while still triggering the adult choice modal cleanly on divergence. For Teacher `#session`, `TeacherSessionWorkspace` enables all three approved lesson fixtures (`sky`, `garden`, `seed`), scopes Cô Mai to her assigned `Lớp Lá 1` (`01 Lớp phụ trách`), and integrates the sequential inline preview steps (`3A` eligibility/consent confirmation via `TeacherSampleSelection` -> `3B` local image preview & idea -> `3C` script review -> `3D` preview video & class presentation confirm) while explicitly preserving SRS boundaries and keeping `#occurrences` / `#sample` links accessible. FEAT-063 SRS `v2.5-draft` remains unsigned and untouched.

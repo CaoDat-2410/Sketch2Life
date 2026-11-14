@@ -1,5 +1,19 @@
 # FEAT-069 evidence index
 
+## Rev14 Web sidebar consolidation & multi-tab workbenches
+
+| Evidence | Scope | What it establishes | Limitations |
+|---|---|---|---|
+| `notes/REV14_WEB_SIDEBAR_CONSOLIDATION_20261114.md` | Plan Rev14, AC14.1–AC14.5 | Documents Teacher (`18->8`), School Manager (`15->8`), and Platform Admin (`12->9`) hub consolidation, `resolveRoute` alias routing, Topbar Bell notification link, Teacher document-import draft preview save, 5-workspace `vite build`, and live browser checks (`1440x900` & `390x844`) | UI-only local fixtures; no real file parser, OCR, backend persistence, or automated test runner |
+| `../plan/PLAN_REV14_WEB_SIDEBAR_CONSOLIDATION.md` | Exact approved scope | Hash-identified approval (`3BAC2BB69B509AAF376E5F76424355E1261B6C44BE6406C66038C8D6E0D5F9EB`) for `UI_Project/shared/` consolidation only | Does not modify FEAT-063 SRS `v2.5-draft` or backend APIs |
+
+## Rev13 Leader UI/UX remediation & UX Pro Max polish
+
+| Evidence | Scope | What it establishes | Limitations |
+|---|---|---|---|
+| `notes/REV13_LEADER_UX_PRO_MAX_20261114.md` | Plan Rev13 leader fixes + UX Pro Max CSS + polish verification | Documents Parent auto-context pill, pre-video outdoor activity flow, global Settings modal, voice streaming, green contrast/FAB/`::picker-icon` fixes, 5-workspace `vite build`, and live browser verification (`375x812` & `1440x900`) | Local fixtures only; pre-video activities/omitted tick/gender remain open SRS conflicts; no backend, Android emulator runtime, or automated test suite |
+| `../plan/PLAN_REV13_LEADER_FULL_UX_PRO_MAX.md` | Exact approved scope | Hash-identified approval (`EF94D11CE9A4FA038E2ABEB42DAD6119E9A920E6D39AF0EA2B75F5F0E6C4B53A`) for `UI_Project/` updates excluding legacy `apps/` and SRS/backend | Does not approve API integration, SRS modification, or production launch |
+
 ## Rev11 Parent green action palette
 
 | Evidence | Scope | What it establishes | Limitations |

@@ -36,15 +36,145 @@ function Icon({ name, size = 19 }: { name: IconKey; size?: number }) { return <s
 
 const config: Record<Role, Config> = {
   teacher: { displayName: 'Cô Mai', name: 'Giáo viên', scope: 'Không gian dạy học', greeting: 'Chào cô Mai,', heading: 'Mỗi nét vẽ là một bài học mới.', description: 'Giáo án, lớp học và câu chuyện mẫu trong cùng một nơi.', heroTag: 'BUỔI DẠY HÔM NAY', heroAction: 'Chuẩn bị bài giảng', heroTarget: 'lessons', nav: [
-    { id: 'home', label: 'Tổng quan', icon: 'grid' }, { id: 'teacher-scope', label: 'Tổ chức & lớp phụ trách', icon: 'class', group: 'LỚP HỌC' }, { id: 'classes', label: 'Lớp được phân công', icon: 'class' }, { id: 'children', label: 'Hồ sơ trẻ trong lớp', icon: 'users' }, { id: 'lessons', label: 'Giáo án của tôi', icon: 'book', group: 'GIÁO ÁN' }, { id: 'import', label: 'Nhập & rà soát tài liệu', icon: 'file' }, { id: 'sharing', label: 'Chia sẻ giáo án', icon: 'send' }, { id: 'occurrences', label: 'Buổi dạy & plan', icon: 'layer', group: 'BUỔI HỌC' }, { id: 'session', label: 'Không gian buổi dạy', icon: 'class' }, { id: 'deck', label: 'Sketch Deck', icon: 'spark' }, { id: 'sample', label: 'Video mẫu', icon: 'video' }, { id: 'presentation', label: 'Xác nhận trình chiếu', icon: 'eye' }, { id: 'run-control', label: 'Hoàn tất / hủy run', icon: 'check' }, { id: 'history', label: 'Lịch sử buổi dạy', icon: 'clock' }, { id: 'feedback', label: 'Phản hồi gia đình', icon: 'message', group: 'PHẢN HỒI' }, { id: 'quota', label: 'Lượt tạo của trường', icon: 'chart', group: 'CÀI ĐẶT' }, { id: 'inbox', label: 'Thông báo', icon: 'bell' }, { id: 'settings', label: 'Cài đặt', icon: 'settings' }
-  ], metrics: [{ value: '03', label: 'Giáo án đang soạn', note: 'Bản nháp của cô' }, { value: '02', label: 'Lớp phụ trách', note: 'Theo phân công' }, { value: '01', label: 'Việc cần xem lại', note: 'Trước buổi học' }] },
+    { id: 'home', label: 'Tổng quan', icon: 'grid' },
+    { id: 'classes', label: 'Lớp học & học sinh', icon: 'class', group: 'GIẢNG DẠY' },
+    { id: 'lessons', label: 'Giáo án', icon: 'book' },
+    { id: 'session', label: 'Buổi dạy', icon: 'video' },
+    { id: 'history', label: 'Lịch sử buổi dạy', icon: 'clock' },
+    { id: 'feedback', label: 'Phản hồi gia đình', icon: 'message', group: 'GIA ĐÌNH & HỆ THỐNG' },
+    { id: 'quota', label: 'Lượt tạo của trường', icon: 'chart' },
+    { id: 'settings', label: 'Cài đặt & thông báo', icon: 'settings' },
+  ], metrics: [{ value: '03', label: 'Giáo án đang soạn', note: 'Bản nháp của cô' }, { value: '01', label: 'Lớp phụ trách', note: 'Theo phân công' }, { value: '01', label: 'Việc cần xem lại', note: 'Trước buổi học' }] },
   manager: { displayName: 'Thầy Minh', name: 'Quản lý trường', scope: 'Điều hành nhà trường', greeting: 'Chào thầy Minh,', heading: 'Nhìn rõ nhịp học của cả trường.', description: 'Lớp học, phân công và phê duyệt được sắp xếp theo ưu tiên.', heroTag: 'TỔNG QUAN NHÀ TRƯỜNG', heroAction: 'Xem lớp học', heroTarget: 'classes', nav: [
-    { id: 'home', label: 'Tổng quan', icon: 'grid' }, { id: 'teachers', label: 'Giáo viên', icon: 'users', group: 'GIÁO VIÊN & NHÓM' }, { id: 'groups', label: 'Nhóm gia đình & lời mời', icon: 'users' }, { id: 'assignment', label: 'Phân công giáo viên', icon: 'check' }, { id: 'roster', label: 'Roster & chuyển lớp', icon: 'layer' }, { id: 'transfers', label: 'Đổi người phụ trách', icon: 'alert' }, { id: 'classes', label: 'Lớp học', icon: 'class', group: 'LỚP & SLOT' }, { id: 'class-lifecycle', label: 'Vòng đời lớp', icon: 'layer' }, { id: 'capacity', label: 'Sức chứa lớp', icon: 'class' }, { id: 'quota', label: 'Quota video', icon: 'chart', group: 'QUOTA' }, { id: 'billing', label: 'Gói & hóa đơn', icon: 'file' }, { id: 'review', label: 'Duyệt công khai', icon: 'book', group: 'DUYỆT CÔNG KHAI' }, { id: 'feedback', label: 'Phản hồi giáo án', icon: 'send' }, { id: 'notifications', label: 'Thông báo', icon: 'bell', group: 'CÀI ĐẶT' }, { id: 'settings', label: 'Cài đặt', icon: 'settings' }
+    { id: 'home', label: 'Tổng quan', icon: 'grid' },
+    { id: 'classes', label: 'Lớp học & sức chứa', icon: 'class', group: 'NHÀ TRƯỜNG & NHÂN SỰ' },
+    { id: 'teachers', label: 'Giáo viên & phân công', icon: 'users' },
+    { id: 'groups', label: 'Gia đình & Roster', icon: 'layer' },
+    { id: 'review', label: 'Duyệt công khai', icon: 'book', group: 'GIÁO ÁN & VẬN HÀNH' },
+    { id: 'feedback', label: 'Phản hồi giáo án', icon: 'message' },
+    { id: 'billing', label: 'Gói dịch vụ & Quota', icon: 'file' },
+    { id: 'settings', label: 'Cài đặt & thông báo', icon: 'settings' },
   ], metrics: [{ value: '04', label: 'Lớp học', note: 'Dữ liệu minh họa' }, { value: '03', label: 'Giáo viên', note: 'Dữ liệu minh họa' }, { value: '02', label: 'Cần xem xét', note: 'Giáo án công khai' }] },
   admin: { displayName: 'Quản trị viên', name: 'Quản trị nền tảng', scope: 'Vận hành Sketch2Life', greeting: 'Không gian quản trị', heading: 'Nền tảng rõ ràng, an toàn.', description: 'Duyệt nội dung và theo dõi tổ chức trong đúng phạm vi quyền.', heroTag: 'TỔNG QUAN HỆ THỐNG', heroAction: 'Xem hàng chờ duyệt', heroTarget: 'moderation', nav: [
-    { id: 'home', label: 'Tổng quan', icon: 'grid' }, { id: 'organizations', label: 'Tổ chức', icon: 'class', group: 'TỔ CHỨC' }, { id: 'accounts', label: 'Tài khoản & vai trò', icon: 'users' }, { id: 'moderation', label: 'Thư viện bài học', icon: 'shield', group: 'THƯ VIỆN BÀI HỌC' }, { id: 'catalog', label: 'Danh mục hoạt động', icon: 'layer', group: 'DANH MỤC HOẠT ĐỘNG' }, { id: 'billing-ops', label: 'Quota & đối soát', icon: 'check', group: 'QUOTA & CHÍNH SÁCH' }, { id: 'jobs', label: 'Tác vụ AI', icon: 'spark' }, { id: 'health', label: 'Sức khỏe hệ thống', icon: 'chart' }, { id: 'audit', label: 'Nhật ký vận hành', icon: 'file', group: 'NHẬT KÝ' }, { id: 'feedback', label: 'Hỗ trợ & phản hồi', icon: 'message' }, { id: 'notifications', label: 'Thông báo', icon: 'bell' }, { id: 'settings', label: 'Cài đặt', icon: 'settings' }
+    { id: 'home', label: 'Tổng quan', icon: 'grid' },
+    { id: 'organizations', label: 'Tổ chức', icon: 'class', group: 'TỔ CHỨC & NỘI DUNG' },
+    { id: 'accounts', label: 'Tài khoản & vai trò', icon: 'users' },
+    { id: 'moderation', label: 'Kiểm duyệt thư viện', icon: 'shield' },
+    { id: 'catalog', label: 'Danh mục hoạt động', icon: 'layer' },
+    { id: 'billing-ops', label: 'Đối soát thanh toán', icon: 'check', group: 'VẬN HÀNH & HỆ THỐNG' },
+    { id: 'health', label: 'Giám sát AI & hệ thống', icon: 'chart' },
+    { id: 'feedback', label: 'Hỗ trợ & phản hồi', icon: 'message' },
+    { id: 'settings', label: 'Cài đặt & thông báo', icon: 'settings' },
   ], metrics: [{ value: '02', label: 'Chờ duyệt', note: 'Dữ liệu minh họa' }, { value: '04', label: 'Tổ chức', note: 'Dữ liệu minh họa' }, { value: '—', label: 'Tác vụ AI', note: 'Chưa có dữ liệu' }] },
 };
+
+type HubTab = { routeId: string; label: string };
+type HubSpec = { label: string; tabs: HubTab[] };
+
+const workspaceHubs: Record<Role, Record<string, HubSpec>> = {
+  teacher: {
+    classes: {
+      label: 'Không gian lớp học',
+      tabs: [
+        { routeId: 'classes', label: 'Lớp được phân công' },
+        { routeId: 'children', label: 'Hồ sơ trẻ trong lớp' },
+        { routeId: 'teacher-scope', label: 'Phạm vi tổ chức' },
+      ],
+    },
+    lessons: {
+      label: 'Không gian giáo án',
+      tabs: [
+        { routeId: 'lessons', label: 'Thư viện & soạn mới' },
+        { routeId: 'import', label: 'Nhập từ tài liệu' },
+        { routeId: 'sharing', label: 'Chia sẻ giáo án' },
+      ],
+    },
+    session: {
+      label: 'Không gian buổi dạy',
+      tabs: [
+        { routeId: 'session', label: 'Không gian buổi dạy' },
+        { routeId: 'occurrences', label: 'Chuẩn bị Plan' },
+        { routeId: 'deck', label: 'Sketch Deck' },
+        { routeId: 'sample', label: 'Video mẫu' },
+        { routeId: 'presentation', label: 'Trình chiếu' },
+        { routeId: 'run-control', label: 'Kết thúc run' },
+      ],
+    },
+    settings: {
+      label: 'Cài đặt & thông báo',
+      tabs: [
+        { routeId: 'settings', label: 'Tài khoản & Web Push' },
+        { routeId: 'inbox', label: 'Hộp thư thông báo' },
+      ],
+    },
+  },
+  manager: {
+    classes: {
+      label: 'Quản lý lớp học',
+      tabs: [
+        { routeId: 'classes', label: 'Danh sách lớp học' },
+        { routeId: 'class-lifecycle', label: 'Vòng đời lớp' },
+        { routeId: 'capacity', label: 'Sức chứa (Capacity)' },
+      ],
+    },
+    teachers: {
+      label: 'Giáo viên & phân công',
+      tabs: [
+        { routeId: 'teachers', label: 'Giáo viên & lời mời' },
+        { routeId: 'assignment', label: 'Phân công theo lớp' },
+        { routeId: 'transfers', label: 'Đổi người phụ trách' },
+      ],
+    },
+    groups: {
+      label: 'Gia đình & Roster',
+      tabs: [
+        { routeId: 'groups', label: 'Nhóm gia đình & lời mời' },
+        { routeId: 'roster', label: 'Roster & chuyển lớp' },
+      ],
+    },
+    billing: {
+      label: 'Gói dịch vụ & Quota',
+      tabs: [
+        { routeId: 'billing', label: 'Gói & hóa đơn' },
+        { routeId: 'quota', label: 'Quota video trường' },
+      ],
+    },
+    settings: {
+      label: 'Cài đặt & thông báo',
+      tabs: [
+        { routeId: 'settings', label: 'Thiết lập cổng trường' },
+        { routeId: 'notifications', label: 'Thông báo tổ chức' },
+      ],
+    },
+  },
+  admin: {
+    health: {
+      label: 'Giám sát AI & hệ thống',
+      tabs: [
+        { routeId: 'health', label: 'Sức khỏe nền tảng' },
+        { routeId: 'jobs', label: 'Tác vụ AI (Queue)' },
+        { routeId: 'audit', label: 'Nhật ký vận hành' },
+      ],
+    },
+    settings: {
+      label: 'Cài đặt & thông báo',
+      tabs: [
+        { routeId: 'settings', label: 'Thiết lập cổng quản trị' },
+        { routeId: 'notifications', label: 'Thông báo vận hành' },
+      ],
+    },
+  },
+};
+
+function resolveRoute(role: Role, rawId: string): { page: string; routeId: string } {
+  const hubs = workspaceHubs[role] ?? {};
+  for (const [hubPage, hub] of Object.entries(hubs)) {
+    if (hub.tabs.some((tab) => tab.routeId === rawId)) return { page: hubPage, routeId: rawId };
+  }
+  const validNavIds = config[role].nav.map((item) => item.id);
+  if (validNavIds.includes(rawId)) return { page: rawId, routeId: rawId };
+  return { page: 'home', routeId: 'home' };
+}
 
 const collections: Record<string, RecordItem[]> = {
   lessons: [
@@ -105,7 +235,7 @@ function HeroArt({ role }: { role: Role }) {
     <defs><linearGradient id={`paper-${role}`} x1="0" x2="1" y1="0" y2="1"><stop stopColor="#fffdf4"/><stop offset="1" stopColor="#eaf0e3"/></linearGradient><filter id={`shadow-${role}`}><feDropShadow dx="0" dy="12" stdDeviation="12" floodColor="#253e39" floodOpacity=".16"/></filter></defs>
     <circle cx="324" cy="118" r="98" fill="white" opacity=".16"/><circle cx="360" cy="38" r="25" fill="#f7d77d" opacity=".8"/>
     <g filter={`url(#shadow-${role})`} transform="translate(42 22) rotate(-8 150 110)"><rect x="24" y="34" width="245" height="170" rx="18" fill={`url(#paper-${role})`}/><path d="M53 75h112M53 93h88" stroke="#c2d4c4" strokeWidth="7" strokeLinecap="round"/><path d="M47 149q38-45 80-12t79-12" stroke="#7ba893" strokeWidth="12" fill="none" strokeLinecap="round"/><circle cx="206" cy="78" r="18" fill="#f3cc72"/></g>
-    <g transform="translate(194 79) rotate(10 85 65)" filter={`url(#shadow-${role})`}><rect width="165" height="126" rx="17" fill="#fffdf5"/><rect x="16" y="16" width="133" height="94" rx="12" fill={role === 'teacher' ? '#e5efd7' : role === 'manager' ? '#dae9eb' : '#e9e5f3'}/>{role === 'teacher' ? <><path d="M30 83q38-38 70-10t37-17" fill="none" stroke="#6ea582" strokeWidth="9" strokeLinecap="round"/><circle cx="113" cy="40" r="14" fill="#f7cb70"/></> : role === 'manager' ? <><rect x="29" y="57" width="24" height="35" rx="5" fill="#93bcae"/><rect x="64" y="40" width="24" height="52" rx="5" fill="#5d9b8b"/><rect x="99" y="25" width="24" height="67" rx="5" fill="#36786d"/></> : <><circle cx="82" cy="61" r="34" fill="#d4caec"/><path d="m67 61 11 11 22-25" fill="none" stroke="#69559a" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round"/></>}</g>
+    <g transform="translate(194 79) rotate(10 85 65)" filter={`url(#shadow-${role})`}><rect width="165" height="126" rx="17" fill="#fffdf5"/><rect x="16" y="16" width="133" height="94" rx="12" fill={role === 'teacher' ? '#e5efd7' : role === 'manager' ? '#dae9eb' : '#e6f0e8'}/>{role === 'teacher' ? <><path d="M30 83q38-38 70-10t37-17" fill="none" stroke="#6ea582" strokeWidth="9" strokeLinecap="round"/><circle cx="113" cy="40" r="14" fill="#f7cb70"/></> : role === 'manager' ? <><rect x="29" y="57" width="24" height="35" rx="5" fill="#93bcae"/><rect x="64" y="40" width="24" height="52" rx="5" fill="#5d9b8b"/><rect x="99" y="25" width="24" height="67" rx="5" fill="#36786d"/></> : <><circle cx="82" cy="61" r="34" fill="#cbe0cf"/><path d="m67 61 11 11 22-25" fill="none" stroke="#2e6b53" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round"/></>}</g>
     <path d="m40 46 3 8 8 3-8 3-3 8-3-8-8-3 8-3 3-8Zm338 128 2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6Z" fill="#f8d881"/>
   </svg>;
 }
@@ -193,7 +323,7 @@ function CollectionPage({ role, page, items, search, setSearch, filter, setFilte
   const nextPage = nextPageByPage[page];
   const showPrimaryAction = Boolean(createAction || nextPage);
   const handlePrimaryAction = () => { if (createAction) openAction(createAction); else if (nextPage) go(nextPage); };
-  return <><header className="web-page-head"><div><span className="web-eyebrow">{config[role].scope.toLocaleUpperCase('vi')}</span><h1>{title}</h1><p>{description}</p></div>{showPrimaryAction && <button className="web-primary" onClick={handlePrimaryAction}><Icon name={createAction ? 'plus' : 'eye'} size={17}/>{action}</button>}</header>
+  return <><header className="web-page-head"><div><span className="web-eyebrow">{config[role].scope.toLocaleUpperCase('vi')}</span><h1>{title}</h1><p>{description}</p></div>{(showPrimaryAction || (role === 'teacher' && page === 'lessons')) && <div className="web-head-actions">{role === 'teacher' && page === 'lessons' && <button type="button" className="web-subtle" onClick={() => go('import')}><Icon name="file" size={16}/>Nhập từ tài liệu</button>}{showPrimaryAction && <button className="web-primary" onClick={handlePrimaryAction}><Icon name={createAction ? 'plus' : 'eye'} size={17}/>{action}</button>}</div>}</header>
     <section className="web-panel web-table-panel"><div className="web-toolbar"><label className="web-search"><Icon name="search" size={18}/><span className="web-sr-only">Tìm kiếm {title.toLowerCase()}</span><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={`Tìm trong ${title.toLowerCase()}...`}/></label><div className="web-filter" role="group" aria-label="Lọc theo trạng thái"><button className={filter === 'all' ? 'active' : ''} onClick={() => setFilter('all')}>Tất cả</button>{statuses.map((status) => <button key={status} className={filter === status ? 'active' : ''} onClick={() => setFilter(status)}>{status}</button>)}</div></div><div className="web-list-heading"><span>NỘI DUNG</span><span>PHIÊN BẢN / PHẠM VI</span><span>TRẠNG THÁI</span><span className="web-sr-only">Mở chi tiết</span></div><div className="web-record-list">{filtered.map((item) => <button key={item.id} onClick={() => select(item.id)} className="web-record"><span className="web-record-main"><span className="web-record-avatar"><Icon name={page === 'classes' || page === 'organizations' ? 'class' : page === 'teachers' ? 'users' : page === 'moderation' || page === 'catalog' ? 'shield' : 'book'} size={20}/></span><span><strong>{item.title}</strong><small>{item.subtitle}</small></span></span><span className="web-record-meta">{item.meta}</span><Status item={item}/><Icon name="chevron" size={18}/></button>)}{!filtered.length && <div className="web-empty"><Icon name="search" size={22}/><strong>Không có kết quả phù hợp</strong><p>Thử từ khóa hoặc trạng thái khác.</p><button onClick={() => { setSearch(''); setFilter('all'); }}>Xóa bộ lọc</button></div>}</div><div className="web-list-foot"><span>{filtered.length} mục trong bản xem trước</span><span>Dữ liệu minh họa · chưa đồng bộ</span></div></section></>;
 }
 
@@ -241,7 +371,8 @@ function DetailPanel({ item, page, role, close, go, onEdit }: { item: RecordItem
   const dialogRef = useDialogFocus(close);
   const next = detailNextFlow(role, page, item);
   const canEditDraft = role === 'teacher' && page === 'lessons' && item.status === 'Bản nháp';
-  return <div className="web-modal-overlay web-detail-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) close(); }}><section ref={dialogRef} tabIndex={-1} className="web-modal web-detail-modal" role="dialog" aria-modal="true" aria-labelledby="web-detail-title"><button className="web-icon-button web-modal-close" onClick={close} aria-label="Đóng chi tiết"><Icon name="close"/></button><span className="web-eyebrow">CHI TIẾT {page.toLocaleUpperCase('vi')}</span><h2 id="web-detail-title">{item.title}</h2><p>{item.subtitle}</p><Status item={item}/><div className="web-detail-art"><Icon name={page === 'classes' ? 'class' : page === 'organizations' ? 'chart' : 'book'} size={37}/><span/><span/></div><dl><div><dt>Phạm vi</dt><dd>{item.meta}</dd></div><div><dt>Trạng thái</dt><dd>{item.status}</dd></div><div><dt>Nguồn</dt><dd>Dữ liệu minh họa cho UI</dd></div></dl><div className="web-detail-boundary"><Icon name="shield" size={18}/><p>Đây là dữ liệu minh họa; thao tác chưa được lưu.</p></div>{canEditDraft ? <><div className="web-detail-next"><strong>Tiếp tục giáo án này</strong><p>Mở lại các bước mục tiêu, nội dung và chuẩn bị để hoàn thiện bản nháp trước khi gửi quản lý rà soát.</p></div><button className="web-primary" onClick={() => { close(); onEdit(item); }}>Chỉnh sửa bản nháp<Icon name="arrow" size={16}/></button></> : next ? <><div className="web-detail-next"><strong>Bước tiếp theo trong bản xem trước</strong><p>{next.description}</p></div><button className="web-primary" onClick={() => { close(); go(next.page); }}>{next.label}<Icon name="arrow" size={16}/></button></> : <p className="web-detail-next">{detailOnlyNote(role, page, item)}</p>}<button className="web-subtle" onClick={close}>Quay lại danh sách</button></section></div>;
+  const detailEyebrow = page === 'lessons' ? 'GIÁO ÁN' : page === 'classes' ? 'LỚP HỌC' : page === 'teachers' ? 'GIÁO VIÊN' : page === 'organizations' ? 'TỔ CHỨC' : page.toLocaleUpperCase('vi');
+  return <div className="web-modal-overlay web-detail-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) close(); }}><section ref={dialogRef} tabIndex={-1} className="web-modal web-detail-modal" role="dialog" aria-modal="true" aria-labelledby="web-detail-title"><button className="web-icon-button web-modal-close" onClick={close} aria-label="Đóng chi tiết"><Icon name="close"/></button><span className="web-eyebrow">CHI TIẾT {detailEyebrow}</span><h2 id="web-detail-title">{item.title}</h2><p>{item.subtitle}</p><Status item={item}/><div className="web-detail-art"><Icon name={page === 'classes' ? 'class' : page === 'organizations' ? 'chart' : 'book'} size={37}/><span/><span/></div><dl><div><dt>Phạm vi</dt><dd>{item.meta}</dd></div><div><dt>Trạng thái</dt><dd>{item.status}</dd></div><div><dt>Nguồn</dt><dd>Dữ liệu minh họa cho UI</dd></div></dl><div className="web-detail-boundary"><Icon name="shield" size={18}/><p>Đây là dữ liệu minh họa; thao tác chưa được lưu.</p></div>{canEditDraft ? <><div className="web-detail-next"><strong>Tiếp tục giáo án này</strong><p>Mở lại các bước mục tiêu, nội dung và chuẩn bị để hoàn thiện bản nháp trước khi gửi quản lý rà soát.</p></div><button className="web-primary" onClick={() => { close(); onEdit(item); }}>Chỉnh sửa bản nháp<Icon name="arrow" size={16}/></button></> : next ? <><div className="web-detail-next"><strong>Bước tiếp theo trong bản xem trước</strong><p>{next.description}</p></div><button className="web-primary" onClick={() => { close(); go(next.page); }}>{next.label}<Icon name="arrow" size={16}/></button></> : <p className="web-detail-next">{detailOnlyNote(role, page, item)}</p>}<button className="web-subtle" onClick={close}>Quay lại danh sách</button></section></div>;
 }
 
 type PreviewLessonStatus = 'Bản nháp' | 'Chờ rà soát';
@@ -318,7 +449,6 @@ function FeaturePage({ role, page, go }: { role: Role; page: string; go: (id: st
 
 export function Workspace({ role, onLogout }: { role: Role; onLogout?: () => void }) {
   const c = config[role];
-  const ids = c.nav.map((item) => item.id);
   const sections = useMemo(() => {
     const grouped: { label: string; items: NavItem[] }[] = [];
     let currentLabel = 'TỔNG QUAN';
@@ -333,12 +463,16 @@ export function Workspace({ role, onLogout }: { role: Role; onLogout?: () => voi
     }
     return grouped;
   }, [c.nav]);
-  const readPage = () => { const id = window.location.hash.slice(1); return ids.includes(id) ? id : 'home'; };
-  const [page, setPage] = useState(readPage);
+  const readRoute = () => resolveRoute(role, window.location.hash.slice(1));
+  const [route, setRoute] = useState(readRoute);
+  const page = route.page;
+  const activeRouteId = route.routeId;
+  const activeHub = workspaceHubs[role]?.[page];
+  const activeHubTab = activeHub?.tabs.find((tab) => tab.routeId === activeRouteId);
   const [mobileMenu, setMobileMenu] = useState(false);
   const [navCollapsed, setNavCollapsed] = useState(false);
   const [openRailGroup, setOpenRailGroup] = useState<string | null>(null);
-  const [closedSections, setClosedSections] = useState<string[]>(() => sections.filter((section) => section.label !== 'TỔNG QUAN' && !section.items.some((item) => item.id === readPage())).map((section) => section.label));
+  const [closedSections, setClosedSections] = useState<string[]>(() => sections.filter((section) => section.label !== 'TỔNG QUAN' && !section.items.some((item) => item.id === readRoute().page)).map((section) => section.label));
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
   const [selected, setSelected] = useState<string | null>(null);
@@ -348,14 +482,44 @@ export function Workspace({ role, onLogout }: { role: Role; onLogout?: () => voi
   const [toast, setToast] = useState('');
   const [additions, setAdditions] = useState<Record<string, RecordItem[]>>({});
   const [lessonOverrides, setLessonOverrides] = useState<Record<string, RecordItem>>({});
-  useEffect(() => { const change = () => setPage(readPage()); window.addEventListener('hashchange', change); return () => window.removeEventListener('hashchange', change); }, [role]);
+  useEffect(() => {
+    setRoute(resolveRoute(role, window.location.hash.slice(1)));
+    const change = () => setRoute(resolveRoute(role, window.location.hash.slice(1)));
+    window.addEventListener('hashchange', change);
+    return () => window.removeEventListener('hashchange', change);
+  }, [role]);
   useEffect(() => { const activeSection = sections.find((section) => section.items.some((item) => item.id === page)); if (activeSection) setClosedSections(sections.filter((section) => section.label !== 'TỔNG QUAN' && section.label !== activeSection.label).map((section) => section.label)); }, [page, sections]);
   useEffect(() => { const viewport = window.matchMedia('(max-width: 900px)'); const sync = () => { if (viewport.matches) { setNavCollapsed(false); setOpenRailGroup(null); } }; sync(); viewport.addEventListener('change', sync); return () => viewport.removeEventListener('change', sync); }, []);
   useEffect(() => { if (!toast) return; const id = window.setTimeout(() => setToast(''), 3500); return () => window.clearTimeout(id); }, [toast]);
-  const go = (id: string) => { if (!ids.includes(id)) return; window.location.hash = id; setPage(id); setSearch(''); setFilter('all'); setSelected(null); setMobileMenu(false); setOpenRailGroup(null); setNoticeOpen(false); window.scrollTo({ top: 0, behavior: 'smooth' }); };
-  const collectionKey = page === 'sharing' ? 'lessons' : page;
+  const go = (id: string) => {
+    const resolved = resolveRoute(role, id);
+    if (resolved.page === 'home' && id !== 'home') return;
+    window.location.hash = resolved.routeId;
+    setRoute(resolved);
+    setSearch('');
+    setFilter('all');
+    setSelected(null);
+    setMobileMenu(false);
+    setOpenRailGroup(null);
+    setNoticeOpen(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+  const collectionKey = activeRouteId === 'sharing' ? 'lessons' : activeRouteId;
   const items = useMemo(() => [...(additions[collectionKey] ?? []), ...(collections[collectionKey] ?? [])].map((item) => lessonOverrides[item.id] ?? item), [collectionKey, additions, lessonOverrides]);
   const selectedItem = items.find((item) => item.id === selected) ?? null;
+  const saveImportDraft = (draft: { title: string; subtitle: string; meta: string }) => {
+    const newItem: RecordItem = {
+      id: `preview-import-${Date.now()}`,
+      title: draft.title,
+      subtitle: draft.subtitle,
+      meta: draft.meta,
+      status: 'Bản nháp',
+      tone: 'amber',
+    };
+    setAdditions((current) => ({ ...current, lessons: [newItem, ...(current.lessons ?? [])] }));
+    setToast('Đã lưu bản nháp trích xuất vào thư viện trong Teacher preview.');
+    go('lessons');
+  };
   const onCreate = (name: string, subtitle?: string, meta?: string, status: PreviewLessonStatus = 'Bản nháp', editId?: string) => {
     if (editId) {
       const current = [...(additions.lessons ?? []), ...collections.lessons].find((item) => item.id === editId);
@@ -373,9 +537,9 @@ export function Workspace({ role, onLogout }: { role: Role; onLogout?: () => voi
     go(key);
   };
   return <div className={`web-app web-app--${role} ${navCollapsed ? 'web-app--nav-collapsed' : ''}`}><a className="web-skip" href="#main-content" onClick={(event) => { event.preventDefault(); window.requestAnimationFrame(() => document.getElementById("main-content")?.focus()); }}>Bỏ qua điều hướng</a><aside className={`web-sidebar ${mobileMenu ? 'is-open' : ''}`}><div className="web-brand"><BrandMark size={41}/><div className="web-brand-copy"><strong>Sketch<span>2</span>Life</strong><small>{c.scope}</small></div><button className="web-icon-button web-collapse-toggle" onClick={() => { setNavCollapsed((value) => !value); setOpenRailGroup(null); }} aria-label={navCollapsed ? 'Mở rộng menu' : 'Thu gọn menu'} aria-expanded={!navCollapsed} title={navCollapsed ? 'Mở rộng menu' : 'Thu gọn menu'}><Icon name="chevron" size={17}/></button><button className="web-icon-button web-mobile-close" onClick={() => setMobileMenu(false)} aria-label="Đóng menu"><Icon name="close"/></button></div><div className="web-role-card" title={c.name}><span><Icon name={role === 'teacher' ? 'book' : role === 'manager' ? 'class' : 'shield'} size={20}/></span><div><strong>{c.name}</strong><small>Bản xem trước</small></div></div><nav className="web-nav" aria-label={`Điều hướng ${c.name}`}>{sections.map((section) => <section className={["web-nav-section", section.label === "TỔNG QUAN" ? "web-nav-section--overview" : "", openRailGroup === section.label ? "is-rail-open" : "", section.items.some((item) => item.id === page) ? "has-active-page" : ""].filter(Boolean).join(" ")} key={section.label}><button type="button" className="web-nav-group" title={section.label} onClick={() => { if (section.label === 'TỔNG QUAN') return; if (navCollapsed) { setOpenRailGroup((current) => current === section.label ? null : section.label); return; } setClosedSections((current) => current.includes(section.label) ? current.filter((label) => label !== section.label) : [...current, section.label]); }} aria-expanded={section.label === 'TỔNG QUAN' || (navCollapsed ? openRailGroup === section.label : !closedSections.includes(section.label))} aria-controls={`nav-section-${role}-${section.label.replace(/[^a-z0-9]+/gi, '-')}`}><Icon name={section.items[0]?.icon ?? 'grid'} size={18}/><span>{section.label}</span><Icon name="chevron" size={14}/></button><div id={`nav-section-${role}-${section.label.replace(/[^a-z0-9]+/gi, '-')}`} className={`web-nav-section-items ${(section.label !== 'TỔNG QUAN' && (navCollapsed ? openRailGroup !== section.label : closedSections.includes(section.label))) ? 'is-collapsed' : ''}`}>{section.items.map((item) => <button key={item.id} title={navCollapsed ? item.label : undefined} className={page === item.id ? 'active' : ''} onClick={() => go(item.id)} aria-current={page === item.id ? 'page' : undefined}><Icon name={item.icon} size={19}/><span>{item.label}</span>{page === item.id && <i/>}</button>)}</div></section>)}</nav><div className="web-sidebar-footer"><div className="web-sidebar-user" title={`Tài khoản xem trước: ${c.displayName} · ${c.name}`}><span className="web-sidebar-user-avatar" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.2" fill="currentColor"/><path d="M5 20c.5-3.6 2.8-5.6 7-5.6s6.5 2 7 5.6" fill="currentColor"/></svg></span><span className="web-sidebar-user-copy"><strong>{c.displayName}</strong><small>{c.name} · Bản xem trước</small></span></div>{onLogout && (navCollapsed ? <button className="web-logout web-logout--compact" onClick={onLogout} aria-label="Đăng xuất và đổi tài khoản" title="Đăng xuất"><Icon name="arrow" size={18}/></button> : <button className="web-logout" onClick={onLogout} aria-label="Đăng xuất và đổi tài khoản">Đăng xuất</button>)}</div></aside>{navCollapsed && openRailGroup && <button className="web-rail-dismiss" onClick={() => setOpenRailGroup(null)} aria-label="Đóng nhóm menu"/>}{mobileMenu && <button className="web-mobile-scrim" onClick={() => setMobileMenu(false)} aria-label="Đóng menu"/>}
-    <div className="web-main-frame"><header className="web-topbar"><button className="web-icon-button web-menu-toggle" onClick={() => setMobileMenu(true)} aria-label="Mở menu"><Icon name="menu"/></button><div className="web-breadcrumb"><span>Sketch2Life</span><Icon name="chevron" size={15}/><strong>{c.nav.find((item) => item.id === page)?.label ?? 'Tổng quan'}</strong></div><div className="web-top-actions"><span className="web-preview-chip"><i/> Chế độ xem trước</span><button className="web-icon-button" onClick={() => setNoticeOpen((value) => !value)} aria-label="Mở thông báo" aria-expanded={noticeOpen}><Icon name="bell" size={20}/></button></div>{noticeOpen && <div className="web-popover"><strong>Thông báo</strong><p>Chưa có thông báo thật trong tài khoản xem trước.</p><button onClick={() => setNoticeOpen(false)}>Đóng</button></div>}</header>
-      <main id="main-content" tabIndex={-1} className="web-content">{page === 'home' ? <Dashboard role={role} go={go} openAction={setDialog}/> : hasRoleFlow(role,page) ? <RoleFlowPage role={role} page={page} onNavigate={go}/> : ['lessons','classes','teachers','review','moderation','catalog','organizations','feedback','sharing'].includes(page) ? <CollectionPage role={role} page={page} items={role === 'teacher' && page === 'classes' ? items.filter((item) => item.subtitle.includes('Cô Mai')) : items} search={search} setSearch={setSearch} filter={filter} setFilter={setFilter} select={setSelected} openAction={setDialog} go={go}/> : <FeaturePage role={role} page={page} go={go}/>}<footer className="web-footer"><span>Sketch2Life · {c.name}</span><span>Giao diện xem trước · không kết nối dữ liệu thật</span></footer></main></div>
-    {selectedItem && <DetailPanel item={selectedItem} page={page} role={role} close={() => setSelected(null)} go={go} onEdit={setEditingLesson}/ >}{editingLesson && <LessonAuthoringDialog key={editingLesson.id} initial={editingLesson} close={() => setEditingLesson(null)} confirm={onCreate}/ >}{dialog === 'new-lesson' ? <LessonAuthoringDialog close={() => setDialog(null)} confirm={onCreate}/> : dialog && <ActionDialog type={dialog} close={() => setDialog(null)} confirm={onCreate}/ >}{toast && <div className="web-toast" role="status"><Icon name="check" size={17}/>{toast}</div>}
+    <div className="web-main-frame"><header className="web-topbar"><button className="web-icon-button web-menu-toggle" onClick={() => setMobileMenu(true)} aria-label="Mở menu"><Icon name="menu"/></button><div className="web-breadcrumb"><span>Sketch2Life</span><Icon name="chevron" size={15}/><strong>{c.nav.find((item) => item.id === page)?.label ?? 'Tổng quan'}</strong>{activeHubTab && activeHubTab.routeId !== page ? <><Icon name="chevron" size={14}/><small>{activeHubTab.label}</small></> : null}</div><div className="web-top-actions"><span className="web-preview-chip"><i/> Chế độ xem trước</span><button className="web-icon-button" onClick={() => setNoticeOpen((value) => !value)} aria-label="Mở thông báo" aria-expanded={noticeOpen}><Icon name="bell" size={20}/></button></div>{noticeOpen && <div className="web-popover"><strong>Thông báo</strong><p>Chưa có thông báo thật trong tài khoản xem trước.</p><div className="web-popover-actions"><button type="button" className="web-primary-inline" onClick={() => go(role === 'teacher' ? 'inbox' : 'notifications')}>Mở hộp thư thông báo</button><button type="button" onClick={() => setNoticeOpen(false)}>Đóng</button></div></div>}</header>
+      <main id="main-content" tabIndex={-1} className="web-content">{page !== 'home' && activeHub ? <nav className="web-hub-bar" aria-label={activeHub.label}><div className="web-hub-tabs" role="tablist" aria-label={activeHub.label}>{activeHub.tabs.map((tab) => { const selectedTab = activeRouteId === tab.routeId; return <button key={tab.routeId} type="button" role="tab" aria-selected={selectedTab} className={`web-hub-tab${selectedTab ? ' is-active' : ''}`} onClick={() => go(tab.routeId)}><span>{tab.label}</span></button>; })}</div></nav> : null}{activeRouteId === 'home' ? <Dashboard role={role} go={go} openAction={setDialog}/> : hasRoleFlow(role, activeRouteId) ? <RoleFlowPage role={role} page={activeRouteId} onNavigate={go} onSaveImportDraft={saveImportDraft}/> : ['lessons','classes','teachers','review','moderation','catalog','organizations','feedback','sharing'].includes(activeRouteId) ? <CollectionPage role={role} page={activeRouteId} items={role === 'teacher' && activeRouteId === 'classes' ? items.filter((item) => item.subtitle.includes('Cô Mai')) : items} search={search} setSearch={setSearch} filter={filter} setFilter={setFilter} select={setSelected} openAction={setDialog} go={go}/> : <FeaturePage role={role} page={activeRouteId} go={go}/>}<footer className="web-footer"><span>Sketch2Life · {c.name}</span><span>Giao diện xem trước · không kết nối dữ liệu thật</span></footer></main></div>
+    {selectedItem && <DetailPanel item={selectedItem} page={activeRouteId} role={role} close={() => setSelected(null)} go={go} onEdit={setEditingLesson}/ >}{editingLesson && <LessonAuthoringDialog key={editingLesson.id} initial={editingLesson} close={() => setEditingLesson(null)} confirm={onCreate}/ >}{dialog === 'new-lesson' ? <LessonAuthoringDialog close={() => setDialog(null)} confirm={onCreate}/> : dialog && <ActionDialog type={dialog} close={() => setDialog(null)} confirm={onCreate}/ >}{toast && <div className="web-toast" role="status"><Icon name="check" size={17}/>{toast}</div>}
   </div>;
 }
 

@@ -369,3 +369,49 @@
 - **Scope:** Correct Parent UI stylesheet cascade so the “Bắt đầu kể” primary action matches the selected “Tất cả” green interaction palette, preserve gold icon accents and unrelated semantic colors, then build and visually review the Parent preview.
 - **Exclusions:** No API/network/auth/backend/schema/SRS/data/flow changes; no changes to other role workspaces, legacy `apps/` or Child Expo; no generated raster assets; no automated tests; no force push/history rewrite.
 - **Approval basis:** Direct owner request. The target shade is inferred from the selected green control in the supplied screenshot; this does not imply leader sign-off or production/API readiness.
+
+## Plan Rev12 — Green palette for the three web roles
+
+- **Status:** APPROVED for the exact UI-only scope in `features/FEAT-069-leader-uiux-review-remediation/plan/PLAN_REV12_GREEN_WEB_ROLE_PALETTE.md`.
+- **Approver:** Project owner, direct request to change the shown colors to green followed by a question about applying the palette to the three web roles.
+- **Recorded timestamp:** 2026-11-14 (Asia/Saigon).
+- **Plan revision:** 12.
+- **Plan SHA-256:** `4DA12CF06585D6D7141D4A62167C657541B45562ADF045F34A2F3F20EDA1ADAC`.
+- **Scope:** Change brand/action colors in Teacher, School Manager, Platform Admin, and the shared role-entry preview to a green family aligned with Parent; preserve semantic statuses and yellow accents; build and visually review all four web previews.
+- **Exclusions:** No API/network/auth/backend/schema/SRS/data/flow changes; no layout or Parent changes; no generated assets; no automated tests; no force push/history rewrite.
+- **Approval basis:** The owner's follow-up was interpreted as requesting the same green palette on the three web role experiences. This remains UI-only styling and does not imply formal leader acceptance or API readiness.
+
+## Plan Rev13 — Full Leader review remediation & UX Pro Max polish in `UI_Project/`
+
+- **Status:** APPROVED for the exact UI-only scope in `features/FEAT-069-leader-uiux-review-remediation/plan/PLAN_REV13_LEADER_FULL_UX_PRO_MAX.md`.
+- **Approver:** Project owner, direct instruction in this conversation confirming legacy `apps/` is excluded, `UI_Project/` is the official UI/UX, and instructing full implementation of Leader review requirements alongside `nextlevelbuilder/ui-ux-pro-max-skill` persona polish.
+- **Recorded timestamp:** 2026-11-14 17:01:40 +07:00 (Asia/Saigon).
+- **Plan revision:** 13.
+- **Plan SHA-256:** `EF94D11CE9A4FA038E2ABEB42DAD6119E9A920E6D39AF0EA2B75F5F0E6C4B53A`.
+- **Scope:** Complete remaining Leader review gaps in `UI_Project/parent-ui/` (global Settings gear access, removing manual context confirmation gate, moving outdoor activity selection pre-video in `script` and unlocking post-video viewing, audio transcript/copy cleanup, Parent green/sage token cleanup) and apply `ui-ux-pro-max` contrast, typography, touch-target, accessibility, and persona workflow polish across `UI_Project/parent-ui/` and `UI_Project/shared/` web workspaces; build and visually verify all 5 workspaces cleanly.
+- **Exclusions:** No legacy `apps/` or `child-experience/` edits; no API/network/auth/backend/schema/SRS edits; no real child/user data, AI/ASR/payment calls, or generated raster assets; no force push/history rewrite.
+- **Approval basis:** Direct owner instruction explicitly directing Leader review fixes + UX Pro Max polish on `UI_Project/`. UI-only boundary and open SRS v2.5-draft vs Leader conflicts remain documented transparently in `FEAT-069` records.
+
+
+## Plan Rev14 — Web sidebar consolidation & unified task workbenches (`UI_Project/shared/`)
+
+- **Status:** APPROVED for the exact UI-only scope in `features/FEAT-069-leader-uiux-review-remediation/plan/PLAN_REV14_WEB_SIDEBAR_CONSOLIDATION.md`.
+- **Approver:** Project owner, direct instruction in this conversation asking to merge Teacher `Giáo án của tôi` + `Nhập & rà soát tài liệu` and consolidate similar fragmented sidebar screens across `UI_Project/` web roles to optimize UX (`“ok giúp tôi đi, với xem gộp được phần nào giống như vậy thì gộp cho tôi luôn, tôi muốn tối ưu UX để người dùng dễ sử dụng á”`).
+- **Recorded timestamp:** 2026-11-14 18:02:15 +07:00 (Asia/Saigon).
+- **Plan revision:** 14.
+- **Plan SHA-256:** `3BAC2BB69B509AAF376E5F76424355E1261B6C44BE6406C66038C8D6E0D5F9EB`.
+- **Scope:** Consolidate related sidebar items into unified multi-tab workspaces across Teacher (`18 -> 8` items), School Manager (`15 -> 8` items), and Platform Admin (`12 -> 9` items) inside `UI_Project/shared/` (`webWorkspace.tsx`, `roleFlows.tsx`, `rev13ProMax.css`); add alias route resolution and Topbar Bell inbox shortcut; allow saving reviewed import preview draft into Teacher library preview; build and visually verify on desktop & mobile viewports.
+- **Exclusions:** No backend/API/auth/schema/SRS edits; no legacy `apps/` or `child-experience/` changes; no live parsing/OCR/AI/billing calls; no force push/history rewrite.
+- **Approval basis:** Direct owner instruction explicitly directing consolidation of overlapping web sidebar views while keeping SRS workflows and boundaries intact.
+
+
+## Plan Rev15 — 100% Leader UI/UX Checklist Closure in `UI_Project/` (UI-Only, No API)
+
+- **Status:** APPROVED for the exact UI-only scope in `features/FEAT-069-leader-uiux-review-remediation/plan/PLAN_REV15_LEADER_100PCT_CLOSURE.md`.
+- **Approver:** Project owner, direct instruction in this conversation requesting 100% completion of all remaining Leader UI/UX review items on `UI_Project/` without backend API integration (*“giờ làm sao để thành mức đạt hết là được, nhưng nói trước là không cần nối API nhé, vì nối API là nhiệm vụ của leader sau khi check UIUX của tôi xong á, giờ bạn giúp hoàn thành 100% đi”*).
+- **Recorded timestamp:** 2026-11-14 18:48:36 +07:00 (Asia/Saigon).
+- **Plan revision:** 15.
+- **Plan SHA-256:** `0FEE9BE921A1C3AE9D8B04A097856C61B4385A0CE08F24A9FAFE01A77D8D7D5B`.
+- **Scope:** Topic-specific 4-theme/3-step SVG line sketches & removal of dead `renderSketchGuide` screen and `review` developer-test toggle pills in `UI_Project/parent-ui/`; complete seamless Teacher Session flow (class scope fix `Lớp Lá 1` / `01 Lớp phụ trách`, all 3 enabled lessons with lesson-specific activities & custom SVG line-sketch slides, inline sample-child confirm + drawing upload preview + idea/subject/script approval + video preview & class playback confirm inside `#session`); clean removal of remaining Admin SVG purple & CSS blue/draft tokens; `UI_Project/DESIGN.md` sync; full build, live browser visual check, and security check.
+- **Exclusions:** No backend/API/database/auth/schema/SRS edits; no legacy `apps/` or `child-experience/` changes; no live AI/ASR/billing/external network integration; no force push/history rewrite.
+- **Approval basis:** Direct owner instruction explicitly scoping this pass to 100% UI/UX completion in `UI_Project/` without API wiring.

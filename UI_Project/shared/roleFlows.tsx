@@ -192,61 +192,317 @@ function TeacherSampleSelection({choice, onChange}: {choice: SampleChoice; onCha
   </section>;
 }
 
-const teacherSessionActivities = [
-  { id: 'observe', title: 'Quan sát hình dáng đám mây', prompt: 'Con thấy đám mây giống hình gì trên bầu trời?', materials: 'Quan sát từ khu vực có mái che' },
-  { id: 'draw', title: 'Vẽ bầu trời hôm nay', prompt: 'Mời bé chọn hình và màu cho bầu trời của mình.', materials: 'Giấy và bút màu' },
-  { id: 'colors', title: 'Tìm hình trong mây', prompt: 'Cùng bé kể một câu chuyện từ hình dáng đám mây.', materials: 'Không cần vật liệu' },
-] as const;
+type SessionLessonId = 'sky' | 'garden' | 'seed';
 
-const teacherSketchSlides = [
-  { title: 'Quan sát hình mây', note: 'Bắt đầu bằng một nét mềm theo hình đám mây con chọn.' },
-  { title: 'Thêm bầu trời', note: 'Mời bé vẽ đường chân trời và những chi tiết bé quan sát được.' },
-  { title: 'Chọn màu của con', note: 'Bé tự chọn màu và kể điều mình tưởng tượng.' },
-] as const;
+const teacherSessionLessons: {
+  id: SessionLessonId;
+  label: string;
+  joinCode: string;
+  defaultSubject: string;
+  subjects: string[];
+  activities: { id: string; title: string; prompt: string; materials: string; safety: string }[];
+  slides: { title: string; note: string }[];
+}[] = [
+  {
+    id: 'sky',
+    label: 'Bầu trời kỳ diệu · v2.0 · Công khai',
+    joinCode: 'LA1-SKY2',
+    defaultSubject: 'Đám mây',
+    subjects: ['Đám mây', 'Mặt trời', 'Máy bay giấy'],
+    activities: [
+      { id: 'observe', title: 'Quan sát hình dáng đám mây', prompt: 'Con thấy đám mây giống hình gì trên bầu trời?', materials: 'Quan sát từ khu vực có mái che', safety: 'Không nhìn thẳng mặt trời; giữ trẻ trong vùng bóng râm.' },
+      { id: 'draw', title: 'Vẽ bầu trời hôm nay', prompt: 'Mời bé chọn hình và màu cho bầu trời của mình.', materials: 'Giấy và bút màu', safety: 'Sử dụng bút màu sáp không độc hại.' },
+      { id: 'colors', title: 'Tìm hình trong mây', prompt: 'Cùng bé kể một câu chuyện từ hình dáng đám mây.', materials: 'Không cần vật liệu', safety: 'Đi cùng giáo viên khi di chuyển ngoài hành lang.' },
+    ],
+    slides: [
+      { title: 'Quan sát hình mây lớn', note: 'Bắt đầu bằng nét cong mềm mại tạo hình đám mây chính.' },
+      { title: 'Thêm mặt trời và máy bay giấy', note: 'Mời bé vẽ đường chân trời hoặc một bạn nhỏ trên bầu trời.' },
+      { title: 'Chọn màu và kể chuyện', note: 'Bé tự chọn sắc màu và mô tả điều con tưởng tượng.' },
+    ],
+  },
+  {
+    id: 'garden',
+    label: 'Khám phá khu vườn · v1.4 · Đã duyệt trong trường',
+    joinCode: 'LA1-GRD4',
+    defaultSubject: 'Bông hoa',
+    subjects: ['Bông hoa', 'Chú bướm', 'Chiếc lá'],
+    activities: [
+      { id: 'flower', title: 'Quan sát một bông hoa', prompt: 'Cánh hoa có màu gì và chú bướm thích đậu ở đâu nhỉ?', materials: 'Một bông hoa hoặc cây nhỏ ở góc thiên nhiên', safety: 'Không bứt cây và nhắc bé rửa tay sau khi chạm lá.' },
+      { id: 'garden-draw', title: 'Vẽ khu vườn nhỏ', prompt: 'Mời bé vẽ thêm nơi chú bướm có thể ghé thăm.', materials: 'Giấy, bút màu sáp', safety: 'Luôn có giáo viên hỗ trợ quan sát.' },
+      { id: 'find-colors', title: 'Tìm ba màu trong vườn', prompt: 'Bé cùng bạn gọi tên ba màu sắc nổi bật quanh lớp.', materials: 'Không cần vật liệu', safety: 'Giữ nhóm trong phạm vi sân trường.' },
+    ],
+    slides: [
+      { title: 'Phác nhụy hoa và vòng cánh', note: 'Đặt một vòng tròn ở giữa giấy rồi thêm các cánh hoa tỏa ra.' },
+      { title: 'Thêm thân cây và chú bướm', note: 'Kéo đường gân lá và thêm đôi cánh bướm đang bay gần bông hoa.' },
+      { title: 'Tô sắc nắng cho khu vườn', note: 'Bé tự phối màu cánh hoa, cỏ xanh và kể câu chuyện.' },
+    ],
+  },
+  {
+    id: 'seed',
+    label: 'Hành trình của hạt mầm · v1.0 · Lớp Lá 1',
+    joinCode: 'LA1-SED1',
+    defaultSubject: 'Hạt mầm',
+    subjects: ['Hạt mầm', 'Chiếc lá non', 'Giọt nước'],
+    activities: [
+      { id: 'sprout', title: 'Ươm một hạt mầm', prompt: 'Nếu hạt đậu có thể thì thầm, hôm nay hạt sẽ nói gì?', materials: 'Hạt đậu, cốc giấy, bông ẩm', safety: 'Giáo viên chuẩn bị hạt; không cho hạt hoặc bông vào miệng.' },
+      { id: 'tree-draw', title: 'Vẽ cây khi lớn lên', prompt: 'Con tưởng tượng chiếc mầm nhỏ sẽ mọc thành cây gì?', materials: 'Giấy, bút sáp màu', safety: 'Giữ khoảng cách an toàn khi ngồi bàn vẽ.' },
+    ],
+    slides: [
+      { title: 'Phác chiếc cốc và hạt đậu', note: 'Bắt đầu với hình thang nhỏ và hạt đậu tròn nằm trên lớp bông.' },
+      { title: 'Thêm mầm xanh vươn lên', note: 'Nối thêm cuống non và hai chiếc lá nhỏ đón ánh nắng.' },
+      { title: 'Tô màu đất, nắng và nước', note: 'Thêm giọt nước và ánh mặt trời theo cách kể của bé.' },
+    ],
+  },
+];
 
-function TeacherSessionWorkspace() {
+function TeacherSessionSketchArt({ lessonId, slideIndex }: { lessonId: SessionLessonId; slideIndex: number }) {
+  const dash1 = slideIndex === 0 ? '6 5' : undefined;
+  const dash2 = slideIndex === 1 ? '6 5' : undefined;
+  const filled = slideIndex >= 2;
+  const ink = '#28543e';
+  const accent = '#d99a58';
+  const gold = '#f5d279';
+  const sage = '#8bb499';
+  return <svg className="teacher-session-sketch-svg" viewBox="0 0 420 210" role="img" aria-label={`Slide minh họa bước ${slideIndex + 1} trên 3`}>
+    <rect width="420" height="210" rx="14" fill="#fffef9" stroke="#d5e2d7" strokeWidth="2" />
+    {lessonId === 'sky' && <>
+      <path d="M138 128h144c16 0 27-10 27-23 0-13-10-24-24-25-6-20-25-33-47-32-19 0-36 11-44 26-14-4-30 2-37 16-15 2-27 12-27 25 0 7 3 13 8 13Z" fill={filled ? '#edf6f7' : 'none'} stroke={ink} strokeWidth="3" strokeDasharray={dash1} strokeLinejoin="round" />
+      {slideIndex >= 1 && <>
+        <circle cx="338" cy="52" r="22" fill={filled ? gold : 'none'} stroke={accent} strokeWidth="2.6" strokeDasharray={dash2} />
+        <path d="m74 156 76-28-23 50-16-18-37-4Z" fill={filled ? '#cbe0cf' : 'none'} stroke={ink} strokeWidth="2.5" strokeDasharray={dash2} strokeLinejoin="round" />
+        <path d="M44 166c18 2 29-2 38-9" fill="none" stroke="#3f7559" strokeWidth="2.2" strokeDasharray="4 5" strokeLinecap="round" />
+      </>}
+    </>}
+    {lessonId === 'garden' && <>
+      {slideIndex >= 1 && <path d="M16 178q102-46 204-12t184-10v54H16Z" fill={filled ? sage : 'none'} stroke="#3f7559" strokeWidth="2.5" strokeDasharray={dash2} />}
+      <circle cx="272" cy="86" r="15" fill={filled ? accent : '#fff8e2'} stroke={ink} strokeWidth="2.8" strokeDasharray={dash1} />
+      {[0, 60, 120, 180, 240, 300].map((angle) => {
+        const rad = (angle * Math.PI) / 180;
+        return <circle key={angle} cx={272 + Math.cos(rad) * 25} cy={86 + Math.sin(rad) * 25} r="11" fill={filled ? gold : 'none'} stroke="#3f7559" strokeWidth="2.2" strokeDasharray={dash1} />;
+      })}
+      {slideIndex >= 1 && <>
+        <path d="M272 122q-3 30 2 56" fill="none" stroke={ink} strokeWidth="3" strokeLinecap="round" strokeDasharray={dash2} />
+        <path d="M138 80c-24-25-48-16-44 4 4 17 26 20 42 12m6-16c24-25 48-16 44 4-4 17-26 20-42 12" fill={filled ? gold : 'none'} stroke={ink} strokeWidth="2.5" strokeDasharray={dash2} strokeLinejoin="round" />
+        <path d="M141 74v40" stroke={ink} strokeWidth="4" strokeLinecap="round" />
+      </>}
+    </>}
+    {lessonId === 'seed' && <>
+      <path d="M164 114h92l-14 60h-64Z" fill={filled ? '#f6ebd2' : 'none'} stroke={ink} strokeWidth="2.8" strokeDasharray={dash1} strokeLinejoin="round" />
+      <ellipse cx="210" cy="134" rx="16" ry="12" fill={filled ? accent : 'none'} stroke={ink} strokeWidth="2.5" strokeDasharray={dash1} />
+      {slideIndex >= 1 && <>
+        <path d="M210 122q0-34 2-52m0 14c-16-18-32-12-28 4 6 8 18 8 28-4Zm2-8c16-18 32-12 28 4-6 8-18 8-28-4Z" fill={filled ? sage : 'none'} stroke={ink} strokeWidth="2.6" strokeDasharray={dash2} strokeLinejoin="round" />
+        <circle cx="326" cy="48" r="20" fill={filled ? gold : 'none'} stroke={accent} strokeWidth="2.4" strokeDasharray={dash2} />
+      </>}
+    </>}
+  </svg>;
+}
+
+function TeacherSessionWorkspace({ onNavigate }: { onNavigate?: (id: string) => void }) {
   const [className, setClassName] = useState('Lớp Lá 1');
-  const [lessonId, setLessonId] = useState('sky');
-  const [activityId, setActivityId] = useState<(typeof teacherSessionActivities)[number]['id']>('observe');
+  const [lessonId, setLessonId] = useState<SessionLessonId>('sky');
+  const lesson = teacherSessionLessons.find((item) => item.id === lessonId) ?? teacherSessionLessons[0];
+  const [activityId, setActivityId] = useState(lesson.activities[0].id);
   const [sessionStage, setSessionStage] = useState<'setup' | 'slides' | 'interaction' | 'sample' | 'ended'>('setup');
-  const [deckEnabled, setDeckEnabled] = useState(false);
+  const [sampleStep, setSampleStep] = useState<'eligibility' | 'capture' | 'script' | 'video'>('eligibility');
+  const [sampleChoice, setSampleChoice] = useState<SampleChoice>('not-checked');
+  const [samplePhotoUrl, setSamplePhotoUrl] = useState('');
+  const [samplePhotoName, setSamplePhotoName] = useState('');
+  const [sampleSubject, setSampleSubject] = useState(lesson.defaultSubject);
+  const [sampleIdea, setSampleIdea] = useState('');
+  const [sampleScriptApproved, setSampleScriptApproved] = useState(false);
+  const [sampleVideoPlaying, setSampleVideoPlaying] = useState(false);
+  const [sampleVideoShown, setSampleVideoShown] = useState(false);
+  const [deckEnabled, setDeckEnabled] = useState(true);
   const [slideIndex, setSlideIndex] = useState(0);
   const [notice, setNotice] = useState('');
+
+  useEffect(() => () => {
+    if (samplePhotoUrl) URL.revokeObjectURL(samplePhotoUrl);
+  }, [samplePhotoUrl]);
+
   const started = sessionStage !== 'setup';
   const ended = sessionStage === 'ended';
-  const activity = teacherSessionActivities.find((item) => item.id === activityId) ?? teacherSessionActivities[0];
-  const lessonTitle = 'Bầu trời kỳ diệu · v2.0 · đã duyệt';
-  const slide = teacherSketchSlides[slideIndex];
+  const activity = lesson.activities.find((item) => item.id === activityId) ?? lesson.activities[0];
+  const slide = lesson.slides[slideIndex] ?? lesson.slides[0];
+
+  const handleLessonChange = (nextId: SessionLessonId) => {
+    const nextLesson = teacherSessionLessons.find((item) => item.id === nextId) ?? teacherSessionLessons[0];
+    setLessonId(nextId);
+    setActivityId(nextLesson.activities[0].id);
+    setSampleSubject(nextLesson.defaultSubject);
+    setSlideIndex(0);
+    setNotice('');
+  };
+
+  const resetSession = () => {
+    if (samplePhotoUrl) URL.revokeObjectURL(samplePhotoUrl);
+    setSessionStage('setup');
+    setSampleStep('eligibility');
+    setSampleChoice('not-checked');
+    setSamplePhotoUrl('');
+    setSamplePhotoName('');
+    setSampleSubject(lesson.defaultSubject);
+    setSampleIdea('');
+    setSampleScriptApproved(false);
+    setSampleVideoPlaying(false);
+    setSampleVideoShown(false);
+    setSlideIndex(0);
+    setNotice('');
+  };
+
+  const handleSamplePhoto = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !file.type.startsWith('image/')) return;
+    if (samplePhotoUrl) URL.revokeObjectURL(samplePhotoUrl);
+    setSamplePhotoUrl(URL.createObjectURL(file));
+    setSamplePhotoName(file.name);
+    setNotice('Đã đính kèm ảnh tranh tạm thời trong phiên trình duyệt.');
+  };
+
   const startPreviewSession = () => {
     setSessionStage(deckEnabled ? 'slides' : 'interaction');
     setSlideIndex(0);
-    setNotice('Phiên này chỉ chạy trong trình duyệt; backend chưa nhận lệnh.');
+    setNotice('Buổi dạy đang mở trong chế độ xem trước cục bộ; backend chưa nhận lệnh.');
   };
 
   return <div className="flow-page teacher-session-page">
-    <header className="flow-heading"><span>BUỔI DẠY · BẢN XEM TRƯỚC</span><h1>{ended ? 'Buổi dạy đã kết thúc' : started ? 'Không gian buổi dạy' : 'Chuẩn bị cùng lớp'}</h1><p>{started && !ended ? 'Lần lượt trình chiếu hướng dẫn, tương tác với hoạt động rồi mới mở luồng video mẫu riêng.' : 'Chọn lớp, phiên bản giáo án và hoạt động trước khi bắt đầu.'}</p></header>
-    <div className="feedback-preview-note" role="note"><strong>Chưa kết nối occurrence / run API</strong><span>Lớp, plan và trạng thái bên dưới là fixture trong trình duyệt; chưa mở phiên dạy thật hoặc gửi dữ liệu trẻ.</span></div>
+    <header className="flow-heading"><span>BUỔI DẠY · BẢN XEM TRƯỚC</span><h1>{ended ? 'Buổi dạy đã kết thúc' : started ? 'Không gian buổi dạy' : 'Chuẩn bị cùng lớp'}</h1><p>{started && !ended ? 'Đi lần lượt từng bước: chiếu gợi ý nét vẽ → tổ chức hoạt động → quay/chụp tranh mẫu & chiếu video.' : 'Chọn lớp được phân công, giáo án và hoạt động trước khi bắt đầu.'}</p></header>
+    <div className="feedback-preview-note" role="note"><strong>Chưa kết nối occurrence / run API</strong><span>Lớp, giáo án, ảnh và video mẫu chạy cục bộ trong phiên trình duyệt để kiểm thử luồng UX.</span></div>
     <div className="teacher-session-layout">
       <section className="teacher-session-setup" aria-label="Cấu hình buổi dạy">
-        <div className="teacher-session-panel-heading"><span className="flow-eyebrow">THÔNG TIN BUỔI DẠY</span><b>PREVIEW</b></div>
-        <label className="teacher-session-field">1 · Lớp được phân công<select value={className} disabled={started && !ended} onChange={(event) => setClassName(event.target.value)}><option>Lớp Lá 1</option><option>Lớp Chồi 2</option></select></label>
-        <label className="teacher-session-field">2 · Giáo án và phiên bản<select value={lessonId} disabled={started && !ended} onChange={(event) => setLessonId(event.target.value)}><option value="sky">Bầu trời kỳ diệu · v2.0 · đã duyệt</option><option value="garden" disabled>Khám phá khu vườn · v1.4 · bản nháp chưa được duyệt</option></select></label>
-        <div className="teacher-session-field"><span>3 · Chọn hoạt động đã ghim</span><div className="teacher-session-activity-list">{teacherSessionActivities.map((item) => <button type="button" key={item.id} disabled={started && !ended} className={activityId === item.id ? 'is-selected' : ''} onClick={() => setActivityId(item.id)} aria-pressed={activityId === item.id}><span><strong>{item.title}</strong><small>{item.materials}</small></span><i>{activityId === item.id ? '✓' : ''}</i></button>)}</div></div>
-        <label className="teacher-session-deck-choice"><input type="checkbox" checked={deckEnabled} disabled={started && !ended} onChange={(event) => { setDeckEnabled(event.target.checked); setSlideIndex(0); }}/><span><strong>Hiện slide / Sketch (tùy chọn)</strong><small>Bắt đầu với 3 bước minh họa tĩnh; có thể bỏ qua.</small></span></label>
-        <a className="teacher-session-plan-link" href="#occurrences">Xem plan và chuẩn bị occurrence <span aria-hidden="true">→</span></a>
+        <div className="teacher-session-panel-heading"><span className="flow-eyebrow">THÔNG TIN BUỔI DẠY</span><b>MÃ MẪU: {lesson.joinCode}</b></div>
+        <label className="teacher-session-field">1 · Lớp được phân công<select value={className} disabled={started && !ended} onChange={(event) => setClassName(event.target.value)}><option value="Lớp Lá 1">Lớp Lá 1 · Cô Mai phụ trách</option></select></label>
+        <label className="teacher-session-field">2 · Giáo án đã duyệt<select value={lessonId} disabled={started && !ended} onChange={(event) => handleLessonChange(event.target.value as SessionLessonId)}>{teacherSessionLessons.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
+        <div className="teacher-session-field"><span>3 · Chọn hoạt động đã ghim</span><div className="teacher-session-activity-list">{lesson.activities.map((item) => <button type="button" key={item.id} disabled={started && !ended} className={activity.id === item.id ? 'is-selected' : ''} onClick={() => setActivityId(item.id)} aria-pressed={activity.id === item.id}><span><strong>{item.title}</strong><small>{item.materials}</small></span><i>{activity.id === item.id ? '✓' : ''}</i></button>)}</div></div>
+        <label className="teacher-session-deck-choice"><input type="checkbox" checked={deckEnabled} disabled={started && !ended} onChange={(event) => { setDeckEnabled(event.target.checked); setSlideIndex(0); }}/><span><strong>Hiện slide / Sketch (tùy chọn)</strong><small>Bắt đầu với 3 nét phác theo chủ đề; có thể bỏ qua.</small></span></label>
+        <div className="teacher-session-links">
+          <a className="teacher-session-plan-link" href="#occurrences" onClick={(event) => { if (onNavigate) { event.preventDefault(); onNavigate('occurrences'); } }}>Mở Lịch & Chuẩn bị buổi dạy <span aria-hidden="true">→</span></a>
+        </div>
         {!started ? <button type="button" className="flow-primary teacher-session-start" onClick={startPreviewSession}>Bắt đầu buổi học · preview <span aria-hidden="true">→</span></button> : null}
-        {ended ? <button type="button" className="flow-secondary teacher-session-start" onClick={() => { setSessionStage('setup'); setNotice(''); }}>Chuẩn bị buổi khác</button> : null}
+        {ended ? <button type="button" className="flow-secondary teacher-session-start" onClick={resetSession}>Chuẩn bị buổi học khác</button> : null}
       </section>
 
       <section className="teacher-session-stage" aria-label="Nội dung buổi dạy">
-        <div className="teacher-session-sequence" aria-label="Tiến trình buổi dạy"><span className={['slides', 'interaction', 'sample', 'ended'].includes(sessionStage) ? 'is-done' : 'is-current'}>01 · Show Slide / Sketch</span><i aria-hidden="true">→</i><span className={['interaction', 'sample', 'ended'].includes(sessionStage) ? sessionStage === 'interaction' ? 'is-current' : 'is-done' : ''}>02 · Hoạt động</span><i aria-hidden="true">→</i><span className={['sample', 'ended'].includes(sessionStage) ? sessionStage === 'sample' ? 'is-current' : 'is-done' : ''}>03 · Video mẫu riêng</span></div>
-        {!started ? <div className="teacher-session-empty"><span>01</span><strong>Sẵn sàng trình bày hoạt động</strong><p>Chọn lớp → giáo án → hoạt động, rồi bắt đầu buổi học.</p><div className="teacher-session-activity-preview"><b>{activity.title}</b><span>{activity.prompt}</span></div></div> : ended ? <div className="teacher-session-ended" role="status"><strong>Buổi học mẫu đã kết thúc.</strong><p>Không có session, học sinh, ảnh hoặc kết quả nào được lưu lên máy chủ.</p><span>{activity.title}</span></div> : sessionStage === 'slides' ? <section className="teacher-session-deck" aria-label="Trình chiếu slide và Sketch"><div className="teacher-session-deck-stage"><span>SHOW SLIDE · SKETCH · MINH HỌA TĨNH · {slideIndex + 1}/3</span><div className={`teacher-session-sketch teacher-session-sketch--${slideIndex + 1}`} aria-hidden="true"><i/><b/><em/></div><strong>{slide.title}</strong><small>{slide.note}</small></div><div className="teacher-session-deck-controls"><button type="button" disabled={slideIndex === 0} onClick={() => setSlideIndex((index) => Math.max(0, index - 1))}>← Slide trước</button><span>Slide {slideIndex + 1} / 3</span><button type="button" onClick={() => { if (slideIndex < teacherSketchSlides.length - 1) setSlideIndex((index) => index + 1); else setSessionStage('interaction'); }}>{slideIndex < teacherSketchSlides.length - 1 ? 'Slide tiếp →' : 'Hoàn tất · sang hoạt động'}</button><button type="button" className="teacher-session-skip" onClick={() => { setSessionStage('interaction'); setNotice('Đã bỏ qua slide / Sketch; hoạt động tiếp tục trong preview.'); }}>Bỏ qua slide</button></div></section> : sessionStage === 'interaction' ? <>
-          <article className="teacher-session-activity-card"><span>BƯỚC 02 · HOẠT ĐỘNG TƯƠNG TÁC</span><strong>{activity.title}</strong><p>{activity.prompt}</p><small>Chuẩn bị: {activity.materials}</small></article>
-          <section className="teacher-session-interaction" aria-label="Hoạt động tương tác"><div><strong>Cùng bé trao đổi</strong><p>Mời bé trả lời câu hỏi hoặc thực hiện hoạt động đã chọn.</p></div><button type="button" onClick={() => setSessionStage('sample')}>Hoàn tất hoạt động</button></section>
-        </> : <aside className="teacher-session-sample-gate"><div><span className="preview-state">BƯỚC 03 · LUỒNG RIÊNG · PREVIEW</span><strong>Video mẫu không thuộc buổi học cả lớp</strong><p>Luồng riêng phải kiểm tra eligibility và consent trước khi chọn trẻ, rồi mới cho phép chụp tranh. Không dùng hoặc gắn media của lớp.</p></div><a className="flow-primary" href="#sample">Tiếp tục đến bước chụp tranh mẫu <span aria-hidden="true">→</span></a><button type="button" className="flow-secondary" onClick={() => setSessionStage('interaction')}>Quay lại hoạt động</button></aside>}
-        {started && !ended && <div className="teacher-session-actions"><button type="button" className="flow-primary" onClick={() => { setSessionStage('ended'); setNotice('Buổi học kết thúc trong phiên xem trước; không gửi lệnh đến server.'); }}>Kết thúc buổi học · preview</button></div>}
+        <div className="teacher-session-sequence" aria-label="Tiến trình buổi dạy">
+          <span className={['slides', 'interaction', 'sample', 'ended'].includes(sessionStage) ? sessionStage === 'slides' ? 'is-current' : 'is-done' : ''}>01 · Slide / Sketch</span>
+          <i aria-hidden="true">→</i>
+          <span className={['interaction', 'sample', 'ended'].includes(sessionStage) ? sessionStage === 'interaction' ? 'is-current' : 'is-done' : ''}>02 · Hoạt động</span>
+          <i aria-hidden="true">→</i>
+          <span className={['sample', 'ended'].includes(sessionStage) ? sessionStage === 'sample' ? 'is-current' : 'is-done' : ''}>03 · Tranh & Video mẫu</span>
+          <i aria-hidden="true">→</i>
+          <span className={ended ? 'is-done' : ''}>04 · Hoàn tất</span>
+        </div>
+
+        {!started ? <div className="teacher-session-empty">
+          <span>01</span>
+          <strong>Sẵn sàng vào tiết — {className}</strong>
+          <p>{lesson.label}. Bấm “Bắt đầu buổi học” để chiếu slide gợi ý nét vẽ hoặc vào thẳng hoạt động tương tác.</p>
+          <div className="teacher-session-activity-preview"><b>{activity.title}</b><span>{activity.prompt}</span><small>An toàn: {activity.safety}</small></div>
+        </div> : ended ? <div className="teacher-session-ended" role="status">
+          <strong>Buổi dạy mẫu đã hoàn tất.</strong>
+          <p>{sampleVideoShown ? 'Video mẫu đã được chiếu minh họa cho lớp và lưu trạng thái kết thúc cục bộ.' : 'Buổi dạy đã kết thúc trong phiên xem trước; chưa lưu dữ liệu lên máy chủ.'}</p>
+          <span>{lesson.label} · {activity.title}</span>
+        </div> : sessionStage === 'slides' ? <section className="teacher-session-deck" aria-label="Trình chiếu slide và Sketch">
+          <div className="teacher-session-deck-stage">
+            <span>SHOW SLIDE · SKETCH · BƯỚC {slideIndex + 1}/3 · TỶ LỆ 16:9</span>
+            <TeacherSessionSketchArt lessonId={lessonId} slideIndex={slideIndex} />
+            <strong>{slide.title}</strong>
+            <small>{slide.note}</small>
+          </div>
+          <div className="teacher-session-deck-controls">
+            <button type="button" disabled={slideIndex === 0} onClick={() => setSlideIndex((index) => Math.max(0, index - 1))}>← Slide trước</button>
+            <span>Slide {slideIndex + 1} / 3</span>
+            <button type="button" className="flow-primary" onClick={() => { if (slideIndex < lesson.slides.length - 1) setSlideIndex((index) => index + 1); else setSessionStage('interaction'); }}>{slideIndex < lesson.slides.length - 1 ? 'Slide tiếp →' : 'Hoàn tất · sang hoạt động →'}</button>
+            <button type="button" className="teacher-session-skip" onClick={() => { setSessionStage('interaction'); setNotice('Đã bỏ qua slide gợi ý; chuyển sang hoạt động cùng lớp.'); }}>Bỏ qua slide</button>
+          </div>
+        </section> : sessionStage === 'interaction' ? <>
+          <article className="teacher-session-activity-card">
+            <span>BƯỚC 02 · HOẠT ĐỘNG TƯƠNG TÁC</span>
+            <strong>{activity.title}</strong>
+            <p>{activity.prompt}</p>
+            <small>Chuẩn bị: {activity.materials} · An toàn: {activity.safety}</small>
+          </article>
+          <section className="teacher-session-interaction" aria-label="Hoạt động tương tác">
+            <div><strong>Cả lớp cùng trao đổi</strong><p>Giáo viên dẫn dắt trẻ trả lời câu hỏi gợi mở, sau đó chuyển sang tạo 01 video mẫu minh họa.</p></div>
+            <button type="button" className="flow-primary" onClick={() => { setSessionStage('sample'); setSampleStep('eligibility'); setNotice(''); }}>Hoàn tất hoạt động · sang tạo video mẫu →</button>
+          </section>
+        </> : <section className="teacher-session-inline-sample" aria-label="Tạo và chiếu video mẫu trong buổi dạy">
+          <div className="teacher-sample-substeps">
+            {([['eligibility', '3A · Xác nhận trẻ'], ['capture', '3B · Tranh & ý tưởng'], ['script', '3C · Duyệt kịch bản'], ['video', '3D · Video & chiếu']] as const).map(([key, label]) => (
+              <button key={key} type="button" className={sampleStep === key ? 'is-active' : ''} disabled={(key === 'capture' && sampleChoice !== 'confirmed') || (key === 'script' && !samplePhotoUrl) || (key === 'video' && !sampleScriptApproved)} onClick={() => setSampleStep(key)}>{label}</button>
+            ))}
+          </div>
+
+          {sampleStep === 'eligibility' && <div className="teacher-sample-panel">
+            <TeacherSampleSelection choice={sampleChoice} onChange={setSampleChoice} />
+            <div className="teacher-session-step-actions">
+              <button type="button" className="flow-secondary" onClick={() => setSessionStage('interaction')}>← Quay lại hoạt động</button>
+              <button type="button" className="flow-primary" disabled={sampleChoice !== 'confirmed'} onClick={() => setSampleStep('capture')}>Tiếp tục · chụp tranh mẫu →</button>
+            </div>
+          </div>}
+
+          {sampleStep === 'capture' && <div className="teacher-sample-panel">
+            <span className="flow-eyebrow">BƯỚC 3B · CHỤP TRANH, Ý TƯỞNG & CHỦ THỂ</span>
+            <div className="teacher-sample-upload-row">
+              <label className="teacher-sample-photo-box">
+                {samplePhotoUrl ? <img src={samplePhotoUrl} alt={samplePhotoName || 'Tranh mẫu trong buổi dạy'} /> : <span>Chưa chọn ảnh tranh · Bấm để chụp hoặc tải ảnh từ máy</span>}
+                <input type="file" accept="image/*" className="visually-hidden" onChange={handleSamplePhoto} />
+              </label>
+              <div className="teacher-sample-meta">
+                <label className="teacher-session-field">Chủ thể AI gợi ý
+                  <div className="teacher-sample-chips">{lesson.subjects.map((item) => <button type="button" key={item} className={sampleSubject === item ? 'is-selected' : ''} onClick={() => setSampleSubject(item)}>{item}</button>)}</div>
+                </label>
+                <label className="teacher-session-field">Lời kể / Ý tưởng của bé (tùy chọn)
+                  <textarea rows={3} value={sampleIdea} onChange={(event) => setSampleIdea(event.target.value)} placeholder={`Ví dụ: ${sampleSubject} đang dạo chơi cùng các bạn trong lớp...`} />
+                </label>
+              </div>
+            </div>
+            <div className="teacher-session-step-actions">
+              <button type="button" className="flow-secondary" onClick={() => setSampleStep('eligibility')}>← Quay lại chọn trẻ</button>
+              <button type="button" className="flow-primary" disabled={!samplePhotoUrl} onClick={() => setSampleStep('script')}>Duyệt chủ thể & sang kịch bản →</button>
+            </div>
+          </div>}
+
+          {sampleStep === 'script' && <div className="teacher-sample-panel">
+            <span className="flow-eyebrow">BƯỚC 3C · DUYỆT KỊCH BẢN & TẠO VIDEO MẪU</span>
+            <article className="teacher-sample-script-card">
+              <strong>{sampleSubject} và câu chuyện của {className}</strong>
+              <p>{sampleIdea.trim() || `Câu chuyện gắn với hoạt động “${activity.title}” giúp trẻ nhớ mục tiêu bài học.`}</p>
+              <ol>
+                <li>Mở đầu: {sampleSubject} xuất hiện từ nét vẽ của lớp và chào mọi người.</li>
+                <li>Khám phá: Cùng thực hành nhẹ nhàng “{activity.title}”.</li>
+                <li>Kết thúc: Ghi nhớ điều thú vị và chia sẻ cảm nhận trước lớp.</li>
+              </ol>
+            </article>
+            <JobStages />
+            <div className="teacher-session-step-actions">
+              <button type="button" className="flow-secondary" onClick={() => setSampleStep('capture')}>← Chỉnh tranh / ý tưởng</button>
+              <button type="button" className="flow-primary" onClick={() => { setSampleScriptApproved(true); setSampleStep('video'); setNotice('Kịch bản mẫu đã duyệt; video xem trước sẵn sàng.'); }}>Duyệt kịch bản & mở video →</button>
+            </div>
+          </div>}
+
+          {sampleStep === 'video' && <div className="teacher-sample-panel">
+            <span className="flow-eyebrow">BƯỚC 3D · XEM TRƯỚC & TRÌNH CHIẾU CHO LỚP</span>
+            <div className={`teacher-sample-player ${sampleVideoPlaying ? 'is-playing' : ''}`}>
+              <div className="teacher-sample-player-screen">
+                <TeacherSessionSketchArt lessonId={lessonId} slideIndex={2} />
+                <button type="button" className="teacher-sample-play-btn" onClick={() => setSampleVideoPlaying((playing) => !playing)} aria-label={sampleVideoPlaying ? 'Tạm dừng video mẫu' : 'Phát thử video mẫu'}>
+                  {sampleVideoPlaying ? '❚❚ Tạm dừng' : '▶ Phát thử xem trước'}
+                </button>
+              </div>
+              <p className="teacher-sample-caption">Phụ đề mẫu: “Cùng bạn {sampleSubject.toLowerCase()} thực hiện hoạt động {activity.title} nhé!”</p>
+            </div>
+            <div className="teacher-session-step-actions">
+              <button type="button" className="flow-secondary" onClick={() => setSampleStep('script')}>← Quay lại kịch bản</button>
+              <button type="button" className="flow-primary" onClick={() => { setSampleVideoShown(true); setSessionStage('ended'); setNotice('Đã xác nhận chiếu video mẫu cho lớp và kết thúc buổi dạy xem trước.'); }}>Chiếu cho lớp & hoàn tất buổi dạy ✓</button>
+            </div>
+          </div>}
+
+          {onNavigate && <a className="teacher-session-plan-link teacher-session-plan-link--subtle" href="#sample" onClick={(event) => { event.preventDefault(); onNavigate('sample'); }}>Hoặc mở luồng kiểm thử Video mẫu độc lập (#sample) <span aria-hidden="true">→</span></a>}
+        </section>}
+        {started && !ended && <div className="teacher-session-actions"><button type="button" className="flow-secondary" onClick={() => { setSessionStage('ended'); setNotice('Buổi học kết thúc trong phiên xem trước; không gửi lệnh đến server.'); }}>Kết thúc sớm · preview</button></div>}
         {notice && <p className="teacher-session-notice" role="status">{notice}</p>}
-        <p className="teacher-session-boundary">Tranh và media của trẻ không được dùng từ màn này. Luồng mẫu riêng phải có eligibility, consent và xác nhận hợp lệ từ API trước bước chụp; hiện chỉ là fixture.</p>
+        <p className="teacher-session-boundary">Tranh, ảnh và video chỉ lưu tạm trong phiên xem trước của trình duyệt. Luồng chính thức cần eligibility, consent và playback token từ backend.</p>
       </section>
     </div>
     <FlowRecoveryDisclosure title="Buổi dạy của giáo viên" boundary="Mở occurrence, ghim revision, roster, consent, run và playback cần API authenticated cùng quyền lớp hiện hành."/>
@@ -315,7 +571,9 @@ const flowContinuations: Record<string, { page: string; label: string; note: str
   'manager:capacity': { page: 'billing', label: 'Mở gói và thanh toán', note: 'Đề xuất capacity không tạo giao dịch hoặc thay đổi entitlement.' },
 };
 
-function WizardPage({ spec, role, page, onNavigate }: { spec: Flow; role: Role; page: string; onNavigate: (id: string) => void }) {
+type ImportDraftPayload = { title: string; subtitle: string; meta: string };
+
+function WizardPage({ spec, role, page, onNavigate, onSaveImportDraft }: { spec: Flow; role: Role; page: string; onNavigate: (id: string) => void; onSaveImportDraft?: (draft: ImportDraftPayload) => void }) {
   const [index, setIndex] = useState(0);
   const [maxIndex, setMaxIndex] = useState(0);
   const [values, setValues] = useState<Record<string, string | boolean>>({});
@@ -330,7 +588,7 @@ function WizardPage({ spec, role, page, onNavigate }: { spec: Flow; role: Role; 
   const isPresentation = spec.title === 'Chiếu video trong lớp';
   const isImport = spec.title === 'Nhập và rà soát giáo án';
   const continuation = flowContinuations[`${role}:${page}`];
-  return <div className="flow-page"><header className="flow-heading"><span>LUỒNG THEO VAI TRÒ · BẢN XEM TRƯỚC</span><h1>{spec.title}</h1><p>{spec.description}</p></header><div className="flow-layout"><aside className="flow-rail" aria-label="Các bước"><strong>TIẾN TRÌNH</strong>{spec.steps.map((item, position) => <button key={item.title} type="button" disabled={position > maxIndex} className={position === index ? 'active' : ''} onClick={() => { setIndex(position); setCompleted(false); setMessage(''); }} aria-current={position === index ? 'step' : undefined}><span>{String(position + 1).padStart(2,'0')}</span>{item.title}</button>)}<div className="flow-boundary"><b>Ranh giới tích hợp</b><p>{spec.boundary}</p></div></aside><section className="flow-card"><span className="flow-eyebrow">{step.eyebrow}</span><h2>{step.title}</h2><p className="flow-summary">{step.summary}</p>{completed ? <div className="flow-complete" role="status"><strong>{completionNote ? 'Đã bỏ qua hướng dẫn' : 'Đã hoàn tất bước xem trước'}</strong><p>{completionNote || 'Thông tin vừa nhập chỉ là fixture và không được lưu. Bạn có thể mở luồng liên quan tiếp theo hoặc xem lại các bước.'}</p>{continuation && <p>{continuation.note}</p>}<div className="flow-complete-actions">{continuation && <button type="button" className="flow-primary" onClick={() => onNavigate(continuation.page)}>{continuation.label}<span aria-hidden="true">→</span></button>}<button type="button" className="flow-secondary" onClick={() => { setIndex(0); setMaxIndex(0); setCompleted(false); setValues({}); setSampleChoice('not-checked'); setCompletionNote(''); }}>Xem lại từ đầu</button></div></div> : <form onSubmit={(event) => { event.preventDefault(); if (isSample && index === 0 && sampleChoice !== 'confirmed') return; if (isDeck && index === 0 && values.enable !== true) { setCompletionNote('Occurrence tiếp tục mà không có Sketch Deck, job AI hoặc asset. Đây chỉ là trạng thái preview.'); setCompleted(true); return; } if (index < spec.steps.length - 1) { setIndex(index + 1); setMaxIndex((current) => Math.max(current, index + 1)); setMessage(''); } else setCompleted(true); }}><div className="flow-fields">{isImport && index === 1 ? <section className="flow-extraction-preview" aria-label="Bản trích xuất minh họa"><span className="flow-eyebrow">BƯỚC TRÍCH XUẤT · MẪU</span><strong>Tệp: {String(values.lessonFile || "Chưa chọn")}</strong><p>Parser chưa kết nối. Nội dung dưới đây không được đọc từ tệp bạn chọn.</p><div className="flow-extraction-lines"><span>Chủ đề: quan sát khu vườn</span><span>Nhóm tuổi: 4–5 tuổi</span><span>Mục tiêu: nhận biết hình dạng và màu sắc</span><span>Các bước vẽ: phác hình lớn, thêm chi tiết, tô màu</span><span>Hoạt động: quan sát lá cùng người lớn</span><span>Vật liệu: giấy, bút màu, lá rụng</span><span>An toàn: không cho vật liệu vào miệng</span></div><button type="button" className="flow-secondary" disabled={!values.lessonFile} onClick={() => { setValues((current) => ({...current, topic: "Quan sát khu vườn", ageGroup: "4–5 tuổi", objectives: "Nhận biết hình dạng và màu sắc trong tự nhiên.", drawingSteps: "1. Phác hình lớn. 2. Thêm chi tiết. 3. Tô màu theo ý thích.", activities: "Quan sát lá cùng người lớn và kể điều con tò mò.", materials: "Giấy, bút màu, một vài chiếc lá rụng.", safety: "Không cho lá hoặc vật liệu nhỏ vào miệng."})); setMessage("Đã nạp các trường mẫu để cô rà soát và chỉnh sửa; không đọc tệp hoặc gọi parser."); }}>Nạp dữ liệu trích xuất mẫu</button></section> : null}{step.fields?.map((field) => <FieldControl key={field.id} field={field.requiredWhen ? {...field, required: values[field.requiredWhen.field] === field.requiredWhen.value} : field} value={values[field.id] ?? (field.kind === 'checkbox' ? false : '')} onChange={(value) => { setValues((current) => ({ ...current, [field.id]: value })); setMessage(''); }}/>)}</div>{isSample && index === 0 ? <TeacherSampleSelection choice={sampleChoice} onChange={setSampleChoice}/> : null}{isDeck && index > 0 && <div className="flow-deck"><div className="flow-deck-stage"><span>HƯỚNG DẪN NÉT VẼ</span><strong>{['Quan sát hình dạng', 'Phác nét chính', 'Thêm chi tiết'][slide]}</strong><div className="flow-deck-shape"/><small>Minh họa bố cục 16:9 · không phải AI output</small></div><div className="flow-deck-controls"><button type="button" disabled={slide === 0} onClick={() => setSlide((current) => Math.max(0,current - 1))}>← Trước</button><span>Bước {slide + 1}/3</span><button type="button" disabled={slide === 2} onClick={() => setSlide((current) => Math.min(2,current + 1))}>Tiếp →</button><button type="button" onClick={() => setMessage('Tạo lại một sketch cần AI job và revision mới; bản xem trước không gửi yêu cầu.')}>Tạo lại bước này</button></div></div>}{isSample && index === 4 && <JobStages/>}{((isSample && index === 5) || (isPresentation && index === 1)) && <VideoSurface presentation={isPresentation}/>}{step.note && <p className="flow-note">{step.note}</p>}{spec.title === 'Gói và thanh toán' && index === 2 && <BillingInvoicePanel/>}{message && <p className="flow-note" role="status">{message}</p>}<div className="flow-actions">{index > 0 && <button type="button" className="flow-secondary" onClick={() => setIndex(index - 1)}>Quay lại</button>}<button type="submit" disabled={isSample && index === 0 && sampleChoice !== 'confirmed'} className="flow-primary">{isDeck && index === 0 && values.enable !== true ? 'Bỏ qua · không tạo deck' : index === spec.steps.length - 1 ? 'Hoàn tất xem trước' : 'Tiếp tục'} <span aria-hidden="true">→</span></button></div></form>}</section></div><FlowRecoveryDisclosure title={spec.title} boundary={spec.boundary}/></div>;
+  return <div className="flow-page"><header className="flow-heading"><span>LUỒNG THEO VAI TRÒ · BẢN XEM TRƯỚC</span><h1>{spec.title}</h1><p>{spec.description}</p></header><div className="flow-layout"><aside className="flow-rail" aria-label="Các bước"><strong>TIẾN TRÌNH</strong>{spec.steps.map((item, position) => <button key={item.title} type="button" disabled={position > maxIndex} className={position === index ? 'active' : ''} onClick={() => { setIndex(position); setCompleted(false); setMessage(''); }} aria-current={position === index ? 'step' : undefined}><span>{String(position + 1).padStart(2,'0')}</span>{item.title}</button>)}<div className="flow-boundary"><b>Ranh giới tích hợp</b><p>{spec.boundary}</p></div></aside><section className="flow-card"><span className="flow-eyebrow">{step.eyebrow}</span><h2>{step.title}</h2><p className="flow-summary">{step.summary}</p>{completed ? <div className="flow-complete" role="status"><strong>{completionNote ? 'Đã bỏ qua hướng dẫn' : 'Đã hoàn tất bước xem trước'}</strong><p>{completionNote || 'Thông tin vừa nhập chỉ là fixture và không được lưu. Bạn có thể mở luồng liên quan tiếp theo hoặc xem lại các bước.'}</p>{continuation && <p>{continuation.note}</p>}<div className="flow-complete-actions">{isImport && onSaveImportDraft ? <button type="button" className="flow-primary" onClick={() => onSaveImportDraft({ title: String(values.topic || 'Giáo án nhập từ tài liệu'), subtitle: `${String(values.ageGroup || '4–5 tuổi')} · Nhập từ ${String(values.lessonFile || 'tài liệu')}`, meta: 'Bản nháp · trích xuất (preview)' })}>Lưu bản nháp vào thư viện<span aria-hidden="true">→</span></button> : null}{continuation && <button type="button" className={isImport && onSaveImportDraft ? 'flow-secondary' : 'flow-primary'} onClick={() => onNavigate(continuation.page)}>{continuation.label}<span aria-hidden="true">→</span></button>}<button type="button" className="flow-secondary" onClick={() => { setIndex(0); setMaxIndex(0); setCompleted(false); setValues({}); setSampleChoice('not-checked'); setCompletionNote(''); }}>Xem lại từ đầu</button></div></div> : <form onSubmit={(event) => { event.preventDefault(); if (isSample && index === 0 && sampleChoice !== 'confirmed') return; if (isDeck && index === 0 && values.enable !== true) { setCompletionNote('Occurrence tiếp tục mà không có Sketch Deck, job AI hoặc asset. Đây chỉ là trạng thái preview.'); setCompleted(true); return; } if (index < spec.steps.length - 1) { setIndex(index + 1); setMaxIndex((current) => Math.max(current, index + 1)); setMessage(''); } else setCompleted(true); }}><div className="flow-fields">{isImport && index === 1 ? <section className="flow-extraction-preview" aria-label="Bản trích xuất minh họa"><span className="flow-eyebrow">BƯỚC TRÍCH XUẤT · MẪU</span><strong>Tệp: {String(values.lessonFile || "Chưa chọn")}</strong><p>Parser chưa kết nối. Nội dung dưới đây không được đọc từ tệp bạn chọn.</p><div className="flow-extraction-lines"><span>Chủ đề: quan sát khu vườn</span><span>Nhóm tuổi: 4–5 tuổi</span><span>Mục tiêu: nhận biết hình dạng và màu sắc</span><span>Các bước vẽ: phác hình lớn, thêm chi tiết, tô màu</span><span>Hoạt động: quan sát lá cùng người lớn</span><span>Vật liệu: giấy, bút màu, lá rụng</span><span>An toàn: không cho vật liệu vào miệng</span></div><button type="button" className="flow-secondary" disabled={!values.lessonFile} onClick={() => { setValues((current) => ({...current, topic: "Quan sát khu vườn", ageGroup: "4–5 tuổi", objectives: "Nhận biết hình dạng và màu sắc trong tự nhiên.", drawingSteps: "1. Phác hình lớn. 2. Thêm chi tiết. 3. Tô màu theo ý thích.", activities: "Quan sát lá cùng người lớn và kể điều con tò mò.", materials: "Giấy, bút màu, một vài chiếc lá rụng.", safety: "Không cho lá hoặc vật liệu nhỏ vào miệng."})); setMessage("Đã nạp các trường mẫu để cô rà soát và chỉnh sửa; không đọc tệp hoặc gọi parser."); }}>Nạp dữ liệu trích xuất mẫu</button></section> : null}{step.fields?.map((field) => <FieldControl key={field.id} field={field.requiredWhen ? {...field, required: values[field.requiredWhen.field] === field.requiredWhen.value} : field} value={values[field.id] ?? (field.kind === 'checkbox' ? false : '')} onChange={(value) => { setValues((current) => ({ ...current, [field.id]: value })); setMessage(''); }}/>)}</div>{isSample && index === 0 ? <TeacherSampleSelection choice={sampleChoice} onChange={setSampleChoice}/> : null}{isDeck && index > 0 && <div className="flow-deck"><div className="flow-deck-stage"><span>HƯỚNG DẪN NÉT VẼ</span><strong>{['Quan sát hình dạng', 'Phác nét chính', 'Thêm chi tiết'][slide]}</strong><div className="flow-deck-shape"/><small>Minh họa bố cục 16:9 · không phải AI output</small></div><div className="flow-deck-controls"><button type="button" disabled={slide === 0} onClick={() => setSlide((current) => Math.max(0,current - 1))}>← Trước</button><span>Bước {slide + 1}/3</span><button type="button" disabled={slide === 2} onClick={() => setSlide((current) => Math.min(2,current + 1))}>Tiếp →</button><button type="button" onClick={() => setMessage('Tạo lại một sketch cần AI job và revision mới; bản xem trước không gửi yêu cầu.')}>Tạo lại bước này</button></div></div>}{isSample && index === 4 && <JobStages/>}{((isSample && index === 5) || (isPresentation && index === 1)) && <VideoSurface presentation={isPresentation}/>}{step.note && <p className="flow-note">{step.note}</p>}{spec.title === 'Gói và thanh toán' && index === 2 && <BillingInvoicePanel/>}{message && <p className="flow-note" role="status">{message}</p>}<div className="flow-actions">{index > 0 && <button type="button" className="flow-secondary" onClick={() => setIndex(index - 1)}>Quay lại</button>}<button type="submit" disabled={isSample && index === 0 && sampleChoice !== 'confirmed'} className="flow-primary">{isDeck && index === 0 && values.enable !== true ? 'Bỏ qua · không tạo deck' : index === spec.steps.length - 1 ? 'Hoàn tất xem trước' : 'Tiếp tục'} <span aria-hidden="true">→</span></button></div></form>}</section></div><FlowRecoveryDisclosure title={spec.title} boundary={spec.boundary}/></div>;
 }
 
 function FlowDetailDialog({ spec, item, close }: { spec: Operation; item: Operation['items'][number]; close: () => void }) {
@@ -777,8 +1035,8 @@ function ManagerPublicationReview() {
   </div>;
 }
 
-export function RoleFlowPage({ role, page, onNavigate }: { role: Role; page: string; onNavigate: (id: string) => void }) {
-  if (page === 'session' && role === 'teacher') return <TeacherSessionWorkspace key={`${role}-${page}`}/>;
+export function RoleFlowPage({ role, page, onNavigate, onSaveImportDraft }: { role: Role; page: string; onNavigate: (id: string) => void; onSaveImportDraft?: (draft: ImportDraftPayload) => void }) {
+  if (page === 'session' && role === 'teacher') return <TeacherSessionWorkspace key={`${role}-${page}`} onNavigate={onNavigate}/>;
   if (page === 'review' && role === 'manager') return <ManagerPublicationReview key={`${role}-${page}`}/>;
   if (page === 'sample' && role === 'teacher') return <WizardPage key={`${role}-${page}`} spec={flowSpecs.sample} role={role} page={page} onNavigate={onNavigate}/>;
   if (page === 'transfers' && role === 'manager') return <ManagerTransferWorkbench key={`${role}-${page}`}/>;
@@ -801,7 +1059,7 @@ export function RoleFlowPage({ role, page, onNavigate }: { role: Role; page: str
   if (!allowed[role].includes(page)) return null;
   const flow = flowSpecs[page];
   const operation = operationSpecs[page];
-  return flow ? <WizardPage key={`${role}-${page}`} spec={flow} role={role} page={page} onNavigate={onNavigate}/> : operation ? <OperationsPage key={`${role}-${page}`} spec={operation}/> : null;
+  return flow ? <WizardPage key={`${role}-${page}`} spec={flow} role={role} page={page} onNavigate={onNavigate} onSaveImportDraft={page === 'import' ? onSaveImportDraft : undefined}/> : operation ? <OperationsPage key={`${role}-${page}`} spec={operation}/> : null;
 }
 
 export function hasRoleFlow(role: Role, page: string): boolean {

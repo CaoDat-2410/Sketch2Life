@@ -12,6 +12,7 @@ import './rev5.css';
 import './rev6.css';
 import './rev7.css';
 import './rev8.css';
+import './rev13ProMax.css';
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

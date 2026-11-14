@@ -205,7 +205,7 @@ h1, h2, h3, p { margin: 0; }
 .pill--green { color: #4d7e61; background: #e9f3e6; }.pill--peach { color: #a65c39; background: #fff0e4; }
 .guide-toggle { display: flex; width: 100%; align-items: center; gap: 11px; min-height: 76px; margin-top: 14px; padding: 12px; border: 1.5px solid #dbe5f1; border-radius: 19px; background: #fff; text-align: left; cursor: pointer; }
 .guide-toggle.is-on { border-color: #80a7df; background: #f5f9ff; }
-.guide-toggle__icon { display: grid; place-items: center; flex: 0 0 40px; height: 40px; border-radius: 14px; color: #3165bb; background: #e6f0ff; }
+.guide-toggle__icon { display: grid; place-items: center; flex: 0 0 40px; height: 40px; border-radius: 14px; color: #2e6b53; background: #e7f0e6; }
 .guide-toggle__copy { display: flex; flex: 1; flex-direction: column; gap: 3px; }
 .guide-toggle__copy strong { color: #2d475b; font-size: 12px; }.guide-toggle__copy small { color: #758997; font-size: 10px; line-height: 1.35; font-weight: 700; }
 .switch { position: relative; display: inline-flex; flex: 0 0 42px; width: 42px; height: 25px; border-radius: 99px; background: #c7d1d8; transition: background .2s ease; }
@@ -234,7 +234,7 @@ h1, h2, h3, p { margin: 0; }
 .image-caption { position: absolute; right: 9px; bottom: 9px; padding: 5px 9px; border-radius: 99px; color: #546d7b; background: rgba(255,255,255,.85); font-size: 10px; font-weight: 800; }
 .subject-panel { margin-top: 13px; padding: 15px; border: 1px solid #e3e9ef; border-radius: 20px; background: #fff; box-shadow: var(--soft-shadow); }
 .subject-panel__title { display: flex; align-items: center; gap: 7px; color: #768c99; font-size: 11px; font-weight: 900; }
-.ai-dot { width: 8px; height: 8px; border-radius: 50%; background: #4e8ee2; box-shadow: 0 0 0 3px #e6f0ff; }
+.ai-dot { width: 8px; height: 8px; border-radius: 50%; background: #3f7559; box-shadow: 0 0 0 3px #e7f0e6; }
 .subject-suggestion { margin-top: 7px; color: #415b6b; font-size: 13px; }.subject-suggestion strong { color: #294f9a; }
 .subject-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
 .subject-chip { display: inline-flex; align-items: center; gap: 4px; min-height: 36px; padding: 0 11px; border: 1px solid #e4e9eb; border-radius: 99px; color: #627987; background: #fff; cursor: pointer; font-size: 11px; font-weight: 800; }
@@ -275,7 +275,7 @@ h1, h2, h3, p { margin: 0; }
 .processing-list { display: flex; width: 100%; flex-direction: column; gap: 12px; align-items: flex-start; padding: 14px 13px; border: 1px solid #e2eaf1; border-radius: 17px; background: rgba(255,255,255,.74); color: #81919b; text-align: left; font-size: 11px; font-weight: 800; }
 .processing-list > span { display: flex; align-items: center; gap: 8px; }.processing-list .processing-current { color: #345b9b; }
 .status-check, .status-wait, .status-spinner { display: inline-grid; place-items: center; flex: 0 0 19px; width: 19px; height: 19px; border-radius: 50%; }
-.status-check { color: #fff; background: #74aa84; }.status-wait { border: 1.6px solid #cad4dc; }.status-spinner { border: 2px solid #bfd3f1; border-top-color: #3068c1; animation: spin .8s linear infinite; }
+.status-check { color: #fff; background: #74aa84; }.status-wait { border: 1.6px solid #cad4dc; }.status-spinner { border: 2px solid #c7dbc9; border-top-color: #2e6b53; animation: spin .8s linear infinite; }
 .privacy-caption { display: inline-flex; align-items: center; gap: 5px; margin-top: 18px; color: #779080; font-size: 10px; font-weight: 800; }
 .flow-intro--center { display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 16px; }
 .flow-intro--center h1 { max-width: 300px; font-size: 25px; }.flow-intro--center p { margin-top: 4px; }
@@ -348,7 +348,7 @@ button:focus-visible, textarea:focus-visible, input:focus-visible { outline-colo
 .brand-mark { box-shadow: 0 2px 5px rgba(60, 62, 46, .12); }
 .brand-name { font-family: 'Baloo 2', sans-serif; color: var(--ink); }
 .child-avatar--peach { color: #8a4b2b; background: #fcefe6; }
-.child-avatar--lavender { color: #3152c4; background: #eef1e3; }
+.child-avatar--lavender { color: #2d5540; background: #e4ece2; }
 
 .hero-card {
   min-height: 294px;

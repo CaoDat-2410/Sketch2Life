@@ -6,4 +6,5 @@ import '../../shared/roleDashboards.css';
 import '../../shared/roleFlows.css';
 import '../../shared/visualPolish.css';
 import '../../shared/rev8ColorSystem.css';
+import '../../shared/rev13ProMax.css';
 createRoot(document.getElementById('root')!).render(<React.StrictMode><Workspace role="manager" /></React.StrictMode>);

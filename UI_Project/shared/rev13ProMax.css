@@ -1,0 +1,670 @@
+/* FEAT-069 Rev13 — UI/UX Pro Max Craft, High-Contrast Classroom Readability & Calm Structure (Web Workspaces + Portal) */
+
+.web-app {
+  --ink: #1b342c;
+  --muted: #4a6054;
+  --line: #cddad0;
+  --surface: #fffefa;
+  --canvas: #eef2ee;
+  color: var(--ink);
+  background: var(--canvas);
+}
+
+/* Eliminate faint low-contrast greens/grays that caused glare & eye strain (WCAG AA >= 4.5:1) */
+.web-app .web-nav button {
+  color: #3a5247;
+  font-size: 13px;
+  min-height: 44px;
+}
+
+.web-app .web-nav-group {
+  color: #4f665a;
+  font-size: 10.5px;
+}
+
+.web-app .web-brand small,
+.web-app .web-role-card small,
+.web-app .web-sidebar-footer small,
+.web-app .web-sidebar-user-copy small,
+.web-app .web-breadcrumb,
+.web-app .web-popover p {
+  color: #4a6054;
+}
+
+.web-app .web-breadcrumb strong,
+.web-app .web-role-card strong,
+.web-app .web-sidebar-user-copy strong {
+  color: #1b342c;
+}
+
+.web-app .web-page-head p,
+.web-app .web-metric p,
+.web-app .web-record-main small,
+.web-app .web-record-meta,
+.web-app .web-short-list small,
+.web-app .web-list-foot,
+.web-app .web-feature-side p,
+.web-app .web-step p,
+.web-app .web-setting-row small,
+.web-app .dash-intro-copy > p,
+.web-app .dash-intro-description,
+.web-app .dash-panel-note,
+.web-app .dash-compact-list small,
+.web-app .edu-lesson-copy small,
+.web-app .dash-feature-callout small,
+.web-app .dash-quiet-state p,
+.web-app .edu-topic-panel p,
+.web-app .flow-heading p,
+.web-app .flow-summary,
+.web-app .catalog-detail-panel > p,
+.web-app .catalog-records small,
+.web-app .manager-publication-title p,
+.web-app .manager-publication-queue > button small,
+.web-app .flow-operation-heading-copy p,
+.web-app .flow-operation-grid > button small,
+.web-app .billing-current-card > p,
+.web-app .billing-action-card > p,
+.web-app .dashboard-kpi-label,
+.web-app .dashboard-kpi > small,
+.web-app .dashboard-chart-foot,
+.web-app .dashboard-ring-copy p,
+.web-app .dashboard-ring small {
+  color: #4a6054;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.web-app .web-search input::placeholder,
+.web-app input::placeholder,
+.web-app textarea::placeholder {
+  color: #5b7165;
+  opacity: 1;
+}
+
+.web-app .web-filter button,
+.web-app .feedback-filters button {
+  min-height: 40px;
+  color: #3f5549;
+  font-size: 11.5px;
+  cursor: pointer;
+}
+
+.web-app .web-filter button.active,
+.web-app .feedback-filters button.is-active {
+  color: var(--accent-dark);
+  font-weight: 800;
+}
+
+.web-app .web-list-heading,
+.web-app .commerce-table-head,
+.web-app .catalog-list-head > label,
+.web-app .dashboard-section-label {
+  color: #475d51;
+  font-size: 10.5px;
+}
+
+.web-app .flow-eyebrow,
+.web-app .dash-overline,
+.web-app .web-eyebrow {
+  font-size: 10.5px;
+  letter-spacing: 0.11em;
+}
+
+/* Soften harsh pure-white glare & strengthen subtle card hierarchy */
+.web-app .web-topbar {
+  background: rgba(250, 251, 248, 0.94);
+  border-bottom-color: #cedad0;
+}
+
+.web-app .web-sidebar {
+  background: #fbfcf9;
+  border-right-color: #cedad0;
+}
+
+.web-app :is(.web-card, .dash-panel, .dash-metric, .web-panel, .flow-card, .flow-rail, .flow-operation, .teacher-session-setup, .teacher-session-stage, .catalog-create-panel, .catalog-list-panel, .catalog-detail-panel, .manager-publication-queue, .manager-publication-detail) {
+  border-color: #cddad0;
+  background-color: #fdfefb;
+  box-shadow: 0 8px 24px rgb(27 52 44 / 5%);
+}
+
+.web-app :is(.web-record, .dash-compact-list > button, .edu-lesson-rows > button, .catalog-records > button, .manager-publication-queue > button, .feedback-entry, .flow-operation-grid > button) {
+  cursor: pointer;
+  transition: background-color 180ms cubic-bezier(.22, 1, .36, 1), border-color 180ms cubic-bezier(.22, 1, .36, 1), transform 180ms cubic-bezier(.22, 1, .36, 1), box-shadow 180ms cubic-bezier(.22, 1, .36, 1);
+}
+
+.web-app .web-record:hover,
+.web-app .dash-compact-list > button:hover,
+.web-app .edu-lesson-rows > button:hover {
+  background: #f2f7f2;
+}
+
+/* Calm, understated fixture/boundary notes instead of distracting warning boxes */
+.web-app .feedback-preview-note,
+.web-app .dashboard-contract-note,
+.web-app .preview-boundary-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  padding: 10px 14px;
+  border: 1px solid #d1dfd4;
+  border-radius: 12px;
+  background: #f3f7f2;
+  color: #365043;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.web-app .feedback-preview-note strong,
+.web-app .dashboard-contract-note strong {
+  color: #214536;
+}
+
+.web-app .feedback-preview-note span,
+.web-app .dashboard-contract-note span {
+  color: #465f52;
+}
+
+/* Teacher Classroom Presentation Session — higher legibility & clear active step pills */
+.teacher-session-sequence {
+  gap: 8px;
+  padding: 11px 13px;
+  border-color: #cedad0;
+  background: #f4f8f3;
+}
+
+.teacher-session-sequence span {
+  padding: 5px 10px;
+  border-radius: 999px;
+  color: #496054;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.teacher-session-sequence span.is-done {
+  background: #e5efe5;
+  color: #28543e;
+}
+
+.teacher-session-sequence span.is-current {
+  background: #28543e;
+  color: #fff;
+}
+
+.teacher-session-sequence span.is-current::after {
+  display: none;
+}
+
+.teacher-session-deck-stage {
+  min-height: 295px;
+  padding: 24px;
+  border: 1px solid #cad8cd;
+  border-radius: 16px;
+  background: #fffefa;
+  box-shadow: inset 0 0 0 10px #eff5ee;
+}
+
+.teacher-session-deck-stage > span {
+  color: #2f5e47;
+  font-size: 11px;
+}
+
+.teacher-session-deck-stage > strong {
+  color: #1b342c;
+  font-size: 20px;
+}
+
+.teacher-session-deck-stage > small {
+  max-width: 500px;
+  color: #445b4f;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.teacher-session-deck-controls button,
+.teacher-session-activity-list > button,
+.teacher-session-actions > button {
+  min-height: 44px;
+  font-size: 12px;
+}
+
+.teacher-session-activity-list small,
+.teacher-session-deck-choice small,
+.teacher-session-empty > p,
+.teacher-session-ended > p,
+.teacher-session-boundary,
+.teacher-session-notice,
+.teacher-session-interaction p,
+.teacher-session-sample-gate p {
+  color: #445b4f;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* Teacher / Manager / Admin centered modal & portal readability */
+.web-detail-modal {
+  border: 1px solid #c9d8cc;
+  box-shadow: 0 28px 70px rgb(24 46 37 / 24%);
+}
+
+.web-detail-modal dt,
+.web-detail-modal dd {
+  font-size: 12px;
+}
+
+.unified-auth {
+  color: #1b342c;
+}
+
+.unified-auth-story > p,
+.unified-auth-heading > p,
+.unified-auth-form-wrap > p,
+.unified-preview-actions > span,
+.unified-auth-note {
+  color: #465d51;
+  font-size: 12.5px;
+}
+
+/* Remove duplicate native select triangle where wrappers render custom chevron */
+.web-app select,
+.unified-auth select {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  align-content: center;
+  padding-right: 40px !important;
+}
+
+.web-app select::picker-icon,
+.unified-auth select::picker-icon {
+  display: none !important;
+  content: "" !important;
+  width: 0 !important;
+  opacity: 0 !important;
+}
+
+.flow-steps {
+  scrollbar-width: thin;
+  scrollbar-color: #c2d4c6 transparent;
+}
+
+/* FEAT-069 Rev14 — Consolidated hub sub-tabs, header actions & notification shortcut */
+.web-hub-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 14px;
+  margin-bottom: 18px;
+  padding: 8px 10px;
+  border: 1px solid #cddad0;
+  border-radius: 16px;
+  background: #fffefa;
+  box-shadow: 0 4px 14px rgb(27 52 44 / 4%);
+}
+
+.web-hub-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.web-hub-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  background: transparent;
+  color: #3f5549;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.web-hub-tab:hover {
+  background: #edf5ef;
+  color: #1b342c;
+}
+
+.web-hub-tab.is-active {
+  background: var(--accent, #2e6b53);
+  border-color: var(--accent, #2e6b53);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgb(46 107 83 / 22%);
+}
+
+.web-hub-tab:focus-visible {
+  outline: 2px solid var(--accent, #2e6b53);
+  outline-offset: 2px;
+}
+
+.web-hub-tab-step {
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #e3ede5;
+  color: #2f5e47;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.web-hub-tab.is-active .web-hub-tab-step {
+  background: rgb(255 255 255 / 22%);
+  color: #ffffff;
+}
+
+.web-head-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.web-app .web-head-actions .web-subtle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 9px 15px;
+  border: 1px solid #c5d4c8;
+  border-radius: 12px;
+  background: #fffefa;
+  color: #1b342c;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.web-app .web-head-actions .web-subtle:hover {
+  background: #eef5ef;
+  border-color: #9cb7a2;
+}
+
+.web-popover-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.web-popover-actions .web-primary-inline {
+  min-height: 36px;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--accent, #2e6b53);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.web-breadcrumb small {
+  color: #5b7165;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .web-hub-bar {
+    padding: 6px;
+    border-radius: 14px;
+  }
+
+  .web-hub-tab {
+    flex: 1 1 auto;
+    justify-content: center;
+    padding: 8px 10px;
+    font-size: 12.5px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .web-app *,
+  .web-app *::before,
+  .web-app *::after,
+  .unified-auth * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* FEAT-069 Rev15 — Seamless Teacher Session inline sample stages & 16:9 Sketch Slides */
+.teacher-session-sketch-svg {
+  display: block;
+  width: 100%;
+  max-width: 520px;
+  height: auto;
+  margin: 6px auto 10px;
+  border-radius: 14px;
+}
+
+.teacher-session-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.teacher-session-plan-link--subtle {
+  margin-top: 12px;
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.teacher-session-inline-sample {
+  display: grid;
+  gap: 14px;
+}
+
+.teacher-sample-substeps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.teacher-sample-substeps button {
+  min-height: 44px;
+  padding: 6px 8px;
+  border: 1px solid #cddad0;
+  border-radius: 10px;
+  background: #f5f9f4;
+  color: #355243;
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.teacher-sample-substeps button.is-active {
+  background: #2e6b53;
+  border-color: #2e6b53;
+  color: #ffffff;
+}
+
+.teacher-sample-substeps button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.teacher-sample-panel {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid #d5e2d7;
+  border-radius: 16px;
+  background: #fffefa;
+}
+
+.teacher-sample-upload-row {
+  display: grid;
+  grid-template-columns: minmax(210px, 0.95fr) minmax(0, 1.05fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.teacher-sample-photo-box {
+  display: grid;
+  place-items: center;
+  min-height: 190px;
+  padding: 12px;
+  border: 2px dashed #9dbfa7;
+  border-radius: 14px;
+  background: #f7fbf7;
+  color: #2f5e47;
+  font-size: 12.5px;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.teacher-sample-photo-box img {
+  display: block;
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.teacher-sample-meta {
+  display: grid;
+  gap: 12px;
+}
+
+.teacher-sample-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.teacher-sample-chips button {
+  min-height: 40px;
+  padding: 6px 12px;
+  border: 1px solid #cddad0;
+  border-radius: 999px;
+  background: #fffefa;
+  color: #28543e;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.teacher-sample-chips button.is-selected {
+  background: #2e6b53;
+  border-color: #2e6b53;
+  color: #ffffff;
+}
+
+.teacher-sample-meta textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #cad8cd;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #1b342c;
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.teacher-sample-script-card {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid #dce8dc;
+  border-radius: 12px;
+  background: #f6faf5;
+}
+
+.teacher-sample-script-card strong {
+  color: #1b342c;
+  font-size: 15px;
+}
+
+.teacher-sample-script-card p,
+.teacher-sample-script-card li {
+  color: #3d5649;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.teacher-sample-script-card ol {
+  margin: 4px 0 0 18px;
+  display: grid;
+  gap: 4px;
+}
+
+.teacher-sample-player {
+  display: grid;
+  gap: 8px;
+}
+
+.teacher-sample-player-screen {
+  position: relative;
+  border: 1px solid #cad8cd;
+  border-radius: 14px;
+  background: #f5f9f4;
+  padding: 8px;
+}
+
+.teacher-sample-player.is-playing .teacher-sample-player-screen {
+  border-color: #2e6b53;
+  box-shadow: 0 0 0 3px rgb(46 107 83 / 15%);
+}
+
+.teacher-sample-play-btn {
+  display: block;
+  margin: 0 auto 6px;
+  min-height: 44px;
+  padding: 8px 18px;
+  border: 0;
+  border-radius: 999px;
+  background: #2e6b53;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.teacher-sample-caption {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #edf5ee;
+  color: #28543e;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.teacher-session-step-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 6px;
+}
+
+.teacher-session-step-actions > button {
+  min-height: 44px;
+}
+
+@media (max-width: 720px) {
+  .teacher-sample-substeps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .teacher-sample-upload-row {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,413 @@
+/* FEAT-069 Rev13 — UI/UX Pro Max Craft + Calm Forest-Green Storybook Consistency for Parent Mobile / WebView */
+
+.phone-shell {
+  --ink: #1f3930;
+  --ink-soft: #475f53;
+  --blue: #3f7559;
+  --blue-deep: #28543e;
+  --sky: #e7f0e6;
+  --line: #d4dfd7;
+  --surface: #fffefa;
+  --rev7-blue: #3f7559;
+  --rev7-blue-dark: #28543e;
+  color: var(--ink);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.phone-shell :is(button, a, input, select, textarea, label) {
+  touch-action: manipulation;
+}
+
+/* Harmonize leftover Rev7 blue states into the approved forest-sage-gold palette */
+.library-quota-meter i {
+  background: linear-gradient(90deg, #4b8a68, #28543e);
+}
+
+.library-resume-card:hover,
+.library-quota-summary:hover {
+  border-color: #8bb499;
+  background: #f3f8f3;
+}
+
+.history-range-filter button {
+  min-height: 44px;
+  padding: 0 14px;
+  color: #465d51;
+  font-size: 12px;
+}
+
+.history-range-filter button.is-active {
+  border-color: #3f7559;
+  background: #e7f0e6;
+  color: #244c3b;
+}
+
+.parent-job-timeline li.is-current > span {
+  border-color: #3f7559;
+  background: #e7f0e6;
+  color: #244c3b;
+  box-shadow: 0 0 0 4px #edf5ed;
+}
+
+.parent-job-timeline li.is-current > strong {
+  color: #244c3b;
+}
+
+.phone-shell .pill--blue,
+.phone-shell .soft-card--blue {
+  background: #e7f0e6;
+  color: #28543e;
+  border-color: #c8dbc9;
+}
+
+.phone-shell .soft-card--blue svg {
+  color: #2e6b53;
+}
+
+.phone-shell .guide-toggle__icon {
+  background: #e7f0e6;
+  color: #2e6b53;
+}
+
+.phone-shell .ai-dot {
+  background: #3f7559;
+  box-shadow: 0 0 0 3px #e7f0e6;
+}
+
+.phone-shell .status-spinner {
+  border-color: #c7dbc9;
+  border-top-color: #2e6b53;
+}
+
+.phone-shell .child-avatar--lavender {
+  background: #e4ece2;
+  color: #2d5540;
+}
+
+.phone-shell .sketch-preview-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 14px;
+  border: 1px solid #d5e2d7;
+}
+
+/* Fix white-on-cream FAB label & native select arrow wrapping across Chromium/WebView */
+.bottom-nav__create {
+  color: #264d3b !important;
+}
+
+.bottom-nav__create > span:last-child {
+  color: #264d3b;
+  font-weight: 800;
+}
+
+.bottom-nav__create-icon {
+  color: #ffffff;
+}
+
+.phone-shell select.text-field,
+.library-child-switcher select {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  align-content: center;
+  height: auto;
+  min-height: 44px;
+  padding: 11px 36px 11px 12px;
+  line-height: 1.35;
+  background-color: #ffffff;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2328543e' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 15px 15px;
+}
+
+.phone-shell select::picker-icon {
+  display: none !important;
+  content: "" !important;
+  width: 0 !important;
+  opacity: 0 !important;
+}
+
+.library-child-switcher select {
+  padding: 9px 30px 9px 10px;
+  background-position: right 9px center;
+}
+
+/* Global Discord-style Settings access across Home, Subpages, and Story Flow without collisions */
+.home-header__actions,
+.flow-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+}
+
+.home-header__actions .icon-button,
+.flow-header .back-button,
+.flow-header .flow-settings,
+.flow-header .close-flow,
+.subpage-header .back-button,
+.subpage-settings-button {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  transition: background-color 180ms cubic-bezier(.22, 1, .36, 1), transform 180ms cubic-bezier(.22, 1, .36, 1);
+}
+
+.flow-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.flow-header > span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #1f3930;
+}
+
+.flow-header .flow-settings,
+.subpage-settings-button {
+  border: 1px solid #d7e2d9;
+  background: #fffdf7;
+  color: #28543e;
+  box-shadow: 0 2px 7px rgb(35 55 70 / 7%);
+}
+
+.flow-header .flow-settings:hover,
+.subpage-settings-button:hover,
+.home-header__actions .icon-button:hover {
+  background: #eef5ee;
+}
+
+.subpage-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-right: 16px;
+}
+
+.subpage-header__title {
+  flex: 1;
+  min-width: 0;
+}
+
+.subpage-header h1 {
+  color: #1f3930;
+  line-height: 1.18;
+  word-break: break-word;
+}
+
+.subpage-header p {
+  margin: 3px 0 0;
+  color: #475f53;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* Pre-video Outdoor Activity selector & Auto-Context pill (Leader workflow) */
+.auto-context-pill {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 12px;
+  padding: 11px 13px;
+  border: 1px solid #d2e2d5;
+  border-radius: 14px;
+  background: #eff6ef;
+  color: #244c3b;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.auto-context-pill svg {
+  flex: none;
+  color: #3f7559;
+}
+
+.prevideo-activity-panel {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 16px;
+  padding: 15px;
+  border: 1px solid #d5e2d7;
+  border-radius: 18px;
+  background: #fffdf8;
+  box-shadow: 0 6px 18px rgb(40 84 62 / 6%);
+}
+
+.prevideo-activity-panel .section-heading {
+  margin: 0;
+}
+
+.prevideo-activity-panel__hint {
+  margin: -2px 0 2px;
+  color: #475f53;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.prevideo-activity-panel .lesson-activity-choice-list {
+  margin: 2px 0;
+}
+
+.lesson-activity-choice {
+  min-height: 48px;
+  align-items: center;
+  cursor: pointer;
+  transition: border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
+}
+
+.lesson-activity-choice__copy strong {
+  color: #1f3930;
+  font-size: 13px;
+}
+
+.lesson-activity-choice__copy small,
+.lesson-activity-choice__copy > span {
+  color: #475f53;
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+/* Live Audio status & streamlined recording card */
+.audio-live-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0 10px;
+  padding: 9px 12px;
+  border: 1px solid #d4e3d7;
+  border-radius: 12px;
+  background: #eff6ef;
+  color: #28543e;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.audio-live-status--error {
+  border-color: #ebc6ba;
+  background: #fff4ef;
+  color: #964133;
+}
+
+.audio-live-status button {
+  margin-left: auto;
+  min-height: 36px;
+  padding: 0 10px;
+  border: 1px solid #ddb0a2;
+  border-radius: 9px;
+  background: #fff;
+  color: #8c392c;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.phone-shell .audio-upload {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  border-color: #ceddce;
+  border-radius: 13px;
+  background: #f9fcf8;
+  color: #35694f;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Contrast, typography scale (>=11.5px readable helpers, >=4.5:1 muted ink) & touch targets */
+.home-start p,
+.parent-home-note,
+.flow-intro p,
+.lesson-choice-group__heading small,
+.lesson-choice-empty,
+.lesson-choice__text small,
+.guide-option small,
+.guide-step-copy p,
+.subject-suggestion,
+.direction-options small,
+.mismatch-preview-result small,
+.mismatch-preview-options small,
+.script-card__footer,
+.library-group-heading p,
+.library-child-switcher small,
+.library-resume-card small,
+.library-quota-summary small,
+.preview-capability-list span,
+.prototype-note,
+.inline-note {
+  color: #475f53;
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+.lesson-choice-group__heading strong,
+.lesson-choice__text strong,
+.guide-option strong,
+.subject-panel__title,
+.mismatch-preview-result strong,
+.direction-options strong {
+  color: #1f3930;
+  font-size: 13px;
+}
+
+.library-tabs button,
+.history-filters button,
+.lesson-detail-action,
+.mismatch-preview-actions button,
+.subject-chip,
+.guide-difficulty-choice button {
+  min-height: 44px;
+  font-size: 12px;
+}
+
+.prototype-note {
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #f4f7f3;
+  text-align: center;
+}
+
+.preview-inline-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 5px 8px;
+  margin: 0 0 12px;
+  padding: 9px 12px;
+  border: 1px solid #d7e4d8;
+  border-radius: 12px;
+  background: #f4f8f4;
+  color: #355847;
+  font-size: 11.5px;
+}
+
+.preview-inline-note strong {
+  color: #244c3b;
+  font-size: 11.5px;
+}
+
+.preview-inline-note span {
+  color: #4a6256;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .phone-shell *,
+  .phone-shell *::before,
+  .phone-shell *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

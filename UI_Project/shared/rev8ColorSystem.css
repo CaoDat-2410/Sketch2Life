@@ -1,30 +1,31 @@
 .web-app {
-  --accent: #285f7b;
-  --accent-dark: #204c65;
-  --accent-soft: #e4edf0;
-  --hero: #214f68;
-  --hero-2: #326f82;
-  --ink: #243746;
-  --muted: #526571;
-  --line: #d4dddf;
+  --brand-primary: #3f7559;
+  --accent: #3f7559;
+  --accent-dark: #28543e;
+  --accent-soft: #e7f0e6;
+  --hero: #244c3b;
+  --hero-2: #3f7559;
+  --ink: #274139;
+  --muted: #5f7468;
+  --line: #d6e1d6;
   --surface: #fffefa;
   --canvas: #f1f3f1;
 }
 
 .web-app--manager {
-  --accent: #2d6878;
-  --accent-dark: #245564;
-  --accent-soft: #e2edef;
-  --hero: #245564;
-  --hero-2: #367687;
+  --accent: #386f54;
+  --accent-dark: #2b5944;
+  --accent-soft: #e5efe2;
+  --hero: #244b3b;
+  --hero-2: #427454;
 }
 
 .web-app--admin {
-  --accent: #375f7b;
-  --accent-dark: #294c65;
-  --accent-soft: #e5edf2;
-  --hero: #294e67;
-  --hero-2: #466f89;
+  --accent: #4b704e;
+  --accent-dark: #34573c;
+  --accent-soft: #e9f0e1;
+  --hero: #294a38;
+  --hero-2: #4b7551;
 }
 
 .web-app {
@@ -33,13 +34,13 @@
 }
 
 .web-app :is(input, select, textarea) {
-  border-color: #c9d4d7;
-  color: #243746;
+  border-color: #ccd9ce;
+  color: #274139;
 }
 
 .web-app :is(input, select, textarea):focus-visible,
 .web-app :is(button, a, [tabindex]):focus-visible {
-  outline: 3px solid #397f9d;
+  outline: 3px solid #5b9871;
   outline-offset: 2px;
 }
 
@@ -53,7 +54,7 @@
 }
 
 .web-app :is(.web-page-title, .web-page-head h1, .dash-heading h1, .dash-panel h2, .dash-panel h3) {
-  color: #243746;
+  color: #274139;
 }
 
 .web-app :is(.dash-overline, .web-sidebar-nav a.is-active, .web-sidebar-nav button.is-active) {
@@ -89,44 +90,124 @@
 }
 
 .web-app .web-subtle {
-  color: #294e62;
-  border-color: #cad6d8;
-  background: #f3f6f5;
+  color: #35694f;
+  border-color: #ceddce;
+  background: #edf3e9;
+}
+
+.web-app--manager .dashboard-welcome {
+  background:
+    radial-gradient(circle at 84% 22%, #f3dfaa99 0 7%, transparent 7.3%),
+    radial-gradient(circle at 100% 0%, #dcebd9 0 22%, transparent 22.4%),
+    linear-gradient(112deg, #fffdf5 4%, #eef6ee 56%, #e4f0e4 100%);
+}
+
+.web-app--admin .dashboard-welcome {
+  background:
+    radial-gradient(circle at 84% 22%, #f3dfaa99 0 7%, transparent 7.3%),
+    radial-gradient(circle at 100% 0%, #e1edd9 0 22%, transparent 22.4%),
+    linear-gradient(112deg, #fffdf5 4%, #f0f5ec 56%, #e7f0e2 100%);
+}
+
+.dash-intro--manager {
+  background: linear-gradient(110deg, #fffdf7 6%, #f1f7f0 64%, #e5efe3);
+}
+
+.dash-intro--admin {
+  background: linear-gradient(110deg, #fffdf7 6%, #f3f7ee 64%, #e8f0e2);
+}
+
+.dash-intro--manager:before {
+  background: #dcead9;
+}
+
+.dash-intro--admin:before {
+  background: #e1ecd8;
+}
+
+.web-app .flow-primary {
+  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+  box-shadow: 0 6px 15px rgb(40 84 62 / 18%);
+}
+
+.web-app .flow-primary:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+.web-app .flow-primary:disabled {
+  box-shadow: none;
+}
+
+.web-app .teacher-next-session {
+  background: linear-gradient(135deg, #eef6ee, #fff9e9);
+}
+
+.web-app .teacher-next-session h2,
+.web-app .manager-publication-title h2 {
+  color: #274139;
+}
+
+.web-app .manager-publication-queue > .catalog-list-head > span {
+  background: #e7f0e6;
+  color: #28543e;
+}
+
+.web-app .manager-publication-queue .catalog-records > button.is-selected {
+  border-color: #9fc3a7;
+  background: #edf5ec;
+}
+
+.web-app .manager-publication-tabs button.is-active {
+  color: var(--accent-dark);
+}
+
+.web-app .manager-review-content section > span {
+  color: var(--accent);
+}
+
+.web-app .manager-review-checklist {
+  border-color: #d6e4d6;
+  background: linear-gradient(130deg, #f1f8f2, #f7faf3);
+}
+
+.web-app .manager-review-checklist input {
+  accent-color: var(--accent);
 }
 
 .unified-auth {
-  color: #243746;
-  background: radial-gradient(circle at 8% 12%, #dce9ec 0, transparent 29%), radial-gradient(circle at 95% 86%, #e4ece6 0, transparent 29%), #f1f3f1;
+  --brand-primary: #3f7559;
+  color: #274139;
+  background: radial-gradient(circle at 8% 12%, #e1eee3 0, transparent 29%), radial-gradient(circle at 95% 86%, #e8efe1 0, transparent 29%), #f1f4ee;
 }
 
 .unified-auth-shell {
-  border-color: #d6e0e1;
+  border-color: #d6e2d7;
   background: #fffefa;
   box-shadow: 0 24px 70px rgb(35 55 70 / 12%);
 }
 
 .unified-auth-story {
-  background: linear-gradient(145deg, #dce9ed, #eaf0e8 58%, #f1ecd9);
+  background: linear-gradient(145deg, #e1eee4, #eaf1e5 58%, #f1ecd9);
 }
 
 .unified-auth-kicker {
-  color: #285f7b;
+  color: #3f7559;
 }
 
 .unified-auth-story > p,
 .unified-auth-heading > p,
 .unified-auth-form-wrap > p {
-  color: #526571;
+  color: #5f7468;
 }
 
 .unified-role-list button.is-selected {
-  border-color: #9fbac5;
-  background: #e6eff1;
-  color: #244c62;
+  border-color: #9fc3a7;
+  background: #e7f1e7;
+  color: #28543e;
 }
 
 .unified-preview-actions > span {
-  color: #50636b;
+  color: #5c7066;
 }
 
 .unified-preview-actions button {
@@ -141,32 +222,32 @@
 
 .unified-auth-form input,
 .unified-auth-form select {
-  border-color: #c9d4d7;
-  color: #243746;
+  border-color: #ccd9ce;
+  color: #274139;
 }
 
 .unified-auth-form input:focus,
 .unified-auth-form select:focus {
-  border-color: #397f9d;
-  box-shadow: 0 0 0 3px #e1edf0;
+  border-color: #5b9871;
+  box-shadow: 0 0 0 3px #e4efe4;
 }
 
 .unified-auth-submit {
   color: #fff;
-  background: #285f7b;
+  background: #3f7559;
 }
 
 .unified-auth-submit:hover {
-  background: #204c65;
+  background: #28543e;
 }
 
 .unified-auth-link {
-  color: #285f7b;
+  color: #367555;
 }
 
 .unified-auth-note {
-  color: #4f6069;
-  background: #edf2f0;
+  color: #526a5d;
+  background: #edf2eb;
 }
 
 @media (prefers-reduced-motion: reduce) {
