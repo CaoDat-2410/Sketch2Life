@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import type { SuggestedActivity } from '../../domain/types';
-import { Card, Notice, PrimaryButton, ScreenFrame, SectionTitle, palette } from '../components/ui';
+import { Card, Notice, ScreenFrame, SectionTitle, palette } from '../components/ui';
 
 type Props = {
   stepLabel: string;
@@ -11,7 +11,6 @@ type Props = {
   requested: boolean;
   error: string;
   onSuggest: () => void;
-  onSkip: () => void;
   onBack: () => void;
 };
 
@@ -19,8 +18,8 @@ export function ActivityScreen(props: Props): React.JSX.Element {
   const pinnedActivities = props.activities.filter((activity) => activity.source === 'PINNED_LESSON');
   const pinExample = pinnedActivities[0];
   return (
-    <ScreenFrame title="Gợi ý hoạt động" subtitle="Hoạt động chính chưa khả dụng. Bạn vẫn có thể tiếp tục tạo kịch bản." step={props.stepLabel} onBack={props.onBack}>
-      <Notice text="Hoạt động chính: chưa khả dụng. Chưa thể chọn hoạt động, tạo bản nháp hoặc thay thế hoạt động." tone="warning" />
+    <ScreenFrame title="Chọn hoạt động chính" subtitle="Cần xác nhận một hoạt động trước khi tạo kịch bản." step={props.stepLabel} onBack={props.onBack}>
+      <Notice text="Chưa thể chọn hoạt động chính vì dịch vụ chưa khả dụng. Bạn chưa thể tiếp tục sang bước kịch bản." tone="warning" />
       {props.error ? <Notice text={props.error} tone="error" /> : null}
       {pinExample ? <Notice
         text={'Chỉ đọc từ phiên bản đã ghim · ' + (pinExample.source_lesson_version_id ?? 'không rõ phiên bản') + ' · SHA-256 ' + (pinExample.source_content_sha256 ?? 'không rõ hash')}
@@ -50,7 +49,6 @@ export function ActivityScreen(props: Props): React.JSX.Element {
           {activity.safety_notes ? <Notice text={'Lưu ý: ' + activity.safety_notes} tone="warning" /> : null}
         </Card>
       ))}
-      <PrimaryButton label="Tiếp tục đến kịch bản" disabled={props.busy} onPress={props.onSkip} />
     </ScreenFrame>
   );
 }

@@ -9,6 +9,7 @@ type Props = {
   jobStage: ParentJobStageState;
   stepLabel: string;
   story: StoryDraft | null;
+  mainActivityConfirmed: boolean;
   rewriteCount: number;
   rewriteInstruction: string;
   busy: boolean;
@@ -28,16 +29,19 @@ export function StoryScreen(props: Props): React.JSX.Element {
   const videoStateMessage = props.videoCapability.state === 'unavailable'
     ? 'Tạo video, kiểm tra an toàn và phát video chưa khả dụng vì chưa có hợp đồng dịch vụ được xác nhận. Chưa có yêu cầu tạo video nào được gửi.'
     : jobStageMessage(props.jobStage);
+  const activityGateMessage = props.mainActivityConfirmed
+    ? 'Hoạt động chính đã được xác nhận.'
+    : 'Cần chọn và xác nhận một hoạt động chính trước khi tạo, sửa hoặc xác nhận kịch bản. Dịch vụ chọn hoạt động hiện chưa khả dụng.';
 
   return (
     <ScreenFrame title="Rà soát kịch bản" subtitle="Xác nhận đúng bản đang hiển thị." step={props.stepLabel} onBack={props.onBack}>
-      <Notice text="Hoạt động chính: chưa khả dụng. Kịch bản vẫn có thể tiếp tục mà không gắn hoạt động." tone="warning" />
+      <Notice text={activityGateMessage} tone={props.mainActivityConfirmed ? 'info' : 'warning'} />
       <Notice text={videoStateMessage} tone="warning" />
       {props.error ? <Notice text={props.error} tone="error" /> : null}
       {!props.story ? <Card style={styles.generationCard}><Text style={styles.bodyText}>Kịch bản được cá nhân hóa theo tranh và chủ thể đã xác nhận.</Text>{props.attempted ? <>
         <Notice text="Yêu cầu chưa có kết quả hiển thị. Không tự gửi lại; bạn có thể chọn gửi lại cùng yêu cầu." tone="warning" />
-        <SecondaryButton label="Gửi lại cùng yêu cầu" disabled={props.busy} onPress={props.onRetry} />
-      </> : <PrimaryButton label="Tạo kịch bản bằng trí tuệ nhân tạo" busy={props.busy} onPress={props.onGenerate} />}</Card> : (
+        <SecondaryButton label="Gửi lại cùng yêu cầu" disabled={!props.mainActivityConfirmed || props.busy} onPress={props.onRetry} />
+      </> : <PrimaryButton label="Tạo kịch bản bằng trí tuệ nhân tạo" busy={props.busy} disabled={!props.mainActivityConfirmed} onPress={props.onGenerate} />}</Card> : (
         <>
           <Card style={styles.storyCard}>
             <Text style={styles.draftLabel}>BẢN NHÁP · {storyLanguageLabel(props.story.language)}</Text>
@@ -63,11 +67,16 @@ export function StoryScreen(props: Props): React.JSX.Element {
           </Card>
           {!props.confirmed ? <Card style={styles.revisionCard}>
             <Text style={styles.revisionHint}>Mọi thay đổi tạo bản nội dung mới; xác nhận cũ không được dùng lại.</Text>
-            <Field label={`Gợi ý viết lại · tối đa 3 lần (còn ${Math.max(0, 3 - props.rewriteCount)})`} value={props.rewriteInstruction} onChangeText={props.onRewriteInstruction} placeholder="Nhập gợi ý viết lại" multiline editable={props.rewriteCount < 3 && !props.busy} />
-            {props.rewriteCount < 3 ? <SecondaryButton label="Gửi gợi ý viết lại · tối đa 3 lần" disabled={!props.rewriteInstruction.trim() || props.busy} onPress={props.onRewrite} /> : null}
+            <Field label={`Gợi ý viết lại · tối đa 3 lần (còn ${Math.max(0, 3 - props.rewriteCount)})`} value={props.rewriteInstruction} onChangeText={props.onRewriteInstruction} placeholder="Nhập gợi ý viết lại" multiline editable={props.mainActivityConfirmed && props.rewriteCount < 3 && !props.busy} />
+            {props.rewriteCount < 3 ? <SecondaryButton label="Gửi gợi ý viết lại · tối đa 3 lần" disabled={!props.mainActivityConfirmed || !props.rewriteInstruction.trim() || props.busy} onPress={props.onRewrite} /> : null}
             <Notice text="Người lớn xem lại và xác nhận đúng bản đang hiển thị." />
-            <PrimaryButton label="Xác nhận bản nội dung đang xem" busy={props.busy} disabled={!props.canConfirm || !props.story.revisionId || !props.story.sha256} onPress={props.onConfirm} />
-          </Card> : <Notice text="Kịch bản đã được người lớn xác nhận." tone="success" />}
+            <PrimaryButton label="Xác nhận bản nội dung đang xem" busy={props.busy} disabled={!props.mainActivityConfirmed || !props.canConfirm || !props.story.revisionId || !props.story.sha256} onPress={props.onConfirm} />
+          </Card> : <Notice
+            text={props.mainActivityConfirmed
+              ? 'Kịch bản đã được người lớn xác nhận.'
+              : 'Kịch bản đã được xác nhận; trạng thái hoạt động chính chưa được xác minh.'}
+            tone={props.mainActivityConfirmed ? 'success' : 'warning'}
+          />}
         </>
       )}
     </ScreenFrame>

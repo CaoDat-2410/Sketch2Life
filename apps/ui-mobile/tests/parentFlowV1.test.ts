@@ -85,7 +85,7 @@ describe('parentFlowV1 pure flow decisions', () => {
     })).toBe('unavailable');
   });
 
-  it('keeps unavailable consent informational while server revocation blocks profile learning', () => {
+  it('requires server-confirmed consent before profile learning', () => {
     expect(canStartProfileLearning('supported', {
       state: 'confirmed', source: 'server', policyRevision: 'synthetic-policy-rev-1',
     })).toBe(true);
@@ -97,7 +97,7 @@ describe('parentFlowV1 pure flow decisions', () => {
       { state: 'pending' as const },
       { state: 'unavailable' as const, reason: 'route-not-in-be-handoff' as const },
     ]) {
-      expect(canStartProfileLearning('supported', status)).toBe(true);
+      expect(canStartProfileLearning('supported', status)).toBe(false);
     }
     expect(canStartProfileLearning('supported', { state: 'revoked' })).toBe(false);
     expect(canStartProfileLearning('supported', {

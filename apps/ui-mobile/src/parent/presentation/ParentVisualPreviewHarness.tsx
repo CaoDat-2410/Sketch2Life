@@ -477,12 +477,13 @@ export function ParentVisualPreviewHarness(): React.JSX.Element {
     understanding: <UnderstandingScreen candidate={previewCandidate} stepLabel="5 / 7" subject="Mô phỏng · một con bướm" busy={false} error="" onSubject={ignoreAction} onConfirm={ignoreAction} onBack={ignoreAction} />,
     'context-before': <ContextScreen profile={previewProfile} contextRun={null} stepLabel="3 / 7" busy={false} confirmed={false} error="" onRetryCreate={ignoreAction} onConfirm={ignoreAction} onContinue={ignoreAction} onBack={ignoreAction} />,
     'context-after': <ContextScreen profile={previewProfile} contextRun={previewContextRun} stepLabel="5 / 7" busy={false} confirmed={false} error="" onRetryCreate={ignoreAction} onConfirm={ignoreAction} onContinue={ignoreAction} onBack={ignoreAction} />,
-    activity: <ActivityScreen stepLabel="6 / 7" activities={[previewSuggestedActivity]} source="PINNED_LESSON" busy={false} requested={false} error="" onSuggest={ignoreAction} onSkip={ignoreAction} onBack={ignoreAction} />,
+    activity: <ActivityScreen stepLabel="6 / 7" activities={[previewSuggestedActivity]} source="PINNED_LESSON" busy={false} requested={false} error="" onSuggest={ignoreAction} onBack={ignoreAction} />,
     story: <StoryScreen
       videoCapability={unavailable('video')}
       jobStage={{ state: 'idle', stage: 'idle' }}
       stepLabel="7 / 7"
       story={previewStory}
+      mainActivityConfirmed={false}
       rewriteCount={0}
       rewriteInstruction=""
       busy={false}

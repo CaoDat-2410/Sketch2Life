@@ -401,7 +401,6 @@ function renderLearningStep(
     requested={parent.activityAttempted}
     error={parent.activityError}
     onSuggest={() => void parent.requestActivities()}
-    onSkip={() => parent.setStep('story')}
     onBack={() => parent.setStep('context')}
   />;
   if (step === 'story') return <StoryScreen
@@ -409,6 +408,7 @@ function renderLearningStep(
     jobStage={platform.videoJobStage}
     stepLabel={stepLabel(7)}
     story={parent.story}
+    mainActivityConfirmed={false}
     rewriteCount={parent.rewriteCount}
     rewriteInstruction={parent.rewriteInstruction}
     busy={parent.busy === 'story' || parent.busy === 'rewrite' || parent.busy === 'confirm-story'}

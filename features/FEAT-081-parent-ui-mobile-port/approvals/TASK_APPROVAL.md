@@ -653,3 +653,24 @@ Addendum 31 - FEAT-081 offline preview integration for center Start action
 - Authorized paths: `apps/ui-mobile/src/parent/presentation/ParentVisualPreviewHarness.tsx`, the existing `bottom-bar` source assertion in `apps/ui-mobile/tests/parentSrsBehavior.test.ts`, this plan, and this approval record.
 - Scope: pass `ignoreAction` and the `Bắt đầu` label to the preview's `ParentBottomBar`; assert the new call shape in the existing source assertion block. No new test case or behavior change.
 - Verification and commit/push limits remain exactly as authorized in Addendum 30. OWNER_MODAL_CALL_APPROVED=NO.
+
+Addendum 32 - FEAT-081 Parent UI alignment to owner-supplied SRS Rev67
+
+- Status: APPROVED and launched under the owner's direct 2026-11-15 instruction to use the supplied SRS file, recheck the Parent UI, and correct FE mismatches where possible.
+- SRS input pin: owner-supplied `SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md`, 634,291 bytes / SHA-256 `B704163C9AAF7BB198D8578699F75DB8766C2226A52CD48B0ED1314AF5E21996`.
+- Approved plan: `features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_17.md`, 5,277 bytes / SHA-256 `1E166E3D6DE16F5D784626C03715E59F1C4B0281150755EF91F5446632B523D2`.
+- TASK_APPROVAL.md pre-append pin: 86,154 bytes / SHA-256 `6E3AC7929D2EC3BA9641488695C3F8AB983158D2C36717F701A72F83C67ED694`.
+- Authorized paths: `workflowTypes.ts`, `ActivityScreen.tsx`, `StoryScreen.tsx`, `ParentExpoApp.tsx`, `ParentVisualPreviewHarness.tsx`, existing assertions in `parentFlowV1.test.ts` and `parentSrsBehavior.test.ts`, `status/STATUS.md`, Plan Revision 17, and `evidence/IMPLEMENTATION_REPORT_SRS_REV67_UI_ALIGNMENT_20261115.md`.
+- Scope: pending/unavailable consent blocks learning; unavailable main-activity selection cannot be bypassed into story generation or confirmation; story actions remain disabled until an explicit confirmed-selection state is available. Keep pinned activities read-only. Add no fake selection, success, or API payload.
+- This addendum supersedes only the prior FEAT-081 non-blocking unavailable-consent behavior and the story-without-main-activity bypass for this owner-directed Rev67 alignment. No-preset support remains unavailable pending exact service-contract confirmation.
+- No backend, domain, API contract/payload, network, install, emulator, tests, typecheck, validators, Android build, or Modal work is authorized in this addendum. No staging, commit, or push. Do not edit `CONTEXT.md`, `DECISIONS.md`, the SRS file, or the repository-wide authority register. OWNER_MODAL_CALL_APPROVED=NO.
+
+Addendum 33 - FEAT-081 publish completed SRS Rev67 Parent UI alignment
+
+- Status: APPROVED and launched by the owner's direct 2026-11-15 instruction: “Th đẩy lên đi có gì vừa làm BE sửa tiếp”. This addendum authorizes publishing the completed Rev67 UI alignment scope so backend follow-up can proceed.
+- Approved plan pin: `features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_18.md`, 2,585 bytes / SHA-256 `4453F1C7FD45117420969F9D7BD2E7A93BBA4F61BFF1D2073E9522EFDABB6BB8`.
+- `TASK_APPROVAL.md` pre-append pin: 88,094 bytes / SHA-256 `69357AB7E419D607612CDE41879222C405E7C53B96CD6E26F1131F5C78EE7E3A`.
+- Authorized publication paths are exactly the allowlist in Plan Revision 18, including this plan and approval record. Do not stage any other file; preserve `CONTEXT.md` and `DECISIONS.md` unchanged.
+- Run only `python tools/validate_repository_security.py` as the repository-mandated pre-commit/pre-push check. Do not run tests, typecheck, other validators, diff-check, install, backend, Android build, emulator, Modal, or network inspection/fetch.
+- Create one new commit `fix(FEAT-081): enforce Rev67 Parent flow gates` on `feature/fe-mobile-remediation`, then push that branch to `origin` without force. Do not amend, rebase, squash, or rewrite existing commits. The Git push is the only authorized network action.
+- This addendum supersedes Addendum 32 only for its exact publication allowlist and the security validator authorization above. It authorizes no further implementation or API/backend changes. OWNER_MODAL_CALL_APPROVED=NO.

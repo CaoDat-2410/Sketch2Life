@@ -107,3 +107,12 @@ The sample P01 shows an active-child selector; HomeScreen has no selected-child 
 - Wave 3 / P03–P06 has no entry in `approvals/TASK_APPROVAL.md`. The latest approval is Addendum 8, limited to Wave 2B post-run rework. The only Wave 3 plan found is the draft under `tmp/fe081-wave3/`; `D-011` and `plan/PLAN_REVISION_4.md` are absent.
 - Wave 3 was not launched or implemented. Wave 2B remains subject to its Addendum 8 coordinator rework test/typecheck and owner final checks; no Wave 3 command budget is consumed by this review.
 - Re-sync discrepancy for owner reconciliation: current HEAD `3386d7e0` is the Wave 2A+2B commit and matches the cached `origin/feature/fe-mobile-remediation` ref, while older FEAT-081 context/status prose says Wave 2 is uncommitted and names `3c75b10d` as current. This review does not infer that the Addendum 8 post-rework checks or acceptance are complete.
+
+## Parent UI alignment review against owner-supplied SRS Rev67 — 2026-11-15
+
+- Review input: owner-supplied `SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md`, 634,291 bytes / SHA-256 `B704163C9AAF7BB198D8578699F75DB8766C2226A52CD48B0ED1314AF5E21996`. This feature review does not update the repository-wide SRS authority register or imply formal SRS sign-off.
+- Plan Revision 17: 5,277 bytes / SHA-256 `1E166E3D6DE16F5D784626C03715E59F1C4B0281150755EF91F5446632B523D`. Addendum 32 was appended to `TASK_APPROVAL.md`; its post-append pin is 88,094 bytes / SHA-256 `69357AB7E419D607612CDE41879222C405E7C53B96CD6E26F1131F5C78EE7E3A`.
+- FE corrections: unknown/pending/unavailable consent no longer opens learning; Activity no longer bypasses main-activity selection; story generation, retry, rewrite, and confirmation are gated on explicit activity confirmation. No activity selection/API behavior was fabricated.
+- Remaining gaps: the current application has no effective-consent or activity-selection service; no-preset Parent flow is blocked by the existing lesson-pin requirement; voice transcription, video/playback, post-video activities, and run lifecycle/history routes remain unavailable or unverified. See `evidence/IMPLEMENTATION_REPORT_SRS_REV67_UI_ALIGNMENT_20261115.md` for source references and limits.
+- Evidence report: 5,196 bytes / SHA-256 `9062E7A65A02BCB540AD43B0C6ABD9C882799B268FDBD72AB05D3B483C06781B`.
+- Static source review only. Tests, typecheck, validators, diff-check, install, network, backend, Android build, emulator, and Modal were not run. Nothing was staged, committed, or pushed. HEAD at the review snapshot: `af2dfc317e6d9a473b9288d1396ba5d1ece1a97c`.

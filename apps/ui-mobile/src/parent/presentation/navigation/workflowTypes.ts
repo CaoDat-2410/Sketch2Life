@@ -161,8 +161,7 @@ export function canStartProfileLearning(
   ageEligibility: ParentProfileAgeEligibility,
   consent: ParentConsentStatus,
 ): boolean {
-  if (ageEligibility !== 'supported' || consent.state === 'revoked') return false;
-  if (consent.state !== 'confirmed') return true;
+  if (ageEligibility !== 'supported' || consent.state !== 'confirmed') return false;
   return consent.source === 'server' && Boolean(consent.policyRevision.trim());
 }
 

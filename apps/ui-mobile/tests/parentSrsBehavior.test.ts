@@ -368,7 +368,7 @@ describe('R1 account and profile boundaries', () => {
     expect(canStartProfileLearning(
       parentProfileAgeEligibility(missingBand),
       createUnavailableParentConsentState('route-not-in-be-handoff').status,
-    )).toBe(true);
+    )).toBe(false);
     expect(parentProfileAgeEligibility({
       age_months: 72, age_band_ref: 'synthetic-age-6', age_band_version: null,
     })).toBe('unavailable');
@@ -379,7 +379,7 @@ describe('R1 account and profile boundaries', () => {
     expect(profileScreenSource).toContain('const hasIncompleteAgeBand = hasAgeBandRef !== hasAgeBandVersion');
     expect(profileScreenSource).toContain("'Nhóm tuổi chưa khả dụng'");
     expect(canStartProfileLearning('supported', { state: 'confirmed', source: 'server', policyRevision: 'synthetic-policy-v1' })).toBe(true);
-    expect(canStartProfileLearning('supported', createUnavailableParentConsentState('route-not-in-be-handoff').status)).toBe(true);
+    expect(canStartProfileLearning('supported', createUnavailableParentConsentState('route-not-in-be-handoff').status)).toBe(false);
     expect(canStartProfileLearning('supported', { state: 'revoked' })).toBe(false);
 
     const mutation = toParentProfileMutationInput({
@@ -577,12 +577,20 @@ describe('R2 backend route boundary', () => {
 
 describe('M3 concept surfaces and truthful capability states', () => {
   it('keeps the existing flow, typed unavailable states, and concept presentation', () => {
-    expect(activityScreenSource).toContain('title="Gợi ý hoạt động"');
-    expect(activityScreenSource).toContain('onPress={props.onSkip}');
+    expect(activityScreenSource).toContain('title="Chọn hoạt động chính"');
+    expect(activityScreenSource).not.toContain('onSkip');
+    expect(activityScreenSource).toContain('Cần xác nhận một hoạt động trước khi tạo kịch bản.');
+    expect(activityScreenSource).not.toContain('<PrimaryButton');
     expect(activityScreenSource).toContain('return \'Chưa xác định loại hoạt động\';');
     expect(activityScreenSource).toContain('activityCard: { backgroundColor: palette.white, gap: 12, minWidth: 0 }');
     expect(activityScreenSource).toContain('styles.emptyCard');
     expect(storyScreenSource).toContain('title="Rà soát kịch bản"');
+    expect(storyScreenSource).toContain('disabled={!props.mainActivityConfirmed}');
+    expect(storyScreenSource).toContain('disabled={!props.mainActivityConfirmed || props.busy}');
+    expect(storyScreenSource).toContain('editable={props.mainActivityConfirmed && props.rewriteCount < 3 && !props.busy}');
+    expect(storyScreenSource).toContain('disabled={!props.mainActivityConfirmed || !props.rewriteInstruction.trim() || props.busy}');
+    expect(storyScreenSource).toContain('!props.mainActivityConfirmed || !props.canConfirm');
+    expect(storyScreenSource).toContain('trạng thái hoạt động chính chưa được xác minh.');
     expect(storyScreenSource).toContain('storyLanguageLabel(props.story.language)');
     expect(storyScreenSource).toContain('Gửi gợi ý viết lại · tối đa 3 lần');
     expect(storyScreenSource).toContain('props.rewriteCount < 3');
@@ -682,8 +690,10 @@ describe('R3 story workflow safety boundaries', () => {
     expect(profileControllerSource).toContain('readRunPinnedLessonActivities(confirmedRun.lesson_pin_snapshot)');
     expect(profileControllerSource).not.toMatch(/application\.learning\.suggestActivities\(/);
     expect(activityScreenSource).toContain('PINNED_LESSON');
-    expect(activityScreenSource).toContain('Hoạt động chính: chưa khả dụng.');
-    expect(storyScreenSource).toContain('Kịch bản vẫn có thể tiếp tục mà không gắn hoạt động.');
+    expect(activityScreenSource).toContain('Chưa thể tiếp tục sang bước kịch bản.');
+    expect(storyScreenSource).toContain('Cần chọn và xác nhận một hoạt động chính trước khi tạo, sửa hoặc xác nhận kịch bản.');
+    expect(parentExpoAppSource).not.toContain("onSkip={() => parent.setStep('story')}");
+    expect(parentExpoAppSource).toContain('mainActivityConfirmed={false}');
   });
 
   it('requires GET reconciliation, exact story revision/hash pins, and no activity or media fields in story requests', () => {
