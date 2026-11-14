@@ -1,5 +1,9 @@
 # Source register and authority boundary
 
+## FEAT-069 Plan Rev10 — Admin/Manager web visual refinement — 2026-11-14
+
+Plan `features/FEAT-069-leader-uiux-review-remediation/plan/PLAN_REV10_WEB_VISUAL_REFINEMENT.md` (SHA-256 `0356B5B8CB6D8A2F8F0B4641158F91187823E99A9A3CE194D68EF86034F9E012`) governs UI-only visual improvements to the Platform Admin Activity Catalog, billing reconciliation, and School Manager publication review in `UI_Project/shared/roleFlows.tsx` and `roleFlows.css`. The leader's Rev38 A02/M01 and shared UI01 references inform visual treatment; FEAT-063 SRS v2.5-draft remains current, unsigned requirements authority. Values and transitions remain local fixtures; no APIs/auth/backend/SRS/business behavior were changed. Verification and limits are in FEAT-069 `evidence/notes/REV10_VISUAL_REFINEMENT_20261114.md`.
+
 
 ## Canonical product SRS — current working baseline
 

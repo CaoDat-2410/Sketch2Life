@@ -1,5 +1,12 @@
 # FEAT-069 evidence index
 
+## Rev10 Admin/Manager visual refinement
+
+| Evidence | Scope | What it establishes | Limitations |
+|---|---|---|---|
+| `notes/REV10_VISUAL_REFINEMENT_20261114.md` | Plan Rev10 AC1–AC6 | Five-workspace production build, manual desktop/narrow review of all three supplied routes, local invoice detail modal, and the corrected 18×18 retirement checkbox | No automated tests, API/backend behavior, formal leader sign-off or project-wide visual acceptance; no screenshot files were saved |
+| `../plan/PLAN_REV10_WEB_VISUAL_REFINEMENT.md` | Exact approved scope | Hash-identified approval for the three screenshot pages, responsive styles and fixture-only behavior | Does not approve API integration, SRS changes, hosting or production operations |
+
 ## Rev9 continuous action outcomes
 
 | Evidence | Scope | What it establishes | Limitations |

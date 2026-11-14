@@ -116,3 +116,14 @@
 - **Scope:** Inventory primary interactions throughout Parent, Teacher, School Manager, Platform Admin and the portal; replace ambiguous generic dead ends with context-specific local flow outcomes/navigation; compare the preserved v2.2 SRS historically while retaining v2.5-draft as current authority; build and visually review.
 - **Exclusions:** API/auth/network/backend/schema/SRS changes; real data or persistence; provider, upload, payment, AI or ASR operations; legacy `apps/` and Child Expo; automated tests; formal leader/SRS sign-off claims; force push/history rewrite.
 - **Approval basis:** Owner's already-authorized end-to-end mockup scope plus the latest direct feedback about widespread dead ends. This is UI-only authorization and does not resolve product conflicts or approve API integration.
+
+## Plan Rev10 — polish Admin/Manager review screens
+
+- **Status:** APPROVED for the exact UI-only scope in plan/PLAN_REV10_WEB_VISUAL_REFINEMENT.md.
+- **Approver:** Project owner, direct request in this conversation to use the supplied screenshots to improve the UI and UX of the Platform Admin Activity Catalog, quota/reconciliation page and School Manager publication review; preserve the expected flows and make the screens visually excellent.
+- **Recorded timestamp:** 2026-11-14 (Asia/Saigon).
+- **Plan revision:** 10.
+- **Plan SHA-256:** `0356B5B8CB6D8A2F8F0B4641158F91187823E99A9A3CE194D68EF86034F9E012`.
+- **Scope:** Refine layout, styling, typography, spacing, focus/selected/disabled states and responsive behavior on the three shown UI_Project/shared/roleFlows.tsx surfaces, using existing Rev38 visual guidance and local fixtures.
+- **Exclusions:** No API/auth/network/backend/schema/SRS/business-flow/data changes; no live payment/AI/provider operations; no generated imagery, hosting deployment, tests, legacy Expo or top-level legacy apps/; no force push.
+- **Approval basis:** Direct owner authorization for this UI/UX refinement; no formal leader acceptance or SRS change is implied.

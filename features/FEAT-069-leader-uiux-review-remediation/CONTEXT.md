@@ -1,6 +1,12 @@
 # FEAT-069 — Leader review UI/UX remediation
 
-## Current approved work — Rev9 continuous mockup action outcomes
+## Current approved work — Rev10 web visual refinement
+
+Plan Rev10 polishes the three web screens shown in the owner's latest screenshots: Platform Admin Activity Catalog, Platform Admin quota/reconciliation, and School Manager publication review. It separates the catalog composer/list/detail, gives reconciliation cards readable status and detail hierarchy, and styles the review queue, version/visibility context, checklist, and decision controls. Desktop and narrow responsive previews were reviewed; all five `UI_Project/` workspaces build. The Parent, Teacher, API/backend and other role flows are unchanged. All actions and values remain local previews. See `plan/PLAN_REV10_WEB_VISUAL_REFINEMENT.md` and `evidence/notes/REV10_VISUAL_REFINEMENT_20261114.md`.
+
+Rev10 does not represent complete project-wide visual acceptance: it addresses the three screens the owner singled out. FEAT-063 SRS v2.5-draft remains unsigned and canonical, and Rev38 is visual proposal material. No formal leader sign-off, API readiness, or production behavior is implied.
+
+## Prior approved work — Rev9 continuous mockup action outcomes
 
 The owner reported that multiple UI flows stop at generic or unexplained results. Under approved Plan Rev9, the five primary `UI_Project/` workspaces are being checked for action → result → next/return continuity against the leader-provided Rev38 screen and component indexes, while FEAT-063 SRS v2.5-draft remains the current unsigned product baseline. Rev9 clarifies generic detail actions, makes Teacher draft detail reopen its editor, names all generic wizard continuations, and provides an explicit next request after Manager review. Values and transitions remain local fixture state; teacher submission does not populate Manager's separate fixture queue. See `plan/PLAN_REV9_CONTINUOUS_MOCKUP_FLOWS.md` and `evidence/notes/REV9_ACTION_OUTCOME_CROSSWALK_20261114.md`.
 

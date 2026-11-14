@@ -1,5 +1,15 @@
 # Status
 
+## Rev10 Admin/Manager web visual refinement — 2026-11-14
+
+- **State:** Implementation, five-workspace build, desktop and narrow browser review are complete under approved Plan Rev10. Publication/security validation are recorded in `evidence/notes/PUBLICATION.md` after commit/push.
+- **Approved plan:** `plan/PLAN_REV10_WEB_VISUAL_REFINEMENT.md`, SHA-256 `0356B5B8CB6D8A2F8F0B4641158F91187823E99A9A3CE194D68EF86034F9E012`, in both task approval registers.
+- **Scope delivered:** Activity Catalog has a labeled composer, filterable version list and detail area; billing reconciliation now separates search, fixture-state summary, invoice/callback cards and detail modal; Manager publication review has a readable pending queue, current-versus-requested visibility, content cards, version history, four gates, disabled approval, revision request and local outcome.
+- **Visual review:** Platform Admin catalog and billing, and School Manager review were inspected in the local browser at the default desktop viewport; narrow layout was checked at 390×844. The catalog composer/list/detail stack without horizontal clipping, the review queue stacks above its detail, and billing cards become single-column. The catalog retirement checkbox measures 18×18 CSS px after styling. Opening an invoice card showed its detail modal. Manager behavior was also checked locally: approval starts disabled, enables after all four gates, removes the completed fixture from the pending queue and offers the next request; the preview approval changes only the in-page fixture. The preview tab is left on `http://localhost:5191/#catalog`.
+- **Verification:** `npm run build` from `UI_Project` passed all five workspaces after the final CSS adjustment; `git diff --check` passed. No automated tests were run, per plan. `python tools/validate_repository_security.py` is required before commit and immediately before push; results are in the publication evidence.
+- **Limits:** No API/auth/network/backend/SRS/data/flow change; UI actions and values remain local fixtures. No generated bitmap assets or hosting deployment. This is visual remediation of the three supplied pages, not formal leader acceptance or a claim that every project screen has been visually reapproved.
+- **Evidence:** `evidence/notes/REV10_VISUAL_REFINEMENT_20261114.md`.
+
 ## Rev9 continuous mockup action outcomes — 2026-11-14
 
 - **State:** UI changes, all-workspace build, representative browser flow review, repository security validation, and normal fast-forward publication are complete under approved Plan Rev9. Commit `8d523fa3` is on `origin/FE_UI_Project_Ver2`.
