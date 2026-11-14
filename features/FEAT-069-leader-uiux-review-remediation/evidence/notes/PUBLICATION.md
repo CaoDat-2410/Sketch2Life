@@ -1,5 +1,15 @@
 # FEAT-069 publication record
 
+## FEAT-069 Plan Rev7 — whole-project mockup flows — 2026-11-14
+
+- **Target:** `origin/FE_UI_Project_Ver2`
+- **Implementation commit:** `806c0aca` (`feat(ui): complete whole-project mockup flows`)
+- **Parent commit:** `999a35bccce425225149787e2a62e884d75a3753`
+- **Push:** normal fast-forward, completed 2026-11-14 (Asia/Saigon); remote advanced from `999a35bc` to `806c0aca`.
+- **Security validation:** `python tools/validate_repository_security.py` passed before commit and immediately before push; both runs scanned 7,585 publishable files and found no absolute machine paths. `git diff --cached --check` passed before commit.
+- **Scope delivered:** all Parent, Teacher, School Manager, Platform Admin and shared web mockup flows under the approved Rev7 plan; updated responsive styling and feature approvals/evidence/status. No API, auth, backend, database, SRS, legacy top-level apps, or excluded-branch source was changed.
+- **Verification:** all five UI workspace builds, Parent Android typecheck and debug APK packaging passed. APK installation/runtime on an Android emulator is not claimed because `adb devices -l` found no attached emulator. No automated tests were added or run. See `EXECUTION.md` and `OPEN_QUESTIONS.md`.
+
 - **Target:** `origin/FE_UI_Project_Ver2`
 - **Implementation commit:** `d7b83422249030b26f34c6bd058c4046cb38604f`
 - **Parent commit:** `d5a1d85bd68376b918b4d463395d51e8e544481c`
