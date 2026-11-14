@@ -359,3 +359,51 @@ PE2 is limited to apps/ui-mobile/src/parent/presentation/navigation/workflowType
 PE2 adds no command runs. It shares the single additional coordinator test run, single additional coordinator typecheck run, single additional owner run of validate_harness, validate_repository_security, validate_architecture, and git diff --check, and single owner emulator re-check authorized by Addendum 16. That emulator re-check also covers the profile card and Start flow. Codex runs none of these commands or reviews.
 
 OWNER_MODAL_CALL_APPROVED=NO.
+
+## D-020 - FEAT-081 Wave L plan approval, owner answers and merged execution model
+
+- Owner: Person 2.
+- Date: 2026-11-14.
+- Authority: Direct owner task approving Plan Revision 8 and preparing one merged L0-L3 goal; this decision does not launch that goal or any checkpoint.
+- Status: Plan Revision 8 is approved when Addendum 18 is recorded. Wave L remains NOT LAUNCHED until the owner sends the goal text.
+- Approved plan pin: features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_8.md, 46,506 bytes / SHA-256 8CC56B627FF08B80FBCEC5D8ED71ABEC85E2A1FF33CC7FD494287ACBD0EBBCBD.
+- Screen map appendix pin: features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_8_SCREEN_MAP.md, 21,220 bytes / SHA-256 99A5E04F292B5D2995E50059AE2587759ABACC98FFE0E68669E99B0F318985A5.
+- Pre-append features/FEAT-081-parent-ui-mobile-port/DECISIONS.md pin: 41,836 bytes / SHA-256 73915C90B13A5A53B1A44D66B078EA041D0C0307070333466F959EE9DAC7E1E1.
+
+### Owner answers
+
+Q1. SRS authority: SRS Rev67 (unsigned) is the canonical working SRS, per the owner's decision of 2026-11-14 (the FEAT-063 record D-203 is being written on the BE line); Plan Revision 7 already used Rev67; Rev60 is historical.
+
+Q2. Activity before Story: Rev67 section 5.1 step 9 and FR-P-05 require the Parent to choose one main activity BEFORE the script and show it after the video, so the current Wave R order (Activity screen before Story) is ALIGNED; the only deviation is D-017 O1 (story generation without a chosen activity because the route is absent); NO gate on L3 for ordering; Wave L changes no route or order.
+
+Q3. Full Lesson Gallery: option B, adapt the existing gallery layout to the variant A cards and tokens while preserving all content and states. The map retains NO CONCEPT as the concept-coverage classification while recording this approved adaptation.
+
+Q4. Unreachable screens: option A, a development-only preview harness with deterministic synthetic props, no network, backend or provider call, a visible preview-only marker, reachable only through an explicit development flag and never in the normal production flow; it is the conditional N row apps/ui-mobile/src/parent/presentation/ParentVisualPreviewHarness.tsx plus the conditional E row apps/ui-mobile/src/parent/presentation/ParentExpoApp.tsx; production route order and the D-018 shell stay unchanged; synthetic content must never look like a real AI result.
+
+Q5. Option A: no new package, font or image asset.
+
+Q6. Option A: child gender stays an empty local draft (D-014).
+
+Q7. Option A: keep the fidelity targets: 0 EXACT, 21 ADAPTED, and 1 NO CONCEPT across 22 screens; including four shared surfaces, 2 EXACT, 23 ADAPTED, and 1 NO CONCEPT across 26 surfaces.
+
+Q8. Option A: sequential L0 to L3.
+
+Q9. Option A: approve exactly the seven Vietnamese copy edits in Plan Revision 8 section 4.2; every other visible string stays byte-identical.
+
+Q10. Option A: no-preset stays NOT AVAILABLE; an exact lesson ID, version, and hash pin remains required under D-016.
+
+Q11. The Wave R gate is SATISFIED: coordinator run on 2026-11-14 at 13:54, pnpm run test passed 8 files / 83 tests and pnpm run typecheck exited 0; owner validators HARNESS_VALID, REPOSITORY_SECURITY_VALID (7,259 files), ARCHITECTURE_VALID, and git diff --check silent; the owner emulator re-check of PE1, PE2, and PE2b passed. That shared run set is used up and is NOT a Wave L baseline run.
+
+Q12 and Q13 are modified by the merged execution model below. Plan approval authorizes preparation of one merged goal, not an immediate launch. The goal starts only when the owner sends its goal text.
+
+### Merged execution model
+
+The checkpoints L0, L1, L2, and L3 run sequentially in that order under ONE merged goal, without a pause between them. The owner may interrupt with a stop-and-save instruction. After EACH checkpoint, append a section to features/FEAT-081-parent-ui-mobile-port/evidence/IMPLEMENTATION_REPORT_WAVEL_20261114.md. Each section records changed and created files with before and after bytes and SHA-256, WL-AC status, every changed or added assertion with its reason, every changed visible string against the whitelist, recorded deviations, mandatory static review results, the H-row re-hash result, and the NOT RUN list.
+
+After each checkpoint, copy every file changed or created by that checkpoint into tmp/fe081-waveL/snapshots/L<n>/ with relative paths preserved, and record the snapshot pins. Maintain tmp/fe081-waveL/run_state/WAVEL_RUN_STATE.md after each checkpoint. Proceed to checkpoint n+1 only if checkpoint n's static review is clean; otherwise stop and report the blocker.
+
+Static review for every checkpoint, with no tests run by Codex: re-read every touched file completely; check duplicate declarations and imports, strictNullChecks and noUncheckedIndexedAccess style risks; keep type changes additive so frozen H fixtures remain compatible; match every changed or added assertion to final source text with rg; verify changed and added UI strings are Vietnamese and no English phrase is added to the UI; do not assume the backend supplies absent fields; re-hash all H rows and expect zero mismatches.
+
+Blockers are a needed file outside the allowlist, any H-file change, a required fake success, evidence that the D-015 route table is wrong, or no safe in-scope visual adaptation. For a concept element that would require a new package, font, or asset, use the code-only ADAPTED alternative and record the deviation; stop only if no alternative exists. Report blocker evidence and a proposal.
+
+For the whole merged goal, the coordinator may run pnpm run test at most TWICE total and pnpm run typecheck at most TWICE total: one run after L3 and one correction run. The owner may run validate_harness, validate_repository_security, validate_architecture, and git diff --check at most TWICE each; the owner may perform at most TWO emulator reviews. Codex runs none. Any run beyond these ceilings requires a new owner record. OWNER_MODAL_CALL_APPROVED=NO.

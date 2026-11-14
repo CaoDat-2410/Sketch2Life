@@ -459,3 +459,22 @@ Addendum 17 - FEAT-081 Wave R post-emulator correction PE2 (age-band absence is 
 - OWNER_MODAL_CALL_APPROVED=NO.
 
 PE2 adds no command runs and does not change the checkpoint sequence. No post-append TASK_APPROVAL.md pin is recorded.
+
+Addendum 18 - FEAT-081 Wave L plan approval and merged L0-L3 launch authorization (not launched)
+
+- Status: Plan Revision 8 APPROVED; Wave L NOT LAUNCHED. This authorizes one merged L0-L3 goal, which begins only when the owner sends its goal text.
+- Authority: Direct owner approval from Person 2 dated 2026-11-14; owner answers and the merged execution model are recorded in D-020. For Wave L, unsigned Rev67 is the canonical working SRS and Rev60 is historical; FEAT-063 D-203 is being written on the backend line.
+- Approved plan pin: features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_8.md, 46,506 bytes / SHA-256 8CC56B627FF08B80FBCEC5D8ED71ABEC85E2A1FF33CC7FD494287ACBD0EBBCBD.
+- Screen map appendix pin: features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_8_SCREEN_MAP.md, 21,220 bytes / SHA-256 99A5E04F292B5D2995E50059AE2587759ABACC98FFE0E68669E99B0F318985A5.
+- Pre-append features/FEAT-081-parent-ui-mobile-port/DECISIONS.md pin: 41,836 bytes / SHA-256 73915C90B13A5A53B1A44D66B078EA041D0C0307070333466F959EE9DAC7E1E1.
+- Post-append features/FEAT-081-parent-ui-mobile-port/DECISIONS.md pin: 47,830 bytes / SHA-256 178523EC18BE254610F7905A9431A03D7F844C4470DA2580857825FC3546EBC4.
+- Pre-append features/FEAT-081-parent-ui-mobile-port/approvals/TASK_APPROVAL.md pin: 53,749 bytes / SHA-256 F764C3FFF7BABECE29CE087300124CC73A3814DBB7B5B8694F0E783CDC88635C.
+- Scope: The merged goal may edit only the L0-L3 E rows and the conditional apps/ui-mobile/src/parent/presentation/ParentVisualPreviewHarness.tsx N row in the approved Plan Revision 8 manifest, checkpoint by checkpoint. It may append checkpoint sections only to features/FEAT-081-parent-ui-mobile-port/evidence/IMPLEMENTATION_REPORT_WAVEL_20261114.md, maintain tmp/fe081-waveL/run_state/WAVEL_RUN_STATE.md, and create snapshots under tmp/fe081-waveL/snapshots/. All R and H rows, package files, Plan Revision 7, existing Wave R records/reports, and owner-local CONTEXT.md and status/STATUS.md stay untouched. The seven visible-copy edits are exactly those in Plan Revision 8 section 4.2.
+- Test ceiling: At most two coordinator pnpm run test runs total for the merged goal: one after L3 and one correction run. Codex runs none. The completed Wave R verification set is used and is not a Wave L baseline run.
+- Typecheck ceiling: At most two coordinator pnpm run typecheck runs total for the merged goal: one after L3 and one correction run. Codex runs none.
+- Validator ceiling: At most two owner runs each of validate_harness, validate_repository_security, validate_architecture, and git diff --check. Codex runs none.
+- Emulator review: At most two owner emulator reviews total for the merged goal. Codex runs no emulator command or review.
+- Baseline commit: 8f1fef7dafa5c374b2cc2e80562b6a0a78d75288.
+- OWNER_MODAL_CALL_APPROVED=NO.
+
+The goal runs L0, L1, L2, and L3 sequentially without a pause. The owner may interrupt with stop-and-save. Plan approval and this addendum do not launch the goal; the goal starts only when the owner sends the goal text. No post-append features/FEAT-081-parent-ui-mobile-port/approvals/TASK_APPROVAL.md pin is recorded.
