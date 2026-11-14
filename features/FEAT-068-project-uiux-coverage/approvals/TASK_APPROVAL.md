@@ -1,6 +1,7 @@
 # Task approval
 
-- Status: `APPROVED` for the exact scope in Plan revision 1.
+- Status: APPROVED
+- Authorization: APPROVED for the exact scope in Plan revision 1.
 - Approver: Project owner/requester.
 - Approved at: 2026-11-13 21:36:04 Asia/Saigon.
 - Feature: FEAT-068 — Complete UI/UX coverage for Parent and web roles.

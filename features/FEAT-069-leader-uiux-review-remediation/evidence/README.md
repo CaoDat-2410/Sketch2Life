@@ -1,5 +1,19 @@
 # FEAT-069 evidence index
 
+## Rev16 CI feature harness compliance (`4/5` -> `5/5`)
+
+| Evidence | Scope | What it establishes | Limitations |
+|---|---|---|---|
+| `notes/REV16_CI_HARNESS_COMPLIANCE_20261114.md` | Plan Rev16, AC1–AC4 | Documents why `Repository policy checks` (`tools/validate_harness.py`) caused `4/5` CI failures since `FEAT-068` creation, verifies 0-byte `.gitkeep` coverage in Git for `FEAT-068` & `FEAT-069` `evidence/{raw,metrics}`, normalizes `TASK_APPROVAL.md` `- Status: APPROVED`, and records passing results across all 5 policy validators | Local policy validation only; remote GitHub Actions `5/5` status reflects on GitHub after pushing the fix commit |
+| `../plan/PLAN_REV16_CI_HARNESS_COMPLIANCE.md` | Exact approved scope | Hash-identified approval (`0AA001BF9B37015A51FD1E2C48785663B23C617F007C452685AB9796EE4A8C7C`) for harness metadata compliance only | Does not modify CI workflows, validator logic, application source, or SRS |
+
+## Rev15 100% Leader UI/UX checklist closure (UI-Only, No API)
+
+| Evidence | Scope | What it establishes | Limitations |
+|---|---|---|---|
+| `notes/REV15_LEADER_100PCT_CLOSURE_20261114.md` | Plan Rev15, AC15.1–AC15.7 | Documents Parent multi-theme SVG line sketches, dead screen & debug toggle removal, divergence derivation, blue/purple token elimination (`0` bundle leaks), Teacher scoped `Lớp Lá 1` & inline `#session` 3A–3D flow, `UI_Project/DESIGN.md` sync, 5-workspace `vite build`, and live browser checks (`http://localhost:5196`–`5200`); committed & pushed as `56980fe7` | UI-only offline fixtures; no API/auth/persistence or automated test runner |
+| `../plan/PLAN_REV15_LEADER_100PCT_CLOSURE.md` | Exact approved scope | Hash-identified approval (`0FEE9BE921A1C3AE9D8B04A097856C61B4385A0CE08F24A9FAFE01A77D8D7D5B`) for Rev15 UI-only closure | Does not modify FEAT-063 SRS `v2.5-draft` or backend APIs |
+
 ## Rev14 Web sidebar consolidation & multi-tab workbenches
 
 | Evidence | Scope | What it establishes | Limitations |

@@ -415,3 +415,15 @@
 - **Scope:** Topic-specific 4-theme/3-step SVG line sketches & removal of dead `renderSketchGuide` screen and `review` developer-test toggle pills in `UI_Project/parent-ui/`; complete seamless Teacher Session flow (class scope fix `Lớp Lá 1` / `01 Lớp phụ trách`, all 3 enabled lessons with lesson-specific activities & custom SVG line-sketch slides, inline sample-child confirm + drawing upload preview + idea/subject/script approval + video preview & class playback confirm inside `#session`); clean removal of remaining Admin SVG purple & CSS blue/draft tokens; `UI_Project/DESIGN.md` sync; full build, live browser visual check, and security check.
 - **Exclusions:** No backend/API/database/auth/schema/SRS edits; no legacy `apps/` or `child-experience/` changes; no live AI/ASR/billing/external network integration; no force push/history rewrite.
 - **Approval basis:** Direct owner instruction explicitly scoping this pass to 100% UI/UX completion in `UI_Project/` without API wiring.
+
+
+## Plan Rev16 — CI Feature Harness Compliance (`4/5` -> `5/5`)
+
+- **Status:** APPROVED for the exact scope in `features/FEAT-069-leader-uiux-review-remediation/plan/PLAN_REV16_CI_HARNESS_COMPLIANCE.md`.
+- **Approver:** Project owner, direct instruction in this conversation pointing to GitHub CI commits showing `4/5` checks failing (`"bạn thấy báo lỗi 4/5 không tôi muốn bạn fix cái đó"`).
+- **Recorded timestamp:** 2026-11-14 19:15:30 +07:00 (Asia/Saigon).
+- **Plan revision:** 16.
+- **Plan SHA-256:** `0AA001BF9B37015A51FD1E2C48785663B23C617F007C452685AB9796EE4A8C7C`.
+- **Scope:** Restore `Repository policy checks` (`tools/validate_harness.py`) by adding 0-byte `.gitkeep` placeholders under `evidence/raw/` and `evidence/metrics/` for `FEAT-068` and `FEAT-069`, normalizing `- Status: APPROVED` formatting in `FEAT-068/approvals/TASK_APPROVAL.md` (preserving existing authorization scope verbatim) and `FEAT-069/approvals/TASK_APPROVAL.md`, updating `FEAT-069` records, verifying all 5 policy validators and clean-clone tracking, and committing/pushing normally (fast-forward) to `origin/FE_UI_Project_Ver2`.
+- **Exclusions:** No runtime/UI/backend/CI-workflow/SRS/schema changes; no `--force` push or history rewrite.
+- **Approval basis:** Direct owner instruction explicitly directing resolution of the GitHub `4/5` CI failure.
