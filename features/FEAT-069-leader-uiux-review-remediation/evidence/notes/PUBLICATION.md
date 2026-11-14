@@ -1,5 +1,16 @@
 # FEAT-069 publication record
 
+## FEAT-069 Plan Rev11 — Parent green action palette — 2026-11-14
+
+- **Target:** `origin/FE_UI_Project_Ver2`
+- **Implementation commit:** `820ec9c9` (`feat(ui): make parent actions green`)
+- **Parent commit:** `de7cb303`
+- **Push:** normal fast-forward, completed 2026-11-14 (Asia/Saigon); remote advanced from `de7cb303` to `820ec9c9`.
+- **Security validation:** passed before commit and immediately before push; each run scanned 7,595 publishable files, excluded environment/credential/seed files, and found no absolute machine paths. `git diff --check` passed.
+- **Scope delivered:** Parent primary/secondary actions, focus ring, text links, active navigation and create action now share a green palette aligned to the existing selected history filter. Gold arrow accent is preserved; no API/auth/backend/SRS/flow/data change.
+- **Verification:** all five `UI_Project` builds passed; live Parent phone-sized preview showed the hero action in green. No automated tests were run. No APK runtime claim is made.
+- **Limits:** Focused palette fix only; not formal leader acceptance or a fresh whole-project flow audit. See `REV11_PARENT_GREEN_ACTION_PALETTE_20261114.md`.
+
 ## FEAT-069 Plan Rev8 — full UI audit and polish — 2026-11-14
 
 - **Target:** `origin/FE_UI_Project_Ver2`

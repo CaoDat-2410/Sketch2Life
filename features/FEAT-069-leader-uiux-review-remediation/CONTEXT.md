@@ -2,7 +2,7 @@
 
 ## Current approved work — Rev11 Parent green action palette
 
-The owner supplied a blue Parent start-action screenshot beside the green selected “Tất cả” control and requested the shown colors be changed to green. Plan Rev11 corrects the late `rev8.css` overrides so Parent primary/secondary actions, focus, links, and active navigation use the same calm green family; the gold arrow stays. Parent preview builds and the phone-sized home were visually checked. See `plan/PLAN_REV11_PARENT_GREEN_ACTION_PALETTE.md` and `evidence/notes/REV11_PARENT_GREEN_ACTION_PALETTE_20261114.md`. No API, flow, data, or backend behavior changed.
+The owner supplied a blue Parent start-action screenshot beside the green selected “Tất cả” control and requested the shown colors be changed to green. Plan Rev11 corrects the late `rev8.css` overrides so Parent primary/secondary actions, focus, links, and active navigation use the same calm green family; the gold arrow stays. Parent preview builds and the phone-sized home were visually checked. Commit `820ec9c9` is published to `origin/FE_UI_Project_Ver2`. See `plan/PLAN_REV11_PARENT_GREEN_ACTION_PALETTE.md` and `evidence/notes/REV11_PARENT_GREEN_ACTION_PALETTE_20261114.md`. No API, flow, data, or backend behavior changed.
 
 FEAT-063 SRS v2.5-draft remains unsigned and canonical; Rev38 is visual proposal material. This focused palette correction is not formal leader acceptance or Android APK runtime verification.
 

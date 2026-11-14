@@ -2,10 +2,11 @@
 
 ## Rev11 Parent green action palette — 2026-11-14
 
-- **State:** Implemented under approved Plan Rev11; all five `UI_Project/` workspace builds passed and the Parent phone-sized home preview was visually checked. Commit/publication are pending.
+- **State:** Implemented and published under approved Plan Rev11. Commit `820ec9c9` is on `origin/FE_UI_Project_Ver2` as a normal fast-forward from `de7cb303`.
 - **Approved plan:** `plan/PLAN_REV11_PARENT_GREEN_ACTION_PALETTE.md`, SHA-256 `A4C80795D266BE6220FD426F2425294C1331E2346FEB1BBFBEC0E39E8A547614`, recorded in both task approval registers.
 - **Change:** Fixed the late Rev8 Parent CSS layer that changed the primary action back to blue. Primary/secondary actions, focus, links, and active navigation now use green; the gold arrow accent remains. Selected “Tất cả” already uses the same `#3f7559` base.
 - **Verification:** `npm run build` from `UI_Project/` passed Parent, Teacher, School Manager, Platform Admin and shared portal; `git diff --check` passed. The live Parent preview at `http://127.0.0.1:5171/` showed the `.button--hero` green. No automated tests were run.
+- **Publication/security:** Security validation passed before the implementation commit and immediately before push; both runs scanned 7,595 publishable files. See `evidence/notes/PUBLICATION.md`.
 - **Limits:** No API/backend/SRS/flow/data changes. This focused color pass is not formal leader acceptance or Android APK runtime verification. Details: `evidence/notes/REV11_PARENT_GREEN_ACTION_PALETTE_20261114.md`.
 
 ## Rev10 Admin/Manager web visual refinement — 2026-11-14
