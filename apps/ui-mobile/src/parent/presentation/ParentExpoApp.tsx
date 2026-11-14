@@ -25,6 +25,7 @@ import { LessonHistoryScreen } from './screens/LessonHistoryScreen';
 import { LessonPickerScreen } from './screens/LessonPickerScreen';
 import { NotificationsScreen } from './screens/NotificationsScreen';
 import { ParentBottomBar } from './screens/ParentBottomBar';
+import { ParentVisualPreviewHarness } from './ParentVisualPreviewHarness';
 import { ProfileFormScreen } from './screens/ProfileFormScreen';
 import { ProfileScreen } from './screens/ProfileScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
@@ -39,9 +40,11 @@ import { Notice, palette, ScreenFrame } from './components/ui';
 type Props = { application: ParentApplicationModule };
 
 export default function ParentExpoApp({ application }: Props): React.JSX.Element {
+  const visualPreviewEnabled = __DEV__ && process.env.EXPO_PUBLIC_FEAT081_VISUAL_PREVIEW === 'true';
+
   return <>
     <StatusBar barStyle="dark-content" backgroundColor={palette.background} />
-    <ParentExpoAppContent application={application} />
+    {visualPreviewEnabled ? <ParentVisualPreviewHarness /> : <ParentExpoAppContent application={application} />}
   </>;
 }
 
@@ -49,8 +52,10 @@ function ParentExpoAppContent({ application }: Props): React.JSX.Element {
   const parent = useParentController(application);
   const platform = useParentPlatformController(application);
   const selectedProfile = selectProfileById(parent.profiles, parent.selectedProfileId);
+  const [historyReturnStep, setHistoryReturnStep] = React.useState<'home' | 'profile'>('profile');
 
-  function openHistory(): void {
+  function openHistory(returnStep: 'home' | 'profile' = 'profile'): void {
+    setHistoryReturnStep(returnStep);
     parent.setStep('history');
     void platform.loadRuns(parent.profile?.profile_id);
   }
@@ -92,6 +97,11 @@ function ParentExpoAppContent({ application }: Props): React.JSX.Element {
     if (tab === 'home') return parent.setStep('home');
     if (tab === 'profiles') return parent.setStep('profile');
     if (tab === 'lessons') return void parent.openLessons('gallery');
+    if (tab === 'activity') return openHistory('home');
+  }
+
+  function startOrResume(): void {
+    parent.clearError();
     if (parent.activeRun) {
       void parent.resumeActiveRun();
       return;
@@ -102,7 +112,12 @@ function ParentExpoAppContent({ application }: Props): React.JSX.Element {
   }
 
   function mainSection(activeTab: ParentMainTab, content: React.ReactNode): React.JSX.Element {
-    return <View style={{ flex: 1 }}>{content}<ParentBottomBar activeTab={activeTab} onNavigate={navigateMainTab} /></View>;
+    return <View style={{ flex: 1 }}>{content}<ParentBottomBar
+      activeTab={activeTab}
+      onNavigate={navigateMainTab}
+      onStart={startOrResume}
+      startLabel={parent.activeRun ? 'Tiếp tục' : 'Bắt đầu'}
+    /></View>;
   }
 
   if (parent.step === 'auth') {
@@ -141,8 +156,14 @@ function ParentExpoAppContent({ application }: Props): React.JSX.Element {
       onRequestDeletion={(profile) => void parent.requestProfileDeletion(profile)}
       onRefreshPendingDeletion={(profileId) => void parent.refreshPendingDeletion(profileId)}
       onContinue={parent.continueWithProfile}
-      onResumeRun={parent.resumeActiveRun}
-      onBackHome={() => { parent.clearError(); parent.setStep('home'); }}
+      onOpenAccount={() => parent.setStep('account')}
+      onOpenSettings={() => parent.setStep('settings')}
+      onOpenNotifications={openNotifications}
+      onOpenQuota={openQuota}
+      onOpenHistory={openHistory}
+      onOpenSharing={openSharing}
+      onOpenDeliveredLessons={openDeliveredLessons}
+      onSignOut={() => void parent.signOut()}
     />);
   }
 
@@ -155,15 +176,7 @@ function ParentExpoAppContent({ application }: Props): React.JSX.Element {
       onStart={() => { parent.clearError(); parent.setStep('profile'); }}
       onManageProfiles={() => { parent.clearError(); parent.setStep('profile'); }}
       onOpenLessons={() => void parent.openLessons('gallery')}
-      onOpenAccount={() => parent.setStep('account')}
-      onOpenSettings={() => parent.setStep('settings')}
-      onOpenNotifications={openNotifications}
-      onOpenQuota={openQuota}
-      onOpenHistory={openHistory}
-      onOpenSharing={openSharing}
-      onOpenDeliveredLessons={openDeliveredLessons}
       onResumeRun={parent.resumeActiveRun}
-      onSignOut={() => void parent.signOut()}
     />);
   }
 
@@ -203,19 +216,19 @@ function ParentExpoAppContent({ application }: Props): React.JSX.Element {
   }
 
   if (parent.step === 'account') {
-    return mainSection('home', <AccountScreen
+    return mainSection('profiles', <AccountScreen
       user={parent.currentUser}
       busy={parent.busy === 'password'}
       error={parent.accountError}
       onChangePassword={parent.changePassword}
       onResetPassword={parent.resetCurrentPassword}
       onSignOut={() => void parent.signOut()}
-      onBack={() => parent.setStep('home')}
+      onBack={() => parent.setStep('profile')}
     />);
   }
 
   if (parent.step === 'settings') {
-    return mainSection('home', <SettingsScreen
+    return mainSection('profiles', <SettingsScreen
       sketchGuideEnabled={parent.guideEnabled}
       onSketchGuideEnabled={parent.setGuideEnabled}
       onOpenAccount={() => parent.setStep('account')}
@@ -225,11 +238,11 @@ function ParentExpoAppContent({ application }: Props): React.JSX.Element {
       onOpenHistory={openHistory}
       onOpenSharing={openSharing}
       onOpenDeliveredLessons={openDeliveredLessons}
-      onBack={() => parent.setStep('home')}
+      onBack={() => parent.setStep('profile')}
     />);
   }
 
-  if (parent.step === 'notifications') return mainSection('home', <NotificationsScreen
+  if (parent.step === 'notifications') return mainSection('profiles', <NotificationsScreen
     capability={platform.capabilities.notifications}
     items={platform.notifications}
     loading={platform.notificationsBusy}
@@ -238,17 +251,17 @@ function ParentExpoAppContent({ application }: Props): React.JSX.Element {
     onLoad={() => void platform.loadNotifications()}
     onLoadMore={() => void platform.loadNotifications(platform.notificationsCursor)}
     onMarkRead={(id) => void platform.markNotificationRead(id)}
-    onBack={() => parent.setStep('home')}
+    onBack={() => parent.setStep('profile')}
   />);
-  if (parent.step === 'quota') return mainSection('home', <QuotaScreen
+  if (parent.step === 'quota') return mainSection('profiles', <QuotaScreen
     capability={platform.capabilities.quota}
     quota={platform.quota}
     loading={platform.quotaBusy}
     error={platform.quotaError}
     onLoad={() => void platform.loadQuota()}
-    onBack={() => parent.setStep('home')}
+    onBack={() => parent.setStep('profile')}
   />);
-  if (parent.step === 'history') return mainSection('home', <StoryHistoryScreen
+  if (parent.step === 'history') return mainSection('activity', <StoryHistoryScreen
     capability={platform.capabilities.runs}
     runs={platform.runs}
     loading={platform.runsBusy}
@@ -258,9 +271,9 @@ function ParentExpoAppContent({ application }: Props): React.JSX.Element {
     onLoadMore={() => void platform.loadRuns(parent.profile?.profile_id, platform.runsCursor)}
     onCancel={(id) => void platform.cancelRun(id)}
     onDelete={(id) => void platform.deleteRun(id)}
-    onBack={() => parent.setStep('home')}
+    onBack={() => parent.setStep(historyReturnStep)}
   />);
-  if (parent.step === 'profile-sharing') return mainSection('home', <ProfileSharingScreen
+  if (parent.step === 'profile-sharing') return mainSection('profiles', <ProfileSharingScreen
     profile={parent.profile ?? selectedProfile}
     grants={platform.shares}
     loading={platform.sharesBusy}
@@ -270,9 +283,9 @@ function ParentExpoAppContent({ application }: Props): React.JSX.Element {
     revokeState={platform.shareRevokeState}
     onInvite={platform.inviteTeacher}
     onRevoke={platform.revokeShare}
-    onBack={() => parent.setStep('home')}
+    onBack={() => parent.setStep('profile')}
   />);
-  if (parent.step === 'lesson-history') return mainSection('home', <LessonHistoryScreen
+  if (parent.step === 'lesson-history') return mainSection('profiles', <LessonHistoryScreen
     capability={platform.capabilities.deliveries}
     deliveries={platform.deliveries}
     loading={platform.deliveriesBusy}
@@ -281,7 +294,7 @@ function ParentExpoAppContent({ application }: Props): React.JSX.Element {
     onLoad={() => void platform.loadDeliveries(parent.profile?.profile_id ?? '')}
     onLoadMore={() => void platform.loadDeliveries(parent.profile?.profile_id ?? '', platform.deliveriesCursor)}
     onSubmitFeedback={(id, text) => platform.submitFeedback(id, text).then(() => undefined)}
-    onBack={() => parent.setStep('home')}
+    onBack={() => parent.setStep('profile')}
   />);
 
   return renderLearningStep(parent, platform);

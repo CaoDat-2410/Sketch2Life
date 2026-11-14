@@ -1,10 +1,11 @@
 import React from 'react';
-import { Text } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import type { ParentProfileDeletePendingV1, ParentProfileViewV1, ParentStoryRunV1 } from '../../domain/types';
 import { isProfileDeletionPending, selectProfileById } from '../navigation/parentFlowV1';
 import { canStartProfileLearning, parentProfileAgeEligibility } from '../navigation/workflowTypes';
 import type { ParentConsentUiState } from '../navigation/workflowTypes';
-import { Card, ChoiceRow, ConfirmButton, Notice, PrimaryButton, ScreenFrame, SecondaryButton, SectionTitle, palette } from '../components/ui';
+import { Card, ChoiceRow, ConfirmButton, Notice, PrimaryButton, ScreenFrame, SecondaryButton, SectionTitle, TextButton, palette } from '../components/ui';
 
 type Props = {
   profiles: ParentProfileViewV1[];
@@ -21,9 +22,19 @@ type Props = {
   onRequestDeletion: (profile: ParentProfileViewV1) => void;
   onRefreshPendingDeletion: (profileId: string) => void;
   onContinue: (profile: ParentProfileViewV1) => void;
-  onResumeRun: () => void;
-  onBackHome: () => void;
+  onOpenAccount?: () => void;
+  onOpenSettings?: () => void;
+  onOpenNotifications?: () => void;
+  onOpenQuota?: () => void;
+  onOpenHistory?: () => void;
+  onOpenSharing?: () => void;
+  onOpenDeliveredLessons?: () => void;
+  onSignOut?: () => void;
+  onResumeRun?: () => void;
+  onBackHome?: () => void;
 };
+
+const ignoreFamilyAction = (): void => undefined;
 
 export function ProfileScreen({
   profiles,
@@ -40,19 +51,26 @@ export function ProfileScreen({
   onRequestDeletion,
   onRefreshPendingDeletion,
   onContinue,
-  onResumeRun,
-  onBackHome,
+  onOpenAccount = ignoreFamilyAction,
+  onOpenSettings = ignoreFamilyAction,
+  onOpenNotifications = ignoreFamilyAction,
+  onOpenQuota = ignoreFamilyAction,
+  onOpenHistory = ignoreFamilyAction,
+  onOpenSharing = ignoreFamilyAction,
+  onOpenDeliveredLessons = ignoreFamilyAction,
+  onSignOut = ignoreFamilyAction,
 }: Props): React.JSX.Element {
   const selected = selectProfileById(profiles, selectedProfileId);
   const selectedAgeEligibility = selected ? parentProfileAgeEligibility(selected) : 'unavailable';
-  const mayContinue = Boolean(selected)
+  const mayStartRun = Boolean(selected)
     && canStartProfileLearning(selectedAgeEligibility, consentState.status)
     && !isProfileDeletionPending(selected!.profile_id, pendingDeletions);
 
   return (
-    <ScreenFrame title="Hồ sơ của bé" subtitle="Chọn hồ sơ cho buổi học." onBack={onBackHome}>
-      <Card>
-        <SectionTitle>Danh sách hồ sơ</SectionTitle>
+    <ScreenFrame title="Không gian gia đình" subtitle="Quản lý hồ sơ và hoạt động của gia đình.">
+      <Notice text="Mỗi buổi học chỉ gắn với một hồ sơ trẻ." tone="info" />
+      <Card style={styles.profileListCard}>
+        <SectionTitle>Hồ sơ của bé</SectionTitle>
         {profiles.length === 0 ? <Text style={{ color: palette.muted, fontSize: 14, lineHeight: 20 }}>
           Chưa có hồ sơ nào. Tạo hồ sơ để bắt đầu.
         </Text> : profiles.map((profile) => {
@@ -83,7 +101,7 @@ export function ProfileScreen({
 
       {pendingDeletions.length ? <Card>
         <SectionTitle>Yêu cầu xóa đang chờ</SectionTitle>
-        {pendingDeletions.map((pending) => <Card key={pending.profile_id} style={{ backgroundColor: '#FFF8E8' }}>
+        {pendingDeletions.map((pending) => <Card key={pending.profile_id} style={styles.pendingDeletionCard}>
           <Notice text="Hồ sơ đang chờ xử lý yêu cầu xóa. Hồ sơ chưa được xác nhận là đã xóa." tone="warning" />
           <SecondaryButton
             label={pendingDeletionLoadingId === pending.profile_id ? 'Đang kiểm tra…' : 'Kiểm tra trạng thái'}
@@ -93,14 +111,11 @@ export function ProfileScreen({
         </Card>)}
       </Card> : null}
 
-      {activeRun ? <Card>
-        <Notice text={`Đang có buổi học chưa hoàn tất (${activeRun.run_state}).`} tone="warning" />
-        <PrimaryButton label="Tiếp tục buổi đang mở" disabled={!mayContinue} onPress={onResumeRun} />
-      </Card> : selected ? <Card>
-        <PrimaryButton label="Dùng hồ sơ này" disabled={!mayContinue} onPress={() => onContinue(selected)} />
+      {!activeRun && selected ? <Card>
+        <PrimaryButton label="Dùng hồ sơ này" disabled={!mayStartRun} onPress={() => onContinue(selected)} />
       </Card> : null}
 
-      {selected ? <Card>
+      {selected ? <Card style={styles.selectedActionsCard}>
         <ConsentStatus state={consentState} />
         <SecondaryButton
           label="Chỉnh sửa hồ sơ"
@@ -119,7 +134,56 @@ export function ProfileScreen({
 
       {error ? <Notice text={error} tone="error" /> : null}
       <SecondaryButton label="Tạo hồ sơ mới" disabled={Boolean(busy)} onPress={onCreate} />
+
+      <Card style={styles.familyMenuCard}>
+        <SectionTitle>Không gian của gia đình</SectionTitle>
+        {!selected ? <Notice text="Chọn hồ sơ trẻ để xem bài đã dạy hoặc quản lý chia sẻ." tone="info" /> : null}
+
+        <Text style={styles.menuGroupLabel}>TÀI KHOẢN</Text>
+        <FamilyMenuRow label="Tài khoản và bảo mật" icon="shield-checkmark-outline" onPress={onOpenAccount} />
+
+        <Text style={styles.menuGroupLabel}>CÀI ĐẶT</Text>
+        <FamilyMenuRow label="Cài đặt" icon="settings-outline" onPress={onOpenSettings} />
+        <FamilyMenuRow label="Thông báo" icon="notifications-outline" onPress={onOpenNotifications} />
+
+        <Text style={styles.menuGroupLabel}>HOẠT ĐỘNG VÀ SỬ DỤNG</Text>
+        <FamilyMenuRow label="Lượt tạo video" icon="videocam-outline" onPress={onOpenQuota} />
+        <FamilyMenuRow label="Lịch sử hoạt động" icon="time-outline" onPress={onOpenHistory} />
+        <FamilyMenuRow label="Bài giáo viên đã dạy" icon="book-outline" disabled={!selected} onPress={onOpenDeliveredLessons} />
+
+        <Text style={styles.menuGroupLabel}>CHIA SẺ</Text>
+        <FamilyMenuRow label="Chia sẻ hồ sơ với giáo viên" icon="share-social-outline" disabled={!selected} onPress={onOpenSharing} />
+      </Card>
+      <TextButton label="Đăng xuất" onPress={onSignOut} />
     </ScreenFrame>
+  );
+}
+
+function FamilyMenuRow({
+  label,
+  icon,
+  disabled = false,
+  onPress,
+}: {
+  label: string;
+  icon: React.ComponentProps<typeof Ionicons>['name'];
+  disabled?: boolean;
+  onPress: () => void;
+}): React.JSX.Element {
+  return (
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled }}
+      disabled={disabled}
+      onPress={onPress}
+      activeOpacity={0.86}
+      style={[styles.familyMenuRow, disabled && styles.disabledFamilyMenuRow]}
+    >
+      <Ionicons name={icon} size={19} color={disabled ? palette.muted : palette.ink} accessible={false} />
+      <Text style={styles.familyMenuLabel}>{label}</Text>
+      <Ionicons name="chevron-forward" size={18} color={palette.muted} accessible={false} />
+    </TouchableOpacity>
   );
 }
 
@@ -133,13 +197,13 @@ function ConsentStatus({ state }: { state: ParentConsentUiState }): React.JSX.El
         : state.status.state === 'confirmed'
           ? 'Máy chủ đã xác nhận đồng ý cho phiên bản chính sách được ghi nhận.'
           : 'Chưa có trạng thái đồng ý được máy chủ xác nhận.';
-  return <Card>
+  return <>
     <SectionTitle>Quyền xử lý dữ liệu</SectionTitle>
     <Notice text={message} tone={state.status.state === 'confirmed' ? 'info' : 'warning'} />
-    <Text style={{ color: palette.muted, fontSize: 13 }}>
+    <Text style={styles.consentOperations}>
       Ghi nhận: {operationStateLabel(state.capture)} · Thu hồi: {operationStateLabel(state.revoke)}
     </Text>
-  </Card>;
+  </>;
 }
 
 function operationStateLabel(state: ParentConsentUiState['capture']): string {
@@ -150,3 +214,15 @@ function operationStateLabel(state: ParentConsentUiState['capture']): string {
   if (state.state === 'failed') return 'chưa hoàn tất';
   return 'chưa bắt đầu';
 }
+
+const styles = StyleSheet.create({
+  profileListCard: { backgroundColor: palette.white, gap: 14 },
+  pendingDeletionCard: { backgroundColor: palette.paleAmber },
+  selectedActionsCard: { backgroundColor: palette.white },
+  consentOperations: { color: palette.muted, fontSize: 11, lineHeight: 15, minWidth: 0, flexShrink: 1 },
+  familyMenuCard: { backgroundColor: palette.white, gap: 8 },
+  menuGroupLabel: { color: palette.muted, fontSize: 10, lineHeight: 14, fontWeight: '800', letterSpacing: 0.6, marginTop: 4 },
+  familyMenuRow: { minHeight: 48, minWidth: 0, paddingHorizontal: 8, borderRadius: 10, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  disabledFamilyMenuRow: { opacity: 0.62 },
+  familyMenuLabel: { color: palette.ink, fontSize: 13, lineHeight: 18, fontWeight: '700', flex: 1, minWidth: 0, flexShrink: 1 },
+});

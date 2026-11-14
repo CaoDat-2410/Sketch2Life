@@ -1,5 +1,5 @@
 import React, { type PropsWithChildren, useState } from 'react';
-import { ActivityIndicator, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, type TextInputProps } from 'react-native';
+import { ActivityIndicator, Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, type TextInputProps } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Path } from 'react-native-svg';
@@ -42,6 +42,13 @@ const touchTargets = {
   navigation: 52,
 } as const;
 
+const outlineWidths = {
+  control: 1.5,
+  card: 1.6,
+  primary: 2,
+  focus: 3,
+} as const;
+
 const contrastPairs = [
   { name: 'Body text on warm paper', foreground: palette.ink, background: palette.background, minimumRatio: 4.5 },
   { name: 'Body text on card white', foreground: palette.ink, background: palette.white, minimumRatio: 4.5 },
@@ -68,6 +75,8 @@ const contrastPairs = [
   { name: 'Action accent on warm paper', foreground: palette.blue, background: palette.background, minimumRatio: 4.5 },
   { name: 'Action accent on card white', foreground: palette.blue, background: palette.white, minimumRatio: 4.5 },
   { name: 'Action accent on selected sky', foreground: palette.blue, background: palette.paleBlue, minimumRatio: 4.5 },
+  { name: 'Selected navigation icon on warm sticker', foreground: palette.blue, background: palette.butter, minimumRatio: 3 },
+  { name: 'Selected navigation outline on warm sticker', foreground: palette.outline, background: palette.butter, minimumRatio: 3 },
   { name: 'Focus ring against card', foreground: palette.focus, background: palette.white, minimumRatio: 3 },
   { name: 'Focus ring against warm paper', foreground: palette.focus, background: palette.background, minimumRatio: 3 },
   { name: 'Focus ring against selected mint', foreground: palette.focus, background: palette.mint, minimumRatio: 3 },
@@ -107,21 +116,23 @@ export function ScreenFrame({
             onBlur={() => setBackFocused(false)}
             style={[styles.backButton, backDisabled && styles.disabledOutline, backFocused && styles.focusRing]}
           >
-            <Text style={styles.backText}>‹</Text>
+            <Ionicons name="arrow-back" size={19} color={palette.ink} accessible={false} />
           </TouchableOpacity>
         ) : (
-          <View style={styles.brandDot}><Text style={styles.brandDotText}>S</Text></View>
+          <Image
+            source={require('../../../../assets/applied/sketch2life-logo.png')}
+            style={styles.brandLogo}
+            resizeMode="contain"
+            accessible={false}
+          />
         )}
-        <View style={styles.brandBlock}><Text style={styles.brand}>Sketch2Life</Text>{step ? <Text style={styles.stepText}>{step}</Text> : null}</View>
-      </View>
-      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         <View style={styles.headingBlock}>
           <Text accessibilityRole="header" style={styles.heading}>{title}</Text>
-          <Svg width={72} height={12} viewBox="0 0 72 12" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-            <Path d="M3 7 C18 3, 38 11, 68 5" fill="none" stroke={palette.crayonMarker} strokeWidth={3} strokeLinecap="round" />
-          </Svg>
           {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
         </View>
+        {step ? <Text style={styles.stepText}>{step}</Text> : null}
+      </View>
+      <ScrollView style={styles.contentScroll} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         {children}
       </ScrollView>
     </LinearGradient>
@@ -129,7 +140,7 @@ export function ScreenFrame({
 }
 
 export function Card({ children, style }: PropsWithChildren<{ style?: object }>): React.JSX.Element {
-  return <View style={[styles.card, style]}>{children}</View>;
+  return <View style={[styles.card, style, styles.cardEdge]}>{children}</View>;
 }
 
 export function PrimaryButton({
@@ -298,7 +309,7 @@ export function Notice({ text, tone = 'info' }: { text: string; tone?: 'info' | 
 
   return (
     <View accessible accessibilityRole={tone === 'error' ? 'alert' : 'summary'} style={[styles.notice, toneStyle]}>
-      <Ionicons name={iconName} size={20} color={iconColor} accessible={false} />
+      <Ionicons name={iconName} size={17} color={iconColor} accessible={false} />
       <Text style={[styles.noticeText, toneTextStyle]}>{text}</Text>
     </View>
   );
@@ -309,7 +320,7 @@ export function SectionTitle({ children }: PropsWithChildren): React.JSX.Element
     <View style={styles.sectionTitleWrap}>
       <Text accessibilityRole="header" style={styles.sectionTitle}>{children}</Text>
       <Svg width={48} height={9} viewBox="0 0 48 9" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-        <Path d="M2 5 C13 2, 29 8, 46 4" fill="none" stroke={palette.crayonMarker} strokeWidth={2.5} strokeLinecap="round" />
+        <Path d="M2 5 C13 2, 29 8, 46 4" fill="none" stroke={palette.crayonMarker} strokeWidth={outlineWidths.primary} strokeLinecap="round" />
       </Svg>
     </View>
   );
@@ -340,61 +351,59 @@ export function ChoiceRow({ title, detail, selected, onPress }: { title: string;
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: palette.background },
-  topBar: { minHeight: 68, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', gap: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: palette.outline, backgroundColor: palette.white },
-  brandDot: { width: 42, height: 42, borderRadius: 16, borderWidth: 2, borderColor: palette.outline, backgroundColor: palette.butter, alignItems: 'center', justifyContent: 'center' },
-  brandDotText: { color: palette.ink, fontSize: 17, fontWeight: '800' },
-  brandBlock: { flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  brand: { color: palette.ink, fontSize: 15, fontWeight: '800', letterSpacing: 0.1 },
-  stepText: { color: palette.muted, fontSize: 12, fontWeight: '700' },
-  backButton: { width: touchTargets.minimum, height: touchTargets.minimum, borderRadius: 15, borderWidth: 1.5, borderColor: palette.outline, backgroundColor: palette.paleBlue, alignItems: 'center', justifyContent: 'center' },
-  backText: { color: palette.blue, fontSize: 30, lineHeight: 32, marginTop: -4 },
-  scrollContent: { width: '100%', maxWidth: 520, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 24, paddingBottom: 34, gap: 16 },
-  headingBlock: { gap: 6, marginBottom: 4 },
-  heading: { color: palette.ink, fontSize: 26, lineHeight: 32, fontWeight: '800' },
-  subtitle: { color: palette.muted, fontSize: 15, lineHeight: 22 },
-  card: { backgroundColor: palette.white, borderColor: palette.outline, borderWidth: 1.6, borderRadius: 22, padding: 16, gap: 12, shadowColor: palette.ink, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.09, shadowRadius: 18, elevation: 3 },
-  primaryButton: { minHeight: touchTargets.primary, borderRadius: 15, borderWidth: 2, borderColor: palette.outline, backgroundColor: palette.action, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 18, shadowColor: palette.ink, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.08, shadowRadius: 9, elevation: 2 },
-  primaryButtonText: { color: palette.actionText, fontSize: 16, fontWeight: '800' },
+  topBar: { minHeight: 72, paddingHorizontal: 16, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', gap: 9, borderBottomWidth: 1, borderBottomColor: palette.outline, backgroundColor: palette.background },
+  brandLogo: { width: 48, height: 48 },
+  backButton: { width: touchTargets.minimum, height: touchTargets.minimum, borderRadius: 999, borderWidth: outlineWidths.control, borderColor: palette.outline, backgroundColor: palette.paleBlue, alignItems: 'center', justifyContent: 'center' },
+  headingBlock: { flex: 1, minWidth: 0, gap: 3 },
+  heading: { color: palette.ink, fontSize: 19, lineHeight: 22, fontWeight: '800', minWidth: 0, flexShrink: 1 },
+  subtitle: { color: palette.muted, fontSize: 11, lineHeight: 15, minWidth: 0, flexShrink: 1 },
+  stepText: { color: palette.ink, fontSize: 9, lineHeight: 12, fontWeight: '800', minWidth: 0, maxWidth: 96, flexShrink: 1, textAlign: 'center', paddingHorizontal: 7, paddingVertical: 5, borderWidth: 1, borderColor: palette.outline, borderTopLeftRadius: 10, borderTopRightRadius: 12, borderBottomRightRadius: 9, borderBottomLeftRadius: 11, backgroundColor: palette.lilac, overflow: 'hidden' },
+  contentScroll: { flex: 1, minHeight: 0 },
+  scrollContent: { width: '100%', maxWidth: 520, alignSelf: 'center', paddingHorizontal: 15, paddingTop: 14, paddingBottom: 18, gap: 11 },
+  card: { backgroundColor: palette.white, padding: 13, gap: 12, shadowColor: palette.ink, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.09, shadowRadius: 18, elevation: 3 },
+  cardEdge: { borderWidth: outlineWidths.card, borderColor: palette.outline, borderTopLeftRadius: 22, borderTopRightRadius: 25, borderBottomRightRadius: 19, borderBottomLeftRadius: 23 },
+  primaryButton: { minHeight: touchTargets.primary, borderTopLeftRadius: 14, borderTopRightRadius: 16, borderBottomRightRadius: 13, borderBottomLeftRadius: 15, borderWidth: outlineWidths.primary, borderColor: palette.outline, backgroundColor: palette.ink, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 9, shadowColor: palette.ink, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.08, shadowRadius: 9, elevation: 2 },
+  primaryButtonText: { color: palette.white, fontSize: 13, lineHeight: 18, fontWeight: '800', textAlign: 'center', flexShrink: 1 },
   disabledButton: { backgroundColor: palette.disabledSurface, borderColor: palette.outline },
   disabledLabel: { color: palette.disabledText },
-  secondaryButton: { minHeight: 48, borderRadius: 15, borderColor: palette.outline, borderWidth: 1.5, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 18, backgroundColor: palette.white },
-  secondaryButtonText: { color: palette.blue, fontSize: 15, fontWeight: '800' },
+  secondaryButton: { minHeight: 48, borderTopLeftRadius: 14, borderTopRightRadius: 16, borderBottomRightRadius: 13, borderBottomLeftRadius: 15, borderColor: palette.outline, borderWidth: 1.8, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 9, backgroundColor: palette.white },
+  secondaryButtonText: { color: palette.ink, fontSize: 13, lineHeight: 18, fontWeight: '800', textAlign: 'center', flexShrink: 1 },
   disabledOutline: { backgroundColor: palette.disabledSurface, borderColor: palette.outline },
-  focusRing: { borderColor: palette.focus, borderWidth: 3, shadowColor: palette.focus, shadowOpacity: 0.18, shadowRadius: 3, elevation: 3 },
+  focusRing: { borderColor: palette.focus, borderWidth: outlineWidths.focus, shadowColor: palette.focus, shadowOpacity: 0.18, shadowRadius: 3, elevation: 3 },
   textButton: { minHeight: touchTargets.minimum, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 10, borderRadius: 12 },
-  textButtonLabel: { color: palette.blue, fontSize: 14, fontWeight: '700' },
+  textButtonLabel: { color: palette.blue, fontSize: 13, lineHeight: 18, fontWeight: '700', textAlign: 'center', flexShrink: 1 },
   destructiveText: { color: palette.error },
   confirmOverlay: { flex: 1, backgroundColor: 'rgba(52,46,40,0.44)', alignItems: 'center', justifyContent: 'center', padding: 24 },
-  confirmDialog: { width: '100%', maxWidth: 420, borderWidth: 1.6, borderColor: palette.outline, borderRadius: 22, padding: 22, gap: 12, backgroundColor: palette.white, shadowColor: palette.ink, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.09, shadowRadius: 18, elevation: 5 },
-  confirmTitle: { color: palette.ink, fontSize: 19, fontWeight: '800' },
-  confirmMessage: { color: palette.muted, fontSize: 15, lineHeight: 22 },
-  confirmActions: { flexDirection: 'row', gap: 10, marginTop: 6 },
-  confirmAction: { flex: 1, minHeight: 48, borderRadius: 15, borderWidth: 2, borderColor: palette.outline, backgroundColor: palette.action, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 14 },
+  confirmDialog: { width: '100%', maxWidth: 420, borderWidth: outlineWidths.card, borderColor: palette.outline, borderTopLeftRadius: 21, borderTopRightRadius: 24, borderBottomRightRadius: 19, borderBottomLeftRadius: 22, padding: 14, gap: 12, backgroundColor: palette.white, shadowColor: palette.ink, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.09, shadowRadius: 18, elevation: 5 },
+  confirmTitle: { color: palette.ink, fontSize: 17, lineHeight: 22, fontWeight: '800', flexShrink: 1 },
+  confirmMessage: { color: palette.muted, fontSize: 12, lineHeight: 17, flexShrink: 1 },
+  confirmActions: { flexDirection: 'row', gap: 8, marginTop: 6 },
+  confirmAction: { flex: 1, minWidth: 0, minHeight: touchTargets.primary, borderTopLeftRadius: 14, borderTopRightRadius: 16, borderBottomRightRadius: 13, borderBottomLeftRadius: 15, borderWidth: outlineWidths.primary, borderColor: palette.outline, backgroundColor: palette.ink, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 8, paddingVertical: 9 },
   confirmActionDestructive: { backgroundColor: palette.dangerFill },
-  confirmActionText: { color: palette.actionText, fontSize: 15, fontWeight: '800' },
-  fieldWrap: { gap: 7 },
-  fieldLabel: { color: palette.ink, fontSize: 13, fontWeight: '700' },
-  field: { borderWidth: 1.5, borderColor: palette.outline, borderRadius: 15, minHeight: 48, paddingHorizontal: 13, color: palette.ink, backgroundColor: palette.white, fontSize: 15 },
-  fieldFocused: { borderWidth: 3, borderColor: palette.focus, shadowColor: palette.focus, shadowOpacity: 0.18, shadowRadius: 3, elevation: 2 },
-  multilineField: { minHeight: 84, paddingTop: 12, textAlignVertical: 'top' },
-  notice: { minHeight: touchTargets.minimum, padding: 13, borderRadius: 15, borderWidth: 1.5, borderColor: palette.outline, flexDirection: 'row', alignItems: 'flex-start', gap: 9 },
+  confirmActionText: { color: palette.white, fontSize: 12, lineHeight: 16, fontWeight: '800', textAlign: 'center', flexShrink: 1 },
+  fieldWrap: { gap: 4, minWidth: 0 },
+  fieldLabel: { color: palette.ink, fontSize: 12, lineHeight: 16, fontWeight: '700', flexShrink: 1 },
+  field: { borderWidth: 1.4, borderColor: palette.outline, borderRadius: 12, minHeight: 44, paddingHorizontal: 10, paddingVertical: 9, color: palette.ink, backgroundColor: palette.white, fontSize: 13, flexShrink: 1 },
+  fieldFocused: { borderWidth: outlineWidths.focus, borderColor: palette.focus, shadowColor: palette.focus, shadowOpacity: 0.18, shadowRadius: 3, elevation: 2 },
+  multilineField: { minHeight: 68, paddingTop: 9, textAlignVertical: 'top' },
+  notice: { minHeight: touchTargets.minimum, paddingHorizontal: 10, paddingVertical: 9, borderTopLeftRadius: 13, borderTopRightRadius: 15, borderBottomRightRadius: 12, borderBottomLeftRadius: 14, borderWidth: 1.4, borderColor: palette.outline, flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
   noticeInfo: { backgroundColor: palette.paleBlue },
   noticeSuccess: { backgroundColor: palette.paleGreen },
   noticeWarning: { backgroundColor: palette.paleAmber },
   noticeError: { backgroundColor: palette.paleRed },
-  noticeText: { flex: 1, fontSize: 14, lineHeight: 20 },
+  noticeText: { flex: 1, minWidth: 0, flexShrink: 1, fontSize: 11, lineHeight: 15 },
   noticeInfoText: { color: palette.info },
   noticeSuccessText: { color: palette.success },
   noticeWarningText: { color: palette.warning },
   noticeErrorText: { color: palette.error },
-  sectionTitleWrap: { alignSelf: 'flex-start', gap: 2 },
-  sectionTitle: { color: palette.ink, fontSize: 16, fontWeight: '800', marginBottom: 2 },
-  choice: { minHeight: 56, padding: 13, borderRadius: 16, borderWidth: 1.5, borderColor: palette.outline, backgroundColor: palette.white, flexDirection: 'row', alignItems: 'center', gap: 12, shadowColor: palette.ink, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.08, shadowRadius: 9, elevation: 1 },
-  choiceSelected: { borderColor: palette.outline, backgroundColor: palette.mint },
-  choiceCopy: { flex: 1, gap: 3 },
-  choiceTitle: { color: palette.ink, fontSize: 15, fontWeight: '700' },
-  choiceDetail: { color: palette.muted, fontSize: 13, lineHeight: 18 },
-  choiceMark: { width: 24, height: 24, borderWidth: 1.5, borderColor: palette.outline, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.white },
+  sectionTitleWrap: { alignSelf: 'flex-start', maxWidth: '100%', minWidth: 0, flexShrink: 1, gap: 2 },
+  sectionTitle: { color: palette.ink, fontSize: 16, lineHeight: 20, fontWeight: '800', marginBottom: 2, minWidth: 0, flexShrink: 1 },
+  choice: { minHeight: 60, minWidth: 0, padding: 8, borderRadius: 12, borderWidth: 1.3, borderColor: palette.outline, backgroundColor: palette.white, flexDirection: 'row', alignItems: 'center', gap: 8, shadowColor: palette.ink, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.08, shadowRadius: 9, elevation: 1 },
+  choiceSelected: { borderWidth: 2, borderColor: palette.outline, backgroundColor: palette.mint },
+  choiceCopy: { flex: 1, minWidth: 0, flexShrink: 1, gap: 2 },
+  choiceTitle: { color: palette.ink, fontSize: 12, lineHeight: 16, fontWeight: '700', flexShrink: 1 },
+  choiceDetail: { color: palette.muted, fontSize: 10, lineHeight: 13, flexShrink: 1 },
+  choiceMark: { width: 21, height: 21, borderWidth: 1.7, borderColor: palette.outline, borderRadius: 11, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.white },
   choiceMarkSelected: { borderColor: palette.outline, backgroundColor: palette.action },
   choiceCheck: { color: palette.actionText, fontSize: 13, fontWeight: '900' },
 });

@@ -26,7 +26,11 @@ vi.mock('../src/parent/infrastructure/config', () => ({
 const uiSource = readFileSync(new URL('../src/parent/presentation/components/ui.tsx', import.meta.url), 'utf8');
 const bottomBarSource = readFileSync(new URL('../src/parent/presentation/screens/ParentBottomBar.tsx', import.meta.url), 'utf8');
 const authScreenSource = readFileSync(new URL('../src/parent/presentation/screens/AuthScreen.tsx', import.meta.url), 'utf8');
+const accountScreenSource = readFileSync(new URL('../src/parent/presentation/screens/AccountScreen.tsx', import.meta.url), 'utf8');
+const settingsScreenSource = readFileSync(new URL('../src/parent/presentation/screens/SettingsScreen.tsx', import.meta.url), 'utf8');
+const homeScreenSource = readFileSync(new URL('../src/parent/presentation/screens/HomeScreen.tsx', import.meta.url), 'utf8');
 const profileFormSource = readFileSync(new URL('../src/parent/presentation/screens/ProfileFormScreen.tsx', import.meta.url), 'utf8');
+const googleSignInButtonSource = readFileSync(new URL('../src/parent/presentation/components/GoogleSignInButton.tsx', import.meta.url), 'utf8');
 const profileControllerSource = readFileSync(new URL('../src/parent/presentation/navigation/useParentController.ts', import.meta.url), 'utf8');
 const platformControllerSource = readFileSync(new URL('../src/parent/presentation/navigation/useParentPlatformController.ts', import.meta.url), 'utf8');
 const parentExpoAppSource = readFileSync(new URL('../src/parent/presentation/ParentExpoApp.tsx', import.meta.url), 'utf8');
@@ -39,6 +43,8 @@ const captureScreenSource = readFileSync(new URL('../src/parent/presentation/scr
 const drawingGuideScreenSource = readFileSync(new URL('../src/parent/presentation/screens/DrawingGuideScreen.tsx', import.meta.url), 'utf8');
 const understandingScreenSource = readFileSync(new URL('../src/parent/presentation/screens/UnderstandingScreen.tsx', import.meta.url), 'utf8');
 const contextScreenSource = readFileSync(new URL('../src/parent/presentation/screens/ContextScreen.tsx', import.meta.url), 'utf8');
+const transcriptReviewSource = readFileSync(new URL('../src/parent/presentation/screens/TranscriptReviewScreen.tsx', import.meta.url), 'utf8');
+const previewHarnessSource = readFileSync(new URL('../src/parent/presentation/ParentVisualPreviewHarness.tsx', import.meta.url), 'utf8');
 const activityScreenSource = readFileSync(new URL('../src/parent/presentation/screens/ActivityScreen.tsx', import.meta.url), 'utf8');
 const storyScreenSource = readFileSync(new URL('../src/parent/presentation/screens/StoryScreen.tsx', import.meta.url), 'utf8');
 const handoffScreenSource = readFileSync(new URL('../src/parent/presentation/screens/HandoffScreen.tsx', import.meta.url), 'utf8');
@@ -107,6 +113,23 @@ describe('R0 parent primitives accessibility contracts', () => {
     expect(pending.state).not.toBe('confirmed');
   });
 
+  it('uses a native per-corner card edge and a shape cue for the selected aligned tab', () => {
+    expect(uiSource).toContain('const outlineWidths = {\n  control: 1.5,\n  card: 1.6,\n  primary: 2,\n  focus: 3,\n} as const;');
+    expect(uiSource).toContain('cardEdge: { borderWidth: outlineWidths.card, borderColor: palette.outline, borderTopLeftRadius: 22, borderTopRightRadius: 25, borderBottomRightRadius: 19, borderBottomLeftRadius: 23 }');
+    expect(uiSource).toContain('return <View style={[styles.card, style, styles.cardEdge]}>{children}</View>;');
+    expect(uiSource).not.toContain('cardOutlinePath');
+    expect(uiSource).not.toContain('preserveAspectRatio="none"');
+    expect(bottomBarSource).toContain('height: 62');
+    expect(bottomBarSource).toContain('size={19}');
+    expect(bottomBarSource).toContain('fontSize: 9');
+    expect(bottomBarSource).toContain('paddingTop: 4');
+    expect(bottomBarSource).toContain('paddingBottom: 4');
+    expect(bottomBarSource).toContain('<View style={[styles.iconBadge, active && styles.activeIconBadge]}>');
+    expect(bottomBarSource).toContain('activeIconBadge: { borderColor: palette.outline, backgroundColor: palette.butter }');
+    expect(bottomBarSource).toContain('item: { flex: 1, minWidth: 0, minHeight: 52');
+    expect(bottomBarSource).not.toContain('transform:');
+  });
+
   it('keeps minimum and preferred targets and optional prop defaults in the source contract', () => {
     expect(uiSource).toMatch(/minimum:\s*44/);
     expect(uiSource).toMatch(/primary:\s*52/);
@@ -122,7 +145,10 @@ describe('R0 parent primitives accessibility contracts', () => {
   });
 
   it('sets the paper status bar for every app step without adding a second status inset', () => {
-    expect(parentExpoAppSource).toContain('export default function ParentExpoApp({ application }: Props): React.JSX.Element {\n  return <>\n    <StatusBar barStyle="dark-content" backgroundColor={palette.background} />\n    <ParentExpoAppContent application={application} />\n  </>;\n}\n');
+    expect(parentExpoAppSource).toContain('const visualPreviewEnabled = __DEV__ && process.env.EXPO_PUBLIC_FEAT081_VISUAL_PREVIEW === \'true\';');
+    expect(parentExpoAppSource).toContain('return <>\n    <StatusBar barStyle="dark-content" backgroundColor={palette.background} />\n    {visualPreviewEnabled ? <ParentVisualPreviewHarness /> : <ParentExpoAppContent application={application} />}\n  </>;');
+    expect(parentExpoAppSource.indexOf('<StatusBar barStyle="dark-content" backgroundColor={palette.background} />'))
+      .toBeLessThan(parentExpoAppSource.indexOf('{visualPreviewEnabled ? <ParentVisualPreviewHarness />'));
     expect(parentExpoAppSource.indexOf('<StatusBar barStyle="dark-content" backgroundColor={palette.background} />'))
       .toBeLessThan(parentExpoAppSource.indexOf('<ParentExpoAppContent application={application} />'));
     expect(uiSource).not.toContain('StatusBar.currentHeight');
@@ -151,6 +177,125 @@ describe('R0 parent primitives accessibility contracts', () => {
       state: 'unavailable',
       reason: 'route-not-in-be-handoff',
     });
+  });
+});
+
+describe('L1 Vietnamese copy and paper presentation contracts', () => {
+  it('uses the concept auth, account, and settings copy without exposing provider wording', () => {
+    expect(authScreenSource).toContain('Chào mừng trở lại');
+    expect(authScreenSource).toContain('PHỤ HUYNH');
+    expect(authScreenSource).toContain('Sketch2Life · Phụ huynh');
+    expect(authScreenSource).toContain('mode === \'signup\' ? \'Tạo tài khoản phụ huynh\' : \'Chào mừng trở lại\'');
+    expect(authScreenSource).toContain('Đăng nhập để tiếp tục với hồ sơ gia đình.');
+    expect(authScreenSource).toContain('Nếu địa chỉ hợp lệ, hướng dẫn sẽ được gửi. Màn hình không tiết lộ trạng thái đăng ký.');
+    expect(authScreenSource).not.toContain('Tài khoản dùng để đăng nhập vào Sketch2Life.');
+    expect(authScreenSource).not.toContain('Tài khoản được tạo trên Firebase Authentication và backend Sketch2Life.');
+    expect(authScreenSource).not.toContain('<AuthIllustration');
+    expect(authScreenSource).toContain('Đăng nhập bằng tài khoản phụ huynh đã xác thực.');
+    expect(accountScreenSource).toContain('Mật khẩu đã được cập nhật.');
+    expect(accountScreenSource).toContain('Đăng xuất sẽ kết thúc phiên này; cần xác thực lại để tiếp tục.');
+    expect(accountScreenSource).not.toContain('Mật khẩu đã được cập nhật trên Firebase Authentication.');
+    expect(googleSignInButtonSource).toContain('Đăng nhập bằng Google hiện chưa khả dụng. Bạn có thể dùng email để tiếp tục.');
+    expect(googleSignInButtonSource).toContain('Chưa thể hoàn tất đăng nhập bằng Google. Hãy thử lại hoặc dùng email.');
+    expect(googleSignInButtonSource).not.toContain('response.params.error_description');
+    expect(googleSignInButtonSource).not.toContain('Google Sign-In chưa cấu hình.');
+    expect(googleSignInButtonSource).toContain('minHeight: 52');
+    expect(googleSignInButtonSource).toContain('name="logo-google" size={18}');
+    expect(settingsScreenSource).toContain('Chỉ tạo gợi ý nét vẽ khi người lớn bật tùy chọn này trong buổi học.');
+    expect(settingsScreenSource).toContain('Bật gợi ý nét vẽ trong phiên hiện tại');
+    expect(settingsScreenSource).not.toContain('line-sketch');
+    expect(settingsScreenSource).toContain('title="Cài đặt và tài khoản" subtitle="Quản lý đăng nhập phụ huynh."');
+  });
+
+  it('keeps each L1 surface on its named paper-card composition', () => {
+    expect(uiSource).toContain("require('../../../../assets/applied/sketch2life-logo.png')");
+    expect(uiSource).not.toContain('brandDotText');
+    expect(authScreenSource).toContain("step={isRecovery ? undefined : 'PHỤ HUYNH'}");
+    expect(authScreenSource).toContain('style={styles.introCard}');
+    expect(authScreenSource).toContain('style={styles.formCard}');
+    expect(authScreenSource).toContain('style={styles.recoveryCard}');
+    expect(accountScreenSource).toContain('style={styles.emailRow}');
+    expect(settingsScreenSource).toContain('style={styles.guideToggleRow}');
+    expect(homeScreenSource).toContain('style={styles.selectedProfileBadge}');
+    expect(homeScreenSource).toContain('style={styles.galleryRow}');
+    expect(profileScreenSource).toContain('style={styles.profileListCard}');
+    expect(profileFormSource).toContain('style={styles.fieldsCard}');
+    expect(profileFormSource).toContain('style={styles.genderGrid}');
+    expect(profileFormSource).toContain('style={styles.formBadge}>HỒ SƠ');
+    expect(profileFormSource).not.toContain('genderCard');
+    expect(profileFormSource).not.toContain('actionsCard');
+    expect(profileSharingSource).toContain('style={styles.inviteCard}');
+    expect(googleSignInButtonSource).toContain('style={styles.unavailableGroup}');
+  });
+
+  it('keeps auth recovery in the existing screen and passes each action to its original handler', () => {
+    expect(authScreenSource).toContain("type AuthMode = 'signin' | 'signup' | 'recovery';");
+    expect(authScreenSource).toContain('onSignIn(email, password)');
+    expect(authScreenSource).toContain('onSignUp(email, password)');
+    expect(authScreenSource).toContain('void onReset(email)');
+    expect(authScreenSource).toContain('setMode(nextMode)');
+    expect(authScreenSource).toContain('Quay lại đăng nhập');
+    expect(authScreenSource).toContain("onBack={isRecovery ? () => changeMode('signin') : undefined}");
+    expect(authScreenSource).not.toContain('onRecovery');
+  });
+
+  it('starts profile fields blank, keeps gender local, and shows sharing as unavailable without sample grants', () => {
+    expect(profileFormSource).toContain("useState(profile ? String(profile.age_months) : '')");
+    expect(profileFormSource).toContain('placeholder="Nhập tên hiển thị"');
+    expect(profileFormSource).toContain('Lựa chọn giới tính chỉ là bản nháp trên thiết bị; chưa được gửi, lưu hoặc dùng để tạo câu chuyện.');
+    expect(profileFormSource).toContain('Giới tính của trẻ (tùy chọn)');
+    expect(profileFormSource).toContain('Không muốn chia sẻ');
+    expect(profileFormSource).toContain('CHILD_AGE_RANGE_MESSAGE');
+    expect(profileFormSource).toContain('disabled={!displayName.trim() || !ageValid}');
+    expect(profileFormSource).toContain('ageMonths.trim().length > 0 && !ageValid');
+    expect(profileFormSource).not.toContain('Ví dụ: Bé Mây');
+    expect(profileFormSource).not.toContain('Thiên nhiên, côn trùng…');
+    expect(profileSharingSource).toContain("props.capability.state === 'unavailable' ? <Card");
+    expect(profileSharingSource).toContain('Chỉ mời giáo viên được nêu tên.');
+    expect(profileSharingSource).toContain('Chưa thể gửi lời mời hoặc kiểm tra quyền chia sẻ. Chưa có thay đổi quyền nào được xác nhận.');
+    expect(profileSharingSource).not.toContain('phạm vi 90 ngày');
+  });
+
+  it('keeps home and profile actions on the existing run, selection, and eligibility conditions', () => {
+    expect(homeScreenSource).toContain('Cùng con bắt đầu một hành trình khám phá.');
+    expect(homeScreenSource).toContain('Minh họa tĩnh bằng nét SVG, không phải tranh của trẻ.');
+    expect(homeScreenSource).toContain('viewBox="0 0 280 120"');
+    expect(homeScreenSource).toContain('aspectRatio: 280 / 120');
+    expect(homeScreenSource).toContain('accessibilityLabel="Khám phá bài giảng"');
+    expect(homeScreenSource).toContain('onPress={onOpenLessons}');
+    expect(homeScreenSource).toContain('onPress={activeRun ? onResumeRun : onStart}');
+    expect(homeScreenSource).toContain("label={activeRun ? 'Tiếp tục buổi đang mở' : 'Bắt đầu buổi vẽ'}");
+    expect(homeScreenSource).toContain('Chưa có hồ sơ được chọn.');
+    expect(homeScreenSource).toContain('Quản lý hồ sơ');
+    expect(homeScreenSource).not.toContain('Tạo hồ sơ để lưu độ tuổi và sở thích cho từng buổi.');
+    expect(homeScreenSource).not.toContain('hồ sơ đã sẵn sàng.');
+    expect(homeScreenSource).not.toContain('Không gian của gia đình');
+    expect(homeScreenSource).not.toContain('Tài khoản và bảo mật');
+    expect(bottomBarSource).toContain("{ id: 'activity', label: 'Hoạt động', icon: 'time-outline' }");
+    expect(bottomBarSource).toContain('accessibilityRole="button"');
+    expect(bottomBarSource).toContain("startLabel === 'Tiếp tục'");
+    expect(parentExpoAppSource).toContain("if (tab === 'activity') return openHistory('home');");
+    expect(parentExpoAppSource).toContain('onStart={startOrResume}');
+    expect(parentExpoAppSource).toContain("mainSection('activity', <StoryHistoryScreen");
+    expect(bottomBarSource).toContain("{ id: 'profiles', label: 'Gia đình'");
+    expect(profileScreenSource).toContain('Không gian gia đình');
+    expect(profileScreenSource).toContain('Tài khoản và bảo mật');
+    expect(profileScreenSource).toContain('Cài đặt');
+    expect(profileScreenSource).toContain('Thông báo');
+    expect(profileScreenSource).toContain('Lượt tạo video');
+    expect(profileScreenSource).toContain('Lịch sử hoạt động');
+    expect(profileScreenSource).toContain('Bài giáo viên đã dạy');
+    expect(profileScreenSource).toContain('Chia sẻ hồ sơ với giáo viên');
+    expect(profileScreenSource).toContain('Chọn hồ sơ trẻ để xem bài đã dạy hoặc quản lý chia sẻ.');
+    expect(profileScreenSource).toContain('disabled={!selected}');
+    expect(profileScreenSource).toContain('Đăng xuất');
+    expect(profileScreenSource).not.toContain('Tiếp tục buổi đang mở');
+    expect(profileScreenSource).toContain('Mỗi buổi học chỉ gắn với một hồ sơ trẻ.');
+    expect(profileScreenSource.indexOf('Mỗi buổi học chỉ gắn với một hồ sơ trẻ.'))
+      .toBeLessThan(profileScreenSource.indexOf('<Card style={styles.profileListCard}>'));
+    expect(profileScreenSource).toContain('disabled={!mayStartRun}');
+    expect(profileScreenSource).toContain('Hồ sơ cũ, chỉ xem hoặc xóa');
+    expect(profileScreenSource).toContain('không ngăn bạn tiếp tục với hồ sơ đủ điều kiện');
   });
 });
 
@@ -256,8 +401,8 @@ describe('R1 account and profile boundaries', () => {
     expect(authScreenSource).toContain("const [password, setPassword] = useState('')");
     expect(profileFormSource).toContain("useState<ChildGenderDraft>('')");
     expect(profileFormSource).toContain('void action(input).catch(() => undefined)');
-    expect(profileFormSource).toContain('Cơ sở đồng ý cho trường này đang chờ xác nhận');
-    expect(profileSharingSource).toContain('phạm vi 90 ngày');
+    expect(profileFormSource).toContain('Lựa chọn giới tính chỉ là bản nháp trên thiết bị; chưa được gửi, lưu hoặc dùng để tạo câu chuyện.');
+    expect(profileSharingSource).not.toContain('phạm vi 90 ngày');
     expect(profileSharingSource).toContain('Chưa thể xác nhận lời mời đang chờ');
     expect(profileControllerSource).not.toMatch(/application\.profiles\.(getConsentPolicy|grantAuthorization|revokeAuthorization)/);
     expect(profileControllerSource).not.toMatch(/child_gender|childGender/);
@@ -320,9 +465,12 @@ describe('R2 backend route boundary', () => {
   });
 
   it('keeps topic optional while requiring a pinned lesson and shows version, hash, and invitation states from the server', () => {
-    expect(lessonPickerSource).toContain('Bạn chưa thể tiếp tục nếu chưa ghim một phiên bản bài giảng');
+    expect(lessonPickerSource).toContain('title="Bài học từ thư viện"');
+    expect(lessonPickerSource).toContain('Bạn chưa thể tiếp tục nếu chưa ghim một phiên bản bài học');
     expect(lessonPickerSource).not.toContain('Tiếp tục không dùng bài giảng');
-    expect(topicScreenSource).toContain('Chủ đề và ý tưởng có thể bổ sung, nhưng cần ghim một phiên bản bài giảng');
+    expect(topicScreenSource).toContain('cần ghim một phiên bản bài học chính xác để tiếp tục.');
+    expect(topicScreenSource).toContain('Chuyển giọng nói thành chữ hiện chưa khả dụng');
+    expect(topicScreenSource).toContain('onPress={() => props.onTopic(topic)}');
     expect(topicScreenSource).not.toContain('Không chọn bài giảng cũng được');
     expect(lessonGallerySource).not.toContain('Có thể tiếp tục không cần bài giảng');
     expect(lessonGallerySource).not.toContain('Tiếp tục không dùng bài giảng');
@@ -337,6 +485,162 @@ describe('R2 backend route boundary', () => {
     expect(profileControllerSource).not.toContain('createRunBeforeDrawingV1');
     expect(profileControllerSource).not.toContain('application.learning.suggestActivities');
     expect(parentExpoAppSource).toContain('photoSelected: Boolean(parent.photo)');
+  });
+
+  it('keeps L2 screens on paper cards and gates the synthetic preview outside normal app flow', () => {
+    expect(topicScreenSource).toContain('Gợi ý nét vẽ do trí tuệ nhân tạo tạo');
+    expect(topicScreenSource).not.toContain('Gợi ý nét vẽ do AI tạo');
+    expect(topicScreenSource).not.toContain('Gợi ý line sketch được tạo bởi AI');
+    expect(lessonGallerySource).toContain('catalogCard: {\n    padding: 13,\n    backgroundColor: palette.white,\n    gap: 12,\n    minWidth: 0,');
+    expect(lessonGallerySource).toContain('activity: {\n    gap: 8,\n    borderTopWidth: 1,');
+    expect(lessonPickerSource).toContain('lessonCard: { backgroundColor: palette.white, gap: 8, minWidth: 0 }');
+    expect(topicScreenSource).toContain('guideImage: { width: \'100%\', height: 240');
+    expect(drawingGuideScreenSource).toContain('title="Gợi ý vẽ (tùy chọn)"');
+    expect(drawingGuideScreenSource).toContain('<PrimaryButton label="Bỏ qua hướng dẫn" onPress={props.onContinue} />');
+    expect(drawingGuideScreenSource).toContain('currentStep: { color: palette.ink');
+    expect(captureScreenSource).toContain('aspectRatio: 280 / 190, minHeight: 190');
+    expect(captureScreenSource).toContain('<Text style={styles.requiredBadge}>BẮT BUỘC</Text>');
+    expect(transcriptReviewSource).toContain('emptyCard: { backgroundColor: palette.white, gap: 12, minWidth: 0 }');
+    expect(understandingScreenSource).toContain('candidateCard: { backgroundColor: palette.white, gap: 12, minWidth: 0 }');
+    expect(understandingScreenSource).toContain('label="Xác nhận chủ thể này"');
+    expect(contextScreenSource).toContain('snapshotCard: { backgroundColor: palette.white, gap: 14, minWidth: 0 }');
+    expect(contextScreenSource).toContain('Sở thích được phép dùng: {snapshot.interests_summary}');
+    expect(contextScreenSource).not.toContain('consent');
+    expect(contextScreenSource).toContain('snapshotText: { color: palette.ink, fontSize: 14, lineHeight: 21, minWidth: 0, flexShrink: 1 }');
+    expect(contextScreenSource).toContain('</Card>\n\n      {props.contextRun && !subjectConfirmed ? <Notice');
+    expect(contextScreenSource).not.toContain('position: \'absolute\'');
+    expect(lessonGallerySource).toContain('<Card style={styles.catalogCard}>');
+    expect(lessonGallerySource).toContain('{catalog.visibleLessons.map((lesson) => (');
+    expect(lessonGallerySource).not.toContain('position: \'absolute\'');
+
+    expect(parentExpoAppSource).toContain('const visualPreviewEnabled = __DEV__ && process.env.EXPO_PUBLIC_FEAT081_VISUAL_PREVIEW === \'true\';');
+    expect(parentExpoAppSource).toContain('{visualPreviewEnabled ? <ParentVisualPreviewHarness /> : <ParentExpoAppContent application={application} />}');
+    expect(previewHarnessSource).toContain('BẢN XEM TRƯỚC · DỮ LIỆU MÔ PHỎNG');
+    expect(previewHarnessSource).toContain('numberOfLines={1} allowFontScaling={false} style={styles.marker}');
+    expect(previewHarnessSource).toContain('style={styles.tabStrip}');
+    expect(previewHarnessSource).toContain('tabStrip: { height: 56, maxHeight: 56, flexGrow: 0, flexShrink: 0 }');
+    expect(previewHarnessSource).toContain('tab: { minHeight: 44');
+    expect(previewHarnessSource).toContain("{ id: 'profiles', label: 'Gia đình' }");
+    expect(previewHarnessSource).toContain("{ id: 'family-unselected', label: 'Gia đình · chưa chọn' }");
+    expect(previewHarnessSource).toContain("{ id: 'home-new', label: 'Trang chủ · buổi mới' }");
+    expect(previewHarnessSource).toContain('profiles={[]}\n      selectedProfile={null}\n      activeRun={previewContextRun}');
+    expect(previewHarnessSource).toContain('selectedProfileId=""');
+    expect(previewHarnessSource).toContain('screenContent: { flex: 1, minHeight: 0');
+    expect(previewHarnessSource).toContain("candidate_subject: 'Mô phỏng · một con bướm'");
+    expect(previewHarnessSource).toContain('age_band_ref: null');
+    expect(previewHarnessSource).toContain('age_band_version: null');
+    expect(previewHarnessSource).toContain('function ignoreAction(): void {}');
+    expect(previewHarnessSource).toContain('function pendingPreviewAsync(): Promise<void>');
+    expect(previewHarnessSource).toContain('return new Promise<void>((resolve) => { void resolve; });');
+    expect(previewHarnessSource).toContain('function pendingPreviewProfile(): Promise<ParentProfileViewV1>');
+    expect(previewHarnessSource).toContain('return new Promise<ParentProfileViewV1>((resolve) => { void resolve; });');
+    expect(previewHarnessSource).not.toContain('async () => previewProfile');
+    expect(previewHarnessSource).not.toContain('function ignoreAsync()');
+    expect(previewHarnessSource).toContain('lesson={null}');
+    expect(previewHarnessSource).toContain('canContinue={false}');
+    expect(previewHarnessSource).toContain('guideBase64=""');
+    expect(previewHarnessSource).toContain('transcript={previewTranscript}');
+    expect(previewHarnessSource).toContain('const previewTranscript: ParentAudioTranscription | null = null;');
+    expect(transcriptReviewSource).toContain('{props.transcript ? <Card style={styles.transcriptCard}>');
+    expect(previewHarnessSource).toContain('<LessonGalleryScreen');
+    expect(previewHarnessSource).toContain('<LessonPickerScreen');
+    expect(previewHarnessSource).toContain('<AuthScreen');
+    expect(previewHarnessSource).toContain('<AccountScreen');
+    expect(previewHarnessSource).toContain('<SettingsScreen');
+    expect(previewHarnessSource).toContain('<HomeScreen');
+    expect(previewHarnessSource).toContain('<ProfileScreen');
+    expect(previewHarnessSource).toContain('<ProfileFormScreen mode="create"');
+    expect(previewHarnessSource).toContain('<ProfileFormScreen mode="edit"');
+    expect(previewHarnessSource).toContain('<ProfileSharingScreen');
+    expect(previewHarnessSource).toContain('<TopicScreen');
+    expect(previewHarnessSource).toContain('<DrawingGuideScreen');
+    expect(previewHarnessSource).toContain('capture: <CapturePreviewScreen state="empty" />');
+    expect(previewHarnessSource).toContain('<TranscriptReviewScreen');
+    expect(previewHarnessSource).toContain('<UnderstandingScreen');
+    expect(previewHarnessSource).toContain('<ContextScreen');
+    expect(previewHarnessSource).toContain('<ActivityScreen');
+    expect(previewHarnessSource).toContain('<StoryScreen');
+    expect(previewHarnessSource).toContain('<HandoffScreen');
+    expect(previewHarnessSource).toContain('<StoryHistoryScreen');
+    expect(previewHarnessSource).toContain('<LessonHistoryScreen');
+    expect(previewHarnessSource).toContain('<QuotaScreen');
+    expect(previewHarnessSource).toContain('<NotificationsScreen');
+    expect(previewHarnessSource).toContain('<ParentBottomBar');
+    expect(previewHarnessSource).toContain('<ParentBottomBar activeTab="home" onNavigate={ignoreAction} onStart={ignoreAction} startLabel="Bắt đầu" />');
+    expect(previewHarnessSource).not.toContain('ParentApi');
+    expect(previewHarnessSource).not.toContain('fetch(');
+    expect(previewHarnessSource).not.toContain('EXPO_PUBLIC_API_URL');
+    expect(previewHarnessSource).not.toContain('useParentController');
+    expect(previewHarnessSource).not.toContain('useParentPlatformController');
+  });
+});
+
+describe('M3 concept surfaces and truthful capability states', () => {
+  it('keeps the existing flow, typed unavailable states, and concept presentation', () => {
+    expect(activityScreenSource).toContain('title="Gợi ý hoạt động"');
+    expect(activityScreenSource).toContain('onPress={props.onSkip}');
+    expect(activityScreenSource).toContain('return \'Chưa xác định loại hoạt động\';');
+    expect(activityScreenSource).toContain('activityCard: { backgroundColor: palette.white, gap: 12, minWidth: 0 }');
+    expect(activityScreenSource).toContain('styles.emptyCard');
+    expect(storyScreenSource).toContain('title="Rà soát kịch bản"');
+    expect(storyScreenSource).toContain('storyLanguageLabel(props.story.language)');
+    expect(storyScreenSource).toContain('Gửi gợi ý viết lại · tối đa 3 lần');
+    expect(storyScreenSource).toContain('props.rewriteCount < 3');
+    expect(storyScreenSource).not.toContain('Ví dụ:');
+    expect(storyScreenSource).toContain('generationCard: { backgroundColor: palette.white, gap: 12, minWidth: 0 }');
+    expect(storyScreenSource).toContain('style={styles.scene}');
+    expect(storyScreenSource).toContain("scene: { borderTopWidth: 1.3, borderTopColor: '#CFC3B3', paddingTop: 10, gap: 8, minWidth: 0 }");
+    expect(handoffScreenSource).toContain('title="Trạng thái buổi học"');
+    expect(handoffScreenSource).toContain('style={styles.statusCard}');
+    expect(handoffScreenSource).toContain('eventRow: { flexDirection: \'row\', alignItems: \'flex-start\', justifyContent: \'space-between\'');
+    expect(handoffScreenSource).toContain('eventStageLabel(event.stage)');
+    expect(handoffScreenSource).toContain('Không hiển thị phần trăm, thời gian dự kiến hoặc vị trí hàng đợi.');
+    expect(handoffScreenSource).not.toContain('event.durationMs');
+    expect(storyHistoryScreenSource).toContain('runCard: { backgroundColor: palette.white, gap: 12, minWidth: 0 }');
+    expect(storyHistoryScreenSource).toContain("return labels[value] ?? 'Trạng thái chưa xác định'");
+    expect(lessonHistoryScreenSource).toContain('title="Bài học đã xem"');
+    expect(lessonHistoryScreenSource).toContain('deliveryCard: { backgroundColor: palette.white, gap: 12, minWidth: 0 }');
+    expect(quotaScreenSource).toContain('Tóm tắt lượt dùng');
+    expect(quotaScreenSource).toContain('quotaCard: { backgroundColor: palette.white, gap: 12, minWidth: 0 }');
+    expect(notificationsScreenSource).toContain('Thông tin dành riêng cho tài khoản phụ huynh.');
+    expect(notificationsScreenSource).toContain('Đánh dấu đã đọc');
+    expect(notificationsScreenSource).toContain("style={[styles.notificationCard, { backgroundColor: item.read_at ? palette.white : palette.paleBlue }]}");
+    expect(transcriptReviewSource).toContain('<SectionTitle>Nội dung nhận dạng</SectionTitle>');
+    expect(transcriptReviewSource).not.toContain('Whisper · tiếng Việt');
+    expect(transcriptReviewSource).toContain('ScreenFrame title="Rà soát bản chép lời"');
+    expect(transcriptReviewSource).toContain('transcriptCard: { backgroundColor: palette.white, gap: 12, minWidth: 0 }');
+    expect(previewHarnessSource).toContain('capture: <CapturePreviewScreen state="empty" />');
+    expect(previewHarnessSource).toContain("'capture-denied': <CapturePreviewScreen state=\"camera-denied\" />");
+    expect(previewHarnessSource).toContain("'capture-selected': <CapturePreviewScreen state=\"photo-selected\" />");
+    expect(previewHarnessSource).toContain('Camera chưa được cấp quyền. Vẫn có thể chọn tranh từ thư viện.');
+    expect(previewHarnessSource).toContain('Ảnh minh họa mô phỏng · không phải tranh thật');
+    expect(previewHarnessSource).not.toContain('CaptureScreen');
+    expect(previewHarnessSource).not.toContain('ImagePicker');
+    expect(previewHarnessSource).not.toContain('requestCameraPermissionsAsync');
+    expect(previewHarnessSource).not.toContain('requestMediaLibraryPermissionsAsync');
+    expect(previewHarnessSource).not.toContain('ParentApi');
+    expect(previewHarnessSource).not.toContain('useParentController');
+    expect(previewHarnessSource).not.toContain('fetch(');
+    const capturePreviewStart = previewHarnessSource.indexOf('function CapturePreviewScreen');
+    const capturePreviewEnd = previewHarnessSource.indexOf('function CapturePreviewDrawing', capturePreviewStart);
+    const capturePreviewMarkup = previewHarnessSource.slice(capturePreviewStart, capturePreviewEnd);
+    const requiredBadgeAt = capturePreviewMarkup.indexOf('<Text style={styles.capturePreviewRequired}>');
+    const permissionNoticeAt = capturePreviewMarkup.indexOf('{cameraDenied ? <Notice');
+    const cameraActionAt = capturePreviewMarkup.indexOf('<PrimaryButton label={hasPhoto ?');
+    const galleryActionAt = capturePreviewMarkup.indexOf('<SecondaryButton label="Chọn từ thư viện ảnh"');
+    const photoSlotAt = capturePreviewMarkup.indexOf('<View style={styles.capturePreviewImageFrame}>');
+    expect(captureScreenSource).toContain('Chỉ tiếp tục sau khi có một ảnh tranh hợp lệ. Chưa mở buổi học trước ảnh.');
+    const requiredPhotoNoticeAt = capturePreviewMarkup.indexOf('<Notice text="Chỉ tiếp tục sau khi có một ảnh tranh hợp lệ. Chưa mở buổi học trước ảnh."');
+    const continueActionAt = capturePreviewMarkup.indexOf('<PrimaryButton label="Tiếp tục sau khi chọn ảnh"');
+    for (const position of [requiredBadgeAt, permissionNoticeAt, cameraActionAt, galleryActionAt, photoSlotAt, requiredPhotoNoticeAt, continueActionAt]) {
+      expect(position).toBeGreaterThanOrEqual(0);
+    }
+    expect(requiredBadgeAt).toBeLessThan(permissionNoticeAt);
+    expect(permissionNoticeAt).toBeLessThan(cameraActionAt);
+    expect(cameraActionAt).toBeLessThan(galleryActionAt);
+    expect(galleryActionAt).toBeLessThan(photoSlotAt);
+    expect(photoSlotAt).toBeLessThan(requiredPhotoNoticeAt);
+    expect(requiredPhotoNoticeAt).toBeLessThan(continueActionAt);
   });
 });
 

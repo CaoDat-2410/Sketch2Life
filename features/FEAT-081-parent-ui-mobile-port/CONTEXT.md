@@ -122,3 +122,28 @@ Addendum 8 authorizes one more coordinator `pnpm run test` and `pnpm run typeche
 TopicScreen received the owner-authorized copy-only update: pre-edit 6,533 bytes / SHA-256 `A479B3D5F22E4E68133EB02CA419AE6D3BD7104E1E10BB342BCD7C37267CDC5F`; post-edit 6,509 bytes / SHA-256 `EA17130D3CB1FF397446820B22AEA8A9E32841DE81820009FF5BD90AD3D7F183`. Only text changed; the validator script was read but not run. The report is 11,767 bytes / SHA-256 `BD77ACEA43FF304480E58CB9843F941CBAFDC2CCF5B0DB7783218D65D895189D`.
 
 Addendum 8 changed `TASK_APPROVAL.md` from its 30,117-byte / `3123895D0E3122500EFAD65A9B93E551ADBBF6CC90F9EC2FA54B45B815CCACAB` pre-append pin to 33,408 bytes / `DD0AE7A3E219EE4A6FF2DC362F07BDD3E45AADE8BE6EDA1FAE7CCD6A3A20E390`. Wave 2 remains uncommitted; nothing was staged, committed, or pushed.
+
+## M2 no-Modal real-flow backlog proposals — 2026-11-13
+
+**Status: PROPOSED BACKLOG ONLY.** Source evidence: `features/FEAT-063-system-architecture-rearchitecture/evidence/M2_REAL_FLOW_NO_MODAL_TEST_LOG_20261113.md`. This append-only context note creates no implementation approval, launch, owner decision, or backend route contract. Current product requirements remain governed by the unsigned FEAT-063 v2.7-draft Rev60 SRS.
+
+### Proposal 1 — State-aware resume of an active StoryRun
+
+- **Placement:** Separate FEAT-081 follow-up task card for run-lifecycle recovery, kept outside the current P03–P06 draft scope unless the owner later revises that plan.
+- **Scope:** Map the server-reported active `run_state` (and job stage when the API provides one) to a safe native screen on app launch and Home continuation. Preserve and reconcile the existing run identity. Define the `INPUT_PROCESSING` behavior while Modal work is disabled: do not imply that provider work will complete, invoke a provider, create a replacement run, or retry an uncertain mutation. Resolve with the BE lane whether this state has an active job and what progress/recovery operation is supported.
+- **Acceptance criteria:** Known run states map to documented, localized screens or recovery states; unknown states have a safe fallback; relaunch and Home continuation restore the same run; `INPUT_PROCESSING` remains understandable and recoverable without a Modal call; the UI never creates a second run as a resume fallback.
+- **Test plan:** Table-driven unit tests for every supported state plus unknown/null state; controller tests with fake active-run and job responses across relaunch; assert the original run ID is retained and no create/provider operation is issued; owner-run emulator walkthrough after separate approval.
+
+### Proposal 2 — Reachable Home cancel/abandon action
+
+- **Placement:** Separate FE/BE task card; the BE route contract is a blocking question for the BE lane. Do not fold it into P03–P06 without a new approved scope.
+- **Scope:** Make cancellation of the active run reachable from Home and call only the method/path and request shape confirmed by BE. Do not infer the route from the unverified History-screen client call. The canonical SRS target says cancellation of an unfinished run enters `DELETE_PENDING`, releases the active-owner lock immediately, and starts the content purge lifecycle; response and reconciliation details still need the BE contract.
+- **Acceptance criteria:** BE records the route, authorization, request/response schema, idempotency, and state-transition behavior; Home exposes an explicit adult-controlled action; pending/success/error UI follows server responses; repeated actions are safe; a failed request leaves the run visible and does not claim it was cancelled.
+- **Test plan:** BE route/contract tests for authorization, idempotency, state and lock release; mobile fake-API tests for the exact approved route, duplicate press, success-to-pending reconciliation, and failure; owner-run integration walkthrough only after the route is verified and separately authorized.
+
+### Proposal 3 — Fetch timeout and status-0 error handling
+
+- **Placement:** Separate FEAT-081 mobile reliability task card, outside the current Wave 3 screen allowlist because it may touch authentication/API transport boundaries.
+- **Scope:** Add a bounded timeout and normalize network-layer failures, including fetch status `0`, into readable localized app errors. Preserve meaningful HTTP status handling and avoid automatic retries for non-idempotent commands.
+- **Acceptance criteria:** Network rejection, timeout, and status `0` no longer produce a raw red error box; HTTP errors remain distinguishable; messages omit raw response bodies, credentials, tokens, and implementation diagnostics; write actions are not silently retried.
+- **Test plan:** Fake-fetch tests for network rejection/status `0`, timeout/abort, representative HTTP 4xx/5xx responses, safe message mapping, and proof that a write is not auto-retried.

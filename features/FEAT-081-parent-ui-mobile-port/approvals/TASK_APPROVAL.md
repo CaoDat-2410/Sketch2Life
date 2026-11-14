@@ -478,3 +478,178 @@ Addendum 18 - FEAT-081 Wave L plan approval and merged L0-L3 launch authorizatio
 - OWNER_MODAL_CALL_APPROVED=NO.
 
 The goal runs L0, L1, L2, and L3 sequentially without a pause. The owner may interrupt with stop-and-save. Plan approval and this addendum do not launch the goal; the goal starts only when the owner sends the goal text. No post-append features/FEAT-081-parent-ui-mobile-port/approvals/TASK_APPROVAL.md pin is recorded.
+
+Addendum 19 - FEAT-081 Wave L allowlist amendment (L3 E row, copy edit 7 only)
+
+- Status: Plan Revision 8 APPROVED; L3 scope amendment only. This resolves the existing merged goal's L3 allowlist conflict and authorizes no work beyond that goal.
+- Authority: Direct owner decision from Person 2 dated 2026-11-14, recorded as D-021. Plan Revision 8, D-020, and Addendum 18 are not edited.
+- Approved plan pin: features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_8.md, 46,506 bytes / SHA-256 8CC56B627FF08B80FBCEC5D8ED71ABEC85E2A1FF33CC7FD494287ACBD0EBBCBD.
+- Screen map appendix pin: features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_8_SCREEN_MAP.md, 21,220 bytes / SHA-256 99A5E04F292B5D2995E50059AE2587759ABACC98FFE0E68669E99B0F318985A5.
+- Pre-append features/FEAT-081-parent-ui-mobile-port/DECISIONS.md pin: 47,830 bytes / SHA-256 178523EC18BE254610F7905A9431A03D7F844C4470DA2580857825FC3546EBC4.
+- Post-append features/FEAT-081-parent-ui-mobile-port/DECISIONS.md pin: 49,312 bytes / SHA-256 827684531C21CFF606A891194363E0419ADD01AE3B12FD4AE7CAF61BCFD8630B.
+- Pre-append features/FEAT-081-parent-ui-mobile-port/approvals/TASK_APPROVAL.md pin: 56,885 bytes / SHA-256 83C8823C38C7263FE6BFFC57E9C1E5FAC65529DBF68D2997B8C78AD1CCE8C627.
+- Scope: Add apps/ui-mobile/src/parent/presentation/screens/TranscriptReviewScreen.tsx to L3 E using its accepted L2 after-pin, 2,854 bytes / SHA-256 4F2380190A9CD6B0F4D815A4FBB7102F39613E2D53AF1A107DCB352299D67DFB. Its sole L3 change is copy edit 7, “Whisper · tiếng Việt” to “Bản ghi lời nói · tiếng Việt”; preserve the existing L2 restyle and every other byte. Keep all previously approved L3 E paths, R/H rows, route order, and behavior unchanged. No other plan or allowlist change is authorized.
+- Test ceiling: At most two coordinator pnpm run test runs total for the merged goal: one after L3 and one correction run. Codex runs none. The completed Wave R verification set is used and is not a Wave L baseline run.
+- Typecheck ceiling: At most two coordinator pnpm run typecheck runs total: one after L3 and one correction run. Codex runs none.
+- Validator ceiling: At most two owner runs each of validate_harness, validate_repository_security, validate_architecture, and git diff --check. Codex runs none.
+- Emulator review: At most two owner emulator reviews total for the merged goal. Codex runs no emulator command or review.
+- Baseline commit: 8f1fef7dafa5c374b2cc2e80562b6a0a78d75288.
+- OWNER_MODAL_CALL_APPROVED=NO.
+
+This amendment does not change the seven approved copy edits or Addendum 18 command/emulator ceilings. It approves no additional command, test, typecheck, validator, diff-check, emulator review, checkpoint, or Modal call. The resumed merged goal continues at L3 under the amended file scope. No post-append features/FEAT-081-parent-ui-mobile-port/approvals/TASK_APPROVAL.md pin is recorded.
+
+Addendum 20 - FEAT-081 Wave M plan approval and launch (Plan Revision 9)
+
+- Status: Plan Revision 9 APPROVED; launched by the owner's goal text of 2026-11-14
+- Authority: direct owner instruction in the goal text; plan review delegated to the executing session and recorded in the record file
+- Approved plan pin: `features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_9.md`, 77,730 bytes / SHA-256 `74986A371929A724C8713257407BC0EBEF38CCAF117F2C157343FED276D63859`.
+- Concept specification pin: `tmp/fe081-waveM/WAVEM_CONCEPT_SPEC.md`, 56,693 bytes / SHA-256 `31265CCBB7EC06172A1387BA992386F90204FFC69FEA6EACAFAA045467BA451A`; `features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_9_CONCEPT_SPEC.md` is byte-identical.
+- Pre-append `features/FEAT-081-parent-ui-mobile-port/DECISIONS.md` pin: 49,312 bytes / SHA-256 `827684531C21CFF606A891194363E0419ADD01AE3B12FD4AE7CAF61BCFD8630B`.
+- Post-append `features/FEAT-081-parent-ui-mobile-port/DECISIONS.md` pin: 51,809 bytes / SHA-256 `774CAE834E76C6F2CEDCA1496A40D5BBED3BE597DB6A7207E0612839111BE7DF`.
+- Pre-append `features/FEAT-081-parent-ui-mobile-port/approvals/TASK_APPROVAL.md` pin: 59,779 bytes / SHA-256 `AC9823ECA60A202EC21FC88FFAAF39A8116EADE9E3996A2CD6A164081C0EB3E0`.
+- Post-append `TASK_APPROVAL.md` full-file pin: recorded after append in `tmp/fe081-waveM/records/WAVEM_PHASE_A_RECORD.md`. This append-only file cannot embed its own final SHA-256 without changing that digest.
+- Scope: only the E rows in Plan Revision 9 §§7.2-7.5 may change in their named checkpoint; the plan has no N rows. R/H rows remain frozen. The only non-H test allowed to change is `apps/ui-mobile/tests/parentSrsBehavior.test.ts`, and only affected presentation assertions may be revised. M0, M1, M2, M3 run sequentially.
+- Ceilings: coordinator at most three `pnpm run test` and three `pnpm run typecheck` runs total for Wave M. Owner at most three runs each of `validate_harness`, `validate_repository_security`, `validate_architecture`, and `git diff --check`, and at most three emulator reviews. Codex runs none. A Modal call is not approved.
+- Baseline commit: `a0b382f8c21de0dc66f23c5aa752a3a67388a093` plus the accepted uncommitted Wave L working state.
+- The unsigned Rev67 task pin and its conflict with the repository-wide Rev60 authority register are reported for coordinator resolution. Existing D-017 O1 is preserved as a deviation from Rev67, not described as SRS conformance.
+- OWNER_MODAL_CALL_APPROVED=NO.
+
+This approval launches the owner-directed M0-M3 run only within the scope, frozen-flow rules, ceilings, records, snapshots, and stop conditions above and in the Wave M instructions. No stage, commit, or push is authorized.
+Addendum 21 - FEAT-081 Wave M M3 Capture preview harness scope amendment (Plan Revision 9)
+
+- Status: M3 scope amendment approved; continuation authorized by the owner's message of 2026-11-14
+- Authority: direct owner instruction in the current goal conversation on 2026-11-14, approving the addition of ParentVisualPreviewHarness.tsx to the M3 allowlist only to add deterministic Capture previews for permission-denied and selected-photo states
+- Plan before amendment: features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_9.md, 77,730 bytes / SHA-256 74986A371929A724C8713257407BC0EBEF38CCAF117F2C157343FED276D63859
+- Amended Plan Revision 9: features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_9.md, 78,915 bytes / SHA-256 F117FA0428E3768DD94A34824F55E58BA41483073FE9AE82A4BD2CE76EF819CC
+- M3 incoming harness pin: apps/ui-mobile/src/parent/presentation/ParentVisualPreviewHarness.tsx, 20,075 bytes / SHA-256 0E56EABCC599FEECB498BD9C51737E0BB3ECD417E034863F053FC7605F9B995C, equal to the recorded M0 after/snapshot pin
+- TASK_APPROVAL.md pre-append pin: 62,478 bytes / SHA-256 71F34469F3F1F4259D49B583A0B569117115EB04EE755A7D0B13548784291138
+- TASK_APPROVAL.md post-append full-file pin: recorded after the append in tmp/fe081-waveM/records/WAVEM_M3_SCOPE_AMENDMENT_RECORD.md; this file does not contain a self-referential digest
+- Scope: add ParentVisualPreviewHarness.tsx as an M3 E row in Plan Revision 9 §7.5, using its M0 after-pin as the M3 incoming pin. The harness may add selectable empty, camera-permission-denied, and selected-photo Capture previews using deterministic harness-only composition and code-drawn simulated artwork. Capture preview controls are inert and the preview invokes no ImagePicker, controller, application API, or network. The existing already-allowlisted parentSrsBehavior.test.ts may receive only source assertions for these preview states and their inert behavior. No production CaptureScreen, flow, route, controller, payload, other source file, package, font, or image asset is authorized by this amendment. Stop if additional source outside this scope is required.
+- Production product flow, step order, transitions, callbacks, and navigation remain unchanged. M0-M2 status and evidence are unchanged.
+- Existing Addendum 20 ceilings and all no-test/no-validator/no-diff-check/no-install/no-network/no-backend/no-Android/no-emulator/no-Modal/no-stage/no-commit/no-push restrictions remain in force. OWNER_MODAL_CALL_APPROVED=NO.
+- Baseline remains a0b382f8c21de0dc66f23c5aa752a3a67388a093 plus the accepted uncommitted Wave L working tree.
+Addendum 22 - FEAT-081 Wave M M3 scope-amendment plan-pin correction
+
+- Status: Documentation correction to Addendum 21; the previously approved M3 scope is unchanged
+- Authority: direct owner approval of the M3 ParentVisualPreviewHarness.tsx scope amendment on 2026-11-14. This addendum corrects manifest pin presentation before any harness edit and does not expand the approved source scope.
+- Plan pin previously recorded by Addendum 21: features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_9.md, 78,915 bytes / SHA-256 F117FA0428E3768DD94A34824F55E58BA41483073FE9AE82A4BD2CE76EF819CC
+- Corrected amended plan pin: features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_9.md, 79,202 bytes / SHA-256 FDA7CE1620BA7B354F492430C52CC446599E6D694F446EB37760F4B174E0ED42
+- Correction: §7.5 continues to list Wave M launch pins and separately records the M3 incoming pins for earlier-edited files. ParentVisualPreviewHarness.tsx launch pin is 11,033 bytes / SHA-256 5FE38D9D768715FD8DFC2AEBD53BA65385DCE034075463A36E1FC7D4ACE01DB6; M3 incoming is its M0 after/snapshot pin, 20,075 bytes / SHA-256 0E56EABCC599FEECB498BD9C51737E0BB3ECD417E034863F053FC7605F9B995C. parentSrsBehavior.test.ts launch pin is 41,464 bytes / SHA-256 BB91D5746913B4F84F35C350B3410C02AA71CB92D6AC209352F76CA95E12C3A3; M3 incoming is its M2 after/snapshot pin, 51,352 bytes / SHA-256 9D3A636D3C237BF1C552FE60C63CA3376499C889B7D6665689BA3B59E063C3DE.
+- The ParentVisualPreviewHarness.tsx scope remains limited to deterministic, inert Capture empty/permission-denied/selected-photo previews. No production file or behavior is authorized by this correction.
+- TASK_APPROVAL.md pre-append pin: 65,074 bytes / SHA-256 8A503572559F6997177BFBABBE2B4F210D016BC1CD1A281DF56E6A3D3D78556D
+- TASK_APPROVAL.md post-append full-file pin: recorded after append in tmp/fe081-waveM/records/WAVEM_M3_SCOPE_AMENDMENT_RECORD.md; no self-referential digest is included
+- Existing Addendum 20 ceilings and restrictions remain unchanged. OWNER_MODAL_CALL_APPROVED=NO.
+
+Addendum 23 - FEAT-081 bounded post-run remediation after Wave M
+
+- Status: bounded remediation approved by the owner's direct instruction dated 2026-11-14; Wave M completion remains recorded and this addendum authorizes only the listed corrections.
+- Authority: direct owner instruction in the current conversation. The coordinator-supplied logs report 89/91 tests passed with two assertion failures in apps/ui-mobile/tests/parentSrsBehavior.test.ts and three typecheck errors in components/ui.tsx, HomeScreen.tsx, and ProfileSharingScreen.tsx.
+- Plan Revision 9 before remediation amendment: 79,202 bytes / SHA-256 FDA7CE1620BA7B354F492430C52CC446599E6D694F446EB37760F4B174E0ED42.
+- Approved amended Plan Revision 9: 83,152 bytes / SHA-256 47C55BE1AEE330F3C6F39DCF1F7EFDDF7398AF4EEBF3200467EEC6CD6FFCC599.
+- TASK_APPROVAL.md before this append: 67,098 bytes / SHA-256 3335F5A4209E3E33D8A6BFD89D7915019F5E53A3C1D7BA7ADF785E59D7F5325C.
+- Source/test incoming and planned post-edit pins:
+  - apps/ui-mobile/src/parent/presentation/components/ui.tsx: before 23,872 / 2C5637C50D71BE4779E27862C35DF7FF24EF4A71DE4DE9311109BE221D6036C9; planned after 23,875 / 0BB724D1934F0A96F694F67AE5B5AFE8833DCCAF131C560BD486B49F62D07D61.
+  - apps/ui-mobile/src/parent/presentation/screens/HomeScreen.tsx: before 6,960 / 58D88EB3B4E4A8A9AD55296036A080C01950D315F1F7202DB406DAD1B7B84E9A; planned after 6,963 / A502E72387370A9EDEAE5A836941D64B05F777E81D65DFDBE33C16113C8454A4.
+  - apps/ui-mobile/src/parent/presentation/screens/ProfileSharingScreen.tsx: before 6,219 / AE1CAE845858E8D87B69DA3D19B3BB02F1CDF349AD3290D5D1E0E714CA089BDD; planned after 6,175 / 14691E21B24D2819742602221481A511DA6A40E290D39E1DFACFBF129FD17511.
+  - apps/ui-mobile/src/parent/presentation/screens/CaptureScreen.tsx: before 7,755 / D61FBF7F3F24115CEED8F6971A4A58309242C2B38F61B102803EAAF2D7637664; planned after 7,735 / F53CF3C8E5FD67AFA9817F4D0B94CA8CF2F4251AB8E7743D16556B10E34852F7.
+  - apps/ui-mobile/tests/parentSrsBehavior.test.ts: before 55,558 / B912CE440C9873F34F1C06D58F63D78AC14D6C3048352AEAB520259A667BD064; planned after 55,568 / 96ABB2469BA65A14FE0A0F6076C8F821A72A20649B7AC4813C1F909111FB0DB8.
+- Authorized scope: only the five source/test paths above. In ui.tsx and HomeScreen.tsx replace palette.line with the existing palette.outline at the two reported errors. In CaptureScreen.tsx and its matching test assertion, use the exact Plan Revision 9 required-photo sentence. In parentSrsBehavior.test.ts, assert both bottom-bar minWidth 0 and minHeight 52. In ProfileSharingScreen.tsx remove only the redundant unavailable-state check from the submit button disabled expression inside its available-only branch. Preserve all existing handlers, disabled behavior, photo gates, and product flow.
+- No controller, domain, route, payload, step order, product flow, H/R file, package, asset, additional source path, or product decision is authorized. Do not edit DECISIONS.md. Stop if another source file is needed.
+- Verification limits: Codex reads all five final files, checks the exact source/assertion correspondence with read-only search, records before/after pins, and updates report, snapshots/evidence, and run state. Codex runs no test, typecheck, validator, diff-check, install, network, backend, Android, emulator, or Modal command; no stage, commit, or push.
+- The owner-supplied test and typecheck logs each count as a consumed run. Addendum 20's total ceiling of three coordinator runs per command remains unchanged and counters are not reset. Any coordinator rerun must fit the remaining cumulative count.
+- OWNER_MODAL_CALL_APPROVED=NO.
+
+Addendum 24 - FEAT-081 post-run exact-copy assertion pin clarification
+
+- Status: documentation and expected-pin clarification to Addendum 23; the approved five-path remediation scope is unchanged.
+- Authority: the owner's direct post-run remediation instruction dated 2026-11-14 requires the Capture assertion and production copy to match the complete Plan Revision 9 sentence. Static review found that the existing preview source-order assertion checked only the sentence prefix. This clarification makes the same already-authorized correction measurable; it adds no source path and changes no production behavior.
+- Plan Revision 9 before this clarification: 83,152 bytes / SHA-256 47C55BE1AEE330F3C6F39DCF1F7EFDDF7398AF4EEBF3200467EEC6CD6FFCC599.
+- Clarified Plan Revision 9: 84,346 bytes / SHA-256 974A3267FA66C54D17278EAB03EA40F853ED3A750CBEB58FF1C91FE093624B97.
+- TASK_APPROVAL.md before this append: 70,717 bytes / SHA-256 126E443A88E485A97BF3CD7AB3F81D35279AF18FE2C0181E44E59070083BDB62.
+- Authorized follow-up path and pins: apps/ui-mobile/tests/parentSrsBehavior.test.ts incoming 55,568 bytes / SHA-256 96ABB2469BA65A14FE0A0F6076C8F821A72A20649B7AC4813C1F909111FB0DB8; expected after 55,756 bytes / SHA-256 08D1C0BF4AC260E5E4FD26602A92E66CCDE2ECC387F29A36FE33AA0B4778A7D2.
+- Correction: assert the entire required-photo sentence in production CaptureScreen source and locate the entire same sentence in the harness preview source-order assertion. The sentence is: Chỉ tiếp tục sau khi có một ảnh tranh hợp lệ. Chưa mở buổi học trước ảnh.
+- The only permitted source/test paths remain the exact five in Addendum 23. No handler, controller, domain, route, payload, step order, product flow, H/R file, package, asset, or other source path is authorized. Do not edit DECISIONS.md.
+- Verification limits, consumed-run accounting, Addendum 20 ceilings, and all no-test/no-typecheck/no-validator/no-diff-check/no-install/no-network/no-backend/no-Android/no-emulator/no-Modal/no-stage/no-commit/no-push restrictions remain unchanged. OWNER_MODAL_CALL_APPROVED=NO.
+
+Addendum 25 - FEAT-081 Family tab and Home resume placement
+
+- Status: APPROVED and launched by the owner's direct instruction to apply the supplied mobile screenshots and the owner's reply authorizing Plan Revision 10 and this addendum, dated 2026-11-15.
+- Approved plan pin: `features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_10.md`, 4,749 bytes / SHA-256 `E43CCDBD0B9962735FAA10017B76C409A4F6B42A4BEBA419A5727CB9582A0A41`.
+- TASK_APPROVAL.md pre-append pin: 72,812 bytes / SHA-256 `AF5B092841F0A648F38E8FF3A447D29267D39206EFD73DEB71A99812F299DC5C`.
+- Authorized implementation paths are exactly the four presentation files and the existing assertion file listed below, plus this plan and approval record. Incoming pins are recorded in Plan Revision 10.
+- Scope: rename the fourth tab's visible label to `Gia đình` while retaining its internal tab ID and callback; move the entire existing family-space menu and sign-out from Home into the existing profile tab content; retain child profile list, selection, consent/data status, pending-deletion handling, and existing create/edit/delete actions; remove the active-run resume warning/button from the family/profile screen while keeping the existing resume card and callback on Home; route family management child screens back to and visually select the family tab; update only the existing source assertion block to match the new placement.
+- No new test case, asset, dependency, route, API, backend, controller, domain, payload, run state, or product behavior is authorized. Preserve all existing family menu handlers and guards. Do not edit `CONTEXT.md` or `DECISIONS.md`, which remain protected by the owner's earlier instruction.
+- Verification: static source review only. No tests, typecheck, validators, diff-check, installs, network, backend, Android/emulator, or Modal commands. No staging, commit, or push.
+- This addendum supersedes only the prior presentation placement constraints for the fourth tab, Home family-space menu, profile-screen resume CTA, and related existing source assertions. All other FEAT-081 and Wave M constraints remain unchanged. OWNER_MODAL_CALL_APPROVED=NO.
+
+Addendum 26 - FEAT-081 unselected-profile family actions and offline preview
+
+- Status: APPROVED and launched by the owner's direct instruction dated 2026-11-15 to fix the no-profile family-menu behavior and apply the state in the API-disconnected preview.
+- Approved plan pin: `features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_11.md`, 3,781 bytes / SHA-256 `DCC23BC60EFC8872A77C4E57DBF3DEACD73693060FAFAE86A6C1DB58929391DB`.
+- TASK_APPROVAL.md pre-append pin: 74,970 bytes / SHA-256 `F7FF23F4B80FED201E1C57D5DE5BCB604526F920BDD0AB8419BEA063ED197C5B`.
+- Authorized paths and incoming pins:
+  - `apps/ui-mobile/src/parent/presentation/screens/ProfileScreen.tsx`: 10,748 bytes / SHA-256 `1563E0F020E59C0C795F22D1195565D726C6C0801E5E5A0DFEF75834BC7BA610`.
+  - `apps/ui-mobile/src/parent/presentation/ParentVisualPreviewHarness.tsx`: 24,232 bytes / SHA-256 `FA0A77FEDF790EE349B9D6AB42D95C9C938867AC75EB904D01210C9F85DAD481`.
+  - `apps/ui-mobile/tests/parentSrsBehavior.test.ts`: 56,685 bytes / SHA-256 `36EA2F9723BD674809A1718DF5148C0A6CE03C0B69D4A793ABB1F23CF97B456A`.
+  - `features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_11.md` and this approval record.
+- Scope: when no profile is selected, visibly disable the Family hub's sharing and delivered-lesson rows and explain that profile selection is required; retain their callbacks when a profile is selected. Keep Home's existing active-run resume action independent of selected profile. Extend the offline visual harness with deterministic Home open-run/no-selection, Home new-run, and Family unselected-profile previews; keep all preview actions inert and make no API/network/controller calls. Rename the preview tab to `Gia đình` and update only the existing source assertion block; add no test case.
+- No cancellation API, backend, route, controller, domain, payload, product-flow, asset, or dependency change is authorized. The user's planned API cancellation work remains separate. Do not edit `CONTEXT.md` or `DECISIONS.md` under the owner's earlier instruction.
+- Verification: static source review only. No tests, typecheck, validators, diff-check, install, network, backend, Android/emulator, or Modal commands. No staging, commit, or push.
+- This addendum extends Addendum 25 only for the three listed source/test paths. All other FEAT-081 and Wave M constraints remain unchanged. OWNER_MODAL_CALL_APPROVED=NO.
+
+Addendum 27 - FEAT-081 Home no-selection card copy alignment
+
+- Status: APPROVED and launched by the owner's direct 2026-11-15 instruction to fix visible issues found in the supplied Home screenshot and keep the disconnected preview aligned.
+- Approved plan pin: `features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_12.md`, 2,925 bytes / SHA-256 `1E1E636E98A60059EE32ECBCB99A4F4B56EDFEED3D3EB05EC4183F3B9FFD3F23`.
+- TASK_APPROVAL.md pre-append pin: 77,363 bytes / SHA-256 `48EF1B2B2632A9F0B890F2A49B17FF65261E016DA6CF7FE41FA68416D1483677`.
+- Authorized paths and incoming pins:
+  - `apps/ui-mobile/src/parent/presentation/screens/HomeScreen.tsx`: 5,971 bytes / SHA-256 `0986358D257FC55438412A9DC721A945A31F04E8F492F8A27666463E3DBC958D`.
+  - `apps/ui-mobile/tests/parentSrsBehavior.test.ts`: 57,374 bytes / SHA-256 `725595B2AAB2ED545868F41E5A6A6BC42A5738E571CAB44025D3B7C2B00D6825`.
+  - `features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_12.md` and this approval record.
+- Scope: remove only the redundant profile-count/creation sentence from the Home selected-profile card when no profile is selected. Retain the no-selection message, management action, active-run UI, and existing callbacks. The connected app and offline preview share `HomeScreen`; no harness edit is needed. Update only the existing source assertion; add no test case.
+- No API, controller, route, backend, domain, payload, cancellation, product-flow, asset, or dependency change is authorized. Do not edit `CONTEXT.md` or `DECISIONS.md` under the owner's earlier instruction.
+- Verification: static source review only. No tests, typecheck, validators, diff-check, install, network, backend, Android/emulator, or Modal commands. No staging, commit, or push.
+- This addendum extends Addendum 26 only for the two listed source/test paths. All other FEAT-081 and Wave M constraints remain unchanged. OWNER_MODAL_CALL_APPROVED=NO.
+
+Addendum 28 - FEAT-081 Parent mobile logo and Expo app icon
+
+- Status: APPROVED and launched by the owner's direct 2026-11-15 request to replace the mobile and app logo with the supplied image. That direct request is also the visual approval for this exact image.
+- Approved plan pin: `features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_13.md`, 3,837 bytes / SHA-256 `7D116DA9C37F058D5AD77273D943849E717D75A7E49F673B7077295E0C9907C6`.
+- TASK_APPROVAL.md pre-append pin: 79,277 bytes / SHA-256 `88BCDB7A09A0F7635ED1ACC0F751BA8C28240B47539C305B87EE31DFD5A64688`.
+- Authorized source inputs:
+  - `apps/ui-mobile/src/parent/presentation/components/ui.tsx`: 23,875 bytes / SHA-256 `0BB724D1934F0A96F694F67AE5B5AFE8833DCCAF131C560BD486B49F62D07D61`.
+  - `apps/ui-mobile/app.json`: 1,560 bytes / SHA-256 `9489E92A02306F6F0C1F575F3FF1C1FB9331BCB58ED2FD52E49880781F2D0651`.
+  - `apps/ui-mobile/tests/parentSrsBehavior.test.ts`: 57,711 bytes / SHA-256 `FB8BB036EEC5EEE72256030D120103EDDF5DB44CD9F22B6334A77460E620DE91`.
+  - Owner attachment `codex-clipboard-c198b23f-1b29-42d6-8f85-d450e80ca81e.png`: 1,191,659 bytes / SHA-256 `E5910593FDD6AAF42B38A208A2B32A1F94B769670A37BC9BCA553E976822399A`.
+- Authorized additions: `features/FEAT-081-parent-ui-mobile-port/assets/generated/sketch2life-logo.png`, `assets/sketch2life-logo.asset.json`, `assets/REVIEW.md`, `assets/approved/sketch2life-logo.png`, and `apps/ui-mobile/assets/applied/sketch2life-logo.png`.
+- Scope: copy the owner-provided 1254×1254 transparent PNG unchanged through the generated and approved asset records; record provenance and the direct owner visual approval; reference the applied copy from the active Parent `ScreenFrame`, Expo `icon`, and web `favicon`. Retain existing splash artwork and legacy demo screens. Update only the existing source assertion; add no test case.
+- Do not edit `CONTEXT.md` or `DECISIONS.md`. No API, backend, route, domain, product-flow, dependency, or app behavior change is authorized. Do not run tests, typecheck, validators, install, network, backend, Android build/prebuild, emulator, or Modal commands. Do not stage, commit, or push.
+- Existing generated native Android launcher images and the installed app are not rebuilt in this task; Expo configuration points future native icon generation at the new applied asset. OWNER_MODAL_CALL_APPROVED=NO.
+
+Addendum 29 - FEAT-081 sync generated Android launcher images
+
+- Status: APPROVED under the owner's direct 2026-11-15 request to replace the app logo; this addendum authorizes only synchronizing the generated Android launcher images to the already approved Expo icon asset.
+- Approved plan pin: `features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_14.md`, 3,580 bytes / SHA-256 `ABAA3C999E4EB733C93405FBA96975EB90D5DB16FC5855FEEC565151368464A2`.
+- TASK_APPROVAL.md pre-append pin: 81,632 bytes / SHA-256 `A87D1AD9CF3CA2CC9B0753C4FC25DC7AFE0B38CD764C64AE1C126B048FBC946B`.
+- Scope: run only the local Expo Android prebuild with `--no-install` using the approved applied logo, updating the ten pinned `ic_launcher.webp` and `ic_launcher_foreground.webp` resources listed in Plan Revision 14. Stop if unrelated native files change. No APK build, package installation, emulator, tests, typecheck, validator, diff-check, network, backend, or Modal command. No staging, commit, or push.
+- This addendum supersedes only Plan Revision 13's prohibition on Android prebuild for these ten launcher resources. All other FEAT-081 and Wave M constraints remain unchanged. OWNER_MODAL_CALL_APPROVED=NO.
+
+Addendum 30 - FEAT-081 center Start action, Activity destination, and publication
+
+- Status: APPROVED and launched by the owner's direct 2026-11-15 instruction to make Start a large center action, replace its existing tab with a useful destination, check the completed changes, consolidate the current worktree changes into one commit, and push the branch including its two already-unpushed commits.
+- Approved plan pin: `features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_15.md`, 3,381 bytes / SHA-256 `ACBBC9D52430534E4F6677DD7CEA818906D3DCEF0583A6981549BDED1F7415F7`.
+- TASK_APPROVAL.md pre-append pin: 82,828 bytes / SHA-256 `CD50940ACE8560F8C355AA1BB9BDB324DBA0A18C14A37714B718F456308401FC`.
+- Authorized implementation paths: `apps/ui-mobile/src/parent/presentation/screens/ParentBottomBar.tsx`, `apps/ui-mobile/src/parent/presentation/ParentExpoApp.tsx`, the existing assertion block in `apps/ui-mobile/tests/parentSrsBehavior.test.ts`, this plan, and this approval record. Incoming pins are in Plan Revision 15.
+- Scope: four tab destinations (`Trang chủ`, `Bài giảng`, `Hoạt động`, `Gia đình`) plus a raised center Start action. Route `Hoạt động` to existing `StoryHistoryScreen`. Keep the center action on the current resume/continue/profile path and show `Tiếp tục` for an open run. Keep history return paths accurate.
+- Verification authorized: `pnpm run test`, `pnpm run typecheck`, `python tools/validate_harness.py`, `python tools/validate_repository_security.py`, `python tools/validate_architecture.py`, and `git diff --check`; do not run backend, install, network, Android build/prebuild, emulator, or Modal commands as part of this addendum.
+- Commit/push: stage only reviewed FEAT-081 task files by explicit path. Create one new commit containing the current intended FEAT-081 worktree changes, preserving the current content of `CONTEXT.md` and `DECISIONS.md` without editing it. Do not rewrite or squash the two existing unpushed commits. Push `feature/fe-mobile-remediation` to `origin`; one branch push will publish the new commit and both existing unpushed commits.
+- No cancellation API, backend, domain, route contract, or API payload change is authorized. OWNER_MODAL_CALL_APPROVED=NO.
+
+Addendum 31 - FEAT-081 offline preview integration for center Start action
+
+- Status: APPROVED under the owner's direct 2026-11-15 request for the center Start action; the existing visual preview call site must receive the new inert props.
+- Approved plan pin: `features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_16.md`, 1,728 bytes / SHA-256 `14F168A6CA568472CE8AEF05ACD22809998A0503EBD93ADEAE2139173F5053DF`.
+- TASK_APPROVAL.md pre-append pin: 85,072 bytes / SHA-256 `0926F44F8CA483FA486DB91AA4E2A597C5F94C0618913DD3709FCB68481F2D9B`.
+- Authorized paths: `apps/ui-mobile/src/parent/presentation/ParentVisualPreviewHarness.tsx`, the existing `bottom-bar` source assertion in `apps/ui-mobile/tests/parentSrsBehavior.test.ts`, this plan, and this approval record.
+- Scope: pass `ignoreAction` and the `Bắt đầu` label to the preview's `ParentBottomBar`; assert the new call shape in the existing source assertion block. No new test case or behavior change.
+- Verification and commit/push limits remain exactly as authorized in Addendum 30. OWNER_MODAL_CALL_APPROVED=NO.

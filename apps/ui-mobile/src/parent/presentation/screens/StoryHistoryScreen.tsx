@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import type { ParentCapabilityState } from '../../application/ports/ParentCapabilityPorts';
 import type { StoryRun } from '../../domain/types';
 import { Card, ConfirmButton, Notice, PrimaryButton, ScreenFrame, SectionTitle, palette } from '../components/ui';
@@ -21,16 +21,16 @@ const TERMINAL_STATES = new Set(['COMPLETED', 'FAILED', 'ABANDONED', 'DELETE_PEN
 
 export function StoryHistoryScreen(props: Props): React.JSX.Element {
   if (props.capability.state === 'unavailable') {
-    return <ScreenFrame title="Lịch sử hoạt động" subtitle="Trạng thái tính năng" onBack={props.onBack}>
+    return <ScreenFrame title="Lịch sử buổi học" subtitle="Trạng thái tính năng" onBack={props.onBack}>
       <Notice text="Lịch sử buổi học và các thao tác hủy hoặc xóa chưa khả dụng vì chưa có hợp đồng dịch vụ được xác nhận. Không có thay đổi trạng thái nào được gửi." tone="warning" />
     </ScreenFrame>;
   }
 
   return (
-    <ScreenFrame title="Lịch sử hoạt động" subtitle="Các buổi đã lưu trong tài khoản." onBack={props.onBack}>
+    <ScreenFrame title="Lịch sử buổi học" subtitle="Các buổi của hồ sơ đang chọn." onBack={props.onBack}>
       {props.error ? <Notice text={props.error} tone="error" /> : null}
       {!props.runs.length && !props.loading ? (
-        <Card><SectionTitle>Chưa có buổi nào</SectionTitle><Text style={{ color: palette.muted }}>Các buổi đã bắt đầu sẽ xuất hiện ở đây.</Text><PrimaryButton label="Tải lại" onPress={props.onLoad} /></Card>
+        <Card style={styles.runCard}><SectionTitle>Chưa có buổi nào</SectionTitle><Text style={styles.runDescription}>Các buổi đã bắt đầu sẽ xuất hiện ở đây.</Text><PrimaryButton label="Tải lại" onPress={props.onLoad} /></Card>
       ) : null}
       {props.runs.map((run) => {
         const canCancel = !TERMINAL_STATES.has(run.run_state);
@@ -39,14 +39,14 @@ export function StoryHistoryScreen(props: Props): React.JSX.Element {
           ? String((run.story as { title: unknown }).title)
           : run.context_snapshot.topic || 'Buổi khám phá';
         return (
-          <Card key={run.run_id}>
-            <SectionTitle>{storyTitle}</SectionTitle>
-            <Text style={{ color: palette.muted, fontSize: 13 }}>Trạng thái: {runStateLabel(run.run_state)}</Text>
-            <Text style={{ color: palette.muted, fontSize: 13 }}>Chủ đề: {run.context_snapshot.topic || 'Chưa đặt tên'}</Text>
+          <Card key={run.run_id} style={styles.runCard}>
+            <Text style={styles.runTitle}>{storyTitle}</Text>
+            <Text style={styles.runMeta}>Trạng thái: {runStateLabel(run.run_state)}</Text>
+            <Text style={styles.runMeta}>Chủ đề: {run.context_snapshot.topic || 'Chưa đặt tên'}</Text>
             {canCancel ? <ConfirmButton
               label="Hủy buổi đang mở"
               title="Hủy buổi học?"
-              message="Buổi sẽ chuyển sang chờ xóa. Tác vụ và dữ liệu liên quan có thể chưa được dọn cho đến khi worker lifecycle được nối."
+              message="Buổi sẽ chuyển sang chờ xóa. Tác vụ và dữ liệu liên quan có thể chưa được dọn cho đến khi tiến trình xử lý vòng đời được nối."
               confirmLabel="Hủy buổi"
               destructive
               onConfirm={() => props.onCancel(run.run_id)}
@@ -54,7 +54,7 @@ export function StoryHistoryScreen(props: Props): React.JSX.Element {
             {canDelete ? <ConfirmButton
               label="Yêu cầu xóa buổi"
               title="Yêu cầu xóa dữ liệu buổi này?"
-              message="Yêu cầu được ghi nhận; trạng thái dọn dữ liệu sẽ được hiển thị từ backend."
+              message="Yêu cầu được ghi nhận; trạng thái dọn dữ liệu sẽ được hiển thị từ máy chủ."
               confirmLabel="Yêu cầu xóa"
               destructive
               onConfirm={() => props.onDelete(run.run_id)}
@@ -67,6 +67,13 @@ export function StoryHistoryScreen(props: Props): React.JSX.Element {
     </ScreenFrame>
   );
 }
+
+const styles = StyleSheet.create({
+  runCard: { backgroundColor: palette.white, gap: 12, minWidth: 0 },
+  runTitle: { color: palette.ink, fontSize: 16, lineHeight: 20, fontWeight: '800', flexShrink: 1, minWidth: 0 },
+  runMeta: { color: palette.muted, fontSize: 12, lineHeight: 17, flexShrink: 1, minWidth: 0 },
+  runDescription: { color: palette.muted, fontSize: 13, lineHeight: 19, flexShrink: 1, minWidth: 0 },
+});
 
 function runStateLabel(value: string): string {
   const labels: Record<string, string> = {
@@ -83,5 +90,5 @@ function runStateLabel(value: string): string {
     ABANDONED: 'Đã đóng',
     DELETED: 'Đã xóa',
   };
-  return labels[value] ?? value;
+  return labels[value] ?? 'Trạng thái chưa xác định';
 }

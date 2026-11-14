@@ -100,3 +100,10 @@ The sample P01 shows an active-child selector; HomeScreen has no selected-child 
 - 2B scope: seven E paths from Addendum 4, plus the owner-authorized pure helper and fake-data Vitest paths; the implementation report path is separately authorized. H pins remain frozen; no R path is writable. `OWNER_MODAL_CALL_APPROVED=NO`.
 - Post-2B command accounting: one coordinator test run remains (4/4) and one coordinator typecheck run remains (4/4); one owner final run remains for each validator and `git diff --check` (2/2).
 - The plan's descriptions of snapshot `1f5bb0b5` and Wave 1 as uncommitted/awaiting acceptance are superseded by Wave 1 acceptance and commit `3c75b10d`. No 2B check or runtime command has been run by Codex.
+
+## M2 test-log and Wave 3 gate review — 2026-11-13
+
+- Backlog proposals for state-aware active-run resume, a Home cancel/abandon action, and fetch timeout/status-0 handling are recorded as proposals only in `CONTEXT.md`; no approval or owner decision was changed.
+- Wave 3 / P03–P06 has no entry in `approvals/TASK_APPROVAL.md`. The latest approval is Addendum 8, limited to Wave 2B post-run rework. The only Wave 3 plan found is the draft under `tmp/fe081-wave3/`; `D-011` and `plan/PLAN_REVISION_4.md` are absent.
+- Wave 3 was not launched or implemented. Wave 2B remains subject to its Addendum 8 coordinator rework test/typecheck and owner final checks; no Wave 3 command budget is consumed by this review.
+- Re-sync discrepancy for owner reconciliation: current HEAD `3386d7e0` is the Wave 2A+2B commit and matches the cached `origin/feature/fe-mobile-remediation` ref, while older FEAT-081 context/status prose says Wave 2 is uncommitted and names `3c75b10d` as current. This review does not infer that the Addendum 8 post-rework checks or acceptance are complete.

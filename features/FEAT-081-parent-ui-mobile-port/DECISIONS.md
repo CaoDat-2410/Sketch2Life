@@ -407,3 +407,31 @@ Static review for every checkpoint, with no tests run by Codex: re-read every to
 Blockers are a needed file outside the allowlist, any H-file change, a required fake success, evidence that the D-015 route table is wrong, or no safe in-scope visual adaptation. For a concept element that would require a new package, font, or asset, use the code-only ADAPTED alternative and record the deviation; stop only if no alternative exists. Report blocker evidence and a proposal.
 
 For the whole merged goal, the coordinator may run pnpm run test at most TWICE total and pnpm run typecheck at most TWICE total: one run after L3 and one correction run. The owner may run validate_harness, validate_repository_security, validate_architecture, and git diff --check at most TWICE each; the owner may perform at most TWO emulator reviews. Codex runs none. Any run beyond these ceilings requires a new owner record. OWNER_MODAL_CALL_APPROVED=NO.
+
+## D-021 - Wave L allowlist amendment: TranscriptReviewScreen.tsx joins L3 E for copy edit 7
+
+- Owner: Person 2.
+- Date: 2026-11-14.
+- Authority: Direct owner task resolving the L3 allowlist conflict; the merged Wave L goal resumes at L3.
+- Status: Plan Revision 8 remains APPROVED. This is a scope amendment only and authorizes no work beyond the already launched merged L0-L3 goal.
+- Scope amendment: Add apps/ui-mobile/src/parent/presentation/screens/TranscriptReviewScreen.tsx to the L3 E allowlist solely to apply approved copy edit 7. Its accepted L2 after-pin is 2,854 bytes / SHA-256 4F2380190A9CD6B0F4D815A4FBB7102F39613E2D53AF1A107DCB352299D67DFB. Change only the heading “Whisper · tiếng Việt” to “Bản ghi lời nói · tiếng Việt”; preserve the L2 restyle and every other byte in the file. Do not add a route or change transcription behavior.
+- Copy boundary: The seven visible-copy edits remain exactly as approved in Plan Revision 8 section 4.2. No other existing visible string changes.
+- Record boundary: Plan Revision 8, D-020, and Addendum 18 remain byte-identical and hash-pinned. This decision amends only the single L3 file-allowlist point above; all other scope, behavior, sequence, and verification ceilings remain unchanged.
+- Verification ceiling: No additional command, test, typecheck, validator, diff-check, or emulator review is authorized. The Addendum 18 ceilings remain unchanged; Codex runs none.
+- OWNER_MODAL_CALL_APPROVED=NO.
+
+## D-022 - FEAT-081 Wave M Plan Revision 9 approval and launch
+
+- Owner: Person 2.
+- Date: 2026-11-14.
+- Authority: Direct owner instruction in the Wave M goal text; the owner delegated Plan Revision 9 self-review and approval recording to the executing session, with the review recorded in `tmp/fe081-waveM/records/WAVEM_PHASE_A_RECORD.md`.
+- Status: Plan Revision 9 is APPROVED and Wave M M0-M3 is launched by the same direct owner goal text.
+- Approved plan pin: `features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_9.md`, 77,730 bytes / SHA-256 `74986A371929A724C8713257407BC0EBEF38CCAF117F2C157343FED276D63859`.
+- Concept specification pin: `tmp/fe081-waveM/WAVEM_CONCEPT_SPEC.md`, 56,693 bytes / SHA-256 `31265CCBB7EC06172A1387BA992386F90204FFC69FEA6EACAFAA045467BA451A`; feature-plan copy is byte-identical.
+- Task SRS pin: owner-supplied Rev67, 634,291 bytes / SHA-256 `B704163C9AAF7BB198D8578699F75DB8766C2226A52CD48B0ED1314AF5E21996`; Rev67 remains unsigned and this approval does not amend the repository-wide authority register.
+- Scope: only the E rows in Plan Revision 9 sections 7.2-7.5 may be changed in their named checkpoint. There are no N rows. Shared R and H rows remain frozen. Checkpoint order is M0, M1, M2, M3. The sole non-H test path is `apps/ui-mobile/tests/parentSrsBehavior.test.ts`, only for assertions whose UI contract changes; flow assertions remain intact.
+- Flow and precedence: presentation changes only; preserve the existing controller, route table, step order, handlers, action conditions and outcomes. Apply D-014 through D-019 as frozen. D-017 O1 is recorded as an existing deviation from Rev67, not SRS conformance. Where concept behavior conflicts with SRS or frozen route/capability rules, keep current truthful behavior and apply the concept only as visual composition.
+- Ceilings: coordinator may run at most three `pnpm run test` and three `pnpm run typecheck` commands total for Wave M. Owner may run at most three each of `validate_harness`, `validate_repository_security`, `validate_architecture`, and `git diff --check`, and at most three emulator reviews. Codex runs none. No Modal call is authorized.
+- Baseline: commit `a0b382f8c21de0dc66f23c5aa752a3a67388a093` plus the accepted uncommitted Wave L working state.
+- Implementation reports and checkpoint snapshots/run-state are required as specified by the approved Plan Revision 9 and the Wave M instructions. No stage, commit, or push is authorized.
+- OWNER_MODAL_CALL_APPROVED=NO.

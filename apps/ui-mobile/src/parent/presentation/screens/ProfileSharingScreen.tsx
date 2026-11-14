@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import type { ParentProfileShareGrant, ParentProfileViewV1 } from '../../domain/types';
 import type { ParentCapabilityState, ParentOperationState } from '../../application/ports/ParentCapabilityPorts';
 import { parentShareGrantExpiryState, parentShareGrantStateLabel } from '../navigation/workflowTypes';
@@ -35,11 +35,12 @@ export function ProfileSharingScreen(props: Props): React.JSX.Element {
 
   return (
     <ScreenFrame title="Chia sẻ hồ sơ" subtitle={props.profile?.display_name ?? 'Chọn hồ sơ của bé trước.'} onBack={props.onBack}>
-      {!props.profile ? <Notice text="Chọn một hồ sơ để xem trạng thái chia sẻ." tone="warning" /> : <Card>
+      {!props.profile ? <Notice text="Chọn một hồ sơ để xem trạng thái chia sẻ." tone="warning" /> : props.capability.state === 'unavailable' ? <Card style={styles.inviteCard}>
+        <Notice text="Chỉ mời giáo viên được nêu tên." tone="info" />
+        <Notice text="Chưa thể gửi lời mời hoặc kiểm tra quyền chia sẻ. Chưa có thay đổi quyền nào được xác nhận." tone="warning" />
+      </Card> : <Card style={styles.inviteCard}>
         <SectionTitle>Mời giáo viên</SectionTitle>
-        <Text style={{ color: palette.muted, lineHeight: 20 }}>
-          Lời mời có tên giáo viên, phạm vi 90 ngày và chỉ cấp quyền sau khi giáo viên chấp nhận. Việc thu hồi phải được máy chủ xác nhận.
-        </Text>
+        <Text style={styles.inviteDescription}>Chỉ mời giáo viên được nêu tên.</Text>
         <Field
           label="Mã tài khoản giáo viên"
           value={teacherSubject}
@@ -48,18 +49,15 @@ export function ProfileSharingScreen(props: Props): React.JSX.Element {
           autoCorrect={false}
         />
         {formMessage ? <Notice text={formMessage} tone={props.inviteState.state === 'confirmed' ? 'success' : 'warning'} /> : null}
-        {props.capability.state === 'unavailable'
-          ? <Notice text="Chưa thể gửi lời mời hoặc kiểm tra quyền chia sẻ. Chưa có thay đổi quyền nào được xác nhận." tone="warning" />
-          : null}
         <PrimaryButton
           label="Gửi lời mời"
           busy={props.loading}
-          disabled={!teacherSubject.trim() || props.loading || props.capability.state === 'unavailable'}
+          disabled={!teacherSubject.trim() || props.loading}
           onPress={() => void submit()}
         />
       </Card>}
       {props.error ? <Notice text="Chưa thể kiểm tra thông tin chia sẻ. Chưa có thay đổi nào được xác nhận." tone="warning" /> : null}
-      <Card>
+      <Card style={styles.statusCard}>
         <SectionTitle>Trạng thái quyền chia sẻ</SectionTitle>
         {props.capability.state === 'unavailable' ? <Notice
           text="Chưa thể xác nhận lời mời đang chờ, đã chấp nhận, bị từ chối, đã hết hạn hoặc đã thu hồi. Danh sách chưa tải được; trạng thái trống không có nghĩa là chưa có quyền."
@@ -88,7 +86,7 @@ function ViewGrant({ grant, loading, onRevoke }: {
     : grant.expires_at
       ? `Có hiệu lực đến ${new Date(grant.expires_at).toLocaleDateString('vi-VN')}`
       : 'Chưa có thời điểm hết hạn trong phản hồi máy chủ.';
-  return <Card style={{ backgroundColor: palette.white }}>
+  return <Card style={styles.grantCard}>
     <Text style={{ color: palette.ink, fontWeight: '800' }}>{parentShareGrantStateLabel(grant.state)}</Text>
     <Text style={{ color: palette.muted, fontSize: 13 }}>Giáo viên: {grant.teacher_subject}</Text>
     <Text style={{ color: palette.muted, fontSize: 13 }}>{expiryText}</Text>
@@ -108,3 +106,10 @@ function operationStateLabel(state: ParentOperationState<void>): string {
   if (state.state === 'failed') return 'chưa hoàn tất';
   return 'chưa bắt đầu';
 }
+
+const styles = StyleSheet.create({
+  inviteCard: { backgroundColor: palette.white, gap: 12 },
+  inviteDescription: { color: palette.muted, fontSize: 12, lineHeight: 17, minWidth: 0, flexShrink: 1 },
+  statusCard: { backgroundColor: palette.white, gap: 12, minWidth: 0 },
+  grantCard: { backgroundColor: palette.white, gap: 8, minWidth: 0 },
+});

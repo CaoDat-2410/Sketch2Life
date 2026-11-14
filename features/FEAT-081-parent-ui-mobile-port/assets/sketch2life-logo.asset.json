@@ -1,0 +1,29 @@
+{
+  "asset_id": "FEAT-081-parent-mobile-logo-20261115",
+  "status": "APPLIED",
+  "brief": "Use the owner's supplied transparent logo unchanged as the active Parent mobile header mark and Expo app/web icon.",
+  "source_references": [
+    {
+      "type": "owner_attachment",
+      "id": "codex-clipboard-c198b23f-1b29-42d6-8f85-d450e80ca81e.png",
+      "sha256": "E5910593FDD6AAF42B38A208A2B32A1F94B769670A37BC9BCA553E976822399A"
+    }
+  ],
+  "generator": "Owner-provided attachment; no generative model or redraw.",
+  "created_at": "2026-11-15T01:22:33+07:00",
+  "generated_path": "features/FEAT-081-parent-ui-mobile-port/assets/generated/sketch2life-logo.png",
+  "output_sha256": "E5910593FDD6AAF42B38A208A2B32A1F94B769670A37BC9BCA553E976822399A",
+  "dimensions": {
+    "width": 1254,
+    "height": 1254,
+    "alpha": true
+  },
+  "review": {
+    "status": "APPROVED",
+    "reviewer": "Owner, Person 2, by direct instruction",
+    "reviewed_at": "2026-11-15T01:22:33+07:00",
+    "decision": "Approve the supplied image unchanged for the active Parent header, Expo app icon, and web favicon."
+  },
+  "approved_path": "features/FEAT-081-parent-ui-mobile-port/assets/approved/sketch2life-logo.png",
+  "applied_path": "apps/ui-mobile/assets/applied/sketch2life-logo.png"
+}

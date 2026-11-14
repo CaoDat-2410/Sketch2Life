@@ -1,5 +1,7 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import Svg, { Circle, Path, Rect } from 'react-native-svg';
 import type { ParentProfileViewV1, ParentStoryRunV1 } from '../../domain/types';
 import { Card, Notice, PrimaryButton, ScreenFrame, SecondaryButton, SectionTitle, palette } from '../components/ui';
 import { PARENT_RUN_PREFLIGHT_UNAVAILABLE_MESSAGE } from '../navigation/workflowTypes';
@@ -12,57 +14,37 @@ type Props = {
   onStart: () => void;
   onManageProfiles: () => void;
   onOpenLessons: () => void;
-  onOpenAccount: () => void;
-  onOpenSettings: () => void;
-  onOpenNotifications: () => void;
-  onOpenQuota: () => void;
-  onOpenHistory: () => void;
-  onOpenSharing: () => void;
-  onOpenDeliveredLessons: () => void;
   onResumeRun: () => void;
-  onSignOut: () => void;
+  onOpenAccount?: () => void;
+  onOpenSettings?: () => void;
+  onOpenNotifications?: () => void;
+  onOpenQuota?: () => void;
+  onOpenHistory?: () => void;
+  onOpenSharing?: () => void;
+  onOpenDeliveredLessons?: () => void;
+  onSignOut?: () => void;
 };
 
 export function HomeScreen({
-  profiles,
   selectedProfile,
   activeRun,
   error,
   onStart,
   onManageProfiles,
   onOpenLessons,
-  onOpenAccount,
-  onOpenSettings,
-  onOpenNotifications,
-  onOpenQuota,
-  onOpenHistory,
-  onOpenSharing,
-  onOpenDeliveredLessons,
   onResumeRun,
-  onSignOut,
 }: Props): React.JSX.Element {
-  const profileSummary = {
-    title: 'Hồ sơ của bé',
-    description: profiles.length === 0
-      ? 'Tạo hồ sơ để lưu độ tuổi và sở thích cho từng buổi.'
-      : `${profiles.length} hồ sơ đã sẵn sàng.`,
-    actionLabel: 'Xem hồ sơ',
-  };
-
   return (
-    <ScreenFrame title="Trang chủ" subtitle="Cùng con bắt đầu một hành trình khám phá mới.">
+    <ScreenFrame title="Trang chủ" subtitle="Cùng con bắt đầu một hành trình khám phá.">
       {error ? <Notice text={error} tone="warning" /> : null}
 
       <Card style={styles.featureCard}>
-        <View style={styles.featureMark} accessible={false}>
-          <Text style={styles.featureMarkText}>{activeRun ? '↗' : '＋'}</Text>
+        <View style={styles.featureHeading}>
+          <Text style={styles.featureTitle}>Bắt đầu cùng con</Text>
+          <Text style={styles.stateBadge}>{activeRun ? 'BUỔI HỌC ĐANG MỞ' : 'BUỔI MỚI'}</Text>
         </View>
-        <SectionTitle>{activeRun ? 'Buổi học đang mở' : 'Bắt đầu cùng con'}</SectionTitle>
-        <Text style={styles.featureDescription}>
-          {activeRun
-            ? 'Hoàn tất buổi hiện tại trước khi bắt đầu buổi mới.'
-            : 'Chụp bức vẽ của con để khám phá chủ đề, hoạt động và câu chuyện.'}
-        </Text>
+        <HomeIllustration />
+        <Text style={styles.featureDescription}>Minh họa tĩnh bằng nét SVG, không phải tranh của trẻ.</Text>
         <PrimaryButton
           label={activeRun ? 'Tiếp tục buổi đang mở' : 'Bắt đầu buổi vẽ'}
           disabled={!activeRun && error === PARENT_RUN_PREFLIGHT_UNAVAILABLE_MESSAGE}
@@ -71,87 +53,51 @@ export function HomeScreen({
       </Card>
 
       <Card style={styles.profileCard}>
-        <SectionTitle>{profileSummary.title}</SectionTitle>
-        {selectedProfile ? <Text style={styles.selectedProfile}>Bé đang chọn: {selectedProfile.display_name}</Text> : null}
-        <Text style={styles.bodyText}>{profileSummary.description}</Text>
-        <SecondaryButton label={profileSummary.actionLabel} onPress={onManageProfiles} />
+        <SectionTitle>Hồ sơ đang chọn</SectionTitle>
+        {selectedProfile ? <View style={styles.selectedProfileBadge}><Text style={styles.selectedProfile}>{selectedProfile.display_name}</Text></View> : <Text style={styles.bodyText}>Chưa có hồ sơ được chọn.</Text>}
+        <SecondaryButton label="Quản lý hồ sơ" onPress={onManageProfiles} />
       </Card>
 
-      <Card style={styles.familyCard}>
-        <SectionTitle>Không gian của gia đình</SectionTitle>
-        <SecondaryButton label="Xem bài giảng" onPress={onOpenLessons} />
-        <SecondaryButton label="Tài khoản và bảo mật" onPress={onOpenAccount} />
-        <SecondaryButton label="Cài đặt" onPress={onOpenSettings} />
-        <SecondaryButton label="Thông báo" onPress={onOpenNotifications} />
-        <SecondaryButton label="Lượt tạo video" onPress={onOpenQuota} />
-        <SecondaryButton label="Lịch sử hoạt động" onPress={onOpenHistory} />
-        <SecondaryButton label="Bài giáo viên đã dạy" onPress={onOpenDeliveredLessons} />
-        <SecondaryButton label="Chia sẻ hồ sơ với giáo viên" onPress={onOpenSharing} />
-      </Card>
-
-      <Pressable
+      <TouchableOpacity
         accessibilityRole="button"
-        accessibilityLabel="Đăng xuất"
-        onPress={onSignOut}
-        style={styles.signOut}
+        accessibilityLabel="Khám phá bài giảng"
+        onPress={onOpenLessons}
+        activeOpacity={0.86}
+        style={styles.galleryRow}
       >
-        <Text style={styles.signOutText}>Đăng xuất</Text>
-      </Pressable>
+        <Ionicons name="book-outline" size={19} color={palette.ink} accessible={false} />
+        <Text style={styles.galleryLabel}>Khám phá bài giảng</Text>
+        <Ionicons name="chevron-forward" size={19} color={palette.muted} accessible={false} />
+      </TouchableOpacity>
     </ScreenFrame>
   );
 }
 
+function HomeIllustration(): React.JSX.Element {
+  return (
+    <View accessible={false} style={styles.illustrationWrap}>
+      <Svg width="100%" height="100%" viewBox="0 0 280 120" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+        <Rect x={4} y={4} width={272} height={112} rx={13} fill={palette.white} />
+        <Circle cx={226} cy={30} r={14} fill={palette.butter} stroke={palette.outline} strokeWidth={2.4} />
+        <Path d="M31 89q39-12 72 0t67 0 75-3" fill="none" stroke={palette.outline} strokeWidth={3} strokeLinecap="round" />
+        <Path d="M132 83V47m-1 19q-20-4-21-18 14-6 21 18m1 7q16-16 30-6-4 15-30 6" fill={palette.paleGreen} stroke={palette.outline} strokeWidth={2.5} strokeLinejoin="round" />
+        <Circle cx={132} cy={39} r={8} fill={palette.paleRed} stroke={palette.outline} strokeWidth={2} />
+      </Svg>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-  featureCard: {
-    backgroundColor: palette.paleBlue,
-    borderColor: '#D4E5FF',
-    padding: 18,
-  },
-  featureMark: {
-    width: 46,
-    height: 46,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: palette.white,
-  },
-  featureMarkText: {
-    color: palette.blue,
-    fontSize: 27,
-    lineHeight: 31,
-    fontWeight: '700',
-  },
-  featureDescription: {
-    color: palette.muted,
-    fontSize: 14,
-    lineHeight: 21,
-  },
-  profileCard: {
-    padding: 18,
-  },
-  bodyText: {
-    color: palette.muted,
-    fontSize: 14,
-    lineHeight: 21,
-  },
-  selectedProfile: {
-    color: palette.ink,
-    fontSize: 14,
-    fontWeight: '700',
-    lineHeight: 21,
-  },
-  familyCard: {
-    gap: 10,
-  },
-  signOut: {
-    minHeight: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 12,
-  },
-  signOutText: {
-    color: palette.blue,
-    fontWeight: '700',
-    textAlign: 'center',
-  },
+  featureCard: { backgroundColor: palette.butter, gap: 11 },
+  featureHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, minWidth: 0 },
+  featureTitle: { color: palette.ink, fontSize: 16, lineHeight: 20, fontWeight: '800', flex: 1, minWidth: 0, flexShrink: 1 },
+  stateBadge: { color: palette.ink, fontSize: 9, lineHeight: 12, fontWeight: '900', letterSpacing: 0.5, paddingHorizontal: 7, paddingVertical: 3, borderWidth: 1, borderColor: palette.outline, borderRadius: 999, backgroundColor: palette.white, flexShrink: 1, textAlign: 'center' },
+  illustrationWrap: { width: '100%', aspectRatio: 280 / 120, borderWidth: 1, borderColor: palette.outline, borderRadius: 13, overflow: 'hidden', backgroundColor: palette.white },
+  featureDescription: { color: palette.muted, fontSize: 12, lineHeight: 17, flexShrink: 1 },
+  profileCard: { backgroundColor: palette.white, gap: 12, minWidth: 0 },
+  selectedProfileBadge: { alignSelf: 'flex-start', minHeight: 44, justifyContent: 'center', maxWidth: '100%', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 14, borderWidth: 1.5, borderColor: palette.outline, backgroundColor: palette.paleGreen },
+  bodyText: { color: palette.muted, fontSize: 12, lineHeight: 17, minWidth: 0, flexShrink: 1 },
+  selectedProfile: { color: palette.ink, fontSize: 13, lineHeight: 18, fontWeight: '700', flexShrink: 1 },
+  galleryRow: { minHeight: 52, minWidth: 0, padding: 8, borderRadius: 12, borderWidth: 1.3, borderColor: palette.outline, backgroundColor: palette.white, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  galleryLabel: { color: palette.ink, fontSize: 12, lineHeight: 16, fontWeight: '700', flex: 1, minWidth: 0, flexShrink: 1 },
 });

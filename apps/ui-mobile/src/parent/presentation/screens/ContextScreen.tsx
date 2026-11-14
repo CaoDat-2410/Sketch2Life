@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator, Text } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import type { ParentProfileViewV1, ParentStoryRunV1 } from '../../domain/types';
 import { Card, Notice, PrimaryButton, ScreenFrame, SectionTitle, SecondaryButton, palette } from '../components/ui';
 import { isConfirmedRunSubject } from '../navigation/parentFlowV1';
@@ -28,30 +28,47 @@ export function ContextScreen(props: Props): React.JSX.Element {
 
   return (
     <ScreenFrame
-      title="Kiểm tra ngữ cảnh"
-      subtitle="Người lớn xem lại chủ đề và gợi ý trước khi xác nhận buổi học."
+      title="Rà soát thông tin buổi"
+      subtitle="Chỉ xem dữ liệu cần cho buổi học này."
       step={stepLabel}
       onBack={props.onBack}
     >
-      {props.profile ? <Card>
+      {props.profile ? <Card style={styles.profileCard}>
         <SectionTitle>Hồ sơ được chọn</SectionTitle>
-        <Text style={{ color: palette.ink, fontSize: 16, fontWeight: '700' }}>
+        <Text style={styles.profileText}>
           {props.profile.display_name} · {props.profile.age_months} tháng
         </Text>
       </Card> : null}
 
-      <Card>
-        <SectionTitle>Chủ đề và gợi ý từ người lớn</SectionTitle>
+      <Card style={styles.snapshotCard}>
+        <SectionTitle>Hồ sơ và bản nội dung</SectionTitle>
         {snapshot ? <>
-          <Text style={{ color: palette.ink, fontSize: 14, lineHeight: 21 }}>Chủ đề: {snapshot.topic}</Text>
-          <Text style={{ color: palette.muted, fontSize: 14, lineHeight: 21 }}>Gợi ý: {snapshot.adult_confirmed_idea}</Text>
-          {snapshot.interests_summary ? <Text style={{ color: palette.muted, fontSize: 13, lineHeight: 19 }}>
-            Sở thích đã lưu: {snapshot.interests_summary}
+          {props.contextRun?.profile_revision_ref ? <View style={styles.snapshotRow}>
+            <Text style={styles.snapshotLabel}>Bản hồ sơ</Text>
+            <Text style={styles.snapshotText}>{props.contextRun.profile_revision_ref}</Text>
+          </View> : null}
+          {snapshot.age_months !== undefined ? <View style={styles.snapshotRow}>
+            <Text style={styles.snapshotLabel}>Tuổi trong buổi học</Text>
+            <Text style={styles.snapshotText}>{snapshot.age_months} tháng</Text>
+          </View> : null}
+          {snapshot.interests_summary ? <Text style={styles.snapshotInterest}>
+            Sở thích được phép dùng: {snapshot.interests_summary}
           </Text> : null}
-        </> : props.busy ? <ActivityIndicator color={palette.blue} /> : <Text style={{ color: palette.muted }}>
-          Hãy chuẩn bị buổi học để xem lại chủ đề và gợi ý.
+          <View style={styles.snapshotRow}>
+            <Text style={styles.snapshotLabel}>Chủ đề</Text>
+            <Text style={styles.snapshotText}>{snapshot.topic || 'Chưa nhập chủ đề.'}</Text>
+          </View>
+          <View style={styles.snapshotRow}>
+            <Text style={styles.snapshotLabel}>Ý tưởng của gia đình</Text>
+            <Text style={styles.snapshotTextMuted}>{snapshot.adult_confirmed_idea || 'Chưa có ý tưởng được xác nhận.'}</Text>
+          </View>
+          {lessonPin ? <View style={styles.snapshotRow}>
+            <Text style={styles.snapshotLabel}>Bài học đã ghim</Text>
+            <Text style={styles.snapshotText}>Phiên bản {lessonPin.version_no} · {lessonPin.version_id}</Text>
+          </View> : null}
+        </> : props.busy ? <ActivityIndicator color={palette.blue} /> : <Text style={styles.snapshotEmpty}>
+          Thông tin buổi học sẽ xuất hiện sau khi tạo buổi.
         </Text>}
-        {lessonPin ? <Notice text="Bài học đã chọn được gắn với buổi học này." tone="success" /> : null}
       </Card>
 
       {props.contextRun && !subjectConfirmed ? <Notice
@@ -81,3 +98,15 @@ export function ContextScreen(props: Props): React.JSX.Element {
     </ScreenFrame>
   );
 }
+
+const styles = StyleSheet.create({
+  profileCard: { backgroundColor: palette.white, gap: 8, minWidth: 0 },
+  profileText: { color: palette.ink, fontSize: 16, lineHeight: 22, fontWeight: '700', minWidth: 0, flexShrink: 1 },
+  snapshotCard: { backgroundColor: palette.white, gap: 14, minWidth: 0 },
+  snapshotRow: { gap: 4, minWidth: 0 },
+  snapshotLabel: { color: palette.muted, fontSize: 10, lineHeight: 14, fontWeight: '800', minWidth: 0, flexShrink: 1 },
+  snapshotText: { color: palette.ink, fontSize: 14, lineHeight: 21, minWidth: 0, flexShrink: 1 },
+  snapshotTextMuted: { color: palette.muted, fontSize: 14, lineHeight: 21, minWidth: 0, flexShrink: 1 },
+  snapshotInterest: { color: palette.muted, fontSize: 13, lineHeight: 19, minWidth: 0, flexShrink: 1 },
+  snapshotEmpty: { color: palette.muted, fontSize: 13, lineHeight: 18, minWidth: 0, flexShrink: 1 },
+});
