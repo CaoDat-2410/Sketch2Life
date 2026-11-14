@@ -90,3 +90,14 @@
 - **Security:** `python tools/validate_repository_security.py` passed before commit and immediately before push, scanning 7,591 publishable files; no absolute machine paths were found. `git diff --cached --check` passed before commit.
 - **Scope delivered:** context-specific Teacher detail and draft actions, named role wizard continuations, Manager next-request preview, and explicit read-only disclosure outcomes; historical v2.2 versus current v2.5 flow comparison recorded. No API/backend/auth, real data, or legacy Expo workspace change.
 - **Verification limits:** five UI workspace builds passed; representative Parent, Teacher, Manager and Admin flows were reviewed. No automated tests, Android typecheck/APK rebuild, or emulator runtime check were performed in Rev9. See `EXECUTION.md`, `OPEN_QUESTIONS.md`, and `REV9_ACTION_OUTCOME_CROSSWALK_20261114.md`.
+
+## FEAT-069 Plan Rev10 — Admin/Manager web visual refinement — 2026-11-14
+
+- **Target:** `origin/FE_UI_Project_Ver2`
+- **Implementation commit:** `669973d4df3d0c9818a41348e0e3e17ec1660ced` (`feat(ui): polish admin and manager review screens`)
+- **Parent commit:** `6624040995c4c5fce4df5c12c1918b83eb7e486c`
+- **Push:** normal fast-forward, completed 2026-11-14 (Asia/Saigon); remote advanced from `66240409` to `669973d4`.
+- **Plan/approval:** Rev10 plan SHA-256 `0356B5B8CB6D8A2F8F0B4641158F91187823E99A9A3CE194D68EF86034F9E012`; approval recorded in the root and feature task ledgers.
+- **Security:** `python tools/validate_repository_security.py` passed before commit and immediately before push; each run scanned 7,593 publishable files and found no absolute machine paths. `git diff --cached --check` passed before commit.
+- **Scope delivered:** refined the Activity Catalog form/list/detail hierarchy, Platform Admin invoice/callback reconciliation cards, and School Manager publication review layout/visibility gates/pending queue. No API/auth/backend, business contract, data, or SRS changes were made.
+- **Verification limits:** five UI workspace builds and desktop/narrow local browser review passed; the local invoice detail and Manager four-gate → next-request fixture flow were observed. No automated tests, new saved screenshot files, formal leader sign-off, hosting deployment or live API behavior are claimed. See `REV10_VISUAL_REFINEMENT_20261114.md`.
