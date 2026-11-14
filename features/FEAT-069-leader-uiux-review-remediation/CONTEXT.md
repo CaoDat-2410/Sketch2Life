@@ -1,6 +1,12 @@
 # FEAT-069 — Leader review UI/UX remediation
 
-## Current approved work — Rev8 full audit and visual polish
+## Current approved work — Rev9 continuous mockup action outcomes
+
+The owner reported that multiple UI flows stop at generic or unexplained results. Under approved Plan Rev9, the five primary `UI_Project/` workspaces are being checked for action → result → next/return continuity against the leader-provided Rev38 screen and component indexes, while FEAT-063 SRS v2.5-draft remains the current unsigned product baseline. Rev9 clarifies generic detail actions, makes Teacher draft detail reopen its editor, names all generic wizard continuations, and provides an explicit next request after Manager review. Values and transitions remain local fixture state; teacher submission does not populate Manager's separate fixture queue. See `plan/PLAN_REV9_CONTINUOUS_MOCKUP_FLOWS.md` and `evidence/notes/REV9_ACTION_OUTCOME_CROSSWALK_20261114.md`.
+
+Five-workspace production build passes. Parent guide-to-capture and Manager review-to-next-request paths were manually observed; the new existing-draft edit branch was build-checked but not clicked. This remains a continuity review, not full formal leader/API sign-off or Android runtime verification. The Parent P04/P05 order conflict, leader activity-timing conflict, UI-only gender, and unavailable API/server behaviors remain open.
+
+## Prior implementation baseline — Rev8 full audit and visual polish
 
 The owner approved a full audit of the five primary `UI_Project/` workspaces against both leader Rev38 folders, the leader review action items, current source/API evidence, and FEAT-063 SRS v2.5-draft. Rev8 keeps all flows as local fixtures, corrects Parent to the canonical SRS order (idea/transcript before subject/context review), defers lesson-vs-drawing choice until the post-image review, removes the sample-drawing action, and softens the colors across Parent and web. See `plan/PLAN_REV8_FULL_UI_AUDIT_AND_POLISH.md` and `evidence/notes/REV8_FULL_AUDIT_AND_EXECUTION_20261114.md`.
 

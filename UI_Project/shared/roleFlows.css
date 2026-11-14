@@ -271,3 +271,5 @@
 
 .billing-plan-form{display:grid;gap:11px}.billing-plan-form>label{display:grid;gap:6px;color:#53695a;font-size:11px;font-weight:800}.billing-plan-form input[type=date],.billing-plan-form select{width:100%;min-height:44px;padding:0 11px;border:1px solid #d5e1d5;border-radius:9px;background:#fff;color:#344d3d;font:500 12px 'Be Vietnam Pro',sans-serif}.billing-plan-form .flow-check{max-width:none}
 
+
+.manager-review-result{display:grid;gap:10px;margin-top:16px;padding:15px;border:1px solid #dce8dc;border-radius:12px;background:#f4f8f1;color:#536f5a;font-size:11px;line-height:1.55}.manager-review-result p{margin:0;color:#4d6655}.manager-review-result>span{color:#65796a}.manager-review-result .flow-primary{justify-self:start}@media(max-width:560px){.manager-review-result .flow-primary{width:100%}}

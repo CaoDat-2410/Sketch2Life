@@ -336,3 +336,14 @@
 - **Scope:** Audit all five primary UI workspaces against Rev38, leader review, FEAT-063 SRS v2.5-draft and source/API evidence; correct Parent flow ordering and post-image direction choice; remove the sample-drawing action; rebalance colors; retain fixture-only role flows; build/package and manually review.
 - **Exclusions:** API/auth/network/backend/schema/SRS/data changes; persistence, external AI/ASR, payments, uploads, real user/child data, legacy `apps/` and Child Expo, generated raster assets, automated tests and history rewrite.
 - **Approval basis:** Direct owner instruction. The plan preserves SRS authority and explicitly keeps outdoor-activity timing, gender contract and API coverage gaps open; it does not claim formal leader acceptance or production readiness.
+
+## Plan Rev9 — continuous mockup flows across all UI workspaces
+
+- **Status:** APPROVED for the exact UI-only scope in `features/FEAT-069-leader-uiux-review-remediation/plan/PLAN_REV9_CONTINUOUS_MOCKUP_FLOWS.md`.
+- **Approver:** Project owner. Prior direct instruction authorized completion of the whole project's UI/UX with mock data and no API wiring; the latest feedback says multiple screens stop before their flow is understandable and supplied a screenshot of a generic terminal modal.
+- **Recorded timestamp:** 2026-11-14 (Asia/Saigon).
+- **Plan revision:** 9.
+- **Plan SHA-256:** `29B3B3F10C87B329FB5AF327DC5767CCEE7E5CF14CCFC047CA239B1B1C62EBFC`.
+- **Scope:** Inventory primary interactions throughout Parent, Teacher, School Manager, Platform Admin and the portal; replace ambiguous generic dead ends with context-specific local flow outcomes/navigation; compare the preserved v2.2 SRS historically while retaining v2.5-draft as current authority; build and visually review.
+- **Exclusions:** API/auth/network/backend/schema/SRS changes; real data or persistence; provider, upload, payment, AI or ASR operations; legacy `apps/` and Child Expo; automated tests; formal leader/SRS sign-off claims; force push/history rewrite.
+- **Approval basis:** Owner's already-authorized end-to-end mockup scope plus the latest direct feedback about widespread dead ends. This is UI-only authorization and does not resolve product conflicts or approve API integration.

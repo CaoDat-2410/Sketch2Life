@@ -1,5 +1,21 @@
 # FEAT-069 execution record
 
+## Rev9 continuous mockup action outcomes
+
+Date: 2026-11-14 (Asia/Saigon). Approved plan: `plan/PLAN_REV9_CONTINUOUS_MOCKUP_FLOWS.md`, SHA-256 `29B3B3F10C87B329FB5AF327DC5767CCEE7E5CF14CCFC047CA239B1B1C62EBFC`.
+
+- Fixed the screenshot's generic Teacher detail action by routing approved lesson details to preparation and giving draft/pending lessons status-specific outcomes. Draft details now reopen a three-step editor; edited values replace only the selected Teacher preview row in session memory.
+- Teacher authoring retains explicit save-draft/review-submit outcomes. The submitted row appears as pending in the Teacher preview; the UI clearly says the Manager queue is independent fixture data, with no cross-role write or server submission.
+- Every route rendered through `WizardPage` has a named continuation destination and a restart option. Manager publication review reports the resulting preview status and opens the next pending request, or explicitly says no requests remain.
+- Read-only operational details use “Mở chi tiết …” and “Đóng chi tiết” to distinguish disclosure from workflow progress. Collection details keep named role-specific routes and status guidance.
+- The active Parent APK is `UI_Project/parent-android/apps/mobile`; it bundles `UI_Project/parent-ui` into its local WebView. `UI_Project/parent-android/apps/ui-mobile` is separately documented as a legacy Expo experience and is not the APK entry point, so it was not changed.
+- Historical SRS comparison read `D:\Capstone Project\SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS_V2.2_PRESERVED_20261028.md` only for provenance. The action crosswalk records the v2.2 Parent pre-video activity step and historical 36–155 month range against current v2.5's post-playable activity placement and 36–120 month target. Current v2.5-draft remains unsigned but authoritative; no historical behavior was silently restored.
+- Manual CUA review: Parent drawing guide step 2 → step 3 → capture; capture showed no image and a disabled continue action. Manager M01 four-gate approval showed a local approved state and opened the second pending request with fresh unchecked gates. Teacher authoring submit/pending status was previously observed; the new draft edit branch was source-reviewed but not manually clicked.
+- Five-workspace production build: `npm run build` from `UI_Project` passed for Parent, Teacher, School Manager, Platform Admin and shared web portal.
+- Final repository checks after the Rev9 docs/code edits: `git diff --check` passed. `python tools/validate_repository_security.py` passed with 7,591 publishable files scanned; environment, seed, credential/signing-key and external reference files were excluded, and absolute machine paths were absent.
+- No automated tests were added or run. No APIs, auth, file upload, payment, AI, ASR, or persistent backend actions were invoked. Android APK runtime was not part of this pass.
+- Exact role/screen/component coverage and unresolved differences are in `REV9_ACTION_OUTCOME_CROSSWALK_20261114.md`. Rev38 remains generated proposal material; Parent order and activity timing conflicts, cross-role independent fixtures, UI-only gender and unsupported API/server capabilities remain open. This is not 100% formal leader or SRS sign-off.
+
 ## Rev8 full UI audit and polish
 
 Date: 2026-11-14 (Asia/Saigon). Approved plan: `plan/PLAN_REV8_FULL_UI_AUDIT_AND_POLISH.md`, SHA-256 `1DD3518361F10CD518E152D5EC70EE3CB19F8734587EFA15A875DEFD161A7FE9`.

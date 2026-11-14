@@ -1,5 +1,12 @@
 # FEAT-069 evidence index
 
+## Rev9 continuous action outcomes
+
+| Evidence | Scope | What it establishes | Limitations |
+|---|---|---|---|
+| `notes/REV9_ACTION_OUTCOME_CROSSWALK_20261114.md` | Plan Rev9 AC1–AC7 | Maps Rev38 screen/component IDs to current actions, outcomes, next/return routes and local-only gaps; records the screenshot root cause, historical v2.2 versus current v2.5 flow differences, and representative preview observations | Not an exhaustive manual keyboard/screen-reader audit; no Android APK runtime or API work; no formal leader sign-off |
+| `plan/PLAN_REV9_CONTINUOUS_MOCKUP_FLOWS.md` | Exact approved scope | Hash-identified UI-only continuity audit and acceptance criteria | Does not approve API integration, SRS change or formal leader sign-off |
+
 ## Rev8 full flow audit and visual polish
 
 | Evidence | Scope | What it establishes | Limitations |

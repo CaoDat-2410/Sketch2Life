@@ -1,5 +1,14 @@
 # FEAT-069 remaining UI/product questions
 
+## Rev9 action-continuity disposition — 2026-11-14
+
+- The specific generic Teacher modal and other read-only detail disclosures were clarified; a Teacher draft can now reopen its editor, and generic wizard completion routes have named next steps. Read the Rev9 crosswalk for all current outcomes. This removes UI ambiguity but does not make the underlying workflow persistent or server-backed.
+- Teacher T02 submission and Manager M01 review remain independent local fixtures. A pending Teacher row does not enter the Manager queue; the preview states this directly. If a future UI-only shared demo flow is required, owner approval must define how state can cross role boundaries without persistence or implying a backend write.
+- The Parent ordering conflict remains unresolved: generated Rev38 P04/P05 visually puts subject before idea/context, while FEAT-063 SRS v2.5-draft §5.1 remains canonical and places idea/transcript before subject/context. The leader's requested activity timing also conflicts with §5.1.
+- Parent image/VLM, ASR, story generation, durable job resume, playback, quota/payment and profile CRUD are not live routes in this preview. Teacher occurrence/deck/sample-video, roster mutations, operational metrics and most Manager/Admin operations also remain fixtures or unavailable states.
+- Gender remains session-only UI because no canonical field/API contract was identified. Formal SRS owner sign-off and leader acceptance are outstanding.
+- `npm run build` passed for all five workspaces. The Parent guide/capture and Manager four-gate → next-request paths were manually observed. The new existing-draft edit branch was build-checked but not manually clicked. No APK runtime, automated tests or API behavior is claimed.
+
 ## Rev8 current disposition — full flow audit, 2026-11-14
 
 - Current working SRS v2.5-draft §5.1 now governs the Parent mockup sequence: capture → idea/transcript → subject review → minimum context and post-image direction choice → script. The prior Rev7 prototype followed the generated Rev38 subject-before-idea order; Rev8 supersedes that visual choice without changing the SRS.

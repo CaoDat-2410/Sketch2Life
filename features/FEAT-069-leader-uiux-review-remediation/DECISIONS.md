@@ -1,5 +1,9 @@
 # Feature decisions
 
+## D-069-20 — Workflow actions must show named local outcomes
+
+Under Plan Rev9, a primary preview action must either open its named next screen, produce a visible local result with a return/continuation route, or explain why it is read-only/blocked and how to return. Generic “next step” dialogs are not used for unknown action types. Teacher draft editing updates only that Teacher preview row; Teacher-to-Manager submission remains explicitly disconnected because the role previews have independent fixture state. This adds no API, auth, persistence, or product contract behavior.
+
 ## D-069-18 — Rev8 follows canonical Parent order and stays fixture-only
 
 Under Plan Rev8, FEAT-063 SRS v2.5-draft §5.1 is the working authority over the generated Rev38 sequence. Parent now captures → accepts idea/voice input → confirms the suggested subject → reviews minimum context and selects lesson-vs-drawing direction → confirms script. The mismatch choice only appears after the captured-image mock result. This supersedes D-069-16's Rev38 Parent order for the current prototype, without changing the unsigned SRS. All UI workspaces remain local previews; API contracts inform the screen shape, but no API/auth/network call or persistent data action is added.

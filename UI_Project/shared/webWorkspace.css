@@ -153,3 +153,11 @@ body{min-width:0}
 /* Teacher web push enrollment preview and its recoverable browser states. */
 .push-enrollment-panel{display:grid;align-content:start;gap:14px;grid-column:1/-1}.push-panel-heading h2{margin:5px 0 0;color:#2f4939;font:800 19px/1.25 'DM Sans','Be Vietnam Pro',sans-serif}.push-scenario-label{display:grid;max-width:440px;gap:6px;color:#506958;font-size:11px;font-weight:800}.push-scenario-label select{min-height:44px;padding:0 12px;border:1px solid #d5e1d5;border-radius:9px;background:#fff;color:#344d3d;font:600 11px 'Be Vietnam Pro',sans-serif}.push-state-card{display:grid;justify-items:start;gap:8px;padding:14px;border:1px solid #dce8dc;border-radius:12px;background:#f5f9f3}.push-state-card>strong{color:#3d5d46;font-size:12px}.push-state-card>p{max-width:700px;margin:0;color:#65796a;font-size:11px;line-height:1.55}.push-state-card>small{color:#63796a;font-size:10px;line-height:1.5}.push-state-card--denied,.push-state-card--invalid-endpoint{border-color:#ead8b5;background:#fffbf1}.push-state-card--unsupported{border-color:#d8dfe7;background:#f5f7fa}.push-inbox-note{display:flex;align-items:center;gap:10px;padding:12px;border-radius:11px;background:#f2f5ed;color:var(--accent)}.push-inbox-note>span{display:grid;gap:3px}.push-inbox-note strong{color:#465d4d;font-size:11px}.push-inbox-note small{color:#718276;font-size:10px}.push-preview-boundary{margin:0;color:#77877b;font-size:10px;line-height:1.5}
 @media(max-width:700px){.push-enrollment-panel{grid-column:auto}.push-panel-heading{align-items:flex-start;flex-direction:column}}
+
+/* Make preview summaries visibly distinct from workflow actions. */
+.web-detail-next{margin:16px 0;padding:14px 15px;border:1px solid #dce8dc;border-radius:12px;background:#f4f8f1;color:#45624d;font-size:12px;line-height:1.55}
+.web-detail-next strong{display:block;margin-bottom:5px;color:#315b43;font-size:12px}
+.web-detail-next p{margin:0;color:#607466;font-size:11px;line-height:1.55}
+.web-detail-modal>.web-detail-next{margin:16px 0}
+.web-setting-value{flex:none;color:#667b6c;font-size:10px;font-weight:700;text-align:right}
+@media(max-width:560px){.web-setting-value{max-width:110px}}
