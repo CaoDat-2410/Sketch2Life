@@ -53,6 +53,9 @@ features/FEAT-003-multimodal-understanding/evidence/notes/*
 __pycache__/
 *.py[cod]
 .pytest_cache/
+# Explicit pytest temporary basetemp trees are disposable local outputs.
+.pytest-temp-*/
+**/.pytest-temp-*/
 # Explicit pytest --basetemp outputs are disposable local fixtures, not publishable source.
 /backend/.pytest-tmp-*/
 .mypy_cache/
@@ -101,6 +104,9 @@ output/
 data/runtime/
 backend/data/runtime/
 **/qwen-vl-cache/
+# Browser profiles used only to render evidence are not evidence artifacts.
+**/chrome_profile*/
+features/FEAT-063-system-architecture-rearchitecture/evidence/EV-063-90_CONSOLIDATED_PARENT_TEACHER_DOCKER_AI_20261112/parent_teacher_e2e_20261112/runtime/pytest-modal-final-20261112/
 models/
 features/FEAT-000-harness/evidence/handbook-page-*.png
 

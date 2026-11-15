@@ -25,9 +25,10 @@ CONTENT_RULES = {
 }
 
 SENSITIVE_ASSIGNMENT = re.compile(
-    r"^\s*[A-Z0-9_]*(?:PASSWORD|SECRET|TOKEN|API_KEY|PRIVATE_KEY)[A-Z0-9_]*\s*=\s*(.*?)\s*$",
+    r"^[ \t]*(?P<name>[A-Z0-9_]*(?:PASSWORD|SECRET|TOKEN|API_KEY|PRIVATE_KEY)[A-Z0-9_]*)[ \t]*=[ \t]*(?P<value>[^#\r\n]*?)[ \t]*$",
     re.MULTILINE,
 )
+SAFE_CONFIG_SUFFIXES = {"_TOKEN_FILE", "_API_KEY_FILE", "_MAX_OUTPUT_TOKENS"}
 ALLOWED_EXAMPLE_VALUES = {"", "change-me", "minioadmin", "placeholder", "example"}
 
 
@@ -77,7 +78,12 @@ def main() -> int:
 
         if lower_name not in ALLOWED_ENV_FILES:
             for match in SENSITIVE_ASSIGNMENT.finditer(text):
-                value = match.group(1).strip().strip("'\"")
+                name = match.group("name")
+                value = match.group("value").strip().strip("'\"")
+                if name.endswith(tuple(SAFE_CONFIG_SUFFIXES)):
+                    continue
+                if name == "SKETCH2LIFE_FIREBASE_CHECK_REVOKED_TOKENS" and value.lower() in {"true", "false"}:
+                    continue
                 if value.lower() not in ALLOWED_EXAMPLE_VALUES and not value.startswith("${"):
                     errors.append(f"non-placeholder secret assignment found in: {relative}")
 

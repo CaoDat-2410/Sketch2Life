@@ -14,4 +14,5 @@ packageExtensions:
   '@expo/metro-config@0.19.12':
     dependencies:
       metro-cache: 0.81.5
+      metro-cache-key: 0.81.5
       metro-config: 0.81.5
