@@ -693,3 +693,7 @@ The owner authorized substantive documentation updates for G01–G10 and explici
 - Focused Parent service/worker tests previously passed 28/28; one post-refinement Modal inference was cancelled after 976.326 seconds before output, so the live quality-gate result remains unknown. Dev catalog had zero eligible published/shared activities. Video was not called.
 - The canonical SRS remains v2.7-draft Rev60 and unsigned. The user's catalog-first clarification is recorded as D-172; SRS reconciliation remains open.
 - Plan, approval and synthetic evidence: plan/PLAN_REV78_PARENT_CATALOG_FIRST_ACTIVITY_SUGGESTIONS_20261111.md, plan/PLAN_REV78A_PARENT_ACTIVITY_GATE_REFINEMENT_20261111.md, plan/PLAN_REV78B_PARENT_CATALOG_PIN_AND_PUBLICATION_20261111.md, and evidence/EV-063-87_PARENT_FULL_API_UI_E2E_20261111/.
+
+### Rev87.29 — Parent non-kitten catalog results — 2026-11-15
+
+One butterfly request failed before Modal because its 39-path bundled guide exceeds the API's 32-path cap (turtle sibling is 35 paths and was not attempted). One real elephant and one real fish Parent route → Modal/Qwen3.5 call each returned HTTP 200, but manual stage/render review rejected both: elephant instructions append irrelevant leg-ridge marks and begin with disconnected strokes; fish used a kitchen-scale SVG and repeated/truncated instructions containing Chinese characters. Do not treat generic catalog guides as reliable based on API 200. App stopped; no retries or child data. See Plan Rev87.29, EV-063-123 and SRS §32.39.

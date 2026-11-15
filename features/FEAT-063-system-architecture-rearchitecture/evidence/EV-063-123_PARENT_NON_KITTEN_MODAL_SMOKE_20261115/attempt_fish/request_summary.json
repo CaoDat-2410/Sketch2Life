@@ -1,0 +1,31 @@
+{
+  "status": "HANDLER_HTTP_200",
+  "started_at": "2026-11-15T17:56:15.389699+07:00",
+  "completed_at": "2026-11-15T17:58:26.929766+07:00",
+  "elapsed_seconds": 131.538,
+  "http_status": 200,
+  "topic": "con cá",
+  "data_class": "synthetic_topic_only_no_child_profile_or_photo",
+  "fixture": false,
+  "response_contract": "SvgTopicStrokeGuideConstructionDraftV1",
+  "generation_source": "QWEN_REFERENCE_CONDITIONED_CONSTRUCTION",
+  "reference_source": {
+    "asset_id": "openclipart-kitchen-icon-scale",
+    "dataset_name": "Openclipart",
+    "dataset_revision": "df38e5ef633be067d397df7da19a9f009e69b3bd",
+    "dataset_doi": null,
+    "dataset_uri": "https://openclipart.org/169922/kitchen-icon-scale",
+    "source_sha256": "62490751fad8df44ac504c29b01905a3dfc1f4998a0faa699a7c0e78da60a0b0",
+    "license_id": "CC0-1.0",
+    "license_uri": "https://creativecommons.org/publicdomain/zero/1.0/"
+  },
+  "request_id": "f9adda5a-548f-46cf-b192-7fa67176a708",
+  "modal_call_id": "fc-01M7FDKVJK528NPKS7V5QY4S8P",
+  "path_count": 9,
+  "stage_count": 4,
+  "error_detail": null,
+  "svg_returned": true,
+  "retry_performed": false,
+  "video_requested": false,
+  "child_data_used": false
+}

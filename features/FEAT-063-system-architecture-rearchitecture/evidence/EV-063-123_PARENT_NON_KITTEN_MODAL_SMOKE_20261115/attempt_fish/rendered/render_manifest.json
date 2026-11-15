@@ -1,0 +1,82 @@
+{
+  "request_id": "f9adda5a-548f-46cf-b192-7fa67176a708",
+  "modal_call_id": "fc-01M7FDKVJK528NPKS7V5QY4S8P",
+  "asset_id": "openclipart-kitchen-icon-scale",
+  "declared_source_sha256": "62490751fad8df44ac504c29b01905a3dfc1f4998a0faa699a7c0e78da60a0b0",
+  "path_count": 9,
+  "stage_count": 4,
+  "render_method": "Windows WPF; returned document path data preserved; previous strokes gray, new blue",
+  "stage_artifacts": [
+    {
+      "step_index": 1,
+      "instruction_vi": "Vẽ hai đoạn nối tiếp tạo thành thân cá cong về hai bên. Vẽ hai đoạn nối tiếp tạo thành thân cá cong về hai bên. Vẽ hai段接",
+      "new_path_ids": [
+        "guide_stroke_02",
+        "guide_stroke_03"
+      ],
+      "new_segment_labels": [
+        "P02",
+        "P03"
+      ],
+      "svg": "cumulative_stage_01.svg",
+      "png": "cumulative_stage_01.png",
+      "png_sha256": "a55ebd529182c9044a324bff8d1f486c29f62e263b493b806ba75bcab9cdaaf6"
+    },
+    {
+      "step_index": 2,
+      "instruction_vi": "Vẽ thêm hai đoạn để hoàn thành hình dáng đầu và đuôi cá. Vẽ thêm hai đoạn để hoàn thành hình dáng đầu và đuôi cá. Vẽ hai",
+      "new_path_ids": [
+        "guide_stroke_01",
+        "guide_stroke_04"
+      ],
+      "new_segment_labels": [
+        "P01",
+        "P04"
+      ],
+      "svg": "cumulative_stage_02.svg",
+      "png": "cumulative_stage_02.png",
+      "png_sha256": "7b55700fd1582695fb5469bfe07c1d0d93dd7bdedce3af94a2997be6ccd685ad"
+    },
+    {
+      "step_index": 3,
+      "instruction_vi": "Vẽ các đoạn tạo hình vây cá ở hai bên. Vẽ các đoạn tạo hình vây cá ở hai bên. Vẽ các đoạn tạo hình vây cá ở hai bên. Vẽ",
+      "new_path_ids": [
+        "guide_stroke_05",
+        "guide_stroke_06"
+      ],
+      "new_segment_labels": [
+        "P05",
+        "P06"
+      ],
+      "svg": "cumulative_stage_03.svg",
+      "png": "cumulative_stage_03.png",
+      "png_sha256": "76efc75d37c3385866f842f6332561c73d816ee90c8d1e2897df4b6d3fee5f2f"
+    },
+    {
+      "step_index": 4,
+      "instruction_vi": "Vẽ mắt và các chi tiết nhỏ khác trên thân cá. Vẽ mắt và các chi tiết nhỏ khác trên thân cá. Vẽ mắt và các chi tiết nhỏ",
+      "new_path_ids": [
+        "guide_stroke_07",
+        "guide_stroke_08",
+        "guide_stroke_09"
+      ],
+      "new_segment_labels": [
+        "P07",
+        "P08",
+        "P09"
+      ],
+      "svg": "cumulative_stage_04.svg",
+      "png": "cumulative_stage_04.png",
+      "png_sha256": "d43830529b2ca5eca14bfad9a7884a8f09758862159cd7c7929a970c4f6fa07c"
+    }
+  ],
+  "atlas_size": [
+    832,
+    672
+  ],
+  "contact_sheet_size": [
+    1120,
+    330
+  ],
+  "provenance_note": "Reference SVG was reconstructed from the route response representation; its serialized hash is not claimed to equal the catalog's raw-source hash."
+}

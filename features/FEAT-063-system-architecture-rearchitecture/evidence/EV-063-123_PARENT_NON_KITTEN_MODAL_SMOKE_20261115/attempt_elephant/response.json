@@ -1,0 +1,635 @@
+{
+  "contract": "SvgTopicStrokeGuideConstructionDraftV1",
+  "request_id": "77ac114c-1894-43cb-a45e-c5423b544493",
+  "topic": "con voi",
+  "status": "DRAFT",
+  "review_required": true,
+  "persisted": false,
+  "generation_source": "QWEN_REFERENCE_CONDITIONED_CONSTRUCTION",
+  "model": {
+    "id": "Qwen/Qwen3.5-9B",
+    "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
+  },
+  "modal_call_id": "fc-01M7FD9XR38FFY05529HM9MW5H",
+  "derivation": {
+    "engine_id": "qwen-reference-conditioned-construction",
+    "engine_revision": "Qwen/Qwen3.5-9B@c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+    "method": "QWEN_REFERENCE_CONDITIONED_CONSTRUCTION_V1",
+    "source_path_count": 5,
+    "path_lineage": [
+      {
+        "derived_path_id": "guide_stroke_02",
+        "source_path_ids": [
+          "oc_path_001"
+        ],
+        "feature_vi": "Bước 1: Vẽ phần đầu và thân trên — nét 1",
+        "role": "construction"
+      },
+      {
+        "derived_path_id": "guide_stroke_03",
+        "source_path_ids": [
+          "oc_path_001"
+        ],
+        "feature_vi": "Bước 1: Vẽ phần đầu và thân trên — nét 2",
+        "role": "construction"
+      },
+      {
+        "derived_path_id": "guide_stroke_01",
+        "source_path_ids": [
+          "oc_path_001"
+        ],
+        "feature_vi": "Bước 2: Hoàn thiện phần đầu — nét 1",
+        "role": "outline"
+      },
+      {
+        "derived_path_id": "guide_stroke_04",
+        "source_path_ids": [
+          "oc_path_001"
+        ],
+        "feature_vi": "Bước 2: Hoàn thiện phần đầu — nét 2",
+        "role": "outline"
+      },
+      {
+        "derived_path_id": "guide_stroke_05",
+        "source_path_ids": [
+          "oc_path_001"
+        ],
+        "feature_vi": "Bước 2: Hoàn thiện phần đầu — nét 3",
+        "role": "outline"
+      },
+      {
+        "derived_path_id": "guide_stroke_06",
+        "source_path_ids": [
+          "oc_path_001"
+        ],
+        "feature_vi": "Bước 2: Hoàn thiện phần đầu — nét 4",
+        "role": "outline"
+      },
+      {
+        "derived_path_id": "guide_stroke_07",
+        "source_path_ids": [
+          "oc_path_001"
+        ],
+        "feature_vi": "Bước 2: Hoàn thiện phần đầu — nét 5",
+        "role": "outline"
+      },
+      {
+        "derived_path_id": "guide_stroke_08",
+        "source_path_ids": [
+          "oc_path_001"
+        ],
+        "feature_vi": "Bước 3: Vẽ phần thân dưới — nét 1",
+        "role": "outline"
+      },
+      {
+        "derived_path_id": "guide_stroke_18",
+        "source_path_ids": [
+          "oc_path_003"
+        ],
+        "feature_vi": "Bước 3: Vẽ phần thân dưới — nét 2",
+        "role": "outline"
+      },
+      {
+        "derived_path_id": "guide_stroke_19",
+        "source_path_ids": [
+          "oc_path_004"
+        ],
+        "feature_vi": "Bước 3: Vẽ phần thân dưới — nét 3",
+        "role": "outline"
+      },
+      {
+        "derived_path_id": "guide_stroke_09",
+        "source_path_ids": [
+          "oc_path_001"
+        ],
+        "feature_vi": "Bước 4: Vẽ chân trước — nét 1",
+        "role": "outline"
+      },
+      {
+        "derived_path_id": "guide_stroke_10",
+        "source_path_ids": [
+          "oc_path_001"
+        ],
+        "feature_vi": "Bước 4: Vẽ chân trước — nét 2",
+        "role": "outline"
+      },
+      {
+        "derived_path_id": "guide_stroke_11",
+        "source_path_ids": [
+          "oc_path_001"
+        ],
+        "feature_vi": "Bước 5: Vẽ chân sau — nét 1",
+        "role": "outline"
+      },
+      {
+        "derived_path_id": "guide_stroke_12",
+        "source_path_ids": [
+          "oc_path_001"
+        ],
+        "feature_vi": "Bước 5: Vẽ chân sau — nét 2",
+        "role": "outline"
+      },
+      {
+        "derived_path_id": "guide_stroke_13",
+        "source_path_ids": [
+          "oc_path_001"
+        ],
+        "feature_vi": "Bước 6: Vẽ đuôi — nét 1",
+        "role": "outline"
+      },
+      {
+        "derived_path_id": "guide_stroke_20",
+        "source_path_ids": [
+          "oc_path_005"
+        ],
+        "feature_vi": "Bước 6: Vẽ đuôi — nét 2",
+        "role": "outline"
+      },
+      {
+        "derived_path_id": "guide_stroke_14",
+        "source_path_ids": [
+          "oc_path_001"
+        ],
+        "feature_vi": "Bước 7: Vẽ mắt — nét 1",
+        "role": "outline"
+      },
+      {
+        "derived_path_id": "guide_stroke_15",
+        "source_path_ids": [
+          "oc_path_002"
+        ],
+        "feature_vi": "Bước 7: Vẽ mắt — nét 2",
+        "role": "outline"
+      },
+      {
+        "derived_path_id": "guide_stroke_16",
+        "source_path_ids": [
+          "oc_path_002"
+        ],
+        "feature_vi": "Bước 8: Vẽ tai — nét 1",
+        "role": "feature"
+      },
+      {
+        "derived_path_id": "guide_stroke_17",
+        "source_path_ids": [
+          "oc_path_003"
+        ],
+        "feature_vi": "Bước 8: Vẽ tai — nét 2",
+        "role": "feature"
+      }
+    ]
+  },
+  "reference_source": {
+    "asset_id": "openclipart-elephant-refixed",
+    "dataset_name": "Openclipart",
+    "dataset_revision": "df38e5ef633be067d397df7da19a9f009e69b3bd",
+    "dataset_doi": null,
+    "dataset_uri": "https://openclipart.org/258633/elephant-refixed",
+    "source_sha256": "74ea03f837ef1293ae17ae5ab97c50daf94002047ba4141cea0031a7674afefb",
+    "license_id": "CC0-1.0",
+    "license_uri": "https://creativecommons.org/publicdomain/zero/1.0/"
+  },
+  "reference_illustration": {
+    "schema_version": "SvgReferenceIllustrationV1",
+    "view_box": "0 0 385 237",
+    "paths": [
+      {
+        "path_id": "oc_path_001",
+        "d": "M253.788007364388 219l-.8101852599545-.75-3.430909982342-22.0975766490086-3.8703148124821-21.8091593747157-18.511670859481-1.0552901728209-18.0500881337742-.5937074471138-.5510030485641 2.4028668218295L205.02710441653 194.39597835975l-3.3308599570638 17.2411105141175-14.164110904009 1.8772657098241-14.1955239512858 1.1555883538127-1.0155555914232-25.9787062713262-.6390103897785-25.6021610696823-2.8887876728033-.6344842070922-2.8887876728032-.6344842070922-7.4716290600835 4.8399464088443L150.961210157196 171.5l-6.0730435729837 10.7518868629756-6.0730435729837 10.7518868629757-.6575615056141-.3561040482483L127.75 186.522575457945 118 180.753585286435v-6.7052071234521l1e-13-6.705207123452 5.3584861405971-11.9215855197657 11.0315736226046-23.2178849785978 5.6730874820075-11.2962994588323-2.7815736226046-3.9323491294772L134.5 113.042702823381l-5.1610159111903-.021351411691-5.1610159111903-.021351411691-5.540927279303-2.1203922104172-5.540927279303-2.1203922104173 3.5706873336476-7.0904380324587L121.565814651944 90.813461398328l1.3283263656352-3.76487811591909-4.1615906758871-1.12059999657663-4.1615906758871-1.12059999657663-8.5354798329024 9.11419837127227L97.5 103.0357800318l-5.88887709472311-1.5853374276072-5.88887709472311-1.58533742760726-6.61112290527689 4.54140221186056L72.5 108.947909600307 62 111.37397927043l-10.5 2.4260696701236-7.69428492090556.6800744130918-7.69428492090556.6800744130919-6.46987448770133-3.6181598948236-6.46987448770134-3.6181598948236-2.14435873706047-7.2119389885458-2.57616208469059-8.71912496516457-.43180334763012-1.50718597661874L38.7596785067025 84.613450257945 59.5 78.7412724691286l6.71395595877619-3.56160350370622 6.71395595877618-3.56160350370627-1.15639643809695-1.39337246675251-7.96395595877618-4.82160446627941L57 61.9748565291573v-8.4874282645792-8.4874282645792l-.93241936879604 3e-14-12.75 3.0297742439064L29.8022262442611 51.5805859484544l-1.69777375573893.52103746064272-1.13909941267007-4.230292262322L25.826253663182 43.6410388844531l2.25659901048461-4.81793279045177 2.2565990104846-4.8179327904518L41.8681079266585 30.4062511224923 53.3967641691657 26.8073289414351l10.96330112627202.71619282242171 10.96330112627207.71619282242172L87.5036910098342 32.039739187156 101.507793510108 36.1698818940162l1.8237779121495.33011810598276.9240944948068-3.5 1.2514978512415-3.83395022903969 9.5621436275223-2.68368469865683 9.2347402710877-2.34973446961718 8.6888624492005 4.36380864390583 8.6888624492005 4.3638086439058 6.4091137173417-3.8859194712251L154.5 25.0884089480467 166 22.6188023649708 195.95956962382 17.5838288020376l18.4595696238195-2.5653669798574 3.5404303761805 2.49933317239245 5.9044634740965 4.33108582852253 2.364033097916 1.83175265613008-15.864033097916 8.62427311273399L194.5 40.9291797046932l-3.2936539024483 5.51466547278434-3.2936539024483 5.51466547278434L180.04531338308 56.222153196259l-7.8673788120236 4.26364254599719-.6221325909781 3.89060349008692-.3389672855282 4.14189038606344 9.2189893743921-3.16890707209409 8.9358240689422-3.42019396807051 16.0641759310578-4.05337031250087L221.5 53.8224479532402l16 .68009055079839 16 .68009055079838 25.283271450907 6.29932858142896 25.2832714509071 6.29932858142885 5.2167285490929 4.12296161284273 10.3345755998037 8.12901116287399 5.1178470507107 4.00604955003135L343.522610057174 79.507750611518l19.1619486108512-4.15652527682673-6.1019090864645 4.59492634283683-6.4769417415626 4.21989368773866-9.8028539199993 2.92501328541877-10.9979421907268 3.36452091339622-1.1950882707276.43950762797741 3.3794392866115 6.94399660235231 3.3794392866115 6.94399660235247 1.0993048125598 13.767036520696 1.0993048125598 13.7670365206959-4.2176530077821 6.0914232809216-6.03924312917 8.4833850745691-1.8215901213883 2.3919617936475 15.2555873007266 8.8874833239256L355.5 167.058890235145l-.3225443795153 1.1881880209749-6.3826372169293 10.9245970340666-6.0600928374142 9.7364090130918-6.5431119756722 2.5286661696296-6.5431119756723 2.5286661696295-15.9993371617014-11.9827083212693-15.9993371617016-11.9827083212693h-7.7156185321218-7.7156185321219l-.5929791784586 10.75-1.2197980046856 23-.6268188262267 12.25-.6394971088894.00798898227-12.6014897445015 1.5z",
+        "fill": "#00a1e7",
+        "stroke": "#1f2937",
+        "stroke_width": 1.0,
+        "stroke_linecap": "round",
+        "stroke_linejoin": "round",
+        "stroke_miterlimit": 4.0
+      },
+      {
+        "path_id": "oc_path_002",
+        "d": "M100.788218231276 72h1.9420643851218l2.610790551175-2.05364814685703 2.610790551175-2.05364814685703 1.1823557740503-3.94635185314297L110.316575266848 60l-1.1823557740504-3.946351853143-1.1823557740503-3.94635185314297-2.610790551175-2.05364814685703L102.730282616397 48h-1.9420643851218H98.846153846154L95.9966170486747 50.8495367974793 93.1470802511955 53.6990735949585 92.463482349603 57.3429636853788l-.68359790159245 3.64389009042031.66126962291217 2.63470803594092.66126962291219 2.63470803594092 2.87186507615949 2.87186507615951L98.846153846154 72z",
+        "fill": "#ffffff",
+        "stroke": "#1f2937",
+        "stroke_width": 1.0,
+        "stroke_linecap": "round",
+        "stroke_linejoin": "round",
+        "stroke_miterlimit": 4.0
+      },
+      {
+        "path_id": "oc_path_003",
+        "d": "M140.587647551604 71h2.1426350647932l2.4994991135873-1.96610628929201 2.4994991135872-1.96610628929201 1.2497769134229-3.01722837432624 1.2497769134228-3.01722837432627-.6879574608064-3.66712853890248-.6879574608065-3.66712853890246-2.8495367974792-2.84953679747926L143.153846153846 48h-2.3544168335177-2.3544168335176L136.21679497936 49.5607042937019l-2.2282175074509 1.56070429370186-1.4942887359546 2.88963577941394L131 56.9006801462316V59.5v2.59931985376841l1.4942887359546 2.88963577941391 1.4942887359546 2.88963577941394 2.2282175074509 1.56070429370187L138.445012486811 71z",
+        "fill": "#ffffff",
+        "stroke": "#1f2937",
+        "stroke_width": 1.0,
+        "stroke_linecap": "round",
+        "stroke_linejoin": "round",
+        "stroke_miterlimit": 4.0
+      },
+      {
+        "path_id": "oc_path_004",
+        "d": "m100.5 65H98.9571224177004l-1.13907622915829-2.5L96.6789699593838 60l1.13907622915829-2.5L98.9571224177004 55H100.5 102.0428775823l1.1390762291583 2.5 1.1390762291583 2.5-1.1390762291583 2.5L102.0428775823 65z",
+        "fill": "#000000",
+        "stroke": "#1f2937",
+        "stroke_width": 1.0,
+        "stroke_linecap": "round",
+        "stroke_linejoin": "round",
+        "stroke_miterlimit": 4.0
+      },
+      {
+        "path_id": "oc_path_005",
+        "d": "M141.083558990684 65l-2.4285714285714-1.82874067158406L137 61.3425186568319V59.326246890528 57.3099751242242l1.8287406715841-1.65498756211209L141.257312100156 54l2.171259328416 1.57142857142856L145 57.1428571428572V59.5v2.35714285714286l-1.5714285714285 1.57142857142859z",
+        "fill": "#000000",
+        "stroke": "#1f2937",
+        "stroke_width": 1.0,
+        "stroke_linecap": "round",
+        "stroke_linejoin": "round",
+        "stroke_miterlimit": 4.0
+      }
+    ]
+  },
+  "document": {
+    "schema_version": "SvgDocumentV1",
+    "view_box": "0 0 512 512",
+    "paths": [
+      {
+        "path_id": "guide_stroke_01",
+        "d": "M 329.864 377.122 L 328.888 376.218 L 324.753 349.586 L 320.088 323.302 L 297.778 322.03 L 276.024 321.315 L 275.36 324.211",
+        "fill": "none",
+        "stroke": "#202938",
+        "stroke_width": 6.0
+      },
+      {
+        "path_id": "guide_stroke_02",
+        "d": "M 275.36 324.211 L 271.098 347.469 L 267.083 368.248 L 250.013 370.511 L 232.904 371.904",
+        "fill": "none",
+        "stroke": "#202938",
+        "stroke_width": 6.0
+      },
+      {
+        "path_id": "guide_stroke_03",
+        "d": "M 232.904 371.904 L 231.68 340.594 L 230.91 309.739 L 227.429 308.974 L 223.947 308.209",
+        "fill": "none",
+        "stroke": "#202938",
+        "stroke_width": 6.0
+      },
+      {
+        "path_id": "guide_stroke_04",
+        "d": "M 223.947 308.209 L 214.942 314.042 L 205.938 319.875 L 198.618 332.833 L 191.299 345.792 L 190.507 345.362",
+        "fill": "none",
+        "stroke": "#202938",
+        "stroke_width": 6.0
+      },
+      {
+        "path_id": "guide_stroke_05",
+        "d": "M 190.507 345.362 L 177.964 337.98 L 166.213 331.028 L 166.213 322.947 L 166.213 314.866 L 172.671 300.498 L 185.966 272.516 L 192.803 258.901 L 189.451 254.162 L 186.099 249.423 L 179.879 249.397 L 173.659 249.371 L 166.981 246.816 L 160.303 244.26",
+        "fill": "none",
+        "stroke": "#202938",
+        "stroke_width": 6.0
+      },
+      {
+        "path_id": "guide_stroke_06",
+        "d": "M 160.303 244.26 L 164.606 235.715 L 170.51 222.632 L 172.111 218.095 L 167.096 216.744 L 162.08 215.394 L 151.793 226.378 L 141.506 237.363 L 134.409 235.452 L 127.312 233.541 L 119.344 239.015 L 111.377 244.488 L 98.7221 247.412 L 86.0675 250.336",
+        "fill": "none",
+        "stroke": "#202938",
+        "stroke_width": 6.0
+      },
+      {
+        "path_id": "guide_stroke_07",
+        "d": "M 86.0675 250.336 L 76.7944 251.155 L 67.5213 251.975 L 59.7238 247.614 L 51.9264 243.254 L 49.342 234.562 L 46.2372 224.054 L 45.7168 222.237 L 70.713 215.16 L 95.7091 208.083 L 103.801 203.791 L 111.892 199.498 L 110.499 197.819 L 100.901 192.008",
+        "fill": "none",
+        "stroke": "#202938",
+        "stroke_width": 6.0
+      },
+      {
+        "path_id": "guide_stroke_08",
+        "d": "M 100.901 192.008 L 92.6961 187.876 L 92.6961 177.647 L 92.6961 167.418 L 91.5724 167.418 L 76.2061 171.07 L 59.9175 175.349 L 57.8713 175.977 L 56.4985 170.879 L 55.1257 165.78 L 57.8453 159.974 L 60.5649 154.167 L 74.4592 149.83 L 88.3535 145.492",
+        "fill": "none",
+        "stroke": "#202938",
+        "stroke_width": 6.0
+      },
+      {
+        "path_id": "guide_stroke_09",
+        "d": "M 88.3535 145.492 L 101.566 146.356 L 114.779 147.219 L 129.459 151.799 L 146.337 156.776 L 148.535 157.174 L 149.648 152.956 L 151.157 148.335 L 162.681 145.101 L 173.811 142.269 L 184.282 147.528 L 194.754 152.787 L 202.478 148.104 L 210.203 143.421",
+        "fill": "none",
+        "stroke": "#202938",
+        "stroke_width": 6.0
+      },
+      {
+        "path_id": "guide_stroke_10",
+        "d": "M 210.203 143.421 L 224.062 140.444 L 260.169 134.376 L 282.417 131.285 L 286.684 134.297 L 293.8 139.517 L 296.649 141.724 L 277.53 152.118 L 258.41 162.512 L 254.441 169.158 L 250.471 175.805 L 240.99 180.943 L 231.508 186.082 L 230.758 190.771",
+        "fill": "none",
+        "stroke": "#202938",
+        "stroke_width": 6.0
+      },
+      {
+        "path_id": "guide_stroke_11",
+        "d": "M 230.758 190.771 L 230.35 195.762 L 241.46 191.943 L 252.23 187.821 L 271.59 182.936 L 290.951 178.051 L 310.234 178.871 L 329.517 179.69 L 359.988 187.282 L 390.459 194.874 L 396.747 199.843 L 409.202 209.64 L 415.37 214.468 L 438.012 209.007",
+        "fill": "none",
+        "stroke": "#202938",
+        "stroke_width": 6.0
+      },
+      {
+        "path_id": "guide_stroke_12",
+        "d": "M 438.012 209.007 L 461.106 203.997 L 453.752 209.535 L 445.946 214.621 L 434.131 218.146 L 420.877 222.201 L 419.436 222.731 L 423.509 231.1 L 427.582 239.468 L 428.907 256.06 L 430.232 272.652 L 425.149 279.994 L 417.87 290.218 L 415.675 293.101",
+        "fill": "none",
+        "stroke": "#202938",
+        "stroke_width": 6.0
+      },
+      {
+        "path_id": "guide_stroke_13",
+        "d": "M 415.675 293.101 L 434.061 303.812 L 452.447 314.523 L 452.058 315.955 L 444.366 329.121 L 437.062 340.855 L 429.176 343.903 L 421.291 346.951 L 402.008 332.509 L 382.726 318.068 L 373.427 318.068 L 364.128 318.068 L 363.414 331.023 L 361.944 358.743",
+        "fill": "none",
+        "stroke": "#202938",
+        "stroke_width": 6.0
+      },
+      {
+        "path_id": "guide_stroke_14",
+        "d": "M 361.944 358.743 L 361.188 373.506 L 360.417 373.516 L 345.23 375.324 L 329.864 377.122",
+        "fill": "none",
+        "stroke": "#202938",
+        "stroke_width": 6.0
+      },
+      {
+        "path_id": "guide_stroke_15",
+        "d": "M 145.469 199.958 L 147.81 199.958 L 150.957 197.483 L 154.103 195.008 L 155.528 190.252 L 156.953 185.496 L 155.528 180.74 L 154.103 175.984 L 150.957 173.509 L 147.81 171.034 L 145.469 171.034 L 143.129 171.034 L 139.695 174.468 L 136.26 177.902",
+        "fill": "none",
+        "stroke": "#202938",
+        "stroke_width": 6.0
+      },
+      {
+        "path_id": "guide_stroke_16",
+        "d": "M 136.26 177.902 L 135.437 182.294 L 134.613 186.685 L 135.41 189.861 L 136.207 193.036 L 139.668 196.497 L 143.129 199.958 L 145.469 199.958",
+        "fill": "none",
+        "stroke": "#202938",
+        "stroke_width": 6.0
+      },
+      {
+        "path_id": "guide_stroke_17",
+        "d": "M 193.436 198.753 L 196.018 198.753 L 199.03 196.384 L 202.043 194.014 L 203.549 190.378 L 205.055 186.741 L 204.226 182.322 L 203.397 177.902 L 199.963 174.468 L 196.528 171.034 L 193.691 171.034 L 190.853 171.034 L 188.168 172.915 L 185.482 174.796",
+        "fill": "none",
+        "stroke": "#202938",
+        "stroke_width": 6.0
+      },
+      {
+        "path_id": "guide_stroke_18",
+        "d": "M 185.482 174.796 L 183.681 178.278 L 181.881 181.761 L 181.881 184.894 L 181.881 188.026 L 183.681 191.509 L 185.482 194.991 L 188.168 196.872 L 190.853 198.753 L 193.436 198.753",
+        "fill": "none",
+        "stroke": "#202938",
+        "stroke_width": 6.0
+      },
+      {
+        "path_id": "guide_stroke_19",
+        "d": "M 145.122 191.522 L 143.263 191.522 L 141.89 188.509 L 140.517 185.496 L 141.89 182.483 L 143.263 179.47 L 145.122 179.47 L 146.982 179.47 L 148.354 182.483 L 149.727 185.496 L 148.354 188.509 L 146.982 191.522 L 145.122 191.522",
+        "fill": "none",
+        "stroke": "#202938",
+        "stroke_width": 6.0
+      },
+      {
+        "path_id": "guide_stroke_20",
+        "d": "M 194.033 191.522 L 191.106 189.318 L 189.112 187.114 L 189.112 184.684 L 189.112 182.254 L 191.316 180.26 L 194.243 178.265 L 196.859 180.159 L 198.753 182.053 L 198.753 184.894 L 198.753 187.734 L 196.859 189.628 L 194.033 191.522",
+        "fill": "none",
+        "stroke": "#202938",
+        "stroke_width": 6.0
+      }
+    ]
+  },
+  "document_sha256": "326bee37093a6bf1bfeb189917ea61d5f2c55ad6639f3e8100b569b0bb1fed64",
+  "guide": {
+    "schema_version": "SvgTopicStrokeGuideV1",
+    "guide_id": "77ac114c-1894-43cb-a45e-c5423b544493",
+    "title_vi": "Vẽ con voi",
+    "parts": [
+      {
+        "part_id": "step_01",
+        "label_vi": "Bước 1: Vẽ phần đầu và thân trên",
+        "path_ids": [
+          "guide_stroke_02",
+          "guide_stroke_03"
+        ],
+        "depends_on": []
+      },
+      {
+        "part_id": "step_02",
+        "label_vi": "Bước 2: Hoàn thiện phần đầu",
+        "path_ids": [
+          "guide_stroke_01",
+          "guide_stroke_04",
+          "guide_stroke_05",
+          "guide_stroke_06",
+          "guide_stroke_07"
+        ],
+        "depends_on": [
+          "step_01"
+        ]
+      },
+      {
+        "part_id": "step_03",
+        "label_vi": "Bước 3: Vẽ phần thân dưới",
+        "path_ids": [
+          "guide_stroke_08",
+          "guide_stroke_18",
+          "guide_stroke_19"
+        ],
+        "depends_on": [
+          "step_02"
+        ]
+      },
+      {
+        "part_id": "step_04",
+        "label_vi": "Bước 4: Vẽ chân trước",
+        "path_ids": [
+          "guide_stroke_09",
+          "guide_stroke_10"
+        ],
+        "depends_on": [
+          "step_03"
+        ]
+      },
+      {
+        "part_id": "step_05",
+        "label_vi": "Bước 5: Vẽ chân sau",
+        "path_ids": [
+          "guide_stroke_11",
+          "guide_stroke_12"
+        ],
+        "depends_on": [
+          "step_04"
+        ]
+      },
+      {
+        "part_id": "step_06",
+        "label_vi": "Bước 6: Vẽ đuôi",
+        "path_ids": [
+          "guide_stroke_13",
+          "guide_stroke_20"
+        ],
+        "depends_on": [
+          "step_05"
+        ]
+      },
+      {
+        "part_id": "step_07",
+        "label_vi": "Bước 7: Vẽ mắt",
+        "path_ids": [
+          "guide_stroke_14",
+          "guide_stroke_15"
+        ],
+        "depends_on": [
+          "step_06"
+        ]
+      },
+      {
+        "part_id": "step_08",
+        "label_vi": "Bước 8: Vẽ tai",
+        "path_ids": [
+          "guide_stroke_16",
+          "guide_stroke_17"
+        ],
+        "depends_on": [
+          "step_07"
+        ]
+      }
+    ],
+    "stages": [
+      {
+        "step_index": 1,
+        "instruction_vi": "Vẽ đường cong dài từ đầu xuống thân, tạo hình dáng cơ bản của con voi. Vẽ một đoạn ngắn ở chân sau bên phải, tạo hình gờ",
+        "part_ids": [
+          "step_01"
+        ],
+        "new_path_ids": [
+          "guide_stroke_02",
+          "guide_stroke_03"
+        ],
+        "animation_order": [
+          "guide_stroke_02",
+          "guide_stroke_03"
+        ]
+      },
+      {
+        "step_index": 2,
+        "instruction_vi": "Thêm các đường cong nhỏ để tạo hình mũi và miệng của con voi. Vẽ một đoạn ngắn ở chân sau bên trái, tạo hình gờ",
+        "part_ids": [
+          "step_02"
+        ],
+        "new_path_ids": [
+          "guide_stroke_01",
+          "guide_stroke_04",
+          "guide_stroke_05",
+          "guide_stroke_06",
+          "guide_stroke_07"
+        ],
+        "animation_order": [
+          "guide_stroke_01",
+          "guide_stroke_04",
+          "guide_stroke_05",
+          "guide_stroke_06",
+          "guide_stroke_07"
+        ]
+      },
+      {
+        "step_index": 3,
+        "instruction_vi": "Vẽ đường cong dài để tạo hình thân dưới của con voi. Vẽ một đoạn cong ở chân sau bên phải, tạo hình gờ",
+        "part_ids": [
+          "step_03"
+        ],
+        "new_path_ids": [
+          "guide_stroke_08",
+          "guide_stroke_18",
+          "guide_stroke_19"
+        ],
+        "animation_order": [
+          "guide_stroke_08",
+          "guide_stroke_18",
+          "guide_stroke_19"
+        ]
+      },
+      {
+        "step_index": 4,
+        "instruction_vi": "Thêm hai đường cong ngắn để tạo hình chân trước của con voi. Vẽ một đoạn cong ở chân sau bên trái, tạo hình gờ",
+        "part_ids": [
+          "step_04"
+        ],
+        "new_path_ids": [
+          "guide_stroke_09",
+          "guide_stroke_10"
+        ],
+        "animation_order": [
+          "guide_stroke_09",
+          "guide_stroke_10"
+        ]
+      },
+      {
+        "step_index": 5,
+        "instruction_vi": "Thêm hai đường cong ngắn để tạo hình chân sau của con voi. Vẽ một đoạn cong ở chân sau bên phải, tạo hình gờ",
+        "part_ids": [
+          "step_05"
+        ],
+        "new_path_ids": [
+          "guide_stroke_11",
+          "guide_stroke_12"
+        ],
+        "animation_order": [
+          "guide_stroke_11",
+          "guide_stroke_12"
+        ]
+      },
+      {
+        "step_index": 6,
+        "instruction_vi": "Thêm một đường cong ngắn để tạo hình đuôi của con voi. Vẽ một đoạn cong ở chân sau bên trái, tạo hình gờ",
+        "part_ids": [
+          "step_06"
+        ],
+        "new_path_ids": [
+          "guide_stroke_13",
+          "guide_stroke_20"
+        ],
+        "animation_order": [
+          "guide_stroke_13",
+          "guide_stroke_20"
+        ]
+      },
+      {
+        "step_index": 7,
+        "instruction_vi": "Thêm hai đường cong nhỏ để tạo hình mắt của con voi. Vẽ một đoạn cong ở chân sau bên phải, tạo hình gờ",
+        "part_ids": [
+          "step_07"
+        ],
+        "new_path_ids": [
+          "guide_stroke_14",
+          "guide_stroke_15"
+        ],
+        "animation_order": [
+          "guide_stroke_14",
+          "guide_stroke_15"
+        ]
+      },
+      {
+        "step_index": 8,
+        "instruction_vi": "Thêm hai đường cong lớn để tạo hình tai của con voi. Vẽ một đoạn cong ở chân sau bên trái, tạo hình gờ",
+        "part_ids": [
+          "step_08"
+        ],
+        "new_path_ids": [
+          "guide_stroke_16",
+          "guide_stroke_17"
+        ],
+        "animation_order": [
+          "guide_stroke_16",
+          "guide_stroke_17"
+        ]
+      }
+    ]
+  },
+  "path_count": 20,
+  "stage_count": 8,
+  "quality_gates_passed": [
+    "OPENCLIPART_CC0_PROVENANCE",
+    "SAFE_REFERENCE_SVG_SANITIZER",
+    "SAFE_CONSTRUCTION_PATH_SUBSET",
+    "CONSTRUCTION_FIRST_STEP_ONLY",
+    "CONSTRUCTION_STROKES_ANCHORED_TO_SOURCE",
+    "PROGRESSIVE_STROKE_ASSIGNMENT_EXACTLY_ONCE",
+    "FINAL_RECOGNITION_FEATURE",
+    "SOURCE_COLOR_ARTWORK_SEPARATE",
+    "PRIVATE_ADULT_REVIEW_DRAFT"
+  ]
+}

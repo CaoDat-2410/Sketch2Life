@@ -1730,3 +1730,26 @@
 - Rev78A plan: plan/PLAN_REV78A_PARENT_ACTIVITY_GATE_REFINEMENT_20261111.md; SHA-256 03F777103B23A56FDEC398CA940094A62DF26EDE28B35DA56BE4FBA96C077183.
 - Rev78 authorizes catalog-first Parent activity selection from Parent-accessible published/shared lesson versions, minimized context to Qwen3.5, and exactly three gated fallback drafts only when no catalog activity is suitable. Rev78A authorizes the limited prose-format relaxation while preserving hard safety/business gates and one synthetic inference attempt.
 - Rev78B plan SHA-256: B4FB3B7C9B202B8FE9A95C09751320409FA18B6051A86A61ECACE4F11A288ED0. The owner's direct request on 2026-11-11 authorizes the exact implementation manifest, one feature commit and push, merge into dev, and push dev. Rev78B supersedes only the earlier no-migration assumption and no-publication limits. The canonical Rev60 SRS remains unsigned and unchanged; its no-preset activity question remains open for SRS reconciliation.
+### Rev87.29 — Non-kitten Parent catalog verification — 2026-11-15
+
+- **Status:** APPROVED for the exact two-topic, two-call maximum in Plan Rev87.29.
+- **Approver:** Project owner, direct instruction: “test thử với các cái khác xem”.
+- **Plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_29_PARENT_NON_KITTEN_MODAL_SMOKE_20261115.md`.
+- **Approved plan SHA-256:** `D39DF9ED57EF2DCE2EE20181008420CD7C8081948CF4818AE8E6035D76DD63EE`.
+- **Scope:** real synthetic Parent route → Modal/Qwen3.5/catalog tests for `con bướm` and `con rùa`, at most one request per topic; render and inspect genuine successful results; stop the Modal app.
+- **Limits:** no retries, additional topics, gate weakening, child/personal data, video, database/secret/`.env`, Volume mutation, code/UI/Docker changes, SRS §§1–31 changes, commit, push or merge.
+
+#### Rev87.29 execution amendment — 2026-11-15
+
+- **Status:** APPROVED under the same direct owner request to test other assets, based on observed `con bướm` pre-dispatch failure.
+- **Amended plan SHA-256:** `E8FE68477E290A5E492A1065D0C29CD0F3FE01A07F49DF421A4CB04D8525DC6E`.
+- The bundled butterfly source has 39 guide paths and the sibling turtle has 35, while the API source-guide sanitizer caps documents at 32 paths. The butterfly request stopped in 0.078 s before Modal dispatch. Do not repeat these topics here.
+- The remaining approved live calls are one each for `con voi` and `con cá` through the generic Parent API → Modal path; no further calls if either fails.
+
+
+### Rev87.29 execution closeout — 2026-11-15
+
+- Closed plan SHA-256: `45FC57B72216D18B898F9A12873788B29E90F3C32D2F531763F669F9DEE763F7`.
+- The approved butterfly diagnostic returned HTTP 503 before Modal due to the 39-path/32-path canonicalizer mismatch. One elephant and one fish request each reached real Modal/Qwen3.5 and returned HTTP 200, but both failed manual visual/content acceptance; no retries or extra topics were made.
+- Modal app `ap-pTMHfQi0SqTySkbzua5RSj` is stopped and reports no servers. Evidence and limitations are in `evidence/EV-063-123_PARENT_NON_KITTEN_MODAL_SMOKE_20261115/REPORT.md`.
+- Scope is complete with acceptance not met. No additional inference or implementation is authorized by this closeout.

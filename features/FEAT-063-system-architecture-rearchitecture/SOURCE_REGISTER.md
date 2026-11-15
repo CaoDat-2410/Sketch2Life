@@ -501,3 +501,8 @@ Plan Rev51 SHA-256 at approval: `B20103A217D7A9623E02279CE0BD82D5BC61141518D820F
 - Plans/approval: plan/PLAN_REV78_PARENT_CATALOG_FIRST_ACTIVITY_SUGGESTIONS_20261111.md, plan/PLAN_REV78A_PARENT_ACTIVITY_GATE_REFINEMENT_20261111.md and publication/migration addendum Rev78B; approval is recorded in approvals/TASK_APPROVAL.md.
 - Evidence: evidence/EV-063-87_PARENT_FULL_API_UI_E2E_20261111/API_PARENT_E2E_REPORT.md with selected synthetic workflow screenshots and safe JSON runtime records.
 - Verification boundary: 28 focused tests passed before the final publication checks; final publication checks are recorded in status/STATUS.md. No video; the last live fallback inference had no output and no gate verdict.
+### Rev87.29 — runtime-selected Openclipart sources
+
+- Elephant request selected `openclipart-elephant-refixed`, URI `https://openclipart.org/258633/elephant-refixed`, CC0-1.0, SHA-256 `74ea03f837ef1293ae17ae5ab97c50daf94002047ba4141cea0031a7674afefb`.
+- Fish request selected `openclipart-kitchen-icon-scale`, URI `https://openclipart.org/169922/kitchen-icon-scale`, CC0-1.0, SHA-256 `62490751fad8df44ac504c29b01905a3dfc1f4998a0faa699a7c0e78da60a0b0`; this source is semantically unrelated to the requested fish and is retained here only as provenance of the failed selection.
+- Catalog revision for both responses: `df38e5ef633be067d397df7da19a9f009e69b3bd`. Butterfly/turtle curated pack declarations are local implementation evidence, not runtime-selected dataset records. Full request/response and rendered evidence: `evidence/EV-063-123_PARENT_NON_KITTEN_MODAL_SMOKE_20261115/REPORT.md`.

@@ -789,3 +789,11 @@ Parent Sketch Guide and lesson visuals were not dispatched because Modal `dev` s
 - Static results: TypeScript PASS; Python compile PASS; migration revision graph PASS (30 files, 12 prior heads joined, no unresolved references); repository security validator PASS (7,157 files); `git diff --check` PASS. Ruff/Alembic CLI were not installed; ESLint could not load the configured `jest/globals` environment.
 - No product test suite, live Modal/Firebase operation, database migration, Docker lifecycle, or video call was run. Full Parent SRS flow is not complete: voice/Whisper, video and activities, corrected-subject VLM rerun, history/cancel/delete, durable job reconciliation, and sketch-guide cleanup/safety remain.
 - Detailed scope, changed API routes and limitations: `artifacts/PARENT_API_CONTRACT_REV67_20261110.md`; evidence: `evidence/EV-063-76_PARENT_ANDROID_PROFILE_CONSENT_STORY_FLOW_20261110.md`.
+
+### Rev87.29 — Parent generic non-kitten catalog verification — COMPLETE; QUALITY NOT ACCEPTED
+
+- One butterfly route stopped pre-dispatch (39 guide paths > 32 API cap); no Modal call. Turtle's 35-path pack shares the issue and was not tested.
+- One real Modal request each for elephant and fish returned HTTP 200, but both rendered guides failed manual acceptance. Elephant copy/stroke sequencing is pedagogically incoherent; fish selected a kitchen-scale SVG and returned repeated/mixed-language copy.
+- No retries or gate weakening. No fixture, child data, video, UI, DB, or Docker. Synthetic Parent harness bypassed auth guard; not Firebase/Android E2E.
+- Modal app stopped; `app info` state is stopped and servers are empty. `app list` reports task field `1`; this is recorded without treating it as live-task count.
+- Plan Rev87.29 and evidence EV-063-123 are closed. Generic non-kitten quality needs a separate approved remediation plan.

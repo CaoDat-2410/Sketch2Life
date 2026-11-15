@@ -204,3 +204,6 @@ See [EV-063-60_TWO_AGENT_DIAGRAM_READINESS_ASSESSMENT_20261107.md](EV-063-60_TWO
 ## EV-063-87 — Parent non-video API/UI and Rev78 activity suggestions
 
 Records synthetic Parent signup/profile/context, drawing analysis, activity suggestion and story-draft path; catalog/fallback contract, worker logs summarized as safe JSON, quality-gate outcomes, runtime timings and limitations. Selected screenshots show subject confirmation, activity suggestion/review and story result. No video was called. The final Rev78A inference was cancelled before output; the gate verdict is unknown. The migration was not applied to PostgreSQL.
+## EV-063-123 — Rev87.29 Parent non-kitten Modal/catalog verification (2026-11-15)
+
+Records one pre-dispatch butterfly 503 caused by the local 32-path cap, plus one genuine Modal/Qwen3.5 request each for elephant and fish. Both APIs returned 200, but manual review rejected both: elephant stage/caption alignment is incoherent; fish selected a kitchen-scale source and emitted repeated/mixed-language copy. The Modal app was stopped and its server list is empty. Includes raw request/response, sanitized worker logs, health preflight, rendered source SVGs and cumulative stage images. See [REPORT.md](EV-063-123_PARENT_NON_KITTEN_MODAL_SMOKE_20261115/REPORT.md).
