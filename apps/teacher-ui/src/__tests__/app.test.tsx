@@ -20,6 +20,7 @@ describe('Teacher UI authentication boundary', () => {
       callback(signedIn ? user : null)
       return () => undefined
     })
+    vi.spyOn(authService, 'getAccountRole').mockResolvedValue('teacher')
   })
 
   it('authenticates with Firebase before opening teacher routes', async () => {

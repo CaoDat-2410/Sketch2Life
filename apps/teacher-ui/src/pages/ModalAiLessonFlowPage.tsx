@@ -48,6 +48,7 @@ export function ModalAiLessonFlowPage() {
   const [reviewConfirmed, setReviewConfirmed] = useState(false)
   const [deck, setDeck] = useState<unknown>(null)
   const [visual, setVisual] = useState<string | null>(null)
+  const [visualLayout, setVisualLayout] = useState<import('../components/TeacherDeckPresentation').ProgressiveGuideLayout | null>(null)
   const [visualError, setVisualError] = useState('')
   const [presentationOpen, setPresentationOpen] = useState(false)
   const [busy, setBusy] = useState('')
@@ -117,8 +118,8 @@ export function ModalAiLessonFlowPage() {
 
   function reviewedPlan(): TeacherReviewedPlanInput | null {
     const age = Number(ageMonths)
-    if (!reviewConfirmed || actions.length < 3 || actions.length > 5 || actions.some((item) => !item.trim()) || placements.length !== actions.length || placements.some((item) => !item.trim()) || !suggestion || !planRevisionRef || activities.length < 1) {
-      setError('Rà soát nội dung, nhập đủ 3–5 bước vẽ và xác nhận duyệt bản nháp trước.')
+    if (!reviewConfirmed || actions.length < 4 || actions.length > 8 || actions.some((item) => !item.trim()) || placements.length !== actions.length || placements.some((item) => !item.trim()) || !suggestion || !planRevisionRef || activities.length < 1) {
+      setError('Rà soát nội dung, nhập đủ 4–8 bước vẽ và xác nhận duyệt bản nháp trước.')
       return null
     }
     return {
@@ -137,6 +138,7 @@ export function ModalAiLessonFlowPage() {
     setError('')
     setNotice('')
     setVisual(null)
+    setVisualLayout(null)
     const input = reviewedPlan()
     if (!input) return
     setBusy('deck')
@@ -164,7 +166,13 @@ export function ModalAiLessonFlowPage() {
     try {
       const response = await aiWorkflowService.generateLessonVisual(input)
       if (!response.image_base64) throw new Error('Backend chưa trả ảnh minh họa hợp lệ.')
+      if (response.panel_layout?.schema_version !== 'sketch2life.progressive-guide-layout.v1'
+        || response.panel_layout.step_count !== input.drawing_steps.length
+        || response.panel_layout.stages.length !== input.drawing_steps.length) {
+        throw new Error('Backend trả về hướng dẫn vẽ không khớp số bước đã duyệt.')
+      }
       setVisual(response.image_base64 ?? null)
+      setVisualLayout(response.panel_layout)
       setNotice(`FLUX đã tạo ảnh minh họa bản nháp; mã yêu cầu ${response.request_id}.`)
     } catch (cause) {
       const message = cause instanceof Error ? cause.message : 'Không thể tạo ảnh minh họa.'
@@ -221,9 +229,9 @@ export function ModalAiLessonFlowPage() {
             <p className="mt-1 text-sm text-slate-600">Đây là nội dung chưa được duyệt. Sửa các trường cần thiết rồi xác nhận trước khi tạo deck.</p>
           </div>
           <div className="grid gap-4 md:grid-cols-2">
-            <label className="space-y-1 text-sm font-semibold">Các bước vẽ (3–5 dòng)
+            <label className="space-y-1 text-sm font-semibold">Các bước vẽ (4–8 dòng)
               {actions.map((value, index) => <input key={`action-${index}`} aria-label={`Bước vẽ ${index + 1}`} value={value} onChange={(event) => setActions((items) => items.map((item, i) => i === index ? event.target.value : item))} className="block w-full rounded-lg border border-slate-300 px-3 py-2 font-normal" />)}
-              {actions.length < 5 && <button type="button" onClick={() => { setActions((items) => [...items, '']); setPlacements((items) => [...items, '']); }} className="mt-1 text-xs font-bold text-blue-800 underline">Thêm bước</button>}
+              {actions.length < 8 && <button type="button" onClick={() => { setActions((items) => [...items, '']); setPlacements((items) => [...items, '']); }} className="mt-1 text-xs font-bold text-blue-800 underline">Thêm bước</button>}
             </label>
             <label className="space-y-1 text-sm font-semibold">Vị trí đặt nét (theo từng bước)
               {placements.map((value, index) => <input key={`placement-${index}`} aria-label={`Vị trí bước ${index + 1}`} value={value} onChange={(event) => setPlacements((items) => items.map((item, i) => i === index ? event.target.value : item))} className="block w-full rounded-lg border border-slate-300 px-3 py-2 font-normal" />)}
@@ -270,7 +278,7 @@ export function ModalAiLessonFlowPage() {
       )}
       {deck !== null && deck !== undefined && !presentationDeck && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">Sketch Deck không khớp schema trình chiếu được hỗ trợ. Hãy tạo lại bản nháp sau khi rà soát giáo án.</p>}
       {visual && <section className="rounded-2xl border border-slate-200 bg-white p-5"><h2 className="text-xl font-bold">Ảnh minh họa · bản nháp cần duyệt</h2><img alt="Ảnh minh họa do AI tạo, chưa được duyệt" src={`data:image/png;base64,${visual}`} className="mt-3 max-h-[30rem] rounded-xl border border-slate-200 object-contain" /></section>}
-      {presentationOpen && presentationDeck && <TeacherDeckPresentation deck={presentationDeck} visualBase64={visual} visualBusy={busy === 'visual'} visualError={visualError} onGenerateVisual={() => void generateVisual()} onClose={() => setPresentationOpen(false)} />}
+      {presentationOpen && presentationDeck && <TeacherDeckPresentation deck={presentationDeck} visualBase64={visual} visualLayout={visualLayout} visualBusy={busy === 'visual'} visualError={visualError} onGenerateVisual={() => void generateVisual()} onClose={() => setPresentationOpen(false)} />}
     </main>
   )
 }

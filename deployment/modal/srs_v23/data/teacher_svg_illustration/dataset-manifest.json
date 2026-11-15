@@ -1,0 +1,75 @@
+{
+  "schema_version": "TeacherSvgIllustrationDatasetManifestV1",
+  "dataset": {
+    "repo_id": "yoavf/svg-animal-illustrations",
+    "revision": "d7ab3149308746a4b17e7cbee30f1f054f6c49df",
+    "dataset_card_url": "https://huggingface.co/datasets/yoavf/svg-animal-illustrations",
+    "license": "CC0-1.0",
+    "license_basis": "Dataset metadata and card declare cc0-1.0; not independently legal-audited",
+    "card_description": "1,416 prompt/SVG pairs; examples described by the publisher as generated with Claude Sonnet 4.5 and systematically varied",
+    "source_sample_files_have_paired_prompts": false
+  },
+  "source_snapshot": {
+    "path": "source-examples.jsonl",
+    "record_count": 6,
+    "byte_count": 15331,
+    "sha256": "62e79601cf0e8709b71d7bcafd323b09a9aed91f1304bf049091015c36660fef"
+  },
+  "reference_pack": {
+    "path": "reference-pack-v1.json",
+    "record_count": 2,
+    "byte_count": 9716,
+    "sha256": "319d25932c8d4bc8c362b6af19ecded75cb1015d7f8cc19387c9685a74349af0",
+    "max_selected_per_request": 1,
+    "not_a_product_catalog": true,
+    "not_a_finetuning_corpus": true
+  },
+  "accepted_examples": [
+    {
+      "reference_id": "prompet-sample-dog",
+      "subject_label": "dog",
+      "retrieval_key": "quadruped",
+      "source_file": "samples/sample_dog.svg",
+      "source_row_sha256": "1bd6b80da22276d2905bd2c62c2275c2bdbb3336106162cad241b5e76caf8f79",
+      "source_svg_sha256": "11900816635e751746a5d42af197cc6df93da438cd164a12733b74c2ecd59d63",
+      "source_prompt": null,
+      "canonical_path_count": 22,
+      "canonical_sha256": "34477af948d07699aee2e495d98829d4ad7446265ca821054b7f4df210aa208d"
+    },
+    {
+      "reference_id": "prompet-sample-rabbit",
+      "subject_label": "rabbit",
+      "retrieval_key": "lagomorph",
+      "source_file": "samples/sample_rabbit.svg",
+      "source_row_sha256": "f07789322af7a43b464ddca4b4a54ddcb4c0f1efb0cbc44133d24ab872e6a549",
+      "source_svg_sha256": "f72f82dde49e689fc0633820ccb7eaaf32ec9b5774dd41345b4465cd23295736",
+      "source_prompt": null,
+      "canonical_path_count": 18,
+      "canonical_sha256": "4dbc32ad37e388325837bf8ef3250626d581c08364efb1472327f31768f1c4cb"
+    }
+  ],
+  "not_selected_from_preview_subset": [
+    {
+      "reference_id": "prompet-sample-bird",
+      "source_row_sha256": "9a3387802495bd7a8eeeb662077f726d4cb115ec8e85879ff8af2ad8bfe4acdc",
+      "reason": "CSS classes/style definitions and a rotated element exceed this small importer's safe allowlist"
+    },
+    {
+      "reference_id": "prompet-sample-fish",
+      "source_row_sha256": "74e547b8a4e409e3637cf7cfb0f80fa8272a258dfc339372bd9656056b80524c",
+      "reason": "CSS classes/style definitions and a transformed group exceed this small importer's safe allowlist"
+    },
+    {
+      "reference_id": "prompet-sample-sheep",
+      "source_row_sha256": "23a30993ebc1230b1e98177d41accf2c98b286dc5c2813bbf9819f748404ebb7",
+      "reason": "Transformed group is outside this small importer's safe allowlist"
+    },
+    {
+      "reference_id": "prompet-sample-cat",
+      "source_row_sha256": "2f6d75b170597ff4719aaaf756b07016c77b7d0b9682c58d371d2f4ce0b97749",
+      "source_svg_sha256": "d6cc6b9034d311e01e5aa607312bd4fe0954453c5f34bec871d19e97970e6796",
+      "reason": "path-026 has stroke_width=20, above the unchanged worker parser maximum of 12; excluded without changing source geometry or style"
+    }
+  ],
+  "selection_note": "The three accepted previews are structural references only. Their path counts can exceed the model's 20-path output maximum because they are sanitized source exemplars; generated output remains subject to the unchanged 4–20 path schema."
+}

@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import sys
+import unicodedata
 from pathlib import Path
 from typing import Any
 
@@ -15,14 +17,16 @@ _MODULE_DIR = Path(__file__).resolve().parent
 if str(_MODULE_DIR) not in sys.path:
     sys.path.insert(0, str(_MODULE_DIR))
 
-from contracts import (  # noqa: E402
+from contracts import (
     MAX_STAGED_INPUT_BYTES,
     WORKER_OUTPUT_SCHEMA,
     ModalWorkerInputV1,
     WorkerContractError,
+    is_worker_warmup,
     parse_worker_input,
+    worker_warmup_result,
 )
-from worker_observability import (  # noqa: E402
+from worker_observability import (
     observed_worker,
     refresh_worker_volume,
     worker_phase,
@@ -45,6 +49,9 @@ DRAWING_INPUT_SCHEMA = "sketch2life.modal.drawing-input.v1"
 MAX_MANIFEST_BYTES = 64 * 1024
 MAX_IMAGE_PIXELS = 2_000_000
 MAX_PROCESSOR_PIXELS = 512 * 512
+# The compact drawing JSON normally fits well below this, but Vietnamese tokens
+# fragment more densely than Latin text; leave headroom to avoid a valid-schema
+# answer being cut off by the generation budget.
 MAX_OUTPUT_UNITS = 512
 _SHA256 = re.compile(r"\A[0-9a-f]{64}\Z")
 
@@ -61,6 +68,44 @@ scratch_volume = modal.Volume.from_name(
     create_if_missing=True,
     version=2,
 )
+health_image = (
+    modal.Image.debian_slim(python_version="3.11")
+    .pip_install("fastapi>=0.115,<1")
+    .add_local_file(str(_CONTRACTS_FILE), "/root/contracts.py", copy=True)
+    .add_local_file(
+        str(_OBSERVABILITY_FILE), "/root/worker_observability.py", copy=True
+    )
+)
+
+
+@app.function(
+    name="health-api",
+    image=health_image,
+    cpu=0.25,
+    memory=256,
+    max_containers=1,
+    scaledown_window=15,
+    timeout=20,
+)
+@modal.asgi_app()
+def health_api():
+    """Expose a tiny control-plane health route without requesting a GPU."""
+
+    from fastapi import FastAPI
+
+    api = FastAPI()
+
+    @api.get("/health")
+    def health() -> dict[str, object]:
+        return {
+            "status": "ok",
+            "app": APP_NAME,
+            "health_scope": "deployed-app",
+            "gpu_allocated": False,
+            "inference_executed": False,
+        }
+
+    return api
 
 download_image = (
     modal.Image.debian_slim(python_version="3.11")
@@ -186,6 +231,18 @@ def download_pinned_model() -> dict[str, Any]:
 def analyze_drawing(payload: dict[str, Any]) -> dict[str, Any]:
     """Inspect one staged drawing and return a candidate requiring adult confirmation."""
 
+    if is_worker_warmup(payload):
+        with worker_phase("warmup_model_load"):
+            _load_model()
+        import torch
+
+        return worker_warmup_result(
+            workload="drawing.analyze",
+            model_id=MODEL_ID,
+            model_revision=MODEL_REVISION,
+            gpu_allocated=torch.cuda.is_available(),
+        )
+
     with worker_phase("input_envelope"):
         request = parse_worker_input(payload, execution_group="l4")
     worker_stage("workload_gate")
@@ -204,11 +261,11 @@ def analyze_drawing(payload: dict[str, Any]) -> dict[str, Any]:
         drawing = opened.convert("RGB")
 
     prompt = (
-        "Quan sát ảnh tranh đường nét đen trên nền trắng. Chỉ mô tả chủ thể và đặc điểm "
-        "nhìn thấy trực tiếp trong ảnh. Không suy đoán tuổi, danh tính, cảm xúc, năng lực "
-        "hay hoàn cảnh của người vẽ. Nếu không nhận ra chủ thể, dùng candidate_subject "
-        "là ‘chưa xác định’. visible_features gồm từ 1 đến 4 mô tả ngắn, cụ thể. "
-        "Không viết lời dẫn hoặc nội dung ngoài JSON."
+        "Quan sát tranh đường nét đen trên nền trắng. Chỉ nêu điều nhìn thấy, không suy "
+        "đoán tuổi, danh tính, cảm xúc, năng lực hay hoàn cảnh người vẽ. Nếu chưa nhận "
+        "ra, candidate_subject là ‘chưa xác định’ và confidence thấp. Trả đúng JSON theo "
+        "schema; visible_features có 1–4 cụm ngắn; confidence là số từ 0 đến 1, chấm "
+        "thận trọng. Không thêm lời dẫn."
     )
     with worker_phase("prompt_encode"):
         messages = _drawing_messages(drawing, prompt)
@@ -224,31 +281,27 @@ def analyze_drawing(payload: dict[str, Any]) -> dict[str, Any]:
     import torch
 
     tokenizer = processor.tokenizer
+    model_eos_token_id = model.generation_config.eos_token_id
+    prefix_allowed_tokens_fn = _build_drawing_prefix_allowed_tokens_fn(
+        tokenizer, eos_token_id=model_eos_token_id
+    )
     with worker_phase("model_inference"), torch.inference_mode():
         output_ids = model.generate(
             **inputs,
             do_sample=False,
             max_new_tokens=MAX_OUTPUT_UNITS,
             min_new_tokens=16,
-            pad_token_id=tokenizer.eos_token_id,
-            prefix_allowed_tokens_fn=_build_drawing_prefix_allowed_tokens_fn(tokenizer),
+            eos_token_id=model_eos_token_id,
+            pad_token_id=(
+                tokenizer.pad_token_id
+                if tokenizer.pad_token_id is not None
+                else tokenizer.eos_token_id
+            ),
+            prefix_allowed_tokens_fn=prefix_allowed_tokens_fn,
         )
     answer_ids = output_ids[0][inputs.input_ids.shape[-1] :]
     generated_token_count = int(answer_ids.shape[-1])
-    print(
-        json.dumps(
-            {
-                "event": "drawing_candidate_generated",
-                "generated_token_count": generated_token_count,
-                "empty_output": generated_token_count == 0,
-                "input_token_count": int(inputs.input_ids.shape[-1]),
-                "output_sequence_length": int(output_ids.shape[-1]),
-            },
-            sort_keys=True,
-        ),
-        flush=True,
-    )
-    worker_stage("model_output_validation")
+    ended_with_model_eos = _last_token_is_eos(answer_ids, model_eos_token_id)
     if generated_token_count == 0:
         raise RuntimeError("MODAL_MODEL_OUTPUT_EMPTY")
     answer = processor.batch_decode(
@@ -256,8 +309,58 @@ def analyze_drawing(payload: dict[str, Any]) -> dict[str, Any]:
         skip_special_tokens=True,
         clean_up_tokenization_spaces=False,
     )[0].strip()
-    with worker_phase("output_parse_and_contract_validation"):
-        candidate = _parse_candidate(answer)
+    worker_stage("model_output_validation")
+    try:
+        with worker_phase("output_parse_and_contract_validation"):
+            candidate = _parse_generated_candidate(
+                answer,
+                generated_token_count=generated_token_count,
+                ended_with_model_eos=ended_with_model_eos,
+            )
+    except RuntimeError as exc:
+        token_limit_reached = generated_token_count >= MAX_OUTPUT_UNITS
+        print(
+            json.dumps(
+                {
+                    "event": "drawing_candidate_rejected",
+                    "reason_code": str(exc),
+                    "generated_token_count": generated_token_count,
+                    "input_token_count": int(inputs.input_ids.shape[-1]),
+                    "max_output_tokens": MAX_OUTPUT_UNITS,
+                    "token_limit_reached": token_limit_reached,
+                    "ended_with_model_eos": ended_with_model_eos,
+                    "parser_can_end": getattr(
+                        prefix_allowed_tokens_fn, "decoder_diagnostics", {}
+                    ).get("last_parser_can_end"),
+                    "model_eos_allowed": getattr(
+                        prefix_allowed_tokens_fn, "decoder_diagnostics", {}
+                    ).get("last_model_eos_allowed"),
+                },
+                sort_keys=True,
+            ),
+            flush=True,
+        )
+        raise
+    print(
+        json.dumps(
+            {
+                "event": "drawing_candidate_generated",
+                "generated_token_count": generated_token_count,
+                "empty_output": False,
+                "input_token_count": int(inputs.input_ids.shape[-1]),
+                "output_sequence_length": int(output_ids.shape[-1]),
+                "ended_with_model_eos": ended_with_model_eos,
+                "max_output_tokens": MAX_OUTPUT_UNITS,
+                "token_limit_reached": generated_token_count >= MAX_OUTPUT_UNITS,
+                "json_complete": True,
+                "decoder": getattr(
+                    prefix_allowed_tokens_fn, "decoder_diagnostics", {}
+                ),
+            },
+            sort_keys=True,
+        ),
+        flush=True,
+    )
 
     return {
         "schema_version": WORKER_OUTPUT_SCHEMA,
@@ -326,22 +429,29 @@ def _drawing_output_json_schema() -> dict[str, Any]:
         "type": "object",
         "properties": {
             "candidate_subject": {"type": "string", "minLength": 1, "maxLength": 100},
+            "confidence": {"type": "number", "minimum": 0, "maximum": 1},
             "visible_features": {
                 "type": "array",
                 "minItems": 1,
                 "maxItems": 4,
-                "items": {"type": "string", "minLength": 1, "maxLength": 160},
+                "items": {"type": "string", "minLength": 1, "maxLength": 100},
             },
         },
-        "required": ["candidate_subject", "visible_features"],
+        "required": ["candidate_subject", "confidence", "visible_features"],
         "additionalProperties": False,
     }
 
 
-def _build_drawing_prefix_allowed_tokens_fn(tokenizer: Any) -> Any:
+_CACHED_QWEN_EOS_IDS: tuple[int, ...] | None = None
+
+
+def _build_drawing_prefix_allowed_tokens_fn(
+    tokenizer: Any, *, eos_token_id: int | list[int] | None = None
+) -> Any:
     """Constrain Qwen3.5 to the exact VLM result schema at generation time."""
 
-    global _CACHED_QWEN_VOCAB_DATA
+    global _CACHED_QWEN_EOS_IDS, _CACHED_QWEN_VOCAB_DATA
+    os.environ["LMFE_DEFAULT_ALPHABET"] = _drawing_vietnamese_json_alphabet()
     try:
         from lmformatenforcer import JsonSchemaParser
         from lmformatenforcer.tokenenforcer import (
@@ -351,10 +461,17 @@ def _build_drawing_prefix_allowed_tokens_fn(tokenizer: Any) -> Any:
     except ImportError as exc:
         raise RuntimeError("MODAL_CONSTRAINED_DECODER_UNAVAILABLE") from exc
 
-    if _CACHED_QWEN_VOCAB_DATA is None:
+    effective_eos_token_id = (
+        tokenizer.eos_token_id if eos_token_id is None else eos_token_id
+    )
+    eos_ids = _normalize_eos_token_ids(effective_eos_token_id)
+    if _CACHED_QWEN_VOCAB_DATA is None or eos_ids != _CACHED_QWEN_EOS_IDS:
         _CACHED_QWEN_VOCAB_DATA = _build_qwen_tokenizer_data(
-            tokenizer, TokenEnforcerTokenizerData
+            tokenizer,
+            TokenEnforcerTokenizerData,
+            eos_token_id=effective_eos_token_id,
         )
+        _CACHED_QWEN_EOS_IDS = eos_ids
     enforcer = TokenEnforcer(
         _CACHED_QWEN_VOCAB_DATA,
         JsonSchemaParser(_drawing_output_json_schema()),
@@ -363,24 +480,98 @@ def _build_drawing_prefix_allowed_tokens_fn(tokenizer: Any) -> Any:
     def allowed_tokens(_batch_id: int, input_ids: Any) -> list[int]:
         allowed = enforcer.get_allowed_tokens(input_ids.tolist())
         values = getattr(allowed, "allowed_tokens", allowed)
+        token_sequence = tuple(input_ids.tolist())
+        parser_state = getattr(enforcer, "prefix_states", {}).get(token_sequence)
+        parser = getattr(parser_state, "parser", None)
+        can_end = getattr(parser, "can_end", None)
+        parser_can_end = bool(can_end()) if callable(can_end) else False
+        values = _allowed_drawing_tokens(
+            values,
+            eos_ids=eos_ids,
+            parser_can_end=parser_can_end,
+        )
+        diagnostics["callback_calls"] += 1
+        diagnostics["last_parser_can_end"] = parser_can_end
+        diagnostics["last_model_eos_allowed"] = any(token_id in values for token_id in eos_ids)
+        diagnostics["last_parser_state_class"] = type(parser).__name__
         return list(values)
 
+    diagnostics: dict[str, Any] = {
+        "callback_calls": 0,
+        "model_eos_token_ids": list(eos_ids),
+        "last_model_eos_allowed": False,
+        "last_parser_can_end": False,
+        "last_parser_state_class": "unknown",
+    }
+    allowed_tokens.decoder_diagnostics = diagnostics
     return allowed_tokens
 
 
-def _build_qwen_tokenizer_data(tokenizer: Any, tokenizer_data_type: Any) -> Any:
+def _allowed_drawing_tokens(
+    allowed_tokens: Any,
+    *,
+    eos_ids: tuple[int, ...],
+    parser_can_end: bool,
+) -> list[int]:
+    """Stop after the first complete schema-valid object without accepting a suffix."""
+
+    if parser_can_end and eos_ids:
+        return list(eos_ids)
+    return list(allowed_tokens)
+
+
+def _drawing_vietnamese_json_alphabet() -> str:
+    ascii_alphabet = (
+        "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "!@#$%^&*()_+-=[]{};:,./<>? `" + "'\"\\"
+    )
+    unicode_ranges = ((0x00A0, 0x0250), (0x0300, 0x0370), (0x1E00, 0x1F00), (0x2000, 0x2070))
+    additions = [
+        chr(codepoint)
+        for start, end in unicode_ranges
+        for codepoint in range(start, end)
+        if unicodedata.category(chr(codepoint))[0] in "LMNPS"
+        or unicodedata.category(chr(codepoint)) == "Zs"
+    ]
+    return "".join(dict.fromkeys(ascii_alphabet + "".join(additions)))
+
+
+def _normalize_eos_token_ids(value: int | list[int] | None) -> tuple[int, ...]:
+    if isinstance(value, int) and not isinstance(value, bool):
+        return (value,)
+    if isinstance(value, (list, tuple)):
+        return tuple(
+            token_id
+            for token_id in value
+            if isinstance(token_id, int) and not isinstance(token_id, bool)
+        )
+    return ()
+
+
+def _last_token_is_eos(token_ids: Any, eos_token_id: int | list[int] | None) -> bool:
+    if getattr(token_ids, "numel", lambda: 0)() == 0:
+        return False
+    return int(token_ids[-1]) in _normalize_eos_token_ids(eos_token_id)
+
+
+def _build_qwen_tokenizer_data(
+    tokenizer: Any,
+    tokenizer_data_type: Any,
+    *,
+    eos_token_id: int | list[int] | None = None,
+) -> Any:
     """Build LMFE's tokenizer table directly for the pinned Transformers 5 runtime."""
 
     vocab_size = len(tokenizer)
     token_zero = tokenizer.encode("0")[-1]
+    effective_eos_token_id = (
+        tokenizer.eos_token_id if eos_token_id is None else eos_token_id
+    )
     special_ids = set(tokenizer.all_special_ids)
+    special_ids.update(_normalize_eos_token_ids(effective_eos_token_id))
 
     def decode(tokens: list[int]) -> str:
-        return tokenizer.decode(
-            tokens,
-            skip_special_tokens=False,
-            clean_up_tokenization_spaces=False,
-        ).rstrip("�")
+        return tokenizer.decode(tokens).rstrip("�")
 
     regular_tokens: list[tuple[int, str, bool]] = []
     for token_id in range(vocab_size):
@@ -395,7 +586,7 @@ def _build_qwen_tokenizer_data(tokenizer: Any, tokenizer_data_type: Any) -> Any:
     return tokenizer_data_type(
         regular_tokens,
         decode,
-        tokenizer.eos_token_id,
+        effective_eos_token_id,
         use_bitmask=False,
         vocab_size=vocab_size,
     )
@@ -537,27 +728,49 @@ def _parse_candidate(answer: str) -> dict[str, Any]:
         raise RuntimeError("MODAL_MODEL_OUTPUT_INVALID") from exc
     if not isinstance(parsed, dict) or set(parsed) != {
         "candidate_subject",
+        "confidence",
         "visible_features",
     }:
         raise RuntimeError("MODAL_MODEL_OUTPUT_INVALID")
     subject = parsed.get("candidate_subject")
+    confidence = parsed.get("confidence")
     features = parsed.get("visible_features")
     if (
         not isinstance(subject, str)
         or not subject.strip()
         or len(subject) > 100
+        or isinstance(confidence, bool)
+        or not isinstance(confidence, (int, float))
+        or not 0 <= float(confidence) <= 1
         or not isinstance(features, list)
         or not 1 <= len(features) <= 4
         or any(
-            not isinstance(item, str) or not item.strip() or len(item) > 160
+            not isinstance(item, str) or not item.strip() or len(item) > 100
             for item in features
         )
     ):
         raise RuntimeError("MODAL_MODEL_OUTPUT_INVALID")
     return {
         "candidate_subject": subject.strip(),
+        "confidence": float(confidence),
         "visible_features": [item.strip() for item in features],
     }
+
+
+def _parse_generated_candidate(
+    answer: str,
+    *,
+    generated_token_count: int,
+    ended_with_model_eos: bool,
+) -> dict[str, Any]:
+    """Accept complete schema-valid JSON at the budget even if EOS was omitted."""
+
+    try:
+        return _parse_candidate(answer)
+    except RuntimeError as exc:
+        if generated_token_count >= MAX_OUTPUT_UNITS and not ended_with_model_eos:
+            raise RuntimeError("MODAL_MODEL_OUTPUT_TOKEN_LIMIT") from exc
+        raise
 
 
 def _reject_duplicate_candidate_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:

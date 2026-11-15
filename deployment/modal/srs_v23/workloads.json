@@ -3,6 +3,42 @@
   "source": "FEAT-063 SRS v2.3-draft, §§6.2–6.3, 9.3–9.5, 22, 24.3–27, 31.4–31.5",
   "deployment_environment": "dev",
   "model_selection_status": "dev test profile only: Qwen/Qwen3.5-9B@c202236235762e1c871ad0ccb60c8ee5ba337b9a for vision/text; FLUX.3 Image Klein and LTX-2.5 are gated candidates pending owner access/license and runtime validation; no production model is approved and all workloads remain disabled",
+  "local_startup": {
+    "description": "Docker reuses these already-deployed non-video Modal apps, warms selected real workers using the exact no-inference control envelope, then calls each app health endpoint. Docker startup does not deploy, stop, or maintain the Modal apps.",
+    "apps": [
+      {
+        "app_name": "sketch2life-srs23-drawing-vlm-dev",
+        "module": "drawing_vlm_app.py",
+        "health_function": "health-api",
+        "health_path": "/health",
+        "workers": [
+          {"function_name": "analyze-drawing", "workload": "drawing.analyze"}
+        ]
+      },
+      {
+        "app_name": "sketch2life-srs23-language-audio-dev",
+        "module": "language_audio_app.py",
+        "health_function": "health-api",
+        "health_path": "/health",
+        "workers": [
+          {"function_name": "generate-story-and-storyboard", "workload": "story.generate"},
+          {"function_name": "suggest-parent-activities", "workload": "parent.activity.suggest"},
+          {"function_name": "generate-teacher-sketch-deck", "workload": "teacher.sketch-deck.generate"},
+          {"function_name": "suggest-lesson-plan", "workload": "lesson.plan.suggest"}
+        ]
+      },
+      {
+        "app_name": "sketch2life-srs23-flux-image-dev",
+        "module": "flux_image_app.py",
+        "health_function": "health-api",
+        "health_path": "/health",
+        "workers": [
+          {"function_name": "generate-line-sketch-guide-candidate", "workload": "parent.sketch-guide.generate"},
+          {"function_name": "generate-approved-lesson-visual-candidate", "workload": "lesson.visual.generate"}
+        ]
+      }
+    ]
+  },
   "workloads": [
     {
       "id": "asr.transcribe",
@@ -52,12 +88,13 @@
       "id": "parent.sketch-guide.generate",
       "execution_group": "l4",
       "candidate": "black-forest-labs/flux-3-image-klein@09561231f44e41381c461caf53d5452005a60ac9 + black-forest-labs/flux-3-image-klein-pup@a57899549f8f6f64c6c4d88db30827d496ff76d0",
-      "candidate_status": "2026-11-05 Rev46A: after staging the missing Diffusers transformer/VAE components, one synthetic FLUX.3 inference passed in 65.772s (3 panels, 768x512, DRAFT). Visual/child usability still requires review; no authenticated product API exists.",
+      "candidate_status": "Historical raster contact-sheet prototype; superseded for Parent drawing guidance by svg.topic-stroke-guide.generate.",
       "enabled": false,
       "inputs": "generic catalog topic and simple difficulty only; no child, profile, voice, photo, or drawing data",
       "human_gate": "adult explicitly enables it in-session; skip/failure does not block drawing",
       "quota_owner": "separate sketch compute/rate caps; never video quota",
-      "implementation_status": "Synthetic FLUX.3 worker and image contract passed once; adult review remains required; authenticated durable Parent API is absent; workload disabled"
+      "superseded_by": "svg.topic-stroke-guide.generate",
+      "implementation_status": "Legacy FLUX worker retained for traceability. The active Parent /sketch-guides API no longer dispatches this raster workload; disabled and not used by the progressive SVG flow."
     },
     {
       "id": "parent.activity.suggest",
@@ -80,6 +117,51 @@
       "human_gate": "Teacher explicitly enables it in-session; only a current READY deck may be presented",
       "quota_owner": "separate sketch compute/rate caps; never video quota",
       "implementation_status": "Synthetic worker output and source refs validated; no authenticated durable Teacher occurrence/deck API; disabled"
+    },
+    {
+      "id": "teacher.svg-illustration.generate",
+      "execution_group": "l4",
+      "candidate": "Qwen/Qwen3.5-9B@c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "candidate_status": "Rev86: after excluding the invalid cat only from the active pack and preserving the raw source, dog/quadruped and rabbit references passed the exact worker-parser preflight. One real Teacher UI request returned HTTP 200 with a 19-path Qwen3.5 draft. Visual comparison was mixed: connected/grounded limbs and absence of detached props improved, but the deer reads rabbit-like because the antlers are unbranched. Dataset quality objective NOT PASSED; one sample only.",
+      "enabled": false,
+      "inputs": "non-personal Teacher topic, target age in months, and a server-allowlisted visual style; no child profile, drawing, uploaded file, URL, or free-form system instruction",
+      "human_gate": "Teacher reviews the rendered draft; separate educator and curator review is required before any catalog/public use",
+      "quota_owner": "separate Teacher SVG generation compute accounting; never video quota",
+      "current_requirement_source": "FEAT-063 v2.7-draft Rev69 §31.17 and Rev68 SVG capability defaults; unsigned",
+      "modal_app": "sketch2life-srs23-language-audio-dev",
+      "modal_function": "generate-teacher-svg-illustration-draft",
+      "reference_pack": {
+        "path_in_worker_image": "/root/teacher_svg_illustration_reference_pack_v1.json",
+        "source_dataset": "yoavf/svg-animal-illustrations@d7ab3149308746a4b17e7cbee30f1f054f6c49df",
+        "reference_pack_sha256": "319d25932c8d4bc8c362b6af19ecded75cb1015d7f8cc19387c9685a74349af0",
+        "max_selected_per_request": 1
+      },
+      "implementation_status": "Rev84 real Teacher UI/API/Modal path passed once. Rev85 failed before inference on the invalid cat reference. Rev86 corrected the active pack, refreshed hashes, and passed exact-parser preflight. One real UI/API/Modal inference passed technically (HTTP 200, 19 paths, DRAFT/review-required/not-persisted); visual deer-quality objective did not pass. Worker summary still reported no terminal event despite successful phases/API response. Workload remains disabled by default and excluded from Docker GPU warmup; broader use requires a separately approved quality plan."
+    },
+    {
+      "id": "svg.topic-stroke-guide.generate",
+      "execution_group": "l4",
+      "candidate": "Qwen/Qwen3.5-9B@c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "candidate_status": "Rev87.15 source design: resolve adult-selected topic against the full CC0 Openclipart catalog on a dedicated Modal Volume v2; Qwen3.5 returns only a 4–8-stage ordering of exact source path IDs, while deterministic code renders those unchanged paths and the matching color reference. Modal corpus import and inference remain pending live runtime evidence.",
+      "enabled": false,
+      "inputs": "adult-selected non-personal topic and coarse difficulty only; no exact age, child/profile/account ID, lesson file, photo, drawing, voice, transcript, or child data",
+      "human_gate": "Parent previews and explicitly accepts the private draft before showing it to the child; Teacher preview remains an unpersisted draft",
+      "quota_owner": "separate sketch compute/rate cap; never video quota",
+      "current_requirement_source": "FEAT-063 v2.7-draft Rev69 §§6.2.1, 31.17 and BR-46; unsigned",
+      "modal_app": "sketch2life-srs23-language-audio-dev",
+      "modal_function": "generate-topic-svg-stroke-guide-draft",
+      "catalog_volume": "sketch2life-openclipart-catalog-dev (Volume v2, dev, read-only at inference)",
+      "dataset_import_function": "sketch2life-openclipart-catalog-import-dev/ingest-openclipart-svg-catalog",
+      "dataset": "kawwaaa/openclipart; resolved immutable revision recorded in Volume manifest",
+      "reference_source": {
+        "asset_id": "selected-source-record",
+        "dataset_name": "Openclipart",
+        "dataset_revision": "resolved HF commit SHA in catalog manifest",
+        "source_sha256": "SHA-256 of original SVG bytes",
+        "license_id": "CC0-1.0",
+        "usage": "Qwen orders exact source path IDs; deterministic renderer preserves source geometry and returns the same source as the color reference"
+      },
+      "implementation_status": "CPU-only importer, dedicated Volume v2 contract, source-bound Qwen worker, backend provenance validation and Parent final-color-reference handling are implemented locally. Full corpus upload and live Modal/Qwen/UI runtime remain unverified; workload stays disabled by default. Dataset is not part of Docker images or local startup warmup."
     },
     {
       "id": "lesson.plan.suggest",

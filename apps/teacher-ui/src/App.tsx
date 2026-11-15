@@ -17,6 +17,9 @@ import { ObservationFeedbackPage } from './pages/ObservationFeedbackPage'
 import { LearningPortfolioPage } from './pages/LearningPortfolioPage'
 import { ModalAiLessonFlowPage } from './pages/ModalAiLessonFlowPage'
 import { TemplatesAutomationPage } from './pages/TemplatesAutomationPage'
+import { TeacherSvgGuideEditorPage } from './pages/TeacherSvgGuideEditorPage'
+import { TeacherSvgIllustrationDraftPage } from './pages/TeacherSvgIllustrationDraftPage'
+import { TeacherSvgStrokeGuideDraftPage } from './pages/TeacherSvgStrokeGuideDraftPage'
 
 function TeacherAccessGate() {
   const [state, setState] = useState<'loading' | 'signed-in' | 'signed-out' | 'forbidden' | 'error'>('loading')
@@ -114,6 +117,9 @@ export default function App() {
 
           {/* T13 — Soạn nội dung */}
           <Route path="library/authoring" element={<ModalAiLessonFlowPage />} />
+          <Route path="library/svg-guides" element={<TeacherSvgGuideEditorPage />} />
+          <Route path="library/svg-illustrations" element={<TeacherSvgIllustrationDraftPage />} />
+          <Route path="library/svg-stroke-draft" element={<TeacherSvgStrokeGuideDraftPage />} />
 
           {/* T14 — Mẫu phiên & tự động hóa */}
           <Route path="settings" element={<PrototypeOnly title="Mẫu phiên và tự động hóa"><TemplatesAutomationPage /></PrototypeOnly>} />

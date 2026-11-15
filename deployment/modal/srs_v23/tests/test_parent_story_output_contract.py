@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import importlib.util
 import json
 import sys
@@ -24,7 +25,7 @@ assert MODULE_SPEC is not None and MODULE_SPEC.loader is not None
 story_worker = importlib.util.module_from_spec(MODULE_SPEC)
 MODULE_SPEC.loader.exec_module(story_worker)
 
-from sketch2life.contracts.schemas.ai_story import StoryRevisionDraftV1  # noqa: E402
+from sketch2life.contracts.schemas.ai_story import StoryRevisionDraftV1
 
 
 def _valid_story() -> dict[str, Any]:
@@ -84,6 +85,46 @@ def _valid_content() -> dict[str, Any]:
     }
 
 
+def _valid_worker_input() -> dict[str, Any]:
+    activity = {
+        "activity_ref": "draft_request-1_001",
+        "title": "Quan sát lá ngoài trời",
+        "objective": "Quan sát hình dáng lá quanh chủ đề con gà.",
+        "materials_text": "Lá đã rụng và giấy.",
+        "preparation_text": "Người lớn chọn khu vực sân chơi an toàn.",
+        "instructions_text": "Ngoài trời ở sân chơi, trẻ tự chọn lá đã rụng để quan sát; người lớn đi cùng.",
+        "observation_notes": "Ghi nhận điều trẻ tự chọn quan sát.",
+        "safety_notes": "Không nếm lá; người lớn luôn giám sát.",
+        "activity_kind": "outdoor",
+        "source": "AI_GENERATED_DRAFT",
+        "source_lesson_id": None,
+        "source_lesson_title": None,
+        "source_lesson_version_id": None,
+        "source_content_sha256": None,
+        "source_activity_index": None,
+        "match_reason": "Bản nháp AI cần người lớn xem lại.",
+    }
+    activity_sha256 = hashlib.sha256(
+        json.dumps(activity, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+    return {
+        "schema_version": "sketch2life.story-generation-input.v2",
+        "role": "PARENT",
+        "language": "vi",
+        "confirmed_subject": "Con gà",
+        "understanding_revision": 1,
+        "drawing_sha256": "a" * 64,
+        "visible_features": ["mỏ", "hai chân"],
+        "child_age_months": 72,
+        "context_revision": 1,
+        "adult_confirmed_idea": "Con muốn tìm hiểu con gà.",
+        "rewrite_instruction": None,
+        "lesson_direction": None,
+        "primary_activity": activity,
+        "primary_activity_sha256": activity_sha256,
+    }
+
+
 def _parse_content(payload: dict[str, Any] | str) -> dict[str, Any]:
     text = (
         payload if isinstance(payload, str) else json.dumps(payload, ensure_ascii=False)
@@ -123,6 +164,19 @@ def test_valid_model_content_is_assembled_and_matches_backend_contract() -> None
     ]
     assert [scene["duration_ms"] for scene in parsed["scenes"]] == [6_000] * 5
     assert parsed["duration_ms"] == 30_000
+
+
+def test_story_worker_requires_integrity_checked_primary_activity_context() -> None:
+    worker_input = _valid_worker_input()
+    digest = story_worker._validate_parent_story_worker_input(worker_input)
+    prompt = story_worker._parent_story_prompt(worker_input)
+
+    assert digest == worker_input["primary_activity_sha256"]
+    assert "Quan sát lá ngoài trời" in prompt
+    assert "chỉ diễn ra sau video" in prompt
+    worker_input["primary_activity"]["title"] = "Khác nội dung đã chọn"
+    with pytest.raises(story_worker.WorkerContractError, match="MODAL_INPUT_NOT_ALLOWED"):
+        story_worker._validate_parent_story_worker_input(worker_input)
 
 
 def test_story_fact_validation_uses_canonical_order_after_json_key_reordering() -> None:
@@ -253,7 +307,8 @@ def test_generation_pad_uses_model_eos_token_not_tokenizer_alias() -> None:
 
 
 def test_lmfe_token_data_excludes_model_eos_from_regular_tokens() -> None:
-    from lmformatenforcer.tokenenforcer import TokenEnforcerTokenizerData
+    token_enforcer = pytest.importorskip("lmformatenforcer.tokenenforcer")
+    TokenEnforcerTokenizerData = token_enforcer.TokenEnforcerTokenizerData
 
     class FakeTokenizer:
         eos_token_id = 7
@@ -286,7 +341,8 @@ def test_lmfe_token_data_excludes_model_eos_from_regular_tokens() -> None:
 def test_vietnamese_characters_keep_json_parser_inside_bounded_string(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from lmformatenforcer import JsonSchemaParser
+    lmformatenforcer = pytest.importorskip("lmformatenforcer")
+    JsonSchemaParser = lmformatenforcer.JsonSchemaParser
 
     monkeypatch.setenv(
         "LMFE_DEFAULT_ALPHABET", story_worker.LMFE_VIETNAMESE_JSON_ALPHABET
@@ -641,6 +697,7 @@ def test_transformers5_compatible_prefix_adapter_enforces_json_tokens(
 
 
 def test_parent_story_prompt_spells_out_timeline_and_butterfly_order() -> None:
+    activity = _valid_worker_input()["primary_activity"]
     prompt = story_worker._parent_story_prompt(
         {
             "confirmed_subject": "bướm",
@@ -648,6 +705,7 @@ def test_parent_story_prompt_spells_out_timeline_and_butterfly_order() -> None:
             "child_age_months": 60,
             "adult_confirmed_idea": "",
             "rewrite_instruction": None,
+            "primary_activity": activity,
         }
     )
     assert "đúng 5 cảnh" in prompt
@@ -664,6 +722,7 @@ def test_parent_story_prompt_spells_out_timeline_and_butterfly_order() -> None:
             "child_age_months": 60,
             "adult_confirmed_idea": "",
             "rewrite_instruction": None,
+            "primary_activity": activity,
         }
     )
     assert "trứng”" not in generic_prompt

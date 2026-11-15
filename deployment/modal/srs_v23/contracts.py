@@ -13,6 +13,11 @@ from typing import Any, Literal
 
 WORKER_INPUT_SCHEMA = "sketch2life.modal.worker-input.v1"
 WORKER_OUTPUT_SCHEMA = "sketch2life.modal.worker-output.v1"
+WORKER_WARMUP_SCHEMA = "sketch2life.modal.worker-warmup.v1"
+WORKER_WARMUP_REQUEST = {
+    "schema_version": WORKER_WARMUP_SCHEMA,
+    "mode": "warmup",
+}
 MAX_STAGED_INPUT_BYTES = 48 * 1024 * 1024  # SRS synthetic-demo proposal; unbenchmarked.
 
 L4_WORKLOADS = frozenset(
@@ -21,8 +26,11 @@ L4_WORKLOADS = frozenset(
         "drawing.analyze",
         "story.generate",
         "storyboard.generate",
+        "parent.activity.suggest",
         "parent.sketch-guide.generate",
         "teacher.sketch-deck.generate",
+        "teacher.svg-illustration.generate",
+        "svg.topic-stroke-guide.generate",
         "lesson.plan.suggest",
         "lesson.visual.generate",
         "drawing.segment",
@@ -47,6 +55,30 @@ class WorkloadNotConfiguredError(RuntimeError):
         self.code = "MODAL_WORKLOAD_NOT_CONFIGURED"
         self.workload = workload
         super().__init__(f"{self.code}:{workload}")
+
+
+def is_worker_warmup(payload: Any) -> bool:
+    """Accept only the exact internal, no-output warmup control envelope."""
+
+    return isinstance(payload, dict) and payload == WORKER_WARMUP_REQUEST
+
+
+def worker_warmup_result(
+    *, workload: str, model_id: str, model_revision: str, gpu_allocated: bool
+) -> dict[str, Any]:
+    """Describe a model-load-only check without claiming product inference."""
+
+    return {
+        "schema_version": WORKER_WARMUP_SCHEMA,
+        "status": "ready",
+        "mode": "warmup",
+        "workload": workload,
+        "model": {"id": model_id, "revision": model_revision},
+        "model_ready": True,
+        "inference_executed": False,
+        "product_output_created": False,
+        "gpu_allocated": gpu_allocated,
+    }
 
 
 @dataclass(frozen=True, slots=True)

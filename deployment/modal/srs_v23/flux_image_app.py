@@ -5,6 +5,7 @@ from __future__ import annotations
 import gc
 import hashlib
 import json
+import math
 import os
 import re
 import sys
@@ -17,13 +18,15 @@ _MODULE_DIR = Path(__file__).resolve().parent
 if str(_MODULE_DIR) not in sys.path:
     sys.path.insert(0, str(_MODULE_DIR))
 
-from contracts import (  # noqa: E402
+from contracts import (
     WORKER_OUTPUT_SCHEMA,
     ModalWorkerInputV1,
     WorkerContractError,
+    is_worker_warmup,
     parse_worker_input,
+    worker_warmup_result,
 )
-from worker_observability import (  # noqa: E402
+from worker_observability import (
     observed_worker,
     refresh_worker_volume,
     worker_phase,
@@ -31,6 +34,12 @@ from worker_observability import (  # noqa: E402
 )
 
 APP_NAME = "sketch2life-srs23-flux-image-dev"
+_GUIDE_PANEL_MIN_INK_COVERAGE = 0.0015
+_GUIDE_PANEL_MAX_INK_COVERAGE = 0.32
+_GUIDE_MIN_ADDITIONAL_COVERAGE = 0.0002
+_GUIDE_MIN_RETAINED_PREVIOUS_STROKES = 0.20
+_GUIDE_HARD_RETAINED_STROKES_FLOOR = 0.08
+_GUIDE_MIN_PROGRESSIVE_TRANSITION_FRACTION = 0.50
 MODEL_ID = "black-forest-labs/flux-3-image-klein"
 MODEL_REVISION = "09561231f44e41381c461caf53d5452005a60ac9"
 PUP_MODEL_ID = "black-forest-labs/flux-3-image-klein-pup"
@@ -90,6 +99,9 @@ MODEL_ALLOW_PATTERNS = (
 )
 _SHA256 = re.compile(r"\A[0-9a-f]{64}\Z")
 _TOPIC = re.compile(r"\A[^\r\n\x00]{1,120}\Z")
+_CACHED_FLUX_PIPELINE: Any | None = None
+_CACHED_PUP_MODEL: Any | None = None
+_CACHED_PUP_PROCESSOR: Any | None = None
 
 app = modal.App(APP_NAME)
 model_volume = modal.Volume.from_name(
@@ -104,9 +116,45 @@ scratch_volume = modal.Volume.from_name(
     create_if_missing=True,
     version=2,
 )
-
 _contracts_file = _MODULE_DIR / "contracts.py"
 _observability_file = _MODULE_DIR / "worker_observability.py"
+health_image = (
+    modal.Image.debian_slim(python_version="3.11")
+    .pip_install("fastapi>=0.115,<1")
+    .add_local_file(str(_contracts_file), "/root/contracts.py", copy=True)
+    .add_local_file(str(_observability_file), "/root/worker_observability.py", copy=True)
+)
+
+
+@app.function(
+    name="health-api",
+    image=health_image,
+    cpu=0.25,
+    memory=256,
+    max_containers=1,
+    scaledown_window=15,
+    timeout=20,
+)
+@modal.asgi_app()
+def health_api():
+    """Expose a tiny control-plane health route without requesting a GPU."""
+
+    from fastapi import FastAPI
+
+    api = FastAPI()
+
+    @api.get("/health")
+    def health() -> dict[str, object]:
+        return {
+            "status": "ok",
+            "app": APP_NAME,
+            "health_scope": "deployed-app",
+            "gpu_allocated": False,
+            "inference_executed": False,
+        }
+
+    return api
+
 _download_image = (
     modal.Image.debian_slim(python_version="3.11")
     .add_local_file(str(_contracts_file), "/root/contracts.py", copy=True)
@@ -272,6 +320,19 @@ def download_flux_model() -> dict[str, str]:
 def generate_line_sketch_guide_candidate(payload: dict[str, Any]) -> dict[str, Any]:
     """Generate a generic, non-child-specific step guide as a private candidate."""
 
+    if is_worker_warmup(payload):
+        with worker_phase("warmup_feature_and_checkpoint_gate"):
+            _require_flux3_enabled()
+            _verify_marker()
+        with worker_phase("warmup_model_load"):
+            gpu_allocated = _warm_flux3_models()
+        return worker_warmup_result(
+            workload="parent.sketch-guide.generate",
+            model_id=MODEL_ID,
+            model_revision=MODEL_REVISION,
+            gpu_allocated=gpu_allocated,
+        )
+
     with worker_phase("feature_gate"):
         _require_flux3_enabled()
     with worker_phase("input_envelope"):
@@ -292,13 +353,16 @@ def generate_line_sketch_guide_candidate(payload: dict[str, Any]) -> dict[str, A
         difficulty=data["difficulty"],
         step_count=data["step_count"],
     )
+    panel_layout = _progressive_panel_layout(data["step_count"])
     worker_stage("gpu_preflight")
     image, expanded_prompt_sha256 = _generate_flux3_image(
         prompt=prompt,
-        height=512,
-        width=768,
-        seed=20261105,
+        height=panel_layout["rows"] * 384,
+        width=panel_layout["columns"] * 384,
+        seed=int(hashlib.sha256(data["topic"].strip().casefold().encode()).hexdigest()[:8], 16),
     )
+    with worker_phase("progressive_panel_quality_gate"):
+        _validate_progressive_panels(image, data["step_count"], panel_layout)
     with worker_phase("image_encode_and_metadata"):
         image_bytes = _encode_png(image)
     return {
@@ -310,6 +374,11 @@ def generate_line_sketch_guide_candidate(payload: dict[str, Any]) -> dict[str, A
         "model": _model_provenance(),
         "prompt_sha256": expanded_prompt_sha256,
         "asset": _asset_metadata(image, image_bytes),
+        "panel_layout": panel_layout,
+        "stages": [
+            {"step_index": index + 1, "row": index // panel_layout["columns"], "column": index % panel_layout["columns"]}
+            for index in range(data["step_count"])
+        ],
         "status": "DRAFT",
         "review_required": True,
         "limitations": [
@@ -347,6 +416,19 @@ def generate_approved_lesson_visual_candidate(
 ) -> dict[str, Any]:
     """Generate an unapproved visual from a reviewed lesson revision."""
 
+    if is_worker_warmup(payload):
+        with worker_phase("warmup_feature_and_checkpoint_gate"):
+            _require_flux3_enabled()
+            _verify_marker()
+        with worker_phase("warmup_model_load"):
+            gpu_allocated = _warm_flux3_models()
+        return worker_warmup_result(
+            workload="lesson.visual.generate",
+            model_id=MODEL_ID,
+            model_revision=MODEL_REVISION,
+            gpu_allocated=gpu_allocated,
+        )
+
     with worker_phase("feature_gate"):
         _require_flux3_enabled()
     with worker_phase("input_envelope"):
@@ -363,13 +445,16 @@ def generate_approved_lesson_visual_candidate(
         _verify_marker()
 
     prompt = _lesson_visual_scene_request(data)
+    panel_layout = _progressive_panel_layout(len(data["steps"]))
     worker_stage("gpu_preflight")
     image, expanded_prompt_sha256 = _generate_flux3_image(
         prompt=prompt,
-        height=432,
-        width=768,
-        seed=20261105,
+        height=panel_layout["rows"] * 384,
+        width=panel_layout["columns"] * 384,
+        seed=int(data["content_hash"][:8], 16),
     )
+    with worker_phase("progressive_panel_quality_gate"):
+        _validate_progressive_panels(image, len(data["steps"]), panel_layout)
     with worker_phase("image_encode_and_metadata"):
         image_bytes = _encode_png(image)
     return {
@@ -385,6 +470,7 @@ def generate_approved_lesson_visual_candidate(
         "status": "DRAFT",
         "review_required": True,
         "asset": _asset_metadata(image, image_bytes),
+        "panel_layout": panel_layout,
         "limitations": [
             "synthetic lesson candidate; exact visual fidelity to approved steps is unevaluated",
             "not safety-approved, not registered as a product asset, and not publishable",
@@ -407,7 +493,7 @@ def _validate_sketch_guide_input(data: dict[str, Any]) -> None:
         or not _TOPIC.fullmatch(topic.strip())
         or data.get("difficulty") not in {"beginner", "simple"}
         or type(data.get("step_count")) is not int
-        or not 3 <= data["step_count"] <= 5
+        or not 4 <= data["step_count"] <= 8
     ):
         raise WorkerContractError("MODAL_INPUT_NOT_ALLOWED")
 
@@ -430,7 +516,7 @@ def _validate_lesson_visual_input(data: dict[str, Any]) -> None:
         or not isinstance(data.get("topic"), str)
         or not _TOPIC.fullmatch(data["topic"].strip())
         or not isinstance(data.get("steps"), list)
-        or not 3 <= len(data["steps"]) <= 5
+        or not 4 <= len(data["steps"]) <= 8
     ):
         raise WorkerContractError("MODAL_INPUT_NOT_ALLOWED")
     for index, step in enumerate(data["steps"], start=1):
@@ -452,15 +538,20 @@ def _validate_lesson_visual_input(data: dict[str, Any]) -> None:
 def _sketch_guide_scene_request(
     *, topic: str, difficulty: str, step_count: int
 ) -> str:
+    layout = _progressive_panel_layout(step_count)
     return (
-        "Create a child-friendly educational drawing worksheet as one wide horizontal "
-        f"image with exactly {step_count} equal panels in left-to-right order. The topic "
-        f"is {topic.strip()!r}; drawing difficulty is {difficulty}. Show the same simple, "
-        "recognizable subject progressively built across panels, adding only a small number "
-        "of clear pencil-outline strokes in each next panel. Keep every panel large, separate, "
-        "and visually consistent. Use a pure white background, clean thin black line art, "
-        "no color, no shading, no scene background, no extra subjects, no child, no hand, "
-        "no readable text, no labels, no numbers, and no watermark."
+        "Create a child-friendly drawing lesson as a strict storyboard grid. The image has "
+        f"{layout['columns']} columns and {layout['rows']} rows, read left-to-right then top-to-bottom. "
+        f"Fill exactly the first {step_count} panels; leave any unused final cell blank. Topic: "
+        f"{topic.strip()!r}; difficulty: {difficulty}. Every panel must show the same subject in "
+        "the same position and scale. PROGRESSION IS REQUIRED: panel 1 contains only a few "
+        "large construction shapes; each next panel repeats all earlier construction strokes "
+        "in the same positions and adds only a few new structural strokes; the last panel has a "
+        "clear, recognizable complete subject. For an animal, build head/body/neck or limbs and "
+        "other defining anatomy before adding small decorative details. Never draw an almost "
+        "finished outline in an early panel and use later panels only for decoration. Use clear "
+        "black dashed tracing strokes on a pure white background, no color, no shading, no scene, "
+        "no extra subjects, no child, no hand, no text, no panel numbers, no borders, and no watermark."
     )
 
 
@@ -469,17 +560,133 @@ def _lesson_visual_scene_request(data: dict[str, Any]) -> str:
         f"Panel {step['step_index']}: draw {step['instruction']}; place it {step['placement']}."
         for step in data["steps"]
     )
+    layout = _progressive_panel_layout(len(data["steps"]))
     return (
-        "Create one clean white-background, horizontal educational drawing guide with "
-        f"exactly {len(data['steps'])} equal panels in left-to-right order. Topic: "
+        "Create a clean white-background educational drawing guide as a strict storyboard grid. "
+        f"It has {layout['columns']} columns and {layout['rows']} rows, read left-to-right then top-to-bottom, "
+        f"with exactly {len(data['steps'])} equal panels. Topic: "
         f"{data['topic'].strip()}. Preserve the approved panel count, order, and meaning "
-        "exactly; do not add or remove drawing steps. Use the same simple subject in each "
-        "panel and progressively add only the approved strokes. Reviewed drawing steps:\n"
+        "exactly; do not add or remove drawing steps. Every panel must repeat all earlier "
+        "structural strokes in the same positions and add only the next approved construction "
+        "strokes. Major body parts and recognizable anatomy must be complete before decorative "
+        "detail. Use black dashed tracing strokes on pure white, no colors, shading, extra scene, "
+        "labels, text, panel borders or watermark. Reviewed drawing steps:\n"
         f"{steps}\n"
         "Use simple dark pencil outlines, no color fill, no shading, no background scene, "
         "no people, no child, no extra objects, no readable text, no labels, no numbers, "
         "and no watermark. This is a generic teaching illustration, not a child's artwork."
     )
+
+
+def _progressive_panel_layout(step_count: int) -> dict[str, Any]:
+    if not 4 <= step_count <= 8:
+        raise WorkerContractError("MODAL_INPUT_NOT_ALLOWED")
+    columns = 2 if step_count <= 4 else 3 if step_count <= 6 else 4
+    rows = math.ceil(step_count / columns)
+    return {
+        "schema_version": "sketch2life.progressive-guide-layout.v1",
+        "columns": columns,
+        "rows": rows,
+        "step_count": step_count,
+        "reading_order": "ROW_MAJOR",
+        "stages": [
+            {"step_index": index + 1, "row": index // columns, "column": index % columns}
+            for index in range(step_count)
+        ],
+    }
+
+
+def _validate_progressive_panels(
+    image: Any, step_count: int, layout: dict[str, Any]
+) -> None:
+    """Reject blank, non-progressive or materially redrawn FLUX guide panels."""
+
+    from PIL import ImageChops, ImageFilter
+
+    columns = int(layout["columns"])
+    rows = int(layout["rows"])
+    panel_width = image.width // columns
+    panel_height = image.height // rows
+    if (
+        image.width != panel_width * columns
+        or image.height != panel_height * rows
+        or panel_width < 256
+        or panel_height < 256
+    ):
+        raise WorkerContractError("MODAL_PROGRESSIVE_GUIDE_LAYOUT_INVALID")
+
+    previous_mask = None
+    previous_coverage = 0.0
+    progressive_transition_count = 0
+    low_retention_transition_count = 0
+    for index in range(step_count):
+        row, column = divmod(index, columns)
+        left = column * panel_width
+        top = row * panel_height
+        inset_x = max(2, int(panel_width * 0.06))
+        inset_y = max(2, int(panel_height * 0.06))
+        panel = image.convert("L").crop(
+            (left + inset_x, top + inset_y, left + panel_width - inset_x, top + panel_height - inset_y)
+        )
+        mask = panel.point(lambda value: 255 if value < 205 else 0, mode="L")
+        histogram = mask.histogram()
+        ink_pixels = sum(histogram[1:])
+        total_pixels = panel.width * panel.height
+        coverage = ink_pixels / total_pixels
+        if not _GUIDE_PANEL_MIN_INK_COVERAGE <= coverage <= _GUIDE_PANEL_MAX_INK_COVERAGE:
+            raise WorkerContractError("MODAL_PROGRESSIVE_GUIDE_PANEL_INK_INVALID")
+        if previous_mask is not None:
+            # FLUX may move an accumulated line by several pixels between panels.
+            # A 15px neighborhood at this panel scale allows moderate drift while
+            # retaining a 20% soft target. An eight-step guide may contain one
+            # transition down to the 8% hard floor; other guides keep the 20% floor.
+            retained_strokes = previous_mask.filter(ImageFilter.MaxFilter(15))
+            overlap = ImageChops.multiply(retained_strokes, mask).histogram()
+            retained = sum(overlap[1:]) / max(1, sum(previous_mask.histogram()[1:]))
+            hard_floor = (
+                _GUIDE_HARD_RETAINED_STROKES_FLOOR
+                if step_count == 8
+                else _GUIDE_MIN_RETAINED_PREVIOUS_STROKES
+            )
+            print(
+                json.dumps(
+                    {
+                        "event": "progressive_panel_transition_quality",
+                        "transition_index": index,
+                        "measured_overlap": round(retained, 4),
+                        "soft_threshold": _GUIDE_MIN_RETAINED_PREVIOUS_STROKES,
+                        "hard_floor": hard_floor,
+                        "previous_coverage": round(previous_coverage, 6),
+                        "current_coverage": round(coverage, 6),
+                    },
+                    separators=(",", ":"),
+                ),
+                flush=True,
+            )
+            if retained < hard_floor:
+                raise WorkerContractError("MODAL_PROGRESSIVE_GUIDE_STROKES_CHANGED")
+            if retained < _GUIDE_MIN_RETAINED_PREVIOUS_STROKES:
+                low_retention_transition_count += 1
+                if step_count != 8 or low_retention_transition_count > 1:
+                    raise WorkerContractError("MODAL_PROGRESSIVE_GUIDE_STROKES_CHANGED")
+            # FLUX can vary panel detail and stroke weight. Measure new ink with
+            # only a 2px antialias tolerance; don't require every transition to
+            # grow. The whole sequence must still show meaningful progress.
+            novelty_reference = previous_mask.filter(ImageFilter.MaxFilter(5))
+            added_ink = ImageChops.subtract(mask, novelty_reference).histogram()
+            added_coverage = sum(added_ink[1:]) / total_pixels
+            if added_coverage >= _GUIDE_MIN_ADDITIONAL_COVERAGE:
+                progressive_transition_count += 1
+        previous_mask = mask
+        previous_coverage = coverage
+
+    transition_count = max(1, step_count - 1)
+    minimum_progressive_transitions = max(
+        1,
+        math.ceil(transition_count * _GUIDE_MIN_PROGRESSIVE_TRANSITION_FRACTION),
+    )
+    if progressive_transition_count < minimum_progressive_transitions:
+        raise WorkerContractError("MODAL_PROGRESSIVE_GUIDE_NOT_CUMULATIVE")
 
 
 def _generate_flux3_image(
@@ -496,52 +703,96 @@ def _generate_flux3_image(
     gc.collect()
     torch.cuda.empty_cache()
 
-    from diffusers import ModularPipeline
-
     with worker_phase("flux_model_load"):
-        pipeline_spec = ModularPipeline.from_pretrained(
-            MODEL_DIR,
-            local_files_only=True,
-        )
-        blocks = pipeline_spec.blocks
-        if "prompt_upsampler" not in blocks.sub_blocks:
-            raise RuntimeError("MODAL_FLUX3_PROMPT_UPSAMPLER_BLOCK_MISSING")
-        blocks.sub_blocks.pop("prompt_upsampler")
-        pipeline = blocks.init_pipeline(MODEL_DIR)
-        del pipeline_spec, blocks
+        pipeline = _load_flux3_pipeline(torch)
+    try:
+        pipeline.to("cuda")
+        with worker_phase("flux_image_inference"), torch.inference_mode():
+            image = pipeline(
+                prompt=caption,
+                height=height,
+                width=width,
+                generator=torch.Generator(device="cuda").manual_seed(seed),
+                output="images",
+            )[0]
+    finally:
+        pipeline.to("cpu")
         gc.collect()
         torch.cuda.empty_cache()
+    return image, caption_hash
 
-        pipeline.load_components(
-            dtype={"vae": torch.float32, "default": torch.bfloat16},
-            local_files_only=True,
-        )
-        pipeline.to("cuda")
-    with worker_phase("flux_image_inference"), torch.inference_mode():
-        image = pipeline(
-            prompt=caption,
-            height=height,
-            width=width,
-            generator=torch.Generator(device="cuda").manual_seed(seed),
-            output="images",
-        )[0]
-    del pipeline
+
+def _load_flux3_pipeline(torch: Any) -> Any:
+    """Load and retain FLUX weights in CPU RAM for this worker container."""
+
+    global _CACHED_FLUX_PIPELINE
+    if _CACHED_FLUX_PIPELINE is not None:
+        return _CACHED_FLUX_PIPELINE
+
+    from diffusers import ModularPipeline
+
+    pipeline_spec = ModularPipeline.from_pretrained(
+        MODEL_DIR,
+        local_files_only=True,
+    )
+    blocks = pipeline_spec.blocks
+    if "prompt_upsampler" not in blocks.sub_blocks:
+        raise RuntimeError("MODAL_FLUX3_PROMPT_UPSAMPLER_BLOCK_MISSING")
+    blocks.sub_blocks.pop("prompt_upsampler")
+    pipeline = blocks.init_pipeline(MODEL_DIR)
+    del pipeline_spec, blocks
+    gc.collect()
+    pipeline.load_components(
+        dtype={"vae": torch.float32, "default": torch.bfloat16},
+        local_files_only=True,
+    )
+    _CACHED_FLUX_PIPELINE = pipeline
+    return pipeline
+
+
+def _load_prompt_upsampler(torch: Any) -> tuple[Any, Any]:
+    """Load and retain BFL's prompt model on CPU; inference moves it temporarily."""
+
+    global _CACHED_PUP_MODEL, _CACHED_PUP_PROCESSOR
+    if _CACHED_PUP_MODEL is not None and _CACHED_PUP_PROCESSOR is not None:
+        return _CACHED_PUP_PROCESSOR, _CACHED_PUP_MODEL
+
+    from transformers import AutoProcessor, Qwen3_5ForConditionalGeneration
+
+    _CACHED_PUP_PROCESSOR = AutoProcessor.from_pretrained(
+        PUP_DIR, local_files_only=True
+    )
+    _CACHED_PUP_MODEL = Qwen3_5ForConditionalGeneration.from_pretrained(
+        PUP_DIR,
+        dtype=torch.bfloat16,
+        local_files_only=True,
+    ).eval()
+    return _CACHED_PUP_PROCESSOR, _CACHED_PUP_MODEL
+
+
+def _warm_flux3_models() -> bool:
+    """Load model weights without running prompt or image generation."""
+
+    import torch
+
+    if not torch.cuda.is_available():
+        raise RuntimeError("MODAL_GPU_UNAVAILABLE")
+    _load_flux3_pipeline(torch)
+    _, prompt_model = _load_prompt_upsampler(torch)
+    prompt_model.to("cuda")
+    prompt_model.to("cpu")
+    _CACHED_FLUX_PIPELINE.to("cuda")
+    _CACHED_FLUX_PIPELINE.to("cpu")
     gc.collect()
     torch.cuda.empty_cache()
-    return image, caption_hash
+    return True
 
 
 def _upsample_prompt(prompt: str, torch: Any) -> str:
     """Expand the short request with BFL's pinned Qwen3.5 prompt upsampler."""
 
-    from transformers import AutoProcessor, Qwen3_5ForConditionalGeneration
-
-    processor = AutoProcessor.from_pretrained(PUP_DIR, local_files_only=True)
-    model = Qwen3_5ForConditionalGeneration.from_pretrained(
-        PUP_DIR,
-        dtype=torch.bfloat16,
-        local_files_only=True,
-    ).to("cuda").eval()
+    processor, model = _load_prompt_upsampler(torch)
+    model.to("cuda")
     system_prompts = json.loads(
         (Path(PUP_DIR) / "system_prompts.json").read_text(encoding="utf-8")
     )
@@ -568,7 +819,8 @@ def _upsample_prompt(prompt: str, torch: Any) -> str:
     ).strip()
     if not 80 <= len(caption) <= 8_000 or "\x00" in caption:
         raise RuntimeError("MODAL_FLUX3_PROMPT_UPSAMPLER_OUTPUT_INVALID")
-    del model, processor, inputs, output_ids
+    del inputs, output_ids
+    model.to("cpu")
     gc.collect()
     torch.cuda.empty_cache()
     return caption

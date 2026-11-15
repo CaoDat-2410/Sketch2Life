@@ -11,6 +11,7 @@ import {
   LogOut,
   Bell,
   User,
+  Pencil,
 } from 'lucide-react'
 import logoIcon from '../assets/logo-icon.png'
 import { authService } from '../services/authService'
@@ -20,7 +21,10 @@ const NAV_ITEMS = [
   { key: 'classes',   to: '/classes',   label: 'Lớp học',       icon: Users,     match: (p: string) => p.startsWith('/classes') },
   { key: 'session',   to: '/session/orchestrate', label: 'Phiên học', icon: BookOpen, match: (p: string) => p.startsWith('/session') },
   { key: 'ai-review', to: '/ai-review', label: 'Duyệt AI',      icon: Sparkles,  match: (p: string) => p.startsWith('/ai-review') },
-  { key: 'library',   to: '/library/gallery', label: 'Thư viện', icon: ImageIcon, match: (p: string) => p.startsWith('/library') },
+  { key: 'library',   to: '/library/gallery', label: 'Thư viện', icon: ImageIcon, match: (p: string) => p.startsWith('/library') && p !== '/library/svg-guides' && p !== '/library/svg-illustrations' && p !== '/library/svg-stroke-draft' },
+  { key: 'svg-guides', to: '/library/svg-guides', label: 'Line sketch SVG', icon: Pencil, match: (p: string) => p === '/library/svg-guides' },
+  { key: 'svg-illustrations', to: '/library/svg-illustrations', label: 'Minh họa SVG AI', icon: Sparkles, match: (p: string) => p === '/library/svg-illustrations' },
+  { key: 'svg-stroke-draft', to: '/library/svg-stroke-draft', label: 'Tạo guide nét SVG', icon: Pencil, match: (p: string) => p === '/library/svg-stroke-draft' },
   { key: 'portfolio', to: '/portfolio', label: 'Hồ sơ học tập', icon: BarChart2, match: (p: string) => p.startsWith('/portfolio') },
   { key: 'settings',  to: '/settings',  label: 'Cài đặt',       icon: Settings,  match: (p: string) => p.startsWith('/settings') },
 ]
@@ -44,6 +48,9 @@ const ALL_SCREENS = [
   { code: 'T12', label: 'Hồ sơ học tập', to: '/portfolio' },
   { code: 'T13', label: 'Soạn nội dung', to: '/library/authoring' },
   { code: 'T14', label: 'Mẫu phiên & tự động hóa', to: '/settings' },
+  { code: 'T15', label: 'Biên tập line sketch SVG', to: '/library/svg-guides' },
+  { code: 'T16', label: 'Minh họa SVG AI (bản nháp)', to: '/library/svg-illustrations' },
+  { code: 'T17', label: 'Tạo hướng dẫn nét SVG', to: '/library/svg-stroke-draft' },
 ]
 
 function getBreadcrumb(pathname: string): { parent: string; current: string } {
@@ -52,6 +59,15 @@ function getBreadcrumb(pathname: string): { parent: string; current: string } {
   }
   if (pathname === '/library/authoring') {
     return { parent: 'Thư viện', current: 'Bản nháp' }
+  }
+  if (pathname === '/library/svg-guides') {
+    return { parent: 'Thư viện', current: 'Biên tập line sketch SVG' }
+  }
+  if (pathname === '/library/svg-illustrations') {
+    return { parent: 'Thư viện', current: 'Minh họa SVG AI' }
+  }
+  if (pathname === '/library/svg-stroke-draft') {
+    return { parent: 'Thư viện', current: 'Tạo hướng dẫn nét SVG' }
   }
   return { parent: 'Mầm Xanh', current: 'Lớp Mầm Xanh' }
 }
@@ -173,7 +189,7 @@ export function TeacherLayout() {
             {showQuickNav && (
               <div className="absolute right-0 top-10 w-72 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 max-h-[80vh] overflow-y-auto">
                 <div className="px-3 py-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                  Danh sách 18 màn hình (T00–T14)
+                  Danh sách 19 màn hình (T00–T15)
                 </div>
                 {ALL_SCREENS.map((scr) => {
                   const isCurrent = location.pathname === scr.to

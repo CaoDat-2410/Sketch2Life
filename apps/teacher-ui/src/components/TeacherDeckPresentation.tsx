@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
+import type { SketchStrokeGuideV3, SvgDocumentV1 } from '../domain/svgGuide'
+import { SvgGuideRenderer } from './SvgGuideRenderer'
 
 type SlideKind = 'orientation' | 'drawing_guide' | 'subject_exploration' | 'approved_activity'
 
@@ -6,6 +8,15 @@ type DrawingStep = Readonly<{
   stepIndex: number
   instruction: string
   placement: string
+}>
+
+export type ProgressiveGuideLayout = Readonly<{
+  schema_version: 'sketch2life.progressive-guide-layout.v1'
+  columns: number
+  rows: number
+  step_count: number
+  reading_order: 'ROW_MAJOR'
+  stages: ReadonlyArray<Readonly<{ step_index: number; row: number; column: number }>>
 }>
 
 type DeckSlide = Readonly<{
@@ -31,6 +42,7 @@ export type TeacherSketchDeck = Readonly<{
 type Props = Readonly<{
   deck: TeacherSketchDeck
   visualBase64: string | null
+  visualLayout: ProgressiveGuideLayout | null
   visualBusy: boolean
   visualError: string
   onGenerateVisual: () => void
@@ -103,7 +115,7 @@ export function parseTeacherSketchDeck(value: unknown): TeacherSketchDeck | null
     const kind = item.kind as SlideKind
     const steps: DrawingStep[] = []
     if (kind === 'drawing_guide') {
-      if (!Array.isArray(item.steps) || item.steps.length < 3 || item.steps.length > 5) return null
+      if (!Array.isArray(item.steps) || item.steps.length < 4 || item.steps.length > 8) return null
       for (const [stepIndex, rawStep] of item.steps.entries()) {
         if (!isRecord(rawStep)
           || rawStep.step_index !== stepIndex + 1
@@ -159,6 +171,7 @@ function TextList({ items, emptyLabel }: { items: string[]; emptyLabel?: string 
 export function TeacherDeckPresentation({
   deck,
   visualBase64,
+  visualLayout,
   visualBusy,
   visualError,
   onGenerateVisual,
@@ -259,8 +272,20 @@ export function TeacherDeckPresentation({
                     </div>
                   </div>
                   <div className="flex min-h-0 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-white p-2">
-                    {imageSrc
-                      ? <img src={imageSrc} alt={`Hướng dẫn line-sketch ${deck.topic}, gồm ${slide.steps.length} bước`} className="max-h-full max-w-full object-contain" />
+                    {imageSrc && visualLayout && visualLayout.step_count === slide.steps.length && visualLayout.stages[stepIndex]
+                      ? <div className="relative h-full w-full overflow-hidden rounded-lg" aria-label={`Nét vẽ lũy tiến bước ${stepIndex + 1}`}>
+                          <img
+                            src={imageSrc}
+                            alt={`Hướng dẫn line-sketch ${deck.topic}, bước ${stepIndex + 1} trên ${slide.steps.length}`}
+                            className="absolute max-w-none"
+                            style={{
+                              width: `${visualLayout.columns * 100}%`,
+                              height: `${visualLayout.rows * 100}%`,
+                              left: `-${visualLayout.stages[stepIndex].column * 100}%`,
+                              top: `-${visualLayout.stages[stepIndex].row * 100}%`,
+                            }}
+                          />
+                        </div>
                       : <div className="max-w-sm px-5 text-center">
                           <div className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-full bg-blue-50 text-2xl text-blue-700" aria-hidden="true">✎</div>
                           <p className="font-bold">Chưa có hình hướng dẫn</p>
@@ -309,6 +334,37 @@ export function TeacherDeckPresentation({
         <div className="hidden text-xs text-slate-400 sm:block">Dùng phím ← → để chuyển slide · Esc để đóng</div>
         <button type="button" onClick={() => moveSlide(1)} disabled={slideIndex === deck.slides.length - 1} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 disabled:opacity-40">Tiếp →</button>
       </footer>
+    </div>
+  )
+}
+
+export function TeacherSvgGuidePresentation({
+  title,
+  document,
+  guide,
+  onClose,
+}: Readonly<{
+  title: string
+  document: SvgDocumentV1
+  guide: SketchStrokeGuideV3
+  onClose: () => void
+}>) {
+  return (
+    <div className="fixed inset-0 z-[110] flex flex-col bg-slate-950 p-4 text-white sm:p-8" role="dialog" aria-modal="true" aria-label={`Trình chiếu hướng dẫn ${guide.title_vi}`}>
+      <header className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 pb-5">
+        <div className="min-w-0">
+          <p className="truncate text-xs font-bold uppercase tracking-[0.16em] text-slate-300">Trình chiếu giáo viên · {title}</p>
+          <p className="mt-1 text-sm text-slate-400">Hướng dẫn SVG đã biên tập · {guide.title_vi}</p>
+        </div>
+        <button type="button" onClick={onClose} className="rounded-lg border border-slate-500 px-4 py-2 text-sm font-semibold hover:bg-slate-800">Đóng <span aria-hidden="true">×</span></button>
+      </header>
+      <main className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 items-center justify-center rounded-2xl bg-white p-5 text-slate-950 shadow-2xl sm:p-10">
+        <div className="w-full max-w-4xl">
+          <h1 className="mb-6 text-center text-3xl font-extrabold">{guide.title_vi}</h1>
+          <SvgGuideRenderer document={document} guide={guide} />
+        </div>
+      </main>
+      <p className="pt-4 text-center text-xs text-slate-400">Nét mới hiển thị đứt · các nét trước được giữ liền</p>
     </div>
   )
 }

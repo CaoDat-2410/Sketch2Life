@@ -16,17 +16,40 @@ This folder contains the **dev-only Modal deployment** for the current SRS v2.3 
 
 The registry includes ASR, drawing VLM, story/storyboard, the optional Parent Sketch Guide and Teacher Sketch Deck, lesson/activity drafting, optional lesson visuals, optional SAM2 segmentation, per-scene LTX video, consistency validation, Vietnamese TTS, and final video safety. Deterministic drawing preparation, document extraction, and FFmpeg composition remain backend/local worker responsibilities.
 
+## Parent Openclipart SVG catalog — Modal Volume only
+
+The broad Parent source corpus is intended to live in Modal **Volume v2** `sketch2life-openclipart-catalog-dev` in `dev`. The Qwen language/audio worker mounts that Volume read-only. The Volume has not been populated by this source change. Docker images and the local repository contain no copy of the full corpus, index, or imported SVG assets; starting Docker does not import the dataset, call Qwen, or deploy/maintain a Modal app.
+
+The explicit CPU-only importer resolves the public Hugging Face `main` ref to a commit SHA, downloads the Zstandard JSONL shards from inside Modal, and stores the original compressed shards plus extracted CC0 SVG assets, SQLite search index, hashes, license/provenance and import manifest on that Volume. It streams one shard at a time, can resume the same commit, verifies the source shard corpus and index before activating a revision, and will not overwrite another revision. It does not require an HF token for this public dataset and does not allocate a GPU.
+
+Run the import only when you intentionally want to populate the Volume:
+
+```powershell
+modal run --env=dev deployment/modal/srs_v23/openclipart_catalog_app.py
+```
+
+The command returns the resolved revision, shard/row counts, eligible-source count, stored byte counts, and Volume identity. Preserve that output with the Modal import evidence. Review actual Modal compute/storage usage after completion; upstream reports about 22.3 GB for its compressed source dataset, while the extracted/indexed assets occupy additional space. Re-running against the same resolved revision is idempotent. A new HF commit is stored under a new revision path; it does not delete the previous catalog.
+
+The Qwen worker searches only the read-only Volume, and only source SVGs in the bounded safe subset can become guide candidates. Qwen receives a generic topic, selected source image and indexed component IDs; it returns stage/order text and identifiers only. The worker renders the exact source paths into progressive strokes and returns the same color reference. The workload remains disabled by default until Modal import/inference and Parent runtime evidence are recorded. The AI workload gate must be enabled separately by an authorized configuration change; importing data does not enable it.
+
 Current SRS candidates are not final model choices. In particular, the existing [`../qwen_vision_v2.py`](../qwen_vision_v2.py) is a separate legacy Qwen3-VL dev app and is not used by this SRS v2.3 scaffold.
 
 ## Setup for a fresh Modal environment (reference)
 
-The steps below describe initial setup for a new Modal workspace. The current dev workspace has already been authenticated and its environment/Volume v2 resources exist; task-owned apps are stopped after the latest checks. Do not create duplicate Volumes or Secrets there.
+The steps below describe initial setup for a new Modal workspace. Existing model/scratch resources are separate from this catalog. The dedicated catalog Volume is created lazily by the explicit importer; no upload is implied by deploying or starting Docker.
 
 1. Install Modal in a local Python environment, then authenticate with `modal setup` and confirm with `modal token info`.
 2. Create a Modal `dev` environment (`modal environment create dev`). Do not create production resources for this scaffold.
-3. Create these Volumes as **Volume v2** in `dev` when ready to stage reviewed weights and bounded attempt scratch:
+3. The existing model and scratch Volumes are retained. The dedicated catalog Volume is created lazily by the explicit importer as **Volume v2** in `dev`:
    - `sketch2life-dev-model-weights-v2` — mount read-only in future model functions.
    - `sketch2life-dev-job-scratch-v2` — unique single-writer attempt prefixes only.
+   - `sketch2life-openclipart-catalog-dev` — created lazily by the explicit Openclipart importer; full dataset/index only, read-only in inference.
+
+After the import reports `READY`, deploy the updated Qwen worker app separately so it mounts the catalog Volume, then check its `/health` response for `svg_catalog.status = ready`. This does not send inference. Keep the SVG generation feature flag disabled until a separately approved real request is ready.
+
+```powershell
+modal deploy --env=dev deployment/modal/srs_v23/language_audio_app.py
+```
 4. For the gated FLUX.3 checkpoint, create a Modal Secret named `huggingface-secret` with the key `HF_TOKEN`. This Secret is used only by the pinned model-download function; never put its value in source, local tracked files, or client configuration.
 5. Put the Modal server token in the ignored local backend environment or runtime secret manager, using [`modal.env.example`](modal.env.example) as a key-name template. Never put it in a mobile/web client or tracked file.
 6. From the repository root, deploy the two placeholder apps only after deciding to register them in the Modal `dev` environment:

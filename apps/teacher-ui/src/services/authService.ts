@@ -2,6 +2,7 @@ import { getApp, getApps, initializeApp } from 'firebase/app'
 import {
   getAuth,
   EmailAuthProvider,
+  connectAuthEmulator,
   onAuthStateChanged,
   reauthenticateWithCredential,
   sendPasswordResetEmail,
@@ -10,6 +11,8 @@ import {
   updatePassword,
   type User,
 } from 'firebase/auth'
+
+const emulatorConnectedAuth = new WeakSet<ReturnType<typeof getAuth>>()
 
 function configuredAuth() {
   const config = {
@@ -22,7 +25,13 @@ function configuredAuth() {
     throw new Error('Firebase Authentication is not configured for this app.')
   }
   const app = getApps().length ? getApp() : initializeApp(config)
-  return getAuth(app)
+  const auth = getAuth(app)
+  const emulatorUrl = import.meta.env.VITE_FIREBASE_AUTH_EMULATOR_URL?.trim()
+  if (emulatorUrl && !emulatorConnectedAuth.has(auth)) {
+    connectAuthEmulator(auth, emulatorUrl, { disableWarnings: true })
+    emulatorConnectedAuth.add(auth)
+  }
+  return auth
 }
 
 export const authService = {

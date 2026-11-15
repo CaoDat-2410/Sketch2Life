@@ -39,6 +39,14 @@ type AiResponse<T> = Readonly<{
   suggestion?: T
   deck?: Record<string, unknown>
   image_base64?: string
+  panel_layout?: {
+    schema_version: 'sketch2life.progressive-guide-layout.v1'
+    columns: number
+    rows: number
+    step_count: number
+    reading_order: 'ROW_MAJOR'
+    stages: Array<{ step_index: number; row: number; column: number }>
+  }
   asset?: Record<string, unknown>
 }>
 
