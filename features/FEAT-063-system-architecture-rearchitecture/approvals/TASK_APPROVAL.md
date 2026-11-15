@@ -2588,3 +2588,12 @@ The approved scopes and request caps above are unchanged. These hashes identify 
 - **Plan SHA-256:** `03CA385FAB80F903BC6C9CF3EA26FD8F5397DAC02F5FFC194988732ADCC865F8`.
 - **Scope:** publish the remaining Parent/Teacher/SVG/Modal/Docker implementation and its FEAT-063 documentation/evidence in coherent commits. The Rev87.29 evidence commit `513d5c96` is already pushed and is excluded from duplicate staging.
 - **Limits:** no merge to `dev`; no `.env`, provider/Firebase credentials, seed accounts, child data, pytest temporary trees, or browser-profile caches. Redact workstation-specific paths before publication.
+#### Rev87.30 execution closeout — 2026-11-15
+
+- **Status:** COMPLETE; all approved pending work was committed and pushed to the current feature branch.
+- **Approved plan SHA-256:** `03CA385FAB80F903BC6C9CF3EA26FD8F5397DAC02F5FFC194988732ADCC865F8`.
+- **Final plan SHA-256:** `87BC2D0345B5BCEE6DD4513D62E160BC943A1AE937174E3B30136C0B275CC3CC`.
+- **Commits:** `686305355a62250a2767b465f3ad0c60fc5ea268`, `be69a0e30988ba8dd946bebc2be057f085946d47`, `955e39316585f238e571d8433e8f1640f6c723d6`, `17e0f694e4e2d1520ba2e253eba52459887672f5`.
+- **Push:** fast-forward `513d5c96..17e0f694` to `origin/codex/feat063-parent-docker-modal-seed-20261111`; no force push or `dev` merge.
+- **Checks:** repository security validator and staged diff checks passed. Product tests were not rerun; prior results are recorded in evidence.
+- **Exclusions:** credentials, `.env`, seed identities, local caches and real-child data were not published.

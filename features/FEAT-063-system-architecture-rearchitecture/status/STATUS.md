@@ -1112,3 +1112,11 @@ Parent Sketch Guide and lesson visuals were not dispatched because Modal `dev` s
 - No retries or gate weakening. No fixture, child data, video, UI, DB, or Docker. Synthetic Parent harness bypassed auth guard; not Firebase/Android E2E.
 - Modal app stopped; `app info` state is stopped and servers are empty. `app list` reports task field `1`; this is recorded without treating it as live-task count.
 - Plan Rev87.29 and evidence EV-063-123 are closed. Generic non-kitten quality needs a separate approved remediation plan.
+### Rev87.30 — publish all pending FEAT-063 changes — COMPLETE (2026-11-15)
+
+- Parent/backend, SVG/Teacher/Modal, Docker/local services, and SRS/plans/approvals/evidence were committed in four scoped commits and pushed to `origin/codex/feat063-parent-docker-modal-seed-20261111`.
+- New commit range: `68630535` → `17e0f694`; the prior pushed `513d5c96` was retained without duplication. Push was fast-forward; `dev` was not changed.
+- `tools/validate_repository_security.py` passed with 8,373 publishable files; `git diff --check` passed for all four commit groups.
+- No product tests were rerun for this publication task. Existing results and known limitations remain in the feature-owned evidence.
+- Excluded from Git: pytest temp trees, browser profiles, `.env`, credentials, seed identities and real-child data.
+- Plan: `plan/PLAN_REV87_30_PUBLISH_ALL_PENDING_FEAT063_20261115.md`; final SHA-256: `87BC2D0345B5BCEE6DD4513D62E160BC943A1AE937174E3B30136C0B275CC3CC`.
