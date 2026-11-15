@@ -151,7 +151,9 @@ class CoreAssetMetadataModel(CorePersistenceBase):
             "AND organization_id IS NULL) OR "
             "(owner_scope_kind = 'ORGANIZATION' AND organization_id IS NOT NULL "
             "AND (owner_scope_ref IS NULL OR "
-            "(length(owner_scope_ref) > 0 AND owner_scope_ref = organization_id)))",
+            "(length(owner_scope_ref) > 0 AND owner_scope_ref = organization_id))) OR "
+            "(owner_scope_kind = 'PLATFORM' AND organization_id IS NULL "
+            "AND owner_scope_ref IS NOT NULL AND owner_scope_ref = 'PLATFORM')",
             name="ck_core_asset_owner_scope",
         ),
         Index("ix_core_asset_organization", "organization_id", "asset_ref"),

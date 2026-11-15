@@ -8,7 +8,7 @@ from datetime import UTC, datetime
 from typing import Any
 from uuid import uuid4
 
-from sqlalchemy import insert, select, update
+from sqlalchemy import and_, func, insert, or_, select, update
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
@@ -250,6 +250,49 @@ class SqlParentStoryRunRepository:
             run_id=str(run_id),
         )
 
+    def list_runs(
+        self,
+        *,
+        owner_subject: str,
+        policy_version: str,
+        limit: int,
+        profile_id: str | None,
+        before_created_at: datetime | None,
+        before_run_id: str | None,
+    ) -> list[ParentStoryRunRecord]:
+        if (before_created_at is None) != (before_run_id is None):
+            raise ParentStoryRunError(422, "PARENT_STORY_HISTORY_CURSOR_INVALID")
+        statement = select(story_tables.story_runs.c.run_id).where(
+            story_tables.story_runs.c.actor_scope_kind == _OWNER_SCOPE_KIND,
+            story_tables.story_runs.c.actor_scope_ref == owner_subject,
+        )
+        if profile_id is not None:
+            statement = statement.where(story_tables.story_runs.c.profile_ref == profile_id)
+        if before_created_at is not None and before_run_id is not None:
+            statement = statement.where(
+                or_(
+                    story_tables.story_runs.c.created_at < before_created_at,
+                    and_(
+                        story_tables.story_runs.c.created_at == before_created_at,
+                        story_tables.story_runs.c.run_id < before_run_id,
+                    ),
+                )
+            )
+        rows = self._session.execute(
+            statement.order_by(
+                story_tables.story_runs.c.created_at.desc(),
+                story_tables.story_runs.c.run_id.desc(),
+            ).limit(limit)
+        ).scalars().all()
+        return [
+            self.get_run(
+                owner_subject=owner_subject,
+                policy_version=policy_version,
+                run_id=str(run_id),
+            )
+            for run_id in rows
+        ]
+
     def attach_artwork(
         self,
         *,
@@ -265,15 +308,33 @@ class SqlParentStoryRunRepository:
         derived_size_bytes: int,
         scanner_name: str,
         scanner_version: str,
+        replace_existing: bool = False,
     ) -> ParentStoryInputRecord:
         self._require_policy(policy_version)
         run = self._owned_run(owner_subject, run_id, lock=True)
         self._require_active_authorization(owner_subject, str(run["profile_ref"]), policy_version)
-        if run["run_state"] != "INPUT_PROCESSING":
-            raise ParentStoryRunError(409, "PARENT_STORY_RUN_NOT_ACCEPTING_ARTWORK")
         previous = self._current_input(run)
-        if previous["original_asset_ref"] is not None:
-            raise ParentStoryRunError(409, "PARENT_STORY_ARTWORK_ALREADY_ATTACHED")
+        if replace_existing:
+            if run["run_state"] != "SUBJECT_REVIEW" or previous["original_asset_ref"] is None:
+                raise ParentStoryRunError(409, "PARENT_STORY_RETAKE_NOT_ALLOWED")
+            attached_count = int(
+                self._session.scalar(
+                    select(func.count())
+                    .select_from(story_tables.run_inputs)
+                    .where(
+                        story_tables.run_inputs.c.run_id == run_id,
+                        story_tables.run_inputs.c.original_asset_ref.is_not(None),
+                    )
+                )
+                or 0
+            )
+            if attached_count != 1:
+                raise ParentStoryRunError(409, "PARENT_STORY_RETAKE_LIMIT_REACHED")
+        else:
+            if run["run_state"] != "INPUT_PROCESSING":
+                raise ParentStoryRunError(409, "PARENT_STORY_RUN_NOT_ACCEPTING_ARTWORK")
+            if previous["original_asset_ref"] is not None:
+                raise ParentStoryRunError(409, "PARENT_STORY_ARTWORK_ALREADY_ATTACHED")
         now = datetime.now(UTC)
         new_input_revision = int(previous["input_revision"]) + 1
         lineage = story_tables.asset_lineage
@@ -307,6 +368,10 @@ class SqlParentStoryRunRepository:
                     ),
                 ]
             )
+            # The following Core INSERT references these ORM-owned asset rows.
+            # This session factory disables autoflush, so make the FK parents durable
+            # in the current transaction before inserting lineage.
+            self._session.flush()
             self._session.execute(
                 insert(lineage).values(
                     lineage_id=str(uuid4()),
@@ -364,9 +429,15 @@ class SqlParentStoryRunRepository:
                 update(story_tables.story_runs)
                 .where(story_tables.story_runs.c.run_id == run_id)
                 .values(
+                    run_state="INPUT_PROCESSING",
                     current_input_revision=new_input_revision,
                     asset_ref=original_asset_ref,
                     derived_asset_ref=derived_asset_ref,
+                    understanding_revision=None if replace_existing else story_tables.story_runs.c.understanding_revision,
+                    subject_label=None if replace_existing else story_tables.story_runs.c.subject_label,
+                    confidence=None if replace_existing else story_tables.story_runs.c.confidence,
+                    result_sha256=None if replace_existing else story_tables.story_runs.c.result_sha256,
+                    raw_body_sha256=None if replace_existing else story_tables.story_runs.c.raw_body_sha256,
                     job_state="RUNNING",
                     retryable=False,
                     error_code=None,
@@ -583,6 +654,7 @@ class SqlParentStoryRunRepository:
         policy_version: str,
         run_id: str,
         expected_understanding_revision: int,
+        primary_activity: dict[str, Any],
         rewrite_instruction: str | None,
         story_revision_id: str,
         model_id: str,
@@ -646,7 +718,7 @@ class SqlParentStoryRunRepository:
             raise ParentStoryRunError(409, "PARENT_STORY_REWRITE_NOT_ALLOWED")
 
         worker_input = {
-            "schema_version": "sketch2life.story-generation-input.v1",
+            "schema_version": "sketch2life.story-generation-input.v2",
             "role": "PARENT",
             "language": "vi",
             "confirmed_subject": str(run["subject_label"] or "").strip(),
@@ -658,6 +730,8 @@ class SqlParentStoryRunRepository:
             "adult_confirmed_idea": str(input_row["typed_idea"] or ""),
             "rewrite_instruction": rewrite_instruction,
             "lesson_direction": None,
+            "primary_activity": primary_activity,
+            "primary_activity_sha256": _sha256_json(primary_activity),
         }
         request_hash = _sha256_json(worker_input)
         revision_no = int(latest_story["revision_no"]) + 1 if latest_story is not None else 1

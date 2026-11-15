@@ -7,7 +7,7 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 revision = "20261110_parent_lesson_pin"
-down_revision = "20261110_parent_profile_story_context"
+down_revision = "20261110_parent_ctx"
 branch_labels = None
 depends_on = None
 

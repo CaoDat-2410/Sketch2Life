@@ -81,9 +81,30 @@ class _Function:
 
 
 def _story_context() -> dict[str, object]:
+    activity = {
+        "activity_ref": "draft_request-1_001",
+        "title": "Quan sát lá ngoài trời",
+        "objective": "Quan sát hình dáng lá quanh chủ đề con bướm.",
+        "materials_text": "Lá đã rụng và giấy.",
+        "preparation_text": "Người lớn chọn khu vực sân chơi an toàn.",
+        "instructions_text": "Ngoài trời ở sân chơi, trẻ tự chọn lá đã rụng để quan sát; người lớn đi cùng.",
+        "observation_notes": "Ghi nhận điều trẻ tự chọn quan sát.",
+        "safety_notes": "Không nếm lá; người lớn luôn giám sát.",
+        "activity_kind": "outdoor",
+        "source": "AI_GENERATED_DRAFT",
+        "source_lesson_id": None,
+        "source_lesson_title": None,
+        "source_lesson_version_id": None,
+        "source_content_sha256": None,
+        "source_activity_index": None,
+        "match_reason": "Bản nháp AI cần người lớn xem lại.",
+    }
+    activity_sha256 = hashlib.sha256(
+        json.dumps(activity, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
     return {
         "worker_input": {
-            "schema_version": "sketch2life.story-generation-input.v1",
+            "schema_version": "sketch2life.story-generation-input.v2",
             "role": "PARENT",
             "language": "vi",
             "confirmed_subject": "Con bướm",
@@ -95,6 +116,8 @@ def _story_context() -> dict[str, object]:
             "adult_confirmed_idea": "Kể đúng vòng đời của bướm.",
             "rewrite_instruction": None,
             "lesson_direction": None,
+            "primary_activity": activity,
+            "primary_activity_sha256": activity_sha256,
         }
     }
 
@@ -126,7 +149,9 @@ def test_story_manifest_uses_generic_modal_ai_request_schema() -> None:
         "size_bytes": len(request_bytes),
         "sha256": hashlib.sha256(request_bytes).hexdigest(),
     }
-    assert request["schema_version"] == "sketch2life.story-generation-input.v1"
+    assert request["schema_version"] == "sketch2life.story-generation-input.v2"
+    assert request["primary_activity"]["activity_ref"] == "draft_request-1_001"
+    assert request["primary_activity_sha256"] == _story_context()["worker_input"]["primary_activity_sha256"]
     assert "activities" not in request
     assert call_id == "fc-story-test-0001"
     assert result == {"fixture": "valid"}
@@ -358,10 +383,13 @@ def test_worker_log_summary_retries_until_terminal_event_is_indexed(monkeypatch)
             ]
 
     logs = _Logs()
-    monkeypatch.setattr(client_module.time, "sleep", lambda _delay: None)
+    sleep_delays: list[float] = []
+    monkeypatch.setattr(client_module.time, "sleep", sleep_delays.append)
     summary = summarize_worker_call_logs(type("Call", (), {"logs": logs})())
 
     assert logs.calls == 2
+    assert sleep_delays == [0.25]
+    assert client_module.summarize_worker_call_logs.__kwdefaults__["max_log_wait_seconds"] == 5.0
     assert summary["worker_terminal_event"] == "worker_succeeded"
     assert summary["worker_diagnostic_code"] is None
     assert summary["worker_model_id"] == "Systran/faster-whisper-large-v3"
@@ -383,3 +411,107 @@ def test_worker_log_summary_fails_closed_when_modal_logs_unavailable() -> None:
     assert summary["worker_started_observed"] is False
     assert summary["worker_diagnostic_code"] is None
     assert "provider diagnostic" not in repr(summary)
+
+
+def test_worker_log_summary_preserves_safe_svg_generation_diagnostics() -> None:
+    class _Logs:
+        def tail(self, *, entries: int):
+            return [
+                type(
+                    "Entry",
+                    (),
+                    {
+                        "message": "\n".join(
+                            json.dumps(event)
+                            for event in (
+                                {
+                                    "event": "svg_topic_stroke_guide_output_invalid",
+                                    "workload": "svg.topic-stroke-guide.generate",
+                                    "reason_code": "SVG_TOPIC_GUIDE_JSON_INVALID",
+                                    "input_token_count": 812,
+                                    "output_token_count": 1200,
+                                    "max_new_tokens": 12288,
+                                    "generation_seconds": 240.5,
+                                    "token_limit_reached": False,
+                                    "ended_with_model_eos": True,
+                                    "decoded_character_count": 2400,
+                                    "callback_calls": 1201,
+                                    "force_stop_parser_calls": 0,
+                                    "last_parser_can_end": True,
+                                    "last_model_eos_allowed": True,
+                                    "last_parser_state_class": "ObjectParser",
+                                    "final_model_eos_was_allowed_at_previous_prefix": True,
+                                    "final_model_eos_prefix_parser_can_end": True,
+                                    "generated_special_token_count": 1,
+                                    "generated_non_eos_special_token_count": 0,
+                                    "enforcer_decoder_decoded_character_count": 2400,
+                                    "enforcer_decoder_json_complete": False,
+                                    "enforcer_decoder_json_error_type": "JSONDecodeError",
+                                    "enforcer_decoder_json_error_category": "UNTERMINATED_STRING",
+                                    "enforcer_decoder_json_error_position": 2300,
+                                    "enforcer_decoder_unterminated_string_character_count": 0,
+                                    "active_json_string_field": "d",
+                                    "replay_parser_can_end": False,
+                                    "replay_parser_error_count": 0,
+                                    "incremental_vs_replay_can_end_mismatch": True,
+                                    "replay_parser_diagnostic_error": False,
+                                    "json_error_type": "JSONDecodeError",
+                                    "json_error_position": 2300,
+                                    "json_error_line": 1,
+                                    "json_error_column": 2301,
+                                    "generated_text": "private SVG model output",
+                                },
+                                {
+                                    "schema_version": "sketch2life.modal.worker-event.v1",
+                                    "event": "worker_failed",
+                                    "workload": "svg.topic-stroke-guide.generate",
+                                    "stage": "output_parse_and_contract_validation",
+                                    "duration_ms": 388003,
+                                    "error_code": "SVG_TOPIC_GUIDE_JSON_INVALID",
+                                    "error_type": "RuntimeError",
+                                },
+                            )
+                        )
+                    },
+                )()
+            ]
+
+    summary = summarize_worker_call_logs(type("Call", (), {"logs": _Logs()})())
+
+    assert summary["worker_terminal_event"] == "worker_failed"
+    assert summary["worker_diagnostic_code"] == "SVG_TOPIC_GUIDE_JSON_INVALID"
+    assert summary["worker_diagnostic_details"] == {
+        "event": "svg_topic_stroke_guide_output_invalid",
+        "input_token_count": 812,
+        "output_token_count": 1200,
+        "max_new_tokens": 12288,
+        "generation_seconds": 240.5,
+        "token_limit_reached": False,
+        "ended_with_model_eos": True,
+        "decoded_character_count": 2400,
+        "callback_calls": 1201,
+        "force_stop_parser_calls": 0,
+        "last_parser_can_end": True,
+        "last_model_eos_allowed": True,
+        "last_parser_state_class": "ObjectParser",
+        "final_model_eos_was_allowed_at_previous_prefix": True,
+        "final_model_eos_prefix_parser_can_end": True,
+        "generated_special_token_count": 1,
+        "generated_non_eos_special_token_count": 0,
+        "enforcer_decoder_decoded_character_count": 2400,
+        "enforcer_decoder_json_complete": False,
+        "enforcer_decoder_json_error_type": "JSONDecodeError",
+        "enforcer_decoder_json_error_category": "UNTERMINATED_STRING",
+        "enforcer_decoder_json_error_position": 2300,
+        "enforcer_decoder_unterminated_string_character_count": 0,
+        "active_json_string_field": "d",
+        "replay_parser_can_end": False,
+        "replay_parser_error_count": 0,
+        "incremental_vs_replay_can_end_mismatch": True,
+        "replay_parser_diagnostic_error": False,
+        "json_error_type": "JSONDecodeError",
+        "json_error_position": 2300,
+        "json_error_line": 1,
+        "json_error_column": 2301,
+    }
+    assert "private SVG model output" not in repr(summary)

@@ -6,6 +6,8 @@ from typing import Annotated, Literal
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, model_validator
 
+from sketch2life.contracts.schemas.svg_engine import SketchStrokeGuideV3, SvgDocumentV1
+
 OpaqueId = Annotated[str, Field(min_length=1, max_length=256, pattern=r"^[A-Za-z0-9._:-]+$")]
 Sha256Hex = Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
 ShortText = Annotated[str, Field(min_length=1, max_length=4000)]
@@ -26,6 +28,35 @@ class LessonActivityInputV1(StrictLessonModel):
     activity_kind: Literal["outdoor", "indoor", "mixed"] = "outdoor"
 
 
+class LessonPresentationSlideInputV1(StrictLessonModel):
+    slide_id: OpaqueId
+    kind: Literal["drawing_guide"]
+    title_vi: Annotated[str, Field(min_length=1, max_length=300)]
+    body_vi: Annotated[str, Field(max_length=2000)] = ""
+    guide: SketchStrokeGuideV3
+
+
+class LessonPresentationInputV1(StrictLessonModel):
+    schema_version: Literal["LessonPresentationV1"] = "LessonPresentationV1"
+    slides: list[LessonPresentationSlideInputV1] = Field(min_length=1, max_length=16)
+
+    @model_validator(mode="after")
+    def unique_slide_ids(self) -> LessonPresentationInputV1:
+        slide_ids = [slide.slide_id for slide in self.slides]
+        if len(set(slide_ids)) != len(slide_ids):
+            raise ValueError("slide_id values must be unique")
+        return self
+
+
+class LessonPresentationSlideResponseV1(LessonPresentationSlideInputV1):
+    document: SvgDocumentV1
+
+
+class LessonPresentationResponseV1(StrictLessonModel):
+    schema_version: Literal["LessonPresentationV1"] = "LessonPresentationV1"
+    slides: list[LessonPresentationSlideResponseV1] = Field(min_length=1, max_length=16)
+
+
 class LessonContentInputV1(StrictLessonModel):
     locale: Literal["vi-VN"] = "vi-VN"
     title: Annotated[str, Field(min_length=1, max_length=160)]
@@ -41,6 +72,7 @@ class LessonContentInputV1(StrictLessonModel):
     script_direction: Annotated[str, Field(max_length=2000)] | None = None
     script_following_allowed: bool = False
     activities: list[LessonActivityInputV1] = Field(min_length=1, max_length=24)
+    presentation: LessonPresentationInputV1 | None = None
 
     @model_validator(mode="after")
     def no_blank_items(self) -> LessonContentInputV1:
@@ -321,6 +353,7 @@ class ParentLessonDetailV1(StrictLessonModel):
     script_direction: str | None
     script_following_allowed: bool
     activities: list[LessonActivityInputV1]
+    presentation: LessonPresentationResponseV1 | None = None
     access_source: Literal["PUBLIC", "SHARED"]
     access_expires_at: AwareDatetime | None
 

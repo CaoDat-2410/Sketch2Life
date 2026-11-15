@@ -14,8 +14,10 @@ from sketch2life.contracts.schemas.lesson_library import LessonActivityInputV1
 class ParentStoryRunCreateRequestV1(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True, strict=True)
 
-    parent_profile_id: UUID
-    expected_profile_revision_id: UUID
+    # FastAPI validates parsed JSON objects in Python mode. Explicitly allow UUID
+    # strings for these wire fields while keeping the rest of this contract strict.
+    parent_profile_id: UUID = Field(strict=False)
+    expected_profile_revision_id: UUID = Field(strict=False)
     consent_policy_version: str = Field(min_length=1, max_length=80)
     topic: str = Field(default="", max_length=120)
     adult_confirmed_idea: str = Field(default="", max_length=500)
@@ -71,6 +73,7 @@ class ParentDrawingCandidateV1(BaseModel):
     confidence: float = Field(ge=0, le=1)
     adult_confirmation_required: Literal[True]
     decision: Literal["REVIEW_REQUIRED", "CONFIRMED_BY_ADULT", "CORRECTED_BY_ADULT"]
+    topic_match: Literal["MATCH", "MISMATCH", "NO_SELECTED_TOPIC"] = "NO_SELECTED_TOPIC"
 
 
 class ParentStorySectionsV1(BaseModel):
@@ -144,6 +147,13 @@ class ParentActiveStoryRunEnvelopeV1(BaseModel):
     story_run: ParentStoryRunResponseV1 | None
 
 
+class ParentStoryRunHistoryPageV1(BaseModel):
+    contract: Literal["ParentStoryRunHistoryPageV1"] = "ParentStoryRunHistoryPageV1"
+    request_id: UUID
+    items: list[ParentStoryRunResponseV1]
+    next_cursor: str | None
+
+
 class ParentSubjectConfirmationRequestV1(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True, strict=True)
 
@@ -181,6 +191,7 @@ __all__ = [
     "ParentStorySceneDisplayV1",
     "ParentStorySectionsV1",
     "ParentActiveStoryRunEnvelopeV1",
+    "ParentStoryRunHistoryPageV1",
     "ParentStoryRunCreateRequestV1",
     "ParentStoryRunEnvelopeV1",
     "ParentStoryRunResponseV1",

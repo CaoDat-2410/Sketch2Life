@@ -1,6 +1,6 @@
 import { parentConfig } from '../config';
 import { ParentApplicationError } from '../../application/ParentApplicationError';
-import type { AuthTokenPort, ParentApiPort, ParentDrawingMediaType } from '../../application/ports/ParentPorts';
+import type { AuthTokenPort, ParentApiPort, ParentDrawingMediaType, PrimaryActivitySelection } from '../../application/ports/ParentPorts';
 import type {
   ConsentPolicy,
   LessonDetail,
@@ -22,6 +22,7 @@ import type {
   StoryRun,
   SuggestedActivity,
 } from '../../domain/types';
+import type { ParentSvgGuidePageV1, SvgTopicStrokeGuideDraftV1 } from '../../domain/svgGuide';
 
 export class ParentApiError extends ParentApplicationError {
   constructor(code: string, requestId: string, status?: number) {
@@ -176,15 +177,12 @@ export class ParentApi implements ParentApiPort {
   }
 
   generateSketchGuide(topic: string) {
-    return this.request<{
-      request_id: string;
-      modal_call_id?: string;
-      status: string;
-      review_required: true;
-      model?: { id: string; revision: string };
-      image_base64: string;
-      asset?: Record<string, unknown>;
-    }>('/api/parent/v1/ai/sketch-guides', 'POST', { topic, difficulty: 'beginner', step_count: 3 }, 910_000);
+    return this.request<SvgTopicStrokeGuideDraftV1>(
+      '/api/parent/v1/ai/sketch-guides',
+      'POST',
+      { contract: 'SvgTopicStrokeGuideRequestV1', topic, difficulty: 'beginner' },
+      1_800_000,
+    );
   }
 
   createStoryRun(input: {
@@ -200,17 +198,20 @@ export class ParentApi implements ParentApiPort {
     return this.request<{ request_id: string; story_run: StoryRun }>('/api/parent/v1/story-runs', 'POST', input);
   }
 
-  analyzeDrawing(storyRunId: string, imageBase64: string, mediaType: ParentDrawingMediaType) {
+  analyzeDrawing(storyRunId: string, imageBase64: string, mediaType: ParentDrawingMediaType, inputRevision: number, replaceExisting = false) {
     return this.request<{
       request_id: string;
       modal_call_id?: string;
       candidate?: ParentCandidate;
       run_input_revision?: number;
       understanding_revision?: number;
+      artwork_retake_available?: boolean;
     }>('/api/parent/v1/ai/drawing-understandings', 'POST', {
       story_run_id: storyRunId,
       image_base64: imageBase64,
       media_type: mediaType,
+      expected_input_revision: inputRevision,
+      replace_existing: replaceExisting,
     }, 1_850_000);
   }
 
@@ -236,7 +237,12 @@ export class ParentApi implements ParentApiPort {
     }, 1_850_000);
   }
 
-  generateStory(storyRunId: string, revision: number, rewriteInstruction?: string) {
+  generateStory(
+    storyRunId: string,
+    revision: number,
+    primaryActivity?: PrimaryActivitySelection,
+    rewriteInstruction?: string,
+  ) {
     return this.request<{
       request_id: string;
       modal_call_id?: string;
@@ -245,6 +251,10 @@ export class ParentApi implements ParentApiPort {
       story_run?: StoryRun;
     }>(`/api/parent/v1/ai/story-runs/${encodeURIComponent(storyRunId)}/story-revisions`, 'POST', {
       expected_understanding_revision: revision,
+      ...(primaryActivity ? {
+        primary_activity_request_id: primaryActivity.requestId,
+        primary_activity_ref: primaryActivity.activityRef,
+      } : {}),
       ...(rewriteInstruction?.trim() ? { rewrite_instruction: rewriteInstruction.trim() } : {}),
     }, 1_850_000);
   }
@@ -371,6 +381,12 @@ export class ParentApi implements ParentApiPort {
 
   getVideoQuota() {
     return this.request<ParentVideoQuota>('/api/billing/v1/video-quota', 'GET');
+  }
+
+  listSvgGuides(topicKey?: string) {
+    const query = new URLSearchParams({ limit: '50' });
+    if (topicKey) query.set('topic_key', topicKey);
+    return this.request<ParentSvgGuidePageV1>(`/api/svg-catalog/v1/parent/guides?${query.toString()}`, 'GET');
   }
 
   private async request<T>(

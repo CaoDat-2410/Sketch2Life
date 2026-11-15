@@ -50,6 +50,7 @@ export type Activity = {
 };
 
 export type SuggestedActivity = Activity & {
+  activity_ref: string;
   source: 'PINNED_LESSON' | 'PUBLISHED_SHARED_LESSON' | 'AI_GENERATED_DRAFT';
   source_lesson_id: string | null;
   source_lesson_title: string | null;
@@ -101,6 +102,7 @@ export type ParentCandidate = {
   confidence: number;
   adult_confirmation_required: true;
   decision: string;
+  topic_match?: 'MATCH' | 'MISMATCH' | 'NO_SELECTED_TOPIC';
 };
 
 export type StoryRun = {
@@ -150,6 +152,7 @@ export type StoryRun = {
 
 export type ParentStoryRunHistoryPage = {
   contract: 'ParentStoryRunHistoryPageV1';
+  request_id: string;
   items: StoryRun[];
   next_cursor: string | null;
 };
@@ -230,12 +233,14 @@ export type ParentNotificationPage = {
 
 export type ParentVideoQuota = {
   contract: 'ParentVideoQuotaSummaryV1';
+  mode: 'LOCAL_DEMO';
   configuration_state: 'CONFIGURED' | 'NOT_CONFIGURED';
   period_start: string;
   period_end: string;
   granted: number | null;
   used: number | null;
   available: number | null;
+  notice: string;
 };
 
 export type ParentLessonDelivery = {

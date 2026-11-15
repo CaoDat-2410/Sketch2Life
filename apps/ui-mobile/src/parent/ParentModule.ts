@@ -13,6 +13,7 @@ const api = new ParentApi(identity);
 
 export const parentModule: ParentApplicationModule = Object.freeze({
   publicSettings: Object.freeze({
+    firebaseAppId: parentConfig.firebaseAppId,
     googleAndroidClientId: parentConfig.googleAndroidClientId,
     googleWebClientId: parentConfig.googleWebClientId,
   }),

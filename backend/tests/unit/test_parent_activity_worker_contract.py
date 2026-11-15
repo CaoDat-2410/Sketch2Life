@@ -11,6 +11,11 @@ if str(REPOSITORY_ROOT) not in sys.path:
 
 from deployment.modal.srs_v23 import language_audio_app as worker_app  # noqa: E402
 
+from sketch2life.contracts.schemas.modal_ai import (  # noqa: E402
+    ParentActivityFallbackDraftV1,
+    ParentActivitySuggestionWorkerRequestV3,
+)
+
 _parent_activity_suggestion_json_schema = worker_app._parent_activity_suggestion_json_schema
 _parent_activity_suggestion_prompt = worker_app._parent_activity_suggestion_prompt
 _parse_parent_activity_suggestions = worker_app._parse_parent_activity_suggestions
@@ -51,11 +56,14 @@ def _input() -> dict[str, object]:
                 "activity": _activity("Quan sát bướm"),
             }
         ],
+        "excluded_activities": [],
     }
 
 
 def test_worker_input_contract_accepts_bounded_versioned_candidates():
     _validate_parent_activity_suggestion_input(_input())
+    backend_schema = ParentActivitySuggestionWorkerRequestV3.model_json_schema()
+    assert "excluded_activities" in backend_schema["required"]
     schema = _parent_activity_suggestion_json_schema()
     assert schema["properties"]["fallback_activities"]["maxItems"] == 3
     assert schema["properties"]["selected_candidates"]["maxItems"] == 5
@@ -65,21 +73,27 @@ def test_worker_input_contract_accepts_bounded_versioned_candidates():
     assert fallback_schema["properties"]["fallback_activities"]["minItems"] == 3
     assert fallback_schema["properties"]["fallback_activities"]["maxItems"] == 3
     activity_schema = fallback_schema["properties"]["fallback_activities"]["items"]["properties"]
-    assert activity_schema["title"]["maxLength"] == 60
-    assert activity_schema["objective"]["pattern"] == "^.{0,79}[.!?]$"
-    assert "maxLength" not in activity_schema["objective"]
-    assert activity_schema["materials_text"] == {"type": "string", "maxLength": 60}
-    assert activity_schema["preparation_text"]["pattern"] == "^.{0,84}[.!?]$"
-    assert "maxLength" not in activity_schema["instructions_text"]
-    assert "minLength" not in activity_schema["instructions_text"]
-    assert activity_schema["instructions_text"]["pattern"] == "^.{0,149}[.!?]$"
-    assert activity_schema["observation_notes"] == {"type": "string", "maxLength": 70}
-    assert activity_schema["safety_notes"]["pattern"] == "^.{0,79}[.!?]$"
-    assert all(
-        not ({"minLength", "maxLength"} & set(properties))
-        for properties in activity_schema.values()
-        if "pattern" in properties
-    )
+    assert activity_schema["title"] == {"type": "string", "minLength": 1, "maxLength": 80}
+    assert activity_schema["objective"] == {"type": "string", "minLength": 1, "maxLength": 160}
+    assert activity_schema["materials_text"] == {"type": "string", "maxLength": 120}
+    assert activity_schema["preparation_text"] == {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 180,
+    }
+    assert activity_schema["instructions_text"] == {
+        "type": "string",
+        "minLength": 16,
+        "maxLength": 320,
+    }
+    assert activity_schema["observation_notes"] == {"type": "string", "maxLength": 120}
+    assert activity_schema["safety_notes"] == {"type": "string", "minLength": 8, "maxLength": 140}
+    backend_activity_schema = ParentActivityFallbackDraftV1.model_json_schema()["properties"]
+    for field in activity_schema:
+        for constraint in ("minLength", "maxLength"):
+            assert activity_schema[field].get(constraint) == backend_activity_schema[field].get(
+                constraint
+            )
     assert fallback_schema["properties"]["no_match_reason"]["maxLength"] == 120
 
 
@@ -88,13 +102,15 @@ def test_fallback_prompt_keeps_core_sentences_concise_and_allows_list_fragments(
 
     assert "ngoài trời" in prompt
     assert "khu vườn" in prompt
-    assert "câu trọn vẹn" in prompt
-    assert "cụm từ/danh sách ngắn" in prompt
-    assert "hai bước ngắn" in prompt
-    assert "trẻ tự chọn" in prompt
-    assert "chữ Hán" in prompt
+    assert "Không bắt buộc dấu câu cuối câu" in prompt
+    assert "Khuyến khích trẻ tự chọn" in prompt
+    assert "khoảng hai bước" in prompt
     assert "Không dùng kéo" in prompt
-    assert "vận động mô phỏng" in prompt
+    assert "một bộ phương pháp cố định" in prompt
+    assert "lặp lại địa điểm cho từng hoạt động" in prompt
+    assert "không để người đọc tự suy ra từ activity_kind" in prompt
+    assert "Chỉ dùng vật liệu an toàn do người lớn chuẩn bị" in prompt
+    assert "dùng vật sắc/nóng/độc hoặc hóa chất" in prompt
 
 
 def test_worker_rejects_direct_identity_or_artwork_fields():
@@ -182,8 +198,10 @@ def test_worker_parser_accepts_unpunctuated_materials_and_observation_fragments(
     assert parsed["fallback_activities"][0]["observation_notes"] == "Màu sắc, lựa chọn của trẻ"
 
 
-@pytest.mark.parametrize("field", ["instructions_text", "safety_notes"])
-def test_worker_parser_still_rejects_incomplete_core_sentences(field):
+@pytest.mark.parametrize(
+    "field", ["objective", "preparation_text", "instructions_text", "safety_notes"]
+)
+def test_worker_parser_accepts_complete_fields_without_terminal_punctuation(field):
     import json
 
     result = {
@@ -201,10 +219,10 @@ def test_worker_parser_still_rejects_incomplete_core_sentences(field):
         ".!?… "
     )
 
-    with pytest.raises(RuntimeError, match="MODAL_MODEL_OUTPUT_INCOMPLETE_TEXT"):
-        _parse_parent_activity_suggestions(
-            json.dumps(result, ensure_ascii=False), expected_age_band="72-107"
-        )
+    parsed = _parse_parent_activity_suggestions(
+        json.dumps(result, ensure_ascii=False), expected_age_band="72-107"
+    )
+    assert len(parsed["fallback_activities"]) == 3
 
 
 def test_worker_parser_rejects_non_latin_script():
@@ -229,7 +247,7 @@ def test_worker_parser_rejects_non_latin_script():
         )
 
 
-def test_worker_parser_rejects_text_cut_off_mid_sentence():
+def test_worker_parser_accepts_concise_preparation_fragment_without_punctuation():
     import json
 
     result = {
@@ -247,7 +265,9 @@ def test_worker_parser_rejects_text_cut_off_mid_sentence():
         "Người lớn chuẩn bị thẻ ngoài trời"
     )
 
-    with pytest.raises(RuntimeError, match="MODAL_MODEL_OUTPUT_INCOMPLETE_TEXT"):
-        _parse_parent_activity_suggestions(
-            json.dumps(result, ensure_ascii=False), expected_age_band="72-107"
-        )
+    parsed = _parse_parent_activity_suggestions(
+        json.dumps(result, ensure_ascii=False), expected_age_band="72-107"
+    )
+    assert parsed["fallback_activities"][1]["preparation_text"] == (
+        "Người lớn chuẩn bị thẻ ngoài trời"
+    )

@@ -1,16 +1,21 @@
 import React from 'react';
 import { Text, View } from 'react-native';
 import type { ParentCandidate } from '../../domain/types';
-import { Card, Field, Notice, PrimaryButton, ScreenFrame, SectionTitle, palette } from '../components/ui';
+import { Card, Field, Notice, PrimaryButton, ScreenFrame, SecondaryButton, SectionTitle, palette } from '../components/ui';
 
 type Props = {
   candidate: ParentCandidate;
   stepLabel: string;
   subject: string;
+  topicMatch: 'MATCH' | 'MISMATCH' | 'NO_SELECTED_TOPIC';
+  expectedSubject: string;
+  retakeAvailable: boolean;
   busy: boolean;
   error: string;
   onSubject: (value: string) => void;
   onConfirm: () => void;
+  onUseDetected: () => void;
+  onRetake: () => void;
   onBack: () => void;
 };
 
@@ -27,8 +32,14 @@ export function UnderstandingScreen(props: Props): React.JSX.Element {
           {props.candidate.visible_features.length === 0 ? <Text style={{ color: palette.muted, fontSize: 13 }}>AI chưa trả về đặc điểm.</Text> : null}
         </View>
         <Notice text="Bạn có thể sửa tên chủ thể. Bước tiếp theo chỉ chạy sau khi người lớn xác nhận." />
+        {props.topicMatch === 'MISMATCH' ? <Notice
+          text={`Ảnh có vẻ là “${props.candidate.candidate_subject ?? props.subject}”, khác chủ đề đã chọn “${props.expectedSubject}”. Giáo án vẫn được giữ làm tài liệu kiến thức.`}
+          tone="warning"
+        /> : null}
       </Card>
       {props.error ? <Notice text={props.error} tone="error" /> : null}
+      {props.topicMatch === 'MISMATCH' && props.candidate.candidate_subject ? <SecondaryButton label="Chuyển sang chủ thể AI nhận diện" disabled={props.busy} onPress={props.onUseDetected} /> : null}
+      {props.topicMatch === 'MISMATCH' && props.retakeAvailable ? <SecondaryButton label="Chụp lại ảnh một lần" disabled={props.busy} onPress={props.onRetake} /> : null}
       <PrimaryButton label="Xác nhận chủ thể" busy={props.busy} disabled={!props.subject.trim()} onPress={props.onConfirm} />
     </ScreenFrame>
   );

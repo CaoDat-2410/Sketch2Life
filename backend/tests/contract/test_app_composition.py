@@ -32,6 +32,7 @@ def _disable_dotenv_for_composition_tests(monkeypatch: pytest.MonkeyPatch) -> It
     monkeypatch.setitem(Settings.model_config, "env_file", None)
     monkeypatch.setitem(CoreDatabaseSettings.model_config, "env_file", None)
     monkeypatch.setenv("SKETCH2LIFE_ENV", "test")
+    monkeypatch.delenv("SKETCH2LIFE_STORAGE_EXAMPLE_ENABLED", raising=False)
     monkeypatch.setenv("STORYRUN_LITE_MAIN_DEMO_ENABLED", "0")
     monkeypatch.setenv(
         "SKETCH2LIFE_DATABASE_URL", "postgresql+psycopg://localhost:9/s1at_closed"
@@ -112,37 +113,104 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
         f"{upload}/parts/{{part_number}}": ["PUT"],
     }
 
-    # Preserve the full pre-integration route surface while allowing only the
-    # reviewed FEAT-060 classroom and FEAT-063 Lesson Library contracts.
-    assert expected.items() <= actual.items()
-    assert set(actual) - set(expected) == {
-        "/api/be1/v1/classes/{class_id}/assignments",
-        "/api/be1/v1/device-grants/{grant_id}/join-status",
-        "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/completion",
-        "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/learning-stage",
-        "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/learning-stage/advance",
-        "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/outcome",
-        "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/pilot-profiles",
-        "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/room-code/rotate",
-        "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/roster",
-        "/api/be1/v1/room-code/join",
-        "/api/be1/v1/assistance-requests",
-        "/api/be1/v1/assistance-requests/{assistance_id}/cancel",
-        "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/assistance-requests/{assistance_id}/status",
-        "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/teacher/assistance-requests/pending",
-    } | set(lesson_library_methods) | {
-        "/api/auth/v1/registrations",
-        "/api/auth/v1/me",
-        "/api/platform-admin/v1/accounts",
-        "/api/platform-admin/v1/accounts/{account_id}",
-        "/api/parent/v1/ai/sketch-guides",
-        "/api/parent/v1/ai/drawing-understandings",
-        "/api/parent/v1/ai/storyboards",
-        "/api/teacher/v1/organizations/{organization_id}/ai/lesson-plan-suggestions",
-        "/api/teacher/v1/organizations/{organization_id}/ai/sketch-decks",
-        "/api/teacher/v1/organizations/{organization_id}/ai/lesson-visuals",
+    # Preserve the `test` profile's legacy surface and pin every enabled
+    # classroom, Parent, Teacher, account and Lesson Library operation.
+    session_path = "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}"
+    classroom_routes = {
+        "/api/be1/v1/classes/{class_id}/assignments": ["POST"],
+        "/api/be1/v1/device-grants/{grant_id}/join-status": ["POST"],
+        "/api/be1/v1/assistance-requests": ["POST"],
+        "/api/be1/v1/assistance-requests/{assistance_id}/cancel": ["POST"],
+        f"{session_path}/assistance-requests/{{assistance_id}}/status": ["GET"],
+        f"{session_path}/completion": ["POST"],
+        f"{session_path}/learning-stage": ["GET"],
+        f"{session_path}/learning-stage/advance": ["POST"],
+        f"{session_path}/outcome": ["GET"],
+        f"{session_path}/pilot-profiles": ["GET"],
+        f"{session_path}/room-code/rotate": ["POST"],
+        f"{session_path}/roster": ["GET"],
+        f"{session_path}/teacher/assistance-requests/pending": ["GET"],
+        "/api/be1/v1/room-code/join": ["POST"],
     }
+    product_routes = {
+        "/api/auth/v1/me": ["GET"],
+        "/api/auth/v1/registrations": ["POST"],
+        "/api/billing/v1/video-quota": ["GET"],
+        "/api/parent/v1/ai/drawing-understandings": ["POST"],
+        "/api/parent/v1/ai/sketch-guides": ["POST"],
+        "/api/parent/v1/ai/story-runs/{run_id}/activity-suggestions": ["POST"],
+        "/api/parent/v1/ai/story-runs/{run_id}/story-revisions": ["POST"],
+        "/api/parent/v1/child-profiles": ["GET", "POST"],
+        "/api/parent/v1/child-profiles/{parent_profile_id}": ["DELETE", "GET", "PATCH"],
+        "/api/parent/v1/child-profiles/{parent_profile_id}/data-authorizations": ["DELETE", "POST"],
+        "/api/parent/v1/consent-policy": ["GET"],
+        "/api/parent/v1/story-runs": ["GET", "POST"],
+        "/api/parent/v1/story-runs/active/current": ["GET"],
+        "/api/parent/v1/story-runs/{run_id}": ["GET"],
+        "/api/parent/v1/story-runs/{run_id}/story-revision-confirmations": ["POST"],
+        "/api/parent/v1/story-runs/{run_id}/subject-confirmations": ["POST"],
+        "/api/platform-admin/v1/accounts": ["GET", "POST"],
+        "/api/platform-admin/v1/accounts/{account_id}": ["PATCH"],
+        "/api/teacher/v1/organizations/{organization_id}/ai/lesson-plan-suggestions": ["POST"],
+        "/api/teacher/v1/organizations/{organization_id}/ai/lesson-visuals": ["POST"],
+        "/api/teacher/v1/organizations/{organization_id}/ai/sketch-decks": ["POST"],
+        "/api/teacher/v1/organizations/{organization_id}/ai/svg-illustrations": ["POST"],
+    }
+
+    approved_additions = classroom_routes | product_routes | lesson_library_methods
+    assert expected.items() <= actual.items()
+    assert set(actual) - set(expected) == set(approved_additions)
+    assert {path: actual[path] for path in approved_additions} == approved_additions
     assert {path: actual[path] for path in lesson_library_methods} == lesson_library_methods
+
+
+def test_public_openapi_includes_mounted_parent_teacher_workflows_without_video() -> None:
+    application = create_app()
+    spec = application.openapi()
+    paths = spec["paths"]
+
+    expected_operations = {
+        ("get", "/api/auth/v1/me"),
+        ("get", "/api/parent/v1/consent-policy"),
+        ("get", "/api/parent/v1/child-profiles"),
+        ("post", "/api/parent/v1/ai/sketch-guides"),
+        ("post", "/api/parent/v1/ai/drawing-understandings"),
+        ("post", "/api/parent/v1/ai/story-runs/{run_id}/activity-suggestions"),
+        ("post", "/api/parent/v1/ai/story-runs/{run_id}/story-revisions"),
+        ("get", "/api/parent/v1/story-runs"),
+        ("post", "/api/parent/v1/story-runs"),
+        ("get", "/api/billing/v1/video-quota"),
+        (
+            "post",
+            "/api/teacher/v1/organizations/{organization_id}/ai/lesson-plan-suggestions",
+        ),
+        ("post", "/api/teacher/v1/organizations/{organization_id}/ai/sketch-decks"),
+        ("post", "/api/teacher/v1/organizations/{organization_id}/ai/lesson-visuals"),
+        ("post", "/api/teacher/v1/organizations/{organization_id}/ai/svg-illustrations"),
+    }
+    assert all(method in paths[path] for method, path in expected_operations)
+
+    schemas = spec["components"]["schemas"]
+    expected_schemas = {
+        "ParentDrawingAnalysisRequestV1",
+        "ParentActivitySuggestionRequestV1",
+        "ParentActivitySuggestionResponseV2",
+        "ParentStoryRunHistoryPageV1",
+        "TeacherLessonSuggestionRequestV1",
+        "TeacherReviewedPlanRequestV1",
+        "TeacherSvgIllustrationDraftRequestV1",
+        "TeacherSvgIllustrationDraftResponseV1",
+        "SvgDocumentV1",
+    }
+    assert expected_schemas <= set(schemas)
+
+    assert "Not available yet: Parent profile/story/activity" not in spec["info"]["description"]
+    assert "Not available yet: Teacher occurrence, Sketch Deck" not in spec["info"]["description"]
+    assert not any(
+        term in path.casefold()
+        for path in paths
+        for term in ("video-generation", "story-video", "whiteboard-video")
+    )
 
 
 def test_compatibility_app_keeps_be1_and_demo_services_on_app_state() -> None:

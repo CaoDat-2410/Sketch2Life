@@ -58,8 +58,20 @@ _WORKER_DIAGNOSTIC_EVENTS = {
     "story_output_invalid",
     "story_output_truncated",
     "story_output_rejected",
+    "svg_topic_stroke_guide_output_invalid",
+    "svg_topic_stroke_guide_output_truncated",
+    "svg_topic_stroke_guide_output_rejected",
+}
+_WORKER_DIAGNOSTIC_WORKLOADS = {
+    "story_output_invalid": {None, "story.generate"},
+    "story_output_truncated": {None, "story.generate"},
+    "story_output_rejected": {None, "story.generate"},
+    "svg_topic_stroke_guide_output_invalid": {"svg.topic-stroke-guide.generate"},
+    "svg_topic_stroke_guide_output_truncated": {"svg.topic-stroke-guide.generate"},
+    "svg_topic_stroke_guide_output_rejected": {"svg.topic-stroke-guide.generate"},
 }
 _DIAGNOSTIC_INTEGER_FIELDS = {
+    "input_token_count",
     "output_token_count",
     "max_new_tokens",
     "final_token_id",
@@ -67,6 +79,8 @@ _DIAGNOSTIC_INTEGER_FIELDS = {
     "model_eos_token_id",
     "decoded_character_count",
     "json_error_position",
+    "json_error_line",
+    "json_error_column",
     "unterminated_string_character_count",
     "json_root_key_count",
     "callback_calls",
@@ -76,6 +90,12 @@ _DIAGNOSTIC_INTEGER_FIELDS = {
     "max_active_string_limit",
     "unbounded_active_string_calls",
     "force_stop_parser_calls",
+    "generated_special_token_count",
+    "generated_non_eos_special_token_count",
+    "enforcer_decoder_decoded_character_count",
+    "enforcer_decoder_json_error_position",
+    "enforcer_decoder_unterminated_string_character_count",
+    "replay_parser_error_count",
     "story_text_field_metric_count",
 }
 _DIAGNOSTIC_BOOLEAN_FIELDS = {
@@ -84,12 +104,33 @@ _DIAGNOSTIC_BOOLEAN_FIELDS = {
     "json_complete",
     "last_parser_can_end",
     "last_model_eos_allowed",
+    "final_model_eos_was_allowed_at_previous_prefix",
+    "final_model_eos_prefix_parser_can_end",
+    "enforcer_decoder_json_complete",
+    "replay_parser_can_end",
+    "incremental_vs_replay_can_end_mismatch",
+    "replay_parser_diagnostic_error",
     "story_field_diagnostics_available",
 }
 _DIAGNOSTIC_STRING_FIELDS = {
     "json_error_type",
+    "json_error_category",
     "json_root_type",
     "last_parser_state_class",
+    "enforcer_decoder_json_error_type",
+    "enforcer_decoder_json_error_category",
+}
+_SAFE_SVG_GUIDE_JSON_FIELDS = {
+    "schema_version",
+    "title_vi",
+    "view_box",
+    "path_id",
+    "d",
+    "fill",
+    "stroke",
+    "part_id",
+    "label_vi",
+    "instruction_vi",
 }
 _DIAGNOSTIC_FIELD_KEY_COUNTS = {
     "title",
@@ -112,7 +153,7 @@ _LOGGER = get_logger(__name__)
 
 
 def summarize_worker_call_logs(
-    call: Any, *, max_entries: int = 500, max_log_wait_seconds: float = 0.5
+    call: Any, *, max_entries: int = 500, max_log_wait_seconds: float = 5.0
 ) -> dict[str, Any]:
     """Read only structured worker events; tolerate Modal log indexing delay."""
 
@@ -164,7 +205,8 @@ def summarize_worker_call_logs(
                 elif (
                     isinstance(event, dict)
                     and event.get("event") in _WORKER_DIAGNOSTIC_EVENTS
-                    and event.get("workload") in {None, "story.generate"}
+                    and event.get("workload")
+                    in _WORKER_DIAGNOSTIC_WORKLOADS[event["event"]]
                     and isinstance(event.get("reason_code"), str)
                     and _SAFE_LOG_CODE.fullmatch(event["reason_code"])
                 ):
@@ -281,6 +323,9 @@ def _safe_diagnostic_details(event: dict[str, Any]) -> dict[str, Any]:
         value = event.get(key)
         if isinstance(value, str) and re.fullmatch(r"[A-Za-z][A-Za-z0-9_]{0,63}", value):
             details[key] = value
+    active_field = event.get("active_json_string_field")
+    if isinstance(active_field, str) and active_field in _SAFE_SVG_GUIDE_JSON_FIELDS:
+        details["active_json_string_field"] = active_field
     root_type = event.get("json_root_type")
     if isinstance(root_type, str) and root_type in {
         "dict",
@@ -601,7 +646,9 @@ class ModalDrawingFunctionClient:
                 )
                 raise ModalFunctionOutcomeUnknown(call_id) from exc
             except Exception as exc:
-                summary = summarize_worker_call_logs(call)
+                summary = summarize_worker_call_logs(
+                    call, max_log_wait_seconds=10.0
+                )
                 _LOGGER.warning(
                     "modal_worker_wait_failed",
                     modal_call_id=call_id,
@@ -610,6 +657,23 @@ class ModalDrawingFunctionClient:
                     **summary,
                     **_call_identity(prepared.payload),
                 )
+                if summary.get("worker_terminal_event") == "worker_failed":
+                    terminal = True
+                    worker_error_code = summary.get("worker_error_code")
+                    terminal_error_code = (
+                        worker_error_code
+                        if isinstance(worker_error_code, str)
+                        and _SAFE_LOG_CODE.fullmatch(worker_error_code)
+                        else "DRAWING_WORKER_FAILED_TERMINAL"
+                    )
+                    _LOGGER.warning(
+                        "modal_drawing_worker_terminal_failure",
+                        modal_call_id=call_id,
+                        error_code=terminal_error_code,
+                        worker_last_stage=summary.get("worker_last_stage"),
+                        **_call_identity(prepared.payload),
+                    )
+                    raise ModalFunctionExecutionFailed(terminal_error_code) from None
                 if type(exc).__name__ == "RemoteError" and type(exc).__module__.startswith(
                     "modal."
                 ):
@@ -711,11 +775,37 @@ class ModalStoryFunctionClient:
             "adult_confirmed_idea",
             "rewrite_instruction",
             "lesson_direction",
+            "primary_activity",
+            "primary_activity_sha256",
         }
         if not isinstance(worker_input, dict) or set(worker_input) != expected:
             raise ValueError("Modal story request does not match the approved input contract")
+        activity = worker_input.get("primary_activity")
+        activity_fields = {
+            "activity_ref",
+            "title",
+            "objective",
+            "materials_text",
+            "preparation_text",
+            "instructions_text",
+            "observation_notes",
+            "safety_notes",
+            "activity_kind",
+            "source",
+            "source_lesson_id",
+            "source_lesson_title",
+            "source_lesson_version_id",
+            "source_content_sha256",
+            "source_activity_index",
+            "match_reason",
+        }
+        activity_digest = (
+            hashlib.sha256(canonical_json(activity).encode("utf-8")).hexdigest()
+            if isinstance(activity, dict)
+            else ""
+        )
         if (
-            worker_input.get("schema_version") != "sketch2life.story-generation-input.v1"
+            worker_input.get("schema_version") != "sketch2life.story-generation-input.v2"
             or worker_input.get("role") != "PARENT"
             or worker_input.get("language") != "vi"
             or worker_input.get("lesson_direction") is not None
@@ -723,6 +813,29 @@ class ModalStoryFunctionClient:
             or not isinstance(worker_input.get("visible_features"), list)
             or not 36 <= int(worker_input.get("child_age_months", 0)) <= 120
             or worker_input.get("activities") is not None
+            or not isinstance(activity, dict)
+            or set(activity) != activity_fields
+            or activity.get("activity_kind") != "outdoor"
+            or activity.get("source")
+            not in {"PINNED_LESSON", "PUBLISHED_SHARED_LESSON", "AI_GENERATED_DRAFT"}
+            or any(
+                not isinstance(activity.get(field), str) or not activity[field].strip()
+                for field in (
+                    "activity_ref",
+                    "title",
+                    "objective",
+                    "materials_text",
+                    "preparation_text",
+                    "instructions_text",
+                    "observation_notes",
+                    "safety_notes",
+                )
+            )
+            or len(activity.get("instructions_text", "")) < 16
+            or len(activity.get("safety_notes", "")) < 8
+            or not isinstance(worker_input.get("primary_activity_sha256"), str)
+            or not _SHA256.fullmatch(worker_input["primary_activity_sha256"])
+            or activity_digest != worker_input["primary_activity_sha256"]
         ):
             raise ValueError("Modal story request violates Parent role or SRS limits")
         request_bytes = canonical_json(worker_input).encode("utf-8")
@@ -977,6 +1090,16 @@ _JSON_WORKERS: dict[str, tuple[str, str, int]] = {
     "teacher.sketch-deck.generate": (
         "sketch2life-srs23-language-audio-dev",
         "generate-teacher-sketch-deck",
+        1_800,
+    ),
+    "teacher.svg-illustration.generate": (
+        "sketch2life-srs23-language-audio-dev",
+        "generate-teacher-svg-illustration-draft",
+        1_800,
+    ),
+    "svg.topic-stroke-guide.generate": (
+        "sketch2life-srs23-language-audio-dev",
+        "generate-topic-svg-stroke-guide-draft",
         1_800,
     ),
     "lesson.visual.generate": (

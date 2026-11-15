@@ -14,6 +14,7 @@ from uuid import uuid4
 from fastapi import FastAPI, Request
 from fastapi.exception_handlers import http_exception_handler
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
@@ -90,6 +91,12 @@ from sketch2life.infrastructure.catalog.workflow_metadata import FileWorkflowCat
 from sketch2life.infrastructure.config.settings import Settings, get_settings
 from sketch2life.infrastructure.documents.clamav_scanner import ClamAvScanner
 from sketch2life.infrastructure.documents.lesson_parser import DeterministicLessonDocumentParser
+from sketch2life.infrastructure.local_demo.parent_activity_suggestion_store import (
+    InMemoryParentActivitySuggestionStore,
+)
+from sketch2life.infrastructure.local_demo.parent_activity_suggestion_store import (
+    InMemoryParentActivitySuggestionStore,
+)
 from sketch2life.infrastructure.identity.firebase_admin_account_provisioner import (
     FirebaseAdminAccountProvisioner,
 )
@@ -111,10 +118,10 @@ from sketch2life.infrastructure.storage.in_memory_auto_rig_grants import (
 )
 from sketch2life.infrastructure.storage.s3_compatible import Boto3S3CompatibleObjectStorage
 from sketch2life.infrastructure.story_run_lite.composition import runtime_lifespan
-from sketch2life.interfaces.http.be1_runtime import build_be1_runtime
 from sketch2life.infrastructure.vision_analysis.pilot_composition import (
     build_default_pilot_vision,
 )
+from sketch2life.interfaces.http.be1_runtime import build_be1_runtime
 from sketch2life.interfaces.http.demo_composition import (
     build_demo_stores,
     build_ephemeral_session_service,
@@ -141,8 +148,8 @@ from sketch2life.interfaces.http.router_composition import (
     mount_classroom_routers,
     mount_demo_routers,
 )
-from sketch2life.interfaces.http.routers.storage_examples import router as storage_examples_router
 from sketch2life.interfaces.http.routers.auth_registration import RegistrationRateLimiter
+from sketch2life.interfaces.http.routers.storage_examples import router as storage_examples_router
 from sketch2life.interfaces.http.routers.story_run_lite import router as story_run_lite_router
 from sketch2life.interfaces.http.routers.story_run_lite import (
     story_error_response,
@@ -152,6 +159,30 @@ from sketch2life.interfaces.http.routers.story_run_lite import (
 from sketch2life.interfaces.http.story_run_lite_contract import add_story_run_lite_contract
 
 _LOGGER = logging.getLogger("sketch2life.api")
+
+_LOCAL_WEB_CORS_ORIGIN_REGEX = r"^http://(?:localhost|127\.0\.0\.1)(?::[0-9]{1,5})?$"
+_LOCAL_WEB_CORS_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
+_LOCAL_WEB_CORS_HEADERS = [
+    "Accept",
+    "Authorization",
+    "Content-Type",
+    "Idempotency-Key",
+    "X-Request-ID",
+]
+
+
+def _configure_local_web_cors(application: FastAPI, environment: str) -> None:
+    """Allow local web clients without broadening deployed CORS origins."""
+    if environment not in {"local", "test"}:
+        return
+    application.add_middleware(
+        CORSMiddleware,
+        allow_origins=[],
+        allow_origin_regex=_LOCAL_WEB_CORS_ORIGIN_REGEX,
+        allow_credentials=True,
+        allow_methods=_LOCAL_WEB_CORS_METHODS,
+        allow_headers=_LOCAL_WEB_CORS_HEADERS,
+    )
 _SAFE_ID = re.compile(r"^[A-Za-z0-9._:-]{1,120}$")
 
 
@@ -525,6 +556,8 @@ def create_app(
             storage_example_settings.storage_example_max_upload_bytes + 64 * 1024
         ),
     )
+    # Add last so CORS wraps request-context, safety and upload middleware responses.
+    _configure_local_web_cors(application, storage_example_settings.env)
     scene_localizer = None
     pixi_show_planner_required = False
     if _composition_profile != "classroom" and session_service is None:
@@ -733,6 +766,8 @@ def create_app(
         )
     application.state.whiteboard_video_job_service = whiteboard_video_job_service
     application.state.story_video_job_service = story_video_job_service or StoryVideoJobService()
+    application.state.parent_activity_suggestion_store = InMemoryParentActivitySuggestionStore()
+    application.state.parent_activity_suggestion_store = InMemoryParentActivitySuggestionStore()
     application.state.storage_example_service = None
     application.state.be1_runtime = build_be1_runtime(
         get_settings(), pilot_vision_factory=build_default_pilot_vision

@@ -33,6 +33,7 @@ export type AppStep =
   | 'lesson-history'
   | 'lesson-library'
   | 'topic'
+  | 'sketch-guide'
   | 'lessons'
   | 'capture'
   | 'context'

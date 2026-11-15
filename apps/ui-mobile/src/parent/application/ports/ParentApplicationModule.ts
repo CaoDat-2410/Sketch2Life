@@ -7,6 +7,7 @@ import type { ParentPlatformUseCases } from '../use-cases/ParentPlatformUseCases
 /** Public application boundary passed from the Expo composition root. */
 export interface ParentApplicationModule {
   publicSettings: {
+    firebaseAppId: string;
     googleAndroidClientId: string;
     googleWebClientId: string;
   };

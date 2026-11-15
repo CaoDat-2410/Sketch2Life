@@ -1,4 +1,4 @@
-"""FE-facing OpenAPI projection for the owner-selected SRS v2.2 scope."""
+"""FE-facing OpenAPI projection for mounted workflow APIs and legacy BE1 contracts."""
 
 from __future__ import annotations
 
@@ -148,18 +148,70 @@ SRS_V22_TAGS: list[dict[str, str]] = [
 
 SRS_V22_OPENAPI_DESCRIPTION = "\n\n".join(
     (
-        "Implemented FE APIs aligned to SRS v2.2: organization, class, profile, consent, and "
-        "Teacher lesson preparation.",
-        "Bearer authentication and role/resource access are checked per operation.",
-        "Not available yet: Parent profile/story/activity; Teacher occurrence, Sketch Deck, "
-        "sample video; job/playback; quota/payment; notifications.",
-        "SRS §9.6 lists proposed routes. This page documents current backend paths only.",
+        "Current API operations mounted by this backend build, with request and response "
+        "schemas generated from the registered handlers.",
+        "Bearer authentication and role/resource access are enforced per operation where "
+        "required. This document describes the implemented API surface; it is not the "
+        "canonical product SRS.",
+        "Video-generation operations are excluded from this non-video workflow contract.",
     )
 )
 
+_ACTIVE_WORKFLOW_PREFIXES: tuple[str, ...] = (
+    "/api/auth/v1/",
+    "/api/parent/v1/",
+    "/api/teacher/v1/",
+    "/api/billing/v1/",
+    "/api/lesson-library/v1/",
+    "/api/svg-catalog/v1/",
+)
+_HTTP_METHODS = frozenset({"get", "post", "put", "patch", "delete", "options", "head"})
+
+ACTIVE_WORKFLOW_TAGS: list[dict[str, str]] = [
+    {"name": "Authentication", "description": "Resolve and register authenticated accounts."},
+    {"name": "Parent — Profiles & Consent", "description": "Manage owned child profiles and data authorization."},
+    {"name": "Parent — AI", "description": "Generate optional sketch guides and Parent learning drafts."},
+    {"name": "Parent — StoryRuns", "description": "Create, review, resume, and list Parent learning runs."},
+    {"name": "Parent — Quota", "description": "Read the Parent's available video quota."},
+    {"name": "Teacher — AI", "description": "Generate lesson-plan, sketch-deck, and visual drafts from reviewed Teacher input."},
+    {"name": "Lesson Library", "description": "Manage, discover, and share versioned lessons."},
+    {"name": "SVG Illustration & Stroke Guides", "description": "Manage provenance-tracked SVG references, progressive drawing guides, educator reviews, and platform curation."},
+]
+
+
+def _workflow_tag(path: str) -> str:
+    if path.startswith("/api/auth/v1/"):
+        return "Authentication"
+    if path.startswith("/api/parent/v1/ai/"):
+        return "Parent — AI"
+    if "/story-runs" in path:
+        return "Parent — StoryRuns"
+    if path.startswith("/api/parent/v1/"):
+        return "Parent — Profiles & Consent"
+    if path.startswith("/api/billing/v1/"):
+        return "Parent — Quota"
+    if path.startswith("/api/teacher/v1/"):
+        return "Teacher — AI"
+    if path.startswith("/api/svg-catalog/v1/"):
+        return "SVG Illustration & Stroke Guides"
+    return "Lesson Library"
+
+
+def _is_video_generation_operation(path: str, operation: Any) -> bool:
+    if path.startswith("/api/billing/v1/") and "quota" in path.casefold():
+        return False
+    path_text = path.casefold()
+    operation_text = " ".join(
+        str(operation.get(key, "")) for key in ("summary", "operationId")
+    ).casefold()
+    return "video" in path_text or any(
+        term in operation_text
+        for term in ("generate video", "video generation", "story video", "whiteboard video")
+    )
+
 
 def project_srs_v22_openapi(runtime_spec: dict[str, Any]) -> dict[str, Any]:
-    """Return only the explicit SRS v2.2-related implemented operations."""
+    """Project active workflow routes plus the existing explicit BE1 contract surface."""
     spec = deepcopy(runtime_spec)
     published: dict[str, dict[str, Any]] = {}
     for path, path_item in spec.get("paths", {}).items():
@@ -172,10 +224,23 @@ def project_srs_v22_openapi(runtime_spec: dict[str, Any]) -> dict[str, Any]:
             retained[method] = operation
         if retained:
             published[path] = retained
+    for path, path_item in spec.get("paths", {}).items():
+        if not path.startswith(_ACTIVE_WORKFLOW_PREFIXES) or not isinstance(path_item, dict):
+            continue
+        retained = published.setdefault(path, {})
+        for method, operation in path_item.items():
+            if method.lower() not in _HTTP_METHODS or not isinstance(operation, dict):
+                continue
+            if _is_video_generation_operation(path, operation):
+                continue
+            operation["tags"] = [_workflow_tag(path)]
+            retained[method] = operation
+        if not retained:
+            published.pop(path, None)
     spec["paths"] = published
     spec["info"]["title"] = "Sketch2Life FE API"
     spec["info"]["description"] = SRS_V22_OPENAPI_DESCRIPTION
-    spec["tags"] = deepcopy(SRS_V22_TAGS)
+    spec["tags"] = deepcopy(SRS_V22_TAGS + ACTIVE_WORKFLOW_TAGS)
     schemas = spec.get("components", {}).get("schemas", {})
     if isinstance(schemas, dict) and "Be1Error" in schemas:
         schemas["ApiError"] = schemas.pop("Be1Error")

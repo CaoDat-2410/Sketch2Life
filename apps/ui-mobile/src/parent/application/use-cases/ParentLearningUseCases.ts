@@ -1,4 +1,4 @@
-import type { AudioUploadInput, ParentApiPort, ParentDrawingMediaType, StoryRunCreateInput } from '../ports/ParentPorts';
+import type { AudioUploadInput, ParentApiPort, ParentDrawingMediaType, PrimaryActivitySelection, StoryRunCreateInput } from '../ports/ParentPorts';
 import type { LessonDetail, ParentProfile } from '../../domain/types';
 import { ParentApplicationError } from '../ParentApplicationError';
 
@@ -8,6 +8,7 @@ export class ParentLearningUseCases {
   getActiveRun() { return this.api.getActiveStoryRun(); }
   getRun(runId: string) { return this.api.getStoryRun(runId); }
   generateSketchGuide(topic: string) { return this.api.generateSketchGuide(topic); }
+  listSvgGuides(topicKey?: string) { return this.api.listSvgGuides(topicKey); }
   createRunForDrawing(input: {
     profile: ParentProfile;
     policyVersion: string;
@@ -37,19 +38,28 @@ export class ParentLearningUseCases {
     };
     return this.api.createStoryRun(request);
   }
-  understandDrawing(runId: string, imageBase64: string, mediaType: ParentDrawingMediaType) {
-    return this.api.analyzeDrawing(runId, imageBase64, mediaType);
+  understandDrawing(runId: string, imageBase64: string, mediaType: ParentDrawingMediaType, inputRevision: number, replaceExisting = false) {
+    return this.api.analyzeDrawing(runId, imageBase64, mediaType, inputRevision, replaceExisting);
   }
   confirmSubject(runId: string, revision: number, subject: string) {
     if (!subject.trim()) throw new ParentApplicationError('PARENT_SUBJECT_REQUIRED', 'Xác nhận chủ thể của bức vẽ trước.');
     return this.api.confirmSubject(runId, revision, subject);
   }
   suggestActivities(runId: string, revision: number) { return this.api.suggestActivities(runId, revision); }
-  generateStory(runId: string, revision: number, rewriteInstruction?: string, rewriteCount = 0) {
+  generateStory(
+    runId: string,
+    revision: number,
+    primaryActivity?: PrimaryActivitySelection,
+    rewriteInstruction?: string,
+    rewriteCount = 0,
+  ) {
     if (rewriteInstruction?.trim() && rewriteCount >= 3) {
       throw new ParentApplicationError('PARENT_STORY_REWRITE_LIMIT', 'Đã dùng hết 3 lượt gợi ý viết lại.');
     }
-    return this.api.generateStory(runId, revision, rewriteInstruction);
+    if (!rewriteInstruction?.trim() && (!primaryActivity?.requestId || !primaryActivity.activityRef)) {
+      throw new ParentApplicationError('PARENT_PRIMARY_ACTIVITY_REQUIRED', 'Chọn một hoạt động chính trước khi tạo kịch bản.');
+    }
+    return this.api.generateStory(runId, revision, primaryActivity, rewriteInstruction);
   }
   confirmStory(runId: string, revision: number, sha256: string) {
     return this.api.confirmStory(runId, revision, sha256);

@@ -21,6 +21,7 @@ import type {
   StoryRun,
   SuggestedActivity,
 } from '../../domain/types';
+import type { ParentSvgGuidePageV1, SvgTopicStrokeGuideDraftV1 } from '../../domain/svgGuide';
 
 export interface ParentIdentityPort {
   currentUser(): Promise<ParentUser | null>;
@@ -37,6 +38,10 @@ export interface AuthTokenPort {
 }
 
 export type ParentDrawingMediaType = 'image/jpeg' | 'image/png';
+export type PrimaryActivitySelection = {
+  requestId: string;
+  activityRef: string;
+};
 
 export interface ParentApiPort {
   getConsentPolicy(): Promise<{ request_id: string; policy: ConsentPolicy }>;
@@ -60,10 +65,15 @@ export interface ParentApiPort {
   acceptParentGroupInvitation(membershipId: string): Promise<unknown>;
   generateSketchGuide(topic: string): Promise<SketchGuideResult>;
   createStoryRun(input: StoryRunCreateInput): Promise<{ request_id: string; story_run: StoryRun }>;
-  analyzeDrawing(storyRunId: string, imageBase64: string, mediaType: ParentDrawingMediaType): Promise<DrawingUnderstandingResult>;
+  analyzeDrawing(storyRunId: string, imageBase64: string, mediaType: ParentDrawingMediaType, inputRevision: number, replaceExisting?: boolean): Promise<DrawingUnderstandingResult>;
   confirmSubject(storyRunId: string, revision: number, subject: string): Promise<SubjectConfirmationResult>;
   suggestActivities(storyRunId: string, revision: number): Promise<ActivitySuggestionResult>;
-  generateStory(storyRunId: string, revision: number, rewriteInstruction?: string): Promise<StoryGenerationResult>;
+  generateStory(
+    storyRunId: string,
+    revision: number,
+    primaryActivity?: PrimaryActivitySelection,
+    rewriteInstruction?: string,
+  ): Promise<StoryGenerationResult>;
   confirmStory(storyRunId: string, revision: number, sha256: string): Promise<{ request_id: string; story_run: StoryRun }>;
   transcribeAudio(storyRunId: string, audio: AudioUploadInput): Promise<ParentAudioTranscription>;
   confirmTranscript(storyRunId: string, revision: number, transcriptText: string): Promise<ParentTranscriptConfirmation>;
@@ -77,6 +87,7 @@ export interface ParentApiPort {
   listNotifications(cursor?: string | null): Promise<ParentNotificationPage>;
   markNotificationRead(notificationId: string): Promise<ParentNotification>;
   getVideoQuota(): Promise<ParentVideoQuota>;
+  listSvgGuides(topicKey?: string): Promise<ParentSvgGuidePageV1>;
 }
 
 export type ProfileCreateInput = {
@@ -111,15 +122,7 @@ export type StoryRunCreateInput = {
   lesson_version_id?: string;
 };
 
-export type SketchGuideResult = {
-  request_id: string;
-  modal_call_id?: string;
-  status: string;
-  review_required: true;
-  model?: { id: string; revision: string };
-  image_base64: string;
-  asset?: Record<string, unknown>;
-};
+export type SketchGuideResult = SvgTopicStrokeGuideDraftV1;
 
 export type DrawingUnderstandingResult = {
   request_id: string;
@@ -127,6 +130,7 @@ export type DrawingUnderstandingResult = {
   candidate?: ParentCandidate;
   run_input_revision?: number;
   understanding_revision?: number;
+  artwork_retake_available?: boolean;
 };
 
 export type SubjectConfirmationResult = {

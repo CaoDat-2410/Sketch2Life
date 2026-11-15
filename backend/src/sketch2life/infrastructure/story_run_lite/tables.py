@@ -308,7 +308,8 @@ run_inputs = Table(
     Column("context_revision", Integer),
     Column("context_snapshot", JSONB),
     Column("context_snapshot_sha256", String(64)),
-    Column("lesson_pin_snapshot", JSONB),
+    # The database check distinguishes SQL NULL (no pinned lesson) from JSON null.
+    Column("lesson_pin_snapshot", JSONB(none_as_null=True)),
     Column("lesson_pin_snapshot_sha256", String(64)),
     Column("context_confirmed_by", String(256)),
     Column("context_confirmed_at", DateTime(timezone=True)),

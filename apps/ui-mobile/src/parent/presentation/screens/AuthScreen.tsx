@@ -6,6 +6,7 @@ import { GoogleSignInButton } from '../components/GoogleSignInButton';
 type Props = {
   busy: boolean;
   error: string;
+  firebaseAppId: string;
   googleAndroidClientId: string;
   googleWebClientId: string;
   onSignIn: (email: string, password: string) => Promise<void>;
@@ -14,7 +15,7 @@ type Props = {
   onGoogleSignIn: (idToken: string) => Promise<void>;
 };
 
-export function AuthScreen({ busy, error, googleAndroidClientId, googleWebClientId, onSignIn, onSignUp, onReset, onGoogleSignIn }: Props): React.JSX.Element {
+export function AuthScreen({ busy, error, firebaseAppId, googleAndroidClientId, googleWebClientId, onSignIn, onSignUp, onReset, onGoogleSignIn }: Props): React.JSX.Element {
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -35,6 +36,7 @@ export function AuthScreen({ busy, error, googleAndroidClientId, googleWebClient
           </View>
           <Field label="Email" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" autoComplete="email" />
           <Field label="Mật khẩu" value={password} onChangeText={setPassword} secureTextEntry autoComplete={mode === 'signin' ? 'current-password' : 'new-password'} />
+          {!firebaseAppId ? <Notice text="Thiếu Firebase App ID. Kiểm tra VITE_FIREBASE_APP_ID trong .env gốc rồi khởi động lại Expo." tone="warning" /> : null}
           {error ? <Notice text={error} tone="error" /> : feedback ? <Notice text={feedback} tone={feedbackTone} /> : null}
           <PrimaryButton label={mode === 'signin' ? 'Đăng nhập' : 'Tạo tài khoản phụ huynh'} busy={busy} disabled={!email.trim() || password.length < 6} onPress={() => { if (__DEV__) console.info('parent_auth_submit_pressed'); void (mode === 'signin' ? onSignIn(email, password) : onSignUp(email, password)); }} />
           {mode === 'signin' ? <Text onPress={() => {

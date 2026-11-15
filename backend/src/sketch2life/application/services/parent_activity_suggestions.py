@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 import re
 import unicodedata
 from collections.abc import Mapping, Sequence
@@ -52,7 +54,7 @@ _INTEREST_TAG_ALIASES: dict[str, tuple[str, ...]] = {
 _UNSAFE_PATTERNS = tuple(
     re.compile(pattern)
     for pattern in (
-        r"\b(?:keo sac|hoa chat|thuoc tru sau|o dien|day dien|bep gas)\b",
+        r"\b(?:keo(?: sac)?|dao|vat sac|hoa chat|thuoc tru sau|o dien|day dien|bep gas)\b",
         r"\b(?:nuoc sau|song sau|bien dong|ho sau|kenh nuoc)\b",
         r"\b(?:leo len|treo len)\s+(?:cay|tuong|hang rao|mai nha)\b",
         r"\b(?:ra|bang qua)\s+(?:duong lon|duong xe|pho dong)\b",
@@ -67,7 +69,8 @@ _UNSAFE_FIRE_ACTION = re.compile(
 _NEGATION = re.compile(r"\b(?:khong|tranh|khong duoc|khong nen)\b")
 _OUTDOOR_MARKERS = (
     "ngoai troi", "san truong", "san nha", "vuon", "cong vien", "bai co",
-    "thien nhien", "khuon vien", "hien nha",
+    "thien nhien", "khuon vien", "hien nha", "san choi", "vuon truong",
+    "khu vui choi", "bong cay", "loi di trong vuon",
 )
 _CHILD_AGENCY_MARKERS = (
     "tre tu chon", "tre co the chon", "tre duoc chon", "tre tu quan sat",
@@ -84,7 +87,6 @@ _MONTESSORI_EXPLORATION_MARKERS = (
     "quan sat", "thu nghiem", "kham pha", "so sanh", "phan loai", "tim hieu",
 )
 _SAFETY_MARKERS = ("khong", "tranh", "an toan", "giam sat", "dam bao")
-_SENTENCE_ENDINGS = (".", "!", "?", "…", "。", "！", "？")
 
 
 class ParentActivitySuggestionError(ValueError):
@@ -100,11 +102,13 @@ class PreparedParentActivitySuggestion:
     candidates_by_ref: Mapping[str, _EligibleCandidate]
     context_terms: frozenset[str]
     candidate_count: int
+    excluded_activity_texts: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
 class _EligibleCandidate:
     candidate_ref: str
+    activity_ref: str
     lesson_id: str
     lesson_title: str
     lesson_topic: str
@@ -128,6 +132,17 @@ def _tokens(value: str) -> set[str]:
         for token in re.findall(r"[a-z0-9]+", _fold(value))
         if len(token) > 1 and token not in _STOP_WORDS
     }
+
+
+def _catalog_activity_ref(
+    lesson_id: str, version_id: str, content_sha256: str, activity_index: int
+) -> str:
+    canonical = json.dumps(
+        [lesson_id, version_id, content_sha256, activity_index],
+        ensure_ascii=False,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return f"catalog_{hashlib.sha256(canonical).hexdigest()[:32]}"
 
 
 def _contains_non_latin_letter(value: str) -> bool:
@@ -280,8 +295,14 @@ def _lesson_from_pin(pin: Mapping[str, Any]) -> ParentActivityLesson:
 
 
 class ParentActivitySuggestionService:
-    def __init__(self, catalog: ParentActivityCatalogPort) -> None:
+    def __init__(
+        self,
+        catalog: ParentActivityCatalogPort,
+        *,
+        soft_quality_gate_enabled: bool = True,
+    ) -> None:
         self._catalog = catalog
+        self._soft_quality_gate_enabled = soft_quality_gate_enabled
 
     def prepare(
         self,
@@ -291,6 +312,8 @@ class ParentActivitySuggestionService:
         subject_label: str,
         visible_features: Sequence[str],
         pinned_lesson_snapshot: Mapping[str, Any] | None,
+        excluded_activity_refs: Sequence[str] = (),
+        excluded_activities: Sequence[Mapping[str, Any]] = (),
     ) -> PreparedParentActivitySuggestion:
         age_months = context_snapshot.get("age_months")
         if isinstance(age_months, bool) or not isinstance(age_months, int):
@@ -367,6 +390,14 @@ class ParentActivitySuggestionService:
                 activity = _is_renderable_activity(raw_activity)
                 if activity is None:
                     continue
+                activity_ref = _catalog_activity_ref(
+                    lesson.lesson_id,
+                    lesson.version_id,
+                    lesson.content_sha256,
+                    activity_index,
+                )
+                if activity_ref in excluded_activity_refs:
+                    continue
                 searchable = " ".join(
                     (
                         lesson.topic,
@@ -389,6 +420,7 @@ class ParentActivitySuggestionService:
                     score += 3
                 candidate = _EligibleCandidate(
                     candidate_ref="",
+                    activity_ref=activity_ref,
                     lesson_id=lesson.lesson_id,
                     lesson_title=lesson.title,
                     lesson_topic=lesson.topic,
@@ -416,6 +448,7 @@ class ParentActivitySuggestionService:
             candidate_ref = f"C{index:03d}"
             bound = _EligibleCandidate(
                 candidate_ref=candidate_ref,
+                activity_ref=candidate.activity_ref,
                 lesson_id=candidate.lesson_id,
                 lesson_title=candidate.lesson_title,
                 lesson_topic=candidate.lesson_topic,
@@ -448,12 +481,20 @@ class ParentActivitySuggestionService:
             profile_interest_tags=profile_tags,
             narration_interest_tags=narration_tags,
             candidate_activities=worker_candidates,
+            excluded_activities=[
+                _bounded_worker_activity(activity)
+                for activity in excluded_activities[:8]
+            ],
         ).model_dump(mode="json")
         return PreparedParentActivitySuggestion(
             worker_input=worker_input,
             candidates_by_ref=candidates_by_ref,
             context_terms=frozenset(context_terms),
             candidate_count=len(worker_candidates),
+            excluded_activity_texts=tuple(
+                _fold(" ".join(str(value) for value in activity.values()))
+                for activity in excluded_activities[:8]
+            ),
         )
 
     def resolve(
@@ -484,6 +525,7 @@ class ParentActivitySuggestionService:
                 activities.append(
                     ParentSuggestedActivityV2(
                         **candidate.activity,
+                        activity_ref=candidate.activity_ref,
                         source=(
                             "PINNED_LESSON"
                             if candidate.source == "PINNED_LESSON"
@@ -504,10 +546,13 @@ class ParentActivitySuggestionService:
                 age_band=prepared.worker_input["age_band_months"],
                 context_terms=prepared.context_terms,
                 candidates=prepared.candidates_by_ref.values(),
+                excluded_activity_texts=prepared.excluded_activity_texts,
+                soft_quality_gate_enabled=self._soft_quality_gate_enabled,
             )
             activities = [
                 ParentSuggestedActivityV2(
                     **item.model_dump(mode="json"),
+                    activity_ref=f"draft_{request_id}_{index + 1:03d}",
                     source="AI_GENERATED_DRAFT",
                     source_lesson_id=None,
                     source_lesson_title=None,
@@ -516,7 +561,7 @@ class ParentActivitySuggestionService:
                     source_activity_index=None,
                     match_reason=result.no_match_reason.strip(),
                 )
-                for item in result.fallback_activities
+                for index, item in enumerate(result.fallback_activities)
             ]
             selection_mode = "AI_GENERATED_FALLBACK"
 
@@ -539,6 +584,8 @@ class ParentActivitySuggestionService:
         age_band: str,
         context_terms: frozenset[str],
         candidates: Sequence[_EligibleCandidate],
+        excluded_activity_texts: Sequence[str] = (),
+        soft_quality_gate_enabled: bool = True,
     ) -> None:
         def reject(reason: str) -> None:
             raise ParentActivitySuggestionError(
@@ -554,6 +601,28 @@ class ParentActivitySuggestionService:
             _fold(" ".join(candidate.activity.values()))
             for candidate in candidates
         ]
+        set_text = _fold(
+            " ".join(
+                " ".join(
+                    (
+                        activity.title,
+                        activity.objective,
+                        activity.materials_text,
+                        activity.preparation_text,
+                        activity.instructions_text,
+                        activity.observation_notes,
+                        activity.safety_notes,
+                    )
+                )
+                for activity in activities
+            )
+        )
+        set_guidance_text = _fold(
+            " ".join(
+                " ".join((activity.preparation_text, activity.instructions_text))
+                for activity in activities
+            )
+        )
         for activity in activities:
             text = " ".join(
                 (
@@ -570,9 +639,6 @@ class ParentActivitySuggestionService:
             instructions = _fold(
                 " ".join((activity.instructions_text, activity.preparation_text))
             )
-            adult_role = _fold(
-                " ".join((activity.instructions_text, activity.preparation_text))
-            )
             materials_and_steps = _fold(
                 " ".join(
                     (
@@ -584,56 +650,56 @@ class ParentActivitySuggestionService:
             )
             safety = _fold(activity.safety_notes)
             title_key = " ".join(sorted(_tokens(activity.title)))
-            if any(
-                value.strip() and not value.strip().endswith(_SENTENCE_ENDINGS)
-                for value in (
-                    activity.objective,
-                    activity.preparation_text,
-                    activity.instructions_text,
-                    activity.safety_notes,
-                )
-            ):
-                reject("ACTIVITY_TEXT_INCOMPLETE")
             if activity.activity_kind != "outdoor":
                 reject("ACTIVITY_NOT_OUTDOOR")
-            if len(activity.instructions_text.strip()) < 40:
+            # Short, clear Vietnamese fragments are acceptable when their meaning
+            # and the separate safety/adult-support checks remain explicit.
+            if len(activity.instructions_text.strip()) < 16:
                 reject("ACTIVITY_INSTRUCTIONS_TOO_SHORT")
-            if len(activity.safety_notes.strip()) < 12:
+            if len(activity.safety_notes.strip()) < 8:
                 reject("SAFETY_NOTE_TOO_SHORT")
             if not any(marker in instructions for marker in _OUTDOOR_MARKERS):
                 reject("OUTDOOR_SETTING_NOT_EXPLICIT")
-            if not any(marker in instructions for marker in _CHILD_AGENCY_MARKERS):
-                reject("CHILD_AGENCY_NOT_EXPLICIT")
-            if not any(
-                marker in instructions for marker in _MONTESSORI_EXPLORATION_MARKERS
-            ):
-                reject("EXPLORATION_NOT_EXPLICIT")
-            if not any(marker in adult_role for marker in _ADULT_SUPPORT_MARKERS):
-                reject("ADULT_SUPPORT_NOT_EXPLICIT")
             if not any(marker in safety for marker in _SAFETY_MARKERS):
                 reject("SAFETY_NOTE_MISSING")
             if _contains_unsafe_action(materials_and_steps):
                 reject("UNSAFE_ACTION_TEXT")
-            if not (context_terms & _tokens(text)):
-                reject("ACTIVITY_CONTEXT_MISMATCH")
-            if not title_key or title_key in normalized_titles:
-                reject("ACTIVITY_TITLE_DUPLICATE")
             if _PII_EMAIL.search(text) or _PII_PHONE.search(text) or _PII_URL.search(text):
                 reject("PERSONAL_CONTACT_DATA_PRESENT")
             if _contains_non_latin_letter(text):
                 reject("NON_VIETNAMESE_SCRIPT")
-            if any(
-                SequenceMatcher(None, folded, prior).ratio() >= 0.78
-                for prior in combined_texts
-            ):
-                reject("ACTIVITIES_TOO_SIMILAR")
-            if any(
-                SequenceMatcher(None, folded, prior).ratio() >= 0.82
-                for prior in candidate_texts
-            ):
-                reject("DUPLICATES_CATALOG_ACTIVITY")
+            if soft_quality_gate_enabled:
+                if not (context_terms & _tokens(text)):
+                    reject("ACTIVITY_CONTEXT_MISMATCH")
+                if not title_key or title_key in normalized_titles:
+                    reject("ACTIVITY_TITLE_DUPLICATE")
+                if any(
+                    SequenceMatcher(None, folded, prior).ratio() >= 0.88
+                    for prior in combined_texts
+                ):
+                    reject("ACTIVITIES_TOO_SIMILAR")
+                if any(
+                    SequenceMatcher(None, folded, prior).ratio() >= 0.90
+                    for prior in excluded_activity_texts
+                ):
+                    reject("REPLACEMENT_DUPLICATES_EXCLUDED_ACTIVITY")
+                if any(
+                    SequenceMatcher(None, folded, prior).ratio() >= 0.90
+                    for prior in candidate_texts
+                ):
+                    reject("DUPLICATES_CATALOG_ACTIVITY")
             normalized_titles.add(title_key)
             combined_texts.append(folded)
+        if soft_quality_gate_enabled and not any(
+            marker in set_text for marker in _CHILD_AGENCY_MARKERS
+        ):
+            reject("CHILD_AGENCY_NOT_EXPLICIT")
+        if soft_quality_gate_enabled and not any(
+            marker in set_text for marker in _MONTESSORI_EXPLORATION_MARKERS
+        ):
+            reject("EXPLORATION_NOT_EXPLICIT")
+        if not any(marker in set_guidance_text for marker in _ADULT_SUPPORT_MARKERS):
+            reject("ADULT_SUPPORT_NOT_EXPLICIT")
 
 
 __all__ = [

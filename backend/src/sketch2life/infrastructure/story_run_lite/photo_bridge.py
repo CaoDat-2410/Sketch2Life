@@ -40,6 +40,7 @@ from sketch2life.domain.vision_analysis import document_sha256
 from sketch2life.infrastructure.ai.lightning_vision_v2 import LightningVisionV2Adapter
 from sketch2life.infrastructure.ai.modal_function_client import (
     ModalDrawingFunctionClient,
+    ModalFunctionExecutionFailed,
     ModalFunctionOutcomeUnknown,
     ModalFunctionResult,
     PreparedDrawingInput,
@@ -344,6 +345,27 @@ class PhotoVisionBridge:
             provider_invoked=was_sent or prior_outcome_unknown,
         )
 
+    @staticmethod
+    def _confirmed_terminal_failure(
+        guard: InvocationLedgerGuard, code: str
+    ) -> VisionAttemptResult:
+        safe_suffix = (
+            code
+            if re.fullmatch(r"[A-Z][A-Z0-9_]{2,56}", code)
+            else "WORKER_FAILED_TERMINAL"
+        )
+        if not guard.finalize(InvocationTerminalState.FAILED):
+            return VisionAttemptResult(
+                state="UNKNOWN",
+                error_code="VISION_LEDGER_FINALIZATION_UNKNOWN",
+                provider_invoked=True,
+            )
+        return VisionAttemptResult(
+            state="FAILED",
+            error_code=f"VISION_{safe_suffix}",
+            provider_invoked=True,
+        )
+
 
 def _subject_projection(result: VisionUnderstandingSuccessV2) -> tuple[str, float]:
     candidates: list[EntityCandidateV1 | ActionCandidateV1 | ThemeCandidateV1] = [
@@ -446,6 +468,8 @@ class ModalFunctionPhotoVisionBridge:
 
         try:
             result = self._client.invoke(prepared)
+        except ModalFunctionExecutionFailed as exc:
+            return self._confirmed_terminal_failure(guard, exc.code)
         except ModalFunctionOutcomeUnknown as exc:
             if exc.call_id is not None:
                 from structlog import get_logger

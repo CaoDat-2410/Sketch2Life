@@ -23,6 +23,7 @@ import { SettingsScreen } from './screens/SettingsScreen';
 import { StoryHistoryScreen } from './screens/StoryHistoryScreen';
 import { ProfileSharingScreen } from './screens/ProfileSharingScreen';
 import { LessonHistoryScreen } from './screens/LessonHistoryScreen';
+import { SketchGuideScreen } from './screens/SketchGuideScreen';
 import { TranscriptReviewScreen } from './screens/TranscriptReviewScreen';
 import { StoryScreen } from './screens/StoryScreen';
 import { TopicScreen } from './screens/TopicScreen';
@@ -95,6 +96,7 @@ export default function ParentExpoApp({ application }: Props): React.JSX.Element
       <AuthScreen
         busy={parent.busy === 'auth' || parent.bootstrapBusy}
         error={parent.authError || (parent.bootstrapBusy ? 'Đang xác thực tài khoản và tải hồ sơ…' : '')}
+        firebaseAppId={parent.publicSettings.firebaseAppId}
         googleAndroidClientId={parent.publicSettings.googleAndroidClientId}
         googleWebClientId={parent.publicSettings.googleWebClientId}
         onSignIn={(email, password) => parent.authenticate('signin', email, password)}
@@ -273,19 +275,28 @@ function renderLearningStep(parent: ReturnType<typeof useParentController>): Rea
     idea={parent.idea}
     audio={parent.audio}
     guideEnabled={parent.guideEnabled}
-    guideBase64={parent.guideBase64}
-    guideBusy={parent.guideBusy}
-    guideError={parent.guideError}
     lesson={parent.lesson}
     stepLabel={stepLabel(1, 1)}
     onTopic={parent.setTopic}
     onIdea={parent.setIdea}
     onAudio={parent.setAudio}
     onGuideToggle={parent.setGuideEnabled}
-    onGenerateGuide={() => void parent.createGuide()}
+    onOpenGuide={() => parent.setStep('sketch-guide')}
     onOpenLessons={() => void parent.openLessons('picker')}
     onContinue={() => parent.setStep('capture')}
     onBack={parent.backToProfile}
+  />;
+  if (step === 'sketch-guide') return <SketchGuideScreen
+    topic={parent.topic || parent.lesson?.drawing_subject || ''}
+    layout={parent.guideLayout}
+    draft={parent.guideDraft}
+    catalogChecked={parent.guideCatalogChecked}
+    busy={parent.guideBusy}
+    error={parent.guideError}
+    onFindCatalog={() => void parent.createGuide()}
+    onGenerateDraft={() => void parent.generateGuideDraft()}
+    onSkip={() => parent.setStep('capture')}
+    onBack={() => parent.setStep('topic')}
   />;
   if (step === 'lessons') return <LessonPickerScreen
     lessons={parent.lessons}
@@ -297,7 +308,7 @@ function renderLearningStep(parent: ReturnType<typeof useParentController>): Rea
     onClear={() => { parent.setLesson(null); parent.setStep('topic'); }}
     onBack={() => parent.setStep('topic')}
   />;
-  if (step === 'capture') return <CaptureScreen photo={parent.photo} stepLabel={stepLabel(2, 2)} onPhoto={parent.setPhoto} onContinue={() => parent.setStep('context')} onBack={() => parent.setStep('topic')} />;
+  if (step === 'capture') return <CaptureScreen photo={parent.photo} stepLabel={stepLabel(2, 2)} workflowNotice={parent.error} onPhoto={parent.setPhoto} onContinue={() => parent.setStep('context')} onBack={() => parent.setStep('topic')} />;
   if (step === 'context' && parent.profile && parent.policy && parent.photo) return <ContextScreen
     profile={parent.profile}
     policyVersion={parent.policy.policy_version}
@@ -326,10 +337,15 @@ function renderLearningStep(parent: ReturnType<typeof useParentController>): Rea
     candidate={parent.candidate}
     stepLabel={stepLabel(4, 5)}
     subject={parent.subject}
+    topicMatch={parent.candidate.topic_match ?? 'NO_SELECTED_TOPIC'}
+    expectedSubject={parent.run?.lesson_pin_snapshot?.drawing_subject ?? parent.run?.context_snapshot.topic ?? ''}
+    retakeAvailable={parent.artworkRetakeAvailable}
     busy={parent.busy === 'subject'}
     error={parent.error}
     onSubject={parent.setSubject}
     onConfirm={() => void parent.confirmSubject()}
+    onUseDetected={() => void parent.confirmSubject(parent.candidate?.candidate_subject ?? '')}
+    onRetake={parent.requestArtworkRetake}
     onBack={() => parent.setStep('context')}
   />;
   if (step === 'activity') return <ActivityScreen
@@ -339,8 +355,11 @@ function renderLearningStep(parent: ReturnType<typeof useParentController>): Rea
     busy={parent.busy === 'activity'}
     requested={parent.activityAttempted}
     error={parent.activityError}
+    retryAvailable={parent.activityRetryAvailable}
+    selectedActivityRef={parent.selectedActivityRef}
     onSuggest={() => void parent.requestActivities()}
-    onSkip={() => parent.setStep('story')}
+    onSelect={parent.selectActivity}
+    onContinue={() => parent.setStep('story')}
     onBack={() => parent.setStep('understanding')}
   />;
   if (step === 'story') return <StoryScreen

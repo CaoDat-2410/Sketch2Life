@@ -7,7 +7,7 @@ type Props = { quota: ParentVideoQuota | null; loading: boolean; error: string; 
 
 export function QuotaScreen({ quota, loading, error, onLoad, onBack }: Props): React.JSX.Element {
   return (
-    <ScreenFrame title="Lượt tạo video" subtitle="Số lượt sử dụng theo tài khoản." onBack={onBack}>
+    <ScreenFrame title="Lượt tạo video" subtitle="Số liệu demo trong môi trường phát triển." onBack={onBack}>
       {error ? <Notice text={error} tone="error" /> : null}
       <Card>
         {!quota || quota.configuration_state === 'NOT_CONFIGURED' ? <>
@@ -16,7 +16,8 @@ export function QuotaScreen({ quota, loading, error, onLoad, onBack }: Props): R
         </> : <>
           <SectionTitle>Còn {quota.available} lượt</SectionTitle>
           <Text style={{ color: palette.ink }}>Đã dùng {quota.used} / {quota.granted}</Text>
-          <Text style={{ color: palette.muted, fontSize: 13 }}>Kỳ sử dụng: {new Date(quota.period_start).toLocaleDateString('vi-VN')} – {new Date(quota.period_end).toLocaleDateString('vi-VN')}</Text>
+          <Text style={{ color: palette.muted, fontSize: 13 }}>Kỳ demo: {new Date(quota.period_start).toLocaleDateString('vi-VN')} – {new Date(quota.period_end).toLocaleDateString('vi-VN')}</Text>
+          <Notice text={quota.notice} tone="warning" />
         </>}
         <PrimaryButton label="Cập nhật số liệu" busy={loading} onPress={onLoad} />
       </Card>

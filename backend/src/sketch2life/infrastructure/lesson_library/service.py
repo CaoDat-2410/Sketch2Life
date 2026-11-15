@@ -33,6 +33,11 @@ from sketch2life.domain.lesson_library.model import (
     next_version_number,
     validate_content,
 )
+from sketch2life.domain.svg_engine import SvgRuleError, validate_guide_v3
+from sketch2life.infrastructure.catalog.svg_assets import (
+    SqlSvgCatalogRepository,
+    SvgCatalogPersistenceError,
+)
 from sketch2life.infrastructure.lesson_library.receipt_compat import (
     ReceiptCompatibilityError,
     parent_group_membership_lookup,
@@ -61,6 +66,7 @@ from sketch2life.infrastructure.persistence.core_models import (
     CoreAuditEntryModel,
     CoreOutboxEventModel,
 )
+from sketch2life.infrastructure.persistence.svg_catalog_tables import SVG_CATALOG_ASSETS
 
 PART_SIZE_BYTES = 4 * 1024 * 1024
 MAX_SOURCE_BYTES = 25_000_000
@@ -111,7 +117,7 @@ class LessonLibraryService:
         visibility: str, idempotency_key: str,
     ) -> dict[str, Any]:
         content_data = content.model_dump(mode="json")
-        self._validate_content(content_data)
+        self._validate_content(content_data, organization_id=organization_id)
 
         def execute() -> dict[str, Any]:
             now = datetime.now(UTC)
@@ -211,7 +217,7 @@ class LessonLibraryService:
         expected_revision: int, content: LessonContentInputV1,
     ) -> dict[str, Any]:
         content_data = content.model_dump(mode="json")
-        self._validate_content(content_data)
+        self._validate_content(content_data, organization_id=organization_id)
         item = self._load_lesson(organization_id, lesson_id, for_update=True)
         self._require_revision(item["revision"], expected_revision)
         if item["created_by"] != actor:
@@ -277,7 +283,7 @@ class LessonLibraryService:
         expected_revision: int, source_revision_id: str, content: LessonContentInputV1,
     ) -> dict[str, Any]:
         content_data = content.model_dump(mode="json")
-        self._validate_content(content_data)
+        self._validate_content(content_data, organization_id=organization_id)
         item = self._load_lesson(organization_id, lesson_id, for_update=True)
         self._require_revision(item["revision"], expected_revision)
         if item["created_by"] != actor:
@@ -331,11 +337,44 @@ class LessonLibraryService:
         row = self._load_version(version_id)
         return self._version_response(row, with_content=True)
 
-    def _validate_content(self, content: dict[str, Any]) -> None:
+    def _validate_content(self, content: dict[str, Any], *, organization_id: str) -> None:
         try:
             validate_content(content)
         except LessonLibraryRuleError as exc:
             fail(422, "INVALID_REQUEST", "Lesson content does not satisfy the v1 contract")
+        presentation = content.get("presentation")
+        if presentation is None:
+            return
+        if not isinstance(presentation, dict) or presentation.get("schema_version") != "LessonPresentationV1":
+            fail(422, "INVALID_REQUEST", "Lesson presentation does not satisfy the v1 contract")
+        repository = SqlSvgCatalogRepository(self.db, self.storage)
+        for slide in presentation.get("slides", []):
+            guide = slide.get("guide") if isinstance(slide, dict) else None
+            if not isinstance(guide, dict):
+                fail(422, "SVG_GUIDE_REQUIRED", "Every drawing guide slide must contain a reviewed SVG guide")
+            asset_row = self.db.execute(
+                select(SVG_CATALOG_ASSETS).where(
+                    SVG_CATALOG_ASSETS.c.asset_ref == guide.get("source_asset_ref"),
+                    SVG_CATALOG_ASSETS.c.asset_version == guide.get("source_asset_version"),
+                    SVG_CATALOG_ASSETS.c.catalog_state == "ACTIVE",
+                )
+            ).mappings().one_or_none()
+            if asset_row is None:
+                fail(422, "SVG_GUIDE_SOURCE_UNAVAILABLE", "The guide source is no longer available")
+            try:
+                source = repository.get_asset_for_teacher(
+                    organization_id=organization_id,
+                    catalog_entry_id=asset_row["catalog_entry_id"],
+                )
+                validate_guide_v3(
+                    guide,
+                    source_path_ids=[path["path_id"] for path in source["document"]["paths"]],
+                    expected_source_sha256=source["source_sha256"],
+                )
+            except SvgRuleError as exc:
+                fail(422, exc.code, "The guide no longer matches the selected SVG source")
+            except SvgCatalogPersistenceError as exc:
+                fail(422, "SVG_GUIDE_SOURCE_UNAVAILABLE", "The guide source is not available in this organization")
 
     def _insert_version(
         self, *, lesson_id: str, version_id: str, version_no: int,
@@ -2043,6 +2082,23 @@ class LessonLibraryService:
         version = self._load_version(row["version_id"])
         content = self._full_content(version)
         activity_items = content.pop("activities")
+        presentation = content.get("presentation")
+        if isinstance(presentation, dict):
+            catalog = SqlSvgCatalogRepository(self.db, self.storage)
+            hydrated_slides: list[dict[str, Any]] = []
+            for slide in presentation.get("slides", []):
+                guide = slide["guide"]
+                source = catalog.get_asset_by_source_ref(
+                    asset_ref=guide["source_asset_ref"],
+                    asset_version=guide["source_asset_version"],
+                )
+                if source["source_sha256"] != guide["source_sha256"]:
+                    fail(409, "SVG_GUIDE_SOURCE_STALE", "The lesson guide references an unavailable SVG revision")
+                hydrated_slides.append({**slide, "document": source["document"]})
+            content["presentation"] = {
+                "schema_version": presentation["schema_version"],
+                "slides": hydrated_slides,
+            }
         return {
             "contract": "LessonExportV1" if export else "ParentLessonDetailV1",
             "lesson_id": row["lesson_id"],

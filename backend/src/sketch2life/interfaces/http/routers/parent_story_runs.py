@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.orm import Session
 
 from sketch2life.application.ports.identity import VerifiedPrincipal
@@ -21,6 +21,7 @@ from sketch2life.contracts.schemas.parent_story_runs import (
     ParentStoryRevisionConfirmationRequestV1,
     ParentStoryRunCreateRequestV1,
     ParentStoryRunEnvelopeV1,
+    ParentStoryRunHistoryPageV1,
     ParentStoryRunResponseV1,
     ParentSubjectConfirmationRequestV1,
     ParentSubjectConfirmationResponseV1,
@@ -150,6 +151,35 @@ def create_parent_story_run(
         lesson_pin_snapshot=lesson_pin_snapshot,
     )
     return ParentStoryRunEnvelopeV1(request_id=uuid4(), story_run=_response(record))
+
+
+@router.get(
+    "",
+    response_model=ParentStoryRunHistoryPageV1,
+    summary="List the authenticated Parent's StoryRuns",
+)
+def list_parent_story_runs(
+    limit: int = Query(default=20, ge=1, le=50),
+    cursor: str | None = Query(default=None, max_length=512),
+    profile_id: UUID | None = Query(default=None),
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    db: Session = Depends(get_db),
+) -> ParentStoryRunHistoryPageV1:
+    _require_parent(db, principal)
+    service, policy_version = _service(db)
+    records, next_cursor = _invoke(
+        service.list_runs,
+        owner_subject=principal.subject,
+        policy_version=policy_version,
+        limit=limit,
+        profile_id=str(profile_id) if profile_id is not None else None,
+        cursor=cursor,
+    )
+    return ParentStoryRunHistoryPageV1(
+        request_id=uuid4(),
+        items=[_response(record) for record in records],
+        next_cursor=next_cursor,
+    )
 
 
 @router.get(

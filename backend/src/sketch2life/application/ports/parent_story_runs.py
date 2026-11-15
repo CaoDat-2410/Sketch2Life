@@ -95,6 +95,17 @@ class ParentStoryRunRepositoryPort(Protocol):
         self, *, owner_subject: str, account_id: str, policy_version: str
     ) -> ParentStoryRunRecord | None: ...
 
+    def list_runs(
+        self,
+        *,
+        owner_subject: str,
+        policy_version: str,
+        limit: int,
+        profile_id: str | None,
+        before_created_at: datetime | None,
+        before_run_id: str | None,
+    ) -> list[ParentStoryRunRecord]: ...
+
     def attach_artwork(
         self,
         *,
@@ -110,6 +121,7 @@ class ParentStoryRunRepositoryPort(Protocol):
         derived_size_bytes: int,
         scanner_name: str,
         scanner_version: str,
+        replace_existing: bool = False,
     ) -> ParentStoryInputRecord: ...
 
     def read_current_input(
@@ -144,6 +156,7 @@ class ParentStoryRunRepositoryPort(Protocol):
         policy_version: str,
         run_id: str,
         expected_understanding_revision: int,
+        primary_activity: dict[str, Any],
         rewrite_instruction: str | None,
         story_revision_id: str,
         model_id: str,

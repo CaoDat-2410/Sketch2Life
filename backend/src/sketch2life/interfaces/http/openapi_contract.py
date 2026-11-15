@@ -10908,6 +10908,63 @@ MOUNTED_OPERATIONS[('post', '/api/be1/v1/classes/{class_id}/assignments')] = {  
                          'media_type': 'application/json',
                          'schema_name': 'Be1Error'})}
 
+_SVG_CATALOG_PATHS = {
+    ("get", "/api/svg-catalog/v1/parent/guides"): ("Liệt kê hướng dẫn nét SVG đã duyệt cho phụ huynh.", "query `topic_key?`, `limit?`", "SvgGuideCatalogPageV1", "200"),
+    ("get", "/api/svg-catalog/v1/organizations/{organization_id}/assets"): ("Liệt kê nguồn SVG theo phạm vi trường và kho nền tảng.", "path `organization_id*`; query `limit?`", "SvgCatalogPageV1", "200"),
+    ("post", "/api/svg-catalog/v1/organizations/{organization_id}/assets"): ("Tải nguồn SVG có provenance vào kho trường.", "path `organization_id*`; JSON SvgCatalogAssetCreateRequestV1", "SvgCatalogAssetResponseV1", "201"),
+    ("post", "/api/svg-catalog/v1/platform/assets"): ("Tạo nguồn SVG trong kho nền tảng.", "JSON SvgCatalogAssetCreateRequestV1", "SvgCatalogAssetResponseV1", "201"),
+    ("post", "/api/svg-catalog/v1/organizations/{organization_id}/assets/{catalog_entry_id}/guide-revisions"): ("Lưu revision hướng dẫn SVG thủ công cho trường.", "path `organization_id*`, `catalog_entry_id*`; JSON CreateSvgGuideRevisionRequestV1", "SvgGuideRevisionReceiptV1", "201"),
+    ("get", "/api/svg-catalog/v1/organizations/{organization_id}/assets/{catalog_entry_id}/guide-revisions"): ("Liệt kê revision hướng dẫn SVG để giáo viên duyệt đúng bản và hash.", "path `organization_id*`, `catalog_entry_id*`; query `limit`; response SvgGuideRevisionPageV1", "SvgGuideRevisionPageV1", "200"),
+    ("post", "/api/svg-catalog/v1/platform/assets/{catalog_entry_id}/guide-revisions"): ("Lưu revision hướng dẫn SVG nền tảng.", "path `catalog_entry_id*`; JSON CreateSvgGuideRevisionRequestV1", "SvgGuideRevisionReceiptV1", "201"),
+    ("post", "/api/svg-catalog/v1/organizations/{organization_id}/assets/{catalog_entry_id}/source-reviews"): ("Ghi educator review bất biến đúng hash nguồn thuộc trường.", "path `organization_id*`, `catalog_entry_id*`; JSON SvgSourceReviewRequestV1", "SvgReviewReceiptV1", "200"),
+    ("post", "/api/svg-catalog/v1/platform/assets/{catalog_entry_id}/source-reviews"): ("Ghi educator review bất biến đúng hash nguồn nền tảng.", "path `catalog_entry_id*`; JSON SvgSourceReviewRequestV1", "SvgReviewReceiptV1", "200"),
+    ("post", "/api/svg-catalog/v1/organizations/{organization_id}/assets/{catalog_entry_id}/guide-revisions/{guide_revision_id}/educator-reviews"): ("Ghi educator review đúng guide revision và hash.", "path `organization_id*`, `catalog_entry_id*`, `guide_revision_id*`; JSON SvgGuideReviewRequestV1", "SvgReviewReceiptV1", "200"),
+    ("post", "/api/svg-catalog/v1/platform/assets/{catalog_entry_id}/guide-revisions/{guide_revision_id}/educator-reviews"): ("Ghi educator review đúng guide revision nền tảng.", "path `catalog_entry_id*`, `guide_revision_id*`; JSON SvgGuideReviewRequestV1", "SvgReviewReceiptV1", "200"),
+    ("post", "/api/svg-catalog/v1/platform/assets/{catalog_entry_id}/curation"): ("Ghi quyết định curation và quyền nhóm tự động của Platform Admin.", "path `catalog_entry_id*`; JSON SvgCurationRequestV1", "SvgReviewReceiptV1", "200"),
+}
+for (_method, _path), (_purpose, _inputs, _response_schema, _success_status) in _SVG_CATALOG_PATHS.items():
+    MOUNTED_OPERATIONS[(_method, _path)] = {
+        "purpose": _purpose,
+        "request_inputs": _inputs,
+        "surface": "SVG catalog / parent, teacher, platform admin",
+        "tag": "SVG catalog v1",
+        "handler": "svg_catalog.py",
+        "authentication": "HTTPBearer; role and organization scope checked by route",
+        "verification": "NOT RUN — implementation is unverified in this task",
+        "responses": (
+            {
+                "status": _success_status,
+                "description": "Created" if _success_status == "201" else "Successful Response",
+                "media_type": "application/json",
+                "schema_name": _response_schema,
+            },
+            {"status": "401", "description": "Authentication required", "media_type": "application/json", "schema_name": "Be1Error"},
+            {"status": "403", "description": "Role or scope is not authorized", "media_type": "application/json", "schema_name": "Be1Error"},
+            {"status": "409", "description": "Revision or review decision conflicts", "media_type": "application/json", "schema_name": "Be1Error"},
+            {"status": "422", "description": "Request or SVG content is invalid", "media_type": "application/json", "schema_name": "Be1Error"},
+            {"status": "503", "description": "Object storage is unavailable", "media_type": "application/json", "schema_name": "Be1Error"},
+        ),
+    }
+
+MOUNTED_OPERATIONS[("post", "/api/teacher/v1/organizations/{organization_id}/ai/svg-illustrations")] = {
+    "purpose": "Tạo bản nháp minh họa SVG có cấu trúc qua Qwen3.5 Modal; chỉ trả bản nháp đã kiểm tra, không lưu hoặc public.",
+    "request_inputs": "path `organization_id*`; JSON TeacherSvgIllustrationDraftRequestV1",
+    "surface": "Teacher AI / SVG illustration draft",
+    "tag": "Teacher AI v1",
+    "handler": "teacher_ai.py::generate_svg_illustration_draft",
+    "authentication": "HTTPBearer; active Teacher organization assignment required",
+    "verification": "PENDING Rev84 live UI/API/Modal verification",
+    "responses": (
+        {"status": "200", "description": "Validated non-persisted SVG draft", "media_type": "application/json", "schema_name": "TeacherSvgIllustrationDraftResponseV1"},
+        {"status": "401", "description": "Authentication required", "media_type": "application/json", "schema_name": "Be1Error"},
+        {"status": "403", "description": "Teacher organization access required", "media_type": "application/json", "schema_name": "Be1Error"},
+        {"status": "422", "description": "Request or generated SVG is invalid", "media_type": "application/json", "schema_name": "Be1Error"},
+        {"status": "502", "description": "Modal worker failed or returned invalid SVG", "media_type": "application/json", "schema_name": "Be1Error"},
+        {"status": "503", "description": "Local capability is disabled or Modal is unavailable", "media_type": "application/json", "schema_name": "Be1Error"},
+        {"status": "504", "description": "Modal outcome is unknown; do not retry", "media_type": "application/json", "schema_name": "Be1Error"},
+    ),
+}
+
 UNMOUNTED_OPERATIONS: Final[tuple[UnmountedOperationMetadata, ...]] = ({'method': 'post',
   'path': '/api/collaboration/v1/activity-assignments',
   'purpose': 'Thực thi một yêu cầu gán/chạy hoạt động cộng tác.',

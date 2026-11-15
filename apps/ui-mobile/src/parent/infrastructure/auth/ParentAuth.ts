@@ -49,7 +49,7 @@ export class ParentAuth implements ParentIdentityPort {
 
   async signIn(email: string, password: string): Promise<ParentUser> {
     const payload = await this.postFirebase(
-      `${IDENTITY_TOOLKIT}/accounts:signInWithPassword?key=${encodeURIComponent(this.apiKey())}`,
+      this.identityToolkitUrl('accounts:signInWithPassword'),
       { email: email.trim(), password, returnSecureToken: true },
     );
     this.session = this.toSession(payload);
@@ -105,7 +105,7 @@ export class ParentAuth implements ParentIdentityPort {
       throw new ParentAuthError('GOOGLE_TOKEN_MISSING', 'Google chưa trả về mã xác thực.');
     }
     const body = await this.postFirebase(
-      `${IDENTITY_TOOLKIT}/accounts:signInWithIdp?key=${encodeURIComponent(this.apiKey())}`,
+      this.identityToolkitUrl('accounts:signInWithIdp'),
       {
         postBody: `id_token=${encodeURIComponent(googleIdToken)}&providerId=google.com`,
         requestUri: 'http://localhost',
@@ -126,7 +126,7 @@ export class ParentAuth implements ParentIdentityPort {
   async resetPassword(email: string): Promise<void> {
     try {
       await this.postFirebase(
-        `${IDENTITY_TOOLKIT}/accounts:sendOobCode?key=${encodeURIComponent(this.apiKey())}`,
+        this.identityToolkitUrl('accounts:sendOobCode'),
         { requestType: 'PASSWORD_RESET', email: email.trim() },
       );
     } catch (error) {
@@ -144,7 +144,7 @@ export class ParentAuth implements ParentIdentityPort {
       throw new ParentAuthError('REAUTHENTICATION_FAILED', 'Không xác minh được tài khoản hiện tại.');
     }
     const payload = await this.postFirebase(
-      `${IDENTITY_TOOLKIT}/accounts:update?key=${encodeURIComponent(this.apiKey())}`,
+      this.identityToolkitUrl('accounts:update'),
       { idToken: await this.getIdToken(), password: newPassword, returnSecureToken: true },
     );
     this.session = this.toSession(payload, current);
@@ -203,7 +203,7 @@ export class ParentAuth implements ParentIdentityPort {
   }
 
   private async refresh(active: Session): Promise<string> {
-    const response = await fetch(`${SECURE_TOKEN}?key=${encodeURIComponent(this.apiKey())}`, {
+    const response = await fetch(this.secureTokenUrl(), {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: `grant_type=refresh_token&refresh_token=${encodeURIComponent(active.refreshToken)}`,
@@ -216,6 +216,20 @@ export class ParentAuth implements ParentIdentityPort {
   private apiKey(): string {
     if (!parentConfig.firebaseApiKey) throw new Error('Thiếu Firebase API key trong .env gốc.');
     return parentConfig.firebaseApiKey;
+  }
+
+  private identityToolkitUrl(operation: string): string {
+    const base = parentConfig.firebaseAuthEmulatorUrl
+      ? `${parentConfig.firebaseAuthEmulatorUrl}/identitytoolkit.googleapis.com/v1`
+      : IDENTITY_TOOLKIT;
+    return `${base}/${operation}?key=${encodeURIComponent(this.apiKey())}`;
+  }
+
+  private secureTokenUrl(): string {
+    const base = parentConfig.firebaseAuthEmulatorUrl
+      ? `${parentConfig.firebaseAuthEmulatorUrl}/securetoken.googleapis.com/v1/token`
+      : SECURE_TOKEN;
+    return `${base}?key=${encodeURIComponent(this.apiKey())}`;
   }
 
   private apiUrl(): string {
@@ -236,11 +250,36 @@ export class ParentAuth implements ParentIdentityPort {
   }
 
   private async postFirebase(url: string, body: object): Promise<FirebasePayload> {
+    const parsedUrl = new URL(url);
+    if (__DEV__) {
+      console.info('parent_firebase_auth_request_started', {
+        origin: parsedUrl.origin,
+        path: parsedUrl.pathname,
+      });
+    }
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
-    }).catch(() => { throw new ParentAuthError('AUTH_NETWORK_ERROR', 'Không kết nối được Firebase Auth.'); });
+    }).catch((error: unknown) => {
+      if (__DEV__) {
+        const rawMessage = error instanceof Error ? error.message : '';
+        console.info('parent_firebase_auth_network_failed', {
+          origin: parsedUrl.origin,
+          path: parsedUrl.pathname,
+          errorName: error instanceof Error ? error.name : 'UnknownError',
+          errorMessage: rawMessage.replace(/https?:\/\/\S+/gi, '[url]').slice(0, 160),
+        });
+      }
+      throw new ParentAuthError('AUTH_NETWORK_ERROR', 'Không kết nối được Firebase Auth.');
+    });
+    if (__DEV__) {
+      console.info('parent_firebase_auth_response_received', {
+        origin: parsedUrl.origin,
+        path: parsedUrl.pathname,
+        status: response.status,
+      });
+    }
     return this.readFirebase(response);
   }
 
@@ -248,6 +287,9 @@ export class ParentAuth implements ParentIdentityPort {
     const body = await response.json().catch(() => ({})) as FirebasePayload;
     if (!response.ok) {
       const code = body.error?.message ?? 'FIREBASE_AUTH_ERROR';
+      if (__DEV__) {
+        console.info('parent_firebase_auth_error', { status: response.status, code });
+      }
       throw new ParentAuthError(code, authMessages[code] ?? 'Không thể xác thực lúc này.');
     }
     return body;

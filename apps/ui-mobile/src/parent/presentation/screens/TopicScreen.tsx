@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Image, Switch, Text, View } from 'react-native';
+import { Switch, Text, View } from 'react-native';
 import { Audio } from 'expo-av';
 import type { LessonDetail } from '../../domain/types';
 import type { SelectedAudio } from '../navigation/workflowTypes';
@@ -10,16 +10,13 @@ type Props = {
   idea: string;
   audio: SelectedAudio | null;
   guideEnabled: boolean;
-  guideBase64: string;
-  guideBusy: boolean;
-  guideError: string;
   lesson: LessonDetail | null;
   stepLabel: string;
   onTopic: (value: string) => void;
   onIdea: (value: string) => void;
   onAudio: (audio: SelectedAudio | null) => void;
   onGuideToggle: (value: boolean) => void;
-  onGenerateGuide: () => void;
+  onOpenGuide: () => void;
   onOpenLessons: () => void;
   onContinue: () => void;
   onBack: () => void;
@@ -107,11 +104,9 @@ export function TopicScreen(props: Props): React.JSX.Element {
           <View style={{ flex: 1 }}><SectionTitle>Gợi ý nét vẽ</SectionTitle><Text style={{ color: palette.muted, fontSize: 13, lineHeight: 19, marginTop: 5 }}>Chỉ tạo khi bạn bật. Dùng chủ đề chung, không gửi ảnh hay hồ sơ trẻ.</Text></View>
           <Switch value={props.guideEnabled} onValueChange={props.onGuideToggle} trackColor={{ true: palette.blue }} />
         </View>
-        {props.guideEnabled ? <PrimaryButton label="Tạo gợi ý nét vẽ" busy={props.guideBusy} disabled={!props.topic.trim()} onPress={props.onGenerateGuide} /> : null}
-        {props.guideError ? <Notice text={props.guideError} tone="error" /> : null}
-        {props.guideBase64 ? <Image accessibilityLabel="Gợi ý line sketch được tạo bởi AI" source={{ uri: `data:image/png;base64,${props.guideBase64}` }} resizeMode="contain" style={{ width: '100%', height: 240, backgroundColor: '#fff', borderRadius: 12 }} /> : null}
+        {props.guideEnabled ? <SecondaryButton label="Xem gợi ý nét vẽ" disabled={!props.topic.trim()} onPress={props.onOpenGuide} /> : null}
       </Card>
-      <PrimaryButton label="Tiếp tục đến chụp tranh" disabled={props.guideBusy} onPress={props.onContinue} />
+      <PrimaryButton label="Bỏ qua gợi ý · chụp tranh" onPress={props.onContinue} />
     </ScreenFrame>
   );
 }

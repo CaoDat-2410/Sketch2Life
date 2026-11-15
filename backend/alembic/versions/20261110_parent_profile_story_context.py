@@ -6,9 +6,8 @@ import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
 
-revision = "20261110_parent_profile_story_context"
+revision = "20261110_parent_ctx"
 down_revision = (
-    "20261015_ai_0001",
     "20261018_ap_0009",
     "20261017_lc_0001",
     "20261018_kv_0001",
@@ -16,8 +15,6 @@ down_revision = (
     "20261019_ae_0001",
     "20261019_pa_0001",
     "20261019_vf_0001",
-    "20261101_be1_age_0001",
-    "20261102_pv_0001",
     "20261104_story_revisions",
     "20261110_ar_0001",
 )

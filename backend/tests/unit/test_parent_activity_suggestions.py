@@ -62,8 +62,12 @@ def _prepare(
     lessons: tuple[ParentActivityLesson, ...],
     *,
     adult_idea: str = "Con muốn quan sát bướm màu tím cùng mẹ.",
+    soft_quality_gate_enabled: bool = True,
 ):
-    service = ParentActivitySuggestionService(_Catalog(lessons))
+    service = ParentActivitySuggestionService(
+        _Catalog(lessons),
+        soft_quality_gate_enabled=soft_quality_gate_enabled,
+    )
     prepared = service.prepare(
         parent_principal_ref="synthetic-parent",
         context_snapshot={
@@ -297,6 +301,49 @@ def test_fallback_requires_three_distinct_safe_outdoor_child_led_drafts():
     assert all(item["source_lesson_version_id"] is None for item in response["activities"])
 
 
+def test_temporary_soft_gate_bypass_accepts_duplicate_title_but_keeps_hard_safety():
+    service, prepared = _prepare((), soft_quality_gate_enabled=False)
+    activities = _fallbacks()
+    activities[1]["title"] = activities[0]["title"]
+    raw = _worker_result(
+        decision="NO_MATCH",
+        reason="Không có hoạt động phù hợp.",
+        activities=activities,
+    )
+
+    response = service.resolve(
+        prepared=prepared,
+        raw_result=raw,
+        request_id="00000000-0000-0000-0000-000000000001",
+        story_run_id="00000000-0000-0000-0000-000000000002",
+        understanding_revision=1,
+        modal_call_id=None,
+    )
+
+    assert len(response["activities"]) == 3
+    activities[0]["instructions_text"] = (
+        "Ngoài trời, người lớn đưa dao cho trẻ để cắt cành cây."
+    )
+    unsafe = _worker_result(
+        decision="NO_MATCH",
+        reason="Không có hoạt động phù hợp.",
+        activities=activities,
+    )
+    with pytest.raises(
+        ParentActivitySuggestionError,
+        match="PARENT_ACTIVITY_QUALITY_GATE_REJECTED",
+    ) as exc_info:
+        service.resolve(
+            prepared=prepared,
+            raw_result=unsafe,
+            request_id="00000000-0000-0000-0000-000000000003",
+            story_run_id="00000000-0000-0000-0000-000000000002",
+            understanding_revision=1,
+            modal_call_id=None,
+        )
+    assert exc_info.value.diagnostic_code == "UNSAFE_ACTION_TEXT"
+
+
 def test_fallback_allows_concise_materials_and_observation_fragments():
     service, prepared = _prepare(())
     activities = _fallbacks()
@@ -322,8 +369,32 @@ def test_fallback_allows_concise_materials_and_observation_fragments():
     assert response["activities"][0]["observation_notes"] == "Màu cánh, cách trẻ lựa chọn"
 
 
+def test_fallback_does_not_require_repeated_child_agency_phrase_per_activity():
+    service, prepared = _prepare(())
+    activities = _fallbacks()
+    activities[0]["instructions_text"] = (
+        "Trong khu vườn, trẻ nhìn cánh bướm; người lớn đi cùng và hỗ trợ khi cần"
+    )
+    raw = _worker_result(
+        decision="NO_MATCH",
+        reason="Không có hoạt động phù hợp.",
+        activities=activities,
+    )
+
+    response = service.resolve(
+        prepared=prepared,
+        raw_result=raw,
+        request_id="00000000-0000-0000-0000-000000000001",
+        story_run_id="00000000-0000-0000-0000-000000000002",
+        understanding_revision=1,
+        modal_call_id=None,
+    )
+
+    assert response["selection_mode"] == "AI_GENERATED_FALLBACK"
+
+
 @pytest.mark.parametrize("field", ["instructions_text", "safety_notes"])
-def test_fallback_still_rejects_incomplete_core_sentences(field):
+def test_fallback_accepts_clear_core_fragments_without_terminal_punctuation(field):
     service, prepared = _prepare(())
     activities = _fallbacks()
     activities[0][field] = activities[0][field].rstrip(".!?… ")
@@ -333,17 +404,16 @@ def test_fallback_still_rejects_incomplete_core_sentences(field):
         activities=activities,
     )
 
-    with pytest.raises(ParentActivitySuggestionError) as caught:
-        service.resolve(
-            prepared=prepared,
-            raw_result=raw,
-            request_id="00000000-0000-0000-0000-000000000001",
-            story_run_id="00000000-0000-0000-0000-000000000002",
-            understanding_revision=1,
-            modal_call_id=None,
-        )
+    response = service.resolve(
+        prepared=prepared,
+        raw_result=raw,
+        request_id="00000000-0000-0000-0000-000000000001",
+        story_run_id="00000000-0000-0000-0000-000000000002",
+        understanding_revision=1,
+        modal_call_id=None,
+    )
 
-    assert caught.value.diagnostic_code == "ACTIVITY_TEXT_INCOMPLETE"
+    assert response["selection_mode"] == "AI_GENERATED_FALLBACK"
 
 
 def test_fire_safety_gate_distinguishes_lua_fabric_from_fire():
@@ -424,7 +494,7 @@ def test_fallback_gate_rejects_non_latin_script_with_safe_diagnostic():
     assert caught.value.diagnostic_code == "NON_VIETNAMESE_SCRIPT"
 
 
-def test_fallback_gate_rejects_truncated_text_with_safe_diagnostic():
+def test_fallback_gate_accepts_concise_objective_without_terminal_punctuation():
     service, prepared = _prepare(())
     activities = _fallbacks()
     activities[0]["objective"] = "Trẻ khám phá màu sắc của cánh bướm ngoài"
@@ -434,17 +504,16 @@ def test_fallback_gate_rejects_truncated_text_with_safe_diagnostic():
         activities=activities,
     )
 
-    with pytest.raises(ParentActivitySuggestionError) as caught:
-        service.resolve(
-            prepared=prepared,
-            raw_result=raw,
-            request_id="00000000-0000-0000-0000-000000000001",
-            story_run_id="00000000-0000-0000-0000-000000000002",
-            understanding_revision=1,
-            modal_call_id=None,
-        )
+    response = service.resolve(
+        prepared=prepared,
+        raw_result=raw,
+        request_id="00000000-0000-0000-0000-000000000001",
+        story_run_id="00000000-0000-0000-0000-000000000002",
+        understanding_revision=1,
+        modal_call_id=None,
+    )
 
-    assert caught.value.diagnostic_code == "ACTIVITY_TEXT_INCOMPLETE"
+    assert response["selection_mode"] == "AI_GENERATED_FALLBACK"
 
 
 @pytest.mark.parametrize(
@@ -452,9 +521,6 @@ def test_fallback_gate_rejects_truncated_text_with_safe_diagnostic():
     [
         lambda items: items.__setitem__(0, {**items[0], "activity_kind": "indoor"}),
         lambda items: items.__setitem__(0, {**items[0], "instructions_text": "Dùng dao cắt lá."}),
-        lambda items: items.__setitem__(
-            0, {**items[0], "instructions_text": "Trẻ làm theo hướng dẫn."}
-        ),
         lambda items: items.__setitem__(1, dict(items[0])),
     ],
 )

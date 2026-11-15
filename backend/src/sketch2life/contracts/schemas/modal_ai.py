@@ -12,25 +12,79 @@ class StrictRequest(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
 
+class ProgressiveGuideStageV1(StrictRequest):
+    step_index: int = Field(ge=1, le=8)
+    row: int = Field(ge=0, le=7)
+    column: int = Field(ge=0, le=7)
+
+
+class ProgressiveGuideLayoutV1(StrictRequest):
+    schema_version: Literal["sketch2life.progressive-guide-layout.v1"]
+    columns: int = Field(ge=2, le=4)
+    rows: int = Field(ge=1, le=4)
+    step_count: int = Field(ge=4, le=8)
+    reading_order: Literal["ROW_MAJOR"]
+    stages: list[ProgressiveGuideStageV1] = Field(min_length=4, max_length=8)
+
+    @model_validator(mode="after")
+    def stages_match_layout(self) -> ProgressiveGuideLayoutV1:
+        if len(self.stages) != self.step_count:
+            raise ValueError("stage count must match the declared layout")
+        for index, stage in enumerate(self.stages):
+            if (stage.step_index, stage.row, stage.column) != (
+                index + 1,
+                index // self.columns,
+                index % self.columns,
+            ):
+                raise ValueError("stages must follow row-major order")
+        return self
+
+
 class ParentSketchGuideRequestV1(StrictRequest):
     topic: str = Field(min_length=1, max_length=120)
     difficulty: Literal["beginner", "simple"] = "beginner"
-    step_count: int = Field(default=3, ge=3, le=5)
+    step_count: int = Field(default=6, ge=4, le=8)
 
 
 class ParentDrawingAnalysisRequestV1(StrictRequest):
     story_run_id: UUID
     image_base64: str = Field(min_length=16, max_length=6_700_000)
     media_type: Literal["image/jpeg", "image/png"]
+    replace_existing: bool = False
+    expected_input_revision: int = Field(ge=1)
 
 
 class ParentStoryRequestV1(StrictRequest):
     expected_understanding_revision: int = Field(ge=1)
     rewrite_instruction: str | None = Field(default=None, min_length=1, max_length=400)
+    primary_activity_request_id: UUID | None = None
+    primary_activity_ref: str | None = Field(default=None, min_length=8, max_length=160)
+
+    @model_validator(mode="after")
+    def activity_selection_shape(self) -> ParentStoryRequestV1:
+        if (self.primary_activity_request_id is None) != (self.primary_activity_ref is None):
+            raise ValueError("activity request and ref must be provided together")
+        if self.rewrite_instruction is None and self.primary_activity_request_id is None:
+            raise ValueError("initial story requires one selected primary activity")
+        if self.rewrite_instruction is not None and self.primary_activity_request_id is not None:
+            raise ValueError("story rewrites retain the existing primary activity")
+        return self
 
 
 class ParentActivitySuggestionRequestV1(StrictRequest):
     expected_understanding_revision: int = Field(ge=1)
+    request_alternative: bool = False
+    excluded_activity_refs: list[str] = Field(default_factory=list, max_length=24)
+
+    @model_validator(mode="after")
+    def replacement_requires_exclusions(self) -> ParentActivitySuggestionRequestV1:
+        if len(set(self.excluded_activity_refs)) != len(self.excluded_activity_refs):
+            raise ValueError("excluded activity refs must be unique")
+        if self.request_alternative and not self.excluded_activity_refs:
+            raise ValueError("an alternative request must identify excluded activity refs")
+        if any(not 8 <= len(value) <= 160 for value in self.excluded_activity_refs):
+            raise ValueError("activity ref length is invalid")
+        return self
 
 
 class ParentActivitySuggestionItemV1(StrictRequest):
@@ -73,6 +127,7 @@ class ParentActivitySuggestionWorkerRequestV3(StrictRequest):
     profile_interest_tags: list[str] = Field(max_length=12)
     narration_interest_tags: list[str] = Field(max_length=12)
     candidate_activities: list[ParentActivityCatalogCandidateV2] = Field(max_length=12)
+    excluded_activities: list[ParentActivitySuggestionItemV1] = Field(max_length=8)
 
 
 class ParentActivityCandidateSelectionV2(StrictRequest):
@@ -81,13 +136,13 @@ class ParentActivityCandidateSelectionV2(StrictRequest):
 
 
 class ParentActivityFallbackDraftV1(StrictRequest):
-    title: str = Field(min_length=1, max_length=60)
-    objective: str = Field(min_length=1, max_length=80)
-    materials_text: str = Field(max_length=60)
-    preparation_text: str = Field(min_length=1, max_length=85)
-    instructions_text: str = Field(min_length=1, max_length=150)
-    observation_notes: str = Field(max_length=70)
-    safety_notes: str = Field(min_length=1, max_length=80)
+    title: str = Field(min_length=1, max_length=80)
+    objective: str = Field(min_length=1, max_length=160)
+    materials_text: str = Field(max_length=120)
+    preparation_text: str = Field(min_length=1, max_length=180)
+    instructions_text: str = Field(min_length=16, max_length=320)
+    observation_notes: str = Field(max_length=120)
+    safety_notes: str = Field(min_length=8, max_length=140)
     activity_kind: Literal["outdoor", "indoor", "mixed"]
 
 
@@ -120,6 +175,7 @@ class ParentActivitySuggestionWorkerResponseV2(StrictRequest):
 
 
 class ParentSuggestedActivityV2(ParentActivitySuggestionItemV1):
+    activity_ref: str = Field(min_length=8, max_length=160)
     source: Literal["PINNED_LESSON", "PUBLISHED_SHARED_LESSON", "AI_GENERATED_DRAFT"]
     source_lesson_id: str | None = None
     source_lesson_title: str | None = None
@@ -184,7 +240,7 @@ class TeacherReviewedPlanRequestV1(StrictRequest):
     topic: str = Field(min_length=1, max_length=120)
     target_age_months: int = Field(ge=36, le=120)
     objectives: list[str] = Field(min_length=1, max_length=4)
-    drawing_steps: list[TeacherDrawingStepV1] = Field(min_length=3, max_length=5)
+    drawing_steps: list[TeacherDrawingStepV1] = Field(min_length=4, max_length=8)
     subject_knowledge: list[str] = Field(min_length=1, max_length=8)
     activities: list[TeacherActivityV1] = Field(min_length=1, max_length=6)
 
@@ -199,6 +255,8 @@ __all__ = [
     "ParentActivitySuggestionWorkerRequestV3",
     "ParentActivitySuggestionWorkerResponseV2",
     "ParentSuggestedActivityV2",
+    "ProgressiveGuideLayoutV1",
+    "ProgressiveGuideStageV1",
     "ParentDrawingAnalysisRequestV1",
     "ParentSketchGuideRequestV1",
     "ParentStoryRequestV1",

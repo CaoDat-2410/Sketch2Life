@@ -45,6 +45,31 @@ def validate_content(content: dict[str, Any]) -> None:
             value = activity.get(field)
             if not isinstance(value, str) or not value.strip():
                 raise LessonLibraryRuleError("INVALID_ACTIVITIES")
+    presentation = content.get("presentation")
+    if presentation is not None:
+        if (
+            not isinstance(presentation, dict)
+            or presentation.get("schema_version") != "LessonPresentationV1"
+            or not isinstance(presentation.get("slides"), list)
+            or not 1 <= len(presentation["slides"]) <= 16
+        ):
+            raise LessonLibraryRuleError("INVALID_PRESENTATION")
+        slide_ids: set[str] = set()
+        for slide in presentation["slides"]:
+            if not isinstance(slide, dict):
+                raise LessonLibraryRuleError("INVALID_PRESENTATION")
+            slide_id, title, guide = slide.get("slide_id"), slide.get("title_vi"), slide.get("guide")
+            if (
+                not isinstance(slide_id, str)
+                or not slide_id.strip()
+                or slide_id in slide_ids
+                or slide.get("kind") != "drawing_guide"
+                or not isinstance(title, str)
+                or not title.strip()
+                or not isinstance(guide, dict)
+            ):
+                raise LessonLibraryRuleError("INVALID_PRESENTATION")
+            slide_ids.add(slide_id)
 
 
 def next_version_number(current_version_no: int) -> int:

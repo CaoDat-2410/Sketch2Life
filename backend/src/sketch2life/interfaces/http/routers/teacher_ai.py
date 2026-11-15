@@ -7,17 +7,39 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
+import re
+import xml.etree.ElementTree as ET
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from structlog import get_logger
 
 from sketch2life.application.ports.identity import VerifiedPrincipal
 from sketch2life.contracts.schemas.modal_ai import (
+    ProgressiveGuideLayoutV1,
     TeacherLessonSuggestionRequestV1,
     TeacherReviewedPlanRequestV1,
+)
+from sketch2life.contracts.schemas.svg_engine import (
+    SvgDocumentV1,
+    SvgIllustrationModelResultV1,
+    TeacherSvgIllustrationDraftRequestV1,
+    TeacherSvgIllustrationDraftResponseV1,
+    SvgModelProvenanceV1,
+    SvgReferenceSourceProvenanceV1,
+    SvgTopicStrokeGuideDraftResponseV1,
+    SvgTopicStrokeGuideModelResultV1,
+    SvgTopicStrokeGuideRequestV1,
+    SvgTopicStrokeGuideV1,
+)
+from sketch2life.domain.svg_engine import (
+    ARCADIA_GALLUS_REFERENCE_SOURCE_V1,
+    SvgRuleError,
+    topic_uses_arcadia_gallus_reference,
+    validate_topic_stroke_guide_v1,
 )
 from sketch2life.infrastructure.ai.modal_function_client import (
     FLUX_MODEL_PROVENANCE,
@@ -28,6 +50,11 @@ from sketch2life.infrastructure.ai.modal_function_client import (
     ModalJsonFunctionClient,
 )
 from sketch2life.infrastructure.config.settings import get_settings
+from sketch2life.infrastructure.svg.sanitizer import (
+    SvgInputRejected,
+    canonical_json_bytes,
+    sanitize_svg_source,
+)
 from sketch2life.infrastructure.persistence.be1_models import (
     AdultIdentityModel,
     OrganizationAssignmentModel,
@@ -39,6 +66,9 @@ router = APIRouter(
     tags=["Teacher AI v1"],
 )
 _LOGGER = get_logger(__name__)
+_TOPIC_EMAIL = re.compile(r"\b[^\s@]+@[^\s@]+\.[A-Za-z]{2,}\b")
+_TOPIC_URL = re.compile(r"\b(?:https?://|www\.)\S+", re.IGNORECASE)
+_TOPIC_PHONE = re.compile(r"(?<!\d)(?:\+?\d[\d .()\-]{7,}\d)(?!\d)")
 
 
 def _bounded_text_segments(value: str, *, maximum: int = 240) -> list[str]:
@@ -97,6 +127,36 @@ def _require_modal_dev() -> None:
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail={"code": "MODAL_AI_NOT_ENABLED"},
         )
+
+
+def _canonicalize_generated_svg(document: SvgDocumentV1) -> tuple[SvgDocumentV1, str]:
+    if not 4 <= len(document.paths) <= 20:
+        raise ValueError("SVG_ILLUSTRATION_PATH_COUNT_INVALID")
+    root = ET.Element(
+        "svg",
+        {
+            "xmlns": "http://www.w3.org/2000/svg",
+            "viewBox": document.view_box,
+        },
+    )
+    for path in document.paths:
+        ET.SubElement(
+            root,
+            "path",
+            {
+                "id": path.path_id,
+                "d": path.d,
+                "fill": path.fill,
+                "stroke": path.stroke,
+                "stroke-width": format(path.stroke_width, ".6g"),
+            },
+        )
+    sanitized = sanitize_svg_source(ET.tostring(root, encoding="utf-8"))
+    canonical_document = SvgDocumentV1.model_validate(sanitized.document)
+    if not 4 <= len(canonical_document.paths) <= 20:
+        raise ValueError("SVG_ILLUSTRATION_PATH_COUNT_INVALID")
+    digest = hashlib.sha256(canonical_json_bytes(canonical_document.model_dump(mode="json"))).hexdigest()
+    return canonical_document, digest
 
 
 def _provider_error(exc: Exception, *, request_id: str, workload: str) -> HTTPException:
@@ -299,6 +359,12 @@ def generate_lesson_visual(
     asset = output.get("asset")
     if not isinstance(asset, dict) or not isinstance(asset.get("bytes"), bytes):
         raise HTTPException(status_code=502, detail={"code": "MODAL_OUTPUT_CONTRACT_INVALID"})
+    try:
+        panel_layout = ProgressiveGuideLayoutV1.model_validate(output.get("panel_layout"))
+        if panel_layout.step_count != len(payload.drawing_steps):
+            raise ValueError("step count mismatch")
+    except (ValidationError, ValueError):
+        raise HTTPException(status_code=502, detail={"code": "MODAL_PROGRESSIVE_GUIDE_CONTRACT_INVALID"}) from None
     asset_bytes = asset["bytes"]
     asset_metadata = {key: value for key, value in asset.items() if key != "bytes"}
     _LOGGER.info(
@@ -315,8 +381,262 @@ def generate_lesson_visual(
         "status": "DRAFT",
         "review_required": True,
         "asset": asset_metadata,
+        "panel_layout": panel_layout.model_dump(mode="json"),
         "image_base64": base64.b64encode(asset_bytes).decode("ascii"),
     }
+
+
+@router.post(
+    "/svg-illustrations",
+    summary="Generate a validated, non-persisted Teacher SVG illustration draft",
+    response_model=TeacherSvgIllustrationDraftResponseV1,
+)
+def generate_svg_illustration_draft(
+    organization_id: str,
+    payload: TeacherSvgIllustrationDraftRequestV1,
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    db: Session = Depends(get_db),
+) -> TeacherSvgIllustrationDraftResponseV1:
+    _require_teacher(db, principal, organization_id)
+    _require_modal_dev()
+    settings = get_settings()
+    if not settings.svg_illustration_generation_enabled:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={"code": "CAPABILITY_DISABLED"},
+        )
+    if any(
+        pattern.search(payload.topic)
+        for pattern in (_TOPIC_EMAIL, _TOPIC_URL, _TOPIC_PHONE)
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={"code": "PERSONAL_OR_REMOTE_REFERENCE_NOT_ALLOWED"},
+        )
+
+    request_id = str(uuid4())
+    worker_input = {
+        "schema_version": "sketch2life.teacher-svg-illustration-input.v1",
+        "topic": payload.topic.strip(),
+        "target_age_months": payload.target_age_months,
+        "visual_style": payload.visual_style,
+    }
+    try:
+        result = ModalJsonFunctionClient().invoke(
+            "teacher.svg-illustration.generate", worker_input
+        )
+    except (ModalFunctionOutcomeUnknown, ModalFunctionExecutionFailed) as exc:
+        raise _provider_error(
+            exc, request_id=request_id, workload="teacher.svg-illustration.generate"
+        ) from None
+
+    output = result.output
+    if output.get("model") != {"id": MODEL_ID, "revision": MODEL_REVISION}:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail={"code": "MODAL_MODEL_REVISION_MISMATCH", "request_id": request_id},
+        )
+    reference_source = output.get("reference_source")
+    uses_curated_reference = topic_uses_arcadia_gallus_reference(topic)
+    if (
+        (uses_curated_reference and reference_source != ARCADIA_GALLUS_REFERENCE_SOURCE_V1)
+        or (not uses_curated_reference and reference_source is not None)
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail={
+                "code": "MODAL_SVG_REFERENCE_PROVENANCE_MISMATCH",
+                "request_id": request_id,
+            },
+        )
+    try:
+        generated = SvgIllustrationModelResultV1.model_validate(output.get("result"))
+        document, document_sha256 = _canonicalize_generated_svg(generated.document)
+    except (ValidationError, SvgInputRejected, ValueError) as exc:
+        reason_code = (
+            exc.code
+            if isinstance(exc, SvgInputRejected)
+            else str(exc)
+            if isinstance(exc, ValueError) and str(exc).startswith("SVG_")
+            else "MODAL_SVG_OUTPUT_INVALID"
+        )
+        _LOGGER.warning(
+            "teacher_svg_illustration_output_rejected",
+            request_id=request_id,
+            modal_call_id=result.call_id,
+            workload="teacher.svg-illustration.generate",
+            reason_code=reason_code,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail={"code": "MODAL_SVG_OUTPUT_REJECTED", "reason_code": reason_code, "request_id": request_id},
+        ) from None
+
+    _LOGGER.info(
+        "teacher_modal_request_completed",
+        request_id=request_id,
+        modal_call_id=result.call_id,
+        workload="teacher.svg-illustration.generate",
+        elapsed_seconds=result.elapsed_seconds,
+        path_count=len(document.paths),
+        document_sha256=document_sha256,
+    )
+    return TeacherSvgIllustrationDraftResponseV1(
+        request_id=request_id,
+        modal_call_id=result.call_id,
+        status="DRAFT",
+        review_required=True,
+        persisted=False,
+        model={"id": MODEL_ID, "revision": MODEL_REVISION},
+        title_vi=generated.title_vi,
+        alt_text_vi=generated.alt_text_vi,
+        document=document,
+        document_sha256=document_sha256,
+        path_count=len(document.paths),
+    )
+
+
+@router.post(
+    "/svg-stroke-guides",
+    summary="Generate a validated, non-persisted Teacher SVG stroke-guide draft",
+    response_model=SvgTopicStrokeGuideDraftResponseV1,
+)
+def generate_svg_stroke_guide_draft(
+    organization_id: str,
+    payload: SvgTopicStrokeGuideRequestV1,
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    db: Session = Depends(get_db),
+) -> SvgTopicStrokeGuideDraftResponseV1:
+    _require_teacher(db, principal, organization_id)
+    _require_modal_dev()
+    settings = get_settings()
+    if not settings.svg_topic_stroke_guide_generation_enabled:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={"code": "CAPABILITY_DISABLED"},
+        )
+    topic = payload.topic.strip()
+    if any(pattern.search(topic) for pattern in (_TOPIC_EMAIL, _TOPIC_URL, _TOPIC_PHONE)):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={"code": "PERSONAL_OR_REMOTE_REFERENCE_NOT_ALLOWED"},
+        )
+    request_id = str(uuid4())
+    try:
+        result = ModalJsonFunctionClient().invoke(
+            "svg.topic-stroke-guide.generate",
+            {
+                "schema_version": "sketch2life.svg-topic-stroke-guide-input.v1",
+                "topic": topic,
+                "difficulty": payload.difficulty,
+            },
+        )
+    except (ModalFunctionOutcomeUnknown, ModalFunctionExecutionFailed) as exc:
+        raise _provider_error(
+            exc, request_id=request_id, workload="svg.topic-stroke-guide.generate"
+        ) from None
+
+    output = result.output
+    if output.get("model") != {"id": MODEL_ID, "revision": MODEL_REVISION}:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail={"code": "MODAL_MODEL_REVISION_MISMATCH", "request_id": request_id},
+        )
+    try:
+        generated = SvgTopicStrokeGuideModelResultV1.model_validate(output.get("result"))
+        document, document_sha256 = _canonicalize_topic_stroke_guide_svg(generated.document)
+        content = generated.model_dump(mode="json")
+        content["document"] = document.model_dump(mode="json")
+        validated = validate_topic_stroke_guide_v1(content, topic=topic)
+        guide = SvgTopicStrokeGuideV1(
+            guide_id=request_id,
+            title_vi=generated.title_vi,
+            parts=validated["parts"],
+            stages=validated["stages"],
+        )
+    except (ValidationError, SvgInputRejected, SvgRuleError, ValueError) as exc:
+        reason_code = (
+            exc.code
+            if isinstance(exc, (SvgInputRejected, SvgRuleError))
+            else str(exc)
+            if isinstance(exc, ValueError) and str(exc).startswith("SVG_")
+            else "MODAL_SVG_TOPIC_GUIDE_OUTPUT_INVALID"
+        )
+        _LOGGER.warning(
+            "teacher_svg_topic_guide_output_rejected",
+            request_id=request_id,
+            modal_call_id=result.call_id,
+            workload="svg.topic-stroke-guide.generate",
+            reason_code=reason_code,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail={
+                "code": "MODAL_SVG_TOPIC_GUIDE_OUTPUT_REJECTED",
+                "reason_code": reason_code,
+                "request_id": request_id,
+            },
+        ) from None
+
+    _LOGGER.info(
+        "teacher_svg_topic_guide_completed",
+        request_id=request_id,
+        modal_call_id=result.call_id,
+        workload="svg.topic-stroke-guide.generate",
+        elapsed_seconds=result.elapsed_seconds,
+        path_count=len(document.paths),
+        stage_count=len(guide.stages),
+        document_sha256=document_sha256,
+    )
+    return SvgTopicStrokeGuideDraftResponseV1(
+        request_id=request_id,
+        modal_call_id=result.call_id,
+        topic=topic,
+        status="DRAFT",
+        review_required=True,
+        persisted=False,
+        model=SvgModelProvenanceV1(id=MODEL_ID, revision=MODEL_REVISION),
+        reference_source=(
+            SvgReferenceSourceProvenanceV1.model_validate(reference_source)
+            if reference_source is not None
+            else None
+        ),
+        document=document,
+        document_sha256=document_sha256,
+        guide=guide,
+        path_count=len(document.paths),
+        stage_count=len(guide.stages),
+        quality_gates_passed=[
+            "SVG_SANITIZER",
+            "LINE_ONLY_PATHS",
+            "PROGRESSIVE_PATH_COVERAGE",
+            "TOPIC_ANATOMY_TOPOLOGY",
+            "CURATED_SVG_REFERENCE",
+            "CHICKEN_ANATOMY_TOPOLOGY",
+        ],
+    )
+
+
+def _canonicalize_topic_stroke_guide_svg(document: SvgDocumentV1) -> tuple[SvgDocumentV1, str]:
+    if document.view_box != "0 0 512 512" or not 8 <= len(document.paths) <= 64:
+        raise ValueError("SVG_TOPIC_GUIDE_DOCUMENT_INVALID")
+    root = ET.Element("svg", {"xmlns": "http://www.w3.org/2000/svg", "viewBox": document.view_box})
+    for path in document.paths:
+        ET.SubElement(
+            root,
+            "path",
+            {
+                "id": path.path_id,
+                "d": path.d,
+                "fill": path.fill,
+                "stroke": path.stroke,
+                "stroke-width": format(path.stroke_width, ".6g"),
+            },
+        )
+    sanitized = sanitize_svg_source(ET.tostring(root, encoding="utf-8"))
+    canonical = SvgDocumentV1.model_validate(sanitized.document)
+    digest = hashlib.sha256(canonical_json_bytes(canonical.model_dump(mode="json"))).hexdigest()
+    return canonical, digest
 
 
 __all__ = ["router"]

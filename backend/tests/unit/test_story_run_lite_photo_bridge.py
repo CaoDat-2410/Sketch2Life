@@ -11,10 +11,12 @@ import pytest
 from sketch2life.application.ports.story_run_lite import AssetBinding
 from sketch2life.domain.ai_jobs.completion import canonical_json
 from sketch2life.domain.story_run_lite import OwnerScopeKind
+from sketch2life.infrastructure.ai import modal_function_client as client_module
 from sketch2life.infrastructure.ai.modal_function_client import (
     MODEL_ID,
     MODEL_REVISION,
     ModalDrawingFunctionClient,
+    ModalFunctionExecutionFailed,
     ModalFunctionOutcomeUnknown,
     ModalFunctionResult,
     prepare_drawing_input,
@@ -453,6 +455,95 @@ def test_modal_function_timeout_keeps_scratch_input_for_pending_worker():
     assert error.value.call_id == "fc-synthetic-pending"
     assert volume.removed is False
     function.spawn.assert_called_once()
+
+
+def test_modal_drawing_client_classifies_delayed_terminal_worker_log(monkeypatch):
+    _source, prepared = _prepared_input()
+
+    class Batch:
+        def put_file(self, _stream, _path):
+            return None
+
+    class Volume:
+        removed = False
+
+        @contextmanager
+        def batch_upload(self):
+            yield Batch()
+
+        def remove_file(self, _path, *, recursive):
+            assert recursive
+            self.removed = True
+
+    class Logs:
+        calls = 0
+
+        def tail(self, *, entries):
+            assert entries == 500
+            self.calls += 1
+            if self.calls == 1:
+                return []
+            event = {
+                "schema_version": "sketch2life.modal.worker-event.v1",
+                "event": "worker_failed",
+                "workload": "drawing.analyze",
+                "stage": "model_output_validation",
+                "error_code": "MODAL_MODEL_OUTPUT_TOKEN_LIMIT",
+                "error_type": "RuntimeError",
+                "duration_ms": 55_646,
+            }
+            return [SimpleNamespace(message=json.dumps(event))]
+
+    class Call:
+        object_id = "fc-synthetic-terminal"
+        logs = Logs()
+
+        def get(self, *, timeout):
+            assert timeout > 0
+            raise RuntimeError("remote result unavailable")
+
+    function = Mock()
+    function.spawn.return_value = Call()
+    volume = Volume()
+    monkeypatch.setattr(client_module.time, "sleep", lambda _delay: None)
+
+    with pytest.raises(ModalFunctionExecutionFailed) as error:
+        ModalDrawingFunctionClient(volume=volume, function=function).invoke(prepared)
+
+    assert error.value.code == "MODAL_MODEL_OUTPUT_TOKEN_LIMIT"
+    assert Call.logs.calls == 2
+    assert volume.removed is True
+    function.spawn.assert_called_once_with(prepared.payload)
+
+
+def test_confirmed_terminal_worker_failure_finalizes_invocation_as_failed():
+    class Guard:
+        state = SimpleNamespace(value="SENT")
+
+        def __init__(self, finalized: bool) -> None:
+            self.finalized = finalized
+            self.finalized_state = None
+
+        def finalize(self, state, _result_sha256=None):
+            self.finalized_state = state
+            return self.finalized
+
+    guard = Guard(finalized=True)
+    result = PhotoVisionBridge._confirmed_terminal_failure(
+        guard, "MODAL_MODEL_OUTPUT_TOKEN_LIMIT"
+    )
+
+    assert guard.finalized_state.value == "FAILED"
+    assert result.state == "FAILED"
+    assert result.error_code == "VISION_MODAL_MODEL_OUTPUT_TOKEN_LIMIT"
+    assert result.provider_invoked is True
+
+    unfinalized = Guard(finalized=False)
+    fallback = PhotoVisionBridge._confirmed_terminal_failure(
+        unfinalized, "MODAL_MODEL_OUTPUT_TOKEN_LIMIT"
+    )
+    assert fallback.state == "UNKNOWN"
+    assert fallback.error_code == "VISION_LEDGER_FINALIZATION_UNKNOWN"
 
 
 def test_modal_function_composition_requires_only_pinned_synthetic_run(

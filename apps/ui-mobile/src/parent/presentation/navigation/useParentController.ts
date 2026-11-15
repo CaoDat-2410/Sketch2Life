@@ -17,6 +17,7 @@ import type {
   SuggestedActivity,
 } from '../../domain/types';
 import type { AppStep, SelectedAudio, SelectedPhoto, TimedEvent } from './workflowTypes';
+import type { ParentSvgGuidePageV1, SvgTopicStrokeGuideDraftV1 } from '../../domain/svgGuide';
 
 export function useParentController(application: ParentApplicationModule) {
   const [step, setStep] = useState<AppStep>('auth');
@@ -39,7 +40,9 @@ export function useParentController(application: ParentApplicationModule) {
   const [groupInvitations, setGroupInvitations] = useState<ParentGroupInvitation[]>([]);
   const [accountError, setAccountError] = useState('');
   const [guideEnabled, setGuideEnabled] = useState(false);
-  const [guideBase64, setGuideBase64] = useState('');
+  const [guideLayout, setGuideLayout] = useState<ParentSvgGuidePageV1 | null>(null);
+  const [guideDraft, setGuideDraft] = useState<SvgTopicStrokeGuideDraftV1 | null>(null);
+  const [guideCatalogChecked, setGuideCatalogChecked] = useState(false);
   const [guideBusy, setGuideBusy] = useState(false);
   const [guideError, setGuideError] = useState('');
   const [photo, setPhoto] = useState<SelectedPhoto | null>(null);
@@ -50,11 +53,16 @@ export function useParentController(application: ParentApplicationModule) {
   const [transcriptError, setTranscriptError] = useState('');
   const [run, setRun] = useState<StoryRun | null>(null);
   const [candidate, setCandidate] = useState<ParentCandidate | null>(null);
+  const [artworkRetakeAvailable, setArtworkRetakeAvailable] = useState(false);
+  const [retakeRequested, setRetakeRequested] = useState(false);
   const [subject, setSubject] = useState('');
   const [understandingRevision, setUnderstandingRevision] = useState(0);
   const [activities, setActivities] = useState<SuggestedActivity[]>([]);
   const [activitySource, setActivitySource] = useState('');
+  const [activityRequestId, setActivityRequestId] = useState('');
+  const [selectedActivityRef, setSelectedActivityRef] = useState('');
   const [activityAttempted, setActivityAttempted] = useState(false);
+  const [activityRetryCount, setActivityRetryCount] = useState(0);
   const [activityError, setActivityError] = useState('');
   const [story, setStory] = useState<StoryDraft | null>(null);
   const [storySha256, setStorySha256] = useState('');
@@ -276,6 +284,14 @@ export function useParentController(application: ParentApplicationModule) {
     setStep('topic');
   }
 
+  function updateTopic(value: string): void {
+    setTopic(value);
+    setGuideLayout(null);
+    setGuideDraft(null);
+    setGuideCatalogChecked(false);
+    setGuideError('');
+  }
+
   async function openLessons(mode: 'gallery' | 'picker' = 'picker'): Promise<void> {
     setGalleryMode(mode);
     setGalleryLesson(null);
@@ -309,6 +325,10 @@ export function useParentController(application: ParentApplicationModule) {
       const detail = await application.lessons.get(lessonId);
       if (galleryMode === 'picker') {
         setLesson(detail);
+        updateTopic(detail.topic || detail.drawing_subject);
+        setGuideLayout(null);
+        setGuideDraft(null);
+        setGuideCatalogChecked(false);
         setStep('topic');
       } else {
         setGalleryLesson(detail);
@@ -342,13 +362,70 @@ export function useParentController(application: ParentApplicationModule) {
   }
 
   async function createGuide(): Promise<void> {
-    if (!guideEnabled || !topic.trim()) return;
+    const guideTopic = topic.trim() || lesson?.drawing_subject.trim() || lesson?.topic.trim() || '';
+    if (!guideEnabled) return;
     setGuideBusy(true);
     setGuideError('');
+    setGuideDraft(null);
+    setGuideCatalogChecked(false);
     try {
-      const receipt = await timeRequest('FLUX.3 · line-sketch', () => application.learning.generateSketchGuide(topic.trim()));
-      if (!receipt.image_base64) throw new Error('Modal không trả về ảnh line-sketch.');
-      setGuideBase64(receipt.image_base64);
+      const lessonPresentation = lesson as (LessonDetail & {
+        presentation?: {
+          schema_version?: string;
+          slides?: Array<{
+            slide_id: string;
+            kind: string;
+            title_vi: string;
+            body_vi?: string;
+            guide: ParentSvgGuidePageV1['items'][number]['guide'];
+            document: ParentSvgGuidePageV1['items'][number]['document'];
+          }>;
+        };
+      }) | null;
+      const lessonSlides = lessonPresentation?.presentation?.slides?.filter((slide) => slide.kind === 'drawing_guide') ?? [];
+      if (lessonSlides.length > 0) {
+        setGuideLayout({
+          contract: 'SvgGuideCatalogPageV1',
+          items: lessonSlides.map((slide) => ({
+            catalog_entry_id: `${lesson?.lesson_id}:${slide.slide_id}`,
+            topic_key: toTopicKey(guideTopic),
+            title_vi: slide.title_vi,
+            alt_text_vi: slide.body_vi?.trim() || slide.title_vi,
+            source_sha256: slide.guide.source_sha256,
+            guide_sha256: '',
+            document: slide.document,
+            guide: slide.guide,
+          })),
+        });
+        setGuideCatalogChecked(true);
+        return;
+      }
+      const svgCatalogLearning = application.learning as typeof application.learning & {
+        listSvgGuides: (topicKey?: string) => Promise<ParentSvgGuidePageV1>;
+      };
+      const page = await svgCatalogLearning.listSvgGuides(guideTopic ? toTopicKey(guideTopic) : undefined);
+      setGuideLayout(page);
+      setGuideCatalogChecked(true);
+    } catch (cause) {
+      setGuideError(displayError(cause));
+      // A failed catalog request is an explicit no-catalog outcome for this
+      // attempt. Keep the error visible, but allow the Parent to request the
+      // optional AI draft instead of trapping them behind the catalog button.
+      setGuideCatalogChecked(true);
+    } finally {
+      setGuideBusy(false);
+    }
+  }
+
+  async function generateGuideDraft(): Promise<void> {
+    const guideTopic = topic.trim() || lesson?.drawing_subject.trim() || lesson?.topic.trim() || '';
+    if (!guideEnabled || !guideTopic || !guideCatalogChecked || (guideLayout?.items.length ?? 0) > 0) return;
+    setGuideBusy(true);
+    setGuideError('');
+    setGuideDraft(null);
+    try {
+      const draft = await application.learning.generateSketchGuide(guideTopic);
+      setGuideDraft(draft);
     } catch (cause) {
       setGuideError(displayError(cause));
     } finally {
@@ -393,7 +470,7 @@ export function useParentController(application: ParentApplicationModule) {
         setActiveRun(createdRun);
       }
 
-      if (audio && !audioAttempted) {
+      if (audio && !audioAttempted && !retakeRequested) {
         const audioRun = currentRun;
         if (!audioRun) throw new Error('Không tạo được buổi học để gắn bản ghi âm.');
         setAudioAttempted(true);
@@ -417,26 +494,41 @@ export function useParentController(application: ParentApplicationModule) {
         return;
       }
 
-      await analyzeDrawingForRun(currentRun);
+      await analyzeDrawingForRun(currentRun, retakeRequested);
     } catch (cause) {
       setError(displayError(cause));
       setBusy('');
     }
   }
 
-  async function analyzeDrawingForRun(targetRun: StoryRun): Promise<void> {
+  async function analyzeDrawingForRun(targetRun: StoryRun, replaceExisting = false): Promise<void> {
     if (!photo) return;
     setBusy('understanding');
     setError('');
     try {
       const understanding = await timeRequest(
         'Qwen3.5-VL · hiểu tranh',
-        () => application.learning.understandDrawing(targetRun.run_id, photo.base64, photo.mediaType),
+        () => application.learning.understandDrawing(
+          targetRun.run_id,
+          photo.base64,
+          photo.mediaType,
+          targetRun.current_input_revision ?? 1,
+          replaceExisting,
+        ),
       );
       if (!understanding.candidate) throw new Error('API phản hồi nhưng thiếu candidate chủ thể.');
       setCandidate(understanding.candidate);
       setSubject(understanding.candidate.candidate_subject ?? '');
       setUnderstandingRevision(understanding.understanding_revision ?? 1);
+      setArtworkRetakeAvailable(Boolean(understanding.artwork_retake_available));
+      setRetakeRequested(false);
+      if (understanding.run_input_revision) {
+        setRun((current) => current ? {
+          ...current,
+          current_input_revision: understanding.run_input_revision ?? current.current_input_revision,
+          run_state: 'SUBJECT_REVIEW',
+        } : current);
+      }
       setStep('understanding');
     } catch (cause) {
       try {
@@ -490,16 +582,19 @@ export function useParentController(application: ParentApplicationModule) {
     await analyzeDrawingForRun(run);
   }
 
-  async function confirmSubject(): Promise<void> {
-    if (!run || !candidate || !subject.trim() || !understandingRevision) return;
+  async function confirmSubject(confirmedSubject = subject): Promise<void> {
+    const selectedSubject = confirmedSubject.trim();
+    if (!run || !candidate || !selectedSubject || !understandingRevision) return;
     setBusy('subject');
     setError('');
     try {
-      const response = await application.learning.confirmSubject(run.run_id, understandingRevision, subject.trim());
+      const response = await application.learning.confirmSubject(run.run_id, understandingRevision, selectedSubject);
       setUnderstandingRevision(response.understanding_revision);
-      setRun((current) => current ? { ...current, subject_label: subject.trim(), run_state: 'PREPARATION_REVIEW' } : current);
-      setCandidate({ ...candidate, candidate_subject: subject.trim(), decision: 'CONFIRMED_BY_ADULT' });
+      setRun((current) => current ? { ...current, subject_label: selectedSubject, run_state: 'PREPARATION_REVIEW' } : current);
+      setCandidate({ ...candidate, candidate_subject: selectedSubject, decision: 'CONFIRMED_BY_ADULT' });
+      setArtworkRetakeAvailable(false);
       setActivityAttempted(false);
+      setActivityRetryCount(0);
       setActivities([]);
       setActivityError('');
       setStep('activity');
@@ -510,11 +605,25 @@ export function useParentController(application: ParentApplicationModule) {
     }
   }
 
+  function requestArtworkRetake(): void {
+    if (!run || !artworkRetakeAvailable || retakeRequested) return;
+    setRetakeRequested(true);
+    setPhoto(null);
+    setError('Chụp lại một lần. Ảnh trước vẫn được giữ trong lịch sử buổi học.');
+    setStep('capture');
+  }
+
   async function requestActivities(): Promise<void> {
-    if (!run || !understandingRevision || activityAttempted) return;
+    const retrying = activityAttempted;
+    const retryAllowed = activityRetryCount === 0 && activityError.includes('MODAL_WORKER_FAILED_TERMINAL');
+    if (!run || !understandingRevision || busy === 'activity' || (retrying && !retryAllowed)) return;
+    if (retrying) setActivityRetryCount((count) => count + 1);
     setActivityAttempted(true);
     setBusy('activity');
     setActivityError('');
+    setActivities([]);
+    setActivityRequestId('');
+    setSelectedActivityRef('');
     try {
       const receipt = await timeRequest(
         'Qwen3.5 · chọn hoạt động phù hợp',
@@ -522,6 +631,8 @@ export function useParentController(application: ParentApplicationModule) {
       );
       setActivities(receipt.activities);
       setActivitySource(receipt.selection_mode);
+      setActivityRequestId(receipt.request_id);
+      setSelectedActivityRef('');
     } catch (cause) {
       setActivityError(displayError(cause));
     } finally {
@@ -531,6 +642,15 @@ export function useParentController(application: ParentApplicationModule) {
 
   async function requestStory(instruction?: string): Promise<void> {
     if (!run || !understandingRevision || (storyAttempted && !instruction) || (rewriteCount >= 3 && instruction)) return;
+    const selectedActivity = instruction?.trim()
+      ? undefined
+      : activityRequestId && selectedActivityRef
+        ? { requestId: activityRequestId, activityRef: selectedActivityRef }
+        : undefined;
+    if (!instruction?.trim() && !selectedActivity) {
+      setError('Chọn một hoạt động chính trước khi tạo kịch bản.');
+      return;
+    }
     setStoryAttempted(true);
     if (instruction) setRewriteCount((count) => count + 1);
     setBusy(instruction ? 'rewrite' : 'story');
@@ -539,7 +659,13 @@ export function useParentController(application: ParentApplicationModule) {
       const { updatedRun, parsed, hash } = await timeRequest(
         instruction ? 'Qwen3.5 · viết lại kịch bản' : 'Qwen3.5 · tạo kịch bản',
         async () => {
-          const receipt = await application.learning.generateStory(run.run_id, understandingRevision, instruction, rewriteCount);
+          const receipt = await application.learning.generateStory(
+            run.run_id,
+            understandingRevision,
+            selectedActivity,
+            instruction,
+            rewriteCount,
+          );
           const nextRun = receipt.story_run ?? (await application.learning.getRun(run.run_id)).story_run;
           const parsedStory = parseStoryDraft(receipt.story ?? nextRun.story);
           if (!parsedStory) throw new Error('Story không khớp schema story-revision.v1 (cần 5–15 cảnh, 30–90 giây).');
@@ -581,6 +707,15 @@ export function useParentController(application: ParentApplicationModule) {
     restoreRun(activeRun);
     if (activeRun.story_status === 'CONFIRMED') setStep('handoff');
     else if (parseStoryDraft(activeRun.story)) setStep('story');
+    else if (activeRun.subject_label && activeRun.understanding_revision) {
+      setActivities([]);
+      setActivityRequestId('');
+      setSelectedActivityRef('');
+      setActivityAttempted(false);
+      setActivityRetryCount(0);
+      setActivityError('');
+      setStep('activity');
+    }
     else if (activeRun.candidate) setStep('understanding');
     else setError('Buổi đang mở chưa có dữ liệu đủ để khôi phục màn tiếp theo. Không tạo buổi mới để tránh trùng.');
   }
@@ -622,26 +757,33 @@ export function useParentController(application: ParentApplicationModule) {
   function resetWorkflow(): void {
     setTopic(''); setIdea(''); setLesson(null); setPhoto(null); setRun(null); setCandidate(null); setSubject('');
     setAudioValue(null); setAudioAttempted(false); setTranscript(null); setTranscriptText(''); setTranscriptError('');
-    setUnderstandingRevision(0); setActivities([]); setActivitySource(''); setActivityAttempted(false); setActivityError('');
+    setUnderstandingRevision(0); setActivities([]); setActivitySource(''); setActivityRequestId(''); setSelectedActivityRef(''); setActivityAttempted(false); setActivityRetryCount(0); setActivityError('');
     setStory(null); setStorySha256(''); setStoryAttempted(false); setStoryConfirmed(false); setRewriteCount(0); setRewriteInstruction('');
-    setGuideBase64(''); setGuideEnabled(false); setEvents([]); setError(''); setBusy('');
+    setGuideLayout(null); setGuideDraft(null); setGuideCatalogChecked(false); setGuideEnabled(false); setArtworkRetakeAvailable(false); setRetakeRequested(false); setEvents([]); setError(''); setBusy('');
   }
 
   return {
     step, setStep, policy, currentUser, profiles, profile, setProfile, profileBeingEdited, setProfileBeingEdited,
     publicSettings: application.publicSettings,
-    activeRun, topic, setTopic, idea, setIdea, lesson, setLesson, lessons, lessonLoading, lessonLoadingId, lessonError,
+    activeRun, topic, setTopic: updateTopic, idea, setIdea, lesson, setLesson, lessons, lessonLoading, lessonLoadingId, lessonError,
     galleryMode, galleryLesson, lessonInvitations, groupInvitations, accountError, guideEnabled, setGuideEnabled,
-    guideBase64, guideBusy, guideError, photo, setPhoto, audio, setAudio, transcript, transcriptText, setTranscriptText,
+    guideLayout, guideDraft, guideCatalogChecked, guideBusy, guideError, photo, setPhoto, audio, setAudio, transcript, transcriptText, setTranscriptText,
     transcriptError, audioAttempted, transcriptBusy: busy === 'transcription' || busy === 'transcript-confirmation',
-    run, candidate, subject, setSubject, understandingRevision,
-    activities, activitySource, activityAttempted, activityError, story, storySha256, storyAttempted,
+    run, candidate, subject, setSubject, understandingRevision, artworkRetakeAvailable,
+    activities, activitySource, activityAttempted, activityError, activityRequestId, selectedActivityRef,
+    activityRetryAvailable: activityRetryCount === 0 && activityError.includes('MODAL_WORKER_FAILED_TERMINAL'),
+    story, storySha256, storyAttempted,
     storyConfirmed, rewriteCount, rewriteInstruction, setRewriteInstruction, events, busy, error, authError, bootstrapBusy,
     loadParentData, authenticate, signInWithGoogle, resetPassword, createProfileAndReturn, updateProfile, authorizeProfile,
     revokeProfileAuthorization, archiveProfile, continueWithProfile, openLessons, chooseLesson, acceptLessonInvitation,
-    declineLessonInvitation, acceptGroupInvitation, createGuide, confirmContextAndAnalyze,
-    confirmReviewedTranscript, continueWithoutAudio, confirmSubject,
-    requestActivities, requestStory, confirmStory, resumeActiveRun, changePassword, resetCurrentPassword, signOut,
+    declineLessonInvitation, acceptGroupInvitation, createGuide, generateGuideDraft, confirmContextAndAnalyze,
+    confirmReviewedTranscript, continueWithoutAudio, confirmSubject, requestArtworkRetake,
+    requestActivities, selectActivity: (activityRef: string) => {
+      if (activities.some((activity) => activity.activity_ref === activityRef)) {
+        setSelectedActivityRef(activityRef);
+        setError('');
+      }
+    }, requestStory, confirmStory, resumeActiveRun, changePassword, resetCurrentPassword, signOut,
     resetWorkflow, backToProfile: () => { setStep('profile'); setError(''); },
     clearError: () => setError(''),
   };
@@ -660,4 +802,15 @@ function requestIdOf(value: unknown): string | undefined {
     return typeof requestId === 'string' ? requestId : undefined;
   }
   return undefined;
+}
+
+function toTopicKey(value: string): string {
+  return value
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLocaleLowerCase('vi-VN')
+    .replace(/đ/g, 'd')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 120);
 }

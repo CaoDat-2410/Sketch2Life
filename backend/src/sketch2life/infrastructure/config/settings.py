@@ -55,8 +55,18 @@ class Settings(BaseSettings):
     firebase_admin_json_base64: SecretStr | None = None
     firebase_check_revoked_tokens: bool = True
 
+    # Optional synthetic Parent seed. Credentials are read from the ignored root .env only.
+    local_seed_parent_email: str = ""
+    local_seed_parent_password: SecretStr | None = None
+    local_demo_parent_video_quota_granted: int = Field(default=5, ge=0, le=10_000)
+    local_demo_parent_video_quota_used: int = Field(default=0, ge=0, le=10_000)
+
     # Provider calls stay backend-side; Modal is limited to local synthetic validation.
     ai_provider: Literal["disabled", "lightning_dev", "runpod", "modal_dev"] = "disabled"
+    svg_illustration_generation_enabled: bool = False
+    svg_topic_stroke_guide_generation_enabled: bool = False
+    # Strict by default. A task-scoped local test may disable only soft checks.
+    parent_activity_soft_quality_gate_enabled: bool = True
     lightning_ai_base_url: str = ""
     lightning_ai_token_file: Path | None = None
     lightning_model_profile: str = "live-p2-understanding-v1"
@@ -95,6 +105,11 @@ class Settings(BaseSettings):
     def enforce_deployment_provider_policy(self) -> Self:
         if self.storage_example_enabled and self.env != "local":
             raise ValueError("the storage example is available only in local development")
+        if (
+            not self.parent_activity_soft_quality_gate_enabled
+            and self.env not in {"local", "test"}
+        ):
+            raise ValueError("Parent activity soft-gate bypass is available only in local/test")
 
         has_s3_access_key = bool(self.s3_access_key and self.s3_access_key.get_secret_value())
         has_s3_secret_key = bool(self.s3_secret_key and self.s3_secret_key.get_secret_value())
@@ -114,6 +129,12 @@ class Settings(BaseSettings):
 
         if self.ai_provider == "modal_dev" and self.env not in {"local", "test"}:
             raise ValueError("Modal dev inference is available only in local/test environments")
+
+        if self.env != "local" and (
+            self.local_seed_parent_email
+            or (self.local_seed_parent_password and self.local_seed_parent_password.get_secret_value())
+        ):
+            raise ValueError("local Parent seed credentials are available only in local development")
 
         return self
 
