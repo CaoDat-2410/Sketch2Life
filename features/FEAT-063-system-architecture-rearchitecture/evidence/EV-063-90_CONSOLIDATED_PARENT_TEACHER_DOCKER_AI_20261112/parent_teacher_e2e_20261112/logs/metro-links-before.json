@@ -1,0 +1,72 @@
+[
+  {
+    "name": "metro",
+    "type": "Junction",
+    "target": "D:\\Project\\CAPSTONE\\.codex-worktrees\\parent-catalog-20261111\\node_modules\\.pnpm\\metro@0.81.5_supports-color@8.1.1\\node_modules\\metro"
+  },
+  {
+    "name": "metro-babel-transformer",
+    "type": "SymbolicLink",
+    "target": "..\\metro-babel-transformer@0.87.0_supports-color@8.1.1\\node_modules\\metro-babel-transformer"
+  },
+  {
+    "name": "metro-cache",
+    "type": "SymbolicLink",
+    "target": "..\\metro-cache@0.87.0_supports-color@8.1.1\\node_modules\\metro-cache"
+  },
+  {
+    "name": "metro-cache-key",
+    "type": "SymbolicLink",
+    "target": "..\\metro-cache-key@0.87.0\\node_modules\\metro-cache-key"
+  },
+  {
+    "name": "metro-config",
+    "type": "Junction",
+    "target": "D:\\Project\\CAPSTONE\\.codex-worktrees\\parent-catalog-20261111\\node_modules\\.pnpm\\metro-config@0.81.5_supports-color@8.1.1\\node_modules\\metro-config"
+  },
+  {
+    "name": "metro-core",
+    "type": "Junction",
+    "target": "D:\\Project\\CAPSTONE\\.codex-worktrees\\parent-catalog-20261111\\node_modules\\.pnpm\\metro-core@0.81.5\\node_modules\\metro-core"
+  },
+  {
+    "name": "metro-file-map",
+    "type": "SymbolicLink",
+    "target": "..\\metro-file-map@0.87.0_supports-color@8.1.1\\node_modules\\metro-file-map"
+  },
+  {
+    "name": "metro-minify-terser",
+    "type": "SymbolicLink",
+    "target": "..\\metro-minify-terser@0.87.0\\node_modules\\metro-minify-terser"
+  },
+  {
+    "name": "metro-resolver",
+    "type": "Junction",
+    "target": "D:\\Project\\CAPSTONE\\.codex-worktrees\\parent-catalog-20261111\\node_modules\\.pnpm\\metro-resolver@0.81.5\\node_modules\\metro-resolver"
+  },
+  {
+    "name": "metro-runtime",
+    "type": "Junction",
+    "target": "D:\\Project\\CAPSTONE\\.codex-worktrees\\parent-catalog-20261111\\node_modules\\.pnpm\\metro-runtime@0.81.5\\node_modules\\metro-runtime"
+  },
+  {
+    "name": "metro-source-map",
+    "type": "SymbolicLink",
+    "target": "..\\metro-source-map@0.87.0_supports-color@8.1.1\\node_modules\\metro-source-map"
+  },
+  {
+    "name": "metro-symbolicate",
+    "type": "SymbolicLink",
+    "target": "..\\metro-symbolicate@0.87.0_supports-color@8.1.1\\node_modules\\metro-symbolicate"
+  },
+  {
+    "name": "metro-transform-plugins",
+    "type": "SymbolicLink",
+    "target": "..\\metro-transform-plugins@0.87.0_supports-color@8.1.1\\node_modules\\metro-transform-plugins"
+  },
+  {
+    "name": "metro-transform-worker",
+    "type": "Junction",
+    "target": "D:\\Project\\CAPSTONE\\.codex-worktrees\\parent-catalog-20261111\\node_modules\\.pnpm\\metro-transform-worker@0.81.5_supports-color@8.1.1\\node_modules\\metro-transform-worker"
+  }
+]

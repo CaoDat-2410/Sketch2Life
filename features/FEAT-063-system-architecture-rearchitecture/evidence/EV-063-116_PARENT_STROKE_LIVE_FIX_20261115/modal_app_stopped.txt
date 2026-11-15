@@ -1,0 +1,52 @@
+App:                                       sketch2life-srs23-language-audio-dev
+App ID:                                    ap-0Sk2zfG3P0Z0rX8FrUH2Dk
+State:                                     stopped
+Stopped:                                   2026-11-15 11:45 SE Asia Standard
+                                           Time · siesta-6107
+Deployment:                                v2 · 2026-11-15 11:39 SE Asia
+                                           Standard Time · siesta-6107
+Created:                                   2026-11-15 11:29 SE Asia Standard
+                                           Time · siesta-6107
+
+Functions (14):
+  check-qwen35-decoder-readiness           fu-0gdqe7kiLrSGv6RlHJLrzV
+    CPU
+
+  check-qwen35-readiness                   fu-QB1Hzq3lSyC4H92hflB6JU
+    1 × L40S GPU (1 × L4 GPU, 1 × A10G GPU)
+
+  download-language-audio-models           fu-iDl2ZhG9dCqsCXMWSuvdB2
+    CPU
+
+  generate-story-and-storyboard            fu-x8v16NKrcIZMNxKyQUIfHD
+    1 × L40S GPU (1 × L4 GPU, 1 × A10G GPU)
+
+  generate-teacher-sketch-deck             fu-fjgOx4mnSnBrGui6RQ04Wq
+    1 × L40S GPU (1 × L4 GPU, 1 × A10G GPU)
+
+  generate-teacher-svg-illustration-draft  fu-3sTv0j1WY9XKee3LV6uT14
+    1 × L40S GPU (1 × L4 GPU, 1 × A10G GPU)
+
+  generate-topic-svg-stroke-guide-draft    fu-I2h6PwEHhtwqJMeV9bNi7C
+    1 × L40S GPU (1 × L4 GPU, 1 × A10G GPU)
+
+  health-api                               fu-pGVECAJU0sfGjHtH140jzL
+    CPU · Web Function · Unauthenticated
+
+  probe-qwen35-constrained-decoder         fu-kAXZNWU7NWlmzF6PThhfs6
+    CPU
+
+  probe-qwen35-generation-constraints      fu-iTwhR7u49LkuxvTiTbNt8S
+    1 × L40S GPU (1 × L4 GPU, 1 × A10G GPU)
+
+  suggest-lesson-plan                      fu-8K7vlEe4UWj5FcoWfEAj7M
+    1 × L40S GPU (1 × L4 GPU, 1 × A10G GPU)
+
+  suggest-parent-activities                fu-3WYwibluIVSQm2BosHF7kB
+    1 × L40S GPU (1 × L4 GPU, 1 × A10G GPU)
+
+  synthesize-vietnamese-narration          fu-9d4J5zMdf1uzUxWhuEwqsH
+    CPU
+
+  transcribe-vietnamese-audio              fu-LmR3QzVqoCtOABnwZMk4RS
+    CPU

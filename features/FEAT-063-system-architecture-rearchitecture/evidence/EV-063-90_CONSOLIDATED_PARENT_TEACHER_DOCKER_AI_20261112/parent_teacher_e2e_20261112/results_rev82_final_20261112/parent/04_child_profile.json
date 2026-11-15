@@ -1,0 +1,21 @@
+{
+  "request_id": "e5da6efc-095a-4e3d-a9d0-774b0b8e12ca",
+  "profile": {
+    "parent_profile_id": "8e4cdfe6-e0e5-4a86-85dd-c4267134842f",
+    "state": "ACTIVE",
+    "current_revision": {
+      "profile_revision_id": "2fd9fe2b-c678-4de7-bb66-6b07ac1a2a29",
+      "revision": 1,
+      "age_months": 60,
+      "display_name": "Synthetic Child Rev82",
+      "interests_summary": "Thiên nhiên và động vật",
+      "revision_sha256": "880189fd3928de8f8be000c62914ba6ac51520f73fb869c4712ea87a1f674f78",
+      "created_at": "2026-11-12T15:01:33.394270Z"
+    },
+    "authorization_state": "GRANTED",
+    "authorization_policy_version": "local-synthetic-demo-v1",
+    "authorization_current": true,
+    "created_at": "2026-11-12T15:01:33.397331Z",
+    "updated_at": "2026-11-12T15:01:33.394270Z"
+  }
+}

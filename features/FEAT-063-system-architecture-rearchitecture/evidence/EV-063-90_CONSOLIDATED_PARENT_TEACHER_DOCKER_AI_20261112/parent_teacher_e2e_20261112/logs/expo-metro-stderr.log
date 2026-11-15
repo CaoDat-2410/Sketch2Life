@@ -1,0 +1,10 @@
+● Validation Warning:
+
+  Unknown option "watcher.unstable_workerThreads" with value false was found.
+  This is probably a typing mistake. Fixing it will remove this message.
+
+TypeError: Cannot read properties of undefined (reading 'push')
+TypeError: Cannot read properties of undefined (reading 'push')
+    at console.log (<repo-root>\.codex-worktrees\parent-catalog-20261111\node_modules\.pnpm\@expo+cli@0.22.28_supports-color@8.1.1\node_modules\@expo\cli\src\start\server\metro\instantiateMetro.ts:46:22)
+    at Object.log (<repo-root>\.codex-worktrees\parent-catalog-20261111\node_modules\.pnpm\@expo+cli@0.22.28_supports-color@8.1.1\node_modules\@expo\cli\src\log.ts:26:11)
+    at startAsync (<repo-root>\.codex-worktrees\parent-catalog-20261111\node_modules\.pnpm\@expo+cli@0.22.28_supports-color@8.1.1\node_modules\@expo\cli\src\start\startAsync.ts:128:11)

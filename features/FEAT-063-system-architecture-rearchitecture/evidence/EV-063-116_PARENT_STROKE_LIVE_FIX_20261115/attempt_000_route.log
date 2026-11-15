@@ -1,0 +1,4 @@
+2026-11-15 11:27:10 [info     ] modal_worker_scratch_upload_started attempt_ref=1706db96462673e7 generation_ref=bafccd360ee0de15 input_size_bytes=324 job_ref=362502ca4c85aeaf workload=svg.topic-stroke-guide.generate
+2026-11-15 11:27:12 [info     ] modal_worker_scratch_upload_completed attempt_ref=1706db96462673e7 duration_ms=1815 generation_ref=bafccd360ee0de15 job_ref=362502ca4c85aeaf workload=svg.topic-stroke-guide.generate
+2026-11-15 11:27:13 [warning  ] modal_worker_invocation_failed attempt_ref=1706db96462673e7 exception_type=NotFoundError generation_ref=bafccd360ee0de15 job_ref=362502ca4c85aeaf modal_call_id=None workload=svg.topic-stroke-guide.generate
+2026-11-15 11:27:13 [warning  ] parent_modal_outcome_unknown   modal_call_id=None request_id=a0fbdb7b-b0a0-49ea-98b8-731fa4d07084 workload=svg.topic-stroke-guide.generate

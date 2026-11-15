@@ -1,0 +1,175 @@
+<repo-root>\.venv-modal\Lib\site-packages\modal\_utils\async_utils.py:43: DeprecationWarning: 'asyncio.WindowsSelectorEventLoopPolicy' is deprecated and slated for removal in Python 3.16
+  asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+<repo-root>\.venv-modal\Lib\site-packages\modal\_utils\async_utils.py:43: DeprecationWarning: 'asyncio.set_event_loop_policy' is deprecated and slated for removal in Python 3.16
+  asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+2026-11-15 16:11:09+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_started","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"worker_entrypoint","timestamp_utc":"2026-11-15T09:11:09.990624+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 16:11:09+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"input_envelope","timestamp_utc":"2026-11-15T09:11:09.990781+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 16:11:09+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"input_envelope","timestamp_utc":"2026-11-15T09:11:09.990855+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":0}
+2026-11-15 16:11:09+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"workload_gate","timestamp_utc":"2026-11-15T09:11:09.990907+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 16:11:09+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"workload_gate","timestamp_utc":"2026-11-15T09:11:09.990947+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":0}
+2026-11-15 16:11:09+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"scratch_volume_reload","timestamp_utc":"2026-11-15T09:11:09.990990+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 16:11:10+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"scratch_volume_reload","timestamp_utc":"2026-11-15T09:11:10.219062+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":228}
+2026-11-15 16:11:10+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"input_manifest_read","timestamp_utc":"2026-11-15T09:11:10.219217+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 16:11:10+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"input_manifest_read","timestamp_utc":"2026-11-15T09:11:10.886727+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":667}
+2026-11-15 16:11:10+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"input_contract_validation","timestamp_utc":"2026-11-15T09:11:10.886875+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 16:11:10+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"input_contract_validation","timestamp_utc":"2026-11-15T09:11:10.886937+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":0}
+2026-11-15 16:11:10+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"svg_catalog_reload","timestamp_utc":"2026-11-15T09:11:10.886977+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 16:11:11+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"svg_catalog_reload","timestamp_utc":"2026-11-15T09:11:11.548957+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":662}
+2026-11-15 16:11:11+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"checkpoint_verification","timestamp_utc":"2026-11-15T09:11:11.549612+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 16:11:11+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"checkpoint_verification","timestamp_utc":"2026-11-15T09:11:11.755181+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":206}
+2026-11-15 16:11:11+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"model_load","timestamp_utc":"2026-11-15T09:11:11.755332+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 16:11:21+07:00 {"causal_conv1d_available": true, "event": "qwen35_linear_attention_kernel_preflight", "fla_available": true, "import_failures": {}, "reference_fallback_allowed": false}
+2026-11-15 16:11:23+07:00
+2026-11-15 16:11:23+07:00 [1A
+2026-11-15 16:11:23+07:00 Loading weights:   0%|          | 0/760 [00:00<?, ?it/s]
+2026-11-15 16:11:23+07:00 [1A
+Loading weights:   0%|          | 1/760 [00:00<06:26,  1.96it/s]
+2026-11-15 16:11:24+07:00
+2026-11-15 16:11:24+07:00 [1A
+2026-11-15 16:11:24+07:00 Loading weights:   0%|          | 2/760 [00:01<09:15,  1.36it/s]
+2026-11-15 16:11:24+07:00 [1A
+Loading weights:   2%|▏         | 13/760 [00:01<01:00, 12.34it/s]
+2026-11-15 16:11:25+07:00
+2026-11-15 16:11:25+07:00 [1A
+2026-11-15 16:11:25+07:00 Loading weights:   3%|▎         | 22/760 [00:01<00:34, 21.46it/s]
+2026-11-15 16:11:25+07:00 [1A
+2026-11-15 16:11:25+07:00 Loading weights:   4%|▍         | 29/760 [00:01<00:27, 26.74it/s]
+2026-11-15 16:11:25+07:00 [1A
+2026-11-15 16:11:25+07:00 Loading weights:   5%|▌         | 41/760 [00:01<00:17, 41.28it/s]
+2026-11-15 16:11:25+07:00 [1A
+2026-11-15 16:11:25+07:00 Loading weights:   6%|▋         | 49/760 [00:02<00:18, 39.27it/s]
+2026-11-15 16:11:25+07:00 [1A
+2026-11-15 16:11:25+07:00 Loading weights:   8%|▊         | 60/760 [00:02<00:15, 46.59it/s]
+2026-11-15 16:11:25+07:00 [1A
+2026-11-15 16:11:25+07:00 Loading weights:   9%|▉         | 67/760 [00:02<00:14, 49.14it/s]
+2026-11-15 16:11:25+07:00 [1A
+Loading weights:  11%|█         | 81/760 [00:02<00:10, 65.64it/s]
+2026-11-15 16:11:26+07:00
+2026-11-15 16:11:26+07:00 [1A
+2026-11-15 16:11:26+07:00 Loading weights:  12%|█▏        | 91/760 [00:02<00:09, 69.21it/s]
+2026-11-15 16:11:26+07:00 [1A
+2026-11-15 16:11:26+07:00 Loading weights:  13%|█▎        | 99/760 [00:02<00:09, 68.69it/s]
+2026-11-15 16:11:26+07:00 [1A
+2026-11-15 16:11:26+07:00 Loading weights:  14%|█▍        | 107/760 [00:02<00:09, 66.64it/s]
+2026-11-15 16:11:26+07:00 [1A
+2026-11-15 16:11:26+07:00 Loading weights:  16%|█▌        | 120/760 [00:03<00:09, 69.14it/s]
+2026-11-15 16:11:26+07:00 [1A
+2026-11-15 16:11:26+07:00 Loading weights:  18%|█▊        | 134/760 [00:03<00:08, 73.28it/s]
+2026-11-15 16:11:26+07:00 [1A
+2026-11-15 16:11:26+07:00 Loading weights:  19%|█▉        | 148/760 [00:03<00:08, 73.77it/s]
+2026-11-15 16:11:26+07:00 [1A
+Loading weights:  21%|██        | 156/760 [00:03<00:08, 74.98it/s]
+2026-11-15 16:11:27+07:00
+2026-11-15 16:11:27+07:00 [1A
+2026-11-15 16:11:27+07:00 Loading weights:  22%|██▏       | 170/760 [00:03<00:07, 84.18it/s]
+2026-11-15 16:11:27+07:00 [1A
+2026-11-15 16:11:27+07:00 Loading weights:  24%|██▎       | 179/760 [00:03<00:07, 82.03it/s]
+2026-11-15 16:11:27+07:00 [1A
+2026-11-15 16:11:27+07:00 Loading weights:  25%|██▍       | 188/760 [00:03<00:07, 76.33it/s]
+2026-11-15 16:11:27+07:00 [1A
+2026-11-15 16:11:27+07:00 Loading weights:  26%|██▋       | 201/760 [00:04<00:06, 80.87it/s]
+2026-11-15 16:11:27+07:00 [1A
+2026-11-15 16:11:27+07:00 Loading weights:  28%|██▊       | 210/760 [00:04<00:07, 74.44it/s]
+2026-11-15 16:11:27+07:00 [1A
+2026-11-15 16:11:27+07:00 Loading weights:  29%|██▉       | 222/760 [00:04<00:06, 83.36it/s]
+2026-11-15 16:11:27+07:00 [1A
+2026-11-15 16:11:27+07:00 Loading weights:  30%|███       | 231/760 [00:04<00:06, 83.94it/s]
+2026-11-15 16:11:27+07:00 [1A
+Loading weights:  32%|███▏      | 240/760 [00:04<00:06, 81.62it/s]
+2026-11-15 16:11:28+07:00
+2026-11-15 16:11:28+07:00 [1A
+2026-11-15 16:11:28+07:00 Loading weights:  33%|███▎      | 250/760 [00:04<00:06, 81.28it/s]
+2026-11-15 16:11:28+07:00 [1A
+2026-11-15 16:11:28+07:00 Loading weights:  34%|███▍      | 259/760 [00:04<00:07, 65.44it/s]
+2026-11-15 16:11:28+07:00 [1A
+2026-11-15 16:11:28+07:00 Loading weights:  37%|███▋      | 278/760 [00:04<00:05, 93.12it/s]
+2026-11-15 16:11:28+07:00 [1A
+2026-11-15 16:11:28+07:00 Loading weights:  38%|███▊      | 289/760 [00:05<00:05, 86.68it/s]
+2026-11-15 16:11:28+07:00 [1A
+2026-11-15 16:11:28+07:00 Loading weights:  39%|███▉      | 299/760 [00:05<00:05, 86.68it/s]
+2026-11-15 16:11:28+07:00 [1A
+2026-11-15 16:11:28+07:00 Loading weights:  41%|████      | 309/760 [00:05<00:06, 73.38it/s]
+2026-11-15 16:11:28+07:00 [1A
+Loading weights:  42%|████▏     | 318/760 [00:05<00:06, 70.30it/s]
+2026-11-15 16:11:29+07:00
+2026-11-15 16:11:29+07:00 [1A
+2026-11-15 16:11:29+07:00 Loading weights:  44%|████▎     | 332/760 [00:05<00:05, 82.13it/s]
+2026-11-15 16:11:29+07:00 [1A
+2026-11-15 16:11:29+07:00 Loading weights:  45%|████▍     | 341/760 [00:05<00:05, 81.46it/s]
+2026-11-15 16:11:29+07:00 [1A
+2026-11-15 16:11:29+07:00 Loading weights:  46%|████▌     | 350/760 [00:05<00:05, 78.82it/s]
+2026-11-15 16:11:29+07:00 [1A
+2026-11-15 16:11:29+07:00 Loading weights:  47%|████▋     | 360/760 [00:06<00:05, 78.83it/s]
+2026-11-15 16:11:29+07:00 [1A
+2026-11-15 16:11:29+07:00 Loading weights:  49%|████▊     | 369/760 [00:06<00:05, 76.04it/s]
+2026-11-15 16:11:29+07:00 [1A
+2026-11-15 16:11:29+07:00 Loading weights:  50%|█████     | 383/760 [00:06<00:04, 91.13it/s]
+2026-11-15 16:11:29+07:00 [1A
+2026-11-15 16:11:29+07:00 Loading weights:  52%|█████▏    | 393/760 [00:06<00:04, 85.04it/s]
+2026-11-15 16:11:29+07:00 [1A
+Loading weights:  53%|█████▎    | 402/760 [00:06<00:04, 85.66it/s]
+2026-11-15 16:11:30+07:00
+2026-11-15 16:11:30+07:00 [1A
+2026-11-15 16:11:30+07:00 Loading weights:  54%|█████▍    | 413/760 [00:06<00:04, 73.14it/s]
+2026-11-15 16:11:30+07:00 [1A
+2026-11-15 16:11:30+07:00 Loading weights:  58%|█████▊    | 442/760 [00:06<00:02, 123.00it/s]
+2026-11-15 16:11:30+07:00 [1A
+2026-11-15 16:11:30+07:00 Loading weights:  63%|██████▎   | 481/760 [00:06<00:01, 188.38it/s]
+2026-11-15 16:11:30+07:00 [1A
+2026-11-15 16:11:30+07:00 Loading weights:  74%|███████▍  | 565/760 [00:07<00:00, 356.30it/s]
+2026-11-15 16:11:30+07:00 [1A
+2026-11-15 16:11:30+07:00 Loading weights:  89%|████████▊ | 673/760 [00:07<00:00, 537.21it/s]
+2026-11-15 16:11:30+07:00 [1A
+2026-11-15 16:11:30+07:00 Loading weights:  99%|█████████▉| 754/760 [00:07<00:00, 610.31it/s]
+2026-11-15 16:11:30+07:00 Loading weights: 100%|██████████| 760/760 [00:07<00:00, 104.70it/s]
+2026-11-15 16:11:31+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"model_load","timestamp_utc":"2026-11-15T09:11:31.266246+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":19511}
+2026-11-15 16:11:31+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"catalog_query_expansion","timestamp_utc":"2026-11-15T09:11:31.266337+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 16:12:10+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"catalog_query_expansion","timestamp_utc":"2026-11-15T09:12:10.174468+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":38908}
+2026-11-15 16:12:10+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"catalog_candidate_search","timestamp_utc":"2026-11-15T09:12:10.174624+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 16:12:12+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"catalog_candidate_search","timestamp_utc":"2026-11-15T09:12:12.809946+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":2635}
+2026-11-15 16:12:12+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"catalog_candidate_segmentation","timestamp_utc":"2026-11-15T09:12:12.810034+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 16:12:12+07:00 {"candidate_count": 8, "chunk_command_limit": 13, "derived_chunk_count": 20, "event": "svg_catalog_source_segmented", "rejected_candidate_count": 0, "selected_source_path_count": 11, "source_asset_id": "openclipart-friendly-kitten-icon", "source_segment_count": 160, "source_sha256": "a5b74eed392104ff9baa2a335b5e8dde9aef40ca7775949a7fbc4a29b7f36594"}
+2026-11-15 16:12:12+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"catalog_candidate_segmentation","timestamp_utc":"2026-11-15T09:12:12.818589+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":9}
+2026-11-15 16:12:12+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"catalog_source_render","timestamp_utc":"2026-11-15T09:12:12.818630+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 16:12:13+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"catalog_source_render","timestamp_utc":"2026-11-15T09:12:13.284178+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":466}
+2026-11-15 16:12:13+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"prompt_encoding","timestamp_utc":"2026-11-15T09:12:13.284511+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 16:12:13+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"prompt_encoding","timestamp_utc":"2026-11-15T09:12:13.309887+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":25}
+2026-11-15 16:12:13+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"constrained_decoder_setup","timestamp_utc":"2026-11-15T09:12:13.310028+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 16:12:13+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"constrained_decoder_setup","timestamp_utc":"2026-11-15T09:12:13.310658+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":1}
+2026-11-15 16:12:13+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"model_inference","timestamp_utc":"2026-11-15T09:12:13.310716+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 16:13:03+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"model_inference","timestamp_utc":"2026-11-15T09:13:03.396294+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":50086}
+2026-11-15 16:13:03+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"draft_plan_parse_and_source_identity_validation","timestamp_utc":"2026-11-15T09:13:03.396980+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 16:13:03+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"draft_plan_parse_and_source_identity_validation","timestamp_utc":"2026-11-15T09:13:03.398126+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":1}
+2026-11-15 16:13:03+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"visual_review_contact_sheet_render","timestamp_utc":"2026-11-15T09:13:03.398205+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 16:13:03+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"visual_review_contact_sheet_render","timestamp_utc":"2026-11-15T09:13:03.455188+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":57}
+2026-11-15 16:13:03+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"visual_review_prompt_encoding","timestamp_utc":"2026-11-15T09:13:03.455558+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 16:13:03+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"visual_review_prompt_encoding","timestamp_utc":"2026-11-15T09:13:03.502937+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":47}
+2026-11-15 16:13:03+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"visual_review_constrained_decoder_setup","timestamp_utc":"2026-11-15T09:13:03.503164+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 16:13:03+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"visual_review_constrained_decoder_setup","timestamp_utc":"2026-11-15T09:13:03.504021+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":1}
+2026-11-15 16:13:03+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"visual_review_inference","timestamp_utc":"2026-11-15T09:13:03.504111+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 16:13:47+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"visual_review_inference","timestamp_utc":"2026-11-15T09:13:47.183435+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":43679}
+2026-11-15 16:13:47+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"visual_review_parse_and_hard_gate_validation","timestamp_utc":"2026-11-15T09:13:47.184105+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 16:13:47+07:00 {"assigned_path_count": 20, "duplicate_object_key_count": 0, "empty_stage_count": 1, "error_code": "SVG_CATALOG_STROKE_PLAN_EMPTY_STAGE", "event": "svg_catalog_visual_review_rejected", "expected_path_count": 20, "missing_path_count": 0, "out_of_range_stage_count": 0, "review_generation_duration_ms": 43680, "review_output_token_count": 715, "unique_path_count": 20, "unknown_path_count": 0}
+2026-11-15 16:13:47+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_failed","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"visual_review_parse_and_hard_gate_validation","timestamp_utc":"2026-11-15T09:13:47.184432+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":0,"error_code":"SVG_CATALOG_STROKE_PLAN_EMPTY_STAGE","error_type":"Exception"}
+2026-11-15 16:13:47+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_failed","workload":"svg.topic-stroke-guide.generate","job_ref":"9e8c037f352a56fb","generation_ref":"3789fa27a847ea70","attempt_ref":"bd63f5054fb3c58e","stage":"visual_review_parse_and_hard_gate_validation","timestamp_utc":"2026-11-15T09:13:47.184480+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":157194,"error_code":"SVG_CATALOG_STROKE_PLAN_EMPTY_STAGE","error_type":"Exception"}
+2026-11-15 16:13:47+07:00 Traceback (most recent call last):
+2026-11-15 16:13:47+07:00   File "/pkg/modal/_runtime/container_io_manager.py", line 987, in handle_input_exception
+2026-11-15 16:13:47+07:00     yield
+2026-11-15 16:13:47+07:00   File "/pkg/modal/_container_entrypoint.py", line 189, in run_input_sync
+2026-11-15 16:13:47+07:00     values = io_context.call_function_sync()
+2026-11-15 16:13:47+07:00              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-15 16:13:47+07:00   File "/pkg/modal/_runtime/container_io_manager.py", line 266, in call_function_sync
+2026-11-15 16:13:47+07:00     expected_value_or_values = self.finalized_function.callable(*args, **kwargs)
+2026-11-15 16:13:47+07:00                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-15 16:13:47+07:00   File "/root/worker_observability.py", line 333, in wrapped
+2026-11-15 16:13:47+07:00     result = function(*args, **kwargs)
+2026-11-15 16:13:47+07:00              ^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-15 16:13:47+07:00   File "/root/language_audio_app.py", line 1440, in generate_topic_svg_stroke_guide_draft
+2026-11-15 16:13:47+07:00     reviewed_plan = _parse_svg_catalog_visual_review_plan(
+2026-11-15 16:13:47+07:00                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-15 16:13:47+07:00   File "/root/language_audio_app.py", line 4610, in _parse_svg_catalog_visual_review_plan
+2026-11-15 16:13:47+07:00     reviewed = _parse_svg_catalog_source_plan(
+2026-11-15 16:13:47+07:00                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-15 16:13:47+07:00   File "/root/language_audio_app.py", line 4793, in _parse_svg_catalog_source_plan
+2026-11-15 16:13:47+07:00     raise _SvgCatalogPlanValidationError(
+2026-11-15 16:13:47+07:00 language_audio_app._SvgCatalogPlanValidationError: SVG_CATALOG_STROKE_PLAN_EMPTY_STAGE

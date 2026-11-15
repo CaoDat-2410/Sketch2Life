@@ -1,0 +1,143 @@
+{
+  "schema_version": "Sketch2LifeRuntimeAttemptV1",
+  "evidence_id": "EV-063-101_ARCADIA_STROKE_SKILL_20261113",
+  "plan": "PLAN_REV87_9_ANDROID_PARENT_E2E_ACTIVITY_GAP_20261113.md",
+  "plan_sha256": "08FB8ACA06AAC49B498310A2B6D62CFBFA03B48287E932B4BDB63CCB045C5026",
+  "date": "2026-11-13",
+  "requirements_baseline": "FEAT-063 v2.7-draft Rev69; unsigned; §§1–31 unchanged",
+  "execution_target": {
+    "android_emulator": "Pixel_10; emulator-5554; x86_64",
+    "package": "com.sketch2life.parentexpo.dev",
+    "worktree_branch": "codex/feat063-parent-docker-modal-seed-20261111",
+    "api_origin_from_emulator": "http://10.0.2.2:8001",
+    "firebase_auth_emulator_origin": "http://10.0.2.2:9099",
+    "api_container": "rev87-9-parent-api",
+    "api_container_network": "rev79-parent-local-20261112"
+  },
+  "parent_flow": {
+    "signup": "PASS through Android UI; API registration returned HTTP 201; Firebase Auth Emulator sign-in succeeded; no credential or token recorded",
+    "profile": "PASS; one synthetic profile created through UI (84 months, animal interest); local synthetic notice acknowledged; no legal consent or real-child data",
+    "topic_and_lesson": "PASS; optional topic entered as ASCII 'con ga' because Android adb text input did not preserve Vietnamese diacritics; no lesson pinned",
+    "optional_guide": {
+      "ui_opened": true,
+      "catalog_lookup": "FAILED; UI received DATABASE_UNAVAILABLE on both attempts",
+      "database_read_only_inspection": "Alembic revision 20261110_parent_lesson_pin; tables core_svg_catalog_assets, core_svg_catalog_guide_revisions, core_svg_catalog_reviews absent",
+      "migration_or_retry": "not performed; guide skipped through actual UI because it is optional",
+      "guide_inference": false,
+      "guide_svg_or_render": false
+    },
+    "mandatory_drawing": {
+      "image_source": "synthetic generated chicken drawing selected through Android system gallery",
+      "source_gallery_image_sha256": "67BC81722774315984980F3AAFEE05D885F86D6C3F67C13D38732A50DF541855",
+      "worker_verified_input_sha256": "63aa479fd3bc6be0bfedbb5577a671ffad4b867d84458bae63fa0faab92d868d",
+      "context_confirmation": "PASS through Android UI",
+      "analysis_http": 200,
+      "candidate_subject": "con gà",
+      "confidence": 0.9,
+      "adult_confirmation": "PASS through Android UI",
+      "model": "Qwen/Qwen3.5-9B",
+      "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "api_elapsed_ms": 38191,
+      "modal_call_id": "fc-01M7A527SPGTG5XWAVG6SZ4KRH",
+      "api_job_ref": "07301497d546f035",
+      "api_generation_ref": "5899957ad2a27be0",
+      "api_attempt_ref": "ea1f78fa9d6a0206",
+      "worker_model_load_ms": 16741,
+      "worker_inference_ms": 7135,
+      "response_artifact": "drawing-analysis-response.json",
+      "response_artifact_sha256": "8BCAB7C5B46A21D0A8C5E96692CE8A85A0D3877C927A41A46937554BF1764D7D"
+    },
+    "activity_suggestions": {
+      "api_http": 200,
+      "catalog_candidate_count": 2,
+      "catalog_result": "both candidates concerned butterflies and did not match the confirmed chicken subject/topic",
+      "model": "Qwen/Qwen3.5-9B",
+      "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "api_elapsed_ms": 121894,
+      "worker_wait_elapsed_ms": 120355,
+      "modal_call_id": "fc-01M7A575511AWPH7B6ERCQC66J",
+      "api_request_id": "b3165f7d-97a6-414d-9aff-752b7ce7381f",
+      "api_job_ref": "d8966aaf4ede59a9",
+      "api_generation_ref": "95e93de469093f86",
+      "api_attempt_ref": "32965160ec1be367",
+      "worker_model_load_ms": 19350,
+      "worker_constrained_decoder_setup_ms": 3608,
+      "decision": "NO_MATCH",
+      "selection_mode": "AI_GENERATED_FALLBACK",
+      "fallback_draft_count": 3,
+      "parent_ui_selection_control": "ABSENT; accessibility tree contained no selectable activity node; visible Continue button advanced without assigning a primary activity",
+      "quality_observation": "One draft proposes small grains/beans with a supervision warning; the current quality/safety gate allowed this output. Treat as a content-quality defect, not educator-approved guidance.",
+      "response_artifact": "activity-selection-response.json",
+      "response_artifact_sha256": "0108121675863C2C709D631580766060DE5CCA9497B3CE16E6B0AD922BDE516F"
+    },
+    "story": {
+      "ui_button_pressed_once": true,
+      "http_status": 422,
+      "ui_correlation_id": "parent-expo-mwet53yh",
+      "raw_response_body_captured": false,
+      "response_observation_artifact": "story-generation-http-422-observation.json",
+      "contract_cause": "Source contract requires primary_activity_request_id and primary_activity_ref together for an initial story; the Parent UI request sends only expected_understanding_revision. No activity selector exists on the current activity screen.",
+      "contract_sources": [
+        "backend/src/sketch2life/contracts/schemas/modal_ai.py:ParentStoryRequestV1.activity_selection_shape",
+        "apps/ui-mobile/src/parent/infrastructure/http/ParentApi.ts:generateStory",
+        "apps/ui-mobile/src/parent/presentation/screens/ActivityScreen.tsx"
+      ],
+      "modal_call": false,
+      "story_generated": false,
+      "stop_reason": "API rejected request before handler/provider dispatch; plan prohibits injecting an activity ID or bypassing the UI"
+    },
+    "video": "NOT RUN by plan"
+  },
+  "modal": {
+    "drawing_worker_deploys": 1,
+    "deployment_elapsed_seconds": 101.473,
+    "cpu_health": {
+      "http": 200,
+      "gpu_allocated": false,
+      "inference_executed": false,
+      "calls": 1
+    },
+    "authenticated_gpu_inferences": 2,
+    "timed_out": 0,
+    "retry_count": 0,
+    "story_worker_called": false,
+    "worker_telemetry_issue": "API wait summaries for successful drawing and activity results reported worker_started_without_terminal_event and omitted output hashes, although results were retrieved from their Modal call IDs."
+  },
+  "api_and_schema": {
+    "temporary_api_health": "HTTP 200",
+    "parent_registration": "HTTP 201",
+    "firebase_auth_emulator_sign_in": "PASS",
+    "database_migration": "not run",
+    "catalog_schema_gap": "Three SVG catalog/review tables are absent from the shared dev database; the optional guide route reports DATABASE_UNAVAILABLE instead of a specific schema-gap error.",
+    "source_contract_checks": "read-only inspection only; no source modified"
+  },
+  "screenshots": [
+    "screenshots/android-parent-signup-start.png",
+    "screenshots/android-parent-signup-success.png",
+    "screenshots/android-parent-profile-created.png",
+    "screenshots/android-parent-topic-guide-enabled.png",
+    "screenshots/android-parent-guide-lookup.png",
+    "screenshots/android-parent-guide-catalog-db-error.png",
+    "screenshots/android-parent-capture-empty.png",
+    "screenshots/android-parent-drawing-selected.png",
+    "screenshots/android-parent-drawing-preview.png",
+    "screenshots/android-parent-context-confirmation.png",
+    "screenshots/android-parent-drawing-analysis-result.png",
+    "screenshots/android-parent-activity-start.png",
+    "screenshots/android-parent-activities-top.png",
+    "screenshots/android-parent-activities-middle.png",
+    "screenshots/android-parent-story-start.png",
+    "screenshots/android-parent-story-error.png"
+  ],
+  "cleanup": {
+    "task_started_api": "removed",
+    "task_started_metro_session": "stopped",
+    "task_started_emulator": "shut down",
+    "shared_postgres_firebase_redis_minio_clamav": "must remain running and untouched",
+    "shared_modal_apps_and_model_volume": "must remain deployed/preserved; no minimum containers or warmup changed",
+    "project_env": "not edited",
+    "migration_or_seed": "not run",
+    "commit_or_push": "not performed"
+  },
+  "result": "PARTIAL_STOPPED_BEFORE_STORY_INFERENCE; drawing and activity inference succeeded, but optional guide failed on missing database schema and the required activity selection/story contract is not implemented in the real UI"
+}

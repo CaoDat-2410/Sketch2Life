@@ -1,0 +1,4 @@
+Command: python -m pytest deployment/modal/srs_v23/tests/test_flux_progressive_guide_quality.py -q
+Result: 10 passed, 2 warnings, 1.60 s
+
+The host Python was 3.14.7 and had no Pillow. The focused test used a temporary Pillow 12.1.1 wheel compatible with Python 3.14; that temporary dependency directory was removed after the test. The deployed Modal worker image remains pinned to Pillow 11.2.1.

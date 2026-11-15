@@ -1,0 +1,422 @@
+{
+  "test_data": "synthetic_only",
+  "video_called": false,
+  "calls": {
+    "teacher_lesson_visual": {
+      "api": {
+        "request_id": "b02e5c80-e9aa-44bb-892b-59660af348ab",
+        "http_status": 200,
+        "elapsed_seconds": 412.987,
+        "status": "PASS"
+      },
+      "modal_call_id": "fc-01M783YMBKXKA65D9GR4C45ZGQ",
+      "worker": {
+        "worker_logs_available": true,
+        "worker_log_event_count": 28,
+        "worker_phase_history": [
+          {
+            "event": "worker_phase_started",
+            "stage": "feature_gate"
+          },
+          {
+            "event": "worker_phase_succeeded",
+            "stage": "feature_gate",
+            "duration_ms": 0
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "input_envelope"
+          },
+          {
+            "event": "worker_phase_succeeded",
+            "stage": "input_envelope",
+            "duration_ms": 0
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "workload_gate"
+          },
+          {
+            "event": "worker_phase_succeeded",
+            "stage": "workload_gate",
+            "duration_ms": 0
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "scratch_volume_reload"
+          },
+          {
+            "event": "worker_phase_succeeded",
+            "stage": "scratch_volume_reload",
+            "duration_ms": 204
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "input_manifest_read"
+          },
+          {
+            "event": "worker_phase_succeeded",
+            "stage": "input_manifest_read",
+            "duration_ms": 879
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "approved_lesson_contract_validation"
+          },
+          {
+            "event": "worker_phase_succeeded",
+            "stage": "approved_lesson_contract_validation",
+            "duration_ms": 0
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "checkpoint_verification"
+          },
+          {
+            "event": "worker_phase_succeeded",
+            "stage": "checkpoint_verification",
+            "duration_ms": 644
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "gpu_preflight"
+          },
+          {
+            "event": "worker_phase_succeeded",
+            "stage": "gpu_preflight",
+            "duration_ms": 7530
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "prompt_upsampler_inference"
+          },
+          {
+            "event": "worker_phase_succeeded",
+            "stage": "prompt_upsampler_inference",
+            "duration_ms": 48163
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "flux_model_load"
+          },
+          {
+            "event": "worker_phase_succeeded",
+            "stage": "flux_model_load",
+            "duration_ms": 6375
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "flux_image_inference"
+          },
+          {
+            "event": "worker_phase_succeeded",
+            "stage": "flux_image_inference",
+            "duration_ms": 6731
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "progressive_panel_quality_gate"
+          },
+          {
+            "event": "worker_phase_succeeded",
+            "stage": "progressive_panel_quality_gate",
+            "duration_ms": 385
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "image_encode_and_metadata"
+          },
+          {
+            "event": "worker_phase_succeeded",
+            "stage": "image_encode_and_metadata",
+            "duration_ms": 3389
+          }
+        ],
+        "worker_started_observed": true,
+        "worker_terminal_event": "worker_succeeded",
+        "worker_last_stage": "terminal",
+        "worker_error_code": null,
+        "worker_diagnostic_code": null,
+        "worker_diagnostic_details": null,
+        "worker_error_type": null,
+        "worker_duration_ms": 95076,
+        "worker_model_id": "black-forest-labs/flux-3-image-klein",
+        "worker_model_revision": "09561231f44e41381c461caf53d5452005a60ac9",
+        "worker_gpu_class": "L40S",
+        "worker_output_size_bytes": 973011,
+        "worker_output_sha256": "e876b397a84858097062484ac961829389e228d92c0224ca52740b3bfc358c49",
+        "worker_binary_output_sha256": "568ef9b7358a8cd39734783f749c31804200877ac9214b9beb33e96a0fdd98a6",
+        "worker_failure_boundary": "worker_succeeded"
+      }
+    },
+    "parent_drawing_understanding": {
+      "api": {
+        "request_id": "58393243-750c-44a6-b2e4-01dc41d8db8a",
+        "http_status": 200,
+        "elapsed_seconds": 243.509,
+        "status": "PASS",
+        "error_code": null
+      },
+      "modal_call_id": "fc-01M784EQZKKCC9CC6WA8Q0W9E6",
+      "worker": {
+        "worker_logs_available": true,
+        "worker_log_event_count": 22,
+        "worker_phase_history": [
+          {
+            "event": "worker_phase_started",
+            "stage": "input_envelope"
+          },
+          {
+            "event": "worker_phase_succeeded",
+            "stage": "input_envelope",
+            "duration_ms": 0
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "workload_gate"
+          },
+          {
+            "event": "worker_phase_succeeded",
+            "stage": "workload_gate",
+            "duration_ms": 0
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "scratch_volume_reload"
+          },
+          {
+            "event": "worker_phase_succeeded",
+            "stage": "scratch_volume_reload",
+            "duration_ms": 969
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "input_asset_verify"
+          },
+          {
+            "event": "worker_phase_succeeded",
+            "stage": "input_asset_verify",
+            "duration_ms": 2424
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "model_load"
+          },
+          {
+            "event": "worker_phase_succeeded",
+            "stage": "model_load",
+            "duration_ms": 19553
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "image_preprocess"
+          },
+          {
+            "event": "worker_phase_succeeded",
+            "stage": "image_preprocess",
+            "duration_ms": 47
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "prompt_encode"
+          },
+          {
+            "event": "worker_phase_succeeded",
+            "stage": "prompt_encode",
+            "duration_ms": 90
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "model_inference"
+          },
+          {
+            "event": "worker_phase_succeeded",
+            "stage": "model_inference",
+            "duration_ms": 7957
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "model_output_validation"
+          },
+          {
+            "event": "worker_phase_succeeded",
+            "stage": "model_output_validation",
+            "duration_ms": 0
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "output_parse_and_contract_validation"
+          },
+          {
+            "event": "worker_phase_succeeded",
+            "stage": "output_parse_and_contract_validation",
+            "duration_ms": 0
+          }
+        ],
+        "worker_started_observed": true,
+        "worker_terminal_event": "worker_succeeded",
+        "worker_last_stage": "terminal",
+        "worker_error_code": null,
+        "worker_diagnostic_code": null,
+        "worker_diagnostic_details": null,
+        "worker_error_type": null,
+        "worker_duration_ms": 35362,
+        "worker_model_id": "Qwen/Qwen3.5-9B",
+        "worker_model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+        "worker_gpu_class": "L40S|L4|A10",
+        "worker_output_size_bytes": 626,
+        "worker_output_sha256": "e515f8173f1f655df84763e288001c4234713440e1071f23ed76ade092eaaf1b",
+        "worker_binary_output_sha256": null,
+        "worker_failure_boundary": "worker_succeeded"
+      },
+      "api_interpretation": {
+        "candidate_subject": "con hươu",
+        "confidence": 0.9,
+        "topic_match": "MATCH",
+        "adult_confirmation_required": true
+      }
+    },
+    "parent_activity_suggestions": {
+      "api": {
+        "request_id": "6f47f9a1-a8fe-4eaf-a663-4d3ae08c29e8",
+        "http_status": 502,
+        "elapsed_seconds": 346.064,
+        "status": "FAIL",
+        "error_code": "PARENT_ACTIVITY_QUALITY_GATE_REJECTED"
+      },
+      "modal_call_id": "fc-01M784P25FG7873J86HX0MN8QF",
+      "worker": {
+        "worker_logs_available": true,
+        "worker_log_event_count": 24,
+        "worker_phase_history": [
+          {
+            "event": "worker_phase_started",
+            "stage": "input_envelope"
+          },
+          {
+            "event": "worker_phase_succeeded",
+            "stage": "input_envelope",
+            "duration_ms": 0
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "workload_gate"
+          },
+          {
+            "event": "worker_phase_succeeded",
+            "stage": "workload_gate",
+            "duration_ms": 0
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "scratch_volume_reload"
+          },
+          {
+            "event": "worker_phase_succeeded",
+            "stage": "scratch_volume_reload",
+            "duration_ms": 94
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "input_manifest_read"
+          },
+          {
+            "event": "worker_phase_succeeded",
+            "stage": "input_manifest_read",
+            "duration_ms": 473
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "parent_activity_request_validation"
+          },
+          {
+            "event": "worker_phase_succeeded",
+            "stage": "parent_activity_request_validation",
+            "duration_ms": 0
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "checkpoint_verification"
+          },
+          {
+            "event": "worker_phase_succeeded",
+            "stage": "checkpoint_verification",
+            "duration_ms": 38
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "model_load"
+          },
+          {
+            "event": "worker_phase_succeeded",
+            "stage": "model_load",
+            "duration_ms": 19044
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "prompt_encoding"
+          },
+          {
+            "event": "worker_phase_succeeded",
+            "stage": "prompt_encoding",
+            "duration_ms": 252
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "constrained_decoder_setup"
+          },
+          {
+            "event": "worker_phase_succeeded",
+            "stage": "constrained_decoder_setup",
+            "duration_ms": 3689
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "model_inference"
+          },
+          {
+            "event": "worker_phase_succeeded",
+            "stage": "model_inference",
+            "duration_ms": 93500
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "output_parse_and_contract_validation"
+          },
+          {
+            "event": "worker_phase_succeeded",
+            "stage": "output_parse_and_contract_validation",
+            "duration_ms": 0
+          }
+        ],
+        "worker_started_observed": true,
+        "worker_terminal_event": "worker_succeeded",
+        "worker_last_stage": "terminal",
+        "worker_error_code": null,
+        "worker_diagnostic_code": null,
+        "worker_diagnostic_details": null,
+        "worker_error_type": null,
+        "worker_duration_ms": 117334,
+        "worker_model_id": "Qwen/Qwen3.5-9B",
+        "worker_model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+        "worker_gpu_class": "L40S|L4|A10",
+        "worker_output_size_bytes": 4217,
+        "worker_output_sha256": "f30442025d1e01e08f44fb9e60175040ac749480267dcc0d7e14a330a156cb4e",
+        "worker_binary_output_sha256": null,
+        "worker_failure_boundary": "worker_succeeded"
+      },
+      "backend_rejection": {
+        "code": "PARENT_ACTIVITY_QUALITY_GATE_REJECTED",
+        "quality_gate_reason": "UNSAFE_ACTION_TEXT",
+        "worker_output_contract": "VALID",
+        "worker_terminal_event": "worker_succeeded",
+        "model_decision": "NO_MATCH",
+        "fallback_count": 3,
+        "safety_match_counts": {
+          "one_activity_has_a_positive_unsafe_action_match": true,
+          "other_two_activities_missing_explicit_outdoor_location": true
+        }
+      }
+    }
+  }
+}

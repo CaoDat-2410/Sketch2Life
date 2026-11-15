@@ -1,0 +1,9 @@
+Read from `docker ps` on 2026-11-12. Names/status/ports only; environment values were not queried.
+
+rev79-parent-local-20261112-api-1             Up 5 minutes (healthy)   127.0.0.1:58000->8000/tcp
+rev79-parent-local-20261112-firebase-auth-1   Up 3 hours (healthy)     127.0.0.1:9099->9099/tcp
+rev79-parent-local-20261112-minio-1           Up 3 hours               127.0.0.1:59023->9000/tcp, 127.0.0.1:59024->9001/tcp
+rev79-parent-local-20261112-modal-health-1    Up 2 hours (unhealthy)
+rev79-parent-local-20261112-postgres-1        Up 8 hours (healthy)     127.0.0.1:55439->5432/tcp
+rev79-parent-local-20261112-redis-1            Up 8 hours (healthy)     127.0.0.1:56390->6379/tcp
+rev79-parent-local-20261112-clamav-1           Up 8 hours (healthy)     127.0.0.1:53313->3310/tcp

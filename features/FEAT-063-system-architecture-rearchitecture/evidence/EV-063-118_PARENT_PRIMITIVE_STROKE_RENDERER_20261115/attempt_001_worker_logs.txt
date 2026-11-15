@@ -1,0 +1,152 @@
+<repo-root>\.venv-modal\Lib\site-packages\modal\_utils\async_utils.py:43: DeprecationWarning: 'asyncio.WindowsSelectorEventLoopPolicy' is deprecated and slated for removal in Python 3.16
+  asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+<repo-root>\.venv-modal\Lib\site-packages\modal\_utils\async_utils.py:43: DeprecationWarning: 'asyncio.set_event_loop_policy' is deprecated and slated for removal in Python 3.16
+  asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+2026-11-15 12:36:19+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_started","workload":"svg.topic-stroke-guide.generate","job_ref":"20c103a4b161e6f7","generation_ref":"ada9c7d07535b8bf","attempt_ref":"15801b1dc976c4ea","stage":"worker_entrypoint","timestamp_utc":"2026-11-15T05:36:19.050434+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 12:36:19+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"20c103a4b161e6f7","generation_ref":"ada9c7d07535b8bf","attempt_ref":"15801b1dc976c4ea","stage":"input_envelope","timestamp_utc":"2026-11-15T05:36:19.050602+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 12:36:19+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"20c103a4b161e6f7","generation_ref":"ada9c7d07535b8bf","attempt_ref":"15801b1dc976c4ea","stage":"input_envelope","timestamp_utc":"2026-11-15T05:36:19.050670+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":0}
+2026-11-15 12:36:19+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"20c103a4b161e6f7","generation_ref":"ada9c7d07535b8bf","attempt_ref":"15801b1dc976c4ea","stage":"workload_gate","timestamp_utc":"2026-11-15T05:36:19.050703+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 12:36:19+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"20c103a4b161e6f7","generation_ref":"ada9c7d07535b8bf","attempt_ref":"15801b1dc976c4ea","stage":"workload_gate","timestamp_utc":"2026-11-15T05:36:19.050732+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":0}
+2026-11-15 12:36:19+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"20c103a4b161e6f7","generation_ref":"ada9c7d07535b8bf","attempt_ref":"15801b1dc976c4ea","stage":"scratch_volume_reload","timestamp_utc":"2026-11-15T05:36:19.050751+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 12:36:19+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"20c103a4b161e6f7","generation_ref":"ada9c7d07535b8bf","attempt_ref":"15801b1dc976c4ea","stage":"scratch_volume_reload","timestamp_utc":"2026-11-15T05:36:19.154233+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":103}
+2026-11-15 12:36:19+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"20c103a4b161e6f7","generation_ref":"ada9c7d07535b8bf","attempt_ref":"15801b1dc976c4ea","stage":"input_manifest_read","timestamp_utc":"2026-11-15T05:36:19.154381+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 12:36:19+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"20c103a4b161e6f7","generation_ref":"ada9c7d07535b8bf","attempt_ref":"15801b1dc976c4ea","stage":"input_manifest_read","timestamp_utc":"2026-11-15T05:36:19.241958+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":88}
+2026-11-15 12:36:19+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"20c103a4b161e6f7","generation_ref":"ada9c7d07535b8bf","attempt_ref":"15801b1dc976c4ea","stage":"input_contract_validation","timestamp_utc":"2026-11-15T05:36:19.242025+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 12:36:19+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"20c103a4b161e6f7","generation_ref":"ada9c7d07535b8bf","attempt_ref":"15801b1dc976c4ea","stage":"input_contract_validation","timestamp_utc":"2026-11-15T05:36:19.242057+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":0}
+2026-11-15 12:36:19+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"20c103a4b161e6f7","generation_ref":"ada9c7d07535b8bf","attempt_ref":"15801b1dc976c4ea","stage":"svg_catalog_reload","timestamp_utc":"2026-11-15T05:36:19.242089+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 12:36:19+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"20c103a4b161e6f7","generation_ref":"ada9c7d07535b8bf","attempt_ref":"15801b1dc976c4ea","stage":"svg_catalog_reload","timestamp_utc":"2026-11-15T05:36:19.361719+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":120}
+2026-11-15 12:36:19+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"20c103a4b161e6f7","generation_ref":"ada9c7d07535b8bf","attempt_ref":"15801b1dc976c4ea","stage":"checkpoint_verification","timestamp_utc":"2026-11-15T05:36:19.361811+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 12:36:19+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"20c103a4b161e6f7","generation_ref":"ada9c7d07535b8bf","attempt_ref":"15801b1dc976c4ea","stage":"checkpoint_verification","timestamp_utc":"2026-11-15T05:36:19.391052+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":29}
+2026-11-15 12:36:19+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"20c103a4b161e6f7","generation_ref":"ada9c7d07535b8bf","attempt_ref":"15801b1dc976c4ea","stage":"model_load","timestamp_utc":"2026-11-15T05:36:19.391129+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 12:36:28+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 {"causal_conv1d_available": true, "event": "qwen35_linear_attention_kernel_preflight", "fla_available": true, "import_failures": {}, "reference_fallback_allowed": false}
+2026-11-15 12:36:29+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8
+2026-11-15 12:36:29+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+Loading weights:   0%|          | 0/760 [00:00<?, ?it/s]
+2026-11-15 12:36:30+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8
+2026-11-15 12:36:30+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+2026-11-15 12:36:30+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 Loading weights:   0%|          | 1/760 [00:00<08:22,  1.51it/s]
+2026-11-15 12:36:30+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+2026-11-15 12:36:30+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 Loading weights:   0%|          | 2/760 [00:01<09:03,  1.39it/s]
+2026-11-15 12:36:30+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+Loading weights:   2%|▏         | 14/760 [00:01<00:55, 13.48it/s]
+2026-11-15 12:36:31+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8
+2026-11-15 12:36:31+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+2026-11-15 12:36:31+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 Loading weights:   4%|▎         | 27/760 [00:01<00:26, 27.53it/s]
+2026-11-15 12:36:31+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+2026-11-15 12:36:31+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 Loading weights:   5%|▍         | 37/760 [00:01<00:19, 36.37it/s]
+2026-11-15 12:36:31+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+2026-11-15 12:36:31+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 Loading weights:   6%|▌         | 45/760 [00:01<00:16, 42.69it/s]
+2026-11-15 12:36:31+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+2026-11-15 12:36:31+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 Loading weights:   7%|▋         | 53/760 [00:02<00:14, 47.37it/s]
+2026-11-15 12:36:31+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+2026-11-15 12:36:31+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 Loading weights:   8%|▊         | 62/760 [00:02<00:12, 55.90it/s]
+2026-11-15 12:36:31+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+2026-11-15 12:36:31+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 Loading weights:   9%|▉         | 70/760 [00:02<00:11, 59.61it/s]
+2026-11-15 12:36:31+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+2026-11-15 12:36:31+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 Loading weights:  11%|█         | 81/760 [00:02<00:09, 71.15it/s]
+2026-11-15 12:36:31+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+Loading weights:  12%|█▏        | 92/760 [00:02<00:08, 77.03it/s]
+2026-11-15 12:36:32+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8
+2026-11-15 12:36:32+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+2026-11-15 12:36:32+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 Loading weights:  13%|█▎        | 101/760 [00:02<00:09, 67.36it/s]
+2026-11-15 12:36:32+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+2026-11-15 12:36:32+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 Loading weights:  16%|█▌        | 119/760 [00:02<00:07, 90.94it/s]
+2026-11-15 12:36:32+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+2026-11-15 12:36:32+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 Loading weights:  17%|█▋        | 130/760 [00:02<00:07, 88.41it/s]
+2026-11-15 12:36:32+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+2026-11-15 12:36:32+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 Loading weights:  18%|█▊        | 140/760 [00:03<00:06, 90.81it/s]
+2026-11-15 12:36:32+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+2026-11-15 12:36:32+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 Loading weights:  20%|█▉        | 150/760 [00:03<00:07, 81.33it/s]
+2026-11-15 12:36:32+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+2026-11-15 12:36:32+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 Loading weights:  21%|██        | 159/760 [00:03<00:07, 82.13it/s]
+2026-11-15 12:36:32+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+2026-11-15 12:36:32+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 Loading weights:  23%|██▎       | 172/760 [00:03<00:06, 93.48it/s]
+2026-11-15 12:36:32+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+Loading weights:  24%|██▍       | 183/760 [00:03<00:06, 92.71it/s]
+2026-11-15 12:36:33+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8
+2026-11-15 12:36:33+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+2026-11-15 12:36:33+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 Loading weights:  25%|██▌       | 193/760 [00:03<00:06, 92.73it/s]
+2026-11-15 12:36:33+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+2026-11-15 12:36:33+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 Loading weights:  27%|██▋       | 203/760 [00:03<00:06, 80.15it/s]
+2026-11-15 12:36:33+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+2026-11-15 12:36:33+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 Loading weights:  28%|██▊       | 213/760 [00:03<00:06, 80.45it/s]
+2026-11-15 12:36:33+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+2026-11-15 12:36:33+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 Loading weights:  30%|██▉       | 226/760 [00:04<00:06, 80.82it/s]
+2026-11-15 12:36:33+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+2026-11-15 12:36:33+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 Loading weights:  32%|███▏      | 240/760 [00:04<00:05, 93.31it/s]
+2026-11-15 12:36:33+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+2026-11-15 12:36:33+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 Loading weights:  33%|███▎      | 250/760 [00:04<00:05, 94.46it/s]
+2026-11-15 12:36:33+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+Loading weights:  34%|███▍      | 260/760 [00:04<00:06, 75.50it/s]
+2026-11-15 12:36:34+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8
+2026-11-15 12:36:34+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+2026-11-15 12:36:34+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 Loading weights:  37%|███▋      | 279/760 [00:04<00:05, 94.79it/s]
+2026-11-15 12:36:34+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+2026-11-15 12:36:34+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 Loading weights:  38%|███▊      | 292/760 [00:04<00:04, 100.89it/s]
+2026-11-15 12:36:34+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+2026-11-15 12:36:34+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 Loading weights:  40%|███▉      | 303/760 [00:04<00:04, 97.79it/s]
+2026-11-15 12:36:34+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+2026-11-15 12:36:34+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 Loading weights:  41%|████▏     | 314/760 [00:05<00:05, 78.92it/s]
+2026-11-15 12:36:34+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+2026-11-15 12:36:34+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 Loading weights:  43%|████▎     | 329/760 [00:05<00:04, 93.71it/s]
+2026-11-15 12:36:34+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+2026-11-15 12:36:34+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 Loading weights:  45%|████▍     | 340/760 [00:05<00:04, 88.22it/s]
+2026-11-15 12:36:34+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+2026-11-15 12:36:34+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 Loading weights:  46%|████▌     | 350/760 [00:05<00:04, 88.92it/s]
+2026-11-15 12:36:34+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+Loading weights:  47%|████▋     | 360/760 [00:05<00:04, 80.99it/s]
+2026-11-15 12:36:35+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8
+2026-11-15 12:36:35+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+2026-11-15 12:36:35+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 Loading weights:  49%|████▉     | 372/760 [00:05<00:04, 85.71it/s]
+2026-11-15 12:36:35+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+2026-11-15 12:36:35+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 Loading weights:  51%|█████     | 385/760 [00:05<00:03, 95.66it/s]
+2026-11-15 12:36:35+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+2026-11-15 12:36:35+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 Loading weights:  52%|█████▏    | 398/760 [00:05<00:03, 101.17it/s]
+2026-11-15 12:36:35+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+2026-11-15 12:36:35+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 Loading weights:  54%|█████▍    | 409/760 [00:06<00:03, 98.07it/s]
+2026-11-15 12:36:35+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+2026-11-15 12:36:35+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 Loading weights:  55%|█████▌    | 420/760 [00:06<00:04, 83.59it/s]
+2026-11-15 12:36:35+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+2026-11-15 12:36:35+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 Loading weights:  62%|██████▏   | 468/760 [00:06<00:01, 174.41it/s]
+2026-11-15 12:36:35+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+2026-11-15 12:36:35+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 Loading weights:  75%|███████▌  | 571/760 [00:06<00:00, 387.53it/s]
+2026-11-15 12:36:35+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+Loading weights:  89%|████████▉ | 678/760 [00:06<00:00, 566.00it/s]
+2026-11-15 12:36:36+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8
+2026-11-15 12:36:36+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 [1A
+2026-11-15 12:36:36+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 Loading weights: 100%|██████████| 760/760 [00:06<00:00, 115.39it/s]
+2026-11-15 12:36:36+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"20c103a4b161e6f7","generation_ref":"ada9c7d07535b8bf","attempt_ref":"15801b1dc976c4ea","stage":"model_load","timestamp_utc":"2026-11-15T05:36:36.389359+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":16998}
+2026-11-15 12:36:36+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"20c103a4b161e6f7","generation_ref":"ada9c7d07535b8bf","attempt_ref":"15801b1dc976c4ea","stage":"catalog_query_expansion","timestamp_utc":"2026-11-15T05:36:36.390853+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 12:37:14+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"20c103a4b161e6f7","generation_ref":"ada9c7d07535b8bf","attempt_ref":"15801b1dc976c4ea","stage":"catalog_query_expansion","timestamp_utc":"2026-11-15T05:37:14.393598+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":38003}
+2026-11-15 12:37:14+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"20c103a4b161e6f7","generation_ref":"ada9c7d07535b8bf","attempt_ref":"15801b1dc976c4ea","stage":"catalog_candidate_search","timestamp_utc":"2026-11-15T05:37:14.393734+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 12:37:15+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"20c103a4b161e6f7","generation_ref":"ada9c7d07535b8bf","attempt_ref":"15801b1dc976c4ea","stage":"catalog_candidate_search","timestamp_utc":"2026-11-15T05:37:15.792463+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":1399}
+2026-11-15 12:37:15+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"20c103a4b161e6f7","generation_ref":"ada9c7d07535b8bf","attempt_ref":"15801b1dc976c4ea","stage":"catalog_source_render","timestamp_utc":"2026-11-15T05:37:15.792558+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 12:37:16+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"20c103a4b161e6f7","generation_ref":"ada9c7d07535b8bf","attempt_ref":"15801b1dc976c4ea","stage":"catalog_source_render","timestamp_utc":"2026-11-15T05:37:16.084097+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":292}
+2026-11-15 12:37:16+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"20c103a4b161e6f7","generation_ref":"ada9c7d07535b8bf","attempt_ref":"15801b1dc976c4ea","stage":"prompt_encoding","timestamp_utc":"2026-11-15T05:37:16.084252+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 12:37:16+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"20c103a4b161e6f7","generation_ref":"ada9c7d07535b8bf","attempt_ref":"15801b1dc976c4ea","stage":"prompt_encoding","timestamp_utc":"2026-11-15T05:37:16.103057+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":19}
+2026-11-15 12:37:16+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"20c103a4b161e6f7","generation_ref":"ada9c7d07535b8bf","attempt_ref":"15801b1dc976c4ea","stage":"constrained_decoder_setup","timestamp_utc":"2026-11-15T05:37:16.103182+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 12:37:16+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"20c103a4b161e6f7","generation_ref":"ada9c7d07535b8bf","attempt_ref":"15801b1dc976c4ea","stage":"constrained_decoder_setup","timestamp_utc":"2026-11-15T05:37:16.105849+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":3}
+2026-11-15 12:37:16+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"20c103a4b161e6f7","generation_ref":"ada9c7d07535b8bf","attempt_ref":"15801b1dc976c4ea","stage":"model_inference","timestamp_utc":"2026-11-15T05:37:16.105901+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 12:38:55+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"20c103a4b161e6f7","generation_ref":"ada9c7d07535b8bf","attempt_ref":"15801b1dc976c4ea","stage":"model_inference","timestamp_utc":"2026-11-15T05:38:55.476320+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":99370}
+2026-11-15 12:38:55+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"20c103a4b161e6f7","generation_ref":"ada9c7d07535b8bf","attempt_ref":"15801b1dc976c4ea","stage":"output_parse_and_source_identity_validation","timestamp_utc":"2026-11-15T05:38:55.477252+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 12:38:55+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 {"duplicate_geometry_count": 1, "error_code": "SVG_CONSTRUCTION_GUIDE_GEOMETRY_COMPLEXITY_INVALID", "event": "svg_catalog_construction_stroke_guide_rejected", "expected_source_path_count": 11, "first_duplicate_stroke_index": 2, "generation_duration_ms": 99371, "geometry_failure": "DUPLICATE_STROKE_GEOMETRY", "max_total_geometry_chars": 16384, "output_token_count": 2666, "stage_count": 8, "stroke_count": 2, "total_geometry_chars": 70, "unassigned_stroke_count": 0, "unique_geometry_count": 1, "unknown_anchor_count": 0}
+2026-11-15 12:38:55+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_failed","workload":"svg.topic-stroke-guide.generate","job_ref":"20c103a4b161e6f7","generation_ref":"ada9c7d07535b8bf","attempt_ref":"15801b1dc976c4ea","stage":"output_parse_and_source_identity_validation","timestamp_utc":"2026-11-15T05:38:55.478097+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":1,"error_code":"SVG_CONSTRUCTION_GUIDE_GEOMETRY_COMPLEXITY_INVALID","error_type":"Exception"}
+2026-11-15 12:38:55+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_failed","workload":"svg.topic-stroke-guide.generate","job_ref":"20c103a4b161e6f7","generation_ref":"ada9c7d07535b8bf","attempt_ref":"15801b1dc976c4ea","stage":"output_parse_and_source_identity_validation","timestamp_utc":"2026-11-15T05:38:55.478135+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":156428,"error_code":"SVG_CONSTRUCTION_GUIDE_GEOMETRY_COMPLEXITY_INVALID","error_type":"Exception"}
+2026-11-15 12:38:55+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 Traceback (most recent call last):
+2026-11-15 12:38:55+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8   File "/pkg/modal/_runtime/container_io_manager.py", line 987, in handle_input_exception
+2026-11-15 12:38:55+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8     yield
+2026-11-15 12:38:55+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8   File "/pkg/modal/_container_entrypoint.py", line 189, in run_input_sync
+2026-11-15 12:38:55+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8     values = io_context.call_function_sync()
+2026-11-15 12:38:55+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-15 12:38:55+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8   File "/pkg/modal/_runtime/container_io_manager.py", line 266, in call_function_sync
+2026-11-15 12:38:55+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8     expected_value_or_values = self.finalized_function.callable(*args, **kwargs)
+2026-11-15 12:38:55+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-15 12:38:55+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8   File "/root/worker_observability.py", line 333, in wrapped
+2026-11-15 12:38:55+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8     result = function(*args, **kwargs)
+2026-11-15 12:38:55+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8              ^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-15 12:38:55+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8   File "/root/language_audio_app.py", line 1251, in generate_topic_svg_stroke_guide_draft
+2026-11-15 12:38:55+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8     result = _parse_svg_catalog_construction_guide(
+2026-11-15 12:38:55+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-15 12:38:55+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8   File "/root/language_audio_app.py", line 3435, in _parse_svg_catalog_construction_guide
+2026-11-15 12:38:55+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8     raise _SvgCatalogPlanValidationError(
+2026-11-15 12:38:55+07:00 fc-01M7EV9JDF4FAQ6AD0MSCGZ4K8 language_audio_app._SvgCatalogPlanValidationError: SVG_CONSTRUCTION_GUIDE_GEOMETRY_COMPLEXITY_INVALID

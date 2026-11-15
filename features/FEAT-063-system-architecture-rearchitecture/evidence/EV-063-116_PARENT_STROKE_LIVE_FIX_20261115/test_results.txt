@@ -1,0 +1,32 @@
+Rev87.20 local preflight verification (2026-11-15)
+
+Modal worker
+- deployment/modal/srs_v23/tests/test_svg_topic_stroke_guide_contract.py
+- Result: 25 passed, 2 Python asyncio policy deprecation warnings.
+
+Backend
+- backend/tests/unit/test_svg_construction_guide.py
+- backend/tests/contract/test_parent_svg_construction_guide_api.py
+- backend/tests/contract/test_parent_svg_source_derived_guide.py
+- Result: 12 passed. The first invocation could not create pytest temp folders in the sandbox temp directory; rerunning with --basetemp inside the backend worktree passed.
+
+Parent mobile
+- apps/ui-mobile/tests/svgGuideSourceContract.test.mjs
+- Result: 3 passed.
+
+Real-route runner
+- run_parent_construction_guide.py syntax compile: passed.
+- It uses the actual Parent route, Modal client, worker, and API response validators. Only local identity/database authorization is bypassed; its sole input is the synthetic topic con mèo.
+
+Modal dev preflight
+- Read-only app info confirmed the deployed language/audio app was stopped before this test and the construction-guide function was present.
+
+Rev87.20 post-correction verification (2026-11-15)
+
+- Modal worker contract tests: 27 passed, 2 asyncio event-loop deprecation warnings.
+- Backend construction-guide unit/API contract tests: 12 passed.
+- Parent mobile SVG source contract: 3 passed.
+- `git diff --check` for the worker and focused test: passed.
+- First live request failed `SVG_CONSTRUCTION_GUIDE_FINAL_FEATURE_MISSING`; prompt and safe diagnostics were corrected, then the focused checks above passed.
+- One final real Parent route → Modal Qwen3.5 inference returned HTTP 502 after 189.152 seconds because only two duplicate strokes were emitted for eight stages (`DUPLICATE_STROKE_GEOMETRY`). No SVG was returned. No retry was made.
+- Modal deployment v2 `/health` passed without GPU allocation/inference; the app was stopped and verified stopped after the final request.

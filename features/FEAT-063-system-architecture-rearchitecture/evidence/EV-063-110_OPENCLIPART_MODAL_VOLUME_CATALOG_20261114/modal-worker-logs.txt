@@ -1,0 +1,55 @@
+<LOCAL_USER_DIR>\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\modal\_utils\async_utils.py:43: DeprecationWarning: 'asyncio.WindowsSelectorEventLoopPolicy' is deprecated and slated for removal in Python 3.16
+  asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+<LOCAL_USER_DIR>\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\modal\_utils\async_utils.py:43: DeprecationWarning: 'asyncio.set_event_loop_policy' is deprecated and slated for removal in Python 3.16
+  asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+2026-11-15 02:15:19+07:00
+2026-11-15 02:15:19+07:00 [1A
+2026-11-15 02:15:19+07:00 Loading weights:  52%|█████▏    | 395/760 [00:07<00:04, 87.07it/s]
+2026-11-15 02:15:19+07:00 [1A
+2026-11-15 02:15:19+07:00 Loading weights:  54%|█████▎    | 408/760 [00:07<00:03, 91.64it/s]
+2026-11-15 02:15:19+07:00 [1A
+2026-11-15 02:15:19+07:00 Loading weights:  55%|█████▌    | 418/760 [00:07<00:04, 80.44it/s]
+2026-11-15 02:15:19+07:00 [1A
+2026-11-15 02:15:19+07:00 Loading weights:  60%|█████▉    | 455/760 [00:07<00:02, 146.69it/s]
+2026-11-15 02:15:19+07:00 [1A
+2026-11-15 02:15:19+07:00 Loading weights:  70%|███████   | 535/760 [00:07<00:00, 306.17it/s]
+2026-11-15 02:15:19+07:00 [1A
+Loading weights:  81%|████████  | 615/760 [00:08<00:00, 433.14it/s]
+2026-11-15 02:15:20+07:00
+2026-11-15 02:15:20+07:00 [1A
+2026-11-15 02:15:20+07:00 Loading weights:  93%|█████████▎| 709/760 [00:08<00:00, 567.07it/s]
+2026-11-15 02:15:20+07:00 Loading weights: 100%|██████████| 760/760 [00:08<00:00, 92.39it/s]
+2026-11-15 02:15:20+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"4265365614ed4494","generation_ref":"d4fbb483c0955185","attempt_ref":"35128d52b0d42d55","stage":"model_load","timestamp_utc":"2026-11-14T19:15:20.732632+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":25968}
+2026-11-15 02:15:20+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"4265365614ed4494","generation_ref":"d4fbb483c0955185","attempt_ref":"35128d52b0d42d55","stage":"catalog_query_expansion","timestamp_utc":"2026-11-14T19:15:20.732732+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 02:16:00+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"4265365614ed4494","generation_ref":"d4fbb483c0955185","attempt_ref":"35128d52b0d42d55","stage":"catalog_query_expansion","timestamp_utc":"2026-11-14T19:16:00.226793+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":39494}
+2026-11-15 02:16:00+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"4265365614ed4494","generation_ref":"d4fbb483c0955185","attempt_ref":"35128d52b0d42d55","stage":"catalog_candidate_search","timestamp_utc":"2026-11-14T19:16:00.226982+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 02:16:03+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"4265365614ed4494","generation_ref":"d4fbb483c0955185","attempt_ref":"35128d52b0d42d55","stage":"catalog_candidate_search","timestamp_utc":"2026-11-14T19:16:03.916666+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":3690}
+2026-11-15 02:16:03+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"4265365614ed4494","generation_ref":"d4fbb483c0955185","attempt_ref":"35128d52b0d42d55","stage":"catalog_source_render","timestamp_utc":"2026-11-14T19:16:03.916773+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 02:16:04+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"4265365614ed4494","generation_ref":"d4fbb483c0955185","attempt_ref":"35128d52b0d42d55","stage":"catalog_source_render","timestamp_utc":"2026-11-14T19:16:04.228148+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":311}
+2026-11-15 02:16:04+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"4265365614ed4494","generation_ref":"d4fbb483c0955185","attempt_ref":"35128d52b0d42d55","stage":"prompt_encoding","timestamp_utc":"2026-11-14T19:16:04.228314+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 02:16:04+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"4265365614ed4494","generation_ref":"d4fbb483c0955185","attempt_ref":"35128d52b0d42d55","stage":"prompt_encoding","timestamp_utc":"2026-11-14T19:16:04.246471+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":18}
+2026-11-15 02:16:04+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"4265365614ed4494","generation_ref":"d4fbb483c0955185","attempt_ref":"35128d52b0d42d55","stage":"constrained_decoder_setup","timestamp_utc":"2026-11-14T19:16:04.246584+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 02:16:04+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"4265365614ed4494","generation_ref":"d4fbb483c0955185","attempt_ref":"35128d52b0d42d55","stage":"constrained_decoder_setup","timestamp_utc":"2026-11-14T19:16:04.246980+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":0}
+2026-11-15 02:16:04+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"4265365614ed4494","generation_ref":"d4fbb483c0955185","attempt_ref":"35128d52b0d42d55","stage":"model_inference","timestamp_utc":"2026-11-14T19:16:04.247049+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 02:16:29+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"4265365614ed4494","generation_ref":"d4fbb483c0955185","attempt_ref":"35128d52b0d42d55","stage":"model_inference","timestamp_utc":"2026-11-14T19:16:29.794509+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":25547}
+2026-11-15 02:16:29+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"4265365614ed4494","generation_ref":"d4fbb483c0955185","attempt_ref":"35128d52b0d42d55","stage":"output_parse_and_source_identity_validation","timestamp_utc":"2026-11-14T19:16:29.794907+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 02:16:29+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_failed","workload":"svg.topic-stroke-guide.generate","job_ref":"4265365614ed4494","generation_ref":"d4fbb483c0955185","attempt_ref":"35128d52b0d42d55","stage":"output_parse_and_source_identity_validation","timestamp_utc":"2026-11-14T19:16:29.795191+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":0,"error_code":"SVG_CATALOG_STROKE_PLAN_PATH_COVERAGE_INVALID","error_type":"RuntimeError"}
+2026-11-15 02:16:29+07:00 {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_failed","workload":"svg.topic-stroke-guide.generate","job_ref":"4265365614ed4494","generation_ref":"d4fbb483c0955185","attempt_ref":"35128d52b0d42d55","stage":"output_parse_and_source_identity_validation","timestamp_utc":"2026-11-14T19:16:29.795252+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":95673,"error_code":"SVG_CATALOG_STROKE_PLAN_PATH_COVERAGE_INVALID","error_type":"RuntimeError"}
+2026-11-15 02:16:29+07:00 Traceback (most recent call last):
+2026-11-15 02:16:29+07:00   File "/pkg/modal/_runtime/container_io_manager.py", line 987, in handle_input_exception
+2026-11-15 02:16:29+07:00     yield
+2026-11-15 02:16:29+07:00   File "/pkg/modal/_container_entrypoint.py", line 189, in run_input_sync
+2026-11-15 02:16:29+07:00     values = io_context.call_function_sync()
+2026-11-15 02:16:29+07:00              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-15 02:16:29+07:00   File "/pkg/modal/_runtime/container_io_manager.py", line 266, in call_function_sync
+2026-11-15 02:16:29+07:00     expected_value_or_values = self.finalized_function.callable(*args, **kwargs)
+2026-11-15 02:16:29+07:00                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-15 02:16:29+07:00   File "/root/worker_observability.py", line 333, in wrapped
+2026-11-15 02:16:29+07:00     result = function(*args, **kwargs)
+2026-11-15 02:16:29+07:00              ^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-15 02:16:29+07:00   File "/root/language_audio_app.py", line 1245, in generate_topic_svg_stroke_guide_draft
+2026-11-15 02:16:29+07:00     _parse_svg_catalog_source_plan(text, candidate["parsed_svg"]["paths"]),
+2026-11-15 02:16:29+07:00     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-15 02:16:29+07:00   File "/root/language_audio_app.py", line 3070, in _parse_svg_catalog_source_plan
+2026-11-15 02:16:29+07:00     raise RuntimeError("SVG_CATALOG_STROKE_PLAN_PATH_COVERAGE_INVALID")
+2026-11-15 02:16:29+07:00 RuntimeError: SVG_CATALOG_STROKE_PLAN_PATH_COVERAGE_INVALID

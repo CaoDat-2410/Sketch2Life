@@ -1,0 +1,137 @@
+{
+  "stage_count": 8,
+  "path_count": 20,
+  "all_paths_assigned_once": true,
+  "source_asset_id": "openclipart-friendly-kitten-icon",
+  "source_sha256": "a5b74eed392104ff9baa2a335b5e8dde9aef40ca7775949a7fbc4a29b7f36594",
+  "stages": [
+    {
+      "step_index": 1,
+      "instruction_vi": "Vẽ nét cong từ đỉnh tai bên trái, lượn nhẹ qua viền trên đầu rồi lên đến đỉnh tai bên phải.",
+      "part_ids": [
+        "step_01"
+      ],
+      "new_path_ids": [
+        "guide_stroke_05",
+        "guide_stroke_06"
+      ],
+      "animation_order": [
+        "guide_stroke_05",
+        "guide_stroke_06"
+      ]
+    },
+    {
+      "step_index": 2,
+      "instruction_vi": "Kéo dài đường viền từ đỉnh tai phải xuống phía sau đầu, rồi uốn cong xuống để tạo hình cằm và phần dưới của đầu mèo.",
+      "part_ids": [
+        "step_02"
+      ],
+      "new_path_ids": [
+        "guide_stroke_01",
+        "guide_stroke_07"
+      ],
+      "animation_order": [
+        "guide_stroke_01",
+        "guide_stroke_07"
+      ]
+    },
+    {
+      "step_index": 3,
+      "instruction_vi": "Vẽ đường cong từ cằm lên đỉnh tai trái, hoàn thành vòng khép kín của phần đầu mèo, bao gồm cả hai tai.",
+      "part_ids": [
+        "step_03"
+      ],
+      "new_path_ids": [
+        "guide_stroke_02",
+        "guide_stroke_08"
+      ],
+      "animation_order": [
+        "guide_stroke_02",
+        "guide_stroke_08"
+      ]
+    },
+    {
+      "step_index": 4,
+      "instruction_vi": "Vẽ đường cong từ cằm xuống thân mèo, rồi uốn cong để tạo hình chân trước và phần bụng của mèo.",
+      "part_ids": [
+        "step_04"
+      ],
+      "new_path_ids": [
+        "guide_stroke_03",
+        "guide_stroke_09"
+      ],
+      "animation_order": [
+        "guide_stroke_03",
+        "guide_stroke_09"
+      ]
+    },
+    {
+      "step_index": 5,
+      "instruction_vi": "Vẽ đường cong từ thân xuống chân sau, rồi uốn cong lên để tạo hình đuôi của mèo.",
+      "part_ids": [
+        "step_05"
+      ],
+      "new_path_ids": [
+        "guide_stroke_04",
+        "guide_stroke_10",
+        "guide_stroke_14",
+        "guide_stroke_18"
+      ],
+      "animation_order": [
+        "guide_stroke_04",
+        "guide_stroke_10",
+        "guide_stroke_14",
+        "guide_stroke_18"
+      ]
+    },
+    {
+      "step_index": 6,
+      "instruction_vi": "Vẽ hai hình tròn nhỏ cho mắt và một hình tam giác nhỏ cho mũi của mèo.",
+      "part_ids": [
+        "step_06"
+      ],
+      "new_path_ids": [
+        "guide_stroke_11",
+        "guide_stroke_15",
+        "guide_stroke_19"
+      ],
+      "animation_order": [
+        "guide_stroke_11",
+        "guide_stroke_15",
+        "guide_stroke_19"
+      ]
+    },
+    {
+      "step_index": 7,
+      "instruction_vi": "Vẽ một đường cong nhỏ cho miệng và hai đường thẳng nhỏ cho râu của mèo.",
+      "part_ids": [
+        "step_07"
+      ],
+      "new_path_ids": [
+        "guide_stroke_12",
+        "guide_stroke_16",
+        "guide_stroke_20"
+      ],
+      "animation_order": [
+        "guide_stroke_12",
+        "guide_stroke_16",
+        "guide_stroke_20"
+      ]
+    },
+    {
+      "step_index": 8,
+      "instruction_vi": "Vẽ các đường cong nhỏ trên tai của mèo để tạo hình lông tai.",
+      "part_ids": [
+        "step_08"
+      ],
+      "new_path_ids": [
+        "guide_stroke_13",
+        "guide_stroke_17"
+      ],
+      "animation_order": [
+        "guide_stroke_13",
+        "guide_stroke_17"
+      ]
+    }
+  ]
+}

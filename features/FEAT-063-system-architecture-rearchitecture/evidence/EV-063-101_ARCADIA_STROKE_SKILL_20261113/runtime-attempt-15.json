@@ -1,0 +1,45 @@
+{
+  "amendment": "Rev87.10-M",
+  "started_at_utc": "2026-11-13T18:18:25.5173862+00:00",
+  "finished_at_utc": "2026-11-13T18:22:49.3523783+00:00",
+  "elapsed_seconds": 263.834,
+  "environment": "local Docker API -> Modal dev",
+  "endpoint": "/api/parent/v1/ai/sketch-guides",
+  "method": "POST",
+  "client_timeout_seconds": 1800,
+  "input": {
+    "difficulty": "beginner",
+    "child_data": "none",
+    "contract": "SvgTopicStrokeGuideRequestV1",
+    "topic": "con gà"
+  },
+  "preflight": {
+    "parent_me_http": 200,
+    "catalog_match_count": 0,
+    "firebase_emulator_signin_http": 200,
+    "api_health_http": 200,
+    "catalog_http": 200,
+    "parent_role_confirmed": true,
+    "modal_health": "ok"
+  },
+  "modal_deployment": {
+    "environment": "dev",
+    "deployed": true,
+    "app": "sketch2life-srs23-language-audio-dev",
+    "gpu_warmup_or_inference_during_deploy": false
+  },
+  "api_status": 502,
+  "api_request_id": "1ed18562-cb0b-4280-8bd6-04b6b3b32273",
+  "modal_call_id": null,
+  "error_code": "MODAL_SVG_TOPIC_GUIDE_OUTPUT_REJECTED",
+  "reason_code": "SVG_CHICKEN_ANATOMY_CONNECTION_INVALID",
+  "client_error_type": null,
+  "contract_valid": false,
+  "validated_svg_returned": false,
+  "response_file": null,
+  "response_sha256": null,
+  "path_count": null,
+  "stage_count": null,
+  "model_id": null,
+  "model_revision": null
+}

@@ -1,0 +1,35 @@
+{
+  "request_id": "170dd1c7-894e-49ac-8488-4a858e64a6d8",
+  "story_run": {
+    "run_id": "fa807136-2bca-488e-b734-ed8290042ca7",
+    "run_state": "INPUT_PROCESSING",
+    "parent_profile_id": "8e4cdfe6-e0e5-4a86-85dd-c4267134842f",
+    "profile_revision_ref": "2fd9fe2b-c678-4de7-bb66-6b07ac1a2a29",
+    "context_revision": 1,
+    "context_snapshot": {
+      "schema_version": "sketch2life.parent-context.v1",
+      "profile_revision_ref": "2fd9fe2b-c678-4de7-bb66-6b07ac1a2a29",
+      "age_months": 60,
+      "interests_summary": "Thiên nhiên và động vật",
+      "topic": "Con hươu",
+      "adult_confirmed_idea": "",
+      "consent_policy_version": "local-synthetic-demo-v1"
+    },
+    "context_snapshot_sha256": "5ae131647b6582003e81dd32c5b6767abc2f82e4c8668c5d9bc1f0d5198e5d80",
+    "lesson_pin_snapshot": null,
+    "current_input_revision": 1,
+    "understanding_revision": null,
+    "subject_label": null,
+    "candidate": null,
+    "story_revision_id": null,
+    "story_revision_no": null,
+    "story_status": null,
+    "story_sha256": null,
+    "story": null,
+    "job_state": null,
+    "retryable": false,
+    "error_code": null,
+    "created_at": "2026-11-12T15:01:33.502280Z",
+    "updated_at": "2026-11-12T15:01:33.502280Z"
+  }
+}

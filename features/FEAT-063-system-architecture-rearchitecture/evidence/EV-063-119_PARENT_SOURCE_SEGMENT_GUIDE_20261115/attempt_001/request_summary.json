@@ -1,0 +1,20 @@
+{
+  "status": "HANDLER_HTTP_200",
+  "started_at": "2026-11-15T14:22:37.477517+07:00",
+  "completed_at": "2026-11-15T14:25:13.500075+07:00",
+  "elapsed_seconds": 156.021,
+  "http_status": 200,
+  "topic": "con mèo",
+  "data_class": "synthetic_topic_only_no_child_profile_or_photo",
+  "response_contract": "SvgTopicStrokeGuideConstructionDraftV1",
+  "generation_source": "QWEN_REFERENCE_CONDITIONED_CONSTRUCTION",
+  "request_id": "11e76daf-03da-4f15-81ba-4d8d71a40237",
+  "modal_call_id": "fc-01M7F1CHNNKD04CWTTM750GR2N",
+  "path_count": 20,
+  "stage_count": 8,
+  "error_detail": null,
+  "svg_returned": true,
+  "retry_performed": false,
+  "video_requested": false,
+  "child_data_used": false
+}

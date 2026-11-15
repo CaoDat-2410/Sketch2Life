@@ -1,0 +1,22 @@
+{
+  "recorded_at_utc": "2026-11-14T03:40:56.624993+00:00",
+  "request": {
+    "topic": "con gà",
+    "difficulty": "beginner"
+  },
+  "http_status": 200,
+  "elapsed_seconds": 0.045,
+  "contract": "SvgTopicStrokeGuideSourceDraftV1",
+  "generation_source": "CURATED_SOURCE_DERIVATION",
+  "source_sha256": "4f6397d5d32ff7ea58451cb5e5725c87501be155c0eb64f85c5821dfe99cb1ed",
+  "source_path_count": 77,
+  "derived_path_count": 20,
+  "stage_count": 6,
+  "reference_path_count": 77,
+  "reference_filled_path_count": 77,
+  "reference_rendered_under_strokes": false,
+  "reference_document_sha256": "149360115e918a5535616b85564f5ce2c3b9887a6e4908dc671077dd05c0b601",
+  "document_sha256": "27bed3626dada9ce68094d7697896d14fa7b7e399ea3b0c34a05f32eed4c5fc7",
+  "modal_dispatched": false,
+  "auth_scope": "focused local TestClient; identity and database dependencies overridden only"
+}

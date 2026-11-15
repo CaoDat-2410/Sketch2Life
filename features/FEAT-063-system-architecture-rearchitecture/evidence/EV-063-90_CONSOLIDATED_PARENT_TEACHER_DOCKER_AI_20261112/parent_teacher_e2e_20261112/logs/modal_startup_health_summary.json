@@ -1,0 +1,20 @@
+{
+  "state": "DEGRADED",
+  "environment": "dev",
+  "inference_executed_by_startup_warmup": false,
+  "product_output_created_by_startup_warmup": false,
+  "apps": [
+    {"app_name": "sketch2life-srs23-drawing-vlm-dev", "status": "FAILED", "error_type": "TimeoutError", "error_code": "MODAL_HEALTH_PROBE_FAILED"},
+    {"app_name": "sketch2life-srs23-language-audio-dev", "status": "FAILED", "error_type": "NotFoundError", "error_code": "MODAL_HEALTH_PROBE_FAILED"},
+    {"app_name": "sketch2life-srs23-flux-image-dev", "status": "FAILED", "error_type": "TimeoutError", "error_code": "MODAL_HEALTH_PROBE_FAILED"}
+  ],
+  "workers": [
+    {"app_name": "sketch2life-srs23-drawing-vlm-dev", "function_name": "analyze-drawing", "workload": "drawing.analyze", "status": "READY", "elapsed_ms": 33849},
+    {"app_name": "sketch2life-srs23-flux-image-dev", "function_name": "generate-line-sketch-guide-candidate", "workload": "parent.sketch-guide.generate", "status": "READY", "elapsed_ms": 48139},
+    {"app_name": "sketch2life-srs23-flux-image-dev", "function_name": "generate-approved-lesson-visual-candidate", "workload": "lesson.visual.generate", "status": "READY", "elapsed_ms": 49968},
+    {"app_name": "sketch2life-srs23-language-audio-dev", "function_name": "generate-story-and-storyboard", "workload": "story.generate", "status": "FAILED", "error_type": "NotFoundError", "error_code": "MODAL_WARMUP_SUBMIT_FAILED"},
+    {"app_name": "sketch2life-srs23-language-audio-dev", "function_name": "suggest-parent-activities", "workload": "parent.activity.suggest", "status": "FAILED", "error_type": "NotFoundError", "error_code": "MODAL_WARMUP_SUBMIT_FAILED"},
+    {"app_name": "sketch2life-srs23-language-audio-dev", "function_name": "generate-teacher-sketch-deck", "workload": "teacher.sketch-deck.generate", "status": "FAILED", "error_type": "NotFoundError", "error_code": "MODAL_WARMUP_SUBMIT_FAILED"},
+    {"app_name": "sketch2life-srs23-language-audio-dev", "function_name": "suggest-lesson-plan", "workload": "lesson.plan.suggest", "status": "FAILED", "error_type": "NotFoundError", "error_code": "MODAL_WARMUP_SUBMIT_FAILED"}
+  ]
+}

@@ -1,0 +1,12 @@
+Rev87.22 focused checks
+======================
+
+Modal worker: 34 passed, 2 asyncio deprecation warnings.
+Backend contracts: 12 passed.
+Parent mobile SVG contract: 3 passed.
+Python compile (language_audio_app.py): passed.
+Scoped git diff --check: passed.
+Ruff: unavailable in .venv-modal (No module named ruff); no install attempted.
+
+These checks validate schema, deterministic primitive rendering, hard-gate behavior,
+and compatibility. They do not establish pedagogical or visual guide quality.

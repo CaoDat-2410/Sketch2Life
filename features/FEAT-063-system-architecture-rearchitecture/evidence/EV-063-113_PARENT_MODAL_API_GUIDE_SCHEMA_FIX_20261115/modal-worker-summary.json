@@ -1,0 +1,16 @@
+{
+  "modal_call_id": "fc-01M7E0Z2386EH7TP37PRGEMKWS",
+  "worker_status": "worker_succeeded",
+  "model_id": "Qwen/Qwen3.5-9B",
+  "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+  "api_wait_elapsed_ms": 96766,
+  "worker_duration_ms": 87860,
+  "terminal_stage": "worker_succeeded",
+  "source_dataset": "Openclipart",
+  "source_asset_id": "openclipart-friendly-kitten-icon",
+  "source_paths": 11,
+  "ordered_stages": 6,
+  "exact_path_coverage": true,
+  "quality_gate_count": 8,
+  "raw_worker_output_or_credentials_included": false
+}

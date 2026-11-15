@@ -1,0 +1,263 @@
+{
+  "scale": 1.1746835443037975,
+  "translate_x": 24.0,
+  "translate_y": 93.89367088607594,
+  "source_path_count": 11,
+  "derived_chunk_count": 20,
+  "source_segment_count": 160,
+  "chunk_command_limit": 12,
+  "first_chunk_command_limit": 6,
+  "guide_view_box": "0 0 512 512",
+  "source_asset_id": "openclipart-friendly-kitten-icon",
+  "source_sha256": "a5b74eed392104ff9baa2a335b5e8dde9aef40ca7775949a7fbc4a29b7f36594",
+  "source_response_sha256": "8b2f595a8e967cfe6f54e26fa6668dfbaa2bb5875a079fcd48fbf6f519eb74e6",
+  "segments": [
+    {
+      "segment_id": "source_segment_001",
+      "source_path_id": "oc_path_001",
+      "source_subpath_indices": [
+        1
+      ],
+      "source_segment_start": 1,
+      "source_segment_end": 6,
+      "source_segment_count": 6,
+      "drawable_command_count": 7,
+      "geometry_sha256": "32e492b6018ee9dad2b7135d8df0fa8bd67079f8620082de6bd8fb3505094d15"
+    },
+    {
+      "segment_id": "source_segment_002",
+      "source_path_id": "oc_path_001",
+      "source_subpath_indices": [
+        1
+      ],
+      "source_segment_start": 7,
+      "source_segment_end": 18,
+      "source_segment_count": 12,
+      "drawable_command_count": 13,
+      "geometry_sha256": "776f476134ba5ce8deabca30239b4da4e865965cd06e1661534686069db6b15b"
+    },
+    {
+      "segment_id": "source_segment_003",
+      "source_path_id": "oc_path_001",
+      "source_subpath_indices": [
+        1
+      ],
+      "source_segment_start": 19,
+      "source_segment_end": 30,
+      "source_segment_count": 12,
+      "drawable_command_count": 13,
+      "geometry_sha256": "7407ddea7dce62c02a6f7393976ad7eb62b7bd8041308a8a2a299a11e1fe52f6"
+    },
+    {
+      "segment_id": "source_segment_004",
+      "source_path_id": "oc_path_001",
+      "source_subpath_indices": [
+        1
+      ],
+      "source_segment_start": 31,
+      "source_segment_end": 42,
+      "source_segment_count": 12,
+      "drawable_command_count": 13,
+      "geometry_sha256": "e426d4c63cd0b72d3384b12eda6c032ebb30f7bddf167a95730810383fd6ddf3"
+    },
+    {
+      "segment_id": "source_segment_005",
+      "source_path_id": "oc_path_001",
+      "source_subpath_indices": [
+        1,
+        2
+      ],
+      "source_segment_start": 43,
+      "source_segment_end": 54,
+      "source_segment_count": 12,
+      "drawable_command_count": 14,
+      "geometry_sha256": "97bc32f41d8d53736f9756016654e2d76423661fe71e15f99443df5baf273178"
+    },
+    {
+      "segment_id": "source_segment_006",
+      "source_path_id": "oc_path_001",
+      "source_subpath_indices": [
+        2,
+        3,
+        4
+      ],
+      "source_segment_start": 55,
+      "source_segment_end": 66,
+      "source_segment_count": 12,
+      "drawable_command_count": 15,
+      "geometry_sha256": "99b245bac6fb5cba48d8dc5569f5249c170ad92d3c27cb5ab34e1ee06b9c72b3"
+    },
+    {
+      "segment_id": "source_segment_007",
+      "source_path_id": "oc_path_001",
+      "source_subpath_indices": [
+        4,
+        5,
+        6
+      ],
+      "source_segment_start": 67,
+      "source_segment_end": 78,
+      "source_segment_count": 12,
+      "drawable_command_count": 15,
+      "geometry_sha256": "0f9d4d8b6a01b518f72433cb4577051f8168d1e759ccf6d2e8d61db8ab7918ed"
+    },
+    {
+      "segment_id": "source_segment_008",
+      "source_path_id": "oc_path_001",
+      "source_subpath_indices": [
+        6
+      ],
+      "source_segment_start": 79,
+      "source_segment_end": 81,
+      "source_segment_count": 3,
+      "drawable_command_count": 4,
+      "geometry_sha256": "9b824a6f2174bf5b958d1a979194e58a42a645ec4eb8525fdc31736504e4561e"
+    },
+    {
+      "segment_id": "source_segment_009",
+      "source_path_id": "oc_path_002",
+      "source_subpath_indices": [
+        1
+      ],
+      "source_segment_start": 1,
+      "source_segment_end": 7,
+      "source_segment_count": 7,
+      "drawable_command_count": 8,
+      "geometry_sha256": "0b43a821da2c0752b143453be80387a6d09158fd011e4dc9fae785949dfc03cb"
+    },
+    {
+      "segment_id": "source_segment_010",
+      "source_path_id": "oc_path_003",
+      "source_subpath_indices": [
+        1
+      ],
+      "source_segment_start": 1,
+      "source_segment_end": 4,
+      "source_segment_count": 4,
+      "drawable_command_count": 5,
+      "geometry_sha256": "fa336bbee55f0a6614dcecec43189bf44ba338e7e234fdf149c4a17b45310dc7"
+    },
+    {
+      "segment_id": "source_segment_011",
+      "source_path_id": "oc_path_004",
+      "source_subpath_indices": [
+        1,
+        2
+      ],
+      "source_segment_start": 1,
+      "source_segment_end": 12,
+      "source_segment_count": 12,
+      "drawable_command_count": 14,
+      "geometry_sha256": "2509175ee9716c882d2999dc2e5696f49f8a0ddfd59a6845939caf2a3012fd68"
+    },
+    {
+      "segment_id": "source_segment_012",
+      "source_path_id": "oc_path_004",
+      "source_subpath_indices": [
+        2
+      ],
+      "source_segment_start": 13,
+      "source_segment_end": 13,
+      "source_segment_count": 1,
+      "drawable_command_count": 2,
+      "geometry_sha256": "8f8f8edc07bc328b202f59aaa0cbc5733a6cbdbf8d0daa0eff88d56640638a8c"
+    },
+    {
+      "segment_id": "source_segment_013",
+      "source_path_id": "oc_path_005",
+      "source_subpath_indices": [
+        1,
+        2
+      ],
+      "source_segment_start": 1,
+      "source_segment_end": 11,
+      "source_segment_count": 11,
+      "drawable_command_count": 13,
+      "geometry_sha256": "ee183007085447de69c6de2c8d8e3cbff8025995f9229801238406d7e5885797"
+    },
+    {
+      "segment_id": "source_segment_014",
+      "source_path_id": "oc_path_006",
+      "source_subpath_indices": [
+        1
+      ],
+      "source_segment_start": 1,
+      "source_segment_end": 6,
+      "source_segment_count": 6,
+      "drawable_command_count": 7,
+      "geometry_sha256": "41b2d6900bf7e32c82e02c1532cb0f7b62fd920fe500587640cef39bbf899bd3"
+    },
+    {
+      "segment_id": "source_segment_015",
+      "source_path_id": "oc_path_007",
+      "source_subpath_indices": [
+        1
+      ],
+      "source_segment_start": 1,
+      "source_segment_end": 6,
+      "source_segment_count": 6,
+      "drawable_command_count": 7,
+      "geometry_sha256": "b6c472b885c4ffa7026552f86c28f06b146a3d6fc1abd7abd5c8025ca0f5a2b9"
+    },
+    {
+      "segment_id": "source_segment_016",
+      "source_path_id": "oc_path_008",
+      "source_subpath_indices": [
+        1
+      ],
+      "source_segment_start": 1,
+      "source_segment_end": 12,
+      "source_segment_count": 12,
+      "drawable_command_count": 13,
+      "geometry_sha256": "c8ca93a405cb97ed387ee4995487f803563b92773a1ffa17a6f7dd3648adacda"
+    },
+    {
+      "segment_id": "source_segment_017",
+      "source_path_id": "oc_path_008",
+      "source_subpath_indices": [
+        1
+      ],
+      "source_segment_start": 13,
+      "source_segment_end": 14,
+      "source_segment_count": 2,
+      "drawable_command_count": 3,
+      "geometry_sha256": "97d44e6eff52473b039c001fb81e679a4112c8ac10444f8e3424254ca0526a98"
+    },
+    {
+      "segment_id": "source_segment_018",
+      "source_path_id": "oc_path_009",
+      "source_subpath_indices": [
+        1
+      ],
+      "source_segment_start": 1,
+      "source_segment_end": 5,
+      "source_segment_count": 5,
+      "drawable_command_count": 6,
+      "geometry_sha256": "2929ac82237c7c89c2998c2db861e70222f32c593006d812c82e45c039afc437"
+    },
+    {
+      "segment_id": "source_segment_019",
+      "source_path_id": "oc_path_010",
+      "source_subpath_indices": [
+        1
+      ],
+      "source_segment_start": 1,
+      "source_segment_end": 7,
+      "source_segment_count": 7,
+      "drawable_command_count": 8,
+      "geometry_sha256": "2e34048ddacd1101af4e372516f3e05904b94771a29f68104ef61dbc41039df7"
+    },
+    {
+      "segment_id": "source_segment_020",
+      "source_path_id": "oc_path_011",
+      "source_subpath_indices": [
+        1
+      ],
+      "source_segment_start": 1,
+      "source_segment_end": 6,
+      "source_segment_count": 6,
+      "drawable_command_count": 7,
+      "geometry_sha256": "704ced99fcb08bd00c2727de227c3fc60933d55b443c90d2efda9b49d251f8c9"
+    }
+  ]
+}

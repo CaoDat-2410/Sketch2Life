@@ -1,0 +1,116 @@
+{
+  "schema_version": "Sketch2LifeRuntimeAttemptV1",
+  "evidence_id": "EV-063-101_ARCADIA_STROKE_SKILL_20261113",
+  "plan": "PLAN_REV87_10_PARENT_ACTIVITY_SELECTION_STORY_TEST_20261113.md",
+  "plan_amendment": "Rev87.10-A",
+  "plan_sha256": "771AF1A0B6FAC59CF11B58A6EB18CE95D8753D25F0880CDE2E1970D03980FFEF",
+  "date": "2026-11-13",
+  "requirements_baseline": "FEAT-063 SRS v2.7-draft Rev69; unsigned; §§1–31 unchanged",
+  "execution_target": {
+    "android_emulator": "emulator-5554; Pixel_10 class; x86_64",
+    "expo_host_package": "host.exp.exponent",
+    "worktree_branch": "codex/feat063-parent-docker-modal-seed-20261111",
+    "api_origin_from_emulator": "http://10.0.2.2:18001",
+    "firebase_auth_emulator_origin": "http://10.0.2.2:9099",
+    "task_api_container": "rev87-10-parent-api",
+    "task_api_network": "rev87-10-parent_default + rev79-parent-local-20261112_default"
+  },
+  "parent_svg": {
+    "ui_topic": "Con ga",
+    "lesson_pinned": false,
+    "guide_enabled_in_actual_ui": true,
+    "child_profile_photo_audio_or_ids_sent_to_guide_endpoint": false,
+    "api_health": "HTTP 200",
+    "openapi_route_present": true,
+    "temporary_api_flags": {
+      "svg_topic_stroke_guide_generation_enabled": true,
+      "parent_activity_soft_quality_gate_enabled": false,
+      "firebase_project_id": "sketch2life-dev"
+    },
+    "catalog_lookup": {
+      "method": "GET",
+      "path": "/api/svg-catalog/v1/parent/guides?limit=50&topic_key=con-ga",
+      "http_status": 401,
+      "response_code": "INVALID_IDENTITY_TOKEN",
+      "api_project_id_at_request": "sketch2life-local",
+      "database_reached": false,
+      "catalog_result": "unknown"
+    },
+    "task_api_reconfigured": "Recreated only rev87-10-parent-api with project sketch2life-dev, matching the existing Auth Emulator and Expo app; no .env change.",
+    "draft_request": {
+      "method": "POST",
+      "path": "/api/parent/v1/ai/sketch-guides",
+      "ui_request_id": "parent-expo-mweywacb",
+      "http_status": 401,
+      "response_code": "INVALID_IDENTITY_TOKEN",
+      "modal_dispatched": false,
+      "gpu_inference_executed": false,
+      "modal_call_id": null,
+      "svg_output": null,
+      "root_cause": "FirebaseTokenVerifier rejected the bearer token even after task API project ID was corrected to sketch2life-dev. The API intentionally suppresses verifier internals; exact claim/signature/expiry cause remains unknown."
+    },
+    "ui_fallback": "PASS: after the catalog request failed, the Parent screen displayed the private AI-draft action and kept the error visible.",
+    "hard_svg_quality_gates": "not reached; no worker output to validate",
+    "inference_attempts": 0,
+    "video": "NOT RUN"
+  },
+  "preceding_parent_flow": {
+    "drawing_analysis": {
+      "http_status": 200,
+      "request_id": "9c929079-64d9-4e62-b189-fc5e5752b5fc",
+      "modal_call_id": "fc-01M7ADCV363C741E46KZQSF52P",
+      "api_elapsed_ms": 47622,
+      "model": "Qwen/Qwen3.5-9B",
+      "subject": "con gà",
+      "confidence": 0.9,
+      "worker_terminal_event": "missing despite valid API output"
+    },
+    "activity_suggestions": {
+      "http_status": 502,
+      "story_run_id": "6b529a9e-3403-4e97-9404-07bf395a6bc7",
+      "modal_call_id": "fc-01M7ADJ06FW4F14C4J9QNWP6HJ",
+      "job_ref": "f126308891620373",
+      "attempt_ref": "bbd693eb94f4d519",
+      "api_elapsed_ms": 196486,
+      "worker_last_phase": "model_inference",
+      "worker_terminal_event": "missing",
+      "candidate_output": false,
+      "story_request": "not sent; no genuine activity candidate was available"
+    }
+  },
+  "verification": {
+    "focused_mobile_test": "PASS; 4 tests in parentActivitySelection.test.mjs",
+    "source_changes": [
+      "apps/ui-mobile/src/parent/presentation/navigation/useParentController.ts",
+      "apps/ui-mobile/src/parent/presentation/screens/SketchGuideScreen.tsx",
+      "apps/ui-mobile/tests/parentActivitySelection.test.mjs"
+    ],
+    "other_build_or_typecheck": "not run"
+  },
+  "gpu_budget": {
+    "drawing_inferences": 1,
+    "activity_inference_calls": 1,
+    "svg_inferences": 0,
+    "story_inferences": 0,
+    "video_inferences": 0,
+    "retries": 0
+  },
+  "screenshots": [
+    "screenshots/parent-svg-topic-fixed.png",
+    "screenshots/parent-svg-enabled.png",
+    "screenshots/parent-svg-guide-landing.png",
+    "screenshots/parent-svg-catalog-result.png",
+    "screenshots/parent-svg-auth-failure.png"
+  ],
+  "cleanup": {
+    "task_api_container": "removed",
+    "metro_session": "stopped",
+    "android_emulator": "shut down",
+    "shared_postgres_firebase_redis_minio_clamav": "left running and untouched",
+    "shared_modal_app_or_volume": "not deployed, stopped, warmed or changed by this amendment",
+    "root_env": "not edited",
+    "migration_or_seed": "not run",
+    "commit_or_push": "not performed"
+  },
+  "result": "STOPPED_BEFORE_MODAL_SVG_INFERENCE; Parent UI fallback is reachable, but the actual authenticated SVG POST was rejected with INVALID_IDENTITY_TOKEN. No SVG was generated, no Modal call occurred, and the one authorized SVG GPU slot remains unused."
+}

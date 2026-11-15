@@ -1,0 +1,16 @@
+{
+  "label": "Teacher lesson visual post-fix verification",
+  "request_id": "3fb5c1c2-8bd6-46df-9ce4-339319c23fb5",
+  "started_at_utc": "2026-11-12T14:29:10.284374+00:00",
+  "test_mode": "real_authenticated_synthetic_docker_modal_api",
+  "video_called": false,
+  "retry_count": 0,
+  "http_status": 502,
+  "elapsed_seconds": 398.967,
+  "completed_at_utc": "2026-11-12T14:35:49.230269+00:00",
+  "status": "FAIL",
+  "error": {
+    "code": "MODAL_WORKER_FAILED_TERMINAL",
+    "request_id": "7089fb70-0a05-4503-b70e-103d673d920a"
+  }
+}

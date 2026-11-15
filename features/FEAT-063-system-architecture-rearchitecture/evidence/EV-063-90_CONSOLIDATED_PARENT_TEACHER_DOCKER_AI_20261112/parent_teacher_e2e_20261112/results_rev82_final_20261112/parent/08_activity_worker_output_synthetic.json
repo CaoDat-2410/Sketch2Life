@@ -1,0 +1,54 @@
+{
+  "test_data": "synthetic_only",
+  "modal_call_id": "fc-01M784P25FG7873J86HX0MN8QF",
+  "worker_output": {
+    "schema_version": "sketch2life.modal.worker-output.v1",
+    "workload": "parent.activity.suggest",
+    "job_id": "0ac57334-50e8-406a-88e7-07ae9f7350f7",
+    "generation_id": "4426a398-70b6-4b97-b1fc-b88324fd3782",
+    "attempt_id": "d807228b-d221-4998-ba46-3c5b536f2f9c",
+    "model": {
+      "id": "Qwen/Qwen3.5-9B",
+      "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
+    },
+    "result": {
+      "schema_version": "sketch2life.parent-activity-suggestions.v2",
+      "decision": "NO_MATCH",
+      "selected_candidates": [],
+      "no_match_reason": "Danh sách candidate_activities trống nên không có hoạt động nào để lựa chọn phù hợp với yêu cầu về con hươu và độ tuổi 3",
+      "age_band_months": "36-71",
+      "fallback_activities": [
+        {
+          "title": "Tìm dấu chân hươu giả",
+          "objective": "Khám phá hình dáng và kích thước các dấu chân khác nhau, phát triển kỹ năng quan sát chi tiết và so sánh đối tượng trong không gian ngoài trời",
+          "materials_text": "Bìa cứng cắt hình dấu chân hươu, cây xanh, mặt đất",
+          "preparation_text": "Người lớn chuẩn bị các dấu chân hươu bằng bìa cứng dán lên gốc cây hoặc mặt đất ở khu vực sân vườn an toàn, tránh nơi có vật sắc nhọn hoặc nước đọng",
+          "instructions_text": "Bước 1: Mời trẻ đi dạo quanh khu vực để tìm và chỉ ra những dấu chân hươu đã được dán sẵn trên cây hoặc đất. Bước 2: Khuyến khích trẻ sờ nhẹ vào dấu chân, đếm số lượng và so sánh hình dáng của chúng với nhau",
+          "observation_notes": "Quan sát trẻ nhận biết hình dáng dấu chân, khả năng di chuyển an toàn và sự hào hứng khi tìm thấy vật thể mới",
+          "safety_notes": "Kiểm tra kỹ khu vực không có vật sắc nhọn, đảm bảo trẻ không chạy quá nhanh để tránh té ngã trên mặt đất không bằng phẳng",
+          "activity_kind": "outdoor"
+        },
+        {
+          "title": "Vẽ hươu trên nền tự nhiên",
+          "objective": "Rèn luyện khả năng phối hợp tay mắt, tưởng tượng và thể hiện hình ảnh con hươu thông qua các thao tác vẽ đơn giản trên bề mặt tự nhiên",
+          "materials_text": "Bút màu nước an toàn, giấy lớn hoặc tấm bạt trắng, cây xanh",
+          "preparation_text": "Người lớn trải tấm bạt trắng hoặc giấy lớn dưới gốc cây có bóng mát, chuẩn bị bút màu nước và đặt hình ảnh con hươu làm mẫu gần đó",
+          "instructions_text": "Bước 1: Cho trẻ quan sát hình ảnh con hươu và chỉ ra các bộ phận chính như sừng, chân, đuôi. Bước 2: Hướng dẫn trẻ dùng bút màu vẽ lại hình dáng con hươu lên tấm bạt hoặc giấy theo cách trẻ thích",
+          "observation_notes": "Theo dõi cách trẻ phối hợp tay mắt, sự tập trung khi vẽ và khả năng mô tả lại hình ảnh con hươu sau khi hoàn thành",
+          "safety_notes": "Chọn khu vực khô ráo, tránh nơi có côn trùng hoặc vật lạ, đảm bảo bút màu không chứa thành phần độc hại",
+          "activity_kind": "outdoor"
+        },
+        {
+          "title": "Chơi âm thanh hươu",
+          "objective": "Phát triển khả năng lắng nghe, phân biệt âm thanh và tưởng tượng hành động của con vật thông qua trò chơi âm thanh đơn giản",
+          "materials_text": "Loa nhỏ phát âm thanh hươu, cây xanh, mặt đất",
+          "preparation_text": "Người lớn chuẩn bị đoạn âm thanh hươu gọi nhau hoặc tiếng bước chân nhẹ nhàng, chọn khu vực yên tĩnh có nhiều cây xanh để trẻ dễ tập trung",
+          "instructions_text": "Bước 1: Phát âm thanh hươu và yêu cầu trẻ lắng nghe kỹ, sau đó mô tả những gì nghe thấy. Bước 2: Khuyến khích trẻ bắt chước âm thanh hoặc hành động của hươu như nhảy nhẹ, ngẩng đầu",
+          "observation_notes": "Quan sát khả năng lắng nghe của trẻ, sự sáng tạo khi bắt chước âm thanh và hành động, cũng như phản ứng cảm xúc với âm h",
+          "safety_notes": "Kiểm tra khu vực không có vật cản, đảm bảo âm thanh không quá lớn gây khó chịu, tránh nơi có nguy cơ té ngã hoặc va chạm",
+          "activity_kind": "outdoor"
+        }
+      ]
+    }
+  }
+}

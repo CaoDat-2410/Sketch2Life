@@ -1,0 +1,194 @@
+{
+  "status": "DRAFT",
+  "request_id": "866785fa-8f96-4e4d-abd7-774c460748be",
+  "modal_call_id": "fc-01M7F3TWF0SDPKYA3MA4JCGC4B",
+  "source_asset_id": "openclipart-friendly-kitten-icon",
+  "source_sha256": "a5b74eed392104ff9baa2a335b5e8dde9aef40ca7775949a7fbc4a29b7f36594",
+  "evidence_source_svg_sha256": "99f1ade262f32774faa9c112e114bb53781f8cd33a6a1e2c9c850606c99d4685",
+  "source_sha256_matches_evidence_svg": false,
+  "path_count": 20,
+  "stage_count": 7,
+  "stages": [
+    {
+      "step_index": 1,
+      "label_vi": "Vẽ nét cong từ đỉnh tai bên trái, lượn nhẹ qua viền trên đầu rồi lên đến đỉnh tai bên phải.",
+      "new_path_ids": [
+        "guide_stroke_05",
+        "guide_stroke_06"
+      ],
+      "cumulative_path_ids": [
+        "guide_stroke_05",
+        "guide_stroke_06"
+      ],
+      "svg": "cumulative_stage_01.svg",
+      "png": "cumulative_stage_01.png"
+    },
+    {
+      "step_index": 2,
+      "label_vi": "Vẽ phần dưới của tai trái và tai phải. Tiếp tục vẽ đường viền cổ từ tai trái xuống vai trái, rồi lên vai phải và kết nối",
+      "new_path_ids": [
+        "guide_stroke_01",
+        "guide_stroke_02",
+        "guide_stroke_03",
+        "guide_stroke_04",
+        "guide_stroke_07",
+        "guide_stroke_08",
+        "guide_stroke_09"
+      ],
+      "cumulative_path_ids": [
+        "guide_stroke_05",
+        "guide_stroke_06",
+        "guide_stroke_01",
+        "guide_stroke_02",
+        "guide_stroke_03",
+        "guide_stroke_04",
+        "guide_stroke_07",
+        "guide_stroke_08",
+        "guide_stroke_09"
+      ],
+      "svg": "cumulative_stage_02.svg",
+      "png": "cumulative_stage_02.png"
+    },
+    {
+      "step_index": 3,
+      "label_vi": "Vẽ hai chân trước của mèo.",
+      "new_path_ids": [
+        "guide_stroke_10",
+        "guide_stroke_11",
+        "guide_stroke_12"
+      ],
+      "cumulative_path_ids": [
+        "guide_stroke_05",
+        "guide_stroke_06",
+        "guide_stroke_01",
+        "guide_stroke_02",
+        "guide_stroke_03",
+        "guide_stroke_04",
+        "guide_stroke_07",
+        "guide_stroke_08",
+        "guide_stroke_09",
+        "guide_stroke_10",
+        "guide_stroke_11",
+        "guide_stroke_12"
+      ],
+      "svg": "cumulative_stage_03.svg",
+      "png": "cumulative_stage_03.png"
+    },
+    {
+      "step_index": 4,
+      "label_vi": "Vẽ hai chân sau của mèo.",
+      "new_path_ids": [
+        "guide_stroke_13",
+        "guide_stroke_14"
+      ],
+      "cumulative_path_ids": [
+        "guide_stroke_05",
+        "guide_stroke_06",
+        "guide_stroke_01",
+        "guide_stroke_02",
+        "guide_stroke_03",
+        "guide_stroke_04",
+        "guide_stroke_07",
+        "guide_stroke_08",
+        "guide_stroke_09",
+        "guide_stroke_10",
+        "guide_stroke_11",
+        "guide_stroke_12",
+        "guide_stroke_13",
+        "guide_stroke_14"
+      ],
+      "svg": "cumulative_stage_04.svg",
+      "png": "cumulative_stage_04.png"
+    },
+    {
+      "step_index": 5,
+      "label_vi": "Vẽ đuôi cong của mèo.",
+      "new_path_ids": [
+        "guide_stroke_15"
+      ],
+      "cumulative_path_ids": [
+        "guide_stroke_05",
+        "guide_stroke_06",
+        "guide_stroke_01",
+        "guide_stroke_02",
+        "guide_stroke_03",
+        "guide_stroke_04",
+        "guide_stroke_07",
+        "guide_stroke_08",
+        "guide_stroke_09",
+        "guide_stroke_10",
+        "guide_stroke_11",
+        "guide_stroke_12",
+        "guide_stroke_13",
+        "guide_stroke_14",
+        "guide_stroke_15"
+      ],
+      "svg": "cumulative_stage_05.svg",
+      "png": "cumulative_stage_05.png"
+    },
+    {
+      "step_index": 6,
+      "label_vi": "Vẽ hai mắt, mũi và miệng của mèo.",
+      "new_path_ids": [
+        "guide_stroke_16",
+        "guide_stroke_17"
+      ],
+      "cumulative_path_ids": [
+        "guide_stroke_05",
+        "guide_stroke_06",
+        "guide_stroke_01",
+        "guide_stroke_02",
+        "guide_stroke_03",
+        "guide_stroke_04",
+        "guide_stroke_07",
+        "guide_stroke_08",
+        "guide_stroke_09",
+        "guide_stroke_10",
+        "guide_stroke_11",
+        "guide_stroke_12",
+        "guide_stroke_13",
+        "guide_stroke_14",
+        "guide_stroke_15",
+        "guide_stroke_16",
+        "guide_stroke_17"
+      ],
+      "svg": "cumulative_stage_06.svg",
+      "png": "cumulative_stage_06.png"
+    },
+    {
+      "step_index": 7,
+      "label_vi": "Thêm các chi tiết nhỏ như lông và râu cho mèo.",
+      "new_path_ids": [
+        "guide_stroke_18",
+        "guide_stroke_19",
+        "guide_stroke_20"
+      ],
+      "cumulative_path_ids": [
+        "guide_stroke_05",
+        "guide_stroke_06",
+        "guide_stroke_01",
+        "guide_stroke_02",
+        "guide_stroke_03",
+        "guide_stroke_04",
+        "guide_stroke_07",
+        "guide_stroke_08",
+        "guide_stroke_09",
+        "guide_stroke_10",
+        "guide_stroke_11",
+        "guide_stroke_12",
+        "guide_stroke_13",
+        "guide_stroke_14",
+        "guide_stroke_15",
+        "guide_stroke_16",
+        "guide_stroke_17",
+        "guide_stroke_18",
+        "guide_stroke_19",
+        "guide_stroke_20"
+      ],
+      "svg": "cumulative_stage_07.svg",
+      "png": "cumulative_stage_07.png"
+    }
+  ],
+  "source_color_png": "source_color_reference.png",
+  "render_method": "Windows WPF; API path d preserved; prior strokes gray; new strokes blue"
+}

@@ -1,0 +1,14 @@
+{
+  "app_name": "sketch2life-srs23-language-audio-dev",
+  "environment": "dev",
+  "deployments": [
+    {"version": 1, "duration_seconds": 14.452, "inference_calls_after_deploy": 1},
+    {"version": 2, "duration_seconds": 14.508, "inference_calls_after_deploy": 1},
+    {"version": 3, "duration_seconds": 14.874, "inference_calls_after_deploy": 1}
+  ],
+  "health_probes": 3,
+  "health_gpu_allocated": false,
+  "health_inference_executed": false,
+  "catalog_volume_mutated": false,
+  "final_app_state": "stopped"
+}

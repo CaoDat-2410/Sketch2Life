@@ -1,0 +1,51 @@
+{
+  "app_deployed": true,
+  "app_name": "sketch2life-srs23-language-audio-dev",
+  "deployment_seconds": 13.974,
+  "environment": "dev",
+  "evidence_id": "EV-063-111",
+  "health": {
+    "gpu_allocated": false,
+    "inference_executed": false,
+    "model_id": "Qwen/Qwen3.5-9B",
+    "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+    "model_status": "ready",
+    "status": "ok",
+    "svg_catalog_status": "ready",
+    "svg_catalog_volume": "sketch2life-openclipart-catalog-dev",
+    "svg_catalog_volume_version": 2
+  },
+  "local_checks": {
+    "focused_contract_tests": "16 passed, 2 skipped (LMFE package absent locally; deployed worker exercised it)",
+    "python_compile": "passed",
+    "ruff_changed_sim102_rule": "passed",
+    "ruff_contract_test_file": "passed"
+  },
+  "no_child_data_used": true,
+  "no_commit_or_push": true,
+  "no_video_requested": true,
+  "parent_api_called": false,
+  "parent_ui_or_android_tested": false,
+  "plan": "Rev87.16",
+  "retry_performed": false,
+  "teacher_presentation_tested": false,
+  "topic": "con mèo",
+  "worker": {
+    "elapsed_seconds": 86.088,
+    "failure": null,
+    "modal_call_id": "fc-01M7DW7AGGFFQRV4QPG70ZVEH5",
+    "model_id": "Qwen/Qwen3.5-9B",
+    "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+    "output_sha256": "832f70a31cd2e261bb0f36d9da11f11964dbdb256163456feef2af66cdd826ba",
+    "path_count": 11,
+    "quality_passed": true,
+    "source_asset_id": "openclipart-friendly-kitten-icon",
+    "source_license": "CC0-1.0",
+    "stage_count": 6,
+    "started_at_utc": "2026-11-14T20:33:08.364092+00:00",
+    "status": "PASS",
+    "finished_at_utc": "2026-11-14T20:34:34.452142+00:00",
+    "workload": "svg.topic-stroke-guide.generate"
+  },
+  "workload_default_enabled": false
+}

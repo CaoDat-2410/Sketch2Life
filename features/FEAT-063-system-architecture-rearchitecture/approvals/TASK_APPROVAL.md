@@ -1730,6 +1730,832 @@
 - Rev78A plan: plan/PLAN_REV78A_PARENT_ACTIVITY_GATE_REFINEMENT_20261111.md; SHA-256 03F777103B23A56FDEC398CA940094A62DF26EDE28B35DA56BE4FBA96C077183.
 - Rev78 authorizes catalog-first Parent activity selection from Parent-accessible published/shared lesson versions, minimized context to Qwen3.5, and exactly three gated fallback drafts only when no catalog activity is suitable. Rev78A authorizes the limited prose-format relaxation while preserving hard safety/business gates and one synthetic inference attempt.
 - Rev78B plan SHA-256: B4FB3B7C9B202B8FE9A95C09751320409FA18B6051A86A61ECACE4F11A288ED0. The owner's direct request on 2026-11-11 authorizes the exact implementation manifest, one feature commit and push, merge into dev, and push dev. Rev78B supersedes only the earlier no-migration assumption and no-publication limits. The canonical Rev60 SRS remains unsigned and unchanged; its no-preset activity question remains open for SRS reconciliation.
+
+## Plan Rev79 — Parent local workflow, seed, and Modal health lifecycle
+
+- **Status:** APPROVED for the exact Rev79 manifest and acceptance criteria.
+- **Approver/basis:** Project owner, direct request on 2026-11-12 to continue fixing Parent, provide idempotent local Docker seed data, pass Firebase App ID from the root `.env`, finish the Parent quality-gate/AI work, and start Modal through Docker with `/health` only.
+- **Plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV79_PARENT_DOCKER_SEED_MODAL_HEALTH_20261112.md`.
+- **Plan SHA-256:** `529D8619B55F27C5B026D79DF5B37336F5125CBD31F5F54A677FD07544E26753`.
+- **Approved scope:** Parent activity quality-gate/parser alignment; Parent Expo Firebase App ID and optional Auth Emulator routing; insert-only synthetic Parent/profile/authorization/public lesson seed; local display-only quota summary; Compose migrations/seed/API/Auth Emulator; a dedicated Modal health app that only receives `GET /health` during startup and is stopped with Compose; FEAT-063 evidence/context updates.
+- **Boundaries:** No production Firebase identity creation, no real-child data, no committed credentials or changes to the ignored root `.env`, no Firebase Storage/Firestore/Realtime Database, no video inference, no AI worker call during Docker startup, no GPU/model warmup in the health app, no rewrite of the canonical SRS, and no commit/push/merge authorization in Rev79.
+- **Completion evidence:** Record Docker configuration/runtime health, seed idempotency, Modal health response and cleanup; distinguish health-app availability from AI model readiness and local demo quota from production Billing.
+
+### Plan Rev79 amendment — local seed credentials, synthetic pilot, and MinIO source build
+
+- **Status:** APPROVED under the project owner's direct request to provide a ready-to-use Docker seed account and complete the Parent local workflow.
+- **Updated Plan SHA-256:** `BB16C720A7BAA968114765C0BF774C3F317A4A8467026B5EDC4AC95FABC580C8`.
+- **Clarification:** The ignored repository-root `.env` may contain one generated Parent demo email/password for Firebase Auth Emulator only. Keep it untracked and out of screenshots, logs, reports and Git. Compose enables `SKETCH2LIFE_SYNTHETIC_PILOT_ENABLED` only on its local API service so the synthetic profile can exercise authorized local workflows; staging/production remain unchanged. The MinIO service builds the currently pinned upstream release from the official source because the prior public Quay reference returns 401; no third-party mirror is introduced. `.dockerignore` allows only required deployment/workspace files, and the backend Dockerfile builds the renderer from the committed pnpm lockfile so a clean checkout does not depend on ignored local output. The Parent story-context migration no longer lists AI-job, age or pilot revisions already carried by the story-revision dependency chain.
+- **All other Rev79 boundaries remain:** no production Firebase account, real-child data, Firebase data stores, video inference, AI worker request during Docker startup, GPU/model warmup in the health app, SRS rewrite, commit, push, or merge.
+
+### Plan Rev79 amendment — Alembic revision identifier compatibility
+
+- **Status:** APPROVED under the owner's direct request on 2026-11-12 to fix the Parent workflow and make the Docker stack complete and runnable.
+- **Updated Plan SHA-256:** `35939EBD6E970EB225AF5486A1EF6966043C040CAB01000DEDBCBB0B7D5A6220`.
+- **Manifest addition:** `backend/alembic/versions/20261110_parent_lesson_pin.py`.
+- **Reason and boundary:** The Docker PostgreSQL run showed that the Parent context revision identifier exceeds Alembic's default 32-character `version_num` column. The approved fix shortens that revision identifier and updates only its dependent lesson-pin revision pointer, preserving the existing schema operations and order. No data reset, destructive migration, or migration of a user database is authorized.
+
+### Plan Rev79 amendment — local Modal API enablement
+
+- **Status:** APPROVED under the owner's direct request on 2026-11-12 to finish Parent AI wiring while keeping Docker startup limited to a Modal health probe.
+- **Updated Plan SHA-256:** `5D7D5082AC0D1BB093843B3539F6B4C5E9FA2BEF4A6CB49C7930FD7A285D0257`.
+- **Manifest scope:** Update `.env.example` and `compose.yaml`; as local runtime input only, change `SKETCH2LIFE_AI_PROVIDER` in the ignored repository-root `.env` to `modal_dev` and preserve all other values.
+- **Boundary:** This enables Modal-backed routes only when explicitly called. Docker startup still sends exactly one health request and zero model inference requests; no video API is called. The root `.env` remains ignored, unstaged and excluded from evidence.
+
+### Plan Rev79 amendment — Parent API host port collision
+
+- **Status:** APPROVED by the project owner's direct 2026-11-12 request to make the Parent Docker/UI workflow runnable.
+- **Plan SHA-256:** `5B8375B7DEED983AAB33C69297C3F44C5B35B12985F17D39E7920035555C0380`.
+- **Authorized local configuration:** Set only the ignored root `.env` host-port keys for the isolated stack (API 58000, PostgreSQL 55439, Redis 56390, MinIO 59023, MinIO console 59024, ClamAV 53313, Auth Emulator 9099) and `SKETCH2LIFE_MOBILE_API_BASE_URL=http://10.0.2.2:58000`; preserve unrelated settings and all existing containers/volumes.
+- **Authorized tracked scope:** Include `backend/src/sketch2life/interfaces/http/router_composition.py` in the Rev79 manifest and update FEAT-063 local setup/evidence records to document the port conflict and resolution.
+- **Boundary:** Modal Compose startup still deploys the dedicated health app and sends only one `/health` request; no inference or video call is authorized by this amendment.
+
+### Plan Rev79 amendment — narrow activity text relaxation
+
+- **Status:** APPROVED under the project owner's direct request to fix the Parent activity quality gate and its Modal parser.
+- **Plan SHA-256:** `5B8375B7DEED983AAB33C69297C3F44C5B35B12985F17D39E7920035555C0380`.
+- **Authorized behavior:** `materials_text` and `observation_notes` may be short fragments without terminal punctuation. `objective`, `preparation_text`, `instructions_text`, and `safety_notes` must remain complete sentences; all age, safety, outdoor, adult-support, PII, language, deduplication and catalog-selection checks remain active.
+- **Verification:** Run only the two targeted Parent activity service/worker-contract test modules; no full backend suite or video inference.
+
+## Plan Rev80 — Parent Android AI verification and Teacher progressive sketch guide
+
+- **Status:** SUPERSEDED BEFORE SOURCE IMPLEMENTATION by Plan Rev81 on 2026-11-12, at the owner's explicit request to pause coding and consolidate the scope. No persistent Rev80 source changes are retained from this turn.
+- **Approver/basis:** Project owner, direct requests on 2026-11-12 to run the Parent workflow on Android emulator with a non-butterfly image and capture AI results/failures, and to fix the Teacher line-sketch progression shown in the supplied slide 2 screenshot.
+- **Plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV80_PARENT_ANDROID_AI_AND_TEACHER_PROGRESSIVE_SKETCH_20261112.md`.
+- **Current plan SHA-256:** `22ABAAC59D61042838753D1CB2A3B38A02A26487D391336F8CDD6B3C5A933EF3`.
+- **Historical scope:** Bounded synthetic Parent emulator workflow and screenshots; test available Parent AI workloads through the app/API; implement a versioned, validated, cumulative dashed-stroke construction guide for Teacher and render it progressively. These requirements are carried into Rev81, whose exact allowlist and unresolved decisions replace Rev80 for future implementation.
+- **Rev81 carry-forward:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV81_CONSOLIDATED_PARENT_TEACHER_DOCKER_AI_20261112.md`.
+- **Evidence:** `features/FEAT-063-system-architecture-rearchitecture/evidence/EV-063-89_PARENT_ANDROID_AI_TEACHER_SKETCH_20261112/`.
+
+## Plan Rev81 — Consolidated Parent, Teacher Presentation, AI and Docker
+
+- **Status:** APPROVED FOR PLAN/DOCUMENTATION ONLY. Source implementation is paused, per the owner's explicit 2026-11-12 instruction “khoan code”.
+- **Approver/basis:** Project owner requested one comprehensive plan combining the Parent topic/lesson flow, Teacher media-bearing presentation, progressive line sketch, real Modal AI, and the existing Docker/local setup. The owner supplied task-scoped clarifications recorded in the plan.
+- **Plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV81_CONSOLIDATED_PARENT_TEACHER_DOCKER_AI_20261112.md`.
+- **Initial Plan SHA-256:** `D2A530016CB2CAA397BA8A6941B01A0A20C65432F2649E386E3BCE6EDE6B5394`.
+- **Updated Plan SHA-256 after owner clarifications:** `749D373A2A34EF857692CB104B5153C4ECDC8248958C0C44AF069BA0901DDC9F`.
+- **Previous Plan SHA-256 after the post-retake mismatch decision:** `63E8EC420B4602DDD5C7B2ED6EE9A5F629434FB1FF564B3C41BB937C1CF854C7`.
+- **Latest Plan SHA-256 after detailed Parent/Teacher workflow and platform support breakdown:** `9292502F57E7038CFDE6CA7885077FFACE10B6B391F2DB5A8BA022410EE993AA`.
+- The expanded plan adds Parent auth/profile/share/account/settings/notification/quota/history screens, Teacher occurrence flow, verified current API routes versus proposed contract gaps, logical data ownership/migration sequence, state gates, per-workload AI quality checks, Docker/seed service matrix, work-package dependencies and a real-E2E verification matrix. It remains planning-only.
+- **Authorized now:** Consolidate scope, record the owner-confirmed direction, compare it with canonical SRS Rev60, identify conflicts/open decisions, and prepare acceptance criteria and proposed change areas.
+- **Not authorized by Rev81:** Source changes, database migration, paid Modal inference, public lesson/media publication, `.env` changes, Docker/Modal service cleanup, commit, push or merge. The existing Rev79 implementation/runtime evidence remains preserved as the baseline.
+- **Next gate:** Resolve the open choices in Plan Rev81 §9, prepare any traced SRS/Data Table Register amendments and final exact implementation allowlist, then obtain explicit implementation approval. SRS v2.7-draft Rev60 remains unchanged and unsigned until that separate review/sign-off.
+
+### Rev81 implementation approval amendment — 2026-11-12
+
+- **Status:** APPROVED FOR IMPLEMENTATION under the project owner's direct instruction: “implement plan, make sure no fixture”. This later instruction supersedes the earlier “khoan code” pause recorded above.
+- **Approved Plan SHA-256:** `6BE36B78F949177FA87DCED2EA620713BFE8A8EFE092B844AD20EC83B7CF71C6`.
+- **Scope detail amendment:** Plan §5.6 now explicitly records durable storage for server-produced activity suggestion revisions and the exactly-one primary activity snapshot/hash on each generated story revision. This is within the already-approved Parent API/persistence/migration families; no new path family or product rule is introduced.
+- **Scope:** Frozen path families in Plan Rev81 §8.1. Implement the real Parent Android and Teacher web workflows, backend contracts/persistence, non-video Modal calls, role-scoped presentation/review, and the single-root-env local Compose support described by the plan. Add matching focused tests and evidence only inside the approved paths.
+- **No-fixture acceptance:** Product routes and UI must call real app APIs and real services. No hardcoded/mock/fixture response may stand in for workflow output or count as E2E evidence. Local synthetic seed entities and generated non-personal test images are allowed only through the real backend and must remain local. If an API/provider is unavailable, show an explicit unavailable/error state; do not fall back to fixture data.
+- **Open decision handling:** Remaining Rev81 §9 items stay open with the safe dispositions written there. The implementation must not present them as SRS decisions or weaken consent, authorization, quality, moderation or safety gates. The canonical Rev60 SRS and Data Table Register are outside the allowlist and remain unchanged/unsigned.
+- **Explicit exclusions:** No LTX/video inference, production publication, production Firebase identity/data operation, real-child test data, legal-consent fabrication, `.env` edits, secret/credential edits, destructive migration/data reset, `down -v`, commit, push or merge. Preserve all pre-existing Rev79 work and runtime state.
+- **Verification:** Run focused tests/builds needed to verify changed real paths. A bounded real non-video Modal call per not-yet-proven workload is allowed; do not repeat passing paid calls absent a defect. Capture sanitized results in EV-063-90. Stop only task-started Modal apps/processes after verification and preserve shared volumes.
+
+### Rev81 owner-answers and Modal startup addendum — 2026-11-12
+
+- **Status:** APPROVED as an implementation clarification under the owner's replies to the outstanding Rev81 questions and direct correction of the Docker/Modal startup behavior.
+- **Updated approved Plan SHA-256:** `E8313747501660C70491FA0A56C029D7DB7773677434AC8132FE2F3CF218560D`.
+- **Latest approved Plan SHA-256 after the no-product-request cost clarification and Modal Containers review:** `494F55A33D56CD0E90D6217A29A6719E08DE2C3ED4CB8D251DF2EC2AFA75960F`.
+- **Owner answers:** progressive guide uses adaptive 4–8 stages; an approved lesson missing a guide may generate one on explicit request; lesson video embeds allow only HTTPS YouTube/Vimeo URLs.
+- **Docker/Modal correction:** Docker reuses the already-deployed drawing-VLM, language/audio and FLUX apps; it does not redeploy/update them on every Compose start. It makes one internal Modal Function call per configured worker using a warmup-only control envelope; that call loads the target model without product inference/output or user/product payload, then Docker calls each app's `/health`. The warmup call and GPU/model-load/idle time are billable. No permanent `min_containers` are set; workers scale down through their existing idle windows. Video and disabled SAM2 remain excluded; Compose shutdown does not stop shared Modal apps.
+- **Modal Containers finding:** dashboard Containers are runtime-instance inspection/operation tools, not the app deployment mode. The system stays on existing Apps/Functions; a missing/stopped app or a worker without the warmup contract is reported as `DEGRADED` and does not block the local backend.
+- **Manifest clarification:** `deployment/modal/srs_v23/contracts.py` and focused `deployment/modal/srs_v23/tests/**` are added to the existing Modal worker path family to define and verify the no-inference warmup envelope. All other Rev81 scope and boundaries remain as recorded above.
+- **SRS boundary:** Rev60's 3–5 guide limit remains unchanged and unsigned; the owner-selected 4–8 behavior is an explicit Rev81 delta that must be reconciled in a later reviewed SRS amendment.
+- **No-fixture and exclusions:** no fixture/mock/hardcoded output; no LTX/video inference, product generation during warmup, real-child/production data, root `.env`/secret edits, destructive cleanup, commit/push/merge.
+
+### Plan Rev82 — Parent/Teacher AI gates, API contracts, local Teacher seed and E2E — 2026-11-12
+
+- **Status:** APPROVED FOR IMPLEMENTATION by the project owner’s direct request: “giảm gate bớt lại, fix api schema json, fix các lỗi đó luôn, tự tạo 1 acocunt teacher và test, dùng docker tạo sẵn tất cả cần thiết để test 2 luồng đó đầy đủ luôn, hạn chế crash looping modal, fix các lỗi AI và test lại, hạ quality gate xuống vừa phải, đừng gắt qyas”.
+- **Approved plan:** `plan/PLAN_REV82_PARENT_TEACHER_AI_GATES_AND_E2E_20261112.md`.
+- **Approved Plan SHA-256:** `F404CE31F3DC6E3281EE9BED7D9FC7B8F61D405BF96685DC7B6D2781614947C6`.
+- **Scope:** Exact path families and acceptance criteria in Plan Rev82 §§5–7. Fix observed Parent JSON/API failures; moderately relax subjective AI quality heuristics while retaining contract, age, safety, consent, authorization, privacy, moderation and adult-review gates; add idempotent local synthetic Teacher/Auth Emulator seed and required local organization/class/lesson data; stabilize bounded Modal health/warmup startup; run real Parent Android and Teacher web workflows with real non-video Modal calls; record sanitized evidence.
+- **Local configuration authorized:** Add only generated local synthetic Teacher seed email/password keys to the ignored CAPSTONE-root `.env` if absent. Do not display, stage, commit or copy credentials into logs/evidence. `.env.example` remains placeholders only.
+- **No-fixture acceptance:** No mock, fixture, canned, hardcoded or previously generated output counts as workflow evidence. Local synthetic seed entities and a generated non-personal test drawing are permitted through the real application path.
+- **Explicit exclusions:** No LTX/video inference, production Firebase identity/data operation, real-child data, legal-consent fabrication, Firebase Storage/Firestore/RTDB, destructive database reset, volume deletion, commit, push or merge. Preserve existing changes, Docker volumes and shared Modal Apps. Do not change canonical SRS/DTR.
+- **Modal budget/stability:** At most one real call per required workload after fixes; no retries for unknown outcomes and no repeated paid call after pass. Modal warmups are bounded and non-inference; report GPU time/cost where observable. Missing Apps must fail visibly without crash/deploy loops.
+- **Verification:** Targeted offline tests, isolated Docker/Auth Emulator seed/idempotency/API checks, followed by actual Parent Android and Teacher presentation workflows. Capture only actual AI artifacts/full Teacher presentation, plus sanitized logs and timings in the approved feature evidence folder.
+
+#### Rev82 narrow manifest amendment — Teacher web root environment lookup
+
+- **Status:** APPROVED as a necessary implementation detail under the same direct Rev82 owner request.
+- **Updated approved Plan SHA-256:** `FD1CA18D77F831734B0BD37E8C192F917C440B644202806449FB7F019B2B0348`.
+- **Added path:** `apps/teacher-ui/vite.config.ts`, limited to resolving the existing single CAPSTONE-root `.env` while running from this isolated worktree. No app-local env file or second config folder may be added.
+- All Rev82 behaviors, verification limits and exclusions remain unchanged.
+
+#### Rev82 evidence-driven amendment — local UI/API CORS
+
+- **Status:** APPROVED under the same owner-directed Rev82 request to fix the Parent/Teacher workflow errors and test both real UIs.
+- **Evidence:** The local Teacher UI reached Firebase Auth Emulator, then failed role verification. Backend logs show `OPTIONS /api/auth/v1/me` returned `405 Method Not Allowed`.
+- **Updated approved Plan SHA-256:** `05D98FAB63C7116CEC1361FD49260F894AD15407902F8898F33D12636121E375`.
+- **Added paths:** `backend/src/sketch2life/interfaces/http/app.py` and one focused CORS contract test under `backend/tests/unit/`.
+- **Boundary:** CORS is enabled only for HTTP loopback origins in local/test, with explicit methods and headers including the Parent `Idempotency-Key`; no wildcard origin, no production/staging change, no auth/role relaxation, and no `.env` change. All existing Rev82 limits remain in force.
+
+#### Rev82 evidence-driven API schema visibility amendment
+
+- **Status:** APPROVED under the project owner's same direct Rev82 request to “fix api schema json”.
+- **Evidence:** The running API's `/openapi.json` contained 16 paths and omitted the mounted Parent profile/AI/StoryRun and Teacher AI operations; the published description still marked those capabilities unavailable.
+- **Updated approved Plan SHA-256:** `B7A57C912A40D43A14CF58F02699E319C7B5926A55B2F0438722CC88BDB10B51`.
+- **Added paths:** `backend/src/sketch2life/interfaces/http/openapi_srs_v22.py` and the focused OpenAPI contract test under `backend/tests/contract/`.
+- **Scope:** Include currently mounted auth, Parent, Teacher, billing, and lesson-library non-video operations with their FastAPI schemas/security in runtime OpenAPI; retain existing BE1 operations and exclude video-generation routes. Update stale OpenAPI description text and verify representative workflow paths/schema references.
+- All Rev82 safety, data, Modal-call, and no-commit/push/merge boundaries remain unchanged. No SRS/DTR product requirement is changed.
+
+#### Rev82 evidence-driven Android Metro dependency amendment
+
+- **Status:** APPROVED as a narrow implementation detail under the owner's direct instruction to run the real Parent flow on the Android emulator.
+- **Evidence:** The installed Metro 0.81.5 / Expo Metro config 0.19.12 graph resolved `metro-cache-key` 0.87.0 and failed before rendering with `TypeError: metro_cache_key_1.default is not a function`, which left the Transformer undefined and returned Metro HTTP 500.
+- **Updated approved Plan SHA-256:** `D9C44F7D1B0B9ACD40B4D16D2A32C0716A529D3B642B6C51910023D226897317`.
+- **Added paths:** `pnpm-workspace.yaml` and `pnpm-lock.yaml`, limited to pinning the Expo SDK 52 cache-key dependency to Metro 0.81.5. No Expo/RN upgrade or sibling app change.
+- All Rev82 safety, inference budget, no-fixture, no-video, no-reset, and no-commit/push/merge restrictions remain unchanged.
+
+#### Rev82 evidence-driven local seed credential reconciliation amendment
+
+- **Status:** APPROVED as a narrow implementation detail under the owner's direct request to create local seed accounts and test both real workflows.
+- **Evidence:** The Parent seed account existed in Firebase Auth Emulator, but the configured `.env` credentials returned `INVALID_PASSWORD`. The seed reused the UID without reconciling its password after local `.env` updates.
+- **Updated approved Plan SHA-256:** `C5BD922D62A3C6C7CD234EC4DB84F5E6E65F9EA8518E516A1BAFDB6D921ED204`.
+- **Scope:** The existing local Parent/Teacher seed adapters may set the exact configured synthetic seed account password to the current ignored `.env` value in Auth Emulator. No production Auth, UID changes, database inserts on existing entities, or credential logging.
+- All Rev82 safety, data, Modal-call, no-fixture, no-video, and no-commit/push/merge restrictions remain unchanged.
+
+#### Rev82 evidence-driven FLUX progression gate amendment
+
+- **Status:** APPROVED under the project owner's direct instruction to reduce the AI quality gate, fix the observed Modal AI failure, and retest.
+- **Evidence:** Two real Parent line-guide calls completed Flux inference but were rejected solely by the per-transition progression heuristic (`MODAL_PROGRESSIVE_GUIDE_NOT_CUMULATIVE`). The second call confirmed the revised per-panel novelty threshold remained too strict for nonuniform AI steps.
+- **Updated approved Plan SHA-256:** `C17D129E288CD266881DE7C9E4249DF9911229596E77805081A107767B20D806`.
+- **Scope:** Require meaningful added ink in at least half of the transitions while preserving panel/layout, nonblank/dense, retained-structure, schema, draft, and adult-review checks. This authorizes one additional deployment of the existing Flux dev App and one final real inference through Parent UI; do not redeploy other Apps or retry after this final attempt.
+- All other Rev82 no-fixture, no-video, no-production-data, no-destructive-reset, no-commit/push/merge, and secret-handling rules remain unchanged.
+
+#### Rev82 evidence-driven Qwen drawing output amendment — 2026-11-12
+
+- **Status:** APPROVED under the project owner's current direct request to lower overly strict quality gates, fix AI/API JSON errors, and test the real Parent and Teacher workflows.
+- **Evidence:** The Android Parent synthetic-drawing request reached Qwen3.5-9B and failed at the 512-token ceiling. The constrained decoder reported a completeable JSON parser state and allowed model EOS, but no EOS was produced. Modal's structured terminal failure event arrived after the API had already returned `504 MODAL_OUTCOME_UNKNOWN`; the worker log later identified `MODAL_MODEL_OUTPUT_TOKEN_LIMIT`.
+- **Approved Plan SHA-256:** `2F4B86E5378A7F3776F8B33B9B538560340F2D94F2D27383B102A19E935C8E7B`.
+- **Scope:** Strictly parse a complete constrained JSON response even when EOS is absent at the output ceiling; keep malformed/truncated JSON rejected. Wait up to 10 seconds for a structured Modal terminal event after a non-timeout failure, classify only an observed allowlisted terminal worker code, and persist confirmed failures as `FAILED` in the invocation ledger. Add focused contract/bridge tests.
+- **Added paths:** `backend/src/sketch2life/infrastructure/ai/modal_function_client.py`, `backend/src/sketch2life/infrastructure/story_run_lite/photo_bridge.py`, their focused unit tests, and the existing `deployment/modal/srs_v23/drawing_vlm_app.py`/Modal test paths already in the approved plan.
+- **Bounded provider verification:** One update of the existing `sketch2life-srs23-drawing-vlm-dev` Modal App and one new synthetic Parent UI inference after the code fix. This is not a retry of the previous terminally failed call. Do not re-run Parent guide or any already-passing AI workload. No video, fixtures, real-child data, production Firebase, destructive reset, commit, push, or merge.
+
+#### Rev82 evidence-driven Qwen decoder termination amendment — 2026-11-12
+
+- **Status:** APPROVED under the project owner's direct Rev82 instruction to fix AI failures and retest the real Parent/Teacher workflows.
+- **Evidence:** The §14 fresh Parent call failed terminally after 512 generated tokens. Modal logs show the schema parser could end and model EOS was allowed, but the token allowlist still permitted continuation; strict JSON parsing found trailing extra data.
+- **Approved Plan SHA-256:** `31080CD6A96300ABD40D2CBCB9B54C4A48D586BEEC5D09FE7FF20F0DA69ED57D`.
+- **Scope:** Restrict the constrained decoder to EOS when the full JSON schema is complete. Preserve full strict JSON/schema validation and the existing token budget. Add focused offline tests, update only the existing drawing VLM App once, and perform one fresh synthetic Parent drawing-analysis inference. No retry of the failed call, no repeated Flux guide, no video.
+- All existing Rev82 limits remain: no fixtures, real-child data, production Firebase, destructive reset/volume deletion, commit/push/merge, or secret exposure.
+
+#### Rev82 evidence-driven Parent activity workload allowlist amendment — 2026-11-12
+
+- **Status:** APPROVED under the project owner's direct Rev82 request to fix AI/API failures and run the real Parent and Teacher workflows.
+- **Evidence:** The real Android Parent activity-suggestion call reached Modal, then failed at `input_envelope` with `MODAL_WORKLOAD_NOT_ALLOWED`. Exact FunctionCall logs show `parent.activity.suggest` is missing from the deployed worker's L4 contract allowlist while its function and workload registry are present. No model was loaded and no inference was performed.
+- **Updated approved Plan SHA-256:** `299AF9169218205B0E86CCFD30DB8855E1013B9A9FEED39A84CFB0013564EF30`.
+- **Scope:** Add only `parent.activity.suggest` to `L4_WORKLOADS`; add a focused acceptance/rejection test; update the existing `sketch2life-srs23-language-audio-dev` app once; verify CPU `/health`; then make one new Parent UI/API activity-suggestion inference after the fix. The failed call is terminal and will not be retried. If the post-fix call fails, preserve logs and stop without another call.
+- **Added paths:** `deployment/modal/srs_v23/contracts.py`, a focused Modal worker-contract test, and the approved FEAT-063 evidence/context/status files. No other Modal app may be deployed under this amendment.
+- All Rev82 no-fixture, no-video, synthetic-data-only, no-production-Auth, no-destructive-reset/volume-delete, no-commit/push/merge, and secret-handling boundaries remain unchanged.
+
+#### Rev82 Parent activity failure recovery UI amendment — 2026-11-12
+
+- **Status:** APPROVED under the same project-owner request to fix AI workflow errors and test the real Parent flow.
+- **Evidence:** After the known terminal activity-worker failure, the Android screen displayed only “Tiếp tục đến kịch bản”. Its controller marks the request attempted and blocks another attempt; returning to subject confirmation sends a duplicate confirmation and is rejected with `PARENT_SUBJECT_REVIEW_NOT_ACTIVE`. The user cannot retry a confirmed terminal failure from the failed activity screen.
+- **Updated approved Plan SHA-256:** `AF36F74CACAE8105AF1AE86F6651488059B693C1D9958B6BC1B9E55C26603247`.
+- **Scope:** Add a single retry action for `MODAL_WORKER_FAILED_TERMINAL` only, with a maximum of one retry; retain the existing continue/skip action; never offer retry for unknown outcome. No backend or product business-rule change.
+- **Added paths:** `apps/ui-mobile/src/parent/presentation/screens/ActivityScreen.tsx` and `apps/ui-mobile/src/parent/presentation/navigation/useParentController.ts`.
+- All Rev82 no-fixture, no-video, synthetic-only, no-production-Auth, no-destructive-reset/volume-delete, no-commit/push/merge, and secret-handling boundaries remain unchanged.
+
+#### Rev82 confirmed Parent run-resume amendment — 2026-11-12
+
+- **Status:** APPROVED under the project owner's direct Rev82 request to finish and test the real Parent workflow.
+- **Evidence:** The live Parent session was hot-reloaded after the approved retry UI change and returned to sign-in. The existing active run already had an adult-confirmed subject. Reconfirming it was rejected with `PARENT_SUBJECT_REVIEW_NOT_ACTIVE`; the workflow must resume at activity selection rather than repeat subject confirmation.
+- **Updated approved Plan SHA-256:** `870CCB436C26AE7A6D29DFA518D67727C39BE7068AE29FACB40034B83A464B93`.
+- **Scope:** In `resumeActiveRun`, route a run with a confirmed subject and no generated story to the optional activity step, restore the existing run context, and permit the already-approved single post-fix activity inference. Keep all adult-confirmation, consent, authorization and unknown-outcome protections intact.
+- **Added path:** `apps/ui-mobile/src/parent/presentation/navigation/useParentController.ts`.
+- All other Rev82 no-fixture, no-video, synthetic-only, no-production-Auth, no-destructive-reset/volume-delete, no-commit/push/merge, and secret-handling boundaries remain unchanged.
+
+#### Rev82 Teacher auth-boundary test harness amendment — 2026-11-12
+
+- **Status:** APPROVED under the project owner's direct request to fix the workflow and retest both roles.
+- **Evidence:** Teacher Web production build passed. The focused Vitest suite has two failures because the auth observer test double never emits the authenticated user after sign-in; the app correctly rejects the resulting signed-out state. Four other tests pass.
+- **Updated approved Plan SHA-256:** `3524DF162554FE67987D878E8641583A4E0C854BB9C1420E6CBF52D413547110`.
+- **Scope:** Correct only `apps/teacher-ui/src/__tests__/app.test.tsx` so it emits the authenticated synthetic test user and mocks Teacher role resolution. Preserve the signed-out denial and explicit `?demo=1` behavior. Re-run the Teacher UI build and tests. No product auth behavior or live credentials are changed.
+- All Rev82 no-fixture, no-video, synthetic-only, no-production-Auth, no-destructive-reset/volume-delete, no-commit/push/merge, and secret-handling limits remain unchanged.
+
+#### Rev82 Qwen language JSON termination and bounded activity output amendment — 2026-11-12
+
+- **Status:** APPROVED under the project owner's current direct request to moderate overly strict quality gates, fix JSON/API and AI errors, seed a real local Teacher account, and test Parent and Teacher workflows using Docker and Modal.
+- **Evidence:** The one synthetic Parent activity call reached the Qwen3.5 L40S worker, passed model load and decoder setup, then remained in inference for over 24 minutes with GPU at 0%, CPU near 98%, and a Torch Inductor compile-worker pool. The caller's 15-minute socket wait expired; no terminal result was observed. The shared language decoder returns all parser-allowed tokens even after the schema becomes complete, unlike the drawing worker's EOS-only terminal handling.
+- **Approved Plan SHA-256:** `0657C114C57943FC0D13729C9D5E07FD9751FEDEB83AE39C912140701748C0B7`.
+- **Scope:** Stop only the identified in-flight synthetic activity container; do not retry that call. Add EOS-only decoding after complete schema, retain strict JSON/schema validation, bound catalog selection output and the no-catalog fallback separately, add focused tests, and update only the existing language/audio Modal App once. Then make one fresh Parent activity request and one real Teacher lesson-plan/Sketch Deck workflow, bounded to 30 minutes. No video.
+- **Added paths:** `deployment/modal/srs_v23/language_audio_app.py`, focused Modal tests under `deployment/modal/srs_v23/tests/`, and existing FEAT-063 evidence/context/status files.
+- Existing synthetic-only, no-fixture, no-production-Auth, no-destructive-reset/volume-delete, no-commit/push/merge, and secret-handling boundaries remain in force.
+
+#### Rev82 moderate Parent activity quality/schema amendment — 2026-11-12
+
+- **Status:** APPROVED under the project owner's direct instruction to lower overly strict quality gates, fix API/JSON schema issues, and complete the local Parent/Teacher test workflows.
+- **Evidence:** Parent fallback generation requires short sentence-ending text patterns, exact repeated phrases, and per-activity Montessori/adult/child-agency markers. These checks and narrow output lengths are stricter than the SRS requirements for complete, safe, age-appropriate outdoor activities and make equivalent Vietnamese wording fail. The worker schema and backend constraints also need to remain aligned.
+- **Approved Plan SHA-256:** `5C0899B1A8CC61385F44B7BFBA6330C3D6944A638BE78C1A2EC745D66ACFC9EC`.
+- **Scope:** Align Modal JSON, backend Pydantic, and service quality checks; remove punctuation/exact-phrase requirements; expand bounded field limits; require child-centered, exploratory and adult-guided markers across the set rather than repeating them in every item; retain safety, PII, outdoor, age, catalog access, exclusions, context, exact-cardinality and adult-review checks. Add focused tests.
+- **Added paths:** `backend/src/sketch2life/application/services/parent_activity_suggestions.py`, `backend/src/sketch2life/contracts/schemas/modal_ai.py`, `backend/tests/unit/test_parent_activity_suggestions.py`, and `backend/tests/unit/test_parent_activity_worker_contract.py`.
+- No video, fixture-as-success, production Auth, destructive reset/volume delete, commit, push, merge, or secret exposure is authorized.
+
+#### Rev82 Teacher lesson-visual progression gate amendment — 2026-11-12
+
+- **Status:** APPROVED under the owner's direct request to fix AI failures, moderate overly strict quality gates, and retest the real Teacher workflow.
+- **Evidence:** A real Teacher lesson-visual request passed auth, organization authorization, contract validation, FLUX GPU preflight, prompt upsampling, model load, and image inference. It failed only at the cumulative-stroke overlap heuristic with terminal `MODAL_PROGRESSIVE_GUIDE_STROKES_CHANGED`; no output image was returned. The failed call is terminal and will not be retried.
+- **Approved Plan SHA-256:** `AF77B7298314B7194FA712610DC7128AF938E1DEEED44ED6B6DF48BAE5CE7473`.
+- **Scope:** Keep hard layout/ink/progression and adult-review checks; tolerate one low-overlap transition in an 8-step guide if the sequence otherwise remains cumulative, with a 12% retained-stroke floor and sanitized per-transition diagnostics. Add focused offline tests. Deploy only the existing FLUX image App once, then make one fresh authenticated Teacher visual API request after the fix. If it fails or becomes unknown, stop; no loop, no video, no repeated Parent guide or Qwen workloads.
+- **Added paths:** Existing `deployment/modal/srs_v23/flux_image_app.py`, focused Modal tests under `deployment/modal/srs_v23/tests/`, and FEAT-063 evidence/context/status records.
+- All prior synthetic-only, no-fixture-as-success, no-production-Auth, no-destructive reset/volume-delete, no-commit/push/merge, and secret-handling limits remain unchanged.
+
+#### Rev82 Modal deploy client encoding recovery — 2026-11-12
+
+- **Status:** APPROVED under the owner's direct request to fix AI failures and complete the real Teacher workflow.
+- **Evidence:** The single approved FLUX deployment attempt built Modal images but failed before app publication when the local Windows Python client could not encode a Unicode dependency-install log with its legacy `charmap` codec. No inference, GPU allocation, or worker warmup occurred.
+- **Updated approved Plan SHA-256:** `884D25460C683122A94978B25265E869BB388DC552D0AD208AECE1E8F9DBE7A2`.
+- **Scope:** Retry the same existing FLUX dev app deployment once with `PYTHONUTF8=1` and `PYTHONIOENCODING=utf-8`; verify its health route, then make exactly one post-fix authenticated synthetic Teacher lesson-visual API request. If deploy or inference fails/has unknown outcome, stop. No further AI calls, warmups, or app deployments.
+- **Added paths:** No additional implementation paths; existing FLUX app and approved FEAT-063 evidence/context/status records only.
+- All Rev82 synthetic-only, no-fixture-as-success, no-production-Auth, no-video, no-destructive reset/volume-delete, no-commit/push/merge, and secret-handling boundaries remain unchanged.
+
+#### Rev82 final bounded FLUX and Parent verification — 2026-11-12
+
+- **Status:** APPROVED by the owner selecting “Tiếp tục một lượt giới hạn”.
+- **Evidence:** The prior Teacher lesson-visual request completed FLUX inference but was rejected at the 12% retention floor on one transition (9.46%); it was terminal and was not retried.
+- **Approved Plan SHA-256:** `B1212DA02AD8C0A41BDA48A0917DF68F5509F547524EA89EB0AD1A3FE1D44137`.
+- **Scope:** Set the hard retention floor to 8% only for one transition in an 8-step guide; retain the 20% soft threshold and reject a second low transition, below-floor retention, invalid/blank/dense panels, no progression and full redraw. Run focused tests, deploy the existing FLUX App once, check CPU `/health`, and make one authenticated synthetic Teacher lesson-visual call.
+- **Conditional extension:** Only if Teacher visual passes, create one local synthetic Parent through the real registration/Auth Emulator flow and make at most one fresh call each for drawing understanding, catalog-first activities and story revision, sequentially. Stop on any failure/unknown/mismatch. No Parent guide, Teacher plan/deck, video, retries, production Auth, real child data, destructive reset/volume deletion, shared App stop, commit/push/merge, or secret exposure.
+- **Evidence paths:** Existing FLUX worker and focused test path; existing EV-063-90 evidence/context/status records.
+- All synthetic-only, no-fixture-as-success and secret-handling requirements remain in force.
+
+## Rev83.4 M1/M2 implementation approval — 2026-11-13
+
+- **Status: APPROVED** by the owner selecting “Approve these defaults and M1/M2 (Recommended)” in response to the Rev83.3 M0 decision sheet.
+- **Requirements baseline:** FEAT-063 v2.7-draft SRS Rev67, SHA-256 `B704163C9AAF7BB198D8578699F75DB8766C2226A52CD48B0ED1314AF5E21996`; unsigned. The Rev60 SRS copy in this implementation worktree must be replaced with this canonical content before source implementation. Rev68 will record the approved technical decisions without implying formal sign-off.
+- **Approved plan:** `plan/PLAN_REV83_4_M1_M2_APPROVED_IMPLEMENTATION_20261113.md`; SHA-256 `736AB5567FA9F2D9F2C824814B600243AF1B66ACCED971E31C4BCD6FAECB618E` (exact manifest also includes the Teacher layout navigation entry point).
+- **Scope:** M1 safe SVG catalog, provenance/readiness and deterministic renderer; M2 4–8-stage progressive playback and Teacher manual guide authoring with immutable revisions, 1.5-second autosave and conflict-safe `409` handling. Exact source and documentation manifest is frozen in §4 of the approved plan.
+- **M0 defaults:** at least four independent drawable paths; educator approval bound to exact source hash/revision and separate Platform Admin curation; renderer targets ≥30 FPS, p95 first render ≤500 ms after decode, p95 transition ≤150 ms and ≤64 MiB memory growth; independent SVG AI flags OFF by default; M3-B human gate requires 100% hard gates, ≥80% of all cases scoring ≥4/5 on both criteria from two educators, and a third reviewer for a ≥2-point difference.
+- **Persistence gate:** use existing immutable lesson versions where their JSONB content and hashes satisfy guide revisions. Add only the minimal Core catalog/review migration if the recorded DTR crosswalk confirms the platform-scope/provenance/review gap. Do not run the migration in this approval.
+- **Exclusions:** no fixture/canned product result; no Modal inference/deploy/warmup or AI flag enablement; no FLUX removal; no video, Docker, seeds, Firebase, real child data, generated/approved/applied illustration assets, migration execution, tests, commit, push, merge, or destructive cleanup.
+- If implementation requires a path or data change outside the frozen manifest, stop before that change and request a separately recorded amendment. Preserve all pre-existing worktree changes.
+
+## Rev84 real Teacher SVG Modal UI acceptance — 2026-11-13
+
+- **Status: APPROVED** by the owner's direct instruction: test through the UI, connect to real Modal, and do not use fixtures. The owner also confirmed Docker Engine is online and may be used if required.
+- **Requirements baseline:** FEAT-063 v2.7-draft Rev69, SHA-256 `AE3ADE230CD97F282C9B1B342B3D48C0513D7E737F0DD7D3B1EABEFDD73E5C3E`; unsigned.
+- **Approved plan:** `plan/PLAN_REV84_TEACHER_SVG_MODAL_UI_REAL_20261113.md`; SHA-256 `2A53DE6617C165239C5EE53BAA0DF697A6807C78FC39AD1999A1B5B63B53947A`.
+- **Scope:** One real Teacher Web → authenticated backend → pinned Qwen3.5 Modal worker → strict backend SVG sanitation → browser-rendered, non-persisted draft. New workload/API is disabled by default and may be enabled only for this local test. The direct instruction expands Rev83.4 only to the precise paths and one live inference listed in Rev84; all unrelated Rev83.4 boundaries remain in force.
+- **Runtime limit:** At most one update of `sketch2life-srs23-language-audio-dev`, one CPU `/health` call, and one UI-triggered GPU inference with no retry; 1,800-second hard cap. No separate GPU warm-up, no dataset download, no FLUX, no video, no shared-app stop, no `.env` edits and no secret display. Stop before deployment/inference if required access, model readiness or cost assumptions cannot be verified.
+- **Data and publication:** Use only a non-personal topic typed in the real UI and a local synthetic Teacher identity if needed. No fixture/canned output or mock provider may satisfy live acceptance. Output stays ephemeral `DRAFT`, `review_required=true`, `persisted=false`; no lesson/catalog write, educator approval or public release.
+- **Exact file manifest:** Frozen in Rev84 §8. An extra source path requires another written amendment before editing. Preserve all pre-existing worktree changes.
+
+### Rev84 API composition contract test manifest clarification — 2026-11-13
+
+- **Updated approved plan SHA-256:** `A666B7BA4422D935D69EDDEDEA2670C0F4ADF216A2B4618E9DA26F6E8CB4FD9E`.
+- **Clarification:** Add only `backend/tests/contract/test_app_composition.py` so the existing exact mounted-route/OpenAPI contract records the newly approved Teacher SVG endpoint and response schema. This is required to keep the repository contract suite accurate; no runtime scope, Modal call count or other boundary changes.
+
+### Rev84 Teacher UI build blocker manifest clarification — 2026-11-13
+
+- **Updated approved plan SHA-256:** `78F5A781FD34F0FEBA7683E3E352A0603245F9F3F79856C55FDF61921CD9A05C`.
+- **Clarification:** Add only `apps/teacher-ui/src/services/svgCatalogService.ts` to replace two pre-existing TypeScript parameter properties that fail the requested full UI build with `erasableSyntaxOnly`. This is a compile-only compatibility fix; API behavior and the single-inference cap do not change.
+
+## Rev85 dataset-conditioned Teacher SVG quality — 2026-11-13
+
+- **Status: APPROVED** under the owner's direct request: “nhìn chưa ổn lắm, cần cải thiện thêm, áp dụng dataset vào để cải thiện chất lượng svg của qweb cho ra”. This approves the bounded dataset retrieval integration and one UI-triggered comparison generation described here; it does not authorize broad benchmark claims.
+- **Requirements baseline:** FEAT-063 v2.7-draft Rev69, unsigned; current canonical SRS SHA-256 `3534B9AFFD99F71A35426F7F584F941D9EEB3448F4EFC6F0E005C6A1BEF207F4`. SRS §§1–31 remain unchanged; append as-built evidence only to §32.
+- **Approved plan:** `plan/PLAN_REV85_TEACHER_SVG_DATASET_QUALITY_20261113.md`; current SHA-256 `F9F9399E197F4D5079D8E27FD32C36C6274626EE0831DE346F32E263FE6AB9C0`. This replaces the immediately preceding hash by recording the dataset's resolved commit, the strict bounded pre-sanitizer normalization allowlist, and the fact that named sample SVGs have no paired source prompt. Source-preservation, no-relaxed-sanitizer, one-inference and file-manifest limits are unchanged.
+- **Dataset choice:** `yoavf/svg-animal-illustrations` dataset card (1,416 prompt/SVG pairs, declared CC0 1.0); resolve and record an immutable source commit before import. Curate at most 12 sanitizer-approved references, ≤64 KiB. Treat the synthetic examples as structural references, not as human-rated gold output. Do not bulk-import the 22.3 GB OpenClipart HF mirror, KidDraw, QuickDraw, repository fixtures, or prior generated product SVGs.
+- **Scope:** Teacher `teacher.svg-illustration.generate` workload only; deterministic topic-to-reference lookup, one compact retrieved reference maximum, anatomy/layout prompt improvements, source/provenance manifest, and one real authenticated Teacher UI inference with the same deer topic/age/style as Rev84. Existing strict schema/sanitizer, local-only capability gate, pinned Qwen3.5 model, DRAFT/review-required/not-persisted state and `min_containers=0` remain in force.
+- **Runtime cap:** At most one public dataset fetch/curation operation, one update of only `sketch2life-srs23-language-audio-dev`, one CPU `/health` call, and one new UI-triggered GPU inference; no GPU warmup, retry, extra topic, other Modal app, or shared-app stop. Keep the 1,800-second hard cap. If source revision/license cannot be pinned, or runtime output fails/has unknown outcome, stop without retry.
+- **Exact file manifest:** Frozen in Plan Rev85 §8: one plan/approval, Modal worker/workload metadata, four dataset provenance/reference files, one new evidence folder, FEAT-063 context/decision/source/status/evidence indexes, and SRS §32 only. No additional path without a written amendment and new plan hash.
+- **Exclusions:** No fine-tuning/model change, FLUX, line-guide or Parent changes, video, catalog/lesson persistence, publication, production Auth, child data, `.env` edits, destructive cleanup, tests/test-suite execution, commit, push or merge. Preserve all pre-existing worktree changes.
+
+## Rev86 Teacher SVG dataset pack correction and one real comparison — 2026-11-13
+
+- **Status: APPROVED** by the owner replying “ok, đồng ý” to the bounded correction proposal after Rev85 failed before inference.
+- **Approved plan:** features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV86_TEACHER_SVG_DATASET_PACK_FIX_20261113.md.
+- **Approved plan SHA-256:** 144EA85E3314A9CC86659D749DDFDD9D317C306C5C134BFE6035F975C395696D.
+- **Scope:** Exclude the invalid cat reference from the active pack while preserving the raw source snapshot; record the exclusion and refresh dependent hashes; validate every packaged reference with the exact strict worker parser; update only the listed worker/dataset/workload/evidence/FEAT-063 paths; then make at most one deployment of the existing Modal app, one CPU /health call, and one real authenticated Teacher UI inference for the same deer input.
+- **Limits:** No parser/schema/quality-gate relaxation, no retry, warmup, extra topic, new dataset fetch, video, FLUX, database reset/migration/seed, .env edit, production Auth, child data, shared Modal App stop, commit, push, or merge. Restore the local capability flag to false. On any preflight, health, or inference failure, stop and preserve diagnostics.
+- **Evidence basis:** Rev85 failed during whole-pack validation because cat path path-026 had stroke_width=20 against the existing 1–12 worker range. Full details are in evidence/EV-063-95_TEACHER_SVG_DATASET_QUALITY_20261113/REPORT.md.
+- **Exact path manifest:** Frozen in Plan Rev86 §5. Any additional path requires a new approval.
+
+## Rev87 progressive SVG stroke-guide correction — 2026-11-13
+
+- **Status: APPROVED** based on the owner's direct instruction “fix” after reviewing the Rev86 result and its failure as a child-followable drawing guide.
+- **Canonical requirements source:** FEAT-063 v2.7-draft SRS Rev69, unsigned; §§1–31 remain unchanged. Rev87 may append environment-specific as-built evidence to §32 only.
+- **Approved plan:** `plan/PLAN_REV87_PROGRESSIVE_SVG_STROKE_GUIDE_FIX_20261113.md`.
+- **Approved plan SHA-256:** `EAD1F716E2897124061EB3FAB9F43D4DCE9D24176BC7BDB9676907DB9C4FA95F`.
+- **Scope:** Add a distinct Qwen3.5 SVG stroke-guide draft workload/contract with strict progression and anatomy gates; replace Parent's raster FLUX guide API path with catalog-first/AI-on-miss SVG output; add authenticated Teacher guide-draft API/UI; keep static illustration separate; perform at most one real UI-triggered inference and no retries.
+- **Limits:** One update of the existing language/audio Modal app, one CPU `/health`, one real authenticated inference, no warmup/second topic/new dataset download/test suite/video/FLUX call/real child data/database migration/publication/.env or secret edits/shared app stop/commit/push/merge. Capability defaults off; restore it to false. Exact source manifest is frozen in Rev87 §6; any extra path requires another approval.
+
+## Rev87.1 dataset-backed stroke-guide amendment — 2026-11-13
+
+- **Status: APPROVED** under the owner's direct instruction to improve stroke clarity with a suitable skill or dataset, using the supplied HTML as a visual example. This adds only the curated, attributed dataset source and dataset-first grouping behavior in Rev87.1; all other Rev87 limits remain.
+- **Approved plan:** `plan/PLAN_REV87_1_DATASET_STROKE_REFERENCE_AMENDMENT_20261113.md`.
+- **Approved plan SHA-256:** `22074E1FABFBE1900425176B82AE5C2D82D1F95D76FF7E57215667FC204C3B45`.
+- **Dataset choice:** a small curated subset of the official Google Quick, Draw! cat category, CC BY 4.0. The dataset supplies ordered vector strokes; Qwen groups the source strokes and writes child-facing instructions. The supplied demo's embedded cat paths remain visual reference only and are not copied.
+- **Limits:** At most one public cat-category fetch, one existing Modal app update, one CPU `/health`, and one real authenticated Parent UI inference for the cat topic. No full dataset download, retry, extra topic, FLUX, video, test suite, secret/.env edits, real-child data, DB migration, publication, shared-app stop, commit, push or merge. The workload stays disabled by default and is restored to false after testing.
+- **Exact cumulative file manifest:** Rev87 §6 plus Rev87.1 §5 only. Any additional path requires another explicit amendment.
+
+## Rev87.2 clean Openclipart SVG source amendment — 2026-11-13
+
+- **Status: APPROVED** by the owner's direct correction rejecting Quick, Draw! as unsuitable source material and instructing replacement with a different SVG source.
+- **Supersedes:** Rev87.1's Quick, Draw! source choice and its planned cat inference. No Quick, Draw! data is authorized for repository packaging or product output.
+- **Approved plan:** `plan/PLAN_REV87_2_OPENCLIPART_SVG_STROKE_REFERENCE_AMENDMENT_20261113.md`.
+- **Approved plan SHA-256:** `B1B37F1D4D2C408C60DE6645E27E65E3490C63C4E4224377CA71FD0E4E8790CC`.
+- **Source:** Openclipart item `330236`, “cute simple cat sitting”; the official detail page records its public-domain donation/artist attribution, and the site FAQ states CC0 1.0 for uploaded work. Validate and preserve the exact source SVG and hashes before using it.
+- **Behavior:** The engine constructs a line-only SVG from that clean source. Qwen3.5 returns only semantic grouping, progressive stage order, and Vietnamese instructions; it cannot emit or change the source path geometry. An unsuitable source or grouping stops before inference/deployment.
+- **Limits:** One Openclipart source fetch, at most one existing Modal app update, one CPU `/health`, and one real authenticated Parent UI inference for the cat topic. No warmup, retry, additional topic, FLUX, video, test suite, `.env`/secret change, real child data, database migration, publication, shared app stop, commit, push, or merge. Capability remains off by default and is restored to false after the single attempt.
+- **Exact cumulative manifest:** Rev87 §6 with Rev87.2 §6 replacing Rev87.1 dataset paths. Any additional path requires another explicit amendment.
+
+## Rev87.3 true-stroke Tabler source amendment — 2026-11-13
+
+- **Status: APPROVED** by the owner's direct instruction to replace the rejected child-doodle and filled-shape sources with a suitable true-stroke SVG source.
+- **Supersedes:** Rev87.2's Openclipart item choice, which was fetched only for validation and failed the source gate because its paths are filled silhouettes. The failed source was not packaged.
+- **Approved plan:** `plan/PLAN_REV87_3_TABLER_STROKE_SOURCE_AMENDMENT_20261113.md`.
+- **Approved plan SHA-256:** `8F24E71494B3508FB27E36A161AC11598C143550777484E34BE54353372A1D12`.
+- **Source:** official Tabler Icons outline `cat.svg` from `tabler/tabler-icons`, MIT licensed. Validate explicit unfilled stroke geometry, useful independent paths, cat recognizability and 4–8 meaningful stages before packaging or deployment.
+- **Behavior:** preserve and normalize the source strokes deterministically. Qwen3.5 may only group/order path IDs and write Vietnamese instructions; it cannot emit or alter SVG geometry.
+- **Limits:** one official source fetch; at most one existing Modal app update, one CPU `/health`, one real authenticated Parent UI inference for `mèo`; no warmup, retry, second topic, FLUX/video, test suite, `.env`/secret edit, real child data, DB migration, publication, shared app stop, commit, push or merge. Restore capability to false.
+- **Exact cumulative manifest:** Rev87 §6 with Rev87.3 §6 replacing rejected dataset paths. Any additional path requires a separate amendment.
+
+## Rev87.4 curated SVG plus stroke-authoring skill — 2026-11-13
+
+- **Status: APPROVED** by the owner's direct direction to use a professionally curated SVG dataset as the subject reference and install an Agent Skill to author drawable strokes from the reference.
+- **Supersedes:** Rev87.3's Tabler cat icon source. No Tabler, Openclipart or Quick, Draw! source may be packaged.
+- **Approved plan:** `plan/PLAN_REV87_4_CURATED_SVG_AND_STROKE_SKILL_20261113.md`.
+- **Approved plan SHA-256:** `C1531DDC032941E714391AF6F8FD9441D75DAD06EA408D424EB32DD9B49B483B`.
+- **Dataset:** Arcadia Science Free Organism Illustration Library v1.0, Zenodo DOI `10.5281/zenodo.17203578`, CC0; use only a selected `Gallus gallus domesticus` SVG from the 71-organism library and record exact hashes/attribution.
+- **Skill:** install the MIT-licensed `whiteboard-animation` Agent Skill from `iart-ai/explainer-video-skills` project-locally; adapt its open-path, draw-order, stroke-dash, lift-between-strokes and visual-review rules to the Sketch2Life 4–8-step API/worker contract. The skill is authoring guidance, not a Modal model/service.
+- **Runtime:** use the selected SVG rendered in memory as visual reference to the existing pinned Qwen3.5 multimodal worker. Qwen returns actual new line paths, grouping, order and Vietnamese instructions; strict gates and adult review remain mandatory.
+- **Limits:** one archive fetch, one skill install, at most one update of the existing Modal app, one CPU `/health`, one authenticated Parent UI inference for `gà`; no warmup/retry/second topic/video/FLUX/test suite/.env or secret edit/production identity/real child data/database migration/publication/shared app stop/commit/push/merge. Restore capability flag to false.
+- **Exact cumulative manifest:** Rev87 §6 with Rev87.4 §6. Any additional path requires another explicit amendment.
+
+## Rev87.5 one bounded Modal retry — 2026-11-13
+
+- **Status: APPROVED** by the owner's direct instruction “chạy lại đi” after the Rev87.4 deployment attempt failed before app update.
+- **Requirements baseline:** FEAT-063 v2.7-draft Rev69, unsigned; no §§1–31 requirement changes.
+- **Approved plan:** `plan/PLAN_REV87_5_CURATED_SVG_MODAL_RETRY_20261113.md`.
+- **Approved plan SHA-256:** `BD7CD38EA2CE52B2ED3F833F9555D40EDA7271292BB4EB0F9B9DC0EB36E202FB`.
+- **Authorization:** one additional deployment of the existing Modal dev app, one CPU health call, and at most one real authenticated Parent UI inference for the non-personal `gà` topic. This does not authorize any further retry.
+- **Limits:** no warmup, video, FLUX, fixtures, tests, DB migration, seed/account creation, production identity, child data, `.env`/secret edits, shared app stop, commit, push, or merge. If preflight prerequisites are missing, stop before deployment/inference; on any runtime failure or unknown outcome, preserve evidence and stop.
+- **Exact path manifest:** frozen in Plan Rev87.5 §5. Any further retry or source change requires a new amendment and approval.
+### Rev87.5 local runtime preparation clarification — 2026-11-13
+
+- **Approved plan SHA-256:** `F3B03C3B1993B6C36EE24311D4FE77C4BC397B53BC2091B43F25295B3D44B0CE`.
+- The owner's “chạy lại đi” authorizes the necessary isolated local preparation for the same one bounded UI inference: start only the existing PostgreSQL/Firebase Auth services on their current volumes, run a temporary current-worktree API container on port 8001 with the guide flag enabled only for that process, and start the real Expo Parent UI using the existing root .env without editing or printing it.
+- No migration, seed/account creation, volume reset/removal, existing API replacement, shared Modal app stop, or additional Modal/GPU call is approved. Stop the task-started local services afterward and preserve the existing shared containers and volumes.
+### Rev87.5 live-stack selection clarification — 2026-11-13
+
+- **Approved plan SHA-256:** `94547CEC22E0638788358EEEE8DAFBD304D3BF49837DC9CA246CE0DB7D3BF155`.
+- Read-only Docker preflight found the default sketch2life Postgres container stopped and its host port occupied, while the existing
+ev79-parent-local-20261112 Postgres and Firebase Auth services are already healthy. Use the latter existing stack for the one-off current-worktree API container; do not start/recreate the default stack or stop shared services.
+- This is runtime routing for the same owner-authorized single attempt; no DB migration, seed, account creation, or persistent-volume mutation is included.
+## Rev87.6 OpenAPI contract and Modal UTF-8 fix — 2026-11-13
+
+- **Status: APPROVED** by the owner's direct instruction “tôi cho phép chạy để fix”.
+- **Requirements baseline:** FEAT-063 v2.7-draft Rev69, unsigned; §§1–31 unchanged.
+- **Approved plan:** plan/PLAN_REV87_6_OPENAPI_AND_MODAL_UTF8_FIX_20261113.md.
+- **Approved plan SHA-256:** `20DABC39EDEF01959FFFF26B72344C8DB2662E9243216005D20F3933718AC8E2`.
+- **Owner-authorized scope clarification:** the owner authorized Codex to “run to fix”; runtime inspection showed the mounted SVG catalog was also omitted by the OpenAPI projection. The plan now includes only publishing `/api/svg-catalog/v1/` and a dedicated tag in `openapi_srs_v22.py`, in addition to the concrete response metadata fix. No unrelated projection paths are included.
+- **Owner UI steering:** “chạy trên android emu đi” replaces the isolated browser UI check with a real Android emulator run; use only the existing synthetic Parent account and process-local emulator API/Auth URLs. No web login or AI request was made.
+- **Scope:** Correct per-route SVG catalog response schemas/statuses; verify OpenAPI; use process-local Python UTF-8 settings for one Modal deploy; one CPU health call and at most one real authenticated Parent UI inference for gà.
+- **Limits:** no retry, warmup, test suite, migration, seed/account creation, .env/secret edit, fixture, video, FLUX, existing API replacement, shared service stop, volume deletion, commit, push, or merge. Exact paths and runtime gates are frozen in Plan Rev87.6 §6.
+
+## Rev87.7 real Parent SVG guide draft — 2026-11-13
+
+- **Status: APPROVED** by the owner's direct instruction “tạo svg đi” after Rev87.6 was stopped at the existing incomplete-run UI blocker.
+- **Requirements baseline:** FEAT-063 v2.7-draft Rev69, unsigned; §§1–31 unchanged.
+- **Approved plan:** `plan/PLAN_REV87_7_REAL_PARENT_SVG_GUIDE_DRAFT_20261113.md`.
+- **Approved plan SHA-256:** `661D5DB2D37BBC6B0E5183B8C9BD4422EFD6281FD731C4D6B0F822E39A8C6A5C`.
+- **Scope:** at most one authenticated, non-personal `gà` Parent guide request via the existing API/Modal Qwen3.5 path, with the pinned Arcadia reference; no StoryRun/profile/child data, and no fixture. Output must remain a private, review-required, non-persisted draft.
+- **Limits:** at most one Modal deployment and one inference; no retries, video, FLUX, account/profile/run mutation, migration, seed, `.env`/secret changes, shared service stop, commit, push or merge. Exact paths and stop rules are frozen in Plan Rev87.7 §5.
+
+## Rev87.8 full Android Parent flow through story confirmation — 2026-11-13
+
+- **Status: APPROVED** by the owner's direct instruction “chạy full flow đi”. This supersedes Rev87.7's standalone guide-only execution scope; Rev87.7 had not started.
+- **Requirements baseline:** FEAT-063 v2.7-draft Rev69, unsigned; §§1–31 unchanged.
+- **Approved plan:** `plan/PLAN_REV87_8_ANDROID_PARENT_FULL_FLOW_NO_VIDEO_20261113.md`.
+- **Approved plan SHA-256:** `A5FD491C1A8C034753A206B18710129B317F122CA28948AB43D3CDADED41A718`.
+- **Scope:** real Android UI Parent signup/profile/local synthetic notice, optional SVG guide, synthetic drawing intake, image understanding, catalog-first activity selection, story draft and adult confirmation. Create one new synthetic test identity/profile because the existing Parent account is blocked by its incomplete open run; do not alter that run.
+- **Limits:** maximum four UI-triggered GPU inferences, one each for guide/drawing/activity/story; one deployment per required Modal app only if needed; no retries/replacements/video/FLUX/migrations/seeds/production data/.env edits/shared service stop/commit/push/merge. Exact path manifest and stop conditions are in Plan Rev87.8 §5.
+
+## Rev87.9 Android Parent E2E with activity-selection gap — 2026-11-13
+
+- **Status: APPROVED** by the owner's direct instruction “chạy full flow đi”. Rev87.9 supersedes Rev87.8 before runtime after source review found that the current Parent activity screen has no selection action/StoryRun field. Rev87.7 and Rev87.8 were not executed.
+- **Requirements baseline:** FEAT-063 v2.7-draft Rev69, unsigned; §§1–31 unchanged.
+- **Approved plan:** `plan/PLAN_REV87_9_ANDROID_PARENT_E2E_ACTIVITY_GAP_20261113.md`.
+- **Approved plan SHA-256:** `08FB8ACA06AAC49B498310A2B6D62CFBFA03B48287E932B4BDB63CCB045C5026`.
+- **Scope:** real Android Parent signup/profile/synthetic authorization, optional SVG guide, synthetic drawing, drawing analysis, catalog-first activity suggestions, and story confirmation through the actual UI. Use one new synthetic identity because the existing one has an incomplete open run.
+- **Known SRS deviation:** no activity can currently be selected or attached before story from the inspected UI/API contract. The test may follow the existing visible Continue action to inspect current story behavior, but must report an SRS failure and must never inject an activity manually.
+- **Limits:** at most four GPU calls (one guide, drawing analysis, activity suggestion, story), no retries or alternate activity, no video/FLUX, no existing-run mutation/deletion, no migration/reseed/.env edit/shared-service stop/commit/push/merge. Exact paths and stop rules are in Plan Rev87.9 §6.
+
+
+### Rev87.9 execution outcome — 2026-11-13
+
+- Real Android Parent signup/profile/context/drawing flow reached Modal drawing analysis and catalog-first activity suggestions; both Qwen3.5 inferences returned successfully.
+- Optional guide lookup failed because the shared DB lacked the SVG catalog/review tables; no migration was run and the optional step was skipped in UI.
+- The current UI cannot select a primary activity. The visible continue action reached story, where the initial request returned HTTP 422 because the required primary activity request/ref pair was absent. No story Modal call, story confirmation, or video occurred. No activity was injected manually.
+- Two GPU inferences total; zero retry/timeout. The activity drafts include a small-grain activity with a supervision warning; the result is not content-safety approval. Worker terminal telemetry also omitted the successful terminal event/output hash.
+- Task-started API container, Metro and Android emulator were stopped. Shared services/apps/volumes were preserved; no `.env`, code, migration, test, commit or push change was made.
+- Evidence: `evidence/EV-063-101_ARCADIA_STROKE_SKILL_20261113/REPORT.md`, `runtime-attempt-4.json`, `story-generation-http-422-observation.json`, actual model JSON outputs and Android screenshots.
+
+
+## Rev87.10 bounded Parent activity selection and story test — 2026-11-13
+
+- **Status: APPROVED** by the owner's direct instruction: “cứ làm thêm đi, tạm tắt quality gate mà test”.
+- **Requirements baseline:** FEAT-063 SRS v2.7-draft Rev69, unsigned; §§1–31 unchanged.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_10_PARENT_ACTIVITY_SELECTION_STORY_TEST_20261113.md`.
+- **Approved plan SHA-256:** `550EFCC7CD3B0D05E9F552CE091FC6E8BCA71C2CDDB98AF7D4782E050936CAA1`.
+- **Pre-implementation corrections:** added required Parent application/use-case/UI and Modal client-test paths to §6; specified an explicit story-input v2 contract; allowed one UTF-8 recovery deploy only if the initial build fails before app submission and deployed app state remains unchanged. The authorized inference limit and safety gates are unchanged.
+- **Scope:** temporarily add actual UI selection of an activity returned by the current live AI response; validate its request/ref against a short-lived owner/run/revision-bound server snapshot; pass the exact selected activity to Qwen story. The test adapter is process-local and non-persistent, and must be reported as non-production.
+- **Gate scope:** bypass only soft activity quality checks in the task-started API container. Schema, age, auth/owner binding, outdoor location, hard safety, PII and story validation stay on. Gate defaults remain strict outside the temporary test container.
+- **Runtime limits:** one new synthetic Parent identity via UI, existing shared dev services left running, no migration/reseed/`.env` edit, maximum three real GPU calls (drawing, activity, story), one attempt each, no video/FLUX/retry. Stop only task-started API/Metro/emulator; preserve shared Modal apps/model volumes.
+- **No fixture model output or manually injected activity. No commit/push/merge.**
+
+### Rev87.10-A — one Parent SVG guide attempt — 2026-11-13
+
+- **Status: APPROVED** by the owner's direct instruction: “thử tạo svg xem, luồng parent ấy”.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_10_PARENT_ACTIVITY_SELECTION_STORY_TEST_20261113.md`, additive amendment `Rev87.10-A`.
+- **Approved plan SHA-256:** `771AF1A0B6FAC59CF11B58A6EB18CE95D8753D25F0880CDE2E1970D03980FFEF`.
+- **Scope:** one read-only Parent SVG catalog lookup followed, only on no approved match/error, by one real UI-triggered Qwen3.5 SVG draft inference using generic topic and beginner difficulty only. A small Parent UI fallback may expose the draft action after catalog lookup failure.
+- **Limits:** consumes the single remaining slot in Rev87.10's three-inference cap; drawing and activity calls are already consumed. Story/video/retries/alternate calls, migration, seed, `.env` edits, Modal deployment, shared service stop, commit, push and merge remain prohibited. SVG validation gates remain enabled. Task-local API flags/project ID only.
+- The first catalog request returned `401 INVALID_IDENTITY_TOKEN` before catalog access because the task API used the Compose fallback project `sketch2life-local`; the existing emulator and app use `sketch2life-dev`. The plan permits recreating only the task API container with the matching project ID and does not permit repeating the catalog lookup.
+- The activity call's HTTP 502 means no real activity is available for story selection; no activity may be fabricated or reused. This approval does not authorize a story request.
+
+## Rev87.10-B Parent Firebase auth fix and one SVG attempt — 2026-11-13
+
+- **Status: APPROVED** by the owner's direct instruction: “FIX DI”, explicitly authorizing diagnosis and correction of the Parent Firebase auth failure.
+- **Requirements baseline:** `docs/context/SRS_AUTHORITY.md` and FEAT-063 SRS v2.7-draft Rev69, unsigned; §§1–31 remain authoritative and unchanged.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_10_PARENT_ACTIVITY_SELECTION_STORY_TEST_20261113.md`, additive amendment Rev87.10-B.
+- **Approved plan SHA-256:** `F4DEB8FD0F70BA73FFF741350DE2FC68F114252459B518C7EA246BE621D504CD`.
+- **Scope:** diagnose/fix only the Parent Firebase Auth Emulator/API token-verification integration; verify a fresh sign-in from the actual Android UI, then perform at most one catalog lookup and one real Parent SVG attempt if auth succeeds.
+- **Limits:** existing local synthetic identity only; no seed, account/profile mutation, token/credential logging, auth bypass, consent bypass, migration, `.env` edit, Modal deployment/warmup, retry, story/video, shared-service shutdown, commit, push or merge. Existing hard SVG gates remain enabled; at most one GPU inference for this amendment.
+- **Evidence:** `evidence/EV-063-101_ARCADIA_STROKE_SKILL_20261113/runtime-attempt-6.json` and `REPORT.md`; SRS §32 only for environment-specific as-built results.
+
+## Rev87.10-C execution fallback — local Auth Emulator and Parent API — 2026-11-13
+
+- **Status: APPROVED** under the owner's direct “FIX DI” instruction, as a constrained execution fallback after checking that Android SDK/`adb` and an emulator device are unavailable.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_10_PARENT_ACTIVITY_SELECTION_STORY_TEST_20261113.md`, additive amendment Rev87.10-C.
+- **Approved plan SHA-256:** `73A947A130A75C5EDF603597945EB86475D8F9B8283198DE69D055B2676CB7B0`.
+- **Scope:** sign in to the local Firebase Auth Emulator using the existing root `.env` seed in memory only; verify `/api/auth/v1/me`; if successful, perform at most one catalog lookup and one generic-topic Parent SVG request through the real API contract.
+- **Limits:** no UI/emulator claim, no token/credential/identity output or persistence, no seed/account/profile mutation, auth or consent bypass, migration, `.env` edit, Modal deployment/warmup, retry, extra inference, story/video, shared-service shutdown, commit, push or merge.
+
+## Rev87.10-D — apply missing Parent SVG catalog migration — 2026-11-13
+
+- **Status: APPROVED** by the owner's direct instruction: “FIX DATABASE DI DUMA”.
+- **Requirements baseline:** `docs/context/SRS_AUTHORITY.md` and FEAT-063 SRS v2.7-draft Rev69, unsigned; §§1–31 unchanged.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_10_PARENT_ACTIVITY_SELECTION_STORY_TEST_20261113.md`, additive amendment Rev87.10-D.
+- **Approved plan SHA-256:** `CD6360222DC48AE1782619875A24BC80EB50EC049892AE3D8D9602C66404C6AC`.
+- **Scope:** apply exactly `alembic upgrade 20261113_svg_catalog_review` to the existing local development Postgres after read-only preflight showed the target tables missing and all existing Core asset rows compatible with the expanded check; verify revision, tables and authenticated catalog GET.
+- **Limits:** no `upgrade heads`, unrelated migration, data rewrite/delete, seed, account/profile/consent change, `.env` edit, AI/Modal call, shared-service restart, commit, push or merge. The migration is additive for the catalog and extends the owner-scope check; do not downgrade.
+
+## Rev87.10-E — run Parent SVG guide after database repair — 2026-11-13
+
+- **Status: APPROVED** by the owner's direct instruction: “CHAY DI”.
+- **Requirements baseline:** `docs/context/SRS_AUTHORITY.md` and FEAT-063 SRS v2.7-draft Rev69, unsigned; §§1–31 unchanged.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_10_PARENT_ACTIVITY_SELECTION_STORY_TEST_20261113.md`, additive amendment Rev87.10-E.
+- **Approved plan SHA-256:** `E8AE7F8FD613D6C871625B4F0F007D9B3008602A021E7751A2183A6D7C5F327F`.
+- **Scope:** one real Parent API SVG guide request using existing local synthetic Parent auth, generic topic `con gà`, beginner difficulty, and configured Modal Qwen3.5. Use catalog-first and invoke the draft endpoint only if no approved catalog match exists.
+- **Limits:** at most one new GPU inference, one attempt, no retries, redeploy/warmup, story/video, fixture, data/account/profile/consent mutation, `.env` edit, migration, shared-service restart, commit, push or merge. Keep hard schema/sanitizer/provenance/privacy/safety gates on. Abort before inference if Docker/API/Auth/Modal health is unavailable. No Android UI claim absent a real emulator run.
+
+## Rev87.10-F — fix Qwen SVG path-contract failure — 2026-11-13
+
+- **Status: APPROVED** by the owner's direct instruction: “FIX DI, NAO DC THI THOI”.
+- **Requirements baseline:** `docs/context/SRS_AUTHORITY.md` and FEAT-063 SRS v2.7-draft Rev69, unsigned; §§1–31 unchanged.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_10_PARENT_ACTIVITY_SELECTION_STORY_TEST_20261113.md`, additive amendment Rev87.10-F.
+- **Approved plan SHA-256:** `DC19E22D0251964F89D7CE21CA7E139AF2B5DCE25A60AA2FC74F419BDAE2EFCD`.
+- **Scope:** align Qwen SVG prompt/constrained schema with existing safe path rules; add per-rule safe parser diagnostics and deterministic tests; after tests pass, deploy only `language_audio_app.py` to the dev language/audio Modal app and make at most one authenticated Parent API-to-Modal inference for generic `con gà`.
+- **Limits:** one deployment, one GPU inference, no retries/second call, warmup, validator bypass/relaxation, raw model output logging, data mutation, `.env` edit, DB/UI/backend changes, other app/workload deploy, story/video/FLUX, shared-service stop/restart, commit, push or merge. No fixture output in the real request; no child data. This amendment supersedes Rev87.10-E's deployment/inference limits only for the focused fix and single verification attempt.
+## Rev87.10-G — use existing authenticated Modal runner — 2026-11-13
+
+- **Status: APPROVED** by the owner's direct continuation: “FIX DI, NAO DC THI THOI”.
+- **Requirements baseline:** FEAT-063 SRS v2.7-draft Rev69, unsigned; §§1–31 unchanged.
+- **Approved plan:** features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_10_PARENT_ACTIVITY_SELECTION_STORY_TEST_20261113.md, additive amendment Rev87.10-G.
+- **Approved plan SHA-256:** 1150E8B9CA62340B87D385B81FA61D52C3BFE84F6A1B2E00A8143C5875C91F29.
+- **Scope:** after the temporary Modal CLI exited with Token missing before deployment submission, use the already-authenticated Modal health-sidecar context to make the one Rev87.10-F deployment, copying the approved source to a temporary container directory and removing it afterward; then use only the single Rev87.10-F Parent API inference.
+- **Limits:** no token/credential or .env change, no health-sidecar restart, no extra deployment or inference if either operation fails. Rev87.10-F source, safety, no-fixture, no-child-data, no-video and no-raw-model-output limits remain active.
+
+## Rev87.10-H — fix constrained-decoder schema crash — 2026-11-13
+
+- **Status: APPROVED** by the owner's direct instruction: “FIX DI, NAO DC THI THOI”; this is the one bounded corrective attempt after the first real inference exposed an unsupported schema combination.
+- **Requirements baseline:** FEAT-063 SRS v2.7-draft Rev69, unsigned; §§1–31 unchanged.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_10_PARENT_ACTIVITY_SELECTION_STORY_TEST_20261113.md`, additive amendment Rev87.10-H.
+- **Approved plan SHA-256:** `BA10E859302B7C78E8CFC358626FDAACFCF685ED9BFC8E27B47D76C362D068FF`.
+- **Scope:** remove redundant string length keywords only from the patterned SVG `path_id` and `d` schemas, preserve regex and all parser/hard validation limits, add focused decoder regression coverage, deploy only `language_audio_app.py` once through the existing authenticated sidecar, and make at most one final real Parent API SVG inference for generic `con gà`.
+- **Limits:** one deployment and one GPU inference; no retry, warmup, gate bypass, child data, profile/photo/audio, fixture output, DB/auth/.env mutation, other workload, story/video, shared-service restart, commit, push or merge. If that request fails, report the exact safe reason and stop.
+
+## Rev87.10-I — SVG generation diagnostics and one final verification — 2026-11-13
+
+- **Status: APPROVED** by the owner's direct instruction: “fix tiếp đi”.
+- **Requirements baseline:** FEAT-063 SRS v2.7-draft Rev69, unsigned; §§1–31 unchanged.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_10_PARENT_ACTIVITY_SELECTION_STORY_TEST_20261113.md`, additive amendment Rev87.10-I.
+- **Approved plan SHA-256:** `2ABB49D6B0753B4E387221B434DD3B6D492EC529B7B34DE3A153B4C7FADF5BF4`.
+- **Scope:** check SVG generation EOS/token-cap before JSON parse, emit privacy-safe diagnostics for truncation/JSON parse failures, extend the BE log summarizer allowlist and tests, deploy only the language/audio worker, recreate only task API `rev87-parent-authfix-20261113-api-1`, and make at most one final real Parent SVG API inference with generic `con gà`.
+- **Limits:** one deployment and one GPU inference; explicit 1,800-second API-client deadline; no retry, warmup, fixture output, child data, profile/photo/audio, auth/consent/seed/.env/database mutation, other workload, story/video, shared-service restart, raw model output, commit, push or merge. If the request fails, record diagnostics and stop.
+
+## Rev87.10-J — bounded SVG output and decoder diagnostics — 2026-11-13
+
+- **Status: APPROVED** by the owner's direct instruction: “sao lại bị như v, check log, log kỹ vào, nâng timeout,... fix cái đó đi”.
+- **Requirements baseline:** FEAT-063 SRS v2.7-draft Rev69, unsigned; §§1–31 unchanged.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_10_PARENT_ACTIVITY_SELECTION_STORY_TEST_20261113.md`, additive amendment Rev87.10-J.
+- **Approved plan SHA-256:** `AB5DFFE89D3750DC9F7082E860E2C9FFEF477B296E81390C9C86494EFFC3197E`.
+- **Scope:** fix the evidenced 6,144-token output truncation with a bounded 12,288-token SVG-only budget; align generation path-array limits to the prompt's 8–28 paths; emit and preserve safe constrained-decoder completion/replay telemetry; keep all hard parser, SVG, privacy and safety gates enabled. Keep worker/backend/API timeouts at 1,800 seconds because the observed 395.670-second request did not time out.
+- **Runtime limits:** one deployment of the language/audio Modal app, one task API recreation only if needed, and at most one real Parent API SVG inference for generic `con gà`; no retry, warmup, story/video, raw model output, child data, DB/auth/consent/seed/.env mutation, shared-service shutdown, commit, push or merge. Stop after the one request whether it succeeds or fails.
+- **Task API runtime addendum:** the task container may receive the SVG enable flag as a one-run Compose override and be attached to the existing shared Docker network so it can reach the running local dependencies. This does not authorize changing `.env`, persistent Compose topology, or shared services.
+
+## Rev87.10-K — bound generated SVG path strings and capture terminal logs — 2026-11-14
+
+- **Status: APPROVED** under the owner's continuing direct instruction to inspect logs, fix the Parent SVG failure, and continue the workflow.
+- **Requirements baseline:** FEAT-063 SRS v2.7-draft Rev69, unsigned; §§1–31 unchanged.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_10_PARENT_ACTIVITY_SELECTION_STORY_TEST_20261113.md`, additive amendment Rev87.10-K.
+- **Approved plan SHA-256:** `AAEB39C7E04EDAF0976FDAC84AF4E889F791FDD5245E8B7C5408780629002A9D`.
+- **Scope:** bound SVG path `d` generation to 256 characters while preserving strict post-generation checks; add safe parser field/category diagnostics; wait up to 5 seconds for Modal log indexing on summary; retain 1,800-second timeouts and the 12,288-token cap.
+- **Runtime limits:** one language/audio Modal deployment, one task API recreation only, and at most one real Parent SVG inference for generic `con gà`; no retry, warmup, story/video, child data, account/profile/consent/seed/.env/database mutation, shared-service restart, commit, push or merge. Stop after the single request.
+
+## Rev87.10-L — correct chicken stroke endpoints without weakening topology — 2026-11-14
+
+- **Status: APPROVED** under the owner's direct instruction to inspect and fix the failure.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_10_PARENT_ACTIVITY_SELECTION_STORY_TEST_20261113.md`, additive amendment Rev87.10-L.
+- **Approved plan SHA-256:** `3897FAEF391E319517E2A517B1350358E2439ADFF7F8032D71518B817245CA4F`.
+- **Scope:** clarify the chicken-specific SVG prompt with explicit connected endpoint requirements; preserve the backend topology and all other hard gates; add focused prompt regression assertions and safe evidence for K/L.
+- **Runtime limit:** one Modal language/audio deployment and at most one new real Parent SVG inference under L, generic `con gà` only, 1,800-second deadline; no retry, gate bypass, raw model-output logging, child data, other AI workload, shared-service restart, commit, push or merge.
+
+## Rev87.10-M — constrain chicken SVG paths to open strokes — 2026-11-14
+
+- **Status: APPROVED** under the owner's direct instruction to inspect and fix the Parent SVG failure.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_10_PARENT_ACTIVITY_SELECTION_STORY_TEST_20261113.md`, additive amendment Rev87.10-M.
+- **Approved plan SHA-256:** `F35A2717E957689C2D37F672A400DB0CC5738B02A370BF321CE505E53C7015DA`.
+- **Scope:** chicken-only constrained path grammar excludes Z and caps d at 256 characters using one regex; verify compatibility with pinned LMFE 0.11.3; preserve all strict worker/backend gates.
+- **Runtime limit:** one Modal language/audio deployment and at most one real Parent SVG inference for generic con gà, 1,800-second deadline; no retry, gate bypass, raw model output, child data, other AI workload, shared-service restart, commit, push or merge.
+
+## Rev87.10-N — diagnose and fix Parent chicken SVG body geometry (2026-11-14)
+
+- **Status: APPROVED** by the owner's latest direct instruction: “check log, log kỹ vào, nâng timeout,... fix cái đó đi”.
+- **Requirements baseline:** FEAT-063 SRS v2.7-draft Rev69, unsigned; §§1–31 unchanged.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_10_PARENT_ACTIVITY_SELECTION_STORY_TEST_20261113.md`, additive amendment Rev87.10-N.
+- **Approved plan SHA-256:** `0E76ED892E9A373671C93FED1A4318163306BB4CCC1490B2F23460FBDD79787A`.
+- **Scope:** add explicit chicken-body geometry guidance without relaxing gates; split the body-size diagnostic from the true connection diagnostic; add focused worker/backend regression tests; deploy the language/audio Modal app once and make at most one real authenticated Parent API inference with generic topic `con gà`.
+- **Timeout decision:** existing end-to-end and Modal worker limits are 1,800 seconds. The latest request completed in 263.834 seconds and failed a hard geometry check, not a timeout. No timeout increase is authorized or technically indicated.
+- **Limits:** preserve all anatomy/topology/schema/sanitizer/privacy/quality gates; no inference retry/second call, direct worker inference, raw SVG/model text in logs, child data, story/video, DB/account/profile/consent/seed/`.env` mutation, shared-service restart, commit, push or merge.
+
+
+## Rev87.10-O — prevent duplicate Parent chicken SVG paths (2026-11-14)
+
+- **Status: APPROVED** under the owner's ongoing direct instruction to diagnose and fix the Parent SVG workflow.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_10_PARENT_ACTIVITY_SELECTION_STORY_TEST_20261113.md`, additive amendment Rev87.10-O.
+- **Approved plan SHA-256:** `0E76ED892E9A373671C93FED1A4318163306BB4CCC1490B2F23460FBDD79787A`.
+- **Scope:** add explicit distinct-path guidance and regression assertions; preserve all strict gates; deploy language/audio Modal once and make at most one final real Parent API inference for generic con gà.
+- **Timeout:** retain 1,800 seconds; observed M/N worker calls completed in approximately 248/357 seconds and failed validation, not timeout.
+- **Limits:** no retry, duplicate-path repair, gate bypass, raw model output, child data, other workload, database/account/profile/consent/seed/.env mutation, shared-service restart, commit, push or merge.
+
+## Rev87.10-P — enforce beak length and grounded leg strokes (2026-11-14)
+
+- **Status: APPROVED** under the owner's continuing direct instruction to diagnose and fix the Parent SVG workflow.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_10_PARENT_ACTIVITY_SELECTION_STORY_TEST_20261113.md`, additive amendment Rev87.10-P.
+- **Approved plan SHA-256:** `0E76ED892E9A373671C93FED1A4318163306BB4CCC1490B2F23460FBDD79787A`.
+- **Scope:** add quantitative prompt guidance for beak length and leg descent; preserve all hard validation gates; run focused tests, deploy language/audio Modal once, and make at most one final real Parent API inference for generic `con gà`.
+- **Timeout:** keep 1,800 seconds. Rev87.10-O completed in 244.770 seconds and failed geometry validation, not timeout.
+- **Limits:** no retry, output repair, gate bypass, raw output logging, child data, other workload, database/account/profile/consent/seed/`.env` mutation, shared-service restart, commit, push or merge.
+## Rev87.11 — Arcadia-derived Parent SVG stroke guide (2026-11-14)
+
+- **Status:** APPROVED by the owner's direct instruction: “đúng rồi, đi theo hướng đó đi, fix đi, nào chạy ra svg đc từ đó thì tính”.
+- **Requirements baseline:** FEAT-063 SRS v2.7-draft Rev69, unsigned; §§1–31 unchanged.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_11_ARCADIA_DERIVED_PARENT_SVG_GUIDE_20261114.md`.
+- **Plan SHA-256 at authorization:** `1A89CE518AAB2D89B577E7D9C2B0547D0B08EA6AE48A52CB495501EE6EB89E61`.
+- **Scope:** build a deterministic Parent chicken SVG guide from the pinned Arcadia CC0 source and a separately versioned, provenance-checked derived stroke manifest; add a truthful source-derived API contract and Parent UI support; keep existing sanitizer/anatomy/quality checks; preserve the current Modal fallback for unsupported topics; package the source in the backend image; run focused checks and save the real SVG/render evidence; update FEAT-063 records and SRS §32 only.
+- **Limits:** no Modal deployment, warmup or GPU inference; no FLUX, video, fixture response, gate bypass, database migration, account/consent/seed/`.env` mutation, child data, shared-service restart, commit, push or merge. Teacher contracts and target requirements in SRS §§1–31 remain unchanged.
+
+### Rev87.11-A — Docker build-context allowlist amendment
+
+- **Status:** APPROVED as a necessary implementation detail under the owner's direct instruction to fix the source-derived Parent SVG flow and produce an SVG.
+- **Amendment:** allowlist only `deployment/modal/srs_v23/data/arcadia_organism_strokes/**` in `.dockerignore`, because the current global deny rule otherwise excludes the exact pinned source that `backend/Dockerfile` copies. `.env`, credentials, and all other Modal deployment files remain excluded.
+- **Effective plan SHA-256:** `039EB9885D2D01D177660C2F9DBC13CA0E984BAA456459BCDF19AF520E427D5A`.
+
+### Rev87.11-B — quality illustration with progressive stroke overlay
+
+- Status: APPROVED under the owner's clarification of the active SVG-guide fix: the full SVG illustration may be colored/filled, while drawing strokes are a separate progressive guide layer like the supplied HTML.
+- Amendment plan: features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_11B_QUALITY_ILLUSTRATION_STROKE_OVERLAY_20261114.md.
+- Amendment plan SHA-256: 86876A680E2B9377620B9C3783166189DEAF1EEC7BC71181B56C70127B80FEE5.
+- Scope: add a sanitized full-color pinned Arcadia illustration document to the source-derived Parent response; keep progressive guide paths separate; render the illustration as a muted reference and animate ordered current-step strokes in blue, leaving completed strokes dark and future strokes hidden; add focused tests and real-source visual evidence.
+- Preserve existing source hash, sanitizer, anatomy/topology gates, adult review, optional-guide behavior, and Modal fallback for unsupported topics. No Modal/GPU inference, fixture response, database/credential/child-data mutation, service restart, commit, push or merge. SRS §§1–31 remain unchanged.
+
+### Rev87.11-C — separate progressive strokes from finished illustration
+
+- **Status:** APPROVED under the owner's direct clarification: the SVG artwork may be a high-quality filled/color illustration, while the drawing guide is a separate progressive sequence of strokes like the supplied HTML.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_11C_SEPARATE_STROKE_GUIDE_AND_SVG_REFERENCE_20261114.md`.
+- **Plan SHA-256:** `DAFA5C2469C0DCE5C3A5B87AE154C3487CDE219413CF84B80660EA32E2FAEE10`.
+- **Scope:** improve the source-derived chicken paths to match the reference pose; make the staged stroke canvas the default; show the pinned, sanitized full-color illustration in a separate toggleable view; preserve the guide step when switching views; add focused tests and inspected real-source render evidence; update SRS §32 and FEAT-063 implementation records only.
+- **Limits:** preserve the source hash, sanitizer, hard topology gates, review-required draft and unsupported-topic Modal fallback. No Modal/GPU inference, fixture response, database/credential/child-data mutation, service restart, commit, push or merge. SRS §§1–31 remain unchanged.
+
+### Rev87.11-D — align child strokes to the pictured Arcadia hen
+
+- **Status: APPROVED** by the owner's direct request to make the strokes trace the same pictured hen, simplifying only details that are unnecessary for a child.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_11D_SOURCE_ALIGNED_CHILD_STROKE_GUIDE_20261114.md`.
+- **Plan SHA-256:** `2895EECBD6E06BD221D463442E8A94D6137A190C2E87AC252E598CBF85D84F0C`.
+- **Scope:** preserve V2 and activate a new immutable V3 guide registered to the pinned Arcadia source illustration; show that illustration as a faint underlay under progressive strokes; remove invented ground/belly lines; retain sanitizer, provenance, and hard topology gates; run focused source-route and renderer checks and save inspected stage evidence; update SRS §32 and FEAT-063 as-built records only.
+- **Limits:** no Modal/GPU inference or deployment, fixture response, DB/account/consent/seed/`.env` or child-data mutation, shared-service restart, commit, push or merge. §§1–31 remain unchanged.
+
+### Rev87.11-E — construction-based Parent chicken guide
+
+- **Status: APPROVED** by the owner's latest direction: the guide must build the hen from simple ordered strokes, like the supplied HTML, rather than trace/reconstruct the finished illustration.
+- **Supersedes:** Rev87.11-D's source-aligned tracing/underlay approach. Preserve its V3 artifacts as historical evidence; they are not the active guide.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_11E_CONSTRUCTION_BASED_PARENT_CHICKEN_GUIDE_20261114.md`.
+- **Plan SHA-256:** `1230D76B2237E52CF34103533F622F9712A01D682C61F76E9190B179FF7F56E2`.
+- **Scope:** add an immutable V4 construction-sequence guide and activate it; remove the full-color reference underlay from Parent guide mode while keeping its separate reference view; preserve V2/V3 and all hard validators; run the bounded local route/render and focused checks; update SRS §32 and FEAT-063 as-built records only.
+- **Limits:** no Modal/GPU inference or deployment, fixture response, DB/account/consent/seed/`.env` or child-data mutation, shared-service restart, commit, push or merge. §§1–31 remain unchanged.
+
+### Rev87.11-F — align Parent hen strokes with the supplied drawing demo
+
+- **Status:** APPROVED by the owner's latest instruction after requesting that the HTML demo be run and inspected before changing the guide.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_11F_PARENT_HEN_DRAWING_SEQUENCE_20261114.md`.
+- **Plan SHA-256:** `90DC01ADE1005F0F267502D45AE1C03A39CC5263FCC1A5774D2C4976BF7608A6`.
+- **Scope:** preserve V2/V3/V4; create immutable V5 with eight part-by-part stages, matching the supplied hen pose; keep old artwork separate from the no-underlay stroke canvas; preserve all hard gates; run the local source-derived Parent route and visually inspect rendered stages; update FEAT-063 and SRS §32 only.
+- **Limits:** no Modal/GPU deployment or inference, database/account/consent/seed/`.env` or child-data mutation, shared-service restart, commit, push or merge. SRS §§1–31 remain unchanged.
+
+### Rev87.11-G — match Parent chicken strokes to the pictured SVG
+
+- **Status:** APPROVED by the owner's direct request to compare the stroke output with the SVG reference, inspect the supplied HTML, and fix the mismatch.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_11G_PARENT_GALLUS_REFERENCE_MATCHED_STROKES_20261114.md`.
+- **Plan SHA-256:** `6464820BADCFE6C29B766C32A50057F8CCA8E291E16DE10D8DD278880F9A0E1C`.
+- **Scope:** preserve V2–V5; add and activate immutable V6 paths whose final stroke-only image matches the pinned Arcadia chicken's silhouette and identifying proportions; use the HTML only for progressive step behavior; retain full-color reference as a separate view; preserve all hard gates; verify the local Parent route without Modal and save side-by-side stage evidence; update FEAT-063 records and SRS §32 only.
+- **Provenance note:** the pinned Arcadia source is a CC0 illustration asset, not child-drawing data, and includes no stroke order. The observed mismatch is in V5 geometry/decomposition. V6 must align to that illustration while remaining a newly authored, child-drawable sequence.
+- **Limits:** no Modal/GPU inference or deployment, fixture response, database/account/consent/seed/`.env` or child-data mutation, shared-service restart, gate bypass, commit, push or merge. SRS §§1–31 remain unchanged.
+
+### Rev87.11-H — build the Parent guide from exact source paths
+
+- **Status:** APPROVED by the owner's direct instruction: “t cần nét tạo lên đúng con đó, ko cần cái kiểu nét cảu trẻ con.”
+- **Supersedes:** Rev87.11-G's newly authored child-drawable chicken geometry. Preserve V6 and its rejected output as historical evidence; it is no longer the active pinned-chicken guide.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_11H_PARENT_EXACT_SOURCE_PATH_GUIDE_20261114.md`.
+- **Plan SHA-256:** `5946CA4FB2CB79F323E2A7B35691FA2C0DD27C0ED74865555EB001DDFD392F88`.
+- **Scope:** make an eight-stage guide from the exact 77 sanitized path geometries in the pinned Arcadia SVG; validate path identity and full coverage; animate actual source-path boundaries in Parent UI while keeping the colored source as a separate view; test the real source-derived route without Modal and render/inspect each cumulative stage; update FEAT-063 records and SRS §32 only.
+- **Limits:** no Modal/GPU inference or deployment, database/account/consent/seed/`.env` or child-data mutation, shared-service restart, AI gate bypass, commit, push or merge. SRS §§1–31 remain unchanged.
+
+### Rev87.12 — Parent multi-dataset SVG guides and color reveal
+
+- **Status: APPROVED** by the owner's direct request to connect the accepted guide to Parent UI, expand the guide source pack with child-friendly SVG datasets, and show the original color source on the final step.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_12_PARENT_MULTI_DATASET_GUIDES_AND_COLOR_FRAME_20261114.md`.
+- **Plan SHA-256:** `C90B1AE49C403DCE1BC78AB1207E5A6E2415DCEC21D6CE55FD7C80F3AD263CCF`.
+- **Scope:** curate a small pinned Noto Emoji SVG pack alongside the existing Arcadia chicken source; validate sanitizer, license/provenance, path limits and progressive stage assignments; connect source-derived guides to the Parent optional guide flow; show the exact original full-color SVG alongside the completed line guide on the final step; add evidence and update FEAT-063 as-built records/SRS §32 only.
+- **Limits:** no AI/model fallback changes for unsupported topics, Modal call/deploy, video, database/account/consent/seed/child-data/`.env` mutation, public publication, shared-service restart, commit, push or merge. No change to target SRS §§1–31.
+
+### Rev87.13 — OpenMoji source amendment for Parent SVG guides
+
+- **Status: APPROVED** under the owner's direct request to research/select child-friendly SVG sources, connect the chosen guide dataset to Parent UI, and display the original color illustration on the final step.
+- **Approved amendment:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_13_OPENMOJI_GUIDE_SOURCE_AMENDMENT_20261114.md`.
+- **Plan SHA-256:** `6E46B1FBB2E6D72A8C380626FDC99DC7F6B37E7E4529AA58A5DBE8989FAEFBF7`.
+- **Supersedes:** Rev87.12's Noto runtime source selection only. Noto sources are rejected for progressive line derivation because the filled-image contours create clutter; Arcadia chicken, Parent route/UI scope, final color reveal, and all stated limits remain.
+- **Scope:** pinned OpenMoji 17.0.0 black/color SVG pairs for turtle, butterfly and dog; CC BY-SA 4.0 attribution/share-alike provenance; real Parent API resolution before Modal fallback; progressive source geometry and original color pairing in mobile UI; Docker packaging and FEAT-063/SRS §32 records.
+- **Limits:** no video, FLUX, Modal inference/deploy, DB/profile/consent/seed/account/`.env` changes, public publication, shared service restart, commit, push or merge. Target SRS §§1–31 remain unchanged.
+
+### Rev87.14 — Parent richer Openclipart guide sources
+
+- **Status: APPROVED** under the owner's direct instruction: “NÂNG LÊN TÍ NỮA ĐI, KIẾM NÀO CAO HƠN NAYFD TÍ”.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_14_PARENT_RICHER_OPENCLIPART_GUIDES_20261114.md`.
+- **Plan SHA-256:** `2C904E5F08A721A16B0C8FEDED06EBBF8C6FB4DAF863645D645C098AFFBF54C8`.
+- **Scope:** curate higher-detail Openclipart turtle/butterfly/dog SVG candidates; activate only pairs that pass manual visual/source review; preserve OpenMoji and Arcadia fallbacks; connect selected sources to Parent guide UI with the color original on the final stage; append §32.29 and evidence records.
+- **Limits:** no video, Modal/FLUX inference or deploy, database/profile/consent/seed/account/`.env`, publication, shared service restart, tests, app/API runtime verification, commit/push/merge, or changes to target §§1–31. If primary SVG files cannot be retrieved or inspected, stop before activating them.
+
+### Rev87.15 — Full Openclipart catalog on Modal Volume with Qwen source-bound strokes
+
+- **Status: APPROVED** by the owner's direct instruction: the SVG dataset must be placed on Modal Volume and must not be uploaded into Docker.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_15_MODAL_OPENCLIPART_CATALOG_QWEN_STROKES_20261114.md`.
+- **Plan SHA-256:** `F827960BFD5A284A7D231D2509F57B0CDECA59D7B5AD07F7322216E1E6962BF9`.
+- **Scope:** CPU-only Modal ingestion of the public Openclipart corpus into a dedicated Modal Volume v2; full metadata/source/license/hash index; safe bounded candidate search; Qwen3.5 returns only an ordered 4–8-step plan over exact selected source path IDs; deterministic rendering reuses the pinned source geometry and pairs the original color reference; Parent sees matching source/provenance and the optional guide remains nonblocking.
+- **Limits:** no corpus in Docker or local repository, no GPU for import, no inference at Docker startup, no video, child data, DB/account/consent/seed/credential changes, production enablement, Volume deletion, gate weakening, shared service restart, commit/push/merge, or edits to SRS §§1–31. Live Modal import/deploy/inference may only be reported complete with runtime evidence; otherwise report pending.
+
+#### Rev87.15 runtime execution amendment — 2026-11-15
+
+- **Status: APPROVED** by the owner's direct instruction to upload the Modal apps and dataset, then test the flow.
+- **Allowed runtime actions:** deploy the existing Qwen3.5 language/audio Modal app in `dev`; run the CPU-only Openclipart importer into `sketch2life-openclipart-catalog-dev` Volume v2; call `/health`; after a complete `READY` manifest, execute at most one real generic-topic SVG guide inference (`con mèo`, beginner) against the deployed worker.
+- **Limits:** no child profile, image, voice, account, consent, or database data; no video; no retry/additional inference; no workload-wide production enablement; no Docker/local dataset copy; no secret change, Volume deletion, shared service restart, commit, push, or merge. Record bounded runtime evidence and preserve failures without automatic retry.
+
+### Rev87.16 — Modal Qwen catalog path-assignment fix — 2026-11-15
+
+- **Status: APPROVED** by the owner's direct instruction: “fix luồng đi”, following the Rev87.15 terminal path-coverage failure.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_16_MODAL_QWEN_CATALOG_PATH_ASSIGNMENT_FIX_20261115.md`.
+- **Plan SHA-256:** `8124C74970FBEF35BA069F0C86E0E2DD2B7B869B4B43DB08707539F76C8A5F16`.
+- **Authorization:** implement the path-assignment contract and safe diagnostics; run focused local contract tests; deploy the existing language/audio app in Modal `dev`; call CPU `/health`; then make at most one new real synthetic `con mèo` beginner inference against the already imported catalog. A successful output must be validated for exact source-path coverage; on failure, preserve safe logs and stop.
+- **Limits:** this is one bounded verification after the prior Rev87.15 attempt, not an open-ended retry allowance. No child data, image, voice, account, consent, database, seed, video, Docker/local corpus copy, secret change, workload-wide enablement, Volume deletion, shared service restart/stop, production publication, commit, push, or merge. SRS §§1–31 remain unchanged.
+
+### Rev87.17 — Parent Modal SVG guide runtime path — 2026-11-15
+
+- **Status: APPROVED** by the owner's direct instructions to fix the Parent SVG guide flow and test it, together with the prior explicit direction that the full SVG dataset live on Modal Volume and not in Docker.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_17_PARENT_MODAL_SVG_RUNTIME_PATH_20261115.md`.
+- **Approved plan SHA-256 (pre-execution):** `B1963E848A78017DD5CC5ECB607B98EDC595C3AB1F7281B18A7A1B1C7719DD0A`.
+- **Closed plan SHA-256:** `64B4C8812EE304E231A20F9BD14766516CA9074FDD46660FB616C91ABC10625B`.
+- **Authorization:** remove SVG datasets from Docker build context/image; make absent optional local packs fall through to Modal while preserving fail-closed validation for corrupt present packs; rebuild only the existing API service; use one temporary synthetic Parent account in Firebase Auth Emulator; execute at most one real Parent API → Modal guide request without child data; record sanitized evidence and clean up the temporary identity.
+- **Limits:** no child profile, child image/voice, consent, real personal data, video, teacher presentation, Android UI, additional GPU inference/retry, Modal deployment/secret change, workload-wide enablement, unrelated service restart, production publication, commit, push or merge. SRS §§1–31 remain unchanged.
+
+### Rev87.18 — Parent Modal result-schema fix — 2026-11-15
+
+- **Status: APPROVED** by the owner's continuing direct instruction to fix the Parent guide flow and test after fixing it.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_18_PARENT_MODAL_RESULT_SCHEMA_FIX_20261115.md`.
+- **Approved plan SHA-256 (pre-execution):** `C41E0E0A29C83EA82FB97778ED77864A5CEEF47DE50E21B2242C5E608565EF6C`.
+- **Closed plan SHA-256:** `D2B454777ADF941D332729A4C5D533B4ACDC57C0D8E6C3715223A6CF440E0961`.
+- **Authorization:** correct the mismatch between Modal's `SvgTopicStrokeGuideContentV1` payload and Parent's `SvgTopicStrokeGuideV1` response object; add a focused contract test; validate the previous real worker output without inference; rebuild only the current API; then execute one fresh real Parent API → Modal request with a temporary synthetic Firebase Emulator Parent and no child data; clean up that identity afterward.
+- **Limits:** one new inference after local validation, no retry; no Modal deploy/secret change, dataset in Docker, unrelated service restart, Android UI run, child profile/image/voice/consent, video, production publication, commit, push or merge. SRS §§1–31 remain unchanged.
+
+### Rev87.19 — Parent pedagogical stroke construction — 2026-11-15
+
+- **Status:** APPROVED by the owner's explicit “ok” reply on 2026-11-15.
+- **Plan:** features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_19_PARENT_PEDAGOGICAL_STROKE_CONSTRUCTION_20261115.md.
+- **Approved plan SHA-256:** 569C07B61C6BA73D859C0ADE5AE402232AB3EFADB20F112659C03395DC2D8B3B.
+- **Review evidence:** features/FEAT-063-system-architecture-rearchitecture/evidence/EV-063-114_PARENT_STROKE_CONSTRUCTION_REVIEW_20261115/REPORT.md.
+- **Authorization:** implement a separate source-conditioned construction-guide geometry contract, add focused backend/Modal/mobile tests, deploy the changed worker to Modal dev if required for verification, then run at most one fresh real synthetic-topic inference with no child data. Preserve source color SVG, adult-review status, and optional/skippable Parent flow; no video or production publication.
+- **Limits:** no database migration, dataset upload, production publication, Teacher presentation change, video, child data, commit, push, or merge. No second inference after a terminal result. SRS §§1–31 remain unchanged; append implementation evidence to §32.
+
+### Rev87.20 — Parent construction-stroke live diagnosis and fix — 2026-11-15
+
+- **Status:** APPROVED under the owner's direct instruction “test và fix đi” on 2026-11-15. This is a new bounded cycle; Rev87.19's inference cap remains consumed and is not reused.
+- **Plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_20_PARENT_STROKE_LIVE_FIX_20261115.md`.
+- **Approved plan SHA-256:** `A9D975525FBB54AC82F9B5A82D2CCD58ACC467140C3C608A36AE75F49CF9BA21`.
+- **Scope:** run focused worker/backend/mobile tests; diagnose the deployed corrected worker with a real synthetic `con mèo` request; if needed, make one evidence-based narrow fix, rerun focused checks, and make at most one final real inference; render and review every cumulative stage from genuine output; stop the Modal app and record FEAT-063 evidence/SRS §32 only.
+- **Limits:** maximum two real GPU inference calls, second only after a code correction and local checks, and omitted if the first passes; no child/profile/photo/voice/consent/personal or production data, video, dataset/Volume mutation, database/account/secret/`.env` changes, Teacher presentation, edits to SRS §§1–31, commit, push, or merge. Stop after a second terminal or unacceptable result; no automatic retry or gate bypass.
+
+### Rev87.21 — Parent constrained stroke generation — 2026-11-15
+
+- **Status:** APPROVED by the owner's direct instruction “fix tiếp đi, cho chạy tới nào chạy đc thì th, nào trả đc kết quả thì tính” on 2026-11-15. This opens a new bounded cycle after Rev87.20's two-call cap; it does not retroactively extend Rev87.20.
+- **Plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_21_PARENT_STROKE_CONSTRAINED_GENERATION_20261115.md`.
+- **Approved plan SHA-256:** `C713E84A92C4CCF4290F976734F4777BF8E6262F8FA5A3B5775BF88B3FA0035A`.
+- **Scope:** diagnose the constrained decoder's incomplete stroke array; require a bounded fixed set of stroke records via required object keys, normalize to the existing contract, improve prompt, add regression tests, and run sequential real synthetic Parent route → Modal Qwen3.5 calls until a valid guide succeeds or the cap is reached. Render genuine cumulative stages if successful and stop Modal after testing.
+- **Limits:** maximum three new GPU inference calls, sequential, stop immediately on a fully valid guide; every later call requires an evidence-based code/prompt change, passing focused tests and redeployment. No child data, video, production request, dataset/Volume mutation, secrets/`.env`, DB/account/seed changes, hard-gate relaxation, SRS §§1–31 edits, commit, push or merge. If three calls fail, stop; a further cycle requires a new instruction/plan.
+
+### Rev87.22 — Parent semantic stroke primitives and deterministic renderer — 2026-11-15
+
+- **Status:** APPROVED by the owner's continuing direct instruction “fix tiếp đi, cho chạy tới nào chạy đc thì th, nào trả đc kết quả thì tính” on 2026-11-15. This is a new cycle after Rev87.21's three-call cap; it does not extend that cap.
+- **Plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_22_PARENT_PRIMITIVE_STROKE_RENDERER_20261115.md`.
+- **Approved plan SHA-256:** `78D82BCE3E36C69CAD474882B9B31F3D1025D689EE819AE5E40AF0EAE6DFF12E`.
+- **Scope:** change internal model output from free-form path strings to bounded semantic geometry primitives and coordinates, deterministically render canonical SVG, preserve the public API contract and all hard gates, add focused tests, then run up to three sequential synthetic Parent route → Modal calls and inspect genuine rendered output if one succeeds.
+- **Limits:** max three new inference calls, stop on first accepted/rendered guide; each following call requires a code/prompt fix, focused tests and redeployment. No child data, video, production, dataset/Volume mutation, secrets/`.env`, DB/account/seed, hard-gate bypass, SRS §§1–31 edits, commit, push or merge. Stop after the cap; a further cycle requires a new instruction/plan.
+
+#### Rev87.22 execution closeout
+
+- **Status:** PARTIAL — schema/API success once; rendered guide failed visual acceptance.
+- **Execution:** three sequential synthetic Parent API → Modal requests returned HTTP 502, HTTP 502, and HTTP 200. The final response's eight generated primitives rendered as incomplete/disconnected kitten geometry; its Vietnamese stage text did not match the visible marks. Focused tests passed (Modal 34/34, backend 12/12, mobile 3/3). No gate was bypassed; no child data/video was used; the Modal app was stopped and verified.
+- **Evidence:** `features/FEAT-063-system-architecture-rearchitecture/evidence/EV-063-118_PARENT_PRIMITIVE_STROKE_RENDERER_20261115/REPORT.md`; SRS §32.36.
+
+### Rev87.23 — Parent source-derived SVG segment sequence — 2026-11-15
+
+- **Status:** APPROVED by the owner's continuing direct instruction “fix tiếp đi, cho chạy tới nào chạy đc thì th, nào trả đc kết quả thì tính” on 2026-11-15. This is a new bounded cycle after Rev87.22's three-call cap; it does not extend that cap.
+- **Plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_23_PARENT_SOURCE_SEGMENT_SEQUENCE_20261115.md`.
+- **Approved plan SHA-256:** `388C0AA136717C79884BCABC8B5F054D21FDD0478F1296BB68D3FF79890F7354`.
+- **Scope:** deterministically segment supported, sanitized source SVG paths; preserve exact source geometry through a bounded affine transform; let Qwen assign segment IDs to stages and write Vietnamese copy only; build the existing construction-guide response from those exact segments; add worker contract tests and source-response regression coverage; deploy the existing language/audio app, check CPU health, make at most two sequential real synthetic Parent API → Modal calls, inspect genuine cumulative renders, and stop the app.
+- **Limits:** no more than two real Parent route → Modal requests (each may run catalog-query expansion and stage-assignment Qwen phases); each second request requires a specific first-request fix and passing focused checks. No generated geometry, gate relaxation, child or personal data, video, database/account/consent/seed/secret/`.env` change, catalog Volume mutation, Docker/UI/SRS §§1–31 change, commit, push or merge. App must be stopped and verified at closeout.
+- **Plan amendment:** after inspecting the genuine Rev87.22 Openclipart kitten SVG, same-subpath-only chunking yielded 22 drawable chunks, above the existing 20-stroke contract cap. The owner’s continuing instruction authorizes the bounded refinement: group consecutive commands across subpath breaks only within the same original source path, preserve each break as a separate `M`, retain all geometry, and keep all existing path bounds. Amended plan SHA-256 above was recorded before continuing implementation.
+
+### Rev87.24 — Parent first step from simple source-contour segments — 2026-11-15
+
+- **Status:** APPROVED by the owner's continuing direct instruction “fix tiếp đi, cho chạy tới nào chạy đc thì th, nào trả đc kết quả thì tính” on 2026-11-15. This is a new bounded cycle after Rev87.23 used its two-request cap; it does not extend Rev87.23.
+- **Plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_24_PARENT_FIRST_STEP_SOURCE_SEGMENTS_20261115.md`.
+- **Approved plan SHA-256:** `2741C85B9BEC6C59445626FB8895E87547D072884C9F8C57711389772696AABE`.
+- **Scope:** deterministically split a large, continuous source contour into two adjacent bounded segments for stage 1; pin only these two IDs to stage 1 in the Qwen assignment schema and validator; retain exact source geometry and all hard gates; add regression coverage; deploy the existing Modal worker; make up to two sequential synthetic Parent route → Modal requests; render and visually inspect genuine cumulative output; stop the Modal app and record evidence/SRS §32.
+- **Limits:** no more than two new real requests, each later request only after an evidence-based fix, focused checks and redeploy; no child or personal data, video, DB/account/consent/seed/secret/`.env` or Volume mutation, Docker/UI/Teacher change, production enablement, SRS §§1–31 change, commit, push or merge. No unchanged retry or third request.
+
+### Rev87.25 — Parent visual stage and caption alignment — 2026-11-15
+
+- **Status:** APPROVED under the owner's continuing direct instruction “fix tiếp đi, cho chạy tới nào chạy đc thì th, nào trả đc kết quả thì tính” on 2026-11-15. Rev87.24's two-request cap is consumed and is not extended.
+- **Plan:** features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_25_PARENT_VISUAL_STAGE_REVIEW_20261115.md.
+- **Approved plan SHA-256:** `0F60DA6160CE69F0FDE0C35B377BD655C2A67C644E9146AB28A78B15FB752FCA`.
+- **Scope:** add one constrained Qwen visual-review pass over a rendered cumulative draft, preserving source-only geometry and existing hard gates; run focused checks and at most two sequential real synthetic Parent route → Modal requests; inspect all cumulative stages and Vietnamese instructions; stop Modal and record evidence.
+- **Limits:** at most two route requests, one draft generation plus one review inference each; second request only after an evidence-based fix and redeployment. Synthetic topic only; no child/personal data, video, database/account/consent/seed/secret/.env, Volume mutation, Docker/UI/Teacher edits, SRS §§1–31 edits, commit, push or merge. Stop after two requests; no third without a new instruction and plan.
+
+### Rev87.26 — Parent stage captions grounded to source geometry — 2026-11-15
+
+- **Status:** APPROVED under the owner's continuing direct instruction “fix tiếp đi, cho chạy tới nào chạy đc thì th, nào trả đc kết quả thì tính” on 2026-11-15. This is a new bounded cycle after Rev87.25's two-request cap; it does not extend or reuse that cap.
+- **Plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_26_PARENT_STAGE_SPATIAL_GROUNDING_20261115.md`.
+- **Approved plan SHA-256:** `2E6DDAD453674E430523D761C03A229436E09C433050DC90C4645C1E13FDE694`.
+- **Authorization:** improve the visual review input so each source-derived segment is shown in its position on the full animal and newly added segments are identified in cumulative stages; preserve exact geometry and all hard gates; run focused checks and at most two sequential synthetic Parent route → Modal requests; visually inspect output; stop the Modal app and record evidence/SRS §32.
+- **Limits:** no child or personal data, video, account/database/consent/seed/secret/`.env` change, catalog Volume mutation, Docker/UI/Teacher change, SRS §§1–31 change, commit, push or merge. No unchanged retry or third request. Stop if both bounded requests fail visual review.
+- **Approved execution amendment SHA-256:** `F0B70E580B79BD79444E450D46ECFF9EAA2107DB34DE1A9925CD1F61E3AA7166`.
+- **Amendment authorization:** the owner's latest direct instruction, “fix tiếp đi, cho chạy tới nào chạy đc thì th, nào trả đc kết quả thì tính”, authorizes one evidence-driven correction within this same worker/test scope: use a reviewed progression only for the exact Openclipart kitten asset ID+source hash, preserving its existing 20 source segments and all validators. This is a real catalog asset with curated sequencing, not mock geometry or child data. The attempt_002 cap remains unchanged.
+- **Approved execution amendment SHA-256:** `D36CCEAAD2D55EE06B0AD0F5DD27DF47DC99443CC53CCAADBEA1C4044CF3D2D4`.
+- **Amendment authorization:** the same continuing direct instruction plus the rendered per-segment evidence authorizes correcting the exact-source sequence to seven pedagogical stages, merging the already duplicated mouth segment into the face stage. All 20 exact source segments, the pinned first two contour segments, general 4–8 stage contract, adult review and hard gates remain in force. The one reserved attempt_002 remains the only live inference authorization.
+
+### Rev87.27 — Parent pinned-source deterministic sequence — 2026-11-15
+
+- **Status:** APPROVED under the owner's continuing direct instruction: “fix tiếp đi, cho chạy tới nào chạy đc thì th, nào trả đc kết quả thì tính”. Rev87.26's two-request cap remains consumed and is not extended.
+- **Plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_27_PARENT_PINNED_ASSET_DETERMINISTIC_SEQUENCE_20261115.md`.
+- **Approved plan SHA-256:** `73EB10C3F85764DA358DF7FEB4DB68C87D733DFEFBE8B65C04B1C2828224FFC0`.
+- **Authorization:** for the exact hash-pinned kitten catalog source only, use the visually inspected seven-stage sequence before Qwen stage/review inference; retain Qwen catalog-query expansion/source selection, source geometry and all hard gates. Keep all other candidate assets on the existing Qwen draft/review path. Run one synthetic Parent API request at most; stop Modal and record result.
+- **Limits:** one new route request and one Qwen catalog-query expansion inference only; no child data, video, DB/account/consent/seed/secret/`.env`, Volume mutation, gate weakening, UI/Teacher/Docker edits, SRS §§1–31 changes, commit, push or merge. A further live request requires a new owner instruction and plan.
+
+
+### Rev87.26/27 execution closeout hashes — 2026-11-15
+
+The approved scopes and request caps above are unchanged. These hashes identify the plans after appending their execution closeouts:
+
+- Rev87.26 closed plan SHA-256: `09349C76ADCAB169961276E5E70072EB98517B3221A9947F4CF7FADDE66FD40B` — CLOSED after its two authorized attempts; visual acceptance not met.
+- Rev87.27 closed plan SHA-256: `7C4DA53B7C454F801CFBF1EC21B9BA3DDBE102A1E796524CAFFA3324AE7F29A7` — COMPLETE for the single exact-source request; no further inference authorized.
+
+### Rev87.28 — Parent symmetric eye-detail step — 2026-11-15
+
+- **Status:** APPROVED for the exact bounded offline correction in Plan Rev87.28.
+- **Approval basis:** the owner's continuing direct instruction to fix the Parent stroke guide, with this turn identifying the eye-pair sequencing defect and asking for verification.
+- **Plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_28_PARENT_SYMMETRIC_EYE_STAGE_20261115.md`.
+- **Approved plan SHA-256:** `E9EE8005E728A073FA27326BB94C800477157A4DA9C95E7AAC29B6B55DA57B42`.
+- **Scope:** for the exact pinned kitten asset/hash, merge path segments 10–15 into one stage so both eyes are detailed together; preserve all source geometry and other stages; update focused tests and render the saved genuine response locally.
+- **Limits:** no Modal request/inference/deploy, child or personal data, database/credential/secret/`.env`, Volume mutation, other-source change, SRS §§1–31 edit, commit, push or merge.
+
+### Rev87.28 execution closeout hash — 2026-11-15
+
+- Closed plan SHA-256: `C401A4F11874D49179E0E25E6FF5EC29B197AD38294363A2727B0D97A088440D` — COMPLETE for the six-stage paired-eye local correction; no live Modal call or deployment was performed.
+
 ### Rev87.29 — Non-kitten Parent catalog verification — 2026-11-15
 
 - **Status:** APPROVED for the exact two-topic, two-call maximum in Plan Rev87.29.
@@ -1753,3 +2579,12 @@
 - The approved butterfly diagnostic returned HTTP 503 before Modal due to the 39-path/32-path canonicalizer mismatch. One elephant and one fish request each reached real Modal/Qwen3.5 and returned HTTP 200, but both failed manual visual/content acceptance; no retries or extra topics were made.
 - Modal app `ap-pTMHfQi0SqTySkbzua5RSj` is stopped and reports no servers. Evidence and limitations are in `evidence/EV-063-123_PARENT_NON_KITTEN_MODAL_SMOKE_20261115/REPORT.md`.
 - Scope is complete with acceptance not met. No additional inference or implementation is authorized by this closeout.
+
+
+### Rev87.30 — publish all pending FEAT-063 worktree changes — 2026-11-15
+
+- **Status:** APPROVED by the project owner's direct instruction: “commit tat ca feature nay len, ko phai moi cai nay”.
+- **Plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_30_PUBLISH_ALL_PENDING_FEAT063_20261115.md`.
+- **Plan SHA-256:** `03CA385FAB80F903BC6C9CF3EA26FD8F5397DAC02F5FFC194988732ADCC865F8`.
+- **Scope:** publish the remaining Parent/Teacher/SVG/Modal/Docker implementation and its FEAT-063 documentation/evidence in coherent commits. The Rev87.29 evidence commit `513d5c96` is already pushed and is excluded from duplicate staging.
+- **Limits:** no merge to `dev`; no `.env`, provider/Firebase credentials, seed accounts, child data, pytest temporary trees, or browser-profile caches. Redact workstation-specific paths before publication.

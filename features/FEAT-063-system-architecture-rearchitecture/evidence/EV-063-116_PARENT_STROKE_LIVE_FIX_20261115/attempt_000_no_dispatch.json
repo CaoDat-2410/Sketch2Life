@@ -1,0 +1,13 @@
+{
+  "attempt": 0,
+  "status": "NOT_DISPATCHED",
+  "http_status": 504,
+  "elapsed_seconds": 2.636,
+  "request_id": "a0fbdb7b-b0a0-49ea-98b8-731fa4d07084",
+  "modal_call_id": null,
+  "modal_spawn_completed": false,
+  "exception_type": "NotFoundError",
+  "cause": "The deployed Modal dev app was stopped, so Function.from_name could not resolve the worker before spawn.",
+  "gpu_inference_count": 0,
+  "safe_evidence": "attempt_000_route.log and the original response/request summary copied before the real call"
+}

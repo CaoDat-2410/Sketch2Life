@@ -1,0 +1,24 @@
+Rev87.19 focused local verification (2026-11-15)
+
+Backend
+- test_svg_construction_guide.py
+- test_parent_svg_construction_guide_api.py
+- test_parent_svg_source_derived_guide.py
+- Result: 12 passed
+
+Modal worker
+- test_svg_topic_stroke_guide_contract.py
+- Result: 25 passed, 2 asyncio deprecation warnings
+
+Parent mobile
+- svgGuideSourceContract.test.mjs
+- Result: 3 passed
+
+Earlier HTTP harness preflight
+- Result: HTTP 500 in 3.335 seconds; Modal worker was not dispatched.
+
+Real synthetic-topic inference
+- Exactly one call: con mèo; no child data; no video.
+- Result: terminal worker validation rejection, SVG_CONSTRUCTION_GUIDE_GEOMETRY_COMPLEXITY_INVALID.
+- No API guide or rendered image; no retry.
+- The local diagnostics/cap correction and deployment happened after this call; no inference was run against the corrected worker.

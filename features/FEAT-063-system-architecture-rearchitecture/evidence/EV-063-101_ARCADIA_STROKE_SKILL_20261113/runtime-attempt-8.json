@@ -1,0 +1,37 @@
+{
+  "attempt": "Rev87.10-E",
+  "started_at_utc": "2026-11-13T14:04:49.501Z",
+  "api_base": "http://127.0.0.1:58000",
+  "auth_method": "Firebase Auth Emulator existing synthetic Parent",
+  "catalog_http": 200,
+  "catalog_item_count": 0,
+  "inference_count": 1,
+  "outcome": "PARENT_SVG_WORKER_FAILED_INVALID_PATH",
+  "auth_emulator_sign_in_http": 200,
+  "inference_started_at_utc": "2026-11-13T14:04:49.566Z",
+  "svg_draft_http": 502,
+  "elapsed_seconds": 223,
+  "finished_at_utc": "2026-11-13T14:08:32.951Z",
+  "error_code": "MODAL_WORKER_FAILED_TERMINAL",
+  "reason_code": "SVG_TOPIC_GUIDE_PATH_INVALID",
+  "request_id": "3f421f09-c13a-495b-bc41-716692d87f30",
+  "modal": {
+    "call_id": "fc-01M7AKKGC21Z4HFMGX8KYRCJ10",
+    "job_ref": "47e61fa1a2d774f7",
+    "generation_ref": "21784ef764572f5f",
+    "attempt_ref": "6dad0aa6f30967d7",
+    "status": "FAILURE",
+    "stage": "output_parse_and_contract_validation",
+    "error_type": "RuntimeError",
+    "error_code": "SVG_TOPIC_GUIDE_PATH_INVALID",
+    "model": {
+      "id": "Qwen/Qwen3.5-9B",
+      "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
+    },
+    "gpu_class": "L40S|L4|A10",
+    "worker_duration_ms": 212954,
+    "raw_model_output_logged": false
+  },
+  "validated_svg_created": false,
+  "retry_attempted": false
+}

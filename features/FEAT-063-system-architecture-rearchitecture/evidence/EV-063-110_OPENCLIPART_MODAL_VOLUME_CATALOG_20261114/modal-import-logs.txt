@@ -1,0 +1,128 @@
+<LOCAL_USER_DIR>\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\modal\_utils\async_utils.py:43: DeprecationWarning: 'asyncio.WindowsSelectorEventLoopPolicy' is deprecated and slated for removal in Python 3.16
+  asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+<LOCAL_USER_DIR>\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\modal\_utils\async_utils.py:43: DeprecationWarning: 'asyncio.set_event_loop_policy' is deprecated and slated for removal in Python 3.16
+  asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+2026-11-14 23:18:19+07:00 CATALOG_IMPORT_RESOLVED revision=df38e5ef633be067d397df7da19a9f009e69b3bd shards=18
+2026-11-14 23:18:20+07:00 CATALOG_SHARD_START name=openclipart_01.jsonl.zst expected_bytes=1318311615
+2026-11-14 23:18:27+07:00 CATALOG_SHARD_PROGRESS name=openclipart_01.jsonl.zst downloaded_bytes=268435456
+2026-11-14 23:18:32+07:00 CATALOG_SHARD_PROGRESS name=openclipart_01.jsonl.zst downloaded_bytes=536870912
+2026-11-14 23:18:37+07:00 CATALOG_SHARD_PROGRESS name=openclipart_01.jsonl.zst downloaded_bytes=805306368
+2026-11-14 23:18:41+07:00 CATALOG_SHARD_PROGRESS name=openclipart_01.jsonl.zst downloaded_bytes=1073741824
+2026-11-14 23:18:45+07:00 CATALOG_SHARD_DOWNLOADED name=openclipart_01.jsonl.zst bytes=1318311615 elapsed_seconds=25.8
+2026-11-14 23:20:57+07:00 CATALOG_SHARD_COMMITTED name=openclipart_01.jsonl.zst source_rows=20000 stored_cc0_rows=19965 guide_eligible=236 elapsed_seconds=157.3
+2026-11-14 23:20:57+07:00 CATALOG_SHARD_START name=openclipart_02.jsonl.zst expected_bytes=1029273463
+2026-11-14 23:21:04+07:00 CATALOG_SHARD_PROGRESS name=openclipart_02.jsonl.zst downloaded_bytes=268435456
+2026-11-14 23:21:09+07:00 CATALOG_SHARD_PROGRESS name=openclipart_02.jsonl.zst downloaded_bytes=536870912
+2026-11-14 23:21:14+07:00 CATALOG_SHARD_PROGRESS name=openclipart_02.jsonl.zst downloaded_bytes=805306368
+2026-11-14 23:21:18+07:00 CATALOG_SHARD_DOWNLOADED name=openclipart_02.jsonl.zst bytes=1029273463 elapsed_seconds=20.8
+2026-11-14 23:23:42+07:00 CATALOG_SHARD_COMMITTED name=openclipart_02.jsonl.zst source_rows=30000 stored_cc0_rows=29938 guide_eligible=373 elapsed_seconds=164.7
+2026-11-14 23:23:42+07:00 CATALOG_SHARD_START name=openclipart_03.jsonl.zst expected_bytes=1852703709
+2026-11-14 23:25:14+07:00 CATALOG_SHARD_PROGRESS name=openclipart_03.jsonl.zst downloaded_bytes=268435456
+2026-11-14 23:25:54+07:00 CATALOG_SHARD_PROGRESS name=openclipart_03.jsonl.zst downloaded_bytes=536870912
+2026-11-14 23:26:14+07:00 CATALOG_SHARD_PROGRESS name=openclipart_03.jsonl.zst downloaded_bytes=805306368
+2026-11-14 23:26:22+07:00 CATALOG_SHARD_PROGRESS name=openclipart_03.jsonl.zst downloaded_bytes=1073741824
+2026-11-14 23:26:40+07:00 CATALOG_SHARD_PROGRESS name=openclipart_03.jsonl.zst downloaded_bytes=1342177280
+2026-11-14 23:26:48+07:00 CATALOG_SHARD_PROGRESS name=openclipart_03.jsonl.zst downloaded_bytes=1610612736
+2026-11-14 23:26:56+07:00 CATALOG_SHARD_DOWNLOADED name=openclipart_03.jsonl.zst bytes=1852703709 elapsed_seconds=194.3
+2026-11-14 23:30:42+07:00 CATALOG_SHARD_COMMITTED name=openclipart_03.jsonl.zst source_rows=40000 stored_cc0_rows=39924 guide_eligible=454 elapsed_seconds=420.9
+2026-11-14 23:30:42+07:00 CATALOG_SHARD_START name=openclipart_04.jsonl.zst expected_bytes=1224228014
+2026-11-14 23:30:49+07:00 CATALOG_SHARD_PROGRESS name=openclipart_04.jsonl.zst downloaded_bytes=268435456
+2026-11-14 23:30:54+07:00 CATALOG_SHARD_PROGRESS name=openclipart_04.jsonl.zst downloaded_bytes=536870912
+2026-11-14 23:30:59+07:00 CATALOG_SHARD_PROGRESS name=openclipart_04.jsonl.zst downloaded_bytes=805306368
+2026-11-14 23:31:05+07:00 CATALOG_SHARD_PROGRESS name=openclipart_04.jsonl.zst downloaded_bytes=1073741824
+2026-11-14 23:31:08+07:00 CATALOG_SHARD_DOWNLOADED name=openclipart_04.jsonl.zst bytes=1224228014 elapsed_seconds=25.7
+2026-11-14 23:35:13+07:00 CATALOG_SHARD_COMMITTED name=openclipart_04.jsonl.zst source_rows=50000 stored_cc0_rows=49905 guide_eligible=585 elapsed_seconds=270.2
+2026-11-14 23:35:13+07:00 CATALOG_SHARD_START name=openclipart_05.jsonl.zst expected_bytes=1110395325
+2026-11-14 23:35:19+07:00 CATALOG_SHARD_PROGRESS name=openclipart_05.jsonl.zst downloaded_bytes=268435456
+2026-11-14 23:35:23+07:00 CATALOG_SHARD_PROGRESS name=openclipart_05.jsonl.zst downloaded_bytes=536870912
+2026-11-14 23:35:28+07:00 CATALOG_SHARD_PROGRESS name=openclipart_05.jsonl.zst downloaded_bytes=805306368
+2026-11-14 23:35:33+07:00 CATALOG_SHARD_PROGRESS name=openclipart_05.jsonl.zst downloaded_bytes=1073741824
+2026-11-14 23:35:33+07:00 CATALOG_SHARD_DOWNLOADED name=openclipart_05.jsonl.zst bytes=1110395325 elapsed_seconds=20.6
+2026-11-14 23:41:24+07:00 CATALOG_SHARD_COMMITTED name=openclipart_05.jsonl.zst source_rows=60000 stored_cc0_rows=59883 guide_eligible=731 elapsed_seconds=371.3
+2026-11-14 23:41:24+07:00 CATALOG_SHARD_START name=openclipart_06.jsonl.zst expected_bytes=904491251
+2026-11-14 23:41:32+07:00 CATALOG_SHARD_PROGRESS name=openclipart_06.jsonl.zst downloaded_bytes=268435456
+2026-11-14 23:41:39+07:00 CATALOG_SHARD_PROGRESS name=openclipart_06.jsonl.zst downloaded_bytes=536870912
+2026-11-14 23:41:46+07:00 CATALOG_SHARD_PROGRESS name=openclipart_06.jsonl.zst downloaded_bytes=805306368
+2026-11-14 23:41:48+07:00 CATALOG_SHARD_DOWNLOADED name=openclipart_06.jsonl.zst bytes=904491251 elapsed_seconds=23.8
+2026-11-14 23:48:35+07:00 CATALOG_SHARD_COMMITTED name=openclipart_06.jsonl.zst source_rows=70000 stored_cc0_rows=69871 guide_eligible=852 elapsed_seconds=430.9
+2026-11-14 23:48:35+07:00 CATALOG_SHARD_START name=openclipart_07.jsonl.zst expected_bytes=1173643480
+2026-11-14 23:48:47+07:00 CATALOG_SHARD_PROGRESS name=openclipart_07.jsonl.zst downloaded_bytes=268435456
+2026-11-14 23:48:52+07:00 CATALOG_SHARD_PROGRESS name=openclipart_07.jsonl.zst downloaded_bytes=536870912
+2026-11-14 23:48:58+07:00 CATALOG_SHARD_PROGRESS name=openclipart_07.jsonl.zst downloaded_bytes=805306368
+2026-11-14 23:49:03+07:00 CATALOG_SHARD_PROGRESS name=openclipart_07.jsonl.zst downloaded_bytes=1073741824
+2026-11-14 23:49:05+07:00 CATALOG_SHARD_DOWNLOADED name=openclipart_07.jsonl.zst bytes=1173643480 elapsed_seconds=30.3
+2026-11-14 23:57:29+07:00 CATALOG_SHARD_COMMITTED name=openclipart_07.jsonl.zst source_rows=80000 stored_cc0_rows=79836 guide_eligible=943 elapsed_seconds=533.9
+2026-11-14 23:57:29+07:00 CATALOG_SHARD_START name=openclipart_08.jsonl.zst expected_bytes=1697195428
+2026-11-14 23:57:37+07:00 CATALOG_SHARD_PROGRESS name=openclipart_08.jsonl.zst downloaded_bytes=268435456
+2026-11-14 23:57:43+07:00 CATALOG_SHARD_PROGRESS name=openclipart_08.jsonl.zst downloaded_bytes=536870912
+2026-11-14 23:57:48+07:00 CATALOG_SHARD_PROGRESS name=openclipart_08.jsonl.zst downloaded_bytes=805306368
+2026-11-14 23:57:53+07:00 CATALOG_SHARD_PROGRESS name=openclipart_08.jsonl.zst downloaded_bytes=1073741824
+2026-11-14 23:57:58+07:00 CATALOG_SHARD_PROGRESS name=openclipart_08.jsonl.zst downloaded_bytes=1342177280
+2026-11-14 23:58:03+07:00 CATALOG_SHARD_PROGRESS name=openclipart_08.jsonl.zst downloaded_bytes=1610612736
+2026-11-14 23:58:04+07:00 CATALOG_SHARD_DOWNLOADED name=openclipart_08.jsonl.zst bytes=1697195428 elapsed_seconds=35.7
+2026-11-15 00:06:27+07:00 CATALOG_SHARD_COMMITTED name=openclipart_08.jsonl.zst source_rows=90000 stored_cc0_rows=89793 guide_eligible=1050 elapsed_seconds=538.0
+2026-11-15 00:06:27+07:00 CATALOG_SHARD_START name=openclipart_09.jsonl.zst expected_bytes=1586957144
+2026-11-15 00:06:33+07:00 CATALOG_SHARD_PROGRESS name=openclipart_09.jsonl.zst downloaded_bytes=268435456
+2026-11-15 00:06:37+07:00 CATALOG_SHARD_PROGRESS name=openclipart_09.jsonl.zst downloaded_bytes=536870912
+2026-11-15 00:06:42+07:00 CATALOG_SHARD_PROGRESS name=openclipart_09.jsonl.zst downloaded_bytes=805306368
+2026-11-15 00:06:47+07:00 CATALOG_SHARD_PROGRESS name=openclipart_09.jsonl.zst downloaded_bytes=1073741824
+2026-11-15 00:06:52+07:00 CATALOG_SHARD_PROGRESS name=openclipart_09.jsonl.zst downloaded_bytes=1342177280
+2026-11-15 00:06:57+07:00 CATALOG_SHARD_DOWNLOADED name=openclipart_09.jsonl.zst bytes=1586957144 elapsed_seconds=29.9
+2026-11-15 00:16:42+07:00 CATALOG_SHARD_COMMITTED name=openclipart_09.jsonl.zst source_rows=100000 stored_cc0_rows=99757 guide_eligible=1163 elapsed_seconds=615.6
+2026-11-15 00:16:42+07:00 CATALOG_SHARD_START name=openclipart_10.jsonl.zst expected_bytes=1065939173
+2026-11-15 00:16:50+07:00 CATALOG_SHARD_PROGRESS name=openclipart_10.jsonl.zst downloaded_bytes=268435456
+2026-11-15 00:16:55+07:00 CATALOG_SHARD_PROGRESS name=openclipart_10.jsonl.zst downloaded_bytes=536870912
+2026-11-15 00:17:00+07:00 CATALOG_SHARD_PROGRESS name=openclipart_10.jsonl.zst downloaded_bytes=805306368
+2026-11-15 00:17:05+07:00 CATALOG_SHARD_DOWNLOADED name=openclipart_10.jsonl.zst bytes=1065939173 elapsed_seconds=22.6
+2026-11-15 00:27:11+07:00 CATALOG_SHARD_COMMITTED name=openclipart_10.jsonl.zst source_rows=110000 stored_cc0_rows=109736 guide_eligible=1231 elapsed_seconds=628.8
+2026-11-15 00:27:11+07:00 CATALOG_SHARD_START name=openclipart_11.jsonl.zst expected_bytes=1134926944
+2026-11-15 00:27:17+07:00 CATALOG_SHARD_PROGRESS name=openclipart_11.jsonl.zst downloaded_bytes=268435456
+2026-11-15 00:27:22+07:00 CATALOG_SHARD_PROGRESS name=openclipart_11.jsonl.zst downloaded_bytes=536870912
+2026-11-15 00:27:27+07:00 CATALOG_SHARD_PROGRESS name=openclipart_11.jsonl.zst downloaded_bytes=805306368
+2026-11-15 00:27:33+07:00 CATALOG_SHARD_PROGRESS name=openclipart_11.jsonl.zst downloaded_bytes=1073741824
+2026-11-15 00:27:34+07:00 CATALOG_SHARD_DOWNLOADED name=openclipart_11.jsonl.zst bytes=1134926944 elapsed_seconds=22.9
+2026-11-15 00:38:46+07:00 CATALOG_SHARD_COMMITTED name=openclipart_11.jsonl.zst source_rows=120000 stored_cc0_rows=119717 guide_eligible=1352 elapsed_seconds=694.5
+2026-11-15 00:38:46+07:00 CATALOG_SHARD_START name=openclipart_12.jsonl.zst expected_bytes=924422836
+2026-11-15 00:38:52+07:00 CATALOG_SHARD_PROGRESS name=openclipart_12.jsonl.zst downloaded_bytes=268435456
+2026-11-15 00:38:57+07:00 CATALOG_SHARD_PROGRESS name=openclipart_12.jsonl.zst downloaded_bytes=536870912
+2026-11-15 00:39:02+07:00 CATALOG_SHARD_PROGRESS name=openclipart_12.jsonl.zst downloaded_bytes=805306368
+2026-11-15 00:39:04+07:00 CATALOG_SHARD_DOWNLOADED name=openclipart_12.jsonl.zst bytes=924422836 elapsed_seconds=18.3
+2026-11-15 00:51:22+07:00 CATALOG_SHARD_COMMITTED name=openclipart_12.jsonl.zst source_rows=130000 stored_cc0_rows=129696 guide_eligible=1404 elapsed_seconds=756.0
+2026-11-15 00:51:22+07:00 CATALOG_SHARD_START name=openclipart_13.jsonl.zst expected_bytes=1143774185
+2026-11-15 00:51:28+07:00 CATALOG_SHARD_PROGRESS name=openclipart_13.jsonl.zst downloaded_bytes=268435456
+2026-11-15 00:51:33+07:00 CATALOG_SHARD_PROGRESS name=openclipart_13.jsonl.zst downloaded_bytes=536870912
+2026-11-15 00:51:38+07:00 CATALOG_SHARD_PROGRESS name=openclipart_13.jsonl.zst downloaded_bytes=805306368
+2026-11-15 00:51:43+07:00 CATALOG_SHARD_PROGRESS name=openclipart_13.jsonl.zst downloaded_bytes=1073741824
+2026-11-15 00:51:44+07:00 CATALOG_SHARD_DOWNLOADED name=openclipart_13.jsonl.zst bytes=1143774185 elapsed_seconds=22.7
+2026-11-15 01:05:10+07:00 CATALOG_SHARD_COMMITTED name=openclipart_13.jsonl.zst source_rows=140000 stored_cc0_rows=139666 guide_eligible=1526 elapsed_seconds=828.7
+2026-11-15 01:05:10+07:00 CATALOG_SHARD_START name=openclipart_14.jsonl.zst expected_bytes=859708300
+2026-11-15 01:05:18+07:00 CATALOG_SHARD_PROGRESS name=openclipart_14.jsonl.zst downloaded_bytes=268435456
+2026-11-15 01:05:26+07:00 CATALOG_SHARD_PROGRESS name=openclipart_14.jsonl.zst downloaded_bytes=536870912
+2026-11-15 01:05:31+07:00 CATALOG_SHARD_PROGRESS name=openclipart_14.jsonl.zst downloaded_bytes=805306368
+2026-11-15 01:05:32+07:00 CATALOG_SHARD_DOWNLOADED name=openclipart_14.jsonl.zst bytes=859708300 elapsed_seconds=21.9
+2026-11-15 01:18:57+07:00 CATALOG_SHARD_COMMITTED name=openclipart_14.jsonl.zst source_rows=150000 stored_cc0_rows=149651 guide_eligible=1631 elapsed_seconds=826.6
+2026-11-15 01:18:57+07:00 CATALOG_SHARD_START name=openclipart_15.jsonl.zst expected_bytes=1416978178
+2026-11-15 01:19:03+07:00 CATALOG_SHARD_PROGRESS name=openclipart_15.jsonl.zst downloaded_bytes=268435456
+2026-11-15 01:19:30+07:00 CATALOG_SHARD_PROGRESS name=openclipart_15.jsonl.zst downloaded_bytes=536870912
+2026-11-15 01:20:02+07:00 CATALOG_SHARD_PROGRESS name=openclipart_15.jsonl.zst downloaded_bytes=805306368
+2026-11-15 01:20:17+07:00 CATALOG_SHARD_PROGRESS name=openclipart_15.jsonl.zst downloaded_bytes=1073741824
+2026-11-15 01:20:28+07:00 CATALOG_SHARD_PROGRESS name=openclipart_15.jsonl.zst downloaded_bytes=1342177280
+2026-11-15 01:20:29+07:00 CATALOG_SHARD_DOWNLOADED name=openclipart_15.jsonl.zst bytes=1416978178 elapsed_seconds=92.2
+2026-11-15 01:35:23+07:00 CATALOG_SHARD_COMMITTED name=openclipart_15.jsonl.zst source_rows=160000 stored_cc0_rows=159611 guide_eligible=1725 elapsed_seconds=986.1
+2026-11-15 01:35:23+07:00 CATALOG_SHARD_START name=openclipart_16.jsonl.zst expected_bytes=1622429224
+2026-11-15 01:35:29+07:00 CATALOG_SHARD_PROGRESS name=openclipart_16.jsonl.zst downloaded_bytes=268435456
+2026-11-15 01:35:50+07:00 CATALOG_SHARD_PROGRESS name=openclipart_16.jsonl.zst downloaded_bytes=536870912
+2026-11-15 01:35:57+07:00 CATALOG_SHARD_PROGRESS name=openclipart_16.jsonl.zst downloaded_bytes=805306368
+2026-11-15 01:36:02+07:00 CATALOG_SHARD_PROGRESS name=openclipart_16.jsonl.zst downloaded_bytes=1073741824
+2026-11-15 01:36:07+07:00 CATALOG_SHARD_PROGRESS name=openclipart_16.jsonl.zst downloaded_bytes=1342177280
+2026-11-15 01:36:12+07:00 CATALOG_SHARD_PROGRESS name=openclipart_16.jsonl.zst downloaded_bytes=1610612736
+2026-11-15 01:36:12+07:00 CATALOG_SHARD_DOWNLOADED name=openclipart_16.jsonl.zst bytes=1622429224 elapsed_seconds=49.2
+2026-11-15 01:53:01+07:00 CATALOG_SHARD_COMMITTED name=openclipart_16.jsonl.zst source_rows=170000 stored_cc0_rows=169587 guide_eligible=1853 elapsed_seconds=1057.7
+2026-11-15 01:53:01+07:00 CATALOG_SHARD_START name=openclipart_17.jsonl.zst expected_bytes=1021856524
+2026-11-15 01:53:12+07:00 CATALOG_SHARD_PROGRESS name=openclipart_17.jsonl.zst downloaded_bytes=268435456
+2026-11-15 01:53:17+07:00 CATALOG_SHARD_PROGRESS name=openclipart_17.jsonl.zst downloaded_bytes=536870912
+2026-11-15 01:54:14+07:00 CATALOG_SHARD_PROGRESS name=openclipart_17.jsonl.zst downloaded_bytes=805306368
+2026-11-15 01:54:23+07:00 CATALOG_SHARD_DOWNLOADED name=openclipart_17.jsonl.zst bytes=1021856524 elapsed_seconds=81.8
+2026-11-15 02:10:23+07:00 CATALOG_SHARD_COMMITTED name=openclipart_17.jsonl.zst source_rows=178561 stored_cc0_rows=178135 guide_eligible=1923 elapsed_seconds=1041.7
+2026-11-15 02:12:47+07:00 Stopping app - local entrypoint completed.
+2026-11-15 02:12:56+07:00 Runner terminated.

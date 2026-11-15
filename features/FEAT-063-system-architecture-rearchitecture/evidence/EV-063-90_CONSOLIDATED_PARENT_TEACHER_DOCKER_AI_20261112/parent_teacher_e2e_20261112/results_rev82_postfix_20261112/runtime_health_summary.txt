@@ -1,0 +1,15 @@
+Modal app: sketch2life-srs23-flux-image-dev
+Deployment: successful after setting PYTHONUTF8=1 and PYTHONIOENCODING=utf-8; published in 18.079 s.
+CPU /health: {"status":"ok","app":"sketch2life-srs23-flux-image-dev","health_scope":"deployed-app","gpu_allocated":false,"inference_executed":false}
+Post-request Modal container list: []
+
+Docker rev79-parent-local-20261112 service snapshot:
+- API: healthy
+- Modal health sidecar: healthy
+- Firebase Auth Emulator: healthy
+- MinIO: running
+- PostgreSQL: healthy
+- Redis: healthy
+- ClamAV: healthy
+
+The shared Modal App was not stopped. No video or warmup request was sent.

@@ -1,5 +1,94 @@
 # Status
 
+## Rev87.21 Parent constrained SVG generation — partial; no valid guide after three calls (2026-11-15)
+
+- **Lifecycle: PARTIAL; acceptance not achieved.** Fixed-key internal decoding and deterministic normalization are implemented. Focused tests passed: Modal 30/30, backend 12/12, mobile 3/3; compile/diff checks passed.
+- Three sequential synthetic Parent → Modal calls failed the existing geometry gates: duplicate at stroke 5; duplicate at stroke 9 after eight unique paths; first-path complexity failure at 768 characters. Handler durations were 193.140 s, 211.341 s and 446.930 s. These were output-validation failures, not timeouts. No valid SVG/render exists.
+- All three inference slots are consumed. Modal `/health` was CPU-only with no inference; app is stopped and verified. No gate bypass, child data, video, or Android run.
+- Evidence: `evidence/EV-063-117_PARENT_STROKE_CONSTRAINED_GENERATION_20261115/REPORT.md`; SRS §32.35 records as-built evidence only; §§1–31 and unsigned status unchanged.
+
+## Rev87.20 Parent construction-stroke live verification — partial; generation still rejected (2026-11-15)
+
+- **Lifecycle: PARTIAL; acceptance not achieved.** Post-correction focused checks passed: Modal worker 27/27, backend 12/12, Parent mobile 3/3; scoped diff check passed.
+- The first real synthetic `con mèo` inference failed `SVG_CONSTRUCTION_GUIDE_FINAL_FEATURE_MISSING`. After a narrow prompt/diagnostic correction and redeployment, the final permitted call completed model inference but emitted only two duplicate strokes for eight stages. Worker hard gate rejected it as `SVG_CONSTRUCTION_GUIDE_GEOMETRY_COMPLEXITY_INVALID` / `DUPLICATE_STROKE_GEOMETRY`; API returned 502 in 189.152 seconds. This was not a timeout; no valid SVG/render exists.
+- Two actual inference calls were made under Rev87.20 (plus one pre-dispatch 504 with no GPU call); no retry or gate bypass. Modal deployment v2 health passed without GPU/inference, and the app was stopped/verified stopped.
+- Evidence: `evidence/EV-063-116_PARENT_STROKE_LIVE_FIX_20261115/REPORT.md`; SRS §32.34 is as-built only. §§1–31 and unsigned SRS state remain unchanged.
+
+## Rev87.19 Parent pedagogical stroke construction — implementation partial; live result rejected (2026-11-15)
+
+- **Lifecycle: PARTIAL; acceptance not achieved.** The separate source-conditioned construction-guide contract and focused worker/backend/mobile tests are implemented. Local focused tests passed: backend 12/12, Modal worker 25 passed (two asyncio deprecation warnings), mobile 3/3.
+- One real synthetic-topic Qwen3.5 Modal inference ran for `con mèo`. Model inference completed in 146.733 s; the worker rejected its result at output parsing/identity validation with `SVG_CONSTRUCTION_GUIDE_GEOMETRY_COMPLEXITY_INVALID`; Parent handler HTTP 502 in 234.273 s. No SVG/API guide or rendered image exists. The prior combined gate leaves the exact size-versus-duplicate cause unknown.
+- After the terminal attempt, the local cap/prompt/diagnostic correction was deployed to Modal `dev`, then the app was stopped. No second inference was performed, so the corrected worker is not live-verified. No child data, video, Android UI run, or visual-quality acceptance occurred.
+- Exact evidence and focused results: `evidence/EV-063-115_PARENT_CONSTRUCTION_MODAL_TEST_20261115/REPORT.md`. SRS §32.33 is as-built only; target §§1–31 and unsigned status remain unchanged.
+
+## Rev83.4 M1/M2 SVG implementation — source edits complete, verification open (2026-11-13)
+
+- **Lifecycle: source edits complete under the approved manifest; verification and acceptance remain open.** Owner approved M0 defaults and M1/M2 only. No later milestone is implicitly approved.
+- **Authority:** canonical FEAT-063 SRS is unsigned Rev69; Rev68 contains the approved technical baseline and Rev69 adds a source-only as-built note. Plan Rev83.4 SHA-256 `736AB5567FA9F2D9F2C824814B600243AF1B66ACCED971E31C4BCD6FAECB618E`.
+- **Implemented in source:** safe SVG source intake/canonicalization and catalog contracts; exact-hash source/guide reviews and separate curation API; additive catalog migration; Lesson Library guide validation/hydration; Parent catalog/lesson guide playback; Teacher manual path/stage editor, review controls, local undo/redo, 1.5-second autosave, `If-Match` conflict handling and presentation preview.
+- Catalog guide revisions are reusable source-bound records; Lesson Library versions hold immutable presentation snapshots. Parent catalog visibility requires source educator approval, curator approval and exact guide educator approval; `grouping_allowed` is separate. Both renderers consume guide `animation_order`. The approved file manifest excludes the Parent composition type, so the controller retains a local narrow type cast for `listSvgGuides`; a follow-up manifest amendment is needed to remove that type seam.
+- **Not verified:** migration, DB behavior, generated OpenAPI, API requests, UI build, Android/browser playback, concurrency/recovery, sanitizer runtime, catalog review workflow, or renderer SLO. There are no catalog items imported or approved.
+- No Modal inference/deploy/warmup, Docker, secrets, tests/builds, runtime workflow, commit, push, merge, or destructive operation was performed for Rev83.4. Existing uncommitted changes were preserved.
+
+## Shared SVG engine and Parent/Teacher completion — Plan Rev83.3 (2026-11-13)
+
+- Lifecycle: **DRAFT — planning only; awaits explicit implementation approval**.
+- Rev83.3 responds to the third review: SVG stroke/filled-shape metrics are evidence, with exact-revision educator review before curator-enabled grouping; E2E evidence is typed as baseline, existing Parent AI subcase, or task-specific SVG AI; Teacher editor recovery/autosave is specified; renderer performance is measurable; SVG AI capabilities can be disabled independently with no fallback.
+- Candidate thresholds/values remain unapproved pending M0: autosave debounce 1.5 seconds; renderer ≥30 FPS, p95 first render ≤500 ms after decode, p95 step transition ≤150 ms, memory delta ≤64 MiB. Device, measurement method and SLO need owner review.
+- SRS authority remains open: canonical authority pointer/file says Rev60; task-level instructions refer to amendments through Rev64; Rev65 from another checkout is not imported. The 3–5/4–8 step conflict remains blocked; SRS is unsigned.
+- Plan is 1188 lines; SHA-256 `73730C4EF30B4EB1E6CF5581105824F3D3D6EFCBDC0E2EE64C7A71009A0960F4`. No source, SRS/DTR, Docker, Modal, DB, secrets or runtime state changed; no tests or inference ran; no implementation approval, commit or push.
+- Plan: `plan/PLAN_REV83_SVG_ENGINE_AND_PARENT_TEACHER_COMPLETION_20261112.md`; review disposition is §32.
+
+## Shared SVG engine and Parent/Teacher completion — Rev83.2 predecessor (2026-11-13)
+
+- Lifecycle: **DRAFT — planning only; awaits explicit implementation approval**.
+- Rev83.2 adds deterministic source readiness classes/reason codes; Teacher manual guide authoring with immutable revision APIs; a detailed playback profile and Android/Web animation acceptance; and phased M3-A feasibility → Teacher/Parent catalog/manual baseline → M3-B quality POC.
+- Qwen remains disabled until the exact workload passes its own M3-B. FLUX removal remains deferred to M6 after approved baseline and replacement gates. No inference or implementation was performed in this planning revision.
+- SRS authority remains open: canonical authority pointer/file says Rev60; task-level instructions refer to amendments through Rev64; Rev65 from another checkout is not imported. The 3–5/4–8 step count remains blocked pending owner reconciliation. SRS remains unsigned.
+- Rev82 runtime evidence is unchanged and partial; see preceding status record. No new tests, Modal/Docker actions, SRS/DTR edits, migrations, commits or pushes were performed for Rev83.2.
+- Plan: `plan/PLAN_REV83_SVG_ENGINE_AND_PARENT_TEACHER_COMPLETION_20261112.md`; 1153 lines; SHA-256 `BF637F820CF6B984F6F36D59FCEAAB0312E48C2F8449974AA71F8B3D03E4BFB5`.
+
+## Shared SVG engine and Parent/Teacher completion — Plan Rev83.1 (2026-11-13)
+
+- Lifecycle: **DRAFT — planning only; awaits explicit implementation approval**.
+- Rev83.1 incorporates the independent review: separate Qwen path-grouping/topic-guide/static-illustration POCs; semantic stroke parts/dependencies/animation order; `draw_on`/`highlight`/`static`; dedicated Teacher guide-from-selected-SVG API; one canonical guide JSON with on-demand stage cache; Parent adult preview/accept; M0–M6 delivery gates.
+- FLUX remains designated for retirement from the target architecture, but its deployment/worker cannot be removed until M3–M5 acceptance is reviewed. No FLUX fallback for new SVG requests. Previous Rev81/82 code and evidence are preserved.
+- SRS/DTR/code/runtime were not changed. Task-level instructions say amendments through Rev64; current worktree authority/file says Rev60; a Rev65 pointer was observed in another checkout and is not treated as authority. Phase M0 requires owner/maintainer to reconcile exact SRS content/hash. SRS remains unsigned.
+- Rev82 evidence remains partial: Teacher Qwen lesson suggestion and Sketch Deck passed, the FLUX Teacher visual failed its progressive gate, and the fresh Parent drawing outcome was unknown/non-retryable; Parent activity/story were not called. No new tests, builds, Modal calls, Docker operations, SRS edits, migrations, commits or pushes were performed for Rev83.
+- Plan is 1064 lines; §30 maps the review items to plan changes. Proposed quality POC comprises 10–20 topic-to-guide prompts, 20–30 approved SVG grouping cases and 10–20 static illustration prompts (40–70 calls total), starting at 40 and expanding only with additional approval, with per-task educator rubric and an explicit Modal cost/count approval before inference. No POC has run.
+- No implementation approval was recorded; no source, SRS/DTR, Docker, Modal, DB, secret or runtime state was changed, and no tests/inference were run during this review update.
+- Plan: `plan/PLAN_REV83_SVG_ENGINE_AND_PARENT_TEACHER_COMPLETION_20261112.md`; SHA-256 `BAD4C9D149D8E25FDF05859AE3D3B9092045C3600214192FDD7C281935FB5D32`.
+
+## Consolidated Parent/Teacher/Docker Plan Rev81 — 2026-11-12
+
+- Lifecycle: **SUPERSEDED BY THE APPROVED IMPLEMENTATION RECORD BELOW**. The earlier planning-only status predates the owner's “implement plan” instruction and later clarifications.
+- Current plan: `plan/PLAN_REV81_CONSOLIDATED_PARENT_TEACHER_DOCKER_AI_20261112.md`; approved current SHA-256 `494F55A33D56CD0E90D6217A29A6719E08DE2C3ED4CB8D251DF2EC2AFA75960F` is recorded in `approvals/TASK_APPROVAL.md`.
+- Plan detail completed: Parent auth/profile/share/library/settings/notification/quota/history screens; Teacher classroom occurrence; current/proposed API contract matrix; DTR/migration gates; state transitions; real Modal quality gates; Docker/seed matrix; work packages/dependencies and verification matrix. Source implementation is in progress under the approval below.
+- Scope: carry forward the Rev79 Docker/seed/health baseline and Rev80 Parent live-AI verification/Teacher progressive-sketch request, then include the newly described Parent topic/lesson/activity flow and Teacher media-bearing presentation/Manager review.
+- Owner has resolved: adaptive 4–8 guide steps; on-demand guide generation when a lesson has no guide; HTTPS YouTube/Vimeo embed URLs only; one primary activity before script; mismatch topic switch or one retake; and separate School Manager/Admin publication scope. Rev60 still says 3–5 guide steps; that SRS conflict remains open. Other unresolved gates are listed in Plan Rev81 §9.
+- Product authority: canonical FEAT-063 v2.7-draft Rev60 remains unchanged and unsigned. No SRS or Data Table Register edits have been made.
+- Rev79 remains the as-built local baseline with findings in EV-063-88. Rev80 is superseded before source implementation. Rev81 implementation is in progress; no commit, push, merge, `.env` update or service cleanup has been performed.
+
+## Rev79 Parent Docker seed, Firebase and Modal health — 2026-11-12
+
+- Lifecycle: **IMPLEMENTED AND RUNTIME-VERIFIED WITH FINDINGS** under Plan Rev79. No commit, push or merge was requested or performed.
+- Docker: isolated Compose stack is running; PostgreSQL, Redis, MinIO, ClamAV, Firebase Auth Emulator, API and Modal health sidecar are healthy/available. Host ports are explicitly persisted in the single root `.env`; API publishes `127.0.0.1:58000→8000`, avoiding the existing container on 8000. Migration and bucket/seed one-shots exited 0. Alembic reached all heads using `20261110_parent_ctx` → `20261110_parent_lesson_pin`.
+- Seed: first invocation created only synthetic local data; second invocation reported existing account, role, profile, authorization and lesson. Aggregate counts stayed at one identity/profile/revision/authorization/lesson/version/grant and three lesson activities.
+- Parent API: Firebase Emulator sign-in and `/api/auth/v1/me`, consent policy, profile list, local quota, public lesson catalog/detail and active StoryRun read passed. Seed rerun reported existing account, identity, profile and lesson. Expo config confirms Firebase App ID matches the root `.env`, mobile API URL is `http://10.0.2.2:58000`, and Auth Emulator is configured.
+- AI wiring/gate: local Compose API reads `modal_dev`; 28/28 targeted activity service/worker tests pass. Only `materials_text` and `observation_notes` accept punctuation-free fragments; core sentence fields remain complete and punctuated. Docker startup's Modal sidecar deployed in 2.241s and made exactly one `/health` request (`inference_ready=false`, `gpu_allocated=false`).
+- Limits: no live AI inference (including Qwen/catalog selection), no Android UI interaction and no video were performed. Local quota is display-only; synthetic authorization is not legal consent. Modal health success does not establish model/GPU readiness. Existing mobile TypeScript `EXPO_PUBLIC_API_URL` typing diagnostics remain outside this plan. From a nested worktree, Compose must be passed the root `.env` explicitly; from the repository root, it is loaded automatically.
+- Full commands, timings, aggregate counts and evidence limits: `evidence/EV-063-88_PARENT_DOCKER_SEED_MODAL_HEALTH_20261112/API_PARENT_DOCKER_MODAL_REPORT.md`.
+
+## Rev81 consolidated Parent/Teacher implementation — 2026-11-12
+
+- Lifecycle: **IN PROGRESS — implementation approved; no-fixture acceptance applies.** The owner explicitly instructed implementation after the earlier planning pause.
+- Approved plan: `plan/PLAN_REV81_CONSOLIDATED_PARENT_TEACHER_DOCKER_AI_20261112.md`, SHA-256 `6BE36B78F949177FA87DCED2EA620713BFE8A8EFE092B844AD20EC83B7CF71C6`; exact path families and exclusions are in §8.1 and `approvals/TASK_APPROVAL.md`.
+- Runtime verification is **PARTIAL / BLOCKED**, not complete. Parent Android auth/profile/StoryRun/photo flow was exercised with synthetic-only data. FLUX guide failed the cumulative-stroke gate; Qwen3.5 inference completed but invalid JSON left the run awaiting reconciliation. Parent activity/story/video were not called; story-run collection GET returned 405.
+- Rev60 SRS/DTR remain unchanged and unsigned; plan-specific requirements conflicts and §9 open decisions remain explicit. LTX/video inference, production operations, `.env`/secret edits, destructive cleanup, commit and push are excluded.
+- Owner clarifications now bound this implementation: 4–8 progressive stages, on-demand guide for a lesson missing one, and HTTPS YouTube/Vimeo embeds. SRS Rev60's 3–5 limit is not edited and remains an explicit conflict.
+- Docker Modal startup is corrected from a dedicated health-only app to the existing deployed drawing-VLM, language/audio and FLUX apps. Startup makes one internal warmup Function call per selected worker with `inference_executed=false`, then per-app `/health`; no product request/output is sent. It does not redeploy/stop shared apps, retain minimum GPU containers, warm video or disabled SAM2. Warmup/model-load and idle grace are billable until scale-to-zero. The Modal dashboard Containers view is for live instance inspection/debugging only.
+- Live Docker API/PostgreSQL/Auth Emulator/MinIO/Redis/ClamAV are up. Modal sidecar reports DEGRADED: drawing/FLUX warmups were ready but their health probes timed out; language/audio functions return NotFound. Teacher presentation is blocked because no Teacher/org/class or Teacher-authored reviewed lesson is seeded; the one lesson-library seed is Parent-facing. No video inference ran. Detailed report: `evidence/EV-063-90_CONSOLIDATED_PARENT_TEACHER_DOCKER_AI_20261112/parent_teacher_e2e_20261112/REPORT_PARENT_TEACHER_ANDROID_MODAL_E2E_20261112.md`.
+
 ## Rev78/78A/78B Parent catalog-first activity — published to dev (2026-11-11)
 
 - Implementation status: source changes and exact lesson-pin migration are present on codex/feat063-parent-catalog-20261111. Migration is additive and has not been applied to a database.
@@ -789,6 +878,232 @@ Parent Sketch Guide and lesson visuals were not dispatched because Modal `dev` s
 - Static results: TypeScript PASS; Python compile PASS; migration revision graph PASS (30 files, 12 prior heads joined, no unresolved references); repository security validator PASS (7,157 files); `git diff --check` PASS. Ruff/Alembic CLI were not installed; ESLint could not load the configured `jest/globals` environment.
 - No product test suite, live Modal/Firebase operation, database migration, Docker lifecycle, or video call was run. Full Parent SRS flow is not complete: voice/Whisper, video and activities, corrected-subject VLM rerun, history/cancel/delete, durable job reconciliation, and sketch-guide cleanup/safety remain.
 - Detailed scope, changed API routes and limitations: `artifacts/PARENT_API_CONTRACT_REV67_20261110.md`; evidence: `evidence/EV-063-76_PARENT_ANDROID_PROFILE_CONSENT_STORY_FLOW_20261110.md`.
+
+
+## Rev82 Parent/Teacher AI gate and Docker verification — 2026-11-12
+
+- **Status: PARTIAL — bounded verification completed; Parent full AI flow and Teacher visual output not complete.**
+- Docker API/Auth Emulator/PostgreSQL/MinIO/Redis/ClamAV/Modal-health services were healthy. Existing Teacher seed was reused idempotently; no duplicate Teacher tenant entities were created.
+- Teacher lesson-plan suggestion and five-slide Sketch Deck passed through real authenticated APIs and Qwen3.5. FLUX lesson-visual inference reached image generation but the quality gate rejected one Step 4 → Step 5 transition at 9.46% retained ink (<12% hard floor); API returned terminal 502 after 398.967 s. No image output was returned.
+- Focused FLUX progression suite: 10 passed. Earlier focused backend/Modal schema tests: 30 backend passed; 90 Modal passed, 4 skipped.
+- Parent fresh AI workflow was not retried because the only seeded Parent StoryRun remains unknown/non-retryable and the approved plan stops further paid calls after the Teacher visual failure. Existing successful synthetic Parent guide output was reused.
+- Modal worker container list was empty after completion; no video inference was called. Next possible change: permit one 8-step transition down to an 8% hard floor, but this is not implemented/deployed; plan §21 requires a new owner-approved bounded deployment/test amendment.
+- Full details: `../evidence/EV-063-90_CONSOLIDATED_PARENT_TEACHER_DOCKER_AI_20261112/parent_teacher_e2e_20261112/REPORT_REV82_POSTFIX_DOCKER_MODAL_20261112.md`.
+
+## Rev82 §22 bounded real AI continuation — 2026-11-12
+
+- **Status: PARTIAL.** Teacher visual generation passed the relaxed 8-step FLUX progression gate and returned a review-required image. The existing real Teacher lesson-plan and five-slide Sketch Deck outputs remain successful drafts.
+- Parent signup/Auth Emulator, role, synthetic profile/local-test-consent, StoryRun, Qwen3.5 drawing analysis, topic match and adult subject confirmation passed. The activity worker returned schema-valid JSON and three `NO_MATCH` fallback drafts; backend rejected them for one positive unsafe-action match and missing explicit outdoor settings in two drafts. No story or video call followed.
+- Updated the activity worker prompt to make the per-activity location and safe-material instructions explicit. Retained safety and outdoor gates. The prompt update passed 30 focused offline tests and has **not** been redeployed or live-verified.
+- Three new GPU inferences were used in this continuation (Teacher visual, Parent drawing, Parent activity); no retry. User stopped the three Modal apps after completion. Another activity call and a dependent story call would exceed Plan Rev82 §22's original 4-call hard cap and require a new written plan amendment and approval.
+- Detailed API/worker timings, output files and exact failure boundary: `../evidence/EV-063-90_CONSOLIDATED_PARENT_TEACHER_DOCKER_AI_20261112/parent_teacher_e2e_20261112/REPORT_REV82_LIMITED_PARENT_TEACHER_20261112.md`.
+
+## Rev84 Teacher SVG Modal UI verification — 2026-11-13
+
+- Lifecycle: IMPLEMENTED — one real end-to-end sample passed. Synthetic Teacher Auth Emulator login, authenticated UI route, backend endpoint, Modal Qwen3.5 inference, strict response validation and SVG browser render all succeeded without fixtures.
+- API returned HTTP 200 in 221.684 s; output is DRAFT/review-required/not persisted, with 18 paths. Worker inference took 180.536 s; pinned model checkpoint readiness passed before the call.
+- Open issue: GET /openapi.json returns 500 because SVG catalog contract is missing from runtime OpenAPI components. The direct endpoint is operational. Immediate Modal log summary also missed the terminal event; a subsequent query found worker_succeeded.
+- Cleanup complete: local flag false, isolated Docker and UI/browser processes stopped, Modal app remains deployed with zero live containers. No commit/push.
+- One sample does not establish general visual quality or lesson/presentation integration. Full evidence: ../evidence/EV-063-94_TEACHER_SVG_MODAL_UI_20261113/REPORT.md.
+## Rev85 Teacher SVG dataset-conditioned quality — 2026-11-13
+
+- **Status: FAILED before inference; quality objective not verified.** The pinned dataset pack and deterministic retrieval were deployed, but one real authenticated Teacher UI request failed during dataset_reference_selection with HTTP 502 MODAL_WORKER_FAILED_TERMINAL.
+- Root cause: whole-pack validation rejected cat sample prompet-sample-cat/path-026, stroke_width=20, above the strict worker range 1–12. This happened before Qwen model load/inference; no SVG or screenshot was generated.
+- The API error response is preserved; there was no retry and no test suite run. Do not report any quality improvement or comparison with Rev84.
+- Local capability flag is false and Teacher UI/browser session are closed. Local API remains healthy. The shared Modal app remains deployed; its scale-to-zero could not be confirmed because the post-run container-list command did not return within 30 seconds.
+- Further work needs a separate approval: remove the invalid example from the active pack, preserve/annotate the raw source, refresh hashes, validate every packaged example with the same parser before deployment, then at most one newly approved real UI request.
+- Full diagnostic, hashes and evidence limitations: ../evidence/EV-063-95_TEACHER_SVG_DATASET_QUALITY_20261113/REPORT.md.
+
+
+## Rev86 Teacher SVG dataset-pack correction — 2026-11-13
+
+- **Status: PARTIAL — runtime integration passed; visual quality objective not passed.** The invalid cat was excluded only from the active pack, the raw source snapshot remained byte-identical, hashes were refreshed, and both retained references passed the exact strict worker parser.
+- One real synthetic Teacher UI request returned HTTP 200 through the existing Qwen3.5 Modal worker (225.822 s API elapsed, 19 SVG paths, review-required and not persisted). CPU `/health` passed before the request. No fixture, retry, video, migration, or test suite was used.
+- Visual comparison: connected/grounded limbs and absence of detached props improved; deer recognizability failed because the result reads rabbit-like. No quality pass/generalization claim. Worker terminal-event logging is inconsistent.
+- Cleanup limitation: task API configuration is false but its recreated container remains `Created` due port 8000 being held by a separate healthy API, which was not touched. Modal live-container scale-to-zero was not verified; task Vite/browser ports were closed.
+- Full evidence and exact artifact files: `../evidence/EV-063-96_TEACHER_SVG_DATASET_QUALITY_FIX_20261113/REPORT.md`.
+
+## Rev87.4 curated SVG reference + authoring skill — 2026-11-13
+
+- **Status: IMPLEMENTED LOCALLY; Modal deployment and visual output NOT VERIFIED.** Added one licensed Arcadia Science chicken SVG reference and the MIT whiteboard-animation authoring skill, then wired reference provenance and ordered-stroke principles into the existing SVG guide path.
+- Python/JSON static checks and Teacher UI production build passed. Parent typecheck remains blocked by existing missing Expo environment declarations.
+- The one approved Modal deploy attempt failed before app update because a Windows `Path` was serialized as a non-POSIX remote path. Local path construction was corrected afterward. No retry, Modal health request, inference, Parent UI run, or screenshot was made because Rev87.4's single-attempt gate was consumed.
+- The running local API's OpenAPI does not include the Parent sketch-guide endpoint. No migration, account, `.env`, warmup, fixture, video, or test suite was run. Further deployment/inference requires a new approved amendment. Evidence: `../evidence/EV-063-101_ARCADIA_STROKE_SKILL_20261113/REPORT.md`.
+## Rev87.5 one bounded Modal retry — 2026-11-13
+
+- **Status: STOPPED AFTER DEPLOY ERROR; live integration NOT VERIFIED.** The one authorized Modal deploy exited 1 with a Windows console `charmap` encoding error after image-build output. Remote deployment state is unknown; no Modal health, GPU inference, Parent UI login/request, generated guide, or screenshot followed.
+- Temporary current-worktree API health returned 200, route mount was confirmed by unauthenticated GET 405, but `/openapi.json` remains HTTP 500 due to missing `SVG catalog contract` in runtime components. No authenticated request.
+- The temporary API was stopped/removed; original API and existing Rev79 data services remain untouched. A failed attempt to start default Compose services left `sketch2life-postgres-1` Created/inactive; its volume remains. No migration, seed, account creation, `.env` edit, test suite, or real child data.
+- Rev87.5's one-attempt gate is consumed. New plan/approval required before another deploy or inference. See EV-063-101.
+
+## Rev87.6 Android Parent UI attempt — 2026-11-13
+
+- **Status: STOPPED AT OPEN-RUN RESUME GATE; AI guide not tested.** OpenAPI/runtime API checks passed; Expo Android bundle, emulator launch, synthetic sign-in, profile and current-consent checks passed.
+- The existing open Parent run lacked enough data for the UI to restore the next step. The UI blocked starting a new run, so the approved stop rule prevented reaching topic/guide and no Modal deploy, health or inference was made.
+- Captured auth, home and blocked-resume screens. Temporary API/Metro/emulator were stopped; shared Postgres/Firebase Auth and `.env` remained untouched. Evidence: EV-063-101 `runtime-attempt-3.json` and `REPORT.md`.
+
+
+## Rev87.9 Android Parent E2E — 2026-11-13
+
+- **Status: PARTIAL / acceptance failed before story; not a full-flow pass.** Actual Android UI signup, synthetic profile, drawing upload, context/subject confirmation and two real Qwen3.5 Modal inferences completed. Drawing analysis passed (HTTP 200, 38.191 s); activity suggestion returned HTTP 200 (121.894 s) with 3 fallback drafts after 2 irrelevant butterfly catalog candidates.
+- Optional guide lookup failed due three missing SVG catalog/review DB tables and was skipped without migration. Parent activity cards cannot be selected; story API returned HTTP 422 before Modal because the initial request lacked required selected-activity refs. No story, confirmation or video was produced.
+- Follow-up blockers: run/verify SVG catalog migration in a separately authorized test DB; implement UI selection + request/ref persistence; review activity safety gates; fix Modal terminal-event telemetry. No source was modified by this run.
+- Task API/Metro/emulator stopped; shared services and Modal resources preserved. Detailed evidence: `../evidence/EV-063-101_ARCADIA_STROKE_SKILL_20261113/REPORT.md` and `runtime-attempt-4.json`.
+
+## Rev87.10-A Parent SVG attempt — 2026-11-13
+
+- **Status: STOPPED BEFORE MODAL INFERENCE; no SVG generated.** Parent Android UI displayed the AI fallback after its single catalog attempt failed. The single SVG-draft POST returned HTTP 401 `INVALID_IDENTITY_TOKEN` even after the task API project ID was aligned with the Auth Emulator. No Modal call/GPU inference, render, story or video occurred.
+- Parent UI fallback change is local; focused test passed 4/4. The token-verifier cause remains unresolved; no retry was made.
+- Task API, Metro and emulator stopped. Shared services and Modal apps preserved; `.env` unchanged. Evidence: `../evidence/EV-063-101_ARCADIA_STROKE_SKILL_20261113/runtime-attempt-5.json` and `REPORT.md`.
+
+
+## Rev87.10-B/C — Firebase Auth fix verified; Parent SVG failed — 2026-11-13
+
+- **Auth:** fixed for the current Compose-managed task API by using its existing emulator-host configuration; fresh local Auth Emulator token passed `/api/auth/v1/me` (HTTP 200, active Parent). The stale port-18000 API remains untouched and lacks `FIREBASE_AUTH_EMULATOR_HOST`; current task API is on the root `.env` port 58000.
+- **SVG:** catalog GET remains 503 `DATABASE_UNAVAILABLE` (no migration). One real SVG request reached Qwen3.5 Modal, then failed `SVG_TOPIC_GUIDE_PATH_INVALID` after 766.801 s inference / 805.853 s worker time; API returned 502 after 820.282 s. No valid SVG, no retry.
+- **UI:** Android UI not tested because SDK/adb/emulator were unavailable. Do not claim UI E2E or generated SVG success.
+- **Telemetry:** initial API log summary missed the worker terminal event; posthoc Modal log query found terminal `worker_failed` and the parser failure.
+- Evidence: `evidence/EV-063-101_ARCADIA_STROKE_SKILL_20261113/runtime-attempt-6.json`, `REPORT.md`. No code/auth bypass, DB migration, `.env` edit, seed/account/profile mutation, video, commit or push.
+
+
+## Rev87.10-D — SVG catalog database fixed — 2026-11-13
+
+- **PASS:** applied targeted migration `20261113_svg_catalog_review` to the existing development Postgres; current revision advanced from `20261110_parent_lesson_pin` for this branch only.
+- All three SVG catalog tables now exist; owner-scope check is validated; two immutable triggers exist. Existing `core_asset_metadata` remains at 14 rows.
+- Authenticated Parent catalog API now returns HTTP 200 and `SvgGuideCatalogPageV1` with 0 items. No seed/fixture or AI request; catalog has no approved entries yet.
+- No unrelated Alembic heads were migrated. API remains healthy on port 58000. Evidence: EV-063-101 `runtime-attempt-7.json`, `REPORT.md`.
+- **Rev87.10-E — Parent SVG real request:** Auth Emulator sign-in, API health, and catalog GET passed; catalog had 0 items. One real API-to-Modal Qwen3.5 request failed HTTP 502 after 223 seconds with `SVG_TOPIC_GUIDE_PATH_INVALID` at `output_parse_and_contract_validation`. No valid SVG, retry, fixture, or child data. Exact offending path field is not available because raw model output was not logged. Evidence: EV-063-101 `runtime-attempt-8.json` and `REPORT.md`. Further inference requires a new bounded approval.
+
+## Rev87.10-F/G/H — Parent SVG decoder fix and final verification — 2026-11-13
+
+- Removed the unsupported LMFE schema combination for patterned SVG `path_id`/`d`; retained regex and parser bounds. Focused tests **4/4 passed**; worker compile passed; one approved Modal deployment completed.
+- One final real Parent API request passed health, Auth Emulator sign-in, `/api/auth/v1/me`, and empty catalog lookup. Modal `fc-01M7AQ14QMS06Z00GR5P8X17AH` reached inference (364.985 s), then failed output parsing with `SVG_TOPIC_GUIDE_JSON_INVALID`; worker total 388.003 s. API logged HTTP 502; request `cda21ec2-0531-4025-b637-bd7228e193fc`.
+- No valid SVG/render was returned. Client saw `TypeError` at 307.345 s; cause was not captured. Parser-before-truncation-check ordering leaves malformed vs truncated output unresolved. No retries or video; inference cap consumed. See EV-063-101 `runtime-attempt-10.json` and `REPORT.md`.
+## Rev87.10-I — Parent SVG truncation diagnosis — 2026-11-13
+
+- **Code:** worker EOS/token-cap classification and privacy-safe SVG diagnostics added; backend Modal log allowlist extended.
+- **Verification:** worker focused tests **6/6 passed**, worker compile passed, backend safe log-summary check passed.
+- **Deployment/runtime:** one language/audio app deployment completed; only task API was rebuilt and is healthy (`/health` 200). Health/Auth `/me`/catalog preflight passed.
+- **AI result:** one real Qwen3.5 Parent API request failed HTTP 502 after 395.670 s because generation reached 6,144 output tokens without EOS (`MODAL_SVG_TOPIC_GUIDE_OUTPUT_TRUNCATED`). No validated SVG returned; no retry.
+- **Next gate:** one-attempt allowance is exhausted. Any token-budget/prompt change and inference needs a new bounded plan and approval. No video, fixture or child data used.
+- Detailed record: `evidence/EV-063-101_ARCADIA_STROKE_SKILL_20261113/runtime-attempt-11.json` and `REPORT.md`.
+## Rev87.10-M/N/O/P — Parent chicken SVG prompt corrections and final bounded request — 2026-11-14
+
+- **Code checks:** focused SVG worker tests **10/10 passed**; worker compile passed; backend chicken-topology tests **2/2 passed**; scoped `git diff --check` passed. The language/audio Modal app deployed once.
+- **Preflight:** API health, Auth Emulator sign-in, Parent `/me`, and catalog returned HTTP 200; SVG flag enabled and Modal credentials present as runtime booleans; catalog has zero approved `con-ga` guides.
+- **Final request:** one authenticated real Parent SVG request, no child data, topic `con gà`. Qwen3.5 worker/parser succeeded (9 paths, 9 parts, 8 stages), but API returned HTTP 502 `SVG_CHICKEN_ANATOMY_ENDPOINT_DISCONNECTED` after about **253 s**. The neck endpoint still misses the head; beak length and both leg descents still fail hard gates.
+- **Timeout assessment:** 1,800-second deadline retained. This was a geometry rejection, not a timeout. No timeout increase, gate relaxation, raw-output persistence, retry, or second inference.
+- **Boundary:** Rev87.10-P's single inference allowance is consumed. No SVG/render, story/video, child data, fixture, database/account/profile/consent mutation, `.env` change, or shared-service stop. See `evidence/EV-063-101_ARCADIA_STROKE_SKILL_20261113/runtime-attempt-20.json` and `REPORT.md`.
+
+## Rev87.11 — Parent chicken source-derived SVG — 2026-11-14
+
+- Final backend Docker image returned a real SvgTopicStrokeGuideSourceDraftV1 for con gà: HTTP 200, 19 paths, six progressive stages, 0.027 s. SVG and 1024×1024 render are saved in EV-063-102.
+- Arcadia CC0 source hash verified; derivation is separately versioned and does not copy source paths. Existing SVG sanitization and chicken anatomy/topology validation pass. Modal was not called for this supported topic.
+- Backend focused tests 7/7 passed; mobile focused tests 6/6 passed; standalone changed-contract TypeScript check passed; Docker image build and final image route call passed.
+- Focused FastAPI TestClient overrides auth and database dependencies; this does not prove Firebase-authenticated or Android end-to-end behavior. Full mobile project typecheck still reports existing Expo environment typing errors in unrelated config files. Guide is chicken-only, a private draft requiring educator review; other topics remain on Qwen/Modal.
+- Evidence: evidence/EV-063-102_ARCADIA_PARENT_SOURCE_DERIVED_GUIDE_20261114/REPORT.md.
+
+### Rev87.11-C — corrected stroke/illustration presentation — 2026-11-14
+
+- **PASS (focused):** v2 chicken guide returns 20 open paths in six progressive stages plus a separately sanitized 77-path full-color reference. The source-derived Parent route returned HTTP 200 in 0.045 s; no Modal call.
+- **PASS:** backend focused derivation/route/topology tests **9/9**; mobile focused contract/renderer tests **5/5**; six guide stages and separate reference rendered at 1024×1024 and visually inspected.
+- Standalone TypeScript check for the changed guide domain, screen and renderer passed.
+- **UI:** plain white progressive drawing is the default; a toggle switches to the finished SVG and back while retaining the selected guide stage.
+- **Not verified:** Firebase-authenticated production behavior, Android UI/E2E, full Parent flow, or educator approval. Full mobile typecheck still reports missing `EXPO_PUBLIC_*` declarations in three configuration files.
+- See `evidence/EV-063-102_ARCADIA_PARENT_SOURCE_DERIVED_GUIDE_20261114/REPORT.md`.
+
+### Rev87.11-F — Parent hen guide from observed drawing sequence — 2026-11-14
+
+- **PASS (focused local route):** V5 source-derived Parent request for `gà mái` returned HTTP 200 in 0.082 s with 16 paths and 8 stages; Modal was not dispatched.
+- **PASS (visual):** the provided HTML was run/captured at all 7 steps. The 8 route-derived SVG stages, final strokes and separate full-color reference were rendered individually at 1024×1024 and visually inspected.
+- **PASS (checks):** backend focused tests **12/12**; Parent UI guide contract tests **3/3**. No hard anatomy/topology gate was relaxed. V2/V3/V4 remain preserved; V4 hash is asserted.
+- **LIMIT:** TestClient overrides Parent identity/database dependencies. No Firebase production, Android E2E, educator approval or public catalog result is claimed. Guide remains a private chicken-only draft.
+- **BOUNDARY:** no child/DB/account/consent/seed/`.env` mutation, Modal/GPU call, shared-service restart, commit or push. SRS §§1–31 unchanged; §32.26 records as-built details.
+- Evidence: `evidence/EV-063-105_PARENT_HEN_HTML_ALIGNED_DRAWING_SEQUENCE_20261114/REPORT.md`.
+
+### Rev87.11-H — Parent guide from exact source SVG paths — 2026-11-14
+
+- **PASS (focused route):** Parent request for `gà mái` returned HTTP 200 in 0.090 s, with 77/77 exact source path geometries across eight steps; Modal dispatch was guarded and did not occur.
+- **PASS (visual):** all eight cumulative 1024×1024 stages were rendered and inspected. Final line art matches the pinned chicken's silhouette and defining details; the color source is a separate reference.
+- **PASS (checks):** backend focused tests **9/9**, mobile guide tests **8/8**, backend compilation, source-path identity/coverage and scoped `git diff --check` passed.
+- **LIMIT:** route used TestClient identity/database overrides. No Firebase-authenticated Android E2E, educator approval, or public publication. Only pinned chicken aliases use the exact source path; unsupported topics retain Qwen/Modal.
+- **BOUNDARY:** no Modal inference/deploy, GPU, DB/account/consent/seed/`.env`, child data, shared-service restart, commit or push. SRS §§1–31 unchanged; §32.27 is as-built only.
+- Evidence: `evidence/EV-063-107_PARENT_EXACT_SOURCE_PATH_GUIDE_20261114/REPORT.md`.
+
+### Rev87.13 — Parent multi-dataset SVG guides and final color reveal — 2026-11-14
+
+- **Implemented in source:** pinned OpenMoji turtle/butterfly/dog local source resolver precedes Arcadia/Modal; the Parent guide screen and renderer expose cumulative stages, then show the original color illustration beside the completed line guide with source/license links. Docker allowlist points at the selected OpenMoji pack; existing Arcadia pack remains.
+- **Curated:** OpenMoji 17.0.0, three paired black/color figures, CC BY-SA 4.0. Manual artwork previews were inspected. Noto filled illustrations were rejected for clutter and are not runtime data.
+- **Not verified:** no automated tests, app build, API request, Android run, Modal deployment/inference, or full flow was executed for this change. The route's actual runtime response and final device layout remain unverified.
+- **Evidence:** `evidence/EV-063-108_PARENT_MULTI_DATASET_SVG_GUIDES_20261114/REPORT.md`. SRS §32.28 records this as-built snapshot only; §§1–31 unchanged.
+
+### Rev87.14 — richer Parent SVG guide candidates — 2026-11-14
+
+- **Implemented in source:** added local, hash-pinned Openclipart butterfly/turtle source pairs, source-contour guides, CC0 notice, manifest validation, Docker packaging and Parent source resolution before existing fallbacks.
+- **Manual visual review:** both selected pairs have matching subject/pose and moderate detail, with six progressive groups each. Dog was rejected for dense fur contours; alternate turtle was rejected for pose mismatch.
+- **Scope response:** the selected images are not overly simple for a first richer option; butterfly details and turtle shell segmentation add complexity over emoji art. No age-band or educator validation is claimed.
+- **Not verified:** no automated tests/build, API request, app/browser run, Android emulator, Modal call/deploy, educator review, or child study. Source previews are not UI screenshots.
+- **Evidence:** `evidence/EV-063-109_PARENT_RICHER_OPENCLIPART_GUIDES_20261114/REPORT.md`. SRS §32.29 is as-built evidence only; §§1–31 unchanged.
+
+### Rev87.15 — Openclipart corpus on Modal Volume
+
+- **Implemented in source:** CPU-only resumable importer for the public Openclipart dataset; original compressed shards and CC0 extracted SVG/index are stored in a dedicated Modal Volume v2, never in Docker. Qwen worker has a read-only mount and emits exact-source path ordering; backend verifies source path identity and metadata.
+- **Runtime import:** PASS. All 18 shards of `kawwaaa/openclipart` were imported and hash-verified on Modal Volume v2 `sketch2life-openclipart-catalog-dev`. Final catalog: 178,561 source rows, 178,134 unique CC0 rows, 1,923 guide-eligible SVGs, 110,284,614,262 durable bytes. No corpus copy went to Docker or the repository.
+- **App health:** PASS. `sketch2life-srs23-language-audio-dev` is deployed; CPU `/health` reported the pinned Qwen3.5-9B checkpoint and catalog `ready`, with no GPU allocation.
+- **Real worker inference:** FAIL, not timeout. One generic `con mèo` request generated through model inference but was rejected at path-coverage validation (`SVG_CATALOG_STROKE_PLAN_PATH_COVERAGE_INVALID`). No guide was returned and no retry was sent. No Parent API/UI, Android, or Teacher presentation runtime was tested.
+- **Feature flag:** stays disabled by default. Exact runtime results and logs: `evidence/EV-063-110_OPENCLIPART_MODAL_VOLUME_CATALOG_20261114/REPORT.md`. The code/diagnostics need a follow-up before claiming the Qwen SVG guide is operational.
+- **Evidence:** `evidence/EV-063-110_OPENCLIPART_MODAL_VOLUME_CATALOG_20261114/REPORT.md`.
+
+### Rev87.16 — Qwen Modal catalog stroke flow — 2026-11-15
+
+- **Fixed:** replaced Qwen's unconstrained cross-stage path arrays with a required-key path-to-stage assignment object; strict duplicate-key/path identity/stage gates remain. Renderer still uses only exact catalog source geometry.
+- **Local:** focused contract suite 16 passed, 2 skipped (LMFE package absent locally); scoped Ruff and compile passed.
+- **Modal:** app deployed; `/health` passed with Qwen and catalog ready, no GPU on health. One real synthetic worker request passed in 86.088 seconds: 11/11 source paths assigned exactly once across six steps; guide and color reference share the exact path set. Modal constrained decoder succeeded; no retry.
+- **Not tested:** Parent API/UI/Android, Teacher presentation, video. Product workload remains disabled by default. No child data or Docker dataset copy.
+- **Evidence:** `evidence/EV-063-111_MODAL_QWEN_CATALOG_PATH_ASSIGNMENT_FIX_20261115/REPORT.md`. SRS §32.31 is as-built evidence only; §§1–31 unchanged.
+
+### Rev87.17–87.18 — Parent API → Modal SVG guide — 2026-11-15
+
+- Docker/runtime path: full SVG corpora are excluded from the API image/build context; absent optional local packs fall through to the Modal Volume worker. Compose passes the feature flag; default remains off, local dev test enabled it through the ignored root .env.
+- First end-to-end attempt: Modal/Qwen completed, but API returned 502 because the worker content schema was checked against the API entity schema. No retry was made in Rev87.17; the synthetic identity was deleted.
+- Fix and fresh end-to-end test: distinct SvgTopicStrokeGuideContentV1 validation; one authenticated synthetic Parent request returned HTTP 200 in 102.946 seconds. Qwen3.5-9B produced 11/11 exact Openclipart CC0 source paths across six stages; all eight quality gates passed. Private non-persisted draft; adult review required.
+- Additional checks: prior real worker output passed local validator in the API image; compile passed there; all seven saved SVGs parsed as XML. Focused host pytest could not collect because sqlalchemy is missing; Android UI, video and Teacher runtime were not tested.
+- Cleanup: Firebase Auth Emulator identity and one backend row deleted; no child/profile/photo/voice/consent data; no further inference.
+- Evidence: evidence/EV-063-112_PARENT_MODAL_API_GUIDE_RUNTIME_20261115/REPORT.md and evidence/EV-063-113_PARENT_MODAL_API_GUIDE_SCHEMA_FIX_20261115/REPORT.md.
+
+### Rev87.22 — Parent guide primitive-rendering attempt — PARTIAL / VISUAL FAIL
+
+- Three real synthetic Parent route → Modal calls returned HTTP 502, HTTP 502, and HTTP 200. The successful payload passed API/schema and hard worker checks, but its rendered kitten was incomplete and its step copy did not match the geometry; it is not accepted as a usable guide.
+- Focused checks passed: Modal worker 34/34, backend 12/12, Parent mobile 3/3. Live verification used only the synthetic topic `con mèo`, no child data or video.
+- Modal language/audio app stopped and verified; no catalog Volume mutation. Full output/renders: `evidence/EV-063-118_PARENT_PRIMITIVE_STROKE_RENDERER_20261115/REPORT.md`.
+- Next bounded experiment: exact source-derived SVG segments with AI stage assignment/copy, recorded in Plan Rev87.23. This does not change SRS target requirements.
+
+### Rev87.19 — Parent construction-stroke redesign — IN PROGRESS
+
+- Review finding: the current Qwen catalog worker sequences every exact source path; it does not author child construction strokes. The real kitten output starts by revealing the full outline, then adds facial details and fur.
+- Recommendation: retain the Modal Volume source/color illustration, but create a separate, simplified 4–8-step construction-guide geometry contract with source feature anchors. Adult review remains required.
+- Owner approved Rev87.19. Implementation scope now covers the separate source-conditioned construction-guide contract, focused worker/backend/mobile checks, and at most one real Modal inference.
+- No code or worker was changed and no new inference has been sent yet; implementation and verification are now in progress.
+- Plan: plan/PLAN_REV87_19_PARENT_PEDAGOGICAL_STROKE_CONSTRUCTION_20261115.md.
+- Evidence: evidence/EV-063-114_PARENT_STROKE_CONSTRUCTION_REVIEW_20261115/REPORT.md.
+
+### Rev87.26/27 — Parent source-derived construction guide — COMPLETE FOR PINNED CAT SOURCE
+
+- Rev87.26 attempt_001 returned HTTP 200 but failed visual acceptance; attempt_002 returned HTTP 502 because Qwen visual review produced an empty stage. Logs confirm completed inference and a hard validation rejection, not a timeout.
+- Rev87.27 added an exact asset/hash-scoped seven-stage progression. The one real synthetic Parent route returned HTTP 200 in 73.116 s with 20 unchanged source paths, all assigned once. Rendered cumulative steps were manually inspected and captions match the visible marks.
+- Focused checks: Modal 49/49, backend 12/12, Python compilation passed, focused Ruff passed. Full-file Modal worker Ruff remains non-clean with 16 existing findings; no unrelated cleanup was done.
+- Modal Qwen3.5/catalog CPU `/health` passed. App stopped and verified `stopped`, 0 tasks.
+- The response remains a private draft requiring adult review. Only this pinned monochrome kitten source has visual evidence; Android/Firebase, colored reference, other source topics, educator approval and child comprehension remain unverified.
+- Plan and evidence: `plan/PLAN_REV87_26_PARENT_STAGE_SPATIAL_GROUNDING_20261115.md`, `plan/PLAN_REV87_27_PARENT_PINNED_ASSET_DETERMINISTIC_SEQUENCE_20261115.md`, `evidence/EV-063-121_PARENT_STAGE_SPATIAL_GROUNDING_20261115/REPORT.md`. SRS §32.37 is as-built evidence only; §§1–31 unchanged.
+
+### Rev87.28 — Parent paired-eye step correction — COMPLETE LOCALLY
+
+- Confirmed the reported asymmetry: the genuine response put right-eye detail in stage 4 and the remaining eye details in stage 5.
+- Exact pinned source now groups segments 10–15 into a single paired-eye step; the guide has six stages and preserves all 20 paths exactly once.
+- Modal worker tests: 50 passed. Compilation and offline re-render passed; stage 4 visually shows both eyes receiving detail together.
+- No Modal request/deploy was performed. The saved Rev87.27 live result remains seven stages until a separately authorized live verification.
+- Evidence: `evidence/EV-063-122_PARENT_SYMMETRIC_EYE_STAGE_20261115/REPORT.md`; SRS §32.38.
+
 
 ### Rev87.29 — Parent generic non-kitten catalog verification — COMPLETE; QUALITY NOT ACCEPTED
 

@@ -1,0 +1,23 @@
+{
+  "status": "READY",
+  "dataset_id": "kawwaaa/openclipart",
+  "dataset_revision": "df38e5ef633be067d397df7da19a9f009e69b3bd",
+  "shard_count": 18,
+  "source_rows": 178561,
+  "stored_cc0_rows_unique": 178134,
+  "logged_cc0_records_before_source_id_dedup": 178135,
+  "duplicate_cc0_source_record_count": 1,
+  "guide_eligible": 1923,
+  "rejected_rows": 176638,
+  "source_shard_bytes": 22340611707,
+  "stored_svg_bytes": 87741484027,
+  "catalog_database_bytes": 202518528,
+  "stored_total_bytes": 110284614262,
+  "volume_name": "sketch2life-openclipart-catalog-dev",
+  "volume_version": 2,
+  "environment": "dev",
+  "resolved_at": "2026-11-14T23:18:19+07:00",
+  "verified_by": "importer READY result; all 18 source shards were size/hash verified before active manifest",
+  "copied_to_docker": false,
+  "copied_to_local_repository": false
+}

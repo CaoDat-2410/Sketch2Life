@@ -1,0 +1,71 @@
+{
+  "review_confirmed": true,
+  "plan_revision_ref": "rev82-e2e-teacher-reviewed-20261112",
+  "topic": "Con hươu",
+  "target_age_months": 60,
+  "objectives": [
+    "Quan sát hình dáng và các bộ phận bên ngoài của hươu",
+    "Diễn đạt điều trẻ quan sát bằng lời hoặc tranh"
+  ],
+  "drawing_steps": [
+    {
+      "action": "Vẽ vòng tròn nhỏ làm đầu hươu",
+      "placement": "Ở giữa trang, nằm ngang"
+    },
+    {
+      "action": "Thêm hình bầu dục dài làm thân",
+      "placement": "Nối vào phần trước của thân, hướng lên"
+    },
+    {
+      "action": "Vẽ hai chân trước và hai chân sau thẳng",
+      "placement": "Phía trên cổ, hướng mặt về phía trước"
+    },
+    {
+      "action": "Thêm đuôi ngắn ở phía sau",
+      "placement": "Bên dưới thân, phân bố đều"
+    },
+    {
+      "action": "Vẽ hai sừng cong trên đỉnh đầu",
+      "placement": "Trên đỉnh đầu, đối xứng hai bên"
+    },
+    {
+      "action": "Thêm hai mắt tròn và mũi nhỏ",
+      "placement": "Trên lưng và sát mép dưới trang"
+    },
+    {
+      "action": "Vẽ vài nét lá cây xung quanh",
+      "placement": "Theo vị trí quan sát được trên con vật"
+    },
+    {
+      "action": "Tô màu xanh lá và nâu cho tranh",
+      "placement": "Ở phần còn trống quanh chủ thể"
+    }
+  ],
+  "subject_knowledge": [
+    "Hươu có sừng bằng xương, không bao giờ rụng",
+    "Chúng ăn thực vật và sống theo đàn",
+    "Hươu con đi theo mẹ để tìm thức ăn",
+    "Quan sát chân hươu giúp trẻ hiểu về cấu trúc cơ thể động vật",
+    "Vẽ giúp trẻ ghi nhớ đặc điểm hình dáng con hươu"
+  ],
+  "activities": [
+    {
+      "activity_ref": "rev82-e2e-activity-1",
+      "title": "Quan sát Hươu Trong Vườn",
+      "goal": "Trẻ quan sát hình dáng, sừng, chân và cách di chuyển của con hươu thật hoặc mô hình ngoài trời để nhận biết đặc điểm bên ngoài của loài vật này một cách tự nhiên và an toàn. Trẻ sẽ",
+      "materials": "Mô hình con hươu hoặc ảnh in lớn, khu vực cỏ sạch, kính bảo vệ mắt (nếu cần).",
+      "preparation": "Chọn khu vực an toàn, không có vật sắc nhọn. Đặt mô hình hoặc ảnh ở nơi trẻ dễ tiếp cận. Kiểm tra khu vực xung quanh trước khi cho trẻ ra ngoài. Đảm bảo trẻ mặc",
+      "instructions": "1. Dẫn trẻ đến khu vực có mô hình hoặc ảnh hươu đặt ngoài trời.\n2. Khuyến khích trẻ đứng yên và quan sát kỹ từng bộ phận của con hươu.\n3. Hỏi trẻ về những gì trẻ thấy (sừng, chân, màu lông).\n4. Cho trẻ chạm nhẹ vào mô hình để cảm nhận hình dáng.\n5. Yêu cầu trẻ chỉ vào các bộ phận cụ thể như đầu, thân, đuôi.\n6. Khen ngợi sự chú ý và quan sát của trẻ.\n7. Để trẻ tự do khám phá trong thời gian quy định.\n8. Kết thúc bằng việc hỏi trẻ về điều trẻ thích",
+      "safety_notes": "Kiểm tra kỹ khu vực không có vật sắc nhọn hoặc động vật lạ. Đảm bảo trẻ không chạy quá nhanh để tránh té ngã. Giám sát trẻ khi chạm vào mô hình để tránh hư hỏng. Nếu có ảnh thật,"
+    },
+    {
+      "activity_ref": "rev82-e2e-activity-2",
+      "title": "Vẽ Con Hươu Từ Quan Sát",
+      "goal": "Trẻ diễn đạt những gì đã quan sát được về con hươu thông qua việc vẽ tranh, thể hiện các bộ phận chính như đầu, thân, chân, sừng và đuôi bằng cách sử dụng các hình dạng cơ bản và",
+      "materials": "Giấy vẽ khổ lớn, bút màu, bút chì, tẩy, bảng vẽ ngoài trời (nếu có), khăn lau tay. Mô hình hoặc ảnh hươu làm tài liệu tham khảo đặt gần đó để trẻ nhìn lại khi",
+      "preparation": "Dọn dẹp khu vực vẽ, đảm bảo giấy và bút không bị gió thổi bay. Đặt mô hình hoặc ảnh hươu ở vị trí dễ nhìn. Kiểm tra bút màu không bị khô. Đảm bảo trẻ có đủ",
+      "instructions": "1. Cho trẻ ngồi hoặc đứng ở vị trí thoải mái để vẽ.\n2. Nhắc trẻ nhìn lại mô hình hoặc ảnh hươu để nhớ các bộ phận.\n3. Khuyến khích trẻ bắt đầu vẽ từ phần đầu hoặc thân tùy theo ý thích.\n4. Hỗ trợ trẻ vẽ các hình cơ bản như vòng tròn, hình bầu dục.\n5. Để trẻ tự thêm chi tiết như sừng, chân, mắt, mũi.\n6. Khen ngợi sự sáng tạo và nỗ lực của trẻ trong việc thể hiện con hươu.\n7. Cho trẻ tự do tô màu theo ý thích.\n8. Kết thúc bằng việc hỏi trẻ về bức",
+      "safety_notes": "Giám sát trẻ khi sử dụng bút màu để tránh nuốt phải hoặc trầy xước. Đảm bảo giấy vẽ không bị gió thổi bay gây nguy hiểm. Kiểm tra khu vực vẽ không có vật sắc nhọn. Nếu trẻ"
+    }
+  ]
+}

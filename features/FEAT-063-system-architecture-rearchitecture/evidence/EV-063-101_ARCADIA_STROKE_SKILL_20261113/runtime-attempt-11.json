@@ -1,0 +1,86 @@
+{
+  "amendment": "Rev87.10-I",
+  "started_at_utc": "2026-11-13T16:19:37.4982616+00:00",
+  "environment": "local Docker API -> Modal dev",
+  "data_scope": "synthetic Parent adult account; generic topic only; no child profile, photo, audio, story, or video",
+  "topic": "con gà",
+  "difficulty": "beginner",
+  "api_health": {
+    "error_type": null,
+    "status": 200,
+    "healthy": true
+  },
+  "auth_emulator_sign_in": {
+    "authenticated": true,
+    "status": 200,
+    "error_code": null
+  },
+  "parent_me": {
+    "parent_role_confirmed": true,
+    "status": 200,
+    "error_code": null
+  },
+  "catalog_preflight": {
+    "matching_guide_count": 0,
+    "status": 200
+  },
+  "focused_verification": {
+    "svg_worker_contract_tests": "6 passed",
+    "worker_py_compile": "passed",
+    "backend_safe_log_summary_test": "passed"
+  },
+  "modal_deployment": {
+    "app": "sketch2life-srs23-language-audio-dev",
+    "environment": "dev",
+    "scope": "full language/audio app function set; no other app deployed",
+    "status": "deployed",
+    "elapsed_seconds": 10.747
+  },
+  "task_api_rebuild": {
+    "container": "rev87-parent-authfix-20261113-api-1",
+    "status": "healthy",
+    "post_recreate_health_http": 200,
+    "shared_services_restarted": false
+  },
+  "inference": {
+    "elapsed_seconds": 395.67,
+    "finished_at_utc": "2026-11-13T16:26:13.8464479+00:00",
+    "endpoint": "/api/parent/v1/ai/sketch-guides",
+    "error_code": "MODAL_WORKER_FAILED_TERMINAL",
+    "attempted": true,
+    "status": 502,
+    "dispatched_at_utc": "2026-11-13T16:19:38.1767676+00:00",
+    "client_timeout_seconds": 1800,
+    "request_id": "5a6b5e49-bfb0-4b23-a03e-2e29295247d0",
+    "modal_call_id": "fc-01M7AVABJR7AVEJS9F89B19ZDM",
+    "contract_valid": false,
+    "validated_svg_returned": false,
+    "response_file": null,
+    "worker_diagnostics": {
+      "terminal_event": "worker_failed",
+      "failure_boundary": "worker_terminal_failure_observed",
+      "last_logged_stage": "model_inference",
+      "completion_check_stage": "post_generation_eos_token_check",
+      "error_code": "MODAL_SVG_TOPIC_GUIDE_OUTPUT_TRUNCATED",
+      "diagnostic_event": "svg_topic_stroke_guide_output_truncated",
+      "generation_seconds": 361.621,
+      "worker_duration_ms": 384513,
+      "input_token_count": 1653,
+      "output_token_count": 6144,
+      "max_new_tokens": 6144,
+      "token_limit_reached": true,
+      "ended_with_model_eos": false,
+      "final_token_id": 220,
+      "model_eos_token_id": 248044,
+      "tokenizer_eos_token_id": 248046,
+      "decoded_character_count": 6534,
+      "model_id": "Qwen/Qwen3.5-9B",
+      "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "gpu_class": "L40S|L4|A10"
+    }
+  },
+  "stop_reason": "single_inference_failed; no retry or further deployment authorized",
+  "updated_at_utc": "2026-11-13T16:26:13.8654247+00:00",
+  "finished_at_utc": "2026-11-13T16:26:13.8464479+00:00",
+  "elapsed_seconds": 396.348
+}

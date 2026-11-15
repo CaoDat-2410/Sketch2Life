@@ -1,0 +1,60 @@
+{
+  "schema_version": "Sketch2LifeRuntimeAttemptV1",
+  "evidence_id": "EV-063-101_ARCADIA_STROKE_SKILL_20261113",
+  "plan": "PLAN_REV87_6_OPENAPI_AND_MODAL_UTF8_FIX_20261113.md",
+  "plan_sha256": "20DABC39EDEF01959FFFF26B72344C8DB2662E9243216005D20F3933718AC8E2",
+  "date": "2026-11-13",
+  "execution_target": "Android Pixel_10 emulator",
+  "api_preflight": {
+    "python_static_compile": "PASS for openapi_contract.py and openapi_srs_v22.py in the temporary API container",
+    "health": "HTTP 200",
+    "openapi": "HTTP 200",
+    "parent_sketch_guide_route": "present",
+    "svg_catalog": {
+      "path_entries": 10,
+      "operations": 12,
+      "response_component_refs": "concrete schemas verified",
+      "success_statuses": "200/201 verified"
+    }
+  },
+  "android": {
+    "emulator": "Pixel_10; emulator-5554; x86_64",
+    "package": "com.sketch2life.parentexpo.dev",
+    "expo_android_bundle_ms": 11777,
+    "api_origin": "http://10.0.2.2:8001",
+    "firebase_auth_emulator_origin": "http://10.0.2.2:9099",
+    "firebase_runtime_config": "project/app/API key presence confirmed without recording values",
+    "sign_in": "PASS on corrected entry; first UI text entry returned EMAIL_NOT_FOUND and was corrected before any Parent API call",
+    "profile_and_consent_preflight": "PASS; one synthetic profile was available and authorization_current=true",
+    "active_run": "An existing open run was reported by the app",
+    "resume_action": "BLOCKED; UI displayed: Buổi đang mở chưa có dữ liệu đủ để khôi phục màn tiếp theo. Không tạo buổi mới để tránh trùng.",
+    "new_run_created": false,
+    "profile_or_consent_mutated": false,
+    "guide_screen_reached": false,
+    "authenticated_guide_request": "not sent"
+  },
+  "modal": {
+    "deploy_attempts": 0,
+    "health_calls": 0,
+    "gpu_inference_calls": 0,
+    "reason_stopped": "Android Parent UI preflight could not resume the existing open run; plan stop gate forbids creating/deleting a run or bypassing the UI"
+  },
+  "evidence": {
+    "screenshots": [
+      "screenshots/android-parent-auth.png",
+      "screenshots/android-parent-home.png",
+      "screenshots/android-parent-resume-blocked.png"
+    ],
+    "generated_guide_json": false,
+    "generated_guide_svg": false
+  },
+  "cleanup": {
+    "expo_metro": "stopped",
+    "temporary_api_container": "stopped and removed",
+    "android_emulator": "shut down",
+    "shared_postgres_and_firebase_auth": "left running and untouched",
+    "project_env": "not edited",
+    "subst_drive": "none remained"
+  },
+  "result": "STOPPED_AT_PARENT_UI_RESUME_GATE; no Modal deployment, health call, GPU inference, or generated guide"
+}

@@ -1,0 +1,136 @@
+<repo-root>\.venv-modal\Lib\site-packages\modal\_utils\async_utils.py:43: DeprecationWarning: 'asyncio.WindowsSelectorEventLoopPolicy' is deprecated and slated for removal in Python 3.16
+  asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+<repo-root>\.venv-modal\Lib\site-packages\modal\_utils\async_utils.py:43: DeprecationWarning: 'asyncio.set_event_loop_policy' is deprecated and slated for removal in Python 3.16
+  asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+2026-11-15 12:48:59+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_started","workload":"svg.topic-stroke-guide.generate","job_ref":"54f2e700492c3f34","generation_ref":"8c958332ff9bc2b7","attempt_ref":"1a939a06541b41c2","stage":"worker_entrypoint","timestamp_utc":"2026-11-15T05:48:59.602373+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 12:48:59+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"54f2e700492c3f34","generation_ref":"8c958332ff9bc2b7","attempt_ref":"1a939a06541b41c2","stage":"input_envelope","timestamp_utc":"2026-11-15T05:48:59.602520+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 12:48:59+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"54f2e700492c3f34","generation_ref":"8c958332ff9bc2b7","attempt_ref":"1a939a06541b41c2","stage":"input_envelope","timestamp_utc":"2026-11-15T05:48:59.602582+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":0}
+2026-11-15 12:48:59+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"54f2e700492c3f34","generation_ref":"8c958332ff9bc2b7","attempt_ref":"1a939a06541b41c2","stage":"workload_gate","timestamp_utc":"2026-11-15T05:48:59.602614+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 12:48:59+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"54f2e700492c3f34","generation_ref":"8c958332ff9bc2b7","attempt_ref":"1a939a06541b41c2","stage":"workload_gate","timestamp_utc":"2026-11-15T05:48:59.602638+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":0}
+2026-11-15 12:48:59+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"54f2e700492c3f34","generation_ref":"8c958332ff9bc2b7","attempt_ref":"1a939a06541b41c2","stage":"scratch_volume_reload","timestamp_utc":"2026-11-15T05:48:59.602658+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 12:49:01+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"54f2e700492c3f34","generation_ref":"8c958332ff9bc2b7","attempt_ref":"1a939a06541b41c2","stage":"scratch_volume_reload","timestamp_utc":"2026-11-15T05:49:01.069271+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":1467}
+2026-11-15 12:49:01+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"54f2e700492c3f34","generation_ref":"8c958332ff9bc2b7","attempt_ref":"1a939a06541b41c2","stage":"input_manifest_read","timestamp_utc":"2026-11-15T05:49:01.069405+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 12:49:02+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"54f2e700492c3f34","generation_ref":"8c958332ff9bc2b7","attempt_ref":"1a939a06541b41c2","stage":"input_manifest_read","timestamp_utc":"2026-11-15T05:49:02.425321+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":1356}
+2026-11-15 12:49:02+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"54f2e700492c3f34","generation_ref":"8c958332ff9bc2b7","attempt_ref":"1a939a06541b41c2","stage":"input_contract_validation","timestamp_utc":"2026-11-15T05:49:02.425422+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 12:49:02+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"54f2e700492c3f34","generation_ref":"8c958332ff9bc2b7","attempt_ref":"1a939a06541b41c2","stage":"input_contract_validation","timestamp_utc":"2026-11-15T05:49:02.425459+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":0}
+2026-11-15 12:49:02+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"54f2e700492c3f34","generation_ref":"8c958332ff9bc2b7","attempt_ref":"1a939a06541b41c2","stage":"svg_catalog_reload","timestamp_utc":"2026-11-15T05:49:02.425489+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 12:49:04+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"54f2e700492c3f34","generation_ref":"8c958332ff9bc2b7","attempt_ref":"1a939a06541b41c2","stage":"svg_catalog_reload","timestamp_utc":"2026-11-15T05:49:04.205437+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":1780}
+2026-11-15 12:49:04+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"54f2e700492c3f34","generation_ref":"8c958332ff9bc2b7","attempt_ref":"1a939a06541b41c2","stage":"checkpoint_verification","timestamp_utc":"2026-11-15T05:49:04.205533+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 12:49:04+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"54f2e700492c3f34","generation_ref":"8c958332ff9bc2b7","attempt_ref":"1a939a06541b41c2","stage":"checkpoint_verification","timestamp_utc":"2026-11-15T05:49:04.530429+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":325}
+2026-11-15 12:49:04+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"54f2e700492c3f34","generation_ref":"8c958332ff9bc2b7","attempt_ref":"1a939a06541b41c2","stage":"model_load","timestamp_utc":"2026-11-15T05:49:04.530491+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 12:49:13+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB {"causal_conv1d_available": true, "event": "qwen35_linear_attention_kernel_preflight", "fla_available": true, "import_failures": {}, "reference_fallback_allowed": false}
+2026-11-15 12:49:16+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB
+2026-11-15 12:49:16+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+Loading weights:   0%|          | 0/760 [00:00<?, ?it/s]
+2026-11-15 12:49:17+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB
+2026-11-15 12:49:17+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+2026-11-15 12:49:17+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB Loading weights:   0%|          | 1/760 [00:00<08:50,  1.43it/s]
+2026-11-15 12:49:17+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+Loading weights:   0%|          | 2/760 [00:01<09:22,  1.35it/s]
+2026-11-15 12:49:18+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB
+2026-11-15 12:49:18+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+2026-11-15 12:49:18+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB Loading weights:   2%|▏         | 12/760 [00:01<01:06, 11.19it/s]
+2026-11-15 12:49:18+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+2026-11-15 12:49:18+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB Loading weights:   3%|▎         | 23/760 [00:01<00:31, 23.34it/s]
+2026-11-15 12:49:18+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+2026-11-15 12:49:18+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB Loading weights:   4%|▍         | 30/760 [00:01<00:25, 28.53it/s]
+2026-11-15 12:49:18+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+2026-11-15 12:49:18+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB Loading weights:   6%|▌         | 42/760 [00:01<00:17, 40.59it/s]
+2026-11-15 12:49:18+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+2026-11-15 12:49:18+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB Loading weights:   6%|▋         | 49/760 [00:02<00:16, 41.84it/s]
+2026-11-15 12:49:18+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+2026-11-15 12:49:18+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB Loading weights:   8%|▊         | 59/760 [00:02<00:13, 51.66it/s]
+2026-11-15 12:49:18+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+2026-11-15 12:49:18+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB Loading weights:   9%|▉         | 68/760 [00:02<00:12, 57.41it/s]
+2026-11-15 12:49:18+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+Loading weights:  11%|█         | 81/760 [00:02<00:09, 71.17it/s]
+2026-11-15 12:49:19+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB
+2026-11-15 12:49:19+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+2026-11-15 12:49:19+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB Loading weights:  12%|█▏        | 94/760 [00:02<00:08, 81.21it/s]
+2026-11-15 12:49:19+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+2026-11-15 12:49:19+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB Loading weights:  14%|█▎        | 104/760 [00:02<00:09, 69.49it/s]
+2026-11-15 12:49:19+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+2026-11-15 12:49:19+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB Loading weights:  15%|█▌        | 117/760 [00:02<00:07, 82.14it/s]
+2026-11-15 12:49:19+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+2026-11-15 12:49:19+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB Loading weights:  17%|█▋        | 129/760 [00:03<00:07, 86.67it/s]
+2026-11-15 12:49:19+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+2026-11-15 12:49:19+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB Loading weights:  18%|█▊        | 139/760 [00:03<00:07, 82.21it/s]
+2026-11-15 12:49:19+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+2026-11-15 12:49:19+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB Loading weights:  19%|█▉        | 148/760 [00:03<00:07, 80.72it/s]
+2026-11-15 12:49:19+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+2026-11-15 12:49:19+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB Loading weights:  21%|██        | 157/760 [00:03<00:07, 78.38it/s]
+2026-11-15 12:49:19+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+Loading weights:  22%|██▏       | 169/760 [00:03<00:06, 86.94it/s]
+2026-11-15 12:49:20+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB
+2026-11-15 12:49:20+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+2026-11-15 12:49:20+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB Loading weights:  24%|██▍       | 182/760 [00:03<00:06, 89.22it/s]
+2026-11-15 12:49:20+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+2026-11-15 12:49:20+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB Loading weights:  25%|██▌       | 192/760 [00:03<00:06, 89.96it/s]
+2026-11-15 12:49:20+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+2026-11-15 12:49:20+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB Loading weights:  27%|██▋       | 202/760 [00:03<00:07, 78.93it/s]
+2026-11-15 12:49:20+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+2026-11-15 12:49:20+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB Loading weights:  28%|██▊       | 211/760 [00:04<00:06, 80.53it/s]
+2026-11-15 12:49:20+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+2026-11-15 12:49:20+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB Loading weights:  30%|██▉       | 225/760 [00:04<00:05, 92.66it/s]
+2026-11-15 12:49:20+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+2026-11-15 12:49:20+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB Loading weights:  31%|███       | 235/760 [00:04<00:05, 93.40it/s]
+2026-11-15 12:49:20+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+2026-11-15 12:49:20+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB Loading weights:  32%|███▏      | 245/760 [00:04<00:05, 88.20it/s]
+2026-11-15 12:49:20+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+Loading weights:  33%|███▎      | 254/760 [00:04<00:06, 78.83it/s]
+2026-11-15 12:49:21+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB
+2026-11-15 12:49:21+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+2026-11-15 12:49:21+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB Loading weights:  35%|███▍      | 263/760 [00:04<00:06, 80.73it/s]
+2026-11-15 12:49:21+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+2026-11-15 12:49:21+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB Loading weights:  37%|███▋      | 279/760 [00:04<00:05, 94.05it/s]
+2026-11-15 12:49:21+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+2026-11-15 12:49:21+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB Loading weights:  38%|███▊      | 289/760 [00:04<00:04, 94.86it/s]
+2026-11-15 12:49:21+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+2026-11-15 12:49:21+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB Loading weights:  40%|███▉      | 302/760 [00:04<00:04, 99.75it/s]
+2026-11-15 12:49:21+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+2026-11-15 12:49:21+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB Loading weights:  41%|████      | 313/760 [00:05<00:05, 75.51it/s]
+2026-11-15 12:49:21+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+2026-11-15 12:49:21+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB Loading weights:  43%|████▎     | 329/760 [00:05<00:04, 93.38it/s]
+2026-11-15 12:49:21+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+2026-11-15 12:49:21+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB Loading weights:  45%|████▍     | 340/760 [00:05<00:04, 93.49it/s]
+2026-11-15 12:49:21+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+Loading weights:  46%|████▌     | 351/760 [00:05<00:04, 91.09it/s]
+2026-11-15 12:49:22+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB
+2026-11-15 12:49:22+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+2026-11-15 12:49:22+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB Loading weights:  48%|████▊     | 361/760 [00:05<00:04, 85.27it/s]
+2026-11-15 12:49:22+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+2026-11-15 12:49:22+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB Loading weights:  49%|████▊     | 370/760 [00:05<00:04, 81.15it/s]
+2026-11-15 12:49:22+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+2026-11-15 12:49:22+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB Loading weights:  51%|█████     | 385/760 [00:05<00:04, 87.05it/s]
+2026-11-15 12:49:22+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+2026-11-15 12:49:22+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB Loading weights:  53%|█████▎    | 400/760 [00:06<00:03, 95.48it/s]
+2026-11-15 12:49:22+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+2026-11-15 12:49:22+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB Loading weights:  54%|█████▍    | 413/760 [00:06<00:03, 93.06it/s]
+2026-11-15 12:49:22+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+2026-11-15 12:49:22+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB Loading weights:  56%|█████▌    | 426/760 [00:06<00:03, 101.58it/s]
+2026-11-15 12:49:22+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+2026-11-15 12:49:22+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB Loading weights:  65%|██████▌   | 495/760 [00:06<00:01, 249.56it/s]
+2026-11-15 12:49:22+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+Loading weights:  77%|███████▋  | 588/760 [00:06<00:00, 423.57it/s]
+2026-11-15 12:49:23+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB
+2026-11-15 12:49:23+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+2026-11-15 12:49:23+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB Loading weights:  91%|█████████▏| 695/760 [00:06<00:00, 596.79it/s]
+2026-11-15 12:49:23+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB [1A
+2026-11-15 12:49:23+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB Loading weights: 100%|██████████| 760/760 [00:06<00:00, 112.78it/s]
+2026-11-15 12:49:23+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"54f2e700492c3f34","generation_ref":"8c958332ff9bc2b7","attempt_ref":"1a939a06541b41c2","stage":"model_load","timestamp_utc":"2026-11-15T05:49:23.586284+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":19056}
+2026-11-15 12:49:23+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"54f2e700492c3f34","generation_ref":"8c958332ff9bc2b7","attempt_ref":"1a939a06541b41c2","stage":"catalog_query_expansion","timestamp_utc":"2026-11-15T05:49:23.586412+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 12:50:01+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"54f2e700492c3f34","generation_ref":"8c958332ff9bc2b7","attempt_ref":"1a939a06541b41c2","stage":"catalog_query_expansion","timestamp_utc":"2026-11-15T05:50:01.722667+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":38136}
+2026-11-15 12:50:01+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"54f2e700492c3f34","generation_ref":"8c958332ff9bc2b7","attempt_ref":"1a939a06541b41c2","stage":"catalog_candidate_search","timestamp_utc":"2026-11-15T05:50:01.722812+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 12:50:04+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"54f2e700492c3f34","generation_ref":"8c958332ff9bc2b7","attempt_ref":"1a939a06541b41c2","stage":"catalog_candidate_search","timestamp_utc":"2026-11-15T05:50:04.972493+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":3250}
+2026-11-15 12:50:04+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"54f2e700492c3f34","generation_ref":"8c958332ff9bc2b7","attempt_ref":"1a939a06541b41c2","stage":"catalog_source_render","timestamp_utc":"2026-11-15T05:50:04.972598+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 12:50:05+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"54f2e700492c3f34","generation_ref":"8c958332ff9bc2b7","attempt_ref":"1a939a06541b41c2","stage":"catalog_source_render","timestamp_utc":"2026-11-15T05:50:05.268325+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":296}
+2026-11-15 12:50:05+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"54f2e700492c3f34","generation_ref":"8c958332ff9bc2b7","attempt_ref":"1a939a06541b41c2","stage":"prompt_encoding","timestamp_utc":"2026-11-15T05:50:05.268501+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 12:50:05+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"54f2e700492c3f34","generation_ref":"8c958332ff9bc2b7","attempt_ref":"1a939a06541b41c2","stage":"prompt_encoding","timestamp_utc":"2026-11-15T05:50:05.290812+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":22}
+2026-11-15 12:50:05+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"54f2e700492c3f34","generation_ref":"8c958332ff9bc2b7","attempt_ref":"1a939a06541b41c2","stage":"constrained_decoder_setup","timestamp_utc":"2026-11-15T05:50:05.290924+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 12:50:05+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"54f2e700492c3f34","generation_ref":"8c958332ff9bc2b7","attempt_ref":"1a939a06541b41c2","stage":"constrained_decoder_setup","timestamp_utc":"2026-11-15T05:50:05.293778+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":3}
+2026-11-15 12:50:05+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"54f2e700492c3f34","generation_ref":"8c958332ff9bc2b7","attempt_ref":"1a939a06541b41c2","stage":"model_inference","timestamp_utc":"2026-11-15T05:50:05.293842+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 12:51:10+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"54f2e700492c3f34","generation_ref":"8c958332ff9bc2b7","attempt_ref":"1a939a06541b41c2","stage":"model_inference","timestamp_utc":"2026-11-15T05:51:10.743497+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":65450}
+2026-11-15 12:51:10+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"54f2e700492c3f34","generation_ref":"8c958332ff9bc2b7","attempt_ref":"1a939a06541b41c2","stage":"output_parse_and_source_identity_validation","timestamp_utc":"2026-11-15T05:51:10.744227+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 12:51:10+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"54f2e700492c3f34","generation_ref":"8c958332ff9bc2b7","attempt_ref":"1a939a06541b41c2","stage":"output_parse_and_source_identity_validation","timestamp_utc":"2026-11-15T05:51:10.745085+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":1}
+2026-11-15 12:51:10+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB {"callback_calls": 1778, "dataset_revision": "df38e5ef633be067d397df7da19a9f009e69b3bd", "ended_with_eos": true, "enforcer_decoder_decoded_character_count": 4246, "enforcer_decoder_json_complete": true, "event": "svg_catalog_construction_stroke_guide_generated", "final_model_eos_prefix_parser_can_end": true, "final_model_eos_was_allowed_at_previous_prefix": true, "final_token_id": 248044, "first_step_role_count": 3, "force_stop_parser_calls": 0, "generated_non_eos_special_token_count": 0, "generated_special_token_count": 1, "generation_seconds": 65.45, "incremental_vs_replay_can_end_mismatch": false, "input_token_count": 2019, "last_model_eos_allowed": true, "last_parser_can_end": true, "last_parser_state_class": "JsonSchemaParser", "max_active_string_limit": 120, "max_new_tokens": 12288, "max_observed_string_length": 120, "model_eos_token_ids": [248044], "output_sha256": "d106097f3c609886c01c82a17c7c4e773c9b349c03de62f50eb2e3281a3f4451", "output_token_count": 1778, "path_count": 8, "replay_parser_can_end": true, "replay_parser_error_count": 0, "search_term_count": 7, "source_anchor_count": 7, "source_asset_id": "openclipart-friendly-kitten-icon", "source_sha256": "a5b74eed392104ff9baa2a335b5e8dde9aef40ca7775949a7fbc4a29b7f36594", "stage_count": 4, "string_limit_boundary_checks": 1, "string_limit_boundary_violations": 0, "unbounded_active_string_calls": 693}
+2026-11-15 12:51:10+07:00 fc-01M7EW0PZJ91A32K5FKMPMH6DB {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"54f2e700492c3f34","generation_ref":"8c958332ff9bc2b7","attempt_ref":"1a939a06541b41c2","stage":"terminal","timestamp_utc":"2026-11-15T05:51:10.944624+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":131342,"output_kind":"json","output_size_bytes":10611,"binary_output_bytes":0,"output_sha256":"8a061246d45ee7a4c3f89e040aa37354c03745f026c7f652b4d4123fa5373ca7","binary_output_sha256":null}

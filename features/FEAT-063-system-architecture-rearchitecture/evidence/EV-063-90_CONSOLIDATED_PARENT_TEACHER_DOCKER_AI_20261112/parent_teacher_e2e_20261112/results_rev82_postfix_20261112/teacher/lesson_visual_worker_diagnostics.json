@@ -1,0 +1,62 @@
+{
+  "schema_version": "sketch2life.evidence.modal-worker-diagnostics.v1",
+  "workload": "lesson.visual.generate",
+  "api_request_id": "7089fb70-0a05-4503-b70e-103d673d920a",
+  "modal_call_id": "fc-01M782K91ESAJQ5TVT8HM3MD0C",
+  "api_status": 502,
+  "api_elapsed_seconds": 398.967,
+  "worker_terminal_event": "worker_failed",
+  "worker_error_code": "MODAL_PROGRESSIVE_GUIDE_STROKES_CHANGED",
+  "worker_error_type": "WorkerContractError",
+  "worker_last_stage": "progressive_panel_quality_gate",
+  "worker_duration_ms": 91883,
+  "model_id": "black-forest-labs/flux-3-image-klein",
+  "model_revision": "09561231f44e41381c461caf53d5452005a60ac9",
+  "gpu_class": "L40S",
+  "output_returned": false,
+  "phase_durations_ms": {
+    "scratch_volume_reload": 105,
+    "input_manifest_read": 201,
+    "checkpoint_verification": 385,
+    "gpu_preflight": 4617,
+    "prompt_upsampler_inference": 57615,
+    "flux_model_load": 6546,
+    "flux_image_inference": 6716,
+    "progressive_panel_quality_gate": 216
+  },
+  "transition_diagnostics": [
+    {
+      "transition_index": 1,
+      "measured_overlap": 0.8155,
+      "soft_threshold": 0.2,
+      "hard_floor": 0.12,
+      "previous_coverage": 0.002372,
+      "current_coverage": 0.02176
+    },
+    {
+      "transition_index": 2,
+      "measured_overlap": 0.8278,
+      "soft_threshold": 0.2,
+      "hard_floor": 0.12,
+      "previous_coverage": 0.02176,
+      "current_coverage": 0.018679
+    },
+    {
+      "transition_index": 3,
+      "measured_overlap": 0.9053,
+      "soft_threshold": 0.2,
+      "hard_floor": 0.12,
+      "previous_coverage": 0.018679,
+      "current_coverage": 0.017576
+    },
+    {
+      "transition_index": 4,
+      "measured_overlap": 0.0946,
+      "soft_threshold": 0.2,
+      "hard_floor": 0.12,
+      "previous_coverage": 0.017576,
+      "current_coverage": 0.002328
+    }
+  ],
+  "summary": "Transitions 1-3 pass the overlap check. Step 4 to step 5 retains 9.46%, below the 12% hard floor; the worker rejects the candidate. GPU preflight, prompt upsampling, model load, and image inference succeeded."
+}

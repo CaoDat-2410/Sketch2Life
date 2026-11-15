@@ -1,0 +1,277 @@
+<repo-root>\.venv-modal\Lib\site-packages\modal\_utils\async_utils.py:43: DeprecationWarning: 'asyncio.WindowsSelectorEventLoopPolicy' is deprecated and slated for removal in Python 3.16
+  asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+<repo-root>\.venv-modal\Lib\site-packages\modal\_utils\async_utils.py:43: DeprecationWarning: 'asyncio.set_event_loop_policy' is deprecated and slated for removal in Python 3.16
+  asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+{
+  "segment_count": 20,
+  "manifest": {
+    "scale": 1.1746835443037975,
+    "translate_x": 24.0,
+    "translate_y": 93.89367088607594,
+    "source_path_count": 11,
+    "derived_chunk_count": 20,
+    "source_segment_count": 160,
+    "chunk_command_limit": 13,
+    "first_chunk_command_limit": 6,
+    "first_step_segment_ids": [
+      "source_segment_005",
+      "source_segment_006"
+    ],
+    "first_step_source_path_id": "oc_path_001",
+    "first_step_source_segment_start": 46,
+    "first_step_source_segment_count": 8,
+    "first_step_bbox_area": 12146.404,
+    "guide_view_box": "0 0 512 512",
+    "source_asset_id": "openclipart-friendly-kitten-icon",
+    "source_sha256": "a5b74eed392104ff9baa2a335b5e8dde9aef40ca7775949a7fbc4a29b7f36594",
+    "source_response_sha256": "8b2f595a8e967cfe6f54e26fa6668dfbaa2bb5875a079fcd48fbf6f519eb74e6",
+    "segments": [
+      {
+        "segment_id": "source_segment_001",
+        "source_path_id": "oc_path_001",
+        "source_subpath_indices": [
+          1
+        ],
+        "source_segment_start": 1,
+        "source_segment_end": 6,
+        "source_segment_count": 6,
+        "drawable_command_count": 7,
+        "geometry_sha256": "32e492b6018ee9dad2b7135d8df0fa8bd67079f8620082de6bd8fb3505094d15"
+      },
+      {
+        "segment_id": "source_segment_002",
+        "source_path_id": "oc_path_001",
+        "source_subpath_indices": [
+          1
+        ],
+        "source_segment_start": 7,
+        "source_segment_end": 19,
+        "source_segment_count": 13,
+        "drawable_command_count": 14,
+        "geometry_sha256": "4e808bf0717098e71a800f46e47b229d543255bbac8e5dab3e522260a521d248"
+      },
+      {
+        "segment_id": "source_segment_003",
+        "source_path_id": "oc_path_001",
+        "source_subpath_indices": [
+          1
+        ],
+        "source_segment_start": 20,
+        "source_segment_end": 32,
+        "source_segment_count": 13,
+        "drawable_command_count": 14,
+        "geometry_sha256": "f424679f9dd58383b1c59b14404d669858978bfd89ddfec0b6eeaf74ee1d76ae"
+      },
+      {
+        "segment_id": "source_segment_004",
+        "source_path_id": "oc_path_001",
+        "source_subpath_indices": [
+          1
+        ],
+        "source_segment_start": 33,
+        "source_segment_end": 45,
+        "source_segment_count": 13,
+        "drawable_command_count": 14,
+        "geometry_sha256": "6874d7dbe91c82a5aa5f7cf9935929c2af05db316f43203a7aed49f765e1efe7"
+      },
+      {
+        "segment_id": "source_segment_005",
+        "source_path_id": "oc_path_001",
+        "source_subpath_indices": [
+          1
+        ],
+        "source_segment_start": 46,
+        "source_segment_end": 49,
+        "source_segment_count": 4,
+        "drawable_command_count": 5,
+        "geometry_sha256": "ab32a0153c2f0547104a4c3cd4ce846e1e1faa40654e8fc940c0959f440b6f54"
+      },
+      {
+        "segment_id": "source_segment_006",
+        "source_path_id": "oc_path_001",
+        "source_subpath_indices": [
+          1
+        ],
+        "source_segment_start": 50,
+        "source_segment_end": 53,
+        "source_segment_count": 4,
+        "drawable_command_count": 5,
+        "geometry_sha256": "5e54656761ef9d12968d87d5a35f5563bbb4c9db07b6f3ad37c2627e6166d8af"
+      },
+      {
+        "segment_id": "source_segment_007",
+        "source_path_id": "oc_path_001",
+        "source_subpath_indices": [
+          2
+        ],
+        "source_segment_start": 54,
+        "source_segment_end": 58,
+        "source_segment_count": 5,
+        "drawable_command_count": 6,
+        "geometry_sha256": "d172203e08cc9d5d9b4e697e519ff1204d50b9b80fa0587490a7ee953d7bf332"
+      },
+      {
+        "segment_id": "source_segment_008",
+        "source_path_id": "oc_path_001",
+        "source_subpath_indices": [
+          2,
+          3,
+          4
+        ],
+        "source_segment_start": 59,
+        "source_segment_end": 70,
+        "source_segment_count": 12,
+        "drawable_command_count": 15,
+        "geometry_sha256": "68a2148c8da210ea176a3c07e778baedb2f91f9972ad731288c31f4c7b4bb938"
+      },
+      {
+        "segment_id": "source_segment_009",
+        "source_path_id": "oc_path_001",
+        "source_subpath_indices": [
+          4,
+          5,
+          6
+        ],
+        "source_segment_start": 71,
+        "source_segment_end": 81,
+        "source_segment_count": 11,
+        "drawable_command_count": 14,
+        "geometry_sha256": "f32e87af4d35496c90553ea6381c03639fcd26e30f520a997f793a678b9966b6"
+      },
+      {
+        "segment_id": "source_segment_010",
+        "source_path_id": "oc_path_002",
+        "source_subpath_indices": [
+          1
+        ],
+        "source_segment_start": 1,
+        "source_segment_end": 7,
+        "source_segment_count": 7,
+        "drawable_command_count": 8,
+        "geometry_sha256": "0b43a821da2c0752b143453be80387a6d09158fd011e4dc9fae785949dfc03cb"
+      },
+      {
+        "segment_id": "source_segment_011",
+        "source_path_id": "oc_path_003",
+        "source_subpath_indices": [
+          1
+        ],
+        "source_segment_start": 1,
+        "source_segment_end": 4,
+        "source_segment_count": 4,
+        "drawable_command_count": 5,
+        "geometry_sha256": "fa336bbee55f0a6614dcecec43189bf44ba338e7e234fdf149c4a17b45310dc7"
+      },
+      {
+        "segment_id": "source_segment_012",
+        "source_path_id": "oc_path_004",
+        "source_subpath_indices": [
+          1,
+          2
+        ],
+        "source_segment_start": 1,
+        "source_segment_end": 13,
+        "source_segment_count": 13,
+        "drawable_command_count": 15,
+        "geometry_sha256": "4ace57bd0979e08fa9d0c43919082338c26e07f361cc72cb778a95db4df3a0a4"
+      },
+      {
+        "segment_id": "source_segment_013",
+        "source_path_id": "oc_path_005",
+        "source_subpath_indices": [
+          1,
+          2
+        ],
+        "source_segment_start": 1,
+        "source_segment_end": 11,
+        "source_segment_count": 11,
+        "drawable_command_count": 13,
+        "geometry_sha256": "ee183007085447de69c6de2c8d8e3cbff8025995f9229801238406d7e5885797"
+      },
+      {
+        "segment_id": "source_segment_014",
+        "source_path_id": "oc_path_006",
+        "source_subpath_indices": [
+          1
+        ],
+        "source_segment_start": 1,
+        "source_segment_end": 6,
+        "source_segment_count": 6,
+        "drawable_command_count": 7,
+        "geometry_sha256": "41b2d6900bf7e32c82e02c1532cb0f7b62fd920fe500587640cef39bbf899bd3"
+      },
+      {
+        "segment_id": "source_segment_015",
+        "source_path_id": "oc_path_007",
+        "source_subpath_indices": [
+          1
+        ],
+        "source_segment_start": 1,
+        "source_segment_end": 6,
+        "source_segment_count": 6,
+        "drawable_command_count": 7,
+        "geometry_sha256": "b6c472b885c4ffa7026552f86c28f06b146a3d6fc1abd7abd5c8025ca0f5a2b9"
+      },
+      {
+        "segment_id": "source_segment_016",
+        "source_path_id": "oc_path_008",
+        "source_subpath_indices": [
+          1
+        ],
+        "source_segment_start": 1,
+        "source_segment_end": 13,
+        "source_segment_count": 13,
+        "drawable_command_count": 14,
+        "geometry_sha256": "55d9f3b044ae428d90bc8cd92846476b7fdccb1554a8a29299dd1ce363637a9c"
+      },
+      {
+        "segment_id": "source_segment_017",
+        "source_path_id": "oc_path_008",
+        "source_subpath_indices": [
+          1
+        ],
+        "source_segment_start": 14,
+        "source_segment_end": 14,
+        "source_segment_count": 1,
+        "drawable_command_count": 2,
+        "geometry_sha256": "6cf6757f1817c038bcc42e611a816f783628cd3f1b521967c00d1f1273dbf5ec"
+      },
+      {
+        "segment_id": "source_segment_018",
+        "source_path_id": "oc_path_009",
+        "source_subpath_indices": [
+          1
+        ],
+        "source_segment_start": 1,
+        "source_segment_end": 5,
+        "source_segment_count": 5,
+        "drawable_command_count": 6,
+        "geometry_sha256": "2929ac82237c7c89c2998c2db861e70222f32c593006d812c82e45c039afc437"
+      },
+      {
+        "segment_id": "source_segment_019",
+        "source_path_id": "oc_path_010",
+        "source_subpath_indices": [
+          1
+        ],
+        "source_segment_start": 1,
+        "source_segment_end": 7,
+        "source_segment_count": 7,
+        "drawable_command_count": 8,
+        "geometry_sha256": "2e34048ddacd1101af4e372516f3e05904b94771a29f68104ef61dbc41039df7"
+      },
+      {
+        "segment_id": "source_segment_020",
+        "source_path_id": "oc_path_011",
+        "source_subpath_indices": [
+          1
+        ],
+        "source_segment_start": 1,
+        "source_segment_end": 6,
+        "source_segment_count": 6,
+        "drawable_command_count": 7,
+        "geometry_sha256": "704ced99fcb08bd00c2727de227c3fc60933d55b443c90d2efda9b49d251f8c9"
+      }
+    ]
+  }
+}

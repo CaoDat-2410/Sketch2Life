@@ -1,0 +1,50 @@
+App:                                       sketch2life-srs23-language-audio-dev
+App ID:                                    ap-hB1xV3dSsWoy130wcwjF3V
+State:                                     deployed
+Deployment:                                v1 · 2026-11-15 11:56 SE Asia
+                                           Standard Time · siesta-6107
+Created:                                   2026-11-15 11:56 SE Asia Standard
+                                           Time · siesta-6107
+
+Functions (14):
+  check-qwen35-decoder-readiness           fu-kMy9xZtFMtuKovVouV1Dln
+    CPU
+
+  check-qwen35-readiness                   fu-lpoQm9oK1Qbohq5ItFq3kr
+    1 × L40S GPU (1 × L4 GPU, 1 × A10G GPU)
+
+  download-language-audio-models           fu-hxk1Eo67IsRZ7k5TipSPMz
+    CPU
+
+  generate-story-and-storyboard            fu-LfJ7SpTMU1JyYET22iEvsm
+    1 × L40S GPU (1 × L4 GPU, 1 × A10G GPU)
+
+  generate-teacher-sketch-deck             fu-kH2xvViC994zPe9OPXzxKg
+    1 × L40S GPU (1 × L4 GPU, 1 × A10G GPU)
+
+  generate-teacher-svg-illustration-draft  fu-d3NxLfN9cgy7wdhX1IJSy9
+    1 × L40S GPU (1 × L4 GPU, 1 × A10G GPU)
+
+  generate-topic-svg-stroke-guide-draft    fu-4xtAmf5CSBFGfYEKPBZiuo
+    1 × L40S GPU (1 × L4 GPU, 1 × A10G GPU)
+
+  health-api                               fu-rYO9pMKVNEozYJ3Mzev3dG
+    CPU · Web Function · Unauthenticated
+
+  probe-qwen35-constrained-decoder         fu-a5pTWapTirWXf3MkckZnkQ
+    CPU
+
+  probe-qwen35-generation-constraints      fu-CYJ1e0aX3O1vxAmYu28ReT
+    1 × L40S GPU (1 × L4 GPU, 1 × A10G GPU)
+
+  suggest-lesson-plan                      fu-FlpzUiwpUKTi7hikZhkI6G
+    1 × L40S GPU (1 × L4 GPU, 1 × A10G GPU)
+
+  suggest-parent-activities                fu-uXWpUjNiIwm4sVCICcRVTZ
+    1 × L40S GPU (1 × L4 GPU, 1 × A10G GPU)
+
+  synthesize-vietnamese-narration          fu-F70NxqbdjHZ8uBS2hadvk1
+    CPU
+
+  transcribe-vietnamese-audio              fu-350qecLt32PYGD1bDwPbuQ
+    CPU

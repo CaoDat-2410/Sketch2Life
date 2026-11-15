@@ -1,0 +1,176 @@
+<repo-root>\.venv-modal\Lib\site-packages\modal\_utils\async_utils.py:43: DeprecationWarning: 'asyncio.WindowsSelectorEventLoopPolicy' is deprecated and slated for removal in Python 3.16
+  asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+<repo-root>\.venv-modal\Lib\site-packages\modal\_utils\async_utils.py:43: DeprecationWarning: 'asyncio.set_event_loop_policy' is deprecated and slated for removal in Python 3.16
+  asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+2026-11-15 14:23:14+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N
+2026-11-15 14:23:14+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:14+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:   1%|▏         | 10/760 [00:03<02:32,  4.93it/s]
+2026-11-15 14:23:14+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:14+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:   2%|▏         | 14/760 [00:03<01:44,  7.12it/s]
+2026-11-15 14:23:14+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+Loading weights:   2%|▎         | 19/760 [00:03<01:12, 10.19it/s]
+2026-11-15 14:23:15+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N
+2026-11-15 14:23:15+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:15+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:   4%|▎         | 28/760 [00:03<00:48, 15.14it/s]
+2026-11-15 14:23:15+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:15+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:   5%|▍         | 37/760 [00:03<00:31, 22.72it/s]
+2026-11-15 14:23:15+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:15+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:   6%|▌         | 42/760 [00:03<00:28, 25.47it/s]
+2026-11-15 14:23:15+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:15+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:   6%|▌         | 47/760 [00:04<00:27, 25.72it/s]
+2026-11-15 14:23:15+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+Loading weights:   7%|▋         | 55/760 [00:04<00:23, 29.99it/s]
+2026-11-15 14:23:16+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N
+2026-11-15 14:23:16+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:16+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:   8%|▊         | 62/760 [00:04<00:23, 29.15it/s]
+2026-11-15 14:23:16+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:16+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:   9%|▉         | 67/760 [00:04<00:23, 30.08it/s]
+2026-11-15 14:23:16+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:16+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:   9%|▉         | 71/760 [00:04<00:23, 28.93it/s]
+2026-11-15 14:23:16+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:16+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  10%|█         | 77/760 [00:05<00:22, 30.98it/s]
+2026-11-15 14:23:16+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+Loading weights:  11%|█         | 81/760 [00:05<00:27, 24.31it/s]
+2026-11-15 14:23:17+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N
+2026-11-15 14:23:17+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:17+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  11%|█         | 84/760 [00:05<00:26, 25.19it/s]
+2026-11-15 14:23:17+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:17+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  12%|█▏        | 90/760 [00:05<00:22, 29.40it/s]
+2026-11-15 14:23:17+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:17+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  12%|█▏        | 94/760 [00:05<00:27, 24.30it/s]
+2026-11-15 14:23:17+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:17+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  13%|█▎        | 97/760 [00:05<00:29, 22.76it/s]
+2026-11-15 14:23:17+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:17+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  13%|█▎        | 101/760 [00:06<00:29, 22.56it/s]
+2026-11-15 14:23:17+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+Loading weights:  14%|█▍        | 106/760 [00:06<00:24, 26.35it/s]
+2026-11-15 14:23:18+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N
+2026-11-15 14:23:18+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:18+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  15%|█▌        | 116/760 [00:06<00:19, 32.89it/s]
+2026-11-15 14:23:18+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:18+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  16%|█▌        | 121/760 [00:06<00:23, 26.89it/s]
+2026-11-15 14:23:18+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+Loading weights:  17%|█▋        | 129/760 [00:07<00:25, 24.38it/s]
+2026-11-15 14:23:19+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N
+2026-11-15 14:23:19+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:19+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  17%|█▋        | 132/760 [00:07<00:31, 20.08it/s]
+2026-11-15 14:23:19+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:19+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  18%|█▊        | 135/760 [00:07<00:30, 20.35it/s]
+2026-11-15 14:23:19+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:19+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  19%|█▉        | 148/760 [00:07<00:20, 30.26it/s]
+2026-11-15 14:23:19+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:19+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  20%|██        | 152/760 [00:08<00:23, 26.21it/s]
+2026-11-15 14:23:19+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+Loading weights:  20%|██        | 155/760 [00:08<00:23, 25.88it/s]
+2026-11-15 14:23:20+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N
+2026-11-15 14:23:20+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:20+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  22%|██▏       | 166/760 [00:08<00:17, 33.47it/s]
+2026-11-15 14:23:20+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:20+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  22%|██▎       | 171/760 [00:08<00:16, 35.04it/s]
+2026-11-15 14:23:20+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:20+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  23%|██▎       | 178/760 [00:08<00:15, 38.00it/s]
+2026-11-15 14:23:20+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:20+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  24%|██▍       | 184/760 [00:08<00:14, 40.96it/s]
+2026-11-15 14:23:20+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:20+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  25%|██▍       | 189/760 [00:08<00:14, 39.61it/s]
+2026-11-15 14:23:20+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:20+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  26%|██▌       | 197/760 [00:09<00:13, 41.92it/s]
+2026-11-15 14:23:20+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+Loading weights:  27%|██▋       | 202/760 [00:09<00:15, 35.73it/s]
+2026-11-15 14:23:21+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N
+2026-11-15 14:23:21+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:21+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  27%|██▋       | 206/760 [00:09<00:16, 32.71it/s]
+2026-11-15 14:23:21+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:21+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  29%|██▉       | 221/760 [00:09<00:11, 46.27it/s]
+2026-11-15 14:23:21+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:21+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  30%|██▉       | 227/760 [00:09<00:14, 37.88it/s]
+2026-11-15 14:23:21+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+Loading weights:  30%|███       | 231/760 [00:10<00:16, 31.90it/s]
+2026-11-15 14:23:22+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N
+2026-11-15 14:23:22+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:22+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  32%|███▏      | 241/760 [00:10<00:16, 31.49it/s]
+2026-11-15 14:23:22+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:22+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  33%|███▎      | 251/760 [00:10<00:12, 39.55it/s]
+2026-11-15 14:23:22+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:22+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  34%|███▎      | 256/760 [00:10<00:15, 31.89it/s]
+2026-11-15 14:23:22+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+Loading weights:  34%|███▍      | 260/760 [00:11<00:23, 21.21it/s]
+2026-11-15 14:23:23+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N
+2026-11-15 14:23:23+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:23+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  36%|███▌      | 272/760 [00:11<00:18, 26.40it/s]
+2026-11-15 14:23:23+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:23+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  37%|███▋      | 279/760 [00:11<00:16, 29.78it/s]
+2026-11-15 14:23:23+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:23+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  38%|███▊      | 288/760 [00:11<00:12, 37.88it/s]
+2026-11-15 14:23:23+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:23+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  39%|███▊      | 293/760 [00:12<00:14, 32.46it/s]
+2026-11-15 14:23:23+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+Loading weights:  39%|███▉      | 298/760 [00:12<00:14, 32.21it/s]
+2026-11-15 14:23:24+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N
+2026-11-15 14:23:24+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:24+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  40%|████      | 304/760 [00:12<00:12, 36.92it/s]
+2026-11-15 14:23:24+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:24+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  41%|████      | 309/760 [00:12<00:14, 30.98it/s]
+2026-11-15 14:23:24+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:24+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  41%|████      | 313/760 [00:12<00:18, 24.07it/s]
+2026-11-15 14:23:24+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:24+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  42%|████▏     | 318/760 [00:13<00:15, 27.66it/s]
+2026-11-15 14:23:24+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+Loading weights:  43%|████▎     | 327/760 [00:13<00:12, 35.24it/s]
+2026-11-15 14:23:25+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N
+2026-11-15 14:23:25+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:25+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  44%|████▎     | 332/760 [00:13<00:18, 23.04it/s]
+2026-11-15 14:23:25+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:25+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  44%|████▍     | 336/760 [00:13<00:17, 23.74it/s]
+2026-11-15 14:23:25+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:25+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  46%|████▌     | 346/760 [00:13<00:11, 34.75it/s]
+2026-11-15 14:23:25+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:25+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  47%|████▋     | 359/760 [00:14<00:07, 51.50it/s]
+2026-11-15 14:23:25+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+Loading weights:  48%|████▊     | 366/760 [00:14<00:08, 43.95it/s]
+2026-11-15 14:23:26+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N
+2026-11-15 14:23:26+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:26+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  50%|█████     | 381/760 [00:14<00:06, 55.69it/s]
+2026-11-15 14:23:26+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:26+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  51%|█████     | 388/760 [00:14<00:08, 45.48it/s]
+2026-11-15 14:23:26+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:26+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  52%|█████▎    | 399/760 [00:14<00:06, 53.54it/s]
+2026-11-15 14:23:26+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:26+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  54%|█████▍    | 413/760 [00:14<00:05, 65.48it/s]
+2026-11-15 14:23:26+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:26+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  55%|█████▌    | 421/760 [00:15<00:05, 61.72it/s]
+2026-11-15 14:23:26+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+Loading weights:  60%|██████    | 457/760 [00:15<00:02, 122.19it/s]
+2026-11-15 14:23:27+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N
+2026-11-15 14:23:27+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:27+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  66%|██████▌   | 503/760 [00:15<00:01, 176.60it/s]
+2026-11-15 14:23:27+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:27+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  73%|███████▎  | 555/760 [00:15<00:00, 253.18it/s]
+2026-11-15 14:23:27+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:27+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  81%|████████  | 614/760 [00:15<00:00, 298.92it/s]
+2026-11-15 14:23:27+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:27+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  90%|█████████ | 687/760 [00:15<00:00, 394.10it/s]
+2026-11-15 14:23:27+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:27+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights:  99%|█████████▉| 755/760 [00:15<00:00, 422.93it/s]
+2026-11-15 14:23:27+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N [1A
+2026-11-15 14:23:27+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N Loading weights: 100%|██████████| 760/760 [00:15<00:00, 47.78it/s]
+2026-11-15 14:23:28+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"57ed475f91c12e25","generation_ref":"8675359114bacb6f","attempt_ref":"d0881f8c6cd7d5b9","stage":"model_load","timestamp_utc":"2026-11-15T07:23:28.120567+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":31459}
+2026-11-15 14:23:28+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"57ed475f91c12e25","generation_ref":"8675359114bacb6f","attempt_ref":"d0881f8c6cd7d5b9","stage":"catalog_query_expansion","timestamp_utc":"2026-11-15T07:23:28.120713+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 14:24:10+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"57ed475f91c12e25","generation_ref":"8675359114bacb6f","attempt_ref":"d0881f8c6cd7d5b9","stage":"catalog_query_expansion","timestamp_utc":"2026-11-15T07:24:10.436958+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":42316}
+2026-11-15 14:24:10+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"57ed475f91c12e25","generation_ref":"8675359114bacb6f","attempt_ref":"d0881f8c6cd7d5b9","stage":"catalog_candidate_search","timestamp_utc":"2026-11-15T07:24:10.437139+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 14:24:13+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"57ed475f91c12e25","generation_ref":"8675359114bacb6f","attempt_ref":"d0881f8c6cd7d5b9","stage":"catalog_candidate_search","timestamp_utc":"2026-11-15T07:24:13.186534+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":2749}
+2026-11-15 14:24:13+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"57ed475f91c12e25","generation_ref":"8675359114bacb6f","attempt_ref":"d0881f8c6cd7d5b9","stage":"catalog_candidate_segmentation","timestamp_utc":"2026-11-15T07:24:13.186642+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 14:24:13+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N {"candidate_count": 8, "chunk_command_limit": 13, "derived_chunk_count": 20, "event": "svg_catalog_source_segmented", "rejected_candidate_count": 0, "selected_source_path_count": 11, "source_asset_id": "openclipart-friendly-kitten-icon", "source_segment_count": 160, "source_sha256": "a5b74eed392104ff9baa2a335b5e8dde9aef40ca7775949a7fbc4a29b7f36594"}
+2026-11-15 14:24:13+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"57ed475f91c12e25","generation_ref":"8675359114bacb6f","attempt_ref":"d0881f8c6cd7d5b9","stage":"catalog_candidate_segmentation","timestamp_utc":"2026-11-15T07:24:13.195472+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":9}
+2026-11-15 14:24:13+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"57ed475f91c12e25","generation_ref":"8675359114bacb6f","attempt_ref":"d0881f8c6cd7d5b9","stage":"catalog_source_render","timestamp_utc":"2026-11-15T07:24:13.195525+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 14:24:13+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"57ed475f91c12e25","generation_ref":"8675359114bacb6f","attempt_ref":"d0881f8c6cd7d5b9","stage":"catalog_source_render","timestamp_utc":"2026-11-15T07:24:13.536790+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":341}
+2026-11-15 14:24:13+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"57ed475f91c12e25","generation_ref":"8675359114bacb6f","attempt_ref":"d0881f8c6cd7d5b9","stage":"prompt_encoding","timestamp_utc":"2026-11-15T07:24:13.537168+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 14:24:13+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"57ed475f91c12e25","generation_ref":"8675359114bacb6f","attempt_ref":"d0881f8c6cd7d5b9","stage":"prompt_encoding","timestamp_utc":"2026-11-15T07:24:13.558361+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":21}
+2026-11-15 14:24:13+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"57ed475f91c12e25","generation_ref":"8675359114bacb6f","attempt_ref":"d0881f8c6cd7d5b9","stage":"constrained_decoder_setup","timestamp_utc":"2026-11-15T07:24:13.558485+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 14:24:13+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"57ed475f91c12e25","generation_ref":"8675359114bacb6f","attempt_ref":"d0881f8c6cd7d5b9","stage":"constrained_decoder_setup","timestamp_utc":"2026-11-15T07:24:13.559141+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":1}
+2026-11-15 14:24:13+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"57ed475f91c12e25","generation_ref":"8675359114bacb6f","attempt_ref":"d0881f8c6cd7d5b9","stage":"model_inference","timestamp_utc":"2026-11-15T07:24:13.559198+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 14:25:08+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"57ed475f91c12e25","generation_ref":"8675359114bacb6f","attempt_ref":"d0881f8c6cd7d5b9","stage":"model_inference","timestamp_utc":"2026-11-15T07:25:08.878899+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":55320}
+2026-11-15 14:25:08+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"57ed475f91c12e25","generation_ref":"8675359114bacb6f","attempt_ref":"d0881f8c6cd7d5b9","stage":"output_parse_and_source_identity_validation","timestamp_utc":"2026-11-15T07:25:08.879571+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 14:25:08+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"57ed475f91c12e25","generation_ref":"8675359114bacb6f","attempt_ref":"d0881f8c6cd7d5b9","stage":"output_parse_and_source_identity_validation","timestamp_utc":"2026-11-15T07:25:08.880587+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":1}
+2026-11-15 14:25:08+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N {"callback_calls": 800, "dataset_revision": "df38e5ef633be067d397df7da19a9f009e69b3bd", "derived_chunk_count": 20, "ended_with_eos": true, "enforcer_decoder_decoded_character_count": 2267, "enforcer_decoder_json_complete": true, "event": "svg_catalog_construction_stroke_guide_generated", "final_model_eos_prefix_parser_can_end": true, "final_model_eos_was_allowed_at_previous_prefix": true, "final_token_id": 248044, "first_step_role_count": 2, "force_stop_parser_calls": 0, "generated_non_eos_special_token_count": 0, "generated_special_token_count": 1, "generation_seconds": 55.32, "incremental_vs_replay_can_end_mismatch": false, "input_token_count": 2325, "last_model_eos_allowed": true, "last_parser_can_end": true, "last_parser_state_class": "JsonSchemaParser", "max_active_string_limit": 120, "max_new_tokens": 12288, "max_observed_string_length": 120, "model_eos_token_ids": [248044], "output_sha256": "214cfb19fa2a6bc3e348a3914565fdf08c3ee7293c050a4d4de54a0d672dff53", "output_token_count": 800, "path_count": 20, "replay_parser_can_end": true, "replay_parser_error_count": 0, "search_term_count": 7, "source_anchor_count": 11, "source_asset_id": "openclipart-friendly-kitten-icon", "source_segment_count": 160, "source_sha256": "a5b74eed392104ff9baa2a335b5e8dde9aef40ca7775949a7fbc4a29b7f36594", "stage_count": 8, "string_limit_boundary_checks": 8, "string_limit_boundary_violations": 0, "unbounded_active_string_calls": 294}
+2026-11-15 14:25:08+07:00 fc-01M7F1CHNNKD04CWTTM750GR2N {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"57ed475f91c12e25","generation_ref":"8675359114bacb6f","attempt_ref":"d0881f8c6cd7d5b9","stage":"terminal","timestamp_utc":"2026-11-15T07:25:08.995825+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":133523,"output_kind":"json","output_size_bytes":26620,"binary_output_bytes":0,"output_sha256":"0fe8216e731dab2829009eed646afd01748c8c527835c48e2e3bada5a90ecb8e","binary_output_sha256":null}

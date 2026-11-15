@@ -1,0 +1,33 @@
+{
+  "diagnostic_limit": "Worker rejected incomplete/duplicate source path assignment; raw model output is not logged, so missing-vs-duplicate path count cannot be recovered.",
+  "dispatched": true,
+  "elapsed_seconds": 109.1,
+  "environment": "dev",
+  "evidence_id": "EV-063-110",
+  "exception_type": "RuntimeError",
+  "failure_phase": "output_parse_and_source_identity_validation",
+  "finished_at_utc": "2026-11-14T19:16:29.795252+00:00",
+  "modal_call_id": "fc-01M7DQQQNP9VDA8NHJ3EPHD9HN",
+  "model": {
+    "id": "Qwen/Qwen3.5-9B",
+    "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
+  },
+  "no_child_data_used": true,
+  "no_video_requested": true,
+  "phase_durations_ms": {
+    "catalog_candidate_search": 3690,
+    "catalog_query_expansion": 39494,
+    "catalog_source_render": 311,
+    "model_inference": 25547,
+    "model_load": 25968,
+    "prompt_encoding": 18
+  },
+  "retry_performed": false,
+  "safe_error_code": "SVG_CATALOG_STROKE_PLAN_PATH_COVERAGE_INVALID",
+  "scratch_cleanup": "not_attempted_to_preserve_failure_evidence",
+  "started_at_utc": "2026-11-14T19:14:40.695239+00:00",
+  "status": "TERMINAL_FAILURE",
+  "topic": "con mèo",
+  "worker_error_code": "SVG_CATALOG_STROKE_PLAN_PATH_COVERAGE_INVALID",
+  "workload": "svg.topic-stroke-guide.generate"
+}

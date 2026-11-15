@@ -1,0 +1,58 @@
+{
+  "schema_version": "Sketch2LifeRuntimeAttemptV1",
+  "evidence_id": "EV-063-101_ARCADIA_STROKE_SKILL_20261113",
+  "plan": "PLAN_REV87_5_CURATED_SVG_MODAL_RETRY_20261113.md",
+  "plan_sha256": "94547CEC22E0638788358EEEE8DAFBD304D3BF49837DC9CA246CE0DB7D3BF155",
+  "date": "2026-11-13",
+  "preflight": {
+    "modal_dev_app": "deployed_before_attempt",
+    "project_env": "present; variable names checked, values not printed",
+    "existing_rev79_postgres_alembic_revision": "20261110_parent_lesson_pin",
+    "existing_rev79_postgres_and_firebase_auth": "left_running_untouched"
+  },
+  "docker": {
+    "default_stack_start": "failed_before_services_started",
+    "failure": "Bind for 127.0.0.1:55439 failed: port already allocated by existing Rev79 PostgreSQL",
+    "task_created_firebase_container": "removed_without_volume",
+    "default_postgres_container_after_compose_recreate": "Created_inactive; volume_preserved",
+    "preexisting_api": "sketch2life-api-1 unchanged and healthy",
+    "temporary_api": {
+      "source": "current worktree",
+      "host_port": 8001,
+      "docker_health": "HTTP 200",
+      "parent_guide_route": "mounted; unauthenticated GET returned 405",
+      "openapi": "HTTP 500: Rev37 response schema SVG catalog contract is missing from OpenAPI components",
+      "authenticated_api_request": "not_sent",
+      "stopped_and_removed": true
+    }
+  },
+  "modal": {
+    "command": "python -m modal deploy deployment/modal/srs_v23/language_audio_app.py --env dev",
+    "attempts": 1,
+    "elapsed_seconds": 16.107,
+    "exit_code": 1,
+    "console_error": "'charmap' codec can't encode characters in position 3-42: character maps to <undefined>",
+    "images_built_logs_observed": true,
+    "deployment_success_confirmed": false,
+    "deployment_state": "unknown; no post-failure status query was made",
+    "health_calls": 0,
+    "gpu_inference_calls": 0
+  },
+  "parent_ui": {
+    "started": false,
+    "login_or_consent": "not attempted",
+    "authenticated_ai_post": "not sent",
+    "generated_svg": false,
+    "screenshot": false
+  },
+  "exclusions": {
+    "migration": false,
+    "seed_or_account_creation": false,
+    "env_edit": false,
+    "tests": false,
+    "video": false,
+    "flux": false,
+    "real_child_data": false
+  },
+  "result": "STOPPED_AFTER_SINGLE_DEPLOY_ATTEMPT; no Modal health or inference; deployment state unknown; no generated guide or screenshot"
+}

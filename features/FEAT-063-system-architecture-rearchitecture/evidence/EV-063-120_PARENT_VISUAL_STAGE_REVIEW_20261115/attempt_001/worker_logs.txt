@@ -1,0 +1,150 @@
+<repo-root>\.venv-modal\Lib\site-packages\modal\_utils\async_utils.py:43: DeprecationWarning: 'asyncio.WindowsSelectorEventLoopPolicy' is deprecated and slated for removal in Python 3.16
+  asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+<repo-root>\.venv-modal\Lib\site-packages\modal\_utils\async_utils.py:43: DeprecationWarning: 'asyncio.set_event_loop_policy' is deprecated and slated for removal in Python 3.16
+  asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_started","workload":"svg.topic-stroke-guide.generate","job_ref":"494992a0ce0937ce","generation_ref":"1ae56dc3937d0104","attempt_ref":"57ae47e452b99802","stage":"worker_entrypoint","timestamp_utc":"2026-11-15T07:57:45.663677+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"494992a0ce0937ce","generation_ref":"1ae56dc3937d0104","attempt_ref":"57ae47e452b99802","stage":"input_envelope","timestamp_utc":"2026-11-15T07:57:45.663805+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"494992a0ce0937ce","generation_ref":"1ae56dc3937d0104","attempt_ref":"57ae47e452b99802","stage":"input_envelope","timestamp_utc":"2026-11-15T07:57:45.663863+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":0}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"494992a0ce0937ce","generation_ref":"1ae56dc3937d0104","attempt_ref":"57ae47e452b99802","stage":"workload_gate","timestamp_utc":"2026-11-15T07:57:45.663892+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"494992a0ce0937ce","generation_ref":"1ae56dc3937d0104","attempt_ref":"57ae47e452b99802","stage":"workload_gate","timestamp_utc":"2026-11-15T07:57:45.663915+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":0}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"494992a0ce0937ce","generation_ref":"1ae56dc3937d0104","attempt_ref":"57ae47e452b99802","stage":"scratch_volume_reload","timestamp_utc":"2026-11-15T07:57:45.663933+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"494992a0ce0937ce","generation_ref":"1ae56dc3937d0104","attempt_ref":"57ae47e452b99802","stage":"scratch_volume_reload","timestamp_utc":"2026-11-15T07:57:45.757161+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":93}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"494992a0ce0937ce","generation_ref":"1ae56dc3937d0104","attempt_ref":"57ae47e452b99802","stage":"input_manifest_read","timestamp_utc":"2026-11-15T07:57:45.757266+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"494992a0ce0937ce","generation_ref":"1ae56dc3937d0104","attempt_ref":"57ae47e452b99802","stage":"input_manifest_read","timestamp_utc":"2026-11-15T07:57:45.853183+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":96}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"494992a0ce0937ce","generation_ref":"1ae56dc3937d0104","attempt_ref":"57ae47e452b99802","stage":"input_contract_validation","timestamp_utc":"2026-11-15T07:57:45.853254+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"494992a0ce0937ce","generation_ref":"1ae56dc3937d0104","attempt_ref":"57ae47e452b99802","stage":"input_contract_validation","timestamp_utc":"2026-11-15T07:57:45.853287+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":0}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"494992a0ce0937ce","generation_ref":"1ae56dc3937d0104","attempt_ref":"57ae47e452b99802","stage":"svg_catalog_reload","timestamp_utc":"2026-11-15T07:57:45.853312+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"494992a0ce0937ce","generation_ref":"1ae56dc3937d0104","attempt_ref":"57ae47e452b99802","stage":"svg_catalog_reload","timestamp_utc":"2026-11-15T07:57:46.008010+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":155}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"494992a0ce0937ce","generation_ref":"1ae56dc3937d0104","attempt_ref":"57ae47e452b99802","stage":"checkpoint_verification","timestamp_utc":"2026-11-15T07:57:46.008114+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"494992a0ce0937ce","generation_ref":"1ae56dc3937d0104","attempt_ref":"57ae47e452b99802","stage":"checkpoint_verification","timestamp_utc":"2026-11-15T07:57:46.042571+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":34}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"494992a0ce0937ce","generation_ref":"1ae56dc3937d0104","attempt_ref":"57ae47e452b99802","stage":"model_load","timestamp_utc":"2026-11-15T07:57:46.042608+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+{"causal_conv1d_available": true, "event": "qwen35_linear_attention_kernel_preflight", "fla_available": true, "import_failures": {}, "reference_fallback_allowed": false}
+
+[1A
+Loading weights:   0%|          | 0/760 [00:00<?, ?it/s]
+[1A
+Loading weights:   0%|          | 1/760 [00:00<08:17,  1.53it/s]
+[1A
+Loading weights:   0%|          | 2/760 [00:01<09:12,  1.37it/s]
+[1A
+Loading weights:   2%|▏         | 14/760 [00:01<00:56, 13.30it/s]
+[1A
+Loading weights:   3%|▎         | 20/760 [00:01<00:38, 19.02it/s]
+[1A
+Loading weights:   4%|▍         | 33/760 [00:01<00:20, 35.79it/s]
+[1A
+Loading weights:   5%|▌         | 41/760 [00:01<00:19, 37.51it/s]
+[1A
+Loading weights:   6%|▋         | 48/760 [00:02<00:16, 42.46it/s]
+[1A
+Loading weights:   8%|▊         | 61/760 [00:02<00:12, 57.73it/s]
+[1A
+Loading weights:   9%|▉         | 69/760 [00:02<00:11, 58.48it/s]
+[1A
+Loading weights:  11%|█         | 81/760 [00:02<00:10, 62.51it/s]
+[1A
+Loading weights:  12%|█▎        | 95/760 [00:02<00:08, 75.55it/s]
+[1A
+Loading weights:  14%|█▎        | 104/760 [00:02<00:09, 72.84it/s]
+[1A
+Loading weights:  15%|█▌        | 116/760 [00:02<00:07, 81.91it/s]
+[1A
+Loading weights:  17%|█▋        | 129/760 [00:02<00:07, 88.60it/s]
+[1A
+Loading weights:  18%|█▊        | 139/760 [00:03<00:07, 83.90it/s]
+[1A
+Loading weights:  19%|█▉        | 148/760 [00:03<00:07, 77.83it/s]
+[1A
+Loading weights:  21%|██        | 157/760 [00:03<00:07, 76.00it/s]
+[1A
+Loading weights:  23%|██▎       | 172/760 [00:03<00:06, 90.82it/s]
+[1A
+Loading weights:  24%|██▍       | 182/760 [00:03<00:06, 86.95it/s]
+[1A
+Loading weights:  25%|██▌       | 191/760 [00:03<00:06, 87.30it/s]
+[1A
+Loading weights:  26%|██▋       | 201/760 [00:03<00:06, 89.16it/s]
+[1A
+Loading weights:  28%|██▊       | 211/760 [00:03<00:06, 80.70it/s]
+[1A
+Loading weights:  29%|██▉       | 224/760 [00:04<00:06, 76.88it/s]
+[1A
+Loading weights:  32%|███▏      | 240/760 [00:04<00:05, 93.71it/s]
+[1A
+Loading weights:  33%|███▎      | 250/760 [00:04<00:05, 87.24it/s]
+[1A
+Loading weights:  34%|███▍      | 260/760 [00:04<00:06, 77.40it/s]
+[1A
+Loading weights:  37%|███▋      | 278/760 [00:04<00:04, 100.40it/s]
+[1A
+Loading weights:  38%|███▊      | 290/760 [00:04<00:04, 96.93it/s]
+[1A
+Loading weights:  40%|███▉      | 301/760 [00:04<00:05, 88.62it/s]
+[1A
+Loading weights:  41%|████      | 311/760 [00:05<00:05, 86.20it/s]
+[1A
+Loading weights:  42%|████▏     | 320/760 [00:05<00:05, 81.92it/s]
+[1A
+Loading weights:  44%|████▎     | 332/760 [00:05<00:04, 89.12it/s]
+[1A
+Loading weights:  45%|████▌     | 345/760 [00:05<00:04, 90.83it/s]
+[1A
+Loading weights:  47%|████▋     | 356/760 [00:05<00:04, 88.91it/s]
+[1A
+Loading weights:  48%|████▊     | 366/760 [00:05<00:05, 77.81it/s]
+[1A
+Loading weights:  50%|█████     | 381/760 [00:05<00:04, 91.50it/s]
+[1A
+Loading weights:  51%|█████▏    | 391/760 [00:06<00:04, 90.75it/s]
+[1A
+Loading weights:  53%|█████▎    | 401/760 [00:06<00:04, 88.13it/s]
+[1A
+Loading weights:  54%|█████▍    | 413/760 [00:06<00:04, 75.09it/s]
+[1A
+Loading weights:  57%|█████▋    | 435/760 [00:06<00:03, 105.68it/s]
+[1A
+Loading weights:  65%|██████▍   | 491/760 [00:06<00:01, 212.00it/s]
+[1A
+Loading weights:  78%|███████▊  | 591/760 [00:06<00:00, 409.30it/s]
+[1A
+Loading weights:  91%|█████████ | 688/760 [00:06<00:00, 556.62it/s]
+[1A
+Loading weights: 100%|██████████| 760/760 [00:06<00:00, 111.15it/s]
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"494992a0ce0937ce","generation_ref":"1ae56dc3937d0104","attempt_ref":"57ae47e452b99802","stage":"model_load","timestamp_utc":"2026-11-15T07:58:03.185945+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":17143}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"494992a0ce0937ce","generation_ref":"1ae56dc3937d0104","attempt_ref":"57ae47e452b99802","stage":"catalog_query_expansion","timestamp_utc":"2026-11-15T07:58:03.186228+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"494992a0ce0937ce","generation_ref":"1ae56dc3937d0104","attempt_ref":"57ae47e452b99802","stage":"catalog_query_expansion","timestamp_utc":"2026-11-15T07:58:41.721144+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":38535}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"494992a0ce0937ce","generation_ref":"1ae56dc3937d0104","attempt_ref":"57ae47e452b99802","stage":"catalog_candidate_search","timestamp_utc":"2026-11-15T07:58:41.721350+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"494992a0ce0937ce","generation_ref":"1ae56dc3937d0104","attempt_ref":"57ae47e452b99802","stage":"catalog_candidate_search","timestamp_utc":"2026-11-15T07:58:43.051954+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":1331}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"494992a0ce0937ce","generation_ref":"1ae56dc3937d0104","attempt_ref":"57ae47e452b99802","stage":"catalog_candidate_segmentation","timestamp_utc":"2026-11-15T07:58:43.052104+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+{"candidate_count": 8, "chunk_command_limit": 13, "derived_chunk_count": 20, "event": "svg_catalog_source_segmented", "rejected_candidate_count": 0, "selected_source_path_count": 11, "source_asset_id": "openclipart-friendly-kitten-icon", "source_segment_count": 160, "source_sha256": "a5b74eed392104ff9baa2a335b5e8dde9aef40ca7775949a7fbc4a29b7f36594"}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"494992a0ce0937ce","generation_ref":"1ae56dc3937d0104","attempt_ref":"57ae47e452b99802","stage":"catalog_candidate_segmentation","timestamp_utc":"2026-11-15T07:58:43.061558+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":9}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"494992a0ce0937ce","generation_ref":"1ae56dc3937d0104","attempt_ref":"57ae47e452b99802","stage":"catalog_source_render","timestamp_utc":"2026-11-15T07:58:43.061596+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"494992a0ce0937ce","generation_ref":"1ae56dc3937d0104","attempt_ref":"57ae47e452b99802","stage":"catalog_source_render","timestamp_utc":"2026-11-15T07:58:43.392337+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":331}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"494992a0ce0937ce","generation_ref":"1ae56dc3937d0104","attempt_ref":"57ae47e452b99802","stage":"prompt_encoding","timestamp_utc":"2026-11-15T07:58:43.392699+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"494992a0ce0937ce","generation_ref":"1ae56dc3937d0104","attempt_ref":"57ae47e452b99802","stage":"prompt_encoding","timestamp_utc":"2026-11-15T07:58:43.416518+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":24}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"494992a0ce0937ce","generation_ref":"1ae56dc3937d0104","attempt_ref":"57ae47e452b99802","stage":"constrained_decoder_setup","timestamp_utc":"2026-11-15T07:58:43.416612+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"494992a0ce0937ce","generation_ref":"1ae56dc3937d0104","attempt_ref":"57ae47e452b99802","stage":"constrained_decoder_setup","timestamp_utc":"2026-11-15T07:58:43.417282+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":1}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"494992a0ce0937ce","generation_ref":"1ae56dc3937d0104","attempt_ref":"57ae47e452b99802","stage":"model_inference","timestamp_utc":"2026-11-15T07:58:43.417329+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"494992a0ce0937ce","generation_ref":"1ae56dc3937d0104","attempt_ref":"57ae47e452b99802","stage":"model_inference","timestamp_utc":"2026-11-15T07:59:35.427694+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":52010}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"494992a0ce0937ce","generation_ref":"1ae56dc3937d0104","attempt_ref":"57ae47e452b99802","stage":"draft_plan_parse_and_source_identity_validation","timestamp_utc":"2026-11-15T07:59:35.428365+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+{"assigned_path_count": 20, "duplicate_object_key_count": 0, "empty_stage_count": 0, "error_code": "SVG_CATALOG_STROKE_PLAN_STAGE_INVALID", "event": "svg_catalog_construction_stroke_guide_rejected", "expected_path_count": 20, "generation_duration_ms": 52011, "missing_path_count": 0, "out_of_range_stage_count": 0, "output_token_count": 935, "unique_path_count": 20, "unknown_path_count": 0}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_failed","workload":"svg.topic-stroke-guide.generate","job_ref":"494992a0ce0937ce","generation_ref":"1ae56dc3937d0104","attempt_ref":"57ae47e452b99802","stage":"draft_plan_parse_and_source_identity_validation","timestamp_utc":"2026-11-15T07:59:35.428771+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":0,"error_code":"SVG_CATALOG_STROKE_PLAN_STAGE_INVALID","error_type":"Exception"}
+{"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_failed","workload":"svg.topic-stroke-guide.generate","job_ref":"494992a0ce0937ce","generation_ref":"1ae56dc3937d0104","attempt_ref":"57ae47e452b99802","stage":"draft_plan_parse_and_source_identity_validation","timestamp_utc":"2026-11-15T07:59:35.428805+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":109765,"error_code":"SVG_CATALOG_STROKE_PLAN_STAGE_INVALID","error_type":"Exception"}
+Traceback (most recent call last):
+  File "/pkg/modal/_runtime/container_io_manager.py", line 987, in handle_input_exception
+    yield
+  File "/pkg/modal/_container_entrypoint.py", line 189, in run_input_sync
+    values = io_context.call_function_sync()
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/pkg/modal/_runtime/container_io_manager.py", line 266, in call_function_sync
+    expected_value_or_values = self.finalized_function.callable(*args, **kwargs)
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/worker_observability.py", line 333, in wrapped
+    result = function(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/language_audio_app.py", line 1324, in generate_topic_svg_stroke_guide_draft
+    draft_plan = _parse_svg_catalog_source_plan(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/language_audio_app.py", line 4700, in _parse_svg_catalog_source_plan
+    raise _SvgCatalogPlanValidationError(
+language_audio_app._SvgCatalogPlanValidationError: SVG_CATALOG_STROKE_PLAN_STAGE_INVALID

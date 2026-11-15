@@ -1,0 +1,18 @@
+Rev87.21 focused checks (2026-11-15)
+
+- Modal worker contract: 30 passed, two asyncio event-loop deprecation warnings.
+- Backend construction-guide/domain/API contracts: 12 passed.
+- Parent mobile SVG guide source contract: 3 passed.
+- Python compile: passed.
+- Scoped `git diff --check`: passed.
+- Final local checks ran after the last prompt/schema adjustment and before call 3.
+
+Live calls:
+
+- 3 sequential synthetic Parent route → Modal Qwen3.5 calls; no retry within any call.
+- Call 1: HTTP 502/193.140 s; geometry duplicated at stroke 5.
+- Call 2: HTTP 502/211.341 s; eight unique geometries, duplicate at stroke 9.
+- Call 3: HTTP 502/446.930 s; first SVG path rejected by stroke-complexity validation (768 chars; command-count detail not recorded).
+- No API guide/SVG/render was returned; no call was a worker timeout.
+- CPU `/health` passed before calls with GPU allocation/inference false.
+- Modal app stopped and verified stopped after call 3.

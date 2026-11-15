@@ -1,0 +1,9 @@
+{
+  "test": "FastAPI TestClient local harness",
+  "http_status": 500,
+  "elapsed_seconds": 3.335,
+  "modal_worker_dispatched": false,
+  "modal_call_id": null,
+  "verification": "Read-only Modal system logs for the time window contained no worker invocation; the only GPU inference was the later direct Parent route-handler call.",
+  "no_retry_for_preflight": true
+}

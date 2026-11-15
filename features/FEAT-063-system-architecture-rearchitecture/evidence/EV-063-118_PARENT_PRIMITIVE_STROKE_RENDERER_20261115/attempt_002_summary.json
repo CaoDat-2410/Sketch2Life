@@ -1,0 +1,23 @@
+{
+  "status": "HANDLER_HTTP_502",
+  "started_at": "2026-11-15T12:43:10.108528+07:00",
+  "completed_at": "2026-11-15T12:45:41.937576+07:00",
+  "elapsed_seconds": 151.828,
+  "http_status": 502,
+  "topic": "con mèo",
+  "data_class": "synthetic_topic_only_no_child_profile_or_photo",
+  "response_contract": null,
+  "generation_source": null,
+  "request_id": null,
+  "modal_call_id": null,
+  "path_count": null,
+  "stage_count": null,
+  "error_detail": {
+    "code": "MODAL_WORKER_FAILED_TERMINAL",
+    "request_id": "ca8182ab-f6f2-4bb4-bd6a-ba3100e1d93a"
+  },
+  "svg_returned": false,
+  "retry_performed": false,
+  "video_requested": false,
+  "child_data_used": false
+}

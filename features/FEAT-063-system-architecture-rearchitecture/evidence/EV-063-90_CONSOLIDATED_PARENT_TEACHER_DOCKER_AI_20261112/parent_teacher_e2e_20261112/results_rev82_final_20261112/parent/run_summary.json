@@ -1,0 +1,177 @@
+{
+  "started_at_utc": "2026-11-12T15:01:33.275839+00:00",
+  "test_mode": "real_synthetic_docker_firebase_auth_emulator_modal_api",
+  "fixture_used_as_success": false,
+  "video_called": false,
+  "parent_guide_reused": true,
+  "account_credentials_written": false,
+  "firebase_tokens_written": false,
+  "consent_scope": "LOCAL_SYNTHETIC_TEST_ONLY_NOT_LEGAL_CONSENT",
+  "calls": [
+    {
+      "label": "01_registration",
+      "method": "POST",
+      "path": "/api/auth/v1/registrations",
+      "request_id": "779fb49a-a8f3-4b78-8ddf-4211a7914369",
+      "started_at_utc": "2026-11-12T15:01:33.275903+00:00",
+      "http_status": 201,
+      "elapsed_seconds": 0.078,
+      "completed_at_utc": "2026-11-12T15:01:33.354080+00:00",
+      "status": "PASS"
+    },
+    {
+      "label": "02_account_role",
+      "method": "GET",
+      "path": "/api/auth/v1/me",
+      "request_id": "659a2d3b-8777-468c-afa0-aec08810c672",
+      "started_at_utc": "2026-11-12T15:01:33.360639+00:00",
+      "http_status": 200,
+      "elapsed_seconds": 0.013,
+      "completed_at_utc": "2026-11-12T15:01:33.373441+00:00",
+      "status": "PASS"
+    },
+    {
+      "label": "03_consent_policy",
+      "method": "GET",
+      "path": "/api/parent/v1/consent-policy",
+      "request_id": "cf7eed52-232a-4d77-8881-27dd91ff4518",
+      "started_at_utc": "2026-11-12T15:01:33.373887+00:00",
+      "http_status": 200,
+      "elapsed_seconds": 0.013,
+      "completed_at_utc": "2026-11-12T15:01:33.387325+00:00",
+      "status": "PASS"
+    },
+    {
+      "label": "04_child_profile",
+      "method": "POST",
+      "path": "/api/parent/v1/child-profiles",
+      "request_id": "9be068fe-f5f0-4f2c-88d2-05d10d91a27a",
+      "started_at_utc": "2026-11-12T15:01:33.387473+00:00",
+      "http_status": 201,
+      "elapsed_seconds": 0.088,
+      "completed_at_utc": "2026-11-12T15:01:33.475405+00:00",
+      "status": "PASS"
+    },
+    {
+      "label": "05_story_run",
+      "method": "POST",
+      "path": "/api/parent/v1/story-runs",
+      "request_id": "4c79ccaa-62fc-4646-9faa-3dce7f36b4b8",
+      "started_at_utc": "2026-11-12T15:01:33.476041+00:00",
+      "http_status": 201,
+      "elapsed_seconds": 0.06,
+      "completed_at_utc": "2026-11-12T15:01:33.536454+00:00",
+      "status": "PASS"
+    },
+    {
+      "label": "06_drawing_understanding",
+      "method": "POST",
+      "path": "/api/parent/v1/ai/drawing-understandings",
+      "request_id": "58393243-750c-44a6-b2e4-01dc41d8db8a",
+      "started_at_utc": "2026-11-12T15:01:33.546901+00:00",
+      "http_status": 200,
+      "elapsed_seconds": 243.509,
+      "completed_at_utc": "2026-11-12T15:05:37.044922+00:00",
+      "status": "PASS"
+    },
+    {
+      "label": "07_subject_confirmation",
+      "method": "POST",
+      "path": "/api/parent/v1/story-runs/fa807136-2bca-488e-b734-ed8290042ca7/subject-confirmations",
+      "request_id": "5c9960d0-7c49-46bc-808f-1665d50f686e",
+      "started_at_utc": "2026-11-12T15:05:37.046189+00:00",
+      "http_status": 200,
+      "elapsed_seconds": 0.044,
+      "completed_at_utc": "2026-11-12T15:05:37.090435+00:00",
+      "status": "PASS"
+    },
+    {
+      "label": "08_activity_suggestions",
+      "method": "POST",
+      "path": "/api/parent/v1/ai/story-runs/fa807136-2bca-488e-b734-ed8290042ca7/activity-suggestions",
+      "request_id": "6f47f9a1-a8fe-4eaf-a663-4d3ae08c29e8",
+      "started_at_utc": "2026-11-12T15:05:37.090931+00:00",
+      "http_status": 502,
+      "elapsed_seconds": 346.064,
+      "completed_at_utc": "2026-11-12T15:11:23.137610+00:00",
+      "status": "FAIL",
+      "error_code": "PARENT_ACTIVITY_QUALITY_GATE_REJECTED"
+    }
+  ],
+  "parent_account_created": true,
+  "consent_policy_version": "local-synthetic-demo-v1",
+  "input_image": {
+    "sha256": "3b3b027f2310a568d64009564bbe7df2ce702ee8fc9edf75328817edd40dfbbd",
+    "size_bytes": 2989411,
+    "synthetic": true
+  },
+  "drawing_understanding": {
+    "candidate_subject": "con hươu",
+    "confidence": 0.9,
+    "topic_match": "MATCH",
+    "visible_features": [
+      "đường nét đen",
+      "nền trắng",
+      "màu sắc",
+      "cây xanh"
+    ],
+    "review_required": true
+  },
+  "parent_workflow": {
+    "status": "FAIL",
+    "blocked_at": "activity_suggestions",
+    "error_code": "PARENT_ACTIVITY_QUALITY_GATE_REJECTED"
+  },
+  "completed_at_utc": "2026-11-12T15:11:23.138487+00:00",
+  "calls_summary": [
+    {
+      "label": "01_registration",
+      "http_status": 201,
+      "elapsed_seconds": 0.078,
+      "status": "PASS"
+    },
+    {
+      "label": "02_account_role",
+      "http_status": 200,
+      "elapsed_seconds": 0.013,
+      "status": "PASS"
+    },
+    {
+      "label": "03_consent_policy",
+      "http_status": 200,
+      "elapsed_seconds": 0.013,
+      "status": "PASS"
+    },
+    {
+      "label": "04_child_profile",
+      "http_status": 201,
+      "elapsed_seconds": 0.088,
+      "status": "PASS"
+    },
+    {
+      "label": "05_story_run",
+      "http_status": 201,
+      "elapsed_seconds": 0.06,
+      "status": "PASS"
+    },
+    {
+      "label": "06_drawing_understanding",
+      "http_status": 200,
+      "elapsed_seconds": 243.509,
+      "status": "PASS"
+    },
+    {
+      "label": "07_subject_confirmation",
+      "http_status": 200,
+      "elapsed_seconds": 0.044,
+      "status": "PASS"
+    },
+    {
+      "label": "08_activity_suggestions",
+      "http_status": 502,
+      "elapsed_seconds": 346.064,
+      "status": "FAIL",
+      "error_code": "PARENT_ACTIVITY_QUALITY_GATE_REJECTED"
+    }
+  ]
+}

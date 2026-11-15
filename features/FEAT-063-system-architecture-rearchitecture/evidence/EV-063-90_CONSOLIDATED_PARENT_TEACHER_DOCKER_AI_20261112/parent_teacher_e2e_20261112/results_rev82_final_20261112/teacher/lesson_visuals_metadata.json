@@ -1,0 +1,74 @@
+{
+  "request_id": "c55df453-7483-446e-ab19-3eb1e1ea0ab2",
+  "modal_call_id": "fc-01M783YMBKXKA65D9GR4C45ZGQ",
+  "model": {
+    "image_generator": {
+      "id": "black-forest-labs/flux-3-image-klein",
+      "revision": "09561231f44e41381c461caf53d5452005a60ac9"
+    },
+    "prompt_upsampler": {
+      "id": "black-forest-labs/flux-3-image-klein-pup",
+      "revision": "a57899549f8f6f64c6c4d88db30827d496ff76d0"
+    }
+  },
+  "status": "DRAFT",
+  "review_required": true,
+  "asset": {
+    "content_type": "image/png",
+    "size_bytes": 971362,
+    "sha256": "b8778e2d4886cbd01a3bc2dea4939ae2bda372f498e2a372e510e0d91dfd2d42",
+    "width": 1536,
+    "height": 768
+  },
+  "panel_layout": {
+    "schema_version": "sketch2life.progressive-guide-layout.v1",
+    "columns": 4,
+    "rows": 2,
+    "step_count": 8,
+    "reading_order": "ROW_MAJOR",
+    "stages": [
+      {
+        "step_index": 1,
+        "row": 0,
+        "column": 0
+      },
+      {
+        "step_index": 2,
+        "row": 0,
+        "column": 1
+      },
+      {
+        "step_index": 3,
+        "row": 0,
+        "column": 2
+      },
+      {
+        "step_index": 4,
+        "row": 0,
+        "column": 3
+      },
+      {
+        "step_index": 5,
+        "row": 1,
+        "column": 0
+      },
+      {
+        "step_index": 6,
+        "row": 1,
+        "column": 1
+      },
+      {
+        "step_index": 7,
+        "row": 1,
+        "column": 2
+      },
+      {
+        "step_index": 8,
+        "row": 1,
+        "column": 3
+      }
+    ]
+  },
+  "image_sha256": "b8778e2d4886cbd01a3bc2dea4939ae2bda372f498e2a372e510e0d91dfd2d42",
+  "image_size_bytes": 971362
+}

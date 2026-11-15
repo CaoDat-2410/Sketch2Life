@@ -1,0 +1,22 @@
+{
+  "schema_version": "Sketch2LifeUiApiErrorObservationV1",
+  "observed_at_local": "2026-11-13T17:03:33+07:00",
+  "source": "real Android Parent UI request and temporary API access log",
+  "method": "POST",
+  "path": "/api/parent/v1/ai/story-runs/{story_run_id}/story-revisions",
+  "http_status": 422,
+  "ui_error_code": "HTTP_422",
+  "ui_correlation_id": "parent-expo-mwet53yh",
+  "raw_response_body_captured": false,
+  "server_access_log": "POST /api/parent/v1/ai/story-runs/90a48aa1-7b79-440a-807d-bacfe625818d/story-revisions HTTP/1.1 422 Unprocessable Entity",
+  "modal_call": false,
+  "source_contract_explanation": {
+    "request_schema": "ParentStoryRequestV1",
+    "initial_story_requires": ["primary_activity_request_id", "primary_activity_ref"],
+    "pair_must_be_supplied_together": true,
+    "parent_ui_story_request_fields": ["expected_understanding_revision"],
+    "parent_ui_has_primary_activity_selector": false
+  },
+  "inference": "FastAPI request validation rejected the request before the route handler and Modal provider call. This explanation is based on the observed 422 plus read-only source contract inspection; the raw HTTP response body was not captured.",
+  "no_retry": true
+}

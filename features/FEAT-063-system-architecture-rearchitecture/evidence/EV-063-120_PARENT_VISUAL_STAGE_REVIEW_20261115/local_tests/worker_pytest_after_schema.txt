@@ -1,0 +1,12 @@
+.............................................                            [100%]
+============================== warnings summary ===============================
+..\..\.venv-modal\Lib\site-packages\modal\_utils\async_utils.py:43
+  <repo-root>\.venv-modal\Lib\site-packages\modal\_utils\async_utils.py:43: DeprecationWarning: 'asyncio.WindowsSelectorEventLoopPolicy' is deprecated and slated for removal in Python 3.16
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+..\..\.venv-modal\Lib\site-packages\modal\_utils\async_utils.py:43
+  <repo-root>\.venv-modal\Lib\site-packages\modal\_utils\async_utils.py:43: DeprecationWarning: 'asyncio.set_event_loop_policy' is deprecated and slated for removal in Python 3.16
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+45 passed, 2 warnings in 0.88s

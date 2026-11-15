@@ -1,0 +1,45 @@
+{
+  "attempt": "Rev87.10-D",
+  "started_at_utc": "2026-11-13T13:46:23.6756708+00:00",
+  "target_database": "existing local development PostgreSQL on rev79-parent-local-20261112_default",
+  "api_container": "rev87-parent-authfix-20261113-api-1",
+  "before": {
+    "alembic_revision": "20261110_parent_lesson_pin",
+    "svg_catalog_tables": {
+      "core_svg_catalog_assets": false,
+      "core_svg_catalog_guide_revisions": false,
+      "core_svg_catalog_reviews": false
+    },
+    "core_asset_metadata_rows": 14,
+    "rows_incompatible_with_new_owner_scope_check": 0
+  },
+  "migration": {
+    "revision": "20261113_svg_catalog_review",
+    "command": "alembic upgrade 20261113_svg_catalog_review",
+    "status": "APPLIED",
+    "scope": "targeted revision only; other Alembic heads not upgraded",
+    "transactional_ddl": true
+  },
+  "after": {
+    "alembic_revision": "20261113_svg_catalog_review",
+    "svg_catalog_tables": {
+      "core_svg_catalog_assets": true,
+      "core_svg_catalog_guide_revisions": true,
+      "core_svg_catalog_reviews": true
+    },
+    "core_asset_metadata_rows": 14,
+    "owner_scope_constraint_validated": true,
+    "immutable_triggers": 2
+  },
+  "verification": {
+    "api_health_http": 200,
+    "auth_emulator_sign_in_http": 200,
+    "parent_catalog_get_http": 200,
+    "catalog_contract": "SvgGuideCatalogPageV1",
+    "catalog_item_count": 0,
+    "modal_request_sent": false,
+    "seed_or_fixture_added": false,
+    "rows_mutated": false
+  },
+  "finished_at_utc": "2026-11-13T13:46:23.6812608+00:00"
+}

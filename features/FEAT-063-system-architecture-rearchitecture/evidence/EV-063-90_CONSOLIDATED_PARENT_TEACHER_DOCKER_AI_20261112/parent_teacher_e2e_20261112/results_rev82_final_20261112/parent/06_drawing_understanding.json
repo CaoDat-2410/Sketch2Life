@@ -1,0 +1,27 @@
+{
+  "request_id": "35ad06e4-16f8-4044-8f1d-f5ecfc1684c0",
+  "modal_call_id": "fc-01M784EQZKKCC9CC6WA8Q0W9E6",
+  "story_run_id": "fa807136-2bca-488e-b734-ed8290042ca7",
+  "run_input_revision": 2,
+  "artwork_retake_available": true,
+  "understanding_revision": 1,
+  "drawing_sha256": "3b3b027f2310a568d64009564bbe7df2ce702ee8fc9edf75328817edd40dfbbd",
+  "model": {
+    "id": "Qwen/Qwen3.5-9B",
+    "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
+  },
+  "candidate": {
+    "candidate_subject": "con hươu",
+    "visible_features": [
+      "đường nét đen",
+      "nền trắng",
+      "màu sắc",
+      "cây xanh"
+    ],
+    "confidence": 0.9,
+    "adult_confirmation_required": true,
+    "decision": "REVIEW_REQUIRED",
+    "topic_match": "MATCH"
+  },
+  "review_required": true
+}

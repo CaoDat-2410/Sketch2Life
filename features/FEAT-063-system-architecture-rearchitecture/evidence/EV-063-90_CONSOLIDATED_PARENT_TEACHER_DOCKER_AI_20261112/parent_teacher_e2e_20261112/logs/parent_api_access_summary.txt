@@ -1,0 +1,10 @@
+Summarized from API access logs. Query strings and request bodies intentionally omitted.
+
+GET  /api/parent/v1/story-runs                         405 x1
+GET  /api/parent/v1/story-runs/{run_id}                200 x2
+GET  /api/parent/v1/story-runs/active/current          200 x4
+POST /api/parent/v1/ai/drawing-understandings          409 x1, 504 x1
+POST /api/parent/v1/story-runs                         201 x1, 409 x1
+
+An earlier 422 from story-run creation was observed in the Android UI before the UUID wire-field fix. The API container had been restarted after the earlier log window, so that response is not in the current Docker access-log slice.
+No activity suggestion, story generation or video request was made after drawing understanding failed.

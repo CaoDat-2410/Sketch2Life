@@ -1,5 +1,49 @@
 # FEAT-063 source register
 
+## Rev83.4 implementation authority update — 2026-11-13
+
+- Current product requirements: canonical FEAT-063 v2.7-draft SRS Rev69 at `artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md`; unsigned. Rev69 adds source-only as-built observations in §32 and does not change or sign off §§1–31.
+- M1/M2 plan and exact approved file manifest: `plan/PLAN_REV83_4_M1_M2_APPROVED_IMPLEMENTATION_20261113.md`; owner approval is in `approvals/TASK_APPROVAL.md`.
+- Physical/data crosswalk for this implementation only: `artifacts/REV68_SVG_CATALOG_PERSISTENCE_CROSSWALK.md`. The full Data Table Register is older/unsigned and remains unaligned; the crosswalk does not replace it or unblock Physical ERD sign-off.
+- Source status, exclusions and verification boundary: `status/STATUS.md` and `evidence/EV-063-93_SVG_ENGINE_M1_M2_20261113/IMPLEMENTATION_REPORT.md`.
+
+## Rev69 M1/M2 implementation source record — 2026-11-13
+
+- Source edits are limited to the approved Rev83.4 manifest: backend SVG sanitizer/contracts/catalog/review adapter/routes/migration, Lesson Library guide validation/hydration, Parent catalog lookup/playback, and Teacher manual authoring/review/presentation UI.
+- Implementation remains uncommitted and was not built, tested, migrated, or run. No catalog data was imported or approved. Renderer SLOs and all live API/workflow acceptance remain NOT VERIFIED.
+- Exact worktree baseline: branch `codex/feat063-parent-docker-modal-seed-20261111`, HEAD `1f5bb0b5b1ab501a7120598a7e6e0de75217ddb3`; this worktree contained pre-existing unrelated edits, preserved during the task.
+
+## Rev83.3 shared SVG engine and Parent/Teacher completion — third-review amendment — 2026-11-13
+
+- Third independent review refinements: record `drawable_stroke_count`, `drawable_stroke_ratio`, and `filled_shape_count` as structural evidence only; require educator review of the exact SVG revision before curator-enabled automatic grouping; define `BASELINE_E2E`, separately reported existing Parent AI subcases, and per-task SVG `AI_E2E`; add Teacher Undo/Redo, autosave/dirty state and conflict recovery; propose renderer performance measurements; independently disable the three SVG AI capabilities with `CAPABILITY_DISABLED` and no fallback.
+- Candidate values (autosave debounce 1.5 seconds; renderer ≥30 FPS, p95 first render 500 ms after decode, p95 step transition 150 ms, memory delta 64 MiB) are proposals pending M0 target-device, method and owner review. They are not approved requirements.
+- Review source: owner-provided independent assessment pasted on 2026-11-13. Disposition is in plan §32 and `DECISIONS.md`; plan-only, no implementation approval. SRS authority and step-count conflicts remain open; the SRS is unsigned.
+- No tests, inference, data import, SRS/DTR, source, Docker, Modal or runtime changes were made. Plan is 1188 lines; SHA-256 `73730C4EF30B4EB1E6CF5581105824F3D3D6EFCBDC0E2EE64C7A71009A0960F4`.
+
+## Rev83.2 shared SVG engine and Parent/Teacher completion — historical second-review amendment — 2026-11-13
+
+- Second independent review adds deterministic `STROKE_READY`/`REQUIRES_MANUAL_AUTHORING`/`STATIC_ONLY` classification; unsafe SVG rejection; minimal Teacher Guide Authoring Tool and versioned manual edits; a detailed playback profile with dashed/progress separation and Android acceptance; and a lower-cost M3-A feasibility gate before M4/M5 catalog/manual baselines and M3-B full quality POC.
+- The recommended execution order is reflected in the plan. Qwen vector features remain disabled until their own M3-B passes. SRS Rev60/Rev64/Rev65 and 3–5/4–8 conflicts remain open; no sign-off or implementation approval is inferred.
+- Review source: owner-provided independent assessment pasted on 2026-11-13. Disposition is in Plan §31 and `DECISIONS.md`; planning proposals only. No tests, inference, dataset import, SRS/DTR, source, Docker or Modal changes were made.
+- Plan is 1153 lines; SHA-256 `BF637F820CF6B984F6F36D59FCEAAB0312E48C2F8449974AA71F8B3D03E4BFB5`.
+
+## Rev83.1 shared SVG engine and Parent/Teacher completion — review-amended planning proposal — 2026-11-13
+
+- Owner direction: retire FLUX from the target architecture and use one reusable SVG engine for Parent progressive line-sketch and Teacher Presentation. The review amendment separates Qwen semantic grouping of existing SVG paths, topic-to-guide synthesis and static illustration into distinct tasks/POCs; adds semantic parts, animation modes, a dedicated Teacher guide-from-selected-SVG API, Parent adult preview, on-demand stage rendering/cache and M0–M6 delivery gates. FLUX deployment removal waits until M3–M5 acceptance; no FLUX fallback is allowed for new SVG requests.
+- Consolidated scope carries forward unfinished Rev81/Rev82 work and preserves the existing Parent/Teacher separation, consent/privacy, idempotent local seed, single-root `.env`, Modal health/warmup boundaries, activity/story contracts and existing video pipeline. No video inference is included.
+- Current evidence: Rev82 Teacher lesson-plan and Sketch Deck Qwen calls passed; FLUX lesson visual failed its progressive gate; the Parent drawing-analysis result was unknown/non-retryable and Parent activity/story were not called. See `evidence/EV-063-90_CONSOLIDATED_PARENT_TEACHER_DOCKER_AI_20261112/parent_teacher_e2e_20261112/REPORT_REV82_POSTFIX_DOCKER_MODAL_20261112.md`.
+- SRS authority conflict remains an implementation blocker: task-level instructions identify the FEAT-063 SRS and amendments through Rev64, the current file/worktree pointer says Rev60, and a Rev65 pointer was seen in another checkout. The latter is not used as product authority. Owner/maintainer must reconcile exact content/hash before SRS amendment or code. SRS remains unsigned and DTR is unchanged.
+- Review source: owner-provided independent agent assessment pasted on 2026-11-13. Disposition is recorded in plan §30 and `DECISIONS.md`; accepted as plan edits only, not product/SRS approval.
+- Research references/source-license cautions remain in §15; plan §§16–30 now include the review-specific contract, API, POC rubric/sample counts/cost gate, milestones, risk/acceptance updates and disposition. No dataset was downloaded/imported. Plan is 1064 lines; SHA-256: `BAD4C9D149D8E25FDF05859AE3D3B9092045C3600214192FDD7C281935FB5D32`.
+- Status: DRAFT, plan-only, awaits exact milestone approval. No code, SRS/DTR, tests, Docker, Modal, database, `.env`, commit or push work was done.
+
+## Rev81 consolidated Parent/Teacher/Docker plan — detailed planning baseline — 2026-11-12
+
+- Product authority: canonical FEAT-063 SRS v2.7-draft Rev60, unsigned; this plan records owner-requested deltas without amending the SRS.
+- Plan: `plan/PLAN_REV81_CONSOLIDATED_PARENT_TEACHER_DOCKER_AI_20261112.md`; current approved implementation SHA-256 `494F55A33D56CD0E90D6217A29A6719E08DE2C3ED4CB8D251DF2EC2AFA75960F`; approval addendum in `approvals/TASK_APPROVAL.md`.
+- Planning detail: Parent account/profile/share/library/settings/notification/quota/history, Teacher authoring and classroom occurrence, Manager/Admin controls, existing API source paths and proposed gaps, data ownership/migration gates, AI workload quality contracts, Docker/seed runtime, work-package dependencies and acceptance evidence.
+- Lifecycle: initial planning record superseded by the approved implementation and owner-answer addenda below. SRS/DTR remain unchanged; implementation does not imply formal SRS sign-off.
+
 ## Rev65 Teacher Sketch Deck presentation UI — current — 2026-11-10
 
 - Product authority: FEAT-063 SRS v2.7-draft, Rev60 working copy (unsigned), §§6.2.1, FR-T-19, UC-17, BR-43 and NFR-33.
@@ -501,6 +545,195 @@ Plan Rev51 SHA-256 at approval: `B20103A217D7A9623E02279CE0BD82D5BC61141518D820F
 - Plans/approval: plan/PLAN_REV78_PARENT_CATALOG_FIRST_ACTIVITY_SUGGESTIONS_20261111.md, plan/PLAN_REV78A_PARENT_ACTIVITY_GATE_REFINEMENT_20261111.md and publication/migration addendum Rev78B; approval is recorded in approvals/TASK_APPROVAL.md.
 - Evidence: evidence/EV-063-87_PARENT_FULL_API_UI_E2E_20261111/API_PARENT_E2E_REPORT.md with selected synthetic workflow screenshots and safe JSON runtime records.
 - Verification boundary: 28 focused tests passed before the final publication checks; final publication checks are recorded in status/STATUS.md. No video; the last live fallback inference had no output and no gate verdict.
+
+## Rev79 Parent Docker seed, Firebase App ID and Modal health — 2026-11-12
+
+- Canonical requirements source remains `docs/context/SRS_AUTHORITY.md` and the FEAT-063 v2.7-draft Rev60 SRS; unsigned and unchanged.
+- Plan: `plan/PLAN_REV79_PARENT_DOCKER_SEED_MODAL_HEALTH_20261112.md`, approved hash `5B8375B7DEED983AAB33C69297C3F44C5B35B12985F17D39E7920035555C0380`; revision-pointer, Modal API, host-port and gate clarifications are in `approvals/TASK_APPROVAL.md`.
+- Implementation includes an insert-only local Parent/account/profile/authorization/public-lesson seed, local quota display API, compact Parent Alembic migration revision and lesson-pin dependency, Expo root `.env` lookup, catalog activity quality-gate/parser alignment, local `modal_dev` API configuration, Compose services and a health-only Modal sidecar.
+- PostgreSQL all-head migration, idempotent seed rerun, Firebase Emulator authentication, Parent role/profile/policy/quota/catalog/active-run APIs, Expo App ID/API URL config and 28 targeted quality-gate/parser tests passed. Modal `/health` passed once with no inference/GPU; no Android UI interaction or video was called.
+- Evidence: `evidence/EV-063-88_PARENT_DOCKER_SEED_MODAL_HEALTH_20261112/API_PARENT_DOCKER_MODAL_REPORT.md`.
+
+## Rev81 implementation — approved baseline and no-fixture rule — 2026-11-12
+
+- Current product requirements remain routed exclusively through `docs/context/SRS_AUTHORITY.md` to FEAT-063 v2.7-draft Rev60 §§1–31. The SRS and Data Table Register are unsigned and unchanged.
+- Plan Rev81 SHA-256 `6BE36B78F949177FA87DCED2EA620713BFE8A8EFE092B844AD20EC83B7CF71C6` is now approved for implementation by the owner's direct “implement plan, make sure no fixture” instruction; exact scope and exclusions are recorded in `approvals/TASK_APPROVAL.md` and plan §8.1.
+- Product paths must call actual UI → API → persistence/provider services. Fixture, mock or hardcoded responses cannot satisfy runtime behavior or acceptance evidence. Only local synthetic data passed through the real backend and non-personal generated images are permitted for local verification.
+- Unresolved Rev81 §9 items retain safe dispositions and remain open SRS questions. No video inference, production data/publication, secret or root `.env` modification, destructive operation, commit or push is included.
+
+## Rev81 owner answers and Modal startup correction — 2026-11-12
+
+- Current approved Plan SHA-256: `494F55A33D56CD0E90D6217A29A6719E08DE2C3ED4CB8D251DF2EC2AFA75960F`.
+- Owner answers: adaptive 4–8 drawing stages (explicitly conflicts with Rev60's unchanged 3–5 text); on-demand generation when an authorized lesson has no guide; HTTPS YouTube/Vimeo embeds only.
+- Docker now targets the existing real non-video AI Apps, not the dedicated health-only Modal app. It makes one internal Modal Function call per selected worker using a warmup envelope (no product request/output), then calls each app's `/health`; warmup/model-load and idle grace are still billable. It does not set permanent minimum containers and leaves shared Apps deployed.
+- Exact path additions and exclusions are recorded in the latest Rev81 approval addendum. Video and disabled SAM2 are not started or warmed.
+
+## Rev84 real Teacher SVG Modal UI verification — 2026-11-13
+
+- Approved plan/hash: plan/PLAN_REV84_TEACHER_SVG_MODAL_UI_REAL_20261113.md; hash recorded in approvals/TASK_APPROVAL.md.
+- Implementation exercised: Teacher SVG route and DTO, Modal teacher.svg-illustration.generate worker on pinned Qwen3.5-9B, local capability flag, and native SVG preview in Teacher Web.
+- Runtime: synthetic Firebase Auth Emulator Teacher, isolated Docker API, one Modal deployment, one CPU /health, exactly one UI-triggered GPU inference, no retry/video/FLUX/dataset, no persistence/publication.
+- Evidence: evidence/EV-063-94_TEACHER_SVG_MODAL_UI_20261113/REPORT.md, generated-svg-draft.json, generated-svg-draft.svg, and teacher-svg-draft.png.
+- SRS update is limited to §32 as-built facts. §§1–31 remain unchanged; the SRS remains unsigned.
+## Rev85 Teacher SVG dataset-conditioned attempt — 2026-11-13
+
+- Plan Rev85 hash: F9F9399E197F4D5079D8E27FD32C36C6274626EE0831DE346F32E263FE6AB9C0; one real UI request allowance consumed.
+- Pinned dataset: yoavf/svg-animal-illustrations@d7ab3149308746a4b17e7cbee30f1f054f6c49df; license is CC0-1.0 as declared by its dataset card, not independently audited. Pack SHA-256: C0E47DEB4ADEBB0ED2C7AA21A49955D20976F9F0A9C7F1B933FB3B779AC63A49.
+- Real Teacher UI/API request returned terminal HTTP 502 before model inference: packaged cat exemplar path-026 has stroke width 20 but parser maximum is 12; pack loader validates all examples.
+- No generated SVG or visual comparison exists; quality improvement is NOT VERIFIED. Another deploy or inference requires a new written plan and owner approval.
+- Evidence: evidence/EV-063-95_TEACHER_SVG_DATASET_QUALITY_20261113/REPORT.md and generated-svg-draft.json (502 response only).
+
+
+## Rev86 Teacher SVG active-pack correction and one live comparison — 2026-11-13
+
+- Approved plan: `plan/PLAN_REV86_TEACHER_SVG_DATASET_PACK_FIX_20261113.md`, SHA-256 `144EA85E3314A9CC86659D749DDFDD9D317C306C5C134BFE6035F975C395696D`.
+- The byte-preserved source snapshot remains pinned at `d7ab3149308746a4b17e7cbee30f1f054f6c49df`; only the invalid cat was excluded from the active pack. Remaining examples passed the exact worker parser; active-pack SHA-256 `319d25932c8d4bc8c362b6af19ecded75cb1015d7f8cc19387c9685a74349af0`.
+- One authenticated synthetic Teacher UI/API/Modal request returned HTTP 200 and a real 19-path Qwen3.5 draft. The deer-quality objective failed/mixed because the render reads rabbit-like; this is not a quality acceptance or broad benchmark. Worker terminal logging is inconsistent with the successful API result.
+- Evidence: `evidence/EV-063-96_TEACHER_SVG_DATASET_QUALITY_FIX_20261113/REPORT.md`, `generated-svg-draft.json`, `generated-svg-draft.svg`, and `teacher-svg-draft.png`. No additional inference or test suite was run.
+
+## Rev87.4 curated SVG reference and authoring skill — 2026-11-13
+
+- Arcadia Science, *Free Organism Illustration Library v1.0*, Zenodo DOI `10.5281/zenodo.17203578`, CC0-1.0. Official source: https://zenodo.org/records/17203578. Archive MD5: `a845bf16730238334f39c7cfbc1d4703`; selected `Gallus gallus` SVG SHA-256: `4f6397d5d32ff7ea58451cb5e5725c87501be155c0eb64f85c5821dfe99cb1ed`. Packaged SVG is a visual reference only, not ordered stroke data.
+- `iart-ai/explainer-video-skills/skills/whiteboard-animation`, upstream v0.1.0, MIT. Source: https://github.com/iart-ai/explainer-video-skills/tree/main/skills/whiteboard-animation. Installed as local authoring guidance; not packaged as a Modal runtime dependency.
+- One deployment attempt failed before app update due to local Windows path formatting. No runtime health or inference was obtained; do not claim this worker build is deployed or visually verified. Evidence: `evidence/EV-063-101_ARCADIA_STROKE_SKILL_20261113/REPORT.md`.
+## Rev87.5 bounded Modal retry — 2026-11-13
+
+- Approved plan Rev87.5 final hash: `94547CEC22E0638788358EEEE8DAFBD304D3BF49837DC9CA246CE0DB7D3BF155`.
+- Modal deploy exited 1 with Windows `charmap` output-encoding error after image build logs; deployment status remains unknown. No Modal health or GPU call followed. Do not claim the deployment completed.
+- Current-worktree API container mounted the Parent guide route but runtime OpenAPI returned 500 for missing `SVG catalog contract`. No authenticated Parent request/UI inference was sent.
+- Evidence: `evidence/EV-063-101_ARCADIA_STROKE_SKILL_20261113/runtime-attempt-2.json` and `REPORT.md`. Another attempt requires new written plan and approval.
+
+## Rev87.6 Android Parent UI preflight — 2026-11-13
+
+- Actual Android emulator evidence: `evidence/EV-063-101_ARCADIA_STROKE_SKILL_20261113/screenshots/android-parent-auth.png`, `android-parent-home.png`, and `android-parent-resume-blocked.png`.
+- Runtime details: `evidence/EV-063-101_ARCADIA_STROKE_SKILL_20261113/runtime-attempt-3.json`. The synthetic profile was authorized, but its existing open run could not be restored; no Modal request or generated guide exists.
+
+
+## Rev87.9 Android Parent real flow with Qwen3.5 — 2026-11-13
+
+- Approved plan/hash: `PLAN_REV87_9_ANDROID_PARENT_E2E_ACTIVITY_GAP_20261113.md`; `08FB8ACA06AAC49B498310A2B6D62CFBFA03B48287E932B4BDB63CCB045C5026`.
+- Actual Android signup/profile/capture/context/subject-confirmation flow used a newly created synthetic identity and a generated chicken drawing; no fixture, account secret, or token was recorded.
+- Two real Modal calls on Qwen/Qwen3.5-9B revision `c202236235762e1c871ad0ccb60c8ee5ba337b9a`: `drawing.analyze` HTTP 200 / 38.191 s, call `fc-01M7A527SPGTG5XWAVG6SZ4KRH`; `parent.activity.suggest` HTTP 200 / 121.894 s, call `fc-01M7A575511AWPH7B6ERCQC66J`. No timeout or retry.
+- SVG guide lookup failed due absent `core_svg_catalog_assets`, `core_svg_catalog_guide_revisions`, `core_svg_catalog_reviews`; no migration run. Activity UI had no primary selector; story request returned 422 before Modal because the required request/ref pair was missing. No story/video output.
+- Worker summaries omitted terminal events despite successful output; activity result also included a small-grain suggestion with a supervision warning. Full measured timings, trace refs, hashes, actual AI outputs and Android screenshots: `evidence/EV-063-101_ARCADIA_STROKE_SKILL_20261113/runtime-attempt-4.json` and `REPORT.md`.
+
+## Rev87.10-A Parent SVG bounded attempt — 2026-11-13
+
+- Owner instruction: “thử tạo svg xem, luồng parent ấy”; approval and frozen scope are in `approvals/TASK_APPROVAL.md` and plan Rev87.10-A (SHA-256 `771AF1A0B6FAC59CF11B58A6EB18CE95D8753D25F0880CDE2E1970D03980FFEF`).
+- Real Parent Android UI reached the generic `Con ga` optional guide and exposed the AI fallback after catalog error. The task API health/OpenAPI passed. Catalog lookup returned 401 with a temporary project-ID mismatch; after correction to `sketch2life-dev`, the SVG-draft POST also returned 401 before Modal dispatch. No output/render or GPU inference resulted; exact token-verifier cause remains unknown.
+- Focused fallback test: 4 passed. Evidence: `evidence/EV-063-101_ARCADIA_STROKE_SKILL_20261113/runtime-attempt-5.json`, `REPORT.md`, and `screenshots/parent-svg-*.png`. Task API, Metro and emulator were stopped; shared services preserved.
+
+
+## Rev87.10-B/C — Parent Auth and one SVG runtime attempt (2026-11-13)
+
+- Plan/approval: Rev87.10-B/C in `plan/PLAN_REV87_10_PARENT_ACTIVITY_SELECTION_STORY_TEST_20261113.md`; approved plan SHA-256 `73A947A130A75C5EDF603597945EB86475D8F9B8283198DE69D055B2676CB7B0`.
+- Current `compose.yaml` already configures `FIREBASE_AUTH_EMULATOR_HOST=firebase-auth:9099`. The stale API container `s2l-parent-e2e-20261111-api-1` was missing that setting. A current-worktree task API using the root `.env` produced `/health` 200; fresh Auth Emulator sign-in and `/api/auth/v1/me` passed (200, active Parent), with `check_revoked=true`.
+- Parent SVG catalog returned 503 `DATABASE_UNAVAILABLE`. One generic-topic Qwen3.5 Modal request returned API 502 after 820.282 s; worker terminal error `SVG_TOPIC_GUIDE_PATH_INVALID` at output parse after 766.801 s inference. Modal call `fc-01M7AGHYQ0DH0Q65V3EW079BRB`. No valid output, retry, video, migration, seed or `.env` change.
+- Android UI not run; SDK/adb/emulator unavailable. API log summarizer missed the terminal event at request failure; a later read-only Modal log query found worker failure. Evidence: EV-063-101 `runtime-attempt-6.json` and `REPORT.md`.
+
+
+## Rev87.10-D — targeted Parent SVG catalog migration (2026-11-13)
+
+- Owner instruction: “FIX DATABASE DI DUMA”. Approved plan/hash Rev87.10-D: `CD6360222DC48AE1782619875A24BC80EB50EC049892AE3D8D9602C66404C6AC`.
+- Preflight on the existing Rev79 Postgres: current revision `20261110_parent_lesson_pin`; three catalog tables absent; 14 Core asset rows, zero incompatible with the expanded owner-scope rule.
+- Applied only `alembic upgrade 20261113_svg_catalog_review` transactionally. Other Alembic heads were not upgraded. Verified target revision, three tables, validated scope check, two immutable triggers, and unchanged 14 Core asset rows.
+- Authenticated Parent catalog GET returned HTTP 200 / `SvgGuideCatalogPageV1` / zero items; API health HTTP 200. No seed, fixture, AI or row mutation. Evidence: EV-063-101 `runtime-attempt-7.json` and `REPORT.md`.
+## Rev87.10-E Parent SVG runtime evidence — 2026-11-13
+
+- One real authenticated Parent API-to-Modal attempt after Rev87.10-D migration. Auth and catalog lookup passed; no approved guide matched. Qwen3.5 worker terminated with `SVG_TOPIC_GUIDE_PATH_INVALID`; no SVG returned and no retry.
+- Detailed safe trace and failure stage: `evidence/EV-063-101_ARCADIA_STROKE_SKILL_20261113/runtime-attempt-8.json` and `REPORT.md`. Environment-specific only; no target requirement change.
+
+## Rev87.10-F/G/H — constrained decoder fix and final Parent SVG attempt (2026-11-13)
+
+- Root failure `LMFormatEnforcerException` was reproduced from worker logs: pinned LMFE 0.11.3 does not support string schema `pattern` together with `minLength`/`maxLength`. Removed only redundant length keys from the two patterned fields; backend/worker validation limits remain. Focused tests 4/4 and worker compile passed; exactly one language/audio app deployment completed.
+- One real Parent request passed health/auth/catalog (0 approved guide rows), then Qwen3.5 completed 364,985 ms inference and failed output parsing with `SVG_TOPIC_GUIDE_JSON_INVALID`; API terminal HTTP 502. No validated SVG/output/render; no retry or video.
+- Client TypeError at +307.345 s preceded Modal terminal failure at 388.003 s. Current source parses JSON before checking EOS/max-token truncation, so raw-output-free evidence cannot distinguish malformed from truncated generation.
+- Safe full record: `evidence/EV-063-101_ARCADIA_STROKE_SKILL_20261113/runtime-attempt-10.json`; narrative: `REPORT.md`. Rev87.10-H cap is consumed; another deploy/inference needs a new bounded plan/approval.
+## Rev87.10-I — SVG truncation diagnostics and runtime evidence (2026-11-13)
+
+- Worker: `deployment/modal/srs_v23/language_audio_app.py` checks token cap/EOS before SVG JSON parsing and emits safe counters only.
+- Backend: `backend/src/sketch2life/infrastructure/ai/modal_function_client.py` accepts only allowlisted diagnostics for `svg.topic-stroke-guide.generate`.
+- Focused verification: SVG worker contract tests 6/6; worker compile and backend safe-log-summary test passed.
+- Real API attempt: `evidence/EV-063-101_ARCADIA_STROKE_SKILL_20261113/runtime-attempt-11.json`; worker hit 6,144 tokens without EOS and returned `MODAL_SVG_TOPIC_GUIDE_OUTPUT_TRUNCATED`. No SVG output.
+- SRS §§1–31 are unchanged; §32.22 records this environment-only result.
+## Rev87.10-M/N/O/P — Parent SVG geometry and timeout diagnosis — 2026-11-14
+
+- Worker parser passed and Qwen3.5 returned 9 path records/8 stages, but the final Parent API rejected geometry with `SVG_CHICKEN_ANATOMY_ENDPOINT_DISCONNECTED` after about 253 seconds. Safe booleans isolate a neck/head endpoint mismatch plus remaining beak-length and leg-descent failures.
+- Existing 1,800-second deadline is sufficient for the observed request; this was not a timeout. No quality gate was relaxed. Focused worker tests 10/10, worker compile, backend topology tests 2/2, and scoped diff check passed; one Modal deployment completed.
+- Detailed terminal metrics and safe geometry booleans: `evidence/EV-063-101_ARCADIA_STROKE_SKILL_20261113/runtime-attempt-20.json`; full diagnosis: `REPORT.md`. No validated SVG/render; the single inference limit is consumed.
+
+## Rev87.11 — Arcadia-derived Parent SVG guide — 2026-11-14
+
+- External source: Arcadia Science, Free Organism Illustration Library v1.0, Zenodo DOI https://doi.org/10.5281/zenodo.17203578, licensed CC0-1.0 (https://creativecommons.org/publicdomain/zero/1.0/). The selected Gallus gallus reference SVG is pinned at SHA-256 4f6397d5d32ff7ea58451cb5e5725c87501be155c0eb64f85c5821dfe99cb1ed; provenance is beside the source in deployment/modal/srs_v23/data/arcadia_organism_strokes/.
+- Authored derivation: arcadia-gallus-derived-guide-v1.json, SHA-256 4e86e2e9f2e83a91e9301456e414a7f7f5c620a46c5cf5c39abfd1186705dda0. It tracks source elements for lineage but defines separate open stroke geometry and a six-stage order. The source does not supply child stroke order.
+- V1 is superseded and not used by the current runtime; its hash above is retained as historical provenance. The runtime reads the Rev87.11-C v2 manifest below.
+
+### Rev87.11-C authored guide revision
+
+- `deployment/modal/srs_v23/data/arcadia_organism_strokes/arcadia-gallus-derived-guide-v2.json`, SHA-256 `C4F35352D5EBC57C812AE12E831D82BD389F8D1B434D79C5B905674C7013D90F`.
+- It preserves the same pinned Arcadia Science Free Organism Illustration Library v1.0 Gallus gallus CC0 source (SHA-256 `4f6397d5d32ff7ea58451cb5e5725c87501be155c0eb64f85c5821dfe99cb1ed`) and records source lineage for 20 newly authored open strokes across six stages.
+- The guide matches the source's left-facing pose. The color illustration is returned as a separate sanitized vector document and is not rendered behind the drawing steps. Arcadia does not provide stroke order; the derivation remains a private draft pending educator review.
+- As-built output: EV-063-102 contains the route response, generated SVG, 1024×1024 rendered PNG and runtime record. One request returned HTTP 200 in 0.027 s; no Modal inference was dispatched. Private draft, not reviewed/published.
+
+### Rev87.11-F HTML-aligned hen guide revision
+
+- The owner-provided `sketch2life_svg_stroke_guide_demo.html` was run in Edge and inspected at each of its seven stages. The demo contributes no dataset or art; it is used only as a reference for the drawing sequence and animation behavior.
+- The Arcadia source remains the sole image reference: Arcadia Science Free Organism Illustration Library v1.0, CC0-1.0, Zenodo DOI `10.5281/zenodo.17203578`, source SVG SHA-256 `4f6397d5d32ff7ea58451cb5e5725c87501be155c0eb64f85c5821dfe99cb1ed`. It informs pose/feature placement only and is not copied or rendered beneath the strokes.
+- Active local manifest: `deployment/modal/srs_v23/data/arcadia_organism_strokes/arcadia-gallus-derived-guide-v5.json`, SHA-256 `EF05700D09EA5569373FE4746DA78B36DD5E0FCBDD34536DD01707F6B9DF46B9`. It defines 16 authored paths in eight stages. V2/V3/V4 remain historical; V4 SHA-256 is `E901533285EF887507E9C6E6623D919E7EB3B6BB499582AF0007DA3D95EA8665`.
+- V5 route output, independent 1024×1024 stage PNGs, final drawing, separate full-color reference, the seven HTML-demo screenshots and focused test results are in `evidence/EV-063-105_PARENT_HEN_HTML_ALIGNED_DRAWING_SEQUENCE_20261114/REPORT.md`. This is a source-specific private draft, not educator-reviewed/published content.
+
+### Rev87.11-H exact-source-path guide revision
+
+- Source: Arcadia Science, Free Organism Illustration Library v1.0, `Gallus gallus`, CC0-1.0, Zenodo DOI `10.5281/zenodo.17203578`; pinned SVG SHA-256 `4f6397d5d32ff7ea58451cb5e5725c87501be155c0eb64f85c5821dfe99cb1ed`.
+- Active guide manifest: `deployment/modal/srs_v23/data/arcadia_organism_strokes/arcadia-gallus-source-path-sequence-v7.json`, SHA-256 `22eb7e077416b64db52b65ede1a45b584e1315a96d1b7e1ac110118510e532c6`. The manifest records exact source path IDs/order, provenance, eight stage assignments and Vietnamese teaching copy; source `d` path data remains authoritative in the pinned SVG.
+- V7 includes all 77 source paths once across eight stages. The renderer displays exact source path geometry as progressive line art and keeps the original filled illustration as a separate reference. This source-specific runtime bypasses Qwen/Modal; unsupported topics remain on their existing route.
+- Route response, timing, hashes, eight rendered stages, separate reference, checks and limitations: `evidence/EV-063-107_PARENT_EXACT_SOURCE_PATH_GUIDE_20261114/REPORT.md`. The draft has not been educator-approved or published.
+
+### Rev87.13 OpenMoji guide and color-reference sources
+
+- Dataset: OpenMoji 17.0.0, pinned source revision `f9fc506a3f913be9897ab0181d611d4c910a4104`, project https://github.com/hfg-gmuend/openmoji, release https://github.com/hfg-gmuend/openmoji/releases/tag/17.0.0.
+- License: CC BY-SA 4.0, legal code https://creativecommons.org/licenses/by-sa/4.0/legalcode; full text is vendored as `deployment/modal/srs_v23/data/openmoji/CC-BY-SA-4.0-legalcode.txt` (SHA-256 `28a9529c7d0bb4dc51f4bf5c116a3d16ef247a052f7591466768ddf563fd1cf5`). Derived guide SVGs are marked CC BY-SA 4.0; UI links source and license and identifies the guide as converted from OpenMoji SVG.
+- Runtime assets are limited to black/color pairs: turtle `U+1F422` (black `4c617d364f6451249a06ed42e5b97344a1ccd5e19d8bf4d323f3e7cb111cfc22`, color `c3054c9394a9710c47d7057eebd48b31fe7292a555eacadb6eb47ed5a8b5d829`); butterfly `U+1F98B` (black `a089d7e39aed63ebb945aee24dfd64949dd5b855615909f7438a76a7d47cb65c`, color `47b4971766ec7d4d913142eac844bb33c526b72839209c8acb531483a2f4072d`); dog `U+1F415` (black `1883bc9a8eec88065425e2cb4b801696f1d9a0734b00d83e43652739f02a6e22`, color `a01131556b1f472f2be150b5e61bb77e4ffed96bbdbc9b60ac4a36b62ffac2a3`). Full mapping and upstream paths: `deployment/modal/srs_v23/data/openmoji/parent-guide-manifest.json` (SHA-256 `086957a6a66c87a523edef5296d71517411a1a5c6d30b1b11626cd3d0af98ede`).
+- Pairing: black line group is normalized to renderer paths; each corresponding color line group must have matching normalized geometry/order. The original color SVG is reconstructed from only allowlisted source shapes and returned separately. Stages: turtle 12 source elements/5 steps, butterfly 9/4, dog 6/4. Manual inspection previews and exact source hashes are recorded under `evidence/EV-063-108_PARENT_MULTI_DATASET_SVG_GUIDES_20261114/`.
+- Noto Emoji candidate previews were rejected and are not in runtime. Existing Arcadia `Gallus gallus` CC0 remains active. No full external dataset was copied.
+
+### Rev87.14 Openclipart Parent guide source pairs
+
+- Dataset/source host: Openclipart individually curated SVG uploads; Openclipart states uploaded artwork is dedicated under CC0 1.0 ([sharing/FAQ](https://openclipart.org/share)). No full dataset was imported.
+- Butterfly: color asset 352665 by teck5, SHA-256 `996da47b11cbb90db4ad69dc08c92caf9b6b8b92297b9a7db98f7bb0941237c7`; line asset 352671 by teck5, SHA-256 `736e5a6ab508198b12da9a360f4ae84aca3aec815e2f39912fdd9b311aba645e`. URLs and guide data are in `deployment/modal/srs_v23/data/openclipart/parent-guide-manifest.json`.
+- Turtle: color asset 325115 by hund, SHA-256 `8ee643ed8bb8e05dc81f6df7bc35953b36eb016774053bdaee628a7fb5a201b5`; line asset 325116 by hund, SHA-256 `8f9eca29b6f48c1a30f9212ab720dcac72473d72c22ada347d058c46d861d180`.
+- Both selected guides preserve source line geometry in six staged groups, with 39 butterfly paths and 35 turtle paths. Dog assets 213982/213981 were rejected for dense fur; alternate turtle asset 325114 was rejected for pose mismatch. Only the two selected pairs and their guide JSON are packaged in the runtime source pack.
+- The manifest SHA-256 is `570aa1bfa36c3e43d832edc745a2ce8320fd2cbe83880816016f793776099f3e`; `NOTICE.md` SHA-256 is `231f9a0024319227977fa0ffc248334188f2df01e2f3fbdd40d76ad5f432d4e3`. Manual previews and limitations: `evidence/EV-063-109_PARENT_RICHER_OPENCLIPART_GUIDES_20261114/REPORT.md`.
+
+### Rev87.15 — Openclipart full source corpus and Modal-only catalog
+
+- Dataset: [`kawwaaa/openclipart`](https://huggingface.co/datasets/kawwaaa/openclipart); the dataset card reports 178,604 SVG records, English-heavy metadata, Zstandard JSONL shards, and about 22.3 GB compressed.
+- Upstream license statement: [Openclipart FAQ](https://openclipart.org/faq); only records declared CC0/CC0-1.0 are indexed as usable guide sources. Original shards are retained on the Modal Volume to preserve source rows and audit provenance.
+- Intended Modal storage: Volume v2 `sketch2life-openclipart-catalog-dev` in `dev`; original shard names and SHA-256, extracted SVG source SHA-256, dataset commit, source URLs, attribution metadata, license, and eligibility/rejection counts are recorded by the importer.
+- Source path/order behavior: Qwen3.5 selects only a 4–8-stage ordering of exact parsed source path IDs; deterministic renderer returns the same path geometry plus a separate color illustration. It cannot replace path `d` geometry.
+- Runtime: imported and hash-verified on Modal Volume v2 `sketch2life-openclipart-catalog-dev` (dev), full 18 shards, revision `df38e5ef633be067d397df7da19a9f009e69b3bd`; 178,561 source rows, 178,134 unique CC0 rows, 1,923 guide-eligible, 110,284,614,262 bytes total. No Docker/local corpus copy.
+- App health: language/audio app deployed; Qwen3.5-9B checkpoint and catalog reported ready on CPU `/health`.
+- Worker runtime: one real synthetic topic request failed strict path coverage after Qwen inference (`SVG_CATALOG_STROKE_PLAN_PATH_COVERAGE_INVALID`); no timeout/retry and no final guide. Parent API/UI, Android and Teacher runtime remain untested. Full evidence: `evidence/EV-063-110_OPENCLIPART_MODAL_VOLUME_CATALOG_20261114/REPORT.md`.
+
+### Rev87.16 — Qwen source-path assignment fix (2026-11-15)
+
+- Cause addressed: the V1 grouped path arrays constrained valid IDs but could not express exact set coverage to the decoder. V2 makes each selected path ID a required key in one stage-assignment object, rejects duplicate JSON keys, and deterministically derives stage path lists from source order. Geometry, path identity, safety gates, and 4–8 nonempty stages remain enforced.
+- Local verification: focused worker contract tests 16 passed / 2 skipped (LMFE absent locally); changed `SIM102` and contract-test Ruff checks passed; Python compile passed.
+- Modal runtime: language/audio app deployed in `dev`; CPU `/health` reports pinned Qwen3.5-9B and Volume v2 catalog ready without GPU allocation. One real synthetic `con mèo` request passed in 86.088 seconds: Openclipart CC0 source `openclipart-friendly-kitten-icon`, 11 source paths, six stages, all eight output checks true. Constrained decoder setup succeeded. No retry, child data or video.
+- Limits: this is direct Modal worker verification only. Parent API/UI/Android and Teacher presentation were not tested; workload remains disabled by default. See `evidence/EV-063-111_MODAL_QWEN_CATALOG_PATH_ASSIGNMENT_FIX_20261115/REPORT.md` and worker logs/output.
+
+### Rev87.17–87.18 — Parent Modal guide source/runtime resolution (2026-11-15)
+
+- The full Openclipart source corpus and searchable catalog remain on Modal Volume v2; the Docker API image/build context excludes the full SVG corpora. Missing optional local packs fall through to the Modal source catalog.
+- The successful request selected Openclipart asset openclipart-friendly-kitten-icon, immutable catalog revision df38e5ef633be067d397df7da19a9f009e69b3bd, CC0-1.0, source SHA-256 a5b74eed392104ff9baa2a335b5e8dde9aef40ca7775949a7fbc4a29b7f36594.
+- Qwen3.5-9B returned a six-stage order for 11 exact source paths; no replacement path geometry was generated. The same source's color SVG is provided separately.
+- Rev87.17's first API request exposed a worker-content/API-entity schema mismatch; Rev87.18 fixed it and one fresh authenticated synthetic Parent request returned HTTP 200. See evidence/EV-063-112_PARENT_MODAL_API_GUIDE_RUNTIME_20261115/REPORT.md and evidence/EV-063-113_PARENT_MODAL_API_GUIDE_SCHEMA_FIX_20261115/REPORT.md.
+
+### Rev87.28 — Paired-eye step correction provenance
+
+The visual correction is restricted to Openclipart asset `openclipart-friendly-kitten-icon`, raw source SHA-256 `a5b74eed392104ff9baa2a335b5e8dde9aef40ca7775949a7fbc4a29b7f36594`, and its existing 20 derived source segments. Segments 10–15 are grouped into one guide step; no catalog asset, license, source path, or geometry changed. The offline preview derives from the unchanged genuine route response in EV-063-121 and is recorded in EV-063-122. It is not a new live Modal result.
+
+
 ### Rev87.29 — runtime-selected Openclipart sources
 
 - Elephant request selected `openclipart-elephant-refixed`, URI `https://openclipart.org/258633/elephant-refixed`, CC0-1.0, SHA-256 `74ea03f837ef1293ae17ae5ab97c50daf94002047ba4141cea0031a7674afefb`.

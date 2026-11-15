@@ -1,0 +1,20 @@
+{
+  "checked_at": "2026-11-14T19:14:25.5516710Z",
+  "status": "ok",
+  "app": "sketch2life-srs23-language-audio-dev",
+  "health_scope": "deployed-app",
+  "gpu_allocated": false,
+  "inference_executed": false,
+  "qwen_checkpoint": {
+    "status": "ready",
+    "model_id": "Qwen/Qwen3.5-9B",
+    "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+    "weights_present": true
+  },
+  "svg_catalog": {
+    "status": "ready",
+    "volume_name": "sketch2life-openclipart-catalog-dev",
+    "volume_version": 2,
+    "inference_executed": false
+  }
+}

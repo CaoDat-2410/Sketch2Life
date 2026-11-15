@@ -1,0 +1,100 @@
+2026-11-15 12:11:48+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B
+2026-11-15 12:11:48+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B [1A
+Loading weights:   3%|▎         | 20/760 [00:01<00:36, 20.12it/s]
+2026-11-15 12:11:49+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B
+2026-11-15 12:11:49+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B [1A
+2026-11-15 12:11:49+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B Loading weights:   4%|▎         | 28/760 [00:01<00:26, 27.85it/s]
+2026-11-15 12:11:49+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B [1A
+2026-11-15 12:11:49+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B Loading weights:   6%|▌         | 42/760 [00:01<00:17, 42.23it/s]
+2026-11-15 12:11:49+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B [1A
+2026-11-15 12:11:49+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B Loading weights:   6%|▋         | 49/760 [00:02<00:15, 46.89it/s]
+2026-11-15 12:11:49+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B [1A
+2026-11-15 12:11:49+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B Loading weights:   8%|▊         | 62/760 [00:02<00:11, 59.05it/s]
+2026-11-15 12:11:49+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B [1A
+2026-11-15 12:11:49+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B Loading weights:   9%|▉         | 70/760 [00:02<00:10, 63.06it/s]
+2026-11-15 12:11:49+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B [1A
+2026-11-15 12:11:49+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B Loading weights:  11%|█         | 81/760 [00:02<00:09, 71.28it/s]
+2026-11-15 12:11:49+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B [1A
+2026-11-15 12:11:49+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B Loading weights:  12%|█▏        | 91/760 [00:02<00:08, 76.69it/s]
+2026-11-15 12:11:49+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B [1A
+Loading weights:  13%|█▎        | 100/760 [00:02<00:09, 72.01it/s]
+2026-11-15 12:11:50+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B
+2026-11-15 12:11:50+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B [1A
+2026-11-15 12:11:50+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B Loading weights:  15%|█▍        | 113/760 [00:02<00:07, 85.83it/s]
+2026-11-15 12:11:50+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B [1A
+2026-11-15 12:11:50+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B Loading weights:  16%|█▌        | 123/760 [00:02<00:07, 81.78it/s]
+2026-11-15 12:11:50+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B [1A
+2026-11-15 12:11:50+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B Loading weights:  18%|█▊        | 134/760 [00:03<00:08, 78.15it/s]
+2026-11-15 12:11:50+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B [1A
+2026-11-15 12:11:50+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B Loading weights:  19%|█▉        | 148/760 [00:03<00:06, 88.82it/s]
+2026-11-15 12:11:50+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B [1A
+2026-11-15 12:11:50+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B Loading weights:  21%|██        | 158/760 [00:03<00:07, 82.25it/s]
+2026-11-15 12:11:50+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B [1A
+2026-11-15 12:11:50+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B Loading weights:  22%|██▏       | 170/760 [00:03<00:06, 90.52it/s]
+2026-11-15 12:11:50+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B [1A
+2026-11-15 12:11:50+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B Loading weights:  24%|██▍       | 182/760 [00:03<00:05, 96.77it/s]
+2026-11-15 12:11:50+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B [1A
+Loading weights:  25%|██▌       | 193/760 [00:03<00:05, 96.14it/s]
+2026-11-15 12:11:51+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B
+2026-11-15 12:11:51+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B [1A
+2026-11-15 12:11:51+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B Loading weights:  27%|██▋       | 203/760 [00:03<00:06, 84.05it/s]
+2026-11-15 12:11:51+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B [1A
+2026-11-15 12:11:51+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B Loading weights:  28%|██▊       | 212/760 [00:03<00:06, 79.86it/s]
+2026-11-15 12:11:51+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B [1A
+2026-11-15 12:11:51+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B Loading weights:  30%|██▉       | 226/760 [00:04<00:05, 92.40it/s]
+2026-11-15 12:11:51+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B [1A
+2026-11-15 12:11:51+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B Loading weights:  31%|███       | 236/760 [00:04<00:05, 92.51it/s]
+2026-11-15 12:11:51+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B [1A
+2026-11-15 12:11:51+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B Loading weights:  33%|███▎      | 248/760 [00:04<00:05, 96.96it/s]
+2026-11-15 12:11:51+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B [1A
+2026-11-15 12:11:51+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B Loading weights:  34%|███▍      | 258/760 [00:04<00:06, 82.94it/s]
+2026-11-15 12:11:51+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B [1A
+2026-11-15 12:11:51+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B Loading weights:  36%|███▌      | 272/760 [00:04<00:05, 89.96it/s]
+2026-11-15 12:11:51+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B [1A
+Loading weights:  37%|███▋      | 282/760 [00:04<00:05, 90.46it/s]
+2026-11-15 12:11:52+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B
+2026-11-15 12:11:52+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B [1A
+2026-11-15 12:11:52+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B Loading weights:  39%|███▊      | 293/760 [00:04<00:05, 84.13it/s]
+2026-11-15 12:11:52+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B [1A
+2026-11-15 12:11:52+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B Loading weights:  40%|████      | 307/760 [00:04<00:04, 94.01it/s]
+2026-11-15 12:11:52+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B [1A
+2026-11-15 12:11:52+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B Loading weights:  42%|████▏     | 317/760 [00:05<00:05, 83.94it/s]
+2026-11-15 12:11:52+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B [1A
+2026-11-15 12:11:52+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B Loading weights:  44%|████▎     | 331/760 [00:05<00:04, 88.43it/s]
+2026-11-15 12:11:52+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B [1A
+2026-11-15 12:11:52+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B Loading weights:  45%|████▌     | 345/760 [00:05<00:04, 93.02it/s]
+2026-11-15 12:11:52+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B [1A
+2026-11-15 12:11:52+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B Loading weights:  47%|████▋     | 355/760 [00:05<00:04, 89.44it/s]
+2026-11-15 12:11:52+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B [1A
+Loading weights:  48%|████▊     | 365/760 [00:05<00:04, 81.20it/s]
+2026-11-15 12:11:53+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B
+2026-11-15 12:11:53+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B [1A
+2026-11-15 12:11:53+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B Loading weights:  50%|█████     | 381/760 [00:05<00:04, 93.77it/s]
+2026-11-15 12:11:53+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B [1A
+2026-11-15 12:11:53+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B Loading weights:  52%|█████▏    | 392/760 [00:05<00:03, 94.53it/s]
+2026-11-15 12:11:53+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B [1A
+2026-11-15 12:11:53+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B Loading weights:  53%|█████▎    | 402/760 [00:05<00:03, 95.68it/s]
+2026-11-15 12:11:53+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B [1A
+2026-11-15 12:11:53+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B Loading weights:  54%|█████▍    | 413/760 [00:06<00:04, 83.91it/s]
+2026-11-15 12:11:53+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B [1A
+2026-11-15 12:11:53+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B Loading weights:  58%|█████▊    | 442/760 [00:06<00:02, 133.17it/s]
+2026-11-15 12:11:53+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B [1A
+2026-11-15 12:11:53+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B Loading weights:  66%|██████▌   | 498/760 [00:06<00:01, 241.96it/s]
+2026-11-15 12:11:53+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B [1A
+2026-11-15 12:11:53+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B Loading weights:  79%|███████▉  | 599/760 [00:06<00:00, 439.05it/s]
+2026-11-15 12:11:53+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B [1A
+2026-11-15 12:11:53+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B Loading weights:  92%|█████████▎| 703/760 [00:06<00:00, 602.41it/s]
+2026-11-15 12:11:53+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B [1A
+2026-11-15 12:11:53+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B Loading weights: 100%|██████████| 760/760 [00:06<00:00, 114.46it/s]
+2026-11-15 12:11:54+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"01894a6262d2b70d","generation_ref":"4e84d092cbcb54e6","attempt_ref":"585d3820b4481905","stage":"model_load","timestamp_utc":"2026-11-15T05:11:54.512284+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":18793}
+2026-11-15 12:11:54+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"01894a6262d2b70d","generation_ref":"4e84d092cbcb54e6","attempt_ref":"585d3820b4481905","stage":"catalog_query_expansion","timestamp_utc":"2026-11-15T05:11:54.512436+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 12:12:35+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"01894a6262d2b70d","generation_ref":"4e84d092cbcb54e6","attempt_ref":"585d3820b4481905","stage":"catalog_query_expansion","timestamp_utc":"2026-11-15T05:12:35.351420+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":40839}
+2026-11-15 12:12:35+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"01894a6262d2b70d","generation_ref":"4e84d092cbcb54e6","attempt_ref":"585d3820b4481905","stage":"catalog_candidate_search","timestamp_utc":"2026-11-15T05:12:35.351559+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 12:12:36+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"01894a6262d2b70d","generation_ref":"4e84d092cbcb54e6","attempt_ref":"585d3820b4481905","stage":"catalog_candidate_search","timestamp_utc":"2026-11-15T05:12:36.749627+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":1398}
+2026-11-15 12:12:36+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"01894a6262d2b70d","generation_ref":"4e84d092cbcb54e6","attempt_ref":"585d3820b4481905","stage":"catalog_source_render","timestamp_utc":"2026-11-15T05:12:36.749736+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 12:12:37+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"01894a6262d2b70d","generation_ref":"4e84d092cbcb54e6","attempt_ref":"585d3820b4481905","stage":"catalog_source_render","timestamp_utc":"2026-11-15T05:12:37.045139+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":295}
+2026-11-15 12:12:37+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"01894a6262d2b70d","generation_ref":"4e84d092cbcb54e6","attempt_ref":"585d3820b4481905","stage":"prompt_encoding","timestamp_utc":"2026-11-15T05:12:37.045276+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 12:12:37+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"01894a6262d2b70d","generation_ref":"4e84d092cbcb54e6","attempt_ref":"585d3820b4481905","stage":"prompt_encoding","timestamp_utc":"2026-11-15T05:12:37.066041+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":21}
+2026-11-15 12:12:37+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"01894a6262d2b70d","generation_ref":"4e84d092cbcb54e6","attempt_ref":"585d3820b4481905","stage":"constrained_decoder_setup","timestamp_utc":"2026-11-15T05:12:37.066157+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}
+2026-11-15 12:12:37+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_succeeded","workload":"svg.topic-stroke-guide.generate","job_ref":"01894a6262d2b70d","generation_ref":"4e84d092cbcb54e6","attempt_ref":"585d3820b4481905","stage":"constrained_decoder_setup","timestamp_utc":"2026-11-15T05:12:37.067174+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10","duration_ms":1}
+2026-11-15 12:12:37+07:00 fc-01M7ESW77FDEXFPWQR8YFJPF7B {"schema_version":"sketch2life.modal.worker-event.v1","event":"worker_phase_started","workload":"svg.topic-stroke-guide.generate","job_ref":"01894a6262d2b70d","generation_ref":"4e84d092cbcb54e6","attempt_ref":"585d3820b4481905","stage":"model_inference","timestamp_utc":"2026-11-15T05:12:37.067227+00:00","model_id":"Qwen/Qwen3.5-9B","model_revision":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","gpu_class":"L40S|L4|A10"}

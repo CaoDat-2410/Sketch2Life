@@ -1,0 +1,56 @@
+<repo-root>\.venv-modal\Lib\site-packages\modal\_utils\async_utils.py:43: DeprecationWarning: 'asyncio.WindowsSelectorEventLoopPolicy' is deprecated and slated for removal in Python 3.16
+  asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+<repo-root>\.venv-modal\Lib\site-packages\modal\_utils\async_utils.py:43: DeprecationWarning: 'asyncio.set_event_loop_policy' is deprecated and slated for removal in Python 3.16
+  asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+App:                                       sketch2life-srs23-language-audio-dev
+App ID:                                    ap-etVm4AlIHqRTuAeCmzAzMa
+State:                                     stopped
+Stopped:                                   2026-11-15 12:57 SE Asia Standard
+                                           Time · siesta-6107
+Deployment:                                v3 · 2026-11-15 12:48 SE Asia
+                                           Standard Time · siesta-6107
+Created:                                   2026-11-15 12:35 SE Asia Standard
+                                           Time · siesta-6107
+
+Functions (14):
+  check-qwen35-decoder-readiness           fu-L0tK5ffDKLSmNJCIjvyVJV
+    CPU
+
+  check-qwen35-readiness                   fu-jqXNIl9cmaqkHpeUb3xRit
+    1 × L40S GPU (1 × L4 GPU, 1 × A10G GPU)
+
+  download-language-audio-models           fu-GSniUuKX1Gtfxm1wfxnJqU
+    CPU
+
+  generate-story-and-storyboard            fu-o8RMJhw7S1pXslyvNlXB01
+    1 × L40S GPU (1 × L4 GPU, 1 × A10G GPU)
+
+  generate-teacher-sketch-deck             fu-IAIIkf4n90t9ksXsaw0iGU
+    1 × L40S GPU (1 × L4 GPU, 1 × A10G GPU)
+
+  generate-teacher-svg-illustration-draft  fu-zigfFuU7r6BW1GTm8XznUr
+    1 × L40S GPU (1 × L4 GPU, 1 × A10G GPU)
+
+  generate-topic-svg-stroke-guide-draft    fu-9y0QDTIqkEPTbEPBTVXATC
+    1 × L40S GPU (1 × L4 GPU, 1 × A10G GPU)
+
+  health-api                               fu-2pLOpzdCYASO03z1SGw3TS
+    CPU · Web Function · Unauthenticated
+
+  probe-qwen35-constrained-decoder         fu-zl68DmwtmWTLFSAMrAVwDF
+    CPU
+
+  probe-qwen35-generation-constraints      fu-148sR8CYm3I5Eie0Ffq6bG
+    1 × L40S GPU (1 × L4 GPU, 1 × A10G GPU)
+
+  suggest-lesson-plan                      fu-vLgcebbx98I1WNujwuyQkG
+    1 × L40S GPU (1 × L4 GPU, 1 × A10G GPU)
+
+  suggest-parent-activities                fu-zj0SQBwaEGGJRoNfdFFwQz
+    1 × L40S GPU (1 × L4 GPU, 1 × A10G GPU)
+
+  synthesize-vietnamese-narration          fu-FcmlfEOOrfBPI0OvgwkaZa
+    CPU
+
+  transcribe-vietnamese-audio              fu-Nn2E8JbxjQqPm4wmivnKOF
+    CPU

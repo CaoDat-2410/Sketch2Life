@@ -1,0 +1,20 @@
+{
+  "app_name": "sketch2life-srs23-language-audio-dev",
+  "environment": "dev",
+  "app_id": "ap-0Sk2zfG3P0Z0rX8FrUH2Dk",
+  "deployment_succeeded": true,
+  "deployment_duration_seconds": 11.582,
+  "deployed_at": "2026-11-15T11:29:16+07:00",
+  "deployment_version": 1,
+  "worker_function_present": true,
+  "deployment_inference_count": 0,
+  "packaged_existing_source_assets": [
+    "openclipart_catalog.py",
+    "teacher_svg_illustration/reference-pack-v1.json",
+    "arcadia_organism_strokes/gallus-gallus-v1.json",
+    "arcadia_organism_strokes/gallus-gallus-source.svg"
+  ],
+  "catalog_volume_mutated": false,
+  "full_corpus_uploaded": false,
+  "console_encoding": "process-only UTF-8 settings; no .env edit"
+}

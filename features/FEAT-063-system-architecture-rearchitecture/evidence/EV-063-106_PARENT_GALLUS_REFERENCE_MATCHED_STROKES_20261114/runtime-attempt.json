@@ -1,0 +1,23 @@
+{
+  "recorded_at_utc": "2026-11-14T06:38:27.361709+00:00",
+  "request": {
+    "topic": "gà mái",
+    "difficulty": "beginner"
+  },
+  "http_status": 200,
+  "elapsed_seconds": 0.076,
+  "contract": "SvgTopicStrokeGuideSourceDraftV1",
+  "generation_source": "CURATED_SOURCE_DERIVATION",
+  "engine_revision": "6.0.0",
+  "derivation_method": "REFERENCE_ALIGNED_CHILD_DRAWING_SEQUENCE_V6",
+  "source_sha256": "4f6397d5d32ff7ea58451cb5e5725c87501be155c0eb64f85c5821dfe99cb1ed",
+  "source_path_count": 77,
+  "derived_path_count": 24,
+  "stage_count": 8,
+  "reference_path_count": 77,
+  "reference_document_sha256": "149360115e918a5535616b85564f5ce2c3b9887a6e4908dc671077dd05c0b601",
+  "document_sha256": "aee0c953ab71fb55a6906bf9f6c2539b6c350c0edbf99d43e014ed18e2bbffc8",
+  "reference_rendered_under_strokes": false,
+  "modal_dispatched": false,
+  "auth_scope": "focused local TestClient; identity and database dependencies overridden only"
+}

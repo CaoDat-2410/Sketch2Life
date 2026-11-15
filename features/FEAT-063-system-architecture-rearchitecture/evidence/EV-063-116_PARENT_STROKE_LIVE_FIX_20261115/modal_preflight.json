@@ -1,0 +1,12 @@
+{
+  "app_name": "sketch2life-srs23-language-audio-dev",
+  "environment": "dev",
+  "lifecycle_state_before_test": "stopped",
+  "deployed_at": "2026-11-15T07:11:41+07:00",
+  "stopped_at": "2026-11-15T07:12:00+07:00",
+  "deployment_version": 1,
+  "construction_guide_function_present": true,
+  "construction_guide_gpu_options": ["L40S", "L4", "A10G"],
+  "preflight_operation": "read-only app info",
+  "gpu_inference_dispatched": false
+}

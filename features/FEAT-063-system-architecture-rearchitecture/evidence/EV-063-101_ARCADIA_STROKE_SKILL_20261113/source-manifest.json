@@ -1,0 +1,44 @@
+{
+  "evidence_id": "EV-063-101_ARCADIA_STROKE_SKILL_20261113",
+  "plan": "PLAN_REV87_4_CURATED_SVG_AND_STROKE_SKILL_20261113.md",
+  "date": "2026-11-13",
+  "dataset": {
+    "name": "Arcadia Science Free Organism Illustration Library",
+    "revision": "1.0",
+    "doi": "10.5281/zenodo.17203578",
+    "archive_file": "arcadia-organism-library-v1.0.zip",
+    "archive_size_bytes": 41184246,
+    "published_and_verified_md5": "a845bf16730238334f39c7cfbc1d4703",
+    "license": "CC0-1.0",
+    "selected_member": "2025 Zoogle organisms/Tricolor + stroke SVGs/Gallus-gallus-tricolorstroke.svg",
+    "packaged_file": "deployment/modal/srs_v23/data/arcadia_organism_strokes/gallus-gallus-source.svg",
+    "packaged_file_size_bytes": 24251,
+    "packaged_file_sha256": "4f6397d5d32ff7ea58451cb5e5725c87501be155c0eb64f85c5821dfe99cb1ed",
+    "use": "visual/anatomical reference only; does not supply stroke order"
+  },
+  "skill": {
+    "name": "whiteboard-animation",
+    "version": "0.1.0",
+    "upstream": "https://github.com/iart-ai/explainer-video-skills/tree/main/skills/whiteboard-animation",
+    "license": "MIT",
+    "installed_path": ".agents/skills/whiteboard-animation/",
+    "role": "authoring guidance only; not a Modal model or runtime service"
+  },
+  "modal_runtime": {
+    "app": "sketch2life-srs23-language-audio-dev",
+    "deployment_attempt": "FAILED_BEFORE_APP_UPDATE",
+    "failure": "Modal rejected a Windows Path-converted remote path during image definition",
+    "local_posix_path_correction_applied": true,
+    "deployment_retried": false,
+    "health_called": false,
+    "gpu_inference_called": false,
+    "parent_ui_request_called": false,
+    "generated_artifacts": false
+  },
+  "static_verification": {
+    "python_syntax_and_json": "PASS",
+    "teacher_ui_build": "PASS",
+    "parent_ui_typecheck": "BLOCKED_BY_EXISTING_EXPO_PUBLIC_ENV_TYPE_DECLARATIONS",
+    "test_suite": "NOT_RUN"
+  }
+}

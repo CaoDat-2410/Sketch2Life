@@ -1,0 +1,44 @@
+{
+  "amendment": "Rev87.10-N",
+  "started_at_utc": "2026-11-13T18:48:33.6235673+00:00",
+  "finished_at_utc": "2026-11-13T18:48:35.8310820+00:00",
+  "elapsed_seconds": 2.208,
+  "environment": "local Docker API -> Modal dev",
+  "endpoint": "/api/parent/v1/ai/sketch-guides",
+  "method": "POST",
+  "client_timeout_seconds": 1800,
+  "input": {
+    "child_data": "none",
+    "topic": "con gà",
+    "difficulty": "beginner",
+    "contract": "SvgTopicStrokeGuideRequestV1"
+  },
+  "preflight": {
+    "catalog_item_count": 0,
+    "api_health_http": 200,
+    "parent_me_http": 200,
+    "firebase_emulator_signin_http": 200,
+    "catalog_http": 200,
+    "parent_role_confirmed": true
+  },
+  "api_status": 503,
+  "api_request_id": null,
+  "modal_call_id": null,
+  "error_code": "CAPABILITY_DISABLED",
+  "reason_code": null,
+  "contract_valid": false,
+  "validated_svg_returned": false,
+  "path_count": null,
+  "stage_count": null,
+  "model_id": null,
+  "model_revision": null,
+  "worker": {
+    "inference_ms": null,
+    "output_parse_validation_ms": null,
+    "model_load_ms": null,
+    "terminal_event": null,
+    "output_size_bytes": null,
+    "decoder_setup_ms": null,
+    "duration_ms": null
+  }
+}

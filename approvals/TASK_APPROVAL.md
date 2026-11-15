@@ -301,3 +301,13 @@
 - **Exclusions:** product code/runtime/API/database/schema/data/migration/provider/secret/permission/cost changes, tests/build/deployment, final diagrams, SRS/DTR sign-off, PR/merge, and force push. Unanswered policy questions remain OPEN-OWNER.
 - **Publication:** owner explicitly authorized commit and push; only a normal fast-forward push of the scoped paths to docs/feat063-diagram-readiness-20261107 is authorized.
 - **Approval basis:** the direct user request authorizes this exact documentation and publication scope. It does not approve proposed requirements, settle owner decisions, or sign off SRS/DTR.
+
+## FEAT-063 Rev87.15 — Openclipart corpus on Modal Volume and Qwen source-bound strokes
+
+- **Status:** APPROVED for implementation of the exact scope in `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV87_15_MODAL_OPENCLIPART_CATALOG_QWEN_STROKES_20261114.md`.
+- **Approver:** Project owner, direct instruction on 2026-11-14 to expand the SVG source set and let AI order strokes from those sources; clarification: store the dataset on Modal Volume, not Docker.
+- **Plan SHA-256:** `093F4B6BA223B50F46A87ADBF31054BAA21543AFA92BA63908B5E19FEC208C4E`.
+- **Approved runtime action if an authorized Modal runtime is available:** explicit CPU-only import of the public source corpus into the dedicated `dev` Volume v2 `sketch2life-openclipart-catalog-dev`. Persistent storage/CPU usage is expected. No GPU inference is part of the import.
+- **Scope:** Modal-only source shards/catalog, read-only Volume integration in the existing Qwen worker, exact-source-path sequence contract, provenance, implementation records and evidence.
+- **Exclusions:** Docker/local corpus upload, GPU inference/deployment, enabling the workload, real child data, database/account/consent/seed changes, secrets, production/publication, Volume deletion, tests/builds, commit/push/merge.
+- **Execution state:** Implementation is in source. The current agent environment has no Modal CLI/API connector, so the real Volume import/deploy/health/inference actions have not been performed and must not be described as complete.

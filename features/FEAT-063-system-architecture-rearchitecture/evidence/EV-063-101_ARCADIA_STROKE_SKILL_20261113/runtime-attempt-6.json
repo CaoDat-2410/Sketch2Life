@@ -1,0 +1,119 @@
+{
+  "attempt": "Rev87.10-C",
+  "started_at_utc": "2026-11-13T20:11:29.4182225+07:00",
+  "auth_emulator_project": "sketch2life-dev",
+  "android_ui_test": "NOT_RUN_ANDROID_SDK_UNAVAILABLE",
+  "me_http": 200,
+  "role": "parent",
+  "state": "active",
+  "catalog_http": 503,
+  "catalog_code": "DATABASE_UNAVAILABLE",
+  "catalog_item_count": null,
+  "svg_http": 502,
+  "svg_request_id": "3477f25a-3aa2-4134-aead-391effa03f17",
+  "modal_call_id": "fc-01M7AGHYQ0DH0Q65V3EW079BRB",
+  "svg_elapsed_seconds": 820.282,
+  "stage_count": null,
+  "path_count": null,
+  "quality_gates_passed": [],
+  "response_sha256": null,
+  "response_file": null,
+  "failure_code": "MODAL_WORKER_FAILED_TERMINAL",
+  "elapsed_total_seconds": 820.282,
+  "finished_at_utc": "2026-11-13T20:25:09.7085964+07:00",
+  "api_container": "rev87-parent-authfix-20261113-api-1",
+  "auth_configuration": {
+    "project_id": "sketch2life-dev",
+    "auth_emulator_host": "firebase-auth:9099",
+    "check_revoked": true,
+    "previous_api_container": "s2l-parent-e2e-20261111-api-1",
+    "previous_api_emulator_host": "UNSET"
+  },
+  "modal_trace": {
+    "job_ref": "4df2bb9c587711b6",
+    "generation_ref": "a66fe24bf6e51dc8",
+    "attempt_ref": "3fe86e83c6b2319d",
+    "call_id": "fc-01M7AGHYQ0DH0Q65V3EW079BRB",
+    "worker_terminal_event": "worker_failed",
+    "worker_terminal_stage": "output_parse_and_contract_validation",
+    "worker_duration_ms": 805853,
+    "model_inference_ms": 766801,
+    "model_load_ms": 32320,
+    "error_code": "SVG_TOPIC_GUIDE_PATH_INVALID",
+    "error_type": "RuntimeError",
+    "model_id": "Qwen/Qwen3.5-9B",
+    "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+    "gpu_class": "L40S|L4|A10",
+    "worker_event_count": 26,
+    "api_wait_summary_terminal_event": null,
+    "api_wait_summary_last_stage": "model_inference",
+    "api_wait_summary_failure_boundary": "worker_started_without_terminal_event",
+    "terminal_event_observed_posthoc": true,
+    "phase_history": [
+      {
+        "duration_ms": 0,
+        "stage": "input_envelope",
+        "result": "succeeded"
+      },
+      {
+        "duration_ms": 0,
+        "stage": "workload_gate",
+        "result": "succeeded"
+      },
+      {
+        "duration_ms": 234,
+        "stage": "scratch_volume_reload",
+        "result": "succeeded"
+      },
+      {
+        "duration_ms": 547,
+        "stage": "input_manifest_read",
+        "result": "succeeded"
+      },
+      {
+        "duration_ms": 0,
+        "stage": "input_contract_validation",
+        "result": "succeeded"
+      },
+      {
+        "duration_ms": 485,
+        "stage": "curated_reference_prepare",
+        "result": "succeeded"
+      },
+      {
+        "duration_ms": 135,
+        "stage": "checkpoint_verification",
+        "result": "succeeded"
+      },
+      {
+        "duration_ms": 32320,
+        "stage": "model_load",
+        "result": "succeeded"
+      },
+      {
+        "duration_ms": 107,
+        "stage": "prompt_encoding",
+        "result": "succeeded"
+      },
+      {
+        "duration_ms": 5178,
+        "stage": "constrained_decoder_setup",
+        "result": "succeeded"
+      },
+      {
+        "duration_ms": 766801,
+        "stage": "model_inference",
+        "result": "succeeded"
+      },
+      {
+        "duration_ms": 1,
+        "stage": "output_parse_and_contract_validation",
+        "error_code": "SVG_TOPIC_GUIDE_PATH_INVALID",
+        "result": "failed"
+      }
+    ],
+    "generated_output_received": false,
+    "valid_svg_returned": false
+  },
+  "status": "AUTH_FIXED; SVG_WORKER_FAILED"
+}
