@@ -1,5 +1,13 @@
 # Status
 
+## Rev21 Web Role Navigation & Hub Balance Refinement (`UI_Project/shared/`) — 2026-11-15
+
+- **State:** Implemented, build-verified across all 5 `UI_Project/` workspaces, live-verified across `teacher-ui`, `school-manager-ui`, and `platform-admin-ui` (`1440x900` & `390x844`), and prepared for policy validation + commit/push to `origin/FE_UI_Project_Ver2`.
+- **Approved plan:** `plan/PLAN_REV21_WEB_HUB_DEOVERCONSOLIDATION.md`, SHA-256 `86AB3BF5670F79DA7E27F9CDAAC8F043B8F09948C408C8F12AC6AAF6C104EDB8`, recorded in both root and feature `TASK_APPROVAL.md` registers.
+- **Changes:** Simplified Teacher `Buổi dạy` `.web-hub-tabs` (`6->2` tabs: `Lên lớp trực tiếp`, `Chuẩn bị Plan`) while preserving `#deck`/`#sample`/`#presentation`/`#run-control` via `HubSpec.hiddenRoutes` and `activeRouteLabel`; split School Manager `"Gia đình & Roster"` into standalone `Hồ sơ trẻ & chuyển lớp` (`roster`) and `Nhóm gia đình` (`groups`); promoted Platform Admin `Nhật ký vận hành` (`audit`) out of `Giám sát AI & hệ thống` onto top-level sidebar navigation; and shortened `'Cài đặt & thông báo'` to `'Cài đặt'` across the 3 web roles (`UI_Project/shared/webWorkspace.tsx`).
+- **Verification:** `npm --prefix UI_Project run build` (`EXIT=0` across all 5 workspaces), live `browser` subagent checks (`BROWSER_HOST_FACTS`: `visited_origins: http://localhost:5172, http://localhost:5173, http://localhost:5174`, `blocked_origins: none`, `0` console/page errors, `0` horizontal overflow at `1440x900` & `390x844`, inspected `final_step_76.png`), plus repository policy validators and `git diff --check`.
+- **Limits:** Offline browser-local UI prototype only (no backend/API/auth/payment wiring); canonical `FEAT-063` SRS `v2.5-draft` remains unsigned and untouched. Details: `evidence/notes/REV21_WEB_HUB_DEOVERCONSOLIDATION_20261115.md`.
+
 ## Rev20 Parent UX Friction & Copy Polish (`UI_Project/parent-ui/`) — 2026-11-14
 
 - **State:** Implemented, build-verified across all 5 `UI_Project/` workspaces, live-verified at `375x812` via headless browser (`http://localhost:5171`), and prepared for policy validation + commit/push to `origin/FE_UI_Project_Ver2`.

@@ -475,3 +475,15 @@
 - **Scope:** Clean residual wording (`sendShareInvite`, `'preset'` -> natural Vietnamese, `'Cập nhật mật khẩu'`), auto-advance `'generating'` progress stages (`0 -> 1 -> 2 -> 3 -> ready`) when `previewJobState === 'processing'`, display `.home-preset-pill` on Home when `presetForNextRun` is set, make `toggleRecording` mic fallback consistent, and refine Step 1 `prepare` ergonomics for `375x812`.
 - **Exclusions:** UI-only inside `UI_Project/parent-ui/`; zero backend, API, `apps/`, CI, or canonical `FEAT-063` SRS edits.
 - **Approval basis:** Direct owner approval in conversation (`"ok, làm giúp tôi đi"`).
+
+
+## Plan Rev21 — Web Role Navigation & Hub Balance Refinement (`UI_Project/shared/`)
+
+- **Status:** APPROVED for the exact UI-only scope in `features/FEAT-069-leader-uiux-review-remediation/plan/PLAN_REV21_WEB_HUB_DEOVERCONSOLIDATION.md`.
+- **Approver:** Project owner, direct instruction approving refinement of the 3 over-consolidated web navigation areas (`"ok làm đi"`).
+- **Recorded timestamp:** 2026-11-15 10:30:00 +07:00 (Asia/Saigon).
+- **Plan revision:** 21.
+- **Plan SHA-256:** `86AB3BF5670F79DA7E27F9CDAAC8F043B8F09948C408C8F12AC6AAF6C104EDB8`.
+- **Scope:** De-duplicate Teacher `Buổi dạy` hub tabs (`Lên lớp trực tiếp`, `Chuẩn bị Plan`) while preserving `hiddenRoutes` (`deck`, `sample`, `presentation`, `run-control`), separate School Manager `Hồ sơ trẻ & chuyển lớp` (`roster`) and `Nhóm gia đình` (`groups`), elevate Platform Admin `Nhật ký vận hành` (`audit`) to top-level sidebar navigation, and shorten `'Cài đặt & thông báo'` to `'Cài đặt'` across the 3 web roles (`UI_Project/shared/webWorkspace.tsx`).
+- **Exclusions:** UI-only inside `UI_Project/shared/`; zero `UI_Project/parent-ui/`, backend, API, `apps/`, CI, or canonical `FEAT-063` SRS edits.
+- **Approval basis:** Direct owner approval in conversation (`"ok làm đi"`).

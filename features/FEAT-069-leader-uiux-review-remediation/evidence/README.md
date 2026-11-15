@@ -1,5 +1,12 @@
 # FEAT-069 evidence index
 
+## Rev21 Web Role Navigation & Hub Balance Refinement (`UI_Project/shared/`)
+
+| Evidence | Scope | What it establishes | Limitations |
+|---|---|---|---|
+| `notes/REV21_WEB_HUB_DEOVERCONSOLIDATION_20261115.md` | Plan Rev21, AC21.1–AC21.4 | Documents Teacher `Buổi dạy` hub reduction (`6->2` visible tabs + `hiddenRoutes` support), School Manager separation of `Hồ sơ trẻ & chuyển lớp` (`roster`) and `Nhóm gia đình` (`groups`), Platform Admin promotion of `Nhật ký vận hành` (`audit`), concise `'Cài đặt'` label across web roles, 5-workspace `vite build`, live `1440x900` & `390x844` checks across `http://localhost:5172`–`5174` (`final_step_76.png`), and policy validator coverage | Browser-local UI prototype only (no live backend/API/auth wiring); canonical SRS unchanged |
+| `../plan/PLAN_REV21_WEB_HUB_DEOVERCONSOLIDATION.md` | Exact approved scope | Hash-identified approval (`86AB3BF5670F79DA7E27F9CDAAC8F043B8F09948C408C8F12AC6AAF6C104EDB8`) strictly for `UI_Project/shared/webWorkspace.tsx` navigation refinements | Does not authorize `parent-ui/`, backend, `apps/`, CI, or SRS edits |
+
 ## Rev20 Parent UX Friction & Copy Polish (`UI_Project/parent-ui/`)
 
 | Evidence | Scope | What it establishes | Limitations |

@@ -1,6 +1,10 @@
 # FEAT-069 — Leader review UI/UX remediation
 
-## Current approved work — Rev20 Parent UX Friction & Copy Polish (`UI_Project/parent-ui/`)
+## Current approved work — Rev21 Web Role Navigation & Hub Balance Refinement (`UI_Project/shared/`)
+
+Under approved Plan Rev21 (`plan/PLAN_REV21_WEB_HUB_DEOVERCONSOLIDATION.md`, SHA-256 `86AB3BF5670F79DA7E27F9CDAAC8F043B8F09948C408C8F12AC6AAF6C104EDB8`), refined the three over-consolidated web navigation areas in `UI_Project/shared/webWorkspace.tsx`: simplified Teacher `Buổi dạy` `.web-hub-tabs` from 6 overlapping tabs down to 2 distinct stages (`Lên lớp trực tiếp`, `Chuẩn bị Plan`) while preserving `deck`/`sample`/`presentation`/`run-control` inside `HubSpec.hiddenRoutes` and breadcrumbs; separated School Manager `"Gia đình & Roster"` into explicit top-level `Hồ sơ trẻ & chuyển lớp` (`roster`) and `Nhóm gia đình` (`groups`) sidebar items; promoted Platform Admin `Nhật ký vận hành` (`audit`) out of `Giám sát AI & hệ thống` (`health`) to top-level sidebar navigation; and shortened `'Cài đặt & thông báo'` to `'Cài đặt'` across all 3 web roles. Strictly UI-only with zero backend, `apps/`, CI, or `FEAT-063` SRS modifications. See `evidence/notes/REV21_WEB_HUB_DEOVERCONSOLIDATION_20261115.md`.
+
+## Prior approved work — Rev20 Parent UX Friction & Copy Polish (`UI_Project/parent-ui/`)
 
 Under approved Plan Rev20 (`plan/PLAN_REV20_PARENT_UX_POLISH.md`, SHA-256 `485DF1D4E64538014453BE93CA4DEFBEF26B676D534B0AC060671B901BE9B8E2`), removed the final five Parent UI/UX friction points inside `UI_Project/parent-ui/` (`App.tsx`, `rev13ProMax.css`): replaced remaining residual/technical strings (`'lời mời mẫu'`, `'preset'`, `'Kiểm tra thông tin đổi mật khẩu'`, `'Tiếp tục tiến trình'`), added deterministic `useEffect` auto-advance (`0 -> 1 -> 2 -> 3 -> ready`) on `'generating'` that pauses when inspecting recovery/safety states, added `.home-preset-pill` with clear control on Homepage for pre-selected lessons, made `toggleRecording` fallback state consistent (`transcriptionStatus('error')`), and positioned `.guide-option` above `.prepare-lesson` with `.flow-content--prepare` compact mobile spacing. Strictly UI-only with zero backend, `apps/`, CI, or `FEAT-063` SRS modifications. See `evidence/notes/REV20_PARENT_UX_POLISH_20261114.md`.
 
