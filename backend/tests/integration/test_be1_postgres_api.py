@@ -67,6 +67,7 @@ def acceptance_client(monkeypatch: pytest.MonkeyPatch, tmp_path) -> Iterator[Acc
     monkeypatch.setenv("SKETCH2LIFE_DATABASE_URL", database_url)
     monkeypatch.setenv("SKETCH2LIFE_AUTH_PROVIDER", "development")
     monkeypatch.setenv("SKETCH2LIFE_ENV", "test")
+    monkeypatch.setenv("SKETCH2LIFE_SYNTHETIC_PILOT_ENABLED", "true")
     monkeypatch.setenv("SKETCH2LIFE_ROOM_CODE_HMAC_KEY", "synthetic-test-key-" + "x" * 40)
     monkeypatch.setenv("SKETCH2LIFE_BE1_ARTIFACT_ROOT", str(tmp_path / "artifacts"))
     get_settings.cache_clear()
@@ -288,31 +289,51 @@ def test_real_http_writes_audits_outbox_and_enforces_assignment_scope(
     assert openapi_response.json()["info"]["title"] == "Sketch2Life FE API"
     openapi = accepted.app.state.runtime_openapi_schema
     be1_paths = [path for path in openapi["paths"] if path.startswith("/api/be1/v1/")]
-    assert len(be1_paths) == 50
+    assert len(be1_paths) == 55
     be1_operations = sum(
         1
         for path in be1_paths
         for method in openapi["paths"][path]
         if method in {"get", "post", "put", "patch", "delete"}
     )
-    assert be1_operations == 55
+    assert be1_operations == 60
     assert "HTTPBearer" in openapi["components"]["securitySchemes"]
     error_schema = openapi["components"]["schemas"]["Be1Error"]
     assert set(error_schema["properties"]) == {"code", "message", "request_id"}
     upload_response = openapi["paths"][
         "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/artifacts"
     ]["post"]["responses"]
-    assert {"413", "415", "503"}.issubset(upload_response)
+    assert (
+        "default" in upload_response
+        and "application/json" in upload_response["default"]["content"]
+        and upload_response["default"]["content"]["application/json"]["schema"]
+        == {"$ref": "#/components/schemas/Be1Error"}
+        and all(
+            status_code in upload_response["default"]["description"]
+            for status_code in ("413", "415", "503")
+        )
+    )
     download_response = openapi["paths"][
         "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/artifacts/{asset_ref}"
     ]["get"]["responses"]
-    assert "410" in download_response
+    assert (
+        "default" in download_response
+        and "application/json" in download_response["default"]["content"]
+        and download_response["default"]["content"]["application/json"]["schema"]
+        == {"$ref": "#/components/schemas/Be1Error"}
+        and "410" in download_response["default"]["description"]
+    )
 
 
 def test_room_code_start_revocation_stage_and_early_outcome_are_durable(
     acceptance_client: AcceptanceClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    from typing import Any, cast
+
+    import sketch2life.interfaces.http.be1_runtime as be1_runtime
+    import sketch2life.interfaces.http.routers.be1_canvas as be1_canvas
     import sketch2life.interfaces.http.routers.be1_sessions as be1_sessions
+    from starlette.requests import Request
 
     monkeypatch.setattr(be1_sessions, "consent_is_effective", lambda *args, **kwargs: True)
     accepted = acceptance_client
@@ -487,20 +508,32 @@ def test_room_code_start_revocation_stage_and_early_outcome_are_durable(
     assert no_drawing.json()["code"] == "DRAWING_RECEIPT_REQUIRED"
 
     operation_id = str(uuid4())
+    drawing_headers = {
+        "X-Be1-Grant": join.json()["grant_id"],
+        "X-Be1-Device-Key": device_key,
+        "Idempotency-Key": operation_id,
+    }
+    drawing_body = {
+        "operation_id": operation_id,
+        "turn_id": turn.json()["turn_id"],
+        "document_epoch": 1,
+        "expected_revision": 1,
+        "operation_payload": {"type": "stroke", "points": [{"x": 12, "y": 18}]},
+    }
+    pending_drawing = client.post(
+        _url(accepted, f"/sessions/{session_id}/canvas/operations"),
+        headers=drawing_headers,
+        json=drawing_body,
+    )
+    assert pending_drawing.status_code == 409, pending_drawing.text
+    assert pending_drawing.json()["code"] == "CONSENT_NOT_EFFECTIVE"
+
+    monkeypatch.setattr(be1_runtime, "consent_is_effective", lambda *args, **kwargs: True)
+    monkeypatch.setattr(be1_canvas, "consent_is_effective", lambda *args, **kwargs: True)
     drawing = client.post(
         _url(accepted, f"/sessions/{session_id}/canvas/operations"),
-        headers={
-            "X-Be1-Grant": join.json()["grant_id"],
-            "X-Be1-Device-Key": device_key,
-            "Idempotency-Key": operation_id,
-        },
-        json={
-            "operation_id": operation_id,
-            "turn_id": turn.json()["turn_id"],
-            "document_epoch": 1,
-            "expected_revision": 1,
-            "operation_payload": {"type": "stroke", "points": [{"x": 12, "y": 18}]},
-        },
+        headers=drawing_headers,
+        json=drawing_body,
     )
     assert drawing.status_code == 200, drawing.text
     assert drawing.json()["status"] == "accepted"
@@ -635,7 +668,15 @@ def test_room_code_start_revocation_stage_and_early_outcome_are_durable(
         assert stored_code.room_code_hmac != room_code
         assert stored_pending is not None and stored_pending.state == "revoked"
         assert stored_admitted is not None and stored_admitted.state == "admitted"
-        stored_attempts = db.scalar(select(Be1RoomCodeRateLimitModel.attempts))
+        source_request = Request({"type": "http", "client": cast(Any, client._transport).client})
+        source_hash = be1_sessions._room_code_source_hash(
+            accepted.app.state.be1_runtime, source_request
+        )
+        stored_attempts = db.scalar(
+            select(Be1RoomCodeRateLimitModel.attempts).where(
+                Be1RoomCodeRateLimitModel.source_hmac == source_hash
+            )
+        )
         assert stored_attempts is not None and len(stored_attempts) == 10
         stored_draft = db.get(Be1GroupDraftModel, first_advance.json()["saved_drafts"][0])
         assert stored_draft is not None and stored_draft.disposition == "save_draft"
@@ -671,7 +712,34 @@ def test_pending_consent_stays_pending_and_blocks_profile_admission_and_canvas(
     assert class_response.status_code == 201, class_response.text
     class_id = class_response.json()["class_id"]
 
-    child_id = f"synthetic-child-{uuid4()}"
+    assignment = client.post(
+        f"/api/be1/v1/classes/{class_id}/assignments",
+        json={"subject": accepted.subject},
+    )
+    assert assignment.status_code == 201, assignment.text
+    assert assignment.json()["role"] == "teacher"
+    assert assignment.json()["class_id"] == class_id
+
+    profile_response = client.post(
+        _url(accepted, f"/classes/{class_id}/profiles"),
+        json={
+            "class_id": class_id,
+            "display_name": "Synthetic Child",
+            "age_months": 36,
+        },
+    )
+    assert profile_response.status_code == 201, profile_response.text
+    synthetic_child_id = profile_response.json()["child_id"]
+    assert synthetic_child_id.startswith("synthetic-")
+    assert len(synthetic_child_id.removeprefix("synthetic-")) == 24
+    assert profile_response.json()["data_origin"] == "SYNTHETIC_DEV"
+    assert "consent_state" not in profile_response.json()
+
+    profile_list = client.get(_url(accepted, f"/classes/{class_id}/profiles"))
+    assert profile_list.status_code == 409
+    assert profile_list.json()["code"] == "CONSENT_NOT_EFFECTIVE"
+
+    child_id = f"synthetic-pending-child-{uuid4()}"
     consent_response = client.post(
         _url(accepted, f"/classes/{class_id}/consents"),
         json={
@@ -685,20 +753,6 @@ def test_pending_consent_stays_pending_and_blocks_profile_admission_and_canvas(
     consent = consent_response.json()
     assert consent["state"] == "pending"
     assert consent["effective"] is False
-
-    profile_response = client.post(
-        _url(accepted, f"/classes/{class_id}/profiles"),
-        json={
-            "child_id": child_id,
-            "class_id": class_id,
-            "consent_id": consent["consent_id"],
-            "purpose_ref": "synthetic-purpose-pending",
-            "display_name": "Synthetic Child",
-            "age_months": 36,
-        },
-    )
-    assert profile_response.status_code == 409
-    assert profile_response.json()["code"] == "CONSENT_NOT_EFFECTIVE"
 
     session_response = client.post(
         _url(accepted, "/sessions"),
@@ -731,8 +785,7 @@ def test_pending_consent_stays_pending_and_blocks_profile_admission_and_canvas(
     assert repeated_join.json().keys() == join.json().keys()
 
     grant_id = join.json()["grant_id"]
-    # Seed a synthetic legacy/stale profile in the disposable database to reach the
-    # admission consent check after the public profile-create path has already denied.
+    # Seed a synthetic legacy/stale profile to reach the consent-bound admission check.
     with accepted.app.state.be1_runtime.session_factory.begin() as db:
         db.add(
             ManagedProfileModel(

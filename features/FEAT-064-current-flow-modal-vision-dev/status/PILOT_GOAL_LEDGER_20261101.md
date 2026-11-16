@@ -624,3 +624,207 @@ Phạm vi mỗi task cần plan riêng, hash riêng và mục approval riêng. D
 - M1 and T6 were previously independently accepted. The reported implementation evidence for the final T7a fix is focused 18 passed and offline GA1 649 passed / 4 skipped / 0 failed, with Ruff, mypy, three validators, and scoped diff-check passing. The independent reviewer did not rerun these checks.
 - **GOAL A1 status: COMPLETE.** The implementation fix is being included in the existing unpushed A1 commit under the owner's prior instruction. No A2 work is included here.
 - The existing A2 goal pins the old HEAD `1e93bc3f…`; the current post-A1 branch baseline is newer. A2 remains unopened until the owner chooses and approves the revised post-A1 HEAD pin and updated goal hash.
+
+### GOAL A2 REV2 — T2C and digest pin, XONG-CHƯA REVIEW (2026-11-02)
+
+- Owner launched REV2 after independent A1 review/COMPLETE, pinning V4 `E11FFBCE0F655C010E679773D231D3E36930A0B960E705450499E2A2A69191F6` and REV2 `47CEA408AA9A4984C2EFD9E71A2EF0CDB2DF02C46E56FD7281086EBAE574AE10`. Branch/HEAD `feature/feat063-be-foundation` / `a88de875ff92e9b4d4fa5cc2f5f8d5fc1f626f58`; index empty. Baseline snapshot: `GA2_BASE_LAUNCH_20261102T010622`, 35 rows, outside-scope hashes preserved.
+- Approved GA2 T2C plan hash `1B1EB635FEA67D6EFCD19B3506F83538454D5A75012742F54B2CA0EA15086774`; approved GA2 T7b plan hash `FDA943CE81C207F51616032A05AC1FB976934178A019BDCEF95DA73478A40C46`. Both approval entries existed before implementation; no frozen plan or old approval changed in this continuation.
+- T2C implements the one-statement scoped PostgreSQL source, owner projections, immutable pilot profile, T4/T5 source/receipt adapter and recomputed full-ResolvedFacts digest context. Synthetic consent-effective/purpose-granted remain false. Legacy unspecified-basis fixture pins keep their historical optional-digest behavior. Scope is checked before compatibility fallback; proof selection pins session/run/purpose.
+- Initial resumed regression: 34 failures, subsequently fixed within A2. Source-adapter initial missing-module checkpoint: 20 failures; current source matrix 23 passed. Original red count for pre-existing WIP unavailable. Final combined offline tests: 396 passed; new A2 unit cases: 50. PG source/context/fence cases are included in the final module result below.
+- Evidence: `evidence/T2C_IMPLEMENTATION_REPORT_GA2_20261102.md`. L1/L2/L3/L4/L7 verified as described there; L6 UI DEFERRED-BY-OWNER. Independent acceptance remains pending.
+
+### GOAL A2 REV2 — T7b owner fence, XONG-CHƯA REVIEW (2026-11-02)
+
+- Implemented candidate OwnerFence factory with the exact supplied connection, transaction-local bounded lock timeout, sorted existing-row FOR SHARE locks, full digest plus 31-bit epoch recomputation. No AI Jobs/schema/migration changes. Missing/malformed/cross-scope/current-fact errors are stale.
+- Actual results: 21 fence unit cases passed; final combined offline 396 passed; final PostgreSQL synthetic module 68 passed / 0 failed / 0 skipped (12 new GA2 cases plus 56 existing). PostgreSQL verifies an UPDATE waits until transaction release, membership INSERT completes but changes digest, and an actual conflicting lock times out to stale. T12 safety gate found 108 repository-owned user tables and no unknown table. No schema application or destructive DB operation.
+- Strict mypy: 11 affected source files clean; including the existing assistance harness gives one pre-existing protocol error reproduced from HEAD, with zero new errors. Ruff/new-file format checks, three validators and diff/byte checks are recorded in the final GA2 snapshot. Offline runner corrections and the blocked EC2 metadata lookup are preserved as failed evidence, not represented as product successes.
+- Evidence: `evidence/T7B_OWNER_FENCE_REPORT_GA2_20261102.md`. Final task/group snapshots use the `GA2_` prefix and include source copies, hashes, diff and actual command/output records.
+- Seven protected file prefixes unchanged: `0B43E4BA`, `E7C8143A`, `F1ADB793`, `8BBFD0ED`, `B61B0607`, `93374E96`, `4D95D303`. No stage/commit/push, Modal/GPU/provider/external call, real-child data, Alembic, M1/T7a/T6, analysis-only, T8/T9 or T13 work in A2.
+- **GOAL A2 XONG-CHƯA REVIEW.** Stop for independent review; no next goal or live-call authorization is implied.
+
+### GOAL A2 final scope audit — TẠM DỪNG, supersedes overall closeout above (2026-11-02)
+
+- The final path audit found that existing A2 WIP `backend/src/sketch2life/infrastructure/assistance/fakes.py` is absent from both the frozen T2C exact allowlist and the 35-row launch baseline. Its optional `scope` keyword/check implements the V4 compatibility contract, but the exact-path plan omission cannot be silently treated as approved. This continuation did not further edit it.
+- Code verification remains 396 offline and 68 PostgreSQL tests passed, zero new mypy errors. This does not close the scope gate. Owner was asked for a narrow supplemental approval; frozen plans/old approval entries are unchanged. The snapshot explicitly preserves this WIP as a scope exception.
+- **GOAL A2 remains active/TẠM DỪNG**, pending owner scope decision and subsequent record/byte audit. Do not mark complete, claim independent acceptance, or start the next goal. T7b implementation is ready for review; full A2 closeout is withheld.
+
+### GOAL A2 scope addendum prepared — still awaiting owner (2026-11-02)
+
+- Read-only revalidation: branch/HEAD unchanged, index empty, V4/REV2/T2C pins match; no new supplementary approval found. Fake-owner source remains SHA-256 `E97A40AB5EEC4937BF1F9336162D731E4185F3A7B583DC16FAB11AAC636B71D5`.
+- Prepared `plan/T2C_FAKE_OWNER_SCOPE_ADDENDUM_GA2_20261102.md`, DRAFT/AWAITING_OWNER_APPROVAL, SHA-256 `E04F41D3F765C24DDB1E59A36ED2E24A0287A40AD8CC5FF1215B054287E15857`. It describes only the existing import/signature/scope-check diff and the final acceptance/record steps. It does not grant or backdate approval.
+- No source, test or approval edits in this continuation; no test/runtime rerun because source did not change. Existing 396 offline / 68 PG results remain the last runtime evidence. Goal remains active/TẠM DỪNG at the same owner-decision gate.
+
+### GOAL A2 scope addendum approved — XONG-CHƯA REVIEW (2026-11-02)
+
+- Owner explicitly approved only the existing keyword-only `scope` and organization/participant/purpose checks for `FakeAssistanceOwner.members`, preserving no-scope behavior. Supplementary approval pins addendum `E04F41D3F765C24DDB1E59A36ED2E24A0287A40AD8CC5FF1215B054287E15857` and source `E97A40AB5EEC4937BF1F9336162D731E4185F3A7B583DC16FAB11AAC636B71D5`. It records the earlier omission without backdating approval; frozen plan and prior approval entries are unchanged.
+- Scope hold is resolved. Current 16 source/test hashes match snapshot `GA2_20261102T111006` (0 mismatches), preserving the previous **396 offline / 68 PostgreSQL passed** evidence. No runtime rerun for this documentation-only decision. Ruff, three validators and `git diff --check` passed; focused mypy has only the previously documented baseline harness error, no new error.
+- **GOAL A2 XONG-CHƯA REVIEW.** Owner's scope approval is not independent review. No source behavior, stage/commit/push, Modal/provider/GPU or next-goal work was performed in this decision step. New final snapshot records this resolution and the seven protected hashes.
+
+### GOAL A2 review-fix pause — TẠM DỪNG / XONG-CHƯA REVIEW (2026-11-02 12:10 Asia/Saigon)
+
+- Owner requested a safe pause. Branch/HEAD remain `feature/feat063-be-foundation` / `a88de875ff92e9b4d4fa5cc2f5f8d5fc1f626f58`; index empty. No source/test edit occurred after the final test output; no stage, commit, push, merge, or Modal/provider call.
+- Review-fix report: `evidence/A2_REVIEW_FIX_PAUSE_REPORT_GA2_20261102.md`, SHA-256 `3882D31C8E06B51A95E38B5C76D42853124D802AC2C85632F394E99B67786BDE`. It records current source/test hashes and actual checks.
+- Current unit tests: 34 passed. Ruff check, three repository validators, and `git diff --check` passed. Ruff format check still reports only `application/services/assistance.py`; the same formatting difference exists in the pre-review snapshot. Strict mypy and the offline GA2 runner were NOT RUN for this pause.
+- PostgreSQL full module at the first acceptance checkpoint: 68 passed / 4 failed because the pilot SQL repository intentionally does not implement the cache read used by `AssistanceService.submit()`. The test-only setup was changed to persist through the real SQL assistance UoW after real owner/source resolution. The subsequent four focused acceptance cases had four passing assertions but one teardown error: deleting `ai_jobs.job` failed while its synthetic `ai_jobs.attempt` row still referenced it. Fixture cleanup rolled back; synthetic rows from the successful case may remain. No further DB inspection or cleanup was performed.
+- GOAL A2 remains **TẠM DỪNG / XONG-CHƯA REVIEW**, not independently accepted. The next PostgreSQL run needs narrowly scoped test-owned attempt/job cleanup before it can serve as clean evidence. Protected file prefixes remain `0B43E4BA`, `E7C8143A`, `F1ADB793`, `8BBFD0ED`, `B61B0607`, `93374E96`, `4D95D303`.
+- New ignored pause snapshot: `.claude/handoff/snapshots/GA2_REVIEWFIX_PAUSE_20261102T121026/`.
+
+### GOAL A2 Rev3 continuation — BLOCKED (2026-11-03)
+
+- Owner launched the sequential A2 → B1 → B2 goal and approved A2 Rev3 only. Branch/HEAD remain `feature/feat063-be-foundation` / `b6dbfa68e66718f3f40902c093e9ebd634b1ebb9`; index empty. Fresh baseline: `.claude/handoff/snapshots/GA2_A2_BASE_20261103T171857/`, manifest SHA-256 `E2970E8E5BEBEDE621B712963947D53CB55B4E936E1CE3298B63773372BD63E5`.
+- Owner confirmed that no task-owned PostgreSQL database is available. PostgreSQL acceptance and the teardown reproduction are **NOT RUN / BLOCKED**; no database was accessed or changed. The historical FK teardown error remains unverified on this checkout. No source/test file or assertion was changed.
+- Pinned offline runner: **401 passed / 0 failed / 0 skipped**. Ruff check and format passed; strict mypy returned one protocol error in the current assistance harness, reproduced identically in the saved pre-change harness; harness, repository-security, architecture, and diff validators passed. Full command output is in `.claude/handoff/snapshots/GA2_A2_RUN_20261103T172127/`.
+- Continuation report: `evidence/A2_REV3_CONTINUATION_REPORT_20261103.md`, SHA-256 `6D99E47E0BFE7802CAAE9974CA39F2FD1FBB74E61475D1685C626715D7C4F6DD`.
+- **A2 remains BLOCKED / NOT ACCEPTED** pending a separately confirmed task-owned disposable loopback database and fresh owner launch. Independent review remains required after A2 evidence is complete. B1/B2 were not started; no stage/commit/push/merge or Modal/provider work occurred.
+- New execution snapshot: `.claude/handoff/snapshots/GA2_A2_RUN_20261103T172127/`.
+
+### GOAL A2 database-scope decision — use the existing full BE database (2026-11-03)
+
+- Owner directed that A2 use the existing full BE database `sketch2life`, not a separate task-owned DB. This supersedes only the database restriction in the prior A2 Rev3 launch; the old entry remains unchanged as historical approval.
+- The current PG test guard accepts only loopback database names containing `be1_acceptance`, so it rejects `sketch2life` before connecting. Owner-approved exact test-only scope and safeguards are in `plan/CHAIN_A2_MAIN_BE_DB_ADDENDUM_20261103.md`, SHA-256 `4AFA521E50A91FB6B06D4BB33303AEC3A39021BECEB2A26907964B99EDF15BB7`. Updated sequential goal SHA-256 `D7DEE2977C5AA28B26FCB117281DE8B23E4D4AA85A42922B8B37752FBDA8752A`.
+- No DB connection, test, migration, source change, or DB write was performed while recording this decision. Expected DB identity (loopback `127.0.0.1:5433`, PostgreSQL 17, `postgres` user/owner) must be reverified read-only at a fresh A2 launch. Any mismatch or unsafe cleanup means PostgreSQL `NOT RUN / BLOCKED`.
+- A2 remains **BLOCKED / NOT ACCEPTED** pending a fresh launch and all A2 gates; B1/B2 remain unopened. B2's task-owned T12 database requirement is unchanged.
+
+### GOAL A2 Rev3 independent review — NEEDS_REVISION (2026-11-03)
+
+- Read-only review verified the pinned V4/A2/addendum/sequential-goal hashes and that the final snapshot's hash for `test_be1_synthetic_pilot_postgres.py` matches the current file. Checkout remains `feature/feat063-be-foundation` / `b6dbfa68e66718f3f40902c093e9ebd634b1ebb9`, index empty.
+- One P2 remains: the test's `sketch2life` URL predicate accepts any loopback port and username, not just the owner-approved `127.0.0.1:5433` / `postgres` target. Preflight supported the completed run but the reusable fixture gate is not exact. Fix only this test guard and its negative cases, then request re-review.
+- The teardown code diff is otherwise narrowly scoped and deletes the recorded test-created attempt before its exact job; prior-run synthetic residue remains intentionally untouched. The report's 77 PostgreSQL / 89 caller / 401 offline counts were not rerun by the reviewer.
+- Review evidence: `evidence/A2_REV3_MAIN_DB_INDEPENDENT_REVIEW_20261103.md`, SHA-256 `BA6F5EB84FD0E7E3093DF52709DE052C1EEF98FE6B96BB0B9BF0A276DB545FDA`. A2 is **NEEDS_REVISION / not accepted**; B1/B2 remain unopened.
+
+### GOAL A2 Rev3 resumed offline checks — BLOCKED / NOT ACCEPTED (2026-11-03)
+
+- Owner confirmed there is no task-owned PostgreSQL database; PostgreSQL acceptance and the historical job/attempt teardown reproduction remain NOT RUN / BLOCKED. No database URL or credentials were read, and no database was accessed or changed.
+- Fresh baseline `.claude/handoff/snapshots/GA2_A2_DBMAIN_BASE_20261103T174548/` records 69 paths. Only the authorized test-only database URL guard file changed versus that baseline: `backend/tests/integration/test_be1_synthetic_pilot_postgres.py`, `9E1ECB0297352736…` → `4322E2EC0C41366C…`. The focused URL guard suite is 12 passed / 65 deselected; the guard itself does not connect to a database.
+- Pinned offline GA2 runner: 401 passed / 0 failed / 0 skipped. Ruff check and format passed. Strict mypy has one protocol incompatibility in the current assistance harness and the identical diagnostic in the saved pre-change harness; therefore strict mypy remains non-green with no new diagnostic. Harness, security, architecture, and diff checks passed.
+- New report: `evidence/A2_REV3_NO_TASK_DB_CONTINUATION_20261103.md`, SHA-256 `A908867640C5BDAED5B7C90F986AF76A08AE00F93CC1F6AA06233CB2B8F75E75`. Snapshot: `.claude/handoff/snapshots/GA2_A2_FINAL_20261103T174821/`.
+- **A2 remains BLOCKED / NOT ACCEPTED** because Rev3 requires PostgreSQL evidence; the teardown fix remains unverified and was not attempted. No B1/B2, stage, commit, push, merge, Modal/provider, or external network work occurred.
+
+#### A2 report hash correction (2026-11-03)
+
+- The report's final scope wording was clarified to distinguish the one source/test path from the append-only report and ledger records. The final report SHA-256 is `A587D1788289272ED885C6083CEE0D6D95A752AA7425391FB21EC5F12C1316D7`; this supersedes the preliminary hash in the preceding entry. Test results and implementation scope did not change.
+
+### GOAL A2 Rev3 — main BE PostgreSQL verification and exact teardown cleanup (2026-11-03)
+
+- A2 report: `evidence/A2_REV3_MAIN_DB_TEARDOWN_FIX_20261103.md`; report SHA-256 is recorded after write in the final GA2 snapshot manifest.
+- Fresh baseline: `.claude/handoff/snapshots/GA2_A2_DBMAIN_FRESH_20261103T175506/manifest.json`; execution snapshot: `.claude/handoff/snapshots/GA2_A2_FINAL_20261103T181341/`.
+- PostgreSQL target was verified read-only as the approved existing `sketch2life` database on local PostgreSQL 17 loopback, user/owner `postgres`, with no other sessions. Required physical schema was present; Alembic source revision `20261031_be1_se_0001` was not in recorded ancestry and no migration ran.
+- The focused teardown reproduced `fk_attempt_job_id_job`; final test cleanup uses only the exact captured attempt/job IDs. Final focused case: 1 passed; full module: 77 passed. T2C/T7b/caller regressions: 89 passed; offline GA2 runner: 401 passed.
+- The first failed teardown left synthetic rows; the 117-table count map rose from 24 to 82 and remains unchanged after final runs. No row values were exported and no prior-run rows were manually cleaned.
+- Ruff and three validators passed; strict mypy reported the same single existing protocol mismatch as the saved baseline (exit 1); `git diff --check` was clean. No stage, commit, push, merge, Alembic, Modal, GPU, or provider call occurred.
+- A2 state: **XONG-CHƯA REVIEW**, not accepted. Await independent review and a separate owner launch before B1.
+
+### GOAL A2 Rev3 — second URL guard review fix (2026-11-03)
+
+- Independent review thread `01a1a16f-ac73-7d32-8964-37f1428787cf` returned `NEEDS_REVISION`, finding P2: `dbname`/`database` query overrides could redirect a `be1_acceptance` URL path to another database. Offline reproduction before the fix returned `True`; no database was contacted.
+- Added an exact-path database override check for both accepted URL families and four regression cases, preserving valid `be1_acceptance` targets and the existing `sketch2life` port/user restrictions. Only `backend/tests/integration/test_be1_synthetic_pilot_postgres.py` changed for the fix.
+- Focused URL guard: **26 passed, 65 deselected**, exit 0. Ruff and `git diff --check` exit 0. PostgreSQL/Alembic, full offline GA2 runner, mypy and repository-wide validators **NOT RUN** for this narrow correction.
+- Fix plan `plan/A2_URL_GUARD_REVIEW2_FIX_PLAN_20261103.md`, SHA-256 `C1DD0313D0D5398F836EE4F38AA625F82A394ECC138A894B19AC35DAE0F5A590`. Report: `evidence/A2_URL_GUARD_REVIEW2_FIX_REPORT_20261103.md`.
+- Current test file SHA-256: `634BBBFF89D346935C72D721C3FF966A007F4508A0B694FD71CE60366A2286AC`. Checkout remains `feature/feat063-be-foundation` / `b6dbfa68e66718f3f40902c093e9ebd634b1ebb9`, index empty.
+- **A2 state: FIXED — XONG-CHƯA REVIEW**, pending independent rereview. Earlier synthetic residue remains untouched. No stage/commit/push/merge, DB operation, Modal/provider, or B1/B2 work.
+
+### GOAL A2 Rev3 — libpq environment routing guard fix (2026-11-03)
+
+- Independent rereview confirmed the prior database-name override correction and found a new P2: libpq environment can route a loopback URL through `PGHOSTADDR` or service settings.
+- Added a fixture guard before engine creation that fails if any of `PGHOST`, `PGHOSTADDR`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGSERVICE`, or `PGSERVICEFILE` is present. Error output lists variable names only. Added focused offline cases for each key, a clean environment, and multiple keys.
+- Focused URL/environment tests: **35 passed, 65 deselected**, exit 0; Ruff and `git diff --check` exit 0. PostgreSQL/Alembic, full offline GA2, mypy, repository validators and providers **NOT RUN** for this correction.
+- Plan: `plan/A2_URL_GUARD_REVIEW3_FIX_PLAN_20261103.md`, SHA-256 `A147E9199D5391DAD3A86762C1C4B23D8454C80E06A69589546E34FCFF5354F6`. Report: `evidence/A2_URL_GUARD_REVIEW3_FIX_REPORT_20261103.md`.
+- Test SHA-256: `D39A7F93717D281BDDB757DD490CE4E6778AA825E9B66FB1D3CFA5706FDD057D`. Branch/HEAD remain `feature/feat063-be-foundation` / `b6dbfa68e66718f3f40902c093e9ebd634b1ebb9`, index empty.
+- A2 remains **FIXED — XONG-CHƯA REVIEW**, pending independent rereview. No DB access/maintenance, migration, stage/commit/push/merge, Modal/provider, or B1/B2 work occurred.
+
+### GOAL A2 Rev3 — independent review accepted (2026-11-03)
+
+- Independent reviewer thread `01a1a16f-ac73-7d32-8964-37f1428787cf` returned **A2 Rev3 overall ACCEPTED / complete** within the approved plans/addenda. The URL target, `dbname`/`database` override, and libpq environment-routing P2 findings were fixed and rereviewed; no blocking finding or missing in-scope evidence gate remains.
+- Reviewer used read-only source/test/approval/report/snapshot review and saved output; it did not rerun tests, validators, PostgreSQL, or providers.
+- Results remain as previously recorded: PostgreSQL module **77 passed**, T2C/T7b caller regressions **89 passed**, offline GA2 **401 passed**, and final focused URL/environment guard **35 passed / 65 deselected**. Full suites were not rerun after the last test-guard-only correction. Strict mypy retains one protocol error identical to baseline.
+- Remaining disclosed limits: **58 synthetic rows** from the earlier failed teardown remain untouched; Alembic history was not reconciled with the physical schema; T7b does not guarantee preventing a phantom insert after `hold()`.
+- **Final A2 ledger disposition: `COMPLETE` — independently reviewed `ACCEPTED`. B1/B2 remain unopened and require a separate owner launch.** No DB/provider/source operation, stage, commit, push, or merge was part of recording this review result.
+
+### GOAL B1 — implementation checkpoint (2026-11-04)
+
+- Owner launch pins B1 Rev2 (SHA-256 BAA53AC8DB529107C3C9EB340FE2C900251535AB0D183209C157B6F4082A62B4) and V4 (SHA-256 E11FFBCE0F655C010E679773D231D3E36930A0B960E705450499E2A2A69191F6). A2 was independently accepted and marked complete before this launch.
+- Implemented the approved analysis-only/zero-Sketch path and default-off T8 pilot composition. The five new source/test files and two baseline-relative edits are enumerated in evidence/B1_IMPLEMENTATION_REPORT_20261104.md; no other B1 code paths were changed. A2's canvas source adapter was reused read-only.
+- Focused results: analysis-only 3 passed; queue/composition 8 passed; default-off wiring contract 1 passed. The pinned offline GA2 regression with three approved add-ons completed 460 passed. Ruff lint, focused formatting (six files), strict mypy (seven files), all three repository validators, and git diff --check completed with the results in the report. The contract test file retains the same single Ruff-format discrepancy as its launch-baseline copy.
+- PostgreSQL/Alembic, Modal/GPU/provider, live calls, external network, T9/T12/T13, and B2 were not run or started. In-process queue and explicitly labelled PILOT_FAKE_* dependencies remain non-durable pilot limitations.
+- Final evidence and snapshot: evidence/B1_IMPLEMENTATION_REPORT_20261104.md and .claude/handoff/snapshots/GB1_20261104T003700/.
+- B1 state: XONG-CHƯA REVIEW. Wait for independent review. Do not start B2 before an independent ACCEPTED verdict and a separate owner launch.
+
+### GOAL B1 — P2 review correction blocked (2026-11-04)
+
+- **Disposition: BLOCKED — XONG-CHƯA REVIEW; do not start B2.** Finding 1's focused app composition gate test passed (1 passed / 4 deselected); queue/composition tests passed (8 passed). The broader app-composition + queue selection had 3 route-surface assertion failures and 10 passes; no route code was changed.
+- PostgreSQL task database `s2l_b1_review_20261104T050646Z_dbbaefa3` was created only after the owner-authorized maintenance `CREATE DATABASE` exception. Its own connection verified PostgreSQL 17.11 / `postgres`; Alembic `upgrade heads` exited 0. It remains retained.
+- After fixing the allowlisted BE1 authorization query, the loopback provider was invoked once and the ledger recorded `SUCCEEDED`, but the result was not accepted. The service inserts provider result before observation; the SQL repository requires the observation to exist first and raises `ValueError: provider result does not match the immutable observation evidence`. Fixing this requires source outside the approved allowlist, so no change was made there; request owner scope approval.
+- Offline regression was NOT RUN after the focused PG failure. Ruff, formatting, and strict mypy are non-green; three repository validators and `git diff --check` passed. Exact outcomes: `evidence/B1_P2_REVIEW_FIX_BLOCKED_REPORT_20261104.md`.
+- No stage/commit/push/merge, Modal/provider call, or B2 work occurred.
+
+### GOAL B1 — P2 addendum 2 ordering correction (2026-11-04)
+
+- State: **BLOCKED — XONG-CHƯA REVIEW**. The allowlisted service insert order now satisfies the test-local head → observation → provider-result invariant.
+- On task DB `s2l_b1_review_20261104_6a1af65b`, the focused success acceptance still failed: provider stub called once; invocation ledger `SUCCEEDED`; one analysis head persisted; job remained `running` with no accepted result and returned `STALE_CONTEXT`. Exact originating predicate is not isolated.
+- Do not broaden into worker/current-facts/AI Jobs behavior under the order-only addendum. The other four PostgreSQL scenarios and offline regression were NOT RUN after this failure.
+- Report: `evidence/B1_P2_ADDENDUM2_ORDERING_FIX_REPORT_20261104.md`. New snapshot: `.claude/handoff/snapshots/GB1_P2_ORDERING_BLOCKED_20261104T130416/`. No B2, stage, commit, push, merge, Modal, or provider work.
+
+### GOAL B1 P2 — independent review closeout (2026-11-04)
+
+- Independent review 2: evidence/B1_P2_INDEPENDENT_REVIEW_2_20261104.md, SHA-256 FE26A5E264B9BAF694655ACB1665651BE05706B2670209CBB2786AD7BB305112.
+- Verdict: F1 ACCEPTED; F2 ACCEPTED; B1 P2 CLOSED — ACCEPTED_WITH_CONDITIONS, limited to local/test synthetic, default-off, and loopback stub. The owner accepted these conditions.
+- Owner-run PostgreSQL evidence: 20/20 invocations PASS across seven nodes; 0 SKIP, 0 FAIL. Reviewer-recorded offline evidence: 29 unit passed, 1 F1 contract passed, 460 regression passed. Ruff check, three validators, and diff-check passed. Strict mypy retains 60 accepted diagnostics in the PostgreSQL integration test and 0 in composition/unit files; Ruff format was not applied to that pre-existing integration test.
+- P3 remains: stale-owner rejection can leave an analysis row and SUCCEEDED invocation without an accepted job result/receipt while the job remains RUNNING. This does not block the current synthetic/default-off B1 scope. Before non-synthetic data/provider or readers that could surface the row as accepted, require cleanup/invalidation/reconciliation, reader review, regression, and owner approval.
+- FND-03 is closed for application-object rebuild against the PostgreSQL ledger; OS-process/engine restart is not demonstrated. TASK_APPROVAL.md unchanged during Addendum 5 is NOT DETERMINED by byte comparison.
+- B1 P2 review is closed. B2 launch is recorded separately in TASK_APPROVAL.md; B2 implementation has not begun in this coordinator session. Checkout remains feature/feat063-be-foundation / b6dbfa68e66718f3f40902c093e9ebd634b1ebb9, index empty, 114 status entries. No commit was made.
+
+### GOAL B2 — T12 partial; narrow test-only contract assertion addendum approved (2026-11-05)
+
+- Evidence source for T12: owner-run; the coordinator read the logs; not independently verified. The owner reported that preflight passed and that `alembic upgrade heads` and `alembic current --verbose` exited 0.
+- Suite 1, `test_be1_postgres_api.py`: progress line `F...` indicates 3 passed / 1 failed by progress-dot inference, not an official pytest summary. Failure at line 305 in `test_real_http_writes_audits_outbox_and_enforces_assignment_scope`: the upload response assertion expected explicit keys 413/415/503. The response-map excerpt in the run output was incomplete.
+- Suites 2–4 showed 118, 5, and 1 progress dots respectively, with no failure marker in those lines; these are not official pytest summary counts. The manually typed `ALL_FOUR_POSTGRES_SUITES=PASS` is not a runner verdict. Pytest `.pytest_cache` WinError 5 warnings are separate from the assertion failure.
+- Owner approved a narrow test-only addendum for assertions at lines 305 and 309 of `backend/tests/integration/test_be1_postgres_api.py`, matching the published OpenAPI contract: explicit `default` response with `application/json`, `Be1Error` schema ref, and descriptions listing the respective codes 413/415/503 and 410. This contract rationale is from read-only source inspection; it is not independently confirmed by the incomplete T12 response-map output.
+- B2 report SHA-256: `DF3AA41A10BE6ECF99269185EE1919C832524B4F9E26CDF513301D61C331AD80`. Test baseline SHA-256: `EA34F05E03F8925B55542455660A34CE0E8EC1976FA6CA0170A78DB290FD576B`.
+- Log directory: `.claude/handoff/logs/GB2_T12_20261104/20261105T000535/`.
+- Log folder holds three preflight attempts; only run 20261105T000535 completed preflight, ran `alembic upgrade heads` once and executed the four suites. Earlier attempts 20261104T234646 (connection/inventory failure, details suppressed) and 20261104T235951 (identity printed, no PASS line) ran no migration or tests.
+- The migrated database `s2l_b2_be1_acceptance_20261104` remains retained with data from the four suites. No post-failure inventory, downgrade, cleanup, or rerun was performed.
+- **T12 PARTIAL / B2 NOT ACCEPTED.** Await the narrow assertion fix, a new owner-run T12 result with official summaries, then independent B2 review. No Modal/provider call was authorized.
+
+
+GOAL B2 — T12 PARTIAL; baseline on retained DB approved conditionally; one read-only reconciliation pending; round-trip OPEN; B2 NOT ACCEPTED; independent review NEEDS_REVISION (P1 open, OpenAPI P3 deferred before frontend integration by owner, T13 claim limited to helper/stub, B1 stale-owner condition unchanged).
+
+
+### GOAL B2 — owner-run read-only reconciliation recorded (2026-11-05)
+
+- Owner-run; coordinator read the supplied transcript and logs only. One approved read-only retry completed with command exit codes 0; the runner explicitly reports facts, not a pass/fail verdict.
+- Target was `s2l_b2_be1_acceptance_20261104` on PostgreSQL 17.11 at `127.0.0.1:5433`, user/owner `postgres`. Inventory: 117 tables versus 113 in repository metadata; four DB-only tables are listed in the B2 report, with no metadata-only tables. All nine `pilot_vision` tables are empty, but 26 other tables contain rows.
+- Alembic reports 9 stored revision rows versus 12 heads/current. The three unmatched effective heads align with the repository dependency chain (`story_run_lite → pilot_vision → be1_age + ai_jobs`); this is a plausible explanation, not yet a confirmed closure of the version-row evidence gap.
+- T12 remains `PARTIAL`; migration round-trip and DB-backed `test_migrations.py` remain NOT RUN; B2 remains `NOT ACCEPTED`. Preserve the retained database. No further retry is authorized by the consumed addendum; round-trip needs separate owner approval. `OWNER_MODAL_CALL_APPROVED=NO`.
+
+### GOAL B2 — independent closeout review correction (2026-11-05)
+
+- Review độc lập đóng B2 (owner chuyển lại bằng tóm tắt trong chat; văn bản đầy đủ không nằm trong repository): B2 **NEEDS_REVISION**, chưa được owner chấp nhận. T12 được reviewer đóng **có điều kiện** trong phạm vi owner đã chấp nhận: rerun PostgreSQL do owner chạy; round-trip chỉ nhánh `pilot_vision` trên database mới với bảng pilot rỗng; reviewer không kết nối DB.
+- Ba finding mới đang được theo dõi: (P2) `B2_T12_ASSERTION_FIX_REPORT_20261105.md` không có trong snapshot cơ sở/allowlist ban đầu; approval addendum mới ghi nhận đây là bằng chứng bổ sung được giữ, snapshot bổ sung vẫn cần tạo. (P2) ledger cũ chưa phản ánh kết quả này; mục hiện tại là hiệu chỉnh append-only. (P3) file `test_be1_postgres_api.py` chưa có verdict mypy; lần chạy trước trả INTERNAL ERROR, không tính là pass.
+- Đính chính các dòng inventory cũ: `be1_parent_group_members`, `be1_parent_groups`, `core_upload_parts`, `core_upload_sessions` là artifact do thứ tự duyệt metadata trong helper đối soát, không phải bảng DB-only; đối soát ngoại tuyến sau khi import đủ module ghi nhận 117 bảng metadata bằng 117 bảng DB và hai danh sách chênh lệch rỗng.
+- Round-trip không còn OPEN: owner-run round-trip hoàn tất trên nhánh `pilot_vision` ở database mới `s2l_b2_be1_roundtrip_20261105`, theo log `.claude/handoff/logs/GB2_T12_ROUNDTRIP_20261105T152148/`; kết quả giới hạn ở nhánh pilot với bảng pilot rỗng, không phải round-trip toàn đồ thị hay với dữ liệu.
+- Inventory/offline reconciliation ghi nhận 9 hàng `alembic_version` bằng 9 head thật. Con số 12 trong `alembic heads/current` gồm 9 head thật và 3 revision được hiển thị là effective-head; kết quả là owner-run, reviewer chỉ đọc log, không kết nối DB.
+- Giới hạn tiếp tục giữ nguyên: `test_migrations.py` phần DB NOT RUN; chuỗi `story_run_lite` không được round-trip; OpenAPI P3 hoãn đến trước frontend/client integration; T13 chỉ chứng minh helper timeout trả `unknown` với một lần gửi tới stub, không chứng minh job thật chuyển UNKNOWN; orphan B1 là điều kiện riêng trước dữ liệu không synthetic/provider. Mọi dữ kiện DB là owner-run. `OWNER_MODAL_CALL_APPROVED=NO`.
+- Trạng thái: T12 được reviewer đóng có điều kiện như trên; B2 vẫn **NEEDS_REVISION** cho tới khi xử lý finding, review độc lập lại và owner quyết định riêng.
+
+### GOAL B2 — remediation review and mypy limitation correction (2026-11-05)
+
+- Review độc lập remediation (owner chuyển lại bằng tóm tắt; bản ghi phiên không nằm trong repository): hai finding P2 được ACCEPTED; finding P3 mypy còn mở với NO VERDICT. Owner chấp nhận mypy không có verdict làm giới hạn đã ghi; `INTERNAL ERROR` không phải pass. Reviewer không chấp nhận B2 thay owner.
+- Dòng 802 cũ nói snapshot bổ sung "vẫn cần tạo" nay lỗi thời; không sửa lịch sử. Snapshot đã được tạo: `.claude/handoff/snapshots/GB2_CLOSURE_20261105T111756/`, manifest SHA-256 `3CA71A44C445EA55A01699EEADA29F3D7AAC0C020F67A62C477A71CBEBE588A8`.
+- Bằng chứng owner-run cho 9 hàng `alembic_version` bằng 9 head thật có trong `.claude/handoff/logs/GB2_T12_OFFLINE_20261105A/offline-check.txt`: dòng 3–4 (`observed_version_rows`, `script_heads`) là hai danh sách giống nhau; dòng 19–22 ghi 117 bảng metadata, 117 bảng DB và hai danh sách chênh lệch rỗng. Đây là đối chiếu log, không phải kết nối DB độc lập.
+- Owner chấp nhận finding P3 mypy của `test_be1_postgres_api.py` làm giới hạn: lệnh đã chạy trước và sau sửa assertion đều trả `INTERNAL ERROR`, không có verdict; lần chạy closure trả exit 2, các lần trước trả exit 1. Không phải pass; chưa có lần chạy chẩn đoán `--show-traceback` được cho phép.
+- B2 vẫn **NEEDS_REVISION** cho tới khi review độc lập đưa phán quyết rõ cho toàn B2 theo plan §6 và owner quyết định riêng. Giới hạn giữ nguyên: `test_migrations.py` phần DB NOT RUN; round-trip chỉ pilot_vision trên DB mới với bảng pilot rỗng; OpenAPI P3 hoãn tới trước frontend/client tích hợp; T13 chỉ chứng minh helper timeout trả `unknown` với một request đến stub; orphan B1 là điều kiện riêng; mọi dữ kiện DB là owner-run. `OWNER_MODAL_CALL_APPROVED=NO`.
+
+### GOAL B2 — third independent review and documentation remediation (2026-11-05)
+
+- Review vòng ba toàn B2: theo tóm tắt owner chuyển lại (bản ghi review không nằm trong repository), reviewer lạnh chỉ đọc khuyến nghị ACCEPTED_WITH_CONDITIONS, không có P1. T9/T12/T13 và Chain chỉ được chấp nhận trong phạm vi, điều kiện đã ghi; Static dựa trên báo cáo và mypy NO VERDICT. Đây là khuyến nghị review, không phải quyết định owner; B2 vẫn NEEDS_REVISION.
+- N-1 (P2, không chặn B2): chưa chạy test route thật cho POST request/cancel; `_build_child_binding` bị monkeypatch và dependency xác thực bị override. Cần test PostgreSQL mức route cho child request → job → status trước D9 hoặc frontend. N-2 (P3): gọi `helper` là hàm script-local `_invoke_slow_stub_once`, không phải client provider; các thuộc tính một lần gửi/không retry/không đọc token là thiết kế cố định, còn `unknown` phát sinh vì `pilot_job_repository=None`; T13 chỉ chứng minh timeout của hàm trong script. N-3 (P3): suite rerun là owner-run với runner không được pin hash trong approval; danh tính/hash chưa được ghi nhận; log preflight ghi 117 bảng và `T12_PREFLIGHT=PASS`, không có DDL được ghi nhận. Runner `run_b2_t12_readonly_recon.ps1` từng được pin ở approval nhưng không còn trong thư mục script cục bộ tại review vòng ba; nguyên nhân không biết. Bằng chứng lần chạy là transcript owner và log đã lưu; không khẳng định đã kiểm chứng lại runner. Helper Python vẫn còn. N-4 (P3): không có baseline mypy trước B2; phát biểu “có từ trước” chỉ được chứng minh cho thời điểm trước/sau sửa hai assertion, không xác định nguồn gốc từ trước B2; mypy vẫn NO VERDICT và owner chấp nhận ghi nhận giới hạn. N-5 (P3): STATUS, CONTEXT và DECISIONS chưa phản ánh B1 P2 closeout và diễn biến B2.
+- Hồ sơ nguồn: kết quả vòng ba được owner chuyển lại bằng tóm tắt; approval ghi tại mục `B2 third independent review result and documentation remediation scope`; các addendum T12, B2 implementation report và các log/snapshot owner-run là nguồn cho giới hạn và số liệu. Không trình bày dữ kiện DB là xác minh độc lập.
+- Điều kiện được ghi kèm khuyến nghị: OpenAPI P3 đóng trước frontend/client; orphan stale-owner B1 xử lý trước non-synthetic/provider; T13 chỉ là script-local timeout với stub; T12 chỉ round-trip `pilot_vision` trung gian trên bảng rỗng, không dữ liệu, không `story_run_lite`, không toàn đồ thị; `test_migrations.py` DB NOT RUN; mypy test file NO VERDICT; DB results owner-run; N-1 route-level PostgreSQL test trước D9/frontend. `OWNER_MODAL_CALL_APPROVED=NO`.
+- B2 chưa được owner chấp nhận; không tuyên bố ACCEPTED. Bước kế tiếp chỉ là cập nhật nháp STATUS/CONTEXT/DECISIONS để owner duyệt. Không stage, commit, push, merge hoặc gọi Modal/provider.
+
+### GOAL B2 — owner acceptance with conditions (2026-11-05)
+
+- Owner chấp nhận Goal B2 ở trạng thái **ACCEPTED_WITH_CONDITIONS**, theo chỉ thị trực tiếp "Chấp nhận B2". Review độc lập vòng ba khuyến nghị ACCEPTED_WITH_CONDITIONS, không có P1; đây là quyết định owner dựa trên khuyến nghị, không phải review tự chấp nhận thay owner.
+- Phạm vi chấp nhận: T9, T13 và T12 theo CHAIN_B2_REV2 trong giới hạn pilot local/test synthetic, default-off, loopback stub. T12 đóng có điều kiện: round-trip chỉ `pilot_vision` ở trạng thái trung gian với bảng pilot rỗng; không dữ liệu, không `story_run_lite`, không toàn đồ thị; phần DB `test_migrations.py` NOT RUN. Mypy test `test_be1_postgres_api.py` NO VERDICT, chưa có baseline trước B2. Mọi dữ kiện PostgreSQL là owner-run, chưa được reviewer xác minh qua kết nối DB độc lập.
+- Điều kiện còn giữ: OpenAPI P3 trước frontend/client; orphan stale-owner B1 trước dữ liệu không synthetic/provider; T13 chỉ chứng minh timeout của hàm script-local với stub, không chứng minh job thật chuyển UNKNOWN; N-1 cần test PostgreSQL mức route cho child request → job → status trước D9/frontend; N-3 ghi nhận rerun bốn suite dùng runner không ghim hash và runner đối soát PowerShell không còn trong thư mục script cục bộ, nguyên nhân chưa biết.
+- Chấp nhận B2 không cấp quyền gọi Modal/GPU/provider/live (`OWNER_MODAL_CALL_APPROVED=NO`), commit/push/merge/stage, xóa/dọn hai DB, gộp nhánh `origin/codex/feat063-modal-backend-completion-20261103`, bắt đầu goal sau B2, dùng dữ liệu không synthetic/provider thật hoặc tuyên bố production readiness. B1 và B2 vẫn chưa commit.

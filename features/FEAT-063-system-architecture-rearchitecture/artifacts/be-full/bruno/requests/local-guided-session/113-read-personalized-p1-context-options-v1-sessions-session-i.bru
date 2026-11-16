@@ -1,0 +1,25 @@
+meta {
+  name: 113 [QUERY-STYLE POST - VERIFY HANDLER] Read Personalized P1 Context Options
+  type: http
+  seq: 113
+}
+
+post {
+  url: {{baseUrl}}/v1/sessions/{{session_id}}/p1/context-options
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
+  X-Expected-Session-Version: 0
+  X-Actor-Ref: REPLACE_WITH_SYNTHETIC_VALUE
+}
+
+body:json {
+  {
+    "age_months": 0
+  }
+}

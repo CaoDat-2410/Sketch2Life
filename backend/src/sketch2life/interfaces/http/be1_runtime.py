@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import hashlib
 import hmac
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from uuid import uuid4
 
@@ -17,6 +17,7 @@ from sqlalchemy import Engine, select, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, sessionmaker
 
+from sketch2life.application.ports.ai_jobs import AiJobRepository
 from sketch2life.application.ports.identity import VerifiedPrincipal
 from sketch2life.domain.core_foundation import (
     ActiveChildTurn,
@@ -62,6 +63,8 @@ class Be1Runtime:
     database_error: str | None
     identity_verifier: FirebaseTokenVerifier
     artifact_store: LocalArtifactStore
+    pilot_vision: object | None = None
+    pilot_job_repository: AiJobRepository | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -76,14 +79,25 @@ class VerifiedDeviceContext:
 
 @dataclass(frozen=True, slots=True)
 class VerifiedDeviceStatusContext:
-    """Verified authority for reading the current Child's own request status only."""
+    """Verified authority for reading the admitted Child's own session-scoped resources.
+
+    Each route must bind its resource reference to this grant, session, and membership, then
+    evaluate current eligibility before returning protected data.
+    """
 
     grant: DeviceGrantModel
     session: ClassroomSessionModel
     membership: SessionMembershipModel
 
 
-def build_be1_runtime(settings: Settings) -> Be1Runtime:
+PilotVisionFactory = Callable[[Settings, Engine], object]
+
+
+def build_be1_runtime(
+    settings: Settings,
+    *,
+    pilot_vision_factory: PilotVisionFactory | None = None,
+) -> Be1Runtime:
     configured = get_core_database_settings().database_url
     database_url = configured.get_secret_value() if configured else None
     engine: Engine | None = None
@@ -94,6 +108,15 @@ def build_be1_runtime(settings: Settings) -> Be1Runtime:
         session_factory = create_core_session_factory(engine)
     except CoreDatabaseConfigurationError:
         database_error = "database is not configured for BE1 runtime"
+    pilot_vision = None
+    if (
+        engine is not None
+        and pilot_vision_factory is not None
+        and settings.env in {"local", "test"}
+        and settings.synthetic_pilot_enabled is True
+    ):
+        pilot_vision = pilot_vision_factory(settings, engine)
+    pilot_job_repository = _pilot_job_repository(pilot_vision)
     return Be1Runtime(
         settings=settings,
         engine=engine,
@@ -101,7 +124,17 @@ def build_be1_runtime(settings: Settings) -> Be1Runtime:
         database_error=database_error,
         identity_verifier=FirebaseTokenVerifier(settings),
         artifact_store=LocalArtifactStore(settings.be1_artifact_root),
+        pilot_vision=pilot_vision,
+        pilot_job_repository=pilot_job_repository,
     )
+
+
+def _pilot_job_repository(pilot_vision: object | None) -> AiJobRepository | None:
+    """Expose the existing pilot job read port to the HTTP projection boundary."""
+    jobs = getattr(pilot_vision, "jobs", None)
+    dependencies = getattr(jobs, "_d", None)
+    repository = getattr(dependencies, "repository", None)
+    return repository if repository is not None else None
 
 
 def get_runtime(request: Request) -> Be1Runtime:

@@ -1,0 +1,20 @@
+meta {
+  name: 062 [POST/ACTION - LOCAL TEST ONLY] Decline Lesson Invitation
+  type: http
+  seq: 62
+}
+
+post {
+  url: {{baseUrl}}/api/lesson-library/v1/me/lesson-invitations/{{access_grant_id}}/decline
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  Idempotency-Key: REPLACE_WITH_SYNTHETIC_VALUE
+}

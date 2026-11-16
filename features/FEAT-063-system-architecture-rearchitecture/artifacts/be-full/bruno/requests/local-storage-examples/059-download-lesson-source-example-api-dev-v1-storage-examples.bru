@@ -1,0 +1,15 @@
+meta {
+  name: 059 [READ ONLY] Stream a local lesson-source storage example
+  type: http
+  seq: 59
+}
+
+get {
+  url: {{baseUrl}}/api/dev/v1/storage-examples/lesson-source-documents/{{object_id}}
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}

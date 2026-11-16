@@ -45,8 +45,7 @@ from sketch2life.contracts.schemas.lesson_library import (
     UploadPartReceiptV1,
     UploadSessionV1,
 )
-from sketch2life.infrastructure.config.settings import get_settings
-from sketch2life.infrastructure.persistence.be1_models import OrganizationAssignmentModel
+from sketch2life.infrastructure.persistence.be1_models import AdultIdentityModel
 from sketch2life.interfaces.http.be1_runtime import get_db, get_verified_adult
 from sketch2life.interfaces.http.routers.be1_common import require_assignment
 from sketch2life.infrastructure.lesson_library.service import LessonLibraryError, LessonLibraryService
@@ -118,28 +117,27 @@ def _teacher(db: Session, principal: VerifiedPrincipal, organization_id: str) ->
 
 
 def _parent_actor(db: Session, principal: VerifiedPrincipal) -> None:
-    staff_assignment = db.scalar(
-        select(OrganizationAssignmentModel.assignment_id)
-        .where(
-            OrganizationAssignmentModel.subject == principal.subject,
-            OrganizationAssignmentModel.active.is_(True),
-        )
-        .limit(1)
-    )
-    if staff_assignment is not None:
+    identity = db.get(AdultIdentityModel, principal.subject)
+    if (
+        identity is None
+        or identity.state != "active"
+        or identity.account_role != "parent"
+        or identity.issuer != principal.issuer
+    ):
         raise HTTPException(
             status_code=403,
-            detail={"code": "FORBIDDEN", "message": "Use a separate Parent account for Parent endpoints"},
+            detail={"code": "ACCOUNT_SCOPE_UNAVAILABLE", "message": "The account is not assigned here"},
         )
 
 
-def _platform_admin(principal: VerifiedPrincipal) -> None:
-    subjects = {
-        item.strip()
-        for item in get_settings().platform_admin_subjects.split(",")
-        if item.strip()
-    }
-    if principal.subject not in subjects:
+def _platform_admin(db: Session, principal: VerifiedPrincipal) -> None:
+    identity = db.get(AdultIdentityModel, principal.subject)
+    if (
+        identity is None
+        or identity.state != "active"
+        or identity.account_role != "platform_admin"
+        or identity.issuer != principal.issuer
+    ):
         raise HTTPException(
             status_code=403,
             detail={"code": "FORBIDDEN", "message": "Platform Admin authority is required"},
@@ -736,10 +734,11 @@ def moderate_lesson(
     response: Response,
     if_match: Annotated[str | None, Header(alias="If-Match")] = None,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
+    db: Session = Depends(get_db),
     service: LessonLibraryService = Depends(get_lesson_library_service),
     idempotency_key: Annotated[str, Header(alias="Idempotency-Key", min_length=1, max_length=128)] = ...,
 ) -> dict[str, object]:
-    _platform_admin(principal)
+    _platform_admin(db, principal)
     result = _call(lambda: service.moderate_lesson(
         lesson_id=lesson_id, actor=principal.subject,
         expected_revision=_strong_revision(if_match),

@@ -4,8 +4,8 @@ This repository is governed by the harness in `docs/governance/` and the records
 
 ## Current product SRS authority
 
-- Before answering or changing current product requirements, read `docs/context/SRS_AUTHORITY.md` and use only `features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` (v2.5-draft) as the canonical working SRS.
-- The v2.5 SRS remains a draft awaiting formal owner sign-off. Its as-built/source snapshots are environment-specific and do not replace the target product requirements. Canonical working source does not mean final approval.
+- Before answering or changing current product requirements, read `docs/context/SRS_AUTHORITY.md` and use only `features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` (v2.7-draft) as the canonical working SRS.
+- The v2.7 SRS remains a draft awaiting formal owner sign-off. Its as-built/source snapshots are environment-specific and do not replace the target product requirements. Canonical working source does not mean final approval.
 - Older SRS copies and older feature contexts are historical/feature-local records. Do not use them as current product requirements or let them override the FEAT-063 SRS. Consult them only for explicit historical comparison or feature-specific implementation evidence.
 - If a current requirement is missing or conflicts with an older record, preserve the open question and report it; do not import an older requirement silently.
 

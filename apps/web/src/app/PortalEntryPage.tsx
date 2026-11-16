@@ -27,16 +27,29 @@ export function PortalEntryPage() {
   };
 
   const authenticate = async (role: WebPortalAppRole, email: string, password: string) => {
-    if (role === "MANAGER") {
-      await authService.login({ email, pass: password });
-      navigate("/school", { replace: true });
-      return;
-    }
-
-    await signInAndResolveRole(role === "TEACHER" ? "teacher" : "platform_admin", email, password);
+    const accountRole = role === "TEACHER"
+      ? "teacher"
+      : role === "MANAGER"
+        ? "school_manager"
+        : "platform_admin";
+    await signInAndResolveRole(accountRole, email, password);
     loginAsRole(role);
-    navigate(role === "TEACHER" ? "/teacher/t01-lesson-workspace" : "/platform/a02-platform-operations", { replace: true });
+    navigate(
+      role === "TEACHER"
+        ? "/teacher/t01-lesson-workspace"
+        : role === "MANAGER"
+          ? "/school"
+          : "/platform/a02-platform-operations",
+      { replace: true },
+    );
   };
 
-  return <WebPortalLoginPage portalRole={portalRole} onRoleChange={selectRole} onAuthenticate={authenticate} />;
+  return (
+    <WebPortalLoginPage
+      portalRole={portalRole}
+      onRoleChange={selectRole}
+      onAuthenticate={authenticate}
+      onResetPassword={(email) => authService.resetPassword(email)}
+    />
+  );
 }

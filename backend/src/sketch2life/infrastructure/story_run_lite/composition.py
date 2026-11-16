@@ -49,6 +49,11 @@ class StoryRunLiteRuntime:
     service: StoryRunLiteService
     vision: StoryRunLiteVisionPort
 
+    def ensure_ready(self) -> None:
+        """Revalidate singleton ownership before accepting another API operation."""
+
+        self.repository.require_singleton_lock()
+
 
 def goal_database_url(value: str, *, main_demo: bool = False) -> tuple[str, str]:
     """Reject non-loopback or non-goal databases before SQLAlchemy can connect."""

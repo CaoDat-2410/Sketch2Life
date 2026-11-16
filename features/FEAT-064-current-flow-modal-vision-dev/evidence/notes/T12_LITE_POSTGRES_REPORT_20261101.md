@@ -1,53 +1,46 @@
 # T12-lite PostgreSQL report — 2026-11-01
 
-## Scope and limits
+## Scope and safety boundary
 
-- Disposable local PostgreSQL acceptance database only; no external host, Modal, GPU, or real child data.
-- The owner-provided ignored connection file was read into this process only. No connection URL or credential is recorded here.
-- This report records the observed local integration run. It does not claim production readiness or provider quality.
-- The only test file added for T12 is `backend/tests/integration/test_be1_synthetic_pilot_postgres.py`.
+- T12 execution specification: `.claude/handoff/CODEX_PROMPT_T12_POSTGRES_RUN_20261101.md`, SHA-256 `055F557F7228E6DA1F74B0D5E3B6497972F19B0A24ED9D20047B7357C506365D`.
+- The owner-created local connection source was read only into the test process environment. No connection string, password, `.env`, or token is recorded here.
+- Safety conditions: (a) local ignored connection source present/readable — **yes**; (b) database name contains `be1_acceptance` — **yes**; (c) target and query overrides are loopback only — **yes**; (d) connection succeeds to PostgreSQL **17.11** — **yes**; (e) the database contains repository migration-owned schemas only — **yes**, 99 user tables across 10 repository schemas, with no unexpected schema/table detected.
+- Tests used synthetic-prefixed identities and their fixtures. No table was dropped or truncated. Test-created rows were removed by fixture/manual cleanup. After the final synthetic-pilot rerun, counts across all 99 user tables had **no delta** from the per-run baseline; managed profiles and synthetic eligibility proofs remained at zero.
+- No source implementation or Alembic migration was edited during T12. The only code-path change for the final rerun was import ordering and type annotations/import location in the allowlisted PostgreSQL test.
 
-## Database safety and migrations
+## Schema migration checks
 
-| Check | Result | Evidence |
+- `alembic upgrade heads`: succeeded; no revisions were applied because all 10 version rows already matched the current heads.
+- Authorized round trip: `downgrade be1_core@-1` downgraded `20261101_be1_age_0001` to `20261031_be1_se_0001`; `upgrade be1_core@head` restored `20261101_be1_age_0001`. Both commands succeeded.
+- Pre-downgrade safety counts: `be1_managed_profiles=0`, `SYNTHETIC_DEV profiles=0`, `be1_synthetic_eligibility_proofs=0`. After upgrade, `age_revision` and `age_source` were present again, profiles/proofs remained zero, and all 10 Alembic version rows exactly matched the pre-round-trip set.
+
+## PostgreSQL test outcomes
+
+| Test module | Result | Finding / cleanup |
 | --- | --- | --- |
-| Connection file exists and is readable | Met | Read into the process environment; its contents were not printed or copied. |
-| Database name contains `be1_acceptance` | Met | Parsed target matched the required substring. |
-| Host and query overrides are loopback only | Met | Host was loopback; no non-loopback `host` or `hostaddr` override. |
-| Connection reaches the approved database | Met | Connected to PostgreSQL 17.11 on the local loopback interface; actual database name matched the parsed name. |
-| Database schema/data are within the disposable test scope | Met | Before migration, the database had no user tables. Repository migrations created the application schemas; before downgrade, all application tables were empty and synthetic profile/proof counts were zero. |
+| `tests/integration/test_be1_postgres_api.py` (excluding the global retention-worker case) | **1 passed, 2 failed, 1 deselected** | Route catalog assertion expected 50 and observed 51. `test_room_code_start_revocation_stage_and_early_outcome_are_durable` expected HTTP 200 but received HTTP 409 `CONSENT_NOT_EFFECTIVE`. No source or old test was changed. The 3 synthetic organizations, 4 synthetic adults, and one new rate-limit row from the failed run were removed; table counts returned to baseline. |
+| `tests/integration/test_be1_age_provenance_postgres.py` | **1 passed** | Fixture cleanup restored table counts. |
+| `tests/integration/lesson_library/test_lesson_library_api.py` | **5 passed, 1 failed** | `test_teacher_uploads_and_reviews_a_synthetic_pdf_through_http` received HTTP 503 `DEPENDENCY_UNAVAILABLE`: local ClamAV at loopback port 3310 was unavailable. Fixture cleanup restored table counts; no scanner/package was installed. |
+| `tests/integration/test_be1_synthetic_pilot_postgres.py` | **56 passed in 70.77s** on the final rerun after test typing/import fixes; the earlier run also exited **0** | Rerun compared row counts for all 99 user tables; no count changed, profiles/proofs remained zero. The test module blocks non-loopback sockets. |
+| AI Jobs PostgreSQL migration tests that create/drop a separate database | **NOT RUN** | Outside the one-database approval boundary. No second database was touched. |
 
-R2 applied all 10 Alembic heads using `upgrade heads`; `current` matched `heads`:
+## Static checks
 
-`20261015_ai_0001`, `20261017_lc_0001`, `20261018_ap_0009`, `20261018_kv_0001`, `20261018_vr_0001`, `20261019_ae_0001`, `20261019_pa_0001`, `20261019_vf_0001`, `20261028_ll_0001`, `20261031_be1_se_0001`.
+- Ruff check on the new T12 test: **passed** after correcting four import-order findings (three in the first pass and one in the second).
+- Ruff format check: **passed**, file already formatted.
+- Mypy strict on the new T12 test with a fresh temporary cache: **passed**, no issues in one source file. The initial default-cache invocation returned an internal mypy error; it was retried with a fresh cache. Three test-file diagnostics were corrected before the passing run.
+- Final repository checks: `python tools/validate_harness.py` → `HARNESS_VALID`; `python tools/validate_repository_security.py` → `REPOSITORY_SECURITY_VALID` (6,032 publishable files); `python tools/validate_architecture.py` → `ARCHITECTURE_VALID`; `git diff --check` clean. The test/report/ledger byte scan found UTF-8, LF, no BOM, and no trailing whitespace.
 
-After tests and exact cleanup of their rows, the `be1_core@-1` downgrade and `be1_core@head` upgrade both exited successfully. `current` and `heads` again showed the same 10 revisions. The post-upgrade check found zero synthetic proofs and zero invalid `data_origin` rows.
+## Conclusion and limits
 
-## Test results
+- **B4a PostgreSQL acceptance: not fully achieved.** The synthetic pilot module passed all 56 cases, but the existing BE1 PostgreSQL module retains the 51-versus-50 route-count assertion and the consent guard returns 409 where one test expects 200. No product behavior was weakened or patched.
+- **B5 PostgreSQL acceptance: not fully achieved.** Five Lesson Library tests passed, including `test_parent_group_accept_replays_legacy_receipt_without_repeating_effects`; the upload/review path failed because the local ClamAV dependency was unavailable.
+- This is one isolated local PostgreSQL database run only. It does not establish provider/Modal behavior, UI/visual AC20, production readiness, or a complete end-to-end Child-to-Teacher AI flow. No Modal/GPU/provider call, external network request, or real-child data was used.
+- No stage, commit, or push occurred.
 
-| Phase / file | Result | Notes |
-| --- | --- | --- |
-| R0 offline baseline, 18 files | 388 passed, 4 skipped | Ran before setting database variables. |
-| `tests/integration/test_be1_postgres_api.py` | 3 passed, 1 failed | `test_room_code_start_revocation_stage_and_early_outcome_are_durable` expected canvas append HTTP 200 but received 409 `CONSENT_NOT_EFFECTIVE`. Its fixture creates a pending real-consent profile and patches the session router's consent helper; the canvas router still evaluates its own guard. No source or existing test was changed. 118 rows created in this run were removed by exact primary-key comparison; pre-existing rows were preserved. |
-| `tests/integration/lesson_library/test_lesson_library_api.py` | 5 passed, 1 failed | `test_teacher_uploads_and_reviews_a_synthetic_pdf_through_http` received 503 `DEPENDENCY_UNAVAILABLE` because the configured ClamAV scan dependency was unavailable. No source or existing test was changed. 126 rows created in this run were removed by exact primary-key comparison; pre-existing rows were preserved. |
-| B5 replay test, isolated PostgreSQL rerun | 1 passed | `test_parent_group_accept_replays_legacy_receipt_without_repeating_effects`. This fixture does not tear down its rows. Since the database was empty immediately before the isolated run, I verified the only organization was the synthetic Lesson Library fixture, checked the related rows belonged to it, and deleted those exact rows by organization/group/principal keys. No table was dropped or truncated. All application tables were empty afterward. |
-| `test_be1_synthetic_pilot_postgres.py` | 4 passed | Full synthetic profile/proof → join → teacher admission → start → group assignment → turn → accepted canvas stroke succeeded. The six negative admission cases returned 409 `CONSENT_NOT_EFFECTIVE`; no consent row was created and the synthetic profile retained `consent_id = NULL`. PostgreSQL checks rejected invalid profile origin and `effective` consent state. The status guard allowed `active` and `paused` without a turn and denied `lobby` and `finished`. Fixture cleanup left all application tables empty. |
-| Final offline regression, 13 files | 280 passed, 24 skipped | Included the five CI files, T1, migration, status-guard, BE2-basis, Lesson Library, and new T12 files; DB variables were explicitly absent. Database-gated cases skipped in this offline run. |
+## Đối chiếu hai lượt chạy
 
-The new integration test uses lowercase Base36 encoding of random 128-bit UUID values for `synthetic-` identifiers that must fit existing 36-character BE1 ID columns and the operator's lowercase ID validation. No schema was changed.
-
-## B4a and B5 conclusions on PostgreSQL
-
-- **B4a synthetic pilot:** The end-to-end synthetic eligibility and accepted-canvas-stroke chain **passed on local PostgreSQL 17.11** in the new integration test. The separate legacy BE1 PostgreSQL suite is not fully green because one existing test conflicts with the current consent guard, as described above.
-- **B5 receipt replay:** **Passed on local PostgreSQL 17.11** in the isolated replay test. Its test-created rows were removed afterward.
-
-## Not done / limitations
-
-- `GET .../status` is not mounted as an HTTP route in this code. The PostgreSQL test calls the T2 `get_verified_device_status` guard directly; it does not claim an HTTP GET endpoint was tested.
-- A production PostgreSQL source implementing `BE1FactSource.current_facts()` was not found. A live PostgreSQL `BE1FactReader` → BE2 projection is therefore **NOT DONE**; no adapter was added outside the allowlist.
-- The existing legacy BE1 consent test and Lesson Library scanner test remain failed for the observed reasons above; they were not patched.
-- No Modal/GPU request, real-child-data test, production-provider test, or B4b consent-lifecycle implementation was performed.
-
-## Git closeout
-
-No commit was created. At closeout, local `HEAD` was `f1f97747` and `origin/feature/feat063-be-foundation` was `9f337aff`; the refs had diverged (`1` remote-only commit and `1` local-only commit). This is neither approved commit case X (`0 1`) nor case Y (remote already contains `f1f97747`). No stage, amend, rebase, merge, or push was performed.
+- Bản báo cáo đã commit ở HEAD được giữ nguyên từng byte tại [`T12_LITE_POSTGRES_REPORT_20261101_RUN1_AS_COMMITTED.md`](T12_LITE_POSTGRES_REPORT_20261101_RUN1_AS_COMMITTED.md), SHA-256 `98DE23DFEE611B491E90FFEA9DDAAB82962D4D0565253E9C6885CD1C80574D63`.
+- Bản RUN1 nói fixture B5 replay không tự dọn hàng; sau đó người chạy đã xóa các hàng thuộc tổ chức synthetic bằng khóa/phạm vi cụ thể và xác nhận các bảng ứng dụng trống. Báo cáo hiện tại nói fixture của lượt chạy sau khôi phục số lượng hàng; source hiện tại có `finally` dọn các hàng theo tổ chức do fixture sở hữu. Hai bản ghi khác nhau về cơ chế/thời điểm dọn, nhưng đều nói các hàng đã được dọn trước khi kết thúc lượt tương ứng.
+- Không có log hoặc bảng đếm trước/sau riêng cho B5 để xác định độc lập cơ chế dọn ở từng lượt. Kết luận: **MÂU THUẪN CHƯA PHÂN XỬ** về việc hàng B5 được fixture tự dọn hay phải dọn thủ công ở mỗi lượt; không suy ra còn hàng sót sau các lần chạy.
+- Đề xuất một lượt kiểm riêng có approval: chạy duy nhất B5 trên ranh giới DB dùng một lần, ghi số hàng theo từng bảng trước/sau, ghi rõ fixture teardown và không thực hiện dọn thủ công trước khi chụp số sau.

@@ -1,0 +1,36 @@
+meta {
+  name: 114 [POST/ACTION - LOCAL TEST ONLY] Finalize P1 Context Options
+  type: http
+  seq: 114
+}
+
+post {
+  url: {{baseUrl}}/v1/sessions/{{session_id}}/p1/context-options/finalize
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
+  X-Expected-Session-Version: 0
+  X-Actor-Ref: REPLACE_WITH_SYNTHETIC_VALUE
+}
+
+body:json {
+  {
+    "age_months": 0,
+    "child_profile": {
+      "profile_declared_by": "CAREGIVER",
+      "profile_recorded_at": "2000-01-01T00:00:00Z"
+    },
+    "adult_participating": true,
+    "candidate_activity_ids": [
+      "REPLACE_ME"
+    ],
+    "supervision_confirmed_activity_ids": [
+      "REPLACE_ME"
+    ]
+  }
+}

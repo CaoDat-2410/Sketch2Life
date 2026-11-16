@@ -211,7 +211,7 @@ def _production_projection_client(engine: _FakeProjectionEngine) -> TestClient:
     return TestClient(create_app(service=service))
 
 
-def test_runtime_router_and_pinned_openapi_have_thirteen_operations() -> None:
+def test_runtime_router_and_pinned_openapi_have_fourteen_operations() -> None:
     runtime_operations = {
         (route.path, method.lower())
         for route in router.routes
@@ -235,9 +235,10 @@ def test_runtime_router_and_pinned_openapi_have_thirteen_operations() -> None:
         for method in item
         if method in {"get", "post", "put", "delete"}
     }
-    assert len(runtime_operations) == 13
+    assert len(runtime_operations) == 14
     assert runtime_operations == contract_operations
-    assert len({path for path, _method in contract_operations}) == 12
+    assert len({path for path, _method in contract_operations}) == 13
+    assert ("/v1/story-runs/readiness", "get") in contract_operations
     assert ("/v1/story-runs/{run_ref}", "get") in contract_operations
     assert ("/v1/upload-sessions/{upload_ref}", "get") in contract_operations
     assert ("/v1/story-runs/{run_ref}/story-revisions", "post") in contract_operations
@@ -281,7 +282,7 @@ def test_runtime_router_and_pinned_openapi_have_thirteen_operations() -> None:
         }.items():
             path = path.replace("{{" + variable + "}}", "{" + parameter + "}")
         bruno_operations.add((path, method_match.group(1)))
-    assert len(bruno_operations) == 13
+    assert len(bruno_operations) == 14
     assert bruno_operations == contract_operations
 
     put_responses = contract["paths"]["/v1/upload-sessions/{upload_ref}/parts/{part_no}"]["put"][

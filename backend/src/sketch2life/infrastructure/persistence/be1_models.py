@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from uuid import uuid4
 
 from sqlalchemy import (
     Boolean,
@@ -35,10 +36,25 @@ class OrganizationModel(CorePersistenceBase):
 
 class AdultIdentityModel(CorePersistenceBase):
     __tablename__ = "be1_adult_identities"
+    __table_args__ = (
+        UniqueConstraint("account_id", name="uq_be1_adult_identity_account_id"),
+        CheckConstraint(
+            "account_role IS NULL OR account_role IN "
+            "('parent', 'teacher', 'school_manager', 'platform_admin')",
+            name="ck_be1_adult_identity_account_role",
+        ),
+        CheckConstraint("role_revision > 0", name="ck_be1_adult_identity_role_revision"),
+        Index("ix_be1_adult_identity_role_state", "account_role", "state"),
+    )
 
     subject: Mapped[str] = mapped_column(String(256), primary_key=True)
+    account_id: Mapped[str] = mapped_column(
+        String(36), nullable=False, default=lambda: str(uuid4())
+    )
     issuer: Mapped[str] = mapped_column(String(512), nullable=False)
     state: Mapped[str] = mapped_column(String(24), nullable=False, default="active")
+    account_role: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    role_revision: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

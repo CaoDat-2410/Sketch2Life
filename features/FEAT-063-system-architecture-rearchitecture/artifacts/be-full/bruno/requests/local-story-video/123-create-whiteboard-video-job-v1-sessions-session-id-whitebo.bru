@@ -1,0 +1,26 @@
+meta {
+  name: 123 [PROVIDER-CAPABLE - REVIEW BEFORE RUN] Create Whiteboard Video Job
+  type: http
+  seq: 123
+}
+
+post {
+  url: {{baseUrl}}/v1/sessions/{{session_id}}/whiteboard-video-jobs
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "experience_spec_id": "REPLACE_ME",
+    "source_artifact_id": "REPLACE_ME",
+    "source_hash": "x",
+    "learning_thread_ref": "REPLACE_ME",
+    "idempotency_key": "REPLACE_ME"
+  }
+}

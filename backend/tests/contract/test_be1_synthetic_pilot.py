@@ -67,7 +67,6 @@ _LEGAL_CANVAS = (
     "save_checkpoint",
     "read_latest_checkpoint",
     "restore_checkpoint",
-    "reconnect_canvas",
 )
 _Function = ast.FunctionDef | ast.AsyncFunctionDef
 
@@ -242,6 +241,59 @@ def test_five_other_canvas_sites_keep_the_legal_helper(name: str) -> None:
     assert not _reaches_evaluator(_CANVAS, name)
 
 
+def test_child_reconnect_uses_status_authority_and_typed_group_eligibility() -> None:
+    function = _function(_CANVAS, "reconnect_canvas")
+    calls = _calls(function)
+    source = ast.unparse(function)
+    assert "Depends(get_verified_device_status)" in source
+    assert "Depends(get_verified_device)" not in source
+    assert "_require_group_eligibility" in calls
+    assert "_require_group_consent" not in calls
+    assert _reaches_evaluator(_RUNTIME, "get_verified_device_status")
+
+
+def test_child_reconnect_response_exposes_nullable_profile_version_and_forbids_extras() -> None:
+    from pydantic import ValidationError
+    from sketch2life.contracts.schemas.be1_runtime import CanvasReconnectResponse
+
+    base = {
+        "contract": "Be1CanvasReconnectV1",
+        "canvas_id": "synthetic-group-001",
+        "turn_id": None,
+        "document_epoch": 1,
+        "current_revision": 0,
+        "checkpoint": None,
+        "operations": [],
+    }
+    profiled = CanvasReconnectResponse.model_validate(
+        {**base, "profile_version": "CanvasOperationProfileV1"}
+    )
+    legacy = CanvasReconnectResponse.model_validate({**base, "profile_version": None})
+    assert profiled.profile_version == "CanvasOperationProfileV1"
+    assert legacy.profile_version is None
+    with pytest.raises(ValidationError):
+        CanvasReconnectResponse.model_validate({**base, "unapproved_field": "ignored"})
+
+
+def test_teacher_pilot_profile_response_rejects_unapproved_fields() -> None:
+    from pydantic import ValidationError
+    from sketch2life.contracts.schemas.be1_runtime import Be1PilotProfileListResponse
+
+    with pytest.raises(ValidationError):
+        Be1PilotProfileListResponse.model_validate(
+            {
+                "contract": "Be1PilotProfileListV1",
+                "items": [
+                    {
+                        "child_id": "synthetic-child",
+                        "display_name": "Synthetic Profile",
+                        "age_months": 72,
+                    }
+                ],
+            }
+        )
+
+
 def test_legal_canvas_helper_is_not_widened_for_append() -> None:
     assert _has_effective_sql(_function(_CANVAS, "_require_group_consent"))
     assert not _reaches_evaluator(_CANVAS, "_require_group_consent")
@@ -253,17 +305,41 @@ def test_progress_and_help_keep_legal_only_consent(name: str) -> None:
     assert not _reaches_evaluator(_SESSIONS, name)
 
 
-def test_registry_and_records_do_not_gain_a_synthetic_path() -> None:
+def test_registry_synthetic_creation_does_not_widen_consent_evaluator_paths() -> None:
     for suffix in ("be1_registry", "be1_records"):
         module = f"sketch2life.interfaces.http.routers.{suffix}"
         for node in _tree(module).body:
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                if suffix == "be1_registry" and node.name == "create_profile":
+                    continue
                 assert not _reaches_evaluator(module, node.name)
+
+    registry = "sketch2life.interfaces.http.routers.be1_registry"
+    profile_creation = _function(registry, "create_profile")
+    assert not _reaches_evaluator(registry, "create_profile")
+    assert not _has_effective_sql(profile_creation)
+    assert {"SYNTHETIC_DEV", "SYNTHETIC_FIXTURE"} <= {
+        node.value
+        for node in ast.walk(profile_creation)
+        if isinstance(node, ast.Constant) and isinstance(node.value, str)
+    }
+    token_hex_calls = [
+        call
+        for call in ast.walk(profile_creation)
+        if isinstance(call, ast.Call)
+        and isinstance(call.func, ast.Attribute)
+        and call.func.attr == "token_hex"
+        and isinstance(call.func.value, ast.Name)
+        and call.func.value.id == "secrets"
+    ]
+    assert len(token_hex_calls) == 1
+    assert len(token_hex_calls[0].args) == 1
+    assert not token_hex_calls[0].keywords
+    assert isinstance(token_hex_calls[0].args[0], ast.Constant)
+    assert token_hex_calls[0].args[0].value == 12
+
     records = "sketch2life.interfaces.http.routers.be1_records"
     assert "consent_is_effective" in _calls(_function(records, "_require_contributors_consent"))
-    assert _has_effective_sql(
-        _function("sketch2life.interfaces.http.routers.be1_registry", "create_profile")
-    )
 
 
 @pytest.mark.parametrize("name", ("upload_session_artifact", "download_session_artifact"))

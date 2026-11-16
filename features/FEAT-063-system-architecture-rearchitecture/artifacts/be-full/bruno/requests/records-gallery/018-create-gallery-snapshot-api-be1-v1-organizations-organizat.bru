@@ -1,0 +1,32 @@
+meta {
+  name: 018 [POST/ACTION - LOCAL TEST ONLY] Create Gallery Snapshot
+  type: http
+  seq: 18
+}
+
+post {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/gallery
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
+}
+
+body:json {
+  {
+    "session_id": "REPLACE_ME",
+    "artifact_ref": "REPLACE_ME",
+    "audience": "class",
+    "contributor_ids": [
+      "REPLACE_ME"
+    ]
+  }
+}

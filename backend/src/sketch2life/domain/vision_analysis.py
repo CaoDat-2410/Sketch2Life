@@ -335,6 +335,11 @@ class AssistancePin:
     input_snapshot_ref: str
     context_revision: int
     scope: AnalysisScope
+    context_digest: str | None = None
+
+    def __post_init__(self) -> None:
+        if self.context_digest is not None and not context_digest_is_valid(self.context_digest):
+            raise AnalysisRuleViolation("context_digest must be a lowercase SHA-256 digest")
 
 
 @dataclass(frozen=True, slots=True)

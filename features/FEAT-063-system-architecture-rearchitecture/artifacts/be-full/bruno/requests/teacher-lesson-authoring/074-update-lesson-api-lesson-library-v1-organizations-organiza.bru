@@ -1,0 +1,45 @@
+meta {
+  name: 074 [STATE CHANGE - DISPOSABLE DATA ONLY] Update Lesson
+  type: http
+  seq: 74
+}
+
+patch {
+  url: {{baseUrl}}/api/lesson-library/v1/organizations/{{organization_id}}/lessons/{{lesson_id}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  If-Match: REPLACE_WITH_SYNTHETIC_VALUE
+}
+
+body:json {
+  {
+    "content": {
+      "title": "REPLACE_ME",
+      "topic": "REPLACE_ME",
+      "target_age_band_ref": "x",
+      "target_age_band_version": 1,
+      "objectives": [
+        "REPLACE_ME"
+      ],
+      "drawing_subject": "REPLACE_ME",
+      "drawing_steps_text": "REPLACE_ME",
+      "subject_learning_notes": "REPLACE_ME",
+      "activities": [
+        {
+          "title": "REPLACE_ME",
+          "objective": "REPLACE_ME",
+          "instructions_text": "REPLACE_ME"
+        }
+      ]
+    }
+  }
+}

@@ -1,20 +1,28 @@
 """Real-PostgreSQL FEAT-064 synthetic eligibility pilot rehearsal.
 
-Run only against an explicitly approved disposable ``be1_acceptance`` database. This test
-uses synthetic identities, the real BE1 HTTP app and the real PostgreSQL repositories. It
-does not call an AI provider or use child data.
+Run only against an explicitly approved loopback PostgreSQL target: a disposable
+``be1_acceptance`` database, a task-owned ``s2l_b1_review_`` database, or the exact existing
+``sketch2life`` database under the separately approved A2 scope. This test uses synthetic
+identities, the real BE1 HTTP app and PostgreSQL repositories. It does not call a live AI
+provider or use child data.
 """
 
 from __future__ import annotations
 
 import importlib.util
 import ipaddress
+import json
 import os
+import re
 import socket
-from collections.abc import Iterator, Sequence
+from collections.abc import Callable, Iterator, Mapping, Sequence
+from concurrent.futures import ThreadPoolExecutor
+from contextlib import contextmanager, suppress
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from threading import Barrier, Event, Lock, Thread
 from typing import Any, Protocol, cast
 from uuid import uuid4
 
@@ -51,12 +59,37 @@ from sketch2life.interfaces.http.be1_runtime import (
     get_verified_adult,
     get_verified_device_status,
 )
-from sqlalchemy import Engine, MetaData, Table, and_, delete, inspect, select
+from sqlalchemy import (
+    Connection,
+    Engine,
+    MetaData,
+    Table,
+    and_,
+    delete,
+    func,
+    inspect,
+    select,
+    update,
+)
 from sqlalchemy.engine import make_url
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, sessionmaker
 
+_LIBPQ_ROUTING_ENVIRONMENT_KEYS = (
+    "PGHOST",
+    "PGHOSTADDR",
+    "PGPORT",
+    "PGDATABASE",
+    "PGUSER",
+    "PGSERVICE",
+    "PGSERVICEFILE",
+)
+
 _PILOT_POLICY_VERSION = "feat064-synthetic-pilot-v1"
+_TASK_OWNED_DATABASE_NAME = re.compile(
+    r"(?:s2l_b1_review_[0-9]{8}T[0-9]{6}Z_[0-9a-f]{8}|"
+    r"s2l_b1_review_20261104_6a1af65b)\Z"
+)
 
 
 class _JsonResponse(Protocol):
@@ -124,6 +157,7 @@ class PilotHarness:
     runtime: Be1Runtime
     session_factory: sessionmaker[Session]
     database_url: str = field(repr=False)
+    created_ai_jobs: list[tuple[str, tuple[str, ...]]] = field(default_factory=list, repr=False)
 
 
 def _is_loopback_host(host: object) -> bool:
@@ -135,19 +169,72 @@ def _is_loopback_host(host: object) -> bool:
         return host.lower() == "localhost"
 
 
+def _libpq_routing_environment_overrides(
+    environ: Mapping[str, str],
+) -> tuple[str, ...]:
+    """Return connection-target environment keys without exposing their values."""
+
+    return tuple(key for key in _LIBPQ_ROUTING_ENVIRONMENT_KEYS if key in environ)
+
+
 def _is_safe_acceptance_database_url(database_url: str) -> bool:
     try:
         url = make_url(database_url)
     except Exception:
         return False
+    database_name = url.database
+    task_owned_database = bool(
+        database_name and _TASK_OWNED_DATABASE_NAME.fullmatch(database_name)
+    )
     if (
         url.get_backend_name() != "postgresql"
         or not url.database
-        or "be1_acceptance" not in url.database
+        or (
+            not task_owned_database
+            and url.database != "sketch2life"
+            and "be1_acceptance" not in url.database
+        )
         or not _is_loopback_host(url.host)
         or "service" in url.query
     ):
         return False
+    if task_owned_database:
+        if url.host != "127.0.0.1" or url.port != 5433 or url.username != "postgres":
+            return False
+        for key, expected in (
+            ("host", "127.0.0.1"),
+            ("hostaddr", "127.0.0.1"),
+            ("port", "5433"),
+            ("user", "postgres"),
+            ("dbname", database_name),
+            ("database", database_name),
+        ):
+            value = url.query.get(key)
+            if value is None:
+                continue
+            values = value if isinstance(value, tuple) else (value,)
+            if not values or any(item != expected for item in values):
+                return False
+    for key in ("dbname", "database"):
+        value = url.query.get(key)
+        if value is None:
+            continue
+        values = value if isinstance(value, tuple) else (value,)
+        if not values or any(item != url.database for item in values):
+            return False
+    if url.database == "sketch2life":
+        if url.port != 5433 or url.username != "postgres":
+            return False
+        for key, expected in (
+            ("port", "5433"),
+            ("user", "postgres"),
+        ):
+            value = url.query.get(key)
+            if value is None:
+                continue
+            values = value if isinstance(value, tuple) else (value,)
+            if not values or any(item != expected for item in values):
+                return False
     # libpq's hostaddr and URL query targets can override name resolution.
     for key in ("host", "hostaddr"):
         value = url.query.get(key)
@@ -163,18 +250,122 @@ def _is_safe_acceptance_database_url(database_url: str) -> bool:
     ("database_url", "expected"),
     [
         ("postgresql://localhost:5433/be1_acceptance", True),
+        ("postgresql://postgres@127.0.0.1:5433/be1_acceptance?dbname=be1_acceptance", True),
+        ("postgresql://postgres@127.0.0.1:5433/be1_acceptance?database=be1_acceptance", True),
         ("postgresql://127.0.0.1:5433/app_be1_acceptance", True),
         ("postgresql://[::1]:5433/be1_acceptance", True),
+        (
+            "postgresql+psycopg://other@127.0.0.1:5432/be1_acceptance?dbname=sketch2life",
+            False,
+        ),
+        (
+            "postgresql+psycopg://postgres@127.0.0.1:5433/be1_acceptance?database=sketch2life",
+            False,
+        ),
+        ("postgresql://localhost:5433/be1_acceptance?dbname=other_database", False),
+        (
+            "postgresql://localhost:5433/be1_acceptance?dbname=be1_acceptance&dbname=sketch2life",
+            False,
+        ),
+        ("postgresql://postgres@127.0.0.1:5433/sketch2life", True),
+        ("postgresql://postgres@127.0.0.1:5432/sketch2life", False),
+        ("postgresql://postgres@127.0.0.1/sketch2life", False),
+        ("postgresql://other@127.0.0.1:5433/sketch2life", False),
+        ("postgresql://127.0.0.1:5433/sketch2life", False),
+        ("postgresql://postgres@127.0.0.1:5433/sketch2life?port=5432", False),
+        ("postgresql://postgres@127.0.0.1:5433/sketch2life?user=other", False),
+        ("postgresql://postgres@127.0.0.1:5433/sketch2life?dbname=other", False),
+        ("postgresql://postgres@127.0.0.1:5433/sketch2life?database=other", False),
+        (
+            "postgresql+psycopg://postgres@127.0.0.1:5433/"
+            "s2l_b1_review_20261104T120000Z_0123abcd",
+            True,
+        ),
+        (
+            "postgresql+psycopg://postgres@127.0.0.1:5433/"
+            "s2l_b1_review_20261104_6a1af65b",
+            True,
+        ),
+        (
+            "postgresql+psycopg://postgres@127.0.0.1:5433/"
+            "s2l_b1_review_20261104_6a1af65c",
+            False,
+        ),
+        (
+            "postgresql+psycopg://other@127.0.0.1:5433/"
+            "s2l_b1_review_20261104_6a1af65b",
+            False,
+        ),
+        (
+            "postgresql+psycopg://postgres@127.0.0.1:5432/"
+            "s2l_b1_review_20261104_6a1af65b",
+            False,
+        ),
+        (
+            "postgresql+psycopg://postgres@127.0.0.1:5432/"
+            "s2l_b1_review_20261104T120000Z_0123abcd",
+            False,
+        ),
+        (
+            "postgresql+psycopg://postgres@127.0.0.1/"
+            "s2l_b1_review_20261104T120000Z_0123abcd",
+            False,
+        ),
+        (
+            "postgresql+psycopg://other@127.0.0.1:5433/"
+            "s2l_b1_review_20261104T120000Z_0123abcd",
+            False,
+        ),
+        (
+            "postgresql+psycopg://127.0.0.1:5433/"
+            "s2l_b1_review_20261104T120000Z_0123abcd",
+            False,
+        ),
+        (
+            "postgresql+psycopg://postgres@127.0.0.1:5433/"
+            "s2l_b1_review_20261104T120000Z_0123abcd?hostaddr=::1",
+            False,
+        ),
+        (
+            "postgresql+psycopg://postgres@127.0.0.1:5433/"
+            "s2l_b1_review_20261104T120000Z_wrongbad",
+            False,
+        ),
+        ("postgresql://127.0.0.1:5433/sketch2life_test", False),
+        ("postgresql://db.example.invalid/sketch2life", False),
+        ("postgresql://localhost/sketch2life?hostaddr=203.0.113.9", False),
+        ("postgresql://localhost/sketch2life?service=remote", False),
         ("postgresql://db.example.invalid/be1_acceptance", False),
         ("postgresql://localhost/be1_acceptance?hostaddr=203.0.113.9", False),
         ("postgresql://localhost/be1_acceptance?service=remote", False),
         ("postgresql://localhost/application", False),
     ],
 )
-def test_acceptance_database_url_requires_loopback_and_acceptance_name(
+def test_database_url_requires_loopback_and_approved_name(
     database_url: str, expected: bool
 ) -> None:
     assert _is_safe_acceptance_database_url(database_url) is expected
+
+
+@pytest.mark.parametrize("key", _LIBPQ_ROUTING_ENVIRONMENT_KEYS)
+def test_libpq_routing_environment_overrides_are_detected(key: str) -> None:
+    assert _libpq_routing_environment_overrides({key: "synthetic-value"}) == (key,)
+
+
+def test_libpq_routing_environment_guard_allows_clean_environment() -> None:
+    assert _libpq_routing_environment_overrides({}) == ()
+
+
+def test_libpq_routing_environment_guard_reports_all_keys_without_values() -> None:
+    environment = {
+        "PGHOSTADDR": "203.0.113.9",
+        "PGSERVICE": "synthetic-remote-service",
+        "PGPASSWORD": "must-not-be-reported",
+    }
+    assert _libpq_routing_environment_overrides(environment) == (
+        "PGHOSTADDR",
+        "PGSERVICE",
+    )
 
 
 @pytest.fixture
@@ -184,7 +375,13 @@ def pilot_harness(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Iterator[P
         pytest.skip("set BE1_TEST_DATABASE_URL to run the PostgreSQL synthetic pilot")
     if not _is_safe_acceptance_database_url(database_url):
         pytest.fail(
-            "BE1_TEST_DATABASE_URL must target a loopback PostgreSQL be1_acceptance database"
+            "BE1_TEST_DATABASE_URL must target an approved loopback PostgreSQL acceptance database"
+        )
+    routing_overrides = _libpq_routing_environment_overrides(os.environ)
+    if routing_overrides:
+        pytest.fail(
+            "unset libpq connection-target environment variables before database tests: "
+            + ", ".join(routing_overrides)
         )
 
     monkeypatch.setenv("SKETCH2LIFE_DATABASE_URL", database_url)
@@ -249,6 +446,7 @@ def pilot_harness(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Iterator[P
         return principal
 
     app.dependency_overrides[get_verified_adult] = verified_test_adult
+    created_ai_jobs: list[tuple[str, tuple[str, ...]]] = []
     try:
         with TestClient(app) as client:
             class_response = client.post(
@@ -265,17 +463,24 @@ def pilot_harness(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Iterator[P
                 runtime=runtime,
                 session_factory=session_factory,
                 database_url=database_url,
+                created_ai_jobs=created_ai_jobs,
             )
     finally:
         app.dependency_overrides.clear()
-        _delete_test_organization_rows(engine, organization_id, {adult_subject})
+        _delete_test_organization_rows(
+            engine, organization_id, {adult_subject}, created_ai_jobs=created_ai_jobs
+        )
         engine.dispose()
         get_settings.cache_clear()
         get_core_database_settings.cache_clear()
 
 
 def _delete_test_organization_rows(
-    engine: Engine, organization_id: str, adult_subjects: set[str]
+    engine: Engine,
+    organization_id: str,
+    adult_subjects: set[str],
+    *,
+    created_ai_jobs: Sequence[tuple[str, Sequence[str]]] = (),
 ) -> None:
     """Delete rows scoped to this fixture's unique org, never rows from another run."""
     inspector = inspect(engine)
@@ -294,8 +499,42 @@ def _delete_test_organization_rows(
         if (table.schema or "public", table.name) in tables
         and (table.schema or "public", table.name) != ("public", "alembic_version")
     ]
+    jobs = tables.get(("ai_jobs", "job"))
+    attempts = tables.get(("ai_jobs", "attempt"))
+    completion_receipts = tables.get(("ai_jobs", "completion_receipt"))
+    deleted_attempts = 0
+    deleted_jobs = 0
+    if created_ai_jobs and (jobs is None or attempts is None or completion_receipts is None):
+        raise AssertionError("AI job cleanup tables are unavailable")
     with engine.begin() as connection:
+        for job_id, attempt_ids in created_ai_jobs:
+            assert attempts is not None
+            assert completion_receipts is not None
+            for attempt_id in attempt_ids:
+                receipt = connection.execute(
+                    delete(completion_receipts).where(
+                        and_(
+                            completion_receipts.c.job_id == job_id,
+                            completion_receipts.c.attempt_id == attempt_id,
+                        )
+                    )
+                )
+                if receipt.rowcount not in {0, 1}:
+                    raise AssertionError("test-created AI job receipt cleanup was not exact")
+                result = connection.execute(
+                    delete(attempts).where(
+                        and_(
+                            attempts.c.attempt_id == attempt_id,
+                            attempts.c.job_id == job_id,
+                        )
+                    )
+                )
+                if result.rowcount != 1:
+                    raise AssertionError("test-created AI job attempt cleanup was not exact")
+                deleted_attempts += 1
         for table in ordered:
+            if table.schema == "ai_jobs" and table.name == "job":
+                continue
             if "organization_id" not in table.c:
                 continue
             primary_key = list(table.primary_key.columns)
@@ -316,10 +555,19 @@ def _delete_test_organization_rows(
                     )
                 )
 
+        for job_id, _attempt_ids in created_ai_jobs:
+            assert jobs is not None
+            result = connection.execute(delete(jobs).where(jobs.c.job_id == job_id))
+            if result.rowcount != 1:
+                raise AssertionError("test-created AI job cleanup was not exact")
+            deleted_jobs += 1
+
         adults = tables.get(("public", "be1_adult_identities"))
         if adults is not None:
             for subject in adult_subjects:
                 connection.execute(delete(adults).where(adults.c.subject == subject))
+    assert deleted_attempts == sum(len(attempt_ids) for _, attempt_ids in created_ai_jobs)
+    assert deleted_jobs == len(created_ai_jobs)
 
 
 def _session_path(harness: PilotHarness, session_id: str, suffix: str = "") -> str:
@@ -1497,6 +1745,888 @@ def _t4_append_two_strokes(
     return session_id, child_id, group_id, grant_id, device_key, operation_ids
 
 
+def _ga2_prepare(harness: PilotHarness):
+    """T4/T5 synthetic data with the approved fixed pilot purpose, no consent row."""
+    from sketch2life.infrastructure.assistance.pilot_policy import PILOT_SYNTHETIC_POLICY_V1
+    from sketch2life.interfaces.http.be1_runtime import get_verified_device
+    from sketch2life.interfaces.http.routers.be1_artifacts import create_canvas_render_handoff
+
+    session_id, child_id, canvas_id, grant_id, key, _ = _t4_append_two_strokes(harness)
+    with harness.session_factory.begin() as db:
+        session = db.get(ClassroomSessionModel, session_id)
+        proof = db.scalar(
+            select(SyntheticEligibilityProofModel).where(
+                SyntheticEligibilityProofModel.child_profile_id == child_id,
+                SyntheticEligibilityProofModel.session_id == session_id,
+            )
+        )
+        assert session is not None and proof is not None
+        purpose = PILOT_SYNTHETIC_POLICY_V1.purpose_code
+        session.configuration = {**session.configuration, "purpose_ref": purpose}
+        proof.purpose_ref = purpose
+    with harness.session_factory() as db:
+        device = get_verified_device(
+            grant_id=grant_id, device_key=key, db=db, runtime=harness.runtime
+        )
+        handoff = create_canvas_render_handoff(db, harness.runtime, device)
+    return session_id, child_id, canvas_id, handoff
+
+
+def _ga2_ports(harness: PilotHarness, connection: Connection, session_id: str):
+    from sketch2life.infrastructure.assistance.be1_canvas_source_adapter import (
+        PostgresCanvasSourceAdapter,
+    )
+    from sketch2life.infrastructure.assistance.be1_owner_adapter import (
+        PostgresAssistanceOwnerAdapter,
+    )
+    from sketch2life.interfaces.http.routers.be1_canvas import build_canvas_source_export
+
+    def export(organization_id: str, canvas_id: str):
+        with Session(bind=connection) as db:
+            return build_canvas_source_export(
+                db,
+                organization_id=organization_id,
+                session_id=session_id,
+                canvas_id=canvas_id,
+                document_epoch=1,
+            )
+
+    owner = PostgresAssistanceOwnerAdapter(
+        connection,
+        organization_id=harness.organization_id,
+        class_id=harness.class_id,
+        session_id=session_id,
+        environment="test",
+        pilot_enabled=True,
+        export_source=export,
+    )
+    sources = PostgresCanvasSourceAdapter(
+        connection,
+        session_id=session_id,
+        export_source=export,
+        load_artifact=harness.runtime.artifact_store.get,
+        environment="test",
+        pilot_enabled=True,
+    )
+    return owner, sources
+
+
+def _ga2_request(
+    harness: PilotHarness,
+    connection: Connection,
+    session_id,
+    child_id,
+    canvas_id,
+    handoff,
+    *,
+    repository=None,
+):
+    from dataclasses import replace
+
+    from sketch2life.application.ports.ai_jobs import Principal, PrincipalRole
+    from sketch2life.application.services.assistance import AssistanceService, SubmitCommand
+    from sketch2life.domain.assistance import (
+        ActorKind,
+        CheckpointRef,
+        RequestReason,
+        TargetKind,
+        TargetScope,
+    )
+    from sketch2life.infrastructure.assistance.fakes import TeacherScope
+    from sketch2life.infrastructure.assistance.harness import build_assistance_harness
+    from sketch2life.infrastructure.assistance.pilot_policy import PilotSyntheticPolicy
+
+    owner, sources = _ga2_ports(harness, connection, session_id)
+    canvas = owner.canvas(harness.organization_id, canvas_id)
+    assert canvas is not None
+    assert owner.current_turn(canvas_id) is not None
+    fake = build_assistance_harness(auto_schedule=False)
+    principal = Principal(harness.adult_subject, harness.organization_id, PrincipalRole.TEACHER)
+    fake.authority.teachers[principal.principal_id] = TeacherScope(
+        harness.organization_id, frozenset({harness.class_id})
+    )
+    service = AssistanceService(
+        replace(
+            fake.service._d,
+            owner=owner,
+            sources=sources,
+            policy=PilotSyntheticPolicy(environment="test", pilot_enabled=True),
+            repository=repository if repository is not None else fake.service._d.repository,
+        )
+    )
+    command = SubmitCommand(
+        principal=principal,
+        idempotency_key="synthetic-ga2",
+        canvas_id=canvas_id,
+        checkpoint_ref=CheckpointRef(handoff.source_ref, 1, 3, handoff.source_sha256),
+        target=TargetScope(TargetKind.INDIVIDUAL, child_id),
+        region_id=None,
+        requested_level="level_fx_1",
+        child_intent=None,
+        request_reason=RequestReason.TEACHER_REQUEST,
+        context_revision=canvas.context_revision,
+        client_request_id="synthetic-ga2-client",
+    )
+    if repository is not None:
+        # The SQL pilot intentionally does not implement cache reads. Build the request
+        # through the real owner/source/policy resolution and persist it through the real
+        # SQL repository, without substituting a fake repository or changing product code.
+        resolution = service._resolve_for(command, ActorKind.TEACHER)
+        request = service._new_request(
+            command,
+            ActorKind.TEACHER,
+            resolution,
+            service._d.clock.now(),
+            cache=None,
+        )
+        with repository.transaction() as unit:
+            unit.insert(request)
+        return service, request
+    return service, service.submit(command).request
+
+
+def _ga2_real_job_acceptance(
+    harness: PilotHarness,
+    session_id: str,
+    child_id: str,
+    canvas_id: str,
+    handoff,
+    *,
+    before_hold=None,
+    before_commit=None,
+    lock_timeout_ms: int = 1000,
+):
+    """Build a test-only real-SQL acceptance path over this fixture's real BE1 facts."""
+    import json
+    from contextlib import contextmanager
+    from dataclasses import replace
+    from uuid import uuid4
+
+    from sketch2life.application.ports.ai_jobs import (
+        OWNER_FENCE_CONTRACT,
+        AuthorizationAction,
+        AuthorizationDecision,
+        EligibilityDecision,
+        FenceResult,
+        OwnerFence,
+        Principal,
+        PrincipalRole,
+    )
+    from sketch2life.application.services.ai_jobs import AiJobService, CreateJobCommand
+    from sketch2life.domain.ai_jobs.model import RequestRef
+    from sketch2life.infrastructure.ai_jobs.harness import build_fixture_harness
+    from sketch2life.infrastructure.ai_jobs.sql import tables as job_tables
+    from sketch2life.infrastructure.ai_jobs.sql.repository import SqlAiJobRepository
+    from sketch2life.infrastructure.assistance.owner_fence import (
+        build_owner_fence,
+        owner_fence_factory,
+    )
+    from sketch2life.infrastructure.assistance.sql_repository import SqlAssistanceRepository
+    from sqlalchemy import select
+
+    engine = harness.runtime.engine
+    assert engine is not None
+
+    class TrackedSqlAssistanceRepository(SqlAssistanceRepository):
+        def __init__(self, db_engine: Engine, organization_id: str) -> None:
+            super().__init__(db_engine, organization_id)
+            self.transaction_count = 0
+
+        @contextmanager
+        def transaction(self):
+            self.transaction_count += 1
+            with super().transaction() as unit:
+                yield unit
+
+    assistance_repository = TrackedSqlAssistanceRepository(engine, harness.organization_id)
+    with engine.connect() as connection:
+        assistance_service, request = _ga2_request(
+            harness,
+            connection,
+            session_id,
+            child_id,
+            canvas_id,
+            handoff,
+            repository=assistance_repository,
+        )
+
+    principal = Principal(harness.adult_subject, harness.organization_id, PrincipalRole.ADMIN)
+    from sketch2life.infrastructure.assistance.be1_owner_adapter import (
+        PostgresAssistanceOwnerAdapter,
+    )
+
+    assert isinstance(assistance_service._d.owner, PostgresAssistanceOwnerAdapter)
+    assert assistance_service._d.repository is assistance_repository
+    probe: dict[str, Any] = {
+        "hold_connections": [],
+        "resolver_connections": [],
+        "resolver_transaction_counts": [],
+        "held_batches": [],
+    }
+
+    def _auth_payload(fence: OwnerFence) -> dict[str, Any] | None:
+        prefix = "ga2-test-auth-v1:"
+        if not fence.fence_scope.startswith(prefix) or fence.epoch != 1:
+            return None
+        try:
+            payload = json.loads(fence.fence_scope[len(prefix) :])
+        except (TypeError, ValueError):
+            return None
+        if not isinstance(payload, dict) or payload.get("version") != "ga2-test-auth-v1":
+            return None
+        return payload
+
+    def _auth_rows_current(connection: Connection, fence: OwnerFence) -> bool:
+        payload = _auth_payload(fence)
+        if payload is None:
+            return False
+        if (
+            payload.get("organization_id") != harness.organization_id
+            or payload.get("subject") != harness.adult_subject
+            or payload.get("role") != PrincipalRole.ADMIN.value
+        ):
+            return False
+        identity = connection.execute(
+            select(AdultIdentityModel.subject)
+            .where(
+                AdultIdentityModel.subject == payload["subject"],
+                AdultIdentityModel.state == "active",
+            )
+            .with_for_update(read=True)
+        ).scalar_one_or_none()
+        assignment = connection.execute(
+            select(OrganizationAssignmentModel.assignment_id)
+            .where(
+                OrganizationAssignmentModel.assignment_id == payload["assignment_id"],
+                OrganizationAssignmentModel.organization_id == payload["organization_id"],
+                OrganizationAssignmentModel.subject == payload["subject"],
+                OrganizationAssignmentModel.class_id.is_(None),
+                OrganizationAssignmentModel.role == "school_admin",
+                OrganizationAssignmentModel.active.is_(True),
+            )
+            .with_for_update(read=True)
+        ).scalar_one_or_none()
+        return identity == payload["subject"] and assignment == payload["assignment_id"]
+
+    class PgAuthorization:
+        def decide(self, decision_principal, action, scope):
+            if (
+                action is not AuthorizationAction.CREATE_JOB
+                or decision_principal != principal
+                or scope.organization_id != harness.organization_id
+                or scope.session_id != session_id
+                or scope.subject_refs != (child_id,)
+            ):
+                return AuthorizationDecision(False, "FORBIDDEN_SCOPE")
+            with engine.connect() as connection:
+                identity = connection.execute(
+                    select(AdultIdentityModel.subject).where(
+                        AdultIdentityModel.subject == harness.adult_subject,
+                        AdultIdentityModel.state == "active",
+                    )
+                ).scalar_one_or_none()
+                assignment = connection.execute(
+                    select(OrganizationAssignmentModel.assignment_id)
+                    .where(
+                        OrganizationAssignmentModel.organization_id == harness.organization_id,
+                        OrganizationAssignmentModel.subject == harness.adult_subject,
+                        OrganizationAssignmentModel.class_id.is_(None),
+                        OrganizationAssignmentModel.role == "school_admin",
+                        OrganizationAssignmentModel.active.is_(True),
+                    )
+                    .order_by(OrganizationAssignmentModel.assignment_id)
+                    .limit(1)
+                ).scalar_one_or_none()
+            if identity != harness.adult_subject or assignment is None:
+                return AuthorizationDecision(False, "FORBIDDEN_SCOPE")
+            payload = {
+                "version": "ga2-test-auth-v1",
+                "organization_id": harness.organization_id,
+                "subject": harness.adult_subject,
+                "assignment_id": assignment,
+                "role": PrincipalRole.ADMIN.value,
+                "action": str(action),
+                "session_id": scope.session_id,
+                "target_id": scope.target_id,
+                "purpose_code": scope.purpose_code,
+                "subject_refs": list(scope.subject_refs),
+            }
+            encoded = json.dumps(payload, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
+            return AuthorizationDecision(
+                True,
+                fence=OwnerFence("ga2-test-auth-v1:" + encoded, 1),
+            )
+
+    class PgEligibility:
+        def check(self, *, scope, request_ref, job_type):
+            if job_type != "sketch_assistance":
+                return EligibilityDecision(False, "STALE_CONTEXT", 0)
+            with assistance_repository.transaction() as unit:
+                current_request = unit.get(request_ref.request_id)
+            if current_request is None:
+                return EligibilityDecision(False, "STALE_CONTEXT", 0)
+            if (
+                current_request.facts.organization_id != scope.organization_id
+                or current_request.facts.session_id != scope.session_id
+                or current_request.facts.audience != scope.subject_refs
+                or current_request.facts.purpose_code != scope.purpose_code
+                or current_request.request_revision != request_ref.request_revision
+                or current_request.facts.source.input_hash != request_ref.input_hash
+                or current_request.facts.context_revision != request_ref.context_revision
+            ):
+                return EligibilityDecision(False, "STALE_CONTEXT", 0)
+            with engine.connect() as connection:
+                owner, sources = _ga2_ports(harness, connection, session_id)
+                facts = assistance_service.current_resolved_facts(
+                    current_request.assistance_id,
+                    request=current_request,
+                    owner=owner,
+                    sources=sources,
+                )
+            if facts is None or facts.digest() != current_request.assistance_context_digest:
+                return EligibilityDecision(False, "STALE_CONTEXT", 0)
+            return EligibilityDecision(
+                True,
+                None,
+                facts.context_revision,
+                build_owner_fence(facts),
+            )
+
+    def resolver(connection: Connection, fence_scope):
+        before_count = assistance_repository.transaction_count
+        probe["resolver_connections"].append(connection)
+        owner, sources = _ga2_ports(harness, connection, fence_scope.session_id)
+        current_facts = assistance_service.current_resolved_facts(
+            request.assistance_id,
+            request=request,
+            owner=owner,
+            sources=sources,
+        )
+        probe["resolver_transaction_counts"].append(
+            (before_count, assistance_repository.transaction_count)
+        )
+        assert assistance_repository.transaction_count == before_count
+        return current_facts
+
+    def owner_fences(connection: Connection):
+        class CombinedOwnerFence:
+            contract_version = OWNER_FENCE_CONTRACT
+
+            def __init__(self) -> None:
+                self.connection = connection
+                self.be1_fence = owner_fence_factory(resolver, lock_timeout_ms=lock_timeout_ms)(
+                    connection
+                )
+
+            def hold(self, fences):
+                probe["hold_connections"].append(self.connection)
+                probe["held_batches"].append(fences)
+                if before_hold is not None:
+                    before_hold(self.connection)
+                auth_fences = tuple(
+                    fence for fence in fences if fence.fence_scope.startswith("ga2-test-auth-v1:")
+                )
+                fact_fences = tuple(fence for fence in fences if fence not in auth_fences)
+                if (
+                    len(auth_fences) != 1
+                    or len(fact_fences) != 1
+                    or not _auth_rows_current(self.connection, auth_fences[0])
+                ):
+                    return FenceResult(False, fences)
+                return self.be1_fence.hold(fact_fences)
+
+        return CombinedOwnerFence()
+
+    job_harness = build_fixture_harness()
+    ai_repository = SqlAiJobRepository(
+        engine,
+        owner_fences,
+        before_commit=before_commit,
+    )
+
+    class SyntheticIds:
+        def new_id(self, prefix: str) -> str:
+            return f"synthetic-{prefix}-{uuid4().hex}"
+
+    ai_service = AiJobService(
+        replace(
+            job_harness.service._d,
+            repository=ai_repository,
+            authorization=PgAuthorization(),
+            eligibility=PgEligibility(),
+            ids=SyntheticIds(),
+        )
+    )
+    command = CreateJobCommand(
+        principal=principal,
+        idempotency_key=f"synthetic-create-{uuid4().hex}",
+        job_type="sketch_assistance",
+        target_id=request.assistance_id,
+        purpose_code=request.facts.purpose_code,
+        session_id=request.facts.session_id,
+        subject_refs=request.facts.audience,
+        request_ref=RequestRef(
+            request.assistance_id,
+            request.request_revision,
+            request.facts.source.input_hash,
+            request.facts.context_revision,
+        ),
+        correlation_id=f"synthetic-correlation-{uuid4().hex}",
+    )
+    return ai_service, command, request, assistance_repository, probe, job_tables
+
+
+def _ga2_assert_no_accepted_job(engine: Engine, organization_id: str) -> None:
+    from sketch2life.infrastructure.ai_jobs.sql import tables as t
+    from sqlalchemy import func, select
+
+    with engine.connect() as connection:
+        counts = {
+            "jobs": connection.scalar(
+                select(func.count())
+                .select_from(t.job)
+                .where(t.job.c.organization_id == organization_id)
+            ),
+            "receipts": connection.scalar(
+                select(func.count())
+                .select_from(t.command_receipt)
+                .where(t.command_receipt.c.organization_id == organization_id)
+            ),
+            "semantics": connection.scalar(
+                select(func.count())
+                .select_from(t.semantic_request)
+                .where(t.semantic_request.c.organization_id == organization_id)
+            ),
+            "outbox": connection.scalar(
+                select(func.count())
+                .select_from(t.outbox)
+                .where(t.outbox.c.organization_id == organization_id)
+            ),
+        }
+    assert counts == {"jobs": 0, "receipts": 0, "semantics": 0, "outbox": 0}
+
+
+def test_ga2_real_ai_job_acceptance_holds_both_fences_on_one_connection(pilot_harness):
+    from sketch2life.infrastructure.assistance.owner_fence import decode_owner_fence_scope
+    from sqlalchemy import select
+
+    h = pilot_harness
+    session_id, child_id, canvas_id, handoff = _ga2_prepare(h)
+    service, command, request, _assistance_repository, probe, job_tables = _ga2_real_job_acceptance(
+        h, session_id, child_id, canvas_id, handoff
+    )
+
+    result = service.create_job(command)
+    engine = h.runtime.engine
+    assert engine is not None
+    with engine.connect() as connection:
+        attempt_ids = connection.execute(
+            select(job_tables.attempt.c.attempt_id).where(
+                job_tables.attempt.c.job_id == result.job_id
+            )
+        ).scalars().all()
+    h.created_ai_jobs.append((result.job_id, tuple(attempt_ids)))
+    assert len(attempt_ids) == 1
+    assert result.outcome == "created"
+    assert len(probe["held_batches"]) == 1
+    assert len(probe["held_batches"][0]) == 2
+    assert len(probe["resolver_connections"]) == 1
+    assert probe["resolver_connections"][0] is probe["hold_connections"][0]
+    assert probe["resolver_transaction_counts"]
+    assert all(before == after for before, after in probe["resolver_transaction_counts"])
+
+    with engine.connect() as connection:
+        row = connection.execute(
+            select(job_tables.job.c.accepted_fences).where(
+                job_tables.job.c.job_id == result.job_id,
+                job_tables.job.c.organization_id == h.organization_id,
+            )
+        ).scalar_one()
+        accepted_fences = row
+        assert len(accepted_fences) == 2
+        auth_keys = [key for key in accepted_fences if key.startswith("ga2-test-auth-v1:")]
+        owner_keys = [key for key in accepted_fences if decode_owner_fence_scope(key) is not None]
+        assert len(auth_keys) == 1 and len(owner_keys) == 1
+        assert (
+            connection.execute(
+                select(job_tables.command_receipt.c.job_id).where(
+                    job_tables.command_receipt.c.organization_id == h.organization_id,
+                    job_tables.command_receipt.c.target_id == request.assistance_id,
+                )
+            ).scalar_one()
+            == result.job_id
+        )
+
+
+def test_ga2_real_ai_job_stale_owner_change_fails_closed_before_acceptance(pilot_harness):
+    from sketch2life.application.services.ai_jobs import AiJobError
+    from sqlalchemy import update
+
+    h = pilot_harness
+    session_id, child_id, canvas_id, handoff = _ga2_prepare(h)
+    engine = h.runtime.engine
+    assert engine is not None
+    changed = False
+
+    def change_facts_before_owner_hold(_connection: Connection) -> None:
+        nonlocal changed
+        if changed:
+            return
+        with engine.begin() as writer:
+            writer.execute(
+                update(ManagedProfileModel)
+                .where(ManagedProfileModel.child_id == child_id)
+                .values(age_revision=ManagedProfileModel.age_revision + 1)
+            )
+        changed = True
+
+    service, command, _request, _assistance_repository, probe, _job_tables = (
+        _ga2_real_job_acceptance(
+            h,
+            session_id,
+            child_id,
+            canvas_id,
+            handoff,
+            before_hold=change_facts_before_owner_hold,
+        )
+    )
+    with pytest.raises(AiJobError):
+        service.create_job(command)
+    assert changed
+    assert probe["resolver_connections"]
+    assert probe["resolver_connections"][0] is probe["hold_connections"][0]
+    _ga2_assert_no_accepted_job(engine, h.organization_id)
+
+
+def test_ga2_real_ai_job_owner_lock_timeout_fails_closed(pilot_harness):
+    from concurrent.futures import ThreadPoolExecutor
+
+    from sketch2life.application.services.ai_jobs import AiJobError
+    from sqlalchemy import select
+
+    h = pilot_harness
+    session_id, child_id, canvas_id, handoff = _ga2_prepare(h)
+    engine = h.runtime.engine
+    assert engine is not None
+    service, command, _request, _assistance_repository, _probe, _job_tables = (
+        _ga2_real_job_acceptance(
+            h,
+            session_id,
+            child_id,
+            canvas_id,
+            handoff,
+            lock_timeout_ms=100,
+        )
+    )
+
+    with ThreadPoolExecutor(max_workers=1) as pool, engine.begin() as blocker:
+        blocker.execute(
+            select(ManagedProfileModel.child_id)
+            .where(ManagedProfileModel.child_id == child_id)
+            .with_for_update()
+        ).scalar_one()
+        future = pool.submit(service.create_job, command)
+        with pytest.raises(AiJobError):
+            future.result(timeout=15)
+    _ga2_assert_no_accepted_job(engine, h.organization_id)
+
+
+def test_ga2_real_ai_job_acceptance_transaction_failure_rolls_back_all_rows(pilot_harness):
+    h = pilot_harness
+    session_id, child_id, canvas_id, handoff = _ga2_prepare(h)
+    engine = h.runtime.engine
+    assert engine is not None
+    injected = False
+
+    def fail_before_commit(unit) -> None:
+        nonlocal injected
+        if unit.writes and not injected:
+            injected = True
+            raise RuntimeError("synthetic acceptance rollback")
+
+    service, command, _request, _assistance_repository, _probe, _job_tables = (
+        _ga2_real_job_acceptance(
+            h,
+            session_id,
+            child_id,
+            canvas_id,
+            handoff,
+            before_commit=fail_before_commit,
+        )
+    )
+    with pytest.raises(RuntimeError, match="synthetic acceptance rollback"):
+        service.create_job(command)
+    assert injected
+    _ga2_assert_no_accepted_job(engine, h.organization_id)
+
+
+def test_ga2_t2c_source_and_context_use_real_scoped_facts(pilot_harness):
+    from sketch2life.domain.eligibility import EligibilityBasis, EligibilityScope
+    from sketch2life.domain.vision_analysis import ProviderContextMode
+    from sketch2life.infrastructure.assistance.be1_fact_reader import BE1FactReader, BE1FactRequest
+    from sketch2life.infrastructure.assistance.postgres_fact_source import PostgresBE1FactSource
+    from sketch2life.infrastructure.vision_analysis.resolved_facts_context import (
+        ResolvedFactsAnalysisContext,
+    )
+
+    h = pilot_harness
+    session_id, child_id, canvas_id, handoff = _ga2_prepare(h)
+    assert h.runtime.engine is not None
+    with h.runtime.engine.begin() as connection:
+        from sqlalchemy import insert
+
+        proof_table = SyntheticEligibilityProofModel.__table__
+        historical = dict(
+            connection.execute(
+                select(proof_table).where(
+                    proof_table.c.child_profile_id == child_id,
+                    proof_table.c.session_id == session_id,
+                )
+            )
+            .mappings()
+            .one()
+        )
+        historical.update(
+            evidence_id=_synthetic_id(),
+            session_id=_synthetic_id(),
+            run_ref="synthetic-historical-run",
+        )
+        connection.execute(insert(proof_table).values(**historical))
+        source = PostgresBE1FactSource(connection, environment="test", pilot_enabled=True)
+        purpose = "ai_drawing_assistance"
+        read = BE1FactReader(source).read(
+            BE1FactRequest(
+                h.organization_id,
+                h.class_id,
+                session_id,
+                child_id,
+                purpose,
+                (child_id,),
+                ProviderContextMode.IMAGE_ONLY,
+            )
+        )
+        assert source.statements == 1 and read.member is not None
+        assert read.member.eligibility_basis == EligibilityBasis.SYNTHETIC_DEV
+        assert not read.member.consent_effective and read.member.consent_record_ref is None
+        owner, _ = _ga2_ports(h, connection, session_id)
+        assert owner.members(h.organization_id, (child_id,), purpose) == ()
+        assert owner.members(
+            h.organization_id,
+            (child_id,),
+            purpose,
+            scope=EligibilityScope(h.organization_id, h.class_id, child_id, purpose),
+        )
+        service, request = _ga2_request(h, connection, session_id, child_id, canvas_id, handoff)
+        pin = service.pin(request.assistance_id)
+        assert pin is not None and pin.context_digest == "sha256:" + request.facts.digest()
+        context = ResolvedFactsAnalysisContext(service.current_resolved_facts).current_for_pin(pin)
+        assert context.context_digest == pin.context_digest
+        assert context.context_revision == pin.context_revision
+        assert read.context is not None and read.context.context_digest != context.context_digest
+        assert not context.consent_effective and not context.purpose_granted
+
+
+@pytest.mark.parametrize(
+    "changed", ["purpose", "run", "expired", "revoked", "profile", "membership", "group", "origin"]
+)
+def test_ga2_t2c_invalid_current_facts_fail_closed(pilot_harness, changed):
+    from sketch2life.domain.vision_analysis import ProviderContextMode
+    from sketch2life.infrastructure.assistance.be1_fact_reader import BE1FactReader, BE1FactRequest
+    from sketch2life.infrastructure.assistance.postgres_fact_source import PostgresBE1FactSource
+    from sketch2life.infrastructure.persistence.be1_models import SessionGroupModel
+
+    h = pilot_harness
+    session_id, child_id, canvas_id, _ = _ga2_prepare(h)
+    with h.session_factory.begin() as db:
+        session = db.get(ClassroomSessionModel, session_id)
+        profile = db.get(ManagedProfileModel, child_id)
+        proof = db.scalar(
+            select(SyntheticEligibilityProofModel).where(
+                SyntheticEligibilityProofModel.child_profile_id == child_id
+            )
+        )
+        membership = db.scalar(
+            select(SessionMembershipModel).where(SessionMembershipModel.child_id == child_id)
+        )
+        assert session and profile and proof and membership
+        if changed == "purpose":
+            session.configuration = {**session.configuration, "purpose_ref": "wrong-purpose"}
+        elif changed == "run":
+            session.configuration = {**session.configuration, "pilot_run_ref": "wrong-run"}
+        elif changed == "expired":
+            proof.issued_at = datetime.now(UTC) - timedelta(hours=2)
+            proof.expires_at = datetime.now(UTC) - timedelta(hours=1)
+        elif changed == "revoked":
+            proof.revoked_at = datetime.now(UTC)
+            proof.revocation_revision = 1
+        elif changed == "profile":
+            profile.state = "inactive"
+        elif changed == "membership":
+            membership.state = "left"
+        elif changed == "origin":
+            profile.data_origin = "LEGACY_UNCLASSIFIED"
+        else:
+            group = db.get(SessionGroupModel, canvas_id)
+            assert group
+            group.state = "archived"
+    assert h.runtime.engine is not None
+    with h.runtime.engine.begin() as connection:
+        source = PostgresBE1FactSource(connection, environment="test", pilot_enabled=True)
+        result = BE1FactReader(source).read(
+            BE1FactRequest(
+                h.organization_id,
+                h.class_id,
+                session_id,
+                child_id,
+                "ai_drawing_assistance",
+                (child_id,),
+                ProviderContextMode.IMAGE_ONLY,
+            )
+        )
+        assert result.member is None and source.statements == 1
+
+
+def test_ga2_t7b_share_fence_blocks_be1_update_until_transaction_ends(pilot_harness):
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Event
+    from time import monotonic
+
+    from sketch2life.infrastructure.assistance.owner_fence import (
+        build_owner_fence,
+        owner_fence_factory,
+    )
+    from sqlalchemy import text, update
+
+    h = pilot_harness
+    session_id, child_id, canvas_id, handoff = _ga2_prepare(h)
+    engine = h.runtime.engine
+    assert engine is not None
+    with engine.begin() as connection:
+        service, request = _ga2_request(h, connection, session_id, child_id, canvas_id, handoff)
+
+        def resolve(same_connection, scope):
+            assert same_connection is connection
+            owner, sources = _ga2_ports(h, same_connection, scope.session_id)
+            return service.current_resolved_facts(
+                request.assistance_id, request=request, owner=owner, sources=sources
+            )
+
+        fence = build_owner_fence(request.facts)
+        held = owner_fence_factory(resolve)(connection).hold((fence,))
+        assert held.current and not held.stale
+    ready = Event()
+    pid = []
+
+    def writer():
+        with engine.begin() as other:
+            other.execute(text("SET LOCAL lock_timeout = '4000ms'"))
+            pid.append(other.scalar(text("SELECT pg_backend_pid()")))
+            ready.set()
+            other.execute(
+                update(ManagedProfileModel)
+                .where(ManagedProfileModel.child_id == child_id)
+                .values(age_revision=2)
+            )
+
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        with engine.begin() as connection:
+            owner, sources = _ga2_ports(h, connection, session_id)
+
+            def resolve(conn, scope):
+                owner, sources = _ga2_ports(h, conn, scope.session_id)
+                return service.current_resolved_facts(
+                    request.assistance_id, request=request, owner=owner, sources=sources
+                )
+
+            assert owner_fence_factory(resolve)(connection).hold((fence,)).current
+            future = pool.submit(writer)
+            assert ready.wait(2)
+            blocked = False
+            deadline = monotonic() + 2
+            with engine.connect() as observer:
+                while monotonic() < deadline:
+                    if observer.scalar(
+                        text("SELECT cardinality(pg_blocking_pids(:pid))"), {"pid": pid[0]}
+                    ):
+                        blocked = True
+                        break
+            assert blocked and not future.done()
+        future.result(timeout=3)
+    with engine.begin() as connection:
+        assert not owner_fence_factory(resolve)(connection).hold((fence,)).current
+
+
+def test_ga2_t7b_new_membership_insert_is_not_blocked_and_digest_becomes_stale(pilot_harness):
+    from sketch2life.infrastructure.assistance.owner_fence import (
+        build_owner_fence,
+        owner_fence_factory,
+    )
+    from sqlalchemy import insert, text
+
+    h = pilot_harness
+    session_id, child_id, canvas_id, handoff = _ga2_prepare(h)
+    engine = h.runtime.engine
+    assert engine is not None
+    with engine.begin() as connection:
+        service, request = _ga2_request(h, connection, session_id, child_id, canvas_id, handoff)
+
+        def resolve(conn, scope):
+            owner, sources = _ga2_ports(h, conn, scope.session_id)
+            return service.current_resolved_facts(
+                request.assistance_id, request=request, owner=owner, sources=sources
+            )
+
+        fence = build_owner_fence(request.facts)
+        guard = owner_fence_factory(resolve)(connection)
+        assert guard.hold((fence,)).current
+        with engine.begin() as other:
+            other.execute(text("SET LOCAL lock_timeout = '500ms'"))
+            other.execute(
+                insert(SessionMembershipModel).values(
+                    membership_id=_synthetic_id(),
+                    organization_id=h.organization_id,
+                    class_id=h.class_id,
+                    session_id=session_id,
+                    child_id=_synthetic_id(),
+                    group_id=canvas_id,
+                    state="admitted",
+                )
+            )
+        result = guard.hold((fence,))
+        assert not result.current and result.stale == (fence,)
+
+
+def test_ga2_t7b_database_lock_timeout_returns_stale(pilot_harness):
+    from sketch2life.infrastructure.assistance.owner_fence import (
+        build_owner_fence,
+        owner_fence_factory,
+    )
+
+    h = pilot_harness
+    session_id, child_id, canvas_id, handoff = _ga2_prepare(h)
+    engine = h.runtime.engine
+    assert engine is not None
+    with engine.begin() as connection:
+        service, request = _ga2_request(h, connection, session_id, child_id, canvas_id, handoff)
+        fence = build_owner_fence(request.facts)
+
+    def resolve(conn, scope):
+        owner, sources = _ga2_ports(h, conn, scope.session_id)
+        return service.current_resolved_facts(
+            request.assistance_id, request=request, owner=owner, sources=sources
+        )
+
+    with engine.begin() as writer:
+        writer.execute(
+            select(ManagedProfileModel.child_id)
+            .where(ManagedProfileModel.child_id == child_id)
+            .with_for_update()
+        )
+        with engine.begin() as accepting:
+            result = owner_fence_factory(resolve, lock_timeout_ms=100)(accepting).hold((fence,))
+            assert not result.current and result.stale == (fence,)
+
+
 def test_t4_authoritative_export_binds_complete_ordered_operations_and_hashes(
     pilot_harness: PilotHarness,
 ) -> None:
@@ -1822,3 +2952,795 @@ def test_t5_non_admitted_png_creates_no_receipt_or_persisted_artifacts(
     assert refused.value.detail["code"] == "CANVAS_IMAGE_NOT_ADMITTED"
     assert len(created_refs) == 1
     assert store.get(created_refs[0]) is None
+
+
+@dataclass(slots=True)
+class _B1LoopbackVisionState:
+    base_url: str
+    disconnect: bool = False
+    hold_response: bool = False
+    before_response: Callable[[], None] | None = None
+    calls: int = 0
+    entered: Event = field(default_factory=Event)
+    release: Event = field(default_factory=Event)
+    lock: Lock = field(default_factory=Lock)
+
+
+@contextmanager
+def _b1_loopback_vision_stub(
+    *,
+    disconnect: bool = False,
+    hold_response: bool = False,
+    before_response: Callable[[], None] | None = None,
+) -> Iterator[_B1LoopbackVisionState]:
+    """A deterministic, loopback-only provider boundary for the composed B1 worker."""
+
+    state = _B1LoopbackVisionState(
+        base_url="",
+        disconnect=disconnect,
+        hold_response=hold_response,
+        before_response=before_response,
+    )
+
+    class Handler(BaseHTTPRequestHandler):
+        def log_message(self, _format: str, *_args: object) -> None:
+            return
+
+        def do_POST(self) -> None:
+            length = int(self.headers.get("Content-Length", "0"))
+            payload = json.loads(self.rfile.read(length))
+            with state.lock:
+                state.calls += 1
+            state.entered.set()
+            if state.disconnect:
+                with suppress(OSError):
+                    self.connection.shutdown(socket.SHUT_RDWR)
+                self.connection.close()
+                return
+            response = _b1_success_response(payload)
+            if state.before_response is not None:
+                state.before_response()
+            if state.hold_response and not state.release.wait(15):
+                return
+            body = json.dumps(response, separators=(",", ":")).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    state.base_url = f"http://127.0.0.1:{server.server_port}"
+    thread = Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        yield state
+    finally:
+        state.release.set()
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)
+
+
+def _b1_success_response(payload: Mapping[str, object]) -> dict[str, object]:
+    from sketch2life.contracts.schemas.vision_v2 import (
+        VisionUnderstandingRequestV2,
+        VisionUnderstandingSuccessV2,
+        vision_profile_catalog_hash_v2,
+        vision_profile_catalog_v2,
+        vision_profile_config_hash_v2,
+    )
+    from sketch2life.infrastructure.ai.vision_lexical_policy import (
+        LexicalRegressionContentPolicy,
+        synthetic_prohibited_lexicon,
+    )
+
+    request_value = payload.get("request")
+    assert isinstance(request_value, dict)
+    request = VisionUnderstandingRequestV2.model_validate(request_value)
+    catalog = vision_profile_catalog_v2()
+    profile = catalog.resolve(request.requested_profile_id)
+    policy = LexicalRegressionContentPolicy(synthetic_prohibited_lexicon())
+    result = VisionUnderstandingSuccessV2(
+        correlation_id=request.correlation_id,
+        executed_at=datetime.now(UTC),
+        source_image_ref=request.source_image_ref,
+        profile_id=request.requested_profile_id,
+        profile_catalog_hash=vision_profile_catalog_hash_v2(catalog),
+        attempt_number=1,
+        repair_attempted=False,
+        content_policy_version=policy.content_policy_version,
+        policy_match_view_version=policy.policy_match_view_version,
+        policy_execution_state="PASSED",
+        entities=(),
+        actions=(),
+        relations=(),
+        themes=(),
+        ambiguous_regions=(),
+        adapter_version=profile.adapter_version,
+        config_hash=vision_profile_config_hash_v2(profile),
+        model_provenance=profile.model_provenance,
+    )
+    return result.model_dump(mode="json")
+
+
+def _b1_create_composed_job(
+    harness: PilotHarness,
+    *,
+    base_url: str,
+    token_file: Path,
+):
+    from sketch2life.application.ports.ai_jobs import Principal, PrincipalRole
+    from sketch2life.application.services.ai_jobs import CreateJobCommand
+    from sketch2life.domain.ai_jobs.model import RequestRef
+    from sketch2life.domain.vision_analysis import VISION_ANALYSIS_JOB_TYPE
+    from sketch2life.infrastructure.assistance.sql_repository import SqlAssistanceRepository
+    from sketch2life.infrastructure.vision_analysis.pilot_composition import (
+        PilotVisionComposition,
+        build_default_pilot_vision,
+    )
+
+    session_id, child_id, canvas_id, handoff = _ga2_prepare(harness)
+    engine = harness.runtime.engine
+    assert engine is not None
+    assistance_repository = SqlAssistanceRepository(engine, harness.organization_id)
+    with engine.connect() as connection:
+        _assistance_service, request = _ga2_request(
+            harness,
+            connection,
+            session_id,
+            child_id,
+            canvas_id,
+            handoff,
+            repository=assistance_repository,
+        )
+
+    token_file.write_text("synthetic-loopback-token", encoding="utf-8")
+    settings = harness.runtime.settings.model_copy(
+        update={
+            "env": "local",
+            "synthetic_pilot_enabled": True,
+            "ai_provider": "lightning_dev",
+            "lightning_ai_base_url": base_url,
+            "lightning_ai_token_file": token_file,
+            "ai_request_timeout_seconds": 10.0,
+        }
+    )
+    composition = build_default_pilot_vision(settings, engine)
+    assert isinstance(composition, PilotVisionComposition)
+
+    principal = Principal(
+        harness.adult_subject, harness.organization_id, PrincipalRole.ADMIN
+    )
+    command = CreateJobCommand(
+        principal=principal,
+        idempotency_key=f"synthetic-b1-{uuid4().hex}",
+        job_type=VISION_ANALYSIS_JOB_TYPE,
+        target_id=request.assistance_id,
+        purpose_code=request.facts.purpose_code,
+        session_id=request.facts.session_id,
+        subject_refs=request.facts.audience,
+        request_ref=RequestRef(
+            request.assistance_id,
+            request.request_revision,
+            request.facts.source.input_hash,
+            request.facts.context_revision,
+        ),
+        correlation_id=f"synthetic-b1-correlation-{uuid4().hex}",
+    )
+    created = composition.jobs.create_job(command)
+    from sketch2life.infrastructure.ai_jobs.sql import tables as job_tables
+
+    with engine.connect() as connection:
+        attempt_ids = tuple(
+            connection.execute(
+                select(job_tables.attempt.c.attempt_id).where(
+                    job_tables.attempt.c.job_id == created.job_id
+                )
+            ).scalars()
+        )
+    assert len(attempt_ids) == 1
+    harness.created_ai_jobs.append((created.job_id, attempt_ids))
+    return composition, created.job_id, child_id, attempt_ids[0]
+
+
+def _b1_persisted_state(engine: Engine, organization_id: str, job_id: str) -> dict[str, object]:
+    from sketch2life.infrastructure.ai_jobs.sql import tables as job_tables
+    from sketch2life.infrastructure.vision_analysis import tables as vision_tables
+
+    with engine.connect() as connection:
+        job = (
+            connection.execute(
+                select(
+                    job_tables.job.c.state,
+                    job_tables.job.c.job_revision,
+                    job_tables.job.c.result_disposition,
+                    func.jsonb_array_length(job_tables.job.c.result_refs).label("result_ref_count"),
+                ).where(
+                    job_tables.job.c.organization_id == organization_id,
+                    job_tables.job.c.job_id == job_id,
+                )
+            )
+            .mappings()
+            .one()
+        )
+        attempt_rows = tuple(
+            connection.execute(
+                select(job_tables.attempt.c.attempt_id, job_tables.attempt.c.outcome).where(
+                    job_tables.attempt.c.job_id == job_id
+                )
+            ).mappings()
+        )
+        attempt_ids = tuple(row["attempt_id"] for row in attempt_rows)
+        attempts = tuple(row["outcome"] for row in attempt_rows)
+        outbox_rows = tuple(
+            connection.execute(
+                select(
+                    job_tables.outbox.c.kind,
+                    job_tables.outbox.c.delivered_at,
+                    job_tables.outbox.c.publish_attempts,
+                    job_tables.outbox.c.last_error_code,
+                ).where(
+                    job_tables.outbox.c.job_id == job_id,
+                    job_tables.outbox.c.attempt_id.in_(attempt_ids),
+                )
+            ).mappings()
+        )
+        completion_receipts = tuple(
+            connection.execute(
+                select(
+                    job_tables.completion_receipt.c.disposition,
+                    job_tables.completion_receipt.c.reason_code,
+                    job_tables.completion_receipt.c.job_revision_after,
+                ).where(
+                    job_tables.completion_receipt.c.job_id == job_id,
+                    job_tables.completion_receipt.c.attempt_id.in_(attempt_ids),
+                )
+            ).mappings()
+        )
+        invocation_states = tuple(
+            connection.execute(
+                select(vision_tables.invocations.c.state).where(
+                    vision_tables.invocations.c.job_id == job_id,
+                    vision_tables.invocations.c.organization_id == organization_id,
+                )
+            ).scalars()
+        )
+        analysis_count = connection.execute(
+            select(func.count())
+            .select_from(vision_tables.analysis_heads)
+            .where(
+                vision_tables.analysis_heads.c.organization_id == organization_id,
+                vision_tables.analysis_heads.c.job_id == job_id,
+            )
+        ).scalar_one()
+    return {
+        "job_state": job["state"],
+        "job_revision": job["job_revision"],
+        "result_disposition": job["result_disposition"],
+        "result_refs": tuple("present" for _ in range(job["result_ref_count"])),
+        "attempt_outcomes": attempts,
+        "invocation_states": invocation_states,
+        "analysis_ids": tuple("present" for _ in range(analysis_count or 0)),
+        "outbox": tuple(
+            {
+                "kind": row["kind"],
+                "delivered": row["delivered_at"] is not None,
+                "publish_attempts": row["publish_attempts"],
+                "last_error_code": row["last_error_code"],
+            }
+            for row in outbox_rows
+        ),
+        "completion_receipts": tuple(
+            {
+                "disposition": row["disposition"],
+                "reason_code": row["reason_code"],
+                "job_revision_after": row["job_revision_after"],
+            }
+            for row in completion_receipts
+        ),
+    }
+
+
+def _b1_dispatch_capture(composition, monkeypatch: pytest.MonkeyPatch):
+    captured = []
+    worker = composition.worker
+    original_handle = worker.handle
+
+    def capture(envelope):
+        captured.append(envelope)
+        return original_handle(envelope)
+
+    monkeypatch.setattr(worker, "handle", capture)
+    outcome = composition.dispatch_one()
+    assert len(captured) == 1
+    return outcome, captured[0]
+
+
+def _b1_order_enforcing_repository_factory(real_factory, calls, violations):
+    class OrderedTransaction:
+        def __init__(self, transaction):
+            self._transaction = transaction
+            self._head_inserted = False
+            self._observation_inserted = False
+
+        def __getattr__(self, name):
+            return getattr(self._transaction, name)
+
+        def insert_head(self, record):
+            if self._head_inserted:
+                violations.append("duplicate analysis head insert")
+                raise AssertionError(violations[-1])
+            calls.append("head")
+            self._head_inserted = True
+            return self._transaction.insert_head(record)
+
+        def insert_observation(self, record):
+            if not self._head_inserted:
+                violations.append("observation inserted before analysis head")
+                raise AssertionError(violations[-1])
+            calls.append("observation")
+            self._observation_inserted = True
+            return self._transaction.insert_observation(record)
+
+        def insert_provider_result(self, record):
+            if not self._observation_inserted:
+                violations.append("provider result inserted before observation")
+                raise AssertionError(violations[-1])
+            calls.append("provider_result")
+            return self._transaction.insert_provider_result(record)
+
+    class OrderedRepository:
+        def __init__(self, *args, **kwargs):
+            self._inner = real_factory(*args, **kwargs)
+
+        @contextmanager
+        def transaction(self):
+            with self._inner.transaction() as transaction:
+                yield OrderedTransaction(transaction)
+
+    return OrderedRepository
+
+
+def test_b1_succeeded_is_durable_before_real_app_result_acceptance(
+    pilot_harness: PilotHarness,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    from sketch2life.infrastructure.vision_analysis import pilot_composition
+    from sketch2life.infrastructure.vision_analysis import tables as vision_tables
+
+    harness = pilot_harness
+    engine = harness.runtime.engine
+    assert engine is not None
+    insert_order: list[str] = []
+    order_violations: list[str] = []
+    real_repository_factory = pilot_composition.SqlAnalysisRepository
+    monkeypatch.setattr(
+        pilot_composition,
+        "SqlAnalysisRepository",
+        _b1_order_enforcing_repository_factory(
+            real_repository_factory, insert_order, order_violations
+        ),
+    )
+    with _b1_loopback_vision_stub() as stub:
+        composition, job_id, _child_id, _attempt_id = _b1_create_composed_job(
+            harness, base_url=stub.base_url, token_file=tmp_path / "synthetic-token"
+        )
+        committed_observations: list[tuple[str | None, int]] = []
+        original_complete = composition.invocation_ledger.complete
+
+        def check_commit_before_acceptance(**values):
+            completed = original_complete(**values)
+            if values["state"] == "SUCCEEDED":
+                with engine.connect() as connection:
+                    persisted_state = connection.execute(
+                        select(vision_tables.invocations.c.state).where(
+                            vision_tables.invocations.c.run_id == values["run_id"],
+                            vision_tables.invocations.c.job_id == job_id,
+                        )
+                    ).scalar_one_or_none()
+                    head_count = connection.scalar(
+                        select(func.count()).select_from(vision_tables.analysis_heads).where(
+                            vision_tables.analysis_heads.c.organization_id
+                            == harness.organization_id,
+                            vision_tables.analysis_heads.c.job_id == job_id,
+                        )
+                    )
+                committed_observations.append((persisted_state, head_count or 0))
+            return completed
+
+        monkeypatch.setattr(
+            composition.invocation_ledger, "complete", check_commit_before_acceptance
+        )
+        outcome, envelope = _b1_dispatch_capture(composition, monkeypatch)
+        state = _b1_persisted_state(engine, harness.organization_id, job_id)
+        assert order_violations == []
+        assert insert_order == ["head", "observation", "provider_result"]
+        assert outcome is not None and outcome.status == "completed", (
+            f"reason={None if outcome is None else outcome.reason_code}; "
+            f"state={state}; stub_calls={stub.calls}"
+        )
+        assert outcome.receipt is not None and outcome.receipt.authoritative
+        assert committed_observations == [("SUCCEEDED", 0)]
+        assert state["job_state"] == "succeeded"
+        assert state["result_disposition"] == "accepted"
+        receipts = state["completion_receipts"]
+        assert isinstance(receipts, tuple)
+        assert len(receipts) == 1
+        receipt = receipts[0]
+        assert receipt["disposition"] == "accepted"
+        assert receipt["reason_code"] is None
+        assert receipt["job_revision_after"] == state["job_revision"]
+        assert outcome.receipt.job_revision_after == receipt["job_revision_after"]
+        assert len(state["result_refs"]) == 1
+        assert state["invocation_states"] == ("SUCCEEDED",)
+        assert len(state["analysis_ids"]) == 1
+        assert len(state["attempt_outcomes"]) == 1
+        assert stub.calls == 1
+
+        replay = composition.worker.handle(envelope)
+        assert replay.status in {"not_started", "rejected"}
+        assert stub.calls == 1
+        assert len(_b1_persisted_state(engine, harness.organization_id, job_id)["result_refs"]) == 1
+
+
+def test_b1_sent_invocation_survives_process_rebuild_without_second_provider_call(
+    pilot_harness: PilotHarness,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    from sketch2life.application.ports.ai_jobs import DispatchMessage, WorkerDispatchEnvelope
+    from sketch2life.infrastructure.vision_analysis.invocation_guard import (
+        InvocationLedgerGuard,
+    )
+    from sketch2life.infrastructure.vision_analysis.pilot_composition import (
+        PilotVisionComposition,
+        build_default_pilot_vision,
+    )
+
+    harness = pilot_harness
+    engine = harness.runtime.engine
+    assert engine is not None
+    with _b1_loopback_vision_stub() as stub:
+        composition, job_id, _child_id, attempt_id = _b1_create_composed_job(
+            harness, base_url=stub.base_url, token_file=tmp_path / "synthetic-token"
+        )
+        original_finalize = InvocationLedgerGuard.finalize
+
+        class SimulatedProcessCrash(BaseException):
+            pass
+
+        def crash_after_provider_response(
+            guard: InvocationLedgerGuard, state: Any, result_sha256: str | None = None
+        ) -> bool:
+            if getattr(state, "value", None) == "SUCCEEDED":
+                raise SimulatedProcessCrash
+            return original_finalize(guard, state, result_sha256)
+
+        with monkeypatch.context() as process_context:
+            process_context.setattr(
+                InvocationLedgerGuard, "finalize", crash_after_provider_response
+            )
+            captured: list[Any] = []
+            original_handle = composition.worker.handle
+
+            def capture(envelope: Any) -> Any:
+                captured.append(envelope)
+                return original_handle(envelope)
+
+            process_context.setattr(composition.worker, "handle", capture)
+            with pytest.raises(SimulatedProcessCrash):
+                composition.dispatch_one()
+
+        assert len(captured) == 1
+        original_envelope = captured[0]
+        original_message = original_envelope.message
+        assert stub.calls == 1
+        state_after_crash = _b1_persisted_state(engine, harness.organization_id, job_id)
+        assert state_after_crash["job_state"] == "running"
+        assert state_after_crash["result_disposition"] is None
+        assert state_after_crash["result_refs"] == ()
+        assert state_after_crash["completion_receipts"] == ()
+        assert state_after_crash["analysis_ids"] == ()
+        assert state_after_crash["invocation_states"] == ("SENT",)
+        assert state_after_crash["attempt_outcomes"] == (None,)
+
+        token_file = tmp_path / "synthetic-token-after-restart"
+        token_file.write_text("synthetic-loopback-token", encoding="utf-8")
+        settings = harness.runtime.settings.model_copy(
+            update={
+                "env": "local",
+                "synthetic_pilot_enabled": True,
+                "ai_provider": "lightning_dev",
+                "lightning_ai_base_url": stub.base_url,
+                "lightning_ai_token_file": token_file,
+                "ai_request_timeout_seconds": 10.0,
+            }
+        )
+        restarted = build_default_pilot_vision(settings, engine)
+        assert isinstance(restarted, PilotVisionComposition)
+        assert restarted is not composition
+        assert restarted.worker is not composition.worker
+        assert restarted.invocation_ledger is not composition.invocation_ledger
+
+        message = DispatchMessage(
+            message_id=f"synthetic-restarted-{uuid4().hex}",
+            job_id=original_message.job_id,
+            attempt_id=original_message.attempt_id,
+            attempt_number=original_message.attempt_number,
+            job_type=original_message.job_type,
+            request_ref=original_message.request_ref,
+        )
+        capability = restarted.jobs._d.capability_issuer.issue(
+            job_id=job_id,
+            attempt_id=attempt_id,
+            now=restarted.jobs._d.clock.now(),
+        )
+        new_envelope = WorkerDispatchEnvelope(message, capability)
+        assert new_envelope is not original_envelope
+        assert new_envelope.message is not original_message
+
+        redelivery = restarted.worker.handle(new_envelope)
+        assert redelivery.status == "not_started"
+        assert stub.calls == 1
+
+        # Exercise the reconstructed provider guard too: the durable (job, attempt) SENT
+        # claim must refuse a second HTTP call even after the worker object is rebuilt.
+        claim = restarted.provider.run(message)
+        assert claim.kind.value == "failure"
+        assert stub.calls == 1
+        final_state = _b1_persisted_state(engine, harness.organization_id, job_id)
+        assert final_state["job_state"] == "running"
+        assert final_state["result_disposition"] is None
+        assert final_state["result_refs"] == ()
+        assert final_state["completion_receipts"] == ()
+        assert final_state["invocation_states"] == ("SENT",)
+
+
+def test_b1_unknown_after_sent_is_not_accepted_or_replayed(
+    pilot_harness: PilotHarness,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    harness = pilot_harness
+    engine = harness.runtime.engine
+    assert engine is not None
+    with _b1_loopback_vision_stub(disconnect=True) as stub:
+        composition, job_id, _child_id, _attempt_id = _b1_create_composed_job(
+            harness, base_url=stub.base_url, token_file=tmp_path / "synthetic-token"
+        )
+        _outcome, envelope = _b1_dispatch_capture(composition, monkeypatch)
+        replay = composition.worker.handle(envelope)
+        state = _b1_persisted_state(engine, harness.organization_id, job_id)
+        assert replay.status in {"not_started", "rejected"}
+        assert stub.calls == 1
+        assert state["job_state"] != "succeeded"
+        assert state["result_refs"] == ()
+        assert state["analysis_ids"] == ()
+        assert state["invocation_states"] == ("UNKNOWN",)
+        assert len(state["attempt_outcomes"]) == 1
+
+
+def test_b1_hold_before_send_creates_no_result_or_invocation(
+    pilot_harness: PilotHarness,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    from sketch2life.infrastructure.persistence.be1_models import SyntheticEligibilityProofModel
+
+    harness = pilot_harness
+    engine = harness.runtime.engine
+    assert engine is not None
+    with _b1_loopback_vision_stub() as stub:
+        composition, job_id, child_id, _attempt_id = _b1_create_composed_job(
+            harness, base_url=stub.base_url, token_file=tmp_path / "synthetic-token"
+        )
+        with harness.session_factory.begin() as db:
+            proof = db.scalar(
+                select(SyntheticEligibilityProofModel).where(
+                    SyntheticEligibilityProofModel.child_profile_id == child_id
+                )
+            )
+            assert proof is not None and proof.revoked_at is None
+            proof.revoked_at = datetime.now(UTC)
+            proof.revocation_revision = 1
+
+        worker_calls = []
+        original_handle = composition.worker.handle
+
+        def capture_worker(envelope: Any) -> Any:
+            worker_calls.append(envelope)
+            return original_handle(envelope)
+
+        monkeypatch.setattr(composition.worker, "handle", capture_worker)
+        outcome = composition.dispatch_one()
+        state = _b1_persisted_state(engine, harness.organization_id, job_id)
+        assert outcome is None
+        assert worker_calls == []
+        assert stub.calls == 0
+        assert state["job_state"] != "succeeded"
+        assert state["result_refs"] == ()
+        assert state["analysis_ids"] == ()
+        assert state["invocation_states"] == ()
+        assert isinstance(state["attempt_outcomes"], tuple)
+        assert len(state["attempt_outcomes"]) == 1
+
+
+def test_b1_stale_owner_fence_rejects_result_after_provider_success(
+    pilot_harness: PilotHarness,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    from sketch2life.infrastructure.persistence.be1_models import ManagedProfileModel
+
+    harness = pilot_harness
+    engine = harness.runtime.engine
+    assert engine is not None
+    changed = Event()
+    with _b1_loopback_vision_stub() as stub:
+        composition, job_id, child_id, _attempt_id = _b1_create_composed_job(
+            harness, base_url=stub.base_url, token_file=tmp_path / "synthetic-token"
+        )
+        original_decide = composition.jobs._decide_completion
+
+        def change_facts_before_completion_fence(
+            job: Any,
+            claim: Any,
+            eligibility: Any,
+            descriptors: Any,
+            effects: Any,
+        ) -> Any:
+            if not changed.is_set():
+                with engine.begin() as writer:
+                    writer.execute(
+                        update(ManagedProfileModel)
+                        .where(ManagedProfileModel.child_id == child_id)
+                        .values(age_revision=ManagedProfileModel.age_revision + 1)
+                    )
+                changed.set()
+            return original_decide(job, claim, eligibility, descriptors, effects)
+
+        monkeypatch.setattr(
+            composition.jobs, "_decide_completion", change_facts_before_completion_fence
+        )
+        outcome, _envelope = _b1_dispatch_capture(composition, monkeypatch)
+        state = _b1_persisted_state(engine, harness.organization_id, job_id)
+        assert changed.is_set()
+        assert stub.calls == 1
+        assert outcome is not None and outcome.status == "rejected"
+        assert outcome.reason_code == "STALE_CONTEXT"
+        # Owner decision (d): pin today's stale-fence outcome; do not invent a terminal state.
+        assert state["job_state"] == "running"
+        assert state["result_disposition"] is None
+        assert state["result_refs"] == ()
+        assert state["completion_receipts"] == ()
+        assert state["invocation_states"] == ("SUCCEEDED",)
+        assert isinstance(state["analysis_ids"], tuple)
+        assert len(state["analysis_ids"]) == 1
+        assert isinstance(state["attempt_outcomes"], tuple)
+        assert state["attempt_outcomes"] == (None,)
+
+
+def test_b1_stale_artifact_fence_rejects_result_after_provider_success(
+    pilot_harness: PilotHarness,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    from sketch2life.application.ports.ai_jobs import QuarantineIntent
+
+    harness = pilot_harness
+    engine = harness.runtime.engine
+    assert engine is not None
+    with _b1_loopback_vision_stub() as stub:
+        composition, job_id, _child_id, _attempt_id = _b1_create_composed_job(
+            harness, base_url=stub.base_url, token_file=tmp_path / "synthetic-token"
+        )
+        original_decide = composition.jobs._decide_completion
+        quarantined_refs: list[str] = []
+
+        def quarantine_after_descriptor_read(
+            job: Any,
+            claim: Any,
+            eligibility: Any,
+            descriptors: Any,
+            effects: Any,
+        ) -> Any:
+            if not quarantined_refs:
+                assert len(claim.outputs) == 1
+                output = claim.outputs[0]
+                descriptor = descriptors[output.artifact_ref]
+                assert descriptor is not None
+                assert descriptor.fence is not None
+                assert descriptor.quarantine_reason is None
+                composition.fake_artifacts.quarantine(
+                    QuarantineIntent(
+                        event_id=f"synthetic-artifact-fence-{uuid4().hex}",
+                        organization_id=harness.organization_id,
+                        job_id=job_id,
+                        attempt_id=claim.attempt_id,
+                        artifact_refs=(output.artifact_ref,),
+                        reason_code="SYNTHETIC_TEST_QUARANTINE",
+                    )
+                )
+                quarantined_refs.append(output.artifact_ref)
+            return original_decide(job, claim, eligibility, descriptors, effects)
+
+        monkeypatch.setattr(
+            composition.jobs, "_decide_completion", quarantine_after_descriptor_read
+        )
+        outcome, _envelope = _b1_dispatch_capture(composition, monkeypatch)
+        state = _b1_persisted_state(engine, harness.organization_id, job_id)
+
+        assert len(quarantined_refs) == 1
+        descriptor = composition.fake_artifacts.describe(quarantined_refs[0])
+        assert descriptor is not None
+        assert descriptor.quarantine_reason == "SYNTHETIC_TEST_QUARANTINE"
+        assert stub.calls == 1
+        assert state["job_state"] != "succeeded"
+        assert state["result_refs"] == ()
+        assert state["invocation_states"] == ("SUCCEEDED",)
+        assert isinstance(state["attempt_outcomes"], tuple)
+        assert len(state["attempt_outcomes"]) == 1
+        assert outcome is not None
+
+
+def test_b1_concurrent_duplicate_delivery_uses_one_attempt_and_one_send(
+    pilot_harness: PilotHarness,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    harness = pilot_harness
+    engine = harness.runtime.engine
+    assert engine is not None
+    with _b1_loopback_vision_stub(hold_response=True) as stub:
+        composition, job_id, _child_id, _attempt_id = _b1_create_composed_job(
+            harness, base_url=stub.base_url, token_file=tmp_path / "synthetic-token"
+        )
+        assert composition.jobs.dispatch_outbox() == 1
+        barrier = Barrier(2)
+        original_start = composition.jobs.start_attempt
+
+        def simultaneous_claim(capability, requested_job_id, attempt_id):
+            barrier.wait(timeout=5)
+            return original_start(capability, requested_job_id, attempt_id)
+
+        monkeypatch.setattr(composition.jobs, "start_attempt", simultaneous_claim)
+        original_handle = composition.worker.handle
+        concurrent_outcomes = []
+        non_sender_finished = Event()
+
+        class DuplicateDelivery:
+            def handle(self, envelope):
+                def run_one() -> object:
+                    outcome = original_handle(envelope)
+                    if outcome.status != "completed":
+                        non_sender_finished.set()
+                    return outcome
+
+                with ThreadPoolExecutor(max_workers=2) as pool:
+                    futures = (pool.submit(run_one), pool.submit(run_one))
+                    concurrent_outcomes.extend(future.result(timeout=20) for future in futures)
+                return None
+
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            dispatch = pool.submit(composition.queue.run_one, DuplicateDelivery())
+            assert stub.entered.wait(10)
+            state_while_sent = _b1_persisted_state(engine, harness.organization_id, job_id)
+            assert state_while_sent["invocation_states"] == ("SENT",)
+            assert state_while_sent["analysis_ids"] == ()
+            assert non_sender_finished.wait(10)
+            assert stub.calls == 1
+            stub.release.set()
+            dispatch.result(timeout=20)
+
+        assert len(concurrent_outcomes) == 2
+        assert sum(outcome.status == "completed" for outcome in concurrent_outcomes) == 1
+        assert stub.calls == 1
+        state = _b1_persisted_state(engine, harness.organization_id, job_id)
+        assert state["job_state"] == "succeeded"
+        assert state["result_disposition"] == "accepted"
+        assert len(state["result_refs"]) == 1
+        assert state["invocation_states"] == ("SUCCEEDED",)
+        assert len(state["analysis_ids"]) == 1
+        assert len(state["attempt_outcomes"]) == 1

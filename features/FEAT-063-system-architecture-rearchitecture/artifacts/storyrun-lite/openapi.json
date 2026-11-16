@@ -296,8 +296,8 @@
           "Story runs"
         ],
         "operationId": "cancelStoryRun",
-        "summary": "Cancel an unfinished run and release its active-owner lock",
-        "description": "Cancellation does not claim that an external provider or GPU stopped. A post-SENT unknown ledger outcome remains unknown; no automatic resend occurs.",
+        "summary": "Cancel a run or close the demo after preparation review",
+        "description": "Cancel an eligible unfinished run, including SUBJECT_REVIEW, or explicitly close the demo from PREPARATION_REVIEW. The transition to DELETE_PENDING releases the active-owner lock while retaining the run, admitted assets, result and command receipts. Cancellation does not claim that an external provider or GPU stopped. A post-SENT unknown ledger outcome remains unknown; no automatic resend occurs.",
         "parameters": [
           {
             "$ref": "#/components/parameters/IdempotencyKey"
@@ -731,6 +731,53 @@
           },
           "422": {
             "$ref": "#/components/responses/ValidationError"
+          }
+        }
+      }
+    },
+    "/v1/story-runs/readiness": {
+      "get": {
+        "tags": [
+          "Story runs"
+        ],
+        "operationId": "getStoryRunReadiness",
+        "summary": "Check StoryRun runtime readiness",
+        "description": "Checks the configured runtime and the pinned PostgreSQL singleton session. Returns 503 after ownership is lost; it does not reacquire the lock. The infrastructure /health endpoint is liveness only.",
+        "responses": {
+          "200": {
+            "description": "The configured runtime currently owns its singleton lock.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "status",
+                    "service"
+                  ],
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "ready"
+                      ]
+                    },
+                    "service": {
+                      "type": "string",
+                      "enum": [
+                        "storyrun-lite"
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
           }
         }
       }

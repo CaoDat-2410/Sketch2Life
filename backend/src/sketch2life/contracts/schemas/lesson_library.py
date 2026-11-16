@@ -308,6 +308,7 @@ class ParentLessonDetailV1(StrictLessonModel):
     lesson_id: OpaqueId
     version_id: OpaqueId
     version_no: int = Field(ge=1)
+    content_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     title: str
     topic: str
     locale: Literal["vi-VN"] = "vi-VN"

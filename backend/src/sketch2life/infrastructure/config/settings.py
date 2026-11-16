@@ -14,9 +14,11 @@ class Settings(BaseSettings):
     _BACKEND_ROOT = Path(__file__).resolve().parents[4]
     model_config = SettingsConfigDict(
         env_prefix="SKETCH2LIFE_",
-        # Keep local startup deterministic when uvicorn is launched from the repo root.
-        # The process environment still wins over both files.
-        env_file=(_BACKEND_ROOT / ".env", ".env"),
+        # One root .env is shared by local backend, Docker Compose and app clients.
+        # Explicit process/container environment variables still take precedence.
+        env_file=(_BACKEND_ROOT.parent / ".env",),
+        # The shared file also contains Compose and Vite client keys owned elsewhere.
+        extra="ignore",
     )
 
     env: Literal["local", "test", "staging", "production"] = "local"
@@ -32,7 +34,7 @@ class Settings(BaseSettings):
     s3_secret_key: SecretStr | None = None
     clamav_host: str | None = None
     clamav_port: int = Field(default=3310, ge=1, le=65535)
-    platform_admin_subjects: str = ""
+    platform_admin_bootstrap_email: str = ""
     storage_example_enabled: bool = False
     storage_example_max_upload_bytes: int = Field(
         default=10 * 1024 * 1024, ge=1, le=50 * 1024 * 1024
@@ -45,10 +47,11 @@ class Settings(BaseSettings):
     auth_provider: Literal["development", "firebase"] = "development"
     firebase_project_id: str = ""
     firebase_credentials_file: Path | None = None
+    firebase_admin_json_base64: SecretStr | None = None
     firebase_check_revoked_tokens: bool = True
 
-    # Backend-only AI connectivity. Lightning is development; Runpod is production.
-    ai_provider: Literal["disabled", "lightning_dev", "runpod"] = "disabled"
+    # Provider calls stay backend-side; Modal is limited to local synthetic validation.
+    ai_provider: Literal["disabled", "lightning_dev", "runpod", "modal_dev"] = "disabled"
     lightning_ai_base_url: str = ""
     lightning_ai_token_file: Path | None = None
     lightning_model_profile: str = "live-p2-understanding-v1"
@@ -88,12 +91,8 @@ class Settings(BaseSettings):
         if self.storage_example_enabled and self.env != "local":
             raise ValueError("the storage example is available only in local development")
 
-        has_s3_access_key = bool(
-            self.s3_access_key and self.s3_access_key.get_secret_value()
-        )
-        has_s3_secret_key = bool(
-            self.s3_secret_key and self.s3_secret_key.get_secret_value()
-        )
+        has_s3_access_key = bool(self.s3_access_key and self.s3_access_key.get_secret_value())
+        has_s3_secret_key = bool(self.s3_secret_key and self.s3_secret_key.get_secret_value())
         if has_s3_access_key != has_s3_secret_key:
             raise ValueError("S3 access key and secret key must be configured together")
 
@@ -108,15 +107,19 @@ class Settings(BaseSettings):
             if not self.runpod_endpoint_id or self.runpod_api_key_file is None:
                 raise ValueError("production Runpod endpoint and key file are required")
 
+        if self.ai_provider == "modal_dev" and self.env not in {"local", "test"}:
+            raise ValueError("Modal dev inference is available only in local/test environments")
+
         return self
 
 
 class CoreDatabaseSettings(BaseSettings):
     """Database-only configuration for adapters and Alembic, independent of providers."""
 
+    _BACKEND_ROOT = Path(__file__).resolve().parents[4]
     model_config = SettingsConfigDict(
         env_prefix="SKETCH2LIFE_",
-        env_file=(Path(__file__).resolve().parents[4] / ".env", ".env"),
+        env_file=(_BACKEND_ROOT.parent / ".env",),
         extra="ignore",
     )
 

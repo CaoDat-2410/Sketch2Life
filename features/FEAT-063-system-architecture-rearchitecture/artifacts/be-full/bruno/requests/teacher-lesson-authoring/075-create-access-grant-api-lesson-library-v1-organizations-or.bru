@@ -1,0 +1,29 @@
+meta {
+  name: 075 [POST/ACTION - LOCAL TEST ONLY] Create Access Grant
+  type: http
+  seq: 75
+}
+
+post {
+  url: {{baseUrl}}/api/lesson-library/v1/organizations/{{organization_id}}/lessons/{{lesson_id}}/access-grants
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  Idempotency-Key: REPLACE_WITH_SYNTHETIC_VALUE
+}
+
+body:json {
+  {
+    "version_id": "x",
+    "audience_kind": "PUBLIC",
+    "capability": "VIEW"
+  }
+}

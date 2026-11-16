@@ -1,6 +1,52 @@
 # Status
 
-## SRS v2.5 alignment and current dev-source review — Plans Rev45/Rev51 (2026-11-06)
+## Rev78/78A/78B Parent catalog-first activity — published to dev (2026-11-11)
+
+- Implementation status: source changes and exact lesson-pin migration are present on codex/feat063-parent-catalog-20261111. Migration is additive and has not been applied to a database.
+- Local verification: backend focused tests 28/28; Parent UI tests 26/26; Expo TypeScript check passed after installing the complete workspace dependency graph; Python compilation and Alembic head check passed. Ruff passed on the new catalog service/port/tests; a broader run on modified legacy modules reports lint diagnostics and is not clean. Repository security validator passed: 7,225 publishable files scanned; no absolute machine paths detected. The optional microphone/transcript UI path is outside Rev78 and its audio API is not present in this branch; it was not validated.
+- Live AI: the one approved post-refinement synthetic Modal inference was cancelled after 976.326 seconds before output; quality-gate verdict is unknown. Catalog-match path is not live-verified because the dev catalog had zero eligible published/shared activities. Video was not called.
+- Publication: feature commit `34b92194867e915040aae1a1178dee0e526a60c3` is on `origin/codex/feat063-parent-catalog-20261111`; it was fast-forward merged into `dev`, and both `origin/dev` and the feature ref were verified at the same SHA. The `dev` push included 21 existing local commits and was a normal fast-forward; no history was rewritten. GitHub reported that the repository's pull-request-only rule was bypassed for this explicitly owner-authorized push.
+- Repository security validator passed immediately before the `dev` push (`publishable_files_scanned=7223`; environment files, seed accounts, credentials, signing keys and external reference documents excluded; no absolute machine paths).
+- Canonical SRS is v2.7-draft Rev60, unsigned and unchanged. Owner catalog-first direction is D-172; SRS reconciliation remains open.
+
+## Rev56 ten-group diagram-readiness alignment — 2026-11-08
+
+- Lifecycle: COMPLETE for the approved documentation-only synchronization on the isolated diagram-readiness branch.
+- SRS and Data Table Register remain v2.7-draft and unsigned. Rev56 adds a traceable successor input catalog and aligns UC-05, FR-T-10, FR-PL-20 and AC-56 to system random selection plus Teacher confirmation.
+- Q-01 eligibility/consent/reselection/no-eligible/evidence details and the other owner/technical gates remain OPEN; no settled requirement was reopened.
+- Physical ERD, final diagrams, and as-built diagram claims remain blocked by their stated approval/evidence gates.
+- `git diff --check` passed; repository security validation passed before commit and push (`publishable_files_scanned=6576`). No product tests/builds or runtime/provider/database checks were performed.
+- Publication: commit `09cfc5ca396016cbb7b238a5c744e004f7c7025a` was pushed to `origin/docs/feat063-diagram-readiness-20261107`; fresh `git ls-remote` confirmed the same SHA.
+- Plan/approval and evidence: plan/PLAN_REV56_TEN_GROUP_DIAGRAM_READINESS_ALIGNMENT_20261108.md, approvals/TASK_APPROVAL.md, and evidence/EV-063-61_TEN_GROUP_DIAGRAM_READINESS_ALIGNMENT_20261108.md.
+
+## Rev54 v2.6 checklist audit and diagram readiness — 2026-11-07
+
+- Lifecycle: COMPLETE for the approved documentation review and package publication on the isolated branch.
+- Current canonical pair: SRS and Data Table Register v2.7-draft, unsigned. Rev54 publishes draft TO-BE diagram inputs only.
+- Disposition: M = 13 FIXED-LOGICAL, 2 PARTIAL, 1 OPEN-OWNER; D = 10 COVERED-LOGICAL, 7 PARTIAL, 3 OPEN; Q-01–Q-13 = OPEN-OWNER as complete checklist items; R-01/02/03/05 fixed in v2.7 and R-04 remains partial/open.
+- The review found D-09 remains partial: the current Register still leaves the exact Parent Profile–Managed Profile–Delivery Recipient link and post-revoke history behavior open. D-08 remains partial after quota-scope/charge-order clarification because school grant allocation/purchase remains open.
+- No new owner decision, product code/schema/migration/test/build/provider/runtime/source verification or final diagram was produced. See EV-063-59 and the Rev54 catalog/crosswalk.
+- Plan Rev54 and exact authorization are in both approval registers. Package commit c5469153600ba8763f14715eb12f5792e8b5afe4 was pushed to origin/docs/feat063-diagram-readiness-20261107; fresh git ls-remote returned the same SHA. git diff --cached --check passed. python tools/validate_repository_security.py passed before commit and push (publishable_files_scanned=6571 each time). The SRS and Data Table Register remain unsigned; no PR, merge or dev push was performed.
+
+## Rev53 v2.6 checklist reconciliation — 2026-11-07
+
+- Lifecycle: COMPLETE for the approved documentation package and normal branch publication.
+- Target pair: canonical SRS and Data Table Register v2.7-draft, unsigned. Owner formal sign-off is still pending.
+- Product changes are limited to supported logical clarifications. Parent no-preset activity, plan supersession, role persistence, legacy ages, audit schema/retention and physical DDL/migration remain open.
+- `git diff --check` passed. `python tools/validate_repository_security.py` passed immediately before commit and push (`publishable_files_scanned=6567`). Commit `359b0b92384faad789f6006c37cc5f66760ad594` was pushed to `origin/docs/feat063-srs-v26-checklist-20261107`; `git ls-remote` confirmed the same SHA at publication. No product test/build/runtime/provider/database operation was in scope.
+- Plan/approval: Plan Rev53 and hash-identified approval are recorded in root and feature approval registers. Evidence: `evidence/EV-063-58_SRS_V26_CHECKLIST_REMEDIATION_20261107.md`.
+
+## Rev52 SRS contradiction reconciliation — 2026-11-06
+
+- Lifecycle: COMPLETE for the reviewed documentation package; publication to the isolated origin branch is verified.
+- Canonical SRS and Data Table Register are v2.6-draft and remain unsigned. Product target requirements remain distinct from §32 source/runtime observations.
+- Incorporated the three owner clarifications and aligned role/permission boundaries, admin media default-deny, Parent lesson pin/activity timing, profile-share acceptance, AI Job targets, video admission transitions and current target table count.
+- Report items that lack owner answers remain open; no DDL, migration, code, product tests, build, provider or runtime operations were performed.
+- Plan Rev52 approvals are recorded in root and FEAT-063 approval registers. Package commit `ca3c5dda695dc8d325442921ace684364d0215b1` is pushed to `origin/docs/feat063-srs-conflict-remediation-20261106`; fresh `git ls-remote` confirmed the remote SHA matches. Evidence: evidence/EV-063-57_SRS_V25_CONTRADICTION_REVIEW_20261106.md.
+
+
+
+## Prior SRS v2.5 alignment and dev-source review — Plans Rev45/Rev51 (2026-11-06)
 
 - Lifecycle: REVIEW; documentation/source review and Plan Rev51 package publication are complete.
 - SRS and Data Table Register are v2.5-draft and remain unsigned. §§1–31 preserve target requirements; §§32.5–32.6 label the local Rev45 and fetched `origin/dev` Rev51 source snapshots separately.
@@ -9,6 +55,31 @@
 - Plan Rev51 authorization is in root and feature `approvals/TASK_APPROVAL.md`.
 - Evidence: `evidence/EV-063-55_SRS_SYSTEM_CODE_ALIGNMENT_REV45_20261106.md` and `evidence/EV-063-56_SRS_PUBLICATION_REV51_20261106.md`.
 - Published: `docs/feat063-rev45-srs-code-alignment-20261106`, package commit `620386fb227e2d8b76c48e72ad22892e3b0c1c53`; fresh fetch confirmed the remote matched. Security validation passed before commit and push.
+
+## Six-milestone Parent/Teacher roadmap independent review round 3 — 2026-11-03
+
+- Documentation review **ACCEPTED** by an independent read-only Codex thread (`01a1a205-1441-73e0-9170-6fdc4d591472`, `gpt-6-luna`, effort `max`). Reviewer verified all 12 pinned hashes and reported no remaining finding in scope on the reviewed roadmap hash `DED4B89D6A3F66FD0570EEA11E2240840C47DE607667544708C7C394F7F49C86`.
+- Owner then accepted the roadmap as a planning baseline using the existing SRS v2.3-draft unchanged; Parent-before-Teacher follows SRS §8.1. Current roadmap hash after recording that owner decision is `A0A485EE421FBB1DA9DEC99DD8EC08279D14EAF27EC548AD6A0A4CE8F234F8FA`.
+- SRS remains unsigned and unmodified; no M2–M6 implementation is approved. Each milestone still requires its own detailed plan, acceptance criteria, data/migration boundary and explicit approval. Remaining model/version, line-sketch schedule, optional lesson access and B0 provenance gates remain open.
+- Evidence: `evidence/CLAUDE_ROADMAP_REVIEW_DISPOSITION_20261103.md`, SHA-256 `D44A754ECBF63E6DCB94D1037A6D76F39398D160BB9DAD9E6C6343FC77C9CDBB`.
+- Owner decision: D-132 in `DECISIONS.md`, recorded in `approvals/TASK_APPROVAL.md`; no tests/validators, DB or Modal/provider/network operation. Branch/HEAD remain `feature/feat063-be-foundation` / `b6dbfa68e66718f3f40902c093e9ebd634b1ebb9`; index remains empty.
+- Review was read-only: no tests/validators, DB, Modal/provider/network, or Git operations. Branch/HEAD remain `feature/feat063-be-foundation` / `b6dbfa68e66718f3f40902c093e9ebd634b1ebb9`; index remains empty. Existing local changes were preserved.
+
+## Six-milestone Parent/Teacher roadmap review round 2 — 2026-11-03 (superseded by round 3 ACCEPTED)
+
+- Documentation correction **FIXED — XONG-CHƯA REVIEW** under Plans Rev50 and Rev50A; roadmap remains DRAFT and SRS v2.3 remains unsigned. N1–N7 and the related P2/P3 notes are recorded with owner gates; no M2–M6 implementation is approved.
+- Corrected Rev49's D-130 reassignment: OpenAPI is now D-131; D-130 remains the full-BE/Bruno decision. Historical Swagger summaries no longer reuse D-114–D-119 as decision IDs. DTR mismatch is documented as line-ending-only; B0 plan/report provenance remains unresolved and needs owner confirmation before reuse as authority.
+- A2 local closeout remains ACCEPTED/COMPLETE within scope, with residuals disclosed (58 synthetic shared-DB rows, schema/Alembic reconciliation, mypy baseline). M2 must address these before migration; this task did not touch the DB. Current A2/B1/B2 launch status still comes from its active implementation thread.
+- Plan: `plan/ROADMAP_REVIEW_FIX_PLAN_REV50_20261103.md`, SHA-256 `0FFF0D9CAA01036E08A90120FC7067D38B564E80E72E4324B470D1E8E13C66DC`. Evidence: `evidence/CLAUDE_ROADMAP_REVIEW_DISPOSITION_20261103.md`.
+- Verification: `git diff --check` exit 0 (Git emitted only CRLF-normalization warnings); defined decision-ID duplicate scan found none; no placeholders remain. Roadmap SHA-256 `DED4B89D6A3F66FD0570EEA11E2240840C47DE607667544708C7C394F7F49C86`; disposition SHA-256 `3FF823141E8366DC4AA8090989AFD97640DC65D6791BF3178A1DE271ACBE85DF`.
+- No tests/validator suite, DB, Modal/provider or network call. Branch/HEAD remain `feature/feat063-be-foundation` / `b6dbfa68e66718f3f40902c093e9ebd634b1ebb9`; index is empty. Existing local source/A2 changes were preserved. No stage/commit/push/merge.
+
+## Six-milestone Parent/Teacher roadmap review round 1 — 2026-11-03 (superseded)
+
+- Documentation correction **COMPLETE** under Plan Rev49; the roadmap remains DRAFT. Accepted cloud findings are incorporated, unresolved product choices remain owner-gated, and no M2–M6 implementation approval is implied.
+- Local state checked: M1 review round 3 **ACCEPTED** for the synthetic local demo; A2 **ACCEPTED / COMPLETE** per the local FEAT-064 closeout. The latter is local-only and was not visible to the cloud reviewer. The local A2→B1→B2 document header says DRAFT; any later phase launch must be verified from the active FEAT-064 thread.
+- DTR pinned hash matches local bytes; B0–B13 current-plan/report hash mismatch remains a provenance gap and is explicitly documented. Duplicate decision ID was corrected to D-130.
+- Evidence: `evidence/CLAUDE_ROADMAP_REVIEW_DISPOSITION_20261103.md`. No tests, validator suite, DB, Modal/provider or network operation was run for this doc-only correction.
 
 ## Modal AI setup scaffold — 2026-11-03
 
@@ -454,6 +525,23 @@ Runtime verification is **BLOCKED** at the PostgreSQL task-owned database gate: 
 - Owner-authorized empty `sketch2life` on PG17 loopback 5433 passed preflight and `upgrade heads`; main BE synthetic upload READY and one Modal inference returned **200 / SUCCEEDED**. Attach 202, SUBJECT_REVIEW, confirm 202, PREPARATION_REVIEW; ledger SUCCEEDED. Modal inference HTTP requests **1**.
 - Temporary app/processes stopped, DB and synthetic run retained. UI handoff: `artifacts/storyrun-lite/MAIN_BE_UI_HANDOFF_20261103.md`; evidence: `evidence/STORYRUN_LITE_MAIN_BE_INTEGRATION_20261103.md`. Local demo only; independent review and production identity remain open. No A2 change, stage, commit, push, merge or permanent deploy.
 
+## Milestone 1 review round 1 fixes — 2026-11-03
+
+**FIXED — XONG-CHƯA REVIEW** for six independent-review findings. Offline: 163 passed, 1 skipped (real PG test, exercised separately). PG17 task-owned loopback: 36 passed, no skips or timeouts. Ruff/mypy and final validators are recorded in `evidence/MILESTONE1_REVIEW_FIX_REPORT_20261103.md`. Parent HTTP repeat/replay and ledger transition races were exercised with synthetic scanner/normalizer and loopback Vision. Bruno CLI, real ClamAV/worker repeat demo and Modal live after fixes are NOT RUN. No stage/commit/push/merge. M2 is not started; A2 remains preserved.
+
+## Milestone 1 review round 2 fixes — 2026-11-03
+
+**FIXED — CHỜ REVIEW ĐỘC LẬP; NOT ACCEPTED.** Closed the two new P2 findings (attach-replay TOCTOU and public readiness after singleton loss) and added the requested cancel/create, duplicate/stale cancel, probe-concurrency, and terminated-session coverage. Final offline regression: **170 passed, 1 PostgreSQL-dependent skip**. Isolated PostgreSQL 17.11: **46 passed, 0 failed, 0 skipped, 0 timeout**. Bruno with real ClamAV and Windows Job Object normalizer: **two synthetic runs, 11/11 requests and tests in each**, Vision loopback stub only. Ruff check/format, five production-source mypy modules, harness, security, architecture and diff-check passed. Modal/GPU/provider and full BE/A2 regression were NOT RUN. The 55 pre-existing A2 paths match their preserved bytes. Branch/HEAD unchanged, index empty; no stage/commit/push/merge. See `evidence/MILESTONE1_REVIEW_ROUND2_FIX_REPORT_20261103.md`; round-3 independent review is still required.
+
+## Milestone 1 independent review round 3 — 2026-11-03
+
+**ACCEPTED** for the synthetic local demo scope. The independent reviewer accepted all six round-1 findings and both round-2 P2 findings after checking source, tests, contracts, handoff and evidence; all 38 snapshot paths matched at review time. Recorded verification remains 170 offline passed/1 PostgreSQL-dependent skip, 46 PostgreSQL passed, and two Bruno runs at 11/11 requests/tests each. The reviewer did not rerun tests. Vision was a loopback stub; no post-fix Modal/provider call or production readiness is claimed. Review evidence: `evidence/MILESTONE1_INDEPENDENT_REVIEW_ROUND3_20261103.md`. Mốc 2 remains unstarted.
+
+
+## Full BE Bruno collection — 2026-11-03
+
+**COLLECTION TASK COMPLETE — COVERAGE, BRUNO PARSE, AND LIMITED SAFE SMOKE PASS; DB-BACKED ROUTES NOT RUN.** Generated a separate 136-request collection for the current runtime union (122 paths) and a 147-row coverage CSV (136 mounted + 11 unmounted candidates excluded from requests). Profile counts: combined default 122, combined + StoryRun-lite 133, combined + optional local storage 125, classroom 57, demo 35. Custom one-to-one/safety validator, Ruff check/format, harness, repository security and architecture validators pass. Bruno CLI 4.3.0 parsed and documented all 136 request names. Safe loopback smoke passed `GET /health` 200, process-local synthetic `POST /v1/sessions` 201, and `GET /v1/sessions/{session_id}` 200 with AI disabled and no DB URL. Bruno reported 0 tests and assertions; status codes were checked from CLI and Uvicorn output. DB-backed BE1/Lesson Library routes and StoryRun-lite runtime were NOT RUN. The MCP request-list tool does not discover the new path. The existing StoryRun-lite collection was not edited; its six Milestone 1 closeout-manifest paths still match. Mypy returned an internal error (no verdict). No DB/Modal/provider call. The owner later authorized separate local commits for accepted M1 fixes and this collection; generator/validator scripts are excluded from the collection commit. No push or merge is part of this closeout. M1 remains ACCEPTED for synthetic local demo scope; M2 is not started. Details: evidence/BE_FULL_BRUNO_COLLECTION_REPORT_20261103.md.
+
 ## Modal drawing VLM L4 POC — 2026-11-03
 
 - Status: IN_PROGRESS under approved plan SHA-256 F2AF6433EFE812BBD8144CBCD3E4ECFDE09FCF0A9952280BCE814314A7008E72.
@@ -621,3 +709,83 @@ Parent Sketch Guide and lesson visuals were not dispatched because Modal `dev` s
 - Merge commits: AI `634e0e20f56cbfa6101ece6e67f3e4267a30ae92`; SRS `6bbb375a359fb78f06585963b8ee9f7bfc2246ff`.
 - SRS v2.5-draft is now the canonical working source and remains unsigned. SAM2 remains disabled in the product registry; all recorded quality limitations are preserved.
 - No new AI calls, video inference, database changes, runtime tests or product test suites were run during integration. Existing Rev52/Rev53 evidence is linked from EV-063-57.
+
+## Rev55 — two-agent diagram readiness assessment
+
+- **Status:** COMPLETE — assessment published to origin/docs/feat063-diagram-readiness-20261107 at 33c40d17ff77f31b1d128ce35c1f641a2fe6de8a.
+- **Baseline:** SRS/Data Table Register v2.7-draft at 98cc34a39af279560b5f8d39f18939a376535834; unsigned.
+- **Outcome:** Most diagrams can be drafted with open questions annotated. Screen Flow needs screen-to-screen navigation decisions; physical ERD needs approved DDL and environment reconciliation. No final diagrams or product decisions were produced.
+- **Evidence:** evidence/EV-063-60_TWO_AGENT_DIAGRAM_READINESS_ASSESSMENT_20261107.md.
+
+## Plan Rev57 — substantive diagram-input remediation — PUBLISHED / PARTIAL
+
+- **Baseline:** fetched target branch at ae5707ca188d01d9719ed959b62d768ae927912d.
+- **Status:** documentation package published at db7f7e4df6e95e9549e17664ea8ef9be1c338d68 by normal fast-forward; remote ref verified.
+- **Outcome:** SRS/DTR Rev57 detail and companion contract artifacts published; 13 diagram inputs are explicitly DRAFT/BLOCKED as applicable. SRS/DTR remain unsigned and Q decisions remain open.
+- **Technical finding:** static source import scan found one cycle under infrastructure.canvas_render; ai_jobs router file is not included by the inspected main router composition.
+- **Evidence:** EV-063-62. No product tests/runtime/database/migration were run.
+
+## Teacher Sketch Deck presentation UI — Plan Rev65 (2026-11-10)
+
+- Lifecycle: **PASS for the approved Teacher presentation slice**; overall Parent/Teacher E2E remains **PARTIAL**.
+- Real Teacher Web login and live backend/Modal flow produced a Qwen3.5 lesson draft, a four-slide Qwen3.5 DRAFT deck, and a FLUX composite line-sketch visual. The presentation displayed the actual image on the drawing slide; slide navigation, arrow keys, drawing-step skip and activity-column scrolling were verified.
+- `npm run build` passed. Existing bundle-size advisory remains (~695 kB JS chunk vs 500 kB warning threshold).
+- Parent Android was not run in this follow-up: `adb`, Android SDK/platform-tools and an emulator are unavailable. The approved 512-token drawing-worker change therefore remains unverified through Parent UI; the prior 256-token failure remains the last live Parent analysis outcome. Teacher upload/parser is also untested.
+- Worker logs exposed model and phase data, but the successful suggestion and visual summaries lacked `worker_terminal_event`, terminal duration and output hash. See EV-063-75 for IDs, times, screenshots, limits and cleanup.
+- Modal apps were stopped at zero tasks; synthetic Firebase identity and disposable DB were removed; task-started services were stopped while pre-existing API/ClamAV remained healthy.
+
+## Parent/Teacher Modal UI E2E — Plan Rev64 (2026-11-10)
+
+- Lifecycle: **PARTIAL — real UI-to-backend-to-Modal flows ran; Parent drawing analysis failed output validation and Parent story is blocked.** Execution plan SHA-256: `B791E6E552FF16A6A99D5758D7A2226FA6DD561AE852A40DF6BC2B87E32015C8`.
+- Acceptance requires real Parent Android and Teacher Web UI actions through Firebase role resolution, backend and live Modal inference, with the result displayed in the UI. Fixture or backend-only results do not count. Video is deferred.
+- Parent registration/role and optional FLUX line-sketch passed in Android after the approved accessibility recovery. Qwen drawing analysis failed strict JSON parsing after 256 generated tokens; API surfaced 504 `MODAL_OUTCOME_UNKNOWN`, then worker logged `MODAL_MODEL_OUTPUT_INVALID`. No retry; Parent story was not called because the adult-confirmation candidate was absent.
+- Teacher role gate, Qwen lesson/activity suggestion, Qwen Sketch Deck and FLUX lesson visual passed through Teacher Web. The teacher reviewed and edited the lesson draft. The tested screen uses structured fields; lesson-file upload/parser review remains untested. Parent profile selection/snapshot is also absent from the tested screen.
+- Source confirmation: local `dev` and `origin/dev` both point to `1431ef81972b71303fd4a7909748fd3005769a3c`, containing the Modal worker/deployment source. The three task-used Modal apps were stopped and verified at zero tasks. Synthetic Firebase identities and `rev64_e2e` were deleted; task-started Postgres/Redis and emulator were stopped; existing API/ClamAV were preserved. Evidence: `evidence/EV-063-74_PARENT_TEACHER_MODAL_E2E_20261110.md`.
+
+## Role-based authentication and account recovery — Plan Rev63 (2026-11-10)
+
+- Lifecycle: **REVIEW — backend/database role-flow acceptance passed in an isolated E2E run; Firebase client auth and interactive UI acceptance remain blocked/pending**.
+- Implemented in source: server-assigned Parent role on registration; `/api/auth/v1/me` role resolver; Teacher-only Teacher Web gate; School Manager and Platform Admin management gates; Platform Admin account list/search/pagination/create/role/state APIs; Firebase identity creation and password-reset email request; additive role migration; explicit first Platform Admin bootstrap command; Firebase reset/change password surfaces on Parent, Teacher and management Web.
+- Authorization: legacy identities that cannot be unambiguously assigned during migration are visible to Platform Admin as `role: null`; protected routes deny them until a role is set. Admin API responses resolve email/display name from Firebase Auth and never save those fields to the app database or audit.
+- One-root Docker setup: `.env.example` has the blank bootstrap-email placeholder and Compose forwards it to the API container. Rebuild/recreate is still required before a running container sees a changed value.
+- E2E results: all Alembic heads, including the new role migration, applied to disposable PostgreSQL; backend registration and role/account lifecycle checks passed with synthetic Firebase identities; real HTTP registration and invalid-token error mapping passed. Role-gated business cases used an explicit test principal override, not a Firebase signed token. Main backend flow took about 16.26 seconds.
+- Firebase Auth update: the root `.env` had a different `VITE_FIREBASE_API_KEY` from the Web app config supplied by the owner; the local value was corrected. A non-mutating Identity Toolkit probe returned HTTP 200. A synthetic Firebase identity completed reset, sign-in, password change and sign-in again; it was deleted and no email was sent.
+- UI checks: Admin and Teacher Web production builds and Parent mobile typecheck passed. No browser UI flow ran, and the Firebase JS SDK screens were not exercised interactively. Full Compose startup could not pull MinIO (registry HTTP 401), so API/PostgreSQL ran in disposable isolated containers.
+- Cleanup: synthetic Firebase identities were deleted; the two temporary E2E containers were stopped/removed. Pre-existing API/ClamAV services and persistent volumes were preserved. No admin seed remains and no commit/push was made.
+- Remaining SRS/runtime gates: UC-13 email verification and activation, production email/invitation delivery policy, shared public-registration rate limiting, interactive Web/Android auth screens using the corrected `.env`, normal Compose startup after MinIO pull is available, first configured Platform Admin seed, and live signed-token role-gate acceptance. SRS §31.10(14) remains open.
+- Contract/evidence: `artifacts/AUTH_ROLE_API_CONTRACT_REV63_20261110.md`; `evidence/EV-063-73_ROLE_BASED_AUTH_AND_RECOVERY_20261110.md`.
+
+## Backend Firebase Auth registration — Plan Rev62 historical state (extended by Rev63, 2026-11-10)
+
+- Lifecycle: **REVIEW**. Local backend account creation and identity visibility are verified; live Parent REST sign-in remains blocked by an invalid Web API key.
+- Rev62 contract: `POST /api/auth/v1/registrations` was local-only and did not persist role; Rev63 extends it to public registration with server-assigned Parent role in the database. It still accepts no client role and returns no UID/password. The process-local limiter allows five attempts per client IP per 15 minutes; full email-verification activation remains open.
+- Automated checks: backend focused tests 18/18 passed; Parent auth Jest 6/6 passed; mobile TypeScript check, backend Ruff check, and `docker compose config -q` passed.
+- Live result: backend HTTP 201; Firebase Admin lookup found `synthetic Firebase identity (identifier redacted)` in `sketch2life-dev`, `email_verified=false`. Account is retained; generated password and tokens were discarded.
+- Blocker: Firebase REST sign-in returned `API key not valid` for the Web API key previously supplied by the owner, even after aligning the root `.env` value. Need a fresh key from the Firebase `sketch2life-dev` Web app config; then rerun REST sign-in.
+- Runtime boundary: exercised through FastAPI `TestClient` with real Firebase Admin, not Docker. No Docker service lifecycle, database/migration, commit, or push occurred.
+- Contract/evidence: `artifacts/AUTH_REGISTRATION_API_CONTRACT_REV62.md`; `evidence/EV-063-72_BACKEND_FIREBASE_ACCOUNT_REGISTRATION_20261110.md`. Plan Rev62 final hash and approval records are in `approvals/TASK_APPROVAL.md`.
+
+## Initial single-root Firebase Auth setup — Plan Rev61 (historical; signup creation superseded by Rev62)
+
+- Lifecycle: implementation/configuration complete for the approved local setup; live Firebase credential and account verification remain owner-gated.
+- One ignored root `.env` now holds the existing local Compose values, provided public Firebase web config, and the owner-supplied Admin service-account JSON as Base64. Provider mode is `firebase`; `firebase-admin` 7.7.0 is installed in `backend/.venv`.
+- At Rev61, Parent Android sign-up and sign-in both used Firebase Auth REST. Rev62 replaces only account creation with the backend route; REST sign-in, local sign-out and in-process token refresh remain. Backend Admin verifier accepts project-checked Base64 JSON. Teacher Web and Parent Android source public config from the same root `.env`.
+- Verification: local Firebase Admin SDK accepted the supplied credential and its project ID matches; backend focused tests 12/12 passed; mobile TypeScript typecheck passed; Teacher Web production build passed with the existing >500 kB chunk warning; `docker compose config -q` passed; Babel root-env allow-list check and synthetic Parent Auth flow passed.
+- Limits: Jest auth tests could not start because Node/Jest `realpath` returned `EPERM` for the workspace path. No live Firebase token/account operation, Docker service start/stop, DB operation, commit or push. `git diff --check` is blocked by a pre-existing trailing blank line in FEAT-058 `evidence/README.md`; that unrelated file was not changed.
+- Evidence: `evidence/EV-063-71_SINGLE_ROOT_ENV_FIREBASE_AUTH_20261110.md`. The canonical v2.7-draft SRS remains unchanged and unsigned.
+
+## SRS baseline correction — Plan Rev60 (2026-11-09)
+
+- Lifecycle: REVIEW; SRS-only rebase and static consistency checks are complete. Latest FEAT-063 source is v2.7-draft Rev57 at `f21c6f34af1ee045caf9a0621e38376a2bfde390`; local SRS now includes Rev58–Rev60 amendments and remains unsigned.
+- Rev57 §§32.6–32.7 retained; Rev58 source snapshot at §32.8. Seventeen `OPEN-OWNER` decisions remain; DTR remains a separate local v2.5-draft and was not edited.
+- Output SHA-256: `70DA43A35106E8C02B4BB8FCCB9628C0376C9E7EA6CFC51909ACB569703B218B`. Evidence: `evidence/EV-063-65_SRS_REBASE_V27_REV60_20261109.md`.
+- No product tests/build/CI run, database/provider/secret operation, deployment, commit or push was performed. Diagram readiness, physical schema and formal SRS sign-off remain open.
+
+## Parent Android profile, consent, and story flow — Plan Rev67 (2026-11-10)
+
+- Lifecycle: **IMPLEMENTED — STATIC REVIEW ONLY**. The bounded Parent UI/API/migration slice is present; runtime acceptance and database migration application were not performed under the approved plan.
+- Included: Parent profile revision CRUD/archive, explicit versioned authorization grant/revoke, StoryRun create/resume/context snapshot, physical JPEG/PNG capture/upload, subject confirmation, story draft/rewrite/confirmation, and optional topic-only sketch guide.
+- Consent policy is supplied through the root `.env`; the repository template has blank placeholders and the application fails closed until both text and version are configured. No policy copy or credentials were committed.
+- Static results: TypeScript PASS; Python compile PASS; migration revision graph PASS (30 files, 12 prior heads joined, no unresolved references); repository security validator PASS (7,157 files); `git diff --check` PASS. Ruff/Alembic CLI were not installed; ESLint could not load the configured `jest/globals` environment.
+- No product test suite, live Modal/Firebase operation, database migration, Docker lifecycle, or video call was run. Full Parent SRS flow is not complete: voice/Whisper, video and activities, corrected-subject VLM rerun, history/cancel/delete, durable job reconciliation, and sketch-guide cleanup/safety remain.
+- Detailed scope, changed API routes and limitations: `artifacts/PARENT_API_CONTRACT_REV67_20261110.md`; evidence: `evidence/EV-063-76_PARENT_ANDROID_PROFILE_CONSENT_STORY_FLOW_20261110.md`.

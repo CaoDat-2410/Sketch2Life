@@ -1,6 +1,10 @@
 # Project context ledger
 
-> **Current product SRS:** use [`features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md`](../../features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md), v2.5-draft, as the single canonical working baseline. It remains unsigned; §§1–31 define target requirements and §32 separates environment-specific runtime/source observations. Older feature contexts/SRS documents are historical or feature-local. See [`SRS_AUTHORITY.md`](SRS_AUTHORITY.md).
+> **Current product SRS:** use [`features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md`](../../features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md), v2.7-draft, as the single canonical working baseline. It remains unsigned; §§1–31 define target requirements and §32 separates environment-specific runtime/source observations. Older feature contexts/SRS documents are historical or feature-local. See [`SRS_AUTHORITY.md`](SRS_AUTHORITY.md).
+
+## FEAT-063 Rev61–Rev65 — Firebase roles, Parent/Teacher Modal flows, Teacher presentation — 2026-11-10
+
+The FEAT-063 v2.7-draft SRS (Rev60 working copy) remains the current unsigned requirement baseline. Rev61–63 add one-root-`.env` Firebase Authentication, backend account provisioning, server-owned application roles and password recovery/account administration. Rev64 connects the Parent Android and Teacher Web non-video flows to the backend and existing Modal workers. Its acceptance is **partial**: Teacher lesson suggestion, Sketch Deck and FLUX visual were shown in the live UI; Parent optional guide passed, while drawing analysis returned invalid Qwen JSON and blocked story review. No video was requested. Rev65 adds a DRAFT 16:9 Teacher presentation for generated Sketch Deck slides and the composite FLUX drawing guide. See the FEAT-063 plans and EV-063-71 through EV-063-75 for scope, results and screenshots. Synthetic test identities, disposable DB and task-used Modal apps were cleaned up.
 
 ## FEAT-057 Rev5 review and offline BE2 internal regression — 2026-10-21
 

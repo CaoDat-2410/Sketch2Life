@@ -12,7 +12,7 @@ CONTRACT_REVISION: Final = "FEAT-063 Rev37"
 SOURCE_FILE_NAME: Final = 'API_CONTRACT_CATALOG_FEAT063_REV37_20261030.md'
 SOURCE_SHA256: Final = '56FC8BEA01360E11F73E45B2D43AC1897540B30BC8AE524CDE1ECEFACFBB1B88'
 DECLARED_OPERATION_COUNT: Final = 135
-MOUNTED_OPERATION_COUNT: Final = 124
+MOUNTED_OPERATION_COUNT: Final = 134
 UNMOUNTED_OPERATION_COUNT: Final = 11
 TAG_DESCRIPTIONS: Final[dict[str, str]] = {'BE1 — Organizations & Classes': 'Organization membership, class setup, profiles, assignments, '
                                   'and consents.',
@@ -35,6 +35,8 @@ TAG_DESCRIPTIONS: Final[dict[str, str]] = {'BE1 — Organizations & Classes': 'O
                                              'and parent-group administration.',
  'Parent — Invitations & Lesson Library': 'Parent invitations, memberships, lesson discovery, and '
                                           'lesson downloads.',
+ 'Parent Profiles': 'Create, read, and revise synthetic Parent-owned profiles.',
+ 'Parent StoryRuns': 'Proposed Parent StoryRun create, read, and confirmation slice.',
  'Parent & School Manager — Group Membership': 'Parent-group membership revocation available to '
                                                'the parent or school manager.',
  'Platform Admin — Moderation': 'Platform-level lesson moderation.',
@@ -2703,300 +2705,6 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                         'occurred',
                                                                          'media_type': 'application/json',
                                                                          'schema_name': 'Be1Error'})},
- ('post', '/api/be1/v1/organizations/{organization_id}/assignments'): {'purpose': 'Gán một người '
-                                                                                  'dùng vào vai '
-                                                                                  'trò hoặc phạm '
-                                                                                  'vi công việc '
-                                                                                  'của tổ chức.',
-                                                                       'request_inputs': 'path '
-                                                                                         '`organization_id*`: '
-                                                                                         'string; '
-                                                                                         'header '
-                                                                                         '`X-Request-ID`: '
-                                                                                         'string; '
-                                                                                         'application/json '
-                                                                                         '(required): '
-                                                                                         'CreateAssignmentRequest '
-                                                                                         '{subject*:string, '
-                                                                                         'role*:string, '
-                                                                                         'class_id:any}',
-                                                                       'surface': 'BE1 / classroom',
-                                                                       'tag': 'BE1 — Organizations '
-                                                                              '& Classes',
-                                                                       'handler': 'be1_registry.py::create_assignment',
-                                                                       'authentication': 'HTTPBearer '
-                                                                                         '(bearer)',
-                                                                       'verification': 'Mounted in '
-                                                                                       'OpenAPI; '
-                                                                                       'see '
-                                                                                       'API-family '
-                                                                                       'test '
-                                                                                       'results in '
-                                                                                       'EV-063-30; '
-                                                                                       'not '
-                                                                                       'individually '
-                                                                                       'live-probed',
-                                                                       'responses': ({'status': '201',
-                                                                                      'description': 'Successful '
-                                                                                                     'Response',
-                                                                                      'media_type': 'application/json',
-                                                                                      'schema_name': 'object'},
-                                                                                     {'status': '401',
-                                                                                      'description': 'Authentication '
-                                                                                                     'or '
-                                                                                                     'device '
-                                                                                                     'credential '
-                                                                                                     'is '
-                                                                                                     'required',
-                                                                                      'media_type': 'application/json',
-                                                                                      'schema_name': 'Be1Error'},
-                                                                                     {'status': '403',
-                                                                                      'description': 'The '
-                                                                                                     'caller '
-                                                                                                     'is '
-                                                                                                     'not '
-                                                                                                     'authorized '
-                                                                                                     'for '
-                                                                                                     'this '
-                                                                                                     'resource',
-                                                                                      'media_type': 'application/json',
-                                                                                      'schema_name': 'Be1Error'},
-                                                                                     {'status': '404',
-                                                                                      'description': 'The '
-                                                                                                     'scoped '
-                                                                                                     'resource '
-                                                                                                     'was '
-                                                                                                     'not '
-                                                                                                     'found',
-                                                                                      'media_type': 'application/json',
-                                                                                      'schema_name': 'Be1Error'},
-                                                                                     {'status': '409',
-                                                                                      'description': 'The '
-                                                                                                     'command '
-                                                                                                     'conflicts '
-                                                                                                     'with '
-                                                                                                     'current '
-                                                                                                     'state',
-                                                                                      'media_type': 'application/json',
-                                                                                      'schema_name': 'Be1Error'},
-                                                                                     {'status': '410',
-                                                                                      'description': 'The '
-                                                                                                     'requested '
-                                                                                                     'artifact '
-                                                                                                     'is '
-                                                                                                     'no '
-                                                                                                     'longer '
-                                                                                                     'available',
-                                                                                      'media_type': 'application/json',
-                                                                                      'schema_name': 'Be1Error'},
-                                                                                     {'status': '413',
-                                                                                      'description': 'The '
-                                                                                                     'request '
-                                                                                                     'exceeds '
-                                                                                                     'a '
-                                                                                                     'supported '
-                                                                                                     'size '
-                                                                                                     'limit',
-                                                                                      'media_type': 'application/json',
-                                                                                      'schema_name': 'Be1Error'},
-                                                                                     {'status': '415',
-                                                                                      'description': 'The '
-                                                                                                     'request '
-                                                                                                     'media '
-                                                                                                     'type '
-                                                                                                     'is '
-                                                                                                     'not '
-                                                                                                     'supported',
-                                                                                      'media_type': 'application/json',
-                                                                                      'schema_name': 'Be1Error'},
-                                                                                     {'status': '422',
-                                                                                      'description': 'The '
-                                                                                                     'request '
-                                                                                                     'does '
-                                                                                                     'not '
-                                                                                                     'match '
-                                                                                                     'the '
-                                                                                                     'API '
-                                                                                                     'contract',
-                                                                                      'media_type': 'application/json',
-                                                                                      'schema_name': 'Be1Error'},
-                                                                                     {'status': '429',
-                                                                                      'description': 'The '
-                                                                                                     'request '
-                                                                                                     'is '
-                                                                                                     'temporarily '
-                                                                                                     'rate '
-                                                                                                     'limited',
-                                                                                      'media_type': 'application/json',
-                                                                                      'schema_name': 'Be1Error'},
-                                                                                     {'status': '503',
-                                                                                      'description': 'A '
-                                                                                                     'required '
-                                                                                                     'backend '
-                                                                                                     'dependency '
-                                                                                                     'is '
-                                                                                                     'unavailable',
-                                                                                      'media_type': 'application/json',
-                                                                                      'schema_name': 'Be1Error'},
-                                                                                     {'status': '500',
-                                                                                      'description': 'An '
-                                                                                                     'unexpected '
-                                                                                                     'server '
-                                                                                                     'error '
-                                                                                                     'occurred',
-                                                                                      'media_type': 'application/json',
-                                                                                      'schema_name': 'Be1Error'})},
- ('delete', '/api/be1/v1/organizations/{organization_id}/assignments/{assignment_id}'): {'purpose': 'Thu '
-                                                                                                    'hồi '
-                                                                                                    'assignment/role '
-                                                                                                    'của '
-                                                                                                    'người '
-                                                                                                    'dùng '
-                                                                                                    'trong '
-                                                                                                    'tổ '
-                                                                                                    'chức.',
-                                                                                         'request_inputs': 'path '
-                                                                                                           '`organization_id*`: '
-                                                                                                           'string; '
-                                                                                                           'path '
-                                                                                                           '`assignment_id*`: '
-                                                                                                           'string; '
-                                                                                                           'header '
-                                                                                                           '`X-Request-ID`: '
-                                                                                                           'string',
-                                                                                         'surface': 'BE1 '
-                                                                                                    '/ '
-                                                                                                    'classroom',
-                                                                                         'tag': 'BE1 '
-                                                                                                '— '
-                                                                                                'Organizations '
-                                                                                                '& '
-                                                                                                'Classes',
-                                                                                         'handler': 'be1_registry.py::revoke_assignment',
-                                                                                         'authentication': 'HTTPBearer '
-                                                                                                           '(bearer)',
-                                                                                         'verification': 'Mounted '
-                                                                                                         'in '
-                                                                                                         'OpenAPI; '
-                                                                                                         'see '
-                                                                                                         'API-family '
-                                                                                                         'test '
-                                                                                                         'results '
-                                                                                                         'in '
-                                                                                                         'EV-063-30; '
-                                                                                                         'not '
-                                                                                                         'individually '
-                                                                                                         'live-probed',
-                                                                                         'responses': ({'status': '200',
-                                                                                                        'description': 'Successful '
-                                                                                                                       'Response',
-                                                                                                        'media_type': 'application/json',
-                                                                                                        'schema_name': 'object'},
-                                                                                                       {'status': '401',
-                                                                                                        'description': 'Authentication '
-                                                                                                                       'or '
-                                                                                                                       'device '
-                                                                                                                       'credential '
-                                                                                                                       'is '
-                                                                                                                       'required',
-                                                                                                        'media_type': 'application/json',
-                                                                                                        'schema_name': 'Be1Error'},
-                                                                                                       {'status': '403',
-                                                                                                        'description': 'The '
-                                                                                                                       'caller '
-                                                                                                                       'is '
-                                                                                                                       'not '
-                                                                                                                       'authorized '
-                                                                                                                       'for '
-                                                                                                                       'this '
-                                                                                                                       'resource',
-                                                                                                        'media_type': 'application/json',
-                                                                                                        'schema_name': 'Be1Error'},
-                                                                                                       {'status': '404',
-                                                                                                        'description': 'The '
-                                                                                                                       'scoped '
-                                                                                                                       'resource '
-                                                                                                                       'was '
-                                                                                                                       'not '
-                                                                                                                       'found',
-                                                                                                        'media_type': 'application/json',
-                                                                                                        'schema_name': 'Be1Error'},
-                                                                                                       {'status': '409',
-                                                                                                        'description': 'The '
-                                                                                                                       'command '
-                                                                                                                       'conflicts '
-                                                                                                                       'with '
-                                                                                                                       'current '
-                                                                                                                       'state',
-                                                                                                        'media_type': 'application/json',
-                                                                                                        'schema_name': 'Be1Error'},
-                                                                                                       {'status': '410',
-                                                                                                        'description': 'The '
-                                                                                                                       'requested '
-                                                                                                                       'artifact '
-                                                                                                                       'is '
-                                                                                                                       'no '
-                                                                                                                       'longer '
-                                                                                                                       'available',
-                                                                                                        'media_type': 'application/json',
-                                                                                                        'schema_name': 'Be1Error'},
-                                                                                                       {'status': '413',
-                                                                                                        'description': 'The '
-                                                                                                                       'request '
-                                                                                                                       'exceeds '
-                                                                                                                       'a '
-                                                                                                                       'supported '
-                                                                                                                       'size '
-                                                                                                                       'limit',
-                                                                                                        'media_type': 'application/json',
-                                                                                                        'schema_name': 'Be1Error'},
-                                                                                                       {'status': '415',
-                                                                                                        'description': 'The '
-                                                                                                                       'request '
-                                                                                                                       'media '
-                                                                                                                       'type '
-                                                                                                                       'is '
-                                                                                                                       'not '
-                                                                                                                       'supported',
-                                                                                                        'media_type': 'application/json',
-                                                                                                        'schema_name': 'Be1Error'},
-                                                                                                       {'status': '422',
-                                                                                                        'description': 'The '
-                                                                                                                       'request '
-                                                                                                                       'does '
-                                                                                                                       'not '
-                                                                                                                       'match '
-                                                                                                                       'the '
-                                                                                                                       'API '
-                                                                                                                       'contract',
-                                                                                                        'media_type': 'application/json',
-                                                                                                        'schema_name': 'Be1Error'},
-                                                                                                       {'status': '429',
-                                                                                                        'description': 'The '
-                                                                                                                       'request '
-                                                                                                                       'is '
-                                                                                                                       'temporarily '
-                                                                                                                       'rate '
-                                                                                                                       'limited',
-                                                                                                        'media_type': 'application/json',
-                                                                                                        'schema_name': 'Be1Error'},
-                                                                                                       {'status': '503',
-                                                                                                        'description': 'A '
-                                                                                                                       'required '
-                                                                                                                       'backend '
-                                                                                                                       'dependency '
-                                                                                                                       'is '
-                                                                                                                       'unavailable',
-                                                                                                        'media_type': 'application/json',
-                                                                                                        'schema_name': 'Be1Error'},
-                                                                                                       {'status': '500',
-                                                                                                        'description': 'An '
-                                                                                                                       'unexpected '
-                                                                                                                       'server '
-                                                                                                                       'error '
-                                                                                                                       'occurred',
-                                                                                                        'media_type': 'application/json',
-                                                                                                        'schema_name': 'Be1Error'})},
  ('get', '/api/be1/v1/organizations/{organization_id}/classes'): {'purpose': 'Liệt kê các lớp '
                                                                              'thuộc tổ chức.',
                                                                   'request_inputs': 'path '
@@ -3451,18 +3159,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                        'handler': 'be1_registry.py::record_consent',
                                                                                        'authentication': 'HTTPBearer '
                                                                                                          '(bearer)',
-                                                                                       'verification': 'Mounted '
-                                                                                                       'in '
-                                                                                                       'OpenAPI; '
-                                                                                                       'see '
-                                                                                                       'API-family '
-                                                                                                       'test '
-                                                                                                       'results '
-                                                                                                       'in '
-                                                                                                       'EV-063-30; '
-                                                                                                       'not '
-                                                                                                       'individually '
-                                                                                                       'live-probed',
+                                                                                       'verification': 'S1a-T synthetic contract; PostgreSQL acceptance is owner-only and not run here',
                                                                                        'responses': ({'status': '201',
                                                                                                       'description': 'Successful '
                                                                                                                      'Response',
@@ -3874,17 +3571,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                                     'occurred',
                                                                                                      'media_type': 'application/json',
                                                                                                      'schema_name': 'Be1Error'})},
- ('post', '/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles'): {'purpose': 'Tạo '
-                                                                                                  'hồ '
-                                                                                                  'sơ '
-                                                                                                  'trẻ '
-                                                                                                  'do '
-                                                                                                  'tổ '
-                                                                                                  'chức '
-                                                                                                  'quản '
-                                                                                                  'lý '
-                                                                                                  'trong '
-                                                                                                  'lớp.',
+ ('post', '/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles'): {'purpose': 'Tạo hồ sơ synthetic cho Teacher trong lớp.',
                                                                                        'request_inputs': 'path '
                                                                                                          '`organization_id*`: '
                                                                                                          'string; '
@@ -3897,10 +3584,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                          'application/json '
                                                                                                          '(required): '
                                                                                                          'CreateProfileRequest '
-                                                                                                         '{child_id*:string, '
-                                                                                                         'class_id*:string, '
-                                                                                                         'consent_id*:string, '
-                                                                                                         'purpose_ref*:string, '
+                                                                                                         '{class_id*:string, '
                                                                                                          'display_name*:string, '
                                                                                                          'age_months*:integer}',
                                                                                        'surface': 'BE1 '
@@ -11168,6 +10852,379 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                              'Error',
                                                                                               'media_type': 'application/json',
                                                                                               'schema_name': 'HTTPValidationError'})}}
+
+MOUNTED_OPERATIONS[('post', '/api/be1/v1/classes/{class_id}/assignments')] = {   'purpose': 'Gán một Teacher vào lớp.',
+    'request_inputs': 'path `class_id*`: string; header `X-Request-ID`: string; application/json '
+                      '(required): CreateAssignmentRequest {subject*:string}',
+    'surface': 'BE1 / classroom',
+    'tag': 'BE1 — Organizations & Classes',
+    'handler': 'be1_registry.py::assign_class_teacher',
+    'authentication': 'HTTPBearer (bearer)',
+    'verification': 'S1a-T class assignment contract; PostgreSQL acceptance is owner-only and not run here',
+    'responses': (   {   'status': '201',
+                         'description': 'Successful Response',
+                         'media_type': 'application/json',
+                         'schema_name': 'object'},
+                     {   'status': '401',
+                         'description': 'Authentication or device credential is required',
+                         'media_type': 'application/json',
+                         'schema_name': 'Be1Error'},
+                     {   'status': '403',
+                         'description': 'The caller is not authorized for this resource',
+                         'media_type': 'application/json',
+                         'schema_name': 'Be1Error'},
+                     {   'status': '404',
+                         'description': 'The scoped resource was not found',
+                         'media_type': 'application/json',
+                         'schema_name': 'Be1Error'},
+                     {   'status': '409',
+                         'description': 'The command conflicts with current state',
+                         'media_type': 'application/json',
+                         'schema_name': 'Be1Error'},
+                     {   'status': '410',
+                         'description': 'The requested artifact is no longer available',
+                         'media_type': 'application/json',
+                         'schema_name': 'Be1Error'},
+                     {   'status': '413',
+                         'description': 'The request exceeds a supported size limit',
+                         'media_type': 'application/json',
+                         'schema_name': 'Be1Error'},
+                     {   'status': '415',
+                         'description': 'The request media type is not supported',
+                         'media_type': 'application/json',
+                         'schema_name': 'Be1Error'},
+                     {   'status': '422',
+                         'description': 'The request does not match the API contract',
+                         'media_type': 'application/json',
+                         'schema_name': 'Be1Error'},
+                     {   'status': '429',
+                         'description': 'The request is temporarily rate limited',
+                         'media_type': 'application/json',
+                         'schema_name': 'Be1Error'},
+                     {   'status': '503',
+                         'description': 'A required backend dependency is unavailable',
+                         'media_type': 'application/json',
+                         'schema_name': 'Be1Error'},
+                     {   'status': '500',
+                         'description': 'An unexpected server error occurred',
+                         'media_type': 'application/json',
+                         'schema_name': 'Be1Error'})}
+
+MOUNTED_OPERATIONS[('post', '/v1/parent/profiles')] = {
+    'purpose': 'Create a synthetic Parent-owned profile and its first immutable revision.',
+    'request_inputs': 'header `Idempotency-Key*`: string; header `X-Request-ID`: string; '
+                      'application/json (required): CreateParentProfileRequest '
+                      '{display_name*:string, age_months*:integer, interests_summary:string|null}',
+    'surface': 'Parent / profile foundation',
+    'tag': 'Parent Profiles',
+    'handler': 'parent_profiles.py::create_parent_profile',
+    'authentication': 'HTTPBearer (bearer)',
+    'verification': 'S1a-P synthetic-only contract; persistence acceptance is owner-run',
+    'responses': (
+        {'status': '201', 'description': 'Profile created', 'media_type': 'application/json',
+         'schema_name': 'ParentProfileReference'},
+        {'status': '400', 'description': 'The request is invalid', 'media_type': 'application/json',
+         'schema_name': 'ParentErrorResponse'},
+        {'status': '401', 'description': 'Authentication is required or invalid',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '403', 'description': 'The action is not allowed',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '409', 'description': 'The request conflicts with profile state',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '422', 'description': 'The request does not match the API contract',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '503', 'description': 'A required service is unavailable',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+    ),
+}
+MOUNTED_OPERATIONS[('get', '/v1/parent/profiles')] = {
+    'purpose': 'List active profiles owned by the verified Parent principal.',
+    'request_inputs': 'query `limit`: integer (default 25, maximum 100); query `cursor`: string; '
+                      'header `X-Request-ID`: string',
+    'surface': 'Parent / profile foundation',
+    'tag': 'Parent Profiles',
+    'handler': 'parent_profiles.py::list_parent_profiles',
+    'authentication': 'HTTPBearer (bearer)',
+    'verification': 'S1a-P2 owner-scoped keyset list; persistence acceptance is owner-run',
+    'responses': (
+        {'status': '200', 'description': 'Active profiles and the next cursor',
+         'media_type': 'application/json', 'schema_name': 'ParentProfileListView'},
+        {'status': '400', 'description': 'The request is invalid',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '401', 'description': 'Authentication is required or invalid',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '403', 'description': 'The action is not allowed',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '409', 'description': 'The request conflicts with profile state',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '422', 'description': 'The request does not match the API contract',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '503', 'description': 'A required service is unavailable',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+    ),
+}
+MOUNTED_OPERATIONS[('get', '/v1/parent/profiles/{profile_id}')] = {
+    'purpose': 'Read the current revision of a profile owned by the verified Parent principal.',
+    'request_inputs': 'path `profile_id*`: uuid; header `X-Request-ID`: string',
+    'surface': 'Parent / profile foundation',
+    'tag': 'Parent Profiles',
+    'handler': 'parent_profiles.py::read_parent_profile',
+    'authentication': 'HTTPBearer (bearer)',
+    'verification': 'S1a-P ownership and IDOR contract; persistence acceptance is owner-run',
+    'responses': (
+        {'status': '200', 'description': 'Current profile revision', 'media_type': 'application/json',
+         'schema_name': 'ParentProfileView'},
+        {'status': '400', 'description': 'The request is invalid',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '401', 'description': 'Authentication is required or invalid',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '403', 'description': 'The action is not allowed',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '404', 'description': 'The profile was not found', 'media_type': 'application/json',
+         'schema_name': 'ParentErrorResponse'},
+        {'status': '409', 'description': 'The request conflicts with profile state',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '422', 'description': 'The request does not match the API contract',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '503', 'description': 'A required service is unavailable',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+    ),
+}
+MOUNTED_OPERATIONS[('delete', '/v1/parent/profiles/{profile_id}')] = {
+    'purpose': 'Request deletion of an owned Parent profile without purging its content.',
+    'request_inputs': 'path `profile_id*`: uuid; header `Idempotency-Key*`: string; '
+                      'header `X-Request-ID`: string',
+    'surface': 'Parent / profile foundation',
+    'tag': 'Parent Profiles',
+    'handler': 'parent_profiles.py::request_parent_profile_deletion',
+    'authentication': 'HTTPBearer (bearer)',
+    'verification': 'S1a-P2 idempotent deletion request; PostgreSQL evidence is owner-run',
+    'responses': (
+        {'status': '202', 'description': 'Deletion request accepted',
+         'media_type': 'application/json', 'schema_name': 'ParentProfileDeletePendingView'},
+        {'status': '400', 'description': 'The request is invalid',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '401', 'description': 'Authentication is required or invalid',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '403', 'description': 'The action is not allowed',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '404', 'description': 'The profile was not found',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '409', 'description': 'The request conflicts with profile state',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '422', 'description': 'The request does not match the API contract',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '503', 'description': 'A required service is unavailable',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+    ),
+}
+MOUNTED_OPERATIONS[('patch', '/v1/parent/profiles/{profile_id}')] = {
+    'purpose': 'Append the next full immutable profile snapshot with an expected revision.',
+    'request_inputs': 'path `profile_id*`: uuid; header `Idempotency-Key*`: string; '
+                      'header `X-Request-ID`: string; application/json (required): '
+                      'PatchParentProfileRequest {expected_revision*:integer, display_name*:string, '
+                      'age_months*:integer, interests_summary:string|null}',
+    'surface': 'Parent / profile foundation',
+    'tag': 'Parent Profiles',
+    'handler': 'parent_profiles.py::patch_parent_profile',
+    'authentication': 'HTTPBearer (bearer)',
+    'verification': 'S1a-P revision and idempotency contract; persistence acceptance is owner-run',
+    'responses': (
+        {'status': '200', 'description': 'Profile revision appended', 'media_type': 'application/json',
+         'schema_name': 'ParentProfileView'},
+        {'status': '400', 'description': 'The request is invalid', 'media_type': 'application/json',
+         'schema_name': 'ParentErrorResponse'},
+        {'status': '401', 'description': 'Authentication is required or invalid',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '403', 'description': 'The action is not allowed',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '404', 'description': 'The profile was not found', 'media_type': 'application/json',
+         'schema_name': 'ParentErrorResponse'},
+        {'status': '409', 'description': 'The request conflicts with profile state',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '422', 'description': 'The request does not match the API contract',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+        {'status': '503', 'description': 'A required service is unavailable',
+         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
+    ),
+}
+
+MOUNTED_OPERATIONS[('post', '/v1/story-runs')] = {
+    'purpose': 'Create a Parent StoryRun from one owned synthetic profile and an optional pinned lesson version.',
+    'request_inputs': 'header `Idempotency-Key*`: string; application/json (required): '
+                      'ParentStoryRunCreateRequestV1 {parent_profile_id*:uuid, topic:string, '
+                      'adult_confirmed_idea:string, lesson_version:ParentLessonVersionRefV1|null}',
+    'surface': 'Parent / StoryRun integration proposal',
+    'tag': 'Parent StoryRuns',
+    'handler': 'parent_story_runs.py::create_parent_story_run',
+    'authentication': 'HTTPBearer (bearer)',
+    'verification': 'Rev60 §21.2 alignment; context confirmation remains a proposal',
+    'responses': (
+        {'status': '201', 'description': 'StoryRun created', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryRunEnvelopeV1'},
+        {'status': '400', 'description': 'The request is invalid', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '401', 'description': 'Authentication is required', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '403', 'description': 'The action is not allowed', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '404', 'description': 'The requested resource was not found', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '409', 'description': 'An active run already exists or the version is stale',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '422', 'description': 'Validation uses the standard error envelope',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '503', 'description': 'A required service is unavailable', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '500', 'description': 'An unexpected error occurred', 'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+    ),
+}
+MOUNTED_OPERATIONS[('get', '/v1/story-runs/{run_id}')] = {
+    'purpose': 'Read one Parent StoryRun owned by the verified principal.',
+    'request_inputs': 'path `run_id*`: uuid',
+    'surface': 'Parent / StoryRun integration proposal',
+    'tag': 'Parent StoryRuns',
+    'handler': 'parent_story_runs.py::get_parent_story_run',
+    'authentication': 'HTTPBearer (bearer)',
+    'verification': 'Rev60 §21.2 resource-read path',
+    'responses': (
+        {'status': '200', 'description': 'StoryRun resource', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryRunEnvelopeV1'},
+        {'status': '400', 'description': 'The request is invalid', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '401', 'description': 'Authentication is required', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '403', 'description': 'The action is not allowed', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '404', 'description': 'The requested resource was not found',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '409', 'description': 'The request conflicts with current state',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '422', 'description': 'Validation uses the standard error envelope',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '503', 'description': 'A required service is unavailable', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '500', 'description': 'An unexpected error occurred', 'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+    ),
+}
+MOUNTED_OPERATIONS[('get', '/v1/story-runs/active/current')] = {
+    'purpose': 'Resume the verified Parent principal’s active StoryRun, if one exists.',
+    'request_inputs': 'No path/query/header/body input declared in OpenAPI',
+    'surface': 'Parent / StoryRun integration proposal',
+    'tag': 'Parent StoryRuns',
+    'handler': 'parent_story_runs.py::get_active_parent_story_run',
+    'authentication': 'HTTPBearer (bearer)',
+    'verification': 'Proposed active-run locator; Rev60 does not name this exact path',
+    'responses': (
+        {'status': '200', 'description': 'Active StoryRun or null', 'media_type': 'application/json',
+         'schema_name': 'ParentActiveStoryRunEnvelopeV1'},
+        {'status': '400', 'description': 'The request is invalid', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '401', 'description': 'Authentication is required', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '403', 'description': 'The action is not allowed', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '404', 'description': 'The resource was not found',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '409', 'description': 'The request conflicts with current state',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '422', 'description': 'Validation uses the standard error envelope',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '503', 'description': 'A required service is unavailable', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '500', 'description': 'An unexpected error occurred', 'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+    ),
+}
+MOUNTED_OPERATIONS[('post', '/v1/story-runs/{run_id}/context-confirmation')] = {
+    'purpose': 'Confirm the pinned Parent context snapshot before story generation.',
+    'request_inputs': 'path `run_id*`: uuid; header `Idempotency-Key*`: string; '
+                      'application/json (required): ParentContextConfirmationRequestV1 '
+                      '{expected_context_revision*:integer, context_snapshot_sha256*:string, confirmed*:true}',
+    'surface': 'Parent / StoryRun integration proposal',
+    'tag': 'Parent StoryRuns',
+    'handler': 'parent_story_runs.py::confirm_parent_story_context',
+    'authentication': 'HTTPBearer (bearer)',
+    'verification': 'Rev60 §21.2 path; request fields are a proposal',
+    'responses': (
+        {'status': '200', 'description': 'Context snapshot confirmation recorded',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryRunEnvelopeV1'},
+        {'status': '400', 'description': 'The idempotency key is invalid',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '401', 'description': 'Authentication is required', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '403', 'description': 'The action is not allowed', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '404', 'description': 'The requested resource was not found',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '409', 'description': 'The snapshot or run state is stale',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '422', 'description': 'Validation uses the standard error envelope',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '503', 'description': 'A required service is unavailable', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '500', 'description': 'An unexpected error occurred', 'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+    ),
+}
+MOUNTED_OPERATIONS[('post', '/v1/story-runs/{run_id}/subject-confirmation')] = {
+    'purpose': 'Persist adult confirmation of a drawing-understanding subject.',
+    'request_inputs': 'path `run_id*`: uuid; header `Idempotency-Key*`: string; '
+                      'application/json (required): ParentSubjectConfirmationRequestV1 '
+                      '{expected_understanding_revision*:integer, confirmed_subject*:string}',
+    'surface': 'Parent / StoryRun integration proposal',
+    'tag': 'Parent StoryRuns',
+    'handler': 'parent_story_runs.py::confirm_parent_story_subject',
+    'authentication': 'HTTPBearer (bearer)',
+    'verification': 'Rev60 §21.2 path; command contract is a proposal',
+    'responses': (
+        {'status': '200', 'description': 'Subject confirmation recorded', 'media_type': 'application/json',
+         'schema_name': 'ParentSubjectConfirmationResponseV1'},
+        {'status': '400', 'description': 'The idempotency key is invalid',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '401', 'description': 'Authentication is required', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '403', 'description': 'The action is not allowed', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '404', 'description': 'The requested resource was not found',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '409', 'description': 'The run or understanding revision is stale',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '422', 'description': 'Validation uses the standard error envelope',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '503', 'description': 'A required service is unavailable', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '500', 'description': 'An unexpected error occurred', 'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+    ),
+}
+MOUNTED_OPERATIONS[('post', '/v1/story-runs/{run_id}/script-confirmation')] = {
+    'purpose': 'Persist adult confirmation of the current generated story revision.',
+    'request_inputs': 'path `run_id*`: uuid; header `Idempotency-Key*`: string; '
+                      'application/json (required): ParentStoryRevisionConfirmationRequestV1 '
+                      '{expected_revision*:integer, story_sha256*:string}',
+    'surface': 'Parent / StoryRun integration proposal',
+    'tag': 'Parent StoryRuns',
+    'handler': 'parent_story_runs.py::confirm_parent_story_revision',
+    'authentication': 'HTTPBearer (bearer)',
+    'verification': 'Rev60 §21.2 path; command contract is a proposal',
+    'responses': (
+        {'status': '200', 'description': 'Story revision confirmation recorded',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryRunEnvelopeV1'},
+        {'status': '400', 'description': 'The idempotency key is invalid',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '401', 'description': 'Authentication is required', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '403', 'description': 'The action is not allowed', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '404', 'description': 'The requested resource was not found',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '409', 'description': 'The run or story revision is stale',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '422', 'description': 'Validation uses the standard error envelope',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '503', 'description': 'A required service is unavailable', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '500', 'description': 'An unexpected error occurred', 'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+    ),
+}
 
 UNMOUNTED_OPERATIONS: Final[tuple[UnmountedOperationMetadata, ...]] = ({'method': 'post',
   'path': '/api/collaboration/v1/activity-assignments',

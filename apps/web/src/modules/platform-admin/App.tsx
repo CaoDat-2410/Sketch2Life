@@ -6,6 +6,7 @@ import { WebAppShell, PLATFORM_ADMIN_NAVIGATION } from "../../shared/WebAppShell
 import { usePortalSession } from "../../shared/PortalSessionContext";
 import { RoleMismatchPage } from "../../shared/RoleMismatchPage";
 import { A01ContentModerationPage, A02PlatformOperationsPage } from "./pages/AdminScreens";
+import { UsersPage } from "./pages/UsersPage";
 
 export function PlatformAdminApp() {
   const location = useLocation();
@@ -14,7 +15,9 @@ export function PlatformAdminApp() {
   if (isAuthenticated && currentRole !== "ADMIN") return <RoleMismatchPage roleLabel="Quản trị nền tảng" onLogout={logout} />;
   if (!isAuthenticated) return <Navigate to="/login?role=admin" replace />;
   if (location.pathname === "/platform" || location.pathname === "/platform/") return <Navigate to="/platform/a02-platform-operations" replace />;
-  const page = location.pathname === "/platform/a01-content-moderation"
+  const page = location.pathname === "/platform/accounts"
+    ? <UsersPage />
+    : location.pathname === "/platform/a01-content-moderation"
     ? <A01ContentModerationPage />
     : location.pathname === "/platform/a02-platform-operations"
       ? <A02PlatformOperationsPage />

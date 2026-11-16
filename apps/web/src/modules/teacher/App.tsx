@@ -11,6 +11,7 @@ import { T05ClassDetailPage, TeacherApiClassesPage } from "./pages/T05ClassesScr
 import { TeacherWorkbenchPage } from "./pages/TeacherWorkbenchPage";
 import { TeacherUnavailablePage } from "./pages/TeacherUnavailablePage";
 import { TeacherPresentationPage } from "./pages/TeacherPresentationPage";
+import { TeacherAiLessonWorkflowPage } from "./pages/TeacherAiLessonWorkflowPage";
 
 const ROLE_HOME = "/teacher/t01-lesson-workspace";
 const ROLE = "TEACHER" as const;
@@ -26,6 +27,7 @@ function renderTeacherPage(pathname: string) {
   if (pathname === "/teacher/t02-lesson-authoring") return <TeacherApiLessonPage />;
   if (pathname === "/teacher/t03-document-import-review") return <TeacherApiImportPage />;
   if (pathname === "/teacher/t02-presentation") return <TeacherPresentationPage />;
+  if (pathname === "/teacher/t13-ai-lesson-workflow") return <TeacherAiLessonWorkflowPage />;
   if (pathname === "/teacher/t04-session-sketch-deck") return <TeacherUnavailablePage title="Buổi dạy" summary="Chuẩn bị kế hoạch và hướng dẫn trong occurrence gắn với đúng lớp và phiên bản giáo án." srsStep="SRS §5.2 yêu cầu occurrence, mục tiêu học, hoạt động, checklist và trạng thái của từng bước." missing={["API tạo/đọc occurrence và gắn lớp với phiên bản giáo án.", "API lưu mục tiêu, hướng dẫn, checklist và trạng thái từng bước.", "API Sketch Deck và trạng thái sinh lại nội dung theo plan revision."]} nextTo="/teacher/t02-lesson-authoring" nextLabel="Mở giáo án" />;
   if (pathname === "/teacher/t06-sample-story-run") return <TeacherUnavailablePage title="Video mẫu cho buổi học" summary="Luồng một trẻ, một tác phẩm và một lần chạy trong một occurrence." srsStep="Theo SRS §5.2, server chọn đúng một trẻ đủ điều kiện theo policy; giáo viên rà soát ngữ cảnh và xác nhận trước khi gửi tác phẩm." missing={["API server chọn trẻ đủ điều kiện theo lớp/consent và giải quyết Q-01; không cho giáo viên tự chọn hoặc dùng roster mẫu.", "API xác nhận bản chép lời, ngữ cảnh và revision trước khi tạo StoryRun.", "API quota, job/reconciliation, trạng thái an toàn, playback token và vòng đời run."]} nextTo="/teacher/t04-session-sketch-deck" nextLabel="Xem buổi dạy" />;
   if (pathname === "/teacher/t07-video-presentation-confirmation") return <TeacherUnavailablePage title="Trình chiếu trên lớp" summary="Chỉ phát nội dung đã sẵn sàng an toàn và gắn với đúng occurrence." srsStep="SRS yêu cầu giáo viên xác nhận trước khi chiếu; backend phải xác minh trạng thái và cấp playback token ngắn hạn." missing={["API xác minh trạng thái nội dung và cấp playback token có thời hạn.", "API ghi nhận xác nhận chiếu theo lớp, occurrence và revision.", "API hoàn tất/hủy/xóa và đối soát trạng thái sau lỗi."]} nextTo="/teacher/t06-sample-story-run" nextLabel="Xem trạng thái video mẫu" />;

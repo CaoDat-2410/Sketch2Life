@@ -1,6 +1,24 @@
 import React from "react";
 
 export type PortalRole = "parent" | "teacher" | "school_manager" | "platform_admin";
+export type PlatformAccountRole = PortalRole;
+export type PlatformAccountState = "active" | "disabled";
+
+export interface PlatformManagedAccount {
+  account_id: string;
+  email: string | null;
+  display_name: string | null;
+  role: PlatformAccountRole | null;
+  state: PlatformAccountState;
+  revision: number;
+}
+
+interface PlatformAccountPage {
+  items: PlatformManagedAccount[];
+  total: number;
+  limit: number;
+  offset: number;
+}
 
 export interface RuntimeConfig {
   apiBaseUrl?: string;
@@ -338,6 +356,7 @@ const lessonPath = (organizationId: string) => `/api/lesson-library/v1/organizat
 
 export const backendApi = {
   health: () => backendRequest<{ status: "ok"; service: string }>("/health", {}, { auth: false }),
+  accountRole: () => backendRequest<{ role: PortalRole }>("/api/auth/v1/me"),
   assignments: (organizationId: string) => backendRequest<Be1Assignments>(`${orgPath(organizationId)}/me`),
   classes: (organizationId: string) => backendRequest<{ contract: string; items: Be1Class[] }>(`${orgPath(organizationId)}/classes`),
   profiles: (organizationId: string, classId: string) => backendRequest<{ contract: string; items: Array<{ child_id: string; class_id: string; display_name: string; age_months: number }> }>(`${orgPath(organizationId)}/classes/${encodeURIComponent(classId)}/profiles`),
@@ -440,6 +459,36 @@ export const backendApi = {
       headers: { "If-Match": `"${revision}"`, "Idempotency-Key": idempotencyKey },
       body: JSON.stringify({ contract: "ModerateLessonRequestV1", state, reason }),
     }),
+  listPlatformAccounts: (filters: {
+    role?: PlatformAccountRole;
+    state?: PlatformAccountState;
+    search?: string;
+    limit?: number;
+    offset?: number;
+  } = {}) => {
+    const query = new URLSearchParams();
+    for (const [key, value] of Object.entries(filters)) {
+      if (value !== undefined && value !== "") query.set(key, String(value));
+    }
+    const suffix = query.toString();
+    return backendRequest<PlatformAccountPage>(`/api/platform-admin/v1/accounts${suffix ? `?${suffix}` : ""}`);
+  },
+  createPlatformAccount: (payload: {
+    email: string;
+    display_name: string;
+    role: PlatformAccountRole;
+    organization_id?: string;
+  }) => backendRequest<PlatformManagedAccount>("/api/platform-admin/v1/accounts", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  }),
+  updatePlatformAccount: (
+    accountId: string,
+    payload: { role?: PlatformAccountRole; state?: PlatformAccountState; organization_id?: string },
+  ) => backendRequest<PlatformManagedAccount>(`/api/platform-admin/v1/accounts/${encodeURIComponent(accountId)}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  }),
 };
 
 export async function signInAndResolveRole(
@@ -453,16 +502,19 @@ export async function signInAndResolveRole(
   }
 
   await auth.signIn(email, password);
-  const token = await auth.getIdToken();
-  if (!token) throw new BackendApiError("Firebase chưa cấp ID token cho phiên đăng nhập.", "AUTHENTICATION_REQUIRED", 401);
-
   try {
+    const token = await auth.getIdToken();
+    if (!token) throw new BackendApiError("Firebase chưa cấp ID token cho phiên đăng nhập.", "AUTHENTICATION_REQUIRED", 401);
+    const account = await backendApi.accountRole();
+    if (account.role !== expectedRole) {
+      throw new BackendApiError("Tài khoản đã đăng nhập nhưng role không khớp với cổng này.", "ROLE_MISMATCH", 403);
+    }
     if (expectedRole === "parent") {
       await backendApi.parentLessons();
       return;
     }
     if (expectedRole === "platform_admin") {
-      throw new BackendApiError("BE chưa có API đọc quyền Platform Admin; không thể xác nhận role sau đăng nhập.", "ROLE_DISCOVERY_UNAVAILABLE", 501);
+      return;
     }
     const organizationId = configuredOrganizationId();
     if (!organizationId) {

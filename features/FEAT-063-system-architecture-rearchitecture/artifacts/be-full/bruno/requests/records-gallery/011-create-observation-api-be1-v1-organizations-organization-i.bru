@@ -1,0 +1,30 @@
+meta {
+  name: 011 [POST/ACTION - LOCAL TEST ONLY] Create Observation
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/classes/{{class_id}}/observations
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
+}
+
+body:json {
+  {
+    "session_id": "REPLACE_ME",
+    "child_id": "REPLACE_ME",
+    "kind": "observation",
+    "content": {}
+  }
+}

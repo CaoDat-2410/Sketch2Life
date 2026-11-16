@@ -360,6 +360,34 @@ class VisionAnalysisService:
     def __init__(self, deps: VisionAnalysisDependencies) -> None:
         self._d = deps
 
+    def _current_context(
+        self,
+        scope: AnalysisScope,
+        *,
+        pin: AssistancePin | None = None,
+        assistance_id: str | None = None,
+    ) -> ContextDecision:
+        """Prefer a request-bound resolved-facts read when the context adapter supports it.
+
+        The base port remains unchanged for old consumers. The GA2 adapter's optional
+        request-bound method lets a synthetic BE1 context carry the same full digest that
+        BE2-03 pinned without making that extension mandatory for existing contexts.
+        """
+
+        context = self._d.context
+        if pin is not None:
+            current_for_pin = getattr(context, "current_for_pin", None)
+            if callable(current_for_pin):
+                return cast(ContextDecision, current_for_pin(pin))
+        if assistance_id is not None:
+            current_for_assistance = getattr(context, "current_for_assistance", None)
+            if callable(current_for_assistance):
+                return cast(
+                    ContextDecision,
+                    current_for_assistance(assistance_id, scope),
+                )
+        return context.current(scope)
+
     # ------------------------------------------------------------- observation
     def record_observation(
         self, claim: ObservationClaim, *, correlation_id: str
@@ -397,12 +425,12 @@ class VisionAnalysisService:
             return ObservationResult(
                 ObservationDisposition.REJECTED, str(LineageVerdict.INPUT_MISMATCH), False
             )
-        context = self._d.context.current(scope)
+        context = self._current_context(scope, pin=pin)
         gate = eligibility_code(context, scope)
         if gate is None and not context_freshness_matches(
             claim.context_revision,
             context.context_revision,
-            None,
+            pin.context_digest,
             context.context_digest,
         ):
             gate = "STALE_CONTEXT"
@@ -458,7 +486,7 @@ class VisionAnalysisService:
         )
         if after is not LineageVerdict.PROCEED:
             return ObservationResult(ObservationDisposition.REJECTED, str(after), True)
-        context_after = self._d.context.current(scope)
+        context_after = self._current_context(scope, pin=pin)
         # The complete current gate (consent, purpose, session, every audience age) — C1-R02.
         gate_after = eligibility_code(context_after, scope)
         if gate_after is not None:
@@ -474,9 +502,9 @@ class VisionAnalysisService:
                 return ObservationResult(ObservationDisposition.REJECTED, refusal_after, True)
         stale_reason: InvalidationReason | None = None
         if not context_freshness_matches(
-            claim.context_revision,
+            pin.context_revision,
             context_after.context_revision,
-            context.context_digest,
+            pin.context_digest,
             context_after.context_digest,
         ):
             stale_reason = InvalidationReason.CONTEXT_CHANGED
@@ -535,11 +563,9 @@ class VisionAnalysisService:
                 if raced is not None:
                     winner = tx.get_head(raced)
                 else:
-                    # One unit: the full result, observation and head commit together, so a
-                    # failed write never leaves a published but unresolvable result ref.
-                    tx.insert_provider_result(result_record)
-                    tx.insert_observation(observation)
                     tx.insert_head(created)
+                    tx.insert_observation(observation)
+                    tx.insert_provider_result(result_record)
                     winner = None
         except AnalysisStorageUnavailable:
             raise VisionAnalysisError("DEPENDENCY_UNAVAILABLE") from None
@@ -562,7 +588,9 @@ class VisionAnalysisService:
         """Same analysis identity, no new provider call or mutation, but authority is judged
         against the current gate, context and source, never the stored status alone (C1-R01)."""
 
-        context = self._d.context.current(head.scope)
+        context = self._current_context(
+            head.scope, assistance_id=head.lineage.assistance_id
+        )
         gate = eligibility_code(context, head.scope)
         typed_refusal, typed_moved = None, False
         if gate is None and head.typed_binding is not None:
@@ -629,7 +657,9 @@ class VisionAnalysisService:
                 or head.organization_id != principal.organization_id
             ):
                 raise VisionAnalysisError("RESOURCE_NOT_FOUND")
-            context = self._d.context.current(head.scope)
+            context = self._current_context(
+                head.scope, assistance_id=head.lineage.assistance_id
+            )
             self._require_disclosure(principal, head.scope, context)
             if receipt is not None:
                 return self._replay(receipt, fingerprint, head, observation)
@@ -853,6 +883,7 @@ class VisionAnalysisService:
             input_snapshot_ref=head.source.snapshot_ref,
             context_revision=head.context_revision,
             scope=head.scope,
+            context_digest=head.context_digest,
         )
         current, refusal = self._typed_current(pin, head.source, context, expected_revision=None)
         if current is None:
@@ -904,7 +935,9 @@ class VisionAnalysisService:
     # ------------------------------------------------------------ H-AI-REVIEW
     def downstream_meaning(self, principal: Principal, analysis_id: str) -> DownstreamMeaning:
         head, observation, corrections = self._teacher_read(principal, analysis_id)
-        context = self._d.context.current(head.scope)
+        context = self._current_context(
+            head.scope, assistance_id=head.lineage.assistance_id
+        )
         applicable = self._applicable(head, context) and eligibility_code(
             context, head.scope
         ) is None
@@ -963,7 +996,11 @@ class VisionAnalysisService:
             principal.organization_id
         ):
             raise VisionAnalysisError("RESOURCE_NOT_FOUND")
-        self._require_disclosure(principal, head.scope, self._d.context.current(head.scope))
+        self._require_disclosure(
+            principal,
+            head.scope,
+            self._current_context(head.scope, assistance_id=head.lineage.assistance_id),
+        )
         if principal.role is not PrincipalRole.TEACHER:
             raise VisionAnalysisError("FORBIDDEN_SCOPE")
         return head, observation, corrections

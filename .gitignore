@@ -11,6 +11,9 @@ backend/.vision.env
 /.codex/
 /CLAUDE.md
 
+# Local Cezar state, runs, attachments, and workflow drafts stay off GitHub.
+/.ai/
+
 # ASR benchmark payloads remain local; only the manifest template/layout is versioned.
 features/FEAT-003-multimodal-understanding/fixtures/asr-round1/audio/**
 features/FEAT-003-multimodal-understanding/fixtures/asr-round1/transcripts/**

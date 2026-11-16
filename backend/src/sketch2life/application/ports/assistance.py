@@ -23,6 +23,7 @@ from sketch2life.domain.assistance import (
     MemberFact,
     PolicySnapshot,
 )
+from sketch2life.domain.eligibility import EligibilityScope
 from sketch2life.domain.vision_analysis import AdmissionReceipt, SourceSnapshot
 
 
@@ -169,7 +170,12 @@ class AssistanceOwnerPort(Protocol):
     def roster(self, session_id: str, group_id: str) -> GroupRoster | None: ...
 
     def members(
-        self, organization_id: str, participant_ids: tuple[str, ...], purpose_code: str
+        self,
+        organization_id: str,
+        participant_ids: tuple[str, ...],
+        purpose_code: str,
+        *,
+        scope: EligibilityScope | None = None,
     ) -> tuple[MemberFact, ...]: ...
 
     def current_turn(self, canvas_id: str) -> Contributor | None: ...

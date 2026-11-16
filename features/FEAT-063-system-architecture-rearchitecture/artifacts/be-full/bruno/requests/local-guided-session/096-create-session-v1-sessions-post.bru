@@ -1,0 +1,29 @@
+meta {
+  name: 096 [POST/ACTION - LOCAL TEST ONLY] Create Session
+  type: http
+  seq: 96
+}
+
+post {
+  url: {{baseUrl}}/v1/sessions
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "request_id": "{{request_id}}",
+    "idempotency_key": "{{idempotency_key}}",
+    "session_id": "{{session_id}}",
+    "expected_session_version": 0,
+    "actor_ref": "{{demo_actor_ref}}",
+    "payload": {
+      "operation": "CREATE_SESSION"
+    }
+  }
+}

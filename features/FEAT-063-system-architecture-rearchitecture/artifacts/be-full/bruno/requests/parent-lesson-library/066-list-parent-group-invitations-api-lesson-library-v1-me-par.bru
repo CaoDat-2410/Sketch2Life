@@ -1,0 +1,19 @@
+meta {
+  name: 066 [READ ONLY] List Parent Group Invitations
+  type: http
+  seq: 66
+}
+
+get {
+  url: {{baseUrl}}/api/lesson-library/v1/me/parent-group-invitations
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+}

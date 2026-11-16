@@ -38,17 +38,15 @@ class CreateClassRequest(Be1Request):
 
 class CreateAssignmentRequest(Be1Request):
     subject: Annotated[str, StringConstraints(min_length=1, max_length=256)]
-    role: Literal["school_admin", "teacher", "guide", "observer"]
-    class_id: Identifier | None = None
 
 
 class CreateProfileRequest(Be1Request):
-    child_id: Identifier
     class_id: Identifier
-    consent_id: Identifier
-    purpose_ref: PurposeRef
-    display_name: DisplayName
-    age_months: int = Field(ge=36, le=155)
+    display_name: Annotated[
+        str,
+        StringConstraints(min_length=11, max_length=200, pattern=r"^Synthetic .+$"),
+    ]
+    age_months: int = Field(ge=36, le=120)
 
 
 class RecordConsentRequest(Be1Request):

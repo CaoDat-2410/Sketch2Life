@@ -1,0 +1,20 @@
+meta {
+  name: 017 [READ ONLY] List Gallery
+  type: http
+  seq: 17
+}
+
+get {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/gallery?session_id={{session_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
+}

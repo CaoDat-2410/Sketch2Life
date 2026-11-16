@@ -9,8 +9,12 @@ from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
-
-from sketch2life.infrastructure.config.settings import get_core_database_settings, get_settings
+from sketch2life.infrastructure.config.settings import (
+    CoreDatabaseSettings,
+    Settings,
+    get_core_database_settings,
+    get_settings,
+)
 from sketch2life.interfaces.http.app import create_app
 from sketch2life.interfaces.http.openapi_contract import (
     MOUNTED_OPERATION_COUNT,
@@ -33,9 +37,65 @@ from sketch2life.interfaces.http.openapi_srs_v22 import (
 )
 
 HTTP_METHODS = {"get", "post", "put", "patch", "delete", "options", "head"}
+
+
+@pytest.fixture(autouse=True)
+def _disable_dotenv_for_composition_tests(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
+    monkeypatch.setitem(Settings.model_config, "env_file", None)
+    monkeypatch.setitem(CoreDatabaseSettings.model_config, "env_file", None)
+    monkeypatch.setenv("SKETCH2LIFE_ENV", "test")
+    monkeypatch.setenv("STORYRUN_LITE_MAIN_DEMO_ENABLED", "0")
+    monkeypatch.setenv(
+        "SKETCH2LIFE_DATABASE_URL", "postgresql+psycopg://localhost:9/s1at_closed"
+    )
+    get_settings.cache_clear()
+    get_core_database_settings.cache_clear()
+    assert Settings.model_config.get("env_file") is None
+    assert CoreDatabaseSettings.model_config.get("env_file") is None
+    try:
+        yield
+    finally:
+        get_settings.cache_clear()
+        get_core_database_settings.cache_clear()
+
+
 UPLOAD_TRANSPORT_TOO_LARGE_OPERATIONS = {
     ("post", "/v1/sessions/{session_id}/media/audio"),
     ("post", "/v1/sessions/{session_id}/media/image"),
+}
+# T9's local/test-only candidate lookup is intentionally outside the pinned Rev37 catalog.
+PILOT_ONLY_OPERATIONS = {
+    (
+        "get",
+        "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/pilot-profiles",
+    ),
+    ("post", "/api/be1/v1/assistance-requests"),
+    ("post", "/api/be1/v1/assistance-requests/{assistance_id}/cancel"),
+    (
+        "get",
+        "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/assistance-requests/{assistance_id}/status",
+    ),
+    (
+        "get",
+        "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/teacher/assistance-requests/pending",
+    ),
+}
+PR22_UNCATALOGUED_OPERATIONS = {
+    # Mounted PR #22 routes that are intentionally outside the Rev37 metadata map.
+    ("post", "/api/auth/v1/registrations"),
+    ("get", "/api/auth/v1/me"),
+    ("get", "/api/platform-admin/v1/accounts"),
+    ("post", "/api/platform-admin/v1/accounts"),
+    ("patch", "/api/platform-admin/v1/accounts/{account_id}"),
+    ("post", "/api/parent/v1/ai/sketch-guides"),
+    ("post", "/api/parent/v1/ai/drawing-understandings"),
+    ("post", "/api/parent/v1/ai/story-runs/{run_id}/story-revisions"),
+    (
+        "post",
+        "/api/teacher/v1/organizations/{organization_id}/ai/lesson-plan-suggestions",
+    ),
+    ("post", "/api/teacher/v1/organizations/{organization_id}/ai/sketch-decks"),
+    ("post", "/api/teacher/v1/organizations/{organization_id}/ai/lesson-visuals"),
 }
 CONTRACT_PARAMETER = re.compile(r"\b(path|query|header|cookie)\s+`([^`]+)`:\s*([^;]+)")
 CONTRACT_REQUEST_BODY = re.compile(
@@ -117,6 +177,7 @@ def test_swagger_ui_and_openapi_json_are_published(monkeypatch: pytest.MonkeyPat
 @pytest.fixture
 def runtime_openapi(monkeypatch: pytest.MonkeyPatch) -> Iterator[dict[str, Any]]:
     monkeypatch.setenv("SKETCH2LIFE_ENV", "local")
+    monkeypatch.setenv("SKETCH2LIFE_SYNTHETIC_PILOT_ENABLED", "true")
     monkeypatch.setenv("SKETCH2LIFE_STORAGE_EXAMPLE_ENABLED", "true")
     get_settings.cache_clear()
     get_core_database_settings.cache_clear()
@@ -172,9 +233,60 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
 
     assert spec["openapi"] == "3.1.0"
     assert spec["tags"] == public_tags(TAG_DESCRIPTIONS)
-    assert len(spec["paths"]) == 111
-    assert len(operations) == MOUNTED_OPERATION_COUNT == 124
-    assert set(operations) == set(MOUNTED_OPERATIONS)
+    assert len(operations) == 150
+    catalog_operations = set(MOUNTED_OPERATIONS)
+    catalog_paths = {path for _method, path in catalog_operations}
+    assert len(catalog_paths) == 118
+    assert len(catalog_operations) == MOUNTED_OPERATION_COUNT == 134
+    assert set(operations) - catalog_operations == (
+        PILOT_ONLY_OPERATIONS | PR22_UNCATALOGUED_OPERATIONS
+    )
+    assert PILOT_ONLY_OPERATIONS.isdisjoint(MOUNTED_OPERATIONS)
+    assert PR22_UNCATALOGUED_OPERATIONS.isdisjoint(MOUNTED_OPERATIONS)
+    profile_lookup = operations[
+        (
+            "get",
+            "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/pilot-profiles",
+        )
+    ]
+    assert "x-contract-surface" not in profile_lookup
+    assert len(PILOT_ONLY_OPERATIONS) == 5
+    assert len(PR22_UNCATALOGUED_OPERATIONS) == 11
+
+    assert (
+        "post",
+        "/api/be1/v1/organizations/{organization_id}/assignments",
+    ) not in operations
+    assert (
+        "delete",
+        "/api/be1/v1/organizations/{organization_id}/assignments/{assignment_id}",
+    ) not in operations
+    assignment_key = ("post", "/api/be1/v1/classes/{class_id}/assignments")
+    assert assignment_key in operations
+    assignment_body = operations[assignment_key]["requestBody"]["content"][
+        "application/json"
+    ]
+    assignment_schema_name = next(iter(_schema_refs(assignment_body["schema"])))
+    assert set(spec["components"]["schemas"][assignment_schema_name]["properties"]) == {
+        "subject"
+    }
+
+    profile_key = (
+        "post",
+        "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles",
+    )
+    profile_body = operations[profile_key]["requestBody"]["content"][
+        "application/json"
+    ]
+    profile_schema_name = next(iter(_schema_refs(profile_body["schema"])))
+    profile_schema = spec["components"]["schemas"][profile_schema_name]
+    assert set(profile_schema["properties"]) == {
+        "class_id",
+        "display_name",
+        "age_months",
+    }
+    assert profile_schema["properties"]["age_months"]["minimum"] == 36
+    assert profile_schema["properties"]["age_months"]["maximum"] == 120
 
     for key, contract in MOUNTED_OPERATIONS.items():
         operation = operations[key]
@@ -292,12 +404,36 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
                     "$ref": "#/components/schemas/Be1Error"
                 }
 
+    parent_get = operations[("get", "/v1/parent/profiles/{profile_id}")]
+    invalid_uuid_response = parent_get["responses"]["400"]
+    assert "ParentErrorResponse" in _schema_refs(
+        invalid_uuid_response["content"]["application/json"]["schema"]
+    )
+    parent_patch = operations[("patch", "/v1/parent/profiles/{profile_id}")]
+    assert "ParentProfileView" in _schema_refs(
+        parent_patch["responses"]["200"]["content"]["application/json"]["schema"]
+    )
+    parent_get_schemas = _schema_refs(
+        parent_get["responses"]["200"]["content"]["application/json"]["schema"]
+    )
+    assert {"ParentProfileView", "ParentProfileDeletePendingView"} <= parent_get_schemas
+    parent_list = operations[("get", "/v1/parent/profiles")]
+    assert "ParentProfileListView" in _schema_refs(
+        parent_list["responses"]["200"]["content"]["application/json"]["schema"]
+    )
+    parent_delete = operations[("delete", "/v1/parent/profiles/{profile_id}")]
+    assert "ParentProfileDeletePendingView" in _schema_refs(
+        parent_delete["responses"]["202"]["content"]["application/json"]["schema"]
+    )
+    assert "403" in parent_list["responses"]
+    assert "403" in parent_delete["responses"]
+
     candidate_keys = {(item["method"], item["path"]) for item in UNMOUNTED_OPERATIONS}
     assert len(candidate_keys) == UNMOUNTED_OPERATION_COUNT == 11
     assert not candidate_keys.intersection(operations)
     assert not _extension_keys(spec)
 
-    assert len(spec["tags"]) == 18
+    assert len(spec["tags"]) == 19
     assert all(tag.get("description") for tag in spec["tags"])
 
     operation_ids = [operation["operationId"] for operation in operations.values()]

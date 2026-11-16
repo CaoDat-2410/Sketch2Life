@@ -21,7 +21,7 @@ extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
   }
 }
 
-rootProject.name = 'Sketch2Life'
+rootProject.name = 'Sketch2Life Parent Test'
 
 dependencyResolutionManagement {
   versionCatalogs {

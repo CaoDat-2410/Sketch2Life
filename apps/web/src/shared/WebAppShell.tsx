@@ -13,6 +13,7 @@ import {
   GraduationCap,
   History,
   Inbox,
+  KeyRound,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -25,6 +26,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { BrandWordmark } from "./BrandMark";
+import { AccessibleDialog } from "./ui";
+import { authService } from "../modules/school-manager/be1/services/authService";
 
 export type PortalNavigationItem = {
   href: string;
@@ -50,6 +53,7 @@ export const TEACHER_NAVIGATION: PortalNavigationGroup[] = [
       { href: "/teacher/t04-session-sketch-deck", label: "Buổi dạy", icon: CalendarDays, state: "waiting" },
       { href: "/teacher/t02-presentation", label: "Trình bày giáo án", icon: Presentation, state: "waiting" },
       { href: "/teacher/t12-activities", label: "Hoạt động", icon: ClipboardList, state: "waiting" },
+      { href: "/teacher/t13-ai-lesson-workflow", label: "Gợi ý giáo án AI", icon: BookOpen, state: "available" },
     ],
   },
   {
@@ -101,6 +105,7 @@ export const PLATFORM_ADMIN_NAVIGATION: PortalNavigationGroup[] = [
       { href: "/platform/a01-content-moderation", label: "Duyệt học liệu", icon: ShieldCheck, state: "waiting" },
       { href: "/platform/a02-platform-operations?panel=catalog", label: "Danh mục hoạt động", icon: BookOpen, state: "waiting" },
       { href: "/platform/a02-platform-operations?panel=permissions", label: "Vai trò & quyền", icon: Users, state: "waiting" },
+      { href: "/platform/accounts", label: "Tài khoản & vai trò", icon: Users, state: "available" },
       { href: "/platform/a02-platform-operations?panel=quota", label: "Quota & chính sách", icon: Gauge, state: "waiting" },
     ],
   },
@@ -151,6 +156,12 @@ export function WebAppShell({
   const location = useLocation();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [passwordConfirmation, setPasswordConfirmation] = useState("");
+  const [passwordMessage, setPasswordMessage] = useState("");
+  const [passwordBusy, setPasswordBusy] = useState(false);
   const menuButton = useRef<HTMLButtonElement>(null);
   const firstLink = useRef<HTMLAnchorElement>(null);
   const heading = pageTitle(navigation, location.pathname, location.search);
@@ -170,6 +181,27 @@ export function WebAppShell({
     setMenuOpen(false);
     onLogout();
     navigate(loginHref);
+  };
+
+  const changePassword = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setPasswordMessage("");
+    if (newPassword.length < 6 || newPassword !== passwordConfirmation) {
+      setPasswordMessage("Mật khẩu mới cần ít nhất 6 ký tự và hai ô phải trùng nhau.");
+      return;
+    }
+    setPasswordBusy(true);
+    try {
+      await authService.changePassword(currentPassword, newPassword);
+      setPasswordMessage("Đã đổi mật khẩu.");
+      setCurrentPassword("");
+      setNewPassword("");
+      setPasswordConfirmation("");
+    } catch {
+      setPasswordMessage("Không thể đổi mật khẩu. Kiểm tra mật khẩu hiện tại rồi thử lại.");
+    } finally {
+      setPasswordBusy(false);
+    }
   };
 
   return (
@@ -211,6 +243,7 @@ export function WebAppShell({
         </nav>
         <div className="s2l-sidebar-bottom">
           <div className="s2l-session-status"><span aria-hidden="true" /><div><strong>{modeLabel}</strong><span>Quyền được kiểm tra theo phiên</span></div></div>
+          <button className="s2l-password-button" type="button" onClick={() => { setPasswordMessage(""); setPasswordDialogOpen(true); }}><KeyRound size={17} aria-hidden="true" />Đổi mật khẩu</button>
           <button className="s2l-logout-button" type="button" onClick={logout}><LogOut size={17} aria-hidden="true" />Đăng xuất</button>
         </div>
       </aside>
@@ -236,6 +269,22 @@ export function WebAppShell({
           {children}
         </main>
       </div>
+      <AccessibleDialog
+        open={passwordDialogOpen}
+        onOpenChange={setPasswordDialogOpen}
+        title="Đổi mật khẩu"
+        description="Xác minh mật khẩu hiện tại và đặt mật khẩu mới cho tài khoản."
+        className="s2l-password-dialog"
+      >
+        <form className="s2l-password-form" onSubmit={(event) => void changePassword(event)} aria-busy={passwordBusy}>
+          <h2>Đổi mật khẩu</h2>
+          <label>Mật khẩu hiện tại<input type="password" autoComplete="current-password" required value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} /></label>
+          <label>Mật khẩu mới<input type="password" autoComplete="new-password" minLength={6} required value={newPassword} onChange={(event) => setNewPassword(event.target.value)} /></label>
+          <label>Xác nhận mật khẩu mới<input type="password" autoComplete="new-password" minLength={6} required value={passwordConfirmation} onChange={(event) => setPasswordConfirmation(event.target.value)} /></label>
+          {passwordMessage && <p role="status" aria-live="polite">{passwordMessage}</p>}
+          <button type="submit" disabled={passwordBusy}>{passwordBusy ? "Đang lưu…" : "Cập nhật"}</button>
+        </form>
+      </AccessibleDialog>
     </div>
   );
 }

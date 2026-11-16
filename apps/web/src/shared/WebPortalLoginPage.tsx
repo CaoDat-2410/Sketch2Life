@@ -51,10 +51,12 @@ export function WebPortalLoginPage({
   portalRole,
   onRoleChange,
   onAuthenticate,
+  onResetPassword,
 }: {
   portalRole: WebPortalAppRole;
   onRoleChange: (role: WebPortalAppRole) => void;
   onAuthenticate: (role: WebPortalAppRole, email: string, password: string) => Promise<void>;
+  onResetPassword: (email: string) => Promise<void>;
 }) {
   const portal = PORTALS[portalRole];
   const Icon = portal.icon;
@@ -66,6 +68,7 @@ export function WebPortalLoginPage({
     error: null,
   });
   const [pending, setPending] = useState(false);
+  const [notice, setNotice] = useState("");
   const fields = formState.role === portalRole
     ? formState
     : { role: portalRole, password: "", showPassword: false, error: null };
@@ -87,6 +90,7 @@ export function WebPortalLoginPage({
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (pending) return;
+    setNotice("");
     updateFields({ error: null });
     setPending(true);
     try {
@@ -94,6 +98,26 @@ export function WebPortalLoginPage({
     } catch (cause) {
       updateFields({ error: backendMessage(cause) });
     } finally {
+      setPending(false);
+    }
+  };
+
+  const resetPassword = async () => {
+    if (pending) return;
+    updateFields({ error: null });
+    setNotice("");
+    if (!email.trim()) {
+      updateFields({ error: "Nhập email để nhận hướng dẫn đặt lại mật khẩu." });
+      return;
+    }
+
+    setPending(true);
+    try {
+      await onResetPassword(email.trim());
+    } catch {
+      // Keep the response neutral so login recovery does not reveal account existence.
+    } finally {
+      setNotice("Nếu email thuộc tài khoản đã đăng ký, hướng dẫn đặt lại mật khẩu sẽ được gửi.");
       setPending(false);
     }
   };
@@ -146,8 +170,6 @@ export function WebPortalLoginPage({
             })}
           </div>
 
-          {portalRole === "ADMIN" && <div className="s2l-alert" role="note">Backend chưa cung cấp API xác minh Platform Admin và capability. Cổng này chưa thể mở cho tới khi role được xác minh.</div>}
-
           <form className="s2l-login-form" onSubmit={(event) => void submit(event)} aria-busy={pending}>
             <label className="s2l-login-field" htmlFor="s2l-login-email">Email tài khoản
               <input id="s2l-login-email" type="email" autoComplete="username" inputMode="email" required value={email} onChange={(event) => setEmail(event.target.value)} aria-describedby={fields.error ? "s2l-login-error" : undefined} />
@@ -164,6 +186,12 @@ export function WebPortalLoginPage({
               <ArrowRight size={17} aria-hidden="true" />
             </button>
           </form>
+          <div className="s2l-login-recovery">
+            <button type="button" onClick={() => void resetPassword()} disabled={pending}>
+              {pending ? "Đang xử lý…" : "Quên mật khẩu?"}
+            </button>
+            {notice && <p role="status" aria-live="polite">{notice}</p>}
+          </div>
           <p className="s2l-login-footer">
             {portalRole === "MANAGER"
               ? "School Manager không xem story hoặc media của trẻ theo mặc định."

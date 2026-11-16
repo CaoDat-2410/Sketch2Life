@@ -45,7 +45,7 @@ DRAWING_INPUT_SCHEMA = "sketch2life.modal.drawing-input.v1"
 MAX_MANIFEST_BYTES = 64 * 1024
 MAX_IMAGE_PIXELS = 2_000_000
 MAX_PROCESSOR_PIXELS = 512 * 512
-MAX_OUTPUT_UNITS = 256
+MAX_OUTPUT_UNITS = 512
 _SHA256 = re.compile(r"\A[0-9a-f]{64}\Z")
 
 app = modal.App(APP_NAME)

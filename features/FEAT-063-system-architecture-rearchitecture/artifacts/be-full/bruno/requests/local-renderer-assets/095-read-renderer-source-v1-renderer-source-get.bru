@@ -1,0 +1,16 @@
+meta {
+  name: 095 [READ ONLY] Read Renderer Source
+  type: http
+  seq: 95
+}
+
+get {
+  url: {{baseUrl}}/v1/renderer/source
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  X-Render-Source-Capability: REPLACE_WITH_SYNTHETIC_VALUE
+}

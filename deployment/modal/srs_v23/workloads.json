@@ -60,6 +60,17 @@
       "implementation_status": "Synthetic FLUX.3 worker and image contract passed once; adult review remains required; authenticated durable Parent API is absent; workload disabled"
     },
     {
+      "id": "parent.activity.suggest",
+      "execution_group": "l4",
+      "candidate": "Qwen/Qwen3.5-9B@c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "candidate_status": "Rev78: one zero-catalog synthetic fallback call loaded the model and entered inference but was cancelled after 976.326s without a terminal worker result; the application quality gate did not receive output. Catalog selection live behavior remains unverified.",
+      "enabled": false,
+      "inputs": "Parent-readable published/shared lesson candidates plus minimized age, interest tags, selected topic, adult-confirmed drawing context, and adult-confirmed narration; no image/audio bytes or direct identifiers",
+      "human_gate": "adult reviews the selected catalog activities or exactly three temporary fallback drafts; generated drafts never publish to the lesson catalog",
+      "quota_owner": "separate Parent AI compute accounting; never video quota",
+      "implementation_status": "Catalog-first Parent API, worker contract, and backend quality gate are implemented; Rev78A relaxes only list-like materials/observation formatting. Keep disabled until catalog and fallback Modal inference both reach a terminal result and pass the application gate."
+    },
+    {
       "id": "teacher.sketch-deck.generate",
       "execution_group": "l4",
       "candidate": "Qwen/Qwen3.5-9B@c202236235762e1c871ad0ccb60c8ee5ba337b9a (text outline; visual is a separate workload)",

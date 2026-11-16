@@ -95,6 +95,23 @@ def require_assignment(
         OrganizationAssignmentModel.active.is_(True),
     )
     rows = tuple(db.scalars(statement).all())
+    account_role = identity.account_role if identity is not None else None
+    if account_role in {"school_manager", "teacher"}:
+        rows = tuple(
+            row
+            for row in rows
+            if (
+                account_role == "school_manager" and row.role == "school_admin"
+            )
+            or (account_role == "teacher" and row.role in {"teacher", "guide", "observer"})
+        )
+    if (
+        identity is None
+        or identity.state != "active"
+        or account_role not in {"school_manager", "teacher"}
+        or not rows
+    ):
+        raise failure(403, "ACCOUNT_SCOPE_UNAVAILABLE", "The account is not assigned here")
     assignments = tuple(
         AdultAssignment(
             organization_id=row.organization_id,
