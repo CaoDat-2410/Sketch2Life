@@ -52,4 +52,10 @@ The `dev` additions `apps/teacher-ui/src/components/TeacherDeckPresentation.tsx`
 
 ## Publication closeout
 
-At the time this evidence was prepared, the local merge candidate was complete and validated; the normal, non-force PR-head update and final GitHub PR state check were still pending. This record will be updated after that operation. The user explicitly prohibited merging PR #27 into `dev`.
+The merge commit was pushed with a regular, non-force `git push` to `codex/fe-ui-web-remediation`; GitHub accepted it as a fast-forward from the original PR head. The GitHub connector's direct blob write returned `403 Resource not accessible by integration`, so publication used the configured Git transport instead.
+
+- Merge commit now on the PR branch: `417410486dde0e660e37dacab26ed07b2f7b948d`.
+- Parents: first `f13726bb2325ffd0e7f90e5c7e0221853167cbc0` (original PR head), second `c87d8008b70910eb0a4d3579b9490312e7e3143f` (`dev`).
+- Post-push PR metadata: state `open`, `merged=false`, base `dev`, head `417410486dde0e660e37dacab26ed07b2f7b948d`, `mergeable=true`.
+- The branch update did not merge the PR into `dev`; no PR merge action was invoked.
+- At the metadata snapshot, the PR-triggered `CI` workflow run `43864760305` was `in_progress`; the commit had no combined status entries yet.
