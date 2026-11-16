@@ -1,0 +1,279 @@
+{
+  "browser": "isolated headless Chrome target",
+  "networkPolicy": "Only HTTP requests to 127.0.0.1 ports 5172, 5173, and 5174 were allowed; other HTTP(S) requests were blocked.",
+  "captures": [
+    {
+      "file": "auth-teacher-1440.png",
+      "url": "http://127.0.0.1:5172/login",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Dạy học\nmở lối mới.",
+      "activeRole": [
+        "Teacher"
+      ],
+      "portalLinks": [
+        {
+          "label": "Teacher",
+          "href": "http://127.0.0.1:5172/login",
+          "current": "page"
+        },
+        {
+          "label": "School Manager",
+          "href": "http://127.0.0.1:5173/login",
+          "current": null
+        },
+        {
+          "label": "Platform Admin",
+          "href": "http://127.0.0.1:5174/login",
+          "current": null
+        }
+      ],
+      "authSubmitInFirstViewport": true,
+      "previewNotice": true
+    },
+    {
+      "file": "auth-teacher-390.png",
+      "url": "http://127.0.0.1:5172/login",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Dạy học\nmở lối mới.",
+      "activeRole": [
+        "Teacher"
+      ],
+      "portalLinks": [
+        {
+          "label": "Teacher",
+          "href": "http://127.0.0.1:5172/login",
+          "current": "page"
+        },
+        {
+          "label": "School Manager",
+          "href": "http://127.0.0.1:5173/login",
+          "current": null
+        },
+        {
+          "label": "Platform Admin",
+          "href": "http://127.0.0.1:5174/login",
+          "current": null
+        }
+      ],
+      "authSubmitInFirstViewport": true,
+      "previewNotice": true
+    },
+    {
+      "file": "auth-school-manager-1440.png",
+      "url": "http://127.0.0.1:5173/login",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Điều phối\nđể sáng tạo.",
+      "activeRole": [
+        "School Manager"
+      ],
+      "portalLinks": [
+        {
+          "label": "Teacher",
+          "href": "http://127.0.0.1:5172/login",
+          "current": null
+        },
+        {
+          "label": "School Manager",
+          "href": "http://127.0.0.1:5173/login",
+          "current": "page"
+        },
+        {
+          "label": "Platform Admin",
+          "href": "http://127.0.0.1:5174/login",
+          "current": null
+        }
+      ],
+      "authSubmitInFirstViewport": true,
+      "previewNotice": true
+    },
+    {
+      "file": "auth-school-manager-390.png",
+      "url": "http://127.0.0.1:5173/login",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Điều phối\nđể sáng tạo.",
+      "activeRole": [
+        "School Manager"
+      ],
+      "portalLinks": [
+        {
+          "label": "Teacher",
+          "href": "http://127.0.0.1:5172/login",
+          "current": null
+        },
+        {
+          "label": "School Manager",
+          "href": "http://127.0.0.1:5173/login",
+          "current": "page"
+        },
+        {
+          "label": "Platform Admin",
+          "href": "http://127.0.0.1:5174/login",
+          "current": null
+        }
+      ],
+      "authSubmitInFirstViewport": true,
+      "previewNotice": true
+    },
+    {
+      "file": "auth-platform-admin-1440.png",
+      "url": "http://127.0.0.1:5174/login",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Vận hành\nđáng tin cậy.",
+      "activeRole": [
+        "Platform Admin"
+      ],
+      "portalLinks": [
+        {
+          "label": "Teacher",
+          "href": "http://127.0.0.1:5172/login",
+          "current": null
+        },
+        {
+          "label": "School Manager",
+          "href": "http://127.0.0.1:5173/login",
+          "current": null
+        },
+        {
+          "label": "Platform Admin",
+          "href": "http://127.0.0.1:5174/login",
+          "current": "page"
+        }
+      ],
+      "authSubmitInFirstViewport": true,
+      "previewNotice": true
+    },
+    {
+      "file": "auth-platform-admin-390.png",
+      "url": "http://127.0.0.1:5174/login",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Vận hành\nđáng tin cậy.",
+      "activeRole": [
+        "Platform Admin"
+      ],
+      "portalLinks": [
+        {
+          "label": "Teacher",
+          "href": "http://127.0.0.1:5172/login",
+          "current": null
+        },
+        {
+          "label": "School Manager",
+          "href": "http://127.0.0.1:5173/login",
+          "current": null
+        },
+        {
+          "label": "Platform Admin",
+          "href": "http://127.0.0.1:5174/login",
+          "current": "page"
+        }
+      ],
+      "authSubmitInFirstViewport": true,
+      "previewNotice": true
+    },
+    {
+      "file": "auth-teacher-role-mismatch-1440.png",
+      "url": "http://127.0.0.1:5172/t01-lesson-workspace",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Không thể mở cổng Giáo viên",
+      "activeRole": [],
+      "portalLinks": [],
+      "authSubmitInFirstViewport": false,
+      "previewNotice": false
+    },
+    {
+      "file": "auth-manager-role-mismatch-1440.png",
+      "url": "http://127.0.0.1:5173/m02-organization-management",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Không thể mở cổng Quản lý trường",
+      "activeRole": [],
+      "portalLinks": [],
+      "authSubmitInFirstViewport": false,
+      "previewNotice": false
+    },
+    {
+      "file": "auth-admin-role-mismatch-1440.png",
+      "url": "http://127.0.0.1:5174/a02-platform-operations",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Không thể mở cổng Quản trị nền tảng",
+      "activeRole": [],
+      "portalLinks": [],
+      "authSubmitInFirstViewport": false,
+      "previewNotice": false
+    }
+  ],
+  "roleMismatch": {
+    "teacher": {
+      "heading": "Không thể mở cổng Giáo viên",
+      "message": true,
+      "logoutVisible": true,
+      "roleShellVisible": false
+    },
+    "manager": {
+      "heading": "Không thể mở cổng Quản lý trường",
+      "message": true,
+      "logoutVisible": true,
+      "roleShellVisible": false
+    },
+    "platformAdmin": {
+      "heading": "Không thể mở cổng Quản trị nền tảng",
+      "message": true,
+      "logoutVisible": true,
+      "roleShellVisible": false
+    }
+  },
+  "runtimeExceptions": []
+}

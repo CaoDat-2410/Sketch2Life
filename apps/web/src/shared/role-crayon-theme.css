@@ -1,0 +1,245 @@
+/* Rev24 shared web-role crayon design tokens. Scoped to Teacher, School Manager and Platform Admin apps. */
+html[data-portal="teacher"], html[data-portal="school-preview"], html[data-portal="platform"] {
+  color-scheme: light;
+  --color-paper: #FFF9F0;
+  --color-paper-2: #F2EBDD;
+  --color-paper-3: #E9DFC9;
+  --color-sheet: #FFFEFA;
+  --color-ink: #25241F;
+  --color-ink-2: #3E3D36;
+  --color-muted: #57574F;
+  --color-rule: #E4D8C5;
+  --color-rule-2: #D5C7AE;
+  --color-accent: #245B9B;
+  --color-accent-strong: #1D4C82;
+  --color-accent-soft: #E8F0FA;
+  --color-accent-ink: #FFFFFF;
+  --color-focus: #245B9B;
+  --color-success: #3B7559;
+  --color-success-soft: #E7F1E8;
+  --color-warn: #8B6410;
+  --color-warn-soft: #F8EBC2;
+  --color-danger: #A33C35;
+  --color-danger-soft: #F8E5DF;
+  --bg: #FFF9F0;
+  --surface: #FFFEFA;
+  --surface-2: #F2EBDD;
+  --line: #E4D8C5;
+  --ink: #25241F;
+  --ink-2: #3E3D36;
+  --ink-3: #57574F;
+  --primary: #245B9B;
+  --primary-2: #245B9B;
+  --primary-fg: #1D4C82;
+  --primary-dark: #1D4C82;
+  --primary-600: #245B9B;
+  --primary-50: #E8F0FA;
+  --primary-100: #D6E4F3;
+  --accent: #D4A82A;
+  --accent-dark: #8B6410;
+  --accent-50: #F8EBC2;
+  --accent-ink: #54400E;
+  --mint: #3B7559;
+  --mint-dark: #2F6249;
+  --mint-50: #E7F1E8;
+  --mint-ink: #2F6249;
+  --danger: #A33C35;
+  --danger-dark: #852F2A;
+  --danger-50: #F8E5DF;
+  --danger-ink: #762A26;
+  --card-bg: #FFFEFA;
+  --card-border: #E4D8C5;
+  --tw-ink: #25241F;
+  --tw-ink-2: #3E3D36;
+  --tw-sub-ink: #57574F;
+  --tw-surface: #FFFEFA;
+  --tw-surface-alt: #F2EBDD;
+  --tw-border: #E4D8C5;
+  --tw-sky-ink: #245B9B;
+  --mg-canvas: #FFF9F0;
+  --mg-surface: #F2EBDD;
+  --mg-raised: #FFFEFA;
+  --mg-ink: #25241F;
+  --mg-muted: #57574F;
+  --mg-subtle: #57574F;
+  --mg-line: #E4D8C5;
+  --mg-accent: #245B9B;
+  --mg-accent-strong: #1D4C82;
+  --mg-accent-soft: #E8F0FA;
+  --mg-on-accent: #FFFFFF;
+  --mg-neutral-soft: #F2EBDD;
+  --mg-focus: #245B9B;
+}
+html[data-portal="teacher"][data-theme="dark"], html[data-portal="school-preview"][data-theme="dark"], html[data-portal="platform"][data-theme="dark"] {
+  color-scheme: dark;
+  --color-paper: #25241F;
+  --color-paper-2: #302E28;
+  --color-paper-3: #403C33;
+  --color-sheet: #302E28;
+  --color-ink: #FFF9F0;
+  --color-ink-2: #E8E0D2;
+  --color-muted: #D0C7B7;
+  --color-rule: #514B3F;
+  --color-rule-2: #6B6252;
+  --color-accent: #8AB6E6;
+  --color-accent-strong: #A9CAED;
+  --color-accent-soft: #2B3B4C;
+  --color-accent-ink: #25241F;
+  --color-focus: #A9CAED;
+  --bg: #25241F;
+  --surface: #302E28;
+  --surface-2: #403C33;
+  --line: #514B3F;
+  --ink: #FFF9F0;
+  --ink-2: #E8E0D2;
+  --ink-3: #D0C7B7;
+  --primary: #8AB6E6;
+  --primary-2: #8AB6E6;
+  --primary-fg: #A9CAED;
+  --primary-dark: #A9CAED;
+  --primary-600: #8AB6E6;
+  --primary-50: #2B3B4C;
+  --primary-100: #34495C;
+  --accent: #F2D575;
+  --accent-dark: #F2D575;
+  --accent-50: #4A4125;
+  --accent-ink: #F9E9A8;
+  --mint: #9BC7A7;
+  --mint-dark: #9BC7A7;
+  --mint-50: #263B2E;
+  --mint-ink: #D2E8D5;
+  --danger: #E9897F;
+  --danger-dark: #E9897F;
+  --danger-50: #472B27;
+  --danger-ink: #F2B8B0;
+  --card-bg: #302E28;
+  --card-border: #514B3F;
+  --tw-ink: #FFF9F0;
+  --tw-ink-2: #E8E0D2;
+  --tw-sub-ink: #D0C7B7;
+  --tw-surface: #302E28;
+  --tw-surface-alt: #403C33;
+  --tw-border: #514B3F;
+  --tw-sky-ink: #A9CAED;
+  --mg-canvas: #25241F;
+  --mg-surface: #403C33;
+  --mg-raised: #302E28;
+  --mg-ink: #FFF9F0;
+  --mg-muted: #D0C7B7;
+  --mg-subtle: #D0C7B7;
+  --mg-line: #514B3F;
+  --mg-accent: #8AB6E6;
+  --mg-accent-strong: #A9CAED;
+  --mg-accent-soft: #2B3B4C;
+  --mg-on-accent: #25241F;
+  --mg-neutral-soft: #403C33;
+  --mg-focus: #A9CAED;
+}
+html[data-portal], :is(html[data-portal="teacher"], html[data-portal="school-preview"], html[data-portal="platform"]) body, :is(html[data-portal="teacher"], html[data-portal="school-preview"], html[data-portal="platform"]) #root { min-height: 100%; }
+:is(html[data-portal="teacher"], html[data-portal="school-preview"], html[data-portal="platform"]) { background: var(--color-paper); }
+:is(html[data-portal="teacher"], html[data-portal="school-preview"], html[data-portal="platform"]) body {
+  margin: 0;
+  color: var(--color-ink);
+  background: var(--color-paper);
+  font-family: system-ui, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+:is(html[data-portal="teacher"], html[data-portal="school-preview"], html[data-portal="platform"]) button, :is(html[data-portal="teacher"], html[data-portal="school-preview"], html[data-portal="platform"]) input, :is(html[data-portal="teacher"], html[data-portal="school-preview"], html[data-portal="platform"]) select, :is(html[data-portal="teacher"], html[data-portal="school-preview"], html[data-portal="platform"]) textarea { font: inherit; }
+:is(html[data-portal="teacher"], html[data-portal="school-preview"], html[data-portal="platform"]) :focus-visible { outline-color: var(--color-focus); }
+:is(html[data-portal="teacher"], html[data-portal="school-preview"], html[data-portal="platform"]) .s2l-access-state {
+  display: grid;
+  min-height: 100vh;
+  min-height: 100svh;
+  place-items: center;
+  padding: 24px;
+  color: var(--color-ink);
+  background: var(--color-paper);
+}
+:is(html[data-portal="teacher"], html[data-portal="school-preview"], html[data-portal="platform"]) .s2l-access-card {
+  width: min(100%, 520px);
+  padding: clamp(24px, 5vw, 40px);
+  border: 1px solid var(--color-rule);
+  border-radius: 20px;
+  background: var(--color-sheet);
+}
+:is(html[data-portal="teacher"], html[data-portal="school-preview"], html[data-portal="platform"]) .s2l-access-mark {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  margin-bottom: 20px;
+  border: 1px solid var(--color-rule);
+  border-radius: 14px;
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
+}
+:is(html[data-portal="teacher"], html[data-portal="school-preview"], html[data-portal="platform"]) .s2l-access-mark svg { width: 24px; height: 24px; }
+:is(html[data-portal="teacher"], html[data-portal="school-preview"], html[data-portal="platform"]) .s2l-access-kicker { margin: 0 0 8px; color: var(--color-muted); font-size: 11px; font-weight: 750; letter-spacing: .09em; }
+:is(html[data-portal="teacher"], html[data-portal="school-preview"], html[data-portal="platform"]) .s2l-access-card h1 { margin: 0 0 10px; font-size: clamp(24px, 4vw, 32px); line-height: 1.2; }
+:is(html[data-portal="teacher"], html[data-portal="school-preview"], html[data-portal="platform"]) .s2l-access-copy { margin: 0; color: var(--color-muted); line-height: 1.6; }
+:is(html[data-portal="teacher"], html[data-portal="school-preview"], html[data-portal="platform"]) .s2l-access-action {
+  min-height: 48px;
+  margin-top: 24px;
+  padding: 0 18px;
+  border: 1px solid var(--color-accent);
+  border-radius: 11px;
+  color: #FFFFFF;
+  background: var(--color-accent);
+  font-weight: 700;
+  cursor: pointer;
+}
+:is(html[data-portal="teacher"], html[data-portal="school-preview"], html[data-portal="platform"]) .s2l-access-action:hover { background: var(--color-accent-strong); }
+:is(html[data-portal="teacher"], html[data-portal="school-preview"], html[data-portal="platform"]) .s2l-access-action:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
+
+/* Rev26: subtle paper grain and corner crayon marks stay behind role content. */
+:is(html[data-portal="teacher"], html[data-portal="school-preview"], html[data-portal="platform"]) .teacher-content-column,
+:is(html[data-portal="teacher"], html[data-portal="school-preview"], html[data-portal="platform"]) .manager-content-column,
+:is(html[data-portal="teacher"], html[data-portal="school-preview"], html[data-portal="platform"]) .admin-content-column {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background-color: var(--color-paper, #fff9f0);
+  background-image:
+    radial-gradient(ellipse 32rem 23rem at 0% 0%, rgb(77 144 194 / 8%), transparent 100%),
+    radial-gradient(ellipse 28rem 22rem at 100% 0%, rgb(220 122 94 / 5%), transparent 100%),
+    radial-gradient(ellipse 31rem 25rem at 100% 100%, rgb(222 174 62 / 8%), transparent 100%),
+    repeating-linear-gradient(0deg, rgb(87 69 43 / 1.2%) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, rgb(87 69 43 / .8%) 0 1px, transparent 1px 6px);
+}
+
+:is(html[data-portal="teacher"], html[data-portal="school-preview"], html[data-portal="platform"]) .teacher-content-column::before,
+:is(html[data-portal="teacher"], html[data-portal="school-preview"], html[data-portal="platform"]) .manager-content-column::before,
+:is(html[data-portal="teacher"], html[data-portal="school-preview"], html[data-portal="platform"]) .admin-content-column::before {
+  position: absolute;
+  z-index: -1;
+  inset: 68px 0 0;
+  content: "";
+  pointer-events: none;
+  opacity: .48;
+  background-image:
+    linear-gradient(137deg, transparent 43%, rgb(48 128 190 / 65%) 45% 51%, transparent 53%),
+    linear-gradient(140deg, transparent 43%, rgb(48 128 190 / 52%) 45% 51%, transparent 53%),
+    linear-gradient(137deg, transparent 43%, rgb(228 174 49 / 70%) 45% 51%, transparent 53%),
+    linear-gradient(133deg, transparent 43%, rgb(216 117 91 / 58%) 45% 51%, transparent 53%),
+    linear-gradient(138deg, transparent 43%, rgb(64 159 139 / 58%) 45% 51%, transparent 53%),
+    linear-gradient(136deg, transparent 43%, rgb(228 174 49 / 68%) 45% 51%, transparent 53%);
+  background-repeat: no-repeat;
+  background-size: 36px 24px, 42px 27px, 31px 21px, 38px 25px, 37px 24px, 41px 26px;
+  background-position: left 8px top 8px, left 22px top 22px, right 25px top 11px, right 8px top 25px, left 7px bottom 18px, right 10px bottom 20px;
+}
+
+@media (max-width: 820px) {
+  :is(html[data-portal="teacher"], html[data-portal="school-preview"], html[data-portal="platform"]) .teacher-content-column::before,
+  :is(html[data-portal="teacher"], html[data-portal="school-preview"], html[data-portal="platform"]) .manager-content-column::before,
+  :is(html[data-portal="teacher"], html[data-portal="school-preview"], html[data-portal="platform"]) .admin-content-column::before {
+    inset: 62px 0 0;
+    opacity: .34;
+    background-image:
+      linear-gradient(138deg, transparent 43%, rgb(64 159 139 / 58%) 45% 51%, transparent 53%),
+      linear-gradient(136deg, transparent 43%, rgb(228 174 49 / 68%) 45% 51%, transparent 53%);
+    background-size: 33px 22px, 36px 23px;
+    background-position: left 5px bottom 20px, right 7px bottom 21px;
+  }
+}

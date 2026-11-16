@@ -1,0 +1,174 @@
+{
+  "note": "Manual loopback login screenshots after the shared typography fix. Existing per-origin preview storage was restored after capture.",
+  "captures": [
+    {
+      "app": "Teacher",
+      "file": "teacher-login-desktop.png",
+      "route": "/login",
+      "width": 1440,
+      "docWidth": 1440,
+      "overflow": false,
+      "role": "Giáo viên",
+      "title": "Dạy học\nmở lối mới.",
+      "fontFamily": "\"Be Vietnam Pro\", \"Segoe UI\", system-ui, sans-serif",
+      "fontWeight": "700",
+      "fontStyle": "normal",
+      "lineHeight": "79.92px",
+      "letterSpacing": "-2.59px",
+      "rect": {
+        "x": 101,
+        "y": 234,
+        "w": 518,
+        "h": 160
+      },
+      "accentStyle": {
+        "fontFamily": "\"Be Vietnam Pro\", \"Segoe UI\", system-ui, sans-serif",
+        "fontWeight": "700",
+        "fontStyle": "normal",
+        "letterSpacing": "-2.59px"
+      },
+      "viteError": false
+    },
+    {
+      "app": "Teacher",
+      "file": "teacher-login-narrow.png",
+      "route": "/login",
+      "width": 390,
+      "docWidth": 390,
+      "overflow": false,
+      "role": "Giáo viên",
+      "title": "Dạy học\nmở lối mới.",
+      "fontFamily": "\"Be Vietnam Pro\", \"Segoe UI\", system-ui, sans-serif",
+      "fontWeight": "700",
+      "fontStyle": "normal",
+      "lineHeight": "46.332px",
+      "letterSpacing": "-1.5015px",
+      "rect": {
+        "x": 18,
+        "y": 303,
+        "w": 354,
+        "h": 93
+      },
+      "accentStyle": {
+        "fontFamily": "\"Be Vietnam Pro\", \"Segoe UI\", system-ui, sans-serif",
+        "fontWeight": "700",
+        "fontStyle": "normal",
+        "letterSpacing": "-1.5015px"
+      },
+      "viteError": false
+    },
+    {
+      "app": "School Manager",
+      "file": "school-manager-login-desktop.png",
+      "route": "/login",
+      "width": 1440,
+      "docWidth": 1440,
+      "overflow": false,
+      "role": "Quản lý trường",
+      "title": "Điều phối\nđể sáng tạo.",
+      "fontFamily": "\"Be Vietnam Pro\", \"Segoe UI\", system-ui, sans-serif",
+      "fontWeight": "700",
+      "fontStyle": "normal",
+      "lineHeight": "79.92px",
+      "letterSpacing": "-2.59px",
+      "rect": {
+        "x": 101,
+        "y": 234,
+        "w": 518,
+        "h": 160
+      },
+      "accentStyle": {
+        "fontFamily": "\"Be Vietnam Pro\", \"Segoe UI\", system-ui, sans-serif",
+        "fontWeight": "700",
+        "fontStyle": "normal",
+        "letterSpacing": "-2.59px"
+      },
+      "viteError": false
+    },
+    {
+      "app": "School Manager",
+      "file": "school-manager-login-narrow.png",
+      "route": "/login",
+      "width": 390,
+      "docWidth": 390,
+      "overflow": false,
+      "role": "Quản lý trường",
+      "title": "Điều phối\nđể sáng tạo.",
+      "fontFamily": "\"Be Vietnam Pro\", \"Segoe UI\", system-ui, sans-serif",
+      "fontWeight": "700",
+      "fontStyle": "normal",
+      "lineHeight": "46.332px",
+      "letterSpacing": "-1.5015px",
+      "rect": {
+        "x": 18,
+        "y": 303,
+        "w": 354,
+        "h": 93
+      },
+      "accentStyle": {
+        "fontFamily": "\"Be Vietnam Pro\", \"Segoe UI\", system-ui, sans-serif",
+        "fontWeight": "700",
+        "fontStyle": "normal",
+        "letterSpacing": "-1.5015px"
+      },
+      "viteError": false
+    },
+    {
+      "app": "Platform Admin",
+      "file": "platform-admin-login-desktop.png",
+      "route": "/login",
+      "width": 1440,
+      "docWidth": 1430,
+      "overflow": false,
+      "role": "Quản trị nền tảng",
+      "title": "Vận hành\nđáng tin cậy.",
+      "fontFamily": "\"Be Vietnam Pro\", \"Segoe UI\", system-ui, sans-serif",
+      "fontWeight": "700",
+      "fontStyle": "normal",
+      "lineHeight": "79.92px",
+      "letterSpacing": "-2.59px",
+      "rect": {
+        "x": 101,
+        "y": 234,
+        "w": 518,
+        "h": 160
+      },
+      "accentStyle": {
+        "fontFamily": "\"Be Vietnam Pro\", \"Segoe UI\", system-ui, sans-serif",
+        "fontWeight": "700",
+        "fontStyle": "normal",
+        "letterSpacing": "-2.59px"
+      },
+      "viteError": false
+    },
+    {
+      "app": "Platform Admin",
+      "file": "platform-admin-login-narrow.png",
+      "route": "/login",
+      "width": 390,
+      "docWidth": 390,
+      "overflow": false,
+      "role": "Quản trị nền tảng",
+      "title": "Vận hành\nđáng tin cậy.",
+      "fontFamily": "\"Be Vietnam Pro\", \"Segoe UI\", system-ui, sans-serif",
+      "fontWeight": "700",
+      "fontStyle": "normal",
+      "lineHeight": "46.332px",
+      "letterSpacing": "-1.5015px",
+      "rect": {
+        "x": 18,
+        "y": 303,
+        "w": 354,
+        "h": 93
+      },
+      "accentStyle": {
+        "fontFamily": "\"Be Vietnam Pro\", \"Segoe UI\", system-ui, sans-serif",
+        "fontWeight": "700",
+        "fontStyle": "normal",
+        "letterSpacing": "-1.5015px"
+      },
+      "viteError": false
+    }
+  ],
+  "runtimeErrors": []
+}
