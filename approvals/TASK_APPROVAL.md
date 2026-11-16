@@ -369,3 +369,13 @@
 - **Scope:** Integrate the recorded `dev` base into the PR head with a normal merge commit; resolve all 19 unmerged paths; retain both append-only approval histories; preserve current mobile, UI-mobile, backend, and contract changes; carry the applicable admin/teacher behavior into the consolidated web app; record feature-local evidence and run repository-required checks.
 - **Explicit boundary:** Do not merge PR #27 into `dev`, change its base, force-push, rebase, squash, deploy, or change product/SRS requirements. The PR remains open and unmerged.
 - **Approval basis:** The direct user request authorizes this exact conflict-resolution scope and a normal update to the PR head branch after required checks. It does not authorize merging the PR.
+
+## FEAT-071 Addendum Rev2 — owner-authorized PR #27 merge
+
+- **Status:** APPROVED for the exact standard merge attempt in the Rev2 plan addendum.
+- **Approver:** Project owner, direct instruction in chat on 2026-11-16: “đc r :)))) lên dev r lỗi ci tính sau”. This supersedes FEAT-071 Rev1's no-merge boundary for PR #27.
+- **Approved plan:** `features/FEAT-071-pr27-conflict-resolution/plan/PLAN.md`, Rev2 addendum.
+- **Plan SHA-256:** `B68F357728D22F8639CE645B8EB3687C7072ABB0F6F504540B0B8767B2812BCD`.
+- **Scope:** Merge PR #27 into its existing `dev` base through GitHub's normal merge operation using the current verified head SHA; current CI failures may remain for later resolution.
+- **Protection boundary:** No bypass of required checks or branch protection. If GitHub rejects the standard merge, leave the PR open and record the blocker. No force push, rebase, squash, direct write to `dev`, product/SRS change, or deployment.
+- **Approval basis:** The owner's latest direct instruction authorizes merging the PR and supersedes the earlier no-merge instruction only for this PR.
