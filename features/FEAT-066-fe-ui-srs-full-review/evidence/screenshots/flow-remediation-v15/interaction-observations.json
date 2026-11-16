@@ -1,0 +1,495 @@
+{
+  "networkPolicy": "Only HTTP requests to the three 127.0.0.1 Vite ports were continued; all other HTTP(S) requests were blocked.",
+  "captures": [
+    {
+      "app": "school-manager",
+      "file": "school-manager-m01-publication-review-1440.png",
+      "route": "/m01-publication-review",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1430,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Duyệt giáo án công khai",
+      "visibleText": "Quản lý trường\nTổng quan\nGiáo viên & nhóm\nLớp & suất học\nLượt video\nDuyệt công khai\nCài đặt\nHT\nHiệu trưởng Minh\nDữ liệu xem thử\nĐăng xuất\nDuyệt công khai\nTrợ giúp\nHộp thư chưa khả dụng\nTrường Mầm non Ánh Dương\nXem thử · Dữ liệu minh họa, không lưu\nDuyệt giáo án công khai\nKiểm tra 4 tiêu chí sư phạm trước khi phát hành cho toàn trường\nChờ duyệt: 3\nĐã duyệt: 0\nYêu cầu chỉnh sửa: 0\nVề tổng quan trường\nChờ duyệt\n3\n🦋\nVòng đời bướm (Bản 3)\nCô Thảo · 2 giờ trước\nChờ\n🌱\nCây xanh quanh em (Bản 1)\nCô Lan · 1 ngày trước\nChờ\n🐬\nĐại dương kỳ thú (Bản 2)\nCô Mai · 2 ngày trước\nChờ\n🦋\nVòng đời bướm (Bản 3)\nCT\nCô Thảo\nChờ duyệt\nNội dung\nSo sánh phiên bản\nHiện tại\nTrong trường\nChạm để chọn\nCông khai\nTiêu chí"
+    },
+    {
+      "app": "school-manager",
+      "file": "school-manager-m01-publication-review-390.png",
+      "route": "/m01-publication-review",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Duyệt giáo án công khai",
+      "visibleText": "Quản lý trường\nTổng quan\nGiáo viên & nhóm\nLớp & suất học\nLượt video\nDuyệt công khai\nCài đặt\nHT\nHiệu trưởng Minh\nDữ liệu xem thử\nĐăng xuất\nDuyệt công khai\nTrợ giúp\nHộp thư chưa khả dụng\nTrường Mầm non Ánh Dương\nXem thử · Dữ liệu minh họa, không lưu\nDuyệt giáo án công khai\nKiểm tra 4 tiêu chí sư phạm trước khi phát hành cho toàn trường\nChờ duyệt: 3\nĐã duyệt: 0\nYêu cầu chỉnh sửa: 0\nVề tổng quan trường\nChờ duyệt\n3\n🦋\nVòng đời bướm (Bản 3)\nCô Thảo · 2 giờ trước\nChờ\n🌱\nCây xanh quanh em (Bản 1)\nCô Lan · 1 ngày trước\nChờ\n🐬\nĐại dương kỳ thú (Bản 2)\nCô Mai · 2 ngày trước\nChờ\n🦋\nVòng đời bướm (Bản 3)\nCT\nCô Thảo\nChờ duyệt\nNội dung\nSo sánh phiên bản\nHiện tại\nTrong trường\nChạm để chọn\nCông khai\nTiêu chí"
+    },
+    {
+      "app": "school-manager",
+      "file": "school-manager-m02-organization-management-1440.png",
+      "route": "/m02-organization-management",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Quản lý trường",
+      "visibleText": "Quản lý trường\nTổng quan\nGiáo viên & nhóm\nLớp & suất học\nLượt video\nDuyệt công khai\nCài đặt\nHT\nHiệu trưởng Minh\nDữ liệu xem thử\nĐăng xuất\nQuản lý trường\nTrợ giúp\nHộp thư chưa khả dụng\nTrường Mầm non Ánh Dương\nXem thử · Dữ liệu minh họa, không lưu\nQuản lý trường\nMầm non Ánh Dương · Theo dõi lớp, nhân sự và hạn mức.\nDuyệt bài học công khai\n2\ngiáo viên · 2 nhóm phụ huynh\n2\nlớp · 8/10 suất đang dùng\n86\nlượt tạo video còn lại\nTruy cập nhanh\n\nChọn một mục để xem hoặc cập nhật thông tin của trường.\n\nGiáo viên và nhóm phụ huynh\nQuản lý thành viên và nhóm liên lạc.\n2 GV · 2 nhóm\nLớp học và sức chứa\nXem sĩ số, phân công và số chỗ còn lại.\n2 lớp · 2 chỗ trống\nLượt tạo video\nTheo dõi hạn mức của trường "
+    },
+    {
+      "app": "school-manager",
+      "file": "school-manager-m02-organization-management-390.png",
+      "route": "/m02-organization-management",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Quản lý trường",
+      "visibleText": "Quản lý trường\nTổng quan\nGiáo viên & nhóm\nLớp & suất học\nLượt video\nDuyệt công khai\nCài đặt\nHT\nHiệu trưởng Minh\nDữ liệu xem thử\nĐăng xuất\nQuản lý trường\nTrợ giúp\nHộp thư chưa khả dụng\nTrường Mầm non Ánh Dương\nXem thử · Dữ liệu minh họa, không lưu\nQuản lý trường\nMầm non Ánh Dương · Theo dõi lớp, nhân sự và hạn mức.\nDuyệt bài học công khai\n2\ngiáo viên · 2 nhóm phụ huynh\n2\nlớp · 8/10 suất đang dùng\n86\nlượt tạo video còn lại\nTruy cập nhanh\n\nChọn một mục để xem hoặc cập nhật thông tin của trường.\n\nGiáo viên và nhóm phụ huynh\nQuản lý thành viên và nhóm liên lạc.\nLớp học và sức chứa\nXem sĩ số, phân công và số chỗ còn lại.\nLượt tạo video\nTheo dõi hạn mức của trường trong tháng.\nGói trường và quyền r"
+    },
+    {
+      "app": "school-manager",
+      "file": "school-manager-m02-organization-management-section-teachers-1440.png",
+      "route": "/m02-organization-management?section=teachers",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Quản lý trường",
+      "visibleText": "Quản lý trường\nTổng quan\nGiáo viên & nhóm\nLớp & suất học\nLượt video\nDuyệt công khai\nCài đặt\nHT\nHiệu trưởng Minh\nDữ liệu xem thử\nĐăng xuất\nQuản lý trường\nTrợ giúp\nHộp thư chưa khả dụng\nTrường Mầm non Ánh Dương\nXem thử · Dữ liệu minh họa, không lưu\nQuản lý trường\nMầm non Ánh Dương\nChưa khả dụng\nMời và phân công Teacher\n\nAPI có ghi assignment nhưng chưa có danh bạ Teacher để chọn đúng người trong organization.\n\nGiáo viên phụ trách\n2\nMời giáo viên · Chưa khả dụng\nHọ tên\tVai trò\tTrạng thái\n\nCT\nCô Thảo\n\tGiáo viên\t\nHoạt động\n\nCM\nCô Mai\n\tGiáo viên\t\nHoạt động\nChưa khả dụng\nNhóm phụ huynh chưa nối trong màn này\n\nKhông có dữ liệu nhóm từ API ở chế độ xem thử; nút đồng bộ bị tắt để tránh giả lập thao tá"
+    },
+    {
+      "app": "school-manager",
+      "file": "school-manager-m02-organization-management-section-teachers-390.png",
+      "route": "/m02-organization-management?section=teachers",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Quản lý trường",
+      "visibleText": "Quản lý trường\nTổng quan\nGiáo viên & nhóm\nLớp & suất học\nLượt video\nDuyệt công khai\nCài đặt\nHT\nHiệu trưởng Minh\nDữ liệu xem thử\nĐăng xuất\nQuản lý trường\nTrợ giúp\nHộp thư chưa khả dụng\nTrường Mầm non Ánh Dương\nXem thử · Dữ liệu minh họa, không lưu\nQuản lý trường\nMầm non Ánh Dương\nChưa khả dụng\nMời và phân công Teacher\n\nAPI có ghi assignment nhưng chưa có danh bạ Teacher để chọn đúng người trong organization.\n\nGiáo viên phụ trách\n2\nMời giáo viên · Chưa khả dụng\nHọ tên\tVai trò\tTrạng thái\n\nCT\nCô Thảo\n\tGiáo viên\t\nHoạt động\n\nCM\nCô Mai\n\tGiáo viên\t\nHoạt động\nChưa khả dụng\nNhóm phụ huynh chưa nối trong màn này\n\nKhông có dữ liệu nhóm từ API ở chế độ xem thử; nút đồng bộ bị tắt để tránh giả lập thao tá"
+    },
+    {
+      "app": "school-manager",
+      "file": "school-manager-m02-organization-management-section-classes-1440.png",
+      "route": "/m02-organization-management?section=classes",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Quản lý trường",
+      "visibleText": "Quản lý trường\nTổng quan\nGiáo viên & nhóm\nLớp & suất học\nLượt video\nDuyệt công khai\nCài đặt\nHT\nHiệu trưởng Minh\nDữ liệu xem thử\nĐăng xuất\nQuản lý trường\nTrợ giúp\nHộp thư chưa khả dụng\nTrường Mầm non Ánh Dương\nXem thử · Dữ liệu minh họa, không lưu\nQuản lý trường\nMầm non Ánh Dương\nChưa khả dụng\nTạo lớp theo capacity, archive và tạm ngưng\n\nAPI hiện không kiểm tra capacity hiệu lực khi tạo lớp và chưa có endpoint archive/suspend. Thao tác tạo lớp bị tắt để không vượt capacity.\n\nLớp & suất học\n2\nTạo lớp · Chưa khả dụng\nXem lượt video\nLớp\tKhối\tGiáo viên\tKhung giờ\tPH\tTrạng thái\n\nLớp Mầm 2\n\tMẫu giáo\tCô Thảo\t\nSáng (08:00–11:00)\t18\t\nHoạt động\n\nLớp Mầm 1\n\tMẫu giáo\tCô Mai\t\nSáng (08:00–11:00)\t24\t\nHoạt độ"
+    },
+    {
+      "app": "school-manager",
+      "file": "school-manager-m02-organization-management-section-classes-390.png",
+      "route": "/m02-organization-management?section=classes",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Quản lý trường",
+      "visibleText": "Quản lý trường\nTổng quan\nGiáo viên & nhóm\nLớp & suất học\nLượt video\nDuyệt công khai\nCài đặt\nHT\nHiệu trưởng Minh\nDữ liệu xem thử\nĐăng xuất\nQuản lý trường\nTrợ giúp\nHộp thư chưa khả dụng\nTrường Mầm non Ánh Dương\nXem thử · Dữ liệu minh họa, không lưu\nQuản lý trường\nMầm non Ánh Dương\nChưa khả dụng\nTạo lớp theo capacity, archive và tạm ngưng\n\nAPI hiện không kiểm tra capacity hiệu lực khi tạo lớp và chưa có endpoint archive/suspend. Thao tác tạo lớp bị tắt để không vượt capacity.\n\nLớp & suất học\n2\nTạo lớp · Chưa khả dụng\nXem lượt video\nLớp\tKhối\tGiáo viên\tKhung giờ\tPH\tTrạng thái\n\nLớp Mầm 2\n\tMẫu giáo\tCô Thảo\t\nSáng (08:00–11:00)\t18\t\nHoạt động\n\nLớp Mầm 1\n\tMẫu giáo\tCô Mai\t\nSáng (08:00–11:00)\t24\t\nHoạt độ"
+    },
+    {
+      "app": "school-manager",
+      "file": "school-manager-m02-organization-management-section-quota-1440.png",
+      "route": "/m02-organization-management?section=quota",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Quản lý trường",
+      "visibleText": "Quản lý trường\nTổng quan\nGiáo viên & nhóm\nLớp & suất học\nLượt video\nDuyệt công khai\nCài đặt\nHT\nHiệu trưởng Minh\nDữ liệu xem thử\nĐăng xuất\nQuản lý trường\nTrợ giúp\nHộp thư chưa khả dụng\nTrường Mầm non Ánh Dương\nXem thử · Dữ liệu minh họa, không lưu\nQuản lý trường\nMầm non Ánh Dương\nChưa khả dụng\nCapacity và quota trường\n\nAPI chưa có capacity summary hoặc organization quota summary/top-up; các số trên trang này chỉ là fixture xem thử.\n\n8/10\nlớp đang dùng trong gói trường\nThêm suất lớp · Chưa khả dụng\n86\nlượt tạo video mẫu còn lại trong tháng\nMua lượt · Chưa khả dụng"
+    },
+    {
+      "app": "school-manager",
+      "file": "school-manager-m02-organization-management-section-quota-390.png",
+      "route": "/m02-organization-management?section=quota",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Quản lý trường",
+      "visibleText": "Quản lý trường\nTổng quan\nGiáo viên & nhóm\nLớp & suất học\nLượt video\nDuyệt công khai\nCài đặt\nHT\nHiệu trưởng Minh\nDữ liệu xem thử\nĐăng xuất\nQuản lý trường\nTrợ giúp\nHộp thư chưa khả dụng\nTrường Mầm non Ánh Dương\nXem thử · Dữ liệu minh họa, không lưu\nQuản lý trường\nMầm non Ánh Dương\nChưa khả dụng\nCapacity và quota trường\n\nAPI chưa có capacity summary hoặc organization quota summary/top-up; các số trên trang này chỉ là fixture xem thử.\n\n8/10\nlớp đang dùng trong gói trường\nThêm suất lớp · Chưa khả dụng\n86\nlượt tạo video mẫu còn lại trong tháng\nMua lượt · Chưa khả dụng"
+    },
+    {
+      "app": "school-manager",
+      "file": "school-manager-m02-organization-management-section-settings-1440.png",
+      "route": "/m02-organization-management?section=settings",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Quản lý trường",
+      "visibleText": "Quản lý trường\nTổng quan\nGiáo viên & nhóm\nLớp & suất học\nLượt video\nDuyệt công khai\nCài đặt\nHT\nHiệu trưởng Minh\nDữ liệu xem thử\nĐăng xuất\nQuản lý trường\nTrợ giúp\nHộp thư chưa khả dụng\nTrường Mầm non Ánh Dương\nXem thử · Dữ liệu minh họa, không lưu\nQuản lý trường\nMầm non Ánh Dương\nChưa khả dụng\nSubscription và billing chưa khả dụng\n\nChưa có API để đọc hoặc đổi subscription, auto-renew, invoice hay payment. Không hiển thị giá hoặc chính sách giả định.\n\nCài đặt gói trường và quyền riêng tư\nThông tin gói chưa kết nối\nTự động gia hạn\nChưa khả dụng\nQuyền xem tranh và video của trẻ\nChỉ giáo viên phụ trách lớp"
+    },
+    {
+      "app": "school-manager",
+      "file": "school-manager-m02-organization-management-section-settings-390.png",
+      "route": "/m02-organization-management?section=settings",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Quản lý trường",
+      "visibleText": "Quản lý trường\nTổng quan\nGiáo viên & nhóm\nLớp & suất học\nLượt video\nDuyệt công khai\nCài đặt\nHT\nHiệu trưởng Minh\nDữ liệu xem thử\nĐăng xuất\nQuản lý trường\nTrợ giúp\nHộp thư chưa khả dụng\nTrường Mầm non Ánh Dương\nXem thử · Dữ liệu minh họa, không lưu\nQuản lý trường\nMầm non Ánh Dương\nChưa khả dụng\nSubscription và billing chưa khả dụng\n\nChưa có API để đọc hoặc đổi subscription, auto-renew, invoice hay payment. Không hiển thị giá hoặc chính sách giả định.\n\nCài đặt gói trường và quyền riêng tư\nThông tin gói chưa kết nối\nTự động gia hạn\nChưa khả dụng\nQuyền xem tranh và video của trẻ\nChỉ giáo viên phụ trách lớp"
+    },
+    {
+      "app": "teacher",
+      "file": "teacher-t01-lesson-workspace-1440.png",
+      "route": "/t01-lesson-workspace",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1430,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Chào Cô Thảo!",
+      "visibleText": "Giáo viên\nTổng quan\nLớp & Học sinh\nBài giảng trên lớp\nQuản lý giáo án\nAI Assisted\nTạo video mẫu\nChiếu trên lớp\nThư viện công khai\nLịch sử & Báo cáo\nHồ sơ cá nhân\nCài đặt\nCô Thảo\nXem thử · không lưu\nĐăng xuất\nTổng quan\nTrợ giúp\nLớp Mầm 2\nLớp Chồi 1\nLớp Lá 3\nLớp Mầm 1\n38 lượt\n2\nChào Cô Thảo!\n\nQuản lý lớp và chuẩn bị bài dạy từ một nơi.\n\nTrường Mầm non Ánh Dương\nLớp Mầm 2\nTạo giáo án\nNhập tài liệu\n4\nLớp phụ trách\n6\nTrẻ đang học\n4\nGiáo án\n38\nLượt video còn lại\nBài giảng đang chuẩn bị\nVòng đời bướm\n\nBản 3 · 4 hoạt động · Ghim cho Lớp Mầm 2\n\nMở giáo án\nLớp của tôi\n\nMở lớp để xem học sinh và hoạt động.\n\nTất cả lớp\nLớp Mầm 2\n24 học sinh · 4–5 tuổi (36–120 th)\nMở lớp \nLớp Chồi 1\n22 học sinh · 5–6 tuổ"
+    },
+    {
+      "app": "teacher",
+      "file": "teacher-t01-lesson-workspace-390.png",
+      "route": "/t01-lesson-workspace",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Chào Cô Thảo!",
+      "visibleText": "Tổng quan\nTrợ giúp\nLớp Mầm 2\nLớp Chồi 1\nLớp Lá 3\nLớp Mầm 1\n38 lượt\n2\nChào Cô Thảo!\n\nQuản lý lớp và chuẩn bị bài dạy từ một nơi.\n\nTrường Mầm non Ánh Dương\nLớp Mầm 2\nTạo giáo án\nNhập tài liệu\n4\nLớp phụ trách\n6\nTrẻ đang học\n4\nGiáo án\n38\nLượt video còn lại\nBài giảng đang chuẩn bị\nVòng đời bướm\n\nBản 3 · 4 hoạt động · Ghim cho Lớp Mầm 2\n\nMở giáo án\nLớp của tôi\n\nMở lớp để xem học sinh và hoạt động.\n\nTất cả lớp\nLớp Mầm 2\n24 học sinh · 4–5 tuổi (36–120 th)\nMở lớp \nLớp Chồi 1\n22 học sinh · 5–6 tuổi (36–120 th)\nMở lớp \nLớp Lá 3\n20 học sinh · 5–6 tuổi (36–120 th)\nMở lớp \nLớp Mầm 1\n18 học sinh · 3–4 tuổi (36–120 th)\nMở lớp \nHoạt động gần đây\n\n2 thông báo chưa xem\n\nLịch sử\nGiáo án 'Vòng đời bướm · Bản 3' "
+    },
+    {
+      "app": "teacher",
+      "file": "teacher-t02-lesson-authoring-1440.png",
+      "route": "/t02-lesson-authoring",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1430,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Giáo án của tổ chức",
+      "visibleText": "Giáo viên\nTổng quan\nLớp & Học sinh\nBài giảng trên lớp\nQuản lý giáo án\nAI Assisted\nTạo video mẫu\nChiếu trên lớp\nThư viện công khai\nLịch sử & Báo cáo\nHồ sơ cá nhân\nCài đặt\nCô Thảo\nXem thử · không lưu\nĐăng xuất\nQuản lý giáo án\nTrợ giúp\nLớp Mầm 2\nLớp Chồi 1\nLớp Lá 3\nLớp Mầm 1\n38 lượt\n2\nGiáo án của tổ chức\n\nTạo và cập nhật theo LessonContentInputV1; giáo án mới luôn là PRIVATE cho đến khi gửi grant công khai.\n\nGiáo án mới\nXem thử · Dữ liệu minh họa, không lưu\nKhông tải được danh sách giáo án\nChưa có Firebase ID token để tải giáo án.\nGiáo án\nTải lại\n\nChưa có giáo án trong phạm vi tài khoản.\n\nTrạng thái quyền công khai\nGửi grant PUBLIC sẽ tạo PENDING_REVIEW. Chỉ Manager mới duyệt được; thao tác này"
+    },
+    {
+      "app": "teacher",
+      "file": "teacher-t02-lesson-authoring-390.png",
+      "route": "/t02-lesson-authoring",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Giáo án của tổ chức",
+      "visibleText": "Quản lý giáo án\nTrợ giúp\nLớp Mầm 2\nLớp Chồi 1\nLớp Lá 3\nLớp Mầm 1\n38 lượt\n2\nGiáo án của tổ chức\n\nTạo và cập nhật theo LessonContentInputV1; giáo án mới luôn là PRIVATE cho đến khi gửi grant công khai.\n\nGiáo án mới\nXem thử · Dữ liệu minh họa, không lưu\nKhông tải được danh sách giáo án\nChưa có Firebase ID token để tải giáo án.\nGiáo án\nTải lại\n\nChưa có giáo án trong phạm vi tài khoản.\n\nTrạng thái quyền công khai\nGửi grant PUBLIC sẽ tạo PENDING_REVIEW. Chỉ Manager mới duyệt được; thao tác này không tự phát hành bài học.\nTạo giáo án\nTiêu đề\nChủ đề\ntarget_age_band_ref\nPhiên bản nhóm tuổi\nMục tiêu học tập (mỗi dòng một mục)\nĐối tượng cần vẽ\nCác bước hướng dẫn vẽ\nGhi chú kiến thức\nĐịnh hướng kịch bản"
+    },
+    {
+      "app": "teacher",
+      "file": "teacher-t03-document-import-review-1440.png",
+      "route": "/t03-document-import-review",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Nhập tài liệu giáo án",
+      "visibleText": "Giáo viên\nTổng quan\nLớp & Học sinh\nBài giảng trên lớp\nQuản lý giáo án\nAI Assisted\nTạo video mẫu\nChiếu trên lớp\nThư viện công khai\nLịch sử & Báo cáo\nHồ sơ cá nhân\nCài đặt\nCô Thảo\nXem thử · không lưu\nĐăng xuất\nNhập tài liệu giáo án\nTrợ giúp\nLớp Mầm 2\nLớp Chồi 1\nLớp Lá 3\nLớp Mầm 1\n38 lượt\n2\nNhập tài liệu giáo án\n\nChunk upload, SHA-256, scan an toàn và parser preview theo Lesson Library API.\n\nXem thử · Dữ liệu minh họa, không lưu\nKhông hoàn tất được quy trình nhập\nChưa có Firebase ID token để tải hoặc nhập tài liệu.\nCần có giáo án trước\nTạo giáo án trong màn Quản lý giáo án, sau đó quay lại để đính kèm tài liệu nguồn.\nTệp nguồn\nGiáo án đích\nPDF, DOCX hoặc PPTX · tối đa 25 MB\nTải tài liệu lên"
+    },
+    {
+      "app": "teacher",
+      "file": "teacher-t03-document-import-review-390.png",
+      "route": "/t03-document-import-review",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Nhập tài liệu giáo án",
+      "visibleText": "Nhập tài liệu giáo án\nTrợ giúp\nLớp Mầm 2\nLớp Chồi 1\nLớp Lá 3\nLớp Mầm 1\n38 lượt\n2\nNhập tài liệu giáo án\n\nChunk upload, SHA-256, scan an toàn và parser preview theo Lesson Library API.\n\nXem thử · Dữ liệu minh họa, không lưu\nKhông hoàn tất được quy trình nhập\nChưa có Firebase ID token để tải hoặc nhập tài liệu.\nCần có giáo án trước\nTạo giáo án trong màn Quản lý giáo án, sau đó quay lại để đính kèm tài liệu nguồn.\nTệp nguồn\nGiáo án đích\nPDF, DOCX hoặc PPTX · tối đa 25 MB\nTải tài liệu lên"
+    },
+    {
+      "app": "teacher",
+      "file": "teacher-t04-session-sketch-deck-1440.png",
+      "route": "/t04-session-sketch-deck",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Màn hình này chưa sẵn sàng",
+      "visibleText": "Giáo viên\nTổng quan\nLớp & Học sinh\nBài giảng trên lớp\nQuản lý giáo án\nAI Assisted\nTạo video mẫu\nChiếu trên lớp\nThư viện công khai\nLịch sử & Báo cáo\nHồ sơ cá nhân\nCài đặt\nCô Thảo\nXem thử · không lưu\nĐăng xuất\nAI Assisted · Bảng vẽ lớp học\nTrợ giúp\nLớp Mầm 2\nLớp Chồi 1\nLớp Lá 3\nLớp Mầm 1\n38 lượt\n2\nXem thử · Dữ liệu minh họa, không lưu\nMàn hình này chưa sẵn sàng\n\nChức năng này chưa được kết nối trong phiên hiện tại. Thử quay lại màn trước; dữ liệu minh họa chỉ có trong bản xem thử.\n\nQuay lại\nThông tin kỹ thuật"
+    },
+    {
+      "app": "teacher",
+      "file": "teacher-t04-session-sketch-deck-390.png",
+      "route": "/t04-session-sketch-deck",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Màn hình này chưa sẵn sàng",
+      "visibleText": "AI Assisted · Bảng vẽ lớp học\nTrợ giúp\nLớp Mầm 2\nLớp Chồi 1\nLớp Lá 3\nLớp Mầm 1\n38 lượt\n2\nXem thử · Dữ liệu minh họa, không lưu\nMàn hình này chưa sẵn sàng\n\nChức năng này chưa được kết nối trong phiên hiện tại. Thử quay lại màn trước; dữ liệu minh họa chỉ có trong bản xem thử.\n\nQuay lại\nThông tin kỹ thuật"
+    },
+    {
+      "app": "teacher",
+      "file": "teacher-t05-classes-and-children-1440.png",
+      "route": "/t05-classes-and-children",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Lớp học",
+      "visibleText": "Giáo viên\nTổng quan\nLớp & Học sinh\nBài giảng trên lớp\nQuản lý giáo án\nAI Assisted\nTạo video mẫu\nChiếu trên lớp\nThư viện công khai\nLịch sử & Báo cáo\nHồ sơ cá nhân\nCài đặt\nCô Thảo\nXem thử · không lưu\nĐăng xuất\nLớp & Học sinh\nTrợ giúp\nLớp Mầm 2\nLớp Chồi 1\nLớp Lá 3\nLớp Mầm 1\n38 lượt\n2\nLớp học\n4 lớp\nLớp Mầm 2\nCô Thảo\nĐang phụ trách\n24 học sinh\n3 hồ sơ\n4–5 tuổi\nMở lớp\nLớp Chồi 1\nCô Thảo\nChờ bàn giao\n22 học sinh\n2 hồ sơ\n5–6 tuổi\nBàn giao cho Cô Mai\nHoàn tất\nMở lớp\nLớp Lá 3\nCô Thảo\nChỉ xem\n20 học sinh\n1 hồ sơ\n5–6 tuổi\nMở lớp\nLớp Mầm 1\nCô Lan\nChưa phân quyền\n18 học sinh\n0 hồ sơ\n3–4 tuổi\nMở lớp"
+    },
+    {
+      "app": "teacher",
+      "file": "teacher-t05-classes-and-children-390.png",
+      "route": "/t05-classes-and-children",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Lớp học",
+      "visibleText": "Lớp & Học sinh\nTrợ giúp\nLớp Mầm 2\nLớp Chồi 1\nLớp Lá 3\nLớp Mầm 1\n38 lượt\n2\nLớp học\n4 lớp\nLớp Mầm 2\nCô Thảo\nĐang phụ trách\n24 học sinh\n3 hồ sơ\n4–5 tuổi\nMở lớp\nLớp Chồi 1\nCô Thảo\nChờ bàn giao\n22 học sinh\n2 hồ sơ\n5–6 tuổi\nBàn giao cho Cô Mai\nHoàn tất\nMở lớp\nLớp Lá 3\nCô Thảo\nChỉ xem\n20 học sinh\n1 hồ sơ\n5–6 tuổi\nMở lớp\nLớp Mầm 1\nCô Lan\nChưa phân quyền\n18 học sinh\n0 hồ sơ\n3–4 tuổi\nMở lớp"
+    },
+    {
+      "app": "teacher",
+      "file": "teacher-t05-classes-and-children-local-preview-class-1440.png",
+      "route": "/t05-classes-and-children/local-preview-class",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Màn hình này chưa sẵn sàng",
+      "visibleText": "Giáo viên\nTổng quan\nLớp & Học sinh\nBài giảng trên lớp\nQuản lý giáo án\nAI Assisted\nTạo video mẫu\nChiếu trên lớp\nThư viện công khai\nLịch sử & Báo cáo\nHồ sơ cá nhân\nCài đặt\nCô Thảo\nXem thử · không lưu\nĐăng xuất\nChi tiết lớp học\nTrợ giúp\nLớp Mầm 2\nLớp Chồi 1\nLớp Lá 3\nLớp Mầm 1\n38 lượt\n2\nXem thử · Dữ liệu minh họa, không lưu\nMàn hình này chưa sẵn sàng\n\nChức năng này chưa được kết nối trong phiên hiện tại. Thử quay lại màn trước; dữ liệu minh họa chỉ có trong bản xem thử.\n\nQuay lại\nThông tin kỹ thuật"
+    },
+    {
+      "app": "teacher",
+      "file": "teacher-t05-classes-and-children-local-preview-class-390.png",
+      "route": "/t05-classes-and-children/local-preview-class",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Màn hình này chưa sẵn sàng",
+      "visibleText": "Chi tiết lớp học\nTrợ giúp\nLớp Mầm 2\nLớp Chồi 1\nLớp Lá 3\nLớp Mầm 1\n38 lượt\n2\nXem thử · Dữ liệu minh họa, không lưu\nMàn hình này chưa sẵn sàng\n\nChức năng này chưa được kết nối trong phiên hiện tại. Thử quay lại màn trước; dữ liệu minh họa chỉ có trong bản xem thử.\n\nQuay lại\nThông tin kỹ thuật"
+    },
+    {
+      "app": "teacher",
+      "file": "teacher-t06-sample-story-run-1440.png",
+      "route": "/t06-sample-story-run",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Màn hình này chưa sẵn sàng",
+      "visibleText": "Giáo viên\nTổng quan\nLớp & Học sinh\nBài giảng trên lớp\nQuản lý giáo án\nAI Assisted\nTạo video mẫu\nChiếu trên lớp\nThư viện công khai\nLịch sử & Báo cáo\nHồ sơ cá nhân\nCài đặt\nCô Thảo\nXem thử · không lưu\nĐăng xuất\nTạo video mẫu\nTrợ giúp\nLớp Mầm 2\nLớp Chồi 1\nLớp Lá 3\nLớp Mầm 1\n38 lượt\n2\nXem thử · Dữ liệu minh họa, không lưu\nMàn hình này chưa sẵn sàng\n\nChức năng này chưa được kết nối trong phiên hiện tại. Thử quay lại màn trước; dữ liệu minh họa chỉ có trong bản xem thử.\n\nQuay lại\nThông tin kỹ thuật"
+    },
+    {
+      "app": "teacher",
+      "file": "teacher-t06-sample-story-run-390.png",
+      "route": "/t06-sample-story-run",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Màn hình này chưa sẵn sàng",
+      "visibleText": "Tạo video mẫu\nTrợ giúp\nLớp Mầm 2\nLớp Chồi 1\nLớp Lá 3\nLớp Mầm 1\n38 lượt\n2\nXem thử · Dữ liệu minh họa, không lưu\nMàn hình này chưa sẵn sàng\n\nChức năng này chưa được kết nối trong phiên hiện tại. Thử quay lại màn trước; dữ liệu minh họa chỉ có trong bản xem thử.\n\nQuay lại\nThông tin kỹ thuật"
+    },
+    {
+      "app": "teacher",
+      "file": "teacher-t07-video-presentation-confirmation-1440.png",
+      "route": "/t07-video-presentation-confirmation",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Màn hình này chưa sẵn sàng",
+      "visibleText": "Giáo viên\nTổng quan\nLớp & Học sinh\nBài giảng trên lớp\nQuản lý giáo án\nAI Assisted\nTạo video mẫu\nChiếu trên lớp\nThư viện công khai\nLịch sử & Báo cáo\nHồ sơ cá nhân\nCài đặt\nCô Thảo\nXem thử · không lưu\nĐăng xuất\nChiếu trên lớp\nTrợ giúp\nLớp Mầm 2\nLớp Chồi 1\nLớp Lá 3\nLớp Mầm 1\n38 lượt\n2\nXem thử · Dữ liệu minh họa, không lưu\nMàn hình này chưa sẵn sàng\n\nChức năng này chưa được kết nối trong phiên hiện tại. Thử quay lại màn trước; dữ liệu minh họa chỉ có trong bản xem thử.\n\nQuay lại\nThông tin kỹ thuật"
+    },
+    {
+      "app": "teacher",
+      "file": "teacher-t07-video-presentation-confirmation-390.png",
+      "route": "/t07-video-presentation-confirmation",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Màn hình này chưa sẵn sàng",
+      "visibleText": "Chiếu trên lớp\nTrợ giúp\nLớp Mầm 2\nLớp Chồi 1\nLớp Lá 3\nLớp Mầm 1\n38 lượt\n2\nXem thử · Dữ liệu minh họa, không lưu\nMàn hình này chưa sẵn sàng\n\nChức năng này chưa được kết nối trong phiên hiện tại. Thử quay lại màn trước; dữ liệu minh họa chỉ có trong bản xem thử.\n\nQuay lại\nThông tin kỹ thuật"
+    },
+    {
+      "app": "platform-admin",
+      "file": "platform-admin-a01-content-moderation-1440.png",
+      "route": "/a01-content-moderation",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Màn hình này chưa sẵn sàng",
+      "visibleText": "Quản trị nền tảng\nTổng quan\nTổ chức\nThư viện bài học\nDanh mục hoạt động\nHạn mức & chính sách\nNhật ký\nQT\nQuản trị viên\nDữ liệu xem thử\nĐăng xuất\nTrợ giúp\nA\nQuản trị viên\nXem thử · Dữ liệu minh họa, không lưu\nXem thử · Dữ liệu minh họa, không lưu\nMàn hình này chưa sẵn sàng\n\nChức năng này chưa được kết nối trong phiên hiện tại. Thử quay lại màn trước; dữ liệu minh họa chỉ có trong bản xem thử.\n\nQuay lại\nThông tin kỹ thuật"
+    },
+    {
+      "app": "platform-admin",
+      "file": "platform-admin-a01-content-moderation-390.png",
+      "route": "/a01-content-moderation",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Màn hình này chưa sẵn sàng",
+      "visibleText": "QT\nTrợ giúp\nA\nQuản trị viên\nXem thử · Dữ liệu minh họa, không lưu\nXem thử · Dữ liệu minh họa, không lưu\nMàn hình này chưa sẵn sàng\n\nChức năng này chưa được kết nối trong phiên hiện tại. Thử quay lại màn trước; dữ liệu minh họa chỉ có trong bản xem thử.\n\nQuay lại\nThông tin kỹ thuật"
+    },
+    {
+      "app": "platform-admin",
+      "file": "platform-admin-a02-platform-operations-1440.png",
+      "route": "/a02-platform-operations",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Trạng thái dịch vụ",
+      "visibleText": "Quản trị nền tảng\nTổng quan\nTổ chức\nThư viện bài học\nDanh mục hoạt động\nHạn mức & chính sách\nNhật ký\nQT\nQuản trị viên\nDữ liệu xem thử\nĐăng xuất\nTrợ giúp\nA\nQuản trị viên\nXem thử · Dữ liệu minh họa, không lưu\nXem thử · Dữ liệu minh họa, không lưu\nTrạng thái dịch vụ\nChỉ kiểm tra endpoint health có thật trong API hiện tại.\nKiểm tra lại\nChưa kết nối được dịch vụ\nKhông kết nối được backend. Kiểm tra địa chỉ API và trạng thái máy chủ. Mã yêu cầu: 63c4aeed-d327-4bdb-91e9-b75511849cb1.\nCác luồng vận hành chưa khả dụng\nChưa có API product cho danh sách tổ chức, tổng hợp queue/job, reconciliation billing, quota, catalog lifecycle hoặc audit feed. Trang này không hiển thị fixture hay báo thành công cục "
+    },
+    {
+      "app": "platform-admin",
+      "file": "platform-admin-a02-platform-operations-390.png",
+      "route": "/a02-platform-operations",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Trạng thái dịch vụ",
+      "visibleText": "QT\nTrợ giúp\nA\nQuản trị viên\nXem thử · Dữ liệu minh họa, không lưu\nXem thử · Dữ liệu minh họa, không lưu\nTrạng thái dịch vụ\nChỉ kiểm tra endpoint health có thật trong API hiện tại.\nKiểm tra lại\nChưa kết nối được dịch vụ\nKhông kết nối được backend. Kiểm tra địa chỉ API và trạng thái máy chủ. Mã yêu cầu: bdadd045-ab56-4535-b905-a58b72fb7dec.\nCác luồng vận hành chưa khả dụng\nChưa có API product cho danh sách tổ chức, tổng hợp queue/job, reconciliation billing, quota, catalog lifecycle hoặc audit feed. Trang này không hiển thị fixture hay báo thành công cục bộ cho các thao tác đó."
+    },
+    {
+      "app": "platform-admin",
+      "file": "platform-admin-a02-platform-operations-panel-catalog-1440.png",
+      "route": "/a02-platform-operations?panel=catalog",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Trạng thái dịch vụ",
+      "visibleText": "Quản trị nền tảng\nTổng quan\nTổ chức\nThư viện bài học\nDanh mục hoạt động\nHạn mức & chính sách\nNhật ký\nQT\nQuản trị viên\nDữ liệu xem thử\nĐăng xuất\nTrợ giúp\nA\nQuản trị viên\nXem thử · Dữ liệu minh họa, không lưu\nXem thử · Dữ liệu minh họa, không lưu\nTrạng thái dịch vụ\nChỉ kiểm tra endpoint health có thật trong API hiện tại.\nKiểm tra lại\nChưa kết nối được dịch vụ\nKhông kết nối được backend. Kiểm tra địa chỉ API và trạng thái máy chủ. Mã yêu cầu: 652095ae-cb69-4d92-9665-7db69a03f530.\nCác luồng vận hành chưa khả dụng\nChưa có API product cho danh sách tổ chức, tổng hợp queue/job, reconciliation billing, quota, catalog lifecycle hoặc audit feed. Trang này không hiển thị fixture hay báo thành công cục "
+    },
+    {
+      "app": "platform-admin",
+      "file": "platform-admin-a02-platform-operations-panel-catalog-390.png",
+      "route": "/a02-platform-operations?panel=catalog",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Trạng thái dịch vụ",
+      "visibleText": "QT\nTrợ giúp\nA\nQuản trị viên\nXem thử · Dữ liệu minh họa, không lưu\nXem thử · Dữ liệu minh họa, không lưu\nTrạng thái dịch vụ\nChỉ kiểm tra endpoint health có thật trong API hiện tại.\nKiểm tra lại\nChưa kết nối được dịch vụ\nKhông kết nối được backend. Kiểm tra địa chỉ API và trạng thái máy chủ. Mã yêu cầu: 406d5384-7281-4d9b-b1c1-2a5c6d17242d.\nCác luồng vận hành chưa khả dụng\nChưa có API product cho danh sách tổ chức, tổng hợp queue/job, reconciliation billing, quota, catalog lifecycle hoặc audit feed. Trang này không hiển thị fixture hay báo thành công cục bộ cho các thao tác đó."
+    }
+  ],
+  "m01RequestChanges": {
+    "localPreview": true,
+    "counts": [
+      "Đã duyệt: 0",
+      "Yêu cầu chỉnh sửa: 1",
+      "Yêu cầu chỉnh sửa"
+    ],
+    "requestButtons": 1,
+    "visibleHeadings": [
+      "Duyệt giáo án công khai",
+      "Chờ duyệt",
+      "Cây xanh quanh em (Bản 1)"
+    ]
+  }
+}

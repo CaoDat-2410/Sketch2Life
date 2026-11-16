@@ -1,0 +1,898 @@
+{
+ "start": "2026-11-11T17:00:02.547Z",
+ "round": 3,
+ "idle": 0,
+ "errors": 0,
+ "status": "open",
+ "history": [
+  {
+   "at": "2026-11-11T17:01:23.309Z",
+   "mode": "manual",
+   "status": "fail",
+   "fails": 23,
+   "round": 1,
+   "reused": false,
+   "stopHookActive": false
+  },
+  {
+   "at": "2026-11-11T17:15:11.900Z",
+   "mode": "manual",
+   "status": "fail",
+   "fails": 23,
+   "round": 2,
+   "reused": false,
+   "stopHookActive": false
+  },
+  {
+   "at": "2026-11-11T17:19:15.088Z",
+   "mode": "manual",
+   "status": "open",
+   "fails": 22,
+   "round": 3,
+   "reused": false,
+   "stopHookActive": false
+  }
+ ],
+ "max": 3,
+ "marker": {
+  "page": null,
+  "url": "http://127.0.0.1:5172/login",
+  "root": null,
+  "kind": "software",
+  "category": "Sketch2Life web authentication",
+  "primary": "Đăng nhập",
+  "rounds": 3,
+  "start": "2026-11-11T17:00:02.547Z",
+  "by": "gate.mjs --start"
+ },
+ "manual": true,
+ "roundKey": "cb5644577000cbcf:da39a3ee",
+ "roundFree": false,
+ "idleFree": false,
+ "blockKey": null,
+ "fp": "cb5644577000cbcf",
+ "page": "http://127.0.0.1:5172/login",
+ "found": {
+  "fails": [
+   {
+    "check": "shader-lint",
+    "where": "deps/three.js \"common\"",
+    "msg": "a shader uses \"common\" as a name (line 7: #include <common>): GLSL ES reserves it, so a strict GPU rejects the whole shader and the picture stays empty",
+    "fix": "rename it (flat, smooth, centroid, sample, patch, input, output, filter and the rest are GLSL ES reserved words)",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "shader-lint"
+    ],
+    "wheres": [
+     "deps/three.js \"common\""
+    ]
+   },
+   {
+    "check": "shader-lint",
+    "where": "deps/three.js \"sampler3D\"",
+    "msg": "a shader uses \"sampler3D\" as a name (line 2: uniform highp sampler3D probesSH[ NUM_LIGHT_PROBE_GRIDS ];): GLSL ES reserves it, so a strict GPU rejects the whole shader and the picture stays empty",
+    "fix": "rename it (flat, smooth, centroid, sample, patch, input, output, filter and the rest are GLSL ES reserved words)",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "shader-lint"
+    ],
+    "wheres": [
+     "deps/three.js \"sampler3D\""
+    ]
+   },
+   {
+    "check": "shader-lint",
+    "where": "deps/three.js \"sampler2DShadow\"",
+    "msg": "a shader uses \"sampler2DShadow\" as a name (line 11: uniform sampler2DShadow sunShadowMap[ NUM_SUN_LIGHT_SHADOWS ];): GLSL ES reserves it, so a strict GPU rejects the whole shader and the picture stays empty",
+    "fix": "rename it (flat, smooth, centroid, sample, patch, input, output, filter and the rest are GLSL ES reserved words)",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "shader-lint"
+    ],
+    "wheres": [
+     "deps/three.js \"sampler2DShadow\""
+    ]
+   },
+   {
+    "check": "hero-fill",
+    "where": "div#s2l-auth-main > section.s2l-auth-panel \"Đăng nhập\"",
+    "msg": "the next section shows on the first screen: it starts at 293px on a 900px screen (the hero ends at 726px)",
+    "fix": "let the hero fill the first screen alone (min-height: 100svh, less above it): nothing of the next section on load",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "hero-fill"
+    ],
+    "wheres": [
+     "div#s2l-auth-main > section.s2l-auth-panel \"Đăng nhập\""
+    ]
+   },
+   {
+    "check": "flush",
+    "where": "div#s2l-auth-main > section.s2l-auth-intro > figure.s2l-auth-art > div.s2l-auth-art-scene",
+    "msg": "its last line sits -474px above the rule on top of section.s2l-auth-panel",
+    "fix": "give the section its padding at the edge where the ground changes (the closing call keeps a clear gap above the footer)",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "flush"
+    ],
+    "wheres": [
+     "div#s2l-auth-main > section.s2l-auth-intro > figure.s2l-auth-art > div.s2l-auth-art-scene"
+    ]
+   },
+   {
+    "check": "button-styles",
+    "where": "(one screen)",
+    "msg": "3 button styles on one screen: round, fill #ffffff, outline #e4d8c5 (\"Quản lý trường School Manager\"); round, fill #e8f0fa, outline #245b9b (\"Giáo viên Teacher\"); soft, fill #245b9b, outline #245b9b (\"Vào bản xem thử\"); the odd one out: \"Vào bản xem thử\"",
+    "fix": "one primary and one secondary button: one shape, one height per size, one label size",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "button-styles"
+    ],
+    "wheres": [
+     "(one screen)"
+    ]
+   },
+   {
+    "check": "button-styles",
+    "where": "(the page)",
+    "msg": "3 button styles on the page: round, fill #e8f0fa, outline #245b9b x1 (\"Giáo viên Teacher\"); round, fill #ffffff, outline #e4d8c5 x2 (\"Quản lý trường School Manager\"); soft, fill #245b9b, outline #245b9b x1 (\"Vào bản xem thử\")",
+    "fix": "one primary and one secondary button: one shape, one height per size, one label size",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "button-styles"
+    ],
+    "wheres": [
+     "(the page)"
+    ]
+   },
+   {
+    "check": "cta",
+    "where": "div#s2l-auth-main > section.s2l-auth-intro",
+    "msg": "the hero has no button (the nav's does not count)",
+    "fix": "add the action: a button in the hero, one on every priced item, one in the closing section",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "cta"
+    ],
+    "wheres": [
+     "div#s2l-auth-main > section.s2l-auth-intro"
+    ]
+   },
+   {
+    "check": "copy-headline",
+    "where": "h1#s2l-auth-title \"Dạy học mở lối mới.\"",
+    "msg": "\"Dạy học mở lối mới.\" does not name what is sold (sketch2life web authentication, sketch2life, web, authentication, from flags)",
+    "fix": "put the category noun in the h1 (and who it is for, or where), in 2 to 8 words",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "copy-headline"
+    ],
+    "wheres": [
+     "h1#s2l-auth-title \"Dạy học mở lối mới.\""
+    ]
+   },
+   {
+    "check": "moment-none",
+    "where": "(the page)",
+    "msg": "a software page (--type) deals no moment: every kind carries one, two on a long page (moments.md)",
+    "fix": "deal one (moments.mjs pick --page software) and mount it in its own section",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "moment-none"
+    ],
+    "wheres": [
+     "(the page)"
+    ]
+   },
+   {
+    "check": "hero-screen",
+    "where": "div#root > main.s2l-auth-shell > div.s2l-auth-frame \"Sketch2LifeNền tảng học tậpGiáo viênTeac\"",
+    "msg": "the hero ends at 886px on a 900px screen, 14px above the fold: it ends at the fold, 1px either way (SR-1)",
+    "fix": "make the hero exactly one screen (height: 100svh, its content fitted inside), never taller or shorter",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "hero-screen"
+    ],
+    "wheres": [
+     "div#root > main.s2l-auth-shell > div.s2l-auth-frame \"Sketch2LifeNền tảng học tậpGiáo viênTeac\""
+    ]
+   },
+   {
+    "check": "section-height",
+    "where": "div#root > main.s2l-auth-shell > div.s2l-auth-frame \"Sketch2LifeNền tảng học tậpGiáo viênTeac\"",
+    "msg": "the section starts at 20px, 20px below the screen grid (0 x 900px): sections start on whole screens (SR-2)",
+    "fix": "make every section above it exactly one or two screens tall, so this one starts on a whole screen",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "section-height"
+    ],
+    "wheres": [
+     "div#root > main.s2l-auth-shell > div.s2l-auth-frame \"Sketch2LifeNền tảng học tậpGiáo viênTeac\""
+    ]
+   },
+   {
+    "check": "one-section",
+    "where": "div#root > main.s2l-auth-shell > a.s2l-auth-skip-link \"Bỏ qua điều hướng\"",
+    "msg": "a <a> sits directly in <main>: every part of <main> is a <section> (SR-4)",
+    "fix": "put every block of <main> in a <section>, and give a band its own section instead of a ground inside one",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "one-section"
+    ],
+    "wheres": [
+     "div#root > main.s2l-auth-shell > a.s2l-auth-skip-link \"Bỏ qua điều hướng\"",
+     "div#root > main.s2l-auth-shell > div.s2l-auth-frame \"Sketch2LifeNền tảng học tậpGiáo viênTeac\""
+    ]
+   },
+   {
+    "check": "one-heading",
+    "where": "h2#s2l-auth-form-title \"Đăng nhập\"",
+    "msg": "the hero holds an h2 (1): its heading is the h1, and an h2 opens the next section (SR-5)",
+    "fix": "give each section one h2, first in its .wrap, and the hero only its h1",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "one-heading"
+    ],
+    "wheres": [
+     "h2#s2l-auth-form-title \"Đăng nhập\""
+    ]
+   },
+   {
+    "check": "container-edges",
+    "where": "div#root \"Bỏ qua điều hướngSketch2LifeNền tảng học\"",
+    "msg": "a <div> at the top of the page, outside header.nav, main, footer.closing and nav.actionbar (SR-6)",
+    "fix": "build the page as header.nav, a main of sections (each one in-flow .wrap plus background layers) and footer.closing",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "container-edges"
+    ],
+    "wheres": [
+     "div#root \"Bỏ qua điều hướngSketch2LifeNền tảng học\""
+    ]
+   },
+   {
+    "check": "container-edges",
+    "where": "div#root > main.s2l-auth-shell > div.s2l-auth-frame \"Sketch2LifeNền tảng học tậpGiáo viênTeac\"",
+    "msg": "the section needs exactly one in-flow child .wrap (it has 3 in-flow children, 0 .wrap) (SR-6)",
+    "fix": "build the page as header.nav, a main of sections (each one in-flow .wrap plus background layers) and footer.closing",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "container-edges"
+    ],
+    "wheres": [
+     "div#root > main.s2l-auth-shell > div.s2l-auth-frame \"Sketch2LifeNền tảng học tậpGiáo viênTeac\""
+    ]
+   },
+   {
+    "check": "container-edges",
+    "where": "h2#s2l-auth-form-title \"Đăng nhập\"",
+    "msg": "the h2 starts 789px right of the container's left: every h1 and h2 starts on it, 2px either way (SR-6)",
+    "fix": "start the text on the container's left, or on the one split line every split shares",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "container-edges"
+    ],
+    "wheres": [
+     "h2#s2l-auth-form-title \"Đăng nhập\""
+    ]
+   },
+   {
+    "check": "container-edges",
+    "where": "div#s2l-auth-main > section.s2l-auth-intro > p.s2l-auth-eyebrow \"CỔNG GIÁO VIÊN\"",
+    "msg": "3 text blocks start on a left line at x 112, 32px from the container's left: text starts on the container's left, or on one split line (x 623, 732, 841) (also \"Dạy họcmở lối mới.\", \"Lớp được phân công và giáo án tr\") (SR-6)",
+    "fix": "start the text on the container's left, or on the one split line every split shares",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "container-edges"
+    ],
+    "wheres": [
+     "div#s2l-auth-main > section.s2l-auth-intro > p.s2l-auth-eyebrow \"CỔNG GIÁO VIÊN\""
+    ]
+   },
+   {
+    "check": "container-edges",
+    "where": "h1#s2l-auth-title \"Dạy họcmở lối mới.\"",
+    "msg": "the h1 starts 32px right of the container's left: every h1 and h2 starts on it, 2px either way (SR-6)",
+    "fix": "start the text on the container's left, or on the one split line every split shares",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "container-edges"
+    ],
+    "wheres": [
+     "h1#s2l-auth-title \"Dạy họcmở lối mới.\""
+    ]
+   },
+   {
+    "check": "split-pair",
+    "where": "div#s2l-auth-main \"CỔNG GIÁO VIÊNDạy họcmở lối mới.Lớp được\"",
+    "msg": "the two columns of the split start 23px apart at the top: a split's columns are top-aligned, 8px either way (SR-8)",
+    "fix": "top-align both columns of the split (align-items: start)",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "split-pair"
+    ],
+    "wheres": [
+     "div#s2l-auth-main \"CỔNG GIÁO VIÊNDạy họcmở lối mới.Lớp được\""
+    ]
+   },
+   {
+    "check": "text-only",
+    "where": "div#s2l-auth-main > section.s2l-auth-panel \"Đăng nhập\"",
+    "msg": "the closing section is only text: no picture, icon, mock or effect in it",
+    "fix": "give the section a visual: a photograph that fits, the real icons, or a UI fragment on a ground",
+    "widths": [
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "text-only"
+    ],
+    "wheres": [
+     "div#s2l-auth-main > section.s2l-auth-panel \"Đăng nhập\""
+    ]
+   },
+   {
+    "check": "container",
+    "where": "page",
+    "msg": "no .wrap",
+    "fix": "put the content in one .wrap",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "layout",
+    "ids": [
+     "container"
+    ],
+    "wheres": [
+     "page"
+    ]
+   }
+  ],
+  "warns": [
+   {
+    "check": "copy-buttons",
+    "where": "div#root > main.s2l-auth-shell > a.s2l-auth-skip-link \"Bỏ qua điều hướng\"",
+    "msg": "\"Bỏ qua điều hướng\" does not start with a verb (book, buy, try, start, get, see...) (and 4 more like it: \"Giáo viên Teacher\", \"Quản lý trường School Ma\", \"Quản trị nền tảng Platfo\", \"Vào bản xem thử\")",
+    "fix": "label buttons with a verb and what the visitor gets (\"Book a room\", \"Start free trial\")",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "copy-buttons",
+    "where": "div.s2l-auth-frame > header.s2l-auth-header > nav.s2l-auth-portals > a.s2l-auth-portal:nth-of-type(3) \"Quản trị nền tảng Platform Admin\"",
+    "msg": "\"Quản trị nền tảng Platform Admin\" is 6 words (1 to 5)",
+    "fix": "label buttons with a verb and what the visitor gets (\"Book a room\", \"Start free trial\")",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "copy-actions",
+    "where": "(the page)",
+    "msg": "the main action \"Đăng nhập\" does not read word for word the same in the nav or hero and the closing section",
+    "fix": "few actions, one wording: at most 2 in the hero, the main action word for word in nav, hero and close",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "section-gaps",
+    "where": "div#s2l-auth-main > section.s2l-auth-intro / div#s2l-auth-main > section.s2l-auth-panel",
+    "msg": "the sections overlap by 433px",
+    "fix": "use one gap between sections (all within 25% of each other)",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "label-centre",
+    "where": "div.s2l-auth-frame > header.s2l-auth-header > nav.s2l-auth-portals > a.s2l-auth-portal:nth-of-type(1) \"Giáo viên Teacher\"",
+    "msg": "its label sits 81px off-centre (13px of room at the left, 94px at the right) (and 2 more like it: \"Quản lý trường School Ma\", \"Quản trị nền tảng Platfo\")",
+    "fix": "centre the label in its button, or fill the empty side with an icon",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "skip-link",
+    "where": "div#root > main.s2l-auth-shell > a.s2l-auth-skip-link \"Bỏ qua điều hướng\"",
+    "msg": "the first Tab stop is \"Bỏ qua điều hướng\", not a skip link: a keyboard user tabs through the whole nav on every visit",
+    "fix": "add the starter's skip link as the header's first child: <a class=\"skip-link\" href=\"#top\">Skip to content</a>",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "page-meta",
+    "where": "head \"Sketch2Life - Giáo viên\"",
+    "msg": "no <meta name=\"description\">: a search result and a shared link show a scrap of the page instead",
+    "fix": "write a <title> \"Name: what it is for whom or where\" and a one-sentence description in other words (starter.html)",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "share-meta",
+    "where": "head",
+    "msg": "the head lacks og:title, og:description, og:image, twitter:card, an icon, theme-color: a shared link shows no picture or title of its own",
+    "fix": "copy the head block of starter.html: og tags, twitter:card, the icon and theme-color (references/system.md, Head)",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "form-fields",
+    "where": "input#s2l-auth-email",
+    "msg": "the email field lacks autocomplete=\"email\": the phone shows the wrong keyboard and nothing fills it in",
+    "fix": "give each field its type, autocomplete and inputmode, never block paste or disable the button before a submit, and add the status line (references/system.md, Forms)",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "form-fields",
+    "where": "div#s2l-auth-main > section.s2l-auth-panel:nth-of-type(2) > form.s2l-auth-form",
+    "msg": "the form has no status line (role=\"status\"): sending, sent and errors are never read out",
+    "fix": "give each field its type, autocomplete and inputmode, never block paste or disable the button before a submit, and add the status line (references/system.md, Forms)",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "label-centre",
+    "where": "div.s2l-auth-frame > header.s2l-auth-header > nav.s2l-auth-portals > a.s2l-auth-portal:nth-of-type(1) \"Giáo viên\"",
+    "msg": "its label sits 19px off-centre (9px of room at the left, 28px at the right) (and 2 more like it: \"Quản lý trường\", \"Quản trị nền tảng\")",
+    "fix": "centre the label in its button, or fill the empty side with an icon",
+    "widths": [
+     390
+    ],
+    "from": "consistency"
+   }
+  ],
+  "crashed": [],
+  "seconds": {
+   "consistency": 56,
+   "layout": 14
+  }
+ },
+ "open": [
+  {
+   "check": "shader-lint",
+   "where": "deps/three.js \"common\"",
+   "msg": "a shader uses \"common\" as a name (line 7: #include <common>): GLSL ES reserves it, so a strict GPU rejects the whole shader and the picture stays empty",
+   "fix": "rename it (flat, smooth, centroid, sample, patch, input, output, filter and the rest are GLSL ES reserved words)",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "shader-lint"
+   ],
+   "wheres": [
+    "deps/three.js \"common\""
+   ]
+  },
+  {
+   "check": "shader-lint",
+   "where": "deps/three.js \"sampler3D\"",
+   "msg": "a shader uses \"sampler3D\" as a name (line 2: uniform highp sampler3D probesSH[ NUM_LIGHT_PROBE_GRIDS ];): GLSL ES reserves it, so a strict GPU rejects the whole shader and the picture stays empty",
+   "fix": "rename it (flat, smooth, centroid, sample, patch, input, output, filter and the rest are GLSL ES reserved words)",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "shader-lint"
+   ],
+   "wheres": [
+    "deps/three.js \"sampler3D\""
+   ]
+  },
+  {
+   "check": "shader-lint",
+   "where": "deps/three.js \"sampler2DShadow\"",
+   "msg": "a shader uses \"sampler2DShadow\" as a name (line 11: uniform sampler2DShadow sunShadowMap[ NUM_SUN_LIGHT_SHADOWS ];): GLSL ES reserves it, so a strict GPU rejects the whole shader and the picture stays empty",
+   "fix": "rename it (flat, smooth, centroid, sample, patch, input, output, filter and the rest are GLSL ES reserved words)",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "shader-lint"
+   ],
+   "wheres": [
+    "deps/three.js \"sampler2DShadow\""
+   ]
+  },
+  {
+   "check": "hero-fill",
+   "where": "div#s2l-auth-main > section.s2l-auth-panel \"Đăng nhập\"",
+   "msg": "the next section shows on the first screen: it starts at 293px on a 900px screen (the hero ends at 726px)",
+   "fix": "let the hero fill the first screen alone (min-height: 100svh, less above it): nothing of the next section on load",
+   "widths": [
+    1440,
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "hero-fill"
+   ],
+   "wheres": [
+    "div#s2l-auth-main > section.s2l-auth-panel \"Đăng nhập\""
+   ]
+  },
+  {
+   "check": "flush",
+   "where": "div#s2l-auth-main > section.s2l-auth-intro > figure.s2l-auth-art > div.s2l-auth-art-scene",
+   "msg": "its last line sits -474px above the rule on top of section.s2l-auth-panel",
+   "fix": "give the section its padding at the edge where the ground changes (the closing call keeps a clear gap above the footer)",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "flush"
+   ],
+   "wheres": [
+    "div#s2l-auth-main > section.s2l-auth-intro > figure.s2l-auth-art > div.s2l-auth-art-scene"
+   ]
+  },
+  {
+   "check": "button-styles",
+   "where": "(one screen)",
+   "msg": "3 button styles on one screen: round, fill #ffffff, outline #e4d8c5 (\"Quản lý trường School Manager\"); round, fill #e8f0fa, outline #245b9b (\"Giáo viên Teacher\"); soft, fill #245b9b, outline #245b9b (\"Vào bản xem thử\"); the odd one out: \"Vào bản xem thử\"",
+   "fix": "one primary and one secondary button: one shape, one height per size, one label size",
+   "widths": [
+    1440,
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "button-styles"
+   ],
+   "wheres": [
+    "(one screen)"
+   ]
+  },
+  {
+   "check": "button-styles",
+   "where": "(the page)",
+   "msg": "3 button styles on the page: round, fill #e8f0fa, outline #245b9b x1 (\"Giáo viên Teacher\"); round, fill #ffffff, outline #e4d8c5 x2 (\"Quản lý trường School Manager\"); soft, fill #245b9b, outline #245b9b x1 (\"Vào bản xem thử\")",
+   "fix": "one primary and one secondary button: one shape, one height per size, one label size",
+   "widths": [
+    1440,
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "button-styles"
+   ],
+   "wheres": [
+    "(the page)"
+   ]
+  },
+  {
+   "check": "cta",
+   "where": "div#s2l-auth-main > section.s2l-auth-intro",
+   "msg": "the hero has no button (the nav's does not count)",
+   "fix": "add the action: a button in the hero, one on every priced item, one in the closing section",
+   "widths": [
+    1440,
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "cta"
+   ],
+   "wheres": [
+    "div#s2l-auth-main > section.s2l-auth-intro"
+   ]
+  },
+  {
+   "check": "copy-headline",
+   "where": "h1#s2l-auth-title \"Dạy học mở lối mới.\"",
+   "msg": "\"Dạy học mở lối mới.\" does not name what is sold (sketch2life web authentication, sketch2life, web, authentication, from flags)",
+   "fix": "put the category noun in the h1 (and who it is for, or where), in 2 to 8 words",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "copy-headline"
+   ],
+   "wheres": [
+    "h1#s2l-auth-title \"Dạy học mở lối mới.\""
+   ]
+  },
+  {
+   "check": "moment-none",
+   "where": "(the page)",
+   "msg": "a software page (--type) deals no moment: every kind carries one, two on a long page (moments.md)",
+   "fix": "deal one (moments.mjs pick --page software) and mount it in its own section",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "moment-none"
+   ],
+   "wheres": [
+    "(the page)"
+   ]
+  },
+  {
+   "check": "hero-screen",
+   "where": "div#root > main.s2l-auth-shell > div.s2l-auth-frame \"Sketch2LifeNền tảng học tậpGiáo viênTeac\"",
+   "msg": "the hero ends at 886px on a 900px screen, 14px above the fold: it ends at the fold, 1px either way (SR-1)",
+   "fix": "make the hero exactly one screen (height: 100svh, its content fitted inside), never taller or shorter",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "hero-screen"
+   ],
+   "wheres": [
+    "div#root > main.s2l-auth-shell > div.s2l-auth-frame \"Sketch2LifeNền tảng học tậpGiáo viênTeac\""
+   ]
+  },
+  {
+   "check": "section-height",
+   "where": "div#root > main.s2l-auth-shell > div.s2l-auth-frame \"Sketch2LifeNền tảng học tậpGiáo viênTeac\"",
+   "msg": "the section starts at 20px, 20px below the screen grid (0 x 900px): sections start on whole screens (SR-2)",
+   "fix": "make every section above it exactly one or two screens tall, so this one starts on a whole screen",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "section-height"
+   ],
+   "wheres": [
+    "div#root > main.s2l-auth-shell > div.s2l-auth-frame \"Sketch2LifeNền tảng học tậpGiáo viênTeac\""
+   ]
+  },
+  {
+   "check": "one-section",
+   "where": "div#root > main.s2l-auth-shell > a.s2l-auth-skip-link \"Bỏ qua điều hướng\"",
+   "msg": "a <a> sits directly in <main>: every part of <main> is a <section> (SR-4)",
+   "fix": "put every block of <main> in a <section>, and give a band its own section instead of a ground inside one",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "one-section"
+   ],
+   "wheres": [
+    "div#root > main.s2l-auth-shell > a.s2l-auth-skip-link \"Bỏ qua điều hướng\"",
+    "div#root > main.s2l-auth-shell > div.s2l-auth-frame \"Sketch2LifeNền tảng học tậpGiáo viênTeac\""
+   ]
+  },
+  {
+   "check": "one-heading",
+   "where": "h2#s2l-auth-form-title \"Đăng nhập\"",
+   "msg": "the hero holds an h2 (1): its heading is the h1, and an h2 opens the next section (SR-5)",
+   "fix": "give each section one h2, first in its .wrap, and the hero only its h1",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "one-heading"
+   ],
+   "wheres": [
+    "h2#s2l-auth-form-title \"Đăng nhập\""
+   ]
+  },
+  {
+   "check": "container-edges",
+   "where": "div#root \"Bỏ qua điều hướngSketch2LifeNền tảng học\"",
+   "msg": "a <div> at the top of the page, outside header.nav, main, footer.closing and nav.actionbar (SR-6)",
+   "fix": "build the page as header.nav, a main of sections (each one in-flow .wrap plus background layers) and footer.closing",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "container-edges"
+   ],
+   "wheres": [
+    "div#root \"Bỏ qua điều hướngSketch2LifeNền tảng học\""
+   ]
+  },
+  {
+   "check": "container-edges",
+   "where": "div#root > main.s2l-auth-shell > div.s2l-auth-frame \"Sketch2LifeNền tảng học tậpGiáo viênTeac\"",
+   "msg": "the section needs exactly one in-flow child .wrap (it has 3 in-flow children, 0 .wrap) (SR-6)",
+   "fix": "build the page as header.nav, a main of sections (each one in-flow .wrap plus background layers) and footer.closing",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "container-edges"
+   ],
+   "wheres": [
+    "div#root > main.s2l-auth-shell > div.s2l-auth-frame \"Sketch2LifeNền tảng học tậpGiáo viênTeac\""
+   ]
+  },
+  {
+   "check": "container-edges",
+   "where": "h2#s2l-auth-form-title \"Đăng nhập\"",
+   "msg": "the h2 starts 789px right of the container's left: every h1 and h2 starts on it, 2px either way (SR-6)",
+   "fix": "start the text on the container's left, or on the one split line every split shares",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "container-edges"
+   ],
+   "wheres": [
+    "h2#s2l-auth-form-title \"Đăng nhập\""
+   ]
+  },
+  {
+   "check": "container-edges",
+   "where": "div#s2l-auth-main > section.s2l-auth-intro > p.s2l-auth-eyebrow \"CỔNG GIÁO VIÊN\"",
+   "msg": "3 text blocks start on a left line at x 112, 32px from the container's left: text starts on the container's left, or on one split line (x 623, 732, 841) (also \"Dạy họcmở lối mới.\", \"Lớp được phân công và giáo án tr\") (SR-6)",
+   "fix": "start the text on the container's left, or on the one split line every split shares",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "container-edges"
+   ],
+   "wheres": [
+    "div#s2l-auth-main > section.s2l-auth-intro > p.s2l-auth-eyebrow \"CỔNG GIÁO VIÊN\""
+   ]
+  },
+  {
+   "check": "container-edges",
+   "where": "h1#s2l-auth-title \"Dạy họcmở lối mới.\"",
+   "msg": "the h1 starts 32px right of the container's left: every h1 and h2 starts on it, 2px either way (SR-6)",
+   "fix": "start the text on the container's left, or on the one split line every split shares",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "container-edges"
+   ],
+   "wheres": [
+    "h1#s2l-auth-title \"Dạy họcmở lối mới.\""
+   ]
+  },
+  {
+   "check": "split-pair",
+   "where": "div#s2l-auth-main \"CỔNG GIÁO VIÊNDạy họcmở lối mới.Lớp được\"",
+   "msg": "the two columns of the split start 23px apart at the top: a split's columns are top-aligned, 8px either way (SR-8)",
+   "fix": "top-align both columns of the split (align-items: start)",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "split-pair"
+   ],
+   "wheres": [
+    "div#s2l-auth-main \"CỔNG GIÁO VIÊNDạy họcmở lối mới.Lớp được\""
+   ]
+  },
+  {
+   "check": "text-only",
+   "where": "div#s2l-auth-main > section.s2l-auth-panel \"Đăng nhập\"",
+   "msg": "the closing section is only text: no picture, icon, mock or effect in it",
+   "fix": "give the section a visual: a photograph that fits, the real icons, or a UI fragment on a ground",
+   "widths": [
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "text-only"
+   ],
+   "wheres": [
+    "div#s2l-auth-main > section.s2l-auth-panel \"Đăng nhập\""
+   ]
+  },
+  {
+   "check": "container",
+   "where": "page",
+   "msg": "no .wrap",
+   "fix": "put the content in one .wrap",
+   "widths": [
+    1440,
+    390
+   ],
+   "from": "layout",
+   "ids": [
+    "container"
+   ],
+   "wheres": [
+    "page"
+   ]
+  }
+ ],
+ "waived": [],
+ "warnCount": 11,
+ "at": "2026-11-11T17:19:15.089Z",
+ "openTold": true
+}

@@ -145,3 +145,114 @@ The direct user request authorizes an audit/listing for Teacher, School Manager 
 ## D-066-38 — Separate UI defects from API/backend and owner blockers
 
 For FEAT-066-EV-016, classify product flows as blocked when the current UI/API adapter cannot complete them; record the missing/partial contract as a dependency, not as a completed mock action. Preserve unavailable states, privacy boundaries and open commercial/eligibility decisions. Do not modify application source until the user selects a remediation scope.
+
+## D-066-39 — Remediate audit findings only at existing API boundaries
+
+The user's 2026-11-11 follow-up authorizes FE-only implementation from EV-016 across the three SRS web roles. A flow may be wired only when the existing contract supports its auth, tenant, version and state requirements. Otherwise the UI must clearly report unavailability, remove local-only success signals, and record the missing API dependency. Do not change backend/contracts, invent product policy, broaden child-data access, or treat fixtures/§32 as target requirements.
+
+## D-066-40 — Keep three-role remediation at verified API boundaries
+
+For EV-016 remediation, use only product APIs whose current contract supports the necessary role, organization, version, and state semantics. Preserve a stable idempotency key across retries when the API accepts one. Recover Teacher uploads only from the existing status endpoint; reselect and hash-check the source file, and keep file bytes, filenames, tokens, and child data out of session storage. If a grant version cannot be fetched exactly, or a flow has no product API, disable the operation and state the dependency. Local previews must not imply a backend success. Keep the four M01 approval criteria and Admin/operator permission split open pending owner decision; do not infer pricing or policy.
+
+## D-066-41 — Apply the paper-and-crayon direction to shared auth and Teacher only
+
+For the user-approved Rev16 preview, use warm paper #FFF9F0/#F2EBDD, graphite #25241F/#57574F and primary blue #245B9B; use red, orange, yellow, green, teal and brown sparingly for semantic accents. Yellow labels use graphite text. This is a visual direction from the user's palette research/concept, not an SRS requirement. Apply login styles to the shared Teacher/School Manager/Platform Admin /login pages because they consume one component; authenticated palette changes stay in apps/teacher-ui. Preserve role/auth behavior, local fixture labels, keyboard/accessibility semantics, no-default child media, and the unavailable Sketch Deck state. Keep its eventual projection surface white and 16:9 per NFR-33; do not fabricate it in the current FE-only preview.
+## D-066-42 — Use a child-friendly shared icon treatment across the three web roles
+
+For the user's Rev17 visual request, retain the local shared SVG glyph set and semantic mappings while applying rounded strokes, visible but restrained crayon-color echoes, soft glyph tint, and gently rounded icon badges. Keep foreground strokes controlled by currentColor so active and primary controls retain their existing contrast. This is visual styling only; do not change SRS roles, route/action meaning, accessibility names, package dependencies, or app layout.
+
+## D-066-43 — Use one shared notification bell and full-color nav glyphs
+
+For Rev18, use familiar full-color system emoji glyphs for the three role sidebars and the adjacent role/account controls. Use the same bell glyph for Teacher notifications, the School Manager unavailable inbox, and Platform Admin notifications. Keep unread counts, unavailable labels, status dots, routes and accessible names as currently implemented. Preserve the functional chevron as a directional icon and keep page-content icons on the Rev17 SVG system.
+
+## D-066-44 — Use monochrome outline glyphs in role navigation
+
+For Rev19, use the existing local SVG path set as single-color line icons in the Teacher, School Manager and Platform Admin navigation and notification/inbox controls. Use currentColor for the existing control foreground, rounded caps/joins, and the same bell outline across roles. Keep unread indicators, unavailable state, accessible names, layout, routes and actions unchanged. This is a visual correction to the Rev18 emoji preview; do not alter non-shell page-content icons.
+
+## D-066-45 — Treat Rev20 as a Teacher UI diagnosis only
+
+Rev20 covers one SRS-to-route/API diagnosis and a proposed Teacher-first information architecture. It does not authorize app-source changes. Keep the proposed task model flow-oriented: dashboard, assigned classes/profiles, reusable lessons, guided occurrence, and history; fold optional Sketch Deck and video steps into the occurrence. Remove any Teacher-facing Manager handoff mutation. Until product contracts exist, present extraction confirmation, profile creation, occurrence/run, sketch generation, playback/projection, history, inbox and quota as explicitly unavailable. Await the user's acceptance before implementation and create a matching approved plan first.
+
+## D-066-46 — Match monochrome crayon navbar glyphs to each role function
+
+For Rev21, use a dedicated friendly outline glyph mapping for the Teacher, School Manager and Platform Admin navigation. Each glyph must describe the visible destination/action, use one currentColor stroke with rounded organic geometry, and contain no emoji or colored fill. Keep one bell outline for all notifications. Preserve labels, routes, role checks, actions, hit areas, and page-content icon styling. This authorizes the icon correction only; the Teacher layout proposal in Rev20 remains pending user review.
+
+## D-066-47 — Complete Rev21 semantic outline navbar icon preview
+
+Rev21 is implemented in the three role shells with action-matched glyphs rendered as one-color currentColor outlines using rounded, crayon-friendly geometry. Preserve icon-badge state styling and all page-content icon treatment. All nine local preview screenshots were visually reviewed with no horizontal overflow, Vite error, or browser runtime exception. Leave the worktree uncommitted for user review; the Rev20 Teacher layout proposal still requires user acceptance before any implementation.
+
+## D-066-48 — Use a toothed cog for navbar settings
+
+The previous settings outline had radial spokes and looked like a sun at small size. For Rev22, use a toothed cog silhouette for the Teacher and School Manager settings navigation items, including the Manager role shell rendered by Teacher UI. Retain the old settings symbol for non-navigation uses to preserve the existing approved page-content visual scope.
+
+## D-066-49 — Design the complete crayon web UI before implementation
+
+For Rev23, deliver a reviewable design system and screen/flow atlas for shared web Auth and the three SRS product roles: Teacher, School Manager and Platform Admin. Keep Content Admin as permission, not a role; exclude Parent/mobile. Use the user-approved warm paper/graphite/school-blue direction and monochrome outline navbar glyphs. Separate SRS target requirements from current API support; mark unavailable flows and leave open policy/pricing decisions unresolved. Keep generated visuals in assets/generated pending acceptance; do not change application source in Rev23.
+## D-066-50 — Keep the Rev23 crayon UI as a design-only review artifact
+
+The four Rev23 boards and the SRS flow atlas are ready for user review. Treat the boards as representative visual concepts and the atlas as the authoritative flow/API map. Keep all generated files in assets/generated/rev23; do not promote them to approved/applied assets or implement application code until the user accepts the visual direction. The unsigned SRS and OI-17 remain open. Unsupported APIs stay unavailable; do not infer prices, policies, consent settings or operational data.
+## D-066-51 — Implement the accepted Rev23 web concept in ordered sections
+
+The user's Rev24 instruction changes the Rev23 design-only boundary: Auth and the three web roles may now be rebuilt using the accepted crayon boards. Apply the same system with role-specific tasks, preserving supported behavior and SRS access boundaries. Implement and manually review one section at a time (Auth, Teacher, School Manager, Platform Admin), recording SRS/API findings before continuing. Unavailable APIs and owner-open rules remain unavailable/open. Keep Parent/mobile, backend, tests/builds and commit/push out of scope.
+
+## D-066-52 — Close Auth only after role-isolation review
+
+The Auth section is complete only after all three role links and narrow layouts are captured, and each wrong-role route is checked to show the shared mismatch page, logout action, and no foreign portal shell. Keep local sign-in labeled as non-persistent preview; Platform Admin role discovery remains unavailable until its server contract exists.
+
+## D-066-53 — Keep Teacher UI data-backed and class-scoped
+
+For Rev24 Teacher, show only real API results after Firebase session and organization assignment are available. Match class list/detail to active class-scoped Teacher assignments before showing class/roster data. The local design preview has no sample rows, fake quota/unread values or synthetic success. Keep lesson/import operations limited to existing APIs and label extraction confirmation, occurrence/story/video/projection, quota/history/inbox/feedback/profile/settings as unavailable until their contracts exist.
+
+## D-066-54 — Keep School Manager API evidence separate from SRS target flows
+
+For Rev24 School Manager, expose class and roster reads only after an active `school_admin` assignment is verified. Do not use create-class/create-assignment primitives as proof of capacity-safe lifecycle or provisioning workflows. M01 decisions require exact grant/current immutable-version equality and structured content. Count only pending items returned for the visible page; show Approved and Changes requested separately, but do not synthesize either historical total without an API aggregate. Billing, subscription, capacity/quota, inbox, feedback, and settings remain explicitly unavailable where their contracts are absent. Never render sample school/child names, prices, payment status, quota totals, or unread state in local preview.
+
+## D-066-55 — Keep Platform Admin preview separate from administrator authorization
+
+For Rev24 Platform Admin, the local role flag is visual preview only. Do not infer or grant server role/capability from the route. The existing moderation command cannot be used without a scoped queue and exact immutable-version read. Limit optional health checks to an authenticated bridge and loopback API base; do not call external/production services from preview. Keep catalog, org/permission context, queue/job, billing reconciliation, quota policy, lifecycle, audit, inbox, and feedback unavailable until their versioned scoped contracts exist. Content Admin remains a permission within Platform Admin, never a separate role.
+
+## D-066-56 — Preserve the role frame and simplify overview dashboards
+
+For the Rev25 visual pass, keep the accepted role shell and route structure. Match each role's overview to its Rev23 board with fewer content layers and shorter copy: Teacher's three work areas, School Manager's organization/service status, and Platform Admin's four operational status cards. The persistent shell preview label is sufficient; do not repeat the same preview banner in dashboard content. Remove dashboard shortcuts duplicated by the sidebar. Preserve API-truthful status, SRS permissions/privacy and all existing unavailable dependencies.
+
+
+### D-066-56 outcome — Rev25 overview alignment
+
+The overview pass is complete. Teacher's existing three-area workbench already matched the board after the prior cleanup, so this pass kept its source unchanged. School Manager uses organization status plus service availability; Platform Admin uses four operational status cards. The shell, navigation appearance, routes and logout were preserved. Missing API flows remain unavailable and are recorded without sample values or success claims. A separate same-path `aria-current` issue was found in Manager/Admin navigation and left for a focused accessibility correction outside this dashboard-only scope.
+
+
+## D-066-57 — Use a restrained paper/crayon canvas behind the three web roles
+
+For Rev26, carry the Rev23 paper surface and sparse corner crayon strokes into the content canvas behind Teacher, School Manager and Platform Admin. Preserve the accepted shell, cards, text and product interactions; the background is decorative and must not obscure or signal product state. Use CSS-native local styling without remote assets or new dependencies. Keep Auth and Parent/mobile out of scope.
+
+### D-066-57 outcome — Rev26 paper/crayon background
+
+The same CSS-native paper texture and sparse corner strokes are applied behind Teacher, School Manager and Platform Admin content canvases. Manual desktop/narrow visual review of all three overviews and one representative route per role passed: the background fills the visible canvas, marks stay behind content, and no overflow or browser/runtime errors were observed. Existing preview/API-unavailable states are unchanged. Evidence is in EV-032. The pass remains uncommitted pending user review.
+
+## D-066-58 — Rebuild auth presentation without changing identity flow
+
+For Rev27, use the brainstormed crayon learning-studio layout: keep one role-specific `/login` page per web app, make the login form the clear primary action, and retain simple links for Teacher, School Manager and Platform Admin. Reuse the existing sign-in/role-resolution adapter, URLs, preview state and mismatch handling. Reuse the existing school-model Three.js scene with an immediate SVG fallback; no new dependency, remote asset, real data or provider call. Do not add account recovery, organization selection or help flows without a SRS/API contract. The brainstorm is recorded in `evidence/notes/AUTH_UI_REDESIGN_BRAINSTORM_REV27_20261111.md`. Plan hash `C9EF609A920F3C53F0153ED109660B85003D4D03A8E1E76C2F46C3EB2EEF21C2` was approved before implementation.
+
+
+### D-066-58 outcome — Rev27 shared web auth
+
+Implemented the approved split login composition for Teacher, School Manager and Platform Admin. Kept role routing and auth behavior intact, added a keyboard skip link and mobile tap-target adjustment, and verified WebGL failure fallback in a local browser. All role/viewport captures and observations are in EV-033. The full design-taste gate ended OPEN 22 after three rounds. A final manual capture then exposed and fixed a role-specific fallback-opacity issue; the 12 screenshots and forced shader failure check were rerun, but no fourth full gate round was run. Remaining gate findings are listed and classified in the completion evidence rather than waived or forced into a marketing-site structure. No tests/builds, backend/API calls, real data, commit or push.
+## D-066-59 — Keep the Rev68 task SRS trace separate from the repository source register
+
+For this user-authorized Rev28 task, use the owner's explicitly selected unsigned Rev68 file as the screen/flow baseline and trace each role surface to the available API contracts. Record the project authority pointer's unsigned Rev60 hash as an unresolved source-register mismatch. Do not rewrite the SRS authority record or imply either draft is signed. Preserve role-scoped backend authorization, the Manager preview/BE1 distinction, and the Platform Admin child-data deny-by-default boundary. Unavailable operations remain visible as unavailable until their scoped contracts exist.
+
+## D-066-60 — Use one role entry and remove local preview sign-in
+
+For Rev29, /login is the role-selection entry; legacy /teacher/login resolves there, and role cards open real role sign-in routes. Remove the local preview authentication bypass, School Manager fixture-preview app and user-facing preview navigation. Redirect retired preview URLs to /login for predictable recovery. Keep the BE1 Manager authorization path and existing Teacher/Firebase role-resolution adapter; a route or local flag must never grant a role. Keep Platform Admin role discovery visibly unavailable until its backend contract exists. This revises the Rev28 Manager preview distinction without changing the selected Rev68 task baseline or API contracts.
+
+### D-066-60 outcome — Rev29 login flow
+
+Implemented and visually verified at desktop and 390px mobile sizes. The role destinations, redirects, form fields, focus rings, lack of preview copy, and no-external-request result are documented in EV-035. No credentials or product API were used. Platform Admin role/capability discovery remains an explicit backend limitation.
+
+## D-066-61 — Keep all web roles in one login screen
+
+For Rev30, /login is the direct shared sign-in screen, with Teacher selected by default. Teacher, School Manager, and Platform Admin controls change the role panel in place; they do not route to separate login designs. Compatibility paths resolve to the matching role state on /login. Keep the real role-specific identity/authorization adapters: Teacher backend assignment resolution, School Manager BE1 authentication plus school_admin assignment verification, and Platform Admin's fail-closed missing capability-discovery state. A selected UI tab never grants a role. This decision follows FEAT-063 v2.7-draft FR-C-01 and does not alter API or authorization contracts.
+
+### D-066-61 outcome — Rev30
+
+Implemented and inspected in the local browser at desktop and mobile sizes. Role switching stays at /login, including keyboard activation and focus retention. The evidence and current backend limitation are recorded in EV-036.
