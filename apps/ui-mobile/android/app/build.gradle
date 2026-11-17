@@ -17,6 +17,7 @@ def releaseSigning = [
     keyPassword: providers.gradleProperty('androidReleaseKeyPassword')
         .orElse(providers.environmentVariable('ANDROID_RELEASE_KEY_PASSWORD')).orNull,
 ]
+def localDebugKeystore = new File(System.getProperty('user.home'), '.android/debug.keystore')
 
 /**
  * This is the configuration block to customize your React Native Android app.
@@ -114,7 +115,7 @@ android {
     }
     signingConfigs {
         debug {
-            storeFile file('debug.keystore')
+            storeFile localDebugKeystore
             storePassword 'android'
             keyAlias 'androiddebugkey'
             keyPassword 'android'

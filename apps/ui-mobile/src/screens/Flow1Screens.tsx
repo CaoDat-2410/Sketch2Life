@@ -85,58 +85,7 @@ const ChoiceChip: React.FC<{
 );
 
 // ==========================================
-// 1. SPLASH SCREEN (Image 2 - Screen 1)
-// ==========================================
-export const SplashScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
-  const { navigate } = useAppContext();
-  const nav = onNavigate || navigate;
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      nav('onboarding');
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, [nav]);
-
-  return (
-    <TouchableOpacity
-      activeOpacity={0.96}
-      onPress={() => nav('onboarding')}
-      style={{
-        flex: 1,
-        backgroundColor: '#FFFFFF',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: 36,
-        paddingHorizontal: 20,
-      }}
-    >
-      {/* Top Brand Logo & Tagline — 100% Crisp Native Vector */}
-      <View style={{ alignItems: 'center', marginTop: 16 }}>
-        <LogoSketch2Life size="lg" showTagline={false} />
-        <Text style={{ fontSize: 13, fontWeight: '700', color: '#1E40AF', marginTop: 6, textAlign: 'center' }}>
-          Mỗi nét vẽ đều có một câu chuyện đang chờ được kể...
-        </Text>
-      </View>
-
-      {/* Center Hero: Crisp HD Girl + Dino Artwork with Floating Animation */}
-      <View style={{ width: '100%', flex: 1, justifyContent: 'center', alignItems: 'center', marginVertical: 8 }}>
-        <SplashHeroIllustration height={340} />
-      </View>
-
-      {/* Bottom Inspiration Quote — 100% Crisp Native Vector, Never Cropped */}
-      <View style={{ alignItems: 'center', marginBottom: 8 }}>
-        <Text style={{ fontSize: 13, fontWeight: '800', color: '#1E3A8A', textAlign: 'center' }}>Vẽ hôm nay</Text>
-        <Text style={{ fontSize: 12, fontWeight: '600', color: '#2563EB', textAlign: 'center', marginTop: 3 }}>
-          Một thế giới diệu kỳ ngày mai ♡
-        </Text>
-      </View>
-    </TouchableOpacity>
-  );
-};
-
-// ==========================================
-// 2. ONBOARDING SCREEN (Image 2 - Screen 2)
+// 1. ONBOARDING SCREEN (Image 2 - Screen 2)
 // ==========================================
 export const OnboardingScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
   const { navigate } = useAppContext();
