@@ -1,0 +1,21 @@
+{
+  "data_id": "DATA-23",
+  "payload": {
+    "assistance_id": "assistance_fx_001",
+    "assistance_level": "hint",
+    "context_revision": 3,
+    "created_at": "2026-10-14T13:00:00Z",
+    "display_mode": [],
+    "editable_bounds": null,
+    "moderation_state": "passed",
+    "overlay_asset_ref": null,
+    "pipeline_state": "pending_teacher_review",
+    "proposal_id": "proposal_fx_001",
+    "proposal_version": 1,
+    "request_revision": 1,
+    "review_revision": 0,
+    "source_snapshot_ref": "snapshot_fx_001",
+    "text_or_question": "What shape could the roof be?"
+  },
+  "reason": "display_mode as list"
+}

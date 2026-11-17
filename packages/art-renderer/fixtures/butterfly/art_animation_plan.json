@@ -1,0 +1,51 @@
+{
+  "contractVersion": "1",
+  "planId": "fixture-butterfly-art-animation",
+  "planVersion": "1",
+  "stage": {"width": 800, "height": 600},
+  "objects": [
+    {
+      "id": "butterfly",
+      "label": "Child-drawn butterfly",
+      "asset": {
+        "sourceAssetId": "drawing-butterfly-001",
+        "sourceAssetVersion": "1",
+        "uri": "./fixtures/butterfly/drawing.svg",
+        "assetKind": "WHOLE_DRAWING",
+        "sourceSha256": "0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "initialTransform": {
+        "position": {"x": 0.5, "y": 0.5},
+        "scale": 1,
+        "rotationDegrees": 0,
+        "opacity": 1
+      },
+      "extractionStatus": "READY"
+    }
+  ],
+  "motions": [
+    {
+      "id": "scene-1-reveal",
+      "sceneId": "scene-1-reveal",
+      "kind": "DRAW_REVEAL",
+      "targetId": "butterfly",
+      "durationSeconds": 2
+    },
+    {
+      "id": "scene-2-flutter",
+      "sceneId": "scene-2-flutter",
+      "kind": "SCALE",
+      "targetId": "butterfly",
+      "durationSeconds": 1.5,
+      "scale": 1.06
+    },
+    {
+      "id": "scene-3-fly",
+      "sceneId": "scene-3-fly",
+      "kind": "FLY",
+      "targetId": "butterfly",
+      "durationSeconds": 3,
+      "to": {"x": 0.7, "y": 0.42}
+    }
+  ]
+}

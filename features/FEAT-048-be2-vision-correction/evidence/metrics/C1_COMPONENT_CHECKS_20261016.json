@@ -1,0 +1,178 @@
+{
+  "date": "2026-10-16",
+  "generated_utc": "2026-10-16T12:58:37Z",
+  "checkpoint": "C1_COMPONENT_OFFLINE",
+  "result": "REVIEW_READY_PENDING_CODEX",
+  "card_status": "NOT_DONE",
+  "branch": "feature/be2-02-vision-correction",
+  "head": "6dcc57ee0b3d053f071c8c92e72aaaee2e98d899",
+  "base": "6dcc57ee0b3d053f071c8c92e72aaaee2e98d899",
+  "working_tree": "uncommitted; no commit/push/merge/deploy",
+  "approval": {
+    "record": "approvals/TASK_APPROVAL.md",
+    "recorded_at": "2026-10-16T19:18:00+07:00",
+    "plan_revision": 1,
+    "approved_plan_sha256": "f4733c88797edbcce225ecd63700634f929ca75789362c7f3a58a2b57f19df30",
+    "current_plan_md_sha256": "8a40d4bf372e0c96db5090ff282350f37eef7db5261d59409d540960d0cdae1a",
+    "note": "PLAN.md differs from the approved bytes only in its Status/Implementation status header lines"
+  },
+  "environment": {
+    "python": "3.12.10",
+    "venv": "root checkout backend/.venv (editable .pth points at root backend/src)",
+    "import_pinning": "PYTHONPATH/MYPYPATH = this worktree backend/src; sketch2life.__file__ verified under .worktrees/be2-02-vision-correction",
+    "pillow": "absent",
+    "installs": "none",
+    "network_provider_model": "none"
+  },
+  "tests": {
+    "be2_02_c1_focused": {
+      "tests": 175,
+      "passed": 174,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "junit_sha256": "51970459c544bdf9e85fea107a34f90bdc1f68e14841c30290d0a119bbaa4902",
+      "junit_path": "evidence/local/junit/be2_02_c1_focused.xml (ignored)"
+    },
+    "be2_02_c1_legacy_vision": {
+      "tests": 238,
+      "passed": 233,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 5,
+      "junit_sha256": "c29f72e738b6786ad209d81fe1c6dc82c0e2895bc6f0ea2be5be9a489e1ed348",
+      "junit_path": "evidence/local/junit/be2_02_c1_legacy_vision.xml (ignored)"
+    },
+    "be2_02_c1_be201_regression": {
+      "tests": 338,
+      "passed": 337,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "junit_sha256": "ff768b2a6015c2e43ea6f3f538c016c9a3cf042fe8e1433cb1474382851ade2b",
+      "junit_path": "evidence/local/junit/be2_02_c1_be201_regression.xml (ignored)"
+    }
+  },
+  "lint_types": {
+    "ruff_check": "PASS (18 paths, ruff 0.16.4)",
+    "mypy_strict": "PASS (18 source files, mypy 1.20.2)",
+    "ruff_format": "not a repository gate (existing BE2-01 files are not ruff-formatted)"
+  },
+  "mutation_sanity": {
+    "scope": "scratch in-process monkeypatches, nothing written",
+    "killed": 5,
+    "total": 5,
+    "control": "PASS",
+    "mutations": [
+      "M1 fake CAS skipped",
+      "M2 disclosure skipped before replay",
+      "M3 child proposal moves meaning",
+      "M4 raw confidence re-check skipped",
+      "M5 post-provider lineage re-check skipped"
+    ]
+  },
+  "validators": {
+    "harness": {
+      "exit": 0,
+      "first_line": "HARNESS_VALID"
+    },
+    "repository_security": {
+      "exit": 0,
+      "first_line": "REPOSITORY_SECURITY_VALID"
+    },
+    "architecture": {
+      "exit": 0,
+      "first_line": "ARCHITECTURE_VALID"
+    },
+    "skeleton": {
+      "exit": 0,
+      "first_line": "SKELETON_VALID"
+    },
+    "git_diff_check": {
+      "exit": 0,
+      "first_line": ""
+    }
+  },
+  "validator_history": [
+    {
+      "check": "repository_security",
+      "first_run": "REPOSITORY_SECURITY_INVALID (TOKENS = {...} in a new test)",
+      "fix": "renamed to FIXTURE_PRINCIPALS",
+      "rerun": "PASS"
+    }
+  ],
+  "acceptance": {
+    "V01": "PASS",
+    "V02": "PASS",
+    "V03": "PASS",
+    "V04": "PASS",
+    "V05": "PASS",
+    "V06": "PASS",
+    "V07": "PASS",
+    "V08": "PASS",
+    "V09": "PASS",
+    "V10": "PASS",
+    "V11": "PASS",
+    "V12": "PASS; live app route walk NOT_RUN (Pillow)",
+    "V13": "PASS",
+    "V14": "PASS",
+    "V15": "PASS",
+    "V16": "PASS (documentary + golden examples test)",
+    "V17": "PASS; test_lightning_vision_v2_server.py NOT_RUN (Pillow)"
+  },
+  "not_run": [
+    "tests/contract/test_analysis_corrections_api.py::test_v12_production_app_routes_do_not_mount_cmd34 (Pillow absent)",
+    "tests/unit/test_lightning_vision_v2_server.py (imports tools/lightning_vision_v2_server.py -> Pillow absent)",
+    "tests/contract/test_ai_job_polling.py::test_live_app_routes_have_no_candidate_job_route (Pillow absent, pre-existing)",
+    "real provider/model inference, quality, latency, budget (not authorized)",
+    "real BE1/BE2-03 adapters, SQL persistence, event delivery, live/P4 composition, Studio runtime (out of C1 scope)"
+  ],
+  "findings": [
+    {
+      "id": "F-01",
+      "kind": "pre-existing legacy defect",
+      "summary": "LightningVisionV2Adapter OSError branch builds TRANSIENT_RUNTIME_FAILURE with attempt_number=1; V2 matrix requires 2, so it raises ValidationError",
+      "action": "contained by bridge as PROVIDER_ERROR/LEGACY_ADAPTER_CONTRACT_ERROR; adapter unchanged"
+    },
+    {
+      "id": "F-02",
+      "kind": "environment",
+      "summary": "Pillow not installed in backend/.venv",
+      "action": "dependent checks NOT_RUN"
+    },
+    {
+      "id": "F-03",
+      "kind": "fixed during C1",
+      "summary": "security validator flagged TOKENS name",
+      "action": "renamed; PASS"
+    }
+  ],
+  "new_backend_files_sha256": {
+    "backend/src/sketch2life/application/ports/vision_analysis.py": "2a77e6f216b7771d13c19fc4964ef94ac8ba8f9acf7e26d7c84a940ee06f6ed1",
+    "backend/src/sketch2life/application/services/vision_analysis.py": "42d0032ba6c67b18c0abc6266d603547002ec04e8846f3fc56a9df8789ad34ab",
+    "backend/src/sketch2life/contracts/schemas/analysis_results.py": "fc5396db587f90a5b1ecabcc0f9daf4a6c220caf21678c422c25e5bc9f53382f",
+    "backend/src/sketch2life/domain/vision_analysis.py": "45292339c41499059098915da603d076dbbbb7ff9f591786e339dfda07b100b2",
+    "backend/src/sketch2life/infrastructure/vision_analysis/__init__.py": "ca7f2429c3309872604b3ab440ac054371086fb0dff82c17704af2148253ec37",
+    "backend/src/sketch2life/infrastructure/vision_analysis/fakes.py": "a873e9e9815470473a04245c8779cf70380751455f726954ac49ff594fa7f72b",
+    "backend/src/sketch2life/infrastructure/vision_analysis/harness.py": "112095d2c5a4c6d319dd5904945c423f799d8bd8ecd2e91bcd90dd833659069c",
+    "backend/src/sketch2life/infrastructure/vision_analysis/job_lineage.py": "9c07e7bc02653f666b2fe1dc1c7e4fd5491b93f1f77aaac9420890a1f53b3121",
+    "backend/src/sketch2life/infrastructure/vision_analysis/legacy_v2.py": "4730c08f5aa6b84dc1950327eaeb54751f44472ce7cf5156626b1845f4f3fcbd",
+    "backend/src/sketch2life/interfaces/http/analysis_corrections_fixture_app.py": "7aef60529ebc761a4e2044bd7b437598a49a41c35069f2ab7dae1415b673f661",
+    "backend/src/sketch2life/interfaces/http/routers/analysis_corrections.py": "6b5a6050ab9b64a0a72619f2a8736b0f654d73409c76233e3fa2d7df316fd657",
+    "backend/tests/contract/test_analysis_corrections_api.py": "4c3d3b0d9b81c7a96214eab81e874af4044e326d678eeb431017245a91f3a87b",
+    "backend/tests/contract/test_analysis_result_contracts.py": "24dbf892a06469c678f76c9af471047816930dc33e4d87c49daa5446decf9b67",
+    "backend/tests/contract/test_h_ai_review_handoff_examples.py": "56ada46d805aced66e9e455567e7a4d95a13c3fb4fa66d9b89b5e46e74db3eb3",
+    "backend/tests/unit/test_vision_analysis_domain.py": "a39f451ab8a3f791a943a2212ed110b8ec850a250ff6968d6d2b568fc8acefe5",
+    "backend/tests/unit/test_vision_analysis_job_lineage.py": "98ba03b0ff3ea406dea574440ae5344e62cd7e14af82a79a6b7f237c7a50159e",
+    "backend/tests/unit/test_vision_analysis_legacy_bridge.py": "deb38372b9c0850543d39e84e31b87ffa66159b5316f6384fc33d3884ecfbe5b",
+    "backend/tests/unit/test_vision_analysis_service.py": "0595e0a4c0acc13ca710d1c79367be879b77d9d0ff4c6c383d72f4a5b20c8b4d"
+  },
+  "h_ai_review_examples_sha256": {
+    "analysis_record.json": "037b719750eced29c6c7cb736fb6d3799096469ce1ba1317ab271cf3b25ffe9a",
+    "analysis_worker_candidate.json": "c66229b3c78c1b2bdb3dd83f9b39655586cd5f5d2c6382236e5178cec4554a8c",
+    "correction_child_receipt.json": "6135ff8ce0326617d4128d41b8e4abb50193f80cd595e06cd6645d7f459f71c2",
+    "correction_teacher_receipt.json": "e50c4ae09e40bf0652eb64af44e893e0972036589e1e1a150424867633766cd8",
+    "downstream_meaning.json": "d5306eb5b625903ee3da083ed7a701ebf643374f9158bab4a8df36ebe5170a77",
+    "invalidation_intents.json": "0325699f438c1665cb1626c4315ea9ccb50deada963cca9910e920fd22d402ad"
+  }
+}

@@ -1,0 +1,180 @@
+{
+  "app": "sketch2life-srs23-flux-image-dev",
+  "asset_file": "parent_sketch_guide.png",
+  "attempt_id": "f6a84937-4930-4d8c-9b78-24ee14e9df34",
+  "call_id": "fc-01M6QWNHC2K3GENMAA8PGWERZ1",
+  "dispatch_at": "2026-11-06T14:37:27+07:00",
+  "ended_at": "2026-11-06T14:38:11+07:00",
+  "function": "generate-line-sketch-guide-candidate",
+  "generation_id": "dd8c7998-60a8-4da8-814c-dc516f21bfb1",
+  "input_sha256": "ecc25867a2efcc873dbef27c20b5eb4255bc84d2b953ee33b96465ec12239b36",
+  "job_id": "af231ee3-bad1-40ad-a7c5-5bff53e0a904",
+  "manifest_sha256": "703c8608d632c8e6cbaf7e3989b365e8a0b6071515cfb1b3eb2b4035640c4f95",
+  "outcome": "SUCCEEDED",
+  "output_sha256": "0404a0f9a08b458f84f4a9a3732a43bbdf56bc044ae9cafef473ad7c766a049f",
+  "result": {
+    "asset": {
+      "content_type": "image/png",
+      "height": 512,
+      "sha256": "0ca5dfbc740e470187d74e79cd4d91aee2a0ae98d8a179c950e3a6fab8aa172e",
+      "size_bytes": 332333,
+      "width": 768
+    },
+    "attempt_id": "f6a84937-4930-4d8c-9b78-24ee14e9df34",
+    "generation_id": "dd8c7998-60a8-4da8-814c-dc516f21bfb1",
+    "job_id": "af231ee3-bad1-40ad-a7c5-5bff53e0a904",
+    "limitations": [
+      "synthetic candidate only; line-step ordering and child usability are unevaluated",
+      "not safety-approved, not registered as a product asset, and not publishable",
+      "no child, profile, drawing, voice, or image reference was used"
+    ],
+    "model": {
+      "image_generator": {
+        "id": "black-forest-labs/flux-3-image-klein",
+        "revision": "09561231f44e41381c461caf53d5452005a60ac9"
+      },
+      "prompt_upsampler": {
+        "id": "black-forest-labs/flux-3-image-klein-pup",
+        "revision": "a57899549f8f6f64c6c4d88db30827d496ff76d0"
+      }
+    },
+    "prompt_sha256": "1389c1ece403d5474866d282a61c1403ea281ce95fa60dafc6b45786e922781d",
+    "review_required": true,
+    "schema_version": "sketch2life.modal.worker-output.v1",
+    "status": "DRAFT",
+    "workload": "parent.sketch-guide.generate"
+  },
+  "runner_elapsed_ms": 47353.07,
+  "started_at": "2026-11-06T14:37:25+07:00",
+  "wait_limit_seconds": 1800,
+  "worker_log_summary": {
+    "worker_binary_output_sha256": "926a84fcc8c4942b398da7d87e3d4582a75a9146c037a07ab20f0f1d72464abd",
+    "worker_diagnostic_code": null,
+    "worker_diagnostic_details": null,
+    "worker_duration_ms": 39481,
+    "worker_error_code": null,
+    "worker_error_type": null,
+    "worker_failure_boundary": "worker_succeeded",
+    "worker_gpu_class": "L40S",
+    "worker_last_stage": "terminal",
+    "worker_log_event_count": 26,
+    "worker_logs_available": true,
+    "worker_model_id": "black-forest-labs/flux-3-image-klein",
+    "worker_model_revision": "09561231f44e41381c461caf53d5452005a60ac9",
+    "worker_output_sha256": "b7e49e2617d3de4cab0f61b7e01e7d0cd2076dd9ffc5a1b11869f08feb2abe42",
+    "worker_output_size_bytes": 333396,
+    "worker_phase_history": [
+      {
+        "event": "worker_phase_started",
+        "stage": "feature_gate"
+      },
+      {
+        "duration_ms": 0,
+        "event": "worker_phase_succeeded",
+        "stage": "feature_gate"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "input_envelope"
+      },
+      {
+        "duration_ms": 0,
+        "event": "worker_phase_succeeded",
+        "stage": "input_envelope"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "workload_gate"
+      },
+      {
+        "duration_ms": 0,
+        "event": "worker_phase_succeeded",
+        "stage": "workload_gate"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "scratch_volume_reload"
+      },
+      {
+        "duration_ms": 105,
+        "event": "worker_phase_succeeded",
+        "stage": "scratch_volume_reload"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "input_manifest_read"
+      },
+      {
+        "duration_ms": 507,
+        "event": "worker_phase_succeeded",
+        "stage": "input_manifest_read"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "guide_request_validation"
+      },
+      {
+        "duration_ms": 0,
+        "event": "worker_phase_succeeded",
+        "stage": "guide_request_validation"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "checkpoint_verification"
+      },
+      {
+        "duration_ms": 274,
+        "event": "worker_phase_succeeded",
+        "stage": "checkpoint_verification"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "gpu_preflight"
+      },
+      {
+        "duration_ms": 1954,
+        "event": "worker_phase_succeeded",
+        "stage": "gpu_preflight"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "prompt_upsampler_inference"
+      },
+      {
+        "duration_ms": 22157,
+        "event": "worker_phase_succeeded",
+        "stage": "prompt_upsampler_inference"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "flux_model_load"
+      },
+      {
+        "duration_ms": 10218,
+        "event": "worker_phase_succeeded",
+        "stage": "flux_model_load"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "flux_image_inference"
+      },
+      {
+        "duration_ms": 2276,
+        "event": "worker_phase_succeeded",
+        "stage": "flux_image_inference"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "image_encode_and_metadata"
+      },
+      {
+        "duration_ms": 1074,
+        "event": "worker_phase_succeeded",
+        "stage": "image_encode_and_metadata"
+      }
+    ],
+    "worker_started_observed": true,
+    "worker_terminal_event": "worker_succeeded"
+  },
+  "workload": "parent.sketch-guide.generate"
+}

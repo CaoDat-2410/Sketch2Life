@@ -1,0 +1,1520 @@
+{
+  "cases": [
+    {
+      "contract_name": "CoreFoundationFixtureV1",
+      "contract_version": "1.0",
+      "fixture_id": "authorization-allowed",
+      "owner": "P2/BE1",
+      "source_refs": [
+        "BE1-01",
+        "B19.6",
+        "B21.1"
+      ],
+      "synthetic_only": true,
+      "command": {
+        "contract_name": "ResolvedCoreCommandV1",
+        "contract_version": "1.0",
+        "command_id": "cmd_auth_01",
+        "action": "class.read",
+        "actor": {
+          "principal_id": "teacher_fixture_01",
+          "kind": "adult",
+          "role": "teacher",
+          "role_source": "identity_port",
+          "verified": true,
+          "authorized_scope": {
+            "organization_id": "org_fixture_01",
+            "class_id": "class_fixture_01"
+          },
+          "capabilities": [
+            "class.read"
+          ],
+          "device_id": null
+        },
+        "scope": {
+          "organization_id": "org_fixture_01",
+          "class_id": "class_fixture_01"
+        },
+        "expected_revision": null,
+        "idempotency_key": null,
+        "payload": {
+          "kind": "authorization",
+          "required_capability": "class.read",
+          "allowed_roles": [
+            "teacher"
+          ]
+        }
+      },
+      "state": {
+        "kind": "authorization",
+        "resource_scope": {
+          "organization_id": "org_fixture_01",
+          "class_id": "class_fixture_01"
+        },
+        "resource_revision": 1
+      },
+      "expected_result": {
+        "status": "accepted",
+        "failure_code": null,
+        "resulting_revision": null,
+        "contributor_ids": [],
+        "mutates_state": false
+      },
+      "contract_status": "PROPOSED_UNADOPTED",
+      "source_status_labels": [
+        "CONFIRMED",
+        "PROPOSED_UNADOPTED"
+      ]
+    },
+    {
+      "contract_name": "CoreFoundationFixtureV1",
+      "contract_version": "1.0",
+      "fixture_id": "authorization-invalid-scope",
+      "owner": "P2/BE1",
+      "source_refs": [
+        "BE1-01",
+        "B19.6",
+        "B21.1"
+      ],
+      "synthetic_only": true,
+      "command": {
+        "contract_name": "ResolvedCoreCommandV1",
+        "contract_version": "1.0",
+        "command_id": "cmd_auth_02",
+        "action": "class.read",
+        "actor": {
+          "principal_id": "teacher_fixture_01",
+          "kind": "adult",
+          "role": "teacher",
+          "role_source": "identity_port",
+          "verified": true,
+          "authorized_scope": {
+            "organization_id": "org_fixture_01",
+            "class_id": "class_fixture_01"
+          },
+          "capabilities": [
+            "class.read"
+          ],
+          "device_id": null
+        },
+        "scope": {
+          "organization_id": "org_fixture_01",
+          "class_id": "class_fixture_02"
+        },
+        "expected_revision": null,
+        "idempotency_key": null,
+        "payload": {
+          "kind": "authorization",
+          "required_capability": "class.read",
+          "allowed_roles": [
+            "teacher"
+          ]
+        }
+      },
+      "state": {
+        "kind": "authorization",
+        "resource_scope": {
+          "organization_id": "org_fixture_01",
+          "class_id": "class_fixture_02"
+        },
+        "resource_revision": 1
+      },
+      "expected_result": {
+        "status": "rejected",
+        "failure_code": "SCOPE_DENIED",
+        "resulting_revision": null,
+        "contributor_ids": [],
+        "mutates_state": false
+      },
+      "contract_status": "PROPOSED_UNADOPTED",
+      "source_status_labels": [
+        "CONFIRMED",
+        "PROPOSED_UNADOPTED"
+      ]
+    },
+    {
+      "contract_name": "CoreFoundationFixtureV1",
+      "contract_version": "1.0",
+      "fixture_id": "authorization-forged-role",
+      "owner": "P2/BE1",
+      "source_refs": [
+        "BE1-01",
+        "B19.6",
+        "B21.1"
+      ],
+      "synthetic_only": true,
+      "command": {
+        "contract_name": "ResolvedCoreCommandV1",
+        "contract_version": "1.0",
+        "command_id": "cmd_auth_03",
+        "action": "policy.read",
+        "actor": {
+          "principal_id": "user_fixture_01",
+          "kind": "adult",
+          "role": "super_admin",
+          "role_source": "caller_payload",
+          "verified": false,
+          "authorized_scope": {
+            "organization_id": "org_fixture_01"
+          },
+          "capabilities": [
+            "policy.read"
+          ],
+          "device_id": null
+        },
+        "scope": {
+          "organization_id": "org_fixture_01"
+        },
+        "expected_revision": null,
+        "idempotency_key": null,
+        "payload": {
+          "kind": "authorization",
+          "required_capability": "policy.read",
+          "allowed_roles": [
+            "super_admin"
+          ]
+        }
+      },
+      "state": {
+        "kind": "authorization",
+        "resource_scope": {
+          "organization_id": "org_fixture_01"
+        },
+        "resource_revision": 1
+      },
+      "expected_result": {
+        "status": "rejected",
+        "failure_code": "FORGED_PRINCIPAL",
+        "resulting_revision": null,
+        "contributor_ids": [],
+        "mutates_state": false
+      },
+      "contract_status": "PROPOSED_UNADOPTED",
+      "source_status_labels": [
+        "CONFIRMED",
+        "PROPOSED_UNADOPTED"
+      ]
+    },
+    {
+      "contract_name": "CoreFoundationFixtureV1",
+      "contract_version": "1.0",
+      "fixture_id": "pending-device-roster-denied",
+      "owner": "P2/BE1",
+      "source_refs": [
+        "BE1-01",
+        "B19.6",
+        "B21.2-DATA-10"
+      ],
+      "synthetic_only": true,
+      "command": {
+        "contract_name": "ResolvedCoreCommandV1",
+        "contract_version": "1.0",
+        "command_id": "cmd_auth_04",
+        "action": "roster.read",
+        "actor": {
+          "principal_id": "device_pending_01",
+          "kind": "pending_device",
+          "role": null,
+          "role_source": "identity_port",
+          "verified": true,
+          "authorized_scope": {
+            "organization_id": "org_fixture_01",
+            "session_id": "session_fixture_01"
+          },
+          "capabilities": [
+            "roster.read"
+          ],
+          "device_id": "device_fixture_01"
+        },
+        "scope": {
+          "organization_id": "org_fixture_01",
+          "session_id": "session_fixture_01"
+        },
+        "expected_revision": null,
+        "idempotency_key": null,
+        "payload": {
+          "kind": "authorization",
+          "required_capability": "roster.read",
+          "allowed_roles": []
+        }
+      },
+      "state": {
+        "kind": "authorization",
+        "resource_scope": {
+          "organization_id": "org_fixture_01",
+          "session_id": "session_fixture_01"
+        },
+        "resource_revision": 1
+      },
+      "expected_result": {
+        "status": "rejected",
+        "failure_code": "PENDING_PRINCIPAL_RESTRICTED",
+        "resulting_revision": null,
+        "contributor_ids": [],
+        "mutates_state": false
+      },
+      "contract_status": "PROPOSED_UNADOPTED",
+      "source_status_labels": [
+        "CONFIRMED",
+        "PROPOSED_UNADOPTED"
+      ]
+    },
+    {
+      "contract_name": "CoreFoundationFixtureV1",
+      "contract_version": "1.0",
+      "fixture_id": "profile-age-36-consented",
+      "owner": "P2/BE1",
+      "source_refs": [
+        "BE1-01",
+        "B19.2",
+        "B21.2-DATA-03",
+        "B21.2-DATA-05"
+      ],
+      "synthetic_only": true,
+      "command": {
+        "contract_name": "ResolvedCoreCommandV1",
+        "contract_version": "1.0",
+        "command_id": "cmd_profile_01",
+        "action": "profile.validate_purpose",
+        "actor": {
+          "principal_id": "teacher_fixture_01",
+          "kind": "adult",
+          "role": "teacher",
+          "role_source": "identity_port",
+          "verified": true,
+          "authorized_scope": {
+            "organization_id": "org_fixture_01",
+            "class_id": "class_fixture_01"
+          },
+          "capabilities": [
+            "profile.read"
+          ],
+          "device_id": null
+        },
+        "scope": {
+          "organization_id": "org_fixture_01",
+          "class_id": "class_fixture_01",
+          "child_id": "child_fixture_01"
+        },
+        "expected_revision": null,
+        "idempotency_key": null,
+        "payload": {
+          "kind": "profile_consent",
+          "child_id": "child_fixture_01",
+          "purpose": "classroom_drawing"
+        }
+      },
+      "state": {
+        "kind": "profile_consent",
+        "profile_child_id": "child_fixture_01",
+        "profile_organization_id": "org_fixture_01",
+        "profile_class_id": "class_fixture_01",
+        "age_months": 36,
+        "consent_state": "effective",
+        "verification_state": "verified",
+        "effective_purposes": [
+          "classroom_drawing"
+        ]
+      },
+      "expected_result": {
+        "status": "accepted",
+        "failure_code": null,
+        "resulting_revision": null,
+        "contributor_ids": [],
+        "mutates_state": false
+      },
+      "contract_status": "PROPOSED_UNADOPTED",
+      "source_status_labels": [
+        "OWNER_CONFIRMED",
+        "CONFIRMED",
+        "PROPOSED_UNADOPTED"
+      ]
+    },
+    {
+      "contract_name": "CoreFoundationFixtureV1",
+      "contract_version": "1.0",
+      "fixture_id": "profile-age-35-rejected",
+      "owner": "P2/BE1",
+      "source_refs": [
+        "BE1-01",
+        "B19.2",
+        "B21.2-DATA-03"
+      ],
+      "synthetic_only": true,
+      "command": {
+        "contract_name": "ResolvedCoreCommandV1",
+        "contract_version": "1.0",
+        "command_id": "cmd_profile_02",
+        "action": "profile.validate_purpose",
+        "actor": {
+          "principal_id": "teacher_fixture_01",
+          "kind": "adult",
+          "role": "teacher",
+          "role_source": "identity_port",
+          "verified": true,
+          "authorized_scope": {
+            "organization_id": "org_fixture_01",
+            "class_id": "class_fixture_01"
+          },
+          "capabilities": [
+            "profile.read"
+          ],
+          "device_id": null
+        },
+        "scope": {
+          "organization_id": "org_fixture_01",
+          "class_id": "class_fixture_01",
+          "child_id": "child_fixture_01"
+        },
+        "expected_revision": null,
+        "idempotency_key": null,
+        "payload": {
+          "kind": "profile_consent",
+          "child_id": "child_fixture_01",
+          "purpose": "classroom_drawing"
+        }
+      },
+      "state": {
+        "kind": "profile_consent",
+        "profile_child_id": "child_fixture_01",
+        "profile_organization_id": "org_fixture_01",
+        "profile_class_id": "class_fixture_01",
+        "age_months": 35,
+        "consent_state": "effective",
+        "verification_state": "verified",
+        "effective_purposes": [
+          "classroom_drawing"
+        ]
+      },
+      "expected_result": {
+        "status": "rejected",
+        "failure_code": "AGE_OUT_OF_RANGE",
+        "resulting_revision": null,
+        "contributor_ids": [],
+        "mutates_state": false
+      },
+      "contract_status": "PROPOSED_UNADOPTED",
+      "source_status_labels": [
+        "OWNER_CONFIRMED",
+        "CONFIRMED",
+        "PROPOSED_UNADOPTED"
+      ]
+    },
+    {
+      "contract_name": "CoreFoundationFixtureV1",
+      "contract_version": "1.0",
+      "fixture_id": "profile-age-156-rejected",
+      "owner": "P2/BE1",
+      "source_refs": [
+        "BE1-01",
+        "B19.2",
+        "B21.2-DATA-03"
+      ],
+      "synthetic_only": true,
+      "command": {
+        "contract_name": "ResolvedCoreCommandV1",
+        "contract_version": "1.0",
+        "command_id": "cmd_profile_03",
+        "action": "profile.validate_purpose",
+        "actor": {
+          "principal_id": "teacher_fixture_01",
+          "kind": "adult",
+          "role": "teacher",
+          "role_source": "identity_port",
+          "verified": true,
+          "authorized_scope": {
+            "organization_id": "org_fixture_01",
+            "class_id": "class_fixture_01"
+          },
+          "capabilities": [
+            "profile.read"
+          ],
+          "device_id": null
+        },
+        "scope": {
+          "organization_id": "org_fixture_01",
+          "class_id": "class_fixture_01",
+          "child_id": "child_fixture_01"
+        },
+        "expected_revision": null,
+        "idempotency_key": null,
+        "payload": {
+          "kind": "profile_consent",
+          "child_id": "child_fixture_01",
+          "purpose": "classroom_drawing"
+        }
+      },
+      "state": {
+        "kind": "profile_consent",
+        "profile_child_id": "child_fixture_01",
+        "profile_organization_id": "org_fixture_01",
+        "profile_class_id": "class_fixture_01",
+        "age_months": 156,
+        "consent_state": "effective",
+        "verification_state": "verified",
+        "effective_purposes": [
+          "classroom_drawing"
+        ]
+      },
+      "expected_result": {
+        "status": "rejected",
+        "failure_code": "AGE_OUT_OF_RANGE",
+        "resulting_revision": null,
+        "contributor_ids": [],
+        "mutates_state": false
+      },
+      "contract_status": "PROPOSED_UNADOPTED",
+      "source_status_labels": [
+        "OWNER_CONFIRMED",
+        "CONFIRMED",
+        "PROPOSED_UNADOPTED"
+      ]
+    },
+    {
+      "contract_name": "CoreFoundationFixtureV1",
+      "contract_version": "1.0",
+      "fixture_id": "session-admission-age-155",
+      "owner": "P2/BE1",
+      "source_refs": [
+        "BE1-01",
+        "B19.5",
+        "B19.6",
+        "B21.2-DATA-03",
+        "B21.2-DATA-05",
+        "B21.2-DATA-11"
+      ],
+      "synthetic_only": true,
+      "command": {
+        "contract_name": "ResolvedCoreCommandV1",
+        "contract_version": "1.0",
+        "command_id": "cmd_admission_01",
+        "action": "session.admit",
+        "actor": {
+          "principal_id": "teacher_fixture_01",
+          "kind": "adult",
+          "role": "teacher",
+          "role_source": "identity_port",
+          "verified": true,
+          "authorized_scope": {
+            "organization_id": "org_fixture_01",
+            "class_id": "class_fixture_01"
+          },
+          "capabilities": [
+            "session.admit"
+          ],
+          "device_id": null
+        },
+        "scope": {
+          "organization_id": "org_fixture_01",
+          "class_id": "class_fixture_01",
+          "session_id": "session_fixture_01",
+          "child_id": "child_fixture_01",
+          "group_id": "group_fixture_01"
+        },
+        "expected_revision": 3,
+        "idempotency_key": "idem_admit_fixture_01",
+        "payload": {
+          "kind": "session_admission",
+          "child_id": "child_fixture_01",
+          "purpose": "classroom_drawing",
+          "target_group_id": "group_fixture_01"
+        }
+      },
+      "state": {
+        "kind": "session_admission",
+        "profile_child_id": "child_fixture_01",
+        "profile_organization_id": "org_fixture_01",
+        "profile_class_id": "class_fixture_01",
+        "age_months": 155,
+        "consent_state": "effective",
+        "verification_state": "verified",
+        "effective_purposes": [
+          "classroom_drawing"
+        ],
+        "participant_id": "participant_fixture_01",
+        "membership_state": "pending",
+        "membership_session_id": "session_fixture_01",
+        "membership_class_id": "class_fixture_01",
+        "session_open": true,
+        "membership_group_id": "group_fixture_01"
+      },
+      "expected_result": {
+        "status": "accepted",
+        "failure_code": null,
+        "resulting_revision": null,
+        "contributor_ids": [],
+        "mutates_state": false
+      },
+      "contract_status": "PROPOSED_UNADOPTED",
+      "source_status_labels": [
+        "OWNER_CONFIRMED",
+        "CONFIRMED",
+        "PROPOSED_UNADOPTED"
+      ]
+    },
+    {
+      "contract_name": "CoreFoundationFixtureV1",
+      "contract_version": "1.0",
+      "fixture_id": "canvas-append-accepted",
+      "owner": "P2/BE1",
+      "source_refs": [
+        "BE1-01",
+        "B19.7",
+        "B19.8",
+        "B21.2-DATA-14",
+        "B21.3-DATA-17"
+      ],
+      "synthetic_only": true,
+      "command": {
+        "contract_name": "ResolvedCoreCommandV1",
+        "contract_version": "1.0",
+        "command_id": "cmd_canvas_01",
+        "action": "canvas.append",
+        "actor": {
+          "principal_id": "device_principal_fixture_01",
+          "kind": "admitted_device",
+          "role": null,
+          "role_source": "identity_port",
+          "verified": true,
+          "authorized_scope": {
+            "organization_id": "org_fixture_01",
+            "class_id": "class_fixture_01",
+            "session_id": "session_fixture_01",
+            "canvas_id": "canvas_fixture_01"
+          },
+          "capabilities": [
+            "canvas.write"
+          ],
+          "device_id": "device_fixture_01"
+        },
+        "scope": {
+          "organization_id": "org_fixture_01",
+          "class_id": "class_fixture_01",
+          "session_id": "session_fixture_01",
+          "canvas_id": "canvas_fixture_01"
+        },
+        "expected_revision": 4,
+        "idempotency_key": "idem_canvas_fixture_01",
+        "payload": {
+          "kind": "turn_canvas",
+          "operation_id": "op_fixture_01",
+          "turn_id": "turn_fixture_01",
+          "participant_id": "participant_fixture_01",
+          "document_epoch": 1,
+          "expected_document_revision": 4,
+          "request_fingerprint": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      },
+      "state": {
+        "kind": "turn_canvas",
+        "membership_state": "admitted",
+        "membership_participant_id": "participant_fixture_01",
+        "membership_child_id": "child_fixture_01",
+        "membership_session_id": "session_fixture_01",
+        "allowed_canvas_ids": [
+          "canvas_fixture_01"
+        ],
+        "active_turn_id": "turn_fixture_01",
+        "active_turn_state": "active",
+        "turn_device_id": "device_fixture_01",
+        "turn_session_id": "session_fixture_01",
+        "turn_canvas_id": "canvas_fixture_01",
+        "turn_participant_id": "participant_fixture_01",
+        "turn_revision": 2,
+        "current_document_revision": 4,
+        "stored_request_fingerprint": null,
+        "stored_resulting_revision": null,
+        "stored_operation_id": null
+      },
+      "expected_result": {
+        "status": "accepted",
+        "failure_code": null,
+        "resulting_revision": 5,
+        "contributor_ids": [],
+        "mutates_state": true
+      },
+      "contract_status": "PROPOSED_UNADOPTED",
+      "source_status_labels": [
+        "OWNER_CONFIRMED",
+        "CONFIRMED",
+        "PROPOSED_UNADOPTED"
+      ]
+    },
+    {
+      "contract_name": "CoreFoundationFixtureV1",
+      "contract_version": "1.0",
+      "fixture_id": "canvas-stale-revision",
+      "owner": "P2/BE1",
+      "source_refs": [
+        "BE1-01",
+        "B19.11",
+        "B21.5-CanvasConcurrency"
+      ],
+      "synthetic_only": true,
+      "command": {
+        "contract_name": "ResolvedCoreCommandV1",
+        "contract_version": "1.0",
+        "command_id": "cmd_canvas_02",
+        "action": "canvas.append",
+        "actor": {
+          "principal_id": "device_principal_fixture_01",
+          "kind": "admitted_device",
+          "role": null,
+          "role_source": "identity_port",
+          "verified": true,
+          "authorized_scope": {
+            "organization_id": "org_fixture_01",
+            "class_id": "class_fixture_01",
+            "session_id": "session_fixture_01",
+            "canvas_id": "canvas_fixture_01"
+          },
+          "capabilities": [
+            "canvas.write"
+          ],
+          "device_id": "device_fixture_01"
+        },
+        "scope": {
+          "organization_id": "org_fixture_01",
+          "class_id": "class_fixture_01",
+          "session_id": "session_fixture_01",
+          "canvas_id": "canvas_fixture_01"
+        },
+        "expected_revision": 3,
+        "idempotency_key": "idem_canvas_fixture_02",
+        "payload": {
+          "kind": "turn_canvas",
+          "operation_id": "op_fixture_02",
+          "turn_id": "turn_fixture_01",
+          "participant_id": "participant_fixture_01",
+          "document_epoch": 1,
+          "expected_document_revision": 3,
+          "request_fingerprint": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        }
+      },
+      "state": {
+        "kind": "turn_canvas",
+        "membership_state": "admitted",
+        "membership_participant_id": "participant_fixture_01",
+        "membership_child_id": "child_fixture_01",
+        "membership_session_id": "session_fixture_01",
+        "allowed_canvas_ids": [
+          "canvas_fixture_01"
+        ],
+        "active_turn_id": "turn_fixture_01",
+        "active_turn_state": "active",
+        "turn_device_id": "device_fixture_01",
+        "turn_session_id": "session_fixture_01",
+        "turn_canvas_id": "canvas_fixture_01",
+        "turn_participant_id": "participant_fixture_01",
+        "turn_revision": 2,
+        "current_document_revision": 4,
+        "stored_request_fingerprint": null,
+        "stored_resulting_revision": null,
+        "stored_operation_id": null
+      },
+      "expected_result": {
+        "status": "rejected",
+        "failure_code": "STALE_AGGREGATE",
+        "resulting_revision": null,
+        "contributor_ids": [],
+        "mutates_state": false
+      },
+      "contract_status": "PROPOSED_UNADOPTED",
+      "source_status_labels": [
+        "OWNER_CONFIRMED",
+        "CONFIRMED",
+        "PROPOSED_UNADOPTED"
+      ]
+    },
+    {
+      "contract_name": "CoreFoundationFixtureV1",
+      "contract_version": "1.0",
+      "fixture_id": "canvas-idempotent-replay",
+      "owner": "P2/BE1",
+      "source_refs": [
+        "BE1-01",
+        "B19.11",
+        "B21.5-OpIdentity"
+      ],
+      "synthetic_only": true,
+      "command": {
+        "contract_name": "ResolvedCoreCommandV1",
+        "contract_version": "1.0",
+        "command_id": "cmd_canvas_03",
+        "action": "canvas.append",
+        "actor": {
+          "principal_id": "device_principal_fixture_01",
+          "kind": "admitted_device",
+          "role": null,
+          "role_source": "identity_port",
+          "verified": true,
+          "authorized_scope": {
+            "organization_id": "org_fixture_01",
+            "class_id": "class_fixture_01",
+            "session_id": "session_fixture_01",
+            "canvas_id": "canvas_fixture_01"
+          },
+          "capabilities": [
+            "canvas.write"
+          ],
+          "device_id": "device_fixture_01"
+        },
+        "scope": {
+          "organization_id": "org_fixture_01",
+          "class_id": "class_fixture_01",
+          "session_id": "session_fixture_01",
+          "canvas_id": "canvas_fixture_01"
+        },
+        "expected_revision": 4,
+        "idempotency_key": "idem_canvas_fixture_03",
+        "payload": {
+          "kind": "turn_canvas",
+          "operation_id": "op_fixture_03",
+          "turn_id": "turn_fixture_01",
+          "participant_id": "participant_fixture_01",
+          "document_epoch": 1,
+          "expected_document_revision": 4,
+          "request_fingerprint": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        }
+      },
+      "state": {
+        "kind": "turn_canvas",
+        "membership_state": "admitted",
+        "membership_participant_id": "participant_fixture_01",
+        "membership_child_id": "child_fixture_01",
+        "membership_session_id": "session_fixture_01",
+        "allowed_canvas_ids": [
+          "canvas_fixture_01"
+        ],
+        "active_turn_id": "turn_fixture_01",
+        "active_turn_state": "active",
+        "turn_device_id": "device_fixture_01",
+        "turn_session_id": "session_fixture_01",
+        "turn_canvas_id": "canvas_fixture_01",
+        "turn_participant_id": "participant_fixture_01",
+        "turn_revision": 2,
+        "current_document_revision": 5,
+        "stored_request_fingerprint": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "stored_resulting_revision": 5,
+        "stored_operation_id": "op_fixture_03"
+      },
+      "expected_result": {
+        "status": "replayed",
+        "failure_code": null,
+        "resulting_revision": 5,
+        "contributor_ids": [],
+        "mutates_state": false
+      },
+      "contract_status": "PROPOSED_UNADOPTED",
+      "source_status_labels": [
+        "OWNER_CONFIRMED",
+        "CONFIRMED",
+        "PROPOSED_UNADOPTED"
+      ]
+    },
+    {
+      "contract_name": "CoreFoundationFixtureV1",
+      "contract_version": "1.0",
+      "fixture_id": "canvas-idempotency-conflict",
+      "owner": "P2/BE1",
+      "source_refs": [
+        "BE1-01",
+        "B19.11",
+        "B21.5-OpIdentity"
+      ],
+      "synthetic_only": true,
+      "command": {
+        "contract_name": "ResolvedCoreCommandV1",
+        "contract_version": "1.0",
+        "command_id": "cmd_canvas_04",
+        "action": "canvas.append",
+        "actor": {
+          "principal_id": "device_principal_fixture_01",
+          "kind": "admitted_device",
+          "role": null,
+          "role_source": "identity_port",
+          "verified": true,
+          "authorized_scope": {
+            "organization_id": "org_fixture_01",
+            "class_id": "class_fixture_01",
+            "session_id": "session_fixture_01",
+            "canvas_id": "canvas_fixture_01"
+          },
+          "capabilities": [
+            "canvas.write"
+          ],
+          "device_id": "device_fixture_01"
+        },
+        "scope": {
+          "organization_id": "org_fixture_01",
+          "class_id": "class_fixture_01",
+          "session_id": "session_fixture_01",
+          "canvas_id": "canvas_fixture_01"
+        },
+        "expected_revision": 5,
+        "idempotency_key": "idem_canvas_fixture_04",
+        "payload": {
+          "kind": "turn_canvas",
+          "operation_id": "op_fixture_04",
+          "turn_id": "turn_fixture_01",
+          "participant_id": "participant_fixture_01",
+          "document_epoch": 1,
+          "expected_document_revision": 5,
+          "request_fingerprint": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        }
+      },
+      "state": {
+        "kind": "turn_canvas",
+        "membership_state": "admitted",
+        "membership_participant_id": "participant_fixture_01",
+        "membership_child_id": "child_fixture_01",
+        "membership_session_id": "session_fixture_01",
+        "allowed_canvas_ids": [
+          "canvas_fixture_01"
+        ],
+        "active_turn_id": "turn_fixture_01",
+        "active_turn_state": "active",
+        "turn_device_id": "device_fixture_01",
+        "turn_session_id": "session_fixture_01",
+        "turn_canvas_id": "canvas_fixture_01",
+        "turn_participant_id": "participant_fixture_01",
+        "turn_revision": 2,
+        "current_document_revision": 5,
+        "stored_request_fingerprint": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "stored_resulting_revision": 5,
+        "stored_operation_id": "op_fixture_original"
+      },
+      "expected_result": {
+        "status": "rejected",
+        "failure_code": "IDEMPOTENCY_CONFLICT",
+        "resulting_revision": null,
+        "contributor_ids": [],
+        "mutates_state": false
+      },
+      "contract_status": "PROPOSED_UNADOPTED",
+      "source_status_labels": [
+        "OWNER_CONFIRMED",
+        "CONFIRMED",
+        "PROPOSED_UNADOPTED"
+      ]
+    },
+    {
+      "contract_name": "CoreFoundationFixtureV1",
+      "contract_version": "1.0",
+      "fixture_id": "canvas-wrong-turn-contributor",
+      "owner": "P2/BE1",
+      "source_refs": [
+        "BE1-01",
+        "B19.6",
+        "B21.2-DATA-14"
+      ],
+      "synthetic_only": true,
+      "command": {
+        "contract_name": "ResolvedCoreCommandV1",
+        "contract_version": "1.0",
+        "command_id": "cmd_canvas_05",
+        "action": "canvas.append",
+        "actor": {
+          "principal_id": "device_principal_fixture_01",
+          "kind": "admitted_device",
+          "role": null,
+          "role_source": "identity_port",
+          "verified": true,
+          "authorized_scope": {
+            "organization_id": "org_fixture_01",
+            "class_id": "class_fixture_01",
+            "session_id": "session_fixture_01",
+            "canvas_id": "canvas_fixture_01"
+          },
+          "capabilities": [
+            "canvas.write"
+          ],
+          "device_id": "device_fixture_01"
+        },
+        "scope": {
+          "organization_id": "org_fixture_01",
+          "class_id": "class_fixture_01",
+          "session_id": "session_fixture_01",
+          "canvas_id": "canvas_fixture_01"
+        },
+        "expected_revision": 4,
+        "idempotency_key": "idem_canvas_fixture_05",
+        "payload": {
+          "kind": "turn_canvas",
+          "operation_id": "op_fixture_05",
+          "turn_id": "turn_fixture_01",
+          "participant_id": "participant_fixture_02",
+          "document_epoch": 1,
+          "expected_document_revision": 4,
+          "request_fingerprint": "1212121212121212121212121212121212121212121212121212121212121212"
+        }
+      },
+      "state": {
+        "kind": "turn_canvas",
+        "membership_state": "admitted",
+        "membership_participant_id": "participant_fixture_01",
+        "membership_child_id": "child_fixture_01",
+        "membership_session_id": "session_fixture_01",
+        "allowed_canvas_ids": [
+          "canvas_fixture_01"
+        ],
+        "active_turn_id": "turn_fixture_01",
+        "active_turn_state": "active",
+        "turn_device_id": "device_fixture_01",
+        "turn_session_id": "session_fixture_01",
+        "turn_canvas_id": "canvas_fixture_01",
+        "turn_participant_id": "participant_fixture_01",
+        "turn_revision": 2,
+        "current_document_revision": 4,
+        "stored_request_fingerprint": null,
+        "stored_resulting_revision": null,
+        "stored_operation_id": null
+      },
+      "expected_result": {
+        "status": "rejected",
+        "failure_code": "INVALID_TURN",
+        "resulting_revision": null,
+        "contributor_ids": [],
+        "mutates_state": false
+      },
+      "contract_status": "PROPOSED_UNADOPTED",
+      "source_status_labels": [
+        "OWNER_CONFIRMED",
+        "CONFIRMED",
+        "PROPOSED_UNADOPTED"
+      ]
+    },
+    {
+      "contract_name": "CoreFoundationFixtureV1",
+      "contract_version": "1.0",
+      "fixture_id": "gallery-known-contribution",
+      "owner": "P2/BE1",
+      "source_refs": [
+        "BE1-01",
+        "B21.4-DATA-31",
+        "B21.4-DATA-32",
+        "B21.5-ContentPortfolio"
+      ],
+      "synthetic_only": true,
+      "command": {
+        "contract_name": "ResolvedCoreCommandV1",
+        "contract_version": "1.0",
+        "command_id": "cmd_gallery_01",
+        "action": "gallery.read",
+        "actor": {
+          "principal_id": "teacher_fixture_01",
+          "kind": "adult",
+          "role": "teacher",
+          "role_source": "identity_port",
+          "verified": true,
+          "authorized_scope": {
+            "organization_id": "org_fixture_01",
+            "class_id": "class_fixture_01"
+          },
+          "capabilities": [
+            "gallery.read"
+          ],
+          "device_id": null
+        },
+        "scope": {
+          "organization_id": "org_fixture_01",
+          "class_id": "class_fixture_01",
+          "session_id": "session_fixture_01",
+          "artifact_id": "gallery_fixture_01"
+        },
+        "expected_revision": null,
+        "idempotency_key": null,
+        "payload": {
+          "kind": "gallery_portfolio",
+          "requested_scope": {
+            "organization_id": "org_fixture_01",
+            "class_id": "class_fixture_01",
+            "session_id": "session_fixture_01",
+            "artifact_id": "gallery_fixture_01"
+          },
+          "view_kind": "gallery"
+        }
+      },
+      "state": {
+        "kind": "gallery_portfolio",
+        "artifact_id": "gallery_fixture_01",
+        "artifact_organization_id": "org_fixture_01",
+        "published": true,
+        "audience_scope": {
+          "organization_id": "org_fixture_01",
+          "class_id": "class_fixture_01"
+        },
+        "contributor_ids": [
+          "participant_fixture_02"
+        ]
+      },
+      "expected_result": {
+        "status": "accepted",
+        "failure_code": null,
+        "resulting_revision": null,
+        "contributor_ids": [
+          "participant_fixture_02"
+        ],
+        "mutates_state": false
+      },
+      "contract_status": "PROPOSED_UNADOPTED",
+      "source_status_labels": [
+        "CONFIRMED",
+        "PROPOSED_UNADOPTED"
+      ]
+    },
+    {
+      "contract_name": "CoreFoundationFixtureV1",
+      "contract_version": "1.0",
+      "fixture_id": "gallery-outside-audience-denied",
+      "owner": "P2/BE1",
+      "source_refs": [
+        "BE1-01",
+        "B21.4-DATA-31",
+        "B21.4-DATA-32"
+      ],
+      "synthetic_only": true,
+      "command": {
+        "contract_name": "ResolvedCoreCommandV1",
+        "contract_version": "1.0",
+        "command_id": "cmd_gallery_02",
+        "action": "gallery.read",
+        "actor": {
+          "principal_id": "teacher_fixture_01",
+          "kind": "adult",
+          "role": "teacher",
+          "role_source": "identity_port",
+          "verified": true,
+          "authorized_scope": {
+            "organization_id": "org_fixture_01",
+            "class_id": "class_fixture_01"
+          },
+          "capabilities": [
+            "gallery.read"
+          ],
+          "device_id": null
+        },
+        "scope": {
+          "organization_id": "org_fixture_01",
+          "class_id": "class_fixture_01",
+          "session_id": "session_fixture_01",
+          "artifact_id": "gallery_fixture_02"
+        },
+        "expected_revision": null,
+        "idempotency_key": null,
+        "payload": {
+          "kind": "gallery_portfolio",
+          "requested_scope": {
+            "organization_id": "org_fixture_01",
+            "class_id": "class_fixture_01",
+            "session_id": "session_fixture_01",
+            "artifact_id": "gallery_fixture_02"
+          },
+          "view_kind": "gallery"
+        }
+      },
+      "state": {
+        "kind": "gallery_portfolio",
+        "artifact_id": "gallery_fixture_02",
+        "artifact_organization_id": "org_fixture_01",
+        "published": true,
+        "audience_scope": {
+          "organization_id": "org_fixture_01",
+          "class_id": "class_fixture_02"
+        },
+        "contributor_ids": [
+          "participant_fixture_03"
+        ]
+      },
+      "expected_result": {
+        "status": "rejected",
+        "failure_code": "GALLERY_AUDIENCE_DENIED",
+        "resulting_revision": null,
+        "contributor_ids": [],
+        "mutates_state": false
+      },
+      "contract_status": "PROPOSED_UNADOPTED",
+      "source_status_labels": [
+        "CONFIRMED",
+        "PROPOSED_UNADOPTED"
+      ]
+    },
+    {
+      "contract_name": "CoreFoundationFixtureV1",
+      "contract_version": "1.0",
+      "fixture_id": "data-delete-external-copy-pending",
+      "owner": "P2/BE1",
+      "source_refs": [
+        "BE1-01",
+        "B19.4",
+        "B21.4-DATA-34",
+        "B24.4"
+      ],
+      "synthetic_only": true,
+      "command": {
+        "contract_name": "ResolvedCoreCommandV1",
+        "contract_version": "1.0",
+        "command_id": "cmd_data_01",
+        "action": "data_request.complete",
+        "actor": {
+          "principal_id": "worker_fixture_01",
+          "kind": "backend_worker",
+          "role": null,
+          "role_source": "identity_port",
+          "verified": true,
+          "authorized_scope": {
+            "organization_id": "org_fixture_01"
+          },
+          "capabilities": [
+            "data_request.complete"
+          ],
+          "device_id": null
+        },
+        "scope": {
+          "organization_id": "org_fixture_01"
+        },
+        "expected_revision": 4,
+        "idempotency_key": "idem_data_fixture_01",
+        "payload": {
+          "kind": "data_lifecycle",
+          "action": "complete",
+          "request_id": "data_request_fixture_01",
+          "request_kind": "delete"
+        }
+      },
+      "state": {
+        "kind": "data_lifecycle",
+        "request_state": "awaiting_external_purge",
+        "unresolved_items": 1
+      },
+      "expected_result": {
+        "status": "rejected",
+        "failure_code": "DATA_REQUEST_INCOMPLETE",
+        "resulting_revision": null,
+        "contributor_ids": [],
+        "mutates_state": false
+      },
+      "contract_status": "PROPOSED_UNADOPTED",
+      "source_status_labels": [
+        "CONFIRMED",
+        "PROPOSED_UNADOPTED",
+        "TBD"
+      ]
+    },
+    {
+      "contract_name": "CoreFoundationFixtureV1",
+      "contract_version": "1.0",
+      "fixture_id": "data-export-complete",
+      "owner": "P2/BE1",
+      "source_refs": [
+        "BE1-01",
+        "B19.4",
+        "B21.4-DATA-34"
+      ],
+      "synthetic_only": true,
+      "command": {
+        "contract_name": "ResolvedCoreCommandV1",
+        "contract_version": "1.0",
+        "command_id": "cmd_data_02",
+        "action": "data_request.complete",
+        "actor": {
+          "principal_id": "worker_fixture_01",
+          "kind": "backend_worker",
+          "role": null,
+          "role_source": "identity_port",
+          "verified": true,
+          "authorized_scope": {
+            "organization_id": "org_fixture_01"
+          },
+          "capabilities": [
+            "data_request.complete"
+          ],
+          "device_id": null
+        },
+        "scope": {
+          "organization_id": "org_fixture_01"
+        },
+        "expected_revision": 4,
+        "idempotency_key": "idem_data_fixture_02",
+        "payload": {
+          "kind": "data_lifecycle",
+          "action": "complete",
+          "request_id": "data_request_fixture_02",
+          "request_kind": "export"
+        }
+      },
+      "state": {
+        "kind": "data_lifecycle",
+        "request_state": "running",
+        "unresolved_items": 0
+      },
+      "expected_result": {
+        "status": "accepted",
+        "failure_code": null,
+        "resulting_revision": null,
+        "contributor_ids": [],
+        "mutates_state": false
+      },
+      "contract_status": "PROPOSED_UNADOPTED",
+      "source_status_labels": [
+        "CONFIRMED",
+        "PROPOSED_UNADOPTED",
+        "TBD"
+      ]
+    },
+    {
+      "contract_name": "CoreFoundationFixtureV1",
+      "contract_version": "1.0",
+      "fixture_id": "portfolio-own-contribution",
+      "owner": "P2/BE1",
+      "source_refs": [
+        "BE1-01",
+        "B21.4-DATA-31",
+        "B21.5-ContentPortfolio"
+      ],
+      "synthetic_only": true,
+      "command": {
+        "contract_name": "ResolvedCoreCommandV1",
+        "contract_version": "1.0",
+        "command_id": "cmd_portfolio_01",
+        "action": "portfolio.read",
+        "actor": {
+          "principal_id": "teacher_fixture_01",
+          "kind": "adult",
+          "role": "teacher",
+          "role_source": "identity_port",
+          "verified": true,
+          "authorized_scope": {
+            "organization_id": "org_fixture_01",
+            "class_id": "class_fixture_01"
+          },
+          "capabilities": [
+            "portfolio.read"
+          ],
+          "device_id": null
+        },
+        "scope": {
+          "organization_id": "org_fixture_01",
+          "class_id": "class_fixture_01",
+          "child_id": "child_fixture_02"
+        },
+        "expected_revision": null,
+        "idempotency_key": null,
+        "payload": {
+          "kind": "gallery_portfolio",
+          "view_kind": "portfolio",
+          "requested_scope": {
+            "organization_id": "org_fixture_01",
+            "class_id": "class_fixture_01",
+            "child_id": "child_fixture_02"
+          },
+          "child_id": "child_fixture_02"
+        }
+      },
+      "state": {
+        "kind": "gallery_portfolio",
+        "artifact_id": "gallery_fixture_03",
+        "artifact_organization_id": "org_fixture_01",
+        "published": true,
+        "audience_scope": {
+          "organization_id": "org_fixture_01",
+          "class_id": "class_fixture_01"
+        },
+        "contributor_ids": [
+          "participant_fixture_03"
+        ],
+        "portfolio_entry_id": "portfolio_fixture_01",
+        "portfolio_child_id": "child_fixture_02",
+        "portfolio_source_refs": [
+          "artwork_fixture_01",
+          "observation_fixture_01"
+        ],
+        "portfolio_contribution_child_ids": [
+          "child_fixture_02"
+        ]
+      },
+      "expected_result": {
+        "status": "accepted",
+        "failure_code": null,
+        "resulting_revision": null,
+        "contributor_ids": [],
+        "source_refs": [
+          "artwork_fixture_01",
+          "observation_fixture_01"
+        ],
+        "mutates_state": false
+      },
+      "contract_status": "PROPOSED_UNADOPTED",
+      "source_status_labels": [
+        "CONFIRMED",
+        "PROPOSED_UNADOPTED"
+      ]
+    },
+    {
+      "contract_name": "CoreFoundationFixtureV1",
+      "contract_version": "1.0",
+      "fixture_id": "canvas-target-scope-mismatch",
+      "owner": "P2/BE1",
+      "source_refs": [
+        "BE1-01",
+        "B19.7",
+        "B19.8",
+        "B21.2-DATA-14",
+        "B21.3-DATA-17"
+      ],
+      "synthetic_only": true,
+      "command": {
+        "contract_name": "ResolvedCoreCommandV1",
+        "contract_version": "1.0",
+        "command_id": "cmd_canvas_scope_mismatch",
+        "action": "canvas.append",
+        "actor": {
+          "principal_id": "device_principal_fixture_01",
+          "kind": "admitted_device",
+          "role": null,
+          "role_source": "identity_port",
+          "verified": true,
+          "authorized_scope": {
+            "organization_id": "org_fixture_01"
+          },
+          "capabilities": [
+            "canvas.write"
+          ],
+          "device_id": "device_fixture_01"
+        },
+        "scope": {
+          "organization_id": "org_fixture_01",
+          "class_id": "class_fixture_01",
+          "session_id": "session_fixture_wrong",
+          "canvas_id": "canvas_fixture_01"
+        },
+        "expected_revision": 4,
+        "idempotency_key": "idem_canvas_fixture_01",
+        "payload": {
+          "kind": "turn_canvas",
+          "operation_id": "op_fixture_01",
+          "turn_id": "turn_fixture_01",
+          "participant_id": "participant_fixture_01",
+          "document_epoch": 1,
+          "expected_document_revision": 4,
+          "request_fingerprint": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      },
+      "state": {
+        "kind": "turn_canvas",
+        "membership_state": "admitted",
+        "membership_participant_id": "participant_fixture_01",
+        "membership_child_id": "child_fixture_01",
+        "membership_session_id": "session_fixture_01",
+        "allowed_canvas_ids": [
+          "canvas_fixture_01"
+        ],
+        "active_turn_id": "turn_fixture_01",
+        "active_turn_state": "active",
+        "turn_device_id": "device_fixture_01",
+        "turn_session_id": "session_fixture_01",
+        "turn_canvas_id": "canvas_fixture_01",
+        "turn_participant_id": "participant_fixture_01",
+        "turn_revision": 2,
+        "current_document_revision": 4,
+        "stored_request_fingerprint": null,
+        "stored_resulting_revision": null,
+        "stored_operation_id": null
+      },
+      "expected_result": {
+        "status": "rejected",
+        "failure_code": "SCOPE_DENIED",
+        "resulting_revision": null,
+        "contributor_ids": [],
+        "mutates_state": false
+      },
+      "contract_status": "PROPOSED_UNADOPTED",
+      "source_status_labels": [
+        "OWNER_CONFIRMED",
+        "CONFIRMED",
+        "PROPOSED_UNADOPTED"
+      ]
+    },
+    {
+      "contract_name": "CoreFoundationFixtureV1",
+      "contract_version": "1.0",
+      "fixture_id": "admission-target-class-mismatch",
+      "owner": "P2/BE1",
+      "source_refs": [
+        "BE1-01",
+        "B19.5",
+        "B19.6",
+        "B21.2-DATA-03",
+        "B21.2-DATA-05",
+        "B21.2-DATA-11"
+      ],
+      "synthetic_only": true,
+      "command": {
+        "contract_name": "ResolvedCoreCommandV1",
+        "contract_version": "1.0",
+        "command_id": "cmd_admission_scope_mismatch",
+        "action": "session.admit",
+        "actor": {
+          "principal_id": "teacher_fixture_01",
+          "kind": "adult",
+          "role": "teacher",
+          "role_source": "identity_port",
+          "verified": true,
+          "authorized_scope": {
+            "organization_id": "org_fixture_01"
+          },
+          "capabilities": [
+            "session.admit"
+          ],
+          "device_id": null
+        },
+        "scope": {
+          "organization_id": "org_fixture_01",
+          "class_id": "class_fixture_wrong",
+          "session_id": "session_fixture_01",
+          "child_id": "child_fixture_01",
+          "group_id": "group_fixture_01"
+        },
+        "expected_revision": 3,
+        "idempotency_key": "idem_admission_scope_mismatch",
+        "payload": {
+          "kind": "session_admission",
+          "child_id": "child_fixture_01",
+          "purpose": "classroom_drawing",
+          "target_group_id": "group_fixture_01"
+        }
+      },
+      "state": {
+        "kind": "session_admission",
+        "profile_child_id": "child_fixture_01",
+        "profile_organization_id": "org_fixture_01",
+        "profile_class_id": "class_fixture_01",
+        "age_months": 155,
+        "consent_state": "effective",
+        "verification_state": "verified",
+        "effective_purposes": [
+          "classroom_drawing"
+        ],
+        "participant_id": "participant_fixture_01",
+        "membership_state": "pending",
+        "membership_session_id": "session_fixture_01",
+        "membership_class_id": "class_fixture_01",
+        "session_open": true,
+        "membership_group_id": "group_fixture_01"
+      },
+      "expected_result": {
+        "status": "rejected",
+        "failure_code": "SCOPE_DENIED",
+        "resulting_revision": null,
+        "contributor_ids": [],
+        "mutates_state": false
+      },
+      "contract_status": "PROPOSED_UNADOPTED",
+      "source_status_labels": [
+        "OWNER_CONFIRMED",
+        "CONFIRMED",
+        "PROPOSED_UNADOPTED"
+      ]
+    }
+  ]
+}

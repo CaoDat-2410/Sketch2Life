@@ -1,0 +1,78 @@
+# FEAT-030 — narrated whiteboard story video
+
+Revision34 (2026-10-10): owner requested full experimental handoff and commit.
+Standalone FLUX/public Turbo TTS/narrated whiteboard scripts are now versioned.
+Owner-operated Lightning generated a narrated demo, but image/story quality
+failed review. Native Wan TI2V imports and small fused-SDPA probe pass on L4;
+full 73-frame 720-area run fails CUDA OOM in VAE. No lighter configuration is
+implemented yet. Unapproved marker assets remain local. See
+evidence/HANDOFF_20261010.md and plan/HANDOFF_20261010.md.
+This is not feature completion, production/Gate A/B approval or push authority.
+
+Revision33 (2026-10-10): owner-approved repository stabilization only. Verified
+82-file external backup; scoped commits retain tested experiments as non-production.
+Gold-referenced story illustration remains the main direction; source-faithful
+drawing is optional, with failed short timing/Visual QA. Setup is mock/inventory
+only; no inference/connection. Actual checkout differs from the private D: evidence
+directory; no relocation. V1 default/V2 OFF, Gates unchanged. See plan/REPOSITORY_STABILIZATION.md.
+
+Environment policy addendum: Windows is code/repository/static-check only; no new
+PyTorch/CUDA/Diffusers/Transformers/Accelerate/model/npm/Docker installation.
+LightningAI is the dependency-installation and GPU execution environment. The
+three scripts under scripts/lightningai use a separate venv, fail closed without
+explicit install opt-in, and separate setup, verification and tests. Missing local
+runtime is `REQUIRES_LIGHTNINGAI_TEST`, not a test pass.
+
+Revision32 (2026-10-10): attached owner storyboard is GOLD VISUAL REFERENCE;high-quality source-derived image generation required. PhaseA BLOCKED_NEEDS_IMAGE_GENERATION:RTX3060/12GB exists but backend lacksTorch/Diffusers/weights,existingadapter single-image only. Built-in tool available,external child-image processing permission pending. Concrete11job prompt pack andA built-in/B localQwenEdit2511 route/resourcebrief prepared outsideGit;no coarse replacement or generation/MP4.345Python/source9masks intact,V1default/V2OFF. See evidence/SKETCH2LIFE_PHASE_A_IMAGE_GENERATION_BRIEF.md. Await route/data permission,notanotherarchitectureplan.
+
+Revision30 (2026-10-10): owner rejects Rev29 simplified illustrated artwork: VISUAL_FIDELITY_NOT_PASSED. Main direction SOURCE-ANCHORED WHITEBOARD STORYTELLING. Static A/B/C/D target uses unchanged decoded original; enhancement is presentation2x only. Characters/house2floors/tree/background preserved;9masks hashes and nativeRGB equality checked. Separate15guide-path PROPOSAL,4framing previews, no new asset without approval. OWNER_VISUAL_REVIEW_PENDING;noMP4. Rev29 code retained, not visual baseline. Rev28 frozen TECHNICAL PROOF / OPTIONAL ORIGINAL-DRAWING MODE,23.259/106.757s,VisualQA notpassed. See evidence/SKETCH2LIFE_SOURCE_ANCHORED_VISUAL_TARGET.md. Stop before story render.
+
+Revision28 (2026-10-10): reusable versioned semantic authoring compiler/CLI implemented, source-derived house and technical-only butterfly proofs delivered. TECHNICAL_PASS;37/42 paths vs629/801 rebuild, but23.259/106.757s drawing are TIMING_INFEASIBLE (targets5/8s). VISUAL_QA_NOT_PASSED; OWNER_APPROVAL_PENDING.175 selected tests pass, scoped Ruff/Mypy pass;Bandit unavailable.340 existing Python files and9 master masks intact; V1 unchanged/V2 OFF. Stop for owner playback, no more tuning/story/commit. See evidence/SKETCH2LIFE_SEMANTIC_AUTHORING_RESULT.md.
+
+Revision27 (2026-10-10): systematic experimental semantic strategy/roles/regionbrush/budget/easedpen/persistentbeat adapter implemented;one corrected batch FAILED engineering targets. A629paths/236.717s drawing rendered;B801/341.472s,C878/354.939s,D933.128s blocked300s guard. Auto brush fragmentation regressed;no E2E/VisualPASS/Golden readiness.160selectedtestsPASS,336oldPython/source9masks/V1default/V2OFF intact. ChooseA semi-automatic reviewed stroke authoring;stop,no further tuning. Report evidence/SKETCH2LIFE_DRAWING_ENGINE_V2_REBUILD_RESULT.md.
+
+Revision26 (2026-10-10): house source proof clean/debug64.25s,1542frames each.154paths/153lifts,neutralphase223/21779pixels;first33s fragmentary,house appears through tiled COLOR. TechnicalPASS/rawfinalexact/tiperror0/noearlycolor;VISUAL_QA_FAIL.85selectedtestsPASS;334oldPython/source9masks/V1default/V2OFF intact. Primary gaps sourcephase/pathcompilation;one focused repair proposed NOT implemented. Report evidence/SKETCH2LIFE_HOUSE_DRAWING_PROOF_RESULT.md;stop for owner review.
+
+Revision25: unchanged small butterfly21path proof encoded clean/debug12.75s/306frames/24FPS. Drawing11.399s,hold1.351s;rawfinalexact,tiperror0,noearlyCOLOR/in-airdrawing.77selectedtestsPASS. TECHNICAL_PROOF_PASS, VISUAL_QA_NOT_PASSED pending owner playback;regular spirals/short constant-speed moves/smalltexture softness remain. Private artifacts only;source9masks/332oldPython/defaultV1/V2OFF intact. See evidence/SKETCH2LIFE_BUTTERFLY_VIDEO_PROOF_RESULT.md;stop.
+
+Revision24: concept-only butterfly refinement prepared locally: 21 paths, 20 lifts, 100% pigment coverage and exact final RGBA; standard/small estimated 14.277/11.399 s. 72 selected tests pass; no existing Python changed. Artwork/path/time and moving Visual QA pending. See evidence/SKETCH2LIFE_BUTTERFLY_REFINEMENT_RESULT.md. Stop before render.
+
+Revision23 StepA (2026-10-09): owner approved exact Rev22 local script/concept, candidate/path feasibility only. Local textured butterfly art and18actions path/mask/pen metadata prepared; no MP4/audio/network.1086paths/225dot paths, full color coverage but sparse source ink;target15s infeasible under declared pacing (~372.50s scaled sequence,not measured natural/audio duration). Butterfly/path/time approval pending;source9masks/327oldPython files/rig/V1/default/V2OFF intact.132selectedtestsPASS;Ruff3/Mypy1pass. Report `evidence/SKETCH2LIFE_WHITEBOARD_SLICE_STEP_A_RESULT.md`;stop before render.
+
+Revision22 (2026-10-09): current slice requires newly drawn butterfly, not focus-only replacement. Draft15s continuous family→house→garden→new butterfly plus eased focus, silent simulated cue timeline,18 proposed phase tasks and4 source-derived HTML target previews prepared. Butterfly image/path pending approval, shown only as labeled placeholder, not renderer asset. No application code/audio/MP4 changes; rig preserved optional, V1/default/V2OFF. See `plan/SKETCH2LIFE_WHITEBOARD_STORY_SLICE_PLAN.md`. Await exact script/cue/art/implementation review; VisualQA stillNOT_PASSED.
+
+Revision21 (2026-10-09): narration-driven whiteboard-first planning; optional rig retained unchanged. Proposed silent simulated14s persistent family→house→garden board plus garden focus, exact script/cues pending owner review. Code audit found length-weighted schedule using first segment for every beat_ref, sourceRGB revealed during ink phases, static camera and no V2 phrase cue compiler. Additive module plan only; no implementation/media/TTS/network. See `plan/SKETCH2LIFE_WHITEBOARD_STORYTELLING_SLICE_PLAN.md`. V1/default/V2OFF/Gates intact; VISUAL_QA_NOT_PASSED, slice AWAITING_APPROVAL.
+
+Revision 20 (2026-10-09): conditional local candidate proof, not Golden/production. Generic source-part rig/IK/camera and manual child candidate yield one 6s/144-frame clean/debug MP4; actual limb posture changes, planted endpoint drift0 and fixed bone lengths. Visual failure: broken joints/ghost remnants/motion-matte boundary and wrong donor background. **MOTION_PROOF_NOT_PASSED**, no owner acceptance; 131 selected tests pass, Ruff3 files/Mypy1 module pass. Original/nine masks/old code unchanged; no parent walk/butterfly/audio/55s/GPU/network/inference/commit/deploy. See `evidence/SKETCH2LIFE_MILESTONE3B_MOTION_PROOF_RESULT.md`; stop for review and anatomical/matte/background asset work authorization.
+
+Revision 19 (2026-10-09): Final 3B Story & Motion Approval Package prepared, not implementation. Proposed revised narration adds reviewed hand release/butterfly flap/flight; limited source-derived manual rigs/key poses replace sliding-only as conditional animation option. No rig/asset/audio/video generated; no AI/GPU/remote image call. `approvals/SKETCH2LIFE_MILESTONE3B_APPROVAL.md` records pending content/motion/asset/voice/privacy/budget decisions and posture-specific acceptance. Original/nine masks/assets and source/test/tool hashes unchanged from 3A; V1/default/V2 OFF. AWAITING_OWNER_APPROVAL, Visual QA NOT_PASSED.
+
+Revision 18 (2026-10-09): Milestone 3A planning only. Four-scene 55-second draft, private annotated original-source storyboard, stable asset/state/approval proposals and capability audit; no story rendering or inference. Revision-15 visual/object-first remains owner-preferred baseline, revision-17 safeguards preserved. Natural walking, temporal camera/motion, child release pose/occluded background and reviewed butterfly are not implemented/available. Source/nine masks unchanged; every proposed event NEEDS_APPROVAL, no fake approved package. `plan/SKETCH2LIFE_GOLDEN_STORY_PLAN.md` supersedes earlier three-scene draft. VISUAL_QA_NOT_PASSED; V1 default/V2 OFF. Stop for content/style/assets/voice/cost review.
+
+Revision 17 (2026-10-09): early global color diagnosed as unscheduled 0.6-second background preview, not main object-first phase mixing. Preview removed/rejected; offline schedule validates phase dependencies/path coverage/time, debug requires purposeful interleave. Clean/debug 20-second real MP4s and side-by-side encoded comparison produced; 480-frame audit tip endpoint error <1e-6 px, final source exact raw. **VISUAL_QA_NOT_PASSED**, sub-frame travel/patch-like color and late blanks remain. See `evidence/SKETCH2LIFE_SCHEDULE_DEBUG_RESULT.md`; stop for review, no production/story expansion.
+
+Revision 16 (2026-10-09): owner accepts revision-15 order/color improvements. One optional pencil/down-up/sparse-background candidate produced an exact-final-source MP4 but fails material overall naturalness improvement: most detail/color strokes are sub-frame and background completion worsens at matched times. Keep prior visual mode and baseline; **VISUAL_QA_NOT_PASSED / STOP TUNING**. `evidence/SKETCH2LIFE_PENCIL_REFINEMENT_RESULT.md` records actual speeds and video evidence. `plan/SKETCH2LIFE_GOLDEN_STORY_VIDEO_PLAN.md` is proposed only; no story motion/audio/transition implementation.
+
+Revision 15 real-family visual review (2026-10-09): owner rejected revision-14 video. One optional coherent/local-brush/object-first pass produced a new actual 20-second MP4 with exact raw final source, earlier complete family and no old diagonal slit pattern. Local coloring still appears patch/block-like and late background remains unfinished at 18 seconds. **PARTIAL / VISUAL_QA_NOT_PASSED**, stop for owner review; `evidence/SKETCH2LIFE_REAL_VISUAL_REFINEMENT_RESULT.md`. No architecture/motion/audio/transition/API/default change.
+
+Real stroke fix revision 14 (2026-10-09): complexity-aware bounded structural traces and original-pixel texture reveal unblock the same provisionally approved nine-mask family source. Actual silent static MP4: 20 seconds, 480 frames; raw final source MAE 0, decoded MAE 2.617863. **VISUAL_QA_NOT_PASSED**, no object motion/server approval/Lightning acceptance. Historical failed attempt below remains evidence; latest result is `evidence/SKETCH2LIFE_REAL_STROKE_FIX_RESULT.md`.
+
+Provisional real-family benchmark revision 13 (2026-10-09): owner approved static local use of the current mask set, not product/Gate A/B/motion acceptance. Native detail overlays were inspected and original masks preserved. Existing V2 extraction failed on garden with 2,798 detail candidate pixels versus the 2,000 limit; schedule/encoding were not reached and no MP4 exists. The assembled static target preserves every decoded JPEG pixel (MAE 0). See `evidence/SKETCH2LIFE_REAL_IMAGE_BENCHMARK.md`; engine repair has not been implemented.
+
+Real family benchmark preparation revision 12 (2026-10-09): owner reattached the exact previously consented `familly.jpg`; nine local candidate contour/region masks, source-bound stable identities and private overlays/cutouts are prepared. Structural and source-pixel checks pass, but semantic mask/identity review is pending. No real-image V2 render has run. See `evidence/SKETCH2LIFE_REAL_IMAGE_BENCHMARK.md`; private media remains outside Git.
+
+Milestone 2.1 (2026-10-09) refines only the offline V2 pilot: source-pixel static canvas, explicit placeholder for unrecoverable occluded background, reduced stroke fragments, and a texture-gated alternate brush reveal. Synthetic A/B still show an unsatisfactory schematic look. The owner-permitted complex family drawing is available locally but lacks reviewed object masks, so real object-aware visual acceptance remains blocked. See `evidence/SKETCH2LIFE_MILESTONE2_1_RESULT.md`; V1/default flag and Gate/API remain unchanged.
+
+Milestone 2 (2026-10-09) adds an isolated CPU object-aware stroke/brush pilot, not a product video. Family and ocean synthetic MP4s, fidelity metrics, visual QA and remaining full-image-background gap are documented in `evidence/SKETCH2LIFE_MILESTONE2_RESULT.md`. V1 and live approval flow are unchanged; V2 remains OFF for uploads.
+
+Milestone 1.5 (2026-10-09) adds a second, ocean-themed synthetic drawing and PNG/JPEG, fail-closed mask-identity and asset tests to the same V2 prototype. Its result is in `evidence/SKETCH2LIFE_MILESTONE1_5_RESULT.md`. Approval remains unverified fixture metadata; no real upload, Lightning runtime or animated V2 video is claimed.
+
+Milestone 1 revision 8 (2026-10-09) adds an isolated, feature-flagged story-world/state prototype after the owner's four scope corrections. It neither replaces the V1 job nor proves visually accepted whiteboard video. The synthetic manual-mask fixture and Level-1 evidence are under `evidence/SKETCH2LIFE_MILESTONE1_RESULT.md`; real LightningAI/child-media Level 2 is not run. Both required audit reports under `D:/Codex/Sketch2Life/` were read before implementation.
+
+This feature extends the existing session-local 5–10 second whiteboard learning clip with a separate 40–60 second, multi-scene story-video path. It does not replace Pixi exploration or the original source drawing. The source of approved facts, anchors and narration remains `ApprovedStoryPackageV1`; visual generation cannot be treated as factual authority.
+
+Owner reference: `yogendra-yatnalkar/storyboard-ai` (scene-based narrated whiteboard style). This reference expresses visual intent, not proof that the current renderer has the same hand-drawing quality. Master SRS v1.4 remains the authority for original-image identity, safety, provenance and READY gating.
+
+Additional owner reference: `Atharva-Kanherkar/chalkboard` (MIT-licensed vector/diagram whiteboard renderer). Its cached RoughJS path reveal informs the opt-in vector pilot; its image/SVG fade behavior means it is not a drop-in raster child-art animator. The video-first, adult-reviewed product flow above remains authoritative.
+
+Implementation is local/backend and provider-adapter code. No Lightning GPU, paid model inference, real child data or production deployment is exercised by this feature record.

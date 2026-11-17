@@ -1,0 +1,18 @@
+{
+  "app": "sketch2life-srs23-drawing-segment-dev",
+  "attempt_id": "5025e317-7665-4234-94a3-b0236a2becb9",
+  "call_id": "fc-01M6RAR0DZ9803WY2008ZJCYEJ",
+  "function": "segment-synthetic-drawing-candidate",
+  "generation_id": "76cb7e85-bea2-4bcb-95c1-c42ea91d071f",
+  "job_id": "adc30e9c-8142-453f-9f94-42f9bfdbd88d",
+  "max_attempts": 1,
+  "source_image_sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949",
+  "source_image_size_bytes": 1775882,
+  "stage": "gpu_inference",
+  "started_at": "2026-11-06T18:43:25+07:00",
+  "state": "DISPATCHED",
+  "video_called": false,
+  "wait_timeout_seconds": 1800,
+  "worker_timeout_seconds": 600,
+  "workload": "drawing.segment"
+}

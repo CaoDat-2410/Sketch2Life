@@ -1,0 +1,9 @@
+stateDiagram-v2
+  [*] --> PendingRequest
+  PendingRequest --> Admitted: teacher verifies roster
+  Admitted --> GroupAssigned: teacher assigns group
+  GroupAssigned --> Active: session starts
+  Active --> MovedOrLeft: teacher move or child leaves
+  Active --> Revoked: permission / enrollment / consent policy
+  MovedOrLeft --> Active: re-admitted by teacher
+  Revoked --> [*]

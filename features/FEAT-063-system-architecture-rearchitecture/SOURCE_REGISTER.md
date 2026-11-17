@@ -1,0 +1,503 @@
+# FEAT-063 source register
+
+## Rev65 Teacher Sketch Deck presentation UI — current — 2026-11-10
+
+- Product authority: FEAT-063 SRS v2.7-draft, Rev60 working copy (unsigned), §§6.2.1, FR-T-19, UC-17, BR-43 and NFR-33.
+- Implementation: `apps/teacher-ui/src/components/TeacherDeckPresentation.tsx` renders the current versioned DRAFT slides; `apps/teacher-ui/src/pages/ModalAiLessonFlowPage.tsx` opens the viewer and supplies the existing FLUX composite lesson visual.
+- API boundary: the deck endpoint returns ordered slide data; the separate lesson-visual endpoint returns one composite drawing guide image. There are no per-slide image references or single-step regeneration route. UI does not fabricate either.
+- Live UI evidence, Modal request IDs/model pins, build, activity-scroll remediation, Parent Android environment blocker, worker terminal-event gap and cleanup: `evidence/EV-063-75_TEACHER_PRESENTATION_UI_20261110.md`.
+
+## Rev64 Parent/Teacher Modal UI E2E — current — 2026-11-10
+
+- Product authority: current FEAT-063 SRS v2.7-draft, §§5.1–5.2, 6.2, 7, 9, 21, 25, 28–29 and 31.4–31.5. Video remains deferred by the owner's earlier direction; fixture/API-only runs cannot satisfy the requested UI E2E.
+- Owner authorization and approved scope: `plan/PLAN_REV64_PARENT_TEACHER_MODAL_E2E_20261110.md`, scope SHA-256 `C6A217BB2114C7D64621E6B50E3A92F6E7E20063866EF6977667F40581BBF9A3`, recorded in `approvals/TASK_APPROVAL.md`. Execution-plan SHA-256: `B791E6E552FF16A6A99D5758D7A2226FA6DD561AE852A40DF6BC2B87E32015C8`.
+- Runtime evidence: real Parent signup/role resolution and FLUX guide display passed; Qwen drawing analysis failed because a 256-token output was truncated and rejected by the strict JSON parser (`MODAL_MODEL_OUTPUT_INVALID`), while the API surfaced 504 `MODAL_OUTCOME_UNKNOWN` about 7 seconds before the worker terminal event. Parent story was not called. Teacher role resolution, Qwen lesson suggestion, Qwen Sketch Deck and FLUX lesson visual passed in the actual Teacher UI; lesson file upload/parser was not exercised. No fixture or video inference. Three task-used Modal apps were stopped and verified at zero tasks. Detailed operation times, gaps, screenshots and safe logs: `evidence/EV-063-74_PARENT_TEACHER_MODAL_E2E_20261110.md`.
+
+## Rev63 role-based authentication and Firebase account recovery — current — 2026-11-10
+
+- Product authority: `docs/context/SRS_AUTHORITY.md` and canonical FEAT-063 SRS v2.7-draft, §§3, 7 (FR-C-01/FR-O-09), UC-13, §31.3 and open §31.10(14). This implementation does not claim UC-13 verification/email delivery or the broader open resolver questions are complete.
+- Owner authorization and exact paths: `plan/PLAN_REV63_ROLE_BASED_AUTH_AND_ACCOUNT_RECOVERY_20261110.md`, latest approved SHA-256 `120FF1994CE81BD6D6A25BD37543B748D5EDDD26A35D57F18903C7E0559DA048`, recorded in `approvals/TASK_APPROVAL.md`. Compose passes the root `.env` bootstrap email to the API container.
+- Firebase Auth provider behavior: [Firebase Admin Python Auth reference](https://firebase.google.com/docs/reference/admin/python/firebase_admin.auth) — user provisioning, account lookup, and `get_users` batching (up to 100 identifiers per call).
+- Runtime evidence: Alembic heads including the new role migration applied to disposable PostgreSQL; synthetic Firebase Parent registration and Platform Admin account/role lifecycle passed; actual HTTP registration and invalid-token response passed. The root `.env` Web API key was corrected to the owner's supplied Web config; Identity Toolkit probe and synthetic reset/sign-in/change-password lifecycle passed, with cleanup and no email sent. Admin/Teacher Web builds and Parent mobile typecheck passed. Role-gated business cases used a test principal override, not a verified Firebase ID token; no interactive browser flow ran. Full Compose startup could not pull MinIO (HTTP 401), so isolated API/PostgreSQL containers were stopped/removed after the run; pre-existing services and volumes were preserved and synthetic identities were deleted. See `evidence/EV-063-73_ROLE_BASED_AUTH_AND_RECOVERY_20261110.md`.
+
+## Rev62 backend Firebase Auth registration — historical slice, extended by Rev63 — 2026-11-10
+
+## Rev62 backend Firebase Auth registration — current — 2026-11-10
+
+- Product authority: `docs/context/SRS_AUTHORITY.md` and canonical FEAT-063 `artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` v2.7-draft, §§3, 7 (FR-C-01, FR-O-09), and UC-13. UC-13 is the full target onboarding workflow; Plan Rev62 implements only local Firebase identity creation.
+- Owner authorization: direct request to complete backend account creation and verify a Firebase Auth identity; exact scope and final Plan SHA-256 `1C245F296FDFBBEACDEF3AEC6D1D1C9AF21122A457490F3AE801DEEB11532FDE` are in `approvals/TASK_APPROVAL.md`.
+- [Firebase Admin Python Auth reference](https://firebase.google.com/docs/reference/admin/python/firebase_admin.auth) — server-side `create_user` parameters and behavior.
+- [Firebase Auth REST API](https://firebase.google.com/docs/reference/rest/auth) — email/password sign-in through Identity Toolkit using the Web API key.
+- [Firebase Android setup](https://firebase.google.com/docs/android/setup) — native Android SDK configuration and `google-services.json` requirements; compared with the current REST-based client.
+- [Firebase API key guidance](https://firebase.google.com/docs/projects/api-keys) — Firebase key/project matching, Identity Toolkit allowlist, and invalid-key troubleshooting.
+- Runtime evidence: one live backend request and Admin lookup passed; REST sign-in returned `API key not valid`. See `evidence/EV-063-72_BACKEND_FIREBASE_ACCOUNT_REGISTRATION_20261110.md`. No key, password, token, or service-account contents are recorded.
+
+## Rev61 single-root Firebase Auth configuration — historical setup, signup superseded by Rev62 — 2026-11-10
+
+- Plan Rev61 SHA-256 `27D6D8735FF1F23D9B31F0152AD80EEB0A33085CDC5A1C5096AE1E8452950D30`; approval recorded in `approvals/TASK_APPROVAL.md`.
+- Canonical working SRS remains FEAT-063 v2.7-draft with local amendments through Rev60; it was not edited by Rev61.
+- A single ignored root `.env` supplies Compose, Teacher Web and Parent Android. Compose passes Firebase Admin Base64 only to the API; Vite/Babel expose only the allow-listed public client keys. No nested Firebase env or service-account JSON file is required in the project.
+- At Rev61, Parent sign-up/sign-in both used Firebase Authentication REST endpoints through `AuthSessionPort`; Rev62 moves account creation to backend Firebase Admin and keeps REST for sign-in/refresh. Admin SDK verification accepts Base64 service-account JSON and validates the credential project ID. No live Firebase request or account creation was performed at Rev61.
+- The owner-supplied Admin key is stored only in ignored root `.env`; `firebase-admin` 7.7.0 is installed in the local `backend/.venv`. Local Admin app initialization/disposal and project matching passed; no live token verification was made. Full evidence and remaining limits: `evidence/EV-063-71_SINGLE_ROOT_ENV_FIREBASE_AUTH_20261110.md`.
+
+## Rev60 SRS rebase to v2.7 Rev57 — current — 2026-11-09
+
+- Canonical local SRS: v2.7-draft, based on latest FEAT-063 Rev57 at commit `f21c6f34af1ee045caf9a0621e38376a2bfde390`, with local Rev58–Rev60 amendments; output SHA-256 `70DA43A35106E8C02B4BB8FCCB9628C0376C9E7EA6CFC51909ACB569703B218B`.
+- Rev57 §§32.6–32.7 are retained; Rev58 current-CI source snapshot is §32.8. §25.5 contains source-vs-target CI/CD separation; §28.2 retains the v2.7 case table and adds the temporary synthetic no-eligible assumption.
+- Count arithmetic is 86 pre-Rev31 source mappings, 89 current source crosswalk, historical v2.3 89/137, target 92/140, local snapshot 41. Seventeen questions remain `OPEN-OWNER`; Q183→§31.10(3), Q192→§31.10(10). Quota scopes and child-media deny-by-default are consistent with the recorded Rev52 clarification.
+- The owner-supplied Rev57 six-group note (SHA-256 `1135F27038AFAC5DA51C69572C080EA29702068AA98CF720C49666CFE3FD08EA`) was used as an SRS consistency checklist; it supplies no new owner answers or physical-schema evidence. DTR and diagrams are unchanged; local DTR remains labeled v2.5-draft.
+- Source SRS blob `a979fe2740cb965015ab3ed0606bd5d293c3a75f`; plan SHA-256 `966FA9E4F375E6A33A8C56D21410FFB7D6828E0EEC1A5F3B29A524FDE0021D69`; approval is in root and feature `TASK_APPROVAL.md`. Evidence: `evidence/EV-063-65_SRS_REBASE_V27_REV60_20261109.md`.
+
+
+## Rev53 v2.6 checklist reconciliation — current — 2026-11-07
+
+- Canonical SRS and companion advance to v2.7-draft, unsigned. The supplied checklist is review evidence, not product-requirements authority.
+- Preserve D-146 owner decisions: Content Admin is a Platform Admin permission; Platform Admin child-media access stays deny-by-default pending a separately approved workflow; Teacher video uses only school organization quota.
+- Clarify exact optional LessonVersion ref/version/hash lineage, multi-owner admission saga, School Manager terminology, and the current 54 new / 92 active + 48 legacy = 140 target count. Preserve unresolved activity, supersession, role persistence, age-migration, audit, DDL and migration questions.
+- Worktree: isolated branch `docs/feat063-srs-v26-checklist-20261107`; package commit `359b0b92384faad789f6006c37cc5f66760ad594` was pushed normally and confirmed by `git ls-remote`. Evidence: `evidence/EV-063-58_SRS_V26_CHECKLIST_REMEDIATION_20261107.md`.
+
+## Rev52 SRS contradiction reconciliation — historical publication record — 2026-11-06
+
+- Canonical SRS and companion advance to v2.6-draft, unsigned. The review report is evidence only.
+- Owner decisions recorded in D-146: Content Admin is a Platform Admin permission; Platform Admin child-media access is deny-by-default pending a separately approved workflow; Teacher video usage draws only from school quota.
+- Current target count is 92 active + 48 legacy = 140 projected mappings; 89/137 is explicitly historical v2.3. No production inventory/DDL is claimed.
+- SRS, Data Table Register, Plan Rev52, approval and evidence are in the isolated remediation worktree; owner-authorized publication is complete; package commit `ca3c5dda695dc8d325442921ace684364d0215b1` matches the verified same-named origin branch.
+- Evidence: evidence/EV-063-57_SRS_V25_CONTRADICTION_REVIEW_20261106.md.
+
+## Rev45/Rev51 SRS alignment — historical publication record — 2026-11-06
+
+- Canonical working SRS and companion: v2.5-draft, unsigned. §§1–31 remain product/architecture targets; §32 contains dated source/runtime observations.
+- Rev45 resolves inconsistent model-status statements in the target sections. Rev51 source review at fetched `origin/dev` `4749451080f49243464d40a464b8f83a03ae77bb` distinguishes the mounted main FastAPI composition from the separate StoryRun-lite/Modal development slice.
+- Main app has no mounted AI Jobs router or AI dispatch; StoryRun-lite uses separate in-process background tasks and is not durable production job orchestration. Dev model pins/workload results remain implementation evidence, not production approval.
+- Local OpenAPI/database numbers remain the Rev43 snapshot and were not revalidated in Rev51. No API, DB, Modal, model, test, or deployment operation was performed for this source review.
+- Evidence: `evidence/EV-063-55_SRS_SYSTEM_CODE_ALIGNMENT_REV45_20261106.md`; `evidence/EV-063-56_SRS_PUBLICATION_REV51_20261106.md`.
+- Publication: Plan Rev51 package commit `620386fb227e2d8b76c48e72ad22892e3b0c1c53` was pushed on `docs/feat063-rev45-srs-code-alignment-20261106` and confirmed by fresh fetch. The SRS remains an unsigned draft.
+
+
+## Rev43 as-built SRS alignment — historical snapshot — 2026-11-06
+
+- Canonical working SRS: `artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` v2.4-draft; companion Data Table Register v2.4-draft. Both remain unsigned.
+- SRS §§1–31 preserve product/architecture target requirements; §32 and Data Table Register §14.5 record implementation status as observed locally on 2026-11-06.
+- Evidence sources: local read-only OpenAPI (111 paths / 124 operations); local PostgreSQL (`20261028_ll_0001`, 41 application tables); current router composition; owner-supplied Modal dev dashboard screenshot. AI-worker database boundary is in SRS §32.4 / Data Table Register §14.6. No Modal inference or deployment mutation was performed for this documentation update.
+- Owner AI direction: Qwen3.5-VL, FLUX.3, Whisper, optional SAM 2.1, hosted through Modal. As-built notes explicitly say backend end-to-end integration and video generation are not verified. Q159 is resolved: Platform Admin/Teacher initiate; Parent edits authorized drafts only.
+- Plan Rev43 authorization hash: `000A4D0C22BB92666C60C4597BB5B8AEB126E0D4C1F654B610909CC7BBDED945`; current reviewed plan hash: `1F10B3F447F7AFB59FAD847E6BE05F0C898B4CE4F6F51B0536258BBD1806F185`.
+- Evidence report: `evidence/EV-063-33_AS_BUILT_SRS_ALIGNMENT_20261106.md`.
+
+
+## Parent StoryRun-lite API and AI retest — 2026-11-05
+
+- Owner requested a full mounted Parent API retest with AI routes included, per-call timings, and contract/business-rule findings. The amended execution plan is recorded under approval revision 43; the approved scope baseline SHA-256 is `0088A5AEA37D0B44D1A1DA291AF0CEE4CE469D0FEFED0692E8497F74C7B01B27`.
+- Canonical source: `artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md`, v2.3-draft, SHA-256 `DCBF9786FF8983E34F2D3B4EBAB76301D0C52A6C9DE72CD08D0816BBD0D983FC`. StoryRun-lite contract source: `artifacts/storyrun-lite/openapi.json`, SHA-256 `1257158CE5AFB0B92F9D7CC03E12B4DEFC4A4B009DB93A64242AC4646D3EAA8B`.
+- Outcome: the 13-operation HTTP matrix matched expected statuses. The live VLM ended unknown after 303.762 seconds; a separate fixture-backed story call returned 502 because the worker's semantic butterfly lifecycle guard rejected the output. No video or successful end-to-end AI flow is claimed.
+- Evidence: `evidence/PARENT_STORY_API_RETEST_20261105.md` and `evidence/assets/parent_story_api_retest_20261105/attempt_02/`. Task Modal apps and PostgreSQL were stopped; shared Docker services/Modal Volumes were retained. No product API or canonical SRS/OpenAPI changes were made.
+
+## Six-milestone Parent/Teacher roadmap review — current local record, independent round 3 — 2026-11-03
+
+- Roadmap: `plan/BE_PARENT_TEACHER_VISION_DEMO_ROADMAP_20261102.md`, reviewed round 3 at SHA-256 `DED4B89D6A3F66FD0570EEA11E2240840C47DE607667544708C7C394F7F49C86`, then owner-accepted as planning baseline; current SHA-256 `A0A485EE421FBB1DA9DEC99DD8EC08279D14EAF27EC548AD6A0A4CE8F234F8FA`. Use the existing SRS v2.3-draft unchanged; it remains unsigned. No M2–M6 implementation is approved.
+- Review plans: Rev49 `plan/ROADMAP_REVIEW_FIX_PLAN_20261103.md` SHA-256 `BECC69238E5049649204E5F9C32D2CB9660E625B795E131C4A5553599D08901C`; Rev50 `plan/ROADMAP_REVIEW_FIX_PLAN_REV50_20261103.md` SHA-256 `0FFF0D9CAA01036E08A90120FC7067D38B564E80E72E4324B470D1E8E13C66DC`.
+- Rev50A backlog supplement: `plan/ROADMAP_REVIEW_FIX_PLAN_REV50A_BACKLOG_POINTER_20261103.md` SHA-256 `27288634F301B7430C531E17B51EE15D35B0EB3735C26925767111447849661D`; backlog current bytes SHA-256 `380BF9F813CF809E35D9EA6F843E33A0DF892BA886E8C366AEB1C0F757A57391`.
+- Current finding disposition and independent round-3 verdict **ACCEPTED**: `evidence/CLAUDE_ROADMAP_REVIEW_DISPOSITION_20261103.md`, SHA-256 `D44A754ECBF63E6DCB94D1037A6D76F39398D160BB9DAD9E6C6343FC77C9CDBB`. Review thread `01a1a205-1441-73e0-9170-6fdc4d591472` (`gpt-6-luna`, effort `max`); all 12 pinned hashes matched at review time. Owner's subsequent SRS baseline decision is D-132.
+- Owner accepted the reviewed roadmap as a planning baseline under `approvals/TASK_APPROVAL.md`; D-132 records use of the current SRS v2.3-draft unchanged, with Parent-before-Teacher ordering per §8.1. Each milestone still needs separate implementation approval.
+- Controlling sources: `artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` §§5–8.1, 11, 13, 14.1, 19, 22, 29, 31; `artifacts/DATA_TABLE_REGISTER.md` §§1, 5.6. SRS remains unsigned.
+- B0–B13 plan/report hashes differ by content, not only line endings. Owner reconfirmation or an addendum is required before the current plan is used as authority. DTR local CRLF/LF hash difference is line-ending-only; see disposition.
+- M1 independent review round 3 is ACCEPTED for synthetic local demo only. A2 closeout records ACCEPTED/COMPLETE within its plans/addenda but discloses shared-DB rows, Alembic reconciliation and mypy baseline debt. The A2→B1→B2 chain is separate; its active phase status must be read from its live implementation thread.
+
+## Six-milestone Parent/Teacher roadmap review — round-1 record (superseded) — 2026-11-03
+
+- Rev49 roadmap SHA-256 `9DF3FECF0FFF45972ADFB4D49A50E31773CBAD8832F0B5C5B625C9702CEB49CC`; Rev49 disposition SHA-256 `72150BEC8A624D03E6205CE40C2AA9A48942BCF8A1D7CA0A40BAF8CC60851A1E`.
+- This historical note incorrectly described the DTR discrepancy as unreproduced and assigned the OpenAPI decision D-130. Rev50 corrects those statements: DTR differs only by line endings; OpenAPI is D-131 because D-130 already identifies the full BE/Bruno decision.
+
+## Modal AI setup scaffold — 2026-11-03
+
+- Owner instruction: create the Modal configuration scaffold now; owner will configure environment values afterward.
+- Approved plan: `plan/MODAL_AI_SETUP_SCAFFOLD_20261103.md`, SHA-256 `7FE03A68DF76877457DF5C5F652FCB705669A624B2E07F7B6F317C9FB510E391`; exact approval is in `approvals/TASK_APPROVAL.md`.
+- Canonical source: `artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` v2.3-draft §§6.2–6.3, 9.5, 22, 24.3–27, 31.4–31.5. Rev26 remains a pending model/flow amendment and does not authorize candidate promotion.
+- Implementation: `deployment/modal/srs_v23/` contains the workload registry, path/hash-only contract, dev L4/L40S skeletons, placeholder environment sample and owner setup instructions. The existing legacy `deployment/modal/qwen_vision_v2.py` is unchanged.
+- Evidence: `evidence/MODAL_AI_SETUP_SCAFFOLD_20261103.md`. No Modal account operation/deploy/GPU, model inference, backend/storage integration, actual `.env`, product test, or child data is claimed.
+
+## Rev42 Swagger review and local commit — current — 2026-10-30
+
+- Direct owner request: `coi và commit cho tui`. Plan Rev42 SHA-256 `E8A809729BDE4B83D0A6FD0AC21336C8F3721F55B7BDFA7431F1125922D026E8` authorizes review, focused verification and one local commit on `dev`; it excludes push.
+- Review corrected unsafe request-ID reflection in the typed middleware 413 response. Exported local OpenAPI still matches the served API and all previous contract counts.
+- Check results and limitations: `evidence/EV-063-34_SWAGGER_REVIEW_AND_COMMIT_20261030.md`.
+
+## Rev41 Swagger overview presentation — current — 2026-10-30
+
+- Direct owner request: make the Swagger overview in the attached screenshot easier to scan. Plan Rev41 SHA-256 `8693C3B4165F9413775306260CCC9023404F2AB7F58C967632236951B1FC2BDB`.
+- The info description is a compact summary of coverage, bearer authentication/tag behavior, and unmounted candidates. No operation or runtime changes.
+- Current snapshot SHA-256 `C1F2B453E5D893AF5328C9091A51B183CB2D67FED2587411C0D45598F47A9466`; served counts and verification are recorded in `evidence/EV-063-33_SWAGGER_INFO_PRESENTATION_20261030.md`.
+
+## Rev40 local Swagger QA kit — current — 2026-10-30
+
+- Direct owner approval: `duyệt` for local synthetic workflow examples, 413 contract parity and focused verification. Plan Rev40 SHA-256 `701402BC515745FDCBCFF8C8AF8E7630EDF4025D51C330F7E7747AB6D738E1E9`.
+- Rev37 contract source SHA-256 remains `56FC8BEA01360E11F73E45B2D43AC1897540B30BC8AE524CDE1ECEFACFBB1B88`. Snapshot SHA-256 `70BDA49D2E122C4CE0370211DCEF8EA03BEC477CFDE2C60673501EB2CCDF8208`.
+- Synthetic fixture: `artifacts/qa-fixtures/synthetic-demo.png`, 128 × 96 RGBA, 504 bytes, SHA-256 `2A0D125A7B34306DF54407EA8B7C41BA189C061C24F6C43277502C38D3CA9B9F`; no personal/child content.
+- Quickstart: `artifacts/LOCAL_SWAGGER_QA_QUICKSTART_20261030.md`. Verification and authenticated-route limits: `evidence/EV-063-32_LOCAL_SWAGGER_QA_KIT_20261030.md`.
+
+## Rev39 professional Swagger navigation — current — 2026-10-30
+
+- Direct owner request: organize Swagger by explicit role where known and otherwise by a clear professional grouping. Plan Rev39 SHA-256 `1E0244E9D43F3F3B46361D66711D413293F2B7E50DB30DEE5B353BAA2474834F`.
+- Role grouping is based on current Lesson Library route guards; BE1 and Demo groupings use handler/domain workflows to avoid implying authorization that is not explicit in the contract.
+- Snapshot SHA-256 `27BB19AC8A5938D239A300DB4BFC5028AA205A675AE9B09EE00CCD35CB3D3453`; review and results are recorded in `evidence/EV-063-31_SWAGGER_NAVIGATION_ROLE_GROUPING_20261030.md`.
+
+## Rev37 contract-aligned Swagger/OpenAPI — current — 2026-10-30
+
+- Owner-provided source: `API_CONTRACT_CATALOG_FEAT063_REV37_20261030.md`, SHA-256 `56FC8BEA01360E11F73E45B2D43AC1897540B30BC8AE524CDE1ECEFACFBB1B88`.
+- Plan Rev38 is approved for exact OpenAPI documentation, contract completeness checks and reporting observed discrepancies; plan SHA-256 `C1E8C74AD57E7F053E0D1E093BAF7F97BE6F12E8EF8887A2C098632B9B863BCF`.
+- Generated metadata, local Compose OpenAPI snapshot, focused tests and the known upload-413 mismatch are indexed in `evidence/EV-063-30_SWAGGER_OPENAPI_FEAT063_REV37_20261030.md`.
+## Rev46 Swagger commit consolidation — current — 2026-11-01
+
+- Owner requested one commit for the current Swagger work and removal of the two preceding Swagger commits from `dev` history.
+- Exact target commits: `6d77d2ad41370f118386d9861fed4cd031ddea67` and `f68ed2b579c89e8fb1ee3dcf7e4c8f109acd31d8`; retained parent: `111ae547007801d7d171dd12f3ac6f1085d22199`.
+- `origin/dev` was checked at the exact old tip. Plan Rev46 SHA-256 `4EE5DEF1E5AD7C544BBCF79921E8A7495EDE79C7765AE523D38BFFA1D9938B27` authorizes one consolidated commit and a lease-guarded update of `origin/dev`.
+- Plans Rev47–48 remove obsolete snapshots, local-demo artifacts, and superseded standalone Swagger revision notes; retain the current Rev45 SRS v2.2 snapshot and EV-063-37.
+
+## Rev45 FE Swagger scope from SRS v2.2 — current — 2026-11-01
+
+- Owner instruction: update Swagger on `dev` according to SRS v2.2. This selects the source for this documentation task only; the source document still labels itself v2.2-draft and pending owner sign-off.
+- SRS source: `artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS_V2.2_PRESERVED_20261028.md`, repository SHA-256 `D1C4AF0D42A160AAA08D1EC33F1FFD746C4EB33CA75C5D802616A5DD4502E4DE`. It matches the owner's attached copy after normalizing BOM/line endings, as reviewed before this plan.
+- API source: current FastAPI route handlers, auth guards, DTOs, and `MOUNTED_OPERATIONS`; §9.6 route groups are logical proposals, not final OpenAPI paths.
+- Approved Plan Rev45 SHA-256: `5D1DBABE161F92F08DE7FE8C1B81B1E5D57CFA3C2B8D57CBA6BE76ACADB0FD06`; direct approval is recorded in `approvals/TASK_APPROVAL.md`.
+- Published FE snapshot: `artifacts/OPENAPI_FEAT063_REV45_20261101.json`, 24 operations / 17 paths / 4 tags, SHA-256 `C61D3ADD7FF906AC9E5B018A9CE428AF7B162D67510FEEE7B202B53DA05D74A2`. The shared error envelope is named `ApiError` in this FE document; its fields/runtime payload are unchanged. The overview is 50 words and tag descriptions are 5–7 words.
+- Current implementation gaps are stated in the OpenAPI info block and detailed in `evidence/EV-063-37_SWAGGER_SRS_V22_SCOPE_20261101.md`. No new route is inferred from the target proposal table.
+
+## Rev47–48 current-only Swagger cleanup — current — 2026-11-01
+
+- Plan Rev47 removes superseded OpenAPI snapshots and retired local-demo fixture/quickstart artifacts.
+- Plan Rev48 removes standalone Swagger plans/evidence for prior revisions from the current dev tree. The Rev45 SRS v2.2 snapshot and EV-063-37 remain current.
+- Backend contract metadata and source code remain because they generate and validate the current FE projection.
+
+## Rev36 UI component patterns and interaction states — current — 2026-10-30
+
+- Plan Rev36 is approved for nine generated component/state boards; SHA-256 `300104684514C4C6F67614F58DDE402668AAC24AF2204F9B1BCA7A5BBEA2D336`.
+- SRS baseline: §3, §20, §21.5–§21.6, §22.4, §31.2–§31.7; Rev31-reconciled Lesson Library contract; Rev31 route inventory; Rev32 purpose catalog; Rev35 UI visuals.
+- Output: nine component boards plus per-group prompt/motion notes at `assets/generated/ui-components-rev36-20261030/`; index separates current Lesson Library APIs from SRS-only/unmounted states.
+- EV-063-29 records source paths, final PNG hashes, review observations, limitations and visual-approval status.
+- Palette tokens and unresolved age/quota/profile-share values remain illustrative; no application code uses the generated assets.
+
+## Rev35 UI screen mockups and motion notes — current — 2026-10-30
+
+- Plan Rev35 is approved for the exact 14-screen generated-visual scope; SHA-256 `0EBBE2D7E983663F448B167F39FE42AD6C89A2E38EE5390A054673FC2C42723C`.
+- Visual baseline: SRS v2.3-draft §3, §6, §20, §21.5 and §31.1–§31.7; Rev31-reconciled Lesson Library API contract; Rev31 API inventory; Rev32 purpose catalog.
+- Existing visual references: `apps/ui-mobile/assets/images/`, `apps/teacher-ui/src/`, `apps/admin-ui/src/`.
+- Fourteen screen PNGs, fourteen per-screen prompt records and fourteen per-screen motion notes are under `assets/generated/ui-mockups-rev35-20261030/`; screen index and shared specifications are in that directory.
+- EV-063-28 records image-generation source files, provenance, visual review observations and limits. Assets remain drafts pending owner visual approval; no application source uses them.
+
+## Rev34 legacy non-AI API regression - current - 2026-10-29
+
+- Plan Rev34 is approved for the exact test-only scope; SHA-256 `308F4FEA6576BAB08ACCD86B62616FE463C94D099FC27EBF301E855C4756F5B1`.
+- “Old APIs” means pre-Lesson-Library BE1/classroom and Demo/local-flow routes. AI-dependent endpoints, new Lesson Library/storage-example routes, and candidate/unmounted declarations are reported separately.
+- EV-063-27 records 77 active non-AI route-dispatch responses (0 HTTP 5xx), 109/110 non-PostgreSQL API tests, 3/4 BE1 PostgreSQL tests, the two failures, and uncovered success-path boundaries. The disposable DB was dropped; persistent DB remains at Rev33.
+
+## Rev33 local migration and non-AI API verification - current - 2026-10-29
+
+- Plan Rev33 is approved for local additive migration and non-AI workflow testing; SHA-256 `513FEE246CF1DD2B062BE146996C362C7C726667A9529E0E2342962084CF4DE1`.
+- EV-063-26 records migration of the existing local `sketch2life` database to `20261028_ll_0001`, Lesson Library API tests (5/5), BE1 HTTP suite (3/4), and exact MinIO/test-database limits. The disposable test DB was dropped; the application DB was retained.
+- No AI API, remote provider, AWS/Firebase, real child data, actual `.env` edit, commit, or push was used/performed.
+
+## Complete API purpose catalog - current - 2026-10-28
+
+- Plan Rev32 is approved for documentation-only work; SHA-256 `FD189D3E2684CE2930624AFD7412C54F9BB53339209790F7B319B534C41E087C`.
+- `artifacts/API_PURPOSE_CATALOG_FEAT063_REV32_20261028.md` lists all 135 declared method/path operations with purpose, handler and runtime exposure; artifact SHA-256 `E65582C197FCF9DC134294D140B5289C44B82E6A81AC6DB6C23C0AFE3800A881`.
+- No route or runtime behavior was changed. EV-063-25 records the static catalog and its limits.
+
+## Lesson Library backend and full API inventory - current - 2026-10-28
+
+- Plan Rev31 and Addendum A are approved; implementation has been completed at source level. Approved hashes: `BC948B27F5CFADD05EC6D12B0B7D989241CDEB6FC3CA6CAB1521988C712BBB8C` and `570BC65BE74A82261EC2455147EAF33FB0575B166B73EF506084BBF07A62727D`.
+- API contract: `artifacts/LESSON_LIBRARY_API_CONTRACT_DRAFT_REV29_20261028.md`; original Rev29 pre-reconciliation hash `81405D5BB6FC5FBAE50E8E73796FFABBC7C2E5B898C8BA7CEEF99AA3176407A2`, current Rev31-reconciled hash `78D4F99C4EBD51C460CF02863FD2C595AA5AE3D01E7433B7637DB416B765C085`; 30 operations.
+- Existing Parent, Teacher, BE1 and demo method/path declarations are preserved. New Lesson Library routes are additive under `/api/lesson-library/v1`; local storage examples remain gated to local development.
+- EV-063-24 records scope and evidence limits. No tests/builds, Docker execution, security validation, database inspection/migration, provider/AWS access, or actual `.env` changes were performed. SRS v2.3 remains unsigned; the 92-active/140-physical count is a source-derived crosswalk only.
+
+## Local Docker and MinIO storage example - historical Rev30 slice, incorporated in Rev31 - 2026-10-28
+
+- Plan Rev30: `plan/PLAN_REV30_LOCAL_DOCKER_MINIO_STORAGE_EXAMPLE_20261028.md` (SHA-256 `F6BD755CBC543374AC9091BB7603C2A9EB83DC20F2EDCA92B2A10158AB88C794`), approved for implementation by the owner's direct instruction; lifecycle IN_PROGRESS.
+- EV-063-23 records the implementation scope and evidence limits. This sample uses a provider-neutral application port and Boto3 S3-compatible adapter, with local-only MinIO wiring and a guarded example route.
+- The formal 28-operation Lesson Library API contract remains a separate draft proposal under Rev29; Rev30 does not implement its routes, persistence, parsing, or sharing.
+- MinIO is pinned for local synthetic use only; AWS account access/credentials and production selection are not included. Actual `.env` files remain untouched.
+
+## Historical contract baseline - Rev29, implemented under Rev31 - 2026-10-28
+
+- Plan Rev29: `plan/PLAN_REV29_BACKEND_LESSON_API_CONTRACT_AND_ENTITY_NAMING_20261028.md` (SHA-256 `B63B5BEC21C71BFD154EEA08741C167B3B144AF1133A17695D4C63E6760BCD6A`), AWAITING_APPROVAL.
+- API contract: `artifacts/LESSON_LIBRARY_API_CONTRACT_DRAFT_REV29_20261028.md`; original Rev29 pre-reconciliation hash `81405D5BB6FC5FBAE50E8E73796FFABBC7C2E5B898C8BA7CEEF99AA3176407A2`, current Rev31-reconciled hash `78D4F99C4EBD51C460CF02863FD2C595AA5AE3D01E7433B7637DB416B765C085`; 30 operations.
+- EV-063-22 records the convention review. Rev29 preserves the owner-selected Rev28 scope and clarifies entities, table ownership and DTO boundaries.
+- Rev29 was a draft contract at the time; Rev31 and Addendum A supersede its approval status and implement the routes/persistence. See the current entry above.
+
+## Historical backend lesson-platform plan — Rev28 (superseded by Rev29) — 2026-10-28
+
+- Plan Rev28: `plan/PLAN_REV28_BACKEND_LESSON_LIBRARY_UPLOAD_REVIEW_PARENT_READ_20261028.md` (SHA-256 `22CBC9E4360B39BDD995B683B5B9681D962D3D1C54355F929F0B1C3BE2387FE6`), preserved and superseded by Rev29.
+- Owner selected Teacher lesson upload, Manager approval/Public publication and Parent read/share. Rev28 plans structured CRUD, deterministic non-AI document extraction, versioned review/publication, revocable grants and Parent read-only access.
+- EV-063-21 records the SRS/repository implications. Library uploads need library-owned source-document/revision records; occurrence-owned source documents are not reused. Rev28 proposes updating Data Table Register counts before migration.
+- The full SRS/Data Table Register remain drafts. No implementation approval is recorded; Plan Rev26 AI research remains independent.
+
+## Historical initial backend CRUD recommendation — Plan Rev27, superseded — 2026-10-28
+
+- Plan Rev27: `plan/PLAN_REV27_BACKEND_BASIC_LESSON_CRUD_DRAFT_20261028.md` (SHA-256 `984B54DE505A4C86B9334079D6FC9086A0E5ABC9E1736C21BC0734096454E3BD`), preserved as the initial narrow recommendation and superseded by Rev28.
+- Scope recommendation: Teacher's manual private lesson draft CRUD with structured text/activity fields, immutable versions and soft archive; no AI, upload, publication, Manager review, Parent access or runtime integration in the first slice.
+- Repository review: EV-063-20 `evidence/BACKEND_BASIC_LESSON_CRUD_REPOSITORY_REVIEW_20261028.md`. Existing BE1 role/organization boundary is available; the generic learning_content router is candidate-only and not mounted in default composition.
+- No implementation or test approval was recorded under Rev27. SRS/Data Table Register v2.3 remain drafts; Plan Rev26 AI research status is independent and unchanged.
+
+## AI pipeline research — pending Plan Rev26 (2026-10-28)
+
+- Current canonical source remains SRS and Data Table Register v2.3-draft; Plan Rev25 does not authorize this new model-selection/AI-flow amendment.
+- Plan Rev26 is awaiting approval: `plan/PLAN_REV26_MODAL_HOSTED_AI_PIPELINE_REASSESSMENT_20261028.md` (SHA-256 `ECD0A0A6435193A903313409B699574FE9DB30BAAB8498A714A3FC54C75EEABC`).
+- Research/evidence: `evidence/MODAL_HOSTED_AI_PIPELINE_REASSESSMENT_20261028.md` (EV-063-19). Recommendations remain provisional; no model, checkpoint, GPU profile, quota policy or sample-recovery policy is selected.
+
+## Official AI/Modal sources for pending research (2026-10-28)
+
+- LTX-2.5 capabilities/system requirements/license and Modal GPU/LTX example: `https://docs.ltx.io/models/ltx-2-5`, `https://docs.ltx.io/open-source-model/getting-started/system-requirements`, `https://github.com/Lightricks/LTX-2/blob/main/LICENSE-2_x`, `https://modal.com/docs/guide/gpu`, `https://modal.com/docs/examples/ltx`.
+- FLUX 3/2 and Modal image example: `https://github.com/black-forest-labs/flux-3-image-klein`, `https://github.com/black-forest-labs/flux2`, `https://modal.com/docs/examples/image_to_image`.
+- Qwen3.5/3.6, Qwen3-ASR, Whisper, Modal Whisper example and Modal model catalog: `https://huggingface.co/Qwen/Qwen3.5-9B`, `https://huggingface.co/Qwen/Qwen3.6-27B`, `https://github.com/QwenLM/Qwen3-ASR`, `https://github.com/openai/whisper`, `https://modal.com/blog/how-to-deploy-whisper`, `https://modal.com/docs/guide/supported-models`.
+- SAM 2/3, Wan2.2, VieNeu-TTS, Qwen3Guard and ShieldGemma 2: `https://github.com/facebookresearch/sam2`, `https://github.com/facebookresearch/sam3`, `https://github.com/Wan-Video/Wan2.2`, `https://github.com/pnnbao97/VieNeu-TTS`, `https://github.com/QwenLM/Qwen3Guard`, `https://ai.google.dev/gemma/docs/shieldgemma/model_card_2?hl=en`.
+
+## Repository sources reviewed
+
+- `docs/context/SOURCE_REGISTER.md` (global authority/source index; updated with the current FEAT-063 SRS source pointer)
+- `docs/governance/{WORKFLOW,APPROVAL_POLICY,EVIDENCE_MANAGEMENT}.md`
+- `docs/architecture/{OVERVIEW,PYTHON_BACKEND_ARCHITECTURE,DEPENDENCY_RULES,CONTRACTS_AND_INTEGRATION}.md`
+- `docs/adr/ADR-0001-modular-monolith-first.md`
+- `docs/adr/ADR-0017-be1-runtime-backend-boundaries.md`
+- `docs/adr/ADR-0018-be2-durable-ai-job-runtime.md`
+- `docs/adr/ADR-0019-review2-classroom-runtime-and-modal-direction.md`
+- `docs/adr/ADR-0007-vision-runtime-dependency-pinning-and-qwen3-vl-candidate-profile.md`
+- `features/FEAT-050-be2-knowledge-video/artifacts/RUNTIME_DECISION_SHEET.md`
+- `features/FEAT-003-multimodal-understanding/evidence/P2_T3_LIVING_SUMMARY.md`
+- `features/FEAT-062-parent-teacher-workflows-modal-architecture/` (historical Parent/Teacher planning input; its Q-01–Q-07 SRS draft is superseded by FEAT-063 SRS v2.3-draft and is not an owner-question source)
+- Owner clarification in the 2026-10-28 conversation: Parent's optional sketch suggestion means an AI-generated 3–5-step line-sketch for a generic topic, with skip/non-blocking behavior and no child data sent to generation; Teacher AI Sketch Deck was then described as a main-flow step; Q167 later makes it opt-in by session. Recorded as historical Q146/D-92 and approved for documentation amendment by Plan Rev24. The interim text-only Q145 interpretation is superseded.
+- Current SQLAlchemy/Core table definitions under `backend/src/sketch2life/infrastructure/` and Alembic revisions under `backend/alembic/versions/`.
+- Current runtime manifests: `backend/pyproject.toml`, `compose.yaml`, `apps/mobile/package.json`, `apps/ui-mobile/package.json`, `apps/teacher-ui/package.json`.
+
+## External primary sources consulted (2026-10-26)
+
+- Official LTX-2.5 model/system requirements and open-source runtime docs: `https://docs.ltx.io/models/ltx-2-5`, `https://docs.ltx.io/open-source-model/getting-started/system-requirements`, `https://github.com/Lightricks/LTX-2`.
+- Official Modal GPU and pricing docs: `https://modal.com/docs/guide/gpu`, `https://modal.com/pricing`.
+- Official Qwen model cards: `https://huggingface.co/Qwen/Qwen2.5-VL-7B-Instruct`, `https://huggingface.co/Qwen/Qwen2.5-7B-Instruct`.
+- VieNeu-TTS model card/project: `https://huggingface.co/pnnbao-ump/VieNeu-TTS`, `https://github.com/pnnbao97/VieNeu-TTS`.
+- Government legal sources: Law 91/2025/QH15 effective 2026-01-01, `https://vanban.chinhphu.vn/?classid=1&docid=214590&pageid=27160`; Law 134/2025/QH15 effective 2026-03-01, `https://vanban.chinhphu.vn/?docid=216334&pageid=27160`; Ministry of Public Security summary, `https://mps.gov.vn/bai-viet/bao-ve-du-lieu-ca-nhan-trong-mot-so-hoat-dong-1754989261`.
+
+## Additional primary sources checked for the Q01–Q104 review baseline (2026-10-27)
+
+- Firebase Authentication server-side ID token verification: https://firebase.google.com/docs/auth/admin/verify-id-tokens.
+- PostgreSQL 17 index/partial-index documentation: https://www.postgresql.org/docs/17/indexes.html.
+- MoMo recurring subscription API: https://developers.momo.vn/v3/docs/payment/api/wallet/subscription/.
+- VNPAY recurring payment technical specification v2.1.0: https://sandbox.vnpayment.vn/apis/files/VNPAYGW_RecurringPayment_Techspec2.1.0-VN.pdf.
+- LTX system requirements and Modal GPU guide were re-opened on 2026-10-27 to confirm the L40S/L4 design constraints: https://docs.ltx.io/open-source-model/getting-started/system-requirements and https://modal.com/docs/guide/gpu.
+
+## Limits
+
+- No live database was introspected. “86 production tables” means source-declared SQLAlchemy/Core runtime mappings, cross-checked by table factory and module inventories; it is not a claim that a particular deployed database currently contains all 86 tables.
+- Five owner-fence tables in `owner_fence_fixture.py` are test fixtures, excluded from production counts.
+- No model weights were downloaded or benchmarked. Candidate VLM/LLM/TTS choices are design candidates pending exact revision, license, synthetic quality, and latency evidence.
+- No final PDF exists at this review stage. A future PDF must be generated only after owner approval of the two Markdown documents and will remain a summary of the proposed repository target, not legal advice or runtime proof.
+
+
+## StoryRun-lite S1→S2 implementation sources — 2026-11-02
+
+- `plan/STORYRUN_LITE_S1_S2_LAUNCH_PROMPT_20261102.md` — owner-approved continuous S1→S2 launch authority and constraints; SHA-256 `13067726F17892EDD4E8A10EF0EF24DE65ED4F8FAB913FE1C7753612177A070C`.
+- `plan/STORYRUN_LITE_S1_S2_MASTER_GOAL_20261102.md` — pinned aggregate goal; SHA-256 `C5E8B15839FA3470596DAC4B964450BD56428D481EA1A78B8AEC70B2E6A02B42`.
+- `plan/STORYRUN_LITE_VISION_M0_V12_FINAL_DRAFT_20261102.md` — image safety and current byte/pixel limits in §10; SHA-256 `D0560C4B7821EA76A50780D00161DE1D1AC9917168B9C975547077C457FB448B`. This draft is not described as independently accepted.
+- `plan/STORYRUN_LITE_GOAL_1_PLAN_20261102.md` and `.claude/handoff/OWNER_DECISIONS_G3G4_V4_20261101.md` — approved workflow decisions and prior scope constraints; both pinned hashes were verified before implementation.
+- `plan/STORYRUN_LITE_S1_S2_EXECUTION_PLAN_20261102.md` and `approvals/TASK_APPROVAL.md` — scoped implementation plan and explicit approval record.
+- `artifacts/storyrun-lite/openapi.json`, `artifacts/storyrun-lite/bruno/`, and `artifacts/DATA_TABLE_REGISTER.md` — synthetic local API handoff and additive source-derived persistence crosswalk.
+- `backend/src/sketch2life/{domain,application,contracts,infrastructure,interfaces}` StoryRun-lite modules and `backend/alembic/versions/20261102_story_run_lite.py` — implementation source; the migration branch was enumerated but not applied.
+- `evidence/STORYRUN_LITE_S1_CHECKPOINT_20261102.md` and `evidence/STORYRUN_LITE_S2_READINESS_20261102.md` — local test, worker, fixture provenance, environment and readiness evidence. No provider or production database source was used.
+- `evidence/STORYRUN_LITE_S1_S2_FINAL_20261102.md` and `.claude/handoff/snapshots/STORYRUN_LITE_S1_S2_20261102/` — final stage-gate summary and scope/hash handoff snapshot.
+
+## StoryRun-lite final runtime evidence update — 2026-11-02
+
+- `evidence/STORYRUN_LITE_S1_CHECKPOINT_20261102.md` — final PostgreSQL owner/migration and real ClamAV verification; focused StoryRun-lite/A1 suite result **125 passed, 0 skipped**; prior Windows Job Object measurements retained.
+- `evidence/STORYRUN_LITE_S2_READINESS_20261102.md` — goal-owned PostgreSQL loopback/recovery integration and Bruno CLI 4.3.0 results: main 8/8, cancel 2/2, abort 3/3; all ten request files passed assertions.
+- `evidence/STORYRUN_LITE_S1_S2_ENVIRONMENT_20261102.md` — temporary loopback resource ownership and exact cleanup record. Existing PostgreSQL services were not changed or used.
+- `evidence/STORYRUN_LITE_S1_S2_FINAL_20261102.md` — final SL-0–SL-8 status. Technical/runtime stages pass; strict acceptance remains NOT VERIFIED because one unrelated preserved initial-hash discrepancy is outside the allowlist.
+- The final snapshot inventories the current workspace state. All 35 FEAT-061/FEAT-064 protected paths remain hash-identical; no local A2 or FEAT-061 content was edited by this goal.
+
+
+## Owner-approved baseline rebaseline record — 2026-11-02
+
+- `evidence/STORYRUN_LITE_SL0_SL8_REBASELINE_20261102.md` records the local provenance review, owner-selected B disposition, exact initial/current hashes and acceptance limitation.
+- `.claude/handoff/snapshots/STORYRUN_LITE_S1_S2_REBASELINE_20261102/` is the additive post-decision inventory. The initial S1→S2 baseline manifest and original snapshot are retained unchanged.
+
+## Milestone 1 review round 1 and fixes — 2026-11-03
+
+- Independent findings: `evidence/MILESTONE1_INDEPENDENT_REVIEW_ROUND1_20261103.md`.
+- Approved plan: `plan/STORYRUN_LITE_MILESTONE1_INDEPENDENT_REVIEW_FIX_20261103.md`; owner explicitly allowed the approval entry and six fixes.
+- Fix evidence: `evidence/MILESTONE1_REVIEW_FIX_REPORT_20261103.md`; PostgreSQL output: `evidence/MILESTONE1_REVIEW_FIX_POSTGRES_20261103.log`.
+
+## Milestone 1 review round 2 and fixes — 2026-11-03
+
+- Independent findings: `evidence/MILESTONE1_INDEPENDENT_REVIEW_ROUND2_20261103.md`.
+- Round-2 implementation and test evidence: `evidence/MILESTONE1_REVIEW_ROUND2_FIX_REPORT_20261103.md`, `evidence/MILESTONE1_REVIEW_ROUND2_OFFLINE_20261103.log`, `evidence/MILESTONE1_REVIEW_ROUND2_POSTGRES_20261103.log`, and the sanitized Bruno summary JSON beside them.
+- Source/test snapshot: `.claude/handoff/snapshots/MILESTONE1_REVIEW_ROUND2_CLOSEOUT_20261103/`; read-only independent review prompt: `plan/MILESTONE1_REVIEW_ROUND3_PROMPT_20261103.md`.
+
+
+## Milestone 1 independent review round 3 — 2026-11-03
+
+- Verdict ACCEPTED: `evidence/MILESTONE1_INDEPENDENT_REVIEW_ROUND3_20261103.md`.
+- Review thread: `01a19ff8-ecf5-7843-ac8b-e5b8f5a62dc6`; all 38 closeout snapshot paths matched at review time.
+
+
+## Full BE Bruno collection — 2026-11-03
+
+- Approved task plan: plan/BE_FULL_BRUNO_COLLECTION_PLAN_20261103.md, SHA-256 4488A7B739FDCC80246AFB590DDFC229B6DCB37FEB9600C5B9501B160E5E80ED; approval is appended to approvals/TASK_APPROVAL.md.
+- Source of active operations: backend/src/sketch2life/interfaces/http/app.py application factory and its state.runtime_openapi_schema, generated for combined/classroom/demo profiles with local optional groups separately measured. The FE/SRS public /openapi.json projection is not the full API source.
+- Historical comparison: artifacts/API_INVENTORY_FEAT063_REV31_20261028.md and backend/src/sketch2life/interfaces/http/openapi_contract.py MOUNTED_OPERATIONS / UNMOUNTED_OPERATIONS. Current runtime adds one mounted pilot-profiles GET absent from the static Rev31 catalog; three local storage examples remain optional; 11 candidate declarations remain unmounted.
+- Deliverables: artifacts/be-full/openapi.runtime.json, artifacts/be-full/API_COVERAGE.csv, artifacts/be-full/bruno/, README and evidence/BE_FULL_BRUNO_COLLECTION_REPORT_20261103.md. Generator/validator helper scripts remain local-only and are excluded from the requested collection commit. Snapshot path is recorded in the report.
+- Validation: Bruno CLI 4.3.0 parsed and documented all 136 request names. Safe loopback smoke passed `GET /health` (200), process-local synthetic `POST /v1/sessions` (201), and `GET /v1/sessions/{session_id}` (200) with AI disabled and no DB URL. Sanitized transcript: evidence/BE_FULL_BRUNO_VALIDATION_20261103.log. DB-backed BE1/Lesson Library routes and StoryRun-lite runtime were not run. The MCP request-list tool exposes only the existing StoryRun-lite collection.
+
+## Modal drawing VLM L4 POC — 2026-11-03
+
+- Owner instruction: after Modal environment setup, continue and host the AI workload the system needs; exact bounded scope is approved in plan/MODAL_DRAWING_VLM_L4_POC_20261103.md, SHA-256 F2AF6433EFE812BBD8144CBCD3E4ECFDE09FCF0A9952280BCE814314A7008E72.
+- Canonical requirements: SRS v2.3-draft §§6.2–6.3, 24.3, 27, 29, 31; drawing VLM is the first AI stage. No production candidate is selected.
+- External sources: Qwen2.5-VL-7B model card/revision (Apache-2.0), Transformers v4.53.0 model documentation, Modal GPU and Volumes v2/model-weight docs; exact URLs and applicability are recorded in the approved plan and POC evidence.
+- Preflight: Modal CLI 1.6.3 authenticated; dev environment exists but app/volume/secret inventory is empty; current-month dev metered-cost summary 0.00. No inference has run at this point.
+
+## Modal AI hosting wave — 2026-11-03
+
+- Authority and pin: `plan/MODAL_AI_HOSTING_WAVE_20261103.md` (approved hash `C8FCB03681F2145E727F89E55DDD159AA354814E30B868CD745B930A83FCA5BA`); SRS v2.3-draft remains the canonical product source.
+- Runtime/model sources: official Modal GPU and Volume guides; Hugging Face model cards for Qwen2.5-7B-Instruct, faster-whisper large-v3, VieNeu-TTS v3 Turbo, MOSS Audio Tokenizer Nano ONNX, FLUX.2 Klein 4B, and Wan2.2 TI2V-5B; official Wan2.2 runtime pinned at `1ea34ff48f87168174e12956e200b1d908b1c5ff`. LTX-2.5 access remains gated and unused.
+- Results and limitations: `evidence/MODAL_AI_HOSTING_WAVE_20261103.md` records deployed apps/call IDs, 88.59 GiB of pinned checkpoints, and successful synthetic TTS-to-ASR and FLUX POCs. The corrective Qwen-VL call later reached terminal success. A separate API-triggered call later reached Modal success after API timeout, but its result was not persisted by the API; see the vertical-slice evidence. Modal billing after downloads has not been checked. No production readiness, model certification, or product enablement is claimed.
+
+## Local API runtime availability smoke - 2026-11-03
+
+- Owner-authorized read-only plan: `plan/API_RUNTIME_AVAILABILITY_SMOKE_20261103.md`, SHA-256 `7DA01D9CF5D5C4E98BA45C88815BBBE3589D0A5E9F94E512DDD9B995D570C5BA`.
+- Evidence: `evidence/API_RUNTIME_AVAILABILITY_SMOKE_20261103.md`. Local Compose `/health` and `/openapi.json` returned 200, but the active API image has no StoryRun route, AI provider is unset, and no HTTP route dispatches to the new Modal function apps. A read-only StoryRun GET returned 404; no mutation or inference request was sent.
+- The earlier one-request backend-to-temporary-Modal Vision success is separately recorded in `evidence/STORYRUN_LITE_MAIN_BE_INTEGRATION_20261103.md`; it is not evidence of integration to the current hosted workers.
+
+
+## Backend API to Modal drawing VLM vertical slice - 2026-11-03
+
+- Plan and owner authorization: `plan/MODAL_BACKEND_API_DRAWING_VERTICAL_SLICE_20261103.md`; operative approval and cumulative SHA-256 are in `approvals/TASK_APPROVAL.md`.
+- Modal function invocation: [official function invocation methods](https://modal.com/docs/guide/function-invocation-methods); deployed call history: [Modal function CLI](https://modal.com/docs/cli/latest/function); scratch storage uses [Modal Volumes](https://modal.com/docs/guide/volumes).
+- Temporary Windows PostgreSQL source: [PostgreSQL Windows download guidance](https://www.postgresql.org/download/windows/) identifies the EDB binary ZIP for advanced users. The downloaded EDB 17.11-4 archive was SHA-256 checked against the value recorded in [EnterpriseDB's installer repository](https://github.com/EnterpriseDB/edb-installers/issues/706).
+- Implementation and current call status: `evidence/MODAL_BACKEND_API_DRAWING_VERTICAL_SLICE_20261103.md`. The single API-triggered call reached Modal terminal `success` after the API timeout, but its result was not persisted by the API; the run still awaits operator reconciliation. The drawing app is stopped; no end-to-end API result or production readiness is inferred.
+
+| EV-063-40 | Parent image-to-script API/AI retest | Record synthetic Parent run/upload API results, Modal L4 scheduling timeout, unresolved subject confirmation, detached story worker unknown outcome, zero video calls, and verified shutdown of all deployed Modal dev apps | PARENT_IMAGE_TO_SCRIPT_API_AI_RETEST_20261103.md |
+| EV-063-41 | Parent generated-image, story, and activity-selection retest | Record synthetic image upload/admission, successful drawing VLM and direct story worker calls, legacy activity-list selection and boundary, timings, model-output factual errors, and verified shutdown | PARENT_GENERATED_IMAGE_TO_ACTIVITY_SELECTION_RETEST_20261103.md |
+
+| EV-063-42 | AI flow SRS alignment and Teacher deck POC | Record Parent story contract/business-rule correction, Modal schema failure and local adapter fix, synthetic Teacher deck text result, unavailable FLUX visual, 13-operation API matrix, tests, and verified shutdown | `evidence/AI_FLOW_SRS_ALIGNMENT_AND_TEACHER_DECK_POC_20261104.md` |
+| EV-063-43 | Full non-video AI workload retest | Approved scope for a fresh synthetic retest of all callable non-video Modal workloads, including bounded SAM2.1 feasibility; video generation excluded | `plan/AI_NONVIDEO_WORKLOAD_FULL_RETEST_20261104.md` |
+| EV-063-44 | Full non-video AI workload retest results | Record SRS-aligned backend changes, fresh synthetic Modal workload/API results, L4-capacity timeouts, 14 contract checks, focused tests, and verified shutdown/cleanup | `evidence/AI_NONVIDEO_WORKLOAD_FULL_RETEST_RESULTS_20261104.md` |
+
+## 30-minute non-video AI queue retest - 2026-11-04
+
+- Authority and bounds: owner instruction and approved plan plan/AI_NONVIDEO_30MIN_QUEUE_RETEST_20261104.md; canonical SRS v2.3-draft unchanged.
+- Runtime evidence: evidence/AI_NONVIDEO_30MIN_QUEUE_RETEST_RESULTS_20261104.md and per-workload records under evidence/assets/ai_nonvideo_30min_queue_retest_20261104/.
+- Modal logs showed GPU_L4 scheduling waits; Parent Sketch Guide and Teacher Sketch Deck returned validated synthetic outputs. Drawing, story, lesson visual, and SAM2 reached the 1,800-second bound without inference output. No video call; every dev app stopped with zero tasks.
+
+## Modal Qwen story readiness diagnostic - 2026-11-04
+
+- Owner authorization and execution boundary: `plan/MODAL_L4_QWEN_STORY_READINESS_DIAGNOSTIC_20261104.md`, SHA-256 `0D97D81769809F8E68362FF04B950ABC6E2EA67C6A844FEAFE563BAC624CECAB`; execution deviation (two story dispatches instead of one) is disclosed in `approvals/TASK_APPROVAL.md` and the report.
+- Canonical model source: FEAT-063 `artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` v2.3-draft §6.2 and the current Modal story worker pin. Qwen2.5-7B remains the story POC candidate; this diagnostic does not promote Qwen3 or change the SRS.
+- Evidence: `evidence/MODAL_L4_QWEN_STORY_READINESS_DIAGNOSTIC_20261104.md` and `evidence/assets/modal_l4_qwen_story_readiness_20261104/`. The health probe loaded the checkpoint; story calls remained unstarted while Modal acquired GPU_L4 capacity. No product source/API/SRS/runtime scaling configuration changed.
+
+
+## Modal serverless story latency experiment - 2026-11-05
+
+- Authority: owner-approved Plan revision 1, `plan/MODAL_SERVERLESS_STORY_LATENCY_EXPERIMENT_20261105.md`, SHA-256 `E18267CD3B9D5AC5F75F3A5F80DAD6958AEFF9EDCFF3A36C2C00BF579F2C8711`. FEAT-063 SRS v2.3-draft and pinned Qwen2.5 story candidate remain unchanged.
+- Primary runtime sources: [Modal GPU fallbacks](https://modal.com/docs/guide/gpu), [Modal cold-start performance](https://modal.com/docs/guide/cold-start), [Modal Memory Snapshots](https://modal.com/docs/guide/memory-snapshots), and [Transformers v4.53.0 model loader](https://github.com/huggingface/transformers/blob/v4.53.0/src/transformers/modeling_utils.py).
+- Result: one synthetic story call was assigned an NVIDIA A10, loaded the model through four checkpoint shards, and generated 722 tokens before the existing strict parser returned `MODAL_MODEL_OUTPUT_INVALID`. The Modal app was stopped with zero tasks; Volumes were retained. No model promotion or workload enablement.
+- Full timings, clock-boundary caveat, deployment notes, and asset paths: `evidence/MODAL_SERVERLESS_STORY_LATENCY_EXPERIMENT_20261105.md` and `evidence/assets/modal_serverless_story_latency_20261105/`.
+
+## Modal Parent story parser/content boundary follow-up — 2026-11-05
+
+- Authority: owner-approved `plan/MODAL_STORY_CONTENT_BOUNDARY_20261105.md`, SHA-256 `DEEC2263B3148A855AE090D1A513B1D57174CD9800FAC9BA8BC0E3A3F6F23917`. Canonical FEAT-063 SRS v2.3-draft and backend `StoryRevisionDraftV1` remain unchanged.
+- Result: one synthetic Parent story call succeeded with five scenes/30 seconds; strict worker parser, backend Pydantic contract and butterfly lifecycle check passed. The earlier broad `SCENE_FIELDS_INVALID` reason did not identify a retained raw field; the fix avoids asking the model to generate index/timing metadata.
+- Evidence: `evidence/MODAL_STORY_CONTENT_BOUNDARY_20261105.md` and `evidence/assets/modal_story_content_boundary_20261105/` (no raw story/prompt).
+- EV-063-48: Parent story content/timeline boundary implementation, focused tests, one synthetic Modal verification, and zero-task shutdown.
+
+## EV-063-50 - Rev44 AI API coverage and Qwen3.5 Modal validation
+
+- Approved plan and owner role decision: `plan/PLAN_REV44_AI_API_COVERAGE_QWEN35_MODAL_20261105.md`; approved hash is recorded in `approvals/TASK_APPROVAL.md`.
+- Catalog: `artifacts/AI_API_WORKLOAD_CATALOG_FEAT063_REV44_20261105.md`; maps all 14 workloads, mounted OpenAPI, StoryRun-lite fixture routes, SRS target APIs, roles, contracts, and missing/blocked surfaces.
+- Execution report: `evidence/AI_API_QWEN35_MODAL_VALIDATION_20261105.md`; call records and synthetic assets: `evidence/assets/ai_api_qwen35_modal_validation_20261105/`.
+- Results: one Teacher Deck Qwen3.5 worker contract pass; drawing output invalid; story and lesson generation failed before generation on LMFE/Transformers 5 import incompatibility, then passed local decoder tests and Modal CPU import readiness only; TTS generated audio and ASR substituted one word; FLUX.3 blocked by gated HTTP 401/no Secret; SAM2 remained prior GPU-capacity UNKNOWN; video not run.
+- Validation: 59 Modal worker/parser tests passed; 79 backend API/contract tests passed and 6 skipped. Modal apps were stopped with zero tasks; Volumes retained. Workloads remain disabled.
+
+\r\n
+
+
+## Current FEAT-063 model baseline and FLUX Rev46A ? 2026-11-05
+
+- Latest owner direction: retire Qwen2.5 from active FEAT-063 use and use only pinned `Qwen/Qwen3.5-9B` at `c202236235762e1c871ad0ccb60c8ee5ba337b9a`. This current direction supersedes older Qwen2.5 model-selection statements in earlier diagnostic entries; those entries remain historical evidence.
+- Current authority: canonical SRS `artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` ?6.2?6.3 and ?31.12; D-142; Plans Rev46/46A and their approved hashes in `approvals/TASK_APPROVAL.md`.
+- FLUX component source: official BFL `transformer/` and `vae/` repository trees and Diffusers v0.42.0 FLUX3 modular-pipeline documentation.
+- Result/evidence: `evidence/AI_QWEN35_FLUX_REV46A_COMPLETION_20261105.md` and `evidence/assets/flux_component_retest_rev46a_20261105/`; both synthetic image workers passed once after missing components were staged. No product HTTP API, video, or SAM2 inference was called.
+- The Modal dev app is stopped with zero tasks. Shared model/scratch Volumes are retained; workload flags remain disabled.
+
+## FEAT-063 Rev51 Modal AI and legacy API audit - 2026-11-06
+
+Plan Rev51 SHA-256 at approval: `B20103A217D7A9623E02279CE0BD82D5BC61141518D820FA683104057B1A6A2F`. Current SRS authority is FEAT-063 v2.4-draft. Live OpenAPI read-only snapshot reports 124 operations / 111 paths; backend API/contract suite reports 1,454 passed and 6 failed out of 1,460 collected; Modal worker contract suite reports 79 passed / 2 skipped. Existing successful synthetic AI outputs were copied, not regenerated. Full API operation inventory, worker/API distinction, failure causes, timings and artifact hashes are in `evidence/modal_ai_and_legacy_api_retest_20261106/`. No video inference, secret access, shared DB mutation, app deployment, or code fix was performed.
+
+
+## Plan Rev52 - non-video Modal AI reliability and observability
+
+- Canonical requirements: FEAT-063 SRS v2.4-draft, especially FR-P-03/04/11, FR-T-18/19/20, FR-AI-01/02/03/11/14/15 and BR-23/34/36/42-46.
+- Plan/approval: `plan/PLAN_REV52_NONVIDEO_MODAL_AI_RELIABILITY_20261106.md`; SHA-256 `6B3B1C25CD2A9974860A93551CDAD0FB3363DB38CB00D293ABB4818C9F0782D2`; approvals are in the root and feature task approval registers.
+- Baseline evidence: Rev51 consolidated API/worker report and `artifacts/AI_API_WORKLOAD_CATALOG_FEAT063_REV44_20261105.md`; old records are implementation evidence, not current product requirements.
+- Result: `evidence/nonvideo_modal_ai_reliability_20261106/API_AND_AI_MODAL_RESULTS_20261106.md` (complete with API-boundary findings).
+- Runtime evidence: `evidence/nonvideo_modal_ai_reliability_20261106/runtime/`; synthetic calls only. Eight active non-video workers passed; optional SAM2 stayed gated; video was not called.
+- Verification: 97 Modal tests and 59 focused backend tests passed; Ruff, `py_compile`, and `git diff --check` passed. All task Modal apps stopped; disposable PostgreSQL container exited.
+- Product API gap: several worker-only workloads still have no authenticated durable API. The result report lists them as NOT_IMPLEMENTED; worker success is not represented as API integration.
+
+## Rev53 SAM 2.1 gate retest - 2026-11-06
+
+- Plan and scope: `plan/PLAN_REV53_SAM2_GATE_RETEST_20261106.md`; owner approval and approved SHA-256 are recorded in root and FEAT-063 `approvals/TASK_APPROVAL.md`.
+- Current product authority: FEAT-063 canonical SRS v2.4-draft. SAM 2.1 remains optional after an image-preparation POC; this retest does not enable a product workload.
+- Results: `evidence/sam2_gate_retest_20261106/RESULTS.md`; safe Modal dispatch/worker evidence and output mask are in the same folder. Visual review: `evidence/sam2_gate_retest_20261106/visual_review.md`.
+- Finding: prior rejection was an L4 envelope allowlist mismatch. One synthetic worker inference now passes with the pinned checkpoint, but the mask selects only the central butterfly body and misses the rest of the subject. Product registry remains disabled; OpenCV/Pillow remains the baseline.
+- Validation and cleanup: focused gate tests and Modal suite results are recorded in `RESULTS.md`; the dedicated Modal app was stopped with zero tasks. No video, real child data, product API dispatch, or production enablement was used.
+
+## Plan Rev54 - current SRS authority and Modal AI integration
+
+- Current product authority after this integration: FEAT-063 `artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` v2.5-draft as directed by `docs/context/SRS_AUTHORITY.md`; it remains unsigned. Older SRS records in this register are historical evidence.
+- Matching companion: FEAT-063 `artifacts/DATA_TABLE_REGISTER.md` v2.5-draft.
+- Integrated source commits: SRS `fae180dcf3ea2771b41546aa6925b94636821df1`; AI `c6818490d0d889ab17dc9f8de3830987eb2a230d`.
+- Integration status/evidence: `evidence/EV-063-57_SRS_V25_AND_MODAL_AI_DEV_INTEGRATION_20261106.md`; merges and normal publication to `origin/dev` are complete; remote-tip equality was verified.
+
+## FEAT-063 Rev54 — v2.6 checklist audit and diagram readiness — 2026-11-07
+
+- Approved plan and exact documentation/publication scope: plan/PLAN_REV54_DIAGRAM_READINESS_CROSSWALK_20261107.md; hash-identified owner authorization is recorded in approvals/TASK_APPROVAL.md.
+- Current requirement sources: artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md and artifacts/DATA_TABLE_REGISTER.md v2.7-draft at baseline 98cc34a39af279560b5f8d39f18939a376535834; both remain unsigned.
+- Historical review sources: same-commit v2.6 SRS/Register, artifacts/ARCHITECTURE_DETAIL_CATALOG_REV55_20261106.md and artifacts/REPORT_REMEDIATION_CROSSWALK_REV55_20261106.md at a711e78cf6586dd5b639d811e610a741efd7433d. The Rev55 source observation at 1431ef81972b71303fd4a7909748fd3005769a3c is not a Rev54 verification.
+- Output: artifacts/DIAGRAM_READINESS_CROSSWALK_REV54_20261107.md and artifacts/DIAGRAM_INPUT_CATALOG_V27_REV54_20261107.md. EV-063-59 records source provenance, status adjustments, future tests and limits.
+- Q-01–Q-13 stay OPEN-OWNER as complete questions. No SRS/Register change was needed because the current v2.7 text already contains supported R-01/02/03/05 corrections and expressly preserves R-04 and other open requirements.
+
+## Rev55 independent diagram readiness assessment — current — 2026-11-07
+
+- Two independent agents assessed the same canonical SRS/Register baseline at commit 98cc34a39af279560b5f8d39f18939a376535834 (v2.7-draft, unsigned).
+- Assessment reports conditional draft readiness for most diagram types; Screen Flow lacks approved navigation transitions and physical ERD lacks final DDL/schema reconciliation.
+- Teacher sample-child selection has conflicting wording; other unanswered diagram inputs remain open and are not inferred.
+- Evidence: evidence/EV-063-60_TWO_AGENT_DIAGRAM_READINESS_ASSESSMENT_20261107.md. Plan/approval: PLAN_REV55_TWO_AGENT_DIAGRAM_READINESS_ASSESSMENT_20261107.md and both TASK_APPROVAL.md records.
+- No SRS, Data Table Register, product code, schema or diagram was modified.
+
+## Rev56 ten-group diagram-readiness alignment — current — 2026-11-08
+
+- Canonical working SRS/Data Table Register: v2.7-draft at 98cc34a39af279560b5f8d39f18939a376535834; unsigned.
+- Source branch tip before update: 7d35ee3cd75ae7b34a71433daa2231781c9bc60c on docs/feat063-diagram-readiness-20261107.
+- Synchronized the ten remaining groups across SRS §31.10, Data Table Register §14.3, and artifacts/DIAGRAM_INPUT_CATALOG_V27_REV56_20261108.md.
+- Corrected UC-05/FR-T-10/FR-PL-20/AC-56 selection wording. Q-01 policy details remain OPEN; no new product decision or schema definition was inferred.
+- Evidence: evidence/EV-063-61_TEN_GROUP_DIAGRAM_READINESS_ALIGNMENT_20261108.md. No runtime/source/schema inspection, product test/build or migration.
+- Publication: package commit 09cfc5ca396016cbb7b238a5c744e004f7c7025a was pushed to origin/docs/feat063-diagram-readiness-20261107; fresh git ls-remote confirmed the same SHA. Repository security validation passed before commit and push (6,576 publishable files scanned).
+
+## Rev57 substantive diagram-input remediation — current review — 2026-11-09
+
+- Canonical SRS/Data Table Register: v2.7-draft Rev57; unsigned; source baseline ae5707ca188d01d9719ed959b62d768ae927912d.
+- Read: Rev56 Catalog, Rev54 Crosswalk and EV-063-61; source-only inspection at the same SHA.
+- New artifacts: DIAGRAM_INPUT_CATALOG_V27_REV57_20261109.md; DECISION_REGISTER_REV57_20261109.md; DIAGRAM_TRACE_MATRIX_REV57_20261109.md; PHYSICAL_DATA_DICTIONARY_DRAFT_REV57_20261109.md; STATE_TRANSITION_MATRIX_REV57_20261109.md; API_EVENT_CONTRACTS_DRAFT_REV57_20261109.md; SCREEN_NAVIGATION_MAP_DRAFT_REV57_20261109.md; CLASS_PACKAGE_CONTRACTS_DRAFT_REV57_20261109.md; REMEDIATION_RESULT_REV57_20261109.md.
+- Evidence: EV-063-62_REV57_SUBSTANTIVE_DIAGRAM_INPUT_REMEDIATION_20261109.md.
+- Physical ERD, Activity, Sequence, Screen Flow, State Machine and Package remain blocked or draft; no final diagram was produced.
+
+## Rev67 Parent Android implementation — 2026-11-10
+
+- Requirements authority: `docs/context/SRS_AUTHORITY.md` and the FEAT-063 canonical v2.7-draft SRS with local amendments through Rev60; unsigned. The SRS and Data Table Register were not edited.
+- Plan and approval: `plan/PLAN_REV67_PARENT_ANDROID_CAPTURE_AI_FLOW_20261110.md`; updated approved hash is recorded in `approvals/TASK_APPROVAL.md`.
+- API contract: `artifacts/PARENT_API_CONTRACT_REV67_20261110.md`; implementation adds Parent profile/data-authorization and StoryRun APIs alongside the existing AI routes.
+- Database source: `backend/alembic/versions/20261110_parent_profile_story_context.py`; it joins the twelve existing migration heads and adds Parent profile/revision/authorization storage plus StoryRun context/input lineage fields.
+- Evidence: `evidence/EV-063-76_PARENT_ANDROID_PROFILE_CONSENT_STORY_FLOW_20261110.md`. Verification was static only; no PostgreSQL upgrade, tests, Docker, Firebase or Modal call was performed for this slice.
+
+## Rev78/78A/78B Parent catalog-first activity implementation — 2026-11-11
+
+- Product baseline: FEAT-063 SRS v2.7-draft Rev60, unsigned. D-172 records the owner's later catalog-first direction; no SRS text was changed and the SRS open item remains.
+- Implementation: Parent catalog eligibility/selection, minimized Modal context, exact-version lesson pin snapshot persistence, fallback quality gate and Expo Parent activity/story UI. The new additive migration is source-only and has not been applied to PostgreSQL.
+- Plans/approval: plan/PLAN_REV78_PARENT_CATALOG_FIRST_ACTIVITY_SUGGESTIONS_20261111.md, plan/PLAN_REV78A_PARENT_ACTIVITY_GATE_REFINEMENT_20261111.md and publication/migration addendum Rev78B; approval is recorded in approvals/TASK_APPROVAL.md.
+- Evidence: evidence/EV-063-87_PARENT_FULL_API_UI_E2E_20261111/API_PARENT_E2E_REPORT.md with selected synthetic workflow screenshots and safe JSON runtime records.
+- Verification boundary: 28 focused tests passed before the final publication checks; final publication checks are recorded in status/STATUS.md. No video; the last live fallback inference had no output and no gate verdict.

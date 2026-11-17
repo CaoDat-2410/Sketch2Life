@@ -1,0 +1,269 @@
+{
+  "contract_name": "VisionV3QualityGroundTruthV1",
+  "contract_version": "1.0",
+  "ground_truth_version": "vision-v3-quality-ground-truth-v1",
+  "data_policy": "synthetic-only",
+  "author": "Person 2",
+  "authoring_boundary": "Authored before any v3 model output for these fixtures; every entity, action, relation, theme, and ambiguous-region target is fully determined by this module's deterministic geometry recipe, not observed from any model. Do not revise from model output.",
+  "fixtures": [
+    {
+      "fixture_id": "v3q-fixture-01",
+      "entities": [
+        {
+          "ground_truth_id": "gt-e1",
+          "label": "circle"
+        },
+        {
+          "ground_truth_id": "gt-e2",
+          "label": "square"
+        }
+      ],
+      "actions": [],
+      "relations": [
+        {
+          "ground_truth_id": "gt-r1",
+          "predicate": "above",
+          "subject_ref": "gt-e1",
+          "object_ref": "gt-e2"
+        }
+      ],
+      "themes": [],
+      "ambiguous_regions": []
+    },
+    {
+      "fixture_id": "v3q-fixture-02",
+      "entities": [
+        {
+          "ground_truth_id": "gt-e1",
+          "label": "circle"
+        },
+        {
+          "ground_truth_id": "gt-e2",
+          "label": "square"
+        }
+      ],
+      "actions": [
+        {
+          "ground_truth_id": "gt-a1",
+          "label": "points",
+          "actor_ref": "gt-e1",
+          "object_ref": "gt-e2"
+        }
+      ],
+      "relations": [
+        {
+          "ground_truth_id": "gt-r1",
+          "predicate": "left of",
+          "subject_ref": "gt-e1",
+          "object_ref": "gt-e2"
+        }
+      ],
+      "themes": [],
+      "ambiguous_regions": []
+    },
+    {
+      "fixture_id": "v3q-fixture-03",
+      "entities": [
+        {
+          "ground_truth_id": "gt-e1",
+          "label": "circle"
+        },
+        {
+          "ground_truth_id": "gt-e2",
+          "label": "square"
+        },
+        {
+          "ground_truth_id": "gt-e3",
+          "label": "triangle"
+        }
+      ],
+      "actions": [],
+      "relations": [
+        {
+          "ground_truth_id": "gt-r1",
+          "predicate": "left of",
+          "subject_ref": "gt-e1",
+          "object_ref": "gt-e2"
+        },
+        {
+          "ground_truth_id": "gt-r2",
+          "predicate": "left of",
+          "subject_ref": "gt-e2",
+          "object_ref": "gt-e3"
+        }
+      ],
+      "themes": [
+        {
+          "ground_truth_id": "gt-t1",
+          "label": "sequence",
+          "evidence_refs": [
+            "gt-r1",
+            "gt-r2"
+          ]
+        }
+      ],
+      "ambiguous_regions": []
+    },
+    {
+      "fixture_id": "v3q-fixture-04",
+      "entities": [
+        {
+          "ground_truth_id": "gt-e1",
+          "label": "triangle"
+        },
+        {
+          "ground_truth_id": "gt-e2",
+          "label": "triangle"
+        }
+      ],
+      "actions": [],
+      "relations": [
+        {
+          "ground_truth_id": "gt-r1",
+          "predicate": "mirrors",
+          "subject_ref": "gt-e1",
+          "object_ref": "gt-e2"
+        }
+      ],
+      "themes": [
+        {
+          "ground_truth_id": "gt-t1",
+          "label": "symmetry",
+          "evidence_refs": [
+            "gt-e1",
+            "gt-e2",
+            "gt-r1"
+          ]
+        }
+      ],
+      "ambiguous_regions": []
+    },
+    {
+      "fixture_id": "v3q-fixture-05",
+      "entities": [
+        {
+          "ground_truth_id": "gt-e1",
+          "label": "circle"
+        }
+      ],
+      "actions": [
+        {
+          "ground_truth_id": "gt-a1",
+          "label": "moves",
+          "actor_ref": "gt-e1",
+          "object_ref": null
+        }
+      ],
+      "relations": [],
+      "themes": [
+        {
+          "ground_truth_id": "gt-t1",
+          "label": "motion",
+          "evidence_refs": [
+            "gt-a1"
+          ]
+        }
+      ],
+      "ambiguous_regions": []
+    },
+    {
+      "fixture_id": "v3q-fixture-06",
+      "entities": [
+        {
+          "ground_truth_id": "gt-e1",
+          "label": "circle"
+        },
+        {
+          "ground_truth_id": "gt-e2",
+          "label": "square"
+        },
+        {
+          "ground_truth_id": "gt-e3",
+          "label": "triangle"
+        }
+      ],
+      "actions": [],
+      "relations": [],
+      "relation_scoring_note": "No canonical scored relation: the three entities form a near-equilateral cluster with multiple equally direct pairwise spatial relations, mirroring the B4 fixture-06 exception.",
+      "themes": [
+        {
+          "ground_truth_id": "gt-t1",
+          "label": "cluster",
+          "evidence_refs": [
+            "gt-e1",
+            "gt-e2",
+            "gt-e3"
+          ]
+        }
+      ],
+      "ambiguous_regions": []
+    },
+    {
+      "fixture_id": "v3q-fixture-07",
+      "entities": [
+        {
+          "ground_truth_id": "gt-e1",
+          "label": "circle"
+        },
+        {
+          "ground_truth_id": "gt-e2",
+          "label": "square"
+        }
+      ],
+      "actions": [],
+      "relations": [],
+      "relation_scoring_note": "No canonical scored relation: overlap is deliberately the ambiguous-region target, mirroring the B4 fixture-07 exception.",
+      "themes": [],
+      "ambiguous_regions": [
+        {
+          "ground_truth_id": "gt-ar1"
+        }
+      ]
+    },
+    {
+      "fixture_id": "v3q-fixture-08",
+      "entities": [
+        {
+          "ground_truth_id": "gt-e1",
+          "label": "circle"
+        },
+        {
+          "ground_truth_id": "gt-e2",
+          "label": "square"
+        },
+        {
+          "ground_truth_id": "gt-e3",
+          "label": "triangle"
+        }
+      ],
+      "actions": [
+        {
+          "ground_truth_id": "gt-a1",
+          "label": "points",
+          "actor_ref": "gt-e1",
+          "object_ref": "gt-e2"
+        }
+      ],
+      "relations": [
+        {
+          "ground_truth_id": "gt-r1",
+          "predicate": "left of",
+          "subject_ref": "gt-e2",
+          "object_ref": "gt-e3"
+        }
+      ],
+      "themes": [
+        {
+          "ground_truth_id": "gt-t1",
+          "label": "group",
+          "evidence_refs": [
+            "gt-e1",
+            "gt-e2",
+            "gt-e3"
+          ]
+        }
+      ],
+      "ambiguous_regions": []
+    }
+  ]
+}

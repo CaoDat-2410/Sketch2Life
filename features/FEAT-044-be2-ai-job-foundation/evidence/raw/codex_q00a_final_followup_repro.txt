@@ -1,0 +1,62 @@
+command=["<existing-backend-venv>/python", "-B", "-", "<be2-worktree>"]
+started_at=2026-10-14T22:56:30.368010+07:00
+exit_code=0
+{
+  "module_origin_in_worktree": true,
+  "findings": {
+    "R03a": {
+      "defect_present": false,
+      "observed": {
+        "invalid_state": {
+          "first": "INVALID_STATE",
+          "later": "accepted",
+          "projected": [
+            "artifact_fx0001"
+          ],
+          "projected_but_quarantined": []
+        },
+        "input_mismatch": {
+          "first": "INPUT_MISMATCH",
+          "later": "accepted",
+          "projected": [
+            "artifact_fx0001"
+          ],
+          "projected_but_quarantined": []
+        }
+      }
+    },
+    "R04a": {
+      "defect_present": false,
+      "observed": {
+        "list": {
+          "reason": "MALFORMED_CLAIM",
+          "authoritative": false
+        },
+        "dict": {
+          "reason": "MALFORMED_CLAIM",
+          "authoritative": false
+        },
+        "list_secret": {
+          "reason": "MALFORMED_CLAIM",
+          "authoritative": false
+        }
+      }
+    },
+    "A18a": {
+      "defect_present": false,
+      "observed": {
+        "purge": [
+          "deleted"
+        ],
+        "purge_finished_while_cancel_paused": false,
+        "current": "deleted",
+        "current_receipt": "purge_rcpt_fx0001",
+        "replay": "deleted",
+        "threads_alive": [
+          false,
+          false
+        ]
+      }
+    }
+  }
+}

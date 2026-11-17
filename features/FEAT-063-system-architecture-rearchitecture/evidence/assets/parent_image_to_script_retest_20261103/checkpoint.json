@@ -1,0 +1,62 @@
+{
+  "run_ref": "632b9ffa-59a8-43ad-8e6b-9540466aad78",
+  "upload_ref": "79e46ad3-3fd0-421f-8e81-3aec0dec9790",
+  "asset_ref": "d392c9ef-2224-4f46-b18b-51bc4677f23d",
+  "run": {
+    "run_ref": "632b9ffa-59a8-43ad-8e6b-9540466aad78",
+    "run_state": "INPUT_PROCESSING",
+    "revision": 1,
+    "version": 1,
+    "target_revision": null,
+    "created_at": "2026-11-03T22:48:38.836412+07:00",
+    "updated_at": "2026-11-03T22:48:38.836412+07:00",
+    "job_state": null,
+    "retryable": false,
+    "action_required": null,
+    "error": null,
+    "result": null
+  },
+  "run_etag": "\"v1\"",
+  "upload_state": "READY",
+  "fixture_sha256": "4b18777ae70eb429273c1e0ba7189ff005171b9dda88491510d91965aafa07fc",
+  "fixture_size_bytes": 3919,
+  "vision_call_started": true,
+  "vision_call_outcome": "HTTP_RESPONSE",
+  "vision_api_status": 202,
+  "vision_api_response": {
+    "run_ref": "632b9ffa-59a8-43ad-8e6b-9540466aad78",
+    "run_state": "INPUT_PROCESSING",
+    "revision": 2,
+    "version": 2,
+    "target_revision": null,
+    "created_at": "2026-11-03T22:48:38.836412+07:00",
+    "updated_at": "2026-11-03T22:49:57.795652+07:00",
+    "job_state": "QUEUED",
+    "retryable": false,
+    "action_required": null,
+    "error": null,
+    "result": null
+  },
+  "post_vision_run": {
+    "run_ref": "632b9ffa-59a8-43ad-8e6b-9540466aad78",
+    "run_state": "INPUT_PROCESSING",
+    "revision": 2,
+    "version": 4,
+    "target_revision": null,
+    "created_at": "2026-11-03T22:48:38.836412+07:00",
+    "updated_at": "2026-11-03T23:05:01.780792+07:00",
+    "job_state": "AWAITING_RECONCILIATION",
+    "retryable": false,
+    "action_required": "OPERATOR_REVIEW",
+    "error": {
+      "code": "VISION_OUTCOME_UNKNOWN",
+      "message": "Vision outcome is unknown; do not retry automatically.",
+      "correlation_id": "1736564d-6f75-4ccd-9f56-bc39bdc78ba1",
+      "retryable": false,
+      "retry_after_seconds": null,
+      "field_errors": null
+    },
+    "result": null
+  },
+  "post_vision_etag": "\"v4\""
+}

@@ -1,0 +1,362 @@
+{
+  "qa_revision": "Rev11",
+  "diagram_count": 22,
+  "state_machine_diagrams": 18,
+  "activity_diagrams": 4,
+  "editable_drawio_master_pages": 44,
+  "diagram_type_labels_on_authored_pages": "pass",
+  "report_figure_captions": 44,
+  "source_attribution": {
+    "visible_canvas_attribution_cells": 0,
+    "source_cells_removed_from_derived_master": 16,
+    "source_footnote_regions_cleared_from_report_images": 16,
+    "residual_nonwhite_pixels_in_cleared_regions": 0,
+    "supplied_originals_modified": false
+  },
+  "geometry_scan": {
+    "label_overlaps": 0,
+    "label_node_overlaps": 0,
+    "node_overlaps": 0,
+    "route_node_collisions": 0,
+    "route_label_collisions": 0,
+    "route_crossings": 1,
+    "bridged_crossings": 1,
+    "unbridged_route_crossings": 0,
+    "result": "pass",
+    "notes": "One crossing between D40 Data Request transitions e08/e12 is rendered as an explicit raised bridge in the report PNG and uses Draw.io jumpStyle=arc."
+  },
+  "visual_review": {
+    "all_22_authored_page_previews_reviewed": true,
+    "individual_full_size_review": "pass — all authored pages D23–D44 inspected individually after the final route/layout pass",
+    "overview": "evidence/render/rev11/diagrams/contact-final.png (local QA render)",
+    "full_size_rechecks": [
+      "D23 Session Lifecycle",
+      "D24 Session Pause and Recovery",
+      "D25 Session Early Termination",
+      "D26 Shared Learning Stage Lifecycle",
+      "D27 Group Progress Lifecycle",
+      "D28 Participant Admission Lifecycle",
+      "D29 Device Connection Lifecycle",
+      "D30 Device Grant Revocation",
+      "D31 Draft Synchronization Lifecycle",
+      "D32 Sketch Pipeline Lifecycle",
+      "D33 Child Suggestion Response Lifecycle",
+      "D34 Knowledge Editorial Lifecycle",
+      "D35 AI and Media Job Lifecycle",
+      "D36 Video Delivery Lifecycle",
+      "D37 Activity Execution Lifecycle",
+      "D38 Observation Lifecycle",
+      "D39 Content Publication Lifecycle",
+      "D40 Data Request Lifecycle",
+      "D41 WF-01 Prepare and Admit",
+      "D42 WF-02 Collaborative Drawing and Recovery",
+      "D43 WF-03 Request and Review AI Sketch",
+      "D44 WF-04 Reviewed Learning and Session Close"
+    ],
+    "final_report_pages_rechecked": [
+      52,
+      53,
+      54,
+      80,
+      88,
+      91
+    ],
+    "all_report_pdf_pages_rendered": 98,
+    "blank_report_pages": [],
+    "typed_caption_count": 44
+  },
+  "source_files": [
+    {
+      "file": "Sketch2Life-Context.drawio",
+      "sha256": "143c66c0c6e5a450282d37c5b5cd7e3c24172d1770f86a16b82d2f81d1fc6bbe",
+      "pages": 2
+    },
+    {
+      "file": "Sketch2Life-Use-Cases.drawio",
+      "sha256": "b2f08f27789b630e5aa9e52b0b86db65ac0a52ba3cad7ab3e85a2ecf1c6592c5",
+      "pages": 12
+    },
+    {
+      "file": "Sketch2Life-Main-Session-Sequence.drawio",
+      "sha256": "7c010559c552e1d3ae8d24dc2a2b09245f6b37cd06a6c7584c0db528e3f6d1f4",
+      "pages": 2
+    },
+    {
+      "file": "THieuDiagram.drawio",
+      "sha256": "5579524fc9fb4b29fc259e512aaaae05f4d4eefd860e7df4534ee60f7a27b053",
+      "pages": 3
+    },
+    {
+      "file": "Khoa_Sketch2Life_SRS_v3.1_Diagrams.drawio",
+      "sha256": "e093784686ec1f6060ee4367178a9a6ae50d97e0cc1e9e5b51ea35fbce10e10f",
+      "pages": 3
+    }
+  ],
+  "generated_master_sha256": "6b62b65c3cc282b6a4e0cc3159e0f3edb82266000f6c906c9770779f7071f760",
+  "pages": [
+    {
+      "page": 1,
+      "type": "State Machine Diagram",
+      "title": "Session Lifecycle",
+      "label_overlaps": 0,
+      "label_node_overlaps": 0,
+      "node_overlaps": 0,
+      "route_node_collisions": 0,
+      "route_label_collisions": 0,
+      "route_crossings": 0,
+      "bridged_crossings": 0
+    },
+    {
+      "page": 2,
+      "type": "State Machine Diagram",
+      "title": "Session Pause and Recovery",
+      "label_overlaps": 0,
+      "label_node_overlaps": 0,
+      "node_overlaps": 0,
+      "route_node_collisions": 0,
+      "route_label_collisions": 0,
+      "route_crossings": 0,
+      "bridged_crossings": 0
+    },
+    {
+      "page": 3,
+      "type": "State Machine Diagram",
+      "title": "Session Early Termination",
+      "label_overlaps": 0,
+      "label_node_overlaps": 0,
+      "node_overlaps": 0,
+      "route_node_collisions": 0,
+      "route_label_collisions": 0,
+      "route_crossings": 0,
+      "bridged_crossings": 0
+    },
+    {
+      "page": 4,
+      "type": "State Machine Diagram",
+      "title": "Shared Learning Stage Lifecycle",
+      "label_overlaps": 0,
+      "label_node_overlaps": 0,
+      "node_overlaps": 0,
+      "route_node_collisions": 0,
+      "route_label_collisions": 0,
+      "route_crossings": 0,
+      "bridged_crossings": 0
+    },
+    {
+      "page": 5,
+      "type": "State Machine Diagram",
+      "title": "Group Progress Lifecycle",
+      "label_overlaps": 0,
+      "label_node_overlaps": 0,
+      "node_overlaps": 0,
+      "route_node_collisions": 0,
+      "route_label_collisions": 0,
+      "route_crossings": 0,
+      "bridged_crossings": 0
+    },
+    {
+      "page": 6,
+      "type": "State Machine Diagram",
+      "title": "Participant Admission Lifecycle",
+      "label_overlaps": 0,
+      "label_node_overlaps": 0,
+      "node_overlaps": 0,
+      "route_node_collisions": 0,
+      "route_label_collisions": 0,
+      "route_crossings": 0,
+      "bridged_crossings": 0
+    },
+    {
+      "page": 7,
+      "type": "State Machine Diagram",
+      "title": "Device Connection Lifecycle",
+      "label_overlaps": 0,
+      "label_node_overlaps": 0,
+      "node_overlaps": 0,
+      "route_node_collisions": 0,
+      "route_label_collisions": 0,
+      "route_crossings": 0,
+      "bridged_crossings": 0
+    },
+    {
+      "page": 8,
+      "type": "State Machine Diagram",
+      "title": "Device Grant Revocation",
+      "label_overlaps": 0,
+      "label_node_overlaps": 0,
+      "node_overlaps": 0,
+      "route_node_collisions": 0,
+      "route_label_collisions": 0,
+      "route_crossings": 0,
+      "bridged_crossings": 0
+    },
+    {
+      "page": 9,
+      "type": "State Machine Diagram",
+      "title": "Draft Synchronization Lifecycle",
+      "label_overlaps": 0,
+      "label_node_overlaps": 0,
+      "node_overlaps": 0,
+      "route_node_collisions": 0,
+      "route_label_collisions": 0,
+      "route_crossings": 0,
+      "bridged_crossings": 0
+    },
+    {
+      "page": 10,
+      "type": "State Machine Diagram",
+      "title": "Sketch Pipeline Lifecycle",
+      "label_overlaps": 0,
+      "label_node_overlaps": 0,
+      "node_overlaps": 0,
+      "route_node_collisions": 0,
+      "route_label_collisions": 0,
+      "route_crossings": 0,
+      "bridged_crossings": 0
+    },
+    {
+      "page": 11,
+      "type": "State Machine Diagram",
+      "title": "Child Suggestion Response Lifecycle",
+      "label_overlaps": 0,
+      "label_node_overlaps": 0,
+      "node_overlaps": 0,
+      "route_node_collisions": 0,
+      "route_label_collisions": 0,
+      "route_crossings": 0,
+      "bridged_crossings": 0
+    },
+    {
+      "page": 12,
+      "type": "State Machine Diagram",
+      "title": "Knowledge Editorial Lifecycle",
+      "label_overlaps": 0,
+      "label_node_overlaps": 0,
+      "node_overlaps": 0,
+      "route_node_collisions": 0,
+      "route_label_collisions": 0,
+      "route_crossings": 0,
+      "bridged_crossings": 0
+    },
+    {
+      "page": 13,
+      "type": "State Machine Diagram",
+      "title": "AI and Media Job Lifecycle",
+      "label_overlaps": 0,
+      "label_node_overlaps": 0,
+      "node_overlaps": 0,
+      "route_node_collisions": 0,
+      "route_label_collisions": 0,
+      "route_crossings": 0,
+      "bridged_crossings": 0
+    },
+    {
+      "page": 14,
+      "type": "State Machine Diagram",
+      "title": "Video Delivery Lifecycle",
+      "label_overlaps": 0,
+      "label_node_overlaps": 0,
+      "node_overlaps": 0,
+      "route_node_collisions": 0,
+      "route_label_collisions": 0,
+      "route_crossings": 0,
+      "bridged_crossings": 0
+    },
+    {
+      "page": 15,
+      "type": "State Machine Diagram",
+      "title": "Activity Execution Lifecycle",
+      "label_overlaps": 0,
+      "label_node_overlaps": 0,
+      "node_overlaps": 0,
+      "route_node_collisions": 0,
+      "route_label_collisions": 0,
+      "route_crossings": 0,
+      "bridged_crossings": 0
+    },
+    {
+      "page": 16,
+      "type": "State Machine Diagram",
+      "title": "Observation Lifecycle",
+      "label_overlaps": 0,
+      "label_node_overlaps": 0,
+      "node_overlaps": 0,
+      "route_node_collisions": 0,
+      "route_label_collisions": 0,
+      "route_crossings": 0,
+      "bridged_crossings": 0
+    },
+    {
+      "page": 17,
+      "type": "State Machine Diagram",
+      "title": "Content Publication Lifecycle",
+      "label_overlaps": 0,
+      "label_node_overlaps": 0,
+      "node_overlaps": 0,
+      "route_node_collisions": 0,
+      "route_label_collisions": 0,
+      "route_crossings": 0,
+      "bridged_crossings": 0
+    },
+    {
+      "page": 18,
+      "type": "State Machine Diagram",
+      "title": "Data Request Lifecycle",
+      "label_overlaps": 0,
+      "label_node_overlaps": 0,
+      "node_overlaps": 0,
+      "route_node_collisions": 0,
+      "route_label_collisions": 0,
+      "route_crossings": 1,
+      "bridged_crossings": 1
+    },
+    {
+      "page": 19,
+      "type": "Activity Diagram",
+      "title": "WF-01 Prepare and Admit",
+      "label_overlaps": 0,
+      "label_node_overlaps": 0,
+      "node_overlaps": 0,
+      "route_node_collisions": 0,
+      "route_label_collisions": 0,
+      "route_crossings": 0,
+      "bridged_crossings": 0
+    },
+    {
+      "page": 20,
+      "type": "Activity Diagram",
+      "title": "WF-02 Collaborative Drawing and Recovery",
+      "label_overlaps": 0,
+      "label_node_overlaps": 0,
+      "node_overlaps": 0,
+      "route_node_collisions": 0,
+      "route_label_collisions": 0,
+      "route_crossings": 0,
+      "bridged_crossings": 0
+    },
+    {
+      "page": 21,
+      "type": "Activity Diagram",
+      "title": "WF-03 Request and Review AI Sketch",
+      "label_overlaps": 0,
+      "label_node_overlaps": 0,
+      "node_overlaps": 0,
+      "route_node_collisions": 0,
+      "route_label_collisions": 0,
+      "route_crossings": 0,
+      "bridged_crossings": 0
+    },
+    {
+      "page": 22,
+      "type": "Activity Diagram",
+      "title": "WF-04 Reviewed Learning and Session Close",
+      "label_overlaps": 0,
+      "label_node_overlaps": 0,
+      "node_overlaps": 0,
+      "route_node_collisions": 0,
+      "route_label_collisions": 0,
+      "route_crossings": 0,
+      "bridged_crossings": 0
+    }
+  ]
+}

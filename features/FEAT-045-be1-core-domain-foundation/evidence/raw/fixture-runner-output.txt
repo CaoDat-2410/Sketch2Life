@@ -1,0 +1,23 @@
+authorization-allowed: PASS expected=accepted state=unchanged
+authorization-invalid-scope: PASS expected=rejected/SCOPE_DENIED state=unchanged
+authorization-forged-role: PASS expected=rejected/FORGED_PRINCIPAL state=unchanged
+pending-device-roster-denied: PASS expected=rejected/PENDING_PRINCIPAL_RESTRICTED state=unchanged
+profile-age-36-consented: PASS expected=accepted state=unchanged
+profile-age-35-rejected: PASS expected=rejected/AGE_OUT_OF_RANGE state=unchanged
+profile-age-156-rejected: PASS expected=rejected/AGE_OUT_OF_RANGE state=unchanged
+session-admission-age-155: PASS expected=accepted state=unchanged
+canvas-append-accepted: PASS expected=accepted state=mutated
+canvas-stale-revision: PASS expected=rejected/STALE_AGGREGATE state=unchanged
+canvas-idempotent-replay: PASS expected=replayed state=unchanged
+canvas-idempotency-conflict: PASS expected=rejected/IDEMPOTENCY_CONFLICT state=unchanged
+canvas-wrong-turn-contributor: PASS expected=rejected/INVALID_TURN state=unchanged
+gallery-known-contribution: PASS expected=accepted state=unchanged
+gallery-outside-audience-denied: PASS expected=rejected/GALLERY_AUDIENCE_DENIED state=unchanged
+data-delete-external-copy-pending: PASS expected=rejected/DATA_REQUEST_INCOMPLETE state=unchanged
+data-export-complete: PASS expected=accepted state=unchanged
+portfolio-own-contribution: PASS expected=accepted state=unchanged
+canvas-target-scope-mismatch: PASS expected=rejected/SCOPE_DENIED state=unchanged
+admission-target-class-mismatch: PASS expected=rejected/SCOPE_DENIED state=unchanged
+unknown-command-field: PASS expected=FIELD_NOT_ALLOWED
+summary: 20 domain fixtures + 1 contract probes passed
+mode: synthetic fixtures only; no live service, provider, or database

@@ -1,0 +1,12 @@
+flowchart LR
+    S1["W1<br/>Reports + baseline"] --> S2["W1-W2<br/>Requirements + contracts"]
+    S2 --> S3["W2-W5<br/>P1/P2/P3/P4 parallel"]
+    S3 --> S4["W6<br/>Integration allocation"]
+    S4 --> S5["W7-W8<br/>Identity + session slice"]
+    S5 --> S6["W9-W10<br/>Understanding + gates"]
+    S6 --> S7["W11-W12<br/>Experience + handoff"]
+    S7 --> S8["W13<br/>Web + operations"]
+    S8 --> S9["W14<br/>Verification + stabilization"]
+    S9 --> S10["W15<br/>Transition + final package"]
+    classDef gate fill:#fff4cc,stroke:#8a6d1d,color:#111;
+    class S1,S4,S9,S10 gate;

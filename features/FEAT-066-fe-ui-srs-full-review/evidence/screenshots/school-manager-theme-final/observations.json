@@ -1,0 +1,563 @@
+[
+  {
+    "file": "school-manager-login-desktop.png",
+    "route": "/login",
+    "scrollY": 0,
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "documentWidth": 1440,
+    "horizontalOverflow": false,
+    "contentHeight": 900,
+    "shellBackground": null,
+    "inboxStatus": null,
+    "organizationContextTag": null,
+    "activeNavigation": [],
+    "tabs": [],
+    "panels": [],
+    "disabledActions": [],
+    "tableScrollRegions": [],
+    "bodyText": "Sketch2Life\nWEB PORTALS\n01\nTeacher\nMỞ CỔNG\n02\nSchool Manager\nĐANG MỞ\n03\nPlatform Admin\nMỞ CỔNG\n\n02 / SCHOOL MANAGER\n\nQuản lý trường\nĐiều phối\nđể sáng tạo.\n\nLớp học và yêu cầu giáo án công khai trong tổ chức.\n\nSECURE ACCESS\n·\n02\n\nChào mừng trở lại.\n\nĐăng nhập bằng tài khoản được cấp cho quản lý trường.\n\ni\nXem thử cục bộ · Không lưu dữ liệu.\n\nEmail tài khoản\nVào bản xem thử\n↗\nSKETCH2LIFE · LEARNING SPACE\nHỌC TẬP / SÁNG TẠO\nSKETCH2LIFE / WEB AUTHENTICATION\nCổng truy cập theo vai trò"
+  },
+  {
+    "file": "school-manager-login-narrow.png",
+    "route": "/login",
+    "scrollY": 0,
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "documentWidth": 390,
+    "horizontalOverflow": false,
+    "contentHeight": 982,
+    "shellBackground": null,
+    "inboxStatus": null,
+    "organizationContextTag": null,
+    "activeNavigation": [],
+    "tabs": [],
+    "panels": [],
+    "disabledActions": [],
+    "tableScrollRegions": [],
+    "bodyText": "Sketch2Life\nWEB PORTALS\n01\nTeacher\nMỞ CỔNG\n02\nSchool Manager\nĐANG MỞ\n03\nPlatform Admin\nMỞ CỔNG\n\n02 / SCHOOL MANAGER\n\nQuản lý trường\nĐiều phối\nđể sáng tạo.\n\nLớp học và yêu cầu giáo án công khai trong tổ chức.\n\nSECURE ACCESS\n·\n02\n\nChào mừng trở lại.\n\nĐăng nhập bằng tài khoản được cấp cho quản lý trường.\n\ni\nXem thử cục bộ · Không lưu dữ liệu.\n\nEmail tài khoản\nVào bản xem thử\n↗\nSKETCH2LIFE · LEARNING SPACE\nHỌC TẬP / SÁNG TẠO\nSKETCH2LIFE / WEB AUTHENTICATION\nCổng truy cập theo vai trò"
+  },
+  {
+    "file": "m02-dashboard-desktop.png",
+    "route": "/m02-organization-management",
+    "scrollY": 0,
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "documentWidth": 1440,
+    "horizontalOverflow": false,
+    "contentHeight": 900,
+    "shellBackground": "rgb(243, 241, 232)",
+    "inboxStatus": "Hộp thư chưa khả dụng",
+    "organizationContextTag": "DIV",
+    "activeNavigation": [
+      "Tổng quan"
+    ],
+    "tabs": [],
+    "panels": [],
+    "disabledActions": [],
+    "tableScrollRegions": [],
+    "bodyText": "Sketch2Life\nQuản lý trường\nTổng quan\nGiáo viên & nhóm\nLớp & suất học\nLượt video\nDuyệt công khai\nCài đặt\nHT\nHiệu trưởng Minh\nDữ liệu xem thử\nĐăng xuất\nQuản lý trường\nTrợ giúp\nHộp thư chưa khả dụng\nTrường Mầm non Ánh Dương\nXem thử · Dữ liệu minh họa, không lưu\nQuản lý trường\nMầm non Ánh Dương · Theo dõi lớp, nhân sự và hạn mức.\nDuyệt bài học công khai\n2\ngiáo viên · 2 nhóm phụ huynh\n2\nlớp · 8/10 suất đang dùng\n86\nlượt tạo video còn lại\nTruy cập nhanh\n\nChọn một mục để xem hoặc cập nhật thông tin của trường.\n\nGiáo viên và nhóm phụ huynh\nQuản lý thành viên và nhóm liên lạc.\n2 GV · 2 nhóm\nLớp học và sức chứa\nXem sĩ số, phân công và số chỗ còn lại.\n2 lớp · 2 chỗ trống\nLượt tạo video\nTheo dõi hạn mức của trường trong tháng.\n86 lượt\nGói trường và quy"
+  },
+  {
+    "file": "m02-dashboard-narrow.png",
+    "route": "/m02-organization-management",
+    "scrollY": 0,
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "documentWidth": 390,
+    "horizontalOverflow": false,
+    "contentHeight": 1399,
+    "shellBackground": "rgb(243, 241, 232)",
+    "inboxStatus": "Hộp thư chưa khả dụng",
+    "organizationContextTag": "DIV",
+    "activeNavigation": [
+      "Tổng quan"
+    ],
+    "tabs": [],
+    "panels": [],
+    "disabledActions": [],
+    "tableScrollRegions": [],
+    "bodyText": "Quản lý trường\nTổng quan\nGiáo viên & nhóm\nLớp & suất học\nLượt video\nDuyệt công khai\nCài đặt\nHT\nHiệu trưởng Minh\nDữ liệu xem thử\nĐăng xuất\nQuản lý trường\nTrợ giúp\nHộp thư chưa khả dụng\nTrường Mầm non Ánh Dương\nXem thử · Dữ liệu minh họa, không lưu\nQuản lý trường\nMầm non Ánh Dương · Theo dõi lớp, nhân sự và hạn mức.\nDuyệt bài học công khai\n2\ngiáo viên · 2 nhóm phụ huynh\n2\nlớp · 8/10 suất đang dùng\n86\nlượt tạo video còn lại\nTruy cập nhanh\n\nChọn một mục để xem hoặc cập nhật thông tin của trường.\n\nGiáo viên và nhóm phụ huynh\nQuản lý thành viên và nhóm liên lạc.\nLớp học và sức chứa\nXem sĩ số, phân công và số chỗ còn lại.\nLượt tạo video\nTheo dõi hạn mức của trường trong tháng.\nGói trường và quyền riêng tư\nXem cấu hình gói và các tùy chọn hiện có.\n"
+  },
+  {
+    "file": "m02-dashboard-tablet.png",
+    "route": "/m02-organization-management",
+    "scrollY": 0,
+    "viewport": {
+      "width": 768,
+      "height": 1024
+    },
+    "documentWidth": 768,
+    "horizontalOverflow": false,
+    "contentHeight": 1316,
+    "shellBackground": "rgb(243, 241, 232)",
+    "inboxStatus": "Hộp thư chưa khả dụng",
+    "organizationContextTag": "DIV",
+    "activeNavigation": [
+      "Tổng quan"
+    ],
+    "tabs": [],
+    "panels": [],
+    "disabledActions": [],
+    "tableScrollRegions": [],
+    "bodyText": "Quản lý trường\nTổng quan\nGiáo viên & nhóm\nLớp & suất học\nLượt video\nDuyệt công khai\nCài đặt\nHT\nHiệu trưởng Minh\nDữ liệu xem thử\nĐăng xuất\nQuản lý trường\nTrợ giúp\nHộp thư chưa khả dụng\nTrường Mầm non Ánh Dương\nXem thử · Dữ liệu minh họa, không lưu\nQuản lý trường\nMầm non Ánh Dương · Theo dõi lớp, nhân sự và hạn mức.\nDuyệt bài học công khai\n2\ngiáo viên · 2 nhóm phụ huynh\n2\nlớp · 8/10 suất đang dùng\n86\nlượt tạo video còn lại\nTruy cập nhanh\n\nChọn một mục để xem hoặc cập nhật thông tin của trường.\n\nGiáo viên và nhóm phụ huynh\nQuản lý thành viên và nhóm liên lạc.\n2 GV · 2 nhóm\nLớp học và sức chứa\nXem sĩ số, phân công và số chỗ còn lại.\n2 lớp · 2 chỗ trống\nLượt tạo video\nTheo dõi hạn mức của trường trong tháng.\n86 lượt\nGói trường và quyền riêng tư\n"
+  },
+  {
+    "file": "m02-teachers-desktop.png",
+    "route": "/m02-organization-management?section=teachers",
+    "scrollY": 0,
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "documentWidth": 1440,
+    "horizontalOverflow": false,
+    "contentHeight": 900,
+    "shellBackground": "rgb(243, 241, 232)",
+    "inboxStatus": "Hộp thư chưa khả dụng",
+    "organizationContextTag": "DIV",
+    "activeNavigation": [
+      "Giáo viên & nhóm"
+    ],
+    "tabs": [],
+    "panels": [],
+    "disabledActions": [
+      {
+        "text": "Mời giáo viên · Chưa khả dụng",
+        "minHeight": 44,
+        "left": 586,
+        "right": 817,
+        "insideViewport": true
+      },
+      {
+        "text": "Đồng bộ · Chưa khả dụng",
+        "minHeight": 44,
+        "left": 1177,
+        "right": 1379,
+        "insideViewport": true
+      }
+    ],
+    "tableScrollRegions": [
+      {
+        "clientWidth": 502,
+        "scrollWidth": 560
+      },
+      {
+        "clientWidth": 502,
+        "scrollWidth": 560
+      }
+    ],
+    "bodyText": "Sketch2Life\nQuản lý trường\nTổng quan\nGiáo viên & nhóm\nLớp & suất học\nLượt video\nDuyệt công khai\nCài đặt\nHT\nHiệu trưởng Minh\nDữ liệu xem thử\nĐăng xuất\nQuản lý trường\nTrợ giúp\nHộp thư chưa khả dụng\nTrường Mầm non Ánh Dương\nXem thử · Dữ liệu minh họa, không lưu\nQuản lý trường\nMầm non Ánh Dương\nChưa khả dụng\nMời và phân công Teacher\n\nAPI có ghi assignment nhưng chưa có danh bạ Teacher để chọn đúng người trong organization.\n\nGiáo viên phụ trách\n2\nMời giáo viên · Chưa khả dụng\nHọ tên\tVai trò\tTrạng thái\n\nCT\nCô Thảo\n\tGiáo viên\t\nHoạt động\n\nCM\nCô Mai\n\tGiáo viên\t\nHoạt động\nChưa khả dụng\nNhóm phụ huynh chưa nối trong màn này\n\nKhông có dữ liệu nhóm từ API ở chế độ xem thử; nút đồng bộ bị tắt để tránh giả lập thao tác.\n\nNhóm phụ huynh\n2\nĐồng bộ · Chưa kh"
+  },
+  {
+    "file": "m02-teachers-narrow.png",
+    "route": "/m02-organization-management?section=teachers",
+    "scrollY": 0,
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "documentWidth": 390,
+    "horizontalOverflow": false,
+    "contentHeight": 1377,
+    "shellBackground": "rgb(243, 241, 232)",
+    "inboxStatus": "Hộp thư chưa khả dụng",
+    "organizationContextTag": "DIV",
+    "activeNavigation": [
+      "Giáo viên & nhóm"
+    ],
+    "tabs": [],
+    "panels": [],
+    "disabledActions": [
+      {
+        "text": "Mời giáo viên · Chưa khả dụng",
+        "minHeight": 44,
+        "left": 27,
+        "right": 258,
+        "insideViewport": true
+      },
+      {
+        "text": "Đồng bộ · Chưa khả dụng",
+        "minHeight": 44,
+        "left": 27,
+        "right": 229,
+        "insideViewport": true
+      }
+    ],
+    "tableScrollRegions": [
+      {
+        "clientWidth": 334,
+        "scrollWidth": 520
+      },
+      {
+        "clientWidth": 334,
+        "scrollWidth": 520
+      }
+    ],
+    "bodyText": "Quản lý trường\nTổng quan\nGiáo viên & nhóm\nLớp & suất học\nLượt video\nDuyệt công khai\nCài đặt\nHT\nHiệu trưởng Minh\nDữ liệu xem thử\nĐăng xuất\nQuản lý trường\nTrợ giúp\nHộp thư chưa khả dụng\nTrường Mầm non Ánh Dương\nXem thử · Dữ liệu minh họa, không lưu\nQuản lý trường\nMầm non Ánh Dương\nChưa khả dụng\nMời và phân công Teacher\n\nAPI có ghi assignment nhưng chưa có danh bạ Teacher để chọn đúng người trong organization.\n\nGiáo viên phụ trách\n2\nMời giáo viên · Chưa khả dụng\nHọ tên\tVai trò\tTrạng thái\n\nCT\nCô Thảo\n\tGiáo viên\t\nHoạt động\n\nCM\nCô Mai\n\tGiáo viên\t\nHoạt động\nChưa khả dụng\nNhóm phụ huynh chưa nối trong màn này\n\nKhông có dữ liệu nhóm từ API ở chế độ xem thử; nút đồng bộ bị tắt để tránh giả lập thao tác.\n\nNhóm phụ huynh\n2\nĐồng bộ · Chưa khả dụng\nNhóm\t"
+  },
+  {
+    "file": "m02-classes-desktop.png",
+    "route": "/m02-organization-management?section=classes",
+    "scrollY": 0,
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "documentWidth": 1440,
+    "horizontalOverflow": false,
+    "contentHeight": 900,
+    "shellBackground": "rgb(243, 241, 232)",
+    "inboxStatus": "Hộp thư chưa khả dụng",
+    "organizationContextTag": "DIV",
+    "activeNavigation": [
+      "Lớp & suất học"
+    ],
+    "tabs": [],
+    "panels": [],
+    "disabledActions": [
+      {
+        "text": "Tạo lớp · Chưa khả dụng",
+        "minHeight": 44,
+        "left": 1034,
+        "right": 1229,
+        "insideViewport": true
+      }
+    ],
+    "tableScrollRegions": [
+      {
+        "clientWidth": 1064,
+        "scrollWidth": 1064
+      }
+    ],
+    "bodyText": "Sketch2Life\nQuản lý trường\nTổng quan\nGiáo viên & nhóm\nLớp & suất học\nLượt video\nDuyệt công khai\nCài đặt\nHT\nHiệu trưởng Minh\nDữ liệu xem thử\nĐăng xuất\nQuản lý trường\nTrợ giúp\nHộp thư chưa khả dụng\nTrường Mầm non Ánh Dương\nXem thử · Dữ liệu minh họa, không lưu\nQuản lý trường\nMầm non Ánh Dương\nChưa khả dụng\nTạo lớp theo capacity, archive và tạm ngưng\n\nAPI hiện không kiểm tra capacity hiệu lực khi tạo lớp và chưa có endpoint archive/suspend. Thao tác tạo lớp bị tắt để không vượt capacity.\n\nLớp & suất học\n2\nTạo lớp · Chưa khả dụng\nXem lượt video\nLớp\tKhối\tGiáo viên\tKhung giờ\tPH\tTrạng thái\n\nLớp Mầm 2\n\tMẫu giáo\tCô Thảo\t\nSáng (08:00–11:00)\t18\t\nHoạt động\n\nLớp Mầm 1\n\tMẫu giáo\tCô Mai\t\nSáng (08:00–11:00)\t24\t\nHoạt động"
+  },
+  {
+    "file": "m02-classes-narrow.png",
+    "route": "/m02-organization-management?section=classes",
+    "scrollY": 0,
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "documentWidth": 390,
+    "horizontalOverflow": false,
+    "contentHeight": 1069,
+    "shellBackground": "rgb(243, 241, 232)",
+    "inboxStatus": "Hộp thư chưa khả dụng",
+    "organizationContextTag": "DIV",
+    "activeNavigation": [
+      "Lớp & suất học"
+    ],
+    "tabs": [],
+    "panels": [],
+    "disabledActions": [
+      {
+        "text": "Tạo lớp · Chưa khả dụng",
+        "minHeight": 44,
+        "left": 27,
+        "right": 363,
+        "insideViewport": true
+      }
+    ],
+    "tableScrollRegions": [
+      {
+        "clientWidth": 334,
+        "scrollWidth": 585
+      }
+    ],
+    "bodyText": "Quản lý trường\nTổng quan\nGiáo viên & nhóm\nLớp & suất học\nLượt video\nDuyệt công khai\nCài đặt\nHT\nHiệu trưởng Minh\nDữ liệu xem thử\nĐăng xuất\nQuản lý trường\nTrợ giúp\nHộp thư chưa khả dụng\nTrường Mầm non Ánh Dương\nXem thử · Dữ liệu minh họa, không lưu\nQuản lý trường\nMầm non Ánh Dương\nChưa khả dụng\nTạo lớp theo capacity, archive và tạm ngưng\n\nAPI hiện không kiểm tra capacity hiệu lực khi tạo lớp và chưa có endpoint archive/suspend. Thao tác tạo lớp bị tắt để không vượt capacity.\n\nLớp & suất học\n2\nTạo lớp · Chưa khả dụng\nXem lượt video\nLớp\tKhối\tGiáo viên\tKhung giờ\tPH\tTrạng thái\n\nLớp Mầm 2\n\tMẫu giáo\tCô Thảo\t\nSáng (08:00–11:00)\t18\t\nHoạt động\n\nLớp Mầm 1\n\tMẫu giáo\tCô Mai\t\nSáng (08:00–11:00)\t24\t\nHoạt động"
+  },
+  {
+    "file": "m02-classes-tablet.png",
+    "route": "/m02-organization-management?section=classes",
+    "scrollY": 0,
+    "viewport": {
+      "width": 768,
+      "height": 1024
+    },
+    "documentWidth": 768,
+    "horizontalOverflow": false,
+    "contentHeight": 1024,
+    "shellBackground": "rgb(243, 241, 232)",
+    "inboxStatus": "Hộp thư chưa khả dụng",
+    "organizationContextTag": "DIV",
+    "activeNavigation": [
+      "Lớp & suất học"
+    ],
+    "tabs": [],
+    "panels": [],
+    "disabledActions": [
+      {
+        "text": "Tạo lớp · Chưa khả dụng",
+        "minHeight": 44,
+        "left": 34,
+        "right": 734,
+        "insideViewport": true
+      }
+    ],
+    "tableScrollRegions": [
+      {
+        "clientWidth": 698,
+        "scrollWidth": 698
+      }
+    ],
+    "bodyText": "Quản lý trường\nTổng quan\nGiáo viên & nhóm\nLớp & suất học\nLượt video\nDuyệt công khai\nCài đặt\nHT\nHiệu trưởng Minh\nDữ liệu xem thử\nĐăng xuất\nQuản lý trường\nTrợ giúp\nHộp thư chưa khả dụng\nTrường Mầm non Ánh Dương\nXem thử · Dữ liệu minh họa, không lưu\nQuản lý trường\nMầm non Ánh Dương\nChưa khả dụng\nTạo lớp theo capacity, archive và tạm ngưng\n\nAPI hiện không kiểm tra capacity hiệu lực khi tạo lớp và chưa có endpoint archive/suspend. Thao tác tạo lớp bị tắt để không vượt capacity.\n\nLớp & suất học\n2\nTạo lớp · Chưa khả dụng\nXem lượt video\nLớp\tKhối\tGiáo viên\tKhung giờ\tPH\tTrạng thái\n\nLớp Mầm 2\n\tMẫu giáo\tCô Thảo\t\nSáng (08:00–11:00)\t18\t\nHoạt động\n\nLớp Mầm 1\n\tMẫu giáo\tCô Mai\t\nSáng (08:00–11:00)\t24\t\nHoạt động"
+  },
+  {
+    "file": "m02-quota-desktop.png",
+    "route": "/m02-organization-management?section=quota",
+    "scrollY": 0,
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "documentWidth": 1440,
+    "horizontalOverflow": false,
+    "contentHeight": 900,
+    "shellBackground": "rgb(243, 241, 232)",
+    "inboxStatus": "Hộp thư chưa khả dụng",
+    "organizationContextTag": "DIV",
+    "activeNavigation": [
+      "Lượt video"
+    ],
+    "tabs": [],
+    "panels": [],
+    "disabledActions": [
+      {
+        "text": "Thêm suất lớp · Chưa khả dụng",
+        "minHeight": 44,
+        "left": 587,
+        "right": 820,
+        "insideViewport": true
+      },
+      {
+        "text": "Mua lượt · Chưa khả dụng",
+        "minHeight": 44,
+        "left": 1179,
+        "right": 1382,
+        "insideViewport": true
+      }
+    ],
+    "tableScrollRegions": [],
+    "bodyText": "Sketch2Life\nQuản lý trường\nTổng quan\nGiáo viên & nhóm\nLớp & suất học\nLượt video\nDuyệt công khai\nCài đặt\nHT\nHiệu trưởng Minh\nDữ liệu xem thử\nĐăng xuất\nQuản lý trường\nTrợ giúp\nHộp thư chưa khả dụng\nTrường Mầm non Ánh Dương\nXem thử · Dữ liệu minh họa, không lưu\nQuản lý trường\nMầm non Ánh Dương\nChưa khả dụng\nCapacity và quota trường\n\nAPI chưa có capacity summary hoặc organization quota summary/top-up; các số trên trang này chỉ là fixture xem thử.\n\n8/10\nlớp đang dùng trong gói trường\nThêm suất lớp · Chưa khả dụng\n86\nlượt tạo video mẫu còn lại trong tháng\nMua lượt · Chưa khả dụng"
+  },
+  {
+    "file": "m02-quota-narrow.png",
+    "route": "/m02-organization-management?section=quota",
+    "scrollY": 0,
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "documentWidth": 390,
+    "horizontalOverflow": false,
+    "contentHeight": 960,
+    "shellBackground": "rgb(243, 241, 232)",
+    "inboxStatus": "Hộp thư chưa khả dụng",
+    "organizationContextTag": "DIV",
+    "activeNavigation": [
+      "Lượt video"
+    ],
+    "tabs": [],
+    "panels": [],
+    "disabledActions": [
+      {
+        "text": "Thêm suất lớp · Chưa khả dụng",
+        "minHeight": 44,
+        "left": 30,
+        "right": 360,
+        "insideViewport": true
+      },
+      {
+        "text": "Mua lượt · Chưa khả dụng",
+        "minHeight": 44,
+        "left": 30,
+        "right": 360,
+        "insideViewport": true
+      }
+    ],
+    "tableScrollRegions": [],
+    "bodyText": "Quản lý trường\nTổng quan\nGiáo viên & nhóm\nLớp & suất học\nLượt video\nDuyệt công khai\nCài đặt\nHT\nHiệu trưởng Minh\nDữ liệu xem thử\nĐăng xuất\nQuản lý trường\nTrợ giúp\nHộp thư chưa khả dụng\nTrường Mầm non Ánh Dương\nXem thử · Dữ liệu minh họa, không lưu\nQuản lý trường\nMầm non Ánh Dương\nChưa khả dụng\nCapacity và quota trường\n\nAPI chưa có capacity summary hoặc organization quota summary/top-up; các số trên trang này chỉ là fixture xem thử.\n\n8/10\nlớp đang dùng trong gói trường\nThêm suất lớp · Chưa khả dụng\n86\nlượt tạo video mẫu còn lại trong tháng\nMua lượt · Chưa khả dụng"
+  },
+  {
+    "file": "m02-settings-desktop.png",
+    "route": "/m02-organization-management?section=settings",
+    "scrollY": 0,
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "documentWidth": 1440,
+    "horizontalOverflow": false,
+    "contentHeight": 900,
+    "shellBackground": "rgb(243, 241, 232)",
+    "inboxStatus": "Hộp thư chưa khả dụng",
+    "organizationContextTag": "DIV",
+    "activeNavigation": [
+      "Cài đặt"
+    ],
+    "tabs": [],
+    "panels": [],
+    "disabledActions": [
+      {
+        "text": "Chưa khả dụng",
+        "minHeight": 44,
+        "left": 1250,
+        "right": 1366,
+        "insideViewport": true
+      }
+    ],
+    "tableScrollRegions": [],
+    "bodyText": "Sketch2Life\nQuản lý trường\nTổng quan\nGiáo viên & nhóm\nLớp & suất học\nLượt video\nDuyệt công khai\nCài đặt\nHT\nHiệu trưởng Minh\nDữ liệu xem thử\nĐăng xuất\nQuản lý trường\nTrợ giúp\nHộp thư chưa khả dụng\nTrường Mầm non Ánh Dương\nXem thử · Dữ liệu minh họa, không lưu\nQuản lý trường\nMầm non Ánh Dương\nChưa khả dụng\nSubscription và billing chưa khả dụng\n\nChưa có API để đọc hoặc đổi subscription, auto-renew, invoice hay payment. Không hiển thị giá hoặc chính sách giả định.\n\nCài đặt gói trường và quyền riêng tư\nThông tin gói chưa kết nối\nTự động gia hạn\nChưa khả dụng\nQuyền xem tranh và video của trẻ\nChỉ giáo viên phụ trách lớp"
+  },
+  {
+    "file": "m02-settings-narrow.png",
+    "route": "/m02-organization-management?section=settings",
+    "scrollY": 0,
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "documentWidth": 390,
+    "horizontalOverflow": false,
+    "contentHeight": 911,
+    "shellBackground": "rgb(243, 241, 232)",
+    "inboxStatus": "Hộp thư chưa khả dụng",
+    "organizationContextTag": "DIV",
+    "activeNavigation": [
+      "Cài đặt"
+    ],
+    "tabs": [],
+    "panels": [],
+    "disabledActions": [
+      {
+        "text": "Chưa khả dụng",
+        "minHeight": 44,
+        "left": 234,
+        "right": 350,
+        "insideViewport": true
+      }
+    ],
+    "tableScrollRegions": [],
+    "bodyText": "Quản lý trường\nTổng quan\nGiáo viên & nhóm\nLớp & suất học\nLượt video\nDuyệt công khai\nCài đặt\nHT\nHiệu trưởng Minh\nDữ liệu xem thử\nĐăng xuất\nQuản lý trường\nTrợ giúp\nHộp thư chưa khả dụng\nTrường Mầm non Ánh Dương\nXem thử · Dữ liệu minh họa, không lưu\nQuản lý trường\nMầm non Ánh Dương\nChưa khả dụng\nSubscription và billing chưa khả dụng\n\nChưa có API để đọc hoặc đổi subscription, auto-renew, invoice hay payment. Không hiển thị giá hoặc chính sách giả định.\n\nCài đặt gói trường và quyền riêng tư\nThông tin gói chưa kết nối\nTự động gia hạn\nChưa khả dụng\nQuyền xem tranh và video của trẻ\nChỉ giáo viên phụ trách lớp"
+  },
+  {
+    "file": "m01-publication-review-desktop.png",
+    "route": "/m01-publication-review",
+    "scrollY": 0,
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "documentWidth": 1430,
+    "horizontalOverflow": false,
+    "contentHeight": 1055,
+    "shellBackground": "rgb(243, 241, 232)",
+    "inboxStatus": "Hộp thư chưa khả dụng",
+    "organizationContextTag": "DIV",
+    "activeNavigation": [
+      "Duyệt công khai"
+    ],
+    "tabs": [
+      {
+        "id": ":r7:-content-tab",
+        "controls": ":r7:-content-panel",
+        "selected": "true",
+        "tabIndex": 0
+      },
+      {
+        "id": ":r7:-diff-tab",
+        "controls": ":r7:-diff-panel",
+        "selected": "false",
+        "tabIndex": -1
+      }
+    ],
+    "panels": [
+      {
+        "id": ":r7:-diff-panel",
+        "labelledby": ":r7:-diff-tab",
+        "hidden": true
+      },
+      {
+        "id": ":r7:-content-panel",
+        "labelledby": ":r7:-content-tab",
+        "hidden": false
+      }
+    ],
+    "disabledActions": [
+      {
+        "text": "Duyệt công khai",
+        "minHeight": 44,
+        "left": 1202,
+        "right": 1369,
+        "insideViewport": true
+      }
+    ],
+    "tableScrollRegions": [],
+    "bodyText": "Sketch2Life\nQuản lý trường\nTổng quan\nGiáo viên & nhóm\nLớp & suất học\nLượt video\nDuyệt công khai\nCài đặt\nHT\nHiệu trưởng Minh\nDữ liệu xem thử\nĐăng xuất\nDuyệt công khai\nTrợ giúp\nHộp thư chưa khả dụng\nTrường Mầm non Ánh Dương\nXem thử · Dữ liệu minh họa, không lưu\nDuyệt giáo án công khai\nKiểm tra 4 tiêu chí sư phạm trước khi phát hành cho toàn trường\nChờ duyệt: 3\nĐã duyệt: 0\nYêu cầu chỉnh sửa: 0\nVề tổng quan trường\nChờ duyệt\n3\n🦋\nVòng đời bướm (Bản 3)\nCô Thảo · 2 giờ trước\nChờ\n🌱\nCây xanh quanh em (Bản 1)\nCô Lan · 1 ngày trước\nChờ\n🐬\nĐại dương kỳ thú (Bản 2)\nCô Mai · 2 ngày trước\nChờ\n🦋\nVòng đời bướm (Bản 3)\nCT\nCô Thảo\nChờ duyệt\nNội dung\nSo sánh phiên bản\nHiện tại\nTrong trường\nChạm để chọn\nCông khai\nTiêu chí\n0/4\nPhù hợp lứa tuổi và an toàn\nKiến "
+  },
+  {
+    "file": "m01-publication-review-narrow.png",
+    "route": "/m01-publication-review",
+    "scrollY": 0,
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "documentWidth": 390,
+    "horizontalOverflow": false,
+    "contentHeight": 1814,
+    "shellBackground": "rgb(243, 241, 232)",
+    "inboxStatus": "Hộp thư chưa khả dụng",
+    "organizationContextTag": "DIV",
+    "activeNavigation": [
+      "Duyệt công khai"
+    ],
+    "tabs": [
+      {
+        "id": ":r7:-content-tab",
+        "controls": ":r7:-content-panel",
+        "selected": "true",
+        "tabIndex": 0
+      },
+      {
+        "id": ":r7:-diff-tab",
+        "controls": ":r7:-diff-panel",
+        "selected": "false",
+        "tabIndex": -1
+      }
+    ],
+    "panels": [
+      {
+        "id": ":r7:-diff-panel",
+        "labelledby": ":r7:-diff-tab",
+        "hidden": true
+      },
+      {
+        "id": ":r7:-content-panel",
+        "labelledby": ":r7:-content-tab",
+        "hidden": false
+      }
+    ],
+    "disabledActions": [
+      {
+        "text": "Duyệt công khai",
+        "minHeight": 44,
+        "left": 27,
+        "right": 363,
+        "insideViewport": true
+      }
+    ],
+    "tableScrollRegions": [],
+    "bodyText": "Quản lý trường\nTổng quan\nGiáo viên & nhóm\nLớp & suất học\nLượt video\nDuyệt công khai\nCài đặt\nHT\nHiệu trưởng Minh\nDữ liệu xem thử\nĐăng xuất\nDuyệt công khai\nTrợ giúp\nHộp thư chưa khả dụng\nTrường Mầm non Ánh Dương\nXem thử · Dữ liệu minh họa, không lưu\nDuyệt giáo án công khai\nKiểm tra 4 tiêu chí sư phạm trước khi phát hành cho toàn trường\nChờ duyệt: 3\nĐã duyệt: 0\nYêu cầu chỉnh sửa: 0\nVề tổng quan trường\nChờ duyệt\n3\n🦋\nVòng đời bướm (Bản 3)\nCô Thảo · 2 giờ trước\nChờ\n🌱\nCây xanh quanh em (Bản 1)\nCô Lan · 1 ngày trước\nChờ\n🐬\nĐại dương kỳ thú (Bản 2)\nCô Mai · 2 ngày trước\nChờ\n🦋\nVòng đời bướm (Bản 3)\nCT\nCô Thảo\nChờ duyệt\nNội dung\nSo sánh phiên bản\nHiện tại\nTrong trường\nChạm để chọn\nCông khai\nTiêu chí\n0/4\nPhù hợp lứa tuổi và an toàn\nKiến thức chính x"
+  }
+]

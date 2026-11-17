@@ -1,0 +1,4 @@
+TEAM_ALLOCATION_VALID
+sprint_1_workstreams=4-independent
+integration_sprint=separate-reallocation
+project_roadmap=not-team-assignment

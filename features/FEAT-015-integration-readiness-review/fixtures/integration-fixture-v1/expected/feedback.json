@@ -1,0 +1,8 @@
+{
+  "contract_name": "FeedbackV1",
+  "status": "RECORDED",
+  "actor_ref": "synthetic-adult-001",
+  "activity_id": "ACT-0004",
+  "objective_id": "OBJ_MOVEMENT_COORDINATION",
+  "contract_version": "1.0"
+}

@@ -1,0 +1,48 @@
+{
+  "test": "rev78_synthetic_modal_activity_fallback_and_quality_gate",
+  "verdict": "FAIL",
+  "selection_mode": null,
+  "catalog_candidate_count": 0,
+  "activity_count": 3,
+  "activities": [
+    {
+      "title": "Săn tìm dấu vết bướm",
+      "objective": "Khám phá môi trường tự nhiên và nhận diện các dấu vết do bướm để lại khi bay qua khu vườn ngoài trời. Trẻ tự chọn vị trí quan sát và ghi lại những gì見",
+      "materials_text": "Sổ tay nhỏ, bút màu, kính lúp (nếu có).",
+      "preparation_text": "Người lớn chuẩn bị sổ tay và bút màu trước khi dẫn trẻ ra khu vườn ngoài trời để bắt đầu hoạt động tìm kiếm. Đảm bảo khu vực an toàn và không có vật sắc nhọn.",
+      "instructions_text": "1. Trẻ tự đi dạo quanh khu vườn ngoài trời để tìm các dấu vết nhỏ trên lá hoặc đất. 2. Trẻ dùng bút màu vẽ lại dấu vết tìm thấy vào sổ tay. 3. Người lớn hỏi trẻ về cảm giác khi nhìn thấy dấu vết đó để khuyến khích quan sát. Lưu ý an toàn: Không cho trẻ ăn bất kỳ thứ gì tìm thấy và tránh xa các loài thực vật lạ có thể有毒",
+      "observation_notes": "Quan sát trẻ chú ý đến chi tiết nào của dấu vết và cách trẻ mô tả lại bằng lời hoặc hình vẽ. Ghi nhận sự tò mò của trẻ đối với các",
+      "safety_notes": "Giám sát chặt chẽ để trẻ không đưa tay vào miệng hoặc ăn phải bất kỳ vật gì tìm thấy trong khu vườn ngoài trời.",
+      "activity_kind": "outdoor"
+    },
+    {
+      "title": "Vẽ cánh bướm trên sân nhà",
+      "objective": "Khám phá sự đối xứng của cánh bướm thông qua việc vẽ và cắt dán trên sân nhà ngoài trời. Trẻ tự chọn màu sắc và hình dạng để tạo nên cánh bướm độc đáo",
+      "materials_text": "Giấy màu, kéo an toàn, keo dán, phấn vẽ ngoài trời. Người lớn chuẩn bị giấy màu và kéo trước khi dẫn trẻ ra sân nhà ngoài trời. Đảm bảo khu",
+      "preparation_text": "Người lớn chuẩn bị giấy màu, kéo an toàn và keo dán trước khi dẫn trẻ ra sân nhà ngoài trời. Đảm bảo khu vực an toàn và không có vật sắc nhọn. Trẻ tự chọn màu",
+      "instructions_text": "1. Trẻ tự vẽ hoặc cắt hình cánh bướm từ giấy màu trên sân nhà ngoài trời. 2. Trẻ dán hai cánh lại với nhau để tạo thành hình bướm hoàn chỉnh. 3. Người lớn hỏi trẻ về cách cánh bướm đối xứng và khuyến khích trẻ giải thích. Lưu ý an toàn: Không cho trẻ ăn bất kỳ thứ gì tìm thấy trong khu vườn ngoài trời và tránh xa các",
+      "observation_notes": "Quan sát trẻ chú ý đến chi tiết nào của cánh bướm và cách trẻ mô tả lại bằng lời hoặc hình vẽ. Ghi nhận sự tò mò của trẻ đối với",
+      "safety_notes": "Giám sát chặt chẽ để trẻ không đưa tay vào miệng hoặc ăn phải bất kỳ vật gì tìm thấy trong khu vườn ngoài trời.",
+      "activity_kind": "outdoor"
+    },
+    {
+      "title": "Thử nghiệm bay của cánh bướm",
+      "objective": "Khám phá cách cánh bướm bay và di chuyển trong không gian ngoài trời. Trẻ tự chọn vị trí và thử nghiệm các cách bay khác nhau. Người lớn chuẩn bị",
+      "materials_text": "Giấy màu, kéo an toàn, keo dán, phấn vẽ ngoài trời. Người lớn chuẩn bị giấy màu và kéo trước khi dẫn trẻ ra sân nhà ngoài trời. Đảm bảo khu",
+      "preparation_text": "Người lớn chuẩn bị giấy màu, kéo an toàn và keo dán trước khi dẫn trẻ ra sân nhà ngoài trời. Đảm bảo khu vực an toàn và không có vật sắc nhọn. Trẻ tự chọn màu",
+      "instructions_text": "1. Trẻ tự vẽ hoặc cắt hình cánh bướm từ giấy màu trên sân nhà ngoài trời. 2. Trẻ dán hai cánh lại với nhau để tạo thành hình bướm hoàn chỉnh. 3. Người lớn hỏi trẻ về cách cánh bướm đối xứng và khuyến khích trẻ giải thích. Lưu ý an toàn: Không cho trẻ ăn bất kỳ thứ gì tìm thấy trong khu vườn ngoài trời và tránh xa các",
+      "observation_notes": "Quan sát trẻ chú ý đến chi tiết nào của cánh bướm và cách trẻ mô tả lại bằng lời hoặc hình vẽ. Ghi nhận sự tò mò của trẻ đối với",
+      "safety_notes": "Giám sát chặt chẽ để trẻ không đưa tay vào miệng hoặc ăn phải bất kỳ vật gì tìm thấy trong khu vườn ngoài trời.",
+      "activity_kind": "outdoor"
+    }
+  ],
+  "modal_call_id": "fc-01M75ET4Y3Y4J99NYVVWM5X3C1",
+  "elapsed_seconds": 119.05,
+  "model_id": "Qwen/Qwen3.5-9B",
+  "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+  "worker_decision": "NO_MATCH",
+  "diagnostic_code": "CHILD_AGENCY_NOT_EXPLICIT",
+  "worker_input_has_image": false,
+  "synthetic_only": true,
+  "video_called": false
+}

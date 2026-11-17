@@ -1,0 +1,33 @@
+BE1-02 PostgreSQL acceptance verification
+Date: 2026-10-14 (Asia/Saigon)
+Database: official postgres:17 Docker image, server 17.11; loopback-only port 55432; ephemeral tmpfs data directory.
+Database URL/password omitted. Every identifier is synthetic; no real child data was used. The verification ran inline through the backend virtualenv and did not add a test-suite file.
+
+Migration lifecycle
+PASS Alembic upgrade head applied to live PostgreSQL.
+PASS Alembic downgrade base completed on live PostgreSQL.
+PASS Alembic upgrade head succeeded after downgrade.
+PASS Final server version was 17.11 (Debian 17.11-1.pgdg13+2).
+PASS Final Alembic revision was 20261014_0001.
+PASS Final schema contained 8 core tables and 8 core indexes.
+
+Atomic mutation and isolation
+PASS Initialized synthetic aggregate and read its revision within its organization.
+PASS Revision read returned no record for another organization.
+PASS One mutation committed revision CAS, operation, idempotency receipt, audit entry, and outbox event.
+PASS Operation and receipt reads returned no record for another organization.
+PASS Reused idempotency key with a changed fingerprint was rejected; revision remained unchanged and no partial operation remained.
+PASS Stale revision CAS was rejected without changing the revision or adding an operation.
+PASS PostgreSQL varchar constraint error propagated to caller; transaction rolled back revision, operation, and receipt.
+
+Persistence across engine/session recreation
+PASS Operation, receipt, audit entry, checkpoint metadata, asset metadata/lineage, and pending outbox state remained readable after disposing and recreating the SQLAlchemy engine/session factory.
+
+Outbox recovery and consumer idempotency
+PASS Pending event was claimed with a one-second lease, then reclaimed after lease expiry by another worker; attempt count advanced to 2.
+PASS Synthetic handler exception rolled back consumer receipt and left the lease recoverable.
+PASS Retried local consumer effect, receipt, and delivered status committed together.
+PASS Duplicate processing after completion was ignored; exactly one local effect and one consumer receipt existed.
+
+Result: LIVE_POSTGRESQL_ACCEPTANCE=PASS
+Limit: ephemeral local verification only; no API/worker wiring, deployment, or production database was exercised.

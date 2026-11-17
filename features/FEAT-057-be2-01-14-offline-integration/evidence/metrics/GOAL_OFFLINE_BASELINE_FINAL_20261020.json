@@ -1,0 +1,303 @@
+{
+  "scope": "FEAT-057 approved offline BE2-08\u201314 component baseline",
+  "state": "PASS_OFFLINE_LOCAL_ONLY",
+  "candidate": {
+    "branch": "feature/be2-backend-ai-integration",
+    "head": "d35f035f87fddfc87b0d72d8929f5b1b843fce0e",
+    "index_empty": true,
+    "isolated_venv_ignored": true
+  },
+  "baseline": {
+    "initial_dirty_paths": 52,
+    "initial_manifest_sha256": "dc09ae05bd1bdc37c34c4b0192f7f5914996b2656f6533c8fea1f04ae426be89",
+    "missing_original_paths": [],
+    "paths_intentionally_updated_as_evidence_or_context": [
+      "features/FEAT-048-be2-content-publication/evidence/README.md",
+      "features/FEAT-049-be2-ai-policy/evidence/README.md",
+      "features/FEAT-050-be2-knowledge-video/evidence/README.md",
+      "features/FEAT-051-be2-video-review-playback/evidence/README.md",
+      "features/FEAT-052-be2-video-failure-disposition/evidence/README.md",
+      "features/FEAT-053-be2-activity-execution/evidence/README.md",
+      "features/FEAT-054-be2-preset-automation/evidence/README.md",
+      "features/FEAT-057-be2-01-14-offline-integration/CONTEXT.md",
+      "features/FEAT-057-be2-01-14-offline-integration/DECISIONS.md",
+      "features/FEAT-057-be2-01-14-offline-integration/evidence/README.md",
+      "features/FEAT-057-be2-01-14-offline-integration/status/STATUS.md"
+    ],
+    "unexpected_mismatches": []
+  },
+  "card_approval_and_status_records": {
+    "features/FEAT-050-be2-knowledge-video/approvals/TASK_APPROVAL.md": {
+      "sha256": "f9283cee2fa0ef2e14b76781e62d3547c579048b850e67e9f26576b30ebb380b",
+      "unchanged_from_head": true
+    },
+    "features/FEAT-050-be2-knowledge-video/status/STATUS.md": {
+      "sha256": "94029c817b464ac054f63328ccbcca22cd7a094561bb508aff2008ad826e74d9",
+      "unchanged_from_head": true
+    },
+    "features/FEAT-051-be2-video-review-playback/approvals/TASK_APPROVAL.md": {
+      "sha256": "d29aecda6dc537fd867b85479226c53f50a99188de8e012da9025f68d113b4a1",
+      "unchanged_from_head": true
+    },
+    "features/FEAT-051-be2-video-review-playback/status/STATUS.md": {
+      "sha256": "473c2364d5fee52044207c99782e7fe80d94dc0d7d423c23e122bcb88c07d8d8",
+      "unchanged_from_head": true
+    },
+    "features/FEAT-052-be2-video-failure-disposition/approvals/TASK_APPROVAL.md": {
+      "sha256": "6cb53b5579c919cecf8dcde10b154741c916576b10dc9772a995a9f11716374a",
+      "unchanged_from_head": true
+    },
+    "features/FEAT-052-be2-video-failure-disposition/status/STATUS.md": {
+      "sha256": "31675b64665dfe8a3e9b9039fa7dad52a26fa7c2c925fe2ddf7fc4fe40e0e65f",
+      "unchanged_from_head": true
+    },
+    "features/FEAT-053-be2-activity-execution/approvals/TASK_APPROVAL.md": {
+      "sha256": "a5e7f65df2b908c9bc4b21aca11b24dfb14cacb1d57e7561092d1efef83ed45a",
+      "unchanged_from_head": true
+    },
+    "features/FEAT-053-be2-activity-execution/status/STATUS.md": {
+      "sha256": "46695cdcdb82c0db34e16c151b55a71b1ba42a89733b06a6aaa7048e937c8c0b",
+      "unchanged_from_head": true
+    },
+    "features/FEAT-048-be2-content-publication/approvals/TASK_APPROVAL.md": {
+      "sha256": "760a9640af361bd5859aa50e8f4dbcf5353635543ac8eebe5e764e6329d25037",
+      "unchanged_from_head": true
+    },
+    "features/FEAT-048-be2-content-publication/status/STATUS.md": {
+      "sha256": "e903ee7a74b40cfebae4b86d4d80a35a987d81895ba4ad8e33f0836890ea7134",
+      "unchanged_from_head": true
+    },
+    "features/FEAT-054-be2-preset-automation/approvals/TASK_APPROVAL.md": {
+      "sha256": "ca98a396f5176169ac6596d863fddcf95311e8b7df136dbd1c0c5e5fe4655363",
+      "unchanged_from_head": true
+    },
+    "features/FEAT-054-be2-preset-automation/status/STATUS.md": {
+      "sha256": "330e7bed91f656a2e29b8e104cd2ad68f3e76675de836a404beaa4308b901248",
+      "unchanged_from_head": true
+    },
+    "features/FEAT-049-be2-ai-policy/approvals/TASK_APPROVAL.md": {
+      "sha256": "09bcaedaa6e9173274cf3e0fa0a53dede92f836693261679adb1e508fa72db36",
+      "unchanged_from_head": true
+    },
+    "features/FEAT-049-be2-ai-policy/status/STATUS.md": {
+      "sha256": "c78ad1040e526e80f90b4ce63e98f9fbe30684d4a1f2d3bd1c0774beefe865dd",
+      "unchanged_from_head": true
+    }
+  },
+  "environment": {
+    "python": "3.12.10",
+    "profile": "backend editable install + [dev,image-admission]",
+    "versions": {
+      "pytest": "8.4.2",
+      "ruff": "0.16.4",
+      "mypy": "1.20.2",
+      "Pillow": "12.3.0",
+      "python-multipart": "0.0.32",
+      "av": "18.1.0",
+      "pydantic": "2.13.4",
+      "SQLAlchemy": "2.0.52",
+      "alembic": "1.19.1"
+    },
+    "pip_check": "PASS",
+    "shared_environment_package_install": "NONE"
+  },
+  "runs_in_order": [
+    {
+      "task": "08",
+      "feature": "FEAT-050-be2-knowledge-video",
+      "status": "PASS",
+      "cases": {
+        "owned": 459,
+        "regression": 1435,
+        "sql_collection_only": 11
+      },
+      "expected_cases": null,
+      "source_unchanged": true,
+      "source_hash_count": 897,
+      "summary_path": "features/FEAT-050-be2-knowledge-video/evidence/raw/GOAL_OFFLINE_BASELINE_20261020_FINAL_PINNED_ENV/summary.json",
+      "summary_sha256": "cd15d636dd4dde039adad5294ded630a98572385c765999f891dda23db5902ec",
+      "evidence_manifest_sha256": "01f8b8c5e30583cb74f64755ed8221d9aab0854a7d8b466b5a50f49d6fe0d96f",
+      "sql_collected_not_run": 11
+    },
+    {
+      "task": "09",
+      "feature": "FEAT-051-be2-video-review-playback",
+      "status": "PASS",
+      "cases": {
+        "owned": 458,
+        "regression": 1894,
+        "sql_collection_only": 21
+      },
+      "expected_cases": null,
+      "source_unchanged": true,
+      "source_hash_count": 901,
+      "summary_path": "features/FEAT-051-be2-video-review-playback/evidence/raw/GOAL_OFFLINE_BASELINE_20261020_FINAL_PINNED_ENV/summary.json",
+      "summary_sha256": "ec8cd4502063fcf6e03f75322610b44a29201e25f3a21cafa2a17c6b8d240557",
+      "evidence_manifest_sha256": "af96c27f39fa005aa748b6fda2e5bad95c1cdd1c1c63eb1758d34980f9177933",
+      "sql_collected_not_run": 21
+    },
+    {
+      "task": "10",
+      "feature": "FEAT-052-be2-video-failure-disposition",
+      "status": "PASS",
+      "cases": {
+        "owned": 253,
+        "regression": 2352,
+        "sql_collection_only": 14
+      },
+      "expected_cases": null,
+      "source_unchanged": true,
+      "source_hash_count": 903,
+      "summary_path": "features/FEAT-052-be2-video-failure-disposition/evidence/raw/GOAL_OFFLINE_BASELINE_20261020_FINAL_PINNED_ENV/summary.json",
+      "summary_sha256": "7dd100a75e8d599d61dffac92737a7ca81c4fad88204ad9752d79e8ab7d4d510",
+      "evidence_manifest_sha256": "8abdf77d5dac9429da64066642e4d376c8de3efc4eb20f730eaf8b27ccf8ae46",
+      "sql_collected_not_run": 14
+    },
+    {
+      "task": "11",
+      "feature": "FEAT-053-be2-activity-execution",
+      "status": "PASS",
+      "cases": {
+        "owned": 219,
+        "regression": 2605,
+        "legacy_catalog": 25,
+        "sql_collection_only": 17
+      },
+      "expected_cases": null,
+      "source_unchanged": true,
+      "source_hash_count": 933,
+      "summary_path": "features/FEAT-053-be2-activity-execution/evidence/raw/GOAL_OFFLINE_BASELINE_20261020_FINAL_PINNED_ENV/summary.json",
+      "summary_sha256": "091fd05dfe0df776fea7e865b1584dcd69b0a01296835c78fd4e0d52da2fc36e",
+      "evidence_manifest_sha256": "eaa35d0125f0873cbce791726dceef0de859ebf5894f59c745bee50bcaacbd72",
+      "sql_collected_not_run": 17
+    },
+    {
+      "task": "12",
+      "feature": "FEAT-048-be2-content-publication",
+      "status": "PASS",
+      "cases": 477,
+      "expected_cases": 477,
+      "source_unchanged": true,
+      "source_hash_count": 540,
+      "summary_path": "features/FEAT-048-be2-content-publication/evidence/raw/GOAL_OFFLINE_BASELINE_20261020_FINAL_PINNED_ENV/summary.json",
+      "summary_sha256": "727b8c976612670d4836b83d2a1ec7b51f27629e158e82909f7eeb91543fbf9d",
+      "evidence_manifest_sha256": "0a1897bd622a0898a367456fe8f31f5889e9e41df42d026a80f3565fa4a4805d"
+    },
+    {
+      "task": "13",
+      "feature": "FEAT-054-be2-preset-automation",
+      "status": "PASS",
+      "cases": {
+        "owned": 194,
+        "regression": 2849,
+        "sql_collection_only": 11
+      },
+      "expected_cases": null,
+      "source_unchanged": true,
+      "source_hash_count": 935,
+      "summary_path": "features/FEAT-054-be2-preset-automation/evidence/raw/GOAL_OFFLINE_BASELINE_20261020_FINAL_PINNED_ENV/summary.json",
+      "summary_sha256": "4d5fe71520a7fa5bd217c761071a501f4fd5ea3b9896af77fd895f809a4d56b6",
+      "evidence_manifest_sha256": "861e0db7ceff2e0d6a64a6a18ee3c2244433bc5c11f1bda413374fd4d8b067b4",
+      "sql_collected_not_run": 11
+    },
+    {
+      "task": "14",
+      "feature": "FEAT-049-be2-ai-policy",
+      "status": "PASS",
+      "cases": 1061,
+      "expected_cases": 1061,
+      "source_unchanged": true,
+      "source_hash_count": 909,
+      "summary_path": "features/FEAT-049-be2-ai-policy/evidence/raw/GOAL_OFFLINE_BASELINE_20261020_POSTDOCS/summary.json",
+      "summary_sha256": "b005cb9a837f06bedf499b59f7e74805cf3029c36eb3a88cc4555b6d726b7de6",
+      "evidence_manifest_sha256": "740ccbeaade5c36910e9e6f5b7bef54f2d07bfe3387d8f63b0b4e3537149255f",
+      "foundation_cases": 114,
+      "delegated_be2_12": {
+        "status": "PASS",
+        "cases": 477,
+        "expected_cases": 477,
+        "summary_sha256": "727b8c976612670d4836b83d2a1ec7b51f27629e158e82909f7eeb91543fbf9d"
+      },
+      "nonfatal_warnings": 23
+    }
+  ],
+  "historical_environment_failure": {
+    "initial_be2_12_attempt": "FAIL; 477 pytest passed, mypy failed under freshly resolved Pydantic 2.14.1",
+    "reproduction": "same mypy command reproduced; recorded Pydantic 2.13.4 environment passed; recorded SQLAlchemy/Alembic/Ruff versions also restored",
+    "source_change_for_resolution": false,
+    "final_be2_12": "PASS 477/477"
+  },
+  "final_validations": {
+    "harness": "PASS",
+    "repository_security": "PASS",
+    "architecture": "PASS",
+    "skeleton": "PASS",
+    "git_diff_check": "PASS",
+    "ruff_migration_test": "PASS",
+    "mypy_migration_test": "PASS",
+    "environment_preflight": "PASS"
+  },
+  "boundaries": {
+    "SQL_execution": "NOT_RUN",
+    "SQL_collected_cases": "COLLECTED_NOT_RUN per task runners",
+    "PostgreSQL": "NOT_RUN",
+    "provider_or_HTTP": "NOT_RUN",
+    "Lightning_or_Studio": "NOT_RUN",
+    "server_or_runtime_start": "NOT_RUN",
+    "card_acceptance_status_changes": false,
+    "full_card_completion_claimed": false
+  },
+  "reconciliation_failures": [],
+  "validator_evidence": {
+    "harness": {
+      "path": "evidence/raw/goal-offline-20261020/closure-harness.log",
+      "sha256": "f9fe12c27f5c402ad822c90f7d896e9bd4ca6c03094ed537f3bd957a65c9c9b8"
+    },
+    "repository_security": {
+      "path": "evidence/raw/goal-offline-20261020/closure-security.log",
+      "sha256": "ca9226b4eb4678c2acfe83042530243f9eb243d426115d6c00c87e12611f430e"
+    },
+    "architecture": {
+      "path": "evidence/raw/goal-offline-20261020/closure-architecture.log",
+      "sha256": "67f1bc538fc90b4f70000a89126dde0aa14c688b8c3dbba796e1a89d6caef80e"
+    },
+    "skeleton": {
+      "path": "evidence/raw/goal-offline-20261020/closure-skeleton.log",
+      "sha256": "c3bd0318347efa17e2cb71a192287f1fe5bbb4bb1932fa8a360e6f3328a7bd1b"
+    },
+    "git_diff_check": {
+      "path": "evidence/raw/goal-offline-20261020/closure-diff_check.log",
+      "sha256": "561493b69c8d03d2c64163cff54d9b5898dc6d8338ecec4e9361dc01ec47ca2c"
+    },
+    "ruff_migration_test": {
+      "path": "evidence/raw/goal-offline-20261020/closure-ruff-migration.log",
+      "sha256": "a4443afdcfb6d7363adb285762515ccf7cf50473b1a05c20c1a50f6bed4d26b0"
+    },
+    "mypy_migration_test": {
+      "path": "evidence/raw/goal-offline-20261020/closure-mypy-migration.log",
+      "sha256": "8e63ae22e8213e327a5e9cbd584067681681bd8ef7f25c869877887ccdcfc4ff"
+    },
+    "environment_preflight": {
+      "path": "evidence/raw/goal-offline-20261020/final-pinned-env-import-check.log",
+      "sha256": "024019ab804a0c3ac3cec912137ec5888cfde37aa92abad9d2b2a25a51b98648"
+    },
+    "repository_security_post_metric": {
+      "path": "evidence/raw/goal-offline-20261020/security-postmetric.log",
+      "sha256": "2a0d32aaa30f5d2bdc4835e896583ac86f46a9310d22b94ac40bdb39c4ac4a2d",
+      "status": "PASS"
+    }
+  },
+  "final_reconciliation": {
+    "runner_count": 7,
+    "all_runners_pass": true,
+    "all_source_hash_maps_match_current_checkout": true,
+    "all_evidence_manifests_verify": true,
+    "all_junit_counts_match_and_have_zero_failures_errors_skips": true,
+    "sql_cases_collection_only": true,
+    "initial_dirty_paths_preserved": 52,
+    "expected_documentation_and_evidence_updates": 11,
+    "unexpected_baseline_mismatches": [],
+    "card_approval_and_status_records_unchanged": true,
+    "failures": []
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "state": "DISPATCH_INTENT_RECORDED",
+  "workload": "story.generate",
+  "app": "sketch2life-srs23-language-audio-dev",
+  "function": "generate-story-and-storyboard",
+  "job_id": "69254ce3-424d-44e5-9a5c-be7913d95d97",
+  "generation_id": "7a78598a-2289-420a-84be-9f8ea9ae1b30",
+  "attempt_id": "93774292-9e79-45e3-b8bb-903e155eb5d1",
+  "input_sha256": "d45ba5b6aa61b7fdbcf8d768a8cc4150de8a493a1bbcc9b9c41391f49ef06cd2",
+  "manifest_sha256": "9469c5679a1eed2b22077c480f90bb0b2e6ae0cbcbe3d65bac0d9a7deb41810c",
+  "wait_limit_seconds": 600,
+  "synthetic_adult_confirmed_fixture": true,
+  "created_at": "2026-11-05T18:21:10+07:00",
+  "max_attempts": 1,
+  "outcome": "FAILED_TERMINAL",
+  "call_id": "fc-01M6NQ2HGYCEPWW6TS1E5G3A8K",
+  "dispatch_at": "2026-11-05T18:21:14+07:00",
+  "error_type": "RuntimeError",
+  "ended_at": "2026-11-05T18:23:45+07:00"
+}

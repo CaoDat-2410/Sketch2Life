@@ -1,0 +1,510 @@
+{
+  "purpose": "Follow-up exact inputs for Claude D3 rereview4 disposition and successor scope verification. Hashes prove bytes only.",
+  "date": "2026-10-21",
+  "branch": "feature/be2-backend-ai-integration",
+  "head": "1649b72978877d82b4d7662040ff3555dee0a3a7",
+  "prior_d3_manifest": {
+    "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/metrics/CROSS_LANE_UOW_D3_REVIEW_INPUTS_20261021.json",
+    "sha256": "3010C8F58C46BEE99A6C0DA0809EB5EF5FCB5BF47818ED78EB6F058D68E33A57",
+    "role": "historical exact snapshot; its current-state entries were superseded after this review"
+  },
+  "source_manifest_rev4": {
+    "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/metrics/CROSS_LANE_UOW_SOURCE_HASHES_REV4_20261021.json",
+    "sha256": "2EAA11FCA7B510CA738D34ECED9EFD164C7734FCA8E6AD4792257F03AA68591F",
+    "bytes": 8923,
+    "role": "30 source files + one test source read, not run"
+  },
+  "source_files": [
+    {
+      "path": "backend/src/sketch2life/application/ai_policy_accounting.py",
+      "sha256": "3B3ED13F646F5392AA805FD07D62981ACBE1CE8A7D0CF1AED0D6C9A94B9517DE",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/application/ai_policy_resource_quotes.py",
+      "sha256": "B1B017F366E54375080C09980DF21EEF1A84019B8D0D04D615D7284D91EEDF5D",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/application/knowledge_video_create.py",
+      "sha256": "FE330D4D4CE642515158F36DE9DEC60CADBD9EB8C56F02834C5FBC2AC1F8B347",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/application/knowledge_video_media.py",
+      "sha256": "A5B569BFC0C83079A066719324A446AC0566A9A171B2192AAD7C795064C6BAFB",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/application/knowledge_video_worker.py",
+      "sha256": "02BE5A965EABEAE4792AD0915CB2B5EBBE48D452FA37595AA32C52EAEC373C90",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/application/ports/ai_jobs.py",
+      "sha256": "6C6967070D5042B5A6DB33E7D28D856E03FE1BD6DC1302E55D73EACC047B33DF",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/application/ports/ai_policy_accounting.py",
+      "sha256": "16720C4D3E4C84539AD41FAC6272DFC18233F92C205522F73DB0FEF256CB0779",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/application/ports/knowledge_video.py",
+      "sha256": "966FE8BF2237C956298164F28EB461527B7E2A0BBA1EBFF0084E91D834113340",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/application/ports/knowledge_video_worker.py",
+      "sha256": "8B5A3175717DB3411C4A6B80B8FBEF2E5865DC3530598A2F35919D6954CC1D36",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/application/services/ai_jobs.py",
+      "sha256": "DF6AC4FD47BD9FDCD7D5EAF7DFCA5E4CF9541870F40E0DC4A81150DFFD936704",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/application/services/knowledge_bundle.py",
+      "sha256": "AF6C3C55E3CF0FEDF155B8C0EBBF720EF7E6AEC121B5B1871F94191A1E2F6C9F",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/contracts/schemas/ai_policy_accounting.py",
+      "sha256": "5DA2E52DEA1E35EAA907B7AD6DB1C81D2A2BC16CF1F254396793A1C1E49ABBC4",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/contracts/schemas/ai_policy_use.py",
+      "sha256": "86D2DD9545287CEF4FDDF6D7B7C56D62C78BF1CEBCEB3C1B6432BA3122CCCE8E",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/contracts/schemas/knowledge_video.py",
+      "sha256": "83C7CBC25DCECFE1C37847A157CDF7A730AAE0E9659CA93C8C6E65FA957ABDFD",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/domain/ai_jobs/completion.py",
+      "sha256": "B3E1A78D2A93227D09E4DB3FED4B77BC4D1C3775F54F519F68FD762CEB3EC62B",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/domain/ai_jobs/model.py",
+      "sha256": "512B604636C1A22E231AC3276D3E537AE0DEAE4D9BB6652CCB064FAB7314DB99",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/domain/ai_policy/accounting.py",
+      "sha256": "863F22E6E1F04CC64529B4BDA1688DD58E00B628FF405C117E694A1C992A9359",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/domain/knowledge_video/model.py",
+      "sha256": "637D59BAEBAAAC4DF00F97C86E5920F4ED6429FABB0ED432A8C0C1275F40D56D",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/ai_jobs/outbox_dispatcher.py",
+      "sha256": "7B2DC13CCFA94C5BD09BA7679AB4DFAB194AEE6B32D8AB651AAB92FBCECB6115",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/ai_jobs/reconciler.py",
+      "sha256": "2B36FACBB1C08560BE258F1FF69B07354BCCB45D7672A33A86317E9D5E02EE5E",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/ai_jobs/sql/owner_fence_fixture.py",
+      "sha256": "F12560D8F68EA31C5F76BB10E0452310CFF019C3D2DF5A90D8970889D052EC92",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/ai_jobs/sql/repository.py",
+      "sha256": "911829A90DD67DDDBDC758EC05930038C9415D92A837EA26BBE7E1F6D3A5AD76",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/ai_jobs/sql/tables.py",
+      "sha256": "12F6CE1EDAB047EFDD81D495B44DF08DC6F990692860621F37FC73778006F888",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/ai_jobs/typed_dispatch.py",
+      "sha256": "979516A29B17A7FC155C6396500AAE82D0D8D66C0CBD7C1EF0437BFA8C728196",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/ai_jobs/worker.py",
+      "sha256": "A54725329F8643FB0AF9D821F9861BE34980C3DA3E28E201203630EA691785F6",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/ai_policy/accounting_sql.py",
+      "sha256": "86443803A6E48504BC6CF6DCA6B0A57333A6287065F7D1F68D536C981050C1F4",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/cross_lane/knowledge_script_video.py",
+      "sha256": "0A22E50557B3AC57B9913B80B273D0A672423946277AF3E7CFA9A0829E7F6F42",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/knowledge_video/codec.py",
+      "sha256": "3E6AFFAEDBE9883AF38C7BA7904771116680A7A37D6386BB7F20510DA969D0C9",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/knowledge_video/sql.py",
+      "sha256": "9CE42333609539459DB9CE68DA43087E42D782631186E0D51C5684A782696105",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/knowledge_video/tables.py",
+      "sha256": "D385CC6A60CC4E0A0DE339FDE452D89B81D71574CBE1B59F9D5D8C2D2C673F9F",
+      "role": "source"
+    },
+    {
+      "path": "backend/tests/contract/test_knowledge_video_contract.py",
+      "sha256": "C97486D701D2E5C22518CE82F127289D81FBCC088566E427DB4EF58FE9B8EDC7",
+      "role": "contract_test_source"
+    }
+  ],
+  "additional_source_snapshots": [
+    {
+      "path": "backend/src/sketch2life/infrastructure/ai_jobs/fakes.py",
+      "sha256": "F1318E236694002BE238FD8CF73BD54D5C27B952A085C8EB9A798EC8E65957E0",
+      "bytes": 32728,
+      "role": "source read for candidate path consistency"
+    },
+    {
+      "path": "backend/src/sketch2life/application/ports/ai_policy_use.py",
+      "sha256": "5EF8B7370DC4E644EAE5AE885A38DC1C928596EE5096C790D9721ABE92C00155",
+      "bytes": 1768,
+      "role": "source read for candidate path consistency"
+    },
+    {
+      "path": "backend/src/sketch2life/application/ai_policy_use.py",
+      "sha256": "CC20DA8AFEDE4601D6AA1E330232463AD7E12E3B017D47A5551C311C5FB94D01",
+      "bytes": 10067,
+      "role": "source read for candidate path consistency"
+    }
+  ],
+  "current_documents": [
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_UOW_OWNER_DECISION_D3_20261021.md",
+      "sha256": "C1799417AFD2DDB989D6C888A8B3F9702D4A6B4DC2A8B90637DBD6E11C3AE54C",
+      "bytes": 5373,
+      "role": "D3 decision / rereview finding / current successor"
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_UOW_OWNER_D4_COMPLETION_BUDGET_BALLOT_DRAFT_20261021.md",
+      "sha256": "DE50DBD11641E2FD20A8DF0D8F62091D4DBC89FCC332CBE2F60FC222A9AF2D96",
+      "bytes": 1958,
+      "role": "D3 decision / rereview finding / current successor"
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_UOW_CLAUDE_D3_REREVIEW_REPORT_20261021.md",
+      "sha256": "92BE229378A2DE06BAEED1FC6F675EA15FED338892A002A833F81F6972B44C12",
+      "bytes": 12137,
+      "role": "D3 decision / rereview finding / current successor"
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_UOW_CLAUDE_D3_REREVIEW4_DISPOSITION_20261021.md",
+      "sha256": "9A2EC717F1780A0C1A84B32AA0F325DE64C41841F8886CB96C1586C5826C8223",
+      "bytes": 3244,
+      "role": "D3 decision / rereview finding / current successor"
+    },
+    {
+      "path": "features/FEAT-044-be2-ai-job-foundation/plan/CROSS_LANE_FOUNDATION_UOW_SCOPE_REV7_DRAFT_20261021.md",
+      "sha256": "BD119A05F72D311BAC299F3E940927DCE80D67DC1CD38EBE87B7D5ACC1B6EAE9",
+      "bytes": 29826,
+      "role": "D3 decision / rereview finding / current successor"
+    },
+    {
+      "path": "features/FEAT-044-be2-ai-job-foundation/plan/CROSS_LANE_BUDGET_DEFERRAL_CR_REV2_DRAFT_20261021.md",
+      "sha256": "55CB59BE00C5A2F40AE8D635FA07F44DDA3FEE000B21C2EBD3414C0EB9D93376",
+      "bytes": 17097,
+      "role": "D3 decision / rereview finding / current successor"
+    },
+    {
+      "path": "features/FEAT-044-be2-ai-job-foundation/plan/CROSS_LANE_BUDGET_DEFERRAL_SCHEMA_CR_DRAFT_20261021.md",
+      "sha256": "92130E78A5C9327B118F5707A6C9D4A5BF826413297332C9B750005F36653EC3",
+      "bytes": 11204,
+      "role": "D3 decision / rereview finding / current successor"
+    },
+    {
+      "path": "features/FEAT-044-be2-ai-job-foundation/plan/CROSS_LANE_STALE_FINALIZATION_CR_REV2_DRAFT_20261021.md",
+      "sha256": "A4E48C46221C995276F88D678DCD62AC2E3C9B321B1CBA972346293AB63C993B",
+      "bytes": 18234,
+      "role": "D3 decision / rereview finding / current successor"
+    },
+    {
+      "path": "features/FEAT-050-be2-knowledge-video/plan/CROSS_LANE_BE2_08_SCOPE_REV3_DRAFT_20261021.md",
+      "sha256": "66C614FF268E418F27FA4923FB7272A845F7BC7DA8BB225B8CD10032D364F801",
+      "bytes": 26749,
+      "role": "D3 decision / rereview finding / current successor"
+    },
+    {
+      "path": "features/FEAT-049-be2-ai-policy/plan/CROSS_LANE_BE2_14_SCOPE_REV3_DRAFT_20261021.md",
+      "sha256": "02526017042AC56224D2FF63119B0E927EFBC38DE839879632B3831B9ABDABAE",
+      "bytes": 8662,
+      "role": "D3 decision / rereview finding / current successor"
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/plan/CROSS_LANE_X01_X05_SLICE_PLAN_REV8_DRAFT_20261021.md",
+      "sha256": "7EC0CF0C8E29366E580CF59C27CF64BDA0A580E3442F5002ACF1B2048CB74FC3",
+      "bytes": 16743,
+      "role": "D3 decision / rereview finding / current successor"
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_BE1_ARTIFACTS_ADOPTION_PACKET_DRAFT_20261021.md",
+      "sha256": "51D994324DD9DC09F37BF867974FCA3529C60E57C638E5BE294905867584B54C",
+      "bytes": 9883,
+      "role": "D3 decision / rereview finding / current successor"
+    }
+  ],
+  "historical_documents": [
+    {
+      "path": "features/FEAT-044-be2-ai-job-foundation/plan/CROSS_LANE_FOUNDATION_UOW_SCOPE_REV4_DRAFT_20261021.md",
+      "sha256": "9B96CA79FDA1DB8DFCBD2DFED6550ECA0645AD0C86CCEEAAF79793B0B7200381",
+      "bytes": 36205,
+      "role": "historical exact review, plan, owner decision or approved subset"
+    },
+    {
+      "path": "features/FEAT-044-be2-ai-job-foundation/plan/CROSS_LANE_FOUNDATION_UOW_SCOPE_REV5_DRAFT_20261021.md",
+      "sha256": "8BCAD75E2E505053465349E1B93800626B494B6D1076561B437298A1E60A4EF4",
+      "bytes": 32623,
+      "role": "historical exact review, plan, owner decision or approved subset"
+    },
+    {
+      "path": "features/FEAT-050-be2-knowledge-video/plan/CROSS_LANE_BE2_08_ARTIFACT_READ_MODEL_SCOPE_DRAFT_20261021.md",
+      "sha256": "F24823A192A90F11649871348AC0C539C3E63501AAA3A75C21DBC36EB7F15FA1",
+      "bytes": 6408,
+      "role": "historical exact review, plan, owner decision or approved subset"
+    },
+    {
+      "path": "features/FEAT-050-be2-knowledge-video/plan/CROSS_LANE_BE2_08_SCOPE_DRAFT_20261021.md",
+      "sha256": "6A195B6F3C9901621D268CF26B34AA217EECAFE66FA5922BD066149E6A9BC0B0",
+      "bytes": 6677,
+      "role": "historical exact review, plan, owner decision or approved subset"
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_UOW_CLAUDE_REREVIEW2_DISPOSITION_20261021.md",
+      "sha256": "15139BD8E017A10C758D979E92E1DFE7759D72BD981163386D595EE83E9A6E1A",
+      "bytes": 6110,
+      "role": "historical exact review, plan, owner decision or approved subset"
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_UOW_CLAUDE_REREVIEW2_DISPOSITION_REV2_20261021.md",
+      "sha256": "E6B0B8448ABE18430E6E863BD845C30C4913345F6E8E7BEE3E8FBEE28D84E30F",
+      "bytes": 2706,
+      "role": "historical exact review, plan, owner decision or approved subset"
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_UOW_CLAUDE_REREVIEW2_REPORT_20261021.md",
+      "sha256": "7A78475A0E8CE4A71C90E9F7019DA13DEB790C6EF4EB8F7B8CA2CA01DE535611",
+      "bytes": 16734,
+      "role": "historical exact review, plan, owner decision or approved subset"
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_UOW_CLAUDE_REREVIEW3_REPORT_20261021.md",
+      "sha256": "80EB2B425A790BC4B9E8958C9ADB0576B639162458BD0153592749DEE5C5ADC0",
+      "bytes": 14039,
+      "role": "historical exact review, plan, owner decision or approved subset"
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_UOW_CLAUDE_REREVIEW_REPORT_20261021.md",
+      "sha256": "0507A53D569B34ACF9EB44549D6BE794851335F3DBB88FD89E48D17E4AA649F0",
+      "bytes": 14081,
+      "role": "historical exact review, plan, owner decision or approved subset"
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_UOW_EVIDENCE_PATH_RECOVERY_20261021.md",
+      "sha256": "3B7BEA3348A5912C47356B35642FBF4E95D5C301EEBDC926CBFBD49A0EE8A019",
+      "bytes": 1511,
+      "role": "historical exact review, plan, owner decision or approved subset"
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_UOW_OWNER_D3_BALLOT_DRAFT_20261021.md",
+      "sha256": "702033B29586104A868807E298539670603236801794D6BC14EC68EDD2C67B95",
+      "bytes": 3479,
+      "role": "historical exact review, plan, owner decision or approved subset"
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_UOW_OWNER_DECISION_D1_20261021.md",
+      "sha256": "3EECF89A488F7B2539AF41BE5CEF830D4C2509D6E93D478F624DF46B4F32A16D",
+      "bytes": 4909,
+      "role": "historical exact review, plan, owner decision or approved subset"
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_UOW_OWNER_DECISION_D2_20261021.md",
+      "sha256": "641A2239C6C1064C543D16A1DB24E73AC771AA4758889EC3A19C8458E1720103",
+      "bytes": 1926,
+      "role": "historical exact review, plan, owner decision or approved subset"
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/plan/CROSS_LANE_UOW_REREVIEW3_CORRECTION_SPEC_DRAFT_20261021.md",
+      "sha256": "A82B5C1ECA3A06F40709AF0D0F4150F2C2270511E99499EC9D88CCE003529ED1",
+      "bytes": 18895,
+      "role": "historical exact review, plan, owner decision or approved subset"
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/plan/CROSS_LANE_X01_X05_PLAN_ERRATUM_20261021.md",
+      "sha256": "7530294B18B30616EB9A968ABF0AD227C661294500CD0789A7EC514D54E5FE39",
+      "bytes": 8568,
+      "role": "historical exact review, plan, owner decision or approved subset"
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/plan/CROSS_LANE_X01_X05_SLICE_PLAN_DRAFT_20261021.md",
+      "sha256": "6AF69E07E7FC51BD6AAA992A703FBE97AC2BC8E588FEC9F8735FBF74E88C6601",
+      "bytes": 31013,
+      "role": "historical exact review, plan, owner decision or approved subset"
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/plan/CROSS_LANE_X01_X05_SLICE_PLAN_REV5_DRAFT_20261021.md",
+      "sha256": "423E1058317B63F7354E1DAC398D0B1D9AEDE7FAD0C3DCB786C41AB5FD263BE3",
+      "bytes": 16375,
+      "role": "historical exact review, plan, owner decision or approved subset"
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/plan/CROSS_LANE_X01_X05_SLICE_PLAN_REV6_DRAFT_20261021.md",
+      "sha256": "1C44336ADE023C16AF7DF8D7972FCEE69C6155A529C1F4D5B27DA82B8B47D0C3",
+      "bytes": 15524,
+      "role": "historical exact review, plan, owner decision or approved subset"
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_UOW_D3_CLAUDE_REVIEW_PROMPT_20261021.md",
+      "sha256": "D4E028798DAACFC7D888AA5B27F5CB5F6E9FC50AE7E8A81308F1C71706007D30",
+      "bytes": 4747,
+      "role": "historical exact review, plan, owner decision or approved subset"
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_UOW_D3_REREVIEW_PACKET_20261021.md",
+      "sha256": "F51FDAD237496D789413C31104A4915DDADB1805EC62DF17BE57F2E54E0C9959",
+      "bytes": 7676,
+      "role": "historical exact review, plan, owner decision or approved subset"
+    }
+  ],
+  "updated_current_state": [
+    {
+      "path": "features/FEAT-044-be2-ai-job-foundation/DECISIONS.md",
+      "sha256": "74807DACEB25B178919AE13F5894982E2939C62B50BA47C0AA9E73220352225B",
+      "bytes": 76834,
+      "role": "latest rereview4 current-state insertion"
+    },
+    {
+      "path": "features/FEAT-044-be2-ai-job-foundation/CONTEXT.md",
+      "sha256": "C30D3463D4094A96183311CC3C5E8278DB787D8F8A3F8C9861556C4C7027BC70",
+      "bytes": 77597,
+      "role": "latest rereview4 current-state insertion"
+    },
+    {
+      "path": "features/FEAT-044-be2-ai-job-foundation/status/STATUS.md",
+      "sha256": "B9A545B9F12110F56609DEE56ECC045ACD476413102962868319941ACDEF3E17",
+      "bytes": 35246,
+      "role": "latest rereview4 current-state insertion"
+    },
+    {
+      "path": "features/FEAT-044-be2-ai-job-foundation/evidence/README.md",
+      "sha256": "D55EF4E3B2B9203D672E216E0A49452CC2E4D0C20860E958D88F2E8244A1610D",
+      "bytes": 41216,
+      "role": "latest rereview4 current-state insertion"
+    },
+    {
+      "path": "features/FEAT-049-be2-ai-policy/DECISIONS.md",
+      "sha256": "A033124641B4CD603B6C01BBE693C394F34435D5BD286923826061588E5171EC",
+      "bytes": 39272,
+      "role": "latest rereview4 current-state insertion"
+    },
+    {
+      "path": "features/FEAT-049-be2-ai-policy/CONTEXT.md",
+      "sha256": "0802EC0FF9BC60BF7A8A61660F5F87B76A1E64CC28F1CE4E91F181E31E013D08",
+      "bytes": 17605,
+      "role": "latest rereview4 current-state insertion"
+    },
+    {
+      "path": "features/FEAT-049-be2-ai-policy/status/STATUS.md",
+      "sha256": "2F4416079AF3DD2F32D768208B917FC90F3788EAC0C39144713430BFE8A17837",
+      "bytes": 19952,
+      "role": "latest rereview4 current-state insertion"
+    },
+    {
+      "path": "features/FEAT-049-be2-ai-policy/evidence/README.md",
+      "sha256": "0E1C4AD5C431496A8F3CCD2151653E4C35E06822DE37008A18D261FDBFDA12E4",
+      "bytes": 7869,
+      "role": "latest rereview4 current-state insertion"
+    },
+    {
+      "path": "features/FEAT-050-be2-knowledge-video/DECISIONS.md",
+      "sha256": "35617333779F2432351217D30B92F0C153FDCEF172C639928B30321528352131",
+      "bytes": 12917,
+      "role": "latest rereview4 current-state insertion"
+    },
+    {
+      "path": "features/FEAT-050-be2-knowledge-video/CONTEXT.md",
+      "sha256": "7C98248311E9C24FF7058FF1D1867B0BCEF8F344E2109362429BA61B520A33A9",
+      "bytes": 10468,
+      "role": "latest rereview4 current-state insertion"
+    },
+    {
+      "path": "features/FEAT-050-be2-knowledge-video/status/STATUS.md",
+      "sha256": "D5C88C3485F53BF7F9084C1FD29A86A4FEAFE23BB3178351A1B6539B4418FD9B",
+      "bytes": 8079,
+      "role": "latest rereview4 current-state insertion"
+    },
+    {
+      "path": "features/FEAT-050-be2-knowledge-video/evidence/README.md",
+      "sha256": "DF42C609BC6ADCFCF9A3EC73DB398CFF4669F46B6031E07B40AB301064B2D051",
+      "bytes": 5302,
+      "role": "latest rereview4 current-state insertion"
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/DECISIONS.md",
+      "sha256": "12BE3AE9A9CCE381CBE2E5859496905CB70D9A845C8FE7912D8D528B29376FCE",
+      "bytes": 24499,
+      "role": "latest rereview4 current-state insertion"
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/CONTEXT.md",
+      "sha256": "046522499D0E169B735DC9A1B2F554A25E73FEB35A4F478495404DE96EB4D157",
+      "bytes": 23879,
+      "role": "latest rereview4 current-state insertion"
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/status/STATUS.md",
+      "sha256": "AC9225DB068626B5AB1EA0C9B6864F5B0A64629515A3E092CE66CD31F754591C",
+      "bytes": 22818,
+      "role": "latest rereview4 current-state insertion"
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/README.md",
+      "sha256": "3AB6A29673C0D5E03768A6C13CC8241207121AEB47D8D7DC38CD2B9A3C3CC2AF",
+      "bytes": 18464,
+      "role": "latest rereview4 current-state insertion"
+    },
+    {
+      "path": "docs/context/PROJECT_CONTEXT.md",
+      "sha256": "8982D8AD620288730925B43E2CCC3EEF4C5ED8577C9209D823F6A30FBECA5224",
+      "bytes": 73163,
+      "role": "latest rereview4 current-state insertion"
+    },
+    {
+      "path": "docs/context/SOURCE_REGISTER.md",
+      "sha256": "7898E565279A82484821C6C85514147753A66242D2BF8B6C4069FCF06F0A2ADC",
+      "bytes": 54854,
+      "role": "latest rereview4 current-state insertion"
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/plan/CARD_IMPLEMENTATION_SCOPE_INDEX_DRAFT_20261021.md",
+      "sha256": "4850054A76DC733AC2F1FE6EC95AD25EE5A6164762C83EA62FE283B61081E48B",
+      "bytes": 12706,
+      "role": "latest rereview4 current-state insertion"
+    }
+  ],
+  "input_verification": "Claude rereview4 independently reported 81/81 prior D3 manifest hashes matched. This follow-up manifest pins the new successor bytes and state.",
+  "test_execution": "NOT_RUN",
+  "runtime_execution": "NOT_RUN",
+  "external_contact": "NOT_SENT"
+}

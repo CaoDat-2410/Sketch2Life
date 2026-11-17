@@ -1,0 +1,285 @@
+{
+  "kind": "BE207_FINAL_OFFLINE_CHECKS",
+  "evidence_revision": "POST_CLAUDE",
+  "supersedes": "evidence/metrics/BE207_FINAL_OFFLINE_CHECKS_20261020.json",
+  "profile": "BE207_REQUIRED_OFFLINE_01_07",
+  "final_run": "evidence/local/final-offline-post-claude-20261020",
+  "source_manifest_sha256": "eee3e905f008ce65fad341fc34aa47c28d28f5cdf1ecc7c68ba8c98023b792a3",
+  "acceptance_map_generator_sha256": "234c857fa071c09a9c4e03bf6ad976c0581583c3d8a6ab8eb93eeb681742810d",
+  "source_manifest_files": 601,
+  "junit_sha256": "73b80e03d801fa83f1f61453d610834eb4f2525d3ab38ec1ae7ef735cf31be7d",
+  "junit_counts": {
+    "collected": 1587,
+    "passed": 1584,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 3
+  },
+  "mapped_acceptance_cases": {
+    "pass": 42,
+    "partial": 0,
+    "not_run": 0
+  },
+  "selected_test_files": {
+    "baseline_01_06": 50,
+    "required_07": 6,
+    "total": 56,
+    "selection_sha256": "daaba05409651d6883a522347904aeb383999d7eeae4a10add0d4914096be430"
+  },
+  "packages": {
+    "pytest": "8.4.2",
+    "pydantic": "2.13.4",
+    "ruff": "0.16.4",
+    "mypy": "1.20.2"
+  },
+  "checks": {
+    "collection": {
+      "exit": 0,
+      "seconds": 3.125,
+      "started_utc": "2026-10-20T05:28:32.278084+00:00",
+      "ended_utc": "2026-10-20T05:28:35.403822+00:00",
+      "log_sha256": "101b52fbc098c4bc215bc4de66b972be923efb54fb3aa81c9047569f20ee9e36"
+    },
+    "pytest": {
+      "exit": 0,
+      "seconds": 11.625,
+      "started_utc": "2026-10-20T05:28:35.414633+00:00",
+      "ended_utc": "2026-10-20T05:28:47.032085+00:00",
+      "log_sha256": "68a17b8c5c0f9784f1d1924cdff7b014a42a9241a112d3e9a30fc252846a6613"
+    },
+    "ruff": {
+      "exit": 0,
+      "seconds": 0.11,
+      "started_utc": "2026-10-20T05:28:47.084275+00:00",
+      "ended_utc": "2026-10-20T05:28:47.193082+00:00",
+      "log_sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+    },
+    "evidence-script-ruff": {
+      "exit": 0,
+      "seconds": 0.109,
+      "started_utc": "2026-10-20T05:28:47.193082+00:00",
+      "ended_utc": "2026-10-20T05:28:47.292862+00:00",
+      "log_sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+    },
+    "mypy-strict": {
+      "exit": 0,
+      "seconds": 0.219,
+      "started_utc": "2026-10-20T05:28:47.293863+00:00",
+      "ended_utc": "2026-10-20T05:28:47.516250+00:00",
+      "log_sha256": "e522fa370334927ac2ccb7106100045b572938dd238093267de825336e6704f2"
+    },
+    "mypy-fresh-cache": {
+      "exit": 0,
+      "seconds": 1.391,
+      "started_utc": "2026-10-20T05:28:47.517256+00:00",
+      "ended_utc": "2026-10-20T05:28:48.916411+00:00",
+      "log_sha256": "e522fa370334927ac2ccb7106100045b572938dd238093267de825336e6704f2"
+    },
+    "validate-harness": {
+      "exit": 0,
+      "seconds": 0.235,
+      "started_utc": "2026-10-20T05:28:48.917534+00:00",
+      "ended_utc": "2026-10-20T05:28:49.166520+00:00",
+      "log_sha256": "bcb49c3e0135849d66743bca1c2dc53dd0b4de175f3146e80f8b5ea38c611636"
+    },
+    "validate-repository_security": {
+      "exit": 0,
+      "seconds": 2.375,
+      "started_utc": "2026-10-20T05:28:49.166520+00:00",
+      "ended_utc": "2026-10-20T05:28:51.536294+00:00",
+      "log_sha256": "382badabf5e28256577d4da9f3dae3f86d01bd8f0b93542bf8c48dea7b6e8f1e"
+    },
+    "validate-architecture": {
+      "exit": 0,
+      "seconds": 0.125,
+      "started_utc": "2026-10-20T05:28:51.536824+00:00",
+      "ended_utc": "2026-10-20T05:28:51.655828+00:00",
+      "log_sha256": "67f1bc538fc90b4f70000a89126dde0aa14c688b8c3dbba796e1a89d6caef80e"
+    },
+    "validate-skeleton": {
+      "exit": 0,
+      "seconds": 0.078,
+      "started_utc": "2026-10-20T05:28:51.656836+00:00",
+      "ended_utc": "2026-10-20T05:28:51.732708+00:00",
+      "log_sha256": "c3bd0318347efa17e2cb71a192287f1fe5bbb4bb1932fa8a360e6f3328a7bd1b"
+    },
+    "diff-check": {
+      "exit": 0,
+      "seconds": 0.062,
+      "started_utc": "2026-10-20T05:28:51.732708+00:00",
+      "ended_utc": "2026-10-20T05:28:51.791770+00:00",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "invariants": {
+    "baseline_backend_unchanged": 572,
+    "other_tracked_unchanged": 3309,
+    "staged": 0,
+    "head_unchanged": true,
+    "shared_history_preserved": true,
+    "old_draft_unchanged": true,
+    "approved_plan_unchanged": true,
+    "prior_authorization_plan_evidence_unchanged_files": 12,
+    "preserved_records": [
+      "features/FEAT-056-be2-knowledge-script/approvals/TASK_APPROVAL.md",
+      "features/FEAT-056-be2-knowledge-script/evidence/metrics/.gitkeep",
+      "features/FEAT-056-be2-knowledge-script/evidence/metrics/ACCEPTANCE_MAP_BE207_20261020.json",
+      "features/FEAT-056-be2-knowledge-script/evidence/metrics/BE207_FINAL_OFFLINE_CHECKS_20261020.json",
+      "features/FEAT-056-be2-knowledge-script/evidence/metrics/OFFLINE_HANDOFF_BE207_20261020.md",
+      "features/FEAT-056-be2-knowledge-script/evidence/metrics/PLAN_CHECKS_20261019.json",
+      "features/FEAT-056-be2-knowledge-script/evidence/notes/INDEPENDENT_ATOMIC_REVIEW.md",
+      "features/FEAT-056-be2-knowledge-script/evidence/notes/INDEPENDENT_PARTS_1_4_REVIEW.md",
+      "features/FEAT-056-be2-knowledge-script/plan/BE2_01_07_RUNTIME_CAMPAIGN_PLAN.md",
+      "features/FEAT-056-be2-knowledge-script/plan/OWNER_DECISION_PACKAGE.md",
+      "features/FEAT-056-be2-knowledge-script/plan/PLAN.md",
+      "features/FEAT-056-be2-knowledge-script/plan/PLAN_REV1_APPROVED.md"
+    ],
+    "pre_remediation_baseline_ref": "evidence/local/claude-remediation-20261020/before-files.json",
+    "historical_note_restoration_ref": "evidence/local/claude-remediation-20261020/historical-review-note-move.json",
+    "own_source_utf8_lf": [
+      "backend/src/sketch2life/application/ports/knowledge_bundle.py",
+      "backend/src/sketch2life/application/services/knowledge_bundle.py",
+      "backend/src/sketch2life/contracts/schemas/knowledge_bundles.py",
+      "backend/src/sketch2life/domain/knowledge_bundle.py",
+      "backend/src/sketch2life/infrastructure/knowledge_bundle/__init__.py",
+      "backend/src/sketch2life/infrastructure/knowledge_bundle/adapters.py",
+      "backend/src/sketch2life/infrastructure/knowledge_bundle/coordination.py",
+      "backend/src/sketch2life/infrastructure/knowledge_bundle/examples.py",
+      "backend/src/sketch2life/infrastructure/knowledge_bundle/fakes.py",
+      "backend/src/sketch2life/infrastructure/knowledge_bundle/harness.py",
+      "backend/tests/contract/test_knowledge_bundles.py",
+      "backend/tests/unit/test_knowledge_bundle_adapters.py",
+      "backend/tests/unit/test_knowledge_bundle_chain.py",
+      "backend/tests/unit/test_knowledge_bundle_domain.py",
+      "backend/tests/unit/test_knowledge_bundle_races.py",
+      "backend/tests/unit/test_knowledge_bundle_service.py"
+    ]
+  },
+  "external_invariants": {
+    "main_unchanged_files": 356,
+    "shared_unchanged_files": 1243,
+    "a17_unchanged_files": 6112,
+    "external_baseline_sha256": "dea79e2656412d627e27562fa22904e66ac777fcd7074b419da4e5b26192376e",
+    "external_baseline_ref": "evidence/local/execution-baseline/external-before.json"
+  },
+  "batch_profile_checks": {
+    "passed": true,
+    "execution_kind": "evidence_gate",
+    "runner_function": "run_execution_checks.py::profile_gate",
+    "baseline_01_06_files": 50,
+    "current_07_files": 6,
+    "selected_files": 56,
+    "baseline_selection_ref": "evidence/local/execution-baseline/required-01-06-files.json",
+    "baseline_selection_sha256": "09b25261a8b6dea6c9dba63db0df30e23982d4ec62f7f0d41984d1a300f132db",
+    "profile_sha256": "b2be18585c72a71fb0cadfa69c2d4528aed50541107e84a43904f52e705b0580"
+  },
+  "text_hygiene": {
+    "passed": true,
+    "scanned_files": 51,
+    "scanned_paths": [
+      "backend/src/sketch2life/application/ports/knowledge_bundle.py",
+      "backend/src/sketch2life/application/services/knowledge_bundle.py",
+      "backend/src/sketch2life/contracts/schemas/knowledge_bundles.py",
+      "backend/src/sketch2life/domain/knowledge_bundle.py",
+      "backend/src/sketch2life/infrastructure/knowledge_bundle/__init__.py",
+      "backend/src/sketch2life/infrastructure/knowledge_bundle/adapters.py",
+      "backend/src/sketch2life/infrastructure/knowledge_bundle/coordination.py",
+      "backend/src/sketch2life/infrastructure/knowledge_bundle/examples.py",
+      "backend/src/sketch2life/infrastructure/knowledge_bundle/fakes.py",
+      "backend/src/sketch2life/infrastructure/knowledge_bundle/harness.py",
+      "backend/tests/contract/test_knowledge_bundles.py",
+      "backend/tests/unit/test_knowledge_bundle_adapters.py",
+      "backend/tests/unit/test_knowledge_bundle_chain.py",
+      "backend/tests/unit/test_knowledge_bundle_domain.py",
+      "backend/tests/unit/test_knowledge_bundle_races.py",
+      "backend/tests/unit/test_knowledge_bundle_service.py",
+      "features/FEAT-056-be2-knowledge-script/approvals/TASK_APPROVAL.md",
+      "features/FEAT-056-be2-knowledge-script/artifacts/BASELINE_BACKEND_FILES.json",
+      "features/FEAT-056-be2-knowledge-script/artifacts/KNOWLEDGE_BUNDLE_EXAMPLES.json",
+      "features/FEAT-056-be2-knowledge-script/artifacts/OFFLINE_BATCH_PROFILE.json",
+      "features/FEAT-056-be2-knowledge-script/assets/REVIEW.md",
+      "features/FEAT-056-be2-knowledge-script/CONTEXT.md",
+      "features/FEAT-056-be2-knowledge-script/DECISIONS.md",
+      "features/FEAT-056-be2-knowledge-script/evidence/metrics/ACCEPTANCE_MAP_BE207_20261020.json",
+      "features/FEAT-056-be2-knowledge-script/evidence/metrics/BE207_FINAL_OFFLINE_CHECKS_20261020.json",
+      "features/FEAT-056-be2-knowledge-script/evidence/metrics/OFFLINE_HANDOFF_BE207_20261020.md",
+      "features/FEAT-056-be2-knowledge-script/evidence/metrics/PLAN_CHECKS_20261019.json",
+      "features/FEAT-056-be2-knowledge-script/evidence/notes/ACCEPTANCE_REVIEW.md",
+      "features/FEAT-056-be2-knowledge-script/evidence/notes/CLAUDE_REMEDIATION_20261020.md",
+      "features/FEAT-056-be2-knowledge-script/evidence/notes/CLAUDE_RESOLVER_REGRESSION_20261020.md",
+      "features/FEAT-056-be2-knowledge-script/evidence/notes/INDEPENDENT_ATOMIC_REVIEW.md",
+      "features/FEAT-056-be2-knowledge-script/evidence/notes/INDEPENDENT_PARTS_1_4_REVIEW.md",
+      "features/FEAT-056-be2-knowledge-script/evidence/notes/INDEPENDENT_POST_CLAUDE_REVIEW_20261020.md",
+      "features/FEAT-056-be2-knowledge-script/evidence/notes/PART5_HARNESS_TESTS.md",
+      "features/FEAT-056-be2-knowledge-script/evidence/notes/PART6_ADAPTERS.md",
+      "features/FEAT-056-be2-knowledge-script/evidence/notes/PART7_CONSUMER.md",
+      "features/FEAT-056-be2-knowledge-script/evidence/notes/PART8_EXAMPLES.md",
+      "features/FEAT-056-be2-knowledge-script/evidence/notes/PART_5.md",
+      "features/FEAT-056-be2-knowledge-script/evidence/notes/PART_6.md",
+      "features/FEAT-056-be2-knowledge-script/evidence/notes/PART_7.md",
+      "features/FEAT-056-be2-knowledge-script/evidence/notes/PART_8.md",
+      "features/FEAT-056-be2-knowledge-script/evidence/notes/PARTS_1_4.md",
+      "features/FEAT-056-be2-knowledge-script/evidence/notes/PLAN_REVIEW_20261019.md",
+      "features/FEAT-056-be2-knowledge-script/evidence/notes/PROGRESS.md",
+      "features/FEAT-056-be2-knowledge-script/evidence/notes/SOURCE_AUDIT_20261019.md",
+      "features/FEAT-056-be2-knowledge-script/evidence/README.md",
+      "features/FEAT-056-be2-knowledge-script/plan/BE2_01_07_RUNTIME_CAMPAIGN_PLAN.md",
+      "features/FEAT-056-be2-knowledge-script/plan/OWNER_DECISION_PACKAGE.md",
+      "features/FEAT-056-be2-knowledge-script/plan/PLAN.md",
+      "features/FEAT-056-be2-knowledge-script/plan/PLAN_REV1_APPROVED.md",
+      "features/FEAT-056-be2-knowledge-script/status/STATUS.md"
+    ],
+    "frozen_exceptions": [
+      {
+        "path": "features/FEAT-056-be2-knowledge-script/approvals/TASK_APPROVAL.md",
+        "sha256": "0010271d9db68dbbe8b9675021540df3e2cd420f636c0f7a8113ea9b91da2078",
+        "issue": "frozen approval has a trailing blank line",
+        "disposition": "PRESERVED_AUTHORIZATION_RECORD; no approval bytes edited"
+      }
+    ],
+    "routing_h1_first": [
+      "docs/context/PROJECT_CONTEXT.md",
+      "docs/context/SOURCE_REGISTER.md",
+      "features/FEAT-044-be2-ai-job-foundation/plan/BE2_EXECUTION_TRACKER.md"
+    ],
+    "explicit_eol_normalizations": [
+      {
+        "path": "features/FEAT-056-be2-knowledge-script/evidence/notes/PART6_ADAPTERS.md",
+        "before_sha256": "2c7831f34cb007fb550df691b7db7e08a63c6c0c80eea4ac8aaf865fb44f40c3",
+        "after_sha256": "e270c6434f512887a008ee76674144ee87b89a95eb94072bb161e6e045979a98"
+      },
+      {
+        "path": "features/FEAT-056-be2-knowledge-script/evidence/notes/PART8_EXAMPLES.md",
+        "before_sha256": "87dfaab755262a94512e2a153678b0edca8a0aeff1743453c5b58e161e8935ed",
+        "after_sha256": "7a3da138218bf74ef7eb46b4f750df877e928743fe00030af0477e7e072c92d5"
+      }
+    ]
+  },
+  "skipped_cases": [
+    {
+      "classname": "tests.contract.test_ai_job_polling",
+      "name": "test_live_app_routes_have_no_candidate_job_route",
+      "reason": "live app import needs Pillow (not in this env)"
+    },
+    {
+      "classname": "tests.contract.test_analysis_corrections_api",
+      "name": "test_v12_production_app_routes_do_not_mount_cmd34",
+      "reason": "live app import needs Pillow (not in this env)"
+    },
+    {
+      "classname": "tests.contract.test_assistance_requests_api",
+      "name": "test_live_app_has_no_assistance_route",
+      "reason": "live app import needs Pillow (not in this env)"
+    }
+  ],
+  "excluded": [
+    {
+      "path": "backend/tests/unit/test_lightning_vision_v2_server.py",
+      "reason": "Pillow-importing V2 runtime server module; missing dependency and outside offline component profile; NOT_RUN"
+    }
+  ],
+  "runtime_executed": false,
+  "dependency_installation": false,
+  "owner_component_acceptance": "NOT_ACCEPTED",
+  "card_status": "IN_PROGRESS / NOT_DONE"
+}

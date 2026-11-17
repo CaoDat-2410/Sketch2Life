@@ -1,0 +1,112 @@
+{
+  "date": "2026-10-23",
+  "status": "PASS",
+  "outputs": {
+    "report_docx": {
+      "path": "features\\FEAT-058-review2-document-package\\artifacts\\SWP490_FA26SE225_R2_Reports1-5_Tracking.docx",
+      "bytes": 1086482,
+      "sha256": "bb8fdc18ba8665321be4ad5fff4e15af1ec34684b4d195265d56df70abcb94cc",
+      "tables": 32,
+      "media_objects": 14,
+      "sections": [
+        {
+          "page_width_in": 8.268,
+          "page_height_in": 11.693,
+          "margins_in": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      ]
+    },
+    "brief_docx": {
+      "path": "features\\FEAT-058-review2-document-package\\artifacts\\SWP490_FA26SE225_R2_DesignBrief.docx",
+      "bytes": 18596,
+      "sha256": "33a734a305d4121b11e7471171343b089530f048f85715d0cf282c9ca614c28b",
+      "tables": 11,
+      "media_objects": 0,
+      "sections": [
+        {
+          "page_width_in": 8.267,
+          "page_height_in": 11.693,
+          "margins_in": [
+            0.787,
+            0.787,
+            0.787,
+            0.787
+          ]
+        }
+      ]
+    },
+    "report_pdf": {
+      "path": "features\\FEAT-058-review2-document-package\\artifacts\\SWP490_FA26SE225_R2_Reports1-5_Tracking.pdf",
+      "bytes": 1544957,
+      "sha256": "ba11fd1e62f345a3d232ff8a37dab1083202fbf81a868f57e2530fda99c450c4",
+      "pages": 24
+    },
+    "brief_pdf": {
+      "path": "features\\FEAT-058-review2-document-package\\artifacts\\SWP490_FA26SE225_R2_DesignBrief.pdf",
+      "bytes": 354512,
+      "sha256": "cc4f97838eada13535799d6b2c06f63666bcec0a95a088cab74b69f3c0bc6e0b",
+      "pages": 6
+    }
+  },
+  "checks": {
+    "report_docx_zip_integrity": "PASS",
+    "report_sections_traceability_and_figures": {
+      "status": "PASS",
+      "FR_ids": 66,
+      "UC_ids": 13,
+      "technical_figures": 13,
+      "media_objects_including_cover_logo": 14
+    },
+    "brief_docx_zip_integrity": "PASS",
+    "brief_structure_cardinality_and_type": {
+      "status": "PASS",
+      "sections_0_to_8": "within first 4 pages",
+      "A4": "PASS",
+      "margins": "2 cm",
+      "run_font_chars": {
+        "11.0": 10414,
+        "22.0": 12,
+        "12.5": 162
+      },
+      "decisions": 5,
+      "risks": 3,
+      "mandatory_features": 6,
+      "candidate_NFRs": 6,
+      "owners": 4,
+      "main_workflows": 4,
+      "main_exception_scenarios": 8
+    },
+    "report_pdf_pages_and_text": "PASS",
+    "brief_pdf_pages_and_text": "PASS",
+    "editable_mermaid_sources": {
+      "count": 13,
+      "status": "PASS"
+    }
+  },
+  "source_templates": {
+    "Report7 reference": {
+      "sha256": "ab559f29deebc9be7e23ccf94ba535f6dc48e21174694e8efa97990db27facfc",
+      "verified": "PASS"
+    },
+    "BM01 reference": {
+      "sha256": "1fdcda346a65501601310952c1b0afebc3a3cdf70e4e6a70581e023a02e2f4c8",
+      "verified": "PASS"
+    },
+    "registration v1.2": {
+      "sha256": "0c52809dfc24bacfe6d3f5e02f0f3150ba5453d999dabf739b2eadfeafbad5df",
+      "verified": "PASS"
+    }
+  },
+  "visual_review": {
+    "method": "Microsoft Word COM PDF export and pypdfium2 rasterization; all final contact sheets and all pages visually inspected",
+    "report_pages": 24,
+    "brief_pages": 6,
+    "brief_main_pages": 4,
+    "brief_appendix_pages": 2
+  }
+}

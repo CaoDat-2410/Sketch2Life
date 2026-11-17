@@ -1,0 +1,18 @@
+{
+  "outcome": "UNKNOWN_NO_RETRY",
+  "error_type": "TimeoutError",
+  "started_at": "2026-11-04T21:29:36+07:00",
+  "ended_at": "2026-11-04T21:59:38+07:00",
+  "source_image_sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949",
+  "wait_limit_seconds": 1800,
+  "queue_confirmation": {
+    "modal_function_id": "fu-aOa0vIV6Ytogn4n6W7ixOu",
+    "log": "Function segment-synthetic-drawing-candidate was waiting to be scheduled on GPU_L4 while Modal acquired capacity.",
+    "inference_started": false,
+    "mask_created": false
+  },
+  "call_id_recorded": false,
+  "call_id_note": "The timeout path in the SAM2 runner does not persist the spawned call ID when _bounded_call raises; the call was cancelled by the runner and the app was stopped with zero tasks. No retry was sent.",
+  "app_stopped_at": "2026-11-04T22:00:30+07:00",
+  "tasks_after_stop": 0
+}

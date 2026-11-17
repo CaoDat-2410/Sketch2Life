@@ -1,0 +1,20 @@
+============================= test session starts =============================
+platform win32 -- Python 3.12.14, pytest-8.4.2, pluggy-1.6.0
+rootdir: <workspace>
+plugins: anyio-4.14.2, asyncio-1.4.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 8 items
+
+tests\unit\test_montessori_golden.py ........                            [100%]
+
+=================================== PASSES ====================================
+=========================== short test summary info ===========================
+PASSED tests/unit/test_montessori_golden.py::test_golden_standalone_validator_passes
+PASSED tests/unit/test_montessori_golden.py::test_frozen_baseline_hashes_match
+PASSED tests/unit/test_montessori_golden.py::test_canonical_json_hash_ignores_line_endings
+PASSED tests/unit/test_montessori_golden.py::test_primary_and_substitute_paths_are_valid
+PASSED tests/unit/test_montessori_golden.py::test_multiple_hard_failures_are_all_preserved
+PASSED tests/unit/test_montessori_golden.py::test_golden_records_retain_provisional_nonproduction_guard
+PASSED tests/unit/test_montessori_golden.py::test_mutated_fixture_is_rejected_by_checksum
+PASSED tests/unit/test_montessori_golden.py::test_mutated_parent_baseline_is_rejected
+============================== 8 passed in 0.46s ==============================

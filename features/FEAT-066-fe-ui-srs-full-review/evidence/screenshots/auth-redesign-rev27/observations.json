@@ -1,0 +1,932 @@
+{
+  "browser": "isolated local Chrome target; no auth credentials or product API calls",
+  "networkPolicy": "Only HTTP requests to 127.0.0.1 ports 5172, 5173 and 5174 were allowed; other requests were blocked.",
+  "roles": [
+    "Teacher",
+    "School Manager",
+    "Platform Admin"
+  ],
+  "captures": [
+    {
+      "file": "teacher-1440x900.png",
+      "url": "http://127.0.0.1:5172/login",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Dạy học\nmở lối mới.",
+      "roleLabel": "Giáo viên",
+      "activePortal": "Giáo viên\nTeacher",
+      "ariaCurrentCount": 1,
+      "portalLinks": [
+        {
+          "label": "Giáo viên",
+          "href": "http://127.0.0.1:5172/login",
+          "current": "page",
+          "disabled": false
+        },
+        {
+          "label": "Quản lý trường",
+          "href": "http://127.0.0.1:5173/login",
+          "current": null,
+          "disabled": false
+        },
+        {
+          "label": "Quản trị nền tảng",
+          "href": "http://127.0.0.1:5174/login",
+          "current": null,
+          "disabled": false
+        }
+      ],
+      "fieldLabels": [
+        "Email tài khoản"
+      ],
+      "submitText": "Vào bản xem thử",
+      "submitInFirstViewport": true,
+      "previewNotice": "iBản xem thử chỉ mở giao diện; không xác thực, không gọi backend và không lưu dữ liệu.",
+      "artworkFallbackVisible": false,
+      "artworkFallbackOpacity": "0",
+      "artworkFallbackParent": "s2l-auth-art-fallback-layer",
+      "artworkFallbackInsideScene": true,
+      "webglCanvasOpacity": "1",
+      "webglReady": true,
+      "keyboardFocusVisibleRule": false
+    },
+    {
+      "file": "teacher-1024x768.png",
+      "url": "http://127.0.0.1:5172/login",
+      "viewport": {
+        "width": 1024,
+        "height": 768
+      },
+      "documentWidth": 1024,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Dạy học\nmở lối mới.",
+      "roleLabel": "Giáo viên",
+      "activePortal": "Giáo viên\nTeacher",
+      "ariaCurrentCount": 1,
+      "portalLinks": [
+        {
+          "label": "Giáo viên",
+          "href": "http://127.0.0.1:5172/login",
+          "current": "page",
+          "disabled": false
+        },
+        {
+          "label": "Quản lý trường",
+          "href": "http://127.0.0.1:5173/login",
+          "current": null,
+          "disabled": false
+        },
+        {
+          "label": "Quản trị nền tảng",
+          "href": "http://127.0.0.1:5174/login",
+          "current": null,
+          "disabled": false
+        }
+      ],
+      "fieldLabels": [
+        "Email tài khoản"
+      ],
+      "submitText": "Vào bản xem thử",
+      "submitInFirstViewport": true,
+      "previewNotice": "iBản xem thử chỉ mở giao diện; không xác thực, không gọi backend và không lưu dữ liệu.",
+      "artworkFallbackVisible": false,
+      "artworkFallbackOpacity": "0",
+      "artworkFallbackParent": "s2l-auth-art-fallback-layer",
+      "artworkFallbackInsideScene": true,
+      "webglCanvasOpacity": "1",
+      "webglReady": true,
+      "keyboardFocusVisibleRule": false
+    },
+    {
+      "file": "teacher-768x1024.png",
+      "url": "http://127.0.0.1:5172/login",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "documentWidth": 758,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Dạy học\nmở lối mới.",
+      "roleLabel": "Giáo viên",
+      "activePortal": "Giáo viên\nTeacher",
+      "ariaCurrentCount": 1,
+      "portalLinks": [
+        {
+          "label": "Giáo viên",
+          "href": "http://127.0.0.1:5172/login",
+          "current": "page",
+          "disabled": false
+        },
+        {
+          "label": "Quản lý trường",
+          "href": "http://127.0.0.1:5173/login",
+          "current": null,
+          "disabled": false
+        },
+        {
+          "label": "Quản trị nền tảng",
+          "href": "http://127.0.0.1:5174/login",
+          "current": null,
+          "disabled": false
+        }
+      ],
+      "fieldLabels": [
+        "Email tài khoản"
+      ],
+      "submitText": "Vào bản xem thử",
+      "submitInFirstViewport": true,
+      "previewNotice": "iBản xem thử chỉ mở giao diện; không xác thực, không gọi backend và không lưu dữ liệu.",
+      "artworkFallbackVisible": true,
+      "artworkFallbackOpacity": "1",
+      "artworkFallbackParent": "s2l-auth-art-scene",
+      "artworkFallbackInsideScene": false,
+      "webglCanvasOpacity": "missing",
+      "webglReady": false,
+      "keyboardFocusVisibleRule": false
+    },
+    {
+      "file": "teacher-390x844.png",
+      "url": "http://127.0.0.1:5172/login",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Dạy học\nmở lối mới.",
+      "roleLabel": "Giáo viên",
+      "activePortal": "Giáo viên",
+      "ariaCurrentCount": 1,
+      "portalLinks": [
+        {
+          "label": "Giáo viên",
+          "href": "http://127.0.0.1:5172/login",
+          "current": "page",
+          "disabled": false
+        },
+        {
+          "label": "Quản lý trường",
+          "href": "http://127.0.0.1:5173/login",
+          "current": null,
+          "disabled": false
+        },
+        {
+          "label": "Quản trị nền tảng",
+          "href": "http://127.0.0.1:5174/login",
+          "current": null,
+          "disabled": false
+        }
+      ],
+      "fieldLabels": [
+        "Email tài khoản"
+      ],
+      "submitText": "Vào bản xem thử",
+      "submitInFirstViewport": true,
+      "previewNotice": "iBản xem thử chỉ mở giao diện; không xác thực, không gọi backend và không lưu dữ liệu.",
+      "artworkFallbackVisible": true,
+      "artworkFallbackOpacity": "1",
+      "artworkFallbackParent": "s2l-auth-art-scene",
+      "artworkFallbackInsideScene": false,
+      "webglCanvasOpacity": "missing",
+      "webglReady": false,
+      "keyboardFocusVisibleRule": false
+    },
+    {
+      "file": "school-manager-1440x900.png",
+      "url": "http://127.0.0.1:5173/login",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Điều phối\nđể sáng tạo.",
+      "roleLabel": "Quản lý trường",
+      "activePortal": "Quản lý trường\nSchool Manager",
+      "ariaCurrentCount": 1,
+      "portalLinks": [
+        {
+          "label": "Giáo viên",
+          "href": "http://127.0.0.1:5172/login",
+          "current": null,
+          "disabled": false
+        },
+        {
+          "label": "Quản lý trường",
+          "href": "http://127.0.0.1:5173/login",
+          "current": "page",
+          "disabled": false
+        },
+        {
+          "label": "Quản trị nền tảng",
+          "href": "http://127.0.0.1:5174/login",
+          "current": null,
+          "disabled": false
+        }
+      ],
+      "fieldLabels": [
+        "Email tài khoản"
+      ],
+      "submitText": "Vào bản xem thử",
+      "submitInFirstViewport": true,
+      "previewNotice": "iBản xem thử chỉ mở giao diện; không xác thực, không gọi backend và không lưu dữ liệu.",
+      "artworkFallbackVisible": false,
+      "artworkFallbackOpacity": "0",
+      "artworkFallbackParent": "s2l-auth-art-fallback-layer",
+      "artworkFallbackInsideScene": true,
+      "webglCanvasOpacity": "1",
+      "webglReady": true,
+      "keyboardFocusVisibleRule": false
+    },
+    {
+      "file": "school-manager-1024x768.png",
+      "url": "http://127.0.0.1:5173/login",
+      "viewport": {
+        "width": 1024,
+        "height": 768
+      },
+      "documentWidth": 1024,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Điều phối\nđể sáng tạo.",
+      "roleLabel": "Quản lý trường",
+      "activePortal": "Quản lý trường\nSchool Manager",
+      "ariaCurrentCount": 1,
+      "portalLinks": [
+        {
+          "label": "Giáo viên",
+          "href": "http://127.0.0.1:5172/login",
+          "current": null,
+          "disabled": false
+        },
+        {
+          "label": "Quản lý trường",
+          "href": "http://127.0.0.1:5173/login",
+          "current": "page",
+          "disabled": false
+        },
+        {
+          "label": "Quản trị nền tảng",
+          "href": "http://127.0.0.1:5174/login",
+          "current": null,
+          "disabled": false
+        }
+      ],
+      "fieldLabels": [
+        "Email tài khoản"
+      ],
+      "submitText": "Vào bản xem thử",
+      "submitInFirstViewport": true,
+      "previewNotice": "iBản xem thử chỉ mở giao diện; không xác thực, không gọi backend và không lưu dữ liệu.",
+      "artworkFallbackVisible": false,
+      "artworkFallbackOpacity": "0",
+      "artworkFallbackParent": "s2l-auth-art-fallback-layer",
+      "artworkFallbackInsideScene": true,
+      "webglCanvasOpacity": "1",
+      "webglReady": true,
+      "keyboardFocusVisibleRule": false
+    },
+    {
+      "file": "school-manager-768x1024.png",
+      "url": "http://127.0.0.1:5173/login",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "documentWidth": 758,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Điều phối\nđể sáng tạo.",
+      "roleLabel": "Quản lý trường",
+      "activePortal": "Quản lý trường\nSchool Manager",
+      "ariaCurrentCount": 1,
+      "portalLinks": [
+        {
+          "label": "Giáo viên",
+          "href": "http://127.0.0.1:5172/login",
+          "current": null,
+          "disabled": false
+        },
+        {
+          "label": "Quản lý trường",
+          "href": "http://127.0.0.1:5173/login",
+          "current": "page",
+          "disabled": false
+        },
+        {
+          "label": "Quản trị nền tảng",
+          "href": "http://127.0.0.1:5174/login",
+          "current": null,
+          "disabled": false
+        }
+      ],
+      "fieldLabels": [
+        "Email tài khoản"
+      ],
+      "submitText": "Vào bản xem thử",
+      "submitInFirstViewport": true,
+      "previewNotice": "iBản xem thử chỉ mở giao diện; không xác thực, không gọi backend và không lưu dữ liệu.",
+      "artworkFallbackVisible": true,
+      "artworkFallbackOpacity": "1",
+      "artworkFallbackParent": "s2l-auth-art-scene",
+      "artworkFallbackInsideScene": false,
+      "webglCanvasOpacity": "missing",
+      "webglReady": false,
+      "keyboardFocusVisibleRule": false
+    },
+    {
+      "file": "school-manager-390x844.png",
+      "url": "http://127.0.0.1:5173/login",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Điều phối\nđể sáng tạo.",
+      "roleLabel": "Quản lý trường",
+      "activePortal": "Quản lý trường",
+      "ariaCurrentCount": 1,
+      "portalLinks": [
+        {
+          "label": "Giáo viên",
+          "href": "http://127.0.0.1:5172/login",
+          "current": null,
+          "disabled": false
+        },
+        {
+          "label": "Quản lý trường",
+          "href": "http://127.0.0.1:5173/login",
+          "current": "page",
+          "disabled": false
+        },
+        {
+          "label": "Quản trị nền tảng",
+          "href": "http://127.0.0.1:5174/login",
+          "current": null,
+          "disabled": false
+        }
+      ],
+      "fieldLabels": [
+        "Email tài khoản"
+      ],
+      "submitText": "Vào bản xem thử",
+      "submitInFirstViewport": true,
+      "previewNotice": "iBản xem thử chỉ mở giao diện; không xác thực, không gọi backend và không lưu dữ liệu.",
+      "artworkFallbackVisible": true,
+      "artworkFallbackOpacity": "1",
+      "artworkFallbackParent": "s2l-auth-art-scene",
+      "artworkFallbackInsideScene": false,
+      "webglCanvasOpacity": "missing",
+      "webglReady": false,
+      "keyboardFocusVisibleRule": false
+    },
+    {
+      "file": "platform-admin-1440x900.png",
+      "url": "http://127.0.0.1:5174/login",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Vận hành\nđáng tin cậy.",
+      "roleLabel": "Quản trị nền tảng",
+      "activePortal": "Quản trị nền tảng\nPlatform Admin",
+      "ariaCurrentCount": 1,
+      "portalLinks": [
+        {
+          "label": "Giáo viên",
+          "href": "http://127.0.0.1:5172/login",
+          "current": null,
+          "disabled": false
+        },
+        {
+          "label": "Quản lý trường",
+          "href": "http://127.0.0.1:5173/login",
+          "current": null,
+          "disabled": false
+        },
+        {
+          "label": "Quản trị nền tảng",
+          "href": "http://127.0.0.1:5174/login",
+          "current": "page",
+          "disabled": false
+        }
+      ],
+      "fieldLabels": [
+        "Email tài khoản"
+      ],
+      "submitText": "Vào bản xem thử",
+      "submitInFirstViewport": true,
+      "previewNotice": "iBản xem thử chỉ mở giao diện; không xác thực, không gọi backend và không lưu dữ liệu.",
+      "artworkFallbackVisible": false,
+      "artworkFallbackOpacity": "0",
+      "artworkFallbackParent": "s2l-auth-art-fallback-layer",
+      "artworkFallbackInsideScene": true,
+      "webglCanvasOpacity": "1",
+      "webglReady": true,
+      "keyboardFocusVisibleRule": false
+    },
+    {
+      "file": "platform-admin-1024x768.png",
+      "url": "http://127.0.0.1:5174/login",
+      "viewport": {
+        "width": 1024,
+        "height": 768
+      },
+      "documentWidth": 1024,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Vận hành\nđáng tin cậy.",
+      "roleLabel": "Quản trị nền tảng",
+      "activePortal": "Quản trị nền tảng\nPlatform Admin",
+      "ariaCurrentCount": 1,
+      "portalLinks": [
+        {
+          "label": "Giáo viên",
+          "href": "http://127.0.0.1:5172/login",
+          "current": null,
+          "disabled": false
+        },
+        {
+          "label": "Quản lý trường",
+          "href": "http://127.0.0.1:5173/login",
+          "current": null,
+          "disabled": false
+        },
+        {
+          "label": "Quản trị nền tảng",
+          "href": "http://127.0.0.1:5174/login",
+          "current": "page",
+          "disabled": false
+        }
+      ],
+      "fieldLabels": [
+        "Email tài khoản"
+      ],
+      "submitText": "Vào bản xem thử",
+      "submitInFirstViewport": true,
+      "previewNotice": "iBản xem thử chỉ mở giao diện; không xác thực, không gọi backend và không lưu dữ liệu.",
+      "artworkFallbackVisible": false,
+      "artworkFallbackOpacity": "0",
+      "artworkFallbackParent": "s2l-auth-art-fallback-layer",
+      "artworkFallbackInsideScene": true,
+      "webglCanvasOpacity": "1",
+      "webglReady": true,
+      "keyboardFocusVisibleRule": false
+    },
+    {
+      "file": "platform-admin-768x1024.png",
+      "url": "http://127.0.0.1:5174/login",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "documentWidth": 758,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Vận hành\nđáng tin cậy.",
+      "roleLabel": "Quản trị nền tảng",
+      "activePortal": "Quản trị nền tảng\nPlatform Admin",
+      "ariaCurrentCount": 1,
+      "portalLinks": [
+        {
+          "label": "Giáo viên",
+          "href": "http://127.0.0.1:5172/login",
+          "current": null,
+          "disabled": false
+        },
+        {
+          "label": "Quản lý trường",
+          "href": "http://127.0.0.1:5173/login",
+          "current": null,
+          "disabled": false
+        },
+        {
+          "label": "Quản trị nền tảng",
+          "href": "http://127.0.0.1:5174/login",
+          "current": "page",
+          "disabled": false
+        }
+      ],
+      "fieldLabels": [
+        "Email tài khoản"
+      ],
+      "submitText": "Vào bản xem thử",
+      "submitInFirstViewport": true,
+      "previewNotice": "iBản xem thử chỉ mở giao diện; không xác thực, không gọi backend và không lưu dữ liệu.",
+      "artworkFallbackVisible": true,
+      "artworkFallbackOpacity": "1",
+      "artworkFallbackParent": "s2l-auth-art-scene",
+      "artworkFallbackInsideScene": false,
+      "webglCanvasOpacity": "missing",
+      "webglReady": false,
+      "keyboardFocusVisibleRule": false
+    },
+    {
+      "file": "platform-admin-390x844.png",
+      "url": "http://127.0.0.1:5174/login",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Vận hành\nđáng tin cậy.",
+      "roleLabel": "Quản trị nền tảng",
+      "activePortal": "Quản trị nền tảng",
+      "ariaCurrentCount": 1,
+      "portalLinks": [
+        {
+          "label": "Giáo viên",
+          "href": "http://127.0.0.1:5172/login",
+          "current": null,
+          "disabled": false
+        },
+        {
+          "label": "Quản lý trường",
+          "href": "http://127.0.0.1:5173/login",
+          "current": null,
+          "disabled": false
+        },
+        {
+          "label": "Quản trị nền tảng",
+          "href": "http://127.0.0.1:5174/login",
+          "current": "page",
+          "disabled": false
+        }
+      ],
+      "fieldLabels": [
+        "Email tài khoản"
+      ],
+      "submitText": "Vào bản xem thử",
+      "submitInFirstViewport": true,
+      "previewNotice": "iBản xem thử chỉ mở giao diện; không xác thực, không gọi backend và không lưu dữ liệu.",
+      "artworkFallbackVisible": true,
+      "artworkFallbackOpacity": "1",
+      "artworkFallbackParent": "s2l-auth-art-scene",
+      "artworkFallbackInsideScene": false,
+      "webglCanvasOpacity": "missing",
+      "webglReady": false,
+      "keyboardFocusVisibleRule": false
+    }
+  ],
+  "keyboard": [
+    {
+      "role": "teacher",
+      "focusOrder": [
+        {
+          "tag": "A",
+          "text": "Bỏ qua điều hướng",
+          "href": "http://127.0.0.1:5172/login#s2l-auth-main",
+          "current": null,
+          "focusVisible": true,
+          "outline": "solid",
+          "outlineWidth": "3px"
+        },
+        {
+          "tag": "A",
+          "text": "Sketch2Life\nNền tảng học tập",
+          "href": "http://127.0.0.1:5172/login",
+          "current": null,
+          "focusVisible": true,
+          "outline": "solid",
+          "outlineWidth": "3px"
+        },
+        {
+          "tag": "A",
+          "text": "Giáo viên",
+          "href": "http://127.0.0.1:5172/login",
+          "current": "page",
+          "focusVisible": true,
+          "outline": "solid",
+          "outlineWidth": "3px"
+        },
+        {
+          "tag": "A",
+          "text": "Quản lý trường",
+          "href": "http://127.0.0.1:5173/login",
+          "current": null,
+          "focusVisible": true,
+          "outline": "solid",
+          "outlineWidth": "3px"
+        },
+        {
+          "tag": "A",
+          "text": "Quản trị nền tảng",
+          "href": "http://127.0.0.1:5174/login",
+          "current": null,
+          "focusVisible": true,
+          "outline": "solid",
+          "outlineWidth": "3px"
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "href": "",
+          "current": null,
+          "focusVisible": true,
+          "outline": "solid",
+          "outlineWidth": "3px"
+        }
+      ],
+      "reverseFocus": {
+        "tag": "A",
+        "text": "Quản trị nền tảng",
+        "href": "http://127.0.0.1:5174/login",
+        "current": null,
+        "focusVisible": true,
+        "outline": "solid"
+      }
+    },
+    {
+      "role": "school-manager",
+      "focusOrder": [
+        {
+          "tag": "A",
+          "text": "Bỏ qua điều hướng",
+          "href": "http://127.0.0.1:5173/login#s2l-auth-main",
+          "current": null,
+          "focusVisible": true,
+          "outline": "solid",
+          "outlineWidth": "3px"
+        },
+        {
+          "tag": "A",
+          "text": "Sketch2Life\nNền tảng học tập",
+          "href": "http://127.0.0.1:5173/login",
+          "current": null,
+          "focusVisible": true,
+          "outline": "solid",
+          "outlineWidth": "3px"
+        },
+        {
+          "tag": "A",
+          "text": "Giáo viên",
+          "href": "http://127.0.0.1:5172/login",
+          "current": null,
+          "focusVisible": true,
+          "outline": "solid",
+          "outlineWidth": "3px"
+        },
+        {
+          "tag": "A",
+          "text": "Quản lý trường",
+          "href": "http://127.0.0.1:5173/login",
+          "current": "page",
+          "focusVisible": true,
+          "outline": "solid",
+          "outlineWidth": "3px"
+        },
+        {
+          "tag": "A",
+          "text": "Quản trị nền tảng",
+          "href": "http://127.0.0.1:5174/login",
+          "current": null,
+          "focusVisible": true,
+          "outline": "solid",
+          "outlineWidth": "3px"
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "href": "",
+          "current": null,
+          "focusVisible": true,
+          "outline": "solid",
+          "outlineWidth": "3px"
+        }
+      ],
+      "reverseFocus": {
+        "tag": "A",
+        "text": "Quản trị nền tảng",
+        "href": "http://127.0.0.1:5174/login",
+        "current": null,
+        "focusVisible": true,
+        "outline": "solid"
+      }
+    },
+    {
+      "role": "platform-admin",
+      "focusOrder": [
+        {
+          "tag": "A",
+          "text": "Bỏ qua điều hướng",
+          "href": "http://127.0.0.1:5174/login#s2l-auth-main",
+          "current": null,
+          "focusVisible": true,
+          "outline": "solid",
+          "outlineWidth": "3px"
+        },
+        {
+          "tag": "A",
+          "text": "Sketch2Life\nNền tảng học tập",
+          "href": "http://127.0.0.1:5174/login",
+          "current": null,
+          "focusVisible": true,
+          "outline": "solid",
+          "outlineWidth": "3px"
+        },
+        {
+          "tag": "A",
+          "text": "Giáo viên",
+          "href": "http://127.0.0.1:5172/login",
+          "current": null,
+          "focusVisible": true,
+          "outline": "solid",
+          "outlineWidth": "3px"
+        },
+        {
+          "tag": "A",
+          "text": "Quản lý trường",
+          "href": "http://127.0.0.1:5173/login",
+          "current": null,
+          "focusVisible": true,
+          "outline": "solid",
+          "outlineWidth": "3px"
+        },
+        {
+          "tag": "A",
+          "text": "Quản trị nền tảng",
+          "href": "http://127.0.0.1:5174/login",
+          "current": "page",
+          "focusVisible": true,
+          "outline": "solid",
+          "outlineWidth": "3px"
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "href": "",
+          "current": null,
+          "focusVisible": true,
+          "outline": "solid",
+          "outlineWidth": "3px"
+        }
+      ],
+      "reverseFocus": {
+        "tag": "A",
+        "text": "Quản trị nền tảng",
+        "href": "http://127.0.0.1:5174/login",
+        "current": "page",
+        "focusVisible": true,
+        "outline": "solid"
+      }
+    }
+  ],
+  "networkResponses": [],
+  "failedRequests": [
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "canceled": false
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "canceled": false
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "canceled": false
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "canceled": false
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "canceled": false
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "canceled": false
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "canceled": false
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "canceled": false
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "canceled": false
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "canceled": false
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "canceled": false
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "canceled": false
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "canceled": false
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "canceled": false
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+      "error": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+      "canceled": false
+    }
+  ],
+  "blockedRequests": [
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+      "resourceType": "Stylesheet"
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+      "resourceType": "Stylesheet"
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+      "resourceType": "Stylesheet"
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+      "resourceType": "Stylesheet"
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+      "resourceType": "Stylesheet"
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+      "resourceType": "Stylesheet"
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+      "resourceType": "Stylesheet"
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+      "resourceType": "Stylesheet"
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+      "resourceType": "Stylesheet"
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+      "resourceType": "Stylesheet"
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+      "resourceType": "Stylesheet"
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+      "resourceType": "Stylesheet"
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+      "resourceType": "Stylesheet"
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+      "resourceType": "Stylesheet"
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+      "resourceType": "Stylesheet"
+    }
+  ],
+  "runtimeExceptions": [],
+  "consoleErrors": []
+}

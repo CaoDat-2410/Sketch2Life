@@ -1,0 +1,27 @@
+meta {
+  name: 106 [POST/ACTION - LOCAL TEST ONLY] Request Retake
+  type: http
+  seq: 106
+}
+
+post {
+  url: {{baseUrl}}/v1/sessions/{{session_id}}/media/retake
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "request_id": "REPLACE_ME",
+    "idempotency_key": "REPLACE_ME",
+    "session_id": "REPLACE_ME",
+    "expected_session_version": 0,
+    "actor_ref": "REPLACE_ME",
+    "payload": {}
+  }
+}

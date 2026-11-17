@@ -1,0 +1,297 @@
+# FEAT-066 — Full FE review against canonical SRS Rev57
+
+Owner: User-requested read-only review. Review date: 2026-11-10, Asia/Bangkok.
+
+## Authority and baseline
+
+- Current product authority: `docs/context/SRS_AUTHORITY.md` and `features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md`, v2.7-draft Rev57 dated 2026-11-09, SHA-256 `BE0D656966FDE91BA7CD5C914C319EF301D137985EF5CC91B94F36FEBCF61FB5`.
+- Approval state: draft, awaiting formal owner sign-off. This is the current working baseline, not a signed final SRS.
+- Source worktree: `F:/Github/Sketch2Life-worktrees/fe-ui-web-remediation`, branch `codex/fe-ui-web-remediation`, based at commit `95433b3a9bef893a671df6623476784dbd0fd83d` when the worktree was created.
+- The FE worktree's local `docs/context/SRS_AUTHORITY.md` still says v2.5-draft. It is stale relative to the canonical root authority and must not determine current requirements.
+- Existing 37-screen screenshot archive is historical synthetic-preview evidence captured on an earlier commit. It does not prove current route coverage or current tablet behavior.
+
+## Review scope
+
+The earlier revision 1 source review covered Parent Android and `apps/ui-mobile` as context/reference, Parent Web, Teacher UI, School Manager UI, Platform Admin UI, the additional Admin UI surface, and shared authentication/API integration. The current plan revision 3 narrows all new work to `apps/school-manager-ui`: local fixture-only preview and visual/UI/UX review of its School Manager routes. Do not inspect or run Parent mobile as part of this clarified task. Teacher, Platform Admin, and the additional Admin UI are outside the current scope.
+
+## Existing findings and open questions
+
+The source review in `evidence/notes/FE_UI_FULL_SRS_REVIEW_REV57_20261110.md` records confirmed gaps in Teacher run/Sketch Deck integration, School Manager organization/billing coverage, Platform Admin backend mode, manual Teacher child selection, consent-state presentation, upload recovery, and manager notification behavior. It also records Parent-specific source findings and implementation risks; those are retained as earlier evidence and are not newly runtime-verified by plan revision 2.
+
+Open questions remain: Q-01 child eligibility/consent/exclusion/reselection/no-eligible behavior and selection evidence; §31.10 Parent no-preset activity-catalog behavior; and Parent Web scope/account-creation requirements. Do not resolve these from UI appearance alone.
+
+## Current milestone
+
+Plan revision 3 review is complete for School Manager source and local loopback Vite preview. The focused findings and route/screenshot coverage are recorded in `evidence/notes/SCHOOL_MANAGER_WEB_UX_REVIEW_REV57_20261110.md`; the earlier broad source note remains historical evidence and does not broaden this review. Parent mobile and every other portal remain out of scope. This was an audit only; no product code changed, and remediation is still a separate task.
+
+## Revision 4 — School Manager web remediation (2026-11-10)
+
+The user directly authorized implementation limited to `apps/school-manager-ui` and FEAT-066 governance/evidence in the designated `codex/fe-ui-web-remediation` worktree. Plan revision 4 is approved; see `plan/PLAN.md` and `approvals/TASK_APPROVAL.md` (plan SHA-256 `D9780223AB395C1B5A9942F4011B749A2A15E3D66283A178F768AF9E9AC0CCB6`). This supersedes the revision 3 audit-only implementation restriction. Canonical SRS remains FEAT-063 v2.7-draft Rev57, unsigned, SHA-256 `BE0D656966FDE91BA7CD5C914C319EF301D137985EF5CC91B94F36FEBCF61FB5`; §32 remains as-built evidence only.
+
+Initial contract audit: Lesson Library supports School Manager public-grant review; BE1 supports class list/create, adult assignment create/revoke, and consent-filtered profile-list reads. The class-create contract has no capacity input/guard, and the checked contracts expose no class archive/suspend, teacher directory, School Manager billing/invoice/payment/subscription, organization quota summary/top-up, inbox, or school feedback-reply flow. A read-only roster view may use the existing profile-list API; do not expose media or use real child data. Unsupported end-to-end flows must be visibly unavailable and documented rather than simulated. Before implementation started, no product source had been changed.
+## Revision 4 implementation and review results
+
+- M01 local preview now tracks approval and change requests independently; after requesting changes the reviewed item is removed from the pending queue, `Đã duyệt` remains 0, and `Yêu cầu chỉnh sửa` becomes 1. Preview notices state that the decision is local and is not sent to the API.
+- M01 tabs have linked tab/panel IDs, selected state, roving tab focus, and Left/Right/Home/End keyboard navigation. The content panel and diff panel expose `tabpanel` semantics.
+- The notification bell/unread indicator is replaced by a static unavailable status because the checked contracts contain no inbox API. The organization label is static context with no dropdown arrow.
+- M02 fixture actions that implied class creation, Teacher invitation, quota purchase, parent-group sync, or subscription changes are disabled and labelled unavailable. API-backed class listing remains; a read-only roster panel uses the existing profiles endpoint and displays names only. Child media/story are not requested or shown.
+- Class capacity-safe creation, archive/suspend, Teacher selection, billing/invoice/payment, subscription, organization quota, inbox, and School Manager feedback reply remain blocked on APIs/contracts recorded in EV-003. Commercial values and policy remain open in the unsigned SRS.
+- Manual local UI review was captured at 1440x900 and 390x844 for login, M01, and M02 dashboard/teachers/classes/quota/settings. See EV-004 and `evidence/screenshots/remediation-after/`. No backend, provider, production data, credentials, tests, or builds were used.
+## Revision 5 follow-up — School Manager logout (2026-11-10)
+
+During sequential School Manager flow review, the user identified that the authenticated dashboard has no visible logout action. The existing `TeacherContext.logout` callback already clears the web role/auth session keys, calls the configured Firebase sign-out bridge when present, and transitions authenticated routes back to login; the M01/M02 `ManagerLayout` did not expose it. The SRS mentions logout as a trigger in UC-15 for Parent/Teacher notification endpoint revocation, but does not list a School Manager logout control in §21.5. This follow-up is a direct user-reported UI defect within the previously approved FE-only scope, not a new SRS requirement. Plan revision 5 and its matching approval hash were recorded before implementation.
+## Revision 5 logout implementation and verification
+
+`ManagerLayout` now exposes the existing `TeacherContext.logout` action on authenticated School Manager routes. Local keyboard review from dashboard and settings at 1440x900 and 390x844 confirmed Enter activation, removal of `s2l-web-role` / `s2l-web-authenticated`, return to `/login`, and redirect to `/login` after attempting to revisit protected routes. At 390px the collapsed icon control is 44x44px with an accessible name. See EV-005 and `evidence/notes/SCHOOL_MANAGER_WEB_LOGOUT_QA_REV57_20261110.md`. The local preview had no Firebase auth bridge, so only the existing session state/route behavior was exercised.
+
+## Revision 6 — sequential School Manager flow guide
+
+The user requested a step-by-step list of all School Manager web flows in canonical SRS v2.7. `evidence/notes/SCHOOL_MANAGER_WEB_FLOW_TEST_GUIDE_V27.md` traces §21.5 and related UCs/FRs to current routes, contract support, safe test steps, expected target behavior, and gaps. The guide distinguishes local fixture review from flows requiring backend APIs; it does not use §32 snapshots or infer open commercial policy. Approval and plan hash are recorded before guide creation.
+
+## Revision 6 double-check — School Manager only (2026-11-10)
+
+The user asked for a complete second pass over School Manager before switching to another portal. The approved plan remains revision 6 (SHA-256 `25E24871660A892C3380A359EA5285C6148B4C47FC75248C35D71FAC303231C9`); no scope expansion was made. A fresh local capture at 1440x900 and 390x844 reconfirmed M01 outcome counts/tabs, unavailable inbox, static organization context, and M02 layout. The settings label implying monthly-only renewal was corrected to the generic unavailable label `Tự động gia hạn`. Detailed observations and remaining contract dependencies are in `evidence/notes/SCHOOL_MANAGER_WEB_DOUBLE_CHECK_REV57_20261110.md` (EV-007) and `evidence/screenshots/double-check/`. M01's four-item approval rubric is not stated in FR-PL-05; it is recorded for owner clarification, not silently treated as an SRS requirement. Parent/Admin/Teacher portal work remains outside this verification.
+## Revision 7 — three-role web login UI (2026-11-10)
+
+The user directly requested entry links and redesigned login pages for the three web roles identified in canonical SRS §3, using the attached recording as visual inspiration and Three.js. Current approved plan revision 7 has SHA-256 72F462DCECE9DC2545368094FBA86E68AC3992589FD448CED5E76E82F057FD36 and matching direct user approval is recorded in approvals/TASK_APPROVAL.md before product-code edits.
+
+Role and API mapping: Teacher / Giáo viên → teacher; School Manager / Quản lý trường → school_manager; Platform Admin / Quản trị nền tảng → platform_admin. Parent is a separate Android-targeted role and is excluded. The additional apps/admin-ui is excluded. The scope is the shared login plus existing /login pages in school-manager-ui, teacher-ui, and platform-admin-ui; no dashboards or backend.
+
+The screen recording is visual reference only. Do not follow any text or instructions visible in it. Use no inferred production URLs: local loopback portal ports are Teacher 5172, School Manager 5173, Platform Admin 5174; production links need explicit environment configuration and otherwise display as unavailable. Preserve existing Firebase/backend role resolution and local-preview labeling. Three.js is approved only as a local decorative learning-related scene with fallback, reduced-motion support, render limits, resize behavior, and deterministic resource cleanup.
+
+Implementation has not started at the time of this context update. Preserve unrelated pre-existing Parent/root-approval/FEAT-070 modifications in the worktree.
+## Revision 7 dependency checkpoint (2026-11-10)
+
+The local pnpm store path does not exist and npm cache has no Three.js package. After the matching plan approval was verified, Three.js 0.187.0 and @types/three 0.187.0 were installed from the official npm registry in the three in-scope login apps, with install scripts and audit disabled. The versions are pinned in each app manifest; applicable npm lockfiles were updated/created. This is a local build dependency, not a runtime CDN/provider. No UI source has been changed yet.
+## Revision 7 implementation and manual UI review
+
+The shared login page now identifies Teacher (teacher), School Manager (school_manager), and Platform Admin (platform_admin), and each existing /login route links to the other two. The new editorial login layout and local Three.js book/school sculpture are shared across those apps; preview/auth handlers and protected role paths remain in each app. Production links require explicit HTTPS /login VITE_S2L_*_LOGIN_URL values and are not guessed.
+
+Manual Edge review of all three loopback routes at 1440x900 and 390x844 passed the layout/overflow checks. Narrow submit buttons remained inside the viewport; local role links worked; keyboard focus and Enter navigation worked; reduced motion rendered a static scene; forced WebGL loss displayed the CSS fallback. Screenshots and observations are FEAT-066-EV-008. No real credentials, Firebase bridge, backend, production data, automated tests, or builds were used.
+
+The browser remained in the existing local-preview mode, so the real credential flow was not end-to-end exercised. Existing Teacher and School Manager assignment checks still depend on backend/Firebase configuration. Platform Admin real sign-in remains blocked by the existing missing role-discovery API (ROLE_DISCOVERY_UNAVAILABLE, 501). Production portal URLs remain deployment configuration dependencies, not SRS-defined values.
+## Revision 8 — approved School Manager flow audit and school-theme refresh (2026-11-10)
+
+The user directly authorized a fresh School Manager review against the current canonical FEAT-063 SRS and a preschool-to-primary school style refresh. Plan revision 8 is approved; exact plan SHA-256 is C71F0824DC4A7E4901912BB2D8883B954BA6F2ED438BAB9F9C0871CBE3B54D7C and matches the feature-local approvals/TASK_APPROVAL.md entry before product edits. Canonical SRS v2.7-draft Rev57 SHA-256 remains BE0D656966FDE91BA7CD5C914C319EF301D137985EF5CC91B94F36FEBCF61FB5, unsigned. Use §§1–31 only; §32 is as-built evidence.
+
+The pre-redesign flow audit is recorded in evidence/notes/SCHOOL_MANAGER_WEB_SRS_FLOW_AUDIT_REV57_20261110.md. Current UI coverage is incomplete against §21.5: M01 grant review and read-only class/roster have relevant API support; dashboard and quota are fixture-only; capacity-safe class lifecycle, Manager Teacher lifecycle/transfer, billing/invoice/payment/subscription, quota/top-up, inbox and school feedback reply lack compatible contracts. Preserve explicit unavailable states and the child-media privacy boundary.
+
+The worktree root/branch/status were reverified. Pre-existing root task-approval, Parent UI and FEAT-070 modifications are out of scope and untouched. The root FEAT-066 inventory has no root-only path to bring into the active worktree; matching old files will not overwrite current records. At this checkpoint, UI code edits have not started; the approved scope is authenticated apps/school-manager-ui screens only plus FEAT-066 evidence/governance.
+
+
+## Revision 8 implementation and manual review complete (2026-11-10)
+
+- Applied the approved school-office palette and responsive styling to the authenticated School Manager shell, M01 and M02 only. Changed App stylesheet loading order and local Manager presentation classes; no shared styles, APIs, auth logic, business rules, packages or assets were added.
+- Completed local browser review and saved EV-010. Across 16 route/viewport observations (1440x900, 768x1024, 390x844), horizontal overflow count is 0 and out-of-viewport disabled-action count is 0. M01 request-changes, arrow/Home/End tab movement, linked panel semantics and keyboard logout were manually checked in preview.
+- SRS flow completeness remains partial. See EV-009/EV-010 for the supported reads/review flow and missing organization summary, capacity/lifecycle, Teacher lifecycle, billing, quota, inbox and school feedback contracts. These states remain explicitly unavailable; no price/policy or child-media access was inferred.
+- No root-only FEAT-066 file was missing from the active worktree, so nothing was copied. Root checkout and pre-existing unrelated worktree changes remain untouched.
+## Revision 9 — dashboard cobalt palette preview (2026-11-10)
+
+The user directly asked to preview the design-taste-frontend Cool Grey + Cobalt palette on the current School Manager dashboard. The palette was generated for software/saas; cool-grey-cobalt was the first result and is compatible with the existing blue-led logo. SRS v2.7-draft Rev57 does not prescribe product colors and remains unsigned. Plan revision 9 SHA-256 03FF50D8330884BB815CCF8D8E68186F250DBE70279D6EC9FBD163423EFB24AC is approved and recorded before code changes.
+
+This experiment is limited to the default M02 dashboard route. It must not alter other Manager routes, mobile, shared styling, actions, API behavior, fixture notices, logout, or privacy. Keep the change local/uncommitted for visual review unless the user later asks to adopt it.
+
+## Revision 9 palette preview result (2026-11-10)
+
+FEAT-066-EV-011 records the Cool Grey + Cobalt experiment on the default M02 dashboard only. The desktop 1440x900 and narrow 390x844 local captures show no horizontal overflow; M02 teachers and M01 retain the revision 8 warm/green tokens. The browser review used the isolated local fixture session and loopback Vite server. The dark inverse token rules were added but not visually captured. This remains a preview, not a permanent palette choice or SRS requirement. No tests/builds, backend/provider calls, commit, or push were made.
+
+## Revision 10 — all browser web UIs use the supplied logo and bright cobalt palette (2026-11-10)
+
+The user directly expanded revision 9 to replace the logo with their attached artwork and apply the bright Cool Grey + Cobalt theme across the existing browser apps. Canonical FEAT-063 SRS v2.7-draft Rev57 was reverified at SHA-256 BE0D656966FDE91BA7CD5C914C319EF301D137985EF5CC91B94F36FEBCF61FB5; the draft remains unsigned and does not prescribe colors. Plan revision 10 must be approved by a matching feature-local hash before app code or asset copying. Included: parent-ui browser preview, school-manager-ui, teacher-ui, platform-admin-ui, admin-ui, and shared web brand/styles. Excluded: native/mobile apps, historical inactive parent-web, backend and auth/business behavior.
+
+
+## Revision 10 implementation and manual review result (2026-11-10)
+
+- Applied the attached user logo and bright Cool Grey + Cobalt tokens to parent-ui browser preview, School Manager, Teacher, Platform Admin, Admin UI and shared browser styling. Plan revision 10 SHA-256 `9EA74203319688B6E4D456E3CB278DB7BA314F423AC0BF7581D802807255269D` was approved before app/asset edits. Source image SHA-256 is `86010669F03972BC1273DC02BEB8F34B39BD5E47C00771B2632003C1D62F9042`.
+- EV-012 contains 18 local browser captures for login/primary screens at 1440x900 and 390x844; document horizontal overflow was absent in all captures. The local School Manager, Teacher and Platform Admin servers were reused from this worktree; Parent ran at 127.0.0.1:5175.
+- Admin UI code and logo references are updated, but manual preview is limited by offline cache miss `ENOTCACHED` for `@tailwindcss/vite`; no network install, credentials or manifest/lockfile changes. Parent preview auto-authenticates and redirects `/p11-authentication` to `/p01-lesson-library`; no unauthenticated Parent screenshot was available without changing auth behavior.
+- No automated tests/builds, backend calls, production data, commit or push. FEAT-063 v2.7-draft Rev57 remains unsigned and contains no color requirement. Native/mobile, Parent UI mobile, backend and unrelated Parent-context/mobile-layout/FEAT-070/root-approval changes remain untouched.
+## Revision 11 — three-role dashboard icon refresh (approval checkpoint)
+
+The user directly requested a new icon set across the three web-role dashboards. Canonical FEAT-063 v2.7-draft Rev57 authority was verified at SHA-256 `BE0D656966FDE91BA7CD5C914C319EF301D137985EF5CC91B94F36FEBCF61FB5`; it remains unsigned. SRS §3 maps the web portals to Teacher (`teacher`), School Manager (`school_manager`), and Platform Admin (`platform_admin`). Plan revision 11 is approved in the feature-local ledger with SHA-256 `0B2B90980B2D2CB491DCCC15BC1E22ED6FFCEBD3D8B21AEADE795670B9875BC1` before app code changes.
+
+The approved work changes only the authenticated dashboard iconography (shell navigation, role/status indicators, and route content using existing icon components) in those three role apps and FEAT-066 records. Use a shared local rounded duotone SVG set aligned to the bright Cool Grey + Cobalt palette; preserve labels, routes, actions, role checks, and accessibility names. No new dependencies, login redesign, Parent/Admin UI, native/mobile, backend, or production data. At this checkpoint, icon source files are unchanged; implementation and desktop/narrow visual review are pending.
+
+## Revision 11 implementation and visual review complete (2026-11-10)
+
+- Implemented the approved shared rounded duotone SVG family in apps/shared/RoleDashboardIcon.tsx and connected it through the existing Icon and MgIcon exports in School Manager, Teacher and Platform Admin. Shared navigation styling uses the bright Cool Grey + Cobalt palette; Teacher navigation now has the same 32×32 icon tile treatment.
+- Plan revision 11 SHA-256 0B2B90980B2D2CB491DCCC15BC1E22ED6FFCEBD3D8B21AEADE795670B9875BC1 matches the feature-local approval ledger.
+- EV-013 records six local browser captures of School Manager /m02-organization-management, Teacher /t01-lesson-workspace, and Platform Admin /a02-platform-operations at 1440×900 and 390×844. All six have 0 horizontal overflow, no Vite error overlay, 0 observed runtime errors, and 32×32 active nav icon tiles. Teacher's desktop document width was 1430px within the 1440px viewport.
+- Shared icon glyphs are reused on the three login pages; only those glyphs changed, not login layout or authentication flow. Labels, destinations, role checks, actions and accessible names remain unchanged.
+- No new packages, manifests, lockfiles, backend/API, mobile/native, Parent, additional Admin UI, real data or credentials were used. No tests/builds, commit or push. Pre-existing unrelated root approval, Parent, Admin UI and FEAT-070 changes remain in the worktree.
+- Evidence: evidence/notes/WEB_DASHBOARD_ICON_REFRESH_V11_20261110.md; evidence/screenshots/web-dashboard-icons-v11/.
+## Revision 12 — shared login font correction (2026-11-10)
+
+The user reported broken Vietnamese typography in the login headline. Plan revision 12, SHA-256 00D41575B3D5912DE9A2CB2D1080DC9D588C91E366D762B79092DC7F618FBCC7, and direct authorization were recorded in FEAT-066 before app code changes. The shared login title now uses the existing Vietnamese-capable sans-serif stack, upright accent styling, less-tight tracking and more line height. Teacher, School Manager and Platform Admin login pages were manually reviewed at 1440×900 and 390×844; the six captures show clean accents, no horizontal overflow, no Vite overlay and no runtime errors. Preview storage was restored after capture. No automated tests/builds, commit or push.
+## Revision 13 — visible logout controls across all three SRS web roles (2026-11-10)
+
+The user requested logout buttons in the Teacher, School Manager, and Platform Admin UIs. Plan revision 13 and its direct approval were recorded before app code changes; plan SHA-256 5DF172969F85296D5A1100BB288337CD0EEFF06373CC157DE719EA59B3C6029B. Teacher's existing top-bar action was moved to the account area at the bottom of its sidebar for narrow-screen visibility. School Manager's existing sidebar button was retained. The missing Platform Admin sidebar button was added and wired to the existing logout handler. EV-015 records all three roles at 1440×900 and 390×844; all controls are visible and in the viewport, with no horizontal overflow. Local activation in each app returned to /login and cleared the role/auth session keys. Preview storage was restored. No tests/builds, commit, or push.
+## Revision 14 — three-role web flow audit only (2026-11-10)
+
+The user requested a full SRS v2.7 review of the three SRS web roles and explicitly deferred UX fixes. This is read-only product-source/API-contract review of apps/teacher-ui, apps/school-manager-ui, apps/platform-admin-ui; Parent and the additional apps/admin-ui are excluded. The baseline is canonical FEAT-063 v2.7-draft Rev57, SHA-256 BE0D656966FDE91BA7CD5C914C319EF301D137985EF5CC91B94F36FEBCF61FB5, still unsigned; use §§1–31 and not §32 as target requirements.
+
+The complete finding list is FEAT-066-EV-016 in evidence/notes/THREE_ROLE_WEB_FLOW_AUDIT_V27_REV57_20261110.md. Confirmed blockers include Teacher occurrence/story/video/projection and extraction-confirmation flows; School Manager review without content for the exact grant version, class/Teacher lifecycle, billing/quota/inbox/feedback; and Platform Admin role discovery, moderation queue, catalog publish and operations data. P2 findings cover preview-only manual child selection, consent labeling, upload recovery, cursor pagination, and idempotency retry behavior. Four M01 approval criteria and Platform Admin/operator permission separation are recorded for owner clarification, not treated as signed policy.
+
+Only source/contracts and previous FEAT-066 evidence were reviewed. No application source, API, UX, backend, mobile, credential, production data or provider was changed or exercised. No automated tests/builds, commit or push. The designated worktree/branch resolved correctly, but git status --short --branch returned fatal: this operation must be run in a work tree; no cleanup/checkout was attempted. Remediation requires a separately scoped plan after the user reviews this report.
+
+## Revision 15 — approved FE-only remediation checkpoint (2026-11-11)
+
+The user asked to continue fixing issues after reviewing the complete three-role SRS v2.7 audit. Plan revision 15 and explicit approval are recorded before app source changes; plan SHA-256 is `86c6a13185797c8b5912ca3b6adb54b63f58d8ff87f1bebb16a6652434eb331e`. The baseline remains FEAT-063 v2.7-draft Rev57, SHA-256 `BE0D656966FDE91BA7CD5C914C319EF301D137985EF5CC91B94F36FEBCF61FB5`, unsigned; requirements are §§1–31, with §32 as implementation evidence only.
+
+Scope is FE-only across Teacher, School Manager, and Platform Admin, their directly shared web modules, and FEAT-066 records. Existing authenticated API contracts are the limit: wire supported behavior; otherwise retain a truthful unavailable state and record the dependency. Do not change backend/contracts, Parent, additional Admin UI, mobile/native, packages, or open SRS policy. The School Manager Vite preview is running at `http://127.0.0.1:5173/`, bound to loopback. At this checkpoint no source code for revision 15 has changed.
+
+## 2026-11-11 — Revision 15 FE remediation complete for review
+
+Plan revision 15 (SHA-256 86c6a13185797c8b5912ca3b6adb54b63f58d8ff87f1bebb16a6652434eb331e) was authorized before source changes. The three-role remediation is complete within the FE-only scope and remains uncommitted/unpushed. School Manager exact-version review and paging, Teacher consent accuracy/paging/upload recovery, truthful API-unavailable states, and Platform Admin fixture-removal are implemented. EV-018 records the source changes, 34 local route captures, manual M01 count result, API/authentication limitations, and remaining backend/owner dependencies. No automated tests/builds or production/backend credentials were used.
+
+## Revision 16 — shared auth and Teacher UI preview (2026-11-11)
+
+The user directly requested an implementation preview of auth and Teacher UI using the researched/generated design direction. Plan revision 16 and its authorization were recorded before source edits; the final plan SHA-256 is 9C446770A6232A9A42B8677B345D25DECB5097D1AF4DD2FFD810A100CD3A4D5D. Canonical SRS authority and FEAT-063 v2.7-draft Rev57 SHA-256 BE0D656966FDE91BA7CD5C914C319EF301D137985EF5CC91B94F36FEBCF61FB5 were verified; the draft remains unsigned.
+
+The shared login design now applies across Teacher, School Manager, and Platform Admin; only the Teacher authenticated app receives the new palette/shell/dashboard styles. The existing login role mapping and auth behavior remain. The Teacher Sketch Deck route continues to state that it is unavailable; there is no projection surface or supported runtime flow to present.
+
+EV-019 records 14 desktop/narrow captures, role-link and local-preview interaction observations, and limitations. No horizontal overflow, Vite error overlay, or browser runtime exception was observed. The login submit control fits within the 390x844 first viewport. The Teacher preview uses labelled local fixture data. See evidence/notes/AUTH_TEACHER_UI_PREVIEW_V16_20261111.md and evidence/screenshots/auth-teacher-v16/.
+
+The worktree remains uncommitted/unpushed for user review. No automated tests/builds, production/backend data, external providers, credentials, Parent UI/mobile, authenticated School Manager/Admin UI, or API/backend/contracts were used or changed.
+## Revision 17 — child-friendly shared icons across the three web roles
+
+The user's direct visual request authorizes a friendly icon refresh for Teacher, School Manager and Platform Admin. Plan Rev17 and its matching approval were recorded before source changes; plan SHA-256 49D2B35334A952201387661B50C57DA971453F6C3A8F7518E4E86D48A90AC0E4. The baseline remains canonical FEAT-063 v2.7-draft Rev57, SHA-256 BE0D656966FDE91BA7CD5C914C319EF301D137985EF5CC91B94F36FEBCF61FB5, unsigned.
+
+The shared apps/shared/RoleDashboardIcon.tsx renderer now applies rounded strokes and semantic crayon-color accents to the existing icons consumed by all three roles and their shared login pages. Glyph mappings, currentColor foreground contrast, labels, actions, routes, role behavior, and layout remain unchanged. No dependency or asset was added.
+
+EV-020 contains 15 isolated loopback captures of each role's login and representative dashboard at 1440x900 and 390x844. No horizontal overflow, Vite error overlay, or observed runtime exception. The Platform Admin capture retains the existing truthful backend-unavailable view. No tests/builds, screen-reader audit, commit or push.
+
+## Revision 18 — navbar and notification icon preview complete
+
+The user requested a skill-guided redesign of the role navbar and notification icons, then asked to wait for the next task. Plan Rev18 and direct approval were recorded before source changes; plan SHA-256 AA075090DFD47E98B62B5287BDDABF9BD199395847CDAA9FB1275C34A789D9FA. The canonical working SRS remains FEAT-063 v2.7-draft Rev57, unsigned.
+
+The three authenticated role shells now render full-color system emoji for navigation, adjacent role/account controls, quota/organization marks, and notification/inbox affordances. All roles use the same yellow bell for notification/inbox; unread count and unavailable status remain as before. The remaining page-content icons still use the Rev17 SVG treatment. No dependency or external asset was added.
+
+EV-021 contains nine loopback screenshots: each role dashboard at 1440x900 and 390x844, plus dark desktop at 1440x900. No horizontal overflow, Vite overlay, or runtime exception was observed. Existing local storage/session values were restored after capture. No automated tests/builds, commit or push; changes are left for the user's review.
+
+## Revision 19 — monochrome line icons for role navigation and notifications
+
+The user corrected the Rev18 navbar preview and requested outline icons without multicolor emoji. Plan Rev19 and the matching direct approval were recorded before the shared source change; plan SHA-256 FABD3A9230620BE08F7E4B6D04FA178C3EAC372377F760F37C266182BB9F1141. The canonical working SRS remains FEAT-063 v2.7-draft Rev57, SHA-256 BE0D656966FDE91BA7CD5C914C319EF301D137985EF5CC91B94F36FEBCF61FB5, unsigned.
+
+The navigation and notification variants in apps/shared/RoleDashboardIcon.tsx now render local SVG outline glyphs in one currentColor per control; notification/inbox uses the same bell outline for all three roles. Role call sites, state, labels, accessibility attributes, routes, dimensions and non-shell page-content icon styling remain unchanged.
+
+EV-022 records nine local captures across Teacher, School Manager and Platform Admin at desktop/narrow sizes plus dark desktop. No horizontal overflow, Vite error overlay or runtime exception was observed. Representative screenshots were visually inspected. No tests/builds or screen-reader device audit were run. The worktree remains uncommitted and unpushed for user review.
+
+## Revision 20 — Teacher UI SRS layout diagnosis (implementation pending user review)
+
+The user requested one diagnosis of current web UI against the latest SRS, a proposed UI demo set, and a Teacher-first trial only if the proposal is accepted. The authority-selected baseline was verified as FEAT-063 v2.7-draft Rev57, SHA-256 BE0D656966FDE91BA7CD5C914C319EF301D137985EF5CC91B94F36FEBCF61FB5; still unsigned. Plan Rev20 SHA-256 0BAAFA4133B6ABDF9C225985C93CE32AF07F62A6E3C83C69B6F251DABC337219 and its matching approval authorize audit only.
+
+EV-023 records the Teacher route/API review and proposed seven-screen task model. Important findings: T05 preview exposes a School Manager handoff action to Teacher; local dashboard, quota and inbox metrics are fixtures; Teacher profile create and immutable extraction correction/confirmation lack product APIs; T04/T06/T07 and profile/settings routes are unavailable; current Teacher API supports class/roster reads and lesson list/detail/create/update/archive/public-review plus upload/status/revision reads. Run, occurrence, sample-selection, job, playback, projection, history, quota and inbox APIs were not found in the FE adapter. Q-01 eligibility/reselection policy remains open and was not inferred.
+
+The proposal consolidates the sidebar to Bàn làm việc, Lớp & hồ sơ, Giáo án, Buổi dạy and Lịch sử; optional Sketch Deck and sample-video steps become contextual within an occurrence. It preserves API blockers, role/privacy boundaries, truthful preview labels, and the existing paper/graphite/school-blue design direction while reducing metric/card clutter. No application source was edited. Existing EV-018/EV-019 screenshots were visually reviewed; a fresh 127.0.0.1:5172 request was denied by sandbox socket permissions. No tests/builds, authenticated API/backend, production data or credentials were used. Wait for the user to accept the proposal before Teacher implementation.
+
+## Rev21 — semantic monochrome navbar icon implementation
+
+The user authorized replacing navbar symbols that did not match their functions across Teacher, School Manager, and Platform Admin, retaining a friendly rounded crayon outline style with no icon color fills. The shared navigation renderer and the three role-shell mappings now use semantic monochrome outline SVGs. Manual loopback review covered all three roles at 1440x900 and 390x844 plus dark desktop. The nine captures show no horizontal overflow, Vite overlay, or observed runtime exception. See EV-024. The independent Rev20 Teacher layout proposal remains pending user review. No tests/builds or commit/push were performed.
+
+## Rev22 — clarify the settings glyph
+
+User review identified that the former radial settings icon read as a sun. The navbar gear now uses a toothed cog outline; the manager settings item in the shared Teacher role shell also maps to gear. Legacy settings glyph use outside navigation was preserved. EV-025 records nine fresh local captures and visual inspection; no overflow or runtime/Vite issue was observed.
+
+## Rev23 — full three-role web UI design preview
+
+The direct user request authorizes a design-only preview, not application implementation. Scope is shared web Auth plus Teacher, School Manager and Platform Admin, based only on FEAT-063 v2.7-draft Rev57 (SHA-256 BE0D656966FDE91BA7CD5C914C319EF301D137985EF5CC91B94F36FEBCF61FB5; unsigned). SRS §21.5 and §§5/19/20/21.6 are the screen and flow map. Content Admin is a permission, not another role; Parent/mobile is excluded. API gaps, privacy boundaries and owner-open decisions remain explicit. No fake data, success, billing, prices or policy. Generated boards stay in assets/generated until visual acceptance. Application implementation remains unapproved.
+Rev23 design review is ready. EV-026 records visual inspection of the four generated boards and their limits; the complete route/flow/API atlas is in evidence/notes/WEB_UI_CRAYON_ATLAS_REV23.md, and image provenance/hashes are in assets/generated/rev23/PROVENANCE.md. The concepts represent shared Auth and all three SRS web roles at desktop/narrow widths. API-blocked flows remain visibly unavailable; no child data, fake success, billing values, prices or policies were added. No app source was changed for Rev23. Wait for user review; implementation remains unapproved.
+## Revision 24 — implementation checkpoint
+
+The user authorized a complete presentation-layer rebuild of Auth and the three SRS web roles using the Rev23 concept boards. Plan SHA-256 is 072778CC86CCF6C2CDE18CDD034276F75371A4930FF5C18924F58191187BC345 and the matching direct-user approval is recorded in approvals/TASK_APPROVAL.md. Implementation order is Auth, Teacher, School Manager, Platform Admin, with one manual SRS/UI check and evidence checkpoint after each. Preserve routes, authorization, API contracts and all pre-existing unrelated changes. No Parent/mobile/backend, automated tests/builds, commit or push.
+
+### Rev24 Auth checkpoint — 2026-11-11
+
+Shared Auth presentation is rebuilt against the Rev23 board. Manual local review at 1440×900 and 390×844 confirms all three role links, the login action within the first viewport, no horizontal overflow/Vite overlay/runtime exception, and isolated role-mismatch screens with a working logout affordance and no foreign role shell. Manager preview 5173 was verified as the correct worktree process but served stale transformed source; only that verified Vite process was restarted on 127.0.0.1. EV-027 records the captures and check. Next section: Teacher.
+
+### Rev24 Teacher checkpoint — 2026-11-11
+
+Teacher now uses a role-specific paper/crayon rail, responsive workbench, API-backed lesson/class pages, and explicit unavailable screens for unsupported SRS steps. Class lists are filtered to active Teacher assignments with a class scope, and class detail checks that exact assignment before requesting roster/consent. The local preview displays no names, classes, lessons, quota counts, unread counts or fabricated progress. Lesson/import actions remain bound to current FE contracts; extraction confirmation and the occurrence/story/video/projection lifecycle remain unavailable. EV-028 records all 12 current Teacher routes at desktop/narrow widths and keyboard menu behavior. Next section: School Manager.
+
+### Rev24 School Manager checkpoint — 2026-11-11
+
+School Manager has been rebuilt and manually reviewed across 11 routes at 1440×900 and 390×844. Class/roster reads require an active `school_admin` assignment; public review uses the current API grant/detail/decision methods and locks on a stale immutable version. Local preview has no fixture rows, amounts, quota values, or unread signals. Unsupported staff lifecycle, capacity transitions, billing, subscription, quota, inbox, feedback, and organization settings remain unavailable with dependencies shown. Drawer keyboard behavior, `aria-current`, logout, and local session clearing were reviewed. EV-029 records the images and observations.
+
+### Rev24 Platform Admin checkpoint — 2026-11-11
+
+Platform Admin has been rebuilt and manually reviewed across 12 routes at 1440×900 and 390×844. The overview distinguishes the real-but-unqueried `GET /health` contract from aggregate platform health; no call runs in preview. Moderation, catalog, org/permission, queue/job, billing reconciliation, quota policy, lifecycle, audit, inbox, and feedback dependencies are explicit. Role discovery remains unavailable, so a synthetic local session demonstrates layout only and never proves authorization. Drawer keyboard behavior, `aria-current`, logout, and local session clearing were reviewed. EV-030 records the images and observations. All four planned Rev24 sections are complete; the work remains uncommitted and unpushed pending the user's review.
+
+## Revision 25 — dashboard alignment pass kickoff
+
+The user asked for a second visual pass, said the base frame is acceptable, and requested closer alignment with the Rev23 demo with less clutter. Review found repeated preview notices, long copy and sidebar-duplicate quick links on the three overview dashboards. Rev25 narrows the work to those overview surfaces only; preserve the role shell, routes, supported API behavior and unavailable states. Plan SHA-256 `F3B2413CBBE5BA649BE9736BD24CB8873E43144D6CFB98B2771001DC53ABCC44`; matching direct-user approval is recorded in `approvals/TASK_APPROVAL.md` before code changes.
+
+
+### Rev25 Teacher overview checkpoint — 2026-11-11
+
+- Rechecked the current Teacher workbench against the Rev23 board at 1440×900 and 390×844 after the overview cleanup already present in the worktree. The dashboard now presents only the three work areas; the shell carries the local-preview signal and each card keeps its area-specific empty/API state.
+- Both captures have no horizontal overflow, Vite overlay, runtime exception or console error. Mobile drawer keyboard check: Enter opens and focuses the first nav item; Escape closes and returns focus to the menu button. No data API was called.
+- Screenshots and observations are in `evidence/screenshots/dashboard-alignment-rev25/` and were produced by `capture_dashboard_alignment_rev25.mjs`. Teacher is reviewed; proceed to School Manager.
+
+
+### Rev25 School Manager overview checkpoint — 2026-11-11
+
+- Replaced the three summary cards, repeated preview panel, four sidebar-duplicate shortcuts, and dashboard privacy strip with the two Rev23 blocks: `Tình trạng tổ chức` and `Dịch vụ`. Class count is shown only after the existing assignment-gated API read succeeds; preview shows an em dash and no sample data. Public review is marked as an existing API requiring an authenticated School Manager session. Invoice/payment, subscription/quota, inbox, and feedback remain explicitly unavailable.
+- Desktop 1440×900 and narrow 390×844 captures show no horizontal overflow, Vite overlay, runtime exception or console error. Enter opens the drawer and moves focus into nav; Escape closes and returns focus. Requests were restricted to `127.0.0.1:5173`; no product API was called.
+- Evidence: `evidence/screenshots/dashboard-alignment-rev25/manager-overview-1440.png`, `manager-overview-390.png`, and the refreshed `observations.json`. Manager is reviewed; proceed to Platform Admin.
+
+
+### Rev25 Platform Admin checkpoint and completion — 2026-11-11
+
+- Replaced the dashboard preview banner, duplicate role-discovery warning, nested health-state panel and six sidebar-duplicate shortcuts with four compact cards: health, queue/jobs, billing and lifecycle. Preview health remains uncalled; the card says `Chưa kiểm tra`. Queue/jobs, billing and lifecycle each state their missing API dependency. Role discovery remains on the permissions route.
+- Captured and visually reviewed all three dashboards at 1440×900 and 390×844. Six observations record `documentWidth` equal to the viewport width, no Vite error overlay, no runtime exception or console error, and one visually active nav item. Enter opens each narrow drawer, focuses the first nav link, and makes logout visible; Escape closes the drawer and returns focus. Only per-app loopback requests were allowed; synthetic session flags were used and no product API was called.
+- Evidence: FEAT-066-EV-031, six images and `observations.json` under `evidence/screenshots/dashboard-alignment-rev25/`.
+- Known separate follow-up: React Router `NavLink` currently supplies `aria-current="page"` to all same-path School Manager (10) and Platform Admin (11) nav entries even though CSS marks only one item active. The Rev25 dashboard-only scope kept the shell unchanged; this accessibility issue is recorded for its own fix.
+- Rev25 is complete pending user review. No tests/builds, Parent/mobile, backend, commit or push.
+
+
+## Revision 26 kickoff — 2026-11-11
+
+The user asked to make the background behind the web UI match the Rev23 demo. The worktree and branch were reverified as `F:/Github/Sketch2Life-worktrees/fe-ui-web-remediation` / `codex/fe-ui-web-remediation`; existing Rev24/Rev25 changes are present and will be preserved. Revision 26 is limited to a CSS paper/crayon backdrop behind authenticated content in Teacher, School Manager and Platform Admin; it leaves the accepted shell, page cards, routes, API and authorization unchanged. Plan SHA-256 is `247E06100BD2506B1872EBA47E71549ACE8DFDC200614320464933A428800B38` and the matching direct-user approval is recorded before source edits. No Parent/mobile, Auth, external asset, test/build, commit or push.
+
+### Rev26 completion — 2026-11-11
+
+- Added the requested demo-style paper grain and sparse crayon corner strokes behind the authenticated Teacher, School Manager and Platform Admin content canvases. The shell, cards, text, route structure and runtime states remain intact.
+- Visually inspected overview and representative detail/unavailable routes for all three roles at 1440×900 and 390×844 (12 captures). All screenshots show the background behind the interface with no clipping or horizontal overflow. Capture observations report no Vite overlay, runtime exception or console error; all three mobile drawer keyboard checks pass Enter/Escape and focus return.
+- Evidence is recorded in EV-032 and `evidence/notes/WEB_UI_PAPER_CRAYON_BACKGROUND_REV26_20261111.md`. Preview requests were restricted to the three local loopback apps; no product API was called.
+- Rev26 is complete pending user review. No automated tests/builds, Parent/mobile, backend, commit or push.
+
+## Revision 27 kickoff — 2026-11-11
+
+The user directly authorized rebuilding the shared login UI. Authority was checked before planning: `docs/context/SRS_AUTHORITY.md` points to FEAT-063 SRS v2.7-draft Rev57; SHA-256 is `BE0D656966FDE91BA7CD5C914C319EF301D137985EF5CC91B94F36FEBCF61FB5`; the draft is unsigned. The product roles for web are Teacher, School Manager and Platform Admin; Content Admin remains a permission, and Parent is mobile-only for this scope.
+
+The current shared `/login` component has correct role-to-adapter mappings, three role URLs, preview labeling, form pending/error states and mismatch handling. Rev27 follows the recorded brainstorm recommendation: a Vietnamese-first crayon learning-studio layout with a clear login action and portal links, reusing the existing Three.js school model plus SVG fallback. No auth contract or route changes are authorized. Plan SHA-256 `C9EF609A920F3C53F0153ED109660B85003D4D03A8E1E76C2F46C3EB2EEF21C2` and matching direct-user approval are recorded before source edits.
+
+
+### Rev27 completion — 2026-11-12
+
+The three shared web login pages now use the approved Vietnamese-first crayon learning-studio direction. Existing auth mappings and semantics are preserved. The desktop Three.js illustration has an SVG fallback in the same scene host; a forced local shader-link failure leaves the SVG visible. Twelve screenshots and role/keyboard observations are recorded in EV-033. The full taste-skill gate reached OPEN 22 at round 3 before final manual review stabilized fallback opacity with the React scene state. After that small auth-specific fix, all 12 captures and the forced shader failure check were rerun; the stored open set is the three dependency shader-lint findings and 19 marketing-layout findings, and no fourth full round was run because the skill limit was reached. Details are in `evidence/notes/AUTH_UI_REDESIGN_REV27_20261112.md`. Rev27 is complete pending user review, uncommitted and unpushed.
+## Revision 28 completion — consolidated web structure and SRS rebuild — 2026-11-16
+
+The owner requested one clean web application, an SRS-aligned UI rebuild, one local commit, and a running local preview. FEAT-067's one-app structure and the related FEAT-066 web changes were reviewed together. The one active web entry is `apps/web`; role routes remain separate and use the existing auth/API contracts.
+
+For this task, the owner explicitly selected the unsigned v2.7-draft Rev68 file at `F:/Downloads/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` (SHA-256 `69C83FE49CD4689D5D2540656D3319721838CF7343BAD00E24CDE558B8F5E944`). The repository authority record still points to unsigned FEAT-063 Rev60 (SHA-256 `70DA43A35106E8C02B4BB8FCCB9628C0376C9E7EA6CFC51909ACB569703B218B`). This is recorded as an open source-register mismatch; neither SRS nor the authority record was changed.
+
+The three role shells and shared login were rebuilt with route/API truth, keyboard and responsive states. Teacher class/lesson/import paths retain their available APIs; occurrence, slide/media, sample-run, playback, projection, quota/history and inbox dependencies remain unavailable where contracts are missing. School Manager BE1 auth/classes/review stays separate from local preview; unsupported capacity, lifecycle, billing/quota/inbox flows remain unavailable. Platform Admin remains metadata-only, with Content Admin treated as a capability and child story/media denied by default.
+
+Nine loopback screenshots and the SRS/API route matrix are in `evidence/notes/WEB_UI_SRS_REBUILD_REV28_20261116.md` and `evidence/screenshots/web-rebuild-rev28/`. The final 390px Teacher dashboard image was recaptured after correcting an in-transition drawer capture. Build and repository validator results are recorded in the same evidence note/closeout record. No app tests, production API, child data, deployment or push were used.
+
+### Final validation findings
+
+Security and architecture validators pass; full `git diff --check` exits 0. Harness and skeleton remain invalid because their required `apps/mobile/package.json` was removed per the owner's prior cleanup request; harness also requires evidence directories in unrelated FEAT-070. These paths were not restored or generated for this web-only closeout. The results and first-scan provenance correction are in EV-034.
+
+## Revision 29 — role login landing and remove local preview UX — 2026-11-16
+
+The owner approved using the shared three-role entry as the login landing, removing the preview panel, and making the visible flows real-auth/API-backed. Plan revision 29 and its hash are recorded in the task and root approval registers before source edits. This follow-up supersedes the Rev28 local School Manager preview UX while preserving Rev28 history and the Rev68 task baseline.
+
+/login now contains only Teacher, School Manager, and Platform Admin destinations. /teacher/login and retired /school/preview/* URLs redirect to it; Teacher sign-in is /teacher/sign-in, while School Manager keeps its BE1 login/assignment gate. The local sign-in bypass, preview app/navigation and preview login link were removed. Existing backend/API contracts stay unchanged, and Platform Admin role discovery still shows its missing-API warning.
+
+EV-035 records eight desktop/mobile/browser captures, route destinations, no-overflow results, 3px keyboard focus, no runtime or console errors, no external requests, and the final build pass. No application tests, credential entry, authentication submission or product API calls were performed.
+
+## Revision 30 — one shared sign-in screen — 2026-11-16
+
+The owner corrected Rev29: the sign-in composition shown on the open Teacher route is the login entrypoint; remove the separate role-card chooser and make School Manager use this same layout instead of its second login page. Rev30 plan SHA-256 is 8D167E39A75B3A13E68FBBB1C4672C018E9282920CC4478D9DFA4B16B1DAD12F, with matching approval in the root and FEAT-066 task registers before source changes.
+
+The /login route now opens the Teacher sign-in form by default. The Teacher, School Manager, and Platform Admin buttons update the selected role in the same layout. Compatibility sign-in URLs select their corresponding role there. Teacher continues using Firebase plus backend assignment resolution; School Manager continues using BE1/Firebase with the existing school_admin assignment gate; Platform Admin remains blocked on the missing role/capability discovery API. No provider, backend, authorization, session-bypass, or mobile behavior changed.
+
+EV-036 records desktop/mobile captures, route aliases, focus retention, zero browser/runtime/external-request errors, and that no credential or product API request was made. Build/lint/browser results and pre-commit repository validator results are recorded in the evidence note and Rev30 status. The approved single local commit was amended after final validation; the branch remains one commit ahead and nothing was pushed.

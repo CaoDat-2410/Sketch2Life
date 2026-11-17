@@ -1,0 +1,23 @@
+{
+  "contract_name": "Feat018ImageAdmissionEvaluationManifestV1",
+  "contract_version": "1.0",
+  "data_policy": "synthetic-only",
+  "profiles": [
+    {"fixture_id":"rgb8-png","generator":"rgb8-png","expected_outcome":"ADMITTED","expected_reason":null,"decode_stage":"ADMITTED","synthetic_data":true},
+    {"fixture_id":"rgba8-png","generator":"rgba8-png","expected_outcome":"ADMITTED","expected_reason":null,"decode_stage":"ADMITTED","synthetic_data":true},
+    {"fixture_id":"gray8-png","generator":"gray8-png","expected_outcome":"ADMITTED","expected_reason":null,"decode_stage":"ADMITTED","synthetic_data":true},
+    {"fixture_id":"palette8-png","generator":"palette8-png","expected_outcome":"ADMITTED","expected_reason":null,"decode_stage":"ADMITTED","synthetic_data":true},
+    {"fixture_id":"mono1-png","generator":"mono1-png","expected_outcome":"ADMITTED","expected_reason":null,"decode_stage":"ADMITTED","synthetic_data":true},
+    {"fixture_id":"baseline-jpeg","generator":"baseline-jpeg","expected_outcome":"ADMITTED","expected_reason":null,"decode_stage":"ADMITTED","synthetic_data":true},
+    {"fixture_id":"near-byte-limit-png","generator":"near-byte-limit-png","expected_outcome":"ADMITTED","expected_reason":null,"decode_stage":"ADMITTED","synthetic_data":true},
+    {"fixture_id":"pixel-limit-png","generator":"pixel-limit-png","expected_outcome":"ADMITTED","expected_reason":null,"decode_stage":"ADMITTED","synthetic_data":true},
+    {"fixture_id":"edge-limit-png","generator":"edge-limit-png","expected_outcome":"ADMITTED","expected_reason":null,"decode_stage":"ADMITTED","synthetic_data":true},
+    {"fixture_id":"over-byte-limit","generator":"over-byte-limit","expected_outcome":"REJECTED","expected_reason":"FILE_BYTES_EXCEEDED","decode_stage":"PRE_DECODE_REJECTION","synthetic_data":true},
+    {"fixture_id":"over-pixel-limit","generator":"over-pixel-limit","expected_outcome":"REJECTED","expected_reason":"PIXEL_BUDGET_EXCEEDED","decode_stage":"PRE_DECODE_REJECTION","synthetic_data":true},
+    {"fixture_id":"over-edge-limit","generator":"over-edge-limit","expected_outcome":"REJECTED","expected_reason":"LONGEST_EDGE_EXCEEDED","decode_stage":"PRE_DECODE_REJECTION","synthetic_data":true},
+    {"fixture_id":"truncated-png","generator":"truncated-png","expected_outcome":"INVALID_SOURCE","expected_reason":"CORRUPT_OR_TRUNCATED","decode_stage":"PRE_DECODE_REJECTION","synthetic_data":true},
+    {"fixture_id":"garbage-idat-png","generator":"garbage-idat-png","expected_outcome":"INVALID_SOURCE","expected_reason":"CORRUPT_OR_TRUNCATED","decode_stage":"DECODE_ATTEMPTED_REJECTION","synthetic_data":true},
+    {"fixture_id":"unsupported-rgb16","generator":"unsupported-rgb16","expected_outcome":"UNSUPPORTED","expected_reason":"UNSUPPORTED_PIXEL_FORMAT","decode_stage":"PRE_DECODE_REJECTION","synthetic_data":true},
+    {"fixture_id":"multi-frame-jpeg","generator":"multi-frame-jpeg","expected_outcome":"UNSUPPORTED","expected_reason":"UNSUPPORTED_CONTAINER","decode_stage":"PRE_DECODE_REJECTION","synthetic_data":true}
+  ]
+}

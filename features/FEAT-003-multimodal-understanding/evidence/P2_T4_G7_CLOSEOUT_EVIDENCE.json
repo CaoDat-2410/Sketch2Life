@@ -1,0 +1,242 @@
+{
+  "evidence_id": "EV-003-T4-G7-01",
+  "feature": "FEAT-003 Multimodal understanding",
+  "task": "P2-T4",
+  "gate": "G7",
+  "record_type": "evidence_package_closeout",
+  "created_at": "2026-09-17",
+  "reviewer": "Codex under direct Project Owner authorization",
+  "authorization": {
+    "source": "Direct Project Owner instruction in the current conversation",
+    "accepted_g6_disposition": "PASS_WITH_FINDINGS",
+    "accepted_candidate_commit": "21249dc696c8ea3d958e78394ed69b8ac9f9505a",
+    "accepted_finding": "The separately reported FEAT-018 timing finding is accepted as a finding and remains outside the P2-T4 seven-file scope.",
+    "exact_authorized_paths": [
+      "features/FEAT-003-multimodal-understanding/evidence/P2_T4_G7_CLOSEOUT_EVIDENCE.json",
+      "features/FEAT-003-multimodal-understanding/evidence/P2_T4_G7_EVIDENCE_REVIEW_20260916.md"
+    ],
+    "authorization_boundary": "G7 evidence creation only for the two exact paths above.",
+    "execution_precondition": "This authorization becomes executable only after the owner has accepted the recorded G6 disposition for candidate 21249dc696c8ea3d958e78394ed69b8ac9f9505a. If that condition is not satisfied, G7 must not begin.",
+    "execution_precondition_satisfied": true
+  },
+  "scope_and_gate_state": {
+    "g7_review_scope": "The G7 review is only an evidence-package correctness and scope review. It is not the formal G8 independent evidence/governance audit.",
+    "g7_package_review": "PASS",
+    "g7_package_open_findings": [],
+    "g8_state": "NOT STARTED",
+    "g9_state": "NOT STARTED",
+    "g8_g9_note": "G8 and G9 remain NOT STARTED. The two G7 review passes in the paired Markdown record are package-correctness and scope checks, not the formal G8 audit.",
+    "retired_path": {
+      "path": "features/FEAT-003-multimodal-understanding/evidence/notes/P2_T4_G7_INDEPENDENT_REVIEW_20260916.md",
+      "status": "ABSENT_AND_RETIRED",
+      "future_authorization": "NONE"
+    }
+  },
+  "source_gate": {
+    "g6_disposition": "PASS_WITH_FINDINGS",
+    "candidate_commit": "21249dc696c8ea3d958e78394ed69b8ac9f9505a",
+    "candidate_parent": "dc107cd45a21ccb47031a58cb7c782084624bff4",
+    "source_record": "P2-T4 G6 Baseline Reconciliation Report dated 2026-09-16",
+    "g6_open_findings": [
+      {
+        "id": "FEAT-018-TIMING-001",
+        "classification": "shared_baseline_finding",
+        "status": "NEEDS_SEPARATE_REMEDIATION",
+        "location": "backend/tests/unit/test_feat018_live_lightning_execution.py::test_repeated_fake_execution_is_deterministic_and_does_not_add_an_outer_attempt",
+        "finding": "Repeated fake executions differ in adapter_wall_clock_ms when the complete evidence objects are compared. The remaining 20 evidence fields match.",
+        "scope": "Outside the P2-T4 seven-file scope; requires a separate FEAT-018 task and owner approval."
+      },
+      {
+        "id": "MYPY-BASELINE-001",
+        "classification": "inherited_baseline_finding",
+        "status": "UNCHANGED_FROM_PARENT",
+        "locations": [
+          "backend/src/sketch2life/application/services/learning_media_resolver.py:101 (arg-type)",
+          "backend/src/sketch2life/application/services/learning_media_fallback.py:82 (arg-type)",
+          "backend/src/sketch2life/application/services/learning_media_fallback.py:85 (arg-type)"
+        ],
+        "scope": "Outside the P2-T4 seven-file scope."
+      },
+      {
+        "id": "RUFF-BASELINE-001",
+        "classification": "inherited_baseline_finding",
+        "status": "UNCHANGED_FROM_PARENT",
+        "locations": [
+          "backend/src/sketch2life/contracts/schemas/learning_media.py:79 (E501)",
+          "backend/tests/unit/test_learning_media_scenario_matrix.py:1 (I001)",
+          "backend/tests/unit/test_learning_media_scenario_matrix.py:14 (E501)"
+        ],
+        "scope": "Outside the P2-T4 seven-file scope."
+      },
+      {
+        "id": "ARCHITECTURE-POLICY-B-BASELINE-001",
+        "classification": "owner_approved_policy_baseline",
+        "status": "UNCHANGED_FROM_PARENT",
+        "location": "backend/src/sketch2life/application/services/backend_ai_workflow.py",
+        "finding": "application imports an outer layer",
+        "scope": "The exact pre-existing Policy-B baseline is reported truthfully; it is not a P2-T4 regression."
+      }
+    ],
+    "finding_separation": "A truthful non-blocking G6 finding does not determine g7_package_review. PASS_WITH_FINDINGS is reserved for a defect in the G7 evidence package itself."
+  },
+  "g6_execution_attribution": {
+    "execution_date": "2026-09-16",
+    "environment": {
+      "python_implementation": "CPython",
+      "sys_version": "CPython 3.13.5",
+      "python_major_minor": "3.13",
+      "pytest": "8.4.2",
+      "mypy": "1.20.2 (compiled)",
+      "ruff": "0.16.7"
+    },
+    "commands": [
+      "python -m pytest -q backend/tests (from the repository root with PYTHONPATH=<snapshot>/backend/src)",
+      "python -m pytest --collect-only -q backend/tests/contract/test_p2_t4_contract.py backend/tests/unit/test_p2_t4_fusion.py",
+      "python -m pytest -q backend/tests/contract/test_p2_t4_contract.py backend/tests/unit/test_p2_t4_fusion.py",
+      "python -m mypy src (from backend)",
+      "ruff check . (from backend)",
+      "python tools/validate_harness.py",
+      "python tools/validate_repository_security.py",
+      "python tools/validate_skeleton.py",
+      "python tools/validate_architecture.py",
+      "git diff --check"
+    ],
+    "results": {
+      "full_pytest_parent": "1421 collected; 1414 passed; 6 skipped; 1 shared baseline failure",
+      "full_pytest_candidate": "1461 collected; 1454 passed; 6 skipped; 1 shared baseline failure",
+      "focused_p2_t4": "317 passed; 0 failed",
+      "mypy": "Three findings, identical to parent, all outside P2-T4 scope",
+      "ruff": "Three findings, identical to parent, all outside P2-T4 scope",
+      "harness": "HARNESS_VALID",
+      "repository_security": "REPOSITORY_SECURITY_VALID",
+      "skeleton": "SKELETON_VALID",
+      "architecture": "ARCHITECTURE_INVALID with exactly the unchanged Policy-B baseline finding",
+      "git_diff_check": "CLEAN"
+    },
+    "interpretation": "The candidate introduced zero new pytest failures, mypy errors, Ruff findings, or architecture findings relative to the parent. The one shared timing-sensitive failure is retained as a G6 open finding."
+  },
+  "identity_definitions": {
+    "candidate_raw_file_sha256": "For each seven-file entry, lowercase SHA-256 of the exact raw bytes returned by git cat-file blob 21249dc696c8ea3d958e78394ed69b8ac9f9505a:<path>; no decoding, line-ending normalization, JSON reserialization, or working-tree substitution.",
+    "documentation_raw_file_sha256": "Lowercase SHA-256 of exact committed file bytes with no normalization.",
+    "documentation_corrected_normalized_sha256": "For the four freeze/package artifacts only, the corrected full-line-match normalization defined by the accepted digest-binding erratum.",
+    "git_blob_id": "Git object ID returned by git rev-parse <source commit>:<path>.",
+    "erratum_identity_rule": "The erratum has no normalized self-digest. Its identity is limited to the four fields in erratum_binding below."
+  },
+  "candidate_seven_file_bindings": [
+    {
+      "repository_path": "backend/src/sketch2life/contracts/schemas/p2_t4_fusion.py",
+      "raw_file_sha256": "71d2ea0598f7667cb7dcbdcbc929d9d01a8475f47e3e1665168e7b2efd47513a",
+      "git_blob_id": "9ef7d2c60c0388c47516c623e395e7b573032ae6",
+      "bytes": 29342
+    },
+    {
+      "repository_path": "backend/src/sketch2life/application/services/p2_t4_fusion.py",
+      "raw_file_sha256": "6daa1b1eb49b665251e0e708454afc1449479437afe058effcfe22adf34ca823",
+      "git_blob_id": "0fd5d131f35c70e5b00139474888ded1570f9c8f",
+      "bytes": 30602
+    },
+    {
+      "repository_path": "backend/tests/contract/test_p2_t4_contract.py",
+      "raw_file_sha256": "46156b4576dfb9f4f9c500ee0d6fb110ba593627dddec9f1b72f0e9972fe7759",
+      "git_blob_id": "651b92ac9a3d2af1ede69a5fab4c5323c36d7419",
+      "bytes": 42821
+    },
+    {
+      "repository_path": "backend/tests/unit/test_p2_t4_fusion.py",
+      "raw_file_sha256": "423e722a4e2f4f8c0f19cdee3275bf469e74b8afbeeaef4dcc14466e935a3097",
+      "git_blob_id": "37c31d9b1a8f6728657fa39893bcc265c35a6965",
+      "bytes": 46535
+    },
+    {
+      "repository_path": "features/FEAT-003-multimodal-understanding/fixtures/p2-t4-fusion-v1/manifest-v1.json",
+      "raw_file_sha256": "ab60f306ca664391a7d94fe101d9305a6e626a0e58fd8e0e910839e666fd7ccc",
+      "git_blob_id": "4380e498e474eab27c7d654d4383c602568d3216",
+      "bytes": 19928
+    },
+    {
+      "repository_path": "features/FEAT-003-multimodal-understanding/fixtures/p2-t4-fusion-v1/cases-v1.json",
+      "raw_file_sha256": "f9a1b3bfe96f3234d01d76bf93b07aca6c921935d8802c3b6ecbaf151e14973e",
+      "git_blob_id": "60a852bfff1c488d1d213872e98c1b44eee338c6",
+      "bytes": 25575
+    },
+    {
+      "repository_path": "features/FEAT-003-multimodal-understanding/fixtures/p2-t4-fusion-v1/expected-v1.json",
+      "raw_file_sha256": "04604f1bcc5df0a698f646cfb284428c57576ed881ca30d62b66e4199e90447c",
+      "git_blob_id": "01d07242e222d00bd8fd4b70ecc053ec88f4b88c",
+      "bytes": 90662
+    }
+  ],
+  "dependency_lock_bindings": [
+    {
+      "repository_path": "backend/pyproject.toml",
+      "raw_file_sha256": "9ca3a54905d11fdb7f30a84356d23741f256b2115b254bcc9fba4efacdf17df6",
+      "git_blob_id": "8f8a344f505be839b9bd0bd0d640fa0d18cf6b33"
+    },
+    {
+      "repository_path": "pnpm-lock.yaml",
+      "raw_file_sha256": "b406b4c36c1e5304cf0c43b175c426d50aa3b43dc9a2bb81be357ea2b80b1665",
+      "git_blob_id": "20b0ecdd8247a2fcef8efd5d4b028082750635c4"
+    }
+  ],
+  "immutable_artifact_bindings": [
+    {
+      "artifact": "Freeze revision 11",
+      "repository_path": "features/FEAT-003-multimodal-understanding/plan/P2_T4_CONTRACT_FREEZE_DRAFT.md",
+      "source_commit": "18d0c33d35431ca96a76692a68c6b992098699e7",
+      "corrected_normalized_sha256": "2b920e34f779ccbeabfec91e44858957b4f032dd6583879403b0fb748e367050",
+      "raw_file_sha256": "9521cb1482a10cefd235ea9596882d210912897289c182205aa93ee5a6685197",
+      "git_blob_id": "87227e5be0a58db88ac9f91ee7ddbdfa9bf4b05f"
+    },
+    {
+      "artifact": "Freeze revision 12",
+      "repository_path": "features/FEAT-003-multimodal-understanding/plan/P2_T4_CONTRACT_FREEZE_REVISION_12.md",
+      "source_commit": "5b6501b2d8b809f9dd4caf77b5c5d51d2e1e9cf2",
+      "corrected_normalized_sha256": "103695e5e1c49d9f9b1cc85fd5286f42980580f338578db799febdeedb310ee5",
+      "raw_file_sha256": "b9606292e00b1b956ec38e141eb27f868bad2835f8ea5e8d20693a18acd2fa20",
+      "git_blob_id": "1e7e487362efec02b3b5f3bbf9dd4c64eabaa0d9"
+    },
+    {
+      "artifact": "Package revision 15",
+      "repository_path": "features/FEAT-003-multimodal-understanding/evidence/notes/P2_T4_IMPLEMENTATION_APPROVAL_PACKAGE_DRAFT_20260913.md",
+      "source_commit": "18d0c33d35431ca96a76692a68c6b992098699e7",
+      "corrected_normalized_sha256": "7c76208d2ab3c98f9681fce67641049a93b21d2f0c2e9c843de1cac9e4d70b96",
+      "raw_file_sha256": "255034c587e89f8b72122c7377566684dd7a718257555c7fa92175a444255681",
+      "git_blob_id": "a4ade521f288c0d07c8c9cfdb1f6bbe6b41fa839"
+    },
+    {
+      "artifact": "Package revision 16",
+      "repository_path": "features/FEAT-003-multimodal-understanding/evidence/notes/P2_T4_IMPLEMENTATION_APPROVAL_PACKAGE_REVISION_16.md",
+      "source_commit": "5b6501b2d8b809f9dd4caf77b5c5d51d2e1e9cf2",
+      "corrected_normalized_sha256": "75cd5d69e6896d7fae10d3771a90019003e0644fff1138161b7ac330e840b270",
+      "raw_file_sha256": "8ce46b5f762b27b556030d85666ccb6827a1fdbaeb56312dc8490d6e214a75ce",
+      "git_blob_id": "8784e84a537260668e81c6c889aadc8688086857"
+    }
+  ],
+  "erratum_binding": {
+    "repository_path": "features/FEAT-003-multimodal-understanding/plan/P2_T4_DIGEST_BINDING_ERRATUM_20260915.md",
+    "reviewed_raw_file_sha256": "8975d94b0d9be8e78935b66e1e851493c1cff5b2f1b83cdf49acfe7f9929276e",
+    "reviewed_git_blob_id": "4b7ed999fed45e176d57c395e63fe62e8f12accc",
+    "governance_checkpoint_commit": "c84a92990adac62477c076e6f660da3bef319175"
+  },
+  "review_artifacts": {
+    "closeout_evidence_path": "features/FEAT-003-multimodal-understanding/evidence/P2_T4_G7_CLOSEOUT_EVIDENCE.json",
+    "review_record_path": "features/FEAT-003-multimodal-understanding/evidence/P2_T4_G7_EVIDENCE_REVIEW_20260916.md",
+    "final_evidence_sha256_definition": "The paired review record records the SHA-256 of the exact raw bytes of this closeout JSON as the final evidence manifest identity."
+  },
+  "non_actions": [
+    "No code changes.",
+    "No fixture changes.",
+    "No P2-T4 governance edits.",
+    "No freeze or package edits.",
+    "No implementation-checkpoint changes.",
+    "No G8 or G9 work.",
+    "No integration, runtime, provider/model, GPU, Lightning, network, migration, or production activity.",
+    "No commit, push, or PR."
+  ],
+  "limitations": [
+    "This is G7 evidence-package correctness and scope evidence only.",
+    "The formal G8 independent evidence/governance audit has not started.",
+    "The FEAT-018 timing finding remains a separately reported G6 finding and is not remediated here.",
+    "The architecture validator result is reported truthfully as the unchanged owner-approved Policy-B baseline, not as a green result."
+  ]
+}

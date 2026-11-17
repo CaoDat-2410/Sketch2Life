@@ -1,0 +1,290 @@
+{
+  "app": "sketch2life-srs23-language-audio-dev",
+  "approved_activity_refs": [
+    "synthetic-activity-observe-butterfly",
+    "synthetic-activity-compare-flowers"
+  ],
+  "attempt_id": "d704a3aa-488e-4cd1-96c3-84cad066dc5d",
+  "call_id": "fc-01M6QWQEJDQVGFVDDRSYHHX88R",
+  "dispatch_at": "2026-11-06T14:38:30+07:00",
+  "drawing_step_count": 4,
+  "ended_at": "2026-11-06T14:39:08+07:00",
+  "function": "generate-teacher-sketch-deck",
+  "generation_id": "7c7af987-4edb-49b0-a732-69ad38cfaf40",
+  "input_sha256": "d4a7421d6d19fab19875f9143739b271275a7362b07fc29020076da15dec2b96",
+  "job_id": "e74e2008-0bcd-46fe-ba05-5577858c21e3",
+  "manifest_sha256": "472def81177a9c7a1a124efc32fddf611ce56d42efd59b35aa3db0fd91157f95",
+  "outcome": "SUCCEEDED",
+  "output_sha256": "932183efa096f043065c60a5c106169be49b9fe527e5b84629f2b83e86474430",
+  "result": {
+    "attempt_id": "d704a3aa-488e-4cd1-96c3-84cad066dc5d",
+    "generation_id": "7c7af987-4edb-49b0-a732-69ad38cfaf40",
+    "job_id": "e74e2008-0bcd-46fe-ba05-5577858c21e3",
+    "model": {
+      "id": "Qwen/Qwen3.5-9B",
+      "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
+    },
+    "result": {
+      "approved_activity_refs": [
+        "synthetic-activity-observe-butterfly",
+        "synthetic-activity-compare-flowers"
+      ],
+      "aspect_ratio": "16:9",
+      "content_hash": "623788e3d6dd28bdc08014836707f003ed90692b1060bf421016c9ae6fd93e1e",
+      "language": "vi",
+      "plan_revision_ref": "synthetic-approved-butterfly-plan-v1",
+      "review_required": true,
+      "schema_version": "sketch2life.teacher-sketch-deck.v1",
+      "slides": [
+        {
+          "activity_ref": null,
+          "bullets": [
+            "Trẻ quan sát hình dáng và một số đặc điểm dễ nhận thấy của con bướm.",
+            "Trẻ tìm hiểu vòng đời của bướm bằng ngôn ngữ phù hợp lứa tuổi."
+          ],
+          "kind": "orientation",
+          "slide_index": 1,
+          "title": "Con bướm"
+        },
+        {
+          "activity_ref": null,
+          "kind": "drawing_guide",
+          "slide_index": 2,
+          "steps": [
+            {
+              "instruction": "Vẽ đầu tròn nhỏ và thân dài mảnh ở giữa trang giấy, chừa khoảng trống hai bên.",
+              "placement": "Ở giữa trang giấy, chừa khoảng trống hai bên.",
+              "source_action": "Vẽ đầu tròn nhỏ và thân dài mảnh.",
+              "source_placement": "Ở giữa trang giấy, chừa khoảng trống hai bên.",
+              "step_index": 1
+            },
+            {
+              "instruction": "Thêm hai cặp cánh lớn hai bên thân, cánh trên lớn hơn cánh dưới cân đối.",
+              "placement": "Cánh trên lớn hơn, cánh dưới nhỏ hơn và cân đối.",
+              "source_action": "Thêm hai cặp cánh lớn hai bên thân.",
+              "source_placement": "Cánh trên lớn hơn, cánh dưới nhỏ hơn và cân đối.",
+              "step_index": 2
+            },
+            {
+              "instruction": "Vẽ hai chiếc râu cong hướng lên gần đầu bướm.",
+              "placement": "Hai râu hướng lên, gần đầu bướm.",
+              "source_action": "Vẽ hai chiếc râu cong trên đầu.",
+              "source_placement": "Hai râu hướng lên, gần đầu bướm.",
+              "step_index": 3
+            },
+            {
+              "instruction": "Thêm vài đường gân đơn giản rải nhẹ trên cánh, giữ nhiều khoảng trắng.",
+              "placement": "Rải nhẹ trên cánh, giữ nhiều khoảng trắng.",
+              "source_action": "Thêm vài đường gân đơn giản trên cánh.",
+              "source_placement": "Rải nhẹ trên cánh, giữ nhiều khoảng trắng.",
+              "step_index": 4
+            }
+          ],
+          "title": "Cùng quan sát và vẽ Con bướm"
+        },
+        {
+          "activity_ref": null,
+          "bullets": [
+            "Vòng đời của bướm gồm trứng, sâu bướm, nhộng rồi đến bướm trưởng thành.",
+            "Sâu bướm nở từ trứng; bướm trưởng thành chui ra khỏi nhộng.",
+            "Nhiều loài bướm trưởng thành hút mật hoa bằng vòi dài."
+          ],
+          "kind": "subject_exploration",
+          "slide_index": 3,
+          "title": "Cùng tìm hiểu về Con bướm"
+        },
+        {
+          "activity_ref": "synthetic-activity-observe-butterfly",
+          "goal": [
+            "Luyện quan sát và nhận ra đặc điểm của bướm trong môi trường tự nhiên."
+          ],
+          "instructions": [
+            "Quan sát bướm từ khoảng cách an toàn.",
+            "Mời trẻ kể điều mình nhìn thấy; không bắt hoặc chạm vào bướm."
+          ],
+          "kind": "approved_activity",
+          "materials": [
+            "Sổ quan sát",
+            "Bút chì"
+          ],
+          "preparation": [
+            "Chọn khu vườn an toàn có hoa và đứng cùng trẻ."
+          ],
+          "safety_notes": [
+            "Người lớn luôn ở cạnh trẻ.",
+            "Không bắt, đuổi hoặc chạm vào côn trùng."
+          ],
+          "slide_index": 4,
+          "title": "Quan sát bướm từ xa"
+        },
+        {
+          "activity_ref": "synthetic-activity-compare-flowers",
+          "goal": [
+            "So sánh hình dáng và màu sắc của các bông hoa thu hút bướm."
+          ],
+          "instructions": [
+            "Quan sát hai bông hoa khác nhau mà không ngắt hoa.",
+            "Mời trẻ mô tả điểm giống và khác nhau."
+          ],
+          "kind": "approved_activity",
+          "materials": [
+            "Thẻ quan sát bằng giấy"
+          ],
+          "preparation": [
+            "Chọn lối đi bằng phẳng, tránh cây có gai và khu vực xe cộ."
+          ],
+          "safety_notes": [
+            "Người lớn ở gần; không nếm hoặc bứt cây.",
+            "Rửa tay sau hoạt động ngoài trời."
+          ],
+          "slide_index": 5,
+          "title": "Tìm những bông hoa khác nhau"
+        }
+      ],
+      "status": "DRAFT",
+      "subject_knowledge": [
+        "Vòng đời của bướm gồm trứng, sâu bướm, nhộng rồi đến bướm trưởng thành.",
+        "Sâu bướm nở từ trứng; bướm trưởng thành chui ra khỏi nhộng.",
+        "Nhiều loài bướm trưởng thành hút mật hoa bằng vòi dài."
+      ],
+      "target_age_months": 60,
+      "topic": "Con bướm"
+    },
+    "schema_version": "sketch2life.modal.worker-output.v1",
+    "workload": "teacher.sketch-deck.generate"
+  },
+  "runner_elapsed_ms": 41378.07,
+  "slide_count": 5,
+  "started_at": "2026-11-06T14:38:27+07:00",
+  "wait_limit_seconds": 1800,
+  "worker_log_summary": {
+    "worker_binary_output_sha256": null,
+    "worker_diagnostic_code": null,
+    "worker_diagnostic_details": null,
+    "worker_duration_ms": 34047,
+    "worker_error_code": null,
+    "worker_error_type": null,
+    "worker_failure_boundary": "worker_succeeded",
+    "worker_gpu_class": "L40S|L4|A10",
+    "worker_last_stage": "terminal",
+    "worker_log_event_count": 26,
+    "worker_logs_available": true,
+    "worker_model_id": "Qwen/Qwen3.5-9B",
+    "worker_model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+    "worker_output_sha256": "932183efa096f043065c60a5c106169be49b9fe527e5b84629f2b83e86474430",
+    "worker_output_size_bytes": 4448,
+    "worker_phase_history": [
+      {
+        "event": "worker_phase_started",
+        "stage": "input_envelope"
+      },
+      {
+        "duration_ms": 0,
+        "event": "worker_phase_succeeded",
+        "stage": "input_envelope"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "workload_gate"
+      },
+      {
+        "duration_ms": 0,
+        "event": "worker_phase_succeeded",
+        "stage": "workload_gate"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "scratch_volume_reload"
+      },
+      {
+        "duration_ms": 1393,
+        "event": "worker_phase_succeeded",
+        "stage": "scratch_volume_reload"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "input_manifest_read"
+      },
+      {
+        "duration_ms": 3073,
+        "event": "worker_phase_succeeded",
+        "stage": "input_manifest_read"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "approved_plan_contract_validation"
+      },
+      {
+        "duration_ms": 0,
+        "event": "worker_phase_succeeded",
+        "stage": "approved_plan_contract_validation"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "checkpoint_verification"
+      },
+      {
+        "duration_ms": 681,
+        "event": "worker_phase_succeeded",
+        "stage": "checkpoint_verification"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "model_load"
+      },
+      {
+        "duration_ms": 15119,
+        "event": "worker_phase_succeeded",
+        "stage": "model_load"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "prompt_encoding"
+      },
+      {
+        "duration_ms": 50,
+        "event": "worker_phase_succeeded",
+        "stage": "prompt_encoding"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "constrained_decoder_setup"
+      },
+      {
+        "duration_ms": 3219,
+        "event": "worker_phase_succeeded",
+        "stage": "constrained_decoder_setup"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "model_inference"
+      },
+      {
+        "duration_ms": 10414,
+        "event": "worker_phase_succeeded",
+        "stage": "model_inference"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "output_parse_and_contract_validation"
+      },
+      {
+        "duration_ms": 0,
+        "event": "worker_phase_succeeded",
+        "stage": "output_parse_and_contract_validation"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "approved_activity_mapping"
+      },
+      {
+        "duration_ms": 0,
+        "event": "worker_phase_succeeded",
+        "stage": "approved_activity_mapping"
+      }
+    ],
+    "worker_started_observed": true,
+    "worker_terminal_event": "worker_succeeded"
+  },
+  "workload": "teacher.sketch-deck.generate"
+}

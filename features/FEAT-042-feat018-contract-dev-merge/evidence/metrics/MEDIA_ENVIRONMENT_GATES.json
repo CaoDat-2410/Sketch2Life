@@ -1,0 +1,21 @@
+{
+  "status": "REQUIRES_LIGHTNINGAI_TEST",
+  "reason": "Existing Windows Python3.12 venv lacks imageio/imageio_ffmpeg; incoming owner environment policy forbids installing missing dependencies here. GPU/model deps not installed.",
+  "not_collected": [
+    "backend/tests/unit/test_whiteboard_v2_engine.py",
+    "backend/tests/unit/test_whiteboard_v2_visual_refinement.py",
+    "backend/tests/unit/test_butterfly_candidate_refinement.py",
+    "backend/tests/unit/test_butterfly_video_proof.py",
+    "backend/tests/unit/test_house_video_proof.py",
+    "backend/tests/unit/test_limited_character_rig_v2.py",
+    "backend/tests/unit/test_semantic_authoring_v1.py",
+    "backend/tests/unit/test_semantic_drawing_engine_v2.py",
+    "backend/tests/unit/test_whiteboard_v2_complexity.py",
+    "backend/tests/unit/test_whiteboard_v2_pencil_pass.py",
+    "backend/tests/unit/test_whiteboard_v2_schedule_debug.py",
+    "backend/tests/unit/test_whiteboard_v2_visual_pass.py"
+  ],
+  "backend_integration_directory": "absent",
+  "real_provider_e2e": "not_requested",
+  "not_executed_runtime_media_test": "backend/tests/unit/test_whiteboard_mvp_renderer.py::test_narration_beat_without_matching_strokes_blocks_render"
+}

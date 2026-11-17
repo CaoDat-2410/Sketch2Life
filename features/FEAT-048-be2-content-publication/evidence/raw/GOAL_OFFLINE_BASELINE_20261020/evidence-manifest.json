@@ -1,0 +1,16 @@
+{
+  "files": {
+    "architecture.log": "67f1bc538fc90b4f70000a89126dde0aa14c688b8c3dbba796e1a89d6caef80e",
+    "collection.log": "12a5aabdd39b866ba67ec408b0fc7d4461af75c360cc09ff3637a656d82e6fe0",
+    "harness.log": "f9fe12c27f5c402ad822c90f7d896e9bd4ca6c03094ed537f3bd957a65c9c9b8",
+    "junit.xml": "22a2331191731e89a523cbab27e50f3046dfbbbfe2837ce2bc0ff2eeb0c23e70",
+    "mypy.log": "04c09a0482f3ee8b1cad8231b52cfdfc3faa4e1d5cf5ca28854a33c8b766b698",
+    "pytest.log": "1577986d678a2e11f99354d6f97107367beb4596d078bbf9830995b5bbf43a29",
+    "ruff.log": "a4443afdcfb6d7363adb285762515ccf7cf50473b1a05c20c1a50f6bed4d26b0",
+    "runner-12-console.log": "068a2fed0d9862660e0c6e76ccc0f8ff1a2410a0bd32090df8cc1513ee496a5b",
+    "runner-12-console.log.exit": "f1b2f662800122bed0ff255693df89c4487fbdcf453d3524a42d4ec20c3d9c04",
+    "security.log": "8c31f184cfc3026ab6de4d1234d9762b7ee373a2ec7197842d14fa544bdd5e72",
+    "summary.json": "b046935699cc2119ac5ad60dc78ce75c70d66017567990fe3654d495cc6b7632",
+    "whitespace.log": "bb2392aea74f69a451c7c45222c6fe90b7ec0e342e613fe038864007bd795235"
+  }
+}

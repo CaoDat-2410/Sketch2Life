@@ -1,0 +1,36 @@
+{
+  "aliases": [
+    "storyboard.generate"
+  ],
+  "call_id": "fc-01M6R2H2N3R3ZWT45JZTF30NV1",
+  "elapsed_seconds": 1831.282,
+  "ended_at": "2026-11-06T16:50:20+07:00",
+  "model_id": "Qwen/Qwen3.5-9B",
+  "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+  "outcome": "FAILED_TERMINAL",
+  "runner_error_type": "FunctionTimeoutError",
+  "runner_outcome": "FAILED_TERMINAL",
+  "started_at": "2026-11-06T16:19:49+07:00",
+  "synthetic_only": true,
+  "video_calls": 0,
+  "worker_log_summary": {
+    "worker_binary_output_sha256": null,
+    "worker_diagnostic_code": null,
+    "worker_diagnostic_details": null,
+    "worker_duration_ms": 1800007,
+    "worker_error_code": "UNCLASSIFIED_FAILURE",
+    "worker_error_type": "InputCancellation",
+    "worker_failure_boundary": "worker_terminal_failure_observed",
+    "worker_gpu_class": "L40S|L4|A10",
+    "worker_last_stage": "model_inference",
+    "worker_log_event_count": 24,
+    "worker_logs_available": true,
+    "worker_model_id": "Qwen/Qwen3.5-9B",
+    "worker_model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+    "worker_output_sha256": null,
+    "worker_output_size_bytes": null,
+    "worker_started_observed": true,
+    "worker_terminal_event": "worker_failed"
+  },
+  "workload": "story.generate"
+}

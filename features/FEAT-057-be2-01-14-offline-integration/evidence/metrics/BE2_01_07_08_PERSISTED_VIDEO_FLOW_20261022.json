@@ -1,0 +1,46 @@
+{
+  "date": "2026-10-22",
+  "status": "PARTIAL",
+  "scope": {
+    "path": "features/FEAT-057-be2-01-14-offline-integration/plan/BE2_01_07_08_PERSISTED_VIDEO_SEAM_SCOPE_REV2_DRAFT_20261022.md",
+    "sha256": "1C199CF6CD1E7C2F2D5981D253256278079D840197CB1B05D304E2620FD2E90D",
+    "contract": "BE2-VIDEO-LIFECYCLE/1"
+  },
+  "approval_manifest_verification": {
+    "FEAT-044": {"matched": true, "paths": 7},
+    "FEAT-050": {"matched": true, "paths": 14},
+    "FEAT-057": {"matched": true, "paths": 1}
+  },
+  "approval_record_sha256": {
+    "FEAT-044": "C314A22C97527AB96EA33335CCA88832C392118B5729A939E903C1F661DA4169",
+    "FEAT-050": "BDFD51B39E95BBF3455AD3D4F5E678CF7F4FF6BF7074F862DF936E0AF0A4AEC4",
+    "FEAT-057": "0DA72B9C3FD141E172A4EB6BA470C3D062077C281D6E00ED99A67316DE40B89E"
+  },
+  "checks": {
+    "focused_unit_contract": {
+      "result": "PASS",
+      "passed": 325,
+      "log": "evidence/raw/be2-video-lifecycle-20261022/unit-contract.log",
+      "log_sha256": "2BE1AD7CDEE0E6B60CBE88328785F91233C105B212B7094754C80CBE89E11D2E"
+    },
+    "persisted_postgresql17_flow": {
+      "result": "NOT_RUN",
+      "collected": 7,
+      "skipped": 7,
+      "reason": "BE2_TEST_PG_HOST and an external test-only password file are not configured; only PostgreSQL 18 service is available, while scope requires PostgreSQL 17",
+      "log": "evidence/raw/be2-video-lifecycle-20261022/postgres17-integration.log",
+      "log_sha256": "C2FF57CD40E8F3A7D127139FA3106A7546E175B12D4E91BBF3E4DF72A690E4D6"
+    },
+    "py_compile": "PASS",
+    "git_diff_check_scoped_paths": "PASS"
+  },
+  "database_created_or_contacted": false,
+  "schema_or_migration_changed": false,
+  "external_provider_or_runtime_called": false,
+  "durable_source_fence": "OUT_OF_SCOPE / UNPROVEN",
+  "X01": "PARTIAL",
+  "P01_through_P07": "UNPROVEN_PENDING_POSTGRESQL_17_RUN",
+  "BE1_handoff": "NOT_SENT / NOT_READY_FOR_BE1_INTEGRATION",
+  "BE1_handoff_note": "evidence/notes/BE1_HANDOFF_BE2_07_01_08_FLOW_20261022.md",
+  "staged_or_committed": false
+}

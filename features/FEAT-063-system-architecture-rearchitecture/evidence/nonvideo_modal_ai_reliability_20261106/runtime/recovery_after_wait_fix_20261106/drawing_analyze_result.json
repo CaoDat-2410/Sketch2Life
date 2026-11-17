@@ -1,0 +1,141 @@
+{
+  "adult_confirmation_required": true,
+  "app": "sketch2life-srs23-drawing-vlm-dev",
+  "attempt_id": "2e92a653-8002-4cd3-8618-bca888270a11",
+  "call_id": "fc-01M6QWGTSR7Q4ZA6JABJB6FZ19",
+  "candidate_subject": "bướm",
+  "dispatch_at": "2026-11-06T14:34:53+07:00",
+  "drawing_sha256": "f433b37a93f33accc5a10cbb81b18f8cf31d8de0868752c0fe6d9d8beb3ec8e0",
+  "ended_at": "2026-11-06T14:35:23+07:00",
+  "function": "analyze-drawing",
+  "generation_id": "7e6d8722-a90d-4754-8bf0-c91a9655a91f",
+  "job_id": "77fc6314-bb16-45a7-97d0-723b8025483b",
+  "model": {
+    "id": "Qwen/Qwen3.5-9B",
+    "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
+  },
+  "outcome": "SUCCEEDED",
+  "output_sha256": "be0d302d0f4f537008e8ba32327bfd970837c1e8b2e8787e622532a97572b077",
+  "runner_elapsed_ms": 34343.62,
+  "source_sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949",
+  "started_at": "2026-11-06T14:34:50+07:00",
+  "visible_features": [
+    "cánh màu hồng và tím",
+    "thân màu vàng có vạch ngang",
+    "mặt cười đơn giản",
+    "anten cong ở đầu"
+  ],
+  "wait_limit_seconds": 1800,
+  "worker_log_summary": {
+    "worker_binary_output_sha256": null,
+    "worker_diagnostic_code": null,
+    "worker_diagnostic_details": null,
+    "worker_duration_ms": 28039,
+    "worker_error_code": null,
+    "worker_error_type": null,
+    "worker_failure_boundary": "worker_succeeded",
+    "worker_gpu_class": "L40S|L4|A10",
+    "worker_last_stage": "terminal",
+    "worker_log_event_count": 22,
+    "worker_logs_available": true,
+    "worker_model_id": "Qwen/Qwen3.5-9B",
+    "worker_model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+    "worker_output_sha256": "be0d302d0f4f537008e8ba32327bfd970837c1e8b2e8787e622532a97572b077",
+    "worker_output_size_bytes": 661,
+    "worker_phase_history": [
+      {
+        "event": "worker_phase_started",
+        "stage": "input_envelope"
+      },
+      {
+        "duration_ms": 0,
+        "event": "worker_phase_succeeded",
+        "stage": "input_envelope"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "workload_gate"
+      },
+      {
+        "duration_ms": 0,
+        "event": "worker_phase_succeeded",
+        "stage": "workload_gate"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "scratch_volume_reload"
+      },
+      {
+        "duration_ms": 84,
+        "event": "worker_phase_succeeded",
+        "stage": "scratch_volume_reload"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "input_asset_verify"
+      },
+      {
+        "duration_ms": 161,
+        "event": "worker_phase_succeeded",
+        "stage": "input_asset_verify"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "model_load"
+      },
+      {
+        "duration_ms": 13891,
+        "event": "worker_phase_succeeded",
+        "stage": "model_load"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "image_preprocess"
+      },
+      {
+        "duration_ms": 34,
+        "event": "worker_phase_succeeded",
+        "stage": "image_preprocess"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "prompt_encode"
+      },
+      {
+        "duration_ms": 183,
+        "event": "worker_phase_succeeded",
+        "stage": "prompt_encode"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "model_inference"
+      },
+      {
+        "duration_ms": 13686,
+        "event": "worker_phase_succeeded",
+        "stage": "model_inference"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "model_output_validation"
+      },
+      {
+        "duration_ms": 0,
+        "event": "worker_phase_succeeded",
+        "stage": "model_output_validation"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "output_parse_and_contract_validation"
+      },
+      {
+        "duration_ms": 0,
+        "event": "worker_phase_succeeded",
+        "stage": "output_parse_and_contract_validation"
+      }
+    ],
+    "worker_started_observed": true,
+    "worker_terminal_event": "worker_succeeded"
+  },
+  "workload": "drawing.analyze"
+}

@@ -1,0 +1,139 @@
+{
+  "feature": "FEAT-058-review2-document-package",
+  "revision": 9,
+  "recordedAt": "2026-10-24 Asia/Saigon",
+  "tool": {
+    "name": "draw.io Desktop CLI",
+    "version": "32.6.1",
+    "importMode": "Mermaid imported as editable Draw.io shapes (--mermaid-image=false), then curated with a feature-local native mxGraph builder",
+    "rasterUsedAsDiagramSource": false
+  },
+  "sources": [
+    {
+      "path": "artifacts/diagrams/rev9/Sketch2Life-Device-Connection-State-Machine.mmd",
+      "sha256": "68158AC936360B97E50D63AA63F04F4C6433C3C371EA4920BF9DBC1A74B1D469",
+      "bytes": 393
+    },
+    {
+      "path": "artifacts/diagrams/rev9/Sketch2Life-Participant-Admission-State-Machine.mmd",
+      "sha256": "FCBC85804FB5E2D75B479A97825E5C8C418A5AE83366591B3EF601C76DB331A5",
+      "bytes": 221
+    },
+    {
+      "path": "artifacts/diagrams/rev9/Sketch2Life-Session-Lifecycle-State-Machine.mmd",
+      "sha256": "FEEF9450305472FA8B7D02EA2AB80D8174591DB0CFB4AF64B47FE92EEDFDCCA4",
+      "bytes": 568
+    },
+    {
+      "path": "artifacts/diagrams/rev9/Sketch2Life-Teacher-Lobby-Admission-Start-Activity.mmd",
+      "sha256": "862DBE77744A389C01DF3AF4EC8A75DE7C95204AC8CB78E43182A7FE033628CB",
+      "bytes": 1063
+    }
+  ],
+  "rawCliImports": [
+    {
+      "path": "evidence/raw/mermaid-import/Sketch2Life-Device-Connection-State-Machine.drawio",
+      "sha256": "9E2A807923B62103670CCF88C8A31A57FCCD6CFE0EE12695A6CCDC53DC601B50",
+      "bytes": 16206
+    },
+    {
+      "path": "evidence/raw/mermaid-import/Sketch2Life-Participant-Admission-State-Machine.drawio",
+      "sha256": "72F4ADCB4C04822081C70E91C0C1E206498E59CF387F14F3305C1FD1AD060124",
+      "bytes": 13105
+    },
+    {
+      "path": "evidence/raw/mermaid-import/Sketch2Life-Session-Lifecycle-State-Machine.drawio",
+      "sha256": "669755CA729D1989233048BCC9A5A1F62007B3424EF56DA8DBFCCBA993C5C911",
+      "bytes": 27979
+    },
+    {
+      "path": "evidence/raw/mermaid-import/Sketch2Life-Teacher-Lobby-Admission-Start-Activity.drawio",
+      "sha256": "EE66BBDFAEFD17045D831A5BEE8FD92DA16CB677E70992476186122891FD009C",
+      "bytes": 26772
+    }
+  ],
+  "finalDrawio": {
+    "path": "artifacts/diagrams/rev9/drawio/Sketch2Life-Review2-State-and-Activity.drawio",
+    "sha256": "1F1E5166027603C630B4D704AB522CC4F418F1F93AA4C12D71C27FA143489BDF",
+    "bytes": 57357,
+    "pageCount": 7,
+    "pages": [
+      "Session Lifecycle",
+      "Session Pause and Recovery",
+      "Session Early Termination",
+      "Participant Admission",
+      "Device Connection",
+      "Device Grant Revocation",
+      "Teacher Lobby and Session Start"
+    ],
+    "allShapesAndConnectorsEditable": true
+  },
+  "builder": {
+    "path": "artifacts/diagrams/rev9/build_review2_drawio.py",
+    "sha256": "8BC0F4887998D0F4C145D9A5F5EB9E6ADB8DA7E90F474010DC3CED8BC008D98B"
+  },
+  "renders": [
+    {
+      "page": "Session Lifecycle",
+      "path": "evidence/render/rev9/diagrams/rev9-final-page-1.png",
+      "sha256": "8624762FC4659CF87BF2A64A0AEA3B3B461C2C53D2FCF418AA66613817856554",
+      "bytes": 138120,
+      "renderedWidthPx": 1800,
+      "visuallyInspected": true
+    },
+    {
+      "page": "Session Pause and Recovery",
+      "path": "evidence/render/rev9/diagrams/rev9-final-page-2.png",
+      "sha256": "00A0C25C86BF5F8E1721DF99E607C0A075D38E6C410675C8E220D7796C017F5B",
+      "bytes": 124896,
+      "renderedWidthPx": 1800,
+      "visuallyInspected": true
+    },
+    {
+      "page": "Session Early Termination",
+      "path": "evidence/render/rev9/diagrams/rev9-final-page-3.png",
+      "sha256": "FF28E265D71ADD9E2D5B220194E6D4AB7D81248765E2AECF842707346CFADCC0",
+      "bytes": 127303,
+      "renderedWidthPx": 1800,
+      "visuallyInspected": true
+    },
+    {
+      "page": "Participant Admission",
+      "path": "evidence/render/rev9/diagrams/rev9-final-page-4.png",
+      "sha256": "C344242B1610553F826A7351ABBECC89F4EBCCFA639390E77C6BD814375455B7",
+      "bytes": 163875,
+      "renderedWidthPx": 1800,
+      "visuallyInspected": true
+    },
+    {
+      "page": "Device Connection",
+      "path": "evidence/render/rev9/diagrams/rev9-final-page-5.png",
+      "sha256": "B5D485A29B4B5D0B006393F222F27A4B05C1D9ABA2C2DDD98199B4C31021AD60",
+      "bytes": 153088,
+      "renderedWidthPx": 1800,
+      "visuallyInspected": true
+    },
+    {
+      "page": "Device Grant Revocation",
+      "path": "evidence/render/rev9/diagrams/rev9-final-page-6.png",
+      "sha256": "6B7DD7B1D18F4975668F35C300210AFB7766E1CAD7C6D23DA651A87C5503F08C",
+      "bytes": 136561,
+      "renderedWidthPx": 1800,
+      "visuallyInspected": true
+    },
+    {
+      "page": "Teacher Lobby and Session Start",
+      "path": "evidence/render/rev9/diagrams/rev9-final-page-7.png",
+      "sha256": "C31EE6C39446639D35951D2BAEBFE56158FA886838D4DC9FB37A3C65A7D5B967",
+      "bytes": 380961,
+      "renderedWidthPx": 1800,
+      "visuallyInspected": true
+    }
+  ],
+  "limitations": [
+    "These diagrams model the SRS v3.3/B28 target and current design boundaries; they are not evidence of runtime behavior.",
+    "WF-01/WF-02 local paths were checked separately; no PostgreSQL-backed FE-to-BE acceptance is evidenced.",
+    "WF-03/WF-04 cross-feature adoption and provider/storage integration remain gated.",
+    "Supplied user Draw.io originals were not modified."
+  ]
+}

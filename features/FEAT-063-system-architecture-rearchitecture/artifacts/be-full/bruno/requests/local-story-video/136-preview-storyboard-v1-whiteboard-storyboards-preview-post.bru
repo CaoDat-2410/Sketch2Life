@@ -1,0 +1,22 @@
+meta {
+  name: 136 [PROVIDER-CAPABLE - REVIEW BEFORE RUN] Preview Storyboard
+  type: http
+  seq: 136
+}
+
+post {
+  url: {{baseUrl}}/v1/whiteboard/storyboards/preview
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "subject_claim": "REPLACE_ME"
+  }
+}

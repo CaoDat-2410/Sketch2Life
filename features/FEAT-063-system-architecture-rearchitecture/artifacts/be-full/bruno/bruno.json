@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "Sketch2Life full BE runtime API (local/test)",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

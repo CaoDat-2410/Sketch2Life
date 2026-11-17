@@ -1,0 +1,38 @@
+{
+  "id": "GCASE_0020_SUBSTITUTE_VALID",
+  "description": "ACT-0020 accepts its concrete household substitute",
+  "activity_ref": {
+    "id": "ACT-0020",
+    "version": 2
+  },
+  "input": {
+    "age_months": 26,
+    "readiness_ids": [
+      "READY_NOTICES_SMALL_SPILL"
+    ],
+    "completed_activity_ids": [
+      "ACT-0016"
+    ],
+    "available_material_option_ids": [
+      "GMAT-0020-SUBSTITUTE"
+    ],
+    "supervision_level": "DIRECT",
+    "policy_flags": [
+      "CAREGIVER_PRESENT"
+    ],
+    "candidate_status": "ACTIVE_FIXTURE"
+  },
+  "expected": {
+    "status": "VALID_CANDIDATE",
+    "allowed_activity_ids": [
+      "ACT-0020"
+    ],
+    "blocked": {}
+  },
+  "coverage_tags": [
+    "valid",
+    "household_substitute",
+    "0-3",
+    "ACT-0020"
+  ]
+}

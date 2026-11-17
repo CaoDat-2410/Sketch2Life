@@ -1,0 +1,277 @@
+# Pending Modal branch changes included in the FEAT-063 dev integration
+
+Snapshot taken before the Rev50 plan and approval records were added. Status columns use Git porcelain XY; paths are repository-relative. The six `.pytest-temp-modal-*` directories were excluded as transient test scratch and retained in the source worktree.
+
+Included paths: 269
+
+```text
+??	approvals/TASK_APPROVAL.md
+ M	backend/src/sketch2life/application/services/story_run_lite.py
+ M	backend/src/sketch2life/infrastructure/ai/modal_function_client.py
+ M	backend/src/sketch2life/infrastructure/story_run_lite/repository.py
+ M	backend/src/sketch2life/interfaces/http/routers/story_run_lite.py
+ M	backend/tests/contract/test_story_run_lite_api.py
+ M	deployment/modal/srs_v23/drawing_segment_app.py
+ M	deployment/modal/srs_v23/drawing_vlm_app.py
+ M	deployment/modal/srs_v23/flux_image_app.py
+ M	deployment/modal/srs_v23/language_audio_app.py
+ M	deployment/modal/srs_v23/README.md
+??	deployment/modal/srs_v23/tests/test_parent_story_output_contract.py
+??	deployment/modal/srs_v23/tests/test_qwen35_lesson_suggestion_contract.py
+ M	deployment/modal/srs_v23/workloads.json
+ M	features/FEAT-063-system-architecture-rearchitecture/approvals/TASK_APPROVAL.md
+??	features/FEAT-063-system-architecture-rearchitecture/artifacts/AI_API_WORKLOAD_CATALOG_FEAT063_REV44_20261105.md
+ M	features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md
+ M	features/FEAT-063-system-architecture-rearchitecture/CONTEXT.md
+ M	features/FEAT-063-system-architecture-rearchitecture/DECISIONS.md
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/AI_API_QWEN35_MODAL_VALIDATION_20261105.md
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/AI_NONVIDEO_30MIN_QUEUE_RETEST_RESULTS_20261104.md
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/AI_NONVIDEO_AI_END_TO_END_20261105.md
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/AI_QWEN35_FLUX_REV46A_COMPLETION_20261105.md
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_api_qwen35_modal_validation_20261105/asr_transcribe_f52e2391-2c8f-41ee-8eec-78313fb59595_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_api_qwen35_modal_validation_20261105/asr_transcribe_f52e2391-2c8f-41ee-8eec-78313fb59595_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_api_qwen35_modal_validation_20261105/decoder_runtime_readiness.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_api_qwen35_modal_validation_20261105/drawing_analyze_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_api_qwen35_modal_validation_20261105/drawing_analyze_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_api_qwen35_modal_validation_20261105/lesson_plan_suggest_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_api_qwen35_modal_validation_20261105/lesson_plan_suggest_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_api_qwen35_modal_validation_20261105/modal_app_shutdown.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_api_qwen35_modal_validation_20261105/run_metadata.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_api_qwen35_modal_validation_20261105/story_generate_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_api_qwen35_modal_validation_20261105/story_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_api_qwen35_modal_validation_20261105/summary.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_api_qwen35_modal_validation_20261105/synthetic_vietnamese_narration.wav
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_api_qwen35_modal_validation_20261105/teacher_sketch-deck_generate_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_api_qwen35_modal_validation_20261105/teacher_sketch-deck_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_api_qwen35_modal_validation_20261105/tts_narration_generate_fadfad50-0229-43d6-86d4-30a365d87277_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_api_qwen35_modal_validation_20261105/tts_narration_generate_fadfad50-0229-43d6-86d4-30a365d87277_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_30min_queue_retest_20261104/dispatch_guard.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_30min_queue_retest_20261104/drawing_analyze_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_30min_queue_retest_20261104/drawing_analyze_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_30min_queue_retest_20261104/lesson_visual_generate_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_30min_queue_retest_20261104/lesson_visual_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_30min_queue_retest_20261104/parent_sketch-guide_generate_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_30min_queue_retest_20261104/parent_sketch-guide_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_30min_queue_retest_20261104/parent_sketch_guide.png
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_30min_queue_retest_20261104/run_metadata.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_30min_queue_retest_20261104/sam2_checkpoint_download_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_30min_queue_retest_20261104/sam2_checkpoint_download_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_30min_queue_retest_20261104/sam2_segment_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_30min_queue_retest_20261104/sam2_segment_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_30min_queue_retest_20261104/story_generate_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_30min_queue_retest_20261104/story_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_30min_queue_retest_20261104/summary.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_30min_queue_retest_20261104/teacher_deck_followup_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_30min_queue_retest_20261104/teacher_deck_pre_dispatch_notfound.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_30min_queue_retest_20261104/teacher_sketch-deck_generate_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_30min_queue_retest_20261104/teacher_sketch-deck_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/asr_transcribe_b999f441-849d-498b-b467-111e28d3449d_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/asr_transcribe_b999f441-849d-498b-b467-111e28d3449d_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/asr_transcribe_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/decoder_callback_retest_06/run_metadata.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/decoder_callback_retest_06/story_generate_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/decoder_callback_retest_06/story_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/decoder_callback_retest_06/story_generate_storyboard_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/decoder_callback_retest_06/summary.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/decoder_callback_retest_06/teacher_sketch-deck_generate_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/decoder_callback_retest_06/teacher_sketch-deck_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/decoder_callback_retest_06/teacher_sketch_deck_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/decoder_normalization_retest_07/run_metadata.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/decoder_normalization_retest_07/story_generate_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/decoder_normalization_retest_07/story_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/decoder_normalization_retest_07/story_generate_storyboard_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/decoder_normalization_retest_07/summary.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/decoder_normalization_retest_07/teacher_sketch-deck_generate_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/decoder_normalization_retest_07/teacher_sketch-deck_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/decoder_normalization_retest_07/teacher_sketch_deck_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/decoder_output_differential_retest_10/run_metadata.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/decoder_output_differential_retest_10/story_generate_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/decoder_output_differential_retest_10/story_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/decoder_output_differential_retest_10/story_generate_storyboard_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/decoder_output_differential_retest_10/summary.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/decoder_output_differential_retest_10/teacher_sketch-deck_generate_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/decoder_output_differential_retest_10/teacher_sketch-deck_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/decoder_output_differential_retest_10/teacher_sketch_deck_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/drawing_analyze_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/drawing_analyze_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/early_stop_diagnostic_retest_08/run_metadata.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/early_stop_diagnostic_retest_08/story_generate_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/early_stop_diagnostic_retest_08/story_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/early_stop_diagnostic_retest_08/story_generate_storyboard_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/early_stop_diagnostic_retest_08/summary.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/early_stop_diagnostic_retest_08/teacher_sketch-deck_generate_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/early_stop_diagnostic_retest_08/teacher_sketch-deck_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/early_stop_diagnostic_retest_08/teacher_sketch_deck_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/eos_constraint_diagnostic_retest_09/run_metadata.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/eos_constraint_diagnostic_retest_09/story_generate_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/eos_constraint_diagnostic_retest_09/story_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/eos_constraint_diagnostic_retest_09/story_generate_storyboard_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/eos_constraint_diagnostic_retest_09/summary.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/eos_constraint_diagnostic_retest_09/teacher_sketch-deck_generate_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/eos_constraint_diagnostic_retest_09/teacher_sketch-deck_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/eos_constraint_diagnostic_retest_09/teacher_sketch_deck_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/lesson_plan_suggest_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/lesson_plan_suggest_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/parser_state_replay_retest_11/run_metadata.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/parser_state_replay_retest_11/story_generate_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/parser_state_replay_retest_11/story_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/parser_state_replay_retest_11/story_generate_storyboard_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/parser_state_replay_retest_11/summary.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/parser_state_replay_retest_11/teacher_sketch-deck_generate_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/parser_state_replay_retest_11/teacher_sketch-deck_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/parser_state_replay_retest_11/teacher_sketch_deck_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/run_metadata.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/speech_retest_13/asr_transcribe_66a1054f-820a-4c2f-a123-ae88c7d79d9f_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/speech_retest_13/asr_transcribe_66a1054f-820a-4c2f-a123-ae88c7d79d9f_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/speech_retest_13/run_metadata.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/speech_retest_13/speech_roundtrip_summary.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/speech_retest_13/synthetic_vietnamese_narration.wav
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/speech_retest_13/tts_narration_generate_0b1a155c-2699-40f5-94ad-96dbf216a0b3_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/speech_retest_13/tts_narration_generate_0b1a155c-2699-40f5-94ad-96dbf216a0b3_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/story_generate_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/story_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/story_generate_storyboard_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/summary.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/synthetic_vietnamese_narration.wav
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/teacher_sketch-deck_generate_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/teacher_sketch-deck_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/teacher_sketch_deck_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/tts_narration_generate_ff43a0ee-a706-457c-85f7-816a06ab45e4_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/tts_narration_generate_ff43a0ee-a706-457c-85f7-816a06ab45e4_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/tts_narration_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/vietnamese_alphabet_retest_12/drawing_analyze_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/vietnamese_alphabet_retest_12/drawing_analyze_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/vietnamese_alphabet_retest_12/lesson_plan_suggest_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/vietnamese_alphabet_retest_12/lesson_plan_suggest_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/vietnamese_alphabet_retest_12/modal_qwen35_decoder_probes.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/vietnamese_alphabet_retest_12/run_metadata.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/vietnamese_alphabet_retest_12/story_generate_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/vietnamese_alphabet_retest_12/story_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/vietnamese_alphabet_retest_12/story_generate_storyboard_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/vietnamese_alphabet_retest_12/summary.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/vietnamese_alphabet_retest_12/teacher_sketch-deck_generate_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/vietnamese_alphabet_retest_12/teacher_sketch-deck_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/vietnamese_alphabet_retest_12/teacher_sketch_deck_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_01/drawing_analyze_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_01/lesson_plan_suggest_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_01/lesson_plan_suggest_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_01/run_metadata.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_01/summary.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_01/teacher_sketch-deck_generate_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_01/teacher_sketch-deck_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_01/teacher_sketch_deck_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_02/drawing_analyze_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_02/drawing_analyze_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_02/lesson_plan_suggest_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_02/lesson_plan_suggest_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_02/run_metadata.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_02/story_generate_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_02/story_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_02/story_generate_storyboard_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_02/summary.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_02/teacher_sketch-deck_generate_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_02/teacher_sketch-deck_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_02/teacher_sketch_deck_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_03/drawing_analyze_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_03/drawing_analyze_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_03/lesson_plan_suggest_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_03/lesson_plan_suggest_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_03/run_metadata.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_03/story_generate_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_03/story_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_03/story_generate_storyboard_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_03/summary.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_03/teacher_sketch-deck_generate_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_03/teacher_sketch-deck_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_03/teacher_sketch_deck_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_04/summary.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_04/teacher_sketch-deck_generate_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_04/teacher_sketch-deck_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_05/drawing_analyze_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_05/drawing_analyze_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_05/lesson_plan_suggest_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_05/lesson_plan_suggest_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_05/run_metadata.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_05/story_generate_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_05/story_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_05/story_generate_storyboard_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_05/summary.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_05/teacher_sketch-deck_generate_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_05/teacher_sketch-deck_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/ai_nonvideo_ai_end_to_end_20261105/worker_fix_retest_05/teacher_sketch_deck_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/flux_component_retest_rev46a_20261105/download_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/flux_component_retest_rev46a_20261105/lesson_visual_candidate.png
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/flux_component_retest_rev46a_20261105/lesson_visual_generate_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/flux_component_retest_rev46a_20261105/lesson_visual_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/flux_component_retest_rev46a_20261105/parent_sketch-guide_generate_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/flux_component_retest_rev46a_20261105/parent_sketch-guide_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/flux_component_retest_rev46a_20261105/parent_sketch_guide_candidate.png
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/flux_component_retest_rev46a_20261105/run_report.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/flux_secret_retest_rev46_20261105/download_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/flux_secret_retest_rev46_20261105/lesson_visual_generate_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/flux_secret_retest_rev46_20261105/lesson_visual_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/flux_secret_retest_rev46_20261105/parent_sketch-guide_generate_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/flux_secret_retest_rev46_20261105/parent_sketch-guide_generate_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/flux_secret_retest_rev46_20261105/run_report.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/modal_l4_qwen_story_readiness_20261104/qwen_l4_health_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/modal_l4_qwen_story_readiness_20261104/story_attempt_2/dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/modal_l4_qwen_story_readiness_20261104/story_attempt_2/story_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/modal_l4_qwen_story_readiness_20261104/story_call_queue_evidence.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/modal_l4_qwen_story_readiness_20261104/story_generate_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/modal_serverless_story_latency_20261105/modal_app_state_after_stop.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/modal_serverless_story_latency_20261105/modal_function_logs.txt
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/modal_serverless_story_latency_20261105/story_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/modal_serverless_story_latency_20261105/story_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/modal_story_content_boundary_20261105/local_validation.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/modal_story_content_boundary_20261105/modal_function_logs.txt
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/modal_story_content_boundary_20261105/story_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/modal_story_content_boundary_20261105/story_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/modal_story_parser_alignment_20261105/local_validation.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/modal_story_parser_alignment_20261105/modal_function_logs.txt
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/modal_story_parser_alignment_20261105/story_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/modal_story_parser_alignment_20261105/story_result.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/parent_story_api_retest_20261105/attempt_01_invalid_synthetic_run_request/api_request_trace_safe.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/parent_story_api_retest_20261105/attempt_01_invalid_synthetic_run_request/retest_results_safe.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/parent_story_api_retest_20261105/attempt_01_invalid_synthetic_run_request/test_fixture_summary.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/parent_story_api_retest_20261105/attempt_02/api_request_trace_safe.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/parent_story_api_retest_20261105/attempt_02/drawing_analyze_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/parent_story_api_retest_20261105/attempt_02/drawing_analyze_modal_result_safe.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/parent_story_api_retest_20261105/attempt_02/retest_results_safe.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/parent_story_api_retest_20261105/attempt_02/story_generate_dispatch_intent.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/parent_story_api_retest_20261105/attempt_02/story_generate_modal_result_safe.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/parent_story_api_retest_20261105/attempt_02/test_evaluation_safe.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/assets/parent_story_api_retest_20261105/attempt_02/test_fixture_summary.json
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/MODAL_L4_QWEN_STORY_READINESS_DIAGNOSTIC_20261104.md
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/MODAL_SERVERLESS_STORY_LATENCY_EXPERIMENT_20261105.md
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/MODAL_STORY_CONTENT_BOUNDARY_20261105.md
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/PARENT_STORY_API_RETEST_20261105.md
+ M	features/FEAT-063-system-architecture-rearchitecture/evidence/README.md
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/scripts/run_ai_nonvideo_30min_queue_retest_20261104.py
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/scripts/run_flux_component_retest_rev46a_20261105.py
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/scripts/run_flux_secret_retest_rev46_20261105.py
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/scripts/run_modal_serverless_story_latency_20261105.py
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/scripts/run_modal_story_content_boundary_20261105.py
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/scripts/run_modal_story_parser_alignment_20261105.py
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/scripts/run_nonvideo_ai_end_to_end_rev45_20261105.py
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/scripts/run_nonvideo_ai_retest_after_worker_fixes_rev45_20261105.py
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/scripts/run_nonvideo_ai_retest_compact_workers_rev45_20261105.py
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/scripts/run_nonvideo_ai_retest_eos_fix_rev45_20261105.py
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/scripts/run_parent_story_api_retest_20261105.py
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/scripts/run_qwen35_decoder_callback_retest_rev45_20261105.py
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/scripts/run_qwen35_nonvideo_validation_20261105.py
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/scripts/run_speech_nonvideo_retest_rev45_20261105.py
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/scripts/run_teacher_deck_decoder_diagnostic_rev45_20261105.py
+??	features/FEAT-063-system-architecture-rearchitecture/evidence/scripts/run_teacher_deck_redeploy_followup_20261104.py
+??	features/FEAT-063-system-architecture-rearchitecture/plan/AI_NONVIDEO_30MIN_QUEUE_RETEST_20261104.md
+??	features/FEAT-063-system-architecture-rearchitecture/plan/MODAL_L4_QWEN_STORY_READINESS_DIAGNOSTIC_20261104.md
+??	features/FEAT-063-system-architecture-rearchitecture/plan/MODAL_SERVERLESS_STORY_LATENCY_EXPERIMENT_20261105.md
+??	features/FEAT-063-system-architecture-rearchitecture/plan/MODAL_STORY_CONTENT_BOUNDARY_20261105.md
+??	features/FEAT-063-system-architecture-rearchitecture/plan/MODAL_STORY_PARSER_ALIGNMENT_20261105.md
+??	features/FEAT-063-system-architecture-rearchitecture/plan/PARENT_STORY_API_RETEST_20261105.md
+??	features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV44_AI_API_COVERAGE_QWEN35_MODAL_20261105.md
+??	features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV45_NONVIDEO_AI_END_TO_END_20261105.md
+??	features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV46_QWEN35_ONLY_FLUX_SECRET_RETEST_20261105.md
+??	features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV46A_FLUX_COMPONENT_FILES_AND_FAILED_FLOW_RETEST_20261105.md
+ M	features/FEAT-063-system-architecture-rearchitecture/SOURCE_REGISTER.md
+ M	features/FEAT-063-system-architecture-rearchitecture/status/STATUS.md
+```

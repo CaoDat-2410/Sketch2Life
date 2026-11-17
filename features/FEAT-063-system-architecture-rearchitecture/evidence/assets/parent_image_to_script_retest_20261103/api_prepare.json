@@ -1,0 +1,165 @@
+{
+  "fixture": {
+    "name": "drawing_vlm_synthetic_butterfly.png",
+    "size_bytes": 3919,
+    "sha256": "4b18777ae70eb429273c1e0ba7189ff005171b9dda88491510d91965aafa07fc"
+  },
+  "records": [
+    {
+      "method": "GET",
+      "path": "/health",
+      "status": 404,
+      "elapsed_seconds": 0.028,
+      "etag": null,
+      "correlation_id": null,
+      "response": {
+        "detail": "Not Found"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/openapi.json",
+      "status": 404,
+      "elapsed_seconds": 0.001,
+      "etag": null,
+      "correlation_id": null,
+      "response": {
+        "detail": "Not Found"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/",
+      "status": 404,
+      "elapsed_seconds": 0.025,
+      "etag": null,
+      "correlation_id": null,
+      "response": {
+        "detail": "Not Found"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/v1/story-runs",
+      "status": 201,
+      "elapsed_seconds": 0.03,
+      "etag": "\"v1\"",
+      "correlation_id": null,
+      "response": {
+        "run_ref": "632b9ffa-59a8-43ad-8e6b-9540466aad78",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 1,
+        "version": 1,
+        "target_revision": null,
+        "created_at": "2026-11-03T22:48:38.836412+07:00",
+        "updated_at": "2026-11-03T22:48:38.836412+07:00",
+        "job_state": null,
+        "retryable": false,
+        "action_required": null,
+        "error": null,
+        "result": null
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/v1/upload-sessions",
+      "status": 201,
+      "elapsed_seconds": 0.013,
+      "etag": "\"v1\"",
+      "correlation_id": null,
+      "response": {
+        "upload_ref": "79e46ad3-3fd0-421f-8e81-3aec0dec9790",
+        "state": "RECEIVING",
+        "version": 1,
+        "max_parts": 5,
+        "parts": [],
+        "asset_ref": null,
+        "derived_asset_ref": null,
+        "expires_at": "2026-11-04T00:48:38.849415+07:00",
+        "error": null
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/v1/upload-sessions/79e46ad3-3fd0-421f-8e81-3aec0dec9790/parts/1",
+      "status": 200,
+      "elapsed_seconds": 0.009,
+      "etag": "\"v1\"",
+      "correlation_id": null,
+      "response": {
+        "part_no": 1,
+        "sha256": "4b18777ae70eb429273c1e0ba7189ff005171b9dda88491510d91965aafa07fc"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/v1/upload-sessions/79e46ad3-3fd0-421f-8e81-3aec0dec9790/complete",
+      "status": 202,
+      "elapsed_seconds": 1.155,
+      "etag": "\"v2\"",
+      "correlation_id": null,
+      "response": {
+        "upload_ref": "79e46ad3-3fd0-421f-8e81-3aec0dec9790",
+        "state": "PENDING",
+        "version": 2,
+        "max_parts": 5,
+        "parts": [
+          {
+            "part_no": 1,
+            "sha256": "4b18777ae70eb429273c1e0ba7189ff005171b9dda88491510d91965aafa07fc"
+          }
+        ],
+        "asset_ref": null,
+        "derived_asset_ref": null,
+        "expires_at": "2026-11-04T00:48:38.849415+07:00",
+        "error": null
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/v1/upload-sessions/79e46ad3-3fd0-421f-8e81-3aec0dec9790",
+      "status": 200,
+      "elapsed_seconds": 0.021,
+      "etag": "\"v4\"",
+      "correlation_id": null,
+      "response": {
+        "upload_ref": "79e46ad3-3fd0-421f-8e81-3aec0dec9790",
+        "state": "READY",
+        "version": 4,
+        "max_parts": 5,
+        "parts": [
+          {
+            "part_no": 1,
+            "sha256": "4b18777ae70eb429273c1e0ba7189ff005171b9dda88491510d91965aafa07fc"
+          }
+        ],
+        "asset_ref": "d392c9ef-2224-4f46-b18b-51bc4677f23d",
+        "derived_asset_ref": "ae5f4cde-d469-48af-85f4-498c3117f270",
+        "expires_at": "2026-11-04T00:48:38.849415+07:00",
+        "error": null
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/v1/story-runs/632b9ffa-59a8-43ad-8e6b-9540466aad78",
+      "status": 200,
+      "elapsed_seconds": 0.014,
+      "etag": "\"v1\"",
+      "correlation_id": null,
+      "response": {
+        "run_ref": "632b9ffa-59a8-43ad-8e6b-9540466aad78",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 1,
+        "version": 1,
+        "target_revision": null,
+        "created_at": "2026-11-03T22:48:38.836412+07:00",
+        "updated_at": "2026-11-03T22:48:38.836412+07:00",
+        "job_state": null,
+        "retryable": false,
+        "action_required": null,
+        "error": null,
+        "result": null
+      }
+    }
+  ]
+}

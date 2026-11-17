@@ -1,0 +1,18 @@
+{
+  "check": "runner",
+  "command": [
+    "<existing-backend-venv>/python",
+    "-B",
+    "features/FEAT-044-be2-ai-job-foundation/src/run_fixture_contracts.py",
+    "--with-http",
+    "--report",
+    "features/FEAT-044-be2-ai-job-foundation/evidence/raw/codex_review_runner_report.json"
+  ],
+  "started_at": "2026-10-14T21:21:11.685247+07:00",
+  "exit_code": 0,
+  "environment": {
+    "PYTHONPATH": "<be2-worktree>/backend/src",
+    "PYTHONDONTWRITEBYTECODE": "1"
+  },
+  "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/codex_review_runner.txt"
+}

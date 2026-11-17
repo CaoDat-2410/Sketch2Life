@@ -1,0 +1,21 @@
+{
+  "fixture_id": "p1-butterfly-pass-v1",
+  "scenario": "butterfly_wings_symmetry_fold_and_print",
+  "source_artifact": {
+    "artifact_id": "fixture-art-butterfly-001",
+    "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "raw_media_included": false
+  },
+  "confirmed_anchor": {
+    "anchor_id": "anchor-butterfly",
+    "original_label": "butterfly",
+    "normalized_label": "butterfly",
+    "semantic_tags": ["wings", "symmetry"],
+    "adult_confirmed": true
+  },
+  "expected": {
+    "template_id": "TPL-FIXTURE-BUTTERFLY-FOLD-PRINT-V1",
+    "fit_status": "PASS",
+    "gate_b": "APPROVED"
+  }
+}

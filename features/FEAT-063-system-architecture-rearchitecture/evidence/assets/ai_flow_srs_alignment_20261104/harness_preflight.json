@@ -1,0 +1,10 @@
+{
+  "database_guard": {
+    "database": "storyrun_lite_feat063_ai_20261104",
+    "current_user_is_owner": true,
+    "api_client_target": "127.0.0.1",
+    "postgres_container_server_address": "172.18.0.2/32",
+    "test_harness_only": true,
+    "product_loopback_guard_changed": false
+  }
+}

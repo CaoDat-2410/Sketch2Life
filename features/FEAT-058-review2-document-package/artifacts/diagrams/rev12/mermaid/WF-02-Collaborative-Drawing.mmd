@@ -1,0 +1,16 @@
+flowchart TD
+  C1[Child opens permitted personal or shared canvas] --> C2[Child draws with age and session scoped tools]
+  C2 --> C3[Device submits operation, verified principal and selected contributor]
+  C3 --> B1[Backend validates membership, epoch, policy and idempotency key]
+  B1 -->|accepted| B2[Persistence commits operation and durable receipt]
+  B2 --> B3[Backend assigns sequence and broadcasts accepted update]
+  B3 --> C4[Connected clients render the accepted operation]
+  C4 --> T1[Teacher monitors group progress and may pause or resume]
+  C3 -->|connection lost| C5[Client retains pending operation and reconnects]
+  C5 --> B4[Backend returns checkpoint and accepted sequence]
+  B4 --> C6[Client replays only unacknowledged operations]
+  C6 --> B1
+  B1 -->|stale, forbidden or conflicting duplicate| C7[Reject without changing saved canvas]
+  C7 --> C8[Client refreshes state or requests Teacher help]
+  T2[Shared-device turn changes] --> B5[New operations use the newly selected contributor]
+  B5 -. never rewrites earlier attribution .-> B2

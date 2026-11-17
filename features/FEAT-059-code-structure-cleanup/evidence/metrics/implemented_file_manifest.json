@@ -1,0 +1,382 @@
+{
+  "feature": "FEAT-059-code-structure-cleanup",
+  "branch": "dev",
+  "baseline_commit": "0a7ce768c153f2104cff930569c3eda6e484532c",
+  "source_state": "uncommitted working tree; no commit or push made",
+  "files": [
+    {
+      "path": "apps/admin-ui/package-lock.json",
+      "status": "M",
+      "sha256": "3c684e6869ab5d3688a2668247df5c38c07fe5c284ff7322dd9fe7be467c753b"
+    },
+    {
+      "path": "apps/admin-ui/package.json",
+      "status": "M",
+      "sha256": "62e7723457969f5afd6a1df2a5be991ba59c28b8ab889262f6529e6e64ca7d6e"
+    },
+    {
+      "path": "apps/admin-ui/src/__tests__/app.test.tsx",
+      "status": "??",
+      "sha256": "e07fadac093cde7c30482634442a7a4946899bcafdb25109142159a95a0666ca"
+    },
+    {
+      "path": "apps/admin-ui/src/components/auditlogs/AuditLogTable.tsx",
+      "status": "M",
+      "sha256": "b576cb992210705c677fc3564502802e19636e9fed9d847b1d5ba354c80aed65"
+    },
+    {
+      "path": "apps/admin-ui/src/components/dashboard/SystemAlertBanner.tsx",
+      "status": "M",
+      "sha256": "d02071d8d80e659982d1b6c96e883c552031ceb37007a99c9774b50402c51a94"
+    },
+    {
+      "path": "apps/admin-ui/src/hooks/useAuth.ts",
+      "status": "M",
+      "sha256": "f53d406a1c7e3bffb76660cc3233c8ba661c2b7ecd7af17675201af713d62c54"
+    },
+    {
+      "path": "apps/admin-ui/src/services/aiPolicyService.ts",
+      "status": "M",
+      "sha256": "427da8d8d2df2b9b04193d3986768c040f74e87701db98160b736fbcf2713e48"
+    },
+    {
+      "path": "apps/admin-ui/src/services/auditLogService.ts",
+      "status": "M",
+      "sha256": "c85f0c71cbf2209500a61493702e1d718a96975b75be3c2b6c4dea0e684fe1f2"
+    },
+    {
+      "path": "apps/admin-ui/src/services/authService.ts",
+      "status": "M",
+      "sha256": "9d6303a854e0fa7a6c1fff3a4e0d7af00c0df0c7b9ffbc747943d7070a708d97"
+    },
+    {
+      "path": "apps/admin-ui/src/services/classService.ts",
+      "status": "M",
+      "sha256": "47e6dd1225d3fb09b1fc9588473c49e4a58fccbfe0f3a1b72384883007346ee9"
+    },
+    {
+      "path": "apps/admin-ui/src/services/contentService.ts",
+      "status": "M",
+      "sha256": "5e9055d9b59bc80dbc33c99b6f9b3ffef8122987b5f9e401384daee6d885b029"
+    },
+    {
+      "path": "apps/admin-ui/src/services/dataRequestService.ts",
+      "status": "M",
+      "sha256": "ca4bbaed80a0a91034fcdf111812ccdbd93dade0cecaf4e6a10190c225c3edee"
+    },
+    {
+      "path": "apps/admin-ui/src/services/reportService.ts",
+      "status": "M",
+      "sha256": "8b769ae94af82fd11d43335e9411b30ad6664047735ededfc19667368e4e46a9"
+    },
+    {
+      "path": "apps/admin-ui/src/services/settingsService.ts",
+      "status": "M",
+      "sha256": "bf031914e5325cdc6edce937ceddefa90c2e08fe06dfa9cabdc0949a9fbbcd8f"
+    },
+    {
+      "path": "apps/admin-ui/src/services/userService.ts",
+      "status": "M",
+      "sha256": "12116f4a3aa6c84a0c41abb24c985231742ab0e644c269cd5eaca1ba4d23ba1a"
+    },
+    {
+      "path": "apps/admin-ui/vite.config.ts",
+      "status": "M",
+      "sha256": "78282faab92ab14b43e8a04bcb0eebe911385317b296cd81cfa9cd90a382ef82"
+    },
+    {
+      "path": "apps/child-ui/package-lock.json",
+      "status": "M",
+      "sha256": "a4799db9d7fb212f395251f36646ad73ecfdfcc8d5a50f65f5900d09591ea056"
+    },
+    {
+      "path": "apps/child-ui/package.json",
+      "status": "M",
+      "sha256": "b01cd66828644db0951f4c33505e345a0c215974bdae7530903d731c4e8a3a9d"
+    },
+    {
+      "path": "apps/child-ui/src/__tests__/DrawScreen.test.ts",
+      "status": "D",
+      "sha256": null
+    },
+    {
+      "path": "apps/child-ui/src/__tests__/DrawScreen.test.tsx",
+      "status": "??",
+      "sha256": "b607f839624beff2042993782a6ab7aae1edab196b3bb34e4a25bd8626daeec3"
+    },
+    {
+      "path": "apps/child-ui/src/__tests__/FeelingScreen.test.ts",
+      "status": "D",
+      "sha256": null
+    },
+    {
+      "path": "apps/child-ui/src/__tests__/FeelingScreen.test.tsx",
+      "status": "??",
+      "sha256": "f63d02a9d103c03e881368caf2362d451717d80120a7917f925914ffcc53bd7f"
+    },
+    {
+      "path": "apps/child-ui/src/__tests__/JoinScreen.test.ts",
+      "status": "D",
+      "sha256": null
+    },
+    {
+      "path": "apps/child-ui/src/__tests__/JoinScreen.test.tsx",
+      "status": "??",
+      "sha256": "16bfe19d1980a3496c09289e28e1e36a3f381440ac2375a28805497427f6d2a0"
+    },
+    {
+      "path": "apps/child-ui/src/components/BrushSizeSlider.tsx",
+      "status": "M",
+      "sha256": "a696a6cf0f0850b7ff95188cf48887cf77c0153a5cded2da1e6d752ad97ab642"
+    },
+    {
+      "path": "apps/child-ui/src/components/TopBar.tsx",
+      "status": "M",
+      "sha256": "b54bd79bafc4e18a48e8a19f67060ca9891501f1828bd461c36d5e30232c0755"
+    },
+    {
+      "path": "apps/child-ui/src/hooks/useAudioFeedback.ts",
+      "status": "M",
+      "sha256": "ec646697c6d678144f691ad3051922cc2206167838c9900cb22dca99fd5f4c8c"
+    },
+    {
+      "path": "apps/child-ui/src/hooks/useGroupGarden.ts",
+      "status": "M",
+      "sha256": "77d9334ae990c19d593c9178470fae9873f257ed10139c5c92d9fdb33e179988"
+    },
+    {
+      "path": "apps/child-ui/src/hooks/useLandscapeLayout.ts",
+      "status": "M",
+      "sha256": "045a94dd0b74d00c0117eaaef11647c9b116993d7724c0894062d3a7a3b2c6e4"
+    },
+    {
+      "path": "apps/child-ui/src/screens/AdvancedDrawScreen.tsx",
+      "status": "M",
+      "sha256": "bce3bd31ac8c1e4e6597bfbd23447c6777e8840a128468bb19cefc2929e0d3db"
+    },
+    {
+      "path": "apps/child-ui/src/screens/JoinScreen.tsx",
+      "status": "M",
+      "sha256": "57b7ca9da975dc6ca57b83b8236799163cdcf8d36a43e2fcfc2df0d4d93a65b2"
+    },
+    {
+      "path": "apps/child-ui/src/screens/LobbyScreen.tsx",
+      "status": "M",
+      "sha256": "fe51c49689bdca16c25ad998dfaf29c11dd98708ae94a0143903823086cf6abd"
+    },
+    {
+      "path": "apps/child-ui/src/services/apiClient.ts",
+      "status": "M",
+      "sha256": "389199912f0ce29f8601dd3327d7a82320e6fdaca3ed0ce73836e07f34f2551d"
+    },
+    {
+      "path": "apps/child-ui/src/services/gardenService.ts",
+      "status": "M",
+      "sha256": "ad9c9b05142934b429250d7e287e7d096c696a090d8006733b2541aaa16b35e3"
+    },
+    {
+      "path": "apps/child-ui/src/services/reviewService.ts",
+      "status": "M",
+      "sha256": "f6994437de253b090490ab7c5d37575a3e630ad05eb4353d3e8ca013638f8a76"
+    },
+    {
+      "path": "apps/child-ui/src/services/sessionClient.ts",
+      "status": "M",
+      "sha256": "dd59319a239d5889ad458d2909376b2a3835d38a29c0afba88c9e736c5115827"
+    },
+    {
+      "path": "apps/child-ui/src/services/videoService.ts",
+      "status": "M",
+      "sha256": "313a2082322320317650143d68520d1dd3355abf5f79193c3e29e3b3d3c5d851"
+    },
+    {
+      "path": "apps/child-ui/src/utils/colorHarmonizer.ts",
+      "status": "M",
+      "sha256": "96a9d61cbe30f56efdadb4c73b763c4cf7718e197bd4ae5042c00d8666d87e7b"
+    },
+    {
+      "path": "apps/child-ui/src/utils/screenScaler.ts",
+      "status": "M",
+      "sha256": "2879ffbf49ed1dd7f66de4e73ff1d64b578db6ca256ea1a9a3e3e99f7c49dd74"
+    },
+    {
+      "path": "apps/child-ui/src/utils/soundEffects.ts",
+      "status": "M",
+      "sha256": "8e0d29208b7891e50c30e1b44d018b8d1fc645f402a2b1a0940f96a868831c74"
+    },
+    {
+      "path": "apps/child-ui/src/utils/strokeSimplifier.ts",
+      "status": "M",
+      "sha256": "24010db9d5e9e535d3d16253a97b3df3995c35d5951bb2604900b65a6cdfcbe7"
+    },
+    {
+      "path": "apps/child-ui/tsconfig.json",
+      "status": "M",
+      "sha256": "90f55bac6936a763a9ff34a7f2ae8371bf5ff44ce2d1c721d8b5d9ec9deb44fa"
+    },
+    {
+      "path": "apps/teacher-ui/package-lock.json",
+      "status": "M",
+      "sha256": "273342279f8a215d0de3240624114c9865f37c9752de48fe36e90237403c1c78"
+    },
+    {
+      "path": "apps/teacher-ui/package.json",
+      "status": "M",
+      "sha256": "bbf870266838e6dfb2e4c5575e70c05f50d984e83d7076ca142ee334f8553a06"
+    },
+    {
+      "path": "apps/teacher-ui/src/__tests__/app.test.tsx",
+      "status": "??",
+      "sha256": "0a762312505f53530a0b41129063e4b1d96f3356becb9d29ea24104b85d21b3f"
+    },
+    {
+      "path": "apps/teacher-ui/src/hooks/useAiSuggestionReview.ts",
+      "status": "M",
+      "sha256": "745eb7d3790a99a8813df88ebaa3b5e526f827e3b1cbe67e810270884d7119ca"
+    },
+    {
+      "path": "apps/teacher-ui/src/hooks/useClassGallery.ts",
+      "status": "M",
+      "sha256": "40fea17e71c4596adf220f9a4447d89887f83105a8a8b170f8a36703dd09c8c3"
+    },
+    {
+      "path": "apps/teacher-ui/src/hooks/useClassesProfiles.ts",
+      "status": "M",
+      "sha256": "c07b01d71c219e7b857e5d463126bbbeed6e08defd158cd887376a394e2900e8"
+    },
+    {
+      "path": "apps/teacher-ui/src/hooks/useContentAuthoring.ts",
+      "status": "M",
+      "sha256": "7300d32a3ccef4510c88a5bd73b07dacef80069f5b6e10392bbd7c6520b1b0bf"
+    },
+    {
+      "path": "apps/teacher-ui/src/hooks/useGroupWorkspace.ts",
+      "status": "M",
+      "sha256": "18e0d2e998e09ab444cf2abe554d12cbfe78f90d1f8975944759e8883753b017"
+    },
+    {
+      "path": "apps/teacher-ui/src/hooks/useHomeDashboard.ts",
+      "status": "M",
+      "sha256": "38eac99df55fd14192bf75fef6d747834eb714dcea4a7323c8d195ae5b460153"
+    },
+    {
+      "path": "apps/teacher-ui/src/hooks/useLearningPortfolio.ts",
+      "status": "M",
+      "sha256": "c34f4acb933d623a070106b59e4db9463750bbda7dc9b3df21033a321ce24b14"
+    },
+    {
+      "path": "apps/teacher-ui/src/hooks/useObservationFeedback.ts",
+      "status": "M",
+      "sha256": "8806485a99ebf4e0adf9ba2002de648212352f184d14abd1144dfdd89a124eb4"
+    },
+    {
+      "path": "apps/teacher-ui/src/hooks/useOfflineActivities.ts",
+      "status": "M",
+      "sha256": "cba83814302f1d5e872f6f3b4f13a7fcb82335b4c7304ed4d274cd28d1857ce1"
+    },
+    {
+      "path": "apps/teacher-ui/src/hooks/useSessionLobby.ts",
+      "status": "M",
+      "sha256": "a040ade109d8a578c0adac749b99910cf360c7f63083124a0802db02222ba27a"
+    },
+    {
+      "path": "apps/teacher-ui/src/hooks/useSessionOrchestration.ts",
+      "status": "M",
+      "sha256": "5c89b003a176ce0a58883fdaaf53484f273afe00f30fe9493a2afea5f1e3b8f6"
+    },
+    {
+      "path": "apps/teacher-ui/src/hooks/useSessionSetup.ts",
+      "status": "M",
+      "sha256": "26bc0bcc4c81de5a9cdcd1deeaeb6e9ffd74d078442d9bf694a438a8b9ecc71e"
+    },
+    {
+      "path": "apps/teacher-ui/src/hooks/useTemplatesAutomation.ts",
+      "status": "M",
+      "sha256": "f8227fefa13e95a0b3d6261343b44a815ce5b239f38574baaab1353e8124886b"
+    },
+    {
+      "path": "apps/teacher-ui/src/hooks/useVideoKnowledge.ts",
+      "status": "M",
+      "sha256": "119e45fa7cb88a6cea58f29d25a56bca400de9afe266cccf0df5bf739aee638f"
+    },
+    {
+      "path": "apps/teacher-ui/src/services/activityService.ts",
+      "status": "M",
+      "sha256": "fb91fd3c9388fca6d13ca4f8d68f0609706b34be3281440d89f48755678e8117"
+    },
+    {
+      "path": "apps/teacher-ui/src/services/classroomService.ts",
+      "status": "M",
+      "sha256": "df4099a4afc889bd03a298f823823d85cf7ca422a0c49e2f5c9ff2d33cf8dbe5"
+    },
+    {
+      "path": "apps/teacher-ui/src/services/observationService.ts",
+      "status": "M",
+      "sha256": "4e46b641167b232c2c97dae99ef1be981530e4eeb2a2a314cc41f08375b94929"
+    },
+    {
+      "path": "apps/teacher-ui/src/services/portfolioService.ts",
+      "status": "M",
+      "sha256": "da8d3a52bb940afbae3e5a7acb5af2d1e22755aa5b4bf7e5d5fe9f6bb26e7525"
+    },
+    {
+      "path": "apps/teacher-ui/src/services/sessionService.ts",
+      "status": "M",
+      "sha256": "6a97562ae8796785f22b1f5f6af672af6e9ba9b97d33cc2065b97a3ba0413e6b"
+    },
+    {
+      "path": "apps/teacher-ui/src/services/templateService.ts",
+      "status": "M",
+      "sha256": "a7886eebd4ec0c3153421ff1c12e371060387d676128dc3201085fa7bd20c85c"
+    },
+    {
+      "path": "apps/teacher-ui/src/services/videoService.ts",
+      "status": "M",
+      "sha256": "5f81544c6da47553ab070f7a6a7e7a1f8798773b2526a858de7438467457b6c9"
+    },
+    {
+      "path": "apps/teacher-ui/vite.config.ts",
+      "status": "M",
+      "sha256": "78282faab92ab14b43e8a04bcb0eebe911385317b296cd81cfa9cd90a382ef82"
+    },
+    {
+      "path": "backend/src/sketch2life/interfaces/http/app.py",
+      "status": "M",
+      "sha256": "001c928fa340dba22dc9c62858ce517fc5c00fa5b5becf1bc89e577f691621d5"
+    },
+    {
+      "path": "backend/src/sketch2life/interfaces/http/demo_composition.py",
+      "status": "??",
+      "sha256": "20fa6105ba303bf604119db42c2ebec6dd2db93bc1b22821e4f50e2628163dac"
+    },
+    {
+      "path": "backend/src/sketch2life/interfaces/http/router_composition.py",
+      "status": "??",
+      "sha256": "6a68a813bf770d43d0fd7e913eb0cf37843abab6627129b97ebaa98091e414d8"
+    },
+    {
+      "path": "backend/tests/contract/test_app_composition.py",
+      "status": "??",
+      "sha256": "fa5448b889990a69ccc463f0c82d9c6424c083c20f941f43f2a23bb27067c748"
+    },
+    {
+      "path": "package.json",
+      "status": "M",
+      "sha256": "05218b08c18b3cbf2a0988aa69859d94605a41e701a731e921255bb87bb6fba6"
+    }
+  ],
+  "renames": [
+    {
+      "from": "apps/child-ui/src/__tests__/JoinScreen.test.ts",
+      "to": "apps/child-ui/src/__tests__/JoinScreen.test.tsx"
+    },
+    {
+      "from": "apps/child-ui/src/__tests__/DrawScreen.test.ts",
+      "to": "apps/child-ui/src/__tests__/DrawScreen.test.tsx"
+    },
+    {
+      "from": "apps/child-ui/src/__tests__/FeelingScreen.test.ts",
+      "to": "apps/child-ui/src/__tests__/FeelingScreen.test.tsx"
+    }
+  ]
+}

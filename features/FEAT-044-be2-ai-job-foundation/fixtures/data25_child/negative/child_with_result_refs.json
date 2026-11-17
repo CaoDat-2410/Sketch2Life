@@ -1,0 +1,19 @@
+{
+  "failure": null,
+  "job_id": "job_fx0001",
+  "job_revision": 8,
+  "job_type": "sketch_assistance",
+  "poll_after_ms": null,
+  "progress": {
+    "kind": "unknown",
+    "stage_label": null,
+    "value": null
+  },
+  "result_refs": [
+    {
+      "artifact_ref": "artifact_fx0001",
+      "sha256": "19c2d42280960ece0fc75e0f2ba0b08a5c61f45f981f570d7a76bdf70b37b5ee"
+    }
+  ],
+  "state": "succeeded"
+}

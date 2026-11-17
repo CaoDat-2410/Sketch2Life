@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "feature": "FEAT-057-be2-01-14-offline-integration",
+  "branch": "feature/be2-backend-ai-integration",
+  "head": "1649b72978877d82b4d7662040ff3555dee0a3a7",
+  "scope": "source_contract_review_x02_be2_07_invalidation_to_be2_09",
+  "result": "NOT_IMPLEMENTED",
+  "finding": "BE2-07 emits an exact candidate supersession event and has an in-memory recording consumer, but no adopted BE2-09 receiver applies the event to an exact dependent review/playback output under the required validity fence.",
+  "required_adoption": [
+    "Define exact BE2-07 bundle-to-BE2-09 video/output lineage.",
+    "Adopt an idempotent public invalidation receiver or current-eligibility resolver in BE2-09.",
+    "Hold the BE2-07 invalidation fence through BE2-09 review commit and playback dispatch/fetch.",
+    "Specify duplicate, replay, lost-delivery, and stale-source behavior."
+  ],
+  "source_sha256": {
+    "backend/src/sketch2life/application/services/knowledge_bundle.py": "af6c3c55e3cf0fedf155b8c0ebbf720ef7e6aec121b5b1871f94191a1e2f6c9f",
+    "backend/src/sketch2life/contracts/schemas/knowledge_bundles.py": "1733c4dfad2f5108f9ec508d7874efefe4a414eb0346f25eeb493a9a7671f771",
+    "backend/src/sketch2life/infrastructure/knowledge_bundle/adapters.py": "521dfd642d2aed5c47a4e27904d2aabb672c0c4b3d2df1a58b0f6b8c8792b2ff",
+    "backend/src/sketch2life/application/video_review_lifecycle.py": "e5a1a17c3d9580fdabf16e55864c18d10c67a6a03a54ba0cd34980691e0514e4",
+    "backend/src/sketch2life/application/ports/video_review_lifecycle.py": "ed1c07cc1d83f3cd366a4700a92c26b0494cce98c72c442728a0606fdc41ff1d",
+    "backend/src/sketch2life/application/ports/video_playback.py": "7621f128d136853f3c9e815a6a70be250d8d222865861f1f94e03f79023abe79"
+  },
+  "tests": "NOT_RUN_SOURCE_REVIEW_ONLY",
+  "card_status_or_acceptance_changed": false,
+  "git_publication": "NOT_PERFORMED"
+}

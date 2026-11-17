@@ -1,0 +1,39 @@
+{
+  "call_id": "fc-01M6QX3BE9G4H14CJ7RQ0422N2",
+  "error_type": "WorkerContractError",
+  "outcome": "FAILED_TERMINAL",
+  "runner_elapsed_ms": 24726.77,
+  "worker_log_summary": {
+    "worker_binary_output_sha256": null,
+    "worker_diagnostic_code": null,
+    "worker_diagnostic_details": null,
+    "worker_duration_ms": 0,
+    "worker_error_code": "MODAL_WORKLOAD_NOT_ALLOWED",
+    "worker_error_type": "WorkerContractError",
+    "worker_failure_boundary": "worker_terminal_failure_observed",
+    "worker_gpu_class": "L40S|L4|A10",
+    "worker_last_stage": "input_envelope",
+    "worker_log_event_count": 4,
+    "worker_logs_available": true,
+    "worker_model_id": "facebookresearch/sam2.1-hiera-small",
+    "worker_model_revision": "2b90b9f5ceec907a1c18123530e92e794ad901a4",
+    "worker_output_sha256": null,
+    "worker_output_size_bytes": null,
+    "worker_phase_history": [
+      {
+        "event": "worker_phase_started",
+        "stage": "input_envelope"
+      },
+      {
+        "duration_ms": 0,
+        "error_code": "MODAL_WORKLOAD_NOT_ALLOWED",
+        "error_type": "WorkerContractError",
+        "event": "worker_phase_failed",
+        "stage": "input_envelope"
+      }
+    ],
+    "worker_started_observed": true,
+    "worker_terminal_event": "worker_failed"
+  },
+  "workload": "drawing.segment"
+}

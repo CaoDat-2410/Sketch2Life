@@ -1,0 +1,26 @@
+stateDiagram-v2
+    [*] --> INPUT_PENDING
+    INPUT_PENDING --> INPUT_REVIEW: drawing + idea recorded
+    INPUT_REVIEW --> SUBJECT_REVIEW: VLM result validated
+    SUBJECT_REVIEW --> ACTIVITY_REVIEW: Parent confirms subject
+    ACTIVITY_REVIEW --> SCRIPT_REVIEW: Parent confirms activity
+    SUBJECT_REVIEW --> SCRIPT_REVIEW: Teacher plan/activity already approved
+    SCRIPT_REVIEW --> STORYBOARD_REVIEW: script schema valid
+    STORYBOARD_REVIEW --> VIDEO_QUEUED: adult approves exact storyboard hash
+    VIDEO_QUEUED --> VIDEO_GENERATING: worker accepted
+    VIDEO_GENERATING --> FINAL_REVIEW: scenes + TTS + composition ready
+    VIDEO_GENERATING --> RETRYABLE_FAILURE: bounded transient failure
+    RETRYABLE_FAILURE --> VIDEO_QUEUED: retry policy allows
+    VIDEO_GENERATING --> BLOCKED_REVIEW: safety/consistency check needs adult
+    BLOCKED_REVIEW --> VIDEO_QUEUED: adult approves retry
+    FINAL_REVIEW --> APPROVED: adult approves final hash
+    FINAL_REVIEW --> VIDEO_QUEUED: request scene redo
+    FINAL_REVIEW --> REJECTED: adult rejects final output
+    INPUT_PENDING --> CANCELLED: adult cancels
+    INPUT_REVIEW --> CANCELLED: adult cancels
+    SCRIPT_REVIEW --> FAILED: non-retryable schema/provider error
+    RETRYABLE_FAILURE --> FAILED: attempts exhausted
+    APPROVED --> [*]
+    REJECTED --> [*]
+    FAILED --> [*]
+    CANCELLED --> [*]

@@ -1,0 +1,29 @@
+............s........................F...                                [100%]
+================================== FAILURES ===================================
+________ WanGeneratorTest.test_build_command_uses_official_ti2v_flags _________
+
+self = <test_wan_generator.WanGeneratorTest testMethod=test_build_command_uses_official_ti2v_flags>
+
+    def test_build_command_uses_official_ti2v_flags(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            generator = self.make_generator(Path(directory))
+            command = generator.build_command(load_brief(profile={"frame_num": 121}), Path(directory) / "out.mp4")
+    
+>       self.assertEqual(command[:4], ["python", "/opt/Wan2.2/generate.py", "--task", "ti2v-5B"])
+E       AssertionError: Lists differ: ['python', '\\opt\\Wan2.2\\generate.py', '--task', 'ti2v-5B'] != ['python', '/opt/Wan2.2/generate.py', '--task', 'ti2v-5B']
+E       
+E       First differing element 1:
+E       '\\opt\\Wan2.2\\generate.py'
+E       '/opt/Wan2.2/generate.py'
+E       
+E       - ['python', '\\opt\\Wan2.2\\generate.py', '--task', 'ti2v-5B']
+E       ?             ^^   ^^      ^^
+E       
+E       + ['python', '/opt/Wan2.2/generate.py', '--task', 'ti2v-5B']
+E       ?             ^   ^      ^
+
+features\FEAT-005-backend-experience\tests\test_wan_generator.py:36: AssertionError
+=========================== short test summary info ===========================
+SKIPPED [1] features\FEAT-005-backend-experience\tests\test_frame_sampler_integration.py:16: ffmpeg and ffprobe are required for media integration tests
+FAILED features/FEAT-005-backend-experience/tests/test_wan_generator.py::WanGeneratorTest::test_build_command_uses_official_ti2v_flags
+1 failed, 39 passed, 1 skipped in 0.39s

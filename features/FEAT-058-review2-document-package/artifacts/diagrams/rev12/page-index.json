@@ -1,0 +1,146 @@
+[
+  {
+    "page": 1,
+    "type": "State Machine Diagram",
+    "title": "Session Lifecycle",
+    "source": "Session-Lifecycle.mmd"
+  },
+  {
+    "page": 2,
+    "type": "State Machine Diagram",
+    "title": "Session Pause and Recovery",
+    "source": "Session-Pause-Recovery-Companion.mmd"
+  },
+  {
+    "page": 3,
+    "type": "State Machine Diagram",
+    "title": "Session Terminal Outcomes",
+    "source": "Session-Early-Termination-Companion.mmd"
+  },
+  {
+    "page": 4,
+    "type": "State Machine Diagram",
+    "title": "Shared Learning Stage Lifecycle",
+    "source": "Shared-Learning-Stage-Lifecycle.mmd"
+  },
+  {
+    "page": 5,
+    "type": "State Machine Diagram",
+    "title": "Group Progress Lifecycle",
+    "source": "Group-Progress-Lifecycle.mmd"
+  },
+  {
+    "page": 6,
+    "type": "State Machine Diagram",
+    "title": "Participant Admission Lifecycle",
+    "source": "Participant-Admission.mmd"
+  },
+  {
+    "page": 7,
+    "type": "State Machine Diagram",
+    "title": "Device Connection Lifecycle",
+    "source": "Device-Connection.mmd"
+  },
+  {
+    "page": 8,
+    "type": "State Machine Diagram",
+    "title": "Device Grant Revocation",
+    "source": "Device-Grant-Revocation-Companion.mmd"
+  },
+  {
+    "page": 9,
+    "type": "State Machine Diagram",
+    "title": "Draft Synchronization Lifecycle",
+    "source": "Draft-Sync-Lifecycle.mmd"
+  },
+  {
+    "page": 10,
+    "type": "State Machine Diagram",
+    "title": "Sketch Pipeline Lifecycle",
+    "source": "Sketch-Pipeline-Lifecycle.mmd"
+  },
+  {
+    "page": 11,
+    "type": "State Machine Diagram",
+    "title": "Child Suggestion Response Lifecycle",
+    "source": "Child-Suggestion-Response-Lifecycle.mmd"
+  },
+  {
+    "page": 12,
+    "type": "State Machine Diagram",
+    "title": "Knowledge Editorial Lifecycle",
+    "source": "Knowledge-Editorial-Lifecycle.mmd"
+  },
+  {
+    "page": 13,
+    "type": "State Machine Diagram",
+    "title": "AI and Media Job Lifecycle",
+    "source": "AI-Media-Job.mmd"
+  },
+  {
+    "page": 14,
+    "type": "State Machine Diagram",
+    "title": "Video Delivery Lifecycle",
+    "source": "Video-Delivery.mmd"
+  },
+  {
+    "page": 15,
+    "type": "State Machine Diagram",
+    "title": "Activity Execution Lifecycle",
+    "source": "Activity-Execution-Lifecycle.mmd"
+  },
+  {
+    "page": 16,
+    "type": "State Machine Diagram",
+    "title": "Observation Lifecycle",
+    "source": "Observation-Lifecycle.mmd"
+  },
+  {
+    "page": 17,
+    "type": "State Machine Diagram",
+    "title": "Content Publication Lifecycle",
+    "source": "Content-Publication-Lifecycle.mmd"
+  },
+  {
+    "page": 18,
+    "type": "State Machine Diagram",
+    "title": "Data Request Lifecycle",
+    "source": "Data-Request-Lifecycle.mmd"
+  },
+  {
+    "page": 19,
+    "type": "State Machine Diagram",
+    "title": "Data Request Cancellation Outcomes",
+    "source": "Data-Request-Cancellation-Companion.mmd"
+  },
+  {
+    "page": 20,
+    "type": "State Machine Diagram",
+    "title": "Data Request External Purge Outcomes",
+    "source": "Data-Request-Purge-Outcome-Companion.mmd"
+  },
+  {
+    "page": 21,
+    "type": "Activity Diagram",
+    "title": "WF-01 Prepare and Admit",
+    "source": "WF-01-Prepare-Admit.mmd"
+  },
+  {
+    "page": 22,
+    "type": "Activity Diagram",
+    "title": "WF-02 Collaborative Drawing and Recovery",
+    "source": "WF-02-Collaborative-Drawing.mmd"
+  },
+  {
+    "page": 23,
+    "type": "Activity Diagram",
+    "title": "WF-03 Request and Review AI Sketch",
+    "source": "WF-03-AI-Sketch-Review.mmd"
+  },
+  {
+    "page": 24,
+    "type": "Activity Diagram",
+    "title": "WF-04 Reviewed Learning and Session Close",
+    "source": "WF-04-Reviewed-Learning-Close.mmd"
+  }
+]

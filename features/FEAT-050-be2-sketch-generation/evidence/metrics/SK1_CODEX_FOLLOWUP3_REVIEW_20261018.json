@@ -1,0 +1,349 @@
+{
+  "date": "2026-10-18",
+  "timezone": "Asia/Saigon",
+  "feature": "FEAT-050",
+  "checkpoint": "SK1 / Claude follow-up 3 focused Codex review",
+  "verdict": "NEEDS_CHANGES",
+  "review_scope_complete": true,
+  "findings": {
+    "P1": 0,
+    "P2": 1,
+    "P3": 2
+  },
+  "production_code_defect_found_in_reviewed_delta": false,
+  "sk1_accepted": false,
+  "be2_04": "IN_PROGRESS / NOT_DONE",
+  "branch": "feature/be2-04-sketch-generation",
+  "head": "113cdf956a09336a0abf5561bd939f5e13b31ea0",
+  "staged_paths": 0,
+  "input_metrics": {
+    "path": "features/FEAT-050-be2-sketch-generation/evidence/metrics/SK1_CHECKS_FOLLOWUP3_20261018.json",
+    "sha256": "82136e02218102a9aeddba00058b3b6c43ccd7090edcd5609a7c46edf63c506d",
+    "bytes": 8999
+  },
+  "input_note": {
+    "path": "features/FEAT-050-be2-sketch-generation/evidence/notes/SK1_CLAUDE_FOLLOWUP3_20261018.md",
+    "sha256": "fb3b2e1ff1e7ad4337acc459612c349a76a4ae5796e7c3f53f7ffa1bd9cecdc7",
+    "bytes": 13248
+  },
+  "review_note": {
+    "path": "features/FEAT-050-be2-sketch-generation/evidence/notes/SK1_CODEX_FOLLOWUP3_REVIEW_20261018.md",
+    "sha256": "9e95f05ad8ecad3504ada207c709e03e16c84ba36fb5977572e0f005c0f9d2cc",
+    "bytes": 7767
+  },
+  "unchanged_pins": {
+    "approval": {
+      "path": "features/FEAT-050-be2-sketch-generation/approvals/TASK_APPROVAL.md",
+      "sha256": "0f356d32b7cab883be6b3079400ada26495555cef160a6fb6a2a3b742a607d25",
+      "bytes": 3269
+    },
+    "approved_plan": {
+      "path": "features/FEAT-050-be2-sketch-generation/plan/PLAN_REV5_APPROVED.md",
+      "sha256": "461d06849899ea41f2c93432ed8b88c5a64428cf17bce5d2959a6d26ef4fa819",
+      "bytes": 108220
+    },
+    "previous_metrics": {
+      "path": "features/FEAT-050-be2-sketch-generation/evidence/metrics/SK1_CHECKS_20261018.json",
+      "sha256": "8d93f9072ba1a1ec50fb5bfc642e6bcc582d9d819b32824cbcc24e18ffaa532d",
+      "bytes": 10201
+    }
+  },
+  "reviewed_source_test_fixture_bindings": [
+    {
+      "path": "backend/src/sketch2life/domain/sketch_proposal.py",
+      "sha256": "09203d4b8a0e808c2df056093b2d2391bc21dab835e3a9912a0eb5ad6aac6cde",
+      "bytes": 33161
+    },
+    {
+      "path": "backend/src/sketch2life/application/ports/sketch_generation.py",
+      "sha256": "94d06cbd53dc5600ce21b06301d126c5afa2b8cd37981d7581fbf37324accf60",
+      "bytes": 11682
+    },
+    {
+      "path": "backend/src/sketch2life/application/services/sketch_generation.py",
+      "sha256": "47cfbebefc44e6257d7d7b34e6bd45a13ee6d7d437be86d5fd0533f57ae8c24f",
+      "bytes": 51815
+    },
+    {
+      "path": "backend/src/sketch2life/contracts/schemas/sketch_proposals.py",
+      "sha256": "c31f6b83a08de912dfaf5eae76fb66ee837156ee1618489fedf7d92937dee029",
+      "bytes": 5806
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/sketch_generation/__init__.py",
+      "sha256": "62b01e7232b952e6bd04b4652ece5d4caab4f30382b3eb06e53d30762f8f7ed0",
+      "bytes": 86
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/sketch_generation/adapters.py",
+      "sha256": "7b45ffe72559e34269c1798009b98dcdbe08096f41298dd4e0e64f67003d99f0",
+      "bytes": 27337
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/sketch_generation/fakes.py",
+      "sha256": "de94d1a336c61b38816ca9b890dd41851fe4974d8501521b79c7377692d554e2",
+      "bytes": 19022
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/sketch_generation/harness.py",
+      "sha256": "63c1eed9b71daef8e50ec8c7459588b5c88660a446921d49ed45650443cfdf68",
+      "bytes": 35470
+    },
+    {
+      "path": "backend/tests/unit/test_sketch_proposal_domain.py",
+      "sha256": "c29251e5d51be4e6f06e3cc92bdc3e327795fabe5e11065c8ac4fe26f76e1635",
+      "bytes": 15908
+    },
+    {
+      "path": "backend/tests/unit/test_sketch_generation_service.py",
+      "sha256": "50db6c216e8e6980dbd43cd09a428b6b16512bee2af3aa5cb3bcc0d91157e2bc",
+      "bytes": 26431
+    },
+    {
+      "path": "backend/tests/unit/test_sketch_generation_adapters.py",
+      "sha256": "03e46038873bc94c69091ce17b0ed24a133a6d83032b4177f1360451e6da7dfe",
+      "bytes": 16963
+    },
+    {
+      "path": "backend/tests/unit/test_sketch_generation_chain.py",
+      "sha256": "2071924f070e23052b0684a8e9cae84864d0667896e2ab7ac5ed26d0925f0a65",
+      "bytes": 30936
+    },
+    {
+      "path": "backend/tests/unit/test_sketch_generation_races.py",
+      "sha256": "28f55bd5b7612f4861dbb5b5e7a4c68fd44227984d34eef45e3d6e0548b49bad",
+      "bytes": 68650
+    },
+    {
+      "path": "backend/tests/contract/test_sketch_proposal_contracts.py",
+      "sha256": "6c3a1be1bd02a46ae9a7dfcb8f69dbfdef28a6f584df0c7847b0350ddc7491ad",
+      "bytes": 7044
+    },
+    {
+      "path": "features/FEAT-050-be2-sketch-generation/fixtures/h_ai_review/sketch_proposal_examples.json",
+      "sha256": "96598b51c479c36672a88b1f295976f5d5bd32b53e728eeb2e09c3504fc5da5b",
+      "bytes": 3898
+    }
+  ],
+  "independent_checks": {
+    "focused": {
+      "exit_code": 0,
+      "log": {
+        "path": "features/FEAT-050-be2-sketch-generation/evidence/local/codex-followup3-review-20261018/focused.log",
+        "sha256": "6af63218e355c384bcf57a462e7061650be1c54fa1a037c02f4a88329c55028f",
+        "bytes": 452
+      },
+      "exit_receipt": {
+        "path": "features/FEAT-050-be2-sketch-generation/evidence/local/codex-followup3-review-20261018/focused.exit",
+        "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354",
+        "bytes": 3
+      },
+      "junit": {
+        "path": "features/FEAT-050-be2-sketch-generation/evidence/local/codex-followup3-review-20261018/focused.junit.xml",
+        "sha256": "c17d5f6640835608f061e32f0273be1ab9e753774ef5da370c571143b6fb4e6e",
+        "bytes": 25993,
+        "tests": 175,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 175,
+        "skips": []
+      }
+    },
+    "ruff": {
+      "exit_code": 0,
+      "log": {
+        "path": "features/FEAT-050-be2-sketch-generation/evidence/local/codex-followup3-review-20261018/ruff.log",
+        "sha256": "a4443afdcfb6d7363adb285762515ccf7cf50473b1a05c20c1a50f6bed4d26b0",
+        "bytes": 20
+      },
+      "exit_receipt": {
+        "path": "features/FEAT-050-be2-sketch-generation/evidence/local/codex-followup3-review-20261018/ruff.exit",
+        "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354",
+        "bytes": 3
+      }
+    },
+    "mypy": {
+      "exit_code": 0,
+      "log": {
+        "path": "features/FEAT-050-be2-sketch-generation/evidence/local/codex-followup3-review-20261018/mypy.log",
+        "sha256": "e903677c248a6ca6ac9094eed21b5350be088d014c43570c553f047d8f487a0a",
+        "bytes": 45
+      },
+      "exit_receipt": {
+        "path": "features/FEAT-050-be2-sketch-generation/evidence/local/codex-followup3-review-20261018/mypy.exit",
+        "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354",
+        "bytes": 3
+      }
+    },
+    "validate_harness": {
+      "exit_code": 0,
+      "log": {
+        "path": "features/FEAT-050-be2-sketch-generation/evidence/local/codex-followup3-review-20261018/validate_harness.log",
+        "sha256": "6278c4ea6fe0a2d8d294eaf70f06b8698fca2afa5a81062f398b898308aa346e",
+        "bytes": 131
+      },
+      "exit_receipt": {
+        "path": "features/FEAT-050-be2-sketch-generation/evidence/local/codex-followup3-review-20261018/validate_harness.exit",
+        "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354",
+        "bytes": 3
+      }
+    },
+    "validate_repository_security": {
+      "exit_code": 0,
+      "log": {
+        "path": "features/FEAT-050-be2-sketch-generation/evidence/local/codex-followup3-review-20261018/validate_repository_security.log",
+        "sha256": "8adcbc02390f000a2d51062622f1ff25ec2fb0d9cbf8783fbe0add5db29bf19f",
+        "bytes": 220
+      },
+      "exit_receipt": {
+        "path": "features/FEAT-050-be2-sketch-generation/evidence/local/codex-followup3-review-20261018/validate_repository_security.exit",
+        "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354",
+        "bytes": 3
+      }
+    },
+    "validate_architecture": {
+      "exit_code": 0,
+      "log": {
+        "path": "features/FEAT-050-be2-sketch-generation/evidence/local/codex-followup3-review-20261018/validate_architecture.log",
+        "sha256": "67f1bc538fc90b4f70000a89126dde0aa14c688b8c3dbba796e1a89d6caef80e",
+        "bytes": 171
+      },
+      "exit_receipt": {
+        "path": "features/FEAT-050-be2-sketch-generation/evidence/local/codex-followup3-review-20261018/validate_architecture.exit",
+        "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354",
+        "bytes": 3
+      }
+    },
+    "validate_skeleton": {
+      "exit_code": 0,
+      "log": {
+        "path": "features/FEAT-050-be2-sketch-generation/evidence/local/codex-followup3-review-20261018/validate_skeleton.log",
+        "sha256": "c3bd0318347efa17e2cb71a192287f1fe5bbb4bb1932fa8a360e6f3328a7bd1b",
+        "bytes": 206
+      },
+      "exit_receipt": {
+        "path": "features/FEAT-050-be2-sketch-generation/evidence/local/codex-followup3-review-20261018/validate_skeleton.exit",
+        "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354",
+        "bytes": 3
+      }
+    }
+  },
+  "claude_junit_receipts_audited_not_regression_reruns": {
+    "focused_sk1": {
+      "path": "features/FEAT-050-be2-sketch-generation/evidence/local/claude-followup3-20261018/focused.junit.xml",
+      "sha256": "5393085d4f56f6fe186445ffe46857149588a925dae06d4a4b4c069b7754aacc",
+      "bytes": 25993,
+      "tests": 175,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 175,
+      "skips": []
+    },
+    "x01_be2_01": {
+      "path": "features/FEAT-050-be2-sketch-generation/evidence/local/claude-followup3-20261018/x01.junit.xml",
+      "sha256": "205c33e8b55aec0f3a4f3fd5c4a0d1c85e424be44b4ad9a1014cad4343f4fa53",
+      "bytes": 53959,
+      "tests": 338,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "passed": 337,
+      "skips": [
+        {
+          "classname": "tests.contract.test_ai_job_polling",
+          "name": "test_live_app_routes_have_no_candidate_job_route",
+          "message": "live app import needs Pillow (not in this env)"
+        }
+      ]
+    },
+    "x02_be2_02": {
+      "path": "features/FEAT-050-be2-sketch-generation/evidence/local/claude-followup3-20261018/x02.junit.xml",
+      "sha256": "49e803d83cf3df0b41083e971f61c0c0eb36226c2667a69a965a8b618a56b23a",
+      "bytes": 67717,
+      "tests": 412,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "passed": 411,
+      "skips": [
+        {
+          "classname": "tests.contract.test_analysis_corrections_api",
+          "name": "test_v12_production_app_routes_do_not_mount_cmd34",
+          "message": "live app import needs Pillow (not in this env)"
+        }
+      ]
+    },
+    "x03_be2_03": {
+      "path": "features/FEAT-050-be2-sketch-generation/evidence/local/claude-followup3-20261018/x03.junit.xml",
+      "sha256": "b2dcc2af132089694b854132231a06299f12279039166c85efabe0cc80cb22b6",
+      "bytes": 21957,
+      "tests": 128,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "passed": 127,
+      "skips": [
+        {
+          "classname": "tests.contract.test_assistance_requests_api",
+          "name": "test_live_app_has_no_assistance_route",
+          "message": "live app import needs Pillow (not in this env)"
+        }
+      ]
+    }
+  },
+  "r31_verification_gap_probe": {
+    "exit_code": 0,
+    "log": {
+      "path": "features/FEAT-050-be2-sketch-generation/evidence/local/codex-followup3-review-20261018/r31_boundary_probe.log",
+      "sha256": "617368b2aafe18e7cee2f6c7990b7dfff5dd533fa20f68f4c0c2ef82dfcba2a1",
+      "bytes": 166
+    },
+    "exit_receipt": {
+      "path": "features/FEAT-050-be2-sketch-generation/evidence/local/codex-followup3-review-20261018/r31_boundary_probe.exit",
+      "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354",
+      "bytes": 3
+    },
+    "script": {
+      "path": "features/FEAT-050-be2-sketch-generation/evidence/local/codex-followup3-review-20261018/r31_boundary_probe.py",
+      "sha256": "56d01bcfebf2518410cede670a8b093fe49715827b4344fa3546935d5fc2ba06",
+      "bytes": 2884
+    },
+    "observed": {
+      "observations": [
+        {
+          "committed_pipeline_states_at_mutation": [
+            "analyzing"
+          ],
+          "quarantined_before_c8_commit": true
+        }
+      ],
+      "r31_assertions_passed_with_bypassed_lock": true
+    }
+  },
+  "evidence_wording_notes": [
+    "C06 compares decoded JSON values, not byte equality",
+    "P09 service device-view test samples requested/pending/cancelled, not every state"
+  ],
+  "source_test_fixture_changes_by_reviewer": false,
+  "owner_decisions_created": false,
+  "remaining": [
+    "R31 stronger deterministic post-commit boundary assertions",
+    "two evidence wording corrections",
+    "F-5 owner disposition",
+    "N04/N08/N11 chain partials",
+    "C03/C03b contract mapping",
+    "A1 callback end-to-end NOT_RUN",
+    "N16 owner acknowledgement"
+  ],
+  "not_run": [
+    "Studio",
+    "PostgreSQL",
+    "Redis/RQ",
+    "real provider",
+    "decoder"
+  ],
+  "durable_multi_process": "NOT_IMPLEMENTED",
+  "git_actions": "no branch/stage/commit/push/merge/PR"
+}

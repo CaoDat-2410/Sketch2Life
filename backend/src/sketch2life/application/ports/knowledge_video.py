@@ -1,0 +1,192 @@
+"""BE2-08 candidate owner-lease and atomic-submission boundaries.
+
+No default owner or durable adapter. Adopting this surface requires D01–D04
+conformance; a process-local lease/store is component evidence only.
+"""
+
+from __future__ import annotations
+
+from contextlib import AbstractContextManager
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Literal, Protocol
+
+from sketch2life.domain.ai_jobs.completion import CompletionClaim
+from sketch2life.domain.ai_jobs.model import AiJob
+from sketch2life.contracts.schemas.knowledge_video import CreateKnowledgeVideo, KnowledgeVideoView
+from sketch2life.domain.knowledge_video.model import (
+    FinalArtifact,
+    VideoError,
+    VideoPin,
+    VideoRun,
+    require_hash,
+    require_id,
+    require_revision,
+    require_time,
+)
+
+VIDEO_LIFECYCLE_CONTRACT = "BE2-VIDEO-LIFECYCLE/1"
+
+
+@dataclass(frozen=True, slots=True)
+class VideoRequestContext:
+    """Verified server context, not a client-provided role or grant DTO."""
+
+    principal_id: str
+    organization_id: str
+    session_id: str
+    idempotency_key: str
+    correlation_id: str
+
+    def __post_init__(self) -> None:
+        for value in (self.principal_id, self.organization_id, self.session_id,
+                      self.idempotency_key, self.correlation_id):
+            require_id(value)
+
+    @property
+    def receipt_key(self) -> tuple[str, str, str, str]:
+        return (self.organization_id, self.session_id, self.principal_id, self.idempotency_key)
+
+
+class VideoCreationLease(Protocol):
+    """Owner authorization + exact bundle/profile/rights/current-policy observation.
+
+    Resolver checks stored bundle bytes/hash, current script/source eligibility,
+    current consent/grant/session/audience, published rights/encoding/profile and
+    applicable policy/quota gates. NOT an additional pre-render human approval.
+    Held owner fences must cover the actual submission commit; observations
+    alone or post-commit assertions cannot close a race.
+    """
+
+    @property
+    def pin(self) -> VideoPin: ...
+
+    @property
+    def context(self) -> VideoRequestContext: ...
+
+    def assert_current(self) -> None:
+        """Raise safe VideoError on stale/denied; actual adapter retains guards to commit."""
+        ...
+
+
+class VideoCreationResolver(Protocol):
+    def hold(self, context: VideoRequestContext, command: CreateKnowledgeVideo,
+             ) -> AbstractContextManager[VideoCreationLease]: ...
+
+
+@dataclass(frozen=True, slots=True)
+class VideoSubmission:
+    run: VideoRun
+    job_revision: int
+    attempt_id: str
+    outcome: Literal["created", "replayed", "deduplicated"]
+    view: KnowledgeVideoView | None = None
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.run, VideoRun):
+            raise VideoError("VIDEO_SUBMISSION_MISMATCH")
+        require_revision(self.job_revision)
+        require_id(self.attempt_id)
+        if self.outcome not in {"created", "replayed", "deduplicated"}:
+            raise VideoError("VIDEO_SUBMISSION_MISMATCH")
+
+
+class AtomicVideoSubmission(Protocol):
+    def submit(self, *, context: VideoRequestContext, command_hash: str,
+               lease: VideoCreationLease) -> VideoSubmission:
+        """One commit: run + foundation job + dispatch + semantic/receipt/audit records.
+
+        Replay is scoped to org/session/principal/key, body-bound and under current
+        owner eligibility. Different body conflicts; old pin is not rewritten.
+        Exact semantic duplicates may share one run/job only after authorization.
+        Adapter must enlist owned rows in the foundation's authorized create path,
+        not bypass its guards with domain.create_job or two separate transactions.
+        Actual transaction-bound fences, conflicts/rollback/recovery require SQL
+        conformance. No runtime adapter is supplied by the fixture implementation.
+        """
+        ...
+
+
+@dataclass(frozen=True, slots=True)
+class VideoCommandReceipt:
+    organization_id: str
+    session_id: str
+    principal_id: str
+    idempotency_key: str
+    command_hash: str
+    pin_digest: str
+    video_id: str
+    created_at: datetime
+
+    def __post_init__(self) -> None:
+        for value in (self.organization_id, self.session_id, self.principal_id,
+                      self.idempotency_key, self.video_id):
+            require_id(value)
+        require_hash(self.command_hash)
+        require_hash(self.pin_digest)
+        require_time(self.created_at)
+
+
+class VideoRunParticipant(Protocol):
+    """Owned row operations bound by outer composition to ONE caller transaction.
+
+    No commit/begin operation here. This port is not durable submission by itself;
+    adopted foundation bridge must coordinate jobs/outbox and held owner guards.
+    Scope is fixed at construction by server composition, not client body.
+    """
+
+    def get(self, video_id: str, *, for_update: bool = False) -> VideoRun | None: ...
+
+    def find_semantic(self, session_id: str, pin_digest: str) -> VideoRun | None: ...
+
+    def find_job(self, job_id: str, *, for_update: bool = False) -> VideoRun | None: ...
+
+    def insert(self, run: VideoRun) -> None: ...
+
+    def save(self, run: VideoRun, *, expected_revision: int) -> None: ...
+
+    def get_receipt(self, session_id: str, principal_id: str,
+                    key: str) -> VideoCommandReceipt | None: ...
+
+    def put_receipt(self, receipt: VideoCommandReceipt) -> None: ...
+
+
+@dataclass(frozen=True, slots=True)
+class VideoLifecycleCreateV1:
+    """Versioned A-operation binding supplied by the BE2-08 create flow."""
+
+    job_type: str
+    context: VideoRequestContext
+    command_hash: str
+    pin: VideoPin
+
+    def __post_init__(self) -> None:
+        require_id(self.job_type)
+        require_hash(self.command_hash)
+        if (self.pin.organization_id != self.context.organization_id
+                or self.pin.session_id != self.context.session_id):
+            raise VideoError("VIDEO_RESOLUTION_MISMATCH")
+
+
+class VideoLifecycleTransaction(Protocol):
+    """BE2-08-owned A/S/B row participant bound to the BE2-01 transaction.
+
+    It exposes domain operations only. BE2-01 owns the transaction and invokes these
+    operations before commit; this contract never exposes a SQL connection.
+    """
+
+    contract_version: str
+
+    def submit(
+        self, job: AiJob, binding: VideoLifecycleCreateV1, *, video_id: str,
+        now: datetime, replayed: bool = False,
+    ) -> VideoRun: ...
+
+    def start(self, before: AiJob, after: AiJob, *, attempt_id: str) -> VideoRun: ...
+
+    def accept(
+        self, before: AiJob, after: AiJob, claim: CompletionClaim,
+        artifact: FinalArtifact,
+    ) -> VideoRun: ...
+
+    def find_job(self, job_id: str, *, for_update: bool = False) -> VideoRun | None: ...

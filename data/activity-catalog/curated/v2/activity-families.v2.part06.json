@@ -1,0 +1,96 @@
+{
+  "schema_version": 2,
+  "catalog_revision": "catalog-2026-09-expansion-1",
+  "families": [
+    {
+      "family_id": "FAM-NUMBER-COUNT",
+      "concept_ids": ["COUNTING_NUMBER", "MATHEMATICAL_REASONING"],
+      "objective_ids": ["OBJ_NUMBER_QUANTITY_PLACE_VALUE"],
+      "area": "mathematics",
+      "phrases_vi": ["đếm", "số lượng", "con số"],
+      "aliases_vi": ["bao nhiêu", "đếm vật"],
+      "material_option_ids": ["MAT_COUNTING_OBJECTS", "MAT_NUMBER_CARDS"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["dùng vật đếm lớn, không độc; không để vật nhỏ gần miệng trẻ"],
+      "policy_constraints": ["SAFE_MATERIALS_ONLY"],
+      "variants": [
+        {"activity_id": "ACT-0221", "age_band": "0-3", "title_vi": "Đếm một và nhiều", "action_vi": "Trẻ chạm hoặc nhìn một vật rồi một nhóm vật lớn.", "challenge_vi": "Người lớn nói chậm một từ số lượng và chờ phản hồi.", "duration_minutes": 5},
+        {"activity_id": "ACT-0222", "age_band": "3-6", "title_vi": "Đếm và ghép thẻ số", "action_vi": "Trẻ đếm nhóm vật lớn an toàn và ghép thẻ số phù hợp.", "challenge_vi": "Trẻ kiểm tra bằng cách đếm lại theo thứ tự.", "duration_minutes": 10},
+        {"activity_id": "ACT-0223", "age_band": "6-9", "title_vi": "Biểu diễn số lượng", "action_vi": "Trẻ biểu diễn một số bằng vật đếm, hình vẽ và ký hiệu số.", "challenge_vi": "Trẻ so sánh hai biểu diễn và giải thích tương đương.", "duration_minutes": 18},
+        {"activity_id": "ACT-0224", "age_band": "9-12", "title_vi": "Kiểm tra chiến lược đếm", "action_vi": "Trẻ so sánh hai cách đếm và ghi điều kiện tránh đếm lặp.", "challenge_vi": "Trẻ nêu cách ước lượng trước khi đếm chính xác.", "duration_minutes": 25}
+      ]
+    },
+    {
+      "family_id": "FAM-NUMBER-QUANTITY",
+      "concept_ids": ["COUNTING_NUMBER", "PRACTICAL_LIFE"],
+      "objective_ids": ["OBJ_NUMBER_QUANTITY_PLACE_VALUE"],
+      "area": "mathematics",
+      "phrases_vi": ["số lượng", "thêm bớt", "nhiều hơn", "ít hơn"],
+      "aliases_vi": ["so sánh số lượng", "chia đều"],
+      "material_option_ids": ["MAT_COUNTING_OBJECTS", "MAT_SORTING_TRAY"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["vật đếm đủ lớn, không sắc và không độc; dọn vật sau khi đếm"],
+      "policy_constraints": ["SAFE_MATERIALS_ONLY"],
+      "variants": [
+        {"activity_id": "ACT-0225", "age_band": "0-3", "title_vi": "Thêm một vật", "action_vi": "Trẻ nhìn người lớn thêm một vật lớn vào nhóm và quan sát thay đổi.", "challenge_vi": "Trẻ lấy một vật ra khi được mời.", "duration_minutes": 5},
+        {"activity_id": "ACT-0226", "age_band": "3-6", "title_vi": "Chia đều đồ vật", "action_vi": "Trẻ chia vật lớn hoặc thẻ thành hai nhóm gần bằng nhau.", "challenge_vi": "Trẻ nói nhóm nào nhiều hơn hoặc ít hơn.", "duration_minutes": 10},
+        {"activity_id": "ACT-0227", "age_band": "6-9", "title_vi": "Mô hình hóa phép cộng trừ", "action_vi": "Trẻ dùng vật đếm để mô tả tình huống thêm hoặc bớt.", "challenge_vi": "Trẻ viết phép tính và kiểm tra bằng vật liệu.", "duration_minutes": 18},
+        {"activity_id": "ACT-0228", "age_band": "9-12", "title_vi": "Phân tích công bằng số lượng", "action_vi": "Trẻ mô hình hóa cách chia tài nguyên và nêu tiêu chí công bằng.", "challenge_vi": "Trẻ so sánh chia đều với chia theo nhu cầu trong tình huống hư cấu.", "duration_minutes": 25}
+      ]
+    },
+    {
+      "family_id": "FAM-NUMBER-PATTERN",
+      "concept_ids": ["COUNTING_NUMBER", "SHAPE_GEOMETRY"],
+      "objective_ids": ["OBJ_MATHEMATICAL_REASONING"],
+      "area": "mathematics",
+      "phrases_vi": ["mẫu số", "dãy số", "quy luật"],
+      "aliases_vi": ["chuỗi số", "tiếp theo là gì"],
+      "material_option_ids": ["MAT_NUMBER_CARDS", "MAT_PATTERN_CARDS"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["thẻ số lớn, không có ghim; điều chỉnh độ dài chuỗi theo khả năng"],
+      "policy_constraints": ["SAFE_MATERIALS_ONLY"],
+      "variants": [
+        {"activity_id": "ACT-0229", "age_band": "0-3", "title_vi": "Nghe chuỗi số ngắn", "action_vi": "Trẻ nghe người lớn đếm chậm và chạm vào thẻ số lớn.", "challenge_vi": "Trẻ chờ đến lượt chạm thẻ tiếp theo.", "duration_minutes": 5},
+        {"activity_id": "ACT-0230", "age_band": "3-6", "title_vi": "Tiếp tục dãy số", "action_vi": "Trẻ đặt số tiếp theo trong dãy tăng đều đơn giản.", "challenge_vi": "Trẻ nói dãy số khi chỉ vào từng thẻ.", "duration_minutes": 10},
+        {"activity_id": "ACT-0231", "age_band": "6-9", "title_vi": "Tìm quy luật dãy số", "action_vi": "Trẻ so sánh hiệu giữa các số và dự đoán số bị thiếu.", "challenge_vi": "Trẻ tạo một dãy có quy luật để người khác giải.", "duration_minutes": 18},
+        {"activity_id": "ACT-0232", "age_band": "9-12", "title_vi": "Khái quát hóa dãy số", "action_vi": "Trẻ biểu diễn dãy số bằng bảng hoặc quy tắc và kiểm tra nhiều vị trí.", "challenge_vi": "Trẻ nêu khi nào vài số chưa đủ để kết luận quy luật duy nhất.", "duration_minutes": 25}
+      ]
+    },
+    {
+      "family_id": "FAM-NUMBER-MEASURE",
+      "concept_ids": ["COUNTING_NUMBER", "SCIENCE_NATURE"],
+      "objective_ids": ["OBJ_MATHEMATICAL_REASONING"],
+      "area": "mathematics",
+      "phrases_vi": ["đo", "dài", "nặng", "số lượng"],
+      "aliases_vi": ["đo lường", "so sánh kích thước"],
+      "material_option_ids": ["MAT_MEASURE_TOOLS", "MAT_COUNTING_OBJECTS"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["dụng cụ đo đầu tù, không kéo căng dây gần mặt; không nâng vật nặng"],
+      "policy_constraints": ["SAFE_MEASUREMENT"],
+      "variants": [
+        {"activity_id": "ACT-0233", "age_band": "0-3", "title_vi": "So vật dài và ngắn", "action_vi": "Trẻ đặt hai vật lớn cạnh nhau và nhìn vật dài hơn.", "challenge_vi": "Người lớn đổi vị trí để trẻ chọn lại.", "duration_minutes": 5},
+        {"activity_id": "ACT-0234", "age_band": "3-6", "title_vi": "Đo bằng đơn vị lặp", "action_vi": "Trẻ dùng các khối giống nhau để đo độ dài một vật.", "challenge_vi": "Trẻ xếp khối sát nhau và đếm số khối.", "duration_minutes": 10},
+        {"activity_id": "ACT-0235", "age_band": "6-9", "title_vi": "Chọn dụng cụ đo", "action_vi": "Trẻ chọn dụng cụ phù hợp để đo chiều dài, lượng hoặc thời gian.", "challenge_vi": "Trẻ ghi đơn vị và so sánh sai số khi đo lại.", "duration_minutes": 18},
+        {"activity_id": "ACT-0236", "age_band": "9-12", "title_vi": "Thiết kế phép đo đáng tin", "action_vi": "Trẻ lập quy trình đo lặp lại, ghi dữ liệu và tính giá trị đại diện.", "challenge_vi": "Trẻ phân tích nguồn sai số và nêu cải tiến.", "duration_minutes": 28}
+      ]
+    },
+    {
+      "family_id": "FAM-NUMBER-DATA",
+      "concept_ids": ["COUNTING_NUMBER", "SCIENCE_NATURE"],
+      "objective_ids": ["OBJ_SCIENTIFIC_OBSERVATION"],
+      "area": "mathematics",
+      "phrases_vi": ["số lượng", "biểu đồ", "dữ liệu", "đếm"],
+      "aliases_vi": ["ghi dữ liệu", "biểu đồ đơn giản"],
+      "material_option_ids": ["MAT_COUNTING_OBJECTS", "MAT_CHART_CARDS"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["chỉ thu thập dữ liệu không riêng tư; vật liệu lớn và không gây vấp"],
+      "policy_constraints": ["PRIVACY_SAFE"],
+      "variants": [
+        {"activity_id": "ACT-0237", "age_band": "0-3", "title_vi": "Nhìn hàng nhiều và ít", "action_vi": "Trẻ nhìn hai hàng vật lớn và chạm hàng có nhiều hơn khi được mời.", "challenge_vi": "Người lớn giữ số vật trong phạm vi nhỏ và rõ ràng.", "duration_minutes": 5},
+        {"activity_id": "ACT-0238", "age_band": "3-6", "title_vi": "Tạo biểu đồ bằng vật", "action_vi": "Trẻ xếp vật thành cột để biểu diễn ba nhóm nhỏ.", "challenge_vi": "Trẻ kể cột nào cao hơn và nhóm nào có ít hơn.", "duration_minutes": 10},
+        {"activity_id": "ACT-0239", "age_band": "6-9", "title_vi": "Đọc và đặt câu hỏi từ biểu đồ", "action_vi": "Trẻ đọc biểu đồ đơn giản và viết hai câu hỏi có thể trả lời.", "challenge_vi": "Trẻ tìm một thông tin biểu đồ chưa cho biết.", "duration_minutes": 18},
+        {"activity_id": "ACT-0240", "age_band": "9-12", "title_vi": "Kiểm tra cách kể chuyện bằng dữ liệu", "action_vi": "Trẻ chọn dạng biểu đồ phù hợp và viết kết luận dựa trên dữ liệu.", "challenge_vi": "Trẻ chỉ ra kết luận vượt quá dữ liệu hoặc cần thêm mẫu.", "duration_minutes": 28}
+      ]
+    }
+  ]
+}

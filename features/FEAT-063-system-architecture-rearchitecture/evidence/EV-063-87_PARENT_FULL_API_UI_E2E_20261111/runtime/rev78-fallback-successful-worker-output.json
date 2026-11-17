@@ -1,0 +1,47 @@
+{
+  "test": "rev78_synthetic_parent_activity_fallback_worker_output",
+  "started_at_utc": "2026-11-11T14:20:44.516597+00:00",
+  "finished_at_utc": "2026-11-11T14:22:29.928193+00:00",
+  "model_id": "Qwen/Qwen3.5-9B",
+  "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+  "modal_call_id": "fc-01M75FQMWZ2CZSXNMT2C65C275",
+  "elapsed_seconds": 105.412,
+  "catalog_candidate_count": 0,
+  "age_band_months": "72-107",
+  "worker_decision": "NO_MATCH",
+  "initial_application_gate": "PASS_BEFORE_TEXT_COMPLETENESS_CHECK",
+  "offline_replay_status": "QUALITY_GATE_REJECTED",
+  "offline_replay_diagnostic_code": "ACTIVITY_TEXT_INCOMPLETE",
+  "fallback_activities": [
+    {
+      "title": "Quan sát Bướm Tím",
+      "objective": "Trẻ phát triển kỹ năng quan sát chi tiết và nhận biết màu sắc thông qua việc xem xét bướm thật ngoài",
+      "materials_text": "Không cần vật liệu, chỉ cần trẻ đứng yên ở khoảng cách an toàn để nhìn bướm bay.",
+      "preparation_text": "Người lớn dẫn trẻ ra khu vườn hoặc sân nhà nơi có bướm đang đậu trên hoa để trẻ tự chọn vị trí quan",
+      "instructions_text": "Bước 1: Trẻ tự chọn một bông hoa có bướm đậu và giữ im lặng để quan sát cánh bướm màu tím. Bước 2: Người lớn hỏi trẻ nhận thấy gì về hình dáng và màu sắc của bướm khi nó di chuyển.",
+      "observation_notes": "Ghi nhận khả năng tập trung của trẻ khi quan sát sinh vật sống và phản ứng của trẻ trước ý",
+      "safety_notes": "Cảnh báo trẻ không được vẫy tay hay chạy lại gần bướm để tránh làm nó bay đi hoặc bị đốt.",
+      "activity_kind": "outdoor"
+    },
+    {
+      "title": "Phân Loại Thẻ Bướm",
+      "objective": "Trẻ rèn luyện tư duy phân loại và so sánh dựa trên đặc điểm màu sắc và hình dạng cánh bướm. Người",
+      "materials_text": "Bộ thẻ giấy in sẵn hình ảnh các loại bướm khác nhau và khay đựng do người lớn",
+      "preparation_text": "Người lớn chuẩn bị thẻ bướm và mang ra ngoài trời hoặc sân nhà, nơi trẻ có thể tự chọn vị trí ngồi",
+      "instructions_text": "Bước 1: Trẻ tự chọn một thẻ bướm và so sánh màu cánh với thẻ khác để phân loại theo nhóm màu. Bước 2: Trẻ thử nghiệm sắp xếp các thẻ vào khay theo thứ tự từ nhạt đến đậm hoặc từ có",
+      "observation_notes": "Theo dõi cách trẻ đưa ra quyết định phân loại và khả năng giải thích lý do chọn nhóm của",
+      "safety_notes": "Đảm bảo thẻ giấy không bị gió cuốn bay xa gây mất mát và trẻ không cầm thẻ quá lâu gây ẩm.",
+      "activity_kind": "outdoor"
+    },
+    {
+      "title": "Vận Động Mô Phỏng Bướm",
+      "objective": "Trẻ phát triển vận động tinh và khả năng phối hợp cơ thể thông qua việc mô phỏng hành vi bay của bướ",
+      "materials_text": "Không cần vật liệu, chỉ cần không gian rộng rãi ngoài trời để trẻ di chuyển tự",
+      "preparation_text": "Người lớn mở rộng không gian sân nhà hoặc công viên và khuyến khích trẻ tự chọn hướng bay theo ý",
+      "instructions_text": "Bước 1: Trẻ tự chọn tư thế cánh tay mô phỏng cánh bướm và thử nghiệm bay lượn nhẹ nhàng trên không. Bước 2: Trẻ quan sát cách bướm thật đậu xuống hoa và mô phỏng hành động đó bằng",
+      "observation_notes": "Đánh giá sự khéo léo của trẻ trong việc điều khiển cánh tay và khả năng bắt chước hành vi",
+      "safety_notes": "Nhắc nhở trẻ tránh bay vào người lớn, vật cản hoặc khu vực có nguy cơ va chạm khi di chuyển.",
+      "activity_kind": "outdoor"
+    }
+  ]
+}

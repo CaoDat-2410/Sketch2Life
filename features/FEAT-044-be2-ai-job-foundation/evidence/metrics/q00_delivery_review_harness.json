@@ -1,0 +1,12 @@
+{
+  "check": "harness",
+  "command": [
+    "<existing-backend-venv>/python",
+    "tools/validate_harness.py",
+    "--feature",
+    "features/FEAT-044-be2-ai-job-foundation"
+  ],
+  "started_at": "2026-10-14T23:45:01.791342+07:00",
+  "exit_code": 0,
+  "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/q00_delivery_review_harness.txt"
+}

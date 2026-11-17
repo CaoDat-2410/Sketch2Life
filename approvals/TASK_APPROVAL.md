@@ -1,0 +1,371 @@
+# Task approval register
+
+## FEAT-063 Plan Rev52 — reconcile SRS review findings
+
+- **Status:** `APPROVED` for the exact documentation-only scope in Plan Rev52; not SRS content sign-off.
+- **Approver:** Project owner, direct request on 2026-11-06: “đọc cái này và fix lại các cái mâu thuẫn, có thể hỏi 1 vài câu nếu cần”.
+- **Recorded date:** 2026-11-06, Asia/Saigon.
+- **Feature:** FEAT-063 — whole-repository architecture redesign.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV52_SRS_CONTRADICTION_RECONCILIATION_20261106.md`.
+- **Plan SHA-256 at authorization:** `2EEBB0290B6A15C09135F2A7CB40A0D68DDC5CA8DFBE34CFA390F6428B747ABA`.
+- **Current reviewed plan SHA-256:** `CFA2214E1F1F4E02DDABA2D4952052D26493E0844CE0487A3108505BA14B06BF` (includes the owner's three follow-up clarifications and the current SRS/Register target-count reconciliation).
+- **Scope:** review the user-supplied v2.5 contradiction report against the canonical FEAT-063 SRS; reconcile the SRS and companion Data Table Register where current SRS decisions resolve the finding; preserve unanswered role/media/quota and schema questions; update FEAT-063 authority and evidence records.
+- **Acceptance criteria:** AC1–AC7 in the hash-identified Plan Rev52.
+- **Exclusions:** product/code/API/database/schema/migration/runtime/provider/test/build/deployment/secret changes; historical SRS rewrites; SRS sign-off; commit, push, PR, merge, or `dev` changes.
+- **Approval basis:** the owner's direct task request authorizes the scoped review and documentation corrections. Any clarifying answers may resolve only the matching open questions; this approval does not decide those questions or sign off the SRS.
+
+## FEAT-063 Plan Rev43 — as-built SRS alignment
+
+- Status: `APPROVED` for the exact documentation scope in Plan Rev43.
+- Approver: Project owner, direct instruction in this conversation on 2026-11-06: “update lại srs dựa trên hệ thống đang build hiện tại”.
+- Recorded timestamp: 2026-11-06 00:48:54 Asia/Saigon.
+- Feature: FEAT-063 — whole-repository architecture redesign.
+- Approved plan: `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV43_AS_BUILT_SRS_ALIGNMENT_20261106.md`.
+- Plan SHA-256 at authorization: `000A4D0C22BB92666C60C4597BB5B8AEB126E0D4C1F654B610909CC7BBDED945`. Current reviewed plan SHA-256: `1F10B3F447F7AFB59FAD847E6BE05F0C898B4CE4F6F51B0536258BBD1806F185`. Later edits record lifecycle completion and clarify AC2 with the AI/database boundary from the owner's adjacent table-use request; implementation scope remains documentation-only.
+- Scope: update the canonical SRS and data-model companion with separately labeled implementation status; reconcile current model/role decisions; record local API/database and owner-supplied Modal dashboard observations; update canonical authority pointers and FEAT-063 tracking/evidence records.
+- Acceptance criteria: AC1–AC7 in the hash-identified Plan Rev43.
+- Exclusions: product/runtime/API/schema/data/migration/test/provider/deployment/secret changes; paid GPU calls; SRS sign-off; edits to preserved historical SRS bodies or unrelated work; staging, commit or push.
+- Approval basis: the owner's direct request authorizes this documentation scope. It does not constitute formal product sign-off of the SRS.
+
+## FEAT-063 Plan Rev44 — publish the as-built SRS alignment
+
+- Status: `APPROVED` for the exact documentation publication scope in Plan Rev44.
+- Approver: Project owner, direct instruction in this conversation on 2026-11-06: “commit and push”.
+- Recorded timestamp: 2026-11-06 05:29:51 Asia/Saigon.
+- Feature: FEAT-063 — whole-repository architecture redesign.
+- Approved plan: `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV44_PUBLISH_AS_BUILT_SRS_20261106.md`.
+- Plan SHA-256: `F54CD43EC4E42BB8B46E698D74688BB161929450793EAB301DC8CDC342EA3E47`.
+- Scope: publish only the exact 16 paths listed in Plan Rev44 on a new branch based on the fetched `origin/dev`; preserve unrelated staged/unstaged/untracked work in the original checkout.
+- Acceptance criteria: AC1–AC5 in the hash-identified Plan Rev44.
+- Exclusions: SRS sign-off; product/runtime/API/schema/database/migration/test/provider/deployment/secret changes; force-push or rewriting `dev`; publication of unrelated work.
+- Approval basis: the owner's direct instruction authorizes commit and push of the Rev43 documentation package as scoped in Plan Rev44.
+
+## FEAT-063 ? Qwen3.5-only profile and FLUX.3 component retest
+
+- **Status:** APPROVED / COMPLETE.
+- **Approved by:** Project owner, by direct instruction in the active conversation.
+- **Approval timestamp:** 2026-11-05 22:58:08 Asia/Saigon.
+- **Feature:** FEAT-063 ? system architecture rearchitecture.
+- **Plans:**
+  - `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV46_QWEN35_ONLY_FLUX_SECRET_RETEST_20261105.md` ? approved SHA-256 `4F796831148D134B2EABB1CBF791AE1D41C341C9D0C736BED4ECCDC11632B51F`; execution closeout SHA-256 `9dc252d80ce46aeddb9eca1c10da6ad60e52c11907441cea2a3c426ecd324f8f`.
+  - `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV46A_FLUX_COMPONENT_FILES_AND_FAILED_FLOW_RETEST_20261105.md` ? approved SHA-256 `334ACE80E495EFD453BED980F78F5F9767ADD98C2F32617BCAD8DB87B74C2AE8`; execution closeout SHA-256 `ab24410c6d4b3bcc69cb9acbaf9d58bf7b7ff5bcd6e6785ddb126b8ce375434e`.
+- **Owner's direct model instruction:** ?x?a b?t qwen 2 ra ?i, d?ng qwen 3.5 th?i?.
+- **Approved scope:** retire Qwen2.5 from active FEAT-063 model configuration and use only pinned `Qwen/Qwen3.5-9B` for active Qwen development workloads; preserve historical records. Fix FLUX.3 Diffusers component staging and run one checkpoint download plus one synthetic inference for each Rev46-terminal-failed image workload, using the existing Modal `dev` Secret without reading its value.
+- **Acceptance criteria:** active Qwen workloads resolve only to the pinned Qwen3.5 model; FLUX checkpoint verifier requires transformer and VAE files and does not skip incomplete checkpoints because of an existing marker; the two failed image workloads each receive at most one post-fix attempt; output contracts or exact terminal failures are recorded; task-owned Modal app stops with zero tasks; no video, production enablement, real child data, destructive volume action, commit, or push.
+- **Execution boundaries:** follow the two approved FEAT-063 plans and keep evidence in that feature's evidence directory. The feature-level plan and approval records remain canonical for detailed per-plan execution history.
+
+
+## FEAT-063 Plan Rev50 ? local dev duplicate repair, Modal AI integration, and SRS authority
+
+- **Status:** APPROVED / COMPLETE LOCALLY (not pushed) for the exact scope in Plan Rev50.
+- **Approver:** Project owner, direct instruction on 2026-11-06 to fix duplicated `dev` commits without changing commit names; selected the full Modal AI branch and pending AI changes. The owner?s prior instruction to keep the newest FEAT-063 SRS canonical is also preserved.
+- **Recorded timestamp:** 2026-11-06 06:13:08 Asia/Saigon.
+- **Feature:** FEAT-063 ? system architecture rearchitecture.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV50_DEV_DUPLICATE_REPAIR_AND_MODAL_AI_INTEGRATION_20261106.md`.
+- **Approved plan SHA-256 at authorization:** `404B793E8A00438882A8CC0532013EC5CD7BB188577EF35713A73DC5EF696936`.
+- **Current plan SHA-256 after execution closeout:** `783E4EA92CED5BDFC041945653D5DC135CAD7E5D2EDF5830DEF627E31DCA473F`.
+- **Scope:** retain a backup of the current dirty checkout; reset only the local `dev` ref to `origin/dev` to remove six patch-equivalent local copies; commit the 269 manifested pending Modal changes (excluding retained pytest scratch directories); integrate the full Modal branch and the published FEAT-063 SRS v2.4 branch while preserving all existing commit objects/messages; record evidence and run the required repository security validator.
+- **Acceptance criteria:** AC50.1?AC50.7 in the hash-identified plan.
+- **Exclusions:** no push, force push, remote history rewrite, rebase, amend, squash, commit-message change, tests or provider calls, cleanup of the scratch directories, or modification of unrelated dirty checkout content.
+- **Approval basis:** direct owner instructions in the current and preceding conversation; this record authorizes only the exact plan scope above.
+
+### Execution closeout ? local dev merge
+
+- Local `dev` merge commit: `370cb26d6e8c99c126f4a5a16df132eaa70c8e70`.
+- Full Modal and SRS v2.4 histories are present; zero patch-equivalent duplicates remain relative to `origin/dev`.
+- Original dirty checkout is preserved on `backup/dev-before-dedup-20261106-575139a5`; the remote branch was not pushed or rewritten.
+- Security validation passed; product tests and AI/provider calls were not run.
+
+
+## FEAT-063 Plan Rev50 Addendum ? fast-forward publish repaired dev
+
+- **Status:** APPROVED / COMPLETE (fast-forward pushed) for the exact publication scope in the addendum plan.
+- **Approver:** Project owner, direct instruction on 2026-11-06: ?commit n?u c?n v? push.?
+- **Recorded timestamp:** 2026-11-06 06:43:00 Asia/Saigon.
+- **Feature:** FEAT-063 ? system architecture rearchitecture.
+- **Approved addendum:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV50_ADDENDUM_DEV_FAST_FORWARD_PUSH_20261106.md`.
+- **Approved plan SHA-256 at authorization:** `B8D2C5D83BD5766080207F1F2F8283713A915BFB9EABB49645B95143AE6F3C25`.
+- **Current plan SHA-256 after execution closeout:** `5959C210013C294178BF574A8645E218421DDB63D024D5022C68597D049E5C7C`.
+- **Scope:** security-validate and push only the repaired local `dev` to `origin/dev` using a regular fast-forward push; fetch and verify the exact resulting remote HEAD.
+- **Acceptance criteria:** AC50A.1?AC50A.5 in the hash-identified addendum.
+- **Exclusions:** force push/history rewrite, other refs, tests or provider calls, and unrelated checkout changes. This addendum supersedes only the earlier no-push boundary; all existing commit subjects/objects remain unchanged.
+
+
+### Execution closeout ? publication
+
+- `origin/dev` was fast-forwarded from `c98701b1e500906f396e773c79ec3bba55db2542` to `0d15b1a0ae6e5373354d7ac35cc163e41b55c42e`.
+- Fresh fetch confirmed remote and local `dev` match at `0d15b1a0ae6e5373354d7ac35cc163e41b55c42e`; working tree was clean.
+- Security validator passed; existing commit messages/objects were preserved.
+
+## FEAT-063 Plan Rev45 — SRS system and code alignment
+
+- Status: `APPROVED` for the exact documentation-only scope in Plan Rev45; not SRS content sign-off.
+- Approver: Project owner, direct SRS review/update request on 2026-11-06.
+- Recorded timestamp: 2026-11-06 12:28:16 Asia/Saigon.
+- Plan: `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV45_SRS_SYSTEM_CODE_ALIGNMENT_20261106.md`.
+- Plan hashes: authorization `AD0554469128DD3DF13484DD7A78BAB42B99CB026C5D433D61D7D48E26950F1A`; approved scope addenda `E9F11167D6BFD1D9D341559B36C1003943460D48B98E0F88D0BDAFA3A2E0A385`, `3BE2B7AB19C69EB229768376B7BD1D041003C175D57B808BBE1BC2706D7BC453`, `1B8A1AD64F80A70D5BDA553311629787936900571B92BBB94433F83191C43175`; final local review `880EC6A2B3DB0B3FBC23A0386589EE2E1E3863E9295F3F1169D9BE7469752F46`.
+- Published-port plan SHA-256: `53102EBB02521BC747DA0E79971B1AA636371C4830D501A173D9D7971930C05C`; Plan Rev51 approves its path reindex as EV-063-55 because EV-063-34 is already assigned on `origin/dev`.
+- Scope: update the canonical SRS to v2.5-draft, reconcile existing AI directions and local source/runtime boundaries, and update matching authority/tracking records. The v2.5 SRS remains unsigned.
+
+## FEAT-063 Plan Rev51 — publish SRS v2.5 and reconcile latest dev source
+
+- Status: `APPROVED` for the exact publication scope in Plan Rev51.
+- Approver: Project owner, direct instruction in this conversation on 2026-11-06: “commit and push”.
+- Recorded timestamp: 2026-11-06 17:16:12 Asia/Saigon.
+- Approved plan: `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV51_PUBLISH_REV45_SRS_20261106.md`.
+- Plan SHA-256 at authorization: `919CD35DC42973A5FE06C9D99D56DC851B4FCDB1313E1AF0612CB525D78116A8`.
+- Scope: publish the v2.5-draft SRS/document package on a new branch from fetched `origin/dev` `4749451080f49243464d40a464b8f83a03ae77bb`; add a source-only §32.6 review of that tree; preserve newer remote records and exclude unrelated checkout work.
+- Acceptance criteria: AC1–AC8 in the hash-identified Plan Rev51.
+- Exclusions: code/API/schema/data/migration/test/build/provider/Modal/deployment/secret changes; SRS sign-off; push to `dev`; force-push/history rewrite; PR creation; and publication outside the manifest.
+- Approval basis: the owner's direct request authorizes commit and push of this reviewed SRS package under Plan Rev51, not publication of unrelated work.
+
+### Plan Rev51 execution close-out
+
+- Recorded timestamp: 2026-11-06 17:33:39 Asia/Saigon.
+- Final reviewed Plan Rev51 SHA-256: `06DC756E35F621F8232E89ABE8CDBFFD7FFEF493D0EF09050F1D25A2E26EE394`.
+- Package commit `620386fb227e2d8b76c48e72ad22892e3b0c1c53` was pushed to `origin/docs/feat063-rev45-srs-code-alignment-20261106`; fresh fetch confirmed the remote SHA matched.
+- The security validator passed before the package commit and first push, scanning 6,563 publishable files each time. No force push or `dev` update was performed.
+
+## FEAT-063 Plan Rev51 — bounded Modal AI and legacy API retest
+
+- **Status:** APPROVED for the exact scope in Plan Rev51.
+- **Approver:** Project owner, direct instruction on 2026-11-06 to continue fixing Modal AI, diagnose and raise only proven execution timeouts, minimize inference usage, test existing APIs, consolidate all results/products in one folder, stop used Modal apps, and commit coherent fixes as they are completed.
+- **Recorded timestamp:** 2026-11-06 07:02:29 Asia/Saigon.
+- **Feature:** FEAT-063 — system architecture rearchitecture.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV51_MODAL_AI_AND_LEGACY_API_RETEST_20261106.md`.
+- **Approved plan SHA-256:** `B20103A217D7A9623E02279CE0BD82D5BC61141518D820FA683104057B1A6A2F`.
+- **Execution closeout SHA-256:** `1CD7EC57885C20484DD1FBB166C917DABF586C58BEFBE49FF2D2B3FDB1BA953C`.
+- **Scope:** reconcile all current non-video Modal AI workload evidence against SRS v2.4-draft; reuse already-passed synthetic artifacts; diagnose the unresolved optional SAM 2.1 capacity timeout and permit at most one bounded synthetic call; raise a timeout only if evidence shows execution was cut off by that timeout; run regression/contract coverage for the current 124-operation API surface and read-only live health/docs/OpenAPI checks; collect outputs and a consolidated API report in the plan's single FEAT-063 evidence folder; stop task-used Modal apps; make only directly related, reproducible AI/contract fixes and commit them separately after security validation.
+- **Acceptance criteria:** AC51.1–AC51.8 in the hash-identified plan.
+- **Exclusions:** video workloads; broad unrelated legacy refactors; writes/migrations to the shared development database; production enablement; secret/credential access; deleting Modal Volumes/checkpoints; force-push, merge, or push.
+- **Approval basis:** the owner's direct request authorizes the bounded test, AI worker and API regression actions, task-app cleanup, and commits exactly as limited by Plan Rev51.
+
+## FEAT-063 Plan Rev52 - non-video Modal AI reliability and observability
+
+- **Status:** APPROVED for the exact scope in Plan Rev52.
+- **Approver:** Project owner, direct instruction on 2026-11-06 to continue fixing all non-video Modal AI, add worker logs that reveal failure causes, and keep running verification until the non-video work is complete.
+- **Recorded timestamp:** 2026-11-06 12:15:20 Asia/Saigon.
+- **Feature:** FEAT-063 - system architecture rearchitecture.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV52_NONVIDEO_MODAL_AI_RELIABILITY_20261106.md`.
+- **Approved plan SHA-256:** `9703A6CFE3AAF6108A1443B4E7F93805481475A0C60C64C50414106441158938`.
+- **Current plan SHA-256 after formatting:** `6B3B1C25CD2A9974860A93551CDAD0FB3363DB38CB00D293ABB4818C9F0782D2`.
+- **Scope and exclusions:** exactly as stated in Plan Rev52; all nine registered non-video workloads, safe worker/caller telemetry, current mounted AI API flows, synthetic verification and task-app shutdown; no video, real child data, production enablement, secret-value access, shared database writes or push.
+- **Approval basis:** the owner's direct request authorizes the scoped implementation, synthetic Modal tests and local conventional commits after repository security validation.
+
+## FEAT-063 Plan Rev53 — one-shot SAM 2.1 gate retest
+
+- **Status:** APPROVED for the exact scope in Plan Rev53.
+- **Approver:** Project owner, direct instruction on 2026-11-06: “test lại sam2 đi, cho mở gate”.
+- **Recorded timestamp:** 2026-11-06 18:36:29 Asia/Saigon.
+- **Feature:** FEAT-063 — system architecture rearchitecture.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV53_SAM2_GATE_RETEST_20261106.md`.
+- **Approved plan SHA-256:** `C2695A200FF15253E88E52CC458DC0DA718A51E2B9F8A4EC37BCED198D1EE8B5`.
+- **Scope:** add the `drawing.segment` envelope to the narrow L4 worker allowlist, keep the product registry disabled, verify the pinned checkpoint through one CPU preflight, make at most one synthetic SAM2 GPU call in Modal `dev` with the existing 600-second worker timeout and 1,800-second wait bound, record safe stage-level evidence, then stop the task app.
+- **Acceptance criteria:** AC53.1–AC53.7 in the hash-identified plan.
+- **Exclusions:** production/product API enablement, real child media, repeated GPU calls, timeout increase absent worker-timeout evidence, video, secret-value access, shared database writes, Volume deletion, merge, push, or history rewrite.
+- **Approval basis:** this entry records the owner's direct authorization for the exact bounded gate-open test above; it does not approve SAM2 as a required V1 or production workload.
+- **Execution closeout:** COMPLETE WITH FINDINGS. The one synthetic worker call passed, while visual quality was partial (central body only); `workloads.json` remains disabled. Dedicated Modal app stopped with 0 tasks. See `features/FEAT-063-system-architecture-rearchitecture/evidence/sam2_gate_retest_20261106/RESULTS.md`.
+
+## FEAT-063 Plan Rev54 - integrate SRS v2.5 and Modal AI into dev
+
+- **Status:** APPROVED for the exact integration scope in Plan Rev54.
+- **Approver:** Project owner, direct instruction on 2026-11-06: “merge 2 cái nhánh nãy vào nhánh dev, gồm cái sửa srs và AI”.
+- **Recorded timestamp:** 2026-11-06 19:06:22 Asia/Saigon.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV54_MERGE_SRS_V25_AND_MODAL_AI_TO_DEV_20261106.md`.
+- **Approved plan SHA-256:** `C6882123DF3F1671AF7014784651E9F6A37AD799BA3763223BFC10C9E2A9F937`.
+- **Scope:** integrate SRS branch `fae180dcf3ea2771b41546aa6925b94636821df1` and AI branch `c6818490d0d889ab17dc9f8de3830987eb2a230d` into `dev`; preserve all source commits; resolve the two approval-register conflicts by retaining both histories; run security validation and push normally to `origin/dev`.
+- **Acceptance criteria:** AC54.1-AC54.8 in the hash-identified plan.
+- **Boundaries:** SRS v2.5 remains an unsigned draft; SAM2 product workload remains disabled. No force push, history rewrite, video inference, new AI calls, or unrelated branch changes.
+- **Approval basis:** this direct owner instruction authorizes the integration and dev publication; it does not sign off the SRS as final.
+
+### Plan Rev54 local execution checkpoint
+
+- Status: COMPLETE. Fast-forwarded local `dev` and pushed normally to `origin/dev`; the fetched remote matched integration commit `47e5308a5c547df8dab5f3c560f949ee925f441e`. A later closeout documentation commit was pushed normally as well.
+- AI merge: `634e0e20f56cbfa6101ece6e67f3e4267a30ae92`; SRS merge: `6bbb375a359fb78f06585963b8ee9f7bfc2246ff`.
+- Conflict handling retained both histories. SRS decision IDs D-144/D-145 were reassigned to D-148/D-149 to preserve all four records without duplicate IDs.
+- Evidence: `features/FEAT-063-system-architecture-rearchitecture/evidence/EV-063-57_SRS_V25_AND_MODAL_AI_DEV_INTEGRATION_20261106.md`.
+- Validation: `git diff --check` passed; `python tools/validate_repository_security.py` reported `REPOSITORY_SECURITY_VALID` with 6,731 publishable files scanned before commit and push. No force push or history rewrite.
+
+## FEAT-070 Plan Rev1 — Parent Web video admission demo fix
+
+- Status: APPROVED for the exact scope in the hash-identified plan.
+- Approver: Project owner, direct request in chat on 2026-11-10 to fix the P06 story-review quota/navigation issue and run one complete SRS-aligned local FE demo flow.
+- Approved plan: features/FEAT-070-parent-web-video-admission-demo-fix/plan/PLAN.md.
+- Plan SHA-256: 5CCF6FC2B5F130C98D6DE5743277FC50BAAAC8AEE10AB8F36504FCECC4FF26A2.
+- Scope: Parent UI local preview quota admission and P06-to-P07 transition; accurate post-use quota copy; one manual synthetic preview flow through P08; feature-local evidence.
+- Exclusions: SRS changes/sign-off, resolving Parent Web target-client status, API/backend/auth/billing/provider integration, automated tests/builds, commit/push, deployment, and publishing.
+- Approval basis: the user's direct instruction authorizes this bounded demo correction and manual FE walkthrough. Quota rejection when exhausted remains in place.
+
+## FEAT-067 — single web app consolidation
+
+- **Status:** APPROVED_FOR_IMPLEMENTATION for the exact scope in the hash-identified plan.
+- **Approver:** Project owner, direct instruction on 2026-11-16 (Asia/Bangkok): “Ok đc đó làm cho tôi đi”.
+- **Feature:** `features/FEAT-067-single-web-app-consolidation/` on branch `codex/fe-ui-web-remediation`.
+- **Approved plan:** `features/FEAT-067-single-web-app-consolidation/plan/PLAN.md`.
+- **Plan SHA-256:** `0161673F9FD799B62E3CBA51D9AA2B9ACCDD4C3D8BFA574D7F4ACFEC483CF2ED`.
+- **SRS baseline:** owner-supplied unsigned v2.7-draft Rev68; SHA-256 `69C83FE49CD4689D5D2540656D3319721838CF7343BAD00E24CDE558B8F5E944`.
+- **Scope:** one `apps/web` build/router for Teacher, School Manager preview, BE1-backed school-admin, Platform Admin, and shared web UI; preserve dirty FEAT-066 work; update active web scripts and CI; remove superseded web app folders only after migration and source audit.
+- **Exclusions:** mobile source, `apps/ui-mobile`, API/backend/contracts/database/authorization changes, new permissions, production data/services/secrets, automated tests/builds, SRS sign-off, commit, push, PR, merge, or deployment.
+- **Approval basis:** the owner's direct instruction authorizes this implementation scope only. School Manager preview and BE1 state/auth stay distinct; frontend routes never substitute for backend authorization. The app-local package baseline does not settle the final project stack.
+
+
+## FEAT-066 Revision 28 — Rev68 web UI rebuild and one local commit
+
+- Status: APPROVED_FOR_IMPLEMENTATION by the project owner's direct request on 2026-11-16 (Asia/Bangkok).
+- Feature: features/FEAT-066-fe-ui-srs-full-review; worktree codex/fe-ui-web-remediation.
+- Approved plan: features/FEAT-066-fe-ui-srs-full-review/plan/PLAN.md; SHA-256 8A63A0C4C3B80C5628E46AF7733FF4633964A7D73DD820E877833E2F7C59D029.
+- Product SRS: owner-selected unsigned v2.7-draft Rev68 at F:/Downloads/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md, SHA-256 69C83FE49CD4689D5D2540656D3319721838CF7343BAD00E24CDE558B8F5E944.
+- Scope: clean and rebuild the single apps/web UI for Teacher, School Manager and Platform Admin while preserving supported auth/API behavior and SRS privacy/role boundaries; manually review the web UI and record feature-local evidence; run required repository precommit validation; include the approved FEAT-067 consolidation and related FEAT-066 changes in one local commit; leave the local app running.
+- Boundaries: no Parent/mobile, backend/API/authorization, new dependencies, production data/services/secrets, app tests, push, PR, merge, or deployment.
+
+## FEAT-067 Amendment 1 — one local commit
+
+- Status: APPROVED for one local commit only by the same direct user instruction on 2026-11-16.
+- Amended plan: features/FEAT-067-single-web-app-consolidation/plan/PLAN.md; SHA-256 9375A55AB5909D3D417F712832FC01B9720D9DD2714FC8108808D7B8D48561ED.
+- Supersedes only the prior no-commit boundary for the consolidation changes included with FEAT-066 Revision 28. No push or scope expansion.
+
+## FEAT-066 Revision 29 — role login landing and remove local preview UX
+
+- **Status:** APPROVED_FOR_IMPLEMENTATION by the project owner’s direct follow-up request on 2026-11-16: replace the currently open Teacher login page with the shared role-selection login shown in the attached reference, remove the preview panel, and make this the real API-connected version.
+- **Plan revision:** 29.
+- **Plan SHA-256:** 87F02A9B3CD64D21F1D1D1D051445E0413B5C03AC635BFF507E7CF3F962576C0.
+- **Worktree/branch:** F:/Github/Sketch2Life-worktrees/fe-ui-web-remediation, codex/fe-ui-web-remediation.
+- **Approved scope:** `/login` and `/teacher/login` share the role-selection page; role cards proceed to real role sign-in, the local preview panel/bypass/routes are removed from active UI, and existing auth/API boundaries remain intact. Missing server APIs remain unavailable rather than simulated.
+- **Commit:** Amend the existing local web commit to retain exactly one final commit on this branch. No push, PR, merge, or deployment.
+- **No application tests:** preserve the existing no-tests boundary; run build and required repository validators.
+
+## FEAT-066 Revision 30 — shared single-screen role login
+
+- **Status:** APPROVED_FOR_IMPLEMENTATION by the project owner's direct correction on 2026-11-16: use the attached sign-in screen as the direct login page, remove the separate role chooser, and keep School Manager in the same login flow rather than jumping to another page.
+- **Plan revision:** 30.
+- **Plan SHA-256:** 8D167E39A75B3A13E68FBBB1C4672C018E9282920CC4478D9DFA4B16B1DAD12F.
+- **Worktree/branch:** codex/fe-ui-web-remediation; baseline commit df07438e690cabf93ec9feacedcc5b6e3ca2709d.
+- **SRS:** owner-selected unsigned v2.7-draft Rev68 task baseline; repository canonical unsigned Rev60 mismatch remains open and unchanged.
+- **Approved scope:** shared /login sign-in layout with inline role switching; old role-card chooser and duplicate School Manager login presentation removed; compatibility routes select the corresponding role on the same screen; retain Teacher backend role resolution, Manager BE1 authentication and assignment gate, and Platform Admin's missing role-discovery limitation.
+- **Commit:** amend the existing one local commit after evidence and checks; no push.
+- **Boundary:** no backend/API/auth-contract or mobile changes, no credential entry, no application tests.
+## FEAT-063 Plan Rev52 addendum — publish SRS contradiction reconciliation
+
+- **Status:** APPROVED for the exact branch publication scope below; SRS content remains unsigned.
+- **Approver:** Project owner, direct instruction on 2026-11-06: “commit and push”.
+- **Approved plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV52_SRS_CONTRADICTION_RECONCILIATION_20261106.md`.
+- **Current reviewed plan SHA-256:** `9B6100D907B27302A90F194ADB20B0D67AE2811987F9A5C82DAC23B03B432D55`. Original documentation-scope authorization hash and history are retained in the Rev52 approval entry above.
+- **Scope:** commit only the 15 paths enumerated in the Plan Rev52 Publication addendum with subject `docs(FEAT-063): reconcile v2.5 SRS review findings`, then regular non-force push to `origin/docs/feat063-srs-conflict-remediation-20261106`.
+- **Exclusions:** force-push/history rewrite, `dev`, PR, merge, SRS sign-off, and any path outside the approved manifest.
+- **Required checks:** `python tools/validate_repository_security.py` before commit and before push; `git diff --check` must pass.
+- **Approval basis:** the owner’s latest direct instruction supersedes only Rev52’s former no-commit/no-push boundary; it does not expand product or SRS requirement scope.
+
+
+### Execution closeout — Plan Rev52 publication
+
+- Package commit `ca3c5dda695dc8d325442921ace684364d0215b1` was pushed to `origin/docs/feat063-srs-conflict-remediation-20261106` with a regular non-force push. Fresh `git ls-remote` returned the same SHA.
+- `python tools/validate_repository_security.py` passed before commit and push (`publishable_files_scanned=6565`); `git diff --check` passed.
+- No force push, `dev` update, PR, or merge was performed. The SRS and Data Table Register remain v2.6-draft and unsigned.
+
+
+## FEAT-063 Plan Rev53 — v2.6 checklist SRS reconciliation
+
+- **Status:** APPROVED for the exact documentation scope in Plan Rev53; not SRS content sign-off.
+- **Approver:** Project owner, direct request on 2026-11-07 to read the supplied checklist and continue fixing the SRS.
+- **Recorded date:** 2026-11-07, Asia/Saigon.
+- **Plan:** `features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV53_SRS_V26_CHECKLIST_RECONCILIATION_20261107.md`.
+- **Plan SHA-256 at authorization:** `C35BD75F9C5844FFB9B297F9A3B5BAFC4136436C766639FBB18EE2E59C987AFE`.
+- **Current reviewed plan SHA-256:** `3DA78D1630040B78526767A2FD8D4C782EB96D894D63B1D30B6CE06ADC6AB48D`.
+- **Scope:** AC1–AC6 in Plan Rev53 and only its 15-path manifest. The earlier direct “commit and push” instruction in this same SRS remediation thread covers the regular push described by AC7; it does not authorize a PR, merge, force-push, or `dev` update.
+- **Acceptance criteria:** AC1–AC7 in the hash-identified Plan Rev53.
+- **Exclusions:** product code/API/runtime/provider/database/DDL/migration/test/build/diagram changes; new owner decisions not supplied; formal SRS sign-off; paths outside the manifest.
+- **Approval basis:** the owner’s direct request authorizes this bounded SRS/Data Table Register review and correction. The checklist itself does not approve requirements.
+
+## FEAT-063 Plan Rev54 — v2.6 checklist audit and diagram readiness
+
+- **Status:** APPROVED for the exact documentation-only scope in Plan Rev54; this is not SRS content sign-off or approval of final diagrams.
+- **Approver:** Project owner, direct instruction on 2026-11-07: “check all these points and fix luôn, fix xong thì commit và push”.
+- **Recorded timestamp:** 2026-11-07 09:18:46 Asia/Saigon.
+- **Plan:** features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV54_DIAGRAM_READINESS_CROSSWALK_20261107.md.
+- **Plan SHA-256 at authorization:** FA962EC25E84F4056DA23CB82C181ED1ADE2DFBD7BF6D6C54E6597C5A0648DF0.
+- **Current reviewed plan SHA-256:** 8FD7667D8EA13E2D1F1DA92C4E58974A5F514DF11DF6DB7868EEA0B2A8FB8730.
+- **Scope:** AC1–AC8 in the hash-identified plan and only its 12-path manifest; audit all supplied M/D/Q/R items, create draft TO-BE diagram inputs and a traceable crosswalk, update FEAT-063/root tracking, then commit and normally push the named documentation branch.
+- **Acceptance criteria:** AC1–AC8 in Plan Rev54.
+- **Exclusions:** product code/API/runtime/provider/database/DDL/migration/tests/build; final diagrams; new owner decisions; SRS sign-off; PR/merge/dev/force-push; paths outside the manifest.
+- **Approval basis:** the owner’s direct task instruction authorizes review, documentation corrections and publication within this bounded scope. The checklist does not approve its own open product decisions.
+
+### Execution close-out — Plan Rev54 publication
+
+- **Recorded timestamp:** 2026-11-07 09:32:04 Asia/Saigon.
+- Package commit c5469153600ba8763f14715eb12f5792e8b5afe4 was pushed to origin/docs/feat063-diagram-readiness-20261107 using a normal push. Fresh git ls-remote confirmed the remote SHA matched.
+- git diff --cached --check passed for the exact 12-path manifest. python tools/validate_repository_security.py passed before commit and before push; each run scanned 6,571 publishable files.
+- No final SRS sign-off, PR, merge, dev push, force-push, product test/build/runtime/provider/database change or as-built verification occurred.
+
+## FEAT-063 Plan Rev55 — independent two-agent diagram readiness assessment
+
+- **Status:** APPROVED for the exact documentation-only scope in Plan Rev55; not SRS sign-off or approval of final diagrams.
+- **Approver:** Project owner, direct instruction on 2026-11-07: “up leen github di”, referring to publishing the immediately preceding two-agent SRS diagram-readiness assessment.
+- **Recorded date:** 2026-11-07, Asia/Saigon.
+- **Plan:** features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV55_TWO_AGENT_DIAGRAM_READINESS_ASSESSMENT_20261107.md.
+- **Plan SHA-256 at authorization:** B3EC54830EEDBE1D5C2DAE7391636103D4A28CD01A174C0EE6B090342078CE73.
+- **Scope:** AC1–AC8 in the hash-identified plan and only its 10-path manifest; publish the two independent reviews on docs/feat063-diagram-readiness-20261107.
+- **Exclusions:** product/SRS/DTR changes, final diagrams, DDL, tests/build/runtime/provider/database changes, PR/merge/dev/force-push, and paths outside the manifest.
+- **Approval basis:** the owner’s direct request authorizes recording and normally pushing this bounded assessment. It does not sign off the SRS, resolve open questions, or approve final diagrams.
+- **Current reviewed plan SHA-256:** 2F9387D44D4C2C7BA616FF3919BBFFFE43A757CDB9D45E2B3C62E8334A138EE4.
+
+### Execution close-out — Plan Rev55 publication
+
+- **Status:** COMPLETE.
+- **Package commit:** 33c40d17ff77f31b1d128ce35c1f641a2fe6de8a was normally pushed to origin/docs/feat063-diagram-readiness-20261107; fresh git ls-remote confirmed the same SHA.
+- **Validation:** git diff --cached --check passed for the exact 10-path manifest. Repository security validator passed before package commit and push; each run scanned 6,573 publishable files.
+- **Limits:** No SRS sign-off, final diagrams, product tests/build/runtime/provider/database work, PR, merge, dev update, or force push.
+
+## FEAT-063 Plan Rev56 — ten-group diagram readiness alignment
+
+- Status: APPROVED for the exact documentation-only scope in Plan Rev56; not SRS content sign-off or final diagram approval.
+- Approver: Project owner, direct request on 2026-11-08: “fix cái này” with the ten-group checklist.
+- Recorded date: 2026-11-08, Asia/Saigon.
+- Plan: features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV56_TEN_GROUP_DIAGRAM_READINESS_ALIGNMENT_20261108.md.
+- Plan SHA-256 at authorization: 4CAFAF01879AB864ECDFAEF872A057F74BFC15B6D809AEA6855414C6574F7447.
+- Scope: AC1–AC8 in the hash-identified plan and only its 13-path manifest; align the sample-selection wording and cross-document readiness trace.
+- Exclusions: product code/API/schema/DDL/migration/tests/build/runtime/provider/database changes; owner policy closure; final diagrams; SRS sign-off; commit/push/PR/merge/dev update/force-push; paths outside the manifest.
+- Approval basis: the owner's direct request authorizes this bounded documentation update. The checklist does not approve its own OPEN decisions.
+
+### Plan Rev56 initial local review checkpoint — before publication request
+
+- Reviewed plan SHA-256: 4CAFAF01879AB864ECDFAEF872A057F74BFC15B6D809AEA6855414C6574F7447.
+- git diff --check passed for the documentation-only working tree.
+- At this checkpoint, before the owner requested publication, no commit/push or security validation had been run.
+- SRS/Register remain v2.7-draft and unsigned; open owner decisions and technical gates remain open.
+
+### Plan Rev56 publication authorization addendum — revision 2
+
+- Status: APPROVED for commit and push of the exact 13-path manifest in Plan Rev56 revision 2.
+- Approver: Project owner, direct instruction on 2026-11-08: “commit and push”.
+- Plan SHA-256: F17C145F2C3A61CA1983C2FF9B6DF287ABBFEA2E6DFBDDC4F1CD31481794EB45.
+- Target: `docs/feat063-diagram-readiness-20261107` to `origin/docs/feat063-diagram-readiness-20261107`, fast-forward only.
+- Commit message: `docs(FEAT-063): align ten diagram readiness gates`.
+- Limits: No paths outside the manifest, PR, merge, dev update, force-push, tests/builds, SRS sign-off, or final diagrams.
+
+### Plan Rev56 publication execution closeout
+
+- Package commit `09cfc5ca396016cbb7b238a5c744e004f7c7025a` was pushed to `origin/docs/feat063-diagram-readiness-20261107` with a regular fast-forward push; fresh `git ls-remote` confirmed the same SHA.
+- `python tools/validate_repository_security.py` passed before commit and push (`publishable_files_scanned=6576`); `git diff --cached --check` passed for the exact 13-path manifest.
+- No tests/builds, PR, merge, dev update, force-push, SRS sign-off, or final diagrams were performed.
+
+## FEAT-063 Plan Rev57 — substantive diagram-input remediation
+
+- **Status:** APPROVED for the exact documentation-only scope in Plan Rev57; SRS and Data Table Register remain unsigned v2.7-draft.
+- **Approver:** Project owner, direct task request on 2026-11-09 to implement the supplied G01–G10 remediation requirements, followed by direct instruction to commit and push.
+- **Recorded date:** 2026-11-09, Asia/Saigon.
+- **Approved plan:** features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV57_DIAGRAM_INPUT_DETAIL_REMEDIATION_20261109.md.
+- **Plan SHA-256:** 5B5CD090913CE14651E0641AF768F4BB8154543E02E488B2075C65A26E5FADDC.
+- **Scope:** exact manifest and acceptance criteria in Plan Rev57; substantive SRS/Data Table Register amendments; Rev57 catalog, decision/trace/physical/state/API/screen/class-package/remediation artifacts; evidence and feature tracking updates. Read-only source verification at baseline ae5707ca188d01d9719ed959b62d768ae927912d.
+- **Exclusions:** product code/runtime/API/database/schema/data/migration/provider/secret/permission/cost changes, tests/build/deployment, final diagrams, SRS/DTR sign-off, PR/merge, and force push. Unanswered policy questions remain OPEN-OWNER.
+- **Publication:** owner explicitly authorized commit and push; only a normal fast-forward push of the scoped paths to docs/feat063-diagram-readiness-20261107 is authorized.
+- **Approval basis:** the direct user request authorizes this exact documentation and publication scope. It does not approve proposed requirements, settle owner decisions, or sign off SRS/DTR.
+
+## FEAT-071 — PR #27 conflict resolution
+
+- **Status:** APPROVED for the bounded conflict-resolution and PR-head update task.
+- **Approver:** Project owner, direct request on 2026-11-16 (Asia/Bangkok) to review PR #27, resolve conflicts cleanly, document the process, and not merge the PR.
+- **Approved plan:** `features/FEAT-071-pr27-conflict-resolution/plan/PLAN.md`.
+- **Plan SHA-256:** `3E1435241341E5BCF42323651A3ECBFF4F7F97F0310589DB072696F2617D31C7`.
+- **Scope:** Integrate the recorded `dev` base into the PR head with a normal merge commit; resolve all 19 unmerged paths; retain both append-only approval histories; preserve current mobile, UI-mobile, backend, and contract changes; carry the applicable admin/teacher behavior into the consolidated web app; record feature-local evidence and run repository-required checks.
+- **Explicit boundary:** Do not merge PR #27 into `dev`, change its base, force-push, rebase, squash, deploy, or change product/SRS requirements. The PR remains open and unmerged.
+- **Approval basis:** The direct user request authorizes this exact conflict-resolution scope and a normal update to the PR head branch after required checks. It does not authorize merging the PR.

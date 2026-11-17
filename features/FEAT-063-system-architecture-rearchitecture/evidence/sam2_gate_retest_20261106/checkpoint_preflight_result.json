@@ -1,0 +1,55 @@
+{
+  "call_id": "fc-01M6RAQ5GGTVTXXS86MC6CMCMK",
+  "checkpoint_sha256": "6d1aa6f30de5c92224f8172114de081d104bbd23dd9dc5c58996f0cad5dc4d38",
+  "checkpoint_size_bytes": 184416285,
+  "checkpoint_status": "already_present",
+  "elapsed_ms": 27050.72,
+  "ended_at": "2026-11-06T18:43:25+07:00",
+  "function": "download-sam2-hiera-small-checkpoint",
+  "license": "Apache-2.0",
+  "max_attempts": 1,
+  "outcome": "SUCCEEDED",
+  "repository_commit": "2b90b9f5ceec907a1c18123530e92e794ad901a4",
+  "stage": "checkpoint_preflight",
+  "started_at": "2026-11-06T18:42:58+07:00",
+  "timeout_seconds": 600,
+  "worker_log_summary": {
+    "worker_binary_output_sha256": null,
+    "worker_diagnostic_code": null,
+    "worker_diagnostic_details": null,
+    "worker_duration_ms": 734,
+    "worker_error_code": null,
+    "worker_error_type": null,
+    "worker_failure_boundary": "worker_succeeded",
+    "worker_gpu_class": "cpu",
+    "worker_last_stage": "terminal",
+    "worker_log_event_count": 6,
+    "worker_logs_available": true,
+    "worker_model_id": "facebookresearch/sam2.1-hiera-small",
+    "worker_model_revision": "2b90b9f5ceec907a1c18123530e92e794ad901a4",
+    "worker_output_sha256": "72a80bd634d2438b6717f06f48d2672b139c96c0254c653ec37fe0dffe54fefb",
+    "worker_output_size_bytes": 490,
+    "worker_phase_history": [
+      {
+        "event": "worker_phase_started",
+        "stage": "model_volume_reload"
+      },
+      {
+        "duration_ms": 357,
+        "event": "worker_phase_succeeded",
+        "stage": "model_volume_reload"
+      },
+      {
+        "event": "worker_phase_started",
+        "stage": "checkpoint_validation"
+      },
+      {
+        "duration_ms": 264,
+        "event": "worker_phase_succeeded",
+        "stage": "checkpoint_validation"
+      }
+    ],
+    "worker_started_observed": true,
+    "worker_terminal_event": "worker_succeeded"
+  }
+}

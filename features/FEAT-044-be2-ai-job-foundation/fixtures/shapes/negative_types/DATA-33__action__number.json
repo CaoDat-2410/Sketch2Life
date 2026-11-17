@@ -1,0 +1,16 @@
+{
+  "data_id": "DATA-33",
+  "payload": {
+    "action": 7,
+    "reason": null,
+    "record_id": "record_fx_001",
+    "record_kind": "learning_content",
+    "review_ref": {
+      "pedagogical_review_id": "review_fx_p1",
+      "review_policy_version": "review_policy_fx_v1",
+      "safety_review_id": "review_fx_s1"
+    },
+    "target_version": 2
+  },
+  "reason": "action as number"
+}

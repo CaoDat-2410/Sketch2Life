@@ -1,0 +1,8 @@
+{
+  "started_at": "2026-11-06T13:08:33+07:00",
+  "plan": "AI_NONVIDEO_30MIN_QUEUE_RETEST_20261104.md",
+  "wait_limit_seconds": 1800,
+  "synthetic_only": true,
+  "video_called": false,
+  "workloads": []
+}

@@ -1,38 +1,101 @@
-"""Typed runtime settings; secrets come from environment variables."""
+"""Settings for the backend-only live Lightning development adapter."""
+
+from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal, Self
 
-from pydantic import model_validator
+from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="SKETCH2LIFE_", env_file=".env")
+    _BACKEND_ROOT = Path(__file__).resolve().parents[4]
+    model_config = SettingsConfigDict(
+        env_prefix="SKETCH2LIFE_",
+        # One root .env is shared by local backend, Docker Compose and app clients.
+        # Explicit process/container environment variables still take precedence.
+        env_file=(_BACKEND_ROOT.parent / ".env",),
+        # The shared file also contains Compose and Vite client keys owned elsewhere.
+        extra="ignore",
+    )
 
     env: Literal["local", "test", "staging", "production"] = "local"
     api_host: str = "0.0.0.0"
     api_port: int = 8000
     log_level: str = "INFO"
+    database_url: SecretStr | None = None
+    room_code_hmac_key: SecretStr | None = None
+    s3_endpoint: str | None = None
+    s3_region: str = "us-east-1"
+    s3_bucket: str = "sketch2life-private"
+    s3_access_key: SecretStr | None = None
+    s3_secret_key: SecretStr | None = None
+    clamav_host: str | None = None
+    clamav_port: int = Field(default=3310, ge=1, le=65535)
+    platform_admin_bootstrap_email: str = ""
+    storage_example_enabled: bool = False
+    storage_example_max_upload_bytes: int = Field(
+        default=10 * 1024 * 1024, ge=1, le=50 * 1024 * 1024
+    )
+    be1_artifact_root: Path = Path(".runtime/be1-artifacts")
+    session_idle_ttl_seconds: int = Field(default=1800, ge=60, le=86_400)
+    # FEAT-064 dev pilot: synthetic eligibility is honored only when this is on in local/test.
+    synthetic_pilot_enabled: bool = False
 
     auth_provider: Literal["development", "firebase"] = "development"
     firebase_project_id: str = ""
     firebase_credentials_file: Path | None = None
+    firebase_admin_json_base64: SecretStr | None = None
     firebase_check_revoked_tokens: bool = True
 
-    # Backend-only AI connectivity. Lightning is fixture/dev; Runpod is production.
-    # The mobile application never receives provider endpoints or credentials.
-    ai_provider: Literal["disabled", "lightning_dev", "runpod"] = "disabled"
+    # Provider calls stay backend-side; Modal is limited to local synthetic validation.
+    ai_provider: Literal["disabled", "lightning_dev", "runpod", "modal_dev"] = "disabled"
     lightning_ai_base_url: str = ""
     lightning_ai_token_file: Path | None = None
+    lightning_model_profile: str = "live-p2-understanding-v1"
+    lightning_asr_profile: str = "WHISPER_TURBO_FP16_AUTO_V1"
+    lightning_asr_path: str = "/v1/asr"
+    lightning_vision_path: str = "/v1/vision"
+    lightning_vision_v2_path: str = "/v2/vision"
+    lightning_sam21_enabled: bool = False
+    lightning_sam21_path: str = "/v2/rig/segment"
+    pixi_show_planner_enabled: bool = False
+    pixi_sprite_cycle_dev_preview_enabled: bool = False
+    lightning_pixi_show_path: str = "/v4/pixi/show-plan"
+    lightning_whiteboard_localization_path: str = "/v1/whiteboard/localize"
+    lightning_whiteboard_segmentation_path: str = "/v1/whiteboard/segment"
+    whiteboard_video_enabled: bool = False
+    whiteboard_video_auto_run: bool = False
+    whiteboard_video_artifact_root: Path = Path(".runtime/whiteboard")
+    whiteboard_video_max_size_bytes: int = Field(default=12 * 1024 * 1024, ge=1)
+    whiteboard_learning_thread_fixture: Path | None = None
+    whiteboard_tts_executable: str = "espeak-ng"
+    whiteboard_ffmpeg_executable: str = "ffmpeg"
+    live_fixture_root: Path | None = None
     runpod_endpoint_id: str = ""
     runpod_api_key_file: Path | None = None
     ai_connect_timeout_seconds: float = 5.0
     ai_request_timeout_seconds: float = 120.0
+    story_video_request_timeout_seconds: float = Field(default=2100.0, ge=1800.0)
+    story_render_v2_enabled: bool = False  # prototype only; does not replace V1 video jobs
+
+    @property
+    def pixi_sprite_cycle_dev_preview_allowed(self) -> bool:
+        """Keep the owner-authorized preview unavailable outside local/test deployments."""
+        return self.pixi_sprite_cycle_dev_preview_enabled and self.env in {"local", "test"}
 
     @model_validator(mode="after")
     def enforce_deployment_provider_policy(self) -> Self:
+        if self.storage_example_enabled and self.env != "local":
+            raise ValueError("the storage example is available only in local development")
+
+        has_s3_access_key = bool(self.s3_access_key and self.s3_access_key.get_secret_value())
+        has_s3_secret_key = bool(self.s3_secret_key and self.s3_secret_key.get_secret_value())
+        if has_s3_access_key != has_s3_secret_key:
+            raise ValueError("S3 access key and secret key must be configured together")
+
         if self.env in {"staging", "production"} and (
             self.auth_provider != "firebase" or not self.firebase_project_id
         ):
@@ -44,9 +107,30 @@ class Settings(BaseSettings):
             if not self.runpod_endpoint_id or self.runpod_api_key_file is None:
                 raise ValueError("production Runpod endpoint and key file are required")
 
+        if self.ai_provider == "modal_dev" and self.env not in {"local", "test"}:
+            raise ValueError("Modal dev inference is available only in local/test environments")
+
         return self
+
+
+class CoreDatabaseSettings(BaseSettings):
+    """Database-only configuration for adapters and Alembic, independent of providers."""
+
+    _BACKEND_ROOT = Path(__file__).resolve().parents[4]
+    model_config = SettingsConfigDict(
+        env_prefix="SKETCH2LIFE_",
+        env_file=(_BACKEND_ROOT.parent / ".env",),
+        extra="ignore",
+    )
+
+    database_url: SecretStr | None = None
 
 
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
+
+
+@lru_cache
+def get_core_database_settings() -> CoreDatabaseSettings:
+    return CoreDatabaseSettings()

@@ -1,0 +1,132 @@
+{
+  "generated_utc": "2026-10-16T13:54:21Z",
+  "checkpoint": "C1_COMPONENT_OFFLINE",
+  "finding": "C1-R04 (remaining reference guard)",
+  "disposition_by_executor": "FIXED_PENDING_CODEX_REVIEW",
+  "other_findings": "R01/R02/R03/R05/R06 CLOSED_C1_COMPONENT_SCOPE by Codex re-review (unchanged)",
+  "card_status": "NOT_DONE",
+  "branch": "feature/be2-02-vision-correction",
+  "head": "6dcc57ee0b3d053f071c8c92e72aaaee2e98d899",
+  "staged_paths": 0,
+  "approved_plan_sha256": "f4733c88797edbcce225ecd63700634f929ca75789362c7f3a58a2b57f19df30",
+  "approval_sha256": "ebe826ce01a004c6888bc6d2cd4741470beabfdb1f89133d8ebd18f48a691494",
+  "review_input": {
+    "note": "evidence/notes/C1_CODEX_REREVIEW_20261016.md",
+    "note_sha256": "bc90d361e885053a84426637ab553d870bf0b1d3bf8b9e43c93aaf54ff920ee3",
+    "reviewed_source_hashes_matched_before_edit": 19
+  },
+  "environment": {
+    "python": "3.12.10",
+    "import_pin": "this worktree backend/src",
+    "installs": false,
+    "network": false,
+    "pillow": "absent"
+  },
+  "regression": {
+    "before": {
+      "tests": 19,
+      "passed": 7,
+      "failures": 12,
+      "errors": 0,
+      "skipped": 0,
+      "junit_sha256": "b86a3a1c87bd5831a6852adfffdf88a2c24ae801a5d35ab56fe1b23e1432bc9e",
+      "junit_path": "evidence/local/claude-r04-followup-20261016/before/r04-followup-before.xml (ignored)"
+    },
+    "after": {
+      "tests": 19,
+      "passed": 19,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "junit_sha256": "2cbf0ad679aad70b2d269ac8d1368db4de838a2db4daa43906835574d5d6650b",
+      "junit_path": "evidence/local/claude-r04-followup-20261016/after/r04-followup-after.xml (ignored)"
+    }
+  },
+  "tests": {
+    "focused": {
+      "tests": 233,
+      "passed": 232,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "junit_sha256": "49d643d32618a5bb3b4b8e5b5e9af1963962d9436f469f3ca328b5361ad88db4",
+      "junit_path": "evidence/local/claude-r04-followup-20261016/after/focused.xml (ignored)"
+    },
+    "legacy_vision": {
+      "tests": 238,
+      "passed": 233,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 5,
+      "junit_sha256": "abee4d769476e44f2c2d1927e634f90fd28689fd1d337f9436758c0a1c7d687c",
+      "junit_path": "evidence/local/claude-r04-followup-20261016/after/legacy_vision.xml (ignored)"
+    },
+    "codex_original_service_probes": "6 passed, 3 deselected",
+    "be201_regression": "NOT_RERUN (no BE2-01-facing change; domain guard only)"
+  },
+  "codex_r04_probes_after": {
+    "r04_optional_refs_probe": "empty/final_newline/121 -> failed OUTPUT_MALFORMED; none/valid/120 accepted with valid record (actor_ref and object_ref)",
+    "r04_final_newline_probe": "stops at its own acceptance assert: no analysis stored (intended)"
+  },
+  "lint_types": {
+    "ruff_check": "PASS (2 changed paths)",
+    "mypy_strict": "PASS (2 changed paths)"
+  },
+  "source_sha256_after": {
+    "backend/src/sketch2life/application/ports/vision_analysis.py": "a6d0ea40c728034138940b1cbef58ed2c28c0ce358128783d19360cc60f1166a",
+    "backend/src/sketch2life/application/services/vision_analysis.py": "3854cb372e1a2af826f324c3a748eac345acd8891542155f23ebd910b4908d8a",
+    "backend/src/sketch2life/contracts/schemas/analysis_results.py": "46c6f47a379832932509f3d29a4a41de7863d28a3fa615d008aef5806f6311ac",
+    "backend/src/sketch2life/domain/vision_analysis.py": "6b488d6a0f1942c10400c6731531a18c61c0aea5d818a4bf108b66e9fef28b9c",
+    "backend/src/sketch2life/infrastructure/vision_analysis/__init__.py": "ca7f2429c3309872604b3ab440ac054371086fb0dff82c17704af2148253ec37",
+    "backend/src/sketch2life/infrastructure/vision_analysis/fakes.py": "8e5a2880c5a9951acd2d7a1394520c2ccac9e3df2b7d810538935bc4d1adc3b5",
+    "backend/src/sketch2life/infrastructure/vision_analysis/harness.py": "7aa5a3e518a2b99a51327ee695e0ee17af98ead98817fae7a33e46e6554f13e6",
+    "backend/src/sketch2life/infrastructure/vision_analysis/job_lineage.py": "e472d5a1fed9ca08301028cb456f1ed0e42028929976f7b7266e9c7491007e8d",
+    "backend/src/sketch2life/infrastructure/vision_analysis/legacy_v2.py": "8807631df63e7f8c7515949e65e1085628e60d1fc9deddc2775b1c0555ebda51",
+    "backend/src/sketch2life/interfaces/http/analysis_corrections_fixture_app.py": "7aef60529ebc761a4e2044bd7b437598a49a41c35069f2ab7dae1415b673f661",
+    "backend/src/sketch2life/interfaces/http/routers/analysis_corrections.py": "6b5a6050ab9b64a0a72619f2a8736b0f654d73409c76233e3fa2d7df316fd657",
+    "backend/tests/contract/test_analysis_corrections_api.py": "4c3d3b0d9b81c7a96214eab81e874af4044e326d678eeb431017245a91f3a87b",
+    "backend/tests/contract/test_analysis_result_contracts.py": "24dbf892a06469c678f76c9af471047816930dc33e4d87c49daa5446decf9b67",
+    "backend/tests/contract/test_h_ai_review_handoff_examples.py": "87e83d5e084423006222bbca62b31718e8d454109370bab1a342c33e22baa129",
+    "backend/tests/unit/test_vision_analysis_domain.py": "88d90ad561b735af2b6ca96ee791709dd3ee903ae45c8076628bd3138f944a5e",
+    "backend/tests/unit/test_vision_analysis_job_lineage.py": "98ba03b0ff3ea406dea574440ae5344e62cd7e14af82a79a6b7f237c7a50159e",
+    "backend/tests/unit/test_vision_analysis_legacy_bridge.py": "deb38372b9c0850543d39e84e31b87ffa66159b5316f6384fc33d3884ecfbe5b",
+    "backend/tests/unit/test_vision_analysis_review_fixes.py": "cc3f777f2c7d48733b9c2444fc0dc3d496fc8d914a0df4469dae2eabb54ebd3d",
+    "backend/tests/unit/test_vision_analysis_service.py": "b6e69e8468268e0b632211b98a12956fa31c361fff0ce19c8bad72f21d8de89d"
+  },
+  "source_changed_since_rereview": [
+    "backend/src/sketch2life/domain/vision_analysis.py",
+    "backend/tests/unit/test_vision_analysis_review_fixes.py"
+  ],
+  "not_run": [
+    "Pillow-dependent live app route walk",
+    "tests/unit/test_lightning_vision_v2_server.py (Pillow)",
+    "real owner/provider/SQL/runtime/live composition"
+  ],
+  "unchanged": [
+    "N01 (P3)",
+    "legacy F-01 containment",
+    "qualified overlapping invalidation/replay note"
+  ],
+  "validators": {
+    "harness": {
+      "exit": 0,
+      "first_line": "HARNESS_VALID"
+    },
+    "repository_security": {
+      "exit": 0,
+      "first_line": "REPOSITORY_SECURITY_VALID"
+    },
+    "architecture": {
+      "exit": 0,
+      "first_line": "ARCHITECTURE_VALID"
+    },
+    "skeleton": {
+      "exit": 0,
+      "first_line": "SKELETON_VALID"
+    },
+    "git_diff_check": {
+      "exit": 0,
+      "first_line": ""
+    }
+  }
+}

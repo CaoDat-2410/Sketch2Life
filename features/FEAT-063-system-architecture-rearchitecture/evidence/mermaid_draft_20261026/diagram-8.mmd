@@ -1,0 +1,5 @@
+flowchart LR
+    P[parent.child_profiles] -->|internal FK| C[parent.child_consents]
+    P -.->|opaque profile ref| X[profile_context.personalization_versions]
+    T[be1_managed_profiles] -.->|opaque profile ref| X
+    X -->|pinned revision/hash| R[story.runs<br/>exactly one profile: XOR]

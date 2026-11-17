@@ -1,0 +1,213 @@
+{
+  "scope": "synthetic loopback Bruno; no external provider",
+  "scanner": {
+    "implementation": "ClamAvScanner backed by ClamAV 1.5.4",
+    "synthetic_png": "CLEAN",
+    "eicar": "INFECTED"
+  },
+  "normalizer": "WindowsJobObjectImageNormalizer",
+  "vision": "V2 loopback stub",
+  "loopback_vision_requests": 2,
+  "runs": [
+    {
+      "run": 1,
+      "total_requests": 11,
+      "passed_requests": 11,
+      "failed_requests": 0,
+      "error_requests": 0,
+      "total_tests": 11,
+      "passed_tests": 11,
+      "failed_tests": 0,
+      "requests": [
+        {
+          "request": "12 Check StoryRun runtime readiness",
+          "result": "pass",
+          "http_status": 200,
+          "tests": 1,
+          "passed_tests": 1,
+          "failed_tests": 0
+        },
+        {
+          "request": "01 Create synthetic Parent run",
+          "result": "pass",
+          "http_status": 201,
+          "tests": 1,
+          "passed_tests": 1,
+          "failed_tests": 0
+        },
+        {
+          "request": "02 Create upload session",
+          "result": "pass",
+          "http_status": 201,
+          "tests": 1,
+          "passed_tests": 1,
+          "failed_tests": 0
+        },
+        {
+          "request": "03 Upload one raw image part",
+          "result": "pass",
+          "http_status": 200,
+          "tests": 1,
+          "passed_tests": 1,
+          "failed_tests": 0
+        },
+        {
+          "request": "04 Complete and admit upload",
+          "result": "pass",
+          "http_status": 202,
+          "tests": 1,
+          "passed_tests": 1,
+          "failed_tests": 0
+        },
+        {
+          "request": "05 Get upload state",
+          "result": "pass",
+          "http_status": 200,
+          "tests": 1,
+          "passed_tests": 1,
+          "failed_tests": 0
+        },
+        {
+          "request": "06 Attach admitted asset and dispatch one attempt",
+          "result": "pass",
+          "http_status": 202,
+          "tests": 1,
+          "passed_tests": 1,
+          "failed_tests": 0
+        },
+        {
+          "request": "07 Poll run and result",
+          "result": "pass",
+          "http_status": 200,
+          "tests": 1,
+          "passed_tests": 1,
+          "failed_tests": 0
+        },
+        {
+          "request": "08 Confirm current subject understanding",
+          "result": "pass",
+          "http_status": 202,
+          "tests": 1,
+          "passed_tests": 1,
+          "failed_tests": 0
+        },
+        {
+          "request": "11 Read confirmed preparation review",
+          "result": "pass",
+          "http_status": 200,
+          "tests": 1,
+          "passed_tests": 1,
+          "failed_tests": 0
+        },
+        {
+          "request": "09 Cancel or close demo run",
+          "result": "pass",
+          "http_status": 202,
+          "tests": 1,
+          "passed_tests": 1,
+          "failed_tests": 0
+        }
+      ]
+    },
+    {
+      "run": 2,
+      "total_requests": 11,
+      "passed_requests": 11,
+      "failed_requests": 0,
+      "error_requests": 0,
+      "total_tests": 11,
+      "passed_tests": 11,
+      "failed_tests": 0,
+      "requests": [
+        {
+          "request": "12 Check StoryRun runtime readiness",
+          "result": "pass",
+          "http_status": 200,
+          "tests": 1,
+          "passed_tests": 1,
+          "failed_tests": 0
+        },
+        {
+          "request": "01 Create synthetic Parent run",
+          "result": "pass",
+          "http_status": 201,
+          "tests": 1,
+          "passed_tests": 1,
+          "failed_tests": 0
+        },
+        {
+          "request": "02 Create upload session",
+          "result": "pass",
+          "http_status": 201,
+          "tests": 1,
+          "passed_tests": 1,
+          "failed_tests": 0
+        },
+        {
+          "request": "03 Upload one raw image part",
+          "result": "pass",
+          "http_status": 200,
+          "tests": 1,
+          "passed_tests": 1,
+          "failed_tests": 0
+        },
+        {
+          "request": "04 Complete and admit upload",
+          "result": "pass",
+          "http_status": 202,
+          "tests": 1,
+          "passed_tests": 1,
+          "failed_tests": 0
+        },
+        {
+          "request": "05 Get upload state",
+          "result": "pass",
+          "http_status": 200,
+          "tests": 1,
+          "passed_tests": 1,
+          "failed_tests": 0
+        },
+        {
+          "request": "06 Attach admitted asset and dispatch one attempt",
+          "result": "pass",
+          "http_status": 202,
+          "tests": 1,
+          "passed_tests": 1,
+          "failed_tests": 0
+        },
+        {
+          "request": "07 Poll run and result",
+          "result": "pass",
+          "http_status": 200,
+          "tests": 1,
+          "passed_tests": 1,
+          "failed_tests": 0
+        },
+        {
+          "request": "08 Confirm current subject understanding",
+          "result": "pass",
+          "http_status": 202,
+          "tests": 1,
+          "passed_tests": 1,
+          "failed_tests": 0
+        },
+        {
+          "request": "11 Read confirmed preparation review",
+          "result": "pass",
+          "http_status": 200,
+          "tests": 1,
+          "passed_tests": 1,
+          "failed_tests": 0
+        },
+        {
+          "request": "09 Cancel or close demo run",
+          "result": "pass",
+          "http_status": 202,
+          "tests": 1,
+          "passed_tests": 1,
+          "failed_tests": 0
+        }
+      ]
+    }
+  ]
+}

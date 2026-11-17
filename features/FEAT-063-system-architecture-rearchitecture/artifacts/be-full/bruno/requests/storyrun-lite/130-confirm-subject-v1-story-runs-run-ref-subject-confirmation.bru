@@ -1,0 +1,25 @@
+meta {
+  name: 130 [POST/ACTION - LOCAL TEST ONLY] Confirm Subject
+  type: http
+  seq: 130
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{run_ref}}/subject-confirmation
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  Idempotency-Key: REPLACE_WITH_SYNTHETIC_VALUE
+  If-Match: REPLACE_WITH_SYNTHETIC_VALUE
+}
+
+body:json {
+  {
+    "decision": "CONFIRM",
+    "expected_understanding_revision": 1
+  }
+}

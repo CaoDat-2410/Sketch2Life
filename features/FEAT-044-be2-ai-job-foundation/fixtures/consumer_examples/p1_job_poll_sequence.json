@@ -1,0 +1,610 @@
+{
+  "consumer": "P1 / FE",
+  "note": "Actual fake-harness Teacher/Device envelopes; ETag per poll.",
+  "sequence": [
+    {
+      "body": {
+        "contract_name": "AsyncJobView",
+        "contract_version": "0.1-candidate",
+        "correlation_id": "corr_fx_poll",
+        "data": {
+          "attempt_id": "att_fx0001",
+          "attempt_number": 1,
+          "completed_at": null,
+          "correlation_id": "corr_fx_001",
+          "created_at": "2026-10-14T13:00:00Z",
+          "failure": null,
+          "job_id": "job_fx0001",
+          "job_revision": 1,
+          "job_type": "sketch_assistance",
+          "organization_id": "org_fx_school_a",
+          "poll_after_ms": 2000,
+          "progress": {
+            "kind": "unknown",
+            "stage_label": null,
+            "value": null
+          },
+          "request_ref": {
+            "context_revision": 1,
+            "input_hash": "3602b13b16ff108f6a97d10b3ce1cbcae4e716deef0ddd7762f5dc3c99432809",
+            "request_id": "req_fx_001",
+            "request_revision": 1
+          },
+          "result_disposition": null,
+          "result_refs": [],
+          "started_at": null,
+          "state": "queued",
+          "updated_at": "2026-10-14T13:00:00Z"
+        },
+        "meta": {
+          "poll_after_ms": 2000,
+          "projection": "teacher",
+          "resource_revision": 1
+        }
+      },
+      "etag": "\"job:job_fx0001:1:201f1c4b\"",
+      "step": "queued"
+    },
+    {
+      "body": {
+        "contract_name": "AsyncJobView",
+        "contract_version": "0.1-candidate",
+        "correlation_id": "corr_fx_poll",
+        "data": {
+          "attempt_id": "att_fx0001",
+          "attempt_number": 1,
+          "completed_at": null,
+          "correlation_id": "corr_fx_001",
+          "created_at": "2026-10-14T13:00:00Z",
+          "failure": null,
+          "job_id": "job_fx0001",
+          "job_revision": 2,
+          "job_type": "sketch_assistance",
+          "organization_id": "org_fx_school_a",
+          "poll_after_ms": 2000,
+          "progress": {
+            "kind": "unknown",
+            "stage_label": null,
+            "value": null
+          },
+          "request_ref": {
+            "context_revision": 1,
+            "input_hash": "3602b13b16ff108f6a97d10b3ce1cbcae4e716deef0ddd7762f5dc3c99432809",
+            "request_id": "req_fx_001",
+            "request_revision": 1
+          },
+          "result_disposition": null,
+          "result_refs": [],
+          "started_at": "2026-10-14T13:00:00Z",
+          "state": "running",
+          "updated_at": "2026-10-14T13:00:00Z"
+        },
+        "meta": {
+          "poll_after_ms": 2000,
+          "projection": "teacher",
+          "resource_revision": 2
+        }
+      },
+      "etag": "\"job:job_fx0001:2:201f1c4b\"",
+      "step": "running_unknown_progress"
+    },
+    {
+      "body": {
+        "contract_name": "AsyncJobView",
+        "contract_version": "0.1-candidate",
+        "correlation_id": "corr_fx_poll",
+        "data": {
+          "attempt_id": "att_fx0001",
+          "attempt_number": 1,
+          "completed_at": null,
+          "correlation_id": "corr_fx_001",
+          "created_at": "2026-10-14T13:00:00Z",
+          "failure": null,
+          "job_id": "job_fx0001",
+          "job_revision": 3,
+          "job_type": "sketch_assistance",
+          "organization_id": "org_fx_school_a",
+          "poll_after_ms": 2000,
+          "progress": {
+            "kind": "stages",
+            "stage_label": "sketching",
+            "value": null
+          },
+          "request_ref": {
+            "context_revision": 1,
+            "input_hash": "3602b13b16ff108f6a97d10b3ce1cbcae4e716deef0ddd7762f5dc3c99432809",
+            "request_id": "req_fx_001",
+            "request_revision": 1
+          },
+          "result_disposition": null,
+          "result_refs": [],
+          "started_at": "2026-10-14T13:00:00Z",
+          "state": "running",
+          "updated_at": "2026-10-14T13:00:00Z"
+        },
+        "meta": {
+          "poll_after_ms": 2000,
+          "projection": "teacher",
+          "resource_revision": 3
+        }
+      },
+      "etag": "\"job:job_fx0001:3:201f1c4b\"",
+      "step": "running_stages"
+    },
+    {
+      "body": {
+        "contract_name": "AsyncJobView",
+        "contract_version": "0.1-candidate",
+        "correlation_id": "corr_fx_poll",
+        "data": {
+          "attempt_id": "att_fx0001",
+          "attempt_number": 1,
+          "completed_at": null,
+          "correlation_id": "corr_fx_001",
+          "created_at": "2026-10-14T13:00:00Z",
+          "failure": null,
+          "job_id": "job_fx0001",
+          "job_revision": 4,
+          "job_type": "sketch_assistance",
+          "organization_id": "org_fx_school_a",
+          "poll_after_ms": 2000,
+          "progress": {
+            "kind": "percentage",
+            "stage_label": null,
+            "value": 40.0
+          },
+          "request_ref": {
+            "context_revision": 1,
+            "input_hash": "3602b13b16ff108f6a97d10b3ce1cbcae4e716deef0ddd7762f5dc3c99432809",
+            "request_id": "req_fx_001",
+            "request_revision": 1
+          },
+          "result_disposition": null,
+          "result_refs": [],
+          "started_at": "2026-10-14T13:00:00Z",
+          "state": "running",
+          "updated_at": "2026-10-14T13:00:00Z"
+        },
+        "meta": {
+          "poll_after_ms": 2000,
+          "projection": "teacher",
+          "resource_revision": 4
+        }
+      },
+      "etag": "\"job:job_fx0001:4:201f1c4b\"",
+      "step": "running_percentage"
+    },
+    {
+      "body": {
+        "contract_name": "AsyncJobView",
+        "contract_version": "0.1-candidate",
+        "correlation_id": "corr_fx_poll",
+        "data": {
+          "attempt_id": "att_fx0001",
+          "attempt_number": 1,
+          "completed_at": null,
+          "correlation_id": "corr_fx_001",
+          "created_at": "2026-10-14T13:00:00Z",
+          "failure": {
+            "attempts_remaining": 2,
+            "code": "PROVIDER_UNAVAILABLE",
+            "public_message": "The AI service is temporarily unavailable.",
+            "retryable": true
+          },
+          "job_id": "job_fx0001",
+          "job_revision": 5,
+          "job_type": "sketch_assistance",
+          "organization_id": "org_fx_school_a",
+          "poll_after_ms": 2000,
+          "progress": {
+            "kind": "percentage",
+            "stage_label": null,
+            "value": 40.0
+          },
+          "request_ref": {
+            "context_revision": 1,
+            "input_hash": "3602b13b16ff108f6a97d10b3ce1cbcae4e716deef0ddd7762f5dc3c99432809",
+            "request_id": "req_fx_001",
+            "request_revision": 1
+          },
+          "result_disposition": null,
+          "result_refs": [],
+          "started_at": "2026-10-14T13:00:00Z",
+          "state": "failed_retryable",
+          "updated_at": "2026-10-14T13:00:00Z"
+        },
+        "meta": {
+          "poll_after_ms": 2000,
+          "projection": "teacher",
+          "resource_revision": 5
+        }
+      },
+      "etag": "\"job:job_fx0001:5:201f1c4b\"",
+      "step": "failed_retryable"
+    },
+    {
+      "body": {
+        "contract_name": "AsyncJobView",
+        "contract_version": "0.1-candidate",
+        "correlation_id": "corr_fx_poll",
+        "data": {
+          "attempt_id": "att_fx0002",
+          "attempt_number": 2,
+          "completed_at": "2026-10-14T13:00:01Z",
+          "correlation_id": "corr_fx_001",
+          "created_at": "2026-10-14T13:00:00Z",
+          "failure": null,
+          "job_id": "job_fx0001",
+          "job_revision": 8,
+          "job_type": "sketch_assistance",
+          "organization_id": "org_fx_school_a",
+          "poll_after_ms": null,
+          "progress": {
+            "kind": "unknown",
+            "stage_label": null,
+            "value": null
+          },
+          "request_ref": {
+            "context_revision": 1,
+            "input_hash": "3602b13b16ff108f6a97d10b3ce1cbcae4e716deef0ddd7762f5dc3c99432809",
+            "request_id": "req_fx_001",
+            "request_revision": 1
+          },
+          "result_disposition": "accepted",
+          "result_refs": [
+            {
+              "artifact_ref": "artifact_fx0001",
+              "sha256": "19c2d42280960ece0fc75e0f2ba0b08a5c61f45f981f570d7a76bdf70b37b5ee"
+            }
+          ],
+          "started_at": "2026-10-14T13:00:01Z",
+          "state": "succeeded",
+          "updated_at": "2026-10-14T13:00:01Z"
+        },
+        "meta": {
+          "poll_after_ms": null,
+          "projection": "teacher",
+          "resource_revision": 8
+        }
+      },
+      "etag": "\"job:job_fx0001:8:2222cb19\"",
+      "step": "succeeded_accepted"
+    },
+    {
+      "body": {
+        "contract_name": "AsyncJobView",
+        "contract_version": "0.1-candidate",
+        "correlation_id": "corr_fx_poll",
+        "data": {
+          "attempt_id": "att_fx0002",
+          "attempt_number": 2,
+          "completed_at": "2026-10-14T13:00:01Z",
+          "correlation_id": "corr_fx_001",
+          "created_at": "2026-10-14T13:00:00Z",
+          "failure": null,
+          "job_id": "job_fx0001",
+          "job_revision": 8,
+          "job_type": "sketch_assistance",
+          "organization_id": "org_fx_school_a",
+          "poll_after_ms": null,
+          "progress": {
+            "kind": "unknown",
+            "stage_label": null,
+            "value": null
+          },
+          "request_ref": {
+            "context_revision": 1,
+            "input_hash": "3602b13b16ff108f6a97d10b3ce1cbcae4e716deef0ddd7762f5dc3c99432809",
+            "request_id": "req_fx_001",
+            "request_revision": 1
+          },
+          "result_disposition": "accepted",
+          "result_refs": [],
+          "started_at": "2026-10-14T13:00:01Z",
+          "state": "succeeded",
+          "updated_at": "2026-10-14T13:00:01Z"
+        },
+        "meta": {
+          "poll_after_ms": null,
+          "projection": "admin",
+          "resource_revision": 8
+        }
+      },
+      "etag": "\"job:job_fx0001:8:6fb596bf\"",
+      "step": "succeeded_admin_projection"
+    },
+    {
+      "body": {
+        "contract_name": "AsyncJobChildView",
+        "contract_version": "0.1-candidate",
+        "correlation_id": "corr_fx_poll",
+        "data": {
+          "failure": null,
+          "job_id": "job_fx0001",
+          "job_revision": 8,
+          "job_type": "sketch_assistance",
+          "poll_after_ms": null,
+          "progress": {
+            "kind": "unknown",
+            "stage_label": null,
+            "value": null
+          },
+          "state": "succeeded"
+        },
+        "meta": {
+          "poll_after_ms": null,
+          "projection": "device",
+          "resource_revision": 8
+        }
+      },
+      "etag": "\"job:job_fx0001:8:483ffffc\"",
+      "step": "succeeded_device_projection"
+    },
+    {
+      "body": {
+        "contract_name": "AsyncJobView",
+        "contract_version": "0.1-candidate",
+        "correlation_id": "corr_fx_poll",
+        "data": {
+          "attempt_id": "att_fx0003",
+          "attempt_number": 1,
+          "completed_at": "2026-10-14T13:00:01Z",
+          "correlation_id": "corr_fx_001",
+          "created_at": "2026-10-14T13:00:01Z",
+          "failure": null,
+          "job_id": "job_fx0002",
+          "job_revision": 3,
+          "job_type": "sketch_assistance",
+          "organization_id": "org_fx_school_a",
+          "poll_after_ms": null,
+          "progress": {
+            "kind": "unknown",
+            "stage_label": null,
+            "value": null
+          },
+          "request_ref": {
+            "context_revision": 1,
+            "input_hash": "76713c560d4f6dfbc4b07967e8eafac532d8eeabc161b2a022eda0ba77261a8b",
+            "request_id": "req_fx_stale",
+            "request_revision": 1
+          },
+          "result_disposition": "stale",
+          "result_refs": [],
+          "started_at": "2026-10-14T13:00:01Z",
+          "state": "succeeded",
+          "updated_at": "2026-10-14T13:00:01Z"
+        },
+        "meta": {
+          "poll_after_ms": null,
+          "projection": "teacher",
+          "resource_revision": 3
+        }
+      },
+      "etag": "\"job:job_fx0002:3:afff80ec\"",
+      "step": "succeeded_stale_context"
+    },
+    {
+      "body": {
+        "contract_name": "AsyncJobView",
+        "contract_version": "0.1-candidate",
+        "correlation_id": "corr_fx_poll",
+        "data": {
+          "attempt_id": "att_fx0004",
+          "attempt_number": 1,
+          "completed_at": "2026-10-14T13:00:01Z",
+          "correlation_id": "corr_fx_001",
+          "created_at": "2026-10-14T13:00:01Z",
+          "failure": {
+            "attempts_remaining": 0,
+            "code": "PROVIDER_ERROR",
+            "public_message": "The AI step could not finish.",
+            "retryable": false
+          },
+          "job_id": "job_fx0003",
+          "job_revision": 3,
+          "job_type": "sketch_assistance",
+          "organization_id": "org_fx_school_a",
+          "poll_after_ms": null,
+          "progress": {
+            "kind": "unknown",
+            "stage_label": null,
+            "value": null
+          },
+          "request_ref": {
+            "context_revision": 1,
+            "input_hash": "c2082ae8583b68062877cbabbd25fc20c9b29613f01ce4caf33be9b42365a41b",
+            "request_id": "req_fx_exhaust",
+            "request_revision": 1
+          },
+          "result_disposition": null,
+          "result_refs": [],
+          "started_at": "2026-10-14T13:00:01Z",
+          "state": "failed_exhausted",
+          "updated_at": "2026-10-14T13:00:01Z"
+        },
+        "meta": {
+          "poll_after_ms": null,
+          "projection": "teacher",
+          "resource_revision": 3
+        }
+      },
+      "etag": "\"job:job_fx0003:3:afff80ec\"",
+      "step": "failed_exhausted"
+    },
+    {
+      "body": {
+        "contract_name": "AsyncJobChildView",
+        "contract_version": "0.1-candidate",
+        "correlation_id": "corr_fx_poll",
+        "data": {
+          "failure": {
+            "code": "PROVIDER_ERROR",
+            "public_message": "The AI step could not finish.",
+            "retryable": false
+          },
+          "job_id": "job_fx0003",
+          "job_revision": 3,
+          "job_type": "sketch_assistance",
+          "poll_after_ms": null,
+          "progress": {
+            "kind": "unknown",
+            "stage_label": null,
+            "value": null
+          },
+          "state": "failed_exhausted"
+        },
+        "meta": {
+          "poll_after_ms": null,
+          "projection": "device",
+          "resource_revision": 3
+        }
+      },
+      "etag": "\"job:job_fx0003:3:483ffffc\"",
+      "step": "failed_exhausted_device_projection"
+    },
+    {
+      "body": {
+        "contract_name": "AsyncJobView",
+        "contract_version": "0.1-candidate",
+        "correlation_id": "corr_fx_poll",
+        "data": {
+          "attempt_id": "att_fx0005",
+          "attempt_number": 1,
+          "completed_at": "2026-10-14T13:00:01Z",
+          "correlation_id": "corr_fx_001",
+          "created_at": "2026-10-14T13:00:01Z",
+          "failure": {
+            "attempts_remaining": null,
+            "code": "UNSAFE_CONTENT",
+            "public_message": "The AI result was blocked by safety checks.",
+            "retryable": false
+          },
+          "job_id": "job_fx0004",
+          "job_revision": 3,
+          "job_type": "sketch_assistance",
+          "organization_id": "org_fx_school_a",
+          "poll_after_ms": null,
+          "progress": {
+            "kind": "unknown",
+            "stage_label": null,
+            "value": null
+          },
+          "request_ref": {
+            "context_revision": 1,
+            "input_hash": "64a5be8a00ea87e3f734959c5ce44198d5e4b34b88fcba1fa287b497cc595653",
+            "request_id": "req_fx_unsafe",
+            "request_revision": 1
+          },
+          "result_disposition": "rejected",
+          "result_refs": [],
+          "started_at": "2026-10-14T13:00:01Z",
+          "state": "blocked_unsafe",
+          "updated_at": "2026-10-14T13:00:01Z"
+        },
+        "meta": {
+          "poll_after_ms": null,
+          "projection": "teacher",
+          "resource_revision": 3
+        }
+      },
+      "etag": "\"job:job_fx0004:3:afff80ec\"",
+      "step": "blocked_unsafe"
+    },
+    {
+      "body": {
+        "contract_name": "AsyncJobView",
+        "contract_version": "0.1-candidate",
+        "correlation_id": "corr_fx_poll",
+        "data": {
+          "attempt_id": "att_fx0006",
+          "attempt_number": 1,
+          "completed_at": "2026-10-14T13:00:01Z",
+          "correlation_id": "corr_fx_001",
+          "created_at": "2026-10-14T13:00:01Z",
+          "failure": {
+            "attempts_remaining": null,
+            "code": "CANCELLED_BY_TEACHER",
+            "public_message": "The teacher cancelled this request.",
+            "retryable": false
+          },
+          "job_id": "job_fx0005",
+          "job_revision": 2,
+          "job_type": "sketch_assistance",
+          "organization_id": "org_fx_school_a",
+          "poll_after_ms": null,
+          "progress": {
+            "kind": "unknown",
+            "stage_label": null,
+            "value": null
+          },
+          "request_ref": {
+            "context_revision": 1,
+            "input_hash": "5ea022251f8be9ead0a61b9a06ebcffc6c629f1b6ec70188bbe9b38ea70d2a18",
+            "request_id": "req_fx_cancel",
+            "request_revision": 1
+          },
+          "result_disposition": null,
+          "result_refs": [],
+          "started_at": null,
+          "state": "cancelled",
+          "updated_at": "2026-10-14T13:00:01Z"
+        },
+        "meta": {
+          "poll_after_ms": null,
+          "projection": "teacher",
+          "resource_revision": 2
+        }
+      },
+      "etag": "\"job:job_fx0005:2:afff80ec\"",
+      "step": "cancelled_by_teacher"
+    },
+    {
+      "body": {
+        "contract_name": "AsyncJobView",
+        "contract_version": "0.1-candidate",
+        "correlation_id": "corr_fx_poll",
+        "data": {
+          "attempt_id": "att_fx0007",
+          "attempt_number": 1,
+          "completed_at": "2026-10-14T13:00:01Z",
+          "correlation_id": "corr_fx_001",
+          "created_at": "2026-10-14T13:00:01Z",
+          "failure": {
+            "attempts_remaining": null,
+            "code": "CONSENT_REVOKED",
+            "public_message": "This request is no longer permitted.",
+            "retryable": false
+          },
+          "job_id": "job_fx0006",
+          "job_revision": 2,
+          "job_type": "sketch_assistance",
+          "organization_id": "org_fx_school_a",
+          "poll_after_ms": null,
+          "progress": {
+            "kind": "unknown",
+            "stage_label": null,
+            "value": null
+          },
+          "request_ref": {
+            "context_revision": 1,
+            "input_hash": "fc737ef055ef91758ca1c02e0c0b1c95d48a4b1b18f1d12e85ad73fdde0663d0",
+            "request_id": "req_fx_revoke",
+            "request_revision": 1
+          },
+          "result_disposition": null,
+          "result_refs": [],
+          "started_at": null,
+          "state": "cancelled",
+          "updated_at": "2026-10-14T13:00:01Z"
+        },
+        "meta": {
+          "poll_after_ms": null,
+          "projection": "teacher",
+          "resource_revision": 2
+        }
+      },
+      "etag": "\"job:job_fx0006:2:afff80ec\"",
+      "step": "cancelled_consent_revoked"
+    }
+  ]
+}

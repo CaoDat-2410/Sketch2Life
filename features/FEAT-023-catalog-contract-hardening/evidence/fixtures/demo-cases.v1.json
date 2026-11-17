@@ -1,0 +1,27 @@
+{
+  "manifest_name": "Sketch2LifeBackendDemoCasesV1",
+  "manifest_version": "1.0",
+  "purpose": "Replaceable real-input pairs for backend workflow smoke runs",
+  "cases": [
+    {
+      "case_id": "demo-case-01-butterfly",
+      "image_artifact_ref": "features/FEAT-020-backend-ai-workflow-demo/test-assets/input-image.png",
+      "image_sha256": "87772c53c89cc0d44aad810d865c25b08a1bc888965ef49bf5393a989af78d63",
+      "audio_artifact_ref": "features/FEAT-020-backend-ai-workflow-demo/test-assets/narration.wav",
+      "audio_sha256": "f9b3ae77bdfe12d80a3e98a705172bc9714846c6fe5b29bb574ba18fdb0ab9e1",
+      "intended_scene": "butterfly and flower",
+      "status": "EXISTING_BASELINE"
+    },
+    {
+      "case_id": "demo-case-02-bicycle-safety",
+      "image_artifact_ref": "features/FEAT-023-catalog-contract-hardening/test-assets/demo-case-02/input-image-framing-safe.png",
+      "image_sha256": "3c771b183513374cd5d1ef3909940e9d6d0ae0d2d9f82013aca7df821f164b80",
+      "audio_artifact_ref": "features/FEAT-023-catalog-contract-hardening/test-assets/demo-case-02/narration.wav",
+      "audio_sha256": "8a6d77b5c713950f45633bf256b17bc421acad90f214e395d2d6af927d551400",
+      "narration_language": "vi",
+      "narration_text": "Chiếc xe đạp màu đỏ đứng bên đường. Chúng mình đội mũ bảo hiểm trước khi đi nhé.",
+      "intended_scene": "red bicycle, helmet and road safety",
+      "status": "NEW_REPLACEABLE_INPUT"
+    }
+  ]
+}

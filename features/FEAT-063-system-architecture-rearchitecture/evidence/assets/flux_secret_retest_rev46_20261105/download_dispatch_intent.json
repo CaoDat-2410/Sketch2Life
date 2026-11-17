@@ -1,0 +1,10 @@
+{
+  "app": "sketch2life-srs23-flux-image-dev",
+  "function": "download-flux-pinned-model",
+  "max_attempts": 1,
+  "outcome": "DISPATCH_NOT_STARTED",
+  "secret_resource_name": "huggingface-secret",
+  "secret_value_read_by_runner": false,
+  "started_at": "2026-11-05T22:40:46.368+07:00",
+  "workload": "model.checkpoint.download"
+}

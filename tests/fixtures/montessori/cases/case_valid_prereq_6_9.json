@@ -1,0 +1,35 @@
+{
+  "id": "CASE_VALID_PREREQ_6_9",
+  "description": "Completed prerequisite permits division material",
+  "input": {
+    "age_months": 96,
+    "readiness_tags": [
+      "reads_simple_instructions"
+    ],
+    "completed_activity_ids": [
+      "ACT-0061"
+    ],
+    "available_material_ids": [
+      "MAT_DIVISION_MATERIAL",
+      "MAT_PROBLEM_CARDS",
+      "MAT_RECORDING_SHEET"
+    ],
+    "supervision_level": "NEARBY",
+    "policy_flags": [],
+    "candidate_activity_ids": [
+      "ACT-0062"
+    ]
+  },
+  "expected": {
+    "status": "VALID_CANDIDATES",
+    "allowed_activity_ids": [
+      "ACT-0062"
+    ],
+    "blocked": {}
+  },
+  "coverage_tags": [
+    "valid",
+    "prerequisite",
+    "6-9"
+  ]
+}

@@ -1,0 +1,247 @@
+{
+  "accepted_status": "accepted",
+  "analysis_id": "ana_fx0001",
+  "analysis_revision": 3,
+  "candidate": {
+    "assistance_id": "assistance_fx_001",
+    "context_revision": 3,
+    "contract_version": "0.1-candidate",
+    "evidence_refs": [
+      {
+        "kind": "vision_observation",
+        "ref": "ana_fx0001",
+        "sha256": "b32e858e1024cb119bef6ea8a4ec6e504af210186c99018c7243929ae2f85768"
+      },
+      {
+        "kind": "provider_result",
+        "ref": "result:ana_fx0001",
+        "sha256": "f2998f75a7edb72c3d10e8cdd9d1dab3b4d32dc61b31b56454e78563e08f9f46"
+      },
+      {
+        "kind": "source_checkpoint",
+        "ref": "checkpoint_fx_004",
+        "sha256": "883c7da76fba38c707ab05f346bebbd99eb04938913e839750a6cf1b3951d86f"
+      },
+      {
+        "kind": "source_render",
+        "ref": "render_fx_004",
+        "sha256": "8c91fbbc97b519911c1e7794060f4f512ac2a3a16dfd84bc3356b889efc80b4b"
+      },
+      {
+        "kind": "admission_receipt",
+        "ref": "admission_fx_004",
+        "sha256": "f1e25fcea6d63b087940fc5e73d0fa4b047b5d2ff989b82c8d725b36240110f4"
+      }
+    ],
+    "expected_request_revision": 1,
+    "input_snapshot_ref": "snapshot_fx_001",
+    "job_attempt_id": "att_fx0001",
+    "job_id": "job_fx0001",
+    "moderation_outcome": {
+      "child_visibility": "withheld",
+      "comprehensive_moderation": "not_run",
+      "lexical_policy_version": "vision-prohibited-lexicon-fixture-v1",
+      "lexical_regression": "passed",
+      "match_view_version": "vision-policy-match-view-v2"
+    },
+    "object_candidates": [
+      {
+        "confidence": 0.71,
+        "label": "cat",
+        "observation_ref": "ent-1"
+      },
+      {
+        "confidence": null,
+        "label": "ball",
+        "observation_ref": "ent-2"
+      }
+    ],
+    "provenance": {
+      "adapter_id": "lightning-vision-v2-bridge",
+      "adapter_version": "qwen3-vl-local-adapter-v2-b1",
+      "config_hash": "3082f03f32a1cb26e6f5c25fe73813039460129b0f18a15e647b9f5ff08e3267",
+      "content_policy_version": "vision-prohibited-lexicon-fixture-v1",
+      "evidence_kind": "offline_legacy_bridge",
+      "executed_at": "2026-10-16T12:00:05Z",
+      "model_identifier": "Qwen/Qwen3-VL-8B-Instruct",
+      "model_revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+      "policy_match_view_version": "vision-policy-match-view-v2",
+      "profile_catalog_hash": "72651b96d2c2259344efcb6fb3349807d42b56079a5422530db09c1590f00947",
+      "profile_id": "QWEN3_VL_8B_INSTRUCT_BF16_V1",
+      "provider_context_mode": "image_only",
+      "result_contract": "VisionUnderstandingResultV2/2.0",
+      "transport_attempts": 1
+    },
+    "uncertainty": {
+      "ambiguous_region_refs": [
+        "amb-1"
+      ],
+      "calibration": "uncalibrated",
+      "requires_meaning_confirmation": true,
+      "unknown_confidence_refs": [
+        "ent-2",
+        "rel-1"
+      ]
+    }
+  },
+  "corrections": [
+    {
+      "author": {
+        "participant_id": "participant_fx_a",
+        "principal_ref": "device_fx_a",
+        "role": "child_device",
+        "turn_id": "turn_fx_01"
+      },
+      "basis_correction_ref": null,
+      "child_explanation": "It has stripes and a long tail",
+      "correction_id": "cor_fx0001",
+      "correction_reason": "Child says the animal is a tiger",
+      "correction_version": 2,
+      "expected_context_revision": 3,
+      "intended_objects": [
+        "tiger"
+      ],
+      "kind": "child_proposal",
+      "meaning_kind": "intended_concept",
+      "meaning_status": "proposed",
+      "recorded_at": "2026-10-16T12:00:20Z"
+    },
+    {
+      "author": {
+        "participant_id": null,
+        "principal_ref": "teacher_fx_001",
+        "role": "teacher",
+        "turn_id": null
+      },
+      "basis_correction_ref": "cor_fx0001",
+      "child_explanation": null,
+      "correction_id": "cor_fx0002",
+      "correction_reason": "Teacher confirms the child's tiger",
+      "correction_version": 3,
+      "expected_context_revision": 3,
+      "intended_objects": [
+        "tiger"
+      ],
+      "kind": "teacher_confirmation",
+      "meaning_kind": "intended_concept",
+      "meaning_status": "confirmed",
+      "recorded_at": "2026-10-16T12:01:00Z"
+    }
+  ],
+  "current_meaning_ref": "cor_fx0002",
+  "observation_sha256": "b32e858e1024cb119bef6ea8a4ec6e504af210186c99018c7243929ae2f85768",
+  "original_observation": {
+    "actions": [
+      {
+        "actor_ref": "ent-1",
+        "confidence": 0.4,
+        "label": {
+          "language": {
+            "status": "DECLARED",
+            "tags": [
+              "en"
+            ]
+          },
+          "value": "sitting"
+        },
+        "object_ref": null,
+        "observation_id": "act-1"
+      }
+    ],
+    "ambiguous_regions": [
+      {
+        "note": {
+          "language": {
+            "status": "DECLARED",
+            "tags": [
+              "en"
+            ]
+          },
+          "value": "striped area"
+        },
+        "observation_id": "amb-1"
+      }
+    ],
+    "entities": [
+      {
+        "confidence": 0.71,
+        "label": {
+          "language": {
+            "status": "DECLARED",
+            "tags": [
+              "en"
+            ]
+          },
+          "value": "cat"
+        },
+        "observation_id": "ent-1"
+      },
+      {
+        "confidence": null,
+        "label": {
+          "language": {
+            "status": "DECLARED",
+            "tags": [
+              "en"
+            ]
+          },
+          "value": "ball"
+        },
+        "observation_id": "ent-2"
+      }
+    ],
+    "relations": [
+      {
+        "confidence": null,
+        "object_ref": "ent-2",
+        "observation_id": "rel-1",
+        "predicate": {
+          "language": {
+            "status": "DECLARED",
+            "tags": [
+              "en"
+            ]
+          },
+          "value": "next to"
+        },
+        "subject_ref": "ent-1"
+      }
+    ],
+    "themes": [
+      {
+        "confidence": 0.3,
+        "evidence_refs": [
+          "ent-1"
+        ],
+        "label": {
+          "language": {
+            "status": "DECLARED",
+            "tags": [
+              "en"
+            ]
+          },
+          "value": "play"
+        },
+        "observation_id": "thm-1"
+      }
+    ]
+  },
+  "source_binding": {
+    "admission_receipt_id": "admission_fx_004",
+    "checkpoint": {
+      "canvas_id": "canvas_fx_001",
+      "checkpoint_id": "checkpoint_fx_004",
+      "checkpoint_revision": 4,
+      "checksum_sha256": "883c7da76fba38c707ab05f346bebbd99eb04938913e839750a6cf1b3951d86f",
+      "document_epoch": 1
+    },
+    "input_snapshot_ref": "snapshot_fx_001",
+    "render": {
+      "media_type": "image/png",
+      "render_ref": "render_fx_004",
+      "render_sha256": "8c91fbbc97b519911c1e7794060f4f512ac2a3a16dfd84bc3356b889efc80b4b",
+      "renderer_version": "canvas-render-fixture-v0"
+    }
+  },
+  "status_reason": null
+}

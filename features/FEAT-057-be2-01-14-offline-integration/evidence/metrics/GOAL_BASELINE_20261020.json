@@ -1,0 +1,272 @@
+{
+  "recorded_at": "2026-10-20T19:08:00+07:00",
+  "branch": "feature/be2-backend-ai-integration",
+  "head": "d35f035f87fddfc87b0d72d8929f5b1b843fce0e",
+  "index_empty": true,
+  "staged_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "unstaged_diff_sha256": "e8d7fd64317f67d008b8af39faf2189376f2d391ee583f87ef7152dc2c19901a",
+  "preexisting_change_count": 52,
+  "baseline_sha256": "dc09ae05bd1bdc37c34c4b0192f7f5914996b2656f6533c8fea1f04ae426be89",
+  "changes": [
+    {
+      "status": " M",
+      "path": ".gitignore",
+      "sha256": "38a264cf05460c04602bd0dfdc1576807e0984b1957716bed7cb51a08696cf0a"
+    },
+    {
+      "status": " M",
+      "path": "backend/tests/integration/ai_jobs/test_migrations.py",
+      "sha256": "9b507b7f342a8c863062ed4ff6865a6e5012a804c41b360199f7cadaf3c03d46"
+    },
+    {
+      "status": " M",
+      "path": "docs/context/PROJECT_CONTEXT.md",
+      "sha256": "721f3547ab5c52a219d1fad0743ea322cbfeae133400ec0c38c15530bbb23818"
+    },
+    {
+      "status": " M",
+      "path": "docs/context/SOURCE_REGISTER.md",
+      "sha256": "9e4c15cd7e881c3f79db5930dfb59e61108fddea19afc3fc448d245ea155f30a"
+    },
+    {
+      "status": "??",
+      "path": "features/FEAT-048-be2-content-publication/evidence/notes/LOCAL_OFFLINE_RECHECK_20261020.md",
+      "sha256": "fa14785320f06b366214b3643e1153b396446bcc75fed4926b6d009a5d945bec"
+    },
+    {
+      "status": "??",
+      "path": "features/FEAT-048-be2-content-publication/evidence/raw/LOCAL_OFFLINE_RECHECK_20261020.summary.json",
+      "sha256": "d61e9d7e06bf44c134730b4f7fddeb59407a9ee1fff585f9cc8b18d658ff5773"
+    },
+    {
+      "status": " M",
+      "path": "features/FEAT-048-be2-content-publication/evidence/README.md",
+      "sha256": "1d80eff158df08306190845234a62e27c8e788991479b21fededdfe75a5afb56"
+    },
+    {
+      "status": "??",
+      "path": "features/FEAT-049-be2-ai-policy/evidence/notes/LOCAL_OFFLINE_RECHECK_20261020.md",
+      "sha256": "bca90e1b7b7ae256e81fe72ebb3ba7e9b6abe2c16d65f1930c37356fa1f91bb5"
+    },
+    {
+      "status": "??",
+      "path": "features/FEAT-049-be2-ai-policy/evidence/raw/LOCAL_OFFLINE_RECHECK_20261020.summary.json",
+      "sha256": "26c50721cde67dc1ed3e933b36d7f33098dae7a7cea2bb7dfd3a59ff7918292e"
+    },
+    {
+      "status": " M",
+      "path": "features/FEAT-049-be2-ai-policy/evidence/README.md",
+      "sha256": "7d60125a43e2be48da23208b1a1c32685f0b1eee2de515abfc6acc31e17a1fd1"
+    },
+    {
+      "status": "??",
+      "path": "features/FEAT-050-be2-knowledge-video/evidence/notes/LOCAL_OFFLINE_RECHECK_20261020.md",
+      "sha256": "fee72efbc84abb44b0677258426915addaf45f1e6abbaf62051872c86d19a4fe"
+    },
+    {
+      "status": "??",
+      "path": "features/FEAT-050-be2-knowledge-video/evidence/raw/LOCAL_OFFLINE_RECHECK_20261020.summary.json",
+      "sha256": "9ee46484564620296207681248ccd2d99d5ffe3d01a76eb21f40ace42438f68a"
+    },
+    {
+      "status": " M",
+      "path": "features/FEAT-050-be2-knowledge-video/evidence/README.md",
+      "sha256": "d4ec83150d3223d7f8af1602ad461d9a9d598bf16884bad8d1d007d5bbd2dbd5"
+    },
+    {
+      "status": "??",
+      "path": "features/FEAT-051-be2-video-review-playback/evidence/notes/LOCAL_OFFLINE_RECHECK_20261020.md",
+      "sha256": "86b1f12258b34c691dd6729ec626abfa7855eb4a320256335dd28e051db75923"
+    },
+    {
+      "status": "??",
+      "path": "features/FEAT-051-be2-video-review-playback/evidence/raw/LOCAL_OFFLINE_RECHECK_20261020.summary.json",
+      "sha256": "8def19967e9c466073f41ef29838bf4e8eb6dea50a544c590de2058141f53b6f"
+    },
+    {
+      "status": " M",
+      "path": "features/FEAT-051-be2-video-review-playback/evidence/README.md",
+      "sha256": "197759eaff69f0a31f5682ea89901c3ef89d7f62b8b15a4a9cc3001af4710001"
+    },
+    {
+      "status": "??",
+      "path": "features/FEAT-052-be2-video-failure-disposition/evidence/notes/LOCAL_OFFLINE_RECHECK_20261020.md",
+      "sha256": "1bd1adcd7a7adbe84ba6441d5f1f394dbbe3dac0c8a2ab5c3e502c3d5a1681ec"
+    },
+    {
+      "status": "??",
+      "path": "features/FEAT-052-be2-video-failure-disposition/evidence/raw/LOCAL_OFFLINE_RECHECK_20261020.summary.json",
+      "sha256": "7d1ad25927db0def2653bab8bcf2451905a2168d25aeaa21514805a04f46e4de"
+    },
+    {
+      "status": " M",
+      "path": "features/FEAT-052-be2-video-failure-disposition/evidence/README.md",
+      "sha256": "139fee2e78bb12605bad5eeca28f181109946f0e32a4aa7511cae8ae85868e93"
+    },
+    {
+      "status": "??",
+      "path": "features/FEAT-053-be2-activity-execution/evidence/notes/LOCAL_OFFLINE_RECHECK_20261020.md",
+      "sha256": "8189e83ffb892d80c0b6aba11cebb760af8844e6ba9147cfbde8742eef4bca85"
+    },
+    {
+      "status": "??",
+      "path": "features/FEAT-053-be2-activity-execution/evidence/raw/LOCAL_OFFLINE_RECHECK_20261020.summary.json",
+      "sha256": "f35ce66ef306d19b9acbdf78efe1ba6ac03bdf7c006e6a92db4ed4b1cee06d99"
+    },
+    {
+      "status": " M",
+      "path": "features/FEAT-053-be2-activity-execution/evidence/README.md",
+      "sha256": "1d99e159d602e313a83f49a81ca623e66c5dd3ea129932c456944f13f2e26698"
+    },
+    {
+      "status": "??",
+      "path": "features/FEAT-054-be2-preset-automation/evidence/notes/LOCAL_OFFLINE_RECHECK_20261020.md",
+      "sha256": "627a65d5d860ae5f6b9d0d188faef916f6a5300f203c91e6eb75371df107fb06"
+    },
+    {
+      "status": "??",
+      "path": "features/FEAT-054-be2-preset-automation/evidence/raw/LOCAL_OFFLINE_RECHECK_20261020.summary.json",
+      "sha256": "bfb3a5cd06f6bd4376bf5ec41a8c361716f0253d12ee168004dc203803e50a5f"
+    },
+    {
+      "status": " M",
+      "path": "features/FEAT-054-be2-preset-automation/evidence/README.md",
+      "sha256": "33a942c56038e65c8fbbccb5ada06d73ec78303229f6a25c5ab38a9c4ce3f1f8"
+    },
+    {
+      "status": " M",
+      "path": "features/FEAT-057-be2-01-14-offline-integration/CONTEXT.md",
+      "sha256": "3c4ed7099128a03f119e3934856795a73444c7ee5f7b377c1550aaa42b97117d"
+    },
+    {
+      "status": " M",
+      "path": "features/FEAT-057-be2-01-14-offline-integration/DECISIONS.md",
+      "sha256": "f7d0aadb2c61a7273226d8cd3e3c6bbb3aecf5e4fce4b9af63fa08b39ccd2425"
+    },
+    {
+      "status": " M",
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/metrics/BE2_01_14_RUNTIME_READINESS_20261020.json",
+      "sha256": "8f822a7b8148da866ee3f109bb9d0ef02cf5bc2d7033331a0eaa0523030d0a0f"
+    },
+    {
+      "status": "??",
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/metrics/HANDOFF_SYNC_20261020.json",
+      "sha256": "7c3aae5d4383edc5eb03712257536b49493020f836955cb963d36dbc580d832f"
+    },
+    {
+      "status": "??",
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/metrics/LOCAL_OFFLINE_RECHECK_20261020.json",
+      "sha256": "322b715b8c9906402692d586f0c04e2c5305c541e31741eeacb060e5da989b71"
+    },
+    {
+      "status": " M",
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/metrics/offline-test-matrix.json",
+      "sha256": "421c58e2c2d4a421450f631770db090dbab48bd7948c87cda948a13d624779ea"
+    },
+    {
+      "status": " M",
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/BE2_01_14_RUNTIME_READINESS_20261020.md",
+      "sha256": "60b3b6ac79122827e9d6656caf8950e0209cda6e971edfd2ce5138ea3c539e5c"
+    },
+    {
+      "status": "??",
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/LIGHTNING_SESSION_ACCESS_20261020.md",
+      "sha256": "cad8db9d5a87c9c62d0f8720751263df8206833f8abb2ea7525d0419a1936153"
+    },
+    {
+      "status": "??",
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/LOCAL_OFFLINE_RECHECK_20261020.md",
+      "sha256": "f6bb335676e69010a470eb0309c2312ec6a1593cea73746fb3384ff809cf6a7b"
+    },
+    {
+      "status": "??",
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/MAIN_BE2_SESSION_HANDOFF_PROMPT_20261020.md",
+      "sha256": "816d1bcff9f9432aa974696f321449bb3478dc7001b667b4c3e31d7fd374748d"
+    },
+    {
+      "status": " M",
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/OFFLINE_INTEGRATION_RESULTS_20261020.md",
+      "sha256": "692abba340b331e008ff0bd9413714efd4d8d0482d063d225f6264cda21660c9"
+    },
+    {
+      "status": "??",
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/OFFLINE_MIGRATION_GRAPH_FOLLOWUP_20261020.md",
+      "sha256": "34a867708c127b5d36ba4605938d309a927dc69bdad7493044b3118f077fc2c1"
+    },
+    {
+      "status": "??",
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/PRIMARY_SESSION_HANDOFF_20261020.md",
+      "sha256": "896059f47ff92f6df279b0893e8030179368ce4f6f77556b1d79a692c7dbefe6"
+    },
+    {
+      "status": "??",
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/raw/handoff-sync-20261020/fixed-graph-focused.log",
+      "sha256": "6f79a85401a459334e0ab7017c6d35546dce18834374e1295f5dae11daa0103a"
+    },
+    {
+      "status": "??",
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/raw/handoff-sync-20261020/graph-pytest.log",
+      "sha256": "797d01edea0ef7780583e7e8bd575c00d9d25e4f051ba9f64ea1156826132512"
+    },
+    {
+      "status": "??",
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/raw/handoff-sync-20261020/MERGE_TIME_OFFLINE_INTEGRATION_RESULTS_20261020.md",
+      "sha256": "343eb26c72efb2f2146ea2f8321079af74a588da2fbb266065c19063f6e5b2b8"
+    },
+    {
+      "status": "??",
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/raw/handoff-sync-20261020/MERGE_TIME_offline-test-matrix.json",
+      "sha256": "0a348391e0562aa4f2a38a4586611a2020ccb2ec4324ec230d583686904ea1c4"
+    },
+    {
+      "status": "??",
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/raw/handoff-sync-20261020/mypy-scoped-test.log",
+      "sha256": "5d4b6d285b77932e3d08212c3b4974d0a803f98ec60408ac6ccf6a063fa6c19e"
+    },
+    {
+      "status": "??",
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/raw/handoff-sync-20261020/owned-head-guard-probes.log",
+      "sha256": "5aa514e3388bde5bd777949263062f343826ed675d92ce6cab9fbfadaf153331"
+    },
+    {
+      "status": "??",
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/raw/handoff-sync-20261020/ruff-scoped-test.log",
+      "sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+    },
+    {
+      "status": "??",
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/raw/handoff-sync-20261020/scoped-fix.json",
+      "sha256": "b5e0d558d2100f572350928ee9970e2e37f4dc1950e7c1c8d2fda441358593f9"
+    },
+    {
+      "status": "??",
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/raw/handoff-sync-20261020/validate_architecture-final.log",
+      "sha256": "fa02308d81518f8db014a47ac4e9d26bcd2986c1ac8066868fd97e0fee2a5fd4"
+    },
+    {
+      "status": "??",
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/raw/handoff-sync-20261020/validate_harness-final.log",
+      "sha256": "f9b8b4622a4e69492c5173211fa6ab3988bb38ac303c35856dcac3a264f5b680"
+    },
+    {
+      "status": "??",
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/raw/handoff-sync-20261020/validate_repository_security-final.log",
+      "sha256": "91714589eab33efccc13bc8b41c7c881433c28d850a5ffe7050241ac6e18b544"
+    },
+    {
+      "status": "??",
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/raw/handoff-sync-20261020/validate_skeleton-final.log",
+      "sha256": "a0d55ec08b5d079817600d915f0c8060fc8872efdc32318ff4a7e0f4a3ac93d7"
+    },
+    {
+      "status": " M",
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/README.md",
+      "sha256": "dd47ded312921ea55fe8c32a19a1c2da397af208cff1d6f0094e4eaedee4e0ba"
+    },
+    {
+      "status": " M",
+      "path": "features/FEAT-057-be2-01-14-offline-integration/status/STATUS.md",
+      "sha256": "106c2d985a8309afc7a6e127cbcfb76d56b50ce23e5674c544027bddab6280e3"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "modal_cli": "1.6.3",
+  "profile": "docaodat24-10",
+  "environment": "dev",
+  "list_command": "modal app list --env dev",
+  "apps_returned": 0,
+  "task_owned_apps_deployed": 0,
+  "task_owned_tasks_started": 0,
+  "shared_model_and_scratch_volumes_preserved": true,
+  "secrets_read": false,
+  "note": "No app was deployed or used for inference in this task; current CLI inventory returned an empty dev app table. No task-owned app required stopping."
+}

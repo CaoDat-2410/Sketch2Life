@@ -1,0 +1,12 @@
+{
+  "check": "harness",
+  "command": [
+    "python",
+    "tools/validate_harness.py",
+    "--feature",
+    "features/FEAT-044-be2-ai-job-foundation"
+  ],
+  "started_at": "2026-10-14T20:24:49.032591+07:00",
+  "exit_code": 0,
+  "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/handoff_harness.txt"
+}

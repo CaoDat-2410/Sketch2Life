@@ -1,17 +1,1645 @@
 """FastAPI composition root."""
 
-from fastapi import FastAPI
+import logging
+import os
+import re
+from collections.abc import AsyncIterator, Awaitable, Callable
+from contextlib import asynccontextmanager
+from ipaddress import ip_address
+from pathlib import Path
+from typing import Any, Literal
+from urllib.parse import urlsplit
+from uuid import uuid4
 
-from sketch2life.interfaces.http.routers.health import router as health_router
+from fastapi import FastAPI, Request
+from fastapi.exception_handlers import http_exception_handler
+from fastapi.exceptions import RequestValidationError
+from fastapi.openapi.utils import get_openapi
+from fastapi.responses import JSONResponse, PlainTextResponse
+from fastapi.staticfiles import StaticFiles
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.responses import Response
+
+from sketch2life.application.ports.activity_ranker import ActivityRankerPort
+from sketch2life.application.ports.child_preference_classifier import (
+    ChildPreferenceClassifierPort,
+)
+from sketch2life.application.ports.identity import IdentityAccountProvisioner
+from sketch2life.application.ports.pixi_motion_cycle import PixiMotionCycleIssue
+from sketch2life.application.ports.pixi_show_planner import PixiShowPlannerPort
+from sketch2life.application.services.auto_rig import AutoRigService
+from sketch2life.application.services.ephemeral_sessions import EphemeralSessionService
+from sketch2life.application.services.image_admission import Feat018ImageAdmission
+from sketch2life.application.services.live_image_demo import LiveImageDemoService
+from sketch2life.application.services.p1_experience import P1ExperienceCompiler
+from sketch2life.application.services.pixi_topic_asset_candidates import load_topic_asset_catalog
+from sketch2life.application.services.storage_example import StorageExampleService
+from sketch2life.application.services.story_video_admission import StoryGateEvidence
+from sketch2life.application.services.story_video_job import StoryVideoJobService
+from sketch2life.application.services.story_video_pipeline import StoryVideoPipeline
+from sketch2life.application.services.supervised_flow import SupervisedFlowService
+from sketch2life.application.services.whiteboard_video_job import (
+    UnconfiguredWhiteboardVideoPipeline,
+    WhiteboardVideoJobService,
+)
+from sketch2life.application.services.whiteboard_video_pipeline import WhiteboardVideoPipeline
+from sketch2life.contracts.schemas.asr import AsrProfileId
+from sketch2life.contracts.schemas.be1_runtime import Be1Error
+from sketch2life.contracts.schemas.mobile_workflow import (
+    MobileWorkflowResultV1,
+    WorkflowFailureV1,
+    WorkflowResultProvenanceV1,
+)
+from sketch2life.contracts.schemas.parent_profiles import (
+    CreateParentProfileRequest,
+    PatchParentProfileRequest,
+    parent_error_payload,
+    parent_field_errors,
+)
+from sketch2life.contracts.schemas.scene_exploration import SourceRegionV1
+from sketch2life.domain.story_run_lite import StoryRunLiteError
+from sketch2life.infrastructure.ai.lightning_activity_ranker import LightningActivityRanker
+from sketch2life.infrastructure.ai.lightning_child_preference_classifier import (
+    LightningChildPreferenceClassifier,
+)
+from sketch2life.infrastructure.ai.lightning_client import (
+    LightningAsrV2Adapter,
+    UrllibJsonTransport,
+    read_secret_file,
+)
+from sketch2life.infrastructure.ai.lightning_pixi_show_planner import (
+    LightningPixiShowPlanner,
+)
+from sketch2life.infrastructure.ai.lightning_sam21 import LightningSam21SegmentationAdapter
+from sketch2life.infrastructure.ai.lightning_scene_localization import (
+    LightningSceneLocalizationAdapter,
+)
+from sketch2life.infrastructure.ai.lightning_story_video import (
+    LightningIllustrationProvider,
+    LightningMotionProvider,
+    LightningNarrationProvider,
+    LightningStoryVideoAdapter,
+    LightningVideoAssembler,
+)
+from sketch2life.infrastructure.ai.lightning_vision_v2 import LightningVisionV2Adapter
+from sketch2life.infrastructure.ai.pixi_subject_crop import build_pixi_subject_crop
+from sketch2life.infrastructure.catalog.activity_semantics import load_activity_semantic_catalog
+from sketch2life.infrastructure.catalog.activity_semantics_v2 import (
+    load_activity_semantic_catalog_v2,
+)
+from sketch2life.infrastructure.catalog.p1_catalog import load_p1_template_library
+from sketch2life.infrastructure.catalog.pixi_show_assets import (
+    PixiShowAssetService,
+    PixiShowAssetUnavailable,
+)
+from sketch2life.infrastructure.catalog.workflow_metadata import FileWorkflowCatalogMetadata
+from sketch2life.infrastructure.config.settings import Settings, get_settings
+from sketch2life.infrastructure.documents.clamav_scanner import ClamAvScanner
+from sketch2life.infrastructure.documents.lesson_parser import DeterministicLessonDocumentParser
+from sketch2life.infrastructure.identity.firebase_admin_account_provisioner import (
+    FirebaseAdminAccountProvisioner,
+)
+from sketch2life.infrastructure.media.whiteboard_pipeline_factory import (
+    build_lightning_whiteboard_mvp_pipeline,
+)
+from sketch2life.infrastructure.media.whiteboard_runtime import (
+    EspeakVietnameseTts,
+    FfmpegWhiteboardEncoder,
+    WhiteboardLearningThreadScripts,
+)
+from sketch2life.infrastructure.media_validation.av_image_decoder import AvImageDecoder
+from sketch2life.infrastructure.storage.in_memory import (
+    InMemoryArtifactStore,
+    InMemoryJobStore,
+)
+from sketch2life.infrastructure.storage.in_memory_auto_rig_grants import (
+    InMemoryRigPackageGrantStore,
+)
+from sketch2life.infrastructure.storage.s3_compatible import Boto3S3CompatibleObjectStorage
+from sketch2life.infrastructure.story_run_lite.composition import runtime_lifespan
+from sketch2life.infrastructure.vision_analysis.pilot_composition import (
+    build_default_pilot_vision,
+)
+from sketch2life.interfaces.http.be1_runtime import build_be1_runtime
+from sketch2life.interfaces.http.demo_composition import (
+    build_demo_stores,
+    build_ephemeral_session_service,
+)
+from sketch2life.interfaces.http.middleware.bounded_image_upload import (
+    BoundedImageUploadMiddleware,
+)
+from sketch2life.interfaces.http.openapi_contract import (
+    MOUNTED_OPERATIONS,
+    TAG_DESCRIPTIONS,
+)
+from sketch2life.interfaces.http.openapi_contract_amendments import (
+    add_error_examples,
+    add_multipart_examples,
+    add_request_examples,
+    add_response_examples,
+    public_tag_name,
+    public_tags,
+    published_responses,
+)
+from sketch2life.interfaces.http.openapi_srs_v22 import project_srs_v22_openapi
+from sketch2life.interfaces.http.router_composition import (
+    mount_all_routers,
+    mount_classroom_routers,
+    mount_demo_routers,
+)
+from sketch2life.interfaces.http.routers.auth_registration import RegistrationRateLimiter
+from sketch2life.interfaces.http.routers.storage_examples import router as storage_examples_router
+from sketch2life.interfaces.http.routers.story_run_lite import router as story_run_lite_router
+from sketch2life.interfaces.http.routers.story_run_lite import (
+    story_error_response,
+    story_unexpected_error_response,
+    story_validation_error_response,
+)
+from sketch2life.interfaces.http.story_run_lite_contract import add_story_run_lite_contract
+
+_LOGGER = logging.getLogger("sketch2life.api")
+_SAFE_ID = re.compile(r"^[A-Za-z0-9._:-]{1,120}$")
 
 
-def create_app() -> FastAPI:
-    """Create the health-only foundation app."""
+def _story_run_lite_path(path: str) -> bool:
+    return any(path == base or path.startswith(base + "/") for base in (
+        "/v1/story-runs", "/v1/upload-sessions"
+    ))
+
+
+def _legacy_parent_story_revision_path(path: str) -> bool:
+    prefix = "/api/parent/v1/ai/story-runs/"
+    suffix = "/story-revisions"
+    if not path.startswith(prefix) or not path.endswith(suffix):
+        return False
+    run_id = path[len(prefix) : -len(suffix)]
+    return bool(run_id) and "/" not in run_id
+
+
+def _loopback(address: object) -> bool:
+    try:
+        return ip_address(str(address)).is_loopback
+    except ValueError:
+        return False
+
+
+def _local_host_header(value: str) -> bool:
+    try:
+        parsed = urlsplit("http://" + value)
+        return bool(
+            parsed.hostname in {"127.0.0.1", "::1", "localhost"}
+            and parsed.username is None and parsed.password is None
+            and not parsed.path and not parsed.query and not parsed.fragment
+            and (parsed.port is None or 1 <= parsed.port <= 65535)
+        )
+    except ValueError:
+        return False
+_SAFE_CONTEXT_PROFILE_FIELDS = frozenset(
+    {
+        "contract_name",
+        "contract_version",
+        "age_months",
+        "child_profile",
+        "profile_declared_by",
+        "profile_recorded_at",
+        "interests",
+        "dislikes",
+        "adult_confirmed_progress",
+        "activity_id",
+        "objective_id",
+        "confirmed_at",
+        "confirmed_by",
+        "readiness_ids",
+        "available_material_option_ids",
+        "adult_supervision_available",
+        "learning_support_ids",
+        "candidate_activity_ids",
+        "adult_participating",
+        "caregiver_participating",
+        "supervision_confirmed_activity_ids",
+    }
+)
+def _contract_response_schema(
+    schema_name: str, openapi_schema: dict[str, object]
+) -> dict[str, object]:
+    components = openapi_schema.get("components", {})
+    schemas = components.get("schemas", {}) if isinstance(components, dict) else {}
+    if isinstance(schemas, dict) and schema_name in schemas:
+        return {"$ref": f"#/components/schemas/{schema_name}"}
+    if schema_name == "binary":
+        return {"type": "string", "format": "binary"}
+    if schema_name == "object":
+        return {"type": "object"}
+    list_match = re.match(r"^list\[([A-Za-z][A-Za-z0-9_]*)", schema_name)
+    if list_match and isinstance(schemas, dict) and list_match.group(1) in schemas:
+        return {
+            "type": "array",
+            "items": {"$ref": f"#/components/schemas/{list_match.group(1)}"},
+        }
+    raise ValueError(f"Rev37 response schema {schema_name!r} is not present in OpenAPI components")
+
+
+def create_app(
+    *,
+    session_service: EphemeralSessionService | None = None,
+    live_image_demo_service: LiveImageDemoService | None = None,
+    supervised_flow_service: SupervisedFlowService | None = None,
+    auto_rig_service: AutoRigService | None = None,
+    child_preference_classifier: ChildPreferenceClassifierPort | None = None,
+    activity_ranker: ActivityRankerPort | None = None,
+    pixi_show_planner: PixiShowPlannerPort | None = None,
+    pixi_show_asset_service: PixiShowAssetService | None = None,
+    whiteboard_video_job_service: WhiteboardVideoJobService | None = None,
+    whiteboard_video_pipeline: WhiteboardVideoPipeline | None = None,
+    story_video_job_service: StoryVideoJobService | None = None,
+    identity_account_provisioner: IdentityAccountProvisioner | None = None,
+    _composition_profile: Literal["combined", "classroom", "demo"] = "combined",
+) -> FastAPI:
+    """Create the compatibility or explicitly scoped classroom/demo HTTP app."""
+    _custom_session_service = session_service is not None
+    storage_example_settings = get_settings()
+    story_flag = os.environ.get("STORYRUN_LITE_MAIN_DEMO_ENABLED", "0")
+    if story_flag not in {"0", "1"}:
+        raise ValueError("StoryRun-lite main demo flag must be 0 or 1")
+    story_demo_enabled = story_flag == "1"
+    if story_demo_enabled and (
+        _composition_profile != "combined" or storage_example_settings.env not in {"local", "test"}
+    ):
+        raise ValueError("StoryRun-lite main demo requires the combined local/test app")
+
+    @asynccontextmanager
+    async def main_lifespan(app: FastAPI) -> AsyncIterator[None]:
+        async with runtime_lifespan(app, main_demo=True):
+            yield
+
     application = FastAPI(
         title="Sketch2Life API",
-        version="0.0.0",
+        version="1.0.0",
+        description=(
+            "Sketch2Life API for classroom management, collaborative learning, and the Lesson "
+            "Library.\n\n"
+            "Protected operations require a valid bearer token. Examples illustrate request and "
+            "response shapes; they do not create database records. Use IDs available in your "
+            "environment. Local operations depend on the selected app profile and configured "
+            "services."
+        ),
         docs_url="/docs",
         redoc_url=None,
+        openapi_tags=public_tags(TAG_DESCRIPTIONS),
+        lifespan=main_lifespan if story_demo_enabled else None,
     )
-    application.include_router(health_router)
+    if story_demo_enabled:
+        application.description += (
+            "\n\nStoryRun-lite routes are an unauthenticated, loopback-only synthetic demo; "
+            "they do not establish a real Parent identity."
+        )
+
+    if story_demo_enabled:
+        @application.middleware("http")
+        async def story_local_only(
+            request: Request, call_next: Callable[[Request], Awaitable[Response]]
+        ) -> Response:
+            if _story_run_lite_path(request.url.path):
+                client = request.scope.get("client")
+                server = request.scope.get("server")
+                proxy_headers = {"forwarded", "x-forwarded-for", "x-real-ip"}
+                if (
+                    not client or not server or not _loopback(client[0])
+                    or not _loopback(server[0])
+                    or not _local_host_header(request.headers.get("host", ""))
+                    or any(header in request.headers for header in proxy_headers)
+                ):
+                    return JSONResponse(status_code=403, content={"detail": "Local demo only"})
+            return await call_next(request)
+
+        application.add_exception_handler(StoryRunLiteError, story_error_response)
+
+    @application.middleware("http")
+    async def be1_request_context(request: Request, call_next):
+        if not request.url.path.startswith(
+            (
+                "/api/be1/v1",
+                "/api/lesson-library/v1",
+                "/api/parent/v1/ai/story-runs/",
+                "/v1/parent/profiles",
+                "/v1/story-runs",
+            )
+        ) and not _legacy_parent_story_revision_path(request.url.path):
+            return await call_next(request)
+        supplied_id = request.headers.get("X-Request-ID", "")
+        request_id = supplied_id if _SAFE_ID.fullmatch(supplied_id) else str(uuid4())
+        if request.url.path.startswith("/v1/parent/profiles"):
+            request.state.parent_request_id = request_id
+        elif request.url.path.startswith("/v1/story-runs") or (
+            _legacy_parent_story_revision_path(request.url.path)
+        ):
+            request.state.story_request_id = request_id
+        else:
+            request.state.be1_request_id = request_id
+        response = await call_next(request)
+        if not (
+            request.url.path.startswith(("/v1/parent/profiles", "/v1/story-runs"))
+            and response.headers.get("X-Request-ID")
+        ):
+            response.headers["X-Request-ID"] = request_id
+        return response
+
+    @application.exception_handler(StarletteHTTPException)
+    async def handle_http_exception(
+        request: Request, exc: StarletteHTTPException
+    ) -> JSONResponse:
+        if request.url.path.startswith("/v1/story-runs") or (
+            _legacy_parent_story_revision_path(request.url.path)
+        ):
+            detail: dict[str, Any] = exc.detail if isinstance(exc.detail, dict) else {}
+            status_codes = {
+                400: "INVALID_REQUEST",
+                401: "AUTH_REQUIRED",
+                403: "ACTION_NOT_ALLOWED",
+                404: "RESOURCE_NOT_FOUND",
+                409: "INVALID_STATE_TRANSITION",
+                413: "MEDIA_TOO_LARGE",
+                415: "UNSUPPORTED_MEDIA_TYPE",
+                422: "INVALID_REQUEST",
+                429: "RATE_LIMITED",
+                500: "INTERNAL_SERVER_ERROR",
+                502: "PROVIDER_BAD_RESPONSE",
+                503: "PROVIDER_UNAVAILABLE",
+                504: "PROVIDER_UNAVAILABLE",
+            }
+            safe_messages = {
+                "ACTIVE_RUN_EXISTS": "Đã có một lượt kể chuyện đang hoạt động.",
+                "ACTION_NOT_ALLOWED": "Tài khoản không được phép thực hiện thao tác này.",
+                "AUTH_REQUIRED": "Vui lòng xác thực lại tài khoản.",
+                "INVALID_IDEMPOTENCY_KEY": "Khóa yêu cầu trùng với nội dung khác.",
+                "INVALID_REQUEST": "Yêu cầu không hợp lệ.",
+                "INVALID_STATE_TRANSITION": "Lượt kể chuyện chưa ở trạng thái phù hợp.",
+                "PROFILE_CONTEXT_NOT_CONFIRMED": "Vui lòng xác nhận thông tin lượt kể chuyện.",
+                "PROVIDER_BAD_RESPONSE": "Không thể hoàn tất yêu cầu hiện tại.",
+                "PROVIDER_UNAVAILABLE": "Dịch vụ tạm thời chưa sẵn sàng.",
+                "RATE_LIMITED": "Bạn đã gửi quá nhiều yêu cầu. Vui lòng thử lại sau.",
+                "RESOURCE_NOT_FOUND": "Không tìm thấy tài nguyên được yêu cầu.",
+                "STALE_REVISION": "Thông tin đã thay đổi. Vui lòng tải lại và xác nhận lại.",
+                "UNSUPPORTED_MEDIA_TYPE": "Định dạng nội dung không được hỗ trợ.",
+            }
+            raw_code = detail.get("code", status_codes.get(exc.status_code, "REQUEST_FAILED"))
+            code = (
+                raw_code
+                if isinstance(raw_code, str)
+                and re.fullmatch(r"[A-Z][A-Z0-9_]{0,63}", raw_code)
+                else status_codes.get(exc.status_code, "REQUEST_FAILED")
+            )
+            request_id = getattr(request.state, "story_request_id", str(uuid4()))
+            retry_after = exc.headers.get("Retry-After") if exc.headers else None
+            retry_after_seconds = (
+                int(retry_after) if retry_after and retry_after.isdigit() else None
+            )
+            return JSONResponse(
+                status_code=exc.status_code,
+                content={
+                    "code": code,
+                    "message": safe_messages.get(code, "Không thể hoàn tất yêu cầu."),
+                    "correlation_id": request_id,
+                    "retryable": exc.status_code in {429, 502, 503, 504},
+                    "retry_after_seconds": retry_after_seconds,
+                    "field_errors": None,
+                },
+                headers={**(exc.headers or {}), "X-Request-ID": request_id},
+            )
+        if request.url.path.startswith("/v1/parent/profiles"):
+            detail = exc.detail if isinstance(exc.detail, dict) else {}
+            safe_messages = {
+                "AUTH_REQUIRED": "A verified bearer token is required",
+                "INVALID_TOKEN": "The bearer token could not be verified",
+                "TOKEN_EXPIRED": "The bearer token has expired",
+                "IDENTITY_PROVIDER_UNAVAILABLE": "Identity verification is unavailable",
+                "PARENT_STORE_UNAVAILABLE": "The profile store is unavailable",
+                "PROFILE_NOT_FOUND": "Profile was not found",
+                "INVALID_REQUEST": "The request is invalid",
+                "INVALID_IDEMPOTENCY_KEY": "The idempotency key conflicts with an earlier request",
+                "SYNTHETIC_PROFILE_CREATION_UNAVAILABLE": (
+                    "Synthetic Parent profile creation is unavailable"
+                ),
+                "STALE_REVISION": "The profile revision is stale",
+                "ACTION_NOT_ALLOWED": "The action is not allowed",
+                "INVALID_STATE_TRANSITION": "The profile cannot be changed in its current state",
+            }
+            default_codes = {
+                400: "INVALID_REQUEST",
+                401: "INVALID_TOKEN",
+                403: "ACTION_NOT_ALLOWED",
+                404: "PROFILE_NOT_FOUND",
+                409: "INVALID_REQUEST",
+                503: "PARENT_STORE_UNAVAILABLE",
+            }
+            code = detail.get("code", default_codes.get(exc.status_code, "REQUEST_FAILED"))
+            if not isinstance(code, str) or code not in safe_messages:
+                code = default_codes.get(exc.status_code, "REQUEST_FAILED")
+            request_id = getattr(request.state, "parent_request_id", str(uuid4()))
+            field_errors = detail.get("field_errors")
+            safe_field_errors = (
+                field_errors
+                if isinstance(field_errors, list)
+                and all(
+                    isinstance(item, dict)
+                    and isinstance(item.get("field"), str)
+                    and isinstance(item.get("code"), str)
+                    for item in field_errors
+                )
+                else None
+            )
+            return JSONResponse(
+                status_code=exc.status_code,
+                content=parent_error_payload(
+                    code=code,
+                    message=safe_messages.get(code, "The request could not be completed"),
+                    request_id=request_id,
+                    retryable=exc.status_code in {429, 503},
+                    field_errors=safe_field_errors,
+                    current_version=(
+                        detail["current_version"]
+                        if type(detail.get("current_version")) is int
+                        else None
+                    ),
+                ),
+                headers={**(exc.headers or {}), "X-Request-ID": request_id},
+            )
+        if request.url.path.startswith("/api/lesson-library/v1"):
+            detail = exc.detail if isinstance(exc.detail, dict) else {}
+            status_codes = {
+                401: "UNAUTHENTICATED", 403: "FORBIDDEN", 404: "RESOURCE_NOT_FOUND",
+                409: "INVALID_TRANSITION", 413: "REQUEST_TOO_LARGE",
+                415: "UNSUPPORTED_MEDIA_TYPE", 422: "INVALID_REQUEST",
+                428: "PRECONDITION_REQUIRED", 503: "DEPENDENCY_UNAVAILABLE",
+            }
+            code = detail.get("code", status_codes.get(exc.status_code, "REQUEST_FAILED"))
+            message = detail.get("message", "The Lesson Library request could not be completed")
+            request_id = getattr(request.state, "be1_request_id", str(uuid4()))
+            return JSONResponse(
+                status_code=exc.status_code,
+                content={
+                    "code": code if isinstance(code, str) else "REQUEST_FAILED",
+                    "message": (
+                        message
+                        if isinstance(message, str)
+                        else "The request could not be completed"
+                    ),
+                    "request_id": request_id,
+                },
+                headers={**(exc.headers or {}), "X-Request-ID": request_id},
+            )
+        if not request.url.path.startswith("/api/be1/v1"):
+            return await http_exception_handler(request, exc)
+        detail = exc.detail if isinstance(exc.detail, dict) else {}
+        status_codes = {
+            401: "AUTHENTICATION_REQUIRED",
+            403: "FORBIDDEN",
+            404: "NOT_FOUND",
+            409: "CONFLICT",
+            422: "REQUEST_VALIDATION_FAILED",
+            503: "SERVICE_UNAVAILABLE",
+        }
+        safe_messages = {
+            "AUTHENTICATION_REQUIRED": "A verified bearer token is required",
+            "INVALID_IDENTITY_TOKEN": "The bearer token could not be verified",
+            "IDENTITY_PROVIDER_UNAVAILABLE": "Identity verification is temporarily unavailable",
+            "DEVICE_AUTHENTICATION_REQUIRED": "A valid device grant and device key are required",
+            "INVALID_DEVICE_CREDENTIAL": "The device credential could not be verified",
+            "FORBIDDEN": "The caller is not authorized for this resource",
+            "NOT_FOUND": "The requested BE1 resource was not found",
+            "CONFLICT": "The request conflicts with current BE1 state",
+            "REQUEST_VALIDATION_FAILED": "The request does not match the BE1 API contract",
+            "SERVICE_UNAVAILABLE": "A required BE1 service is temporarily unavailable",
+            "INTERNAL_SERVER_ERROR": "The server could not complete the request",
+            "HTTP_ERROR": "The request could not be completed",
+        }
+        code = detail.get("code", status_codes.get(exc.status_code, "HTTP_ERROR"))
+        if not isinstance(code, str):
+            code = "HTTP_ERROR"
+        fallback_message = safe_messages.get(code, safe_messages["HTTP_ERROR"])
+        message = detail.get("message", fallback_message)
+        error = Be1Error(
+            code=code,
+            message=message if isinstance(message, str) else fallback_message,
+            request_id=getattr(request.state, "be1_request_id", str(uuid4())),
+        )
+        return JSONResponse(
+            status_code=exc.status_code,
+            content=error.model_dump(mode="json"),
+            headers=exc.headers,
+        )
+
+    @application.exception_handler(RequestValidationError)
+    async def handle_request_validation_error(
+        request: Request, exc: RequestValidationError
+    ) -> JSONResponse:
+        if story_demo_enabled and _story_run_lite_path(request.url.path):
+            return await story_validation_error_response(request, exc)
+        if request.url.path.startswith("/v1/story-runs") or (
+            _legacy_parent_story_revision_path(request.url.path)
+        ):
+            request_id = getattr(request.state, "story_request_id", str(uuid4()))
+            safe_fields = []
+            invalid_idempotency_key = False
+            for issue in exc.errors():
+                location = issue.get("loc", ())
+                if (
+                    len(location) >= 2
+                    and location[0] == "header"
+                    and location[1] == "Idempotency-Key"
+                ):
+                    invalid_idempotency_key = True
+                field_parts = [
+                    str(part)
+                    for part in location
+                    if str(part) not in {"body", "query", "header"}
+                ]
+                field = ".".join(
+                    part
+                    if part.isidentifier() or part == "Idempotency-Key"
+                    else "item"
+                    if part.isdigit()
+                    else "field"
+                    for part in field_parts[:6]
+                ) or "request"
+                safe_fields.append(
+                    {
+                        "field": field[:120],
+                        "code": "INVALID_FIELD",
+                        "message": "Giá trị trường không hợp lệ.",
+                    }
+                )
+            error_code = (
+                "INVALID_IDEMPOTENCY_KEY"
+                if invalid_idempotency_key
+                else "INVALID_REQUEST"
+            )
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "code": error_code,
+                    "message": (
+                        "Khóa yêu cầu không hợp lệ."
+                        if invalid_idempotency_key
+                        else "Yêu cầu không khớp với hợp đồng API."
+                    ),
+                    "correlation_id": request_id,
+                    "retryable": False,
+                    "retry_after_seconds": None,
+                    "field_errors": safe_fields or None,
+                },
+                headers={"X-Request-ID": request_id},
+            )
+        if request.url.path.startswith("/v1/parent/profiles"):
+            request_id = getattr(request.state, "parent_request_id", str(uuid4()))
+            return JSONResponse(
+                status_code=400,
+                content=parent_error_payload(
+                    code="INVALID_REQUEST",
+                    message="The request is invalid",
+                    request_id=request_id,
+                    field_errors=parent_field_errors(exc.errors()),
+                ),
+                headers={"X-Request-ID": request_id},
+            )
+        if request.url.path.startswith("/api/be1/v1"):
+            error = Be1Error(
+                code="REQUEST_VALIDATION_FAILED",
+                message="The request does not match the BE1 API contract",
+                request_id=getattr(request.state, "be1_request_id", str(uuid4())),
+            )
+            return JSONResponse(status_code=422, content=error.model_dump(mode="json"))
+        if request.url.path.startswith("/api/lesson-library/v1"):
+            request_id = getattr(request.state, "be1_request_id", str(uuid4()))
+            return JSONResponse(
+                status_code=422,
+                content={
+                    "code": "INVALID_REQUEST",
+                    "message": "The request does not match the Lesson Library API contract",
+                    "request_id": request_id,
+                },
+                headers={"X-Request-ID": request_id},
+            )
+        is_context_options_route = request.url.path.endswith(
+            "/p1/context-options"
+        ) or request.url.path.endswith("/p1/context-options/finalize")
+        if not is_context_options_route:
+            return JSONResponse(status_code=422, content={"detail": "request contract invalid"})
+
+        safe_paths: list[str] = []
+        safe_codes: list[str] = []
+        for issue in exc.errors():
+            location = issue.get("loc", ())
+            parts = [str(part) for part in location if str(part) not in {"body", "query"}]
+            safe_parts = [
+                part
+                if part in _SAFE_CONTEXT_PROFILE_FIELDS
+                else "item"
+                if part.isdigit()
+                else "field"
+                for part in parts[:8]
+            ]
+            path = ".".join(safe_parts) or "request"
+            code = issue.get("type")
+            safe_paths.append(path[:160])
+            safe_codes.append(
+                str(code)[:64]
+                if isinstance(code, str) and re.fullmatch(r"[a-z0-9_.-]+", code)
+                else "validation_error"
+            )
+
+        request_id = request.headers.get("X-Request-ID", "validation-error")
+        if not _SAFE_ID.fullmatch(request_id):
+            request_id = "validation-error"
+        path_session_id = request.path_params.get("session_id", "unknown-session")
+        if not isinstance(path_session_id, str) or not _SAFE_ID.fullmatch(path_session_id):
+            path_session_id = "unknown-session"
+        raw_expected_version = request.headers.get("X-Expected-Session-Version", "0")
+        expected_version = int(raw_expected_version) if raw_expected_version.isdigit() else 0
+        expected_version = min(expected_version, 2**31 - 1)
+
+        # Only bounded Pydantic locations and error codes are logged. Submitted values,
+        # free text, request bodies, and Pydantic's human-readable messages are excluded.
+        _LOGGER.warning(
+            "request_validation_failed route=p1_context_options request_id=%s fields=%s codes=%s",
+            request_id,
+            ",".join(dict.fromkeys(safe_paths)) or "request",
+            ",".join(dict.fromkeys(safe_codes)) or "validation_error",
+        )
+        failure = MobileWorkflowResultV1(
+            status="FAILED",
+            request_id=request_id,
+            session_id=path_session_id,
+            expected_session_version=expected_version,
+            observed_session_version=expected_version,
+            provenance=WorkflowResultProvenanceV1(
+                producer="APPLICATION",
+                component="request-validation",
+                component_version="1.0",
+                source_contracts=(
+                    (
+                        "P1ContextOptionsRequestV2"
+                        if request.url.path.endswith("/p1/context-options/finalize")
+                        else "P1ContextOptionsQueryV1"
+                        if request.method == "GET"
+                        else "P1ContextOptionsRequestV1"
+                    ),
+                ),
+            ),
+            failure=WorkflowFailureV1(
+                domain="TRANSPORT",
+                code="REQUEST_VALIDATION_FAILED",
+                retryable=False,
+                safe_message=(
+                    "Một số thông tin hồ sơ chưa hợp lệ. Hãy kiểm tra lựa chọn rồi thử lại."
+                ),
+            ),
+        )
+        return JSONResponse(status_code=422, content=failure.model_dump(mode="json"))
+
+    @application.exception_handler(Exception)
+    async def handle_unexpected_exception(request: Request, exc: Exception):
+        if story_demo_enabled and _story_run_lite_path(request.url.path):
+            return await story_unexpected_error_response(request, exc)
+        if request.url.path.startswith("/v1/story-runs") or (
+            _legacy_parent_story_revision_path(request.url.path)
+        ):
+            request_id = getattr(request.state, "story_request_id", str(uuid4()))
+            _LOGGER.error(
+                "parent_story_run_unhandled_exception request_id=%s exception_type=%s",
+                request_id,
+                type(exc).__name__,
+            )
+            return JSONResponse(
+                status_code=500,
+                content={
+                    "code": "INTERNAL_SERVER_ERROR",
+                    "message": "Không thể hoàn tất yêu cầu.",
+                    "correlation_id": request_id,
+                    "retryable": False,
+                    "retry_after_seconds": None,
+                    "field_errors": None,
+                },
+                headers={"X-Request-ID": request_id},
+            )
+        if request.url.path.startswith("/api/lesson-library/v1"):
+            request_id = getattr(request.state, "be1_request_id", str(uuid4()))
+            _LOGGER.error(
+                "lesson_library_unhandled_exception request_id=%s exception_type=%s",
+                request_id,
+                type(exc).__name__,
+            )
+            return JSONResponse(
+                status_code=500,
+                content={
+                    "code": "INTERNAL_SERVER_ERROR",
+                    "message": "The server could not complete the request",
+                    "request_id": request_id,
+                },
+                headers={"X-Request-ID": request_id},
+            )
+        if request.url.path.startswith("/v1/parent/profiles"):
+            request_id = getattr(request.state, "parent_request_id", str(uuid4()))
+            _LOGGER.error(
+                "parent_unhandled_exception request_id=%s exception_type=%s",
+                request_id,
+                type(exc).__name__,
+            )
+            return JSONResponse(
+                status_code=500,
+                content={
+                    "code": "INTERNAL_SERVER_ERROR",
+                    "message": "The server could not complete the request",
+                    "correlation_id": request_id,
+                    "retryable": False,
+                    "request_id": request_id,
+                },
+                headers={"X-Request-ID": request_id},
+            )
+        if not request.url.path.startswith("/api/be1/v1"):
+            del exc
+            return PlainTextResponse("Internal Server Error", status_code=500)
+        request_id = getattr(request.state, "be1_request_id", str(uuid4()))
+        _LOGGER.error(
+            "be1_unhandled_exception request_id=%s exception_type=%s",
+            request_id,
+            type(exc).__name__,
+        )
+        error = Be1Error(
+            code="INTERNAL_SERVER_ERROR",
+            message="The server could not complete the request",
+            request_id=request_id,
+        )
+        return JSONResponse(
+            status_code=500,
+            content=error.model_dump(mode="json"),
+            headers={"X-Request-ID": request_id},
+        )
+
+    application.add_middleware(
+        BoundedImageUploadMiddleware,
+        max_storage_example_body_bytes=(
+            storage_example_settings.storage_example_max_upload_bytes + 64 * 1024
+        ),
+    )
+    scene_localizer = None
+    pixi_show_planner_required = False
+    if _composition_profile != "classroom" and session_service is None:
+        demo_stores = build_demo_stores()
+        artifacts = demo_stores.artifacts
+        idempotency = demo_stores.idempotency
+        renderer_source_grants = demo_stores.renderer_source_grants
+        settings = get_settings()
+        pixi_show_planner_required = settings.pixi_show_planner_enabled
+        if child_preference_classifier is None:
+            child_preference_classifier = _configured_lightning_preference_classifier(settings)
+        if activity_ranker is None:
+            activity_ranker = _configured_lightning_activity_ranker(settings)
+        if pixi_show_planner is None:
+            pixi_show_planner = _configured_lightning_pixi_show_planner(settings)
+        if auto_rig_service is None:
+            auto_rig_service = AutoRigService(
+                artifacts=artifacts,
+                grants=InMemoryRigPackageGrantStore(),
+                jobs=InMemoryJobStore(),
+                segmenter=_configured_lightning_sam21(settings, artifacts),
+            )
+        session_service = build_ephemeral_session_service(
+            stores=demo_stores,
+            settings=settings,
+        )
+        if live_image_demo_service is None:
+            vision = _configured_lightning_vision(settings, artifacts)
+            asr = _configured_lightning_asr(settings, artifacts)
+            # Geometry localization is intentionally disabled in the normal demo path.  The
+            # owner requested the fast topic-direction flow; Pixi keeps its whole-drawing
+            # fallback until a separate localization slice is approved again.
+            scene_localizer = None
+            _LOGGER.info(
+                "ai_adapters_configured provider=%s base_url_configured=%s "
+                "token_file_configured=%s "
+                "vision=%s asr=%s vision_profile=%s asr_profile=%s vision_path=%s asr_path=%s",
+                settings.ai_provider,
+                bool(settings.lightning_ai_base_url),
+                settings.lightning_ai_token_file is not None,
+                vision is not None,
+                asr is not None,
+                settings.lightning_model_profile,
+                settings.lightning_asr_profile,
+                settings.lightning_vision_v2_path,
+                settings.lightning_asr_path,
+            )
+            live_image_demo_service = LiveImageDemoService(
+                sessions=session_service,
+                artifacts=artifacts,
+                idempotency=idempotency,
+                admission=Feat018ImageAdmission(AvImageDecoder()),
+                vision=vision,
+                renderer_source_grants=renderer_source_grants,
+                asr=asr,
+                scene_localizer=scene_localizer,
+                asr_profile_id=AsrProfileId(settings.lightning_asr_profile),
+            )
+        if whiteboard_video_pipeline is None:
+            # Use the exact store owned by the upload service.  This keeps the
+            # admitted source image visible to the background video job even
+            # when the service is supplied by an alternate composition path.
+            source_artifacts = (
+                live_image_demo_service.artifact_store
+                if live_image_demo_service is not None
+                else artifacts
+            )
+            whiteboard_video_pipeline = _configured_whiteboard_pipeline(settings, source_artifacts)
+        if story_video_job_service is None:
+            story_source_artifacts = (
+                live_image_demo_service.artifact_store
+                if live_image_demo_service is not None
+                else artifacts
+            )
+            story_pipeline = _configured_story_video_pipeline(settings, story_source_artifacts)
+            story_video_job_service = StoryVideoJobService(
+                pipeline=story_pipeline,
+                session_snapshot=session_service.snapshot,
+                gate_evidence=lambda session_id: StoryGateEvidence.from_workflow(
+                    session_service.workflow_record(session_id)
+                ),
+                source_artifacts=story_source_artifacts,
+            )
+        if supervised_flow_service is None:
+            repo_root = Path(__file__).resolve().parents[5]
+            p1_library = load_p1_template_library(
+                repo_root, include_mvp=True, include_expansion=True
+            )
+            semantic_catalog = load_activity_semantic_catalog(repo_root)
+            semantic_catalog_v2 = load_activity_semantic_catalog_v2(
+                repo_root, include_expansion=True
+            )
+            catalog_metadata = FileWorkflowCatalogMetadata(repo_root)
+            p1_compiler = P1ExperienceCompiler(
+                p1_library.templates,
+                p1_library.objective_titles_vi,
+            )
+            asset_catalog_path = (
+                repo_root
+                / "features"
+                / "FEAT-028-pixi-topic-asset-library"
+                / "assets"
+                / "generated"
+                / "asset-catalog.v2.json"
+            )
+            topic_assets = load_topic_asset_catalog(asset_catalog_path)
+            feature_root = asset_catalog_path.resolve().parents[2]
+            if pixi_show_asset_service is None:
+                pixi_show_asset_service = PixiShowAssetService(
+                    feature_root=feature_root,
+                    assets=topic_assets,
+                    motion_cycle_manifest_path=(
+                        asset_catalog_path.parent / "motion-cycle-review-manifest.rev1.json"
+                    ),
+                    motion_cycle_dev_preview_catalog_path=(
+                        feature_root
+                        / "assets"
+                        / "applied"
+                        / "motion-cycle-local-preview-catalog.v1.json"
+                    ),
+                    allow_dev_preview=settings.pixi_sprite_cycle_dev_preview_allowed,
+                )
+
+            def load_pixi_subject_crop(
+                session_id: str,
+                source_ref: str,
+                source_sha256: str,
+                mask_ref: str,
+                mask_sha256: str,
+            ) -> tuple[bytes, str, SourceRegionV1]:
+                source_item = artifacts.get(source_ref)
+                mask_item = artifacts.get(mask_ref)
+                if (
+                    source_item is None
+                    or mask_item is None
+                    or source_item[0].session_id != session_id
+                    or mask_item[0].session_id != session_id
+                    or source_item[0].sha256 != source_sha256
+                    or mask_item[0].sha256 != mask_sha256
+                    or source_item[0].content_type not in {"image/png", "image/jpeg"}
+                    or mask_item[0].content_type != "image/png"
+                ):
+                    from sketch2life.infrastructure.ai.pixi_subject_crop import (
+                        PixiSubjectCropUnavailable,
+                    )
+
+                    raise PixiSubjectCropUnavailable from None
+                return build_pixi_subject_crop(source_item[1], mask_item[1])
+
+            def issue_pixi_motion_cycle(
+                cycle_id: str,
+                *,
+                start_seconds: float,
+                end_seconds: float,
+                x: float,
+                y: float,
+            ) -> PixiMotionCycleIssue:
+                if pixi_show_asset_service is None:
+                    return PixiMotionCycleIssue(None, "ASSET_UNAVAILABLE")
+                try:
+                    cycle = pixi_show_asset_service.issue_motion_cycle_read(
+                        cycle_id,
+                        start_seconds=start_seconds,
+                        end_seconds=end_seconds,
+                        x=x,
+                        y=y,
+                    )
+                    return PixiMotionCycleIssue(cycle)
+                except PixiShowAssetUnavailable as error:
+                    return PixiMotionCycleIssue(None, error.reason_code)
+
+            supervised_flow_service = SupervisedFlowService(
+                sessions=session_service,
+                idempotency=idempotency,
+                p1_compiler=p1_compiler,
+                topic_assets=topic_assets,
+                semantic_catalog=semantic_catalog,
+                semantic_catalog_v2=semantic_catalog_v2,
+                catalog_metadata=catalog_metadata,
+                scene_localizer=scene_localizer,
+                renderer_source_capability_issuer=(
+                    live_image_demo_service.issue_renderer_source_capability
+                    if live_image_demo_service is not None
+                    else None
+                ),
+                auto_rig_service=auto_rig_service,
+                activity_ranker=activity_ranker,
+                pixi_show_planner=pixi_show_planner,
+                pixi_show_planner_required=pixi_show_planner_required,
+                pixi_show_crop_provider=load_pixi_subject_crop,
+                pixi_show_asset_issuer=pixi_show_asset_service.issue_reads,
+                pixi_show_candidate_preview_provider=pixi_show_asset_service.preview_candidates,
+                pixi_motion_cycle_issuer=issue_pixi_motion_cycle,
+            )
+    application.state.session_service = session_service
+    application.state.live_image_demo_service = live_image_demo_service
+    application.state.supervised_flow_service = supervised_flow_service
+    application.state.auto_rig_service = auto_rig_service
+    application.state.child_preference_classifier = child_preference_classifier
+    application.state.activity_ranker = activity_ranker
+    application.state.pixi_show_planner = pixi_show_planner
+    application.state.pixi_show_asset_service = pixi_show_asset_service
+    if whiteboard_video_job_service is None:
+        whiteboard_video_job_service = WhiteboardVideoJobService(
+            pipeline=whiteboard_video_pipeline or UnconfiguredWhiteboardVideoPipeline()
+        )
+    application.state.whiteboard_video_job_service = whiteboard_video_job_service
+    application.state.story_video_job_service = story_video_job_service or StoryVideoJobService()
+    application.state.storage_example_service = None
+    application.state.be1_runtime = build_be1_runtime(
+        get_settings(), pilot_vision_factory=build_default_pilot_vision
+    )
+    application.state.identity_account_provisioner = (
+        identity_account_provisioner or FirebaseAdminAccountProvisioner(storage_example_settings)
+    )
+    application.state.registration_rate_limiter = RegistrationRateLimiter()
+    application.state.lesson_library_storage = None
+    application.state.lesson_document_parser = None
+    application.state.lesson_document_scanner = None
+    if _composition_profile == "combined":
+        mount_all_routers(application, include_parent_story_runs=not story_demo_enabled)
+        if story_demo_enabled:
+            application.include_router(story_run_lite_router)
+    elif _composition_profile == "classroom":
+        mount_classroom_routers(application)
+    else:
+        mount_demo_routers(application)
+    if (
+        _composition_profile == "combined"
+        and storage_example_settings.env == "local"
+        and storage_example_settings.storage_example_enabled
+    ):
+        access_key = storage_example_settings.s3_access_key
+        secret_key = storage_example_settings.s3_secret_key
+        storage = Boto3S3CompatibleObjectStorage(
+            bucket=storage_example_settings.s3_bucket,
+            endpoint_url=storage_example_settings.s3_endpoint,
+            region_name=storage_example_settings.s3_region,
+            access_key=access_key.get_secret_value() if access_key else None,
+            secret_key=secret_key.get_secret_value() if secret_key else None,
+        )
+        application.state.storage_example_service = StorageExampleService(
+            storage,
+            max_upload_bytes=storage_example_settings.storage_example_max_upload_bytes,
+        )
+        application.include_router(storage_examples_router)
+    if _composition_profile == "combined":
+        access_key = storage_example_settings.s3_access_key
+        secret_key = storage_example_settings.s3_secret_key
+        application.state.lesson_library_storage = Boto3S3CompatibleObjectStorage(
+            bucket=storage_example_settings.s3_bucket,
+            endpoint_url=storage_example_settings.s3_endpoint,
+            region_name=storage_example_settings.s3_region,
+            access_key=access_key.get_secret_value() if access_key else None,
+            secret_key=secret_key.get_secret_value() if secret_key else None,
+        )
+        application.state.lesson_document_parser = DeterministicLessonDocumentParser()
+        application.state.lesson_document_scanner = ClamAvScanner(
+            host=storage_example_settings.clamav_host,
+            port=storage_example_settings.clamav_port,
+        )
+    renderer_dist = Path(__file__).resolve().parents[5] / "packages" / "art-renderer" / "dist-demo"
+    if renderer_dist.is_dir():
+        application.mount(
+            "/renderer",
+            StaticFiles(directory=renderer_dist, html=True),
+            name="pixi-renderer",
+        )
+
+    def build_runtime_openapi_schema() -> dict[str, object]:
+        runtime_schema = getattr(application.state, "runtime_openapi_schema", None)
+        if isinstance(runtime_schema, dict):
+            return runtime_schema
+        schema = get_openapi(
+            title=application.title,
+            version=application.version,
+            description=application.description,
+            routes=application.routes,
+            tags=application.openapi_tags,
+        )
+        components = schema.setdefault("components", {})
+        schemas = components.setdefault("schemas", {})
+        if isinstance(schemas, dict):
+            for parent_request_model in (
+                CreateParentProfileRequest,
+                PatchParentProfileRequest,
+            ):
+                model_schema = parent_request_model.model_json_schema(
+                    ref_template="#/components/schemas/{model}"
+                )
+                schemas[parent_request_model.__name__] = model_schema
+        bearer_scheme = (
+            schema.get("components", {})
+            .get("securitySchemes", {})
+            .get("HTTPBearer")
+        )
+        if isinstance(bearer_scheme, dict):
+            bearer_scheme["description"] = (
+                "Use a valid token from the configured identity provider. Swagger UI adds the "
+                "Bearer prefix. Authentication identifies the caller; each operation checks "
+                "its own role and resource permissions."
+            )
+        for path, path_item in schema.get("paths", {}).items():
+            if not isinstance(path_item, dict):
+                continue
+            for method, operation in path_item.items():
+                if not isinstance(operation, dict) or method.lower() not in {
+                    "get",
+                    "post",
+                    "put",
+                    "patch",
+                    "delete",
+                    "options",
+                    "head",
+                }:
+                    continue
+                contract = MOUNTED_OPERATIONS.get((method.lower(), path))
+                if contract is None:
+                    continue
+                expected_handler = contract["handler"].rsplit("::", maxsplit=1)[-1]
+                mounted_handler = next(
+                    (
+                        getattr(getattr(route, "endpoint", None), "__name__", None)
+                        for route in application.routes
+                        if getattr(route, "path", None) == path
+                        and method.upper() in (getattr(route, "methods", None) or ())
+                    ),
+                    None,
+                )
+                if mounted_handler != expected_handler:
+                    continue
+                operation["description"] = contract["purpose"]
+                if (method.lower(), path) == (
+                    "post",
+                    "/api/be1/v1/organizations/{organization_id}/sessions/"
+                    "{session_id}/groups/{group_id}/restore",
+                ):
+                    operation["description"] += (
+                        "\n\n**Access:** a valid bearer token and a Teacher or School Admin "
+                        "assignment for the class. Effective group consent and an existing "
+                        "checkpoint are required. This operation is available in local/test "
+                        "until production checkpoint storage is configured."
+                    )
+                operation["tags"] = [public_tag_name(contract["tag"])]
+                effective_responses = published_responses(
+                    (method.lower(), path), contract["responses"]
+                )
+                declared_responses = {
+                    response["status"]: response for response in effective_responses
+                }
+                runtime_responses = operation.setdefault("responses", {})
+                if path.startswith(("/api/be1/v1/", "/v1/parent/profiles")):
+                    for status in tuple(runtime_responses):
+                        if status not in declared_responses:
+                            del runtime_responses[status]
+                for status, declared in declared_responses.items():
+                    response = runtime_responses.get(status)
+                    if not isinstance(response, dict):
+                        response = {"description": declared["description"]}
+                        if declared["media_type"]:
+                            response["content"] = {
+                                declared["media_type"]: {
+                                    "schema": _contract_response_schema(
+                                        declared["schema_name"], schema
+                                    )
+                                }
+                            }
+                        runtime_responses[status] = response
+                    else:
+                        response["description"] = declared["description"]
+                    if (
+                        status == "422"
+                        and path.startswith("/v1/parent/profiles")
+                        and declared["media_type"]
+                    ):
+                        response["content"] = {
+                            declared["media_type"]: {
+                                "schema": _contract_response_schema(
+                                    declared["schema_name"], schema
+                                )
+                            }
+                        }
+                    if declared["media_type"] and declared["schema_name"] == "object":
+                        response_schema = (
+                            response.get("content", {})
+                            .get(declared["media_type"], {})
+                            .get("schema")
+                        )
+                        if isinstance(response_schema, dict):
+                            response_schema.setdefault("type", "object")
+                    if declared["media_type"] and declared["schema_name"] == "binary":
+                        response["content"] = {
+                            declared["media_type"]: {
+                                "schema": _contract_response_schema(
+                                    declared["schema_name"], schema
+                                )
+                            }
+                        }
+        for path, path_item in schema.get("paths", {}).items():
+            if not path.startswith(("/api/be1/v1/", "/v1/parent/profiles")) or not isinstance(
+                path_item, dict
+            ):
+                continue
+            for operation in path_item.values():
+                if not isinstance(operation, dict) or "responses" not in operation:
+                    continue
+                parameters = operation.setdefault("parameters", [])
+                if not any(
+                    parameter.get("in") == "header"
+                    and parameter.get("name") == "X-Request-ID"
+                    for parameter in parameters
+                ):
+                    parameters.append(
+                        {
+                            "name": "X-Request-ID",
+                            "in": "header",
+                            "required": False,
+                            "description": (
+                                "Optional safe correlation ID; generated when omitted or invalid."
+                            ),
+                            "schema": {
+                                "type": "string",
+                                "maxLength": 120,
+                                "pattern": "^[A-Za-z0-9._:-]{1,120}$",
+                            },
+                        }
+                    )
+                for response in operation["responses"].values():
+                    if not isinstance(response, dict):
+                        continue
+                    response_headers = response.setdefault("headers", {})
+                    response_headers.setdefault(
+                        "X-Request-ID",
+                        {
+                            "description": "Correlation ID for this response.",
+                            "schema": {"type": "string", "maxLength": 120},
+                        },
+                    )
+
+        session_operation = schema.get("paths", {}).get("/v1/sessions", {}).get("post", {})
+        session_content = (
+            session_operation.get("requestBody", {}).get("content", {}).get("application/json")
+            if isinstance(session_operation, dict)
+            else None
+        )
+        if isinstance(session_content, dict):
+            session_content["examples"] = {
+                "localSyntheticSession": {
+                    "summary": "Create a process-local synthetic demo session",
+                    "description": (
+                        "Use a fresh UUIDv4 for each run. The session exists only in this "
+                        "API process and is cleared when it restarts."
+                    ),
+                    "value": {
+                        "request_id": "swagger-qa-session-001",
+                        "idempotency_key": "swagger-qa-session-001",
+                        "session_id": "d5f439fa-3065-4a5e-a06e-52a57514781f",
+                        "expected_session_version": 0,
+                        "actor_ref": "demo:local",
+                        "payload": {"operation": "CREATE_SESSION"},
+                    },
+                }
+            }
+        if isinstance(session_operation, dict):
+            session_operation["description"] = (
+                f"{session_operation.get('description', '')}\n\n"
+                "**Local synthetic Try it out:** use a fresh UUIDv4 for `session_id`. "
+                "Copy `observed_session_version` from the response into the next request. "
+                "This demo session is process-local and makes no persistent database write."
+            ).strip()
+
+        image_operation = schema.get("paths", {}).get(
+            "/v1/sessions/{session_id}/media/image", {}
+        ).get("post", {})
+        image_content = (
+            image_operation.get("requestBody", {}).get("content", {}).get("multipart/form-data")
+            if isinstance(image_operation, dict)
+            else None
+        )
+        if isinstance(image_content, dict):
+            image_content["examples"] = {
+                "localSyntheticPng": {
+                    "summary": "Upload the supplied synthetic PNG",
+                    "description": (
+                        "Choose `features/FEAT-063-system-architecture-rearchitecture/"
+                        "artifacts/qa-fixtures/synthetic-demo.png` in the image field."
+                    ),
+                    "value": {
+                        "image": "synthetic-demo.png",
+                        "source_media_type": "image/png",
+                        "normalization_policy": "IDENTITY_V1",
+                    },
+                }
+            }
+        if isinstance(image_operation, dict):
+            image_operation["description"] = (
+                f"{image_operation.get('description', '')}\n\n"
+                "**Local synthetic Try it out:** first call `POST /v1/sessions`, then use its "
+                "`session_id` and `observed_session_version`. Select the supplied synthetic "
+                "non-child PNG above, keep `normalization_policy` as `IDENTITY_V1`, and set "
+                "`X-Synthetic-Non-Child-Confirmed` to `true`. The upload is processed locally "
+                "without invoking an AI provider."
+            ).strip()
+            header_examples = {
+                "X-Request-ID": "swagger-qa-image-001",
+                "X-Expected-Session-Version": 0,
+                "Idempotency-Key": "swagger-qa-image-001",
+                "X-Actor-Ref": "demo:local",
+                "X-Synthetic-Non-Child-Confirmed": True,
+            }
+            for parameter in image_operation.get("parameters", []):
+                if parameter.get("in") == "header" and parameter.get("name") in header_examples:
+                    parameter["example"] = header_examples[parameter["name"]]
+        portfolio_path = (
+            "/api/be1/v1/organizations/{organization_id}/classes/"
+            "{class_id}/profiles/{child_id}/portfolio"
+        )
+        portfolio_operation = schema.get("paths", {}).get(portfolio_path, {}).get("get")
+        if isinstance(portfolio_operation, dict):
+            portfolio_operation["description"] = (
+                f"{portfolio_operation.get('description', '')}\n\n"
+                "**Implementation gap:** the Rev37 catalog lists a 200 response, but the current "
+                "handler has no success path. After profile lookup it returns `409 "
+                "CONSENT_NOT_EFFECTIVE` until an approved portfolio-purpose verifier is available."
+            ).strip()
+
+        add_request_examples(schema)
+        add_multipart_examples(schema)
+        add_response_examples(schema)
+        add_error_examples(schema)
+        application.state.runtime_openapi_schema = schema
+        return application.state.runtime_openapi_schema
+
+    def be1_openapi_schema(*, fe_projected: bool | None = None) -> dict[str, object]:
+        runtime_schema = build_runtime_openapi_schema()
+        should_project = (
+            fe_projected
+            if fe_projected is not None
+            else (_composition_profile == "combined" and not _custom_session_service)
+        )
+        if not should_project:
+            return runtime_schema
+        if application.openapi_schema is not None and fe_projected is None:
+            return application.openapi_schema
+        schema = project_srs_v22_openapi(runtime_schema)
+        if story_demo_enabled:
+            schema["paths"].update(
+                (path, path_item)
+                for path, path_item in runtime_schema.get("paths", {}).items()
+                if _story_run_lite_path(path)
+            )
+            add_story_run_lite_contract(schema)
+            schema["info"]["description"] += (
+                "\n\nStoryRun-lite is an unauthenticated loopback-only synthetic demo."
+            )
+        application.openapi_schema = schema
+        return schema
+
+    application.openapi = be1_openapi_schema
     return application
+
+
+def create_classroom_app() -> FastAPI:
+    """Create the durable classroom HTTP profile without process-local demo routes."""
+    return create_app(_composition_profile="classroom")
+
+
+def create_demo_app() -> FastAPI:
+    """Create the local/demo HTTP profile without durable classroom routes."""
+    return create_app(_composition_profile="demo")
+
+
+def _configured_lightning_preference_classifier(
+    settings: Settings,
+) -> LightningChildPreferenceClassifier | None:
+    if (
+        settings.env == "test"
+        or settings.ai_provider != "lightning_dev"
+        or not settings.lightning_ai_base_url
+        or settings.lightning_ai_token_file is None
+    ):
+        return None
+    try:
+        token = read_secret_file(settings.lightning_ai_token_file)
+        transport = UrllibJsonTransport(
+            base_url=settings.lightning_ai_base_url,
+            token=token,
+            request_timeout_seconds=settings.ai_request_timeout_seconds,
+        )
+    except (OSError, ValueError):
+        return None
+    return LightningChildPreferenceClassifier(transport=transport)
+
+
+def _configured_lightning_activity_ranker(
+    settings: Settings,
+) -> LightningActivityRanker | None:
+    if (
+        settings.env == "test"
+        or settings.ai_provider != "lightning_dev"
+        or not settings.lightning_ai_base_url
+        or settings.lightning_ai_token_file is None
+    ):
+        return None
+    try:
+        token = read_secret_file(settings.lightning_ai_token_file)
+        transport = UrllibJsonTransport(
+            base_url=settings.lightning_ai_base_url,
+            token=token,
+            request_timeout_seconds=min(settings.ai_request_timeout_seconds, 30.0),
+        )
+    except (OSError, ValueError):
+        return None
+    return LightningActivityRanker(transport=transport)
+
+
+def _configured_lightning_pixi_show_planner(
+    settings: Settings,
+) -> LightningPixiShowPlanner | None:
+    if (
+        not settings.pixi_show_planner_enabled
+        or settings.env == "test"
+        or settings.ai_provider != "lightning_dev"
+        or not settings.lightning_ai_base_url
+        or settings.lightning_ai_token_file is None
+    ):
+        return None
+    try:
+        token = read_secret_file(settings.lightning_ai_token_file)
+        transport = UrllibJsonTransport(
+            base_url=settings.lightning_ai_base_url,
+            token=token,
+            request_timeout_seconds=min(settings.ai_request_timeout_seconds, 60.0),
+        )
+    except (OSError, ValueError):
+        return None
+    return LightningPixiShowPlanner(
+        transport=transport,
+        endpoint_path=settings.lightning_pixi_show_path,
+    )
+
+
+def _configured_lightning_vision(
+    settings: Settings, artifacts: InMemoryArtifactStore
+) -> LightningVisionV2Adapter | None:
+    if (
+        settings.env == "test"
+        or settings.ai_provider != "lightning_dev"
+        or not settings.lightning_ai_base_url
+        or settings.lightning_ai_token_file is None
+    ):
+        return None
+    try:
+        token = read_secret_file(settings.lightning_ai_token_file)
+        transport = UrllibJsonTransport(
+            base_url=settings.lightning_ai_base_url,
+            token=token,
+            request_timeout_seconds=settings.ai_request_timeout_seconds,
+        )
+    except (OSError, ValueError):
+        return None
+
+    def load_artifact(artifact_ref: str) -> bytes:
+        stored = artifacts.get(artifact_ref)
+        if stored is None:
+            raise KeyError("image artifact is unavailable")
+        return stored[1]
+
+    return LightningVisionV2Adapter(
+        transport=transport,
+        artifact_loader=load_artifact,
+        endpoint_path=settings.lightning_vision_v2_path,
+    )
+
+
+def _configured_story_video_pipeline(
+    settings: Settings, artifacts: InMemoryArtifactStore
+) -> StoryVideoPipeline | None:
+    if settings.env == "test" or settings.ai_provider != "lightning_dev":
+        return None
+    if not settings.lightning_ai_base_url:
+        return None
+    try:
+        token = (
+            read_secret_file(settings.lightning_ai_token_file)
+            if settings.lightning_ai_token_file is not None
+            else ""
+        )
+        transport = UrllibJsonTransport(
+            base_url=settings.lightning_ai_base_url,
+            token=token,
+            request_timeout_seconds=settings.story_video_request_timeout_seconds,
+        )
+    except (OSError, ValueError):
+        return None
+
+    def load_artifact(artifact_ref: str) -> bytes:
+        stored = artifacts.get(artifact_ref)
+        if stored is None:
+            raise KeyError("story video source artifact is unavailable")
+        return stored[1]
+
+    adapter = LightningStoryVideoAdapter(transport=transport, artifact_loader=load_artifact)
+    return StoryVideoPipeline(
+        narration=LightningNarrationProvider(adapter),
+        illustrations=LightningIllustrationProvider(adapter),
+        motion=LightningMotionProvider(adapter),
+        assembler=LightningVideoAssembler(adapter),
+        motion_model_profile_ref=os.getenv(
+            "SKETCH2LIFE_STORY_MOTION_PROVIDER", "whiteboard-stroke-v1"
+        ),
+        story_render_v2_enabled=settings.story_render_v2_enabled,
+    )
+
+
+def _configured_whiteboard_pipeline(
+    settings: Settings, artifacts: InMemoryArtifactStore
+) -> WhiteboardVideoPipeline | None:
+    if (
+        settings.env == "test"
+        or not settings.whiteboard_video_enabled
+        or settings.ai_provider != "lightning_dev"
+        or not settings.lightning_ai_base_url
+        or settings.whiteboard_learning_thread_fixture is None
+    ):
+        return None
+    try:
+        token = (
+            read_secret_file(settings.lightning_ai_token_file)
+            if settings.lightning_ai_token_file is not None
+            else ""
+        )
+        transport = UrllibJsonTransport(
+            base_url=settings.lightning_ai_base_url,
+            token=token,
+            request_timeout_seconds=settings.ai_request_timeout_seconds,
+        )
+        script_path = settings.whiteboard_learning_thread_fixture
+        if not script_path.is_absolute():
+            script_path = Path(__file__).resolve().parents[4] / script_path
+        scripts = WhiteboardLearningThreadScripts(script_path)
+        tts = EspeakVietnameseTts(settings.whiteboard_tts_executable)
+        encoder = FfmpegWhiteboardEncoder(settings.whiteboard_ffmpeg_executable)
+        return build_lightning_whiteboard_mvp_pipeline(
+            transport=transport,
+            artifacts=artifacts,
+            artifact_root=settings.whiteboard_video_artifact_root,
+            script_for=scripts.script_for,
+            synthesize_tts=tts.synthesize,
+            encode_mp4=encoder.encode,
+            inspect_mp4=encoder.inspect,
+            localization_path=settings.lightning_whiteboard_localization_path,
+            segmentation_path=settings.lightning_whiteboard_segmentation_path,
+            max_size_bytes=settings.whiteboard_video_max_size_bytes,
+        )
+    except (OSError, RuntimeError, ValueError):
+        _LOGGER.exception("whiteboard_pipeline_configuration_failed")
+        return None
+
+
+def _configured_lightning_asr(
+    settings: Settings, artifacts: InMemoryArtifactStore
+) -> LightningAsrV2Adapter | None:
+    if (
+        settings.env == "test"
+        or settings.ai_provider != "lightning_dev"
+        or not settings.lightning_ai_base_url
+        or settings.lightning_ai_token_file is None
+    ):
+        return None
+    try:
+        token = read_secret_file(settings.lightning_ai_token_file)
+        transport = UrllibJsonTransport(
+            base_url=settings.lightning_ai_base_url,
+            token=token,
+            request_timeout_seconds=settings.ai_request_timeout_seconds,
+        )
+    except (OSError, ValueError):
+        return None
+
+    def load_artifact(artifact_ref: str) -> bytes:
+        stored = artifacts.get(artifact_ref)
+        if stored is None:
+            raise KeyError("audio artifact is unavailable")
+        return stored[1]
+
+    return LightningAsrV2Adapter(
+        transport=transport,
+        artifact_loader=load_artifact,
+        endpoint_path=settings.lightning_asr_path,
+    )
+
+
+def _configured_lightning_sam21(
+    settings: Settings, artifacts: InMemoryArtifactStore
+) -> LightningSam21SegmentationAdapter | None:
+    if (
+        not settings.lightning_sam21_enabled
+        or settings.env == "test"
+        or settings.ai_provider != "lightning_dev"
+        or not settings.lightning_ai_base_url
+        or settings.lightning_ai_token_file is None
+    ):
+        return None
+    try:
+        token = read_secret_file(settings.lightning_ai_token_file)
+        transport = UrllibJsonTransport(
+            base_url=settings.lightning_ai_base_url,
+            token=token,
+            request_timeout_seconds=settings.ai_request_timeout_seconds,
+        )
+    except (OSError, ValueError):
+        return None
+
+    def load_artifact(artifact_ref: str) -> bytes:
+        stored = artifacts.get(artifact_ref)
+        if stored is None:
+            raise KeyError("image artifact is unavailable")
+        return stored[1]
+
+    def write_artifact(session_id: str, content_type: str, body: bytes) -> object:
+        return artifacts.put(session_id=session_id, content_type=content_type, body=body)
+
+    return LightningSam21SegmentationAdapter(
+        transport=transport,
+        artifact_loader=load_artifact,
+        artifact_writer=write_artifact,
+        endpoint_path=settings.lightning_sam21_path,
+    )
+
+
+def _configured_lightning_scene_localizer(
+    settings: Settings, artifacts: InMemoryArtifactStore
+) -> LightningSceneLocalizationAdapter | None:
+    if (
+        settings.env == "test"
+        or settings.ai_provider != "lightning_dev"
+        or not settings.lightning_ai_base_url
+        or settings.lightning_ai_token_file is None
+    ):
+        return None
+    try:
+        token = read_secret_file(settings.lightning_ai_token_file)
+        transport = UrllibJsonTransport(
+            base_url=settings.lightning_ai_base_url,
+            token=token,
+            request_timeout_seconds=settings.ai_request_timeout_seconds,
+        )
+    except (OSError, ValueError):
+        return None
+
+    def load_artifact(artifact_ref: str) -> bytes:
+        stored = artifacts.get(artifact_ref)
+        if stored is None:
+            raise KeyError("image artifact is unavailable")
+        return stored[1]
+
+    return LightningSceneLocalizationAdapter(
+        transport=transport,
+        artifact_loader=load_artifact,
+    )

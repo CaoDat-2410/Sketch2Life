@@ -1,0 +1,15 @@
+{
+  "check": "harness",
+  "command": [
+    "python",
+    "-X",
+    "utf8",
+    "tools/validate_harness.py",
+    "--feature",
+    "features/FEAT-040-four-person-delivery-plan"
+  ],
+  "exit_code": 1,
+  "output_lines": 3,
+  "raw": "features/FEAT-040-four-person-delivery-plan/evidence/raw/harness.txt",
+  "machine_paths_redacted": true
+}

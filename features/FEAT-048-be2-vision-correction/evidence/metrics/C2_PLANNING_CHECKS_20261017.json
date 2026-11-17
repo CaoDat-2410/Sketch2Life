@@ -1,0 +1,77 @@
+{
+  "recorded_utc": "2026-10-17T04:15:36.566086+00:00",
+  "scope": "C2_DOCUMENT_PREPARATION_ONLY",
+  "disposition": "PLAN_READY_FOR_OWNER_REVIEW",
+  "plan_revision": 2,
+  "plan_status": "DRAFT_AWAITING_OWNER_APPROVAL",
+  "implementation": "NOT_STARTED",
+  "owner_questions": "Q1-Q5_RECOMMENDATIONS_NOT_SELECTED",
+  "implementation_approval_created": false,
+  "branch": "feature/be2-02-vision-correction",
+  "head": "98876fe762a61e64b61980cd0634415e6f5e1dfb",
+  "plan": "features/FEAT-048-be2-vision-correction/plan/C2_TYPED_CONTEXT_PLAN.md",
+  "plan_sha256": "4b339514d3d5bf01b9a8c23f0a15ea5e71b4d2f1389db9e141e31aa322cd57c2",
+  "superseded_draft_sha256": "0f308dacaf2422a31c3994a05adf4e4321af85f7995c8344e11da8190d367bb7",
+  "immutable_files_sha256": {
+    "features/FEAT-048-be2-vision-correction/approvals/TASK_APPROVAL.md": "ebe826ce01a004c6888bc6d2cd4741470beabfdb1f89133d8ebd18f48a691494",
+    "features/FEAT-048-be2-vision-correction/approvals/C1_COMPONENT_ACCEPTANCE.md": "2d2e109a3e01f7fd4a2908ee474b620cfce67136f10bafb793d97e1a1e81cece",
+    "features/FEAT-048-be2-vision-correction/plan/PLAN_REV1_APPROVED.md": "f4733c88797edbcce225ecd63700634f929ca75789362c7f3a58a2b57f19df30",
+    "features/FEAT-048-be2-vision-correction/plan/PLAN.md": "8a40d4bf372e0c96db5090ff282350f37eef7db5261d59409d540960d0cdae1a"
+  },
+  "review": {
+    "source_privacy": "NO_MATERIAL_GAP_IN_REV2",
+    "contracts_code": "REV2_CONCURRENT_CALL_WORDING_CORRECTED",
+    "same_model_family": true,
+    "owner_acceptance": false
+  },
+  "checks": {
+    "harness": {
+      "result": "PASS",
+      "exit_code": 0,
+      "receipt": "evidence/local/c2-preparation-20261017/harness.log",
+      "receipt_sha256": "7ebd23d71bdbd03156d1979c05852163fd7ec6e9dac22977f221dffc656186e3"
+    },
+    "security": {
+      "result": "PASS",
+      "exit_code": 0,
+      "receipt": "evidence/local/c2-preparation-20261017/security.log",
+      "receipt_sha256": "eee35991afbeb88377dd0efb2e3326d2a743e3fb4d378e0719639e3a796fa525"
+    },
+    "architecture": {
+      "result": "PASS",
+      "exit_code": 0,
+      "receipt": "evidence/local/c2-preparation-20261017/architecture.log",
+      "receipt_sha256": "67f1bc538fc90b4f70000a89126dde0aa14c688b8c3dbba796e1a89d6caef80e"
+    },
+    "skeleton": {
+      "result": "PASS",
+      "exit_code": 0,
+      "receipt": "evidence/local/c2-preparation-20261017/skeleton.log",
+      "receipt_sha256": "c3bd0318347efa17e2cb71a192287f1fe5bbb4bb1932fa8a360e6f3328a7bd1b"
+    },
+    "git_diff_check": {
+      "result": "PASS",
+      "exit_code": 0
+    },
+    "untracked_markdown_whitespace": {
+      "result": "PASS"
+    },
+    "immutable_c1_files": {
+      "result": "PASS",
+      "count": 4
+    },
+    "backend_unchanged": {
+      "result": "PASS"
+    },
+    "staged_empty": {
+      "result": "PASS"
+    },
+    "prompt_and_draft_backup_ignored": {
+      "result": "PASS"
+    }
+  },
+  "implementation_tests": "NOT_RUN_DOCUMENT_ONLY_CHANGE",
+  "be2_01": "WAITING_STUDIO_IN_PROGRESS_CR01_OPEN_B12_HANDOFF",
+  "be2_02": "IN_PROGRESS_NOT_DONE",
+  "git_mutations": "NONE"
+}

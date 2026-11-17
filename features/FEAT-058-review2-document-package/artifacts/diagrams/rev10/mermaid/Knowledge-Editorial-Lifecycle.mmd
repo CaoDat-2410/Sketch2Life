@@ -1,0 +1,10 @@
+stateDiagram-v2
+  [*] --> Draft
+  Draft --> InReview: submit version
+  InReview --> ChangesRequested: reviewer requests edits
+  ChangesRequested --> Draft: create revised version
+  InReview --> ApprovedForRender: review passes
+  Draft --> Withdrawn: withdraw
+  InReview --> Withdrawn: withdraw
+  ApprovedForRender --> Withdrawn: recall
+  note right of ApprovedForRender: Render eligibility does not approve a video for classroom playback.

@@ -1,0 +1,114 @@
+{
+  "schema_version": 2,
+  "catalog_revision": "catalog-2026-09-expansion-1",
+  "families": [
+    {
+      "family_id": "FAM-VEHICLE-CLASSIFY",
+      "concept_ids": ["VEHICLE_TRANSPORT", "SHAPE_GEOMETRY"],
+      "objective_ids": ["OBJ_MATHEMATICAL_REASONING"],
+      "area": "mathematics",
+      "phrases_vi": ["phương tiện", "xe", "giao thông"],
+      "aliases_vi": ["ô tô", "xe đạp", "xe buýt"],
+      "material_option_ids": ["MAT_VEHICLE_CARDS", "MAT_SORTING_TRAY"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["chỉ dùng mô hình hoặc tranh; không cho trẻ ra đường để quan sát và giữ lối đi trong nhà thông thoáng"],
+      "policy_constraints": ["ROAD_SAFETY"],
+      "variants": [
+        {"activity_id": "ACT-0241", "age_band": "0-3", "title_vi": "Chọn xe quen thuộc", "action_vi": "Trẻ chọn mô hình hoặc thẻ xe lớn khi người lớn gọi tên.", "challenge_vi": "Người lớn đổi vị trí hai thẻ và chờ trẻ chỉ lại.", "duration_minutes": 5},
+        {"activity_id": "ACT-0242", "age_band": "3-6", "title_vi": "Xếp nhóm phương tiện", "action_vi": "Trẻ xếp tranh phương tiện theo nơi di chuyển như đường, nước hoặc trên không.", "challenge_vi": "Trẻ nói một đặc điểm nhìn thấy của mỗi nhóm.", "duration_minutes": 12},
+        {"activity_id": "ACT-0243", "age_band": "6-9", "title_vi": "Phân loại phương tiện theo chức năng", "action_vi": "Trẻ xây tiêu chí phân loại phương tiện theo chở người, chở hàng hoặc cứu hộ.", "challenge_vi": "Trẻ thử tiêu chí với một phương tiện chưa gặp.", "duration_minutes": 20},
+        {"activity_id": "ACT-0244", "age_band": "9-12", "title_vi": "Đánh giá hệ thống phương tiện", "action_vi": "Trẻ lập bảng so sánh tốc độ, sức chứa, năng lượng và tác động của phương tiện.", "challenge_vi": "Trẻ nêu dữ liệu nào cần thêm trước khi kết luận.", "duration_minutes": 28}
+      ]
+    },
+    {
+      "family_id": "FAM-VEHICLE-ROUTE",
+      "concept_ids": ["VEHICLE_TRANSPORT", "MOVEMENT_COORDINATION"],
+      "objective_ids": ["OBJ_MOVEMENT_COORDINATION"],
+      "area": "movement",
+      "phrases_vi": ["phương tiện", "đường đi", "xe"],
+      "aliases_vi": ["lộ trình xe", "đi từ đâu đến đâu"],
+      "material_option_ids": ["MAT_VEHICLE_CARDS", "MAT_FLOOR_TAPE"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["chỉ dùng bản đồ sàn hoặc mô hình, không mô phỏng chạy qua lối đi đang có người"],
+      "policy_constraints": ["ROAD_SAFETY"],
+      "variants": [
+        {"activity_id": "ACT-0245", "age_band": "0-3", "title_vi": "Đẩy xe theo đường rộng", "action_vi": "Trẻ đẩy mô hình xe lớn trên đường kẻ rộng cùng người lớn.", "challenge_vi": "Trẻ dừng xe ở điểm cuối theo tín hiệu.", "duration_minutes": 5},
+        {"activity_id": "ACT-0246", "age_band": "3-6", "title_vi": "Đưa xe đến đúng điểm", "action_vi": "Trẻ đưa mô hình xe qua hai dấu mốc theo thứ tự.", "challenge_vi": "Trẻ kể xe đang ở trước hay sau điểm mốc.", "duration_minutes": 10},
+        {"activity_id": "ACT-0247", "age_band": "6-9", "title_vi": "So sánh hai lộ trình", "action_vi": "Trẻ vẽ hai lộ trình giữa các điểm và đếm bước hoặc đoạn đường.", "challenge_vi": "Trẻ giải thích lộ trình nào ngắn hơn theo số liệu.", "duration_minutes": 18},
+        {"activity_id": "ACT-0248", "age_band": "9-12", "title_vi": "Thiết kế mạng lưới giao thông nhỏ", "action_vi": "Trẻ thiết kế mạng lưới có điểm đến, đường nối và quy tắc an toàn.", "challenge_vi": "Trẻ phân tích đánh đổi giữa ngắn, dễ tiếp cận và an toàn.", "duration_minutes": 28}
+      ]
+    },
+    {
+      "family_id": "FAM-VEHICLE-DESIGN",
+      "concept_ids": ["VEHICLE_TRANSPORT", "SCIENCE_NATURE"],
+      "objective_ids": ["OBJ_SCIENTIFIC_INQUIRY"],
+      "area": "science",
+      "phrases_vi": ["phương tiện", "xe", "bánh xe", "di chuyển"],
+      "aliases_vi": ["thiết kế xe", "xe chạy"],
+      "material_option_ids": ["MAT_BUILDING_BLOCKS", "MAT_WHEELS_SAFE"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["dùng linh kiện lớn, không sắc và không pin rời; người lớn kiểm tra mô hình trước khi lăn thử"],
+      "policy_constraints": ["SAFE_BUILDING_MATERIALS"],
+      "variants": [
+        {"activity_id": "ACT-0249", "age_band": "0-3", "title_vi": "Lăn xe lớn", "action_vi": "Trẻ đẩy xe mô hình lớn trên mặt phẳng và quan sát xe lăn.", "challenge_vi": "Người lớn thay đổi nhẹ hướng lăn và chờ trẻ theo dõi.", "duration_minutes": 5},
+        {"activity_id": "ACT-0250", "age_band": "3-6", "title_vi": "Lắp xe có bánh", "action_vi": "Trẻ ghép các khối lớn thành một xe đơn giản có bánh an toàn.", "challenge_vi": "Trẻ thử đẩy và sửa phần bị lệch.", "duration_minutes": 12},
+        {"activity_id": "ACT-0251", "age_band": "6-9", "title_vi": "So sánh thiết kế xe", "action_vi": "Trẻ thử hai mẫu xe và ghi điều ảnh hưởng đến quãng đường lăn.", "challenge_vi": "Trẻ thay đổi một yếu tố mỗi lần thử.", "duration_minutes": 20},
+        {"activity_id": "ACT-0252", "age_band": "9-12", "title_vi": "Tối ưu mô hình phương tiện", "action_vi": "Trẻ đặt yêu cầu thiết kế và ghi quy trình thử nghiệm có biến kiểm soát.", "challenge_vi": "Trẻ phân tích dữ liệu và đề xuất một vòng cải tiến.", "duration_minutes": 30}
+      ]
+    },
+    {
+      "family_id": "FAM-WEATHER-OBSERVE",
+      "concept_ids": ["WEATHER_NATURE", "NATURE_OBSERVATION"],
+      "objective_ids": ["OBJ_SCIENTIFIC_OBSERVATION"],
+      "area": "science",
+      "phrases_vi": ["thời tiết", "mưa", "mây", "gió"],
+      "aliases_vi": ["trời hôm nay", "quan sát thời tiết"],
+      "material_option_ids": ["MAT_WEATHER_CARDS", "MAT_PAPER_CRAYON"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["quan sát từ nơi có mái che khi mưa hoặc nắng mạnh; không ra ngoài khi có sấm sét"],
+      "policy_constraints": ["WEATHER_SAFETY"],
+      "variants": [
+        {"activity_id": "ACT-0253", "age_band": "0-3", "title_vi": "Nhìn biểu tượng thời tiết", "action_vi": "Trẻ nhìn thẻ nắng, mây hoặc mưa và nghe người lớn gọi tên.", "challenge_vi": "Trẻ chọn thẻ gần với điều đang nhìn thấy qua cửa sổ.", "duration_minutes": 5},
+        {"activity_id": "ACT-0254", "age_band": "3-6", "title_vi": "Lịch thời tiết trong ngày", "action_vi": "Trẻ chọn biểu tượng thời tiết và đặt vào lịch ngày.", "challenge_vi": "Trẻ nói một đồ dùng phù hợp với thời tiết đó.", "duration_minutes": 10},
+        {"activity_id": "ACT-0255", "age_band": "6-9", "title_vi": "Nhật ký quan sát thời tiết", "action_vi": "Trẻ ghi mây, gió, nhiệt cảm nhận và thời điểm quan sát.", "challenge_vi": "Trẻ so sánh hai ngày bằng dữ liệu đã ghi.", "duration_minutes": 18},
+        {"activity_id": "ACT-0256", "age_band": "9-12", "title_vi": "Phân tích mẫu thời tiết", "action_vi": "Trẻ lập bảng hoặc biểu đồ từ chuỗi quan sát thời tiết an toàn.", "challenge_vi": "Trẻ phân biệt mẫu quan sát với dự báo chắc chắn.", "duration_minutes": 25}
+      ]
+    },
+    {
+      "family_id": "FAM-WEATHER-WATER",
+      "concept_ids": ["WEATHER_NATURE", "WATER_NATURE"],
+      "objective_ids": ["OBJ_SCIENTIFIC_INQUIRY"],
+      "area": "science",
+      "phrases_vi": ["mưa", "nước", "mây", "thời tiết"],
+      "aliases_vi": ["vòng tuần hoàn nước", "nước mưa"],
+      "material_option_ids": ["MAT_WATER_BASIN", "MAT_WEATHER_CARDS"],
+      "minimum_supervision": "DIRECT",
+      "safety_vi": ["chỉ dùng lượng nước nhỏ, không dùng nước nóng và lau sàn ngay; người lớn trực tiếp quan sát"],
+      "policy_constraints": ["WATER_SUPERVISION"],
+      "variants": [
+        {"activity_id": "ACT-0257", "age_band": "0-3", "title_vi": "Nghe tiếng nước nhỏ", "action_vi": "Trẻ quan sát người lớn rót một ít nước trong khay và nghe âm thanh nhẹ.", "challenge_vi": "Trẻ chỉ vào khay khi người lớn gọi tên nước.", "duration_minutes": 5},
+        {"activity_id": "ACT-0258", "age_band": "3-6", "title_vi": "Ghép mây và mưa", "action_vi": "Trẻ xếp tranh mây, mưa và vũng nước theo chuỗi đơn giản.", "challenge_vi": "Trẻ kể nước đi đâu sau khi mưa.", "duration_minutes": 12},
+        {"activity_id": "ACT-0259", "age_band": "6-9", "title_vi": "Mô hình mưa an toàn", "action_vi": "Trẻ dùng khay kín để quan sát nước chuyển giữa các vị trí trong mô hình.", "challenge_vi": "Trẻ ghi lại điều thay đổi trước và sau khi đặt mô hình.", "duration_minutes": 20},
+        {"activity_id": "ACT-0260", "age_band": "9-12", "title_vi": "Điều tra dòng chảy nước", "action_vi": "Trẻ thiết kế mô hình dòng chảy nhỏ và ghi biến ảnh hưởng đến hướng nước.", "challenge_vi": "Trẻ nêu giới hạn khi suy rộng mô hình sang thiên nhiên.", "duration_minutes": 28}
+      ]
+    },
+    {
+      "family_id": "FAM-WEATHER-CHANGE",
+      "concept_ids": ["WEATHER_NATURE", "SCIENCE_NATURE"],
+      "objective_ids": ["OBJ_SCIENTIFIC_INQUIRY"],
+      "area": "science",
+      "phrases_vi": ["thời tiết", "nắng", "gió", "mưa"],
+      "aliases_vi": ["thay đổi thời tiết", "dự đoán thời tiết"],
+      "material_option_ids": ["MAT_WEATHER_CARDS", "MAT_CHART_CARDS"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["không yêu cầu trẻ tiếp xúc nắng gắt, gió mạnh hoặc sấm sét; dùng dữ liệu và tranh an toàn"],
+      "policy_constraints": ["WEATHER_SAFETY"],
+      "variants": [
+        {"activity_id": "ACT-0261", "age_band": "0-3", "title_vi": "Nhìn thời tiết thay đổi", "action_vi": "Trẻ nhìn hai thẻ thời tiết liên tiếp và nghe từ mô tả thay đổi.", "challenge_vi": "Người lớn chờ trẻ phản hồi trước khi đổi thẻ.", "duration_minutes": 5},
+        {"activity_id": "ACT-0262", "age_band": "3-6", "title_vi": "Xếp trước và sau cơn mưa", "action_vi": "Trẻ xếp tranh trước mưa, mưa và sau mưa theo thứ tự.", "challenge_vi": "Trẻ nói đồ vật nào cần chuẩn bị trước khi mưa.", "duration_minutes": 10},
+        {"activity_id": "ACT-0263", "age_band": "6-9", "title_vi": "Tìm dấu hiệu thay đổi", "action_vi": "Trẻ so sánh hai bản ghi thời tiết và đánh dấu dấu hiệu thay đổi.", "challenge_vi": "Trẻ đề xuất điều cần quan sát thêm để kiểm tra dự đoán.", "duration_minutes": 18},
+        {"activity_id": "ACT-0264", "age_band": "9-12", "title_vi": "Đánh giá dự đoán thời tiết", "action_vi": "Trẻ đối chiếu dự đoán với dữ liệu quan sát và ghi sai lệch.", "challenge_vi": "Trẻ giải thích vì sao một dự đoán không phải là chắc chắn.", "duration_minutes": 25}
+      ]
+    }
+  ]
+}

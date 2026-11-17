@@ -1,0 +1,13 @@
+{
+  "checked_at": "2026-11-05T15:31:46+07:00",
+  "status": "ready",
+  "transformers_version": "5.22.1",
+  "lm_format_enforcer_version": "0.11.3",
+  "model_loader": "AutoModelForMultimodalLM",
+  "processor_loader": "AutoProcessor",
+  "schema_parser": "JsonSchemaParser",
+  "token_enforcer": "TokenEnforcer",
+  "tokenizer_data": "TokenEnforcerTokenizerData",
+  "model_loaded": false,
+  "inference_performed": false
+}

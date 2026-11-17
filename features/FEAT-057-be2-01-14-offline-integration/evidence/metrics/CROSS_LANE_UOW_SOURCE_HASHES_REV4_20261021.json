@@ -1,0 +1,208 @@
+{
+  "purpose": "Documentation-only source audit of Claude rereview 3 and preparation of owner D3 questions; hashes identify dirty checkout bytes, not implementation or adoption.",
+  "observed_date": "2026-10-21",
+  "branch": "feature/be2-backend-ai-integration",
+  "head": "1649b72978877d82b4d7662040ff3555dee0a3a7",
+  "parent_manifest": "features/FEAT-057-be2-01-14-offline-integration/evidence/metrics/CROSS_LANE_UOW_SOURCE_HASHES_REV3_20261021.json",
+  "parent_manifest_sha256": "8BC0998D505742C460FDCBE9EDDF98CBC327D41B118CF2A50E921C965D6C7342",
+  "parent_entries_matched": 19,
+  "files": [
+    {
+      "path": "backend/src/sketch2life/application/ai_policy_accounting.py",
+      "sha256": "3B3ED13F646F5392AA805FD07D62981ACBE1CE8A7D0CF1AED0D6C9A94B9517DE",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/application/ai_policy_resource_quotes.py",
+      "sha256": "B1B017F366E54375080C09980DF21EEF1A84019B8D0D04D615D7284D91EEDF5D",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/application/knowledge_video_create.py",
+      "sha256": "FE330D4D4CE642515158F36DE9DEC60CADBD9EB8C56F02834C5FBC2AC1F8B347",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/application/knowledge_video_media.py",
+      "sha256": "A5B569BFC0C83079A066719324A446AC0566A9A171B2192AAD7C795064C6BAFB",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/application/knowledge_video_worker.py",
+      "sha256": "02BE5A965EABEAE4792AD0915CB2B5EBBE48D452FA37595AA32C52EAEC373C90",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/application/ports/ai_jobs.py",
+      "sha256": "6C6967070D5042B5A6DB33E7D28D856E03FE1BD6DC1302E55D73EACC047B33DF",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/application/ports/ai_policy_accounting.py",
+      "sha256": "16720C4D3E4C84539AD41FAC6272DFC18233F92C205522F73DB0FEF256CB0779",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/application/ports/knowledge_video.py",
+      "sha256": "966FE8BF2237C956298164F28EB461527B7E2A0BBA1EBFF0084E91D834113340",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/application/ports/knowledge_video_worker.py",
+      "sha256": "8B5A3175717DB3411C4A6B80B8FBEF2E5865DC3530598A2F35919D6954CC1D36",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/application/services/ai_jobs.py",
+      "sha256": "DF6AC4FD47BD9FDCD7D5EAF7DFCA5E4CF9541870F40E0DC4A81150DFFD936704",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/application/services/knowledge_bundle.py",
+      "sha256": "AF6C3C55E3CF0FEDF155B8C0EBBF720EF7E6AEC121B5B1871F94191A1E2F6C9F",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/contracts/schemas/ai_policy_accounting.py",
+      "sha256": "5DA2E52DEA1E35EAA907B7AD6DB1C81D2A2BC16CF1F254396793A1C1E49ABBC4",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/contracts/schemas/ai_policy_use.py",
+      "sha256": "86D2DD9545287CEF4FDDF6D7B7C56D62C78BF1CEBCEB3C1B6432BA3122CCCE8E",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/contracts/schemas/knowledge_video.py",
+      "sha256": "83C7CBC25DCECFE1C37847A157CDF7A730AAE0E9659CA93C8C6E65FA957ABDFD",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/domain/ai_jobs/completion.py",
+      "sha256": "B3E1A78D2A93227D09E4DB3FED4B77BC4D1C3775F54F519F68FD762CEB3EC62B",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/domain/ai_jobs/model.py",
+      "sha256": "512B604636C1A22E231AC3276D3E537AE0DEAE4D9BB6652CCB064FAB7314DB99",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/domain/ai_policy/accounting.py",
+      "sha256": "863F22E6E1F04CC64529B4BDA1688DD58E00B628FF405C117E694A1C992A9359",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/domain/knowledge_video/model.py",
+      "sha256": "637D59BAEBAAAC4DF00F97C86E5920F4ED6429FABB0ED432A8C0C1275F40D56D",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/ai_jobs/outbox_dispatcher.py",
+      "sha256": "7B2DC13CCFA94C5BD09BA7679AB4DFAB194AEE6B32D8AB651AAB92FBCECB6115",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/ai_jobs/reconciler.py",
+      "sha256": "2B36FACBB1C08560BE258F1FF69B07354BCCB45D7672A33A86317E9D5E02EE5E",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/ai_jobs/sql/owner_fence_fixture.py",
+      "sha256": "F12560D8F68EA31C5F76BB10E0452310CFF019C3D2DF5A90D8970889D052EC92",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/ai_jobs/sql/repository.py",
+      "sha256": "911829A90DD67DDDBDC758EC05930038C9415D92A837EA26BBE7E1F6D3A5AD76",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/ai_jobs/sql/tables.py",
+      "sha256": "12F6CE1EDAB047EFDD81D495B44DF08DC6F990692860621F37FC73778006F888",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/ai_jobs/typed_dispatch.py",
+      "sha256": "979516A29B17A7FC155C6396500AAE82D0D8D66C0CBD7C1EF0437BFA8C728196",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/ai_jobs/worker.py",
+      "sha256": "A54725329F8643FB0AF9D821F9861BE34980C3DA3E28E201203630EA691785F6",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/ai_policy/accounting_sql.py",
+      "sha256": "86443803A6E48504BC6CF6DCA6B0A57333A6287065F7D1F68D536C981050C1F4",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/cross_lane/knowledge_script_video.py",
+      "sha256": "0A22E50557B3AC57B9913B80B273D0A672423946277AF3E7CFA9A0829E7F6F42",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/knowledge_video/codec.py",
+      "sha256": "3E6AFFAEDBE9883AF38C7BA7904771116680A7A37D6386BB7F20510DA969D0C9",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/knowledge_video/sql.py",
+      "sha256": "9CE42333609539459DB9CE68DA43087E42D782631186E0D51C5684A782696105",
+      "role": "source"
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/knowledge_video/tables.py",
+      "sha256": "D385CC6A60CC4E0A0DE339FDE452D89B81D71574CBE1B59F9D5D8C2D2C673F9F",
+      "role": "source"
+    },
+    {
+      "path": "backend/tests/contract/test_knowledge_video_contract.py",
+      "sha256": "C97486D701D2E5C22518CE82F127289D81FBCC088566E427DB4EF58FE9B8EDC7",
+      "role": "contract_test_source"
+    }
+  ],
+  "source_files": 30,
+  "contract_test_files_read_not_run": 1,
+  "reviewed_documents": [
+    {
+      "path": "features/FEAT-044-be2-ai-job-foundation/plan/CROSS_LANE_FOUNDATION_UOW_SCOPE_REV5_DRAFT_20261021.md",
+      "sha256": "8BCAD75E2E505053465349E1B93800626B494B6D1076561B437298A1E60A4EF4"
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/plan/CROSS_LANE_X01_X05_SLICE_PLAN_REV6_DRAFT_20261021.md",
+      "sha256": "1C44336ADE023C16AF7DF8D7972FCEE69C6155A529C1F4D5B27DA82B8B47D0C3"
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_UOW_OWNER_DECISION_D1_20261021.md",
+      "sha256": "3EECF89A488F7B2539AF41BE5CEF830D4C2509D6E93D478F624DF46B4F32A16D"
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_UOW_OWNER_DECISION_D2_20261021.md",
+      "sha256": "641A2239C6C1064C543D16A1DB24E73AC771AA4758889EC3A19C8458E1720103"
+    },
+    {
+      "path": "features/FEAT-050-be2-knowledge-video/plan/CROSS_LANE_BE2_08_SCOPE_DRAFT_20261021.md",
+      "sha256": "6A195B6F3C9901621D268CF26B34AA217EECAFE66FA5922BD066149E6A9BC0B0"
+    },
+    {
+      "path": "features/FEAT-050-be2-knowledge-video/plan/CROSS_LANE_BE2_08_ARTIFACT_READ_MODEL_SCOPE_DRAFT_20261021.md",
+      "sha256": "F24823A192A90F11649871348AC0C539C3E63501AAA3A75C21DBC36EB7F15FA1"
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_UOW_CLAUDE_REREVIEW3_REPORT_20261021.md",
+      "sha256": "80EB2B425A790BC4B9E8958C9ADB0576B639162458BD0153592749DEE5C5ADC0"
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_UOW_CLAUDE_REREVIEW2_DISPOSITION_20261021.md",
+      "sha256": "15139BD8E017A10C758D979E92E1DFE7759D72BD981163386D595EE83E9A6E1A"
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_UOW_CLAUDE_REREVIEW2_DISPOSITION_REV2_20261021.md",
+      "sha256": "E6B0B8448ABE18430E6E863BD845C30C4913345F6E8E7BEE3E8FBEE28D84E30F"
+    }
+  ],
+  "test_execution": "NOT_RUN",
+  "runtime_execution": "NOT_RUN"
+}

@@ -1,0 +1,72 @@
+[
+  {
+    "ref": "dev",
+    "sha": "f220781876472950093856e97bbdaaec5170a7c1",
+    "commit": "2026-10-15T09:29:09+07:00|feat(be1): implement real backend runtime API",
+    "divergence_dev": "0\t0",
+    "contained_in_dev": true
+  },
+  {
+    "ref": "origin/dev",
+    "sha": "f220781876472950093856e97bbdaaec5170a7c1",
+    "commit": "2026-10-15T09:29:09+07:00|feat(be1): implement real backend runtime API",
+    "divergence_dev": "0\t0",
+    "contained_in_dev": true
+  },
+  {
+    "ref": "origin/feature/be2-backend-ai-integration",
+    "sha": "af3e28fc402f69e5a10ba55a54631c5d1f995a50",
+    "commit": "2026-10-22T14:32:20+07:00|test(be2): cover persisted video worker integration",
+    "divergence_dev": "0\t255",
+    "contained_in_dev": false
+  },
+  {
+    "ref": "origin/feature/be2-08-14-offline-baseline-split",
+    "sha": "964944c93edf89e531a0895f6248d7f1ee632c20",
+    "commit": "2026-10-20T21:17:19+07:00|docs(be2): update shared integration context and source register",
+    "divergence_dev": "0\t234",
+    "contained_in_dev": false
+  },
+  {
+    "ref": "origin/feature/be2-01-07",
+    "sha": "a3c5b1c078a0772873f23468b3b064c8014532ae",
+    "commit": "2026-10-20T18:12:44+07:00|chore(be2-07): remove archived cloud review export",
+    "divergence_dev": "0\t122",
+    "contained_in_dev": false
+  },
+  {
+    "ref": "origin/FE_UI_Admin",
+    "sha": "46f245e2de77bcd438e89c957823c42819b221a5",
+    "commit": "2026-10-19T14:24:58+07:00|docs(admin-ui): document admin component catalog and presentation library",
+    "divergence_dev": "0\t105",
+    "contained_in_dev": false
+  },
+  {
+    "ref": "origin/FE_UI_Teacher",
+    "sha": "f220781876472950093856e97bbdaaec5170a7c1",
+    "commit": "2026-10-15T09:29:09+07:00|feat(be1): implement real backend runtime API",
+    "divergence_dev": "0\t0",
+    "contained_in_dev": true
+  },
+  {
+    "ref": "origin/feature/feat018-p2t5-evaluation-harness",
+    "sha": "b11bc7b870f615e493afb1bc723b888befdb58c9",
+    "commit": "2026-10-21T21:06:37+07:00|docs(feat018): record P2-T4 diagnostic closure",
+    "divergence_dev": "0\t24",
+    "contained_in_dev": false
+  },
+  {
+    "ref": "origin/feature/feat018-p2t2-live-lightning",
+    "sha": "8c0cc0df316cc7dea274fa072164abdd28415b90",
+    "commit": "2026-10-20T15:40:36+07:00|docs(feat018): record W2 offline evidence",
+    "divergence_dev": "334\t39",
+    "contained_in_dev": false
+  },
+  {
+    "ref": "origin/feature/feat018-p2t3-optional-narration",
+    "sha": "fd474b12bb50a603e67fce5c25f889a95e968734",
+    "commit": "2026-10-20T16:23:26+07:00|docs(feat018): reconcile P2-T3 narration status",
+    "divergence_dev": "0\t1",
+    "contained_in_dev": false
+  }
+]

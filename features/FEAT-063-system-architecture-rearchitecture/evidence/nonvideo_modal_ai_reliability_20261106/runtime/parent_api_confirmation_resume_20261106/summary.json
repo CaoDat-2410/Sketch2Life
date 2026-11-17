@@ -1,0 +1,270 @@
+{
+  "api_request_count": 4,
+  "api_request_results": [
+    {
+      "candidate_is_expected_subject": false,
+      "elapsed_ms": 41.85,
+      "expected_statuses": [
+        200
+      ],
+      "method": "GET",
+      "name": "read_current_parent_run_etag_for_story_confirmation",
+      "passed": true,
+      "response_fields": [
+        "action_required",
+        "child_age_months",
+        "created_at",
+        "error",
+        "job_state",
+        "result",
+        "retryable",
+        "revision",
+        "run_ref",
+        "run_state",
+        "target_revision",
+        "updated_at",
+        "version"
+      ],
+      "result_field_names": [
+        "adult_confirmation_required",
+        "stage"
+      ],
+      "retryable": false,
+      "revision": 6,
+      "route": "GET /v1/story-runs/{run_ref}",
+      "run_state": "SCRIPT_REVIEW",
+      "status": 200
+    },
+    {
+      "elapsed_ms": 9.44,
+      "expected_statuses": [
+        200
+      ],
+      "method": "GET",
+      "name": "read_reviewable_parent_story_revision",
+      "passed": true,
+      "response_fields": [
+        "context_revision",
+        "created_at",
+        "duration_ms",
+        "language",
+        "model",
+        "prompt_version",
+        "provider_call_id",
+        "request_sha256",
+        "review_required",
+        "revision_no",
+        "run_ref",
+        "scenes",
+        "schema_version",
+        "source_asset_sha256",
+        "status",
+        "story",
+        "story_revision_ref",
+        "story_sha256",
+        "title",
+        "understanding_revision"
+      ],
+      "revision_no": 1,
+      "route": "GET /v1/story-runs/{run_ref}/story-revisions/{story_revision_ref}",
+      "status": "DRAFT",
+      "story_sha256": "1f4c05e22ba9f5c790648284b356563a114e895ec160ac29582de01cde9c3e78",
+      "story_shape": {
+        "duration_ms": 30000,
+        "field_names": [
+          "context_revision",
+          "created_at",
+          "duration_ms",
+          "language",
+          "model",
+          "prompt_version",
+          "provider_call_id",
+          "request_sha256",
+          "review_required",
+          "revision_no",
+          "run_ref",
+          "scenes",
+          "schema_version",
+          "source_asset_sha256",
+          "status",
+          "story",
+          "story_revision_ref",
+          "story_sha256",
+          "title",
+          "understanding_revision"
+        ],
+        "language": "vi",
+        "scene_count": 5,
+        "scene_field_names": [
+          "action",
+          "character_anchors",
+          "duration_ms",
+          "narration",
+          "scene_index",
+          "start_ms",
+          "title",
+          "visual_prompt"
+        ],
+        "schema_version": "sketch2life.story-revision.v1",
+        "section_character_counts": {
+          "ending": 170,
+          "middle": 118,
+          "opening": 162
+        },
+        "section_names": [
+          "ending",
+          "middle",
+          "opening"
+        ]
+      },
+      "understanding_revision": 1
+    },
+    {
+      "elapsed_ms": 21.51,
+      "expected_statuses": [
+        200
+      ],
+      "method": "POST",
+      "name": "adult_confirms_reviewable_parent_story_revision",
+      "passed": true,
+      "response_fields": [
+        "context_revision",
+        "created_at",
+        "duration_ms",
+        "language",
+        "model",
+        "prompt_version",
+        "provider_call_id",
+        "request_sha256",
+        "review_required",
+        "revision_no",
+        "run_ref",
+        "run_state",
+        "scenes",
+        "schema_version",
+        "source_asset_sha256",
+        "status",
+        "story",
+        "story_revision_ref",
+        "story_sha256",
+        "title",
+        "understanding_revision",
+        "video_started"
+      ],
+      "revision_no": 1,
+      "route": "POST /v1/story-runs/{run_ref}/story-revisions/{story_revision_ref}/confirmation",
+      "run_state": "VIDEO_ADMISSION_PENDING",
+      "status": "CONFIRMED",
+      "story_sha256": "1f4c05e22ba9f5c790648284b356563a114e895ec160ac29582de01cde9c3e78",
+      "story_shape": {
+        "duration_ms": 30000,
+        "field_names": [
+          "context_revision",
+          "created_at",
+          "duration_ms",
+          "language",
+          "model",
+          "prompt_version",
+          "provider_call_id",
+          "request_sha256",
+          "review_required",
+          "revision_no",
+          "run_ref",
+          "run_state",
+          "scenes",
+          "schema_version",
+          "source_asset_sha256",
+          "status",
+          "story",
+          "story_revision_ref",
+          "story_sha256",
+          "title",
+          "understanding_revision",
+          "video_started"
+        ],
+        "language": "vi",
+        "scene_count": 5,
+        "scene_field_names": [
+          "action",
+          "character_anchors",
+          "duration_ms",
+          "narration",
+          "scene_index",
+          "start_ms",
+          "title",
+          "visual_prompt"
+        ],
+        "schema_version": "sketch2life.story-revision.v1",
+        "section_character_counts": {
+          "ending": 170,
+          "middle": 118,
+          "opening": 162
+        },
+        "section_names": [
+          "ending",
+          "middle",
+          "opening"
+        ]
+      },
+      "understanding_revision": 1
+    },
+    {
+      "elapsed_ms": 4.09,
+      "expected_statuses": [
+        200
+      ],
+      "method": "GET",
+      "name": "read_parent_run_after_story_confirmation",
+      "passed": true,
+      "response_fields": [
+        "action_required",
+        "child_age_months",
+        "created_at",
+        "error",
+        "job_state",
+        "result",
+        "retryable",
+        "revision",
+        "run_ref",
+        "run_state",
+        "target_revision",
+        "updated_at",
+        "version"
+      ],
+      "retryable": false,
+      "revision": 7,
+      "route": "GET /v1/story-runs/{run_ref}",
+      "run_state": "VIDEO_ADMISSION_PENDING",
+      "status": 200
+    }
+  ],
+  "api_requests_all_expected": true,
+  "api_routes_exercised": [
+    "GET /v1/story-runs/{run_ref}",
+    "GET /v1/story-runs/{run_ref}/story-revisions/{story_revision_ref}",
+    "POST /v1/story-runs/{run_ref}/story-revisions/{story_revision_ref}/confirmation"
+  ],
+  "api_server_stopped": true,
+  "database": {
+    "container": "sketch2life-rev52-parent-api-pg-20261106",
+    "database_name": "storyrun_lite_feat063_rev52_20261106",
+    "database_owner_verified": true,
+    "modal_calls": 0,
+    "revision_status_before": "DRAFT",
+    "run_id": "945a2673-33ef-4690-9055-5f4991a8aa8f",
+    "run_state_before": "SCRIPT_REVIEW",
+    "video_called": false
+  },
+  "elapsed_seconds": 1.523,
+  "ended_at": "2026-11-06T15:52:36+07:00",
+  "final_run_state": "VIDEO_ADMISSION_PENDING",
+  "modal_calls": 0,
+  "revision_ref": "313d83ce-9e6b-49ca-b1ec-bd056a4322aa",
+  "started_at": "2026-11-06T15:52:35+07:00",
+  "status": "PASS",
+  "story_confirmation_status": 200,
+  "story_revision_lifecycle_valid": true,
+  "story_revision_schema_valid": true,
+  "video_calls": 0,
+  "video_generation_started": false
+}

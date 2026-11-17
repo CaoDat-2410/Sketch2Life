@@ -1,0 +1,78 @@
+{
+  "asset_id": "A03",
+  "use_case": "ui-mockup",
+  "status": "REVIEW_PENDING",
+  "generated_path": "assets/generated/admin-app/A03-lop-va-truong.png",
+  "srs_ui_id": "A03",
+  "screen_kind": "main",
+  "role": "admin-app",
+  "prompt": "assets/prompts/A03.txt",
+  "source_references": [
+    {
+      "path": "features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md",
+      "sha256": "a95c89589843e3555e967c5e486f3bcaf4bbdf9446cb3bc9c49ed16f672964d9",
+      "section": "B23.4"
+    },
+    {
+      "path": "apps/ui-mobile/src/theme.ts",
+      "purpose": "existing design tokens"
+    }
+  ],
+  "generator": "built-in image_gen.imagegen",
+  "captured_at_utc": "2026-10-10T13:49:06.713167+00:00",
+  "generator_output_filename": "exec-d2e2bc79-8ebe-42b3-a077-2a27db6ed372.png",
+  "sha256": "ff54425aa2d9451b5f3a4bbf528fbfb2063a4ebe78c266c9786a6a34440128c0",
+  "bytes": 1390994,
+  "width": 1586,
+  "height": 992,
+  "original_copied_unchanged": true,
+  "synthetic_data_only": true,
+  "qa": {
+    "reviewer": "Codex visual inspection",
+    "status": "INSPECTED",
+    "note": "Inspected A03: consistent ten-nav shell, class metadata and adult assignments, two illustrative age bands, consent readiness shown separately, archive explicitly preserves profile/contribution history, no raw child roster/identity. Class readiness is configuration view; admission eligibility remains purpose-checked. REVIEW_PENDING."
+  },
+  "review": {
+    "status": "REVIEW_PENDING",
+    "reviewer": null,
+    "reviewed_at": null
+  },
+  "applied_path": null,
+  "limitations": "Generated design proposal; not implemented runtime, approved visual or device acceptance.",
+  "input_images": [
+    {
+      "path": "assets/generated/admin-app/A01-tong-quan.png",
+      "sha256": "e2dc6127bce77e3faa424eeb6c648b6e32ee6c46c0e72780cbc2101d83357956",
+      "role": "style reference",
+      "original_copied_unchanged": true
+    }
+  ],
+  "generation_history": [
+    {
+      "attempt": 1,
+      "prompt": "assets/prompts/history/admin/A03-attempt-01.txt",
+      "generator": "built-in image_gen.imagegen",
+      "input_images": [
+        {
+          "path": "assets/generated/admin-app/A01-tong-quan.png",
+          "sha256": "e2dc6127bce77e3faa424eeb6c648b6e32ee6c46c0e72780cbc2101d83357956",
+          "role": "style reference",
+          "original_copied_unchanged": true
+        }
+      ],
+      "output_filename": "exec-d2e2bc79-8ebe-42b3-a077-2a27db6ed372.png",
+      "output_sha256": "ff54425aa2d9451b5f3a4bbf528fbfb2063a4ebe78c266c9786a6a34440128c0",
+      "selected": true,
+      "output_path": "assets/generated/admin-app/A03-lop-va-truong.png"
+    }
+  ],
+  "style_references": [
+    {
+      "path": "assets/generated/admin-app/A01-tong-quan.png",
+      "sha256": "e2dc6127bce77e3faa424eeb6c648b6e32ee6c46c0e72780cbc2101d83357956",
+      "role": "style reference",
+      "original_copied_unchanged": true
+    }
+  ],
+  "prompt_sha256": "0b208eb001b9cae6c94233881df67633f14a79a027dcef7ae4cea24afca13f47"
+}

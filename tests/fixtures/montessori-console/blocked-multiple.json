@@ -1,0 +1,15 @@
+{
+  "activity_ref": {
+    "id": "ACT-0004",
+    "version": 2
+  },
+  "input": {
+    "age_months": 16,
+    "readiness_ids": [],
+    "completed_activity_ids": [],
+    "available_material_option_ids": [],
+    "supervision_level": "NONE",
+    "policy_flags": [],
+    "candidate_status": "ACTIVE_FIXTURE"
+  }
+}

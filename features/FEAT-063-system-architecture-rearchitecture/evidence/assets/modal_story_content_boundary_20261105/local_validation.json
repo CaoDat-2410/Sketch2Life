@@ -1,0 +1,54 @@
+{
+  "recorded_at_local": "2026-11-05 Asia/Saigon",
+  "scope": "local validation plus one synthetic Parent story inference; no video or other AI workloads",
+  "plan_sha256": "DEEC2263B3148A855AE090D1A513B1D57174CD9800FAC9BA8BC0E3A3F6F23917",
+  "pytest": {
+    "command": "python -m pytest -q deployment/modal/srs_v23/tests/test_parent_story_output_contract.py",
+    "result": "46 passed"
+  },
+  "ruff": {
+    "result": "passed",
+    "files": [
+      "deployment/modal/srs_v23/language_audio_app.py",
+      "deployment/modal/srs_v23/tests/test_parent_story_output_contract.py",
+      "features/FEAT-063-system-architecture-rearchitecture/evidence/scripts/run_modal_story_content_boundary_20261105.py"
+    ]
+  },
+  "py_compile": {
+    "result": "passed",
+    "files": [
+      "deployment/modal/srs_v23/language_audio_app.py",
+      "deployment/modal/srs_v23/tests/test_parent_story_output_contract.py",
+      "features/FEAT-063-system-architecture-rearchitecture/evidence/scripts/run_modal_story_content_boundary_20261105.py"
+    ]
+  },
+  "content_schema": {
+    "scene_count": 5,
+    "model_emits_timing_metadata": false,
+    "lm_format_enforcer_acceptance_and_rejection_probe": "passed"
+  },
+  "runtime_contract": {
+    "modal_call_id": "fc-01M6M4APDR5QMGF8VA6PKJ66M5",
+    "outcome": "SUCCEEDED",
+    "schema_validation": "passed",
+    "butterfly_lifecycle_validation": "passed",
+    "scene_count": 5,
+    "duration_ms": 30000,
+    "dispatch_to_terminal_seconds": 56.073,
+    "gpu": "NVIDIA L40S",
+    "output_token_count": 608,
+    "raw_story_persisted": false,
+    "prompt_persisted": false
+  },
+  "modal_app_after_stop": {
+    "app_id": "ap-WMgksDah3JVJTzQ5OU0cXn",
+    "state": "stopped",
+    "tasks": 0
+  },
+  "video_calls": 0,
+  "source_sha256": {
+    "deployment/modal/srs_v23/language_audio_app.py": "d4a60563651244b153284daee8a1b39058ea5c1da7026587180094159f798da9",
+    "deployment/modal/srs_v23/tests/test_parent_story_output_contract.py": "ddf2ddde812a92fe01441f91ffd3cb5165ea82bee5078824e4559bf24ad63912",
+    "features/FEAT-063-system-architecture-rearchitecture/evidence/scripts/run_modal_story_content_boundary_20261105.py": "69a22fed99cb643ef07b9631dd3778c4822528ac1806d882f777cdef68c944a9"
+  }
+}

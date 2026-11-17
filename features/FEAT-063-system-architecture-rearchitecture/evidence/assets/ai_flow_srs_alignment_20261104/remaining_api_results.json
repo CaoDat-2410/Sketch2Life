@@ -1,0 +1,37 @@
+{
+  "status": "PARTIAL_EXPECTED_ACTIVE_RUN_EXISTS",
+  "started_at": "2026-11-04T12:45:35+07:00",
+  "ended_at": "2026-11-04T13:02:57+07:00",
+  "run_ref": "c0ce11e9-cd7d-4743-9bf0-5f1dfc1fbb90",
+  "ai_dispatches": 0,
+  "api_records": [
+    {
+      "name": "read_story_revision_after_terminal_worker_error",
+      "method": "GET",
+      "path": "/v1/story-runs/c0ce11e9-cd7d-4743-9bf0-5f1dfc1fbb90/story-revisions/928b747a-c812-4821-95e0-8f3db7887d76",
+      "status": 200,
+      "elapsed_ms": 16.97,
+      "response_code": null,
+      "expected": "200; inspect existing revision without another AI dispatch"
+    },
+    {
+      "name": "reject_confirmation_of_non_draft_story",
+      "method": "POST",
+      "path": "/v1/story-runs/c0ce11e9-cd7d-4743-9bf0-5f1dfc1fbb90/story-revisions/928b747a-c812-4821-95e0-8f3db7887d76/confirmation",
+      "status": 409,
+      "elapsed_ms": 22.73,
+      "response_code": "STALE_REVISION",
+      "expected": "409 STALE_REVISION; confirmation is blocked until a DRAFT exists"
+    },
+    {
+      "name": "create_run_for_cancel_route_check",
+      "method": "POST",
+      "path": "/v1/story-runs",
+      "status": 409,
+      "elapsed_ms": 15.55,
+      "response_code": "ACTIVE_RUN_EXISTS",
+      "expected": "409 ACTIVE_RUN_EXISTS; BR-02 preserves the existing unfinished Parent run"
+    }
+  ],
+  "completion_note": "The existing unfinished Parent run triggered BR-02 when the script attempted to create a separate run for the cancel-route check. It was preserved; independent cancellation/upload-abort coverage is recorded in api_mutation_results.json."
+}

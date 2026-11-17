@@ -1,0 +1,30 @@
+{
+  "scope": "FEAT-057 X01 + adjacent BE2-07/08 offline regression",
+  "source_archive_sha256": "5e7d3e10c8ef5439efc6a39dd6a17774ec40e746b054153b004215f6479ca9e8",
+  "python": "3.12.6",
+  "command": [
+    "/usr/local/bin/python",
+    "-m",
+    "pytest",
+    "tests/integration/be2_cross_lane",
+    "tests/unit/test_knowledge_bundle_service.py",
+    "tests/unit/test_knowledge_bundle_races.py",
+    "tests/unit/test_knowledge_bundle_chain.py",
+    "tests/unit/test_knowledge_bundle_adapters.py",
+    "tests/unit/test_knowledge_video_media.py",
+    "tests/unit/test_knowledge_video_create.py",
+    "-q",
+    "-rs",
+    "--junitxml=/root/modal-results/junit.xml"
+  ],
+  "pytest_exit": 0,
+  "summary": {
+    "tests": 296,
+    "passed": 296,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "junit_sha256": "552cf4ead2dd17f409676dc77dbfccf0822a450779c1de4e25cfd25b6b31e4a3",
+  "pytest_log_sha256": "3b990a3e0c35976fcb0e82f8c6483cf7748b1ba00e15df5acb05fc1eee871d3d"
+}

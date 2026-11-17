@@ -1,0 +1,11 @@
+{
+ "page": null,
+ "url": "http://127.0.0.1:5172/login",
+ "root": null,
+ "kind": "software",
+ "category": "Sketch2Life web authentication",
+ "primary": "Đăng nhập",
+ "rounds": 3,
+ "start": "2026-11-11T17:00:02.547Z",
+ "by": "gate.mjs --start"
+}

@@ -1,0 +1,65 @@
+{
+  "schemaName": "PixiMotionCycleLocalPreviewCatalog",
+  "schemaVersion": "1.0",
+  "activationScope": "LOCAL_ANDROID_DEV_PREVIEW",
+  "createdAt": "2026-10-02",
+  "ownerVisualApproval": "APPROVED",
+  "rightsStatus": "REVIEW_REQUIRED",
+  "productionRuntimeEligible": false,
+  "runtimeEligible": false,
+  "commonGatesRemainClosed": true,
+  "qaProfile": {
+    "alphaThreshold": 16,
+    "minimumEdgeClearancePercent": 1.5,
+    "requiredNonEmptyFrames": 4,
+    "frameOrder": "ROW_MAJOR",
+    "loopMode": "LOOP",
+    "scope": "LOCAL DEVELOPMENT PREVIEW ONLY; NOT RIGHTS OR DISTRIBUTION CLEARANCE"
+  },
+  "cycles": [
+    {
+      "cycleId": "motion.walker-avian.v1",
+      "behaviorClassId": "walker.avian",
+      "variantId": "songbird-waddle",
+      "assetFile": "motion-walker-avian-v1-20261001.png",
+      "sha256": "0FE6F11E734924C8954E4F6BD963BE642EAEDBCE1E45D4B62BA792F3B8798132",
+      "canvas": [2172, 724],
+      "frameCount": 4,
+      "layout": "STRIP_1X4",
+      "generationOutputId": "exec-f4e6cbe3-8097-4515-bb38-99af706ae3f0",
+      "sourceSha256": "0FE6F11E734924C8954E4F6BD963BE642EAEDBCE1E45D4B62BA792F3B8798132",
+      "minimumEdgeClearancePixels": 23,
+      "minimumEdgeClearancePercent": 4.2,
+      "nonEmptyFrames": 4,
+      "alphaIoUFrame01To02To03To04To01": [0.8, 0.78, 0.79, 0.82],
+      "visualLoopReview": "CLEAR_LOCAL_PREVIEW",
+      "devPreviewStatus": "QA_PASSED_LOCAL_PREVIEW"
+    },
+    {
+      "cycleId": "motion.walker-corgi.v2",
+      "behaviorClassId": "walker.quadruped",
+      "variantId": "corgi-quadruped",
+      "assetFile": "motion-walker-corgi-v2-20261001.png",
+      "sha256": "2043BCF6BF68BD45E7FCFD097ABFF6C4276B7A0AC29DAD39BF6F3672AF7566F2",
+      "canvas": [1217, 1293],
+      "frameCount": 4,
+      "layout": "GRID_2X2",
+      "generationOutputId": "exec-c6a4ca9a-a00f-4fad-944e-dca7194eccac",
+      "sourceSha256": "2043BCF6BF68BD45E7FCFD097ABFF6C4276B7A0AC29DAD39BF6F3672AF7566F2",
+      "minimumEdgeClearancePixels": 10,
+      "minimumEdgeClearancePercent": 1.64,
+      "nonEmptyFrames": 4,
+      "alphaIoUFrame01To02To03To04To01": [0.9073, 0.6273, 0.8536, 0.6402],
+      "visualLoopReview": "FOUR POSES REMAIN DISTINGUISHABLE; VERIFY AT ANDROID PREVIEW SCALE",
+      "devPreviewStatus": "QA_PASSED_LOCAL_PREVIEW"
+    }
+  ],
+  "blockedCandidates": [
+    {
+      "cycleId": "motion.flyer-songbird.v2",
+      "reason": "ALPHA_CENTROID_DRIFT",
+      "sourceFileRemainsPreserved": true,
+      "runtimeSelectable": false
+    }
+  ]
+}

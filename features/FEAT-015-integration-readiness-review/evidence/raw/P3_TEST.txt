@@ -1,0 +1,12 @@
+$ vitest run
+
+ RUN  v3.2.7 <workspace>/tmp/p3-review-20260905/packages/art-renderer
+
+ ✓ tests/artAnimationPlan.test.ts (6 tests) 9ms
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Start at  17:07:50
+   Duration  1.24s (transform 123ms, setup 0ms, collect 762ms, tests 9ms, environment 0ms, prepare 125ms)
+
+

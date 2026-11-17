@@ -1,0 +1,19 @@
+meta {
+  name: 100 [READ ONLY] Read Gallery
+  type: http
+  seq: 100
+}
+
+get {
+  url: {{baseUrl}}/v1/sessions/{{session_id}}/gallery
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
+  X-Expected-Session-Version: 0
+  Idempotency-Key: REPLACE_WITH_SYNTHETIC_VALUE
+  X-Actor-Ref: REPLACE_WITH_SYNTHETIC_VALUE
+}

@@ -1,0 +1,20 @@
+{
+  "app": "sketch2life-srs23-flux-image-dev",
+  "attempt_id": "e1b43a24-eb58-44d2-b7e8-f1a326c48d26",
+  "attempt_prefix": "sketch2life/dev/4f16dce3-4a91-46f0-90f8-74a16255a9f2/68560f69-6c92-4802-9e1b-647b22293bcd/e1b43a24-eb58-44d2-b7e8-f1a326c48d26/",
+  "call_id": "fc-01M6P61K452C9815TEK1KEMZYP",
+  "dispatched_at": "2026-11-05T22:42:51.681+07:00",
+  "elapsed_ms": 71284.03,
+  "error_category": "AttributeError",
+  "error_type": "AttributeError",
+  "function": "generate-line-sketch-guide-candidate",
+  "generation_id": "68560f69-6c92-4802-9e1b-647b22293bcd",
+  "input_sha256": "0f28f8f178af4c345be15dea36577d2b7b2be4dc405ac331c24463f597c9b97e",
+  "job_id": "4f16dce3-4a91-46f0-90f8-74a16255a9f2",
+  "manifest_sha256": "f714412b9aecf410f83a46b1c131e2e60ba1314e6e6ef41a041b725b0d52492b",
+  "max_attempts": 1,
+  "outcome": "FAILED_TERMINAL",
+  "scratch_input_removed": true,
+  "started_at": "2026-11-05T22:42:49.476+07:00",
+  "workload": "parent.sketch-guide.generate"
+}

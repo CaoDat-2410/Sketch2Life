@@ -1,0 +1,8 @@
+stateDiagram-v2
+  Active --> Paused: Teacher pause
+  Paused --> Active: Teacher resume
+  Active --> Recovering: failure or reconnect required
+  Paused --> Recovering: failure or reconnect required
+  Recovering --> Active: recover valid checkpoint to active
+  Recovering --> Paused: recover valid checkpoint to paused
+  note right of Recovering: Return to the last valid state. Receipt and durable boundary require contract and database acceptance.

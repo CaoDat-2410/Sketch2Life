@@ -1,0 +1,1300 @@
+{
+  "runner": "BE2-01 Phase A fixture contracts",
+  "scope": "fake/contract semantics only; not durable, not real inference/deletion",
+  "fixture_manifest_sha256": "245e8b21de0a31d093080056414c880e7cbe279174ee8ec9a524777366360c51",
+  "results_sha256": "d17f58a3c9c535d45a2fe03ed0c1edad42a565422725aede21b22ba45af41f68",
+  "environment": {
+    "python": "3.12.10",
+    "platform": "win32",
+    "with_http": true
+  },
+  "summary": {
+    "PASS": 21,
+    "FAIL": 0,
+    "checks": 222,
+    "checks_failed": 0,
+    "not_run": 1
+  },
+  "results": [
+    {
+      "criterion": "A-01",
+      "title": "Standalone deterministic runner",
+      "checks": [
+        {
+          "name": "sketch2life imported from this tree",
+          "ok": true,
+          "detail": "src/sketch2life/__init__.py"
+        },
+        {
+          "name": "no DB/broker/provider SDK/HTTP client/FastAPI loaded",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "deterministic: two runs give identical results",
+          "ok": true,
+          "detail": ""
+        }
+      ],
+      "not_run": [],
+      "status": "PASS"
+    },
+    {
+      "criterion": "A-02",
+      "title": "DATA-25 round-trip/invalid fixtures",
+      "checks": [
+        {
+          "name": "fixture files match deterministic regeneration + manifest",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "data25 positive blocked_unsafe",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "data25 positive cancelled_by_teacher",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "data25 positive cancelled_consent_revoked",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "data25 positive failed_exhausted",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "data25 positive failed_retryable",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "data25 positive queued",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "data25 positive running_percentage",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "data25 positive running_stages",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "data25 positive running_unknown_progress",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "data25 positive succeeded_accepted",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "data25 positive succeeded_admin_projection",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "data25 positive succeeded_stale_context",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "data25 negative attempt_zero rejected",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "data25 negative bad_input_hash rejected",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "data25 negative cancelled_with_refs rejected",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "data25 negative extra_provider_url rejected",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "data25 negative missing_correlation_id rejected",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "data25 negative naive_timestamp rejected",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "data25 negative percentage_null rejected",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "data25 negative percentage_over_100 rejected",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "data25 negative queued_refs_without_disposition rejected",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "data25 negative queued_with_refs rejected",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "data25 negative refs_with_stale_disposition rejected",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "data25 negative revision_as_string rejected",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "data25 negative running_with_disposition rejected",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "data25 negative stale_as_state rejected",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "data25 negative succeeded_without_disposition rejected",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "data25 negative terminal_keeps_polling rejected",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "data25 negative unknown_progress_with_zero rejected",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "data25_child positive failed_exhausted_device_projection",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "data25_child positive succeeded_device_projection",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "data25_child negative child_failed_without_failure rejected",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "data25_child negative child_succeeded_with_failure rejected",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "data25_child negative child_terminal_keeps_polling rejected",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "data25_child negative child_with_request_ref rejected",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "data25_child negative child_with_result_refs rejected",
+          "ok": true,
+          "detail": ""
+        }
+      ],
+      "not_run": [],
+      "status": "PASS"
+    },
+    {
+      "criterion": "A-03",
+      "title": "Duplicate semantic request",
+      "checks": [
+        {
+          "name": "same key + same payload replays original receipt",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "new key + same semantic request resolves to the same job",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "other principal same key text = own scope, deduplicated, not replayed",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "one job, one attempt",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "three immutable command receipts (k1, k2, teacher_2:k1)",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "semantic cost charged once (provider calls)",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "R02 same request, different target -> separate job (no scope merge)",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "R02 same request, different session -> separate job (no scope merge)",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "R02 same request, different subjects -> separate job (no scope merge)",
+          "ok": true,
+          "detail": ""
+        }
+      ],
+      "not_run": [],
+      "status": "PASS"
+    },
+    {
+      "criterion": "A-04",
+      "title": "Same key changed payload/scope",
+      "checks": [
+        {
+          "name": "same key different payload -> IDEMPOTENCY_PAYLOAD_MISMATCH",
+          "ok": true,
+          "detail": "IDEMPOTENCY_PAYLOAD_MISMATCH"
+        },
+        {
+          "name": "original job unchanged",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "other organization same key/request -> separate job in its own org",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "ungranted principal cannot use key to reach job",
+          "ok": true,
+          "detail": "FORBIDDEN_SCOPE"
+        }
+      ],
+      "not_run": [],
+      "status": "PASS"
+    },
+    {
+      "criterion": "A-05",
+      "title": "Queue redelivery/duplicate completion",
+      "checks": [
+        {
+          "name": "queue redelivery does not start another attempt",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "duplicate completion returns prior receipt",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "one effect: revision and attempts unchanged",
+          "ok": true,
+          "detail": ""
+        }
+      ],
+      "not_run": [],
+      "status": "PASS"
+    },
+    {
+      "criterion": "A-06",
+      "title": "Fake concurrent CAS / changed output",
+      "checks": [
+        {
+          "name": "one winner, one COMPLETION_CONFLICT",
+          "ok": true,
+          "detail": "['COMPLETION_CONFLICT', 'accepted']"
+        },
+        {
+          "name": "conflict recorded as incident",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "stale CAS rejected",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "failed commit leaves no partial job/receipt/outbox",
+          "ok": true,
+          "detail": ""
+        }
+      ],
+      "not_run": [],
+      "status": "PASS"
+    },
+    {
+      "criterion": "A-07",
+      "title": "Timeout/retry to policy limit",
+      "checks": [
+        {
+          "name": "ends failed_exhausted",
+          "ok": true,
+          "detail": "failed_exhausted"
+        },
+        {
+          "name": "attempts bounded by named policy",
+          "ok": true,
+          "detail": "3"
+        },
+        {
+          "name": "no infinite loop",
+          "ok": true,
+          "detail": "6"
+        },
+        {
+          "name": "attempt timeout -> failed_retryable PROVIDER_TIMEOUT with backoff",
+          "ok": true,
+          "detail": ""
+        }
+      ],
+      "not_run": [],
+      "status": "PASS"
+    },
+    {
+      "criterion": "A-08",
+      "title": "Unknown/stage/percentage progress",
+      "checks": [
+        {
+          "name": "unknown progress has value null",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "truthful percentage preserved",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "reject unknown with 0",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "reject percentage 101",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "reject percentage nan",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "reject stages without label",
+          "ok": true,
+          "detail": ""
+        }
+      ],
+      "not_run": [],
+      "status": "PASS"
+    },
+    {
+      "criterion": "A-09",
+      "title": "Poll outside organization/audience/grant",
+      "checks": [
+        {
+          "name": "other org -> RESOURCE_NOT_FOUND (existence concealed)",
+          "ok": true,
+          "detail": "RESOURCE_NOT_FOUND"
+        },
+        {
+          "name": "ungranted teacher -> RESOURCE_NOT_FOUND (existence concealed)",
+          "ok": true,
+          "detail": "RESOURCE_NOT_FOUND"
+        },
+        {
+          "name": "missing and forbidden look identical",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "revoked device grant denied",
+          "ok": true,
+          "detail": "RESOURCE_NOT_FOUND"
+        }
+      ],
+      "not_run": [],
+      "status": "PASS"
+    },
+    {
+      "criterion": "A-10",
+      "title": "ETag/cache poll after revoke",
+      "checks": [
+        {
+          "name": "authorized unchanged poll -> 304",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "consent revoke changes ETag; no 304 with old refs",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "refs withheld after revoke",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "revoked grant gets 404 before cache/304",
+          "ok": true,
+          "detail": "RESOURCE_NOT_FOUND"
+        },
+        {
+          "name": "R10 changed backoff hint is not hidden behind 304",
+          "ok": true,
+          "detail": ""
+        }
+      ],
+      "not_run": [],
+      "status": "PASS"
+    },
+    {
+      "criterion": "A-11",
+      "title": "Wrong attempt/request/revision/hash completion",
+      "checks": [
+        {
+          "name": "superseded attempt-1 success -> stale ATTEMPT_SUPERSEDED",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "attempt 2 still running, not overwritten",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "wrong input hash -> rejected INPUT_MISMATCH",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "mismatch audited as incident",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "job still running after mismatch",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "R03 rejected mismatch does not block corrected completion",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "R03 completion before start is non-authoritative; same claim lands after start",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "R03a accepted refs after temporary rejection are not quarantined",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "R03 genuine conflict after accepted completion still raised",
+          "ok": true,
+          "detail": ""
+        }
+      ],
+      "not_run": [],
+      "status": "PASS"
+    },
+    {
+      "criterion": "A-12",
+      "title": "Source/context change while running",
+      "checks": [
+        {
+          "name": "result disposition stale STALE_CONTEXT",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "source lineage kept (pinned context 1)",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "stale result not projected",
+          "ok": true,
+          "detail": ""
+        }
+      ],
+      "not_run": [],
+      "status": "PASS"
+    },
+    {
+      "criterion": "A-13",
+      "title": "Cancel queued/running/backoff/before completion",
+      "checks": [
+        {
+          "name": "cancel from queued",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "queued: scheduled retry invalidated",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "queued: outbox has no new dispatch",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "cancel from running",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "running: scheduled retry invalidated",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "running: late/duplicate completion cannot resurrect",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "running: outbox has no new dispatch",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "cancel from failed_retryable",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "failed_retryable: scheduled retry invalidated",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "failed_retryable: late/duplicate completion cannot resurrect",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "failed_retryable: outbox has no new dispatch",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "cancel without If-Match -> PRECONDITION_REQUIRED",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "cancel with stale revision -> STALE_AGGREGATE",
+          "ok": true,
+          "detail": ""
+        }
+      ],
+      "not_run": [],
+      "status": "PASS"
+    },
+    {
+      "criterion": "A-14",
+      "title": "Consent/session/recall/expiry/kill-switch",
+      "checks": [
+        {
+          "name": "consent revoke: create denied without reserving receipt",
+          "ok": true,
+          "detail": "CONSENT_REQUIRED"
+        },
+        {
+          "name": "consent revoke: dispatch/start denied, job cancelled, no provider call",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "consent revoke: completion rejected and quarantined",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "consent revoke: retry denied -> cancelled",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "session end: create denied without reserving receipt",
+          "ok": true,
+          "detail": "INVALID_STATE"
+        },
+        {
+          "name": "session end: dispatch/start denied, job cancelled, no provider call",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "session end: completion rejected and quarantined",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "session end: retry denied -> cancelled",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "content recall: create denied without reserving receipt",
+          "ok": true,
+          "detail": "CONTENT_RECALLED"
+        },
+        {
+          "name": "content recall: dispatch/start denied, job cancelled, no provider call",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "content recall: completion rejected and quarantined",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "content recall: retry denied -> cancelled",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "source expiry: create denied without reserving receipt",
+          "ok": true,
+          "detail": "STALE_CONTEXT"
+        },
+        {
+          "name": "source expiry: dispatch/start denied, job cancelled, no provider call",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "source expiry: completion rejected and quarantined",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "source expiry: retry denied -> cancelled",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "kill switch: create denied without reserving receipt",
+          "ok": true,
+          "detail": "POLICY_UNRESOLVED"
+        },
+        {
+          "name": "kill switch: dispatch/start denied, job cancelled, no provider call",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "kill switch: completion rejected and quarantined",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "kill switch: retry denied -> cancelled",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "kill-switch notice cancels pending work",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "notice replay is a no-op",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "R09 consent revoke: dispatch rechecks eligibility, nothing enqueued",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "R09 session end: dispatch rechecks eligibility, nothing enqueued",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "R09 content recall: dispatch rechecks eligibility, nothing enqueued",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "R09 source expiry: dispatch rechecks eligibility, nothing enqueued",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "R09 kill switch: dispatch rechecks eligibility, nothing enqueued",
+          "ok": true,
+          "detail": ""
+        }
+      ],
+      "not_run": [],
+      "status": "PASS"
+    },
+    {
+      "criterion": "A-15",
+      "title": "Unsafe/malformed output",
+      "checks": [
+        {
+          "name": "unsafe -> blocked_unsafe, rejected, quarantined",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "malformed (no outputs) -> failed_exhausted OUTPUT_MALFORMED, no exposure",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "malformed (unknown ref) -> failed_exhausted OUTPUT_MALFORMED, no exposure",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "malformed (hash mismatch) -> failed_exhausted OUTPUT_MALFORMED, no exposure",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "diagnostic redacted from view and audit",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "R01 input mismatch: foreign/unowned artifacts never quarantined",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "R01 malformed output: foreign/unowned artifacts never quarantined",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "R04a non-string code list -> MALFORMED_CLAIM, later valid completion accepted",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "R04a non-string code dict -> MALFORMED_CLAIM, later valid completion accepted",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "R04a non-string code list -> MALFORMED_CLAIM, later valid completion accepted",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "R04 provider code 'http 503 from provider' mapped to PROVIDER_ERROR, poll view valid",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "R04 provider code 'SOME_VENDOR_CODE' mapped to PROVIDER_ERROR, poll view valid",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "R04 provider code None mapped to PROVIDER_ERROR, poll view valid",
+          "ok": true,
+          "detail": ""
+        }
+      ],
+      "not_run": [],
+      "status": "PASS"
+    },
+    {
+      "criterion": "A-16",
+      "title": "Success pending review",
+      "checks": [
+        {
+          "name": "teacher sees exact refs + hash",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "no approval/playback/session-complete fields in DATA-25 view",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "device projection has no refs/request/disposition",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "device projection validates against child candidate schema",
+          "ok": true,
+          "detail": ""
+        }
+      ],
+      "not_run": [],
+      "status": "PASS"
+    },
+    {
+      "criterion": "A-17",
+      "title": "Worker capability / no client completion",
+      "checks": [
+        {
+          "name": "missing capability denied",
+          "ok": true,
+          "detail": "WORKER_CAPABILITY_INVALID"
+        },
+        {
+          "name": "forged capability denied",
+          "ok": true,
+          "detail": "WORKER_CAPABILITY_INVALID"
+        },
+        {
+          "name": "other job capability denied",
+          "ok": true,
+          "detail": "WORKER_CAPABILITY_INVALID"
+        }
+      ],
+      "not_run": [
+        "HTTP route surface: NOT_RUN here; run with --with-http (needs FastAPI)"
+      ],
+      "status": "PASS"
+    },
+    {
+      "criterion": "A-18",
+      "title": "Fake provider copy discover/cancel/purge",
+      "checks": [
+        {
+          "name": "duplicate purge returns same receipts, no new provider request",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "fixture delete labelled not actual",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "pending/unsupported/exception/unverified never deleted",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "no copy claims actual deletion",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "late copy in purging scope cannot resurrect",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "other organization scope isolated",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "R05 concurrent same-key purge: one dispatch, one consistent receipt",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "A18a paused cancel cannot overwrite purge result/receipt",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "R06 old-key replay returns its own result, keeps newer deleted state",
+          "ok": true,
+          "detail": ""
+        }
+      ],
+      "not_run": [],
+      "status": "PASS"
+    },
+    {
+      "criterion": "A-19",
+      "title": "DATA-24/ProviderCopyLifecycle/shape candidates",
+      "checks": [
+        {
+          "name": "DATA-24 session_sketch_approve validates",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "DATA-24 library_request_changes validates",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "DATA-24 negative audience_kind_mismatch rejected",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "DATA-24 negative audience_session_mismatch rejected",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "DATA-24 negative bad_target_hash rejected",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "DATA-24 negative child_approve_shortcut rejected",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "DATA-24 negative library_without_dimension rejected",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "DATA-24 negative reject_without_reason rejected",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "DATA-24 negative sketch_in_library rejected",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "ProviderCopyLifecycle owner BE2-14 / fake BE2-01 / fixture-marked",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "provider-copy negative deleted_without_receipt rejected",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "provider-copy negative fixture_labelled_deleted rejected",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "provider-copy negative pending_claims_actual rejected",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "provider-copy negative unmarked_fixture_report rejected",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "DATA-21 (BE2-03) positive shape",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "DATA-21 negative shape rejected (unknown request_reason)",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "DATA-22 (BE2-02) positive shape",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "DATA-22 negative shape rejected (fabricated confidence above 1)",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "DATA-23 (BE2-04) positive shape",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "DATA-23 negative shape rejected (unknown display mode)",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "DATA-26 (BE2-07) positive shape",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "DATA-26 negative shape rejected (missing child_imagined_elements separation)",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "DATA-27 (BE2-08) positive shape",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "DATA-27 negative shape rejected (unknown strategy)",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "DATA-28 (BE2-10) positive shape",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "DATA-28 negative shape rejected (empty reason)",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "DATA-29 (BE2-11) positive shape",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "DATA-29 negative shape rejected (missing audience_scope)",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "DATA-33 (BE2-12) positive shape",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "DATA-33 negative shape rejected (publish without review_ref)",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "R07 DATA-21__request_reason__dict returns validation errors",
+          "ok": true,
+          "detail": "[\"request_reason must be one of ['child_request', 'explicit_help_signal', 'teacher_request']\"]"
+        },
+        {
+          "name": "R07 DATA-21__request_reason__list returns validation errors",
+          "ok": true,
+          "detail": "[\"request_reason must be one of ['child_request', 'explicit_help_signal', 'teacher_request']\"]"
+        },
+        {
+          "name": "R07 DATA-21__request_reason__null returns validation errors",
+          "ok": true,
+          "detail": "[\"request_reason must be one of ['child_request', 'explicit_help_signal', 'teacher_request']\"]"
+        },
+        {
+          "name": "R07 DATA-21__request_reason__number returns validation errors",
+          "ok": true,
+          "detail": "[\"request_reason must be one of ['child_request', 'explicit_help_signal', 'teacher_request']\"]"
+        },
+        {
+          "name": "R07 DATA-23__display_mode__dict returns validation errors",
+          "ok": true,
+          "detail": "[\"display_mode must be one of ['overlay', 'side_reference']\"]"
+        },
+        {
+          "name": "R07 DATA-23__display_mode__list returns validation errors",
+          "ok": true,
+          "detail": "[\"display_mode must be one of ['overlay', 'side_reference']\"]"
+        },
+        {
+          "name": "R07 DATA-23__display_mode__null returns validation errors",
+          "ok": true,
+          "detail": "[\"display_mode must be one of ['overlay', 'side_reference']\"]"
+        },
+        {
+          "name": "R07 DATA-23__display_mode__number returns validation errors",
+          "ok": true,
+          "detail": "[\"display_mode must be one of ['overlay', 'side_reference']\"]"
+        },
+        {
+          "name": "R07 DATA-27__strategy__dict returns validation errors",
+          "ok": true,
+          "detail": "[\"strategy must be one of ['compose_library', 'generate', 'reviewed_library']\"]"
+        },
+        {
+          "name": "R07 DATA-27__strategy__list returns validation errors",
+          "ok": true,
+          "detail": "[\"strategy must be one of ['compose_library', 'generate', 'reviewed_library']\"]"
+        },
+        {
+          "name": "R07 DATA-27__strategy__null returns validation errors",
+          "ok": true,
+          "detail": "[\"strategy must be one of ['compose_library', 'generate', 'reviewed_library']\"]"
+        },
+        {
+          "name": "R07 DATA-27__strategy__number returns validation errors",
+          "ok": true,
+          "detail": "[\"strategy must be one of ['compose_library', 'generate', 'reviewed_library']\"]"
+        },
+        {
+          "name": "R07 DATA-28__action__dict returns validation errors",
+          "ok": true,
+          "detail": "[\"action must be one of ['end_session', 'retry', 'skip']\"]"
+        },
+        {
+          "name": "R07 DATA-28__action__list returns validation errors",
+          "ok": true,
+          "detail": "[\"action must be one of ['end_session', 'retry', 'skip']\"]"
+        },
+        {
+          "name": "R07 DATA-28__action__null returns validation errors",
+          "ok": true,
+          "detail": "[\"action must be one of ['end_session', 'retry', 'skip']\"]"
+        },
+        {
+          "name": "R07 DATA-28__action__number returns validation errors",
+          "ok": true,
+          "detail": "[\"action must be one of ['end_session', 'retry', 'skip']\"]"
+        },
+        {
+          "name": "R07 DATA-33__action__dict returns validation errors",
+          "ok": true,
+          "detail": "[\"action must be one of ['archive', 'create', 'edit', 'publish', 'recall', 'record_review', 'request_changes', 'submit_review']\"]"
+        },
+        {
+          "name": "R07 DATA-33__action__list returns validation errors",
+          "ok": true,
+          "detail": "[\"action must be one of ['archive', 'create', 'edit', 'publish', 'recall', 'record_review', 'request_changes', 'submit_review']\"]"
+        },
+        {
+          "name": "R07 DATA-33__action__null returns validation errors",
+          "ok": true,
+          "detail": "[\"action must be one of ['archive', 'create', 'edit', 'publish', 'recall', 'record_review', 'request_changes', 'submit_review']\"]"
+        },
+        {
+          "name": "R07 DATA-33__action__number returns validation errors",
+          "ok": true,
+          "detail": "[\"action must be one of ['archive', 'create', 'edit', 'publish', 'recall', 'record_review', 'request_changes', 'submit_review']\"]"
+        }
+      ],
+      "not_run": [],
+      "status": "PASS"
+    },
+    {
+      "criterion": "A-20",
+      "title": "Handoff P1/P2/P4 artefacts",
+      "checks": [
+        {
+          "name": "present: evidence/notes/PHASE_A_HANDOFF.md",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "present: fixtures/consumer_examples/p1_job_poll_sequence.json",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "present: fixtures/error_catalogue.json",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "present: fixtures/MANIFEST.json",
+          "ok": true,
+          "detail": ""
+        },
+        {
+          "name": "present: plan/PHASE_A_CANDIDATE_SPEC.md",
+          "ok": true,
+          "detail": ""
+        }
+      ],
+      "not_run": [],
+      "status": "PASS"
+    },
+    {
+      "criterion": "A-17-http",
+      "title": "CMD-44 fixture app route surface",
+      "checks": [
+        {
+          "name": "missing capability denied",
+          "ok": true,
+          "detail": "WORKER_CAPABILITY_INVALID"
+        },
+        {
+          "name": "forged capability denied",
+          "ok": true,
+          "detail": "WORKER_CAPABILITY_INVALID"
+        },
+        {
+          "name": "other job capability denied",
+          "ok": true,
+          "detail": "WORKER_CAPABILITY_INVALID"
+        },
+        {
+          "name": "fixture app exposes exactly GET CMD-44",
+          "ok": true,
+          "detail": "[('/api/collaboration/v1/jobs/{job_id}', 'GET')]"
+        },
+        {
+          "name": "authorized GET returns DATA-25 envelope",
+          "ok": true,
+          "detail": "200"
+        },
+        {
+          "name": "POST / rejected (no completion route)",
+          "ok": true,
+          "detail": "405"
+        },
+        {
+          "name": "POST /completion rejected (no completion route)",
+          "ok": true,
+          "detail": "404"
+        }
+      ],
+      "not_run": [],
+      "status": "PASS"
+    }
+  ]
+}

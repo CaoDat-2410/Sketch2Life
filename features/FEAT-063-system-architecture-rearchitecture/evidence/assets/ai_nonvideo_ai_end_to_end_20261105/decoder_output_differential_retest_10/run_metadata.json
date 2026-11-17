@@ -1,0 +1,12 @@
+{
+  "started_at": "2026-11-05T18:47:37+07:00",
+  "synthetic_only": true,
+  "image_fixture": "synthetic_childlike_butterfly.png",
+  "qwen_model": {
+    "id": "Qwen/Qwen3.5-9B",
+    "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
+  },
+  "max_wait_seconds_per_call": 600,
+  "video_called": false,
+  "purpose": "Compare LM Format Enforcer's token-decoder text with application-decoded output and count non-EOS special tokens for Parent story and Teacher Deck."
+}

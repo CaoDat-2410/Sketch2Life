@@ -1,0 +1,24 @@
+Command=python -B features/FEAT-044-be2-ai-job-foundation/src/run_fixture_contracts.py --report features/FEAT-044-be2-ai-job-foundation/evidence/raw/phase_a_run3_runner_report.json
+started_at=2026-10-14T21:09:05.012212+07:00
+exit_code=0
+A-01       PASS    3 checks  Standalone deterministic runner
+A-02       PASS   30 checks  DATA-25 round-trip/invalid fixtures
+A-03       PASS    6 checks  Duplicate semantic request
+A-04       PASS    4 checks  Same key changed payload/scope
+A-05       PASS    3 checks  Queue redelivery/duplicate completion
+A-06       PASS    4 checks  Fake concurrent CAS / changed output
+A-07       PASS    4 checks  Timeout/retry to policy limit
+A-08       PASS    6 checks  Unknown/stage/percentage progress
+A-09       PASS    4 checks  Poll outside organization/audience/grant
+A-10       PASS    4 checks  ETag/cache poll after revoke
+A-11       PASS    5 checks  Wrong attempt/request/revision/hash completion
+A-12       PASS    3 checks  Source/context change while running
+A-13       PASS   13 checks  Cancel queued/running/backoff/before completion
+A-14       PASS   22 checks  Consent/session/recall/expiry/kill-switch
+A-15       PASS    5 checks  Unsafe/malformed output
+A-16       PASS    4 checks  Success pending review
+A-17       PASS    3 checks  Worker capability / no client completion  NOT_RUN: ['HTTP route surface: NOT_RUN here; run with --with-http (needs FastAPI)']
+A-18       PASS    6 checks  Fake provider copy discover/cancel/purge
+A-19       PASS   30 checks  DATA-24/ProviderCopyLifecycle/shape candidates
+A-20       PASS    5 checks  Handoff P1/P2/P4 artefacts
+SUMMARY {"PASS": 20, "FAIL": 0, "checks": 164, "checks_failed": 0, "not_run": 1} results_sha256=364ca31857ff4dc302394e3501c77763636dc9ffed735e4b423fe4e259e7538d

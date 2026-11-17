@@ -1,0 +1,224 @@
+{
+  "catalogId": "sketch2life.pixi.topic-assets",
+  "catalogVersion": "1.0.0",
+  "catalogStatus": "REVIEW_PENDING",
+  "runtimeEligible": false,
+  "generatedDate": "2026-09-17",
+  "styleProfileId": "flat-childlike-doodle-v1",
+  "styleProfileNote": "Generic flat-2D starter style based on a chain of generated atlas references; not yet adapted to any particular child's drawing.",
+  "frameGrid": {
+    "columns": 2,
+    "rows": 3,
+    "frameWidth": 512,
+    "frameHeight": 512,
+    "order": "row-major",
+    "coordinatesOrigin": "top-left"
+  },
+  "usageGate": "Generated drafts only. Do not load in runtime, approved, or applied assets until visual review and promotion.",
+  "atlases": [
+    {
+      "atlasId": "topic-weather-sky-v1",
+      "family": "weather-sky",
+      "file": "weather-sky-atlas-v1.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "853f46ee643bfc00f6f1010d841b9527eb94757eb399902e3a3950a2a4f48a31",
+      "reviewStatus": "REVIEW_PENDING",
+      "sprites": [
+        {"id":"topic.weather.sun.v1","label":{"en":"Smiling sun","vi":"Mặt trời cười"},"aliases":{"en":["sun"],"vi":["mặt trời"]},"frameIndex":0},
+        {"id":"topic.weather.cloud.v1","label":{"en":"Fluffy cloud","vi":"Đám mây bông"},"aliases":{"en":["cloud"],"vi":["mây"]},"frameIndex":1},
+        {"id":"topic.weather.rainbow.v1","label":{"en":"Rainbow","vi":"Cầu vồng"},"aliases":{"en":["rainbow"],"vi":["cầu vồng"]},"frameIndex":2},
+        {"id":"topic.weather.raindrops-puddle.v1","label":{"en":"Raindrops and puddle","vi":"Giọt mưa và vũng nước"},"aliases":{"en":["rain","puddle"],"vi":["mưa","vũng nước"]},"frameIndex":3},
+        {"id":"topic.weather.snowflake.v1","label":{"en":"Snowflake","vi":"Bông tuyết"},"aliases":{"en":["snow","snowflake"],"vi":["tuyết","bông tuyết"]},"frameIndex":4},
+        {"id":"topic.weather.lightning.v1","label":{"en":"Lightning bolt","vi":"Tia chớp"},"aliases":{"en":["lightning"],"vi":["tia chớp"]},"frameIndex":5}
+      ]
+    },
+    {
+      "atlasId": "topic-land-water-v1",
+      "family": "land-water-environments",
+      "file": "land-water-atlas-v1.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "2bc240f440ef09cb5d2e057dbd717765ce53ac91da790597143ed08223de3c73",
+      "reviewStatus": "REVIEW_PENDING",
+      "sprites": [
+        {"id":"topic.environment.mountain.v1","label":{"en":"Mountain","vi":"Núi"},"aliases":{"en":["mountain"],"vi":["núi"]},"frameIndex":0},
+        {"id":"topic.environment.hill-path.v1","label":{"en":"Green hill with path","vi":"Đồi xanh có lối mòn"},"aliases":{"en":["hill","path"],"vi":["đồi","đường mòn"]},"frameIndex":1},
+        {"id":"topic.environment.lake-reeds.v1","label":{"en":"Lake with reeds","vi":"Hồ có lau sậy"},"aliases":{"en":["lake"],"vi":["hồ"]},"frameIndex":2},
+        {"id":"topic.environment.ocean-wave.v1","label":{"en":"Ocean wave","vi":"Sóng biển"},"aliases":{"en":["wave","ocean"],"vi":["sóng","biển"]},"frameIndex":3},
+        {"id":"topic.environment.cave.v1","label":{"en":"Cave entrance","vi":"Cửa hang"},"aliases":{"en":["cave"],"vi":["hang"]},"frameIndex":4},
+        {"id":"topic.environment.island.v1","label":{"en":"Small island","vi":"Hòn đảo nhỏ"},"aliases":{"en":["island"],"vi":["đảo"]},"frameIndex":5}
+      ]
+    },
+    {
+      "atlasId": "topic-plants-v1",
+      "family": "plants",
+      "file": "plants-atlas-v1.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "98d9cc36c41bbb2c2977884cb0f3db69480435ae52e15e4e9809a2e7f91c8b85",
+      "reviewStatus": "REVIEW_PENDING",
+      "sprites": [
+        {"id":"topic.plant.oak-tree.v1","label":{"en":"Leafy oak tree","vi":"Cây sồi tán lá"},"aliases":{"en":["tree","oak"],"vi":["cây","cây sồi"]},"frameIndex":0},
+        {"id":"topic.plant.pine-tree.v1","label":{"en":"Pine tree","vi":"Cây thông"},"aliases":{"en":["pine"],"vi":["thông"]},"frameIndex":1},
+        {"id":"topic.plant.sunflower.v1","label":{"en":"Sunflower","vi":"Hoa hướng dương"},"aliases":{"en":["sunflower"],"vi":["hướng dương"]},"frameIndex":2},
+        {"id":"topic.plant.tulip.v1","label":{"en":"Tulip","vi":"Hoa tulip"},"aliases":{"en":["tulip"],"vi":["tulip"]},"frameIndex":3},
+        {"id":"topic.plant.potted-cactus.v1","label":{"en":"Potted cactus","vi":"Xương rồng trong chậu"},"aliases":{"en":["cactus"],"vi":["xương rồng"]},"frameIndex":4},
+        {"id":"topic.plant.leafy-vine.v1","label":{"en":"Leafy vine","vi":"Dây leo có lá"},"aliases":{"en":["vine","leaves"],"vi":["dây leo","lá"]},"frameIndex":5}
+      ]
+    },
+    {
+      "atlasId": "topic-animals-v1",
+      "family": "animals",
+      "file": "animals-atlas-v1.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "0621d7a241bad318b9e1c53d86122eebd0c9e021bd28f24f3819abbe9b9b035e",
+      "reviewStatus": "REVIEW_PENDING",
+      "sprites": [
+        {"id":"topic.animal.cat.v1","label":{"en":"Cat","vi":"Mèo"},"aliases":{"en":["cat"],"vi":["mèo"]},"frameIndex":0},
+        {"id":"topic.animal.dog.v1","label":{"en":"Dog","vi":"Chó"},"aliases":{"en":["dog"],"vi":["chó"]},"frameIndex":1},
+        {"id":"topic.animal.rabbit.v1","label":{"en":"Rabbit","vi":"Thỏ"},"aliases":{"en":["rabbit","bunny"],"vi":["thỏ"]},"frameIndex":2},
+        {"id":"topic.animal.songbird.v1","label":{"en":"Songbird","vi":"Chim nhỏ"},"aliases":{"en":["bird"],"vi":["chim"]},"frameIndex":3},
+        {"id":"topic.animal.fish.v1","label":{"en":"Fish","vi":"Cá"},"aliases":{"en":["fish"],"vi":["cá"]},"frameIndex":4},
+        {"id":"topic.animal.butterfly.v1","label":{"en":"Butterfly","vi":"Bướm"},"aliases":{"en":["butterfly"],"vi":["bướm"]},"frameIndex":5}
+      ]
+    },
+    {
+      "atlasId": "topic-people-roles-v1",
+      "family": "people-roles-clothing",
+      "file": "people-roles-atlas-v1.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "5ab1440d14f4486217d4f695495299ed5ad8ba2fc4778cc0a50b93a58095c95e",
+      "reviewStatus": "REVIEW_PENDING",
+      "sprites": [
+        {"id":"topic.person.child-a.v1","label":{"en":"Child, short hair","vi":"Bạn nhỏ tóc ngắn"},"aliases":{"en":["child"],"vi":["trẻ em","bạn nhỏ"]},"frameIndex":0},
+        {"id":"topic.person.child-b.v1","label":{"en":"Child, curly hair","vi":"Bạn nhỏ tóc xoăn"},"aliases":{"en":["child"],"vi":["trẻ em","bạn nhỏ"]},"frameIndex":1},
+        {"id":"topic.person.caregiver.v1","label":{"en":"Caregiver","vi":"Người chăm sóc"},"aliases":{"en":["adult","caregiver"],"vi":["người lớn","người chăm sóc"]},"frameIndex":2},
+        {"id":"topic.person.teacher.v1","label":{"en":"Teacher","vi":"Giáo viên"},"aliases":{"en":["teacher"],"vi":["thầy cô","giáo viên"]},"frameIndex":3},
+        {"id":"topic.person.gardener.v1","label":{"en":"Gardener","vi":"Người làm vườn"},"aliases":{"en":["gardener"],"vi":["người làm vườn"]},"frameIndex":4},
+        {"id":"topic.person.doctor.v1","label":{"en":"Doctor","vi":"Bác sĩ"},"aliases":{"en":["doctor"],"vi":["bác sĩ"]},"frameIndex":5}
+      ]
+    },
+    {
+      "atlasId": "topic-places-buildings-v1",
+      "family": "homes-buildings-places",
+      "file": "places-buildings-atlas-v1.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "c075303d1db063c6f8a5fc10dd5993bc346a1bccc33f4b0ebc9abf518d1a7e89",
+      "reviewStatus": "REVIEW_PENDING",
+      "sprites": [
+        {"id":"topic.place.house.v1","label":{"en":"Small house","vi":"Ngôi nhà nhỏ"},"aliases":{"en":["house","home"],"vi":["nhà","ngôi nhà"]},"frameIndex":0},
+        {"id":"topic.place.school.v1","label":{"en":"Schoolhouse","vi":"Trường học"},"aliases":{"en":["school"],"vi":["trường học"]},"frameIndex":1},
+        {"id":"topic.place.barn.v1","label":{"en":"Barn","vi":"Nhà kho nông trại"},"aliases":{"en":["barn"],"vi":["nhà kho","chuồng trại"]},"frameIndex":2},
+        {"id":"topic.place.bridge.v1","label":{"en":"Arched bridge","vi":"Cầu vòm"},"aliases":{"en":["bridge"],"vi":["cầu"]},"frameIndex":3},
+        {"id":"topic.place.tent.v1","label":{"en":"Camping tent","vi":"Lều cắm trại"},"aliases":{"en":["tent","camping"],"vi":["lều","cắm trại"]},"frameIndex":4},
+        {"id":"topic.place.castle.v1","label":{"en":"Fairytale castle","vi":"Lâu đài cổ tích"},"aliases":{"en":["castle"],"vi":["lâu đài"]},"frameIndex":5}
+      ]
+    },
+    {
+      "atlasId": "topic-transport-v1",
+      "family": "vehicles-travel",
+      "file": "transport-atlas-v1.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "833d63ccee7827738d6218cfa629257efa3534b513c5409bd4c7702b42086559",
+      "reviewStatus": "REVIEW_PENDING",
+      "sprites": [
+        {"id":"topic.vehicle.bicycle.v1","label":{"en":"Bicycle","vi":"Xe đạp"},"aliases":{"en":["bicycle","bike"],"vi":["xe đạp"]},"frameIndex":0},
+        {"id":"topic.vehicle.car.v1","label":{"en":"Small car","vi":"Ô tô nhỏ"},"aliases":{"en":["car"],"vi":["ô tô","xe hơi"]},"frameIndex":1},
+        {"id":"topic.vehicle.city-bus.v1","label":{"en":"City bus","vi":"Xe buýt"},"aliases":{"en":["bus"],"vi":["xe buýt"]},"frameIndex":2},
+        {"id":"topic.vehicle.sailboat.v1","label":{"en":"Sailboat","vi":"Thuyền buồm"},"aliases":{"en":["boat","sailboat"],"vi":["thuyền","thuyền buồm"]},"frameIndex":3},
+        {"id":"topic.vehicle.airplane.v1","label":{"en":"Airplane","vi":"Máy bay"},"aliases":{"en":["airplane","plane"],"vi":["máy bay"]},"frameIndex":4},
+        {"id":"topic.vehicle.train.v1","label":{"en":"Train","vi":"Tàu hỏa"},"aliases":{"en":["train"],"vi":["tàu hỏa","xe lửa"]},"frameIndex":5}
+      ]
+    },
+    {
+      "atlasId": "topic-food-v1",
+      "family": "food-fruit-vegetables",
+      "file": "food-atlas-v1.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "b8625deb9762e6fd5d832b568aeb548ca9165c22b53c29638e2465b508116e17",
+      "reviewStatus": "REVIEW_PENDING",
+      "sprites": [
+        {"id":"topic.food.apple.v1","label":{"en":"Apple","vi":"Táo"},"aliases":{"en":["apple"],"vi":["táo"]},"frameIndex":0},
+        {"id":"topic.food.banana.v1","label":{"en":"Banana","vi":"Chuối"},"aliases":{"en":["banana"],"vi":["chuối"]},"frameIndex":1},
+        {"id":"topic.food.strawberry.v1","label":{"en":"Strawberry","vi":"Dâu tây"},"aliases":{"en":["strawberry"],"vi":["dâu tây"]},"frameIndex":2},
+        {"id":"topic.food.carrot.v1","label":{"en":"Carrot","vi":"Cà rốt"},"aliases":{"en":["carrot"],"vi":["cà rốt"]},"frameIndex":3},
+        {"id":"topic.food.bread.v1","label":{"en":"Bread loaf","vi":"Ổ bánh mì"},"aliases":{"en":["bread","loaf"],"vi":["bánh mì"]},"frameIndex":4},
+        {"id":"topic.food.soup-bowl.v1","label":{"en":"Soup bowl","vi":"Bát súp"},"aliases":{"en":["soup","bowl"],"vi":["súp","bát"]},"frameIndex":5}
+      ]
+    },
+    {
+      "atlasId": "topic-everyday-classroom-v1",
+      "family": "everyday-classroom-household",
+      "file": "everyday-classroom-atlas-v1.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "c9e620b066e527c28734827641ce706634c9316992ae9deb718ebb62361599fc",
+      "reviewStatus": "REVIEW_PENDING",
+      "sprites": [
+        {"id":"topic.object.picture-book.v1","label":{"en":"Picture book","vi":"Sách tranh"},"aliases":{"en":["book"],"vi":["sách","sách tranh"]},"frameIndex":0},
+        {"id":"topic.object.pencil.v1","label":{"en":"Pencil","vi":"Bút chì"},"aliases":{"en":["pencil"],"vi":["bút chì"]},"frameIndex":1},
+        {"id":"topic.object.ball.v1","label":{"en":"Play ball","vi":"Bóng"},"aliases":{"en":["ball"],"vi":["bóng"]},"frameIndex":2},
+        {"id":"topic.object.chair.v1","label":{"en":"Chair","vi":"Ghế"},"aliases":{"en":["chair"],"vi":["ghế"]},"frameIndex":3},
+        {"id":"topic.object.umbrella.v1","label":{"en":"Umbrella","vi":"Ô"},"aliases":{"en":["umbrella"],"vi":["ô","dù"]},"frameIndex":4},
+        {"id":"topic.object.backpack.v1","label":{"en":"Backpack","vi":"Ba lô"},"aliases":{"en":["backpack","bag"],"vi":["ba lô","cặp sách"]},"frameIndex":5}
+      ]
+    },
+    {
+      "atlasId": "topic-learning-play-v1",
+      "family": "art-craft-play-montessori",
+      "file": "learning-play-materials-atlas-v1.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "e3d3527d7f8341675a4b53ea91a109f10b1b88061caed1d4fe118684122635d7",
+      "reviewStatus": "REVIEW_PENDING",
+      "sprites": [
+        {"id":"topic.material.wooden-blocks.v1","label":{"en":"Wooden blocks","vi":"Khối gỗ"},"aliases":{"en":["blocks"],"vi":["khối gỗ"]},"frameIndex":0},
+        {"id":"topic.material.number-rods.v1","label":{"en":"Number rods","vi":"Thanh số"},"aliases":{"en":["rods"],"vi":["thanh số"]},"frameIndex":1},
+        {"id":"topic.material.counting-beads.v1","label":{"en":"Counting beads","vi":"Hạt đếm"},"aliases":{"en":["beads"],"vi":["hạt đếm"]},"frameIndex":2},
+        {"id":"topic.material.sorting-bowls.v1","label":{"en":"Color-sorting bowls","vi":"Bát phân loại màu"},"aliases":{"en":["sorting bowls"],"vi":["bát phân loại"]},"frameIndex":3},
+        {"id":"topic.material.pitcher-cup.v1","label":{"en":"Pitcher and cup","vi":"Bình rót và cốc"},"aliases":{"en":["pitcher","pouring"],"vi":["bình rót","rót nước"]},"frameIndex":4},
+        {"id":"topic.material.shape-puzzle.v1","label":{"en":"Geometric shape puzzle","vi":"Bảng ghép hình"},"aliases":{"en":["puzzle","shapes"],"vi":["ghép hình","hình khối"]},"frameIndex":5}
+      ]
+    },
+    {
+      "atlasId": "topic-fantasy-underwater-space-v1",
+      "family": "fantasy-underwater-space",
+      "file": "fantasy-underwater-space-atlas-v1.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "cb7a3a4d12cc1c626fc536683496b1394abebdd0f6317f008dbab10686857be3",
+      "reviewStatus": "REVIEW_PENDING",
+      "sprites": [
+        {"id":"topic.imaginative.rocket.v1","label":{"en":"Rocket ship","vi":"Tên lửa"},"aliases":{"en":["rocket"],"vi":["tên lửa"]},"frameIndex":0},
+        {"id":"topic.imaginative.ringed-planet.v1","label":{"en":"Ringed planet","vi":"Hành tinh có vành"},"aliases":{"en":["planet"],"vi":["hành tinh"]},"frameIndex":1},
+        {"id":"topic.imaginative.astronaut.v1","label":{"en":"Astronaut","vi":"Phi hành gia"},"aliases":{"en":["astronaut"],"vi":["phi hành gia"]},"frameIndex":2},
+        {"id":"topic.imaginative.submarine.v1","label":{"en":"Submarine","vi":"Tàu ngầm"},"aliases":{"en":["submarine"],"vi":["tàu ngầm"]},"frameIndex":3},
+        {"id":"topic.imaginative.dragon.v1","label":{"en":"Friendly dragon","vi":"Rồng thân thiện"},"aliases":{"en":["dragon"],"vi":["rồng"]},"frameIndex":4},
+        {"id":"topic.imaginative.mermaid.v1","label":{"en":"Mermaid","vi":"Nàng tiên cá"},"aliases":{"en":["mermaid"],"vi":["nàng tiên cá"]},"frameIndex":5}
+      ]
+    },
+    {
+      "atlasId": "topic-motion-effects-v1",
+      "family": "motion-marks-effects",
+      "file": "motion-effects-atlas-v1.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "2ca9974e7dd49bd44a290bf9fa16a9840a475536b896a85bafea7394cfc8c6b3",
+      "reviewStatus": "REVIEW_PENDING",
+      "sprites": [
+        {"id":"topic.effect.sparkles.v1","label":{"en":"Sparkle cluster","vi":"Cụm lấp lánh"},"aliases":{"en":["sparkle","twinkle"],"vi":["lấp lánh","lấp lánh nhỏ"]},"frameIndex":0},
+        {"id":"topic.effect.bubbles.v1","label":{"en":"Bubble cluster","vi":"Cụm bong bóng"},"aliases":{"en":["bubbles"],"vi":["bong bóng"]},"frameIndex":1},
+        {"id":"topic.effect.dust-puff.v1","label":{"en":"Dust puff","vi":"Đám bụi nhỏ"},"aliases":{"en":["puff","dust"],"vi":["bụi","bụi nhỏ"]},"frameIndex":2},
+        {"id":"topic.effect.motion-streaks.v1","label":{"en":"Motion streaks","vi":"Vệt chuyển động"},"aliases":{"en":["motion lines"],"vi":["vệt chuyển động"]},"frameIndex":3},
+        {"id":"topic.effect.leaf-swirl.v1","label":{"en":"Swirling leaves","vi":"Lá xoáy"},"aliases":{"en":["leaves","swirl"],"vi":["lá","lá xoáy"]},"frameIndex":4},
+        {"id":"topic.effect.confetti.v1","label":{"en":"Confetti pieces","vi":"Mảnh giấy màu"},"aliases":{"en":["confetti"],"vi":["giấy màu"]},"frameIndex":5}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+flowchart TD
+  C1[Child requests optional sketch assistance] --> B1[Backend checks purpose, session, group and source version]
+  B1 -->|eligible| B2[Backend creates immutable source snapshot and queued job]
+  B2 --> W1[Worker invokes approved provider adapter]
+  W1 -. Modal selected; runtime profile TBD .-> M1[Modal endpoint]
+  M1 --> W2[Worker validates typed result, safety and source freshness]
+  W2 --> B3[Backend stores separate versioned proposal and provenance]
+  B3 --> T1[Teacher reviews exact proposal and may edit, approve or reject]
+  T1 -->|approved exact version| B4[Backend marks scoped version available to Child]
+  B4 --> C2[Child may view, hide or decline; drawing remains editable]
+  T1 -->|rejected| B5[Proposal remains unavailable and decision is audited]
+  W2 -->|unsafe, stale, unavailable or failed| T2[Teacher sees typed pending or failure state]
+  T2 --> T3[Teacher retries or continues without the suggestion]

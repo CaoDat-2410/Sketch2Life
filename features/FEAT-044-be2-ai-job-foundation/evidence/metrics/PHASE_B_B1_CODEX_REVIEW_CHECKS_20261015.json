@@ -1,0 +1,62 @@
+{
+  "recorded_at": "2026-10-15T01:54:49.618858+07:00",
+  "review_result": "VALID_PENDING_OWNER_DECISIONS_AFTER_DOC_CLARIFICATIONS",
+  "record_revision": 2,
+  "scope": "B1 decision provenance and independent proposed-diagram preparation; docs only",
+  "reviewers": [
+    "Codex primary",
+    "phase_b_persistence_review"
+  ],
+  "head": "882e904ef103ef1c702ac14a9927420909fea423",
+  "actual_owner_decisions_added": false,
+  "plan_revision_changed": false,
+  "phase_b_implementation": "NOT_STARTED_UNAPPROVED",
+  "active_slot": "Q00",
+  "q01_status": "PLAN_REVIEW_PASS_WAITING_GATES",
+  "diagram_draft": "NOT_STARTED; next Claude prompt prepared",
+  "runtime_tests": "NOT_RUN",
+  "phase_a_frozen_count": 24,
+  "head_mismatches": [],
+  "unexpected_working_tree_mismatches": [],
+  "working_tree_exception": {
+    "path": "backend/tests/unit/test_ai_job_q00_followups.py",
+    "sha256": "9a1f5ad64c00ba7298fb107c38d79043dabafb512e4e311b86a036570e654b4b",
+    "disposition": "evidence/notes/Q00_FOLLOWUPS_EOF_DISPOSITION_20261015.md",
+    "byte_change_verified": "one trailing newline removed"
+  },
+  "document_sha256": {
+    "plan/PHASE_B_DECISION_RECORD.md": "f31099b461bb2b232f11145c1922a9b8a031878d9f0a48dae7decaa992dd8eba",
+    "plan/PHASE_B_PLAN.md": "bb20d5be45dc0552a803f67b5927d4a38dc113cabe10b3a6088644d874ba5848",
+    "plan/PHASE_B_ADR_PROPOSAL.md": "756b6df5ab8e8ec659ffabdc26a0083f035d28d63b86cebc54c6071c9f8ad0ac",
+    "plan/PHASE_B_PORT_REVIEW.md": "3af783a7efca61c5f098f7679b70bbdee4eb6034b9370291c282064ee5579699",
+    "plan/CLAUDE_PHASE_B_B1_DIAGRAM_PROMPT.md": "57767433535cac483e9c398bb7f86debe459ba36c35f27047068c15bcef4c985",
+    "evidence/notes/PHASE_B_B1_DECISION_RECORD_REVIEW_20261015.md": "6b9de648889bf5211ddbbbc8dbfaa46391d96703e226f9e22b903736158c0845"
+  },
+  "rev3_matches_final_review": {
+    "plan/PHASE_B_PLAN.md": true,
+    "plan/PHASE_B_ADR_PROPOSAL.md": true,
+    "plan/PHASE_B_PORT_REVIEW.md": true
+  },
+  "gitignore_sha256": "a300f825e7a6e862ab48502b4b7503703410c41db355cbde86982afc9a2f4e4c",
+  "historical_rev1_summary_preserved": true,
+  "checks": [
+    {
+      "check": "harness",
+      "command": "python -B tools/validate_harness.py --feature features/FEAT-044-be2-ai-job-foundation",
+      "exit_code": 0,
+      "local_receipt": "evidence/local/phase-b-b1-codex-review-20261015/harness.txt"
+    },
+    {
+      "check": "security",
+      "command": "python -B tools/validate_repository_security.py",
+      "exit_code": 0,
+      "local_receipt": "evidence/local/phase-b-b1-codex-review-20261015/security.txt"
+    },
+    {
+      "check": "diff_check",
+      "command": "git diff --check",
+      "exit_code": 0,
+      "local_receipt": "evidence/local/phase-b-b1-codex-review-20261015/diff_check.txt"
+    }
+  ]
+}

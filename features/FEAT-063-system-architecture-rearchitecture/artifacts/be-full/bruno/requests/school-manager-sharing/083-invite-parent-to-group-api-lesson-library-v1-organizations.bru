@@ -1,0 +1,27 @@
+meta {
+  name: 083 [POST/ACTION - LOCAL TEST ONLY] Invite Parent To Group
+  type: http
+  seq: 83
+}
+
+post {
+  url: {{baseUrl}}/api/lesson-library/v1/organizations/{{organization_id}}/parent-groups/{{parent_group_id}}/invitations
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  Idempotency-Key: REPLACE_WITH_SYNTHETIC_VALUE
+}
+
+body:json {
+  {
+    "parent_principal_ref": "x"
+  }
+}

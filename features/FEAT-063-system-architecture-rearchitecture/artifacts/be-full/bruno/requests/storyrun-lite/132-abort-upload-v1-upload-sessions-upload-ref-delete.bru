@@ -1,0 +1,17 @@
+meta {
+  name: 132 [STATE CHANGE - DISPOSABLE DATA ONLY] Abort Upload
+  type: http
+  seq: 132
+}
+
+delete {
+  url: {{baseUrl}}/v1/upload-sessions/{{upload_ref}}
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Idempotency-Key: REPLACE_WITH_SYNTHETIC_VALUE
+  If-Match: REPLACE_WITH_SYNTHETIC_VALUE
+}

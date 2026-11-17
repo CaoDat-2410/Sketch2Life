@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "feature": "FEAT-057-be2-01-14-offline-integration",
+  "branch": "feature/be2-backend-ai-integration",
+  "head": "1649b72978877d82b4d7662040ff3555dee0a3a7",
+  "result": "SCOPED_X01_PASS_BROAD_UNIT_CONTRACT_RED",
+  "environment": {
+    "python": "3.12.10",
+    "venv": "ignored worktree-local backend/.venv",
+    "pip_check": "PASS",
+    "additional_cpu_test_packages": {
+      "numpy": "1.26.4",
+      "imageio": "2.38.1",
+      "imageio-ffmpeg": "0.6.0"
+    },
+    "gpu": false,
+    "provider_or_lightning": false,
+    "database": false
+  },
+  "full_backend_unit_contract": {
+    "command": "python -m pytest tests/unit tests/contract -q -rs --junitxml=features/FEAT-057-be2-01-14-offline-integration/evidence/raw/full-offline-unit-contract-20261020/junit.xml",
+    "exit_code": 1,
+    "tests": 6866,
+    "passed": 6839,
+    "failed": 22,
+    "errors": 0,
+    "skipped": 5,
+    "junit": {
+      "path": "evidence/raw/full-offline-unit-contract-20261020/junit.xml",
+      "sha256": "a41d483daca8ae96561f8a9780a2f0b7e710a84787c00b5ad447e4acd7dd9e60",
+      "host_paths_redacted": true
+    },
+    "log": {
+      "path": "evidence/raw/full-offline-unit-contract-20261020/pytest.log",
+      "sha256": "847fd8b7ab9f5ae6657b5a6b7cddf7a81269b3c9b48cffbb5a0f4a0e61cb9fde",
+      "host_paths_redacted": true
+    },
+    "failure_groups": [
+      {
+        "module": "test_semantic_personalization_v2",
+        "count": 7,
+        "reason": "required activity catalog golden JSON is absent in this checkout"
+      },
+      {
+        "module": "test_vision_v3_quality_benchmark",
+        "count": 8,
+        "reason": "Phase 8 image fixture references do not resolve inside the benchmark fixture package"
+      },
+      {
+        "module": "test_vision_v3_quality_execution",
+        "count": 1,
+        "reason": "same unresolved Phase 8 image fixture condition"
+      },
+      {
+        "module": "test_pixi_motion_cycles",
+        "count": 3,
+        "reason": "expected capability/frame-read log messages absent from caplog"
+      },
+      {
+        "module": "test_live_image_demo_api",
+        "count": 2,
+        "reason": "expected validation log fields absent from caplog"
+      },
+      {
+        "module": "test_lightning_whiteboard_provider_parser",
+        "count": 1,
+        "reason": "expected DRAW_BEATS_INVALID; observed WHITEBOARD_RENDER_FAILED"
+      }
+    ]
+  },
+  "scoped_cross_lane_regression": {
+    "command": "python -m pytest tests/integration/be2_cross_lane tests/unit/test_knowledge_bundle_service.py tests/unit/test_knowledge_bundle_races.py tests/unit/test_knowledge_bundle_chain.py tests/unit/test_knowledge_bundle_adapters.py tests/unit/test_knowledge_video_media.py tests/unit/test_knowledge_video_create.py -q -rs --junitxml=features/FEAT-057-be2-01-14-offline-integration/evidence/raw/full-offline-unit-contract-20261020/scoped-regression.xml",
+    "exit_code": 0,
+    "tests": 296,
+    "passed": 296,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "junit": {
+      "path": "evidence/raw/full-offline-unit-contract-20261020/scoped-regression.xml",
+      "sha256": "4ce0cb1d3646849a0ff9f8d6712c78f3ec310d4b77834085f67cb7bba31b2d03"
+    },
+    "log": {
+      "path": "evidence/raw/full-offline-unit-contract-20261020/scoped-regression.log",
+      "sha256": "a577f3f4e413b3d77e7842958a0c59f63a8428530eac6211e8a5b78bac37af9a",
+      "host_paths_redacted": true
+    }
+  },
+  "modal_source_archive_smoke": {
+    "result": "PASS",
+    "hosted_modal_run": "NOT_RUN",
+    "description": "Extracted the exact upload ZIP to a fresh temporary directory and reran the same scoped 296 tests against the extracted files.",
+    "tests": 296,
+    "passed": 296,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "junit": {
+      "path": "evidence/raw/full-offline-unit-contract-20261020/modal-bundle-smoke.xml",
+      "sha256": "b41f31dd35769b92558b63cda492a7a38a8a4469dce512a8d45f2e3761bca255"
+    },
+    "log": {
+      "path": "evidence/raw/full-offline-unit-contract-20261020/modal-bundle-smoke.log",
+      "sha256": "a577f3f4e413b3d77e7842958a0c59f63a8428530eac6211e8a5b78bac37af9a",
+      "host_paths_redacted": true
+    }
+  },
+  "modal_notebook": {
+    "path": "evidence/notes/BE2_CROSS_LANE_X01_MODAL_NOTEBOOK_20261020.ipynb",
+    "source_archive_local_only": "evidence/local/modal-notebook-x01-20261020/be2-cross-lane-x01-source.zip",
+    "source_archive_sha256": "5e7d3e10c8ef5439efc6a39dd6a17774ec40e746b054153b004215f6479ca9e8",
+    "source_archive_bytes": 1338148,
+    "contains_git_venv_secrets_model_weights_or_real_child_data": false
+  },
+  "final_checks": {
+    "pip_check": "PASS",
+    "validate_harness": "PASS",
+    "validate_repository_security": "PASS; 4,535 publishable files scanned; no absolute machine paths",
+    "validate_architecture": "PASS",
+    "validate_skeleton": "PASS",
+    "ruff_changed_integration_files": "PASS",
+    "mypy_strict_changed_source_and_test_files": "PASS; 4 files",
+    "git_diff_check": "PASS",
+    "notebook_json_and_code_cells": "PASS",
+    "source_archive_hash_and_contents": "PASS"
+  },
+  "limitations": [
+    "X01 remains PARTIAL: no committed BE2-01 job/artifact lineage and no durable producer fence across cross-lane commit.",
+    "X02-X09 remain NOT_IMPLEMENTED.",
+    "Broad batch has 22 failures and is not green; failures are recorded by test module above.",
+    "No database, SQL execution, real provider, Lightning/Studio, live worker, or GPU was used.",
+    "The hosted Modal Notebook has not yet been run; only its exact source ZIP was smoke-tested locally.",
+    "No BE2 card acceptance/status changed; no stage, commit, push, merge, or deployment occurred."
+  ]
+}

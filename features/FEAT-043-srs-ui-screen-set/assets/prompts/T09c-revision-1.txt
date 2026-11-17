@@ -1,0 +1,4 @@
+Edit only the specified controls/text on this exact exhausted-video-failure screenshot. Preserve the entire screen, layout, sidebar, colors, three decision cards and all other labels.
+1. In the middle preserved-script card, replace "Thời lượng dự kiến" with "Trạng thái kịch bản" and replace "khoảng 1 phút" with "Đã xác nhận". This product does not have a confirmed fixed duration policy.
+2. Remove the blue top-right "Mở thư viện" button completely, leaving the two existing neutral navigation buttons "Quay lại phiên học" and "Xem kế hoạch" unchanged. The actual failure decisions remain exactly the three prominent cards "Thử lại", "Bỏ qua video", "Kết thúc phiên".
+No other changes. Keep correct Vietnamese diacritics and original crisp typography. Input is an edit target, not a loose style reference.

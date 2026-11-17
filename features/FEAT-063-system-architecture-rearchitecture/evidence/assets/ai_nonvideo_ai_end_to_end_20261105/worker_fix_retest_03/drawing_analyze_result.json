@@ -1,0 +1,31 @@
+{
+  "workload": "drawing.analyze",
+  "app": "sketch2life-srs23-drawing-vlm-dev",
+  "function": "analyze-drawing",
+  "job_id": "94bd1fc6-a5f7-4096-928a-2b23b553477f",
+  "generation_id": "692694a1-843d-4b64-94d7-a9cc993729ba",
+  "attempt_id": "dd17b482-a2e4-4f64-9bba-8130c1eb189a",
+  "source_sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949",
+  "drawing_sha256": "f433b37a93f33accc5a10cbb81b18f8cf31d8de0868752c0fe6d9d8beb3ec8e0",
+  "wait_limit_seconds": 600,
+  "started_at": "2026-11-05T17:29:52+07:00",
+  "outcome": "SUCCEEDED",
+  "call_id": "fc-01M6NM4J6P4BNQG0J3B5G8KTJE",
+  "dispatch_at": "2026-11-05T17:29:55+07:00",
+  "model": {
+    "id": "Qwen/Qwen3.5-9B",
+    "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
+  },
+  "candidate_subject": "bướm",
+  "visible_features": [
+    "cánh màu hồng và tím",
+    "thân màu vàng có vạch ngang",
+    "mặt cười với hai mắt và miệng",
+    "hai râu cong ở đầu"
+  ],
+  "adult_confirmation_required": true,
+  "output_sha256": "f1f05f62c0a5e95aa18d8b751e09b944bdf89ca3e5e55908a7efcec957425849",
+  "ended_at": "2026-11-05T17:30:36+07:00",
+  "runner_elapsed_ms": 45361.81,
+  "label": "drawing.analyze"
+}

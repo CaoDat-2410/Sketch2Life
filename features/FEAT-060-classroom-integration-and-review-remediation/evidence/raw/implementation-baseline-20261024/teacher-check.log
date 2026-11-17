@@ -1,0 +1,17 @@
+
+> teacher-ui@0.0.0 check
+> npm run build && npm run lint && npm run test
+
+
+> teacher-ui@0.0.0 build
+> tsc -b && vite build
+
+src/__tests__/app.test.tsx(23,24): error TS2339: Property 'getTeacherProfile' does not exist on type '{ login: (credentials: { email: string; pass: string; }) => Promise<User>; logout: () => Promise<void>; getIdToken: () => Promise<string>; getCurrentUser: () => User | null; observe: (callback: (user: User | null) => void) => Unsubscribe; }'.
+src/__tests__/app.test.tsx(29,58): error TS2353: Object literal may only specify known properties, and 'classroomId' does not exist in type '{ classId: string; title: string; drawMode: "individual" | "group"; }'.
+src/__tests__/app.test.tsx(31,33): error TS2339: Property 'getLiveSession' does not exist on type '{ listClasses: () => Promise<Be1Class[]>; createSession: (input: { classId: string; title: string; drawMode: "individual" | "group"; }) => Promise<Be1Session>; openLobby: (sessionId: string, expectedRevision: number) => Promise<...>; listJoinRequests: (sessionId: string) => Promise<...>; admitDevice: (sessionId: str...'.
+src/__tests__/app.test.tsx(31,56): error TS2551: Property 'sessionId' does not exist on type 'Be1Session'. Did you mean 'session_id'?
+src/__tests__/app.test.tsx(35,33): error TS2339: Property 'advanceStep' does not exist on type '{ listClasses: () => Promise<Be1Class[]>; createSession: (input: { classId: string; title: string; drawMode: "individual" | "group"; }) => Promise<Be1Session>; openLobby: (sessionId: string, expectedRevision: number) => Promise<...>; listJoinRequests: (sessionId: string) => Promise<...>; admitDevice: (sessionId: str...'.
+src/__tests__/app.test.tsx(35,53): error TS2551: Property 'sessionId' does not exist on type 'Be1Session'. Did you mean 'session_id'?
+src/services/be1Client.ts(6,5): error TS1294: This syntax is not allowed when 'erasableSyntaxOnly' is enabled.
+src/services/be1Client.ts(7,5): error TS1294: This syntax is not allowed when 'erasableSyntaxOnly' is enabled.
+src/services/be1Client.ts(8,5): error TS1294: This syntax is not allowed when 'erasableSyntaxOnly' is enabled.

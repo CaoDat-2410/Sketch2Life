@@ -1,0 +1,26 @@
+......................                                                   [100%]
+=================================== PASSES ====================================
+=========================== short test summary info ===========================
+PASSED backend\tests\unit\test_raw_understanding.py::test_maps_typed_v2_groups_and_gate_a_boundary
+PASSED backend\tests\unit\test_raw_understanding.py::test_maps_typed_v2_failure_without_inventing_provenance
+PASSED backend\tests\unit\test_raw_understanding.py::test_rejects_source_hash_mismatch_before_mapping
+PASSED backend\tests\unit\test_raw_understanding.py::test_rejects_stale_correlation_before_mapping
+PASSED backend\tests\unit\test_raw_understanding.py::test_rejects_mismatched_asr_success_before_raw_result_construction
+PASSED backend\tests\unit\test_raw_understanding.py::test_rejects_mismatched_asr_failure_before_mapping
+PASSED backend\tests\unit\test_raw_understanding.py::test_rejects_missing_v2_confidence_without_defaulting
+PASSED backend\tests\unit\test_raw_understanding.py::test_raw_schema_rejects_extra_fields_and_invalid_confidence
+PASSED backend\tests\unit\test_raw_understanding.py::test_raw_success_rejects_incomplete_provenance
+PASSED backend\tests\unit\test_raw_understanding.py::test_raw_schema_rejects_broken_references_and_forbids_gate_b_decisions
+PASSED backend\tests\unit\test_raw_understanding.py::test_raw_schema_rejects_false_gate_a_and_self_relation
+PASSED backend\tests\unit\test_raw_understanding.py::test_raw_schema_rejects_oversized_observation_collection
+PASSED backend\tests\unit\test_raw_understanding.py::test_asr_failure_is_not_collapsed_into_missing_narration
+PASSED backend\tests\unit\test_raw_understanding.py::test_matching_asr_success_remains_succeeded
+PASSED backend\tests\unit\test_raw_understanding.py::test_prohibited_v2_failure_maps_to_typed_prohibited_field
+PASSED backend\tests\contract\test_raw_understanding_contract.py::test_raw_understanding_is_a_discriminated_versioned_contract
+PASSED backend\tests\contract\test_raw_understanding_contract.py::test_success_contract_serializes_without_gate_or_provider_decisions
+PASSED backend\tests\contract\test_p2_t5_evaluation_contract.py::test_run_contract_canonicalizes_utc_and_correlation
+PASSED backend\tests\unit\test_p2_t5_evaluation.py::test_evaluates_both_splits_and_preserves_mutation_precedence
+PASSED backend\tests\unit\test_p2_t5_scoring.py::test_asr_metrics_are_decimal_and_empty_sets_are_not_measured
+PASSED backend\tests\unit\test_p2_t5_scoring.py::test_conflict_metrics_use_independent_key_sets
+PASSED backend\tests\unit\test_p2_t5_privacy.py::test_fixture_package_contains_no_provider_or_raw_text_literals
+22 passed in 4.77s

@@ -1,0 +1,11 @@
+{
+  "check": "skeleton",
+  "command": [
+    "python",
+    "tools/validate_skeleton.py"
+  ],
+  "started_at": "2026-10-14T19:55:12.281484+07:00",
+  "exit_code": 0,
+  "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/planning_skeleton.txt",
+  "output_lines": 8
+}

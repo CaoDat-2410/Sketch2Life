@@ -1,0 +1,19 @@
+{
+  "check": "original_repro",
+  "command": [
+    "<existing-backend-venv>/python",
+    "-B",
+    "-",
+    "<be2-worktree>"
+  ],
+  "stdin_source": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/q00_repro_source.txt",
+  "started_at": "2026-10-14T22:25:32.877131+07:00",
+  "exit_code": 0,
+  "environment": {
+    "PYTHONPATH": "<be2-worktree>/backend/src",
+    "PYTHONDONTWRITEBYTECODE": "1"
+  },
+  "original_findings_absent": 11,
+  "module_origin_in_worktree": true,
+  "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/codex_q00_closure_original_repro.json"
+}

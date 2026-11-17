@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "feature": "FEAT-013",
+  "reviewer_role": "PROJECT_OWNER",
+  "reviewed_at": "2026-08-25T21:32:18+07:00",
+  "review_scope": "ALL_20_GOLDEN_ACTIVITY_V2_RECORDS_AND_ASSOCIATED_MATERIAL_OPTIONS",
+  "source_message": "accept all",
+  "decision_policy": "ACCEPT maps to PROVISIONAL_OWNER_REVIEWED only; production eligibility remains false",
+  "decisions": [
+    {"activity_id": "ACT-0004", "activity_version": 2, "decision": "ACCEPT"},
+    {"activity_id": "ACT-0016", "activity_version": 2, "decision": "ACCEPT"},
+    {"activity_id": "ACT-0019", "activity_version": 2, "decision": "ACCEPT"},
+    {"activity_id": "ACT-0020", "activity_version": 2, "decision": "ACCEPT"},
+    {"activity_id": "ACT-0023", "activity_version": 2, "decision": "ACCEPT"},
+    {"activity_id": "ACT-0026", "activity_version": 2, "decision": "ACCEPT"},
+    {"activity_id": "ACT-0030", "activity_version": 2, "decision": "ACCEPT"},
+    {"activity_id": "ACT-0033", "activity_version": 2, "decision": "ACCEPT"},
+    {"activity_id": "ACT-0039", "activity_version": 2, "decision": "ACCEPT"},
+    {"activity_id": "ACT-0046", "activity_version": 2, "decision": "ACCEPT"},
+    {"activity_id": "ACT-0055", "activity_version": 2, "decision": "ACCEPT"},
+    {"activity_id": "ACT-0058", "activity_version": 2, "decision": "ACCEPT"},
+    {"activity_id": "ACT-0061", "activity_version": 2, "decision": "ACCEPT"},
+    {"activity_id": "ACT-0067", "activity_version": 2, "decision": "ACCEPT"},
+    {"activity_id": "ACT-0074", "activity_version": 2, "decision": "ACCEPT"},
+    {"activity_id": "ACT-0085", "activity_version": 2, "decision": "ACCEPT"},
+    {"activity_id": "ACT-0087", "activity_version": 2, "decision": "ACCEPT"},
+    {"activity_id": "ACT-0091", "activity_version": 2, "decision": "ACCEPT"},
+    {"activity_id": "ACT-0097", "activity_version": 2, "decision": "ACCEPT"},
+    {"activity_id": "ACT-0099", "activity_version": 2, "decision": "ACCEPT"}
+  ],
+  "production_eligible": false,
+  "production_gate": "QUALIFIED_MONTESSORI_REVIEW_REQUIRED"
+}

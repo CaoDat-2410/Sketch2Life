@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "recorded_at_local": "2026-10-17 Asia/Saigon",
+  "state": "A1_FIXES_COMPLETE_PENDING_CODEX_REREVIEW",
+  "head": "f120c4fce8f7853e5ab5e061eff4bf916d45603c",
+  "staged_paths": 0,
+  "approved_plan_sha256": "e1fce645a5d8c98efe366865f5a8a1b9c81c8a48626723c4e73f0c646979d3e5",
+  "reviewed_hashes_verified_before_edit": {
+    "checked": 31,
+    "mismatch": 0
+  },
+  "findings": {
+    "A1-CR01": "FIXED",
+    "A1-CR02": "FIXED",
+    "A1-CR03": "FIXED",
+    "A1-CR04": "FIXED",
+    "A1-CR05": "FIXED"
+  },
+  "before": {
+    "file": "backend/tests/unit/test_assistance_review_fixes.py",
+    "tests": 16,
+    "failed": 12,
+    "passed": 4,
+    "cases": {
+      "test_cr01_new_key_cache_hit_requires_current_disclosure": "failed",
+      "test_cr01_disclosure_withdrawn_between_cache_gate_and_commit": "failed",
+      "test_cr01_same_scope_cache_still_hits": "passed",
+      "test_cr02_cross_thread_owner_publication_waits_for_foundation_commit": "failed",
+      "test_cr02_deferred_publication_is_serialized_with_other_threads": "failed",
+      "test_cr03_consent_revoked_between_handoff_gate_and_commit": "failed",
+      "test_cr03_same_revision_fact_move_between_gate_and_commit": "failed",
+      "test_cr03_submit_redecides_when_consent_moves_before_commit": "failed",
+      "test_cr04_changed_intent_same_facts_is_debounced_not_superseding": "failed",
+      "test_cr04_teacher_then_child_same_window_is_debounced": "failed",
+      "test_cr04_after_window_both_requests_stay_active": "failed",
+      "test_cr05_trimmed_and_nfc_intent_is_normalized_and_stored": "failed",
+      "test_cr05_canonical_equivalent_replay_and_dedup": "failed",
+      "test_cr05_invalid_intent_still_refused[   ]": "passed",
+      "test_cr05_invalid_intent_still_refused[bad\\x07text]": "passed",
+      "test_cr05_invalid_intent_still_refused[xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx]": "passed"
+    }
+  },
+  "after_pytest": {
+    "a1_new": {
+      "exit": 0,
+      "tests": 118,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "files": 7,
+      "passed": 118
+    },
+    "be201": {
+      "exit": 0,
+      "tests": 338,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "files": 11,
+      "passed": 338
+    },
+    "be202": {
+      "exit": 0,
+      "tests": 412,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "files": 12,
+      "passed": 412
+    }
+  },
+  "after_probes": {
+    "owner_publication_committed_before_start_commit": false,
+    "handoff_fact_race": "stale, 0 sketch intents",
+    "handoff_consent_race": "stale, 0 sketch intents",
+    "changed_child_intent": "RATE_LIMITED",
+    "teacher_then_child": "RATE_LIMITED",
+    "http_cache_new_key_probe": "old 202 cache_hit assertion fails (not reproduced)"
+  },
+  "static": {
+    "ruff": "PASS (17 paths)",
+    "mypy_strict_src": "PASS (10 files)",
+    "mypy_strict_src_and_tests_follow_imports_silent": "PASS (17 files)"
+  },
+  "validators": {
+    "validate_harness": "HARNESS_VALID",
+    "validate_repository_security": "REPOSITORY_SECURITY_VALID",
+    "validate_architecture": "ARCHITECTURE_VALID",
+    "validate_skeleton": "SKELETON_VALID",
+    "git_diff_check": "clean",
+    "new_file_whitespace_scan": "clean (48 files)"
+  },
+  "existing_tracked_source_modified": false,
+  "notes": [
+    "CR05 API test added after the service fix",
+    "two CR01 tests refined after the fix to state the debounce/created expectation",
+    "handoff gate checks owner digest before analysis read (revoked consent => stale)"
+  ],
+  "source_sha256": {
+    "backend/src/sketch2life/infrastructure/assistance/__init__.py": "00af247f07037e7feac9d2ec1f7170ce9dde7d7a8a5ef01c3bbde09b7a9b8799",
+    "backend/src/sketch2life/infrastructure/assistance/adapters.py": "7648b9762a93218bbcf2727b824619957525c70dc120950ae13f13d392c350dc",
+    "backend/src/sketch2life/infrastructure/assistance/fakes.py": "4d499f35115623fcb7782552c53511b8b716ad766e4791fe00cfc6fed2ce7fee",
+    "backend/src/sketch2life/infrastructure/assistance/harness.py": "0d082c5dffa7aa2cef2ed8984ec567111a0f14e15d17738ef18e1dd1ea30f33d",
+    "backend/src/sketch2life/domain/assistance.py": "ab4df2971bd403c209810fc958ac249e8b4cb5d74ebc21b2a5b82c28fb455e1c",
+    "backend/src/sketch2life/contracts/schemas/assistance_requests.py": "2c2df0b574e2c5bb846c8e3c6688f1291966357f94f02ae83356886f7a5b62a2",
+    "backend/src/sketch2life/application/ports/assistance.py": "a1f1d83093b702fc859aeaff610005be6794278e3b220be6fe5db0110f358077",
+    "backend/src/sketch2life/application/services/assistance.py": "0221686b482667ddda8763e6be4a02fba4ef8e4e5b2fa94781515922ce502f06",
+    "backend/src/sketch2life/interfaces/http/routers/assistance_requests.py": "2bc20104a480155bdccbcb200e9b71cd49d2d1e44394b14928ad643e8e2c958e",
+    "backend/src/sketch2life/interfaces/http/assistance_requests_fixture_app.py": "3cdf6e04b8540168d0bd5da4318a0e8135040e12f3761cf98fb0e00d1cc6f30d",
+    "backend/tests/unit/test_assistance_chain.py": "f27c887f4c4d78afb89dc79b275ba4ef84c51e717ab6636b28cb47c07d9b608b",
+    "backend/tests/unit/test_assistance_domain.py": "afabe3545e47eab5101551b1642855143d71e9fd910da0ba8f213a9b78a89dc8",
+    "backend/tests/unit/test_assistance_races.py": "c874ce32de889cbdf2abd6066a789bfd831e895cf68106d3698e84c100dbb371",
+    "backend/tests/unit/test_assistance_review_fixes.py": "df2f7d39b058b20b6ac2eee151319600be8a9f262e85c0bddb5cdf1e1784a690",
+    "backend/tests/unit/test_assistance_service.py": "a40bf516bd7232f7e641ef0168764f7b61ade0e0a895c0a7b03a74b60abfdaac",
+    "backend/tests/contract/test_assistance_request_contracts.py": "30b6eedc5ad11d7b26746782e59794614bf9feedc440e5894ec694f0d2c05ffc",
+    "backend/tests/contract/test_assistance_requests_api.py": "7dd80544c9fd6f142c2510108d669298de6e0d87d94b61b373bd7c5901d3df8a",
+    "features/FEAT-049-be2-assistance-orchestration/fixtures/h_ai_review/assistance_handoff_examples.json": "9bbfe99cfb436040da8c053d99cb54bb7ce2c8e19643eae8de314d4bbeae5b06",
+    "features/FEAT-049-be2-assistance-orchestration/plan/PLAN_REV3_APPROVED.md": "e1fce645a5d8c98efe366865f5a8a1b9c81c8a48626723c4e73f0c646979d3e5"
+  }
+}

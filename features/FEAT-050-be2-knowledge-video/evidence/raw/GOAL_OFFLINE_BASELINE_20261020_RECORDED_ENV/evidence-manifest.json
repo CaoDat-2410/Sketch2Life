@@ -1,0 +1,20 @@
+{
+  "files": {
+    "architecture.log": "67f1bc538fc90b4f70000a89126dde0aa14c688b8c3dbba796e1a89d6caef80e",
+    "harness.log": "f9fe12c27f5c402ad822c90f7d896e9bd4ca6c03094ed537f3bd957a65c9c9b8",
+    "mypy.log": "6b17fb6a37a46097878dda7d24d47ea3abd7a26d94efdbf8f17ad1c639872d16",
+    "owned-collection.log": "2e236c800a650352fe2aff3632a756c7c6500f80dc86ad61bc07534dd0bcc505",
+    "owned.log": "0faafbfd802a83ccc83393fe70656b5a132ec4983c2f8bc49fb4e8395137088b",
+    "owned.xml": "bd99164cab5ffbcfbbf3b10ebf3039e6e29acd15e0a8ca8c05454c87b835fbe9",
+    "regression-collection.log": "aadf2e01d9cdaabc34b1fa868fd315f6404090f8c9613fdf6121c2ecf0b14217",
+    "regression.log": "7699723c5cc97f72ea0c51766ddb1b9912363a3281e13b32adbe0ef77b88b535",
+    "regression.xml": "48b71f56117ced7c38ed5ec8160a54975595b3690027d828d11fac84c016bc6b",
+    "ruff.log": "a4443afdcfb6d7363adb285762515ccf7cf50473b1a05c20c1a50f6bed4d26b0",
+    "runner-08-recorded-env-console.log": "37249cb6a53a4e7da7e2e3abb5e3c48e45738f46a749a0f409459d7babf64eee",
+    "runner-08-recorded-env-console.log.exit": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354",
+    "security.log": "10295d5798b827ef664c36de5933d239998c23687d53fb67be115219978c8ce8",
+    "sql_collection_only-collection.log": "997b275e286bb62ac3adc527461735547b0d65985231ab21acb8c045c24089e5",
+    "summary.json": "cd15d636dd4dde039adad5294ded630a98572385c765999f891dda23db5902ec",
+    "whitespace.log": "bb2392aea74f69a451c7c45222c6fe90b7ec0e342e613fe038864007bd795235"
+  }
+}

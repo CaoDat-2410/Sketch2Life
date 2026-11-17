@@ -12,6 +12,8 @@
     "check:architecture": "python tools/validate_architecture.py",
     "check:security": "python tools/validate_repository_security.py",
     "check:team": "python tools/validate_team_allocation.py",
+    "check:active-ui": "npm --prefix apps/web run check",
+    "test:active-ui": "npm --prefix apps/web run test",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test"
   }

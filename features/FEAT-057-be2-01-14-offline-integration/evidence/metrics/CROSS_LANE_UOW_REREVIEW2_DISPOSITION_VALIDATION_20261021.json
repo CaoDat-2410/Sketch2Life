@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "feature": "FEAT-057",
+  "purpose": "Record documentation-only disposition of Claude UoW rereview 2, owner D2, successor source/plan review preparation, and repo validators.",
+  "observed_date": "2026-10-21",
+  "branch": "feature/be2-backend-ai-integration",
+  "head": "1649b72978877d82b4d7662040ff3555dee0a3a7",
+  "worktree_state": "dirty before and after; existing changes preserved",
+  "staged_files": 0,
+  "owner_decisions": {
+    "D1": "Preserved",
+    "D2_stale": "Distinct terminal stale representation on BE2-08 lifecycle axis via versioned CR; no artifact/ready state; no foundation JobState addition.",
+    "D2_attempt": "VideoRun attempt_id binds only at S; retry clears prior id; attempt number remains foundation-owned."
+  },
+  "reviewed_inputs": {
+    "source_files_matched": "19/19",
+    "source_manifest_rev3_sha256": "8BC0998D505742C460FDCBE9EDDF98CBC327D41B118CF2A50E921C965D6C7342",
+    "claude_rereview2_report_sha256": "7A78475A0E8CE4A71C90E9F7019DA13DEB790C6EF4EB8F7B8CA2CA01DE535611",
+    "owner_fence_fixture_sha256": "F12560D8F68EA31C5F76BB10E0452310CFF019C3D2DF5A90D8970889D052EC92",
+    "be2_08_scope_sha256": "6A195B6F3C9901621D268CF26B34AA217EECAFE66FA5922BD066149E6A9BC0B0"
+  },
+  "outputs": [
+    {
+      "path": "features/FEAT-044-be2-ai-job-foundation/plan/CROSS_LANE_FOUNDATION_UOW_SCOPE_REV5_DRAFT_20261021.md",
+      "sha256": "8BCAD75E2E505053465349E1B93800626B494B6D1076561B437298A1E60A4EF4"
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/plan/CROSS_LANE_X01_X05_SLICE_PLAN_REV6_DRAFT_20261021.md",
+      "sha256": "1C44336ADE023C16AF7DF8D7972FCEE69C6155A529C1F4D5B27DA82B8B47D0C3"
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_UOW_OWNER_DECISION_D2_20261021.md",
+      "sha256": "641A2239C6C1064C543D16A1DB24E73AC771AA4758889EC3A19C8458E1720103"
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_UOW_CLAUDE_REREVIEW3_PROMPT_20261021.md",
+      "sha256": "76FF89899D74836E20F4E893A92F39E202D5C123C17B6D36D67E86A181C9C788"
+    }
+  ],
+  "validators": {
+    "repository_security": "PASS; 4593 files scanned",
+    "git_diff_check": "PASS",
+    "architecture": "PASS",
+    "document_eol_whitespace_hash_links": "PASS",
+    "harness": "PASS",
+    "skeleton": "PASS"
+  },
+  "tests": "NOT_RUN; documentation-only",
+  "runtime": "NOT_RUN; no Modal, Lightning, provider, server, database, or runtime",
+  "gates": {
+    "X09_08": "NOT_IMPLEMENTED",
+    "supplemental_S_F_approval": "PENDING",
+    "X01": "PARTIAL",
+    "card_acceptance": "UNCHANGED",
+    "X05d": "BLOCKED",
+    "X05c_CR09_02": "OPEN"
+  }
+}

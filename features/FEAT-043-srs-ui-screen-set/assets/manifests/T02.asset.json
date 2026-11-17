@@ -1,0 +1,50 @@
+{
+  "asset_id": "T02",
+  "use_case": "ui-mockup",
+  "status": "REVIEW_PENDING",
+  "generated_path": "assets/generated/teacher-app/T02-lop-va-ho-so-tre.png",
+  "srs_ui_id": "T02",
+  "screen_kind": "main",
+  "role": "teacher-app",
+  "prompt": "assets/prompts/T02.txt",
+  "source_references": [
+    {
+      "path": "features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md",
+      "sha256": "a95c89589843e3555e967c5e486f3bcaf4bbdf9446cb3bc9c49ed16f672964d9",
+      "section": "B23.3"
+    },
+    {
+      "path": "apps/ui-mobile/src/theme.ts",
+      "purpose": "existing design tokens"
+    }
+  ],
+  "generator": "built-in image_gen.imagegen",
+  "captured_at_utc": "2026-10-10T14:05:44.047496+00:00",
+  "generator_output_filename": "exec-1deec98b-fb9e-440a-b5c9-515e57cb0cda.png",
+  "sha256": "bfab66bd0e6d8c6b59b36a80799fe86bbd9a37b92fa17b30871dabfe8c72f60c",
+  "bytes": 1395919,
+  "width": 1586,
+  "height": 992,
+  "original_copied_unchanged": true,
+  "synthetic_data_only": true,
+  "qa": {
+    "reviewer": "Codex visual inspection",
+    "status": "INSPECTED",
+    "note": "Actual screenshot inspected: independent enrollment, adult-confirmed ages and per-purpose consent summary, school-action pending statuses, no guardian evidence/child login. Current palette and readable Vietnamese. REVIEW_PENDING."
+  },
+  "review": {
+    "status": "REVIEW_PENDING",
+    "reviewer": null,
+    "reviewed_at": null
+  },
+  "applied_path": null,
+  "limitations": "Generated design proposal; not implemented runtime, approved visual or device acceptance.",
+  "input_images": [
+    {
+      "path": "assets/generated/teacher-app/T05-dieu-phoi-lop.png",
+      "sha256": "33fe9018ea5cf0911ece61c37d72cacb01ffc37d17ad0d50b5f3f2215f4703f0",
+      "role": "style and app-shell reference; main content replaced for target workspace"
+    }
+  ],
+  "prompt_sha256": "3806bd71210d3e7a72907344d9cb568503ee2ddfe1a3841d3b4fcd41a780a00a"
+}

@@ -1,0 +1,1 @@
+export const mockAuditEntries = [{ id: "aud-001", timestamp: "2026-10-22T20:00:00Z", actor: "admin@sketch2life.internal", action: "VERIFY_COPPA_ERASURE", hash: "sha256-abc..." }];

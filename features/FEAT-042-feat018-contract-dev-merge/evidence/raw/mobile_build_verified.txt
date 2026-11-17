@@ -1,0 +1,56 @@
+Starting Metro Bundler
+warning: Bundler cache is empty, rebuilding (this may take a minute)
+| (node:9980) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+| (Use `node --trace-warnings ...` to show where the warning was created)
+| (node:26900) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+| (Use `node --trace-warnings ...` to show where the warning was created)
+| (node:19752) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+| (Use `node --trace-warnings ...` to show where the warning was created)
+| (node:38616) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+| (Use `node --trace-warnings ...` to show where the warning was created)
+Web Bundled 9714ms apps\ui-mobile\index.ts (583 modules)
+
+› Assets (29):
+..\..\..\..\node_modules\.pnpm\@expo+vector-icons@14.0.4\node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\AntDesign.3a2ba31570920eeb9b1d217cabe58315.ttf (70.3 kB)
+..\..\..\..\node_modules\.pnpm\@expo+vector-icons@14.0.4\node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\Entypo.31b5ffea3daddc69dd01a1f3d6cf63c5.ttf (66.2 kB)
+..\..\..\..\node_modules\.pnpm\@expo+vector-icons@14.0.4\node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\EvilIcons.140c53a7643ea949007aa9a282153849.ttf (13.5 kB)
+..\..\..\..\node_modules\.pnpm\@expo+vector-icons@14.0.4\node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\Feather.a76d309774d33d9856f650bed4292a23.ttf (56.2 kB)
+..\..\..\..\node_modules\.pnpm\@expo+vector-icons@14.0.4\node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\FontAwesome.b06871f281fee6b241d60582ae9369b9.ttf (166 kB)
+..\..\..\..\node_modules\.pnpm\@expo+vector-icons@14.0.4\node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\FontAwesome5_Brands.3b89dd103490708d19a95adcae52210e.ttf (134 kB)
+..\..\..\..\node_modules\.pnpm\@expo+vector-icons@14.0.4\node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\FontAwesome5_Regular.1f77739ca9ff2188b539c36f30ffa2be.ttf (33.7 kB)
+..\..\..\..\node_modules\.pnpm\@expo+vector-icons@14.0.4\node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\FontAwesome5_Solid.605ed7926cf39a2ad5ec2d1f9d391d3d.ttf (203 kB)
+..\..\..\..\node_modules\.pnpm\@expo+vector-icons@14.0.4\node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\FontAwesome6_Brands.56c8d80832e37783f12c05db7c8849e2.ttf (209 kB)
+..\..\..\..\node_modules\.pnpm\@expo+vector-icons@14.0.4\node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\FontAwesome6_Regular.370dd5af19f8364907b6e2c41f45dbbf.ttf (68 kB)
+..\..\..\..\node_modules\.pnpm\@expo+vector-icons@14.0.4\node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\FontAwesome6_Solid.adec7d6f310bc577f05e8fe06a5daccf.ttf (424 kB)
+..\..\..\..\node_modules\.pnpm\@expo+vector-icons@14.0.4\node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\Fontisto.b49ae8ab2dbccb02c4d11caaacf09eab.ttf (314 kB)
+..\..\..\..\node_modules\.pnpm\@expo+vector-icons@14.0.4\node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\Foundation.e20945d7c929279ef7a6f1db184a4470.ttf (57 kB)
+..\..\..\..\node_modules\.pnpm\@expo+vector-icons@14.0.4\node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\Ionicons.6148e7019854f3bde85b633cb88f3c25.ttf (443 kB)
+..\..\..\..\node_modules\.pnpm\@expo+vector-icons@14.0.4\node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\MaterialCommunityIcons.b62641afc9ab487008e996a5c5865e56.ttf (1.15 MB)
+..\..\..\..\node_modules\.pnpm\@expo+vector-icons@14.0.4\node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\MaterialIcons.4e85bc9ebe07e0340c9c4fc2f6c38908.ttf (357 kB)
+..\..\..\..\node_modules\.pnpm\@expo+vector-icons@14.0.4\node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\Octicons.f7c53c47a66934504fcbc7cc164895a7.ttf (49.4 kB)
+..\..\..\..\node_modules\.pnpm\@expo+vector-icons@14.0.4\node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\SimpleLineIcons.d2285965fe34b05465047401b8595dd0.ttf (54.1 kB)
+..\..\..\..\node_modules\.pnpm\@expo+vector-icons@14.0.4\node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\Zocial.1681f34aaca71b8dfb70756bca331eb2.ttf (25.8 kB)
+assets\images\onboarding_hero.a4ec162f5c08b7c58652ca68d717ca9b.jpg (462 kB)
+assets\images\photo_cat_paper.ae0fc3b0479a6d3064079d8d6dd65e73.jpg (821 kB)
+assets\images\photo_craft_butterfly.f2d386dae12e1ca57bea93d570883022.jpg (744 kB)
+assets\images\photo_rainbow_fish.d522ae2d431eabe10d7c9bd2d8e91db7.jpg (1.15 MB)
+assets\images\robot_ai.e1c17e83c1a10e14a0c714eda60e893b.jpg (489 kB)
+assets\images\splash_hero.cec1ba08c71c5fecb71f9206c83853c1.jpg (473 kB)
+assets\images\story_robot.08e67c14827cd8c593f4cc26d0ce3cb2.jpg (1.28 MB)
+assets\images\video_scene_only.df4d2c0efc3f6b94910faae33b58b265.jpg (1.03 MB)
+assets\images\voice_girl.efff5a20c173ea9081151f8cc5c17869.jpg (562 kB)
+assets\images\voice_waveform.bd504423b85623f5ed393a101a4c3584.png (84.5 kB)
+
+› web bundles (1):
+_expo/static/js/web/index-e7b04e21e40a2526711b8c01bdb766d3.js (1.86 MB)
+
+› Files (3):
+favicon.ico (14.5 kB)
+index.html (1.23 kB)
+metadata.json (49 B)
+
+Exported: <snapshot>\.tmp\feat042-mobile-web
+● Validation Warning:
+
+  Unknown option "watcher.unstable_workerThreads" with value false was found.
+  This is probably a typing mistake. Fixing it will remove this message.

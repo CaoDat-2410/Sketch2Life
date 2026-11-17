@@ -1,0 +1,35 @@
+{
+  "id": "CASE_NO_VALID_MATERIALS",
+  "description": "Multiple otherwise-valid candidates block on materials",
+  "input": {
+    "age_months": 48,
+    "readiness_tags": [
+      "follows_one_step_direction"
+    ],
+    "completed_activity_ids": [],
+    "available_material_ids": [],
+    "supervision_level": "NEARBY",
+    "policy_flags": [],
+    "candidate_activity_ids": [
+      "ACT-0026",
+      "ACT-0036"
+    ]
+  },
+  "expected": {
+    "status": "NO_VALID_ACTIVITY",
+    "allowed_activity_ids": [],
+    "blocked": {
+      "ACT-0026": [
+        "BLOCK_MISSING_MATERIAL"
+      ],
+      "ACT-0036": [
+        "BLOCK_MISSING_MATERIAL"
+      ]
+    }
+  },
+  "coverage_tags": [
+    "blocked",
+    "material",
+    "no_valid"
+  ]
+}

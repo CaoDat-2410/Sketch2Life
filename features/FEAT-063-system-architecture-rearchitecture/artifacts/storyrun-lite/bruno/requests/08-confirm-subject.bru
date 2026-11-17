@@ -1,0 +1,30 @@
+meta {
+  name: 08 Confirm current subject understanding
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{runRef}}/subject-confirmation
+  body: json
+  auth: none
+}
+
+headers {
+  Idempotency-Key: {{confirmSubjectKey}}
+  If-Match: {{runETag}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "decision": "CONFIRM",
+    "expected_understanding_revision": {{understandingRevision}}
+  }
+}
+
+tests {
+  test("confirms the current subject revision", function () {
+    expect(res.getStatus()).to.equal(202);
+  });
+}

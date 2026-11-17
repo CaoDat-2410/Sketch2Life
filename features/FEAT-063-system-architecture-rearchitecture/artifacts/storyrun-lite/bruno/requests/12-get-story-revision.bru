@@ -1,0 +1,19 @@
+meta {
+  name: 12 Get Parent story revision
+  type: http
+  seq: 12
+}
+
+get {
+  url: {{baseUrl}}/v1/story-runs/{{runRef}}/story-revisions/{{storyRevisionRef}}
+  body: none
+  auth: none
+}
+
+tests {
+  test("returns the stored story draft and provenance", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().story_revision_ref).to.equal(bru.getVar("storyRevisionRef"));
+    expect(res.getBody()).to.have.property("scenes");
+  });
+}

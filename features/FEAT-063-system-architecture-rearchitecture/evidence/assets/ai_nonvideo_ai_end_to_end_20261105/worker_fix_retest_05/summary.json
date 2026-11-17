@@ -1,0 +1,169 @@
+{
+  "plan": "PLAN_REV45_NONVIDEO_AI_END_TO_END_20261105.md",
+  "started_at": "2026-11-05T17:53:01+07:00",
+  "synthetic_only": true,
+  "image_fixture": "synthetic_childlike_butterfly.png",
+  "qwen_model": {
+    "id": "Qwen/Qwen3.5-9B",
+    "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
+  },
+  "max_wait_seconds_per_call": 600,
+  "video_called": false,
+  "image_generation_called": false,
+  "sam2_called": false,
+  "purpose": "After aligning constrained decoding EOS IDs with the pinned Qwen3.5 model, retest Parent VLM-to-story, Teacher deck, and lesson draft using one synthetic image.",
+  "ended_at": "2026-11-05T18:00:51+07:00",
+  "results": [
+    {
+      "workload": "drawing.analyze",
+      "app": "sketch2life-srs23-drawing-vlm-dev",
+      "function": "analyze-drawing",
+      "job_id": "d9ed44bd-9acc-43d6-a2e2-b6cc5cba59eb",
+      "generation_id": "0bb6d049-9f20-455f-83cd-c24c3d473a98",
+      "attempt_id": "1086e1ba-8fcf-40fe-a218-4caf73c2a29d",
+      "source_sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949",
+      "drawing_sha256": "f433b37a93f33accc5a10cbb81b18f8cf31d8de0868752c0fe6d9d8beb3ec8e0",
+      "wait_limit_seconds": 600,
+      "started_at": "2026-11-05T17:53:02+07:00",
+      "outcome": "SUCCEEDED",
+      "call_id": "fc-01M6NNEZXW5Z9XSVYNZH46MFQ9",
+      "dispatch_at": "2026-11-05T17:53:05+07:00",
+      "model": {
+        "id": "Qwen/Qwen3.5-9B",
+        "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
+      },
+      "candidate_subject": "bướm",
+      "visible_features": [
+        "cánh màu hồng và tím",
+        "thân màu vàng có vạch ngang",
+        "mặt cười đơn giản",
+        "anten cong ở đầu"
+      ],
+      "adult_confirmation_required": true,
+      "output_sha256": "bd9a0c63d4378d4fe0cf859fd0932a577b2516dbf39d5a8bb5a344333a78b116",
+      "ended_at": "2026-11-05T17:53:43+07:00",
+      "runner_elapsed_ms": 42554.92,
+      "label": "drawing.analyze"
+    },
+    {
+      "state": "DISPATCH_INTENT_RECORDED",
+      "workload": "story.generate",
+      "app": "sketch2life-srs23-language-audio-dev",
+      "function": "generate-story-and-storyboard",
+      "job_id": "cc7551ae-f284-419a-9fe0-1d7ad6096425",
+      "generation_id": "44facccd-f644-44a2-8278-85853cfe64f2",
+      "attempt_id": "e5869997-9683-44b5-852e-44366c24beb5",
+      "input_sha256": "d45ba5b6aa61b7fdbcf8d768a8cc4150de8a493a1bbcc9b9c41391f49ef06cd2",
+      "manifest_sha256": "9469c5679a1eed2b22077c480f90bb0b2e6ae0cbcbe3d65bac0d9a7deb41810c",
+      "wait_limit_seconds": 600,
+      "synthetic_adult_confirmed_fixture": true,
+      "created_at": "2026-11-05T17:53:44+07:00",
+      "max_attempts": 1,
+      "outcome": "FAILED_TERMINAL",
+      "call_id": "fc-01M6NNG87F9926H6D448R4P2JX",
+      "dispatch_at": "2026-11-05T17:53:46+07:00",
+      "error_type": "RuntimeError",
+      "ended_at": "2026-11-05T17:57:24+07:00",
+      "runner_elapsed_ms": 220715.95,
+      "label": "story.generate_storyboard",
+      "synthetic_adult_confirmation": {
+        "candidate_subject": "bướm",
+        "confirmed": true
+      }
+    },
+    {
+      "workload": "teacher.sketch-deck.generate",
+      "app": "sketch2life-srs23-language-audio-dev",
+      "function": "generate-teacher-sketch-deck",
+      "job_id": "450efa0e-6595-4003-aac1-f74ca5b75c52",
+      "generation_id": "1746f6c0-b0ea-4f2f-9e0e-b8b866362007",
+      "attempt_id": "759edb6c-a7e4-44ac-bf53-9c31c97c7caa",
+      "input_sha256": "d4a7421d6d19fab19875f9143739b271275a7362b07fc29020076da15dec2b96",
+      "manifest_sha256": "472def81177a9c7a1a124efc32fddf611ce56d42efd59b35aa3db0fd91157f95",
+      "wait_limit_seconds": 600,
+      "started_at": "2026-11-05T17:57:24+07:00",
+      "outcome": "FAILED_TERMINAL",
+      "call_id": "fc-01M6NNPZT95GWAPJ1CVD71RG1Y",
+      "dispatch_at": "2026-11-05T17:57:27+07:00",
+      "error_type": "RuntimeError",
+      "ended_at": "2026-11-05T17:59:27+07:00",
+      "runner_elapsed_ms": 123316.16,
+      "label": "teacher.sketch_deck.generate"
+    },
+    {
+      "workload": "lesson.plan.suggest",
+      "app": "sketch2life-srs23-language-audio-dev",
+      "function": "suggest-lesson-plan",
+      "job_id": "a77ae81a-df26-433d-b88c-d2e833b4aae9",
+      "generation_id": "0ff42583-9067-45f1-bf4d-ac83f6e6d6fb",
+      "attempt_id": "6a0e34a4-3bb8-41b3-8ab1-82f9fbe52456",
+      "input_sha256": "8e000ad3c8225cfb7c4324f7ba259ad9d9bc69f972f679d485fc4d599897f113",
+      "manifest_sha256": "010ac2f1f909aa56356e0fc62efe0b3582e64e2ddaacfe3c96ed379ba2e6be08",
+      "wait_limit_seconds": 600,
+      "started_at": "2026-11-05T17:59:28+07:00",
+      "outcome": "SUCCEEDED",
+      "call_id": "fc-01M6NNTR4794ZF97S3C8JSVSM8",
+      "dispatch_at": "2026-11-05T17:59:30+07:00",
+      "result": {
+        "schema_version": "sketch2life.modal.worker-output.v1",
+        "workload": "lesson.plan.suggest",
+        "job_id": "a77ae81a-df26-433d-b88c-d2e833b4aae9",
+        "generation_id": "0ff42583-9067-45f1-bf4d-ac83f6e6d6fb",
+        "attempt_id": "6a0e34a4-3bb8-41b3-8ab1-82f9fbe52456",
+        "model": {
+          "id": "Qwen/Qwen3.5-9B",
+          "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
+        },
+        "result": {
+          "draft_only": true,
+          "content": {
+            "locale": "vi-VN",
+            "title": "Khám phá vòng đời bướm ngoài trời",
+            "topic": "bướm",
+            "target_age_band_ref": "age-band-3-6",
+            "target_age_band_version": 1,
+            "objectives": [
+              "Quan sát hình dáng và vòng đời của bướm"
+            ],
+            "drawing_subject": "bướm",
+            "drawing_steps_text": "1. Vẽ hình bầu dục làm thân bướm.\n2. Thêm hai cặp cánh đối xứng hai bên.\n3. Vẽ các chấm màu sắc trên cánh.\n4. Thêm râu và chân nhỏ ở thân.\n5. Tô màu theo ý thích của trẻ",
+            "subject_learning_notes": "Bướm trải qua 4 giai đoạn: trứng, sâu bướm, nhộng, bướm trưởng thành. Sâu bướm ăn lá cây để lớn lên. Bướm giúp cây phát triển nhờ thụ phấn. Mỗi loài bướm có màu sắc và hoa văn riêng biệt. Vòng đời của bướm là một quá trình biến đổi kỳ diệu trong tự nhiên",
+            "script_direction": null,
+            "script_following_allowed": false,
+            "activities": [
+              {
+                "title": "Tìm dấu vết bướm trong vườn",
+                "objective": "Trẻ quan sát hình dáng, màu sắc và môi trường sống tự nhiên của bướm ngoài trời",
+                "materials_text": "Kính bảo hộ, sổ tay ghi chép, bút chì, máy ảnh an toàn cho trẻ",
+                "preparation_text": "Chọn khu vực vườn cây an toàn, không có côn trùng độc hại hoặc gai nhọn. Chuẩn bị kính bảo hộ và dụng cụ ghi chép trước khi ra ngoài",
+                "instructions_text": "1. Dẫn trẻ đi dạo nhẹ nhàng trong khu vườn đã chọn.\n2. Khuyến khích trẻ quan sát và chỉ ra những con bướm đang bay.\n3. Trẻ dùng bút chì vẽ lại hình dáng bướm vào sổ tay.\n4. Trẻ chụp ảnh hoặc vẽ lại màu sắc cánh bướm thấy được.\n5. Cùng trẻ thảo luận về nơi bướm đang đậu và loại cây chúng đang ở",
+                "observation_notes": "Theo dõi khả năng tập trung của trẻ khi quan sát chi tiết bướm. Ghi nhận phản ứng của trẻ trước màu sắc và chuyển động của bướm. Kiểm tra xem trẻ có tự tin mô tả những gì thấy được",
+                "safety_notes": "Kiểm tra kỹ khu vực không có cây gai, côn trùng độc hoặc vật sắc nhọn. Đảm bảo trẻ luôn trong tầm nhìn và đeo kính bảo hộ khi quan sát gần",
+                "activity_kind": "outdoor"
+              }
+            ]
+          }
+        }
+      },
+      "output_sha256": "d6826eb6d780fc3367dd0afe8df3b286d140877f0b560ac7199a8eda77ad6b32",
+      "ended_at": "2026-11-05T18:00:50+07:00",
+      "runner_elapsed_ms": 82792.21,
+      "label": "lesson.plan.suggest",
+      "validated_draft": {
+        "status": "DRAFT_ONLY",
+        "activity_count": 1,
+        "activity_kinds": [
+          "outdoor"
+        ],
+        "age_band_ref": "age-band-3-6",
+        "locale": "vi-VN"
+      }
+    }
+  ],
+  "summary": {
+    "drawing.analyze": "SUCCEEDED",
+    "story.generate_storyboard": "FAILED_TERMINAL",
+    "teacher.sketch_deck.generate": "FAILED_TERMINAL",
+    "lesson.plan.suggest": "SUCCEEDED"
+  }
+}

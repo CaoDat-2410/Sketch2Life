@@ -1,0 +1,6 @@
+flowchart LR
+    S[lesson.sources<br/>immutable original] --> V[lesson.versions<br/>extracted/reviewed text]
+    S --> E[lesson.extraction_runs<br/>parser job history]
+    V --> P[lesson.plans<br/>one per occurrence]
+    P --> A[lesson.plan_activities<br/>one approved activity]
+    P -.->|versioned lesson/activity refs| R[story.runs]

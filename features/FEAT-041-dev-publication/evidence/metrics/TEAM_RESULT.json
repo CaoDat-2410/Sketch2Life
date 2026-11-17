@@ -1,0 +1,12 @@
+{
+  "check": "team",
+  "command": [
+    "python",
+    "-X",
+    "utf8",
+    "tools/validate_team_allocation.py"
+  ],
+  "exit_code": 0,
+  "output_lines": 4,
+  "raw": "evidence/raw/team.txt"
+}

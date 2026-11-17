@@ -1,0 +1,11 @@
+{
+  "api_route": "POST /v1/story-runs/{run_ref}/assets",
+  "artwork_sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949",
+  "created_at": "2026-11-05T09:41:27+07:00",
+  "max_dispatches": 1,
+  "state": "DISPATCH_INTENT_RECORDED",
+  "synthetic_artwork": true,
+  "video_enabled": false,
+  "wait_cap_seconds": 300,
+  "workload": "drawing.analyze"
+}

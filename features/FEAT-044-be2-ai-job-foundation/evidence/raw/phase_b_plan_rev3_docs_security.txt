@@ -1,0 +1,10 @@
+Command=python tools/validate_repository_security.py
+started_at=2026-10-15T00:54:13.562096+07:00
+exit_code=0
+REPOSITORY_SECURITY_VALID
+publishable_files_scanned=2921
+environment_files=excluded
+seed_accounts=excluded
+credentials_and_signing_keys=excluded
+external_reference_documents=excluded
+absolute_machine_paths=absent

@@ -1,0 +1,14 @@
+[
+  {
+    "check": "harness",
+    "returncode": 0,
+    "result": "PASS",
+    "output": "HARNESS_VALID\nroot=<workspace>\napproval_gate=enabled\nfrontend_asset_gate=enabled\n"
+  },
+  {
+    "check": "security",
+    "returncode": 0,
+    "result": "PASS",
+    "output": "REPOSITORY_SECURITY_VALID\npublishable_files_scanned=2361\nenvironment_files=excluded\nseed_accounts=excluded\ncredentials_and_signing_keys=excluded\nexternal_reference_documents=excluded\nabsolute_machine_paths=absent\n"
+  }
+]

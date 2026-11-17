@@ -1,0 +1,165 @@
+# BE2-07 decisions
+
+## FEAT-057 owner direction: check source fence in BE2-08 finalizer UoW — 2026-10-21
+
+The owner direction, recorded in `features/FEAT-057-be2-01-14-offline-integration/evidence/notes/OWNER_DESIGN_DISPOSITION_FOUNDATION_UOW_20261021.md`, is:
+
+The following is a verbatim excerpt from item (1):
+
+> “BE2-07/BE2-08 dùng kiểm tra source fence trong cùng UoW của finalizer; nếu không cùng store thì X01 giữ PARTIAL.”
+
+Engineering acceptance criterion (recorder clarification, not an additional owner quote): a same-store read by itself does not establish serialization with concurrent invalidation. Before claiming race safety, adopt and demonstrate the exact lock/CAS or producer-published mechanism and its serialization guarantee. The owner has not selected the store or mechanism.
+
+An earlier local, unpublished wording of this entry is not preserved. The quoted excerpt above is verbatim; the serialization requirement in the preceding paragraph is a recorder-added engineering acceptance criterion, not an additional owner statement. This records existing owner direction; it does not change the decision, the FEAT-056 scope and hash recorded below, `features/FEAT-056-be2-knowledge-script/approvals/TASK_APPROVAL.md`, implementation authority, or BE2-07 status.
+
+The separate owner D1 lifecycle direction is recorded in `features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_UOW_OWNER_DECISION_D1_20261021.md`: BE2-01 owns the UoW, BE2-08 is a non-committing participant, and the selected lock order is job → run → source-fence rows by stable key. The current approved `BE2-VIDEO-LIFECYCLE/1` scope is A/S/B only; F still requires review and supplemental approval. This decision entry records existing owner direction only: it does not expand the FEAT-056 scope and hash recorded below, amend `features/FEAT-056-be2-knowledge-script/approvals/TASK_APPROVAL.md`, authorize a durable store/schema/migration or implementation, or change BE2-07 status/acceptance. X01 remains `PARTIAL` until a producer-owned fence checked in the finalizer UoW has an adopted serialization mechanism and is proven against invalidation races.
+
+## FEAT-057 implementation-scope addendum — 2026-10-21
+
+- Scope artifact: `features/FEAT-056-be2-knowledge-script/plan/CROSS_LANE_BE2_07_SCOPE_DRAFT_20261021.md` (its header remains DRAFT/AWAITING_OWNER_APPROVAL; approval applies to the exact SHA below).
+- Approval record: `features/FEAT-056-be2-knowledge-script/approvals/TASK_APPROVAL.md`
+- Proposed scope is limited to producer-owned exact source identity/currentness. The existing process-local coordinator is not accepted as a durable fence through BE2-08 finalization.
+- Owner approved the exact scope SHA256 `CA531682CCB0ABD12BB8B270F0258D9B3EBBCE4DBF917805FBC7A770BBF6EB24`; the approval is recorded in `features/FEAT-056-be2-knowledge-script/approvals/TASK_APPROVAL.md`. The minimal execution file subset must be recorded before edits.
+- X01 remains PARTIAL unless both cards adopt and prove the held-through-finalization boundary. This approval-recording step does not change BE2-07 source/tests or card status.
+
+## FEAT-057 cross-card owner response — 2026-10-21
+
+The user confirmed they own the affected cards and approved the G0 proposal
+with `Chốt theo đề xuất`. For BE2-07, B1 is `ADOPT_WITH_CHANGES`: preserve the
+exact bundle/version/hash and audience/context identity, with a named validity
+fence held or atomically checked through BE2-08 finalization, including
+revoke/invalidation races. B6/X05d is `BLOCKED`: no already-adopted
+current-source resolver/fence covering review commit and playback intent was
+identified. Keep X02 outside this slice. See FEAT-057's
+`evidence/notes/G0_CARD_OWNER_DECISION_BALLOT_20261021.md`.
+
+This adopts contract direction only, not implementation scope/approval.
+BE2-07 remains `IN_PROGRESS / NOT_DONE`; component acceptance and runtime gates
+are unchanged.
+
+## 2026-10-20 — Cloud P3 corrections and conditional retirement
+
+The user approved fixing the two P3 findings, fresh local56-module validation, independent
+review and focused publication. Use comparison-only pinned Unicode15 default-ignorable/Cf
+filtering before normalization, preserve meaningful combining accents/original bytes, and
+share domain/DTO Cc rejection except LF/TAB. The historical verifier explicitly rejects
+optimized Python. Keep old product pins/metrics/plan/approval immutable; new POST_CLOUD_P3
+receipts supersede their current-result claims. Archive the actual cloud report/index and83
+outputs before deleting the export in a separate cleanup commit. A pasted summary does not
+meet that prerequisite. Owner acceptance and runtime/Lightning remain separate.
+
+## 2026-10-20 — Authorized Git publication and cloud review
+
+Use 12 dependency-ordered publication groups of the final reviewed snapshot, followed by a
+normal push of the existing task branch. Preserve every immutable historical plan/approval/
+review/metric. Publish selected evidence with explicit original/derivative hashes and path
+sanitization; do not publish local external-checkout baselines, originals or credentials.
+Cloud review distinguishes portable evidence verification, freshly rerun assertions and
+historical local-only claims. The earlier no-publication statements below are dated history;
+the superseding authority is `approvals/GIT_PUBLICATION_APPROVAL_20261020.md`. Component
+acceptance, runtime/Lightning and actual08 adoption remain separate.
+
+## 2026-10-19 — Planning and offline-first routing
+
+Direct request is preserved in approvals/TASK_APPROVAL.md. Prepare final lane task07 plan,
+offline first, coordinated runtime01–07 later. Plan-specific new policy choices remain proposed.
+Component approval/acceptance, Git publication and runtime execution retain distinct records.
+
+Own branch/worktree inherits shared23acf9e and accepted01–06. Fresh48ref inventory after fetch
+selected next unused FEAT056 administratively, not an explicit user number/teammate agreement.
+Existing048–052 collisions are deferred cross-lane mapping; no rename or merge08–14 here.
+
+Old draft e64d25b7 stays byte-identical. Self-contained successor derives fact text from claims,
+requires current basis, uses trusted enriched fixture projections and proposes own coordinator/
+atomic publication plus generation guard. No change to source01–06 is required.
+
+OD01–08 recommendations await owner plan approval. In particular Teacher-attested sourced
+claims being ready is a named fixture-policy proposal, not proven semantic truth or adopted
+production source policy. No implementation approval is inferred from an unapproved draft.
+
+Deferred runtime plan preserves exact A17 Studio package and base993a26c/46file manifest.
+New shared01–07 runtime package requires missing serving/durable/BE1/ticket/delivery/consumer
+adapters, adopted contracts, profile and separately recorded execution authority. No service,
+provider, dependency/image/credential recreation is authorized by this planning record.
+
+## Focused plan review completion
+
+Independent Codex review found no remaining concrete P1/P2 at design scope. This is a plan
+review, not implemented/tested behavior, owner OD selection or component acceptance. The
+reviewed body remains unchanged when readiness header moves to awaiting owner plan approval.
+All42planned07assertions remain NOT_RUN. Four repository validators pass on planning-only
+docs;572existing trackedbackendsource/test files and shared dated history remain byte-identical.
+
+## Execution authority — 2026-10-19
+
+Revision1 exact bytes frozen at approved SHA2566de3ed6d…; OD01–08 selected by direct owner instruction. OD03 explicitly sourced Teacher attestation is ready under named offline fixture policy; Teacher bears semantic accountability. No model verification or production policy inferred. Parts execute1→2→3→4→6→5→7→8; mutating handlers wait for atomic coordinator. Goal completes on offline review-ready, separately from owner acceptance.
+
+Parts1/2 independent review fixes: confirmed child basis requires exact confirmation_ref;
+generic basis forbids child snapshot provenance; consent lookup carries trusted org/session.
+New claim edits derive verification attribution on server. Historical attested claims retain
+original author across other authorized Teachers' reads/edits; source integrity validation
+does not reinterpret the current reader as the original attestor. Integration proofs pending5/7.
+
+## Offline implementation checkpoint — 2026-10-20
+
+Part7 C review closes only the local exact-resolver/consumer-conformance fixture. Consumer pin
+refs/profile and event delivery have not been adopted by actual08. Part8 examples are emitted
+from the fixture/service API and compare JSON values; the receipt does not claim serialized
+byte equality. Final owner component acceptance remains separate from review-ready handoff.
+
+## Final offline handoff — 2026-10-20
+
+The required 01–07 offline batch and 42-ID assertion map are complete and independently audited.
+Handoff state is READY_FOR_OWNER_COMPONENT_REVIEW; component remains NOT_ACCEPTED and card
+IN_PROGRESS / NOT_DONE. This closes only the approved offline fixture scope. Durable/runtime
+integrations, live providers, actual08 held-fence/delivery, frozen A17 Studio, and owner component
+acceptance remain separate gates. No staging, commit, push, PR, merge, deploy, or Lightning run.
+
+## Claude follow-up dispositions — 2026-10-20
+
+Retain frozen revision1/OD01–08 and perform the authorized correction/review cycle. Literal
+matching strengthens comparison only; it does not rewrite canonical text or add semantic
+truth verification. Exact unchanged claims retain their stored attestor. Mutation-only pause
+affects unseen writes, while current reads preserve every other guard and held-unit publication
+keeps its approved linearization. Missing fact sections have a safe explicit content action.
+
+P3-4 is intentional underR01: a recalled old bundle cannot be repaired in place; a new eligible
+bundle is required. The mixed valid+unknown catalog-selection draft is a retained fail-closed
+clarification, not quoted as an explicit frozen-plan prescription. P3-6 preserves the original
+approval bytes and documents its EOF whitespace exception. Original review/metrics/handoff
+files stay historical; post-Claude outputs use new paths and refuse overwrite. X01/X02 expose
+evidence gates separately from their supporting product assertions. No architecture, runtime,
+publication, owner acceptance or source01–06 scope expansion is authorized or performed.
+
+## Cloud re-review remediation — 2026-10-20
+
+Default-ignorable/Cf characters are compared both removed and as word separators, because
+fillers such as U+3164 render as a blank gap. Comparison policy only: stored text, canonical
+bytes and control validation are unchanged. Approved by
+`approvals/CLOUD_REREVIEW_REMEDIATION_APPROVAL_20261020.md`; no scope expansion.
+
+## Offline acceptance and integration — 2026-10-20
+
+The owner's conditional instruction ("nếu ok thì chấp nhận đẩy lên nhánh gộp") is applied after a
+PASS final review. Acceptance covers KNOWLEDGE_SCRIPT_COMPONENT_OFFLINE only. Integration is a normal
+fast-forward of feature/be2-01-07, which still pointed at the BE2-07 base 23acf9e. The 56-module batch
+could not run on cloud; acceptance relies on Codex's run on the byte-identical product tree and
+records that limit explicitly.
+
+## Owner-directed source-fence disposition for BE2-08 finalization — 2026-10-21
+
+The owner directed that BE2-07 source validity be checked/held within the same
+UoW as BE2-08 finalization only when source data and the finalizer can participate
+in the same transactional store. If they cannot, X01 remains PARTIAL. The
+engineering acceptance criterion recorded above is not an additional owner quote:
+a same-store read is not by itself proof of a held fence; evidence must show a
+lock/CAS or equivalent serialization shared with invalidation writes through the
+final commit. The existing process-local coordinator is not that proof.
+
+This direction does not authorize new BE2-07 schema, migrations, a real
+cross-service lock or other paths excluded by the approved BE2-07 scope. If the
+same-store fence needs those changes, prepare and approve a revised BE2-07 scope
+before editing source. X05d remains BLOCKED because no already-adopted resolver/
+fence has thereby been created. FEAT-057 evidence note:
+`features/FEAT-057-be2-01-14-offline-integration/evidence/notes/OWNER_DESIGN_DISPOSITION_FOUNDATION_UOW_20261021.md`.
+No source/test, status or acceptance changed.

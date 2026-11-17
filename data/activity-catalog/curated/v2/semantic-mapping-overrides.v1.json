@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "catalog_revision": "catalog-2026-09-expansion-3",
+  "families": [
+    {
+      "family_id": "FAM-ANIMAL-OBSERVE",
+      "concept_ids": ["ANIMAL_GENERIC", "NATURE_OBSERVATION"],
+      "disposition": "CORRECT",
+      "rationale": "Các biến thể quan sát đặc điểm/nơi sống của động vật nói chung; bỏ tag bướm để không giới hạn chủ thể."
+    },
+    {
+      "family_id": "FAM-ANIMAL-CLASSIFY",
+      "concept_ids": ["ANIMAL_GENERIC", "SCIENCE_NATURE"],
+      "disposition": "CORRECT",
+      "rationale": "Phân loại theo đặc điểm động vật là hoạt động tổng quát, không riêng bướm."
+    },
+    {
+      "family_id": "FAM-ANIMAL-MOVEMENT",
+      "concept_ids": ["ANIMAL_GENERIC", "ANIMAL_MOVEMENT"],
+      "disposition": "CORRECT",
+      "rationale": "Hoạt động bắt chước/chuyển động phù hợp nhiều con vật; không gắn mặc định với bướm."
+    },
+    {
+      "family_id": "FAM-ANIMAL-BUTTERFLY",
+      "concept_ids": ["ANIMAL_BUTTERFLY"],
+      "disposition": "CORRECT",
+      "rationale": "Các thẻ và hành động chỉ nói về bướm; bỏ ANIMAL_GENERIC/ANIMAL_MOVEMENT để không gợi ý sai cho hươu cao cổ hoặc chim."
+    }
+  ]
+}

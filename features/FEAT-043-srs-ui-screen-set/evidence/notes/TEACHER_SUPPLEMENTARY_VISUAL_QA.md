@@ -1,0 +1,5 @@
+# Teacher supplementary visual QA
+
+Root inspected each actual built-in output before unchanged project copying. T00 adult sign-in uses readable Vietnamese, school-issued adult account context and no child/public account. T09 preview is teacher-only and exact version3; class playback disabled before review, source/script/audience separate; preschool-specific labels corrected for6–8 through targeted imagegen revision. T07b stale suggestion cannot release, old reference separated from current child art, regenerate requires fresh review. T09b pending video cannot skip/retry/end and uses stage status, no fake percentage. T09c exhausted failure gives Teacher retry/skip/end; duration assumption and extra library action corrected with imagegen. Pending draft not labelled saved.
+
+All output PNGs copied unchanged with individual SHA/dimensions/prompts/revision lineage. Five images are design proposals REVIEW_PENDING. Synthetic preview duration/source/review statuses are fixture values, not approved production policies/content or proven behavior. Main13 Teacher screen QA belongs to TEACHER_VISUAL_QA.md.

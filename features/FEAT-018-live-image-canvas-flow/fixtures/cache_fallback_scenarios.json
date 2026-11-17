@@ -1,0 +1,42 @@
+[
+  {
+    "scenario_id": "cache-hit-reviewed",
+    "description": "Exact reviewed asset is reusable.",
+    "asset_status": "AVAILABLE",
+    "expected_status": "READY",
+    "expected_cache_status": "HIT",
+    "expected_reason": null
+  },
+  {
+    "scenario_id": "cache-miss-unknown-key",
+    "description": "No asset exists for the requested cache key.",
+    "asset_status": null,
+    "expected_status": "BLOCKED",
+    "expected_cache_status": "MISS",
+    "expected_reason": "CACHE_MISS"
+  },
+  {
+    "scenario_id": "cache-reject-stale",
+    "description": "Stored asset identity/version does not match the request.",
+    "asset_status": "IDENTITY_MISMATCH",
+    "expected_status": "BLOCKED",
+    "expected_cache_status": "MISS",
+    "expected_reason": "STALE_MEDIA"
+  },
+  {
+    "scenario_id": "cache-reject-corrupt",
+    "description": "Stored asset is marked corrupt.",
+    "asset_status": "CORRUPT",
+    "expected_status": "BLOCKED",
+    "expected_cache_status": "MISS",
+    "expected_reason": "CORRUPT_MEDIA"
+  },
+  {
+    "scenario_id": "cache-reject-unsafe",
+    "description": "Stored asset is marked unsafe.",
+    "asset_status": "UNSAFE",
+    "expected_status": "BLOCKED",
+    "expected_cache_status": "MISS",
+    "expected_reason": "UNSAFE_MEDIA"
+  }
+]

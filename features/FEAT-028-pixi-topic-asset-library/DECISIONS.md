@@ -1,0 +1,11 @@
+# FEAT-028 decisions
+
+- 2026-09-17: Create FEAT-028 as an additive topic-asset catalog/authoring workflow; FEAT-004 remains the original-art preservation owner and FEAT-018 remains the authority for renderer and shared integration contracts.
+- 2026-09-17: Keep the child's drawing immutable and visually authoritative. Catalog assets are separate supplements; a catalog miss keeps the source-only fallback and enters authoring-time expansion.
+- 2026-09-17: Start with at least 60 flat-2D assets across 12 reusable topic families, plus deterministic offline resolution and a governed long-tail expansion process. No finite catalog is represented as exhaustive for every possible child topic.
+- 2026-09-17: ImageGen and external open-license sources are permitted only for authoring assets, with per-asset provenance/license/hash and visual review. No real child media is sent externally or stored in repository evidence.
+- 2026-09-17: Do not freeze SVG/PNG/WebP choice or alter `PixiArtAssetManifestV1`, `ArtAnimationPlanV1`, or bridge protocol in this planning record. Require measured evidence/ADR and contract review before any such integration choice.
+- 2026-09-17 (plan revision 2): Add 12 packs/72 sprites for dinosaur/prehistory, farm/wild/ocean animals, insects, music, sports/play, construction/tools, home/kitchen, clothing, science/technology, and generic celebrations/seasons/creative play. Catalog v2 preserves v1 and reaches 144 stable IDs; it is broad common-topic coverage, not literal exhaustive coverage.
+- 2026-09-17 (plan revision 2): Use deterministic structured tags/aliases as the transparent shortlist baseline; do not introduce embeddings or a vector database in this scope. This is an implementation baseline, not a final stack lock.
+- 2026-09-17 (plan revision 2): The backend AI input contains only Gate-A-confirmed topic text plus bounded semantic descriptors for individually approved and rights-cleared candidates. The AI returns candidate IDs only; backend independently checks the allowlist. No child image, file path, atlas hash, provider call, or public FEAT-018 contract is part of this selector.
+- 2026-09-17 (plan revision 2): A no-match returns a typed human-authoring queue proposal that preserves original art and contains no child media. It does not generate or publish assets automatically.

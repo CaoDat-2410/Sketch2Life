@@ -1,0 +1,13 @@
+{
+  "command": [
+    "python",
+    "features/FEAT-042-feat018-contract-dev-merge/src/verify_candidate.py",
+    "--original-workspace",
+    "<owner-local>"
+  ],
+  "cwd": "<worktree>",
+  "started_at_utc": "2026-10-10T13:15:54.274337+00:00",
+  "finished_at_utc": "2026-10-10T13:15:55.381003+00:00",
+  "exit_code": 0,
+  "status": "PASS"
+}

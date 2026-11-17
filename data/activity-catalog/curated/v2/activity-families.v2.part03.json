@@ -1,0 +1,96 @@
+{
+  "schema_version": 2,
+  "catalog_revision": "catalog-2026-09-expansion-1",
+  "families": [
+    {
+      "family_id": "FAM-COLOR-SORT",
+      "concept_ids": ["COLOR_BASIC", "SENSORIAL_COLOR"],
+      "objective_ids": ["OBJ_SENSORIAL_DISCRIMINATION"],
+      "area": "sensorial",
+      "phrases_vi": ["màu", "màu sắc", "đỏ", "xanh", "vàng"],
+      "aliases_vi": ["nhóm màu", "phân loại màu"],
+      "material_option_ids": ["MAT_COLOR_OBJECTS", "MAT_SORTING_TRAY"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["dùng màu không độc, vật lớn và khô; không để trẻ đưa vật nhỏ vào miệng"],
+      "policy_constraints": ["SAFE_MATERIALS_ONLY"],
+      "variants": [
+        {"activity_id": "ACT-0161", "age_band": "0-3", "title_vi": "Tìm vật cùng màu", "action_vi": "Trẻ chọn một vật lớn cùng màu với mẫu đặt trước mặt.", "challenge_vi": "Người lớn đưa hai mẫu màu tương phản và chờ trẻ nhìn hoặc chỉ.", "duration_minutes": 5},
+        {"activity_id": "ACT-0162", "age_band": "3-6", "title_vi": "Phân loại ba màu", "action_vi": "Trẻ đặt vật vào ba khay màu và gọi tên màu khi có thể.", "challenge_vi": "Trẻ tìm vật trong phòng có cùng màu mà không chạy.", "duration_minutes": 10},
+        {"activity_id": "ACT-0163", "age_band": "6-9", "title_vi": "Lập thang màu", "action_vi": "Trẻ xếp mẫu cùng màu theo mức sáng tối và mô tả tiêu chí.", "challenge_vi": "Trẻ kiểm tra xem người khác có xếp theo cùng tiêu chí không.", "duration_minutes": 18},
+        {"activity_id": "ACT-0164", "age_band": "9-12", "title_vi": "Phân tích màu trong bối cảnh", "action_vi": "Trẻ ghi cách ánh sáng và nền làm thay đổi cảm nhận màu.", "challenge_vi": "Trẻ thiết kế cách so sánh bằng cách giữ điều kiện ổn định.", "duration_minutes": 25}
+      ]
+    },
+    {
+      "family_id": "FAM-COLOR-MIX",
+      "concept_ids": ["COLOR_BASIC", "SCIENCE_NATURE"],
+      "objective_ids": ["OBJ_SCIENTIFIC_INQUIRY"],
+      "area": "science",
+      "phrases_vi": ["màu", "pha màu", "màu mới"],
+      "aliases_vi": ["trộn màu", "màu cơ bản"],
+      "material_option_ids": ["MAT_WASHABLE_PAINT", "MAT_COLOR_CUPS"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["chỉ dùng màu rửa được, không độc; không nếm màu và lau đổ ngay"],
+      "policy_constraints": ["NON_TOXIC_MATERIALS"],
+      "variants": [
+        {"activity_id": "ACT-0165", "age_band": "0-3", "title_vi": "Nhìn hai màu hòa vào nhau", "action_vi": "Trẻ quan sát người lớn làm hai màu an toàn chạm nhau trên khay kín.", "challenge_vi": "Trẻ chỉ màu trước và sau khi thay đổi.", "duration_minutes": 5},
+        {"activity_id": "ACT-0166", "age_band": "3-6", "title_vi": "Tạo màu mới", "action_vi": "Trẻ trộn hai màu rửa được với lượng nhỏ và đặt tên màu mới.", "challenge_vi": "Trẻ dự đoán màu trước khi trộn.", "duration_minutes": 12},
+        {"activity_id": "ACT-0167", "age_band": "6-9", "title_vi": "Bảng tỉ lệ pha màu", "action_vi": "Trẻ ghi số phần màu và so sánh sắc độ tạo ra.", "challenge_vi": "Trẻ lặp lại một công thức để kiểm tra kết quả.", "duration_minutes": 20},
+        {"activity_id": "ACT-0168", "age_band": "9-12", "title_vi": "Điều tra độ ổn định của màu pha", "action_vi": "Trẻ thiết kế bảng thử với tỉ lệ, nền và ánh sáng được ghi rõ.", "challenge_vi": "Trẻ phân tích nguồn sai lệch và giới hạn kết luận.", "duration_minutes": 30}
+      ]
+    },
+    {
+      "family_id": "FAM-COLOR-PATTERN",
+      "concept_ids": ["COLOR_BASIC", "COUNTING_NUMBER"],
+      "objective_ids": ["OBJ_MATHEMATICAL_REASONING"],
+      "area": "mathematics",
+      "phrases_vi": ["màu", "mẫu màu", "mẫu lặp lại"],
+      "aliases_vi": ["chuỗi màu", "quy luật màu"],
+      "material_option_ids": ["MAT_COLOR_OBJECTS", "MAT_PATTERN_CARDS"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["dùng vật lớn, nhẹ và không có cạnh sắc; giữ khu vực xếp mẫu gọn"],
+      "policy_constraints": ["SAFE_MATERIALS_ONLY"],
+      "variants": [
+        {"activity_id": "ACT-0169", "age_band": "0-3", "title_vi": "Tiếp tục nhịp hai màu", "action_vi": "Trẻ đặt vật màu tiếp theo trong chuỗi hai màu đơn giản.", "challenge_vi": "Người lớn dừng chuỗi để trẻ chờ tín hiệu.", "duration_minutes": 5},
+        {"activity_id": "ACT-0170", "age_band": "3-6", "title_vi": "Tạo mẫu màu lặp", "action_vi": "Trẻ tạo chuỗi màu lặp hai hoặc ba phần tử bằng vật lớn.", "challenge_vi": "Trẻ che phần cuối để người khác đoán phần tiếp theo.", "duration_minutes": 10},
+        {"activity_id": "ACT-0171", "age_band": "6-9", "title_vi": "Mô tả quy luật màu", "action_vi": "Trẻ viết hoặc nói quy tắc của chuỗi và tìm vị trí còn thiếu.", "challenge_vi": "Trẻ tạo chuỗi có hai cách giải thích rồi làm rõ quy tắc.", "duration_minutes": 18},
+        {"activity_id": "ACT-0172", "age_band": "9-12", "title_vi": "Mô hình hóa mẫu màu", "action_vi": "Trẻ biểu diễn chuỗi bằng ký hiệu, bảng hoặc công thức đơn giản.", "challenge_vi": "Trẻ dự đoán phần tử xa hơn và kiểm tra bằng quy tắc.", "duration_minutes": 25}
+      ]
+    },
+    {
+      "family_id": "FAM-COLOR-OBSERVE",
+      "concept_ids": ["COLOR_BASIC", "NATURE_OBSERVATION"],
+      "objective_ids": ["OBJ_SCIENTIFIC_OBSERVATION"],
+      "area": "science",
+      "phrases_vi": ["màu sắc", "quan sát màu", "màu của vật"],
+      "aliases_vi": ["nhìn màu", "so màu"],
+      "material_option_ids": ["MAT_COLOR_OBJECTS", "MAT_PAPER_CRAYON"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["tránh ánh sáng chói; cho trẻ nghỉ mắt và dùng vật liệu màu không độc"],
+      "policy_constraints": ["VISUAL_COMFORT"],
+      "variants": [
+        {"activity_id": "ACT-0173", "age_band": "0-3", "title_vi": "Theo dõi vật màu sáng", "action_vi": "Trẻ dõi mắt theo vật màu tương phản được người lớn di chuyển chậm.", "challenge_vi": "Người lớn đổi hướng nhẹ và quan sát phản ứng của trẻ.", "duration_minutes": 5},
+        {"activity_id": "ACT-0174", "age_band": "3-6", "title_vi": "Tìm màu trong tranh", "action_vi": "Trẻ tìm và chỉ các vật có cùng màu trong tranh quen thuộc.", "challenge_vi": "Trẻ chọn một vật không cùng màu để so sánh.", "duration_minutes": 10},
+        {"activity_id": "ACT-0175", "age_band": "6-9", "title_vi": "Bản đồ màu của môi trường", "action_vi": "Trẻ ghi các màu ở một góc nhỏ và nhóm theo sắc độ.", "challenge_vi": "Trẻ so sánh bản đồ ở hai thời điểm khác nhau.", "duration_minutes": 18},
+        {"activity_id": "ACT-0176", "age_band": "9-12", "title_vi": "Khảo sát màu và ánh sáng", "action_vi": "Trẻ thiết kế quan sát màu dưới hai điều kiện ánh sáng an toàn.", "challenge_vi": "Trẻ giải thích điều gì là dữ liệu và điều gì chỉ là ấn tượng.", "duration_minutes": 25}
+      ]
+    },
+    {
+      "family_id": "FAM-COLOR-MATCH",
+      "concept_ids": ["COLOR_BASIC", "SENSORIAL_COLOR"],
+      "objective_ids": ["OBJ_SENSORIAL_DISCRIMINATION"],
+      "area": "sensorial",
+      "phrases_vi": ["màu", "ghép màu", "màu giống nhau"],
+      "aliases_vi": ["cặp màu", "tìm màu tương ứng"],
+      "material_option_ids": ["MAT_COLOR_OBJECTS", "MAT_MATCHING_CARDS"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["thẻ và vật ghép phải đủ lớn, không gây xước; cất gọn sau hoạt động"],
+      "policy_constraints": ["SAFE_MATERIALS_ONLY"],
+      "variants": [
+        {"activity_id": "ACT-0177", "age_band": "0-3", "title_vi": "Ghép hai vật cùng màu", "action_vi": "Trẻ đặt hai vật lớn cùng màu cạnh nhau.", "challenge_vi": "Người lớn chỉ đưa hai lựa chọn tương phản.", "duration_minutes": 5},
+        {"activity_id": "ACT-0178", "age_band": "3-6", "title_vi": "Ghép thẻ màu với vật", "action_vi": "Trẻ ghép thẻ màu với đồ vật tương ứng trên khay.", "challenge_vi": "Trẻ tự kiểm tra bằng cách đặt các cặp thành hàng.", "duration_minutes": 10},
+        {"activity_id": "ACT-0179", "age_band": "6-9", "title_vi": "Ghép màu theo sắc độ", "action_vi": "Trẻ ghép mẫu màu với sắc độ gần nhất và nói tiêu chí chọn.", "challenge_vi": "Trẻ tạo một cặp đánh lừa thị giác rồi giải thích cách kiểm tra.", "duration_minutes": 18},
+        {"activity_id": "ACT-0180", "age_band": "9-12", "title_vi": "Xây hệ quy chiếu màu", "action_vi": "Trẻ xây bảng ghép màu có nhãn và cách kiểm tra nhất quán.", "challenge_vi": "Trẻ mô tả sai lệch do ánh sáng, nền hoặc màn hình.", "duration_minutes": 25}
+      ]
+    }
+  ]
+}

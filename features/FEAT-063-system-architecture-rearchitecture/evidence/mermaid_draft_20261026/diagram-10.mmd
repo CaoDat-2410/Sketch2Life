@@ -1,0 +1,14 @@
+flowchart LR
+    PP[Parent profile] -. scalar ref .-> R[story.runs<br/>exactly one child]
+    TP[Teacher profile] -. scalar ref .-> R
+    LP[lesson plan, Teacher only] -. approved ref .-> R
+    R --> I[story.inputs]
+    I --> A[story.transcriptions]
+    R --> U[story.understandings]
+    R --> S[story.scripts]
+    S --> B[story.storyboards]
+    B --> C[story.scenes]
+    C --> F[story.artifact_links]
+    R --> AP[story.approvals]
+    R --> FB[story.activity_feedback]
+    F -. final review/playback .-> VR[existing video_review owner]

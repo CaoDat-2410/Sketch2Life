@@ -1,0 +1,81 @@
+{
+  "date": "2026-10-16",
+  "reviewer": "Codex; independent delegated raw-receipt and source-integrity review",
+  "status": "CLOUD_NATIVE_PASS_RECEIPTS_VERIFIED_PENDING_STUDIO",
+  "checkpoint": "Q01/B6_A17FIX01_CLOUD_RECEIPTS_VERIFIED_PENDING_STUDIO",
+  "execution_provenance": "Claude cloud native execution; raw artifacts received and independently inspected locally, no direct cloud execution by Codex",
+  "source": {
+    "branch": "feature/be2-01-ai-job-foundation",
+    "base_head": "8825e9ff0d99ff29f55f533447b22ba3fbda83d8",
+    "patch_sha256": "e92344460b7ccf18c078140813991c1c1db7bf8877f29ff7f9c4f27a57e16703",
+    "runner_sha256": "aea4172fd2565236b004b1befc7cec894a8ddc706337219187f9006ff0c4316b",
+    "unit_sha256": "12a06de8a080da94609f3a879ed1a8ffeca120a114925c463acaefab7a1270a9",
+    "manifest_sha256": "5b76868d8993284eed548a9db72d3a668b51ff0857aa875697cd2c450e9835d0",
+    "manifest_files": 46,
+    "local_port": "EXACT_TWO_FILE_PATCH_APPLIED; 46/46 source hashes verified; unstaged at receipt-review time"
+  },
+  "received_archive": {
+    "name": "be2-a17fix01-cloud-evidence-20261016.zip",
+    "sha256": "3bcaa05838b6fb59e0af67f3dd983b1412db300ff96afe047653d132f715ce24",
+    "bytes": 190782,
+    "members": 71,
+    "file_hashes_verified": 70,
+    "crc_and_safe_paths": "PASS",
+    "location": "evidence/local/cloud-a17fix01-received-20261016/",
+    "historical_failed_receipts_preserved": true
+  },
+  "cloud": {
+    "receipt": "run-20261016T084310Z-pid635-TMiK3O",
+    "start_utc": "2026-10-16T08:43:09Z",
+    "end_utc": "2026-10-16T08:45:35Z",
+    "wrapper_sha256": "11de42cb16b7b387e695571ec27ea74d57ee0fd2596c9dc6ada9833c218b53b7",
+    "b2_b6": {"testcases": 221, "unique": 221, "failures": 0, "errors": 0, "skipped": 0},
+    "phase_a": {"testcases": 224, "unique": 224, "failures": 0, "errors": 0, "skipped": 0},
+    "fixture": {"PASS": 20, "checks": 215, "checks_failed": 0, "optional_http_not_run": 1, "digest": "d17f58a3c9c535d45a2fe03ed0c1edad42a565422725aede21b22ba45af41f68"},
+    "durable": {"items": 49, "required": 43, "required_pass": 43, "checks": 141, "checks_failed": 0, "failed": [], "exit": 0},
+    "a17": {"status": "PASS", "checks": 9},
+    "a17_http": {"status": "PASS", "checks": 4},
+    "all_gates_crash_windows_b01_through_b11": "PASS",
+    "provenance_checks": 6,
+    "recorded_outer_exit": 0,
+    "recorded_runner_result": "PASS",
+    "environment": {"python": "3.12.3", "postgresql": "17.11", "redis": "8.10.2", "test_role": "NOSUPERUSER, CREATEDB, member pg_signal_backend"}
+  },
+  "local_validation": {
+    "b6_units": {"passed": 25, "exit": 0},
+    "focused_ruff": {"files": 2, "exit": 0},
+    "focused_mypy": {"files": 2, "exit": 0, "imports": "worktree backend/src"},
+    "harness": "PASS",
+    "repository_security": "PASS",
+    "architecture": "PASS",
+    "diff_check": "PASS",
+    "windows_database_runtime": "NOT_RUN"
+  },
+  "studio": {
+    "status": "NOT_RUN",
+    "package": "be2-a17fix01-studio-20261016.zip",
+    "package_location": "evidence/local/a17fix01-studio-package-20261016/",
+    "package_sha256": "e6ce0192dc4299d08dda84ce3ec4c270334d98490246d226097ccc817b40307d",
+    "wrapper_sha256": "184584274f24b2e1754f8c521c1854a08a4132c69948a75fd53dc6568567fea6",
+    "base_head": "993a26cae78c0a4fe983033f03881838c886b176",
+    "static_review": "PASS; host final identity gap corrected before delivery",
+    "source_apply_reverse_and_double_apply_checks": "PASS",
+    "host_probes": {"status": "PASS", "cases": 22, "failed": 0, "docker": "MOCKED; no container/runtime execution", "package_unchanged": true},
+    "instructions": "evidence/local/a17fix01-studio-package-20261016/README_STUDIO_RUN.md"
+  },
+  "limits": [
+    "Cloud evidence is separate from Lightning/Studio evidence.",
+    "PostgreSQL server logs absent; original teardown backend identity/cause remains unknown.",
+    "External /tmp outer stdout/exit files absent; outer exit supported by recorded summary/state and reviewed wrapper.",
+    "Pattern/context secret inspection; the actual private password value was not supplied for value-based matching.",
+    "Studio host probes do not establish actual Docker/database/runtime readiness."
+  ],
+  "b6_cr01": "FIXED_PENDING_RUNTIME_REVIEW",
+  "b6_closed": false,
+  "be2_01": "IN_PROGRESS",
+  "b12": "HANDOFF",
+  "owner_fence": "ASSUMED_CONTRACT",
+  "approval_changes": false,
+  "git_publication_during_receipt_review": "NONE",
+  "subsequent_checkpoint_publication": {"authority": "DECISIONS125", "scope": "focused commits and normal push of existing foundation feature branch for teammate planning; no dev merge or closure"}
+}

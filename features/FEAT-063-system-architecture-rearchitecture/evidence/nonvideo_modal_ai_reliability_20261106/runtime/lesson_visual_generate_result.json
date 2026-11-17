@@ -1,0 +1,17 @@
+{
+  "workload": "lesson.visual.generate",
+  "app": "sketch2life-srs23-flux-image-dev",
+  "function": "generate-approved-lesson-visual-candidate",
+  "job_id": "40ee76dc-6c89-44d3-9d39-93d342791d63",
+  "generation_id": "9d53c148-f96a-4435-9c16-dc0839dc3cba",
+  "attempt_id": "142c9a9e-e4ed-468a-9277-08074091d615",
+  "input_sha256": "a9bde26dc873e9f7b03ff6408cdb5032840f6e25ea97cda396a8de6574f41732",
+  "manifest_sha256": "e0265c2feb92779ab0890f646226c02c01d3cf222d38cdb06f98ac8a04c0c87d",
+  "wait_limit_seconds": 1800,
+  "started_at": "2026-11-06T13:08:50+07:00",
+  "outcome": "FAILED_TERMINAL",
+  "call_id": "fc-01M6QQKBKG5SBDAAJMP47XDR8T",
+  "dispatch_at": "2026-11-06T13:08:53+07:00",
+  "error_type": "TypeError",
+  "ended_at": "2026-11-06T13:08:53+07:00"
+}

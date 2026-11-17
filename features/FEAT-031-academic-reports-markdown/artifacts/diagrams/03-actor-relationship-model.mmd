@@ -1,0 +1,10 @@
+flowchart TB
+    Admin["ADMIN<br/>Top-level adult role"] -->|"assigns exceptional Guide access<br/>configures policy and operations"| Assignment["GuideAssignment<br/>active, time-bounded, revocable"]
+    Owner["PARENT / OWNER CAREGIVER<br/>Adult owner"] -->|"owns one or more"| ChildProfile["ChildProfile<br/>no login credential"]
+    Owner -->|"creates / revokes"| Assignment
+    Assignment -->|"grants scoped access"| Guide["GUIDE<br/>Adult role"]
+    Guide -->|"runs at most one active"| Session["Supervised Session"]
+    Owner -->|"monitors redacted projection<br/>can revoke immediately"| Session
+    Child["Child participant<br/>0-12 target age"] -->|"draws, narrates, participates"| Session
+    Session -->|"produces approved"| Experience["ExperienceSpec + media<br/>with provenance"]
+    Experience -->|"ends with"| Handoff["Off-screen activity + feedback"]

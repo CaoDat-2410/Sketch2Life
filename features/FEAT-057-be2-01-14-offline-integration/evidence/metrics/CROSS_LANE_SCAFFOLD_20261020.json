@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "feature": "FEAT-057-be2-01-14-offline-integration",
+  "result": "SCAFFOLD_PASS",
+  "integration_result": "NOT_PASSED",
+  "scope": "test_registry_scaffold_only",
+  "branch": "feature/be2-backend-ai-integration",
+  "base_head": "1649b72978877d82b4d7662040ff3555dee0a3a7",
+  "product_source_changed": false,
+  "edges": {
+    "X01": "NOT_IMPLEMENTED",
+    "X02": "NOT_IMPLEMENTED",
+    "X03": "NOT_IMPLEMENTED",
+    "X04": "NOT_IMPLEMENTED",
+    "X05": "NOT_IMPLEMENTED",
+    "X06": "NOT_IMPLEMENTED",
+    "X07": "NOT_IMPLEMENTED",
+    "X08": "NOT_IMPLEMENTED",
+    "X09": "NOT_IMPLEMENTED"
+  },
+  "environment": {
+    "python": "3.12.10",
+    "pytest": "8.4.2",
+    "ruff": "0.16.4",
+    "mypy": "1.20.2",
+    "packages_installed": false
+  },
+  "checks": {
+    "focused_pytest": {
+      "command": "python -m pytest tests/integration/be2_cross_lane -q",
+      "exit_code": 0,
+      "tests": 8,
+      "passed": 8,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "junit": {
+        "path": "evidence/raw/cross-lane-scaffold-20261020/junit.xml",
+        "sha256": "1067783caa4ee8e103f651197f6ba85a3a94da7832afeed30b1d641c3c61d804"
+      }
+    },
+    "ruff": {"exit_code": 0, "result": "PASS"},
+    "mypy_strict": {"exit_code": 0, "result": "PASS"},
+    "validate_harness": {"exit_code": 0, "result": "PASS"},
+    "validate_repository_security": {"exit_code": 0, "result": "PASS"},
+    "validate_architecture": {"exit_code": 0, "result": "PASS"},
+    "validate_skeleton": {"exit_code": 0, "result": "PASS"},
+    "git_diff_check": {"exit_code": 0, "result": "PASS"}
+  },
+  "limitations": [
+    "Registry tests validate metadata only and are not cross-lane behavior proof.",
+    "Actual X01-X09 behavior tests have not been implemented or run.",
+    "No shared SQL, HTTP, provider, Lightning, runtime, or card-owned contract was changed or exercised.",
+    "Per-card acceptance and status remain unchanged."
+  ],
+  "source_hashes": {
+    "backend/tests/integration/be2_cross_lane/README.md": "ae64d8749d0ad43b5161b242fd6032a44bd2f1296106a8861c863b40a44d8780",
+    "backend/tests/integration/be2_cross_lane/edge_registry.py": "c656b56f76733183888001c58c554a98c323ebace5af6df2a3aa5b15f90e9da1",
+    "backend/tests/integration/be2_cross_lane/test_edge_registry.py": "8e7157652ff0d0cf089dae43114434f2e1dd1a4afebc168c7228cf67d9509406"
+  }
+}

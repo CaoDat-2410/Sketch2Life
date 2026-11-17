@@ -1,0 +1,8 @@
+{
+  "call_id": "fc-01M6RAQ5GGTVTXXS86MC6CMCMK",
+  "function": "download-sam2-hiera-small-checkpoint",
+  "max_attempts": 1,
+  "stage": "checkpoint_preflight",
+  "started_at": "2026-11-06T18:42:58+07:00",
+  "timeout_seconds": 600
+}

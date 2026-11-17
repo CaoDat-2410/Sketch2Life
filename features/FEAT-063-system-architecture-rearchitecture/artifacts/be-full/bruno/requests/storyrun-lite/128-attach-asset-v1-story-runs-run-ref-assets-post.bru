@@ -1,0 +1,25 @@
+meta {
+  name: 128 [PROVIDER-CAPABLE - REVIEW BEFORE RUN] Attach Asset
+  type: http
+  seq: 128
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{run_ref}}/assets
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  Idempotency-Key: REPLACE_WITH_SYNTHETIC_VALUE
+  If-Match: REPLACE_WITH_SYNTHETIC_VALUE
+}
+
+body:json {
+  {
+    "asset_ref": "REPLACE_ME",
+    "expected_revision": 1
+  }
+}

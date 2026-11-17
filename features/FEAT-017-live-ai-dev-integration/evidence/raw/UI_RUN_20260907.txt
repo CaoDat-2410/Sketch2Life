@@ -1,0 +1,11 @@
+FEAT-017 Android UI run evidence
+Date: 2026-09-07 (Asia/Ho_Chi_Minh)
+Scope: local emulator UI only; fixture-only dev path.
+Device: emulator-5554 (Android emulator)
+Metro: React Native 0.87 dev server on localhost:8081; adb reverse tcp:8081 tcp:8081
+Backend: local uvicorn on localhost:8000; adb reverse tcp:8000 tcp:8000
+Build: Gradle app:assembleDebug SUCCESS; APK installed from apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk
+Package/activity: com.sketch2life.mobile/.MainActivity (focused/resumed)
+UI: loaded after granting emulator nearby-device permission; screenshot: ../screenshots/android-emulator-ui-20260907.png
+Notes: debug manifest uses tools:replace for usesCleartextTraffic so Metro HTTP is allowed only in debug.
+No live provider or real data was exercised in this UI launch step.

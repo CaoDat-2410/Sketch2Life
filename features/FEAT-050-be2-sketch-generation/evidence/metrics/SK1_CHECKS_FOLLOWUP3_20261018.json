@@ -1,0 +1,206 @@
+{
+  "date": "2026-10-18",
+  "feature": "FEAT-050",
+  "checkpoint": "SK1 / SKETCH_COMPONENT_OFFLINE \u2014 Claude follow-up 3",
+  "state": "READY_FOR_CODEX_REVIEW; SK1 NOT_ACCEPTED; BE2-04 IN_PROGRESS / NOT_DONE",
+  "branch": "feature/be2-04-sketch-generation",
+  "head": "113cdf956a09336a0abf5561bd939f5e13b31ea0",
+  "staged_paths": 0,
+  "approval": {
+    "path": "features/FEAT-050-be2-sketch-generation/approvals/TASK_APPROVAL.md",
+    "sha256": "0f356d32b7cab883be6b3079400ada26495555cef160a6fb6a2a3b742a607d25"
+  },
+  "approved_plan": {
+    "path": "features/FEAT-050-be2-sketch-generation/plan/PLAN_REV5_APPROVED.md",
+    "sha256": "461d06849899ea41f2c93432ed8b88c5a64428cf17bce5d2959a6d26ef4fa819"
+  },
+  "previous_metrics": {
+    "path": "features/FEAT-050-be2-sketch-generation/evidence/metrics/SK1_CHECKS_20261018.json",
+    "sha256": "8d93f9072ba1a1ec50fb5bfc642e6bcc582d9d819b32824cbcc24e18ffaa532d",
+    "note": "unchanged; history"
+  },
+  "files": [
+    {
+      "path": "backend/src/sketch2life/domain/sketch_proposal.py",
+      "start_of_turn_sha256": "09203d4b8a0e808c2df056093b2d2391bc21dab835e3a9912a0eb5ad6aac6cde",
+      "final_sha256": "09203d4b8a0e808c2df056093b2d2391bc21dab835e3a9912a0eb5ad6aac6cde",
+      "bytes": 33161,
+      "changed": false
+    },
+    {
+      "path": "backend/src/sketch2life/application/ports/sketch_generation.py",
+      "start_of_turn_sha256": "94d06cbd53dc5600ce21b06301d126c5afa2b8cd37981d7581fbf37324accf60",
+      "final_sha256": "94d06cbd53dc5600ce21b06301d126c5afa2b8cd37981d7581fbf37324accf60",
+      "bytes": 11682,
+      "changed": false
+    },
+    {
+      "path": "backend/src/sketch2life/application/services/sketch_generation.py",
+      "start_of_turn_sha256": "f7b3fd37c02ed8cb58aae31e6c2fbe545fa896f9835c40027ae297fc1d40c388",
+      "final_sha256": "47cfbebefc44e6257d7d7b34e6bd45a13ee6d7d437be86d5fd0533f57ae8c24f",
+      "bytes": 51815,
+      "changed": true
+    },
+    {
+      "path": "backend/src/sketch2life/contracts/schemas/sketch_proposals.py",
+      "start_of_turn_sha256": "c31f6b83a08de912dfaf5eae76fb66ee837156ee1618489fedf7d92937dee029",
+      "final_sha256": "c31f6b83a08de912dfaf5eae76fb66ee837156ee1618489fedf7d92937dee029",
+      "bytes": 5806,
+      "changed": false
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/sketch_generation/__init__.py",
+      "start_of_turn_sha256": "62b01e7232b952e6bd04b4652ece5d4caab4f30382b3eb06e53d30762f8f7ed0",
+      "final_sha256": "62b01e7232b952e6bd04b4652ece5d4caab4f30382b3eb06e53d30762f8f7ed0",
+      "bytes": 86,
+      "changed": false
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/sketch_generation/adapters.py",
+      "start_of_turn_sha256": "7b45ffe72559e34269c1798009b98dcdbe08096f41298dd4e0e64f67003d99f0",
+      "final_sha256": "7b45ffe72559e34269c1798009b98dcdbe08096f41298dd4e0e64f67003d99f0",
+      "bytes": 27337,
+      "changed": false
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/sketch_generation/fakes.py",
+      "start_of_turn_sha256": "de94d1a336c61b38816ca9b890dd41851fe4974d8501521b79c7377692d554e2",
+      "final_sha256": "de94d1a336c61b38816ca9b890dd41851fe4974d8501521b79c7377692d554e2",
+      "bytes": 19022,
+      "changed": false
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/sketch_generation/harness.py",
+      "start_of_turn_sha256": "d9b15967854fd261feff9358a38f5a3388485f519967599f116d827145a9bbae",
+      "final_sha256": "63c1eed9b71daef8e50ec8c7459588b5c88660a446921d49ed45650443cfdf68",
+      "bytes": 35470,
+      "changed": true
+    },
+    {
+      "path": "backend/tests/unit/test_sketch_proposal_domain.py",
+      "start_of_turn_sha256": "c29251e5d51be4e6f06e3cc92bdc3e327795fabe5e11065c8ac4fe26f76e1635",
+      "final_sha256": "c29251e5d51be4e6f06e3cc92bdc3e327795fabe5e11065c8ac4fe26f76e1635",
+      "bytes": 15908,
+      "changed": false
+    },
+    {
+      "path": "backend/tests/unit/test_sketch_generation_service.py",
+      "start_of_turn_sha256": "50db6c216e8e6980dbd43cd09a428b6b16512bee2af3aa5cb3bcc0d91157e2bc",
+      "final_sha256": "50db6c216e8e6980dbd43cd09a428b6b16512bee2af3aa5cb3bcc0d91157e2bc",
+      "bytes": 26431,
+      "changed": false
+    },
+    {
+      "path": "backend/tests/unit/test_sketch_generation_adapters.py",
+      "start_of_turn_sha256": "03e46038873bc94c69091ce17b0ed24a133a6d83032b4177f1360451e6da7dfe",
+      "final_sha256": "03e46038873bc94c69091ce17b0ed24a133a6d83032b4177f1360451e6da7dfe",
+      "bytes": 16963,
+      "changed": false
+    },
+    {
+      "path": "backend/tests/unit/test_sketch_generation_chain.py",
+      "start_of_turn_sha256": "f21c433cc82101d0e1a41e4d1d3bfde6a6b0dc54f860be96b768250b89587e9c",
+      "final_sha256": "2071924f070e23052b0684a8e9cae84864d0667896e2ab7ac5ed26d0925f0a65",
+      "bytes": 30936,
+      "changed": true
+    },
+    {
+      "path": "backend/tests/unit/test_sketch_generation_races.py",
+      "start_of_turn_sha256": "21a19da5bed0221c862f7019591b6388f77df178225b7be741f53e08d6b29ba3",
+      "final_sha256": "28f55bd5b7612f4861dbb5b5e7a4c68fd44227984d34eef45e3d6e0548b49bad",
+      "bytes": 68650,
+      "changed": true
+    },
+    {
+      "path": "backend/tests/contract/test_sketch_proposal_contracts.py",
+      "start_of_turn_sha256": "cf361e5eedc55f0b326c10a4d9cb01fa5c7d5d2f503d145fa6362894b3961a12",
+      "final_sha256": "6c3a1be1bd02a46ae9a7dfcb8f69dbfdef28a6f584df0c7847b0350ddc7491ad",
+      "bytes": 7044,
+      "changed": true
+    },
+    {
+      "path": "features/FEAT-050-be2-sketch-generation/fixtures/h_ai_review/sketch_proposal_examples.json",
+      "start_of_turn_sha256": "16f3d1e56befda0a110227b28b56909d9232f900c19d7710e6b166b7e6738a04",
+      "final_sha256": "96598b51c479c36672a88b1f295976f5d5bd32b53e728eeb2e09c3504fc5da5b",
+      "bytes": 3898,
+      "changed": true
+    }
+  ],
+  "environment": {
+    "python": "existing repository venv <repo-root>/backend/.venv/Scripts/python.exe (outside this worktree)",
+    "version": "CPython 3.12.10",
+    "ruff": "0.16.4",
+    "mypy": "1.20.2",
+    "pytest": "8.4.2",
+    "pythonpath_mypypath": "worktree backend/src",
+    "dependency_install": "none"
+  },
+  "pytest": {
+    "focused_sk1": {
+      "junit": "features/FEAT-050-be2-sketch-generation/evidence/local/claude-followup3-20261018/focused.junit.xml",
+      "sha256": "5393085d4f56f6fe186445ffe46857149588a925dae06d4a4b4c069b7754aacc",
+      "tests": 175,
+      "passed": 175,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "log": "features/FEAT-050-be2-sketch-generation/evidence/local/claude-followup3-20261018/focused.log"
+    },
+    "x01_be2_01": {
+      "junit": "features/FEAT-050-be2-sketch-generation/evidence/local/claude-followup3-20261018/x01.junit.xml",
+      "sha256": "205c33e8b55aec0f3a4f3fd5c4a0d1c85e424be44b4ad9a1014cad4343f4fa53",
+      "tests": 338,
+      "passed": 337,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "log": "features/FEAT-050-be2-sketch-generation/evidence/local/claude-followup3-20261018/x01.log"
+    },
+    "x02_be2_02": {
+      "junit": "features/FEAT-050-be2-sketch-generation/evidence/local/claude-followup3-20261018/x02.junit.xml",
+      "sha256": "49e803d83cf3df0b41083e971f61c0c0eb36226c2667a69a965a8b618a56b23a",
+      "tests": 412,
+      "passed": 411,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "log": "features/FEAT-050-be2-sketch-generation/evidence/local/claude-followup3-20261018/x02.log"
+    },
+    "x03_be2_03": {
+      "junit": "features/FEAT-050-be2-sketch-generation/evidence/local/claude-followup3-20261018/x03.junit.xml",
+      "sha256": "b2dcc2af132089694b854132231a06299f12279039166c85efabe0cc80cb22b6",
+      "tests": 128,
+      "passed": 127,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "log": "features/FEAT-050-be2-sketch-generation/evidence/local/claude-followup3-20261018/x03.log"
+    },
+    "skips": "3 regression skips: live-app contract tests require Pillow (not installed); skips, not passes"
+  },
+  "static_checks": {
+    "ruff": "PASS exit=0 (local ruff.log)",
+    "strict_mypy_14_files": "PASS exit=0 (local mypy.log)",
+    "validate_harness": "PASS exit=0 HARNESS_VALID",
+    "validate_repository_security": "PASS exit=0 REPOSITORY_SECURITY_VALID (rerun after this metrics update)",
+    "validate_architecture": "PASS exit=0 ARCHITECTURE_VALID",
+    "validate_skeleton": "PASS exit=0 SKELETON_VALID",
+    "git_diff_check": "PASS exit=0 (tracked .gitignore only)",
+    "untracked_whitespace_scan": "36 files, 0 CR/trailing-ws/missing-newline",
+    "receipts": "features/FEAT-050-be2-sketch-generation/evidence/local/claude-followup3-20261018"
+  },
+  "runtime_scope": {
+    "studio": "NOT_RUN",
+    "postgres": "NOT_RUN",
+    "redis": "NOT_RUN",
+    "live_provider": "NOT_RUN",
+    "decoder": "NOT_RUN",
+    "durable_multi_process": "NOT_IMPLEMENTED",
+    "a1_callback_end_to_end": "NOT_RUN"
+  },
+  "publication": {
+    "commit": "NOT_CREATED",
+    "push": "NOT_RUN",
+    "branch_created": false
+  }
+}

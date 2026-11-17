@@ -1,0 +1,25 @@
+{
+  "result": "PASS",
+  "errors": [],
+  "task_count": 57,
+  "counts": {
+    "CMD": 66,
+    "DATA": 35,
+    "UI": 34,
+    "FR": 66,
+    "M": 14,
+    "H": 14
+  },
+  "dependency_nodes": 57,
+  "resolved_nodes": 57,
+  "foundations": [
+    "BE1-01",
+    "BE2-01",
+    "FE-01",
+    "INTG-01"
+  ],
+  "srs_sha256": "a95c89589843e3555e967c5e486f3bcaf4bbdf9446cb3bc9c49ed16f672964d9",
+  "artifact_sha256": "293fcb8cfca9a603c0ee18e745ae37d61c3c13de80cdaa336ac648ad4f706ca9",
+  "own_text_files_scanned": 34,
+  "runtime_verified": false
+}

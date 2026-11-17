@@ -1,0 +1,56 @@
+============================= test session starts =============================
+platform win32 -- Python 3.12.10, pytest-8.4.2, pluggy-1.6.0 -- <backend>\.venv\Scripts\python.exe
+rootdir: <backend>
+configfile: pyproject.toml
+plugins: anyio-4.14.2, asyncio-1.4.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 46 items
+
+tests/integration/test_story_run_lite_postgres.py::test_goal_database_owner_accepts_loopback_inet_prefix PASSED [  2%]
+tests/integration/test_story_run_lite_postgres.py::test_legacy_owner_fence_receipts_recovery_confirm_and_cancel PASSED [  4%]
+tests/integration/test_story_run_lite_postgres.py::test_pre_migration_fixture_row_is_only_read_or_non_scope_updated PASSED [  6%]
+tests/integration/test_story_run_lite_postgres.py::test_cancel_racing_complete_aborts_upload_before_admission_and_cleans_staging PASSED [  8%]
+tests/integration/test_story_run_lite_postgres.py::test_cancel_and_admission_finalizer_race_serializes_asset_commit[cancel] PASSED [ 10%]
+tests/integration/test_story_run_lite_postgres.py::test_cancel_and_admission_finalizer_race_serializes_asset_commit[admission] PASSED [ 13%]
+tests/integration/test_story_run_lite_postgres.py::test_expiry_is_enforced_at_utc_boundary_for_get_put_complete_and_versions PASSED [ 15%]
+tests/integration/test_story_run_lite_postgres.py::test_expiry_uses_utc_time_after_story_run_lock_wait[get] PASSED [ 17%]
+tests/integration/test_story_run_lite_postgres.py::test_expiry_uses_utc_time_after_story_run_lock_wait[put] PASSED [ 19%]
+tests/integration/test_story_run_lite_postgres.py::test_expiry_uses_utc_time_after_story_run_lock_wait[complete] PASSED [ 21%]
+tests/integration/test_story_run_lite_postgres.py::test_recovery_rechecks_expiry_after_wait_on_unfinished_upload_lock PASSED [ 23%]
+tests/integration/test_story_run_lite_postgres.py::test_startup_recovery_expires_receiving_and_retries_staging_cleanup PASSED [ 26%]
+tests/integration/test_story_run_lite_postgres.py::test_review_two_http_flows_release_owner_and_replay_attach_without_resending PASSED [ 28%]
+tests/integration/test_story_run_lite_postgres.py::test_review_http_replays_final_attach_receipt_after_restart_recovery PASSED [ 30%]
+tests/integration/test_story_run_lite_postgres.py::test_review_post_confirm_cancel_and_create_serialize_owner_release[cancel] PASSED [ 32%]
+tests/integration/test_story_run_lite_postgres.py::test_review_post_confirm_cancel_and_create_serialize_owner_release[create] PASSED [ 34%]
+tests/integration/test_story_run_lite_postgres.py::test_review_post_confirm_duplicate_cancel_replays_original_receipt PASSED [ 36%]
+tests/integration/test_story_run_lite_postgres.py::test_review_post_confirm_stale_cancel_does_not_release_active_owner[version] PASSED [ 39%]
+tests/integration/test_story_run_lite_postgres.py::test_review_post_confirm_stale_cancel_does_not_release_active_owner[revision] PASSED [ 41%]
+tests/integration/test_story_run_lite_loopback.py::test_photo_bridge_is_single_send_loopback_and_result_precedes_ledger_finalization PASSED [ 43%]
+tests/integration/test_story_run_lite_loopback.py::test_committed_story_result_recovers_sent_ledger_without_redispatch PASSED [ 45%]
+tests/integration/test_story_run_lite_loopback.py::test_guard_denial_race_unknown_and_cancel_late_cas PASSED [ 47%]
+tests/integration/test_story_run_lite_loopback.py::test_committed_result_reconciles_after_state_transition_before_finalize[crash-confirm] PASSED [ 50%]
+tests/integration/test_story_run_lite_loopback.py::test_committed_result_reconciles_after_state_transition_before_finalize[crash-cancel] PASSED [ 52%]
+tests/integration/test_story_run_lite_loopback.py::test_committed_result_reconciles_after_state_transition_before_finalize[crash-confirm-cancel] PASSED [ 54%]
+tests/integration/test_story_run_lite_loopback.py::test_committed_result_reconciles_after_state_transition_before_finalize[returns-false-confirm] PASSED [ 56%]
+tests/integration/test_story_run_lite_loopback.py::test_committed_result_reconciles_after_state_transition_before_finalize[returns-false-cancel] PASSED [ 58%]
+tests/integration/test_story_run_lite_loopback.py::test_committed_result_reconciles_after_state_transition_before_finalize[returns-false-confirm-cancel] PASSED [ 60%]
+tests/integration/test_story_run_lite_loopback.py::test_reconcile_does_not_finalize_mismatching_tuple_or_result_hash PASSED [ 63%]
+tests/integration/test_story_run_lite_replay_concurrency.py::test_http_overlap_rechecks_receipt_after_first_lookup_miss[False] PASSED [ 65%]
+tests/integration/test_story_run_lite_replay_concurrency.py::test_http_overlap_rechecks_receipt_after_first_lookup_miss[True] PASSED [ 67%]
+tests/unit/test_story_run_lite_singleton_health.py::test_startup_uses_nonblocking_lock_and_refuses_second_owner PASSED [ 69%]
+tests/unit/test_story_run_lite_singleton_health.py::test_probe_checks_session_identity_and_exact_advisory_lock PASSED [ 71%]
+tests/unit/test_story_run_lite_singleton_health.py::test_concurrent_probes_serialize_the_pinned_connection PASSED [ 73%]
+tests/unit/test_story_run_lite_singleton_health.py::test_lost_or_replaced_session_latches_unready_without_reacquiring[42-True] PASSED [ 76%]
+tests/unit/test_story_run_lite_singleton_health.py::test_lost_or_replaced_session_latches_unready_without_reacquiring[41-False] PASSED [ 78%]
+tests/unit/test_story_run_lite_singleton_health.py::test_dead_connection_fails_closed_and_release_does_not_query_it[invalidated] PASSED [ 80%]
+tests/unit/test_story_run_lite_singleton_health.py::test_dead_connection_fails_closed_and_release_does_not_query_it[closed] PASSED [ 82%]
+tests/unit/test_story_run_lite_singleton_health.py::test_dead_connection_fails_closed_and_release_does_not_query_it[network] PASSED [ 84%]
+tests/unit/test_story_run_lite_singleton_health.py::test_shutdown_closes_physical_session_without_waiting_for_unlock_query PASSED [ 86%]
+tests/unit/test_story_run_lite_singleton_health.py::test_http_readiness_failure_rejects_new_work_before_service[GET-/v1/story-runs/synthetic-None] PASSED [ 89%]
+tests/unit/test_story_run_lite_singleton_health.py::test_http_readiness_failure_rejects_new_work_before_service[POST-/v1/story-runs-body1] PASSED [ 91%]
+tests/unit/test_story_run_lite_singleton_health.py::test_http_readiness_failure_rejects_new_work_before_service[POST-/v1/story-runs/synthetic/cancel-body2] PASSED [ 93%]
+tests/unit/test_story_run_lite_singleton_health.py::test_public_readiness_requires_runtime_even_with_injected_service PASSED [ 95%]
+tests/unit/test_story_run_lite_singleton_health.py::test_public_readiness_checks_runtime_without_calling_business_service PASSED [ 97%]
+tests/unit/test_story_run_lite_singleton_health.py::test_postgres_terminated_session_fails_old_instance_and_allows_new_owner PASSED [100%]
+
+============================= 46 passed in 12.11s =============================

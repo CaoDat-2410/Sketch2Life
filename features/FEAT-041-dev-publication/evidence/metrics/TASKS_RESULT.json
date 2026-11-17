@@ -1,0 +1,12 @@
+{
+  "check": "tasks",
+  "command": [
+    "python",
+    "-X",
+    "utf8",
+    "features/FEAT-040-four-person-delivery-plan/src/verify_plan.py"
+  ],
+  "exit_code": 0,
+  "output_lines": 25,
+  "raw": "evidence/raw/tasks.txt"
+}

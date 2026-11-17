@@ -1,0 +1,31 @@
+{
+  "command": [
+    "<owner-local>\\backend\\.venv\\Scripts\\python.exe",
+    "-m",
+    "pytest",
+    "backend/tests/unit",
+    "backend/tests/contract",
+    "--basetemp=<owner-local>\\AppData\\Local\\Temp\\sketch2life-feat042-7a4a13032dcb44af8c4fa08a9dfb5577",
+    "-o",
+    "addopts=",
+    "-q",
+    "--deselect=backend/tests/unit/test_whiteboard_mvp_renderer.py::test_narration_beat_without_matching_strokes_blocks_render",
+    "--ignore=backend/tests/unit/test_whiteboard_v2_engine.py",
+    "--ignore=backend/tests/unit/test_whiteboard_v2_visual_refinement.py",
+    "--ignore=backend/tests/unit/test_butterfly_candidate_refinement.py",
+    "--ignore=backend/tests/unit/test_butterfly_video_proof.py",
+    "--ignore=backend/tests/unit/test_house_video_proof.py",
+    "--ignore=backend/tests/unit/test_limited_character_rig_v2.py",
+    "--ignore=backend/tests/unit/test_semantic_authoring_v1.py",
+    "--ignore=backend/tests/unit/test_semantic_drawing_engine_v2.py",
+    "--ignore=backend/tests/unit/test_whiteboard_v2_complexity.py",
+    "--ignore=backend/tests/unit/test_whiteboard_v2_pencil_pass.py",
+    "--ignore=backend/tests/unit/test_whiteboard_v2_schedule_debug.py",
+    "--ignore=backend/tests/unit/test_whiteboard_v2_visual_pass.py"
+  ],
+  "cwd": "<worktree>",
+  "started_at_utc": "2026-10-10T13:18:43.663378+00:00",
+  "finished_at_utc": "2026-10-10T13:21:54.278807+00:00",
+  "exit_code": 1,
+  "status": "FAIL"
+}

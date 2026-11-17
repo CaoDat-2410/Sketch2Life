@@ -1,0 +1,7 @@
+{
+  "call_id": "fc-01M6R7JBH7SVC9B55STMA3F369",
+  "ended_at": "2026-11-06T17:50:09+07:00",
+  "state": "COMPLETED",
+  "video_called": false,
+  "workload": "story.generate"
+}

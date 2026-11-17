@@ -1,0 +1,108 @@
+{
+  "module_origin_in_worktree": true,
+  "module_origin": "backend/src/sketch2life/__init__.py",
+  "findings": {
+    "R01": {
+      "defect_present": true,
+      "observed": {
+        "reasons": [
+          "INPUT_MISMATCH",
+          "OUTPUT_MALFORMED"
+        ],
+        "quarantined": [
+          "artifact_fx0001",
+          "artifact_fx0002",
+          "h2:artifact_fx0001"
+        ]
+      }
+    },
+    "R02": {
+      "defect_present": true,
+      "observed": {
+        "a": "job_fx0001",
+        "b": "job_fx0001",
+        "outcome_b": "deduplicated"
+      }
+    },
+    "R03": {
+      "defect_present": true,
+      "observed": {
+        "before_start": "INVALID_STATE",
+        "after_start": "rejected",
+        "mismatch": "INPUT_MISMATCH",
+        "corrected": "COMPLETION_CONFLICT"
+      }
+    },
+    "R04": {
+      "defect_present": true,
+      "observed": {
+        "http_status": 500,
+        "failure": "Internal Server Error"
+      }
+    },
+    "R05": {
+      "defect_present": true,
+      "observed": {
+        "adapter_calls": 2,
+        "returned": [
+          "purge_rcpt_fx0001",
+          "purge_rcpt_fx0002"
+        ],
+        "stored": "purge_rcpt_fx0001",
+        "copy": "purge_rcpt_fx0002"
+      }
+    },
+    "R06": {
+      "defect_present": true,
+      "observed": {
+        "first": "pending",
+        "second": "deleted",
+        "replay": null,
+        "error": "InvalidCopyTransition: deleted copy cannot change status",
+        "current": "deleted",
+        "adapter_calls": 2
+      }
+    },
+    "R07": {
+      "defect_present": true,
+      "observed": {
+        "problems": [
+          "[]: TypeError",
+          "{}: TypeError"
+        ]
+      }
+    },
+    "R08": {
+      "defect_present": true,
+      "observed": {
+        "queued_with_refs_accepted": true
+      }
+    },
+    "R09": {
+      "defect_present": true,
+      "observed": {
+        "enqueued": 1,
+        "state": "queued"
+      }
+    },
+    "R10": {
+      "defect_present": true,
+      "observed": {
+        "before": 2000,
+        "after": 10000,
+        "same_etag": true,
+        "conditional_304": true
+      }
+    },
+    "R11": {
+      "defect_present": true,
+      "observed": {
+        "accepted_invalid": [
+          "terminal_polling",
+          "failed_without_failure",
+          "succeeded_with_failure"
+        ]
+      }
+    }
+  }
+}

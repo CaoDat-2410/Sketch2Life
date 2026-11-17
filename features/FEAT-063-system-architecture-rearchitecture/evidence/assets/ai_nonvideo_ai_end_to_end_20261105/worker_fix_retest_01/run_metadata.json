@@ -1,0 +1,15 @@
+{
+  "plan": "PLAN_REV45_NONVIDEO_AI_END_TO_END_20261105.md",
+  "started_at": "2026-11-05T16:43:31+07:00",
+  "synthetic_only": true,
+  "image_fixture": "synthetic_childlike_butterfly.png",
+  "qwen_model": {
+    "id": "Qwen/Qwen3.5-9B",
+    "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
+  },
+  "max_wait_seconds_per_call": 600,
+  "video_called": false,
+  "image_generation_called": false,
+  "sam2_called": false,
+  "purpose": "Retest linked Parent subject-to-story plus repaired story/deck/lesson decoders."
+}

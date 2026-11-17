@@ -1,0 +1,223 @@
+{
+  "feature": "FEAT-060",
+  "baseline": "dev@0a7ce768c153f2104cff930569c3eda6e484532c plus preserved pre-implementation dirty tree",
+  "as_of": "2026-10-24",
+  "evidence_limits": [
+    "Child and Teacher UI checks use mocked/deterministic HTTP responses.",
+    "Focused backend checks passed 22 tests; four PostgreSQL acceptance cases skipped because BE1_TEST_DATABASE_URL is unset.",
+    "Alembic PostgreSQL offline SQL generation passed; no database was connected to or modified.",
+    "No live Firebase account, physical mobile device, PostgreSQL migration, Modal endpoint/profile, production deployment, or real child data was used."
+  ],
+  "status_legend": {
+    "PARTIAL": "some source-backed integration or product semantics exist, but required SRS behavior is not complete or not verified end-to-end",
+    "GATED": "requires owner/card/BE1/provider decision before implementation or acceptance",
+    "OPEN": "finding remains without sufficient remediation evidence",
+    "PARTIALLY_REMEDIATED": "specific reported gap was improved, but other capabilities in the finding remain open"
+  },
+  "findings": [
+    {
+      "id": "SR-01",
+      "category": "Flows",
+      "severity": "High",
+      "source": [
+        "apps/child-ui/app/index.tsx",
+        "apps/child-ui/src/services/apiClient.ts",
+        "apps/child-ui/src/services/sessionClient.ts",
+        "backend/src/sketch2life/interfaces/http/routers/be1_sessions.py",
+        "backend/src/sketch2life/interfaces/http/routers/be1_canvas.py"
+      ],
+      "finding": "Child classroom join, drawing persistence, and reconnect were previously local/stubbed.",
+      "remediation_evidence": [
+        "Child QR and shared six-digit room-code joins create the same pending BE1 device grant; Child polls join-status and learns organization/session scope only after admission.",
+        "Successful Teacher Start advances the shared stage and revokes every pending grant in the same transaction; admitted grants remain.",
+        "Room-code HMAC persistence, per-source sliding 15-minute throttle, Child/Teacher wiring and mocked tests are implemented locally. PostgreSQL transaction acceptance and physical-device QR/deep-link tests remain open."
+      ],
+      "remaining": [
+        "No PostgreSQL-backed FE-to-BE receipt; BE1_TEST_DATABASE_URL is unset.",
+        "Checkpoint snapshot hydration and durable offline queue are absent.",
+        "Production trusted-proxy/source-IP configuration requires review; 40-child target remains unmeasured."
+      ],
+      "owner_proposal": "Bảo (Child UI), Đạt (integration), Khoa (BE1 contracts)",
+      "status": "PARTIALLY_REMEDIATED"
+    },
+    {
+      "id": "SR-02",
+      "category": "Architecture",
+      "severity": "High",
+      "source": [
+        "backend/src/sketch2life/interfaces/http/app.py",
+        "backend/src/sketch2life/interfaces/http/router_composition.py",
+        "backend/src/sketch2life/classroom_main.py",
+        "backend/src/sketch2life/demo_main.py"
+      ],
+      "finding": "Compatibility backend composition exposed classroom and local/demo routers together without explicit classroom-first entrypoint.",
+      "remediation_evidence": [
+        "Separate classroom-only and demo-only app compositions/entrypoints exist; compatibility create_app() keeps its old combined route surface.",
+        "Backend app-composition and session contract tests pass 10/10."
+      ],
+      "remaining": [
+        "Actual deployed process command/container configuration has not been verified."
+      ],
+      "owner_proposal": "Đạt and Khoa",
+      "status": "PARTIALLY_REMEDIATED"
+    },
+    {
+      "id": "SR-03",
+      "category": "Data",
+      "severity": "High",
+      "source": [
+        "backend/alembic/README.md",
+        "backend/alembic/versions/",
+        "backend/src/sketch2life/infrastructure/persistence/"
+      ],
+      "finding": "Logical-to-physical data mapping and Alembic install/upgrade/rollback order are not accepted; local Alembic reports nine heads.",
+      "remediation_evidence": [
+        "Additive BE1 migration 20261024_0005 chains from 20261014_0004 on be1_core and creates room-code, rate-limit, stage, event, receipt, draft and outcome tables.",
+        "Alembic reports nine heads total: be1_core plus eight independent module heads; offline PostgreSQL SQL generation passed, other lineages remain untouched."
+      ],
+      "remaining": [
+        "Migration has not been applied or tested against PostgreSQL.",
+        "BE1 owner review and clean-install/upgrade/downgrade approval remain; other module heads are not consolidated."
+      ],
+      "owner_proposal": "Khoa / BE1 owner",
+      "status": "PARTIALLY_REMEDIATED"
+    },
+    {
+      "id": "SR-04",
+      "category": "States",
+      "severity": "High",
+      "source": [
+        "features/FEAT-058 target state diagrams",
+        "backend/src/sketch2life/contracts/schemas/be1_runtime.py",
+        "backend/src/sketch2life/application/services/be1_runtime.py",
+        "features/FEAT-039-collaborative-learning-scope/artifacts/Collaborative_Learning_SRS_v3.3.md"
+      ],
+      "finding": "Product learning stages and terminal outcomes differ from persisted BE1 lifecycle states.",
+      "remediation_evidence": [
+        "Persisted shared-stage read/advance, revision guards, next-only transitions, idempotency receipts, save_draft references, Assistance not_needed/pending-help guard, Sharing published-gallery guard, and separate completed/ended_early outcome routes are implemented locally.",
+        "Start atomically advances join to explore_draw and revokes pending grants. Teacher reads authoritative roster, stage and outcome."
+      ],
+      "remaining": [
+        "PostgreSQL behavior is unverified; BE1 owner review of transactions/migration remains.",
+        "Knowledge, Off-screen and Reflection progression fails closed pending FEAT-057/media/activity/child-reflection contracts. Full completion snapshot/retention contract remains open."
+      ],
+      "owner_proposal": "Project owner and Khoa / BE1 owner",
+      "status": "PARTIALLY_REMEDIATED"
+    },
+    {
+      "id": "SR-05",
+      "category": "Data / privacy",
+      "severity": "High",
+      "source": [
+        "backend/src/sketch2life/interfaces/http/routers/be1_records.py",
+        "backend/src/sketch2life/interfaces/http/routers/be1_sessions.py",
+        "backend/src/sketch2life/infrastructure/persistence/"
+      ],
+      "finding": "Purpose/consent and retention/export/delete/archive/purge do not have a complete end-to-end lifecycle receipt.",
+      "remediation_evidence": [
+        "Current UI calls existing BE1 admission and consent-guarded session transitions; synthetic UI/API mapping tests are available."
+      ],
+      "remaining": [
+        "No live consent, retention, export/delete, archive/purge or audit lifecycle run; no real child data used."
+      ],
+      "owner_proposal": "Đạt and Khoa",
+      "status": "GATED"
+    },
+    {
+      "id": "SR-06",
+      "category": "Flows / testing",
+      "severity": "High",
+      "source": [
+        "features/FEAT-058-review2-document-package/",
+        "features/FEAT-059-code-structure-cleanup/evidence/",
+        "features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/"
+      ],
+      "finding": "Full workflow acceptance receipts and one-class/40-learner capacity evidence are incomplete.",
+      "remediation_evidence": [
+        "Child check passed: typecheck/build/lint, 18 suites/26 tests. Teacher check passed: build/lint, 3 suites/6 tests.",
+        "Focused backend check: 22 passed; four PostgreSQL acceptance tests skipped because BE1_TEST_DATABASE_URL is unset. Changed backend files pass Ruff; Alembic offline SQL generation passed."
+      ],
+      "remaining": [
+        "No single-run database-backed WF-01/WF-02 receipt; PostgreSQL acceptance tests need an isolated configured database.",
+        "WF-03/04 remain gated by FEAT-057 contracts; the 40-child target is unmeasured."
+      ],
+      "owner_proposal": "Bảo / Đạt / Hiếu / Khoa by workflow ownership",
+      "status": "PARTIALLY_REMEDIATED"
+    },
+    {
+      "id": "SR-07",
+      "category": "Architecture / third-party service",
+      "severity": "High",
+      "source": [
+        "docs/adr/ADR-0019-review2-classroom-runtime-and-modal-direction.md",
+        "backend/src/sketch2life/infrastructure/config/settings.py",
+        "features/FEAT-057-be2-01-14-offline-integration/evidence/"
+      ],
+      "finding": "Modal target has no configured product endpoint/profile or measured performance.",
+      "remediation_evidence": [
+        "Hosting boundary is documented: keep BE1 as system of record and use Modal only behind an approved backend AI-provider adapter."
+      ],
+      "remaining": [
+        "No app/function URL, model, GPU, region, scale, timeout, secret policy, spend cap, or live endpoint test."
+      ],
+      "owner_proposal": "Hiếu and project owner",
+      "status": "GATED"
+    },
+    {
+      "id": "SR-08",
+      "category": "Requirements / NFR",
+      "severity": "Medium",
+      "source": [
+        "features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md",
+        "features/FEAT-058-review2-document-package/"
+      ],
+      "finding": "NFR thresholds lack an approved measurement profile or reproducible results.",
+      "remediation_evidence": [
+        "Build, lint, and local test measurements are captured for the three UIs and backend contract tests."
+      ],
+      "remaining": [
+        "RPO/RTO, AI latency, safety-review, and non-session retention targets remain unapproved/unmeasured; the owner-confirmed 40-learner pilot capacity target remains unmeasured."
+      ],
+      "owner_proposal": "Đạt; supervisor/owner approval",
+      "status": "GATED"
+    },
+    {
+      "id": "SR-09",
+      "category": "Scope / metadata",
+      "severity": "Medium",
+      "source": [
+        "features/FEAT-058-review2-document-package/artifacts/submission_r2_rev7/",
+        "features/FEAT-037-registration-age-genai-payment-alignment/"
+      ],
+      "finding": "Official class/project values are blank in source form; filename is not sufficient evidence.",
+      "remediation_evidence": [
+        "No value was inferred or inserted by this integration work."
+      ],
+      "remaining": [
+        "Confirm official class and project identifiers before the submission record is finalized."
+      ],
+      "owner_proposal": "Đạt confirms official metadata",
+      "status": "GATED"
+    },
+    {
+      "id": "SR-10",
+      "category": "Design vs code",
+      "severity": "Low",
+      "source": [
+        "apps/admin-ui/src/services/authService.ts",
+        "apps/teacher-ui/src/services/",
+        "apps/child-ui/src/services/"
+      ],
+      "finding": "Authentication and service paths previously returned mock tokens, fixtures, or empty successes.",
+      "remediation_evidence": [
+        "Adult login uses Firebase Auth; Teacher/Admin request through BE1 bearer clients; Child uses the BE1 device grant; connected runtime screens show backend errors/unsupported state rather than fixture success.",
+        "Teacher observation, Admin class, Teacher classroom, and Child session UI tests pass."
+      ],
+      "remaining": [
+        "Prototype routes are blocked in runtime mode and require explicit ?demo=1 to display fixtures; they still need their own BE1/BE2 contracts and acceptance tests. No claim that every screen is integrated."
+      ],
+      "owner_proposal": "Đạt + Bảo; Khoa for BE1 identity/authorization",
+      "status": "PARTIALLY_REMEDIATED"
+    }
+  ]
+}

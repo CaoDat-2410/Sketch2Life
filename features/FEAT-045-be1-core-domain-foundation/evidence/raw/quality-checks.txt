@@ -1,0 +1,12 @@
+> python --version
+Python 3.14.7
+exit_code=0
+> python -m ruff --version
+ruff 0.16.3
+exit_code=0
+> python -m ruff check backend/src/sketch2life/domain/core_foundation.py backend/src/sketch2life/application/ports/core_foundation.py backend/src/sketch2life/application/services/core_foundation.py backend/src/sketch2life/contracts/schemas/core_foundation.py features/FEAT-045-be1-core-domain-foundation/src/in_memory.py features/FEAT-045-be1-core-domain-foundation/src/run_fixture_validation.py
+All checks passed!
+exit_code=0
+> python -m ruff format --check backend/src/sketch2life/domain/core_foundation.py backend/src/sketch2life/application/ports/core_foundation.py backend/src/sketch2life/application/services/core_foundation.py backend/src/sketch2life/contracts/schemas/core_foundation.py features/FEAT-045-be1-core-domain-foundation/src/in_memory.py features/FEAT-045-be1-core-domain-foundation/src/run_fixture_validation.py
+6 files already formatted
+exit_code=0

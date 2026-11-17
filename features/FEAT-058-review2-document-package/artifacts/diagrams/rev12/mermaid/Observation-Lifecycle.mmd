@@ -1,0 +1,11 @@
+stateDiagram-v2
+  [*] --> Draft
+  Draft --> AiSuggested: optional candidate
+  AiSuggested --> TeacherConfirmed: explicit teacher confirmation
+  AiSuggested --> Corrected: teacher correction
+  TeacherConfirmed --> Corrected: versioned correction
+  Draft --> Withdrawn
+  AiSuggested --> Withdrawn
+  TeacherConfirmed --> Withdrawn
+  Corrected --> Withdrawn
+  note right of AiSuggested: AI suggestion is not a final assessment.

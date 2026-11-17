@@ -1,0 +1,1 @@
+export const mockUsersDirectory = [{ id: "usr-001", name: "Nguyễn Văn A", email: "a.nguyen@example.com", role: "parent", status: "active", verified: true }];

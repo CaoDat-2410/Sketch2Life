@@ -1,0 +1,17 @@
+# Prompt giao Goal 1 — StoryRun-lite Parent synthetic
+
+Bạn là phiên implementer cho Goal 1, làm tuần tự theo plan bên dưới. Owner yêu cầu làm nhanh và **không mở thêm vòng review M0**. Review V11 kết luận NEEDS_REVISION; V12 đã được sửa một lượt và chưa được review độc lập lại. Sau đó owner xác nhận demo phải cho chọn ảnh synthetic JPEG/PNG/WebP khác nhau mỗi lần; **V12 §10 là phạm vi hiện hành**, thay mọi chỉ dẫn fixture-only cũ. Không tự khai kết luận review khác.
+
+Trước khi làm, đọc nguyên vẹn và tự tính SHA-256:
+
+- `features/FEAT-063-system-architecture-rearchitecture/plan/STORYRUN_LITE_GOAL_1_PLAN_20261102.md`: `0447E054079CA2FF3595773DE4C7A3B77EE41FF28E23831A47103D93FC7B083A`.
+- `features/FEAT-063-system-architecture-rearchitecture/plan/STORYRUN_LITE_VISION_M0_V12_FINAL_DRAFT_20261102.md`: `D0560C4B7821EA76A50780D00161DE1D1AC9917168B9C975547077C457FB448B`.
+- Báo cáo review độc lập V11 `features/FEAT-063-system-architecture-rearchitecture/evidence/STORYRUN_LITE_VISION_M0_V11_INDEPENDENT_REVIEW_20261102.md`: `755FF00669104900B1F728C35107ABEE123BC31B65D258900508A7CA3C51F1A5`.
+
+Lệch hash thì dừng. Đọc AGENTS.md, `.codex/*harness*.md`, FEAT-063 context/decisions/source register/approvals, SRS/DTR liên quan và báo cáo xử lý V11. HEAD baseline `a88de875ff92e9b4d4fa5cc2f5f8d5fc1f626f58` trên `feature/feat063-be-foundation`; nếu thay đổi thì báo trước khi lập plan. Ghi baseline working tree/index, giữ nguyên A2 và mọi file có sẵn; không dùng/dọn database A2. Có thể chọn môi trường cô lập phù hợp và phải bảo toàn tài liệu local ghim hash.
+
+Thực hiện G1-0, rồi G1-1: chuẩn bị OpenAPI `StoryRunLite-v1` và Bruno skeleton/examples cho người ghép UI, đánh dấu draft cho tới contract freeze. G1-2 chuẩn bị nhiều ảnh synthetic test/provenance/hash, khảo sát scanner thật, isolation/enforcement, WebP, file/migration, disposable DB và acceptance; tạo plan implementation hẹp có hash. Không ghim đầu vào sản phẩm vào hash fixture. Tuân thủ AGENTS/harness: approval ghi đúng nguồn owner và phạm vi, không sửa code/migration khi chưa có approval cụ thể; owner đã chọn nhiều ảnh synthetic JPEG/PNG/WebP, chưa vì thế tự suy ra chấp nhận dữ liệu trẻ thật hoặc Modal. Nếu thiếu quyết định hoặc quyền ghi approval, báo đúng hạng mục và tiếp tục các phần độc lập được phép.
+
+Sau khi có approval hợp lệ mới làm các task còn lại của Goal 1 theo plan. Core/Story receipt, recovery, cancel, CONFIRM, owner-scope theo V12 §9; input ảnh theo §10: scanner thật CLEAN trước parser, worker isolation có kill + OS resource limits cho metadata/decode/normalize, original/derived hash/lineage. Mục tiêu 20 MiB/40 MP; báo NOT VERIFIED/BLOCKED nếu runtime chưa chứng minh được. Goal 1 dùng fake Vision; không tích hợp A1 photo hook, không gọi Modal/GPU/provider, không dùng mạng ngoài, không dữ liệu trẻ thật. Test PostgreSQL/Alembic chỉ trên DB disposable riêng đã được scope/approval xác nhận; không dùng hoặc dọn database A2. Không stage/commit/push/merge. Báo số test và validator thực tế; kết thúc `XONG-CHƯA REVIEW` implementation hoặc `BLOCKED` nếu vướng. Không tự mở Goal 2.
+
+Giới hạn quan trọng cho owner/UI: người demo được chọn các ảnh synthetic khác nhau từ UI; JPEG/PNG/WebP, mục tiêu ≤20 MiB/40 MP khi runtime được xác minh. Không cam kết các format khác như HEIC hoặc dữ liệu trẻ thật. Test fixture là dữ liệu kiểm thử, không phải danh sách ảnh duy nhất được upload. Việc ghép UI do người khác làm. Goal 2 mới nối AI qua A1; Modal live sau readiness và approval riêng.

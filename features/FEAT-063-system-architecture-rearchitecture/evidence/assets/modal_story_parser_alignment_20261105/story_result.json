@@ -1,0 +1,45 @@
+{
+  "state": "CALL_TERMINAL_FAILURE",
+  "workload": "story.generate",
+  "app": "sketch2life-srs23-language-audio-dev",
+  "function": "generate-story-and-storyboard",
+  "job_id": "d04fa604-c17d-40c7-891c-8af9cd79029f",
+  "generation_id": "e9de2191-b9f4-4437-936f-dea048724643",
+  "attempt_id": "2bfd5a39-947f-462b-8fab-bc13b3a8d3d4",
+  "prefix": "sketch2life/dev/d04fa604-c17d-40c7-891c-8af9cd79029f/e9de2191-b9f4-4437-936f-dea048724643/2bfd5a39-947f-462b-8fab-bc13b3a8d3d4/",
+  "input_sha256": "ff008e934764bd3d7c33dfbd020fe99832af277d31e87f9cbc1982fb9dd66cb6",
+  "manifest_sha256": "05ba995a44fcee2a86da94ea838b4eaecb5d786e734f99731b9fd2a76e7c7c6c",
+  "synthetic_parent_fixture": true,
+  "source_drawing_sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949",
+  "wait_limit_seconds": 300,
+  "created_at": "2026-11-05T03:20:26.483+07:00",
+  "max_calls": 1,
+  "video_calls": 0,
+  "outcome": "MODEL_OUTPUT_INVALID",
+  "call_id": "fc-01M6M3HA2620822K441EN6FF1D",
+  "dispatched_at": "2026-11-05T03:20:33.299+07:00",
+  "error_code": "MODAL_MODEL_OUTPUT_INVALID",
+  "ended_at": "2026-11-05T03:22:14.230+07:00",
+  "worker_logs": {
+    "state": "saved",
+    "exit_code": 0
+  },
+  "scratch_cleanup": "removed",
+  "worker_rejection_reason_code": "SCENE_FIELDS_INVALID",
+  "worker_stage_metrics": {
+    "gpu": "NVIDIA A10",
+    "model_load_seconds": 10.247,
+    "prompt_encode_seconds": 0.016,
+    "constraint_build_seconds": 4.727,
+    "generation_seconds": 76.703,
+    "output_token_count": 976,
+    "output_byte_count": 3407,
+    "output_sha256": "e720d041ed6eb6fde6512b6c01b673aafbfe885bac2c4a7703d915c90a5bfff4"
+  },
+  "client_dispatch_to_terminal_seconds": 100.931,
+  "app_after_stop": {
+    "app_id": "ap-GwUW2O1wB2dEQDtgcqJcNq",
+    "state": "stopped",
+    "tasks": 0
+  }
+}

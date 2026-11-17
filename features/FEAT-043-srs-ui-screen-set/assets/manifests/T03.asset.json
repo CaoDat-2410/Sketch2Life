@@ -1,0 +1,70 @@
+{
+  "asset_id": "T03",
+  "use_case": "ui-mockup",
+  "status": "REVIEW_PENDING",
+  "generated_path": "assets/generated/teacher-app/T03-thiet-lap-phien.png",
+  "srs_ui_id": "T03",
+  "screen_kind": "main",
+  "role": "teacher-app",
+  "prompt": "assets/prompts/T03.txt",
+  "source_references": [
+    {
+      "path": "features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md",
+      "sha256": "a95c89589843e3555e967c5e486f3bcaf4bbdf9446cb3bc9c49ed16f672964d9",
+      "section": "B23.3"
+    },
+    {
+      "path": "apps/ui-mobile/src/theme.ts",
+      "purpose": "existing design tokens"
+    }
+  ],
+  "generator": "built-in image_gen.imagegen",
+  "captured_at_utc": "2026-10-10T14:09:10.762802+00:00",
+  "generator_output_filename": "exec-0df85ea1-3df7-462d-88aa-1e81ca52b2a5.png",
+  "sha256": "46570d4f30712e9804de2f534f4de864bbaf0631434928d7bfd9ee1e0110d0dc",
+  "bytes": 1710432,
+  "width": 1586,
+  "height": 992,
+  "original_copied_unchanged": true,
+  "synthetic_data_only": true,
+  "qa": {
+    "reviewer": "Codex visual inspection",
+    "status": "INSPECTED",
+    "note": "Inspected corrected screenshot: individual-mode label now Ca nhan with person icon; original other builder content kept. Per-Sketch review lock, age tools, scope validation and explicit Open Lobby visible. Layout and wording remain proposal, not adopted contracts. First-attempt prompt retained; final targeted prompt is T03.txt. REVIEW_PENDING."
+  },
+  "review": {
+    "status": "REVIEW_PENDING",
+    "reviewer": null,
+    "reviewed_at": null
+  },
+  "applied_path": null,
+  "limitations": "Generated design proposal; not implemented runtime, approved visual or device acceptance.",
+  "input_images": [
+    {
+      "path": "assets/generated/attempts/T03-first-attempt.png",
+      "sha256": "206688c9b6ed87d54c3466c2b987e7aab86f481d0088e8ed7e13b4ec6227d6dd",
+      "role": "edit target: first generated T03, incorrect individual-mode copy"
+    }
+  ],
+  "generation_history": [
+    {
+      "prompt": "assets/prompts/T03-first-attempt.txt",
+      "output": "assets/generated/attempts/T03-first-attempt.png",
+      "input_images": [
+        {
+          "path": "assets/generated/teacher-app/T05-dieu-phoi-lop.png",
+          "sha256": "33fe9018ea5cf0911ece61c37d72cacb01ffc37d17ad0d50b5f3f2215f4703f0",
+          "role": "style and app-shell reference"
+        }
+      ],
+      "selected": false,
+      "qa": "Unselected mode incorrectly labelled La; corrected with built-in imagegen only."
+    },
+    {
+      "prompt": "assets/prompts/T03.txt",
+      "selected": true,
+      "change": "Targeted copy correction to Ca nhan; remaining UI retained."
+    }
+  ],
+  "prompt_sha256": "3c0fa754ac2181f012364c00de7181d18408cb51787179b169389a05369b5f08"
+}

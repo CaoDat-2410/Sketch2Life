@@ -1,0 +1,70 @@
+{
+  "asset_id": "T12",
+  "use_case": "ui-mockup",
+  "status": "REVIEW_PENDING",
+  "generated_path": "assets/generated/teacher-app/T12-ho-so-hoc-tap.png",
+  "srs_ui_id": "T12",
+  "screen_kind": "main",
+  "role": "teacher-app",
+  "prompt": "assets/prompts/T12.txt",
+  "source_references": [
+    {
+      "path": "features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md",
+      "sha256": "a95c89589843e3555e967c5e486f3bcaf4bbdf9446cb3bc9c49ed16f672964d9",
+      "section": "B23.3"
+    },
+    {
+      "path": "apps/ui-mobile/src/theme.ts",
+      "purpose": "existing design tokens"
+    }
+  ],
+  "generator": "built-in image_gen.imagegen",
+  "captured_at_utc": "2026-10-10T14:19:04.753498+00:00",
+  "generator_output_filename": "exec-63f8d399-0ca1-4683-af3f-aec6db4383c3.png",
+  "sha256": "ea6aa6c60446bd6e873c424658e4b48d72feaf1183e9e20a0f7b6006aceba130",
+  "bytes": 1654928,
+  "width": 1586,
+  "height": 992,
+  "original_copied_unchanged": true,
+  "synthetic_data_only": true,
+  "qa": {
+    "reviewer": "Codex visual inspection",
+    "status": "INSPECTED",
+    "note": "Inspected corrected image: speculative fixed-trait/support summaries replaced by neutral evidence and current assignment metadata; 2024 labels replaced by relative session labels. Individual progress, evidence-Teacher-AI separation, export request gate, no rankings, session-retention separate. First attempt retained for edit provenance only. REVIEW_PENDING."
+  },
+  "review": {
+    "status": "REVIEW_PENDING",
+    "reviewer": null,
+    "reviewed_at": null
+  },
+  "applied_path": null,
+  "limitations": "Generated design proposal; not implemented runtime, approved visual or device acceptance.",
+  "input_images": [
+    {
+      "path": "assets/generated/attempts/T12-first-attempt.png",
+      "sha256": "f6fb729041d02c1b5809f3a2cd67549e43cf2b8e6607f54df84f9de4927b4ff9",
+      "role": "edit target: first generated T12, over-specific dates and speculative profile summaries"
+    }
+  ],
+  "generation_history": [
+    {
+      "prompt": "assets/prompts/T12-first-attempt.txt",
+      "output": "assets/generated/attempts/T12-first-attempt.png",
+      "input_images": [
+        {
+          "path": "assets/generated/teacher-app/T05-dieu-phoi-lop.png",
+          "sha256": "33fe9018ea5cf0911ece61c37d72cacb01ffc37d17ad0d50b5f3f2215f4703f0",
+          "role": "style and app-shell reference"
+        }
+      ],
+      "selected": false,
+      "qa": "Old calendar dates and speculative profile summaries required SRS fidelity correction."
+    },
+    {
+      "prompt": "assets/prompts/T12.txt",
+      "selected": true,
+      "change": "Relative session labels; neutral evidence and current-scope metadata; no fixed psychology or retention implication."
+    }
+  ],
+  "prompt_sha256": "ab807eac9f1c2a83fdc8dbcd820a7c176083330488d64620c4280845fb021fe9"
+}

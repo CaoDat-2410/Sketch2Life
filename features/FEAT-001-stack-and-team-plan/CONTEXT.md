@@ -5,6 +5,7 @@
 - Goal: Convert project answers into an implementation-ready stack proposal, MVP boundary, and workstream ownership.
 - Scope: Mobile client, backend/data plane, Lightning AI plane, fixture-only development, and four-person delivery split.
 - Non-goals: Product code, model integration, cloud provisioning, real child-data collection, or frontend visual generation.
+- Planning update (2026-08-26): the detailed Sprint 1 allocation is recorded in `SPRINT_1_TASK_ALLOCATION.md`. It is a proposed execution split consistent with ADR-0006, not implementation authorization.
 
 ## Inputs confirmed by owner
 

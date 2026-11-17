@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 <worktree>/apps/ui-mobile
+
+ ✓ tests/mainFlowSafety.test.mjs (19 tests) 11ms
+ ✓ tests/apiRetryIdentity.test.mjs (3 tests) 11ms
+
+ Test Files  2 passed (2)
+      Tests  22 passed (22)
+   Start at  20:09:12
+   Duration  642ms (transform 152ms, setup 0ms, collect 239ms, tests 21ms, environment 0ms, prepare 336ms)

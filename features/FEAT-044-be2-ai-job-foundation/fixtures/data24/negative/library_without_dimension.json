@@ -1,0 +1,28 @@
+{
+  "audience_scope": {
+    "age_policy_ref": "age_policy_fx_v1",
+    "publication_scope": "school_library",
+    "purpose_codes": [
+      "purpose_fx_library"
+    ]
+  },
+  "contract_name": "ExactContentReview",
+  "contract_version": "0.1-candidate",
+  "decision": "request_changes",
+  "expected_review_revision": 0,
+  "reason": "Narration pace too fast for the youngest age band.",
+  "review_context": {
+    "age_policy_ref": "age_policy_fx_v1",
+    "content_kind": "knowledge_video",
+    "content_policy_ref": "content_policy_fx_v1",
+    "kind": "generic_library",
+    "publication_scope": "school_library",
+    "review_purpose": "library_publication"
+  },
+  "review_dimension": null,
+  "source_context_revision": 1,
+  "target_hash": "fbe0c35964aa06598accbb75309da67fb0812773232f7909b853ec86f8b1bb56",
+  "target_id": "video_fx_001",
+  "target_kind": "knowledge_video",
+  "target_version": 1
+}

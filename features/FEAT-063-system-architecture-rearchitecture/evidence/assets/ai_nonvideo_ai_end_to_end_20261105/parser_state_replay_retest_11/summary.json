@@ -1,0 +1,60 @@
+{
+  "started_at": "2026-11-05T18:50:56+07:00",
+  "synthetic_only": true,
+  "image_fixture": "synthetic_childlike_butterfly.png",
+  "qwen_model": {
+    "id": "Qwen/Qwen3.5-9B",
+    "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
+  },
+  "max_wait_seconds_per_call": 600,
+  "video_called": false,
+  "purpose": "Compare the incremental TokenEnforcer parser state with a fresh JsonSchemaParser replay over the exact generated token-decoder text.",
+  "ended_at": "2026-11-05T18:52:20+07:00",
+  "results": [
+    {
+      "state": "DISPATCH_INTENT_RECORDED",
+      "workload": "story.generate",
+      "app": "sketch2life-srs23-language-audio-dev",
+      "function": "generate-story-and-storyboard",
+      "job_id": "9104a922-4f52-4141-a707-8b44a3b135fd",
+      "generation_id": "caa7250e-a9e9-4e05-8584-3781538b4e7e",
+      "attempt_id": "6df02f1a-7551-45c8-aa86-c3242c880fae",
+      "input_sha256": "d45ba5b6aa61b7fdbcf8d768a8cc4150de8a493a1bbcc9b9c41391f49ef06cd2",
+      "manifest_sha256": "9469c5679a1eed2b22077c480f90bb0b2e6ae0cbcbe3d65bac0d9a7deb41810c",
+      "wait_limit_seconds": 600,
+      "synthetic_adult_confirmed_fixture": true,
+      "created_at": "2026-11-05T18:50:56+07:00",
+      "max_attempts": 1,
+      "outcome": "FAILED_TERMINAL",
+      "call_id": "fc-01M6NRS0MNW40PJ75QMP1EP3FA",
+      "dispatch_at": "2026-11-05T18:50:59+07:00",
+      "error_type": "ExecutionError",
+      "ended_at": "2026-11-05T18:51:45+07:00",
+      "label": "story.generate_storyboard",
+      "runner_elapsed_ms": 49253.91
+    },
+    {
+      "workload": "teacher.sketch-deck.generate",
+      "app": "sketch2life-srs23-language-audio-dev",
+      "function": "generate-teacher-sketch-deck",
+      "job_id": "5b5a668f-c77a-424f-9dd6-62913f6f527d",
+      "generation_id": "ab82c0f1-59e9-4c6a-ba8e-ad83c8072e36",
+      "attempt_id": "5b78bbd0-1f86-4450-808a-79cd71de2e0e",
+      "input_sha256": "d4a7421d6d19fab19875f9143739b271275a7362b07fc29020076da15dec2b96",
+      "manifest_sha256": "472def81177a9c7a1a124efc32fddf611ce56d42efd59b35aa3db0fd91157f95",
+      "wait_limit_seconds": 600,
+      "started_at": "2026-11-05T18:51:45+07:00",
+      "outcome": "FAILED_TERMINAL",
+      "call_id": "fc-01M6NRTG5VMX5KNGXH17REP52T",
+      "dispatch_at": "2026-11-05T18:51:48+07:00",
+      "error_type": "RuntimeError",
+      "ended_at": "2026-11-05T18:52:20+07:00",
+      "label": "teacher.sketch_deck.generate",
+      "runner_elapsed_ms": 35014.45
+    }
+  ],
+  "summary": {
+    "story.generate_storyboard": "FAILED_TERMINAL",
+    "teacher.sketch_deck.generate": "FAILED_TERMINAL"
+  }
+}

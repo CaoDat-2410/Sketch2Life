@@ -1,0 +1,103 @@
+{
+  "contract_version": "0.1-candidate",
+  "examples": {
+    "child_payload_approved": {
+      "contract_name": "SketchChildPayload",
+      "contract_version": "0.1-candidate",
+      "display_mode": "overlay",
+      "overlay_asset_ref": "artifact_fx0002",
+      "proposal_id": "sketch_fx0001",
+      "review_ref": "skrev_fx0001",
+      "status": "available",
+      "text_or_question": "Fixture prompt for level_fx_2?"
+    },
+    "child_payload_rejected": {
+      "contract_name": "SketchChildPayload",
+      "contract_version": "0.1-candidate",
+      "display_mode": null,
+      "overlay_asset_ref": null,
+      "proposal_id": "sketch_fx0002",
+      "review_ref": null,
+      "status": "unavailable",
+      "text_or_question": null
+    },
+    "queue_item_pending": {
+      "approval_ref": null,
+      "approve_allowed": true,
+      "assistance_level": "level_fx_2",
+      "audience_participant_ids": [
+        "participant_fx_a"
+      ],
+      "content_sha256": "ce0fef28f7e13dbe30ab2861d8bd48b9279cde9e4e465f6e25093b0febc702e6",
+      "context_revision": 3,
+      "contract_name": "SketchReviewQueueItem",
+      "contract_version": "0.1-candidate",
+      "current_decision": null,
+      "decision_applicable": false,
+      "display_mode": "overlay",
+      "group_id": null,
+      "moderation_reason": null,
+      "moderation_state": "passed",
+      "overlay_asset_ref": "artifact_fx0002",
+      "pipeline_state": "pending_teacher_review",
+      "proposal_id": "sketch_fx0001",
+      "proposal_version": 1,
+      "review_etag": "\"sketch-review:sketch_fx0001:1:1:0\"",
+      "session_id": "session_fx_001",
+      "source_snapshot_ref": "snapshot_fx_p",
+      "terminal_first_decision": null,
+      "text_or_question": "Fixture prompt for level_fx_2?",
+      "version_terminal": false
+    },
+    "review_result_approve": {
+      "contract_name": "SketchReviewResult",
+      "contract_version": "0.1-candidate",
+      "decision": "approve",
+      "record": {
+        "contract_name": "ExactContentReviewRecord",
+        "contract_version": "0.1-candidate",
+        "policy_version": "rp_7b776cc8f4e978852e02dcf597898021",
+        "review_id": "skrev_fx0001",
+        "review_revision": 1,
+        "reviewed_at": "2026-10-17T13:00:06Z",
+        "reviewer_principal_id": "teacher_fx_001",
+        "state": "effective"
+      },
+      "replayed": false,
+      "review_etag": "\"sketch-review:sketch_fx0001:1:1:1\"",
+      "semantic_duplicate": false,
+      "target": {
+        "hash": "ce0fef28f7e13dbe30ab2861d8bd48b9279cde9e4e465f6e25093b0febc702e6",
+        "id": "sketch_fx0001",
+        "kind": "sketch_proposal",
+        "version": 1
+      }
+    },
+    "review_result_reject": {
+      "contract_name": "SketchReviewResult",
+      "contract_version": "0.1-candidate",
+      "decision": "reject",
+      "record": {
+        "contract_name": "ExactContentReviewRecord",
+        "contract_version": "0.1-candidate",
+        "policy_version": "rp_7b776cc8f4e978852e02dcf597898021",
+        "review_id": "skrev_fx0002",
+        "review_revision": 1,
+        "reviewed_at": "2026-10-17T13:00:12Z",
+        "reviewer_principal_id": "teacher_fx_001",
+        "state": "effective"
+      },
+      "replayed": false,
+      "review_etag": "\"sketch-review:sketch_fx0002:1:1:1\"",
+      "semantic_duplicate": false,
+      "target": {
+        "hash": "c09dedd277db172806b45f188c715fed00c7109c9083ca7c5c6d06f3370eb9cc",
+        "id": "sketch_fx0002",
+        "kind": "sketch_proposal",
+        "version": 1
+      }
+    }
+  },
+  "fixture_id": "FEAT-052-BE205-H-AI-REVIEW",
+  "synthetic_only": true
+}

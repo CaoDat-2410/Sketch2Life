@@ -1,0 +1,1 @@
+{"contract_name":"RawUnderstandingResultV1","contract_version":"1.0","status":"PROPOSAL","claims":[{"claim_id":"claim-1","label":"butterfly","source":"ASR","confidence":0.86},{"claim_id":"claim-2","label":"butterfly","source":"VISION","confidence":0.94}],"conflicts":[],"gate_a_required":true}

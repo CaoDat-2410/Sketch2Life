@@ -1,0 +1,11 @@
+stateDiagram-v2
+  [*] --> Draft
+  Draft --> Lobby: teacher configures
+  Lobby --> Active: explicit teacher start
+  Active --> Paused: teacher pause
+  Paused --> Active: teacher resume
+  Active --> Completed: teacher close
+  Active --> EndedEarly: teacher ends early
+  Paused --> EndedEarly: teacher ends early
+  Completed --> [*]
+  EndedEarly --> [*]

@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "1.0.0",
+  "source": "data/activity-catalog/golden/v1/selection-manifest.v1.json",
+  "mode": "SUPPORTED_PRODUCT_BANDS_UNDER_9",
+  "bands": [
+    {"ageBand":"0-3","minMonths":8,"maxMonths":35,"goldenRecordCount":5},
+    {"ageBand":"3-6","minMonths":42,"maxMonths":71,"goldenRecordCount":5},
+    {"ageBand":"6-9","minMonths":72,"maxMonths":107,"goldenRecordCount":5}
+  ],
+  "selectionPolicy": {
+    "hardFiltersBeforeRanking": true,
+    "randomSeedSource": "fresh-per-run-unless-explicit-seed",
+    "noImmediateRepeat": true,
+    "fixedFirstMatchForbidden": true,
+    "replaySupported": true
+  }
+}

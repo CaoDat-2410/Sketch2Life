@@ -1,0 +1,236 @@
+{
+  "date": "2026-10-18",
+  "feature": "FEAT-050",
+  "checkpoint": "SK1 / SKETCH_COMPONENT_OFFLINE",
+  "branch": "feature/be2-04-sketch-generation",
+  "head": "113cdf956a09336a0abf5561bd939f5e13b31ea0",
+  "base": "113cdf956a09336a0abf5561bd939f5e13b31ea0",
+  "approval": {
+    "path": "features/FEAT-050-be2-sketch-generation/approvals/TASK_APPROVAL.md",
+    "sha256": "0f356d32b7cab883be6b3079400ada26495555cef160a6fb6a2a3b742a607d25"
+  },
+  "approved_plan": {
+    "path": "features/FEAT-050-be2-sketch-generation/plan/PLAN_REV5_APPROVED.md",
+    "sha256": "461d06849899ea41f2c93432ed8b88c5a64428cf17bce5d2959a6d26ef4fa819",
+    "expected_sha256": "461d06849899ea41f2c93432ed8b88c5a64428cf17bce5d2959a6d26ef4fa819"
+  },
+  "file_hashes": {
+    "new_source": [
+      {
+        "path": "backend/src/sketch2life/domain/sketch_proposal.py",
+        "base_state": "absent_at_base_113cdf9",
+        "base_sha256": null,
+        "final_sha256": "09203d4b8a0e808c2df056093b2d2391bc21dab835e3a9912a0eb5ad6aac6cde",
+        "bytes": 33161
+      },
+      {
+        "path": "backend/src/sketch2life/application/ports/sketch_generation.py",
+        "base_state": "absent_at_base_113cdf9",
+        "base_sha256": null,
+        "final_sha256": "94d06cbd53dc5600ce21b06301d126c5afa2b8cd37981d7581fbf37324accf60",
+        "bytes": 11682
+      },
+      {
+        "path": "backend/src/sketch2life/application/services/sketch_generation.py",
+        "base_state": "absent_at_base_113cdf9",
+        "base_sha256": null,
+        "final_sha256": "f7b3fd37c02ed8cb58aae31e6c2fbe545fa896f9835c40027ae297fc1d40c388",
+        "bytes": 51487
+      },
+      {
+        "path": "backend/src/sketch2life/contracts/schemas/sketch_proposals.py",
+        "base_state": "absent_at_base_113cdf9",
+        "base_sha256": null,
+        "final_sha256": "c31f6b83a08de912dfaf5eae76fb66ee837156ee1618489fedf7d92937dee029",
+        "bytes": 5806
+      },
+      {
+        "path": "backend/src/sketch2life/infrastructure/sketch_generation/__init__.py",
+        "base_state": "absent_at_base_113cdf9",
+        "base_sha256": null,
+        "final_sha256": "62b01e7232b952e6bd04b4652ece5d4caab4f30382b3eb06e53d30762f8f7ed0",
+        "bytes": 86
+      },
+      {
+        "path": "backend/src/sketch2life/infrastructure/sketch_generation/adapters.py",
+        "base_state": "absent_at_base_113cdf9",
+        "base_sha256": null,
+        "final_sha256": "7b45ffe72559e34269c1798009b98dcdbe08096f41298dd4e0e64f67003d99f0",
+        "bytes": 27337
+      },
+      {
+        "path": "backend/src/sketch2life/infrastructure/sketch_generation/fakes.py",
+        "base_state": "absent_at_base_113cdf9",
+        "base_sha256": null,
+        "final_sha256": "de94d1a336c61b38816ca9b890dd41851fe4974d8501521b79c7377692d554e2",
+        "bytes": 19022
+      },
+      {
+        "path": "backend/src/sketch2life/infrastructure/sketch_generation/harness.py",
+        "base_state": "absent_at_base_113cdf9",
+        "base_sha256": null,
+        "final_sha256": "d9b15967854fd261feff9358a38f5a3388485f519967599f116d827145a9bbae",
+        "bytes": 33185
+      }
+    ],
+    "new_tests": [
+      {
+        "path": "backend/tests/unit/test_sketch_proposal_domain.py",
+        "base_state": "absent_at_base_113cdf9",
+        "base_sha256": null,
+        "final_sha256": "c29251e5d51be4e6f06e3cc92bdc3e327795fabe5e11065c8ac4fe26f76e1635",
+        "bytes": 15908
+      },
+      {
+        "path": "backend/tests/unit/test_sketch_generation_service.py",
+        "base_state": "absent_at_base_113cdf9",
+        "base_sha256": null,
+        "final_sha256": "50db6c216e8e6980dbd43cd09a428b6b16512bee2af3aa5cb3bcc0d91157e2bc",
+        "bytes": 26431
+      },
+      {
+        "path": "backend/tests/unit/test_sketch_generation_adapters.py",
+        "base_state": "absent_at_base_113cdf9",
+        "base_sha256": null,
+        "final_sha256": "03e46038873bc94c69091ce17b0ed24a133a6d83032b4177f1360451e6da7dfe",
+        "bytes": 16963
+      },
+      {
+        "path": "backend/tests/unit/test_sketch_generation_chain.py",
+        "base_state": "absent_at_base_113cdf9",
+        "base_sha256": null,
+        "final_sha256": "f21c433cc82101d0e1a41e4d1d3bfde6a6b0dc54f860be96b768250b89587e9c",
+        "bytes": 28419
+      },
+      {
+        "path": "backend/tests/unit/test_sketch_generation_races.py",
+        "base_state": "absent_at_base_113cdf9",
+        "base_sha256": null,
+        "final_sha256": "21a19da5bed0221c862f7019591b6388f77df178225b7be741f53e08d6b29ba3",
+        "bytes": 58024
+      },
+      {
+        "path": "backend/tests/contract/test_sketch_proposal_contracts.py",
+        "base_state": "absent_at_base_113cdf9",
+        "base_sha256": null,
+        "final_sha256": "cf361e5eedc55f0b326c10a4d9cb01fa5c7d5d2f503d145fa6362894b3961a12",
+        "bytes": 6044
+      }
+    ],
+    "fixture": [
+      {
+        "path": "features/FEAT-050-be2-sketch-generation/fixtures/h_ai_review/sketch_proposal_examples.json",
+        "base_state": "absent_at_base_113cdf9",
+        "base_sha256": null,
+        "final_sha256": "16f3d1e56befda0a110227b28b56909d9232f900c19d7710e6b166b7e6738a04",
+        "bytes": 3257
+      }
+    ],
+    "modified_existing": [
+      {
+        "path": ".gitignore",
+        "base_state": "modified",
+        "base_sha256": "3019704d7383c4524dae606e5340429b81e31893d1eb15c43a6cb1be01043245",
+        "final_sha256": "be2348389151117cfad0f85b49830cbb09b68cec0f818e79845e25cb2d18f67b",
+        "bytes": 7856
+      }
+    ]
+  },
+  "pytest": {
+    "focused_sk1": {
+      "junit": "features/FEAT-050-be2-sketch-generation/evidence/local/codex-followup2-20261018/focused-final.junit.xml",
+      "sha256": "7e588dca92cf8e6ed8802d7e08bc05b0b45152903d4ef6cff5a77fcf94542e1e",
+      "tests": 166,
+      "passed": 166,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "x01_be2_01": {
+      "junit": "features/FEAT-050-be2-sketch-generation/evidence/local/codex-followup2-20261018/x01.junit.xml",
+      "sha256": "50a3748b1417a80580e44db597d3d8cfbd94a7cf2ec0eeb8ed5330584cb44862",
+      "tests": 338,
+      "passed": 337,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    "x02_be2_02": {
+      "junit": "features/FEAT-050-be2-sketch-generation/evidence/local/codex-followup2-20261018/x02.junit.xml",
+      "sha256": "7089e1bd98e76e51cdf26e2b11b767be8d599d8cb2a6b217d4ec63728c83a378",
+      "tests": 412,
+      "passed": 411,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    "x03_be2_03": {
+      "junit": "features/FEAT-050-be2-sketch-generation/evidence/local/codex-followup2-20261018/x03.junit.xml",
+      "sha256": "7650aa645a6c4868333ca264b8ea2606d3ab97a2dfc55abe2f536c86fd7b157a",
+      "tests": 128,
+      "passed": 127,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    }
+  },
+  "static_checks": {
+    "strict_mypy_all_14_python_files": "PASS; see ignored local/codex-followup2-20261018/mypy-final.log",
+    "ruff": "PASS; see ignored local/codex-followup2-20261018/ruff-final.log",
+    "validate_harness": "PASS; HARNESS_VALID",
+    "validate_architecture": "PASS; ARCHITECTURE_VALID",
+    "validate_skeleton": "PASS; SKELETON_VALID",
+    "git_diff_check": "PASS; tracked diff plus custom scan recorded in follow-up receipts",
+    "validate_repository_security": "PASS; REPOSITORY_SECURITY_VALID",
+    "final_receipts": {
+      "validate_harness": "local/codex-followup2-20261018/validate_harness.log",
+      "validate_repository_security": "local/codex-followup2-20261018/validate_repository_security.log",
+      "validate_architecture": "local/codex-followup2-20261018/validate_architecture.log",
+      "validate_skeleton": "local/codex-followup2-20261018/validate_skeleton.log",
+      "git_diff_check": "local/codex-followup2-20261018/diff-check.log",
+      "ruff": "local/codex-followup2-20261018/ruff-final.log",
+      "mypy": "local/codex-followup2-20261018/mypy-final.log"
+    }
+  },
+  "environment": {
+    "dependency_install_deviation": "uv temporarily created backend/.venv, backend/uv.lock and evidence/local/sk1-checks-20261018/uv-cache contrary to approved exclusion; all three were removed after checks; no dependency file/lock remains.",
+    "pillow_live_app_skips": 3,
+    "original_implementation_test_python": "CPython 3.13.5 (temporary uv environment)",
+    "followup_test_python": "CPython 3.12.10; existing D:/GitHub/Sketch2Life/backend/.venv; no installation",
+    "followup_temp_dir": "X01 rerun used fresh ignored local --basetemp after default Temp denied access for 17 tmp_path setups"
+  },
+  "runtime_scope": {
+    "studio": "NOT_RUN",
+    "postgres": "NOT_RUN",
+    "redis": "NOT_RUN",
+    "live_provider": "NOT_RUN",
+    "decoder": "NOT_RUN",
+    "durable_multi_process": "NOT_IMPLEMENTED"
+  },
+  "publication": {
+    "staged_paths": 0,
+    "commit": "NOT_CREATED",
+    "push": "NOT_RUN"
+  },
+  "review": {
+    "initial_claude_verdict": "NEEDS_CHANGES",
+    "f1": "addressed_pending_claude_rereview",
+    "f2": "addressed_pending_claude_rereview",
+    "f4_f5_f6": "implemented_with_regressions_pending_claude_rereview",
+    "coverage": "PARTIAL; see evidence/notes/SK1_CODEX_FOLLOWUP_20261018.md",
+    "unresolved": [
+      "R31/R33 use synthetic quarantine intents rather than completion-generated intents",
+      "N04/N08/N11/N15 and P02/P06 remain indirect chain coverage; C06 and contract mapping audit remain open",
+      "A1 post-commit callback to SketchStageAdapter is not exercised end-to-end in the offline harness",
+      "F5 SketchChainEligibility implementation deviation requires owner disposition",
+      "N16 Child cancel of existing versus missing proposal retains the approved-plan existence signal"
+    ],
+    "sk1_owner_acceptance": "NOT_ACCEPTED",
+    "r03": "assertion_and_evidence_corrected_pending_independent_rereview",
+    "r11": "link_stage_cancel_notice_faults_covered_pending_independent_rereview",
+    "p08_p11_chain": "covered_pending_independent_rereview",
+    "n23_chain": "consent_teacher_confirmation_render_policy_and_unchanged_covered",
+    "c05_registry_report": "constructed_from_live_fixture_registry_and_contract_validated",
+    "f5_plan_deviation": "owner_disposition_required; approved_plan_hash_unchanged"
+  }
+}

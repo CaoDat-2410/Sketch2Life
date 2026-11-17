@@ -1,0 +1,6 @@
+......................ssss                                               [100%]
+=========================== short test summary info ===========================
+SKIPPED [1] backend\tests\integration\test_be1_postgres_api.py:131: set BE1_TEST_DATABASE_URL to run PostgreSQL-backed BE1 acceptance tests
+SKIPPED [1] backend\tests\integration\test_be1_postgres_api.py:311: set BE1_TEST_DATABASE_URL to run PostgreSQL-backed BE1 acceptance tests
+SKIPPED [1] backend\tests\integration\test_be1_postgres_api.py:660: set BE1_TEST_DATABASE_URL to run PostgreSQL-backed BE1 acceptance tests
+SKIPPED [1] backend\tests\integration\test_be1_postgres_api.py:790: set BE1_TEST_DATABASE_URL to run PostgreSQL-backed BE1 acceptance tests

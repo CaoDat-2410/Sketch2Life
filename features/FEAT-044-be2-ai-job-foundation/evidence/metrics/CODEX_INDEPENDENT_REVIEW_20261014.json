@@ -1,0 +1,176 @@
+{
+  "recorded_at": "2026-10-14T21:31:28.448301+07:00",
+  "branch": "feature/be2-01-ai-job-foundation",
+  "baseline": "b9204d8c9eb4f8a1ee6d4db4de5ee23672e0392c",
+  "review_status": "NEEDS_REVISION",
+  "runtime_source_modified_by_review": false,
+  "approval_modified_by_review": false,
+  "reviewers": [
+    "Codex primary",
+    "review_ai_lifecycle",
+    "review_ai_http_contracts",
+    "review_ai_fakes_copy"
+  ],
+  "existing_checks": [
+    {
+      "check": "harness",
+      "command": [
+        "python",
+        "tools/validate_harness.py",
+        "--feature",
+        "features/FEAT-044-be2-ai-job-foundation"
+      ],
+      "started_at": "2026-10-14T21:30:43.659948+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/codex_review_harness.txt"
+    },
+    {
+      "check": "pytest",
+      "command": [
+        "<existing-backend-venv>/python",
+        "-B",
+        "-m",
+        "pytest",
+        "backend/tests/unit/test_ai_job_lifecycle.py",
+        "backend/tests/unit/test_ai_job_application.py",
+        "backend/tests/contract/test_ai_job_contracts.py",
+        "backend/tests/contract/test_ai_job_polling.py",
+        "backend/tests/unit/test_ephemeral_storage_ports.py",
+        "backend/tests/unit/test_whiteboard_video_job.py",
+        "backend/tests/unit/test_story_video_job_input_gate.py",
+        "backend/tests/contract/test_mobile_workflow_contracts.py",
+        "-p",
+        "no:cacheprovider",
+        "-rs"
+      ],
+      "started_at": "2026-10-14T21:21:10.816873+07:00",
+      "exit_code": 0,
+      "environment": {
+        "PYTHONPATH": "<be2-worktree>/backend/src",
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/codex_review_pytest.txt"
+    },
+    {
+      "check": "runner",
+      "command": [
+        "<existing-backend-venv>/python",
+        "-B",
+        "features/FEAT-044-be2-ai-job-foundation/src/run_fixture_contracts.py",
+        "--with-http",
+        "--report",
+        "features/FEAT-044-be2-ai-job-foundation/evidence/raw/codex_review_runner_report.json"
+      ],
+      "started_at": "2026-10-14T21:21:11.685247+07:00",
+      "exit_code": 0,
+      "environment": {
+        "PYTHONPATH": "<be2-worktree>/backend/src",
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/codex_review_runner.txt"
+    },
+    {
+      "check": "security",
+      "command": [
+        "python",
+        "tools/validate_repository_security.py"
+      ],
+      "started_at": "2026-10-14T21:30:44.433480+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/codex_review_security.txt"
+    }
+  ],
+  "findings": [
+    {
+      "id": "R01",
+      "priority": 1,
+      "status": "OPEN"
+    },
+    {
+      "id": "R02",
+      "priority": 2,
+      "status": "OPEN"
+    },
+    {
+      "id": "R03",
+      "priority": 2,
+      "status": "OPEN"
+    },
+    {
+      "id": "R04",
+      "priority": 2,
+      "status": "OPEN"
+    },
+    {
+      "id": "R05",
+      "priority": 2,
+      "status": "OPEN"
+    },
+    {
+      "id": "R06",
+      "priority": 2,
+      "status": "OPEN"
+    },
+    {
+      "id": "R07",
+      "priority": 2,
+      "status": "OPEN"
+    },
+    {
+      "id": "R08",
+      "priority": 2,
+      "status": "OPEN"
+    },
+    {
+      "id": "R09",
+      "priority": 2,
+      "status": "OPEN"
+    },
+    {
+      "id": "R10",
+      "priority": 2,
+      "status": "OPEN"
+    },
+    {
+      "id": "R11",
+      "priority": 3,
+      "status": "OPEN"
+    }
+  ],
+  "probes": [
+    "evidence/raw/codex_review_probes.json",
+    "evidence/raw/codex_review_boundary_probes.json"
+  ],
+  "boundary_probe_command": "Existing backend venv python -B - with raw/codex_review_boundary_probe_source.txt piped to stdin; PYTHONPATH=<be2-worktree>/backend/src; PYTHONDONTWRITEBYTECODE=1; cwd=<be2-worktree>",
+  "reviewed_source_sha256": {
+    "backend/src/sketch2life/application/ports/ai_jobs.py": "2a3416af377715facb8a4e0c8012d3eb4c4a1ae96330f0c0c5a403e1cd27ea95",
+    "backend/src/sketch2life/application/services/ai_jobs.py": "9ceb325c018abc488f1cb4efa3e5d69f16060d68795959b7bfa00ac858ffb9eb",
+    "backend/src/sketch2life/application/services/provider_copy_lifecycle.py": "de0315d5a772bd17b48fd6e875d208fa187347e8cbc8ffca5ab980dbcee05e45",
+    "backend/src/sketch2life/contracts/schemas/ai_contract_candidates.py": "68fa01b78d5c65276440fde50622fff1cf5a24c7a2e0dac2d9820601bab7dbdc",
+    "backend/src/sketch2life/contracts/schemas/ai_jobs.py": "c46a91af80c8d27deb1280bdc64d9102d28d33d4e3019725d0f621d1ac4acd8a",
+    "backend/src/sketch2life/domain/ai_jobs/__init__.py": "301c97c4a3a0308350dd857f39f94fd8f1b5cc45820a9fa8b4c6e4caee0b2748",
+    "backend/src/sketch2life/domain/ai_jobs/completion.py": "22c176e7b6e2bfa63accf1a37db4a43e9b22a57fe04359d113979a68babe4baf",
+    "backend/src/sketch2life/domain/ai_jobs/model.py": "fcadb3101fd915974080cd894706a15895c35c93ea2fbd164cb916fcab6d31d3",
+    "backend/src/sketch2life/domain/ai_jobs/provider_copy.py": "2c55b67e0a036b4e7786094d5e1bc59a2b3d81ecfc75f24aaaa03a4296ee1ddd",
+    "backend/src/sketch2life/infrastructure/ai_jobs/__init__.py": "22375802e5b6353e0531b8dfcc8034260672783edd3df6b20c55914fbc1cad78",
+    "backend/src/sketch2life/infrastructure/ai_jobs/fakes.py": "64ce08e851fe6bec8915c4030ae7ed72452e1f8c86bd180179c58888834ae275",
+    "backend/src/sketch2life/infrastructure/ai_jobs/harness.py": "aaa76323c7d70e2b5b6c330526d2196e9835af7ab87c724e2b52ac2f25d497e5",
+    "backend/src/sketch2life/interfaces/http/ai_jobs_fixture_app.py": "7ee82e3c80d3ba892b9b532961786832f747cf1a627a245cb20c90d85e6d1d03",
+    "backend/src/sketch2life/interfaces/http/routers/ai_jobs.py": "8f90789fe6bc5abbd5b1f2d489c201dd99def252ad2182d591a2becbbc7641b6",
+    "backend/tests/contract/test_ai_job_contracts.py": "a65c552542fcdc11a3b3340d1873fcc9085de78a533af25e95326f6cf149af79",
+    "backend/tests/contract/test_ai_job_polling.py": "26ba77564276802fd2d4c19958442d6094cf563ea5cb5392760a416e2b95bb25",
+    "backend/tests/unit/test_ai_job_application.py": "3a7760dfa7bc3f6c21a59ae91e69805708372dcafdaffd3152c2a5f650bdc57f",
+    "backend/tests/unit/test_ai_job_lifecycle.py": "f2532bea1139b882a3cbd57c85da1f5b0b3bd030e83374d8fc808949f758c9bb",
+    "features/FEAT-044-be2-ai-job-foundation/approvals/TASK_APPROVAL.md": "1ba7f641a7501bffb99c065d137ea4104684e93a95a1bf4a0d7fd785fec71112",
+    "features/FEAT-044-be2-ai-job-foundation/src/fixture_catalog.py": "c2d2868deef721d9eefa1b2aa0d3187ab2e88e9a5c6def98b7e7758ef30d0e32",
+    "features/FEAT-044-be2-ai-job-foundation/src/run_fixture_contracts.py": "6dfdc6b7c36deb998a02ae7ff674c1dfcd14466b91d3a7c634989682f2e7dc2a"
+  },
+  "protected_source_diff_empty": true,
+  "test_skip": "Pillow missing for live application route check",
+  "scope_limits": [
+    "fake/contract only",
+    "no provider calls/dependencies installed",
+    "no fixes/commit/push/deploy",
+    "no consumer schema/policy adoption"
+  ]
+}

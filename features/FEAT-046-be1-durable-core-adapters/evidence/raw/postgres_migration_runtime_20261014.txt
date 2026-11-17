@@ -1,0 +1,19 @@
+BE1-02 live migration verification
+Date: 2026-10-14 (Asia/Saigon)
+Runtime: official postgres:17 Docker image; ephemeral tmpfs data directory; loopback-only port 55432.
+Credentials and connection URL are intentionally omitted. Database contains synthetic verification records only.
+
+Initial upgrade head: succeeded against live PostgreSQL 17.
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.migration] Running downgrade 20261014_0001 -> , Create durable core records, receipts, audit and outbox.
+Downgrade base on live PostgreSQL: succeeded.
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade  -> 20261014_0001, Create durable core records, receipts, audit and outbox.
+Upgrade head after downgrade: succeeded.
+17.11 (Debian 17.11-1.pgdg13+2)
+20261014_0001
+8
+8
+Post-upgrade server version, Alembic revision, core table count, core index count: 17.11 (Debian 17.11-1.pgdg13+2), 20261014_0001, 8, 8

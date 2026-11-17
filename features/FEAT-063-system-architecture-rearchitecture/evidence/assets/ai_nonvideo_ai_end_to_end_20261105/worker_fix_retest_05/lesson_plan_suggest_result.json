@@ -1,0 +1,60 @@
+{
+  "workload": "lesson.plan.suggest",
+  "app": "sketch2life-srs23-language-audio-dev",
+  "function": "suggest-lesson-plan",
+  "job_id": "a77ae81a-df26-433d-b88c-d2e833b4aae9",
+  "generation_id": "0ff42583-9067-45f1-bf4d-ac83f6e6d6fb",
+  "attempt_id": "6a0e34a4-3bb8-41b3-8ab1-82f9fbe52456",
+  "input_sha256": "8e000ad3c8225cfb7c4324f7ba259ad9d9bc69f972f679d485fc4d599897f113",
+  "manifest_sha256": "010ac2f1f909aa56356e0fc62efe0b3582e64e2ddaacfe3c96ed379ba2e6be08",
+  "wait_limit_seconds": 600,
+  "started_at": "2026-11-05T17:59:28+07:00",
+  "outcome": "SUCCEEDED",
+  "call_id": "fc-01M6NNTR4794ZF97S3C8JSVSM8",
+  "dispatch_at": "2026-11-05T17:59:30+07:00",
+  "result": {
+    "schema_version": "sketch2life.modal.worker-output.v1",
+    "workload": "lesson.plan.suggest",
+    "job_id": "a77ae81a-df26-433d-b88c-d2e833b4aae9",
+    "generation_id": "0ff42583-9067-45f1-bf4d-ac83f6e6d6fb",
+    "attempt_id": "6a0e34a4-3bb8-41b3-8ab1-82f9fbe52456",
+    "model": {
+      "id": "Qwen/Qwen3.5-9B",
+      "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
+    },
+    "result": {
+      "draft_only": true,
+      "content": {
+        "locale": "vi-VN",
+        "title": "Khám phá vòng đời bướm ngoài trời",
+        "topic": "bướm",
+        "target_age_band_ref": "age-band-3-6",
+        "target_age_band_version": 1,
+        "objectives": [
+          "Quan sát hình dáng và vòng đời của bướm"
+        ],
+        "drawing_subject": "bướm",
+        "drawing_steps_text": "1. Vẽ hình bầu dục làm thân bướm.\n2. Thêm hai cặp cánh đối xứng hai bên.\n3. Vẽ các chấm màu sắc trên cánh.\n4. Thêm râu và chân nhỏ ở thân.\n5. Tô màu theo ý thích của trẻ",
+        "subject_learning_notes": "Bướm trải qua 4 giai đoạn: trứng, sâu bướm, nhộng, bướm trưởng thành. Sâu bướm ăn lá cây để lớn lên. Bướm giúp cây phát triển nhờ thụ phấn. Mỗi loài bướm có màu sắc và hoa văn riêng biệt. Vòng đời của bướm là một quá trình biến đổi kỳ diệu trong tự nhiên",
+        "script_direction": null,
+        "script_following_allowed": false,
+        "activities": [
+          {
+            "title": "Tìm dấu vết bướm trong vườn",
+            "objective": "Trẻ quan sát hình dáng, màu sắc và môi trường sống tự nhiên của bướm ngoài trời",
+            "materials_text": "Kính bảo hộ, sổ tay ghi chép, bút chì, máy ảnh an toàn cho trẻ",
+            "preparation_text": "Chọn khu vực vườn cây an toàn, không có côn trùng độc hại hoặc gai nhọn. Chuẩn bị kính bảo hộ và dụng cụ ghi chép trước khi ra ngoài",
+            "instructions_text": "1. Dẫn trẻ đi dạo nhẹ nhàng trong khu vườn đã chọn.\n2. Khuyến khích trẻ quan sát và chỉ ra những con bướm đang bay.\n3. Trẻ dùng bút chì vẽ lại hình dáng bướm vào sổ tay.\n4. Trẻ chụp ảnh hoặc vẽ lại màu sắc cánh bướm thấy được.\n5. Cùng trẻ thảo luận về nơi bướm đang đậu và loại cây chúng đang ở",
+            "observation_notes": "Theo dõi khả năng tập trung của trẻ khi quan sát chi tiết bướm. Ghi nhận phản ứng của trẻ trước màu sắc và chuyển động của bướm. Kiểm tra xem trẻ có tự tin mô tả những gì thấy được",
+            "safety_notes": "Kiểm tra kỹ khu vực không có cây gai, côn trùng độc hoặc vật sắc nhọn. Đảm bảo trẻ luôn trong tầm nhìn và đeo kính bảo hộ khi quan sát gần",
+            "activity_kind": "outdoor"
+          }
+        ]
+      }
+    }
+  },
+  "output_sha256": "d6826eb6d780fc3367dd0afe8df3b286d140877f0b560ac7199a8eda77ad6b32",
+  "ended_at": "2026-11-05T18:00:50+07:00",
+  "runner_elapsed_ms": 82792.21,
+  "label": "lesson.plan.suggest"
+}

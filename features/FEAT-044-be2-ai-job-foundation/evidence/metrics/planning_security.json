@@ -1,0 +1,11 @@
+{
+  "check": "security",
+  "command": [
+    "python",
+    "tools/validate_repository_security.py"
+  ],
+  "started_at": "2026-10-14T19:55:11.447013+07:00",
+  "exit_code": 0,
+  "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/planning_security.txt",
+  "output_lines": 7
+}

@@ -1,0 +1,7 @@
+{
+  "state": "RUN_STARTED",
+  "started_at": "2026-11-04T19:58:27+07:00",
+  "max_attempts_per_workload": 1,
+  "wait_limit_seconds": 1800,
+  "video_enabled": false
+}

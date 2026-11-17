@@ -1,0 +1,392 @@
+{
+  "browser": "isolated headless Chrome target; synthetic local TEACHER session flag only",
+  "networkPolicy": "Only HTTP requests to 127.0.0.1:5172 were allowed; other HTTP(S) requests were blocked.",
+  "captures": [
+    {
+      "file": "workbench-1440.png",
+      "route": "/t01-lesson-workspace",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Không gian làm việc của giáo viên",
+      "previewLabel": true,
+      "hasMockTeacherName": false,
+      "hasMockClassName": false
+    },
+    {
+      "file": "workbench-390.png",
+      "route": "/t01-lesson-workspace",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Không gian làm việc của giáo viên",
+      "previewLabel": false,
+      "hasMockTeacherName": false,
+      "hasMockClassName": false
+    },
+    {
+      "file": "assigned-classes-1440.png",
+      "route": "/t05-classes-and-children",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Lớp được phân công",
+      "previewLabel": true,
+      "hasMockTeacherName": false,
+      "hasMockClassName": false
+    },
+    {
+      "file": "assigned-classes-390.png",
+      "route": "/t05-classes-and-children",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Lớp được phân công",
+      "previewLabel": false,
+      "hasMockTeacherName": false,
+      "hasMockClassName": false
+    },
+    {
+      "file": "lesson-library-1440.png",
+      "route": "/t02-lesson-authoring",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1430,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Học liệu",
+      "previewLabel": true,
+      "hasMockTeacherName": false,
+      "hasMockClassName": false
+    },
+    {
+      "file": "lesson-library-390.png",
+      "route": "/t02-lesson-authoring",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Học liệu",
+      "previewLabel": false,
+      "hasMockTeacherName": false,
+      "hasMockClassName": false
+    },
+    {
+      "file": "document-import-1440.png",
+      "route": "/t03-document-import-review",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Nhập tài liệu",
+      "previewLabel": true,
+      "hasMockTeacherName": false,
+      "hasMockClassName": false
+    },
+    {
+      "file": "document-import-390.png",
+      "route": "/t03-document-import-review",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Nhập tài liệu",
+      "previewLabel": false,
+      "hasMockTeacherName": false,
+      "hasMockClassName": false
+    },
+    {
+      "file": "teaching-session-1440.png",
+      "route": "/t04-session-sketch-deck",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Buổi dạy",
+      "previewLabel": true,
+      "hasMockTeacherName": false,
+      "hasMockClassName": false
+    },
+    {
+      "file": "teaching-session-390.png",
+      "route": "/t04-session-sketch-deck",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Buổi dạy",
+      "previewLabel": false,
+      "hasMockTeacherName": false,
+      "hasMockClassName": false
+    },
+    {
+      "file": "sample-story-run-1440.png",
+      "route": "/t06-sample-story-run",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Video mẫu cho buổi học",
+      "previewLabel": true,
+      "hasMockTeacherName": false,
+      "hasMockClassName": false
+    },
+    {
+      "file": "sample-story-run-390.png",
+      "route": "/t06-sample-story-run",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Video mẫu cho buổi học",
+      "previewLabel": false,
+      "hasMockTeacherName": false,
+      "hasMockClassName": false
+    },
+    {
+      "file": "video-projection-1440.png",
+      "route": "/t07-video-presentation-confirmation",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Trình chiếu trên lớp",
+      "previewLabel": true,
+      "hasMockTeacherName": false,
+      "hasMockClassName": false
+    },
+    {
+      "file": "video-projection-390.png",
+      "route": "/t07-video-presentation-confirmation",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Trình chiếu trên lớp",
+      "previewLabel": false,
+      "hasMockTeacherName": false,
+      "hasMockClassName": false
+    },
+    {
+      "file": "settings-1440.png",
+      "route": "/t08-settings",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Cài đặt Giáo viên",
+      "previewLabel": true,
+      "hasMockTeacherName": false,
+      "hasMockClassName": false
+    },
+    {
+      "file": "settings-390.png",
+      "route": "/t08-settings",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Cài đặt Giáo viên",
+      "previewLabel": false,
+      "hasMockTeacherName": false,
+      "hasMockClassName": false
+    },
+    {
+      "file": "history-1440.png",
+      "route": "/t09-history",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Lịch sử & báo cáo",
+      "previewLabel": true,
+      "hasMockTeacherName": false,
+      "hasMockClassName": false
+    },
+    {
+      "file": "history-390.png",
+      "route": "/t09-history",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Lịch sử & báo cáo",
+      "previewLabel": false,
+      "hasMockTeacherName": false,
+      "hasMockClassName": false
+    },
+    {
+      "file": "inbox-1440.png",
+      "route": "/t10-inbox",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Hộp thư",
+      "previewLabel": true,
+      "hasMockTeacherName": false,
+      "hasMockClassName": false
+    },
+    {
+      "file": "inbox-390.png",
+      "route": "/t10-inbox",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Hộp thư",
+      "previewLabel": false,
+      "hasMockTeacherName": false,
+      "hasMockClassName": false
+    },
+    {
+      "file": "profile-1440.png",
+      "route": "/t11-profile",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Hồ sơ cá nhân",
+      "previewLabel": true,
+      "hasMockTeacherName": false,
+      "hasMockClassName": false
+    },
+    {
+      "file": "profile-390.png",
+      "route": "/t11-profile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Hồ sơ cá nhân",
+      "previewLabel": false,
+      "hasMockTeacherName": false,
+      "hasMockClassName": false
+    },
+    {
+      "file": "activities-1440.png",
+      "route": "/t12-activities",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Hoạt động",
+      "previewLabel": true,
+      "hasMockTeacherName": false,
+      "hasMockClassName": false
+    },
+    {
+      "file": "activities-390.png",
+      "route": "/t12-activities",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Hoạt động",
+      "previewLabel": false,
+      "hasMockTeacherName": false,
+      "hasMockClassName": false
+    }
+  ],
+  "keyboard": {
+    "firstTabFocus": {
+      "className": "teacher-mobile-menu",
+      "label": "Mở điều hướng"
+    },
+    "menuAfterEnter": {
+      "expanded": "true",
+      "visible": "visible"
+    },
+    "focusInsideMenu": {
+      "className": "teacher-nav-link is-active",
+      "label": "Tổng quan"
+    },
+    "menuAfterEscape": {
+      "expanded": "false",
+      "visible": "hidden"
+    },
+    "focusAfterEscape": {
+      "className": "teacher-mobile-menu",
+      "label": "Mở điều hướng"
+    },
+    "activeNav": [
+      "Tổng quan"
+    ]
+  },
+  "runtimeExceptions": []
+}

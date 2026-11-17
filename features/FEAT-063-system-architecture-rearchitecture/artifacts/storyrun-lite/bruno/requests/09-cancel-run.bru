@@ -1,0 +1,30 @@
+meta {
+  name: 09 Cancel or close demo run
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{runRef}}/cancel
+  body: json
+  auth: none
+}
+
+headers {
+  Idempotency-Key: {{cancelRunKey}}
+  If-Match: {{runETag}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "expected_revision": {{runRevision}}
+  }
+}
+
+tests {
+  test("cancels or closes the demo run", function () {
+    expect(res.getStatus()).to.equal(202);
+    expect(res.getBody().run_state).to.equal("DELETE_PENDING");
+  });
+}

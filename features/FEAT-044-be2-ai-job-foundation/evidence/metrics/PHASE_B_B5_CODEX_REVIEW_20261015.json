@@ -1,0 +1,211 @@
+{
+  "date": "2026-10-15",
+  "review": "NEEDS_REVISION",
+  "active": "Q01/B5_NEEDS_REVISION",
+  "findings": [
+    {
+      "id": "B5-R01",
+      "priority": "P2",
+      "status": "OPEN",
+      "summary": "Released unavailable audit prefix indefinitely starves ready quarantine sink",
+      "proof": {
+        "provenance": "DIRECT_LOCAL_ACTUAL_SERVICE_FAKE_REPOSITORY; not PostgreSQL proof",
+        "claim_limit": 50,
+        "older_audit_rows": 50,
+        "quarantine_intents_pending": 1,
+        "passes": [
+          0,
+          0,
+          0
+        ],
+        "audit_calls": 150,
+        "healthy_quarantine_calls": 0,
+        "quarantine_delivered_after_three_passes": false,
+        "direct_same_quarantine_succeeds": true,
+        "failure": "Each released failing audit prefix is reclaimed before the ready quarantine on every pass"
+      },
+      "independent_sql_assessment": "CONFIRMED matching ORDER BY/LIMIT/release with no reschedule",
+      "postgres_reproduction": "NOT_RUN"
+    },
+    {
+      "id": "B5-R02",
+      "priority": "P2",
+      "status": "OPEN",
+      "summary": "Permissively decoded malformed capability verifies and bypasses canonical redaction",
+      "proof": {
+        "provenance": "DIRECT_LOCAL_HMAC_FILTER_PROBE; not PostgreSQL/Redis proof",
+        "baseline_verifies": true,
+        "noncanonical_signature_verifies": true,
+        "claims_preserved": true,
+        "noncanonical_token_survives_filter": true,
+        "worker_accepts_noncanonical_token_and_completes": true,
+        "worker_job_state": "succeeded",
+        "secrets_tokens_omitted_from_report": true
+      },
+      "privilege_escalation_or_hmac_forgery": false,
+      "primary_confirmed": true
+    }
+  ],
+  "source": {
+    "base": "993a26cae78c0a4fe983033f03881838c886b176",
+    "current_local_manifest": "c74920973da54ccc48bdb0996cb4db2a13dedf6366e2766dae9622a093fee143",
+    "last_reported_studio_manifest": "f1c6834f41dc798fe4475509b7d4b9c8c578ebfd15f34ff07f72f2d4bf24aeb4",
+    "manifest_files": 43,
+    "delta_files": 25,
+    "declared_existing_changes": 16,
+    "new_implementation_test_files": 9,
+    "changed_source_hashes": {
+      "backend/src/sketch2life/application/ports/ai_jobs.py": {
+        "before": "6cd2977be75544223eb18dd553c570220ea332bfa0719fa0d586714db5b933ce",
+        "after": "7ae9772927a0a2fb7fb0370dc85f48e162ad9937557276e9420c5010e74d6fdb"
+      },
+      "backend/src/sketch2life/application/services/ai_jobs.py": {
+        "before": "8945b351b69be5450f02e998f82b0dd0f79a248f53c19b33a80c1f7bbe85f489",
+        "after": "08291990bec28306f0b64fa6de7ce7e1a233d043213b73abd44369fcab2d600d"
+      },
+      "backend/src/sketch2life/infrastructure/ai_jobs/fakes.py": {
+        "before": "8af1865dd6c7ef4d081610a57c3c353a37a0ebe1a8056a5c45ad82d1c269d6d0",
+        "after": "e60720da247a0c39a216d2b9b08bcdb4cb1d87a86cfcba25cb0b79816171f398"
+      },
+      "backend/src/sketch2life/infrastructure/ai_jobs/harness.py": {
+        "before": "ed5767319246917e28cbc953df3fffd3021ae414a6590ac8feaf247340a51038",
+        "after": "8fbc7b4d59bd87827b931e67c5696335426ebbb473cea50678a0b337171f1aa4"
+      },
+      "backend/src/sketch2life/infrastructure/ai_jobs/rq_queue.py": {
+        "before": "19fbb2fa004c7459fc9cb4675bf5b8568ee517c348ba80657f46fbeb615f0953",
+        "after": "3a4ecdcffe55cfc3003e6273a4ba07b1d1b2f36054688449a533b8b0ee9ad1aa"
+      },
+      "backend/src/sketch2life/infrastructure/ai_jobs/sql/owner_fence_fixture.py": {
+        "before": "ad93ea35037b10e808f84787fb55ebbf17b97874df462183d6808a5d8d0b4555",
+        "after": "f12560d8f68ea31c5f76bb10e0452310cff019c3d2df5a90d8970889d052ec92"
+      },
+      "backend/src/sketch2life/infrastructure/ai_jobs/sql/repository.py": {
+        "before": "836d513c3ddd51e5da800f078c3fe8f714b53fccd9736dd857c9b26cbe7a5dee",
+        "after": "4ec3f65b15637cac6d9ef8a039ffc988913f7e6e4e229fe6a3236d5a9319f8af"
+      },
+      "backend/src/sketch2life/infrastructure/ai_jobs/worker.py": {
+        "before": null,
+        "after": "3c47c1bcb4083177cfc552c8ab9fd12fdebf37bd5ed6a447713d99539f79914c"
+      },
+      "backend/src/sketch2life/infrastructure/ai_jobs/worker_capability.py": {
+        "before": null,
+        "after": "995552721acc77c8d32813b0c2e7fe9a4c31250d85b9ab809c6540f84611f7f4"
+      },
+      "backend/tests/integration/ai_jobs/b3_support.py": {
+        "before": "0213acc67099012dc5c3402eaa5b132ca6f58026c2257f2588b4404f71f8c90b",
+        "after": "95a7e1a0b592254404faf8b1970f24c8346ea34e34ae516a377bc0f91b51a60a"
+      },
+      "backend/tests/integration/ai_jobs/b5_support.py": {
+        "before": null,
+        "after": "0e4b5ecd07466b6eae2751ca31e73bf9a3ca3b431b030b47dde2acdc33c51baa"
+      },
+      "backend/tests/integration/ai_jobs/test_aggregate_reads.py": {
+        "before": "474ce2e437aec83fcc672542366331f492d32896cac86a5e429fd878fdfc9961",
+        "after": "f3eadbc5508473bdeba64e267c9feb0eac00156c853d3eac0df17f14d51f5117"
+      },
+      "backend/tests/integration/ai_jobs/test_audit_durability.py": {
+        "before": null,
+        "after": "cec15c7b47dc8bfd495be6154f3793d11b6ef12decd0f01db3fd6f8ed62ffc7f"
+      },
+      "backend/tests/integration/ai_jobs/test_capability.py": {
+        "before": null,
+        "after": "f391cbb0ca63cb01ac07a875c6e1de3791789c67de26451755c2ea91e76b8f2a"
+      },
+      "backend/tests/integration/ai_jobs/test_completion_recovery.py": {
+        "before": null,
+        "after": "4fbc012e07e1050d72996e1e19c89c571e80e877c714afd34e09d33543069837"
+      },
+      "backend/tests/integration/ai_jobs/test_dispatch_recovery.py": {
+        "before": "de09fe890c1692f7cf6c2da04f5d4f671d4a047ed623c0ab5b7e71e613d81914",
+        "after": "1f405ef1a587613919f7c9b7644c71c24b2e66e27cd135b3fb36cc0511c24232"
+      },
+      "backend/tests/integration/ai_jobs/test_notice_coverage.py": {
+        "before": null,
+        "after": "999cef97da6d0b34e8303f8de754c7372184d526138e32b1b72934889857eb9f"
+      },
+      "backend/tests/integration/ai_jobs/test_owner_fence.py": {
+        "before": "81a6bcb3713047932717e122c996d84cc11403371f0d43679f354147cfad3793",
+        "after": "d0e7bcf29fdfdfa3d880822c25a3de01c29792caea9471c11defae8e10428ed2"
+      },
+      "backend/tests/unit/test_ai_job_application.py": {
+        "before": "ddee1b32e7944a590f04a80105c262422a3a78ad7857f87ff22bba1b4e00f315",
+        "after": "615499fff6ddd2efdceceaccbb67c5cd583c5bc1e5437546db4797709e05bdc5"
+      },
+      "backend/tests/unit/test_ai_job_b3_fences.py": {
+        "before": "4a28113a9655111053a4dbe2395261743517ec3d39eda6930f387e3ea55937ad",
+        "after": "4c3ec1bdde04e9eb712ef7f2d62fae5c5a85e71ef35ab007e6e4c8c7b8d58877"
+      },
+      "backend/tests/unit/test_ai_job_b5_capability.py": {
+        "before": null,
+        "after": "e8f717e082c54adac6e36a7f4f18a0f667da013ff68d261a5837cce382fb9011"
+      },
+      "backend/tests/unit/test_ai_job_b5_effects.py": {
+        "before": null,
+        "after": "823e730b1dae93500b2978e996d80bae0a0bca84b27d211061c2c130730f1570"
+      },
+      "backend/tests/unit/test_ai_job_q00_followups.py": {
+        "before": null,
+        "after": "1f2d863b33d62d1c0cd9ba34cef14ec5134c6efa882d535b1202d712084033d5"
+      },
+      "features/FEAT-044-be2-ai-job-foundation/src/fixture_catalog.py": {
+        "before": null,
+        "after": "386fa32e6d5422a51b1b24e95222d35b81b743028d22b15b2da837078df2765e"
+      },
+      "features/FEAT-044-be2-ai-job-foundation/src/run_fixture_contracts.py": {
+        "before": "3279c6413b36f36473f179eccaf57ce6514a462129fb1b02febe6a2a5a78f24a",
+        "after": "cf6379c31696f6e8ac0e47ef8bde03cf500e4456d616c582daca72132917ddf7"
+      }
+    },
+    "unexpected_changes": []
+  },
+  "direct_local_checks": {
+    "capability_worker_unit_passed": 24,
+    "effects_notices_unit_passed": 25,
+    "fixture_pass": 20,
+    "fixture_checks": 215,
+    "fixture_failed": 0,
+    "fixture_not_run": 1,
+    "fixture_not_run_scope": "optional HTTP surface",
+    "fixture_digest": "d17f58a3c9c535d45a2fe03ed0c1edad42a565422725aede21b22ba45af41f68",
+    "sql_compile_checks_passed": 5,
+    "collected_b2_b5": 183,
+    "runtime_new_b5_cases": 30,
+    "runtime_new_b5_split": {
+      "audit": 9,
+      "capability": 6,
+      "completion": 8,
+      "notice": 7
+    },
+    "runtime_status": "NOT_RUN",
+    "local_rq": "2.11",
+    "last_reported_studio_rq": "2.12.0"
+  },
+  "package_review": {
+    "result": "NO_PACKAGE_BLOCKER; source has two open findings",
+    "current_source_files_match": 43,
+    "zip_members": 4,
+    "host_proof_cases": 8,
+    "host_proof_provenance": "REVIEWED_EXISTING_REAL_GIT_DOCKER_STUB_RECEIPTS",
+    "delta_sha256": "671a8617e8245b186dc58d83a80f5cf1f97c56cafe2db5ed5cde0833f67f271a",
+    "manifest_sha256": "c74920973da54ccc48bdb0996cb4db2a13dedf6366e2766dae9622a093fee143",
+    "runner_sha256": "e781341995d74954f55e30034d5d4a9e631b58507170c57e334b41a9734d8c25",
+    "zip_sha256": "9475fe27457818a8890424a92eaf55115dc962fa002e960ae8072fa41a956a5b",
+    "current_zip_ready_for_acceptance": false
+  },
+  "documentation_correction": "Phase A local skip is missing Pillow per raw receipt, not POSIX-only",
+  "optional_test_strengthening": "real worker duplicate test should observe epoch/call count rather than same scope names; no third backend finding",
+  "scope": {
+    "b5_closed": false,
+    "b6": "NOT_STARTED",
+    "b2_b3_b4": "CLOSED_RETAINED",
+    "cards": 14,
+    "wip": 1,
+    "full_cards_done": 0
+  },
+  "preservation": {
+    "protected_paths": 535,
+    "backend_changed_by_review": false,
+    "packages_approvals_plans_index_unchanged": true
+  },
+  "validation_receipt": "evidence/local/b5-codex-review-20261015/final_checks.json"
+}

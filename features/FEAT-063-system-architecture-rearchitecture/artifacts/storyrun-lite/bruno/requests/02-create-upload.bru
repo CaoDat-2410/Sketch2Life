@@ -1,0 +1,41 @@
+meta {
+  name: 02 Create upload session
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/v1/upload-sessions
+  body: json
+  auth: none
+}
+
+headers {
+  Idempotency-Key: {{createUploadKey}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "target_ref": "{{runRef}}",
+    "purpose": "RUN_ARTWORK",
+    "media_type": "{{syntheticMediaType}}",
+    "expected_size_bytes": {{expectedSizeBytes}},
+    "expected_sha256": "{{expectedSha256}}"
+  }
+}
+
+script:post-response {
+  bru.setVar("uploadRef", res.body.upload_ref);
+  bru.setVar("uploadETag", res.headers.etag);
+  bru.setVar("partSizeBytes", res.body.part_size_bytes);
+  bru.setVar("maxTotalBytes", res.body.max_total_bytes);
+  bru.setVar("maxParts", res.body.max_parts);
+}
+
+tests {
+  test("creates a bounded upload session", function () {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody()).to.have.property("upload_ref");
+  });
+}

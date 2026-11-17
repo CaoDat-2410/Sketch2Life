@@ -1,0 +1,302 @@
+{
+  "flow_id": "aa84ff1a-410d-4953-96f4-cda22abc1e80",
+  "run_ref": "aa84ff1a-410d-4953-96f4-cda22abc1e80",
+  "started_at": "2026-11-03T23:48:57.540636+07:00",
+  "image": {
+    "file": "synthetic_childlike_butterfly.png",
+    "sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949",
+    "byte_length": 1775882
+  },
+  "records": [
+    {
+      "step": "read_replacement_story_run",
+      "method": "GET",
+      "path": "/v1/story-runs/aa84ff1a-410d-4953-96f4-cda22abc1e80",
+      "http_status": 200,
+      "elapsed_ms": 29.938,
+      "headers": {
+        "ETag": "\"v1\""
+      },
+      "response": {
+        "run_ref": "aa84ff1a-410d-4953-96f4-cda22abc1e80",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 1,
+        "version": 1,
+        "target_revision": null,
+        "created_at": "2026-11-03T23:47:40.351577+07:00",
+        "updated_at": "2026-11-03T23:47:40.351577+07:00",
+        "job_state": null,
+        "retryable": false,
+        "action_required": null,
+        "error": null,
+        "result": null
+      }
+    },
+    {
+      "step": "create_upload_session",
+      "method": "POST",
+      "path": "/v1/upload-sessions",
+      "http_status": 201,
+      "elapsed_ms": 21.107,
+      "headers": {
+        "ETag": "\"v1\""
+      },
+      "response": {
+        "upload_ref": "a51f2d98-44c8-4789-8ec6-adb230627666",
+        "state": "RECEIVING",
+        "version": 1,
+        "part_size_bytes": 4194304,
+        "max_total_bytes": 20971520,
+        "max_parts": 5,
+        "parts": [],
+        "asset_ref": null,
+        "derived_asset_ref": null,
+        "expires_at": "2026-11-04T01:48:57.573399+07:00",
+        "error": null
+      }
+    },
+    {
+      "step": "upload_image_part",
+      "method": "PUT",
+      "path": "/v1/upload-sessions/a51f2d98-44c8-4789-8ec6-adb230627666/parts/1",
+      "http_status": 200,
+      "elapsed_ms": 22.705,
+      "headers": {
+        "ETag": "\"v1\""
+      },
+      "response": {
+        "part_no": 1,
+        "size_bytes": 1775882,
+        "sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949"
+      }
+    },
+    {
+      "step": "complete_upload_admission",
+      "method": "POST",
+      "path": "/v1/upload-sessions/a51f2d98-44c8-4789-8ec6-adb230627666/complete",
+      "http_status": 202,
+      "elapsed_ms": 1314.964,
+      "headers": {
+        "ETag": "\"v2\"",
+        "Location": "/v1/upload-sessions/a51f2d98-44c8-4789-8ec6-adb230627666",
+        "Retry-After": "1"
+      },
+      "response": {
+        "upload_ref": "a51f2d98-44c8-4789-8ec6-adb230627666",
+        "state": "PENDING",
+        "version": 2,
+        "part_size_bytes": 4194304,
+        "max_total_bytes": 20971520,
+        "max_parts": 5,
+        "parts": [
+          {
+            "part_no": 1,
+            "size_bytes": 1775882,
+            "sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949"
+          }
+        ],
+        "asset_ref": null,
+        "derived_asset_ref": null,
+        "expires_at": "2026-11-04T01:48:57.573399+07:00",
+        "error": null
+      }
+    },
+    {
+      "step": "poll_upload_admission",
+      "method": "GET",
+      "path": "/v1/upload-sessions/a51f2d98-44c8-4789-8ec6-adb230627666",
+      "http_status": 200,
+      "elapsed_ms": 5.223,
+      "headers": {
+        "ETag": "\"v4\""
+      },
+      "response": {
+        "upload_ref": "a51f2d98-44c8-4789-8ec6-adb230627666",
+        "state": "READY",
+        "version": 4,
+        "part_size_bytes": 4194304,
+        "max_total_bytes": 20971520,
+        "max_parts": 5,
+        "parts": [
+          {
+            "part_no": 1,
+            "size_bytes": 1775882,
+            "sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949"
+          }
+        ],
+        "asset_ref": "5623c356-2199-4159-af4e-d643d421ba6f",
+        "derived_asset_ref": "1c9c23de-7e19-4588-9b5b-a9a257713f7a",
+        "expires_at": "2026-11-04T01:48:57.573399+07:00",
+        "error": null
+      }
+    },
+    {
+      "step": "read_story_run_before_attach",
+      "method": "GET",
+      "path": "/v1/story-runs/aa84ff1a-410d-4953-96f4-cda22abc1e80",
+      "http_status": 200,
+      "elapsed_ms": 3.515,
+      "headers": {
+        "ETag": "\"v1\""
+      },
+      "response": {
+        "run_ref": "aa84ff1a-410d-4953-96f4-cda22abc1e80",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 1,
+        "version": 1,
+        "target_revision": null,
+        "created_at": "2026-11-03T23:47:40.351577+07:00",
+        "updated_at": "2026-11-03T23:47:40.351577+07:00",
+        "job_state": null,
+        "retryable": false,
+        "action_required": null,
+        "error": null,
+        "result": null
+      }
+    },
+    {
+      "step": "attach_artwork_and_run_modal_vision_once",
+      "method": "POST",
+      "path": "/v1/story-runs/aa84ff1a-410d-4953-96f4-cda22abc1e80/assets",
+      "http_status": 202,
+      "elapsed_ms": 634121.112,
+      "headers": {
+        "ETag": "\"v2\"",
+        "Location": "/v1/story-runs/aa84ff1a-410d-4953-96f4-cda22abc1e80",
+        "Retry-After": "1"
+      },
+      "response": {
+        "run_ref": "aa84ff1a-410d-4953-96f4-cda22abc1e80",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 2,
+        "version": 2,
+        "target_revision": null,
+        "created_at": "2026-11-03T23:47:40.351577+07:00",
+        "updated_at": "2026-11-03T23:48:58.951667+07:00",
+        "job_state": "QUEUED",
+        "retryable": false,
+        "action_required": null,
+        "error": null,
+        "result": null
+      }
+    },
+    {
+      "step": "poll_story_run_after_vision",
+      "method": "GET",
+      "path": "/v1/story-runs/aa84ff1a-410d-4953-96f4-cda22abc1e80",
+      "http_status": 200,
+      "elapsed_ms": 3.357,
+      "headers": {
+        "ETag": "\"v4\""
+      },
+      "response": {
+        "run_ref": "aa84ff1a-410d-4953-96f4-cda22abc1e80",
+        "run_state": "SUBJECT_REVIEW",
+        "revision": 3,
+        "version": 4,
+        "target_revision": 1,
+        "created_at": "2026-11-03T23:47:40.351577+07:00",
+        "updated_at": "2026-11-03T23:59:33.051969+07:00",
+        "job_state": "SUCCEEDED",
+        "retryable": false,
+        "action_required": null,
+        "error": null,
+        "result": {
+          "understanding_revision": 1,
+          "subject_label": "bướm",
+          "confidence": 0.0
+        }
+      }
+    },
+    {
+      "step": "adult_subject_confirmation",
+      "method": "POST",
+      "path": "/v1/story-runs/aa84ff1a-410d-4953-96f4-cda22abc1e80/subject-confirmation",
+      "http_status": 202,
+      "elapsed_ms": 11.95,
+      "headers": {
+        "ETag": "\"v5\"",
+        "Location": "/v1/story-runs/aa84ff1a-410d-4953-96f4-cda22abc1e80",
+        "Retry-After": "1"
+      },
+      "response": {
+        "run_ref": "aa84ff1a-410d-4953-96f4-cda22abc1e80",
+        "run_state": "PREPARATION_REVIEW",
+        "revision": 4,
+        "version": 5,
+        "target_revision": 1,
+        "created_at": "2026-11-03T23:47:40.351577+07:00",
+        "updated_at": "2026-11-03T23:59:33.070969+07:00",
+        "job_state": "SUCCEEDED",
+        "retryable": false,
+        "action_required": null,
+        "error": null,
+        "result": null
+      }
+    },
+    {
+      "step": "read_story_run_after_accepted_confirmation",
+      "method": "GET",
+      "path": "/v1/story-runs/aa84ff1a-410d-4953-96f4-cda22abc1e80",
+      "http_status": 200,
+      "elapsed_ms": 5.668,
+      "headers": {
+        "ETag": "\"v5\""
+      },
+      "response": {
+        "run_ref": "aa84ff1a-410d-4953-96f4-cda22abc1e80",
+        "run_state": "PREPARATION_REVIEW",
+        "revision": 4,
+        "version": 5,
+        "target_revision": 1,
+        "created_at": "2026-11-03T23:47:40.351577+07:00",
+        "updated_at": "2026-11-03T23:59:33.070969+07:00",
+        "job_state": "SUCCEEDED",
+        "retryable": false,
+        "action_required": null,
+        "error": null,
+        "result": null
+      }
+    }
+  ],
+  "subject_confirmed": true,
+  "video_calls": 0,
+  "attach_initial_response": {
+    "run_ref": "aa84ff1a-410d-4953-96f4-cda22abc1e80",
+    "run_state": "INPUT_PROCESSING",
+    "revision": 2,
+    "version": 2,
+    "target_revision": null,
+    "created_at": "2026-11-03T23:47:40.351577+07:00",
+    "updated_at": "2026-11-03T23:48:58.951667+07:00",
+    "job_state": "QUEUED",
+    "retryable": false,
+    "action_required": null,
+    "error": null,
+    "result": null
+  },
+  "final_run": {
+    "run_ref": "aa84ff1a-410d-4953-96f4-cda22abc1e80",
+    "run_state": "PREPARATION_REVIEW",
+    "revision": 4,
+    "version": 5,
+    "target_revision": 1,
+    "created_at": "2026-11-03T23:47:40.351577+07:00",
+    "updated_at": "2026-11-03T23:59:33.070969+07:00",
+    "job_state": "SUCCEEDED",
+    "retryable": false,
+    "action_required": null,
+    "error": null,
+    "result": null
+  },
+  "confirmation_followup_recorded": true,
+  "adult_confirmation_accepted": true,
+  "confirmed_subject_label": "bướm",
+  "story_worker_ready": true,
+  "ended_at": "2026-11-04T00:00:17.265974+07:00",
+  "limitations": [
+    "The StoryRun-lite API has no script-generation route; the story worker is a separate call after adult confirmation.",
+    "No video generation was requested or called.",
+    "The activity-list route remains a separate legacy demo session, not attached to this StoryRun."
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "contract_name": "ImageAdmissionReceiptV2",
+  "contract_version": "2.0",
+  "session_id": "a7105b99-4a96-4732-bb25-9faee8abc011",
+  "decision": "ADMITTED",
+  "outcome": "ADMITTED",
+  "reason": null,
+  "original_image_ref": {
+    "artifact_ref": "artifact:3d57d172-c1c6-4d39-bc4c-36e38508e710",
+    "sha256": "2846a1b6a710e931da6abccf8c9858a938cbd021c0325bbd3f0c98d513fd0c36"
+  },
+  "source_content_type": "image/png",
+  "source_byte_length": 2444928,
+  "normalization_policy": "IDENTITY_V1",
+  "source_image_ref": {
+    "artifact_ref": "artifact:3d57d172-c1c6-4d39-bc4c-36e38508e710",
+    "sha256": "2846a1b6a710e931da6abccf8c9858a938cbd021c0325bbd3f0c98d513fd0c36"
+  },
+  "content_type": "image/png",
+  "byte_length": 2444928,
+  "width": 1254,
+  "height": 1254,
+  "guidance": "Image admitted",
+  "narration_status": "NOT_SUPPLIED"
+}

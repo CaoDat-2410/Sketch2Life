@@ -1,0 +1,71 @@
+{
+  "asset_id": "C04",
+  "use_case": "ui-mockup",
+  "status": "REVIEW_PENDING",
+  "generated_path": "assets/generated/child-app/C04-goi-y-tham-khao.png",
+  "srs_ui_id": "C04",
+  "screen_kind": "main",
+  "role": "child-app",
+  "prompt": "assets/prompts/C04.txt",
+  "source_references": [
+    {
+      "path": "features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md",
+      "sha256": "a95c89589843e3555e967c5e486f3bcaf4bbdf9446cb3bc9c49ed16f672964d9",
+      "section": "B23.2"
+    },
+    {
+      "path": "apps/ui-mobile/src/theme.ts",
+      "purpose": "existing design tokens"
+    }
+  ],
+  "generator": "built-in image_gen.imagegen",
+  "captured_at_utc": "2026-10-10T13:47:18.183695+00:00",
+  "generator_output_filename": "exec-84d8c37c-c2a3-4a8c-b2ec-0daea22d8c9d.png",
+  "sha256": "51a5c156299f6156256249c3b128b4bb48cc7ff9bae73ad8811126140800d6b1",
+  "bytes": 1597788,
+  "width": 1448,
+  "height": 1086,
+  "original_copied_unchanged": true,
+  "synthetic_data_only": true,
+  "qa": {
+    "reviewer": "Codex visual inspection",
+    "status": "INSPECTED",
+    "note": "Inspected readable approved-reference view: original art separate from Teacher-approved butterfly suggestion, view/hide/self-draw choice, no apply replacement or penalty, coherent tablet layout and no clipping."
+  },
+  "review": {
+    "status": "REVIEW_PENDING",
+    "reviewer": null,
+    "reviewed_at": null
+  },
+  "applied_path": null,
+  "limitations": "Generated design proposal; not implemented runtime, approved visual or device acceptance.",
+  "input_images": [
+    {
+      "path": "assets/generated/child-app/C03-ban-ve.png",
+      "sha256": "1971eba9c6a4d77d01120e298f008cbda135cfd4f4d19bdd123d83e2211df467",
+      "role": "style reference",
+      "generation_step": 1
+    }
+  ],
+  "generation_history": [
+    {
+      "step": 1,
+      "kind": "generation",
+      "prompt": "assets/prompts/C04.txt",
+      "input_images": [
+        {
+          "path": "assets/generated/child-app/C03-ban-ve.png",
+          "sha256": "1971eba9c6a4d77d01120e298f008cbda135cfd4f4d19bdd123d83e2211df467",
+          "role": "style reference",
+          "generation_step": 1
+        }
+      ],
+      "output": "assets/generated/child-app/C04-goi-y-tham-khao.png",
+      "sha256": "51a5c156299f6156256249c3b128b4bb48cc7ff9bae73ad8811126140800d6b1",
+      "generator_output_filename": "exec-84d8c37c-c2a3-4a8c-b2ec-0daea22d8c9d.png",
+      "selected": true,
+      "disposition": "REVIEW_PENDING",
+      "prompt_sha256": "e27b216973a348be7d624325fb8de2c85c8955b8a286abab3c8df58c8f887468"
+    }
+  ]
+}

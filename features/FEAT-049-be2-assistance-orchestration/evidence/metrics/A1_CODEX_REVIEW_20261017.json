@@ -1,0 +1,315 @@
+{
+  "schema_version": 1,
+  "reviewed_at_utc": "2026-10-17T13:42:06.605951+00:00",
+  "display_timezone": "Asia/Saigon",
+  "disposition": "NEEDS_REVISION",
+  "priority_counts": {
+    "P1": 0,
+    "P2": 5
+  },
+  "head": "f120c4fce8f7853e5ab5e061eff4bf916d45603c",
+  "branch": "feature/be2-03-assistance-orchestration",
+  "approved_plan": {
+    "path": "features/FEAT-049-be2-assistance-orchestration/plan/PLAN_REV3_APPROVED.md",
+    "revision": 3,
+    "sha256": "e1fce645a5d8c98efe366865f5a8a1b9c81c8a48626723c4e73f0c646979d3e5"
+  },
+  "approval": {
+    "path": "features/FEAT-049-be2-assistance-orchestration/approvals/TASK_APPROVAL.md",
+    "sha256": "f6a266c9a01c6a6c2432765ff50a866618bb05221aed933e4113e2bff8a23501",
+    "status": "APPROVED",
+    "scope": "A1.1-A1.5 offline component; D1-D11 selected by actual owner instruction"
+  },
+  "reviewed_implementation_metrics": {
+    "path": "features/FEAT-049-be2-assistance-orchestration/evidence/metrics/A1_CHECKS_20261017.json",
+    "sha256": "6d455a5513a1c502e08311744974991bccc4baeab7a360beb10288ad51f49295"
+  },
+  "findings": [
+    {
+      "id": "A1-CR01",
+      "priority": "P2",
+      "path": "backend/src/sketch2life/application/services/assistance.py",
+      "lines": [
+        581,
+        610
+      ],
+      "title": "Cache provenance bypasses withdrawn disclosure scope"
+    },
+    {
+      "id": "A1-CR02",
+      "priority": "P2",
+      "path": "backend/src/sketch2life/infrastructure/assistance/fakes.py",
+      "lines": [
+        123,
+        142
+      ],
+      "title": "Owner publication callback is outside shared coordinator lock"
+    },
+    {
+      "id": "A1-CR03",
+      "priority": "P2",
+      "path": "backend/src/sketch2life/application/services/assistance.py",
+      "lines": [
+        833,
+        850
+      ],
+      "title": "Current handoff gate is not held through commit"
+    },
+    {
+      "id": "A1-CR04",
+      "priority": "P2",
+      "path": "backend/src/sketch2life/application/services/assistance.py",
+      "lines": [
+        479,
+        489
+      ],
+      "title": "Changed semantic payload wrongly supersedes valid request and bypasses debounce"
+    },
+    {
+      "id": "A1-CR05",
+      "priority": "P2",
+      "path": "backend/src/sketch2life/application/services/assistance.py",
+      "lines": [
+        274,
+        279
+      ],
+      "title": "Valid trim/NFC text is rejected rather than normalized"
+    }
+  ],
+  "root_pytest": {
+    "exit_code": 0,
+    "counts": {
+      "tests": 851,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "source_origin": "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-03-assistance-orchestration\\backend\\src\\sketch2life\\__init__.py",
+    "file_count": 29,
+    "elapsed_s": 9.484,
+    "scope": "A1 plus BE2-01 and BE2-02 approved offline regressions; no Studio/SQL/provider",
+    "network_guard": "Parent test process external sockets blocked; local child Python tests permitted",
+    "out": "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-03-assistance-orchestration\\features\\FEAT-049-be2-assistance-orchestration\\evidence\\local\\codex-a1-review-20261017\\root-1792244159306355000",
+    "paths": [
+      "backend/tests/contract/test_ai_job_contracts.py",
+      "backend/tests/contract/test_ai_job_polling.py",
+      "backend/tests/contract/test_analysis_corrections_api.py",
+      "backend/tests/contract/test_analysis_result_contracts.py",
+      "backend/tests/contract/test_assistance_request_contracts.py",
+      "backend/tests/contract/test_assistance_requests_api.py",
+      "backend/tests/contract/test_h_ai_review_handoff_examples.py",
+      "backend/tests/contract/test_vision_context_contracts.py",
+      "backend/tests/unit/test_ai_job_application.py",
+      "backend/tests/unit/test_ai_job_b3_fences.py",
+      "backend/tests/unit/test_ai_job_b4_dispatch.py",
+      "backend/tests/unit/test_ai_job_b5_capability.py",
+      "backend/tests/unit/test_ai_job_b5_effects.py",
+      "backend/tests/unit/test_ai_job_b6_conformance.py",
+      "backend/tests/unit/test_ai_job_lifecycle.py",
+      "backend/tests/unit/test_ai_job_q00_followups.py",
+      "backend/tests/unit/test_ai_job_review_regressions.py",
+      "backend/tests/unit/test_assistance_chain.py",
+      "backend/tests/unit/test_assistance_domain.py",
+      "backend/tests/unit/test_assistance_races.py",
+      "backend/tests/unit/test_assistance_service.py",
+      "backend/tests/unit/test_vision_analysis_domain.py",
+      "backend/tests/unit/test_vision_analysis_job_lineage.py",
+      "backend/tests/unit/test_vision_analysis_legacy_bridge.py",
+      "backend/tests/unit/test_vision_analysis_review_fixes.py",
+      "backend/tests/unit/test_vision_analysis_service.py",
+      "backend/tests/unit/test_vision_context_adapter.py",
+      "backend/tests/unit/test_vision_context_domain.py",
+      "backend/tests/unit/test_vision_context_service.py"
+    ],
+    "result_sha256": "8b3dae34718d2ba2ee74ead0832a63a3b3a7f9667005533e29e05d2084890683",
+    "junit_sha256": "9a9d20ee5198f7c61096a5871c57db85124b17ca686a6c640c6670a52afc632b",
+    "group_counts": {
+      "A1": 101,
+      "BE2-01": 338,
+      "BE2-02": 412
+    }
+  },
+  "static": {
+    "ruff": {
+      "exit_code": 0,
+      "output": "All checks passed!"
+    },
+    "mypy_strict_source": {
+      "exit_code": 0,
+      "output": "Success: no issues found in 10 source files"
+    }
+  },
+  "validators": {
+    "validate_harness": {
+      "exit_code": 0,
+      "output": "HARNESS_VALID\nroot=D:\\GitHub\\Sketch2Life\\.worktrees\\be2-03-assistance-orchestration\napproval_gate=enabled\nfrontend_asset_gate=enabled"
+    },
+    "validate_repository_security": {
+      "exit_code": 0,
+      "output": "REPOSITORY_SECURITY_VALID\npublishable_files_scanned=3171\nenvironment_files=excluded\nseed_accounts=excluded\ncredentials_and_signing_keys=excluded\nexternal_reference_documents=excluded\nabsolute_machine_paths=absent"
+    },
+    "validate_architecture": {
+      "exit_code": 0,
+      "output": "ARCHITECTURE_VALID\npython_dependency_direction=valid\nmobile_feature_isolation=valid\nfrontend_asset_gate=valid\nmobile_ai_boundary=valid\nfirebase_data_products=absent"
+    },
+    "validate_skeleton": {
+      "exit_code": 0,
+      "output": "SKELETON_VALID\nbackend=python-fastapi\nfrontend=react-native\nmobile_target=android-only\nandroid_sdk=min29-target36-compile37\nauth=firebase-auth-only\nai=lightning-dev-runpod-production\nworkspace=pnpm"
+    },
+    "git_diff_check": {
+      "exit_code": 0
+    }
+  },
+  "probes": {
+    "features/FEAT-049-be2-assistance-orchestration/evidence/local/codex-a1-review-20261017/contracts/cache_read_scope_result.json": {
+      "sha256": "9f7327f2ba50cfb41cf9efda3d1d75e12adbd3e62508e3cc27387044f3d7ce3d",
+      "result": {
+        "scope": "A1 isolated fixture HTTP, real AssistanceService and Vision service over fakes",
+        "ordinary_valid_headers_and_body": true,
+        "disclosure_allowed_after_revocation": false,
+        "current_read": {
+          "status": 404,
+          "code": "RESOURCE_NOT_FOUND"
+        },
+        "accepted_receipt_replay": {
+          "http_status": 404,
+          "code": "RESOURCE_NOT_FOUND"
+        },
+        "same_semantics_new_key": {
+          "http_status": 202,
+          "outcome": "cache_hit",
+          "projection": "teacher",
+          "cache_hit_of": {
+            "assistance_id": "assist_fx0001",
+            "request_revision": 1,
+            "job_id": "job_fx0001",
+            "analysis_id": "ana_fx0001",
+            "analysis_revision": 1
+          }
+        },
+        "bypass_reproduced": true,
+        "expected": "No original analysis/job/request refs are disclosed after read withdrawal"
+      }
+    },
+    "features/FEAT-049-be2-assistance-orchestration/evidence/local/codex-a1-review-20261017/coordinator/probe_owner_publication.json": {
+      "sha256": "04076862cab6f096843af57ce08b630ab1b48182516d7f1923918c914cbe610b",
+      "result": {
+        "ran_immediately": true,
+        "owner_publication_committed_before_start_commit": true,
+        "started": true,
+        "job_state": "running",
+        "revoked_subjects": [
+          "participant_fx_a"
+        ]
+      }
+    },
+    "features/FEAT-049-be2-assistance-orchestration/evidence/local/codex-a1-review-20261017/semantics/probe_result.json": {
+      "sha256": "a8b54e6b7e10cc942700ae58d6ccdbe9e73c30ba325c7da7211f524974b8cc94",
+      "result": {
+        "changed_child_intent": {
+          "elapsed_s": 0.0,
+          "same_digest": true,
+          "old_status": "stale",
+          "old_counts_for_debounce": false,
+          "new_status": "scheduled",
+          "jobs": 2,
+          "refusal_events": []
+        },
+        "teacher_then_child": {
+          "elapsed_s": 0.0,
+          "same_digest": true,
+          "old_status": "stale",
+          "old_counts_for_debounce": false,
+          "new_status": "scheduled",
+          "jobs": 2
+        },
+        "handoff_fact_race": {
+          "hook_fired": true,
+          "final_status": "analysis_ready",
+          "stored_age_revision": 1,
+          "current_age_revision": 2,
+          "current_consent_effective": true,
+          "stale_now": true,
+          "sketch_intents": 1
+        },
+        "handoff_consent_race": {
+          "hook_fired": true,
+          "final_status": "analysis_ready",
+          "stored_age_revision": 1,
+          "current_age_revision": 1,
+          "current_consent_effective": false,
+          "stale_now": true,
+          "sketch_intents": 1
+        }
+      }
+    },
+    "features/FEAT-049-be2-assistance-orchestration/evidence/local/codex-a1-review-20261017/text_normalization_probe.json": {
+      "sha256": "48b77413a4328dfbedab2e1c3df68b78f980e61c6e2b30bc8ccf71eeca93a2b4",
+      "result": {
+        "evidence_kind": "actual_A1_service_over_fakes",
+        "cases": {
+          "outer_spaces": {
+            "raw": " a cat ",
+            "canonical": "a cat",
+            "raw_result": "FIELD_VALIDATION_FAILED",
+            "canonical_result": "created",
+            "normalization_changes_valid_text": true
+          },
+          "decomposed_vietnamese": {
+            "raw": "con me\u0300o",
+            "canonical": "con m\u00e8o",
+            "raw_result": "FIELD_VALIDATION_FAILED",
+            "canonical_result": "created",
+            "normalization_changes_valid_text": true
+          }
+        }
+      }
+    }
+  },
+  "probe_interpretation": "Successful probe execution reproduced current wrong behavior, not passed product guarantees",
+  "review_method": "Root independent source/contract review plus three same-family delegated audits; not cross-role sign-off",
+  "source_sha256": {
+    "backend/src/sketch2life/infrastructure/assistance/__init__.py": "00af247f07037e7feac9d2ec1f7170ce9dde7d7a8a5ef01c3bbde09b7a9b8799",
+    "backend/src/sketch2life/infrastructure/assistance/adapters.py": "7648b9762a93218bbcf2727b824619957525c70dc120950ae13f13d392c350dc",
+    "backend/src/sketch2life/infrastructure/assistance/fakes.py": "fa7c8bb0d36795411e046a9a2110da0a7dd769e14ed734be4157af059e31a574",
+    "backend/src/sketch2life/infrastructure/assistance/harness.py": "7b8d01ece3b9cc13a526b350abd996a4cc7cb288f9fcfd50a0bf5f73252ad487",
+    "backend/src/sketch2life/domain/assistance.py": "ab4df2971bd403c209810fc958ac249e8b4cb5d74ebc21b2a5b82c28fb455e1c",
+    "backend/src/sketch2life/contracts/schemas/assistance_requests.py": "2c2df0b574e2c5bb846c8e3c6688f1291966357f94f02ae83356886f7a5b62a2",
+    "backend/src/sketch2life/application/ports/assistance.py": "225141b0581a1e629a011f18b7743981d5fad20eee4729fbfaaa49e47d486d9e",
+    "backend/src/sketch2life/application/services/assistance.py": "d9a165d8396aa32c4437b1c6542bff8bcc7cb857e27883676f024613f9284b38",
+    "backend/src/sketch2life/interfaces/http/routers/assistance_requests.py": "2bc20104a480155bdccbcb200e9b71cd49d2d1e44394b14928ad643e8e2c958e",
+    "backend/src/sketch2life/interfaces/http/assistance_requests_fixture_app.py": "3cdf6e04b8540168d0bd5da4318a0e8135040e12f3761cf98fb0e00d1cc6f30d",
+    "backend/tests/unit/test_assistance_chain.py": "f27c887f4c4d78afb89dc79b275ba4ef84c51e717ab6636b28cb47c07d9b608b",
+    "backend/tests/unit/test_assistance_domain.py": "afabe3545e47eab5101551b1642855143d71e9fd910da0ba8f213a9b78a89dc8",
+    "backend/tests/unit/test_assistance_races.py": "c874ce32de889cbdf2abd6066a789bfd831e895cf68106d3698e84c100dbb371",
+    "backend/tests/unit/test_assistance_service.py": "a40bf516bd7232f7e641ef0168764f7b61ade0e0a895c0a7b03a74b60abfdaac",
+    "backend/tests/contract/test_assistance_request_contracts.py": "30b6eedc5ad11d7b26746782e59794614bf9feedc440e5894ec694f0d2c05ffc",
+    "backend/tests/contract/test_assistance_requests_api.py": "3006288940c867e1a62789ac8a7ca24c73ff666a3c76d8d4344254f40ec48000",
+    "features/FEAT-049-be2-assistance-orchestration/fixtures/h_ai_review/assistance_handoff_examples.json": "9bbfe99cfb436040da8c053d99cb54bb7ce2c8e19643eae8de314d4bbeae5b06",
+    "features/FEAT-049-be2-assistance-orchestration/plan/PLAN_REV3_APPROVED.md": "e1fce645a5d8c98efe366865f5a8a1b9c81c8a48626723c4e73f0c646979d3e5"
+  },
+  "protected_prerequisite_sha256": {
+    "features/FEAT-048-be2-vision-correction/plan/PLAN_REV1_APPROVED.md": "f4733c88797edbcce225ecd63700634f929ca75789362c7f3a58a2b57f19df30",
+    "features/FEAT-048-be2-vision-correction/plan/C2_TYPED_CONTEXT_PLAN_REV2_APPROVED.md": "4b339514d3d5bf01b9a8c23f0a15ea5e71b4d2f1389db9e141e31aa322cd57c2",
+    "features/FEAT-048-be2-vision-correction/approvals/TASK_APPROVAL.md": "ebe826ce01a004c6888bc6d2cd4741470beabfdb1f89133d8ebd18f48a691494",
+    "features/FEAT-048-be2-vision-correction/approvals/C1_COMPONENT_ACCEPTANCE.md": "2d2e109a3e01f7fd4a2908ee474b620cfce67136f10bafb793d97e1a1e81cece",
+    "features/FEAT-048-be2-vision-correction/approvals/C2_TASK_APPROVAL.md": "16af8a94c1de2430745ba213d7e183ffa28305de33856a153e9b49d836d294df",
+    "features/FEAT-048-be2-vision-correction/approvals/C2_COMPONENT_ACCEPTANCE.md": "35962b02864f84cb4532897efc63e94cc297f23359c4a9b287f5a16b49fd6ad5"
+  },
+  "prerequisite_source_sha256": {
+    "backend/src/sketch2life/application/services/ai_jobs.py": "df6ac4fd47bd9fdcd7d5eaf7dfca5e4cf9541870f40e0dc4a81150dffd936704",
+    "backend/src/sketch2life/application/ports/ai_jobs.py": "6c6967070d5042b5a6db33e7d28d856e03fe1bd6dc1302e55d73eacc047b33df",
+    "backend/src/sketch2life/domain/ai_jobs/model.py": "512b604636c1a22e231ac3276d3e537ae0deae4d9bb6652ccb064fab7314db99",
+    "backend/src/sketch2life/infrastructure/ai_jobs/fakes.py": "f1318e236694002be238fd8cf73bd54d5c27b952a085c8eb9a798ec8e65957e0",
+    "backend/src/sketch2life/domain/vision_analysis.py": "cb36b2917ec0e9061c21dca4b1ac27316f57e329fc3caafbd78ad1fa41f3dfa5",
+    "backend/src/sketch2life/domain/vision_context.py": "9501f2194a2896df121c50af2a1df29b7003c7f2029af0febd461664886e04eb",
+    "backend/src/sketch2life/application/services/vision_analysis.py": "f30ccbbb5be5af360d042ea3dc1d3fb1ad00e8175f60f7d65dac11d1d7ea9212"
+  },
+  "new_feature_markdown_whitespace": "PASS",
+  "component_acceptance": "NOT_GRANTED",
+  "studio_runtime": "NOT_RUN",
+  "full_card_done": false,
+  "product_source_modified_by_review": false,
+  "staged_paths": [],
+  "git_publication_performed": false
+}

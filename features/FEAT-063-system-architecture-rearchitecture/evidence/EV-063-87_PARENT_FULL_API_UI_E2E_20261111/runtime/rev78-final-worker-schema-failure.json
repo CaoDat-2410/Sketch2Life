@@ -1,0 +1,20 @@
+{
+  "test": "rev78_final_synthetic_parent_activity_fallback",
+  "started_at_utc": "2026-11-11T14:32:10.794838+00:00",
+  "finished_at_utc": "2026-11-11T14:32:44.623785+00:00",
+  "model_id": "Qwen/Qwen3.5-9B",
+  "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+  "modal_call_id": "fc-01M75GCGV1E4CFPX3EPXJ1EJWT",
+  "elapsed_seconds": 33.829,
+  "catalog_candidate_count": 0,
+  "age_band_months": "72-107",
+  "status": "WORKER_FAILED",
+  "failure_stage": "model_inference",
+  "exception_type": "ModalFunctionExecutionFailed",
+  "worker_error_type": "LMFormatEnforcerException",
+  "worker_error_code": "UNCLASSIFIED_FAILURE",
+  "model_load_completed": true,
+  "constrained_decoder_setup_completed": true,
+  "model_inference_phase_ms": 5440,
+  "root_cause": "LM Format Enforcer does not support JSON string schemas that combine a pattern with minLength or maxLength."
+}

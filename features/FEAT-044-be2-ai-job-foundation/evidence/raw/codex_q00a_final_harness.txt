@@ -1,0 +1,4 @@
+HARNESS_VALID
+root=<be2-worktree>
+approval_gate=enabled
+frontend_asset_gate=enabled

@@ -1,0 +1,9 @@
+flowchart LR
+    A[Inventory source declarations<br/>86 production tables + 5 fixtures] --> B[Classify target disposition<br/>69 keep/refactor + 17 archive]
+    B --> C[Expand additively<br/>18 proposed tables]
+    C --> D[Backfill and reconcile<br/>counts, hashes, owners, lineage]
+    D --> E{All reconciliation gates pass?}
+    E -->|No| F[Keep old readers active<br/>repair mapping and reconcile]
+    F --> D
+    E -->|Yes| G[Cut over synthetic<br/>Parent and Teacher vertical slices]
+    G --> H[Keep 17 legacy tables<br/>read-only, no drop]

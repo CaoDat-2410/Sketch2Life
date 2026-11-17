@@ -1,0 +1,13 @@
+{
+  "state": "DISPATCH_INTENT_RECORDED",
+  "workload": "asr.transcribe",
+  "app": "sketch2life-srs23-language-audio-dev",
+  "function": "transcribe-vietnamese-audio",
+  "job_id": "40ca6dc9-344f-4024-9bca-423c8f688b39",
+  "generation_id": "83a06681-7177-4c4b-9127-603d2649d741",
+  "attempt_id": "b999f441-849d-498b-b467-111e28d3449d",
+  "input_sha256": "8d736992f4dab6a18cf3b32c17c7eba3364afd88283db7f11469036b844a9174",
+  "manifest_sha256": "80ef43f7cdc304098d2945455d198944e6ffc97b96691191b8dddeac46333f3b",
+  "created_at": "2026-11-05T16:19:36+07:00",
+  "max_attempts": 1
+}

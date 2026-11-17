@@ -1,0 +1,28 @@
+{
+  "check": "pytest",
+  "command": [
+    "<existing-backend-venv>/python",
+    "-B",
+    "-m",
+    "pytest",
+    "backend/tests/unit/test_ai_job_review_regressions.py",
+    "backend/tests/unit/test_ai_job_lifecycle.py",
+    "backend/tests/unit/test_ai_job_application.py",
+    "backend/tests/contract/test_ai_job_contracts.py",
+    "backend/tests/contract/test_ai_job_polling.py",
+    "backend/tests/unit/test_ephemeral_storage_ports.py",
+    "backend/tests/unit/test_whiteboard_video_job.py",
+    "backend/tests/unit/test_story_video_job_input_gate.py",
+    "backend/tests/contract/test_mobile_workflow_contracts.py",
+    "-p",
+    "no:cacheprovider",
+    "-rs"
+  ],
+  "started_at": "2026-10-14T22:21:54.662262+07:00",
+  "exit_code": 0,
+  "environment": {
+    "PYTHONPATH": "<be2-worktree>/backend/src",
+    "PYTHONDONTWRITEBYTECODE": "1"
+  },
+  "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/codex_q00_closure_pytest.txt"
+}

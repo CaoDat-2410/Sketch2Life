@@ -1,0 +1,122 @@
+{
+  "fixture_id": "FEAT-050-SK1-H-AI-REVIEW",
+  "synthetic_data": true,
+  "contract_version": "0.1-candidate",
+  "record_pending": {
+    "contract_name": "SketchProposalRecord",
+    "contract_version": "0.1-candidate",
+    "proposal_id": "sketch_fx0001",
+    "proposal_version": 1,
+    "review_revision": 1,
+    "assistance_id": "assist_fx0001",
+    "request_revision": 1,
+    "source_snapshot_ref": "snapshot_fx_p",
+    "context_revision": 3,
+    "assistance_level": "level_fx_2",
+    "level_source": {
+      "kind": "request",
+      "receipt_ref": null
+    },
+    "display_mode": "overlay",
+    "overlay_asset_ref": "artifact_fx0002",
+    "text_or_question": "Fixture prompt for level_fx_2?",
+    "editable_bounds": null,
+    "moderation_state": "pending",
+    "pipeline_state": "pending_teacher_review",
+    "created_at": "2026-10-17T13:00:06Z",
+    "approval_ref": null,
+    "child_response": null,
+    "content_sha256": "ce0fef28f7e13dbe30ab2861d8bd48b9279cde9e4e465f6e25093b0febc702e6",
+    "content_withheld_reason": null,
+    "organization_id": "org_fx_school_a",
+    "session_id": "session_fx_001",
+    "canvas_id": "canvas_fx_001",
+    "group_id": null,
+    "audience_participant_ids": [
+      "participant_fx_a"
+    ],
+    "analysis_ref": {
+      "analysis_id": "ana_fx0001",
+      "analysis_revision": 1
+    },
+    "handoff_kind": "analysis",
+    "cache_source_assistance_id": null,
+    "generation_job_ref": {
+      "job_id": "job_fx0002",
+      "attempt_id": "att_fx0002"
+    },
+    "producer_ref": {
+      "adapter_id": "fake-sketch-generator",
+      "model_profile_version": "fixture-sketch-profile-v0",
+      "configuration_version": "fixture-config-v0"
+    },
+    "generation_evidence_kind": "fixture",
+    "policy_ref": {
+      "policy_id": "fixture.sketch_generation.v0",
+      "version": "1",
+      "status": "FIXTURE_ONLY_NOT_ADOPTED"
+    },
+    "status_reason": null,
+    "etag": "\"sketch-proposal:sketch_fx0001:1:1\"",
+    "updated_at": "2026-10-17T13:00:06Z"
+  },
+  "notice_blocked": {
+    "contract_name": "SketchProposalEvent",
+    "contract_version": "0.1-candidate",
+    "event_id": "sketch_evt_ccf6c809cc25b7b3dc8c9b01",
+    "event_type": "sketch.blocked_unsafe",
+    "organization_id": "org_fx_school_a",
+    "proposal_id": "sketch_fx0002",
+    "proposal_version": 1,
+    "assistance_id": "assist_fx0002",
+    "reason": "UNSAFE_CONTENT",
+    "occurred_at": "2026-10-17T13:00:12Z"
+  },
+  "device_view": {
+    "contract_name": "SketchProposalDeviceView",
+    "contract_version": "0.1-candidate",
+    "assistance_id": "assist_fx0001",
+    "status": "pending"
+  },
+  "provider_copy_report": {
+    "contract_name": "ProviderCopyLifecycleReport",
+    "contract_version": "0.1-candidate",
+    "contract_owner": "BE2-14",
+    "fake_support_owner": "BE2-01",
+    "fixture_marker": true,
+    "organization_id": "org_fx_school_a",
+    "scope_ref": "sketch_proposal:sketch_fx0001",
+    "copies": [
+      {
+        "copy_id": "copy_in_sketch_fx0001_1_1",
+        "kind": "input",
+        "status": "deleted",
+        "report_label": "fixture_deleted_not_actual",
+        "receipt_id": "purge_rcpt_fx0001",
+        "evidence_kind": "fixture",
+        "reason_code": null,
+        "actual_deletion_proven": false
+      },
+      {
+        "copy_id": "copy_job_sketch_fx0001_1_1",
+        "kind": "job",
+        "status": "pending",
+        "report_label": "pending",
+        "receipt_id": "purge_rcpt_fx0002",
+        "evidence_kind": "fixture",
+        "reason_code": "PROVIDER_PURGE_IN_PROGRESS",
+        "actual_deletion_proven": false
+      },
+      {
+        "copy_id": "copy_out_sketch_fx0001_1_1",
+        "kind": "output",
+        "status": "deleted",
+        "report_label": "fixture_deleted_not_actual",
+        "receipt_id": "purge_rcpt_fx0003",
+        "evidence_kind": "fixture",
+        "reason_code": null,
+        "actual_deletion_proven": false
+      }
+    ]
+  }
+}

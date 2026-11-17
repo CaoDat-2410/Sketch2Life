@@ -1,0 +1,19 @@
+meta {
+  name: 078 [PROVIDER-CAPABLE - REVIEW BEFORE RUN] Get Document Revision
+  type: http
+  seq: 78
+}
+
+get {
+  url: {{baseUrl}}/api/lesson-library/v1/organizations/{{organization_id}}/lessons/{{lesson_id}}/source-documents/{{source_document_id}}/revisions/{{revision_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+}

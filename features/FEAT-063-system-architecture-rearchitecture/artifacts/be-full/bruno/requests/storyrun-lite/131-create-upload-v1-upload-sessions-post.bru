@@ -1,0 +1,27 @@
+meta {
+  name: 131 [POST/ACTION - LOCAL TEST ONLY] Create Upload
+  type: http
+  seq: 131
+}
+
+post {
+  url: {{baseUrl}}/v1/upload-sessions
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  Idempotency-Key: REPLACE_WITH_SYNTHETIC_VALUE
+}
+
+body:json {
+  {
+    "target_ref": "REPLACE_ME",
+    "purpose": "RUN_ARTWORK",
+    "media_type": "image/jpeg",
+    "expected_size_bytes": 1,
+    "expected_sha256": "REPLACE_ME"
+  }
+}

@@ -1,0 +1,239 @@
+{
+  "app": "sketch2life-srs23-language-audio-dev",
+  "attempt_id": "c858bafb-4eca-42ca-8b5e-debec747701a",
+  "call_id": "fc-01M6R6HSGQDEVJRJNJTRDS4113",
+  "created_at": "2026-11-06T17:30:07+07:00",
+  "dispatch_at": "2026-11-06T17:30:10+07:00",
+  "ended_at": "2026-11-06T17:32:42+07:00",
+  "error_type": "StoryOutputValidationError",
+  "function": "generate-story-and-storyboard",
+  "generation_id": "43af42af-c4e1-43c2-a80e-10366c05d3cd",
+  "input_sha256": "e861e111af128e0bcd7185f48d6a0c5e4a84ae3c9390a6f1775347b669ca4e44",
+  "job_id": "ce0e8eb3-40c0-4db0-a22e-2c8ca29d9daf",
+  "manifest_sha256": "7a0d027ff830782c55d6215515409c818752e1eef07a96565ba292a428b04e85",
+  "max_attempts": 1,
+  "outcome": "FAILED_TERMINAL",
+  "state": "DISPATCH_INTENT_RECORDED",
+  "synthetic_adult_confirmed_fixture": true,
+  "wait_limit_seconds": 600,
+  "worker_log_summary": {
+    "worker_binary_output_sha256": null,
+    "worker_diagnostic_code": "SCENE_VISUAL_PROMPT_INCOMPLETE",
+    "worker_diagnostic_details": {
+      "callback_calls": 964,
+      "decoded_character_count": 3312,
+      "ended_with_model_eos": true,
+      "event": "story_output_invalid",
+      "field_key_counts": {
+        "action": 5,
+        "drawing_steps_text": 0,
+        "instruction": 0,
+        "instructions_text": 0,
+        "narration": 5,
+        "placement": 0,
+        "safety_notes": 0,
+        "subject_learning_notes": 0,
+        "title": 6,
+        "visual_prompt": 5
+      },
+      "final_token_id": 248044,
+      "force_stop_parser_calls": 0,
+      "generation_seconds": 93.342,
+      "json_complete": true,
+      "json_root_key_count": 3,
+      "json_root_type": "dict",
+      "last_model_eos_allowed": true,
+      "last_parser_can_end": true,
+      "last_parser_state_class": "JsonSchemaParser",
+      "max_active_string_limit": 180,
+      "max_new_tokens": 4096,
+      "max_observed_string_length": 180,
+      "model_eos_token_id": 248044,
+      "model_eos_token_ids": [
+        248044
+      ],
+      "output_token_count": 964,
+      "story_field_diagnostics_available": true,
+      "story_incomplete_sentence_fields": [
+        "story.opening",
+        "story.middle",
+        "story.ending",
+        "scenes[1].action",
+        "scenes[1].visual_prompt",
+        "scenes[2].action",
+        "scenes[2].visual_prompt",
+        "scenes[2].narration",
+        "scenes[3].action",
+        "scenes[3].visual_prompt",
+        "scenes[3].narration",
+        "scenes[4].action",
+        "scenes[4].visual_prompt",
+        "scenes[4].narration",
+        "scenes[5].action",
+        "scenes[5].visual_prompt",
+        "scenes[5].narration"
+      ],
+      "story_text_field_metric_count": 24,
+      "story_text_field_metrics": [
+        {
+          "character_count": 31,
+          "field": "title",
+          "max_length": 80
+        },
+        {
+          "character_count": 180,
+          "field": "story.opening",
+          "max_length": 180,
+          "sentence_complete": false
+        },
+        {
+          "character_count": 178,
+          "field": "story.middle",
+          "max_length": 180,
+          "sentence_complete": false
+        },
+        {
+          "character_count": 180,
+          "field": "story.ending",
+          "max_length": 180,
+          "sentence_complete": false
+        },
+        {
+          "character_count": 18,
+          "field": "scenes[1].title",
+          "max_length": 40
+        },
+        {
+          "character_count": 90,
+          "field": "scenes[1].action",
+          "max_length": 90,
+          "sentence_complete": false
+        },
+        {
+          "character_count": 96,
+          "field": "scenes[1].visual_prompt",
+          "max_length": 100,
+          "sentence_complete": false
+        },
+        {
+          "character_count": 119,
+          "field": "scenes[1].narration",
+          "max_length": 120,
+          "sentence_complete": true
+        },
+        {
+          "character_count": 14,
+          "field": "scenes[2].title",
+          "max_length": 40
+        },
+        {
+          "character_count": 88,
+          "field": "scenes[2].action",
+          "max_length": 90,
+          "sentence_complete": false
+        },
+        {
+          "character_count": 97,
+          "field": "scenes[2].visual_prompt",
+          "max_length": 100,
+          "sentence_complete": false
+        },
+        {
+          "character_count": 120,
+          "field": "scenes[2].narration",
+          "max_length": 120,
+          "sentence_complete": false
+        },
+        {
+          "character_count": 17,
+          "field": "scenes[3].title",
+          "max_length": 40
+        },
+        {
+          "character_count": 90,
+          "field": "scenes[3].action",
+          "max_length": 90,
+          "sentence_complete": false
+        },
+        {
+          "character_count": 96,
+          "field": "scenes[3].visual_prompt",
+          "max_length": 100,
+          "sentence_complete": false
+        },
+        {
+          "character_count": 120,
+          "field": "scenes[3].narration",
+          "max_length": 120,
+          "sentence_complete": false
+        },
+        {
+          "character_count": 22,
+          "field": "scenes[4].title",
+          "max_length": 40
+        },
+        {
+          "character_count": 90,
+          "field": "scenes[4].action",
+          "max_length": 90,
+          "sentence_complete": false
+        },
+        {
+          "character_count": 99,
+          "field": "scenes[4].visual_prompt",
+          "max_length": 100,
+          "sentence_complete": false
+        },
+        {
+          "character_count": 90,
+          "field": "scenes[4].narration",
+          "max_length": 120,
+          "sentence_complete": false
+        },
+        {
+          "character_count": 26,
+          "field": "scenes[5].title",
+          "max_length": 40
+        },
+        {
+          "character_count": 90,
+          "field": "scenes[5].action",
+          "max_length": 90,
+          "sentence_complete": false
+        },
+        {
+          "character_count": 100,
+          "field": "scenes[5].visual_prompt",
+          "max_length": 100,
+          "sentence_complete": false
+        },
+        {
+          "character_count": 120,
+          "field": "scenes[5].narration",
+          "max_length": 120,
+          "sentence_complete": false
+        }
+      ],
+      "string_limit_boundary_checks": 13,
+      "string_limit_boundary_violations": 0,
+      "token_limit_reached": false,
+      "tokenizer_eos_token_id": 248046,
+      "unbounded_active_string_calls": 87
+    },
+    "worker_duration_ms": 126463,
+    "worker_error_code": "SCENE_VISUAL_PROMPT_INCOMPLETE",
+    "worker_error_type": "StoryOutputValidationError",
+    "worker_failure_boundary": "worker_terminal_failure_observed",
+    "worker_gpu_class": "L40S|L4|A10",
+    "worker_last_stage": "output_decode_and_parse",
+    "worker_log_event_count": 26,
+    "worker_logs_available": true,
+    "worker_model_id": "Qwen/Qwen3.5-9B",
+    "worker_model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+    "worker_output_sha256": null,
+    "worker_output_size_bytes": null,
+    "worker_started_observed": true,
+    "worker_terminal_event": "worker_failed"
+  },
+  "workload": "story.generate"
+}

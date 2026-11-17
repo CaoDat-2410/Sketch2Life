@@ -1,0 +1,25 @@
+{
+  "scope": "F03_LOCAL_REVIEW_HISTORY_ASSUMED_OWNER_PORTS",
+  "parent_commit": "531ef21",
+  "date": "2026-10-17",
+  "local": {"passed": 350, "new_cases": 24, "skipped": 0, "seconds": 4.72},
+  "postgresql": {
+    "version": "17.11", "c2_passed": 9, "projection_passed": 1,
+    "commands_history_passed": 11, "new_history_cases": 3, "skipped": 0,
+    "runner_exit": 0, "source_unchanged": true,
+    "raw_receipt": ".runtime/learning-content-c3b/20261017-070818-539080/summary.json",
+    "temporary_root_removed": true, "server_port_closed": true
+  },
+  "source_sha256": {
+    "backend/src/sketch2life/application/learning_content_history.py": "9573d08d1c20b8a50580e105a912a84d4b01b5ce15a98ebb5b086d2de4471efd",
+    "backend/src/sketch2life/application/ports/learning_content.py": "693f1772560b1c9e4085dd7f08ae954d4ab95ee6bd6314f7d0fc4fbc21319eb3",
+    "backend/src/sketch2life/infrastructure/learning_content/sql.py": "00d1a00c48475c17e752f2c3cb0345245110842716b8ac9bd39edc65889f458e",
+    "backend/tests/learning_content_fixtures.py": "de586f7e3a306e4d127cc6edb40e3cedb7d3b5ad47622e8895fe2b44672b34bb",
+    "backend/tests/integration/learning_content/test_commands_sql.py": "962b6889f37dc5af9e80bd635771f3d794899a71c896589c9e11f9ba06599154",
+    "backend/tests/unit/test_learning_content_history.py": "5587c1ef13787e362183144c780f4bc7223bfcf00223c0f84fd3cc6bb11b4a83",
+    "features/FEAT-048-be2-content-publication/src/run_c3_commands_sql.py": "0ccc0f8b90c33cc3cbe9145e5891c75685ba61826ffc137e414485264831a4ed"
+  },
+  "f03": "CLOSED_COMPONENT_AND_OWNED_SQL",
+  "real_owner_adapters": "NOT_ADOPTED",
+  "be2_12_complete": false
+}

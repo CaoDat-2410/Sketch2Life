@@ -1,0 +1,280 @@
+{
+  "analysis_record": {
+    "accepted_status": "accepted",
+    "analysis_id": "ana_fx0001",
+    "analysis_revision": 1,
+    "candidate": {
+      "assistance_id": "assistance_fx_001",
+      "context_revision": 3,
+      "contract_version": "0.2-candidate",
+      "evidence_refs": [
+        {
+          "kind": "vision_observation",
+          "ref": "ana_fx0001",
+          "sha256": "0503509e38666bfbde5bcc934f23ca43bc0a497400b99681822afe6cf1ea75a7"
+        },
+        {
+          "kind": "provider_result",
+          "ref": "result:ana_fx0001",
+          "sha256": "fdc1ad26398c20d9021136cc20153e71c5597cc65b72db53b26e2e80b4ce9619"
+        },
+        {
+          "kind": "source_checkpoint",
+          "ref": "checkpoint_fx_004",
+          "sha256": "883c7da76fba38c707ab05f346bebbd99eb04938913e839750a6cf1b3951d86f"
+        },
+        {
+          "kind": "source_render",
+          "ref": "render_fx_004",
+          "sha256": "8c91fbbc97b519911c1e7794060f4f512ac2a3a16dfd84bc3356b889efc80b4b"
+        },
+        {
+          "kind": "admission_receipt",
+          "ref": "admission_fx_004",
+          "sha256": "f1e25fcea6d63b087940fc5e73d0fa4b047b5d2ff989b82c8d725b36240110f4"
+        }
+      ],
+      "expected_request_revision": 1,
+      "input_snapshot_ref": "snapshot_fx_001",
+      "job_attempt_id": "att_fx0001",
+      "job_id": "job_fx0001",
+      "moderation_outcome": {
+        "child_visibility": "withheld",
+        "comprehensive_moderation": "not_run",
+        "lexical_policy_version": "vision-prohibited-lexicon-fixture-v1",
+        "lexical_regression": "passed",
+        "match_view_version": "vision-policy-match-view-v2"
+      },
+      "object_candidates": [
+        {
+          "confidence": 0.71,
+          "label": "cat",
+          "observation_ref": "ent-1"
+        },
+        {
+          "confidence": null,
+          "label": "ball",
+          "observation_ref": "ent-2"
+        }
+      ],
+      "provenance": {
+        "adapter_id": "lightning-vision-context-offline",
+        "adapter_version": "qwen3-vl-local-adapter-v2-b1",
+        "config_hash": "3082f03f32a1cb26e6f5c25fe73813039460129b0f18a15e647b9f5ff08e3267",
+        "content_policy_version": "vision-prohibited-lexicon-fixture-v1",
+        "context_binding": {
+          "age_band_policy_ref": "fixture-completed-years-v1",
+          "age_band_policy_version": "1",
+          "canonical_rules_version": "vision-context-canonical-v1",
+          "context_contract": "VisionTypedContextV1",
+          "context_contract_version": "0.1-candidate",
+          "context_digest": "674e92572b2889644fdcb7ab33865ed4bcc476d16236802f55e00584663b7e6f",
+          "context_revision": 3,
+          "payload_digest": "51467b05dbd6c646ec735cf74d2f795c6ae1f28980402150ffda7377af362ec5"
+        },
+        "evidence_kind": "offline_context_adapter",
+        "executed_at": "2026-10-16T12:00:05Z",
+        "model_identifier": "Qwen/Qwen3-VL-8B-Instruct",
+        "model_revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+        "policy_match_view_version": "vision-policy-match-view-v2",
+        "profile_catalog_hash": "72651b96d2c2259344efcb6fb3349807d42b56079a5422530db09c1590f00947",
+        "profile_id": "QWEN3_VL_8B_INSTRUCT_BF16_V1",
+        "provider_context_mode": "typed_context",
+        "result_contract": "LightningVisionContextResultV1/0.1-candidate",
+        "transport_attempts": 1
+      },
+      "uncertainty": {
+        "ambiguous_region_refs": [
+          "amb-1"
+        ],
+        "calibration": "uncalibrated",
+        "requires_meaning_confirmation": true,
+        "unknown_confidence_refs": [
+          "ent-2",
+          "rel-1"
+        ]
+      }
+    },
+    "context_binding": {
+      "age_band_policy_ref": "fixture-completed-years-v1",
+      "age_band_policy_version": "1",
+      "canonical_rules_version": "vision-context-canonical-v1",
+      "context_contract": "VisionTypedContextV1",
+      "context_contract_version": "0.1-candidate",
+      "context_digest": "674e92572b2889644fdcb7ab33865ed4bcc476d16236802f55e00584663b7e6f",
+      "context_revision": 3,
+      "payload_digest": "51467b05dbd6c646ec735cf74d2f795c6ae1f28980402150ffda7377af362ec5"
+    },
+    "contract_name": "AnalysisResultAndCorrection",
+    "contract_version": "0.2-candidate",
+    "corrections": [],
+    "current_meaning_ref": null,
+    "observation_sha256": "0503509e38666bfbde5bcc934f23ca43bc0a497400b99681822afe6cf1ea75a7",
+    "original_observation": {
+      "actions": [
+        {
+          "actor_ref": "ent-1",
+          "confidence": 0.4,
+          "label": {
+            "language": {
+              "status": "DECLARED",
+              "tags": [
+                "en"
+              ]
+            },
+            "value": "sitting"
+          },
+          "object_ref": null,
+          "observation_id": "act-1"
+        }
+      ],
+      "ambiguous_regions": [
+        {
+          "note": {
+            "language": {
+              "status": "DECLARED",
+              "tags": [
+                "en"
+              ]
+            },
+            "value": "striped area"
+          },
+          "observation_id": "amb-1"
+        }
+      ],
+      "entities": [
+        {
+          "confidence": 0.71,
+          "label": {
+            "language": {
+              "status": "DECLARED",
+              "tags": [
+                "en"
+              ]
+            },
+            "value": "cat"
+          },
+          "observation_id": "ent-1"
+        },
+        {
+          "confidence": null,
+          "label": {
+            "language": {
+              "status": "DECLARED",
+              "tags": [
+                "en"
+              ]
+            },
+            "value": "ball"
+          },
+          "observation_id": "ent-2"
+        }
+      ],
+      "relations": [
+        {
+          "confidence": null,
+          "object_ref": "ent-2",
+          "observation_id": "rel-1",
+          "predicate": {
+            "language": {
+              "status": "DECLARED",
+              "tags": [
+                "en"
+              ]
+            },
+            "value": "next to"
+          },
+          "subject_ref": "ent-1"
+        }
+      ],
+      "themes": [
+        {
+          "confidence": 0.3,
+          "evidence_refs": [
+            "ent-1"
+          ],
+          "label": {
+            "language": {
+              "status": "DECLARED",
+              "tags": [
+                "en"
+              ]
+            },
+            "value": "play"
+          },
+          "observation_id": "thm-1"
+        }
+      ]
+    },
+    "source_binding": {
+      "admission_receipt_id": "admission_fx_004",
+      "checkpoint": {
+        "canvas_id": "canvas_fx_001",
+        "checkpoint_id": "checkpoint_fx_004",
+        "checkpoint_revision": 4,
+        "checksum_sha256": "883c7da76fba38c707ab05f346bebbd99eb04938913e839750a6cf1b3951d86f",
+        "document_epoch": 1
+      },
+      "input_snapshot_ref": "snapshot_fx_001",
+      "render": {
+        "media_type": "image/png",
+        "render_ref": "render_fx_004",
+        "render_sha256": "8c91fbbc97b519911c1e7794060f4f512ac2a3a16dfd84bc3356b889efc80b4b",
+        "renderer_version": "canvas-render-fixture-v0"
+      }
+    },
+    "status_reason": null
+  },
+  "endpoint_path": "/v1/vision/context",
+  "provider_context_request": {
+    "context_digest": "674e92572b2889644fdcb7ab33865ed4bcc476d16236802f55e00584663b7e6f",
+    "contract_name": "LightningVisionContextRequestV1",
+    "contract_version": "0.1-candidate",
+    "payload_digest": "51467b05dbd6c646ec735cf74d2f795c6ae1f28980402150ffda7377af362ec5",
+    "request": {
+      "contract_name": "VisionUnderstandingRequestV2",
+      "contract_version": "2.0",
+      "correlation_id": "corr_fx_1",
+      "derivation_provenance": null,
+      "media_validation": {
+        "decision": "PASS",
+        "validation_artifact_ref": "admission_fx_004",
+        "validation_artifact_sha256": "f1e25fcea6d63b087940fc5e73d0fa4b047b5d2ff989b82c8d725b36240110f4",
+        "validator_policy_version": "feat018-image-admission-v1"
+      },
+      "processing_image_ref": null,
+      "requested_profile_id": "QWEN3_VL_8B_INSTRUCT_BF16_V1",
+      "source_image_ref": {
+        "artifact_ref": "render_fx_004",
+        "sha256": "8c91fbbc97b519911c1e7794060f4f512ac2a3a16dfd84bc3356b889efc80b4b"
+      }
+    },
+    "source_image": {
+      "artifact_ref": "render_fx_004",
+      "content_base64": "<elided: synthetic render bytes>",
+      "content_type": "image/png",
+      "sha256": "8c91fbbc97b519911c1e7794060f4f512ac2a3a16dfd84bc3356b889efc80b4b"
+    },
+    "typed_context": {
+      "age_band_policy_ref": "fixture-completed-years-v1",
+      "age_band_policy_version": "1",
+      "audience_age_bands": [
+        "completed-years-5"
+      ],
+      "context_revision": 3,
+      "contract_name": "VisionTypedContextV1",
+      "contract_version": "0.1-candidate",
+      "request_reason": "describe_drawing",
+      "requested_level": "standard",
+      "source_image_sha256": "8c91fbbc97b519911c1e7794060f4f512ac2a3a16dfd84bc3356b889efc80b4b",
+      "target_kind": "whole_canvas",
+      "teacher_topic": "Animals at the zoo"
+    }
+  },
+  "provider_result_record": {
+    "canonical_json": "{\"context_contract\":\"VisionTypedContextV1\",\"context_contract_version\":\"0.1-candidate\",\"context_digest\":\"674e92572b2889644fdcb7ab33865ed4bcc476d16236802f55e00584663b7e6f\",\"context_revision\":3,\"contract_name\":\"LightningVisionContextResultV1\",\"contract_version\":\"0.1-candidate\",\"correlation_id\":\"corr_fx_1\",\"payload_digest\":\"51467b05dbd6c646ec735cf74d2f795c6ae1f28980402150ffda7377af362ec5\",\"result\":{\"actions\":[{\"actor_ref\":\"ent-1\",\"confidence\":0.4,\"label\":{\"language\":{\"status\":\"DECLARED\",\"tags\":[\"en\"]},\"value\":\"sitting\"},\"object_ref\":null,\"observation_id\":\"act-1\"}],\"adapter_version\":\"qwen3-vl-local-adapter-v2-b1\",\"ambiguous_regions\":[{\"note\":{\"language\":{\"status\":\"DECLARED\",\"tags\":[\"en\"]},\"value\":\"striped area\"},\"observation_id\":\"amb-1\"}],\"attempt_number\":1,\"config_hash\":\"3082f03f32a1cb26e6f5c25fe73813039460129b0f18a15e647b9f5ff08e3267\",\"content_policy_version\":\"vision-prohibited-lexicon-fixture-v1\",\"contract_name\":\"VisionUnderstandingResultV2\",\"contract_version\":\"2.0\",\"correlation_id\":\"corr_fx_1\",\"entities\":[{\"confidence\":0.71,\"label\":{\"language\":{\"status\":\"DECLARED\",\"tags\":[\"en\"]},\"value\":\"cat\"},\"observation_id\":\"ent-1\"},{\"confidence\":null,\"label\":{\"language\":{\"status\":\"DECLARED\",\"tags\":[\"en\"]},\"value\":\"ball\"},\"observation_id\":\"ent-2\"}],\"executed_at\":\"2026-10-16T12:00:05Z\",\"model_provenance\":{\"dependency_pins\":[{\"package\":\"accelerate\",\"version\":\"1.10.1\"},{\"package\":\"qwen-vl-utils\",\"version\":\"0.0.14\"},{\"package\":\"torch\",\"version\":\"2.8.0\"},{\"package\":\"transformers\",\"version\":\"4.57.6\"}],\"model_identifier\":\"Qwen/Qwen3-VL-8B-Instruct\",\"model_revision\":\"0c351dd01ed87e9c1b53cbc748cba10e6187ff3b\",\"weight_license\":\"apache-2.0\",\"weight_sha256\":null,\"weight_sha256_absence_reason\":\"SOURCE_DOES_NOT_PUBLISH_A_DIGEST\",\"weight_source\":\"https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct\"},\"policy_execution_state\":\"PASSED\",\"policy_match_view_version\":\"vision-policy-match-view-v2\",\"profile_catalog_hash\":\"72651b96d2c2259344efcb6fb3349807d42b56079a5422530db09c1590f00947\",\"profile_id\":\"QWEN3_VL_8B_INSTRUCT_BF16_V1\",\"relations\":[{\"confidence\":null,\"object_ref\":\"ent-2\",\"observation_id\":\"rel-1\",\"predicate\":{\"language\":{\"status\":\"DECLARED\",\"tags\":[\"en\"]},\"value\":\"next to\"},\"subject_ref\":\"ent-1\"}],\"repair_attempted\":false,\"source_image_ref\":{\"artifact_ref\":\"render_fx_004\",\"sha256\":\"8c91fbbc97b519911c1e7794060f4f512ac2a3a16dfd84bc3356b889efc80b4b\"},\"status\":\"SUCCEEDED\",\"themes\":[{\"confidence\":0.3,\"evidence_refs\":[\"ent-1\"],\"label\":{\"language\":{\"status\":\"DECLARED\",\"tags\":[\"en\"]},\"value\":\"play\"},\"observation_id\":\"thm-1\"}]},\"source_image_ref\":{\"artifact_ref\":\"render_fx_004\",\"sha256\":\"8c91fbbc97b519911c1e7794060f4f512ac2a3a16dfd84bc3356b889efc80b4b\"}}",
+    "result_contract": "LightningVisionContextResultV1/0.1-candidate",
+    "result_ref": "result:ana_fx0001",
+    "result_sha256": "fdc1ad26398c20d9021136cc20153e71c5597cc65b72db53b26e2e80b4ce9619"
+  }
+}

@@ -1,0 +1,10 @@
+flowchart LR
+  Child[Child Android UI] -. stub client today .-> API[FastAPI entrypoint]
+  Teacher[Teacher Desktop UI] -. fixture service today .-> API
+  Admin[Super Admin UI] -. fixture service today .-> API
+  API --> App[Application use cases and ports]
+  App --> Domain[Framework-independent domain rules]
+  App -. proposed .-> DB[(Durable persistence adapters)]
+  App -. proposed .-> Queue[Workers and queue]
+  Queue -. selected provider; config TBD .-> Modal[Modal AI]
+  Demo[Separate legacy/demo entrypoints] -. isolated from target entrypoint .-> API

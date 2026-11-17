@@ -1,0 +1,11 @@
+{
+  "started_at": "2026-11-05T17:46:53+07:00",
+  "purpose": "Inspect shape-only diagnostics and tokenizer/model EOS IDs for one synthetic Teacher Deck call.",
+  "synthetic_only": true,
+  "video_called": false,
+  "max_wait_seconds": 600,
+  "outcome": "FAILED_TERMINAL",
+  "call_id": "fc-01M6NN3QE92D8XNGZ9R82Y3SGK",
+  "elapsed_ms": 117317.44,
+  "ended_at": "2026-11-05T17:48:50+07:00"
+}

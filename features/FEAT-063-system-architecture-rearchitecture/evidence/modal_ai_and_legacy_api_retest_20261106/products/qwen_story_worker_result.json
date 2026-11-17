@@ -1,0 +1,101 @@
+{
+  "state": "DISPATCH_INTENT_RECORDED",
+  "workload": "story.generate",
+  "app": "sketch2life-srs23-language-audio-dev",
+  "function": "generate-story-and-storyboard",
+  "job_id": "643b50dc-e54a-4859-870c-e688348bd888",
+  "generation_id": "00465df9-07cb-44bf-89b1-771c4e075ce7",
+  "attempt_id": "cc99efeb-7324-4ca5-9a7f-661bf6bcb381",
+  "input_sha256": "d45ba5b6aa61b7fdbcf8d768a8cc4150de8a493a1bbcc9b9c41391f49ef06cd2",
+  "manifest_sha256": "9469c5679a1eed2b22077c480f90bb0b2e6ae0cbcbe3d65bac0d9a7deb41810c",
+  "wait_limit_seconds": 600,
+  "synthetic_adult_confirmed_fixture": true,
+  "created_at": "2026-11-05T19:02:35+07:00",
+  "max_attempts": 1,
+  "outcome": "SUCCEEDED",
+  "call_id": "fc-01M6NSEAXMP5F4WQX8KGF9BCWC",
+  "dispatch_at": "2026-11-05T19:02:38+07:00",
+  "title": "Vòng Đời Bướm: Từ Trứng Đến Bướm Trưởng Thành",
+  "scene_count": 5,
+  "duration_ms": 30000,
+  "story_sha256": "3cac3817fbee7f27b55a6825c11a2f431f2ea208e24d969fb2db0be06e1a44ea",
+  "result": {
+    "schema_version": "sketch2life.story-revision.v1",
+    "language": "vi",
+    "title": "Vòng Đời Bướm: Từ Trứng Đến Bướm Trưởng Thành",
+    "story": {
+      "opening": "Người lớn chỉ vào một quả trứng nhỏ trên lá cây. Trẻ quan sát kỹ hình dáng và màu sắc của trứng dưới ánh nắng nhẹ nhàng. Người lớn nhắc trẻ chú ý đây là khởi đầu của một vòng đời.",
+      "middle": "Trẻ nhìn thấy con sâu bướm đang ăn lá cây xanh tươi. Người lớn giải thích sâu bướm lớn lên rồi cuộn mình thành nhộng. Trẻ chờ đợi và quan sát sự thay đổi từ nhộng thành bướm trưởng",
+      "ending": "Bướm trưởng thành chui ra khỏi nhộng với cánh hồng tím rực rỡ. Trẻ ngắm nhìn đôi cánh và anten cong của bướm. Người lớn cùng trẻ cảm nhận vẻ đẹp tự nhiên của vòng đời này."
+    },
+    "duration_ms": 30000,
+    "scenes": [
+      {
+        "scene_index": 1,
+        "title": "Quả trứng nhỏ trên lá",
+        "action": "Người lớn nhẹ nhàng chỉ vào một quả trứng nhỏ màu xanh nhạt dính trên lá cây xanh đậm. Trẻ cúi đầu quan sát kỹ hình dáng",
+        "visual_prompt": "Close-up macro shot of a tiny pale green egg attached to a vibrant green leaf, soft natural sunlight filtering through, shallow depth of field, realistic texture, no butterfly yet,",
+        "narration": "Đây là quả trứng nhỏ. Hãy nhìn kỹ hình dáng và màu sắc của nó trên lá cây này nhé con. Đây là bước đầu tiên của vòng đời",
+        "start_ms": 0,
+        "duration_ms": 6000,
+        "character_anchors": [
+          "Người lớn chỉ tay nhẹ nhàng",
+          "Trẻ cúi đầu quan sát kỹ"
+        ]
+      },
+      {
+        "scene_index": 2,
+        "title": "Sâu bướm ăn lá cây",
+        "action": "Một con sâu bướm màu vàng có vạch ngang đang nhai lá cây. Người lớn giải thích sâu bướm cần ăn nhiều để lớn lên",
+        "visual_prompt": "A yellow caterpillar with black stripes munching on a green leaf, detailed texture of scales and legs, soft focus background, natural lighting, realistic scale, no chrysalis yet,",
+        "narration": "Trứng đã nở thành con sâu bướm. Nó đang ăn lá cây để lớn lên. Sâu bướm cần ăn nhiều thức ăn để phát triển cơ thể",
+        "start_ms": 6000,
+        "duration_ms": 6000,
+        "character_anchors": [
+          "Người lớn giải thích nhẹ nhàng",
+          "Trẻ nhìn chăm chú sâu bướm"
+        ]
+      },
+      {
+        "scene_index": 3,
+        "title": "Sâu bướm hóa thành nhộng",
+        "action": "Con sâu bướm cuộn mình treo ngược trên cành cây, bắt đầu hình thành lớp vỏ nhộng cứng cáp bao quanh cơ thể",
+        "visual_prompt": "A yellow caterpillar with stripes curled into a chrysalis hanging from a twig, smooth hard shell forming, soft natural light, detailed texture, realistic transformation stage, no翅膀",
+        "narration": "Sâu bướm đã lớn rồi. Nó đang cuộn mình thành nhộng để nghỉ ngơi và thay đổi. Nhộng sẽ bảo vệ cơ thể trong quá trình biến",
+        "start_ms": 12000,
+        "duration_ms": 6000,
+        "character_anchors": [
+          "Người lớn chỉ vào nhộng",
+          "Trẻ nhìn sự thay đổi"
+        ]
+      },
+      {
+        "scene_index": 4,
+        "title": "Bướm trưởng thành chui ra",
+        "action": "Một con bướm trưởng thành đang chui ra khỏi lớp vỏ nhộng, cánh ướt và nhăn nheo đang bắt đầu căng ra",
+        "visual_prompt": "A newly emerged butterfly with wet crumpled pink and purple wings crawling out of a chrysalis, soft morning light, detailed texture of wet wings, realistic emergence, no fully open",
+        "narration": "Bướm trưởng thành đang chui ra khỏi nhộng. Cánh của nó còn ướt và nhăn nheo. Hãy chờ đợi cánh của nó căng ra cho đẹp",
+        "start_ms": 18000,
+        "duration_ms": 6000,
+        "character_anchors": [
+          "Người lớn chờ đợi nhẹ nhàng",
+          "Trẻ nhìn cánh bướm"
+        ]
+      },
+      {
+        "scene_index": 5,
+        "title": "Bướm hồng tím rực rỡ",
+        "action": "Bướm trưởng thành đã mở hết cánh với màu hồng tím và thân vàng vạch ngang, bay nhẹ nhàng trên cành cây",
+        "visual_prompt": "A fully formed butterfly with vibrant pink and purple wings and yellow striped body perched on a leaf, sunlit, detailed antennae, realistic flight posture, no text, no names,",
+        "narration": "Bướm trưởng thành đã hoàn thiện với cánh hồng tím và thân vàng. Nó đã sẵn sàng bay đi. Vòng đời của bướm đã kết thúc một",
+        "start_ms": 24000,
+        "duration_ms": 6000,
+        "character_anchors": [
+          "Người lớn ngắm nhìn bướm",
+          "Trẻ mỉm cười nhìn bướm"
+        ]
+      }
+    ]
+  },
+  "ended_at": "2026-11-05T19:04:28+07:00"
+}

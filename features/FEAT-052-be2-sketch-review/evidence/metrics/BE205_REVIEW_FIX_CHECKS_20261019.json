@@ -1,0 +1,234 @@
+{
+  "approved_plan_sha256": "ab29530545b94346102bd037822572e483828fa697582e74a74be334cecf0c00",
+  "branch": "feature/be2-05-sketch-review",
+  "card": "BE2-05",
+  "card_status": "IN_PROGRESS / NOT_DONE",
+  "checkpoint": "SKETCH_REVIEW_COMPONENT_OFFLINE",
+  "checks_new_runs": {
+    "chain_after_import_fix": {
+      "exit": 0,
+      "passed": 6
+    },
+    "focused05": {
+      "exit": 0,
+      "passed": 117,
+      "skipped": 0,
+      "tests": 117
+    },
+    "git_diff_check": 0,
+    "mypy_project": 0,
+    "mypy_strict": 0,
+    "repeat_5x_races_eligibility_regressions": "48 passed x5",
+    "ruff_backend_cwd": {
+      "first_exit": 1,
+      "first_finding": "I001 import order in test_sketch_review_chain.py (introduced by this fix)",
+      "rerun_exit": 0
+    },
+    "validate_architecture": 0,
+    "validate_harness": 0,
+    "validate_repository_security": 0,
+    "validate_skeleton": 0,
+    "x01_sk1": {
+      "exit": 0,
+      "passed": 175,
+      "tests": 175
+    },
+    "x02_contract_without_pillow_modules": {
+      "exit": 0,
+      "not_run_modules": 7,
+      "passed": 400,
+      "skip_reason": "live app import needs Pillow",
+      "skipped": 3
+    },
+    "x03_be2_02_03": {
+      "exit": 0,
+      "passed": 405
+    },
+    "x04_unit_all": {
+      "errors": 34,
+      "exit": 1,
+      "failed": 18,
+      "passed": 2444,
+      "skipped": 37,
+      "tests": 2533,
+      "vs_baseline_receipt": "identical failed/error/skipped sets; 104 new cases pass; none missing/changed"
+    }
+  },
+  "committed": false,
+  "component": "NOT_ACCEPTED",
+  "date": "2026-10-19",
+  "environment": {
+    "interpreter": "<repo-root>/backend/.venv (root checkout)",
+    "network": "none",
+    "os": "Windows 11",
+    "python": "CPython 3.12.10",
+    "pythonpath": "<worktree>/backend/src",
+    "runner": "local/fix-20261019/run_fix_checks.sh (sequential, separate basetemp)"
+  },
+  "feature": "FEAT-052-be2-sketch-review",
+  "findings": {
+    "RV-CR01": "FIXED",
+    "RV-CR02": "FIXED",
+    "RV-CR03": "FIXED",
+    "RV-CR04": "FIXED",
+    "RV-CR05": "FIXED"
+  },
+  "head": "58293f1a29ec630e2603c2860b6a2337fadfa713",
+  "merged": false,
+  "not_run": [
+    "7 Pillow-importing contract modules",
+    "Studio/runtime",
+    "providers/network",
+    "SQL",
+    "HTTP routes",
+    "UI"
+  ],
+  "pre_fix_snapshot": "19/19 references of BE205_CHECKS_20261019.json matched (no drift)",
+  "probes": {
+    "after": {
+      "cache_and_revival_probe": "cache unavailable without text/asset (misses 2); policy/audience restoration stay pending, same_old_review false",
+      "fingerprint_probe": "4/4 retries 201 replayed=true with the original review id",
+      "review_fence_policy_probe": "3/3 cases no longer reproduce (per-case runner): POLICY_UNRESOLVED, RESOURCE_NOT_FOUND, INVALID_STATE"
+    },
+    "before": "all 3 unmodified Codex probes exit 0 on pre-fix source (counterexamples reproduced)",
+    "outputs": "ignored local/fix-20261019/{before,after}/"
+  },
+  "pushed": false,
+  "receipts_kept_not_rerun": {
+    "x04_baseline_58293f1": "local/checks-20261019/x04_unit_all_baseline_58293f1.xml (2340 passed/18 failed/34 errors/37 skipped; base unchanged)"
+  },
+  "review_input": {
+    "path": "evidence/notes/BE205_CODEX_REVIEW_20261019.md",
+    "sha256": "0091e8e7fcdab235beee98f28fefc6919decd2b94e43d2c2f721416e4a91194a"
+  },
+  "round": "review-fix 1 (RV-CR01..05)",
+  "snapshot": {
+    "backend/src/sketch2life/application/ports/sketch_review.py": {
+      "bytes": 7999,
+      "cr": 0,
+      "sha256": "75396a9f82d21b87707d9cdaa040ed78b00d760f85d596a497140fa32a2a06fa"
+    },
+    "backend/src/sketch2life/application/services/sketch_review.py": {
+      "bytes": 38835,
+      "cr": 0,
+      "sha256": "e3e7bbaff0656d83b882d8aebf030374350bb489d18097369422bff17bc4d724"
+    },
+    "backend/src/sketch2life/contracts/schemas/sketch_reviews.py": {
+      "bytes": 8807,
+      "cr": 0,
+      "sha256": "5e24fa034d231bd275a682b1afec5b169417ba443e5f133ed9fffcbe3e321f18"
+    },
+    "backend/src/sketch2life/domain/sketch_review.py": {
+      "bytes": 20587,
+      "cr": 0,
+      "sha256": "124619be5443f56746100c7c4430a8c183a6766496e022dfa05c88e5e70d0e6c"
+    },
+    "backend/src/sketch2life/infrastructure/sketch_review/__init__.py": {
+      "bytes": 73,
+      "cr": 0,
+      "sha256": "b5d6dbd574c882db7b5a42b354906b30f34c963f44b50199b920b78fe2197462"
+    },
+    "backend/src/sketch2life/infrastructure/sketch_review/adapters.py": {
+      "bytes": 5176,
+      "cr": 0,
+      "sha256": "b454de10c6a8c617663c4155aa8388437c400993453037b130b14ed4429008a3"
+    },
+    "backend/src/sketch2life/infrastructure/sketch_review/coordination.py": {
+      "bytes": 11725,
+      "cr": 0,
+      "sha256": "7b912e66ac5955271b5b0fbeae94985c53e6dfada8371b76d0a73f79a880d7dd"
+    },
+    "backend/src/sketch2life/infrastructure/sketch_review/fakes.py": {
+      "bytes": 10106,
+      "cr": 0,
+      "sha256": "e3ac43cb4380c99359120a6cc99ef6284b4561122da8d1f73a1554dafbb0c237"
+    },
+    "backend/src/sketch2life/infrastructure/sketch_review/harness.py": {
+      "bytes": 12727,
+      "cr": 0,
+      "sha256": "d4da138b1204939b69c22769740cd5958e1bbb252eb1b67978e68a5a515ac5b0"
+    },
+    "backend/tests/contract/test_sketch_review_contracts.py": {
+      "bytes": 6533,
+      "cr": 0,
+      "sha256": "b13a5c05c1b6e41c8f88ce6fba21c8b1e1c7248fcc70e92fc3ad29b289243767"
+    },
+    "backend/tests/unit/test_sketch_review_chain.py": {
+      "bytes": 7186,
+      "cr": 0,
+      "sha256": "e350e1419cc7b46d27736692b7f7e51657890da5c38212252fd7988f493dc6d6"
+    },
+    "backend/tests/unit/test_sketch_review_domain.py": {
+      "bytes": 9696,
+      "cr": 0,
+      "sha256": "4a1970f8bc3f3912f858af9ae5f0ec4c867214c97560a54f99f31fa99d049304"
+    },
+    "backend/tests/unit/test_sketch_review_eligibility.py": {
+      "bytes": 7205,
+      "cr": 0,
+      "sha256": "6c49181060cb55fdf76ac9f30f9f67166b5e30dce0ac8eda218021f33a1bdf32"
+    },
+    "backend/tests/unit/test_sketch_review_races.py": {
+      "bytes": 19217,
+      "cr": 0,
+      "sha256": "49ec8e90c35088efb41ea484a25864fc1d26f0c6b8184b3c614031f6bfd63e2d"
+    },
+    "backend/tests/unit/test_sketch_review_review_fixes.py": {
+      "bytes": 11734,
+      "cr": 0,
+      "sha256": "1d405caf61c64b1fdcfe73b2f229e2578ecf1cbf22145c5325a22f7303865cf0"
+    },
+    "backend/tests/unit/test_sketch_review_service.py": {
+      "bytes": 18283,
+      "cr": 0,
+      "sha256": "9d40253d54673e436233c2f751f203b04f93410a2ed787194e72ed72a12c935a"
+    },
+    "features/FEAT-052-be2-sketch-review/approvals/TASK_APPROVAL.md": {
+      "bytes": 3925,
+      "cr": 0,
+      "sha256": "6ba9f310d0735e6bdfaf80dc8696308989d0ed51012d813c0b991788f2aeeb24"
+    },
+    "features/FEAT-052-be2-sketch-review/evidence/metrics/BE205_CHECKS_20261019.json": {
+      "bytes": 5377,
+      "cr": 0,
+      "sha256": "0ebda6b9ad810b8ee974ee29cf4ee9aaf54245df95ea07015b7306560fb0af1e"
+    },
+    "features/FEAT-052-be2-sketch-review/evidence/metrics/BE205_CODEX_REVIEW_20261019.json": {
+      "bytes": 29511,
+      "cr": 0,
+      "sha256": "3964d566eb549e4318edbaccd9d483e4ffcb2d059f8b304bf285b84096be1f70"
+    },
+    "features/FEAT-052-be2-sketch-review/evidence/notes/BE205_CODEX_REVIEW_20261019.md": {
+      "bytes": 12360,
+      "cr": 0,
+      "sha256": "0091e8e7fcdab235beee98f28fefc6919decd2b94e43d2c2f721416e4a91194a"
+    },
+    "features/FEAT-052-be2-sketch-review/evidence/notes/BE205_IMPLEMENTATION_EVIDENCE_20261019.md": {
+      "bytes": 11757,
+      "cr": 0,
+      "sha256": "452e8e9376c594d846e7e1102a4a3881f103820c716ebb270085d31dfe9ceb70"
+    },
+    "features/FEAT-052-be2-sketch-review/evidence/notes/BE205_REVIEW_FIX_EVIDENCE_20261019.md": {
+      "bytes": 8992,
+      "cr": 0,
+      "sha256": "169691a45511a71fe04bc0a513dfd9e4ba365bc100e77a8d3207186fd553af84"
+    },
+    "features/FEAT-052-be2-sketch-review/fixtures/h_ai_review/sketch_review_examples.json": {
+      "bytes": 3582,
+      "cr": 0,
+      "sha256": "7336987387242dd07ee671fde706a0c1b1314cbb5f3a87c31b5ee758ca6396dc"
+    },
+    "features/FEAT-052-be2-sketch-review/plan/PLAN.md": {
+      "bytes": 71170,
+      "cr": 0,
+      "sha256": "41b393cca148db6d88a83ac0a9fa2442ec0a5241a88d0c5a631766716f2663b8"
+    },
+    "features/FEAT-052-be2-sketch-review/plan/PLAN_R2_APPROVED.md": {
+      "bytes": 68805,
+      "cr": 0,
+      "sha256": "ab29530545b94346102bd037822572e483828fa697582e74a74be334cecf0c00"
+    }
+  },
+  "staged": 0,
+  "status": "READY_FOR_CODEX_REREVIEW"
+}

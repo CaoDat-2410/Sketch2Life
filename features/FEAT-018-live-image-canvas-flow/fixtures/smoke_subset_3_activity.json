@@ -1,0 +1,11 @@
+{
+  "subset_id": "P4-SMOKE-3-v1",
+  "status": "SYNTHETIC_ONLY",
+  "activities": [
+    {"activity_id": "ACT-TREE-001", "activity_version": "v1", "objective_id": "OBJ-TREE-001", "objective_version": "v1"},
+    {"activity_id": "ACT-COLOR-002", "activity_version": "v1", "objective_id": "OBJ-COLOR-002", "objective_version": "v1"},
+    {"activity_id": "ACT-SHAPE-003", "activity_version": "v1", "objective_id": "OBJ-SHAPE-003", "objective_version": "v1"}
+  ],
+  "acceptance": "Every row must preserve exact identity through cache hit, miss, fallback, handoff, and feedback.",
+  "measurements": "NOT_MEASURED"
+}

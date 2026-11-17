@@ -1,0 +1,1 @@
+uv-sync=0; focused-pytest=0

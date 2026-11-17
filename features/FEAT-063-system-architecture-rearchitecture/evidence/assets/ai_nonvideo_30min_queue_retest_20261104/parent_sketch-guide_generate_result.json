@@ -1,0 +1,41 @@
+{
+  "workload": "parent.sketch-guide.generate",
+  "app": "sketch2life-srs23-flux-image-dev",
+  "function": "generate-line-sketch-guide-candidate",
+  "job_id": "b57f4b4a-7486-4d6d-a67c-211bd05545d6",
+  "generation_id": "d117aca3-9cb3-49df-9c47-fd015eb0b131",
+  "attempt_id": "91e9752c-858e-4266-b86f-2f38237b9ee6",
+  "input_sha256": "0f28f8f178af4c345be15dea36577d2b7b2be4dc405ac331c24463f597c9b97e",
+  "manifest_sha256": "f714412b9aecf410f83a46b1c131e2e60ba1314e6e6ef41a041b725b0d52492b",
+  "wait_limit_seconds": 1800,
+  "started_at": "2026-11-04T20:58:46+07:00",
+  "outcome": "SUCCEEDED",
+  "call_id": "fc-01M6KDPA6MM13ESNFWR6CGHVSR",
+  "dispatch_at": "2026-11-04T20:58:48+07:00",
+  "asset_file": "parent_sketch_guide.png",
+  "result": {
+    "schema_version": "sketch2life.modal.worker-output.v1",
+    "workload": "parent.sketch-guide.generate",
+    "job_id": "b57f4b4a-7486-4d6d-a67c-211bd05545d6",
+    "generation_id": "d117aca3-9cb3-49df-9c47-fd015eb0b131",
+    "attempt_id": "91e9752c-858e-4266-b86f-2f38237b9ee6",
+    "model": {
+      "id": "black-forest-labs/FLUX.2-klein-4B",
+      "revision": "e7b7dc27f91deacad38e78976d1f2b499d76a294"
+    },
+    "asset": {
+      "content_type": "image/png",
+      "size_bytes": 158296,
+      "sha256": "388647b52af176c78a833c29319942e92e2757bf0cda5637823a707057eaf618",
+      "width": 768,
+      "height": 512
+    },
+    "limitations": [
+      "single synthetic feasibility sample",
+      "step order and child usability are not validated",
+      "output is not safety-approved or product-ready"
+    ]
+  },
+  "output_sha256": "629b306195f43bc62302b0b40d8813f1fcc5107f3f78d3c15aea231fb43ee642",
+  "ended_at": "2026-11-04T20:59:24+07:00"
+}

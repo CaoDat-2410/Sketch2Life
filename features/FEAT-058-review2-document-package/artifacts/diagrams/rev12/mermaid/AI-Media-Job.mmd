@@ -1,0 +1,11 @@
+stateDiagram-v2
+  [*] --> queued
+  queued --> running: worker claim
+  running --> succeeded: completed
+  running --> failed_retryable: transient failure
+  failed_retryable --> running: retry eligible
+  failed_retryable --> failed_exhausted: retry budget exhausted
+  running --> blocked_unsafe: safety policy
+  queued --> cancelled: cancellation
+  running --> cancelled: cancellation
+  note right of succeeded: result disposition is accepted, stale, or rejected

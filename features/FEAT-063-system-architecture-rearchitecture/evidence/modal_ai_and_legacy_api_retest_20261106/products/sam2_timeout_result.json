@@ -1,0 +1,7 @@
+{
+  "outcome": "UNKNOWN_NO_RETRY",
+  "error_type": "TimeoutError",
+  "started_at": "2026-11-04T17:21:05+07:00",
+  "ended_at": "2026-11-04T17:31:07+07:00",
+  "source_image_sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949"
+}

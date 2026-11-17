@@ -1,0 +1,53 @@
+{
+  "analysis_id": "ana_fx0001",
+  "analysis_revision": 3,
+  "correction": {
+    "author": {
+      "participant_id": null,
+      "principal_ref": "teacher_fx_001",
+      "role": "teacher",
+      "turn_id": null
+    },
+    "basis_correction_ref": "cor_fx0001",
+    "child_explanation": null,
+    "correction_id": "cor_fx0002",
+    "correction_reason": "Teacher confirms the child's tiger",
+    "correction_version": 3,
+    "expected_context_revision": 3,
+    "intended_objects": [
+      "tiger"
+    ],
+    "kind": "teacher_confirmation",
+    "meaning_kind": "intended_concept",
+    "meaning_status": "confirmed",
+    "recorded_at": "2026-10-16T12:01:00Z"
+  },
+  "current_meaning_ref": "cor_fx0002",
+  "invalidation": {
+    "analysis_revision": 3,
+    "event_id": "inv_fc8ba2cd6fa9cab6b6fcdd24d5c7d307",
+    "previous_revision": 2,
+    "reason": "teacher_meaning_confirmed"
+  },
+  "object_candidates": [
+    {
+      "confidence": 0.71,
+      "label": "cat",
+      "observation_ref": "ent-1"
+    },
+    {
+      "confidence": null,
+      "label": "ball",
+      "observation_ref": "ent-2"
+    }
+  ],
+  "original": {
+    "accepted_status": "accepted",
+    "analysis_id": "ana_fx0001",
+    "context_revision": 3,
+    "input_snapshot_ref": "snapshot_fx_001",
+    "job_attempt_id": "att_fx0001",
+    "job_id": "job_fx0001",
+    "observation_sha256": "b32e858e1024cb119bef6ea8a4ec6e504af210186c99018c7243929ae2f85768"
+  }
+}

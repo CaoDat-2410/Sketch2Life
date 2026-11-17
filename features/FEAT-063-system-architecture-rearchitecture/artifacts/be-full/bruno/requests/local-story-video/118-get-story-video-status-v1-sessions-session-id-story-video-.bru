@@ -1,0 +1,15 @@
+meta {
+  name: 118 [PROVIDER-CAPABLE - REVIEW BEFORE RUN] Get Story Video Status
+  type: http
+  seq: 118
+}
+
+get {
+  url: {{baseUrl}}/v1/sessions/{{session_id}}/story-video/{{job_id}}
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}

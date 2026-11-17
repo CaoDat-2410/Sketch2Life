@@ -1,0 +1,21 @@
+{
+  "checked_at": "2026-11-05T15:31:46+07:00",
+  "environment": "dev",
+  "task_owned_apps": [
+    {
+      "name": "sketch2life-srs23-drawing-vlm-dev",
+      "app_id": "ap-hkLJ6XzSSB1ohM4vTIXpsf",
+      "state": "stopped",
+      "tasks": 0,
+      "stopped_at": "2026-11-05T15:31:31+07:00"
+    },
+    {
+      "name": "sketch2life-srs23-language-audio-dev",
+      "app_id": "ap-TIESD5wt8qWc7McHycT09D",
+      "state": "stopped",
+      "tasks": 0,
+      "stopped_at": "2026-11-05T15:31:36+07:00"
+    }
+  ],
+  "shared_volumes_deleted": false
+}

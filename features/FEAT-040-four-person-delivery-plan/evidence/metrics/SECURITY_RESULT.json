@@ -1,0 +1,13 @@
+{
+  "check": "security",
+  "command": [
+    "python",
+    "-X",
+    "utf8",
+    "tools/validate_repository_security.py"
+  ],
+  "exit_code": 1,
+  "output_lines": 36,
+  "raw": "features/FEAT-040-four-person-delivery-plan/evidence/raw/security.txt",
+  "machine_paths_redacted": true
+}

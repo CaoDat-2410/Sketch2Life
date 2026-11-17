@@ -1,0 +1,34 @@
+meta {
+  name: 06 Attach admitted asset and dispatch one attempt
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{runRef}}/assets
+  body: json
+  auth: none
+}
+
+headers {
+  Idempotency-Key: {{attachAssetKey}}
+  If-Match: {{runETag}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "asset_ref": "{{assetRef}}",
+    "expected_revision": {{runRevision}}
+  }
+}
+
+script:post-response {
+  bru.setVar("runETag", res.headers.etag);
+}
+
+tests {
+  test("attaches the admitted asset", function () {
+    expect(res.getStatus()).to.equal(202);
+  });
+}

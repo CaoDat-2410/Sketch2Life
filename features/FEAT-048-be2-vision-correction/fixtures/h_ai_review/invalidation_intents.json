@@ -1,0 +1,20 @@
+[
+  {
+    "analysis_id": "ana_fx0001",
+    "analysis_revision": 2,
+    "correction_ref": "cor_fx0001",
+    "event_id": "inv_f1f7fa28a36b0ec59466c95d7cba35fd",
+    "occurred_at": "2026-10-16T12:00:20Z",
+    "previous_revision": 1,
+    "reason": "child_intent_proposed"
+  },
+  {
+    "analysis_id": "ana_fx0001",
+    "analysis_revision": 3,
+    "correction_ref": "cor_fx0002",
+    "event_id": "inv_fc8ba2cd6fa9cab6b6fcdd24d5c7d307",
+    "occurred_at": "2026-10-16T12:01:00Z",
+    "previous_revision": 2,
+    "reason": "teacher_meaning_confirmed"
+  }
+]

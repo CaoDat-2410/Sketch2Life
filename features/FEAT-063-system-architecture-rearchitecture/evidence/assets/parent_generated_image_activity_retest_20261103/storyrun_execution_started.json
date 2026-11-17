@@ -1,0 +1,8 @@
+{
+  "state": "TASK_FLOW_STARTED",
+  "flow_id": "bc10d728-90c8-488b-a817-03a96fa3b59b",
+  "created_at_local": "2026-11-03T23:44:43.424010+07:00",
+  "one_run_only": true,
+  "one_drawing_inference_only": true,
+  "video_enabled": false
+}

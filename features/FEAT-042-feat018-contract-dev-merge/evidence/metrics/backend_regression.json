@@ -1,0 +1,18 @@
+{
+  "command": [
+    "<original-workspace>/backend/.venv/Scripts/python.exe",
+    "-m",
+    "pytest",
+    "backend/tests/unit",
+    "backend/tests/contract",
+    "--ignore=backend/tests/unit/test_whiteboard_v2_engine.py",
+    "--ignore=backend/tests/unit/test_whiteboard_v2_visual_refinement.py",
+    "--basetemp=.tmp/feat042-pytest",
+    "-q"
+  ],
+  "cwd": "<worktree>",
+  "started_at_utc": "2026-10-10T13:06:22.399916+00:00",
+  "finished_at_utc": "2026-10-10T13:06:30.923454+00:00",
+  "exit_code": 2,
+  "status": "FAIL"
+}

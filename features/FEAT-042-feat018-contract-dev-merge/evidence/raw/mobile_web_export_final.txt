@@ -1,0 +1,32 @@
+● Validation Warning:
+
+  Unknown option "watcher.unstable_workerThreads" with value false was found.
+  This is probably a typing mistake. Fixing it will remove this message.
+
+Starting Metro Bundler
+| (node:27892) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+| (Use `node --trace-warnings ...` to show where the warning was created)
+| (node:33728) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+| (Use `node --trace-warnings ...` to show where the warning was created)
+Error: Failed to get the SHA-1 for: <owner-local>\node_modules\.pnpm\metro-runtime@0.81.5\node_modules\metro-runtime\src\polyfills\require.js.
+  Potential causes:
+    1) The file is not watched. Ensure it is under the configured `projectRoot` or `watchFolders`.
+    2) Check `blockList` in your metro.config.js and make sure it isn't excluding the file path.
+    3) The file may have been deleted since it was resolved - try refreshing your app.
+    4) Otherwise, this is a bug in Metro or the configured resolver - please report it.
+Error: Failed to get the SHA-1 for: <owner-local>\node_modules\.pnpm\metro-runtime@0.81.5\node_modules\metro-runtime\src\polyfills\require.js.
+  Potential causes:
+    1) The file is not watched. Ensure it is under the configured `projectRoot` or `watchFolders`.
+    2) Check `blockList` in your metro.config.js and make sure it isn't excluding the file path.
+    3) The file may have been deleted since it was resolved - try refreshing your app.
+    4) Otherwise, this is a bug in Metro or the configured resolver - please report it.
+    at missingSha1Error (<owner-local>\node_modules\.pnpm\metro@0.81.5_supports-color@8.1.1\node_modules\metro\src\node-haste\DependencyGraph.js:28:3)
+    at DependencyGraph.getSha1 (<owner-local>\node_modules\.pnpm\metro@0.81.5_supports-color@8.1.1\node_modules\metro\src\node-haste\DependencyGraph.js:189:13)
+    at Transformer._getSha1 (<owner-local>\node_modules\.pnpm\metro@0.81.5_supports-color@8.1.1\node_modules\metro\src\Bundler.js:21:43)
+    at Transformer.transformFile (<owner-local>\node_modules\.pnpm\metro@0.81.5_supports-color@8.1.1\node_modules\metro\src\DeltaBundler\Transformer.js:97:33)
+    at Bundler.transformFile (<owner-local>\node_modules\.pnpm\metro@0.81.5_supports-color@8.1.1\node_modules\metro\src\Bundler.js:49:30)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at Object.transform (<owner-local>\node_modules\.pnpm\metro@0.81.5_supports-color@8.1.1\node_modules\metro\src\lib\transformHelpers.js:139:12)
+    at transform (<owner-local>\node_modules\.pnpm\metro@0.81.5_supports-color@8.1.1\node_modules\metro\src\DeltaBundler\Graph.js:164:26)
+    at visit (<owner-local>\node_modules\.pnpm\metro@0.81.5_supports-color@8.1.1\node_modules\metro\src\DeltaBundler\buildSubgraph.js:82:29)
+    at async Promise.all (index 0)

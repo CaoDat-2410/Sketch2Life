@@ -1,0 +1,67 @@
+{
+  "recorded_at": "2026-10-15T12:06:48.111933+07:00",
+  "execution": "LOCAL_CODEX_DOCUMENTATION_ONLY",
+  "actual_owner_approval": "APPROVED_PHASE_B_PLAN_REV3_B1_B6",
+  "approval_source": "Actual user reply in this Codex chat2026-10-15; verbatim in approvals/PHASE_B_TASK_APPROVAL.md",
+  "approval_verbatim_matches": true,
+  "approved_decision_snapshot_revision": 8,
+  "approved_decision_snapshot_sha256": "0d5fdbfd783ddde3c08e739c23fe936784be73bcf8cb43dddf079dffde67164f",
+  "current_decision_revision": 9,
+  "phase_a_checkpoint": "ACCEPTED_CANDIDATE_FIXTURE",
+  "decision_authority": "PROJECT_OWNER_DIRECTIVE_NOT_P1_P2_P4_SIGNOFF",
+  "b1_exit": "CLOSED_COMPONENT_SCOPE",
+  "active_slot": "Q01",
+  "active_batch": "B2_READY_FOR_CLAUDE",
+  "backend_implementation": "NOT_STARTED",
+  "first_code_turn": "B2_ONLY_STOP_FOR_REVIEW_BEFORE_B3",
+  "business_cards": 14,
+  "implementation_wip": 1,
+  "full_card_done": 0,
+  "backend_files_unchanged": 471,
+  "phase_a_frozen_files_match": 24,
+  "existing_eof_disposition_preserved": "backend/tests/unit/test_ai_job_q00_followups.py",
+  "phase_a_approval_and_approved_plans_unchanged": true,
+  "gitignore_unchanged": true,
+  "local_diagnostic_originals_preserved": 61,
+  "mermaid_blocks_unchanged": 7,
+  "current_record_and_adr_bindings_match": true,
+  "peer_review": {
+    "reviewer": "phase_b_approval_handoff_audit",
+    "result": "PASS",
+    "scope": "Actual quote, frozen inputs, gate/ADR/diagram consistency and bounded B2 handoff; no runtime execution"
+  },
+  "checks": {
+    "harness": {
+      "command": "python -B tools/validate_harness.py --feature features/FEAT-044-be2-ai-job-foundation",
+      "exit_code": 0,
+      "output": "HARNESS_VALID\r\nroot=<BE2_WORKTREE>\r\napproval_gate=enabled\r\nfrontend_asset_gate=enabled\r\n"
+    },
+    "security": {
+      "command": "python -B tools/validate_repository_security.py",
+      "exit_code": 0,
+      "output": "REPOSITORY_SECURITY_VALID\r\npublishable_files_scanned=2968\r\nenvironment_files=excluded\r\nseed_accounts=excluded\r\ncredentials_and_signing_keys=excluded\r\nexternal_reference_documents=excluded\r\nabsolute_machine_paths=absent\r\n"
+    },
+    "diff": {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "output": ""
+    }
+  },
+  "current_feature_sha256": {
+    "approvals/PHASE_B_TASK_APPROVAL.md": "23be40808e496cacee8d712fcca717de7247158a2bbbcc25f263e337cd91d199",
+    "plan/PHASE_B_DECISION_RECORD.md": "71c469a1d494646c1644d4bcd66da067b629b11cfc0f29c57fa024bdb6e74f7f",
+    "plan/PHASE_B_PLAN.md": "bb20d5be45dc0552a803f67b5927d4a38dc113cabe10b3a6088644d874ba5848",
+    "plan/PHASE_B_ADR_PROPOSAL.md": "756b6df5ab8e8ec659ffabdc26a0083f035d28d63b86cebc54c6071c9f8ad0ac",
+    "plan/PHASE_B_PORT_REVIEW.md": "3af783a7efca61c5f098f7679b70bbdee4eb6034b9370291c282064ee5579699",
+    "evidence/notes/PHASE_A_ACCEPTANCE_GATE_RECORD.md": "0b3ddbc02ef139ac8a28fc0c344d9cb21d7837105859ca4ad62f6c4d91527644",
+    "evidence/notes/PHASE_B_B1_PROPOSED_SEQUENCES.md": "83711af035106f2dbec6bdc2c3890003e08302e6fb3b4d7b79351c4358fc1eab",
+    "evidence/notes/PHASE_B_B1_CLOSURE_AND_HANDOFF_20261015.md": "b0617792c3de43205018497abbea271bf104a5ffce6276d8900bdef92073abdb",
+    "plan/CLAUDE_PHASE_B_IMPLEMENTATION_PROMPT.md": "f03fbf2958feddb7983234aa3741bc839a525140d3c9abb2a0012fdfc452a0ea"
+  },
+  "current_adr_sha256": "bd70f8de397eea2e811c97bba3cfddb8145763643aeff0a19c190b404f4e17d3",
+  "remote_baseline_provenance": "USER_SUPPLIED_REMOTE_COMMAND_OUTPUT_NOT_INDEPENDENT_CODEX_RUN",
+  "runtime_tests": "NOT_RUN_NO_PHASE_B_CODE",
+  "committed": false,
+  "pushed": false,
+  "deployed": false
+}

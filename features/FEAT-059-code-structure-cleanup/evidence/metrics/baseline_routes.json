@@ -1,0 +1,465 @@
+[
+  {
+    "path": "/health",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/be1/v1/organizations/{organization_id}",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/be1/v1/organizations/{organization_id}/me",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/be1/v1/organizations/{organization_id}/assignments",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/be1/v1/organizations/{organization_id}/assignments/{assignment_id}",
+    "methods": [
+      "DELETE"
+    ]
+  },
+  {
+    "path": "/api/be1/v1/organizations/{organization_id}/classes",
+    "methods": [
+      "GET",
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles",
+    "methods": [
+      "GET",
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/consents",
+    "methods": [
+      "GET",
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/consents/{consent_id}/revoke",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/be1/v1/organizations/{organization_id}/sessions",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/lobby",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/start",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/pause",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/resume",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/finish",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/join",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/join-requests",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/join-requests/{grant_id}/admit",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/join-requests/{grant_id}/revoke",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/device-grants/{grant_id}/refresh",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/groups",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/groups/{group_id}/members/{child_id}",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/groups/{group_id}/control",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/memberships/{membership_id}/progress",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/memberships/{membership_id}/help",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/memberships/{membership_id}/leave",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/groups/{group_id}/turns/{child_id}",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/canvas/operations",
+    "methods": [
+      "GET",
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/groups/{group_id}/checkpoints",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/groups/{group_id}/checkpoints/latest",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/groups/{group_id}/restore",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/reconnect",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/artifacts",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/artifacts/{asset_ref}",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/be1/v1/organizations/{organization_id}/gallery",
+    "methods": [
+      "GET",
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/be1/v1/organizations/{organization_id}/gallery/{gallery_id}/publish",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/be1/v1/organizations/{organization_id}/gallery/{gallery_id}/annotations",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/observations",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}/portfolio",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/be1/v1/organizations/{organization_id}/data-requests",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/be1/v1/organizations/{organization_id}/data-requests/{request_id}",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/be1/v1/health",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/v1/profile/preferences/classify",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/v1/sessions",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/v1/sessions/{session_id}",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/v1/sessions/{session_id}/media/image",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/v1/sessions/{session_id}/media/audio",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/v1/sessions/{session_id}/understanding",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/v1/sessions/{session_id}/understanding/progress",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/v1/sessions/{session_id}/media/retake",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/v1/sessions/{session_id}/gate-a/confirm",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/v1/sessions/{session_id}/p1-context",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "path": "/v1/sessions/{session_id}/p1-filter",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/v1/sessions/{session_id}/experience/prepare",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/v1/sessions/{session_id}/gate-b/approve",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/v1/sessions/{session_id}/handoff",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/v1/sessions/{session_id}/renderer/launch",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/v1/sessions/{session_id}/feedback",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/v1/sessions/{session_id}/p1/context-options",
+    "methods": [
+      "GET",
+      "POST"
+    ]
+  },
+  {
+    "path": "/v1/sessions/{session_id}/p1/activity-suggestions",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/v1/sessions/{session_id}/p1/activity-suggestions/rank",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/v1/sessions/{session_id}/p1/context-candidates",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/v1/sessions/{session_id}/p1/context-options/finalize",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/v1/sessions/{session_id}/gallery",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/v1/renderer/source",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/v1/renderer/rig-package",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/v1/renderer/rig-mask",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/v1/renderer/pixi-asset",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/v1/sessions/{session_id}/whiteboard-video-jobs",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/v1/sessions/{session_id}/whiteboard-video",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/v1/sessions/{session_id}/whiteboard-video/file",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/v1/whiteboard/storyboards/preview",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/v1/sessions/{session_id}/story-video-jobs",
+    "methods": [
+      "GET",
+      "POST"
+    ]
+  },
+  {
+    "path": "/v1/sessions/{session_id}/story-video/{job_id}",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/v1/sessions/{session_id}/story-video/{job_id}/file",
+    "methods": [
+      "GET"
+    ]
+  }
+]

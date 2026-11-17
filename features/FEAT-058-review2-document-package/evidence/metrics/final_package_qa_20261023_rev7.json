@@ -1,0 +1,386 @@
+{
+  "revision": 7,
+  "files": [
+    {
+      "name": "SWP490_FA26SE225_R2_DesignBrief",
+      "path": "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\artifacts\\submission_r2_rev7\\SWP490_FA26SE225_R2_DesignBrief.pdf",
+      "pages": 4,
+      "chars_per_page": [
+        2173,
+        2316,
+        2726,
+        2341
+      ],
+      "first_page_text": "Sketch2Life | Review 2 | BM01 \nSWP490  |  CAPSTONE PROJECT  |  REVIEW 2  |  BM01 \nDesign Brief \nSketch2Life: Collaborative Creative Learning with AI for Children \n0. Header \nField Value \nProject / class FA26SE225 (inferred from file name; confirm); class is blank in the \nsupplied registration. \nTeam / roles Đạt SE193713, leader/full-stack; Hiếu SE184252, BE2; Bảo SE182733, \nFE; Khoa SE182682, BE1. \nSupervisor Lâm Hữu Khánh Phương. \nRepository / tag github.com/CaoDat-2410/Sketch2Life; local dev snapshot 0a7ce768; \nreview-2 tag TBD. \nVersion / date Review 2 draft v1.1 | 23 October 2026 | Ho Chi Minh City. \n \n1. Scope \nRegistration changes: none proposed. Supplied v1.2 remains the scope authority; this brief makes \nclassroom workflows and acceptance evidence explicit. \nIn scope: teacher-led classroom sessions for children aged 3-12; managed profiles and \nQR/session-code admission; individua",
+      "last_page_text": "Sketch2Life | Review 2 | BM01 \nAppendix A. Defense 1.1 Targets \nA1. Main Workflows \nID Workflow / actors Trigger and expected state change Prese\nnter \nWF-\n01 \nPrepare and admit class \nsession / Teacher, Child, \nBackend \nTeacher configures class; code join is checked; \nmembership is admitted; Session Lobby -> \nActive. \nKhoa \nWF-\n02 \nDraw and recover shared \ncanvas / Child, Teacher, \nBackend \nAccepted operations advance canvas revision; \nreconnect replays accepted sequence; \nattribution is preserved. \nBảo \nWF-\n03 \nRequest and review AI \nsketch / Child, Teacher, AI \nservice \nA scoped job becomes a reviewed proposal; \nChild choice is recorded; source artwork \nremains unchanged. \nHiếu \nWF-\n04 \nReview learning/video and \nclose / Teacher, Child, \nmedia service \nExact reviewed media or explicit skip is \nrecorded; activity/observation saves before \nsession close. \nĐạt \n \nEach workflow involves multiple actors and changes a main entity. The demo scenarios below are \nplanned, not completed demonstrations. \nA2. Demo Scenarios \nID Path Scenario / expected result Prese\nnter \nDS-\n01 WF-01 main Teacher admits valid synthetic profile; both surfaces show \nactive membership. Khoa \nDS-\n02 \nWF-01 \nexce",
+      "contact_sheets": [
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_DesignBrief\\contact-01.png"
+      ],
+      "page_images": [
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_DesignBrief\\page-01.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_DesignBrief\\page-02.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_DesignBrief\\page-03.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_DesignBrief\\page-04.png"
+      ]
+    },
+    {
+      "name": "SWP490_FA26SE225_R2_Registration",
+      "path": "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\artifacts\\submission_r2_rev7\\SWP490_FA26SE225_R2_Registration.pdf",
+      "pages": 9,
+      "chars_per_page": [
+        1703,
+        3183,
+        2762,
+        2862,
+        2875,
+        2834,
+        2624,
+        717,
+        956
+      ],
+      "first_page_text": "  \n  \nCAPSTONE PROJECT REGISTER  \n  \nClass:            Duration time:  from 09/2026 To 03/2027 \n(*) Profession: Software Engineer                   Specialty: SE                            \n(*) Kinds of person make registers:                Lecturer                 Students   \n  \n1. Register information for supervisor (if have)  \nNo. Full name Phone E-Mail  Title  \n  Supervisor   Lâm Hữu Khánh Phương  phuonglhk@fpt.edu.vn Giảng viên  \n2. Register information for students (if have)  \nNo. Full name  Student code  Phone  E-mail  Role in \nGroup  \n1 Đỗ Cao Đạt SE193713 0909908004 docaodat24.10@gmail.com  Leader \n2 Phạm Tấn Hiếu SE184252 0945021474 hieuptse184252@fpt.edu.vn   \n3 Vũ Chí Bảo SE182733 0937839123 BaoVCSE182733@fpt.edu.vn   \n4 Lý Anh Khoa SE182682 0902381647 Khoalase182682@fpt.edu.vn   \n  \n3. Register content of Capstone Project  \n(*) 3.1. Capstone Project name:  \n3.1.1. English: S",
+      "last_page_text": "S W P 4 9 0  ·  C A P S T O N E  P R O J E C T  ·  R E V I E W  2  ·  B M 0 3  \nRegistration Form – Record of Changes \n1. Project Information \nProject code FA26SE225 (inferred from filename; confirm) \nProject name Sketch2Life: Collaborative Creative Learning with AI for Children \nTeam Đỗ Cao Đạt SE193713; Phạm Tấn Hiếu SE184252; Vũ Chí Bảo SE182733; Lý Anh \nKhoa SE182682 \nSupervisor Lâm Hữu Khánh Phương \nCurrent registration version 1.2 \nProposed version 1.2 (No changes proposed) \nVersion BM03 v1.0 \nDate 23 October 2026 \n2. Changes \n☒ No changes to the current registration form \n \nNo. Section Current content Proposed content Reason Proposed \nby \n— All sections Supplied registration v1.2 No changes \nOwner has not requested a \nscope change; v1.2 remains the \nauthority for the Review 2 draft. \nProject \nowner \n3. Decision at Review 2 (completed by reviewers) \nNo. Decision (Accepted / Adjusted / \nRejected) \nReviewer note \n   \n   \n   \n   \n   \n   \n ",
+      "contact_sheets": [
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Registration\\contact-01.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Registration\\contact-02.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Registration\\contact-03.png"
+      ],
+      "page_images": [
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Registration\\page-01.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Registration\\page-02.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Registration\\page-03.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Registration\\page-04.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Registration\\page-05.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Registration\\page-06.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Registration\\page-07.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Registration\\page-08.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Registration\\page-09.png"
+      ]
+    },
+    {
+      "name": "SWP490_FA26SE225_R2_Report1-5_Tracking",
+      "path": "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\artifacts\\submission_r2_rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking.pdf",
+      "pages": 50,
+      "chars_per_page": [
+        505,
+        1615,
+        3163,
+        1029,
+        3499,
+        2395,
+        1674,
+        3221,
+        1671,
+        2020,
+        3153,
+        4532,
+        4059,
+        1648,
+        2698,
+        2256,
+        3267,
+        3350,
+        3021,
+        743,
+        1700,
+        3176,
+        3630,
+        1563,
+        2297,
+        1155,
+        2278,
+        331,
+        1095,
+        1043,
+        1710,
+        2329,
+        2828,
+        4334,
+        179,
+        4420,
+        637,
+        320,
+        188,
+        1857,
+        3016,
+        2511,
+        5840,
+        6406,
+        4160,
+        2948,
+        3345,
+        1264,
+        1801,
+        3827
+      ],
+      "first_page_text": "Sketch2Life | Review 2  |  1 \n \n \nMINISTRY OF EDUCATION AND TRAINING \n  \n \n \n \nFPT UNIVERSITY \n Capstone Project Document  \nSketch2Life: Collaborative Creative Learning with AI for \nChildren \n \nSketch2Life \nGroup Members \nĐỗ Cao Đạt  |  SE193713  |  Leader, Fullstack \nPhạm Tấn Hiếu  |  SE184252  |  BE2 \nVũ Chí Bảo  |  SE182733  |  FE \nLý Anh Khoa  |  SE182682  |  BE1 \nSupervisor Lâm Hữu Khánh Phương \nExt Supervisor N/A \nCapstone Project \ncode FA26SE225 (inferred) \n \nHo Chi Minh City, October 2026 \n \n",
+      "last_page_text": "Sketch2Life | Review 2  |  50 \n6. Owner Decisions and Closure Conditions \nDecision / task Owner Required evidence Target window / \ndue \nConfirm class/project code and Review \n2 registration disposition Đạt + supervisor Signed form or written correction; class/code \nno longer inferred. \nBefore \nsubmission; \ncalendar date TBD \nAgree versioned FE/UI ↔ backend \ncontracts and select release UI \nbaseline \nBảo + Khoa + Đạt Contract version, mounted route list, \nintegration receipt for each WF. W4-W7 proposal \nApprove classroom-first runtime \ncomposition and demo isolation Đạt + Khoa Feature approval, route inventory and \nregression receipt. Before staging \nMap logical entities/states to \nmigrations and approve nine-head \norder \nKhoa + Hiếu Schema crosswalk, clean-database \nupgrade/rollback report. W4-W5 proposal \nComplete consent purpose, copy \ninventory, retention and deletion rules \nĐạt + Khoa + \nsupervisor \nPolicy version, fail-closed tests, purge \nevidence and school process. \nBefore child-data \npilot \nProvide Modal deployment and \nspending profile Hiếu + owner Model/GPU/endpoint/region/scale/timeouts/se\ncrets/budget and synthetic acceptance. \nBefore AI \nacceptance \nComplete 61 case t",
+      "contact_sheets": [
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\contact-01.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\contact-02.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\contact-03.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\contact-04.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\contact-05.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\contact-06.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\contact-07.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\contact-08.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\contact-09.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\contact-10.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\contact-11.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\contact-12.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\contact-13.png"
+      ],
+      "page_images": [
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-01.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-02.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-03.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-04.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-05.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-06.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-07.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-08.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-09.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-10.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-11.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-12.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-13.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-14.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-15.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-16.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-17.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-18.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-19.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-20.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-21.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-22.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-23.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-24.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-25.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-26.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-27.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-28.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-29.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-30.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-31.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-32.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-33.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-34.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-35.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-36.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-37.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-38.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-39.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-40.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-41.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-42.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-43.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-44.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-45.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-46.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-47.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-48.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-49.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking\\page-50.png"
+      ]
+    },
+    {
+      "name": "SWP490_FA26SE225_R2_SelfReview",
+      "path": "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\artifacts\\submission_r2_rev7\\SWP490_FA26SE225_R2_SelfReview.pdf",
+      "pages": 3,
+      "chars_per_page": [
+        2197,
+        4795,
+        2492
+      ],
+      "first_page_text": "SWP490 · BM02 Self-Review Report · Page 1 \nS W P 4 9 0  ·  C A P S T O N E  P R O J E C T  ·  R E V I E W  2  ·  B M 0 2  \nSRS/SDD Self-Review Report – Review 2 \n1. Run Information \nProject code FA26SE225 (inferred from filename; confirm) \nProject name Sketch2Life: Collaborative Creative Learning with AI for Children \nTeam Đỗ Cao Đạt SE193713; Phạm Tấn Hiếu SE184252; Vũ Chí Bảo SE182733; Lý Anh \nKhoa SE182682 \nSupervisor Lâm Hữu Khánh Phương \nAI tool and model OpenAI Codex desktop coding agent, GPT-6 \nRun date 23 October 2026 \nRepository tag / commit \nNo review-2 tag exists. Local dev HEAD \n0a7ce768c153f2104cff930569c3eda6e484532c; working tree has uncommitted user \nchanges and was included in source review. \nRegistration form version used Phieu_FA26SE225_v1.2 \nVersion Draft self-review v1.0; not a tagged-baseline course run \nDate 23 October 2026 \n2. Standard Prompt \nYou are reviewing th",
+      "last_page_text": "SWP490 · BM02 Self-Review Report · Page 3 \nID Category Location Finding Severit\ny Evidence Team response \nSR-09 Scope / \nmetadata \nPhieu_FA26SE225_\nv1.2.docx; BM01 \nheader \nThe form body leaves class and \nproject code blank. FA26SE225 is \ninferred from the filename and must \nnot be treated as a confirmed \nclass/project identifier. \nMedium \nThe supplied form body \nhas an empty Class \nfield and no project-\ncode field value. \nProposed response: \nPlanned — Đạt \nconfirms from the \nofficial course record \nbefore submission. \n \nSR-10 Design vs \ncode \napps/admin-\nui/src/services/authS\nervice.ts; \napps/teacher-\nui/src/services; \napps/child-\nui/src/services \nThe Admin login currently returns a \nmock token and the Teacher/Child \nservices use fixtures or stubs. The \nreview documents their prototype \nstatus, but live adult identity and \nintegrated UI requests cannot be \nverified from those service modules. \nLow \nMock token and fixture \nservice code are visible \nin repository; no \nproduction identity \nreceipt is claimed. \nProposed response: \nKept for this draft \nbecause these \nsurfaces are \nprototypes; integrate \nthrough the approved \ncontracts before \nstaging. \n \n4. Top 5 Findings (as reported ",
+      "contact_sheets": [
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_SelfReview\\contact-01.png"
+      ],
+      "page_images": [
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_SelfReview\\page-01.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_SelfReview\\page-02.png",
+        "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\SWP490_FA26SE225_R2_SelfReview\\page-03.png"
+      ]
+    }
+  ],
+  "bm01": {
+    "pages": 4,
+    "appendix_first_page": 4,
+    "main_body_pages": 3,
+    "page_geometry_in": [
+      8.27,
+      11.69
+    ],
+    "margins_cm": [
+      2.0,
+      2.0,
+      2.0,
+      2.0
+    ],
+    "min_explicit_body_font_pt": 11.0,
+    "all_section_headers_present": true,
+    "test_target_61": true,
+    "test_target_31": true,
+    "known_gap_ids": [
+      "G1",
+      "G2",
+      "G3",
+      "G4",
+      "G5",
+      "G6"
+    ]
+  },
+  "bm02": {
+    "pages": 3,
+    "finding_ids_present": true,
+    "severity_counts_present": true,
+    "tag_absence_disclosed": true,
+    "prompt_first_line_present": true,
+    "team_response_present": true
+  },
+  "render_scale": 1.65,
+  "contact_sheet_pages": 4,
+  "outputs": {
+    "SWP490_FA26SE225_R2_DesignBrief": {
+      "docx": {
+        "path": "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\artifacts\\submission_r2_rev7\\SWP490_FA26SE225_R2_DesignBrief.docx",
+        "bytes": 43741,
+        "sha256": "08ecb897866af5025217c0168301b98f8ed143aef8d69c225baf7fa6b5a98c92"
+      },
+      "pdf": {
+        "path": "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\artifacts\\submission_r2_rev7\\SWP490_FA26SE225_R2_DesignBrief.pdf",
+        "bytes": 257897,
+        "sha256": "cb693bc0d3c58364673447eb0da454d380b8c6698e991b0c29b398977302920b"
+      }
+    },
+    "SWP490_FA26SE225_R2_Registration": {
+      "docx": {
+        "path": "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\artifacts\\submission_r2_rev7\\SWP490_FA26SE225_R2_Registration.docx",
+        "bytes": 1924852,
+        "sha256": "f98871c5c703254be3a6d7677535a20ae6d0b58443455b3019e81279c3dff66a"
+      },
+      "pdf": {
+        "path": "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\artifacts\\submission_r2_rev7\\SWP490_FA26SE225_R2_Registration.pdf",
+        "bytes": 404430,
+        "sha256": "0dc8cb5b1e7321b88ae748b700ce9dbabcb2c7c96e8b9856563550339fb68747"
+      }
+    },
+    "SWP490_FA26SE225_R2_Report1-5_Tracking": {
+      "docx": {
+        "path": "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\artifacts\\submission_r2_rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking.docx",
+        "bytes": 1513412,
+        "sha256": "2f1063a6a609d015313527efcad8ba710546ff0dd2cdb063716cc136e061ef6b"
+      },
+      "pdf": {
+        "path": "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\artifacts\\submission_r2_rev7\\SWP490_FA26SE225_R2_Report1-5_Tracking.pdf",
+        "bytes": 2692233,
+        "sha256": "0121400ea4acbe64aa30dcc5ab108ff42d9df98112b7418bb2b24f18b88eac98"
+      }
+    },
+    "SWP490_FA26SE225_R2_SelfReview": {
+      "docx": {
+        "path": "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\artifacts\\submission_r2_rev7\\SWP490_FA26SE225_R2_SelfReview.docx",
+        "bytes": 14742,
+        "sha256": "f3ea3fccaedeed57ddf2b999e2fa60ec9109424bea2a26b1635b089fb89a1640"
+      },
+      "pdf": {
+        "path": "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\artifacts\\submission_r2_rev7\\SWP490_FA26SE225_R2_SelfReview.pdf",
+        "bytes": 343207,
+        "sha256": "a02703f50f0ad8949b6d4e6894136e594041353f39f472a079c8e22c40140e69"
+      }
+    }
+  },
+  "sources": {
+    "registration_v1_2": {
+      "path": "C:\\Users\\docao\\Downloads\\Phieu_FA26SE225_v1.2 (1).docx",
+      "bytes": 1923246,
+      "sha256": "0c52809dfc24bacfe6d3f5e02f0f3150ba5453d999dabf739b2eadfeafbad5df"
+    },
+    "review2_guide": {
+      "path": "C:\\Users\\docao\\Downloads\\SWP490_R2_Huong-dan-chuan-bi-Review-2_1.pdf",
+      "bytes": 908772,
+      "sha256": "5c8b8c96d44edfd61336bacb0be4fe58bfec0d966e64a777ece628f9f6740bc7"
+    },
+    "bm01_template": {
+      "path": "C:\\Users\\docao\\Downloads\\SWP490_R2_BM04_Review2-Document\\SWP490_R2_BM01_Design_Brief_1.docx",
+      "bytes": 15808,
+      "sha256": "1fdcda346a65501601310952c1b0afebc3a3cdf70e4e6a70581e023a02e2f4c8"
+    },
+    "bm02_template": {
+      "path": "C:\\Users\\docao\\Downloads\\SWP490_R2_BM04_Review2-Document\\SWP490_R2_BM02_Self_Review_Report_1.docx",
+      "bytes": 13734,
+      "sha256": "c241bcff3373af69251c2c7344592d8d61cd4fdb275a01cd60f12e4fdece0e1e"
+    },
+    "bm03_template": {
+      "path": "C:\\Users\\docao\\Downloads\\SWP490_R2_BM04_Review2-Document\\SWP490_R2_BM03_Record_of_Changes_1.docx",
+      "bytes": 12142,
+      "sha256": "f84aa223171806139abb01617f9824daaf8ae4197e74f03ecbfd01d9f5c39ebb"
+    },
+    "canonical_srs_v3_1": {
+      "path": "D:\\Project\\CAPSTONE\\features\\FEAT-039-collaborative-learning-scope\\artifacts\\Collaborative_Learning_SRS_v3.1.md",
+      "bytes": 380980,
+      "sha256": "a95c89589843e3555e967c5e486f3bcaf4bbdf9446cb3bc9c49ed16f672964d9"
+    }
+  },
+  "docx_structure": {
+    "SWP490_FA26SE225_R2_DesignBrief": {
+      "zip_integrity": true,
+      "parsed_by_python_docx": true,
+      "paragraph_count": 33,
+      "table_count": 10
+    },
+    "SWP490_FA26SE225_R2_Registration": {
+      "zip_integrity": true,
+      "parsed_by_python_docx": true,
+      "paragraph_count": 167,
+      "table_count": 6
+    },
+    "SWP490_FA26SE225_R2_Report1-5_Tracking": {
+      "zip_integrity": true,
+      "parsed_by_python_docx": true,
+      "paragraph_count": 247,
+      "table_count": 61
+    },
+    "SWP490_FA26SE225_R2_SelfReview": {
+      "zip_integrity": true,
+      "parsed_by_python_docx": true,
+      "paragraph_count": 8,
+      "table_count": 5
+    }
+  },
+  "horizontal_layout": {
+    "minimum_required_edge_clearance_pt": 18,
+    "worst_left_clearance_pt": 47.0,
+    "worst_right_clearance_pt": 29.88,
+    "violations": []
+  },
+  "checks": {
+    "exactly_four_dossiers_with_docx_and_pdf": true,
+    "all_docx_packages_valid_and_parseable": true,
+    "report_has_38_use_cases": true,
+    "report_has_66_functional_requirements": true,
+    "bm01_main_body_at_most_four_pages": true,
+    "bm01_a4_and_2cm_margins": true,
+    "bm01_content_font_at_least_11pt": true,
+    "bm02_prompt_matches_official_template": true,
+    "bm02_tagged_run_limitation_disclosed": true,
+    "all_rendered_pages_have_page_images": true,
+    "no_horizontal_page_overflow": true,
+    "application_tests_run_for_document_task": false,
+    "review_2_tag_created": false,
+    "commit_or_push_performed": false
+  },
+  "baseline": {
+    "branch": "dev",
+    "commit": "0a7ce768c153f2104cff930569c3eda6e484532c",
+    "working_tree": "dirty; FEAT-059 cleanup and local user changes are uncommitted",
+    "review_2_tag": "TBD; does not satisfy the guide's tagged-baseline BM02 run gate",
+    "modal": "selected; deployment configuration TBD"
+  },
+  "visual_review": {
+    "status": "all final PDF pages rendered to page PNGs and visually inspected in contact sheets",
+    "render_inventory": "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7\\revision7_render_inventory.json",
+    "render_directory": "D:\\Project\\CAPSTONE\\features\\FEAT-058-review2-document-package\\evidence\\render\\final\\rev7"
+  }
+}

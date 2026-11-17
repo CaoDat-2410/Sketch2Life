@@ -1,0 +1,40 @@
+{
+  "scope": "read-only additional probes; fresh synthetic fakes",
+  "probes": {
+    "semantic_scope": {
+      "same_job": true,
+      "outcome": "deduplicated",
+      "stored_scope": {
+        "target": "assistance_fx_001",
+        "session": "session_fx_001",
+        "subjects": [
+          "child_fx_001"
+        ]
+      }
+    },
+    "completion_before_start": {
+      "first_reason": "INVALID_STATE",
+      "second_reason": "INVALID_STATE",
+      "same_receipt": true,
+      "state": "running"
+    },
+    "corrected_completion": {
+      "first_reason": "INPUT_MISMATCH",
+      "corrected": "COMPLETION_CONFLICT",
+      "state": "running"
+    },
+    "poll_etag_backoff": {
+      "before_ms": 2000,
+      "after_ms": 10000,
+      "same_etag": true,
+      "conditional_304": true
+    },
+    "foreign_quarantine": {
+      "reason": "INPUT_MISMATCH",
+      "foreign_ref": "artifact_fx0001",
+      "quarantined": {
+        "artifact_fx0001": "INPUT_MISMATCH"
+      }
+    }
+  }
+}

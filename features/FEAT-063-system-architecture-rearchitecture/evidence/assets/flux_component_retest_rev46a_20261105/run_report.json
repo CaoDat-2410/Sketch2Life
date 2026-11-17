@@ -1,0 +1,155 @@
+{
+  "active_qwen_profile": "Qwen/Qwen3.5-9B",
+  "child_data_used": false,
+  "download": {
+    "app": "sketch2life-srs23-flux-image-dev",
+    "call_id": "fc-01M6P720ANWE1EF7NFZXHMP2K3",
+    "completed_at": "2026-11-05T23:01:33.464+07:00",
+    "dispatched_at": "2026-11-05T23:00:33.760+07:00",
+    "elapsed_ms": 61471.58,
+    "function": "download-flux-pinned-model",
+    "max_attempts": 1,
+    "model_volume_retained": true,
+    "outcome": "SUCCEEDED",
+    "result": {
+      "model_id": "black-forest-labs/flux-3-image-klein",
+      "prompt_upsampler_id": "black-forest-labs/flux-3-image-klein-pup",
+      "prompt_upsampler_revision": "a57899549f8f6f64c6c4d88db30827d496ff76d0",
+      "revision": "09561231f44e41381c461caf53d5452005a60ac9",
+      "status": "downloaded"
+    },
+    "secret_resource_name": "huggingface-secret",
+    "secret_value_read_by_runner": false,
+    "started_at": "2026-11-05T23:00:31.990+07:00",
+    "workload": "model.checkpoint.download"
+  },
+  "ended_at": "2026-11-05T23:03:27.844+07:00",
+  "inferences": [
+    {
+      "app": "sketch2life-srs23-flux-image-dev",
+      "asset_file": "parent_sketch_guide_candidate.png",
+      "attempt_id": "81aa3833-aa6e-44f3-9fc4-005d7de0644e",
+      "attempt_prefix": "sketch2life/dev/6ecea627-5631-460e-98ba-83052da6938c/afde8794-466b-4104-8729-637c37d6ccb7/81aa3833-aa6e-44f3-9fc4-005d7de0644e/",
+      "call_id": "fc-01M6P73WY59DN5FY9S8XZ7J7VA",
+      "completed_at": "2026-11-05T23:02:39.237+07:00",
+      "dispatched_at": "2026-11-05T23:01:35.836+07:00",
+      "elapsed_ms": 65772.3,
+      "function": "generate-line-sketch-guide-candidate",
+      "generation_id": "afde8794-466b-4104-8729-637c37d6ccb7",
+      "input_sha256": "0f28f8f178af4c345be15dea36577d2b7b2be4dc405ac331c24463f597c9b97e",
+      "job_id": "6ecea627-5631-460e-98ba-83052da6938c",
+      "manifest_sha256": "f714412b9aecf410f83a46b1c131e2e60ba1314e6e6ef41a041b725b0d52492b",
+      "max_attempts": 1,
+      "outcome": "SUCCEEDED",
+      "output_sha256": "9dd281ad5276e68f7131531894337311a5401f42618978f131b86f5ebd280ef5",
+      "result": {
+        "asset": {
+          "content_type": "image/png",
+          "height": 512,
+          "sha256": "ee22f36b5b9a465bffd08c826f52bd8570436a7f900aca01dce08a4105d0686d",
+          "size_bytes": 335324,
+          "width": 768
+        },
+        "attempt_id": "81aa3833-aa6e-44f3-9fc4-005d7de0644e",
+        "generation_id": "afde8794-466b-4104-8729-637c37d6ccb7",
+        "job_id": "6ecea627-5631-460e-98ba-83052da6938c",
+        "limitations": [
+          "synthetic candidate only; line-step ordering and child usability are unevaluated",
+          "not safety-approved, not registered as a product asset, and not publishable",
+          "no child, profile, drawing, voice, or image reference was used"
+        ],
+        "model": {
+          "image_generator": {
+            "id": "black-forest-labs/flux-3-image-klein",
+            "revision": "09561231f44e41381c461caf53d5452005a60ac9"
+          },
+          "prompt_upsampler": {
+            "id": "black-forest-labs/flux-3-image-klein-pup",
+            "revision": "a57899549f8f6f64c6c4d88db30827d496ff76d0"
+          }
+        },
+        "prompt_sha256": "112a7936f67f1423d60328a005acab923901d49238fa959bfcfde27492f795f0",
+        "review_required": true,
+        "schema_version": "sketch2life.modal.worker-output.v1",
+        "status": "DRAFT",
+        "workload": "parent.sketch-guide.generate"
+      },
+      "scratch_input_removed": true,
+      "started_at": "2026-11-05T23:01:33.465+07:00",
+      "workload": "parent.sketch-guide.generate"
+    },
+    {
+      "app": "sketch2life-srs23-flux-image-dev",
+      "asset_file": "lesson_visual_candidate.png",
+      "attempt_id": "375c0b2c-68b1-4e0b-bf40-536e9ec8d46a",
+      "attempt_prefix": "sketch2life/dev/aa1770eb-716b-4d0d-a9fe-0837368b5249/7bab926a-499d-4921-ac4a-346cc071d591/375c0b2c-68b1-4e0b-bf40-536e9ec8d46a/",
+      "call_id": "fc-01M6P760MQCHW7YCJR5Q0QB3J8",
+      "completed_at": "2026-11-05T23:03:27.150+07:00",
+      "dispatched_at": "2026-11-05T23:02:45.160+07:00",
+      "elapsed_ms": 47205.54,
+      "function": "generate-approved-lesson-visual-candidate",
+      "generation_id": "7bab926a-499d-4921-ac4a-346cc071d591",
+      "input_sha256": "6f4a5e1cf26ace51c3f9afbc675c9ce6995c6f5201fefabdf309b61079f57a38",
+      "job_id": "aa1770eb-716b-4d0d-a9fe-0837368b5249",
+      "manifest_sha256": "9bceb40a626b5f273f77c0ec37cf6b224b4b0569d81511c95baed3205a09bb6e",
+      "max_attempts": 1,
+      "outcome": "SUCCEEDED",
+      "output_sha256": "501f768d1d06d3e041b5fec4e412f9b847cef08b750abb56c436d6da136b138d",
+      "result": {
+        "asset": {
+          "content_type": "image/png",
+          "height": 432,
+          "sha256": "a5ca6981ec5418d9cfa13aa86a5adcf347753307d9111d79760f6f95365288b2",
+          "size_bytes": 254114,
+          "width": 768
+        },
+        "attempt_id": "375c0b2c-68b1-4e0b-bf40-536e9ec8d46a",
+        "content_hash": "c156b62a6ad8418b60fc1b04a648ff1ade151dd591f06c190bd9488d2924ca3b",
+        "generation_id": "7bab926a-499d-4921-ac4a-346cc071d591",
+        "job_id": "aa1770eb-716b-4d0d-a9fe-0837368b5249",
+        "limitations": [
+          "synthetic lesson candidate; exact visual fidelity to approved steps is unevaluated",
+          "not safety-approved, not registered as a product asset, and not publishable",
+          "source lesson text and approved revision/hash are retained as provenance"
+        ],
+        "model": {
+          "image_generator": {
+            "id": "black-forest-labs/flux-3-image-klein",
+            "revision": "09561231f44e41381c461caf53d5452005a60ac9"
+          },
+          "prompt_upsampler": {
+            "id": "black-forest-labs/flux-3-image-klein-pup",
+            "revision": "a57899549f8f6f64c6c4d88db30827d496ff76d0"
+          }
+        },
+        "plan_revision_ref": "rev46a-synthetic-reviewed-lesson-v1",
+        "prompt_sha256": "f3e03e7c3651f600fbe3ff07e28da1076da1e5ca2954a0cf9176420d16ed0a2a",
+        "review_required": true,
+        "schema_version": "sketch2life.modal.worker-output.v1",
+        "status": "DRAFT",
+        "workload": "lesson.visual.generate"
+      },
+      "scratch_input_removed": true,
+      "started_at": "2026-11-05T23:02:39.944+07:00",
+      "workload": "lesson.visual.generate"
+    }
+  ],
+  "max_attempts_per_modal_function": 1,
+  "model_volume": "sketch2life-dev-model-weights-v2",
+  "model_volume_deleted": false,
+  "outcome": "SUCCEEDED_ALL",
+  "plan": "PLAN_REV46A_FLUX_COMPONENT_FILES_AND_FAILED_FLOW_RETEST_20261105.md",
+  "qwen2_runtime_called": false,
+  "qwen_story_or_drawing_retested": false,
+  "required_model_components": [
+    "transformer",
+    "vae"
+  ],
+  "secret_resource_name": "huggingface-secret",
+  "secret_value_read_by_runner": false,
+  "started_at": "2026-11-05T23:00:31.990+07:00",
+  "synthetic_only": true,
+  "updated_at": "2026-11-05T23:03:27.844+07:00",
+  "video_called": false,
+  "wait_limit_seconds_per_inference": 900
+}

@@ -1,0 +1,58 @@
+{
+  "parent_flow": {
+    "flow_id": "7bcdb924-4f53-45d0-8eed-796748733388",
+    "started_at": "2026-11-04T12:23:32+07:00",
+    "image": {
+      "file": "synthetic_childlike_butterfly.png",
+      "sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949",
+      "size_bytes": 1775882
+    },
+    "video_calls": 0,
+    "activities_selected": false,
+    "run_ref": "c0ce11e9-cd7d-4743-9bf0-5f1dfc1fbb90",
+    "upload_ref": "c8805719-faa1-4796-8448-00abc3bb4832",
+    "run_after_vlm": {
+      "run_ref": "c0ce11e9-cd7d-4743-9bf0-5f1dfc1fbb90",
+      "run_state": "SUBJECT_REVIEW",
+      "revision": 3,
+      "version": 4,
+      "child_age_months": 60,
+      "target_revision": 1,
+      "created_at": "2026-11-04T05:23:34.409492+00:00",
+      "updated_at": "2026-11-04T05:24:24.039622+00:00",
+      "job_state": "SUCCEEDED",
+      "retryable": false,
+      "action_required": null,
+      "error": null,
+      "result": {
+        "understanding_revision": 1,
+        "subject_label": "bướm",
+        "confidence": 0.0
+      }
+    },
+    "drawing_model": null,
+    "state": "STORY_OUTCOME_UNKNOWN_NO_RETRY",
+    "ended_at": "2026-11-04T12:34:02+07:00",
+    "error_type": "KeyError",
+    "error": "'ETag'",
+    "adult_subject_decision": {
+      "decision": "CONFIRM",
+      "candidate": "bướm"
+    },
+    "story_generation_elapsed_ms": 102634.53,
+    "story_generation_error": {
+      "code": "STORY_OUTCOME_UNKNOWN",
+      "message": "The story request needs review and will not be resent automatically.",
+      "correlation_id": "04746081-66fd-428f-aa1e-ee3c1b841252",
+      "retryable": false,
+      "retry_after_seconds": null,
+      "field_errors": null,
+      "run_ref": "c0ce11e9-cd7d-4743-9bf0-5f1dfc1fbb90",
+      "story_revision_ref": "928b747a-c812-4821-95e0-8f3db7887d76",
+      "revision_no": 1,
+      "state": "AWAITING_RECONCILIATION"
+    },
+    "continuation_error_type": "RuntimeError",
+    "continuation_error": "Story call returned an asynchronous/unknown outcome; no retry allowed."
+  }
+}

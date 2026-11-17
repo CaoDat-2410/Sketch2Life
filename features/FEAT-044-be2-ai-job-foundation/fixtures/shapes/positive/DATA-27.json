@@ -1,0 +1,9 @@
+{
+  "audience_context_revision": 3,
+  "bundle_hash": "fbe0c35964aa06598accbb75309da67fb0812773232f7909b853ec86f8b1bb56",
+  "bundle_id": "bundle_fx_001",
+  "bundle_version": 1,
+  "candidate_library_asset_ref": "library_asset_fx_001",
+  "requested_profile_ref": null,
+  "strategy": "reviewed_library"
+}

@@ -1,0 +1,612 @@
+{
+  "started_at": "2026-11-04T17:14:09+07:00",
+  "scope": "synthetic route contract checks; no AI dispatch",
+  "actor_scope_ref": "synthetic-parent-api-contract-retest-v2-20261104",
+  "ai_dispatches": 0,
+  "video_calls": 0,
+  "api_records": [
+    {
+      "name": "reject_missing_age",
+      "method": "POST",
+      "path": "/v1/story-runs",
+      "status": 422,
+      "elapsed_ms": 2.72,
+      "headers": {
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "code": "INVALID_REQUEST",
+        "message": "The request body or path parameters are invalid.",
+        "correlation_id": "d6a96ca6-7ddc-43a3-91bc-529d80b6d65c",
+        "retryable": false,
+        "field_errors": [
+          {
+            "field": "child_age_months",
+            "code": "INVALID_FIELD",
+            "message": "The field is missing or has an invalid value."
+          }
+        ]
+      }
+    },
+    {
+      "name": "create_contract_run",
+      "method": "POST",
+      "path": "/v1/story-runs",
+      "status": 201,
+      "elapsed_ms": 33.74,
+      "headers": {
+        "ETag": "\"v1\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "dd60a92e-3bea-4e40-a3f3-0b2ea6e85052",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 1,
+        "version": 1,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T10:14:11.024649+00:00",
+        "updated_at": "2026-11-04T10:14:11.024649+00:00",
+        "job_state": null,
+        "retryable": false,
+        "action_required": null,
+        "error": null,
+        "result": null
+      }
+    },
+    {
+      "name": "get_contract_run",
+      "method": "GET",
+      "path": "/v1/story-runs/dd60a92e-3bea-4e40-a3f3-0b2ea6e85052",
+      "status": 200,
+      "elapsed_ms": 5.07,
+      "headers": {
+        "ETag": "\"v1\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "dd60a92e-3bea-4e40-a3f3-0b2ea6e85052",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 1,
+        "version": 1,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T10:14:11.024649+00:00",
+        "updated_at": "2026-11-04T10:14:11.024649+00:00",
+        "job_state": null,
+        "retryable": false,
+        "action_required": null,
+        "error": null,
+        "result": null
+      }
+    },
+    {
+      "name": "reject_unknown_asset_without_ai",
+      "method": "POST",
+      "path": "/v1/story-runs/dd60a92e-3bea-4e40-a3f3-0b2ea6e85052/assets",
+      "status": 404,
+      "elapsed_ms": 8.27,
+      "headers": {
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "code": "NOT_FOUND",
+        "message": "Admitted artwork was not found in this Parent scope.",
+        "correlation_id": "3df40a66-7b2e-4070-980f-df25711beb58",
+        "retryable": false,
+        "field_errors": null
+      }
+    },
+    {
+      "name": "reject_subject_confirmation_before_analysis",
+      "method": "POST",
+      "path": "/v1/story-runs/dd60a92e-3bea-4e40-a3f3-0b2ea6e85052/subject-confirmation",
+      "status": 409,
+      "elapsed_ms": 9.01,
+      "headers": {
+        "ETag": "\"v1\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "code": "STALE_REVISION",
+        "message": "The current subject understanding changed; reload it before confirming.",
+        "correlation_id": "0bce26b9-e09b-47a5-8d07-6210d75f3c93",
+        "retryable": false,
+        "retry_after_seconds": null,
+        "field_errors": null
+      }
+    },
+    {
+      "name": "reject_story_before_subject_confirmation",
+      "method": "POST",
+      "path": "/v1/story-runs/dd60a92e-3bea-4e40-a3f3-0b2ea6e85052/story-revisions",
+      "status": 409,
+      "elapsed_ms": 13.71,
+      "headers": {
+        "ETag": "\"v1\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "code": "INVALID_STATE",
+        "message": "Confirm the drawing subject before generating a story.",
+        "correlation_id": "ac132678-f8a3-467b-9012-93c4a67df56c",
+        "retryable": false,
+        "retry_after_seconds": null,
+        "field_errors": null
+      }
+    },
+    {
+      "name": "get_missing_story_revision",
+      "method": "GET",
+      "path": "/v1/story-runs/dd60a92e-3bea-4e40-a3f3-0b2ea6e85052/story-revisions/02b733e3-0010-41b2-80c1-eb5c6768c53e",
+      "status": 404,
+      "elapsed_ms": 5.76,
+      "headers": {
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "code": "NOT_FOUND",
+        "message": "Story revision not found.",
+        "correlation_id": "95cda132-85d7-4b6f-9e38-51ab9c3e22e8",
+        "retryable": false,
+        "field_errors": null
+      }
+    },
+    {
+      "name": "confirm_missing_story_revision",
+      "method": "POST",
+      "path": "/v1/story-runs/dd60a92e-3bea-4e40-a3f3-0b2ea6e85052/story-revisions/02b733e3-0010-41b2-80c1-eb5c6768c53e/confirmation",
+      "status": 404,
+      "elapsed_ms": 8.81,
+      "headers": {
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "code": "NOT_FOUND",
+        "message": "Story revision not found.",
+        "correlation_id": "c0df9162-5e59-48a8-ad18-759c20cd2493",
+        "retryable": false,
+        "field_errors": null
+      }
+    },
+    {
+      "name": "cancel_contract_run",
+      "method": "POST",
+      "path": "/v1/story-runs/dd60a92e-3bea-4e40-a3f3-0b2ea6e85052/cancel",
+      "status": 202,
+      "elapsed_ms": 12.44,
+      "headers": {
+        "ETag": "\"v2\"",
+        "Location": "/v1/story-runs/dd60a92e-3bea-4e40-a3f3-0b2ea6e85052",
+        "Retry-After": "1",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "dd60a92e-3bea-4e40-a3f3-0b2ea6e85052",
+        "run_state": "DELETE_PENDING",
+        "revision": 2,
+        "version": 2,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T10:14:11.024649+00:00",
+        "updated_at": "2026-11-04T10:14:11.098556+00:00",
+        "job_state": null,
+        "retryable": false,
+        "action_required": null,
+        "error": null,
+        "result": null
+      }
+    },
+    {
+      "name": "create_upload_target_run",
+      "method": "POST",
+      "path": "/v1/story-runs",
+      "status": 201,
+      "elapsed_ms": 10.74,
+      "headers": {
+        "ETag": "\"v1\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "c501e202-f7e8-4434-b0bd-0fb85caea0a5",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 1,
+        "version": 1,
+        "child_age_months": 72,
+        "target_revision": null,
+        "created_at": "2026-11-04T10:14:11.111520+00:00",
+        "updated_at": "2026-11-04T10:14:11.111520+00:00",
+        "job_state": null,
+        "retryable": false,
+        "action_required": null,
+        "error": null,
+        "result": null
+      }
+    },
+    {
+      "name": "create_upload_session",
+      "method": "POST",
+      "path": "/v1/upload-sessions",
+      "status": 201,
+      "elapsed_ms": 15.54,
+      "headers": {
+        "ETag": "\"v1\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "upload_ref": "0c2a6ceb-a88d-4835-9990-6aaee7241030",
+        "state": "RECEIVING",
+        "version": 1,
+        "part_size_bytes": 4194304,
+        "max_total_bytes": 20971520,
+        "max_parts": 5,
+        "parts": [],
+        "asset_ref": null,
+        "derived_asset_ref": null,
+        "expires_at": "2026-11-04T12:14:11.123573+00:00",
+        "error": null
+      }
+    },
+    {
+      "name": "put_upload_part",
+      "method": "PUT",
+      "path": "/v1/upload-sessions/0c2a6ceb-a88d-4835-9990-6aaee7241030/parts/1",
+      "status": 200,
+      "elapsed_ms": 21.5,
+      "headers": {
+        "ETag": "\"v1\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "part_no": 1,
+        "size_bytes": 1775882,
+        "sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949"
+      }
+    },
+    {
+      "name": "get_upload_before_complete",
+      "method": "GET",
+      "path": "/v1/upload-sessions/0c2a6ceb-a88d-4835-9990-6aaee7241030",
+      "status": 200,
+      "elapsed_ms": 7.96,
+      "headers": {
+        "ETag": "\"v1\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "upload_ref": "0c2a6ceb-a88d-4835-9990-6aaee7241030",
+        "state": "RECEIVING",
+        "version": 1,
+        "part_size_bytes": 4194304,
+        "max_total_bytes": 20971520,
+        "max_parts": 5,
+        "parts": [
+          {
+            "part_no": 1,
+            "size_bytes": 1775882,
+            "sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949"
+          }
+        ],
+        "asset_ref": null,
+        "derived_asset_ref": null,
+        "expires_at": "2026-11-04T12:14:11.123573+00:00",
+        "error": null
+      }
+    },
+    {
+      "name": "complete_upload",
+      "method": "POST",
+      "path": "/v1/upload-sessions/0c2a6ceb-a88d-4835-9990-6aaee7241030/complete",
+      "status": 202,
+      "elapsed_ms": 730.27,
+      "headers": {
+        "ETag": "\"v2\"",
+        "Location": "/v1/upload-sessions/0c2a6ceb-a88d-4835-9990-6aaee7241030",
+        "Retry-After": "1",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "upload_ref": "0c2a6ceb-a88d-4835-9990-6aaee7241030",
+        "state": "PENDING",
+        "version": 2,
+        "part_size_bytes": 4194304,
+        "max_total_bytes": 20971520,
+        "max_parts": 5,
+        "parts": [
+          {
+            "part_no": 1,
+            "size_bytes": 1775882,
+            "sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949"
+          }
+        ],
+        "asset_ref": null,
+        "derived_asset_ref": null,
+        "expires_at": "2026-11-04T12:14:11.123573+00:00",
+        "error": null
+      }
+    },
+    {
+      "name": "poll_completed_upload",
+      "method": "GET",
+      "path": "/v1/upload-sessions/0c2a6ceb-a88d-4835-9990-6aaee7241030",
+      "status": 200,
+      "elapsed_ms": 8.31,
+      "headers": {
+        "ETag": "\"v4\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "upload_ref": "0c2a6ceb-a88d-4835-9990-6aaee7241030",
+        "state": "READY",
+        "version": 4,
+        "part_size_bytes": 4194304,
+        "max_total_bytes": 20971520,
+        "max_parts": 5,
+        "parts": [
+          {
+            "part_no": 1,
+            "size_bytes": 1775882,
+            "sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949"
+          }
+        ],
+        "asset_ref": "6e8485b6-1e8b-43ef-9ee2-844170f62970",
+        "derived_asset_ref": "d050b39e-b3b2-4fbb-b9cd-d33fac09d87e",
+        "expires_at": "2026-11-04T12:14:11.123573+00:00",
+        "error": null
+      }
+    },
+    {
+      "name": "read_upload_target_run",
+      "method": "GET",
+      "path": "/v1/story-runs/c501e202-f7e8-4434-b0bd-0fb85caea0a5",
+      "status": 200,
+      "elapsed_ms": 6.53,
+      "headers": {
+        "ETag": "\"v1\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "c501e202-f7e8-4434-b0bd-0fb85caea0a5",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 1,
+        "version": 1,
+        "child_age_months": 72,
+        "target_revision": null,
+        "created_at": "2026-11-04T10:14:11.111520+00:00",
+        "updated_at": "2026-11-04T10:14:11.111520+00:00",
+        "job_state": null,
+        "retryable": false,
+        "action_required": null,
+        "error": null,
+        "result": null
+      }
+    },
+    {
+      "name": "cancel_upload_target_run",
+      "method": "POST",
+      "path": "/v1/story-runs/c501e202-f7e8-4434-b0bd-0fb85caea0a5/cancel",
+      "status": 202,
+      "elapsed_ms": 12.93,
+      "headers": {
+        "ETag": "\"v2\"",
+        "Location": "/v1/story-runs/c501e202-f7e8-4434-b0bd-0fb85caea0a5",
+        "Retry-After": "1",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "c501e202-f7e8-4434-b0bd-0fb85caea0a5",
+        "run_state": "DELETE_PENDING",
+        "revision": 2,
+        "version": 2,
+        "child_age_months": 72,
+        "target_revision": null,
+        "created_at": "2026-11-04T10:14:11.111520+00:00",
+        "updated_at": "2026-11-04T10:14:12.919209+00:00",
+        "job_state": null,
+        "retryable": false,
+        "action_required": null,
+        "error": null,
+        "result": null
+      }
+    },
+    {
+      "name": "create_delete_target_run",
+      "method": "POST",
+      "path": "/v1/story-runs",
+      "status": 201,
+      "elapsed_ms": 11.74,
+      "headers": {
+        "ETag": "\"v1\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "9d37d727-38c6-4cf2-9bf3-39bed75d72be",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 1,
+        "version": 1,
+        "child_age_months": 48,
+        "target_revision": null,
+        "created_at": "2026-11-04T10:14:12.932745+00:00",
+        "updated_at": "2026-11-04T10:14:12.932745+00:00",
+        "job_state": null,
+        "retryable": false,
+        "action_required": null,
+        "error": null,
+        "result": null
+      }
+    },
+    {
+      "name": "create_pending_upload_for_delete",
+      "method": "POST",
+      "path": "/v1/upload-sessions",
+      "status": 201,
+      "elapsed_ms": 14.37,
+      "headers": {
+        "ETag": "\"v1\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "upload_ref": "47c5c44b-1125-4c09-9436-3642ad0ae8b5",
+        "state": "RECEIVING",
+        "version": 1,
+        "part_size_bytes": 4194304,
+        "max_total_bytes": 20971520,
+        "max_parts": 5,
+        "parts": [],
+        "asset_ref": null,
+        "derived_asset_ref": null,
+        "expires_at": "2026-11-04T12:14:12.946375+00:00",
+        "error": null
+      }
+    },
+    {
+      "name": "delete_pending_upload",
+      "method": "DELETE",
+      "path": "/v1/upload-sessions/47c5c44b-1125-4c09-9436-3642ad0ae8b5",
+      "status": 202,
+      "elapsed_ms": 16.56,
+      "headers": {
+        "ETag": "\"v2\"",
+        "Location": "/v1/upload-sessions/47c5c44b-1125-4c09-9436-3642ad0ae8b5",
+        "Retry-After": "1",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "upload_ref": "47c5c44b-1125-4c09-9436-3642ad0ae8b5",
+        "state": "ABORTED",
+        "version": 2,
+        "part_size_bytes": 4194304,
+        "max_total_bytes": 20971520,
+        "max_parts": 5,
+        "parts": [],
+        "asset_ref": null,
+        "derived_asset_ref": null,
+        "expires_at": "2026-11-04T12:14:12.946375+00:00",
+        "error": null
+      }
+    }
+  ],
+  "database_guard": {
+    "database": "storyrun_lite_feat063_ai_api_contract_20261104",
+    "current_user_is_owner": true,
+    "api_client_target": "127.0.0.1",
+    "postgres_container_server_address": "172.17.0.2/32",
+    "test_harness_only": true,
+    "product_loopback_guard_changed": false
+  },
+  "ended_at": "2026-11-04T17:14:13+07:00",
+  "api_route_contracts": [
+    {
+      "name": "POST /v1/story-runs missing-age validation",
+      "method": "POST",
+      "path": "/v1/story-runs",
+      "status": 422,
+      "assessment": "expected 422",
+      "response_code": "INVALID_REQUEST"
+    },
+    {
+      "name": "POST /v1/story-runs",
+      "method": "POST",
+      "path": "/v1/story-runs",
+      "status": 201,
+      "assessment": "passed 201",
+      "response_code": null
+    },
+    {
+      "name": "GET /v1/story-runs/{run_ref}",
+      "method": "GET",
+      "path": "/v1/story-runs/dd60a92e-3bea-4e40-a3f3-0b2ea6e85052",
+      "status": 200,
+      "assessment": "passed 200",
+      "response_code": null
+    },
+    {
+      "name": "POST /v1/story-runs/{run_ref}/assets invalid reference",
+      "method": "POST",
+      "path": "/v1/story-runs/dd60a92e-3bea-4e40-a3f3-0b2ea6e85052/assets",
+      "status": 404,
+      "assessment": "expected no-AI rejection",
+      "response_code": "NOT_FOUND"
+    },
+    {
+      "name": "POST /v1/story-runs/{run_ref}/subject-confirmation",
+      "method": "POST",
+      "path": "/v1/story-runs/dd60a92e-3bea-4e40-a3f3-0b2ea6e85052/subject-confirmation",
+      "status": 409,
+      "assessment": "expected 409 before AI result",
+      "response_code": "STALE_REVISION"
+    },
+    {
+      "name": "POST /v1/story-runs/{run_ref}/story-revisions no-dispatch guard",
+      "method": "POST",
+      "path": "/v1/story-runs/dd60a92e-3bea-4e40-a3f3-0b2ea6e85052/story-revisions",
+      "status": 409,
+      "assessment": "expected 409 before AI dispatch",
+      "response_code": "INVALID_STATE"
+    },
+    {
+      "name": "GET /v1/story-runs/{run_ref}/story-revisions/{revision_ref}",
+      "method": "GET",
+      "path": "/v1/story-runs/dd60a92e-3bea-4e40-a3f3-0b2ea6e85052/story-revisions/02b733e3-0010-41b2-80c1-eb5c6768c53e",
+      "status": 404,
+      "assessment": "expected 404 for absent revision",
+      "response_code": "NOT_FOUND"
+    },
+    {
+      "name": "POST /v1/story-runs/{run_ref}/story-revisions/{revision_ref}/confirmation",
+      "method": "POST",
+      "path": "/v1/story-runs/dd60a92e-3bea-4e40-a3f3-0b2ea6e85052/story-revisions/02b733e3-0010-41b2-80c1-eb5c6768c53e/confirmation",
+      "status": 404,
+      "assessment": "expected 404 for absent revision",
+      "response_code": "NOT_FOUND"
+    },
+    {
+      "name": "POST /v1/story-runs/{run_ref}/cancel",
+      "method": "POST",
+      "path": "/v1/story-runs/dd60a92e-3bea-4e40-a3f3-0b2ea6e85052/cancel",
+      "status": 202,
+      "assessment": "passed 202",
+      "response_code": null
+    },
+    {
+      "name": "POST /v1/upload-sessions",
+      "method": "POST",
+      "path": "/v1/upload-sessions",
+      "status": 201,
+      "assessment": "passed 201",
+      "response_code": null
+    },
+    {
+      "name": "PUT /v1/upload-sessions/{upload_ref}/parts/{part_no}",
+      "method": "PUT",
+      "path": "/v1/upload-sessions/0c2a6ceb-a88d-4835-9990-6aaee7241030/parts/1",
+      "status": 200,
+      "assessment": "passed 200",
+      "response_code": null
+    },
+    {
+      "name": "GET /v1/upload-sessions/{upload_ref}",
+      "method": "GET",
+      "path": "/v1/upload-sessions/0c2a6ceb-a88d-4835-9990-6aaee7241030",
+      "status": 200,
+      "assessment": "passed 200",
+      "response_code": null
+    },
+    {
+      "name": "POST /v1/upload-sessions/{upload_ref}/complete",
+      "method": "POST",
+      "path": "/v1/upload-sessions/0c2a6ceb-a88d-4835-9990-6aaee7241030/complete",
+      "status": 202,
+      "assessment": "passed; final state READY",
+      "response_code": null
+    },
+    {
+      "name": "DELETE /v1/upload-sessions/{upload_ref}",
+      "method": "DELETE",
+      "path": "/v1/upload-sessions/47c5c44b-1125-4c09-9436-3642ad0ae8b5",
+      "status": 202,
+      "assessment": "passed 202",
+      "response_code": null
+    }
+  ]
+}

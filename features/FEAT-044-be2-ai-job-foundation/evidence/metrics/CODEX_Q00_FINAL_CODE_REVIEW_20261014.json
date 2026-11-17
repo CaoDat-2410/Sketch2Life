@@ -1,0 +1,275 @@
+{
+  "recorded_at": "2026-10-14T23:07:13.000+07:00",
+  "branch": "feature/be2-01-ai-job-foundation",
+  "baseline": "b9204d8c9eb4f8a1ee6d4db4de5ee23672e0392c",
+  "review_result": "PASS at Phase A fake/contract scope",
+  "review_scope": "Three Q00 follow-up corrections and directly affected original regressions; not new whole-system/runtime audit",
+  "active_slot": "Q00",
+  "active_checkpoint_status": "CODE_REVIEW_PASS_PENDING_ACCEPTANCE_GATES",
+  "phase_a_acceptance": "PENDING",
+  "whole_be2_01_status": "IN_PROGRESS",
+  "existing_approval": "Phase A revision 1 only; unchanged",
+  "original_closure": {
+    "R01": "CLOSED_ORIGINAL_CASE",
+    "R02": "CLOSED_ORIGINAL_CASE",
+    "R03": "CLOSED_ORIGINAL_CASE",
+    "R04": "CLOSED_ORIGINAL_CASE",
+    "R05": "CLOSED_ORIGINAL_CASE",
+    "R06": "CLOSED_ORIGINAL_CASE",
+    "R07": "CLOSED_ORIGINAL_CASE",
+    "R08": "CLOSED_ORIGINAL_CASE",
+    "R09": "CLOSED_ORIGINAL_CASE",
+    "R10": "CLOSED_ORIGINAL_CASE",
+    "R11": "CLOSED_ORIGINAL_CASE"
+  },
+  "followups": [
+    {
+      "id": "R03a",
+      "status": "CLOSED",
+      "origin": "directly enabled by corrected completion fix"
+    },
+    {
+      "id": "R04a",
+      "status": "CLOSED",
+      "origin": "residual malformed-input handling in normalizer"
+    },
+    {
+      "id": "A18a",
+      "status": "CLOSED",
+      "origin": "pre-existing gap in existing A18 invariant"
+    }
+  ],
+  "remaining_code_corrections_in_reviewed_scope": [],
+  "tests": {
+    "passed": 255,
+    "skipped": 1,
+    "composition": "223 Phase A/follow-up + 32 targeted legacy regressions",
+    "skip_reason": "Pillow unavailable for live app route negative check",
+    "full_backend_suite_claimed": false
+  },
+  "runner": {
+    "checks": 222,
+    "failures": 0,
+    "results_sha256": "d17f58a3c9c535d45a2fe03ed0c1edad42a565422725aede21b22ba45af41f68",
+    "criteria": "20 core plus supplemental A17-http",
+    "limitation": "Core A17 NOT_RUN marker retained; supplemental HTTP checks PASS"
+  },
+  "original_repro": {
+    "defects_absent": 11,
+    "module_origin_in_worktree": true
+  },
+  "followup_repro": {
+    "defects_absent": 3,
+    "module_origin_in_worktree": true
+  },
+  "reviewers": [
+    {
+      "name": "Codex primary",
+      "result": "PASS"
+    },
+    {
+      "name": "q00a_claim_closure",
+      "result": "R03a/R04a CLOSED; 29 focused tests + admission/canonical/malformed probes"
+    },
+    {
+      "name": "q00a_copy_closure",
+      "result": "A18a CLOSED; 7 focused tests + event-controlled cancel/purge/register and R05/R06 probes"
+    }
+  ],
+  "checks": [
+    {
+      "check": "diff",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "started_at": "2026-10-14T23:05:54.150152+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/codex_q00a_final_diff.txt"
+    },
+    {
+      "check": "followup_repro",
+      "command": [
+        "<existing-backend-venv>/python",
+        "-B",
+        "-",
+        "<be2-worktree>"
+      ],
+      "started_at": "2026-10-14T22:56:30.368010+07:00",
+      "exit_code": 0,
+      "environment": {
+        "PYTHONPATH": "<be2-worktree>/backend/src",
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/codex_q00a_final_followup_repro.txt",
+      "stdin_source": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/q00a_repro_source.txt",
+      "cases_resolved": 3
+    },
+    {
+      "check": "harness",
+      "command": [
+        "<existing-backend-venv>/python",
+        "tools/validate_harness.py",
+        "--feature",
+        "features/FEAT-044-be2-ai-job-foundation"
+      ],
+      "started_at": "2026-10-14T23:05:52.552288+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/codex_q00a_final_harness.txt"
+    },
+    {
+      "check": "original_repro",
+      "command": [
+        "<existing-backend-venv>/python",
+        "-B",
+        "-",
+        "<be2-worktree>"
+      ],
+      "started_at": "2026-10-14T22:56:31.164084+07:00",
+      "exit_code": 0,
+      "environment": {
+        "PYTHONPATH": "<be2-worktree>/backend/src",
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/codex_q00a_final_original_repro.txt",
+      "stdin_source": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/q00_repro_source.txt",
+      "cases_resolved": 11
+    },
+    {
+      "check": "pytest",
+      "command": [
+        "<existing-backend-venv>/python",
+        "-B",
+        "-m",
+        "pytest",
+        "backend/tests/unit/test_ai_job_q00_followups.py",
+        "backend/tests/unit/test_ai_job_review_regressions.py",
+        "backend/tests/unit/test_ai_job_lifecycle.py",
+        "backend/tests/unit/test_ai_job_application.py",
+        "backend/tests/contract/test_ai_job_contracts.py",
+        "backend/tests/contract/test_ai_job_polling.py",
+        "backend/tests/unit/test_ephemeral_storage_ports.py",
+        "backend/tests/unit/test_whiteboard_video_job.py",
+        "backend/tests/unit/test_story_video_job_input_gate.py",
+        "backend/tests/contract/test_mobile_workflow_contracts.py",
+        "-p",
+        "no:cacheprovider",
+        "-rs"
+      ],
+      "started_at": "2026-10-14T22:56:28.702186+07:00",
+      "exit_code": 0,
+      "environment": {
+        "PYTHONPATH": "<be2-worktree>/backend/src",
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/codex_q00a_final_pytest.txt"
+    },
+    {
+      "check": "runner",
+      "command": [
+        "<existing-backend-venv>/python",
+        "-B",
+        "features/FEAT-044-be2-ai-job-foundation/src/run_fixture_contracts.py",
+        "--with-http",
+        "--report",
+        "features/FEAT-044-be2-ai-job-foundation/evidence/raw/codex_q00a_final_runner_report.json"
+      ],
+      "started_at": "2026-10-14T22:56:29.526555+07:00",
+      "exit_code": 0,
+      "environment": {
+        "PYTHONPATH": "<be2-worktree>/backend/src",
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/codex_q00a_final_runner.txt"
+    },
+    {
+      "check": "security",
+      "command": [
+        "<existing-backend-venv>/python",
+        "tools/validate_repository_security.py"
+      ],
+      "started_at": "2026-10-14T23:05:53.322269+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/codex_q00a_final_security.txt"
+    }
+  ],
+  "gates_pending": [
+    {
+      "gate": "P1/P2/P4 candidate adoption",
+      "status": "PENDING",
+      "action": "Named version/owner/compatibility adoption including artifact producer lineage/quarantine reason and copy receipt/scope-lock semantics"
+    },
+    {
+      "gate": "Live-app route check",
+      "status": "NOT_RUN_REQUIRES_LIGHTNINGAI_TEST",
+      "action": "Run in compatible existing environment with Pillow or explicit checkpoint acceptance deviation",
+      "command": "python -m pytest backend/tests/contract/test_ai_job_polling.py::test_live_app_routes_have_no_candidate_job_route"
+    }
+  ],
+  "next_default_slot": {
+    "slot": "Q01",
+    "card": "BE2-01 Phase B",
+    "status": "NOT_STARTED_UNAPPROVED",
+    "prerequisites": [
+      "Phase A acceptance gates",
+      "Separate reviewable Phase B plan",
+      "Persistence/queue/transaction/recovery ADR",
+      "BE1 generic port adoption",
+      "Explicit Phase B approval"
+    ]
+  },
+  "business_card_count": 14,
+  "full_card_done_count": 0,
+  "new_card_or_runtime_authorization": false,
+  "runtime_source_modified_by_review": false,
+  "approval_modified_by_review": false,
+  "approved_plan_unchanged": true,
+  "reviewed_source_sha256": {
+    "backend/src/sketch2life/application/ports/ai_jobs.py": "de806e0cc19a275dd584e5a6f1250d8d53c2a899597a07b5b5a2f32dc7a6cbcb",
+    "backend/src/sketch2life/application/services/ai_jobs.py": "c6b4f1e1693f4ff87acd933e9b09df1c16100c47734f6890a2b3e931066ef512",
+    "backend/src/sketch2life/application/services/provider_copy_lifecycle.py": "c45ad24934b848ce1f4a6357daec925a2e70543d66d5bb8b85cae75a0201d73e",
+    "backend/src/sketch2life/contracts/schemas/ai_contract_candidates.py": "7bbe68aae583f2bf30b62a94108940aa5374ffe2be4a2dbb1d3500331615426c",
+    "backend/src/sketch2life/contracts/schemas/ai_jobs.py": "15025b1386ba2781204ad41655c1dec135b28672845bac1a3744d1b8ad1e9c5f",
+    "backend/src/sketch2life/domain/ai_jobs/__init__.py": "301c97c4a3a0308350dd857f39f94fd8f1b5cc45820a9fa8b4c6e4caee0b2748",
+    "backend/src/sketch2life/domain/ai_jobs/completion.py": "b3e1a78d2a93227d09e4db3fed4b77bc4d1c3775f54f519f68fd762ceb3ec62b",
+    "backend/src/sketch2life/domain/ai_jobs/model.py": "a60692c2f4deab068471a35dcf58abe777400e8bd4575beb9fbf8c3a7c078c8b",
+    "backend/src/sketch2life/domain/ai_jobs/provider_copy.py": "2c55b67e0a036b4e7786094d5e1bc59a2b3d81ecfc75f24aaaa03a4296ee1ddd",
+    "backend/src/sketch2life/infrastructure/ai_jobs/__init__.py": "22375802e5b6353e0531b8dfcc8034260672783edd3df6b20c55914fbc1cad78",
+    "backend/src/sketch2life/infrastructure/ai_jobs/fakes.py": "af78a5bbdbb3bea3fa2bd57cf6b52ceffce22312fa1a7546319eec4d564a22b1",
+    "backend/src/sketch2life/infrastructure/ai_jobs/harness.py": "f60eb285f39e53906c5123533bd0663dbd2263609e9f0ac0c988cb9a8f5ad90f",
+    "backend/src/sketch2life/interfaces/http/ai_jobs_fixture_app.py": "7ee82e3c80d3ba892b9b532961786832f747cf1a627a245cb20c90d85e6d1d03",
+    "backend/src/sketch2life/interfaces/http/routers/ai_jobs.py": "8f90789fe6bc5abbd5b1f2d489c201dd99def252ad2182d591a2becbbc7641b6",
+    "backend/tests/contract/test_ai_job_contracts.py": "a65c552542fcdc11a3b3340d1873fcc9085de78a533af25e95326f6cf149af79",
+    "backend/tests/contract/test_ai_job_polling.py": "26ba77564276802fd2d4c19958442d6094cf563ea5cb5392760a416e2b95bb25",
+    "backend/tests/unit/test_ai_job_application.py": "3a7760dfa7bc3f6c21a59ae91e69805708372dcafdaffd3152c2a5f650bdc57f",
+    "backend/tests/unit/test_ai_job_lifecycle.py": "d9535a7f109e0889d7c775abd6b25361f97479286286b409e78a3eaadb46ee37",
+    "backend/tests/unit/test_ai_job_review_regressions.py": "dab50ea145eb06e11f35fd8e4966ea567e4a386a05c25b43783409ffad770155",
+    "features/FEAT-044-be2-ai-job-foundation/approvals/TASK_APPROVAL.md": "1ba7f641a7501bffb99c065d137ea4104684e93a95a1bf4a0d7fd785fec71112",
+    "features/FEAT-044-be2-ai-job-foundation/plan/PLAN.md": "c835986f2a7dc15ac0c724e0b0304e44d3811575fabeffb7863e7e9058cfe766",
+    "features/FEAT-044-be2-ai-job-foundation/src/fixture_catalog.py": "272dd88a4d90d55b1f9d81f5665bf6dac8afdd2abd35e1fe96a6da47298e93f2",
+    "features/FEAT-044-be2-ai-job-foundation/src/run_fixture_contracts.py": "34010ffb6b6714e4e5c30949752809fbf1a6f6a90944d2db460fc1b12c0b2975",
+    "backend/tests/unit/test_ai_job_q00_followups.py": "ecc9638cf84d7ea41f6888c6d14bc6fccd075e1174cb722f511d474a74d05269"
+  },
+  "reviewed_sources_unchanged_after_documentation": true,
+  "review_documents_whitespace": "PASS",
+  "review_documents_checked": [
+    "plan/BE2_EXECUTION_TRACKER.md",
+    "status/STATUS.md",
+    "CONTEXT.md",
+    "DECISIONS.md",
+    "evidence/README.md",
+    "plan/BE2_ROADMAP.md",
+    "plan/CLAUDE_Q00_FOLLOWUP_FIX_PROMPT.md",
+    "plan/CLAUDE_PHASE_A_FIX_PROMPT.md",
+    "evidence/notes/PHASE_A_Q00_FINAL_CODE_REVIEW_20261014.md"
+  ],
+  "limits": [
+    "Fake/contract evidence only",
+    "No real provider or deletion evidence",
+    "No durable persistence acceptance",
+    "No stack/schema/policy adoption",
+    "No dependency install/commit/push/deploy"
+  ],
+  "evidence": "evidence/notes/PHASE_A_Q00_FINAL_CODE_REVIEW_20261014.md"
+}

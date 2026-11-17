@@ -1,0 +1,18 @@
+flowchart LR
+    A["Adult sign-in"] --> B["Create supervised session"]
+    B --> C["Capture drawing and narration"]
+    C --> D["Validate media and create immutable originals"]
+    D --> E["ASR + vision + fusion proposal"]
+    E --> F{"Gate A<br/>Adult confirms meaning?"}
+    F -- "No: correct / recapture" --> C
+    F -- "Yes" --> G["Deterministic Montessori filters"]
+    G --> H["Candidate ranking with reasons"]
+    H --> I{"Gate B<br/>Adult approves activity + objective?"}
+    I -- "No: revise" --> H
+    I -- "Yes" --> J["Compile ExperienceSpec"]
+    J --> K["Pixi original-art exploration"]
+    J --> L["Learning story and whiteboard video jobs"]
+    K --> M["Ready experience"]
+    L --> M
+    M --> N["Off-screen Montessori handoff"]
+    N --> O["Observation and feedback"]

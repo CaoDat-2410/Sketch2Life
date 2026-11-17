@@ -1,0 +1,1347 @@
+{
+  "started_at": "2026-11-04T16:55:14+07:00",
+  "feature": "FEAT-063",
+  "srs_version": "2.3-draft",
+  "video_called": false,
+  "modal_environment": "dev",
+  "local_api_port": 62314,
+  "api_records": [
+    {
+      "name": "reject_create_without_age",
+      "method": "POST",
+      "path": "/v1/story-runs",
+      "status": 422,
+      "elapsed_ms": 3.12,
+      "headers": {
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "code": "INVALID_REQUEST",
+        "message": "The request body or path parameters are invalid.",
+        "correlation_id": "21daee55-3b33-4fc4-b14e-b63ee7bfa906",
+        "retryable": false,
+        "field_errors": [
+          {
+            "field": "child_age_months",
+            "code": "INVALID_FIELD",
+            "message": "The field is missing or has an invalid value."
+          }
+        ]
+      }
+    },
+    {
+      "name": "create_parent_story_run",
+      "method": "POST",
+      "path": "/v1/story-runs",
+      "status": 201,
+      "elapsed_ms": 36.91,
+      "headers": {
+        "ETag": "\"v1\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "78c41aed-af20-4d2d-8888-8787dc4306a2",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 1,
+        "version": 1,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T09:55:16.373992+00:00",
+        "updated_at": "2026-11-04T09:55:16.373992+00:00",
+        "job_state": null,
+        "retryable": false,
+        "action_required": null,
+        "error": null,
+        "result": null
+      }
+    },
+    {
+      "name": "read_new_run",
+      "method": "GET",
+      "path": "/v1/story-runs/78c41aed-af20-4d2d-8888-8787dc4306a2",
+      "status": 200,
+      "elapsed_ms": 4.95,
+      "headers": {
+        "ETag": "\"v1\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "78c41aed-af20-4d2d-8888-8787dc4306a2",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 1,
+        "version": 1,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T09:55:16.373992+00:00",
+        "updated_at": "2026-11-04T09:55:16.373992+00:00",
+        "job_state": null,
+        "retryable": false,
+        "action_required": null,
+        "error": null,
+        "result": null
+      }
+    },
+    {
+      "name": "reject_parent_activity_preselection",
+      "method": "POST",
+      "path": "/v1/story-runs/78c41aed-af20-4d2d-8888-8787dc4306a2/story-revisions",
+      "status": 422,
+      "elapsed_ms": 1.63,
+      "headers": {
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "code": "INVALID_REQUEST",
+        "message": "The request body or path parameters are invalid.",
+        "correlation_id": "31de3b16-c110-41c5-ade5-9793c25f80c0",
+        "retryable": false,
+        "field_errors": [
+          {
+            "field": "activities",
+            "code": "INVALID_FIELD",
+            "message": "The field is missing or has an invalid value."
+          }
+        ]
+      }
+    },
+    {
+      "name": "create_artwork_upload",
+      "method": "POST",
+      "path": "/v1/upload-sessions",
+      "status": 201,
+      "elapsed_ms": 17.86,
+      "headers": {
+        "ETag": "\"v1\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "upload_ref": "3631f1ed-869f-433b-9b94-6309e4b339d5",
+        "state": "RECEIVING",
+        "version": 1,
+        "part_size_bytes": 4194304,
+        "max_total_bytes": 20971520,
+        "max_parts": 5,
+        "parts": [],
+        "asset_ref": null,
+        "derived_asset_ref": null,
+        "expires_at": "2026-11-04T11:55:16.402331+00:00",
+        "error": null
+      }
+    },
+    {
+      "name": "upload_artwork_part",
+      "method": "PUT",
+      "path": "/v1/upload-sessions/3631f1ed-869f-433b-9b94-6309e4b339d5/parts/1",
+      "status": 200,
+      "elapsed_ms": 20.56,
+      "headers": {
+        "ETag": "\"v1\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "part_no": 1,
+        "size_bytes": 1775882,
+        "sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949"
+      }
+    },
+    {
+      "name": "read_upload_before_complete",
+      "method": "GET",
+      "path": "/v1/upload-sessions/3631f1ed-869f-433b-9b94-6309e4b339d5",
+      "status": 200,
+      "elapsed_ms": 7.8,
+      "headers": {
+        "ETag": "\"v1\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "upload_ref": "3631f1ed-869f-433b-9b94-6309e4b339d5",
+        "state": "RECEIVING",
+        "version": 1,
+        "part_size_bytes": 4194304,
+        "max_total_bytes": 20971520,
+        "max_parts": 5,
+        "parts": [
+          {
+            "part_no": 1,
+            "size_bytes": 1775882,
+            "sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949"
+          }
+        ],
+        "asset_ref": null,
+        "derived_asset_ref": null,
+        "expires_at": "2026-11-04T11:55:16.402331+00:00",
+        "error": null
+      }
+    },
+    {
+      "name": "complete_artwork_admission",
+      "method": "POST",
+      "path": "/v1/upload-sessions/3631f1ed-869f-433b-9b94-6309e4b339d5/complete",
+      "status": 202,
+      "elapsed_ms": 536.87,
+      "headers": {
+        "ETag": "\"v2\"",
+        "Location": "/v1/upload-sessions/3631f1ed-869f-433b-9b94-6309e4b339d5",
+        "Retry-After": "1",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "upload_ref": "3631f1ed-869f-433b-9b94-6309e4b339d5",
+        "state": "PENDING",
+        "version": 2,
+        "part_size_bytes": 4194304,
+        "max_total_bytes": 20971520,
+        "max_parts": 5,
+        "parts": [
+          {
+            "part_no": 1,
+            "size_bytes": 1775882,
+            "sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949"
+          }
+        ],
+        "asset_ref": null,
+        "derived_asset_ref": null,
+        "expires_at": "2026-11-04T11:55:16.402331+00:00",
+        "error": null
+      }
+    },
+    {
+      "name": "poll_artwork_admission",
+      "method": "GET",
+      "path": "/v1/upload-sessions/3631f1ed-869f-433b-9b94-6309e4b339d5",
+      "status": 200,
+      "elapsed_ms": 9.72,
+      "headers": {
+        "ETag": "\"v4\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "upload_ref": "3631f1ed-869f-433b-9b94-6309e4b339d5",
+        "state": "READY",
+        "version": 4,
+        "part_size_bytes": 4194304,
+        "max_total_bytes": 20971520,
+        "max_parts": 5,
+        "parts": [
+          {
+            "part_no": 1,
+            "size_bytes": 1775882,
+            "sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949"
+          }
+        ],
+        "asset_ref": "14af8bef-11af-4368-ab12-a4cc7065b1ec",
+        "derived_asset_ref": "b8056ae6-e94c-4f9d-a659-4578c7b0f77d",
+        "expires_at": "2026-11-04T11:55:16.402331+00:00",
+        "error": null
+      }
+    },
+    {
+      "name": "read_run_before_vision",
+      "method": "GET",
+      "path": "/v1/story-runs/78c41aed-af20-4d2d-8888-8787dc4306a2",
+      "status": 200,
+      "elapsed_ms": 6.58,
+      "headers": {
+        "ETag": "\"v1\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "78c41aed-af20-4d2d-8888-8787dc4306a2",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 1,
+        "version": 1,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T09:55:16.373992+00:00",
+        "updated_at": "2026-11-04T09:55:16.373992+00:00",
+        "job_state": null,
+        "retryable": false,
+        "action_required": null,
+        "error": null,
+        "result": null
+      }
+    },
+    {
+      "name": "attach_drawing_and_run_vlm_once",
+      "method": "POST",
+      "path": "/v1/story-runs/78c41aed-af20-4d2d-8888-8787dc4306a2/assets",
+      "status": 202,
+      "elapsed_ms": 604281.23,
+      "headers": {
+        "ETag": "\"v2\"",
+        "Location": "/v1/story-runs/78c41aed-af20-4d2d-8888-8787dc4306a2",
+        "Retry-After": "1",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "78c41aed-af20-4d2d-8888-8787dc4306a2",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 2,
+        "version": 2,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T09:55:16.373992+00:00",
+        "updated_at": "2026-11-04T09:55:17.026030+00:00",
+        "job_state": "QUEUED",
+        "retryable": false,
+        "action_required": null,
+        "error": null,
+        "result": null
+      }
+    },
+    {
+      "name": "read_run_after_vlm",
+      "method": "GET",
+      "path": "/v1/story-runs/78c41aed-af20-4d2d-8888-8787dc4306a2",
+      "status": 200,
+      "elapsed_ms": 4.36,
+      "headers": {
+        "ETag": "\"v4\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "78c41aed-af20-4d2d-8888-8787dc4306a2",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 2,
+        "version": 4,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T09:55:16.373992+00:00",
+        "updated_at": "2026-11-04T10:05:21.281914+00:00",
+        "job_state": "AWAITING_RECONCILIATION",
+        "retryable": false,
+        "action_required": "OPERATOR_REVIEW",
+        "error": {
+          "code": "VISION_OUTCOME_UNKNOWN",
+          "message": "Vision outcome is unknown; do not retry automatically.",
+          "correlation_id": "8f61a71c-00c8-4c36-83d0-ff008d023218",
+          "retryable": false,
+          "retry_after_seconds": null,
+          "field_errors": null
+        },
+        "result": null
+      }
+    },
+    {
+      "name": "read_run_after_vlm",
+      "method": "GET",
+      "path": "/v1/story-runs/78c41aed-af20-4d2d-8888-8787dc4306a2",
+      "status": 200,
+      "elapsed_ms": 6.01,
+      "headers": {
+        "ETag": "\"v4\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "78c41aed-af20-4d2d-8888-8787dc4306a2",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 2,
+        "version": 4,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T09:55:16.373992+00:00",
+        "updated_at": "2026-11-04T10:05:21.281914+00:00",
+        "job_state": "AWAITING_RECONCILIATION",
+        "retryable": false,
+        "action_required": "OPERATOR_REVIEW",
+        "error": {
+          "code": "VISION_OUTCOME_UNKNOWN",
+          "message": "Vision outcome is unknown; do not retry automatically.",
+          "correlation_id": "e3e67274-8171-4b54-bb17-7c9a3f367bd1",
+          "retryable": false,
+          "retry_after_seconds": null,
+          "field_errors": null
+        },
+        "result": null
+      }
+    },
+    {
+      "name": "read_run_after_vlm",
+      "method": "GET",
+      "path": "/v1/story-runs/78c41aed-af20-4d2d-8888-8787dc4306a2",
+      "status": 200,
+      "elapsed_ms": 6.45,
+      "headers": {
+        "ETag": "\"v4\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "78c41aed-af20-4d2d-8888-8787dc4306a2",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 2,
+        "version": 4,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T09:55:16.373992+00:00",
+        "updated_at": "2026-11-04T10:05:21.281914+00:00",
+        "job_state": "AWAITING_RECONCILIATION",
+        "retryable": false,
+        "action_required": "OPERATOR_REVIEW",
+        "error": {
+          "code": "VISION_OUTCOME_UNKNOWN",
+          "message": "Vision outcome is unknown; do not retry automatically.",
+          "correlation_id": "2bf9180f-3132-4964-b822-65ff19e26a08",
+          "retryable": false,
+          "retry_after_seconds": null,
+          "field_errors": null
+        },
+        "result": null
+      }
+    },
+    {
+      "name": "read_run_after_vlm",
+      "method": "GET",
+      "path": "/v1/story-runs/78c41aed-af20-4d2d-8888-8787dc4306a2",
+      "status": 200,
+      "elapsed_ms": 6.82,
+      "headers": {
+        "ETag": "\"v4\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "78c41aed-af20-4d2d-8888-8787dc4306a2",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 2,
+        "version": 4,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T09:55:16.373992+00:00",
+        "updated_at": "2026-11-04T10:05:21.281914+00:00",
+        "job_state": "AWAITING_RECONCILIATION",
+        "retryable": false,
+        "action_required": "OPERATOR_REVIEW",
+        "error": {
+          "code": "VISION_OUTCOME_UNKNOWN",
+          "message": "Vision outcome is unknown; do not retry automatically.",
+          "correlation_id": "d3293f94-0a3b-40f4-88b7-a81a6b3d0e8f",
+          "retryable": false,
+          "retry_after_seconds": null,
+          "field_errors": null
+        },
+        "result": null
+      }
+    },
+    {
+      "name": "read_run_after_vlm",
+      "method": "GET",
+      "path": "/v1/story-runs/78c41aed-af20-4d2d-8888-8787dc4306a2",
+      "status": 200,
+      "elapsed_ms": 5.35,
+      "headers": {
+        "ETag": "\"v4\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "78c41aed-af20-4d2d-8888-8787dc4306a2",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 2,
+        "version": 4,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T09:55:16.373992+00:00",
+        "updated_at": "2026-11-04T10:05:21.281914+00:00",
+        "job_state": "AWAITING_RECONCILIATION",
+        "retryable": false,
+        "action_required": "OPERATOR_REVIEW",
+        "error": {
+          "code": "VISION_OUTCOME_UNKNOWN",
+          "message": "Vision outcome is unknown; do not retry automatically.",
+          "correlation_id": "b6e0f4c4-4bac-4bad-992d-1a6a3449683e",
+          "retryable": false,
+          "retry_after_seconds": null,
+          "field_errors": null
+        },
+        "result": null
+      }
+    },
+    {
+      "name": "read_run_after_vlm",
+      "method": "GET",
+      "path": "/v1/story-runs/78c41aed-af20-4d2d-8888-8787dc4306a2",
+      "status": 200,
+      "elapsed_ms": 6.34,
+      "headers": {
+        "ETag": "\"v4\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "78c41aed-af20-4d2d-8888-8787dc4306a2",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 2,
+        "version": 4,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T09:55:16.373992+00:00",
+        "updated_at": "2026-11-04T10:05:21.281914+00:00",
+        "job_state": "AWAITING_RECONCILIATION",
+        "retryable": false,
+        "action_required": "OPERATOR_REVIEW",
+        "error": {
+          "code": "VISION_OUTCOME_UNKNOWN",
+          "message": "Vision outcome is unknown; do not retry automatically.",
+          "correlation_id": "5531660c-3c1b-4d50-b132-445d62582180",
+          "retryable": false,
+          "retry_after_seconds": null,
+          "field_errors": null
+        },
+        "result": null
+      }
+    },
+    {
+      "name": "read_run_after_vlm",
+      "method": "GET",
+      "path": "/v1/story-runs/78c41aed-af20-4d2d-8888-8787dc4306a2",
+      "status": 200,
+      "elapsed_ms": 7.13,
+      "headers": {
+        "ETag": "\"v4\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "78c41aed-af20-4d2d-8888-8787dc4306a2",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 2,
+        "version": 4,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T09:55:16.373992+00:00",
+        "updated_at": "2026-11-04T10:05:21.281914+00:00",
+        "job_state": "AWAITING_RECONCILIATION",
+        "retryable": false,
+        "action_required": "OPERATOR_REVIEW",
+        "error": {
+          "code": "VISION_OUTCOME_UNKNOWN",
+          "message": "Vision outcome is unknown; do not retry automatically.",
+          "correlation_id": "88bac492-de62-4724-9004-41f0a50bd2bc",
+          "retryable": false,
+          "retry_after_seconds": null,
+          "field_errors": null
+        },
+        "result": null
+      }
+    },
+    {
+      "name": "read_run_after_vlm",
+      "method": "GET",
+      "path": "/v1/story-runs/78c41aed-af20-4d2d-8888-8787dc4306a2",
+      "status": 200,
+      "elapsed_ms": 5.89,
+      "headers": {
+        "ETag": "\"v4\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "78c41aed-af20-4d2d-8888-8787dc4306a2",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 2,
+        "version": 4,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T09:55:16.373992+00:00",
+        "updated_at": "2026-11-04T10:05:21.281914+00:00",
+        "job_state": "AWAITING_RECONCILIATION",
+        "retryable": false,
+        "action_required": "OPERATOR_REVIEW",
+        "error": {
+          "code": "VISION_OUTCOME_UNKNOWN",
+          "message": "Vision outcome is unknown; do not retry automatically.",
+          "correlation_id": "8dd1149a-b20c-4e1e-b0e3-e125a4870da8",
+          "retryable": false,
+          "retry_after_seconds": null,
+          "field_errors": null
+        },
+        "result": null
+      }
+    },
+    {
+      "name": "read_run_after_vlm",
+      "method": "GET",
+      "path": "/v1/story-runs/78c41aed-af20-4d2d-8888-8787dc4306a2",
+      "status": 200,
+      "elapsed_ms": 5.6,
+      "headers": {
+        "ETag": "\"v4\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "78c41aed-af20-4d2d-8888-8787dc4306a2",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 2,
+        "version": 4,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T09:55:16.373992+00:00",
+        "updated_at": "2026-11-04T10:05:21.281914+00:00",
+        "job_state": "AWAITING_RECONCILIATION",
+        "retryable": false,
+        "action_required": "OPERATOR_REVIEW",
+        "error": {
+          "code": "VISION_OUTCOME_UNKNOWN",
+          "message": "Vision outcome is unknown; do not retry automatically.",
+          "correlation_id": "a564d9fa-d023-428c-95c5-31e09dd8b61f",
+          "retryable": false,
+          "retry_after_seconds": null,
+          "field_errors": null
+        },
+        "result": null
+      }
+    },
+    {
+      "name": "read_run_after_vlm",
+      "method": "GET",
+      "path": "/v1/story-runs/78c41aed-af20-4d2d-8888-8787dc4306a2",
+      "status": 200,
+      "elapsed_ms": 5.44,
+      "headers": {
+        "ETag": "\"v4\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "78c41aed-af20-4d2d-8888-8787dc4306a2",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 2,
+        "version": 4,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T09:55:16.373992+00:00",
+        "updated_at": "2026-11-04T10:05:21.281914+00:00",
+        "job_state": "AWAITING_RECONCILIATION",
+        "retryable": false,
+        "action_required": "OPERATOR_REVIEW",
+        "error": {
+          "code": "VISION_OUTCOME_UNKNOWN",
+          "message": "Vision outcome is unknown; do not retry automatically.",
+          "correlation_id": "2e769b5a-7426-4d0b-a41b-f4de7560a71c",
+          "retryable": false,
+          "retry_after_seconds": null,
+          "field_errors": null
+        },
+        "result": null
+      }
+    },
+    {
+      "name": "read_run_after_vlm",
+      "method": "GET",
+      "path": "/v1/story-runs/78c41aed-af20-4d2d-8888-8787dc4306a2",
+      "status": 200,
+      "elapsed_ms": 5.59,
+      "headers": {
+        "ETag": "\"v4\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "78c41aed-af20-4d2d-8888-8787dc4306a2",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 2,
+        "version": 4,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T09:55:16.373992+00:00",
+        "updated_at": "2026-11-04T10:05:21.281914+00:00",
+        "job_state": "AWAITING_RECONCILIATION",
+        "retryable": false,
+        "action_required": "OPERATOR_REVIEW",
+        "error": {
+          "code": "VISION_OUTCOME_UNKNOWN",
+          "message": "Vision outcome is unknown; do not retry automatically.",
+          "correlation_id": "e42d2369-ebdf-42a3-b2af-564801e11c2c",
+          "retryable": false,
+          "retry_after_seconds": null,
+          "field_errors": null
+        },
+        "result": null
+      }
+    },
+    {
+      "name": "read_run_after_vlm",
+      "method": "GET",
+      "path": "/v1/story-runs/78c41aed-af20-4d2d-8888-8787dc4306a2",
+      "status": 200,
+      "elapsed_ms": 6.66,
+      "headers": {
+        "ETag": "\"v4\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "78c41aed-af20-4d2d-8888-8787dc4306a2",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 2,
+        "version": 4,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T09:55:16.373992+00:00",
+        "updated_at": "2026-11-04T10:05:21.281914+00:00",
+        "job_state": "AWAITING_RECONCILIATION",
+        "retryable": false,
+        "action_required": "OPERATOR_REVIEW",
+        "error": {
+          "code": "VISION_OUTCOME_UNKNOWN",
+          "message": "Vision outcome is unknown; do not retry automatically.",
+          "correlation_id": "79a6b16f-00d7-4937-9f66-279f09f53071",
+          "retryable": false,
+          "retry_after_seconds": null,
+          "field_errors": null
+        },
+        "result": null
+      }
+    },
+    {
+      "name": "read_run_after_vlm",
+      "method": "GET",
+      "path": "/v1/story-runs/78c41aed-af20-4d2d-8888-8787dc4306a2",
+      "status": 200,
+      "elapsed_ms": 6.48,
+      "headers": {
+        "ETag": "\"v4\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "78c41aed-af20-4d2d-8888-8787dc4306a2",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 2,
+        "version": 4,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T09:55:16.373992+00:00",
+        "updated_at": "2026-11-04T10:05:21.281914+00:00",
+        "job_state": "AWAITING_RECONCILIATION",
+        "retryable": false,
+        "action_required": "OPERATOR_REVIEW",
+        "error": {
+          "code": "VISION_OUTCOME_UNKNOWN",
+          "message": "Vision outcome is unknown; do not retry automatically.",
+          "correlation_id": "192d8a1e-beb5-486b-bdb0-a17ad7993f3e",
+          "retryable": false,
+          "retry_after_seconds": null,
+          "field_errors": null
+        },
+        "result": null
+      }
+    },
+    {
+      "name": "read_run_after_vlm",
+      "method": "GET",
+      "path": "/v1/story-runs/78c41aed-af20-4d2d-8888-8787dc4306a2",
+      "status": 200,
+      "elapsed_ms": 7.17,
+      "headers": {
+        "ETag": "\"v4\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "78c41aed-af20-4d2d-8888-8787dc4306a2",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 2,
+        "version": 4,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T09:55:16.373992+00:00",
+        "updated_at": "2026-11-04T10:05:21.281914+00:00",
+        "job_state": "AWAITING_RECONCILIATION",
+        "retryable": false,
+        "action_required": "OPERATOR_REVIEW",
+        "error": {
+          "code": "VISION_OUTCOME_UNKNOWN",
+          "message": "Vision outcome is unknown; do not retry automatically.",
+          "correlation_id": "aed578ac-1bcc-41b7-8371-f11d3b5a1188",
+          "retryable": false,
+          "retry_after_seconds": null,
+          "field_errors": null
+        },
+        "result": null
+      }
+    },
+    {
+      "name": "read_run_after_vlm",
+      "method": "GET",
+      "path": "/v1/story-runs/78c41aed-af20-4d2d-8888-8787dc4306a2",
+      "status": 200,
+      "elapsed_ms": 5.87,
+      "headers": {
+        "ETag": "\"v4\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "78c41aed-af20-4d2d-8888-8787dc4306a2",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 2,
+        "version": 4,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T09:55:16.373992+00:00",
+        "updated_at": "2026-11-04T10:05:21.281914+00:00",
+        "job_state": "AWAITING_RECONCILIATION",
+        "retryable": false,
+        "action_required": "OPERATOR_REVIEW",
+        "error": {
+          "code": "VISION_OUTCOME_UNKNOWN",
+          "message": "Vision outcome is unknown; do not retry automatically.",
+          "correlation_id": "fdbef0da-8c07-4e13-8106-4ae1deba0bac",
+          "retryable": false,
+          "retry_after_seconds": null,
+          "field_errors": null
+        },
+        "result": null
+      }
+    },
+    {
+      "name": "read_run_after_vlm",
+      "method": "GET",
+      "path": "/v1/story-runs/78c41aed-af20-4d2d-8888-8787dc4306a2",
+      "status": 200,
+      "elapsed_ms": 8.64,
+      "headers": {
+        "ETag": "\"v4\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "78c41aed-af20-4d2d-8888-8787dc4306a2",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 2,
+        "version": 4,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T09:55:16.373992+00:00",
+        "updated_at": "2026-11-04T10:05:21.281914+00:00",
+        "job_state": "AWAITING_RECONCILIATION",
+        "retryable": false,
+        "action_required": "OPERATOR_REVIEW",
+        "error": {
+          "code": "VISION_OUTCOME_UNKNOWN",
+          "message": "Vision outcome is unknown; do not retry automatically.",
+          "correlation_id": "c2220769-d1c1-4ca2-b9b4-996308789400",
+          "retryable": false,
+          "retry_after_seconds": null,
+          "field_errors": null
+        },
+        "result": null
+      }
+    },
+    {
+      "name": "read_run_after_vlm",
+      "method": "GET",
+      "path": "/v1/story-runs/78c41aed-af20-4d2d-8888-8787dc4306a2",
+      "status": 200,
+      "elapsed_ms": 5.52,
+      "headers": {
+        "ETag": "\"v4\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "78c41aed-af20-4d2d-8888-8787dc4306a2",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 2,
+        "version": 4,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T09:55:16.373992+00:00",
+        "updated_at": "2026-11-04T10:05:21.281914+00:00",
+        "job_state": "AWAITING_RECONCILIATION",
+        "retryable": false,
+        "action_required": "OPERATOR_REVIEW",
+        "error": {
+          "code": "VISION_OUTCOME_UNKNOWN",
+          "message": "Vision outcome is unknown; do not retry automatically.",
+          "correlation_id": "7bcd2663-6c9b-4bb2-914b-d25c0d278fbd",
+          "retryable": false,
+          "retry_after_seconds": null,
+          "field_errors": null
+        },
+        "result": null
+      }
+    },
+    {
+      "name": "read_run_after_vlm",
+      "method": "GET",
+      "path": "/v1/story-runs/78c41aed-af20-4d2d-8888-8787dc4306a2",
+      "status": 200,
+      "elapsed_ms": 5.72,
+      "headers": {
+        "ETag": "\"v4\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "78c41aed-af20-4d2d-8888-8787dc4306a2",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 2,
+        "version": 4,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T09:55:16.373992+00:00",
+        "updated_at": "2026-11-04T10:05:21.281914+00:00",
+        "job_state": "AWAITING_RECONCILIATION",
+        "retryable": false,
+        "action_required": "OPERATOR_REVIEW",
+        "error": {
+          "code": "VISION_OUTCOME_UNKNOWN",
+          "message": "Vision outcome is unknown; do not retry automatically.",
+          "correlation_id": "b5bd7373-33be-4e60-9f2b-ed9517e67986",
+          "retryable": false,
+          "retry_after_seconds": null,
+          "field_errors": null
+        },
+        "result": null
+      }
+    },
+    {
+      "name": "read_run_after_vlm",
+      "method": "GET",
+      "path": "/v1/story-runs/78c41aed-af20-4d2d-8888-8787dc4306a2",
+      "status": 200,
+      "elapsed_ms": 5.39,
+      "headers": {
+        "ETag": "\"v4\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "78c41aed-af20-4d2d-8888-8787dc4306a2",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 2,
+        "version": 4,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T09:55:16.373992+00:00",
+        "updated_at": "2026-11-04T10:05:21.281914+00:00",
+        "job_state": "AWAITING_RECONCILIATION",
+        "retryable": false,
+        "action_required": "OPERATOR_REVIEW",
+        "error": {
+          "code": "VISION_OUTCOME_UNKNOWN",
+          "message": "Vision outcome is unknown; do not retry automatically.",
+          "correlation_id": "fc28ebd8-32df-4230-bb82-d07655c55841",
+          "retryable": false,
+          "retry_after_seconds": null,
+          "field_errors": null
+        },
+        "result": null
+      }
+    },
+    {
+      "name": "read_run_after_vlm",
+      "method": "GET",
+      "path": "/v1/story-runs/78c41aed-af20-4d2d-8888-8787dc4306a2",
+      "status": 200,
+      "elapsed_ms": 6.13,
+      "headers": {
+        "ETag": "\"v4\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "78c41aed-af20-4d2d-8888-8787dc4306a2",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 2,
+        "version": 4,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T09:55:16.373992+00:00",
+        "updated_at": "2026-11-04T10:05:21.281914+00:00",
+        "job_state": "AWAITING_RECONCILIATION",
+        "retryable": false,
+        "action_required": "OPERATOR_REVIEW",
+        "error": {
+          "code": "VISION_OUTCOME_UNKNOWN",
+          "message": "Vision outcome is unknown; do not retry automatically.",
+          "correlation_id": "5b2b018d-db78-4fec-bb18-659d9ce7b590",
+          "retryable": false,
+          "retry_after_seconds": null,
+          "field_errors": null
+        },
+        "result": null
+      }
+    },
+    {
+      "name": "read_run_after_vlm",
+      "method": "GET",
+      "path": "/v1/story-runs/78c41aed-af20-4d2d-8888-8787dc4306a2",
+      "status": 200,
+      "elapsed_ms": 5.27,
+      "headers": {
+        "ETag": "\"v4\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "78c41aed-af20-4d2d-8888-8787dc4306a2",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 2,
+        "version": 4,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T09:55:16.373992+00:00",
+        "updated_at": "2026-11-04T10:05:21.281914+00:00",
+        "job_state": "AWAITING_RECONCILIATION",
+        "retryable": false,
+        "action_required": "OPERATOR_REVIEW",
+        "error": {
+          "code": "VISION_OUTCOME_UNKNOWN",
+          "message": "Vision outcome is unknown; do not retry automatically.",
+          "correlation_id": "6624602e-ea2c-4f46-8ad7-6dc0acf8df31",
+          "retryable": false,
+          "retry_after_seconds": null,
+          "field_errors": null
+        },
+        "result": null
+      }
+    },
+    {
+      "name": "read_run_after_vlm",
+      "method": "GET",
+      "path": "/v1/story-runs/78c41aed-af20-4d2d-8888-8787dc4306a2",
+      "status": 200,
+      "elapsed_ms": 5.8,
+      "headers": {
+        "ETag": "\"v4\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "78c41aed-af20-4d2d-8888-8787dc4306a2",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 2,
+        "version": 4,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T09:55:16.373992+00:00",
+        "updated_at": "2026-11-04T10:05:21.281914+00:00",
+        "job_state": "AWAITING_RECONCILIATION",
+        "retryable": false,
+        "action_required": "OPERATOR_REVIEW",
+        "error": {
+          "code": "VISION_OUTCOME_UNKNOWN",
+          "message": "Vision outcome is unknown; do not retry automatically.",
+          "correlation_id": "7cdb0457-c345-4653-9ba1-b9b5c40b04bc",
+          "retryable": false,
+          "retry_after_seconds": null,
+          "field_errors": null
+        },
+        "result": null
+      }
+    },
+    {
+      "name": "read_run_after_vlm",
+      "method": "GET",
+      "path": "/v1/story-runs/78c41aed-af20-4d2d-8888-8787dc4306a2",
+      "status": 200,
+      "elapsed_ms": 5.33,
+      "headers": {
+        "ETag": "\"v4\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "78c41aed-af20-4d2d-8888-8787dc4306a2",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 2,
+        "version": 4,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T09:55:16.373992+00:00",
+        "updated_at": "2026-11-04T10:05:21.281914+00:00",
+        "job_state": "AWAITING_RECONCILIATION",
+        "retryable": false,
+        "action_required": "OPERATOR_REVIEW",
+        "error": {
+          "code": "VISION_OUTCOME_UNKNOWN",
+          "message": "Vision outcome is unknown; do not retry automatically.",
+          "correlation_id": "51685c53-b387-4b8b-a223-2bbd94be669a",
+          "retryable": false,
+          "retry_after_seconds": null,
+          "field_errors": null
+        },
+        "result": null
+      }
+    },
+    {
+      "name": "read_run_after_vlm",
+      "method": "GET",
+      "path": "/v1/story-runs/78c41aed-af20-4d2d-8888-8787dc4306a2",
+      "status": 200,
+      "elapsed_ms": 6.42,
+      "headers": {
+        "ETag": "\"v4\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "78c41aed-af20-4d2d-8888-8787dc4306a2",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 2,
+        "version": 4,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T09:55:16.373992+00:00",
+        "updated_at": "2026-11-04T10:05:21.281914+00:00",
+        "job_state": "AWAITING_RECONCILIATION",
+        "retryable": false,
+        "action_required": "OPERATOR_REVIEW",
+        "error": {
+          "code": "VISION_OUTCOME_UNKNOWN",
+          "message": "Vision outcome is unknown; do not retry automatically.",
+          "correlation_id": "45943910-e6c1-474e-ad03-0e5c69c30cad",
+          "retryable": false,
+          "retry_after_seconds": null,
+          "field_errors": null
+        },
+        "result": null
+      }
+    },
+    {
+      "name": "read_run_after_vlm",
+      "method": "GET",
+      "path": "/v1/story-runs/78c41aed-af20-4d2d-8888-8787dc4306a2",
+      "status": 200,
+      "elapsed_ms": 6.07,
+      "headers": {
+        "ETag": "\"v4\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "78c41aed-af20-4d2d-8888-8787dc4306a2",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 2,
+        "version": 4,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T09:55:16.373992+00:00",
+        "updated_at": "2026-11-04T10:05:21.281914+00:00",
+        "job_state": "AWAITING_RECONCILIATION",
+        "retryable": false,
+        "action_required": "OPERATOR_REVIEW",
+        "error": {
+          "code": "VISION_OUTCOME_UNKNOWN",
+          "message": "Vision outcome is unknown; do not retry automatically.",
+          "correlation_id": "a5cceec1-ebc1-4c63-8c00-999fed01f522",
+          "retryable": false,
+          "retry_after_seconds": null,
+          "field_errors": null
+        },
+        "result": null
+      }
+    },
+    {
+      "name": "read_run_after_vlm",
+      "method": "GET",
+      "path": "/v1/story-runs/78c41aed-af20-4d2d-8888-8787dc4306a2",
+      "status": 200,
+      "elapsed_ms": 6.23,
+      "headers": {
+        "ETag": "\"v4\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "78c41aed-af20-4d2d-8888-8787dc4306a2",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 2,
+        "version": 4,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T09:55:16.373992+00:00",
+        "updated_at": "2026-11-04T10:05:21.281914+00:00",
+        "job_state": "AWAITING_RECONCILIATION",
+        "retryable": false,
+        "action_required": "OPERATOR_REVIEW",
+        "error": {
+          "code": "VISION_OUTCOME_UNKNOWN",
+          "message": "Vision outcome is unknown; do not retry automatically.",
+          "correlation_id": "c645c714-4fa8-42ab-ae07-c51a4942b5d6",
+          "retryable": false,
+          "retry_after_seconds": null,
+          "field_errors": null
+        },
+        "result": null
+      }
+    },
+    {
+      "name": "read_run_after_vlm",
+      "method": "GET",
+      "path": "/v1/story-runs/78c41aed-af20-4d2d-8888-8787dc4306a2",
+      "status": 200,
+      "elapsed_ms": 6.16,
+      "headers": {
+        "ETag": "\"v4\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "78c41aed-af20-4d2d-8888-8787dc4306a2",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 2,
+        "version": 4,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T09:55:16.373992+00:00",
+        "updated_at": "2026-11-04T10:05:21.281914+00:00",
+        "job_state": "AWAITING_RECONCILIATION",
+        "retryable": false,
+        "action_required": "OPERATOR_REVIEW",
+        "error": {
+          "code": "VISION_OUTCOME_UNKNOWN",
+          "message": "Vision outcome is unknown; do not retry automatically.",
+          "correlation_id": "19e5ced1-21f9-48eb-aa61-fef9d111da64",
+          "retryable": false,
+          "retry_after_seconds": null,
+          "field_errors": null
+        },
+        "result": null
+      }
+    },
+    {
+      "name": "read_run_after_vlm",
+      "method": "GET",
+      "path": "/v1/story-runs/78c41aed-af20-4d2d-8888-8787dc4306a2",
+      "status": 200,
+      "elapsed_ms": 6.47,
+      "headers": {
+        "ETag": "\"v4\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "78c41aed-af20-4d2d-8888-8787dc4306a2",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 2,
+        "version": 4,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T09:55:16.373992+00:00",
+        "updated_at": "2026-11-04T10:05:21.281914+00:00",
+        "job_state": "AWAITING_RECONCILIATION",
+        "retryable": false,
+        "action_required": "OPERATOR_REVIEW",
+        "error": {
+          "code": "VISION_OUTCOME_UNKNOWN",
+          "message": "Vision outcome is unknown; do not retry automatically.",
+          "correlation_id": "1c15b591-1ff8-41a7-88fd-629f3009934c",
+          "retryable": false,
+          "retry_after_seconds": null,
+          "field_errors": null
+        },
+        "result": null
+      }
+    },
+    {
+      "name": "read_run_after_vlm",
+      "method": "GET",
+      "path": "/v1/story-runs/78c41aed-af20-4d2d-8888-8787dc4306a2",
+      "status": 200,
+      "elapsed_ms": 6.11,
+      "headers": {
+        "ETag": "\"v4\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "78c41aed-af20-4d2d-8888-8787dc4306a2",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 2,
+        "version": 4,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T09:55:16.373992+00:00",
+        "updated_at": "2026-11-04T10:05:21.281914+00:00",
+        "job_state": "AWAITING_RECONCILIATION",
+        "retryable": false,
+        "action_required": "OPERATOR_REVIEW",
+        "error": {
+          "code": "VISION_OUTCOME_UNKNOWN",
+          "message": "Vision outcome is unknown; do not retry automatically.",
+          "correlation_id": "bdadc9e0-6561-4d61-b8e9-2fd7c734adb8",
+          "retryable": false,
+          "retry_after_seconds": null,
+          "field_errors": null
+        },
+        "result": null
+      }
+    },
+    {
+      "name": "read_run_after_vlm",
+      "method": "GET",
+      "path": "/v1/story-runs/78c41aed-af20-4d2d-8888-8787dc4306a2",
+      "status": 200,
+      "elapsed_ms": 7.7,
+      "headers": {
+        "ETag": "\"v4\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "78c41aed-af20-4d2d-8888-8787dc4306a2",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 2,
+        "version": 4,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T09:55:16.373992+00:00",
+        "updated_at": "2026-11-04T10:05:21.281914+00:00",
+        "job_state": "AWAITING_RECONCILIATION",
+        "retryable": false,
+        "action_required": "OPERATOR_REVIEW",
+        "error": {
+          "code": "VISION_OUTCOME_UNKNOWN",
+          "message": "Vision outcome is unknown; do not retry automatically.",
+          "correlation_id": "a7ae295a-cf4f-42e3-9540-58ba0f4c501a",
+          "retryable": false,
+          "retry_after_seconds": null,
+          "field_errors": null
+        },
+        "result": null
+      }
+    }
+  ],
+  "modal_workers": [
+    {
+      "workload": "teacher.sketch-deck.generate",
+      "app": "sketch2life-srs23-language-audio-dev",
+      "function": "generate-teacher-sketch-deck",
+      "call_id": "fc-01M6K0FN5GC116H81B75QH6DH0",
+      "elapsed_ms": 603068.43,
+      "outcome": "UNKNOWN_NO_RETRY",
+      "error_type": "TimeoutError"
+    },
+    {
+      "workload": "parent.sketch-guide.generate",
+      "app": "sketch2life-srs23-flux-image-dev",
+      "function": "generate-line-sketch-guide-candidate",
+      "call_id": "fc-01M6K23TBCRRMTXZPGX5EHGDNH",
+      "elapsed_ms": 604071.26,
+      "outcome": "UNKNOWN_NO_RETRY",
+      "error_type": "TimeoutError"
+    },
+    {
+      "workload": "lesson.visual.generate",
+      "app": "sketch2life-srs23-flux-image-dev",
+      "function": "generate-approved-lesson-visual-candidate",
+      "call_id": "fc-01M6K2RWHNC6HR7ZX8X916ES0Q",
+      "elapsed_ms": 608026.45,
+      "outcome": "UNKNOWN_NO_RETRY",
+      "error_type": "TimeoutError"
+    },
+    {
+      "workload": "story.generate",
+      "app": "sketch2life-srs23-language-audio-dev",
+      "function": "generate-story-and-storyboard",
+      "call_id": "fc-01M6K3BVXFP5C96EQXX45469CJ",
+      "elapsed_ms": 607450.88,
+      "outcome": "UNKNOWN_NO_RETRY",
+      "error_type": "TimeoutError"
+    }
+  ],
+  "parent_flow": {
+    "flow_id": "9e24cbef-47f8-4f3d-a9d4-6ad8e9fe0fba",
+    "started_at": "2026-11-04T16:55:14+07:00",
+    "image": {
+      "file": "synthetic_childlike_butterfly.png",
+      "sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949",
+      "size_bytes": 1775882
+    },
+    "video_calls": 0,
+    "activities_selected": false,
+    "run_ref": "78c41aed-af20-4d2d-8888-8787dc4306a2",
+    "upload_ref": "3631f1ed-869f-433b-9b94-6309e4b339d5"
+  },
+  "database_guard": {
+    "database": "storyrun_lite_feat063_ai_retest_20261104",
+    "current_user_is_owner": true,
+    "api_client_target": "127.0.0.1",
+    "postgres_container_server_address": "172.17.0.2/32",
+    "test_harness_only": true,
+    "product_loopback_guard_changed": false
+  },
+  "teacher_deck": {
+    "status": "FAILED_OR_UNKNOWN",
+    "error_type": "TimeoutError"
+  }
+}

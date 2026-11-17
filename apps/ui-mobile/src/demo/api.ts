@@ -1,0 +1,805 @@
+import * as Crypto from 'expo-crypto';
+import { classifyApiResponseError } from './apiResponseError.mjs';
+import { buildP1ContextOptionsRequest } from './p1ContextOptionsRequest.mjs';
+import { buildP1ActivitySuggestionsRequest } from './p1ActivitySuggestionsRequest.mjs';
+import { buildP1ContextRequest } from './p1ContextRequest.mjs';
+import {
+  outcomeMayHaveCommitted,
+  PendingIdempotencyKeys,
+  withPendingIdempotencyKey as withPendingRequestKey,
+} from './retryIdentity';
+
+export const DEMO_ACTOR_REF = 'demo:local';
+export const MAX_IMAGE_BYTES = 5_000_000;
+export const MAX_AUDIO_BYTES = 20_000_000;
+
+export type NarrationInput =
+  | { kind: 'NONE' }
+  | { kind: 'TEXT'; text: string; language?: string; provenance: 'TEXT_TYPED' }
+  | {
+      kind: 'AUDIO';
+      artifact_ref: string;
+      sha256: string;
+      content_type: string;
+      byte_length: number;
+      provenance: 'RECORDED_AUDIO';
+    };
+
+export type AuthTokenProvider = () => Promise<string | null>;
+
+export interface WorkflowResult<T = Record<string, unknown>> {
+  contract_name: 'MobileWorkflowResultV1';
+  contract_version: '1.0';
+  status: 'ACCEPTED' | 'SUCCEEDED' | 'BLOCKED' | 'FAILED';
+  request_id: string;
+  session_id: string;
+  expected_session_version: number;
+  observed_session_version: number;
+  payload: T | null;
+  failure?: {
+    code: string;
+    retryable: boolean;
+    safe_message: string;
+  } | null;
+}
+
+export interface StoryVideoJobStatus {
+  contract: 'VideoJobStatusV1';
+  version: '1.0';
+  job_id: string;
+  session_id: string;
+  state: 'QUEUED' | 'PREFLIGHT' | 'NARRATION_READY' | 'ILLUSTRATIONS_READY'
+    | 'SCENES_RENDERING' | 'ASSEMBLING' | 'VALIDATING' | 'READY'
+    | 'BLOCKED' | 'RETRYABLE_FAILURE' | 'FAILED' | 'CANCELLED'
+    | 'STALE_INPUT' | 'EXPIRED';
+  stage: string;
+  progress_percent: number;
+  public_message: string;
+  video_artifact_ref: string | null;
+}
+
+export interface P1ContextOption {
+  contract_name: 'P1ContextOptionV1';
+  contract_version: '1.0';
+  template_ref: { id: string; version: number };
+  activity_ref: { id: string; version: number };
+  age_months_min: number;
+  age_months_max: number;
+  readiness_ids: string[];
+  prerequisite_activity_ids: string[];
+  material_option_ids: string[];
+  minimum_supervision: 'NONE' | 'NEARBY' | 'DIRECT';
+  policy_constraints: string[];
+}
+
+export interface ActivityContextCandidate {
+  contract_name: 'ActivityContextCandidateV2';
+  contract_version: '2.0';
+  template_ref: { id: string; version: number };
+  activity_ref: { id: string; version: number };
+  title_vi: string;
+  summary_vi: string;
+  age_months_min: number;
+  age_months_max: number;
+  readiness_ids: string[];
+  readiness_metadata_status: 'AUTHORED' | 'UNSPECIFIED';
+  prerequisite_activity_ids: string[];
+  material_option_ids: string[];
+  material_option_groups: string[][];
+  material_labels_by_id: Record<string, string>;
+  minimum_supervision: 'NONE' | 'NEARBY' | 'DIRECT';
+  supervision_label_vi: string;
+  policy_constraints: string[];
+}
+
+export interface ActivityContextCandidateSet {
+  contract_name: 'ActivityContextCandidateSetV2';
+  contract_version: '2.0';
+  session_id: string;
+  expected_session_version: number;
+  age_months: number;
+  confirmed_anchor_label: string;
+  candidates: ActivityContextCandidate[];
+}
+
+export interface P1ContextOptions {
+  contract_name: 'P1ContextOptionsV1';
+  contract_version: '1.0';
+  session_id: string;
+  expected_session_version: number;
+  age_months: number;
+  confirmed_anchor_label: string;
+  options: P1ContextOption[];
+  topic_label_vi?: string;
+  recommendation?: {
+    status: 'PERSONALIZED' | 'EXPANDED' | 'NO_MATCH';
+    match_mode?: 'EXACT' | 'ALIAS' | 'SAFE_FALLBACK';
+    profile_id?: string;
+    profile_version?: number;
+    score?: number;
+    reason_codes: string[];
+    fallback_reason?: string | null;
+    activity_id?: string | null;
+  };
+  activity_recommendations?: {
+    contract_name: 'ActivityRecommendationSetV1';
+    contract_version: '1.0';
+    topic_label_vi: string;
+    options: ActivityRecommendationCard[];
+  };
+  baseline_activity_recommendations?: {
+    contract_name: 'ActivityRecommendationSetV1';
+    contract_version: '1.0';
+    topic_label_vi: string;
+    options: ActivityRecommendationCard[];
+  };
+  personalization_comparison?: {
+    contract_name: 'P1PersonalizationComparisonV1';
+    contract_version: '1.0';
+    baseline_activity_ids: string[];
+    personalized_activity_ids: string[];
+    rank_changed: boolean;
+    profile_signal_counts: {
+      interests: number;
+      dislikes: number;
+      adult_confirmed_progress: number;
+      readiness_constraints_enabled: boolean;
+      material_constraints_enabled: boolean;
+      learning_supports: number;
+    };
+    profile_provenance: {
+      declared_by: 'CAREGIVER' | 'GUIDE';
+      recorded_at: string;
+    };
+    excluded_activity_count: number;
+    excluded_reason_counts: Record<string, number>;
+    adult_supervision_available: 'NONE' | 'NEARBY' | 'DIRECT';
+  };
+}
+
+export interface ChildLearningProfileInput {
+  profile_declared_by: 'CAREGIVER' | 'GUIDE';
+  profile_recorded_at: string;
+  interest_text: string;
+  avoid_text: string;
+  proposed_interest_tags: ChildPreferenceTag[];
+  proposed_avoid_tags: ChildPreferenceTag[];
+  preference_tags_confirmed: boolean;
+  interests: string[];
+  dislikes: string[];
+  readiness_ids: string[] | null;
+  available_material_option_ids: string[] | null;
+  adult_participating: boolean | null;
+  caregiver_participating: boolean | null;
+  learning_support_ids: Array<'HANDS_ON' | 'MOVEMENT' | 'VISUAL_SEQUENCE' | 'OBSERVATION'>;
+}
+
+export interface ChildPreferenceTag {
+  concept_id: string;
+  label_vi: string;
+  confidence: number;
+}
+
+export interface ChildPreferenceClassification {
+  contract_name: 'ChildPreferenceClassificationV1';
+  contract_version: '1.0';
+  request_id: string;
+  interest_tags: ChildPreferenceTag[];
+  avoid_tags: ChildPreferenceTag[];
+  interest_unmapped: boolean;
+  avoid_unmapped: boolean;
+}
+
+export interface ActivityRecommendationCard {
+  contract_name: 'ActivityRecommendationCardV1';
+  contract_version: '1.0';
+  priority: number;
+  activity_id: string;
+  activity_version: number;
+  title_vi: string;
+  summary_vi: string;
+  match_reason_vi: string;
+  duration_minutes: number;
+  age_label_vi: string;
+  supervision_label_vi: string;
+  material_labels_vi: string[];
+  fit_source: 'DIRECT' | 'RELATED';
+}
+
+export interface ActivityRecommendationCardV2 extends Omit<ActivityRecommendationCard, 'contract_name' | 'contract_version'> {
+  contract_name: 'ActivityRecommendationCardV2';
+  contract_version: '2.0';
+  template_id: string;
+  template_version: number;
+  minimum_supervision: 'NONE' | 'NEARBY' | 'DIRECT';
+  policy_constraints: string[];
+}
+
+export interface ActivityRecommendationSetV3 {
+  contract_name: 'ActivityRecommendationSetV3';
+  contract_version: '3.0';
+  session_id: string;
+  expected_session_version: number;
+  age_months: number;
+  confirmed_anchor_label: string;
+  topic_label_vi: string;
+  total_count: number;
+  options: ActivityRecommendationCardV2[];
+  empty_reason: 'TOPIC_UNMAPPED' | 'NO_RELEVANT_ACTIVITY_FOR_AGE'
+    | 'RELEVANT_ACTIVITY_BLOCKED_BY_SAFETY_OR_ADULT_PRESENCE'
+    | 'CATALOG_CARD_NOT_DISPLAYABLE' | null;
+}
+
+export interface ActivityRankingResultV1 {
+  contract_name: 'ActivityRankingResultV1';
+  contract_version: '1.0';
+  request_id: string;
+  ranked_activity_ids: string[];
+}
+
+export class DemoApiError extends Error {
+  readonly code: string;
+  readonly statusCode: number;
+  readonly retryable: boolean;
+
+  constructor(message: string, code: string, statusCode: number, retryable = false) {
+    super(message);
+    this.name = 'DemoApiError';
+    this.code = code;
+    this.statusCode = statusCode;
+    this.retryable = retryable;
+  }
+}
+
+const defaultApiUrl = 'http://10.0.2.2:8000';
+const configuredApiUrl = process.env.EXPO_PUBLIC_API_URL || defaultApiUrl;
+export const API_BASE_URL = configuredApiUrl.replace(/\/+$/, '');
+
+function newId(prefix: string): string {
+  return `${prefix}-${Crypto.randomUUID()}`;
+}
+
+function toError(
+  value: unknown,
+  statusCode: number,
+  isJson: boolean,
+  responseOk = false,
+): DemoApiError {
+  const failure = classifyApiResponseError({ body: value, statusCode, isJson, responseOk });
+  return new DemoApiError(failure.message, failure.code, failure.statusCode, failure.retryable);
+}
+
+export class DemoApiClient {
+  readonly baseUrl: string;
+  private readonly getAuthToken?: AuthTokenProvider;
+  private readonly pendingIdempotencyKeys = new PendingIdempotencyKeys();
+  private pendingSessionCreation: { sessionId: string; idempotencyKey: string } | null = null;
+
+  constructor(baseUrl = API_BASE_URL, getAuthToken?: AuthTokenProvider) {
+    this.baseUrl = baseUrl.replace(/\/+$/, '');
+    this.getAuthToken = getAuthToken;
+  }
+
+  async createSession(): Promise<WorkflowResult<Record<string, unknown>>> {
+    const pending = this.pendingSessionCreation ?? {
+      sessionId: Crypto.randomUUID(),
+      idempotencyKey: newId('idem'),
+    };
+    this.pendingSessionCreation = pending;
+    try {
+      const result = await this.jsonRequest('/v1/sessions', {
+        request_id: newId('req'),
+        idempotency_key: pending.idempotencyKey,
+        session_id: pending.sessionId,
+        expected_session_version: 0,
+        actor_ref: DEMO_ACTOR_REF,
+        payload: { operation: 'CREATE_SESSION' },
+      }, 30_000, 'POST');
+      this.pendingSessionCreation = null;
+      return result;
+    } catch (error) {
+      if (!outcomeMayHaveCommitted(error)) this.pendingSessionCreation = null;
+      throw error;
+    }
+  }
+
+  async uploadImage(
+    sessionId: string,
+    version: number,
+    image: {
+      uri: string;
+      uploadUri?: string;
+      fileName: string;
+      mimeType: string;
+      sourceMimeType?: string;
+      normalizationPolicy?: string;
+    },
+  ): Promise<WorkflowResult<Record<string, unknown>>> {
+    const path = `/v1/sessions/${encodeURIComponent(sessionId)}/media/image`;
+    const scope = JSON.stringify({
+      sessionId,
+      version,
+      path,
+      sourceUri: image.uri,
+      uploadUri: image.uploadUri ?? image.uri,
+      fileName: image.fileName,
+      mimeType: image.mimeType,
+      sourceMimeType: image.sourceMimeType,
+      normalizationPolicy: image.normalizationPolicy,
+    });
+    return this.withPendingIdempotencyKey(scope, async (idempotencyKey) => {
+      const form = new FormData();
+      form.append('image', {
+        uri: image.uploadUri ?? image.uri,
+        name: image.fileName,
+        type: image.mimeType,
+      } as unknown as Blob);
+      form.append('source_media_type', image.sourceMimeType ?? image.mimeType);
+      form.append('normalization_policy', image.normalizationPolicy ?? 'IDENTITY_V1');
+      if (image.uploadUri) {
+        const sourceExtension = image.sourceMimeType?.split('/')[1]?.replace('jpeg', 'jpg') ?? 'bin';
+        form.append('source_image', {
+          uri: image.uri,
+          name: `source.${sourceExtension}`,
+          type: image.sourceMimeType ?? 'application/octet-stream',
+        } as unknown as Blob);
+      }
+      return this.request(path, {
+        method: 'POST',
+        headers: {
+          ...this.metaHeaders(version, newId('req'), idempotencyKey),
+          'X-Synthetic-Non-Child-Confirmed': 'true',
+        },
+        body: form,
+      }, 60_000);
+    });
+  }
+
+  async uploadAudio(
+    sessionId: string,
+    version: number,
+    audio: { uri: string; fileName: string; mimeType: string },
+  ): Promise<WorkflowResult<Record<string, unknown>>> {
+    const path = `/v1/sessions/${encodeURIComponent(sessionId)}/media/audio`;
+    const scope = JSON.stringify({ sessionId, version, path, uri: audio.uri, fileName: audio.fileName, mimeType: audio.mimeType });
+    return this.withPendingIdempotencyKey(scope, async (idempotencyKey) => {
+      const form = new FormData();
+      form.append('audio', {
+        uri: audio.uri,
+        name: audio.fileName,
+        type: audio.mimeType,
+      } as unknown as Blob);
+      return this.request(path, {
+        method: 'POST',
+        headers: this.metaHeaders(version, newId('req'), idempotencyKey),
+        body: form,
+      }, 30_000);
+    });
+  }
+
+  runUnderstanding(sessionId: string, version: number, narration: NarrationInput = { kind: 'NONE' }) {
+    return this.command(sessionId, version, 'POST', '/understanding', {
+      operation: 'RUN_UNDERSTANDING',
+      user_initiated: true,
+      narration,
+    }, 150_000);
+  }
+
+  requeryUnderstanding(
+    sessionId: string,
+    version: number,
+    options: { priorRunId: string; direction: string; revision: number; correction?: string },
+  ) {
+    return this.command(sessionId, version, 'POST', '/understanding', {
+      operation: 'REQUERY_UNDERSTANDING',
+      user_initiated: true,
+      prior_run_id: options.priorRunId,
+      direction_revision: options.revision,
+      selected_direction: options.direction,
+      correction: options.correction || '',
+    }, 150_000);
+  }
+
+  selectSubject(
+    sessionId: string,
+    version: number,
+    subjectId: string,
+    subjectLabel: string,
+  ) {
+    return this.command(sessionId, version, 'POST', '/understanding', {
+      operation: 'SELECT_SUBJECT',
+      user_initiated: true,
+      selected_subject_id: subjectId,
+      selected_subject_label: subjectLabel,
+    }, 60_000);
+  }
+
+  async readUnderstandingProgress(sessionId: string, version: number) {
+    const requestId = newId('req');
+    return this.request<WorkflowResult<Record<string, unknown>>>(
+      `/v1/sessions/${encodeURIComponent(sessionId)}/understanding/progress`,
+      {
+        method: 'GET',
+        headers: this.metaHeaders(version, requestId),
+      },
+      30_000,
+    );
+  }
+
+  confirmGateA(
+    sessionId: string,
+    version: number,
+    claimIds: string[],
+    primaryAnchorId: string | null,
+    adultSubjectLabel: string | null,
+  ) {
+    return this.command(sessionId, version, 'POST', '/gate-a/confirm', {
+      operation: 'CONFIRM_GATE_A',
+      user_initiated: true,
+      primary_anchor_id: primaryAnchorId,
+      confirmation: adultSubjectLabel
+        ? {
+          contract_name: 'GateAConfirmationV2',
+          contract_version: '2.0',
+          meaning_version: 2,
+          confirmed_claim_ids: claimIds,
+          adult_subject_label: adultSubjectLabel,
+        }
+        : {
+          contract_name: 'GateAConfirmationV1',
+          contract_version: '1.0',
+          meaning_version: 1,
+          confirmed_claim_ids: claimIds,
+          correction: null,
+        },
+    });
+  }
+
+  async readContextOptions(
+    sessionId: string,
+    version: number,
+    ageMonths: number,
+    childProfile?: ChildLearningProfileInput,
+    candidateActivityIds: string[] = [],
+    supervisionConfirmedActivityIds: string[] = [],
+    caregiverParticipating = false,
+  ) {
+    const requestId = newId('req');
+    if (childProfile) {
+      return this.request<WorkflowResult<P1ContextOptions>>(
+        `/v1/sessions/${encodeURIComponent(sessionId)}/p1/context-options/finalize`,
+        {
+          method: 'POST',
+          headers: this.metaHeaders(version, requestId),
+          body: JSON.stringify(buildP1ContextOptionsRequest({
+            ageMonths,
+            childProfile,
+            candidateActivityIds,
+            supervisionConfirmedActivityIds,
+          })),
+        },
+        30_000,
+      );
+    }
+    return this.request<WorkflowResult<P1ContextOptions>>(
+      `/v1/sessions/${encodeURIComponent(sessionId)}/p1/context-options?age_months=${ageMonths}${ageMonths < 36 ? `&caregiver_participating=${caregiverParticipating}` : ''}`,
+      {
+        method: 'GET',
+        headers: this.metaHeaders(version, requestId),
+      },
+      30_000,
+    );
+  }
+
+  async readContextCandidates(sessionId: string, version: number, ageMonths: number) {
+    const requestId = newId('req-context-candidates');
+    return this.request<WorkflowResult<ActivityContextCandidateSet>>(
+      `/v1/sessions/${encodeURIComponent(sessionId)}/p1/context-candidates?age_months=${ageMonths}`,
+      {
+        method: 'GET',
+        headers: this.metaHeaders(version, requestId),
+      },
+      30_000,
+    );
+  }
+
+  async readActivitySuggestions(
+    sessionId: string,
+    version: number,
+    ageMonths: number,
+    childProfile: ChildLearningProfileInput,
+  ) {
+    if (childProfile.adult_participating !== true) {
+      throw new DemoApiError('Cần có người lớn đồng hành trong hoạt động.', 'ADULT_PARTICIPATION_REQUIRED', 422);
+    }
+    if (ageMonths < 36 && childProfile.caregiver_participating !== true) {
+      throw new DemoApiError('Trẻ dưới 3 tuổi cần có người chăm sóc đồng hành trực tiếp.', 'UNDER_THREE_CAREGIVER_REQUIRED', 422);
+    }
+    const requestId = newId('req-activity-suggestions');
+    return this.request<WorkflowResult<ActivityRecommendationSetV3>>(
+      `/v1/sessions/${encodeURIComponent(sessionId)}/p1/activity-suggestions`,
+      {
+        method: 'POST',
+        headers: {
+          ...this.metaHeaders(version, requestId),
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(buildP1ActivitySuggestionsRequest({
+          ageMonths,
+          childProfile,
+        })),
+      },
+      30_000,
+    );
+  }
+
+  async rankActivitySuggestions(
+    sessionId: string,
+    version: number,
+    ageMonths: number,
+    childProfile: ChildLearningProfileInput,
+  ) {
+    if (childProfile.adult_participating !== true) {
+      throw new DemoApiError('Cần có người lớn đồng hành trong hoạt động.', 'ADULT_PARTICIPATION_REQUIRED', 422);
+    }
+    if (ageMonths < 36 && childProfile.caregiver_participating !== true) {
+      throw new DemoApiError('Trẻ dưới 3 tuổi cần có người chăm sóc đồng hành trực tiếp.', 'UNDER_THREE_CAREGIVER_REQUIRED', 422);
+    }
+    const requestId = newId('req-activity-rank');
+    return this.request<WorkflowResult<ActivityRankingResultV1>>(
+      `/v1/sessions/${encodeURIComponent(sessionId)}/p1/activity-suggestions/rank`,
+      {
+        method: 'POST',
+        headers: {
+          ...this.metaHeaders(version, requestId),
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(buildP1ActivitySuggestionsRequest({
+          ageMonths,
+          childProfile,
+        })),
+      },
+      25_000,
+    );
+  }
+
+  classifyChildPreferences(
+    interestText: string,
+    avoidText: string,
+  ): Promise<ChildPreferenceClassification> {
+    const requestId = newId('profile-pref');
+    return this.request<ChildPreferenceClassification>('/v1/profile/preferences/classify', {
+      method: 'POST',
+      headers: {
+        ...this.metaHeaders(0, requestId),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contract_name: 'ChildPreferenceClassificationRequestV1',
+        contract_version: '1.0',
+        request_id: requestId,
+        interest_text: interestText.trim().slice(0, 240),
+        avoid_text: avoidText.trim().slice(0, 240),
+      }),
+    }, 150_000);
+  }
+
+  setP1Context(sessionId: string, version: number, context: Record<string, unknown>) {
+    return this.command(sessionId, version, 'PUT', '/p1-context', {
+      operation: 'SET_P1_CONTEXT',
+      user_initiated: true,
+      context: buildP1ContextRequest({
+        sessionId,
+        expectedSessionVersion: version,
+        context,
+      }),
+    });
+  }
+
+  runP1Filter(sessionId: string, version: number) {
+    return this.command(sessionId, version, 'POST', '/p1-filter', {
+      operation: 'RUN_P1_FILTER',
+      user_initiated: true,
+    });
+  }
+
+  prepareExperience(sessionId: string, version: number) {
+    return this.command(sessionId, version, 'POST', '/experience/prepare', {
+      operation: 'PREPARE_EXPERIENCE',
+      user_initiated: true,
+    });
+  }
+
+  approveGateB(sessionId: string, version: number) {
+    return this.command(sessionId, version, 'POST', '/gate-b/approve', {
+      operation: 'APPROVE_GATE_B',
+      user_initiated: true,
+      approved: true,
+    });
+  }
+
+  prepareRenderer(sessionId: string, version: number) {
+    return this.command(sessionId, version, 'POST', '/renderer/launch', {
+      operation: 'PREPARE_RENDERER',
+      user_initiated: true,
+    }, 150_000);
+  }
+
+  completeHandoff(sessionId: string, version: number) {
+    return this.command(sessionId, version, 'POST', '/handoff', {
+      operation: 'COMPLETE_HANDOFF',
+      user_initiated: true,
+    });
+  }
+
+  async listStoryVideoJobs(sessionId: string): Promise<StoryVideoJobStatus[]> {
+    return this.request<StoryVideoJobStatus[]>(
+      `/v1/sessions/${encodeURIComponent(sessionId)}/story-video-jobs`,
+      { method: 'GET' },
+      30_000,
+    );
+  }
+
+  requestRetake(sessionId: string, version: number) {
+    return this.command(sessionId, version, 'POST', '/media/retake', {
+      operation: 'REQUEST_RETAKE',
+      user_initiated: true,
+    });
+  }
+
+  recordFeedback(
+    sessionId: string,
+    version: number,
+    completionStatus: 'COMPLETED' | 'PARTIAL' | 'NOT_ATTEMPTED',
+    interestScore: number | null,
+    independenceScore: number | null,
+    observationTags: string[] = [],
+  ) {
+    return this.command(sessionId, version, 'POST', '/feedback', {
+      operation: 'RECORD_FEEDBACK',
+      user_initiated: true,
+      feedback: {
+        completion_status: completionStatus,
+        interest_score: interestScore,
+        independence_score: independenceScore,
+        observation_tags: observationTags,
+      },
+    });
+  }
+
+  async readGallery(sessionId: string, version: number) {
+    const requestId = newId('req');
+    return this.request<WorkflowResult<Record<string, unknown>>>(
+      `/v1/sessions/${encodeURIComponent(sessionId)}/gallery`,
+      {
+        method: 'GET',
+        headers: this.metaHeaders(version, requestId, newId('idem')),
+      },
+      30_000,
+    );
+  }
+
+  async refreshSession(sessionId: string, version: number) {
+    const requestId = newId('req');
+    return this.request<WorkflowResult<Record<string, unknown>>>(
+      `/v1/sessions/${encodeURIComponent(sessionId)}`,
+      {
+        method: 'GET',
+        headers: this.metaHeaders(version, requestId, newId('idem')),
+      },
+      30_000,
+    );
+  }
+
+  private command(
+    sessionId: string,
+    version: number,
+    method: 'POST' | 'PUT',
+    suffix: string,
+    payload: Record<string, unknown>,
+    timeoutMs = 30_000,
+  ) {
+    const path = `/v1/sessions/${encodeURIComponent(sessionId)}${suffix}`;
+    const scope = JSON.stringify({ sessionId, version, method, suffix, payload });
+    return this.withPendingIdempotencyKey(scope, (idempotencyKey) => this.jsonRequest(
+      path,
+      {
+        request_id: newId('req'),
+        idempotency_key: idempotencyKey,
+        session_id: sessionId,
+        expected_session_version: version,
+        actor_ref: DEMO_ACTOR_REF,
+        payload,
+      },
+      timeoutMs,
+      method,
+    ));
+  }
+
+  private withPendingIdempotencyKey<T>(scope: string, operation: (key: string) => Promise<T>): Promise<T> {
+    return withPendingRequestKey(this.pendingIdempotencyKeys, scope, () => newId('idem'), operation);
+  }
+
+  private jsonRequest<T = WorkflowResult<Record<string, unknown>>>(
+    path: string,
+    body: Record<string, unknown>,
+    timeoutMs: number,
+    method: 'POST' | 'PUT',
+  ) {
+    return this.request<T>(path, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    }, timeoutMs);
+  }
+
+  private metaHeaders(
+    version: number,
+    requestId: string,
+    idempotencyKey?: string,
+  ): Record<string, string> {
+    return {
+      'X-Request-ID': requestId,
+      'X-Expected-Session-Version': String(version),
+      'X-Actor-Ref': DEMO_ACTOR_REF,
+      ...(idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : {}),
+    };
+  }
+
+  private async request<T>(path: string, init: RequestInit, timeoutMs: number): Promise<T> {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const headers = new Headers(init.headers);
+    try {
+      if (this.getAuthToken) {
+        const token = await this.getAuthToken();
+        if (token) headers.set('Authorization', `Bearer ${token}`);
+      }
+      const response = await fetch(`${this.baseUrl}${path}`, {
+        ...init,
+        headers,
+        signal: controller.signal,
+      });
+      const responseText = await response.text();
+      let body: unknown = null;
+      let isJson = false;
+      if (responseText.trim()) {
+        try {
+          body = JSON.parse(responseText) as unknown;
+          isJson = true;
+        } catch {
+          // Keep response contents out of errors and logs; only classify the format.
+        }
+      }
+      if (!response.ok || (typeof body === 'object' && body !== null && 'status' in body && body.status === 'FAILED')) {
+        throw toError(body, response.status, isJson);
+      }
+      if (!isJson || typeof body !== 'object' || body === null || Array.isArray(body)) {
+        throw toError(body, response.status, isJson, true);
+      }
+      return body as T;
+    } catch (error) {
+      if (error instanceof DemoApiError) throw error;
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new DemoApiError(
+          'Request timed out. The result may be uncertain; retry the same action explicitly.',
+          'REQUEST_TIMEOUT',
+          408,
+          true,
+        );
+      }
+      throw new DemoApiError(
+        'Could not reach the backend. Check the API address and server, then retry explicitly.',
+        'NETWORK_ERROR',
+        0,
+        true,
+      );
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+}
+
+export function createDemoApi(tokenProvider?: AuthTokenProvider): DemoApiClient {
+  return new DemoApiClient(API_BASE_URL, tokenProvider);
+}

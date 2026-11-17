@@ -1,0 +1,14 @@
+fix/person-2-t1-hardening-t2-t3 1419f7568a86b924c832339eac7a62988c7678fd 2026-08-26 22:19:17 +0700
+main 1c2c6d357b0c27cd19f790e748f9525e3e50e2b2 2026-08-24 16:48:22 +0700
+plan/person-1-montessori-golden-hardening f70f3c914f7918550781f3c235790b4634206987 2026-08-25 21:37:30 +0700
+plan/person-1-montessori-offline-console b3f397c2867c3a7b8d5ee7fb4da78c4d3dcd60a2 2026-08-25 22:11:10 +0700
+plan/person-1-montessori-sprint-1 2d615289a0e12422f49e96958e57469a36056781 2026-08-25 19:56:14 +0700
+origin 1c2c6d357b0c27cd19f790e748f9525e3e50e2b2 2026-08-24 16:48:22 +0700
+origin/main 1c2c6d357b0c27cd19f790e748f9525e3e50e2b2 2026-08-24 16:48:22 +0700
+origin/plan/person-1-montessori-golden-hardening f70f3c914f7918550781f3c235790b4634206987 2026-08-25 21:37:30 +0700
+origin/plan/person-1-montessori-offline-console b3f397c2867c3a7b8d5ee7fb4da78c4d3dcd60a2 2026-08-25 22:11:10 +0700
+origin/plan/person-2-asr-research 6a3890c5946b5b0299d25e563e386d490c347c69 2026-08-30 23:14:33 +0700
+origin/plan/person-2-multimodal-input-validation 6861b173d0c5399d6d761bea87888feeed9b9e6e 2026-08-26 12:03:51 +0700
+origin/plan/person-2-qwen3-vl-structured-understanding f3014e5b99238960668a305c9831de562aca2fc2 2026-09-03 19:36:21 +0700
+origin/plan/person-3-art-animation-poc 68aceeb1d89a0d5b15dead527a323fd3c7336915 2026-08-26 14:34:26 +0700
+origin/plan/person-4-learning-explanation-poc f0dd6220c435aebce59417f367116da2b37262ae 2026-09-02 16:26:44 +0700

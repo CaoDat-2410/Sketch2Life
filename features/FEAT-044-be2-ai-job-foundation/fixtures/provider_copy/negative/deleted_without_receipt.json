@@ -1,0 +1,71 @@
+{
+  "contract_name": "ProviderCopyLifecycleReport",
+  "contract_owner": "BE2-14",
+  "contract_version": "0.1-candidate",
+  "copies": [
+    {
+      "actual_deletion_proven": false,
+      "copy_id": "copy_fx001",
+      "evidence_kind": "fixture",
+      "kind": "input",
+      "reason_code": null,
+      "receipt_id": null,
+      "report_label": "fixture_deleted_not_actual",
+      "status": "deleted"
+    },
+    {
+      "actual_deletion_proven": false,
+      "copy_id": "copy_fx002",
+      "evidence_kind": "fixture",
+      "kind": "output",
+      "reason_code": "PROVIDER_PURGE_IN_PROGRESS",
+      "receipt_id": "purge_rcpt_fx0002",
+      "report_label": "pending",
+      "status": "pending"
+    },
+    {
+      "actual_deletion_proven": false,
+      "copy_id": "copy_fx003",
+      "evidence_kind": "fixture",
+      "kind": "job",
+      "reason_code": "PURGE_NOT_SUPPORTED",
+      "receipt_id": "purge_rcpt_fx0003",
+      "report_label": "unsupported",
+      "status": "unsupported"
+    },
+    {
+      "actual_deletion_proven": false,
+      "copy_id": "copy_fx004",
+      "evidence_kind": "fixture",
+      "kind": "cache",
+      "reason_code": "PROVIDER_PURGE_ERROR",
+      "receipt_id": "purge_rcpt_fx0004",
+      "report_label": "exception",
+      "status": "exception"
+    },
+    {
+      "actual_deletion_proven": false,
+      "copy_id": "copy_fx005",
+      "evidence_kind": "fixture",
+      "kind": "output",
+      "reason_code": "RECEIPT_UNVERIFIED",
+      "receipt_id": "purge_rcpt_fx0005",
+      "report_label": "pending",
+      "status": "pending"
+    },
+    {
+      "actual_deletion_proven": false,
+      "copy_id": "copy_fx_late",
+      "evidence_kind": null,
+      "kind": "output",
+      "reason_code": null,
+      "receipt_id": null,
+      "report_label": "purge_requested",
+      "status": "purge_requested"
+    }
+  ],
+  "fake_support_owner": "BE2-01",
+  "fixture_marker": true,
+  "organization_id": "org_fx_school_a",
+  "scope_ref": "job_fx_copy_scope"
+}

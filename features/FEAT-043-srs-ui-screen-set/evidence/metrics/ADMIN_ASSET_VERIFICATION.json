@@ -1,0 +1,101 @@
+{
+  "status": "PASS",
+  "selected_screens": 10,
+  "generation_attempts": 16,
+  "preserved_discarded_iterations": 6,
+  "source_copy_unchanged": true,
+  "actual_inputs_and_prompt_history_verified": true,
+  "visual_owner_approval": "PENDING",
+  "rows": [
+    {
+      "id": "A01",
+      "image": "assets/generated/admin-app/A01-tong-quan.png",
+      "width": 1586,
+      "height": 992,
+      "attempts": 1,
+      "status": "REVIEW_PENDING",
+      "sha256": "e2dc6127bce77e3faa424eeb6c648b6e32ee6c46c0e72780cbc2101d83357956"
+    },
+    {
+      "id": "A02",
+      "image": "assets/generated/admin-app/A02-nguoi-dung-vai-tro.png",
+      "width": 1586,
+      "height": 992,
+      "attempts": 2,
+      "status": "REVIEW_PENDING",
+      "sha256": "95cc5d0f71ed59f1c70969e461af0ce64c935ac8d00a26daf4378ad0176068d0"
+    },
+    {
+      "id": "A03",
+      "image": "assets/generated/admin-app/A03-lop-va-truong.png",
+      "width": 1586,
+      "height": 992,
+      "attempts": 1,
+      "status": "REVIEW_PENDING",
+      "sha256": "ff54425aa2d9451b5f3a4bbf528fbfb2063a4ebe78c266c9786a6a34440128c0"
+    },
+    {
+      "id": "A04",
+      "image": "assets/generated/admin-app/A04-quan-tri-noi-dung.png",
+      "width": 1586,
+      "height": 992,
+      "attempts": 3,
+      "status": "REVIEW_PENDING",
+      "sha256": "a3ebfc4ae53e6f6de8ede6113251877151566d629e4014a06197e7e90283e794"
+    },
+    {
+      "id": "A05",
+      "image": "assets/generated/admin-app/A05-chinh-sach-ai.png",
+      "width": 1586,
+      "height": 992,
+      "attempts": 2,
+      "status": "REVIEW_PENDING",
+      "sha256": "00f9c3ed73f865b1368dc5886d77e29ce114e20336c8f51a9bcbb1025bb893bc"
+    },
+    {
+      "id": "A06",
+      "image": "assets/generated/admin-app/A06-giam-sat-su-co.png",
+      "width": 1587,
+      "height": 991,
+      "attempts": 2,
+      "status": "REVIEW_PENDING",
+      "sha256": "8e6f37e1933d4c8cc497e363dd09ef41858f7559516670ba5f9b8f7434f0b299"
+    },
+    {
+      "id": "A07",
+      "image": "assets/generated/admin-app/A07-bao-cao.png",
+      "width": 1586,
+      "height": 992,
+      "attempts": 2,
+      "status": "REVIEW_PENDING",
+      "sha256": "f61094bcfe419257cc268c4d360be017d1cff8f15443edaab53aacebe74de1f9"
+    },
+    {
+      "id": "A08",
+      "image": "assets/generated/admin-app/A08-dong-y-yeu-cau-du-lieu.png",
+      "width": 1586,
+      "height": 992,
+      "attempts": 1,
+      "status": "REVIEW_PENDING",
+      "sha256": "8891e767de4e88a74cc00829e50b7aeb108c1875545cddf922cdc776e6a20c5e"
+    },
+    {
+      "id": "A09",
+      "image": "assets/generated/admin-app/A09-nhat-ky.png",
+      "width": 1586,
+      "height": 992,
+      "attempts": 1,
+      "status": "REVIEW_PENDING",
+      "sha256": "d19827bb0e1938ab6df8f8c77a0bb95896cc465a978fd4fac44646fa91ac7fc7"
+    },
+    {
+      "id": "A10",
+      "image": "assets/generated/admin-app/A10-cau-hinh.png",
+      "width": 1586,
+      "height": 992,
+      "attempts": 1,
+      "status": "REVIEW_PENDING",
+      "sha256": "31be06b7a972d698fc65daed4b0b382b1689df4a7774b19ed188c4545f211ad5"
+    }
+  ]
+}

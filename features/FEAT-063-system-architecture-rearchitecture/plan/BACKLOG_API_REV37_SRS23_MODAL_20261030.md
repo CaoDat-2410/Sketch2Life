@@ -1,0 +1,98 @@
+# Backlog đề xuất: API hiện tại, SRS 2.3 và Modal
+
+**Trạng thái: DRAFT — phục vụ BA/nhóm BE phân rã và review; không phải approval thực thi.** Đây là backlog điều phối, không thay thế hay sửa plan FEAT-063 Rev36, FEAT-064 hoặc các approval tương ứng. Mỗi task cần scope, owner, plan/contract, review và approval theo harness trước khi triển khai; các task live/DB/provider còn cần phạm vi thao tác được chấp thuận riêng. Không tự gán người thực hiện. Các ID dưới đây chỉ là nhãn trong tài liệu này, không phải mã feature mới.
+
+Cập nhật theo review Claude sau B0: giữ 14 ID cấp trên B0–B13; tách B0a/B0b và B4a/B4b để theo dõi scope, không nhân đôi task FEAT-064. Chủ task đã chọn pilot Child UI/BE1 hiện tại trước flow mới; việc chọn luồng đã chốt, implementation và live vẫn cần approval. [Bản ghi xử lý review](../evidence/notes/BACKLOG_POST_B0_REVIEW_RESPONSE_20261030.md) phân biệt các finding được xử lý và giới hạn của bản review.
+
+## Mục tiêu và nguồn
+
+Đối chiếu API hiện có với luồng Parent/Teacher một trẻ của SRS 2.3; xác định việc nền tảng, API và kiểm thử cần làm. Kết quả hoàn thành là BA/BE có thể nhận diện phụ thuộc và tạo task có thể nghiệm thu, không phải tuyên bố hệ thống đã đạt SRS hoặc production.
+
+| Nguồn | Phạm vi và giới hạn |
+|---|---|
+| `API_CONTRACT_CATALOG_FEAT063_REV37_20261030.md` | Bản được cung cấp ngoài repo (CRLF), SHA-256 `56FC8BEA01360E11F73E45B2D43AC1897540B30BC8AE524CDE1ECEFACFBB1B88`. Bản LF lưu tại commit `e9ba2ddd` trùng nội dung sau chuẩn hóa xuống dòng, không cùng hash byte. Evidence lịch sử vẫn thiếu; xem B0b. |
+| [SRS 2.3 draft](../artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md), [data table register](../artifacts/DATA_TABLE_REGISTER.md), [decisions](../DECISIONS.md) | SRS/register chưa ký. Chênh lệch trong SRS phải giải quyết bằng crosswalk và quyết định được ghi lại. |
+| [Plan backend Rev36](PLAN_REV36_BACKEND_SRS23_ALIGNMENT_20261029.md) | `AWAITING_APPROVAL`; S1/S2/S3 chỉ là nền tảng và chưa cho phép triển khai StoryRun hoặc pipeline AI. |
+| [FEAT-064 plan](../../FEAT-064-current-flow-modal-vision-dev/plan/PLAN.md) và [DECISIONS](../../FEAT-064-current-flow-modal-vision-dev/DECISIONS.md) | D-01 đã chọn pilot flow hiện tại trước flow mới; không hỏi lại. Plan rev6 DRAFT/NOT_STARTED, approval AWAITING_APPROVAL; các quyết định D-04–D-09 chưa thay cho contract/manifest và đồng ký thực tế. |
+| [FEAT-061 smoke demo trước merge](../../FEAT-061-modal-qwen-vl-endpoint/evidence/BACKEND_DEMO_MODAL_SMOKE_20261029.md) | Một lượt synthetic BE demo → Qwen3-VL Modal thành công trước merge; không chứng minh BE sau merge hay chất lượng mô hình. |
+
+Catalog báo 135 operation được kê khai, gồm 124 operation mount trong snapshot Compose local trên 111 path và 11 candidate/fixture chưa mount. Trong 124: 56 BE1/classroom (bao gồm root health), 35 demo, 30 Lesson Library, 3 storage example phụ thuộc cấu hình. [Snapshot offline mới B0a](../evidence/B0_OPENAPI_OFFLINE_SNAPSHOT_20261030.md) xác nhận source hiện tại có 121 operation khi tắt storage example và 124 khi bật ở `combined/local`; method/path của bản bật khớp 124 dòng catalog sau chuẩn hóa path converter. Đây không phải 124 operation đã pass hay snapshot runtime Compose. Chưa xuất snapshot riêng cho `classroom`, là profile đích của pilot.
+
+Catalog ghi API upload ảnh #59 pass ở trường hợp ảnh quá lớn bị từ chối 413; #60 understanding và #62 tạo session chỉ được ghi đã mount, chưa live-probe riêng. Hai file OpenAPI JSON và `EV-063-30` được liên kết trong catalog chưa tìm thấy tại checkout khi review; không coi lời mô tả trong catalog là evidence đã xác minh độc lập.
+
+## Backlog để phân công
+
+Mức effort chỉ để lập kế hoạch tương đối: **S** = một review cycle nhỏ; **M** = một lát có nhiều kiểm thử; **L** = cần tách plan/task và có phụ thuộc liên nhóm. Các mức không phải cam kết thời gian. B0a đã có evidence offline; B0b còn blocked về provenance lịch sử. B1–B13 và pilot FEAT-064 chưa bắt đầu triển khai.
+
+| ID | Kết quả cần giao | Phụ thuộc | Có thể chuẩn bị song song | Nghiệm thu tối thiểu | Effort / rủi ro |
+|---|---|---|---|---|---|
+| B0 | B0a: baseline source mới; B0b: provenance snapshot Rev37 cũ. | Không | B1, B2, B3 (review) | B0a đạt phạm vi offline `combined` với commit/config/hash và route comparison; B0b blocked do thiếu OpenAPI/EV-063-30 gốc và cấu hình/commit runtime, không chặn B1. Không gọi toàn B0 đã đóng. | S; không suy kết quả runtime từ schema. |
+| B1 | Lập crosswalk đủ 135 dòng catalog, bổ sung các `NEW_TARGET` theo SRS. | B0a, catalog đã pin hash, SRS; không đợi B0b | B2, B3/T0 docs | Có method/path hoặc contract target, profile, actor/auth, module/owner boundary, dòng SRS, `KEEP/MODIFY/LEGACY_HOLD/FIXTURE/NEW_TARGET`, evidence level, draft S1 disposition, pilot-needed và blocked-by. Phân biệt nhãn catalog, snapshot offline và test; dòng StoryRun chưa chốt gắn chờ B2. Disposition S1 là draft, chưa cấp quyền chặn route. | M; SRS đang draft. |
+| B2 | Hòa giải thứ tự hoạt động Parent/Teacher trong SRS/register. | Quyết định chủ task, review BA | B0a, B1, B3/T0 và pilot | Crosswalk BR-08/15, UC-02, state, pipeline, API và `story.runs`; ghi input/state và ảnh hưởng. Parent sau video, Teacher pin một hoạt động trước video theo quyết định đã có; đối chiếu các đoạn mâu thuẫn. Chỉ chặn contract StoryRun/Parent phụ thuộc, không chặn pilot FEAT-064. | M; không trì hoãn pilot vì flow ngoài scope. |
+| B3 | Manifest ownership/file/migration cho pilot trước và các phần dùng chung với Rev36 sau. | Owners xác nhận; phối hợp hồ sơ T0 FEAT-064 | B0a/B1, B2, T0 docs | Có owners có tên và đồng ký thực tế `OwnerFenceV1`/version thay thế trước code phụ thuộc; graph/order migration và một schema owner; quyết định data_origin của S2 có dùng chung biểu diễn T1 hay không. Đối chiếu lệch vai trò ADR-0015 với D-07/08, phối hợp P4 cho composition; không suy tên owner thành chữ ký. | M; manifest là đầu ra chung với T0, không tạo vòng phụ thuộc chặn T0 docs. |
+| B4 | B4a: eligibility synthetic của pilot; B4b: contract/lifecycle consent pháp lý thật về sau. | B4a: B3 + T0/approval FEAT-064; B4b: chính sách dữ liệu thật và plan riêng | B5; B4b ngoài critical path pilot | B4a tham chiếu đúng T1, không tạo task triển khai trùng: proof server-managed, nullable/CHECK theo origin, typed decision và BE2 consent_effective=false theo D-05; REAL/legacy/pending vẫn deny. B4b không được ngầm thêm effective hoặc nới guard để mở pilot. DB tạm cần scope được duyệt. | L; sửa sai representation có thể mở dữ liệu không hợp lệ. |
+| B5 | Bảo toàn tương thích idempotency receipt cũ của lời mời/accept Parent Group; độc lập pilot. | Plan + approval phù hợp; fixture receipt cũ; DB tạm nếu cần | Pilot theo ownership; chuẩn bị B6 | Tái hiện receipt trước nâng cấp thiếu `revision`, retry cùng key có response hợp lệ không lặp tác dụng; kiểm tra key xung đột và revision/provenance. Hiện là rủi ro từ source, chưa biết DB có receipt cũ; classroom không mount Lesson Library nên không chặn pilot. | M; response cũ có thể gây 500. |
+| B6 | Rev36 S1: chuẩn bị fence có kiểm soát cho legacy trong nhánh flow mới. | B0a, B3, quyết định S1 và approval pin đúng plan/disposition; theo thứ tự owner đã chọn sau pilot | B7 sau phân file, không chen vào file pilot | Mặc định giữ hành vi; kiểm từng operation được duyệt, đặc biệt finish/completion/revoke/leave/rotate và POST mang nghĩa đọc; preserve auth/privacy/rollback và demo standalone. Không coi local flag là cutover hoặc prerequisite pilot. | M; cắt sai route có thể chặn an toàn/lớp học. |
+| B7 | Rev36 S2/S3: nền tảng Parent identity/profile và AI-job target, additive, sau pilot theo điều phối. | B3, OD tương ứng, plan + approval; cơ chế dùng lại schema đã duyệt ở B4a/T1 nếu có | Có thể chuẩn bị thiết kế; code/migration theo manifest | Scope/migration theo Rev36; account scope, profile immutable, data-origin/eligibility fail-closed; tám target kind, giữ job legacy và chống downgrade. Kiểm tenant, upgrade/downgrade và CI; DB tạm cần approval, thiếu thì BLOCKED. Không là điều kiện làm pilot. | L; migration nhiều nhánh và tương thích dữ liệu cũ. |
+| B8 | Smoke **demo-route Vision → Modal sau merge**, tùy chọn. | Scope/approval live-call mới phù hợp, fixture synthetic; không phụ thuộc B4–B7 | Hồ sơ pilot/B1–B7 khi không đụng runtime chung | Ghi commit/profile demo; session → ảnh giả lập hợp lệ → understanding; kiểm HTTP và status/model/revision, thời gian/chi phí rồi dừng serve. Không audio, không reset/reuse marker FEAT-061. Chỉ là regression demo-route, không thay FEAT-064 và không là prerequisite pilot. | S–M; call có phí, cold start/timeout. |
+| B9 | Thiết kế/tách task StoryRun, media và các gate người lớn. | B1, B2, B7 và approval từng plan | Chuẩn bị contract sau B2 | Versioned API/state cho một trẻ; ảnh, audio ≤2 phút, Whisper, transcript revision và xác nhận, VLM review, context allowlist được người lớn duyệt, story/storyboard và script confirmation. Không giả định `/v1/sessions` là StoryRun. | L; auth, provenance và dữ liệu trẻ. |
+| B10 | Thiết kế/tách task quota, budget, jobs và vòng đời. | B1, B7; phối hợp B9/B11 | Thiết kế song song B9 | Đặc tả admission idempotent, budget/quota trước dispatch, scope, timezone Asia/Ho_Chi_Minh, deadline 6h, 144h/168h, retry/regeneration, cancel/xóa và thông báo theo SRS; kiểm mất response/đối soát. | L; race và phí. |
+| B11 | Thiết kế/POC pipeline video và quality/safety. | B9, B10 và approval plan/provider/chi phí | Nghiên cứu synthetic sau B1 | LTX-2.5 L40S, per-scene retry, consistency/technical checks, FFmpeg, TTS/subtitles, safety fail-closed, private playback; pin runtime/version, benchmark chất lượng/độ trễ/chi phí bằng synthetic. Không coi route video demo là LTX đã chạy. | L; GPU, chất lượng và safety chưa xác nhận. |
+| B12 | Nghiệm thu liên kết contract và CI cho từng lát được duyệt. | Các task thực thi tương ứng | Chuẩn bị checklist với B0–B11 | Test auth, scope, trạng thái, schema, lỗi và idempotency; test mới thực sự được CI thu thập; ghi skip và lý do. DB/MinIO/provider chưa chạy phải ghi BLOCKED/NOT RUN, không suy từ CI xanh. Evidence thuộc đúng feature. | M–L; CI hiện chỉ chọn một số file. |
+| B13 | Tách và lập kế hoạch phần SRS còn lại: tổ chức/roster/capacity, billing MoMo/VNPAY, lifecycle và hai luồng sketch. | B1, quyết định owner và kế hoạch riêng | Lập inventory cùng B9–B11 | Trace từng yêu cầu SRS tới task/owner đề xuất và dependency; ghi rõ phase phát hành, không tự bỏ yêu cầu khỏi SRS hoặc tuyên bố đã hoàn thành. | L; phạm vi và liên nhóm. |
+
+## Nhánh ưu tiên FEAT-064 và thứ tự thực hiện
+
+Pilot đã được chọn theo D-01: `Child UI → BE1 accepted operations → authoritative export/render/admission → BE2 request/analysis → Modal Vision → Teacher pending`. Đây là tham chiếu các task T0–T14 hiện có, không thêm một task B mới hoặc duplicate scope T1/T7. S1/S2/S3, B2 và B5 không là prerequisite pilot; các thay đổi schema tối thiểu pilot vẫn phải được freeze và duyệt riêng.
+
+| Mốc | Công việc và cổng nghiệm thu |
+|---|---|
+| Chuẩn bị ngay | B1 dùng B0a; B0b giữ blocked. B2 chạy song song và chỉ chặn contract StoryRun phụ thuộc. B3 và T0 phối hợp chốt hồ sơ/file/migration; không đợi hoàn thành flow mới. |
+| T0/M0 | Đối chiếu quyết định D-04–D-09 đã chọn với wording cũ §8; chốt exact profile/palette/pixel/guard/UoW/manifest, version và đồng ký. Owner BE1 `CaoDat-2410`, BE2/integration/operator `AnhKhoaa157` đã được nêu tên, chưa là đồng ký. Khi phê duyệt phải pin plan rev6 cùng bản DECISIONS/hồ sơ T0 có hash và scope rõ, xử lý tham chiếu Rev33 cũ sang plan Rev36 đang hiện hành; không âm thầm sửa hash plan đã review. |
+| T1–T12/M1–M2 | Chỉ sau approval các task/phạm vi tương ứng và quyền DB tạm: T1=B4a synthetic eligibility, T3/T4/T5 source/render/admission, T2/T6 authority/observation guards, T7a/b/c durability/fence/ledger/witness, T8/T9 worker/gateway và T10/T11 UI thật; T12 kiểm CPU/persistence/race/restart theo plan, không gọi provider thật. Các nhánh hội tụ theo dependency gốc, không hiểu là chạy tuyến tính T1 rồi T2… |
+| T13/M3 | T12 đạt, witness/run manifest đúng và owner duyệt live kèm chấp nhận rủi ro dư AC18: một call synthetic từ canvas hiện tại đến Teacher pending. Owner khởi động/dừng; không tự gọi lại sau fail/timeout/UNKNOWN. |
+| T14 | Evidence và bàn giao đúng mốc đã chạy, không nâng quality/production gate. |
+| Sau pilot | B6/B7 theo Rev36 và approval riêng, phối hợp B4b/B5 theo scope; B9–B13 là các plan flow SRS mới. B2 phải xong trước contract StoryRun phụ thuộc. B12 kiểm từng lát đã duyệt. |
+
+Rev36 ghi “S1 first” trong nhánh nền tảng mới, đồng thời ghi S1 không là prerequisite ngầm của pilot. Điều phối ở đây giữ ưu tiên pilot đã được owner chọn; thứ tự file/migration và phạm vi cụ thể phải được pin trong manifest/approval, không suy backlog đã sửa hay phê duyệt plan Rev36.
+
+**Critical path pilot:** B3 cùng T0 chốt hồ sơ; hội tụ các nhánh `T0 → T1/T3 → T2/T4 → T5`, `T0 → T6` và `T0 → T7a → T7b/T7c` trước `T8 → T9 → T10+T11 → T12 → T13 → T14`, theo graph gốc FEAT-064. **Nhánh flow mới:** B1+B2+B3 và scope đã duyệt → B6/B7 → B9/B10 → B11, B12/B13 theo lát. B8 là optional demo regression ở ngoài cả hai đường chặn; B5 không chặn pilot.
+
+## Cần chủ task/BA/BE xác nhận
+
+- Giữ quyết định FEAT-064 trước flow mới theo D-01; chỉ còn chốt hồ sơ/owner/migration và approval theo mốc, không hỏi lại lựa chọn luồng. Không coi smoke demo đã chứng minh Child UI → BE1 → BE2 → Modal → Teacher.
+- Chốt các OD và disposition S1 trong Rev36, pin đúng hash plan và scope khi ghi approval; quyết định riêng quyền dùng DB tạm, Modal và giới hạn phí khi cần.
+- Tiếp tục tìm `EV-063-30`, OpenAPI JSON và cấu hình/commit Rev37 ở B0b; phần này không chặn B1 dùng snapshot mới B0a. B0a chỉ có `combined`, chưa xác nhận composition hoặc behavior riêng `classroom`; T0 phải rà baseline/profile pilot trước wiring.
+- B2 phải ghi quyết định và giải quyết các đoạn mâu thuẫn trước khi freeze API StoryRun. SRS 2.3 vẫn là draft.
+- Qwen3-VL-8B/L40S từng smoke về kết nối nhưng SRS ghi chất lượng Qwen3-VL `NO_GO`; Qwen2.5-VL-7B/L4 là ứng viên chưa benchmark. Muốn chọn model phải có benchmark và quyết định riêng; không ngầm đổi provider production. Chính sách production hiện tại vẫn Runpod, còn Modal là đường dev thử nghiệm theo scope được duyệt.
+
+## Ranh giới và evidence
+
+Chỉ dùng dữ liệu giả lập cho demo/pilot. Không đưa token, nội dung `.env`, model weights hoặc dữ liệu trẻ thật vào repo/chat. Modal endpoint thử hiện chỉ phục vụ `/health` và `/v2/vision`; health không chứng minh model đã sẵn sàng, HTTP 200 không thay thế kiểm trạng thái nghiệp vụ. Pilot dùng `image_only` khi policy cho phép; trường hợp bắt buộc C2/typed context phải từ chối hoặc có scope riêng. Không tự thêm `/v1/vision/context` hoặc nới guard C1/C2. Child timeout 12 giây ngắn hơn lượt model cũ 23,938 giây; gateway cần accepted/ref sớm và worker/status thật theo T9, không chỉ tăng timeout. Route `unauthenticated` ở lớp Modal không đồng nghĩa app đã bỏ kiểm tra Bearer.
+
+Không có task nào trong backlog này tự cho phép thay đổi schema, sửa approval, chạy PostgreSQL/MinIO/Modal, dùng GPU, chuyển dữ liệu thật, deploy, thay provider production hay cutover. Evidence khi thực hiện phải được lưu trong feature tương ứng và phân biệt chính xác PASS/FAIL/BLOCKED/NOT RUN; không ghi pass cho việc chưa chạy.
+
+## Disposition sau khi chuyển sang StoryRun-lite — 2026-11-02
+
+**Trạng thái điều phối:** B0–B13 ở đây là backlog lịch sử/DRAFT, không còn là thứ tự thực thi hiện hành và không được khởi chạy lại như một goal tổng. Mapping milestone hiện hành sau review vòng 2 là `BE_PARENT_TEACHER_VISION_DEMO_ROADMAP_20261102.md` (FEAT-063); dùng roadmap đó cho phân bổ hiện tại, không dùng bảng lịch sử này làm approval. Mốc 1 chỉ gồm Goal StoryRun-lite S1→S2; không gắn task cũ B0–B13 vào demo. Giữ nguyên toàn bộ yêu cầu SRS có liên quan; việc này thay cách phân hoạch task, không xóa yêu cầu.
+
+| ID cũ | Disposition hiện tại | Nơi xử lý nếu còn cần |
+|---|---|---|
+| B0 | B0a đã hoàn tất bằng snapshot offline. B0b vẫn thiếu hai nguồn EV-063-30 và không chặn luồng mới; không tiếp tục tìm để mở demo. | Chỉ mở lại B0b nếu cần xác minh một tuyên bố lịch sử Rev37 cụ thể. |
+| B1 | Crosswalk API/SRS đã được lập và cập nhật; đó là hồ sơ phân tích, không phải kiểm chứng runtime. Không chạy lại như một task trước demo. | Tra cứu khi lập plan các mốc 2–6; cập nhật riêng nếu contract SRS thay đổi. |
+| B2 | Quyết định thứ tự Parent đã được ghi ở mức tài liệu. Không giữ B2 cũ làm blocker của API StoryRun-lite. | Dùng quyết định đã ghi khi chốt các contract Parent phụ thuộc ở M3/M4; thiết kế vật lý phải có plan riêng. |
+| B3 | Manifest cũ là tài liệu đề xuất; các đồng ký còn `CHƯA KÝ`, nên không phải execution manifest/approval. | Nếu M2 cần ownership/migration chung, lập manifest mới trong plan M2 và lấy sign-off phù hợp. |
+| B4 | B4a thuộc synthetic eligibility của pilot canvas cũ, không lặp vào demo ảnh StoryRun. B4b consent thật chỉ có thể vào M2 sau OI-05..08; trước khi gate đạt, M2 phải từ chối `REAL` và `LEGACY_UNCLASSIFIED`. | B4b được xem xét ở M2 trước khi mở identity/dữ liệu thật; B4a chỉ xem lại nếu giữ luồng canvas cũ. |
+| B5 | Có implementation report; PostgreSQL replay acceptance bị skip nên không tuyên bố đã xác minh với dữ liệu receipt cũ. | Chỉ đưa vào M2/M6 nếu Parent Group/receipt legacy còn nằm trong sản phẩm được chọn. |
+| B6 | Task fence legacy của Rev36, không phải phần S1 hiện tại. Không chạy nguyên plan cũ. | M2/M6 nếu cutover/giữ route legacy được chọn; cần scope, ownership và approval mới. |
+| B7 | Task identity/profile/AI-job của Rev36; tên S1/S2 trong backlog này khác Goal StoryRun-lite S1→S2. Không chạy nguyên plan cũ. | Tách lại theo M2 và M6, giữ tương thích cần thiết theo contract mới. |
+| B8 | Smoke route demo cũ là tùy chọn và không chứng minh luồng StoryRun mới. Không dùng làm gate M1. | Không cần làm nếu chỉ xác nhận flow mới; live Modal của StoryRun, nếu owner yêu cầu, là lượt riêng sau S1→S2. |
+| B9 | Không còn là một gói triển khai đơn lẻ. | Phần input/media/transcript/subject/context vào M3; story, rewrite, storyboard và script confirmation vào M4. |
+| B10 | Không chạy như một task khối. | Theo roadmap hiện hành: idempotency/job foundation ở M2; Parent Billing quota grant/usage và AI compute admission ở M5; commerce đầy đủ cùng quota Teacher/school ở M6. Thông báo/cancel/late-result/purge thuộc từng phase tạo artifact. |
+| B11 | Yêu cầu video còn liên quan, nhưng POC cũ chưa phải approval/provider evidence. | M5 với plan riêng, benchmark synthetic và approval model/GPU/chi phí. |
+| B12 | Không phải goal độc lập. | Acceptance, CI và test tích hợp là cổng cho từng lát ở M2–M6. |
+| B13 | Backlog phân tích rộng, chưa phải scope đã chọn. Q146 đã answered về sản phẩm; lịch triển khai Parent line-sketch, model/version, cost/license/safety/retention gates vẫn cần plan và owner decision tương ứng. | Theo roadmap hiện hành: Parent guide có thể ở M3 sau synthetic POC/model gates; Teacher sketch cùng tổ chức/roster/capacity ở M6; commerce/billing mở rộng ở M6. Mỗi phần cần trace và plan riêng. |
+
+**Phân biệt tên:** B6/B7 trong backlog cũ nói về các lát Rev36 “S1/S2/S3”. Chúng không đồng nghĩa với Goal StoryRun-lite S1→S2 đang làm. Thành công S1→S2 không tự đóng B0b/B3/B5 hay cho phép chạy các plan Rev36; ngược lại, các mục đó cũng không chặn bàn giao demo S1→S2.
+
+**Quy tắc dùng từ nay:** tra backlog này để giữ lineage/status, nhưng chỉ thực hiện việc đã được phân vào roadmap sáu mốc và có plan/approval riêng. Không dùng nhãn B0–B13 để suy ra task đã được duyệt, SRS đã hoàn tất, hay Modal đã được gọi.

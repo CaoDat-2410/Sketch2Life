@@ -1,0 +1,36 @@
+{
+  "id": "GCASE_0087_READINESS_BLOCK",
+  "description": "ACT-0087 blocks when observable readiness is absent",
+  "activity_ref": {
+    "id": "ACT-0087",
+    "version": 2
+  },
+  "input": {
+    "age_months": 134,
+    "readiness_ids": [],
+    "completed_activity_ids": [
+      "ACT-0055"
+    ],
+    "available_material_option_ids": [
+      "GMAT-0087-PRIMARY"
+    ],
+    "supervision_level": "NEARBY",
+    "policy_flags": [],
+    "candidate_status": "ACTIVE_FIXTURE"
+  },
+  "expected": {
+    "status": "NO_VALID_ACTIVITY",
+    "allowed_activity_ids": [],
+    "blocked": {
+      "ACT-0087": [
+        "BLOCK_MISSING_READINESS"
+      ]
+    }
+  },
+  "coverage_tags": [
+    "blocked",
+    "readiness",
+    "9-12",
+    "ACT-0087"
+  ]
+}

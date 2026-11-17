@@ -1,0 +1,20 @@
+{
+  "files": {
+    "architecture.log": "67f1bc538fc90b4f70000a89126dde0aa14c688b8c3dbba796e1a89d6caef80e",
+    "harness.log": "f9fe12c27f5c402ad822c90f7d896e9bd4ca6c03094ed537f3bd957a65c9c9b8",
+    "mypy.log": "e522fa370334927ac2ccb7106100045b572938dd238093267de825336e6704f2",
+    "owned-collection.log": "22b7386a0446310033722c3ddbb0017494e4fa6b7a2002bcf3efd83c19d4346d",
+    "owned.log": "c014295a2c14e5f3a91fcfb8f985f5a38b2f93c71c490e2ba85a5c77508c766c",
+    "owned.xml": "4c9b86ebf504c020311ff5acecfc61a10329a3deb5f1efd1b8711cdd701a52c9",
+    "regression-collection.log": "69cedaccf173aabb681d9de90e3aa9be45d88cfd5de9dd42b83fcbf5bd85200b",
+    "regression.log": "d7aa3427f288e80fc9ae4fcecacef05b0a6e2792e69ee257781a6ec24127d7e7",
+    "regression.xml": "f3a39ac724fb365a7d459f286afa296e156eeab63f99f6a7b48128f461b98ad6",
+    "ruff.log": "a4443afdcfb6d7363adb285762515ccf7cf50473b1a05c20c1a50f6bed4d26b0",
+    "runner-10-final-pinned-console.log": "6fdf55effcf28098b0fd363d5b53984ed2405cbf9df1cb0f0e82c0604b27216f",
+    "runner-10-final-pinned-console.log.exit": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354",
+    "security.log": "256f114e9dc09c4c62ffb1a2be781aa10f834bd79fbb1f51bd25cf6a87f1ecc7",
+    "sql_collection_only-collection.log": "9e2e43fadfc78275f5249cf13f9839e305577ac57a3ed5bff5037e9a7fbf214f",
+    "summary.json": "7dd100a75e8d599d61dffac92737a7ca81c4fad88204ad9752d79e8ab7d4d510",
+    "whitespace.log": "561493b69c8d03d2c64163cff54d9b5898dc6d8338ecec4e9361dc01ec47ca2c"
+  }
+}

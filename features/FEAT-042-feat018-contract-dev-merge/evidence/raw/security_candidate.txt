@@ -1,0 +1,7 @@
+REPOSITORY_SECURITY_VALID
+publishable_files_scanned=2455
+environment_files=excluded
+seed_accounts=excluded
+credentials_and_signing_keys=excluded
+external_reference_documents=excluded
+absolute_machine_paths=absent

@@ -1,0 +1,1072 @@
+{
+  "ended_at": "2026-11-06T14:45:25+07:00",
+  "image_fixture": "synthetic_childlike_butterfly.png",
+  "initial_wait_seconds": 1800,
+  "max_attempts_per_workload": 1,
+  "plan": "PLAN_REV52_NONVIDEO_MODAL_AI_RELIABILITY_20261106.md",
+  "runner_elapsed_seconds": 635.576,
+  "sam2_function_wait_seconds": 600,
+  "same_call_extension_seconds": 1800,
+  "started_at": "2026-11-06T14:34:49+07:00",
+  "synthetic_only": true,
+  "video_called": false,
+  "workloads": [
+    {
+      "aliases": [],
+      "call_id": "fc-01M6QWGTSR7Q4ZA6JABJB6FZ19",
+      "evidence_file": "drawing_analyze_result.json",
+      "outcome": "SUCCEEDED",
+      "runner_elapsed_ms": 34343.62,
+      "worker_log_summary": {
+        "worker_binary_output_sha256": null,
+        "worker_diagnostic_code": null,
+        "worker_diagnostic_details": null,
+        "worker_duration_ms": 28039,
+        "worker_error_code": null,
+        "worker_error_type": null,
+        "worker_failure_boundary": "worker_succeeded",
+        "worker_gpu_class": "L40S|L4|A10",
+        "worker_last_stage": "terminal",
+        "worker_log_event_count": 22,
+        "worker_logs_available": true,
+        "worker_model_id": "Qwen/Qwen3.5-9B",
+        "worker_model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+        "worker_output_sha256": "be0d302d0f4f537008e8ba32327bfd970837c1e8b2e8787e622532a97572b077",
+        "worker_output_size_bytes": 661,
+        "worker_phase_history": [
+          {
+            "event": "worker_phase_started",
+            "stage": "input_envelope"
+          },
+          {
+            "duration_ms": 0,
+            "event": "worker_phase_succeeded",
+            "stage": "input_envelope"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "workload_gate"
+          },
+          {
+            "duration_ms": 0,
+            "event": "worker_phase_succeeded",
+            "stage": "workload_gate"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "scratch_volume_reload"
+          },
+          {
+            "duration_ms": 84,
+            "event": "worker_phase_succeeded",
+            "stage": "scratch_volume_reload"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "input_asset_verify"
+          },
+          {
+            "duration_ms": 161,
+            "event": "worker_phase_succeeded",
+            "stage": "input_asset_verify"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "model_load"
+          },
+          {
+            "duration_ms": 13891,
+            "event": "worker_phase_succeeded",
+            "stage": "model_load"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "image_preprocess"
+          },
+          {
+            "duration_ms": 34,
+            "event": "worker_phase_succeeded",
+            "stage": "image_preprocess"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "prompt_encode"
+          },
+          {
+            "duration_ms": 183,
+            "event": "worker_phase_succeeded",
+            "stage": "prompt_encode"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "model_inference"
+          },
+          {
+            "duration_ms": 13686,
+            "event": "worker_phase_succeeded",
+            "stage": "model_inference"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "model_output_validation"
+          },
+          {
+            "duration_ms": 0,
+            "event": "worker_phase_succeeded",
+            "stage": "model_output_validation"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "output_parse_and_contract_validation"
+          },
+          {
+            "duration_ms": 0,
+            "event": "worker_phase_succeeded",
+            "stage": "output_parse_and_contract_validation"
+          }
+        ],
+        "worker_started_observed": true,
+        "worker_terminal_event": "worker_succeeded"
+      },
+      "workload": "drawing.analyze"
+    },
+    {
+      "aliases": [
+        "storyboard.generate"
+      ],
+      "call_id": "fc-01M6QWJD201FPKJ41P9M0G84N9",
+      "evidence_file": "story_generate_result.json",
+      "outcome": "SUCCEEDED",
+      "runner_elapsed_ms": 83336.63,
+      "worker_log_summary": {
+        "worker_binary_output_sha256": null,
+        "worker_diagnostic_code": null,
+        "worker_diagnostic_details": null,
+        "worker_duration_ms": 78280,
+        "worker_error_code": null,
+        "worker_error_type": null,
+        "worker_failure_boundary": "worker_succeeded",
+        "worker_gpu_class": "L40S|L4|A10",
+        "worker_last_stage": "terminal",
+        "worker_log_event_count": 28,
+        "worker_logs_available": true,
+        "worker_model_id": "Qwen/Qwen3.5-9B",
+        "worker_model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+        "worker_output_sha256": "3f43da25cdc0649b17073ed9cac792c6a0dc2f41eeb4f54a404a86229c58b963",
+        "worker_output_size_bytes": 4647,
+        "worker_phase_history": [
+          {
+            "event": "worker_phase_started",
+            "stage": "input_envelope"
+          },
+          {
+            "duration_ms": 0,
+            "event": "worker_phase_succeeded",
+            "stage": "input_envelope"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "workload_gate"
+          },
+          {
+            "duration_ms": 0,
+            "event": "worker_phase_succeeded",
+            "stage": "workload_gate"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "scratch_volume_reload"
+          },
+          {
+            "duration_ms": 92,
+            "event": "worker_phase_succeeded",
+            "stage": "scratch_volume_reload"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "input_manifest_read"
+          },
+          {
+            "duration_ms": 390,
+            "event": "worker_phase_succeeded",
+            "stage": "input_manifest_read"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "request_contract_validation"
+          },
+          {
+            "duration_ms": 0,
+            "event": "worker_phase_succeeded",
+            "stage": "request_contract_validation"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "runtime_preparation"
+          },
+          {
+            "duration_ms": 2367,
+            "event": "worker_phase_succeeded",
+            "stage": "runtime_preparation"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "checkpoint_verification"
+          },
+          {
+            "duration_ms": 50,
+            "event": "worker_phase_succeeded",
+            "stage": "checkpoint_verification"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "model_load"
+          },
+          {
+            "duration_ms": 12019,
+            "event": "worker_phase_succeeded",
+            "stage": "model_load"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "prompt_encoding"
+          },
+          {
+            "duration_ms": 41,
+            "event": "worker_phase_succeeded",
+            "stage": "prompt_encoding"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "constrained_decoder_setup"
+          },
+          {
+            "duration_ms": 3184,
+            "event": "worker_phase_succeeded",
+            "stage": "constrained_decoder_setup"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "model_inference"
+          },
+          {
+            "duration_ms": 59576,
+            "event": "worker_phase_succeeded",
+            "stage": "model_inference"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "output_decode_and_parse"
+          },
+          {
+            "duration_ms": 1,
+            "event": "worker_phase_succeeded",
+            "stage": "output_decode_and_parse"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "business_rule_validation"
+          },
+          {
+            "duration_ms": 1,
+            "event": "worker_phase_succeeded",
+            "stage": "business_rule_validation"
+          }
+        ],
+        "worker_started_observed": true,
+        "worker_terminal_event": "worker_succeeded"
+      },
+      "workload": "story.generate"
+    },
+    {
+      "aliases": [],
+      "call_id": "fc-01M6QWNHC2K3GENMAA8PGWERZ1",
+      "evidence_file": "parent_sketch-guide_generate_result.json",
+      "outcome": "SUCCEEDED",
+      "runner_elapsed_ms": 47353.07,
+      "worker_log_summary": {
+        "worker_binary_output_sha256": "926a84fcc8c4942b398da7d87e3d4582a75a9146c037a07ab20f0f1d72464abd",
+        "worker_diagnostic_code": null,
+        "worker_diagnostic_details": null,
+        "worker_duration_ms": 39481,
+        "worker_error_code": null,
+        "worker_error_type": null,
+        "worker_failure_boundary": "worker_succeeded",
+        "worker_gpu_class": "L40S",
+        "worker_last_stage": "terminal",
+        "worker_log_event_count": 26,
+        "worker_logs_available": true,
+        "worker_model_id": "black-forest-labs/flux-3-image-klein",
+        "worker_model_revision": "09561231f44e41381c461caf53d5452005a60ac9",
+        "worker_output_sha256": "b7e49e2617d3de4cab0f61b7e01e7d0cd2076dd9ffc5a1b11869f08feb2abe42",
+        "worker_output_size_bytes": 333396,
+        "worker_phase_history": [
+          {
+            "event": "worker_phase_started",
+            "stage": "feature_gate"
+          },
+          {
+            "duration_ms": 0,
+            "event": "worker_phase_succeeded",
+            "stage": "feature_gate"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "input_envelope"
+          },
+          {
+            "duration_ms": 0,
+            "event": "worker_phase_succeeded",
+            "stage": "input_envelope"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "workload_gate"
+          },
+          {
+            "duration_ms": 0,
+            "event": "worker_phase_succeeded",
+            "stage": "workload_gate"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "scratch_volume_reload"
+          },
+          {
+            "duration_ms": 105,
+            "event": "worker_phase_succeeded",
+            "stage": "scratch_volume_reload"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "input_manifest_read"
+          },
+          {
+            "duration_ms": 507,
+            "event": "worker_phase_succeeded",
+            "stage": "input_manifest_read"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "guide_request_validation"
+          },
+          {
+            "duration_ms": 0,
+            "event": "worker_phase_succeeded",
+            "stage": "guide_request_validation"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "checkpoint_verification"
+          },
+          {
+            "duration_ms": 274,
+            "event": "worker_phase_succeeded",
+            "stage": "checkpoint_verification"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "gpu_preflight"
+          },
+          {
+            "duration_ms": 1954,
+            "event": "worker_phase_succeeded",
+            "stage": "gpu_preflight"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "prompt_upsampler_inference"
+          },
+          {
+            "duration_ms": 22157,
+            "event": "worker_phase_succeeded",
+            "stage": "prompt_upsampler_inference"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "flux_model_load"
+          },
+          {
+            "duration_ms": 10218,
+            "event": "worker_phase_succeeded",
+            "stage": "flux_model_load"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "flux_image_inference"
+          },
+          {
+            "duration_ms": 2276,
+            "event": "worker_phase_succeeded",
+            "stage": "flux_image_inference"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "image_encode_and_metadata"
+          },
+          {
+            "duration_ms": 1074,
+            "event": "worker_phase_succeeded",
+            "stage": "image_encode_and_metadata"
+          }
+        ],
+        "worker_started_observed": true,
+        "worker_terminal_event": "worker_succeeded"
+      },
+      "workload": "parent.sketch-guide.generate"
+    },
+    {
+      "aliases": [],
+      "call_id": "fc-01M6QWQEJDQVGFVDDRSYHHX88R",
+      "evidence_file": "teacher_sketch-deck_generate_result.json",
+      "outcome": "SUCCEEDED",
+      "runner_elapsed_ms": 41378.07,
+      "worker_log_summary": {
+        "worker_binary_output_sha256": null,
+        "worker_diagnostic_code": null,
+        "worker_diagnostic_details": null,
+        "worker_duration_ms": 34047,
+        "worker_error_code": null,
+        "worker_error_type": null,
+        "worker_failure_boundary": "worker_succeeded",
+        "worker_gpu_class": "L40S|L4|A10",
+        "worker_last_stage": "terminal",
+        "worker_log_event_count": 26,
+        "worker_logs_available": true,
+        "worker_model_id": "Qwen/Qwen3.5-9B",
+        "worker_model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+        "worker_output_sha256": "932183efa096f043065c60a5c106169be49b9fe527e5b84629f2b83e86474430",
+        "worker_output_size_bytes": 4448,
+        "worker_phase_history": [
+          {
+            "event": "worker_phase_started",
+            "stage": "input_envelope"
+          },
+          {
+            "duration_ms": 0,
+            "event": "worker_phase_succeeded",
+            "stage": "input_envelope"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "workload_gate"
+          },
+          {
+            "duration_ms": 0,
+            "event": "worker_phase_succeeded",
+            "stage": "workload_gate"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "scratch_volume_reload"
+          },
+          {
+            "duration_ms": 1393,
+            "event": "worker_phase_succeeded",
+            "stage": "scratch_volume_reload"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "input_manifest_read"
+          },
+          {
+            "duration_ms": 3073,
+            "event": "worker_phase_succeeded",
+            "stage": "input_manifest_read"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "approved_plan_contract_validation"
+          },
+          {
+            "duration_ms": 0,
+            "event": "worker_phase_succeeded",
+            "stage": "approved_plan_contract_validation"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "checkpoint_verification"
+          },
+          {
+            "duration_ms": 681,
+            "event": "worker_phase_succeeded",
+            "stage": "checkpoint_verification"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "model_load"
+          },
+          {
+            "duration_ms": 15119,
+            "event": "worker_phase_succeeded",
+            "stage": "model_load"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "prompt_encoding"
+          },
+          {
+            "duration_ms": 50,
+            "event": "worker_phase_succeeded",
+            "stage": "prompt_encoding"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "constrained_decoder_setup"
+          },
+          {
+            "duration_ms": 3219,
+            "event": "worker_phase_succeeded",
+            "stage": "constrained_decoder_setup"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "model_inference"
+          },
+          {
+            "duration_ms": 10414,
+            "event": "worker_phase_succeeded",
+            "stage": "model_inference"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "output_parse_and_contract_validation"
+          },
+          {
+            "duration_ms": 0,
+            "event": "worker_phase_succeeded",
+            "stage": "output_parse_and_contract_validation"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "approved_activity_mapping"
+          },
+          {
+            "duration_ms": 0,
+            "event": "worker_phase_succeeded",
+            "stage": "approved_activity_mapping"
+          }
+        ],
+        "worker_started_observed": true,
+        "worker_terminal_event": "worker_succeeded"
+      },
+      "workload": "teacher.sketch-deck.generate"
+    },
+    {
+      "aliases": [],
+      "call_id": "fc-01M6QWSAJEFNHRD4TXBZKN685J",
+      "evidence_file": "lesson_plan_suggest_result.json",
+      "outcome": "SUCCEEDED",
+      "runner_elapsed_ms": 86655.15,
+      "worker_log_summary": {
+        "worker_binary_output_sha256": null,
+        "worker_diagnostic_code": null,
+        "worker_diagnostic_details": null,
+        "worker_duration_ms": 81172,
+        "worker_error_code": null,
+        "worker_error_type": null,
+        "worker_failure_boundary": "worker_succeeded",
+        "worker_gpu_class": "L40S|L4|A10",
+        "worker_last_stage": "terminal",
+        "worker_log_event_count": 24,
+        "worker_logs_available": true,
+        "worker_model_id": "Qwen/Qwen3.5-9B",
+        "worker_model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+        "worker_output_sha256": "870ecd2d1126046bf5577a0d2803232dc5cc6f773d3aaa219bb705af84fee70e",
+        "worker_output_size_bytes": 2833,
+        "worker_phase_history": [
+          {
+            "event": "worker_phase_started",
+            "stage": "input_envelope"
+          },
+          {
+            "duration_ms": 0,
+            "event": "worker_phase_succeeded",
+            "stage": "input_envelope"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "workload_gate"
+          },
+          {
+            "duration_ms": 0,
+            "event": "worker_phase_succeeded",
+            "stage": "workload_gate"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "scratch_volume_reload"
+          },
+          {
+            "duration_ms": 206,
+            "event": "worker_phase_succeeded",
+            "stage": "scratch_volume_reload"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "input_manifest_read"
+          },
+          {
+            "duration_ms": 864,
+            "event": "worker_phase_succeeded",
+            "stage": "input_manifest_read"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "lesson_request_validation"
+          },
+          {
+            "duration_ms": 0,
+            "event": "worker_phase_succeeded",
+            "stage": "lesson_request_validation"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "checkpoint_verification"
+          },
+          {
+            "duration_ms": 161,
+            "event": "worker_phase_succeeded",
+            "stage": "checkpoint_verification"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "model_load"
+          },
+          {
+            "duration_ms": 26732,
+            "event": "worker_phase_succeeded",
+            "stage": "model_load"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "prompt_encoding"
+          },
+          {
+            "duration_ms": 54,
+            "event": "worker_phase_succeeded",
+            "stage": "prompt_encoding"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "constrained_decoder_setup"
+          },
+          {
+            "duration_ms": 3755,
+            "event": "worker_phase_succeeded",
+            "stage": "constrained_decoder_setup"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "model_inference"
+          },
+          {
+            "duration_ms": 49265,
+            "event": "worker_phase_succeeded",
+            "stage": "model_inference"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "output_parse_and_contract_validation"
+          },
+          {
+            "duration_ms": 0,
+            "event": "worker_phase_succeeded",
+            "stage": "output_parse_and_contract_validation"
+          }
+        ],
+        "worker_started_observed": true,
+        "worker_terminal_event": "worker_succeeded"
+      },
+      "workload": "lesson.plan.suggest"
+    },
+    {
+      "aliases": [],
+      "call_id": "fc-01M6QWWJJXNJDM4NPYMQ736EK5",
+      "evidence_file": "lesson_visual_generate_result.json",
+      "outcome": "SUCCEEDED",
+      "runner_elapsed_ms": 121718.71,
+      "worker_log_summary": {
+        "worker_binary_output_sha256": "4bc63c946b1e5096e7d3d90f34a19d3301914cc52aa466ac2267c973f2258ef8",
+        "worker_diagnostic_code": null,
+        "worker_diagnostic_details": null,
+        "worker_duration_ms": 60230,
+        "worker_error_code": null,
+        "worker_error_type": null,
+        "worker_failure_boundary": "worker_succeeded",
+        "worker_gpu_class": "L40S",
+        "worker_last_stage": "terminal",
+        "worker_log_event_count": 26,
+        "worker_logs_available": true,
+        "worker_model_id": "black-forest-labs/flux-3-image-klein",
+        "worker_model_revision": "09561231f44e41381c461caf53d5452005a60ac9",
+        "worker_output_sha256": "8fa2a5a381af09bf323ea12a22df34b6fd2791c3b15e96b18e8a76372e96121d",
+        "worker_output_size_bytes": 294089,
+        "worker_phase_history": [
+          {
+            "event": "worker_phase_started",
+            "stage": "feature_gate"
+          },
+          {
+            "duration_ms": 0,
+            "event": "worker_phase_succeeded",
+            "stage": "feature_gate"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "input_envelope"
+          },
+          {
+            "duration_ms": 0,
+            "event": "worker_phase_succeeded",
+            "stage": "input_envelope"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "workload_gate"
+          },
+          {
+            "duration_ms": 0,
+            "event": "worker_phase_succeeded",
+            "stage": "workload_gate"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "scratch_volume_reload"
+          },
+          {
+            "duration_ms": 86,
+            "event": "worker_phase_succeeded",
+            "stage": "scratch_volume_reload"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "input_manifest_read"
+          },
+          {
+            "duration_ms": 233,
+            "event": "worker_phase_succeeded",
+            "stage": "input_manifest_read"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "approved_lesson_contract_validation"
+          },
+          {
+            "duration_ms": 0,
+            "event": "worker_phase_succeeded",
+            "stage": "approved_lesson_contract_validation"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "checkpoint_verification"
+          },
+          {
+            "duration_ms": 323,
+            "event": "worker_phase_succeeded",
+            "stage": "checkpoint_verification"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "gpu_preflight"
+          },
+          {
+            "duration_ms": 2810,
+            "event": "worker_phase_succeeded",
+            "stage": "gpu_preflight"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "prompt_upsampler_inference"
+          },
+          {
+            "duration_ms": 36592,
+            "event": "worker_phase_succeeded",
+            "stage": "prompt_upsampler_inference"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "flux_model_load"
+          },
+          {
+            "duration_ms": 15775,
+            "event": "worker_phase_succeeded",
+            "stage": "flux_model_load"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "flux_image_inference"
+          },
+          {
+            "duration_ms": 2148,
+            "event": "worker_phase_succeeded",
+            "stage": "flux_image_inference"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "image_encode_and_metadata"
+          },
+          {
+            "duration_ms": 981,
+            "event": "worker_phase_succeeded",
+            "stage": "image_encode_and_metadata"
+          }
+        ],
+        "worker_started_observed": true,
+        "worker_terminal_event": "worker_succeeded"
+      },
+      "workload": "lesson.visual.generate"
+    },
+    {
+      "aliases": [],
+      "call_id": "fc-01M6QX0TXDS9CGK6TACS1Q2C5D",
+      "evidence_file": "tts_narration_result.json",
+      "outcome": "SUCCEEDED",
+      "runner_elapsed_ms": 19062.99,
+      "worker_log_summary": {
+        "worker_binary_output_sha256": "59626c5f11e85be8fbe86dcd4045bb930482e303dad33ea576b953be690ef37b",
+        "worker_diagnostic_code": null,
+        "worker_diagnostic_details": null,
+        "worker_duration_ms": 9646,
+        "worker_error_code": null,
+        "worker_error_type": null,
+        "worker_failure_boundary": "worker_succeeded",
+        "worker_gpu_class": "cpu",
+        "worker_last_stage": "terminal",
+        "worker_log_event_count": 22,
+        "worker_logs_available": true,
+        "worker_model_id": "pnnbao-ump/VieNeu-TTS-v3-Turbo",
+        "worker_model_revision": "61b85e3d937fbbacb387714180e8182823512523",
+        "worker_output_sha256": "a4771af8020584580a67ea8fb18921dae2b6036ae0998329a4b9f321795fd88c",
+        "worker_output_size_bytes": 169522,
+        "worker_phase_history": [
+          {
+            "event": "worker_phase_started",
+            "stage": "input_envelope"
+          },
+          {
+            "duration_ms": 0,
+            "event": "worker_phase_succeeded",
+            "stage": "input_envelope"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "workload_gate"
+          },
+          {
+            "duration_ms": 0,
+            "event": "worker_phase_succeeded",
+            "stage": "workload_gate"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "scratch_volume_reload"
+          },
+          {
+            "duration_ms": 375,
+            "event": "worker_phase_succeeded",
+            "stage": "scratch_volume_reload"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "input_manifest_read"
+          },
+          {
+            "duration_ms": 344,
+            "event": "worker_phase_succeeded",
+            "stage": "input_manifest_read"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "tts_request_validation"
+          },
+          {
+            "duration_ms": 0,
+            "event": "worker_phase_succeeded",
+            "stage": "tts_request_validation"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "tts_checkpoint_verification"
+          },
+          {
+            "duration_ms": 145,
+            "event": "worker_phase_succeeded",
+            "stage": "tts_checkpoint_verification"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "tts_model_load"
+          },
+          {
+            "duration_ms": 7190,
+            "event": "worker_phase_succeeded",
+            "stage": "tts_model_load"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "tts_inference"
+          },
+          {
+            "duration_ms": 1460,
+            "event": "worker_phase_succeeded",
+            "stage": "tts_inference"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "audio_encode_and_validate"
+          },
+          {
+            "duration_ms": 36,
+            "event": "worker_phase_succeeded",
+            "stage": "audio_encode_and_validate"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "audio_output_contract_validation"
+          },
+          {
+            "duration_ms": 1,
+            "event": "worker_phase_succeeded",
+            "stage": "audio_output_contract_validation"
+          }
+        ],
+        "worker_started_observed": true,
+        "worker_terminal_event": "worker_succeeded"
+      },
+      "workload": "tts.narration.generate"
+    },
+    {
+      "aliases": [],
+      "call_id": "fc-01M6QX21A2G58ASETSKD4GSK8H",
+      "evidence_file": "asr_transcribe_result.json",
+      "outcome": "SUCCEEDED",
+      "runner_elapsed_ms": 26577.27,
+      "worker_log_summary": {
+        "worker_binary_output_sha256": null,
+        "worker_diagnostic_code": null,
+        "worker_diagnostic_details": null,
+        "worker_duration_ms": 17095,
+        "worker_error_code": null,
+        "worker_error_type": null,
+        "worker_failure_boundary": "worker_succeeded",
+        "worker_gpu_class": "cpu",
+        "worker_last_stage": "terminal",
+        "worker_log_event_count": 16,
+        "worker_logs_available": true,
+        "worker_model_id": "Systran/faster-whisper-large-v3",
+        "worker_model_revision": "edaa852ec7e145841d8ffdb056a99866b5f0a478",
+        "worker_output_sha256": "8f5e50dfd0282e0a967c0b94192becc5f05053d9b201b4272bf1813e4c095e64",
+        "worker_output_size_bytes": 643,
+        "worker_phase_history": [
+          {
+            "event": "worker_phase_started",
+            "stage": "input_envelope"
+          },
+          {
+            "duration_ms": 0,
+            "event": "worker_phase_succeeded",
+            "stage": "input_envelope"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "workload_gate"
+          },
+          {
+            "duration_ms": 0,
+            "event": "worker_phase_succeeded",
+            "stage": "workload_gate"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "scratch_volume_reload"
+          },
+          {
+            "duration_ms": 377,
+            "event": "worker_phase_succeeded",
+            "stage": "scratch_volume_reload"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "audio_asset_read_and_verify"
+          },
+          {
+            "duration_ms": 885,
+            "event": "worker_phase_succeeded",
+            "stage": "audio_asset_read_and_verify"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "asr_checkpoint_verification"
+          },
+          {
+            "duration_ms": 145,
+            "event": "worker_phase_succeeded",
+            "stage": "asr_checkpoint_verification"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "asr_model_load"
+          },
+          {
+            "duration_ms": 7590,
+            "event": "worker_phase_succeeded",
+            "stage": "asr_model_load"
+          },
+          {
+            "event": "worker_phase_started",
+            "stage": "asr_inference_and_decode"
+          },
+          {
+            "duration_ms": 7672,
+            "event": "worker_phase_succeeded",
+            "stage": "asr_inference_and_decode"
+          }
+        ],
+        "worker_started_observed": true,
+        "worker_terminal_event": "worker_succeeded"
+      },
+      "workload": "asr.transcribe"
+    },
+    {
+      "aliases": [],
+      "call_id": "fc-01M6QX3BE9G4H14CJ7RQ0422N2",
+      "evidence_file": "drawing_segment_result.json",
+      "outcome": "FAILED_TERMINAL",
+      "runner_elapsed_ms": 24726.77,
+      "worker_log_summary": {
+        "worker_binary_output_sha256": null,
+        "worker_diagnostic_code": null,
+        "worker_diagnostic_details": null,
+        "worker_duration_ms": 0,
+        "worker_error_code": "MODAL_WORKLOAD_NOT_ALLOWED",
+        "worker_error_type": "WorkerContractError",
+        "worker_failure_boundary": "worker_terminal_failure_observed",
+        "worker_gpu_class": "L40S|L4|A10",
+        "worker_last_stage": "input_envelope",
+        "worker_log_event_count": 4,
+        "worker_logs_available": true,
+        "worker_model_id": "facebookresearch/sam2.1-hiera-small",
+        "worker_model_revision": "2b90b9f5ceec907a1c18123530e92e794ad901a4",
+        "worker_output_sha256": null,
+        "worker_output_size_bytes": null,
+        "worker_phase_history": [
+          {
+            "event": "worker_phase_started",
+            "stage": "input_envelope"
+          },
+          {
+            "duration_ms": 0,
+            "error_code": "MODAL_WORKLOAD_NOT_ALLOWED",
+            "error_type": "WorkerContractError",
+            "event": "worker_phase_failed",
+            "stage": "input_envelope"
+          }
+        ],
+        "worker_started_observed": true,
+        "worker_terminal_event": "worker_failed"
+      },
+      "workload": "drawing.segment"
+    }
+  ]
+}

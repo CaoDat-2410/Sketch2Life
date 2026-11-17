@@ -1,0 +1,45 @@
+{
+  "date": "2026-10-15",
+  "timezone": "Asia/Saigon",
+  "evidence_type": "USER_SUPPLIED_REMOTE_COMMAND_OUTPUT",
+  "direct_codex_remote_verification": false,
+  "target": "sketch2life-backend-test",
+  "source_branch": "feature/be2-01-ai-job-foundation",
+  "source_head": "993a26c",
+  "inventory": {
+    "python": "3.12.15",
+    "packages": {
+      "sqlalchemy": "2.1.4",
+      "psycopg": "3.3.6",
+      "alembic": "1.20.0",
+      "redis": "6.4.0",
+      "rq": "2.12.0",
+      "pytest": "8.4.2",
+      "fastapi": "0.143.1",
+      "pydantic": "2.14.1",
+      "Pillow": "12.3.0",
+      "av": "18.1.0"
+    },
+    "postgres": "17.11",
+    "redis": "8.10.2",
+    "authenticated_postgres_connection": "PASS",
+    "redis_connection": "PASS"
+  },
+  "live_route_test": {
+    "command": "python -B -m pytest -c backend/pyproject.toml backend/tests/contract/test_ai_job_polling.py::test_live_app_routes_have_no_candidate_job_route -p no:cacheprovider -rs",
+    "passed": 1,
+    "skipped": 0,
+    "seconds": 2.72,
+    "status": "PASS_USER_REPORTED",
+    "shell_exit_code": "not separately pasted",
+    "remote_receipt": "features/FEAT-044-be2-ai-job-foundation/evidence/local/lightning-bootstrap-20261015/live-route.txt"
+  },
+  "environment_baseline": "READY_USER_REPORTED_FOR_SYNTHETIC_COMPONENT_TESTS",
+  "limitations": [
+    "No Phase B migration/durability/crash/concurrency test exists yet",
+    "No actual P2/P4 integration/sign-off",
+    "No Phase A checkpoint acceptance or Phase B code approval inferred",
+    "Pip-check standalone output not pasted; preceding prepared shell stops on failure"
+  ],
+  "actual_owner_decisions_added": false
+}

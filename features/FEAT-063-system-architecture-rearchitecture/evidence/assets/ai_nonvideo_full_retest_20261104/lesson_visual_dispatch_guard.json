@@ -1,0 +1,9 @@
+{
+  "state": "DISPATCH_INTENT_RECORDED",
+  "workload": "lesson.visual.generate",
+  "created_at": "2026-11-04T17:47:51+07:00",
+  "source_plan_revision_ref": "synthetic-approved-butterfly-plan-v1",
+  "source_plan_sha256": "623788e3d6dd28bdc08014836707f003ed90692b1060bf421016c9ae6fd93e1e",
+  "child_data_in_request": false,
+  "max_attempts": 1
+}

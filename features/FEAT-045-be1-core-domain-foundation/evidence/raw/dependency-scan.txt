@@ -1,0 +1,4 @@
+backend/src/sketch2life/domain/core_foundation.py: imports=['__future__', 'dataclasses', 'enum']
+PASS allowed inward/framework-independent imports
+backend/src/sketch2life/application/ports/core_foundation.py: imports=['__future__', 'sketch2life', 'typing']
+PASS allowed inward/framework-independent imports

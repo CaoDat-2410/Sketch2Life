@@ -1,0 +1,18 @@
+{
+  "check": "followup_repro",
+  "command": [
+    "<existing-backend-venv>/python",
+    "-B",
+    "-",
+    "<be2-worktree>"
+  ],
+  "started_at": "2026-10-14T22:56:30.368010+07:00",
+  "exit_code": 0,
+  "environment": {
+    "PYTHONPATH": "<be2-worktree>/backend/src",
+    "PYTHONDONTWRITEBYTECODE": "1"
+  },
+  "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/codex_q00a_final_followup_repro.txt",
+  "stdin_source": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/q00a_repro_source.txt",
+  "cases_resolved": 3
+}

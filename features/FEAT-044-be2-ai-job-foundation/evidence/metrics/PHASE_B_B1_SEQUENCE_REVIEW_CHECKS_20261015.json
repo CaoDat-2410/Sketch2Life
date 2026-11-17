@@ -1,0 +1,76 @@
+{
+  "recorded_at": "2026-10-15T10:56:21.953457+07:00",
+  "review_result": "PASS_AT_PROPOSED_DIAGRAM_SCOPE",
+  "diagram_revision": 2,
+  "decision_record_revision": 3,
+  "reviewers": [
+    "Codex primary",
+    "phase_b_dispatch_review",
+    "phase_b_persistence_review"
+  ],
+  "head": "993a26cae78c0a4fe983033f03881838c886b176",
+  "original_diagram_sha256": "fd118c11d353cb2bca2eea8623abb45f6de2f20ca719a6c817a49f7491a252b3",
+  "original_diagram_local": "evidence/local/phase-b-b1-sequence-review-20261015/executor_original_sequences.md",
+  "original_decision_record_rev2_sha256": "f31099b461bb2b232f11145c1922a9b8a031878d9f0a48dae7decaa992dd8eba",
+  "corrections_closed": [
+    "authorized receipt fast paths and terminal control flow",
+    "cancel CAS-loser receipt reread",
+    "pre-publish owner fence",
+    "whole-bundle generation acknowledgement",
+    "serialized pending-intent recovery",
+    "complete incident intent bundle"
+  ],
+  "document_sha256": {
+    "plan/PHASE_B_PLAN.md": "bb20d5be45dc0552a803f67b5927d4a38dc113cabe10b3a6088644d874ba5848",
+    "plan/PHASE_B_ADR_PROPOSAL.md": "756b6df5ab8e8ec659ffabdc26a0083f035d28d63b86cebc54c6071c9f8ad0ac",
+    "plan/PHASE_B_PORT_REVIEW.md": "3af783a7efca61c5f098f7679b70bbdee4eb6034b9370291c282064ee5579699",
+    "plan/PHASE_B_DECISION_RECORD.md": "dd1850527c81a679d66d85c7528bb982c9b09b67a6356c432c26fb124bcc9976",
+    "evidence/notes/PHASE_B_B1_PROPOSED_SEQUENCES.md": "3866e00de4cabbdf84fc673049283b705e605e518d92519e89b2fdec15b66f45"
+  },
+  "bound_hashes_present_in_diagram": true,
+  "rev3_matches_final_review": {
+    "plan/PHASE_B_PLAN.md": true,
+    "plan/PHASE_B_ADR_PROPOSAL.md": true,
+    "plan/PHASE_B_PORT_REVIEW.md": true
+  },
+  "phase_a_frozen_count": 24,
+  "head_mismatches": [],
+  "unexpected_working_tree_mismatches": [],
+  "working_tree_exception": "test_ai_job_q00_followups.py existing EOF disposition only",
+  "local_diagnostics_count": 61,
+  "local_diagnostics_hash_mismatches": [],
+  "gitignore_unchanged": true,
+  "mermaid_blocks": 7,
+  "text_block_balance_issues": [],
+  "crash_window_rows": 12,
+  "mermaid_render": "NOT_RUN; text/block inspection only",
+  "phase_b_runtime_tests": "NOT_RUN",
+  "actual_owner_decisions_added": false,
+  "phase_b_implementation": "NOT_STARTED_UNAPPROVED",
+  "active_slot": "Q00",
+  "q01_status": "PLAN_REVIEW_PASS_WAITING_GATES",
+  "b1_exit": "PENDING_ACTUAL_DECISIONS_ADOPTED_ADR_RECONCILIATION",
+  "code_or_approval_edited": false,
+  "Pillow_available_in_existing_venv": false,
+  "stage_commit_push": false,
+  "checks": [
+    {
+      "check": "harness",
+      "command": "python -B tools/validate_harness.py --feature features/FEAT-044-be2-ai-job-foundation",
+      "exit_code": 0,
+      "local_receipt": "evidence/local/phase-b-b1-sequence-review-20261015/harness.txt"
+    },
+    {
+      "check": "security",
+      "command": "python -B tools/validate_repository_security.py",
+      "exit_code": 0,
+      "local_receipt": "evidence/local/phase-b-b1-sequence-review-20261015/security.txt"
+    },
+    {
+      "check": "diff",
+      "command": "git diff --check",
+      "exit_code": 0,
+      "local_receipt": "evidence/local/phase-b-b1-sequence-review-20261015/diff.txt"
+    }
+  ]
+}

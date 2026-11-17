@@ -1,0 +1,1227 @@
+{
+  "kind": "BE207_FINAL_OFFLINE_ACCEPTANCE_MAP",
+  "approval_plan_revision": 1,
+  "approval_plan_sha256": "6de3ed6de3ef6008128d064ae28d3bf2b5fe78f91686afaa28eb63b4231aab36",
+  "profile": "BE207_REQUIRED_OFFLINE_01_07",
+  "final_run": "evidence/local/final-offline-20261020-rerun1",
+  "evidence_ref_base": "feature root",
+  "source_manifest_sha256": "7d204d1feddcd21082f422c6eab5188f9dafe461b035ca31484495f36afe0cf9",
+  "junit_sha256": "77b48bfd6858ec7aebfe8ccccccdb56a6389f9d5fae210909da65f7b16189701",
+  "batch_counts": {
+    "collected": 1515,
+    "passed": 1512,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 3
+  },
+  "mapped_cases": {
+    "pass": 42,
+    "partial": 0,
+    "not_run": 0
+  },
+  "rows": [
+    {
+      "id": "P01",
+      "assessment": "PASS_OFFLINE",
+      "executed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_generic_create_sourced_v1_server_attribution_zero_actual_consent"
+      ],
+      "concrete_assertions": "Actual CMD38 returns201/v1/revision1/generation_ready/exact FACT_TEXT; server Teacher author and generic provenance; actual consent_calls remains0; exactly one head/version/receipt/audit and no correction/outbox.",
+      "residual": "",
+      "status": "PASS_OFFLINE",
+      "final_junit_nodes": [
+        "tests.unit.test_knowledge_bundle_service::test_generic_create_sourced_v1_server_attribution_zero_actual_consent"
+      ],
+      "evidence_refs": [
+        "evidence/local/final-offline-20261020-rerun1/junit-summary.json",
+        "evidence/local/final-offline-20261020-rerun1/checks.json"
+      ]
+    },
+    {
+      "id": "P02",
+      "assessment": "PASS_OFFLINE",
+      "executed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_child_exact_contributors_snapshot_confirmation_and_purpose",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_child_handler_cannot_borrow_consent_from_different_trusted_scope[org]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_child_handler_cannot_borrow_consent_from_different_trusted_scope[session]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_child_handler_cannot_borrow_consent_from_different_trusted_scope[purpose]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_child_handler_cannot_borrow_consent_from_different_trusted_scope[snapshot]"
+      ],
+      "concrete_assertions": "Actual child bundle keeps child-a/child-b, exact snapshot refs, knowledge_media purpose and Teacher confirmation; borrowed grant in different org/session/purpose/snapshot denies with empty store.",
+      "residual": "",
+      "status": "PASS_OFFLINE",
+      "final_junit_nodes": [
+        "tests.unit.test_knowledge_bundle_service::test_child_exact_contributors_snapshot_confirmation_and_purpose",
+        "tests.unit.test_knowledge_bundle_races::test_actual_child_handler_cannot_borrow_consent_from_different_trusted_scope[org]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_child_handler_cannot_borrow_consent_from_different_trusted_scope[session]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_child_handler_cannot_borrow_consent_from_different_trusted_scope[purpose]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_child_handler_cannot_borrow_consent_from_different_trusted_scope[snapshot]"
+      ],
+      "evidence_refs": [
+        "evidence/local/final-offline-20261020-rerun1/junit-summary.json",
+        "evidence/local/final-offline-20261020-rerun1/checks.json"
+      ]
+    },
+    {
+      "id": "P03",
+      "assessment": "PASS_OFFLINE",
+      "executed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_missing_source_create_is_zero_claim_draft_with_content_action[False]",
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_missing_source_create_is_zero_claim_draft_with_content_action[True]",
+        "backend/tests/unit/test_knowledge_bundle_chain.py::test_actual_knowledge_flows_call_no_job_provider_or_network_and_invent_no_approval"
+      ],
+      "concrete_assertions": "Missing and mixed missing-source selections remain zero-claim drafts; sentinels prove zero AiJobService, FakeProvider/model, and socket calls, with no invented approval fields.",
+      "residual": "",
+      "status": "PASS_OFFLINE",
+      "final_junit_nodes": [
+        "tests.unit.test_knowledge_bundle_service::test_missing_source_create_is_zero_claim_draft_with_content_action[False]",
+        "tests.unit.test_knowledge_bundle_service::test_missing_source_create_is_zero_claim_draft_with_content_action[True]",
+        "tests.unit.test_knowledge_bundle_chain::test_actual_knowledge_flows_call_no_job_provider_or_network_and_invent_no_approval"
+      ],
+      "evidence_refs": [
+        "evidence/local/final-offline-20261020-rerun1/junit-summary.json",
+        "evidence/local/final-offline-20261020-rerun1/checks.json"
+      ]
+    },
+    {
+      "id": "P04",
+      "assessment": "PASS_OFFLINE",
+      "executed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_edit_attestation_projection_v1_immutable_correction_and_exact_event",
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_old_teacher_attestation_survives_other_teacher_section_edit"
+      ],
+      "concrete_assertions": "Actual CMD39 returns200/v2 Teacher-attested server-author claim and exact derived text; Teacher B later retains A attribution while correction author becomes B.",
+      "residual": "",
+      "status": "PASS_OFFLINE",
+      "final_junit_nodes": [
+        "tests.unit.test_knowledge_bundle_service::test_edit_attestation_projection_v1_immutable_correction_and_exact_event",
+        "tests.unit.test_knowledge_bundle_service::test_old_teacher_attestation_survives_other_teacher_section_edit"
+      ],
+      "evidence_refs": [
+        "evidence/local/final-offline-20261020-rerun1/junit-summary.json",
+        "evidence/local/final-offline-20261020-rerun1/checks.json"
+      ]
+    },
+    {
+      "id": "P05",
+      "assessment": "PASS_OFFLINE",
+      "executed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_edit_attestation_projection_v1_immutable_correction_and_exact_event",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_edit_storage_failure_retries_same_key_once[put_head]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_edit_storage_failure_retries_same_key_once[put_version]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_edit_storage_failure_retries_same_key_once[put_correction]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_edit_storage_failure_retries_same_key_once[put_receipt]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_edit_storage_failure_retries_same_key_once[add_audit]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_edit_storage_failure_retries_same_key_once[add_event]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_edit_storage_failure_retries_same_key_once[commit]"
+      ],
+      "concrete_assertions": "v1 bytes remain identical; new version/correction/exact old-new hash event present once; each7stage failure leaves full snapshot unchanged and retry/replay yields2versions/2receipts/1correction/event.",
+      "residual": "",
+      "status": "PASS_OFFLINE",
+      "final_junit_nodes": [
+        "tests.unit.test_knowledge_bundle_service::test_edit_attestation_projection_v1_immutable_correction_and_exact_event",
+        "tests.unit.test_knowledge_bundle_races::test_actual_edit_storage_failure_retries_same_key_once[put_head]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_edit_storage_failure_retries_same_key_once[put_version]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_edit_storage_failure_retries_same_key_once[put_correction]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_edit_storage_failure_retries_same_key_once[put_receipt]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_edit_storage_failure_retries_same_key_once[add_audit]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_edit_storage_failure_retries_same_key_once[add_event]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_edit_storage_failure_retries_same_key_once[commit]"
+      ],
+      "evidence_refs": [
+        "evidence/local/final-offline-20261020-rerun1/junit-summary.json",
+        "evidence/local/final-offline-20261020-rerun1/checks.json"
+      ]
+    },
+    {
+      "id": "P06",
+      "assessment": "PASS_OFFLINE",
+      "executed_nodes": [
+        "backend/tests/contract/test_knowledge_bundles.py::test_exact_export_binds_full_record_to_canonical_bytes_and_separate_digest_namespace",
+        "backend/tests/contract/test_knowledge_bundles.py::test_actual_data26_required_fields_and_own_strict_extension",
+        "backend/tests/unit/test_knowledge_bundle_adapters.py::test_exact_producer_resolve_supersession_before_event_delivery_and_recording_consumer"
+      ],
+      "concrete_assertions": "Actual current resolver returns the v1 exact export before edit and withholds the old version/hash after v2; the exported script and exact pins are asserted.",
+      "residual": "",
+      "status": "PASS_OFFLINE",
+      "final_junit_nodes": [
+        "tests.contract.test_knowledge_bundles::test_exact_export_binds_full_record_to_canonical_bytes_and_separate_digest_namespace",
+        "tests.contract.test_knowledge_bundles::test_actual_data26_required_fields_and_own_strict_extension",
+        "tests.unit.test_knowledge_bundle_adapters::test_exact_producer_resolve_supersession_before_event_delivery_and_recording_consumer"
+      ],
+      "evidence_refs": [
+        "evidence/local/final-offline-20261020-rerun1/junit-summary.json",
+        "evidence/local/final-offline-20261020-rerun1/checks.json"
+      ]
+    },
+    {
+      "id": "P07",
+      "assessment": "PASS_OFFLINE",
+      "executed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_accepted_replay_original_after_head_advance_pause_and_stale_ifmatch"
+      ],
+      "concrete_assertions": "Create/edit accepted receipts replay equal original result/status/body with original v1/v2 afterv3/pause/staleIfMatch; full store unchanged; freshkey paused edit fails.",
+      "residual": "",
+      "status": "PASS_OFFLINE",
+      "final_junit_nodes": [
+        "tests.unit.test_knowledge_bundle_service::test_accepted_replay_original_after_head_advance_pause_and_stale_ifmatch"
+      ],
+      "evidence_refs": [
+        "evidence/local/final-offline-20261020-rerun1/junit-summary.json",
+        "evidence/local/final-offline-20261020-rerun1/checks.json"
+      ]
+    },
+    {
+      "id": "P08",
+      "assessment": "PASS_OFFLINE",
+      "executed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_child_imagined_removed_keeps_provenance_and_cannot_become_fact",
+        "backend/tests/unit/test_knowledge_bundle_domain.py::test_exact_fact_story_projection_order_and_claim_correction"
+      ],
+      "concrete_assertions": "Story exact imagined text; remove selections retains child_derived/contributors; later imaginary factual correction rejects with identical store; scoped disclosure revoke denies old receipt.",
+      "residual": "",
+      "status": "PASS_OFFLINE",
+      "final_junit_nodes": [
+        "tests.unit.test_knowledge_bundle_service::test_child_imagined_removed_keeps_provenance_and_cannot_become_fact",
+        "tests.unit.test_knowledge_bundle_domain::test_exact_fact_story_projection_order_and_claim_correction"
+      ],
+      "evidence_refs": [
+        "evidence/local/final-offline-20261020-rerun1/junit-summary.json",
+        "evidence/local/final-offline-20261020-rerun1/checks.json"
+      ]
+    },
+    {
+      "id": "P09",
+      "assessment": "PASS_OFFLINE",
+      "executed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_adapters.py::test_actual_producer_examples_are_deterministic_and_saved_artifact_json_equal"
+      ],
+      "concrete_assertions": "Two actual producer flows yield equal JSON values; parsed saved artifact equals the producer value and representative version, replay, consumer, no-op, draft and recall outcomes are asserted. No byte-equality claim is made.",
+      "residual": "",
+      "status": "PASS_OFFLINE",
+      "final_junit_nodes": [
+        "tests.unit.test_knowledge_bundle_adapters::test_actual_producer_examples_are_deterministic_and_saved_artifact_json_equal"
+      ],
+      "evidence_refs": [
+        "evidence/local/final-offline-20261020-rerun1/junit-summary.json",
+        "evidence/local/final-offline-20261020-rerun1/checks.json",
+        "artifacts/KNOWLEDGE_BUNDLE_EXAMPLES.json",
+        "evidence/local/part8-examples-generation.json"
+      ]
+    },
+    {
+      "id": "P10",
+      "assessment": "PASS_OFFLINE",
+      "executed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_adapters.py::test_exact_producer_resolve_supersession_before_event_delivery_and_recording_consumer"
+      ],
+      "concrete_assertions": "The actual supersession event applies once, replay is idempotently rejected, and old, new and unrelated exact pins have the expected current state.",
+      "residual": "",
+      "status": "PASS_OFFLINE",
+      "final_junit_nodes": [
+        "tests.unit.test_knowledge_bundle_adapters::test_exact_producer_resolve_supersession_before_event_delivery_and_recording_consumer"
+      ],
+      "evidence_refs": [
+        "evidence/local/final-offline-20261020-rerun1/junit-summary.json",
+        "evidence/local/final-offline-20261020-rerun1/checks.json"
+      ]
+    },
+    {
+      "id": "N01",
+      "assessment": "PASS_OFFLINE",
+      "executed_nodes": [
+        "backend/tests/contract/test_knowledge_bundles.py::test_response_projection_rejects_unrelated_sentence_with_valid_claim_ref",
+        "backend/tests/contract/test_knowledge_bundles.py::test_fact_and_story_commands_forbid_arbitrary_text_and_claims_in_story"
+      ],
+      "concrete_assertions": "Strict command rejects arbitrary fact/story text; response validref+unrelated sentence and inconsistent flat script reject. Independent ref-only mutant is caught by this actual regression.",
+      "residual": "",
+      "status": "PASS_OFFLINE",
+      "final_junit_nodes": [
+        "tests.contract.test_knowledge_bundles::test_response_projection_rejects_unrelated_sentence_with_valid_claim_ref",
+        "tests.contract.test_knowledge_bundles::test_fact_and_story_commands_forbid_arbitrary_text_and_claims_in_story"
+      ],
+      "evidence_refs": [
+        "evidence/local/final-offline-20261020-rerun1/junit-summary.json",
+        "evidence/local/final-offline-20261020-rerun1/checks.json"
+      ]
+    },
+    {
+      "id": "N02",
+      "assessment": "PASS_OFFLINE",
+      "executed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_domain.py::test_unknown_duplicate_refs_and_literal_imagined_fact_laundering",
+        "backend/tests/contract/test_knowledge_bundles.py::test_record_full_basis_literal_and_hidden_imagined_metadata_rejected",
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_child_imagined_removed_keeps_provenance_and_cannot_become_fact"
+      ],
+      "concrete_assertions": "Unknown fact/story refs and duplicate refs reject; NFC/casefold imaginary literal fails including fullbasis after deselection; generic hidden imaginary metadata fails.",
+      "residual": "",
+      "status": "PASS_OFFLINE",
+      "final_junit_nodes": [
+        "tests.unit.test_knowledge_bundle_domain::test_unknown_duplicate_refs_and_literal_imagined_fact_laundering",
+        "tests.contract.test_knowledge_bundles::test_record_full_basis_literal_and_hidden_imagined_metadata_rejected",
+        "tests.unit.test_knowledge_bundle_service::test_child_imagined_removed_keeps_provenance_and_cannot_become_fact"
+      ],
+      "evidence_refs": [
+        "evidence/local/final-offline-20261020-rerun1/junit-summary.json",
+        "evidence/local/final-offline-20261020-rerun1/checks.json"
+      ]
+    },
+    {
+      "id": "N03",
+      "assessment": "PASS_OFFLINE",
+      "executed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_explicit_invalid_source_edit_rejects_atomically[pin_change0-source_change0-SOURCE_MISSING]",
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_explicit_invalid_source_edit_rejects_atomically[pin_change1-source_change1-SOURCE_REVISION_MISMATCH]",
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_explicit_invalid_source_edit_rejects_atomically[pin_change2-source_change2-SOURCE_HASH_MISMATCH]",
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_explicit_invalid_source_edit_rejects_atomically[pin_change3-source_change3-SOURCE_NOT_REVIEWED]",
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_explicit_invalid_source_edit_rejects_atomically[pin_change4-source_change4-SOURCE_RECALLED]",
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_explicit_invalid_source_edit_rejects_atomically[pin_change5-source_change5-SOURCE_TOPIC_MISMATCH]",
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_explicit_invalid_source_edit_rejects_atomically[pin_change6-source_change6-SOURCE_AGE_MISMATCH]",
+        "backend/tests/unit/test_knowledge_bundle_domain.py::test_source_current_pins_review_recall_topic_and_each_age[change0-SOURCE_NOT_REVIEWED]",
+        "backend/tests/unit/test_knowledge_bundle_domain.py::test_source_current_pins_review_recall_topic_and_each_age[change1-SOURCE_RECALLED]",
+        "backend/tests/unit/test_knowledge_bundle_domain.py::test_source_current_pins_review_recall_topic_and_each_age[change2-SOURCE_TOPIC_MISMATCH]",
+        "backend/tests/unit/test_knowledge_bundle_domain.py::test_source_current_pins_review_recall_topic_and_each_age[change3-SOURCE_AGE_MISMATCH]",
+        "backend/tests/unit/test_knowledge_bundle_domain.py::test_source_current_pins_review_recall_topic_and_each_age[change4-SOURCE_REVISION_MISMATCH]",
+        "backend/tests/unit/test_knowledge_bundle_domain.py::test_source_current_pins_review_recall_topic_and_each_age[change5-SOURCE_HASH_MISMATCH]"
+      ],
+      "concrete_assertions": "Actual edit7cases missing/revision/hash/unreviewed/recalled/topic/per-member-age returns exact reason and unchanged full store; domain catalog text mismatch rejects.",
+      "residual": "",
+      "status": "PASS_OFFLINE",
+      "final_junit_nodes": [
+        "tests.unit.test_knowledge_bundle_service::test_explicit_invalid_source_edit_rejects_atomically[pin_change0-source_change0-SOURCE_MISSING]",
+        "tests.unit.test_knowledge_bundle_service::test_explicit_invalid_source_edit_rejects_atomically[pin_change1-source_change1-SOURCE_REVISION_MISMATCH]",
+        "tests.unit.test_knowledge_bundle_service::test_explicit_invalid_source_edit_rejects_atomically[pin_change2-source_change2-SOURCE_HASH_MISMATCH]",
+        "tests.unit.test_knowledge_bundle_service::test_explicit_invalid_source_edit_rejects_atomically[pin_change3-source_change3-SOURCE_NOT_REVIEWED]",
+        "tests.unit.test_knowledge_bundle_service::test_explicit_invalid_source_edit_rejects_atomically[pin_change4-source_change4-SOURCE_RECALLED]",
+        "tests.unit.test_knowledge_bundle_service::test_explicit_invalid_source_edit_rejects_atomically[pin_change5-source_change5-SOURCE_TOPIC_MISMATCH]",
+        "tests.unit.test_knowledge_bundle_service::test_explicit_invalid_source_edit_rejects_atomically[pin_change6-source_change6-SOURCE_AGE_MISMATCH]",
+        "tests.unit.test_knowledge_bundle_domain::test_source_current_pins_review_recall_topic_and_each_age[change0-SOURCE_NOT_REVIEWED]",
+        "tests.unit.test_knowledge_bundle_domain::test_source_current_pins_review_recall_topic_and_each_age[change1-SOURCE_RECALLED]",
+        "tests.unit.test_knowledge_bundle_domain::test_source_current_pins_review_recall_topic_and_each_age[change2-SOURCE_TOPIC_MISMATCH]",
+        "tests.unit.test_knowledge_bundle_domain::test_source_current_pins_review_recall_topic_and_each_age[change3-SOURCE_AGE_MISMATCH]",
+        "tests.unit.test_knowledge_bundle_domain::test_source_current_pins_review_recall_topic_and_each_age[change4-SOURCE_REVISION_MISMATCH]",
+        "tests.unit.test_knowledge_bundle_domain::test_source_current_pins_review_recall_topic_and_each_age[change5-SOURCE_HASH_MISMATCH]"
+      ],
+      "evidence_refs": [
+        "evidence/local/final-offline-20261020-rerun1/junit-summary.json",
+        "evidence/local/final-offline-20261020-rerun1/checks.json"
+      ]
+    },
+    {
+      "id": "N04",
+      "assessment": "PASS_OFFLINE",
+      "executed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[source]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[basis_revision]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[basis_confirmation]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[basis_unconfirmed]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[basis_not_applicable]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[context]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[audience]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[roster]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[consent]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[policy]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[policy_revoke]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[teacher]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[disclosure]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[mutation]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[catalog]",
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_changed_confirmation_same_revision_withholds_content_and_does_not_write"
+      ],
+      "concrete_assertions": "Before-unit revisions/confirmation/unconfirmed/notapplicable guard family raises exact code then read has no export; same-revision changed confirmation denies read without writing.",
+      "residual": "",
+      "status": "PASS_OFFLINE",
+      "final_junit_nodes": [
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[source]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[basis_revision]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[basis_confirmation]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[basis_unconfirmed]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[basis_not_applicable]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[context]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[audience]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[roster]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[consent]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[policy]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[policy_revoke]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[teacher]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[disclosure]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[mutation]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[catalog]",
+        "tests.unit.test_knowledge_bundle_service::test_changed_confirmation_same_revision_withholds_content_and_does_not_write"
+      ],
+      "evidence_refs": [
+        "evidence/local/final-offline-20261020-rerun1/junit-summary.json",
+        "evidence/local/final-offline-20261020-rerun1/checks.json"
+      ]
+    },
+    {
+      "id": "N05",
+      "assessment": "PASS_OFFLINE",
+      "executed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_cross_session_and_client_attribution_json_fail_without_receipt",
+        "backend/tests/contract/test_knowledge_bundles.py::test_client_cannot_override_trusted_scope_attribution_or_topic[organization_id]",
+        "backend/tests/contract/test_knowledge_bundles.py::test_client_cannot_override_trusted_scope_attribution_or_topic[created_by]",
+        "backend/tests/contract/test_knowledge_bundles.py::test_client_cannot_override_trusted_scope_attribution_or_topic[contributors]",
+        "backend/tests/contract/test_knowledge_bundles.py::test_client_cannot_override_trusted_scope_attribution_or_topic[topic]",
+        "backend/tests/contract/test_knowledge_bundles.py::test_client_cannot_override_trusted_scope_attribution_or_topic[content_origin]",
+        "backend/tests/unit/test_knowledge_bundle_domain.py::test_missing_trusted_metadata_and_per_member_purpose_membership_rejected"
+      ],
+      "concrete_assertions": "Raw command attribution/scope/contributors/topic/origin overrides reject; nested union extras reject; missing confirmation/contributors/snapshot metadata fails; no accepted receipt.",
+      "residual": "",
+      "status": "PASS_OFFLINE",
+      "final_junit_nodes": [
+        "tests.unit.test_knowledge_bundle_service::test_cross_session_and_client_attribution_json_fail_without_receipt",
+        "tests.contract.test_knowledge_bundles::test_client_cannot_override_trusted_scope_attribution_or_topic[organization_id]",
+        "tests.contract.test_knowledge_bundles::test_client_cannot_override_trusted_scope_attribution_or_topic[created_by]",
+        "tests.contract.test_knowledge_bundles::test_client_cannot_override_trusted_scope_attribution_or_topic[contributors]",
+        "tests.contract.test_knowledge_bundles::test_client_cannot_override_trusted_scope_attribution_or_topic[topic]",
+        "tests.contract.test_knowledge_bundles::test_client_cannot_override_trusted_scope_attribution_or_topic[content_origin]",
+        "tests.unit.test_knowledge_bundle_domain::test_missing_trusted_metadata_and_per_member_purpose_membership_rejected"
+      ],
+      "evidence_refs": [
+        "evidence/local/final-offline-20261020-rerun1/junit-summary.json",
+        "evidence/local/final-offline-20261020-rerun1/checks.json"
+      ]
+    },
+    {
+      "id": "N06",
+      "assessment": "PASS_OFFLINE",
+      "executed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_child_handler_cannot_borrow_consent_from_different_trusted_scope[org]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_child_handler_cannot_borrow_consent_from_different_trusted_scope[session]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_child_handler_cannot_borrow_consent_from_different_trusted_scope[purpose]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_child_handler_cannot_borrow_consent_from_different_trusted_scope[snapshot]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_child_wrong_purpose_is_not_promoted_by_positive_consent_grant",
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_one_child_revocation_fails_entire_create_and_preserves_empty_store",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[source]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[basis_revision]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[basis_confirmation]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[basis_unconfirmed]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[basis_not_applicable]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[context]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[audience]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[roster]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[consent]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[policy]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[policy_revoke]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[teacher]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[disclosure]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[mutation]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[catalog]"
+      ],
+      "concrete_assertions": "Each trusted contributor checked under org/session/purpose/snapshot, wrong-purpose positivegrant denies; onechild revoke empty store; roster/consent guard changes deny current content.",
+      "residual": "",
+      "status": "PASS_OFFLINE",
+      "final_junit_nodes": [
+        "tests.unit.test_knowledge_bundle_races::test_actual_child_handler_cannot_borrow_consent_from_different_trusted_scope[org]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_child_handler_cannot_borrow_consent_from_different_trusted_scope[session]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_child_handler_cannot_borrow_consent_from_different_trusted_scope[purpose]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_child_handler_cannot_borrow_consent_from_different_trusted_scope[snapshot]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_child_wrong_purpose_is_not_promoted_by_positive_consent_grant",
+        "tests.unit.test_knowledge_bundle_service::test_one_child_revocation_fails_entire_create_and_preserves_empty_store",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[source]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[basis_revision]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[basis_confirmation]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[basis_unconfirmed]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[basis_not_applicable]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[context]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[audience]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[roster]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[consent]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[policy]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[policy_revoke]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[teacher]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[disclosure]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[mutation]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[catalog]"
+      ],
+      "evidence_refs": [
+        "evidence/local/final-offline-20261020-rerun1/junit-summary.json",
+        "evidence/local/final-offline-20261020-rerun1/checks.json"
+      ]
+    },
+    {
+      "id": "N07",
+      "assessment": "PASS_OFFLINE",
+      "executed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_roles_foreign_scope_safe_existence_reads_and_writes[principal0]",
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_roles_foreign_scope_safe_existence_reads_and_writes[principal1]",
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_roles_foreign_scope_safe_existence_reads_and_writes[principal2]",
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_roles_foreign_scope_safe_existence_reads_and_writes[principal3]",
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_cross_session_and_client_attribution_json_fail_without_receipt",
+        "backend/tests/unit/test_knowledge_bundle_chain.py::test_existing_other_session_bundle_read_edit_denial_is_safe_and_scoped"
+      ],
+      "concrete_assertions": "A Teacher authorized only in session A receives the same safe 404/read result for an existing session-B bundle and a missing target; edit attempts leave the store unchanged.",
+      "residual": "",
+      "status": "PASS_OFFLINE",
+      "final_junit_nodes": [
+        "tests.unit.test_knowledge_bundle_service::test_roles_foreign_scope_safe_existence_reads_and_writes[principal0]",
+        "tests.unit.test_knowledge_bundle_service::test_roles_foreign_scope_safe_existence_reads_and_writes[principal1]",
+        "tests.unit.test_knowledge_bundle_service::test_roles_foreign_scope_safe_existence_reads_and_writes[principal2]",
+        "tests.unit.test_knowledge_bundle_service::test_roles_foreign_scope_safe_existence_reads_and_writes[principal3]",
+        "tests.unit.test_knowledge_bundle_service::test_cross_session_and_client_attribution_json_fail_without_receipt",
+        "tests.unit.test_knowledge_bundle_chain::test_existing_other_session_bundle_read_edit_denial_is_safe_and_scoped"
+      ],
+      "evidence_refs": [
+        "evidence/local/final-offline-20261020-rerun1/junit-summary.json",
+        "evidence/local/final-offline-20261020-rerun1/checks.json"
+      ]
+    },
+    {
+      "id": "N08",
+      "assessment": "PASS_OFFLINE",
+      "executed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_edit_preconditions_typed_and_no_failed_receipt[None-428-PRECONDITION_REQUIRED]",
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_edit_preconditions_typed_and_no_failed_receipt[\"wrong-family:1\"-412-PRECONDITION_FAILED]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_two_actual_edits_with_same_etag_have_one_accepted_version",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[source]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[basis_revision]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[basis_confirmation]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[basis_unconfirmed]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[basis_not_applicable]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[context]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[audience]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[roster]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[consent]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[policy]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[policy_revoke]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[teacher]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[disclosure]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[mutation]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[catalog]"
+      ],
+      "concrete_assertions": "Freshkey missingIfMatch428/wrongfamily412 fullstate unchanged; concurrent sameETag loser412; currentguard mutations deny unseen key while acceptedreplay separately allowed.",
+      "residual": "",
+      "status": "PASS_OFFLINE",
+      "final_junit_nodes": [
+        "tests.unit.test_knowledge_bundle_service::test_edit_preconditions_typed_and_no_failed_receipt[None-428-PRECONDITION_REQUIRED]",
+        "tests.unit.test_knowledge_bundle_service::test_edit_preconditions_typed_and_no_failed_receipt[\"wrong-family:1\"-412-PRECONDITION_FAILED]",
+        "tests.unit.test_knowledge_bundle_races::test_two_actual_edits_with_same_etag_have_one_accepted_version",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[source]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[basis_revision]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[basis_confirmation]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[basis_unconfirmed]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[basis_not_applicable]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[context]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[audience]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[roster]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[consent]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[policy]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[policy_revoke]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[teacher]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[disclosure]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[mutation]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[catalog]"
+      ],
+      "evidence_refs": [
+        "evidence/local/final-offline-20261020-rerun1/junit-summary.json",
+        "evidence/local/final-offline-20261020-rerun1/checks.json"
+      ]
+    },
+    {
+      "id": "N09",
+      "assessment": "PASS_OFFLINE",
+      "executed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_different_body_same_key_conflicts_failed_attempt_key_reusable",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_edit_storage_failure_retries_same_key_once[put_head]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_edit_storage_failure_retries_same_key_once[put_version]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_edit_storage_failure_retries_same_key_once[put_correction]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_edit_storage_failure_retries_same_key_once[put_receipt]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_edit_storage_failure_retries_same_key_once[add_audit]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_edit_storage_failure_retries_same_key_once[add_event]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_edit_storage_failure_retries_same_key_once[commit]"
+      ],
+      "concrete_assertions": "Same scopedkey changedbody409 exact reason/fullstate unchanged; failedguards do not retain accepted key; storagefailure samekey retry/replay once.",
+      "residual": "",
+      "status": "PASS_OFFLINE",
+      "final_junit_nodes": [
+        "tests.unit.test_knowledge_bundle_service::test_different_body_same_key_conflicts_failed_attempt_key_reusable",
+        "tests.unit.test_knowledge_bundle_races::test_actual_edit_storage_failure_retries_same_key_once[put_head]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_edit_storage_failure_retries_same_key_once[put_version]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_edit_storage_failure_retries_same_key_once[put_correction]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_edit_storage_failure_retries_same_key_once[put_receipt]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_edit_storage_failure_retries_same_key_once[add_audit]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_edit_storage_failure_retries_same_key_once[add_event]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_edit_storage_failure_retries_same_key_once[commit]"
+      ],
+      "evidence_refs": [
+        "evidence/local/final-offline-20261020-rerun1/junit-summary.json",
+        "evidence/local/final-offline-20261020-rerun1/checks.json"
+      ]
+    },
+    {
+      "id": "N10",
+      "assessment": "PASS_OFFLINE",
+      "executed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_disclosure_withdrawal_denies_replay_for_teacher_and_sticky_child_contributors",
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_accepted_replay_original_after_head_advance_pause_and_stale_ifmatch"
+      ],
+      "concrete_assertions": "Teacher or child disclosure withdrawal denies acceptedreplay404/no export; mutation-only pause preserves exact originalreceipt and store.",
+      "residual": "",
+      "status": "PASS_OFFLINE",
+      "final_junit_nodes": [
+        "tests.unit.test_knowledge_bundle_service::test_disclosure_withdrawal_denies_replay_for_teacher_and_sticky_child_contributors",
+        "tests.unit.test_knowledge_bundle_service::test_accepted_replay_original_after_head_advance_pause_and_stale_ifmatch"
+      ],
+      "evidence_refs": [
+        "evidence/local/final-offline-20261020-rerun1/junit-summary.json",
+        "evidence/local/final-offline-20261020-rerun1/checks.json"
+      ]
+    },
+    {
+      "id": "N11",
+      "assessment": "PASS_OFFLINE",
+      "executed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_noop_has_no_cas_commit_version_correction_receipt_audit_or_event"
+      ],
+      "concrete_assertions": "No-op marker/code plus full repository snapshot equality and commit counter equality prove no new head/version/correction/receipt/audit/event/generation.",
+      "residual": "",
+      "status": "PASS_OFFLINE",
+      "final_junit_nodes": [
+        "tests.unit.test_knowledge_bundle_service::test_noop_has_no_cas_commit_version_correction_receipt_audit_or_event"
+      ],
+      "evidence_refs": [
+        "evidence/local/final-offline-20261020-rerun1/junit-summary.json",
+        "evidence/local/final-offline-20261020-rerun1/checks.json"
+      ]
+    },
+    {
+      "id": "N12",
+      "assessment": "PASS_OFFLINE",
+      "executed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_domain.py::test_canonical_unsupported_and_normalized_duplicate_keys_rejected[document0]",
+        "backend/tests/unit/test_knowledge_bundle_domain.py::test_canonical_unsupported_and_normalized_duplicate_keys_rejected[document1]",
+        "backend/tests/unit/test_knowledge_bundle_domain.py::test_canonical_unsupported_and_normalized_duplicate_keys_rejected[document2]",
+        "backend/tests/unit/test_knowledge_bundle_domain.py::test_canonical_unsupported_and_normalized_duplicate_keys_rejected[document3]",
+        "backend/tests/unit/test_knowledge_bundle_domain.py::test_canonical_unsupported_and_normalized_duplicate_keys_rejected[document4]",
+        "backend/tests/unit/test_knowledge_bundle_domain.py::test_canonical_unsupported_and_normalized_duplicate_keys_rejected[document5]",
+        "backend/tests/unit/test_knowledge_bundle_domain.py::test_canonical_unsupported_and_normalized_duplicate_keys_rejected[document6]",
+        "backend/tests/unit/test_knowledge_bundle_domain.py::test_canonical_unsupported_and_normalized_duplicate_keys_rejected[document7]",
+        "backend/tests/unit/test_knowledge_bundle_domain.py::test_canonical_unsupported_and_normalized_duplicate_keys_rejected[document8]",
+        "backend/tests/unit/test_knowledge_bundle_domain.py::test_canonical_unsupported_and_normalized_duplicate_keys_rejected[document9]",
+        "backend/tests/unit/test_knowledge_bundle_domain.py::test_document_and_correction_history_overflow_reject_atomically",
+        "backend/tests/unit/test_knowledge_bundle_domain.py::test_pure_collection_and_scalar_limits",
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_raw_duplicate_normalized_keys_non_native_and_document_overflow_reject[duplicate-key]",
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_raw_duplicate_normalized_keys_non_native_and_document_overflow_reject[nfc-key-collision]",
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_raw_duplicate_normalized_keys_non_native_and_document_overflow_reject[non-native-number]",
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_raw_duplicate_normalized_keys_non_native_and_document_overflow_reject[document-overflow]"
+      ],
+      "concrete_assertions": "Floats/nonfinite/objects/tuples/bytes/nonstringkeys/NFCcollision/surrogates/hugeint reject; totalcanonical bytes/correctionhistory/script/scalar/collectionoverflow rejects; actual rawduplicate/NFC/NaN/requestoverflow400 no receipt.",
+      "residual": "",
+      "status": "PASS_OFFLINE",
+      "final_junit_nodes": [
+        "tests.unit.test_knowledge_bundle_domain::test_canonical_unsupported_and_normalized_duplicate_keys_rejected[document0]",
+        "tests.unit.test_knowledge_bundle_domain::test_canonical_unsupported_and_normalized_duplicate_keys_rejected[document1]",
+        "tests.unit.test_knowledge_bundle_domain::test_canonical_unsupported_and_normalized_duplicate_keys_rejected[document2]",
+        "tests.unit.test_knowledge_bundle_domain::test_canonical_unsupported_and_normalized_duplicate_keys_rejected[document3]",
+        "tests.unit.test_knowledge_bundle_domain::test_canonical_unsupported_and_normalized_duplicate_keys_rejected[document4]",
+        "tests.unit.test_knowledge_bundle_domain::test_canonical_unsupported_and_normalized_duplicate_keys_rejected[document5]",
+        "tests.unit.test_knowledge_bundle_domain::test_canonical_unsupported_and_normalized_duplicate_keys_rejected[document6]",
+        "tests.unit.test_knowledge_bundle_domain::test_canonical_unsupported_and_normalized_duplicate_keys_rejected[document7]",
+        "tests.unit.test_knowledge_bundle_domain::test_canonical_unsupported_and_normalized_duplicate_keys_rejected[document8]",
+        "tests.unit.test_knowledge_bundle_domain::test_canonical_unsupported_and_normalized_duplicate_keys_rejected[document9]",
+        "tests.unit.test_knowledge_bundle_domain::test_document_and_correction_history_overflow_reject_atomically",
+        "tests.unit.test_knowledge_bundle_domain::test_pure_collection_and_scalar_limits",
+        "tests.unit.test_knowledge_bundle_service::test_raw_duplicate_normalized_keys_non_native_and_document_overflow_reject[duplicate-key]",
+        "tests.unit.test_knowledge_bundle_service::test_raw_duplicate_normalized_keys_non_native_and_document_overflow_reject[nfc-key-collision]",
+        "tests.unit.test_knowledge_bundle_service::test_raw_duplicate_normalized_keys_non_native_and_document_overflow_reject[non-native-number]",
+        "tests.unit.test_knowledge_bundle_service::test_raw_duplicate_normalized_keys_non_native_and_document_overflow_reject[document-overflow]"
+      ],
+      "evidence_refs": [
+        "evidence/local/final-offline-20261020-rerun1/junit-summary.json",
+        "evidence/local/final-offline-20261020-rerun1/checks.json"
+      ]
+    },
+    {
+      "id": "N13",
+      "assessment": "PASS_OFFLINE",
+      "executed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_domain.py::test_tamper_bytes_hash_and_content_cannot_rehash_from_current_facts",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[source]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[basis_revision]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[basis_confirmation]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[basis_unconfirmed]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[basis_not_applicable]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[context]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[audience]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[roster]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[consent]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[policy]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[policy_revoke]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[teacher]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[disclosure]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[mutation]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[catalog]",
+        "backend/tests/unit/test_knowledge_bundle_adapters.py::test_actual_producer_read_withholds_tampered_storage_content[bytes]",
+        "backend/tests/unit/test_knowledge_bundle_adapters.py::test_actual_producer_read_withholds_tampered_storage_content[hash]"
+      ],
+      "concrete_assertions": "Actual resolver denies the superseded exact version and rejects both changed stored canonical bytes and changed stored hash, without a store write.",
+      "residual": "",
+      "status": "PASS_OFFLINE",
+      "final_junit_nodes": [
+        "tests.unit.test_knowledge_bundle_domain::test_tamper_bytes_hash_and_content_cannot_rehash_from_current_facts",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[source]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[basis_revision]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[basis_confirmation]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[basis_unconfirmed]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[basis_not_applicable]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[context]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[audience]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[roster]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[consent]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[policy]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[policy_revoke]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[teacher]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[disclosure]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[mutation]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[catalog]",
+        "tests.unit.test_knowledge_bundle_adapters::test_actual_producer_read_withholds_tampered_storage_content[bytes]",
+        "tests.unit.test_knowledge_bundle_adapters::test_actual_producer_read_withholds_tampered_storage_content[hash]"
+      ],
+      "evidence_refs": [
+        "evidence/local/final-offline-20261020-rerun1/junit-summary.json",
+        "evidence/local/final-offline-20261020-rerun1/checks.json"
+      ]
+    },
+    {
+      "id": "N14",
+      "assessment": "PASS_OFFLINE",
+      "executed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_chain.py::test_actual_knowledge_flows_call_no_job_provider_or_network_and_invent_no_approval"
+      ],
+      "concrete_assertions": "Actual missing-source, sourced and child flows trigger no job/provider/model/network sentinel; no pre-render or final-video approval fields are invented.",
+      "residual": "",
+      "status": "PASS_OFFLINE",
+      "final_junit_nodes": [
+        "tests.unit.test_knowledge_bundle_chain::test_actual_knowledge_flows_call_no_job_provider_or_network_and_invent_no_approval"
+      ],
+      "evidence_refs": [
+        "evidence/local/final-offline-20261020-rerun1/junit-summary.json",
+        "evidence/local/final-offline-20261020-rerun1/checks.json"
+      ]
+    },
+    {
+      "id": "R01",
+      "assessment": "PASS_OFFLINE",
+      "executed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[source]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[basis_revision]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[basis_confirmation]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[basis_unconfirmed]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[basis_not_applicable]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[context]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[audience]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[roster]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[consent]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[policy]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[policy_revoke]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[teacher]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[disclosure]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[mutation]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[catalog]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_real_other_thread_source_recall_cannot_enter_handler_commit_window"
+      ],
+      "concrete_assertions": "Recall before unit command/read deny SOURCE_RECALLED; actual failedlockacquire proves otherthread publication cannot enter accepted commitwindow, then resolver/read denies.",
+      "residual": "",
+      "status": "PASS_OFFLINE",
+      "final_junit_nodes": [
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[source]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[basis_revision]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[basis_confirmation]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[basis_unconfirmed]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[basis_not_applicable]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[context]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[audience]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[roster]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[consent]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[policy]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[policy_revoke]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[teacher]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[disclosure]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[mutation]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[catalog]",
+        "tests.unit.test_knowledge_bundle_races::test_real_other_thread_source_recall_cannot_enter_handler_commit_window"
+      ],
+      "evidence_refs": [
+        "evidence/local/final-offline-20261020-rerun1/junit-summary.json",
+        "evidence/local/final-offline-20261020-rerun1/checks.json"
+      ]
+    },
+    {
+      "id": "R02",
+      "assessment": "PASS_OFFLINE",
+      "executed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[source]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[basis_revision]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[basis_confirmation]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[basis_unconfirmed]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[basis_not_applicable]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[context]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[audience]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[roster]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[consent]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[policy]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[policy_revoke]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[teacher]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[disclosure]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[mutation]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_catches_each_current_guard_published_before_unit[catalog]"
+      ],
+      "concrete_assertions": "Real beforetransaction public setters alter basis/context/audience/roster/consent/policy; handler catches exact expected code and full store unchanged; read denies.",
+      "residual": "",
+      "status": "PASS_OFFLINE",
+      "final_junit_nodes": [
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[source]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[basis_revision]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[basis_confirmation]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[basis_unconfirmed]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[basis_not_applicable]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[context]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[audience]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[roster]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[consent]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[policy]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[policy_revoke]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[teacher]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[disclosure]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[mutation]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_catches_each_current_guard_published_before_unit[catalog]"
+      ],
+      "evidence_refs": [
+        "evidence/local/final-offline-20261020-rerun1/junit-summary.json",
+        "evidence/local/final-offline-20261020-rerun1/checks.json"
+      ]
+    },
+    {
+      "id": "R03",
+      "assessment": "PASS_OFFLINE",
+      "executed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[source]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[basis_revision]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[basis_confirmation]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[basis_unconfirmed]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[basis_not_applicable]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[context]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[audience]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[roster]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[consent]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[policy]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[policy_revoke]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[teacher]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[disclosure]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[mutation]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[catalog]",
+        "backend/tests/unit/test_knowledge_bundle_adapters.py::test_every_public_guard_publication_is_deferred_until_commit_or_rollback[False]",
+        "backend/tests/unit/test_knowledge_bundle_adapters.py::test_every_public_guard_publication_is_deferred_until_commit_or_rollback[True]"
+      ],
+      "concrete_assertions": "Eachactualguard requestsFalse insideunit; real authorized read stilloldready while lockheld; acceptedv2 then postdrain noexport/exactreason. Every publish_ inventory equal actualmethods and realvalue checks oncommit/rollback.",
+      "residual": "",
+      "status": "PASS_OFFLINE",
+      "final_junit_nodes": [
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[source]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[basis_revision]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[basis_confirmation]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[basis_unconfirmed]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[basis_not_applicable]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[context]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[audience]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[roster]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[consent]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[policy]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[policy_revoke]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[teacher]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[disclosure]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[mutation]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[catalog]",
+        "tests.unit.test_knowledge_bundle_adapters::test_every_public_guard_publication_is_deferred_until_commit_or_rollback[False]",
+        "tests.unit.test_knowledge_bundle_adapters::test_every_public_guard_publication_is_deferred_until_commit_or_rollback[True]"
+      ],
+      "evidence_refs": [
+        "evidence/local/final-offline-20261020-rerun1/junit-summary.json",
+        "evidence/local/final-offline-20261020-rerun1/checks.json"
+      ]
+    },
+    {
+      "id": "R04",
+      "assessment": "PASS_OFFLINE",
+      "executed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_edit_storage_failure_retries_same_key_once[put_head]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_edit_storage_failure_retries_same_key_once[put_version]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_edit_storage_failure_retries_same_key_once[put_correction]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_edit_storage_failure_retries_same_key_once[put_receipt]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_edit_storage_failure_retries_same_key_once[add_audit]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_edit_storage_failure_retries_same_key_once[add_event]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_edit_storage_failure_retries_same_key_once[commit]"
+      ],
+      "concrete_assertions": "7 actual handler stage failures roll back full snapshot; samekeyretry200/replayequal; exactly2versions/2receipts/1correction/event.",
+      "residual": "",
+      "status": "PASS_OFFLINE",
+      "final_junit_nodes": [
+        "tests.unit.test_knowledge_bundle_races::test_actual_edit_storage_failure_retries_same_key_once[put_head]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_edit_storage_failure_retries_same_key_once[put_version]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_edit_storage_failure_retries_same_key_once[put_correction]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_edit_storage_failure_retries_same_key_once[put_receipt]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_edit_storage_failure_retries_same_key_once[add_audit]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_edit_storage_failure_retries_same_key_once[add_event]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_edit_storage_failure_retries_same_key_once[commit]"
+      ],
+      "evidence_refs": [
+        "evidence/local/final-offline-20261020-rerun1/junit-summary.json",
+        "evidence/local/final-offline-20261020-rerun1/checks.json"
+      ]
+    },
+    {
+      "id": "R05",
+      "assessment": "PASS_OFFLINE",
+      "executed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_two_actual_edits_with_same_etag_have_one_accepted_version"
+      ],
+      "concrete_assertions": "Barrier starts two actualedits; exactlyoneaccepted/onedenied412;2versions/1event/correction and storedhash equals winner.",
+      "residual": "",
+      "status": "PASS_OFFLINE",
+      "final_junit_nodes": [
+        "tests.unit.test_knowledge_bundle_races::test_two_actual_edits_with_same_etag_have_one_accepted_version"
+      ],
+      "evidence_refs": [
+        "evidence/local/final-offline-20261020-rerun1/junit-summary.json",
+        "evidence/local/final-offline-20261020-rerun1/checks.json"
+      ]
+    },
+    {
+      "id": "R06",
+      "assessment": "PASS_OFFLINE",
+      "executed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_nested_edit_preserves_winner_and_recovers_only_same_operation[False]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_nested_edit_preserves_winner_and_recovers_only_same_operation[True]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_nested_create_preserves_inner_receipt_and_unique_bundle[False]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_nested_create_preserves_inner_receipt_and_unique_bundle[True]"
+      ],
+      "concrete_assertions": "Differentscopedkey innercommit persists winner; outerSTALE_AGGREGATE; snapshots contain onlyinnerreceipt and exactwinnerhash/events, noouter overwrite.",
+      "residual": "",
+      "status": "PASS_OFFLINE",
+      "final_junit_nodes": [
+        "tests.unit.test_knowledge_bundle_races::test_actual_nested_edit_preserves_winner_and_recovers_only_same_operation[False]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_nested_edit_preserves_winner_and_recovers_only_same_operation[True]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_nested_create_preserves_inner_receipt_and_unique_bundle[False]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_nested_create_preserves_inner_receipt_and_unique_bundle[True]"
+      ],
+      "evidence_refs": [
+        "evidence/local/final-offline-20261020-rerun1/junit-summary.json",
+        "evidence/local/final-offline-20261020-rerun1/checks.json"
+      ]
+    },
+    {
+      "id": "R07",
+      "assessment": "PASS_OFFLINE",
+      "executed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_nested_edit_preserves_winner_and_recovers_only_same_operation[False]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_nested_edit_preserves_winner_and_recovers_only_same_operation[True]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_nested_create_preserves_inner_receipt_and_unique_bundle[False]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_nested_create_preserves_inner_receipt_and_unique_bundle[True]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_same_operation_nested_recovery_reauthorizes_after_queued_disclosure_withdrawal"
+      ],
+      "concrete_assertions": "Samekey loser rereads committedwinner equality; queued childdisclosure withdrawal denies recovery404 while innerdata retained.",
+      "residual": "",
+      "status": "PASS_OFFLINE",
+      "final_junit_nodes": [
+        "tests.unit.test_knowledge_bundle_races::test_actual_nested_edit_preserves_winner_and_recovers_only_same_operation[False]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_nested_edit_preserves_winner_and_recovers_only_same_operation[True]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_nested_create_preserves_inner_receipt_and_unique_bundle[False]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_nested_create_preserves_inner_receipt_and_unique_bundle[True]",
+        "tests.unit.test_knowledge_bundle_races::test_same_operation_nested_recovery_reauthorizes_after_queued_disclosure_withdrawal"
+      ],
+      "evidence_refs": [
+        "evidence/local/final-offline-20261020-rerun1/junit-summary.json",
+        "evidence/local/final-offline-20261020-rerun1/checks.json"
+      ]
+    },
+    {
+      "id": "R08",
+      "assessment": "PASS_OFFLINE",
+      "executed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_lost_acknowledgement_replays_original_result_without_duplicate_side_effects[create]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_lost_acknowledgement_replays_original_result_without_duplicate_side_effects[edit]"
+      ],
+      "concrete_assertions": "Create/edit aftercommit failure retain committedsnapshot; replayoriginalstatus no newstate; disclosure withdrawal subsequently denies samekey and still no newstate.",
+      "residual": "",
+      "status": "PASS_OFFLINE",
+      "final_junit_nodes": [
+        "tests.unit.test_knowledge_bundle_races::test_lost_acknowledgement_replays_original_result_without_duplicate_side_effects[create]",
+        "tests.unit.test_knowledge_bundle_races::test_lost_acknowledgement_replays_original_result_without_duplicate_side_effects[edit]"
+      ],
+      "evidence_refs": [
+        "evidence/local/final-offline-20261020-rerun1/junit-summary.json",
+        "evidence/local/final-offline-20261020-rerun1/checks.json"
+      ]
+    },
+    {
+      "id": "R09",
+      "assessment": "PASS_OFFLINE",
+      "executed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[source]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[basis_revision]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[basis_confirmation]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[basis_unconfirmed]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[basis_not_applicable]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[context]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[audience]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[roster]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[consent]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[policy]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[policy_revoke]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[teacher]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[disclosure]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[mutation]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[catalog]",
+        "backend/tests/unit/test_knowledge_bundle_adapters.py::test_exact_producer_resolve_supersession_before_event_delivery_and_recording_consumer",
+        "backend/tests/unit/test_knowledge_bundle_chain.py::test_exact_resolve_and_edit_are_linearized_without_event_delivery[resolve]",
+        "backend/tests/unit/test_knowledge_bundle_chain.py::test_exact_resolve_and_edit_are_linearized_without_event_delivery[edit]"
+      ],
+      "concrete_assertions": "Actual resolve/edit operations contend on the held shared boundary in both first-operation orders; a superseded old exact export is denied before consumer delivery.",
+      "residual": "",
+      "status": "PASS_OFFLINE",
+      "final_junit_nodes": [
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[source]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[basis_revision]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[basis_confirmation]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[basis_unconfirmed]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[basis_not_applicable]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[context]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[audience]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[roster]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[consent]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[policy]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[policy_revoke]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[teacher]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[disclosure]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[mutation]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_defers_each_guard_until_accepted_commit_then_withholds[catalog]",
+        "tests.unit.test_knowledge_bundle_adapters::test_exact_producer_resolve_supersession_before_event_delivery_and_recording_consumer",
+        "tests.unit.test_knowledge_bundle_chain::test_exact_resolve_and_edit_are_linearized_without_event_delivery[resolve]",
+        "tests.unit.test_knowledge_bundle_chain::test_exact_resolve_and_edit_are_linearized_without_event_delivery[edit]"
+      ],
+      "evidence_refs": [
+        "evidence/local/final-offline-20261020-rerun1/junit-summary.json",
+        "evidence/local/final-offline-20261020-rerun1/checks.json"
+      ]
+    },
+    {
+      "id": "R10",
+      "assessment": "PASS_OFFLINE",
+      "executed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_deferred_guard_drains_after_rollback_and_lock_releases[source]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_deferred_guard_drains_after_rollback_and_lock_releases[basis_confirmation]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_deferred_guard_drains_after_rollback_and_lock_releases[context]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_deferred_guard_drains_after_rollback_and_lock_releases[consent]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_deferred_guard_drains_after_rollback_and_lock_releases[policy_revoke]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_actual_handler_deferred_guard_drains_after_rollback_and_lock_releases[disclosure]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_deferred_failure_after_commit_preserves_receipt_and_drains_later_actual_source_recall",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_lost_acknowledgement_replays_original_result_without_duplicate_side_effects[create]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_lost_acknowledgement_replays_original_result_without_duplicate_side_effects[edit]"
+      ],
+      "concrete_assertions": "Afterrollback6actualqueuedguards apply; thread acquires releasedboundary withoutsleep. Failedqueuedcallback still drains recall; acceptedreceipt remains; replayfullsnapshot proves stableevent identity.",
+      "residual": "",
+      "status": "PASS_OFFLINE",
+      "final_junit_nodes": [
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_deferred_guard_drains_after_rollback_and_lock_releases[source]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_deferred_guard_drains_after_rollback_and_lock_releases[basis_confirmation]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_deferred_guard_drains_after_rollback_and_lock_releases[context]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_deferred_guard_drains_after_rollback_and_lock_releases[consent]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_deferred_guard_drains_after_rollback_and_lock_releases[policy_revoke]",
+        "tests.unit.test_knowledge_bundle_races::test_actual_handler_deferred_guard_drains_after_rollback_and_lock_releases[disclosure]",
+        "tests.unit.test_knowledge_bundle_races::test_deferred_failure_after_commit_preserves_receipt_and_drains_later_actual_source_recall",
+        "tests.unit.test_knowledge_bundle_races::test_lost_acknowledgement_replays_original_result_without_duplicate_side_effects[create]",
+        "tests.unit.test_knowledge_bundle_races::test_lost_acknowledgement_replays_original_result_without_duplicate_side_effects[edit]"
+      ],
+      "evidence_refs": [
+        "evidence/local/final-offline-20261020-rerun1/junit-summary.json",
+        "evidence/local/final-offline-20261020-rerun1/checks.json"
+      ]
+    },
+    {
+      "id": "C01",
+      "assessment": "PASS_OFFLINE",
+      "executed_nodes": [
+        "backend/tests/contract/test_knowledge_bundles.py::test_actual_data26_required_fields_and_own_strict_extension",
+        "backend/tests/unit/test_knowledge_bundle_domain.py::test_canonical_nfc_sorted_native_vectors_and_hash_exclusions",
+        "backend/tests/contract/test_knowledge_bundles.py::test_exact_export_binds_full_record_to_canonical_bytes_and_separate_digest_namespace"
+      ],
+      "concrete_assertions": "Actual DATA26 requires16fields and actualproducer conforms; strictextraapproval rejected; exactNFC/sortedJSONbytevector andSHA proven; canonicaltext/record tamper rejected.",
+      "residual": "",
+      "status": "PASS_OFFLINE",
+      "final_junit_nodes": [
+        "tests.contract.test_knowledge_bundles::test_actual_data26_required_fields_and_own_strict_extension",
+        "tests.unit.test_knowledge_bundle_domain::test_canonical_nfc_sorted_native_vectors_and_hash_exclusions",
+        "tests.contract.test_knowledge_bundles::test_exact_export_binds_full_record_to_canonical_bytes_and_separate_digest_namespace"
+      ],
+      "evidence_refs": [
+        "evidence/local/final-offline-20261020-rerun1/junit-summary.json",
+        "evidence/local/final-offline-20261020-rerun1/checks.json"
+      ]
+    },
+    {
+      "id": "C02",
+      "assessment": "PASS_OFFLINE",
+      "executed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_create_key_required_precondition_forbidden_and_principal_receipt_scopes_independent",
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_edit_preconditions_typed_and_no_failed_receipt[None-428-PRECONDITION_REQUIRED]",
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_edit_preconditions_typed_and_no_failed_receipt[\"wrong-family:1\"-412-PRECONDITION_FAILED]",
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_accepted_replay_original_after_head_advance_pause_and_stale_ifmatch",
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_generic_create_sourced_v1_server_attribution_zero_actual_consent"
+      ],
+      "concrete_assertions": "CMD38 key/createIfMatch/independentprincipalreceipts; CMD39typedpreconditions; correctguardorderreplay and serverattribution/status.",
+      "residual": "",
+      "status": "PASS_OFFLINE",
+      "final_junit_nodes": [
+        "tests.unit.test_knowledge_bundle_service::test_create_key_required_precondition_forbidden_and_principal_receipt_scopes_independent",
+        "tests.unit.test_knowledge_bundle_service::test_edit_preconditions_typed_and_no_failed_receipt[None-428-PRECONDITION_REQUIRED]",
+        "tests.unit.test_knowledge_bundle_service::test_edit_preconditions_typed_and_no_failed_receipt[\"wrong-family:1\"-412-PRECONDITION_FAILED]",
+        "tests.unit.test_knowledge_bundle_service::test_accepted_replay_original_after_head_advance_pause_and_stale_ifmatch",
+        "tests.unit.test_knowledge_bundle_service::test_generic_create_sourced_v1_server_attribution_zero_actual_consent"
+      ],
+      "evidence_refs": [
+        "evidence/local/final-offline-20261020-rerun1/junit-summary.json",
+        "evidence/local/final-offline-20261020-rerun1/checks.json"
+      ]
+    },
+    {
+      "id": "C03",
+      "assessment": "PASS_OFFLINE",
+      "executed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_domain.py::test_exact_fact_story_projection_order_and_claim_correction",
+        "backend/tests/contract/test_knowledge_bundles.py::test_response_projection_rejects_unrelated_sentence_with_valid_claim_ref",
+        "backend/tests/unit/test_knowledge_bundle_adapters.py::test_actual_producer_examples_are_deterministic_and_saved_artifact_json_equal"
+      ],
+      "concrete_assertions": "Strict factual/story projection checks plus actual producer examples and parsed artifact JSON equality prove the response contract.",
+      "residual": "",
+      "status": "PASS_OFFLINE",
+      "final_junit_nodes": [
+        "tests.unit.test_knowledge_bundle_domain::test_exact_fact_story_projection_order_and_claim_correction",
+        "tests.contract.test_knowledge_bundles::test_response_projection_rejects_unrelated_sentence_with_valid_claim_ref",
+        "tests.unit.test_knowledge_bundle_adapters::test_actual_producer_examples_are_deterministic_and_saved_artifact_json_equal"
+      ],
+      "evidence_refs": [
+        "evidence/local/final-offline-20261020-rerun1/junit-summary.json",
+        "evidence/local/final-offline-20261020-rerun1/checks.json"
+      ]
+    },
+    {
+      "id": "C04",
+      "assessment": "PASS_OFFLINE",
+      "executed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_chain.py::test_actual_downstream_meaning_is_not_an_enriched_authority_adapter"
+      ],
+      "concrete_assertions": "The current DownstreamMeaning type is asserted to lack org/session/contributors/source snapshots; the enriched scoped values come only from the explicit fixture.",
+      "residual": "",
+      "status": "PASS_OFFLINE",
+      "final_junit_nodes": [
+        "tests.unit.test_knowledge_bundle_chain::test_actual_downstream_meaning_is_not_an_enriched_authority_adapter"
+      ],
+      "evidence_refs": [
+        "evidence/local/final-offline-20261020-rerun1/junit-summary.json",
+        "evidence/local/final-offline-20261020-rerun1/checks.json"
+      ]
+    },
+    {
+      "id": "C05",
+      "assessment": "PASS_OFFLINE",
+      "executed_nodes": [
+        "backend/tests/contract/test_knowledge_bundles.py::test_exact_export_binds_full_record_to_canonical_bytes_and_separate_digest_namespace",
+        "backend/tests/contract/test_knowledge_bundles.py::test_actual_data26_required_fields_and_own_strict_extension",
+        "backend/tests/unit/test_knowledge_bundle_adapters.py::test_candidate_video_pin_material_matches_pinned_consumer_shape_and_known_digest",
+        "backend/tests/unit/test_knowledge_bundle_adapters.py::test_native_normalized_vectors_and_nfd_digest_difference_are_explicit",
+        "backend/tests/unit/test_knowledge_bundle_adapters.py::test_candidate_pin_sources_are_exact_sorted_set_and_draft_not_pinnable"
+      ],
+      "concrete_assertions": "Actual producer export maps to the pinned candidate consumer material and fixed digest; sorted exact source pins, consumer-native vectors and the NFD canonicalization boundary are asserted.",
+      "residual": "",
+      "status": "PASS_OFFLINE",
+      "final_junit_nodes": [
+        "tests.contract.test_knowledge_bundles::test_exact_export_binds_full_record_to_canonical_bytes_and_separate_digest_namespace",
+        "tests.contract.test_knowledge_bundles::test_actual_data26_required_fields_and_own_strict_extension",
+        "tests.unit.test_knowledge_bundle_adapters::test_candidate_video_pin_material_matches_pinned_consumer_shape_and_known_digest",
+        "tests.unit.test_knowledge_bundle_adapters::test_native_normalized_vectors_and_nfd_digest_difference_are_explicit",
+        "tests.unit.test_knowledge_bundle_adapters::test_candidate_pin_sources_are_exact_sorted_set_and_draft_not_pinnable"
+      ],
+      "evidence_refs": [
+        "evidence/local/final-offline-20261020-rerun1/junit-summary.json",
+        "evidence/local/final-offline-20261020-rerun1/checks.json"
+      ]
+    },
+    {
+      "id": "X01",
+      "assessment": "PASS_OFFLINE",
+      "executed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_chain.py::test_572_original_backend_files_and_required_batch_profile_are_preserved"
+      ],
+      "concrete_assertions": "The final runner records the exact 50 baseline plus all six actual07 test modules, collection inventory, one combined required pytest batch and its JUnit summary.",
+      "residual": "",
+      "status": "PASS_OFFLINE",
+      "final_junit_nodes": [
+        "tests.unit.test_knowledge_bundle_chain::test_572_original_backend_files_and_required_batch_profile_are_preserved"
+      ],
+      "evidence_refs": [
+        "evidence/local/final-offline-20261020-rerun1/junit-summary.json",
+        "evidence/local/final-offline-20261020-rerun1/checks.json",
+        "evidence/local/final-offline-20261020-rerun1/selected-files.json",
+        "evidence/local/final-offline-20261020-rerun1/collection.log",
+        "evidence/local/final-offline-20261020-rerun1/pytest-receipt.json"
+      ]
+    },
+    {
+      "id": "X02",
+      "assessment": "PASS_OFFLINE",
+      "executed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_chain.py::test_572_original_backend_files_and_required_batch_profile_are_preserved"
+      ],
+      "concrete_assertions": "The chain test verifies all572 baseline backend files and profile inputs; final invariant receipts verify tracked history, frozen planning/A17 files, main/shared worktrees, routing tails, empty index and unchanged HEAD.",
+      "residual": "",
+      "status": "PASS_OFFLINE",
+      "final_junit_nodes": [
+        "tests.unit.test_knowledge_bundle_chain::test_572_original_backend_files_and_required_batch_profile_are_preserved"
+      ],
+      "evidence_refs": [
+        "evidence/local/final-offline-20261020-rerun1/junit-summary.json",
+        "evidence/local/final-offline-20261020-rerun1/checks.json",
+        "evidence/local/final-offline-20261020-rerun1/source-before.json",
+        "evidence/local/final-offline-20261020-rerun1/source-after.json",
+        "evidence/local/final-offline-20261020-rerun1/invariants.json",
+        "evidence/local/final-offline-20261020-rerun1/external-invariants.json"
+      ]
+    },
+    {
+      "id": "X03",
+      "assessment": "PASS_OFFLINE",
+      "executed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_adapters.py::test_every_public_guard_publication_is_deferred_until_commit_or_rollback[False]",
+        "backend/tests/unit/test_knowledge_bundle_adapters.py::test_every_public_guard_publication_is_deferred_until_commit_or_rollback[True]",
+        "backend/tests/unit/test_knowledge_bundle_adapters.py::test_all_object_fact_publications_and_getters_copy_nested_values",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_cas_uniqueness_and_no_public_alias_to_committed_state",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_escaped_completed_unit_cannot_mutate_committed_storage[False]",
+        "backend/tests/unit/test_knowledge_bundle_races.py::test_escaped_completed_unit_cannot_mutate_committed_storage[True]",
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_disclosure_withdrawal_denies_replay_for_teacher_and_sticky_child_contributors"
+      ],
+      "concrete_assertions": "Allpublicpublishmethods inventoried; input/outputdeepcopy and expiredUoW deny directstate bypass; receipts and currentreads cannot bypasswithdrawndisclosure.",
+      "residual": "",
+      "status": "PASS_OFFLINE",
+      "final_junit_nodes": [
+        "tests.unit.test_knowledge_bundle_adapters::test_every_public_guard_publication_is_deferred_until_commit_or_rollback[False]",
+        "tests.unit.test_knowledge_bundle_adapters::test_every_public_guard_publication_is_deferred_until_commit_or_rollback[True]",
+        "tests.unit.test_knowledge_bundle_adapters::test_all_object_fact_publications_and_getters_copy_nested_values",
+        "tests.unit.test_knowledge_bundle_races::test_cas_uniqueness_and_no_public_alias_to_committed_state",
+        "tests.unit.test_knowledge_bundle_races::test_escaped_completed_unit_cannot_mutate_committed_storage[False]",
+        "tests.unit.test_knowledge_bundle_races::test_escaped_completed_unit_cannot_mutate_committed_storage[True]",
+        "tests.unit.test_knowledge_bundle_service::test_disclosure_withdrawal_denies_replay_for_teacher_and_sticky_child_contributors"
+      ],
+      "evidence_refs": [
+        "evidence/local/final-offline-20261020-rerun1/junit-summary.json",
+        "evidence/local/final-offline-20261020-rerun1/checks.json"
+      ]
+    }
+  ],
+  "offline_limits": [
+    "This map proves offline fixture behavior, not component acceptance or runtime adoption.",
+    "The three observed Pillow live-app skips remain NOT_RUN and are not mapped as passes.",
+    "backend/tests/unit/test_lightning_vision_v2_server.py is excluded because collection imports missing Pillow.",
+    "No live source/provider/database/HTTP/Lightning or actual08 held-fence execution is claimed."
+  ]
+}

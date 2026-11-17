@@ -1,0 +1,32 @@
+{
+  "id": "CASE_VALID_9_12",
+  "description": "Valid 9-12 mathematics candidate",
+  "input": {
+    "age_months": 120,
+    "readiness_tags": [
+      "works_with_multi_step_plan"
+    ],
+    "completed_activity_ids": [],
+    "available_material_ids": [
+      "MAT_BEAD_MATERIAL",
+      "MAT_EXPONENT_CARDS",
+      "MAT_RECORDING_SHEET"
+    ],
+    "supervision_level": "NEARBY",
+    "policy_flags": [],
+    "candidate_activity_ids": [
+      "ACT-0076"
+    ]
+  },
+  "expected": {
+    "status": "VALID_CANDIDATES",
+    "allowed_activity_ids": [
+      "ACT-0076"
+    ],
+    "blocked": {}
+  },
+  "coverage_tags": [
+    "valid",
+    "9-12"
+  ]
+}

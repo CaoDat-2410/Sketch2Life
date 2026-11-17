@@ -1,0 +1,11 @@
+stateDiagram-v2
+  [*] --> Draft
+  Draft --> Submitted
+  Submitted --> ChangesRequested
+  ChangesRequested --> Draft: new version
+  Submitted --> Published: review passes
+  Published --> Recalled: safety or policy action
+  Recalled --> Draft: revised version only
+  Published --> Archived: retirement
+  Recalled --> Archived
+  note right of Recalled: Recall denies new use immediately.

@@ -1,0 +1,70 @@
+{
+  "asset_id": "T09c",
+  "use_case": "ui-mockup",
+  "status": "REVIEW_PENDING",
+  "generated_path": "assets/generated/teacher-app/T09c-loi-video-quyen-quyet-dinh.png",
+  "srs_ui_id": "T09",
+  "screen_kind": "supplementary",
+  "role": "teacher-app",
+  "prompt": "assets/prompts/T09c.txt",
+  "source_references": [
+    {
+      "path": "features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md",
+      "sha256": "a95c89589843e3555e967c5e486f3bcaf4bbdf9446cb3bc9c49ed16f672964d9",
+      "section": "B23.3"
+    },
+    {
+      "path": "apps/ui-mobile/src/theme.ts",
+      "purpose": "existing design tokens"
+    }
+  ],
+  "generator": "built-in image_gen.imagegen",
+  "captured_at_utc": "2026-10-10T14:09:49.979963+00:00",
+  "generator_output_filename": "exec-0f79fd7b-4a38-481f-ad72-52defb72cee6.png",
+  "sha256": "50f6d064b807b2a1e8616aed6e65d5a6b7611f72d1588a4cd634eac3186ca94d",
+  "bytes": 1592923,
+  "width": 1586,
+  "height": 992,
+  "original_copied_unchanged": true,
+  "synthetic_data_only": true,
+  "qa": {
+    "reviewer": "Codex visual inspection",
+    "status": "INSPECTED",
+    "note": "Inspected selected revision: exhausted automatic retries explicit; Teacher has retry/skip/end decision cards; accepted saved results and pending draft separated; unconfirmed duration removed. No automatic fallback or selectable alternative replacing the three decisions."
+  },
+  "review": {
+    "status": "REVIEW_PENDING",
+    "reviewer": null,
+    "reviewed_at": null
+  },
+  "applied_path": null,
+  "limitations": "Generated design proposal; not implemented runtime, approved visual or device acceptance.",
+  "input_images": [
+    {
+      "path": "assets/generated/teacher-app/T05-dieu-phoi-lop.png",
+      "role": "style reference",
+      "sha256": "33fe9018ea5cf0911ece61c37d72cacb01ffc37d17ad0d50b5f3f2215f4703f0"
+    }
+  ],
+  "generation_history": [
+    {
+      "prompt": "assets/prompts/T09c.txt",
+      "output_filename": "exec-cf211767-251a-4d5f-a836-3ec971ac5bd4.png",
+      "status": "SUPERSEDED_BEFORE_CAPTURE",
+      "reason": "Remove generated duration estimate and extra library action; original remains in builtin storage.",
+      "sha256": "bf3e45bfe7471788c1fab02ae336c114f4f7d61d99c5ed4444f7844ee5723af8"
+    },
+    {
+      "prompt": "assets/prompts/T09c-revision-1.txt",
+      "output_filename": "exec-0f79fd7b-4a38-481f-ad72-52defb72cee6.png",
+      "status": "SELECTED",
+      "reason": "Only three authorized exhausted-failure decisions, with no fixed duration policy.",
+      "input_image": {
+        "generator_output_filename": "exec-cf211767-251a-4d5f-a836-3ec971ac5bd4.png",
+        "sha256": "bf3e45bfe7471788c1fab02ae336c114f4f7d61d99c5ed4444f7844ee5723af8",
+        "role": "edit target",
+        "retained_in_builtin_storage": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+REPOSITORY_SECURITY_INVALID
+- absolute Windows machine path found in: features/FEAT-058-review2-document-package/SOURCE_REGISTER.md
+- absolute Windows machine path found in: features/FEAT-058-review2-document-package/src/build_revision6_package.py
+- absolute Windows machine path found in: features/FEAT-058-review2-document-package/src/qa_revision6_package.py
+- absolute Windows machine path found in: features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/active-ui-full-check.log
+- absolute Windows machine path found in: features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/admin-ui-integration-check.log
+- absolute Windows machine path found in: features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/implementation-baseline-20261024/admin-check.log
+- absolute Windows machine path found in: features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/implementation-baseline-20261024/backend-contract-tests.log
+- absolute Windows machine path found in: features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/teacher-auth-tests.log
+- absolute Windows machine path found in: features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/teacher-ui-integration-check.log
+- credential/external-document suffix is publishable: features/FEAT-058-review2-document-package/artifacts/submission_r2_rev6/SWP490_FA26SE225_R2_DesignBrief.pdf
+- credential/external-document suffix is publishable: features/FEAT-058-review2-document-package/artifacts/submission_r2_rev6/SWP490_FA26SE225_R2_Registration.pdf
+- credential/external-document suffix is publishable: features/FEAT-058-review2-document-package/artifacts/submission_r2_rev6/SWP490_FA26SE225_R2_Report1-5_Tracking.pdf
+- credential/external-document suffix is publishable: features/FEAT-058-review2-document-package/artifacts/submission_r2_rev6/SWP490_FA26SE225_R2_SelfReview.pdf
+- credential/external-document suffix is publishable: features/FEAT-058-review2-document-package/artifacts/submission_r2_rev7/SWP490_FA26SE225_R2_DesignBrief.pdf
+- credential/external-document suffix is publishable: features/FEAT-058-review2-document-package/artifacts/submission_r2_rev7/SWP490_FA26SE225_R2_Registration.pdf
+- credential/external-document suffix is publishable: features/FEAT-058-review2-document-package/artifacts/submission_r2_rev7/SWP490_FA26SE225_R2_Report1-5_Tracking.pdf
+- credential/external-document suffix is publishable: features/FEAT-058-review2-document-package/artifacts/submission_r2_rev7/SWP490_FA26SE225_R2_SelfReview.pdf

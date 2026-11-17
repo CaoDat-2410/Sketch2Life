@@ -1,0 +1,8 @@
+stateDiagram-v2
+[*] --> Pending
+Pending --> Admitted: admit before Start
+Pending --> Denied: deny
+Pending --> Revoked: Start
+Admitted --> Removed: remove
+Admitted --> Left: leave
+Admitted --> Expired: expire

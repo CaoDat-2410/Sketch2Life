@@ -1,0 +1,169 @@
+{
+  "generated_utc": "2026-10-17T04:48:24.949026+00:00",
+  "checkpoint": "C2_TYPED_CONTEXT_OFFLINE",
+  "status": "C2_CODE_COMPLETE_PENDING_CODEX_REVIEW",
+  "card_status": "IN_PROGRESS / NOT_DONE",
+  "branch": "feature/be2-02-vision-correction",
+  "head": "98876fe762a61e64b61980cd0634415e6f5e1dfb",
+  "staged_paths": 0,
+  "approval": {
+    "c2_approval_record": "approvals/C2_TASK_APPROVAL.md",
+    "c2_approval_sha256": "16af8a94c1de2430745ba213d7e183ffa28305de33856a153e9b49d836d294df",
+    "c2_approved_plan": "plan/C2_TYPED_CONTEXT_PLAN_REV2_APPROVED.md",
+    "c2_approved_plan_sha256": "4b339514d3d5bf01b9a8c23f0a15ea5e71b4d2f1389db9e141e31aa322cd57c2",
+    "c2_plan_working_copy_sha256": "316d9f114780a28818589afbf153bed90ca5e245a0dfee717951f68f7b24893f",
+    "q1_q5": "selected by owner as recommended in revision 2",
+    "c1_approval_sha256_unchanged": "ebe826ce01a004c6888bc6d2cd4741470beabfdb1f89133d8ebd18f48a691494",
+    "c1_approved_plan_sha256_unchanged": "f4733c88797edbcce225ecd63700634f929ca75789362c7f3a58a2b57f19df30",
+    "c1_acceptance_sha256_unchanged": "2d2e109a3e01f7fd4a2908ee474b620cfce67136f10bafb793d97e1a1e81cece"
+  },
+  "environment": {
+    "python": "3.12.10 (existing shared venv, unchanged)",
+    "import_root": "worktree backend/src (asserted per run)",
+    "pillow": "12.1.0 existing base-interpreter package, loaded process-locally",
+    "python_multipart": "0.0.32 already present in ignored C1 deps dir; nothing installed",
+    "services": "none (no PostgreSQL/Redis/Studio/model/provider/network)",
+    "guards": "in-process external network blocked for all groups; local subprocess blocked except BE2-01 group (its B6 runner collects suites via local pytest)"
+  },
+  "tests": {
+    "c2_focused": {
+      "files": [
+        "backend/tests/unit/test_vision_context_domain.py",
+        "backend/tests/unit/test_vision_context_service.py",
+        "backend/tests/unit/test_vision_context_adapter.py",
+        "backend/tests/contract/test_vision_context_contracts.py"
+      ],
+      "pytest_exit": 0,
+      "collected": 179,
+      "passed": 179,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "skipped_ids": [],
+      "sources_unchanged_during_run": true,
+      "blocked_external_operation_attempts": 0,
+      "local_subprocess_allowed": false,
+      "junit_sha256": "33e2acad5c8603dd0c0b79e105adef5184e0b98295f95ee3bb0093a2baba0980",
+      "started_utc": "2026-10-17T04:43:53.877643+00:00"
+    },
+    "c1_focused": {
+      "files": [
+        "backend/tests/unit/test_vision_analysis_domain.py",
+        "backend/tests/unit/test_vision_analysis_service.py",
+        "backend/tests/unit/test_vision_analysis_job_lineage.py",
+        "backend/tests/unit/test_vision_analysis_legacy_bridge.py",
+        "backend/tests/unit/test_vision_analysis_review_fixes.py",
+        "backend/tests/contract/test_analysis_result_contracts.py",
+        "backend/tests/contract/test_analysis_corrections_api.py",
+        "backend/tests/contract/test_h_ai_review_handoff_examples.py",
+        "backend/tests/unit/test_lightning_vision_v2_server.py"
+      ],
+      "pytest_exit": 0,
+      "collected": 240,
+      "passed": 240,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "skipped_ids": [],
+      "sources_unchanged_during_run": true,
+      "blocked_external_operation_attempts": 0,
+      "local_subprocess_allowed": false,
+      "junit_sha256": "6a6f14e26a875ba8cfdacbaab3a5fe1646c6169136a26fdbeaacd1d7b65b5872",
+      "started_utc": "2026-10-17T04:43:55.284509+00:00"
+    },
+    "legacy_vision": {
+      "files": [
+        "backend/tests/unit/test_lightning_vision_v2_adapter.py",
+        "backend/tests/unit/test_qwen_vision_adapter.py",
+        "backend/tests/unit/test_vision_phase_a_contracts.py",
+        "backend/tests/unit/test_vision_phase_b_b1_contracts.py",
+        "backend/tests/unit/test_vision_content_policy.py",
+        "backend/tests/unit/test_lightning_client.py"
+      ],
+      "pytest_exit": 0,
+      "collected": 238,
+      "passed": 233,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 5,
+      "skipped_ids": [
+        "tests.unit.test_vision_phase_b_b1_contracts::test_v2_model_reached_failure_details_carry_provenance_when_valid[MEDIA_VALIDATION_NOT_PASSED]",
+        "tests.unit.test_vision_phase_b_b1_contracts::test_v2_model_reached_failure_details_carry_provenance_when_valid[MEDIA_VALIDATION_PROVENANCE_MISSING]",
+        "tests.unit.test_vision_phase_b_b1_contracts::test_v2_model_reached_failure_details_carry_provenance_when_valid[SOURCE_IMAGE_UNREADABLE]",
+        "tests.unit.test_vision_phase_b_b1_contracts::test_v2_model_reached_failure_details_carry_provenance_when_valid[SOURCE_IMAGE_HASH_MISMATCH]",
+        "tests.unit.test_vision_phase_b_b1_contracts::test_v2_model_reached_failure_details_carry_provenance_when_valid[PROFILE_NOT_RESOLVABLE]"
+      ],
+      "sources_unchanged_during_run": true,
+      "blocked_external_operation_attempts": 0,
+      "local_subprocess_allowed": false,
+      "junit_sha256": "4bf68c4ce4468ae457eb002536635e579ce4adaf57743641b0d89046b521821a",
+      "started_utc": "2026-10-17T04:44:10.464500+00:00"
+    },
+    "be201": {
+      "files": "backend/tests/{unit,contract}/test_ai_job_*.py (11 files)",
+      "pytest_exit": 0,
+      "collected": 338,
+      "passed": 338,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "skipped_ids": [],
+      "sources_unchanged_during_run": true,
+      "blocked_external_operation_attempts": 0,
+      "local_subprocess_allowed": true,
+      "junit_sha256": "01e6043952870a8a08315ae378eed9682a6d26f821e99e7d38d203976204eea3",
+      "started_utc": "2026-10-17T04:44:50.113111+00:00"
+    }
+  },
+  "setup_history": {
+    "be201_attempt1_subprocess_guarded": {
+      "collected": 338,
+      "passed": 323,
+      "failed": 15,
+      "cause": "wrapper blocked BE2-01 B6 runner's local pytest-collection subprocess; not a SUT failure; rerun with local subprocess allowed passed 338/338"
+    }
+  },
+  "static_checks": {
+    "ruff": "PASS (16 changed/new paths)",
+    "mypy_strict": "PASS (16 changed/new paths)"
+  },
+  "validators": {
+    "validate_harness": "PASS (exit 0)",
+    "validate_repository_security": "PASS (exit 0)",
+    "validate_architecture": "PASS (exit 0)",
+    "validate_skeleton": "PASS (exit 0)",
+    "git_diff_check": "PASS (exit 0)",
+    "untracked_whitespace": "no trailing whitespace/CRLF in new files"
+  },
+  "code_sha256": {
+    "backend/src/sketch2life/application/ports/vision_analysis.py": "2f36d096127930a25b60057b48f47df726eb77e132808a20b2e5b15e7e5584ae",
+    "backend/src/sketch2life/application/services/vision_analysis.py": "f30ccbbb5be5af360d042ea3dc1d3fb1ad00e8175f60f7d65dac11d1d7ea9212",
+    "backend/src/sketch2life/contracts/schemas/analysis_context_results.py": "3844377f4fa114fdd5c48f051bdcdb2562340bbbcead89d9418b3be4239a2e5d",
+    "backend/src/sketch2life/contracts/schemas/vision_context.py": "24e2df5131ee27c0699171984ae20c63da529cb5acf4fecd824d5f7414a5e3fa",
+    "backend/src/sketch2life/domain/vision_analysis.py": "cb36b2917ec0e9061c21dca4b1ac27316f57e329fc3caafbd78ad1fa41f3dfa5",
+    "backend/src/sketch2life/domain/vision_context.py": "9501f2194a2896df121c50af2a1df29b7003c7f2029af0febd461664886e04eb",
+    "backend/src/sketch2life/infrastructure/vision_analysis/context_adapter.py": "d01cf98fc5a18233b112c4ed8e8d77efd4e46377718aba0a1d5523d6331f683a",
+    "backend/src/sketch2life/infrastructure/vision_analysis/fakes.py": "743a46897914c0457b64d77567cdb188db94e39f9498e6a0e3cc3c3c8b0414fa",
+    "backend/src/sketch2life/infrastructure/vision_analysis/harness.py": "bcae980736ecca23881f93dd5c679065b5ca798c0068af9a399022bf543ce957",
+    "backend/src/sketch2life/infrastructure/vision_analysis/legacy_v2.py": "b4d3f41836d8f62c2e2c8bd01d2d4149ab7b61cacee844f42c1da8a030da5ade",
+    "backend/tests/contract/test_vision_context_contracts.py": "60a02a99f17561fdc5d785d77ba4582df2103c93d4c3110cbbdbc8baac8ff728",
+    "backend/tests/unit/test_vision_analysis_legacy_bridge.py": "992d1a28c77f52963ed7edfe5ba0466a35deca8f053d9e6fad5b938c32386e65",
+    "backend/tests/unit/test_vision_analysis_service.py": "d5b5a3f23a69b6cfd8079ebf57a6bde85ac0cbb7699a586c03b14789fc8c8cdd",
+    "backend/tests/unit/test_vision_context_adapter.py": "0e7058756fbcfc79e01b8bf14ce5cc703a4ca7fa9d7217f75dc71ad96eb87a60",
+    "backend/tests/unit/test_vision_context_domain.py": "4a457f16a74c0ceea9c2c53bb85174c7d2067c2113e80558e79266f234e43f96",
+    "backend/tests/unit/test_vision_context_service.py": "e7e9baac7d54c42f45f7f56e9d8a99942290eeab7f15620de1b3911666d78348"
+  },
+  "fixture_sha256": {
+    "features/FEAT-048-be2-vision-correction/fixtures/h_ai_review/typed_context_example.json": "9bb813d9e6ce7390b0820f410cf8d1460a1ab50c05cb1c170a0f0eacbc3a1a18"
+  },
+  "c1_image_only_golden_sha256_unchanged": {
+    "features/FEAT-048-be2-vision-correction/fixtures/h_ai_review/analysis_record.json": "037b719750eced29c6c7cb736fb6d3799096469ce1ba1317ab271cf3b25ffe9a",
+    "features/FEAT-048-be2-vision-correction/fixtures/h_ai_review/analysis_worker_candidate.json": "c66229b3c78c1b2bdb3dd83f9b39655586cd5f5d2c6382236e5178cec4554a8c",
+    "features/FEAT-048-be2-vision-correction/fixtures/h_ai_review/correction_child_receipt.json": "6135ff8ce0326617d4128d41b8e4abb50193f80cd595e06cd6645d7f459f71c2",
+    "features/FEAT-048-be2-vision-correction/fixtures/h_ai_review/correction_teacher_receipt.json": "e50c4ae09e40bf0652eb64af44e893e0972036589e1e1a150424867633766cd8",
+    "features/FEAT-048-be2-vision-correction/fixtures/h_ai_review/downstream_meaning.json": "d5306eb5b625903ee3da083ed7a701ebf643374f9158bab4a8df36ebe5170a77",
+    "features/FEAT-048-be2-vision-correction/fixtures/h_ai_review/invalidation_intents.json": "0325699f438c1665cb1626c4315ea9ccb50deada963cca9910e920fd22d402ad",
+    "features/FEAT-048-be2-vision-correction/fixtures/h_ai_review/provider_result_record.json": "0ff760b5c4ff0f2998d053011629b49d764b31de30a2023d75e35a33420d1e8b"
+  },
+  "c1_golden_blobs_match_head": true
+}

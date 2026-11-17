@@ -1,0 +1,34 @@
+{
+  "id": "CASE_BLOCK_AGE_ABOVE",
+  "description": "Candidate blocks above maximum age",
+  "input": {
+    "age_months": 36,
+    "readiness_tags": [
+      "caregiver_present"
+    ],
+    "completed_activity_ids": [],
+    "available_material_ids": [
+      "MAT_HIGH_CONTRAST_MOBILE"
+    ],
+    "supervision_level": "DIRECT",
+    "policy_flags": [
+      "CAREGIVER_PRESENT"
+    ],
+    "candidate_activity_ids": [
+      "ACT-0001"
+    ]
+  },
+  "expected": {
+    "status": "NO_VALID_ACTIVITY",
+    "allowed_activity_ids": [],
+    "blocked": {
+      "ACT-0001": [
+        "BLOCK_AGE_ABOVE_MAXIMUM"
+      ]
+    }
+  },
+  "coverage_tags": [
+    "blocked",
+    "age"
+  ]
+}

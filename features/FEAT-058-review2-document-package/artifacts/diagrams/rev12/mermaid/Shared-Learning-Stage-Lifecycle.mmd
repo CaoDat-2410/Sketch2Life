@@ -1,0 +1,12 @@
+stateDiagram-v2
+  [*] --> Preparation
+  Preparation --> Join
+  Join --> ExploreDraw
+  ExploreDraw --> Assistance: optional interleaved
+  Assistance --> ExploreDraw: continue drawing
+  ExploreDraw --> Sharing
+  Sharing --> Knowledge
+  Knowledge --> OffScreen
+  OffScreen --> Reflection
+  Reflection --> Completion
+  note right of Completion: Stage is separate from session lifecycle; group readiness never advances the whole class.

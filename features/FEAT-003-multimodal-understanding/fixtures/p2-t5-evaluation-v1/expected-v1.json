@@ -1,0 +1,167 @@
+[
+  {
+    "fixture_id": "dev-001",
+    "expected_case_status": "COMPLETED",
+    "expected_t1_decision": "PASS",
+    "expected_t1_reasons": [],
+    "oracle_rule_id": "P2T5.HandAuthoredOracleV1",
+    "source_policy": "SYNTHETIC_ONLY"
+  },
+  {
+    "fixture_id": "dev-002",
+    "expected_case_status": "COMPLETED",
+    "expected_t1_decision": "PASS",
+    "expected_t1_reasons": [],
+    "oracle_rule_id": "P2T5.HandAuthoredOracleV1",
+    "source_policy": "SYNTHETIC_ONLY"
+  },
+  {
+    "fixture_id": "dev-003",
+    "expected_case_status": "EXPECTED_TERMINAL",
+    "expected_t1_decision": "RECAPTURE",
+    "expected_t1_reasons": [
+      "IMAGE_DIMENSIONS_TOO_SMALL"
+    ],
+    "oracle_rule_id": "P2T5.HandAuthoredOracleV1",
+    "source_policy": "SYNTHETIC_ONLY"
+  },
+  {
+    "fixture_id": "dev-004",
+    "expected_case_status": "EXPECTED_TERMINAL",
+    "expected_t1_decision": "RECAPTURE",
+    "expected_t1_reasons": [
+      "AUDIO_NO_SPEECH_SIGNAL"
+    ],
+    "oracle_rule_id": "P2T5.HandAuthoredOracleV1",
+    "source_policy": "SYNTHETIC_ONLY"
+  },
+  {
+    "fixture_id": "dev-005",
+    "expected_case_status": "COMPLETED",
+    "expected_t1_decision": "PASS",
+    "expected_t1_reasons": [],
+    "oracle_rule_id": "P2T5.HandAuthoredOracleV1",
+    "source_policy": "SYNTHETIC_ONLY"
+  },
+  {
+    "fixture_id": "dev-006",
+    "expected_case_status": "COMPLETED",
+    "expected_t1_decision": "PASS",
+    "expected_t1_reasons": [],
+    "oracle_rule_id": "P2T5.HandAuthoredOracleV1",
+    "source_policy": "SYNTHETIC_ONLY"
+  },
+  {
+    "fixture_id": "dev-007",
+    "expected_case_status": "COMPLETED",
+    "expected_t1_decision": "PASS",
+    "expected_t1_reasons": [],
+    "oracle_rule_id": "P2T5.HandAuthoredOracleV1",
+    "source_policy": "SYNTHETIC_ONLY"
+  },
+  {
+    "fixture_id": "dev-008",
+    "expected_case_status": "COMPLETED",
+    "expected_t1_decision": "PASS",
+    "expected_t1_reasons": [],
+    "oracle_rule_id": "P2T5.HandAuthoredOracleV1",
+    "source_policy": "SYNTHETIC_ONLY"
+  },
+  {
+    "fixture_id": "dev-009",
+    "expected_case_status": "COMPLETED",
+    "expected_t1_decision": "PASS",
+    "expected_t1_reasons": [],
+    "oracle_rule_id": "P2T5.HandAuthoredOracleV1",
+    "source_policy": "SYNTHETIC_ONLY"
+  },
+  {
+    "fixture_id": "dev-010",
+    "expected_case_status": "COMPLETED",
+    "expected_t1_decision": "PASS",
+    "expected_t1_reasons": [],
+    "oracle_rule_id": "P2T5.HandAuthoredOracleV1",
+    "source_policy": "SYNTHETIC_ONLY"
+  },
+  {
+    "fixture_id": "dev-011",
+    "expected_case_status": "COMPLETED",
+    "expected_t1_decision": "PASS",
+    "expected_t1_reasons": [],
+    "oracle_rule_id": "P2T5.HandAuthoredOracleV1",
+    "source_policy": "SYNTHETIC_ONLY"
+  },
+  {
+    "fixture_id": "dev-012",
+    "expected_case_status": "COMPLETED",
+    "expected_t1_decision": "PASS",
+    "expected_t1_reasons": [],
+    "oracle_rule_id": "P2T5.HandAuthoredOracleV1",
+    "source_policy": "SYNTHETIC_ONLY"
+  },
+  {
+    "fixture_id": "heldout-001",
+    "expected_case_status": "COMPLETED",
+    "expected_t1_decision": "PASS",
+    "expected_t1_reasons": [],
+    "oracle_rule_id": "P2T5.HandAuthoredOracleV1",
+    "source_policy": "SYNTHETIC_ONLY"
+  },
+  {
+    "fixture_id": "heldout-002",
+    "expected_case_status": "COMPLETED",
+    "expected_t1_decision": "PASS",
+    "expected_t1_reasons": [],
+    "oracle_rule_id": "P2T5.HandAuthoredOracleV1",
+    "source_policy": "SYNTHETIC_ONLY"
+  },
+  {
+    "fixture_id": "heldout-003",
+    "expected_case_status": "COMPLETED",
+    "expected_t1_decision": "PASS",
+    "expected_t1_reasons": [],
+    "oracle_rule_id": "P2T5.HandAuthoredOracleV1",
+    "source_policy": "SYNTHETIC_ONLY"
+  },
+  {
+    "fixture_id": "heldout-004",
+    "expected_case_status": "COMPLETED",
+    "expected_t1_decision": "PASS",
+    "expected_t1_reasons": [],
+    "oracle_rule_id": "P2T5.HandAuthoredOracleV1",
+    "source_policy": "SYNTHETIC_ONLY"
+  },
+  {
+    "fixture_id": "heldout-005",
+    "expected_case_status": "COMPLETED",
+    "expected_t1_decision": "PASS",
+    "expected_t1_reasons": [],
+    "oracle_rule_id": "P2T5.HandAuthoredOracleV1",
+    "source_policy": "SYNTHETIC_ONLY"
+  },
+  {
+    "fixture_id": "heldout-006",
+    "expected_case_status": "COMPLETED",
+    "expected_t1_decision": "PASS",
+    "expected_t1_reasons": [],
+    "oracle_rule_id": "P2T5.HandAuthoredOracleV1",
+    "source_policy": "SYNTHETIC_ONLY"
+  },
+  {
+    "fixture_id": "heldout-007",
+    "expected_case_status": "COMPLETED",
+    "expected_t1_decision": "PASS",
+    "expected_t1_reasons": [],
+    "oracle_rule_id": "P2T5.HandAuthoredOracleV1",
+    "source_policy": "SYNTHETIC_ONLY"
+  },
+  {
+    "fixture_id": "heldout-008",
+    "expected_case_status": "COMPLETED",
+    "expected_t1_decision": "PASS",
+    "expected_t1_reasons": [],
+    "oracle_rule_id": "P2T5.HandAuthoredOracleV1",
+    "source_policy": "SYNTHETIC_ONLY"
+  }
+]
+

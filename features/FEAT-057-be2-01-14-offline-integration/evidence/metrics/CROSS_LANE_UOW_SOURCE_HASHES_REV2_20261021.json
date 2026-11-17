@@ -1,0 +1,84 @@
+{
+  "purpose": "Pin exact source bytes used for FEAT-044 UoW scope revision 4 and FEAT-057 plan revision 5 review; dirty worktree, not a Git commit or approval.",
+  "observed_at": "2026-10-21 13:54:24 +07:00",
+  "branch": "feature/be2-backend-ai-integration",
+  "head": "1649b72978877d82b4d7662040ff3555dee0a3a7",
+  "source_tree": "dirty; hashes pin file bytes only",
+  "parent_manifest": "features/FEAT-057-be2-01-14-offline-integration/evidence/metrics/CROSS_LANE_UOW_SOURCE_HASHES_20261021.json",
+  "parent_manifest_sha256": "88368265E8EE262F7DA6DEC23F3DAB6C749F482016EC79AA69F40B186DD5B92F",
+  "review_report_sha256": "0507A53D569B34ACF9EB44549D6BE794851335F3DBB88FD89E48D17E4AA649F0",
+  "files": [
+    {
+      "path": "backend/src/sketch2life/application/services/knowledge_bundle.py",
+      "sha256": "AF6C3C55E3CF0FEDF155B8C0EBBF720EF7E6AEC121B5B1871F94191A1E2F6C9F"
+    },
+    {
+      "path": "backend/src/sketch2life/application/ports/ai_jobs.py",
+      "sha256": "6C6967070D5042B5A6DB33E7D28D856E03FE1BD6DC1302E55D73EACC047B33DF"
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/ai_jobs/sql/repository.py",
+      "sha256": "911829A90DD67DDDBDC758EC05930038C9415D92A837EA26BBE7E1F6D3A5AD76"
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/knowledge_video/sql.py",
+      "sha256": "9CE42333609539459DB9CE68DA43087E42D782631186E0D51C5684A782696105"
+    },
+    {
+      "path": "backend/src/sketch2life/domain/knowledge_video/model.py",
+      "sha256": "637D59BAEBAAAC4DF00F97C86E5920F4ED6429FABB0ED432A8C0C1275F40D56D"
+    },
+    {
+      "path": "backend/src/sketch2life/application/ports/knowledge_video.py",
+      "sha256": "966FE8BF2237C956298164F28EB461527B7E2A0BBA1EBFF0084E91D834113340"
+    },
+    {
+      "path": "backend/src/sketch2life/application/ports/knowledge_video_worker.py",
+      "sha256": "8B5A3175717DB3411C4A6B80B8FBEF2E5865DC3530598A2F35919D6954CC1D36"
+    },
+    {
+      "path": "backend/src/sketch2life/application/knowledge_video_create.py",
+      "sha256": "FE330D4D4CE642515158F36DE9DEC60CADBD9EB8C56F02834C5FBC2AC1F8B347"
+    },
+    {
+      "path": "backend/src/sketch2life/application/knowledge_video_worker.py",
+      "sha256": "02BE5A965EABEAE4792AD0915CB2B5EBBE48D452FA37595AA32C52EAEC373C90"
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/ai_policy/accounting_sql.py",
+      "sha256": "86443803A6E48504BC6CF6DCA6B0A57333A6287065F7D1F68D536C981050C1F4"
+    },
+    {
+      "path": "backend/src/sketch2life/domain/ai_policy/accounting.py",
+      "sha256": "863F22E6E1F04CC64529B4BDA1688DD58E00B628FF405C117E694A1C992A9359"
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/ai_jobs/worker.py",
+      "sha256": "A54725329F8643FB0AF9D821F9861BE34980C3DA3E28E201203630EA691785F6"
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/ai_jobs/typed_dispatch.py",
+      "sha256": "979516A29B17A7FC155C6396500AAE82D0D8D66C0CBD7C1EF0437BFA8C728196"
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/knowledge_video/tables.py",
+      "sha256": "D385CC6A60CC4E0A0DE339FDE452D89B81D71574CBE1B59F9D5D8C2D2C673F9F"
+    },
+    {
+      "path": "backend/src/sketch2life/application/services/ai_jobs.py",
+      "sha256": "DF6AC4FD47BD9FDCD7D5EAF7DFCA5E4CF9541870F40E0DC4A81150DFFD936704"
+    },
+    {
+      "path": "backend/src/sketch2life/domain/ai_jobs/model.py",
+      "sha256": "512B604636C1A22E231AC3276D3E537AE0DEAE4D9BB6652CCB064FAB7314DB99"
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/knowledge_video/codec.py",
+      "sha256": "3E6AFFAEDBE9883AF38C7BA7904771116680A7A37D6386BB7F20510DA969D0C9"
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/ai_jobs/sql/tables.py",
+      "sha256": "12F6CE1EDAB047EFDD81D495B44DF08DC6F990692860621F37FC73778006F888"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "backoff_step_seconds": 10,
+  "max_interval_ms": 10000,
+  "min_interval_ms": 2000,
+  "source": "SRS v3.1 JOB_POLL_MIN_INTERVAL PROPOSED",
+  "status": "PROPOSED"
+}

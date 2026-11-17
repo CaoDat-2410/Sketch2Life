@@ -1,0 +1,302 @@
+{
+  "contract_name": "CoreFoundationManifestV1",
+  "contract_version": "1.0",
+  "manifest_id": "be1-core-foundation-fixtures-v1",
+  "owner": "P2/BE1",
+  "source_refs": [
+    "BE1-01",
+    "ADR-0015",
+    "Master-SRS-v3.1-B19-B26"
+  ],
+  "data_policy": "SYNTHETIC_ONLY",
+  "entries": [
+    {
+      "fixture_id": "authorization-allowed",
+      "path": "cases-v1.json",
+      "index": 0,
+      "kind": "authorization",
+      "expected_status": "accepted",
+      "expected_failure_code": null,
+      "contract_status": "PROPOSED_UNADOPTED",
+      "source_status_labels": [
+        "CONFIRMED",
+        "PROPOSED_UNADOPTED"
+      ]
+    },
+    {
+      "fixture_id": "authorization-invalid-scope",
+      "path": "cases-v1.json",
+      "index": 1,
+      "kind": "authorization",
+      "expected_status": "rejected",
+      "expected_failure_code": "SCOPE_DENIED",
+      "contract_status": "PROPOSED_UNADOPTED",
+      "source_status_labels": [
+        "CONFIRMED",
+        "PROPOSED_UNADOPTED"
+      ]
+    },
+    {
+      "fixture_id": "authorization-forged-role",
+      "path": "cases-v1.json",
+      "index": 2,
+      "kind": "authorization",
+      "expected_status": "rejected",
+      "expected_failure_code": "FORGED_PRINCIPAL",
+      "contract_status": "PROPOSED_UNADOPTED",
+      "source_status_labels": [
+        "CONFIRMED",
+        "PROPOSED_UNADOPTED"
+      ]
+    },
+    {
+      "fixture_id": "pending-device-roster-denied",
+      "path": "cases-v1.json",
+      "index": 3,
+      "kind": "authorization",
+      "expected_status": "rejected",
+      "expected_failure_code": "PENDING_PRINCIPAL_RESTRICTED",
+      "contract_status": "PROPOSED_UNADOPTED",
+      "source_status_labels": [
+        "CONFIRMED",
+        "PROPOSED_UNADOPTED"
+      ]
+    },
+    {
+      "fixture_id": "profile-age-36-consented",
+      "path": "cases-v1.json",
+      "index": 4,
+      "kind": "profile_consent",
+      "expected_status": "accepted",
+      "expected_failure_code": null,
+      "contract_status": "PROPOSED_UNADOPTED",
+      "source_status_labels": [
+        "OWNER_CONFIRMED",
+        "CONFIRMED",
+        "PROPOSED_UNADOPTED"
+      ]
+    },
+    {
+      "fixture_id": "profile-age-35-rejected",
+      "path": "cases-v1.json",
+      "index": 5,
+      "kind": "profile_consent",
+      "expected_status": "rejected",
+      "expected_failure_code": "AGE_OUT_OF_RANGE",
+      "contract_status": "PROPOSED_UNADOPTED",
+      "source_status_labels": [
+        "OWNER_CONFIRMED",
+        "CONFIRMED",
+        "PROPOSED_UNADOPTED"
+      ]
+    },
+    {
+      "fixture_id": "profile-age-156-rejected",
+      "path": "cases-v1.json",
+      "index": 6,
+      "kind": "profile_consent",
+      "expected_status": "rejected",
+      "expected_failure_code": "AGE_OUT_OF_RANGE",
+      "contract_status": "PROPOSED_UNADOPTED",
+      "source_status_labels": [
+        "OWNER_CONFIRMED",
+        "CONFIRMED",
+        "PROPOSED_UNADOPTED"
+      ]
+    },
+    {
+      "fixture_id": "session-admission-age-155",
+      "path": "cases-v1.json",
+      "index": 7,
+      "kind": "session_admission",
+      "expected_status": "accepted",
+      "expected_failure_code": null,
+      "contract_status": "PROPOSED_UNADOPTED",
+      "source_status_labels": [
+        "OWNER_CONFIRMED",
+        "CONFIRMED",
+        "PROPOSED_UNADOPTED"
+      ]
+    },
+    {
+      "fixture_id": "canvas-append-accepted",
+      "path": "cases-v1.json",
+      "index": 8,
+      "kind": "turn_canvas",
+      "expected_status": "accepted",
+      "expected_failure_code": null,
+      "contract_status": "PROPOSED_UNADOPTED",
+      "source_status_labels": [
+        "OWNER_CONFIRMED",
+        "CONFIRMED",
+        "PROPOSED_UNADOPTED"
+      ]
+    },
+    {
+      "fixture_id": "canvas-stale-revision",
+      "path": "cases-v1.json",
+      "index": 9,
+      "kind": "turn_canvas",
+      "expected_status": "rejected",
+      "expected_failure_code": "STALE_AGGREGATE",
+      "contract_status": "PROPOSED_UNADOPTED",
+      "source_status_labels": [
+        "OWNER_CONFIRMED",
+        "CONFIRMED",
+        "PROPOSED_UNADOPTED"
+      ]
+    },
+    {
+      "fixture_id": "canvas-idempotent-replay",
+      "path": "cases-v1.json",
+      "index": 10,
+      "kind": "turn_canvas",
+      "expected_status": "replayed",
+      "expected_failure_code": null,
+      "contract_status": "PROPOSED_UNADOPTED",
+      "source_status_labels": [
+        "OWNER_CONFIRMED",
+        "CONFIRMED",
+        "PROPOSED_UNADOPTED"
+      ]
+    },
+    {
+      "fixture_id": "canvas-idempotency-conflict",
+      "path": "cases-v1.json",
+      "index": 11,
+      "kind": "turn_canvas",
+      "expected_status": "rejected",
+      "expected_failure_code": "IDEMPOTENCY_CONFLICT",
+      "contract_status": "PROPOSED_UNADOPTED",
+      "source_status_labels": [
+        "OWNER_CONFIRMED",
+        "CONFIRMED",
+        "PROPOSED_UNADOPTED"
+      ]
+    },
+    {
+      "fixture_id": "canvas-wrong-turn-contributor",
+      "path": "cases-v1.json",
+      "index": 12,
+      "kind": "turn_canvas",
+      "expected_status": "rejected",
+      "expected_failure_code": "INVALID_TURN",
+      "contract_status": "PROPOSED_UNADOPTED",
+      "source_status_labels": [
+        "OWNER_CONFIRMED",
+        "CONFIRMED",
+        "PROPOSED_UNADOPTED"
+      ]
+    },
+    {
+      "fixture_id": "gallery-known-contribution",
+      "path": "cases-v1.json",
+      "index": 13,
+      "kind": "gallery_portfolio",
+      "expected_status": "accepted",
+      "expected_failure_code": null,
+      "contract_status": "PROPOSED_UNADOPTED",
+      "source_status_labels": [
+        "CONFIRMED",
+        "PROPOSED_UNADOPTED"
+      ]
+    },
+    {
+      "fixture_id": "gallery-outside-audience-denied",
+      "path": "cases-v1.json",
+      "index": 14,
+      "kind": "gallery_portfolio",
+      "expected_status": "rejected",
+      "expected_failure_code": "GALLERY_AUDIENCE_DENIED",
+      "contract_status": "PROPOSED_UNADOPTED",
+      "source_status_labels": [
+        "CONFIRMED",
+        "PROPOSED_UNADOPTED"
+      ]
+    },
+    {
+      "fixture_id": "data-delete-external-copy-pending",
+      "path": "cases-v1.json",
+      "index": 15,
+      "kind": "data_lifecycle",
+      "expected_status": "rejected",
+      "expected_failure_code": "DATA_REQUEST_INCOMPLETE",
+      "contract_status": "PROPOSED_UNADOPTED",
+      "source_status_labels": [
+        "CONFIRMED",
+        "PROPOSED_UNADOPTED",
+        "TBD"
+      ]
+    },
+    {
+      "fixture_id": "data-export-complete",
+      "path": "cases-v1.json",
+      "index": 16,
+      "kind": "data_lifecycle",
+      "expected_status": "accepted",
+      "expected_failure_code": null,
+      "contract_status": "PROPOSED_UNADOPTED",
+      "source_status_labels": [
+        "CONFIRMED",
+        "PROPOSED_UNADOPTED",
+        "TBD"
+      ]
+    },
+    {
+      "fixture_id": "portfolio-own-contribution",
+      "path": "cases-v1.json",
+      "index": 17,
+      "kind": "gallery_portfolio",
+      "expected_status": "accepted",
+      "expected_failure_code": null,
+      "contract_status": "PROPOSED_UNADOPTED",
+      "source_status_labels": [
+        "CONFIRMED",
+        "PROPOSED_UNADOPTED"
+      ]
+    },
+    {
+      "fixture_id": "canvas-target-scope-mismatch",
+      "path": "cases-v1.json",
+      "index": 18,
+      "kind": "turn_canvas",
+      "expected_status": "rejected",
+      "expected_failure_code": "SCOPE_DENIED",
+      "contract_status": "PROPOSED_UNADOPTED",
+      "source_status_labels": [
+        "OWNER_CONFIRMED",
+        "CONFIRMED",
+        "PROPOSED_UNADOPTED"
+      ]
+    },
+    {
+      "fixture_id": "admission-target-class-mismatch",
+      "path": "cases-v1.json",
+      "index": 19,
+      "kind": "session_admission",
+      "expected_status": "rejected",
+      "expected_failure_code": "SCOPE_DENIED",
+      "contract_status": "PROPOSED_UNADOPTED",
+      "source_status_labels": [
+        "OWNER_CONFIRMED",
+        "CONFIRMED",
+        "PROPOSED_UNADOPTED"
+      ]
+    }
+  ],
+  "invalid_contract_probes": [
+    {
+      "probe_id": "unknown-command-field",
+      "source_fixture_id": "authorization-allowed",
+      "mutation": "undeclared_command_field",
+      "expected_failure_code": "FIELD_NOT_ALLOWED"
+    }
+  ],
+  "contract_status": "PROPOSED_UNADOPTED",
+  "source_status_labels": [
+    "CONFIRMED",
+    "OWNER_CONFIRMED",
+    "PROPOSED_UNADOPTED",
+    "TBD"
+  ]
+}

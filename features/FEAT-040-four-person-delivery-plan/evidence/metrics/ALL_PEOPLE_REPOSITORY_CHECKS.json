@@ -1,0 +1,20 @@
+[
+  {
+    "check": "plan",
+    "returncode": 0,
+    "status": "PASS",
+    "output": "{\n  \"result\": \"PASS\",\n  \"errors\": [],\n  \"task_count\": 57,\n  \"counts\": {\n    \"CMD\": 66,\n    \"DATA\": 35,\n    \"UI\": 34,\n    \"FR\": 66,\n    \"M\": 14,\n    \"H\": 14\n  },\n  \"dependency_nodes\": 57,\n  \"resolved_nodes\": 57,\n  \"foundations\": [\n    \"BE1-01\",\n    \"BE2-01\",\n    \"FE-01\",\n    \"INTG-01\"\n  ],\n  \"srs_sha256\": \"a95c89589843e3555e967c5e486f3bcaf4bbdf9446cb3bc9c49ed16f672964d9\",\n  \"artifact_sha256\": \"293fcb8cfca9a603c0ee18e745ae37d61c3c13de80cdaa336ac648ad4f706ca9\",\n  \"own_text_files_scanned\": 42,\n  \"runtime_verified\": false\n}\n"
+  },
+  {
+    "check": "harness",
+    "returncode": 0,
+    "status": "PASS",
+    "output": "HARNESS_VALID\nroot=<workspace>\napproval_gate=enabled\nfrontend_asset_gate=enabled\n"
+  },
+  {
+    "check": "security",
+    "returncode": 0,
+    "status": "PASS",
+    "output": "REPOSITORY_SECURITY_VALID\npublishable_files_scanned=2372\nenvironment_files=excluded\nseed_accounts=excluded\ncredentials_and_signing_keys=excluded\nexternal_reference_documents=excluded\nabsolute_machine_paths=absent\n"
+  }
+]

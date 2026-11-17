@@ -1,0 +1,142 @@
+{
+  "plan": "PLAN_REV52_NONVIDEO_MODAL_AI_RELIABILITY_20261106.md",
+  "started_at": "2026-11-06T13:08:33+07:00",
+  "ended_at": "2026-11-06T13:09:22+07:00",
+  "elapsed_seconds": 48.779,
+  "synthetic_only": true,
+  "video_called": false,
+  "image_fixture": "synthetic_childlike_butterfly.png",
+  "max_attempts_per_workload": 1,
+  "qwen_initial_wait_seconds": 1800,
+  "same_call_extension_seconds": 1800,
+  "errors": [
+    {
+      "stage": "tts.narration.generate",
+      "error_type": "TypeError"
+    }
+  ],
+  "workloads": [
+    {
+      "workload": "asr.transcribe",
+      "outcome": "NOT_RUN_TTS_FAILED",
+      "call_id": null,
+      "worker_started": false,
+      "last_worker_stage": null,
+      "worker_terminal_event": null,
+      "worker_error_code": null,
+      "worker_error_type": null,
+      "worker_duration_ms": null,
+      "worker_failure_boundary": null
+    },
+    {
+      "workload": "drawing.analyze",
+      "outcome": "FAILED_TERMINAL",
+      "call_id": "fc-01M6QQJW6QSC8MVS4QJ7NKABSW",
+      "worker_started": true,
+      "last_worker_stage": "input_asset_verify",
+      "worker_terminal_event": "worker_failed",
+      "worker_error_code": "MODAL_INPUT_MANIFEST_MISSING",
+      "worker_error_type": "WorkerContractError",
+      "worker_duration_ms": 161,
+      "worker_failure_boundary": "worker_terminal_failure_observed"
+    },
+    {
+      "workload": "story.generate",
+      "outcome": "FAILED_TERMINAL",
+      "call_id": "fc-01M6QQK348YEH1PZY930YD1YMD",
+      "worker_started": true,
+      "last_worker_stage": "input_manifest_read",
+      "worker_terminal_event": "worker_failed",
+      "worker_error_code": "MODAL_INPUT_MANIFEST_MISSING",
+      "worker_error_type": "WorkerContractError",
+      "worker_duration_ms": 225,
+      "worker_failure_boundary": "worker_terminal_failure_observed"
+    },
+    {
+      "workload": "storyboard.generate",
+      "outcome": "NOT_RUN",
+      "call_id": null,
+      "worker_started": false,
+      "last_worker_stage": null,
+      "worker_terminal_event": null,
+      "worker_error_code": null,
+      "worker_error_type": null,
+      "worker_duration_ms": null,
+      "worker_failure_boundary": null
+    },
+    {
+      "workload": "parent.sketch-guide.generate",
+      "outcome": "FAILED_TERMINAL",
+      "call_id": "fc-01M6QQK5ZNFAE5WKPJVYFEXBXZ",
+      "worker_started": false,
+      "last_worker_stage": null,
+      "worker_terminal_event": null,
+      "worker_error_code": null,
+      "worker_error_type": null,
+      "worker_duration_ms": null,
+      "worker_failure_boundary": "worker_start_not_observed"
+    },
+    {
+      "workload": "teacher.sketch-deck.generate",
+      "outcome": "FAILED_TERMINAL",
+      "call_id": "fc-01M6QQK8SH3G3KBF9DPX60CNJB",
+      "worker_started": true,
+      "last_worker_stage": "input_manifest_read",
+      "worker_terminal_event": "worker_failed",
+      "worker_error_code": "MODAL_INPUT_MANIFEST_MISSING",
+      "worker_error_type": "WorkerContractError",
+      "worker_duration_ms": 213,
+      "worker_failure_boundary": "worker_terminal_failure_observed"
+    },
+    {
+      "workload": "lesson.plan.suggest",
+      "outcome": "FAILED_TERMINAL",
+      "call_id": "fc-01M6QQKHABZZ8NZKTXX0Q7T15P",
+      "worker_started": false,
+      "last_worker_stage": null,
+      "worker_terminal_event": null,
+      "worker_error_code": null,
+      "worker_error_type": null,
+      "worker_duration_ms": null,
+      "worker_failure_boundary": "worker_start_not_observed"
+    },
+    {
+      "workload": "lesson.visual.generate",
+      "outcome": "FAILED_TERMINAL",
+      "call_id": "fc-01M6QQKBKG5SBDAAJMP47XDR8T",
+      "worker_started": false,
+      "last_worker_stage": null,
+      "worker_terminal_event": null,
+      "worker_error_code": null,
+      "worker_error_type": null,
+      "worker_duration_ms": null,
+      "worker_failure_boundary": "worker_start_not_observed"
+    },
+    {
+      "workload": "drawing.segment",
+      "outcome": "NOT_RUN",
+      "call_id": null,
+      "worker_started": false,
+      "last_worker_stage": null,
+      "worker_terminal_event": null,
+      "worker_error_code": null,
+      "worker_error_type": null,
+      "worker_duration_ms": null,
+      "worker_failure_boundary": null
+    },
+    {
+      "workload": "tts.narration.generate",
+      "outcome": "FAILED_RUNNER",
+      "call_id": null,
+      "worker_started": false,
+      "last_worker_stage": null,
+      "worker_terminal_event": null,
+      "worker_error_code": null,
+      "worker_error_type": null,
+      "worker_duration_ms": null,
+      "worker_failure_boundary": "worker_start_not_observed"
+    }
+  ],
+  "worker_log_summaries_file": "worker_log_summaries.json",
+  "artifacts": []
+}

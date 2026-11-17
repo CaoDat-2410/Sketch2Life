@@ -1,0 +1,36 @@
+{
+  "audience_context_ref": "audience_fx_001",
+  "bundle_id": "bundle_fx_001",
+  "bundle_version": 1,
+  "child_imagined_elements": [
+    "a butterfly that sings"
+  ],
+  "confirmed_topic": "butterflies",
+  "created_at": "2026-10-14T13:00:00Z",
+  "created_by": "teacher_fx_001",
+  "editorial_revision": 1,
+  "editorial_state": "draft",
+  "knowledge_claims": [
+    {
+      "claim_id": "claim_fx_1",
+      "source_ref": "source_fx_1",
+      "text": "Butterflies have six legs.",
+      "verification_state": "reviewed"
+    }
+  ],
+  "organization_id": "org_fx_school_a",
+  "script_sections": [],
+  "session_id": "session_fx_001",
+  "source_records": [
+    {
+      "locator": "fixture://source_fx_1",
+      "reviewed_version_or_date": "2026-10-14",
+      "source_id": "source_fx_1",
+      "title": "Synthetic insect primer"
+    }
+  ],
+  "source_snapshot_refs": [
+    "snapshot_fx_001"
+  ],
+  "teacher_corrections": []
+}

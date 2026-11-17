@@ -1,0 +1,14 @@
+{
+  "status": "BASELINE_FROZEN",
+  "parent_feature": "FEAT-002",
+  "parent_commit": "2d61528",
+  "integrity": {
+    "algorithm": "sha256-canonical-json-v1",
+    "canonical_sha256": {
+      "activities.v1.json": "17dde39fcc6e2951fab7cc158c11d230766f69930be8dd0596d377dab514989c",
+      "learning-objectives.v1.json": "69ecff8f8944628c0a9a6b3eeb28bda24d17fd3b3856603725d9e97638895a3e",
+      "hard-rules.v1.json": "b42d46dd6c893e266b2f6cab73b7b04af11628ef5f58485f553ebcdca40cee7d",
+      "provenance.v1.json": "345bffb87be6953595d89d37eb2d222352ff9be83a8fc40e637571b895edee47"
+    }
+  }
+}

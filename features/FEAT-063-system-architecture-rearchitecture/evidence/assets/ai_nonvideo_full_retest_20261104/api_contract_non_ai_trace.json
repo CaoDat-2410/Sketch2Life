@@ -1,0 +1,385 @@
+{
+  "started_at": "2026-11-04T17:13:21+07:00",
+  "scope": "synthetic route contract checks; no AI dispatch",
+  "actor_scope_ref": "synthetic-parent-api-contract-retest-20261104",
+  "ai_dispatches": 0,
+  "video_calls": 0,
+  "api_records": [
+    {
+      "name": "reject_missing_age",
+      "method": "POST",
+      "path": "/v1/story-runs",
+      "status": 422,
+      "elapsed_ms": 21.8,
+      "headers": {
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "code": "INVALID_REQUEST",
+        "message": "The request body or path parameters are invalid.",
+        "correlation_id": "411ebc76-d087-4963-bb9a-f8030a0c235f",
+        "retryable": false,
+        "field_errors": [
+          {
+            "field": "child_age_months",
+            "code": "INVALID_FIELD",
+            "message": "The field is missing or has an invalid value."
+          }
+        ]
+      }
+    },
+    {
+      "name": "create_contract_run",
+      "method": "POST",
+      "path": "/v1/story-runs",
+      "status": 201,
+      "elapsed_ms": 38.17,
+      "headers": {
+        "ETag": "\"v1\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "3cb01aeb-e99a-4732-a2e1-cece7971a48c",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 1,
+        "version": 1,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T10:13:23.776455+00:00",
+        "updated_at": "2026-11-04T10:13:23.776455+00:00",
+        "job_state": null,
+        "retryable": false,
+        "action_required": null,
+        "error": null,
+        "result": null
+      }
+    },
+    {
+      "name": "get_contract_run",
+      "method": "GET",
+      "path": "/v1/story-runs/3cb01aeb-e99a-4732-a2e1-cece7971a48c",
+      "status": 200,
+      "elapsed_ms": 5.48,
+      "headers": {
+        "ETag": "\"v1\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "3cb01aeb-e99a-4732-a2e1-cece7971a48c",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 1,
+        "version": 1,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T10:13:23.776455+00:00",
+        "updated_at": "2026-11-04T10:13:23.776455+00:00",
+        "job_state": null,
+        "retryable": false,
+        "action_required": null,
+        "error": null,
+        "result": null
+      }
+    },
+    {
+      "name": "reject_unknown_asset_without_ai",
+      "method": "POST",
+      "path": "/v1/story-runs/3cb01aeb-e99a-4732-a2e1-cece7971a48c/assets",
+      "status": 404,
+      "elapsed_ms": 9.45,
+      "headers": {
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "code": "NOT_FOUND",
+        "message": "Admitted artwork was not found in this Parent scope.",
+        "correlation_id": "6f6130e9-32fa-42f3-b6a6-fecb940d23a1",
+        "retryable": false,
+        "field_errors": null
+      }
+    },
+    {
+      "name": "reject_subject_confirmation_before_analysis",
+      "method": "POST",
+      "path": "/v1/story-runs/3cb01aeb-e99a-4732-a2e1-cece7971a48c/subject-confirmation",
+      "status": 409,
+      "elapsed_ms": 10.49,
+      "headers": {
+        "ETag": "\"v1\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "code": "STALE_REVISION",
+        "message": "The current subject understanding changed; reload it before confirming.",
+        "correlation_id": "8a0594fb-a5f7-402a-ae3a-347d6a75f84e",
+        "retryable": false,
+        "retry_after_seconds": null,
+        "field_errors": null
+      }
+    },
+    {
+      "name": "reject_story_before_subject_confirmation",
+      "method": "POST",
+      "path": "/v1/story-runs/3cb01aeb-e99a-4732-a2e1-cece7971a48c/story-revisions",
+      "status": 409,
+      "elapsed_ms": 16.58,
+      "headers": {
+        "ETag": "\"v1\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "code": "INVALID_STATE",
+        "message": "Confirm the drawing subject before generating a story.",
+        "correlation_id": "6c67afcf-da93-42ca-ac1e-3189ede88ae1",
+        "retryable": false,
+        "retry_after_seconds": null,
+        "field_errors": null
+      }
+    },
+    {
+      "name": "get_missing_story_revision",
+      "method": "GET",
+      "path": "/v1/story-runs/3cb01aeb-e99a-4732-a2e1-cece7971a48c/story-revisions/f236eaf4-fad0-4f6a-9776-d5163c66c602",
+      "status": 404,
+      "elapsed_ms": 7.16,
+      "headers": {
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "code": "NOT_FOUND",
+        "message": "Story revision not found.",
+        "correlation_id": "05f2ea19-9030-476e-89d1-5c8b96083d52",
+        "retryable": false,
+        "field_errors": null
+      }
+    },
+    {
+      "name": "confirm_missing_story_revision",
+      "method": "POST",
+      "path": "/v1/story-runs/3cb01aeb-e99a-4732-a2e1-cece7971a48c/story-revisions/f236eaf4-fad0-4f6a-9776-d5163c66c602/confirmation",
+      "status": 404,
+      "elapsed_ms": 10.23,
+      "headers": {
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "code": "NOT_FOUND",
+        "message": "Story revision not found.",
+        "correlation_id": "64c2a531-53b3-4095-90a7-db6274301089",
+        "retryable": false,
+        "field_errors": null
+      }
+    },
+    {
+      "name": "cancel_contract_run",
+      "method": "POST",
+      "path": "/v1/story-runs/3cb01aeb-e99a-4732-a2e1-cece7971a48c/cancel",
+      "status": 202,
+      "elapsed_ms": 16.02,
+      "headers": {
+        "ETag": "\"v2\"",
+        "Location": "/v1/story-runs/3cb01aeb-e99a-4732-a2e1-cece7971a48c",
+        "Retry-After": "1",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "3cb01aeb-e99a-4732-a2e1-cece7971a48c",
+        "run_state": "DELETE_PENDING",
+        "revision": 2,
+        "version": 2,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T10:13:23.776455+00:00",
+        "updated_at": "2026-11-04T10:13:23.862481+00:00",
+        "job_state": null,
+        "retryable": false,
+        "action_required": null,
+        "error": null,
+        "result": null
+      }
+    },
+    {
+      "name": "create_upload_target_run",
+      "method": "POST",
+      "path": "/v1/story-runs",
+      "status": 201,
+      "elapsed_ms": 13.74,
+      "headers": {
+        "ETag": "\"v1\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "6da48dd2-5eba-41b2-8061-592443f881e4",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 1,
+        "version": 1,
+        "child_age_months": 72,
+        "target_revision": null,
+        "created_at": "2026-11-04T10:13:23.879191+00:00",
+        "updated_at": "2026-11-04T10:13:23.879191+00:00",
+        "job_state": null,
+        "retryable": false,
+        "action_required": null,
+        "error": null,
+        "result": null
+      }
+    },
+    {
+      "name": "create_upload_session",
+      "method": "POST",
+      "path": "/v1/upload-sessions",
+      "status": 201,
+      "elapsed_ms": 17.59,
+      "headers": {
+        "ETag": "\"v1\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "upload_ref": "a3d0bb0a-16ac-4b6d-9810-27d69682f65f",
+        "state": "RECEIVING",
+        "version": 1,
+        "part_size_bytes": 4194304,
+        "max_total_bytes": 20971520,
+        "max_parts": 5,
+        "parts": [],
+        "asset_ref": null,
+        "derived_asset_ref": null,
+        "expires_at": "2026-11-04T12:13:23.893979+00:00",
+        "error": null
+      }
+    },
+    {
+      "name": "put_upload_part",
+      "method": "PUT",
+      "path": "/v1/upload-sessions/a3d0bb0a-16ac-4b6d-9810-27d69682f65f/parts/1",
+      "status": 200,
+      "elapsed_ms": 23.82,
+      "headers": {
+        "ETag": "\"v1\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "part_no": 1,
+        "size_bytes": 1775882,
+        "sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949"
+      }
+    },
+    {
+      "name": "get_upload_before_complete",
+      "method": "GET",
+      "path": "/v1/upload-sessions/a3d0bb0a-16ac-4b6d-9810-27d69682f65f",
+      "status": 200,
+      "elapsed_ms": 9.23,
+      "headers": {
+        "ETag": "\"v1\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "upload_ref": "a3d0bb0a-16ac-4b6d-9810-27d69682f65f",
+        "state": "RECEIVING",
+        "version": 1,
+        "part_size_bytes": 4194304,
+        "max_total_bytes": 20971520,
+        "max_parts": 5,
+        "parts": [
+          {
+            "part_no": 1,
+            "size_bytes": 1775882,
+            "sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949"
+          }
+        ],
+        "asset_ref": null,
+        "derived_asset_ref": null,
+        "expires_at": "2026-11-04T12:13:23.893979+00:00",
+        "error": null
+      }
+    },
+    {
+      "name": "complete_upload",
+      "method": "POST",
+      "path": "/v1/upload-sessions/a3d0bb0a-16ac-4b6d-9810-27d69682f65f/complete",
+      "status": 202,
+      "elapsed_ms": 445.34,
+      "headers": {
+        "ETag": "\"v2\"",
+        "Location": "/v1/upload-sessions/a3d0bb0a-16ac-4b6d-9810-27d69682f65f",
+        "Retry-After": "1",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "upload_ref": "a3d0bb0a-16ac-4b6d-9810-27d69682f65f",
+        "state": "PENDING",
+        "version": 2,
+        "part_size_bytes": 4194304,
+        "max_total_bytes": 20971520,
+        "max_parts": 5,
+        "parts": [
+          {
+            "part_no": 1,
+            "size_bytes": 1775882,
+            "sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949"
+          }
+        ],
+        "asset_ref": null,
+        "derived_asset_ref": null,
+        "expires_at": "2026-11-04T12:13:23.893979+00:00",
+        "error": null
+      }
+    },
+    {
+      "name": "poll_completed_upload",
+      "method": "GET",
+      "path": "/v1/upload-sessions/a3d0bb0a-16ac-4b6d-9810-27d69682f65f",
+      "status": 200,
+      "elapsed_ms": 11.41,
+      "headers": {
+        "ETag": "\"v4\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "upload_ref": "a3d0bb0a-16ac-4b6d-9810-27d69682f65f",
+        "state": "READY",
+        "version": 4,
+        "part_size_bytes": 4194304,
+        "max_total_bytes": 20971520,
+        "max_parts": 5,
+        "parts": [
+          {
+            "part_no": 1,
+            "size_bytes": 1775882,
+            "sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949"
+          }
+        ],
+        "asset_ref": "9dd4bdf4-9b97-435e-82db-61533cacbcb6",
+        "derived_asset_ref": "5b9089c1-1f8b-4a46-8f59-bb8293863d1d",
+        "expires_at": "2026-11-04T12:13:23.893979+00:00",
+        "error": null
+      }
+    },
+    {
+      "name": "create_delete_target_run",
+      "method": "POST",
+      "path": "/v1/story-runs",
+      "status": 409,
+      "elapsed_ms": 12.02,
+      "headers": {
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "code": "ACTIVE_RUN_EXISTS",
+        "message": "This owner already has an unfinished StoryRun.",
+        "correlation_id": "c37ba319-347c-4698-bcac-1d873d8061e8",
+        "retryable": false,
+        "retry_after_seconds": null,
+        "field_errors": null
+      }
+    }
+  ],
+  "database_guard": {
+    "database": "storyrun_lite_feat063_ai_api_contract_20261104",
+    "current_user_is_owner": true,
+    "api_client_target": "127.0.0.1",
+    "postgres_container_server_address": "172.17.0.2/32",
+    "test_harness_only": true,
+    "product_loopback_guard_changed": false
+  }
+}

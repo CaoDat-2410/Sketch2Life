@@ -1,0 +1,94 @@
+{
+  "recorded_at": "2026-10-14T23:25:15.506475+07:00",
+  "gate": "live-app route negative test (Q00 acceptance)",
+  "command": "python -B -m pytest backend/tests/contract/test_ai_job_polling.py::test_live_app_routes_have_no_candidate_job_route -p no:cacheprovider -rs",
+  "interpreter": "<backend-venv> 3.12.10",
+  "module_origin": [
+    "<worktree>\\backend\\src\\sketch2life\\__init__.py",
+    "<repo>\\backend\\.venv\\Scripts\\python.exe"
+  ],
+  "exit_code": 0,
+  "result": "NOT_RUN (skipped: Pillow unavailable)",
+  "gate_closed": false,
+  "source_sha256": {
+    "backend/tests/contract/test_ai_job_polling.py": "26ba77564276802fd2d4c19958442d6094cf563ea5cb5392760a416e2b95bb25",
+    "backend/src/sketch2life/interfaces/http/app.py": "505ca71737d053ffc4e5f4c46cb393cdcc4c218a259fbf925fa40a2aa0f2b242",
+    "backend/src/sketch2life/interfaces/http/ai_jobs_fixture_app.py": "7ee82e3c80d3ba892b9b532961786832f747cf1a627a245cb20c90d85e6d1d03",
+    "backend/src/sketch2life/interfaces/http/routers/ai_jobs.py": "8f90789fe6bc5abbd5b1f2d489c201dd99def252ad2182d591a2becbbc7641b6"
+  },
+  "interpreter_inventory": {
+    "<backend-venv>": {
+      "present": true,
+      "python": "3.12.10",
+      "modules": {
+        "pytest": true,
+        "fastapi": true,
+        "starlette": true,
+        "PIL": false,
+        "pydantic": true,
+        "httpx": true,
+        "boto3": true,
+        "structlog": true
+      }
+    },
+    "<repo>/.venv": {
+      "present": true,
+      "python": "3.14.5",
+      "modules": {
+        "pytest": false,
+        "fastapi": false,
+        "starlette": false,
+        "PIL": false,
+        "pydantic": false,
+        "httpx": false,
+        "boto3": false,
+        "structlog": false
+      }
+    },
+    "<repo>/.worktrees/p2-t4/backend/.venv": {
+      "present": true,
+      "python": "3.13.5",
+      "modules": {
+        "pytest": true,
+        "fastapi": true,
+        "starlette": true,
+        "PIL": false,
+        "pydantic": true,
+        "httpx": false,
+        "boto3": true,
+        "structlog": true
+      }
+    },
+    "<user>/Python312": {
+      "present": true,
+      "python": "3.12.10",
+      "modules": {
+        "pytest": false,
+        "fastapi": false,
+        "starlette": false,
+        "PIL": true,
+        "pydantic": true,
+        "httpx": true,
+        "boto3": false,
+        "structlog": false
+      }
+    },
+    "<user>/Python/bin": {
+      "present": true,
+      "python": "3.14.5",
+      "modules": {
+        "pytest": false,
+        "fastapi": false,
+        "starlette": false,
+        "PIL": true,
+        "pydantic": false,
+        "httpx": false,
+        "boto3": false,
+        "structlog": false
+      }
+    }
+  },
+  "interpreters_with_pytest_fastapi_pillow": [],
+  "not_done": "no install, no setup, no environment splicing, no remote LightningAI run",
+  "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/q00_accept_live_route_attempt.txt"
+}

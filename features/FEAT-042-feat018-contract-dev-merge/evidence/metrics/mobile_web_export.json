@@ -1,0 +1,16 @@
+{
+  "command": [
+    "node",
+    "node_modules/expo/bin/cli",
+    "export",
+    "--platform",
+    "web",
+    "--output-dir",
+    "../../.tmp/feat042-mobile-web"
+  ],
+  "cwd": "<worktree>\\apps\\ui-mobile",
+  "started_at_utc": "2026-10-10T13:08:46.010589+00:00",
+  "finished_at_utc": "2026-10-10T13:10:16.842126+00:00",
+  "exit_code": 1,
+  "status": "FAIL"
+}

@@ -1,0 +1,8 @@
+flowchart LR
+  Child[Child Android] -->|HTTPS| API[Sketch2Life FastAPI]
+  Teacher[Teacher Desktop] -->|HTTPS| API
+  Admin[Super Admin Console] -->|Scoped HTTPS| API
+  API -->|Adult identity only| Firebase[Firebase Authentication]
+  API -. Backend-only AI calls .-> Modal[Modal selected; deployment TBD]
+  API -. Proposed durable adapters .-> Data[(Database, queue, artifact storage TBD)]
+  School[School-mediated consent] --> Teacher

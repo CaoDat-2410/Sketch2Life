@@ -1,0 +1,76 @@
+{
+  "canonical_srs": "FEAT-063 SRS v2.4-draft",
+  "modal_calls_in_this_task": 0,
+  "workloads": [
+    {
+      "id": "drawing.analyze",
+      "model": "Qwen/Qwen3.5-9B@c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "worker_result": "PASS",
+      "elapsed_seconds": 44.014,
+      "current_api": "Synthetic worker passed; authenticated durable Parent API is not established. Historical StoryRun-lite HTTP request ended UNKNOWN after 303.762 s; no worker-stage log."
+    },
+    {
+      "id": "story.generate + storyboard.generate",
+      "model": "Qwen/Qwen3.5-9B@c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "worker_result": "PASS",
+      "elapsed_seconds": 113.381,
+      "current_api": "Worker returned 5 Vietnamese scenes / 30 s. Historical API test (before Qwen3.5-only migration) returned 502 STORY_OUTPUT_INVALID after EDUCATIONAL_FACT_INVALID; no current API inference repeated."
+    },
+    {
+      "id": "parent.sketch-guide.generate",
+      "model": "FLUX.3 Image Klein (pinned Rev46A)",
+      "worker_result": "PASS",
+      "elapsed_seconds": 65.772,
+      "current_api": "Synthetic 3-panel 768x512 private DRAFT; dedicated authenticated product dispatch route not established."
+    },
+    {
+      "id": "teacher.sketch-deck.generate",
+      "model": "Qwen/Qwen3.5-9B@c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "worker_result": "PASS",
+      "elapsed_seconds": 43.464,
+      "current_api": "5-slide 16:9 draft, 4 drawing steps, 2 approved activity refs; durable Teacher occurrence/deck API remains absent."
+    },
+    {
+      "id": "lesson.plan.suggest",
+      "model": "Qwen/Qwen3.5-9B@c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "worker_result": "PASS",
+      "elapsed_seconds": 61.636,
+      "current_api": "Synthetic draft_only output passed; durable authenticated API/job persistence remains absent. SRS role boundary: Platform Admin/Teacher generate; Parent edits only."
+    },
+    {
+      "id": "lesson.visual.generate",
+      "model": "FLUX.3 Image Klein (pinned Rev46A)",
+      "worker_result": "PASS",
+      "elapsed_seconds": 47.206,
+      "current_api": "Synthetic 3-panel 768x432 private DRAFT with lesson lineage; dedicated authenticated product route absent."
+    },
+    {
+      "id": "tts.narration.generate",
+      "model": "VieNeu-TTS-v3-Turbo + MOSS-Audio-Tokenizer-Nano-ONNX",
+      "worker_result": "PASS",
+      "elapsed_seconds": 19.161,
+      "current_api": "Synthetic Vietnamese WAV created; durable product dispatch API absent."
+    },
+    {
+      "id": "asr.transcribe",
+      "model": "faster-whisper-large-v3",
+      "worker_result": "PASS",
+      "elapsed_seconds": 23.9,
+      "current_api": "Exact synthetic Vietnamese transcript returned; durable product dispatch API absent."
+    },
+    {
+      "id": "drawing.segment",
+      "model": "SAM 2.1 Hiera-Small (optional)",
+      "worker_result": "BLOCKED",
+      "elapsed_seconds": 1800,
+      "current_api": "Checkpoint verified; previous call waited 1,800 s for GPU_L4 scheduling and produced no mask. Dedicated product API absent. Not retried because no dev app is currently deployed and unchanged retry would repeat the known capacity wait."
+    },
+    {
+      "id": "video.scene.generate / validate / compose / final-safety",
+      "model": "LTX-2.5 remains target; not exercised",
+      "worker_result": "EXCLUDED_BY_OWNER",
+      "elapsed_seconds": null,
+      "current_api": "No video calls or product claims in this pass."
+    }
+  ]
+}

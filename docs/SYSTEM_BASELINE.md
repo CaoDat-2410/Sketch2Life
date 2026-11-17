@@ -255,7 +255,9 @@ Explicitly forbidden:
 - plain-text token logging/storage;
 - child seed accounts or reusable test credentials.
 
-Local tests should use ephemeral factories or Firebase Authentication Emulator identities. Seed account credentials are not repository artifacts.
+Current test integration uses dedicated identities in the owner-controlled Firebase Authentication
+project; isolated unit tests may still use ephemeral factories or Firebase Authentication Emulator
+identities. Seed account credentials are never repository artifacts.
 
 ## 12. Data and storage ownership
 
@@ -526,7 +528,8 @@ The base architecture has no unresolved blocker. These choices remain intentiona
 This sequence describes technical dependencies for the project as a whole. It is not the four-person task assignment and must not be converted into a P1 -> P2 -> P3 -> P4 staffing chain. Sprint assignments follow Section 21 and prioritize parallel, fixture-driven workstreams; the later Integration Sprint receives its own allocation.
 
 1. Install Android SDK and prove a blank debug APK on API 29/API 36.
-2. Create Firebase development project/config outside Git and implement auth adapter using emulator fixtures first.
+2. Configure the owner-controlled Firebase test project outside Git and implement the auth adapter
+   with dedicated test identities; emulator fixtures remain available for isolated unit tests.
 3. Freeze v1 session/artifact/job/auth contracts.
 4. Implement one backend/mobile vertical slice with fixtures: sign-in -> create supervised session -> basic capture metadata.
 5. Add PostgreSQL/S3 repositories with immutable artifact provenance.

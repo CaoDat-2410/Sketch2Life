@@ -1,0 +1,127 @@
+{
+  "capturedAt": "2026-11-09T14:29:29.046Z",
+  "environment": "Local Parent preview with synthetic data, Microsoft Edge via CDP",
+  "viewport": "430x932",
+  "runtimeErrors": [],
+  "screens": [
+    {
+      "name": "P05-context-idea",
+      "url": "http://127.0.0.1:5271/p05-context-idea-confirmation",
+      "text": "9:41\nXem thử · không lưu dữ liệu\nÝ tưởng\n–\n3\n4\n5\nGiờ bé kể về con bướm nhé\n\nGhi âm hoặc nhập vài ý ngắn.\n\nXóa nhanh\nGhi âm giọng kể\nBản xem thử · chưa dùng micro thật\n00:00 / 02:00\nTiếp tục\nBỏ qua",
+      "bodyLength": 196,
+      "activities": 0,
+      "stepper": "Tiến trình câu chuyện: bước 3 trên 5, bước tùy chọn đã bỏ qua",
+      "ageError": null,
+      "viewport": "430x932"
+    },
+    {
+      "name": "P06-story-review",
+      "url": "http://127.0.0.1:5271/p06-story-review",
+      "text": "9:41\nXem thử · không lưu dữ liệu\nDuyệt kịch bản câu chuyện\n–\n4\n5\nKiểm tra kịch bản 5 cảnh trước khi dùng 1 lượt tạo video.\nHành trình của Con bướm\nBản #1\nCon bướm\n1\nChú sâu nhỏ trên chiếc lá\n\nSáng sớm trong khu vườn, chú sâu nhỏ bò chậm rãi trên chiếc lá xanh mướt đẫm sương.\n\nThời lượng cảnh: 12 giây\n2\nChiếc kén ấm áp\n",
+      "bodyLength": 919,
+      "activities": 0,
+      "stepper": "Tiến trình câu chuyện: bước 4 trên 5, bước tùy chọn đã bỏ qua",
+      "ageError": null,
+      "viewport": "430x932"
+    },
+    {
+      "name": "P07-video-status",
+      "url": "http://127.0.0.1:5271/p07-video-job-status",
+      "text": "9:41\nXem thử · không lưu dữ liệu\nTiến trình tạo video\n–\n5\nĐang tạo video...\nĐang minh họa bước 2 / 4\nBản xem thử: các bước này không gửi tác vụ tạo video thật.\nĐọc nội dung bức vẽ\nChuẩn bị kịch bản đã duyệt\nTạo hình ảnh và cảnh phim\nThêm lời kể và kiểm tra an toàn\nHủy tạo video",
+      "bodyLength": 278,
+      "activities": 0,
+      "stepper": "Tiến trình câu chuyện: bước 5 trên 5, bước tùy chọn đã bỏ qua",
+      "ageError": null,
+      "viewport": "430x932"
+    },
+    {
+      "name": "P08-video-playback",
+      "url": "http://127.0.0.1:5271/p08-video-and-activities",
+      "text": "9:41\nXem thử · không lưu dữ liệu\nXem video câu chuyện\n–\n5\nCâu chuyện của Con bướm\nCảnh 2/5\nChú sâu cuộn mình trong chiếc kén nhỏ dưới cành cây và nghỉ ngơi thật yên bình.\n00:15 / 01:00\nCC\nXoay ngang / Toàn màn hình (16:9)\nTự động mở ngang khi phát\nXoay khung xem 16:9 rộng rãi cho bé\nVideo phát riêng tư trong ứng dụng ở",
+      "bodyLength": 445,
+      "activities": 0,
+      "stepper": "Tiến trình câu chuyện: bước 5 trên 5, bước tùy chọn đã bỏ qua",
+      "ageError": null,
+      "viewport": "430x932"
+    },
+    {
+      "name": "P08b-all-activities",
+      "url": "http://127.0.0.1:5271/p08b-outdoor-activity",
+      "text": "9:41\nXem thử · không lưu dữ liệu\nHoạt động sau câu chuyện\nCùng khám phá hoạt động\n\nCác hoạt động trong bài học “Vòng đời bướm”.\n\nHướng dẫn cho gia đình\nChế độ cho bé\nQuan sát vòng đời bướm ngoài vườn\nDụng cụ chuẩn bị\n\nSổ tay, bút màu, kính lúp nhựa trẻ em\n\nHướng dẫn\n\nTìm bướm hoặc lá cây có sâu bướm ở vườn, công viên.\n",
+      "bodyLength": 616,
+      "activities": 2,
+      "stepper": null,
+      "ageError": null,
+      "viewport": "430x932"
+    },
+    {
+      "name": "P10-child-profile",
+      "url": "http://127.0.0.1:5271/p10-child-profiles/child-minh",
+      "text": "9:41\nXem thử · không lưu dữ liệu\nBé Minh\nBé Minh\n5 tuổi (60 tháng)\nMặc định\nThông tin chi tiết\nTên hiển thị của bé\nĐộ tuổi (36–120 tháng · 5 tuổi)\n\nNhập số tháng tuổi từ 36 đến 120.\n\n3 – 4 tuổi\n5 – 6 tuổi\n7 – 8 tuổi\n9–10 tuổi\nSở thích (cách nhau bởi dấu phẩy)\nQuan sát học tập & trải nghiệm\nGhi chú hỗ trợ riêng\nMặc định",
+      "bodyLength": 566,
+      "activities": 0,
+      "stepper": null,
+      "ageError": null,
+      "viewport": "430x932"
+    },
+    {
+      "name": "P13-child-profiles",
+      "url": "http://127.0.0.1:5271/p13-settings#child-profiles",
+      "text": "9:41\nXem thử · không lưu dữ liệu\nCài đặt\nNguyễn Phương Lan\nlan.nguyen@gmail.com\nPhụ huynh\nHồ sơ bé\nThêm\nBé Minh\n5 tuổi\nĐang dùng\nBé An\n4 tuổi\nChế độ hiển thị\nGiao diện sáng\nSáng\nTối\nTài khoản & Bảo mật\nTài khoản & Tùy chọn\nThông tin phụ huynh, thông báo, phụ đề\nQuyền riêng tư & Dữ liệu AI\nChính sách riêng tư & kết nối\n",
+      "bodyLength": 509,
+      "activities": 0,
+      "stepper": null,
+      "ageError": null,
+      "viewport": "430x932"
+    },
+    {
+      "name": "P10-age-invalid",
+      "url": "http://127.0.0.1:5271/p10-child-profiles/child-minh",
+      "text": "9:41\nXem thử · không lưu dữ liệu\nBé Minh\nBé Minh\n5 tuổi (60 tháng)\nMặc định\nThông tin chi tiết\nTên hiển thị của bé\nĐộ tuổi (36–120 tháng)\n\nNhập số tháng tuổi từ 36 đến 120.\n\nNhập độ tuổi từ 36 đến 120 tháng bằng số nguyên.\n\n3 – 4 tuổi\n5 – 6 tuổi\n7 – 8 tuổi\n9–10 tuổi\nSở thích (cách nhau bởi dấu phẩy)\nQuan sát học tập & ",
+      "bodyLength": 607,
+      "activities": 0,
+      "stepper": null,
+      "ageError": "Nhập độ tuổi từ 36 đến 120 tháng bằng số nguyên.",
+      "viewport": "430x932"
+    },
+    {
+      "name": "P08-video-landscape",
+      "url": "http://127.0.0.1:5271/p08-video-and-activities",
+      "text": "Câu chuyện của Con bướm\n16:9 Ngang\nThu nhỏ / Dọc lại\nChú sâu cuộn mình trong chiếc kén nhỏ dưới cành cây và nghỉ ngơi thật yên bình.\n00:15 / 01:00\nCC",
+      "musicCopy": false,
+      "landscape": true,
+      "previewBanner": false,
+      "viewport": "932x430"
+    },
+    {
+      "name": "P08b-second-activity",
+      "url": "http://127.0.0.1:5271/p08b-outdoor-activity",
+      "activities": 2,
+      "secondTitle": "Nhật ký sắc màu cánh bướm",
+      "text": "ườn\nDụng cụ chuẩn bị\n\nSổ tay, bút màu, kính lúp nhựa trẻ em\n\nHướng dẫn\n\nTìm bướm hoặc lá cây có sâu bướm ở vườn, công viên.\n\nLưu ý an toàn: Không chạm tay trực tiếp vào sâu hoặc côn trùng lạ; luôn có người lớn đi cùng.\nNhật ký sắc màu cánh bướm\nDụng cụ chuẩn bị\n\nSổ tay, bút sáp màu\n\nHướng dẫn\n\nVẽ lại màu cánh bướm và những chiếc lá bé quan sát được.\n\nLưu ý an toàn: Chọn khu vực sân phẳng, râm mát.\nHoàn tất câu chuyện",
+      "viewport": "430x932",
+      "scroll": "second activity card"
+    },
+    {
+      "name": "P13-add-child-age-invalid-after-save",
+      "dialogStillOpen": true,
+      "submittedAge": "121",
+      "ageInvalid": "true",
+      "error": "Nhập độ tuổi từ 36 đến 120 tháng bằng số nguyên.",
+      "profileHeadingVisible": false,
+      "viewport": "430x932"
+    },
+    {
+      "name": "P11-login-backend-warning",
+      "url": "http://[::ffff:7f00:1]:5271/p11-authentication",
+      "host": "[::ffff:7f00:1]",
+      "text": "Sketch2Life\nChào mừng bố mẹ\nEmail đăng nhập\nMật khẩu\nĐăng nhập\nChưa thể đăng nhập\nBạn chưa thể đăng nhập ở phiên bản này. Hãy thử lại sau hoặc liên hệ bộ phận hỗ trợ để được giúp đỡ.\nChưa có tài khoản? Đăng ký",
+      "emailRequired": true,
+      "passwordRequired": true,
+      "loginDisabled": true,
+      "formValid": false,
+      "viewport": "430x932",
+      "runtimeErrors": []
+    }
+  ]
+}

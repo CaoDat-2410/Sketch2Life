@@ -1,0 +1,12 @@
+{
+  "contract_name": "IntegrationGateDecisionV1",
+  "gate": "B",
+  "status": "APPROVED",
+  "actor_ref": "synthetic-adult-001",
+  "expected_session_version": 2,
+  "activity_id": "ACT-0004",
+  "activity_version": 2,
+  "objective_id": "OBJ_MOVEMENT_COORDINATION",
+  "objective_version": 1,
+  "contract_version": "1.0"
+}

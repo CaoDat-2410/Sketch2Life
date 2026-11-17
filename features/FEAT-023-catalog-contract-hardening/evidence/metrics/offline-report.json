@@ -1,0 +1,45 @@
+{
+  "contract_name": "CatalogOfflineEvaluationReportV1",
+  "contract_version": "1.0",
+  "corpus_ref": "features/FEAT-023-catalog-contract-hardening/fixtures/offline-corpus.v1.json",
+  "scene_count": 100,
+  "catalog_revision": "catalog-2026-09-expansion-2",
+  "selectable_profile_count": 300,
+  "no_match_count": 0,
+  "no_match_scene_ids": [],
+  "objective_mismatch_count": 0,
+  "objective_mismatch_scene_ids": [],
+  "concept_mismatch_count": 0,
+  "concept_mismatch_scene_ids": [],
+  "same_seed_reproducibility_failures": [],
+  "different_seed_changed_selection_count": 48,
+  "candidate_count_min": 2,
+  "candidate_count_mean": 5.69,
+  "top_activity_share": 0.03,
+  "top_family_share": 0.08,
+  "distinct_activity_count": 81,
+  "distinct_family_count": 37,
+  "butterfly_candidate_counts_by_age": {
+    "0-3": {
+      "min": 4,
+      "max": 4,
+      "meets_three_candidate_target": true
+    },
+    "3-6": {
+      "min": 4,
+      "max": 4,
+      "meets_three_candidate_target": true
+    },
+    "6-9": {
+      "min": 4,
+      "max": 4,
+      "meets_three_candidate_target": true
+    },
+    "9-12": {
+      "min": 4,
+      "max": 4,
+      "meets_three_candidate_target": true
+    }
+  },
+  "status": "PASS"
+}

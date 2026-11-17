@@ -1,0 +1,60 @@
+{
+  "module_origin_in_worktree": true,
+  "findings": {
+    "R03a": {
+      "defect_present": true,
+      "observed": {
+        "invalid_state": {
+          "first": "INVALID_STATE",
+          "later": "accepted",
+          "projected": [
+            "artifact_fx0001"
+          ],
+          "projected_but_quarantined": [
+            "artifact_fx0001"
+          ]
+        },
+        "input_mismatch": {
+          "first": "INPUT_MISMATCH",
+          "later": "accepted",
+          "projected": [
+            "artifact_fx0001"
+          ],
+          "projected_but_quarantined": [
+            "artifact_fx0001"
+          ]
+        }
+      }
+    },
+    "R04a": {
+      "defect_present": true,
+      "observed": {
+        "list": {
+          "exception": "TypeError: unhashable type: 'list'"
+        },
+        "dict": {
+          "exception": "TypeError: unhashable type: 'dict'"
+        },
+        "list_secret": {
+          "exception": "TypeError: unhashable type: 'list'"
+        }
+      }
+    },
+    "A18a": {
+      "defect_present": true,
+      "observed": {
+        "purge": [
+          "deleted"
+        ],
+        "purge_finished_while_cancel_paused": true,
+        "current": "cancel_requested",
+        "current_receipt": null,
+        "replay": "deleted",
+        "threads_alive": [
+          false,
+          false
+        ]
+      }
+    }
+  }
+}

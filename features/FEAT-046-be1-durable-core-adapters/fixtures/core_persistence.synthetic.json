@@ -1,0 +1,76 @@
+{
+  "fixture_id": "Sketch2Life.CorePersistenceSeedV1@1.0",
+  "synthetic_only": true,
+  "auto_seed": false,
+  "notes": [
+    "All identifiers and hashes are synthetic placeholders.",
+    "storage_ref and source_refs are opaque references; no media bytes are included.",
+    "Apply only in an isolated local verification database after explicit review."
+  ],
+  "aggregate": {
+    "aggregate_id": "synthetic-canvas-001",
+    "organization_id": "synthetic-org-001",
+    "revision": 2
+  },
+  "operation": {
+    "operation_id": "synthetic-op-001",
+    "organization_id": "synthetic-org-001",
+    "canvas_id": "synthetic-canvas-001",
+    "session_id": "synthetic-session-001",
+    "turn_id": "synthetic-turn-001",
+    "participant_id": "synthetic-participant-001",
+    "document_epoch": 1,
+    "resulting_revision": 2,
+    "request_fingerprint": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "idempotency_receipt": {
+    "organization_id": "synthetic-org-001",
+    "scope": "org:synthetic-org-001/canvas:synthetic-canvas-001",
+    "key": "synthetic-idempotency-key-001",
+    "request_fingerprint": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "resulting_revision": 2,
+    "operation_id": "synthetic-op-001"
+  },
+  "checkpoint": {
+    "checkpoint_id": "synthetic-checkpoint-001",
+    "organization_id": "synthetic-org-001",
+    "canvas_id": "synthetic-canvas-001",
+    "document_epoch": 1,
+    "revision": 2,
+    "through_operation_id": "synthetic-op-001",
+    "checksum_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "storage_ref": "opaque-synthetic-checkpoint:v1"
+  },
+  "asset_metadata": {
+    "asset_ref": "synthetic-asset-001",
+    "asset_version": 1,
+    "organization_id": "synthetic-org-001",
+    "content_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "media_type": "image/png",
+    "source_refs": ["synthetic-source-artifact-001"],
+    "derived_from_ref": "synthetic-source-artifact-001"
+  },
+  "audit_entry": {
+    "audit_id": "02ef48de-220a-4f8f-9fc6-87ac48ddaf95",
+    "organization_id": "synthetic-org-001",
+    "actor_ref": "synthetic-principal-001",
+    "action": "canvas.operation.accept",
+    "resource_type": "canvas",
+    "resource_id": "synthetic-canvas-001",
+    "decision": "accepted_durable"
+  },
+  "outbox_event": {
+    "event_id": "c786b8c2-9514-458a-9c3a-9e2b85871a79",
+    "event_type": "canvas.operation.accepted.v1",
+    "organization_id": "synthetic-org-001",
+    "aggregate_id": "synthetic-canvas-001",
+    "aggregate_revision": 2,
+    "payload": {
+      "operation_id": "synthetic-op-001",
+      "document_epoch": "1"
+    },
+    "status": "pending",
+    "attempt_count": 0
+  },
+  "outbox_consumer_receipts": []
+}

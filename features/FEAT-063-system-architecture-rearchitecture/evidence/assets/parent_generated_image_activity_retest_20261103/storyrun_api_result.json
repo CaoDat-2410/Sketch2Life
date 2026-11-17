@@ -1,0 +1,271 @@
+{
+  "flow_id": "bc10d728-90c8-488b-a817-03a96fa3b59b",
+  "started_at_local": "2026-11-03T23:44:43.424010+07:00",
+  "modal_run_id": "a4d80c3f-69e7-499f-9939-10dc75237a52",
+  "image": {
+    "file": "synthetic_childlike_butterfly.png",
+    "sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949",
+    "byte_length": 1775882
+  },
+  "records": [
+    {
+      "step": "health_probe",
+      "method": "GET",
+      "path": "/health",
+      "http_status": 404,
+      "elapsed_ms": 4.919,
+      "request_id": null,
+      "headers": {},
+      "response": {
+        "detail": "Not Found"
+      }
+    },
+    {
+      "step": "openapi_probe",
+      "method": "GET",
+      "path": "/openapi.json",
+      "http_status": 404,
+      "elapsed_ms": 1.735,
+      "request_id": null,
+      "headers": {},
+      "response": {
+        "detail": "Not Found"
+      }
+    },
+    {
+      "step": "create_story_run",
+      "method": "POST",
+      "path": "/v1/story-runs",
+      "http_status": 201,
+      "elapsed_ms": 50.992,
+      "request_id": null,
+      "headers": {
+        "ETag": "\"v1\""
+      },
+      "response": {
+        "run_ref": "ba0a369f-22ec-4560-972f-dc48916ae86b",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 1,
+        "version": 1,
+        "target_revision": null,
+        "created_at": "2026-11-03T23:44:43.462533+07:00",
+        "updated_at": "2026-11-03T23:44:43.462533+07:00",
+        "job_state": null,
+        "retryable": false,
+        "action_required": null,
+        "error": null,
+        "result": null
+      }
+    },
+    {
+      "step": "create_upload_session",
+      "method": "POST",
+      "path": "/v1/upload-sessions",
+      "http_status": 201,
+      "elapsed_ms": 20.433,
+      "request_id": null,
+      "headers": {
+        "ETag": "\"v1\""
+      },
+      "response": {
+        "upload_ref": "25c2a842-ff72-409b-9aae-39d2fd57d23d",
+        "state": "RECEIVING",
+        "version": 1,
+        "part_size_bytes": 4194304,
+        "max_total_bytes": 20971520,
+        "max_parts": 5,
+        "parts": [],
+        "asset_ref": null,
+        "derived_asset_ref": null,
+        "expires_at": "2026-11-04T01:44:43.486581+07:00",
+        "error": null
+      }
+    },
+    {
+      "step": "upload_image_part",
+      "method": "PUT",
+      "path": "/v1/upload-sessions/25c2a842-ff72-409b-9aae-39d2fd57d23d/parts/1",
+      "http_status": 200,
+      "elapsed_ms": 23.484,
+      "request_id": null,
+      "headers": {
+        "ETag": "\"v1\""
+      },
+      "response": {
+        "part_no": 1,
+        "size_bytes": 1775882,
+        "sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949"
+      }
+    },
+    {
+      "step": "complete_upload_admission",
+      "method": "POST",
+      "path": "/v1/upload-sessions/25c2a842-ff72-409b-9aae-39d2fd57d23d/complete",
+      "http_status": 202,
+      "elapsed_ms": 1809.156,
+      "request_id": null,
+      "headers": {
+        "ETag": "\"v2\"",
+        "Location": "/v1/upload-sessions/25c2a842-ff72-409b-9aae-39d2fd57d23d",
+        "Retry-After": "1"
+      },
+      "response": {
+        "upload_ref": "25c2a842-ff72-409b-9aae-39d2fd57d23d",
+        "state": "PENDING",
+        "version": 2,
+        "part_size_bytes": 4194304,
+        "max_total_bytes": 20971520,
+        "max_parts": 5,
+        "parts": [
+          {
+            "part_no": 1,
+            "size_bytes": 1775882,
+            "sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949"
+          }
+        ],
+        "asset_ref": null,
+        "derived_asset_ref": null,
+        "expires_at": "2026-11-04T01:44:43.486581+07:00",
+        "error": null
+      }
+    },
+    {
+      "step": "poll_upload_admission",
+      "method": "GET",
+      "path": "/v1/upload-sessions/25c2a842-ff72-409b-9aae-39d2fd57d23d",
+      "http_status": 200,
+      "elapsed_ms": 5.43,
+      "request_id": null,
+      "headers": {
+        "ETag": "\"v4\""
+      },
+      "response": {
+        "upload_ref": "25c2a842-ff72-409b-9aae-39d2fd57d23d",
+        "state": "READY",
+        "version": 4,
+        "part_size_bytes": 4194304,
+        "max_total_bytes": 20971520,
+        "max_parts": 5,
+        "parts": [
+          {
+            "part_no": 1,
+            "size_bytes": 1775882,
+            "sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949"
+          }
+        ],
+        "asset_ref": "471bdbff-5305-43a4-b1d9-ff2b4c5d6cb7",
+        "derived_asset_ref": "7fc10f18-3bcc-4e17-9183-07ee420dbbb5",
+        "expires_at": "2026-11-04T01:44:43.486581+07:00",
+        "error": null
+      }
+    },
+    {
+      "step": "attach_artwork_and_run_modal_vision",
+      "method": "POST",
+      "path": "/v1/story-runs/ba0a369f-22ec-4560-972f-dc48916ae86b/assets",
+      "http_status": 202,
+      "elapsed_ms": 30.211,
+      "request_id": null,
+      "headers": {
+        "ETag": "\"v2\"",
+        "Location": "/v1/story-runs/ba0a369f-22ec-4560-972f-dc48916ae86b",
+        "Retry-After": "1"
+      },
+      "response": {
+        "run_ref": "ba0a369f-22ec-4560-972f-dc48916ae86b",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 2,
+        "version": 2,
+        "target_revision": null,
+        "created_at": "2026-11-03T23:44:43.462533+07:00",
+        "updated_at": "2026-11-03T23:44:45.354667+07:00",
+        "job_state": "QUEUED",
+        "retryable": false,
+        "action_required": null,
+        "error": null,
+        "result": null
+      }
+    },
+    {
+      "step": "read_story_run_after_vision",
+      "method": "GET",
+      "path": "/v1/story-runs/ba0a369f-22ec-4560-972f-dc48916ae86b",
+      "http_status": 200,
+      "elapsed_ms": 3.601,
+      "request_id": null,
+      "headers": {
+        "ETag": "\"v4\""
+      },
+      "response": {
+        "run_ref": "ba0a369f-22ec-4560-972f-dc48916ae86b",
+        "run_state": "FAILED",
+        "revision": 3,
+        "version": 4,
+        "target_revision": null,
+        "created_at": "2026-11-03T23:44:43.462533+07:00",
+        "updated_at": "2026-11-03T23:44:45.373792+07:00",
+        "job_state": "FAILED",
+        "retryable": false,
+        "action_required": null,
+        "error": {
+          "code": "VISION_ATTEMPT_HOLD",
+          "message": "Vision outcome is held for operator review; it will not be resent.",
+          "correlation_id": "8f6fab7e-8a77-4184-b109-9f1ee7e61faa",
+          "retryable": false,
+          "retry_after_seconds": null,
+          "field_errors": null
+        },
+        "result": null
+      }
+    }
+  ],
+  "run_ref": "ba0a369f-22ec-4560-972f-dc48916ae86b",
+  "upload_ref": "25c2a842-ff72-409b-9aae-39d2fd57d23d",
+  "final_run": {
+    "run_ref": "ba0a369f-22ec-4560-972f-dc48916ae86b",
+    "run_state": "FAILED",
+    "revision": 3,
+    "version": 4,
+    "target_revision": null,
+    "created_at": "2026-11-03T23:44:43.462533+07:00",
+    "updated_at": "2026-11-03T23:44:45.373792+07:00",
+    "job_state": "FAILED",
+    "retryable": false,
+    "action_required": null,
+    "error": {
+      "code": "VISION_ATTEMPT_HOLD",
+      "message": "Vision outcome is held for operator review; it will not be resent.",
+      "correlation_id": "8f6fab7e-8a77-4184-b109-9f1ee7e61faa",
+      "retryable": false,
+      "retry_after_seconds": null,
+      "field_errors": null
+    },
+    "result": null
+  },
+  "subject_confirmed": false,
+  "confirmed_subject_label": null,
+  "video_calls": 0,
+  "attach_http_status": 202,
+  "attach_initial_response": {
+    "run_ref": "ba0a369f-22ec-4560-972f-dc48916ae86b",
+    "run_state": "INPUT_PROCESSING",
+    "revision": 2,
+    "version": 2,
+    "target_revision": null,
+    "created_at": "2026-11-03T23:44:43.462533+07:00",
+    "updated_at": "2026-11-03T23:44:45.354667+07:00",
+    "job_state": "QUEUED",
+    "retryable": false,
+    "action_required": null,
+    "error": null,
+    "result": null
+  },
+  "total_elapsed_ms": 1957.711,
+  "ended_at_local": "2026-11-03T23:44:45.382309+07:00",
+  "story_worker_ready": false,
+  "limitations": [
+    "The StoryRun-lite API has no story/script-generation operation; the story worker is a separate call after adult subject confirmation.",
+    "No video generation was requested or called.",
+    "The activity-list route is a separate legacy demo session; it is not attached to this StoryRun."
+  ]
+}

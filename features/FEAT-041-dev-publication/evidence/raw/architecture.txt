@@ -1,0 +1,6 @@
+ARCHITECTURE_VALID
+python_dependency_direction=valid
+mobile_feature_isolation=valid
+frontend_asset_gate=valid
+mobile_ai_boundary=valid
+firebase_data_products=absent

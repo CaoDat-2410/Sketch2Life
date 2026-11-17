@@ -1,0 +1,4 @@
+Command=<backend-venv>/ruff check --config backend/pyproject.toml --no-cache backend/src/sketch2life/domain/ai_jobs backend/src/sketch2life/application/ports/ai_jobs.py backend/src/sketch2life/application/services/ai_jobs.py backend/src/sketch2life/application/services/provider_copy_lifecycle.py backend/src/sketch2life/contracts/schemas/ai_jobs.py backend/src/sketch2life/contracts/schemas/ai_contract_candidates.py backend/src/sketch2life/infrastructure/ai_jobs backend/src/sketch2life/interfaces/http/routers/ai_jobs.py backend/src/sketch2life/interfaces/http/ai_jobs_fixture_app.py backend/tests/unit/test_ai_job_lifecycle.py backend/tests/unit/test_ai_job_application.py backend/tests/contract/test_ai_job_contracts.py backend/tests/contract/test_ai_job_polling.py features/FEAT-044-be2-ai-job-foundation/src
+started_at=2026-10-14T21:09:07.775656+07:00
+exit_code=0
+All checks passed!

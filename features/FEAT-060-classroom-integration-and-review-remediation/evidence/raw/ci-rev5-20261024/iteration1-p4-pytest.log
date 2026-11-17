@@ -1,0 +1,18 @@
+..............                                                           [100%]
+=================================== PASSES ====================================
+=========================== short test summary info ===========================
+PASSED backend\tests\unit\test_learning_media_contracts.py::test_request_contains_transport_and_exact_identity
+PASSED backend\tests\unit\test_learning_media_contracts.py::test_reviewed_cache_hit_is_ready_without_generation
+PASSED backend\tests\unit\test_learning_media_contracts.py::test_fallback_requires_typed_reason_and_preserves_identity
+PASSED backend\tests\unit\test_learning_media_contracts.py::test_cache_hit_cannot_be_fallback
+PASSED backend\tests\unit\test_learning_media_contracts.py::test_ready_media_requires_asset
+PASSED backend\tests\unit\test_learning_media_contracts.py::test_reviewed_cache_requires_hash_and_review_status
+PASSED backend\tests\unit\test_learning_media_fallback.py::test_approved_still_narration_is_first_fallback
+PASSED backend\tests\unit\test_learning_media_fallback.py::test_missing_still_uses_whole_image_reveal
+PASSED backend\tests\unit\test_learning_media_fallback.py::test_handoff_keeps_exact_identity
+PASSED backend\tests\unit\test_learning_media_resolver.py::test_exact_reviewed_asset_is_cache_hit
+PASSED backend\tests\unit\test_learning_media_resolver.py::test_unknown_key_is_typed_cache_miss_without_generation
+PASSED backend\tests\unit\test_learning_media_resolver.py::test_identity_mismatch_fails_closed
+PASSED backend\tests\unit\test_learning_media_resolver.py::test_corrupt_or_unsafe_asset_is_rejected
+PASSED backend\tests\unit\test_learning_media_scenario_matrix.py::test_scenario_matrix_matches_resolver_policy
+14 passed in 0.31s

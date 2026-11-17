@@ -1,0 +1,70 @@
+{
+  "asset_id": "A08b",
+  "use_case": "ui-mockup",
+  "status": "REVIEW_PENDING",
+  "generated_path": "assets/generated/admin-app/A08b-xoa-du-lieu-hoan-tat-mot-phan.png",
+  "srs_ui_id": "A08",
+  "screen_kind": "supplementary",
+  "role": "admin-app",
+  "prompt": "assets/prompts/A08b.txt",
+  "source_references": [
+    {
+      "path": "features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md",
+      "sha256": "a95c89589843e3555e967c5e486f3bcaf4bbdf9446cb3bc9c49ed16f672964d9",
+      "section": "B23.4"
+    },
+    {
+      "path": "apps/ui-mobile/src/theme.ts",
+      "purpose": "existing design tokens"
+    }
+  ],
+  "generator": "built-in image_gen.imagegen",
+  "captured_at_utc": "2026-10-10T14:21:25.468162+00:00",
+  "generator_output_filename": "exec-9e8a7228-75e5-4db7-9d4a-7146506c4a4d.png",
+  "sha256": "92345dc6ec3fab602512497db2cf9731f419e6367de8e1d3137a709cb72dfdef",
+  "bytes": 1692692,
+  "width": 1586,
+  "height": 992,
+  "original_copied_unchanged": true,
+  "synthetic_data_only": true,
+  "qa": {
+    "reviewer": "Codex visual inspection",
+    "status": "INSPECTED",
+    "note": "Inspected selected partial-deletion screen: verified requester authority, partial outcome explicit, per-store pending/exception states, peer-contribution protection and policy-based attribution handling; retry disabled with no failed row, no raw media/evidence bytes or false full-purge success."
+  },
+  "review": {
+    "status": "REVIEW_PENDING",
+    "reviewer": null,
+    "reviewed_at": null
+  },
+  "applied_path": null,
+  "limitations": "Generated design proposal; not implemented runtime, approved visual or device acceptance.",
+  "input_images": [
+    {
+      "path": "assets/generated/admin-app/A01-tong-quan.png",
+      "role": "style reference",
+      "sha256": "e2dc6127bce77e3faa424eeb6c648b6e32ee6c46c0e72780cbc2101d83357956"
+    }
+  ],
+  "prompt_sha256": "a47c2d11b2b613b4ee64824e8c82ae7d0ff3f948e71b2fff7bc6ee57f2145f54",
+  "generation_history": [
+    {
+      "prompt": "assets/prompts/A08b.txt",
+      "output_filename": "exec-4274ba1c-d44d-4a33-9c35-1c09cb8f4fea.png",
+      "sha256": "7b01de5b69e431f67c7bb9c213fdb26e0cab28a3e9c24dd4730390847f2296db",
+      "status": "SUPERSEDED_BEFORE_CAPTURE",
+      "reason": "Clarify requester authority, policy-based attribution, and disabled retry when no failed row."
+    },
+    {
+      "prompt": "assets/prompts/A08b-revision-1.txt",
+      "output_filename": "exec-9e8a7228-75e5-4db7-9d4a-7146506c4a4d.png",
+      "status": "SELECTED",
+      "input_image": {
+        "generator_output_filename": "exec-4274ba1c-d44d-4a33-9c35-1c09cb8f4fea.png",
+        "sha256": "7b01de5b69e431f67c7bb9c213fdb26e0cab28a3e9c24dd4730390847f2296db",
+        "role": "edit target",
+        "retained_in_builtin_storage": true
+      }
+    }
+  ]
+}

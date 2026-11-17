@@ -1,0 +1,71 @@
+{
+  "state": "COMPLETED",
+  "started_at": "2026-11-04T00:00:26.328165+07:00",
+  "ended_at": "2026-11-04T00:05:23.016398+07:00",
+  "modal_function_call_id": "fc-01M6H5P6TFKW6Q7ZKRX28JCTDD",
+  "job_id": "parent-story-9161c079728d",
+  "generation_id": "story-v1-d221e4eb",
+  "topic": "bướm",
+  "language": "vi",
+  "scene_count_requested": 5,
+  "stage_elapsed_ms": 1962.763,
+  "worker_elapsed_ms": 294724.132,
+  "total_elapsed_ms": 296687.684,
+  "result_sha256": "174d98acb548e939d0128ec078d0c2d5686dbaf8337bdaa8277e70eabd67186f",
+  "result": {
+    "schema_version": "sketch2life.modal.worker-output.v1",
+    "workload": "story.generate",
+    "job_id": "parent-story-9161c079728d",
+    "generation_id": "story-v1-d221e4eb",
+    "attempt_id": "attempt-293470288f5b",
+    "model": {
+      "id": "Qwen/Qwen2.5-7B-Instruct",
+      "revision": "a09a35458c702b33eeacc393d103063234e8bc28"
+    },
+    "result": {
+      "title": "Bướm Đẹp",
+      "story": {
+        "opening": "Trong một khu vườn nhỏ, có một quả trứng nhỏ màu nâu nằm trên lá cây.",
+        "middle": "Sau vài ngày, từ quả trứng đó, một con bướm non nhú ra, bắt đầu đói và cần ăn.",
+        "ending": "Khi trưởng thành, bướm bay đi, tìm kiếm hoa để hút mật và làm tổ."
+      },
+      "storyboard": [
+        {
+          "scene": 1,
+          "title": "Quả trứng",
+          "visual_action": "Một quả trứng nhỏ màu nâu nằm yên trên lá cây.",
+          "narration": "Đó là nơi sinh của một con bướm."
+        },
+        {
+          "scene": 2,
+          "title": "Con bướm non",
+          "visual_action": "Một con bướm non đang mở rộng cánh, cố gắng thoát khỏi vỏ trứng.",
+          "narration": "Con bướm non bắt đầu mọc ra từ quả trứng."
+        },
+        {
+          "scene": 3,
+          "title": "Con bướm đang ăn",
+          "visual_action": "Con bướm non đang ăn lá cây xanh.",
+          "narration": "Con bướm non cần ăn nhiều để lớn lên."
+        },
+        {
+          "scene": 4,
+          "title": "Con bướm trưởng thành",
+          "visual_action": "Con bướm trưởng thành đang nghỉ trên cánh hoa.",
+          "narration": "Khi trưởng thành, con bướm bay đi, tìm hoa để hút mật."
+        },
+        {
+          "scene": 5,
+          "title": "Con bướm bay đi",
+          "visual_action": "Con bướm bay cao trong không khí, tìm kiếm nơi làm tổ.",
+          "narration": "Con bướm bay đi, tìm kiếm nơi làm tổ và tiếp tục cuộc sống của mình."
+        }
+      ]
+    }
+  },
+  "video_calls": 0,
+  "limitations": [
+    "The deployed story worker accepts a topic, language, and fixed scene count; it does not consume the child's drawing pixels.",
+    "StoryRun-lite currently exposes no parent script-generation API route; this is a direct worker call after API confirmation."
+  ]
+}

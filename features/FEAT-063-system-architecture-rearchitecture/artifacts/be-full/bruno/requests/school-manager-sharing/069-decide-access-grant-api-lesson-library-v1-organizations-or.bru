@@ -1,0 +1,28 @@
+meta {
+  name: 069 [POST/ACTION - LOCAL TEST ONLY] Decide Access Grant
+  type: http
+  seq: 69
+}
+
+post {
+  url: {{baseUrl}}/api/lesson-library/v1/organizations/{{organization_id}}/access-grants/{{access_grant_id}}/decision
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  If-Match: REPLACE_WITH_SYNTHETIC_VALUE
+  Idempotency-Key: REPLACE_WITH_SYNTHETIC_VALUE
+}
+
+body:json {
+  {
+    "decision": "APPROVE"
+  }
+}

@@ -1,0 +1,706 @@
+# FEAT-018 live image and canvas context
+
+- Status: P1 complete; D3/P2-T1 closed for owner-approved offline Cohorts A+B; P2-T2 contract
+  boundary and bounded offline implementation complete; the approved staged topic/Pixi/video-
+  placeholder/outdoor-activity flow is implemented, offline-tested, Android-built and boot-smoked;
+  owner-run live Lightning flow and full orientation/control acceptance remain pending;
+  subject-recall and Pixi main-flow hardening plan is approved; offline implementation and focused
+  verification pass, while fresh backend-rig Pixi playback acceptance remains pending; integrated
+  child-profile UI, Montessori personalization and SAM/renderer quality plan is APPROVED and in progress
+- Plan revision: 2 with approved P2-T1 D2/D3-R2 and P2-T2 offline addenda
+- P2-T5 plan revision: 1.0; approved for the bounded offline candidate only. Full P2-T5 remains OPEN;
+  live execution and Task 5 closure are not authorized by that slice.
+- Owner: shared integration allocation pending contract freeze approval
+- Goal: run a synthetic/non-child JPG/PNG through backend admission and the owner-triggered Lightning
+  Vision V2 path, Gate A, adult-entered one-anchor/one-objective ExperienceSpec/P1/Gate B, whole-image
+  Pixi reveal, P4 fallback, caregiver handoff, session gallery and feedback.
+- Data policy: non-sensitive test image only; no child/personal data, production data, or provider credential in Git/mobile/evidence.
+- Dependencies: FEAT-003 `VisionUnderstandingResultV2` and local Qwen adapter boundary, FEAT-015 fixture contracts, FEAT-016 runtime/session contracts, FEAT-004 PixiJS/GSAP renderer plan, ADR-0006 allocation rules. FEAT-017's remote HTTPS path is not used by P2-T2.
+- Contract authority: `plan/CONTRACT_FREEZE.md`.
+- Pilot: 20 golden activities for full device/integration flow; 100 MVP activities for offline catalog/reference validation.
+
+## Current state
+
+P2-T5 bounded offline slice is APPROVED under Person 2 issuance
+FEAT018_P2T5_BOUNDED_OFFLINE_APPROVAL_01 (2026-10-22). The canonical approval append is recorded
+under an explicit one-append APP exception; APP hold continues outside it. The approved source is
+plan rev 0.9/hash 6E9550A045D9FC382F83FEACC0ACAF9B55A4423A5DE99C30E437C48071A1951E;
+rev 1.0 synchronizes that issuance. Only the 13 named files and offline commands are authorized.
+The bounded candidate harness and 120-slot manifest are implemented. Unit/manifest subset: 49
+passed; existing regressions: 162 passed, 5 skipped (no PASS credit). After the test-only
+socketpair guard correction, the focused command completed on a fresh in-backend basetemp: 56
+passed. A subsequent run of the full `test_live_image_demo_api.py` module on a fresh in-backend
+basetemp passed 30 tests. HTTP counter scope is test-specific: invalid-media cases assert
+Vision/ASR/localizer zero; the admitted-upload and rejected-implicit flow asserts Vision zero, then
+one injected Vision fake call after explicit understanding (localizer zero; ASR is not injected
+there). This does not establish live-provider behavior. Ruff and scoped mypy passed
+again after the guard correction. The project-declared `python-multipart` range is `>=0.0.20,<1`;
+the 0.0.32 wheel was verified
+against official PyPI metadata and installed offline into the local venv only; no dependency file
+changed. Earlier collection and r3 guard failures remain in the evidence chronology. After the r4
+guard correction and latest documentation synchronization, architecture, skeleton and
+repository-security checks returned VALID; security scanned 2,596 publishable files and is not
+Security owner approval. Repository harness remains HARNESS_INVALID for unrelated FEAT-045/046/047
+directories, not a pass or waiver. Overall verification remains INCOMPLETE.
+Runner execution: primary 100 SUCCEEDED / 20 NOT_EXECUTED, supplemental 21 SUCCEEDED / 5 NOT_EXECUTED;
+all full acceptance rows remain OPEN and HELD receives zero coverage. See
+`evidence/notes/P2_T5_OFFLINE_EVALUATION_20261022.md` for exact commands, source attribution and limits.
+Full Task 5 and P2T4-FU-01..10
+remain OPEN/unassigned. OSError proof and unresolved failure/semantic acceptance remain HELD;
+quality-reference and HTTP-admission evidence stay separate; Security PENDING and live gates intact.
+
+The owner approved `plan/PIXI_RENDERER_PLAYBACK_FAILURE_DIAGNOSIS_AND_FIX_PLAN_20260930.md`.
+Safe allowlisted renderer failure codes now reach development diagnostics instead of being hidden
+by the generic Pixi error copy. The initial synthetic emulator flow was blocked before it created a
+Pixi launch; the owner later supplied the exact `MASK_BACKGROUND_RECONSTRUCTION_FAILED` code. A
+synthetic regression reproduced and fixed its bounded paper-donor failure class; fresh Android
+visual acceptance remains pending. See
+`evidence/notes/PIXI_RENDERER_DIAGNOSTIC_PARTIAL_20260930.md`.
+
+The 2026-09-23 staged story-intro increment is implemented under the approved
+`PIXI_STORY_INTRO_TOPIC_DIRECTIONS_FLOW_PLAN.md`. Backend understanding now returns at most three
+source-linked Vietnamese topic directions and retains the one-changed-direction re-query boundary.
+Gate B remains the immutable ExperienceSpec approval. After approval, the mobile app opens a
+dedicated landscape Pixi intro with timeline controls and synchronized captions, then an explicit
+landscape main-video placeholder, restores portrait, creates the existing handoff and opens the
+outdoor activity. The renderer uses the original source image only and emits four bounded beats;
+no video or provider generation was added. Android x86_64 build/install and initial portrait boot
+passed. Evidence is recorded in
+`evidence/notes/PIXI_STORY_INTRO_TOPIC_DIRECTIONS_IMPLEMENTATION_20260923.md`; the complete live
+flow remains an owner-run synthetic-image check because Codex did not spend Lightning credits.
+
+The 2026-09-29 owner screenshot showed a visible bird represented only by a generic detail label while
+branch and leaf became topic cards. The approved 2026-09-30 implementation preserves unknown valid
+labels for adult review, canonicalizes reviewed bird/animal aliases, and ranks whole-animal claims
+ahead of part claims without fabricating evidence. Adults can correct/add a subject, explicitly
+re-query once, or continue with a versioned adult-provenance Gate A when AI has no usable claim. The
+Qwen miss itself remains probabilistic and has not been tested with a live model call. See
+`evidence/notes/SUBJECT_RECALL_AND_PIXI_MAIN_FLOW_HARDENING_IMPLEMENTATION_20260930.md`.
+
+P2 research round 1 is complete as documentation only (2026-09-09). Working research
+and handoff notes remain local-only; publish selected completed P2 records after
+owner review through the evidence index. See
+`plan/P2_OFFLINE_FIRST_PLAN.md` (P2-R1, awaiting owner review). The proposal separates
+offline work from later FEAT-003 producer connections and full live acceptance.
+The owner reports Phase 8 executed with insufficient quality. A new untracked Phase 8
+report appeared during final verification and records `QUALITY_NOT_READY`, with both
+passes schema-valid 8/8 but below quality thresholds; its hash and provenance are in
+the local research report. No FEAT-003 state, report or approval was changed by this research.
+
+The repository has a fixture UI and backend-only live P2 route. The approved P1 slice is now implemented offline: the reviewed catalog is loaded through a typed template adapter, adult context and hard eligibility rules run before fit scoring, and the fixture-only ExperienceSpec compiler locks anchor/objective/template/spec identity at Gate B. PixiJS/GSAP runtime/bridge, approved asset pack, live media consumers and gallery journey remain downstream work and are still pending their own approval.
+
+The D3-R2 harness review found and fixed only evaluation-boundary issues: non-blocking stdin
+submission so a child that does not read its pipe still reaches the parent timeout; clean-worktree
+validation now rejects untracked files; aggregation recomputes timing status instead of trusting a
+spoofed field; child output locks the environment envelope; and missing source digests are allowed
+only for the bounded byte-budget rejection. These changes do not alter D2 admission behavior.
+
+Formal Cohort A execution completed at commit `c77230ca1593d5cd31098b5e58f3ff2a13d18a63` with
+320 forward and 320 reverse samples. The sanitized metrics artifact and independent verification
+report were owner-approved on 2026-09-11 and are indexed under `evidence/README.md`. This closes
+D3/P2-T1 for the synthetic Cohort A scope at that time. Formal Cohort B was subsequently executed
+and independently verified; the combined closure is recorded below.
+
+## P2 image admission (D1) — 2026-09-10
+
+An isolated image admission and decoding design was accepted and published
+(`evidence/P2_IMAGE_DECODE_DESIGN_20260910.md`, `EV-018-P2-DECODE-DESIGN-01`), conditional on
+preserving the existing FEAT-003 image-research path. The follow-on D1 specification is now
+complete and published as revision 2 (`evidence/P2_IMAGE_ADMISSION_SPEC_20260910.md`,
+`EV-018-P2-D1-SPEC-01`): exact admission outcomes, bounded snapshot flow, a measured PyAV
+decoder profile, a FEAT-018-local fixture manifest design, and an implementation acceptance
+checklist. The specification is additive to FEAT-018 and changes no FEAT-003 default,
+validator, inspector, contract, policy, prompt, model profile, fixture, scoring rule,
+benchmark runner or historical evidence.
+
+The owner subsequently approved U1 (`av==18.1.0` in a new optional `image-admission` extra
+in `backend/pyproject.toml`) and the isolated D2 scope, recorded in `approvals/TASK_APPROVAL.md`
+"Approved P2-T1 D2 scope addendum — 2026-09-10". **D2 implementation and its deterministic
+tests are reviewed and accepted** (`evidence/notes/P2_D2_IMPLEMENTATION_20260910.md`,
+`EV-018-P2-D2-IMPL-01`): 58 focused tests passed; the full 900-test backend collection reported
+895 passed and 5 skipped, together with clean lint, type and repository validators. **D3
+**D3-R2 performance/memory evaluation is implemented, formally executed and independently
+verified for offline Cohort A+B.** The fresh-process protocol, bounded I/O/cleanup, Win32 native
+reads, conservative [L,U] classification, deterministic 16-profile manifest and aggregation are
+covered by the D3 test suite. D3/P2-T1 is closed for the owner-approved offline Cohort A+B scope;
+D2/D3 remain additive to FEAT-018 only. FEAT-003 and all provider/mobile/public-contract
+integration remain unchanged and separately gated.
+## Canonical P2 integration — 2026-09-11
+
+The approved canonical P2 branch `origin/feature/feat018-p2-image-validation` was merged into `codex/feat-018-contract-plan` as merge commit `627260c`, after carrying the P2 integration approval addendum. The merge includes the reviewed D2 image-admission implementation, deterministic media validation, P2 offline fixtures and related evidence. The other P2 branches remain research references. D3 measurement, FEAT-003 producer connection, live provider execution, mobile/public-schema integration, P3/P4 implementation and production work remain pending.
+
+## P3/P4 offline integration — 2026-09-11
+
+The approved P3 renderer branch `origin/plan/person-3-art-animation-poc` was merged as `2851bb6`. It contributes the closed Motion DSL, PixiJS/GSAP browser player, source-art provenance loader, butterfly fixture/demo, validation, fallback and benchmark support. The approved latest P4 branch `origin/feat-018-person-4-media-integration` was merged as `77745c4`, followed by its replay entrypoint update `ccd1ea5` in merge commit `da1a369`. It contributes versioned learning-media contracts, cache-first resolver, safe fallback, replay fixtures and sanitized evidence. These are offline/scoped integrations; live provider execution, Android/mobile wiring, production assets and production deployment remain pending.
+
+
+## P1 strict continuity polish — 2026-09-11
+
+The approved P1-only polish is implemented in the application compiler. `P1_STRICT_CONTINUITY_V1` now hard-gates exact primary-anchor label/tag and semantic-kind compatibility, objective membership, downstream identity continuity and the immutable spec hash before Gate B approval. Bridge wording is child-facing and derived from the selected anchor and objective title while its versioned references remain locked to the same template.
+
+The feature-local fixture set covers the butterfly fold-and-print pass, unrelated sorting rejection, unsupported anchor kind, unrelated objective, ambiguous selection, bridge drift, media-plan drift and spec-hash drift. The catalog audit confirms 20 non-production golden templates with non-empty anchor labels, supported kinds and known objective references. No P2/P3/P4 code, contract version, provider, mobile or production scope changed.
+
+Validation evidence: `evidence/metrics/P1_STRICT_CONTINUITY_20260911.json` and `evidence/notes/P1_STRICT_CONTINUITY_IMPLEMENTATION_20260911.md`.
+
+
+## P1 catalog and Gate integrity polish — 2026-09-11
+
+The approved follow-on P1 integrity plan is implemented. The golden catalog adapter now removes objective IDs and broad area taxonomy values from `supported_anchor_labels`, normalizes and de-duplicates labels, and fails closed when meaningful labels or objective titles are missing. The compiler rejects duplicate template IDs, validates injected objective titles, enforces optional selected activity/objective refs when supplied, routes compilation through the same Gate B approval path, and independently verifies deterministic `spec_id` and `spec_sha256`.
+
+The contract versions remain unchanged and no P2/P3/P4/shared/mobile source changed. The expanded P1 suite covers catalog hygiene, all optional context ref mismatch/partial cases, Gate B re-checks, duplicate registration, spec ID drift and downstream consumer compatibility. Evidence: `evidence/metrics/P1_CATALOG_GATE_INTEGRITY_20260911.json` and `evidence/notes/P1_CATALOG_GATE_INTEGRITY_IMPLEMENTATION_20260911.md`.
+
+## P1 online-model compatibility tests — 2026-09-11
+
+The approved compatibility addendum is implemented as an offline boundary suite. Provider-shaped Qwen3-VL-8B-Instruct and Whisper large-v3-turbo payloads pass through the existing structured adapters, preserve source hashes and provenance, and feed the existing adult-confirmed `SemanticAnchorSetV1` into the butterfly P1 compiler and Gate B. Malformed, prohibited, unknown, timeout, retry, empty-entity, low-confidence and unrelated-model cases fail closed. No live provider, model download, token, raw media or downstream source change was used.
+
+Evidence: `evidence/metrics/P1_ONLINE_MODEL_COMPATIBILITY_20260911.json` and `evidence/notes/P1_ONLINE_MODEL_COMPATIBILITY_IMPLEMENTATION_20260911.md`.
+## D3/P2-T1 closure - 2026-09-12
+
+Formal Cohort B completed with 24 samples from eight owner-approved images, three fresh-process
+repeats per image, all admitted and within the approved timing and memory targets. Independent
+verification reproduced every published data value with zero discrepancies and accepted the result as
+`PASS WITH FINDINGS`. D3/P2-T1 is closed for the offline Cohort A+B evaluation scope. The three
+verification findings remain follow-up work before a future formal run relies on the same cleanliness
+safeguard. Provider, mobile, Gate A, public-contract and shared-integration scopes remain separately
+gated.
+
+## P2-T2 contract and offline implementation approval - 2026-09-12
+
+The owner approved FEAT-018 consumption of FEAT-003's typed `VisionUnderstandingResultV2` and
+local `qwen_vision.py` adapter boundary. FEAT-003 ownership is unchanged and its schemas, runtime,
+profiles, dependencies, benchmarks, fixtures and evidence may not be modified. FEAT-017's flat V1
+contract and remote HTTPS `LightningVisionAdapter` are excluded from P2-T2.
+
+FEAT-018 owns a separate `RawUnderstandingResultV1` with typed observation groups, confidence
+bounded to `0..1`, required source SHA-256, typed failures, preserved ambiguity/conflicts and
+`gate_a_required=true`. The approved implementation slice is offline-only and limited to the exact
+schema, port, mapper, unit/contract tests and one sanitized feature-local evidence note listed in
+`approvals/TASK_APPROVAL.md`. Live Lightning/GPU execution, model-weight download, provider/network
+calls, mobile, Gate A UI, P1 eligibility, P3/P4 and shared integration remain separately gated.
+
+## P2-T2 offline implementation closure - 2026-09-12
+
+The owner approved the completed offline P2-T2 implementation at commit
+`11468d3a5a327697a491f09251a3210987337da0`. The change adds the mandatory ASR correlation guard
+before `RawUnderstandingResultV1` construction and regression coverage for matching and mismatched
+ASR results. Focused tests (17) and the related vision/Qwen/ASR sweep (801 passed, 5 skipped) passed;
+ruff, mypy, repository validators and `git diff --check` were clean. The independent verification
+report found no blocker and confirms the published contract/data scope is unchanged.
+
+P2-T2 offline is complete. Live Lightning/GPU/model execution, provider/network calls, P2-T3 through
+P2-T5, mobile, Gate A UI, P1 eligibility, P3/P4 and shared integration remain separately gated.
+
+## Shared Android/backend integration addendum — 2026-09-18
+
+- The project owner approved shared integration addendum revision 2 in
+  `plan/UI_MOBILE_LIGHTNING_ANDROID_DEMO_PLAN_REV2_DETAILED.md` and recorded the exact approval/hash
+  in `approvals/TASK_APPROVAL.md`.
+- Approved demo target: Android Emulator, image-only non-child synthetic/test image sent through the
+  backend to Lightning Vision, Gate A/P1/Gate B, PixiJS original-art canvas, P4 cache/fallback,
+  handoff, session gallery and feedback. No audio capture/upload/ASR and no video.
+- The current run remains unauthenticated and in-memory. Implementation must use application ports
+  with in-memory/temp adapters so future identity and durable-store adapters can be added without
+  changing domain contracts. Later sign-in/save is not implemented by this approval.
+- Future boundary follows ADR-0005: Firebase Authentication only, backend token verification through
+  provider-neutral `IdentityTokenVerifier`/`VerifiedPrincipal`, PostgreSQL/S3-compatible backend-owned
+  persistence; Firebase Storage/Firestore/Realtime Database remain forbidden.
+- ADR-0005 now has a narrow FEAT-018 owner-approved image-only development exception. The owner
+  reports ~25 existing credits and authorizes up to 25 total, no top-up; the owner will manually
+  run live requests and Codex must never do so. No automatic provider retry; only admitted synthetic/
+  non-child images; result must satisfy the FEAT-003 V2 boundary and Gate A remains mandatory.
+  FEAT-016 state order, retake invalidation,
+  P1 completed-activity context, Gate-A/B wire schemas and version adapters have been reconciled and
+  verified in the M1 evidence record. The versioned session API and Expo Android workflow are now
+  connected; offline fake-provider verification is complete. The app's user-triggered live lane is
+  enabled under the ADR-0005 25-credit ceiling, but the owner still needs to build/run the emulator
+  and personally initiate any provider request.
+
+## Optional narration integration closure — 2026-09-21
+
+- The owner-approved correction supersedes the earlier image-only UI note for this demo: image
+  remains mandatory, while narration now has explicit `NONE`, typed `TEXT`, and recorded `AUDIO`
+  choices on the reachable BaoVC Capture screen.
+- Typed narration is sent directly in `MobileWorkflowCommandV1` as `TEXT_TYPED`; it does not invoke
+  ASR or TTS. Recorded audio is stored as a process-local artifact and is sent to the backend-owned
+  Lightning `/v1/asr` route only after the user taps the explicit analysis action.
+- The same Lightning deployment now serves `/health`, `/v2/vision`, and `/v1/asr`. The server loads
+  faster-whisper lazily, validates source identity/hash, and returns the existing strict Phase-A ASR
+  contract. Audio failure blocks before Vision and does not silently continue.
+- Settings now load `backend/.env` deterministically even when Uvicorn starts from the repository
+  root. Mobile still contains no Lightning endpoint/token and no durable auth/save implementation.
+- Video remains excluded. Live provider calls were not made by Codex; the owner manually triggers
+  smoke requests under the approved approximately 25-credit ceiling.
+- Asset review is approved as work, not as a blanket visual approval: FEAT-028's 144 frames remain
+  `REVIEW_PENDING` until each frame and its rights are reviewed and the owner records decisions.
+- The Shared Integration Addendum Rev 2 plan hash was refreshed after narrowing the media lane to
+  image-only; the corrected hash and timestamp are in `approvals/TASK_APPROVAL.md`.
+
+## BaoVC UI and runtime verification — 2026-09-21
+
+- The Android client was corrected to restore and retain BaoVC's original React Native UI shell;
+  the earlier green standalone demo screen is no longer the mounted app entry.
+- Real client wiring now lives in `apps/ui-mobile/src/context/AppContext.tsx` and reuses the
+  versioned client in `apps/ui-mobile/src/demo/api.ts` as a transport adapter. The visible flow is
+  `CREATE_SESSION -> image admission -> explicit RUN_UNDERSTANDING -> Gate A -> P1 context/filter
+  -> ExperienceSpec -> Gate B -> renderer launch/handoff -> feedback`.
+- The UI renders the selected source image, backend analysis claims and backend-selected activity;
+  PixiJS is opened after handoff with the source-only renderer contract. No video, provider token or
+  durable save was added to mobile. The later narration addendum below owns the optional microphone
+  and ASR behavior.
+- Verification on this worktree: `pnpm --dir apps/ui-mobile exec tsc --noEmit` passed; the six-test
+  backend contract file `backend/tests/contract/test_live_image_demo_api.py` passed using the
+  repository backend virtualenv; the running local API returned `ADMITTED` for the approved
+  synthetic fixture upload. The owner remains responsible for manually triggering the Lightning
+  request on the emulator under the 25-credit ceiling.
+
+## Live VLM schema-output remediation — 2026-09-22
+
+- The approved FEAT-018 live `/v2/vision` route now reuses FEAT-027's bounded Qwen payload
+  normalizer and FEAT-003's closed mapping diagnostics. It performs at most one internal repair
+  generation after the first output fails mapping/schema validation; it does not widen the V2
+  contract or enable client/unbounded retries.
+- Repair prompts contain the canonical JSON instructions and closed diagnostic tokens only. Raw
+  model output, image bytes, narration, credentials, child data and raw exception text are not
+  logged, persisted, returned or committed.
+- Local tests, Ruff, compile checks, architecture validation, repository security validation and
+  diff checks passed. Mypy was attempted but blocked by the workstation's Windows Application
+  Control policy loading a Python DLL; this is an environment limitation, not a reported code
+  failure. Owner-run Lightning smoke remains pending and is limited to synthetic/non-child images
+  under the existing approximately 25-credit ceiling.
+
+## Topic quality and T2 activity matching — 2026-09-22
+
+- The owner-approved plan `plan/TOPIC_AND_T2_ACTIVITY_MATCHING_FIX_PLAN.md` is implemented. The
+  backend now ranks image claims deterministically, demotes scenery/background labels, composes a
+  bounded Vietnamese topic from grounded claims, and preserves raw labels, claim IDs, confidence,
+  source identity and reviewed semantic tags through Gate A.
+- The existing reviewed semantic activity catalog is injected through `SemanticCatalogPort` into the
+  supervised workflow. Exact P1 matches keep their existing path; raw English/alias/concept-family
+  labels resolve through the reviewed catalog, with one age-safe baseline fallback labeled as an
+  expanded recommendation. Existing age, material, readiness, supervision, safety, Gate B and
+  activity/template/objective identity checks remain authoritative.
+- The generic workflow-result payload exposes optional topic/recommendation metadata without
+  widening `P1ContextOptionsV1` or changing FEAT-003. The BaoVC T2 screen clears stale state,
+  waits for the real backend chain, labels fallback provenance, and no longer presents the
+  hardcoded butterfly card/icon as a backend result. The initial claim selection is primary-only.
+- Focused contract, semantic catalog, ranking, Ruff, mypy and mobile TypeScript checks passed. The
+  repository-wide backend collection was attempted but fixture setup was blocked by Windows access
+  denial for the pytest temp/cache directories. No Lightning request was made by Codex; owner-run
+  Android/Lightning smoke remains pending under the existing approximately 25-credit ceiling.
+- Evidence: `evidence/notes/TOPIC_AND_T2_ACTIVITY_MATCHING_IMPLEMENTATION_20260922.md`.
+
+## Progressive Qwen multimodal response — implementation 2026-09-22
+
+- The approved plan `plan/PROGRESSIVE_QWEN_MULTIMODAL_RESPONSE_PLAN.md` is implemented without
+  widening the frozen Vision V2 or MobileWorkflow envelope. A valid-but-empty Qwen result now gets
+  one semantic repair opportunity in the Lightning adapter; if it remains empty, the application
+  returns `BLOCKED_NO_GROUNDED_CLAIMS`, keeps the session out of Gate A, and the UI shows a retry
+  message instead of `0 Thực thể`.
+- The backend now emits a sanitized `understanding_progress` projection with stage history,
+  image/narration/fused claim IDs, conflict records, repair/attempt counters, Gate-A readiness and
+  a deterministic Vietnamese topic normally bounded to 10–18 words. A read-only progress endpoint
+  is available for polling; the current provider call remains terminal/synchronous and never emits
+  partial model JSON.
+- Image and ASR/typed-text evidence remain separate. Reviewed aliases can produce a derived fused
+  claim with source references; unsupported disagreement is preserved as a closed conflict. Typed
+  text does not receive fabricated numeric confidence.
+- Choosing a different primary direction in BaoVC sends one explicit `REQUERY_UNDERSTANDING` command
+  using the admitted image and stored narration input. The backend rechecks the image, records a
+  new direction revision, retains the prior valid proposal if the re-query fails, and rejects a
+  second changed-direction re-query in the demo.
+- Verification passed: full backend test collection (`pytest -q backend/tests`, with repository
+  root on `PYTHONPATH`, 6 existing skips), focused Qwen/live contract tests, Ruff, mypy on changed
+  backend modules, mobile TypeScript, compile, diff checks and repository security validation. No
+  Lightning/model request was made by Codex; owner-run smoke remains pending under the approved
+  approximately 25-credit ceiling.
+
+## Activity suggestion strict-fit/UI recovery diagnosis — 2026-09-22
+
+- A real Android session reached `CANDIDATES_READY` but `PREPARE_EXPERIENCE` returned a typed
+  `BLOCKED` envelope with `ANCHOR_TEMPLATE_MISMATCH` and `FIT_BELOW_THRESHOLD`. The selected
+  `ACT-0029` candidate came from loose token overlap, while the unchanged strict continuity gate
+  correctly rejected it before ExperienceSpec creation.
+- HTTP access logs showed `200 OK` because blocked workflow outcomes use the versioned response
+  envelope; the UI hid the closed reasons behind a generic ExperienceSpec message and could start
+  a duplicate chain before React busy state re-rendered.
+- The approved repair is documented in
+  `plan/ACTIVITY_SUGGESTION_STRICT_FIT_UI_RECOVERY_PLAN.md`; implementation was authorized by the
+  owner on 2026-09-22. It aligns
+  option discovery with strict compilation, tries the next reviewed eligible candidate, preserves
+  exact identity, adds an atomic UI request lock, reopens existing results, and retains failures
+  without showing a mock activity. No provider call is required or authorized for this repair.
+- Implementation is complete. Direct options and semantic candidates now share the compiler's
+  strict fit policy before exposure; ranked semantic resolution continues to the next reviewed
+  candidate after rejection. BaoVC preserves valid state, synchronously locks the activity request,
+  reopens prepared results without network calls, and maps closed P1/fit reasons to safe Vietnamese
+  guidance. The butterfly/ACT-0029 regression and Gate-A-to-ExperienceSpec identity continuity are
+  covered by unit and HTTP contract tests. Verification evidence is in
+  `evidence/notes/ACTIVITY_SUGGESTION_STRICT_FIT_UI_RECOVERY_IMPLEMENTATION_20260922.md`.
+
+## Vision/topic/catalog/Pixi/child-UX follow-up — 2026-09-22
+
+- Status: `APPROVED — IN_PROGRESS`; mandatory Phase 0 read-only UI audit completed with checkpoint
+  `UI_AUDIT_COMPLETE — NO CODE CHANGED`. Application/runtime implementation may now start.
+- Owner emulator evidence shows four remaining integration-quality problems: English and duplicate
+  labels can escape the live Qwen result into the Vietnamese UI; topic composition remains raw and
+  overly generic; the real HTTP runtime still loads the baseline/legacy activity catalog and can
+  present an unrelated age-safe activity with template/material/safety IDs; and a valid backend
+  Pixi launch is rejected by the strict TypeScript bridge because Python sends optional values as
+  explicit `null`.
+- The full reachable BaoVC flow also renders expected failures as inline red technical text and
+  mixes child instructions with backend, Gate, ExperienceSpec, catalog and protocol terminology.
+- The proposed repair is documented in
+  `plan/VISION_TOPIC_ACTIVITY_CATALOG_PIXI_CHILD_UX_PLAN.md`. It introduces a single shared vision
+  repair budget, grounded Vietnamese normalization/topic composition, V2 expansion catalog runtime
+  wiring, at most three strict-fit prioritized activity cards with adult selection, an app-level
+  friendly error modal, a full child-facing copy/accessibility pass, and canonical Pixi transport
+  serialization verified across Python and the actual TypeScript schema.
+- Before any implementation, the revised plan requires a complete read-only audit of every
+  reachable BaoVC screen and important loading/error/navigation state. The audit must produce a
+  prioritized feature-local finding matrix and an explicit `UI_AUDIT_COMPLETE — NO CODE CHANGED`
+  checkpoint; the already-observed UI, activity and Pixi defects remain mandatory scope.
+- The audit is complete at base commit `f98958f6690e6d233ca79d8be1defec56fdd85be` on Android Emulator
+  1080x2424/density 420. It found 25 bounded issues covering truthfulness, topic/activity continuity,
+  Pixi transport, modal errors, stale notices, hard-coded butterfly preview/feedback, native chrome,
+  keyboard/accessibility and child-facing copy. The prioritized matrix is recorded in
+  `evidence/notes/FULL_UI_READ_ONLY_AUDIT_20260922.md`; no implementation/runtime code changed during
+  the audit and no scope expansion is required.
+- Boundaries remain synthetic/non-child demo inputs, process-local state, future auth/save seams,
+  original-art preservation, no video, no credential in mobile/Git, no unrelated FEAT-026 changes,
+  and no Codex-triggered Lightning request.
+
+## Vision/topic/activity/catalog/Pixi/child-UX implementation closure — 2026-09-23
+
+- The approved plan `plan/VISION_TOPIC_ACTIVITY_CATALOG_PIXI_CHILD_UX_PLAN.md` is implemented for
+  the offline/API/UI scope. Phase 0's read-only audit remains recorded in
+  `evidence/notes/FULL_UI_READ_ONLY_AUDIT_20260922.md` and was completed before source changes.
+- The HTTP composition root now loads the curated V2 semantic catalog. The bird/branch path returns
+  up to three prioritized strict-fit reviewed activities with Vietnamese display metadata; age-only
+  unrelated activities are not exposed. Choosing a different offered card reruns the selected
+  downstream P1/ExperienceSpec path without rerunning Qwen while Gate A is unchanged.
+- Topic rendering now ranks specific visual evidence, translates covered English labels, removes
+  duplicates/aggregate labels and composes a grounded Vietnamese sentence. The Qwen live adapter
+  shares one bounded semantic-quality repair budget with schema repair, so a request can still make
+  at most two model generations.
+- BaoVC now presents concise child-friendly copy, uses a global friendly error modal, hides raw
+  activity/provider/contract diagnostics, and keeps adult details in the activity flow. The Pixi
+  bridge omits nullable optional fields and preserves the original drawing when playback fails.
+- Verification evidence is recorded in
+  `evidence/notes/VISION_TOPIC_ACTIVITY_CATALOG_PIXI_CHILD_UX_IMPLEMENTATION_20260923.md`.
+  Offline tests, TypeScript, renderer tests, architecture validation and repository security
+  validation passed. No live Lightning request, video path, auth flow or durable persistence was
+  added; the future auth/save seam remains process-local and adapter-based.
+- Final acceptance-gap closure added friendly recovery actions, original-art Pixi fallback/retry,
+  collapsed adult guidance, keyboard avoidance, broader accessibility state, truthful process-local
+  feedback copy, a mobile UI copy guard, a non-primary activity/no-Vision-rerun contract test and a
+  TypeScript source-only renderer launch test. The focused and full backend suites, mobile and
+  renderer TypeScript/tests, Ruff, mypy, architecture and security checks pass. The only harness
+  finding remains the unrelated user-owned FEAT-026 directory structure.
+
+## Pixi story-intro and staged media flow — 2026-09-23
+
+- Status: `APPROVED — IMPLEMENTATION AUTHORIZED`; implementation is in progress.
+- Owner emulator review confirms the current Pixi surface is not an effective animation: the live
+  path supplies one whole-image reveal, the player has no seek/pause/progress controls, and the
+  WebView is embedded at the end of the portrait activity-detail page. Topic choices also remain
+  too close to raw claims and can collapse unknown labels into generic Vietnamese text.
+- The owner confirmed the target order: Gate B keeps its exact ExperienceSpec approval meaning,
+  followed by a landscape Pixi presentation-style opening from the original drawing, a landscape
+  placeholder for the future main video, portrait outdoor activity instructions, then feedback.
+- The owner also confirmed at most three complete grounded Vietnamese topic directions; selecting
+  a different direction uses the existing bounded one-time re-query. Loading must communicate real
+  stages so model/renderer work is not mistaken for a frozen app.
+- Detailed scope, contracts, flow, acceptance criteria, risk controls and verification are in
+  `plan/PIXI_STORY_INTRO_TOPIC_DIRECTIONS_FLOW_PLAN.md`. No runtime code may change until the owner
+  approves that exact plan and its hash is recorded.
+
+## Pixi-only exploration implementation authorization — 2026-09-23
+
+- Status: `APPROVED — IMPLEMENTATION AUTHORIZED` on branch
+  `codex/feat-018-pixi-exploration`.
+- The owner approved implementation of
+  `plan/PERSONALIZED_DRAWING_EXPLORATION_TAP_25D_PLAN.md` for subject-only Vietnamese labels,
+  `SceneExplorationPlanV1`, bounded localization/cut-outs, tap-to-discover, 2.5D rendering,
+  mobile flow, tests and feature-local evidence.
+- Whiteboard MP4 generation, TTS, video worker/encoder, video playback and video READY/retry are
+  explicitly excluded from this branch and are owned by another implementation task. This branch
+  preserves only the existing video placeholder/handoff seam.
+- Existing Gate A, Gate B, ExperienceSpec identity, original-art preservation, auth/save seams,
+  synthetic/non-child demo boundary and no-Codex-Lightning-call rule remain unchanged. FEAT-003
+  contracts and unrelated FEAT-026 files remain out of scope.
+
+## Pixi-only exploration implementation — 2026-09-23
+
+- Implemented on `codex/feat-018-pixi-exploration`. `SubjectCandidateSetV1` now projects at most
+  three confirmed concrete entities into short Vietnamese labels with image/narration coverage,
+  confidence bands and source claim references. `SceneExplorationPlanV1` adds bounded reveal,
+  focus, relation and learning-bridge beats without changing the Qwen/FEAT-003 contract.
+- Added `SceneFocusPlanV1` and explicit normalized source-region provenance. A region is accepted
+  only when an approved localizer supplies a bounded region plus extraction version/confidence;
+  absent or invalid localization produces `FALLBACK_REQUIRED` and keeps the whole original image.
+  No fake bounding boxes, generated replacement artwork or supplemental assets are introduced.
+- PixiJS now accepts source-derived crop layers, applies the crop in the WebView, supports GSAP
+  motion for multiple source-preserving objects, and emits bounded `FOCUS_CHANGED` and
+  `DISCOVERED_ENTITY` events. BaoVC shows child-friendly discovery chips and handles those events
+  without exposing technical error codes.
+- The video placeholder/handoff remains unchanged. MP4/TTS/worker/encoder/playback/READY/retry,
+  auth, durable persistence, FEAT-003 and live Lightning calls remain excluded from this branch.
+- Verification is recorded in
+  `evidence/notes/PERSONALIZED_DRAWING_EXPLORATION_IMPLEMENTATION_20260923.md`.
+
+## Pixi fullscreen intro and direct hotspot discovery — 2026-09-23
+
+- Implemented the approved fullscreen interaction slice on `codex/feat-018-pixi-exploration`.
+  The WebView stage now occupies the full landscape viewport; the native header/timeline are an
+  auto-hidden overlay, and the Android navigation/status UI is restored on Back, Continue,
+  unmount, retry and renderer failure.
+- Renderer playback now exposes bounded `INTRO_LOADING`, `INTRO_PLAYING`, `DISCOVERY_READY`,
+  `DISCOVERY_FOCUSED` and `FALLBACK` phases. Hotspot listeners are attached only after the intro
+  completes and a validated `SceneFocusPlanV1` exists. Empty-canvas taps toggle the chrome and
+  accepted subject taps emit focus/discovery events with the short Vietnamese label.
+- Added the provider-neutral `SceneLocalizationPort` seam. The current demo still accepts only
+  supervised `scene_focus_regions`; absent or invalid geometry remains an honest fallback and
+  never invents a subject region. This keeps semantic Qwen output separate from localization and
+  leaves the future Lightning/local model adapter replaceable.
+- Hardened source-image lifecycle by reading `ImageBitmap` dimensions before release, rebuilt the
+  served Pixi bundle, and added `expo-navigation-bar` for native immersive mode. A stale Metro
+  process was restarted after the dependency install; the Android dev build then launched without
+  a red-screen or native crash.
+- Verification is recorded in
+  `evidence/notes/PIXI_FULLSCREEN_INTRO_HOTSPOT_DISCOVERY_IMPLEMENTATION_20260923.md`.
+
+## Subject-first direct picker — 2026-09-24
+
+- The approved normal Gate-A path is now subject-first: the artwork itself is the picker, so the
+  child/parent taps a localized subject instead of choosing among three precomputed topic cards.
+- `SELECT_SUBJECT` is a backend workflow operation. It accepts only an existing semantic candidate,
+  composes one grounded Vietnamese sentence, returns the selected claim/region projection and keeps
+  Gate A pending for adult confirmation. A changed subject is re-resolved from the same admitted
+  image evidence rather than being a client-side label change.
+- Live geometry uses a backend-only Qwen/Lightning `/v2/localize` call with strict bounded regions;
+  missing/invalid geometry falls back without fabricated hitboxes. The selected subject region is
+  reused when `PREPARE_RENDERER` builds the Pixi focus plan.
+- Evidence is recorded in
+  `evidence/notes/SUBJECT_FIRST_DIRECT_PICKER_IMPLEMENTATION_20260924.md`.
+
+## Lightning localization contract fix — 2026-09-24
+
+- The first live `/v2/localize` request returned 422 before Qwen ran because the backend adapter
+  omitted the required `source_image.content_type` field. The adapter now derives the MIME type
+  from admitted PNG/JPEG bytes, includes it in the provider request and fails closed for unknown
+  signatures or digest mismatches.
+- The provider-neutral mobile and subject-selection contracts are unchanged. Evidence is recorded
+  in `evidence/notes/SUBJECT_FIRST_DIRECT_PICKER_IMPLEMENTATION_20260924.md`; a live Lightning
+  smoke test remains owner-run after restarting the service.
+- A subsequent Lightning 503 was narrowed to the localization generation/output boundary: Qwen
+  loaded and `/v2/vision` returned 200, while `/v2/localize` collapsed JSON/schema/runtime errors
+  into one generic 503. The Lightning route now accepts only bounded fenced/nested formatting
+  variants, normalizes bounded percentage confidence and unique label-to-target matches, preserves
+  strict region validation, clips edge-crossing boxes to the source boundary, and logs a closed
+  failure reason for diagnosis. Model-output/runtime failure now returns an empty-region fallback
+  projection with HTTP 200, so the UI can remain in its safe fallback path instead of receiving 503.
+
+## Topic-direction rollback — 2026-09-25
+
+- The owner rolled back the direct subject-tap experiment because the extra geometry request made
+  the first analysis slow and frequently produced a localization fallback. The normal runtime now
+  uses one `/v2/vision` request, renders up to three grounded `topic_directions`, selects the first
+  direction by default, and allows an adult correction before Gate A.
+- The Gate-A mobile screen no longer renders image hitboxes or waits for `subject_regions`. The
+  original drawing remains a non-interactive evidence preview, and no `/v2/localize` request is
+  wired from the default API composition root. The localization endpoint/adapter remains isolated
+  for a future separately approved Pixi slice.
+- Added a frontend request lock so rapid repeated taps cannot submit the initial understanding
+  command twice. Focused backend and frontend checks verify one semantic request and zero
+  localization calls for the initial flow.
+
+## Main-flow hardening — 2026-09-28
+
+- The approved mobile-only reliability slice now uses a synchronous single-flight guard across
+  session mutations, validates narration before acquiring that guard, prevents image-picker/upload
+  races, and clears prior-session media, corrections, activity state and feedback only after a new
+  session is successfully created.
+- Recording has one authoritative timer, a three-minute cap, start/stop/cancel guards and cleanup on
+  failure. Image admission now fails early unless picker metadata identifies matching PNG/JPEG.
+- Feedback labels map to the five `FeedbackV1` enum values; the UI no longer offers unsaved free-text
+  notes because the current versioned contract forbids them. Ordinary dashboard entry is guarded by
+  the preceding workflow state.
+- Identical requests reuse their existing idempotency key after an ambiguous timeout/network/server
+  result; definitive responses or changed commands use a new key. Pixi preparation is attempted
+  once automatically, then requires an explicit retry. No backend contract or provider code changed.
+- Deterministic mobile tests, mobile typecheck, UI validation, renderer tests/build, backend feedback
+  contract tests and Android Metro export passed. Emulator/device acceptance remains pending because
+  `adb` is unavailable; no live AI request was made.
+- Evidence: `evidence/notes/MAIN_FLOW_HARDENING_IMPLEMENTATION_20260928.md`.
+
+## Pixi Android WebView bridge recovery — 2026-09-28
+
+- Fixed native-to-WebView launch/control delivery with a safe serialized JavaScript bridge and a
+  separate 128 KiB validated-command ceiling; renderer events retain the 4 KiB limit. Bootstrap
+  is no longer treated as playback readiness.
+- Renderer retries now use a fresh page-shell URL and, only after an explicit user retry, request
+  a new renderer launch so source/package capabilities are renewed. No automatic retry or
+  Qwen/SAM/Lightning call was added.
+- Renderer, mobile, UI and focused fake-backend contract checks pass. The existing observed demo
+  session expired before fresh-session Android playback could be verified (its retry returned
+  HTTP 410); live device acceptance remains pending an owner-started flow.
+- Evidence: `evidence/notes/PIXI_ANDROID_WEBVIEW_BRIDGE_RECOVERY_20260928.md`.
+
+## Part-aware Pixi motion restoration — 2026-09-28
+
+- Renderer V2 now receives separate source-hash-bound part-mask capabilities and renders independently masked Pixi sprites for the validated anatomy; it no longer substitutes rectangular butterfly slices or stretches the whole subject to imply wing motion.
+- The default playback is 20 seconds: several part-specific action beats, then a still ending. Camera framing remains fixed; whole-drawing zoom/rotation and the infinite completion idle are removed. When parts cannot be validated, the existing Pixi fallback uses only very small in-frame translations, then rests.
+- Synthetic renderer/backend tests, renderer typecheck and demo build, and mobile TypeScript check pass. Android visual playback and real Lightning/SAM mask quality remain operator-run and unverified here.
+- Evidence: `../FEAT-030-original-derived-auto-rig/evidence/notes/PIXI_PART_MOTION_RESTORATION_20260928.md`.
+- The 2026-09-29 cross-feature audit found that Montessori recommendations used age and current confirmed scene/catalog matching, not a persisted child preference/history profile; current-scene anchor priority is only a relevance proxy. The owner approved session-only profile edits (durable backend/storage is a later target), interests/dislikes, adult-confirmed progression, readiness/materials and optional support, and editor placement in Parent/Guide plus initial child selection only. The integrated FEAT-018/020/030 implementation is in progress; acceptance gaps are recorded in `evidence/notes/INTEGRATED_CHILD_PROFILE_AND_RIG_QUALITY_IMPLEMENTATION_20260929.md`.
+
+## Integrated child-profile and rig-quality implementation — 2026-09-29
+
+- Child learning profile fields are held in volatile app state and sent through the versioned P1
+  options request. Safety/supervision, adult-confirmed prerequisites, dislikes, readiness and every
+  required material group are hard gates; interests, adult-confirmed objectives and explicit
+  non-clinical supports only adjust deterministic ranking after those gates.
+- The profile editor is exposed from the Parent/Guide profile area and at initial child selection;
+  the active child flow locks profile edits. Baseline and personalized options are compared in the
+  UI without a second Qwen request.
+- Catalog audit found 100/300 templates with readiness metadata, all 300 with material and
+  supervision metadata, 94 scene concepts, and no per-child preference/history in catalog data.
+  Profile mode fails closed for missing readiness/material metadata; no catalog rows were invented.
+- Synthetic SAM candidate selection, mask metrics and pigment-donor cutout checks are implemented.
+  Synthetic results do not establish real SAM accuracy or L4 performance.
+- Backend full suite, targeted Python lint, mobile typecheck/UI tests and focused renderer tests pass.
+  Android acceptance remains pending because `adb` is unavailable in this environment.
+- Evidence: `evidence/notes/INTEGRATED_CHILD_PROFILE_AND_RIG_QUALITY_IMPLEMENTATION_20260929.md`.
+
+## Integrated increment verification update — 2026-09-30
+
+The connected local Android environment is now available: backend health returned HTTP 200, Expo
+Metro status and the monorepo Android bundle route returned HTTP 200, `emulator-5554` is connected
+with the mobile `MainActivity` foreground, and ADB reverse `8081 -> 8081` is active. This supersedes
+the earlier note that `adb` was not on PATH for that environment. It is connectivity evidence only;
+the full live classification/readiness/Gate-B journey, visual SAM acceptance, reviewed held-out
+mask quality, L4 runtime budget and the comparable native input-to-presented-pixel trace remain
+unverified. See FEAT-033 `FEAT033-EV-20260930-09` and FEAT-030
+`E-030-SAM-QUALITY-012`.
+
+## Pixi mask-background failure follow-up — 2026-09-30
+
+The owner supplied the exact renderer failure `MASK_BACKGROUND_RECONSTRUCTION_FAILED`. A synthetic
+renderer regression reproduced it when a seven-pixel saturated outline separated the subject mask
+from nearby paper; the renderer's bounded low-chroma paper search now reaches 12 pixels and still
+fails closed when no credible donor is found. Renderer tests (48), renderer typecheck/build, mobile
+typecheck and UI-copy tests pass. The connected emulator was not used for a fresh Pixi launch because
+the current app path needs a live rig/mask backend response; no provider call was made. Android
+visual acceptance remains pending. See FEAT-030 `E-030-FIX-013` and the FEAT-018 evidence record at
+`evidence/notes/SUBJECT_RECALL_AND_PIXI_MAIN_FLOW_HARDENING_IMPLEMENTATION_20260930.md`. The approved subject
+and Pixi main-flow increment now has offline regression coverage; its fresh visual acceptance still
+requires a real backend rig/mask response and was not inferred from Metro bundle delivery.
+
+The owner then reported the same Pixi mask-background failure again. Backend reads for the page,
+source, package and four masks all returned HTTP 200. The 12-pixel local donor search had not covered
+the dense-outline case; FEAT-030 added a credible same-image paper seed for local-search misses,
+without changing pixels outside the verified mask or allowing automatic V1 recovery. Renderer (49
+tests), mobile and static-build checks pass. This shell cannot reload Android because `adb` is not
+available, so fresh visual playback remains pending. See the FEAT-018 Pixi diagnostic follow-up and
+FEAT-030 `E-030-FIX-014`.
+
+## Owner supported-age amendment — 2026-10-06
+
+The supported profile/session age is now under 9 years (0–107 completed months). Mobile age selection and supervised-flow/P1 application services reject 108+ months before activity selection, Gate B media resolution, or renderer localization. Existing versioned DTOs continue to represent historical/catalog values. The 9–12 source catalog remains intact, but the current product journey cannot request it. Cross-feature approval and evidence are tracked under FEAT-037; no new visual asset was generated or promoted.
+
+## P2-T3 status reconciliation — 2026-10-20
+
+The 2026-09-21 owner-approved full-workflow/narration addendum and its implementation-closure
+record supersede the earlier 2026-09-12 progress statement that P2-T3 remained separately gated.
+P2-T3's offline implementation is complete; owner-only live Lightning/ASR smoke remains pending.
+The current-branch scope mapping and verification outcomes, including checks blocked by this
+Windows environment, are recorded in
+[`evidence/notes/P2_T3_OPTIONAL_NARRATION_STATUS_20261020.md`](evidence/notes/P2_T3_OPTIONAL_NARRATION_STATUS_20261020.md).
+
+## P2-T4 input design and external review — 2026-10-20
+
+Branch `feature/feat018-p2t4-mapping-diagnostics` contains a draft diagnostics plan and synthetic
+input specification, published for the owner's Claude Cloud review at commit `9663ba4`. The owner
+relayed that review as not ready for approval. Revision 2 addresses label/version identity,
+Raw/Gate-A/matcher boundaries, no-match versus P1 fallback, confidence preservation and explicit
+correction/conflict projection gaps. A coordinator-directed Codex subagent checked source claims;
+it did not run the matrix or provide external acceptance of revision 2.
+
+The proposed diagnostic matrix remains 20 golden activities × six primary cases, with supplemental
+contract cases counted separately. It adds no candidate API or low-confidence policy. Known gaps
+remain open; complete test execution alone cannot close P2-T4 while required behavior is unresolved.
+See `plan/P2_T4_MAPPING_DIAGNOSTICS_PLAN_DRAFT_20261020.md` and
+`plan/P2_T4_MAPPING_INPUT_REVIEW_DRAFT_20261020.md`. This is documentation-only preparation: no
+P2-T4 implementation approval, fixtures, application tests, provider calls or runtime edits occurred.
+
+The subsequent Claude Cloud delta-review of `fc1f987` accepted the structural revisions but required
+explicit claim/primary choices for ambiguity and adult correction. Revision 3 binds both recipes,
+the in-memory session preconditions, counter-versus-disabled-dependency reporting, source confidence
+versus matcher defaults, manifest-level synthetic provenance and the separate narration fixture
+shape. The reported V2 phrase-regex issue is recorded for diagnosis, not silently fixed here.
+These remain draft proposals awaiting owner approval; this update does not start implementation.
+
+## P2-T4 approved diagnostic slice — 2026-10-20
+
+Person 2 later approved Revision 3 at source commit `b39a9f2f56509b0543184876eb538fc9faf0e1aa`.
+The approved scope is B1/B2/B3 with B3 used only to observe existing matchers, 120 primary cases,
+separate supplemental counts, and diagnostic-only report labels. The implementation adds a
+synthetic manifest and test-only diagnostics; it does not change runtime contracts, schemas,
+catalogs, or provider behavior.
+
+The initial local preflight completed B1 for all 120 primary rows but lacked `Pillow>=11,<13`, so
+B2/B3 and nine Gate-A supplemental rows were initially NOT_RUN. A subsequent owner-run Modal
+Notebook check at pinned checkout `5c79741f9e3806626c1dc5c586fe409b2e9370a1` completed the focused
+suite (368 passed, one Pydantic deprecation warning) and regenerated the report: B1/B2/B3 COMPLETE
+for all 120 primary rows and all 43 supplemental rows COMPLETE. Requirements remain 60 primary and
+5 supplemental UNRESOLVED; 10 supplemental requirements are EXPECTED_BLOCKED. The report records
+`provider_execution=NOT_EXECUTED`; no model/provider/Lightning call was made. At the time of this
+2026-10-20 entry, the original approval still required owner disposition and independent review.
+The 2026-10-21 `W2_FEAT018_P2_T4_DIAGNOSTIC_ACCEPTANCE_REBASE_01` supersedes only the unresolved-
+requirements closure clause for diagnostic-deliverable acceptance. The UNRESOLVED results remain
+product gaps and are tracked as separate unassigned follow-ups; Task 4 still awaits valid final gates
+and independent final review. Details and report provenance are in
+`evidence/notes/P2_T4_MAPPING_DIAGNOSTICS_20261020.md`.
+
+The focused suite's 368-pass result and scoped mypy success remain applicable to the unchanged
+candidate source; the earlier typing-only fixes and installation of the declared Pillow dependency
+are historical, not new work under the continuation. Person 2 issued the Gate 3 disposition and
+`W2_FEAT018_P2_T4_CONTINUATION_AND_FINAL_GATE_SCOPE_01` on 2026-10-21. The newly authorized Ruff
+invocation with `--no-cache --no-fix --no-fix-only` completed with exit 0 and `All checks passed!`.
+The earlier cache-denied invocation remains recorded as exit 1 with no lint verdict.
+
+The handoff was committed and pushed as `c54b5a5a4a0dfe8f5c494cd47cd9f432e115f61b` (parent
+`4310fcbfafa48a14e5fce31f38a2089e24079e52`). The coordinator's post-commit chat record reports all
+seven P2-T4 gates passing on that commit. A fresh-session Claude review also reports `PASS WITH
+NOTES` and reran those seven gates in a separate Linux environment; Person 2 accepts it as session-
+independent while the same-model-family limitation remains explicit. The review attachment, its
+three Low-note dispositions, and the distinction between coordinator and reviewer evidence are
+recorded in the diagnostics note.
+
+`HARNESS_INVALID` remains a separate repository-wide result outside P2-T4, not a pass or waiver;
+FEAT-045/046/047 were not changed. The candidate-time “commit/push not authorized” statements below
+are historical snapshots; Person 2 accepted their chronology in chat. At the time of this handoff
+update, Task 4 remained OPEN pending Person 2's closure disposition. APP hold remained IN FORCE and
+Security remained PENDING.
+
+All 60 primary `UNRESOLVED` rows have static-review hypotheses; 40 of them (the conflict and adult-
+correction families) also have runtime boundary findings, while the 20 ambiguous rows have only the
+static hypothesis. Of the five supplemental `UNRESOLVED` rows, two carry static hypotheses and four
+carry runtime findings (six finding entries), with one row in both groups. Preserve the owner-designated labels without
+describing every row as an independently measured runtime defect. The evidence note records the
+earlier local Claude review rounds and their limits, plus the fresh-session final review of the
+handoff commit. The final reviewer is from the same Claude model family; Person 2 accepted session-
+level independence while that caveat remains disclosed. At that review stage, Task 4 remained OPEN
+pending owner closure; the later owner decision is recorded below.
+
+## P2-T4 diagnostic deliverable closure — 2026-10-21
+
+Person 2 confirmed closure of the approved P2-T4 diagnostic deliverable at handoff commit
+`8ed2e8bbc7509eb236691bb8196eecb1e4f7e14f`, accepting the four closure gates: the missing
+provenance contract-name is recorded as `P2T4-FU-01 OPEN`; artifacts are consistent; final gates
+PASS on that commit; and the independent final review is PASS with no findings. This is diagnostic-
+deliverable closure only. The 60 primary and 5 supplemental `UNRESOLVED` results remain product
+gaps, and `P2T4-FU-01` through `P2T4-FU-10` remain OPEN, unassigned, and not automatically assigned
+to Task 5. No runtime, schema, catalog, contract, or provider authority is granted. APP hold remains
+IN FORCE; Security remains PENDING. The decision is recorded in `DECISIONS.md` and the diagnostics
+note; `TASK_APPROVAL.md` remains untouched under APP hold.

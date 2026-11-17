@@ -1,0 +1,16 @@
+stateDiagram-v2
+[*] --> Draft
+Draft --> Scheduled: schedule
+Draft --> Lobby: open lobby
+Scheduled --> Lobby: open lobby
+Lobby --> Active: Start
+Active --> Paused: pause
+Paused --> Active: resume
+Active --> Recovering: failure
+Paused --> Recovering: failure
+Recovering --> Active: recover
+Recovering --> Paused: recover
+Active --> Completing
+Paused --> Completing
+Completing --> Completed
+note right of Lobby: Cancellation and early-end routes are detailed in the Session Terminal Outcomes companion state machine.

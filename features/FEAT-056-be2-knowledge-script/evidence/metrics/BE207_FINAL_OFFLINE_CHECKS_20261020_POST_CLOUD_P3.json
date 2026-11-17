@@ -1,0 +1,155 @@
+{
+  "kind": "BE207_FINAL_OFFLINE_CHECKS",
+  "evidence_revision": "POST_CLOUD_P3",
+  "supersedes": "evidence/metrics/BE207_FINAL_OFFLINE_CHECKS_20261020_POST_CLAUDE.json",
+  "base_commit": "f0359c4fbb7c3f4a35dd3f2265559779a17951e9",
+  "final_run": "evidence/local/final-offline-post-cloud-p3-20261020",
+  "source_manifest_sha256": "8ae9eb87720ce562264f1159124394beb2a37efb488602873213a9565a11574a",
+  "source_manifest_files": 605,
+  "junit_sha256": "5c31a39febedea892f2f0b2ce760d3f94a6d146d958b6dfda8a481d4c60978a7",
+  "junit_counts": {
+    "collected": 1663,
+    "passed": 1660,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 3
+  },
+  "skipped_cases": [
+    {
+      "classname": "tests.contract.test_ai_job_polling",
+      "name": "test_live_app_routes_have_no_candidate_job_route",
+      "status": "skipped",
+      "detail": "live app import needs Pillow (not in this env)"
+    },
+    {
+      "classname": "tests.contract.test_analysis_corrections_api",
+      "name": "test_v12_production_app_routes_do_not_mount_cmd34",
+      "status": "skipped",
+      "detail": "live app import needs Pillow (not in this env)"
+    },
+    {
+      "classname": "tests.contract.test_assistance_requests_api",
+      "name": "test_live_app_has_no_assistance_route",
+      "status": "skipped",
+      "detail": "live app import needs Pillow (not in this env)"
+    }
+  ],
+  "excluded": [
+    {
+      "path": "backend/tests/unit/test_lightning_vision_v2_server.py",
+      "reason": "Pillow-importing V2 runtime server module; missing dependency and outside offline component profile; NOT_RUN"
+    }
+  ],
+  "mapped_acceptance_cases": {
+    "pass": 42,
+    "partial": 0,
+    "not_run": 0
+  },
+  "mapped_node_references": 506,
+  "selected_test_files": {
+    "total": 56,
+    "baseline_01_06": 50,
+    "required_07": 6,
+    "selection_sha256": "52a1ad308db8977c35fdbc10c4dd901d5683dfd83f6ce186b970d4019085a326"
+  },
+  "checks": {
+    "collection": {
+      "exit": 0,
+      "seconds": 4.281,
+      "started_utc": "2026-10-20T06:57:18.184211+00:00",
+      "ended_utc": "2026-10-20T06:57:22.473374+00:00",
+      "log_sha256": "5af931bbd9a67ad434b04ed494281745d7c44b02878f47a1d03ec3ecc863d5b1"
+    },
+    "pytest": {
+      "exit": 0,
+      "seconds": 12.047,
+      "started_utc": "2026-10-20T06:57:22.474875+00:00",
+      "ended_utc": "2026-10-20T06:57:34.511025+00:00",
+      "log_sha256": "164547809b2defb222297ef74ad4a875a897961e8e5360fdb678563b412a7b79"
+    },
+    "ruff": {
+      "exit": 0,
+      "seconds": 0.11,
+      "started_utc": "2026-10-20T06:57:34.576922+00:00",
+      "ended_utc": "2026-10-20T06:57:34.686034+00:00",
+      "log_sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+    },
+    "mypy-strict": {
+      "exit": 0,
+      "seconds": 0.969,
+      "started_utc": "2026-10-20T06:57:34.687029+00:00",
+      "ended_utc": "2026-10-20T06:57:35.660807+00:00",
+      "log_sha256": "e522fa370334927ac2ccb7106100045b572938dd238093267de825336e6704f2"
+    },
+    "mypy-fresh-cache": {
+      "exit": 0,
+      "seconds": 2.218,
+      "started_utc": "2026-10-20T06:57:35.662230+00:00",
+      "ended_utc": "2026-10-20T06:57:37.876933+00:00",
+      "log_sha256": "e522fa370334927ac2ccb7106100045b572938dd238093267de825336e6704f2"
+    },
+    "evidence-script-ruff": {
+      "exit": 0,
+      "seconds": 0.11,
+      "started_utc": "2026-10-20T06:57:37.877925+00:00",
+      "ended_utc": "2026-10-20T06:57:37.992025+00:00",
+      "log_sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+    },
+    "validate-harness": {
+      "exit": 0,
+      "seconds": 0.375,
+      "started_utc": "2026-10-20T06:57:37.993029+00:00",
+      "ended_utc": "2026-10-20T06:57:38.369125+00:00",
+      "log_sha256": "bcb49c3e0135849d66743bca1c2dc53dd0b4de175f3146e80f8b5ea38c611636"
+    },
+    "validate-repository_security": {
+      "exit": 0,
+      "seconds": 2.437,
+      "started_utc": "2026-10-20T06:57:38.369125+00:00",
+      "ended_utc": "2026-10-20T06:57:40.796635+00:00",
+      "log_sha256": "cc54ca489d48a54ac11c4c70d0ca8b29383e38e2ad2935c8b4584671d6eebff7"
+    },
+    "validate-architecture": {
+      "exit": 0,
+      "seconds": 0.125,
+      "started_utc": "2026-10-20T06:57:40.797636+00:00",
+      "ended_utc": "2026-10-20T06:57:40.919509+00:00",
+      "log_sha256": "67f1bc538fc90b4f70000a89126dde0aa14c688b8c3dbba796e1a89d6caef80e"
+    },
+    "validate-skeleton": {
+      "exit": 0,
+      "seconds": 0.078,
+      "started_utc": "2026-10-20T06:57:40.919509+00:00",
+      "ended_utc": "2026-10-20T06:57:40.998224+00:00",
+      "log_sha256": "c3bd0318347efa17e2cb71a192287f1fe5bbb4bb1932fa8a360e6f3328a7bd1b"
+    },
+    "diff-check": {
+      "exit": 0,
+      "seconds": 0.063,
+      "started_utc": "2026-10-20T06:57:40.999217+00:00",
+      "ended_utc": "2026-10-20T06:57:41.059968+00:00",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "gates": {
+    "passed": true,
+    "profile_sha256": "590ae059f4d38fd683902bb9e793f58fa536982c6f4d1b1cb11e5eca98b57543",
+    "baseline_backend_unchanged": 572,
+    "immutable_historical_records": 37,
+    "head": "f0359c4fbb7c3f4a35dd3f2265559779a17951e9",
+    "staged": 0,
+    "foreign_checkout_invariants": "NOT_RERUN; not required to claim new product checks"
+  },
+  "packages": {
+    "pytest": "8.4.2",
+    "pydantic": "2.13.4",
+    "ruff": "0.16.4",
+    "mypy": "1.20.2"
+  },
+  "text_hygiene_sha256": "94a9fbe00df64e92f1c97c0d48675c7bdbc96f42541949efcb136ea2e3208d45",
+  "finalizer_sha256": "f82a123e78f1cb169a62aa4a702752c56d3f74d3c9cde9e91e30c5f7db0a7ac3",
+  "runtime_executed": false,
+  "dependency_installation": false,
+  "owner_component_acceptance": "NOT_ACCEPTED",
+  "card_status": "IN_PROGRESS / NOT_DONE"
+}

@@ -1,0 +1,8 @@
+{
+  "name": "sketch2life-review2-diagram-layout",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "elkjs": "0.12.0"
+  }
+}

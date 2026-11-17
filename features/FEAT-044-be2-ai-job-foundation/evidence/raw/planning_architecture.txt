@@ -1,0 +1,9 @@
+command=python tools/validate_architecture.py
+started_at=2026-10-14T19:55:10.990899+07:00
+exit_code=0
+ARCHITECTURE_VALID
+python_dependency_direction=valid
+mobile_feature_isolation=valid
+frontend_asset_gate=valid
+mobile_ai_boundary=valid
+firebase_data_products=absent

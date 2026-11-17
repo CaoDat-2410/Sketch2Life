@@ -1,0 +1,15 @@
+{
+  "state": "DISPATCH_INTENT_RECORDED",
+  "started_at": "2026-11-04T00:00:26.328165+07:00",
+  "run_ref": "aa84ff1a-410d-4953-96f4-cda22abc1e80",
+  "topic": "bướm",
+  "language": "vi",
+  "scene_count": 5,
+  "job_id": "parent-story-9161c079728d",
+  "generation_id": "story-v1-d221e4eb",
+  "attempt_prefix": "sketch2life/dev/parent-story-9161c079728d/story-v1-d221e4eb/attempt-293470288f5b/",
+  "input_manifest_sha256": "c4d5e6e650c2d255e004086248fc528188f372c0d99e13d1c3e7e1cf20e4422a",
+  "max_attempts": 1,
+  "video_enabled": false,
+  "modal_function_call_id": "fc-01M6H5P6TFKW6Q7ZKRX28JCTDD"
+}

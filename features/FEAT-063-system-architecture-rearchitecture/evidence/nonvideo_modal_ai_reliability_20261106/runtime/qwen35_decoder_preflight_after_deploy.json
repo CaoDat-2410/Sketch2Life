@@ -1,0 +1,20 @@
+{
+  "call_id": "fc-01M6R2GDVT3ZPC0CCPREB7KCHG",
+  "elapsed_seconds": 12.145,
+  "ended_at": "2026-11-06T16:19:41+07:00",
+  "error_type": null,
+  "gpu_inference_called": false,
+  "outcome": "SUCCEEDED",
+  "result": {
+    "lm_format_enforcer_version": "0.11.3",
+    "model_loader": "AutoModelForMultimodalLM",
+    "processor_loader": "AutoProcessor",
+    "schema_parser": "JsonSchemaParser",
+    "status": "ready",
+    "token_enforcer": "TokenEnforcer",
+    "tokenizer_data": "TokenEnforcerTokenizerData",
+    "transformers_version": "5.22.1"
+  },
+  "started_at": "2026-11-06T16:19:29+07:00",
+  "video_called": false
+}

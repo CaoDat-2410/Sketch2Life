@@ -1,0 +1,78 @@
+catalog_id,surface,method,path,smoke_status,result
+1,BE1 / classroom,POST,/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/artifacts,401,HTTP_RESPONSE
+2,BE1 / classroom,GET,/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/artifacts/{asset_ref:path},401,HTTP_RESPONSE
+3,BE1 / classroom,GET,/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/canvas/operations,401,HTTP_RESPONSE
+4,BE1 / classroom,POST,/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/canvas/operations,401,HTTP_RESPONSE
+5,BE1 / classroom,POST,/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/groups/{group_id}/checkpoints,401,HTTP_RESPONSE
+6,BE1 / classroom,GET,/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/groups/{group_id}/checkpoints/latest,401,HTTP_RESPONSE
+7,BE1 / classroom,POST,/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/groups/{group_id}/restore,401,HTTP_RESPONSE
+8,BE1 / classroom,GET,/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/reconnect,401,HTTP_RESPONSE
+9,BE1 / classroom,POST,/api/be1/v1/organizations/{organization_id}/classes/{class_id}/observations,401,HTTP_RESPONSE
+10,BE1 / classroom,GET,/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}/portfolio,401,HTTP_RESPONSE
+11,BE1 / classroom,POST,/api/be1/v1/organizations/{organization_id}/data-requests,401,HTTP_RESPONSE
+12,BE1 / classroom,GET,/api/be1/v1/organizations/{organization_id}/data-requests/{request_id},401,HTTP_RESPONSE
+13,BE1 / classroom,GET,/api/be1/v1/organizations/{organization_id}/gallery,401,HTTP_RESPONSE
+14,BE1 / classroom,POST,/api/be1/v1/organizations/{organization_id}/gallery,401,HTTP_RESPONSE
+15,BE1 / classroom,POST,/api/be1/v1/organizations/{organization_id}/gallery/{gallery_id}/annotations,401,HTTP_RESPONSE
+16,BE1 / classroom,POST,/api/be1/v1/organizations/{organization_id}/gallery/{gallery_id}/publish,401,HTTP_RESPONSE
+17,BE1 / classroom,GET,/api/be1/v1/organizations/{organization_id},401,HTTP_RESPONSE
+18,BE1 / classroom,POST,/api/be1/v1/organizations/{organization_id}/assignments,401,HTTP_RESPONSE
+19,BE1 / classroom,DELETE,/api/be1/v1/organizations/{organization_id}/assignments/{assignment_id},401,HTTP_RESPONSE
+20,BE1 / classroom,GET,/api/be1/v1/organizations/{organization_id}/classes,401,HTTP_RESPONSE
+21,BE1 / classroom,POST,/api/be1/v1/organizations/{organization_id}/classes,401,HTTP_RESPONSE
+22,BE1 / classroom,GET,/api/be1/v1/organizations/{organization_id}/classes/{class_id}/consents,401,HTTP_RESPONSE
+23,BE1 / classroom,POST,/api/be1/v1/organizations/{organization_id}/classes/{class_id}/consents,401,HTTP_RESPONSE
+24,BE1 / classroom,POST,/api/be1/v1/organizations/{organization_id}/classes/{class_id}/consents/{consent_id}/revoke,401,HTTP_RESPONSE
+25,BE1 / classroom,GET,/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles,401,HTTP_RESPONSE
+26,BE1 / classroom,POST,/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles,401,HTTP_RESPONSE
+27,BE1 / classroom,GET,/api/be1/v1/organizations/{organization_id}/me,401,HTTP_RESPONSE
+28,BE1 / classroom,GET,/api/be1/v1/health,200,HTTP_RESPONSE
+29,BE1 / classroom,POST,/api/be1/v1/device-grants/{grant_id}/join-status,401,HTTP_RESPONSE
+30,BE1 / classroom,POST,/api/be1/v1/organizations/{organization_id}/sessions,401,HTTP_RESPONSE
+31,BE1 / classroom,GET,/api/be1/v1/organizations/{organization_id}/sessions/{session_id},401,HTTP_RESPONSE
+32,BE1 / classroom,POST,/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/completion,401,HTTP_RESPONSE
+33,BE1 / classroom,POST,/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/device-grants/{grant_id}/refresh,401,HTTP_RESPONSE
+34,BE1 / classroom,POST,/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/finish,401,HTTP_RESPONSE
+35,BE1 / classroom,POST,/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/groups,401,HTTP_RESPONSE
+36,BE1 / classroom,POST,/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/groups/{group_id}/control,401,HTTP_RESPONSE
+37,BE1 / classroom,PUT,/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/groups/{group_id}/members/{child_id},401,HTTP_RESPONSE
+38,BE1 / classroom,POST,/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/groups/{group_id}/turns/{child_id},401,HTTP_RESPONSE
+39,BE1 / classroom,POST,/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/join,422,HTTP_RESPONSE
+40,BE1 / classroom,GET,/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/join-requests,401,HTTP_RESPONSE
+41,BE1 / classroom,POST,/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/join-requests/{grant_id}/admit,401,HTTP_RESPONSE
+42,BE1 / classroom,POST,/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/join-requests/{grant_id}/revoke,401,HTTP_RESPONSE
+43,BE1 / classroom,GET,/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/learning-stage,401,HTTP_RESPONSE
+44,BE1 / classroom,POST,/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/learning-stage/advance,401,HTTP_RESPONSE
+45,BE1 / classroom,POST,/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/lobby,401,HTTP_RESPONSE
+46,BE1 / classroom,POST,/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/memberships/{membership_id}/help,401,HTTP_RESPONSE
+47,BE1 / classroom,POST,/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/memberships/{membership_id}/leave,401,HTTP_RESPONSE
+48,BE1 / classroom,POST,/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/memberships/{membership_id}/progress,401,HTTP_RESPONSE
+49,BE1 / classroom,GET,/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/outcome,401,HTTP_RESPONSE
+50,BE1 / classroom,POST,/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/pause,401,HTTP_RESPONSE
+51,BE1 / classroom,POST,/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/resume,401,HTTP_RESPONSE
+52,BE1 / classroom,POST,/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/room-code/rotate,401,HTTP_RESPONSE
+53,BE1 / classroom,GET,/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/roster,401,HTTP_RESPONSE
+54,BE1 / classroom,POST,/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/start,401,HTTP_RESPONSE
+55,BE1 / classroom,POST,/api/be1/v1/room-code/join,422,HTTP_RESPONSE
+56,BE1 / classroom,GET,/health,200,HTTP_RESPONSE
+62,Demo / local flow,POST,/v1/sessions,422,HTTP_RESPONSE
+63,Demo / local flow,GET,/v1/sessions/{session_id},422,HTTP_RESPONSE
+68,Demo / local flow,GET,/v1/renderer/pixi-asset,422,HTTP_RESPONSE
+69,Demo / local flow,GET,/v1/renderer/rig-mask,422,HTTP_RESPONSE
+70,Demo / local flow,GET,/v1/renderer/rig-package,422,HTTP_RESPONSE
+71,Demo / local flow,GET,/v1/renderer/source,422,HTTP_RESPONSE
+72,Demo / local flow,POST,/v1/sessions/{session_id}/experience/prepare,422,HTTP_RESPONSE
+73,Demo / local flow,POST,/v1/sessions/{session_id}/feedback,422,HTTP_RESPONSE
+74,Demo / local flow,GET,/v1/sessions/{session_id}/gallery,422,HTTP_RESPONSE
+75,Demo / local flow,POST,/v1/sessions/{session_id}/gate-a/confirm,422,HTTP_RESPONSE
+76,Demo / local flow,POST,/v1/sessions/{session_id}/gate-b/approve,422,HTTP_RESPONSE
+77,Demo / local flow,POST,/v1/sessions/{session_id}/handoff,422,HTTP_RESPONSE
+78,Demo / local flow,POST,/v1/sessions/{session_id}/media/retake,422,HTTP_RESPONSE
+79,Demo / local flow,PUT,/v1/sessions/{session_id}/p1-context,422,HTTP_RESPONSE
+80,Demo / local flow,POST,/v1/sessions/{session_id}/p1-filter,422,HTTP_RESPONSE
+81,Demo / local flow,POST,/v1/sessions/{session_id}/p1/activity-suggestions,422,HTTP_RESPONSE
+83,Demo / local flow,GET,/v1/sessions/{session_id}/p1/context-candidates,422,HTTP_RESPONSE
+84,Demo / local flow,GET,/v1/sessions/{session_id}/p1/context-options,422,HTTP_RESPONSE
+85,Demo / local flow,POST,/v1/sessions/{session_id}/p1/context-options,422,HTTP_RESPONSE
+86,Demo / local flow,POST,/v1/sessions/{session_id}/p1/context-options/finalize,422,HTTP_RESPONSE
+88,Demo / local flow,POST,/v1/whiteboard/storyboards/preview,422,HTTP_RESPONSE

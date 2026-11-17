@@ -1,0 +1,28 @@
+{
+  "command": [
+    "<original-workspace>\\backend\\.venv\\Scripts\\python.exe",
+    "-m",
+    "pytest",
+    "backend/tests/unit",
+    "backend/tests/contract",
+    "--basetemp=.tmp/feat042-pytest-final",
+    "-q",
+    "--ignore=backend/tests/unit/test_whiteboard_v2_engine.py",
+    "--ignore=backend/tests/unit/test_whiteboard_v2_visual_refinement.py",
+    "--ignore=backend/tests/unit/test_butterfly_candidate_refinement.py",
+    "--ignore=backend/tests/unit/test_butterfly_video_proof.py",
+    "--ignore=backend/tests/unit/test_house_video_proof.py",
+    "--ignore=backend/tests/unit/test_limited_character_rig_v2.py",
+    "--ignore=backend/tests/unit/test_semantic_authoring_v1.py",
+    "--ignore=backend/tests/unit/test_semantic_drawing_engine_v2.py",
+    "--ignore=backend/tests/unit/test_whiteboard_v2_complexity.py",
+    "--ignore=backend/tests/unit/test_whiteboard_v2_pencil_pass.py",
+    "--ignore=backend/tests/unit/test_whiteboard_v2_schedule_debug.py",
+    "--ignore=backend/tests/unit/test_whiteboard_v2_visual_pass.py"
+  ],
+  "cwd": "<worktree>",
+  "started_at_utc": "2026-10-10T13:11:31.638889+00:00",
+  "finished_at_utc": "2026-10-10T13:14:36.700337+00:00",
+  "exit_code": 1,
+  "status": "FAIL"
+}

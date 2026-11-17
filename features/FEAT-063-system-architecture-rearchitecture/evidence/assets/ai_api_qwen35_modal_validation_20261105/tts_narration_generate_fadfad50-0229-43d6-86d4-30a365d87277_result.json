@@ -1,0 +1,25 @@
+{
+  "workload": "tts.narration.generate",
+  "function": "synthesize-vietnamese-narration",
+  "call_id": "fc-01M6NBWQJB2TP9V7CM3E9PB0KA",
+  "elapsed_ms": 23500.64,
+  "outcome": "SUCCEEDED",
+  "output_sha256": "4fd31afa493c9c7ce11100b942e402c5aff7d35089e10330bd0cc7f6fe2d3391",
+  "result": {
+    "schema_version": "sketch2life.modal.worker-output.v1",
+    "workload": "tts.narration.generate",
+    "job_id": "6ef58c16-96ab-4db8-b795-4f52734cbacb",
+    "generation_id": "b67955b3-81d8-459a-9ced-4579222bfad8",
+    "attempt_id": "fadfad50-0229-43d6-86d4-30a365d87277",
+    "model": {
+      "id": "pnnbao-ump/VieNeu-TTS-v3-Turbo",
+      "revision": "61b85e3d937fbbacb387714180e8182823512523"
+    },
+    "asset": {
+      "content_type": "audio/wav",
+      "size_bytes": 184364,
+      "sha256": "10b2f8992bfc55e1b00ee085bcce5ad89f21439743a206b8c13ad894e0dd214c"
+    },
+    "asset_file": "synthetic_vietnamese_narration.wav"
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "recorded_at": "2026-10-15",
+  "batch": "B4",
+  "state": "B4_CODE_COMPLETE_RUNTIME_NOT_RUN",
+  "executor": "Claude",
+  "provenance": "DIRECT_LOCAL_RUN",
+  "environment": "Windows, <repo>/backend/.venv Python 3.12.10, rq 2.11.0, redis-py 6.4.0",
+  "previous_snapshot": {"manifest_sha256": "0814d514cf75128a80552e313af871a0ceff2758ef2fa8d87a3e4d0b2402dbf8", "status": "B3_CLOSED_REVIEW_PASS"},
+  "deltas": ["Δ6", "Δ7", "Δ11", "Δ13", "Δ14", "Δ12 subset"],
+  "checks": {
+    "phase_a_suites": {"exit_code": 0, "passed": 223, "skipped": 1, "skip_reason": "Pillow absent locally"},
+    "b2_b3_b4_suite": {"exit_code": 0, "passed": 33, "passed_split": {"b2_offline": 8, "b3_offline": 14, "b4_offline": 11}, "skipped": 62, "skipped_split": {"b2_postgres": 10, "b3_postgres": 39, "b4_postgres_redis": 13}, "skipped_status": "NOT_RUN"},
+    "fixture_runner": {"exit_code": 0, "results_sha256": "d17f58a3c9c535d45a2fe03ed0c1edad42a565422725aede21b22ba45af41f68", "fixtures_regenerated": "error_catalogue adds DISPATCH_LOST only"},
+    "ruff": {"exit_code": 0},
+    "mypy_src": {"exit_code": 0},
+    "mypy_tests": {"exit_code": 0},
+    "validate_harness": {"exit_code": 0},
+    "validate_repository_security": {"exit_code": 0},
+    "validate_architecture": {"exit_code": 0},
+    "validate_skeleton": {"exit_code": 0},
+    "git_diff_check": {"exit_code": 0},
+    "runner_host_simulation": {"result": "PASS", "container_steps_executed": false}
+  },
+  "runtime": {"status": "NOT_RUN", "pending": ["B-02", "B-04a", "B-04b(i-v)", "B-04c", "B-06a", "B-06b timeout path", "Δ14 RQ envelope options", "dispatcher/RQ token-free logs", "B2/B3 regressions", "Phase A", "fixture runner"]},
+  "package": {
+    "directory": "evidence/local/b4-studio-package-20261015",
+    "delta_sha256": "44d98cd6983b883a3ef6ab52d8804d669797e678e5d06e49a074c3dc5c44a8e6",
+    "manifest_sha256": "70b2a1600682aec3cfe2dabd80608d45c107f88d24ed25dd18d0e804aff8ef4d",
+    "runner_sha256": "6daa16b3c84a080a9c8863b4cec6b9e83e997cf5268be52473c7bea15ea37d4c",
+    "zip_sha256": "2a06c8bb32c023602302b9d64183fb08adea580cfeb9d65c00d2d5ebef8fc8a4",
+    "delta_files": 18,
+    "manifest_files": 32,
+    "closed_plus_delta_matches_manifest": true,
+    "second_application_refused": true
+  },
+  "b5_started": false,
+  "committed": false,
+  "pushed": false,
+  "deployed": false
+}

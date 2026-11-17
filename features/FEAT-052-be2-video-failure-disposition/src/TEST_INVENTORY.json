@@ -1,0 +1,14 @@
+{
+  "owned": {
+    "cases": 253,
+    "node_sha256": "0bccce4e16100852d4c656071c7d2f47bdfe56ef2b470044deb3e26abaee2731"
+  },
+  "regression": {
+    "cases": 2352,
+    "node_sha256": "bf0252e3285a0e026c6913271ee465d8aef1b4274fa7f8274579bf45a73b3ac1"
+  },
+  "sql_collection_only": {
+    "cases": 14,
+    "node_sha256": "8c5247fead78edc6d65d681afe339a90ce1e6b1e33d77321cbaeea7347fc1de6"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "assistance_id": "assistance_fx_001",
+  "context_revision": 3,
+  "contract_version": "0.1-candidate",
+  "evidence_refs": [],
+  "expected_request_revision": 1,
+  "input_snapshot_ref": "snapshot_fx_001",
+  "job_attempt_id": "att_fx0001",
+  "job_id": "job_fx0001",
+  "moderation_outcome": "passed",
+  "object_candidates": [
+    {
+      "confidence": null,
+      "label": "cat"
+    },
+    {
+      "confidence": 0.62,
+      "label": "house"
+    }
+  ],
+  "provenance": {
+    "adapter": "fake_vision",
+    "fixture": true
+  },
+  "uncertainty": "model not calibrated; confidence may be null"
+}

@@ -1,0 +1,50 @@
+{
+  "asset_id": "T13",
+  "use_case": "ui-mockup",
+  "status": "REVIEW_PENDING",
+  "generated_path": "assets/generated/teacher-app/T13-soan-noi-dung.png",
+  "srs_ui_id": "T13",
+  "screen_kind": "main",
+  "role": "teacher-app",
+  "prompt": "assets/prompts/T13.txt",
+  "source_references": [
+    {
+      "path": "features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md",
+      "sha256": "a95c89589843e3555e967c5e486f3bcaf4bbdf9446cb3bc9c49ed16f672964d9",
+      "section": "B23.3"
+    },
+    {
+      "path": "apps/ui-mobile/src/theme.ts",
+      "purpose": "existing design tokens"
+    }
+  ],
+  "generator": "built-in image_gen.imagegen",
+  "captured_at_utc": "2026-10-10T14:15:41.647473+00:00",
+  "generator_output_filename": "exec-e714a952-9f2a-4c2a-98a9-99d9c9fd09bb.png",
+  "sha256": "3ce3d0c38eb76fdc4d967825e3945b5ce84dc7ccfd9034ce825d71d0ef0fbd62",
+  "bytes": 1587717,
+  "width": 1586,
+  "height": 992,
+  "original_copied_unchanged": true,
+  "synthetic_data_only": true,
+  "qa": {
+    "reviewer": "Codex visual inspection",
+    "status": "INSPECTED",
+    "note": "Actual inspected: Teacher draft/versioned content authoring, sources, validation and submit-for-review; no self-authorized publish. Synthetic document titles are placeholders, not external citation or safety proof; author-length counter not adopted policy. REVIEW_PENDING."
+  },
+  "review": {
+    "status": "REVIEW_PENDING",
+    "reviewer": null,
+    "reviewed_at": null
+  },
+  "applied_path": null,
+  "limitations": "Generated design proposal; not implemented runtime, approved visual or device acceptance.",
+  "input_images": [
+    {
+      "path": "assets/generated/teacher-app/T05-dieu-phoi-lop.png",
+      "sha256": "33fe9018ea5cf0911ece61c37d72cacb01ffc37d17ad0d50b5f3f2215f4703f0",
+      "role": "style and app-shell reference; main content replaced for target workspace"
+    }
+  ],
+  "prompt_sha256": "5929438b5d027fb1f7f2d485fdab13384bf1a246e7ea70f2d4c6bb6457169dcd"
+}

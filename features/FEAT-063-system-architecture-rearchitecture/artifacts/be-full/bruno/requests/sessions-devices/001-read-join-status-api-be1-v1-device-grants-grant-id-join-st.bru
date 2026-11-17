@@ -1,0 +1,17 @@
+meta {
+  name: 001 [QUERY-STYLE POST - VERIFY HANDLER] Read Join Status
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/be1/v1/device-grants/{{grant_id}}/join-status
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  X-Be1-Device-Key: REPLACE_WITH_SYNTHETIC_VALUE
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
+}

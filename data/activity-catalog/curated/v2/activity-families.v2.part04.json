@@ -1,0 +1,96 @@
+{
+  "schema_version": 2,
+  "catalog_revision": "catalog-2026-09-expansion-1",
+  "families": [
+    {
+      "family_id": "FAM-SHAPE-MATCH",
+      "concept_ids": ["SHAPE_GEOMETRY", "SENSORIAL_DISCRIMINATION"],
+      "objective_ids": ["OBJ_SENSORIAL_DISCRIMINATION"],
+      "area": "sensorial",
+      "phrases_vi": ["hình tròn", "hình vuông", "hình dạng", "khối hình"],
+      "aliases_vi": ["ghép hình", "hình học cơ bản"],
+      "material_option_ids": ["MAT_SHAPE_BLOCKS", "MAT_SHAPE_CARDS"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["dùng khối lớn, nhẹ, không cạnh sắc; không ném khối"],
+      "policy_constraints": ["SAFE_MATERIALS_ONLY"],
+      "variants": [
+        {"activity_id": "ACT-0181", "age_band": "0-3", "title_vi": "Đặt khối vào lỗ lớn", "action_vi": "Trẻ thử đặt khối hình lớn vào lỗ vừa vặn trên khay.", "challenge_vi": "Người lớn xoay khối chậm để trẻ quan sát cạnh và lỗ.", "duration_minutes": 6},
+        {"activity_id": "ACT-0182", "age_band": "3-6", "title_vi": "Ghép hình giống nhau", "action_vi": "Trẻ ghép thẻ hình cơ bản với khối tương ứng.", "challenge_vi": "Trẻ gọi tên hình hoặc mô tả số cạnh.", "duration_minutes": 10},
+        {"activity_id": "ACT-0183", "age_band": "6-9", "title_vi": "Phân loại theo thuộc tính hình", "action_vi": "Trẻ nhóm hình theo số cạnh, góc hoặc đường cong.", "challenge_vi": "Trẻ kiểm tra một hình có thể thuộc hai nhóm theo tiêu chí khác nhau.", "duration_minutes": 18},
+        {"activity_id": "ACT-0184", "age_band": "9-12", "title_vi": "Xây định nghĩa hình học", "action_vi": "Trẻ viết định nghĩa thao tác được cho một nhóm hình và thử phản ví dụ.", "challenge_vi": "Trẻ phân biệt hình minh họa với thuộc tính cần chứng minh.", "duration_minutes": 25}
+      ]
+    },
+    {
+      "family_id": "FAM-SHAPE-BUILD",
+      "concept_ids": ["SHAPE_GEOMETRY", "MOVEMENT_COORDINATION"],
+      "objective_ids": ["OBJ_MATHEMATICAL_REASONING"],
+      "area": "mathematics",
+      "phrases_vi": ["hình", "xây hình", "khối hình"],
+      "aliases_vi": ["dựng hình", "ghép khối"],
+      "material_option_ids": ["MAT_SHAPE_BLOCKS", "MAT_CONNECTING_STICKS"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["que nối đầu tù và khối nhẹ; dọn mảnh nhỏ sau hoạt động"],
+      "policy_constraints": ["SAFE_MATERIALS_ONLY"],
+      "variants": [
+        {"activity_id": "ACT-0185", "age_band": "0-3", "title_vi": "Chồng hai khối lớn", "action_vi": "Trẻ chồng hai khối lớn, nhẹ dưới sự quan sát của người lớn.", "challenge_vi": "Trẻ thử đặt khối ở giữa khay để giữ thăng bằng.", "duration_minutes": 5},
+        {"activity_id": "ACT-0186", "age_band": "3-6", "title_vi": "Dựng ngôi nhà bằng khối", "action_vi": "Trẻ dùng khối để dựng cấu trúc có nền và mái đơn giản.", "challenge_vi": "Trẻ kể hình dạng của hai bộ phận trong cấu trúc.", "duration_minutes": 12},
+        {"activity_id": "ACT-0187", "age_band": "6-9", "title_vi": "Dựng hình theo điều kiện", "action_vi": "Trẻ tạo hình có số cạnh hoặc số khối được yêu cầu.", "challenge_vi": "Trẻ tìm hai cách dựng khác nhau và so sánh.", "duration_minutes": 20},
+        {"activity_id": "ACT-0188", "age_band": "9-12", "title_vi": "Tối ưu cấu trúc hình học", "action_vi": "Trẻ thiết kế cấu trúc thỏa nhiều điều kiện và ghi lựa chọn.", "challenge_vi": "Trẻ chỉ ra điều kiện bắt buộc và điều kiện có thể thay đổi.", "duration_minutes": 28}
+      ]
+    },
+    {
+      "family_id": "FAM-SHAPE-PATTERN",
+      "concept_ids": ["SHAPE_GEOMETRY", "COUNTING_NUMBER"],
+      "objective_ids": ["OBJ_MATHEMATICAL_REASONING"],
+      "area": "mathematics",
+      "phrases_vi": ["hình dạng", "mẫu hình", "hình lặp"],
+      "aliases_vi": ["chuỗi hình", "quy luật hình"],
+      "material_option_ids": ["MAT_SHAPE_CARDS", "MAT_PATTERN_CARDS"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["dùng thẻ lớn, không ghim; giữ số lượng vật liệu vừa sức"],
+      "policy_constraints": ["SAFE_MATERIALS_ONLY"],
+      "variants": [
+        {"activity_id": "ACT-0189", "age_band": "0-3", "title_vi": "Tiếp tục mẫu hai hình", "action_vi": "Trẻ đặt hình tiếp theo trong chuỗi tròn-vuông đơn giản.", "challenge_vi": "Người lớn cho trẻ dừng và nhìn mẫu trước khi chọn.", "duration_minutes": 5},
+        {"activity_id": "ACT-0190", "age_band": "3-6", "title_vi": "Tạo mẫu hình lặp", "action_vi": "Trẻ tạo chuỗi lặp bằng hai hoặc ba loại hình.", "challenge_vi": "Trẻ che phần cuối để người khác dự đoán.", "duration_minutes": 10},
+        {"activity_id": "ACT-0191", "age_band": "6-9", "title_vi": "Viết quy tắc mẫu hình", "action_vi": "Trẻ mô tả quy tắc bằng lời và tìm hình bị thiếu.", "challenge_vi": "Trẻ kiểm tra quy tắc bằng chuỗi dài hơn.", "duration_minutes": 18},
+        {"activity_id": "ACT-0192", "age_band": "9-12", "title_vi": "Biểu diễn mẫu hình bằng quy tắc", "action_vi": "Trẻ chuyển mẫu hình sang bảng vị trí hoặc quy tắc số đơn giản.", "challenge_vi": "Trẻ dự đoán vị trí xa và nêu cách kiểm tra.", "duration_minutes": 25}
+      ]
+    },
+    {
+      "family_id": "FAM-SHAPE-SYMMETRY",
+      "concept_ids": ["SHAPE_GEOMETRY", "SENSORIAL_DISCRIMINATION"],
+      "objective_ids": ["OBJ_MATHEMATICAL_REASONING"],
+      "area": "mathematics",
+      "phrases_vi": ["hình đối xứng", "hình", "cánh"],
+      "aliases_vi": ["đối xứng", "gấp hình"],
+      "material_option_ids": ["MAT_PAPER_CRAYON", "MAT_MIRROR_SAFE"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["dùng gương an toàn hoặc giấy; không dùng kính vỡ và không soi ánh sáng mạnh"],
+      "policy_constraints": ["VISUAL_COMFORT"],
+      "variants": [
+        {"activity_id": "ACT-0193", "age_band": "0-3", "title_vi": "Nhìn hai nửa giống nhau", "action_vi": "Trẻ nhìn hình có hai nửa giống nhau và chạm vào từng phía.", "challenge_vi": "Người lớn gấp giấy lớn để trẻ quan sát hai phần trùng nhau.", "duration_minutes": 5},
+        {"activity_id": "ACT-0194", "age_band": "3-6", "title_vi": "Gấp hình đối xứng", "action_vi": "Trẻ gấp giấy theo đường giữa để kiểm tra hai nửa trùng nhau.", "challenge_vi": "Trẻ tìm một hình không đối xứng để so sánh.", "duration_minutes": 10},
+        {"activity_id": "ACT-0195", "age_band": "6-9", "title_vi": "Đánh dấu trục đối xứng", "action_vi": "Trẻ tìm và vẽ trục đối xứng của hình quen thuộc.", "challenge_vi": "Trẻ giải thích vì sao một hình có thể có nhiều trục.", "duration_minutes": 18},
+        {"activity_id": "ACT-0196", "age_band": "9-12", "title_vi": "Kiểm chứng đối xứng trong tự nhiên", "action_vi": "Trẻ phân biệt đối xứng gần đúng với tuyệt đối qua hình minh họa.", "challenge_vi": "Trẻ mô tả tiêu chí đo hoặc cách kiểm tra độ lệch.", "duration_minutes": 25}
+      ]
+    },
+    {
+      "family_id": "FAM-SHAPE-SPACE",
+      "concept_ids": ["SHAPE_GEOMETRY", "SCIENCE_NATURE"],
+      "objective_ids": ["OBJ_MATHEMATICAL_REASONING"],
+      "area": "mathematics",
+      "phrases_vi": ["hình không gian", "vị trí", "trên dưới", "bên cạnh"],
+      "aliases_vi": ["định hướng", "quan hệ không gian"],
+      "material_option_ids": ["MAT_SHAPE_BLOCKS", "MAT_POSITION_CARDS"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["dùng khối lớn, nhẹ; không đặt vật trên cao hoặc tạo chướng ngại lối đi"],
+      "policy_constraints": ["CLEAR_MOVEMENT_AREA"],
+      "variants": [
+        {"activity_id": "ACT-0197", "age_band": "0-3", "title_vi": "Tìm vật ở trên và dưới", "action_vi": "Trẻ tìm vật lớn ở vị trí trên hoặc dưới theo lời hướng dẫn.", "challenge_vi": "Người lớn đổi vị trí chậm và chờ trẻ nhìn hoặc chỉ.", "duration_minutes": 5},
+        {"activity_id": "ACT-0198", "age_band": "3-6", "title_vi": "Đặt khối theo hướng dẫn", "action_vi": "Trẻ đặt khối bên cạnh, trước hoặc sau vật mẫu theo lời nói.", "challenge_vi": "Trẻ tự nói vị trí của một khối cho người lớn làm theo.", "duration_minutes": 10},
+        {"activity_id": "ACT-0199", "age_band": "6-9", "title_vi": "Vẽ bản đồ đường đi", "action_vi": "Trẻ vẽ đường đi trên lưới đơn giản bằng chỉ dẫn vị trí.", "challenge_vi": "Trẻ kiểm tra đường đi bằng cách đổi điểm bắt đầu.", "duration_minutes": 20},
+        {"activity_id": "ACT-0200", "age_band": "9-12", "title_vi": "Mô hình hóa không gian", "action_vi": "Trẻ xây mô hình hoặc bản đồ có chú giải và quy ước hướng.", "challenge_vi": "Trẻ phân tích thông tin bị mất khi chuyển vật thật sang bản đồ.", "duration_minutes": 28}
+      ]
+    }
+  ]
+}

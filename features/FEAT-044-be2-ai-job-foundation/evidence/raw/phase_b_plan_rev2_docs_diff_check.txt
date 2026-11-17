@@ -1,0 +1,6 @@
+Command=git diff --check
+started_at=2026-10-15T00:35:09.333730+07:00
+exit_code=0
+
+[stderr]
+warning: in the working copy of 'apps/ui-mobile/android/gradle/wrapper/gradle-wrapper.properties', CRLF will be replaced by LF the next time Git touches it

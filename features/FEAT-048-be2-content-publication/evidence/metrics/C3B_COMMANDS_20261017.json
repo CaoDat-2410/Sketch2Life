@@ -1,0 +1,29 @@
+{
+  "scope": "BE2-12_C3B_APPLICATION_WITH_ASSUMED_OWNER_PORTS",
+  "date": "2026-10-17",
+  "parent_commit": "d09cb62",
+  "local": {"passed": 293, "content_cases": 183, "new_cases": 47, "foundation_cases": 110, "skipped": 0, "seconds": 8.85},
+  "postgresql": {
+    "version": "17.11",
+    "c2_passed": 9,
+    "c3a_passed": 1,
+    "c3b_passed": 8,
+    "skipped": 0,
+    "runner_exit": 0,
+    "source_unchanged_during_c3b": true,
+    "raw_receipt": ".runtime/learning-content-c3b/20261017-064839-418469/summary.json",
+    "temporary_root_removed": true,
+    "server_port_closed": true
+  },
+  "source_sha256": {
+    "backend/src/sketch2life/application/learning_content_commands.py": "21dcda04b8e5dbf1705dca7067eeaf30c2e4dd2a380b0735f593eaf7fe7d57ad",
+    "backend/src/sketch2life/application/learning_content_eligibility.py": "6851470a95d912351bc1fee6825d792c46961085ee393b4d5f1e8442a6ed6385",
+    "backend/src/sketch2life/contracts/schemas/learning_content.py": "020407afe8fa905db10d7d19d1317172b2734d7cf7064c410749a2f91fd17021",
+    "backend/tests/learning_content_fixtures.py": "2988def92ea0fce311590c07d0dd650952c16b081ec05b9cecf569270a207bf9",
+    "backend/tests/integration/learning_content/test_commands_sql.py": "9cd62105215608dfcdf37905f460166124d9ca44acdf9d88793dd8d09782b702",
+    "features/FEAT-048-be2-content-publication/src/run_c3_commands_sql.py": "e4802a107086acd2775bf56c155ed2e600b6b5a41b5f3eaf3fffdf4d3b7030c5"
+  },
+  "real_owner_adapters": "NOT_ADOPTED",
+  "http_dispatcher_integration": "NOT_RUN",
+  "be2_12_complete": false
+}

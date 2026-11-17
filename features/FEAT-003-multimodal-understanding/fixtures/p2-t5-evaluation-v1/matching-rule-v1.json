@@ -1,0 +1,29 @@
+{
+  "identity": "vision-b4-matching-rule-v1",
+  "version": "1.0",
+  "entries": [
+    {
+      "identity": "vision-b4-matching-rule-v1",
+      "source_path": "features/FEAT-003-multimodal-understanding/fixtures/vision-b4/matching-rule-v1.md",
+      "sha256": "4e405275257f1428f8f73b5339dac1941ce6f008ff00d39cc19c391c035b96bb",
+      "scope": "ENTITY_ACTION_RELATION_THEME_MATCHING"
+    },
+    {
+      "identity": "vi-asr-normalizer-v1",
+      "source_path": "backend/src/sketch2life/benchmark/asr_scoring.py",
+      "sha256": "955be57f55ea917f4ed1e6ed58bc2744d8b4a5218183e2bcd186900aea8e470c",
+      "scope": "VIETNAMESE_WER_CER_NORMALIZATION"
+    },
+    {
+      "identity": "P2T5.ASRMetricRuleV1@1.0",
+      "sha256": "8be5f74a13d7515a7995dbffcff2db8aca6876cd7fe3898c4da26ecf86823711",
+      "scope": "WER_CER_SCORING"
+    },
+    {
+      "identity": "P2T5.ConflictMatchingRuleV1@1.0",
+      "sha256": "dfe093c10d82b36cc34bfd3d4fe7572d8de1fb3d5f1b0598e0adb85f9d7e5fd8",
+      "scope": "P2T4_CONFLICT_SET_SCORING"
+    }
+  ],
+  "oracle_independent": true
+}

@@ -17,8 +17,8 @@ This repository starts with a delivery harness before product code. The harness 
 ## Current state
 
 - Harness: active and enforced per feature.
-- Product implementation: not started.
-- Tech stack: Python/FastAPI backend and Android-only React Native 0.87 foundation accepted; Firebase Authentication-only identity and Lightning-dev/Runpod-production AI strategy are frozen but live integrations remain gated.
+- Product implementation: backend/mobile foundations and scoped workflows exist. FEAT-063 Rev31 adds the persistent no-AI Lesson Library API; database migration and runtime verification remain to be performed locally.
+- Tech stack: Python/FastAPI backend and Android-only React Native 0.87 foundation remain the current product foundation. Existing AI adapters are not replaced by this backend slice; the Modal-hosted AI pipeline remains a separate proposal pending its own approval and prototype.
 - Frontend assets: no generated asset is approved or applied yet.
 
 ## Foundation commands
@@ -28,6 +28,8 @@ This repository starts with a delivery harness before product code. The harness 
 - `python tools/validate_architecture.py`
 - `python tools/validate_team_allocation.py`
 - `python tools/validate_repository_security.py`
-- `docker compose up -d`
+- `docker compose up --build -d`
 
 See [local development setup](docs/setup/LOCAL_DEVELOPMENT.md) and the [project skeleton map](docs/setup/PROJECT_SKELETON.md).
+
+For the complete backend route inventory, including mounted, conditional and candidate APIs, see [FEAT-063 API inventory Rev31](features/FEAT-063-system-architecture-rearchitecture/artifacts/API_INVENTORY_FEAT063_REV31_20261028.md).

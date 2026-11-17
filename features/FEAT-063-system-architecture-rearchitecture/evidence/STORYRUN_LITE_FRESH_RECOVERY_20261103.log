@@ -1,0 +1,939 @@
+
+--- start ---
+Two fresh recovery DBs, one fresh focused DB, one fresh full-suite DB; all retained. No existing DB reset, delete or role mutation.
+
+--- diagnostic_recovery_lock_wait create begin ---
+database=storyrun_lite_6c0529aa5906470ca3f4; owner=postgres
+
+--- verified connection ---
+database=postgres; user=postgres; owner=postgres; address=127.0.0.1/32; port=5433; version_num=170011
+
+--- diagnostic_recovery_lock_wait database created ---
+storyrun_lite_6c0529aa5906470ca3f4
+
+--- verified connection ---
+database=storyrun_lite_6c0529aa5906470ca3f4; user=postgres; owner=postgres; address=127.0.0.1/32; port=5433; version_num=170011
+
+--- diagnostic_recovery_lock_wait pilot migration begin ---
+timeout_seconds=180
+
+--- diagnostic_recovery_lock_wait pilot migration output ---
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+
+INFO  [alembic.runtime.migration] Running upgrade  -> 20261014_0001, Create durable core records, receipts, audit and outbox.
+
+INFO  [alembic.runtime.migration] Running upgrade 20261014_0001 -> 20261014_0002, Add durable BE1 organization, classroom, consent, session and lifecycle records.
+
+INFO  [alembic.runtime.migration] Running upgrade 20261014_0002 -> 20261014_0003, Persist bounded, attributed canvas operation payloads for real sync requests.
+
+INFO  [alembic.runtime.migration] Running upgrade 20261014_0003 -> 20261014_0004, Name BE1 check constraints consistently with SQLAlchemy metadata.
+
+INFO  [alembic.runtime.migration] Running upgrade 20261014_0004 -> 20261024_0005, Persist BE1 room-code, SRS stage, draft and outcome contracts.
+
+INFO  [alembic.runtime.migration] Running upgrade 20261024_0005 -> 20261031_be1_se_0001, Add BE1 profile data origin and the FEAT-064 synthetic eligibility proof table.
+
+INFO  [alembic.runtime.migration] Running upgrade 20261031_be1_se_0001 -> 20261101_be1_age_0001, Persist profile age provenance and its revision.
+
+INFO  [alembic.runtime.migration] Running upgrade  -> 20261015_ai_0001, Create the AI-owned ai_jobs schema for BE2-01 Phase B durable jobs.
+
+INFO  [alembic.runtime.migration] Running upgrade  -> 20261102_pv_0001, Create the independently owned synthetic vision pilot persistence branch.
+
+
+
+--- diagnostic_recovery_lock_wait pilot migration termination ---
+exit_code=0; timeout=False
+
+--- verified connection ---
+database=storyrun_lite_6c0529aa5906470ca3f4; user=postgres; owner=postgres; address=127.0.0.1/32; port=5433; version_num=170011
+
+--- diagnostic_recovery_lock_wait pre-migration fixture committed ---
+synthetic_asset_ref=ff2fd246-f44c-483f-ab31-02514c1d2633; revisions=['20261102_pv_0001']
+
+--- diagnostic_recovery_lock_wait story migration begin ---
+timeout_seconds=180
+
+--- diagnostic_recovery_lock_wait story migration output ---
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+
+INFO  [alembic.runtime.migration] Running upgrade  -> 20261102_story_run_lite, Add the isolated StoryRun-lite Core/Story slice and typed asset ownership.
+
+
+
+--- diagnostic_recovery_lock_wait story migration termination ---
+exit_code=0; timeout=False
+
+--- verified connection ---
+database=storyrun_lite_6c0529aa5906470ca3f4; user=postgres; owner=postgres; address=127.0.0.1/32; port=5433; version_num=170011
+
+--- diagnostic_recovery_lock_wait fixture verified ---
+database=storyrun_lite_6c0529aa5906470ca3f4; revisions=['20261102_story_run_lite']; owner_scope=('ORGANIZATION', None, 'storyrun-lite-legacy-fixture-org')
+
+--- diagnostic recovery_lock_wait begin ---
+timeout_seconds=75
+
+--- diagnostic recovery_lock_wait output ---
+============================= test session starts =============================
+
+platform win32 -- Python 3.12.10, pytest-8.4.2, pluggy-1.6.0 -- <REPO>\backend\.venv\Scripts\python.exe
+
+rootdir: <REPO>\backend
+
+configfile: pyproject.toml
+
+plugins: anyio-4.14.2, asyncio-1.4.0
+
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+
+collecting ... collected 1 item
+
+
+
+tests/integration/test_story_run_lite_postgres.py::test_recovery_rechecks_expiry_after_wait_on_unfinished_upload_lock PASSED [100%]
+
+
+
+============================== 1 passed in 0.95s ==============================
+
+
+
+--- diagnostic recovery_lock_wait termination ---
+exit_code=0; timeout=False
+
+--- diagnostic recovery_lock_wait verdict ---
+passed_gate=True; exit_code=0; timeout=False; expected_pass=1; skipped_or_failed=False
+
+--- diagnostic result ---
+test=recovery_lock_wait; database=storyrun_lite_6c0529aa5906470ca3f4; passed=True
+
+--- diagnostic_recovery_startup create begin ---
+database=storyrun_lite_b0e8df89057e4301a456; owner=postgres
+
+--- verified connection ---
+database=postgres; user=postgres; owner=postgres; address=127.0.0.1/32; port=5433; version_num=170011
+
+--- diagnostic_recovery_startup database created ---
+storyrun_lite_b0e8df89057e4301a456
+
+--- verified connection ---
+database=storyrun_lite_b0e8df89057e4301a456; user=postgres; owner=postgres; address=127.0.0.1/32; port=5433; version_num=170011
+
+--- diagnostic_recovery_startup pilot migration begin ---
+timeout_seconds=180
+
+--- diagnostic_recovery_startup pilot migration output ---
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+
+INFO  [alembic.runtime.migration] Running upgrade  -> 20261014_0001, Create durable core records, receipts, audit and outbox.
+
+INFO  [alembic.runtime.migration] Running upgrade 20261014_0001 -> 20261014_0002, Add durable BE1 organization, classroom, consent, session and lifecycle records.
+
+INFO  [alembic.runtime.migration] Running upgrade 20261014_0002 -> 20261014_0003, Persist bounded, attributed canvas operation payloads for real sync requests.
+
+INFO  [alembic.runtime.migration] Running upgrade 20261014_0003 -> 20261014_0004, Name BE1 check constraints consistently with SQLAlchemy metadata.
+
+INFO  [alembic.runtime.migration] Running upgrade 20261014_0004 -> 20261024_0005, Persist BE1 room-code, SRS stage, draft and outcome contracts.
+
+INFO  [alembic.runtime.migration] Running upgrade 20261024_0005 -> 20261031_be1_se_0001, Add BE1 profile data origin and the FEAT-064 synthetic eligibility proof table.
+
+INFO  [alembic.runtime.migration] Running upgrade 20261031_be1_se_0001 -> 20261101_be1_age_0001, Persist profile age provenance and its revision.
+
+INFO  [alembic.runtime.migration] Running upgrade  -> 20261015_ai_0001, Create the AI-owned ai_jobs schema for BE2-01 Phase B durable jobs.
+
+INFO  [alembic.runtime.migration] Running upgrade  -> 20261102_pv_0001, Create the independently owned synthetic vision pilot persistence branch.
+
+
+
+--- diagnostic_recovery_startup pilot migration termination ---
+exit_code=0; timeout=False
+
+--- verified connection ---
+database=storyrun_lite_b0e8df89057e4301a456; user=postgres; owner=postgres; address=127.0.0.1/32; port=5433; version_num=170011
+
+--- diagnostic_recovery_startup pre-migration fixture committed ---
+synthetic_asset_ref=779facb4-f3dc-4914-a3ca-10fb453fe195; revisions=['20261102_pv_0001']
+
+--- diagnostic_recovery_startup story migration begin ---
+timeout_seconds=180
+
+--- diagnostic_recovery_startup story migration output ---
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+
+INFO  [alembic.runtime.migration] Running upgrade  -> 20261102_story_run_lite, Add the isolated StoryRun-lite Core/Story slice and typed asset ownership.
+
+
+
+--- diagnostic_recovery_startup story migration termination ---
+exit_code=0; timeout=False
+
+--- verified connection ---
+database=storyrun_lite_b0e8df89057e4301a456; user=postgres; owner=postgres; address=127.0.0.1/32; port=5433; version_num=170011
+
+--- diagnostic_recovery_startup fixture verified ---
+database=storyrun_lite_b0e8df89057e4301a456; revisions=['20261102_story_run_lite']; owner_scope=('ORGANIZATION', None, 'storyrun-lite-legacy-fixture-org')
+
+--- diagnostic recovery_startup begin ---
+timeout_seconds=75
+
+--- diagnostic recovery_startup output ---
+============================= test session starts =============================
+
+platform win32 -- Python 3.12.10, pytest-8.4.2, pluggy-1.6.0 -- <REPO>\backend\.venv\Scripts\python.exe
+
+rootdir: <REPO>\backend
+
+configfile: pyproject.toml
+
+plugins: anyio-4.14.2, asyncio-1.4.0
+
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+
+collecting ... collected 1 item
+
+
+
+tests/integration/test_story_run_lite_postgres.py::test_startup_recovery_expires_receiving_and_retries_staging_cleanup PASSED [100%]
+
+
+
+============================== 1 passed in 0.77s ==============================
+
+
+
+--- diagnostic recovery_startup termination ---
+exit_code=0; timeout=False
+
+--- diagnostic recovery_startup verdict ---
+passed_gate=True; exit_code=0; timeout=False; expected_pass=1; skipped_or_failed=False
+
+--- diagnostic result ---
+test=recovery_startup; database=storyrun_lite_b0e8df89057e4301a456; passed=True
+
+--- focused create begin ---
+database=storyrun_lite_421fb54fad6340b4af19; owner=postgres
+
+--- verified connection ---
+database=postgres; user=postgres; owner=postgres; address=127.0.0.1/32; port=5433; version_num=170011
+
+--- focused database created ---
+storyrun_lite_421fb54fad6340b4af19
+
+--- verified connection ---
+database=storyrun_lite_421fb54fad6340b4af19; user=postgres; owner=postgres; address=127.0.0.1/32; port=5433; version_num=170011
+
+--- focused pilot migration begin ---
+timeout_seconds=180
+
+--- focused pilot migration output ---
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+
+INFO  [alembic.runtime.migration] Running upgrade  -> 20261015_ai_0001, Create the AI-owned ai_jobs schema for BE2-01 Phase B durable jobs.
+
+INFO  [alembic.runtime.migration] Running upgrade  -> 20261014_0001, Create durable core records, receipts, audit and outbox.
+
+INFO  [alembic.runtime.migration] Running upgrade 20261014_0001 -> 20261014_0002, Add durable BE1 organization, classroom, consent, session and lifecycle records.
+
+INFO  [alembic.runtime.migration] Running upgrade 20261014_0002 -> 20261014_0003, Persist bounded, attributed canvas operation payloads for real sync requests.
+
+INFO  [alembic.runtime.migration] Running upgrade 20261014_0003 -> 20261014_0004, Name BE1 check constraints consistently with SQLAlchemy metadata.
+
+INFO  [alembic.runtime.migration] Running upgrade 20261014_0004 -> 20261024_0005, Persist BE1 room-code, SRS stage, draft and outcome contracts.
+
+INFO  [alembic.runtime.migration] Running upgrade 20261024_0005 -> 20261031_be1_se_0001, Add BE1 profile data origin and the FEAT-064 synthetic eligibility proof table.
+
+INFO  [alembic.runtime.migration] Running upgrade 20261031_be1_se_0001 -> 20261101_be1_age_0001, Persist profile age provenance and its revision.
+
+INFO  [alembic.runtime.migration] Running upgrade  -> 20261102_pv_0001, Create the independently owned synthetic vision pilot persistence branch.
+
+
+
+--- focused pilot migration termination ---
+exit_code=0; timeout=False
+
+--- verified connection ---
+database=storyrun_lite_421fb54fad6340b4af19; user=postgres; owner=postgres; address=127.0.0.1/32; port=5433; version_num=170011
+
+--- focused pre-migration fixture committed ---
+synthetic_asset_ref=40be5e8c-794d-431c-b224-961375587092; revisions=['20261102_pv_0001']
+
+--- focused story migration begin ---
+timeout_seconds=180
+
+--- focused story migration output ---
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+
+INFO  [alembic.runtime.migration] Running upgrade  -> 20261102_story_run_lite, Add the isolated StoryRun-lite Core/Story slice and typed asset ownership.
+
+
+
+--- focused story migration termination ---
+exit_code=0; timeout=False
+
+--- verified connection ---
+database=storyrun_lite_421fb54fad6340b4af19; user=postgres; owner=postgres; address=127.0.0.1/32; port=5433; version_num=170011
+
+--- focused fixture verified ---
+database=storyrun_lite_421fb54fad6340b4af19; revisions=['20261102_story_run_lite']; owner_scope=('ORGANIZATION', None, 'storyrun-lite-legacy-fixture-org')
+
+--- focused race_complete_cancel begin ---
+timeout_seconds=75
+
+--- focused race_complete_cancel output ---
+============================= test session starts =============================
+
+platform win32 -- Python 3.12.10, pytest-8.4.2, pluggy-1.6.0 -- <REPO>\backend\.venv\Scripts\python.exe
+
+rootdir: <REPO>\backend
+
+configfile: pyproject.toml
+
+plugins: anyio-4.14.2, asyncio-1.4.0
+
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+
+collecting ... collected 1 item
+
+
+
+tests/integration/test_story_run_lite_postgres.py::test_cancel_racing_complete_aborts_upload_before_admission_and_cleans_staging PASSED [100%]
+
+
+
+============================== 1 passed in 0.98s ==============================
+
+
+
+--- focused race_complete_cancel termination ---
+exit_code=0; timeout=False
+
+--- focused race_complete_cancel verdict ---
+passed_gate=True; exit_code=0; timeout=False; expected_pass=1; skipped_or_failed=False
+
+--- focused race_cancel begin ---
+timeout_seconds=75
+
+--- focused race_cancel output ---
+============================= test session starts =============================
+
+platform win32 -- Python 3.12.10, pytest-8.4.2, pluggy-1.6.0 -- <REPO>\backend\.venv\Scripts\python.exe
+
+rootdir: <REPO>\backend
+
+configfile: pyproject.toml
+
+plugins: anyio-4.14.2, asyncio-1.4.0
+
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+
+collecting ... collected 1 item
+
+
+
+tests/integration/test_story_run_lite_postgres.py::test_cancel_and_admission_finalizer_race_serializes_asset_commit[cancel] PASSED [100%]
+
+
+
+============================== 1 passed in 0.83s ==============================
+
+
+
+--- focused race_cancel termination ---
+exit_code=0; timeout=False
+
+--- focused race_cancel verdict ---
+passed_gate=True; exit_code=0; timeout=False; expected_pass=1; skipped_or_failed=False
+
+--- focused race_admission begin ---
+timeout_seconds=75
+
+--- focused race_admission output ---
+============================= test session starts =============================
+
+platform win32 -- Python 3.12.10, pytest-8.4.2, pluggy-1.6.0 -- <REPO>\backend\.venv\Scripts\python.exe
+
+rootdir: <REPO>\backend
+
+configfile: pyproject.toml
+
+plugins: anyio-4.14.2, asyncio-1.4.0
+
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+
+collecting ... collected 1 item
+
+
+
+tests/integration/test_story_run_lite_postgres.py::test_cancel_and_admission_finalizer_race_serializes_asset_commit[admission] PASSED [100%]
+
+
+
+============================== 1 passed in 0.84s ==============================
+
+
+
+--- focused race_admission termination ---
+exit_code=0; timeout=False
+
+--- focused race_admission verdict ---
+passed_gate=True; exit_code=0; timeout=False; expected_pass=1; skipped_or_failed=False
+
+--- focused expiry_boundary begin ---
+timeout_seconds=75
+
+--- focused expiry_boundary output ---
+============================= test session starts =============================
+
+platform win32 -- Python 3.12.10, pytest-8.4.2, pluggy-1.6.0 -- <REPO>\backend\.venv\Scripts\python.exe
+
+rootdir: <REPO>\backend
+
+configfile: pyproject.toml
+
+plugins: anyio-4.14.2, asyncio-1.4.0
+
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+
+collecting ... collected 1 item
+
+
+
+tests/integration/test_story_run_lite_postgres.py::test_expiry_is_enforced_at_utc_boundary_for_get_put_complete_and_versions PASSED [100%]
+
+
+
+============================== 1 passed in 0.72s ==============================
+
+
+
+--- focused expiry_boundary termination ---
+exit_code=0; timeout=False
+
+--- focused expiry_boundary verdict ---
+passed_gate=True; exit_code=0; timeout=False; expected_pass=1; skipped_or_failed=False
+
+--- focused expiry_get begin ---
+timeout_seconds=75
+
+--- focused expiry_get output ---
+============================= test session starts =============================
+
+platform win32 -- Python 3.12.10, pytest-8.4.2, pluggy-1.6.0 -- <REPO>\backend\.venv\Scripts\python.exe
+
+rootdir: <REPO>\backend
+
+configfile: pyproject.toml
+
+plugins: anyio-4.14.2, asyncio-1.4.0
+
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+
+collecting ... collected 1 item
+
+
+
+tests/integration/test_story_run_lite_postgres.py::test_expiry_uses_utc_time_after_story_run_lock_wait[get] PASSED [100%]
+
+
+
+============================== 1 passed in 0.80s ==============================
+
+
+
+--- focused expiry_get termination ---
+exit_code=0; timeout=False
+
+--- focused expiry_get verdict ---
+passed_gate=True; exit_code=0; timeout=False; expected_pass=1; skipped_or_failed=False
+
+--- focused expiry_put begin ---
+timeout_seconds=75
+
+--- focused expiry_put output ---
+============================= test session starts =============================
+
+platform win32 -- Python 3.12.10, pytest-8.4.2, pluggy-1.6.0 -- <REPO>\backend\.venv\Scripts\python.exe
+
+rootdir: <REPO>\backend
+
+configfile: pyproject.toml
+
+plugins: anyio-4.14.2, asyncio-1.4.0
+
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+
+collecting ... collected 1 item
+
+
+
+tests/integration/test_story_run_lite_postgres.py::test_expiry_uses_utc_time_after_story_run_lock_wait[put] PASSED [100%]
+
+
+
+============================== 1 passed in 0.78s ==============================
+
+
+
+--- focused expiry_put termination ---
+exit_code=0; timeout=False
+
+--- focused expiry_put verdict ---
+passed_gate=True; exit_code=0; timeout=False; expected_pass=1; skipped_or_failed=False
+
+--- focused expiry_complete begin ---
+timeout_seconds=75
+
+--- focused expiry_complete output ---
+============================= test session starts =============================
+
+platform win32 -- Python 3.12.10, pytest-8.4.2, pluggy-1.6.0 -- <REPO>\backend\.venv\Scripts\python.exe
+
+rootdir: <REPO>\backend
+
+configfile: pyproject.toml
+
+plugins: anyio-4.14.2, asyncio-1.4.0
+
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+
+collecting ... collected 1 item
+
+
+
+tests/integration/test_story_run_lite_postgres.py::test_expiry_uses_utc_time_after_story_run_lock_wait[complete] PASSED [100%]
+
+
+
+============================== 1 passed in 0.80s ==============================
+
+
+
+--- focused expiry_complete termination ---
+exit_code=0; timeout=False
+
+--- focused expiry_complete verdict ---
+passed_gate=True; exit_code=0; timeout=False; expected_pass=1; skipped_or_failed=False
+
+--- focused recovery_lock_wait begin ---
+timeout_seconds=75
+
+--- focused recovery_lock_wait output ---
+============================= test session starts =============================
+
+platform win32 -- Python 3.12.10, pytest-8.4.2, pluggy-1.6.0 -- <REPO>\backend\.venv\Scripts\python.exe
+
+rootdir: <REPO>\backend
+
+configfile: pyproject.toml
+
+plugins: anyio-4.14.2, asyncio-1.4.0
+
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+
+collecting ... collected 1 item
+
+
+
+tests/integration/test_story_run_lite_postgres.py::test_recovery_rechecks_expiry_after_wait_on_unfinished_upload_lock FAILED [100%]
+
+
+
+================================== FAILURES ===================================
+
+_____ test_recovery_rechecks_expiry_after_wait_on_unfinished_upload_lock ______
+
+
+
+story_db = (Engine(postgresql+psycopg://postgres@127.0.0.1:5433/storyrun_lite_421fb54fad6340b4af19), <sketch2life.infrastructure.story_run_lite.repository.SqlStoryRunLiteRepository object at 0x000001BCBE6DD8E0>)
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001BCBE97D6A0>
+
+
+
+    def test_recovery_rechecks_expiry_after_wait_on_unfinished_upload_lock(
+
+        story_db, monkeypatch
+
+    ) -> None:
+
+        engine, repository = story_db
+
+        owner = "parent-upload-expiry-recovery-lock-wait-" + str(uuid.uuid4())
+
+        run_id = _create_run(repository, owner)
+
+        payload = b"synthetic-expiry-recovery-lock-wait"
+
+        upload_id, digest = _create_upload(
+
+            repository,
+
+            owner=owner,
+
+            run_id=run_id,
+
+            content=payload,
+
+            name="expiry-recovery-lock-wait",
+
+        )
+
+        snapshot_path, _snapshot = repository._quarantine.assemble_snapshot(
+
+            upload_id,
+
+            [{"part_number": 1, "sha256": digest, "byte_size": len(payload)}],
+
+            expected_size=len(payload),
+
+            expected_sha256=digest,
+
+        )
+
+        deadline = datetime(2030, 3, 4, 5, 6, 7, tzinfo=UTC)
+
+        clock = {"now": deadline - timedelta(microseconds=1)}
+
+
+
+        class ControlledDateTime(datetime):
+
+            @classmethod
+
+            def now(cls, tz=None):
+
+                value = clock["now"]
+
+                return value.replace(tzinfo=None) if tz is None else value.astimezone(tz)
+
+
+
+        monkeypatch.setattr(repository_module, "datetime", ControlledDateTime)
+
+        with engine.begin() as connection:
+
+            connection.execute(
+
+                update(tables.upload_sessions)
+
+                .where(tables.upload_sessions.c.upload_session_id == upload_id)
+
+                .values(expires_at=deadline)
+
+            )
+
+
+
+        blocker_owner = "parent-expiry-recovery-blocker-" + str(uuid.uuid4())
+
+        blocker_run_id = _create_run(repository, blocker_owner)
+
+        blocker_payload = b"synthetic-recovery-pending-lock"
+
+        blocker_upload_id, blocker_digest = _create_upload(
+
+            repository,
+
+            owner=blocker_owner,
+
+            run_id=blocker_run_id,
+
+            content=blocker_payload,
+
+            name="expiry-recovery-lock-blocker",
+
+        )
+
+        pending = _reserve_complete(
+
+            repository,
+
+            owner=blocker_owner,
+
+            upload_id=blocker_upload_id,
+
+            digest=blocker_digest,
+
+            size=len(blocker_payload),
+
+            name="expiry-recovery-lock-blocker",
+
+        )
+
+        assert pending.command_result.status_code == 202
+
+
+
+        holder = engine.connect()
+
+        holder_transaction = holder.begin()
+
+        holder.execute(
+
+            select(tables.upload_sessions.c.upload_session_id)
+
+            .where(tables.upload_sessions.c.upload_session_id == blocker_upload_id)
+
+            .with_for_update()
+
+        )
+
+        recovery_lock_waiting = threading.Event()
+
+
+
+        def observe_pending_lock(_connection, _cursor, statement, parameters, _context, _many):
+
+            sql = statement.lower()
+
+            values = repr(parameters).lower()
+
+            if (
+
+                "upload_sessions" in sql
+
+                and "for update" in sql
+
+                and "pending" in values
+
+                and "processing" in values
+
+            ):
+
+                recovery_lock_waiting.set()
+
+
+
+        event.listen(engine, "before_cursor_execute", observe_pending_lock)
+
+        try:
+
+            with ThreadPoolExecutor(
+
+                max_workers=1, thread_name_prefix="storyrun-expiry-recovery"
+
+            ) as pool:
+
+                try:
+
+                    pending = pool.submit(repository.recover_after_restart)
+
+                    assert recovery_lock_waiting.wait(timeout=10)
+
+                    clock["now"] = deadline + timedelta(microseconds=1)
+
+                    holder_transaction.commit()
+
+                    counts = pending.result(timeout=15)
+
+                finally:
+
+                    if holder_transaction.is_active:
+
+                        holder_transaction.rollback()
+
+        finally:
+
+            event.remove(engine, "before_cursor_execute", observe_pending_lock)
+
+            if holder_transaction.is_active:
+
+                holder_transaction.rollback()
+
+            holder.close()
+
+
+
+        assert counts["core_sessions_failed"] == 1
+
+        assert counts["core_sessions_expired"] == 1
+
+>       assert counts["core_expired_cleanup_succeeded"] == 1
+
+E       assert 5 == 1
+
+
+
+tests\integration\test_story_run_lite_postgres.py:1222: AssertionError
+
+=========================== short test summary info ===========================
+
+FAILED tests/integration/test_story_run_lite_postgres.py::test_recovery_rechecks_expiry_after_wait_on_unfinished_upload_lock
+
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!
+
+============================== 1 failed in 1.24s ==============================
+
+
+
+--- focused recovery_lock_wait termination ---
+exit_code=1; timeout=False
+
+--- focused recovery_lock_wait verdict ---
+passed_gate=False; exit_code=1; timeout=False; expected_pass=1; skipped_or_failed=True
+
+--- focused recovery_startup begin ---
+timeout_seconds=75
+
+--- focused recovery_startup output ---
+============================= test session starts =============================
+
+platform win32 -- Python 3.12.10, pytest-8.4.2, pluggy-1.6.0 -- <REPO>\backend\.venv\Scripts\python.exe
+
+rootdir: <REPO>\backend
+
+configfile: pyproject.toml
+
+plugins: anyio-4.14.2, asyncio-1.4.0
+
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+
+collecting ... collected 1 item
+
+
+
+tests/integration/test_story_run_lite_postgres.py::test_startup_recovery_expires_receiving_and_retries_staging_cleanup FAILED [100%]
+
+
+
+================================== FAILURES ===================================
+
+_____ test_startup_recovery_expires_receiving_and_retries_staging_cleanup _____
+
+
+
+story_db = (Engine(postgresql+psycopg://postgres@127.0.0.1:5433/storyrun_lite_421fb54fad6340b4af19), <sketch2life.infrastructure.story_run_lite.repository.SqlStoryRunLiteRepository object at 0x0000018965461730>)
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001896570D4F0>
+
+
+
+    def test_startup_recovery_expires_receiving_and_retries_staging_cleanup(story_db, monkeypatch):
+
+        engine, repository = story_db
+
+        owner = "parent-upload-expiry-recovery-" + str(uuid.uuid4())
+
+        run_id = _create_run(repository, owner)
+
+        payload = b"synthetic-expiry-recovery"
+
+        upload_id, digest = _create_upload(
+
+            repository,
+
+            owner=owner,
+
+            run_id=run_id,
+
+            content=payload,
+
+            name="expiry-recovery",
+
+        )
+
+        quarantine = repository._quarantine
+
+        snapshot_path, _snapshot = quarantine.assemble_snapshot(
+
+            upload_id,
+
+            [{"part_number": 1, "sha256": digest, "byte_size": len(payload)}],
+
+            expected_size=len(payload),
+
+            expected_sha256=digest,
+
+        )
+
+        parts_path = quarantine._parts / upload_id
+
+        with engine.begin() as connection:
+
+            connection.execute(
+
+                update(tables.upload_sessions)
+
+                .where(tables.upload_sessions.c.upload_session_id == upload_id)
+
+                .values(expires_at=datetime.now(UTC) - timedelta(seconds=1))
+
+            )
+
+
+
+        original_remove = quarantine.remove_upload
+
+        attempts = 0
+
+
+
+        def fail_first_cleanup(resource_id: str) -> None:
+
+            nonlocal attempts
+
+            attempts += 1
+
+            if attempts == 1:
+
+                raise OSError("synthetic cleanup failure")
+
+            original_remove(resource_id)
+
+
+
+        monkeypatch.setattr(quarantine, "remove_upload", fail_first_cleanup)
+
+        first = repository.recover_after_restart()
+
+        assert first["core_sessions_expired"] == 1
+
+        assert first["core_expired_cleanup_failed"] == 1
+
+>       assert parts_path.exists()
+
+E       AssertionError: assert False
+
+E        +  where False = exists()
+
+E        +    where exists = WindowsPath('<USER_DIR>/.codex/visualizations/2026/11/02/01a19bb6-ef2c-78f0-8196-c0c85a402935/storyrun_fresh_recovery_5433_vf9g8bbr/pytest_focused_recovery_startup/test_startup_recovery_expires_0/quarantine/parts/a0599084-d443-469f-b446-df42ad9b23aa').exists
+
+
+
+tests\integration\test_story_run_lite_postgres.py:1276: AssertionError
+
+------------------------------ Captured log call ------------------------------
+
+WARNING  sketch2life.infrastructure.story_run_lite.repository:repository.py:2103 StoryRun-lite upload staging cleanup failed
+
+=========================== short test summary info ===========================
+
+FAILED tests/integration/test_story_run_lite_postgres.py::test_startup_recovery_expires_receiving_and_retries_staging_cleanup
+
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!
+
+============================== 1 failed in 1.06s ==============================
+
+
+
+--- focused recovery_startup termination ---
+exit_code=1; timeout=False
+
+--- focused recovery_startup verdict ---
+passed_gate=False; exit_code=1; timeout=False; expected_pass=1; skipped_or_failed=True
+
+--- focused completion ---
+database=storyrun_lite_421fb54fad6340b4af19; passed=7; failed_or_timeout=2
+
+--- full suite NOT RUN ---
+At least one focused case failed or timed out

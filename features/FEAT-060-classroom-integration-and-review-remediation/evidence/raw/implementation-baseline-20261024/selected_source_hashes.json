@@ -1,0 +1,74 @@
+[
+  {
+    "Path": "apps\\child-ui\\app\\index.tsx",
+    "Hash": "37FF5221C14D1E47C4B583B180954C0F01D04DE30CC682FB4B3ED41938F54AB9"
+  },
+  {
+    "Path": "apps\\child-ui\\src\\services\\apiClient.ts",
+    "Hash": "5876CC0797CD0953BB13F8B157B4FD31C709557786248BBB004DAAD8947B77F0"
+  },
+  {
+    "Path": "apps\\child-ui\\src\\services\\sessionClient.ts",
+    "Hash": "1BE21BBD80B8F79F1032156DC6E416445FA20048316ECB243FE081C230AF9857"
+  },
+  {
+    "Path": "apps\\child-ui\\src\\screens\\JoinScreen.tsx",
+    "Hash": "57B7CA9DA975DC6CA57B83B8236799163CDCF8D36A43E2FCFC2DF0D4D93A65B2"
+  },
+  {
+    "Path": "apps\\child-ui\\src\\screens\\AdvancedDrawScreen.tsx",
+    "Hash": "BCE3BD31AC8C1E4E6597BFBD23447C6777E8840A128468BB19CEFC2929E0D3DB"
+  },
+  {
+    "Path": "apps\\teacher-ui\\src\\pages\\SessionSetupPage.tsx",
+    "Hash": "D1A19F5BFD575041C80D3D25871B113ADBBEFEB8D1BF349FE3C19539C69A2D56"
+  },
+  {
+    "Path": "apps\\teacher-ui\\src\\services\\sessionService.ts",
+    "Hash": "1DCB890C05EE44B0D714E7FE47FB736B74DA546DBCAF4DD0515FC04A27032C97"
+  },
+  {
+    "Path": "apps\\teacher-ui\\src\\services\\classroomService.ts",
+    "Hash": "DF4099A4AFC889BD03A298F823823D85CF7CA422A0C49E2F5C9FF2D33CF8DBE5"
+  },
+  {
+    "Path": "apps\\teacher-ui\\src\\hooks\\useSessionLobby.ts",
+    "Hash": "A040ADE109D8A578C0ADAC749B99910CF360C7F63083124A0802DB02222BA27A"
+  },
+  {
+    "Path": "apps\\teacher-ui\\src\\hooks\\useSessionOrchestration.ts",
+    "Hash": "5C89B003A176CE0A58883FDAAF53484F273AFE00F30FE9493A2AFEA5F1E3B8F6"
+  },
+  {
+    "Path": "backend\\src\\sketch2life\\interfaces\\http\\app.py",
+    "Hash": "EBCD4BA2A3F85AA0B56E193E53571D436997C611984CAA82B0B6ABEEC394ED7B"
+  },
+  {
+    "Path": "backend\\src\\sketch2life\\classroom_main.py",
+    "Hash": "4A52EBACF72BA45D6CCB868435C764D4BABBB2066135B69FA7AC9737C51B47E8"
+  },
+  {
+    "Path": "backend\\src\\sketch2life\\interfaces\\http\\router_composition.py",
+    "Hash": "6A68A813BF770D43D0FD7E913EB0CF37843ABAB6627129B97EBAA98091E414D8"
+  },
+  {
+    "Path": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_sessions.py",
+    "Hash": "08C952C29BC187E0CBD39119ADFD33711D88191404BA78C3C252757FDCE20514"
+  },
+  {
+    "Path": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_canvas.py",
+    "Hash": "9D68761473A3C3322E8FD36DD650C8997B9DE13E3B4000A029133AC2C5127A0E"
+  },
+  {
+    "Path": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_registry.py",
+    "Hash": "285CBEEDEFDEF30CCF9C0A35DD7014824CBC7D87F66C5C3A03BB9A58BB302B68"
+  },
+  {
+    "Path": "backend\\src\\sketch2life\\infrastructure\\persistence\\be1_models.py",
+    "Hash": "D9B2910BF04E3DEB9B42F7BBDF7DB82A0724377EC2B2043B94BE005124D2427F"
+  },
+  {
+    "Path": "features\\FEAT-059-code-structure-cleanup\\evidence\\metrics\\implemented_file_manifest.json",
+    "Hash": "87E84A4FAEDF0572AC0E88B21238B38EB7CD02C9EBC92AEA5F4A7931528165EF"
+  }
+]

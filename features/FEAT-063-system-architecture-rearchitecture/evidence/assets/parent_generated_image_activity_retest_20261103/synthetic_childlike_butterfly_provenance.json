@@ -1,0 +1,15 @@
+{
+  "artifact": "synthetic_childlike_butterfly.png",
+  "generated_by": "OpenAI ImageGen via image_gen.imagegen",
+  "generated_at_local": "2026-11-03T23:28:08+07:00",
+  "purpose": "Synthetic artwork fixture for the FEAT-063 Parent image-upload and topic-understanding retest",
+  "synthetic_only": true,
+  "real_child_data_used": false,
+  "visual_description": "A standalone butterfly illustration with childlike colored-pencil strokes on white paper; no person, name, or identifying mark.",
+  "exact_prompt_retained": false,
+  "source_artifact": "local-only generated image; source path intentionally omitted",
+  "source_sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949",
+  "evidence_copy_sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949",
+  "byte_length": 1775882,
+  "format": "PNG"
+}

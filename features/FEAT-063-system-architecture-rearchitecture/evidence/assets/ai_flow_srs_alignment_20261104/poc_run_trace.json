@@ -1,0 +1,959 @@
+{
+  "started_at": "2026-11-04T12:23:32+07:00",
+  "feature": "FEAT-063",
+  "srs_version": "2.3-draft",
+  "video_called": false,
+  "modal_environment": "dev",
+  "local_api_port": 59011,
+  "api_records": [
+    {
+      "name": "reject_create_without_age",
+      "method": "POST",
+      "path": "/v1/story-runs",
+      "status": 422,
+      "elapsed_ms": 3.63,
+      "headers": {
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "code": "INVALID_REQUEST",
+        "message": "The request body or path parameters are invalid.",
+        "correlation_id": "f67a8b65-191a-4540-9bd2-7457934ac7a2",
+        "retryable": false,
+        "field_errors": [
+          {
+            "field": "child_age_months",
+            "code": "INVALID_FIELD",
+            "message": "The field is missing or has an invalid value."
+          }
+        ]
+      }
+    },
+    {
+      "name": "create_parent_story_run",
+      "method": "POST",
+      "path": "/v1/story-runs",
+      "status": 201,
+      "elapsed_ms": 47.58,
+      "headers": {
+        "ETag": "\"v1\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "c0ce11e9-cd7d-4743-9bf0-5f1dfc1fbb90",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 1,
+        "version": 1,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T05:23:34.409492+00:00",
+        "updated_at": "2026-11-04T05:23:34.409492+00:00",
+        "job_state": null,
+        "retryable": false,
+        "action_required": null,
+        "error": null,
+        "result": null
+      }
+    },
+    {
+      "name": "read_new_run",
+      "method": "GET",
+      "path": "/v1/story-runs/c0ce11e9-cd7d-4743-9bf0-5f1dfc1fbb90",
+      "status": 200,
+      "elapsed_ms": 6.62,
+      "headers": {
+        "ETag": "\"v1\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "c0ce11e9-cd7d-4743-9bf0-5f1dfc1fbb90",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 1,
+        "version": 1,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T05:23:34.409492+00:00",
+        "updated_at": "2026-11-04T05:23:34.409492+00:00",
+        "job_state": null,
+        "retryable": false,
+        "action_required": null,
+        "error": null,
+        "result": null
+      }
+    },
+    {
+      "name": "reject_parent_activity_preselection",
+      "method": "POST",
+      "path": "/v1/story-runs/c0ce11e9-cd7d-4743-9bf0-5f1dfc1fbb90/story-revisions",
+      "status": 422,
+      "elapsed_ms": 1.61,
+      "headers": {
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "code": "INVALID_REQUEST",
+        "message": "The request body or path parameters are invalid.",
+        "correlation_id": "c9a03d15-e126-464b-b0dc-fc948a7c0c86",
+        "retryable": false,
+        "field_errors": [
+          {
+            "field": "activities",
+            "code": "INVALID_FIELD",
+            "message": "The field is missing or has an invalid value."
+          }
+        ]
+      }
+    },
+    {
+      "name": "create_artwork_upload",
+      "method": "POST",
+      "path": "/v1/upload-sessions",
+      "status": 201,
+      "elapsed_ms": 27.32,
+      "headers": {
+        "ETag": "\"v1\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "upload_ref": "c8805719-faa1-4796-8448-00abc3bb4832",
+        "state": "RECEIVING",
+        "version": 1,
+        "part_size_bytes": 4194304,
+        "max_total_bytes": 20971520,
+        "max_parts": 5,
+        "parts": [],
+        "asset_ref": null,
+        "derived_asset_ref": null,
+        "expires_at": "2026-11-04T07:23:34.448475+00:00",
+        "error": null
+      }
+    },
+    {
+      "name": "upload_artwork_part",
+      "method": "PUT",
+      "path": "/v1/upload-sessions/c8805719-faa1-4796-8448-00abc3bb4832/parts/1",
+      "status": 200,
+      "elapsed_ms": 29.94,
+      "headers": {
+        "ETag": "\"v1\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "part_no": 1,
+        "size_bytes": 1775882,
+        "sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949"
+      }
+    },
+    {
+      "name": "read_upload_before_complete",
+      "method": "GET",
+      "path": "/v1/upload-sessions/c8805719-faa1-4796-8448-00abc3bb4832",
+      "status": 200,
+      "elapsed_ms": 11.66,
+      "headers": {
+        "ETag": "\"v1\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "upload_ref": "c8805719-faa1-4796-8448-00abc3bb4832",
+        "state": "RECEIVING",
+        "version": 1,
+        "part_size_bytes": 4194304,
+        "max_total_bytes": 20971520,
+        "max_parts": 5,
+        "parts": [
+          {
+            "part_no": 1,
+            "size_bytes": 1775882,
+            "sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949"
+          }
+        ],
+        "asset_ref": null,
+        "derived_asset_ref": null,
+        "expires_at": "2026-11-04T07:23:34.448475+00:00",
+        "error": null
+      }
+    },
+    {
+      "name": "complete_artwork_admission",
+      "method": "POST",
+      "path": "/v1/upload-sessions/c8805719-faa1-4796-8448-00abc3bb4832/complete",
+      "status": 202,
+      "elapsed_ms": 638.71,
+      "headers": {
+        "ETag": "\"v2\"",
+        "Location": "/v1/upload-sessions/c8805719-faa1-4796-8448-00abc3bb4832",
+        "Retry-After": "1",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "upload_ref": "c8805719-faa1-4796-8448-00abc3bb4832",
+        "state": "PENDING",
+        "version": 2,
+        "part_size_bytes": 4194304,
+        "max_total_bytes": 20971520,
+        "max_parts": 5,
+        "parts": [
+          {
+            "part_no": 1,
+            "size_bytes": 1775882,
+            "sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949"
+          }
+        ],
+        "asset_ref": null,
+        "derived_asset_ref": null,
+        "expires_at": "2026-11-04T07:23:34.448475+00:00",
+        "error": null
+      }
+    },
+    {
+      "name": "poll_artwork_admission",
+      "method": "GET",
+      "path": "/v1/upload-sessions/c8805719-faa1-4796-8448-00abc3bb4832",
+      "status": 200,
+      "elapsed_ms": 9.94,
+      "headers": {
+        "ETag": "\"v4\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "upload_ref": "c8805719-faa1-4796-8448-00abc3bb4832",
+        "state": "READY",
+        "version": 4,
+        "part_size_bytes": 4194304,
+        "max_total_bytes": 20971520,
+        "max_parts": 5,
+        "parts": [
+          {
+            "part_no": 1,
+            "size_bytes": 1775882,
+            "sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949"
+          }
+        ],
+        "asset_ref": "6d26555c-38f5-4ec6-998c-e9132a990b61",
+        "derived_asset_ref": "cdfee11b-e565-432f-8ff5-f8f6dc1acfb3",
+        "expires_at": "2026-11-04T07:23:34.448475+00:00",
+        "error": null
+      }
+    },
+    {
+      "name": "read_run_before_vision",
+      "method": "GET",
+      "path": "/v1/story-runs/c0ce11e9-cd7d-4743-9bf0-5f1dfc1fbb90",
+      "status": 200,
+      "elapsed_ms": 6.27,
+      "headers": {
+        "ETag": "\"v1\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "c0ce11e9-cd7d-4743-9bf0-5f1dfc1fbb90",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 1,
+        "version": 1,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T05:23:34.409492+00:00",
+        "updated_at": "2026-11-04T05:23:34.409492+00:00",
+        "job_state": null,
+        "retryable": false,
+        "action_required": null,
+        "error": null,
+        "result": null
+      }
+    },
+    {
+      "name": "attach_drawing_and_run_vlm_once",
+      "method": "POST",
+      "path": "/v1/story-runs/c0ce11e9-cd7d-4743-9bf0-5f1dfc1fbb90/assets",
+      "status": 202,
+      "elapsed_ms": 48882.5,
+      "headers": {
+        "ETag": "\"v2\"",
+        "Location": "/v1/story-runs/c0ce11e9-cd7d-4743-9bf0-5f1dfc1fbb90",
+        "Retry-After": "1",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "c0ce11e9-cd7d-4743-9bf0-5f1dfc1fbb90",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 2,
+        "version": 2,
+        "child_age_months": 60,
+        "target_revision": null,
+        "created_at": "2026-11-04T05:23:34.409492+00:00",
+        "updated_at": "2026-11-04T05:23:35.191302+00:00",
+        "job_state": "QUEUED",
+        "retryable": false,
+        "action_required": null,
+        "error": null,
+        "result": null
+      }
+    },
+    {
+      "name": "read_run_after_vlm",
+      "method": "GET",
+      "path": "/v1/story-runs/c0ce11e9-cd7d-4743-9bf0-5f1dfc1fbb90",
+      "status": 200,
+      "elapsed_ms": 5.14,
+      "headers": {
+        "ETag": "\"v4\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "c0ce11e9-cd7d-4743-9bf0-5f1dfc1fbb90",
+        "run_state": "SUBJECT_REVIEW",
+        "revision": 3,
+        "version": 4,
+        "child_age_months": 60,
+        "target_revision": 1,
+        "created_at": "2026-11-04T05:23:34.409492+00:00",
+        "updated_at": "2026-11-04T05:24:24.039622+00:00",
+        "job_state": "SUCCEEDED",
+        "retryable": false,
+        "action_required": null,
+        "error": null,
+        "result": {
+          "understanding_revision": 1,
+          "subject_label": "bướm",
+          "confidence": 0.0
+        }
+      }
+    },
+    {
+      "name": "resume_read_run_after_vlm",
+      "method": "GET",
+      "path": "/v1/story-runs/c0ce11e9-cd7d-4743-9bf0-5f1dfc1fbb90",
+      "status": 200,
+      "elapsed_ms": 24.97,
+      "headers": {
+        "ETag": "\"v4\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "c0ce11e9-cd7d-4743-9bf0-5f1dfc1fbb90",
+        "run_state": "SUBJECT_REVIEW",
+        "revision": 3,
+        "version": 4,
+        "child_age_months": 60,
+        "target_revision": 1,
+        "created_at": "2026-11-04T05:23:34.409492+00:00",
+        "updated_at": "2026-11-04T05:24:24.039622+00:00",
+        "job_state": "SUCCEEDED",
+        "retryable": false,
+        "action_required": null,
+        "error": null,
+        "result": {
+          "understanding_revision": 1,
+          "subject_label": "bướm",
+          "confidence": 0.0
+        }
+      }
+    },
+    {
+      "name": "adult_confirms_drawing_subject",
+      "method": "POST",
+      "path": "/v1/story-runs/c0ce11e9-cd7d-4743-9bf0-5f1dfc1fbb90/subject-confirmation",
+      "status": 202,
+      "elapsed_ms": 23.17,
+      "headers": {
+        "ETag": "\"v5\"",
+        "Location": "/v1/story-runs/c0ce11e9-cd7d-4743-9bf0-5f1dfc1fbb90",
+        "Retry-After": "1",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "c0ce11e9-cd7d-4743-9bf0-5f1dfc1fbb90",
+        "run_state": "PREPARATION_REVIEW",
+        "revision": 4,
+        "version": 5,
+        "child_age_months": 60,
+        "target_revision": 1,
+        "created_at": "2026-11-04T05:23:34.409492+00:00",
+        "updated_at": "2026-11-04T05:32:19.974413+00:00",
+        "job_state": "SUCCEEDED",
+        "retryable": false,
+        "action_required": null,
+        "error": null,
+        "result": null
+      }
+    },
+    {
+      "name": "read_run_before_story",
+      "method": "GET",
+      "path": "/v1/story-runs/c0ce11e9-cd7d-4743-9bf0-5f1dfc1fbb90",
+      "status": 200,
+      "elapsed_ms": 4.82,
+      "headers": {
+        "ETag": "\"v5\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "c0ce11e9-cd7d-4743-9bf0-5f1dfc1fbb90",
+        "run_state": "PREPARATION_REVIEW",
+        "revision": 4,
+        "version": 5,
+        "child_age_months": 60,
+        "target_revision": 1,
+        "created_at": "2026-11-04T05:23:34.409492+00:00",
+        "updated_at": "2026-11-04T05:32:19.974413+00:00",
+        "job_state": "SUCCEEDED",
+        "retryable": false,
+        "action_required": null,
+        "error": null,
+        "result": null
+      }
+    },
+    {
+      "name": "generate_parent_story_once",
+      "method": "POST",
+      "path": "/v1/story-runs/c0ce11e9-cd7d-4743-9bf0-5f1dfc1fbb90/story-revisions",
+      "status": 202,
+      "elapsed_ms": 102633.83,
+      "headers": {
+        "ETag": "\"v7\"",
+        "Location": "/v1/story-runs/c0ce11e9-cd7d-4743-9bf0-5f1dfc1fbb90/story-revisions/928b747a-c812-4821-95e0-8f3db7887d76",
+        "Retry-After": "1",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "code": "STORY_OUTCOME_UNKNOWN",
+        "message": "The story request needs review and will not be resent automatically.",
+        "correlation_id": "04746081-66fd-428f-aa1e-ee3c1b841252",
+        "retryable": false,
+        "retry_after_seconds": null,
+        "field_errors": null,
+        "run_ref": "c0ce11e9-cd7d-4743-9bf0-5f1dfc1fbb90",
+        "story_revision_ref": "928b747a-c812-4821-95e0-8f3db7887d76",
+        "revision_no": 1,
+        "state": "AWAITING_RECONCILIATION"
+      }
+    },
+    {
+      "name": "read_run_for_remaining_api_checks",
+      "method": "GET",
+      "path": "/v1/story-runs/c0ce11e9-cd7d-4743-9bf0-5f1dfc1fbb90",
+      "status": 200,
+      "elapsed_ms": 31.59,
+      "headers": {
+        "ETag": "\"v7\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "c0ce11e9-cd7d-4743-9bf0-5f1dfc1fbb90",
+        "run_state": "SCRIPT_GENERATION_UNKNOWN",
+        "revision": 6,
+        "version": 7,
+        "child_age_months": 60,
+        "target_revision": 1,
+        "created_at": "2026-11-04T05:23:34.409492+00:00",
+        "updated_at": "2026-11-04T05:34:02.626676+00:00",
+        "job_state": "AWAITING_RECONCILIATION",
+        "retryable": false,
+        "action_required": "OPERATOR_REVIEW",
+        "error": {
+          "code": "STORY_OUTCOME_UNKNOWN",
+          "message": "The story worker outcome is unknown and was not resent.",
+          "correlation_id": "f1434aed-4d90-4c60-92d3-fdf58d03b66c",
+          "retryable": false,
+          "retry_after_seconds": null,
+          "field_errors": null
+        },
+        "result": null
+      }
+    },
+    {
+      "name": "read_story_revision_after_terminal_worker_error",
+      "method": "GET",
+      "path": "/v1/story-runs/c0ce11e9-cd7d-4743-9bf0-5f1dfc1fbb90/story-revisions/928b747a-c812-4821-95e0-8f3db7887d76",
+      "status": 200,
+      "elapsed_ms": 16.97,
+      "headers": {
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "story_revision_ref": "928b747a-c812-4821-95e0-8f3db7887d76",
+        "run_ref": "c0ce11e9-cd7d-4743-9bf0-5f1dfc1fbb90",
+        "revision_no": 1,
+        "status": "AWAITING_RECONCILIATION",
+        "schema_version": "sketch2life.story-revision.v1",
+        "prompt_version": "parent-story-v2.2026-11-04",
+        "model": {
+          "id": "Qwen/Qwen2.5-7B-Instruct",
+          "revision": "a09a35458c702b33eeacc393d103063234e8bc28"
+        },
+        "source_asset_sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949",
+        "understanding_revision": 1,
+        "context_revision": 1,
+        "request_sha256": "6310a168c2c4ee65a39c803575a0d6aeb238b8b622253fefbedf6278a07cf3a5",
+        "story_sha256": null,
+        "provider_call_id": null,
+        "created_at": "2026-11-04T05:32:20.003962+00:00",
+        "review_required": false
+      }
+    },
+    {
+      "name": "reject_confirmation_of_non_draft_story",
+      "method": "POST",
+      "path": "/v1/story-runs/c0ce11e9-cd7d-4743-9bf0-5f1dfc1fbb90/story-revisions/928b747a-c812-4821-95e0-8f3db7887d76/confirmation",
+      "status": 409,
+      "elapsed_ms": 22.73,
+      "headers": {
+        "ETag": "\"v7\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "code": "STALE_REVISION",
+        "message": "The story draft changed; reload and review the current revision.",
+        "correlation_id": "2bc56736-edad-4769-a9fa-8b9e03d524af",
+        "retryable": false,
+        "retry_after_seconds": null,
+        "field_errors": null
+      }
+    },
+    {
+      "name": "create_run_for_cancel_route_check",
+      "method": "POST",
+      "path": "/v1/story-runs",
+      "status": 409,
+      "elapsed_ms": 15.55,
+      "headers": {
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "code": "ACTIVE_RUN_EXISTS",
+        "message": "This owner already has an unfinished StoryRun.",
+        "correlation_id": "88a4b8c1-ba06-4506-9c05-a5608bfd8b7b",
+        "retryable": false,
+        "retry_after_seconds": null,
+        "field_errors": null
+      }
+    },
+    {
+      "name": "create_run_for_cancel_route",
+      "method": "POST",
+      "path": "/v1/story-runs",
+      "status": 422,
+      "elapsed_ms": 2.9,
+      "headers": {
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "code": "INVALID_REQUEST",
+        "message": "The request body or path parameters are invalid.",
+        "correlation_id": "d2380871-de32-42fe-8a47-31551699b1cd",
+        "retryable": false,
+        "field_errors": [
+          {
+            "field": "profile_ref",
+            "code": "INVALID_FIELD",
+            "message": "The field is missing or has an invalid value."
+          }
+        ]
+      }
+    },
+    {
+      "name": "create_run_for_cancel_route",
+      "method": "POST",
+      "path": "/v1/story-runs",
+      "status": 201,
+      "elapsed_ms": 45.37,
+      "headers": {
+        "ETag": "\"v1\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "8563677f-5fa9-4206-87b8-707c4ab80368",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 1,
+        "version": 1,
+        "child_age_months": 48,
+        "target_revision": null,
+        "created_at": "2026-11-04T05:48:08.370948+00:00",
+        "updated_at": "2026-11-04T05:48:08.370948+00:00",
+        "job_state": null,
+        "retryable": false,
+        "action_required": null,
+        "error": null,
+        "result": null
+      }
+    },
+    {
+      "name": "cancel_run_route",
+      "method": "POST",
+      "path": "/v1/story-runs/8563677f-5fa9-4206-87b8-707c4ab80368/cancel",
+      "status": 202,
+      "elapsed_ms": 18.6,
+      "headers": {
+        "ETag": "\"v2\"",
+        "Location": "/v1/story-runs/8563677f-5fa9-4206-87b8-707c4ab80368",
+        "Retry-After": "1",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "8563677f-5fa9-4206-87b8-707c4ab80368",
+        "run_state": "DELETE_PENDING",
+        "revision": 2,
+        "version": 2,
+        "child_age_months": 48,
+        "target_revision": null,
+        "created_at": "2026-11-04T05:48:08.370948+00:00",
+        "updated_at": "2026-11-04T05:48:08.396469+00:00",
+        "job_state": null,
+        "retryable": false,
+        "action_required": null,
+        "error": null,
+        "result": null
+      }
+    },
+    {
+      "name": "create_run_for_upload_abort_route",
+      "method": "POST",
+      "path": "/v1/story-runs",
+      "status": 201,
+      "elapsed_ms": 17.21,
+      "headers": {
+        "ETag": "\"v1\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "run_ref": "22d3fc06-c833-48c5-9b62-49fc15f56edc",
+        "run_state": "INPUT_PROCESSING",
+        "revision": 1,
+        "version": 1,
+        "child_age_months": 72,
+        "target_revision": null,
+        "created_at": "2026-11-04T05:48:08.415707+00:00",
+        "updated_at": "2026-11-04T05:48:08.415707+00:00",
+        "job_state": null,
+        "retryable": false,
+        "action_required": null,
+        "error": null,
+        "result": null
+      }
+    },
+    {
+      "name": "create_upload_session_route",
+      "method": "POST",
+      "path": "/v1/upload-sessions",
+      "status": 201,
+      "elapsed_ms": 22.3,
+      "headers": {
+        "ETag": "\"v1\"",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "upload_ref": "f611ae7c-20e1-438e-a61b-cca64296e71d",
+        "state": "RECEIVING",
+        "version": 1,
+        "part_size_bytes": 4194304,
+        "max_total_bytes": 20971520,
+        "max_parts": 5,
+        "parts": [],
+        "asset_ref": null,
+        "derived_asset_ref": null,
+        "expires_at": "2026-11-04T07:48:08.433686+00:00",
+        "error": null
+      }
+    },
+    {
+      "name": "abort_upload_session_route",
+      "method": "DELETE",
+      "path": "/v1/upload-sessions/f611ae7c-20e1-438e-a61b-cca64296e71d",
+      "status": 202,
+      "elapsed_ms": 23.71,
+      "headers": {
+        "ETag": "\"v2\"",
+        "Location": "/v1/upload-sessions/f611ae7c-20e1-438e-a61b-cca64296e71d",
+        "Retry-After": "1",
+        "Cache-Control": "no-store"
+      },
+      "response": {
+        "upload_ref": "f611ae7c-20e1-438e-a61b-cca64296e71d",
+        "state": "ABORTED",
+        "version": 2,
+        "part_size_bytes": 4194304,
+        "max_total_bytes": 20971520,
+        "max_parts": 5,
+        "parts": [],
+        "asset_ref": null,
+        "derived_asset_ref": null,
+        "expires_at": "2026-11-04T07:48:08.433686+00:00",
+        "error": null
+      }
+    },
+    {
+      "name": "health_route_not_mounted",
+      "method": "GET",
+      "path": "/health",
+      "status": 404,
+      "elapsed_ms": 1.21,
+      "headers": {},
+      "response": {
+        "detail": "Not Found"
+      }
+    },
+    {
+      "name": "openapi_route_not_mounted",
+      "method": "GET",
+      "path": "/openapi.json",
+      "status": 404,
+      "elapsed_ms": 1.06,
+      "headers": {},
+      "response": {
+        "detail": "Not Found"
+      }
+    }
+  ],
+  "modal_workers": [
+    {
+      "workload": "teacher.sketch-deck.generate",
+      "app": "sketch2life-srs23-language-audio-dev",
+      "function": "generate-teacher-sketch-deck",
+      "call_id": "fc-01M6JGT64YRSBAF5BGHSV97A0N",
+      "elapsed_ms": 57937.44,
+      "output_sha256": "b8b7dc2c1a815e033e4471475306afe8eeffa58179e60ab30ae23e16298feb1a",
+      "result": {
+        "schema_version": "sketch2life.modal.worker-output.v1",
+        "workload": "teacher.sketch-deck.generate",
+        "job_id": "8e43ca94-0f2b-46c0-97cf-93ceb852bc0c",
+        "generation_id": "39a62ef9-63dc-42f7-9915-c337f76d11dd",
+        "attempt_id": "f2298b81-9a74-4191-b5f2-f11895531f1c",
+        "model": {
+          "id": "Qwen/Qwen2.5-7B-Instruct",
+          "revision": "a09a35458c702b33eeacc393d103063234e8bc28"
+        },
+        "result": {
+          "schema_version": "sketch2life.teacher-sketch-deck.v1",
+          "status": "DRAFT",
+          "plan_revision_ref": "synthetic-approved-butterfly-plan-v1",
+          "content_hash": "623788e3d6dd28bdc08014836707f003ed90692b1060bf421016c9ae6fd93e1e",
+          "aspect_ratio": "16:9",
+          "language": "vi",
+          "topic": "Con bướm",
+          "target_age_months": 60,
+          "subject_knowledge": [
+            "Vòng đời của bướm gồm trứng, sâu bướm, nhộng rồi đến bướm trưởng thành.",
+            "Sâu bướm nở từ trứng; bướm trưởng thành chui ra khỏi nhộng.",
+            "Nhiều loài bướm trưởng thành hút mật hoa bằng vòi dài."
+          ],
+          "slides": [
+            {
+              "slide_index": 1,
+              "kind": "orientation",
+              "title": "Con bướm",
+              "bullets": [
+                "Trẻ quan sát hình dáng và một số đặc điểm dễ nhận thấy của con bướm.",
+                "Trẻ tìm hiểu vòng đời của bướm bằng ngôn ngữ phù hợp lứa tuổi."
+              ],
+              "activity_ref": null
+            },
+            {
+              "slide_index": 2,
+              "kind": "drawing_guide",
+              "title": "Cùng quan sát và vẽ Con bướm",
+              "steps": [
+                {
+                  "step_index": 1,
+                  "instruction": "Vẽ đầu tròn nhỏ và thân dài mảnh ở giữa trang giấy, chừa khoảng trống hai bên.",
+                  "placement": "Ở giữa trang giấy, chừa khoảng trống hai bên.",
+                  "source_action": "Vẽ đầu tròn nhỏ và thân dài mảnh.",
+                  "source_placement": "Ở giữa trang giấy, chừa khoảng trống hai bên."
+                },
+                {
+                  "step_index": 2,
+                  "instruction": "Thêm hai cặp cánh lớn hai bên thân, cánh trên lớn hơn, cánh dưới nhỏ hơn và cân đối.",
+                  "placement": "Cánh trên lớn hơn, cánh dưới nhỏ hơn và cân đối.",
+                  "source_action": "Thêm hai cặp cánh lớn hai bên thân.",
+                  "source_placement": "Cánh trên lớn hơn, cánh dưới nhỏ hơn và cân đối."
+                },
+                {
+                  "step_index": 3,
+                  "instruction": "Vẽ hai chiếc râu cong trên đầu, hai râu hướng lên, gần đầu bướm.",
+                  "placement": "Hai râu hướng lên, gần đầu bướm.",
+                  "source_action": "Vẽ hai chiếc râu cong trên đầu.",
+                  "source_placement": "Hai râu hướng lên, gần đầu bướm."
+                },
+                {
+                  "step_index": 4,
+                  "instruction": "Thêm vài đường gân đơn giản trên cánh, rải nhẹ trên cánh, giữ nhiều khoảng trắng.",
+                  "placement": "Rải nhẹ trên cánh, giữ nhiều khoảng trắng.",
+                  "source_action": "Thêm vài đường gân đơn giản trên cánh.",
+                  "source_placement": "Rải nhẹ trên cánh, giữ nhiều khoảng trắng."
+                }
+              ],
+              "activity_ref": null
+            },
+            {
+              "slide_index": 3,
+              "kind": "subject_exploration",
+              "title": "Cùng tìm hiểu về Con bướm",
+              "bullets": [
+                "Vòng đời của bướm gồm trứng, sâu bướm, nhộng rồi đến bướm trưởng thành.",
+                "Sâu bướm nở từ trứng; bướm trưởng thành chui ra khỏi nhộng.",
+                "Nhiều loài bướm trưởng thành hút mật hoa bằng vòi dài."
+              ],
+              "activity_ref": null
+            },
+            {
+              "slide_index": 4,
+              "kind": "approved_activity",
+              "title": "Quan sát bướm từ xa",
+              "activity_ref": "synthetic-activity-observe-butterfly",
+              "goal": [
+                "Luyện quan sát và nhận ra đặc điểm của bướm trong môi trường tự nhiên."
+              ],
+              "materials": [
+                "Sổ quan sát",
+                "Bút chì"
+              ],
+              "preparation": [
+                "Chọn khu vườn an toàn có hoa và đứng cùng trẻ."
+              ],
+              "instructions": [
+                "Quan sát bướm từ khoảng cách an toàn.",
+                "Mời trẻ kể điều mình nhìn thấy; không bắt hoặc chạm vào bướm."
+              ],
+              "safety_notes": [
+                "Người lớn luôn ở cạnh trẻ.",
+                "Không bắt, đuổi hoặc chạm vào côn trùng."
+              ]
+            },
+            {
+              "slide_index": 5,
+              "kind": "approved_activity",
+              "title": "Tìm những bông hoa khác nhau",
+              "activity_ref": "synthetic-activity-compare-flowers",
+              "goal": [
+                "So sánh hình dáng và màu sắc của các bông hoa thu hút bướm."
+              ],
+              "materials": [
+                "Thẻ quan sát bằng giấy"
+              ],
+              "preparation": [
+                "Chọn lối đi bằng phẳng, tránh cây có gai và khu vực xe cộ."
+              ],
+              "instructions": [
+                "Quan sát hai bông hoa khác nhau mà không ngắt hoa.",
+                "Mời trẻ mô tả điểm giống và khác nhau."
+              ],
+              "safety_notes": [
+                "Người lớn ở gần; không nếm hoặc bứt cây.",
+                "Rửa tay sau hoạt động ngoài trời."
+              ]
+            }
+          ],
+          "approved_activity_refs": [
+            "synthetic-activity-observe-butterfly",
+            "synthetic-activity-compare-flowers"
+          ],
+          "review_required": true
+        }
+      },
+      "outcome": "SUCCEEDED"
+    },
+    {
+      "workload": "lesson.visual.generate",
+      "app": "sketch2life-srs23-flux-image-dev",
+      "function": "generate-approved-lesson-visual-candidate",
+      "call_id": "fc-01M6JGVYR9G8DD2MD3HCRC4N54",
+      "elapsed_ms": 468338.68,
+      "outcome": "UNKNOWN_NO_RETRY",
+      "error_type": "RemoteError"
+    }
+  ],
+  "parent_flow": {
+    "flow_id": "7bcdb924-4f53-45d0-8eed-796748733388",
+    "started_at": "2026-11-04T12:23:32+07:00",
+    "image": {
+      "file": "synthetic_childlike_butterfly.png",
+      "sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949",
+      "size_bytes": 1775882
+    },
+    "video_calls": 0,
+    "activities_selected": false,
+    "run_ref": "c0ce11e9-cd7d-4743-9bf0-5f1dfc1fbb90",
+    "upload_ref": "c8805719-faa1-4796-8448-00abc3bb4832",
+    "run_after_vlm": {
+      "run_ref": "c0ce11e9-cd7d-4743-9bf0-5f1dfc1fbb90",
+      "run_state": "SUBJECT_REVIEW",
+      "revision": 3,
+      "version": 4,
+      "child_age_months": 60,
+      "target_revision": 1,
+      "created_at": "2026-11-04T05:23:34.409492+00:00",
+      "updated_at": "2026-11-04T05:24:24.039622+00:00",
+      "job_state": "SUCCEEDED",
+      "retryable": false,
+      "action_required": null,
+      "error": null,
+      "result": {
+        "understanding_revision": 1,
+        "subject_label": "bướm",
+        "confidence": 0.0
+      }
+    },
+    "drawing_model": null,
+    "state": "STORY_OUTCOME_UNKNOWN_NO_RETRY",
+    "ended_at": "2026-11-04T12:34:02+07:00",
+    "error_type": "KeyError",
+    "error": "'ETag'",
+    "adult_subject_decision": {
+      "decision": "CONFIRM",
+      "candidate": "bướm"
+    },
+    "story_generation_elapsed_ms": 102634.53,
+    "story_generation_error": {
+      "code": "STORY_OUTCOME_UNKNOWN",
+      "message": "The story request needs review and will not be resent automatically.",
+      "correlation_id": "04746081-66fd-428f-aa1e-ee3c1b841252",
+      "retryable": false,
+      "retry_after_seconds": null,
+      "field_errors": null,
+      "run_ref": "c0ce11e9-cd7d-4743-9bf0-5f1dfc1fbb90",
+      "story_revision_ref": "928b747a-c812-4821-95e0-8f3db7887d76",
+      "revision_no": 1,
+      "state": "AWAITING_RECONCILIATION"
+    },
+    "continuation_error_type": "RuntimeError",
+    "continuation_error": "Story call returned an asynchronous/unknown outcome; no retry allowed."
+  },
+  "database_guard": {
+    "database": "storyrun_lite_feat063_ai_20261104",
+    "current_user_is_owner": true,
+    "api_client_target": "127.0.0.1",
+    "postgres_container_server_address": "172.18.0.2/32",
+    "test_harness_only": true,
+    "product_loopback_guard_changed": false
+  },
+  "teacher_deck": {
+    "status": "TEXT_DRAFT_CREATED_VISUAL_UNAVAILABLE",
+    "slide_count": 5,
+    "drawing_step_count": 4,
+    "approved_activity_refs": [
+      "synthetic-activity-observe-butterfly",
+      "synthetic-activity-compare-flowers"
+    ],
+    "aspect_ratio": "16:9",
+    "html_preview": "teacher_deck_preview.html",
+    "html_preview_has_generated_visual": false,
+    "text_worker_call_id": "fc-01M6JGT64YRSBAF5BGHSV97A0N",
+    "text_worker_elapsed_ms": 57937.44,
+    "visual_call_id": "fc-01M6JGVYR9G8DD2MD3HCRC4N54",
+    "visual_worker_outcome": "UNKNOWN_NO_RETRY",
+    "publishable": false
+  },
+  "ended_at": "2026-11-04T12:42:49+07:00",
+  "failures": [
+    {
+      "stage": "parent_story_and_api_continuation",
+      "error_type": "RuntimeError",
+      "message": "Story call returned an asynchronous/unknown outcome; no retry allowed."
+    },
+    {
+      "stage": "teacher_deck_flow",
+      "error_type": "RemoteError",
+      "message": ""
+    }
+  ]
+}

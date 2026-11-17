@@ -1,0 +1,150 @@
+{
+  "recorded_at": "2026-10-15T00:50:29.000+07:00",
+  "review_result": "NEEDS_REVISION for PB-C01/PB-C02 only",
+  "reviewed_plan_revision": 2,
+  "review_scope": "Focused closure of PB-R01–PB-R06 and exact deltas required by selected rev2 solutions; no unrelated audit",
+  "original_closure": {
+    "PB-R01": "CLOSED_ORIGINAL_PLAN_CASE",
+    "PB-R02": "CLOSED_ORIGINAL_PLAN_CASE",
+    "PB-R03": "CLOSED_ORIGINAL_PLAN_CASE",
+    "PB-R04": "CLOSED_ORIGINAL_PLAN_CASE",
+    "PB-R05": "CLOSED_ORIGINAL_PLAN_CASE",
+    "PB-R06": "CLOSED_ORIGINAL_PLAN_CASE"
+  },
+  "original_closure_limits": {
+    "PB_R01": "Conditional on adopted D7/Q8 protocol; ASSUMED_CONTRACT fixture proof only",
+    "PB_R06": "Oversized notice typed-fails without COMPLETE; policy/operations remain owner decision"
+  },
+  "followups": [
+    {
+      "id": "PB-C01",
+      "priority": 2,
+      "status": "OPEN",
+      "parent": "PB-R03",
+      "summary": "Declare pure queued DISPATCH_LOST retry/exhausted transition and exact domain/service/test file deltas"
+    },
+    {
+      "id": "PB-C02",
+      "priority": 2,
+      "status": "OPEN",
+      "parents": [
+        "PB-R04",
+        "PB-R05"
+      ],
+      "summary": "Declare transient capability queue carrier and stable quarantine event-id delivery carrier with exact port/fake compatibility"
+    }
+  ],
+  "reviewers": [
+    "Codex primary",
+    "phase_b_persistence_review",
+    "phase_b_dispatch_review"
+  ],
+  "reviewed_rev2_sha256": {
+    "plan/PHASE_B_PLAN.md": "6bdf86d05b5d95df18ad60381d28585b71e7ce21bbc57c38f2d713fde00869f1",
+    "plan/PHASE_B_ADR_PROPOSAL.md": "48fa3c0e245e8b9bc8fdf8892b3c0dc6d5a48e815225b14470add80fddae5b93",
+    "plan/PHASE_B_PORT_REVIEW.md": "bfe463168459c003d5d323d6ad924b8251cd6b7e58f7f6c3384f48a8f2f46cac",
+    "evidence/notes/PHASE_B_PLAN_REVISION_EVIDENCE.md": "f67d1e21814e0f244331711aa277b6b2864cca1b4d41e80ea9ab0ff56bd506dc"
+  },
+  "reviewed_rev2_documents_preserved": true,
+  "phase_a_source_sha256": {
+    "backend/src/sketch2life/application/ports/ai_jobs.py": "de806e0cc19a275dd584e5a6f1250d8d53c2a899597a07b5b5a2f32dc7a6cbcb",
+    "backend/src/sketch2life/application/services/ai_jobs.py": "c6b4f1e1693f4ff87acd933e9b09df1c16100c47734f6890a2b3e931066ef512",
+    "backend/src/sketch2life/application/services/provider_copy_lifecycle.py": "c45ad24934b848ce1f4a6357daec925a2e70543d66d5bb8b85cae75a0201d73e",
+    "backend/src/sketch2life/contracts/schemas/ai_contract_candidates.py": "7bbe68aae583f2bf30b62a94108940aa5374ffe2be4a2dbb1d3500331615426c",
+    "backend/src/sketch2life/contracts/schemas/ai_jobs.py": "15025b1386ba2781204ad41655c1dec135b28672845bac1a3744d1b8ad1e9c5f",
+    "backend/src/sketch2life/domain/ai_jobs/__init__.py": "301c97c4a3a0308350dd857f39f94fd8f1b5cc45820a9fa8b4c6e4caee0b2748",
+    "backend/src/sketch2life/domain/ai_jobs/completion.py": "b3e1a78d2a93227d09e4db3fed4b77bc4d1c3775f54f519f68fd762ceb3ec62b",
+    "backend/src/sketch2life/domain/ai_jobs/model.py": "a60692c2f4deab068471a35dcf58abe777400e8bd4575beb9fbf8c3a7c078c8b",
+    "backend/src/sketch2life/domain/ai_jobs/provider_copy.py": "2c55b67e0a036b4e7786094d5e1bc59a2b3d81ecfc75f24aaaa03a4296ee1ddd",
+    "backend/src/sketch2life/infrastructure/ai_jobs/__init__.py": "22375802e5b6353e0531b8dfcc8034260672783edd3df6b20c55914fbc1cad78",
+    "backend/src/sketch2life/infrastructure/ai_jobs/fakes.py": "af78a5bbdbb3bea3fa2bd57cf6b52ceffce22312fa1a7546319eec4d564a22b1",
+    "backend/src/sketch2life/infrastructure/ai_jobs/harness.py": "f60eb285f39e53906c5123533bd0663dbd2263609e9f0ac0c988cb9a8f5ad90f",
+    "backend/src/sketch2life/interfaces/http/ai_jobs_fixture_app.py": "7ee82e3c80d3ba892b9b532961786832f747cf1a627a245cb20c90d85e6d1d03",
+    "backend/src/sketch2life/interfaces/http/routers/ai_jobs.py": "8f90789fe6bc5abbd5b1f2d489c201dd99def252ad2182d591a2becbbc7641b6",
+    "backend/tests/contract/test_ai_job_contracts.py": "a65c552542fcdc11a3b3340d1873fcc9085de78a533af25e95326f6cf149af79",
+    "backend/tests/contract/test_ai_job_polling.py": "26ba77564276802fd2d4c19958442d6094cf563ea5cb5392760a416e2b95bb25",
+    "backend/tests/unit/test_ai_job_application.py": "3a7760dfa7bc3f6c21a59ae91e69805708372dcafdaffd3152c2a5f650bdc57f",
+    "backend/tests/unit/test_ai_job_lifecycle.py": "d9535a7f109e0889d7c775abd6b25361f97479286286b409e78a3eaadb46ee37",
+    "backend/tests/unit/test_ai_job_review_regressions.py": "dab50ea145eb06e11f35fd8e4966ea567e4a386a05c25b43783409ffad770155",
+    "features/FEAT-044-be2-ai-job-foundation/approvals/TASK_APPROVAL.md": "1ba7f641a7501bffb99c065d137ea4104684e93a95a1bf4a0d7fd785fec71112",
+    "features/FEAT-044-be2-ai-job-foundation/plan/PLAN.md": "c835986f2a7dc15ac0c724e0b0304e44d3811575fabeffb7863e7e9058cfe766",
+    "features/FEAT-044-be2-ai-job-foundation/src/fixture_catalog.py": "272dd88a4d90d55b1f9d81f5665bf6dac8afdd2abd35e1fe96a6da47298e93f2",
+    "features/FEAT-044-be2-ai-job-foundation/src/run_fixture_contracts.py": "34010ffb6b6714e4e5c30949752809fbf1a6f6a90944d2db460fc1b12c0b2975",
+    "backend/tests/unit/test_ai_job_q00_followups.py": "ecc9638cf84d7ea41f6888c6d14bc6fccd075e1174cb722f511d474a74d05269"
+  },
+  "phase_a_sources_unchanged": 24,
+  "rev1_archive_sha256": "cdbb2be692dcb8528438009d578cd2c904801ad9e74ccee3809290d57ffb7ec0",
+  "rev1_archive_matches_reviewed": true,
+  "checks": [
+    {
+      "check": "harness",
+      "command": [
+        "<existing-backend-venv>/python",
+        "tools/validate_harness.py",
+        "--feature",
+        "features/FEAT-044-be2-ai-job-foundation"
+      ],
+      "started_at": "2026-10-15T00:48:39.244159+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/phase_b_rev2_codex_harness.txt"
+    },
+    {
+      "check": "security",
+      "command": [
+        "<existing-backend-venv>/python",
+        "tools/validate_repository_security.py"
+      ],
+      "started_at": "2026-10-15T00:48:40.037625+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/phase_b_rev2_codex_security.txt"
+    },
+    {
+      "check": "diff",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "started_at": "2026-10-15T00:48:40.807946+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/phase_b_rev2_codex_diff.txt"
+    }
+  ],
+  "docs_whitespace": "PASS",
+  "document_sha256": {
+    "evidence/notes/PHASE_B_REV2_CLOSURE_REVIEW_20261015.md": "5c3ab64aaa1f9dea81871044cc3cac58960eb5d42df40a07b8e1dd738a82cae1",
+    "plan/CLAUDE_PHASE_B_REV2_COMPLETION_PROMPT.md": "c3aea633fbb692f96206093fc9de80065c967e4dbca42eba38f50c1e3c55aaed",
+    "plan/BE2_EXECUTION_TRACKER.md": "8465da3f4a703729e56cff491c93a9da27de0421a3659522b3732737f7169edc",
+    "status/STATUS.md": "4574b8e72fc4646a4ae1f587ebae03dbf2a13b2b81353325abd6c408b4da2860",
+    "CONTEXT.md": "c9cc2310afa1a0808784dece48f4643ebef25e434fbfef870c3dc05abf0269f7",
+    "DECISIONS.md": "8082442a13a70c59248827d52bc289c4deac57e187fd912022ea7356ddcb9c78",
+    "evidence/README.md": "2af10522d8a29800fb604690f97141fc3ae8c468f10ea4ebc7ed3dcf82005ab9"
+  },
+  "runtime_tests": "NOT_RUN; no Phase B implementation exists",
+  "evidence_type": "Static source/signature/domain-guard inspection; not runtime reproduction",
+  "code_changed": false,
+  "approved_phase_a_plan_changed": false,
+  "approval_changed": false,
+  "phase_a_code_review": "PASS at fake/contract scope retained",
+  "phase_a_acceptance": "PENDING",
+  "active_slot": "Q00",
+  "q01_plan_status": "NEEDS_REVISION",
+  "phase_b_implementation": "NOT_STARTED_UNAPPROVED",
+  "business_cards": 14,
+  "implementation_wip": 1,
+  "next_prompt": "plan/CLAUDE_PHASE_B_REV2_COMPLETION_PROMPT.md",
+  "next_scope": "Documentation revision3 PB-C01/C02 only; preserve original selected mechanisms",
+  "next_gates_after_plan_review": [
+    "Phase A checkpoint disposition",
+    "D1–D7 adoption + P2/P4 Q1–Q8 answers",
+    "Authorized synthetic environment/policy values",
+    "Separate Phase B approval"
+  ],
+  "review_evidence": "evidence/notes/PHASE_B_REV2_CLOSURE_REVIEW_20261015.md",
+  "limits": [
+    "No owner sign-off/adoption",
+    "No backend/test/runner/fixture changes",
+    "No dependency installs or DB/broker/cloud/provider execution",
+    "No commit/push/deploy"
+  ]
+}

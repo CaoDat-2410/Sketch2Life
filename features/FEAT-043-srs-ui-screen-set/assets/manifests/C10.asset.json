@@ -1,0 +1,99 @@
+{
+  "asset_id": "C10",
+  "use_case": "ui-mockup",
+  "status": "REVIEW_PENDING",
+  "generated_path": "assets/generated/child-app/C10-ket-noi-lai.png",
+  "srs_ui_id": "C10",
+  "screen_kind": "main",
+  "role": "child-app",
+  "prompt": "assets/prompts/C10-revision-1.txt",
+  "source_references": [
+    {
+      "path": "features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md",
+      "sha256": "a95c89589843e3555e967c5e486f3bcaf4bbdf9446cb3bc9c49ed16f672964d9",
+      "section": "B23.2"
+    },
+    {
+      "path": "apps/ui-mobile/src/theme.ts",
+      "purpose": "existing design tokens"
+    }
+  ],
+  "generator": "built-in image_gen.imagegen",
+  "captured_at_utc": "2026-10-10T14:13:20.084234+00:00",
+  "generator_output_filename": "exec-aef4f151-a562-4624-beaf-ebaef7884ab1.png",
+  "sha256": "eff9d9b00d4b8c3868e4ed9b8dae2daef2c0357fc92ab31e1adac0db81cbdc08",
+  "bytes": 1697777,
+  "width": 1448,
+  "height": 1086,
+  "original_copied_unchanged": true,
+  "synthetic_data_only": true,
+  "qa": {
+    "reviewer": "Codex visual inspection",
+    "status": "INSPECTED",
+    "note": "Inspected recovery: server-confirmed saved checkpoint distinctly labeled versus unaccepted local draft, reconnect/help/saved-view only, no discard-all or author reassignment. Targeted wording revision fixed original device/server ambiguity; readable Vietnamese and no clipping."
+  },
+  "review": {
+    "status": "REVIEW_PENDING",
+    "reviewer": null,
+    "reviewed_at": null
+  },
+  "applied_path": null,
+  "limitations": "Generated design proposal; not implemented runtime, approved visual or device acceptance.",
+  "initial_prompt": "assets/prompts/C10.txt",
+  "input_images": [
+    {
+      "path": "assets/generated/child-app/C03-ban-ve.png",
+      "sha256": "1971eba9c6a4d77d01120e298f008cbda135cfd4f4d19bdd123d83e2211df467",
+      "role": "style reference",
+      "generation_step": 1
+    },
+    {
+      "path": "evidence/iterations/child-app/C10-superseded-initial.png",
+      "sha256": "7f814027913556f581e8da5acf3cfd818c6158854a687e437457613b2b44f6ad",
+      "role": "edit target",
+      "generation_step": 2
+    }
+  ],
+  "generation_history": [
+    {
+      "step": 1,
+      "kind": "generation",
+      "prompt": "assets/prompts/C10.txt",
+      "input_images": [
+        {
+          "path": "assets/generated/child-app/C03-ban-ve.png",
+          "sha256": "1971eba9c6a4d77d01120e298f008cbda135cfd4f4d19bdd123d83e2211df467",
+          "role": "style reference",
+          "generation_step": 1
+        }
+      ],
+      "output": "evidence/iterations/child-app/C10-superseded-initial.png",
+      "sha256": "7f814027913556f581e8da5acf3cfd818c6158854a687e437457613b2b44f6ad",
+      "generator_output_filename": "exec-7a669006-6d6e-4e03-af8f-c9fdfc87a9ef.png",
+      "selected": false,
+      "disposition": "SUPERSEDED",
+      "reason": "Saved helper now clearly describes a server-confirmed checkpoint instead of on-device state.",
+      "prompt_sha256": "e196c9181053b08552d441ecb29a84440ae1cd083d19a8c13b8163e8c111356b"
+    },
+    {
+      "step": 2,
+      "kind": "targeted built-in edit",
+      "prompt": "assets/prompts/C10-revision-1.txt",
+      "input_images": [
+        {
+          "path": "evidence/iterations/child-app/C10-superseded-initial.png",
+          "sha256": "7f814027913556f581e8da5acf3cfd818c6158854a687e437457613b2b44f6ad",
+          "role": "edit target",
+          "generation_step": 2
+        }
+      ],
+      "output": "assets/generated/child-app/C10-ket-noi-lai.png",
+      "sha256": "eff9d9b00d4b8c3868e4ed9b8dae2daef2c0357fc92ab31e1adac0db81cbdc08",
+      "generator_output_filename": "exec-aef4f151-a562-4624-beaf-ebaef7884ab1.png",
+      "selected": true,
+      "disposition": "REVIEW_PENDING",
+      "reason": "Saved helper now clearly describes a server-confirmed checkpoint instead of on-device state.",
+      "prompt_sha256": "d3e9bfe9b2c7dd5688f71273ddb7402bd01ce2369a137a59f56ff2c1935aaebf"
+    }
+  ]
+}

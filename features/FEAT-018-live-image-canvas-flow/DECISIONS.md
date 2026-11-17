@@ -1,0 +1,372 @@
+# FEAT-018 decisions
+
+- 2026-10-22 coordinator execution record under FEAT018_P2T5_BOUNDED_OFFLINE_APPROVAL_01:
+  the candidate runner reports 100/120 primary and 21/26 supplemental diagnostic executions
+  SUCCEEDED; remaining 20+5 are NOT_EXECUTED/HELD. No full acceptance is marked satisfied.
+  The final unit/manifest subset passes 49 tests; regressions pass 162 with 5 intentional skips;
+  after the test-only socketpair guard correction, focused pytest passes 56 tests and a subsequent
+  run of the full `test_live_image_demo_api.py` module passes 30 tests. HTTP counter scope is
+  test-specific: invalid-media cases assert Vision/ASR/localizer zero; the admitted-upload and
+  rejected-implicit flow asserts Vision zero, then one injected Vision fake call after explicit
+  understanding (localizer zero; ASR is not injected there). This does not establish live-provider
+  behavior. Ruff and scoped mypy pass
+  again after the guard correction. The earlier missing-python-multipart collection error and r3
+  socketpair-guard failure remain historical events; the project-declared range is
+  `python-multipart>=0.0.20,<1`, and the verified 0.0.32 wheel was installed offline in the local
+  venv without changing project dependencies. After the r4 guard correction and latest
+  documentation synchronization, architecture, skeleton and repository-security checks returned
+  VALID (security scanned 2,596 publishable files; not Security owner approval). The repository-
+  harness check remains HARNESS_INVALID for FEAT-045/046/047 missing evidence directories; it is a
+  failure, not a pass or waiver. Overall verification remains INCOMPLETE.
+  This is an observed candidate record, not a new Person 2 disposition, Task 5 acceptance,
+  live grant, final handoff review or FU assignment. See the P2-T5 offline evidence note.
+
+- 2026-10-22 Person 2 issued FEAT018_P2T5_BOUNDED_OFFLINE_APPROVAL_01, adopting source plan
+  rev 0.9 (SHA-256 6E9550A045D9FC382F83FEACC0ACAF9B55A4423A5DE99C30E437C48071A1951E),
+  baseline b11bc7b870f615e493afb1bc723b888befdb58c9 and the exact C0/D5 13-file scope,
+  contract locks, 120-slot matrix, commands and write effects. Person 2 explicitly confirms APP
+  authority and permits only the current coordinator's one canonical append; that append is
+  recorded and its original prefix preserved. APP hold continues outside it. D1-D4 authorize
+  independent unaffected offline implementation, current-mapping characterization only, separate
+  execution/requirement status, and separate quality-reference/HTTP evidence. Plan rev 1.0 and
+  offline status are APPROVED before implementation. No adapter/runtime/schema/dependency changes,
+  provider/model/Modal calls, Git publication or Task 5 closure. OSError proof, unresolved semantics
+  and live gates remain HELD; Task 5 and FU-01..FU-10 remain OPEN/unassigned; Security PENDING.
+
+- 2026-10-21 Person 2 directly confirmed closure of FEAT-018 P2-T4 as a diagnostic deliverable
+  at handoff commit `8ed2e8bbc7509eb236691bb8196eecb1e4f7e14f`. Person 2 accepts the four closure
+  gates: `P2T4-FU-01` records the missing provenance contract-name as OPEN; artifacts are consistent;
+  final gates PASS on that commit; and the independent final review is PASS with no findings. This
+  closes only the approved diagnostic deliverable. The 60 primary and 5 supplemental `UNRESOLVED`
+  results remain product gaps; `P2T4-FU-01` through `P2T4-FU-10` remain OPEN and unassigned, with no
+  automatic assignment to Task 5. No runtime, schema, catalog, contract, or provider authority is
+  granted. APP hold remains IN FORCE and Security remains PENDING. This direct owner decision is
+  recorded here; `approvals/TASK_APPROVAL.md` is not changed while APP hold remains active.
+
+- 2026-10-21 coordinator record (not a new Person 2 product decision): the handoff was committed
+  and pushed as `c54b5a5a4a0dfe8f5c494cd47cd9f432e115f61b` (parent
+  `4310fcbfafa48a14e5fce31f38a2089e24079e52`). The coordinator's post-commit chat record reports
+  all seven P2-T4 gates passing on that exact commit. A fresh-session Claude review attachment
+  reports `PASS WITH NOTES`, independently reruns the seven gates in Linux, and identifies three
+  Low notes. Person 2 accepted session-level independence in the current conversation; the review's
+  same-Claude-model-family caveat remains disclosed. The evidence note labels the prior Ruff
+  candidate table historical, records Person 2's acceptance of the pre-commit chronology, and
+  defers updating `approvals/TASK_APPROVAL.md` while APP hold is IN FORCE. This record does not close
+  Task 4.
+
+- 2026-10-21 Person 2 issued `W2_FEAT018_P2_T4_GATE3_HARNESS_DISPOSITION_01` in the
+  coordinator conversation: `HARNESS_INVALID` remains the actual repository-wide result, not a
+  pass or waiver, and is outside the seven P2-T4-specific gates. Gate 3 requires valid passing
+  results bound to the final handoff commit. This is relayed, not recorded in TASK_APPROVAL.md,
+  because the APP write hold remains in force; FEAT-045/046/047 are not changed.
+
+- 2026-10-21 Person 2 issued the complete
+  `W2_FEAT018_P2_T4_CONTINUATION_AND_FINAL_GATE_SCOPE_01` in the coordinator conversation.
+  It permits one new candidate Ruff invocation with `--no-cache --no-fix --no-fix-only`, candidate
+  synchronization in the seven named documentation/evidence files, and a bounded post-edit validator
+  mini-cycle. The C/D amendment permits candidate synchronization before the final commit and accepts
+  `W2_FEAT018_P2_T4_POST_COMMIT_GATE_RECORD_01` in chat, bound to the full commit SHA, as the final
+  seven-gate evidence. One final gate cycle is conditional on a separate local-commit authorization;
+  this scope grants no stage, commit or push. This is relayed, not recorded in TASK_APPROVAL.md,
+  while APP hold is in force. Task 4 remains OPEN, Security PENDING, and product follow-ups unchanged.
+
+- 2026-10-21 coordinator record (not a Person 2 decision): the newly authorized candidate Ruff
+  invocation completed with exit 0 and `All checks passed!`. The earlier cache-denied invocation
+  remains exit 1 with no lint verdict. HEAD was `4310fcbfafa48a14e5fce31f38a2089e24079e52`;
+  tested source/config had no Git diff, the two test-file tuples matched the note, and CPython
+  3.12.10, pytest 8.4.2, Pillow 12.3.0, Ruff 0.16.4 and mypy 1.20.2 matched the earlier checks.
+  The other six valid candidate results are reused under the issued scope. Candidate evidence does
+  not establish Gate 3 MET; the post-commit record and independent final review remain outstanding.
+
+- 2026-10-21 owner amendment `W2_FEAT018_P2_T4_DIAGNOSTIC_ACCEPTANCE_REBASE_01`: P2-T4 may
+  accept the approved diagnostic deliverable (120 primary, 43 supplemental, B1/B2/B3 within scope,
+  metrics report and evidence) without treating the 60 primary or 5 supplemental `UNRESOLVED`
+  results as satisfied product behavior. Track ambiguity/provenance, source conflict, adult
+  assertion/confidence, narration mismatch, version-transition, V2 matcher and candidate-envelope
+  gaps as separate unassigned follow-ups; do not assign them to Task 5 without disposition. No
+  runtime/schema/catalog/provider/contract work is authorized. Task 4 remains open until the four
+  amendment closure gates and independent final review pass; issuance alone does not close it.
+
+- 2026-10-21 coordinator record (not a Person 2 decision): row-basis counts and local validation for
+  the P2-T4 handoff candidate. All 60 primary `UNRESOLVED` rows carry static-review hypotheses, and
+  40 also carry runtime boundary findings (20 conflict and 20 adult-correction rows); the 20 ambiguous
+  rows have only the static hypothesis. Of the five supplemental `UNRESOLVED` rows, two carry static
+  hypotheses and four carry runtime findings (six finding entries in total); one row carries both.
+  Do not describe every unresolved row as a separately measured runtime defect, and do not read these
+  counts as satisfied product behavior. Local validation on the uncommitted candidate: focused pytest
+  368 passed, Ruff and scoped mypy passed after typing-only fixes in the approved test files, and
+  architecture/skeleton/security checks passed. The repository harness is `HARNESS_INVALID` due to
+  missing evidence paths in FEAT-045/046/047. These results are bound to the working tree, not to a
+  final commit.
+
+- 2026-10-21 Person 2 disposition of the independent working-tree review (relayed in the coordinator
+  conversation; not recorded in `approvals/TASK_APPROVAL.md` because the APP write hold is in force):
+  M-1 accepted (supplemental counts stated as four rows with runtime findings, six finding entries,
+  one row with both a static hypothesis and a runtime finding; `UNRESOLVED` results unchanged and
+  not read as satisfied behavior). M-2 accepted (coordinator validation text kept separate from the
+  owner amendment above). L-1 authorized: the typing-only edits stay in the two approved P2-T4 test
+  files, limited to call forms and types needed for mypy, with no change to test behavior, fixtures,
+  runtime, schema or manifest. `HARNESS_INVALID` stays the recorded result and is not called a pass;
+  the missing paths belong to FEAT-045/046/047, are outside P2-T4, are a separate repository-wide
+  issue, and those features are not changed under Task 4. `P2T4-FU-01` remains an OPEN follow-up and
+  the contract-name gap is not resolved. Task 4 stays OPEN until artifacts are synchronized, validation
+  evidence is bound to the final commit, valid gates are confirmed, and an independent final review
+  covers the handoff commit. Security remains PENDING.
+
+- 2026-10-20 owner approval: implement the P2-T4 Revision 3 diagnostic slice at source commit
+  `b39a9f2f56509b0543184876eb538fc9faf0e1aa`. Use B1/B2/B3, with B3 as matcher observation only;
+  keep 120 primary cases and supplemental cases separately counted; report labels remain diagnostics
+  and do not introduce a contract. The approval does not authorize runtime/schema/catalog changes or
+  Lightning/model calls. The later Modal Notebook run completed B1/B2/B3 and the supplemental
+  execution rows. The 2026-10-21 amendment supersedes only the original unresolved-requirements
+  closure clause for diagnostic-deliverable acceptance; the unresolved product gaps remain open.
+  Task 4 still awaits valid final gates and independent final review. The measured result is
+  recorded in `evidence/notes/P2_T4_MAPPING_DIAGNOSTICS_20261020.md`.
+
+- 2026-09-09 research record: user requested one P2 research round and proposals;
+  any FEAT-003 change or connection requires user review first. Proposed offline
+  slices and contract decisions are recorded in `plan/P2_OFFLINE_FIRST_PLAN.md`
+  and local working research notes. Technical recommendations
+  remain pending owner review; no implementation or contract migration is approved.
+
+- 2026-09-09 publication decision: at the user's request, the P2 engine-handoff
+  review and round-1 research working notes remain local and are ignored by Git.
+  Only selected completed P2 records are published after owner review and indexed
+  as canonical evidence, following the FEAT-003 publication distinction.
+
+- 2026-09-07: Use one shared contract registry and JSON Schema compatibility gate before any person implements. Individual plans may not introduce parallel field names or versions.
+- 2026-09-07: Freeze `VisionUnderstandingResultV1` for FEAT-018; the fixture reference to V2 requires a separately approved migration.
+- 2026-09-07: Correct the canonical ACT-0004 mapping before integration: primary `OBJ_OBJECT_PERMANENCE`, secondary `OBJ_RECEPTIVE_LANGUAGE`.
+- 2026-09-07: Full device pilot covers all 20 golden activities; all 100 MVP activities receive offline catalog/rule/provenance coverage before broader device rollout.
+- 2026-09-07: User-provided non-sensitive image is a runtime source artifact, never committed; evidence stores hash/metadata only.
+- 2026-09-07: PixiJS 8 + GSAP 3 remains the renderer baseline inside a controlled WebView/bridge; source artwork is preserved and derived visuals cannot silently replace it.
+
+- 2026-09-09: Approve FEAT-018 revision 2 for the P1 implementation slice only; keep P2/P3/P4/shared integration and live/production execution pending separate approval.
+
+- 2026-09-09: Implement P1 as a fixture-only compiler behind typed contracts. Catalog loading stays in infrastructure, selection/fit/Gate B stays in the application/domain boundary, and no downstream provider, renderer, cache or mobile code may select a different identity. The butterfly fold-and-print case is a test fixture only and does not change the 100/20 catalog counts or production eligibility.
+
+- 2026-09-10 publication decision: publish the completed P2 D1 image admission and decoding
+  specification (revision 2) as a selected canonical record,
+  `evidence/P2_IMAGE_ADMISSION_SPEC_20260910.md` (`EV-018-P2-D1-SPEC-01`), built on the
+  previously accepted isolated design. Publication records the specification as complete and
+  implementation-ready; it does not start, authorize, or approve D2 implementation, and does
+  not amend `approvals/TASK_APPROVAL.md`. Dependency decision U1 (`av==18.1.0` in a new
+  optional `image-admission` extra) remains an explicit open owner decision. The source
+  revision-2 working note stays local; only this canonical record is published.
+
+- 2026-09-10 completed-output decision: accept the isolated P2-T1 D2 image-admission
+  implementation after review and publish `evidence/notes/P2_D2_IMPLEMENTATION_20260910.md`
+  (`EV-018-P2-D2-IMPL-01`) through the feature evidence index. The accepted slice includes
+  bounded single-snapshot acquisition, internal typed admission policy, the injected PyAV
+  decoder, the exact optional dependency, deterministic fixtures and regression coverage.
+  This decision authorizes recording and committing the reviewed D2 output only. It does not
+  approve D3 measurement, mark P2-T1 complete, connect FEAT-003 producers, or authorize
+  Qwen/ASR, mobile, Gate A, shared integration, public-schema migration, push or PR creation.
+
+- 2026-09-11: Use `origin/feature/feat018-p2-image-validation` as the canonical P2 branch for FEAT-018 offline integration. Merge commit `627260c` connects the reviewed P2-T1 D2 image-admission slice to `codex/feat-018-contract-plan`; the other P2 branches remain research-only references. This does not authorize D3 measurement, FEAT-003 producer migration, live provider execution, mobile/public-schema integration, P3/P4 implementation, or production deployment.
+
+- 2026-09-11: Integrate the approved P3 renderer and latest approved P4 media branches into the FEAT-018 integration branch. Keep P3 source-art preservation and renderer fallback, and keep P4 objective/activity/template identity propagation through cache and fallback. Root replay entrypoint `scripts/replay_learning_media.py` is part of the P4 integration so the feature replay test runs from a clean checkout. No live provider, Android/mobile, production asset or production deployment scope is opened.
+
+
+- 2026-09-11: Implement the approved P1 strict continuity polish as an application/compiler-only policy revision. `P1_STRICT_CONTINUITY_V1` requires exact anchor label/tag and semantic-kind compatibility, objective membership, consistent bridge/media/activity identities and a matching `ExperienceSpecV1.spec_sha256` before Gate B approval. Existing contract versions and P2/P3/P4 consumers remain unchanged; unrelated, ambiguous or tampered fixture flows block closed.
+
+
+- 2026-09-11: Implement the approved P1 catalog and Gate integrity polish without changing contracts or downstream code. Exclude `OBJ_*` and broad area taxonomy labels from anchor metadata; treat optional selected activity/objective refs as exact constraints when present; use one Gate B approval path; and fail closed on duplicate template IDs, missing objective titles, spec ID drift and spec hash drift.
+
+- 2026-09-11: Add an offline provider-shaped compatibility suite at the P1 boundary. Keep Qwen3-VL-8B-Instruct and Whisper large-v3-turbo identifiers in provenance only; validate provider outputs through the existing strict adapters, require adult confirmation before P1, and preserve source/hash/contract identity. Live provider execution remains separately gated.
+
+- 2026-09-10 D3-R2 approval decision: approve the isolated P2-T1 offline performance/native-memory
+  evaluation plan and D3-U1 through D3-U6. The 5-second target binds only to the committed D2
+  `admit()` interval. The 256-MiB target binds only to the conservative `[L,U]` working-set bracket;
+  a crossing bracket is `INCONCLUSIVE`, never a pass. Cohort A implementation/execution may begin.
+  Cohort B execution remains gated on owner visual review of the actual eight non-sensitive images,
+  and completed sanitized evidence requires owner review before indexing or closing D3/P2-T1. No
+  D2, FEAT-003, provider, mobile, Gate A, public-contract or production-isolation scope is approved.
+
+- 2026-09-10 D3 implementation-state record: the approved D3-R2 harness and deterministic Cohort A
+  manifest are implemented and preflight-verified. The 320-sample run is explicitly non-reporting
+  because it used an uncommitted working tree; it cannot be indexed, treated as canonical target
+  evidence, or used to close D3/P2-T1. Formal execution must identify the exact reviewed commit.
+  Cohort B and completed-output publication gates are unchanged.
+
+- 2026-09-11 D3 double-review record: two explicit review passes were completed against the
+  implementation and tests. The first pass covered protocol/contract correctness and scope
+  isolation; the second covered adversarial inputs, stdin/output limits, cleanup, privacy,
+  Win32-memory validation and aggregation/statistics. Verified fixes are limited to the D3 harness:
+  asynchronous bounded stdin writing, rejection of untracked worktrees for formal runs, timing
+  status recomputation during aggregation, strict environment-envelope validation, and a narrow
+  exception for missing digests only on byte-budget rejection. Regression tests cover each fix.
+  D2 behavior, FEAT-003 and all downstream scopes remain unchanged; formal exact-commit execution,
+  owner review and evidence indexing remain pending.
+
+- 2026-09-11 owner approval and closure decision: approve the Formal Cohort A execution at commit
+  `c77230ca1593d5cd31098b5e58f3ff2a13d18a63`, including the sanitized metrics artifact and the
+  independent verification report. Index both reports and the JSON metrics under FEAT-018 evidence
+  and close D3/P2-T1 for the synthetic Cohort A scope only. Cohort B remains unapproved and must
+  retain its visual-source gate. No D2, FEAT-003, provider, mobile, public-contract or shared
+  integration scope is thereby authorized.
+
+- 2026-09-12 owner approval and closure decision: approve the Formal Cohort B execution and its
+  independent verification with verdict `PASS WITH FINDINGS`. The 24-sample result (eight images,
+  three fresh-process repeats each) is accepted with zero data discrepancies. Index the sanitized
+  Cohort B report, metrics and independent verification, update the feature context and plan, and
+  close D3/P2-T1 for the offline Cohort A+B scope. Carry the three verification findings as
+  follow-up work; no Cohort B rerun is required. Provider, mobile, Gate A, public-contract and
+  shared-integration scopes remain separately gated.
+
+- 2026-09-12 P2-T2 contract decision: supersede the 2026-09-07 FEAT-018 V1 freeze for this task.
+  FEAT-018 P2-T2 consumes FEAT-003's typed `VisionUnderstandingResultV2` through the approved
+  `vision_v2.py`/`qwen_vision.py` boundary; ownership remains FEAT-003 and no FEAT-003 change is
+  authorized. FEAT-017's flat V1 and remote HTTPS `LightningVisionAdapter` are not used. FEAT-018
+  owns a separate `RawUnderstandingResultV1` with typed observation groups, `0..1` confidence,
+  required source hash, typed failures, preserved ambiguity/conflicts and mandatory Gate A. The
+  exact bounded file list is approved for offline implementation only. Live Lightning/GPU/model
+  execution, provider/network calls and downstream integration require separate approval.
+
+- 2026-09-12 P2-T2 offline closure decision: approve the implementation and ASR correlation fix at
+  commit `11468d3a5a327697a491f09251a3210987337da0`. The mapper rejects a supplied ASR result whose
+  correlation ID differs from the vision result before constructing Raw output; matching, absent and
+  typed-failure ASR cases remain supported. Focused and related tests, lint/type checks, repository
+  validators and diff checks passed. This closes only the offline P2-T2 contract/mapping slice;
+  live Lightning/GPU/model execution and all downstream/provider/mobile/shared scopes remain gated.
+
+- 2026-09-18 owner approval: proceed with FEAT-018 Shared Integration Addendum Rev 2 for the
+  non-video Android Emulator demo using a non-child synthetic/test image, backend-only Lightning
+  boundary, PixiJS original-art renderer, reviewed-asset allowlist, P4 fallback, handoff, gallery and
+  feedback. Optional narration may only be fictional adult voice. No video, real child media, mobile
+  provider credentials or durable persistence in this demo. Live dynamic Lightning remains blocked
+  until an ADR-0005 addendum and quota/cost gate are approved.
+- 2026-09-18 future auth/save constraint: implement current session/job/artifact behavior behind
+  replaceable application ports and keep `actor_ref` separate from future `owner_ref`. Later account
+  access uses the existing provider-neutral verified-principal boundary and explicit save/ownership
+  contracts; Firebase is Authentication-only and product data remains backend-owned PostgreSQL/S3-
+  compatible storage. Auth, durable save and real child-media persistence are not approved for this
+  demo.
+- 2026-09-18 image-only scope correction: remove the optional adult-fictional narration/ASR lane from
+  the Android demo. No microphone permission, audio capture/upload, or ASR request is in scope;
+  `RawUnderstandingResultV1.narration_status` remains `NOT_SUPPLIED`. Refresh the approved plan hash
+  and preserve the Lightning ADR/cost gate and per-sprite visual/rights gate.
+- 2026-09-18 live-test budget clarification: the owner reports approximately 25 Lightning credits
+  available and enough for testing; the FEAT-018 dev-only ceiling is 25 existing credits total with
+  no purchase/top-up. The owner will manually initiate live requests; Codex must not call Lightning.
+  Require a user-triggered request, no automatic inference retry, admitted synthetic/non-child image
+  only, V2 result validation and Gate A. This does not change Runpod production policy or permit
+  audio, video or real-child data.
+
+- 2026-09-21 UI correction decision: the approved mobile integration uses BaoVC's original React
+  Native presentation shell (`BaoApp.tsx`, artwork components and screen flow) as the only user
+  journey. The former standalone `DemoWorkflowScreen` is not mounted. The shared `AppContext` now
+  owns the real session/version/idempotency client calls so the BaoVC screens drive admission,
+  explicit Lightning understanding, Gate A, P1/ExperienceSpec, Gate B, Pixi handoff and feedback.
+  The image-only scope is visible in the UI: no microphone/ASR/video call is presented. The Pixi
+  WebView receives only the backend launch contract and reads the preserved original art through
+  its short-lived capability. Auth/save remains an adapter seam, not a durable implementation.
+
+- 2026-09-21 narration workflow correction: retain image as a hard requirement and add an explicit
+  optional narration union to the reachable BaoVC Capture screen. `TEXT` is used directly with
+  `TEXT_TYPED` provenance and skips ASR; `AUDIO` is uploaded to the process-local backend session,
+  then transcribed once by faster-whisper on Lightning only after the explicit analysis command.
+  ASR failure blocks before Vision. The implementation adds `/media/audio` and the Lightning `/v1/asr`
+  route, preserves future auth/save seams, keeps mobile credential-free, and excludes video.
+
+- 2026-09-22 owner approval and implementation decision: wire the existing FEAT-027 bounded Qwen
+  payload normalizer and FEAT-003 closed mapping diagnostics into the FEAT-018 Lightning `/v2/vision`
+  live route. Permit one internal schema-repair generation only after the first mapping/schema
+  failure, cap the request at two provider generations, keep strict/offline adapter behavior
+  unchanged, and fail closed if the repair still violates the typed V2 contract. No public schema
+  widening, mobile change, video lane, auth/save implementation or Codex-triggered provider call is
+  authorized. See `plan/LIVE_VISION_SCHEMA_REMEDIATION_PLAN.md` and the feature-local evidence note.
+
+- 2026-09-22 owner approval and implementation decision: keep `P1ContextOptionsV1` and FEAT-003
+  unchanged while wiring the existing reviewed semantic catalog through `SemanticCatalogPort` for
+  the BaoVC T2 flow. Rank grounded claims before Gate A, preserve raw/provenance data, compose a
+  bounded Vietnamese topic, and resolve exact/alias/concept-family/age-baseline matches through the
+  backend. Expanded fallback must be labeled and must still pass age, safety, material, readiness,
+  supervision and Gate-B identity rules. Remove hardcoded butterfly/mock presentation from the
+  backend-result path. No video, durable auth/save, mobile credentials or Codex-triggered Lightning
+  request is authorized. Evidence: `evidence/notes/TOPIC_AND_T2_ACTIVITY_MATCHING_IMPLEMENTATION_20260922.md`.
+
+- 2026-09-23 owner approval: implement the Pixi-only `Personalized Drawing Exploration` slice on
+  `codex/feat-018-pixi-exploration`, covering subject-only Vietnamese labels, learning-thread
+  exploration planning, bounded localization/cut-outs, tap-to-discover, 2.5D Pixi rendering,
+  mobile orientation/UX, tests and evidence. Whiteboard MP4 generation, TTS, video worker/encoder,
+  playback and READY/retry semantics are assigned to another task and are excluded here. Preserve
+  the existing video placeholder/handoff seam, Gate A/B and ExperienceSpec identity; do not change
+  FEAT-003, auth/persistence, mobile credentials, live provider calls or FEAT-026.
+
+- 2026-09-23 implementation decision: keep Qwen semantic output and geometry localization as
+  separate contracts. `SceneExplorationPlanV1` may use only confirmed short subject labels and
+  typed relations; `SceneFocusPlanV1` may expose a CROP layer only with a bounded normalized region,
+  extraction version and confidence. Missing/invalid localization is a valid `FALLBACK_REQUIRED`
+  state that renders the preserved whole drawing. This prevents visually plausible but ungrounded
+  subject placement from being presented as truth.
+- 2026-09-23 implementation decision: the source capability remains the only runtime image input.
+  Source-derived crops reuse that capability and are not separate generated assets. Pixi discovery
+  events are bounded and Vietnamese; the mobile shell also exposes at most three subject chips so
+  discovery remains usable when geometry is unavailable. The future video implementation consumes
+  the unchanged placeholder/handoff seam.
+- 2026-09-23 implementation decision: Pixi entry is now an immersive landscape intro followed by
+  direct image interaction. `INTRO_COMPLETED` and `DISCOVERY_READY` stay separate so a child cannot
+  tap a hotspot while the reveal/localization phase is still running. The control row is overlay
+  chrome with a three-second idle hide; empty-canvas taps reveal it again. Native orientation and
+  navigation-bar state are restored on every exit path.
+- 2026-09-23 implementation decision: add `SceneLocalizationPort` as the application boundary for
+  future local/Lightning geometry adapters. The port may return normalized regions only for the
+  already-confirmed candidate refs; the existing `build_scene_focus_plan` remains the single
+  validator. No localizer result means `FALLBACK_REQUIRED`, preserving the original drawing and
+  preventing guessed hitboxes.
+- 2026-09-24 owner decision: replace the normal three-card topic-direction review with a
+  subject-first picker. The user taps a localized subject directly on the original artwork; the
+  backend receives `SELECT_SUBJECT`, re-checks image/narration evidence when the selection changes,
+  and returns one grounded Vietnamese sentence before Gate A. Localization is an explicit backend-
+  only Qwen/Lightning call; if it has no valid mask/region, use the approved spotlight/outline
+  fallback and never fabricate a hitbox. The selected region and claim identity are reused by Pixi.
+- 2026-09-24 implementation decision: keep MIME detection at the backend Lightning adapter
+  boundary. `SceneLocalizationRequestV1.source_image.content_type` is derived from the admitted
+  image signature and is never supplied by mobile or inferred from an untrusted filename. Unknown
+  signatures and hash mismatches fail closed before the provider call.
+- 2026-09-24 implementation decision: localization output may be normalized only for two bounded
+  provider formatting variants: a complete fenced JSON object and the previously documented
+  nested `region` shape. Both are converted into the same strict normalized-region model; arbitrary
+  prose, unknown fields, invalid geometry and unknown target refs remain failures.
+- 2026-09-24 implementation decision: provider confidence is contractually decimal `0..1`. For
+  compatibility with common model output, numeric percentages from `1..100` are converted to the
+  decimal form at the Lightning boundary; target labels may resolve to ids only on a unique exact
+  normalized match. Ambiguous labels and unknown ids remain fail-closed.
+- 2026-09-24 implementation decision: localization coordinates may arrive as bounded percentages
+  and are converted to normalized source coordinates. A box crossing the source edge is clipped to
+  that edge; negative, non-finite, zero-size or unsupported-unit geometry remains fail-closed.
+- 2026-09-24 implementation decision: localization model/runtime failures are represented as an
+  empty `SceneLocalizationResultV1` fallback with HTTP 200. Input/authentication/integrity errors
+  remain HTTP failures; provider failure must not break the child-facing workflow.
+- 2026-09-25 owner rollback decision: remove direct image tapping and localization from the normal
+  initial workflow. `/v2/vision` produces up to three grounded topic directions; the first is
+  selected deterministically and the adult may edit the topic before Gate A. The default app
+  composition does not inject a scene localizer, so `/v2/localize` cannot add a second AI request
+  or block the topic screen. The localization adapter and endpoint remain isolated for a future
+  explicitly approved Pixi-only integration.
+- 2026-09-28 Pixi bridge recovery: distinguish native launch/control commands from renderer events
+  with separate bounded payload limits (128 KiB and 4 KiB respectively), and mark the renderer
+  ready only on a matching renderer response. Explicit manual retry rotates the page-shell URL and
+  refreshes the existing renderer launch/capabilities once; bootstrap does not trigger retries.
+  Keep capability/hash validation and deterministic package behavior unchanged, and never invoke
+  Qwen/SAM/Lightning from this retry path. Fresh-session Android playback remains an operator-run
+  acceptance check because the inspected in-memory session had exceeded its idle TTL.
+
+- 2026-09-29 bird-topic correction proposal (superseded by the 2026-09-30 approved combined plan):
+  normalize reviewed exact aliases and rank whole-subject claims while preserving provenance; the
+  approved implementation outcome is documented in the linked evidence note below.
+- 2026-09-29 integrated child-profile and rig-quality plan: one owner approval covers profile UI/recommender and SAM 2.1/renderer quality; independent test gates remain. Current edits are session-only, with durable backend/storage as a future target. Include interests/dislikes, adult-confirmed progression, readiness/materials and optional explicit support; expose editing in Parent/Guide and only at initial child selection in the main flow. Awaiting approval of the exact plan hash. See `plan/INTEGRATED_CHILD_PROFILE_AND_RIG_QUALITY_PLAN_20260929.md`.
+- 2026-09-30 approved subject/Pixi hardening: never turn an unknown model label into a generic label
+  that is then filtered; preserve it for adult correction. An adult-supplied subject is a distinct
+  provenance source, not a fabricated AI claim. Re-query remains explicitly adult-triggered and
+  shares the one-per-image budget. Pixi preparation/playback gets stage-specific finite watchdogs,
+  terminal typed failure reporting for both renderer contracts, and idempotent player cleanup;
+  neither automatic retry nor implicit V1/whole-image fallback is permitted. See
+  `plan/SUBJECT_RECALL_AND_PIXI_MAIN_FLOW_HARDENING_PLAN_20260930.md` and the implementation record.
+- 2026-09-30 Pixi cutout follow-up: successful source/package/mask HTTP reads do not prove that local
+  background reconstruction can seed every mask component. Under the already-approved cutout
+  quality scope, use credible same-image unmasked paper as a seed only when the nearby search has
+  none; preserve the verified mask and immutable source, and retain typed failure when no credible
+  paper exists. See FEAT-030 `E-030-FIX-014`; this does not add renderer V1 recovery.
+- 2026-10-06: Owner narrowed supported child age to under 9 years / 0–107 completed months. The mobile selector and API/context boundaries reject 108+; existing 9–12 catalog records remain unchanged and outside supported sessions. Cross-feature plan/approval: FEAT-037 revision 1.

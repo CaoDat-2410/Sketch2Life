@@ -1,0 +1,58 @@
+{
+  "evidence_id": "P1_ENGINE_VALIDATION_20260909",
+  "feature": "FEAT-018-live-image-canvas-flow",
+  "scope": "P1 implementation slice only",
+  "executed_at": "2026-09-09",
+  "catalog": {
+    "mvp_activity_count": 100,
+    "learning_objective_count": 20,
+    "golden_activity_count": 20,
+    "golden_material_option_count": 40,
+    "golden_fixture_count": 74,
+    "console_fixture_parity": "74/74",
+    "act_0004_primary": {"id": "OBJ_OBJECT_PERMANENCE", "version": 1},
+    "act_0004_secondary": [{"id": "OBJ_RECEPTIVE_LANGUAGE", "version": 1}],
+    "review_status": "PROVISIONAL_OWNER_REVIEWED",
+    "production_eligible": false,
+    "sha256": {
+      "mvp_activities": "c88fa6027fe8df177eae3e49bfcd08317b98920abd7f21f09f2523afb0dfb85c",
+      "mvp_objectives": "8b7608a0005104d7c921c22a52dc8b61e8cf4faf9508b94f8b755474c289722c",
+      "golden_activities": "3828ee00c9250a9b5f0efa209a03e18f7a74aa38d9e578eb90f35418a69b009a",
+      "golden_materials": "0ff95e47d33c0cd9589c172832a59f0aed6679238b50a40e7a3c2ca6cfd00164"
+    }
+  },
+  "engine_contracts": [
+    "P1ContextV1",
+    "SemanticAnchorSetV1",
+    "LearningFocusV1",
+    "ActivityTemplateV1",
+    "ExperienceSpecV1",
+    "ActivityFitEvaluationV1",
+    "BridgeSentenceV1",
+    "P1FilterResultV1",
+    "IntegrationGateDecisionV1",
+    "ActivityHandoffV1"
+  ],
+  "scenarios": [
+    {"id": "butterfly_fold_print", "result": "PASS", "gate_b": "APPROVED"},
+    {"id": "unrelated_colour_sorting", "result": "REJECT", "gate_b": "BLOCKED"},
+    {"id": "missing_adult_context", "result": "MISSING_CONTEXT", "gate_b": "BLOCKED"},
+    {"id": "stale_template", "result": "STALE_TEMPLATE", "gate_b": "BLOCKED"},
+    {"id": "contract_extra_field", "result": "REJECTED", "gate_b": "NOT_REACHED"},
+    {"id": "backend_regression_suite", "result": "PASS_WITH_5_SKIPS", "gate_b": "NOT_APPLICABLE"}
+  ],
+  "commands": [
+    "python tools/validate_montessori_domain.py",
+    "python tools/validate_montessori_golden.py",
+    "python tools/validate_montessori_console.py",
+    "backend/.venv/Scripts/python.exe -m pytest backend/tests/unit/test_p1_experience.py -q",
+    "backend/.venv/Scripts/python.exe -m pytest backend -q"
+  ],
+  "security": {
+    "raw_media_included": false,
+    "real_child_data_included": false,
+    "provider_credentials_included": false,
+    "live_provider_called": false,
+    "production_api_called": false
+  }
+}

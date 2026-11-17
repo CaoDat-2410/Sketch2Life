@@ -1,0 +1,5 @@
+Edit only the following on this exact partial-deletion Admin screenshot; keep all remaining layout, typography, sidebar, table, status, rows and buttons unchanged.
+1 Replace the small green badge subtitle "Cơ quan có thẩm quyền" with "Quyền yêu cầu"; keep its main "Đã xác minh". It means requester authority has been verified, not a government agency.
+2 In the right amber "Cần xem xét ghi công" note, replace the body with this exact concise Vietnamese: "Xử lý ghi công theo chính sách và bảo vệ đóng góp của các bạn. Không suy đoán bằng AI." Do not claim that attribution is permanently exempt from deletion.
+3 The existing bottom "Thử lại bước lỗi" button must look disabled (pale gray with gray label) because this mockup lists pending/exception rows, no failed row.
+Keep "Hoàn tất một phần" and the prominent note "Không đồng nghĩa đã xóa toàn bộ bản sao." Keep no raw child artwork/evidence, no extra actions. All text correctly accented Vietnamese. One edge-to-edge screen. Input image is the edit target.

@@ -1,0 +1,31 @@
+BE full Bruno collection validation transcript (sanitized)
+Date: 2026-11-03
+
+Parser/list validation
+----------------------
+Bruno CLI: 4.3.0 (installed from local npm cache with --offline; no network)
+Command: bru docs generate --all-envs --no-git-link --output <temp HTML>
+Exit: 0
+Generated HTML size: 130861 bytes
+Request names present in generated documentation: 136/136
+Parser operation sent no HTTP requests.
+
+Loopback smoke
+--------------
+Collection requests:
+- GET /health
+- POST /v1/sessions (synthetic process-local session)
+- GET /v1/sessions/{session_id}
+Environment overrides: baseUrl=http://127.0.0.1:18080; synthetic UUIDv4, request ID, idempotency key, demo_actor_ref=demo:local
+API configuration: host=127.0.0.1; StoryRun-lite DB-backed routes disabled; AI provider disabled; database URLs unset.
+
+Observed Bruno CLI results:
+- GET /health: 200 OK, 10 ms
+- POST /v1/sessions: 201 Created, 112 ms
+- GET /v1/sessions/{session_id}: 200 OK, 2 ms
+Summary: 3 requests, 3 passed, 0 failed, 0 tests, 0 assertions; duration 157 ms.
+
+The POST created only an in-memory synthetic record. The temporary API process was stopped after the requests; port 18080 had no listener afterward. No database, Modal, GPU, provider, or external API was called.
+
+Full BE coverage validator: 136 mounted method/path operations -> 136 requests; 11 unmounted candidates excluded; 122 paths.
+Ruff check and format, harness, repository security, architecture, and git diff --check: PASS.

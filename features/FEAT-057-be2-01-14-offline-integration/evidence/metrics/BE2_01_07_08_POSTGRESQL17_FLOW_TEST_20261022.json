@@ -1,0 +1,74 @@
+{
+  "date": "2026-10-22",
+  "result": "PASS",
+  "scope": {
+    "path": "features/FEAT-057-be2-01-14-offline-integration/plan/BE2_01_07_08_PERSISTED_VIDEO_SEAM_SCOPE_REV2_DRAFT_20261022.md",
+    "sha256": "1C199CF6CD1E7C2F2D5981D253256278079D840197CB1B05D304E2620FD2E90D",
+    "contract": "BE2-VIDEO-LIFECYCLE/1"
+  },
+  "test": {
+    "path": "backend/tests/integration/be2_cross_lane/test_persisted_video_worker_flow.py",
+    "sha256": "C18D6FD373F83C617B0FF470DC523C99E3A5EDB5B0D2DF1A040ECC0E6F7E67ED",
+    "python": "3.12.10",
+    "command": [
+      "backend/.venv/Scripts/python.exe",
+      "-m",
+      "pytest",
+      "backend/tests/integration/be2_cross_lane/test_persisted_video_worker_flow.py",
+      "-q",
+      "-rs",
+      "--junitxml=features/FEAT-057-be2-01-14-offline-integration/evidence/raw/be2-video-lifecycle-20261022/postgres17-integration-final2.xml"
+    ],
+    "exit_code": 0,
+    "summary": {
+      "tests": 9,
+      "passed": 9,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "database": {
+    "engine": "PostgreSQL",
+    "version": "17.11",
+    "host_class": "loopback",
+    "port": 5433,
+    "credential_source": "test-only file outside repository",
+    "data": "synthetic only",
+    "isolation": "one fresh random be2_xlane_* database per test; existing approved migrations only",
+    "cleanup": "fixture dropped each database; post-run query found no leftovers"
+  },
+  "artifacts": {
+    "pytest_log": {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/raw/be2-video-lifecycle-20261022/postgres17-integration-final2.log",
+      "sha256": "0BF72D5DF337F14F3652F2076FFC7880F53331EA15CCF1A8FB68A89E60AF7E2C"
+    },
+    "junit_xml": {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/raw/be2-video-lifecycle-20261022/postgres17-integration-final2.xml",
+      "sha256": "7FFB20AF163F69C7B4C95D4723253805FD3DF92E9AADCDF4DD6288EF85399214"
+    }
+  },
+  "repository_checks": {
+    "harness": "PASS",
+    "security": "PASS",
+    "architecture": "PASS",
+    "skeleton": "PASS",
+    "git_diff_check": "PASS"
+  },
+  "acceptance_evidence": {
+    "P01_through_P07": "PASS_FOR_APPROVED_PERSISTED_FLOW_SCOPE",
+    "durable_source_fence": "OUT_OF_SCOPE / UNPROVEN",
+    "X01": "PARTIAL",
+    "X05d": "BLOCKED",
+    "X05c_CR09_02": "OPEN",
+    "BE1_handoff": "NOT_SENT / NOT_READY_FOR_BE1_INTEGRATION"
+  },
+  "changes": {
+    "approved_FEAT_057_integration_test_only": true,
+    "production_source_changed": false,
+    "schema_or_migration_changed": false,
+    "approval_or_card_status_changed": false,
+    "provider_or_external_runtime_called": false,
+    "staged_or_committed": false
+  }
+}

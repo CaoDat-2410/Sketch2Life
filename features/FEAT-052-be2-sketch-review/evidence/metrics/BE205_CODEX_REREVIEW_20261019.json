@@ -1,0 +1,270 @@
+{
+  "approval_sha256": "6ba9f310d0735e6bdfaf80dc8696308989d0ed51012d813c0b991788f2aeeb24",
+  "approved_plan_sha256": "ab29530545b94346102bd037822572e483828fa697582e74a74be334cecf0c00",
+  "artifact_hashes": {
+    "features/FEAT-052-be2-sketch-review/evidence/local/codex-rereview-20261019/access/closure_probe.json": {
+      "bytes": 685,
+      "sha256": "957a5f0a3a0346075a928d45767d5066046b2feabe5f702d2d6f05aff41abf2c"
+    },
+    "features/FEAT-052-be2-sketch-review/evidence/local/codex-rereview-20261019/access/closure_probe.py": {
+      "bytes": 1679,
+      "sha256": "645a25b0c12632bebea2119b7f9cc094ad7392b4094e578df36623e800019471"
+    },
+    "features/FEAT-052-be2-sketch-review/evidence/local/codex-rereview-20261019/access/original_probe_after.json": {
+      "bytes": 657,
+      "sha256": "0878b50a0c1ceec55d9227ef270533926abb8d476f2d6bdfaeb9d3e5b20bcf93"
+    },
+    "features/FEAT-052-be2-sketch-review/evidence/local/codex-rereview-20261019/checks/final_validator_exits.json": {
+      "bytes": 179,
+      "sha256": "916cb1a9d8cd4306d57ceefade063a5e02e950e472befc85ca4a09114d069f80"
+    },
+    "features/FEAT-052-be2-sketch-review/evidence/local/codex-rereview-20261019/checks/focused05.log": {
+      "bytes": 358,
+      "sha256": "e07107d22d670dbc865126aefa56eec5b8aaeb54afd72f2af7ff18c9e5aede9a"
+    },
+    "features/FEAT-052-be2-sketch-review/evidence/local/codex-rereview-20261019/checks/focused05.xml": {
+      "bytes": 16255,
+      "sha256": "43a73182ac79707b1144cd8f5e988c752f5cd7217f00ed5a5054b4885245861e"
+    },
+    "features/FEAT-052-be2-sketch-review/evidence/local/codex-rereview-20261019/checks/git_diff_check.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "features/FEAT-052-be2-sketch-review/evidence/local/codex-rereview-20261019/checks/mypy_project.log": {
+      "bytes": 44,
+      "sha256": "f645b10e21546f038559fbaaffb91f957d61ada15bed410cfd1fd85e15524598"
+    },
+    "features/FEAT-052-be2-sketch-review/evidence/local/codex-rereview-20261019/checks/mypy_strict.log": {
+      "bytes": 44,
+      "sha256": "f645b10e21546f038559fbaaffb91f957d61ada15bed410cfd1fd85e15524598"
+    },
+    "features/FEAT-052-be2-sketch-review/evidence/local/codex-rereview-20261019/checks/ruff.log": {
+      "bytes": 20,
+      "sha256": "a4443afdcfb6d7363adb285762515ccf7cf50473b1a05c20c1a50f6bed4d26b0"
+    },
+    "features/FEAT-052-be2-sketch-review/evidence/local/codex-rereview-20261019/checks/snapshot_audit.json": {
+      "bytes": 8897,
+      "sha256": "b56d3068f11de7b6c39c7e59240602ecb1436f3c4c139cbcc2b82bf069018b11"
+    },
+    "features/FEAT-052-be2-sketch-review/evidence/local/codex-rereview-20261019/checks/suite_exits.json": {
+      "bytes": 349,
+      "sha256": "bc9a8e11b1fab3528a45dba64c4d7bac60d0a46d59b911f24baf02f45507cbd4"
+    },
+    "features/FEAT-052-be2-sketch-review/evidence/local/codex-rereview-20261019/checks/typing_lint_exits.json": {
+      "bytes": 62,
+      "sha256": "23bb3a04c243165b5008fa1524035e59bee52400b8a502cfaef0ed95a3e1db25"
+    },
+    "features/FEAT-052-be2-sketch-review/evidence/local/codex-rereview-20261019/checks/validate_architecture.log": {
+      "bytes": 171,
+      "sha256": "67f1bc538fc90b4f70000a89126dde0aa14c688b8c3dbba796e1a89d6caef80e"
+    },
+    "features/FEAT-052-be2-sketch-review/evidence/local/codex-rereview-20261019/checks/validate_harness.log": {
+      "bytes": 127,
+      "sha256": "41ee349e5b4c9e831d4091b27b0e2a7e008b3040715724b661eedda13d0004ed"
+    },
+    "features/FEAT-052-be2-sketch-review/evidence/local/codex-rereview-20261019/checks/validate_repository_security.log": {
+      "bytes": 220,
+      "sha256": "87e6b333a26f1fa34581f29c348134ce02c68a6cb64f71caad3ce465d5c38c4e"
+    },
+    "features/FEAT-052-be2-sketch-review/evidence/local/codex-rereview-20261019/checks/validate_skeleton.log": {
+      "bytes": 206,
+      "sha256": "c3bd0318347efa17e2cb71a192287f1fe5bbb4bb1932fa8a360e6f3328a7bd1b"
+    },
+    "features/FEAT-052-be2-sketch-review/evidence/local/codex-rereview-20261019/checks/validator_exits.json": {
+      "bytes": 151,
+      "sha256": "493d04f028f443f2e585ad5922137ba5ad331f82b33762cc368f29fc100925dd"
+    },
+    "features/FEAT-052-be2-sketch-review/evidence/local/codex-rereview-20261019/checks/x01_sk1.log": {
+      "bytes": 437,
+      "sha256": "13794f1e36419b46de530f850a2c8b5f8eb1a738fc2bb64eea3e5ef9ecc0afb8"
+    },
+    "features/FEAT-052-be2-sketch-review/evidence/local/codex-rereview-20261019/checks/x01_sk1.xml": {
+      "bytes": 25993,
+      "sha256": "f346f2f90266844f9fe450213579a43422cbdf34e1953831b83cc9018456e9bc"
+    },
+    "features/FEAT-052-be2-sketch-review/evidence/local/codex-rereview-20261019/checks/x02_contract_no_pil.log": {
+      "bytes": 703,
+      "sha256": "59505503cfb26c835d75fdc8c14d9d4477218789ca01fddbc9b63e0ee2c6fed5"
+    },
+    "features/FEAT-052-be2-sketch-review/evidence/local/codex-rereview-20261019/checks/x02_contract_no_pil.xml": {
+      "bytes": 62029,
+      "sha256": "123fcbc8992f26b1334e2cf02c06077af7af69aef10f8b3e2013fd659bb6fdb7"
+    },
+    "features/FEAT-052-be2-sketch-review/evidence/local/codex-rereview-20261019/checks/x03_be2_02_03.log": {
+      "bytes": 686,
+      "sha256": "cce01a78279ce1ba0fb49ddf07f060e58c578b0fe0e64a197b083e3d4aa1e113"
+    },
+    "features/FEAT-052-be2-sketch-review/evidence/local/codex-rereview-20261019/checks/x03_be2_02_03.xml": {
+      "bytes": 68034,
+      "sha256": "c1357c1f3d4d92924fb0a6d6ecbb245a11a47fb2bb5ea51786b7d37929f1f0bf"
+    },
+    "features/FEAT-052-be2-sketch-review/evidence/local/codex-rereview-20261019/checks/x04_baseline_comparison.json": {
+      "bytes": 408,
+      "sha256": "d6b5215900c8fc78bb49299ce7013c643eedce93bae7e186c241f89c437fe1e3"
+    },
+    "features/FEAT-052-be2-sketch-review/evidence/local/codex-rereview-20261019/checks/x04_baseline_multiset_comparison.json": {
+      "bytes": 408,
+      "sha256": "d6b5215900c8fc78bb49299ce7013c643eedce93bae7e186c241f89c437fe1e3"
+    }
+  },
+  "branch": "feature/be2-05-sketch-review",
+  "card_status": "IN_PROGRESS / NOT_DONE",
+  "checks_independently_run": {
+    "focused05": {
+      "failed": 0,
+      "passed": 117,
+      "skipped": 0,
+      "tests": 117
+    },
+    "git_diff_check": 0,
+    "mypy_project": {
+      "exit": 0,
+      "source_files": 9
+    },
+    "mypy_strict": {
+      "exit": 0,
+      "source_files": 9
+    },
+    "pinned_snapshot_sha256_and_bytes": {
+      "checked": 25,
+      "matched": 25,
+      "mismatched": 0
+    },
+    "ruff": {
+      "exit": 0,
+      "files": 16,
+      "working_directory": "backend"
+    },
+    "validate_architecture": 0,
+    "validate_harness": 0,
+    "validate_repository_security": 0,
+    "validate_skeleton": 0,
+    "x01_sk1": {
+      "failed": 0,
+      "passed": 175,
+      "skipped": 0,
+      "tests": 175
+    },
+    "x02_contract_no_pillow": {
+      "failed": 0,
+      "modules_not_run": 7,
+      "passed": 400,
+      "skipped": 3,
+      "tests": 403
+    },
+    "x03_be2_02_03": {
+      "failed": 0,
+      "passed": 405,
+      "skipped": 0,
+      "tests": 405
+    }
+  },
+  "committed": false,
+  "component": "NOT_ACCEPTED_PENDING_OWNER_ACCEPTANCE",
+  "date": "2026-10-19",
+  "evidence_caveats": [
+    "Codex parsed preserved executor full-unit JUnit and baseline XML; did not rerun all tests/unit.",
+    "The 18 new regression tests were authored after fixes and were not run against overwritten pre-fix source.",
+    "Seven Pillow-importing contract modules, Studio/runtime, provider/network, SQL, HTTP routes and UI were not run."
+  ],
+  "executor_full_unit_receipt_comparison": {
+    "added_cases": 104,
+    "all_added_cases_passed": true,
+    "baseline": {
+      "counts": {
+        "error": 34,
+        "failed": 18,
+        "passed": 2340,
+        "skipped": 37
+      },
+      "tests": 2429
+    },
+    "baseline_cases_lost_or_changed": 0,
+    "fixed": {
+      "counts": {
+        "error": 34,
+        "failed": 18,
+        "passed": 2444,
+        "skipped": 37
+      },
+      "tests": 2533
+    },
+    "rerun_by_codex": false
+  },
+  "feature": "FEAT-052-be2-sketch-review",
+  "findings": {
+    "RV-CR01": "CLOSED",
+    "RV-CR02": "CLOSED",
+    "RV-CR03": "CLOSED",
+    "RV-CR04": "CLOSED",
+    "RV-CR05": "CLOSED"
+  },
+  "governance_files_updated": [
+    "features/FEAT-052-be2-sketch-review/status/STATUS.md",
+    "features/FEAT-052-be2-sketch-review/CONTEXT.md",
+    "features/FEAT-052-be2-sketch-review/DECISIONS.md",
+    "features/FEAT-052-be2-sketch-review/evidence/README.md",
+    "docs/context/PROJECT_CONTEXT.md",
+    "docs/context/SOURCE_REGISTER.md",
+    "features/FEAT-044-be2-ai-job-foundation/plan/BE2_EXECUTION_TRACKER.md"
+  ],
+  "governance_sha256": {
+    "docs/context/PROJECT_CONTEXT.md": {
+      "bytes": 34475,
+      "sha256": "9d6885122a1f5428f6ba903d9bad4d98064258b686fc40d8598f4c17c75ddfde"
+    },
+    "docs/context/SOURCE_REGISTER.md": {
+      "bytes": 29411,
+      "sha256": "f1acbabe7c375a9263271def6e68d9775ff69ace4908e13970f77feb62661543"
+    },
+    "features/FEAT-044-be2-ai-job-foundation/plan/BE2_EXECUTION_TRACKER.md": {
+      "bytes": 43114,
+      "sha256": "503bc8b8b639c3a8c16976c447a9572ddf75160467dfff30b1dad65e38015f0f"
+    },
+    "features/FEAT-052-be2-sketch-review/CONTEXT.md": {
+      "bytes": 3162,
+      "sha256": "4056ea9463bbf4fb9ede80263f9163960d9844e4aefb930c0f1d74bc8ef74989"
+    },
+    "features/FEAT-052-be2-sketch-review/DECISIONS.md": {
+      "bytes": 3955,
+      "sha256": "5016490d0cbc551773537d6d4b0297f43878851d1c02988d5938d1bf4b70741d"
+    },
+    "features/FEAT-052-be2-sketch-review/evidence/README.md": {
+      "bytes": 1639,
+      "sha256": "fd23dd517f24f4043d239c16d3ea63ef2b7459c0f9ae0d6a74c6074959b387a6"
+    },
+    "features/FEAT-052-be2-sketch-review/status/STATUS.md": {
+      "bytes": 1968,
+      "sha256": "022cd37ca42ce997e871f22d037a216530d851b78c37fc6e607e1d74f0425d5c"
+    }
+  },
+  "head": "58293f1a29ec630e2603c2860b6a2337fadfa713",
+  "independent_focused_probe_review": {
+    "rv_cr01_rv_cr02": "closed; current-policy moderation identity and post-token/final-hold races checked with fresh harness probes",
+    "rv_cr03_rv_cr04": "closed; warm cache denial and policy/audience restoration remain closed; fresh approval receives new identity",
+    "rv_cr05": "closed; four typed/JSON normalized retries replay with original review id; changed semantic payload still conflicts"
+  },
+  "input_review_sha256": "0091e8e7fcdab235beee98f28fefc6919decd2b94e43d2c2f721416e4a91194a",
+  "merged": false,
+  "notes_sha256": {
+    "bytes": 6889,
+    "sha256": "f070810f085119ad3aa1df35045048ced9bc0210bebe04612b739a33ea10dc40"
+  },
+  "pushed": false,
+  "schema": "BE205_CODEX_REREVIEW_20261019",
+  "snapshot_audit": {
+    "matches": 25,
+    "mismatches": 0,
+    "pinned_files": 25
+  },
+  "staged_paths": 0,
+  "verdict": "CODEX_REREVIEW_PASS_WITH_NOTES",
+  "verification_complete_for": [
+    "RV-CR01",
+    "RV-CR02",
+    "RV-CR03",
+    "RV-CR04",
+    "RV-CR05",
+    "SKETCH_REVIEW_COMPONENT_OFFLINE"
+  ]
+}

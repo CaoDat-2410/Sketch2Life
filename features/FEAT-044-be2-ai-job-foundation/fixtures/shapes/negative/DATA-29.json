@@ -1,0 +1,12 @@
+{
+  "payload": {
+    "activity_ref": {
+      "activity_id": "activity_fx_001",
+      "hash": "fbe0c35964aa06598accbb75309da67fb0812773232f7909b853ec86f8b1bb56",
+      "version": 1
+    },
+    "feasibility_confirmation": null,
+    "teacher_adaptations": null
+  },
+  "reason": "missing audience_scope"
+}

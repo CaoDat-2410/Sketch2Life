@@ -1,0 +1,71 @@
+{
+  "asset_id": "C02",
+  "use_case": "ui-mockup",
+  "status": "REVIEW_PENDING",
+  "generated_path": "assets/generated/child-app/C02-phong-cho.png",
+  "srs_ui_id": "C02",
+  "screen_kind": "main",
+  "role": "child-app",
+  "prompt": "assets/prompts/C02.txt",
+  "source_references": [
+    {
+      "path": "features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md",
+      "sha256": "a95c89589843e3555e967c5e486f3bcaf4bbdf9446cb3bc9c49ed16f672964d9",
+      "section": "B23.2"
+    },
+    {
+      "path": "apps/ui-mobile/src/theme.ts",
+      "purpose": "existing design tokens"
+    }
+  ],
+  "generator": "built-in image_gen.imagegen",
+  "captured_at_utc": "2026-10-10T13:46:20.040252+00:00",
+  "generator_output_filename": "exec-dddee9d9-2fce-4f22-8145-d2b1ddbd5886.png",
+  "sha256": "0f7768a8b29661701522296479a418aefc77ff71983a6e16ff1f99aa83c2edb7",
+  "bytes": 1670646,
+  "width": 1448,
+  "height": 1086,
+  "original_copied_unchanged": true,
+  "synthetic_data_only": true,
+  "qa": {
+    "reviewer": "Codex visual inspection",
+    "status": "INSPECTED",
+    "note": "Inspected lobby: readable teacher-start waiting, explicit admitted active-child selection, group aliases only, drawing locked, help visible, no child stage control. Consistent landscape tablet grammar, no clipping."
+  },
+  "review": {
+    "status": "REVIEW_PENDING",
+    "reviewer": null,
+    "reviewed_at": null
+  },
+  "applied_path": null,
+  "limitations": "Generated design proposal; not implemented runtime, approved visual or device acceptance.",
+  "input_images": [
+    {
+      "path": "assets/generated/child-app/C03-ban-ve.png",
+      "sha256": "1971eba9c6a4d77d01120e298f008cbda135cfd4f4d19bdd123d83e2211df467",
+      "role": "style reference",
+      "generation_step": 1
+    }
+  ],
+  "generation_history": [
+    {
+      "step": 1,
+      "kind": "generation",
+      "prompt": "assets/prompts/C02.txt",
+      "input_images": [
+        {
+          "path": "assets/generated/child-app/C03-ban-ve.png",
+          "sha256": "1971eba9c6a4d77d01120e298f008cbda135cfd4f4d19bdd123d83e2211df467",
+          "role": "style reference",
+          "generation_step": 1
+        }
+      ],
+      "output": "assets/generated/child-app/C02-phong-cho.png",
+      "sha256": "0f7768a8b29661701522296479a418aefc77ff71983a6e16ff1f99aa83c2edb7",
+      "generator_output_filename": "exec-dddee9d9-2fce-4f22-8145-d2b1ddbd5886.png",
+      "selected": true,
+      "disposition": "REVIEW_PENDING",
+      "prompt_sha256": "7ad951fd04161134f1ce72ed5f65a9d8d4c4aa15b0fce380ddc41bf7e2d9c39d"
+    }
+  ]
+}

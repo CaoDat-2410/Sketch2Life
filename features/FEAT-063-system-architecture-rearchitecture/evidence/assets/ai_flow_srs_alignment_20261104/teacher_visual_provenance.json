@@ -1,0 +1,9 @@
+{
+  "status": "UNKNOWN_NO_RETRY",
+  "reason": "Modal L4 capacity was unavailable; the task-owned dev app was stopped while the call was queued.",
+  "provider_call_id": "fc-01M6JGVYR9G8DD2MD3HCRC4N54",
+  "source_plan_revision_ref": "synthetic-approved-butterfly-plan-v1",
+  "source_plan_sha256": "623788e3d6dd28bdc08014836707f003ed90692b1060bf421016c9ae6fd93e1e",
+  "review_required": true,
+  "publishable": false
+}

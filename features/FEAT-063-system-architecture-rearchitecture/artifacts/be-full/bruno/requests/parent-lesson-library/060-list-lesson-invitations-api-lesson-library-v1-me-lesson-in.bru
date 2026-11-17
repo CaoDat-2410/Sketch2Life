@@ -1,0 +1,19 @@
+meta {
+  name: 060 [READ ONLY] List Lesson Invitations
+  type: http
+  seq: 60
+}
+
+get {
+  url: {{baseUrl}}/api/lesson-library/v1/me/lesson-invitations
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+}

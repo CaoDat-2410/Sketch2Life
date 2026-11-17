@@ -1,0 +1,224 @@
+{
+  "recorded_utc": "2026-10-17T04:55:43.438551+00:00",
+  "checkpoint": "C2_TYPED_CONTEXT_OFFLINE",
+  "disposition": "CODE_REVIEW_PASS_WITH_NOTES_PENDING_OWNER_COMPONENT_ACCEPTANCE",
+  "actionable_findings": [],
+  "owner_acceptance_recorded": false,
+  "card_status": "IN_PROGRESS_NOT_DONE",
+  "branch": "feature/be2-02-vision-correction",
+  "head": "98876fe762a61e64b61980cd0634415e6f5e1dfb",
+  "source_sha256": {
+    "backend/src/sketch2life/application/ports/vision_analysis.py": "2f36d096127930a25b60057b48f47df726eb77e132808a20b2e5b15e7e5584ae",
+    "backend/src/sketch2life/application/services/vision_analysis.py": "f30ccbbb5be5af360d042ea3dc1d3fb1ad00e8175f60f7d65dac11d1d7ea9212",
+    "backend/src/sketch2life/contracts/schemas/analysis_context_results.py": "3844377f4fa114fdd5c48f051bdcdb2562340bbbcead89d9418b3be4239a2e5d",
+    "backend/src/sketch2life/contracts/schemas/vision_context.py": "24e2df5131ee27c0699171984ae20c63da529cb5acf4fecd824d5f7414a5e3fa",
+    "backend/src/sketch2life/domain/vision_analysis.py": "cb36b2917ec0e9061c21dca4b1ac27316f57e329fc3caafbd78ad1fa41f3dfa5",
+    "backend/src/sketch2life/domain/vision_context.py": "9501f2194a2896df121c50af2a1df29b7003c7f2029af0febd461664886e04eb",
+    "backend/src/sketch2life/infrastructure/vision_analysis/context_adapter.py": "d01cf98fc5a18233b112c4ed8e8d77efd4e46377718aba0a1d5523d6331f683a",
+    "backend/src/sketch2life/infrastructure/vision_analysis/fakes.py": "743a46897914c0457b64d77567cdb188db94e39f9498e6a0e3cc3c3c8b0414fa",
+    "backend/src/sketch2life/infrastructure/vision_analysis/harness.py": "bcae980736ecca23881f93dd5c679065b5ca798c0068af9a399022bf543ce957",
+    "backend/src/sketch2life/infrastructure/vision_analysis/legacy_v2.py": "b4d3f41836d8f62c2e2c8bd01d2d4149ab7b61cacee844f42c1da8a030da5ade",
+    "backend/tests/contract/test_vision_context_contracts.py": "60a02a99f17561fdc5d785d77ba4582df2103c93d4c3110cbbdbc8baac8ff728",
+    "backend/tests/unit/test_vision_analysis_legacy_bridge.py": "992d1a28c77f52963ed7edfe5ba0466a35deca8f053d9e6fad5b938c32386e65",
+    "backend/tests/unit/test_vision_analysis_service.py": "d5b5a3f23a69b6cfd8079ebf57a6bde85ac0cbb7699a586c03b14789fc8c8cdd",
+    "backend/tests/unit/test_vision_context_adapter.py": "0e7058756fbcfc79e01b8bf14ce5cc703a4ca7fa9d7217f75dc71ad96eb87a60",
+    "backend/tests/unit/test_vision_context_domain.py": "4a457f16a74c0ceea9c2c53bb85174c7d2067c2113e80558e79266f234e43f96",
+    "backend/tests/unit/test_vision_context_service.py": "e7e9baac7d54c42f45f7f56e9d8a99942290eeab7f15620de1b3911666d78348"
+  },
+  "immutable_files_sha256": {
+    "approvals/TASK_APPROVAL.md": "ebe826ce01a004c6888bc6d2cd4741470beabfdb1f89133d8ebd18f48a691494",
+    "approvals/C1_COMPONENT_ACCEPTANCE.md": "2d2e109a3e01f7fd4a2908ee474b620cfce67136f10bafb793d97e1a1e81cece",
+    "plan/PLAN_REV1_APPROVED.md": "f4733c88797edbcce225ecd63700634f929ca75789362c7f3a58a2b57f19df30",
+    "approvals/C2_TASK_APPROVAL.md": "16af8a94c1de2430745ba213d7e183ffa28305de33856a153e9b49d836d294df",
+    "plan/C2_TYPED_CONTEXT_PLAN_REV2_APPROVED.md": "4b339514d3d5bf01b9a8c23f0a15ea5e71b4d2f1389db9e141e31aa322cd57c2"
+  },
+  "implementation_receipt_sha256": "68aa985f2ed9a3197dcde19977e82b3e806b831272a2ed814b9248cf3a6d5316",
+  "root_test_receipt": "evidence/local/codex-c2-review-20261017/root-045152999215/result.json",
+  "root_test_result": {
+    "pytest_exit": 0,
+    "collected": 657,
+    "passed": 652,
+    "failed": 0,
+    "errors": 0,
+    "skipped": [
+      "tests.unit.test_vision_phase_b_b1_contracts::test_v2_model_reached_failure_details_carry_provenance_when_valid[MEDIA_VALIDATION_NOT_PASSED]",
+      "tests.unit.test_vision_phase_b_b1_contracts::test_v2_model_reached_failure_details_carry_provenance_when_valid[MEDIA_VALIDATION_PROVENANCE_MISSING]",
+      "tests.unit.test_vision_phase_b_b1_contracts::test_v2_model_reached_failure_details_carry_provenance_when_valid[SOURCE_IMAGE_UNREADABLE]",
+      "tests.unit.test_vision_phase_b_b1_contracts::test_v2_model_reached_failure_details_carry_provenance_when_valid[SOURCE_IMAGE_HASH_MISMATCH]",
+      "tests.unit.test_vision_phase_b_b1_contracts::test_v2_model_reached_failure_details_carry_provenance_when_valid[PROFILE_NOT_RESOLVABLE]"
+    ],
+    "junit_sha256": "ab0e3a74a87abd3b4df4e74e31947f613ab2307cf6d2cd386121387db59939a1"
+  },
+  "root_scope": "C2 focused + C1 focused/V2 server + legacy Vision/V2/Qwen",
+  "delegated_review": {
+    "same_model_family": true,
+    "roles": [
+      "domain_contract",
+      "service_authority",
+      "adapter_legacy"
+    ],
+    "test_receipts": {
+      "domain": {
+        "passed": 107,
+        "junit_sha256": "7cc33f6773cb9928d324dbca17e6e5024cef03a55242309e6427de6766b5ec84",
+        "overlaps_root_suite": true
+      },
+      "service": {
+        "passed": 42,
+        "junit_sha256": "64c08f11d39bf1170e218290be8a7f78ce826568084fb75d6fa4a40984c37f6a",
+        "overlaps_root_suite": true
+      }
+    },
+    "adapter_bridge_reported_passed": 56,
+    "counts_overlap_root": true
+  },
+  "root_adapter_adversarial_probes": {
+    "passed": 9,
+    "cases": [
+      {
+        "case": "wrong_identity_both_layers",
+        "code": "OUTPUT_MALFORMED",
+        "stored": [
+          0,
+          0,
+          0
+        ],
+        "transport_calls": 1,
+        "pass": true
+      },
+      {
+        "case": "wrong_source_both_layers",
+        "code": "OUTPUT_MALFORMED",
+        "stored": [
+          0,
+          0,
+          0
+        ],
+        "transport_calls": 1,
+        "pass": true
+      },
+      {
+        "case": "bool_confidence",
+        "code": "OUTPUT_MALFORMED",
+        "stored": [
+          0,
+          0,
+          0
+        ],
+        "transport_calls": 1,
+        "pass": true
+      },
+      {
+        "case": "null_nested",
+        "code": "OUTPUT_MALFORMED",
+        "stored": [
+          0,
+          0,
+          0
+        ],
+        "transport_calls": 1,
+        "pass": true
+      },
+      {
+        "case": "bool_wrapper_revision",
+        "code": "OUTPUT_MALFORMED",
+        "stored": [
+          0,
+          0,
+          0
+        ],
+        "transport_calls": 1,
+        "pass": true
+      },
+      {
+        "case": "wrong_nested_model",
+        "code": "OUTPUT_MALFORMED",
+        "stored": [
+          0,
+          0,
+          0
+        ],
+        "transport_calls": 1,
+        "pass": true
+      },
+      {
+        "case": "non_json_nested",
+        "code": "OUTPUT_MALFORMED",
+        "stored": [
+          0,
+          0,
+          0
+        ],
+        "transport_calls": 1,
+        "pass": true
+      },
+      {
+        "case": "inf_nested",
+        "code": "OUTPUT_MALFORMED",
+        "stored": [
+          0,
+          0,
+          0
+        ],
+        "transport_calls": 1,
+        "pass": true
+      },
+      {
+        "case": "surrogate_label",
+        "code": "OUTPUT_MALFORMED",
+        "stored": [
+          0,
+          0,
+          0
+        ],
+        "transport_calls": 1,
+        "pass": true
+      }
+    ],
+    "receipt_sha256": "af13bbf7e5079429df64a3b9bb63a7692572f939ced822ee1cca1c436a0d41ce"
+  },
+  "static_checks": {
+    "ruff": {
+      "exit_code": 0,
+      "paths": 16
+    },
+    "mypy_strict": {
+      "exit_code": 0,
+      "paths": 16
+    }
+  },
+  "validators": {
+    "harness": {
+      "exit_code": 0,
+      "receipt_sha256": "7ebd23d71bdbd03156d1979c05852163fd7ec6e9dac22977f221dffc656186e3",
+      "receipt": "evidence/local/codex-c2-review-20261017/validate_harness.log"
+    },
+    "repository_security": {
+      "exit_code": 0,
+      "receipt_sha256": "19a755367f15e62e44f012e110f1a59ae236d3b0da056fd220399f7be76748c1",
+      "receipt": "evidence/local/codex-c2-review-20261017/validate_repository_security.log"
+    },
+    "architecture": {
+      "exit_code": 0,
+      "receipt_sha256": "67f1bc538fc90b4f70000a89126dde0aa14c688b8c3dbba796e1a89d6caef80e",
+      "receipt": "evidence/local/codex-c2-review-20261017/validate_architecture.log"
+    },
+    "skeleton": {
+      "exit_code": 0,
+      "receipt_sha256": "c3bd0318347efa17e2cb71a192287f1fe5bbb4bb1932fa8a360e6f3328a7bd1b",
+      "receipt": "evidence/local/codex-c2-review-20261017/validate_skeleton.log"
+    }
+  },
+  "git_diff_check_exit": 0,
+  "review_product_source_changes": false,
+  "staged_paths": 0,
+  "git_publication": "NONE",
+  "not_run": [
+    "root rerun of BE2-01 338-test group",
+    "PostgreSQL/Redis/Studio",
+    "real provider/server/model",
+    "real BE1/BE2-03 owner adapters",
+    "production privacy/policy adoption"
+  ],
+  "be2_01": "WAITING_STUDIO_IN_PROGRESS_CR01_OPEN_B12_HANDOFF_OWNER_FENCE_ASSUMED_CONTRACT"
+}

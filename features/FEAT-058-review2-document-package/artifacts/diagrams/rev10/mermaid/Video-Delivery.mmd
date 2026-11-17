@@ -1,0 +1,11 @@
+stateDiagram-v2
+  [*] --> Draft: proposed
+  Draft --> Generating: teacher requests
+  Generating --> ReadyForReview: complete
+  ReadyForReview --> Approved: teacher approves exact version
+  Approved --> Playing: teacher starts playback
+  Generating --> Failed: retries exhausted
+  Failed --> Generating: teacher retries
+  Failed --> SkippedByTeacher: teacher explicit skip
+  Failed --> EndedEarly: teacher ends session
+  note right of ReadyForReview: approval is version-specific

@@ -1,0 +1,42 @@
+{
+  "aliases": [
+    "storyboard.generate"
+  ],
+  "butterfly_lifecycle_valid": true,
+  "call_id": "fc-01M6QZQ3Q3FZQQ3RSS15VWG653",
+  "complete_scene_narration": true,
+  "complete_story_sections": false,
+  "duration_ms": 30000,
+  "elapsed_seconds": 134.12,
+  "ended_at": "2026-11-06T15:32:55+07:00",
+  "model_id": "Qwen/Qwen3.5-9B",
+  "model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+  "outcome": "OUTPUT_SENTENCE_GUARD_FAILED",
+  "result_artifact": "story_generate_result.json",
+  "result_sha256": "5997380582c22fbff9165b93991c07c5d6ddee518ab5080dd33b313be80b1d3d",
+  "runner_error_type": null,
+  "runner_outcome": "SUCCEEDED",
+  "scene_count": 5,
+  "schema_valid": true,
+  "started_at": "2026-11-06T15:30:41+07:00",
+  "synthetic_only": true,
+  "video_calls": 0,
+  "worker_log_summary": {
+    "worker_binary_output_sha256": null,
+    "worker_duration_ms": 108452,
+    "worker_error_code": null,
+    "worker_error_type": null,
+    "worker_failure_boundary": "worker_succeeded",
+    "worker_gpu_class": "L40S|L4|A10",
+    "worker_last_stage": "terminal",
+    "worker_log_event_count": 28,
+    "worker_logs_available": true,
+    "worker_model_id": "Qwen/Qwen3.5-9B",
+    "worker_model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+    "worker_output_sha256": "14a8da357e2c36b3566e9387ae8a777ac31b6b9044081468663a4e8be43115f6",
+    "worker_output_size_bytes": 4772,
+    "worker_started_observed": true,
+    "worker_terminal_event": "worker_succeeded"
+  },
+  "workload": "story.generate"
+}

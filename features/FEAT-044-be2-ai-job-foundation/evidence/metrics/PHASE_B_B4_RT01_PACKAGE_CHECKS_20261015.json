@@ -1,0 +1,164 @@
+{
+  "date": "2026-10-15",
+  "finding": "B4-RT01",
+  "state": "OPEN_FIXED_PENDING_RUNTIME_REVIEW",
+  "backend_executor": "Claude",
+  "package_completed_by": "Codex after user reported Claude token limit until19:50",
+  "backend_changed_by_codex": false,
+  "previous_runtime": {
+    "provenance": "USER_REPORTED_REMOTE",
+    "manifest_sha256": "70b2a1600682aec3cfe2dabd80608d45c107f88d24ed25dd18d0e804aff8ef4d",
+    "collected": 95,
+    "passed": 88,
+    "failed": 7,
+    "skipped": 0,
+    "phase_a_passed": 224,
+    "outer_runner_exit": 1,
+    "runner_result": "FAIL",
+    "failure": "Fixture receiver Queue.pop_job_id on an empty RQ2.12queue raises ValueError"
+  },
+  "local_checks": {
+    "provenance": "DIRECT_LOCAL_RUN",
+    "combined": {
+      "passed": 258,
+      "skipped": 63,
+      "exit_code": 0,
+      "skipped_split": {
+        "postgres_redis": 62,
+        "pillow_http": 1
+      }
+    },
+    "b4_unit": {
+      "passed": 13,
+      "exit_code": 0
+    },
+    "ruff": {
+      "exit_code": 0
+    },
+    "mypy": {
+      "exit_code": 0
+    },
+    "independent_narrow_fix_review": "PASS",
+    "host_simulation": {
+      "cases_passed": 8,
+      "cases_total": 8,
+      "bash_syntax": "PASS",
+      "docker_stub_only": true,
+      "runtime_executed": false
+    }
+  },
+  "package": {
+    "base_commit": "993a26cae78c0a4fe983033f03881838c886b176",
+    "transition": "exact previous B4 manifest70b2a160 -> existing Claude B4-RT01 correction; corrected-source retry",
+    "previous_manifest_sha256": "70b2a1600682aec3cfe2dabd80608d45c107f88d24ed25dd18d0e804aff8ef4d",
+    "delta_sha256": "44f3a80db776430b9d693388f2196fb79a2a20ec89c5e28867edc12c2810ec58",
+    "delta_files": [
+      "backend/src/sketch2life/infrastructure/ai_jobs/rq_queue.py",
+      "backend/src/sketch2life/infrastructure/ai_jobs/sql/repository.py",
+      "backend/tests/unit/test_ai_job_b4_dispatch.py"
+    ],
+    "manifest_sha256": "444cfeadd3d7d0d0e1f23663b576270f46692e870fe532071f6cf025ffd9ff01",
+    "manifest_files": 32,
+    "runner_sha256": "54a1d99e6c9ad887d12689fbf7152740fd039c1f4108245f15ccd4f42a10fbf3",
+    "zip_sha256": "e1a768674626db631ebe3813790d04013bee92a16a367a977f916102058f88df",
+    "files": {
+      "backend/README.md": "85a3d3bcb341eaa311fa29b691ffdbe62284ff6d96c7c698ffacd8ef35f56af0",
+      "backend/alembic/README.md": "a2dfeab8dd7fd0811d91bedf58510431838e88b012c721d6cf34a47cdab546fc",
+      "backend/alembic/env.py": "7beb279c2ae05afe499f981606e82745441b95f6922f1af391b44c3eba6dff9f",
+      "backend/alembic/versions/20261015_ai_0001_ai_jobs_schema.py": "d86bd759fcb5dc644c94007fca3650c6315903ec39ee4da99579c4e23e656714",
+      "backend/src/sketch2life/application/ports/ai_jobs.py": "d588e282520f70c0595346d3a2f85849ade7b67ac41a2e616d27ebb9c0ed48b5",
+      "backend/src/sketch2life/application/services/ai_jobs.py": "42d5b6b3ad6953f3ef8f0652de1fbc25cd46474c0ba7085a5dd939b38e7f8d96",
+      "backend/src/sketch2life/domain/ai_jobs/model.py": "512b604636c1a22e231ac3276d3e537ae0deae4d9bb6652ccb064fab7314db99",
+      "backend/src/sketch2life/infrastructure/ai_jobs/fakes.py": "6a8984c890d00616447bce18a2fe2514df15ba5fb02bd1bcb9462241683ad996",
+      "backend/src/sketch2life/infrastructure/ai_jobs/harness.py": "ed5767319246917e28cbc953df3fffd3021ae414a6590ac8feaf247340a51038",
+      "backend/src/sketch2life/infrastructure/ai_jobs/outbox_dispatcher.py": "7b2dc13ccfa94c5bd09ba7679ab4dfab194aee6b32d8ab651aab92fbcecb6115",
+      "backend/src/sketch2life/infrastructure/ai_jobs/reconciler.py": "2b36facbb1c08560be258f1ff69b07354bccb45d7672a33a86317e9d5e02ee5e",
+      "backend/src/sketch2life/infrastructure/ai_jobs/rq_queue.py": "19fbb2fa004c7459fc9cb4675bf5b8568ee517c348ba80657f46fbeb615f0953",
+      "backend/src/sketch2life/infrastructure/ai_jobs/sql/__init__.py": "389d10a2447bc9d48d9f116095601b90da46c4d46fa581ebd9b6e6dec09f501b",
+      "backend/src/sketch2life/infrastructure/ai_jobs/sql/owner_fence_fixture.py": "ad93ea35037b10e808f84787fb55ebbf17b97874df462183d6808a5d8d0b4555",
+      "backend/src/sketch2life/infrastructure/ai_jobs/sql/repository.py": "575f2b337cfc86505c19c326fcef027090ef94f0468fec64e14c75620ba4104a",
+      "backend/src/sketch2life/infrastructure/ai_jobs/sql/tables.py": "12f6ce1edab047efdd81d495b44df08dc6f990692860621f37fc73778006f888",
+      "backend/tests/integration/ai_jobs/b3_support.py": "0213acc67099012dc5c3402eaa5b132ca6f58026c2257f2588b4404f71f8c90b",
+      "backend/tests/integration/ai_jobs/b4_support.py": "c8122ca21698d82d3223aff8db46cbcf93377b66a8e31ca8c185c91b6a2c386b",
+      "backend/tests/integration/ai_jobs/conftest.py": "c44c3abd75a1f3d3a035dedb5cc2994c72f04ef1c2804ff61637ccee9b4172a4",
+      "backend/tests/integration/ai_jobs/test_aggregate_reads.py": "474ce2e437aec83fcc672542366331f492d32896cac86a5e429fd878fdfc9961",
+      "backend/tests/integration/ai_jobs/test_create_races.py": "9ab9a765c01e0ebb3b8c0159b8d868bf6b2a8888b66181b8dcd1a13755da020a",
+      "backend/tests/integration/ai_jobs/test_dispatch_recovery.py": "5da26fee279be270353eb66f2fa97047a380e56e43d9489f1844bc8977d02143",
+      "backend/tests/integration/ai_jobs/test_migrations.py": "f3e907442ee228ac45c25834ddc91ee7f27678b2178487062b6d4e331df15d22",
+      "backend/tests/integration/ai_jobs/test_outbox_dispatch.py": "9cabaa7bc6c3a095ce7553fbe630d092c4cf7d756838f1cf3622b6d1837a9134",
+      "backend/tests/integration/ai_jobs/test_owner_fence.py": "81a6bcb3713047932717e122c996d84cc11403371f0d43679f354147cfad3793",
+      "backend/tests/integration/ai_jobs/test_sql_repository.py": "58c478765bb0a4385a50d8f03530c6689aa8ba5e9f895ef7220b672e5a336088",
+      "backend/tests/unit/test_ai_job_application.py": "ddee1b32e7944a590f04a80105c262422a3a78ad7857f87ff22bba1b4e00f315",
+      "backend/tests/unit/test_ai_job_b3_fences.py": "4a28113a9655111053a4dbe2395261743517ec3d39eda6930f387e3ea55937ad",
+      "backend/tests/unit/test_ai_job_b4_dispatch.py": "e64101fcd3649559dd5878833f985a15e639dfbec400ec81693ebb1da00600f5",
+      "features/FEAT-044-be2-ai-job-foundation/fixtures/MANIFEST.json": "9dfa20c4f16554c02c8a51b99a193e0af3e9f879db526dd156d3f9c76f65f18e",
+      "features/FEAT-044-be2-ai-job-foundation/fixtures/error_catalogue.json": "40b7840ddef0c2a7be7a607a63576583a388a1c35f89b5c08b0b4a89824125a6",
+      "features/FEAT-044-be2-ai-job-foundation/src/run_fixture_contracts.py": "3279c6413b36f36473f179eccaf57ce6514a462129fb1b02febe6a2a5a78f24a"
+    },
+    "runtime_status": "NOT_RUN_FOR_CORRECTED_SOURCE",
+    "backend_executor": "Claude; existing correction preserved byte-identical by Codex packaging",
+    "package_completed_by": "Codex after user reported Claude token limit until19:50",
+    "prior_runtime": "USER_REPORTED_REMOTE previous B4:88passed,7failed,0skipped; PhaseA224passed"
+  },
+  "packaging_proof": {
+    "previous_b4_snapshot_rebuilt_and_verified": 32,
+    "delta_files": 3,
+    "previous_plus_delta_matches_corrected_manifest": 32,
+    "second_application_refused": true,
+    "reverse_check_against_current_source": "PASS",
+    "archive_members_verified": 4,
+    "real_git_index_unchanged": true,
+    "backend_source_unchanged": true,
+    "runtime_executed": false,
+    "scratch_preserved": ".tmp/be2-b4rt01/build-v3ek7ra5",
+    "package": {
+      "delta_sha256": "44f3a80db776430b9d693388f2196fb79a2a20ec89c5e28867edc12c2810ec58",
+      "manifest_sha256": "444cfeadd3d7d0d0e1f23663b576270f46692e870fe532071f6cf025ffd9ff01",
+      "runner_sha256": "54a1d99e6c9ad887d12689fbf7152740fd039c1f4108245f15ccd4f42a10fbf3",
+      "zip_sha256": "e1a768674626db631ebe3813790d04013bee92a16a367a977f916102058f88df"
+    }
+  },
+  "runtime_corrected_source": "NOT_RUN",
+  "b4_closed": false,
+  "b5_started": false,
+  "cards": 14,
+  "wip": 1,
+  "original_approvals_or_plans_changed": false,
+  "staging_commit_push_deploy": false,
+  "operator_instructions": "evidence/local/claude/prompts/B4_RT01_STUDIO_RUN_20261015.md",
+  "final_checks": {
+    "harness": {
+      "exit_code": 0,
+      "output": "HARNESS_VALID\r\nroot=<BE2_WORKTREE>\r\napproval_gate=enabled\r\nfrontend_asset_gate=enabled\r\n"
+    },
+    "security": {
+      "exit_code": 0,
+      "output": "REPOSITORY_SECURITY_VALID\r\npublishable_files_scanned=3006\r\nenvironment_files=excluded\r\nseed_accounts=excluded\r\ncredentials_and_signing_keys=excluded\r\nexternal_reference_documents=excluded\r\nabsolute_machine_paths=absent\r\n"
+    },
+    "diff_staging": {
+      "exit_code": 0,
+      "output": "warning: unable to access 'C:\\Users\\USER/.config/git/ignore': Permission denied\n"
+    },
+    "preservation": {
+      "exit_code": 0,
+      "output": "{\"protected_backend_approval_plan_paths_unchanged\": 498, \"git_index_unchanged\": true, \"corrected_source_files\": 32, \"delta_files\": 3, \"old_package_preserved\": true, \"host_flows_pass\": 8, \"local_prompts_and_zip_ignored\": true, \"runtime_corrected_source\": \"NOT_RUN\", \"b5_started\": false, \"backend_edited_by_codex\": false}\r\n"
+    }
+  },
+  "source_preservation": {
+    "protected_backend_approval_plan_paths_unchanged": 498,
+    "git_index_unchanged": true,
+    "corrected_source_files": 32,
+    "delta_files": 3,
+    "old_package_preserved": true,
+    "host_flows_pass": 8,
+    "local_prompts_and_zip_ignored": true,
+    "runtime_corrected_source": "NOT_RUN",
+    "b5_started": false,
+    "backend_edited_by_codex": false
+  },
+  "independent_final_handover_audit": {
+    "reviewer": "b2_schema_migration_review",
+    "result": "PASS_AFTER_EVIDENCE_WORDING_CORRECTION",
+    "correction": "Added unit cases are envelope roundtrip and emptyqueue; SQL timeout compilation is a separate offline probe, not claimed as a new unit test"
+  }
+}

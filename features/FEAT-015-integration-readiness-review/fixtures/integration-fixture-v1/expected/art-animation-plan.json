@@ -1,0 +1,15 @@
+{
+  "contract_name": "ArtAnimationPlanV1",
+  "plan_id": "integration-butterfly-reveal",
+  "plan_version": "1",
+  "source_asset_id": "child-drawing-001-whole",
+  "motions": [
+    {
+      "id": "reveal-1",
+      "kind": "DRAW_REVEAL",
+      "target_id": "whole-drawing",
+      "duration_seconds": 2.0
+    }
+  ],
+  "contract_version": "1.0"
+}

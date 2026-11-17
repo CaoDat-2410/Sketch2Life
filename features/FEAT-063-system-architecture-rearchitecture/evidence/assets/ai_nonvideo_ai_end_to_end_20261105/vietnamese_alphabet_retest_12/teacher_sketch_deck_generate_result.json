@@ -1,0 +1,162 @@
+{
+  "workload": "teacher.sketch-deck.generate",
+  "app": "sketch2life-srs23-language-audio-dev",
+  "function": "generate-teacher-sketch-deck",
+  "job_id": "0905ffc6-81aa-448e-a88d-2a0ff84c3a89",
+  "generation_id": "6aa17133-70ef-4f69-abfc-fbdf18b592c5",
+  "attempt_id": "f6c1b082-c39d-4c04-a2b9-981a22cffae1",
+  "input_sha256": "d4a7421d6d19fab19875f9143739b271275a7362b07fc29020076da15dec2b96",
+  "manifest_sha256": "472def81177a9c7a1a124efc32fddf611ce56d42efd59b35aa3db0fd91157f95",
+  "wait_limit_seconds": 600,
+  "started_at": "2026-11-05T19:04:29+07:00",
+  "outcome": "SUCCEEDED",
+  "call_id": "fc-01M6NSHST2SCSG9JMH572ZHSWH",
+  "dispatch_at": "2026-11-05T19:04:31+07:00",
+  "slide_count": 5,
+  "drawing_step_count": 4,
+  "approved_activity_refs": [
+    "synthetic-activity-observe-butterfly",
+    "synthetic-activity-compare-flowers"
+  ],
+  "result": {
+    "schema_version": "sketch2life.modal.worker-output.v1",
+    "workload": "teacher.sketch-deck.generate",
+    "job_id": "0905ffc6-81aa-448e-a88d-2a0ff84c3a89",
+    "generation_id": "6aa17133-70ef-4f69-abfc-fbdf18b592c5",
+    "attempt_id": "f6c1b082-c39d-4c04-a2b9-981a22cffae1",
+    "model": {
+      "id": "Qwen/Qwen3.5-9B",
+      "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
+    },
+    "result": {
+      "schema_version": "sketch2life.teacher-sketch-deck.v1",
+      "status": "DRAFT",
+      "plan_revision_ref": "synthetic-approved-butterfly-plan-v1",
+      "content_hash": "623788e3d6dd28bdc08014836707f003ed90692b1060bf421016c9ae6fd93e1e",
+      "aspect_ratio": "16:9",
+      "language": "vi",
+      "topic": "Con bướm",
+      "target_age_months": 60,
+      "subject_knowledge": [
+        "Vòng đời của bướm gồm trứng, sâu bướm, nhộng rồi đến bướm trưởng thành.",
+        "Sâu bướm nở từ trứng; bướm trưởng thành chui ra khỏi nhộng.",
+        "Nhiều loài bướm trưởng thành hút mật hoa bằng vòi dài."
+      ],
+      "slides": [
+        {
+          "slide_index": 1,
+          "kind": "orientation",
+          "title": "Con bướm",
+          "bullets": [
+            "Trẻ quan sát hình dáng và một số đặc điểm dễ nhận thấy của con bướm.",
+            "Trẻ tìm hiểu vòng đời của bướm bằng ngôn ngữ phù hợp lứa tuổi."
+          ],
+          "activity_ref": null
+        },
+        {
+          "slide_index": 2,
+          "kind": "drawing_guide",
+          "title": "Cùng quan sát và vẽ Con bướm",
+          "steps": [
+            {
+              "step_index": 1,
+              "instruction": "Vẽ đầu tròn nhỏ và thân dài mảnh ở giữa trang giấy, chừa khoảng trống hai bên.",
+              "placement": "Ở giữa trang giấy, chừa khoảng trống hai bên.",
+              "source_action": "Vẽ đầu tròn nhỏ và thân dài mảnh.",
+              "source_placement": "Ở giữa trang giấy, chừa khoảng trống hai bên."
+            },
+            {
+              "step_index": 2,
+              "instruction": "Thêm hai cặp cánh lớn hai bên thân, cánh trên lớn hơn cánh dưới cân đối.",
+              "placement": "Cánh trên lớn hơn, cánh dưới nhỏ hơn và cân đối.",
+              "source_action": "Thêm hai cặp cánh lớn hai bên thân.",
+              "source_placement": "Cánh trên lớn hơn, cánh dưới nhỏ hơn và cân đối."
+            },
+            {
+              "step_index": 3,
+              "instruction": "Vẽ hai chiếc râu cong hướng lên gần đầu bướm.",
+              "placement": "Hai râu hướng lên, gần đầu bướm.",
+              "source_action": "Vẽ hai chiếc râu cong trên đầu.",
+              "source_placement": "Hai râu hướng lên, gần đầu bướm."
+            },
+            {
+              "step_index": 4,
+              "instruction": "Thêm vài đường gân đơn giản rải nhẹ trên cánh, giữ nhiều khoảng trắng.",
+              "placement": "Rải nhẹ trên cánh, giữ nhiều khoảng trắng.",
+              "source_action": "Thêm vài đường gân đơn giản trên cánh.",
+              "source_placement": "Rải nhẹ trên cánh, giữ nhiều khoảng trắng."
+            }
+          ],
+          "activity_ref": null
+        },
+        {
+          "slide_index": 3,
+          "kind": "subject_exploration",
+          "title": "Cùng tìm hiểu về Con bướm",
+          "bullets": [
+            "Vòng đời của bướm gồm trứng, sâu bướm, nhộng rồi đến bướm trưởng thành.",
+            "Sâu bướm nở từ trứng; bướm trưởng thành chui ra khỏi nhộng.",
+            "Nhiều loài bướm trưởng thành hút mật hoa bằng vòi dài."
+          ],
+          "activity_ref": null
+        },
+        {
+          "slide_index": 4,
+          "kind": "approved_activity",
+          "title": "Quan sát bướm từ xa",
+          "activity_ref": "synthetic-activity-observe-butterfly",
+          "goal": [
+            "Luyện quan sát và nhận ra đặc điểm của bướm trong môi trường tự nhiên."
+          ],
+          "materials": [
+            "Sổ quan sát",
+            "Bút chì"
+          ],
+          "preparation": [
+            "Chọn khu vườn an toàn có hoa và đứng cùng trẻ."
+          ],
+          "instructions": [
+            "Quan sát bướm từ khoảng cách an toàn.",
+            "Mời trẻ kể điều mình nhìn thấy; không bắt hoặc chạm vào bướm."
+          ],
+          "safety_notes": [
+            "Người lớn luôn ở cạnh trẻ.",
+            "Không bắt, đuổi hoặc chạm vào côn trùng."
+          ]
+        },
+        {
+          "slide_index": 5,
+          "kind": "approved_activity",
+          "title": "Tìm những bông hoa khác nhau",
+          "activity_ref": "synthetic-activity-compare-flowers",
+          "goal": [
+            "So sánh hình dáng và màu sắc của các bông hoa thu hút bướm."
+          ],
+          "materials": [
+            "Thẻ quan sát bằng giấy"
+          ],
+          "preparation": [
+            "Chọn lối đi bằng phẳng, tránh cây có gai và khu vực xe cộ."
+          ],
+          "instructions": [
+            "Quan sát hai bông hoa khác nhau mà không ngắt hoa.",
+            "Mời trẻ mô tả điểm giống và khác nhau."
+          ],
+          "safety_notes": [
+            "Người lớn ở gần; không nếm hoặc bứt cây.",
+            "Rửa tay sau hoạt động ngoài trời."
+          ]
+        }
+      ],
+      "approved_activity_refs": [
+        "synthetic-activity-observe-butterfly",
+        "synthetic-activity-compare-flowers"
+      ],
+      "review_required": true
+    }
+  },
+  "output_sha256": "bdd0635f7eae837345770624bd0fba738b7e68fc4bd8a31bb56151bc1b3a8194",
+  "ended_at": "2026-11-05T19:05:11+07:00",
+  "runner_elapsed_ms": 43464.46,
+  "label": "teacher.sketch_deck.generate"
+}

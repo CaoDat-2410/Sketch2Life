@@ -1,0 +1,24 @@
+{
+  "analysis_id": "ana_fx0001",
+  "analysis_revision": 3,
+  "child_proposal_refs": [
+    "cor_fx0001"
+  ],
+  "confirmation_ref": "cor_fx0002",
+  "confirmed_concepts": [
+    "tiger"
+  ],
+  "model_candidates": [
+    {
+      "confidence": 0.71,
+      "label": "cat",
+      "observation_ref": "ent-1"
+    },
+    {
+      "confidence": null,
+      "label": "ball",
+      "observation_ref": "ent-2"
+    }
+  ],
+  "state": "confirmed"
+}

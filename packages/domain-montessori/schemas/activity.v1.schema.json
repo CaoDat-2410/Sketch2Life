@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sketch2life.local/schemas/montessori/activity.v1.schema.json",
+  "title": "Sketch2Life Montessori Activity v1",
+  "type": "object",
+  "required": [
+    "id",
+    "version",
+    "slug",
+    "title",
+    "age_band",
+    "age_months",
+    "area",
+    "objective_ids",
+    "readiness_tags",
+    "prerequisite_activity_ids",
+    "material_groups",
+    "duration_minutes",
+    "steps_vi",
+    "safety",
+    "catalog_status",
+    "review",
+    "source_refs",
+    "provenance"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^ACT-[0-9]{4}$"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$"
+    },
+    "title": {
+      "type": "object",
+      "required": [
+        "vi-VN"
+      ]
+    },
+    "age_band": {
+      "enum": [
+        "0-3",
+        "3-6",
+        "6-9",
+        "9-12"
+      ]
+    },
+    "age_months": {
+      "type": "object",
+      "required": [
+        "min",
+        "max"
+      ]
+    },
+    "area": {
+      "type": "string"
+    },
+    "objective_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "readiness_tags": {
+      "type": "array",
+      "uniqueItems": true
+    },
+    "prerequisite_activity_ids": {
+      "type": "array",
+      "uniqueItems": true
+    },
+    "material_groups": {
+      "type": "array",
+      "minItems": 1
+    },
+    "duration_minutes": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 120
+    },
+    "steps_vi": {
+      "type": "array",
+      "minItems": 3
+    },
+    "safety": {
+      "type": "object",
+      "required": [
+        "minimum_supervision",
+        "hazards_vi",
+        "stop_conditions_vi"
+      ]
+    },
+    "catalog_status": {
+      "enum": [
+        "ACTIVE_FIXTURE",
+        "INACTIVE"
+      ]
+    },
+    "review": {
+      "type": "object",
+      "required": [
+        "status",
+        "production_eligible"
+      ]
+    },
+    "source_refs": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "provenance": {
+      "type": "object",
+      "required": [
+        "authored_by",
+        "authored_at",
+        "source_type"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

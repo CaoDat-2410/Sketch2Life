@@ -1,0 +1,715 @@
+{
+  "date": "2026-10-19",
+  "feature": "FEAT-052-be2-sketch-review",
+  "card": "BE2-05",
+  "checkpoint": "SKETCH_REVIEW_COMPONENT_OFFLINE",
+  "verdict": "NEEDS_CHANGES",
+  "verification_complete": false,
+  "component_acceptance": "NOT_ACCEPTED",
+  "card_status": "IN_PROGRESS / NOT_DONE",
+  "finding_counts": {
+    "P1": 1,
+    "P2": 4
+  },
+  "findings": [
+    {
+      "id": "RV-CR01",
+      "priority": "P1",
+      "summary": "Current-policy BLOCKED verdict bypassed by cached old PASSED moderation",
+      "source": [
+        {
+          "path": "backend/src/sketch2life/application/services/sketch_review.py",
+          "lines": [
+            267,
+            278,
+            369,
+            371
+          ]
+        },
+        {
+          "path": "backend/src/sketch2life/infrastructure/sketch_review/coordination.py",
+          "lines": [
+            172,
+            180
+          ]
+        }
+      ],
+      "probe": "fence-policy-probes.policy_changed_reuses_old_moderation"
+    },
+    {
+      "id": "RV-CR02",
+      "priority": "P2",
+      "summary": "Pre-token authority/policy observations survive proper revocation/disable publication",
+      "source": [
+        {
+          "path": "backend/src/sketch2life/application/services/sketch_review.py",
+          "lines": [
+            170,
+            179,
+            210,
+            243,
+            353,
+            365
+          ]
+        }
+      ],
+      "probe": "fence-policy-probes.policy_read_before_token and grant_read_before_token"
+    },
+    {
+      "id": "RV-CR03",
+      "priority": "P2",
+      "summary": "Warmed cache exposes quarantined text/assets because only05 epoch is checked",
+      "source": [
+        {
+          "path": "backend/src/sketch2life/infrastructure/sketch_review/fakes.py",
+          "lines": [
+            178,
+            183
+          ]
+        },
+        {
+          "path": "backend/src/sketch2life/infrastructure/sketch_review/coordination.py",
+          "lines": [
+            96,
+            100
+          ]
+        }
+      ],
+      "probe": "access-probes.cache_after_quarantine"
+    },
+    {
+      "id": "RV-CR04",
+      "priority": "P2",
+      "summary": "Pull-detected stale review revives without a fresh review on policy/context restoration",
+      "source": [
+        {
+          "path": "backend/src/sketch2life/application/services/sketch_review.py",
+          "lines": [
+            531,
+            540,
+            584,
+            617,
+            691,
+            708
+          ]
+        }
+      ],
+      "probe": "access-probes.policy_restoration and audience_restoration"
+    },
+    {
+      "id": "RV-CR05",
+      "priority": "P2",
+      "summary": "Raw-command fingerprint rejects semantically normalized equivalent retries",
+      "source": [
+        {
+          "path": "backend/src/sketch2life/application/services/sketch_review.py",
+          "lines": [
+            164,
+            166
+          ]
+        },
+        {
+          "path": "backend/src/sketch2life/contracts/schemas/sketch_reviews.py",
+          "lines": [
+            82,
+            88,
+            121,
+            127
+          ]
+        }
+      ],
+      "probe": "fingerprint-probes cases typed/json reason/audience"
+    }
+  ],
+  "branch": "feature/be2-05-sketch-review",
+  "head": "58293f1a29ec630e2603c2860b6a2337fadfa713",
+  "upstream": null,
+  "staged": 0,
+  "approved_plan_sha256": "ab29530545b94346102bd037822572e483828fa697582e74a74be334cecf0c00",
+  "verified_snapshot": {
+    "backend/src/sketch2life/application/ports/sketch_review.py": {
+      "bytes": 7672,
+      "sha256": "2b88d3e8ce861137db0df99958eab7cbece79c67c81ca22ba290cef9cf9a4191"
+    },
+    "backend/src/sketch2life/application/services/sketch_review.py": {
+      "bytes": 36763,
+      "sha256": "5c336c4ae6923e338c61987915109c7236c86464c8838de61eba22bc68cdc11f"
+    },
+    "backend/src/sketch2life/contracts/schemas/sketch_reviews.py": {
+      "bytes": 7666,
+      "sha256": "ad007cd2bb0a2fc0a9b13594d00b789726053ade0d8a2ed77ceff9597a74fc93"
+    },
+    "backend/src/sketch2life/domain/sketch_review.py": {
+      "bytes": 19232,
+      "sha256": "55648a2d6a9dd4e12377e0c6b214e89784cc374b650fb6d644cee1627600d143"
+    },
+    "backend/src/sketch2life/infrastructure/sketch_review/__init__.py": {
+      "bytes": 73,
+      "sha256": "b5d6dbd574c882db7b5a42b354906b30f34c963f44b50199b920b78fe2197462"
+    },
+    "backend/src/sketch2life/infrastructure/sketch_review/adapters.py": {
+      "bytes": 5176,
+      "sha256": "b454de10c6a8c617663c4155aa8388437c400993453037b130b14ed4429008a3"
+    },
+    "backend/src/sketch2life/infrastructure/sketch_review/coordination.py": {
+      "bytes": 11398,
+      "sha256": "969a38a4856cac28298a9be7e5871fcfbdac27677b1dd833d84cebbd41c0ed52"
+    },
+    "backend/src/sketch2life/infrastructure/sketch_review/fakes.py": {
+      "bytes": 9361,
+      "sha256": "f02e49d08bf75f434731884ba8ac9415feef54c0bbfe49de0f75e06cf3487e4a"
+    },
+    "backend/src/sketch2life/infrastructure/sketch_review/harness.py": {
+      "bytes": 12706,
+      "sha256": "40f8ab64b0b607007d2c7afedacf8fafb90ae7d8b36bb9abcc8b6a955c0d1d73"
+    },
+    "backend/tests/contract/test_sketch_review_contracts.py": {
+      "bytes": 6542,
+      "sha256": "bb783a47385e61a4af9bfafb885bacdece464b2097b80ff017390f1d4567a46e"
+    },
+    "backend/tests/unit/test_sketch_review_chain.py": {
+      "bytes": 6248,
+      "sha256": "1a033ab978ba9b519fee504133145dc42325fc7266cbd0ea13e40d58b8824454"
+    },
+    "backend/tests/unit/test_sketch_review_domain.py": {
+      "bytes": 9696,
+      "sha256": "4a1970f8bc3f3912f858af9ae5f0ec4c867214c97560a54f99f31fa99d049304"
+    },
+    "backend/tests/unit/test_sketch_review_eligibility.py": {
+      "bytes": 7205,
+      "sha256": "6c49181060cb55fdf76ac9f30f9f67166b5e30dce0ac8eda218021f33a1bdf32"
+    },
+    "backend/tests/unit/test_sketch_review_races.py": {
+      "bytes": 19217,
+      "sha256": "49ec8e90c35088efb41ea484a25864fc1d26f0c6b8184b3c614031f6bfd63e2d"
+    },
+    "backend/tests/unit/test_sketch_review_service.py": {
+      "bytes": 18283,
+      "sha256": "9d40253d54673e436233c2f751f203b04f93410a2ed787194e72ed72a12c935a"
+    },
+    "features/FEAT-052-be2-sketch-review/approvals/TASK_APPROVAL.md": {
+      "bytes": 3925,
+      "sha256": "6ba9f310d0735e6bdfaf80dc8696308989d0ed51012d813c0b991788f2aeeb24"
+    },
+    "features/FEAT-052-be2-sketch-review/fixtures/h_ai_review/sketch_review_examples.json": {
+      "bytes": 3582,
+      "sha256": "7336987387242dd07ee671fde706a0c1b1314cbb5f3a87c31b5ee758ca6396dc"
+    },
+    "features/FEAT-052-be2-sketch-review/plan/PLAN.md": {
+      "bytes": 71170,
+      "sha256": "41b393cca148db6d88a83ac0a9fa2442ec0a5241a88d0c5a631766716f2663b8"
+    },
+    "features/FEAT-052-be2-sketch-review/plan/PLAN_R2_APPROVED.md": {
+      "bytes": 68805,
+      "sha256": "ab29530545b94346102bd037822572e483828fa697582e74a74be334cecf0c00"
+    }
+  },
+  "snapshot_mismatches": 0,
+  "implementation_metrics_sha256": "0ebda6b9ad810b8ee974ee29cf4ee9aaf54245df95ea07015b7306560fb0af1e",
+  "implementation_note_sha256": "452e8e9376c594d846e7e1102a4a3881f103820c716ebb270085d31dfe9ceb70",
+  "accepted_SK1_15_references": "MATCH; unchanged",
+  "shared_DATA24_pack_and_test": "MATCH HEAD bytes; unchanged",
+  "environment": {
+    "python": "CPython3.12.10",
+    "interpreter": "existing repo-root backend/.venv",
+    "pythonpath_mypypath": "active task05 worktree backend/src",
+    "dependency_install": "NONE",
+    "network": "NONE",
+    "fixtures": "synthetic only"
+  },
+  "independent_checks": {
+    "mypy": {
+      "exit": 0,
+      "seconds": 1.64,
+      "log": "features\\FEAT-052-be2-sketch-review\\evidence\\local\\codex-review-20261019\\mypy.log",
+      "sha256": "f645b10e21546f038559fbaaffb91f957d61ada15bed410cfd1fd85e15524598",
+      "args": [
+        "-m",
+        "mypy",
+        "--strict",
+        "--config-file",
+        "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-05-sketch-review\\backend\\pyproject.toml",
+        "--cache-dir",
+        "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-05-sketch-review\\features\\FEAT-052-be2-sketch-review\\evidence\\local\\codex-review-20261019\\mypy-cache",
+        "backend/src/sketch2life/application/ports/sketch_review.py",
+        "backend/src/sketch2life/application/services/sketch_review.py",
+        "backend/src/sketch2life/contracts/schemas/sketch_reviews.py",
+        "backend/src/sketch2life/domain/sketch_review.py",
+        "backend/src/sketch2life/infrastructure/sketch_review/__init__.py",
+        "backend/src/sketch2life/infrastructure/sketch_review/adapters.py",
+        "backend/src/sketch2life/infrastructure/sketch_review/coordination.py",
+        "backend/src/sketch2life/infrastructure/sketch_review/fakes.py",
+        "backend/src/sketch2life/infrastructure/sketch_review/harness.py"
+      ],
+      "cwd": "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-05-sketch-review"
+    },
+    "focused": {
+      "exit": 0,
+      "seconds": 1.532,
+      "log": "features\\FEAT-052-be2-sketch-review\\evidence\\local\\codex-review-20261019\\focused.log",
+      "sha256": "aed772a126cbb2ef12c55c859d1bc61903a562e176b4b5e1957c011c0a30282f",
+      "args": [
+        "-m",
+        "pytest",
+        "-p",
+        "no:cacheprovider",
+        "-o",
+        "addopts=",
+        "-q",
+        "-rs",
+        "--basetemp",
+        "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-05-sketch-review\\features\\FEAT-052-be2-sketch-review\\evidence\\local\\codex-review-20261019\\focused-temp",
+        "--junitxml",
+        "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-05-sketch-review\\features\\FEAT-052-be2-sketch-review\\evidence\\local\\codex-review-20261019\\focused.junit.xml",
+        "backend/tests/contract/test_sketch_review_contracts.py",
+        "backend/tests/unit/test_sketch_review_chain.py",
+        "backend/tests/unit/test_sketch_review_domain.py",
+        "backend/tests/unit/test_sketch_review_eligibility.py",
+        "backend/tests/unit/test_sketch_review_races.py",
+        "backend/tests/unit/test_sketch_review_service.py"
+      ],
+      "cwd": "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-05-sketch-review",
+      "junit": {
+        "tests": 99,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 99,
+        "path": "features\\FEAT-052-be2-sketch-review\\evidence\\local\\codex-review-20261019\\focused.junit.xml",
+        "sha256": "f8d055e7e2c73efe18c6c3a39f760327a897aee8e7b21ca7aca6d5ee29f44ae3"
+      }
+    },
+    "sk1": {
+      "exit": 0,
+      "seconds": 1.562,
+      "log": "features\\FEAT-052-be2-sketch-review\\evidence\\local\\codex-review-20261019\\sk1.log",
+      "sha256": "fe56e2e3a566445f95962e6083f5f051d23e8c13799ebfe1bf7cec6a4ff1b9ba",
+      "args": [
+        "-m",
+        "pytest",
+        "-p",
+        "no:cacheprovider",
+        "-o",
+        "addopts=",
+        "-q",
+        "-rs",
+        "--basetemp",
+        "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-05-sketch-review\\features\\FEAT-052-be2-sketch-review\\evidence\\local\\codex-review-20261019\\sk1-temp",
+        "--junitxml",
+        "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-05-sketch-review\\features\\FEAT-052-be2-sketch-review\\evidence\\local\\codex-review-20261019\\sk1.junit.xml",
+        "backend/tests/unit/test_sketch_proposal_domain.py",
+        "backend/tests/unit/test_sketch_generation_service.py",
+        "backend/tests/unit/test_sketch_generation_adapters.py",
+        "backend/tests/unit/test_sketch_generation_chain.py",
+        "backend/tests/unit/test_sketch_generation_races.py",
+        "backend/tests/contract/test_sketch_proposal_contracts.py"
+      ],
+      "cwd": "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-05-sketch-review",
+      "junit": {
+        "tests": 175,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 175,
+        "path": "features\\FEAT-052-be2-sketch-review\\evidence\\local\\codex-review-20261019\\sk1.junit.xml",
+        "sha256": "b664d0cbbdd2f81e9e53250b2ae2f1da1f823eeea32923a1b5af97409cfa3c70"
+      }
+    },
+    "validate_harness": {
+      "exit": 0,
+      "seconds": 0.187,
+      "log": "features\\FEAT-052-be2-sketch-review\\evidence\\local\\codex-review-20261019\\validate_harness.log",
+      "sha256": "41ee349e5b4c9e831d4091b27b0e2a7e008b3040715724b661eedda13d0004ed",
+      "args": [
+        "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-05-sketch-review\\tools\\validate_harness.py"
+      ],
+      "cwd": "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-05-sketch-review"
+    },
+    "validate_repository_security": {
+      "exit": 0,
+      "seconds": 2.391,
+      "log": "features\\FEAT-052-be2-sketch-review\\evidence\\local\\codex-review-20261019\\validate_repository_security.log",
+      "sha256": "ad969e6c7b55fe66d532f62adc4a2a329c1f00d6c494648a7504cceb3197cc2b",
+      "args": [
+        "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-05-sketch-review\\tools\\validate_repository_security.py"
+      ],
+      "cwd": "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-05-sketch-review"
+    },
+    "validate_architecture": {
+      "exit": 0,
+      "seconds": 0.109,
+      "log": "features\\FEAT-052-be2-sketch-review\\evidence\\local\\codex-review-20261019\\validate_architecture.log",
+      "sha256": "67f1bc538fc90b4f70000a89126dde0aa14c688b8c3dbba796e1a89d6caef80e",
+      "args": [
+        "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-05-sketch-review\\tools\\validate_architecture.py"
+      ],
+      "cwd": "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-05-sketch-review"
+    },
+    "validate_skeleton": {
+      "exit": 0,
+      "seconds": 0.078,
+      "log": "features\\FEAT-052-be2-sketch-review\\evidence\\local\\codex-review-20261019\\validate_skeleton.log",
+      "sha256": "c3bd0318347efa17e2cb71a192287f1fe5bbb4bb1932fa8a360e6f3328a7bd1b",
+      "args": [
+        "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-05-sketch-review\\tools\\validate_skeleton.py"
+      ],
+      "cwd": "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-05-sketch-review"
+    },
+    "ruff_root_initial": {
+      "exit": 1,
+      "seconds": 0.125,
+      "log": "features\\FEAT-052-be2-sketch-review\\evidence\\local\\codex-review-20261019\\ruff.log",
+      "sha256": "5e50f1a894a661fb35d1fada231422cc6341c059420c6bfb4fdeb3c3f97343fa",
+      "args": [
+        "-m",
+        "ruff",
+        "check",
+        "--no-cache",
+        "--config",
+        "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-05-sketch-review\\backend\\pyproject.toml",
+        "backend/src/sketch2life/application/ports/sketch_review.py",
+        "backend/src/sketch2life/application/services/sketch_review.py",
+        "backend/src/sketch2life/contracts/schemas/sketch_reviews.py",
+        "backend/src/sketch2life/domain/sketch_review.py",
+        "backend/src/sketch2life/infrastructure/sketch_review/__init__.py",
+        "backend/src/sketch2life/infrastructure/sketch_review/adapters.py",
+        "backend/src/sketch2life/infrastructure/sketch_review/coordination.py",
+        "backend/src/sketch2life/infrastructure/sketch_review/fakes.py",
+        "backend/src/sketch2life/infrastructure/sketch_review/harness.py",
+        "backend/tests/contract/test_sketch_review_contracts.py",
+        "backend/tests/unit/test_sketch_review_chain.py",
+        "backend/tests/unit/test_sketch_review_domain.py",
+        "backend/tests/unit/test_sketch_review_eligibility.py",
+        "backend/tests/unit/test_sketch_review_races.py",
+        "backend/tests/unit/test_sketch_review_service.py"
+      ],
+      "cwd": "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-05-sketch-review",
+      "interpretation": "Ruff first-party classification differed at repo root; superseded by the backend cwd invocation, no source edit"
+    },
+    "ruff": {
+      "exit": 0,
+      "args": [
+        "-m",
+        "ruff",
+        "check",
+        "--no-cache",
+        "src\\sketch2life\\application\\ports\\sketch_review.py",
+        "src\\sketch2life\\application\\services\\sketch_review.py",
+        "src\\sketch2life\\contracts\\schemas\\sketch_reviews.py",
+        "src\\sketch2life\\domain\\sketch_review.py",
+        "src\\sketch2life\\infrastructure\\sketch_review\\__init__.py",
+        "src\\sketch2life\\infrastructure\\sketch_review\\adapters.py",
+        "src\\sketch2life\\infrastructure\\sketch_review\\coordination.py",
+        "src\\sketch2life\\infrastructure\\sketch_review\\fakes.py",
+        "src\\sketch2life\\infrastructure\\sketch_review\\harness.py",
+        "tests\\contract\\test_sketch_review_contracts.py",
+        "tests\\unit\\test_sketch_review_chain.py",
+        "tests\\unit\\test_sketch_review_domain.py",
+        "tests\\unit\\test_sketch_review_eligibility.py",
+        "tests\\unit\\test_sketch_review_races.py",
+        "tests\\unit\\test_sketch_review_service.py"
+      ],
+      "cwd": "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-05-sketch-review\\backend",
+      "log": "features\\FEAT-052-be2-sketch-review\\evidence\\local\\codex-review-20261019\\ruff-backend.log",
+      "sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+    },
+    "x03": {
+      "exit": 0,
+      "args": [
+        "-m",
+        "pytest",
+        "-p",
+        "no:cacheprovider",
+        "-o",
+        "addopts=",
+        "-q",
+        "-rs",
+        "--basetemp",
+        "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-05-sketch-review\\features\\FEAT-052-be2-sketch-review\\evidence\\local\\codex-review-20261019\\x03-temp",
+        "--junitxml",
+        "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-05-sketch-review\\features\\FEAT-052-be2-sketch-review\\evidence\\local\\codex-review-20261019\\x03.junit.xml",
+        "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-05-sketch-review\\backend\\tests\\unit\\test_assistance_chain.py",
+        "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-05-sketch-review\\backend\\tests\\unit\\test_assistance_cr03_followup.py",
+        "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-05-sketch-review\\backend\\tests\\unit\\test_assistance_domain.py",
+        "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-05-sketch-review\\backend\\tests\\unit\\test_assistance_races.py",
+        "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-05-sketch-review\\backend\\tests\\unit\\test_assistance_review_fixes.py",
+        "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-05-sketch-review\\backend\\tests\\unit\\test_assistance_service.py",
+        "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-05-sketch-review\\backend\\tests\\unit\\test_vision_analysis_domain.py",
+        "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-05-sketch-review\\backend\\tests\\unit\\test_vision_analysis_job_lineage.py",
+        "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-05-sketch-review\\backend\\tests\\unit\\test_vision_analysis_legacy_bridge.py",
+        "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-05-sketch-review\\backend\\tests\\unit\\test_vision_analysis_review_fixes.py",
+        "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-05-sketch-review\\backend\\tests\\unit\\test_vision_analysis_service.py",
+        "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-05-sketch-review\\backend\\tests\\unit\\test_vision_context_adapter.py",
+        "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-05-sketch-review\\backend\\tests\\unit\\test_vision_context_domain.py",
+        "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-05-sketch-review\\backend\\tests\\unit\\test_vision_context_service.py"
+      ],
+      "cwd": "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-05-sketch-review",
+      "log": "features\\FEAT-052-be2-sketch-review\\evidence\\local\\codex-review-20261019\\x03.log",
+      "sha256": "969ac2da77395ed4e6eb96c3f15cc9658b474a8f0da4b4a010791e6c6982f4db",
+      "junit": {
+        "path": "features\\FEAT-052-be2-sketch-review\\evidence\\local\\codex-review-20261019\\x03.junit.xml",
+        "sha256": "6d0de893684d1949402118e3c9ed4ebdfb5898e100bcf9e8bc43a6d5d092cae4",
+        "tests": 405,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "fence-policy-probes": {
+      "exit": 0,
+      "args": [
+        "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-05-sketch-review\\features\\FEAT-052-be2-sketch-review\\evidence\\local\\codex-review-20261019\\fence-probes\\review_fence_policy_probe.py"
+      ],
+      "cwd": "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-05-sketch-review",
+      "log": "features\\FEAT-052-be2-sketch-review\\evidence\\local\\codex-review-20261019\\fence-policy-probes.log",
+      "sha256": "1e1dcc60ba7306b35a94158ddc4446bb06625ad995ba416526c5e732115a8b12",
+      "script_sha256": "caaae3a4d292e1d1b0166eabff2820ba80f768fe1772541359f10b86cf8c8253",
+      "output": {
+        "policy_read_before_token": {
+          "status": 201,
+          "stored_policy": "fixture.sketch_review.v0@1|fixture.sketch_generation.v0@1",
+          "current_policy_enabled": false,
+          "publication_used_epoch_bump": true
+        },
+        "grant_read_before_token": {
+          "status": 201,
+          "teacher_grant_exists": false,
+          "stored_reviews": 1,
+          "publication_used_epoch_bump": true
+        },
+        "policy_changed_reuses_old_moderation": {
+          "new_policy_verdict": "blocked",
+          "stored_moderation_outcome": "passed",
+          "stored_moderation_policy": "fixture.sketch_review.v0@1",
+          "current_policy_version": "2",
+          "status": 201,
+          "child_status": "available"
+        }
+      }
+    },
+    "access-probes": {
+      "exit": 0,
+      "args": [
+        "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-05-sketch-review\\features\\FEAT-052-be2-sketch-review\\evidence\\local\\codex-review-20261019\\access-probes\\cache_and_revival_probe.py"
+      ],
+      "cwd": "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-05-sketch-review",
+      "log": "features\\FEAT-052-be2-sketch-review\\evidence\\local\\codex-review-20261019\\access-probes.log",
+      "sha256": "7ed10d3fb37938344e399cf6d61bc8ef0e5ccf36b78ffa5a48aaac3251df20b2",
+      "script_sha256": "187e654f418d47fe45731f841b59b45023df62667b39ffdb78e01369dbb961ff",
+      "output": {
+        "audience_restoration": {
+          "after_context_change": "pending",
+          "after_restoration": "available",
+          "review_count": 1,
+          "stored_review_state": "effective"
+        },
+        "cache_after_quarantine": {
+          "after_cache": "available",
+          "after_direct": "unavailable",
+          "before": "available",
+          "cache_misses": 1,
+          "cached_has_asset": true,
+          "cached_has_text": true,
+          "producer_state_after_direct_read": "stale"
+        },
+        "policy_restoration": {
+          "after_policy_change": "pending",
+          "after_restoration": "available",
+          "review_count": 1,
+          "same_old_review": true,
+          "stored_review_state": "effective"
+        }
+      }
+    },
+    "fingerprint-probes": {
+      "exit": 0,
+      "args": [
+        "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-05-sketch-review\\features\\FEAT-052-be2-sketch-review\\evidence\\local\\codex-review-20261019\\contract-probes\\fingerprint_probe.py"
+      ],
+      "cwd": "D:\\GitHub\\Sketch2Life\\.worktrees\\be2-05-sketch-review",
+      "log": "features\\FEAT-052-be2-sketch-review\\evidence\\local\\codex-review-20261019\\fingerprint-probes.log",
+      "sha256": "3ddf0e2c5c1f3948f30f20c4bf285656fac3d6dda12e2bb9cdb227228c08f8bd",
+      "script_sha256": "108df95feb5b034384a29508aaf2a7a4d962a990a95c3522c7fb3a42047c04aa",
+      "output": {
+        "cases": [
+          {
+            "case": "normalized_reason",
+            "transport": "typed",
+            "first": {
+              "status": 201,
+              "replayed": false,
+              "review_id": "skrev_fx0001"
+            },
+            "retry": {
+              "status": 409,
+              "error": "IDEMPOTENCY_PAYLOAD_MISMATCH"
+            },
+            "stored_reason": "Café",
+            "expected_retry": "original accepted result with replayed=true"
+          },
+          {
+            "case": "set_ordered_audience",
+            "transport": "typed",
+            "first": {
+              "status": 201,
+              "replayed": false,
+              "review_id": "skrev_fx0001"
+            },
+            "retry": {
+              "status": 409,
+              "error": "IDEMPOTENCY_PAYLOAD_MISMATCH"
+            },
+            "stored_participants": [
+              "participant_fx_a",
+              "participant_fx_b"
+            ],
+            "expected_retry": "original accepted result with replayed=true"
+          },
+          {
+            "case": "normalized_reason",
+            "transport": "json",
+            "first": {
+              "status": 201,
+              "replayed": false,
+              "review_id": "skrev_fx0001"
+            },
+            "retry": {
+              "status": 409,
+              "error": "IDEMPOTENCY_PAYLOAD_MISMATCH"
+            },
+            "stored_reason": "Café",
+            "expected_retry": "original accepted result with replayed=true"
+          },
+          {
+            "case": "set_ordered_audience",
+            "transport": "json",
+            "first": {
+              "status": 201,
+              "replayed": false,
+              "review_id": "skrev_fx0001"
+            },
+            "retry": {
+              "status": 409,
+              "error": "IDEMPOTENCY_PAYLOAD_MISMATCH"
+            },
+            "stored_participants": [
+              "participant_fx_a",
+              "participant_fx_b"
+            ],
+            "expected_retry": "original accepted result with replayed=true"
+          }
+        ],
+        "production_mutated": false,
+        "fixture_only": true
+      }
+    }
+  },
+  "post_review_document_checks": {
+    "harness": {
+      "exit": 0,
+      "log": "features/FEAT-052-be2-sketch-review/evidence/local/codex-review-20261019/validate_harness-final.log",
+      "sha256": "41ee349e5b4c9e831d4091b27b0e2a7e008b3040715724b661eedda13d0004ed"
+    },
+    "repository_security": {
+      "exit": 0,
+      "log": "features/FEAT-052-be2-sketch-review/evidence/local/codex-review-20261019/validate_repository_security-final.log",
+      "sha256": "ff714f2978467e7baf66b3d0fc7b5b385299231216b2aa766e59f1fbc144c8eb"
+    },
+    "architecture": {
+      "exit": 0,
+      "log": "features/FEAT-052-be2-sketch-review/evidence/local/codex-review-20261019/validate_architecture-final.log",
+      "sha256": "67f1bc538fc90b4f70000a89126dde0aa14c688b8c3dbba796e1a89d6caef80e"
+    },
+    "skeleton": {
+      "exit": 0,
+      "log": "features/FEAT-052-be2-sketch-review/evidence/local/codex-review-20261019/validate_skeleton-final.log",
+      "sha256": "c3bd0318347efa17e2cb71a192287f1fe5bbb4bb1932fa8a360e6f3328a7bd1b"
+    },
+    "diff_check": {
+      "exit": 0
+    }
+  },
+  "claude_junit_audit": {
+    "x04_task": {
+      "error": 34,
+      "passed": 2426,
+      "skipped": 37,
+      "failure": 18
+    },
+    "x04_baseline": {
+      "error": 34,
+      "passed": 2340,
+      "skipped": 37,
+      "failure": 18
+    },
+    "changed_existing_status": [],
+    "missing_existing": [],
+    "new_cases": 86,
+    "new_case_outcomes": {
+      "passed": 86
+    },
+    "x03_counts": {
+      "passed": 405
+    },
+    "x03_classname_modules": [
+      "test_assistance_chain",
+      "test_assistance_cr03_followup",
+      "test_assistance_domain",
+      "test_assistance_races",
+      "test_assistance_review_fixes",
+      "test_assistance_service",
+      "test_vision_analysis_domain",
+      "test_vision_analysis_job_lineage",
+      "test_vision_analysis_legacy_bridge",
+      "test_vision_analysis_review_fixes",
+      "test_vision_analysis_service",
+      "test_vision_context_adapter",
+      "test_vision_context_domain",
+      "test_vision_context_service"
+    ]
+  },
+  "executor_contract_receipt": {
+    "tests": 403,
+    "passed": 400,
+    "skipped": 3,
+    "not_run_modules": 7,
+    "reason": "Pillow-dependent import/collection; not independently rerun"
+  },
+  "diagnostic_probes": {
+    "scripts": 3,
+    "cases": 10,
+    "meaning": "Counterexamples reproduced; exit0 is not acceptance PASS",
+    "production_edits": "NONE"
+  },
+  "notes": [
+    "R03/R04/R05 post-invalidation412 consistent with composite ETag guard order",
+    "pending/unavailable content-free payload not classified as blocking",
+    "rp_<hash> opaque policy mapping accepted with provenance",
+    "C02 normalized-EOL comparison and N15c mutation-subset assertion strength are nonblocking notes",
+    "Ruff initial repo-root invocation superseded by correct backend-cwd PASS without source edit"
+  ],
+  "runtime": {
+    "Studio": "NOT_RUN",
+    "SQL": "NOT_RUN",
+    "provider": "NOT_RUN",
+    "HTTP_route": "NOT_RUN",
+    "UI": "NOT_RUN",
+    "cross_lane_integration": "NOT_RUN"
+  },
+  "review": {
+    "path": "features/FEAT-052-be2-sketch-review/evidence/notes/BE205_CODEX_REVIEW_20261019.md",
+    "sha256": "0091e8e7fcdab235beee98f28fefc6919decd2b94e43d2c2f721416e4a91194a",
+    "bytes": 12360
+  },
+  "claude_fix_prompt": {
+    "path": "features/FEAT-052-be2-sketch-review/evidence/local/codex-review-20261019/CLAUDE_BE205_REVIEW_FIX_PROMPT_20261019.md",
+    "sha256": "66881f1bfecdade76fe86b9074bcdf12ffbc66ad652091306875302055c2ae77",
+    "bytes": 3554
+  },
+  "writes": "new review note/metrics and ignored probes/receipts/prompt; current own context/status/decisions/evidence index and task05 tracker routing",
+  "production_source_test_fixture_changes": "NONE by review;19 pinned files unchanged",
+  "original_approval_plan_implementation_evidence": "UNCHANGED",
+  "git_index_ref_mutations": "NONE",
+  "publication": "NOT_AUTHORIZED / NOT_RUN",
+  "next": "Fix RV-CR01–05 within existing K1–K7, regression tests and fresh evidence, independent re-review"
+}

@@ -1,0 +1,18 @@
+{
+  "state": "DISPATCH_INTENT_RECORDED",
+  "workload": "story.generate",
+  "model": {
+    "id": "Qwen/Qwen2.5-7B-Instruct",
+    "revision": "a09a35458c702b33eeacc393d103063234e8bc28"
+  },
+  "job_id": "d41c9148-9661-4c35-9bce-2460e0138d21",
+  "generation_id": "9bdd4ad5-3e2d-4abc-84cb-9bbcae35d059",
+  "attempt_id": "2ff41716-71d9-45fc-8b8a-4a9984307d64",
+  "source_sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949",
+  "started_at": "2026-11-04T22:54:24+07:00",
+  "max_attempts": 1,
+  "wait_limit_seconds": 1800,
+  "synthetic_fixture": true,
+  "call_id": "fc-01M6KMA2KYQTF3RA3CRPZW73K0",
+  "dispatch_at": "2026-11-04T22:54:27+07:00"
+}

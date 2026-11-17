@@ -1,0 +1,14 @@
+stateDiagram-v2
+  [*] --> Waiting
+  Waiting --> Exploring
+  Exploring --> Drawing
+  Drawing --> HelpRequested: optional
+  HelpRequested --> Drawing: continue
+  Drawing --> Reviewing
+  Reviewing --> Ready
+  Ready --> Presenting
+  Presenting --> OffScreen
+  OffScreen --> Finished
+  Exploring --> Finished: teacher ends early
+  Drawing --> Finished: draft saved
+  note right of Ready: Group progress is independent; another ready group does not advance the class.

@@ -1,0 +1,16 @@
+flowchart TD
+  T1[Teacher chooses reviewed knowledge and an exact video version] --> B1[Backend checks source, audience, version and review status]
+  B1 -->|approved library item| T2[Teacher reviews exact item and starts playback]
+  B1 -->|generation requested| W1[Worker prepares video and reports typed status]
+  W1 -->|ready| T3[Teacher inspects and approves exact output version]
+  W1 -->|retry budget exhausted| T4[Teacher explicitly chooses retry, skip or end session]
+  T4 -->|retry| W1
+  T4 -->|skip| B2[Record skip disposition; do not mark video played]
+  T4 -->|end| B3[Persist early-end outcome and work completed so far]
+  T2 --> C1[Child views approved media with Teacher facilitation]
+  T3 --> T2
+  C1 --> T5[Teacher assigns a reviewed class or group activity]
+  T5 --> C2[Children complete off-screen activity and reflect]
+  C2 --> T6[Teacher records descriptive observation and session outcome]
+  T6 --> B4[Persist outcome and provenance; complete only after durable save]
+  B4 --> C3[Session closes with records available under retention policy]

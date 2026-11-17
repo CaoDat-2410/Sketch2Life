@@ -1,0 +1,7 @@
+flowchart LR
+  UI[apps / Child, Teacher, Admin] --> HTTP[interfaces / HTTP and composition]
+  HTTP --> APP[application / use cases and ports]
+  APP --> DOMAIN[domain / entities and rules]
+  INFRA[infrastructure / SQL, storage, workers, providers] -. implements .-> APP
+  CONTRACTS[versioned cross-feature contracts] --> APP
+  DEMO[separate demo composition] --> HTTP

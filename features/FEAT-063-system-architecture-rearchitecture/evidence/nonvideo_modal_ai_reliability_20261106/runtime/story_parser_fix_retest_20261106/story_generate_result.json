@@ -1,0 +1,118 @@
+{
+  "app": "sketch2life-srs23-language-audio-dev",
+  "attempt_id": "806fa378-0ce5-4b97-a2d8-69dc9df3e8c6",
+  "call_id": "fc-01M6QZQ3Q3FZQQ3RSS15VWG653",
+  "created_at": "2026-11-06T15:30:41+07:00",
+  "dispatch_at": "2026-11-06T15:30:44+07:00",
+  "duration_ms": 30000,
+  "ended_at": "2026-11-06T15:32:35+07:00",
+  "function": "generate-story-and-storyboard",
+  "generation_id": "e206713b-accf-4856-b16f-013cbc1dd1ac",
+  "input_sha256": "e861e111af128e0bcd7185f48d6a0c5e4a84ae3c9390a6f1775347b669ca4e44",
+  "job_id": "0c7d152f-e658-4ccf-98ad-bb43f5bf6178",
+  "manifest_sha256": "7a0d027ff830782c55d6215515409c818752e1eef07a96565ba292a428b04e85",
+  "max_attempts": 1,
+  "outcome": "SUCCEEDED",
+  "result": {
+    "duration_ms": 30000,
+    "language": "vi",
+    "scenes": [
+      {
+        "action": "Người lớn nhẹ nhàng chỉ vào một quả trứng màu trắng ngà bám trên lá xanh. Trẻ cúi đầu quan sát kỹ, nhận ra kích thước bé",
+        "character_anchors": [
+          "Người lớn chỉ tay nhẹ",
+          "Trẻ cúi đầu quan sát"
+        ],
+        "duration_ms": 6000,
+        "narration": "Đây là quả trứng của bướm. Nó rất nhỏ và nằm yên trên lá. Chúng ta sẽ cùng chờ xem điều gì sẽ xảy ra tiếp theo.",
+        "scene_index": 1,
+        "start_ms": 0,
+        "title": "Quả trứng nhỏ trên lá",
+        "visual_prompt": "Close-up macro shot of a tiny white egg on a vibrant green leaf, natural sunlight, shallow depth of field, realistic texture, no human hands visible, serene garden background, 60th"
+      },
+      {
+        "action": "Trứng đã biến mất, thay vào đó là con sâu bướm nhỏ đang nhai lá cây. Trẻ nhìn thấy hai đôi chân và thân hình thon của nó",
+        "character_anchors": [
+          "Sâu bướm đang ăn",
+          "Trẻ chỉ vào sâu"
+        ],
+        "duration_ms": 6000,
+        "narration": "Trứng đã nở thành sâu bướm. Nó đang ăn lá để lớn lên. Bạn có thấy thân hình thon và những chiếc râu cong của nó không?",
+        "scene_index": 2,
+        "start_ms": 6000,
+        "title": "Sâu bướm ăn lá",
+        "visual_prompt": "A small green caterpillar eating a leaf edge, detailed texture of skin and legs, natural garden setting, soft daylight, no text or labels, realistic scale, 60th month child's p"
+      },
+      {
+        "action": "Sâu bướm tìm cành cây để treo mình lại, bắt đầu quá trình hóa nhộng. Trẻ quan sát sự chuyển động chậm rãi của cơ thể sâu",
+        "character_anchors": [
+          "Sâu bướm treo mình",
+          "Trẻ nhìn chăm chú"
+        ],
+        "duration_ms": 6000,
+        "narration": "Sâu bướm đã tìm chỗ để hóa nhộng. Nó sẽ nghỉ ngơi ở đây một thời gian trước khi có sự thay đổi lớn.",
+        "scene_index": 3,
+        "start_ms": 12000,
+        "title": "Sâu bướm hóa nhộng",
+        "visual_prompt": "Caterpillar hanging upside down on a twig forming a chrysalis, green and brown tones, soft focus background, natural lighting, no human interaction, realistic biological process, 6"
+      },
+      {
+        "action": "Nhộng mở ra, bướm trưởng thành với hai đôi cánh rộng chui ra và bắt đầu vỗ cánh. Trẻ thấy rõ râu cong và thân hình thon",
+        "character_anchors": [
+          "Bướm đang vỗ cánh",
+          "Trẻ há hốc miệng"
+        ],
+        "duration_ms": 6000,
+        "narration": "Bướm trưởng thành đã chui ra khỏi nhộng. Nó có hai đôi cánh rộng và râu cong. Bây giờ nó có thể bay tự do rồi.",
+        "scene_index": 4,
+        "start_ms": 18000,
+        "title": "Bướm trưởng thành bay",
+        "visual_prompt": "A beautiful butterfly with wide wings emerging from a chrysalis, vibrant colors, soft morning light, garden background, realistic details, no text, 60th month child watching"
+      },
+      {
+        "action": "Người lớn nhẹ nhàng chỉ vào một quả trứng màu trắng ngà bám trên lá xanh. Trẻ cúi đầu quan sát kỹ, nhận ra kích thước bé",
+        "character_anchors": [
+          "Người lớn chỉ tay nhẹ",
+          "Trẻ cúi đầu quan sát"
+        ],
+        "duration_ms": 6000,
+        "narration": "Đây là quả trứng của bướm. Nó rất nhỏ và nằm yên trên lá. Chúng ta sẽ cùng chờ xem điều gì sẽ xảy ra tiếp theo.",
+        "scene_index": 5,
+        "start_ms": 24000,
+        "title": "Vòng Đời Bướm: Từ Trứng Đến Bay Lượn",
+        "visual_prompt": "Close-up macro shot of a tiny white egg on a vibrant green leaf, natural sunlight, shallow depth of field, realistic texture, no human hands visible, serene garden background, 60th"
+      }
+    ],
+    "schema_version": "sketch2life.story-revision.v1",
+    "story": {
+      "ending": "Nhộng chuyển mình, bướm trưởng thành chui ra với hai đôi cánh rộng. Bướm bay nhẹ nhàng, hoàn thành vòng đời. Người lớn và trẻ cùng ngắm nhìn vẻ đẹp tự nhiên này mà không cần đặt ra",
+      "middle": "Trứng nở ra con sâu bướm nhỏ. Sâu bướm ăn lá cây để lớn lên, sau đó tìm chỗ an toàn để hóa nhộng. Trẻ nhìn thấy thân hình thon và râu cong của sâu bướm khi nó nghỉ ngơi trong lớp k",
+      "opening": "Người lớn chỉ vào một quả trứng nhỏ trên lá xanh. Trẻ quan sát kỹ hình dáng bé tí của nó, chờ đợi sự thay đổi sắp xảy ra theo quy luật tự nhiên của bướm. Không có tên gọi hay cảm x"
+    },
+    "title": "Vòng Đời Bướm: Từ Trứng Đến Bay Lượn"
+  },
+  "scene_count": 5,
+  "state": "DISPATCH_INTENT_RECORDED",
+  "story_sha256": "5997380582c22fbff9165b93991c07c5d6ddee518ab5080dd33b313be80b1d3d",
+  "synthetic_adult_confirmed_fixture": true,
+  "title": "Vòng Đời Bướm: Từ Trứng Đến Bay Lượn",
+  "wait_limit_seconds": 1800,
+  "worker_log_summary": {
+    "worker_binary_output_sha256": null,
+    "worker_duration_ms": 108452,
+    "worker_error_code": null,
+    "worker_error_type": null,
+    "worker_failure_boundary": "worker_succeeded",
+    "worker_gpu_class": "L40S|L4|A10",
+    "worker_last_stage": "terminal",
+    "worker_log_event_count": 28,
+    "worker_logs_available": true,
+    "worker_model_id": "Qwen/Qwen3.5-9B",
+    "worker_model_revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+    "worker_output_sha256": "14a8da357e2c36b3566e9387ae8a777ac31b6b9044081468663a4e8be43115f6",
+    "worker_output_size_bytes": 4772,
+    "worker_started_observed": true,
+    "worker_terminal_event": "worker_succeeded"
+  },
+  "workload": "story.generate"
+}

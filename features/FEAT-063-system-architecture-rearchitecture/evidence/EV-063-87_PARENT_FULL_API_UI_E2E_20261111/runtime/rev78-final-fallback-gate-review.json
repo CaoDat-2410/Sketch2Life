@@ -1,0 +1,10 @@
+{
+  "test": "rev78_replay_parent_activity_quality_gate",
+  "reviewed_at_utc": "2026-11-11T14:26:04.623209+00:00",
+  "source_modal_call_id": "fc-01M75FQMWZ2CZSXNMT2C65C275",
+  "modal_inference_repeated": false,
+  "status": "PASS_REJECTED_INCOMPLETE_OUTPUT",
+  "application_error_code": "PARENT_ACTIVITY_QUALITY_GATE_REJECTED",
+  "quality_gate_diagnostic_code": "ACTIVITY_TEXT_INCOMPLETE",
+  "reason": "At least one generated prose field ends mid-sentence without terminal punctuation."
+}

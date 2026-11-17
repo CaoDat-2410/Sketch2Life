@@ -1,0 +1,20 @@
+stateDiagram-v2
+  [*] --> Received
+  Received --> IdentityCheck
+  IdentityCheck --> ScopeReview
+  IdentityCheck --> Rejected
+  ScopeReview --> Approved
+  ScopeReview --> Rejected
+  Approved --> Running
+  Running --> AwaitingExternalPurge
+  Running --> Completed
+  Running --> PartiallyCompleted
+  Running --> Failed
+  AwaitingExternalPurge --> Completed
+  AwaitingExternalPurge --> PartiallyCompleted
+  AwaitingExternalPurge --> Failed
+  Received --> Cancelled
+  IdentityCheck --> Cancelled
+  ScopeReview --> Cancelled
+  Approved --> Cancelled
+  note right of PartiallyCompleted: Partial, failed or cancelled does not claim every copy was purged.

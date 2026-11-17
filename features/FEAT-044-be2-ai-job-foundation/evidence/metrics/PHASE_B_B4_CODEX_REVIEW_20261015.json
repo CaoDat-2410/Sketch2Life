@@ -1,0 +1,111 @@
+{
+  "date": "2026-10-15",
+  "review": "NEEDS_REVISION",
+  "active": "Q01/B4_NEEDS_REVISION",
+  "b4_rt01": "CLOSED_FOR_REPORTED_SNAPSHOT",
+  "b4_r01": "OPEN",
+  "b5": "NOT_STARTED",
+  "runtime": {
+    "provenance": "USER_REPORTED_REMOTE",
+    "run_utc": "2026-10-15T12:32:39Z",
+    "receipts": "evidence/local/b4rt01-runtime-20261015/run-20261015T123237Z-23051/",
+    "base_commit": "993a26cae78c0a4fe983033f03881838c886b176",
+    "source_state": "previous_b4_snapshot",
+    "previous_manifest_sha256": "70b2a1600682aec3cfe2dabd80608d45c107f88d24ed25dd18d0e804aff8ef4d",
+    "delta_sha256": "44f3a80db776430b9d693388f2196fb79a2a20ec89c5e28867edc12c2810ec58",
+    "manifest_sha256": "444cfeadd3d7d0d0e1f23663b576270f46692e870fe532071f6cf025ffd9ff01",
+    "source_files_ok": 32,
+    "b2_b4": {
+      "passed": 97,
+      "failed": 0,
+      "skipped": 0,
+      "warnings": 73,
+      "seconds": 64.38,
+      "exit": 0,
+      "log_exit": 0,
+      "offline": 35,
+      "postgres_redis": 62
+    },
+    "phase_a": {
+      "passed": 224,
+      "skipped": 0,
+      "seconds": 4.3,
+      "exit": 0,
+      "log_exit": 0
+    },
+    "fixture_runner": {
+      "pass": 20,
+      "fail": 0,
+      "checks": 215,
+      "checks_failed": 0,
+      "not_run": 1,
+      "not_run_scope": "optional HTTP surface",
+      "exit": 0,
+      "log_exit": 0,
+      "results_sha256": "d17f58a3c9c535d45a2fe03ed0c1edad42a565422725aede21b22ba45af41f68"
+    },
+    "outer_runner_exit": 0,
+    "runner_result": "PASS",
+    "studio_command_exit": 0,
+    "environment": {
+      "python": "3.12.15",
+      "sqlalchemy": "2.1.4",
+      "psycopg": "3.3.6",
+      "alembic": "1.20.0",
+      "pytest": "8.4.2",
+      "redis": "6.4.0",
+      "rq": "2.12.0",
+      "redis_server": "8.10.2"
+    },
+    "log_sha256": "70511d1f2709fb555a65c51818dd9ec5109dbbdbf8c4c539e6189b1a7d7c7e7c"
+  },
+  "finding": {
+    "id": "B4-R01",
+    "priority": "P2",
+    "scope": "B4 Delta11 targeted paging",
+    "summary": "Deferred first page indefinitely starves later eligible due retries",
+    "probe": {
+      "provenance": "DIRECT_LOCAL_FAKE_SERVICE_PROBE; not PostgreSQL proof",
+      "due_jobs": 51,
+      "claim_limit": 50,
+      "blocked_prefix": 50,
+      "blocked_decision": "ineligible CONSENT_REVOKED with missing fence (FixtureEligibility missing-row shape)",
+      "pass_results": [
+        [],
+        [],
+        []
+      ],
+      "healthy_job": "job_fx0051",
+      "healthy_owner_decision_calls_in_three_passes": 0,
+      "healthy_state_after_three_passes": "failed_retryable",
+      "blocked_decision_calls": 6,
+      "direct_retry_same_healthy_job": true,
+      "healthy_state_after_direct_retry": "queued",
+      "healthy_attempts_after_direct_retry": 2
+    },
+    "probe_confirmed_by_primary": true,
+    "postgres_reproduction": "NOT_RUN"
+  },
+  "reviewers": {
+    "sql_lease_ack_recovery": "NO_ADDITIONAL_FINDINGS",
+    "tests_rq_security": "NO_ADDITIONAL_B4_FINDINGS",
+    "service_domain_dispatcher": "B4-R01",
+    "primary": "CONFIRMED_B4-R01"
+  },
+  "preservation": {
+    "protected_paths": 514,
+    "backend_changed_by_review": false,
+    "approval_changed": false,
+    "approved_plan_changed": false,
+    "packages_changed": false,
+    "git_index_changed": false
+  },
+  "scope": {
+    "business_cards": 14,
+    "wip": 1,
+    "full_cards_done": 0,
+    "owner_fence": "ASSUMED_CONTRACT",
+    "b5_b6_real_integration": "DEFERRED"
+  },
+  "local_validation": "See ignored evidence/local/b4-codex-review-20261015/final_checks.json"
+}

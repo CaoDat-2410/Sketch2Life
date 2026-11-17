@@ -1,0 +1,23 @@
+{
+  "state": "CALL_TERMINAL_FAILURE",
+  "workload": "story.generate",
+  "app": "sketch2life-srs23-language-audio-dev",
+  "function": "generate-story-and-storyboard",
+  "job_id": "2614ed8b-6b32-4615-bc61-ea88ee837c7b",
+  "generation_id": "46b1b815-d715-475b-a5cd-cea3c9eb17a0",
+  "attempt_id": "557a8512-b637-48ae-9ec3-3c5f09982e2f",
+  "prefix": "sketch2life/dev/2614ed8b-6b32-4615-bc61-ea88ee837c7b/46b1b815-d715-475b-a5cd-cea3c9eb17a0/557a8512-b637-48ae-9ec3-3c5f09982e2f/",
+  "input_sha256": "b9f0e21cc73016e91f51e31ad15dc5730b0e9f637e3940b25333f19896086e9d",
+  "manifest_sha256": "215da7b08726db920a60331d728a75ffb148d0880fee8e243bd7d91e7a6de704",
+  "synthetic_parent_fixture": true,
+  "source_drawing_sha256": "c16930354d637199b97d744de16c62bfc4f0ee97c34a23751e27912d968c6949",
+  "wait_limit_seconds": 300,
+  "created_at": "2026-11-05T02:38:36.465+07:00",
+  "max_calls": 1,
+  "outcome": "MODEL_OUTPUT_INVALID",
+  "call_id": "fc-01M6M14QE9V6R129AAEXWVQRW2",
+  "dispatched_at": "2026-11-05T02:38:43.896+07:00",
+  "ended_at": "2026-11-05T02:39:30.699+07:00",
+  "error_code": "MODAL_MODEL_OUTPUT_INVALID",
+  "scratch_cleanup": "removed"
+}

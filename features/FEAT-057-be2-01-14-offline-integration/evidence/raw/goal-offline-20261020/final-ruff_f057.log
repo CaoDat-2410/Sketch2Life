@@ -1,0 +1,63 @@
+I001 [*] Import block is un-sorted or un-formatted
+  --> backend\tests\integration\ai_jobs\test_migrations.py:9:1
+   |
+ 7 |   """
+ 8 |
+ 9 | / from __future__ import annotations
+10 | |
+11 | | import io
+12 | | import json
+13 | | import re
+14 | | from collections.abc import Callable, Iterator
+15 | | from dataclasses import replace
+16 | | from datetime import UTC, datetime
+17 | | from pathlib import Path
+18 | | from typing import Any
+19 | |
+20 | | import pytest
+21 | | from alembic.autogenerate import compare_metadata
+22 | | from alembic.config import Config
+23 | | from alembic.runtime.migration import MigrationContext
+24 | | from alembic.script import Script, ScriptDirectory
+25 | | from alembic.util.exc import CommandError
+26 | | from sqlalchemy import Connection, String, create_engine, insert, select, text
+27 | | from sqlalchemy.dialects import postgresql
+28 | | from sqlalchemy.engine import URL
+29 | | from sqlalchemy.exc import IntegrityError
+30 | | from sqlalchemy.pool import NullPool
+31 | | from sqlalchemy.schema import CreateTable
+32 | |
+33 | | from alembic import command
+34 | | from sketch2life.contracts.schemas.ai_jobs import CreateAiJobCommandV1
+35 | | from sketch2life.infrastructure.ai_jobs.harness import build_fixture_harness
+36 | | from sketch2life.infrastructure.ai_jobs.sql import tables as t
+37 | | from sketch2life.infrastructure.config.settings import get_core_database_settings
+   | |_________________________________________________________________________________^
+38 |
+39 |   BACKEND = Path(__file__).resolve().parents[3]
+   |
+help: Organize imports
+   |
+20 | import pytest
+21 + from alembic import command
+22 | from alembic.autogenerate import compare_metadata
+--------------------------------------------------------------------------------
+26 | from alembic.util.exc import CommandError
+27 + from sketch2life.contracts.schemas.ai_jobs import CreateAiJobCommandV1
+28 + from sketch2life.infrastructure.ai_jobs.harness import build_fixture_harness
+29 + from sketch2life.infrastructure.ai_jobs.sql import tables as t
+30 + from sketch2life.infrastructure.config.settings import get_core_database_settings
+31 | from sqlalchemy import Connection, String, create_engine, insert, select, text
+--------------------------------------------------------------------------------
+36 | from sqlalchemy.schema import CreateTable
+   -
+   - from alembic import command
+   - from sketch2life.contracts.schemas.ai_jobs import CreateAiJobCommandV1
+   - from sketch2life.infrastructure.ai_jobs.harness import build_fixture_harness
+   - from sketch2life.infrastructure.ai_jobs.sql import tables as t
+   - from sketch2life.infrastructure.config.settings import get_core_database_settings
+37 |
+   |
+
+Found 1 error.
+[*] 1 fixable with `--fix`.

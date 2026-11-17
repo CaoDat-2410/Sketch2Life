@@ -1,0 +1,52 @@
+{
+  "recorded_at": "2026-10-15T01:42:24.003364+07:00",
+  "scope": "BE2-01 Phase B B1 decision record (docs only); no code, install, service or contact",
+  "decision_record": "plan/PHASE_B_DECISION_RECORD.md revision 1",
+  "decision_record_status": "PENDING_OWNER_DECISION",
+  "actual_owner_inputs": "none found (repo + session); policy-level directives only",
+  "checks": [
+    {
+      "check": "harness",
+      "command": "python tools/validate_harness.py --feature features/FEAT-044-be2-ai-job-foundation",
+      "exit_code": 0,
+      "local_receipt": "evidence/local/phase-b-b1-gate-20261015/run1_harness.txt"
+    },
+    {
+      "check": "security",
+      "command": "python tools/validate_repository_security.py",
+      "exit_code": 0,
+      "local_receipt": "evidence/local/phase-b-b1-gate-20261015/run1_security.txt"
+    },
+    {
+      "check": "diff_check",
+      "command": "git diff --check",
+      "exit_code": 0,
+      "local_receipt": "evidence/local/phase-b-b1-gate-20261015/run1_diff_check.txt"
+    }
+  ],
+  "phase_a_frozen_24": {
+    "all_ok": true,
+    "mismatches": [],
+    "exception": {
+      "backend/tests/unit/test_ai_job_q00_followups.py": {
+        "working_tree": "9a1f5ad64c00ba7298fb107c38d79043dabafb512e4e311b86a036570e654b4b",
+        "reason": "user-approved EOF whitespace fix, evidence/notes/Q00_FOLLOWUPS_EOF_DISPOSITION_20261015.md"
+      }
+    },
+    "head_commit": "882e904",
+    "local_detail": "local/phase-b-b1-gate-20261015/run1_hash24.json"
+  },
+  "rev3_docs_match_final_review": true,
+  "document_sha256": {
+    "plan/PHASE_B_PLAN.md": "bb20d5be45dc0552a803f67b5927d4a38dc113cabe10b3a6088644d874ba5848",
+    "plan/PHASE_B_ADR_PROPOSAL.md": "756b6df5ab8e8ec659ffabdc26a0083f035d28d63b86cebc54c6071c9f8ad0ac",
+    "plan/PHASE_B_PORT_REVIEW.md": "3af783a7efca61c5f098f7679b70bbdee4eb6034b9370291c282064ee5579699",
+    "evidence/notes/PHASE_B_PLAN_FINAL_REVIEW_20261015.md": "8ea35f4957600818f3794bcabef6d8694c66dce6fb1a8df1c67099c27bab5bb5",
+    "evidence/notes/PHASE_A_ACCEPTANCE_GATE_RECORD.md": "9b61acf2d8b3d107eb0958518025b982435313a71a06ac636febce7f9dd1690b",
+    "plan/PHASE_B_DECISION_RECORD.md": "8950807d7f72b66579dd85c34e4d47b6f2c932b8171ec63b85b037b68b4ca994"
+  },
+  "runtime_tests": "NOT_RUN; no Phase B implementation; live-route test still NOT_RUN (1 skipped, 2026-10-14)",
+  "active_slot": "Q00",
+  "q01_status": "PLAN_REVIEW_PASS_WAITING_GATES",
+  "phase_b_implementation": "NOT_STARTED_UNAPPROVED"
+}

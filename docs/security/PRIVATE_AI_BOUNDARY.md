@@ -75,6 +75,6 @@ The Android app must not know a provider hostname, endpoint ID, token, administr
 - [ ] Fixture-only load/security evidence is stored in the implementing feature.
 - [ ] Data retention/deletion and incident response owners are recorded.
 
-No live model connection is authorized by this document; it defines the gate for a later feature.
+FEAT-017 separately authorizes one backend-only Lightning development smoke path using synthetic fixtures. This document still does not authorize Runpod production, real child data, or mobile provider access.
 
 Official provider references: [Lightning managed secrets](https://lightning.ai/docs/overview/ai-studio/managed-secrets), [Runpod endpoints](https://docs.runpod.io/serverless/endpoints/overview), and [Runpod API keys](https://docs.runpod.io/get-started/api-keys).

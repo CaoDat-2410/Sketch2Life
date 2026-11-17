@@ -1,0 +1,15 @@
+{
+  "manifest_version": 1,
+  "contract_names": [
+    "P1ContextV1",
+    "SemanticAnchorSetV1",
+    "LearningFocusV1",
+    "ActivityTemplateV1",
+    "ExperienceSpecV1",
+    "ActivityFitEvaluationV1",
+    "IntegrationGateDecisionV1"
+  ],
+  "raw_media_included": false,
+  "real_child_data_included": false,
+  "provider_credentials_included": false
+}

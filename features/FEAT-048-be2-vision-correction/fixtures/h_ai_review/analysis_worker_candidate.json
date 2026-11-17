@@ -1,0 +1,82 @@
+{
+  "assistance_id": "assistance_fx_001",
+  "context_revision": 3,
+  "contract_version": "0.1-candidate",
+  "evidence_refs": [
+    {
+      "kind": "vision_observation",
+      "ref": "ana_fx0001",
+      "sha256": "b32e858e1024cb119bef6ea8a4ec6e504af210186c99018c7243929ae2f85768"
+    },
+    {
+      "kind": "provider_result",
+      "ref": "result:ana_fx0001",
+      "sha256": "f2998f75a7edb72c3d10e8cdd9d1dab3b4d32dc61b31b56454e78563e08f9f46"
+    },
+    {
+      "kind": "source_checkpoint",
+      "ref": "checkpoint_fx_004",
+      "sha256": "883c7da76fba38c707ab05f346bebbd99eb04938913e839750a6cf1b3951d86f"
+    },
+    {
+      "kind": "source_render",
+      "ref": "render_fx_004",
+      "sha256": "8c91fbbc97b519911c1e7794060f4f512ac2a3a16dfd84bc3356b889efc80b4b"
+    },
+    {
+      "kind": "admission_receipt",
+      "ref": "admission_fx_004",
+      "sha256": "f1e25fcea6d63b087940fc5e73d0fa4b047b5d2ff989b82c8d725b36240110f4"
+    }
+  ],
+  "expected_request_revision": 1,
+  "input_snapshot_ref": "snapshot_fx_001",
+  "job_attempt_id": "att_fx0001",
+  "job_id": "job_fx0001",
+  "moderation_outcome": {
+    "child_visibility": "withheld",
+    "comprehensive_moderation": "not_run",
+    "lexical_policy_version": "vision-prohibited-lexicon-fixture-v1",
+    "lexical_regression": "passed",
+    "match_view_version": "vision-policy-match-view-v2"
+  },
+  "object_candidates": [
+    {
+      "confidence": 0.71,
+      "label": "cat",
+      "observation_ref": "ent-1"
+    },
+    {
+      "confidence": null,
+      "label": "ball",
+      "observation_ref": "ent-2"
+    }
+  ],
+  "provenance": {
+    "adapter_id": "lightning-vision-v2-bridge",
+    "adapter_version": "qwen3-vl-local-adapter-v2-b1",
+    "config_hash": "3082f03f32a1cb26e6f5c25fe73813039460129b0f18a15e647b9f5ff08e3267",
+    "content_policy_version": "vision-prohibited-lexicon-fixture-v1",
+    "evidence_kind": "offline_legacy_bridge",
+    "executed_at": "2026-10-16T12:00:05Z",
+    "model_identifier": "Qwen/Qwen3-VL-8B-Instruct",
+    "model_revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+    "policy_match_view_version": "vision-policy-match-view-v2",
+    "profile_catalog_hash": "72651b96d2c2259344efcb6fb3349807d42b56079a5422530db09c1590f00947",
+    "profile_id": "QWEN3_VL_8B_INSTRUCT_BF16_V1",
+    "provider_context_mode": "image_only",
+    "result_contract": "VisionUnderstandingResultV2/2.0",
+    "transport_attempts": 1
+  },
+  "uncertainty": {
+    "ambiguous_region_refs": [
+      "amb-1"
+    ],
+    "calibration": "uncalibrated",
+    "requires_meaning_confirmation": true,
+    "unknown_confidence_refs": [
+      "ent-2",
+      "rel-1"
+    ]
+  }
+}

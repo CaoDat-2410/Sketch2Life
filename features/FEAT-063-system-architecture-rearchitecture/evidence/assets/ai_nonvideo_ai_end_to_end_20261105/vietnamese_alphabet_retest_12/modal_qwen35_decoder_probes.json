@@ -1,0 +1,43 @@
+{
+  "schema_version": "sketch2life.feat063.modal-decoder-probes.v1",
+  "observed_on": "2026-11-05",
+  "environment": "dev",
+  "app": "sketch2life-srs23-language-audio-dev",
+  "call_id_captured": false,
+  "cpu_probe": {
+    "function": "probe-qwen35-constrained-decoder",
+    "status": "ready",
+    "model_id": "Qwen/Qwen3.5-9B",
+    "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+    "vocab_size": 248077,
+    "tokenizer_eos_token_id": 248046,
+    "model_eos_token_ids": [
+      248044
+    ],
+    "model_eos_is_tokenizer_special": true,
+    "valid_four_character_vietnamese_value": {
+      "accepted": true,
+      "eos_allowed": true
+    },
+    "overlong_five_character_vietnamese_value": {
+      "accepted": false,
+      "eos_allowed": false
+    },
+    "story_nested_narration_overlength_rejected": true,
+    "story_partial_vietnamese_eos_blocked": true,
+    "teacher_nested_placement_overlength_rejected": true
+  },
+  "gpu_probe": {
+    "function": "probe-qwen35-generation-constraints",
+    "status": "ready",
+    "model_id": "Qwen/Qwen3.5-9B",
+    "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+    "input_token_count": 33,
+    "output_token_count": 12,
+    "generation_seconds": 1.4,
+    "prefix_callback_calls": 12,
+    "all_generated_tokens_were_allowed": true,
+    "json_valid": true,
+    "value_length": 4
+  }
+}

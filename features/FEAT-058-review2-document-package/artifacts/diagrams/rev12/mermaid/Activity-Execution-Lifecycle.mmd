@@ -1,0 +1,14 @@
+stateDiagram-v2
+  [*] --> Proposed
+  Proposed --> TeacherSelected
+  TeacherSelected --> PreparationRequired
+  TeacherSelected --> Ready: resources confirmed
+  PreparationRequired --> Ready: safety/materials confirmed
+  Ready --> InProgress
+  InProgress --> Completed
+  TeacherSelected --> Skipped
+  Ready --> Skipped
+  InProgress --> Interrupted
+  Interrupted --> InProgress: resume with teacher
+  Interrupted --> Skipped: teacher disposition
+  note right of Ready: Teacher selection alone does not prove materials or safety readiness.

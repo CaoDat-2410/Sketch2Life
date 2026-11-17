@@ -1,0 +1,566 @@
+[
+  {
+    "method": "POST",
+    "path": "/activity-assignments",
+    "function": "execute",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\activity_execution.py"
+  },
+  {
+    "method": "GET",
+    "path": "/jobs/{job_id}",
+    "function": "get_job",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\ai_jobs.py"
+  },
+  {
+    "method": "POST",
+    "path": "/analysis-results/{analysis_id}/corrections",
+    "function": "submit_correction",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\analysis_corrections.py"
+  },
+  {
+    "method": "POST",
+    "path": "/assistance-requests",
+    "function": "submit",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\assistance_requests.py"
+  },
+  {
+    "method": "POST",
+    "path": "/assistance-requests/{assistance_id}/cancel",
+    "function": "cancel",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\assistance_requests.py"
+  },
+  {
+    "method": "POST",
+    "path": "/organizations/{organization_id}/sessions/{session_id}/artifacts",
+    "function": "upload_session_artifact",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_artifacts.py"
+  },
+  {
+    "method": "GET",
+    "path": "/organizations/{organization_id}/sessions/{session_id}/artifacts/{asset_ref:path}",
+    "function": "download_session_artifact",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_artifacts.py"
+  },
+  {
+    "method": "POST",
+    "path": "/organizations/{organization_id}/sessions/{session_id}/canvas/operations",
+    "function": "append_canvas_operation",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_canvas.py"
+  },
+  {
+    "method": "GET",
+    "path": "/organizations/{organization_id}/sessions/{session_id}/canvas/operations",
+    "function": "sync_canvas_operations",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_canvas.py"
+  },
+  {
+    "method": "POST",
+    "path": "/organizations/{organization_id}/sessions/{session_id}/groups/{group_id}/checkpoints",
+    "function": "save_checkpoint",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_canvas.py"
+  },
+  {
+    "method": "GET",
+    "path": "/organizations/{organization_id}/sessions/{session_id}/groups/{group_id}/checkpoints/latest",
+    "function": "read_latest_checkpoint",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_canvas.py"
+  },
+  {
+    "method": "POST",
+    "path": "/organizations/{organization_id}/sessions/{session_id}/groups/{group_id}/restore",
+    "function": "restore_checkpoint",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_canvas.py"
+  },
+  {
+    "method": "GET",
+    "path": "/organizations/{organization_id}/sessions/{session_id}/reconnect",
+    "function": "reconnect_canvas",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_canvas.py"
+  },
+  {
+    "method": "POST",
+    "path": "/organizations/{organization_id}/gallery",
+    "function": "create_gallery_snapshot",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_records.py"
+  },
+  {
+    "method": "GET",
+    "path": "/organizations/{organization_id}/gallery",
+    "function": "list_gallery",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_records.py"
+  },
+  {
+    "method": "POST",
+    "path": "/organizations/{organization_id}/gallery/{gallery_id}/publish",
+    "function": "publish_gallery",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_records.py"
+  },
+  {
+    "method": "POST",
+    "path": "/organizations/{organization_id}/gallery/{gallery_id}/annotations",
+    "function": "annotate_gallery",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_records.py"
+  },
+  {
+    "method": "POST",
+    "path": "/organizations/{organization_id}/classes/{class_id}/observations",
+    "function": "create_observation",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_records.py"
+  },
+  {
+    "method": "GET",
+    "path": "/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}/portfolio",
+    "function": "read_portfolio",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_records.py"
+  },
+  {
+    "method": "POST",
+    "path": "/organizations/{organization_id}/data-requests",
+    "function": "create_data_request",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_records.py"
+  },
+  {
+    "method": "GET",
+    "path": "/organizations/{organization_id}/data-requests/{request_id}",
+    "function": "read_data_request",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_records.py"
+  },
+  {
+    "method": "GET",
+    "path": "/organizations/{organization_id}",
+    "function": "read_organization",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_registry.py"
+  },
+  {
+    "method": "GET",
+    "path": "/organizations/{organization_id}/me",
+    "function": "current_assignments",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_registry.py"
+  },
+  {
+    "method": "POST",
+    "path": "/organizations/{organization_id}/assignments",
+    "function": "create_assignment",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_registry.py"
+  },
+  {
+    "method": "DELETE",
+    "path": "/organizations/{organization_id}/assignments/{assignment_id}",
+    "function": "revoke_assignment",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_registry.py"
+  },
+  {
+    "method": "GET",
+    "path": "/organizations/{organization_id}/classes",
+    "function": "list_classes",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_registry.py"
+  },
+  {
+    "method": "POST",
+    "path": "/organizations/{organization_id}/classes",
+    "function": "create_class",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_registry.py"
+  },
+  {
+    "method": "GET",
+    "path": "/organizations/{organization_id}/classes/{class_id}/profiles",
+    "function": "list_profiles",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_registry.py"
+  },
+  {
+    "method": "POST",
+    "path": "/organizations/{organization_id}/classes/{class_id}/profiles",
+    "function": "create_profile",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_registry.py"
+  },
+  {
+    "method": "POST",
+    "path": "/organizations/{organization_id}/classes/{class_id}/consents",
+    "function": "record_consent",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_registry.py"
+  },
+  {
+    "method": "GET",
+    "path": "/organizations/{organization_id}/classes/{class_id}/consents",
+    "function": "list_consents",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_registry.py"
+  },
+  {
+    "method": "POST",
+    "path": "/organizations/{organization_id}/classes/{class_id}/consents/{consent_id}/revoke",
+    "function": "revoke_consent",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_registry.py"
+  },
+  {
+    "method": "GET",
+    "path": "/api/be1/v1/health",
+    "function": "be1_health",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_runtime.py"
+  },
+  {
+    "method": "POST",
+    "path": "/organizations/{organization_id}/sessions",
+    "function": "create_session",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_sessions.py"
+  },
+  {
+    "method": "GET",
+    "path": "/organizations/{organization_id}/sessions/{session_id}",
+    "function": "read_session",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_sessions.py"
+  },
+  {
+    "method": "POST",
+    "path": "/organizations/{organization_id}/sessions/{session_id}/lobby",
+    "function": "open_lobby",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_sessions.py"
+  },
+  {
+    "method": "POST",
+    "path": "/organizations/{organization_id}/sessions/{session_id}/start",
+    "function": "start_session",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_sessions.py"
+  },
+  {
+    "method": "POST",
+    "path": "/organizations/{organization_id}/sessions/{session_id}/pause",
+    "function": "pause_session",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_sessions.py"
+  },
+  {
+    "method": "POST",
+    "path": "/organizations/{organization_id}/sessions/{session_id}/resume",
+    "function": "resume_session",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_sessions.py"
+  },
+  {
+    "method": "POST",
+    "path": "/organizations/{organization_id}/sessions/{session_id}/finish",
+    "function": "finish_session",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_sessions.py"
+  },
+  {
+    "method": "POST",
+    "path": "/organizations/{organization_id}/sessions/{session_id}/join",
+    "function": "request_device_join",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_sessions.py"
+  },
+  {
+    "method": "GET",
+    "path": "/organizations/{organization_id}/sessions/{session_id}/join-requests",
+    "function": "list_join_requests",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_sessions.py"
+  },
+  {
+    "method": "POST",
+    "path": "/organizations/{organization_id}/sessions/{session_id}/join-requests/{grant_id}/admit",
+    "function": "admit_device",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_sessions.py"
+  },
+  {
+    "method": "POST",
+    "path": "/organizations/{organization_id}/sessions/{session_id}/join-requests/{grant_id}/revoke",
+    "function": "revoke_device_grant",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_sessions.py"
+  },
+  {
+    "method": "POST",
+    "path": "/organizations/{organization_id}/sessions/{session_id}/device-grants/{grant_id}/refresh",
+    "function": "refresh_device_grant",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_sessions.py"
+  },
+  {
+    "method": "POST",
+    "path": "/organizations/{organization_id}/sessions/{session_id}/groups",
+    "function": "create_group",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_sessions.py"
+  },
+  {
+    "method": "PUT",
+    "path": "/organizations/{organization_id}/sessions/{session_id}/groups/{group_id}/members/{child_id}",
+    "function": "assign_member_to_group",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_sessions.py"
+  },
+  {
+    "method": "POST",
+    "path": "/organizations/{organization_id}/sessions/{session_id}/groups/{group_id}/control",
+    "function": "control_group",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_sessions.py"
+  },
+  {
+    "method": "POST",
+    "path": "/organizations/{organization_id}/sessions/{session_id}/memberships/{membership_id}/progress",
+    "function": "update_progress",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_sessions.py"
+  },
+  {
+    "method": "POST",
+    "path": "/organizations/{organization_id}/sessions/{session_id}/memberships/{membership_id}/help",
+    "function": "request_help",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_sessions.py"
+  },
+  {
+    "method": "POST",
+    "path": "/organizations/{organization_id}/sessions/{session_id}/memberships/{membership_id}/leave",
+    "function": "leave_session",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_sessions.py"
+  },
+  {
+    "method": "POST",
+    "path": "/organizations/{organization_id}/sessions/{session_id}/groups/{group_id}/turns/{child_id}",
+    "function": "start_child_turn",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\be1_sessions.py"
+  },
+  {
+    "method": "POST",
+    "path": "/preferences/classify",
+    "function": "classify_preferences",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\child_preferences.py"
+  },
+  {
+    "method": "GET",
+    "path": "/health",
+    "function": "health",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\health.py"
+  },
+  {
+    "method": "POST",
+    "path": "/{session_id}/media/image",
+    "function": "upload_image",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\images.py"
+  },
+  {
+    "method": "POST",
+    "path": "/{session_id}/media/audio",
+    "function": "upload_audio",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\images.py"
+  },
+  {
+    "method": "POST",
+    "path": "/{session_id}/understanding",
+    "function": "run_understanding",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\images.py"
+  },
+  {
+    "method": "GET",
+    "path": "/{session_id}/understanding/progress",
+    "function": "read_understanding_progress",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\images.py"
+  },
+  {
+    "method": "POST",
+    "path": "/knowledge-videos",
+    "function": "create",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\knowledge_video.py"
+  },
+  {
+    "method": "POST",
+    "path": "/governance/records",
+    "function": "command",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\learning_content.py"
+  },
+  {
+    "method": "POST",
+    "path": "/live-understanding",
+    "function": "live_understanding",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\live_understanding.py"
+  },
+  {
+    "method": "POST",
+    "path": "",
+    "function": "create_session",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\sessions.py"
+  },
+  {
+    "method": "GET",
+    "path": "/{session_id}",
+    "function": "get_session",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\sessions.py"
+  },
+  {
+    "method": "POST",
+    "path": "/{session_id}/story-video-jobs",
+    "function": "create_story_video_job",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\story_video.py"
+  },
+  {
+    "method": "GET",
+    "path": "/{session_id}/story-video-jobs",
+    "function": "list_story_video_jobs",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\story_video.py"
+  },
+  {
+    "method": "GET",
+    "path": "/{session_id}/story-video/{job_id}",
+    "function": "get_story_video_status",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\story_video.py"
+  },
+  {
+    "method": "GET",
+    "path": "/{session_id}/story-video/{job_id}/file",
+    "function": "stream_story_video",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\story_video.py"
+  },
+  {
+    "method": "POST",
+    "path": "/{session_id}/media/retake",
+    "function": "request_retake",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\supervised_flow.py"
+  },
+  {
+    "method": "POST",
+    "path": "/{session_id}/gate-a/confirm",
+    "function": "confirm_gate_a",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\supervised_flow.py"
+  },
+  {
+    "method": "PUT",
+    "path": "/{session_id}/p1-context",
+    "function": "set_p1_context",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\supervised_flow.py"
+  },
+  {
+    "method": "POST",
+    "path": "/{session_id}/p1-filter",
+    "function": "run_p1_filter",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\supervised_flow.py"
+  },
+  {
+    "method": "POST",
+    "path": "/{session_id}/experience/prepare",
+    "function": "prepare_experience",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\supervised_flow.py"
+  },
+  {
+    "method": "POST",
+    "path": "/{session_id}/gate-b/approve",
+    "function": "approve_gate_b",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\supervised_flow.py"
+  },
+  {
+    "method": "POST",
+    "path": "/{session_id}/handoff",
+    "function": "complete_handoff",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\supervised_flow.py"
+  },
+  {
+    "method": "POST",
+    "path": "/{session_id}/renderer/launch",
+    "function": "prepare_renderer",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\supervised_flow.py"
+  },
+  {
+    "method": "POST",
+    "path": "/{session_id}/feedback",
+    "function": "record_feedback",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\supervised_flow.py"
+  },
+  {
+    "method": "GET",
+    "path": "/{session_id}/p1/context-options",
+    "function": "read_p1_context_options",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\supervised_flow.py"
+  },
+  {
+    "method": "POST",
+    "path": "/{session_id}/p1/activity-suggestions",
+    "function": "read_p1_activity_suggestions",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\supervised_flow.py"
+  },
+  {
+    "method": "POST",
+    "path": "/{session_id}/p1/activity-suggestions/rank",
+    "function": "rank_p1_activity_suggestions",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\supervised_flow.py"
+  },
+  {
+    "method": "POST",
+    "path": "/{session_id}/p1/context-options",
+    "function": "read_personalized_p1_context_options",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\supervised_flow.py"
+  },
+  {
+    "method": "GET",
+    "path": "/{session_id}/p1/context-candidates",
+    "function": "read_p1_context_candidates",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\supervised_flow.py"
+  },
+  {
+    "method": "POST",
+    "path": "/{session_id}/p1/context-options/finalize",
+    "function": "finalize_p1_context_options",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\supervised_flow.py"
+  },
+  {
+    "method": "GET",
+    "path": "/{session_id}/gallery",
+    "function": "read_gallery",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\supervised_flow.py"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/renderer/source",
+    "function": "read_renderer_source",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\supervised_flow.py"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/renderer/rig-package",
+    "function": "read_renderer_rig_package",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\supervised_flow.py"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/renderer/rig-mask",
+    "function": "read_renderer_rig_mask",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\supervised_flow.py"
+  },
+  {
+    "method": "GET",
+    "path": "/v1/renderer/pixi-asset",
+    "function": "read_renderer_pixi_asset",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\supervised_flow.py"
+  },
+  {
+    "method": "POST",
+    "path": "/knowledge-videos/{video_id}/failure-dispositions",
+    "function": "disposition",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\video_failure.py"
+  },
+  {
+    "method": "POST",
+    "path": "/knowledge-videos/{video_id}/reviews",
+    "function": "review",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\video_review.py"
+  },
+  {
+    "method": "POST",
+    "path": "/knowledge-videos/{video_id}/playback",
+    "function": "playback",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\video_review.py"
+  },
+  {
+    "method": "POST",
+    "path": "/storyboards/preview",
+    "function": "preview_storyboard",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\whiteboard_storyboard.py"
+  },
+  {
+    "method": "POST",
+    "path": "/{session_id}/whiteboard-video-jobs",
+    "function": "create_whiteboard_video_job",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\whiteboard_video.py"
+  },
+  {
+    "method": "GET",
+    "path": "/{session_id}/whiteboard-video",
+    "function": "get_whiteboard_video_status",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\whiteboard_video.py"
+  },
+  {
+    "method": "GET",
+    "path": "/{session_id}/whiteboard-video/file",
+    "function": "stream_whiteboard_video",
+    "source": "backend\\src\\sketch2life\\interfaces\\http\\routers\\whiteboard_video.py"
+  }
+]

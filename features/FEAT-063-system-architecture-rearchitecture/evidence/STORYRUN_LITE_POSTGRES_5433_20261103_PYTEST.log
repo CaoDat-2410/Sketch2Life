@@ -1,0 +1,33 @@
+============================= test session starts =============================
+
+platform win32 -- Python 3.12.10, pytest-8.4.2, pluggy-1.6.0 -- <REPO>\backend\.venv\Scripts\python.exe
+
+rootdir: <REPO>\backend
+
+configfile: pyproject.toml
+
+plugins: anyio-4.14.2, asyncio-1.4.0
+
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+
+collecting ... collected 12 items
+
+
+
+tests/integration/test_story_run_lite_postgres.py::test_goal_database_owner_accepts_loopback_inet_prefix PASSED [  8%]
+
+tests/integration/test_story_run_lite_postgres.py::test_legacy_owner_fence_receipts_recovery_confirm_and_cancel PASSED [ 16%]
+
+tests/integration/test_story_run_lite_postgres.py::test_pre_migration_fixture_row_is_only_read_or_non_scope_updated PASSED [ 25%]
+
+tests/integration/test_story_run_lite_postgres.py::test_cancel_racing_complete_aborts_upload_before_admission_and_cleans_staging PASSED [ 33%]
+
+tests/integration/test_story_run_lite_postgres.py::test_cancel_and_admission_finalizer_race_serializes_asset_commit[cancel] FAILED [ 41%]
+
+tests/integration/test_story_run_lite_postgres.py::test_cancel_and_admission_finalizer_race_serializes_asset_commit[admission] FAILED [ 50%]
+
+tests/integration/test_story_run_lite_postgres.py::test_expiry_is_enforced_at_utc_boundary_for_get_put_complete_and_versions PASSED [ 58%]
+
+tests/integration/test_story_run_lite_postgres.py::test_expiry_uses_utc_time_after_story_run_lock_wait[get]
+
+Watchdog: timeout=True; timeout_seconds=600; exit_code=124.

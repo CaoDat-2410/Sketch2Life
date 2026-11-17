@@ -1,0 +1,1338 @@
+"""Minimal Lightning GPU provider for FEAT-018 whiteboard localization/segmentation."""
+
+from __future__ import annotations
+
+import base64
+import hashlib
+import importlib
+import io
+import json
+import logging
+import os
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+import wave
+from contextlib import nullcontext
+from itertools import pairwise
+from pathlib import Path
+from threading import RLock
+from typing import Any
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
+
+from fastapi import FastAPI, HTTPException
+from pydantic import ValidationError
+
+app = FastAPI(title="Sketch2Life Whiteboard Provider", version="1.0.0")
+_LOGGER = logging.getLogger("sketch2life.whiteboard_provider")
+
+MODEL_ID = os.getenv("SKETCH2LIFE_VLM_MODEL", "Qwen/Qwen3-VL-2B-Instruct")
+_vlm = None
+_processor = None
+_sam_predictor = None
+_story_sam_predictor = None
+_boxes: dict[str, list[float]] = {}
+_story_media_cache_lock = RLock()
+_story_image_pipeline: Any = None
+_story_image_pipeline_key: tuple[str, str] | None = None
+
+
+def _decode_source(payload: dict[str, Any]) -> tuple[bytes, Any, str]:
+    from PIL import Image
+
+    source = payload.get("source_image")
+    if not isinstance(source, dict):
+        raise TypeError("source_image is required")
+    encoded = source.get("content_base64")
+    expected_hash = source.get("sha256")
+    if not isinstance(encoded, str) or not isinstance(expected_hash, str):
+        raise TypeError("source image payload is invalid")
+    try:
+        data = base64.b64decode(encoded, validate=True)
+        image = Image.open(io.BytesIO(data)).convert("RGB")
+    except (ValueError, OSError) as error:
+        raise ValueError("source image is invalid") from error
+    digest = hashlib.sha256(data).hexdigest()
+    if digest != expected_hash:
+        raise ValueError("source hash mismatch")
+    return data, image, digest
+
+
+def _load_vlm() -> tuple[Any, Any]:
+    global _vlm, _processor
+    if _vlm is None or _processor is None:
+        from transformers import AutoProcessor, Qwen3VLForConditionalGeneration
+
+        _vlm = Qwen3VLForConditionalGeneration.from_pretrained(
+            MODEL_ID,
+            dtype="auto",
+            device_map="auto",
+        )
+        _processor = AutoProcessor.from_pretrained(MODEL_ID)
+    return _vlm, _processor
+
+
+def _parse_box(text: str, width: int, height: int) -> list[float]:
+    match = re.search(r"\[[^\]]{1,120}\]", text)
+    if match is None:
+        raise ValueError("localizer did not return a bounding box")
+    values = json.loads(match.group(0))
+    if not isinstance(values, list) or len(values) != 4:
+        raise ValueError("localizer box must contain four coordinates")
+    coordinates = [float(value) for value in values]
+    scale_x = width / 1024.0
+    scale_y = height / 1024.0
+    x1, y1, x2, y2 = (
+        coordinates[0] * scale_x,
+        coordinates[1] * scale_y,
+        coordinates[2] * scale_x,
+        coordinates[3] * scale_y,
+    )
+    box = [max(0.0, x1), max(0.0, y1), min(float(width), x2), min(float(height), y2)]
+    if box[2] <= box[0] or box[3] <= box[1]:
+        raise ValueError("localizer returned an invalid bounding box")
+    return box
+
+
+def _cpu_foreground_mask(image: Any) -> Any:
+    """Build a conservative mask for CPU-only development environments."""
+
+    import numpy as np
+
+    pixels = np.asarray(image.convert("RGB"))
+    return np.any(pixels < 245, axis=2)
+
+
+def _mask_box(mask: Any) -> list[float]:
+    import numpy as np
+
+    ys, xs = np.where(mask)
+    if len(xs) == 0 or len(ys) == 0:
+        raise ValueError("cpu fallback could not find foreground pixels")
+    return [float(xs.min()), float(ys.min()), float(xs.max() + 1), float(ys.max() + 1)]
+
+
+def _cpu_fallback_enabled() -> bool:
+    import torch
+
+    return not torch.cuda.is_available()
+
+
+@app.get("/health")
+def health() -> dict[str, str]:
+    return {"status": "ok", "service": "whiteboard-provider"}
+
+
+def _probe_whiteboard_encoder() -> None:
+    """Encode and read one synthetic frame without loading any model or user media."""
+
+    import imageio.v2 as imageio
+    import numpy as np
+
+    with tempfile.TemporaryDirectory(prefix="sketch2life-encoder-probe-") as directory:
+        output = Path(directory) / "probe.mp4"
+        writer = imageio.get_writer(
+            output, fps=1, codec="libx264", pixelformat="yuv420p", quality=8
+        )
+        try:
+            writer.append_data(np.full((16, 16, 3), 255, dtype=np.uint8))
+        finally:
+            writer.close()
+        reader = imageio.get_reader(output)
+        try:
+            if tuple(reader.get_meta_data()["size"]) != (16, 16):
+                raise RuntimeError("H264_PROBE_DIMENSIONS_INVALID")
+            reader.get_data(0)
+        finally:
+            reader.close()
+
+
+def _ffmpeg_subtitles_available(executable: str) -> bool:
+    """The final assembly needs FFmpeg's libass-backed subtitles filter."""
+
+    result = subprocess.run(
+        [executable, "-hide_banner", "-filters"],
+        capture_output=True,
+        text=True,
+        check=False,
+        timeout=15,
+    )
+    return result.returncode == 0 and any(
+        len(fields) >= 3 and fields[1] == "subtitles"
+        for fields in (line.split() for line in result.stdout.splitlines())
+    )
+
+
+@app.get("/v1/story-video/preflight")
+def story_video_preflight() -> dict[str, Any]:
+    """Report all local requirements before an expensive story-video run."""
+
+    checks: dict[str, dict[str, str | bool]] = {}
+
+    def record(name: str, ready: bool, detail: str) -> None:
+        checks[name] = {"ready": ready, "detail": detail}
+
+    provider = os.getenv("SKETCH2LIFE_TTS_PROVIDER", "edge_tts").strip().lower()
+    if provider == "edge_tts":
+        try:
+            importlib.import_module("edge_tts")
+            record("tts", True, "Edge TTS is importable")
+        except ImportError:
+            record("tts", False, "Install edge-tts in the provider Python environment")
+    elif provider == "elevenlabs":
+        configured = bool(os.getenv("ELEVENLABS_API_KEY") and os.getenv("ELEVENLABS_VOICE_ID"))
+        tts_detail = (
+            "ElevenLabs credentials configured"
+            if configured else "ElevenLabs API key or voice ID missing"
+        )
+        record(
+            "tts", configured, tts_detail,
+        )
+    else:
+        record("tts", False, "Unsupported TTS provider")
+
+    for executable in ("ffmpeg", "ffprobe"):
+        record(executable, shutil.which(executable) is not None, f"{executable} must be on PATH")
+    ffmpeg = shutil.which("ffmpeg")
+    if ffmpeg is None:
+        record("subtitle_filter", False, "ffmpeg must be on PATH")
+    else:
+        try:
+            subtitle_ready = _ffmpeg_subtitles_available(ffmpeg)
+            record(
+                "subtitle_filter", subtitle_ready,
+                "FFmpeg subtitles filter available" if subtitle_ready else "FFmpeg needs subtitles/libass",
+            )
+        except (OSError, subprocess.SubprocessError) as error:
+            record("subtitle_filter", False, f"Subtitle filter probe failed: {error}"[:240])
+
+    model_id = os.getenv("SKETCH2LIFE_IMAGE_MODEL", "").strip()
+    record("image_model", bool(model_id), model_id or "Set SKETCH2LIFE_IMAGE_MODEL")
+    try:
+        importlib.import_module("accelerate")
+        from diffusers import AutoPipelineForImage2Image  # noqa: F401
+
+        record("image_libraries", True, "Diffusers and Accelerate import successfully")
+    except Exception as error:  # noqa: BLE001 - report broken optional runtime imports
+        detail = f"Image import failed: {type(error).__name__}: {error}"[:240]
+        record("image_libraries", False, detail)
+
+    try:
+        import torch
+
+        cuda_ready = torch.cuda.is_available()
+        record("cuda", cuda_ready, "CUDA GPU available" if cuda_ready else "CUDA GPU unavailable")
+    except Exception as error:  # noqa: BLE001 - report broken optional runtime imports
+        record("cuda", False, f"PyTorch failed: {type(error).__name__}: {error}"[:240])
+
+    motion_profile = os.getenv(
+        "SKETCH2LIFE_STORY_MOTION_PROVIDER", "whiteboard-stroke-v1"
+    ).strip()
+    if motion_profile == "whiteboard-stroke-v1":
+        try:
+            importlib.import_module("sketch2life.infrastructure.media.whiteboard_mvp_renderer")
+            importlib.import_module("sketch2life.infrastructure.media.whiteboard_stroke_extraction")
+            importlib.import_module("imageio")
+            record("whiteboard_renderer", True, "Stroke renderer and ImageIO are importable")
+            try:
+                _probe_whiteboard_encoder()
+                record("h264_encoder", True, "Synthetic H.264 frame encoded and decoded")
+            except Exception as error:  # noqa: BLE001 - report codec/plugin failures before paid work
+                record(
+                    "h264_encoder", False,
+                    f"H.264 encode probe failed: {type(error).__name__}: {error}"[:240],
+                )
+        except ImportError:
+            record("whiteboard_renderer", False, "Install the backend whiteboard-renderer extra")
+            record("h264_encoder", False, "Whiteboard renderer dependencies are missing")
+        hand_asset_value = os.getenv("SKETCH2LIFE_WHITEBOARD_HAND_ASSET", "").strip()
+        if hand_asset_value:
+            try:
+                from sketch2life.infrastructure.media.whiteboard_mvp_renderer import (
+                    load_marker_hand_asset,
+                )
+
+                load_marker_hand_asset(hand_asset_value, 1280, 720)
+                record("whiteboard_hand", True, "Configured transparent marker asset is usable")
+            except (ImportError, OSError, ValueError) as error:
+                record("whiteboard_hand", False, f"Hand asset invalid: {type(error).__name__}")
+        else:
+            record("whiteboard_hand", True, "Default stylized marker; no photo asset configured")
+        segmenter = os.getenv("SKETCH2LIFE_STORY_SEGMENTER", "bbox").strip().lower()
+        if segmenter == "bbox":
+            record("story_segmenter", True, "Raster cue boxes; SAM2 not enabled")
+        elif segmenter == "sam2":
+            try:
+                importlib.import_module("sam2.sam2_image_predictor")
+                record("story_segmenter", True, "SAM2 code importable; weights not checked")
+            except Exception as error:  # noqa: BLE001 - optional runtime preflight
+                record("story_segmenter", False, f"SAM2 import failed: {type(error).__name__}"[:240])
+        else:
+            record("story_segmenter", False, "Unsupported story segmenter")
+    elif motion_profile == "wan2.2-ti2v-5b":
+        repo_value = os.getenv("WAN_REPO_DIR", "").strip()
+        ckpt_value = os.getenv("WAN_CKPT_DIR", "").strip()
+        repo = Path(repo_value).expanduser() if repo_value else None
+        ckpt = Path(ckpt_value).expanduser() if ckpt_value else None
+        record(
+            "wan_code", bool(repo and (repo / "generate.py").is_file()),
+            "WAN_REPO_DIR must contain generate.py",
+        )
+        checkpoint_ready = bool(ckpt and ckpt.is_dir() and any(ckpt.iterdir()))
+        record("wan_checkpoint", checkpoint_ready, "WAN_CKPT_DIR must contain model files")
+        wan_python = Path(os.getenv("WAN_PYTHON", sys.executable)).expanduser()
+        record("wan_python", wan_python.is_file(), "WAN_PYTHON must point to Python")
+    else:
+        record("motion_profile", False, "Unsupported story motion profile")
+
+    return {
+        "ready": all(item["ready"] for item in checks.values()),
+        "checks": checks,
+        "story_segmenter": (
+            os.getenv("SKETCH2LIFE_STORY_SEGMENTER", "bbox").strip().lower()
+            if motion_profile == "whiteboard-stroke-v1" else None
+        ),
+        "note": "This checks local dependencies and paths, not model downloads or render quality.",
+    }
+
+
+@app.post("/v1/whiteboard/localize")
+def localize(payload: dict[str, Any]) -> dict[str, Any]:
+    try:
+        _, image, source_hash = _decode_source(payload)
+        job_id = str(payload.get("job_id", ""))
+        if not job_id:
+            raise ValueError("job_id is required")
+        if _cpu_fallback_enabled():
+            _boxes[job_id] = _mask_box(_cpu_foreground_mask(image))
+            return {
+                "source_hash": source_hash,
+                "regions": [{
+                    "region_ref": f"{job_id}:region-001",
+                    "confidence": 0.99,
+                }],
+            }
+        vlm, processor = _load_vlm()
+        image_path = "/tmp/whiteboard-provider-input.png"
+        image.save(image_path)
+        messages = [{
+            "role": "user",
+            "content": [
+                {"type": "image", "image": image_path},
+                {
+                    "type": "text",
+                    "text": (
+                        "Return only one JSON array [x1,y1,x2,y2] in 0-1024 "
+                        "coordinates covering the main character."
+                    ),
+                },
+            ],
+        }]
+        text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+        from qwen_vl_utils import process_vision_info
+
+        image_inputs, video_inputs = process_vision_info(messages)
+        import torch
+
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        inputs = processor(
+            text=[text],
+            images=image_inputs,
+            videos=video_inputs,
+            return_tensors="pt",
+        ).to(device)
+
+        with torch.inference_mode():
+            output = vlm.generate(**inputs, max_new_tokens=64, do_sample=False)
+        trimmed = [
+            out[len(inp) :]
+            for inp, out in zip(inputs.input_ids, output, strict=True)
+        ]
+        answer = processor.batch_decode(trimmed, skip_special_tokens=True)[0]
+        box = _parse_box(answer, image.width, image.height)
+        _boxes[job_id] = box
+        return {
+            "source_hash": source_hash,
+            "regions": [{"region_ref": f"{job_id}:region-001", "confidence": 0.9}],
+        }
+    except (KeyError, TypeError, ValueError, OSError, RuntimeError) as error:
+        _LOGGER.exception("whiteboard_localization_failed")
+        raise HTTPException(status_code=422, detail="LOCALIZATION_FAILED") from error
+
+
+@app.post("/v1/whiteboard/segment")
+def segment(payload: dict[str, Any]) -> dict[str, Any]:
+    try:
+        import numpy as np
+        import torch
+        from PIL import Image
+
+        _, image, source_hash = _decode_source(payload)
+        job_id = str(payload.get("job_id", ""))
+        box = _boxes.get(job_id)
+        if box is None:
+            raise ValueError("localization is required before segmentation")
+        if _cpu_fallback_enabled():
+            buffer = io.BytesIO()
+            Image.fromarray(
+                _cpu_foreground_mask(image).astype("uint8") * 255
+            ).save(buffer, format="PNG")
+            return {
+                "source_hash": source_hash,
+                "masks": [{
+                    "mask_ref": f"{job_id}:mask-001",
+                    "content_base64": base64.b64encode(buffer.getvalue()).decode("ascii"),
+                }],
+            }
+        global _sam_predictor
+        if _sam_predictor is None:
+            from sam2.sam2_image_predictor import SAM2ImagePredictor
+
+            _sam_predictor = SAM2ImagePredictor.from_pretrained("facebook/sam2.1-hiera-small")
+        image_array = np.asarray(image)
+        _sam_predictor.set_image(image_array)
+        autocast_context = (
+            torch.autocast("cuda", dtype=torch.bfloat16)
+            if torch.cuda.is_available()
+            else nullcontext()
+        )
+        with torch.inference_mode(), autocast_context:
+            masks, scores, _ = _sam_predictor.predict(box=np.asarray(box), multimask_output=True)
+        mask = np.asarray(masks[int(np.argmax(scores))]).squeeze() > 0.5
+        buffer = io.BytesIO()
+        Image.fromarray(mask.astype(np.uint8) * 255).save(buffer, format="PNG")
+        return {
+            "source_hash": source_hash,
+            "masks": [{
+                "mask_ref": f"{job_id}:mask-001",
+                "content_base64": base64.b64encode(buffer.getvalue()).decode("ascii"),
+            }],
+        }
+    except (KeyError, TypeError, ValueError, OSError, RuntimeError) as error:
+        _LOGGER.exception("whiteboard_segmentation_failed")
+        raise HTTPException(status_code=422, detail="SEGMENTATION_FAILED") from error
+
+
+def _story_video_blocked(contract: str, error_code: str) -> dict[str, Any]:
+    """Return an honest typed result until the corresponding model is configured."""
+
+    if contract == "NarrationAssetV1":
+        return {
+            "contract": contract,
+            "version": "1.0",
+            "status": "BLOCKED",
+            "locale": "vi-VN",
+            "voice_model_ref": "unconfigured",
+            "segment_timing_seconds": [],
+            "error_code": error_code,
+        }
+    if contract == "IllustrationAssetV1":
+        return {
+            "contract": contract,
+            "version": "1.0",
+            "status": "BLOCKED",
+            "scene_id": "scene-1",
+            "source_image_ref": "unavailable",
+            "source_image_sha256": "0" * 64,
+            "model_profile_ref": "unconfigured",
+            "error_code": error_code,
+        }
+    if contract == "VideoSceneArtifactV1":
+        return {
+            "contract": contract,
+            "version": "1.0",
+            "status": "BLOCKED",
+            "scene_id": "scene-1",
+            "model_profile_ref": os.getenv(
+                "SKETCH2LIFE_STORY_MOTION_PROVIDER", "whiteboard-stroke-v1"
+            ),
+            "error_code": error_code,
+        }
+    return {
+        "contract": "VideoArtifactV1",
+        "version": "1.0",
+        "status": "BLOCKED",
+        "error_code": error_code,
+    }
+
+
+def _story_video_retryable(contract: str, error_code: str) -> dict[str, Any]:
+    response = _story_video_blocked(contract, error_code)
+    response["status"] = "RETRYABLE_FAILURE"
+    return response
+
+
+def _story_video_artifact_root() -> Path:
+    root = Path(
+        os.getenv("SKETCH2LIFE_STORY_VIDEO_ARTIFACT_DIR", "/tmp/story-video-artifacts")
+    )
+    root.mkdir(parents=True, exist_ok=True)
+    return root
+
+
+def _story_video_package_root(request: dict[str, Any]) -> Path:
+    """Keep concurrently rendered packages from overwriting each other's scenes."""
+
+    package_hash = str(request.get("package_hash", ""))
+    if not re.fullmatch(r"[a-f0-9]{64}", package_hash):
+        raise ValueError("PACKAGE_HASH_INVALID")
+    root = _story_video_artifact_root() / package_hash
+    root.mkdir(parents=True, exist_ok=True)
+    return root
+
+
+def _wav_duration(path: Path) -> float:
+    with wave.open(str(path), "rb") as audio:
+        frames = audio.getnframes()
+        rate = audio.getframerate()
+    if rate <= 0 or frames <= 0:
+        raise ValueError("generated audio has no measurable duration")
+    return frames / rate
+
+
+def _elevenlabs_tts(text: str, *, voice_id: str, key: str, model_id: str) -> bytes:
+    request = Request(
+        f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}?output_format=mp3_44100_128",
+        data=json.dumps({"text": text, "model_id": model_id}).encode(),
+        headers={
+            "xi-api-key": key,
+            "Content-Type": "application/json",
+            "Accept": "audio/mpeg",
+        },
+        method="POST",
+    )
+    try:
+        with urlopen(request, timeout=120) as response:
+            data = response.read()
+    except HTTPError as error:
+        retryable = error.code in {408, 429} or error.code >= 500
+        raise RuntimeError(
+            "ELEVENLABS_TTS_RETRYABLE" if retryable else "ELEVENLABS_TTS_REJECTED"
+        ) from error
+    except (TimeoutError, URLError) as error:
+        raise RuntimeError("ELEVENLABS_TTS_UNAVAILABLE") from error
+    if not data.startswith(b"ID3") and not data.startswith(b"\xff\xfb"):
+        raise ValueError("ElevenLabs TTS returned invalid MP3")
+    return data
+
+
+def _edge_tts(text: str, *, voice: str) -> bytes:
+    with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as temporary:
+        output = Path(temporary.name)
+    try:
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "edge_tts",
+                "--voice",
+                voice,
+                "--text",
+                text,
+                "--write-media",
+                str(output),
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        if result.returncode != 0:
+            if "No module named edge_tts" in result.stderr:
+                raise RuntimeError("EDGE_TTS_NOT_INSTALLED")
+            raise RuntimeError("EDGE_TTS_FAILED")
+        data = output.read_bytes()
+        if not data:
+            raise ValueError("Edge TTS returned empty MP3")
+        return data
+    finally:
+        output.unlink(missing_ok=True)
+
+
+def _mp3_to_wav(mp3: bytes, output: Path) -> None:
+    ffmpeg = _require_executable("ffmpeg")
+    source = output.with_suffix(".mp3")
+    source.write_bytes(mp3)
+    subprocess.run(
+        [ffmpeg, "-y", "-i", str(source), "-ar", "24000", "-ac", "1", str(output)],
+        check=True,
+        capture_output=True,
+        timeout=120,
+    )
+
+
+def _concat_wavs(paths: list[Path], output: Path) -> None:
+    if not paths:
+        raise ValueError("no audio segments to concatenate")
+    with wave.open(str(paths[0]), "rb") as first:
+        params = first.getparams()
+        frames = [first.readframes(first.getnframes())]
+    for path in paths[1:]:
+        with wave.open(str(path), "rb") as segment:
+            # ``nframes`` depends on the sentence duration and is expected to
+            # differ between segments. Compare only the actual WAV format.
+            if segment.getparams()[:3] != params[:3]:
+                raise ValueError("TTS segments have incompatible WAV parameters")
+            frames.append(segment.readframes(segment.getnframes()))
+    with wave.open(str(output), "wb") as combined:
+        combined.setparams(params)
+        combined.writeframes(b"".join(frames))
+
+
+def _file_sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _story_cache_key(kind: str, request: dict[str, Any], config: dict[str, Any]) -> str:
+    payload = {"cache_version": 1, "kind": kind, "request": request, "config": config}
+    return hashlib.sha256(
+        json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
+
+
+def _cached_story_media(
+    manifest_path: Path,
+    *,
+    cache_key: str,
+    output_path: Path,
+    ref_field: str,
+    sha_field: str,
+) -> dict[str, Any] | None:
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        if not isinstance(manifest, dict):
+            return None
+        response = manifest.get("response")
+        if (
+            manifest.get("cache_key") != cache_key
+            or not isinstance(response, dict)
+            or response.get("status") != "READY"
+            or response.get(ref_field) != str(output_path)
+            or not output_path.is_file()
+            or response.get(sha_field) != _file_sha256(output_path)
+        ):
+            return None
+        return response
+    except (OSError, TypeError, ValueError):
+        return None
+
+
+def _record_story_media(manifest_path: Path, cache_key: str, response: dict[str, Any]) -> None:
+    temporary = manifest_path.with_suffix(".json.tmp")
+    temporary.write_text(
+        json.dumps({"cache_key": cache_key, "response": response}, separators=(",", ":")),
+        encoding="utf-8",
+    )
+    temporary.replace(manifest_path)
+
+
+def _story_image_pipe(model_id: str, variant: str, torch: Any, pipeline_type: Any) -> Any:
+    """Reuse one image model per provider process while render calls hold the cache lock."""
+
+    global _story_image_pipeline, _story_image_pipeline_key
+    key = (model_id, variant)
+    if _story_image_pipeline is None or _story_image_pipeline_key != key:
+        pipe = pipeline_type.from_pretrained(
+            model_id,
+            torch_dtype=torch.float16,
+            variant=variant,
+        )
+        pipe.enable_model_cpu_offload()
+        _story_image_pipeline = pipe
+        _story_image_pipeline_key = key
+    return _story_image_pipeline
+
+
+def _ffprobe_duration(path: Path) -> float:
+    result = subprocess.run(
+        [
+            "ffprobe",
+            "-v",
+            "error",
+            "-show_entries",
+            "format=duration",
+            "-of",
+            "default=nw=1:nk=1",
+            str(path),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    duration = float(result.stdout.strip())
+    if duration <= 0:
+        raise ValueError("media duration is not positive")
+    return duration
+
+
+def _ffprobe_streams(path: Path) -> list[dict[str, Any]]:
+    result = subprocess.run(
+        [
+            "ffprobe",
+            "-v",
+            "error",
+            "-show_entries",
+            "stream=codec_type,codec_name,width,height",
+            "-of",
+            "json",
+            str(path),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    streams = json.loads(result.stdout).get("streams")
+    if not isinstance(streams, list):
+        raise TypeError("FFPROBE_STREAMS_INVALID")
+    return [item for item in streams if isinstance(item, dict)]
+
+
+def _assembled_streams_ready(streams: list[dict[str, Any]]) -> bool:
+    video = [item for item in streams if item.get("codec_type") == "video"]
+    audio = [item for item in streams if item.get("codec_type") == "audio"]
+    return (
+        len(video) == 1
+        and len(audio) == 1
+        and video[0].get("codec_name") == "h264"
+        and audio[0].get("codec_name") == "aac"
+        and isinstance(video[0].get("width"), int)
+        and video[0]["width"] > 0
+        and isinstance(video[0].get("height"), int)
+        and video[0]["height"] > 0
+    )
+
+
+def _require_executable(name: str) -> str:
+    executable = shutil.which(name)
+    if executable is None:
+        raise RuntimeError(f"{name.upper()}_NOT_INSTALLED")
+    return executable
+
+
+@app.post("/v1/story-video/narration")
+def story_video_narration(payload: dict[str, Any]) -> dict[str, Any]:
+    request = payload.get("request")
+    texts = payload.get("texts")
+    provider = os.getenv("SKETCH2LIFE_TTS_PROVIDER", "edge_tts").strip().lower()
+    eleven_key = os.getenv("ELEVENLABS_API_KEY", "").strip()
+    eleven_voice = os.getenv("ELEVENLABS_VOICE_ID", "").strip()
+    eleven_model = os.getenv("ELEVENLABS_MODEL_ID", "eleven_flash_v2_5").strip()
+    edge_voice = os.getenv("EDGE_TTS_VOICE", "vi-VN-HoaiMyNeural").strip()
+    if not isinstance(request, dict) or not isinstance(texts, list) or not texts:
+        raise HTTPException(status_code=422, detail="NARRATION_REQUEST_INVALID")
+    if provider not in {"edge_tts", "elevenlabs"}:
+        return _story_video_blocked("NarrationAssetV1", "TTS_PROVIDER_UNSUPPORTED")
+    if provider == "elevenlabs" and (not eleven_key or not eleven_voice):
+        return _story_video_blocked("NarrationAssetV1", "TTS_RUNTIME_NOT_CONFIGURED")
+    if not all(isinstance(text, str) and text.strip() for text in texts):
+        raise HTTPException(status_code=422, detail="NARRATION_TEXT_INVALID")
+    try:
+        root = _story_video_package_root(request)
+        job_name = re.sub(r"[^A-Za-z0-9_-]", "_", str(request.get("package_id", "story")))
+        combined = root / f"{job_name}.wav"
+        manifest = root / f"{job_name}.narration.cache.json"
+        texts_hash = hashlib.sha256(
+            json.dumps(texts, ensure_ascii=False, separators=(",", ":")).encode()
+        ).hexdigest()
+        cache_key = _story_cache_key(
+            "narration",
+            request,
+            {
+                "provider": provider,
+                "voice": edge_voice if provider == "edge_tts" else eleven_voice,
+                "model": eleven_model if provider == "elevenlabs" else "edge-tts",
+                "texts_hash": texts_hash,
+            },
+        )
+        with _story_media_cache_lock:
+            cached = _cached_story_media(
+                manifest,
+                cache_key=cache_key,
+                output_path=combined,
+                ref_field="audio_ref",
+                sha_field="audio_sha256",
+            )
+            if (
+                cached is not None
+                and isinstance(cached.get("duration_seconds"), (int, float))
+                and isinstance(cached.get("segment_timing_seconds"), list)
+                and len(cached["segment_timing_seconds"]) == len(texts)
+            ):
+                try:
+                    if abs(_wav_duration(combined) - cached["duration_seconds"]) <= 0.25:
+                        return cached
+                except (OSError, ValueError, EOFError, wave.Error):
+                    pass
+            segment_paths: list[Path] = []
+            timings: list[float] = []
+            for index, text in enumerate(texts, 1):
+                path = root / f"{job_name}.segment-{index}.wav"
+                segment_manifest = root / f"{job_name}.segment-{index}.cache.json"
+                segment_key = _story_cache_key(
+                    "narration-segment",
+                    request,
+                    {"narration_cache_key": cache_key, "index": index},
+                )
+                cached_segment = _cached_story_media(
+                    segment_manifest,
+                    cache_key=segment_key,
+                    output_path=path,
+                    ref_field="audio_ref",
+                    sha_field="audio_sha256",
+                )
+                if cached_segment is not None and isinstance(
+                    cached_segment.get("duration_seconds"), (int, float)
+                ):
+                    try:
+                        if abs(_wav_duration(path) - cached_segment["duration_seconds"]) <= 0.01:
+                            timings.append(cached_segment["duration_seconds"])
+                            segment_paths.append(path)
+                            continue
+                    except (OSError, ValueError, EOFError, wave.Error):
+                        pass
+                if provider == "edge_tts":
+                    audio = _edge_tts(text, voice=edge_voice)
+                else:
+                    audio = _elevenlabs_tts(
+                        text,
+                        voice_id=eleven_voice,
+                        key=eleven_key,
+                        model_id=eleven_model,
+                    )
+                _mp3_to_wav(audio, path)
+                duration = round(_wav_duration(path), 3)
+                _record_story_media(
+                    segment_manifest,
+                    segment_key,
+                    {
+                        "status": "READY",
+                        "audio_ref": str(path),
+                        "audio_sha256": _file_sha256(path),
+                        "duration_seconds": duration,
+                    },
+                )
+                timings.append(duration)
+                segment_paths.append(path)
+            _concat_wavs(segment_paths, combined)
+            response = {
+                "contract": "NarrationAssetV1",
+                "version": "1.0",
+                "status": "READY",
+                "audio_ref": str(combined),
+                "audio_sha256": _file_sha256(combined),
+                "duration_seconds": round(sum(timings), 3),
+                "locale": str(request.get("locale", "vi-VN")),
+                "voice_model_ref": (
+                    f"edge-tts:{edge_voice}"
+                    if provider == "edge_tts"
+                    else f"elevenlabs:{eleven_model}:{eleven_voice}"
+                ),
+                "segment_timing_seconds": timings,
+            }
+            _record_story_media(manifest, cache_key, response)
+            return response
+    except (
+        OSError, RuntimeError, TimeoutError, ValueError, EOFError, wave.Error,
+        subprocess.SubprocessError,
+    ) as error:
+        _LOGGER.exception("story_video_narration_failed")
+        if isinstance(error, (TimeoutError, subprocess.TimeoutExpired)):
+            return _story_video_retryable("NarrationAssetV1", "TTS_TIMEOUT")
+        code = (
+            str(error)
+            if str(error).startswith(("ELEVENLABS_TTS_", "EDGE_TTS_"))
+            else "TTS_RENDER_FAILED"
+        )
+        if code in {"ELEVENLABS_TTS_RETRYABLE", "ELEVENLABS_TTS_UNAVAILABLE"}:
+            return _story_video_retryable("NarrationAssetV1", code)
+        return _story_video_blocked("NarrationAssetV1", code)
+
+
+@app.post("/v1/story-video/illustration")
+def story_video_illustration(payload: dict[str, Any]) -> dict[str, Any]:
+    request = payload.get("request")
+    source = payload.get("source_image")
+    model_id = os.getenv("SKETCH2LIFE_IMAGE_MODEL", "").strip()
+    if not isinstance(request, dict) or not isinstance(source, dict):
+        raise HTTPException(status_code=422, detail="ILLUSTRATION_REQUEST_INVALID")
+    if not model_id:
+        return _story_video_blocked("IllustrationAssetV1", "IMAGE_RUNTIME_NOT_CONFIGURED")
+    encoded = source.get("content_base64")
+    source_hash = source.get("sha256")
+    if not isinstance(encoded, str) or not isinstance(source_hash, str):
+        raise HTTPException(status_code=422, detail="SOURCE_IMAGE_INVALID")
+    try:
+        root = _story_video_package_root(request)
+        scene_id = str(request.get("scene_id", "scene-1"))
+        if not re.fullmatch(r"scene-[1-9][0-9]*", scene_id):
+            raise ValueError("SCENE_ID_INVALID")
+        source_path = root / f"{scene_id}.source.png"
+        output_path = root / f"{scene_id}.illustration.png"
+        manifest = root / f"{scene_id}.illustration.cache.json"
+        source_bytes = base64.b64decode(encoded, validate=True)
+        if (
+            hashlib.sha256(source_bytes).hexdigest() != source_hash
+            or request.get("source_image_sha256") != source_hash
+        ):
+            raise ValueError("source image hash mismatch")
+        variant = os.getenv("SKETCH2LIFE_IMAGE_VARIANT", "fp16")
+        strength = float(os.getenv("SKETCH2LIFE_IMAGE_STRENGTH", "0.35"))
+        guidance = float(os.getenv("SKETCH2LIFE_IMAGE_GUIDANCE", "6.0"))
+        steps = int(os.getenv("SKETCH2LIFE_IMAGE_STEPS", "25"))
+        cache_key = _story_cache_key(
+            "illustration",
+            request,
+            {
+                "model": model_id,
+                "variant": variant,
+                "strength": strength,
+                "guidance": guidance,
+                "steps": steps,
+                "source_sha256": source_hash,
+                "seed_policy": "shared-package-v1",
+            },
+        )
+        with _story_media_cache_lock:
+            def repeated_scene() -> bool:
+                scene_number = int(scene_id.split("-")[1])
+                if scene_number <= 1 or not output_path.is_file():
+                    return False
+                previous = root / f"scene-{scene_number - 1}.illustration.png"
+                if not previous.is_file():
+                    return False
+                from sketch2life.infrastructure.media.scene_distinctness import (
+                    near_duplicate_scene,
+                )
+
+                return near_duplicate_scene(previous, output_path)
+
+            cached = _cached_story_media(
+                manifest,
+                cache_key=cache_key,
+                output_path=output_path,
+                ref_field="asset_ref",
+                sha_field="asset_sha256",
+            )
+            if cached is not None:
+                if repeated_scene():
+                    return {
+                        **_story_video_blocked("IllustrationAssetV1", "SCENE_VISUAL_DUPLICATE"),
+                        "scene_id": scene_id,
+                    }
+                return cached
+            source_path.write_bytes(source_bytes)
+            from PIL import Image
+
+            image = Image.open(io.BytesIO(source_bytes)).convert("RGB")
+            focus_box = request.get("focus_box")
+            if focus_box is not None:
+                if (
+                    not isinstance(focus_box, list)
+                    or len(focus_box) != 4
+                    or any(
+                        isinstance(value, bool) or not isinstance(value, (int, float))
+                        for value in focus_box
+                    )
+                ):
+                    raise ValueError("FOCUS_BOX_INVALID")
+                left, top, right, bottom = (float(value) for value in focus_box)
+                if not (
+                    0 <= left < right <= 1
+                    and 0 <= top < bottom <= 1
+                    and right - left >= 0.1
+                    and bottom - top >= 0.1
+                ):
+                    raise ValueError("FOCUS_BOX_INVALID")
+                width, height = image.size
+                image = image.crop((
+                    round(left * width), round(top * height),
+                    round(right * width), round(bottom * height),
+                ))
+            import torch
+            from diffusers import AutoPipelineForImage2Image
+
+            pipe = _story_image_pipe(model_id, variant, torch, AutoPipelineForImage2Image)
+            seed = int(str(request["package_hash"])[:16], 16) % (2**63 - 1)
+            result = pipe(
+                prompt=str(request.get("visual_prompt", "")),
+                image=image,
+                strength=strength,
+                guidance_scale=guidance,
+                num_inference_steps=steps,
+                generator=torch.Generator(device="cpu").manual_seed(seed),
+            ).images[0]
+            result.save(output_path, format="PNG")
+            response = {
+                "contract": "IllustrationAssetV1",
+                "version": "1.0",
+                "status": "READY",
+                "scene_id": scene_id,
+                "asset_ref": str(output_path),
+                "asset_sha256": _file_sha256(output_path),
+                "content_type": "image/png",
+                "width": result.width,
+                "height": result.height,
+                "source_image_ref": str(request.get("source_image_ref", "")),
+                "source_image_sha256": source_hash,
+                "model_profile_ref": model_id,
+            }
+            _record_story_media(manifest, cache_key, response)
+            if repeated_scene():
+                return {
+                    **_story_video_blocked("IllustrationAssetV1", "SCENE_VISUAL_DUPLICATE"),
+                    "scene_id": scene_id,
+                }
+            return response
+    except (ImportError, OSError, RuntimeError, ValueError):
+        _LOGGER.exception("story_video_illustration_failed")
+        return _story_video_blocked("IllustrationAssetV1", "IMAGE_RENDER_FAILED")
+
+
+@app.post("/v1/story-video/scene")
+def story_video_scene(payload: dict[str, Any]) -> dict[str, Any]:
+    request = payload.get("request")
+    if not isinstance(request, dict):
+        raise HTTPException(status_code=422, detail="SCENE_REQUEST_INVALID")
+    image_path = Path(str(request.get("illustration_ref", "")))
+    if not image_path.is_file():
+        return _story_video_blocked("VideoSceneArtifactV1", "ILLUSTRATION_ARTIFACT_MISSING")
+    expected_image_hash = request.get("illustration_sha256")
+    if not isinstance(expected_image_hash, str) or _file_sha256(image_path) != expected_image_hash:
+        return _story_video_blocked("VideoSceneArtifactV1", "ILLUSTRATION_HASH_MISMATCH")
+    profile = str(request.get("model_profile_ref", "whiteboard-stroke-v1"))
+    if profile == "whiteboard-stroke-v1":
+        return _render_whiteboard_story_scene(request)
+    if profile != "wan2.2-ti2v-5b":
+        return _story_video_blocked("VideoSceneArtifactV1", "MOTION_PROFILE_UNSUPPORTED")
+    repo_value = os.getenv("WAN_REPO_DIR", "").strip()
+    ckpt_value = os.getenv("WAN_CKPT_DIR", "").strip()
+    repo_dir = Path(repo_value).expanduser() if repo_value else None
+    ckpt_dir = Path(ckpt_value).expanduser() if ckpt_value else None
+    if (
+        not repo_dir or not (repo_dir / "generate.py").is_file()
+        or not ckpt_dir or not ckpt_dir.is_dir()
+    ):
+        return _story_video_blocked("VideoSceneArtifactV1", "WAN_RUNTIME_NOT_CONFIGURED")
+    image_path = Path(str(request.get("illustration_ref", "")))
+    if not image_path.is_file():
+        return _story_video_blocked("VideoSceneArtifactV1", "ILLUSTRATION_ARTIFACT_MISSING")
+    scene_id = str(request.get("scene_id", "scene-1"))
+    prompt = str(request.get("motion_prompt", ""))
+    duration_seconds = float(request.get("duration_seconds", 5.0))
+    frame_num = max(5, round(duration_seconds * 24))
+    frame_num = 4 * round((frame_num - 1) / 4) + 1
+    package_hash = str(request.get("package_hash", ""))
+    base_seed = int(package_hash[:12], 16) if len(package_hash) >= 12 else 0
+    try:
+        if not re.fullmatch(r"scene-[1-9][0-9]*", scene_id):
+            raise ValueError("SCENE_ID_INVALID")
+        root = _story_video_package_root(request)
+        output_path = root / f"{scene_id}.mp4"
+        command = [
+            os.getenv("WAN_PYTHON", sys.executable),
+            str(repo_dir / "generate.py"),
+            "--task", "ti2v-5B",
+            "--size", os.getenv("WAN_SIZE", "1280*704"),
+            "--ckpt_dir", str(ckpt_dir),
+            "--offload_model", "True",
+            "--convert_model_dtype",
+            "--t5_cpu",
+            "--frame_num", str(frame_num),
+            "--base_seed", str(base_seed),
+            "--image", str(image_path),
+            "--prompt", prompt,
+            "--save_file", str(output_path),
+        ]
+        subprocess.run(command, cwd=repo_dir, check=True, timeout=1800)
+        duration = _ffprobe_duration(output_path)
+        return {
+            "contract": "VideoSceneArtifactV1",
+            "version": "1.0",
+            "status": "READY",
+            "scene_id": scene_id,
+            "silent_clip_ref": str(output_path),
+            "silent_clip_sha256": _file_sha256(output_path),
+            "duration_seconds": duration,
+            "model_profile_ref": "wan2.2-ti2v-5b",
+        }
+    except (OSError, RuntimeError, subprocess.SubprocessError, ValueError):
+        _LOGGER.exception("story_video_scene_failed")
+        return _story_video_blocked("VideoSceneArtifactV1", "WAN_RENDER_FAILED")
+
+
+def _story_scene_sam_masks(image_path: Path, stroke_path: Path, draw_beats: tuple) -> tuple:
+    import torch
+    from sam2.sam2_image_predictor import SAM2ImagePredictor
+    from sketch2life.infrastructure.media.whiteboard_sam_masks import (
+        predict_stroke_space_masks,
+    )
+
+    global _story_sam_predictor
+    with _story_media_cache_lock:
+        if _story_sam_predictor is None:
+            _story_sam_predictor = SAM2ImagePredictor.from_pretrained(
+                "facebook/sam2.1-hiera-small"
+            )
+        autocast_context = (
+            torch.autocast("cuda", dtype=torch.bfloat16)
+            if torch.cuda.is_available() else nullcontext()
+        )
+        with torch.inference_mode(), autocast_context:
+            return predict_stroke_space_masks(
+                image_path, stroke_path, draw_beats, _story_sam_predictor
+            )
+
+
+def _render_whiteboard_story_scene(request: dict[str, Any]) -> dict[str, Any]:
+    """Turn one generated scene illustration into a narrated whiteboard clip."""
+
+    image_path = Path(str(request.get("illustration_ref", "")))
+    if not image_path.is_file():
+        return _story_video_blocked("VideoSceneArtifactV1", "ILLUSTRATION_ARTIFACT_MISSING")
+    try:
+        from sketch2life.contracts.schemas.story_video import StoryboardDrawBeatV1
+        from sketch2life.infrastructure.media.whiteboard_mvp_renderer import (
+            WhiteboardMvpRenderSpec,
+            render_stroke_animation,
+        )
+        from sketch2life.infrastructure.media.whiteboard_stroke_extraction import (
+            extract_image_line_art,
+        )
+
+        root = _story_video_package_root(request)
+        scene_id = str(request.get("scene_id", ""))
+        if not re.fullmatch(r"scene-[1-9][0-9]*", scene_id):
+            raise ValueError("SCENE_ID_INVALID")
+        duration = float(request.get("duration_seconds", 0))
+        if not 5.0 <= duration <= 20.0:
+            raise ValueError("SCENE_DURATION_INVALID")
+        raw_beats = request.get("draw_beats", [])
+        if not isinstance(raw_beats, list) or len(raw_beats) > 16:
+            raise ValueError("DRAW_BEATS_INVALID")
+        try:
+            draw_beats = tuple(StoryboardDrawBeatV1.model_validate(beat) for beat in raw_beats)
+        except ValidationError as error:
+            raise ValueError("DRAW_BEATS_INVALID") from error
+        if draw_beats and (
+            len({beat.element_id for beat in draw_beats}) != len(draw_beats)
+            or abs(draw_beats[0].start_seconds) > 0.01
+            or abs(draw_beats[-1].end_seconds - duration) > 0.01
+            or any(abs(previous.end_seconds - current.start_seconds) > 0.01
+                   for previous, current in pairwise(draw_beats))
+        ):
+            raise ValueError("DRAW_BEATS_INVALID")
+        segmenter = os.getenv("SKETCH2LIFE_STORY_SEGMENTER", "bbox").strip().lower()
+        if segmenter not in {"bbox", "sam2"}:
+            raise ValueError("STORY_SEGMENTER_UNSUPPORTED")
+        if segmenter == "sam2" and not draw_beats:
+            raise ValueError("DRAW_BEATS_REQUIRED_FOR_SAM")
+        hand_asset_value = os.getenv("SKETCH2LIFE_WHITEBOARD_HAND_ASSET", "").strip()
+        hand_asset_path = Path(hand_asset_value) if hand_asset_value else None
+        hand_asset_hash = _file_sha256(hand_asset_path) if hand_asset_path else None
+        render_variant = ""
+        if draw_beats or hand_asset_hash:
+            render_key = hashlib.sha256(json.dumps({
+                "draw_beats": [beat.model_dump(mode="json") for beat in draw_beats],
+                "segmenter": segmenter,
+                "illustration_sha256": _file_sha256(image_path),
+                **({"hand_asset_sha256": hand_asset_hash} if hand_asset_hash else {}),
+            }, sort_keys=True, separators=(",", ":")).encode()).hexdigest()[:16]
+            render_variant = f".{render_key}"
+        stroke_path = root / f"{scene_id}{render_variant}.strokes.json"
+        output_path = root / f"{scene_id}{render_variant}.whiteboard.mp4"
+        extract_image_line_art(
+            image_path,
+            stroke_path,
+            source_hash=_file_sha256(image_path),
+        )
+        beat_masks = None
+        if segmenter == "sam2":
+            try:
+                beat_masks = _story_scene_sam_masks(image_path, stroke_path, draw_beats)
+            except ValueError:
+                raise
+            except Exception as error:
+                raise ValueError("DRAW_MASK_FAILED") from error
+        result = render_stroke_animation(
+            stroke_path,
+            output_path,
+            spec=WhiteboardMvpRenderSpec(duration_seconds=duration),
+            draw_beats=draw_beats,
+            beat_masks=beat_masks,
+            **({"hand_asset_path": hand_asset_path} if hand_asset_path else {}),
+        )
+        return {
+            "contract": "VideoSceneArtifactV1",
+            "version": "1.0",
+            "status": "READY",
+            "scene_id": scene_id,
+            "silent_clip_ref": str(output_path),
+            "silent_clip_sha256": _file_sha256(output_path),
+            "duration_seconds": duration,
+            "frame_count": round(result.fps * duration),
+            "fps": float(result.fps),
+            "model_profile_ref": "whiteboard-stroke-v1",
+        }
+    except ValueError as error:
+        if str(error) in {
+            "DRAW_BEAT_EMPTY", "DRAW_BEATS_INVALID", "DRAW_BEATS_NOT_CONTIGUOUS",
+            "DRAW_BEATS_REQUIRED_FOR_SAM", "STORY_SEGMENTER_UNSUPPORTED",
+            "DRAW_MASK_INVALID", "DRAW_MASK_COVERAGE_INVALID", "DRAW_MASK_BOX_MISMATCH",
+            "DRAW_MASK_OVERLAP", "DRAW_MASK_EMPTY_AFTER_CROP", "DRAW_MASK_SOURCE_MISMATCH",
+            "DRAW_MASK_CROP_INVALID", "DRAW_MASK_FAILED",
+        }:
+            return _story_video_blocked("VideoSceneArtifactV1", str(error))
+        _LOGGER.exception("whiteboard_story_scene_failed")
+        return _story_video_blocked("VideoSceneArtifactV1", "WHITEBOARD_RENDER_FAILED")
+    except (ImportError, OSError, RuntimeError):
+        _LOGGER.exception("whiteboard_story_scene_failed")
+        return _story_video_blocked("VideoSceneArtifactV1", "WHITEBOARD_RENDER_FAILED")
+
+
+@app.post("/v1/story-video/assembly")
+def story_video_assembly(payload: dict[str, Any]) -> dict[str, Any]:
+    request = payload.get("request")
+    if not isinstance(request, dict):
+        raise HTTPException(status_code=422, detail="ASSEMBLY_REQUEST_INVALID")
+    scene_refs = request.get("scene_artifact_refs")
+    scene_hashes = request.get("scene_artifact_sha256")
+    narration_ref = request.get("narration_ref")
+    if (
+        not isinstance(scene_refs, list)
+        or not scene_refs
+        or not isinstance(scene_hashes, list)
+        or len(scene_hashes) != len(scene_refs)
+        or not isinstance(narration_ref, str)
+    ):
+        raise HTTPException(status_code=422, detail="ASSEMBLY_REQUEST_INVALID")
+    try:
+        ffmpeg = _require_executable("ffmpeg")
+        audio_path = Path(narration_ref)
+        scene_paths = [Path(str(ref)) for ref in scene_refs]
+        if not audio_path.is_file() or any(not path.is_file() for path in scene_paths):
+            return _story_video_blocked("VideoArtifactV1", "ASSEMBLY_ARTIFACT_MISSING")
+        if _file_sha256(audio_path) != request.get("narration_sha256"):
+            return _story_video_blocked("VideoArtifactV1", "NARRATION_HASH_MISMATCH")
+        if any(
+            _file_sha256(path) != digest
+            for path, digest in zip(scene_paths, scene_hashes, strict=True)
+        ):
+            return _story_video_blocked("VideoArtifactV1", "SCENE_HASH_MISMATCH")
+        root = _story_video_package_root(request)
+        assembly_key = hashlib.sha256(json.dumps({
+            "scene_sha256": scene_hashes,
+            "narration_sha256": request.get("narration_sha256"),
+            "subtitle_cues": request.get("subtitle_cues"),
+        }, sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode()).hexdigest()[:16]
+        list_path = root / f"scenes.{assembly_key}.concat.txt"
+        output_path = root / f"story.{assembly_key}.final.mp4"
+        list_path.write_text(
+            "".join(
+                f"file '{path.as_posix().replace(chr(39), chr(39) + chr(92) + chr(39) + chr(39))}'\n"
+                for path in scene_paths
+            ),
+            encoding="utf-8",
+        )
+        subtitle_cues = request.get("subtitle_cues")
+        subtitle_path = root / f"story.{assembly_key}.srt"
+        filter_args: list[str] = []
+        if isinstance(subtitle_cues, list) and subtitle_cues:
+            subtitle_path.write_text(_subtitle_srt(subtitle_cues), encoding="utf-8")
+            escaped = (
+                str(subtitle_path)
+                .replace("\\", "/")
+                .replace(":", r"\:")
+                .replace("'", r"\'")
+            )
+            style = (
+                "FontName=DejaVu Sans,FontSize=12,BorderStyle=1,Outline=1,"
+                "Shadow=0,MarginV=24,Alignment=2"
+            )
+            filter_args = [
+                "-vf", f"subtitles='{escaped}':charenc=UTF-8:force_style='{style}'"
+            ]
+        subprocess.run(
+            [
+                ffmpeg,
+                "-y",
+                "-f",
+                "concat",
+                "-safe",
+                "0",
+                "-i",
+                str(list_path),
+                "-i",
+                str(audio_path),
+                *filter_args,
+                "-c:v",
+                "libx264",
+                "-pix_fmt",
+                "yuv420p",
+                "-c:a",
+                "aac",
+                "-shortest",
+                "-movflags",
+                "+faststart",
+                str(output_path),
+            ],
+            check=True,
+            capture_output=True,
+            timeout=600,
+        )
+        duration = _ffprobe_duration(output_path)
+        if not _assembled_streams_ready(_ffprobe_streams(output_path)):
+            return _story_video_blocked("VideoArtifactV1", "ASSEMBLY_STREAM_MISMATCH")
+        expected = (
+            float(subtitle_cues[-1]["end_seconds"])
+            if isinstance(subtitle_cues, list) and subtitle_cues
+            else None
+        )
+        if expected is not None and abs(duration - expected) > 0.6:
+            return _story_video_blocked("VideoArtifactV1", "ASSEMBLY_DURATION_MISMATCH")
+        return {
+            "contract": "VideoArtifactV1",
+            "version": "1.0",
+            "status": "READY",
+            "video_ref": str(output_path),
+            "video_sha256": _file_sha256(output_path),
+            "duration_seconds": duration,
+            "audio_ref": str(audio_path),
+            "video_codec": "h264",
+            "audio_codec": "aac",
+        }
+    except (OSError, RuntimeError, subprocess.SubprocessError, TypeError, ValueError):
+        _LOGGER.exception("story_video_assembly_failed")
+        return _story_video_blocked("VideoArtifactV1", "ASSEMBLY_FAILED")
+
+
+def _subtitle_srt(cues: list[dict[str, Any]]) -> str:
+    """Serialize approved scene narration as UTF-8 SRT cues."""
+
+    def timestamp(seconds: float) -> str:
+        millis = max(0, round(seconds * 1000))
+        hours, millis = divmod(millis, 3_600_000)
+        minutes, millis = divmod(millis, 60_000)
+        secs, millis = divmod(millis, 1_000)
+        return f"{hours:02}:{minutes:02}:{secs:02},{millis:03}"
+
+    blocks: list[str] = []
+    for index, cue in enumerate(cues, 1):
+        if not isinstance(cue, dict):
+            continue
+        text = str(cue.get("text", "")).replace("\r", "").strip()
+        if not text:
+            continue
+        blocks.append(
+            f"{index}\n{timestamp(float(cue.get('start_seconds', 0)))} --> "
+            f"{timestamp(float(cue.get('end_seconds', 0)))}\n{text}\n"
+        )
+    return "\n".join(blocks)
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", "8000")))
