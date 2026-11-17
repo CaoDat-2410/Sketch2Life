@@ -379,3 +379,126 @@
 - **Scope:** Merge PR #27 into its existing `dev` base through GitHub's normal merge operation using the current verified head SHA; current CI failures may remain for later resolution.
 - **Protection boundary:** No bypass of required checks or branch protection. If GitHub rejects the standard merge, leave the PR open and record the blocker. No force push, rebase, squash, direct write to `dev`, product/SRS change, or deployment.
 - **Approval basis:** The owner's latest direct instruction authorizes merging the PR and supersedes the earlier no-merge instruction only for this PR.
+
+## FEAT-066 Rev32 — Platform Admin available API wiring
+
+- **Status:** APPROVED_FOR_IMPLEMENTATION for the exact scope in Plan Rev32.
+- **Approver:** Project owner, direct instruction on 2026-11-16: “ok ghép mấy cái trên cho tôi đi”.
+- **Plan:** features/FEAT-066-fe-ui-srs-full-review/plan/PLAN_REV32_PLATFORM_ADMIN_AVAILABLE_API_INTEGRATION_20261116.md.
+- **Plan SHA-256:** 56A6985B7D486E79F1B8C9AB39B4C56275BC401C7ECF4730014D01BC167A1A92.
+- **Scope:** Update only the Platform Admin GET /health panel to use the configured API base with truthful auth/loading/success/error/retry states. Verify and preserve existing /api/auth/v1/me and platform-admin account list/create/update wiring. Keep moderation and unsupported Admin panels unavailable.
+- **Acceptance criteria:** AC1–AC8 in the hash-identified plan.
+- **Exclusions:** backend/API/authorization/contract/environment/secrets, account mutation semantics, Content Admin moderation, other unavailable panels, mobile/other roles, app tests/builds, live API/provider calls, commit and push.
+- **Approval basis:** Direct owner authorization for the existing safe Admin API set. This approval does not authorize role-only moderation or close SRS open decisions.
+## FEAT-066 Rev33 — Local Docker API and FE handoff check
+
+- **Status:** APPROVED_FOR_EXECUTION for read-only local runtime verification.
+- **Approver:** Project owner, direct instruction on 2026-11-17: “chạy BE ở docker sau đó chạy thử api xem đã nhận chưa sau đó để tôi test trên FE”.
+- **Plan:** features/FEAT-066-fe-ui-srs-full-review/plan/PLAN_REV33_DOCKER_API_FE_SMOKE_20261117.md.
+- **Plan SHA-256:** 0AB2F79A26EDCBA27871C559016A8A6A56466DA82867519E2FB147995C8380F0.
+- **Scope:** Start Docker Compose API/dependencies without resetting volumes; perform read-only health/OpenAPI/auth rejection/CORS probes; leave existing FE and API running for owner review.
+- **Exclusions:** No account mutations, real/fabricated credentials, business data, application source/env/secret changes, app tests/builds, commit or push.
+- **Approval basis:** Direct owner authorization for local backend startup, API verification, and FE handoff.
+## FEAT-066 Rev34 — Platform Admin test account
+
+- **Status:** APPROVED_FOR_EXECUTION for one local QA identity.
+- **Approver:** Project owner, direct instruction on 2026-11-17: “đưa account test đi”.
+- **Plan:** features/FEAT-066-fe-ui-srs-full-review/plan/PLAN_REV34_PLATFORM_ADMIN_TEST_ACCOUNT_20261117.md.
+- **Plan SHA-256:** 3EBDE69AFFA105F09DFB04901DA5539EE555361EBCBC3F8D035831A5291A9EBE.
+- **Scope:** One active Platform Admin test user in verified `sketch2life-dev`, local PostgreSQL schema migrations limited to `be1_core` and `lesson_library`, generated password, FE dev Firebase configuration on loopback port 5174, read-only authenticated API verification.
+- **Exclusions:** Production project/data, existing-user mutation, email delivery, token/password logging or repository storage, Content Admin capability, child media, unrelated schema branches, app test suites, source code, commit and push.
+- **Approval basis:** Direct owner request for a test account in the active Platform Admin FE testing context; the use of the existing nonproduction Firebase project and generated reserved-domain identity is recorded in Plan Rev34.
+## FEAT-066 Rev35 — Active FE port API proxy
+
+- **Status:** APPROVED_FOR_EXECUTION for temporary local runtime configuration.
+- **Approver:** Project owner, direct question and screenshot on 2026-11-17: “là chưa ghép à ?”.
+- **Plan:** features/FEAT-066-fe-ui-srs-full-review/plan/PLAN_REV35_ACTIVE_FE_PORT_API_PROXY_20261117.md.
+- **Plan SHA-256:** 479A937FDDDD09AD6CC681B5D951C7D434B9ACAD29B3ECBB4918EC3225B9E200.
+- **Scope:** Replace only the verified worktree's Vite process on port 5173 with a temporary same-origin proxy to the Docker API and inject existing dev Firebase web config in process memory.
+- **Exclusions:** No tracked code, backend/API, account, password/token, environment-file, production, test-suite, commit or push changes.
+- **Approval basis:** Direct owner report that the active FE still displays a backend-data error after the prior test handoff; this is a reversible local runtime correction.
+## FEAT-066 Rev36 — Platform Accounts crayon UX rebuild
+
+- **Status:** APPROVED_FOR_IMPLEMENTATION for the exact scope in Plan Rev36.
+- **Approver:** Project owner, direct instruction on 2026-11-17: “Check xem ở đây thiếu gì và dùng skill làm lại bố cục và bám sát SRS này để xây dựng UI/UX theo phong cách crayon”.
+- **Plan:** features/FEAT-066-fe-ui-srs-full-review/plan/PLAN_REV36_PLATFORM_ADMIN_ACCOUNTS_CRAYON_REBUILD_20261117.md.
+- **Plan SHA-256:** 6AE92FAEB7ED005B463E05176A58539A6927323E9C61ED3350F9CA243446E0D9.
+- **Scope:** Rebuild only the Platform Admin accounts screen layout/interaction in the existing crayon system; preserve current account API/auth contracts; distinguish API/auth failures from true empty results; provide responsive accessible states and inline School Manager organization input.
+- **SRS source:** The owner explicitly selected the attached v2.7-draft SRS dated 2026-11-13 (Rev69 amendments, SHA-256 B9B1F42D0BB118C19C81607D3913B7E4F1D8B6F673F0C3FBB6402888FEB675F5) for this task. Repository authority remains Rev60 and is not changed here; no formal SRS sign-off is implied.
+- **Acceptance criteria:** AC1–AC8 in the hash-identified Plan Rev36.
+- **Exclusions:** No backend/API/authorization/role policy, capability grant UI, cursor-pagination contract, other role, Parent/mobile, assets/dependencies, credentials/secrets, automated app test suite, commit, push, PR, merge, or deployment.
+- **Approval basis:** Direct owner request authorizes the page rebuild. Existing uncommitted work is preserved.
+
+
+## FEAT-066 Rev37 — Platform Admin sidebar crayon redesign
+
+- Status: APPROVED_FOR_IMPLEMENTATION for the exact scope in Plan Rev37.
+- Approver: Project owner, direct instruction on 2026-11-17: “Dùng skill làm lại cái này đi xấu quá”.
+- Plan: features/FEAT-066-fe-ui-srs-full-review/plan/PLAN_REV37_PLATFORM_ADMIN_SIDEBAR_CRAYON_REDESIGN_20261117.md.
+- Plan SHA-256: A3F276D0EB8D163F35B107A9CC154D448437A4F5F6BFAF65EE49F82DB399940C.
+- Scope: Restyle only the Platform Admin shared-shell sidebar via scoped CSS in the Platform Admin stylesheet. Preserve all routes, labels, authentication behavior, drawer mechanics, interactions, and other role sidebars.
+- Acceptance criteria: AC1–AC7 in hash-identified Plan Rev37.
+- Exclusions: Shared shell behavior/JSX, other roles, routes/API/auth contracts, product policy, generated assets/dependencies, app test suite, commit, push, PR, merge, deployment.
+- Approval basis: Direct owner instruction explicitly requests the sidebar redesign and skill use. Existing worktree modifications are retained.
+
+
+## FEAT-066 Rev38 — Platform Accounts zoom-width layout correction
+
+- Status: APPROVED_FOR_IMPLEMENTATION for the exact scope in Plan Rev38.
+- Approver: Project owner, direct bug report and screenshot on 2026-11-17: “Lỗi ux khi zoom nhỏ lại nè”.
+- Plan: features/FEAT-066-fe-ui-srs-full-review/plan/PLAN_REV38_PLATFORM_ACCOUNTS_ZOOM_WIDTH_20261117.md.
+- Plan SHA-256: DD3BC84855986B15C8FAA4356A4231B93E4096D4F6A0FC3C4316FD73C79ABC79.
+- Scope: Correct Platform Accounts table layout at reduced effective viewport widths. Keep the current API/auth/role/state contracts; align the account-card breakpoint with the shared shell; reserve a usable action column and show its desktop header.
+- Acceptance criteria: AC1–AC6 in the hash-identified Plan Rev38.
+- Exclusions: Backend/API/auth contracts, account data or mutations, roles/permissions, other pages/roles, SRS changes, mobile app, dependencies, automated app test suite, commit, push, PR, merge, deployment.
+- Approval basis: Owner’s screenshot and direct report identifies a concrete UX failure on the active Platform Accounts page; the request is treated as authorization for this scoped responsive correction. Preserve the existing dirty worktree.
+## FEAT-066 Rev41 — School Manager login/auth API integration
+
+- **Status:** APPROVED_FOR_IMPLEMENTATION for the exact scope in Plan Rev41.
+- **Approver:** Project owner, direct instruction on 2026-11-17: “ghép các api login trước cho tôi đi sau đó test và record lại kết quả cho tôi đi”.
+- **Plan:** features/FEAT-066-fe-ui-srs-full-review/plan/PLAN_REV41_MANAGER_LOGIN_AUTH_API_20261117.md.
+- **Plan SHA-256:** E06D84FCEE12A168765876C892B3D9DD170D64FB81F804D0E551CD5F9EBE672B.
+- **Scope:** Reuse Firebase SDK sign-in, authenticated GET /api/auth/v1/me role resolution, and the organization-scoped BE1 assignment check; fix only a confirmed login-flow defect; add focused auth-path coverage; run requested frontend tests and an authenticated read-only dev API smoke if the local dev stack is available; record sanitized evidence.
+- **Exclusions:** No account creation/password changes/role mutations, no production use, no backend contract or schema changes, no other Manager API integration, no credentials or tokens in repository/evidence, no commit or push.
+- **Approval basis:** The owner explicitly requested login API integration, testing, and recording results. Approval is limited to Plan Rev41.
+
+## FEAT-066 Rev42 — School Manager QA account and live login
+
+- **Status:** APPROVED_FOR_EXECUTION for Plan Rev42; provisioning waits for valid local Firebase Web configuration.
+- **Approver:** Project owner, direct instruction on 2026-11-17: “Cho account test lun sau đó login đồ ổn thì qua tiếp nối các api nghiệp vụ”.
+- **Plan:** features/FEAT-066-fe-ui-srs-full-review/plan/PLAN_REV42_MANAGER_QA_ACCOUNT_AND_LIVE_LOGIN_20261117.md.
+- **Plan SHA-256:** 96AE1FC25F8BAE840371D9CB41D5F52652F74C1F59C0F6D2A6AD22F5848C9D6D.
+- **Scope:** Create exactly one reserved-domain School Manager QA account and dedicated organization in Firebase project `sketch2life-dev`; verify Firebase password sign-in, authenticated role/assignment reads, and FE login; return credentials directly to owner only after verification.
+- **Exclusions:** No existing account/password/role change, production project, real email delivery, child/profile/story data, credential/token persistence in repo/evidence/logs, business API integration, commit or push.
+- **Approval basis:** The owner directly asked for a test account and successful login check. This is separate from Rev41, which excluded account creation. Plan Rev42 requires the Web config project to match `sketch2life-dev` and blocks before account creation if that config is unavailable.
+
+## FEAT-066 Rev43 — Conditional Manager business API integration
+
+- **Status:** APPROVED_CONDITIONALLY; do not implement before Rev42's live Manager login and both authenticated reads pass.
+- **Approver:** Project owner, conditional direct instruction on 2026-11-17: “...login đồ ổn thì qua tiếp nối các api nghiệp vụ”.
+- **Plan:** features/FEAT-066-fe-ui-srs-full-review/plan/PLAN_REV43_MANAGER_BUSINESS_API_INTEGRATION_20261117.md.
+- **Plan SHA-256:** 239A1E64E5C3269A7536497DB5DDAA2A582EC7844E25468837A9F1B3286AA597.
+- **Scope:** After the Rev42 login gate, connect the five SRS-compatible operations in Plan Rev43: organization read, minimal scoped roster read, scoped consent-status read, Parent-group list, and idempotent Parent-group create. Preserve the six already-connected routes while recording their SRS gaps.
+- **Exclusions:** Five Rev40 operations whose current guards/contracts are incompatible or incomplete (synthetic Teacher-only profile create, consent writes without Parent actor/evidence policy, invitation without Parent discovery, membership revoke without membership read); class assignment without Teacher candidate discovery; class create without capacity enforcement; quota/billing/invoices/reconciliation/organization feedback without supported APIs; backend contract/schema/authorization changes; live business mutations; commit or push.
+- **Approval basis:** The owner explicitly authorized continuing with business APIs after Manager login succeeds. Approval is conditional on the exact Rev43 plan and the successful Rev42 authentication gate.
+
+## FEAT-066 Rev44 — Manager QA bootstrap ordering repair
+
+- Status: APPROVED_FOR_IMPLEMENTATION for the exact scope in Plan Rev44.
+- Approver: Project owner, direct instruction on 2026-11-17 to provide a Manager test account, verify login, then continue with business APIs; the owner supplied the ignored Firebase Web config path during this task.
+- Plan: features/FEAT-066-fe-ui-srs-full-review/plan/PLAN_REV44_MANAGER_QA_BOOTSTRAP_ORDERING_FIX_20261117.md.
+- Plan SHA-256: 31E7CD3445AE6290387F118F9B761DF14397D7C0BB6BD03C366624A2604E38D9.
+- Scope: Repair the supported first-school-admin bootstrap ORM ordering by flushing the organization and adult identity before adding their assignment; add a focused ordering test; retry the approved local QA login flow and verify role/scope.
+- Exclusions: No schema, API contract, authorization policy, production, existing account, unrelated data, business mutations, credential/token persistence, commit, or push.
+- Approval basis: This small bootstrap utility repair is necessary to fulfill the owner's direct request for a working Manager QA account/login before continuing the conditionally approved business API integration.
+
+## FEAT-066 Rev46 — School Manager navigation and theme restoration
+
+- **Status:** APPROVED_FOR_IMPLEMENTATION for Plan Rev46.
+- **Approver:** Project owner, direct instruction on 2026-11-17 to optimize and redesign the School Manager navigation according to the latest supplied SRS and UI/UX requirements.
+- **Plan:** `features/FEAT-066-fe-ui-srs-full-review/plan/PLAN_REV46_SCHOOL_MANAGER_NAVIGATION_CRAYON_REDESIGN_20261117.md`.
+- **Plan SHA-256:** `FA3EB6DFBB3E5E32BF61B75FD17E8230DF0D67C712079CAB1EB3F9222A34A255`.
+- **Scope:** Fix the mismatch between the live `school-be1` portal key and imported School Manager CSS; redesign only School Manager nav hierarchy/appearance/status and its misleading account affordance. Preserve other roles and all API/auth behavior.
+- **SRS:** Repository authority remains FEAT-063 v2.7-draft Rev60, unsigned. The owner-supplied Rev69 copy was checked for the applicable Manager scope; no SRS or policy changes are part of this task.
+- **Exclusions:** No API/backend/database/role-policy/child-media/mobile changes, generated assets, dependencies, app test-suite run, commit, push, PR or deployment.
+- **Approval basis:** The owner directly requested implementation; this record is the required pre-source-change approval for the bounded UI task.

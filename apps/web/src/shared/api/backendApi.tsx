@@ -1,4 +1,5 @@
 import React from "react";
+import { resolveBackendRuntimeConfig } from "./backendRuntimeConfig";
 
 export type PortalRole = "parent" | "teacher" | "school_manager" | "platform_admin";
 export type PlatformAccountRole = PortalRole;
@@ -253,10 +254,7 @@ export interface ParentLessonDetail {
 function runtimeConfig(): RuntimeConfig {
   const env = (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env ?? {};
   const injected = typeof window === "undefined" ? {} : window.sketch2lifeConfig ?? {};
-  return {
-    apiBaseUrl: injected.apiBaseUrl || env.VITE_SKETCH2LIFE_API_BASE_URL,
-    organizationId: injected.organizationId || env.VITE_SKETCH2LIFE_ORGANIZATION_ID,
-  };
+  return resolveBackendRuntimeConfig(env, injected);
 }
 
 export function apiBaseUrl(): string {

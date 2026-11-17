@@ -13,10 +13,10 @@ import {
   type LessonContent,
   type LessonSummary,
   type TeacherLessonDetail,
-} from "../../../shared/backendApi";
-import { usePortalSession } from "../../../shared/PortalSessionContext";
+} from "../../../shared/api/backendApi";
+import { usePortalSession } from "../../../shared/auth/PortalSessionContext";
 import { Icon } from "../components/Icon";
-import { PageHeading } from "../../../shared/FeatureAvailability";
+import { PageHeading } from "../../../shared/components/FeatureAvailability";
 
 const blankActivity = (): LessonActivity => ({
   title: "",

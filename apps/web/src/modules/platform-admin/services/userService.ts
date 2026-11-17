@@ -1,4 +1,4 @@
-import { backendApi } from '../../../shared/backendApi'
+import { backendApi } from '../../../shared/api/backendApi'
 
 export type AccountRole = 'parent' | 'teacher' | 'school_manager' | 'platform_admin'
 export type AccountState = 'active' | 'disabled'

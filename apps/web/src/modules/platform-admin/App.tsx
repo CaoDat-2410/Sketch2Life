@@ -2,9 +2,9 @@ import "./styles/tokens.css";
 import "./styles/mg-manage.css";
 import "./styles/admin-rebuild.css";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
-import { WebAppShell, PLATFORM_ADMIN_NAVIGATION } from "../../shared/WebAppShell";
-import { usePortalSession } from "../../shared/PortalSessionContext";
-import { RoleMismatchPage } from "../../shared/RoleMismatchPage";
+import { WebAppShell, PLATFORM_ADMIN_NAVIGATION } from "../../shared/navigation/WebAppShell";
+import { usePortalSession } from "../../shared/auth/PortalSessionContext";
+import { RoleMismatchPage } from "../../shared/auth/RoleMismatchPage";
 import { A01ContentModerationPage, A02PlatformOperationsPage } from "./pages/AdminScreens";
 import { UsersPage } from "./pages/UsersPage";
 

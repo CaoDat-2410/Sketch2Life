@@ -2,7 +2,7 @@ import {
   apiBaseUrl,
   configuredOrganizationId,
   hasFirebaseAuthBridge,
-} from '../../../shared/backendApi'
+} from '../../../shared/api/backendApi'
 
 export type TeacherLessonSuggestionInput = Readonly<{
   topic: string

@@ -1,8 +1,8 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { authService } from "../modules/school-manager/be1/services/authService";
-import { signInAndResolveRole } from "../shared/backendApi";
-import { usePortalSession } from "../shared/PortalSessionContext";
-import { WebPortalLoginPage, type WebPortalAppRole } from "../shared/WebPortalLoginPage";
+import { signInAndResolveRole } from "../shared/api/backendApi";
+import { usePortalSession } from "../shared/auth/PortalSessionContext";
+import { WebPortalLoginPage, type WebPortalAppRole } from "../shared/auth/WebPortalLoginPage";
 
 const ROLE_QUERY: Record<WebPortalAppRole, string> = {
   TEACHER: "teacher",
