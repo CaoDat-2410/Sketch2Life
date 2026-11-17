@@ -360,3 +360,13 @@ A source review found later important login-only rules in apps/shared/web-brand-
 - **Approved scope:** shared /login sign-in layout with inline role switching; old role-card chooser and duplicate School Manager login presentation removed; compatibility routes select the corresponding role on the same screen; retain Teacher backend role resolution, Manager BE1 authentication and assignment gate, and Platform Admin's missing role-discovery limitation.
 - **Commit:** amend the existing one local commit after evidence and checks; no push.
 - **Boundary:** no backend/API/auth-contract or mobile changes, no credential entry, no application tests.
+
+## FEAT-066 Revision 48 — Manager 17-route test and GitHub record
+
+- Status: APPROVED_FOR_EXECUTION.
+- Approver: User, direct instruction on 2026-11-17 (Asia/Bangkok): plan integration of all 17 Manager APIs, run tests, record results, and push the record to GitHub.
+- Plan: plan/PLAN_REV48_MANAGER_17_API_INTEGRATION_AND_TEST_20261117.md.
+- Plan SHA-256: 4856A0895714A8346E7666BB8ABFE4661D50E11C4F94700690A101F0F4FCDC9D.
+- Worktree/branch: F:/Github/Sketch2Life-worktrees/fe-ui-web-remediation, codex/fe-ui-web-remediation.
+- Approved scope: route/status audit, focused Manager FE and applicable isolated BE tests, read-only local smoke, build/lint/required push validators, FEAT-066 plan/evidence records, and a docs-only commit/push of the Rev48 plan/approval/test record.
+- Boundaries: do not bypass the current SRS/BE guards or enable the six blocked routes; no live business writes, child data, backend contract/schema/authorization changes, secrets/tokens in output, unrelated dirty-file staging, or application source commit.
