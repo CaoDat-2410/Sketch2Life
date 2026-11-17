@@ -8,9 +8,9 @@ from sqlalchemy.dialects import postgresql
 from alembic import op
 
 revision = "20261102_pv_0001"
-down_revision = None
+down_revision = ("20261101_be1_age_0001", "20261015_ai_0001")
 branch_labels = ("pilot_vision",)
-depends_on = ("20261101_be1_age_0001", "20261015_ai_0001")
+depends_on = None
 
 SCHEMA = "pilot_vision"
 
