@@ -3,7 +3,7 @@
 import logging
 import os
 import re
-from collections.abc import AsyncIterator, Awaitable, Callable
+from collections.abc import AsyncIterator, Awaitable, Callable, Mapping
 from contextlib import asynccontextmanager
 from ipaddress import ip_address
 from pathlib import Path
@@ -176,6 +176,14 @@ def _legacy_parent_story_revision_path(path: str) -> bool:
     return bool(run_id) and "/" not in run_id
 
 
+def _parent_story_cancel_path(path: str) -> bool:
+    return re.fullmatch(r"/v1/story-runs/[0-9a-fA-F-]{36}/cancel", path) is not None
+
+
+def _parent_drawing_understandings_path(path: str) -> bool:
+    return path == "/api/parent/v1/ai/drawing-understandings"
+
+
 def _loopback(address: object) -> bool:
     try:
         return ip_address(str(address)).is_loopback
@@ -237,6 +245,101 @@ def _contract_response_schema(
             "items": {"$ref": f"#/components/schemas/{list_match.group(1)}"},
         }
     raise ValueError(f"Rev37 response schema {schema_name!r} is not present in OpenAPI components")
+
+
+def _apply_catalog_metadata(
+    schema: dict[str, Any], catalog: Mapping[tuple[str, str], Any]
+) -> None:
+    """Apply catalog metadata to generated operations by exact public method and path.
+
+    The lookup key is ``(method.lower(), path)`` taken from the OpenAPI document itself. No
+    route object, handler name or callable identity is consulted, and an operation without a
+    catalog entry is left untouched.
+    """
+    for path, path_item in schema.get("paths", {}).items():
+        if not isinstance(path_item, dict):
+            continue
+        for method, operation in path_item.items():
+            if not isinstance(operation, dict) or method.lower() not in {
+                "get",
+                "post",
+                "put",
+                "patch",
+                "delete",
+                "options",
+                "head",
+            }:
+                continue
+            contract = catalog.get((method.lower(), path))
+            if contract is None:
+                continue
+            operation["description"] = contract["purpose"]
+            if (method.lower(), path) == (
+                "post",
+                "/api/be1/v1/organizations/{organization_id}/sessions/"
+                "{session_id}/groups/{group_id}/restore",
+            ):
+                operation["description"] += (
+                    "\n\n**Access:** a valid bearer token and a Teacher or School Admin "
+                    "assignment for the class. Effective group consent and an existing "
+                    "checkpoint are required. This operation is available in local/test "
+                    "until production checkpoint storage is configured."
+                )
+            operation["tags"] = [public_tag_name(contract["tag"])]
+            effective_responses = published_responses(
+                (method.lower(), path), contract["responses"]
+            )
+            declared_responses = {
+                response["status"]: response for response in effective_responses
+            }
+            runtime_responses = operation.setdefault("responses", {})
+            if path.startswith(("/api/be1/v1/", "/v1/parent/profiles")):
+                for status in tuple(runtime_responses):
+                    if status not in declared_responses:
+                        del runtime_responses[status]
+            for status, declared in declared_responses.items():
+                response = runtime_responses.get(status)
+                if not isinstance(response, dict):
+                    response = {"description": declared["description"]}
+                    if declared["media_type"]:
+                        response["content"] = {
+                            declared["media_type"]: {
+                                "schema": _contract_response_schema(
+                                    declared["schema_name"], schema
+                                )
+                            }
+                        }
+                    runtime_responses[status] = response
+                else:
+                    response["description"] = declared["description"]
+                if (
+                    status == "422"
+                    and path.startswith("/v1/parent/profiles")
+                    and declared["media_type"]
+                ):
+                    response["content"] = {
+                        declared["media_type"]: {
+                            "schema": _contract_response_schema(
+                                declared["schema_name"], schema
+                            )
+                        }
+                    }
+                if declared["media_type"] and declared["schema_name"] == "object":
+                    response_schema = (
+                        response.get("content", {})
+                        .get(declared["media_type"], {})
+                        .get("schema")
+                    )
+                    if isinstance(response_schema, dict):
+                        response_schema.setdefault("type", "object")
+                if declared["media_type"] and declared["schema_name"] == "binary":
+                    response["content"] = {
+                        declared["media_type"]: {
+                            "schema": _contract_response_schema(
+                                declared["schema_name"], schema
+                            )
+                        }
+                    }
 
 
 def create_app(
@@ -320,10 +423,13 @@ def create_app(
                 "/api/be1/v1",
                 "/api/lesson-library/v1",
                 "/api/parent/v1/ai/story-runs/",
+                "/api/parent/v1/ai/drawing-understandings",
                 "/v1/parent/profiles",
                 "/v1/story-runs",
             )
-        ) and not _legacy_parent_story_revision_path(request.url.path):
+        ) and not _legacy_parent_story_revision_path(request.url.path) and not (
+            _parent_drawing_understandings_path(request.url.path)
+        ):
             return await call_next(request)
         supplied_id = request.headers.get("X-Request-ID", "")
         request_id = supplied_id if _SAFE_ID.fullmatch(supplied_id) else str(uuid4())
@@ -331,7 +437,7 @@ def create_app(
             request.state.parent_request_id = request_id
         elif request.url.path.startswith("/v1/story-runs") or (
             _legacy_parent_story_revision_path(request.url.path)
-        ):
+        ) or _parent_drawing_understandings_path(request.url.path):
             request.state.story_request_id = request_id
         else:
             request.state.be1_request_id = request_id
@@ -347,8 +453,10 @@ def create_app(
     async def handle_http_exception(
         request: Request, exc: StarletteHTTPException
     ) -> JSONResponse:
-        if request.url.path.startswith("/v1/story-runs") or (
-            _legacy_parent_story_revision_path(request.url.path)
+        if (
+            request.url.path.startswith("/v1/story-runs")
+            or _legacy_parent_story_revision_path(request.url.path)
+            or _parent_drawing_understandings_path(request.url.path)
         ):
             detail: dict[str, Any] = exc.detail if isinstance(exc.detail, dict) else {}
             status_codes = {
@@ -402,6 +510,14 @@ def create_app(
                     "retryable": exc.status_code in {429, 502, 503, 504},
                     "retry_after_seconds": retry_after_seconds,
                     "field_errors": None,
+                    **(
+                        {"current_version": detail["current_version"]}
+                        if _parent_story_cancel_path(request.url.path)
+                        and exc.status_code == 409
+                        and code == "STALE_REVISION"
+                        and type(detail.get("current_version")) is int
+                        else {}
+                    ),
                 },
                 headers={**(exc.headers or {}), "X-Request-ID": request_id},
             )
@@ -534,8 +650,10 @@ def create_app(
     ) -> JSONResponse:
         if story_demo_enabled and _story_run_lite_path(request.url.path):
             return await story_validation_error_response(request, exc)
-        if request.url.path.startswith("/v1/story-runs") or (
-            _legacy_parent_story_revision_path(request.url.path)
+        if (
+            request.url.path.startswith("/v1/story-runs")
+            or _legacy_parent_story_revision_path(request.url.path)
+            or _parent_drawing_understandings_path(request.url.path)
         ):
             request_id = getattr(request.state, "story_request_id", str(uuid4()))
             safe_fields = []
@@ -700,8 +818,10 @@ def create_app(
     async def handle_unexpected_exception(request: Request, exc: Exception):
         if story_demo_enabled and _story_run_lite_path(request.url.path):
             return await story_unexpected_error_response(request, exc)
-        if request.url.path.startswith("/v1/story-runs") or (
-            _legacy_parent_story_revision_path(request.url.path)
+        if (
+            request.url.path.startswith("/v1/story-runs")
+            or _legacy_parent_story_revision_path(request.url.path)
+            or _parent_drawing_understandings_path(request.url.path)
         ):
             request_id = getattr(request.state, "story_request_id", str(uuid4()))
             _LOGGER.error(
@@ -1083,102 +1203,7 @@ def create_app(
                 "Bearer prefix. Authentication identifies the caller; each operation checks "
                 "its own role and resource permissions."
             )
-        for path, path_item in schema.get("paths", {}).items():
-            if not isinstance(path_item, dict):
-                continue
-            for method, operation in path_item.items():
-                if not isinstance(operation, dict) or method.lower() not in {
-                    "get",
-                    "post",
-                    "put",
-                    "patch",
-                    "delete",
-                    "options",
-                    "head",
-                }:
-                    continue
-                contract = MOUNTED_OPERATIONS.get((method.lower(), path))
-                if contract is None:
-                    continue
-                expected_handler = contract["handler"].rsplit("::", maxsplit=1)[-1]
-                mounted_handler = next(
-                    (
-                        getattr(getattr(route, "endpoint", None), "__name__", None)
-                        for route in application.routes
-                        if getattr(route, "path", None) == path
-                        and method.upper() in (getattr(route, "methods", None) or ())
-                    ),
-                    None,
-                )
-                if mounted_handler != expected_handler:
-                    continue
-                operation["description"] = contract["purpose"]
-                if (method.lower(), path) == (
-                    "post",
-                    "/api/be1/v1/organizations/{organization_id}/sessions/"
-                    "{session_id}/groups/{group_id}/restore",
-                ):
-                    operation["description"] += (
-                        "\n\n**Access:** a valid bearer token and a Teacher or School Admin "
-                        "assignment for the class. Effective group consent and an existing "
-                        "checkpoint are required. This operation is available in local/test "
-                        "until production checkpoint storage is configured."
-                    )
-                operation["tags"] = [public_tag_name(contract["tag"])]
-                effective_responses = published_responses(
-                    (method.lower(), path), contract["responses"]
-                )
-                declared_responses = {
-                    response["status"]: response for response in effective_responses
-                }
-                runtime_responses = operation.setdefault("responses", {})
-                if path.startswith(("/api/be1/v1/", "/v1/parent/profiles")):
-                    for status in tuple(runtime_responses):
-                        if status not in declared_responses:
-                            del runtime_responses[status]
-                for status, declared in declared_responses.items():
-                    response = runtime_responses.get(status)
-                    if not isinstance(response, dict):
-                        response = {"description": declared["description"]}
-                        if declared["media_type"]:
-                            response["content"] = {
-                                declared["media_type"]: {
-                                    "schema": _contract_response_schema(
-                                        declared["schema_name"], schema
-                                    )
-                                }
-                            }
-                        runtime_responses[status] = response
-                    else:
-                        response["description"] = declared["description"]
-                    if (
-                        status == "422"
-                        and path.startswith("/v1/parent/profiles")
-                        and declared["media_type"]
-                    ):
-                        response["content"] = {
-                            declared["media_type"]: {
-                                "schema": _contract_response_schema(
-                                    declared["schema_name"], schema
-                                )
-                            }
-                        }
-                    if declared["media_type"] and declared["schema_name"] == "object":
-                        response_schema = (
-                            response.get("content", {})
-                            .get(declared["media_type"], {})
-                            .get("schema")
-                        )
-                        if isinstance(response_schema, dict):
-                            response_schema.setdefault("type", "object")
-                    if declared["media_type"] and declared["schema_name"] == "binary":
-                        response["content"] = {
-                            declared["media_type"]: {
-                                "schema": _contract_response_schema(
-                                    declared["schema_name"], schema
-                                )
-                            }
-                        }
+        _apply_catalog_metadata(schema, MOUNTED_OPERATIONS)
         for path, path_item in schema.get("paths", {}).items():
             if not path.startswith(("/api/be1/v1/", "/v1/parent/profiles")) or not isinstance(
                 path_item, dict

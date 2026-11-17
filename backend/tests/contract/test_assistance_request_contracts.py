@@ -109,6 +109,38 @@ def test_projections_validate_and_device_view_is_minimal() -> None:
         assert secret not in text.replace("contract_name", "")
 
 
+def test_child_status_compatibility_contract_is_coarse_and_strict() -> None:
+    from sketch2life.interfaces.http.routers.pilot_assistance import ChildAssistanceStatusV1
+
+    status = ChildAssistanceStatusV1.model_validate(
+        {
+            "assistance_id": "assistance-fx-1",
+            "request_revision": 1,
+            "status": "pending",
+            "processing_state": "processing",
+            "poll_after_ms": 2000,
+        }
+    )
+    assert set(status.model_dump(mode="json")) == {
+        "assistance_id",
+        "request_revision",
+        "status",
+        "processing_state",
+        "poll_after_ms",
+    }
+    with pytest.raises(ValidationError):
+        ChildAssistanceStatusV1.model_validate(
+            {
+                "assistance_id": "assistance-fx-1",
+                "request_revision": 1,
+                "status": "pending",
+                "processing_state": "processing",
+                "poll_after_ms": 2000,
+                "analysis": "hidden",
+            }
+        )
+
+
 def test_event_contract_validates_recorded_events() -> None:
     h = build_assistance_harness()
     h.submit()

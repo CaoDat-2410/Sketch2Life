@@ -1,16 +1,16 @@
 # Source register and authority boundary
 
 
-## Current FEAT-063 implementation record — Rev67 SRS / Rev61–67 work
+## Current FEAT-063 implementation record — Rev68 SRS / Rev61–68 work
 
-- **Product requirement authority:** `features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md`, v2.7-draft Rev67 (2026-11-13), canonical working copy under D-203; unsigned. The companion Data Table Register is not an alternate SRS.
+- **Product requirement authority:** `features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md`, the owner-supplied v2.7-draft copy adopted by D-209 on 2026-11-17 (self-described as the Rev57 base with Rev58–Rev69 documentation updates; 701157 bytes / SHA-256 B9B1F42D0BB118C19C81607D3913B7E4F1D8B6F673F0C3FBB6402888FEB675F5; header date 2026-11-13 accepted by the owner as stale); unsigned. Rev67 with its D-203 pin and the Rev68 working copy (639948 bytes / SHA-256 69C83FE49CD4689D5D2540656D3319721838CF7343BAD00E24CDE558B8F5E944) remain historical provenance only. The companion Data Table Register is not an alternate SRS.
 - **Execution records:** FEAT-063 plans Rev58–Rev65 and approvals/status/evidence under the same feature folder. EV-063-71–73 cover Firebase account and role flows; EV-063-74 records a partial Parent/Teacher UI-to-Modal run; EV-063-75 records the live Teacher Sketch Deck presentation.
 - **Limits:** no video inference was performed in Rev64–65. Parent story generation was blocked by invalid Qwen JSON; this is recorded as a failure/blocker, not a passing flow. Teacher output remains a draft requiring review.
 
 
 ## Canonical product SRS — current working baseline
 
-Use `features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` v2.7-draft for all current product requirements and target architecture. It remains a draft pending formal owner sign-off. Its §§1–31 define target requirements; §32 contains dated environment-specific runtime/source observations and does not replace them. Older feature SRS copies and contexts are historical/feature-local and do not override it. The detailed agent reading order and historical-source list are in `docs/context/SRS_AUTHORITY.md`.
+Use `features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` as adopted by D-209 on 2026-11-17 for all current product requirements and target architecture. It remains an unsigned draft pending formal owner sign-off. Its §§1–31 define target requirements; §32 contains dated environment-specific runtime/source observations and does not replace them. Older feature SRS copies and contexts are historical/feature-local and do not override it. The adopted copy does not carry the D-208 reconciliation wording; lifecycle requirements are read from the adopted copy and D-209 records the one open interpretation point; the matching DATA_TABLE_REGISTER.md remains an unchanged companion, not an alternate SRS. The detailed agent reading order and historical-source list are in `docs/context/SRS_AUTHORITY.md`.
 
 ## FEAT-063 Rev53 v2.6 checklist reconciliation — current — 2026-11-07
 
@@ -710,3 +710,15 @@ Evidence pins: Draft 18 101153 bytes / 5CA09CC6F9D936C1BA74772251F4D3A9C0480F3E6
 ## FEAT-063 M2 S2 implementation allowlist review — 2026-11-14
 
 Implementation Allowlist Draft 1 received an independent READY WITH NOTES review (0 P1, 0 P2, 1 P3); the report is `features/FEAT-063-system-architecture-rearchitecture/evidence/M2_S2_IMPLEMENTATION_ALLOWLIST_COLD_REVIEW_20261114.md`. The reviewed scope is pinned to D-204/D-205/D-206 and Rev67. The P3 follow-up for stale-revision response details on routes outside the cancel endpoint remains separate; do not expand this allowlist. No implementation has launched; a separate pinned owner prompt is required. OWNER_MODAL_CALL_APPROVED=NO.
+
+## FEAT-063 M2 S2 bounded implementation — 2026-11-14
+
+The owner supplied the pinned D-207 launch signal for the allowlisted S2 implementation. Changed implementation paths are limited to the allowlist's E entries; the three new test paths and the implementation report are tracked separately. This work adds output-only `run_revision`, the single Parent cancel route, persisted cancel receipts, `DELETE_PENDING` late-result guards, and exact-route error-envelope handling, plus bounded contract tests. No DDL or migration was added. Verification is incomplete because pytest, mypy and Ruff are unavailable in the current Python environment. Harness, architecture and repository-security validators passed once; the final whitespace check remains pending. The broader-route stale-version P3 remains a separate follow-up. OWNER_MODAL_CALL_APPROVED=NO.
+
+## FEAT-063 Rev68 SRS authority update — 2026-11-15
+
+D-208 directs a documentation-only reconciliation of the unsigned canonical working SRS Rev67. The canonical file now carries Rev68 amendments for FR-C-08 while preserving Rev67 provenance and the historical D-203 pin. Rev68 is 639948 bytes, SHA-256 69C83FE49CD4689D5D2540656D3319721838CF7343BAD00E24CDE558B8F5E944; the updated SRS authority pointer and current Project Context identify Rev68. DTR, physical schema, approvals, implementation status, and launch state were not changed.
+
+## FEAT-063 SRS authority update — 2026-11-17 (D-209)
+
+D-209 adopts the owner-supplied SRS copy as the single canonical working SRS: 701157 bytes, SHA-256 B9B1F42D0BB118C19C81607D3913B7E4F1D8B6F673F0C3FBB6402888FEB675F5, unsigned, self-described v2.7-draft with Rev58–Rev69 updates. The canonical path is unchanged and its bytes were replaced exactly. The previous Rev68 working copy (639948 bytes, SHA-256 69C83FE49CD4689D5D2540656D3319721838CF7343BAD00E24CDE558B8F5E944) was never committed; a copy is kept outside Git under the repository-root `tmp/m2-s2-mapper-r8/` folder. Sections 9.6 and 9.8 are identical in both documents; about 35 lifecycle lines differ and §31.19 plus §32.9–32.39 are new. No source, test, approval or launch record was changed by this update.

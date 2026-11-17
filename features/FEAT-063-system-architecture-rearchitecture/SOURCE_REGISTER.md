@@ -501,3 +501,34 @@ Plan Rev51 SHA-256 at approval: `B20103A217D7A9623E02279CE0BD82D5BC61141518D820F
 - Plans/approval: plan/PLAN_REV78_PARENT_CATALOG_FIRST_ACTIVITY_SUGGESTIONS_20261111.md, plan/PLAN_REV78A_PARENT_ACTIVITY_GATE_REFINEMENT_20261111.md and publication/migration addendum Rev78B; approval is recorded in approvals/TASK_APPROVAL.md.
 - Evidence: evidence/EV-063-87_PARENT_FULL_API_UI_E2E_20261111/API_PARENT_E2E_REPORT.md with selected synthetic workflow screenshots and safe JSON runtime records.
 - Verification boundary: 28 focused tests passed before the final publication checks; final publication checks are recorded in status/STATUS.md. No video; the last live fallback inference had no output and no gate verdict.
+
+## FR-C-08 Draft 4 planning package — 2026-11-15
+
+- Product requirement authority: FEAT-063 v2.7-draft Rev68 under D-203/D-208; unsigned. `DATA_TABLE_REGISTER.md` remains a companion model source, not an alternate SRS.
+- Current proposed documents: `plan/FR_C08_PARENT_TEACHER_CANCEL_PURGE_IMPLEMENTATION_SPEC_DRAFT4_20261115.md`, `plan/FR_C08_PARENT_TEACHER_CANCEL_PURGE_LIFECYCLE_PLAN_DRAFT4_20261115.md`, and `plan/FR_C08_PARENT_TEACHER_CANCEL_PURGE_IMPLEMENTATION_ALLOWLIST_DRAFT4_20261115.md`. Draft 3 and its independent review remain historical evidence.
+- The package is planning-only and remains blocked/not approved/not launched. Coordinator review evidence and whether a separate independent cold review is complete are tracked in `evidence/` and `status/STATUS.md`; a clean document review alone does not satisfy D-208 contract-review, M2-reconciliation, Task Approval, or launch gates.
+- Coordinator review evidence: `evidence/FR_C08_DRAFT4_COORDINATOR_REVIEW_20261115.md`; the exact report pin is recorded in `status/STATUS.md`.
+- No implementation or test/runtime/database/DDL command was run for this planning update. No SRS, DTR, decision, or approval record was changed.
+
+## FR-C-08 route correction and readiness review — 2026-11-15
+
+- Requirement baseline for this worktree: docs/context/SRS_AUTHORITY.md and canonical unsigned Rev68 at 639,948 bytes / 69C83FE49CD4689D5D2540656D3319721838CF7343BAD00E24CDE558B8F5E944; D-208 at DECISIONS.md 216,212 bytes / 52F2E141244829281FF762BA100D1A991D5CADFF042A237C8C125F324300725F. Owner-supplied Rev67 remains D-203 provenance. Root checkout authority still points to Rev60.
+- Route correction: plan/FR_C08_DELETE_ROUTE_SCOPE_CORRECTION_DRAFT1_20261115.md, 10,582 bytes / E19028505E3945F3F290525332F33BD8292EB5EC29CEBAD2F978EDB407E698CD. Rev68 §21.2's DELETE operation is SRS-defined but absent from current router source; no product route beyond it is proposed.
+- Readiness and roadmap addenda: plan/FR_C08_IMPLEMENTATION_READINESS_ADDENDUM_DRAFT2_20261115.md, 9,537 / FE21C953B5DD9DCF564E0EACC884967D861995D84E3E6FE029AB0F60E9B3FEEA; plan/M3_M6_SRS_ALIGNED_ROADMAP_ADDENDUM_DRAFT2_20261115.md, 8,024 / 8CE372A6F35F01C16EF67376636D3E0BA6A75E1F7D9F0CCCF6549E9B4B11D2C8.
+- Baseline evidence: evidence/FR_C08_M2_BASELINE_SNAPSHOT_20261115.md, 12,860 / 4826D95ED4DD2C57D2091F89DB2ECCD97628E522630B67C35ABADF700F7D455B; it pins 60 status paths, 0 staged, at the recorded time and does not claim M2 complete.
+- Independent cold-review evidence: evidence/FR_C08_ROUTE_AND_READINESS_DRAFT2_COLD_REVIEW_20261115.md, 3,449 / 42A94A0E228ED403A4FA234FA54E25D0B236083AE5686FA95165761FADFF0054, verdict CLEAN (0 P1/P2/P3). Owner review only; no implementation or launch.
+- The historical Draft 4 review remains evidence only for its prior pins; the route-scope correction is a later finding. No tests, validators, backend/runtime, database/migration, Docker, network, provider, or Modal command ran. No SRS, DTR, decision or approval record changed.
+
+## M2-S2 Shared OpenAPI mapper Draft 5 planning review — 2026-11-16
+
+- Working product authority: the active BE worktree's unsigned FEAT-063 v2.7-draft Rev68 under D-203/D-208. Root checkout remains on Rev60 and is not the BE-lane requirements source.
+- Draft 5: `plan/M2_S2_SHARED_OPENAPI_MAPPER_FIX_DRAFT5_20261116.md`, 29,568 bytes / SHA-256 `61D198C946085F35622ED00236D54DB6FC347A8AF960821BB3D2E6F99B652243`; DRAFT / NOT APPROVED / NOT LAUNCHED.
+- Independent fresh-context cold review: ACCEPT, no blocking findings, planning-only. Review thread `01a1e286-d311-78c3-9e52-1998f4f05f58`; evidence `evidence/M2_S2_SHARED_OPENAPI_MAPPER_FIX_DRAFT5_COLD_REVIEW_20261116.md`.
+- Option A is the owner's planning direction: exact OpenAPI method/path plus preserved, unique `operationId`; no callable binding. The review does not establish a runtime fix or implementation approval. M2-S2 remains PARTIAL / NOT COMPLETE.
+- Remaining gates: owner acceptance of exact allowlist and evidence scope, lock-matched FastAPI 0.162.0 environment, exact pytest basetemp/cache paths and command ceilings, separate Task Approval, and direct launch instruction. The consumed FEAT-047 overlay and prior S2 verification authorization do not transfer.
+
+## 2026-11-17 — SRS authority update (D-209)
+
+- Product requirement authority: `artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` with the bytes of the owner-supplied copy adopted by D-209: 701157 bytes / SHA-256 B9B1F42D0BB118C19C81607D3913B7E4F1D8B6F673F0C3FBB6402888FEB675F5; unsigned.
+- Superseded as requirement references: Rev60, Rev67 (D-203) and the Rev68 working copy (639948 bytes / SHA-256 69C83FE49CD4689D5D2540656D3319721838CF7343BAD00E24CDE558B8F5E944). They remain historical provenance for the records that pin them.
+- Source of the adopted bytes: an owner-supplied file outside the repository; the owner stated its header date is stale and accepted it.

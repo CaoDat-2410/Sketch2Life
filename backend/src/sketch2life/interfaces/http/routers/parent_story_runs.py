@@ -12,7 +12,10 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from sketch2life.application.ports.identity import VerifiedPrincipal
-from sketch2life.application.ports.parent_story_runs import ParentStoryRunError
+from sketch2life.application.ports.parent_story_runs import (
+    ParentStoryRunError,
+    ParentStoryRunRecord,
+)
 from sketch2life.application.services.parent_story_runs import (
     ParentStoryRunService,
     ParentStoryRunServiceError,
@@ -21,8 +24,11 @@ from sketch2life.contracts.schemas.parent_story_runs import (
     ParentActiveStoryRunEnvelopeV1,
     ParentContextConfirmationRequestV1,
     ParentLessonPinSnapshotV1,
+    ParentStoryCancelErrorEnvelopeV1,
     ParentStoryErrorEnvelopeV1,
     ParentStoryRevisionConfirmationRequestV1,
+    ParentStoryRunCancelEnvelopeV1,
+    ParentStoryRunCancelRequestV1,
     ParentStoryRunCreateRequestV1,
     ParentStoryRunEnvelopeV1,
     ParentStoryRunResponseV1,
@@ -82,12 +88,16 @@ def _invoke[ResultT](callable_: Callable[..., ResultT], **kwargs: Any) -> Result
     try:
         return callable_(**kwargs)
     except (ParentStoryRunError, ParentStoryRunServiceError) as exc:
-        raise HTTPException(status_code=exc.status_code, detail={"code": exc.code}) from None
+        detail: dict[str, Any] = {"code": exc.code}
+        if isinstance(exc, ParentStoryRunError) and exc.current_version is not None:
+            detail["current_version"] = exc.current_version
+        raise HTTPException(status_code=exc.status_code, detail=detail) from None
 
 
-def _response(record) -> ParentStoryRunResponseV1:
+def _response(record: ParentStoryRunRecord) -> ParentStoryRunResponseV1:
     return ParentStoryRunResponseV1(
         run_id=record.run_id,
+        run_revision=record.run_revision,
         run_state=record.run_state,
         parent_profile_id=record.parent_profile_id,
         profile_revision_ref=record.profile_revision_ref,
@@ -238,6 +248,50 @@ def get_parent_story_run(
         run_id=str(run_id),
     )
     return ParentStoryRunEnvelopeV1(request_id=uuid4(), story_run=_response(record))
+
+
+@router.post(
+    "/{run_id}/cancel",
+    response_model=ParentStoryRunCancelEnvelopeV1,
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Mark the authenticated Parent StoryRun for deletion",
+    responses={
+        **_PARENT_STORY_ERROR_RESPONSES,
+        409: {
+            "model": ParentStoryCancelErrorEnvelopeV1,
+            "description": "The request conflicts with the current StoryRun revision or state.",
+        },
+    },
+)
+def cancel_parent_story_run(
+    run_id: UUID,
+    payload: ParentStoryRunCancelRequestV1,
+    idempotency_key: Annotated[str, Header(alias="Idempotency-Key", min_length=1, max_length=256)],
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    db: Session = Depends(get_db),
+) -> ParentStoryRunCancelEnvelopeV1:
+    _require_parent(db, principal)
+    request_id = str(uuid4())
+
+    def build_response(
+        record: ParentStoryRunRecord, persisted_request_id: str
+    ) -> dict[str, Any]:
+        return ParentStoryRunCancelEnvelopeV1(
+            request_id=persisted_request_id,
+            story_run=_response(record),
+            purge_state="PENDING",
+        ).model_dump(mode="json")
+
+    response_body = _invoke(
+        SqlParentStoryRunRepository(db).cancel_run,
+        principal=principal,
+        run_id=str(run_id),
+        expected_revision=payload.expected_revision,
+        idempotency_key=idempotency_key,
+        request_id=request_id,
+        response_builder=build_response,
+    )
+    return ParentStoryRunCancelEnvelopeV1.model_validate(response_body)
 
 
 @router.post(

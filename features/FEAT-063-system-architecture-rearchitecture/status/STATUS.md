@@ -789,3 +789,71 @@ Parent Sketch Guide and lesson visuals were not dispatched because Modal `dev` s
 - Static results: TypeScript PASS; Python compile PASS; migration revision graph PASS (30 files, 12 prior heads joined, no unresolved references); repository security validator PASS (7,157 files); `git diff --check` PASS. Ruff/Alembic CLI were not installed; ESLint could not load the configured `jest/globals` environment.
 - No product test suite, live Modal/Firebase operation, database migration, Docker lifecycle, or video call was run. Full Parent SRS flow is not complete: voice/Whisper, video and activities, corrected-subject VLM rerun, history/cancel/delete, durable job reconciliation, and sketch-guide cleanup/safety remain.
 - Detailed scope, changed API routes and limitations: `artifacts/PARENT_API_CONTRACT_REV67_20261110.md`; evidence: `evidence/EV-063-76_PARENT_ANDROID_PROFILE_CONSENT_STORY_FLOW_20261110.md`.
+
+## FR-C-08 Draft 4 coordinator review — 2026-11-15
+
+- Coordinator read-only review found no further SRS Rev68/D-208 policy mismatch after adding the explicit pre-implementation gate that the corresponding versioned implementation contract be updated to SRS wording and independently reviewed.
+- Independent cold review completed with verdict CLEAN (0 findings); the planning-review gate passes. This does not approve or authorize implementation. The package remains DRAFT / PROPOSED / BLOCKED FOR IMPLEMENTATION / NOT APPROVED / NOT LAUNCHED.
+- Spec Draft 4: 20,897 bytes / SHA-256 `BC268E2354AED6FDC142CCD58BFDF89BACF6585F15B7ED75C8AE7C4C41ED9B70`.
+- Lifecycle Plan Draft 4: 13,871 bytes / SHA-256 `483A228C65400016964F43C4C52082E49CAF232C49B8AB8E8E6692DB6E21B385`.
+- Allowlist Draft 4: 65,130 bytes / SHA-256 `F4C76422DDE39A2B34A5364BC6F7F77B3A960331F4DBA00939082FBE54E3512A`; its 24 strict input rows matched. Dirty M2 E/N observations remain carry-forward values, not re-certified pins.
+- Review evidence: `evidence/FR_C08_DRAFT4_COORDINATOR_REVIEW_20261115.md`, 4,037 bytes / SHA-256 `87A9D95FDB4C57E9CD064774F39129B1256957F67D367A9068BEEB4D225C29E3`.
+- Independent cold-review evidence: `evidence/FR_C08_DRAFT4_INDEPENDENT_COLD_REVIEW_20261115.md`, 3,084 bytes / SHA-256 `9C6A39CD071DA247C3B7F484C7536ED84BDF33CEA2D3BAE3BDCFF0C56F23118F`.
+- The corresponding implementation-contract update/review, remaining technical contracts, M2 baseline reconciliation, separate implementation Task Approval, and launch gates remain open. No source, test, SRS, DTR, decision, or approval record changed. No tests, validators, runtime/backend, database/migration, Docker, network, provider, or Modal commands ran; nothing was staged, committed, or pushed.
+
+## FR-C-08 route-scope correction and M2 baseline snapshot — 2026-11-15
+
+- This update supersedes the preceding Draft 4 paragraph's statement that M2 baseline reconciliation remains open: the dirty-state snapshot is now recorded below. M2 itself remains PARTIAL / NOT COMPLETE.
+- M2 dirty baseline snapshot: evidence/FR_C08_M2_BASELINE_SNAPSHOT_20261115.md, 12,860 bytes / SHA-256 4826D95ED4DD2C57D2091F89DB2ECCD97628E522630B67C35ABADF700F7D455B; 60 paths (24 modified, 36 untracked), 0 staged at 2026-11-15 16:16:55 UTC. The worktree is still dirty and M2 remains PARTIAL / NOT COMPLETE. Historical failed/unavailable checks remain non-passing; none was rerun.
+- Draft 4's independent CLEAN verdict applies to its reviewed pins only. The later audit found its route scope omitted Rev68 §21.2's DELETE /v1/story-runs/{id}, which is required by the SRS but absent from current source.
+- Route-scope correction Draft 1: 10,582 bytes / SHA-256 E19028505E3945F3F290525332F33BD8292EB5EC29CEBAD2F978EDB407E698CD. Readiness Addendum Draft 2: 9,537 / FE21C953B5DD9DCF564E0EACC884967D861995D84E3E6FE029AB0F60E9B3FEEA. M3–M6 Roadmap Addendum Draft 2: 8,024 / 8CE372A6F35F01C16EF67376636D3E0BA6A75E1F7D9F0CCCF6549E9B4B11D2C8.
+- Fresh independent review of the route/readiness/roadmap package: CLEAN, 0 P1/P2/P3; evidence file FR_C08_ROUTE_AND_READINESS_DRAFT2_COLD_REVIEW_20261115.md, 3,449 bytes / 42A94A0E228ED403A4FA234FA54E25D0B236083AE5686FA95165761FADFF0054. This passes document review for owner review only; it does not authorize implementation.
+- Still blocked: typed Parent-scope request/receipt and ownership, state/eligibility alignment, current Teacher assignment authorization, immediate access fences, cross-module purge/reference verification, and audit/retention mapping. A versioned contract review, exact allowlist, separate Task Approval, named accountable owners before launch and a pinned launch instruction remain.
+- Roadmap Draft 3's full Rev68 M3–M6 requirements are preserved. M3 still depends on M2 foundation acceptance and its P0/API dependencies; no milestone is marked complete.
+- Root checkout authority remains Rev60 while active .worktrees/m2-s2 authority is Rev68 under D-203/D-208. No authority record was changed.
+- No source, test, SRS, DTR, decision or approval record changed. No tests, validators, runtime/backend, database/migration, Docker, network, provider or Modal commands ran. No stage, commit or push occurred.
+
+## M2-S2 shared OpenAPI mapper Draft 5 review — 2026-11-16
+
+- Planning review: ACCEPT with no blocking findings for Draft 5 at 29,568 bytes / SHA-256 `61D198C946085F35622ED00236D54DB6FC347A8AF960821BB3D2E6F99B652243`. Fresh-context review thread: `01a1e286-d311-78c3-9e52-1998f4f05f58`; review evidence is `evidence/M2_S2_SHARED_OPENAPI_MAPPER_FIX_DRAFT5_COLD_REVIEW_20261116.md`.
+- M2-S2 remains PARTIAL / NOT COMPLETE. Draft 5 remains DRAFT / NOT APPROVED / NOT LAUNCHED; the review grants no implementation or verification authority. S3 remains a separate gate.
+- Owner acceptance of the exact allowlist, lock-matched environment, pinned command/evidence scope, separate Task Approval, and direct launch instruction remain outstanding. No project tests, validators, typecheck, lint, OpenAPI generation, or implementation ran for this review.
+
+## 2026-11-17 — SRS authority update (D-209)
+
+- Owner decision D-209 recorded: the canonical working SRS file now holds the owner-supplied copy (701157 bytes / SHA-256 B9B1F42D0BB118C19C81607D3913B7E4F1D8B6F673F0C3FBB6402888FEB675F5). `docs/context/SRS_AUTHORITY.md`, the context pointers and the source registers were updated to match.
+- Not changed: source, tests, approvals, launch records, D-208 text. Planning drafts that pin the earlier Rev68 copy are not yet re-pinned.
+- The root checkout and the mobile worktree still point to Rev60.
+- M2-S2 remains PARTIAL / NOT COMPLETE.
+
+## 2026-11-17 — M2-S2 shared OpenAPI mapper: implementation done, all one-shot commands run, NOT ACCEPTED
+
+- Task Approval Draft 1 was approved and launched step by step; the implementation is in the two E paths and the N path. Evidence report: `evidence/M2_S2_SHARED_OPENAPI_MAPPER_IMPLEMENTATION_EVIDENCE_20261117.md` (12424 bytes / SHA-256 `CCB014AFB23D7A156FC4E229C7B4A717B758982D425023E075AAED632F5C60C6`).
+- Results: comparison FAILED then PASSED under Amendment 1; pytest FAILED (22 of 23) then PASSED (23 of 23) under Amendment 2; Mypy post no new diagnostics but NOT CLEAN (353 existing); Ruff post FAILED then no new diagnostics but NOT CLEAN (1 existing) under Amendment 3. Each first run stays on record as failed.
+- Amendment texts are in `plan/` (`M2_S2_MAPPER_COMPARATOR_AMENDMENT1_DRAFT_20261117.md`, `M2_S2_MAPPER_PYTEST_AMENDMENT2_DRAFT_20261117.md`, `M2_S2_MAPPER_RUFF_AMENDMENT3_DRAFT_20261117.md`); Amendment 1 review: `evidence/M2_S2_SHARED_OPENAPI_MAPPER_AMENDMENT1_COLD_REVIEW_R18_20261117.md`. Amendments 2 and 3 were approved without independent review.
+- Owner-accepted deviations are listed in section 6 of the evidence report (post export without the egress block; test files changed after the export and comparison; two pytest invocations).
+- Not done: owner acceptance of the mapper task; the existing Mypy and Ruff debt; the other S2 debts of the 2026-11-14 report. Nothing staged, committed or pushed. No Modal or provider call.
+- M2-S2 remains PARTIAL / NOT COMPLETE.
+
+## 2026-11-17 — M2-S2 shared OpenAPI mapper task: ACCEPTED WITH RECORDED DEVIATIONS
+
+- The owner accepted the mapper task (component acceptance only); the entry is the last one in `approvals/TASK_APPROVAL.md` (record then 465,917 bytes / SHA-256 `EAB4E95E2EC319A93125C2472755EB765866E9BB824850ACD43BF1E1B07CDB06`).
+- Limits accepted with it: three first runs failed and stay on record; Mypy and Ruff are not clean (existing debt); deviations listed in the evidence report.
+- Not done: existing Mypy and Ruff debt, the other S2 items of the 2026-11-14 report, closing M2-S2. Nothing staged, committed or pushed.
+- M2-S2 remains PARTIAL / NOT COMPLETE.
+
+## 2026-11-17 — M2-S2 closure verification: all actions run, S2 NOT CLOSED
+
+- Evidence report: `evidence/M2_S2_CLOSURE_VERIFICATION_EVIDENCE_20261117.md` (10487 bytes / SHA-256 `CF644A09FF0802F7A2E4444CCBCC9E01B67528A3DC8B3F718686E441ED454525`). Plan: `plan/M2_S2_CLOSURE_VERIFICATION_TASK_APPROVAL_DRAFT1_20261117.md` revision 3; reviews R1 and R2 are in `evidence/`.
+- Results: the nine-file pytest selection passed, 84 of 84, with the egress block in effect. Ruff on the six S2 source paths: 17 diagnostics, all present at HEAD, none added. Mypy: 353 signatures against 336 at HEAD; 19 `arg-type` diagnostics added and 2 removed by the uncommitted work.
+- Owner decisions recorded in `approvals/TASK_APPROVAL.md`: keep the FEAT-047 description overlay on `be1_artifacts.py`; diagnostics that exist at HEAD are debt outside S2; the 19 added Mypy diagnostics are accepted as recorded typing debt.
+- The mapper task was accepted with recorded deviations earlier the same day; the out-of-scope OpenAPI finding of 2026-11-14 is addressed by it.
+- Follow-ups, none started: Mypy and Ruff debt, the stale-version P3 on broader routes, the open request-ID inventory.
+- Not done: owner decision to close M2-S2. Nothing staged, committed or pushed. No Modal or provider call. M2-S2 remains PARTIAL / NOT COMPLETE.
+
+## 2026-11-17 — M2-S2 CLOSED by the owner with recorded debt and deviations
+
+- The owner closed M2-S2; the entry is the last one in `approvals/TASK_APPROVAL.md` (record then 478,001 bytes / SHA-256 `249E096717A2D38465D20E26F542A2C4934933EC37532D9D6E1AB49FC0FEAE37`). Earlier statements in this file that M2-S2 is PARTIAL / NOT COMPLETE describe the state before this entry.
+- Evidence: `evidence/M2_S2_CLOSURE_VERIFICATION_EVIDENCE_20261117.md` and `evidence/M2_S2_SHARED_OPENAPI_MAPPER_IMPLEMENTATION_EVIDENCE_20261117.md`.
+- Debt carried as follow-ups, none started: 19 added and 336 existing Mypy diagnostics; 18 existing Ruff diagnostics; the stale-version P3 on broader routes; the open request-ID inventory. The full backend test suite was not run.
+- All S2 and mapper work is still uncommitted on `feature/feat063-m2-s2`; nothing staged, committed or pushed. M2-S3 and later gates are not started; M2-S3 Draft 6 still pins the earlier SRS copy and must be re-pinned.

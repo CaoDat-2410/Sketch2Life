@@ -461,5 +461,11 @@
     "methods": [
       "GET"
     ]
+  },
+  {
+    "path": "/v1/story-runs/{run_id}/cancel",
+    "methods": [
+      "POST"
+    ]
   }
 ]

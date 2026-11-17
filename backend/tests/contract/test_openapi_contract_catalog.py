@@ -81,7 +81,7 @@ PILOT_ONLY_OPERATIONS = {
     ),
 }
 PR22_UNCATALOGUED_OPERATIONS = {
-    # Mounted PR #22 routes that are intentionally outside the Rev37 metadata map.
+    # Mounted routes intentionally outside the Rev37 metadata map.
     ("post", "/api/auth/v1/registrations"),
     ("get", "/api/auth/v1/me"),
     ("get", "/api/platform-admin/v1/accounts"),
@@ -90,6 +90,7 @@ PR22_UNCATALOGUED_OPERATIONS = {
     ("post", "/api/parent/v1/ai/sketch-guides"),
     ("post", "/api/parent/v1/ai/drawing-understandings"),
     ("post", "/api/parent/v1/ai/story-runs/{run_id}/story-revisions"),
+    ("post", "/v1/story-runs/{run_id}/cancel"),
     (
         "post",
         "/api/teacher/v1/organizations/{organization_id}/ai/lesson-plan-suggestions",
@@ -233,7 +234,7 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
 
     assert spec["openapi"] == "3.1.0"
     assert spec["tags"] == public_tags(TAG_DESCRIPTIONS)
-    assert len(operations) == 150
+    assert len(operations) == 151
     catalog_operations = set(MOUNTED_OPERATIONS)
     catalog_paths = {path for _method, path in catalog_operations}
     assert len(catalog_paths) == 118
@@ -251,7 +252,7 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
     ]
     assert "x-contract-surface" not in profile_lookup
     assert len(PILOT_ONLY_OPERATIONS) == 5
-    assert len(PR22_UNCATALOGUED_OPERATIONS) == 11
+    assert len(PR22_UNCATALOGUED_OPERATIONS) == 12
 
     assert (
         "post",
@@ -433,9 +434,63 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
     assert not candidate_keys.intersection(operations)
     assert not _extension_keys(spec)
 
-    assert len(spec["tags"]) == 19
+    assert len(spec["tags"]) == 20
     assert all(tag.get("description") for tag in spec["tags"])
 
     operation_ids = [operation["operationId"] for operation in operations.values()]
     assert len(operation_ids) == len(set(operation_ids))
     json.dumps(spec, ensure_ascii=False)
+
+
+DESCRIPTION_SUFFIXES = {
+    ("post", "/v1/sessions"): (
+        "**Local synthetic Try it out:** use a fresh UUIDv4 for `session_id`. "
+        "Copy `observed_session_version` from the response into the next request. "
+        "This demo session is process-local and makes no persistent database write."
+    ),
+    ("post", "/v1/sessions/{session_id}/media/image"): (
+        "**Local synthetic Try it out:** first call `POST /v1/sessions`, then use its "
+        "`session_id` and `observed_session_version`. Select the supplied synthetic "
+        "non-child PNG above, keep `normalization_policy` as `IDENTITY_V1`, and set "
+        "`X-Synthetic-Non-Child-Confirmed` to `true`. The upload is processed locally "
+        "without invoking an AI provider."
+    ),
+    PORTFOLIO_OPERATION_KEY: (
+        "**Implementation gap:** the Rev37 catalog lists a 200 response, but the current "
+        "handler has no success path. After profile lookup it returns `409 "
+        "CONSENT_NOT_EFFECTIVE` until an approved portfolio-purpose verifier is available."
+    ),
+    RESTORE_CHECKPOINT_OPERATION_KEY: (
+        "**Access:** a valid bearer token and a Teacher or School Admin "
+        "assignment for the class. Effective group consent and an existing "
+        "checkpoint are required. This operation is available in local/test "
+        "until production checkpoint storage is configured."
+    ),
+}
+
+
+def test_runtime_openapi_descriptions_equal_catalog_purpose_and_known_suffixes(
+    runtime_openapi: dict[str, Any],
+) -> None:
+    assert set(DESCRIPTION_SUFFIXES) <= set(MOUNTED_OPERATIONS)
+    for key, contract in MOUNTED_OPERATIONS.items():
+        method, path = key
+        operation = runtime_openapi["paths"][path][method]
+        suffix = DESCRIPTION_SUFFIXES.get(key)
+        expected = contract["purpose"] if suffix is None else f"{contract['purpose']}\n\n{suffix}"
+        assert operation["description"] == expected, key
+        assert operation["tags"] == [public_tag_name(contract["tag"])], key
+
+
+def test_runtime_openapi_operation_ids_are_non_empty_and_unique(
+    runtime_openapi: dict[str, Any],
+) -> None:
+    operation_ids = [
+        operation.get("operationId")
+        for path_item in runtime_openapi["paths"].values()
+        for method, operation in path_item.items()
+        if method.lower() in HTTP_METHODS
+    ]
+    assert len(operation_ids) == 151
+    assert all(isinstance(value, str) and value for value in operation_ids)
+    assert len(set(operation_ids)) == len(operation_ids)
