@@ -10,7 +10,7 @@ from datetime import UTC, datetime
 from typing import Any, cast
 from uuid import UUID, uuid4
 
-from sqlalchemy import insert, select, text, update
+from sqlalchemy import insert, null, select, text, update
 from sqlalchemy.engine import CursorResult, RowMapping
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
@@ -132,7 +132,9 @@ class SqlParentStoryRunRepository:
                     context_revision=1,
                     context_snapshot=context,
                     context_snapshot_sha256=context_hash,
-                    lesson_pin_snapshot=lesson_pin,
+                    # An explicit None on a JSONB column is bound as JSON null, which the
+                    # lesson-pin check refuses; SQL NULL is required.
+                    lesson_pin_snapshot=lesson_pin if lesson_pin is not None else null(),
                     lesson_pin_snapshot_sha256=lesson_pin_hash,
                     context_confirmed_by=None,
                     context_confirmed_at=None,
@@ -588,6 +590,9 @@ class SqlParentStoryRunRepository:
                     ),
                 ]
             )
+            # The session factory disables autoflush, so the asset rows must be written
+            # before the lineage insert, whose foreign keys are checked immediately.
+            self._session.flush()
             self._session.execute(
                 insert(lineage).values(
                     lineage_id=str(uuid4()),
@@ -630,7 +635,7 @@ class SqlParentStoryRunRepository:
                     context_snapshot=previous["context_snapshot"],
                     context_snapshot_sha256=previous["context_snapshot_sha256"],
                     lesson_pin_snapshot=(
-                        None
+                        null()
                         if previous["lesson_pin_snapshot"] is None
                         else dict(previous["lesson_pin_snapshot"])
                     ),
@@ -1536,7 +1541,8 @@ class SqlParentStoryRunRepository:
                 state="PENDING",
                 response_status=None,
                 response_resource_version=None,
-                response_body=None,
+                # SQL NULL, not JSON null: the receipt shape check requires IS NULL.
+                response_body=null(),
                 resource_ref=run_id,
                 resource_version=resource_version,
                 state_version=1,
