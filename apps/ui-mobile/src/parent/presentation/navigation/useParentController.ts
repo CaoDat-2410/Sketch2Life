@@ -1440,6 +1440,7 @@ export function useParentController(application: ParentApplicationModule) {
     retryContextCreation: createContextRun,
     resetWorkflow, backToProfile: () => { setStep('profile'); setError(''); },
     clearProfileFormErrors: () => setProfileFieldErrors({}),
+    clearAuthError: () => setAuthError(''),
     clearError: () => setError(''),
   };
 }

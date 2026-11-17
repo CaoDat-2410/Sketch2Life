@@ -204,18 +204,23 @@ export function safeParentIdentityErrorMessage(error: unknown): string {
     : undefined;
   if (typeof code === 'string') {
     if (code === 'CAPABILITY_UNAVAILABLE') return 'Tính năng này chưa có tuyến dịch vụ được xác nhận.';
-    if (['INVALID_LOGIN_CREDENTIALS', 'INVALID_PASSWORD', 'EMAIL_NOT_FOUND', 'USER_NOT_FOUND'].includes(code)) {
+    if (['INVALID_LOGIN_CREDENTIALS', 'INVALID_CREDENTIALS', 'AUTH_INVALID_CREDENTIALS', 'AUTHENTICATION_FAILED', 'INVALID_PASSWORD', 'EMAIL_NOT_FOUND', 'USER_NOT_FOUND'].includes(code)) {
       return 'Email hoặc mật khẩu chưa đúng. Hãy kiểm tra rồi thử lại.';
     }
     if (code === 'EMAIL_EXISTS') return 'Email này đã có tài khoản. Hãy đăng nhập hoặc dùng email khác.';
     if (code === 'WEAK_PASSWORD') return 'Mật khẩu chưa đủ mạnh. Hãy chọn mật khẩu khác.';
     if (code === 'INVALID_EMAIL') return 'Email chưa đúng định dạng.';
+    if (code === 'MISSING_PASSWORD') return 'Hãy nhập mật khẩu để tiếp tục.';
+    if (code === 'USER_DISABLED' || code === 'ACCOUNT_DISABLED') return 'Tài khoản đang bị tạm khóa. Hãy liên hệ quản trị viên.';
+    if (code === 'TOO_MANY_ATTEMPTS_TRY_LATER') return 'Bạn thử quá nhiều lần. Hãy chờ một lát rồi thử lại.';
+    if (code === 'PASSWORD_LOGIN_DISABLED' || code === 'OPERATION_NOT_ALLOWED') return 'Đăng nhập bằng email/mật khẩu hiện chưa được bật.';
     if (['ACCOUNT_ROLE_MISMATCH', 'ACTION_NOT_ALLOWED', 'PARENT_PROFILE_NOT_AUTHORIZED'].includes(code)) {
       return 'Tài khoản chưa được cấp quyền sử dụng khu vực phụ huynh.';
     }
-    if (['NETWORK_ERROR', 'AUTH_NETWORK_ERROR', 'AUTH_API_UNAVAILABLE', 'REQUEST_TIMEOUT'].includes(code)) {
+    if (['NETWORK_ERROR', 'AUTH_NETWORK_ERROR', 'AUTH_API_UNAVAILABLE', 'REGISTRATION_NETWORK_ERROR', 'REQUEST_TIMEOUT'].includes(code)) {
       return 'Chưa kết nối được dịch vụ xác thực. Hãy kiểm tra kết nối rồi thử lại.';
     }
+    if (code === 'INVALID_AUTH_RESPONSE') return 'Dịch vụ xác thực trả về dữ liệu không hợp lệ. Hãy thử lại sau.';
   }
   return 'Chưa thể hoàn tất thao tác tài khoản. Hãy thử lại hoặc đăng nhập lại.';
 }

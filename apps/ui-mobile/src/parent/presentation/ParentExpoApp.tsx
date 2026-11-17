@@ -130,6 +130,7 @@ function ParentExpoAppContent({ application }: Props): React.JSX.Element {
       onSignUp={(email, password) => parent.authenticate('signup', email, password)}
       onReset={parent.resetPassword}
       onGoogleSignIn={parent.signInWithGoogle}
+      onClearAuthError={parent.clearAuthError}
     />;
   }
 

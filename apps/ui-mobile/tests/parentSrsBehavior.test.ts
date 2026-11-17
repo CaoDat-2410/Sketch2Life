@@ -182,16 +182,15 @@ describe('R0 parent primitives accessibility contracts', () => {
 
 describe('L1 Vietnamese copy and paper presentation contracts', () => {
   it('uses the concept auth, account, and settings copy without exposing provider wording', () => {
-    expect(authScreenSource).toContain('Chào mừng trở lại');
-    expect(authScreenSource).toContain('PHỤ HUYNH');
-    expect(authScreenSource).toContain('Sketch2Life · Phụ huynh');
-    expect(authScreenSource).toContain('mode === \'signup\' ? \'Tạo tài khoản phụ huynh\' : \'Chào mừng trở lại\'');
-    expect(authScreenSource).toContain('Đăng nhập để tiếp tục với hồ sơ gia đình.');
-    expect(authScreenSource).toContain('Nếu địa chỉ hợp lệ, hướng dẫn sẽ được gửi. Màn hình không tiết lộ trạng thái đăng ký.');
+    expect(authScreenSource).toContain('Đăng nhập phụ huynh');
+    expect(authScreenSource).toContain('mode === \'signup\' ? \'Tạo tài khoản phụ huynh\' : \'Đăng nhập phụ huynh\'');
+    expect(authScreenSource).toContain('Tiếp tục quản lý hành trình của bé.');
+    expect(authScreenSource).toContain('Nếu email hợp lệ, hướng dẫn sẽ được gửi đến bạn.');
+    expect(authScreenSource).toContain('onClearAuthError');
+    expect(authScreenSource).toContain('validateForm');
     expect(authScreenSource).not.toContain('Tài khoản dùng để đăng nhập vào Sketch2Life.');
     expect(authScreenSource).not.toContain('Tài khoản được tạo trên Firebase Authentication và backend Sketch2Life.');
     expect(authScreenSource).not.toContain('<AuthIllustration');
-    expect(authScreenSource).toContain('Đăng nhập bằng tài khoản phụ huynh đã xác thực.');
     expect(accountScreenSource).toContain('Mật khẩu đã được cập nhật.');
     expect(accountScreenSource).toContain('Đăng xuất sẽ kết thúc phiên này; cần xác thực lại để tiếp tục.');
     expect(accountScreenSource).not.toContain('Mật khẩu đã được cập nhật trên Firebase Authentication.');
@@ -210,10 +209,9 @@ describe('L1 Vietnamese copy and paper presentation contracts', () => {
   it('keeps each L1 surface on its named paper-card composition', () => {
     expect(uiSource).toContain("require('../../../../assets/applied/sketch2life-logo.png')");
     expect(uiSource).not.toContain('brandDotText');
-    expect(authScreenSource).toContain("step={isRecovery ? undefined : 'PHỤ HUYNH'}");
-    expect(authScreenSource).toContain('style={styles.introCard}');
-    expect(authScreenSource).toContain('style={styles.formCard}');
-    expect(authScreenSource).toContain('style={styles.recoveryCard}');
+    expect(authScreenSource).toContain('styles.fixedContent');
+    expect(authScreenSource).toContain('styles.brandLogo');
+    expect(authScreenSource).toContain('styles.formCard');
     expect(accountScreenSource).toContain('style={styles.emailRow}');
     expect(settingsScreenSource).toContain('style={styles.guideToggleRow}');
     expect(homeScreenSource).toContain('style={styles.selectedProfileBadge}');
@@ -235,7 +233,7 @@ describe('L1 Vietnamese copy and paper presentation contracts', () => {
     expect(authScreenSource).toContain('void onReset(email)');
     expect(authScreenSource).toContain('setMode(nextMode)');
     expect(authScreenSource).toContain('Quay lại đăng nhập');
-    expect(authScreenSource).toContain("onBack={isRecovery ? () => changeMode('signin') : undefined}");
+    expect(authScreenSource).toContain('accessibilityLabel="Quay lại đăng nhập"');
     expect(authScreenSource).not.toContain('onRecovery');
   });
 
@@ -690,7 +688,7 @@ describe('R3 story workflow safety boundaries', () => {
     expect(profileControllerSource).toContain('readRunPinnedLessonActivities(confirmedRun.lesson_pin_snapshot)');
     expect(profileControllerSource).not.toMatch(/application\.learning\.suggestActivities\(/);
     expect(activityScreenSource).toContain('PINNED_LESSON');
-    expect(activityScreenSource).toContain('Chưa thể tiếp tục sang bước kịch bản.');
+    expect(activityScreenSource).toContain('Bạn chưa thể tiếp tục sang bước kịch bản.');
     expect(storyScreenSource).toContain('Cần chọn và xác nhận một hoạt động chính trước khi tạo, sửa hoặc xác nhận kịch bản.');
     expect(parentExpoAppSource).not.toContain("onSkip={() => parent.setStep('story')}");
     expect(parentExpoAppSource).toContain('mainActivityConfirmed={false}');

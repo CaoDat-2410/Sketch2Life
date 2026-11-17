@@ -9,9 +9,9 @@
     "icon": "./assets/applied/sketch2life-logo.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/images/screen1_splash.png",
+      "image": "./assets/splash/logo.png",
       "resizeMode": "contain",
-      "backgroundColor": "#EFF6FF"
+      "backgroundColor": "#F6E8FF"
     },
     "web": {
       "favicon": "./assets/applied/sketch2life-logo.png",

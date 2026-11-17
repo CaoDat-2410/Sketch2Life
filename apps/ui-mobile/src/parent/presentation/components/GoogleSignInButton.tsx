@@ -1,13 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
+import { authTokens } from './AuthVisuals';
 import { Notice, palette } from './ui';
 
 WebBrowser.maybeCompleteAuthSession();
 
 type Props = {
+  variant?: 'default' | 'auth';
   busy: boolean;
   googleAndroidClientId: string;
   googleWebClientId: string;
@@ -15,12 +17,15 @@ type Props = {
   onError: (message: string) => void;
 };
 
-export function GoogleSignInButton({ busy, googleAndroidClientId, googleWebClientId, onIdToken, onError }: Props): React.JSX.Element {
+export function GoogleSignInButton({ variant = 'default', busy, googleAndroidClientId, googleWebClientId, onIdToken, onError }: Props): React.JSX.Element {
   const configured = Boolean(googleAndroidClientId && googleWebClientId);
   if (!configured) {
+    if (variant === 'auth') {
+      return <GoogleActionButton variant="auth" busy={busy} disabled onPress={() => undefined} />;
+    }
     return (
       <View style={styles.unavailableGroup}>
-        <GoogleActionButton busy={busy} disabled onPress={() => undefined} />
+        <GoogleActionButton variant={variant} busy={busy} disabled onPress={() => undefined} />
         <Notice text="Đăng nhập bằng Google hiện chưa khả dụng. Bạn có thể dùng email để tiếp tục." tone="warning" />
       </View>
     );
@@ -33,11 +38,12 @@ export function GoogleSignInButton({ busy, googleAndroidClientId, googleWebClien
       googleWebClientId={googleWebClientId}
       onIdToken={onIdToken}
       onError={onError}
+      variant={variant}
     />
   );
 }
 
-function ConfiguredGoogleSignInButton({ busy, googleAndroidClientId, googleWebClientId, onIdToken, onError }: Props): React.JSX.Element {
+function ConfiguredGoogleSignInButton({ variant = 'default', busy, googleAndroidClientId, googleWebClientId, onIdToken, onError }: Props): React.JSX.Element {
   const handledResponse = useRef<string>('');
   const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
     androidClientId: googleAndroidClientId,
@@ -63,14 +69,14 @@ function ConfiguredGoogleSignInButton({ busy, googleAndroidClientId, googleWebCl
     onError('Chưa thể hoàn tất đăng nhập bằng Google. Hãy thử lại hoặc dùng email.');
   }, [onError, response]);
 
-  return <GoogleActionButton busy={busy} disabled={!request} onPress={() => void promptAsync()} />;
+  return <GoogleActionButton variant={variant} busy={busy} disabled={!request} onPress={() => void promptAsync()} />;
 }
 
-function GoogleActionButton({ busy, disabled = false, onPress }: { busy: boolean; disabled?: boolean; onPress: () => void }): React.JSX.Element {
+function GoogleActionButton({ variant = 'default', busy, disabled = false, onPress }: { variant?: 'default' | 'auth'; busy: boolean; disabled?: boolean; onPress: () => void }): React.JSX.Element {
   const [focused, setFocused] = useState(false);
   const isDisabled = disabled || busy;
   return (
-    <TouchableOpacity
+    <Pressable
       accessibilityRole="button"
       accessibilityLabel="Tiếp tục với Google"
       accessibilityState={{ disabled: isDisabled, busy }}
@@ -78,22 +84,25 @@ function GoogleActionButton({ busy, disabled = false, onPress }: { busy: boolean
       onPress={onPress}
       onFocus={() => setFocused(true)}
       onBlur={() => setFocused(false)}
-      activeOpacity={0.86}
-      style={[styles.button, isDisabled && styles.disabledButton, focused && styles.focusRing]}
+      android_ripple={{ color: variant === 'auth' ? '#5B358720' : '#342E2820' }}
+      style={({ pressed }) => [variant === 'auth' ? styles.authButton : styles.button, isDisabled && styles.disabledButton, pressed && !isDisabled && styles.pressed, focused && styles.focusRing]}
     >
       {busy ? <ActivityIndicator color={palette.disabledText} /> : <>
-        <Ionicons name="logo-google" size={18} color={palette.ink} accessible={false} />
-        <Text style={[styles.buttonText, isDisabled && styles.disabledLabel]}>Tiếp tục với Google</Text>
+        <Ionicons name="logo-google" size={18} color={variant === 'auth' ? authTokens.plumDark : palette.ink} accessible={false} />
+        <Text style={[variant === 'auth' ? styles.authButtonText : styles.buttonText, isDisabled && styles.disabledLabel]}>Tiếp tục với Google</Text>
       </>}
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   unavailableGroup: { gap: 8 },
   button: { width: '100%', minHeight: 52, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingHorizontal: 12, paddingVertical: 9, borderWidth: 1.8, borderColor: palette.outline, borderTopLeftRadius: 14, borderTopRightRadius: 16, borderBottomRightRadius: 13, borderBottomLeftRadius: 15, backgroundColor: palette.white },
+  authButton: { width: '100%', minHeight: 54, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9, paddingHorizontal: 14, paddingVertical: 9, borderWidth: 1.5, borderColor: authTokens.lavenderLine, borderRadius: 18, backgroundColor: authTokens.white },
   buttonText: { color: palette.ink, fontSize: 13, lineHeight: 18, fontWeight: '800', textAlign: 'center', flexShrink: 1 },
+  authButtonText: { color: authTokens.plumDark, fontSize: 14, lineHeight: 19, fontWeight: '900', textAlign: 'center', flexShrink: 1 },
   disabledButton: { backgroundColor: palette.disabledSurface },
   disabledLabel: { color: palette.disabledText },
-  focusRing: { borderColor: palette.focus, borderWidth: 3 },
+  pressed: { opacity: 0.72, transform: [{ scale: 0.985 }] },
+  focusRing: { borderColor: authTokens.plum, borderWidth: 2.5 },
 });
