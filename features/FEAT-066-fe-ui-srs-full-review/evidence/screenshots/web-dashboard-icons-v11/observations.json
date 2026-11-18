@@ -1,0 +1,351 @@
+{
+  "baseline": "FEAT-066-EV-012 palette captures precede this icon refresh",
+  "captures": [
+    {
+      "app": "School Manager",
+      "file": "school-manager-dashboard-desktop.png",
+      "route": "/m02-organization-management",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "roleShell": "mg-shell",
+      "title": "Quản lý trường",
+      "errorOverlay": false,
+      "navigation": [
+        {
+          "label": "Tổng quan",
+          "active": true
+        },
+        {
+          "label": "Giáo viên & nhóm",
+          "active": false
+        },
+        {
+          "label": "Lớp & suất học",
+          "active": false
+        },
+        {
+          "label": "Lượt video",
+          "active": false
+        },
+        {
+          "label": "Duyệt công khai",
+          "active": false
+        },
+        {
+          "label": "Cài đặt",
+          "active": false
+        }
+      ],
+      "iconCount": 21,
+      "navIcon": {
+        "width": 32,
+        "height": 32,
+        "cssWidth": "32px",
+        "display": "flex",
+        "background": "rgb(31, 45, 230)",
+        "color": "rgb(255, 255, 255)",
+        "svgColor": "rgb(255, 255, 255)",
+        "borderRadius": "12px"
+      },
+      "runtimeErrors": []
+    },
+    {
+      "app": "School Manager",
+      "file": "school-manager-dashboard-narrow.png",
+      "route": "/m02-organization-management",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "roleShell": "mg-shell",
+      "title": "Quản lý trường",
+      "errorOverlay": false,
+      "navigation": [
+        {
+          "label": "Tổng quan",
+          "active": true
+        },
+        {
+          "label": "Giáo viên & nhóm",
+          "active": false
+        },
+        {
+          "label": "Lớp & suất học",
+          "active": false
+        },
+        {
+          "label": "Lượt video",
+          "active": false
+        },
+        {
+          "label": "Duyệt công khai",
+          "active": false
+        },
+        {
+          "label": "Cài đặt",
+          "active": false
+        }
+      ],
+      "iconCount": 21,
+      "navIcon": {
+        "width": 32,
+        "height": 32,
+        "cssWidth": "32px",
+        "display": "flex",
+        "background": "rgb(31, 45, 230)",
+        "color": "rgb(255, 255, 255)",
+        "svgColor": "rgb(255, 255, 255)",
+        "borderRadius": "12px"
+      },
+      "runtimeErrors": []
+    },
+    {
+      "app": "Teacher",
+      "file": "teacher-dashboard-desktop.png",
+      "route": "/t01-lesson-workspace",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1430,
+      "horizontalOverflow": false,
+      "roleShell": "tw-shell",
+      "title": "Chào Cô Thảo!",
+      "errorOverlay": false,
+      "navigation": [
+        {
+          "label": "Tổng quan",
+          "active": true
+        },
+        {
+          "label": "Lớp & Học sinh",
+          "active": false
+        },
+        {
+          "label": "Quản lý giáo án",
+          "active": false
+        },
+        {
+          "label": "AI Assisted",
+          "active": false
+        },
+        {
+          "label": "Tạo video mẫu",
+          "active": false
+        },
+        {
+          "label": "Chiếu trên lớp",
+          "active": false
+        },
+        {
+          "label": "Thư viện công khai",
+          "active": false
+        },
+        {
+          "label": "Lịch sử & Báo cáo",
+          "active": false
+        },
+        {
+          "label": "Hồ sơ cá nhân",
+          "active": false
+        },
+        {
+          "label": "Cài đặt",
+          "active": false
+        }
+      ],
+      "iconCount": 38,
+      "navIcon": {
+        "width": 32,
+        "height": 32,
+        "cssWidth": "32px",
+        "display": "flex",
+        "background": "rgb(31, 45, 230)",
+        "color": "rgb(255, 255, 255)",
+        "svgColor": "rgb(255, 255, 255)",
+        "borderRadius": "12px"
+      },
+      "runtimeErrors": []
+    },
+    {
+      "app": "Teacher",
+      "file": "teacher-dashboard-narrow.png",
+      "route": "/t01-lesson-workspace",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "roleShell": "tw-shell",
+      "title": "Chào Cô Thảo!",
+      "errorOverlay": false,
+      "navigation": [
+        {
+          "label": "",
+          "active": true
+        },
+        {
+          "label": "",
+          "active": false
+        },
+        {
+          "label": "",
+          "active": false
+        },
+        {
+          "label": "",
+          "active": false
+        },
+        {
+          "label": "",
+          "active": false
+        },
+        {
+          "label": "",
+          "active": false
+        },
+        {
+          "label": "",
+          "active": false
+        },
+        {
+          "label": "",
+          "active": false
+        },
+        {
+          "label": "",
+          "active": false
+        },
+        {
+          "label": "",
+          "active": false
+        }
+      ],
+      "iconCount": 38,
+      "navIcon": {
+        "width": 32,
+        "height": 32,
+        "cssWidth": "32px",
+        "display": "flex",
+        "background": "rgb(31, 45, 230)",
+        "color": "rgb(255, 255, 255)",
+        "svgColor": "rgb(255, 255, 255)",
+        "borderRadius": "12px"
+      },
+      "runtimeErrors": []
+    },
+    {
+      "app": "Platform Admin",
+      "file": "platform-admin-dashboard-desktop.png",
+      "route": "/a02-platform-operations",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "roleShell": "mg-shell",
+      "title": "Vận hành nền tảng",
+      "errorOverlay": false,
+      "navigation": [
+        {
+          "label": "Tổng quan",
+          "active": true
+        },
+        {
+          "label": "Tổ chức",
+          "active": false
+        },
+        {
+          "label": "Thư viện bài học",
+          "active": false
+        },
+        {
+          "label": "Danh mục hoạt động",
+          "active": false
+        },
+        {
+          "label": "Hạn mức & chính sách",
+          "active": false
+        },
+        {
+          "label": "Nhật ký",
+          "active": false
+        }
+      ],
+      "iconCount": 20,
+      "navIcon": {
+        "width": 32,
+        "height": 32,
+        "cssWidth": "32px",
+        "display": "flex",
+        "background": "rgb(31, 45, 230)",
+        "color": "rgb(255, 255, 255)",
+        "svgColor": "rgb(255, 255, 255)",
+        "borderRadius": "12px"
+      },
+      "runtimeErrors": []
+    },
+    {
+      "app": "Platform Admin",
+      "file": "platform-admin-dashboard-narrow.png",
+      "route": "/a02-platform-operations",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "roleShell": "mg-shell",
+      "title": "Vận hành nền tảng",
+      "errorOverlay": false,
+      "navigation": [
+        {
+          "label": "",
+          "active": true
+        },
+        {
+          "label": "",
+          "active": false
+        },
+        {
+          "label": "",
+          "active": false
+        },
+        {
+          "label": "",
+          "active": false
+        },
+        {
+          "label": "",
+          "active": false
+        },
+        {
+          "label": "",
+          "active": false
+        }
+      ],
+      "iconCount": 20,
+      "navIcon": {
+        "width": 32,
+        "height": 32,
+        "cssWidth": "32px",
+        "display": "flex",
+        "background": "rgb(31, 45, 230)",
+        "color": "rgb(255, 255, 255)",
+        "svgColor": "rgb(255, 255, 255)",
+        "borderRadius": "12px"
+      },
+      "runtimeErrors": []
+    }
+  ],
+  "runtimeErrors": [],
+  "limitations": []
+}

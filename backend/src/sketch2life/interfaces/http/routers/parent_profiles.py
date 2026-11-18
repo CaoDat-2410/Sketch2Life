@@ -1,281 +1,402 @@
-"""Authenticated Parent-owned child profile and data-authorization APIs."""
+"""Parent-owned synthetic profile HTTP operations."""
 
+# FastAPI dependency declarations intentionally use Depends in defaults.
 # ruff: noqa: B008
 
 from __future__ import annotations
 
-from uuid import UUID, uuid4
+import json
+from typing import Any, NoReturn
+from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException, Path, Request, status
+from fastapi.responses import JSONResponse
+from pydantic import ValidationError
 
 from sketch2life.application.ports.identity import VerifiedPrincipal
-from sketch2life.application.ports.parent_profiles import ParentProfileRepositoryError
-from sketch2life.application.services.parent_profiles import (
-    ParentConsentPolicy,
-    ParentProfileService,
-    ParentProfileServiceError,
+from sketch2life.application.ports.parent_roles import (
+    ParentRoleReader,
+    ParentRoleStoreUnavailable,
 )
+from sketch2life.application.services.parent_profiles import ParentProfileService
 from sketch2life.contracts.schemas.parent_profiles import (
-    ParentConsentPolicyEnvelopeV1,
-    ParentConsentPolicyResponseV1,
-    ParentDataAuthorizationRequestV1,
-    ParentProfileCollectionResponseV1,
-    ParentProfileCreateRequestV1,
-    ParentProfileEnvelopeV1,
-    ParentProfileResponseV1,
-    ParentProfileRevisionResponseV1,
-    ParentProfileUpdateRequestV1,
+    CreateParentProfileRequest,
+    ParentErrorResponse,
+    ParentProfileDeletePendingView,
+    ParentProfileListView,
+    ParentProfileReference,
+    ParentProfileView,
+    PatchParentProfileRequest,
+    parent_field_errors,
 )
-from sketch2life.infrastructure.config.settings import get_settings
-from sketch2life.infrastructure.persistence.be1_models import AdultIdentityModel
-from sketch2life.infrastructure.persistence.parent_profile_repository import (
-    SqlParentProfileRepository,
+from sketch2life.domain.parent_profiles import ParentProfileError, ProfileSnapshot
+from sketch2life.interfaces.http.parent_runtime import (
+    get_parent_principal,
+    get_parent_profile_service,
+    get_parent_role_reader,
+    parent_request_id,
 )
-from sketch2life.interfaces.http.be1_runtime import get_db, get_verified_adult
 
-router = APIRouter(prefix="/api/parent/v1", tags=["Parent profiles v1"])
+PARENT_ERROR_RESPONSES: dict[int | str, dict[str, Any]] = {
+    400: {"model": ParentErrorResponse, "description": "The request is invalid"},
+    401: {"model": ParentErrorResponse, "description": "Authentication is required or invalid"},
+    403: {"model": ParentErrorResponse, "description": "The action is not allowed"},
+    404: {"model": ParentErrorResponse, "description": "The profile was not found"},
+    409: {"model": ParentErrorResponse, "description": "The request conflicts with profile state"},
+    503: {"model": ParentErrorResponse, "description": "A required service is unavailable"},
+}
 
+router = APIRouter(prefix="/v1/parent/profiles", tags=["Parent Profiles"])
 
-def _service(db: Session) -> tuple[ParentProfileService, str]:
-    settings = get_settings()
-    policy = ParentConsentPolicy(
-        version=settings.parent_consent_policy_version,
-        text=settings.parent_consent_policy_text,
-    )
-    return ParentProfileService(SqlParentProfileRepository(db), policy), policy.version.strip()
-
-
-def _require_parent(db: Session, principal: VerifiedPrincipal) -> AdultIdentityModel:
-    identity = db.get(AdultIdentityModel, principal.subject)
-    if (
-        identity is None
-        or identity.state != "active"
-        or identity.account_role != "parent"
-        or identity.issuer != principal.issuer
-    ):
-        raise HTTPException(status_code=403, detail={"code": "PARENT_ROLE_REQUIRED"})
-    return identity
+_IDEMPOTENCY_PARAMETER = {
+    "name": "Idempotency-Key",
+    "in": "header",
+    "required": True,
+    "schema": {"type": "string", "minLength": 1, "maxLength": 128},
+}
 
 
-def _invoke(callable_, **kwargs):
+def _raise_parent_error(error: ParentProfileError) -> NoReturn:
+    detail: dict[str, object] = {"code": error.code, "message": error.message}
+    if error.current_version is not None:
+        detail["current_version"] = error.current_version
+    if error.field_errors:
+        detail["field_errors"] = error.field_errors
+    raise HTTPException(status_code=error.status_code, detail=detail) from None
+
+
+def _response_request_id(body: dict[str, object], fallback: str) -> str:
+    request_id = body.get("request_id")
+    return request_id if isinstance(request_id, str) and request_id else fallback
+
+
+def _require_active_parent(
+    principal: VerifiedPrincipal, role_reader: ParentRoleReader
+) -> None:
     try:
-        return callable_(**kwargs)
-    except (ParentProfileServiceError, ParentProfileRepositoryError) as exc:
+        active_parent = role_reader.has_active_parent_role(principal=principal)
+    except ParentRoleStoreUnavailable:
         raise HTTPException(
-            status_code=exc.status_code,
-            detail={"code": exc.code},
+            status_code=503,
+            detail={
+                "code": "PARENT_STORE_UNAVAILABLE",
+                "message": "The profile store is unavailable",
+            },
         ) from None
+    if not active_parent:
+        raise HTTPException(
+            status_code=403,
+            detail={"code": "ACTION_NOT_ALLOWED", "message": "The action is not allowed"},
+        )
 
 
-def _response(profile, current_policy_version: str) -> ParentProfileResponseV1:
-    revision = profile.current_revision
-    current_authorization = (
-        profile.authorization_state == "GRANTED"
-        and profile.authorization_policy_version == current_policy_version
-        and bool(current_policy_version)
+def _parse_profile_id(request: Request, declared_value: str) -> UUID:
+    raw_value = request.path_params.get("profile_id")
+    if not isinstance(raw_value, str) or raw_value != declared_value:
+        _raise_invalid([{"field": "profile_id", "code": "INVALID_FORMAT"}])
+    try:
+        return UUID(raw_value)
+    except ValueError:
+        _raise_invalid([{"field": "profile_id", "code": "INVALID_FORMAT"}])
+
+
+def _idempotency_key(request: Request) -> tuple[str | None, list[dict[str, str]]]:
+    values = request.headers.getlist("Idempotency-Key")
+    if not values:
+        return None, [{"field": "Idempotency-Key", "code": "REQUIRED"}]
+    if len(values) != 1:
+        return None, [{"field": "Idempotency-Key", "code": "INVALID_FORMAT"}]
+    raw_value = values[0]
+    if not 1 <= len(raw_value) <= 128 or any(
+        ord(char) < 33 or ord(char) > 126 for char in raw_value
+    ):
+        return None, [{"field": "Idempotency-Key", "code": "INVALID_FORMAT"}]
+    return raw_value, []
+
+
+async def _body_model(
+    request: Request,
+    model_type: type[CreateParentProfileRequest] | type[PatchParentProfileRequest],
+) -> tuple[
+    CreateParentProfileRequest | PatchParentProfileRequest | None,
+    list[dict[str, str]],
+]:
+    try:
+        payload = await request.json()
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return None, [{"field": "body", "code": "INVALID_FORMAT"}]
+    try:
+        return model_type.model_validate(payload), []
+    except ValidationError as error:
+        return None, parent_field_errors(error.errors())
+
+
+def _raise_invalid(field_errors: list[dict[str, str]]) -> NoReturn:
+    normalized = [
+        {"field": field, "code": code}
+        for field, code in sorted(
+            {(item["field"], item["code"]) for item in field_errors}
+        )
+    ]
+    raise HTTPException(
+        status_code=400,
+        detail={
+            "code": "INVALID_REQUEST",
+            "message": "The request is invalid",
+            "field_errors": normalized,
+        },
     )
-    return ParentProfileResponseV1(
-        parent_profile_id=profile.parent_profile_id,
-        state=profile.state,
-        current_revision=ParentProfileRevisionResponseV1(
-            profile_revision_id=revision.profile_revision_id,
-            revision=revision.revision_no,
-            age_months=revision.age_months,
-            display_name=revision.display_name,
-            interests_summary=revision.interests_summary,
-            revision_sha256=revision.revision_hash,
-            created_at=revision.created_at,
-        ),
-        authorization_state=profile.authorization_state,
-        authorization_policy_version=profile.authorization_policy_version,
-        authorization_current=current_authorization,
-        created_at=profile.created_at,
-        updated_at=profile.updated_at,
-    )
 
 
-@router.get(
-    "/consent-policy",
-    response_model=ParentConsentPolicyEnvelopeV1,
-    summary="Read the active Parent data-authorization policy",
-)
-def get_parent_consent_policy(
-    principal: VerifiedPrincipal = Depends(get_verified_adult),
-    db: Session = Depends(get_db),
-) -> ParentConsentPolicyEnvelopeV1:
-    _require_parent(db, principal)
-    service, _ = _service(db)
-    policy = _invoke(service.consent_policy)
-    return ParentConsentPolicyEnvelopeV1(
-        request_id=str(uuid4()), policy=ParentConsentPolicyResponseV1(**policy)
-    )
-
-
-@router.get(
-    "/child-profiles",
-    response_model=ParentProfileCollectionResponseV1,
-    summary="List child profiles owned by the authenticated Parent",
-)
-def list_parent_child_profiles(
-    principal: VerifiedPrincipal = Depends(get_verified_adult),
-    db: Session = Depends(get_db),
-) -> ParentProfileCollectionResponseV1:
-    _require_parent(db, principal)
-    service, policy_version = _service(db)
-    profiles = _invoke(service.list_profiles, owner_subject=principal.subject)
-    return ParentProfileCollectionResponseV1(
-        request_id=str(uuid4()),
-        profiles=[_response(profile, policy_version) for profile in profiles],
-    )
+def _list_query(
+    request: Request,
+) -> tuple[int | None, str | None, list[dict[str, str]]]:
+    query = request.query_params
+    errors: list[dict[str, str]] = []
+    limit_values = query.getlist("limit")
+    limit: int | None = 25
+    if len(limit_values) > 1:
+        limit = None
+        errors.append({"field": "limit", "code": "INVALID_FORMAT"})
+    elif limit_values:
+        raw_limit = limit_values[0]
+        if not raw_limit or not raw_limit.isascii() or not raw_limit.isdigit():
+            limit = None
+            errors.append({"field": "limit", "code": "INVALID_TYPE"})
+        else:
+            limit = int(raw_limit)
+            if not 1 <= limit <= 100:
+                errors.append({"field": "limit", "code": "OUT_OF_RANGE"})
+    cursor_values = query.getlist("cursor")
+    cursor: str | None = None
+    if len(cursor_values) > 1:
+        errors.append({"field": "cursor", "code": "INVALID_FORMAT"})
+    elif cursor_values:
+        cursor = cursor_values[0]
+    if set(query.keys()) - {"limit", "cursor"}:
+        errors.append({"field": "<unknown>", "code": "UNKNOWN_FIELD"})
+    return limit, cursor, errors
 
 
 @router.post(
-    "/child-profiles",
-    response_model=ParentProfileEnvelopeV1,
+    "",
     status_code=status.HTTP_201_CREATED,
-    summary="Create a child profile and record explicit data authorization",
+    response_model=ParentProfileReference,
+    responses=PARENT_ERROR_RESPONSES,
+    openapi_extra={
+        "parameters": [_IDEMPOTENCY_PARAMETER],
+        "requestBody": {
+            "required": True,
+            "content": {
+                "application/json": {
+                    "schema": {"$ref": "#/components/schemas/CreateParentProfileRequest"}
+                }
+            },
+        },
+    },
 )
-def create_parent_child_profile(
-    payload: ParentProfileCreateRequestV1,
-    response: Response,
-    principal: VerifiedPrincipal = Depends(get_verified_adult),
-    db: Session = Depends(get_db),
-) -> ParentProfileEnvelopeV1:
-    _require_parent(db, principal)
-    service, policy_version = _service(db)
-    profile = _invoke(
-        service.create_profile,
-        owner_subject=principal.subject,
-        age_months=payload.age_months,
-        display_name=payload.display_name,
-        interests_summary=payload.interests_summary,
-        consent_accepted=payload.consent_accepted,
-        policy_version=payload.consent_policy_version,
-    )
-    response.headers["ETag"] = f'"{profile.current_revision.revision_no}"'
-    return ParentProfileEnvelopeV1(
-        request_id=str(uuid4()), profile=_response(profile, policy_version)
+async def create_parent_profile(
+    request: Request,
+    principal: VerifiedPrincipal = Depends(get_parent_principal),
+    service: ParentProfileService = Depends(get_parent_profile_service),
+    role_reader: ParentRoleReader = Depends(get_parent_role_reader),
+) -> JSONResponse:
+    _require_active_parent(principal, role_reader)
+    idempotency_key, key_errors = _idempotency_key(request)
+    payload, body_errors = await _body_model(request, CreateParentProfileRequest)
+    errors = key_errors + body_errors
+    if errors:
+        _raise_invalid(errors)
+    assert idempotency_key is not None
+    assert isinstance(payload, CreateParentProfileRequest)
+    try:
+        result = service.create_profile(
+            principal=principal,
+            snapshot=ProfileSnapshot(
+                display_name=payload.display_name,
+                age_months=payload.age_months,
+                interests_summary=payload.interests_summary,
+            ),
+            idempotency_key=idempotency_key,
+            request_id=parent_request_id(request),
+        )
+    except ParentProfileError as error:
+        _raise_parent_error(error)
+    return JSONResponse(
+        status_code=result.status_code,
+        content=result.body,
+        headers={
+            "X-Request-ID": _response_request_id(
+                result.body, parent_request_id(request)
+            )
+        },
     )
 
 
 @router.get(
-    "/child-profiles/{parent_profile_id}",
-    response_model=ParentProfileEnvelopeV1,
-    summary="Read an owned child profile",
+    "",
+    response_model=ParentProfileListView,
+    responses=PARENT_ERROR_RESPONSES,
+    openapi_extra={
+        "parameters": [
+            {"name": "limit", "in": "query", "required": False, "schema": {"type": "integer"}},
+            {"name": "cursor", "in": "query", "required": False, "schema": {"type": "string"}},
+        ]
+    },
 )
-def get_parent_child_profile(
-    parent_profile_id: UUID,
-    principal: VerifiedPrincipal = Depends(get_verified_adult),
-    db: Session = Depends(get_db),
-) -> ParentProfileEnvelopeV1:
-    _require_parent(db, principal)
-    service, policy_version = _service(db)
-    profile = _invoke(
-        service.get_profile,
-        owner_subject=principal.subject,
-        parent_profile_id=str(parent_profile_id),
-    )
-    return ParentProfileEnvelopeV1(
-        request_id=str(uuid4()), profile=_response(profile, policy_version)
-    )
+def list_parent_profiles(
+    request: Request,
+    principal: VerifiedPrincipal = Depends(get_parent_principal),
+    service: ParentProfileService = Depends(get_parent_profile_service),
+    role_reader: ParentRoleReader = Depends(get_parent_role_reader),
+) -> dict[str, object]:
+    _require_active_parent(principal, role_reader)
+    limit, cursor, field_errors = _list_query(request)
+    if field_errors:
+        _raise_invalid(field_errors)
+    assert limit is not None
+    try:
+        result = service.list_profiles(principal=principal, limit=limit, cursor=cursor)
+    except ParentProfileError as error:
+        _raise_parent_error(error)
+    return {
+        "items": result.items,
+        "next_cursor": result.next_cursor,
+        "request_id": parent_request_id(request),
+    }
+
+
+@router.get(
+    "/{profile_id}",
+    response_model=ParentProfileView | ParentProfileDeletePendingView,
+    responses=PARENT_ERROR_RESPONSES,
+)
+def read_parent_profile(
+    request: Request,
+    profile_id: str = Path(..., json_schema_extra={"format": "uuid"}),
+    principal: VerifiedPrincipal = Depends(get_parent_principal),
+    service: ParentProfileService = Depends(get_parent_profile_service),
+    role_reader: ParentRoleReader = Depends(get_parent_role_reader),
+) -> dict[str, object]:
+    parsed_id = _parse_profile_id(request, profile_id)
+    try:
+        service.assert_profile_owned(principal=principal, profile_id=parsed_id)
+    except ParentProfileError as error:
+        _raise_parent_error(error)
+    _require_active_parent(principal, role_reader)
+    try:
+        return service.get_profile(
+            principal=principal,
+            profile_id=parsed_id,
+            request_id=parent_request_id(request),
+        )
+    except ParentProfileError as error:
+        _raise_parent_error(error)
 
 
 @router.patch(
-    "/child-profiles/{parent_profile_id}",
-    response_model=ParentProfileEnvelopeV1,
-    summary="Create an immutable revision of an owned child profile",
+    "/{profile_id}",
+    response_model=ParentProfileView,
+    responses=PARENT_ERROR_RESPONSES,
+    openapi_extra={
+        "parameters": [_IDEMPOTENCY_PARAMETER],
+        "requestBody": {
+            "required": True,
+            "content": {
+                "application/json": {
+                    "schema": {"$ref": "#/components/schemas/PatchParentProfileRequest"}
+                }
+            },
+        },
+    },
 )
-def update_parent_child_profile(
-    parent_profile_id: UUID,
-    payload: ParentProfileUpdateRequestV1,
-    response: Response,
-    principal: VerifiedPrincipal = Depends(get_verified_adult),
-    db: Session = Depends(get_db),
-) -> ParentProfileEnvelopeV1:
-    _require_parent(db, principal)
-    service, policy_version = _service(db)
-    profile = _invoke(
-        service.revise_profile,
-        owner_subject=principal.subject,
-        parent_profile_id=str(parent_profile_id),
-        expected_revision=payload.expected_revision,
-        age_months=payload.age_months,
-        display_name=payload.display_name,
-        interests_summary=payload.interests_summary,
-    )
-    response.headers["ETag"] = f'"{profile.current_revision.revision_no}"'
-    return ParentProfileEnvelopeV1(
-        request_id=str(uuid4()), profile=_response(profile, policy_version)
-    )
-
-
-@router.post(
-    "/child-profiles/{parent_profile_id}/data-authorizations",
-    response_model=ParentProfileEnvelopeV1,
-    summary="Grant the current versioned Parent data authorization",
-)
-def grant_parent_data_authorization(
-    parent_profile_id: UUID,
-    payload: ParentDataAuthorizationRequestV1,
-    principal: VerifiedPrincipal = Depends(get_verified_adult),
-    db: Session = Depends(get_db),
-) -> ParentProfileEnvelopeV1:
-    _require_parent(db, principal)
-    service, policy_version = _service(db)
-    profile = _invoke(
-        service.grant_authorization,
-        owner_subject=principal.subject,
-        parent_profile_id=str(parent_profile_id),
-        consent_accepted=payload.consent_accepted,
-        policy_version=payload.consent_policy_version,
-    )
-    return ParentProfileEnvelopeV1(
-        request_id=str(uuid4()), profile=_response(profile, policy_version)
+async def patch_parent_profile(
+    request: Request,
+    profile_id: str = Path(..., json_schema_extra={"format": "uuid"}),
+    principal: VerifiedPrincipal = Depends(get_parent_principal),
+    service: ParentProfileService = Depends(get_parent_profile_service),
+    role_reader: ParentRoleReader = Depends(get_parent_role_reader),
+) -> JSONResponse:
+    parsed_id = _parse_profile_id(request, profile_id)
+    try:
+        service.assert_profile_owned(principal=principal, profile_id=parsed_id)
+    except ParentProfileError as error:
+        _raise_parent_error(error)
+    _require_active_parent(principal, role_reader)
+    idempotency_key, key_errors = _idempotency_key(request)
+    payload, body_errors = await _body_model(request, PatchParentProfileRequest)
+    errors = key_errors + body_errors
+    if errors:
+        _raise_invalid(errors)
+    assert idempotency_key is not None
+    assert isinstance(payload, PatchParentProfileRequest)
+    try:
+        result = service.patch_profile(
+            principal=principal,
+            profile_id=parsed_id,
+            expected_revision=payload.expected_revision,
+            snapshot=ProfileSnapshot(
+                display_name=payload.display_name,
+                age_months=payload.age_months,
+                interests_summary=payload.interests_summary,
+            ),
+            idempotency_key=idempotency_key,
+            request_id=parent_request_id(request),
+        )
+    except ParentProfileError as error:
+        _raise_parent_error(error)
+    return JSONResponse(
+        status_code=result.status_code,
+        content=result.body,
+        headers={
+            "X-Request-ID": _response_request_id(
+                result.body, parent_request_id(request)
+            )
+        },
     )
 
 
 @router.delete(
-    "/child-profiles/{parent_profile_id}/data-authorizations",
-    response_model=ParentProfileEnvelopeV1,
-    summary="Revoke active Parent data authorizations for an owned profile",
+    "/{profile_id}",
+    status_code=status.HTTP_202_ACCEPTED,
+    response_model=ParentProfileDeletePendingView,
+    responses=PARENT_ERROR_RESPONSES,
+    openapi_extra={"parameters": [_IDEMPOTENCY_PARAMETER]},
 )
-def revoke_parent_data_authorization(
-    parent_profile_id: UUID,
-    principal: VerifiedPrincipal = Depends(get_verified_adult),
-    db: Session = Depends(get_db),
-) -> ParentProfileEnvelopeV1:
-    _require_parent(db, principal)
-    service, policy_version = _service(db)
-    profile = _invoke(
-        service.revoke_authorization,
-        owner_subject=principal.subject,
-        parent_profile_id=str(parent_profile_id),
-    )
-    return ParentProfileEnvelopeV1(
-        request_id=str(uuid4()), profile=_response(profile, policy_version)
-    )
-
-
-@router.delete(
-    "/child-profiles/{parent_profile_id}",
-    response_model=ParentProfileEnvelopeV1,
-    summary="Archive an owned child profile and revoke its active authorizations",
-)
-def archive_parent_child_profile(
-    parent_profile_id: UUID,
-    principal: VerifiedPrincipal = Depends(get_verified_adult),
-    db: Session = Depends(get_db),
-) -> ParentProfileEnvelopeV1:
-    _require_parent(db, principal)
-    service, policy_version = _service(db)
-    profile = _invoke(
-        service.archive_profile,
-        owner_subject=principal.subject,
-        parent_profile_id=str(parent_profile_id),
-    )
-    return ParentProfileEnvelopeV1(
-        request_id=str(uuid4()), profile=_response(profile, policy_version)
+def request_parent_profile_deletion(
+    request: Request,
+    profile_id: str = Path(..., json_schema_extra={"format": "uuid"}),
+    principal: VerifiedPrincipal = Depends(get_parent_principal),
+    service: ParentProfileService = Depends(get_parent_profile_service),
+    role_reader: ParentRoleReader = Depends(get_parent_role_reader),
+) -> JSONResponse:
+    parsed_id = _parse_profile_id(request, profile_id)
+    try:
+        service.assert_profile_owned(principal=principal, profile_id=parsed_id)
+    except ParentProfileError as error:
+        _raise_parent_error(error)
+    _require_active_parent(principal, role_reader)
+    idempotency_key, field_errors = _idempotency_key(request)
+    if field_errors:
+        _raise_invalid(field_errors)
+    assert idempotency_key is not None
+    try:
+        result = service.delete_profile(
+            principal=principal,
+            profile_id=parsed_id,
+            idempotency_key=idempotency_key,
+            request_id=parent_request_id(request),
+        )
+    except ParentProfileError as error:
+        _raise_parent_error(error)
+    return JSONResponse(
+        status_code=result.status_code,
+        content=result.body,
+        headers={
+            "X-Request-ID": _response_request_id(
+                result.body, parent_request_id(request)
+            )
+        },
     )
 
 

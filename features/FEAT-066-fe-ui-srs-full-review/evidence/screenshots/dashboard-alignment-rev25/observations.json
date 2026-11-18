@@ -1,0 +1,188 @@
+{
+  "browser": "isolated local Chrome preview; synthetic sessionStorage role flag only",
+  "results": [
+    {
+      "role": "teacher",
+      "networkPolicy": "Only HTTP requests to 127.0.0.1:5172 were allowed; all other requests were blocked.",
+      "captures": [
+        {
+          "file": "teacher-overview-1440.png",
+          "route": "/t01-lesson-workspace",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "documentWidth": 1440,
+          "horizontalOverflow": false,
+          "viteError": false,
+          "heading": "Không gian làm việc của giáo viên",
+          "previewLabel": true,
+          "previewMentions": 1,
+          "logoutControlPresent": true,
+          "logoutControlVisible": true,
+          "activeNav": [
+            "Tổng quan"
+          ],
+          "ariaCurrentCount": 1
+        },
+        {
+          "file": "teacher-overview-390.png",
+          "route": "/t01-lesson-workspace",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "documentWidth": 390,
+          "horizontalOverflow": false,
+          "viteError": false,
+          "heading": "Không gian làm việc của giáo viên",
+          "previewLabel": false,
+          "previewMentions": 0,
+          "logoutControlPresent": true,
+          "logoutControlVisible": false,
+          "activeNav": [
+            ""
+          ],
+          "ariaCurrentCount": 1
+        }
+      ],
+      "keyboard": {
+        "menuAfterEnter": {
+          "expanded": "true",
+          "railVisibility": "visible",
+          "focusClass": "teacher-nav-link is-active",
+          "logoutVisible": true
+        },
+        "menuAfterEscape": {
+          "expanded": "false",
+          "railVisibility": "hidden",
+          "focusReturned": true
+        }
+      },
+      "runtimeExceptions": [],
+      "consoleErrors": []
+    },
+    {
+      "role": "manager",
+      "networkPolicy": "Only HTTP requests to 127.0.0.1:5173 were allowed; all other requests were blocked.",
+      "captures": [
+        {
+          "file": "manager-overview-1440.png",
+          "route": "/m02-organization-management",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "documentWidth": 1440,
+          "horizontalOverflow": false,
+          "viteError": false,
+          "heading": "Tổng quan",
+          "previewLabel": true,
+          "previewMentions": 1,
+          "logoutControlPresent": true,
+          "logoutControlVisible": true,
+          "activeNav": [
+            "Tổng quan"
+          ],
+          "ariaCurrentCount": 10
+        },
+        {
+          "file": "manager-overview-390.png",
+          "route": "/m02-organization-management",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "documentWidth": 390,
+          "horizontalOverflow": false,
+          "viteError": false,
+          "heading": "Tổng quan",
+          "previewLabel": false,
+          "previewMentions": 0,
+          "logoutControlPresent": true,
+          "logoutControlVisible": false,
+          "activeNav": [
+            ""
+          ],
+          "ariaCurrentCount": 10
+        }
+      ],
+      "keyboard": {
+        "menuAfterEnter": {
+          "expanded": "true",
+          "railVisibility": "visible",
+          "focusClass": "manager-nav-link is-active active",
+          "logoutVisible": true
+        },
+        "menuAfterEscape": {
+          "expanded": "false",
+          "railVisibility": "hidden",
+          "focusReturned": true
+        }
+      },
+      "runtimeExceptions": [],
+      "consoleErrors": []
+    },
+    {
+      "role": "admin",
+      "networkPolicy": "Only HTTP requests to 127.0.0.1:5174 were allowed; all other requests were blocked.",
+      "captures": [
+        {
+          "file": "admin-overview-1440.png",
+          "route": "/a02-platform-operations",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "documentWidth": 1440,
+          "horizontalOverflow": false,
+          "viteError": false,
+          "heading": "Tổng quan hệ thống",
+          "previewLabel": true,
+          "previewMentions": 1,
+          "logoutControlPresent": true,
+          "logoutControlVisible": true,
+          "activeNav": [
+            "Tổng quan"
+          ],
+          "ariaCurrentCount": 11
+        },
+        {
+          "file": "admin-overview-390.png",
+          "route": "/a02-platform-operations",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "documentWidth": 390,
+          "horizontalOverflow": false,
+          "viteError": false,
+          "heading": "Tổng quan hệ thống",
+          "previewLabel": false,
+          "previewMentions": 0,
+          "logoutControlPresent": true,
+          "logoutControlVisible": false,
+          "activeNav": [
+            ""
+          ],
+          "ariaCurrentCount": 11
+        }
+      ],
+      "keyboard": {
+        "menuAfterEnter": {
+          "expanded": "true",
+          "railVisibility": "visible",
+          "focusClass": "admin-nav-link is-active active",
+          "logoutVisible": true
+        },
+        "menuAfterEscape": {
+          "expanded": "false",
+          "railVisibility": "hidden",
+          "focusReturned": true
+        }
+      },
+      "runtimeExceptions": [],
+      "consoleErrors": []
+    }
+  ]
+}

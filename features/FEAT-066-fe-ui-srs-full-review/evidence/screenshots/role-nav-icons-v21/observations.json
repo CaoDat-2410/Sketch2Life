@@ -1,0 +1,142 @@
+{
+  "browser": "isolated headless Chrome target",
+  "networkPolicy": "Only HTTP requests to 127.0.0.1 ports 5172, 5173, and 5174 were allowed; all other HTTP(S) requests were blocked.",
+  "captures": [
+    {
+      "file": "teacher-dashboard-1440.png",
+      "url": "http://127.0.0.1:5172/t01-lesson-workspace",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1430,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Chào Cô Thảo!",
+      "lineIconCount": 16,
+      "notificationIcon": "bell-outline",
+      "visibleRole": "Giáo viên\nTổng quan\nLớp & Học sinh\nBài giảng trên lớp\nQuản lý giáo án\nAI Assisted\nTạo video mẫu\nChiếu trên lớp\nThư viện công khai\nLịch sử & Báo cáo\nHồ sơ cá nhân\nCài đặt\nCô Thảo\nXem thử · không lưu\nĐăng xuất\nTổng quan\nTrợ giúp\nLớp Mầm 2\nLớp Chồi 1\nLớp Lá 3\nLớp Mầm 1\n38 lượt\n2\nChào Cô Thảo!\n\nQuản lý lớp và chuẩn bị bài dạy từ một nơi.\n\nTrường Mầm no"
+    },
+    {
+      "file": "teacher-dashboard-390.png",
+      "url": "http://127.0.0.1:5172/t01-lesson-workspace",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Chào Cô Thảo!",
+      "lineIconCount": 16,
+      "notificationIcon": "bell-outline",
+      "visibleRole": "Tổng quan\nTrợ giúp\nLớp Mầm 2\nLớp Chồi 1\nLớp Lá 3\nLớp Mầm 1\n38 lượt\n2\nChào Cô Thảo!\n\nQuản lý lớp và chuẩn bị bài dạy từ một nơi.\n\nTrường Mầm non Ánh Dương\nLớp Mầm 2\nTạo giáo án\nNhập tài liệu\n4\nLớp phụ trách\n6\nTrẻ đang học\n4\nGiáo án\n38\nLượt video còn lại\nBài giảng đang chuẩn bị\nVòng đời bướm\n\nBản 3 · 4 hoạt động · Ghim cho Lớp Mầm 2\n\nMở giáo án\nLớp c"
+    },
+    {
+      "file": "teacher-dashboard-dark-1440.png",
+      "url": "http://127.0.0.1:5172/t01-lesson-workspace",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1430,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Chào Cô Thảo!",
+      "lineIconCount": 16,
+      "notificationIcon": "bell-outline",
+      "visibleRole": "Giáo viên\nTổng quan\nLớp & Học sinh\nBài giảng trên lớp\nQuản lý giáo án\nAI Assisted\nTạo video mẫu\nChiếu trên lớp\nThư viện công khai\nLịch sử & Báo cáo\nHồ sơ cá nhân\nCài đặt\nCô Thảo\nXem thử · không lưu\nĐăng xuất\nTổng quan\nTrợ giúp\nLớp Mầm 2\nLớp Chồi 1\nLớp Lá 3\nLớp Mầm 1\n38 lượt\n2\nChào Cô Thảo!\n\nQuản lý lớp và chuẩn bị bài dạy từ một nơi.\n\nTrường Mầm no"
+    },
+    {
+      "file": "school-manager-dashboard-1440.png",
+      "url": "http://127.0.0.1:5173/m02-organization-management",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Quản lý trường",
+      "lineIconCount": 10,
+      "notificationIcon": "bell-outline",
+      "visibleRole": "Quản lý trường\nTổng quan\nGiáo viên & nhóm\nLớp & suất học\nLượt video\nDuyệt công khai\nCài đặt\nHT\nHiệu trưởng Minh\nDữ liệu xem thử\nĐăng xuất\nQuản lý trường\nTrợ giúp\nHộp thư chưa khả dụng\nTrường Mầm non Ánh Dương\nXem thử · Dữ liệu minh họa, không lưu\nQuản lý trường\nMầm non Ánh Dương · Theo dõi lớp, nhân sự và hạn mức.\nDuyệt bài học công khai\n2\ngiáo viê"
+    },
+    {
+      "file": "school-manager-dashboard-390.png",
+      "url": "http://127.0.0.1:5173/m02-organization-management",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Quản lý trường",
+      "lineIconCount": 10,
+      "notificationIcon": "bell-outline",
+      "visibleRole": "Quản lý trường\nTổng quan\nGiáo viên & nhóm\nLớp & suất học\nLượt video\nDuyệt công khai\nCài đặt\nHT\nHiệu trưởng Minh\nDữ liệu xem thử\nĐăng xuất\nQuản lý trường\nTrợ giúp\nHộp thư chưa khả dụng\nTrường Mầm non Ánh Dương\nXem thử · Dữ liệu minh họa, không lưu\nQuản lý trường\nMầm non Ánh Dương · Theo dõi lớp, nhân sự và hạn mức.\nDuyệt bài học công khai\n2\ngiáo viê"
+    },
+    {
+      "file": "school-manager-dashboard-dark-1440.png",
+      "url": "http://127.0.0.1:5173/m02-organization-management",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Quản lý trường",
+      "lineIconCount": 10,
+      "notificationIcon": "bell-outline",
+      "visibleRole": "Quản lý trường\nTổng quan\nGiáo viên & nhóm\nLớp & suất học\nLượt video\nDuyệt công khai\nCài đặt\nHT\nHiệu trưởng Minh\nDữ liệu xem thử\nĐăng xuất\nQuản lý trường\nTrợ giúp\nHộp thư chưa khả dụng\nTrường Mầm non Ánh Dương\nXem thử · Dữ liệu minh họa, không lưu\nQuản lý trường\nMầm non Ánh Dương · Theo dõi lớp, nhân sự và hạn mức.\nDuyệt bài học công khai\n2\ngiáo viê"
+    },
+    {
+      "file": "platform-admin-dashboard-1440.png",
+      "url": "http://127.0.0.1:5174/a02-platform-operations",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Trạng thái dịch vụ",
+      "lineIconCount": 9,
+      "notificationIcon": "bell-outline",
+      "visibleRole": "Quản trị nền tảng\nTổng quan\nTổ chức\nThư viện bài học\nDanh mục hoạt động\nHạn mức & chính sách\nNhật ký\nQT\nQuản trị viên\nDữ liệu xem thử\nĐăng xuất\nTrợ giúp\nA\nQuản trị viên\nXem thử · Dữ liệu minh họa, không lưu\nXem thử · Dữ liệu minh họa, không lưu\nTrạng thái dịch vụ\nChỉ kiểm tra endpoint health có thật trong API hiện tại.\nKiểm tra lại\nChưa kết nối đượ"
+    },
+    {
+      "file": "platform-admin-dashboard-390.png",
+      "url": "http://127.0.0.1:5174/a02-platform-operations",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Trạng thái dịch vụ",
+      "lineIconCount": 9,
+      "notificationIcon": "bell-outline",
+      "visibleRole": "QT\nTrợ giúp\nA\nQuản trị viên\nXem thử · Dữ liệu minh họa, không lưu\nXem thử · Dữ liệu minh họa, không lưu\nTrạng thái dịch vụ\nChỉ kiểm tra endpoint health có thật trong API hiện tại.\nKiểm tra lại\nChưa kết nối được dịch vụ\nKhông kết nối được backend. Kiểm tra địa chỉ API và trạng thái máy chủ. Mã yêu cầu: db1d111e-b595-4e1d-9773-991408ab491f.\nCác luồng"
+    },
+    {
+      "file": "platform-admin-dashboard-dark-1440.png",
+      "url": "http://127.0.0.1:5174/a02-platform-operations",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Trạng thái dịch vụ",
+      "lineIconCount": 9,
+      "notificationIcon": "bell-outline",
+      "visibleRole": "Quản trị nền tảng\nTổng quan\nTổ chức\nThư viện bài học\nDanh mục hoạt động\nHạn mức & chính sách\nNhật ký\nQT\nQuản trị viên\nDữ liệu xem thử\nĐăng xuất\nTrợ giúp\nA\nQuản trị viên\nXem thử · Dữ liệu minh họa, không lưu\nXem thử · Dữ liệu minh họa, không lưu\nTrạng thái dịch vụ\nChỉ kiểm tra endpoint health có thật trong API hiện tại.\nKiểm tra lại\nChưa kết nối đượ"
+    }
+  ],
+  "runtimeExceptions": []
+}

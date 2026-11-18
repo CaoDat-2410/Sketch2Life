@@ -1,0 +1,212 @@
+{
+  "note": "Local loopback visual review only. No credentials entered and no sign-in submitted.",
+  "captures": [
+    {
+      "label": "role chooser desktop",
+      "file": "role-chooser.png",
+      "requestedPath": "/login",
+      "finalPath": "/login",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "documentWidth": 1265,
+      "horizontalOverflow": false,
+      "heading": "Bạn đang làm việc với vai trò nào?",
+      "roleCards": 3,
+      "hasForm": false,
+      "hasPassword": false,
+      "previewCopy": false,
+      "loginButtonColor": null,
+      "brandImageLoaded": true
+    },
+    {
+      "label": "role chooser mobile",
+      "file": "role-chooser-390.png",
+      "requestedPath": "/login",
+      "finalPath": "/login",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "heading": "Bạn đang làm việc với vai trò nào?",
+      "roleCards": 3,
+      "hasForm": false,
+      "hasPassword": false,
+      "previewCopy": false,
+      "loginButtonColor": null,
+      "brandImageLoaded": true
+    },
+    {
+      "label": "legacy Teacher login redirect",
+      "file": "teacher-login-redirect.png",
+      "requestedPath": "/teacher/login",
+      "finalPath": "/login",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "documentWidth": 1265,
+      "horizontalOverflow": false,
+      "heading": "Bạn đang làm việc với vai trò nào?",
+      "roleCards": 3,
+      "hasForm": false,
+      "hasPassword": false,
+      "previewCopy": false,
+      "loginButtonColor": null,
+      "brandImageLoaded": true
+    },
+    {
+      "label": "Teacher real sign-in",
+      "file": "teacher-sign-in.png",
+      "requestedPath": "/teacher/sign-in",
+      "finalPath": "/teacher/sign-in",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "documentWidth": 1280,
+      "horizontalOverflow": false,
+      "heading": "Chuẩn bị buổi học",
+      "roleCards": 0,
+      "hasForm": true,
+      "hasPassword": true,
+      "previewCopy": false,
+      "loginButtonColor": "rgb(255, 255, 255)",
+      "brandImageLoaded": true
+    },
+    {
+      "label": "School Manager real sign-in desktop",
+      "file": "school-manager-login.png",
+      "requestedPath": "/school/login",
+      "finalPath": "/school/login",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "documentWidth": 1265,
+      "horizontalOverflow": false,
+      "heading": "Quản lý trong phạm vi trường",
+      "roleCards": 0,
+      "hasForm": true,
+      "hasPassword": true,
+      "previewCopy": false,
+      "loginButtonColor": "rgb(255, 255, 255)",
+      "brandImageLoaded": true
+    },
+    {
+      "label": "School Manager real sign-in mobile",
+      "file": "school-manager-login-390.png",
+      "requestedPath": "/school/login",
+      "finalPath": "/school/login",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "heading": "Quản lý trong phạm vi trường",
+      "roleCards": 0,
+      "hasForm": true,
+      "hasPassword": true,
+      "previewCopy": false,
+      "loginButtonColor": "rgb(255, 255, 255)",
+      "brandImageLoaded": true
+    },
+    {
+      "label": "Platform Admin role-discovery limitation",
+      "file": "platform-admin-login.png",
+      "requestedPath": "/platform/login",
+      "finalPath": "/platform/login",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "documentWidth": 1280,
+      "horizontalOverflow": false,
+      "heading": "Vận hành nền tảng",
+      "roleCards": 0,
+      "hasForm": true,
+      "hasPassword": true,
+      "previewCopy": false,
+      "loginButtonColor": "rgb(255, 255, 255)",
+      "brandImageLoaded": true
+    },
+    {
+      "label": "retired preview redirect",
+      "file": "preview-route-redirect.png",
+      "requestedPath": "/school/preview/login",
+      "finalPath": "/login",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "documentWidth": 1265,
+      "horizontalOverflow": false,
+      "heading": "Bạn đang làm việc với vai trò nào?",
+      "roleCards": 3,
+      "hasForm": false,
+      "hasPassword": false,
+      "previewCopy": false,
+      "loginButtonColor": null,
+      "brandImageLoaded": true
+    }
+  ],
+  "runtimeErrors": [],
+  "consoleErrors": [],
+  "externalRequests": [],
+  "roleLinks": [
+    {
+      "label": "01 TEACHER Giáo viên Lớp được phân công, học liệu và buổi dạy. Tiếp tục",
+      "href": "/teacher/sign-in"
+    },
+    {
+      "label": "02 SCHOOL MANAGER Quản lý trường Lớp học và yêu cầu duyệt trong phạm vi trường. Tiếp tục",
+      "href": "/school/login"
+    },
+    {
+      "label": "03 PLATFORM ADMIN Quản trị nền tảng Vận hành và nội dung theo capability được cấp. Tiếp tục",
+      "href": "/platform/login"
+    }
+  ],
+  "keyboard": [
+    {
+      "route": "/login",
+      "afterTabs": 2,
+      "active": {
+        "tag": "A",
+        "label": "01\nTEACHER\nGiáo viên\n\nLớp được phân công, học liệu và buổi dạy.\n\nTiếp tục",
+        "href": "/teacher/sign-in",
+        "focusVisible": true,
+        "outlineStyle": "solid",
+        "outlineWidth": "3px"
+      }
+    },
+    {
+      "route": "/teacher/sign-in",
+      "afterTabs": 7,
+      "active": {
+        "tag": "BUTTON",
+        "label": "Đăng nhập",
+        "href": null,
+        "focusVisible": true,
+        "outlineStyle": "solid",
+        "outlineWidth": "3px"
+      }
+    },
+    {
+      "route": "/school/login",
+      "afterTabs": 5,
+      "active": {
+        "tag": "BUTTON",
+        "label": "Đăng nhập",
+        "href": null,
+        "focusVisible": true,
+        "outlineStyle": "solid",
+        "outlineWidth": "3px"
+      }
+    }
+  ]
+}

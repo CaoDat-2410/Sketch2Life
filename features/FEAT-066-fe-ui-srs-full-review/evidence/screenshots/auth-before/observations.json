@@ -1,0 +1,126 @@
+{
+  "phase": "before",
+  "source": "isolated headless Edge; only loopback Vite apps; HTTPS requests blocked; no credentials submitted",
+  "observations": [
+    {
+      "portal": "teacher",
+      "viewport": "desktop",
+      "file": "teacher-desktop.png",
+      "title": "Sketch2Life - Giáo viên",
+      "route": "/login",
+      "viewportWidth": 1440,
+      "documentWidth": 1440,
+      "documentHeight": 900,
+      "horizontalOverflow": false,
+      "headings": [
+        "Giáo viên",
+        "Đăng nhập"
+      ],
+      "links": [],
+      "labels": [
+        "Email tài khoản"
+      ],
+      "text": "Sketch2Life\nCổng Web\nGiáo viên\n\nLớp được phân công và giáo án trong tổ chức của bạn.\n\nXem thử cục bộ · Không lưu dữ liệu.\n\nĐăng nhập\n\nDùng tài khoản được cấp cho giáo viên.\n\nEmail tài khoản\nVào bản xem thử"
+    },
+    {
+      "portal": "teacher",
+      "viewport": "narrow",
+      "file": "teacher-narrow.png",
+      "title": "Sketch2Life - Giáo viên",
+      "route": "/login",
+      "viewportWidth": 390,
+      "documentWidth": 390,
+      "documentHeight": 844,
+      "horizontalOverflow": false,
+      "headings": [
+        "Giáo viên",
+        "Đăng nhập"
+      ],
+      "links": [],
+      "labels": [
+        "Email tài khoản"
+      ],
+      "text": "Sketch2Life\nCổng Web\nGiáo viên\n\nLớp được phân công và giáo án trong tổ chức của bạn.\n\nXem thử cục bộ · Không lưu dữ liệu.\n\nĐăng nhập\n\nDùng tài khoản được cấp cho giáo viên.\n\nEmail tài khoản\nVào bản xem thử"
+    },
+    {
+      "portal": "school-manager",
+      "viewport": "desktop",
+      "file": "school-manager-desktop.png",
+      "title": "Sketch2Life - Quản lý trường",
+      "route": "/login",
+      "viewportWidth": 1440,
+      "documentWidth": 1440,
+      "documentHeight": 900,
+      "horizontalOverflow": false,
+      "headings": [
+        "Quản lý trường",
+        "Đăng nhập"
+      ],
+      "links": [],
+      "labels": [
+        "Email tài khoản"
+      ],
+      "text": "Sketch2Life\nCổng Web\nQuản lý trường\n\nLớp học và yêu cầu giáo án công khai trong tổ chức.\n\nXem thử cục bộ · Không lưu dữ liệu.\n\nĐăng nhập\n\nDùng tài khoản được cấp cho quản lý trường.\n\nEmail tài khoản\nVào bản xem thử"
+    },
+    {
+      "portal": "school-manager",
+      "viewport": "narrow",
+      "file": "school-manager-narrow.png",
+      "title": "Sketch2Life - Quản lý trường",
+      "route": "/login",
+      "viewportWidth": 390,
+      "documentWidth": 390,
+      "documentHeight": 844,
+      "horizontalOverflow": false,
+      "headings": [
+        "Quản lý trường",
+        "Đăng nhập"
+      ],
+      "links": [],
+      "labels": [
+        "Email tài khoản"
+      ],
+      "text": "Sketch2Life\nCổng Web\nQuản lý trường\n\nLớp học và yêu cầu giáo án công khai trong tổ chức.\n\nXem thử cục bộ · Không lưu dữ liệu.\n\nĐăng nhập\n\nDùng tài khoản được cấp cho quản lý trường.\n\nEmail tài khoản\nVào bản xem thử"
+    },
+    {
+      "portal": "platform-admin",
+      "viewport": "desktop",
+      "file": "platform-admin-desktop.png",
+      "title": "Sketch2Life - Quản trị nền tảng",
+      "route": "/login",
+      "viewportWidth": 1440,
+      "documentWidth": 1440,
+      "documentHeight": 900,
+      "horizontalOverflow": false,
+      "headings": [
+        "Quản trị nền tảng",
+        "Đăng nhập"
+      ],
+      "links": [],
+      "labels": [
+        "Email tài khoản"
+      ],
+      "text": "Sketch2Life\nCổng Web\nQuản trị nền tảng\n\nCổng vận hành chỉ mở sau khi backend xác nhận quyền quản trị.\n\nXem thử cục bộ · Không lưu dữ liệu.\n\nĐăng nhập\n\nDùng tài khoản được cấp cho quản trị nền tảng.\n\nEmail tài khoản\nVào bản xem thử"
+    },
+    {
+      "portal": "platform-admin",
+      "viewport": "narrow",
+      "file": "platform-admin-narrow.png",
+      "title": "Sketch2Life - Quản trị nền tảng",
+      "route": "/login",
+      "viewportWidth": 390,
+      "documentWidth": 390,
+      "documentHeight": 844,
+      "horizontalOverflow": false,
+      "headings": [
+        "Quản trị nền tảng",
+        "Đăng nhập"
+      ],
+      "links": [],
+      "labels": [
+        "Email tài khoản"
+      ],
+      "text": "Sketch2Life\nCổng Web\nQuản trị nền tảng\n\nCổng vận hành chỉ mở sau khi backend xác nhận quyền quản trị.\n\nXem thử cục bộ · Không lưu dữ liệu.\n\nĐăng nhập\n\nDùng tài khoản được cấp cho quản trị nền tảng.\n\nEmail tài khoản\nVào bản xem thử"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "method": "Isolated local browser injection forces WebGL2 program link checks to fail before the login module loads.",
+  "state": {
+    "injectedFailureCount": 2,
+    "webglReady": false,
+    "fallbackOpacity": "1",
+    "fallbackVisible": true,
+    "canvasReady": false,
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  "runtimeExceptions": [],
+  "blockedNonLoopbackRequests": [
+    "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+  ],
+  "screenshot": "screenshots/auth-redesign-rev27/webgl-failure-fallback-1440x900.png"
+}

@@ -84,12 +84,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: Child UI
-            path: apps/child-ui
-          - name: Teacher UI
-            path: apps/teacher-ui
-          - name: Admin UI
-            path: apps/admin-ui
+          - name: Web UI
+            path: apps/web
     steps:
       - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
