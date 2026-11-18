@@ -62,3 +62,22 @@ features/FEAT-057-be2-01-14-offline-integration/plan/CROSS_LANE_X01_X05_SLICE_PL
 features/FEAT-057-be2-01-14-offline-integration/plan/CROSS_LANE_X01_X05_SLICE_PLAN_REV3_20261021.md whitespace=-blank-at-eof
 features/FEAT-057-be2-01-14-offline-integration/plan/CROSS_LANE_X01_X05_SLICE_PLAN_REV5_DRAFT_20261021.md whitespace=-blank-at-eof
 features/FEAT-057-be2-01-14-offline-integration/evidence/notes/BE2_07_01_08_PERSISTED_FLOW_HANDOFF_DRAFT_20261022.md whitespace=cr-at-eol,-blank-at-eof,-blank-at-eol
+
+# FEAT-066 Manager API planning records: content pinned by SHA-256 in reviews; keep bytes as written (2026-11-18)
+features/FEAT-066-fe-ui-srs-full-review/evidence/notes/MGR_2_CLASS_CAPACITY_CONTRACT_DRAFT1_20261117.md whitespace=-blank-at-eol,-blank-at-eof
+features/FEAT-066-fe-ui-srs-full-review/evidence/notes/MGR_2_COLD_REVIEW_OWNER_DISPOSITION_20261117.md whitespace=-blank-at-eol,-blank-at-eof
+features/FEAT-066-fe-ui-srs-full-review/evidence/notes/MGR_3_COLD_REVIEW_DRAFT1_20261117.md whitespace=-blank-at-eol,-blank-at-eof
+features/FEAT-066-fe-ui-srs-full-review/evidence/notes/MGR_3_COLD_REVIEW_DRAFT1_R2_20261117.md whitespace=-blank-at-eol,-blank-at-eof
+features/FEAT-066-fe-ui-srs-full-review/evidence/notes/MGR_3_TEACHER_CANDIDATE_ASSIGNMENT_CONTRACT_DRAFT1_20261117.md whitespace=-blank-at-eol,-blank-at-eof
+features/FEAT-066-fe-ui-srs-full-review/evidence/notes/MGR_4_COLD_REVIEW_DRAFT1_20261117.md -text whitespace=cr-at-eol,-blank-at-eol,-blank-at-eof
+features/FEAT-066-fe-ui-srs-full-review/evidence/notes/MGR_4_PARENT_GROUP_INVITATION_MEMBERSHIP_CONTRACT_DRAFT1_20261117.md -text whitespace=cr-at-eol,-blank-at-eol,-blank-at-eof
+features/FEAT-066-fe-ui-srs-full-review/evidence/notes/MGR_5_MGR_6_COLD_REVIEW_DRAFT1_20261117.md whitespace=-blank-at-eol,-blank-at-eof
+features/FEAT-066-fe-ui-srs-full-review/evidence/notes/MGR_6_COLD_REVIEW_DRAFT1_R3_20261117.md whitespace=-blank-at-eol,-blank-at-eof
+features/FEAT-066-fe-ui-srs-full-review/evidence/phase-a/BRUNO_COVERAGE_INVENTORY_DRAFT1_20261118.md whitespace=-blank-at-eol,-blank-at-eof
+features/FEAT-066-fe-ui-srs-full-review/evidence/phase-a/MOBILE_PARENT_API_AUDIT_DRAFT1_20261118.md whitespace=-blank-at-eol,-blank-at-eof
+features/FEAT-066-fe-ui-srs-full-review/evidence/phase-a/WEB_API_SRS_AUDIT_DRAFT1_20261118.md whitespace=-blank-at-eol,-blank-at-eof
+features/FEAT-066-fe-ui-srs-full-review/plan/PLAN_MGR2_CLASS_CAPACITY_CONTRACT_DRAFT1_20261117.md whitespace=-blank-at-eol,-blank-at-eof
+features/FEAT-066-fe-ui-srs-full-review/plan/PLAN_MGR4_PARENT_GROUP_INVITATION_MEMBERSHIP_CONTRACT_DRAFT1_20261117.md -text whitespace=cr-at-eol,-blank-at-eol,-blank-at-eof
+features/FEAT-066-fe-ui-srs-full-review/plan/PLAN_MGR5_CONSENT_POLICY_CONTRACT_DRAFT1_20261117.md whitespace=-blank-at-eol,-blank-at-eof
+features/FEAT-066-fe-ui-srs-full-review/plan/PLAN_MGR6_IMMUTABLE_LESSON_VERSION_REVIEW_CONTRACT_DRAFT1_20261117.md whitespace=-blank-at-eol,-blank-at-eof
+features/FEAT-066-fe-ui-srs-full-review/plan/PLAN_MGR7_BE_IMPLEMENTATION_APPROVAL_PACKAGE_DRAFT1_20261118.md whitespace=-blank-at-eol,-blank-at-eof
