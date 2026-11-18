@@ -1,0 +1,20 @@
+meta {
+  name: 142 [PLATFORM ADMIN - READ ONLY] List Accounts
+  type: http
+  seq: 142
+}
+
+get {
+  url: {{baseUrl}}/api/platform-admin/v1/accounts?limit=50&offset=0
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
+}

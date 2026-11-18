@@ -1,0 +1,20 @@
+meta {
+  name: 141 [AUTHENTICATED ROLE - READ ONLY] Read Current Account Role
+  type: http
+  seq: 141
+}
+
+get {
+  url: {{baseUrl}}/api/auth/v1/me
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
+}

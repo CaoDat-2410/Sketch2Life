@@ -878,3 +878,9 @@ Parent Sketch Guide and lesson visuals were not dispatched because Modal `dev` s
 - Independent cold review of the S3 package (Sonnet 5.5 high): READY WITH NOTES, 0 P1 / 0 P2 / 6 P3, recorded in `approvals/TASK_APPROVAL.md`.
 - The owner accepted S3 ("Nhận S3") and closed M2 ("Đóng M2") with recorded debt and deviations; the five departures, the open OpenAPI P3 gate, M2-AT-09 DEFERRED, NFR-36/NFR-38 PARTIAL and K3 NOT VERIFIED are stated in the closure entry. Client integration: per operation for eight Parent target operations; not for the cancel operation; blocked for the three assistance operations.
 - The S3 outputs are committed in one commit on the owner's instruction; not pushed; draft PR #29 not merged. M3 and later milestones are not opened.
+
+## FEAT-081 Parent mobile read-route Bruno checks — 2026-11-15
+
+Added four supplemental GET requests for the mobile-aligned Parent profile and StoryRun read paths under `artifacts/be-full/bruno/requests/parent-mobile-read-routes/`. The local environment contains only placeholder bearer/profile/run IDs. These requests are not included in the existing 136-operation OpenAPI/coverage snapshot; `artifacts/be-full/README.md` records that distinction.
+
+Status-only local GET probes without auth returned HTTP 401 for all four routes. This checks the auth boundary only and does not verify successful responses. The Bruno MCP currently exposes only the separate StoryRun-lite collection, not `be-full`; no local Bruno CLI or valid disposable Parent bearer token/IDs were available. The request scripts were not parsed or executed by Bruno. See `evidence/PARENT_MOBILE_READ_ROUTE_BRUNO_CHECK_20261115.md`. No DB access or API mutation occurred.

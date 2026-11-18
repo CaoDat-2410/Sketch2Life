@@ -1,5 +1,5 @@
 meta {
-  name: 082 [POST/ACTION - LOCAL TEST ONLY] Create Parent Group
+  name: 082 [MANAGER - STATE CHANGE / LOCAL TEST ONLY] Create Parent Group
   type: http
   seq: 82
 }
@@ -18,10 +18,12 @@ headers {
   Accept: application/json
   Content-Type: application/json
   Idempotency-Key: REPLACE_WITH_SYNTHETIC_VALUE
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
 }
 
 body:json {
   {
+    "contract": "CreateParentGroupRequestV1",
     "display_name": "REPLACE_ME"
   }
 }

@@ -1,0 +1,34 @@
+meta {
+  name: 139 [READ ONLY] Read Active Parent StoryRun (PROPOSAL)
+  type: http
+  seq: 139
+}
+
+get {
+  url: {{baseUrl}}/v1/story-runs/active/current
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+}
+
+script:post-response {
+  test("returns the active StoryRun envelope, including an empty result", function () {
+    expect(res.getStatus()).to.equal(200);
+    const body = res.getBody();
+    expect(body).to.be.an("object");
+    expect(body.request_id).to.be.a("string");
+    expect(body).to.have.property("story_run");
+    if (body.story_run !== null) {
+      expect(body.story_run.run_id).to.be.a("string");
+      expect(body.story_run.run_state).to.be.a("string");
+      expect(body.story_run.parent_profile_id).to.be.a("string");
+    }
+  });
+}

@@ -1,5 +1,5 @@
 meta {
-  name: 069 [POST/ACTION - LOCAL TEST ONLY] Decide Access Grant
+  name: 069 [MANAGER - STATE CHANGE / LOCAL TEST ONLY] Decide Access Grant
   type: http
   seq: 69
 }
@@ -17,12 +17,15 @@ auth:bearer {
 headers {
   Accept: application/json
   Content-Type: application/json
-  If-Match: REPLACE_WITH_SYNTHETIC_VALUE
+  If-Match: "REPLACE_WITH_REVISION"
   Idempotency-Key: REPLACE_WITH_SYNTHETIC_VALUE
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
 }
 
 body:json {
   {
-    "decision": "APPROVE"
+    "contract": "DecideLessonAccessGrantRequestV1",
+    "decision": "REQUEST_CHANGES",
+    "reason": "REPLACE_WITH_SYNTHETIC_REASON"
   }
 }
