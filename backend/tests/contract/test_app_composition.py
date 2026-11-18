@@ -82,6 +82,7 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
             "/v1/story-runs": ["POST"],
             "/v1/story-runs/active/current": ["GET"],
             "/v1/story-runs/{run_id}": ["GET"],
+            "/v1/story-runs/{run_id}/cancel": ["POST"],
             "/v1/story-runs/{run_id}/context-confirmation": ["POST"],
             "/v1/story-runs/{run_id}/subject-confirmation": ["POST"],
             "/v1/story-runs/{run_id}/script-confirmation": ["POST"],

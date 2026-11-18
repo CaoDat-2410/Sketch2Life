@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Protocol
@@ -12,9 +13,12 @@ from sketch2life.application.ports.parent_story_profile_lookup import ParentStor
 
 
 class ParentStoryRunError(RuntimeError):
-    def __init__(self, status_code: int, code: str) -> None:
+    def __init__(
+        self, status_code: int, code: str, *, current_version: int | None = None
+    ) -> None:
         self.status_code = status_code
         self.code = code
+        self.current_version = current_version
         super().__init__(code)
 
 
@@ -22,6 +26,7 @@ class ParentStoryRunError(RuntimeError):
 class ParentStoryRunRecord:
     run_id: str
     run_state: str
+    run_revision: int
     parent_profile_id: UUID
     profile_revision_ref: UUID
     context_revision: int
@@ -111,6 +116,17 @@ class ParentStoryRunRepositoryPort(Protocol):
     def get_active_run(
         self, *, principal: VerifiedPrincipal, account_id: str
     ) -> ParentStoryRunRecord | None: ...
+
+    def cancel_run(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        run_id: str,
+        expected_revision: int,
+        idempotency_key: str,
+        request_id: str,
+        response_builder: Callable[[ParentStoryRunRecord, str], dict[str, Any]],
+    ) -> dict[str, Any]: ...
 
     def confirm_context(
         self,

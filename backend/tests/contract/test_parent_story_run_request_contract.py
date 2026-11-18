@@ -41,6 +41,7 @@ _STORY_ERROR_KEYS = {
 }
 _COMMAND_REQUESTS = (
     ("POST", "/v1/story-runs", {"parent_profile_id": _PROFILE_ID}),
+    ("POST", f"/v1/story-runs/{_RUN_ID}/cancel", {"expected_revision": 1}),
     (
         "POST",
         f"/v1/story-runs/{_RUN_ID}/context-confirmation",
@@ -86,6 +87,9 @@ class _FakeStoryRunService:
     def get_active_run(self, **_kwargs: object) -> None:
         return None
 
+    def cancel_run(self, **_kwargs: object) -> NoReturn:
+        raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
+
     def confirm_context(self, **_kwargs: object) -> NoReturn:
         raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
 
@@ -93,6 +97,11 @@ class _FakeStoryRunService:
         raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
 
     def confirm_story_revision(self, **_kwargs: object) -> NoReturn:
+        raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
+
+
+class _FakeCancelRepository:
+    def cancel_run(self, **_kwargs: object) -> NoReturn:
         raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
 
 
@@ -123,6 +132,11 @@ def request_client(monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
         story_routes,
         "_service",
         lambda _db: _FakeStoryRunService(),
+    )
+    monkeypatch.setattr(
+        story_routes,
+        "SqlParentStoryRunRepository",
+        lambda _db: _FakeCancelRepository(),
     )
     application = app_module.create_app()
     application.dependency_overrides[get_verified_adult] = lambda: _PRINCIPAL
@@ -173,7 +187,7 @@ def _command_response(
     )
 
 
-def test_six_parent_story_run_routes_are_mounted_with_the_story_error_shape(
+def test_seven_parent_story_run_routes_are_mounted_with_the_story_error_shape(
     request_client: TestClient,
 ) -> None:
     requests = (
@@ -190,6 +204,13 @@ def test_six_parent_story_run_routes_are_mounted_with_the_story_error_shape(
             None,
             "RESOURCE_NOT_FOUND",
             404,
+        ),
+        (
+            "POST",
+            f"/v1/story-runs/{_RUN_ID}/cancel",
+            {"expected_revision": 1},
+            "INVALID_STATE_TRANSITION",
+            409,
         ),
         ("GET", "/v1/story-runs/active/current", None, None, 200),
         (
@@ -231,6 +252,41 @@ def test_six_parent_story_run_routes_are_mounted_with_the_story_error_shape(
             assert response.json()["story_run"] is None
         else:
             _assert_story_error(response, status=status, code=code, request_id=request_id)
+
+
+def test_cancel_stale_revision_adds_current_version_only_to_cancel_error(
+    request_client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def stale_cancel(**_kwargs: object) -> NoReturn:
+        raise ParentStoryRunError(409, "STALE_REVISION", current_version=9)
+
+    monkeypatch.setattr(
+        story_routes,
+        "SqlParentStoryRunRepository",
+        lambda _db: SimpleNamespace(cancel_run=stale_cancel),
+    )
+    cancel = request_client.post(
+        f"/v1/story-runs/{_RUN_ID}/cancel",
+        json={"expected_revision": 8},
+        headers={"Idempotency-Key": "cancel-key", "X-Request-ID": "cancel-stale"},
+    )
+    assert cancel.status_code == 409
+    assert set(cancel.json()) == _STORY_ERROR_KEYS | {"current_version"}
+    assert cancel.json()["code"] == "STALE_REVISION"
+    assert cancel.json()["current_version"] == 9
+
+    context = request_client.post(
+        f"/v1/story-runs/{_RUN_ID}/context-confirmation",
+        json={
+            "expected_context_revision": 1,
+            "context_snapshot_sha256": "a" * 64,
+            "confirmed": True,
+        },
+        headers={"Idempotency-Key": "context-key", "X-Request-ID": "context-error"},
+    )
+    _assert_story_error(
+        context, status=409, code="INVALID_STATE_TRANSITION", request_id="context-error"
+    )
 
 
 @pytest.mark.parametrize(("method", "path", "payload"), _COMMAND_REQUESTS)

@@ -32,6 +32,7 @@ from sketch2life.infrastructure.persistence.core_models import (
 )
 from sketch2life.interfaces.http.app import create_app
 from sketch2life.interfaces.http.be1_runtime import get_verified_adult
+from sketch2life.interfaces.http.routers.lesson_library import get_lesson_library_service
 from sketch2life.interfaces.http.routers.storage_examples import get_storage_example_service
 from sqlalchemy import MetaData, Table, and_, delete, func, insert, inspect, or_, select
 from sqlalchemy.sql.elements import ColumnElement
@@ -126,12 +127,18 @@ def lesson_api_acceptance(monkeypatch: pytest.MonkeyPatch) -> Iterator[LessonApi
                 state="active",
             )
         )
-        for subject in (teacher, manager, parent, platform_admin):
+        for subject, account_role in (
+            (teacher, "teacher"),
+            (manager, "school_manager"),
+            (parent, "parent"),
+            (platform_admin, "platform_admin"),
+        ):
             db.add(
                 AdultIdentityModel(
                     subject=subject,
                     issuer="synthetic-lesson-test-issuer",
                     state="active",
+                    account_role=account_role,
                 )
             )
         db.flush()
@@ -1050,5 +1057,110 @@ def test_parent_group_accept_replays_legacy_receipt_without_repeating_effects(
         },
         headers=_headers(accepted.manager, **{"Idempotency-Key": invite_key}),
     )
-    assert conflicting_retry.status_code == 409
-    assert conflicting_retry.json()["code"] == "IDEMPOTENCY_KEY_REUSED"
+    assert conflicting_retry.status_code == 400
+    assert conflicting_retry.json()["code"] == "INVALID_IDEMPOTENCY_KEY"
+
+
+def test_manager_list_routes_default_to_25_and_preserve_limit_and_cursor_inputs(
+    lesson_api_acceptance: LessonApiAcceptance,
+) -> None:
+    accepted = lesson_api_acceptance
+
+    class CapturingListService:
+        def __init__(self) -> None:
+            self.parent_group_calls: list[dict[str, object]] = []
+            self.access_grant_calls: list[dict[str, object]] = []
+
+        def list_parent_groups(self, **kwargs: object) -> dict[str, object]:
+            self.parent_group_calls.append(kwargs)
+            return {
+                "contract": "ParentGroupPageV1",
+                "items": [],
+                "next_cursor": "opaque-next-cursor",
+            }
+
+        def list_access_grants(self, **kwargs: object) -> dict[str, object]:
+            self.access_grant_calls.append(kwargs)
+            return {
+                "contract": "LessonAccessGrantPageV1",
+                "items": [],
+                "next_cursor": "opaque-next-cursor",
+            }
+
+    service = CapturingListService()
+    accepted.app.dependency_overrides[get_lesson_library_service] = lambda: service
+    headers = _headers(accepted.manager)
+    parent_groups_url = (
+        f"/api/lesson-library/v1/organizations/{accepted.organization_id}/parent-groups"
+    )
+    access_grants_url = (
+        f"/api/lesson-library/v1/organizations/{accepted.organization_id}/access-grants"
+    )
+
+    try:
+        default_groups = accepted.client.get(parent_groups_url, headers=headers)
+        assert default_groups.status_code == 200, default_groups.text
+        assert default_groups.json()["next_cursor"] == "opaque-next-cursor"
+        assert service.parent_group_calls[-1] == {
+            "organization_id": accepted.organization_id,
+            "limit": 25,
+            "cursor": None,
+        }
+
+        continued_groups = accepted.client.get(
+            parent_groups_url,
+            params={"limit": 100, "cursor": "opaque-group-cursor"},
+            headers=headers,
+        )
+        assert continued_groups.status_code == 200, continued_groups.text
+        assert service.parent_group_calls[-1] == {
+            "organization_id": accepted.organization_id,
+            "limit": 100,
+            "cursor": "opaque-group-cursor",
+        }
+
+        default_grants = accepted.client.get(access_grants_url, headers=headers)
+        assert default_grants.status_code == 200, default_grants.text
+        assert default_grants.json()["next_cursor"] == "opaque-next-cursor"
+        assert service.access_grant_calls[-1] == {
+            "organization_id": accepted.organization_id,
+            "audience_kind": None,
+            "state": None,
+            "lesson_id": None,
+            "limit": 25,
+            "cursor": None,
+        }
+
+        continued_grants = accepted.client.get(
+            access_grants_url,
+            params={
+                "audience_kind": "PUBLIC",
+                "state": "PENDING_REVIEW",
+                "lesson_id": "synthetic-lesson",
+                "limit": 100,
+                "cursor": "opaque-grant-cursor",
+            },
+            headers=headers,
+        )
+        assert continued_grants.status_code == 200, continued_grants.text
+        assert service.access_grant_calls[-1] == {
+            "organization_id": accepted.organization_id,
+            "audience_kind": "PUBLIC",
+            "state": "PENDING_REVIEW",
+            "lesson_id": "synthetic-lesson",
+            "limit": 100,
+            "cursor": "opaque-grant-cursor",
+        }
+
+        recorded_parent_calls = len(service.parent_group_calls)
+        recorded_grant_calls = len(service.access_grant_calls)
+        for url in (parent_groups_url, access_grants_url):
+            for invalid_limit in (0, 101):
+                invalid_page = accepted.client.get(
+                    url, params={"limit": invalid_limit}, headers=headers
+                )
+                assert invalid_page.status_code == 422
+        assert len(service.parent_group_calls) == recorded_parent_calls
+        assert len(service.access_grant_calls) == recorded_grant_calls
+    finally:
+        accepted.app.dependency_overrides.pop(get_lesson_library_service, None)

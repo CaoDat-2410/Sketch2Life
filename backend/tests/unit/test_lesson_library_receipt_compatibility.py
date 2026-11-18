@@ -210,7 +210,7 @@ def test_legacy_receipt_without_current_membership_is_typed_failure() -> None:
     assert exc_info.value.code == "IDEMPOTENCY_RECEIPT_INCOMPATIBLE"
 
 
-def test_reused_key_with_different_fingerprint_stays_409() -> None:
+def test_reused_key_with_different_fingerprint_is_invalid_idempotency_key() -> None:
     receipt = _receipt(fingerprint="0" * 64)
     db = FakeReceiptDb(receipt, _membership())
 
@@ -223,8 +223,8 @@ def test_reused_key_with_different_fingerprint_stays_409() -> None:
             payload=INVITE_PAYLOAD,
         )
 
-    assert exc_info.value.status_code == 409
-    assert exc_info.value.code == "IDEMPOTENCY_KEY_REUSED"
+    assert exc_info.value.status_code == 400
+    assert exc_info.value.code == "INVALID_IDEMPOTENCY_KEY"
     assert len(db.statements) == 1
 
 

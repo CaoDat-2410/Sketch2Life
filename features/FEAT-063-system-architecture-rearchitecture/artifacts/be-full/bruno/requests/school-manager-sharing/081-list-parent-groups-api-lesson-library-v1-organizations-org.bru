@@ -1,11 +1,11 @@
 meta {
-  name: 081 [READ ONLY] List Parent Groups
+  name: 081 [MANAGER - READ ONLY] List Parent Groups
   type: http
   seq: 81
 }
 
 get {
-  url: {{baseUrl}}/api/lesson-library/v1/organizations/{{organization_id}}/parent-groups
+  url: {{baseUrl}}/api/lesson-library/v1/organizations/{{organization_id}}/parent-groups?limit=50
   body: none
   auth: bearer
 }
@@ -16,4 +16,5 @@ auth:bearer {
 
 headers {
   Accept: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
 }

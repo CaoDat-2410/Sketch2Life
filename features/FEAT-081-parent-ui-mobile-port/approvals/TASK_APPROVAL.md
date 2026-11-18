@@ -674,3 +674,13 @@ Addendum 33 - FEAT-081 publish completed SRS Rev67 Parent UI alignment
 - Run only `python tools/validate_repository_security.py` as the repository-mandated pre-commit/pre-push check. Do not run tests, typecheck, other validators, diff-check, install, backend, Android build, emulator, Modal, or network inspection/fetch.
 - Create one new commit `fix(FEAT-081): enforce Rev67 Parent flow gates` on `feature/fe-mobile-remediation`, then push that branch to `origin` without force. Do not amend, rebase, squash, or rewrite existing commits. The Git push is the only authorized network action.
 - This addendum supersedes Addendum 32 only for its exact publication allowlist and the security validator authorization above. It authorizes no further implementation or API/backend changes. OWNER_MODAL_CALL_APPROVED=NO.
+
+## Addendum 34 — merge latest dev into feature/fe-mobile-remediation
+
+- Status: APPROVED and launched by the owner's direct request on 2026-11-19 (Asia/Saigon) to merge the newest dev commits into this branch.
+- Approved plan: features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_19.md, revision 19, 2729 bytes, SHA-256 DBB87D404631265B0A3DF03E2C9E8CD195B5ABE6A11DCB5324EE31C7F3164302.
+- Exact source: fetched origin/dev at ba295f1113129fa233ddc762ef29fadd92b996e8; target starts at 5aa9443a772462d247a6018a62aab4e37d2092ae. The branches diverge from 1c9148e88600a101887e477541c4c4893ba1c7df; 16 dev-only and 7 feature-only commits were present.
+- Approved scope: merge that exact dev tip into feature/fe-mobile-remediation; preserve all branch-only FEAT-081 files; resolve the sole merge-tree conflict in .gitattributes by retaining both the complete incoming dev rules and FEAT-081 byte-preservation rules for Plan Revisions 5 and 7; add this plan, approval, one merge evidence note, and a status update.
+- Required verification: repository security validator before commit; inspect merge ancestry, unmerged paths, preservation attributes, and pre-merge/post-merge hashes for Plan Revisions 5 and 7.
+- Not authorized: push, rebase/reset/squash, product code edits outside Git's merge result, tests, API/AI/runtime calls, Docker/DB/Firebase/Modal operations, secret/env changes, or changes to historical SRS decisions. No tests are part of this merge task.
+- This addendum supersedes Addendum 33 only for fetching origin/dev and merging the exact fetched tip above, with the documentation and verification listed here. All other restrictions remain in effect.

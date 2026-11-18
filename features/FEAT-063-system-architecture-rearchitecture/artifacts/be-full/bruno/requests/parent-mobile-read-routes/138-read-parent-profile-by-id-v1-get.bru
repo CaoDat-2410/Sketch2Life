@@ -1,0 +1,38 @@
+meta {
+  name: 138 [READ ONLY] Read Parent Profile by ID (FEAT-081 mobile route)
+  type: http
+  seq: 138
+}
+
+get {
+  url: {{baseUrl}}/v1/parent/profiles/{{parent_profile_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+}
+
+script:post-response {
+  test("returns a flat Parent profile view or delete-pending receipt", function () {
+    expect(res.getStatus()).to.equal(200);
+    const body = res.getBody();
+    expect(body).to.be.an("object");
+    expect(body.profile_id).to.be.a("string");
+    expect(body.state).to.be.a("string");
+    if (body.state === "DELETE_PENDING") {
+      expect(body.request_id).to.be.a("string");
+      return;
+    }
+    expect(body.revision_no).to.be.a("number");
+    expect(body.revision_hash).to.be.a("string");
+    expect(body.display_name).to.be.a("string");
+    expect(body.age_months).to.be.a("number");
+    expect(body.data_origin).to.be.a("string");
+  });
+}

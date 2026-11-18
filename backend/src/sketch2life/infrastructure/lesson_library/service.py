@@ -503,7 +503,7 @@ class LessonLibraryService:
         if previous is None:
             return None
         if previous["request_fingerprint"] != self._fingerprint(payload):
-            fail(409, "IDEMPOTENCY_KEY_REUSED", "Idempotency-Key was already used for another request")
+            fail(400, "INVALID_IDEMPOTENCY_KEY", "Idempotency-Key was already used for another request")
         stored_response = previous["response_json"]
         try:
             lookup = parent_group_membership_lookup(

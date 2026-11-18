@@ -439,7 +439,7 @@ def list_access_grants(
     audience_kind: str | None = None,
     state: str | None = None,
     lesson_id: str | None = None,
-    limit: int = Query(default=50, ge=1, le=100),
+    limit: int = Query(default=25, ge=1, le=100),
     cursor: str | None = None,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
@@ -526,7 +526,7 @@ def create_parent_group(
 @router.get("/organizations/{organization_id}/parent-groups", response_model=ParentGroupPageV1)
 def list_parent_groups(
     organization_id: str,
-    limit: int = Query(default=50, ge=1, le=100),
+    limit: int = Query(default=25, ge=1, le=100),
     cursor: str | None = None,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
