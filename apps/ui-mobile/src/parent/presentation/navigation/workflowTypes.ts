@@ -158,11 +158,23 @@ export function createUnavailableParentConsentState(reason: ParentCapabilityUnav
   };
 }
 
+/**
+ * SRS: consent is required for real child data only; synthetic profiles do not carry
+ * a consent record (the SRS names SYNTHETIC_TEST, the dev backend writes SYNTHETIC_DEV).
+ * Any other or missing origin is treated as real or unclassified data.
+ */
+export function isSyntheticProfileDataOrigin(dataOrigin: string | null | undefined): boolean {
+  return dataOrigin === 'SYNTHETIC_DEV' || dataOrigin === 'SYNTHETIC_TEST';
+}
+
 export function canStartProfileLearning(
   ageEligibility: ParentProfileAgeEligibility,
   consent: ParentConsentStatus,
+  dataOrigin?: string | null,
 ): boolean {
-  if (ageEligibility !== 'supported' || consent.state !== 'confirmed') return false;
+  if (ageEligibility !== 'supported') return false;
+  if (isSyntheticProfileDataOrigin(dataOrigin)) return true;
+  if (consent.state !== 'confirmed') return false;
   return consent.source === 'server' && Boolean(consent.policyRevision.trim());
 }
 

@@ -301,7 +301,11 @@ describe('L1 Vietnamese copy and paper presentation contracts', () => {
       .toBeGreaterThan(profileScreenSource.indexOf('<Card style={styles.profileListCard}>'));
     expect(profileScreenSource).toContain('disabled={!mayStartRun}');
     expect(profileScreenSource).toContain('Hồ sơ cũ, chỉ xem hoặc xóa');
-    expect(profileScreenSource).toContain('hồ sơ đủ điều kiện vẫn có thể tiếp tục');
+    expect(profileScreenSource).toContain('nên chưa thể bắt đầu buổi học');
+    expect(profileScreenSource).not.toContain('vẫn có thể tiếp tục');
+    expect(profileScreenSource).toContain('Hồ sơ dữ liệu mô phỏng nên không cần đồng ý xử lý dữ liệu.');
+    expect(profileScreenSource).toContain('canStartProfileLearning(selectedAgeEligibility, consentState.status, selected!.data_origin)');
+    expect(profileControllerSource).toContain('canStartProfileLearning(ageEligibility, consentState.status, target.data_origin)');
   });
 });
 

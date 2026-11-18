@@ -424,7 +424,7 @@ export function useParentController(application: ParentApplicationModule) {
       setError(profileAgeEligibilityMessage(ageEligibility));
       return false;
     }
-    if (!canStartProfileLearning(ageEligibility, consentState.status)) {
+    if (!canStartProfileLearning(ageEligibility, consentState.status, target.data_origin)) {
       setError(consentStatusMessage(consentState.status));
       return false;
     }

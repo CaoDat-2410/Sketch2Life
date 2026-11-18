@@ -3,7 +3,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { ParentProfileDeletePendingV1, ParentProfileViewV1, ParentStoryRunV1 } from '../../domain/types';
 import { isProfileDeletionPending, selectProfileById } from '../navigation/parentFlowV1';
-import { canStartProfileLearning, parentProfileAgeEligibility } from '../navigation/workflowTypes';
+import { canStartProfileLearning, isSyntheticProfileDataOrigin, parentProfileAgeEligibility } from '../navigation/workflowTypes';
 import type { ParentConsentUiState } from '../navigation/workflowTypes';
 import { Card, ConfirmButton, Notice, ScreenFrame, SecondaryButton } from '../components/ui';
 
@@ -90,7 +90,7 @@ export function ProfileScreen({
   const selected = selectProfileById(profiles, selectedProfileId);
   const selectedAgeEligibility = selected ? parentProfileAgeEligibility(selected) : 'unavailable';
   const mayStartRun = Boolean(selected)
-    && canStartProfileLearning(selectedAgeEligibility, consentState.status)
+    && canStartProfileLearning(selectedAgeEligibility, consentState.status, selected!.data_origin)
     && !isProfileDeletionPending(selected!.profile_id, pendingDeletions);
 
   return (
@@ -220,7 +220,7 @@ export function ProfileScreen({
 
       {selected ? (
         <View style={styles.selectedActionsCard}>
-          <ConsentStatus state={consentState} />
+          <ConsentStatus state={consentState} dataOrigin={selected.data_origin} />
           <View style={styles.actionDivider} />
           <View style={styles.profileActionRow}>
             <View style={styles.profileActionCell}>
@@ -373,9 +373,12 @@ function FamilyMenuRow({
   );
 }
 
-function ConsentStatus({ state }: { state: ParentConsentUiState }): React.JSX.Element {
-  const message = state.status.state === 'unavailable'
-    ? 'Chưa xác nhận được trạng thái từ máy chủ. Ghi nhận và thu hồi hiện chưa khả dụng; hồ sơ đủ điều kiện vẫn có thể tiếp tục.'
+function ConsentStatus({ state, dataOrigin }: { state: ParentConsentUiState; dataOrigin?: string | null }): React.JSX.Element {
+  const synthetic = isSyntheticProfileDataOrigin(dataOrigin);
+  const message = synthetic
+    ? 'Hồ sơ dữ liệu mô phỏng nên không cần đồng ý xử lý dữ liệu.'
+    : state.status.state === 'unavailable'
+    ? 'Chưa xác nhận được trạng thái đồng ý từ máy chủ nên chưa thể bắt đầu buổi học. Ghi nhận và thu hồi hiện chưa khả dụng.'
     : state.status.state === 'pending'
       ? 'Yêu cầu đồng ý đang chờ máy chủ xác nhận.'
       : state.status.state === 'revoked'
@@ -383,9 +386,11 @@ function ConsentStatus({ state }: { state: ParentConsentUiState }): React.JSX.El
         : state.status.state === 'confirmed'
           ? 'Máy chủ đã xác nhận đồng ý cho phiên bản chính sách được ghi nhận.'
           : 'Chưa có trạng thái đồng ý được máy chủ xác nhận.';
-  const confirmed = state.status.state === 'confirmed';
-  const unavailable = state.status.state === 'unavailable';
-  const statusLabel = state.status.state === 'confirmed'
+  const confirmed = state.status.state === 'confirmed' || synthetic;
+  const unavailable = state.status.state === 'unavailable' && !synthetic;
+  const statusLabel = synthetic
+    ? 'Không cần'
+    : state.status.state === 'confirmed'
     ? 'Đã xác nhận'
     : state.status.state === 'pending'
       ? 'Đang chờ'

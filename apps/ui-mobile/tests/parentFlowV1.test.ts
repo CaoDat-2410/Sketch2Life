@@ -36,6 +36,7 @@ import {
 import {
   canStartProfileLearning,
   isCurrentAuthorizedLesson,
+  isSyntheticProfileDataOrigin,
   parentProfileAgeEligibility,
   parentStoryRunCreationGate,
   parentShareGrantExpiryState,
@@ -103,6 +104,20 @@ describe('parentFlowV1 pure flow decisions', () => {
     expect(canStartProfileLearning('supported', {
       state: 'confirmed', source: 'server', policyRevision: ' ',
     })).toBe(false);
+  });
+
+  it('lets synthetic-origin profiles start without a consent record but never real or unknown origins', () => {
+    const unavailable = { state: 'unavailable' as const, reason: 'route-not-in-be-handoff' as const };
+    expect(isSyntheticProfileDataOrigin('SYNTHETIC_DEV')).toBe(true);
+    expect(isSyntheticProfileDataOrigin('SYNTHETIC_TEST')).toBe(true);
+    for (const origin of ['REAL', 'LEGACY_UNCLASSIFIED', 'PARENT_CREATED', '', null, undefined]) {
+      expect(isSyntheticProfileDataOrigin(origin)).toBe(false);
+      expect(canStartProfileLearning('supported', unavailable, origin)).toBe(false);
+    }
+    expect(canStartProfileLearning('supported', unavailable, 'SYNTHETIC_DEV')).toBe(true);
+    expect(canStartProfileLearning('supported', { state: 'revoked' }, 'SYNTHETIC_TEST')).toBe(true);
+    expect(canStartProfileLearning('legacy-read-only', unavailable, 'SYNTHETIC_DEV')).toBe(false);
+    expect(canStartProfileLearning('unavailable', unavailable, 'SYNTHETIC_DEV')).toBe(false);
   });
 
   it('keeps child gender optional and strips it from every profile mutation draft', () => {
