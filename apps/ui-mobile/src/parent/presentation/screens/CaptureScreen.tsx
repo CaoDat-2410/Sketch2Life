@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as FileSystem from 'expo-file-system';
@@ -12,6 +13,10 @@ type Props = {
   photo: SelectedPhoto | null;
   stepLabel: string;
   canAnalyze: boolean;
+  analysisBusy?: boolean;
+  runExists?: boolean;
+  initialCaptureSource?: 'camera' | 'gallery' | null;
+  onCaptureIntentHandled?: () => void;
   onPhoto: (photo: SelectedPhoto) => void;
   onContinue: () => void;
   onBack: () => void;
@@ -25,12 +30,29 @@ function resolveImageMediaType(base64: string): SelectedPhoto['mediaType'] | nul
   return null;
 }
 
-export function CaptureScreen({ photo, stepLabel, canAnalyze, onPhoto, onContinue, onBack }: Props): React.JSX.Element {
+export function CaptureScreen({
+  photo,
+  stepLabel,
+  canAnalyze,
+  analysisBusy = false,
+  runExists = false,
+  initialCaptureSource = null,
+  onCaptureIntentHandled,
+  onPhoto,
+  onContinue,
+  onBack,
+}: Props): React.JSX.Element {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const onPhotoRef = useRef(onPhoto);
+  const handledCaptureIntent = useRef<'camera' | 'gallery' | null>(null);
   const photoLocked = (photo as LockedSelectedPhoto | null)?.locked === true;
 
-  async function chooseImage(source: 'camera' | 'gallery') {
+  useEffect(() => {
+    onPhotoRef.current = onPhoto;
+  }, [onPhoto]);
+
+  const chooseImage = useCallback(async (source: 'camera' | 'gallery') => {
     setError('');
     setBusy(true);
     try {
@@ -88,30 +110,62 @@ export function CaptureScreen({ photo, stepLabel, canAnalyze, onPhoto, onContinu
         setError('Ảnh cần có định dạng PNG hoặc JPEG. Hãy chọn ảnh khác.');
         return;
       }
-      onPhoto({ uri: compressed.uri, base64: imageBase64, mediaType, fileSizeBytes: sourceBytes });
+      onPhotoRef.current({ uri: compressed.uri, base64: imageBase64, mediaType, fileSizeBytes: sourceBytes });
     } catch {
       setError('Không thể mở ảnh. Hãy thử lại hoặc chọn ảnh từ thư viện.');
     } finally {
       setBusy(false);
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    if (!initialCaptureSource) {
+      handledCaptureIntent.current = null;
+      return;
+    }
+    if (handledCaptureIntent.current === initialCaptureSource) return;
+    handledCaptureIntent.current = initialCaptureSource;
+    onCaptureIntentHandled?.();
+    void chooseImage(initialCaptureSource);
+  }, [initialCaptureSource, onCaptureIntentHandled, chooseImage]);
 
   return (
-    <ScreenFrame title="Chụp hoặc chọn tranh" subtitle="Ảnh tranh giấy là bắt buộc." step={stepLabel === '4 / 7' ? '3 / 7' : stepLabel} onBack={onBack}>
-      <Card style={styles.captureCard}>
-        <Text style={styles.requiredBadge}>BẮT BUỘC</Text>
+    <ScreenFrame
+      title="Chụp tranh"
+      subtitle="Chụp rõ bức vẽ để bắt đầu câu chuyện."
+      step={stepLabel}
+      onBack={onBack}
+      visualTone="creative"
+    >
+      <Card variant="creative" style={styles.captureCard}>
+        <View style={styles.captureHeading}>
+          <View style={styles.captureIcon}>
+            <Ionicons name="color-palette-outline" size={19} color={palette.creativePrimary} />
+          </View>
+          <View style={styles.captureCopy}>
+            <Text style={styles.captureTitle}>{photo ? 'Bức tranh đã sẵn sàng' : 'Chọn bức vẽ của bé'}</Text>
+            <Text style={styles.captureSubtitle}>Ảnh rõ nét giúp nhận diện tốt hơn.</Text>
+          </View>
+          <Text style={styles.requiredBadge}>BẮT BUỘC</Text>
+        </View>
         <View style={styles.imageFrame}>
           {photo ? <Image source={{ uri: photo.uri }} resizeMode="contain" style={styles.selectedImage} /> : <CaptureIllustration />}
         </View>
-        {!photo ? <Text style={styles.emptyText}>Ảnh tranh giấy sẽ hiện ở đây</Text> : null}
-        <PrimaryButton label={photoLocked ? 'Ảnh đã gắn với buổi học' : photo ? 'Chụp lại' : 'Mở camera'} busy={busy} disabled={photoLocked} onPress={() => void chooseImage('camera')} />
-        <SecondaryButton label="Chọn từ thư viện ảnh" disabled={busy || photoLocked} onPress={() => void chooseImage('gallery')} />
-        {photoLocked ? <Notice text="Mỗi buổi học chỉ nhận một ảnh. Ảnh đã gửi không thể thay bằng ảnh khác." tone="info" /> : null}
-        {error ? <Notice text={error} tone="error" /> : null}
-        {photo?.analysisError ? <Notice text={photo.analysisError} tone="warning" /> : null}
+        {!photo ? <Text style={styles.emptyText}>Ảnh chỉ được gửi sau khi bạn chọn “Nhận diện tranh”.</Text> : null}
+        <PrimaryButton variant="creative" label={photoLocked ? 'Ảnh đã gắn với buổi học' : photo ? 'Chụp lại' : 'Mở camera'} busy={busy} disabled={photoLocked || analysisBusy} onPress={() => void chooseImage('camera')} />
+        <SecondaryButton variant="creative" label="Chọn từ thư viện ảnh" disabled={busy || photoLocked || analysisBusy} onPress={() => void chooseImage('gallery')} />
+        {photoLocked ? <Notice variant="creative" text="Ảnh đã được gắn với buổi học này và không thể thay đổi." tone="info" /> : null}
+        {error ? <Notice variant="creative" text={error} tone="error" /> : null}
+        {photo?.analysisError ? <Notice variant="creative" text={photo.analysisError} tone="warning" /> : null}
       </Card>
-      <Notice text="Chỉ tiếp tục sau khi có một ảnh tranh hợp lệ. Chưa mở buổi học trước ảnh." />
-      <PrimaryButton label={photo?.analysisError ? 'Kiểm tra trạng thái buổi học' : 'Tiếp tục sau khi chọn ảnh'} disabled={!photo || !canAnalyze || busy} onPress={onContinue} />
+      <Notice variant="creative" text="Bước này sẽ tạo buổi học cho ảnh đã chọn rồi gửi tranh để nhận diện." />
+      <PrimaryButton
+        variant="creative"
+        label={analysisBusy ? 'Đang nhận diện tranh…' : photo?.analysisError ? 'Kiểm tra trạng thái buổi học' : runExists ? 'Nhận diện tranh' : 'Tạo buổi và nhận diện tranh'}
+        busy={analysisBusy}
+        disabled={!photo || !canAnalyze || busy || analysisBusy}
+        onPress={onContinue}
+      />
     </ScreenFrame>
   );
 }
@@ -119,20 +173,29 @@ export function CaptureScreen({ photo, stepLabel, canAnalyze, onPhoto, onContinu
 function CaptureIllustration(): React.JSX.Element {
   return (
     <Svg width="100%" height="100%" viewBox="0 0 280 190" preserveAspectRatio="xMidYMid meet" accessible={false}>
-      <Rect x="1" y="1" width="278" height="188" rx="15" fill="#FFFEF8" />
-      <Circle cx="213" cy="48" r="19" fill="#FFF0B8" stroke="#493A2F" strokeWidth="4" />
-      <Path d="M211 18v9m0 42v9m-30-30h-9m78 0h-9m-50-21-7-7m55 55-7-7m0-41 7-7m-55 55 7-7" stroke="#493A2F" strokeWidth="4" strokeLinecap="round" />
-      <Path d="M34 145c19-8 29-7 45 0 16-12 31-10 45 0 18-10 32-9 48 0 20-11 40-10 73 0" fill="none" stroke="#234D2A" strokeWidth="6" strokeLinecap="round" />
-      <Path d="M104 143V86m0 23c-18-8-24-20-22-32 16 2 25 12 22 32Zm2-14c17-10 20-22 16-33-15 5-22 18-16 33Z" fill="#DDF1D8" stroke="#493A2F" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-      <Path d="M43 67c8-12 20-13 28 0m-31 8h35m96 44c8-9 18-9 26 0" fill="none" stroke="#9B5A19" strokeWidth="5" strokeLinecap="round" />
+      <Rect x="1" y="1" width="278" height="188" rx="18" fill="#F7F0FF" />
+      <Rect x="67" y="17" width="146" height="156" rx="12" fill="#FFFEFF" stroke="#DCC8F2" strokeWidth="3" />
+      <Path d="M91 134c16-21 34-27 56-10 13-12 25-12 39 0" fill="none" stroke="#89CBB8" strokeWidth="6" strokeLinecap="round" />
+      <Circle cx="177" cy="53" r="14" fill="#FFD77A" />
+      <Path d="M122 123V82m0 17c-14-6-19-15-17-25 12 1 19 9 17 25Zm2-11c13-7 16-16 12-25-11 4-16 13-12 25Z" fill="#D8F0E6" stroke="#59A994" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="m146 86 14-34 12 5-14 34-13 8 1-13Z" fill="#A56CEB" stroke="#7435D5" strokeWidth="3" strokeLinejoin="round" />
+      <Path d="m157 61 12 5" stroke="#E6D2FF" strokeWidth="4" strokeLinecap="round" />
+      <Path d="M49 46h9m-4-5v10m165 63h10m-5-5v10" stroke="#E8A900" strokeWidth="3" strokeLinecap="round" />
+      <Circle cx="47" cy="133" r="4" fill="#7435D5" />
+      <Circle cx="233" cy="49" r="4" fill="#F49A76" />
     </Svg>
   );
 }
 
 const styles = StyleSheet.create({
-  captureCard: { backgroundColor: palette.white, gap: 12, minWidth: 0 },
-  requiredBadge: { alignSelf: 'flex-start', minHeight: 24, textAlignVertical: 'center', color: palette.ink, fontSize: 9, lineHeight: 13, fontWeight: '800', borderWidth: 1, borderColor: palette.outline, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 4 },
-  imageFrame: { width: '100%', aspectRatio: 280 / 190, minHeight: 190, borderRadius: 15, backgroundColor: palette.background, borderWidth: 1.5, borderColor: palette.outline, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  captureCard: { gap: 13 },
+  captureHeading: { flexDirection: 'row', alignItems: 'center', gap: 9, minWidth: 0 },
+  captureIcon: { width: 40, height: 40, borderRadius: 14, backgroundColor: palette.creativeLavender, alignItems: 'center', justifyContent: 'center' },
+  captureCopy: { flex: 1, minWidth: 0, gap: 2 },
+  captureTitle: { color: palette.creativeInk, fontSize: 14, lineHeight: 19, fontWeight: '800' },
+  captureSubtitle: { color: palette.creativeMuted, fontSize: 11, lineHeight: 15 },
+  requiredBadge: { alignSelf: 'flex-start', textAlignVertical: 'center', color: palette.creativePrimary, fontSize: 8, lineHeight: 12, fontWeight: '800', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 5, backgroundColor: palette.creativeLavender },
+  imageFrame: { width: '100%', aspectRatio: 1.42, minHeight: 176, borderRadius: 19, backgroundColor: palette.creativeLavender, borderWidth: 1.2, borderColor: palette.creativeBorder, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   selectedImage: { width: '100%', height: '100%' },
-  emptyText: { color: palette.muted, fontSize: 12, lineHeight: 17, textAlign: 'center', minWidth: 0, flexShrink: 1 },
+  emptyText: { color: palette.creativeMuted, fontSize: 11, lineHeight: 16, textAlign: 'center', minWidth: 0, flexShrink: 1 },
 });

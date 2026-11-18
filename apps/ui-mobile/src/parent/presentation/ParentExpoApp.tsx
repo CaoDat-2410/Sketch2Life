@@ -1,5 +1,6 @@
 import React from 'react';
 import { ActivityIndicator, StatusBar, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import type { ParentApplicationModule } from '../application/ports/ParentApplicationModule';
 import type { ParentMainTab } from './screens/ParentBottomBar';
 import type { AppStep } from './navigation/workflowTypes';
@@ -20,6 +21,7 @@ import { ContextScreen } from './screens/ContextScreen';
 import { DrawingGuideScreen } from './screens/DrawingGuideScreen';
 import { HandoffScreen } from './screens/HandoffScreen';
 import { HomeScreen } from './screens/HomeScreen';
+import { IdeaScreen } from './screens/IdeaScreen';
 import { LessonGalleryScreen } from './screens/LessonGalleryScreen';
 import { LessonHistoryScreen } from './screens/LessonHistoryScreen';
 import { LessonPickerScreen } from './screens/LessonPickerScreen';
@@ -53,6 +55,14 @@ function ParentExpoAppContent({ application }: Props): React.JSX.Element {
   const platform = useParentPlatformController(application);
   const selectedProfile = selectProfileById(parent.profiles, parent.selectedProfileId);
   const [historyReturnStep, setHistoryReturnStep] = React.useState<'home' | 'profile'>('profile');
+  const [pendingCaptureSource, setPendingCaptureSource] = React.useState<'camera' | 'gallery' | null>(null);
+  const [drawingGuideEntryRequested, setDrawingGuideEntryRequested] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!drawingGuideEntryRequested || parent.step !== 'topic') return;
+    parent.setGuideEnabled(true);
+    setDrawingGuideEntryRequested(false);
+  }, [drawingGuideEntryRequested, parent.step, parent.setGuideEnabled]);
 
   function openHistory(returnStep: 'home' | 'profile' = 'profile'): void {
     setHistoryReturnStep(returnStep);
@@ -100,13 +110,30 @@ function ParentExpoAppContent({ application }: Props): React.JSX.Element {
     if (tab === 'activity') return openHistory('home');
   }
 
+  function startCaptureFlow(source: 'camera' | 'gallery'): void {
+    parent.clearError();
+    if (parent.activeRun) {
+      setPendingCaptureSource(null);
+      void parent.resumeActiveRun();
+      return;
+    }
+
+    setPendingCaptureSource(source);
+    if (selectedProfile) parent.continueWithProfile(selectedProfile);
+    else parent.setStep('profile');
+  }
+
   function startOrResume(): void {
+    startCaptureFlow('camera');
+  }
+
+  function openDrawingGuide(): void {
     parent.clearError();
     if (parent.activeRun) {
       void parent.resumeActiveRun();
       return;
     }
-
+    setDrawingGuideEntryRequested(true);
     if (selectedProfile) parent.continueWithProfile(selectedProfile);
     else parent.setStep('profile');
   }
@@ -135,10 +162,10 @@ function ParentExpoAppContent({ application }: Props): React.JSX.Element {
   }
 
   if (parent.bootstrapBusy) {
-    return <View style={{ flex: 1, backgroundColor: palette.background, alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+    return <SafeAreaView edges={['top', 'right', 'bottom', 'left']} style={{ flex: 1, backgroundColor: palette.background, alignItems: 'center', justifyContent: 'center', gap: 12 }}>
       <ActivityIndicator color={palette.blue} />
       <Text style={{ color: palette.muted }}>Đang tải hồ sơ và quyền xử lý…</Text>
-    </View>;
+    </SafeAreaView>;
   }
 
   if (parent.step === 'profile') {
@@ -152,7 +179,13 @@ function ParentExpoAppContent({ application }: Props): React.JSX.Element {
       consentState={parent.consentState}
       error={parent.error}
       onSelect={parent.selectProfile}
-      onCreate={() => { parent.clearProfileFormErrors(); parent.setProfileBeingEdited(null); parent.setStep('profile-create'); }}
+      onCreate={() => {
+        parent.clearProfileFormErrors();
+        parent.clearError();
+        parent.setProfileBeingEdited(null);
+        parent.setStep('profile-create');
+        void parent.loadProfileConsentPolicy();
+      }}
       onEdit={(profile) => { parent.clearProfileFormErrors(); parent.setProfileBeingEdited(profile); parent.setStep('profile-edit'); }}
       onRequestDeletion={(profile) => void parent.requestProfileDeletion(profile)}
       onRefreshPendingDeletion={(profileId) => void parent.refreshPendingDeletion(profileId)}
@@ -174,9 +207,13 @@ function ParentExpoAppContent({ application }: Props): React.JSX.Element {
       selectedProfile={selectedProfile}
       activeRun={parent.activeRun}
       error={parent.error}
-      onStart={() => { parent.clearError(); parent.setStep('profile'); }}
+      onStart={() => startCaptureFlow('camera')}
+      onPickFromLibrary={() => startCaptureFlow('gallery')}
       onManageProfiles={() => { parent.clearError(); parent.setStep('profile'); }}
+      onSelectProfile={parent.selectProfile}
+      onOpenNotifications={openNotifications}
       onOpenLessons={() => void parent.openLessons('gallery')}
+      onOpenDrawingGuide={openDrawingGuide}
       onResumeRun={parent.resumeActiveRun}
     />);
   }
@@ -190,6 +227,10 @@ function ParentExpoAppContent({ application }: Props): React.JSX.Element {
       busy={parent.busy === 'profile' || parent.busy === 'profile-update'}
       error={parent.error}
       fieldErrors={parent.profileFieldErrors}
+      consentPolicy={parent.profileConsentPolicy}
+      consentPolicyBusy={parent.profileConsentPolicyBusy}
+      consentPolicyError={parent.profileConsentPolicyError}
+      onRetryConsentPolicy={() => void parent.loadProfileConsentPolicy()}
       onCreate={parent.createProfileAndReturn}
       onUpdate={parent.updateProfile}
       onBack={() => { parent.clearError(); parent.setStep('profile'); }}
@@ -223,7 +264,6 @@ function ParentExpoAppContent({ application }: Props): React.JSX.Element {
       error={parent.accountError}
       onChangePassword={parent.changePassword}
       onResetPassword={parent.resetCurrentPassword}
-      onSignOut={() => void parent.signOut()}
       onBack={() => parent.setStep('profile')}
     />);
   }
@@ -232,13 +272,6 @@ function ParentExpoAppContent({ application }: Props): React.JSX.Element {
     return mainSection('profiles', <SettingsScreen
       sketchGuideEnabled={parent.guideEnabled}
       onSketchGuideEnabled={parent.setGuideEnabled}
-      onOpenAccount={() => parent.setStep('account')}
-      onOpenProfiles={() => parent.setStep('profile')}
-      onOpenNotifications={openNotifications}
-      onOpenQuota={openQuota}
-      onOpenHistory={openHistory}
-      onOpenSharing={openSharing}
-      onOpenDeliveredLessons={openDeliveredLessons}
       onBack={() => parent.setStep('profile')}
     />);
   }
@@ -298,15 +331,17 @@ function ParentExpoAppContent({ application }: Props): React.JSX.Element {
     onBack={() => parent.setStep('profile')}
   />);
 
-  return renderLearningStep(parent, platform);
+  return renderLearningStep(parent, platform, pendingCaptureSource, () => setPendingCaptureSource(null));
 }
 
 function renderLearningStep(
   parent: ReturnType<typeof useParentController>,
   platform: ReturnType<typeof useParentPlatformController>,
+  pendingCaptureSource: 'camera' | 'gallery' | null,
+  onCaptureIntentHandled: () => void,
 ): React.JSX.Element {
   const step: AppStep = parent.step;
-  const stepLabel = (number: number): string => `${number} / 7`;
+  const stepLabel = (number: number): string => `${number} / 8`;
   const lessonPin = lessonVersionPinFromDetail(parent.lesson);
   const canOpenGuide = canBeginContextStep({
     profileId: parent.profile?.profile_id ?? '', topic: parent.topic, adultIdea: parent.idea, lessonPin,
@@ -316,6 +351,18 @@ function renderLearningStep(
     contextConfirmed: parent.contextConfirmed,
     photoSelected: Boolean(parent.photo),
   });
+  const storyReady = Boolean(
+    parent.contextRun?.run_id
+    && parent.contextConfirmed
+    && parent.subjectConfirmed
+    && parent.selectedActivityIndex !== null
+    && parent.activitySelectionPersisted,
+  );
+  const storyBlockedReason = parent.selectedActivityIndex === null
+    ? 'Chọn hoạt động chính trước khi tiếp tục.'
+    : !parent.activitySelectionPersisted
+      ? 'Bạn đã chọn hoạt động, nhưng backend chưa có API lưu lựa chọn vào StoryRun. Chưa thể tạo câu chuyện.'
+      : 'Xác nhận tranh và ngữ cảnh trước khi tạo câu chuyện.';
   const canConfirmStory = canConfirmDisplayedStory({
     runId: parent.contextRun?.run_id,
     displayedRunId: parent.storyDisplayedRunId,
@@ -327,6 +374,13 @@ function renderLearningStep(
   });
   if (step === 'topic') return <TopicScreen
     topic={parent.topic}
+    stepLabel={stepLabel(1)}
+    onTopic={parent.setTopic}
+    onContinue={() => parent.setStep('idea')}
+    onBack={parent.backToProfile}
+  />;
+  if (step === 'idea') return <IdeaScreen
+    topic={parent.topic}
     idea={parent.idea}
     audio={parent.audio}
     guideEnabled={parent.guideEnabled}
@@ -334,25 +388,24 @@ function renderLearningStep(
     guideBusy={parent.guideBusy}
     guideError={parent.guideError}
     lesson={parent.lesson}
-    stepLabel={stepLabel(1)}
+    stepLabel={stepLabel(2)}
     canContinue={canOpenGuide}
     error={parent.error}
-    onTopic={parent.setTopic}
     onIdea={parent.setIdea}
     onAudio={parent.setAudio}
     onGuideToggle={parent.setGuideEnabled}
     onGenerateGuide={() => void parent.createGuide()}
     onOpenLessons={() => void parent.openLessons('picker')}
     onContinue={parent.openDrawingGuide}
-    onBack={parent.backToProfile}
+    onBack={() => parent.setStep('topic')}
   />;
   if (step === 'drawing-guide' && parent.lesson) return <DrawingGuideScreen
     lesson={parent.lesson}
-    stepLabel={stepLabel(2)}
+    stepLabel={stepLabel(3)}
     currentIndex={parent.drawingGuideIndex}
     onIndexChange={parent.setDrawingGuideIndex}
     onContinue={parent.openContextReview}
-    onBack={() => parent.setStep('topic')}
+    onBack={() => parent.setStep('idea')}
   />;
   if (step === 'lessons') return <LessonPickerScreen
     lessons={parent.lessons}
@@ -361,13 +414,13 @@ function renderLearningStep(
     loadingId={parent.lessonLoadingId}
     error={parent.lessonError}
     onSelect={(id) => void parent.chooseLesson(id)}
-    onClear={() => { parent.setLesson(null); parent.setStep('topic'); }}
-    onBack={() => parent.setStep('topic')}
+    onClear={() => { parent.setLesson(null); parent.setStep('idea'); }}
+    onBack={() => parent.setStep('idea')}
   />;
   if (step === 'context') return <ContextScreen
     profile={parent.profile}
     contextRun={parent.contextRun}
-    stepLabel={stepLabel(3)}
+    stepLabel={stepLabel(6)}
     busy={parent.busy === 'context-create' || parent.busy === 'context-confirmation'}
     confirmed={parent.contextConfirmed}
     error={parent.error}
@@ -380,9 +433,13 @@ function renderLearningStep(
     photo={parent.photo}
     stepLabel={stepLabel(4)}
     canAnalyze={canAnalyze}
+    analysisBusy={parent.busy === 'context-create' || parent.busy === 'understanding'}
+    runExists={Boolean(parent.contextRun?.run_id)}
+    initialCaptureSource={pendingCaptureSource}
+    onCaptureIntentHandled={onCaptureIntentHandled}
     onPhoto={parent.setPhoto}
     onContinue={() => void parent.analyzeDrawingForCurrentRun()}
-    onBack={() => parent.setStep('context')}
+    onBack={() => parent.setStep(parent.contextRun ? 'context' : 'idea')}
   />;
   if (step === 'understanding' && parent.candidate) return <UnderstandingScreen
     candidate={parent.candidate}
@@ -395,21 +452,26 @@ function renderLearningStep(
     onBack={() => parent.setStep('capture')}
   />;
   if (step === 'activity') return <ActivityScreen
-    stepLabel={stepLabel(6)}
-    activities={parent.activities}
-    source={parent.activitySource}
-    busy={parent.busy === 'activity'}
-    requested={parent.activityAttempted}
-    error={parent.activityError}
-    onSuggest={() => void parent.requestActivities()}
+    stepLabel={stepLabel(7)}
+    topic={parent.topic}
+    subject={parent.subject}
+    suggestions={parent.activitySuggestions}
+    selectedIndex={parent.selectedActivityIndex}
+    loading={parent.activityBusy}
+    attempted={parent.activityAttempted}
+    error={parent.activityError || parent.error}
+    onSuggest={() => void parent.requestActivitySuggestions()}
+    onSelect={parent.chooseActivity}
+    onContinue={() => parent.setStep('story')}
     onBack={() => parent.setStep('context')}
   />;
   if (step === 'story') return <StoryScreen
     videoCapability={platform.capabilities.video}
     jobStage={platform.videoJobStage}
-    stepLabel={stepLabel(7)}
+    stepLabel={stepLabel(8)}
     story={parent.story}
-    mainActivityConfirmed={false}
+    storyReady={storyReady}
+    blockedReason={storyBlockedReason}
     rewriteCount={parent.rewriteCount}
     rewriteInstruction={parent.rewriteInstruction}
     busy={parent.busy === 'story' || parent.busy === 'rewrite' || parent.busy === 'confirm-story'}

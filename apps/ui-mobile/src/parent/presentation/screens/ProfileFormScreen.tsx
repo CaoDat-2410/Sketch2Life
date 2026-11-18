@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Card, Field, Notice, PrimaryButton, ScreenFrame, SecondaryButton, palette } from '../components/ui';
-import type { ParentProfileViewV1 } from '../../domain/types';
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Field, Notice, ScreenFrame, SecondaryButton } from '../components/ui';
+import type { ConsentPolicy, ParentProfileViewV1 } from '../../domain/types';
 import { CHILD_AGE_RANGE_MESSAGE, isSupportedChildAge } from '../../domain/profileRules';
 import type { ProfileFieldMessages } from '../navigation/parentFlowV1';
 import { toParentProfileMutationInput } from '../navigation/workflowTypes';
 import type { ChildGenderDraft } from '../navigation/workflowTypes';
 
 type ProfileFormInput = { displayName: string; ageMonths: number; interests: string };
+type ProfileConsentInput = { consent_accepted: true; consent_policy_version: string };
 
 type Props = {
   mode: 'create' | 'edit';
@@ -15,10 +18,25 @@ type Props = {
   busy: boolean;
   error: string;
   fieldErrors: ProfileFieldMessages;
-  onCreate: (input: ProfileFormInput) => Promise<ParentProfileViewV1>;
+  consentPolicy?: ConsentPolicy | null;
+  consentPolicyBusy?: boolean;
+  consentPolicyError?: string;
+  onRetryConsentPolicy?: () => void;
+  onCreate: (input: ProfileFormInput, consent: ProfileConsentInput) => Promise<ParentProfileViewV1>;
   onUpdate: (input: ProfileFormInput) => Promise<ParentProfileViewV1>;
   onBack: () => void;
 };
+
+const formColors = {
+  ink: '#35204B',
+  purple: '#7435D5',
+  purpleDark: '#54228E',
+  lilac: '#F3EAFE',
+  lilacLine: '#E5D6F2',
+  cream: '#FFFBF5',
+  white: '#FFFFFF',
+  muted: '#776A7D',
+} as const;
 
 const GENDER_OPTIONS: { value: ChildGenderDraft; label: string }[] = [
   { value: 'boy', label: 'Bé trai' },
@@ -26,47 +44,94 @@ const GENDER_OPTIONS: { value: ChildGenderDraft; label: string }[] = [
   { value: 'prefer_not_to_say', label: 'Không muốn chia sẻ' },
 ];
 
-export function ProfileFormScreen({ mode, profile = null, busy, error, fieldErrors, onCreate, onUpdate, onBack }: Props): React.JSX.Element {
+export function ProfileFormScreen({ mode, profile = null, busy, error, fieldErrors, consentPolicy = null, consentPolicyBusy = false, consentPolicyError = '', onRetryConsentPolicy, onCreate, onUpdate, onBack }: Props): React.JSX.Element {
   const [displayName, setDisplayName] = useState(profile?.display_name ?? '');
   const [ageMonths, setAgeMonths] = useState(profile ? String(profile.age_months) : '');
   const [interests, setInterests] = useState(profile?.interests_summary ?? '');
   const [childGender, setChildGender] = useState<ChildGenderDraft>('');
+  const [acceptedConsentPolicyVersion, setAcceptedConsentPolicyVersion] = useState('');
   const isCreate = mode === 'create';
   const parsedAge = Number(ageMonths);
   const ageValid = isSupportedChildAge(parsedAge);
+  const previewName = displayName.trim() || (isCreate ? 'Bé nhà mình' : profile?.display_name ?? 'Hồ sơ của bé');
+  const previewAge = ageValid ? `${Math.floor(parsedAge / 12)} tuổi` : 'Từ 3 đến 10 tuổi';
+  const policyReady = Boolean(consentPolicy?.policy_version.trim() && consentPolicy.consent_text.trim());
+  const consentAccepted = Boolean(policyReady && acceptedConsentPolicyVersion === consentPolicy?.policy_version);
+  const submitDisabled = !displayName.trim() || !ageValid || busy || (isCreate && (!policyReady || consentPolicyBusy || !consentAccepted));
 
   function submit(): void {
+    if (submitDisabled) return;
     const input = toParentProfileMutationInput({ displayName, ageMonths: parsedAge, interests, childGender });
-    const action = isCreate ? onCreate : onUpdate;
-    void action(input).catch(() => undefined);
+    if (isCreate) {
+      if (!consentPolicy || !consentAccepted) return;
+      void onCreate(input, { consent_accepted: true, consent_policy_version: consentPolicy.policy_version }).catch(() => undefined);
+    } else {
+      void onUpdate(input).catch(() => undefined);
+    }
   }
 
   return (
     <ScreenFrame
-      title="Tạo / chỉnh sửa hồ sơ"
-      subtitle="Dùng cùng biểu mẫu khi thêm hoặc cập nhật hồ sơ."
+      title={isCreate ? 'Tạo hồ sơ của bé' : 'Chỉnh sửa hồ sơ'}
+      subtitle={isCreate ? 'Lưu những điều bé yêu thích.' : 'Cập nhật thông tin hồ sơ của bé.'}
       onBack={onBack}
       backDisabled={busy}
+      visualTone="creative"
     >
-      <Card style={styles.fieldsCard}>
+      <View style={styles.profilePreview}>
+        <View style={styles.previewAvatar}>
+          <Ionicons name="person-outline" size={27} color={formColors.purple} accessible={false} />
+        </View>
+        <View style={styles.previewCopy}>
+          <Text style={styles.previewName} numberOfLines={1}>{previewName}</Text>
+          <Text style={styles.previewDetail}>{previewAge} · Hồ sơ riêng của bé</Text>
+        </View>
+        <View style={styles.previewSparkle}>
+          <Ionicons name="sparkles-outline" size={17} color={formColors.purple} accessible={false} />
+        </View>
+      </View>
+
+      <View style={styles.fieldsCard}>
         <Text style={styles.formBadge}>HỒ SƠ</Text>
-        <Field
-          label="Tên gọi trong ứng dụng"
-          value={displayName}
-          onChangeText={setDisplayName}
-          placeholder="Nhập tên hiển thị"
-          autoCapitalize="words"
-        />
-        {fieldErrors.display_name ? <Notice text={fieldErrors.display_name} tone="error" /> : null}
-        <Field
-          label="Tuổi (tháng)"
-          value={ageMonths}
-          onChangeText={setAgeMonths}
-          keyboardType="number-pad"
-        />
-        <Text style={styles.fieldHint}>Hãy nhập tuổi được hệ thống hỗ trợ.</Text>
-        {ageMonths.trim().length > 0 && !ageValid ? <Notice text={CHILD_AGE_RANGE_MESSAGE} tone="warning" /> : null}
-        {fieldErrors.age_months ? <Notice text={fieldErrors.age_months} tone="error" /> : null}
+        <View style={styles.formHeading}>
+          <View style={styles.formHeadingIcon}>
+            <Ionicons name="create-outline" size={19} color={formColors.purple} accessible={false} />
+          </View>
+          <View style={styles.formHeadingCopy}>
+            <Text style={styles.formTitle}>{isCreate ? 'Thông tin của bé' : 'Thông tin hồ sơ'}</Text>
+            <Text style={styles.formSubtitle}>Các mục có dấu tùy chọn có thể để trống.</Text>
+          </View>
+        </View>
+
+        <View style={styles.fieldGroup}>
+          <Field
+            label="Tên hiển thị"
+            value={displayName}
+            onChangeText={setDisplayName}
+            placeholder="Nhập tên hiển thị"
+            autoCapitalize="words"
+            style={styles.profileInput}
+            returnKeyType="next"
+          />
+          {fieldErrors.display_name ? <Notice text={fieldErrors.display_name} tone="error" /> : null}
+        </View>
+
+        <View style={styles.fieldGroup}>
+          <Field
+            label="Tuổi (tháng)"
+            value={ageMonths}
+            onChangeText={setAgeMonths}
+            keyboardType="number-pad"
+            placeholder="Ví dụ: 48"
+            style={styles.profileInput}
+          />
+          <View style={styles.ageHintRow}>
+            <Ionicons name="information-circle-outline" size={15} color={formColors.purple} accessible={false} />
+            <Text style={styles.fieldHint}>Độ tuổi phù hợp: 36–120 tháng (3–10 tuổi).</Text>
+          </View>
+          {ageMonths.trim().length > 0 && !ageValid ? <Notice text={CHILD_AGE_RANGE_MESSAGE} tone="warning" /> : null}
+          {fieldErrors.age_months ? <Notice text={fieldErrors.age_months} tone="error" /> : null}
+        </View>
 
         <View style={styles.genderGroup}>
           <Text style={styles.fieldLabel}>Giới tính của trẻ (tùy chọn)</Text>
@@ -81,25 +146,92 @@ export function ProfileFormScreen({ mode, profile = null, busy, error, fieldErro
             ))}
           </View>
         </View>
-        <Field
-          label="Sở thích (tùy chọn)"
-          value={interests}
-          onChangeText={setInterests}
-        />
-        {fieldErrors.interests_summary ? <Notice text={fieldErrors.interests_summary} tone="error" /> : null}
-      </Card>
+
+        <View style={styles.fieldGroup}>
+          <Field
+            label="Sở thích"
+            value={interests}
+            onChangeText={setInterests}
+            placeholder="Ví dụ: vẽ, khủng long, vũ trụ"
+            multiline
+            style={[styles.profileInput, styles.interestsInput]}
+          />
+          {fieldErrors.interests_summary ? <Notice text={fieldErrors.interests_summary} tone="error" /> : null}
+        </View>
+      </View>
 
       <Notice
-        text="Lựa chọn giới tính chỉ là bản nháp trên thiết bị; chưa được gửi, lưu hoặc dùng để tạo câu chuyện."
+        text="Giới tính chỉ là bản nháp trên thiết bị, không dùng tạo câu chuyện."
         tone="info"
       />
+      {isCreate ? (
+        <View style={styles.consentCard}>
+          <View style={styles.consentHeading}>
+            <Ionicons name="shield-checkmark-outline" size={18} color={formColors.purpleDark} accessible={false} />
+            <Text style={styles.consentTitle}>Quyền xử lý dữ liệu của bé</Text>
+          </View>
+          {consentPolicyBusy ? (
+            <View style={styles.policyLoading}>
+              <ActivityIndicator size="small" color={formColors.purple} />
+              <Text style={styles.policyCopy}>Đang tải nội dung xác nhận…</Text>
+            </View>
+          ) : policyReady && consentPolicy ? (
+            <>
+              <Text style={styles.policyCopy}>{consentPolicy.consent_text}</Text>
+              <TouchableOpacity
+                accessibilityRole="checkbox"
+                accessibilityLabel="Tôi đồng ý với nội dung xử lý dữ liệu của hồ sơ bé"
+                accessibilityState={{ checked: consentAccepted, disabled: busy }}
+                disabled={busy}
+                onPress={() => setAcceptedConsentPolicyVersion(consentAccepted ? '' : consentPolicy.policy_version)}
+                activeOpacity={0.82}
+                style={styles.consentChoice}
+              >
+                <View style={[styles.consentBox, consentAccepted && styles.consentBoxChecked]}>
+                  {consentAccepted ? <Ionicons name="checkmark" size={15} color={formColors.white} accessible={false} /> : null}
+                </View>
+                <Text style={styles.consentChoiceCopy}>Tôi đã đọc và đồng ý</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <View style={styles.policyErrorRow}>
+              <Text style={styles.policyError}>{consentPolicyError || 'Chưa tải được nội dung xác nhận. Hãy thử lại.'}</Text>
+              {onRetryConsentPolicy ? (
+                <TouchableOpacity accessibilityRole="button" onPress={onRetryConsentPolicy} disabled={busy} style={styles.retryPolicyButton}>
+                  <Text style={styles.retryPolicyLabel}>Tải lại</Text>
+                </TouchableOpacity>
+              ) : null}
+            </View>
+          )}
+        </View>
+      ) : null}
       {error ? <Notice text={error} tone="error" /> : null}
-      <PrimaryButton
-        label="Lưu hồ sơ"
-        busy={busy}
-        disabled={!displayName.trim() || !ageValid}
+
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessibilityLabel={isCreate ? 'Tạo hồ sơ' : 'Lưu thay đổi'}
+        accessibilityState={{ disabled: submitDisabled, busy }}
+        disabled={submitDisabled}
         onPress={submit}
-      />
+        activeOpacity={0.88}
+        style={styles.saveButtonOuter}
+      >
+        <LinearGradient
+          colors={submitDisabled ? ['#DCD2E8', '#CFC2DF'] : [formColors.purple, formColors.purpleDark]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.saveButton}
+        >
+          {busy ? <ActivityIndicator color={formColors.white} /> : (
+            <>
+              <Ionicons name={isCreate ? 'person-add-outline' : 'checkmark-circle-outline'} size={19} color={formColors.white} accessible={false} />
+              <Text style={styles.saveButtonLabel}>{isCreate ? 'Tạo hồ sơ' : 'Lưu thay đổi'}</Text>
+              <Ionicons name="arrow-forward" size={17} color={formColors.white} accessible={false} />
+            </>
+          )}
+        </LinearGradient>
+      </TouchableOpacity>
+
       <SecondaryButton label="Quay lại danh sách" disabled={busy} onPress={onBack} />
     </ScreenFrame>
   );
@@ -124,16 +256,47 @@ function GenderOption({ label, selected, onPress }: { label: string; selected: b
 }
 
 const styles = StyleSheet.create({
-  fieldsCard: { backgroundColor: palette.white, gap: 10, minWidth: 0 },
-  fieldLabel: { color: palette.ink, fontSize: 12, lineHeight: 16, fontWeight: '700', flexShrink: 1 },
-  fieldHint: { color: palette.muted, fontSize: 11, lineHeight: 15, flexShrink: 1 },
+  profilePreview: { minHeight: 74, padding: 11, borderRadius: 20, borderWidth: 1, borderColor: formColors.lilacLine, backgroundColor: formColors.lilac, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  previewAvatar: { width: 49, height: 49, borderRadius: 18, backgroundColor: formColors.white, alignItems: 'center', justifyContent: 'center' },
+  previewCopy: { flex: 1, minWidth: 0, gap: 3 },
+  previewName: { color: formColors.ink, fontSize: 15, lineHeight: 20, fontWeight: '800' },
+  previewDetail: { color: formColors.muted, fontSize: 10, lineHeight: 14, flexShrink: 1 },
+  previewSparkle: { width: 32, height: 32, borderRadius: 12, backgroundColor: '#E9DBFA', alignItems: 'center', justifyContent: 'center' },
+  fieldsCard: { padding: 14, gap: 13, borderWidth: 1.2, borderColor: formColors.lilacLine, borderRadius: 22, backgroundColor: formColors.white, shadowColor: '#49335C', shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.08, shadowRadius: 13, elevation: 2, minWidth: 0 },
+  formBadge: { alignSelf: 'flex-start', minHeight: 22, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 999, backgroundColor: formColors.lilac, color: formColors.purpleDark, fontSize: 9, lineHeight: 13, fontWeight: '800', letterSpacing: 0.45, overflow: 'hidden' },
+  formHeading: { flexDirection: 'row', alignItems: 'center', gap: 9, marginBottom: 1 },
+  formHeadingIcon: { width: 37, height: 37, borderRadius: 14, backgroundColor: formColors.lilac, alignItems: 'center', justifyContent: 'center' },
+  formHeadingCopy: { flex: 1, minWidth: 0, gap: 2 },
+  formTitle: { color: formColors.ink, fontSize: 14, lineHeight: 19, fontWeight: '800' },
+  formSubtitle: { color: formColors.muted, fontSize: 10, lineHeight: 14, flexShrink: 1 },
+  fieldGroup: { gap: 5, minWidth: 0 },
+  profileInput: { minHeight: 50, borderRadius: 15, backgroundColor: formColors.cream, color: formColors.ink, paddingHorizontal: 12, fontSize: 13, lineHeight: 18 },
+  interestsInput: { minHeight: 78, paddingTop: 12, textAlignVertical: 'top' },
+  ageHintRow: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 2 },
+  fieldHint: { color: formColors.muted, fontSize: 10, lineHeight: 14, flex: 1, flexShrink: 1 },
   genderGroup: { gap: 6, minWidth: 0 },
-  formBadge: { alignSelf: 'flex-start', minHeight: 24, color: palette.ink, fontSize: 9, lineHeight: 12, fontWeight: '900', letterSpacing: 0.5, paddingHorizontal: 7, paddingVertical: 3, borderWidth: 1, borderColor: palette.outline, borderRadius: 999, backgroundColor: palette.lilac, flexShrink: 1 },
-  genderGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  genderOption: { flexGrow: 1, flexBasis: '48%', minWidth: 0, minHeight: 44, paddingHorizontal: 8, paddingVertical: 6, borderWidth: 1.3, borderColor: palette.outline, borderRadius: 11, backgroundColor: palette.white, flexDirection: 'row', alignItems: 'center', gap: 7 },
-  genderOptionSelected: { borderWidth: 2, backgroundColor: palette.mint },
-  genderRadio: { width: 19, height: 19, borderRadius: 10, borderWidth: 1.3, borderColor: palette.outline, backgroundColor: palette.white, alignItems: 'center', justifyContent: 'center' },
-  genderRadioSelected: { borderWidth: 2 },
-  genderRadioDot: { width: 9, height: 9, borderRadius: 5, backgroundColor: palette.action },
-  genderOptionLabel: { color: palette.ink, fontSize: 12, lineHeight: 16, fontWeight: '700', flex: 1, minWidth: 0, flexShrink: 1 },
+  fieldLabel: { color: formColors.ink, fontSize: 12, lineHeight: 16, fontWeight: '700', flexShrink: 1 },
+  genderGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 7 },
+  genderOption: { flexGrow: 1, flexBasis: '48%', minWidth: 0, minHeight: 46, paddingHorizontal: 9, paddingVertical: 7, borderWidth: 1.2, borderColor: formColors.lilacLine, borderRadius: 14, backgroundColor: formColors.cream, flexDirection: 'row', alignItems: 'center', gap: 7 },
+  genderOptionSelected: { borderWidth: 1.6, borderColor: formColors.purple, backgroundColor: formColors.lilac },
+  genderRadio: { width: 18, height: 18, borderRadius: 9, borderWidth: 1.4, borderColor: '#A99BB2', backgroundColor: formColors.white, alignItems: 'center', justifyContent: 'center' },
+  genderRadioSelected: { borderColor: formColors.purple },
+  genderRadioDot: { width: 9, height: 9, borderRadius: 5, backgroundColor: formColors.purple },
+  genderOptionLabel: { color: formColors.ink, fontSize: 11, lineHeight: 15, fontWeight: '700', flex: 1, minWidth: 0, flexShrink: 1 },
+  consentCard: { padding: 13, gap: 10, borderWidth: 1.2, borderColor: formColors.lilacLine, borderRadius: 17, backgroundColor: '#FBF8FF' },
+  consentHeading: { minHeight: 24, flexDirection: 'row', alignItems: 'center', gap: 7 },
+  consentTitle: { color: formColors.ink, fontSize: 12, lineHeight: 17, fontWeight: '800', flex: 1 },
+  policyLoading: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  policyCopy: { color: formColors.muted, fontSize: 11, lineHeight: 16, flexShrink: 1 },
+  consentChoice: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  consentBox: { width: 21, height: 21, borderWidth: 1.5, borderColor: '#A99BB2', borderRadius: 6, backgroundColor: formColors.white, alignItems: 'center', justifyContent: 'center' },
+  consentBoxChecked: { borderColor: formColors.purple, backgroundColor: formColors.purple },
+  consentChoiceCopy: { color: formColors.ink, fontSize: 12, lineHeight: 17, fontWeight: '700', flex: 1 },
+  policyErrorRow: { gap: 7 },
+  policyError: { color: '#9B3942', fontSize: 11, lineHeight: 16 },
+  retryPolicyButton: { minHeight: 42, alignSelf: 'flex-start', justifyContent: 'center', paddingHorizontal: 12 },
+  retryPolicyLabel: { color: formColors.purpleDark, fontSize: 12, lineHeight: 16, fontWeight: '800' },
+  saveButtonOuter: { minHeight: 54, borderRadius: 17, overflow: 'hidden', shadowColor: formColors.purpleDark, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.19, shadowRadius: 8, elevation: 3 },
+  saveButton: { flex: 1, minHeight: 54, paddingHorizontal: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9 },
+  saveButtonLabel: { color: formColors.white, fontSize: 14, lineHeight: 19, fontWeight: '800' },
 });

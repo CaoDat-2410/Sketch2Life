@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, Animated, ImageBackground, Keyboard, KeyboardAvoidingView, Platform, Pressable, SafeAreaView, StatusBar, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { AccessibilityInfo, Animated, ImageBackground, Keyboard, KeyboardAvoidingView, Platform, Pressable, StatusBar, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthButton, AuthField, AuthNotice, AuthTextButton, authTokens } from '../components/AuthVisuals';
 import { GoogleSignInButton } from '../components/GoogleSignInButton';
 import { safeParentIdentityErrorMessage } from '../navigation/workflowTypes';
@@ -38,11 +39,17 @@ export function AuthScreen({ busy, error, googleAndroidClientId, googleWebClient
   const [fieldErrors, setFieldErrors] = useState<AuthFieldErrors>(emptyFieldErrors);
   const [touchedFields, setTouchedFields] = useState<Record<AuthFieldName, boolean>>(emptyTouchedFields);
   const [reduceMotion, setReduceMotion] = useState(false);
-  const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [keyboardEventVisible, setKeyboardEventVisible] = useState(false);
   const introOpacity = useRef(new Animated.Value(0)).current;
   const introY = useRef(new Animated.Value(18)).current;
+  const unresizedViewport = useRef({ width, height });
   const isRecovery = mode === 'recovery';
   const isSignup = mode === 'signup';
+  // Android can report an IME show event even when the emulator's IME has no visible area.
+  // With adjustResize enabled, a real soft keyboard also reduces the app viewport.
+  const keyboardVisible = Platform.OS === 'android'
+    ? keyboardEventVisible && unresizedViewport.current.height - height > 80
+    : keyboardEventVisible;
   const compact = keyboardVisible || height < 760;
   const contentWidth = Math.min(width * 0.9, 460);
 
@@ -59,13 +66,22 @@ export function AuthScreen({ busy, error, googleAndroidClientId, googleWebClient
   }, []);
 
   useEffect(() => {
-    const showSubscription = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
-    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
+    const showSubscription = Keyboard.addListener('keyboardDidShow', (event) => {
+      setKeyboardEventVisible(event.endCoordinates.height > 0);
+    });
+    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => setKeyboardEventVisible(false));
     return () => {
       showSubscription.remove();
       hideSubscription.remove();
     };
   }, []);
+
+  useEffect(() => {
+    const viewport = unresizedViewport.current;
+    if (width !== viewport.width || (!keyboardEventVisible && height >= viewport.height - 80)) {
+      unresizedViewport.current = { width, height };
+    }
+  }, [width, height, keyboardEventVisible]);
 
   useEffect(() => {
     introOpacity.stopAnimation();
@@ -358,13 +374,13 @@ export function AuthScreen({ busy, error, googleAndroidClientId, googleWebClient
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: authTokens.paper },
   backgroundImage: { width: '100%', height: '100%' },
-  safeArea: { flex: 1, paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight ?? 24) : 0, paddingBottom: Platform.OS === 'android' ? 24 : 0 },
+  safeArea: { flex: 1 },
   keyboardView: { flex: 1 },
   fixedContent: { flex: 1, width: '100%', alignSelf: 'center', justifyContent: 'center', paddingHorizontal: 0 },
   fixedContentLoginLower: { transform: [{ translateY: 60 }] },
   fixedContentKeyboard: { justifyContent: 'flex-start', paddingTop: 12, paddingBottom: 8, gap: 8 },
   backButton: { position: 'absolute', left: 20, top: 8, zIndex: 3, width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: authTokens.paper, borderWidth: 1, borderColor: authTokens.border },
-  backButtonAndroid: { top: 40 },
+  backButtonAndroid: { top: 8 },
   backButtonPressed: { opacity: 0.68, transform: [{ scale: 0.96 }] },
   formCard: { width: '100%', padding: 18, gap: 16, backgroundColor: '#FAF3EB', borderWidth: 1.5, borderColor: '#D8C5B4', borderRadius: 24, shadowColor: authTokens.ink, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.1, shadowRadius: 18, elevation: 4 },
   formCardCompact: { padding: 16, gap: 12, borderRadius: 20 },

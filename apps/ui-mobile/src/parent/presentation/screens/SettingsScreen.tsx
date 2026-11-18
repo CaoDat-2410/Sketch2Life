@@ -1,60 +1,53 @@
 import React from 'react';
 import { StyleSheet, Switch, Text, View } from 'react-native';
-import { Card, Notice, ScreenFrame, SecondaryButton, SectionTitle, palette } from '../components/ui';
+import { Ionicons } from '@expo/vector-icons';
+import { Card, ScreenFrame } from '../components/ui';
 
 type Props = {
   sketchGuideEnabled: boolean;
   onSketchGuideEnabled: (enabled: boolean) => void;
-  onOpenAccount: () => void;
-  onOpenProfiles: () => void;
-  onOpenNotifications: () => void;
-  onOpenQuota: () => void;
-  onOpenHistory: () => void;
-  onOpenSharing: () => void;
-  onOpenDeliveredLessons: () => void;
   onBack: () => void;
 };
 
 export function SettingsScreen(props: Props): React.JSX.Element {
   return (
-    <ScreenFrame title="Cài đặt và tài khoản" subtitle="Quản lý đăng nhập phụ huynh." onBack={props.onBack}>
-      <Card style={styles.languageCard}>
-        <SectionTitle>Ngôn ngữ</SectionTitle>
-        <View style={styles.languageRow}>
-          <View style={styles.languageValue}><Text style={styles.valueText}>Tiếng Việt</Text></View>
-        </View>
-      </Card>
+    <ScreenFrame title="Cài đặt" subtitle="Tùy chỉnh trải nghiệm trên thiết bị." onBack={props.onBack} visualTone="creative" safeAreaEdges={['top', 'right', 'left']}>
+      <View style={styles.group}>
+        <Text style={styles.groupTitle}>Trong buổi vẽ</Text>
+        <Card style={styles.settingCard}>
+          <View style={styles.preferenceRow}>
+            <View style={[styles.rowIcon, styles.guideIcon]}><Ionicons name="color-wand-outline" size={19} color="#7435D5" accessible={false} /></View>
+            <View style={styles.rowCopy}>
+              <Text style={styles.rowTitle}>Gợi ý nét vẽ</Text>
+            </View>
+            <Switch
+              value={props.sketchGuideEnabled}
+              onValueChange={props.onSketchGuideEnabled}
+              accessibilityLabel="Bật gợi ý nét vẽ trong phiên hiện tại"
+              trackColor={{ false: '#D8D1DE', true: '#CBB0F3' }}
+              thumbColor={props.sketchGuideEnabled ? '#7435D5' : '#FFFFFF'}
+            />
+          </View>
+          <View style={styles.localOnlyNote}>
+            <Ionicons name="information-circle-outline" size={17} color="#376388" accessible={false} />
+            <Text style={styles.localOnlyText}>Chỉ áp dụng cho buổi hiện tại, chưa lưu vào tài khoản.</Text>
+          </View>
+        </Card>
+      </View>
 
-      <Card style={styles.guideCard}>
-        <SectionTitle>Gợi ý trong buổi vẽ</SectionTitle>
-        <View style={styles.guideToggleRow}>
-          <Text style={styles.guideDescription}>Chỉ tạo gợi ý nét vẽ khi người lớn bật tùy chọn này trong buổi học.</Text>
-          <Switch value={props.sketchGuideEnabled} onValueChange={props.onSketchGuideEnabled} accessibilityLabel="Bật gợi ý nét vẽ trong phiên hiện tại" />
-        </View>
-        <Notice text="Lựa chọn này chỉ áp dụng trong phiên đang mở, không lưu thành cài đặt tài khoản." />
-      </Card>
-
-      <Card style={styles.managementCard}>
-        <SectionTitle>Quản lý</SectionTitle>
-        <SecondaryButton label="Tài khoản và bảo mật" onPress={props.onOpenAccount} />
-        <SecondaryButton label="Hồ sơ trẻ và quyền xử lý" onPress={props.onOpenProfiles} />
-        <SecondaryButton label="Thông báo" onPress={props.onOpenNotifications} />
-        <SecondaryButton label="Lượt tạo video" onPress={props.onOpenQuota} />
-        <SecondaryButton label="Lịch sử hoạt động" onPress={props.onOpenHistory} />
-        <SecondaryButton label="Bài giáo viên đã dạy" onPress={props.onOpenDeliveredLessons} />
-        <SecondaryButton label="Chia sẻ hồ sơ với giáo viên" onPress={props.onOpenSharing} />
-      </Card>
     </ScreenFrame>
   );
 }
 
 const styles = StyleSheet.create({
-  languageCard: { backgroundColor: palette.white, gap: 12 },
-  languageRow: { minHeight: 52, flexDirection: 'row', alignItems: 'center', gap: 8, padding: 8, borderRadius: 14, backgroundColor: palette.background },
-  languageValue: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 12, borderRadius: 14, borderWidth: 1.5, borderColor: palette.outline, backgroundColor: palette.butter },
-  valueText: { color: palette.ink, fontSize: 12, lineHeight: 16, fontWeight: '700' },
-  guideCard: { backgroundColor: palette.white, gap: 12 },
-  guideToggleRow: { minHeight: 52, flexDirection: 'row', alignItems: 'center', gap: 10, padding: 8, borderRadius: 14, backgroundColor: palette.background },
-  guideDescription: { flex: 1, minWidth: 0, color: palette.muted, fontSize: 12, lineHeight: 17, flexShrink: 1 },
-  managementCard: { backgroundColor: palette.white, gap: 10 },
+  group: { gap: 7 },
+  groupTitle: { paddingHorizontal: 3, color: '#766781', fontSize: 12, lineHeight: 17, fontWeight: '800' },
+  settingCard: { gap: 13, backgroundColor: '#FFFEFF', borderColor: '#E8DDF1', borderWidth: 1.2, borderRadius: 20 },
+  preferenceRow: { minHeight: 52, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  rowIcon: { width: 38, height: 38, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F1E7FF' },
+  guideIcon: { backgroundColor: '#F1E7FF' },
+  rowCopy: { flex: 1, minWidth: 0, gap: 2 },
+  rowTitle: { color: '#332342', fontSize: 13, lineHeight: 18, fontWeight: '800', flexShrink: 1 },
+  localOnlyNote: { minHeight: 43, paddingHorizontal: 10, paddingVertical: 8, borderRadius: 13, flexDirection: 'row', alignItems: 'flex-start', gap: 7, backgroundColor: '#E7F2FC' },
+  localOnlyText: { flex: 1, color: '#315D7C', fontSize: 11, lineHeight: 16 },
 });

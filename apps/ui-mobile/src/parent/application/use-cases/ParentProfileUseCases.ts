@@ -26,6 +26,9 @@ export class ParentProfileUseCases {
   getV1(profileId: string) { return this.api.getProfileV1(profileId); }
   createV1(input: ParentProfileCreateV1, actionIdentity: ParentActionIdentity) {
     this.assertValidProfile(input.age_months, input.display_name);
+    if (input.consent_accepted !== true || !input.consent_policy_version.trim()) {
+      throw new ParentApplicationError('PARENT_CONSENT_REQUIRED', 'Đọc và xác nhận nội dung đồng ý trước khi tạo hồ sơ.');
+    }
     return this.api.createProfileV1(input, actionIdentity);
   }
   async patchV1(profileId: string, input: ParentProfilePatchV1, actionIdentity: ParentActionIdentity): Promise<ParentProfilePatchOutcomeV1> {

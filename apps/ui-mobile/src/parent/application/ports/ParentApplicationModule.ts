@@ -45,6 +45,7 @@ export interface ParentApplicationModule {
     | 'createRunAfterPhotoV1'
     | 'confirmRunContextV1'
     | 'confirmSubjectV1'
+    | 'suggestActivities'
     | 'confirmScriptV1'
     | 'createStoryRevisionV1'
     | 'understandDrawing'> & {

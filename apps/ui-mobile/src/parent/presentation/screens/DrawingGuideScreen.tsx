@@ -38,7 +38,7 @@ export function DrawingGuideScreen(props: Props): React.JSX.Element {
             label={currentIndex + 1 < stepCount ? 'Bước tiếp' : 'Quay lại bước đầu'}
             onPress={() => props.onIndexChange(currentIndex + 1 < stepCount ? currentIndex + 1 : 0)}
           />
-        </> : <Notice text="Hướng dẫn 4–8 bước có thứ tự hiện chưa khả dụng. Bạn vẫn có thể tiếp tục." tone="warning" />}
+        </> : <Notice text="Hướng dẫn vẽ chưa khả dụng." tone="warning" />}
       </Card>
       <PrimaryButton label="Bỏ qua hướng dẫn" onPress={props.onContinue} />
     </ScreenFrame>

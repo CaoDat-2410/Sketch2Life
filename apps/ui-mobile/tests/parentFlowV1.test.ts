@@ -47,6 +47,7 @@ const firstProfile: ParentProfileViewV1 = {
   profile_id: 'synthetic-profile-1', revision_no: 1, revision_hash: 'revision-hash-1',
   state: 'ACTIVE', display_name: 'Bé Mây', age_months: 72, age_band_ref: 'age-6',
   age_band_version: 'age-6-v1', interests_summary: null, data_origin: 'PARENT_CREATED',
+  authorization_state: 'GRANTED', authorization_policy_version: 'parent-v1', authorization_current: true,
 };
 const secondProfile: ParentProfileViewV1 = {
   ...firstProfile, profile_id: 'synthetic-profile-2', revision_no: 2,
@@ -165,10 +166,10 @@ describe('parentFlowV1 pure flow decisions', () => {
     expect(isProfileDeletionPending(firstProfile.profile_id, restored.pendingDeletions)).toBe(false);
   });
 
-  it('allows an optional topic but requires an exact pinned lesson before starting a run', () => {
+  it('allows a run with no lesson pin and validates an exact pin when one is selected', () => {
     const complete = { lesson_id: 'lesson-1', version_id: 'version-2', content_sha256: 'a'.repeat(64) };
     expect(canBeginContextStep({ profileId: firstProfile.profile_id, topic: '', adultIdea: '', lessonPin: complete })).toBe(true);
-    expect(canBeginContextStep({ profileId: firstProfile.profile_id, topic: '', adultIdea: '', lessonPin: null })).toBe(false);
+    expect(canBeginContextStep({ profileId: firstProfile.profile_id, topic: '', adultIdea: '', lessonPin: null })).toBe(true);
     expect(canBeginContextStep({
       profileId: firstProfile.profile_id, topic: '', adultIdea: '', lessonPin: { ...complete, content_sha256: 'short' },
     })).toBe(false);

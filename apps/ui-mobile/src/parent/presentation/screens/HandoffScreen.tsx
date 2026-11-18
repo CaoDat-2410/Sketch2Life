@@ -14,20 +14,20 @@ type Props = {
 
 export function HandoffScreen({ storyTitle, events, videoCapability, jobStage, onResumeActiveRun }: Props): React.JSX.Element {
   const videoMessage = videoCapability.state === 'unavailable'
-    ? 'Tạo video, kiểm tra an toàn và phát video chưa khả dụng vì chưa có hợp đồng dịch vụ được xác nhận. Không có yêu cầu video nào được gửi.'
+    ? 'Tạo video chưa khả dụng vì dịch vụ chưa được xác nhận.'
     : handoffJobStageMessage(jobStage);
+  const videoTone = videoCapability.state === 'unavailable' || jobStage.state === 'failed'
+    ? 'warning'
+    : jobStage.state === 'confirmed' ? 'success' : 'info';
 
   return (
-    <ScreenFrame title="Trạng thái buổi học" subtitle="Hiển thị giai đoạn được xác nhận.">
+    <ScreenFrame title="Trạng thái buổi học" subtitle="Tiến độ được máy chủ ghi nhận.">
       <Card style={styles.statusCard}>
         <Text style={styles.handoffStoryTitle}>{storyTitle || 'Kịch bản đã xác nhận'}</Text>
-        <Notice text={videoMessage} tone="warning" />
-        <Notice text="Không có video để phát hoặc tải xuống. Trạng thái hoàn tất chưa được máy chủ xác nhận." tone="info" />
+        <Notice text={videoMessage} tone={videoTone} />
       </Card>
-      <Card style={styles.eventsCard}>
-        <SectionTitle>Các giai đoạn đã xác nhận</SectionTitle>
-        <Notice text="Không hiển thị phần trăm, thời gian dự kiến hoặc vị trí hàng đợi." tone="info" />
-        {!events.length ? <Text style={styles.emptyEvents}>Chưa có giai đoạn nào được xác nhận.</Text> : null}
+      {events.length ? <Card style={styles.eventsCard}>
+        <SectionTitle>Các bước xử lý</SectionTitle>
         {events.map((event, index) => <View key={`${event.stage}-${index}`} style={[styles.eventRow, { borderBottomWidth: index === events.length - 1 ? 0 : 1.3 }]}>
           <Text style={[styles.eventSymbol, { color: event.status === 'PASS' ? palette.green : palette.red }]}>{event.status === 'PASS' ? '✓' : '!'}</Text>
           <View style={styles.eventCopy}>
@@ -35,7 +35,7 @@ export function HandoffScreen({ storyTitle, events, videoCapability, jobStage, o
             <Text style={[styles.eventResult, { color: event.status === 'PASS' ? palette.green : palette.red }]}>{event.status === 'PASS' ? 'Đã xác nhận' : 'Chưa hoàn tất'}</Text>
           </View>
         </View>)}
-      </Card>
+      </Card> : null}
       <PrimaryButton label="Tiếp tục buổi học đang mở" onPress={onResumeActiveRun} />
     </ScreenFrame>
   );
@@ -50,7 +50,6 @@ const styles = StyleSheet.create({
   eventCopy: { flex: 1, gap: 2, minWidth: 0 },
   eventTitle: { color: palette.ink, fontSize: 11, lineHeight: 15, fontWeight: '700', flexShrink: 1, minWidth: 0 },
   eventResult: { fontSize: 10, lineHeight: 14, fontWeight: '700', flexShrink: 1, minWidth: 0 },
-  emptyEvents: { color: palette.muted, fontSize: 13, lineHeight: 19, flexShrink: 1, minWidth: 0 },
 });
 
 function eventStageLabel(stage: string): string {
@@ -65,9 +64,9 @@ function eventStageLabel(stage: string): string {
 
 function handoffJobStageMessage(stage: ParentJobStageState): string {
   if (stage.state === 'idle') return 'Chưa có tác vụ video.';
-  if (stage.state === 'pending') return 'Tác vụ video đang chờ xử lý; chưa có kết quả hoàn tất.';
-  if (stage.state === 'reconciling') return 'Đang kiểm tra trạng thái tác vụ video. Không gửi yêu cầu trùng lặp.';
-  if (stage.state === 'confirmed') return 'Tác vụ video hoàn tất theo trạng thái máy chủ; chưa có trình phát được nối.';
-  if (stage.state === 'failed') return 'Tác vụ video thất bại theo trạng thái máy chủ.';
+  if (stage.state === 'pending') return 'Video đang được xử lý.';
+  if (stage.state === 'reconciling') return 'Đang kiểm tra trạng thái; chưa gửi lại yêu cầu.';
+  if (stage.state === 'confirmed') return 'Tác vụ hoàn tất; trình phát chưa khả dụng.';
+  if (stage.state === 'failed') return 'Tác vụ video thất bại.';
   return 'Trạng thái tác vụ video chưa khả dụng.';
 }

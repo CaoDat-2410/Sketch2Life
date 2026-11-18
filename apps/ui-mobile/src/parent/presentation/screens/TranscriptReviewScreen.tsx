@@ -19,7 +19,6 @@ export function TranscriptReviewScreen(props: Props): React.JSX.Element {
   return (
     <ScreenFrame title="Rà soát bản chép lời" subtitle="Sửa lại trước khi xác nhận." step={props.stepLabel} onBack={props.onBack} backDisabled={props.busy}>
       {props.error ? <Notice text={props.error} tone="error" /> : null}
-      {!props.busy && props.error && !props.transcript ? <Notice text="Không tự gửi lại yêu cầu nhận dạng khi kết quả chưa rõ. Bạn có thể tiếp tục bằng ý tưởng đã nhập hoặc chỉ dùng bức tranh." tone="warning" /> : null}
       {props.transcript ? <Card style={styles.transcriptCard}>
         <Notice text="CẦN XÁC NHẬN" tone="warning" />
         <SectionTitle>Nội dung nhận dạng</SectionTitle>
@@ -30,7 +29,9 @@ export function TranscriptReviewScreen(props: Props): React.JSX.Element {
         <SectionTitle>Chưa có bản chép lời</SectionTitle>
         {props.busy
           ? <Text style={styles.emptyText}>Đang xử lý bản ghi âm. Nội dung chỉ được dùng sau khi người lớn xem lại.</Text>
-          : <Text style={styles.emptyText}>Chuyển giọng nói thành chữ hiện chưa khả dụng. Bạn vẫn có thể tiếp tục bằng ý tưởng đã nhập hoặc chỉ dùng bức tranh.</Text>}
+          : <Text style={styles.emptyText}>{props.error
+            ? 'Bạn vẫn có thể tiếp tục bằng ý tưởng đã nhập hoặc bức tranh.'
+            : 'Chuyển giọng nói thành chữ chưa khả dụng. Bạn có thể tiếp tục bằng ý tưởng hoặc bức tranh.'}</Text>}
       </Card>}
       <SecondaryButton label="Tiếp tục bằng ý tưởng đã nhập" disabled={props.busy} onPress={props.onContinueWithoutAudio} />
     </ScreenFrame>

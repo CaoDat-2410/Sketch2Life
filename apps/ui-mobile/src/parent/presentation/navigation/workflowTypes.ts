@@ -94,6 +94,7 @@ export type AppStep =
   | 'lesson-history'
   | 'lesson-library'
   | 'topic'
+  | 'idea'
   | 'drawing-guide'
   | 'lessons'
   | 'capture'

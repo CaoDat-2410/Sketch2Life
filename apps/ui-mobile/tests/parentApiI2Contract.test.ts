@@ -34,16 +34,22 @@ function header(call: FetchCall, name: string): string | null {
   return new Headers(call.init.headers).get(name);
 }
 
-const profileRef = { profile_id: 'synthetic-profile', revision_no: 1, revision_hash: 'hash-1' };
-const activeProfile = {
-  ...profileRef,
+const backendProfile = {
+  parent_profile_id: 'synthetic-profile',
   state: 'ACTIVE',
-  display_name: 'Bé Mây',
-  age_months: 72,
-  age_band_ref: 'age-6',
-  age_band_version: 'age-6-v1',
-  interests_summary: null,
-  data_origin: 'PARENT_CREATED',
+  current_revision: {
+    profile_revision_id: 'synthetic-revision', revision: 1, age_months: 72,
+    display_name: 'Bé Mây', interests_summary: '', revision_sha256: 'hash-1', created_at: '2026-11-18T00:00:00Z',
+  },
+  authorization_state: 'GRANTED', authorization_policy_version: 'parent-v1', authorization_current: true,
+  created_at: '2026-11-18T00:00:00Z', updated_at: '2026-11-18T00:00:00Z',
+};
+const profileEnvelope = { request_id: 'profile-request', profile: backendProfile };
+const activeProfile = {
+  profile_id: 'synthetic-profile', revision_no: 1, revision_hash: 'hash-1',
+  state: 'ACTIVE', display_name: 'Bé Mây', age_months: 72,
+  age_band_ref: null, age_band_version: null, interests_summary: null, data_origin: 'PARENT',
+  authorization_state: 'GRANTED', authorization_policy_version: 'parent-v1', authorization_current: true,
 };
 const runEnvelope = {
   request_id: 'synthetic-request',
@@ -59,29 +65,37 @@ const runEnvelope = {
 };
 
 describe('ParentApi I2 contract', () => {
-  it('encodes opaque profile cursors and reads items/next_cursor', async () => {
-    const { api, calls } = createApi([{ status: 200, body: { items: [activeProfile], next_cursor: 'next +/?=', request_id: 'req-1' } }]);
-    const page = await api.listProfilesV1(17, 'opaque +/?= token');
+  it('reads the backend consent policy and maps the unpaginated profile collection', async () => {
+    const policy = { purpose_code: 'PARENT_LEARNING', policy_version: 'parent-v1', consent_text: 'Nội dung đồng ý', consent_text_sha256: 'policy-hash' };
+    const { api, calls } = createApi([
+      { status: 200, body: { request_id: 'policy-request', policy } },
+      { status: 200, body: { request_id: 'profiles-request', profiles: [backendProfile] } },
+    ]);
+    const consent = await api.getConsentPolicy();
+    const page = await api.listProfilesV1();
     const url = new URL(calls[0].url);
 
-    expect(url.pathname).toBe('/v1/parent/profiles');
-    expect(url.searchParams.get('limit')).toBe('17');
-    expect(url.searchParams.get('cursor')).toBe('opaque +/?= token');
-    expect(url.search).toContain('%2B%2F%3F%3D');
+    expect(url.pathname).toBe('/api/parent/v1/consent-policy');
+    expect(calls[1].url).toContain('/api/parent/v1/child-profiles');
+    expect(consent.policy).toEqual(policy);
     expect(page.items).toEqual([activeProfile]);
-    expect(page.next_cursor).toBe('next +/?=');
+    expect(page.next_cursor).toBeNull();
+    expect(page.request_id).toBe('profiles-request');
   });
 
-  it('uses V1 profile create, read, patch and delete routes with per-action keys', async () => {
-    const pending = { profile_id: 'synthetic-profile', state: 'DELETE_PENDING', request_id: 'delete-1' };
+  it('uses backend child-profile routes and sends explicit consent on create', async () => {
+    const archivedEnvelope = { request_id: 'archive-request', profile: { ...backendProfile, state: 'ARCHIVED' } };
     const { api, calls } = createApi([
-      { status: 201, body: profileRef },
-      { status: 200, body: activeProfile },
-      { status: 200, body: activeProfile },
-      { status: 202, body: pending },
+      { status: 201, body: profileEnvelope },
+      { status: 200, body: profileEnvelope },
+      { status: 200, body: profileEnvelope },
+      { status: 200, body: archivedEnvelope },
     ]);
 
-    const created = await api.createProfileV1({ display_name: 'Bé Mây', age_months: 72, interests_summary: null }, 'create-action-1');
+    const created = await api.createProfileV1({
+      display_name: 'Bé Mây', age_months: 72, interests_summary: null,
+      consent_accepted: true, consent_policy_version: 'parent-v1',
+    }, 'create-action-1');
     const read = await api.getProfileV1('profile/a');
     const patched = await api.patchProfileV1('synthetic-profile', {
       expected_revision: 1, display_name: 'Bé Mây', age_months: 72,
@@ -89,24 +103,27 @@ describe('ParentApi I2 contract', () => {
     const deletion = await api.requestProfileDeletionV1('synthetic-profile', 'delete-action-1');
 
     expect(calls.map((call) => new URL(call.url).pathname)).toEqual([
-      '/v1/parent/profiles', '/v1/parent/profiles/profile%2Fa',
-      '/v1/parent/profiles/synthetic-profile', '/v1/parent/profiles/synthetic-profile',
+      '/api/parent/v1/child-profiles', '/api/parent/v1/child-profiles/profile%2Fa',
+      '/api/parent/v1/child-profiles/synthetic-profile', '/api/parent/v1/child-profiles/synthetic-profile',
     ]);
     expect(header(calls[0], 'Idempotency-Key')).toBe('create-action-1');
     expect(header(calls[2], 'Idempotency-Key')).toBe('patch-action-1');
     expect(header(calls[3], 'Idempotency-Key')).toBe('delete-action-1');
-    expect(created).toEqual(profileRef);
+    expect(created).toEqual(activeProfile);
     expect(read).toEqual(activeProfile);
     expect(patched).toEqual(activeProfile);
-    expect(requestBody(calls[0])).not.toHaveProperty('consent_policy_version');
-    expect(deletion.state).toBe('DELETE_PENDING');
+    expect(requestBody(calls[0])).toEqual({
+      display_name: 'Bé Mây', age_months: 72, interests_summary: '',
+      consent_accepted: true, consent_policy_version: 'parent-v1',
+    });
+    expect(deletion).toEqual({ profile_id: 'synthetic-profile', state: 'ARCHIVED', request_id: 'archive-request' });
   });
 
   it('preserves omitted and null interests_summary patch bodies', async () => {
     const { api, calls } = createApi([
-      { status: 200, body: activeProfile },
-      { status: 200, body: activeProfile },
-      { status: 200, body: activeProfile },
+      { status: 200, body: profileEnvelope },
+      { status: 200, body: profileEnvelope },
+      { status: 200, body: profileEnvelope },
     ]);
     const base = { expected_revision: 1, display_name: 'Bé Mây', age_months: 72 };
 
@@ -116,7 +133,7 @@ describe('ParentApi I2 contract', () => {
 
     expect(requestBody(calls[0])).not.toHaveProperty('interests_summary');
     expect(requestBody(calls[1])).not.toHaveProperty('interests_summary');
-    expect(requestBody(calls[2]).interests_summary).toBeNull();
+    expect(requestBody(calls[2]).interests_summary).toBe('');
     expect(header(calls[0], 'Idempotency-Key')).toBe('patch-same-action');
     expect(header(calls[1], 'Idempotency-Key')).toBe('patch-same-action');
     expect(header(calls[2], 'Idempotency-Key')).toBe('patch-new-action');
@@ -125,11 +142,11 @@ describe('ParentApi I2 contract', () => {
 
   it('reuses keys for create actions and uses a new key for a new profile action', async () => {
     const { api, calls } = createApi([
-      { status: 201, body: profileRef },
-      { status: 201, body: profileRef },
-      { status: 201, body: profileRef },
+      { status: 201, body: profileEnvelope },
+      { status: 201, body: profileEnvelope },
+      { status: 201, body: profileEnvelope },
     ]);
-    const input = { display_name: 'Bé Mây', age_months: 72 };
+    const input = { display_name: 'Bé Mây', age_months: 72, consent_accepted: true as const, consent_policy_version: 'parent-v1' };
 
     await api.createProfileV1(input, 'profile-create-action-a');
     await api.createProfileV1(input, 'profile-create-action-a');
@@ -139,27 +156,26 @@ describe('ParentApi I2 contract', () => {
     expect(keys).toEqual(['profile-create-action-a', 'profile-create-action-a', 'profile-create-action-b']);
   });
 
-  it('reconciles DELETE_PENDING by GET-by-ID and distinguishes replay from a new pending delete', async () => {
-    const pending = { profile_id: 'synthetic-profile', state: 'DELETE_PENDING', request_id: 'delete-request' };
+  it('maps the backend synchronous archive response instead of inventing DELETE_PENDING', async () => {
+    const archivedEnvelope = { request_id: 'archive-request', profile: { ...backendProfile, state: 'ARCHIVED' } };
     const { api, calls } = createApi([
-      { status: 202, body: pending },
-      { status: 200, body: pending },
-      { status: 202, body: pending },
-      { status: 409, body: { code: 'INVALID_STATE_TRANSITION', message: 'child detail must not leak' } },
+      { status: 200, body: archivedEnvelope },
+      { status: 200, body: archivedEnvelope },
     ]);
 
-    await expect(api.requestProfileDeletionV1('synthetic-profile', 'delete-action-a')).resolves.toEqual(pending);
-    await expect(api.getProfileV1('synthetic-profile')).resolves.toEqual(pending);
-    await expect(api.requestProfileDeletionV1('synthetic-profile', 'delete-action-a')).resolves.toEqual(pending);
-    const error = await api.requestProfileDeletionV1('synthetic-profile', 'delete-action-b').catch((value: unknown) => value);
+    await expect(api.requestProfileDeletionV1('synthetic-profile', 'delete-action-a')).resolves.toEqual({
+      profile_id: 'synthetic-profile', state: 'ARCHIVED', request_id: 'archive-request',
+    });
+    await expect(api.getProfileV1('synthetic-profile')).resolves.toEqual({
+      profile_id: 'synthetic-profile', state: 'ARCHIVED', request_id: 'archive-request',
+    });
 
-    expect(calls.map((call) => call.init.method)).toEqual(['DELETE', 'GET', 'DELETE', 'DELETE']);
+    expect(calls.map((call) => call.init.method)).toEqual(['DELETE', 'GET']);
+    expect(calls.map((call) => new URL(call.url).pathname)).toEqual([
+      '/api/parent/v1/child-profiles/synthetic-profile',
+      '/api/parent/v1/child-profiles/synthetic-profile',
+    ]);
     expect(header(calls[0], 'Idempotency-Key')).toBe('delete-action-a');
-    expect(header(calls[2], 'Idempotency-Key')).toBe('delete-action-a');
-    expect(header(calls[3], 'Idempotency-Key')).toBe('delete-action-b');
-    expect(error).toBeInstanceOf(ParentApiError);
-    expect((error as Error).message).toBe('Trạng thái hồ sơ đã thay đổi. Hãy tải lại hồ sơ.');
-    expect((error as Error).message).not.toContain('child detail');
   });
 
   it('refreshes a stale profile after one patch attempt and returns it for adult review', async () => {
@@ -181,41 +197,19 @@ describe('ParentApi I2 contract', () => {
     expect(result).toEqual({ status: 'STALE', profile: activeProfile });
   });
 
-  it('creates a pinned pre-drawing run and confirms the returned context with action identities', async () => {
-    const { api, calls } = createApi([
-      { status: 201, body: runEnvelope },
-      { status: 200, body: runEnvelope },
-      { status: 201, body: runEnvelope },
-      { status: 200, body: runEnvelope },
-      { status: 200, body: runEnvelope },
-      { status: 200, body: runEnvelope },
-    ]);
+  it('blocks run creation and separate context confirmation until mobile matches the backend contract', async () => {
+    const { api, calls } = createApi([]);
     const createBody = {
       parent_profile_id: 'synthetic-profile', topic: 'mây', adult_confirmed_idea: 'vẽ một chiếc diều',
       lesson_version: { lesson_id: 'lesson-1', version_id: 'lesson-version-1', content_sha256: 'lesson-hash' },
     };
     const contextBody = { expected_context_revision: 2, context_snapshot_sha256: 'snapshot-hash', confirmed: true as const };
 
-    await api.createStoryRunV1(createBody, 'story-create-action-a');
-    await api.createStoryRunV1(createBody, 'story-create-action-a');
-    await api.createStoryRunV1(createBody, 'story-create-action-b');
-    await api.confirmStoryRunContextV1('synthetic-run', contextBody, 'context-action-a');
-    await api.confirmStoryRunContextV1('synthetic-run', contextBody, 'context-action-a');
-    await api.confirmStoryRunContextV1('synthetic-run', contextBody, 'context-action-b');
-
-    expect(calls.slice(0, 3).map((call) => header(call, 'Idempotency-Key'))).toEqual([
-      'story-create-action-a', 'story-create-action-a', 'story-create-action-b',
-    ]);
-    expect(calls.slice(3).map((call) => header(call, 'Idempotency-Key'))).toEqual([
-      'context-action-a', 'context-action-a', 'context-action-b',
-    ]);
-    expect(requestBody(calls[0])).toEqual(createBody);
-    expect(requestBody(calls[0])).not.toHaveProperty('photo');
-    expect(requestBody(calls[0])).not.toHaveProperty('consent_policy_version');
-    expect(requestBody(calls[0])).not.toHaveProperty('expected_profile_revision_id');
-    expect(requestBody(calls[0])).not.toHaveProperty('context_confirmed');
-    expect(new URL(calls[3].url).pathname).toBe('/v1/story-runs/synthetic-run/context-confirmation');
-    expect(requestBody(calls[3])).toEqual(contextBody);
+    await expect(api.createStoryRunV1(createBody, 'story-create-action-a'))
+      .rejects.toMatchObject({ code: 'PARENT_STORY_RUN_CREATE_CONTRACT_MISMATCH' });
+    await expect(api.confirmStoryRunContextV1('synthetic-run', contextBody, 'context-action-a'))
+      .rejects.toMatchObject({ code: 'PARENT_CONTEXT_CONFIRMATION_ROUTE_MISSING' });
+    expect(calls).toHaveLength(0);
   });
 
   it('uses the versioned active/read/subject/script/revision routes and explicit action keys', async () => {
@@ -236,10 +230,10 @@ describe('ParentApi I2 contract', () => {
     expect(activeRun).toEqual({ request_id: 'active-request', story_run: null });
 
     expect(calls.map((call) => `${call.init.method} ${new URL(call.url).pathname}`)).toEqual([
-      'GET /v1/story-runs/active/current',
-      'GET /v1/story-runs/synthetic-run',
-      'POST /v1/story-runs/synthetic-run/subject-confirmation',
-      'POST /v1/story-runs/synthetic-run/script-confirmation',
+      'GET /api/parent/v1/story-runs/active/current',
+      'GET /api/parent/v1/story-runs/synthetic-run',
+      'POST /api/parent/v1/story-runs/synthetic-run/subject-confirmations',
+      'POST /api/parent/v1/story-runs/synthetic-run/story-revision-confirmations',
       'POST /api/parent/v1/ai/story-runs/synthetic-run/story-revisions',
     ]);
     expect(header(calls[2], 'Idempotency-Key')).toBe('subject-action');
@@ -264,10 +258,7 @@ describe('ParentApi I2 contract', () => {
     ]);
     const profile = await api.getProfileV1('profile-a').catch((value: unknown) => value);
     const unavailable = await api.listProfilesV1().catch((value: unknown) => value);
-    const activeRun = await api.createStoryRunV1({
-      parent_profile_id: 'profile-a', topic: 'clouds', adult_confirmed_idea: 'kite',
-      lesson_version: { lesson_id: 'lesson-a', version_id: 'v1', content_sha256: 'hash' },
-    }, 'story-key').catch((value: unknown) => value);
+    const activeRun = await api.getActiveStoryRunV1().catch((value: unknown) => value);
     const stale = await api.patchProfileV1('profile-a', {
       expected_revision: 2, display_name: 'Bé Mây', age_months: 72,
     }, 'patch-key').catch((value: unknown) => value);
@@ -292,15 +283,37 @@ describe('ParentApi I2 contract', () => {
     expect((nested as Error).message).not.toContain('nested secret');
   });
 
-  it('does not add an idempotency key to drawing-understandings or call activity-suggestions', async () => {
-    const { api, calls, fetcher } = createApi([{ status: 200, body: { request_id: 'drawing-request' } }]);
+  it('calls drawing-understandings and activity-suggestions with their exact backend contracts', async () => {
+    const activityResult = {
+      request_id: 'activity-request',
+      story_run_id: 'synthetic-run',
+      understanding_revision: 1,
+      contract: 'ParentActivitySuggestionResponseV2',
+      selection_mode: 'CATALOG_SELECTION',
+      catalog_candidate_count: 1,
+      review_required: true,
+      activities: [{
+        title: 'Quan sát khu vườn', objective: 'Nhận ra hình dáng lá', materials_text: 'Giấy và bút màu',
+        preparation_text: '', instructions_text: 'Cùng quan sát các chiếc lá.', observation_notes: '',
+        safety_notes: '', activity_kind: 'outdoor', source: 'PUBLISHED_SHARED_LESSON',
+        source_lesson_id: 'lesson-1', source_lesson_title: 'Khu vườn nhỏ', source_lesson_version_id: 'v1',
+        source_content_sha256: 'a'.repeat(64), source_activity_index: 0, match_reason: 'Phù hợp với chủ thể đã xác nhận.',
+      }],
+    };
+    const { api, calls, fetcher } = createApi([
+      { status: 200, body: { request_id: 'drawing-request' } },
+      { status: 200, body: activityResult },
+    ]);
     await api.analyzeDrawing('synthetic-run', 'synthetic-image-data', 'image/png');
+    const activities = await api.suggestActivities('synthetic-run', 1);
 
     expect(new URL(calls[0].url).pathname).toBe('/api/parent/v1/ai/drawing-understandings');
     expect(header(calls[0], 'Idempotency-Key')).toBeNull();
-    await expect(api.suggestActivities('synthetic-run', 1)).rejects.toBeInstanceOf(ParentApiError);
-    expect(fetcher).toHaveBeenCalledTimes(1);
-    expect(calls.some((call) => call.url.includes('activity-suggestions'))).toBe(false);
+    expect(new URL(calls[1].url).pathname).toBe('/api/parent/v1/ai/story-runs/synthetic-run/activity-suggestions');
+    expect(requestBody(calls[1])).toEqual({ expected_understanding_revision: 1 });
+    expect(header(calls[1], 'Idempotency-Key')).toBeNull();
+    expect(activities).toEqual(activityResult);
+    expect(fetcher).toHaveBeenCalledTimes(2);
   });
 
   it('does not retry an unknown Modal outcome automatically', async () => {

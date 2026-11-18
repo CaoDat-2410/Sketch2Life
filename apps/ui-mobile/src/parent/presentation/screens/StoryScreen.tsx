@@ -1,5 +1,6 @@
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import type { ParentCapabilityState, ParentJobStageState } from '../../application/ports/ParentCapabilityPorts';
 import type { StoryDraft } from '../../domain/types';
 import { Card, Field, Notice, PrimaryButton, SecondaryButton, ScreenFrame, SectionTitle, palette } from '../components/ui';
@@ -9,7 +10,8 @@ type Props = {
   jobStage: ParentJobStageState;
   stepLabel: string;
   story: StoryDraft | null;
-  mainActivityConfirmed: boolean;
+  storyReady: boolean;
+  blockedReason: string;
   rewriteCount: number;
   rewriteInstruction: string;
   busy: boolean;
@@ -26,78 +28,188 @@ type Props = {
 };
 
 export function StoryScreen(props: Props): React.JSX.Element {
+  const [detailsVisible, setDetailsVisible] = useState(false);
   const videoStateMessage = props.videoCapability.state === 'unavailable'
-    ? 'Tạo video, kiểm tra an toàn và phát video chưa khả dụng vì chưa có hợp đồng dịch vụ được xác nhận. Chưa có yêu cầu tạo video nào được gửi.'
+    ? 'Tạo video chưa khả dụng vì dịch vụ chưa được xác nhận.'
     : jobStageMessage(props.jobStage);
-  const activityGateMessage = props.mainActivityConfirmed
-    ? 'Hoạt động chính đã được xác nhận.'
-    : 'Cần chọn và xác nhận một hoạt động chính trước khi tạo, sửa hoặc xác nhận kịch bản. Dịch vụ chọn hoạt động hiện chưa khả dụng.';
 
   return (
-    <ScreenFrame title="Rà soát kịch bản" subtitle="Xác nhận đúng bản đang hiển thị." step={props.stepLabel} onBack={props.onBack}>
-      <Notice text={activityGateMessage} tone={props.mainActivityConfirmed ? 'info' : 'warning'} />
-      <Notice text={videoStateMessage} tone="warning" />
-      {props.error ? <Notice text={props.error} tone="error" /> : null}
-      {!props.story ? <Card style={styles.generationCard}><Text style={styles.bodyText}>Kịch bản được cá nhân hóa theo tranh và chủ thể đã xác nhận.</Text>{props.attempted ? <>
-        <Notice text="Yêu cầu chưa có kết quả hiển thị. Không tự gửi lại; bạn có thể chọn gửi lại cùng yêu cầu." tone="warning" />
-        <SecondaryButton label="Gửi lại cùng yêu cầu" disabled={!props.mainActivityConfirmed || props.busy} onPress={props.onRetry} />
-      </> : <PrimaryButton label="Tạo kịch bản bằng trí tuệ nhân tạo" busy={props.busy} disabled={!props.mainActivityConfirmed} onPress={props.onGenerate} />}</Card> : (
+    <ScreenFrame
+      title="Câu chuyện của bé"
+      subtitle="Cùng xem lại câu chuyện từ bức tranh."
+      step={props.stepLabel}
+      onBack={props.onBack}
+      visualTone="creative"
+    >
+      {!props.storyReady ? (
+        <Notice variant="creative" text={props.blockedReason} tone="warning" />
+      ) : null}
+      {props.error ? <Notice variant="creative" text={props.error} tone="error" /> : null}
+
+      {!props.story ? (
+        <Card variant="creative" style={styles.generationCard}>
+          <View style={styles.storyArtwork}>
+            <StoryIllustration />
+          </View>
+          <View style={styles.generationCopy}>
+            <Text style={styles.eyebrow}>TỪ BỨC TRANH CỦA BÉ</Text>
+            <SectionTitle variant="creative">Sẵn sàng mở ra một câu chuyện?</SectionTitle>
+            <Text style={styles.bodyText}>Kịch bản sẽ được tạo từ bức tranh và chủ thể người lớn đã xác nhận.</Text>
+          </View>
+          {props.attempted ? (
+            <>
+              <Notice variant="creative" text="Chưa có kết quả xác nhận. Kiểm tra trạng thái trước khi gửi lại." tone="warning" />
+              <SecondaryButton variant="creative" label="Gửi lại cùng yêu cầu" disabled={!props.storyReady || props.busy} onPress={props.onRetry} />
+            </>
+          ) : (
+            <PrimaryButton variant="creative" label="Tạo câu chuyện" busy={props.busy} disabled={!props.storyReady} onPress={props.onGenerate} />
+          )}
+        </Card>
+      ) : (
         <>
-          <Card style={styles.storyCard}>
-            <Text style={styles.draftLabel}>BẢN NHÁP · {storyLanguageLabel(props.story.language)}</Text>
-            <Text style={styles.storyTitle}>{props.story.title}</Text>
-            <Text style={styles.metadataText}>Mã phiên bản: {props.story.revisionId ?? 'chưa có'}</Text>
-            <Text style={styles.metadataText}>Số phiên bản: {props.story.revisionNo ?? 'chưa có'}</Text>
-            <Text selectable style={styles.metadataText}>
-              Mã SHA-256: {props.story.sha256 ?? 'chưa có'}
-            </Text>
-            <Text style={styles.storyBody}>{props.story.story.opening}</Text>
-            <Text style={styles.storyBody}>{props.story.story.middle}</Text>
-            <Text style={styles.storyBody}>{props.story.story.ending}</Text>
+          <Card variant="creative" style={styles.storyCard}>
+            <View style={styles.storyHeading}>
+              <View style={styles.storyIcon}>
+                <Ionicons name="book-outline" size={21} color={palette.creativePrimary} />
+              </View>
+              <View style={styles.storyHeadingCopy}>
+                <Text style={styles.eyebrow}>{props.confirmed ? 'ĐÃ XÁC NHẬN' : 'BẢN NHÁP'} · {storyLanguageLabel(props.story.language)}</Text>
+                <Text style={styles.storyTitle}>{props.story.title}</Text>
+              </View>
+            </View>
+            <View style={styles.storySection}>
+              <Text style={styles.storyBody}>{props.story.story.opening}</Text>
+              <Text style={styles.storyBody}>{props.story.story.middle}</Text>
+              <Text style={styles.storyBody}>{props.story.story.ending}</Text>
+            </View>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel={detailsVisible ? 'Ẩn thông tin phiên bản' : 'Xem thông tin phiên bản'}
+              accessibilityState={{ expanded: detailsVisible }}
+              onPress={() => setDetailsVisible((visible) => !visible)}
+              style={styles.detailsToggle}
+            >
+              <Text style={styles.detailsLabel}>Thông tin bản nội dung</Text>
+              <Ionicons name={detailsVisible ? 'chevron-up' : 'chevron-down'} size={16} color={palette.creativePrimary} />
+            </TouchableOpacity>
+            {detailsVisible ? (
+              <View style={styles.metadata}>
+                <Text style={styles.metadataText}>Phiên bản {props.story.revisionNo ?? 'chưa có'}</Text>
+                <Text style={styles.metadataText}>Mã bản: {props.story.revisionId ?? 'chưa có'}</Text>
+                <Text selectable style={styles.metadataText}>SHA-256: {props.story.sha256 ?? 'chưa có'}</Text>
+              </View>
+            ) : null}
           </Card>
-          <Card style={styles.scenesCard}>
-            <SectionTitle>Các cảnh</SectionTitle>
+
+          <Card variant="creative" style={styles.scenesCard}>
+            <SectionTitle variant="creative">Các cảnh trong câu chuyện</SectionTitle>
             {props.story.scenes.map((scene) => (
               <View key={scene.scene_index} style={styles.scene}>
-                <Text style={styles.sceneTitle}>Cảnh {scene.scene_index} · {scene.title}</Text>
-                <Text style={styles.sceneBody}>{scene.action}</Text>
-                <Text style={styles.sceneNarration}>{scene.narration}</Text>
+                <View style={styles.sceneNumber}><Text style={styles.sceneNumberText}>{scene.scene_index}</Text></View>
+                <View style={styles.sceneCopy}>
+                  <Text style={styles.sceneTitle}>{scene.title}</Text>
+                  <Text style={styles.sceneBody}>{scene.action}</Text>
+                  <Text style={styles.sceneNarration}>{scene.narration}</Text>
+                </View>
               </View>
             ))}
           </Card>
-          {!props.confirmed ? <Card style={styles.revisionCard}>
-            <Text style={styles.revisionHint}>Mọi thay đổi tạo bản nội dung mới; xác nhận cũ không được dùng lại.</Text>
-            <Field label={`Gợi ý viết lại · tối đa 3 lần (còn ${Math.max(0, 3 - props.rewriteCount)})`} value={props.rewriteInstruction} onChangeText={props.onRewriteInstruction} placeholder="Nhập gợi ý viết lại" multiline editable={props.mainActivityConfirmed && props.rewriteCount < 3 && !props.busy} />
-            {props.rewriteCount < 3 ? <SecondaryButton label="Gửi gợi ý viết lại · tối đa 3 lần" disabled={!props.mainActivityConfirmed || !props.rewriteInstruction.trim() || props.busy} onPress={props.onRewrite} /> : null}
-            <Notice text="Người lớn xem lại và xác nhận đúng bản đang hiển thị." />
-            <PrimaryButton label="Xác nhận bản nội dung đang xem" busy={props.busy} disabled={!props.mainActivityConfirmed || !props.canConfirm || !props.story.revisionId || !props.story.sha256} onPress={props.onConfirm} />
-          </Card> : <Notice
-            text={props.mainActivityConfirmed
-              ? 'Kịch bản đã được người lớn xác nhận.'
-              : 'Kịch bản đã được xác nhận; trạng thái hoạt động chính chưa được xác minh.'}
-            tone={props.mainActivityConfirmed ? 'success' : 'warning'}
-          />}
+
+          {!props.confirmed ? (
+            <Card variant="creative" style={styles.revisionCard}>
+              <SectionTitle variant="creative">Muốn đổi một chi tiết?</SectionTitle>
+              <Text style={styles.bodyText}>Thêm gợi ý để tạo bản câu chuyện mới.</Text>
+              {props.rewriteCount < 3 ? (
+                <>
+                  <Field
+                    variant="creative"
+                    label={`Gợi ý viết lại · còn ${Math.max(0, 3 - props.rewriteCount)}`}
+                    value={props.rewriteInstruction}
+                    onChangeText={props.onRewriteInstruction}
+                    placeholder="Ví dụ: thêm một người bạn mới"
+                    multiline
+                    editable={props.storyReady && !props.busy}
+                  />
+                  <SecondaryButton
+                    variant="creative"
+                    label="Viết lại câu chuyện"
+                    disabled={!props.storyReady || !props.rewriteInstruction.trim() || props.busy}
+                    onPress={props.onRewrite}
+                  />
+                </>
+              ) : <Notice variant="creative" text="Bạn đã dùng hết số lần viết lại cho câu chuyện này." tone="info" />}
+              <PrimaryButton
+                variant="creative"
+                label="Xác nhận câu chuyện này"
+                busy={props.busy}
+                disabled={!props.storyReady || !props.canConfirm || !props.story.revisionId || !props.story.sha256}
+                onPress={props.onConfirm}
+              />
+            </Card>
+          ) : (
+            <Notice variant="creative" text="Câu chuyện này đã được người lớn xác nhận." tone="success" />
+          )}
         </>
       )}
+
+      {props.story && props.confirmed ? <Notice variant="creative" text={videoStateMessage} tone={props.videoCapability.state === 'unavailable' || props.jobStage.state === 'failed' ? 'warning' : props.jobStage.state === 'confirmed' ? 'success' : 'info'} /> : null}
     </ScreenFrame>
   );
 }
 
+function StoryIllustration(): React.JSX.Element {
+  return (
+    <View style={styles.illustrationCanvas}>
+      <View style={styles.illustrationGlow} />
+      <View style={styles.bookBack} />
+      <View style={styles.bookPage}>
+        <View style={styles.bookSun} />
+        <View style={styles.bookLineLong} />
+        <View style={styles.bookLineShort} />
+        <View style={styles.bookHill} />
+      </View>
+      <View style={styles.sparkleTop}><Ionicons name="sparkles" size={19} color="#E8A900" /></View>
+      <View style={styles.storyIconTile}><Ionicons name="book" size={29} color="#FFFFFF" /></View>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-  generationCard: { backgroundColor: palette.white, gap: 12, minWidth: 0 },
-  storyCard: { backgroundColor: palette.white, gap: 12, minWidth: 0 },
-  scenesCard: { backgroundColor: palette.white, gap: 12, minWidth: 0 },
-  scene: { borderTopWidth: 1.3, borderTopColor: '#CFC3B3', paddingTop: 10, gap: 8, minWidth: 0 },
-  revisionCard: { backgroundColor: palette.white, gap: 12, minWidth: 0 },
-  bodyText: { color: palette.muted, fontSize: 13, lineHeight: 19, flexShrink: 1, minWidth: 0 },
-  draftLabel: { color: palette.ink, backgroundColor: palette.paleAmber, fontSize: 10, lineHeight: 14, fontWeight: '800', paddingHorizontal: 7, paddingVertical: 3, minHeight: 24, borderWidth: 1, borderColor: palette.outline, borderRadius: 999, alignSelf: 'flex-start', flexShrink: 1, minWidth: 0 },
-  storyTitle: { color: palette.ink, fontSize: 16, lineHeight: 20, fontWeight: '800', flexShrink: 1, minWidth: 0 },
-  metadataText: { color: palette.muted, fontSize: 12, lineHeight: 17, flexShrink: 1, minWidth: 0 },
-  storyBody: { color: palette.ink, fontSize: 13, lineHeight: 19, flexShrink: 1, minWidth: 0 },
-  sceneTitle: { color: palette.blue, fontSize: 11, lineHeight: 15, fontWeight: '800', flexShrink: 1, minWidth: 0 },
-  sceneBody: { color: palette.ink, fontSize: 12, lineHeight: 16, flexShrink: 1, minWidth: 0 },
-  sceneNarration: { color: palette.muted, fontSize: 12, lineHeight: 16, flexShrink: 1, minWidth: 0 },
-  revisionHint: { color: palette.muted, fontSize: 12, lineHeight: 17, flexShrink: 1, minWidth: 0 },
+  generationCard: { gap: 13 },
+  storyArtwork: { width: '100%', aspectRatio: 1.55, borderRadius: 20, overflow: 'hidden' },
+  generationCopy: { gap: 8, paddingHorizontal: 2 },
+  eyebrow: { color: palette.creativePrimary, fontSize: 9, lineHeight: 13, fontWeight: '800', letterSpacing: 0.5 },
+  bodyText: { color: palette.creativeMuted, fontSize: 13, lineHeight: 19 },
+  storyCard: { gap: 13 },
+  storyHeading: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  storyIcon: { width: 42, height: 42, borderRadius: 15, backgroundColor: palette.creativeLavender, alignItems: 'center', justifyContent: 'center' },
+  storyHeadingCopy: { flex: 1, minWidth: 0, gap: 4 },
+  storyTitle: { color: palette.creativeInk, fontSize: 19, lineHeight: 25, fontWeight: '800', flexShrink: 1 },
+  storySection: { gap: 11, borderRadius: 17, padding: 13, backgroundColor: '#FBF8FF' },
+  storyBody: { color: palette.creativeInk, fontSize: 14, lineHeight: 22 },
+  detailsToggle: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 3 },
+  detailsLabel: { color: palette.creativePrimary, fontSize: 12, lineHeight: 17, fontWeight: '700' },
+  metadata: { gap: 5, padding: 11, borderRadius: 13, backgroundColor: '#F7F0FF' },
+  metadataText: { color: palette.creativeMuted, fontSize: 10, lineHeight: 15 },
+  scenesCard: { gap: 12 },
+  scene: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: '#EEE5F8' },
+  sceneNumber: { width: 26, height: 26, borderRadius: 9, backgroundColor: palette.creativeLavender, alignItems: 'center', justifyContent: 'center' },
+  sceneNumberText: { color: palette.creativePrimary, fontSize: 11, lineHeight: 15, fontWeight: '800' },
+  sceneCopy: { flex: 1, minWidth: 0, gap: 5 },
+  sceneTitle: { color: palette.creativeInk, fontSize: 13, lineHeight: 18, fontWeight: '800' },
+  sceneBody: { color: palette.creativeInk, fontSize: 12, lineHeight: 17 },
+  sceneNarration: { color: palette.creativeMuted, fontSize: 12, lineHeight: 17, fontStyle: 'italic' },
+  revisionCard: { gap: 12 },
+  illustrationCanvas: { flex: 1, backgroundColor: '#F2E9FF', alignItems: 'center', justifyContent: 'center' },
+  illustrationGlow: { position: 'absolute', width: 170, height: 170, borderRadius: 85, backgroundColor: '#E4D2FF', opacity: 0.85 },
+  bookBack: { position: 'absolute', width: 100, height: 112, borderRadius: 12, backgroundColor: '#8D54D8', transform: [{ rotate: '8deg' }], marginLeft: 28, marginTop: 8 },
+  bookPage: { width: 98, height: 108, borderRadius: 10, backgroundColor: '#FFFEFF', borderWidth: 1.5, borderColor: '#DCC8F2', transform: [{ rotate: '-8deg' }], overflow: 'hidden' },
+  bookSun: { position: 'absolute', right: 17, top: 18, width: 15, height: 15, borderRadius: 8, backgroundColor: '#FFD77A' },
+  bookLineLong: { position: 'absolute', top: 50, left: 16, width: 58, height: 5, borderRadius: 3, backgroundColor: '#B79BE5' },
+  bookLineShort: { position: 'absolute', top: 61, left: 16, width: 42, height: 5, borderRadius: 3, backgroundColor: '#D0C0ED' },
+  bookHill: { position: 'absolute', bottom: -17, left: 3, width: 100, height: 46, borderRadius: 30, backgroundColor: '#C5EADD' },
+  sparkleTop: { position: 'absolute', top: '18%', right: '25%' },
+  storyIconTile: { position: 'absolute', right: '26%', bottom: '19%', width: 48, height: 48, borderRadius: 17, backgroundColor: palette.creativePrimary, alignItems: 'center', justifyContent: 'center' },
 });
 
 function storyLanguageLabel(language: string): string {
@@ -109,9 +221,9 @@ function storyLanguageLabel(language: string): string {
 
 function jobStageMessage(stage: ParentJobStageState): string {
   if (stage.state === 'idle') return 'Chưa có tác vụ video.';
-  if (stage.state === 'pending') return 'Tác vụ video đang chờ xử lý; trạng thái chưa phải kết quả hoàn tất.';
-  if (stage.state === 'reconciling') return 'Đang kiểm tra trạng thái tác vụ video. Không gửi yêu cầu trùng lặp.';
-  if (stage.state === 'confirmed') return 'Máy chủ đã xác nhận tác vụ video hoàn tất; chưa có trình phát được nối.';
-  if (stage.state === 'failed') return 'Tác vụ video thất bại theo trạng thái máy chủ.';
+  if (stage.state === 'pending') return 'Video đang được xử lý.';
+  if (stage.state === 'reconciling') return 'Đang kiểm tra trạng thái video.';
+  if (stage.state === 'confirmed') return 'Máy chủ xác nhận tác vụ video hoàn tất.';
+  if (stage.state === 'failed') return 'Tác vụ video thất bại.';
   return 'Trạng thái tác vụ video chưa khả dụng.';
 }
