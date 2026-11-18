@@ -3,7 +3,6 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
 import type {
   Activity,
-  ConsentPolicy,
   LessonDetail,
   LessonInvitation,
   LessonSummary,
@@ -182,16 +181,6 @@ const previewProfile: ParentProfileViewV1 = {
   age_band_version: null,
   interests_summary: 'Mô phỏng · cây cối và màu sắc.',
   data_origin: 'PREVIEW',
-  authorization_state: 'GRANTED',
-  authorization_policy_version: 'preview-policy',
-  authorization_current: true,
-};
-
-const previewConsentPolicy: ConsentPolicy = {
-  purpose_code: 'PREVIEW_ONLY',
-  policy_version: 'preview-policy',
-  consent_text: 'Bản xem trước giao diện: nội dung minh họa, không gửi hoặc lưu dữ liệu.',
-  consent_text_sha256: 'preview-only',
 };
 
 const previewUser: ParentUser = {
@@ -455,7 +444,7 @@ export function ParentVisualPreviewHarness(): React.JSX.Element {
       onResumeRun={ignoreAction}
       onBackHome={ignoreAction}
     />,
-    'profile-create': <ProfileFormScreen mode="create" profile={null} busy={false} error="" fieldErrors={{}} consentPolicy={previewConsentPolicy} onCreate={pendingPreviewProfile} onUpdate={pendingPreviewProfile} onBack={ignoreAction} />,
+    'profile-create': <ProfileFormScreen mode="create" profile={null} busy={false} error="" fieldErrors={{}} onCreate={pendingPreviewProfile} onUpdate={pendingPreviewProfile} onBack={ignoreAction} />,
     'profile-edit': <ProfileFormScreen mode="edit" profile={previewProfile} busy={false} error="" fieldErrors={{}} onCreate={pendingPreviewProfile} onUpdate={pendingPreviewProfile} onBack={ignoreAction} />,
     sharing: <ProfileSharingScreen
       profile={previewProfile}

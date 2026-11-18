@@ -47,7 +47,6 @@ const firstProfile: ParentProfileViewV1 = {
   profile_id: 'synthetic-profile-1', revision_no: 1, revision_hash: 'revision-hash-1',
   state: 'ACTIVE', display_name: 'Bé Mây', age_months: 72, age_band_ref: 'age-6',
   age_band_version: 'age-6-v1', interests_summary: null, data_origin: 'PARENT_CREATED',
-  authorization_state: 'GRANTED', authorization_policy_version: 'parent-v1', authorization_current: true,
 };
 const secondProfile: ParentProfileViewV1 = {
   ...firstProfile, profile_id: 'synthetic-profile-2', revision_no: 2,

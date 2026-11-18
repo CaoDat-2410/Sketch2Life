@@ -298,9 +298,6 @@ export type ParentProfileViewV1 = ParentProfileReferenceV1 & {
   age_band_version: string | null;
   interests_summary: string | null;
   data_origin: string;
-  authorization_state: ParentProfile['authorization_state'];
-  authorization_policy_version: string | null;
-  authorization_current: boolean;
 };
 
 /** GET-by-ID may return this view while an asynchronous deletion is pending. */
@@ -310,13 +307,7 @@ export type ParentProfileDeletePendingV1 = {
   request_id: string;
 };
 
-export type ParentProfileArchivedV1 = {
-  profile_id: string;
-  state: 'ARCHIVED' | 'DELETED';
-  request_id: string;
-};
-
-export type ParentProfileRecordV1 = ParentProfileViewV1 | ParentProfileDeletePendingV1 | ParentProfileArchivedV1;
+export type ParentProfileRecordV1 = ParentProfileViewV1 | ParentProfileDeletePendingV1;
 
 export type ParentProfilePageV1 = {
   items: ParentProfileViewV1[];
@@ -328,8 +319,6 @@ export type ParentProfileCreateV1 = {
   display_name: string;
   age_months: number;
   interests_summary?: string | null;
-  consent_accepted: true;
-  consent_policy_version: string;
 };
 
 export type ParentProfilePatchV1 = {

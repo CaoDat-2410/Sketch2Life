@@ -184,7 +184,6 @@ function ParentExpoAppContent({ application }: Props): React.JSX.Element {
         parent.clearError();
         parent.setProfileBeingEdited(null);
         parent.setStep('profile-create');
-        void parent.loadProfileConsentPolicy();
       }}
       onEdit={(profile) => { parent.clearProfileFormErrors(); parent.setProfileBeingEdited(profile); parent.setStep('profile-edit'); }}
       onRequestDeletion={(profile) => void parent.requestProfileDeletion(profile)}
@@ -227,10 +226,6 @@ function ParentExpoAppContent({ application }: Props): React.JSX.Element {
       busy={parent.busy === 'profile' || parent.busy === 'profile-update'}
       error={parent.error}
       fieldErrors={parent.profileFieldErrors}
-      consentPolicy={parent.profileConsentPolicy}
-      consentPolicyBusy={parent.profileConsentPolicyBusy}
-      consentPolicyError={parent.profileConsentPolicyError}
-      onRetryConsentPolicy={() => void parent.loadProfileConsentPolicy()}
       onCreate={parent.createProfileAndReturn}
       onUpdate={parent.updateProfile}
       onBack={() => { parent.clearError(); parent.setStep('profile'); }}

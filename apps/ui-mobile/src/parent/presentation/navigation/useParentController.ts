@@ -6,7 +6,6 @@ import type { ParentActionIdentity } from '../../application/ports/ParentPorts';
 import type { ParentApplicationModule } from '../../application/ports/ParentApplicationModule';
 import { parseStoryDraft } from '../../domain/storyDraft';
 import type {
-  ConsentPolicy,
   LessonDetail,
   LessonInvitation,
   LessonSummary,
@@ -61,7 +60,7 @@ import {
   selectProfileById,
 } from './parentFlowV1';
 
-const unavailableConsentState: ParentConsentUiState = createUnavailableParentConsentState('route-not-in-be-handoff');
+const consentState: ParentConsentUiState = createUnavailableParentConsentState('route-not-in-be-handoff');
 
 type ActiveRunPreflightResult =
   | { state: 'confirmed'; activeRun: ParentStoryRunV1 | null }
@@ -85,9 +84,6 @@ export function useParentController(application: ParentApplicationModule) {
   const [pendingDeletions, setPendingDeletions] = useState<ParentProfileDeletePendingV1[]>([]);
   const [pendingDeletionLoadingId, setPendingDeletionLoadingId] = useState('');
   const [profileFieldErrors, setProfileFieldErrors] = useState(safeProfileFieldMessages(null));
-  const [profileConsentPolicy, setProfileConsentPolicy] = useState<ConsentPolicy | null>(null);
-  const [profileConsentPolicyBusy, setProfileConsentPolicyBusy] = useState(false);
-  const [profileConsentPolicyError, setProfileConsentPolicyError] = useState('');
   const [activeRun, setActiveRun] = useState<ParentStoryRunV1 | null>(null);
   const [activeRunCheck, setActiveRunCheck] = useState<ParentActiveRunCheckState>('checking');
   const [topic, setTopic] = useState('');
@@ -147,13 +143,6 @@ export function useParentController(application: ParentApplicationModule) {
   const runCreationInFlight = useRef(false);
   const drawingAnalysisInFlight = useRef(false);
   const drawingAnalysisAttemptedRunId = useRef<string | null>(null);
-  const consentState: ParentConsentUiState = profile?.authorization_current && profile.authorization_policy_version?.trim()
-    ? {
-      status: { state: 'confirmed', source: 'server', policyRevision: profile.authorization_policy_version },
-      capture: { state: 'confirmed', value: undefined },
-      revoke: { state: 'unavailable', reason: 'route-not-in-be-handoff' },
-    }
-    : unavailableConsentState;
 
   async function timeRequest<T>(stage: string, request: () => Promise<T>): Promise<T> {
     const started = Date.now();
@@ -188,23 +177,6 @@ export function useParentController(application: ParentApplicationModule) {
       cursor = nextCursor;
     } while (cursor !== null);
     return loaded;
-  }
-
-  async function loadProfileConsentPolicy(): Promise<void> {
-    setProfileConsentPolicyBusy(true);
-    setProfileConsentPolicyError('');
-    try {
-      const result = await application.profiles.getConsentPolicy();
-      if (!result.policy.policy_version.trim() || !result.policy.consent_text.trim()) {
-        throw new ParentApplicationError('PARENT_CONSENT_POLICY_UNAVAILABLE', 'Chưa có nội dung xác nhận hợp lệ từ máy chủ.');
-      }
-      setProfileConsentPolicy(result.policy);
-    } catch (cause) {
-      setProfileConsentPolicy(null);
-      setProfileConsentPolicyError(safeProfileActionError(cause));
-    } finally {
-      setProfileConsentPolicyBusy(false);
-    }
   }
 
   function inspectActiveRun(): Promise<ActiveRunPreflightResult> {
@@ -283,16 +255,10 @@ export function useParentController(application: ParentApplicationModule) {
     }
   }
 
-  async function createProfile(
-    input: { displayName: string; ageMonths: number; interests: string },
-    consent: { consent_accepted: true; consent_policy_version: string },
-  ): Promise<ParentProfileViewV1> {
+  async function createProfile(input: { displayName: string; ageMonths: number; interests: string }): Promise<ParentProfileViewV1> {
     const displayName = input.displayName.trim();
     const interests = input.interests.trim();
-    if (!profileConsentPolicy || consent.consent_policy_version !== profileConsentPolicy.policy_version) {
-      throw new ParentApplicationError('PARENT_CONSENT_POLICY_STALE', 'Nội dung xác nhận đã thay đổi. Hãy tải lại và kiểm tra trước khi tạo hồ sơ.');
-    }
-    const signature = JSON.stringify([displayName, input.ageMonths, interests, consent.consent_policy_version]);
+    const signature = JSON.stringify([displayName, input.ageMonths, interests || null]);
     const actionIdentity = retainedActionIdentity(profileCreateAction, signature);
     setBusy('profile');
     setError('');
@@ -301,11 +267,9 @@ export function useParentController(application: ParentApplicationModule) {
       const created = await application.profiles.createV1({
         age_months: input.ageMonths,
         display_name: displayName,
-        interests_summary: interests || '',
-        consent_accepted: consent.consent_accepted,
-        consent_policy_version: consent.consent_policy_version,
+        interests_summary: interests || null,
       }, actionIdentity);
-      const record = created;
+      const record = await application.profiles.getV1(created.profile_id);
       const reconciled = reconcileProfileRecord(profiles, pendingDeletions, record);
       setProfiles(reconciled.profiles);
       setPendingDeletions(reconciled.pendingDeletions);
@@ -325,11 +289,8 @@ export function useParentController(application: ParentApplicationModule) {
     }
   }
 
-  async function createProfileAndReturn(
-    input: { displayName: string; ageMonths: number; interests: string },
-    consent: { consent_accepted: true; consent_policy_version: string },
-  ): Promise<ParentProfileViewV1> {
-    const created = await createProfile(input, consent);
+  async function createProfileAndReturn(input: { displayName: string; ageMonths: number; interests: string }): Promise<ParentProfileViewV1> {
+    const created = await createProfile(input);
     setStep('profile');
     return created;
   }
@@ -422,14 +383,7 @@ export function useParentController(application: ParentApplicationModule) {
         setProfiles(reconciled.profiles);
         setPendingDeletions(reconciled.pendingDeletions);
       } else {
-        const reconciled = reconcileProfileRecord(profiles, pendingDeletions, record);
-        setProfiles(reconciled.profiles);
-        setPendingDeletions(reconciled.pendingDeletions);
-        if (record.state === 'ARCHIVED' || record.state === 'DELETED') {
-          setError('Hồ sơ đã được lưu trữ trên máy chủ.');
-        } else {
-          setError('Máy chủ chưa xác nhận thay đổi trạng thái. Hồ sơ vẫn bị khóa trong ứng dụng.');
-        }
+        setError('Máy chủ chưa xác nhận thay đổi trạng thái xóa. Hồ sơ vẫn bị khóa trong ứng dụng.');
       }
     } catch (cause) {
       setError(safeProfileActionError(cause));
@@ -1517,7 +1471,6 @@ export function useParentController(application: ParentApplicationModule) {
   return {
     step, setStep, currentUser, profiles, profile, setProfile, selectedProfileId, profileBeingEdited, setProfileBeingEdited,
     pendingDeletions, pendingDeletionLoadingId, profileFieldErrors, consentState,
-    profileConsentPolicy, profileConsentPolicyBusy, profileConsentPolicyError, loadProfileConsentPolicy,
     publicSettings: application.publicSettings,
     activeRun, topic, setTopic, idea, setIdea, lesson, setLesson, lessons, lessonLoading, lessonLoadingId, lessonError,
     galleryMode, galleryLesson, lessonInvitations, groupInvitations, accountError, guideEnabled, setGuideEnabled,

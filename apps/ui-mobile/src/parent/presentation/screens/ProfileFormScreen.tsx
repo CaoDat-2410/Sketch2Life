@@ -3,14 +3,13 @@ import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'rea
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Field, Notice, ScreenFrame, SecondaryButton } from '../components/ui';
-import type { ConsentPolicy, ParentProfileViewV1 } from '../../domain/types';
+import type { ParentProfileViewV1 } from '../../domain/types';
 import { CHILD_AGE_RANGE_MESSAGE, isSupportedChildAge } from '../../domain/profileRules';
 import type { ProfileFieldMessages } from '../navigation/parentFlowV1';
 import { toParentProfileMutationInput } from '../navigation/workflowTypes';
 import type { ChildGenderDraft } from '../navigation/workflowTypes';
 
 type ProfileFormInput = { displayName: string; ageMonths: number; interests: string };
-type ProfileConsentInput = { consent_accepted: true; consent_policy_version: string };
 
 type Props = {
   mode: 'create' | 'edit';
@@ -18,11 +17,7 @@ type Props = {
   busy: boolean;
   error: string;
   fieldErrors: ProfileFieldMessages;
-  consentPolicy?: ConsentPolicy | null;
-  consentPolicyBusy?: boolean;
-  consentPolicyError?: string;
-  onRetryConsentPolicy?: () => void;
-  onCreate: (input: ProfileFormInput, consent: ProfileConsentInput) => Promise<ParentProfileViewV1>;
+  onCreate: (input: ProfileFormInput) => Promise<ParentProfileViewV1>;
   onUpdate: (input: ProfileFormInput) => Promise<ParentProfileViewV1>;
   onBack: () => void;
 };
@@ -44,27 +39,23 @@ const GENDER_OPTIONS: { value: ChildGenderDraft; label: string }[] = [
   { value: 'prefer_not_to_say', label: 'Không muốn chia sẻ' },
 ];
 
-export function ProfileFormScreen({ mode, profile = null, busy, error, fieldErrors, consentPolicy = null, consentPolicyBusy = false, consentPolicyError = '', onRetryConsentPolicy, onCreate, onUpdate, onBack }: Props): React.JSX.Element {
+export function ProfileFormScreen({ mode, profile = null, busy, error, fieldErrors, onCreate, onUpdate, onBack }: Props): React.JSX.Element {
   const [displayName, setDisplayName] = useState(profile?.display_name ?? '');
   const [ageMonths, setAgeMonths] = useState(profile ? String(profile.age_months) : '');
   const [interests, setInterests] = useState(profile?.interests_summary ?? '');
   const [childGender, setChildGender] = useState<ChildGenderDraft>('');
-  const [acceptedConsentPolicyVersion, setAcceptedConsentPolicyVersion] = useState('');
   const isCreate = mode === 'create';
   const parsedAge = Number(ageMonths);
   const ageValid = isSupportedChildAge(parsedAge);
   const previewName = displayName.trim() || (isCreate ? 'Bé nhà mình' : profile?.display_name ?? 'Hồ sơ của bé');
   const previewAge = ageValid ? `${Math.floor(parsedAge / 12)} tuổi` : 'Từ 3 đến 10 tuổi';
-  const policyReady = Boolean(consentPolicy?.policy_version.trim() && consentPolicy.consent_text.trim());
-  const consentAccepted = Boolean(policyReady && acceptedConsentPolicyVersion === consentPolicy?.policy_version);
-  const submitDisabled = !displayName.trim() || !ageValid || busy || (isCreate && (!policyReady || consentPolicyBusy || !consentAccepted));
+  const submitDisabled = !displayName.trim() || !ageValid || busy;
 
   function submit(): void {
     if (submitDisabled) return;
     const input = toParentProfileMutationInput({ displayName, ageMonths: parsedAge, interests, childGender });
     if (isCreate) {
-      if (!consentPolicy || !consentAccepted) return;
-      void onCreate(input, { consent_accepted: true, consent_policy_version: consentPolicy.policy_version }).catch(() => undefined);
+      void onCreate(input).catch(() => undefined);
     } else {
       void onUpdate(input).catch(() => undefined);
     }
@@ -164,47 +155,6 @@ export function ProfileFormScreen({ mode, profile = null, busy, error, fieldErro
         text="Giới tính chỉ là bản nháp trên thiết bị, không dùng tạo câu chuyện."
         tone="info"
       />
-      {isCreate ? (
-        <View style={styles.consentCard}>
-          <View style={styles.consentHeading}>
-            <Ionicons name="shield-checkmark-outline" size={18} color={formColors.purpleDark} accessible={false} />
-            <Text style={styles.consentTitle}>Quyền xử lý dữ liệu của bé</Text>
-          </View>
-          {consentPolicyBusy ? (
-            <View style={styles.policyLoading}>
-              <ActivityIndicator size="small" color={formColors.purple} />
-              <Text style={styles.policyCopy}>Đang tải nội dung xác nhận…</Text>
-            </View>
-          ) : policyReady && consentPolicy ? (
-            <>
-              <Text style={styles.policyCopy}>{consentPolicy.consent_text}</Text>
-              <TouchableOpacity
-                accessibilityRole="checkbox"
-                accessibilityLabel="Tôi đồng ý với nội dung xử lý dữ liệu của hồ sơ bé"
-                accessibilityState={{ checked: consentAccepted, disabled: busy }}
-                disabled={busy}
-                onPress={() => setAcceptedConsentPolicyVersion(consentAccepted ? '' : consentPolicy.policy_version)}
-                activeOpacity={0.82}
-                style={styles.consentChoice}
-              >
-                <View style={[styles.consentBox, consentAccepted && styles.consentBoxChecked]}>
-                  {consentAccepted ? <Ionicons name="checkmark" size={15} color={formColors.white} accessible={false} /> : null}
-                </View>
-                <Text style={styles.consentChoiceCopy}>Tôi đã đọc và đồng ý</Text>
-              </TouchableOpacity>
-            </>
-          ) : (
-            <View style={styles.policyErrorRow}>
-              <Text style={styles.policyError}>{consentPolicyError || 'Chưa tải được nội dung xác nhận. Hãy thử lại.'}</Text>
-              {onRetryConsentPolicy ? (
-                <TouchableOpacity accessibilityRole="button" onPress={onRetryConsentPolicy} disabled={busy} style={styles.retryPolicyButton}>
-                  <Text style={styles.retryPolicyLabel}>Tải lại</Text>
-                </TouchableOpacity>
-              ) : null}
-            </View>
-          )}
-        </View>
-      ) : null}
       {error ? <Notice text={error} tone="error" /> : null}
 
       <TouchableOpacity
@@ -283,19 +233,6 @@ const styles = StyleSheet.create({
   genderRadioSelected: { borderColor: formColors.purple },
   genderRadioDot: { width: 9, height: 9, borderRadius: 5, backgroundColor: formColors.purple },
   genderOptionLabel: { color: formColors.ink, fontSize: 11, lineHeight: 15, fontWeight: '700', flex: 1, minWidth: 0, flexShrink: 1 },
-  consentCard: { padding: 13, gap: 10, borderWidth: 1.2, borderColor: formColors.lilacLine, borderRadius: 17, backgroundColor: '#FBF8FF' },
-  consentHeading: { minHeight: 24, flexDirection: 'row', alignItems: 'center', gap: 7 },
-  consentTitle: { color: formColors.ink, fontSize: 12, lineHeight: 17, fontWeight: '800', flex: 1 },
-  policyLoading: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 9 },
-  policyCopy: { color: formColors.muted, fontSize: 11, lineHeight: 16, flexShrink: 1 },
-  consentChoice: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  consentBox: { width: 21, height: 21, borderWidth: 1.5, borderColor: '#A99BB2', borderRadius: 6, backgroundColor: formColors.white, alignItems: 'center', justifyContent: 'center' },
-  consentBoxChecked: { borderColor: formColors.purple, backgroundColor: formColors.purple },
-  consentChoiceCopy: { color: formColors.ink, fontSize: 12, lineHeight: 17, fontWeight: '700', flex: 1 },
-  policyErrorRow: { gap: 7 },
-  policyError: { color: '#9B3942', fontSize: 11, lineHeight: 16 },
-  retryPolicyButton: { minHeight: 42, alignSelf: 'flex-start', justifyContent: 'center', paddingHorizontal: 12 },
-  retryPolicyLabel: { color: formColors.purpleDark, fontSize: 12, lineHeight: 16, fontWeight: '800' },
   saveButtonOuter: { minHeight: 54, borderRadius: 17, overflow: 'hidden', shadowColor: formColors.purpleDark, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.19, shadowRadius: 8, elevation: 3 },
   saveButton: { flex: 1, minHeight: 54, paddingHorizontal: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9 },
   saveButtonLabel: { color: formColors.white, fontSize: 14, lineHeight: 19, fontWeight: '800' },
