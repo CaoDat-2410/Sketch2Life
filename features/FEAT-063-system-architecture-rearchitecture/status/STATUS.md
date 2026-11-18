@@ -865,3 +865,16 @@ Parent Sketch Guide and lesson visuals were not dispatched because Modal `dev` s
 - Gate G1: rehearsals 2 to 5 passed 20 of 20; gate attempt 1 was interrupted by an operator action and has no result; gate attempt 2 passed 20 of 20 at commit `67ef7d7c`. The owner accepted the result as "gate G1 passed with deviations DV-1 to DV-19, on the second attempt" for the M2-AT-08 and M2-AT-10 rows of the S3 ledger; the entry is the last one in `approvals/TASK_APPROVAL.md`. Evidence: `evidence/M2_S2_POSTGRES_GATE_G1_EVIDENCE_20261118.md` and its independent review `evidence/M2_S2_POSTGRES_GATE_G1_EVIDENCE_REVIEW_R3_20261118.md`.
 - The gate's test file and launcher are in `backend/tests/integration/` (`test_m2_s2_g1_parent_story_postgres.py`, `m2_s2_g1_launcher.py`); they skip unless run from the owner's gate card. The owner-run driver, the run outputs and the kept containers exist only on the owner's machine.
 - Not started: M2-S3 (Draft 7 was reviewed NOT READY and is not revised; it must take this gate result, the deviations and the repaired defects into its ledgers). Open: M2-AT-09; verification of W3; PG-D7; the earlier Mypy and Ruff debt. Nothing of this work is pushed; draft PR #29 is unchanged on the remote.
+
+## 2026-11-18 — M2-S3 work done; package awaiting independent review
+
+- Planning records committed as `7950d303` (D-210 to D-213, S3 Drafts 8 to 11, review records R1 to R4, the S3 approval under D-213 item 7); not pushed.
+- S3 outputs written and checked, uncommitted: the two frozen schema copies under `artifacts/m2-s3/`, the operation inventory and contract freeze, the acceptance-test ledger, the limitation ledger and the closeout report under `evidence/` (dated 2026-11-18), and one `.gitattributes` line.
+- M2 is NOT closed. Next: independent review of the S3 package (Sonnet 5.5 high), then the owner's decisions on S3 acceptance, M2 closure, the S3 commit, push and the merge of PR #29.
+- `validate_skeleton` reports a pre-existing Android `applicationId` condition unrelated to S3 (recorded in the approval entry).
+
+## 2026-11-18 — M2-S3 ACCEPTED; M2 CLOSED with recorded debt and deviations
+
+- Independent cold review of the S3 package (Sonnet 5.5 high): READY WITH NOTES, 0 P1 / 0 P2 / 6 P3, recorded in `approvals/TASK_APPROVAL.md`.
+- The owner accepted S3 ("Nhận S3") and closed M2 ("Đóng M2") with recorded debt and deviations; the five departures, the open OpenAPI P3 gate, M2-AT-09 DEFERRED, NFR-36/NFR-38 PARTIAL and K3 NOT VERIFIED are stated in the closure entry. Client integration: per operation for eight Parent target operations; not for the cancel operation; blocked for the three assistance operations.
+- The S3 outputs are committed in one commit on the owner's instruction; not pushed; draft PR #29 not merged. M3 and later milestones are not opened.

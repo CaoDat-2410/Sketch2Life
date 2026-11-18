@@ -749,3 +749,15 @@ The owner authorized substantive documentation updates for G01–G10 and explici
 - Gate G1: rehearsals 2 to 5 passed 20 of 20; gate attempt 1 was interrupted by an operator action and has no result; gate attempt 2 passed 20 of 20 at commit `67ef7d7c`. The owner accepted the result as "gate G1 passed with deviations DV-1 to DV-19, on the second attempt" for the M2-AT-08 and M2-AT-10 rows of the S3 ledger; the entry is the last one in `approvals/TASK_APPROVAL.md`. Evidence: `evidence/M2_S2_POSTGRES_GATE_G1_EVIDENCE_20261118.md` and its independent review `evidence/M2_S2_POSTGRES_GATE_G1_EVIDENCE_REVIEW_R3_20261118.md`.
 - The gate's test file and launcher are in `backend/tests/integration/` (`test_m2_s2_g1_parent_story_postgres.py`, `m2_s2_g1_launcher.py`); they skip unless run from the owner's gate card. The owner-run driver, the run outputs and the kept containers exist only on the owner's machine.
 - Not started: M2-S3 (Draft 7 was reviewed NOT READY and is not revised; it must take this gate result, the deviations and the repaired defects into its ledgers). Open: M2-AT-09; verification of W3; PG-D7; the earlier Mypy and Ruff debt. Nothing of this work is pushed; draft PR #29 is unchanged on the remote.
+
+## 2026-11-18 — M2-S3 work done; package awaiting independent review
+
+- S3 (documentation only) ran under Draft 11, approved under D-213 item 7, on base commit `7950d303`. Outputs: frozen runtime and client-projection schema copies (`artifacts/m2-s3/`), `evidence/M2_S3_OPERATION_INVENTORY_AND_CONTRACT_FREEZE_20261118.md`, `evidence/M2_S3_ACCEPTANCE_TEST_LEDGER_20261118.md`, `evidence/M2_S3_LIMITATION_LEDGER_20261118.md`, `evidence/M2_S3_CLOSEOUT_REPORT_20261118.md`. Uncommitted.
+- The OpenAPI P3 gate stays OPEN; M2-AT-09 DEFERRED with the client-integration block on the three assistance operations; client integration with the Parent target operations is per operation (the cancel operation not yet, being absent from the client-facing projection).
+- M2 is not closed; that is the owner's decision after the independent review of the package.
+
+## 2026-11-18 — M2 CLOSED with recorded debt and deviations
+
+- The owner accepted M2-S3 and closed M2 with recorded debt and deviations after an independent package review (READY WITH NOTES, 0 P1 / 0 P2). The closure entry in `approvals/TASK_APPROVAL.md` states the five departures from the foundation-plan baseline and what stays open; `evidence/M2_S3_LIMITATION_LEDGER_20261118.md` holds the debt with an owner or phase per item.
+- The frozen M2 contract is `artifacts/m2-s3/openapi-runtime-frozen.json` with its client projection; client integration is allowed per operation for eight Parent target operations, not for the cancel operation, and blocked for the three assistance operations until the OpenAPI P3 gate and a PostgreSQL gate for M2-AT-09.
+- Nothing is pushed; draft PR #29 is not merged. M3 is not opened.
