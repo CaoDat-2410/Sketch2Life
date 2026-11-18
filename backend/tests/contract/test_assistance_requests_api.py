@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
+from types import SimpleNamespace
 from typing import Any
 
 import pytest
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from sketch2life.contracts.schemas.ai_jobs import CollaborationErrorV1
 from sketch2life.contracts.schemas.assistance_requests import AssistanceReceiptEnvelopeV1
+from sketch2life.domain.assistance import RequestStatus, TargetKind
 from sketch2life.infrastructure.assistance.harness import (
     CANVAS_P,
     CHILD_A,
@@ -24,6 +27,8 @@ from sketch2life.interfaces.http.ai_jobs_fixture_app import route_surface
 from sketch2life.interfaces.http.assistance_requests_fixture_app import (
     create_assistance_requests_fixture_app,
 )
+import sketch2life.interfaces.http.routers.pilot_assistance as pilot_assistance
+from sketch2life.interfaces.http.be1_runtime import get_verified_device_status
 from sketch2life.interfaces.http.routers.assistance_requests import MAX_BODY_BYTES
 
 PREFIX = "/api/collaboration/v1"
@@ -110,6 +115,63 @@ def test_teacher_cancel_returns_teacher_record(client: TestClient, h: Assistance
     stale = post(client, "teacher", {}, key="c3",
                  path=f"/assistance-requests/{assistance_id}/cancel", if_match=etag)
     assert stale.status_code == 412 and error_code(stale) == "STALE_AGGREGATE"
+
+
+def test_child_status_read_returns_only_the_existing_coarse_compatibility_view(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    organization_id = "org-fx-1"
+    session_id = "session-fx-1"
+    assistance_id = "assistance-fx-1"
+    runtime = SimpleNamespace(engine=None, pilot_job_repository=None)
+    context = SimpleNamespace(
+        grant=SimpleNamespace(
+            organization_id=organization_id,
+            session_id=session_id,
+            grant_id="grant-fx-1",
+        ),
+        membership=SimpleNamespace(child_id="child-fx-1", group_id="group-fx-1"),
+    )
+    request = SimpleNamespace(
+        assistance_id=assistance_id,
+        request_revision=1,
+        status=RequestStatus.SCHEDULED,
+        facts=SimpleNamespace(
+            organization_id=organization_id,
+            session_id=session_id,
+            group_id="group-fx-1",
+            canvas_id="group-fx-1",
+            target=SimpleNamespace(kind=TargetKind.INDIVIDUAL, ref_id="child-fx-1"),
+        ),
+        requester=SimpleNamespace(principal_id="device:grant-fx-1"),
+    )
+    monkeypatch.setattr(pilot_assistance, "_read_request", lambda *_args: request)
+    monkeypatch.setattr(
+        pilot_assistance,
+        "_job_processing_state",
+        lambda *_args, **_kwargs: "processing",
+    )
+    application = FastAPI()
+    application.include_router(pilot_assistance.router)
+    application.dependency_overrides[pilot_assistance._require_pilot_runtime] = lambda: runtime
+    application.dependency_overrides[get_verified_device_status] = lambda: context
+
+    with TestClient(application) as test_client:
+        response = test_client.get(
+            f"/api/be1/v1/organizations/{organization_id}/sessions/{session_id}"
+            f"/assistance-requests/{assistance_id}/status"
+        )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "assistance_id": assistance_id,
+        "request_revision": 1,
+        "status": "pending",
+        "processing_state": "processing",
+        "poll_after_ms": 2000,
+    }
+    assert response.headers["cache-control"] == "no-store"
+    assert response.headers["vary"] == "Authorization"
 
 
 @pytest.mark.parametrize(("who", "key", "payload", "status", "code"), [
