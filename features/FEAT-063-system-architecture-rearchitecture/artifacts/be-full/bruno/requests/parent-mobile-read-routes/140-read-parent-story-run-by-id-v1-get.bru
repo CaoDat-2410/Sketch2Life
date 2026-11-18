@@ -1,0 +1,33 @@
+meta {
+  name: 140 [READ ONLY] Read Parent StoryRun by ID
+  type: http
+  seq: 140
+}
+
+get {
+  url: {{baseUrl}}/v1/story-runs/{{parent_story_run_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+}
+
+script:post-response {
+  test("returns the requested Parent StoryRun envelope", function () {
+    expect(res.getStatus()).to.equal(200);
+    const body = res.getBody();
+    expect(body).to.be.an("object");
+    expect(body.request_id).to.be.a("string");
+    expect(body.story_run).to.be.an("object");
+    expect(body.story_run.run_id).to.be.a("string");
+    expect(body.story_run.run_state).to.be.a("string");
+    expect(body.story_run.context_confirmed).to.be.a("boolean");
+    expect(body.story_run.parent_profile_id).to.be.a("string");
+  });
+}

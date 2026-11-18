@@ -65,3 +65,69 @@ features/FEAT-057-be2-01-14-offline-integration/evidence/notes/BE2_07_01_08_PERS
 # Preserve byte-level hashes of FEAT-081 Wave R plans pinned by SHA-256 in the FEAT-081 decisions, approvals and reports (CRLF and trailing blank line as approved).
 features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_5.md -text whitespace=cr-at-eol,-blank-at-eof
 features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_7.md -text whitespace=cr-at-eol,-blank-at-eof
+# Preserve byte-level hash of the M2 S2 Draft 11 cold review (one CRLF line) pinned by SHA-256 in S2 Drafts 12 to 16.
+features/FEAT-063-system-architecture-rearchitecture/evidence/M2_S2_DRAFT11_COLD_REVIEW_20261113.md -text whitespace=cr-at-eol
+# Preserve byte-level hash of the M2 S2 Draft 10 cold review (trailing blank line) pinned by SHA-256 in S2 Drafts 11 to 16.
+features/FEAT-063-system-architecture-rearchitecture/evidence/M2_S2_DRAFT10_COLD_REVIEW_20261113.md whitespace=-blank-at-eof
+# Preserve the adopted Rev67 SRS CRLF bytes referenced by D-203.
+features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md -text -eol whitespace=cr-at-eol,-blank-at-eof,-blank-at-eol
+# Preserve pinned cold-review report hashes with intentional Markdown hard-line breaks.
+features/FEAT-063-system-architecture-rearchitecture/evidence/M2_S2_IMPLEMENTATION_ALLOWLIST_COLD_REVIEW_20261114.md whitespace=-blank-at-eol
+features/FEAT-063-system-architecture-rearchitecture/evidence/M2_S2_IMPLEMENTATION_ALLOWLIST_COLD_REVIEW_R2_20261114.md whitespace=-blank-at-eol
+# Preserve the reviewed CRLF bytes of the approved M2-S2 mapper Task Approval Draft 1 (SHA-256 pinned in the FEAT-063 approval record) and of its R2 review.
+features/FEAT-063-system-architecture-rearchitecture/plan/M2_S2_SHARED_OPENAPI_MAPPER_TASK_APPROVAL_DRAFT1_20261116.md -text whitespace=cr-at-eol,-blank-at-eof,-blank-at-eol
+features/FEAT-063-system-architecture-rearchitecture/evidence/M2_S2_SHARED_OPENAPI_MAPPER_TASK_APPROVAL_DRAFT1_COLD_REVIEW_R2_20261116.md -text whitespace=cr-at-eol,-blank-at-eof,-blank-at-eol
+# Keep the bytes of hash-pinned 2026-11-14 to 2026-11-16 planning and review records: Markdown hard line breaks and final blank lines are intentional.
+features/FEAT-047-be1-runtime-backend/evidence/OPENAPI_ARTIFACT_UPLOAD_DESCRIPTION_FIX_EVIDENCE_20261114.md whitespace=-blank-at-eol
+features/FEAT-063-system-architecture-rearchitecture/evidence/FR_C08_DRAFT3_DRAFT5_COLD_REVIEW_20261116.md whitespace=-blank-at-eol
+features/FEAT-063-system-architecture-rearchitecture/evidence/FR_C08_M2_BASELINE_SNAPSHOT_20261115.md whitespace=-blank-at-eof
+features/FEAT-063-system-architecture-rearchitecture/evidence/FR_C08_PARENT_TEACHER_CANCEL_PURGE_ALLOWLIST_DRAFT2_COLD_REVIEW_20261115.md whitespace=-blank-at-eol
+features/FEAT-063-system-architecture-rearchitecture/evidence/FR_C08_PARENT_TEACHER_CANCEL_PURGE_ALLOWLIST_DRAFT3_COLD_REVIEW_20261115.md whitespace=-blank-at-eol
+features/FEAT-063-system-architecture-rearchitecture/evidence/FR_C08_READINESS_ADDENDUM_DRAFT1_COLD_REVIEW_CAPTURE_20261115.md whitespace=-blank-at-eol,-blank-at-eof
+features/FEAT-063-system-architecture-rearchitecture/evidence/FR_C08_ROUTE_AND_READINESS_DRAFT2_COLD_REVIEW_20261115.md whitespace=-blank-at-eol
+features/FEAT-063-system-architecture-rearchitecture/evidence/M2_S2_IMPLEMENTATION_REPORT_20261114.md whitespace=-blank-at-eol
+features/FEAT-063-system-architecture-rearchitecture/evidence/M2_S2_OUT_OF_SCOPE_OPENAPI_FINDING_20261114.md whitespace=-blank-at-eol
+features/FEAT-063-system-architecture-rearchitecture/evidence/M2_S2_SHARED_OPENAPI_MAPPER_FIX_DRAFT10_COLD_REVIEW_20261116.md whitespace=-blank-at-eol
+features/FEAT-063-system-architecture-rearchitecture/evidence/M2_S2_SHARED_OPENAPI_MAPPER_FIX_DRAFT9_COLD_REVIEW_20261116.md whitespace=-blank-at-eol
+features/FEAT-063-system-architecture-rearchitecture/evidence/M3_M6_ROADMAP_DRAFT1_INDEPENDENT_REVIEW_CAPTURE_20261115.md whitespace=-blank-at-eol
+features/FEAT-063-system-architecture-rearchitecture/evidence/M3_M6_ROADMAP_DRAFT2_INDEPENDENT_REVIEW_CAPTURE_20261115.md whitespace=-blank-at-eol
+features/FEAT-063-system-architecture-rearchitecture/evidence/M3_M6_ROADMAP_DRAFT3_INDEPENDENT_REVIEW_CAPTURE_20261115.md whitespace=-blank-at-eol
+features/FEAT-063-system-architecture-rearchitecture/plan/FR_C08_DELETE_ROUTE_SCOPE_CORRECTION_DRAFT1_20261115.md whitespace=-blank-at-eol,-blank-at-eof
+features/FEAT-063-system-architecture-rearchitecture/plan/FR_C08_IMPLEMENTATION_READINESS_ADDENDUM_DRAFT1_20261115.md whitespace=-blank-at-eol
+features/FEAT-063-system-architecture-rearchitecture/plan/FR_C08_IMPLEMENTATION_READINESS_ADDENDUM_DRAFT2_20261115.md whitespace=-blank-at-eol,-blank-at-eof
+features/FEAT-063-system-architecture-rearchitecture/plan/FR_C08_PARENT_TEACHER_LIFECYCLE_CONTRACT_DRAFT1_20261115.md whitespace=-blank-at-eol
+features/FEAT-063-system-architecture-rearchitecture/plan/FR_C08_PARENT_TEACHER_LIFECYCLE_CONTRACT_DRAFT2_20261115.md whitespace=-blank-at-eol
+features/FEAT-063-system-architecture-rearchitecture/plan/M2_S2_SHARED_OPENAPI_MAPPER_FIX_DRAFT10_20261116.md whitespace=-blank-at-eol
+features/FEAT-063-system-architecture-rearchitecture/plan/M2_S2_SHARED_OPENAPI_MAPPER_FIX_DRAFT4_20261116.md whitespace=-blank-at-eol
+features/FEAT-063-system-architecture-rearchitecture/plan/M2_S2_SHARED_OPENAPI_MAPPER_FIX_DRAFT5_20261116.md whitespace=-blank-at-eol
+features/FEAT-063-system-architecture-rearchitecture/plan/M2_S2_SHARED_OPENAPI_MAPPER_FIX_DRAFT6_20261116.md whitespace=-blank-at-eol,-blank-at-eof
+features/FEAT-063-system-architecture-rearchitecture/plan/M2_S2_SHARED_OPENAPI_MAPPER_FIX_DRAFT7_20261116.md whitespace=-blank-at-eol
+features/FEAT-063-system-architecture-rearchitecture/plan/M2_S2_SHARED_OPENAPI_MAPPER_FIX_DRAFT8_20261116.md whitespace=-blank-at-eol
+features/FEAT-063-system-architecture-rearchitecture/plan/M2_S2_SHARED_OPENAPI_MAPPER_FIX_DRAFT9_20261116.md whitespace=-blank-at-eol
+features/FEAT-063-system-architecture-rearchitecture/plan/M2_S3_TASK_APPROVAL_DRAFT6_20261116.md whitespace=-blank-at-eol
+features/FEAT-063-system-architecture-rearchitecture/plan/M3_M6_SRS_ALIGNED_ROADMAP_ADDENDUM_DRAFT1_20261115.md whitespace=-blank-at-eol
+features/FEAT-063-system-architecture-rearchitecture/plan/M3_M6_SRS_ALIGNED_ROADMAP_ADDENDUM_DRAFT2_20261115.md whitespace=-blank-at-eol,-blank-at-eof
+features/FEAT-063-system-architecture-rearchitecture/plan/M3_M6_SRS_ALIGNED_ROADMAP_ADDENDUM_DRAFT3_20261116.md whitespace=-blank-at-eol
+features/FEAT-063-system-architecture-rearchitecture/plan/M3_M6_SRS_ALIGNED_ROADMAP_DRAFT1_20261115.md whitespace=-blank-at-eol
+features/FEAT-063-system-architecture-rearchitecture/plan/M3_M6_SRS_ALIGNED_ROADMAP_DRAFT2_20261115.md whitespace=-blank-at-eol
+features/FEAT-063-system-architecture-rearchitecture/plan/M3_M6_SRS_ALIGNED_ROADMAP_DRAFT3_20261115.md whitespace=-blank-at-eol
+features/FEAT-063-system-architecture-rearchitecture/artifacts/m2-s3/*.json -text whitespace=cr-at-eol
+
+# FEAT-066 Manager API planning records: content pinned by SHA-256 in reviews; keep bytes as written (2026-11-18)
+features/FEAT-066-fe-ui-srs-full-review/evidence/notes/MGR_2_CLASS_CAPACITY_CONTRACT_DRAFT1_20261117.md whitespace=-blank-at-eol,-blank-at-eof
+features/FEAT-066-fe-ui-srs-full-review/evidence/notes/MGR_2_COLD_REVIEW_OWNER_DISPOSITION_20261117.md whitespace=-blank-at-eol,-blank-at-eof
+features/FEAT-066-fe-ui-srs-full-review/evidence/notes/MGR_3_COLD_REVIEW_DRAFT1_20261117.md whitespace=-blank-at-eol,-blank-at-eof
+features/FEAT-066-fe-ui-srs-full-review/evidence/notes/MGR_3_COLD_REVIEW_DRAFT1_R2_20261117.md whitespace=-blank-at-eol,-blank-at-eof
+features/FEAT-066-fe-ui-srs-full-review/evidence/notes/MGR_3_TEACHER_CANDIDATE_ASSIGNMENT_CONTRACT_DRAFT1_20261117.md whitespace=-blank-at-eol,-blank-at-eof
+features/FEAT-066-fe-ui-srs-full-review/evidence/notes/MGR_4_COLD_REVIEW_DRAFT1_20261117.md -text whitespace=cr-at-eol,-blank-at-eol,-blank-at-eof
+features/FEAT-066-fe-ui-srs-full-review/evidence/notes/MGR_4_PARENT_GROUP_INVITATION_MEMBERSHIP_CONTRACT_DRAFT1_20261117.md -text whitespace=cr-at-eol,-blank-at-eol,-blank-at-eof
+features/FEAT-066-fe-ui-srs-full-review/evidence/notes/MGR_5_MGR_6_COLD_REVIEW_DRAFT1_20261117.md whitespace=-blank-at-eol,-blank-at-eof
+features/FEAT-066-fe-ui-srs-full-review/evidence/notes/MGR_6_COLD_REVIEW_DRAFT1_R3_20261117.md whitespace=-blank-at-eol,-blank-at-eof
+features/FEAT-066-fe-ui-srs-full-review/evidence/phase-a/BRUNO_COVERAGE_INVENTORY_DRAFT1_20261118.md whitespace=-blank-at-eol,-blank-at-eof
+features/FEAT-066-fe-ui-srs-full-review/evidence/phase-a/MOBILE_PARENT_API_AUDIT_DRAFT1_20261118.md whitespace=-blank-at-eol,-blank-at-eof
+features/FEAT-066-fe-ui-srs-full-review/evidence/phase-a/WEB_API_SRS_AUDIT_DRAFT1_20261118.md whitespace=-blank-at-eol,-blank-at-eof
+features/FEAT-066-fe-ui-srs-full-review/plan/PLAN_MGR2_CLASS_CAPACITY_CONTRACT_DRAFT1_20261117.md whitespace=-blank-at-eol,-blank-at-eof
+features/FEAT-066-fe-ui-srs-full-review/plan/PLAN_MGR4_PARENT_GROUP_INVITATION_MEMBERSHIP_CONTRACT_DRAFT1_20261117.md -text whitespace=cr-at-eol,-blank-at-eol,-blank-at-eof
+features/FEAT-066-fe-ui-srs-full-review/plan/PLAN_MGR5_CONSENT_POLICY_CONTRACT_DRAFT1_20261117.md whitespace=-blank-at-eol,-blank-at-eof
+features/FEAT-066-fe-ui-srs-full-review/plan/PLAN_MGR6_IMMUTABLE_LESSON_VERSION_REVIEW_CONTRACT_DRAFT1_20261117.md whitespace=-blank-at-eol,-blank-at-eof
+features/FEAT-066-fe-ui-srs-full-review/plan/PLAN_MGR7_BE_IMPLEMENTATION_APPROVAL_PACKAGE_DRAFT1_20261118.md whitespace=-blank-at-eol,-blank-at-eof

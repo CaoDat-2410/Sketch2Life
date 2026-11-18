@@ -275,7 +275,11 @@ def _decode_image(content: bytes, declared_type: str) -> None:
         raise failure(415, "MEDIA_TYPE_MISMATCH", "Declared media type does not match image bytes")
 
 
-@router.post("/organizations/{organization_id}/sessions/{session_id}/artifacts", status_code=201)
+@router.post(
+    "/organizations/{organization_id}/sessions/{session_id}/artifacts",
+    status_code=201,
+    description="Tải một tệp kết quả hoặc tư liệu vào buổi học của tổ chức.",
+)
 async def upload_session_artifact(
     organization_id: str,
     session_id: str,

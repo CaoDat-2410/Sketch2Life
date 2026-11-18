@@ -10,7 +10,7 @@ import hashlib
 import json
 from io import BytesIO
 from math import isfinite
-from typing import Annotated
+from typing import Annotated, Any, Literal
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, Response
@@ -25,7 +25,10 @@ from sketch2life.application.ports.lesson_documents import (
     MalwareScannerUnavailable,
 )
 from sketch2life.application.ports.object_storage import ObjectStorageFailure
-from sketch2life.application.ports.parent_story_runs import ParentStoryRunError
+from sketch2life.application.ports.parent_story_runs import (
+    ParentStoryRunError,
+    ParentStoryRunRecord,
+)
 from sketch2life.application.services.parent_story_runs import (
     ParentStoryRunService,
     ParentStoryRunServiceError,
@@ -120,9 +123,10 @@ def _story_service(db: Session) -> ParentStoryRunService:
     )
 
 
-def _story_response(record) -> ParentStoryRunResponseV1:
+def _story_response(record: ParentStoryRunRecord) -> ParentStoryRunResponseV1:
     return ParentStoryRunResponseV1(
         run_id=record.run_id,
+        run_revision=record.run_revision,
         run_state=record.run_state,
         parent_profile_id=record.parent_profile_id,
         profile_revision_ref=record.profile_revision_ref,
@@ -146,6 +150,23 @@ def _story_response(record) -> ParentStoryRunResponseV1:
         created_at=record.created_at,
         updated_at=record.updated_at,
     )
+
+
+def _fail_story_run(
+    repository: SqlParentStoryRunRepository,
+    *,
+    operation: Literal["drawing", "story"],
+    **kwargs: Any,
+) -> None:
+    try:
+        if operation == "drawing":
+            repository.fail_drawing_analysis(**kwargs)
+        else:
+            repository.fail_story_revision(**kwargs)
+    except ParentStoryRunError as exc:
+        if exc.code == "INVALID_STATE_TRANSITION":
+            raise HTTPException(status_code=exc.status_code, detail={"code": exc.code}) from None
+        raise
 
 
 @router.post("/sketch-guides", summary="Generate an optional generic line-sketch guide")
@@ -309,7 +330,9 @@ def analyze_drawing(
     except (ModalFunctionOutcomeUnknown, ModalFunctionExecutionFailed) as exc:
         code = "DRAWING_OUTCOME_UNKNOWN" if isinstance(exc, ModalFunctionOutcomeUnknown) else exc.code
         try:
-            repository.fail_drawing_analysis(
+            _fail_story_run(
+                repository,
+                operation="drawing",
                 principal=principal,
                 run_id=run_id,
                 error_code=code,
@@ -327,7 +350,9 @@ def analyze_drawing(
         )
         unknown = ModalFunctionOutcomeUnknown()
         try:
-            repository.fail_drawing_analysis(
+            _fail_story_run(
+                repository,
+                operation="drawing",
                 principal=principal,
                 run_id=run_id,
                 error_code="MODAL_ADAPTER_OUTCOME_UNKNOWN",
@@ -339,7 +364,9 @@ def analyze_drawing(
 
     raw_candidate = result.output.get("result")
     if not isinstance(raw_candidate, dict) or raw_candidate.get("adult_confirmation_required") is not True:
-        repository.fail_drawing_analysis(
+        _fail_story_run(
+            repository,
+            operation="drawing",
             principal=principal,
             run_id=run_id,
             error_code="MODAL_OUTPUT_CONTRACT_INVALID",
@@ -360,7 +387,9 @@ def analyze_drawing(
         or not isfinite(float(confidence_value))
         or not 0 <= float(confidence_value) <= 1
     ):
-        repository.fail_drawing_analysis(
+        _fail_story_run(
+            repository,
+            operation="drawing",
             principal=principal,
             run_id=run_id,
             error_code="MODAL_OUTPUT_CONTRACT_INVALID",
@@ -459,7 +488,9 @@ def generate_story_revision(
         )
     except (ModalFunctionOutcomeUnknown, ModalFunctionExecutionFailed) as exc:
         code = "STORY_OUTCOME_UNKNOWN" if isinstance(exc, ModalFunctionOutcomeUnknown) else exc.code
-        repository.fail_story_revision(
+        _fail_story_run(
+            repository,
+            operation="story",
             principal=principal,
             reservation=reservation,
             error_code=code,
@@ -467,7 +498,9 @@ def generate_story_revision(
         )
         raise _provider_error(exc, request_id=request_id, workload="story.generate") from None
     except ValueError:
-        repository.fail_story_revision(
+        _fail_story_run(
+            repository,
+            operation="story",
             principal=principal,
             reservation=reservation,
             error_code="STORY_INPUT_CONTRACT_INVALID",
@@ -484,7 +517,9 @@ def generate_story_revision(
             workload="story.generate",
             exception_type=type(exc).__name__,
         )
-        repository.fail_story_revision(
+        _fail_story_run(
+            repository,
+            operation="story",
             principal=principal,
             reservation=reservation,
             error_code="STORY_OUTCOME_UNKNOWN",
@@ -511,7 +546,9 @@ def generate_story_revision(
             }
             else "STORY_OUTPUT_INVALID"
         )
-        repository.fail_story_revision(
+        _fail_story_run(
+            repository,
+            operation="story",
             principal=principal,
             reservation=reservation,
             error_code=code,
@@ -527,15 +564,20 @@ def generate_story_revision(
             separators=(",", ":"),
         ).encode("utf-8")
     ).hexdigest()
-    record = repository.complete_story_revision(
-        reservation=reservation,
-        principal=principal,
-        story=normalized_story,
-        story_sha256=story_hash,
-        provider_call_id=modal_call_id,
-        model_id=STORY_MODEL_ID,
-        model_revision=STORY_MODEL_REVISION,
-    )
+    try:
+        record = repository.complete_story_revision(
+            reservation=reservation,
+            principal=principal,
+            story=normalized_story,
+            story_sha256=story_hash,
+            provider_call_id=modal_call_id,
+            model_id=STORY_MODEL_ID,
+            model_revision=STORY_MODEL_REVISION,
+        )
+    except ParentStoryRunError as exc:
+        if exc.code != "INVALID_STATE_TRANSITION":
+            raise
+        raise HTTPException(status_code=exc.status_code, detail={"code": exc.code}) from None
     _LOGGER.info(
         "parent_modal_request_completed",
         request_id=request_id,

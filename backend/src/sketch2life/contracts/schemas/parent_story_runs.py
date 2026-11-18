@@ -29,6 +29,12 @@ class ParentStoryRunCreateRequestV1(BaseModel):
     lesson_version: ParentLessonVersionRefV1 | None = None
 
 
+class ParentStoryRunCancelRequestV1(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    expected_revision: int = Field(ge=1)
+
+
 class ParentRunContextSnapshotV1(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
 
@@ -103,6 +109,7 @@ class ParentStoryDisplayV1(BaseModel):
 
 class ParentStoryRunResponseV1(BaseModel):
     run_id: UUID
+    run_revision: int = Field(ge=1)
     run_state: Literal[
         "INPUT_PROCESSING", "SUBJECT_REVIEW", "PREPARATION_REVIEW", "SCRIPT_GENERATING",
         "SCRIPT_GENERATION_UNKNOWN", "SCRIPT_REVIEW", "VIDEO_ADMISSION_PENDING",
@@ -138,6 +145,12 @@ class ParentStoryRunEnvelopeV1(BaseModel):
     story_run: ParentStoryRunResponseV1
 
 
+class ParentStoryRunCancelEnvelopeV1(BaseModel):
+    request_id: UUID
+    story_run: ParentStoryRunResponseV1
+    purge_state: Literal["PENDING"]
+
+
 class ParentStoryErrorFieldV1(BaseModel):
     field: str
     code: str
@@ -151,6 +164,10 @@ class ParentStoryErrorEnvelopeV1(BaseModel):
     retryable: bool
     retry_after_seconds: int | None = None
     field_errors: list[ParentStoryErrorFieldV1] | None = None
+
+
+class ParentStoryCancelErrorEnvelopeV1(ParentStoryErrorEnvelopeV1):
+    current_version: int | None = Field(default=None, ge=1)
 
 
 class ParentActiveStoryRunEnvelopeV1(BaseModel):
@@ -208,6 +225,9 @@ __all__ = [
     "ParentStorySectionsV1",
     "ParentActiveStoryRunEnvelopeV1",
     "ParentStoryRunCreateRequestV1",
+    "ParentStoryRunCancelRequestV1",
+    "ParentStoryRunCancelEnvelopeV1",
+    "ParentStoryCancelErrorEnvelopeV1",
     "ParentStoryRunEnvelopeV1",
     "ParentStoryRunResponseV1",
     "ParentSubjectConfirmationRequestV1",

@@ -1,0 +1,44 @@
+meta {
+  name: 137 [READ ONLY] List Parent Profiles (FEAT-081 mobile route)
+  type: http
+  seq: 137
+}
+
+get {
+  url: {{baseUrl}}/v1/parent/profiles
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+}
+
+script:post-response {
+  test("returns a Parent profile collection envelope", function () {
+    expect(res.getStatus()).to.equal(200);
+    const body = res.getBody();
+    expect(body).to.be.an("object");
+    expect(body.request_id).to.be.a("string");
+    expect(body.items).to.be.an("array");
+    expect(body).to.have.property("next_cursor");
+    expect(body.next_cursor === null || typeof body.next_cursor === "string").to.equal(true);
+  });
+
+  test("each profile item uses the flat Parent profile view", function () {
+    const body = res.getBody();
+    for (const item of body.items) {
+      expect(item.profile_id).to.be.a("string");
+      expect(item.revision_no).to.be.a("number");
+      expect(item.revision_hash).to.be.a("string");
+      expect(item.display_name).to.be.a("string");
+      expect(item.age_months).to.be.a("number");
+      expect(item.state).to.be.a("string");
+      expect(item.data_origin).to.be.a("string");
+    }
+  });
+}
