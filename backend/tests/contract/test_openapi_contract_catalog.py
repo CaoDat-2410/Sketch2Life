@@ -17,6 +17,7 @@ from sketch2life.infrastructure.config.settings import (
 )
 from sketch2life.interfaces.http.app import create_app
 from sketch2life.interfaces.http.openapi_contract import (
+    IDEMPOTENCY_MISMATCH_OPERATION_KEYS,
     MOUNTED_OPERATION_COUNT,
     MOUNTED_OPERATIONS,
     TAG_DESCRIPTIONS,
@@ -37,6 +38,31 @@ from sketch2life.interfaces.http.openapi_srs_v22 import (
 )
 
 HTTP_METHODS = {"get", "post", "put", "patch", "delete", "options", "head"}
+EXPECTED_IDEMPOTENCY_MISMATCH_OPERATION_KEYS = {
+    ("post", "/api/lesson-library/v1/me/lesson-invitations/{access_grant_id}/accept"),
+    ("post", "/api/lesson-library/v1/me/lesson-invitations/{access_grant_id}/decline"),
+    ("post", "/api/lesson-library/v1/me/parent-group-invitations/{membership_id}/accept"),
+    (
+        "post",
+        "/api/lesson-library/v1/organizations/{organization_id}/access-grants/{access_grant_id}/decision",
+    ),
+    ("post", "/api/lesson-library/v1/organizations/{organization_id}/lessons"),
+    (
+        "post",
+        "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}/access-grants",
+    ),
+    (
+        "post",
+        "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}/upload-sessions",
+    ),
+    ("post", "/api/lesson-library/v1/organizations/{organization_id}/parent-groups"),
+    (
+        "post",
+        "/api/lesson-library/v1/organizations/{organization_id}/parent-groups/{parent_group_id}/invitations",
+    ),
+    ("patch", "/api/lesson-library/v1/platform/lessons/{lesson_id}/moderation"),
+    ("post", "/api/lesson-library/v1/upload-sessions/{upload_session_id}/complete"),
+}
 
 
 @pytest.fixture(autouse=True)
@@ -432,6 +458,37 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
     candidate_keys = {(item["method"], item["path"]) for item in UNMOUNTED_OPERATIONS}
     assert len(candidate_keys) == UNMOUNTED_OPERATION_COUNT == 11
     assert not candidate_keys.intersection(operations)
+
+    for list_key in (
+        (
+            "get",
+            "/api/lesson-library/v1/organizations/{organization_id}/access-grants",
+        ),
+        (
+            "get",
+            "/api/lesson-library/v1/organizations/{organization_id}/parent-groups",
+        ),
+    ):
+        limit_parameter = next(
+            parameter
+            for parameter in operations[list_key]["parameters"]
+            if parameter["in"] == "query" and parameter["name"] == "limit"
+        )
+        assert limit_parameter["schema"]["default"] == 25
+        assert limit_parameter["schema"]["minimum"] == 1
+        assert limit_parameter["schema"]["maximum"] == 100
+
+    for operation_key in IDEMPOTENCY_MISMATCH_OPERATION_KEYS:
+        mismatch_response = operations[operation_key]["responses"]["400"]
+        assert "INVALID_IDEMPOTENCY_KEY" in mismatch_response["description"]
+        assert "Be1Error" in _schema_refs(
+            mismatch_response["content"]["application/json"]["schema"]
+        )
+    assert len(IDEMPOTENCY_MISMATCH_OPERATION_KEYS) == 11
+    assert set(IDEMPOTENCY_MISMATCH_OPERATION_KEYS) == (
+        EXPECTED_IDEMPOTENCY_MISMATCH_OPERATION_KEYS
+    )
+
     assert not _extension_keys(spec)
 
     assert len(spec["tags"]) == 20

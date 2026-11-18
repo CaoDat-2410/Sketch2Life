@@ -9534,7 +9534,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                      'object; '
                                                                                                      'query '
                                                                                                      '`limit`: '
-                                                                                                     'integer; '
+                                                                                                     'integer (default 25, minimum 1, maximum 100); '
                                                                                                      'query '
                                                                                                      '`cursor`: '
                                                                                                      'object',
@@ -10262,7 +10262,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                      'string; '
                                                                                                      'query '
                                                                                                      '`limit`: '
-                                                                                                     'integer; '
+                                                                                                     'integer (default 25, minimum 1, maximum 100); '
                                                                                                      'query '
                                                                                                      '`cursor`: '
                                                                                                      'object',
@@ -11225,6 +11225,40 @@ MOUNTED_OPERATIONS[('post', '/v1/story-runs/{run_id}/script-confirmation')] = {
         {'status': '500', 'description': 'An unexpected error occurred', 'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
     ),
 }
+
+IDEMPOTENCY_MISMATCH_OPERATION_KEYS: Final[tuple[tuple[str, str], ...]] = (
+    ("post", "/api/lesson-library/v1/me/lesson-invitations/{access_grant_id}/accept"),
+    ("post", "/api/lesson-library/v1/me/lesson-invitations/{access_grant_id}/decline"),
+    ("post", "/api/lesson-library/v1/me/parent-group-invitations/{membership_id}/accept"),
+    ("post", "/api/lesson-library/v1/organizations/{organization_id}/access-grants/{access_grant_id}/decision"),
+    ("post", "/api/lesson-library/v1/organizations/{organization_id}/lessons"),
+    ("post", "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}/access-grants"),
+    ("post", "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}/upload-sessions"),
+    ("post", "/api/lesson-library/v1/organizations/{organization_id}/parent-groups"),
+    ("post", "/api/lesson-library/v1/organizations/{organization_id}/parent-groups/{parent_group_id}/invitations"),
+    ("patch", "/api/lesson-library/v1/platform/lessons/{lesson_id}/moderation"),
+    ("post", "/api/lesson-library/v1/upload-sessions/{upload_session_id}/complete"),
+)
+
+_IDEMPOTENCY_MISMATCH_RESPONSE: Final[ResponseMetadata] = {
+    "status": "400",
+    "description": "Idempotency-Key reused with a different payload: INVALID_IDEMPOTENCY_KEY.",
+    "media_type": "application/json",
+    "schema_name": "Be1Error",
+}
+
+for _operation_key in IDEMPOTENCY_MISMATCH_OPERATION_KEYS:
+    _operation_metadata = MOUNTED_OPERATIONS[_operation_key]
+    _operation_responses = _operation_metadata["responses"]
+    MOUNTED_OPERATIONS[_operation_key] = {
+        **_operation_metadata,
+        "responses": (
+            *_operation_responses[:1],
+            dict(_IDEMPOTENCY_MISMATCH_RESPONSE),
+            *_operation_responses[1:],
+        ),
+    }
+
 
 UNMOUNTED_OPERATIONS: Final[tuple[UnmountedOperationMetadata, ...]] = ({'method': 'post',
   'path': '/api/collaboration/v1/activity-assignments',
