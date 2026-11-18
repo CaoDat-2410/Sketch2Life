@@ -108,3 +108,4 @@ features/FEAT-063-system-architecture-rearchitecture/plan/M3_M6_SRS_ALIGNED_ROAD
 features/FEAT-063-system-architecture-rearchitecture/plan/M3_M6_SRS_ALIGNED_ROADMAP_DRAFT1_20261115.md whitespace=-blank-at-eol
 features/FEAT-063-system-architecture-rearchitecture/plan/M3_M6_SRS_ALIGNED_ROADMAP_DRAFT2_20261115.md whitespace=-blank-at-eol
 features/FEAT-063-system-architecture-rearchitecture/plan/M3_M6_SRS_ALIGNED_ROADMAP_DRAFT3_20261115.md whitespace=-blank-at-eol
+features/FEAT-063-system-architecture-rearchitecture/artifacts/m2-s3/*.json -text whitespace=cr-at-eol
