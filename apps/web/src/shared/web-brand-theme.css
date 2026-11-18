@@ -1,0 +1,431 @@
+/* Shared bright Sketch2Life web palette. Cool Grey + Cobalt is a user-approved visual direction, not an SRS requirement. */
+html[data-portal] {
+  --brand-primary: #1F2DE6;
+  --brand-warm: #13C5E8;
+  --color-paper: #EEF0F3;
+  --color-paper-2: #F6F7F9;
+  --color-paper-3: #E2E5EA;
+  --color-sheet: #FFFFFF;
+  --color-ink: #0B0C0E;
+  --color-ink-2: #343A46;
+  --color-muted: #5D6470;
+  --color-rule: #CBD0D8;
+  --color-rule-2: #B9C0CC;
+  --color-accent: #1F2DE6;
+  --color-accent-strong: #1B25C5;
+  --color-accent-soft: #E8EAFF;
+  --color-accent-ink: #FFFFFF;
+  --color-focus: #1F2DE6;
+  --color-success: #047857;
+  --color-success-soft: #E6F8F0;
+  --color-warn: #D97706;
+  --color-warn-soft: #FEF3C7;
+  --color-danger: #DC2626;
+  --color-danger-soft: #FEE2E2;
+  --bg: #EEF0F3;
+  --surface: #FFFFFF;
+  --surface-2: #F6F7F9;
+  --line: #CBD0D8;
+  --ink: #0B0C0E;
+  --ink-2: #343A46;
+  --ink-3: #5D6470;
+  --primary: #1F2DE6;
+  --primary-2: #1F2DE6;
+  --primary-fg: #1B25C5;
+  --primary-dark: #1B25C5;
+  --primary-600: #1B25C5;
+  --primary-50: #E8EAFF;
+  --primary-100: #DDE0FF;
+  --accent: #FBBF24;
+  --accent-dark: #D97706;
+  --accent-50: #FEF3C7;
+  --accent-ink: #78350F;
+  --mint: #047857;
+  --mint-dark: #065F46;
+  --mint-50: #E6F8F0;
+  --mint-ink: #065F46;
+  --danger: #DC2626;
+  --danger-dark: #B91C1C;
+  --danger-50: #FEE2E2;
+  --danger-ink: #991B1B;
+  --phone-bg: linear-gradient(180deg, #EEF0F3 0%, #F6F7F9 42%, #FFFFFF 100%);
+  --card-bg: #FFFFFF;
+  --card-border: #CBD0D8;
+  --tw-ink: #0B0C0E;
+  --tw-ink-2: #343A46;
+  --tw-sub-ink: #5D6470;
+  --tw-surface: #FFFFFF;
+  --tw-surface-alt: #F6F7F9;
+  --tw-border: #CBD0D8;
+  --tw-sky-ink: #1F2DE6;
+  --mg-canvas: #EEF0F3;
+  --mg-surface: #E2E5EA;
+  --mg-raised: #FFFFFF;
+  --mg-ink: #0B0C0E;
+  --mg-muted: #5D6470;
+  --mg-subtle: #5D6470;
+  --mg-line: #CBD0D8;
+  --mg-accent: #1F2DE6;
+  --mg-accent-strong: #1B25C5;
+  --mg-accent-soft: #E8EAFF;
+  --mg-on-accent: #FFFFFF;
+  --mg-neutral-soft: #F6F7F9;
+  --mg-focus: #1F2DE6;
+  --auth-paper: #EEF0F3;
+  --auth-paper-light: #FFFFFF;
+  --auth-ink: #0B0C0E;
+  --auth-ink-soft: #5D6470;
+  --auth-rule: #CBD0D8;
+  --auth-green: #1F2DE6;
+  --auth-green-dark: #1B25C5;
+  --auth-ochre: #FBBF24;
+  --auth-focus: #1F2DE6;
+  /* Tailwind v4 semantic color variables for the existing Admin UI utilities. */
+  --color-blue-50: #E8EAFF;
+  --color-blue-100: #DDE0FF;
+  --color-blue-200: #C7CCFF;
+  --color-blue-300: #AEB5FF;
+  --color-blue-400: #737CF3;
+  --color-blue-500: #4652ED;
+  --color-blue-600: #1F2DE6;
+  --color-blue-700: #1B25C5;
+  --color-blue-800: #192477;
+  --color-slate-50: #F6F7F9;
+  --color-slate-100: #E2E5EA;
+  --color-slate-200: #CBD0D8;
+  --color-slate-300: #B9C0CC;
+  --color-slate-400: #8992A0;
+  --color-slate-500: #5D6470;
+  --color-slate-600: #4C5460;
+  --color-slate-700: #343A46;
+  --color-slate-800: #1F232B;
+  --color-slate-900: #0B0C0E;
+}
+html[data-portal][data-theme="dark"] {
+  --color-paper: #0B0C0E;
+  --color-paper-2: #17181A;
+  --color-paper-3: #1F2023;
+  --color-sheet: #1F2023;
+  --color-ink: #EEF0F3;
+  --color-ink-2: #C3C5CB;
+  --color-muted: #8E8F92;
+  --color-rule: #3A3C41;
+  --color-rule-2: #51545D;
+  --color-accent: #EEF0F3;
+  --color-accent-strong: #D8DBE0;
+  --color-accent-soft: #292B33;
+  --color-accent-ink: #0B0C0E;
+  --color-focus: #EEF0F3;
+  --bg: #0B0C0E;
+  --surface: #1F2023;
+  --surface-2: #17181A;
+  --line: #3A3C41;
+  --ink: #EEF0F3;
+  --ink-2: #C3C5CB;
+  --ink-3: #8E8F92;
+  --primary: #EEF0F3;
+  --primary-2: #EEF0F3;
+  --primary-fg: #EEF0F3;
+  --primary-dark: #D8DBE0;
+  --primary-600: #D8DBE0;
+  --primary-50: #292B33;
+  --primary-100: #32343C;
+  --accent: #FCD34D;
+  --accent-dark: #D97706;
+  --accent-50: #3B2F13;
+  --accent-ink: #FEF3C7;
+  --phone-bg: linear-gradient(180deg, #17181A 0%, #0B0C0E 100%);
+  --card-bg: #1F2023;
+  --card-border: #3A3C41;
+  --tw-ink: #EEF0F3;
+  --tw-ink-2: #C3C5CB;
+  --tw-sub-ink: #8E8F92;
+  --tw-surface: #1F2023;
+  --tw-surface-alt: #17181A;
+  --tw-border: #3A3C41;
+  --tw-sky-ink: #EEF0F3;
+  --mg-canvas: #0B0C0E;
+  --mg-surface: #17181A;
+  --mg-raised: #1F2023;
+  --mg-ink: #EEF0F3;
+  --mg-muted: #8E8F92;
+  --mg-subtle: #8E8F92;
+  --mg-line: #3A3C41;
+  --mg-accent: #EEF0F3;
+  --mg-accent-strong: #EEF0F3;
+  --mg-accent-soft: #292B33;
+  --mg-on-accent: #0B0C0E;
+  --mg-neutral-soft: #222428;
+  --mg-focus: #EEF0F3;
+  --auth-paper: #0B0C0E;
+  --auth-paper-light: #1F2023;
+  --auth-ink: #EEF0F3;
+  --auth-ink-soft: #8E8F92;
+  --auth-rule: #3A3C41;
+  --auth-green: #EEF0F3;
+  --auth-green-dark: #D8DBE0;
+  --auth-ochre: #FCD34D;
+  --auth-focus: #EEF0F3;
+  --color-blue-50: #292B33;
+  --color-blue-100: #32343C;
+  --color-blue-200: #3A3C41;
+  --color-blue-300: #51545D;
+  --color-blue-400: #A4A8B0;
+  --color-blue-500: #C3C5CB;
+  --color-blue-600: #EEF0F3;
+  --color-blue-700: #D8DBE0;
+  --color-blue-800: #B9BDC6;
+  --color-slate-50: #17181A;
+  --color-slate-100: #1F2023;
+  --color-slate-200: #3A3C41;
+  --color-slate-300: #51545D;
+  --color-slate-400: #777B83;
+  --color-slate-500: #8E8F92;
+  --color-slate-600: #A6A9AF;
+  --color-slate-700: #C3C5CB;
+  --color-slate-800: #D8DBE0;
+  --color-slate-900: #EEF0F3;
+}
+html[data-portal], html[data-portal] body {
+  background: var(--bg) !important;
+  color: var(--ink) !important;
+}
+html[data-portal] ::selection { background: #DDE0FF; color: #0B0C0E; }
+html[data-portal] :focus-visible { outline-color: var(--color-focus) !important; }
+html[data-portal] .mg-shell {
+  --mg-canvas: var(--color-paper);
+  --mg-surface: var(--color-paper-3);
+  --mg-raised: var(--color-sheet);
+  --mg-ink: var(--color-ink);
+  --mg-muted: var(--color-muted);
+  --mg-subtle: var(--color-muted);
+  --mg-line: var(--color-rule);
+  --mg-accent: var(--color-accent);
+  --mg-accent-strong: var(--color-accent-strong);
+  --mg-accent-soft: var(--color-accent-soft);
+  --mg-on-accent: var(--color-accent-ink);
+  --mg-neutral-soft: var(--surface-2);
+  --mg-focus: var(--color-focus);
+  background: var(--mg-canvas) !important;
+}
+html[data-portal][data-theme="dark"] .mg-shell {
+  --mg-canvas: var(--color-paper);
+  --mg-surface: var(--color-paper-3);
+  --mg-raised: var(--color-sheet);
+  --mg-ink: var(--color-ink);
+  --mg-muted: var(--color-muted);
+  --mg-subtle: var(--color-muted);
+  --mg-line: var(--color-rule);
+  --mg-accent: var(--color-accent);
+  --mg-accent-strong: var(--color-accent-strong);
+  --mg-accent-soft: var(--color-accent-soft);
+  --mg-on-accent: var(--color-accent-ink);
+  --mg-neutral-soft: var(--surface-2);
+  --mg-focus: var(--color-focus);
+}
+html[data-portal] .tw-shell, html[data-portal] .mg-shell, html[data-portal] .tw-hero-bg, html[data-portal] .stage {
+  background: var(--color-paper) !important;
+  color: var(--color-ink) !important;
+}
+html[data-portal] .tw-side, html[data-portal] .mg-side {
+  background: var(--color-paper-3) !important;
+  color: var(--color-ink) !important;
+  border-color: var(--color-rule) !important;
+  box-shadow: none !important;
+}
+html[data-portal] .tw-top, html[data-portal] .mg-top {
+  background: var(--color-sheet) !important;
+  border-color: var(--color-rule) !important;
+}
+html[data-portal] .tw-nav-item.is-on, html[data-portal] .mg-nav-item.is-active, html[data-portal] .mg-role-chip, html[data-portal] .s2l-role-chip {
+  background: var(--color-accent-soft) !important;
+  color: var(--color-accent) !important;
+  border-color: var(--color-rule-2) !important;
+}
+html[data-portal] .tw-nav-item.is-on svg, html[data-portal] .mg-nav-item.is-active .mg-nav-ico { color: var(--color-accent) !important; }
+html[data-portal] .tw-side .tw-nav-item:hover, html[data-portal] .tw-side .tw-nav-group-btn:hover, html[data-portal] .mg-nav-item:hover { background: var(--color-paper-2) !important; color: var(--color-ink) !important; }
+html[data-portal] .tw-card, html[data-portal] .mg-card, html[data-portal] .mg-panel, html[data-portal] .tw-kpi, html[data-portal] .mg-profile, html[data-portal] .tw-modal, html[data-portal] .mg-modal, html[data-portal] .mg-item {
+  background: var(--color-sheet) !important;
+  color: var(--color-ink) !important;
+  border-color: var(--color-rule) !important;
+  box-shadow: 0 8px 24px -20px rgb(11 12 14 / 22%) !important;
+}
+html[data-portal] .tw-title, html[data-portal] .mg-title, html[data-portal] .tw-h1, html[data-portal] .tw-h2, html[data-portal] .tw-card-title, html[data-portal] .mg-card-title, html[data-portal] .mg-item-title, html[data-portal] .mg-profile-name, html[data-portal] .mg-stat-num { color: var(--color-ink) !important; }
+html[data-portal] .tw-sub, html[data-portal] .tw-meta, html[data-portal] .mg-sub, html[data-portal] .mg-meta, html[data-portal] .mg-profile-sub, html[data-portal] .mg-kpi-label, html[data-portal] .mg-stat-label { color: var(--color-muted) !important; }
+html[data-portal] .mg-hero { background: linear-gradient(125deg, var(--color-accent-soft), var(--color-sheet) 70%) !important; border-color: var(--color-rule) !important; box-shadow: 0 8px 24px -20px rgb(11 12 14 / 22%) !important; }
+html[data-portal] .mg-hero-badge, html[data-portal] .mg-hero-badge.mint { background: var(--color-accent) !important; color: var(--color-accent-ink) !important; box-shadow: none !important; transform: none !important; }
+html[data-portal] .mg-ico-chip.blue, html[data-portal] .mg-tone-blue, html[data-portal] .mg-kpi.blue { background: var(--color-accent-soft) !important; color: var(--color-accent) !important; }
+html[data-portal] .mg-kpi { border-color: var(--color-rule) !important; box-shadow: 0 8px 24px -20px rgb(11 12 14 / 22%) !important; }
+html[data-portal] .mg-kpi-num.blue, html[data-portal] .mg-stat-num.blue, html[data-portal] .mg-link { color: var(--color-accent) !important; }
+html[data-portal] .mg-nav-item.is-active .mg-nav-ico { background: var(--color-accent) !important; color: var(--color-accent-ink) !important; }
+html[data-portal] .mg-nav-item.is-active { border-color: var(--color-rule-2) !important; }
+html[data-portal] .mg-btn.primary, html[data-portal] .mg-btn.mint, html[data-portal] .mg-chip-btn.is-active, html[data-portal] .mg-btn:not(.soft):not(.amber):not(.danger), html[data-portal] .tw-btn:not(.is-ghost):not(.is-amber):not(.is-danger), html[data-portal] .btn-primary, html[data-portal] .button-primary {
+  background: var(--color-accent) !important;
+  border-color: var(--color-accent) !important;
+  color: var(--color-accent-ink) !important;
+  box-shadow: none !important;
+}
+html[data-portal] .mg-btn.primary:hover:not(:disabled), html[data-portal] .mg-btn.mint:hover:not(:disabled), html[data-portal] .mg-chip-btn.is-active:hover, html[data-portal] .mg-btn:not(.soft):not(.amber):not(.danger):hover:not(:disabled), html[data-portal] .tw-btn:not(.is-ghost):not(.is-amber):not(.is-danger):hover:not(:disabled), html[data-portal] .btn-primary:hover, html[data-portal] .button-primary:hover { background: var(--color-accent-strong) !important; }
+html[data-portal] .mg-btn.soft, html[data-portal] .mg-chip-btn, html[data-portal] .mg-tab, html[data-portal] .tw-btn.is-ghost, html[data-portal] .mg-btn.ghost { border-color: var(--color-rule) !important; }
+html[data-portal] .mg-btn.soft:hover:not(:disabled), html[data-portal] .mg-tab:hover, html[data-portal] .tw-btn.is-ghost:hover:not(:disabled) { background: var(--color-accent-soft) !important; color: var(--color-accent) !important; }
+html[data-portal] .mg-input, html[data-portal] .mg-textarea, html[data-portal] .mg-check, html[data-portal] .tw-input, html[data-portal] input, html[data-portal] select, html[data-portal] textarea {
+  border-color: var(--color-rule) !important;
+  color: var(--color-ink);
+}
+html[data-portal] .mg-input:focus, html[data-portal] .mg-textarea:focus, html[data-portal] .tw-input:focus, html[data-portal] input:focus, html[data-portal] select:focus, html[data-portal] textarea:focus {
+  border-color: var(--color-focus) !important;
+  box-shadow: 0 0 0 3px var(--color-accent-soft) !important;
+}
+html[data-portal] .mg-tabs, html[data-portal] .tw-tabs-seg, html[data-portal] .tabs-segment { background: var(--surface-2) !important; border-color: var(--line) !important; }
+html[data-portal] .mg-tab.is-active { background: var(--color-sheet) !important; color: var(--color-accent) !important; border-color: var(--color-rule) !important; box-shadow: 0 2px 6px rgb(11 12 14 / 10%) !important; }
+html[data-portal] .tw-tab-seg.is-on { color: var(--color-accent) !important; border-color: var(--color-accent) !important; }
+html[data-portal] .mg-table th, html[data-portal] .mg-meta-row span:first-child { color: var(--color-muted) !important; }
+html[data-portal] .mg-table td, html[data-portal] .mg-item, html[data-portal] .mg-meta-row, html[data-portal] .mg-stat-row, html[data-portal] .tw-item { background: var(--color-paper-2) !important; border-color: var(--color-rule) !important; color: var(--color-ink) !important; }
+html[data-portal] .mg-table tr.is-clickable:hover td, html[data-portal] .mg-stat-row:hover, html[data-portal] .tw-item:hover { background: var(--color-accent-soft) !important; }
+html[data-portal] .mg-table tr.is-active td, html[data-portal] .tw-item.is-selected { background: var(--color-accent-soft) !important; outline-color: var(--color-accent) !important; }
+html[data-portal] .mg-avatar--organization { background: var(--color-accent-soft) !important; color: var(--color-accent) !important; }
+html[data-portal] .mg-shell .mg-logout-btn { border-color: var(--color-rule) !important; background: var(--color-sheet) !important; color: var(--color-ink-2) !important; }
+html[data-portal] .mg-shell .mg-logout-btn:hover { background: var(--color-accent-soft) !important; color: var(--color-accent) !important; }
+html[data-portal] .mg-shell .mg-inbox-unavailable, html[data-portal] .mg-shell .mg-unavailable-note, html[data-portal] .mg-shell .mg-privacy { color: var(--color-muted) !important; }
+html[data-portal] .mg-toast.info, html[data-portal] .tw-toast.is-info, html[data-portal] .mg-pill.info { background: var(--color-accent-soft) !important; color: var(--color-accent) !important; }
+html[data-portal] .s2l-brandmark { display: block; flex: none; aspect-ratio: 1; border-radius: 14px; object-fit: contain; box-shadow: 0 3px 12px rgb(11 12 14 / 18%); }
+html[data-portal] .s2l-wordmark { display: inline-flex; align-items: center; justify-content: flex-start; gap: 0; color: var(--color-ink); white-space: nowrap; }
+html[data-portal] .s2l-auth-shell {
+  --auth-paper: #EEF0F3;
+  --auth-paper-light: #FFFFFF;
+  --auth-ink: #0B0C0E;
+  --auth-ink-soft: #5D6470;
+  --auth-rule: #CBD0D8;
+  --auth-green: #1F2DE6;
+  --auth-green-dark: #1B25C5;
+  --auth-ochre: #FBBF24;
+  --auth-focus: #1F2DE6;
+  background: radial-gradient(ellipse at 76% 20%, rgb(31 45 230 / 8%), transparent 33%), radial-gradient(ellipse at 12% 92%, rgb(19 197 232 / 11%), transparent 30%), #EEF0F3 !important;
+}
+html[data-portal] .s2l-auth-header { border-color: var(--color-rule) !important; }
+html[data-portal] .s2l-auth-brand, html[data-portal] .s2l-auth-brand .s2l-wordmark, html[data-portal] .s2l-auth-intro h1, html[data-portal] .s2l-auth-title { color: var(--color-ink) !important; }
+html[data-portal] .s2l-auth-brand-caption { border-color: var(--color-rule) !important; color: var(--color-muted) !important; }
+html[data-portal] .s2l-auth-portal { border-color: var(--color-rule) !important; color: var(--color-muted) !important; background: var(--color-sheet) !important; }
+html[data-portal] .s2l-auth-portal:hover { border-color: var(--color-accent) !important; color: var(--color-accent) !important; background: var(--color-accent-soft) !important; }
+html[data-portal] .s2l-auth-portal.is-current { border-color: #C7CCFF !important; color: var(--color-accent) !important; background: var(--color-accent-soft) !important; }
+html[data-portal] .s2l-auth-portal:focus-visible, html[data-portal] .s2l-auth-brand:focus-visible, html[data-portal] .s2l-auth-field input:focus-visible, html[data-portal] .s2l-auth-submit:focus-visible { outline-color: var(--color-focus) !important; }
+html[data-portal] .s2l-auth-submit, html[data-portal] .s2l-auth-submit:hover { background: var(--color-accent) !important; border-color: var(--color-accent) !important; color: #FFFFFF !important; }
+html[data-portal] .s2l-auth-field input { border-color: var(--color-rule) !important; background: var(--color-sheet) !important; color: var(--color-ink) !important; }
+html[data-portal] .s2l-auth-field input:focus-visible { outline-color: var(--color-focus) !important; }
+html[data-portal] .stage { background: var(--color-paper) !important; }
+html[data-portal] .phone-frame-bg, html[data-portal][data-theme="dark"] .phone-frame-bg { background: var(--phone-bg) !important; border-color: var(--line) !important; }
+html[data-portal][data-theme="dark"] body { background: var(--bg) !important; color: var(--ink) !important; }
+html[data-portal][data-theme="dark"] .mg-shell .mg-side, html[data-portal][data-theme="dark"] .tw-side { background: var(--color-paper-3) !important; border-color: var(--color-rule) !important; }
+html[data-portal][data-theme="dark"] .mg-shell .mg-top, html[data-portal][data-theme="dark"] .tw-top { background: var(--color-sheet) !important; border-color: var(--color-rule) !important; }
+html[data-portal][data-theme="dark"] .mg-shell .mg-card, html[data-portal][data-theme="dark"] .mg-shell .mg-kpi, html[data-portal][data-theme="dark"] .mg-shell .mg-profile, html[data-portal][data-theme="dark"] .mg-shell .mg-modal { background: var(--color-sheet) !important; border-color: var(--color-rule) !important; color: var(--color-ink) !important; }
+html[data-portal][data-theme="dark"] .mg-shell .mg-title, html[data-portal][data-theme="dark"] .mg-shell .mg-item-title, html[data-portal][data-theme="dark"] .mg-shell .mg-stat-num, html[data-portal][data-theme="dark"] .mg-shell .mg-card-title { color: var(--color-ink) !important; }
+html[data-portal][data-theme="dark"] .mg-shell .mg-input, html[data-portal][data-theme="dark"] .mg-shell .mg-textarea, html[data-portal][data-theme="dark"] .mg-shell .mg-check { background: var(--color-paper-2) !important; color: var(--color-ink) !important; border-color: var(--color-rule) !important; }
+html[data-portal][data-theme="dark"] .mg-shell .mg-btn.soft, html[data-portal][data-theme="dark"] .mg-shell .mg-tab.is-active { background: var(--color-accent-soft) !important; color: var(--color-ink) !important; }
+html[data-portal][data-theme="dark"] .s2l-auth-shell { background: radial-gradient(ellipse at 76% 20%, rgb(238 240 243 / 6%), transparent 33%), #0B0C0E !important; }
+html[data-portal] .s2l-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+html[data-portal] .s2l-auth-eyebrow, html[data-portal] .s2l-auth-panel-kicker, html[data-portal] .s2l-auth-art-caption { color: var(--color-muted) !important; }
+html[data-portal] .s2l-auth-role { color: var(--color-muted) !important; }
+html[data-portal] .s2l-auth-role-icon { border-color: var(--color-rule) !important; color: var(--color-accent) !important; }
+html[data-portal] .s2l-auth-panel { border-color: var(--color-rule) !important; background: rgb(255 255 255 / 96%) !important; box-shadow: 0 22px 60px -44px rgb(11 12 14 / 34%), 0 2px 7px rgb(11 12 14 / 4%) !important; }
+html[data-portal] .s2l-auth-notice { border-color: var(--color-rule) !important; color: var(--color-accent) !important; background: var(--color-accent-soft) !important; }
+html[data-portal] .s2l-auth-notice.is-warning { border-color: #E9C56A !important; color: #72500A !important; background: #FEF3C7 !important; }
+html[data-portal] .s2l-auth-field { color: var(--color-ink-2) !important; }
+html[data-portal] .s2l-auth-field input { border-color: var(--color-rule) !important; background: #FFFFFF !important; }
+html[data-portal] .s2l-auth-field input::placeholder { color: var(--color-muted) !important; }
+html[data-portal] .s2l-auth-field input:focus, html[data-portal] .s2l-auth-field input:focus-visible { border-color: var(--color-focus) !important; box-shadow: 0 0 0 3px var(--color-accent-soft) !important; }
+html[data-portal] .page:has(.hero-create) .hero-create, html[data-portal] .page:has(.hero-create) .hero-create:active {
+  border-color: var(--color-accent) !important;
+  background: linear-gradient(118deg, #4652ED 0%, #1F2DE6 58%, #1B25C5 100%) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 9px 20px -16px rgb(31 45 230 / 62%) !important;
+}
+html[data-portal] .page:has(.hero-create) .hero-create .plus { background: rgb(255 255 255 / 18%) !important; color: #FFFFFF !important; box-shadow: none !important; }
+html[data-portal] .page:has(.hero-create) .hero-create .t, html[data-portal] .page:has(.hero-create) .hero-create .s { color: #FFFFFF !important; }
+/* Revision 11 — shared role dashboard icon treatment */
+html[data-portal] .mg-shell .mg-nav-ico, html[data-portal] .tw-shell .mg-nav-ico {
+  display: inline-flex;
+  width: 32px !important;
+  height: 32px !important;
+  flex: 0 0 32px !important;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-accent-soft) !important;
+  border-radius: 12px;
+  background: var(--color-accent-soft) !important;
+  color: var(--color-accent) !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.72);
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+}
+html[data-portal] .mg-shell .mg-nav-ico svg, html[data-portal] .tw-shell .mg-nav-ico svg { display: block; }
+html[data-portal] .mg-shell .mg-nav-item:hover .mg-nav-ico, html[data-portal] .tw-shell .tw-nav-item:hover .mg-nav-ico {
+  border-color: var(--color-rule-2) !important;
+  background: var(--color-paper-3) !important;
+  color: var(--color-accent-strong) !important;
+}
+html[data-portal] .mg-shell .mg-nav-item.is-active .mg-nav-ico, html[data-portal] .tw-shell .tw-nav-item.is-on .mg-nav-ico {
+  border-color: var(--color-accent) !important;
+  background: var(--color-accent) !important;
+  color: var(--color-accent-ink) !important;
+  box-shadow: 0 3px 8px rgb(31 45 230 / 0.16);
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-portal] .mg-shell .mg-nav-ico, html[data-portal] .tw-shell .mg-nav-ico { transition: none; }
+}
+html[data-portal] .mg-shell .mg-nav-item.is-active .mg-nav-ico svg, html[data-portal] .tw-shell .tw-nav-item.is-on .mg-nav-ico svg { color: var(--color-accent-ink) !important; }
+
+/* Rev16 — paper-and-crayon shared authentication palette. Keep selectors auth-only. */
+html[data-portal] .s2l-auth-shell {
+  --auth-paper: #FFF9F0;
+  --auth-paper-light: #FFFFFF;
+  --auth-ink: #25241F;
+  --auth-ink-soft: #57574F;
+  --auth-rule: #E4D8C5;
+  --auth-blue: #245B9B;
+  --auth-blue-dark: #1D4C82;
+  --auth-blue-soft: #E8F0FA;
+  --auth-yellow: #E0B12D;
+  --auth-orange: #B9561E;
+  --auth-red: #B93832;
+  --auth-focus: #245B9B;
+  background: var(--auth-paper) !important;
+}
+html[data-portal] .s2l-auth-header { border-color: var(--auth-rule) !important; }
+html[data-portal] .s2l-auth-brand, html[data-portal] .s2l-auth-brand .s2l-wordmark, html[data-portal] .s2l-auth-intro h1, html[data-portal] .s2l-auth-title { color: var(--auth-ink) !important; }
+html[data-portal] .s2l-auth-brand-caption { border-color: var(--auth-rule) !important; color: var(--auth-ink-soft) !important; }
+html[data-portal] .s2l-auth-portal { border-color: var(--auth-rule) !important; color: var(--auth-ink-soft) !important; background: #FFFFFF !important; }
+html[data-portal] .s2l-auth-portal:hover { border-color: var(--auth-blue) !important; color: var(--auth-blue) !important; background: #FFFFFF !important; }
+html[data-portal] .s2l-auth-portal.is-current { border-color: var(--auth-blue) !important; color: #FFFFFF !important; background: var(--auth-blue) !important; }
+html[data-portal] .s2l-auth-portal.is-current:hover { color: #FFFFFF !important; background: var(--auth-blue-dark) !important; }
+html[data-portal] .s2l-auth-portal:focus-visible, html[data-portal] .s2l-auth-brand:focus-visible, html[data-portal] .s2l-auth-field input:focus-visible, html[data-portal] .s2l-auth-submit:focus-visible { outline-color: var(--auth-focus) !important; }
+html[data-portal] .s2l-auth-submit, html[data-portal] .s2l-auth-submit:hover { background: var(--auth-blue) !important; border-color: var(--auth-blue) !important; color: #FFFFFF !important; }
+html[data-portal] .s2l-auth-field input { border-color: var(--auth-rule) !important; background: #FFFDF9 !important; color: var(--auth-ink) !important; }
+html[data-portal] .s2l-auth-field input:focus, html[data-portal] .s2l-auth-field input:focus-visible { border-color: var(--auth-blue) !important; box-shadow: 0 0 0 3px var(--auth-blue-soft) !important; }
+html[data-portal] .s2l-auth-eyebrow, html[data-portal] .s2l-auth-panel-kicker, html[data-portal] .s2l-auth-art-caption, html[data-portal] .s2l-auth-role { color: var(--auth-ink-soft) !important; }
+html[data-portal] .s2l-auth-role-icon { border-color: #C6D5E5 !important; color: var(--auth-blue) !important; }
+html[data-portal] .s2l-auth-panel { border-color: var(--auth-rule) !important; background: #FFFFFF !important; }
+html[data-portal] .s2l-auth-notice { border-color: #CAD9E9 !important; color: #1D4C82 !important; background: var(--auth-blue-soft) !important; }
+html[data-portal] .s2l-auth-notice.is-warning { border-color: #E9C9A9 !important; color: #7A3717 !important; background: #F9EBDD !important; }
+html[data-portal] .s2l-auth-field { color: var(--auth-ink) !important; }
+html[data-portal] .s2l-auth-error { border-color: #E7B9B1 !important; color: #852822 !important; background: #FCEAE5 !important; }
+html[data-portal] .s2l-auth-security-note, html[data-portal] .s2l-auth-footer { border-color: var(--auth-rule) !important; color: var(--auth-ink-soft) !important; }
+html[data-portal][data-theme="dark"] .s2l-auth-shell,
+html[data-portal][data-theme="dark"] .s2l-auth-shell {
+  --auth-paper: #25241F;
+  --auth-paper-light: #302E28;
+  --auth-ink: #FFF9F0;
+  --auth-ink-soft: #D0C7B7;
+  --auth-rule: #514B3F;
+  --auth-blue: #8AB6E6;
+  --auth-blue-dark: #A9CAED;
+  --auth-blue-soft: #2B3B4C;
+  --auth-yellow: #F2D575;
+  --auth-orange: #F0A778;
+  --auth-red: #E9897F;
+  --auth-focus: #A9CAED;
+  background: #25241F !important;
+}
+html[data-portal][data-theme="dark"] .s2l-auth-panel { background: #302E28 !important; }
+html[data-portal][data-theme="dark"] .s2l-auth-portal { background: #302E28 !important; }
+html[data-portal][data-theme="dark"] .s2l-auth-portal.is-current { color: #25241F !important; background: #8AB6E6 !important; }
+html[data-portal][data-theme="dark"] .s2l-auth-field input { background: #302E28 !important; color: #FFF9F0 !important; }
+html[data-portal][data-theme="dark"] .s2l-auth-art-scene { border-color: #514B3F !important; background: #F2EBDD !important; }

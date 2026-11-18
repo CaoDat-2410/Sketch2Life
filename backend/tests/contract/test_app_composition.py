@@ -89,8 +89,14 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
         }
     )
     application = create_app()
+    unprojected_openapi = application.openapi(fe_projected=False)
+    actual = {
+        path: sorted(method.upper() for method in operations)
+        for path, operations in unprojected_openapi["paths"].items()
+    }
     # OpenAPI is an SRS projection; inspect mounted routes for the full legacy surface.
-    actual = _mounted_route_methods(application)
+    mounted = _mounted_route_methods(application)
+    assert mounted == actual
     # Frozen method/path pairs from the FEAT-063 Rev32 API purpose catalog.
     library = "/api/lesson-library/v1"
     organization = f"{library}/organizations/{{organization_id}}"

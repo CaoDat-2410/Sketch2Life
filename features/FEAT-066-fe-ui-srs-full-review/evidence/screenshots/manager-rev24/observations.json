@@ -1,0 +1,655 @@
+{
+  "browser": "isolated local Chrome tab with synthetic MANAGER sessionStorage only",
+  "networkPolicy": "Only HTTP requests to 127.0.0.1:5173 were allowed; other requests were blocked.",
+  "captures": [
+    {
+      "file": "overview-1440.png",
+      "route": "/m02-organization-management",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Tổng quan trường",
+      "activeNav": [
+        "Tổng quan",
+        "Giáo viên & nhóm",
+        "Lớp học",
+        "Danh sách lớp",
+        "Hóa đơn & thanh toán",
+        "Gói trường",
+        "Hạn mức",
+        "Hộp thư",
+        "Phản hồi",
+        "Cài đặt"
+      ],
+      "sampleOrganization": false,
+      "fakeAmounts": false,
+      "unreadDot": false,
+      "unavailableVisible": true,
+      "consoleTitle": "Sketch2Life - Quản lý trường"
+    },
+    {
+      "file": "overview-390.png",
+      "route": "/m02-organization-management",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Tổng quan trường",
+      "activeNav": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "sampleOrganization": false,
+      "fakeAmounts": false,
+      "unreadDot": false,
+      "unavailableVisible": true,
+      "consoleTitle": "Sketch2Life - Quản lý trường"
+    },
+    {
+      "file": "teachers-groups-1440.png",
+      "route": "/m02-organization-management?section=teachers",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Giáo viên & nhóm",
+      "activeNav": [
+        "Tổng quan",
+        "Giáo viên & nhóm",
+        "Lớp học",
+        "Danh sách lớp",
+        "Hóa đơn & thanh toán",
+        "Gói trường",
+        "Hạn mức",
+        "Hộp thư",
+        "Phản hồi",
+        "Cài đặt"
+      ],
+      "sampleOrganization": false,
+      "fakeAmounts": false,
+      "unreadDot": false,
+      "unavailableVisible": false,
+      "consoleTitle": "Sketch2Life - Quản lý trường"
+    },
+    {
+      "file": "teachers-groups-390.png",
+      "route": "/m02-organization-management?section=teachers",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Giáo viên & nhóm",
+      "activeNav": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "sampleOrganization": false,
+      "fakeAmounts": false,
+      "unreadDot": false,
+      "unavailableVisible": false,
+      "consoleTitle": "Sketch2Life - Quản lý trường"
+    },
+    {
+      "file": "classes-1440.png",
+      "route": "/m02-organization-management?section=classes",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Lớp học",
+      "activeNav": [
+        "Tổng quan",
+        "Giáo viên & nhóm",
+        "Lớp học",
+        "Danh sách lớp",
+        "Hóa đơn & thanh toán",
+        "Gói trường",
+        "Hạn mức",
+        "Hộp thư",
+        "Phản hồi",
+        "Cài đặt"
+      ],
+      "sampleOrganization": false,
+      "fakeAmounts": false,
+      "unreadDot": false,
+      "unavailableVisible": false,
+      "consoleTitle": "Sketch2Life - Quản lý trường"
+    },
+    {
+      "file": "classes-390.png",
+      "route": "/m02-organization-management?section=classes",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Lớp học",
+      "activeNav": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "sampleOrganization": false,
+      "fakeAmounts": false,
+      "unreadDot": false,
+      "unavailableVisible": false,
+      "consoleTitle": "Sketch2Life - Quản lý trường"
+    },
+    {
+      "file": "roster-1440.png",
+      "route": "/m02-organization-management?section=roster",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Danh sách lớp",
+      "activeNav": [
+        "Tổng quan",
+        "Giáo viên & nhóm",
+        "Lớp học",
+        "Danh sách lớp",
+        "Hóa đơn & thanh toán",
+        "Gói trường",
+        "Hạn mức",
+        "Hộp thư",
+        "Phản hồi",
+        "Cài đặt"
+      ],
+      "sampleOrganization": false,
+      "fakeAmounts": false,
+      "unreadDot": false,
+      "unavailableVisible": false,
+      "consoleTitle": "Sketch2Life - Quản lý trường"
+    },
+    {
+      "file": "roster-390.png",
+      "route": "/m02-organization-management?section=roster",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Danh sách lớp",
+      "activeNav": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "sampleOrganization": false,
+      "fakeAmounts": false,
+      "unreadDot": false,
+      "unavailableVisible": false,
+      "consoleTitle": "Sketch2Life - Quản lý trường"
+    },
+    {
+      "file": "content-review-1440.png",
+      "route": "/m01-publication-review",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Duyệt học liệu công khai",
+      "activeNav": [
+        "Duyệt học liệu"
+      ],
+      "sampleOrganization": false,
+      "fakeAmounts": false,
+      "unreadDot": false,
+      "unavailableVisible": true,
+      "consoleTitle": "Sketch2Life - Quản lý trường"
+    },
+    {
+      "file": "content-review-390.png",
+      "route": "/m01-publication-review",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Duyệt học liệu công khai",
+      "activeNav": [
+        ""
+      ],
+      "sampleOrganization": false,
+      "fakeAmounts": false,
+      "unreadDot": false,
+      "unavailableVisible": true,
+      "consoleTitle": "Sketch2Life - Quản lý trường"
+    },
+    {
+      "file": "finance-1440.png",
+      "route": "/m02-organization-management?section=finance",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Hóa đơn & thanh toán",
+      "activeNav": [
+        "Tổng quan",
+        "Giáo viên & nhóm",
+        "Lớp học",
+        "Danh sách lớp",
+        "Hóa đơn & thanh toán",
+        "Gói trường",
+        "Hạn mức",
+        "Hộp thư",
+        "Phản hồi",
+        "Cài đặt"
+      ],
+      "sampleOrganization": false,
+      "fakeAmounts": false,
+      "unreadDot": false,
+      "unavailableVisible": false,
+      "consoleTitle": "Sketch2Life - Quản lý trường"
+    },
+    {
+      "file": "finance-390.png",
+      "route": "/m02-organization-management?section=finance",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Hóa đơn & thanh toán",
+      "activeNav": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "sampleOrganization": false,
+      "fakeAmounts": false,
+      "unreadDot": false,
+      "unavailableVisible": false,
+      "consoleTitle": "Sketch2Life - Quản lý trường"
+    },
+    {
+      "file": "subscription-1440.png",
+      "route": "/m02-organization-management?section=subscription",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Gói trường",
+      "activeNav": [
+        "Tổng quan",
+        "Giáo viên & nhóm",
+        "Lớp học",
+        "Danh sách lớp",
+        "Hóa đơn & thanh toán",
+        "Gói trường",
+        "Hạn mức",
+        "Hộp thư",
+        "Phản hồi",
+        "Cài đặt"
+      ],
+      "sampleOrganization": false,
+      "fakeAmounts": false,
+      "unreadDot": false,
+      "unavailableVisible": false,
+      "consoleTitle": "Sketch2Life - Quản lý trường"
+    },
+    {
+      "file": "subscription-390.png",
+      "route": "/m02-organization-management?section=subscription",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Gói trường",
+      "activeNav": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "sampleOrganization": false,
+      "fakeAmounts": false,
+      "unreadDot": false,
+      "unavailableVisible": false,
+      "consoleTitle": "Sketch2Life - Quản lý trường"
+    },
+    {
+      "file": "quota-1440.png",
+      "route": "/m02-organization-management?section=quota",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Hạn mức",
+      "activeNav": [
+        "Tổng quan",
+        "Giáo viên & nhóm",
+        "Lớp học",
+        "Danh sách lớp",
+        "Hóa đơn & thanh toán",
+        "Gói trường",
+        "Hạn mức",
+        "Hộp thư",
+        "Phản hồi",
+        "Cài đặt"
+      ],
+      "sampleOrganization": false,
+      "fakeAmounts": false,
+      "unreadDot": false,
+      "unavailableVisible": false,
+      "consoleTitle": "Sketch2Life - Quản lý trường"
+    },
+    {
+      "file": "quota-390.png",
+      "route": "/m02-organization-management?section=quota",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Hạn mức",
+      "activeNav": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "sampleOrganization": false,
+      "fakeAmounts": false,
+      "unreadDot": false,
+      "unavailableVisible": false,
+      "consoleTitle": "Sketch2Life - Quản lý trường"
+    },
+    {
+      "file": "inbox-1440.png",
+      "route": "/m02-organization-management?section=inbox",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Hộp thư",
+      "activeNav": [
+        "Tổng quan",
+        "Giáo viên & nhóm",
+        "Lớp học",
+        "Danh sách lớp",
+        "Hóa đơn & thanh toán",
+        "Gói trường",
+        "Hạn mức",
+        "Hộp thư",
+        "Phản hồi",
+        "Cài đặt"
+      ],
+      "sampleOrganization": false,
+      "fakeAmounts": false,
+      "unreadDot": false,
+      "unavailableVisible": false,
+      "consoleTitle": "Sketch2Life - Quản lý trường"
+    },
+    {
+      "file": "inbox-390.png",
+      "route": "/m02-organization-management?section=inbox",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Hộp thư",
+      "activeNav": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "sampleOrganization": false,
+      "fakeAmounts": false,
+      "unreadDot": false,
+      "unavailableVisible": false,
+      "consoleTitle": "Sketch2Life - Quản lý trường"
+    },
+    {
+      "file": "feedback-1440.png",
+      "route": "/m02-organization-management?section=feedback",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Phản hồi",
+      "activeNav": [
+        "Tổng quan",
+        "Giáo viên & nhóm",
+        "Lớp học",
+        "Danh sách lớp",
+        "Hóa đơn & thanh toán",
+        "Gói trường",
+        "Hạn mức",
+        "Hộp thư",
+        "Phản hồi",
+        "Cài đặt"
+      ],
+      "sampleOrganization": false,
+      "fakeAmounts": false,
+      "unreadDot": false,
+      "unavailableVisible": false,
+      "consoleTitle": "Sketch2Life - Quản lý trường"
+    },
+    {
+      "file": "feedback-390.png",
+      "route": "/m02-organization-management?section=feedback",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Phản hồi",
+      "activeNav": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "sampleOrganization": false,
+      "fakeAmounts": false,
+      "unreadDot": false,
+      "unavailableVisible": false,
+      "consoleTitle": "Sketch2Life - Quản lý trường"
+    },
+    {
+      "file": "settings-1440.png",
+      "route": "/m02-organization-management?section=settings",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Cài đặt",
+      "activeNav": [
+        "Tổng quan",
+        "Giáo viên & nhóm",
+        "Lớp học",
+        "Danh sách lớp",
+        "Hóa đơn & thanh toán",
+        "Gói trường",
+        "Hạn mức",
+        "Hộp thư",
+        "Phản hồi",
+        "Cài đặt"
+      ],
+      "sampleOrganization": false,
+      "fakeAmounts": false,
+      "unreadDot": false,
+      "unavailableVisible": false,
+      "consoleTitle": "Sketch2Life - Quản lý trường"
+    },
+    {
+      "file": "settings-390.png",
+      "route": "/m02-organization-management?section=settings",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Cài đặt",
+      "activeNav": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "sampleOrganization": false,
+      "fakeAmounts": false,
+      "unreadDot": false,
+      "unavailableVisible": false,
+      "consoleTitle": "Sketch2Life - Quản lý trường"
+    }
+  ],
+  "keyboard": {
+    "firstTabFocus": {
+      "className": "manager-mobile-menu",
+      "label": "Mở điều hướng"
+    },
+    "menuAfterEnter": {
+      "expanded": "true",
+      "visibility": "visible"
+    },
+    "focusInsideMenu": {
+      "className": "manager-nav-link is-active active",
+      "label": ""
+    },
+    "menuAfterEscape": {
+      "expanded": "false",
+      "visibility": "hidden"
+    },
+    "focusAfterEscape": {
+      "className": "manager-mobile-menu",
+      "label": "Mở điều hướng"
+    }
+  },
+  "logout": {
+    "path": "/login",
+    "role": null,
+    "authenticated": null
+  },
+  "runtimeExceptions": [],
+  "consoleErrors": []
+}

@@ -1,0 +1,256 @@
+{
+  "browser": "isolated headless Chrome target",
+  "networkPolicy": "Only HTTP requests to 127.0.0.1 ports 5172, 5173, and 5174 were allowed; all other HTTP(S) requests were blocked.",
+  "captures": [
+    {
+      "file": "teacher-dashboard-1440.png",
+      "url": "http://127.0.0.1:5172/t01-lesson-workspace",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1430,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Chào Cô Thảo!",
+      "emojiIcons": [
+        "🎨",
+        "🏠",
+        "👥",
+        "✨",
+        "📚",
+        "🎨",
+        "🎬",
+        "🎬",
+        "⭐️",
+        "🕒",
+        "👤",
+        "⚙️",
+        "🎨",
+        "🚪",
+        "✨",
+        "🔔"
+      ],
+      "notificationIcon": "🔔",
+      "visibleRole": "🎨\nGiáo viên\n🏠\nTổng quan\n👥\nLớp & Học sinh\n✨\nBài giảng trên lớp\n📚\nQuản lý giáo án\n🎨\nAI Assisted\n🎬\nTạo video mẫu\n🎬\nChiếu trên lớp\n⭐️\nThư viện công khai\n🕒\nLịch sử & Báo cáo\n👤\nHồ sơ cá nhân\n⚙️\nCài đặt\n🎨\nCô Thảo\nXem thử · không lưu\n🚪\nĐăng xuất\nTổng quan\nTrợ giúp\nLớp Mầm 2\nLớp Chồi 1\nLớp Lá 3\nLớp Mầm 1\n✨\n38 lượt\n🔔\n2\nChào Cô Thảo!\n\nQuản lý lớp "
+    },
+    {
+      "file": "teacher-dashboard-390.png",
+      "url": "http://127.0.0.1:5172/t01-lesson-workspace",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Chào Cô Thảo!",
+      "emojiIcons": [
+        "🎨",
+        "🏠",
+        "👥",
+        "✨",
+        "📚",
+        "🎨",
+        "🎬",
+        "🎬",
+        "⭐️",
+        "🕒",
+        "👤",
+        "⚙️",
+        "🎨",
+        "🚪",
+        "✨",
+        "🔔"
+      ],
+      "notificationIcon": "🔔",
+      "visibleRole": "🏠\n👥\n✨\n📚\n🎨\n🎬\n🎬\n⭐️\n🕒\n👤\n⚙️\n🎨\n🚪\nTổng quan\nTrợ giúp\nLớp Mầm 2\nLớp Chồi 1\nLớp Lá 3\nLớp Mầm 1\n✨\n38 lượt\n🔔\n2\nChào Cô Thảo!\n\nQuản lý lớp và chuẩn bị bài dạy từ một nơi.\n\nTrường Mầm non Ánh Dương\nLớp Mầm 2\nTạo giáo án\nNhập tài liệu\n4\nLớp phụ trách\n6\nTrẻ đang học\n4\nGiáo án\n38\nLượt video còn lại\nBài giảng đang chuẩn bị\nVòng đời bướm\n\nBản 3 · 4 hoạt "
+    },
+    {
+      "file": "teacher-dashboard-dark-1440.png",
+      "url": "http://127.0.0.1:5172/t01-lesson-workspace",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1430,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Chào Cô Thảo!",
+      "emojiIcons": [
+        "🎨",
+        "🏠",
+        "👥",
+        "✨",
+        "📚",
+        "🎨",
+        "🎬",
+        "🎬",
+        "⭐️",
+        "🕒",
+        "👤",
+        "⚙️",
+        "🎨",
+        "🚪",
+        "✨",
+        "🔔"
+      ],
+      "notificationIcon": "🔔",
+      "visibleRole": "🎨\nGiáo viên\n🏠\nTổng quan\n👥\nLớp & Học sinh\n✨\nBài giảng trên lớp\n📚\nQuản lý giáo án\n🎨\nAI Assisted\n🎬\nTạo video mẫu\n🎬\nChiếu trên lớp\n⭐️\nThư viện công khai\n🕒\nLịch sử & Báo cáo\n👤\nHồ sơ cá nhân\n⚙️\nCài đặt\n🎨\nCô Thảo\nXem thử · không lưu\n🚪\nĐăng xuất\nTổng quan\nTrợ giúp\nLớp Mầm 2\nLớp Chồi 1\nLớp Lá 3\nLớp Mầm 1\n✨\n38 lượt\n🔔\n2\nChào Cô Thảo!\n\nQuản lý lớp "
+    },
+    {
+      "file": "school-manager-dashboard-1440.png",
+      "url": "http://127.0.0.1:5173/m02-organization-management",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Quản lý trường",
+      "emojiIcons": [
+        "🏫",
+        "🏠",
+        "👥",
+        "📅",
+        "📊",
+        "🛡️",
+        "⚙️",
+        "🚪",
+        "🔔",
+        "🏫"
+      ],
+      "notificationIcon": "🔔",
+      "visibleRole": "🏫\nQuản lý trường\n🏠\nTổng quan\n👥\nGiáo viên & nhóm\n📅\nLớp & suất học\n📊\nLượt video\n🛡️\nDuyệt công khai\n⚙️\nCài đặt\nHT\nHiệu trưởng Minh\nDữ liệu xem thử\n🚪\nĐăng xuất\nQuản lý trường\nTrợ giúp\n🔔\nHộp thư chưa khả dụng\n🏫\nTrường Mầm non Ánh Dương\nXem thử · Dữ liệu minh họa, không lưu\nQuản lý trường\nMầm non Ánh Dương · Theo dõi lớp, nhân sự và hạn mức.\nDuy"
+    },
+    {
+      "file": "school-manager-dashboard-390.png",
+      "url": "http://127.0.0.1:5173/m02-organization-management",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Quản lý trường",
+      "emojiIcons": [
+        "🏫",
+        "🏠",
+        "👥",
+        "📅",
+        "📊",
+        "🛡️",
+        "⚙️",
+        "🚪",
+        "🔔",
+        "🏫"
+      ],
+      "notificationIcon": "🔔",
+      "visibleRole": "🏫\nQuản lý trường\n🏠\nTổng quan\n👥\nGiáo viên & nhóm\n📅\nLớp & suất học\n📊\nLượt video\n🛡️\nDuyệt công khai\n⚙️\nCài đặt\nHT\nHiệu trưởng Minh\nDữ liệu xem thử\n🚪\nĐăng xuất\nQuản lý trường\nTrợ giúp\n🔔\nHộp thư chưa khả dụng\n🏫\nTrường Mầm non Ánh Dương\nXem thử · Dữ liệu minh họa, không lưu\nQuản lý trường\nMầm non Ánh Dương · Theo dõi lớp, nhân sự và hạn mức.\nDuy"
+    },
+    {
+      "file": "school-manager-dashboard-dark-1440.png",
+      "url": "http://127.0.0.1:5173/m02-organization-management",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Quản lý trường",
+      "emojiIcons": [
+        "🏫",
+        "🏠",
+        "👥",
+        "📅",
+        "📊",
+        "🛡️",
+        "⚙️",
+        "🚪",
+        "🔔",
+        "🏫"
+      ],
+      "notificationIcon": "🔔",
+      "visibleRole": "🏫\nQuản lý trường\n🏠\nTổng quan\n👥\nGiáo viên & nhóm\n📅\nLớp & suất học\n📊\nLượt video\n🛡️\nDuyệt công khai\n⚙️\nCài đặt\nHT\nHiệu trưởng Minh\nDữ liệu xem thử\n🚪\nĐăng xuất\nQuản lý trường\nTrợ giúp\n🔔\nHộp thư chưa khả dụng\n🏫\nTrường Mầm non Ánh Dương\nXem thử · Dữ liệu minh họa, không lưu\nQuản lý trường\nMầm non Ánh Dương · Theo dõi lớp, nhân sự và hạn mức.\nDuy"
+    },
+    {
+      "file": "platform-admin-dashboard-1440.png",
+      "url": "http://127.0.0.1:5174/a02-platform-operations",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Trạng thái dịch vụ",
+      "emojiIcons": [
+        "🛡️",
+        "🏠",
+        "🏫",
+        "📚",
+        "🧩",
+        "🛡️",
+        "📄",
+        "🚪",
+        "🔔"
+      ],
+      "notificationIcon": "🔔",
+      "visibleRole": "🛡️\nQuản trị nền tảng\n🏠\nTổng quan\n🏫\nTổ chức\n📚\nThư viện bài học\n🧩\nDanh mục hoạt động\n🛡️\nHạn mức & chính sách\n📄\nNhật ký\nQT\nQuản trị viên\nDữ liệu xem thử\n🚪\nĐăng xuất\nTrợ giúp\n🔔\nA\nQuản trị viên\nXem thử · Dữ liệu minh họa, không lưu\nXem thử · Dữ liệu minh họa, không lưu\nTrạng thái dịch vụ\nChỉ kiểm tra endpoint health có thật trong API hiện tại.\n"
+    },
+    {
+      "file": "platform-admin-dashboard-390.png",
+      "url": "http://127.0.0.1:5174/a02-platform-operations",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Trạng thái dịch vụ",
+      "emojiIcons": [
+        "🛡️",
+        "🏠",
+        "🏫",
+        "📚",
+        "🧩",
+        "🛡️",
+        "📄",
+        "🚪",
+        "🔔"
+      ],
+      "notificationIcon": "🔔",
+      "visibleRole": "🏠\n🏫\n📚\n🧩\n🛡️\n📄\nQT\n🚪\nTrợ giúp\n🔔\nA\nQuản trị viên\nXem thử · Dữ liệu minh họa, không lưu\nXem thử · Dữ liệu minh họa, không lưu\nTrạng thái dịch vụ\nChỉ kiểm tra endpoint health có thật trong API hiện tại.\nKiểm tra lại\nChưa kết nối được dịch vụ\nKhông kết nối được backend. Kiểm tra địa chỉ API và trạng thái máy chủ. Mã yêu cầu: 6dd5c07b-918f-48b0-9c3"
+    },
+    {
+      "file": "platform-admin-dashboard-dark-1440.png",
+      "url": "http://127.0.0.1:5174/a02-platform-operations",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Trạng thái dịch vụ",
+      "emojiIcons": [
+        "🛡️",
+        "🏠",
+        "🏫",
+        "📚",
+        "🧩",
+        "🛡️",
+        "📄",
+        "🚪",
+        "🔔"
+      ],
+      "notificationIcon": "🔔",
+      "visibleRole": "🛡️\nQuản trị nền tảng\n🏠\nTổng quan\n🏫\nTổ chức\n📚\nThư viện bài học\n🧩\nDanh mục hoạt động\n🛡️\nHạn mức & chính sách\n📄\nNhật ký\nQT\nQuản trị viên\nDữ liệu xem thử\n🚪\nĐăng xuất\nTrợ giúp\n🔔\nA\nQuản trị viên\nXem thử · Dữ liệu minh họa, không lưu\nXem thử · Dữ liệu minh họa, không lưu\nTrạng thái dịch vụ\nChỉ kiểm tra endpoint health có thật trong API hiện tại.\n"
+    }
+  ],
+  "runtimeExceptions": []
+}

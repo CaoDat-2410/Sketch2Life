@@ -186,6 +186,64 @@
 - Evidence: `features/FEAT-063-system-architecture-rearchitecture/evidence/EV-063-57_SRS_V25_AND_MODAL_AI_DEV_INTEGRATION_20261106.md`.
 - Validation: `git diff --check` passed; `python tools/validate_repository_security.py` reported `REPOSITORY_SECURITY_VALID` with 6,731 publishable files scanned before commit and push. No force push or history rewrite.
 
+## FEAT-070 Plan Rev1 — Parent Web video admission demo fix
+
+- Status: APPROVED for the exact scope in the hash-identified plan.
+- Approver: Project owner, direct request in chat on 2026-11-10 to fix the P06 story-review quota/navigation issue and run one complete SRS-aligned local FE demo flow.
+- Approved plan: features/FEAT-070-parent-web-video-admission-demo-fix/plan/PLAN.md.
+- Plan SHA-256: 5CCF6FC2B5F130C98D6DE5743277FC50BAAAC8AEE10AB8F36504FCECC4FF26A2.
+- Scope: Parent UI local preview quota admission and P06-to-P07 transition; accurate post-use quota copy; one manual synthetic preview flow through P08; feature-local evidence.
+- Exclusions: SRS changes/sign-off, resolving Parent Web target-client status, API/backend/auth/billing/provider integration, automated tests/builds, commit/push, deployment, and publishing.
+- Approval basis: the user's direct instruction authorizes this bounded demo correction and manual FE walkthrough. Quota rejection when exhausted remains in place.
+
+## FEAT-067 — single web app consolidation
+
+- **Status:** APPROVED_FOR_IMPLEMENTATION for the exact scope in the hash-identified plan.
+- **Approver:** Project owner, direct instruction on 2026-11-16 (Asia/Bangkok): “Ok đc đó làm cho tôi đi”.
+- **Feature:** `features/FEAT-067-single-web-app-consolidation/` on branch `codex/fe-ui-web-remediation`.
+- **Approved plan:** `features/FEAT-067-single-web-app-consolidation/plan/PLAN.md`.
+- **Plan SHA-256:** `0161673F9FD799B62E3CBA51D9AA2B9ACCDD4C3D8BFA574D7F4ACFEC483CF2ED`.
+- **SRS baseline:** owner-supplied unsigned v2.7-draft Rev68; SHA-256 `69C83FE49CD4689D5D2540656D3319721838CF7343BAD00E24CDE558B8F5E944`.
+- **Scope:** one `apps/web` build/router for Teacher, School Manager preview, BE1-backed school-admin, Platform Admin, and shared web UI; preserve dirty FEAT-066 work; update active web scripts and CI; remove superseded web app folders only after migration and source audit.
+- **Exclusions:** mobile source, `apps/ui-mobile`, API/backend/contracts/database/authorization changes, new permissions, production data/services/secrets, automated tests/builds, SRS sign-off, commit, push, PR, merge, or deployment.
+- **Approval basis:** the owner's direct instruction authorizes this implementation scope only. School Manager preview and BE1 state/auth stay distinct; frontend routes never substitute for backend authorization. The app-local package baseline does not settle the final project stack.
+
+
+## FEAT-066 Revision 28 — Rev68 web UI rebuild and one local commit
+
+- Status: APPROVED_FOR_IMPLEMENTATION by the project owner's direct request on 2026-11-16 (Asia/Bangkok).
+- Feature: features/FEAT-066-fe-ui-srs-full-review; worktree codex/fe-ui-web-remediation.
+- Approved plan: features/FEAT-066-fe-ui-srs-full-review/plan/PLAN.md; SHA-256 8A63A0C4C3B80C5628E46AF7733FF4633964A7D73DD820E877833E2F7C59D029.
+- Product SRS: owner-selected unsigned v2.7-draft Rev68 at F:/Downloads/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md, SHA-256 69C83FE49CD4689D5D2540656D3319721838CF7343BAD00E24CDE558B8F5E944.
+- Scope: clean and rebuild the single apps/web UI for Teacher, School Manager and Platform Admin while preserving supported auth/API behavior and SRS privacy/role boundaries; manually review the web UI and record feature-local evidence; run required repository precommit validation; include the approved FEAT-067 consolidation and related FEAT-066 changes in one local commit; leave the local app running.
+- Boundaries: no Parent/mobile, backend/API/authorization, new dependencies, production data/services/secrets, app tests, push, PR, merge, or deployment.
+
+## FEAT-067 Amendment 1 — one local commit
+
+- Status: APPROVED for one local commit only by the same direct user instruction on 2026-11-16.
+- Amended plan: features/FEAT-067-single-web-app-consolidation/plan/PLAN.md; SHA-256 9375A55AB5909D3D417F712832FC01B9720D9DD2714FC8108808D7B8D48561ED.
+- Supersedes only the prior no-commit boundary for the consolidation changes included with FEAT-066 Revision 28. No push or scope expansion.
+
+## FEAT-066 Revision 29 — role login landing and remove local preview UX
+
+- **Status:** APPROVED_FOR_IMPLEMENTATION by the project owner’s direct follow-up request on 2026-11-16: replace the currently open Teacher login page with the shared role-selection login shown in the attached reference, remove the preview panel, and make this the real API-connected version.
+- **Plan revision:** 29.
+- **Plan SHA-256:** 87F02A9B3CD64D21F1D1D1D051445E0413B5C03AC635BFF507E7CF3F962576C0.
+- **Worktree/branch:** F:/Github/Sketch2Life-worktrees/fe-ui-web-remediation, codex/fe-ui-web-remediation.
+- **Approved scope:** `/login` and `/teacher/login` share the role-selection page; role cards proceed to real role sign-in, the local preview panel/bypass/routes are removed from active UI, and existing auth/API boundaries remain intact. Missing server APIs remain unavailable rather than simulated.
+- **Commit:** Amend the existing local web commit to retain exactly one final commit on this branch. No push, PR, merge, or deployment.
+- **No application tests:** preserve the existing no-tests boundary; run build and required repository validators.
+
+## FEAT-066 Revision 30 — shared single-screen role login
+
+- **Status:** APPROVED_FOR_IMPLEMENTATION by the project owner's direct correction on 2026-11-16: use the attached sign-in screen as the direct login page, remove the separate role chooser, and keep School Manager in the same login flow rather than jumping to another page.
+- **Plan revision:** 30.
+- **Plan SHA-256:** 8D167E39A75B3A13E68FBBB1C4672C018E9282920CC4478D9DFA4B16B1DAD12F.
+- **Worktree/branch:** codex/fe-ui-web-remediation; baseline commit df07438e690cabf93ec9feacedcc5b6e3ca2709d.
+- **SRS:** owner-selected unsigned v2.7-draft Rev68 task baseline; repository canonical unsigned Rev60 mismatch remains open and unchanged.
+- **Approved scope:** shared /login sign-in layout with inline role switching; old role-card chooser and duplicate School Manager login presentation removed; compatibility routes select the corresponding role on the same screen; retain Teacher backend role resolution, Manager BE1 authentication and assignment gate, and Platform Admin's missing role-discovery limitation.
+- **Commit:** amend the existing one local commit after evidence and checks; no push.
+- **Boundary:** no backend/API/auth-contract or mobile changes, no credential entry, no application tests.
 ## FEAT-063 Plan Rev52 addendum — publish SRS contradiction reconciliation
 
 - **Status:** APPROVED for the exact branch publication scope below; SRS content remains unsigned.
@@ -301,3 +359,13 @@
 - **Exclusions:** product code/runtime/API/database/schema/data/migration/provider/secret/permission/cost changes, tests/build/deployment, final diagrams, SRS/DTR sign-off, PR/merge, and force push. Unanswered policy questions remain OPEN-OWNER.
 - **Publication:** owner explicitly authorized commit and push; only a normal fast-forward push of the scoped paths to docs/feat063-diagram-readiness-20261107 is authorized.
 - **Approval basis:** the direct user request authorizes this exact documentation and publication scope. It does not approve proposed requirements, settle owner decisions, or sign off SRS/DTR.
+
+## FEAT-071 — PR #27 conflict resolution
+
+- **Status:** APPROVED for the bounded conflict-resolution and PR-head update task.
+- **Approver:** Project owner, direct request on 2026-11-16 (Asia/Bangkok) to review PR #27, resolve conflicts cleanly, document the process, and not merge the PR.
+- **Approved plan:** `features/FEAT-071-pr27-conflict-resolution/plan/PLAN.md`.
+- **Plan SHA-256:** `3E1435241341E5BCF42323651A3ECBFF4F7F97F0310589DB072696F2617D31C7`.
+- **Scope:** Integrate the recorded `dev` base into the PR head with a normal merge commit; resolve all 19 unmerged paths; retain both append-only approval histories; preserve current mobile, UI-mobile, backend, and contract changes; carry the applicable admin/teacher behavior into the consolidated web app; record feature-local evidence and run repository-required checks.
+- **Explicit boundary:** Do not merge PR #27 into `dev`, change its base, force-push, rebase, squash, deploy, or change product/SRS requirements. The PR remains open and unmerged.
+- **Approval basis:** The direct user request authorizes this exact conflict-resolution scope and a normal update to the PR head branch after required checks. It does not authorize merging the PR.

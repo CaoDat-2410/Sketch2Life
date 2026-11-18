@@ -1,0 +1,192 @@
+{
+  "origin": "http://127.0.0.1:5173",
+  "browser": "Microsoft Edge headless, CDP bound to 127.0.0.1:9233",
+  "externalHttpsBlocked": true,
+  "backendLocalhostBlocked": true,
+  "observations": [
+    {
+      "page": "dashboard",
+      "viewport": "desktop",
+      "before": {
+        "screenshot": "logout-dashboard-desktop-before.png",
+        "route": "/m02-organization-management",
+        "viewportWidth": 1440,
+        "documentWidth": 1440,
+        "horizontalOverflow": false,
+        "logoutButton": {
+          "tag": "BUTTON",
+          "role": "native button",
+          "accessibleName": "Đăng xuất",
+          "text": "Đăng xuất",
+          "tabIndex": 0,
+          "visible": true,
+          "width": 219,
+          "height": 44,
+          "insideViewport": true,
+          "left": 14,
+          "top": 836
+        }
+      },
+      "keyboardFocus": {
+        "focused": true,
+        "activeTag": "BUTTON",
+        "activeName": "Đăng xuất"
+      },
+      "activationMethod": "keyboard-enter",
+      "after": {
+        "screenshot": "logout-dashboard-desktop-after.png",
+        "logoutSucceeded": true,
+        "route": "/login",
+        "roleKey": null,
+        "authenticatedKey": null,
+        "loginVisible": true,
+        "logoutButtonPresent": false
+      },
+      "protectedRouteAfterLogout": {
+        "route": "/login",
+        "roleKey": null,
+        "authenticatedKey": null,
+        "loginVisible": true,
+        "logoutButtonPresent": false
+      }
+    },
+    {
+      "page": "settings",
+      "viewport": "desktop",
+      "before": {
+        "screenshot": "logout-settings-desktop-before.png",
+        "route": "/m02-organization-management?section=settings",
+        "viewportWidth": 1440,
+        "documentWidth": 1440,
+        "horizontalOverflow": false,
+        "logoutButton": {
+          "tag": "BUTTON",
+          "role": "native button",
+          "accessibleName": "Đăng xuất",
+          "text": "Đăng xuất",
+          "tabIndex": 0,
+          "visible": true,
+          "width": 219,
+          "height": 44,
+          "insideViewport": true,
+          "left": 14,
+          "top": 836
+        }
+      },
+      "keyboardFocus": {
+        "focused": true,
+        "activeTag": "BUTTON",
+        "activeName": "Đăng xuất"
+      },
+      "activationMethod": "keyboard-enter",
+      "after": {
+        "screenshot": "logout-settings-desktop-after.png",
+        "logoutSucceeded": true,
+        "route": "/login",
+        "roleKey": null,
+        "authenticatedKey": null,
+        "loginVisible": true,
+        "logoutButtonPresent": false
+      },
+      "protectedRouteAfterLogout": {
+        "route": "/login",
+        "roleKey": null,
+        "authenticatedKey": null,
+        "loginVisible": true,
+        "logoutButtonPresent": false
+      }
+    },
+    {
+      "page": "dashboard",
+      "viewport": "narrow",
+      "before": {
+        "screenshot": "logout-dashboard-narrow-before.png",
+        "route": "/m02-organization-management",
+        "viewportWidth": 390,
+        "documentWidth": 390,
+        "horizontalOverflow": false,
+        "logoutButton": {
+          "tag": "BUTTON",
+          "role": "native button",
+          "accessibleName": "Đăng xuất",
+          "text": "Đăng xuất",
+          "tabIndex": 0,
+          "visible": true,
+          "width": 44,
+          "height": 44,
+          "insideViewport": true,
+          "left": 18,
+          "top": 784
+        }
+      },
+      "keyboardFocus": {
+        "focused": true,
+        "activeTag": "BUTTON",
+        "activeName": "Đăng xuất"
+      },
+      "activationMethod": "keyboard-enter",
+      "after": {
+        "screenshot": "logout-dashboard-narrow-after.png",
+        "logoutSucceeded": true,
+        "route": "/login",
+        "roleKey": null,
+        "authenticatedKey": null,
+        "loginVisible": true,
+        "logoutButtonPresent": false
+      },
+      "protectedRouteAfterLogout": {
+        "route": "/login",
+        "roleKey": null,
+        "authenticatedKey": null,
+        "loginVisible": true,
+        "logoutButtonPresent": false
+      }
+    },
+    {
+      "page": "settings",
+      "viewport": "narrow",
+      "before": {
+        "screenshot": "logout-settings-narrow-before.png",
+        "route": "/m02-organization-management?section=settings",
+        "viewportWidth": 390,
+        "documentWidth": 390,
+        "horizontalOverflow": false,
+        "logoutButton": {
+          "tag": "BUTTON",
+          "role": "native button",
+          "accessibleName": "Đăng xuất",
+          "text": "Đăng xuất",
+          "tabIndex": 0,
+          "visible": true,
+          "width": 44,
+          "height": 44,
+          "insideViewport": true,
+          "left": 18,
+          "top": 784
+        }
+      },
+      "keyboardFocus": {
+        "focused": true,
+        "activeTag": "BUTTON",
+        "activeName": "Đăng xuất"
+      },
+      "activationMethod": "keyboard-enter",
+      "after": {
+        "screenshot": "logout-settings-narrow-after.png",
+        "logoutSucceeded": true,
+        "route": "/login",
+        "roleKey": null,
+        "authenticatedKey": null,
+        "loginVisible": true,
+        "logoutButtonPresent": false
+      },
+      "protectedRouteAfterLogout": {
+        "route": "/login",
+        "roleKey": null,
+        "authenticatedKey": null,
+        "loginVisible": true,
+        "logoutButtonPresent": false
+      }
+    }
+  ]
+}

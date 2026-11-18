@@ -1,0 +1,200 @@
+{
+  "desktop": {
+    "teacher": {
+      "url": "/login",
+      "role": "Giáo viên",
+      "heading": "Chuẩn bị buổi học",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1425,
+      "bodyWidth": 1409,
+      "card": {
+        "width": 980,
+        "height": 582
+      },
+      "formVisible": true,
+      "alert": null,
+      "externalRequests": []
+    },
+    "manager": {
+      "url": "/login?role=manager",
+      "role": "Quản lý trường",
+      "heading": "Quản lý hoạt động trường",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1425,
+      "bodyWidth": 1409,
+      "card": {
+        "width": 980,
+        "height": 582
+      },
+      "formVisible": true,
+      "alert": null,
+      "externalRequests": []
+    },
+    "managerStayedOnSameRoute": true,
+    "platformAdmin": {
+      "url": "/login?role=admin",
+      "role": "Quản trị nền tảng",
+      "heading": "Vận hành nền tảng",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1425,
+      "bodyWidth": 1409,
+      "card": {
+        "width": 980,
+        "height": 661
+      },
+      "formVisible": true,
+      "alert": "Backend chưa cung cấp API xác minh Platform Admin và capability. Cổng này chưa thể mở cho tới khi role được xác minh.",
+      "externalRequests": []
+    }
+  },
+  "mobile": {
+    "teacher": {
+      "url": "/login?role=teacher",
+      "role": "Giáo viên",
+      "heading": "Chuẩn bị buổi học",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "bodyWidth": 374,
+      "card": {
+        "width": 374,
+        "height": 844
+      },
+      "formVisible": true,
+      "alert": null,
+      "externalRequests": []
+    },
+    "manager": {
+      "url": "/login?role=manager",
+      "role": "Quản lý trường",
+      "heading": "Quản lý hoạt động trường",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "bodyWidth": 374,
+      "card": {
+        "width": 374,
+        "height": 844
+      },
+      "formVisible": true,
+      "alert": null,
+      "externalRequests": []
+    }
+  },
+  "routes": [
+    {
+      "url": "/login?role=teacher",
+      "role": "Giáo viên",
+      "heading": "Chuẩn bị buổi học",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "bodyWidth": 374,
+      "card": {
+        "width": 374,
+        "height": 844
+      },
+      "formVisible": true,
+      "alert": null,
+      "externalRequests": []
+    },
+    {
+      "url": "/login?role=teacher",
+      "role": "Giáo viên",
+      "heading": "Chuẩn bị buổi học",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "bodyWidth": 374,
+      "card": {
+        "width": 374,
+        "height": 844
+      },
+      "formVisible": true,
+      "alert": null,
+      "externalRequests": []
+    },
+    {
+      "url": "/login?role=manager",
+      "role": "Quản lý trường",
+      "heading": "Quản lý hoạt động trường",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "bodyWidth": 374,
+      "card": {
+        "width": 374,
+        "height": 844
+      },
+      "formVisible": true,
+      "alert": null,
+      "externalRequests": []
+    },
+    {
+      "url": "/login?role=admin",
+      "role": "Quản trị nền tảng",
+      "heading": "Vận hành nền tảng",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "bodyWidth": 374,
+      "card": {
+        "width": 374,
+        "height": 896
+      },
+      "formVisible": true,
+      "alert": "Backend chưa cung cấp API xác minh Platform Admin và capability. Cổng này chưa thể mở cho tới khi role được xác minh.",
+      "externalRequests": []
+    },
+    {
+      "url": "/login?role=manager",
+      "role": "Quản lý trường",
+      "heading": "Quản lý hoạt động trường",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "bodyWidth": 374,
+      "card": {
+        "width": 374,
+        "height": 844
+      },
+      "formVisible": true,
+      "alert": null,
+      "externalRequests": []
+    }
+  ],
+  "keyboardFocus": {
+    "tag": "BUTTON",
+    "label": "Quản lý trường",
+    "roleButton": true,
+    "ariaPressed": "true",
+    "url": "/login?role=manager",
+    "outlineStyle": "solid",
+    "outlineWidth": "3px"
+  },
+  "runtimeErrors": [],
+  "consoleErrors": []
+}

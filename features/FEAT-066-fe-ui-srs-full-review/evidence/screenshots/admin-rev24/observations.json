@@ -1,0 +1,711 @@
+{
+  "browser": "isolated local Chrome tab with synthetic ADMIN sessionStorage only",
+  "networkPolicy": "Only HTTP requests to 127.0.0.1:5174 were allowed; other requests were blocked.",
+  "captures": [
+    {
+      "file": "overview-1440.png",
+      "route": "/a02-platform-operations",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Tổng quan nền tảng",
+      "activeNav": [
+        "Tổng quan",
+        "Tổ chức",
+        "Queue & jobs",
+        "Vòng đời dữ liệu",
+        "Nhật ký kiểm toán",
+        "Danh mục hoạt động",
+        "Quyền & vai trò",
+        "Quota & chính sách",
+        "Đối soát billing",
+        "Feedback",
+        "Hộp thư"
+      ],
+      "fakeOrganization": false,
+      "fakeAmount": false,
+      "unreadDot": false,
+      "unavailableVisible": true
+    },
+    {
+      "file": "overview-390.png",
+      "route": "/a02-platform-operations",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Tổng quan nền tảng",
+      "activeNav": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "fakeOrganization": false,
+      "fakeAmount": false,
+      "unreadDot": false,
+      "unavailableVisible": true
+    },
+    {
+      "file": "organizations-1440.png",
+      "route": "/a02-platform-operations?panel=orgs",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Tổ chức",
+      "activeNav": [
+        "Tổng quan",
+        "Tổ chức",
+        "Queue & jobs",
+        "Vòng đời dữ liệu",
+        "Nhật ký kiểm toán",
+        "Danh mục hoạt động",
+        "Quyền & vai trò",
+        "Quota & chính sách",
+        "Đối soát billing",
+        "Feedback",
+        "Hộp thư"
+      ],
+      "fakeOrganization": false,
+      "fakeAmount": false,
+      "unreadDot": false,
+      "unavailableVisible": false
+    },
+    {
+      "file": "organizations-390.png",
+      "route": "/a02-platform-operations?panel=orgs",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Tổ chức",
+      "activeNav": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "fakeOrganization": false,
+      "fakeAmount": false,
+      "unreadDot": false,
+      "unavailableVisible": false
+    },
+    {
+      "file": "queues-jobs-1440.png",
+      "route": "/a02-platform-operations?panel=queues",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Queue & jobs",
+      "activeNav": [
+        "Tổng quan",
+        "Tổ chức",
+        "Queue & jobs",
+        "Vòng đời dữ liệu",
+        "Nhật ký kiểm toán",
+        "Danh mục hoạt động",
+        "Quyền & vai trò",
+        "Quota & chính sách",
+        "Đối soát billing",
+        "Feedback",
+        "Hộp thư"
+      ],
+      "fakeOrganization": false,
+      "fakeAmount": false,
+      "unreadDot": false,
+      "unavailableVisible": false
+    },
+    {
+      "file": "queues-jobs-390.png",
+      "route": "/a02-platform-operations?panel=queues",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Queue & jobs",
+      "activeNav": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "fakeOrganization": false,
+      "fakeAmount": false,
+      "unreadDot": false,
+      "unavailableVisible": false
+    },
+    {
+      "file": "lifecycle-1440.png",
+      "route": "/a02-platform-operations?panel=lifecycle",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Vòng đời dữ liệu",
+      "activeNav": [
+        "Tổng quan",
+        "Tổ chức",
+        "Queue & jobs",
+        "Vòng đời dữ liệu",
+        "Nhật ký kiểm toán",
+        "Danh mục hoạt động",
+        "Quyền & vai trò",
+        "Quota & chính sách",
+        "Đối soát billing",
+        "Feedback",
+        "Hộp thư"
+      ],
+      "fakeOrganization": false,
+      "fakeAmount": false,
+      "unreadDot": false,
+      "unavailableVisible": false
+    },
+    {
+      "file": "lifecycle-390.png",
+      "route": "/a02-platform-operations?panel=lifecycle",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Vòng đời dữ liệu",
+      "activeNav": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "fakeOrganization": false,
+      "fakeAmount": false,
+      "unreadDot": false,
+      "unavailableVisible": false
+    },
+    {
+      "file": "audit-1440.png",
+      "route": "/a02-platform-operations?panel=audit",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Nhật ký kiểm toán",
+      "activeNav": [
+        "Tổng quan",
+        "Tổ chức",
+        "Queue & jobs",
+        "Vòng đời dữ liệu",
+        "Nhật ký kiểm toán",
+        "Danh mục hoạt động",
+        "Quyền & vai trò",
+        "Quota & chính sách",
+        "Đối soát billing",
+        "Feedback",
+        "Hộp thư"
+      ],
+      "fakeOrganization": false,
+      "fakeAmount": false,
+      "unreadDot": false,
+      "unavailableVisible": true
+    },
+    {
+      "file": "audit-390.png",
+      "route": "/a02-platform-operations?panel=audit",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Nhật ký kiểm toán",
+      "activeNav": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "fakeOrganization": false,
+      "fakeAmount": false,
+      "unreadDot": false,
+      "unavailableVisible": true
+    },
+    {
+      "file": "content-moderation-1440.png",
+      "route": "/a01-content-moderation",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Duyệt học liệu",
+      "activeNav": [
+        "Duyệt học liệu"
+      ],
+      "fakeOrganization": false,
+      "fakeAmount": false,
+      "unreadDot": false,
+      "unavailableVisible": false
+    },
+    {
+      "file": "content-moderation-390.png",
+      "route": "/a01-content-moderation",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Duyệt học liệu",
+      "activeNav": [
+        ""
+      ],
+      "fakeOrganization": false,
+      "fakeAmount": false,
+      "unreadDot": false,
+      "unavailableVisible": false
+    },
+    {
+      "file": "activity-catalog-1440.png",
+      "route": "/a02-platform-operations?panel=catalog",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Danh mục hoạt động",
+      "activeNav": [
+        "Tổng quan",
+        "Tổ chức",
+        "Queue & jobs",
+        "Vòng đời dữ liệu",
+        "Nhật ký kiểm toán",
+        "Danh mục hoạt động",
+        "Quyền & vai trò",
+        "Quota & chính sách",
+        "Đối soát billing",
+        "Feedback",
+        "Hộp thư"
+      ],
+      "fakeOrganization": false,
+      "fakeAmount": false,
+      "unreadDot": false,
+      "unavailableVisible": false
+    },
+    {
+      "file": "activity-catalog-390.png",
+      "route": "/a02-platform-operations?panel=catalog",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Danh mục hoạt động",
+      "activeNav": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "fakeOrganization": false,
+      "fakeAmount": false,
+      "unreadDot": false,
+      "unavailableVisible": false
+    },
+    {
+      "file": "permissions-1440.png",
+      "route": "/a02-platform-operations?panel=permissions",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Quyền & vai trò",
+      "activeNav": [
+        "Tổng quan",
+        "Tổ chức",
+        "Queue & jobs",
+        "Vòng đời dữ liệu",
+        "Nhật ký kiểm toán",
+        "Danh mục hoạt động",
+        "Quyền & vai trò",
+        "Quota & chính sách",
+        "Đối soát billing",
+        "Feedback",
+        "Hộp thư"
+      ],
+      "fakeOrganization": false,
+      "fakeAmount": false,
+      "unreadDot": false,
+      "unavailableVisible": false
+    },
+    {
+      "file": "permissions-390.png",
+      "route": "/a02-platform-operations?panel=permissions",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Quyền & vai trò",
+      "activeNav": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "fakeOrganization": false,
+      "fakeAmount": false,
+      "unreadDot": false,
+      "unavailableVisible": false
+    },
+    {
+      "file": "quota-policy-1440.png",
+      "route": "/a02-platform-operations?panel=quota",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Quota & chính sách",
+      "activeNav": [
+        "Tổng quan",
+        "Tổ chức",
+        "Queue & jobs",
+        "Vòng đời dữ liệu",
+        "Nhật ký kiểm toán",
+        "Danh mục hoạt động",
+        "Quyền & vai trò",
+        "Quota & chính sách",
+        "Đối soát billing",
+        "Feedback",
+        "Hộp thư"
+      ],
+      "fakeOrganization": false,
+      "fakeAmount": false,
+      "unreadDot": false,
+      "unavailableVisible": false
+    },
+    {
+      "file": "quota-policy-390.png",
+      "route": "/a02-platform-operations?panel=quota",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Quota & chính sách",
+      "activeNav": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "fakeOrganization": false,
+      "fakeAmount": false,
+      "unreadDot": false,
+      "unavailableVisible": false
+    },
+    {
+      "file": "billing-reconciliation-1440.png",
+      "route": "/a02-platform-operations?panel=billing",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Đối soát billing",
+      "activeNav": [
+        "Tổng quan",
+        "Tổ chức",
+        "Queue & jobs",
+        "Vòng đời dữ liệu",
+        "Nhật ký kiểm toán",
+        "Danh mục hoạt động",
+        "Quyền & vai trò",
+        "Quota & chính sách",
+        "Đối soát billing",
+        "Feedback",
+        "Hộp thư"
+      ],
+      "fakeOrganization": false,
+      "fakeAmount": false,
+      "unreadDot": false,
+      "unavailableVisible": false
+    },
+    {
+      "file": "billing-reconciliation-390.png",
+      "route": "/a02-platform-operations?panel=billing",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Đối soát billing",
+      "activeNav": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "fakeOrganization": false,
+      "fakeAmount": false,
+      "unreadDot": false,
+      "unavailableVisible": false
+    },
+    {
+      "file": "feedback-1440.png",
+      "route": "/a02-platform-operations?panel=feedback",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Feedback",
+      "activeNav": [
+        "Tổng quan",
+        "Tổ chức",
+        "Queue & jobs",
+        "Vòng đời dữ liệu",
+        "Nhật ký kiểm toán",
+        "Danh mục hoạt động",
+        "Quyền & vai trò",
+        "Quota & chính sách",
+        "Đối soát billing",
+        "Feedback",
+        "Hộp thư"
+      ],
+      "fakeOrganization": false,
+      "fakeAmount": false,
+      "unreadDot": false,
+      "unavailableVisible": false
+    },
+    {
+      "file": "feedback-390.png",
+      "route": "/a02-platform-operations?panel=feedback",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Feedback",
+      "activeNav": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "fakeOrganization": false,
+      "fakeAmount": false,
+      "unreadDot": false,
+      "unavailableVisible": false
+    },
+    {
+      "file": "inbox-1440.png",
+      "route": "/a02-platform-operations?panel=inbox",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Hộp thư",
+      "activeNav": [
+        "Tổng quan",
+        "Tổ chức",
+        "Queue & jobs",
+        "Vòng đời dữ liệu",
+        "Nhật ký kiểm toán",
+        "Danh mục hoạt động",
+        "Quyền & vai trò",
+        "Quota & chính sách",
+        "Đối soát billing",
+        "Feedback",
+        "Hộp thư"
+      ],
+      "fakeOrganization": false,
+      "fakeAmount": false,
+      "unreadDot": false,
+      "unavailableVisible": false
+    },
+    {
+      "file": "inbox-390.png",
+      "route": "/a02-platform-operations?panel=inbox",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "horizontalOverflow": false,
+      "viteError": false,
+      "heading": "Hộp thư",
+      "activeNav": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "fakeOrganization": false,
+      "fakeAmount": false,
+      "unreadDot": false,
+      "unavailableVisible": false
+    }
+  ],
+  "keyboard": {
+    "firstTabFocus": {
+      "className": "admin-mobile-menu",
+      "label": "Mở điều hướng"
+    },
+    "menuAfterEnter": {
+      "expanded": "true",
+      "visibility": "visible"
+    },
+    "focusInsideMenu": {
+      "className": "admin-nav-link is-active active",
+      "label": ""
+    },
+    "menuAfterEscape": {
+      "expanded": "false",
+      "visibility": "hidden"
+    },
+    "focusAfterEscape": {
+      "className": "admin-mobile-menu",
+      "label": "Mở điều hướng"
+    }
+  },
+  "logout": {
+    "path": "/login",
+    "role": null,
+    "authenticated": null
+  },
+  "runtimeExceptions": [],
+  "consoleErrors": []
+}

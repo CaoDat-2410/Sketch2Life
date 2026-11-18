@@ -1,7 +1,0 @@
-export * from './mockSession'
-export * from './mockStrokes'
-export * from './mockGarden'
-export * from './mockLesson'
-export * from './mockCraft'
-export * from './mockAvatars'
-export * from './mockEmotions'
