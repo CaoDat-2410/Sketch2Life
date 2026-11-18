@@ -1,0 +1,27 @@
+meta {
+  name: 144 [PLATFORM ADMIN - STATE CHANGE - SYNTHETIC ONLY] Update Account
+  type: http
+  seq: 144
+}
+
+patch {
+  url: {{baseUrl}}/api/platform-admin/v1/accounts/{{platform_account_id}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
+}
+
+body:json {
+  {
+    "state": "REPLACE_WITH_APPROVED_STATE"
+  }
+}

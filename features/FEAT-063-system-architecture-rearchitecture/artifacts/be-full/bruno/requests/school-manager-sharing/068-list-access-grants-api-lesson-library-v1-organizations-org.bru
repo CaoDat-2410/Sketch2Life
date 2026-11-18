@@ -1,11 +1,11 @@
 meta {
-  name: 068 [READ ONLY] List Access Grants
+  name: 068 [MANAGER - READ ONLY] List Access Grants
   type: http
   seq: 68
 }
 
 get {
-  url: {{baseUrl}}/api/lesson-library/v1/organizations/{{organization_id}}/access-grants
+  url: {{baseUrl}}/api/lesson-library/v1/organizations/{{organization_id}}/access-grants?state=PENDING_REVIEW&audience_kind=PUBLIC
   body: none
   auth: bearer
 }
@@ -16,4 +16,5 @@ auth:bearer {
 
 headers {
   Accept: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
 }

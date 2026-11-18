@@ -397,3 +397,85 @@ The owner directly approved the shared login landing and removal of local-previe
 - Security: REPOSITORY_SECURITY_VALID, 6,879 publishable files scanned. Architecture: ARCHITECTURE_VALID. git diff --check: passed with only existing CRLF normalization warnings.
 - Harness remains invalid due the intentionally removed apps/mobile/package.json and missing evidence scaffolding in unrelated FEAT-070. Neither path was restored or generated. Skeleton validation was unnecessary because repository structure was unchanged.
 - Vite is running at http://127.0.0.1:5173/login. The existing single local commit was amended after final review; the branch is one commit ahead and nothing was pushed.
+
+## MGR-1 owner disposition checkpoint — 2026-11-17
+
+- MGR-0 source/evidence inventory is complete; it does not claim fresh runtime verification.
+- Owner choices are recorded in D-066-62: Manager Parent discovery/invitation stays unavailable pending separate approval; staff cannot create or revoke effective Parent consent; eligible assignment candidates are verified Teachers in the same organization.
+- The School Manager API gap-closure plan remains DRAFT / NOT APPROVED / NOT LAUNCHED. MGR-2 Billing-capacity contract design is next; no implementation is authorized before MGR-7 and a separate Task Approval.
+- Owner-selected external SRS review input: 701,157 bytes / `B9B1F42D0BB118C19C81607D3913B7E4F1D8B6F673F0C3FBB6402888FEB675F5` (header Rev69; revision table through Rev68). Repo SRS authority remains Rev60.
+- No source, approval, SRS, or FE worktree changes; no tests, builds, validators, backend/runtime, database, Docker, provider, network, or Modal commands were run.
+
+## MGR-2 contract planning review — 2026-11-17
+
+- MGR-2 contract Draft 1 received an independent cold review: **ACCEPT WITH NOTES**, zero actionable findings. The reviewer did not verify generated OpenAPI, runtime behavior, or Billing integration.
+- D-066-63 records the selected planning direction: Billing owns effective class capacity; BE1 must use a versioned, concurrency-safe admission decision and fail closed when capacity cannot be verified. SRS-defined idempotency, `GRACE`/`RESTRICTED`, effective-time suspension projection, and scope/error behavior are retained.
+- Billing-unavailable status/code/retry mapping, literal idempotency header/format/retention, reservation/receipt protocol, and SRS-to-BE route-prefix mapping remain OPEN.
+- MGR-2 remains **DRAFT / NOT APPROVED / NOT LAUNCHED**. No source, OpenAPI, schema, migration, FE, or official task approval was changed. MGR-7 and its separate Task Approval remain required before implementation.
+- Next roadmap work: MGR-3 tenant-scoped Teacher-candidate and assignment contract planning. Respect listed parallel work and any owner/contract dependency; no implementation is authorized here.
+- Evidence: `evidence/notes/MGR_2_COLD_REVIEW_OWNER_DISPOSITION_20261117.md`. No tests, builds, validators, runtime, database, Docker, network/provider, or Modal commands were run. Nothing was staged, committed, or pushed.
+
+## MGR-2 Rev60 citation correction and cold review R3 — 2026-11-17
+
+- Corrected the MGR-2 plan/evidence traceability: Rev60 §9.6 line 791 is the general idempotency-key requirement; §§21.1/21.4 specify key scope/replay behavior; §9.8 line 835 maps mismatched payload reuse to HTTP 400 `INVALID_IDEMPOTENCY_KEY`. The proposed route-group list at §9.6 lines 766–775 is not conflated with the detailed protocol.
+- Independent read-only cold review of the exact updated plan (24,013 B / `8D9780892575675DAC9FB7436D8A587FDDC61C0A9F2E5C27153969CAD1E1C055`) and evidence (15,158 B / `762C89B81869D820DE9A04A1911724FA7CADA29BC1BEC833A3988447F8CAA6CA`) returned **ACCEPT; 0 P0/P1/P2/P3 actionable findings**. See `evidence/notes/MGR_2_COLD_REVIEW_DRAFT1_R3_20261117.md`.
+- MGR-2 remains **DRAFT / NOT APPROVED / NOT LAUNCHED**. Open Billing protocol and wire details remain unresolved; MGR-7 allowlist and separate official Task Approval are still required before implementation. Runtime, generated OpenAPI, tests, database, and Billing integration were not verified.
+- No source, SRS, decision, or approval record changed. No tests, validators, runtime, database, Docker, network/provider, Modal, staging, commit, or push were performed.
+
+## MGR-7 bounded BE approval checkpoint — 2026-11-18
+
+- MGR-7 package pin `37B412F3E10403238FDC9B940C437941293AD91F78EFDB76E61F5DE4C97E3FC3` received a conditional owner approval after its R2 cold review returned **ACCEPT**, no findings.
+- The feature-local Task Approval records the exact six-file allowlist and scope. Source edits are approved within that boundary; test execution and all verification/runtime commands remain unauthorized pending a separate launch instruction.
+- Implementation has not started; no API is newly ready for FE integration. MGR-9 remains a separate FE plan/approval after BE implementation evidence. MGR-2–MGR-6 gaps remain outside MGR-7.
+
+### 2026-11-18 — MGR-8 verification status
+
+Status: NOT VERIFIED. The first pytest command was invoked once and interrupted after remaining pending without captured output; no result or exit code was captured. The second command was not run, and no retry was made. See the implementation verification evidence note.
+
+### 2026-11-18 — MGR-8 diagnostic status
+
+D1: 8 passed. D2: interrupted at the no-growth limit with no final pytest summary. D3: not run by the stop rule. MGR-8 verification disposition remains for the owner. See the diagnostic evidence note.
+
+### 2026-11-18 — MGR-8 owner-run results status
+
+Status: NOT VERIFIED, pending owner disposition.
+
+- D1 (unit, Codex diagnostic): 8 passed.
+- D2 (catalog, owner-run): 2 passed, 1 failed. A pre-existing `dev` `app.py` description gate stops the test before the MGR-7 catalog assertions run. Not re-run; the next step is undecided.
+- D3 (integration, owner-run): 6 failed with 403 because the fixture had no `account_role`.
+- Owner-approved scoped fixture amendment, recorded in Task Approval.
+- D3-R2 (owner-run): 6 passed, 1 failed. The MGR-7 default-25 and `INVALID_IDEMPOTENCY_KEY` tests passed. The teacher PDF upload test failed with 503 because ClamAV was not reachable; MGR-7 did not change that test.
+- No commit or push. See `evidence/notes/MGR_8_OWNER_RUN_RESULTS_20261118.md`.
+
+### 2026-11-18 — MGR-8 owner disposition status
+
+Status: **PARTIAL — runtime behaviour verified, catalog pending.** This is the owner's instruction, relayed by the coordinating BE session.
+
+- Runtime: D1 8 passed; D3-R2 6 of 7 passed, covering both MGR-7 behaviours.
+- Accepted environment limit: the PDF upload test failed with 503 because ClamAV was not running.
+- Catalog (`openapi_contract.py`): not verified.
+- D2 direction: wait for M2 on `dev` (O-0); no `app.py` port.
+- Next: M2 reaches `dev`, S-LL moves onto it, the owner re-runs D2 and D3, an independent review runs, then one S-LL commit, each only on the owner's word.
+- No commit or push.
+
+## 2026-11-18 — MGR-8 VERIFIED (S-LL ready for its commit)
+
+- **Status:** **VERIFIED**, by the owner ("R ok verified làm bước 5 đi").
+- **Where:** the owner-run happened in the root checkout, on the M2 branch after merge `b93d7334`. The S-LL changes are applied there, uncommitted.
+- **Results:**
+  - D1: 8/8 passed.
+  - D2: 5/5 passed (the catalog part is now verified).
+  - D3: 6/7 passed. The PDF test failed on ClamAV, which is an environment limit.
+  - `test_app_composition`: 7/7 passed.
+- **Evidence:** `evidence/notes/MGR_8_ROOT_RUN_RESULTS_20261118.md` (`19A6E63C106EFF95…`).
+- **Next:** an independent evidence review (Sonnet 5.5 high), then the S-LL commit on the owner's word. After that, push and one PR into `dev`, also on the owner's word.
+- **Not yet done:** no commit for S-LL, and no push.
+
+## 2026-11-18 — G0 closed: MGR-8 evidence review PASS WITH NOTES
+
+- **Review:** an independent review on Sonnet 5.5 at high effort found **PASS WITH NOTES** (P1 0, P2 0, P3 4).
+  - E-01 to E-03 are corrected in the review record, not by editing the pinned note.
+  - E-04 is handled by staging explicit paths.
+- **Record:** `evidence/notes/MGR_8_EVIDENCE_INDEPENDENT_REVIEW_20261118.md` (6,705 B, `8AE285D1B68DFFB2…`).
+- **Commit:** the owner word "Làm G0 luôn" covers the record, one S-LL task commit and a push to the M2 branch, which updates PR #30 into `dev`.
+- **Next:** Phase B, starting with CONV-1.

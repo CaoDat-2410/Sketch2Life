@@ -1,0 +1,29 @@
+meta {
+  name: 143 [PLATFORM ADMIN - STATE CHANGE - SYNTHETIC ONLY] Create Account
+  type: http
+  seq: 143
+}
+
+post {
+  url: {{baseUrl}}/api/platform-admin/v1/accounts
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
+}
+
+body:json {
+  {
+    "email": "synthetic-parent@example.test",
+    "display_name": "Synthetic Parent",
+    "role": "parent"
+  }
+}
