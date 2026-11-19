@@ -1,12 +1,51 @@
-import type { ParentApiPort, ProfileCreateInput, ProfileUpdateInput } from '../ports/ParentPorts';
+import type {
+  ParentActionIdentity,
+  ParentApiPort,
+  ProfileCreateInput,
+  ProfileUpdateInput,
+} from '../ports/ParentPorts';
+import type {
+  ParentProfileCreateV1,
+  ParentProfilePatchV1,
+  ParentProfileRecordV1,
+  ParentProfileViewV1,
+} from '../../domain/types';
 import { ParentApplicationError } from '../ParentApplicationError';
 import { CHILD_AGE_RANGE_MESSAGE, isSupportedChildAge } from '../../domain/profileRules';
+
+export type ParentProfilePatchOutcomeV1 =
+  | { status: 'UPDATED'; profile: ParentProfileViewV1 }
+  | { status: 'STALE'; profile: ParentProfileRecordV1 };
 
 export class ParentProfileUseCases {
   constructor(private readonly api: ParentApiPort) {}
 
   getConsentPolicy() { return this.api.getConsentPolicy(); }
   listProfiles() { return this.api.listProfiles(); }
+  listPageV1(limit?: number, cursor?: string | null) { return this.api.listProfilesV1(limit, cursor); }
+  getV1(profileId: string) { return this.api.getProfileV1(profileId); }
+  createV1(input: ParentProfileCreateV1, actionIdentity: ParentActionIdentity) {
+    this.assertValidProfile(input.age_months, input.display_name);
+    return this.api.createProfileV1(input, actionIdentity);
+  }
+  async patchV1(profileId: string, input: ParentProfilePatchV1, actionIdentity: ParentActionIdentity): Promise<ParentProfilePatchOutcomeV1> {
+    this.assertValidProfile(input.age_months, input.display_name);
+    try {
+      const profile = await this.api.patchProfileV1(profileId, input, actionIdentity);
+      return { status: 'UPDATED', profile };
+    } catch (error) {
+      if (!(error instanceof ParentApplicationError) || error.code !== 'STALE_REVISION') throw error;
+      try {
+        const profile = await this.api.getProfileV1(profileId);
+        return { status: 'STALE', profile };
+      } catch {
+        throw error;
+      }
+    }
+  }
+  requestDeletionV1(profileId: string, actionIdentity: ParentActionIdentity) {
+    return this.api.requestProfileDeletionV1(profileId, actionIdentity);
+  }
   create(input: ProfileCreateInput) {
     this.assertValidProfile(input.age_months, input.display_name);
     return this.api.createProfile(input);

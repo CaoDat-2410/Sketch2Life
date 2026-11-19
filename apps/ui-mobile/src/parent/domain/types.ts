@@ -264,6 +264,9 @@ export type ParentLessonDeliveryPage = {
 export type StoryDraft = {
   schema_version: 'sketch2life.story-revision.v1';
   language: 'vi';
+  revisionId?: string;
+  revisionNo?: number;
+  sha256?: string;
   title: string;
   story: { opening: string; middle: string; ending: string };
   duration_ms: number;
@@ -278,3 +281,203 @@ export type StoryDraft = {
 };
 
 export type LessonPin = NonNullable<StoryRun['lesson_pin_snapshot']>;
+
+/** I2 profile reference returned by the versioned parent-profile routes. */
+export type ParentProfileReferenceV1 = {
+  profile_id: string;
+  revision_no: number;
+  revision_hash: string;
+};
+
+/** Active profile view. The list route contains active profiles only. */
+export type ParentProfileViewV1 = ParentProfileReferenceV1 & {
+  state: 'ACTIVE';
+  display_name: string;
+  age_months: number;
+  age_band_ref: string | null;
+  age_band_version: string | null;
+  interests_summary: string | null;
+  data_origin: string;
+};
+
+/** GET-by-ID may return this view while an asynchronous deletion is pending. */
+export type ParentProfileDeletePendingV1 = {
+  profile_id: string;
+  state: 'DELETE_PENDING';
+  request_id: string;
+};
+
+export type ParentProfileRecordV1 = ParentProfileViewV1 | ParentProfileDeletePendingV1;
+
+export type ParentProfilePageV1 = {
+  items: ParentProfileViewV1[];
+  next_cursor: string | null;
+  request_id: string;
+};
+
+export type ParentProfileCreateV1 = {
+  display_name: string;
+  age_months: number;
+  interests_summary?: string | null;
+};
+
+export type ParentProfilePatchV1 = {
+  expected_revision: number;
+  display_name: string;
+  age_months: number;
+  interests_summary?: string | null;
+};
+
+export type ParentLessonVersionPinV1 = {
+  lesson_id: string;
+  version_id: string;
+  content_sha256: string;
+};
+
+/** V1 context contract intentionally has no consent-policy field. */
+export type ParentStoryContextV1 = {
+  schema_version: 'sketch2life.parent-context.v1';
+  profile_revision_ref: string;
+  topic: string;
+  adult_confirmed_idea: string;
+  age_months: number;
+  interests_summary: string;
+};
+
+/** V1 StoryRun is separate from the legacy consent-bearing StoryRun type. */
+export type ParentLessonPinSnapshotV1 = ParentLessonVersionPinV1 & {
+  schema_version: 'sketch2life.parent-lesson-pin.v1';
+  version_no: number;
+  target_age_band_ref?: string | null;
+  target_age_band_version?: number | null;
+  title: string;
+  topic: string;
+  drawing_subject: string;
+  subject_learning_notes: string;
+  script_direction?: string | null;
+  script_following_allowed: boolean;
+  activities: Activity[];
+};
+
+export type ParentStoryRunStateV1 =
+  | 'INPUT_PROCESSING'
+  | 'SUBJECT_REVIEW'
+  | 'PREPARATION_REVIEW'
+  | 'SCRIPT_GENERATING'
+  | 'SCRIPT_GENERATION_UNKNOWN'
+  | 'SCRIPT_REVIEW'
+  | 'VIDEO_ADMISSION_PENDING'
+  | 'DELETE_PENDING'
+  | 'FAILED'
+  | 'COMPLETED';
+
+export type ParentStoryStatusV1 =
+  | 'GENERATING'
+  | 'DRAFT'
+  | 'CONFIRMED'
+  | 'SUPERSEDED'
+  | 'FAILED'
+  | 'AWAITING_RECONCILIATION';
+
+export type ParentStoryJobStateV1 =
+  | 'QUEUED'
+  | 'RUNNING'
+  | 'SUCCEEDED'
+  | 'FAILED'
+  | 'AWAITING_RECONCILIATION';
+
+export type ParentDrawingCandidateDecisionV1 =
+  | 'REVIEW_REQUIRED'
+  | 'CONFIRMED_BY_ADULT'
+  | 'CORRECTED_BY_ADULT';
+
+export type ParentDrawingCandidateV1 = {
+  candidate_subject: string | null;
+  visible_features: string[];
+  confidence: number;
+  adult_confirmation_required: true;
+  decision: ParentDrawingCandidateDecisionV1;
+};
+
+export type ParentStoryDisplayV1 = {
+  schema_version: 'sketch2life.story-revision.v1';
+  language: 'vi';
+  title: string;
+  story: { opening: string; middle: string; ending: string };
+  duration_ms: number;
+  scenes: Array<{
+    scene_index: number;
+    title: string;
+    action: string;
+    narration: string;
+    start_ms: number;
+    duration_ms: number;
+  }>;
+};
+
+export type ParentStoryRunV1 = {
+  run_id: string;
+  run_revision: number;
+  run_state: ParentStoryRunStateV1;
+  parent_profile_id: string;
+  profile_revision_ref: string;
+  context_revision: number;
+  context_confirmed: boolean;
+  context_snapshot: ParentStoryContextV1;
+  context_snapshot_sha256: string;
+  lesson_pin_snapshot?: ParentLessonPinSnapshotV1 | null;
+  current_input_revision: number | null;
+  understanding_revision: number | null;
+  subject_label: string | null;
+  candidate: ParentDrawingCandidateV1 | null;
+  story_revision_id: string | null;
+  story_revision_no: number | null;
+  story_status: ParentStoryStatusV1 | null;
+  story_sha256: string | null;
+  story: ParentStoryDisplayV1 | null;
+  job_state: ParentStoryJobStateV1 | null;
+  retryable: boolean;
+  error_code: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ParentStoryRunCreateV1 = {
+  parent_profile_id: string;
+  topic: string;
+  adult_confirmed_idea: string;
+  lesson_version?: ParentLessonVersionPinV1 | null;
+};
+
+export type ParentStoryRunEnvelopeV1 = {
+  request_id: string;
+  story_run: ParentStoryRunV1;
+};
+
+export type ParentActiveStoryRunEnvelopeV1 = {
+  request_id: string;
+  story_run: ParentStoryRunV1 | null;
+};
+
+export type ParentStoryContextConfirmationV1 = {
+  expected_context_revision: number;
+  context_snapshot_sha256: string;
+  confirmed: true;
+};
+
+export type ParentStorySubjectConfirmationV1 = {
+  request_id: string;
+  story_run_id: string;
+  understanding_revision: number;
+  decision: 'CONFIRMED';
+};
+
+export type ParentStoryScriptConfirmationV1 = ParentStoryRunEnvelopeV1;
+
+export type ParentStoryRevisionResultV1 = {
+  request_id?: string;
+  modal_call_id?: string;
+  story?: unknown;
+  story_sha256?: string;
+  story_run?: ParentStoryRunV1;
+};
