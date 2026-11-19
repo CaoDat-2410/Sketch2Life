@@ -13,10 +13,11 @@ import {
   type LessonContent,
   type LessonSummary,
   type TeacherLessonDetail,
-} from "../../../shared/backendApi";
-import { usePortalSession } from "../../../shared/PortalSessionContext";
+} from "../../../shared/api/backendApi";
+import { usePortalSession } from "../../../shared/auth/PortalSessionContext";
 import { Icon } from "../components/Icon";
-import { PageHeading } from "../../../shared/FeatureAvailability";
+import { PageHeading } from "../../../shared/components/FeatureAvailability";
+import { commandSignature, isStaleRevision, keyForCommand } from "../services/commandKeys";
 
 const blankActivity = (): LessonActivity => ({
   title: "",
@@ -61,6 +62,8 @@ export function TeacherApiLessonPage() {
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
   const [detailError, setDetailError] = useState<string | null>(null);
+  // FEAT-066 C4: set after a 409 STALE_REVISION; the Teacher chooses when to load the current version.
+  const [staleRevision, setStaleRevision] = useState(false);
   const [reload, setReload] = useState(0);
   const mutationKeys = useRef(new Map<string, string>());
   const organizationId = configuredOrganizationId();
@@ -104,6 +107,7 @@ export function TeacherApiLessonPage() {
     setDetail(null);
     setContent(blankContent());
     setDetailError(null);
+    setStaleRevision(false);
     backendApi.teacherLesson(organizationId, selectedId)
       .then((result) => {
         if (!active) return;
@@ -193,9 +197,13 @@ export function TeacherApiLessonPage() {
       createKey = createIdempotencyKey();
       mutationKeys.current.set(createSignature, createKey);
     }
+    // FEAT-066 C4: the update key belongs to this lesson, revision and payload (retry reuses it).
+    const updateSignature = detail
+      ? commandSignature("update-lesson", organizationId, detail.lesson_id, detail.revision, payload)
+      : null;
     try {
-      const result = detail
-        ? await backendApi.updateLesson(organizationId, detail, payload)
+      const result = detail && updateSignature
+        ? await backendApi.updateLesson(organizationId, detail, payload, keyForCommand(mutationKeys.current, updateSignature))
         : await backendApi.createLesson(organizationId, payload, createKey);
       setSelectedId(result.lesson_id);
       setDetail(result);
@@ -205,9 +213,11 @@ export function TeacherApiLessonPage() {
         ...current.filter((item) => item.lesson_id !== result.lesson_id),
       ]);
       if (!detail) mutationKeys.current.delete(createSignature);
+      if (updateSignature) mutationKeys.current.delete(updateSignature);
       showToast(detail ? "Đã cập nhật giáo án qua API." : "Đã tạo giáo án riêng tư qua API.", "ok");
     } catch (cause) {
       setDetailError(backendMessage(cause));
+      setStaleRevision(isStaleRevision(cause));
     } finally {
       setSaving(false);
     }
@@ -233,6 +243,7 @@ export function TeacherApiLessonPage() {
       setReload((value) => value + 1);
     } catch (cause) {
       setDetailError(backendMessage(cause));
+      setStaleRevision(isStaleRevision(cause));
     } finally {
       setSaving(false);
     }
@@ -242,12 +253,33 @@ export function TeacherApiLessonPage() {
     if (!detail || !window.confirm(`Lưu trữ “${detail.current_version.content?.title ?? detail.lesson_id}”?`)) return;
     setSaving(true);
     setDetailError(null);
+    const archiveSignature = commandSignature("archive-lesson", organizationId, detail.lesson_id, detail.revision);
     try {
-      await backendApi.archiveLesson(organizationId, detail);
+      await backendApi.archiveLesson(organizationId, detail, keyForCommand(mutationKeys.current, archiveSignature));
+      mutationKeys.current.delete(archiveSignature);
       showToast("Đã lưu trữ giáo án.", "ok");
       setItems((current) => current.filter((item) => item.lesson_id !== detail.lesson_id));
       newLesson();
       setReload((value) => value + 1);
+    } catch (cause) {
+      setDetailError(backendMessage(cause));
+      setStaleRevision(isStaleRevision(cause));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // FEAT-066 C4 (review C4-IMPL-R1-01): load the current version on request only. The form text is
+  // replaced only by this click, so a stale save never overwrites another change (SRS 21.4).
+  const reloadCurrentVersion = async () => {
+    if (!detail) return;
+    setSaving(true);
+    try {
+      const current = await backendApi.teacherLesson(organizationId, detail.lesson_id);
+      setDetail(current);
+      if (current.current_version.content) setContent(current.current_version.content);
+      setDetailError(null);
+      setStaleRevision(false);
     } catch (cause) {
       setDetailError(backendMessage(cause));
     } finally {
@@ -275,7 +307,7 @@ export function TeacherApiLessonPage() {
 
         <form className="tw-card" onSubmit={(event) => void save(event)}>
           <div className="tw-row tw-between tw-wrap"><h2 className="tw-h2" style={{ margin: 0 }}>{detail ? "Cập nhật giáo án" : "Tạo giáo án"}</h2>{detail && <span className="tw-chip is-gray">Revision {detail.revision} · {detail.current_version.review_state}</span>}</div>
-          {detailError && <BackendNotice title="Không thể lưu hoặc tải phiên bản" tone="error">{detailError}</BackendNotice>}
+          {detailError && <BackendNotice title="Không thể lưu hoặc tải phiên bản" tone="error">{detailError}{staleRevision && detail && <> <button type="button" className="tw-btn is-ghost is-sm" disabled={saving} onClick={() => void reloadCurrentVersion()}>Tải lại bản hiện tại (bỏ chỉnh sửa chưa lưu)</button></>}</BackendNotice>}
           {selectedId && !detail && !detailError && <p className="tw-sub">Đang tải nội dung có revision hiện tại…</p>}
 
           <div style={{ display: "grid", gap: 12, marginTop: 14 }}>

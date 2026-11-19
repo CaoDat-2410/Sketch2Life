@@ -200,6 +200,7 @@ class UploadSessionV1(StrictLessonModel):
     expected_parts: int = Field(ge=1)
     accepted_part_numbers: list[int]
     expires_at: AwareDatetime
+    revision: int = Field(ge=1)
 
 
 class UploadPartReceiptV1(StrictLessonModel):

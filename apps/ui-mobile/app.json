@@ -6,15 +6,15 @@
     "description": "Sketch2Life AI-powered Montessori learning companion app for children.",
     "version": "1.0.0",
     "orientation": "default",
-    "icon": "./assets/images/icon_butterfly.png",
+    "icon": "./assets/applied/sketch2life-logo.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/images/screen1_splash.png",
+      "image": "./assets/splash/logo.png",
       "resizeMode": "contain",
-      "backgroundColor": "#EFF6FF"
+      "backgroundColor": "#F6E8FF"
     },
     "web": {
-      "favicon": "./assets/images/icon_butterfly.png",
+      "favicon": "./assets/applied/sketch2life-logo.png",
       "bundler": "metro"
     },
     "plugins": [
@@ -44,7 +44,7 @@
       "./plugins/withDebugCleartextTraffic"
     ],
     "android": {
-      "package": "com.sketch2life.parentexpo.dev",
+      "package": "com.sketch2life.mobile",
       "blockedPermissions": [
         "android.permission.WRITE_EXTERNAL_STORAGE",
         "android.permission.READ_MEDIA_VIDEO"

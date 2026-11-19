@@ -12,10 +12,11 @@ import {
   type LessonSourceDocumentStatus,
   type LessonSummary,
   type LessonUploadSession,
-} from "../../../shared/backendApi";
-import { usePortalSession } from "../../../shared/PortalSessionContext";
+} from "../../../shared/api/backendApi";
+import { usePortalSession } from "../../../shared/auth/PortalSessionContext";
 import { Icon } from "../components/Icon";
-import { PageHeading } from "../../../shared/FeatureAvailability";
+import { PageHeading } from "../../../shared/components/FeatureAvailability";
+import { abortUploadWithRevision } from "../services/uploadAbort";
 
 const MIME_BY_EXTENSION: Record<string, string> = {
   pdf: "application/pdf",
@@ -37,6 +38,9 @@ interface UploadResumeRecord {
   uploadSessionId: string | null;
   createKey: string;
   completeKey: string;
+  /** FEAT-066 C4: abort key and the session revision it was made for (absent in older records). */
+  abortKey?: string;
+  abortRevision?: number;
 }
 
 const UPLOAD_RESUME_STORAGE_KEY = "s2l.teacher.upload-resume.v1";
@@ -257,7 +261,7 @@ export function TeacherApiImportPage() {
         }, activeResume.createKey);
         const withSessionId = { ...activeResume, uploadSessionId: uploadSession.upload_session_id };
         if (!persistResume(withSessionId)) {
-          await backendApi.abortUploadSession(uploadSession.upload_session_id).catch(() => undefined);
+          await abortUploadWithRevision(uploadSession.upload_session_id, { knownRevision: uploadSession.revision }).catch(() => undefined);
           return;
         }
         activeResume = withSessionId;
@@ -315,9 +319,24 @@ export function TeacherApiImportPage() {
     setUploading(true);
     setError(null);
     try {
-      await backendApi.abortUploadSession(session.upload_session_id);
+      // FEAT-066 C4: read the current revision, send it as If-Match with a key kept for that revision.
+      const record = resume?.uploadSessionId === session.upload_session_id ? resume : null;
+      const outcome = await abortUploadWithRevision(session.upload_session_id, {
+        record,
+        remember: (abortKey, abortRevision) => {
+          if (record) persistResume({ ...record, abortKey, abortRevision });
+        },
+      });
+      if (outcome.kind === "completed" && record) {
+        await recoverCompletedUpload(record);
+        showToast("Server đã xác nhận phiên upload hoàn tất; trạng thái xử lý đã được khôi phục.", "info");
+        return;
+      }
       clearResume();
-      showToast("Đã hủy phiên upload qua API.", "info");
+      showToast(
+        outcome.kind === "aborted" ? "Đã hủy phiên upload qua API." : "Phiên upload đã đóng trên server; đã xóa phiên đã lưu.",
+        "info",
+      );
     } catch (cause) {
       setError(backendMessage(cause));
     } finally {

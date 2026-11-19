@@ -1,14 +1,19 @@
 import { authService } from './authService'
+import { parseApiError } from '../../../../shared/api/errorEnvelope'
 
 export class AdminBe1Error extends Error {
   readonly status: number
   readonly code: string
+  readonly requestId?: string
+  readonly retryable: boolean
 
-  constructor(message: string, status: number, code: string) {
+  constructor(message: string, status: number, code: string, requestId?: string, retryable = false) {
     super(message)
     this.name = 'AdminBe1Error'
     this.status = status
     this.code = code
+    this.requestId = requestId
+    this.retryable = retryable
   }
 }
 
@@ -34,12 +39,8 @@ export async function adminBe1Request<T>(path: string, init: RequestInit = {}): 
   })
   const body: unknown = await response.json().catch(() => null)
   if (!response.ok) {
-    const error = body && typeof body === 'object' ? body as Record<string, unknown> : {}
-    throw new AdminBe1Error(
-      typeof error.message === 'string' ? error.message : `BE1 request failed (${response.status}).`,
-      response.status,
-      typeof error.code === 'string' ? error.code : 'HTTP_ERROR',
-    )
+    const error = parseApiError(body, response.status, response.headers.get('X-Request-ID'))
+    throw new AdminBe1Error(error.message, response.status, error.code, error.requestId, error.retryable)
   }
   if (!body || typeof body !== 'object') throw new Error('BE1 returned an invalid response body.')
   return body as T
@@ -61,12 +62,8 @@ export async function adminApiRequest<T>(path: string, init: RequestInit = {}): 
   })
   const body: unknown = await response.json().catch(() => null)
   if (!response.ok) {
-    const error = body && typeof body === 'object' ? body as Record<string, unknown> : {}
-    throw new AdminBe1Error(
-      typeof error.message === 'string' ? error.message : `API request failed (${response.status}).`,
-      response.status,
-      typeof error.code === 'string' ? error.code : 'HTTP_ERROR',
-    )
+    const error = parseApiError(body, response.status, response.headers.get('X-Request-ID'))
+    throw new AdminBe1Error(error.message, response.status, error.code, error.requestId, error.retryable)
   }
   if (!body || typeof body !== 'object') throw new Error('API returned an invalid response body.')
   return body as T

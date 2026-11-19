@@ -2,7 +2,8 @@ import {
   apiBaseUrl,
   configuredOrganizationId,
   hasFirebaseAuthBridge,
-} from '../../../shared/backendApi'
+} from '../../../shared/api/backendApi'
+import { parseApiError } from '../../../shared/api/errorEnvelope'
 
 export type TeacherLessonSuggestionInput = Readonly<{
   topic: string
@@ -73,11 +74,8 @@ async function post<T>(path: string, body: unknown): Promise<T> {
   })
   const payload = await response.json().catch(() => null) as Record<string, unknown> | null
   if (!response.ok) {
-    const detail = payload?.detail
-    const code = detail && typeof detail === 'object' && 'code' in detail
-      ? String((detail as { code: unknown }).code)
-      : `HTTP_${response.status}`
-    throw new Error(`Yêu cầu AI thất bại (${code}).`)
+    const error = parseApiError(payload, response.status, response.headers.get('X-Request-ID'))
+    throw new Error(`Yêu cầu AI thất bại (${error.code}). ${error.message}`)
   }
   if (!payload || typeof payload !== 'object') throw new Error('Backend trả về contract không hợp lệ.')
   return payload as T

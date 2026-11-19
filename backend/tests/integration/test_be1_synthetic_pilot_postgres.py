@@ -422,7 +422,14 @@ def pilot_harness(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Iterator[P
                 state="active",
             )
         )
-        db.add(AdultIdentityModel(subject=adult_subject, issuer="synthetic-t12", state="active"))
+        db.add(
+            AdultIdentityModel(
+                subject=adult_subject,
+                issuer="synthetic-t12",
+                state="active",
+                account_role="school_manager",
+            )
+        )
         db.flush()
         db.add(
             OrganizationAssignmentModel(
@@ -981,7 +988,16 @@ def test_t3_unhashable_color_returns_safe_422_without_persisting_operation(
     assert response.status_code == 422, response.text
     body = response.json()
     assert body["code"] == "CANVAS_PROFILE_INVALID"
-    assert set(body) == {"code", "message", "request_id"}
+    # CONV-1 (D-066-71): the shared §9.8 envelope.
+    assert set(body) == {
+        "code",
+        "message",
+        "correlation_id",
+        "retryable",
+        "retry_after_seconds",
+        "field_errors",
+        "request_id",
+    }
     assert "Traceback" not in response.text and "TypeError" not in response.text
     with harness.session_factory() as db:
         assert db.get(CoreCanvasOperationModel, operation_id) is None
@@ -1166,7 +1182,7 @@ def test_t3_legacy_reconnect_returns_null_version_and_keeps_legacy_append(
         ("finished_session", 403, "DEVICE_SCOPE_INACTIVE"),
         ("lobby_session", 403, "DEVICE_SCOPE_INACTIVE"),
         ("membership_not_admitted", 403, "DEVICE_MEMBERSHIP_INACTIVE"),
-        ("missing_group", 404, "GROUP_NOT_FOUND"),
+        ("missing_group", 404, "RESOURCE_NOT_FOUND"),
         ("other_group_member_not_eligible", 409, "CONSENT_NOT_EFFECTIVE"),
         ("revoked_proof", 409, "CONSENT_NOT_EFFECTIVE"),
         ("expired_proof", 409, "CONSENT_NOT_EFFECTIVE"),
@@ -1406,7 +1422,8 @@ def test_t9_profile_route_requires_lobby_state_and_assignment(
         assert assignment is not None
         assignment.active = False
     unassigned = harness.client.get(_session_path(harness, session_id, "/pilot-profiles"))
-    assert unassigned.status_code == 403
+    # CONV-1 (D-066-68 C-D4): an unassigned adult is out of scope -> uniform 404.
+    assert unassigned.status_code == 404
     assert "items" not in unassigned.json()
 
 
@@ -1454,7 +1471,8 @@ def test_t9_teacher_assigned_to_a_different_class_is_denied(
             )
         )
     response = harness.client.get(_session_path(harness, session_id, "/pilot-profiles"))
-    assert response.status_code == 403, response.text
+    # CONV-1 (D-066-68 C-D4): a class the teacher is not assigned to is out of scope -> 404.
+    assert response.status_code == 404, response.text
     assert "items" not in response.json()
 
 

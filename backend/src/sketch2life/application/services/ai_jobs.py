@@ -557,7 +557,8 @@ class AiJobService:
                 with self._d.repository.transaction() as tx:
                     if tx.notice_seen(notice.notice_id):
                         return ()
-                    matches = tx.jobs_for_notice(notice)
+                    # A Parent lifecycle notice matches no job (DTR Draft 6 §5.2).
+                    matches = () if notice.is_parent else tx.jobs_for_notice(notice)
                     if len(matches) > limit:
                         raise _notice_too_large()
                     for job in matches:
@@ -1608,6 +1609,10 @@ def notice_matches(notice: CancellationNotice, job: AiJob) -> bool:
     """Phase A notice semantics, kept by Δ10: same organization, non-terminal (cancellable),
     and the notice's session, job type or subject matches. Repositories select exactly this."""
 
+    if notice.is_parent:
+        # FR-C-08 (DTR Draft 6 §5.2): no Parent product run creates an AI job (S4); a Parent
+        # lifecycle notice is recorded COMPLETE with applied_count 0 and matches nothing.
+        return False
     if job.organization_id != notice.organization_id or job.state not in jobs.CANCELLABLE_STATES:
         return False
     if notice.session_id is not None and job.scope.session_id == notice.session_id:

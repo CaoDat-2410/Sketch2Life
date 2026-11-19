@@ -2,11 +2,10 @@ import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { MgIcon } from "../components/MgIcon";
 import {
-  apiBaseUrl,
   backendApi,
   backendMessage,
   hasFirebaseAuthBridge,
-} from "../../../shared/backendApi";
+} from "../../../shared/api/backendApi";
 
 type HealthState = "blocked" | "loading" | "ready" | "error";
 type HealthResult = { status: "ok"; service: string };
@@ -47,15 +46,6 @@ function BlockedFlow({ title, description, dependencies, permissionNote }: { tit
   );
 }
 
-function isLoopbackApi(): boolean {
-  try {
-    const hostname = new URL(apiBaseUrl()).hostname;
-    return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";
-  } catch {
-    return false;
-  }
-}
-
 function OverviewUnavailableCard({ title, icon, detail }: { title: string; icon: "layers" | "doc" | "audit"; detail: string }) {
   return (
     <article className="admin-overview-card">
@@ -69,18 +59,18 @@ function OverviewUnavailableCard({ title, icon, detail }: { title: string; icon:
   );
 }
 
-function LocalHealthPanel() {
+function HealthApiPanel() {
   const [state, setState] = useState<HealthState>("blocked");
   const [health, setHealth] = useState<HealthResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [reload, setReload] = useState(0);
-  const canCallLocalHealth = hasFirebaseAuthBridge() && isLoopbackApi();
+  const canCheckHealth = hasFirebaseAuthBridge();
 
   useEffect(() => {
     let active = true;
     setHealth(null);
     setError(null);
-    if (!hasFirebaseAuthBridge() || !isLoopbackApi()) {
+    if (!hasFirebaseAuthBridge()) {
       setState("blocked");
       return () => { active = false; };
     }
@@ -92,22 +82,22 @@ function LocalHealthPanel() {
   }, [reload]);
 
   const stateContent: Record<HealthState, { label: string; detail: string }> = {
-    blocked: { label: "Chưa xác minh", detail: "Cần phiên Firebase và API loopback để đọc GET /health." },
-    loading: { label: "Đang kiểm tra", detail: "Đang chờ phản hồi từ GET /health local." },
-    ready: { label: "Đã phản hồi", detail: health ? `GET /health trả về ${health.service}.` : "API đã phản hồi." },
-    error: { label: "Không đọc được", detail: error ?? "GET /health chưa trả trạng thái." },
+    blocked: { label: "Chưa xác minh", detail: "Cần phiên Firebase để kiểm tra GET /health của API đang cấu hình." },
+    loading: { label: "Đang kiểm tra", detail: "Đang chờ API được cấu hình phản hồi GET /health." },
+    ready: { label: "API phản hồi", detail: health ? "GET /health trả về " + health.service + "." : "API đã phản hồi." },
+    error: { label: "Không kết nối được", detail: error ?? "GET /health chưa trả trạng thái." },
   };
 
   return (
     <article className="admin-overview-card" aria-labelledby="admin-health-heading">
       <div className="admin-overview-card-heading">
         <span className="admin-overview-icon" aria-hidden="true"><MgIcon name="chart" size={21} variant="navigation" /></span>
-        <h2 id="admin-health-heading">Sức khỏe hệ thống</h2>
-        {canCallLocalHealth && <button type="button" className="admin-health-retry" aria-label="Kiểm tra lại health local" disabled={state === "loading"} onClick={() => setReload((value) => value + 1)}><MgIcon name="refresh" size={16} variant="navigation" /></button>}
+        <h2 id="admin-health-heading">Kết nối API</h2>
+        {canCheckHealth && <button type="button" className="admin-health-retry" aria-label="Kiểm tra lại health API" disabled={state === "loading"} onClick={() => setReload((value) => value + 1)}><MgIcon name="refresh" size={16} variant="navigation" /></button>}
       </div>
-      <span className={`admin-overview-status is-${state}`} role={state === "error" ? "alert" : "status"}>{stateContent[state].label}</span>
+      <span className={"admin-overview-status is-" + state} role={state === "error" ? "alert" : "status"}>{stateContent[state].label}</span>
       <p className="admin-overview-detail">{stateContent[state].detail}</p>
-      {state === "ready" && <small className="admin-overview-footnote">Chỉ xác nhận GET /health; không đại diện trạng thái queue, billing hoặc toàn nền tảng.</small>}
+      {state === "ready" && <small className="admin-overview-footnote">Chỉ xác nhận GET /health; không xác nhận queue, billing, database, provider hoặc toàn nền tảng.</small>}
     </article>
   );
 }
@@ -117,7 +107,7 @@ function AdminOverview() {
     <div className="admin-page admin-overview">
       <PageHeading eyebrow="VẬN HÀNH NỀN TẢNG" title="Tổng quan hệ thống" description="Theo dõi trạng thái dịch vụ và các khối chức năng chính." />
       <section className="admin-overview-grid" aria-label="Trạng thái các dịch vụ nền tảng">
-        <LocalHealthPanel />
+        <HealthApiPanel />
         <OverviewUnavailableCard title="Hàng đợi công việc" icon="layers" detail="Chưa có API tổng hợp trạng thái queue và job." />
         <OverviewUnavailableCard title="Đối soát billing" icon="doc" detail="Chưa có API invoice, payment attempt và provider event." />
         <OverviewUnavailableCard title="Sự kiện vòng đời" icon="audit" detail="Chưa có API trạng thái deletion và offboarding." />

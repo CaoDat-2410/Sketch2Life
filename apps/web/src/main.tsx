@@ -2,11 +2,11 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./app/App";
 import { authService } from "./modules/school-manager/be1/services/authService";
-import "./shared/web-brand-theme.css";
-import "./shared/portal-ui.css";
-import "./shared/ui-primitives.css";
-import "./shared/role-crayon-theme.css";
-import "./shared/web-app.css";
+import "./shared/styles/web-brand-theme.css";
+import "./shared/styles/portal-ui.css";
+import "./shared/styles/ui-primitives.css";
+import "./shared/styles/role-crayon-theme.css";
+import "./shared/styles/web-app.css";
 
 window.sketch2lifeAuth = {
   signIn: async (email, password) => {

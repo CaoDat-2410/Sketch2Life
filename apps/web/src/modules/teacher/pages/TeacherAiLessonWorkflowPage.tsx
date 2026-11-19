@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import '../../../shared/tailwind-utilities.css'
+import '../../../shared/styles/tailwind-utilities.css'
 import { parseTeacherSketchDeck, TeacherDeckPresentation } from '../components/TeacherDeckPresentation'
 import {
   aiWorkflowService,

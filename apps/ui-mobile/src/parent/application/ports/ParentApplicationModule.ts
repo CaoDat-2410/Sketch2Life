@@ -3,6 +3,7 @@ import type { ParentLearningUseCases } from '../use-cases/ParentLearningUseCases
 import type { ParentLessonUseCases } from '../use-cases/ParentLessonUseCases';
 import type { ParentProfileUseCases } from '../use-cases/ParentProfileUseCases';
 import type { ParentPlatformUseCases } from '../use-cases/ParentPlatformUseCases';
+import type { ParentActiveStoryRunEnvelopeV1 } from '../../domain/types';
 
 /** Public application boundary passed from the Expo composition root. */
 export interface ParentApplicationModule {
@@ -21,6 +22,11 @@ export interface ParentApplicationModule {
   profiles: Pick<ParentProfileUseCases,
     | 'getConsentPolicy'
     | 'listProfiles'
+    | 'listPageV1'
+    | 'getV1'
+    | 'createV1'
+    | 'patchV1'
+    | 'requestDeletionV1'
     | 'create'
     | 'revise'
     | 'grantAuthorization'
@@ -35,21 +41,22 @@ export interface ParentApplicationModule {
     | 'listGroupInvitations'
     | 'acceptGroupInvitation'>;
   learning: Pick<ParentLearningUseCases,
-    | 'getActiveRun'
-    | 'getRun'
-    | 'generateSketchGuide'
-    | 'createRunForDrawing'
-    | 'understandDrawing'
-    | 'confirmSubject'
+    | 'getRunV1'
+    | 'createRunAfterPhotoV1'
+    | 'confirmRunContextV1'
+    | 'confirmSubjectV1'
     | 'suggestActivities'
-    | 'generateStory'
-    | 'confirmStory'
-    | 'transcribeAudio'
-    | 'confirmTranscript'>;
+    | 'confirmScriptV1'
+    | 'createStoryRevisionV1'
+    | 'understandDrawing'> & {
+      getActiveRunV1(): Promise<ParentActiveStoryRunEnvelopeV1>;
+    };
   platform: Pick<ParentPlatformUseCases,
     | 'listRuns'
     | 'cancelRun'
     | 'deleteRun'
+    | 'cancelRunV1'
+    | 'deleteRunV1'
     | 'listShares'
     | 'inviteTeacher'
     | 'revokeShare'

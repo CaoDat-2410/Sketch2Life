@@ -250,11 +250,36 @@ class CancellationNotice:
     """Owner-port notice (consent revoke, session end, recall, source expiry, kill switch)."""
 
     notice_id: str
-    organization_id: str
+    organization_id: str | None
     reason_code: str
     session_id: str | None = None
     job_type: str | None = None
     subject_ref: str | None = None
+    # FR-C-08 (DTR Draft 6 §5.2): a Parent lifecycle notice carries the typed owner scope and
+    # the run reference, never an organization, and matches no job.
+    owner_scope_kind: str = "ORGANIZATION"
+    owner_scope_ref: str | None = None
+    story_run_ref: str | None = None
+
+    def __post_init__(self) -> None:
+        if self.owner_scope_kind == "PARENT_ACCOUNT":
+            if (
+                self.organization_id is not None
+                or not self.owner_scope_ref
+                or not self.story_run_ref
+            ):
+                raise ValueError("a Parent notice needs a scope ref and a run ref, no organization")
+        elif self.owner_scope_kind == "ORGANIZATION":
+            if not self.organization_id:
+                raise ValueError("an organization notice needs an organization")
+            if self.owner_scope_ref is not None and self.owner_scope_ref != self.organization_id:
+                raise ValueError("an organization notice scope ref must equal its organization")
+        else:
+            raise ValueError("unsupported notice owner scope")
+
+    @property
+    def is_parent(self) -> bool:
+        return self.owner_scope_kind == "PARENT_ACCOUNT"
 
 
 @dataclass(frozen=True, slots=True)
@@ -315,10 +340,13 @@ class RecordedNotice:
     """Completed cancellation notice (Δ10): written only after every match was cancelled."""
 
     notice_id: str
-    organization_id: str
+    organization_id: str | None
     reason_code: str
     applied_count: int
     recorded_at: datetime
+    owner_scope_kind: str = "ORGANIZATION"
+    owner_scope_ref: str | None = None
+    story_run_ref: str | None = None
 
 
 @dataclass(frozen=True, slots=True)

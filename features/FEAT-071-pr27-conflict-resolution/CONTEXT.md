@@ -17,3 +17,7 @@ PR #27 consolidates the web portals into `apps/web`. Its approved FEAT-066/067 r
 - Product authority: `docs/context/SRS_AUTHORITY.md` and the canonical FEAT-063 SRS.
 - Current source register: `docs/context/SOURCE_REGISTER.md`.
 - Governing feature scopes: FEAT-066 Rev28–30 and FEAT-067 Plan Rev1/Amendment 1 in the PR branch.
+
+## Owner steering update — 2026-11-16
+
+After the Rev1 conflict-resolution commit was published, the owner changed the earlier no-merge instruction and directly authorized merging PR #27 into `dev`, with known CI errors to be handled later. Rev2 covers only a standard GitHub merge attempt; branch protection and required checks must not be bypassed.

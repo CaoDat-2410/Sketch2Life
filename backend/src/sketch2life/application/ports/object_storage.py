@@ -39,6 +39,11 @@ class ObjectStoragePort(Protocol):
 
     def delete_object(self, key: str) -> None: ...
 
+    def list_keys(self, prefix: str) -> tuple[str, ...]:
+        """Every key under ``prefix`` (all pages). Only a successful listing returns; any
+        error raises ``ObjectStorageFailure`` and is never read as an empty listing."""
+        ...
+
 
 __all__ = [
     "ObjectStorageFailure",

@@ -13,6 +13,8 @@ SRS_V22_INCLUDED_OPERATIONS: frozenset[tuple[str, str]] = frozenset(
         ("patch", "/v1/parent/profiles/{profile_id}"),
         ("delete", "/v1/parent/profiles/{profile_id}"),
         ("post", "/v1/story-runs"),
+        # FEAT-081 C3b: the Parent run-history list (projected for the mobile client).
+        ("get", "/v1/story-runs"),
         ("get", "/v1/story-runs/{run_id}"),
         ("get", "/v1/story-runs/active/current"),
         ("post", "/v1/story-runs/{run_id}/context-confirmation"),

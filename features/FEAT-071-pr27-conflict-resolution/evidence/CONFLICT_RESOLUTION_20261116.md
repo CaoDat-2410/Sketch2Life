@@ -59,3 +59,12 @@ The merge commit was pushed with a regular, non-force `git push` to `codex/fe-ui
 - Post-push PR metadata: state `open`, `merged=false`, base `dev`, head `417410486dde0e660e37dacab26ed07b2f7b948d`, `mergeable=true`.
 - The branch update did not merge the PR into `dev`; no PR merge action was invoked.
 - At the metadata snapshot, the PR-triggered `CI` workflow run `43864760305` was `in_progress`; the commit had no combined status entries yet.
+
+## Rev2 owner instruction and merge attempt
+
+After Rev1 publication, the owner directly authorized merging PR #27 into `dev` and said the current CI errors can be handled later. This instruction supersedes Rev1's earlier no-merge boundary. Rev2 approval and plan addendum are recorded in this feature folder and in the root approval register before the merge request.
+
+- PR head at the start of Rev2: `8eb5415da1bea69d2018320e2ad7c465778a44a4`; base remains `dev` at `c87d8008b70910eb0a4d3579b9490312e7e3143f`.
+- Latest observed PR metadata before this addendum: open, unmerged, `mergeable=true`.
+- CI run `43865121003` (`CI`, run 179) showed `Repository policy checks` failed because the active Android app uses application ID `com.sketch2life.parentexpo.dev` while `tools/validate_skeleton.py` requires `com.sketch2life.mobile`; `Backend unit and contract tests` failed during dependency setup because `backend/uv.lock` needs updating for `backend/pyproject.toml`; the Web UI job was still running in the latest inspected snapshot.
+- The owner authorized proceeding with these checks not green. The planned action is GitHub's standard merge operation against the exact current PR head. No required checks or branch protection will be bypassed. The resulting GitHub merge response will determine and record whether the operation succeeded or was blocked.

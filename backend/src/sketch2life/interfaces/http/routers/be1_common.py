@@ -54,7 +54,8 @@ BE1_ERROR_RESPONSES = {
     410: {"model": Be1Error, "description": "The requested artifact is no longer available"},
     413: {"model": Be1Error, "description": "The request exceeds a supported size limit"},
     415: {"model": Be1Error, "description": "The request media type is not supported"},
-    422: {"model": Be1Error, "description": "The request does not match the API contract"},
+    400: {"model": Be1Error, "description": "The request does not match the API contract"},
+    422: {"model": Be1Error, "description": "The request does not meet a business rule"},
     429: {"model": Be1Error, "description": "The request is temporarily rate limited"},
     503: {"model": Be1Error, "description": "A required backend dependency is unavailable"},
     500: {"model": Be1Error, "description": "An unexpected server error occurred"},
@@ -78,6 +79,10 @@ def commit(db: Session) -> None:
         raise failure(
             409, "STALE_AGGREGATE", "Concurrent change detected; reload before retrying"
         ) from None
+
+
+def _out_of_scope() -> HTTPException:
+    return failure(404, "RESOURCE_NOT_FOUND", "The requested resource was not found")
 
 
 def require_assignment(
@@ -105,13 +110,19 @@ def require_assignment(
             )
             or (account_role == "teacher" and row.role in {"teacher", "guide", "observer"})
         )
+    # CONV-1 (D-066-68 C-D4, D-066-71 CV-5): every out-of-scope case is the uniform 404;
+    # only a role refusal inside an assigned organization and class is 403.
     if (
         identity is None
         or identity.state != "active"
         or account_role not in {"school_manager", "teacher"}
         or not rows
+        or not any(
+            class_id is None or row.class_id is None or row.class_id == class_id
+            for row in rows
+        )
     ):
-        raise failure(403, "ACCOUNT_SCOPE_UNAVAILABLE", "The account is not assigned here")
+        raise _out_of_scope()
     assignments = tuple(
         AdultAssignment(
             organization_id=row.organization_id,
@@ -134,7 +145,13 @@ def require_assignment(
             class_id=class_id,
         )
     except Be1PolicyError as exc:
-        raise failure(403, exc.code, str(exc)) from None
+        # Coverage of the organization and class was checked above, so SCOPE_DENIED here can
+        # only be a role refusal. Identity failures stay indistinguishable from "not found".
+        if exc.code == "SCOPE_DENIED":
+            raise failure(
+                403, "ACTION_NOT_ALLOWED", "The action is not allowed for this role"
+            ) from None
+        raise _out_of_scope() from None
     allowed_ids = {row.assignment_id for row in allowed}
     return tuple(row for row in rows if row.assignment_id in allowed_ids)
 

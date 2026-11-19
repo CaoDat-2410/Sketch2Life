@@ -18,6 +18,9 @@ from sketch2life.application.ports.core_foundation import (
     CanvasOperationRecord,
     CoreAssetMetadata,
     CoreAuditRecord,
+    LifecycleScope,
+    OutboxDeliveryStatus,
+    OutboxState,
 )
 from sketch2life.domain.core_foundation import CanvasOperation, IdempotencyReceipt
 from sketch2life.domain.eligibility import (
@@ -126,6 +129,48 @@ class PostgresCoreStore:
                     CoreAggregateRevisionModel.aggregate_id == aggregate_id,
                     CoreAggregateRevisionModel.organization_id == organization_id,
                 )
+            )
+
+    def current_revision_for_scope(
+        self, aggregate_id: str, *, scope: LifecycleScope
+    ) -> int | None:
+        """FR-C-08 additive read keyed by the typed owner scope (DTR Draft 6 §5.8)."""
+        with self._sessions() as session:
+            return session.scalar(
+                select(CoreAggregateRevisionModel.revision).where(
+                    CoreAggregateRevisionModel.aggregate_id == aggregate_id,
+                    CoreAggregateRevisionModel.owner_scope_kind == scope.kind,
+                    CoreAggregateRevisionModel.owner_scope_ref == scope.ref,
+                )
+            )
+
+    def get_state_for_scope(
+        self, *, scope: LifecycleScope, event_id: str
+    ) -> OutboxState | None:
+        """FR-C-08 additive outbox-state read keyed by the typed owner scope."""
+        with self._sessions() as session:
+            row = session.scalar(
+                select(CoreOutboxEventModel).where(
+                    CoreOutboxEventModel.event_id == event_id,
+                    CoreOutboxEventModel.owner_scope_kind == scope.kind,
+                    CoreOutboxEventModel.owner_scope_ref == scope.ref,
+                )
+            )
+            if row is None:
+                return None
+            return OutboxState(
+                event_id=row.event_id,
+                event_type=row.event_type,
+                organization_id=row.organization_id,
+                aggregate_id=row.aggregate_id,
+                aggregate_revision=row.aggregate_revision,
+                status=OutboxDeliveryStatus(row.status),
+                attempt_count=row.attempt_count,
+                available_at=row.available_at,
+                lease_until=row.lease_until,
+                delivered_at=row.delivered_at,
+                owner_scope_kind=row.owner_scope_kind,
+                owner_scope_ref=row.owner_scope_ref,
             )
 
     def get_operation(
@@ -345,6 +390,8 @@ class PostgresCoreStore:
                     resource_id=row.resource_id,
                     decision=row.decision,
                     created_at=row.created_at,
+                    owner_scope_kind=row.owner_scope_kind,
+                    owner_scope_ref=row.owner_scope_ref,
                 )
                 for row in rows
             )

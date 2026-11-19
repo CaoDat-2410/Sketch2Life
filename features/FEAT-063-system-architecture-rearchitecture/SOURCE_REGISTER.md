@@ -532,3 +532,17 @@ Plan Rev51 SHA-256 at approval: `B20103A217D7A9623E02279CE0BD82D5BC61141518D820F
 - Product requirement authority: `artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` with the bytes of the owner-supplied copy adopted by D-209: 701157 bytes / SHA-256 B9B1F42D0BB118C19C81607D3913B7E4F1D8B6F673F0C3FBB6402888FEB675F5; unsigned.
 - Superseded as requirement references: Rev60, Rev67 (D-203) and the Rev68 working copy (639948 bytes / SHA-256 69C83FE49CD4689D5D2540656D3319721838CF7343BAD00E24CDE558B8F5E944). They remain historical provenance for the records that pin them.
 - Source of the adopted bytes: an owner-supplied file outside the repository; the owner stated its header date is stale and accepted it.
+
+## FEAT-063 FR-C-08 Parent StoryRun lifecycle accepted — 2026-11-19
+
+The Parent-only first slice of FR-C-08 (cancel, the new DELETE, the lifecycle projection on GET and replays,
+the BE1 lifecycle purge consumer and reconciliation, the Core reference-closure port, one migration) was
+accepted by the owner with recorded debt and committed on local branch `feature/feat063-frc08-lifecycle`
+(not pushed). Evidence: `features/FEAT-063-system-architecture-rearchitecture/evidence/FR_C08_IMPLEMENTATION_REPORT_20261119.md` (55,655 bytes, `715EFEFA3659B90A…`); acceptance record in that feature's
+`approvals/TASK_APPROVAL.md`. Authority: D-214 to D-218.
+
+## 2026-11-19 — SRS wording edit applied (D-219)
+
+- Product requirement authority: `artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md`, 701810 bytes / SHA-256 443A3CA37272D2FE96127564BAF400461F394E098724A6BD999D723A4E504021; unsigned. It is the D-209 copy with the FR-C-08 wording edit of `plan/FR_C08_SRS_WORDING_EDIT_DRAFT3_20261119.md` applied (13 lines, no line moved).
+- The D-209 bytes (701157 bytes / `B9B1F42D…`) remain the pin of the historical records that cite them.
+- Contract alignment: `plan/FR_C08_PARENT_TEACHER_LIFECYCLE_CONTRACT_DRAFT12_20261119.md`. Authority: D-219.

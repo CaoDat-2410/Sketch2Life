@@ -82,8 +82,24 @@ class LessonLibraryError(RuntimeError):
         super().__init__(code)
 
 
+class LessonLibraryStaleRevision(LessonLibraryError):
+    """409 STALE_REVISION that carries the current revision for the ETag (C-D7)."""
+
+    def __init__(self, current_revision: int) -> None:
+        super().__init__(409, "STALE_REVISION", "The resource changed; reload before retrying")
+        self.current_revision = current_revision
+
+
 def fail(status_code: int, code: str, message: str) -> None:
     raise LessonLibraryError(status_code, code, message)
+
+
+def upload_session_revision(state: str, part_count: int) -> int:
+    """Derived upload-session revision (FEAT-066 C4, CT-5).
+
+    1 + part rows while OPEN, 2 + part rows in every other state.
+    """
+    return (1 if state == "OPEN" else 2) + part_count
 
 
 class LessonLibraryService:
@@ -208,80 +224,121 @@ class LessonLibraryService:
 
     def update_lesson(
         self, *, organization_id: str, lesson_id: str, actor: str,
-        expected_revision: int, content: LessonContentInputV1,
+        expected_revision: int, content: LessonContentInputV1, idempotency_key: str,
     ) -> dict[str, Any]:
         content_data = content.model_dump(mode="json")
         self._validate_content(content_data)
+        # C4: lock, replay under the lock, then ownership before the revision check.
         item = self._load_lesson(organization_id, lesson_id, for_update=True)
-        self._require_revision(item["revision"], expected_revision)
+        scope = f"PATCH /organizations/{organization_id}/lessons/{lesson_id}"
+        payload = {"content": content_data, "if_match": expected_revision}
+        replay = self._replay(
+            organization_id=organization_id, actor=actor, scope=scope,
+            key=idempotency_key, payload=payload,
+        )
+        if replay is not None:
+            return replay
         if item["created_by"] != actor:
             fail(404, "LESSON_NOT_FOUND", "Lesson was not found")
+        self._require_revision(item["revision"], expected_revision)
         if item["state"] != "ACTIVE":
             fail(409, "INVALID_TRANSITION", "Archived lessons cannot be edited")
-        version_no = self._next_version(item["lesson_id"])
-        version_id = str(uuid4())
-        now = datetime.now(UTC)
-        self._insert_version(
-            lesson_id=lesson_id,
-            version_id=version_id,
-            version_no=version_no,
-            content=content_data,
-            actor=actor,
-            source_revision_id=None,
-            review_state="DRAFT",
-            created_at=now,
-        )
-        new_revision = expected_revision + 1
-        self.db.execute(
-            LIBRARY_ITEMS.update().where(LIBRARY_ITEMS.c.lesson_id == lesson_id).values(
-                current_version_id=version_id,
-                revision=new_revision,
-                updated_at=now,
+
+        def execute() -> dict[str, Any]:
+            version_no = self._next_version(item["lesson_id"])
+            version_id = str(uuid4())
+            now = datetime.now(UTC)
+            self._insert_version(
+                lesson_id=lesson_id,
+                version_id=version_id,
+                version_no=version_no,
+                content=content_data,
+                actor=actor,
+                source_revision_id=None,
+                review_state="DRAFT",
+                created_at=now,
             )
+            self.db.execute(
+                LIBRARY_ITEMS.update().where(LIBRARY_ITEMS.c.lesson_id == lesson_id).values(
+                    current_version_id=version_id,
+                    revision=expected_revision + 1,
+                    updated_at=now,
+                )
+            )
+            self._audit(organization_id, actor, "lesson.version.create", "lesson", lesson_id)
+            return self._detail(lesson_id, organization_id)
+
+        return self._idempotent(
+            organization_id=organization_id, actor=actor, scope=scope,
+            key=idempotency_key, payload=payload, execute=execute,
         )
-        self._audit(organization_id, actor, "lesson.version.create", "lesson", lesson_id)
-        self._commit()
-        return self._detail(lesson_id, organization_id)
 
     def archive_lesson(
         self, *, organization_id: str, lesson_id: str, actor: str,
-        manager: bool, expected_revision: int,
+        manager: bool, expected_revision: int, idempotency_key: str,
     ) -> dict[str, Any]:
         item = self._load_lesson(organization_id, lesson_id, for_update=True)
-        self._require_revision(item["revision"], expected_revision)
+        scope = f"DELETE /organizations/{organization_id}/lessons/{lesson_id}"
+        payload = {"if_match": expected_revision}
+        replay = self._replay(
+            organization_id=organization_id, actor=actor, scope=scope,
+            key=idempotency_key, payload=payload,
+        )
+        if replay is not None:
+            return replay
         if not manager and item["created_by"] != actor:
             fail(404, "LESSON_NOT_FOUND", "Lesson was not found")
-        if item["state"] == "ARCHIVED":
-            self._commit()
+        self._require_revision(item["revision"], expected_revision)
+
+        def execute() -> dict[str, Any]:
+            if item["state"] == "ARCHIVED":
+                return self._detail(lesson_id, organization_id)
+            now = datetime.now(UTC)
+            self.db.execute(
+                LIBRARY_ITEMS.update().where(LIBRARY_ITEMS.c.lesson_id == lesson_id).values(
+                    state="ARCHIVED", archived_at=now, updated_at=now,
+                    revision=expected_revision + 1,
+                )
+            )
+            self.db.execute(
+                ACCESS_GRANTS.update()
+                .where(
+                    ACCESS_GRANTS.c.lesson_id == lesson_id,
+                    ACCESS_GRANTS.c.state.in_(("ACTIVE", "INVITED", "PENDING_REVIEW")),
+                )
+                .values(state="REVOKED", revoked_at=now, revision=ACCESS_GRANTS.c.revision + 1)
+            )
+            self._audit(organization_id, actor, "lesson.archive", "lesson", lesson_id)
             return self._detail(lesson_id, organization_id)
-        now = datetime.now(UTC)
-        self.db.execute(
-            LIBRARY_ITEMS.update().where(LIBRARY_ITEMS.c.lesson_id == lesson_id).values(
-                state="ARCHIVED", archived_at=now, updated_at=now, revision=expected_revision + 1
-            )
+
+        return self._idempotent(
+            organization_id=organization_id, actor=actor, scope=scope,
+            key=idempotency_key, payload=payload, execute=execute,
         )
-        self.db.execute(
-            ACCESS_GRANTS.update()
-            .where(
-                ACCESS_GRANTS.c.lesson_id == lesson_id,
-                ACCESS_GRANTS.c.state.in_(("ACTIVE", "INVITED", "PENDING_REVIEW")),
-            )
-            .values(state="REVOKED", revoked_at=now, revision=ACCESS_GRANTS.c.revision + 1)
-        )
-        self._audit(organization_id, actor, "lesson.archive", "lesson", lesson_id)
-        self._commit()
-        return self._detail(lesson_id, organization_id)
 
     def create_lesson_version(
         self, *, organization_id: str, lesson_id: str, actor: str,
         expected_revision: int, source_revision_id: str, content: LessonContentInputV1,
+        idempotency_key: str,
     ) -> dict[str, Any]:
         content_data = content.model_dump(mode="json")
         self._validate_content(content_data)
         item = self._load_lesson(organization_id, lesson_id, for_update=True)
-        self._require_revision(item["revision"], expected_revision)
+        scope = f"POST /organizations/{organization_id}/lessons/{lesson_id}/versions"
+        payload = {
+            "source_document_revision_id": source_revision_id,
+            "content": content_data,
+            "if_match": expected_revision,
+        }
+        replay = self._replay(
+            organization_id=organization_id, actor=actor, scope=scope,
+            key=idempotency_key, payload=payload,
+        )
+        if replay is not None:
+            return replay
         if item["created_by"] != actor:
             fail(404, "LESSON_NOT_FOUND", "Lesson was not found")
+        self._require_revision(item["revision"], expected_revision)
         # The route takes a document revision ID, so resolve and verify its source.
         revision = self.db.execute(
             select(DOCUMENT_REVISIONS).where(
@@ -301,35 +358,43 @@ class LessonLibraryService:
         ).mappings().one_or_none()
         if source is None:
             fail(404, "RESOURCE_NOT_FOUND", "Document revision was not found")
-        version_no = self._next_version(lesson_id)
-        version_id = str(uuid4())
-        now = datetime.now(UTC)
-        self._insert_version(
-            lesson_id=lesson_id,
-            version_id=version_id,
-            version_no=version_no,
-            content=content_data,
-            actor=actor,
-            source_revision_id=source_revision_id,
-            review_state="DRAFT",
-            created_at=now,
-        )
-        self.db.execute(
-            LIBRARY_ITEMS.update().where(LIBRARY_ITEMS.c.lesson_id == lesson_id).values(
-                current_version_id=version_id,
-                revision=expected_revision + 1,
-                updated_at=now,
+
+        def execute() -> dict[str, Any]:
+            version_no = self._next_version(lesson_id)
+            version_id = str(uuid4())
+            now = datetime.now(UTC)
+            self._insert_version(
+                lesson_id=lesson_id,
+                version_id=version_id,
+                version_no=version_no,
+                content=content_data,
+                actor=actor,
+                source_revision_id=source_revision_id,
+                review_state="DRAFT",
+                created_at=now,
             )
+            self.db.execute(
+                LIBRARY_ITEMS.update().where(LIBRARY_ITEMS.c.lesson_id == lesson_id).values(
+                    current_version_id=version_id,
+                    revision=expected_revision + 1,
+                    updated_at=now,
+                )
+            )
+            self.db.execute(
+                DOCUMENT_REVISIONS.update()
+                .where(DOCUMENT_REVISIONS.c.revision_id == source_revision_id)
+                .values(review_state="CONFIRMED")
+            )
+            self._audit(
+                organization_id, actor, "lesson.version.from_document", "lesson", lesson_id
+            )
+            row = self._load_version(version_id)
+            return self._version_response(row, with_content=True)
+
+        return self._idempotent(
+            organization_id=organization_id, actor=actor, scope=scope,
+            key=idempotency_key, payload=payload, execute=execute,
         )
-        self.db.execute(
-            DOCUMENT_REVISIONS.update()
-            .where(DOCUMENT_REVISIONS.c.revision_id == source_revision_id)
-            .values(review_state="CONFIRMED")
-        )
-        self._audit(organization_id, actor, "lesson.version.from_document", "lesson", lesson_id)
-        self._commit()
-        row = self._load_version(version_id)
-        return self._version_response(row, with_content=True)
 
     def _validate_content(self, content: dict[str, Any]) -> None:
         try:
@@ -596,7 +661,7 @@ class LessonLibraryService:
     @staticmethod
     def _require_revision(current: int, expected: int) -> None:
         if current != expected:
-            fail(409, "STALE_REVISION", "The resource changed; reload before retrying")
+            raise LessonLibraryStaleRevision(int(current))
 
     @staticmethod
     def _cursor_filter(stmt: Any, cursor: str | None, time_col: Any, id_col: Any) -> Any:
@@ -642,7 +707,7 @@ class LessonLibraryService:
         if not safe_name or expected_media_type is None or media_type != expected_media_type:
             fail(415, "UNSUPPORTED_MEDIA_TYPE", "Only unencrypted PDF, DOCX and PPTX are accepted")
         if byte_length < 1 or byte_length > MAX_SOURCE_BYTES:
-            fail(413, "REQUEST_TOO_LARGE", "Lesson source files are limited to 25 MB")
+            fail(413, "LESSON_FILE_TOO_LARGE", "Lesson source files are limited to 25 MB")
         if not _SHA256.fullmatch(sha256):
             fail(422, "INVALID_REQUEST", "SHA-256 must be lowercase hexadecimal")
         expected_parts = math.ceil(byte_length / PART_SIZE_BYTES)
@@ -675,9 +740,10 @@ class LessonLibraryService:
                 "expected_parts": expected_parts,
                 "accepted_part_numbers": [],
                 "expires_at": expires_at,
+                "revision": upload_session_revision("OPEN", 0),
             }
 
-        return self._idempotent(
+        result = self._idempotent(
             organization_id=organization_id,
             actor=actor,
             scope=f"POST /organizations/{organization_id}/lessons/{lesson_id}/upload-sessions",
@@ -690,12 +756,15 @@ class LessonLibraryService:
             },
             execute=execute,
         )
+        # A receipt stored before C4 has no revision; a new session had no parts (CT-5).
+        return {**result, "revision": result.get("revision", upload_session_revision("OPEN", 0))}
 
     def put_upload_part(
         self, *, upload_session_id: str, actor: str, part_number: int,
         body: bytes, part_sha256: str, range_start: int, range_end: int, range_total: int,
     ) -> dict[str, Any]:
-        session = self._load_upload_session(upload_session_id, actor, for_update=False)
+        # C4 (R1-09): lock the session so no part row lands after a terminal transition.
+        session = self._load_upload_session(upload_session_id, actor, for_update=True)
         self._require_upload_open(session)
         if not 1 <= part_number <= session["expected_parts"]:
             fail(422, "INVALID_REQUEST", "Part number is outside this upload session")
@@ -720,7 +789,7 @@ class LessonLibraryService:
         ).mappings().one_or_none()
         if prior is not None:
             if prior["sha256"] != actual_hash or prior["byte_size"] != len(body):
-                fail(409, "PART_CONFLICT", "This part number already has different bytes")
+                fail(409, "UPLOAD_PART_CONFLICT", "This part number already has different bytes")
             return {
                 "contract": "UploadPartReceiptV1",
                 "part_number": part_number,
@@ -781,7 +850,7 @@ class LessonLibraryService:
             if len(parts) != current["expected_parts"] or [p["part_number"] for p in parts] != list(
                 range(1, current["expected_parts"] + 1)
             ):
-                fail(409, "UPLOAD_INCOMPLETE", "Upload parts are incomplete")
+                fail(422, "UPLOAD_INCOMPLETE", "Upload parts are incomplete")
 
             full_hash = hashlib.sha256()
             total_bytes = 0
@@ -804,7 +873,10 @@ class LessonLibraryService:
                             part_size += len(chunk)
                             total_bytes += len(chunk)
                             if total_bytes > MAX_SOURCE_BYTES:
-                                fail(413, "REQUEST_TOO_LARGE", "Lesson source files are limited to 25 MB")
+                                fail(
+                                    413, "LESSON_FILE_TOO_LARGE",
+                                    "Lesson source files are limited to 25 MB",
+                                )
                         if part_size != part["byte_size"] or part_hash.hexdigest() != part["sha256"]:
                             fail(422, "INVALID_SOURCE_DOCUMENT", "Stored upload part failed checksum validation")
                     finally:
@@ -1016,19 +1088,49 @@ class LessonLibraryService:
         return session
 
     def _require_upload_open(self, session: Any) -> None:
-        if session["state"] == "COMPLETED":
-            fail(409, "INVALID_TRANSITION", "Upload session is already complete")
+        # C4 (R1-03): answer by state, whether persisted earlier or set by this request.
+        if session["state"] == "EXPIRED":
+            fail(410, "UPLOAD_SESSION_EXPIRED", "Upload session has expired")
         if session["state"] != "OPEN":
-            fail(409, "INVALID_TRANSITION", "Upload session is no longer open")
-        if session["expires_at"] <= datetime.now(UTC):
-            self.db.execute(
-                UPLOAD_SESSIONS.update()
-                .where(UPLOAD_SESSIONS.c.upload_session_id == session["upload_session_id"])
-                .values(state="EXPIRED")
+            fail(409, "UPLOAD_SESSION_STATE_CONFLICT", "Upload session is no longer open")
+        if self._expire_if_due(session):
+            fail(410, "UPLOAD_SESSION_EXPIRED", "Upload session has expired")
+
+    def _expire_if_due(self, session: Any) -> bool:
+        """Mark an OPEN session past its expiry as EXPIRED, commit, purge parts; True if done."""
+        if session["state"] != "OPEN" or session["expires_at"] > datetime.now(UTC):
+            return False
+        changed = self.db.execute(
+            UPLOAD_SESSIONS.update()
+            .where(
+                UPLOAD_SESSIONS.c.upload_session_id == session["upload_session_id"],
+                UPLOAD_SESSIONS.c.state == "OPEN",
             )
-            self._commit()
-            self._delete_upload_parts(session["upload_session_id"])
-            fail(409, "UPLOAD_EXPIRED", "Upload session has expired")
+            .values(state="EXPIRED")
+        ).rowcount
+        self._commit()
+        if not changed:
+            # A concurrent complete or abort closed the session first (review C4-IMPL-R1-02).
+            return False
+        self._delete_upload_parts(session["upload_session_id"])
+        return True
+
+    def _upload_status(self, session: Any) -> dict[str, Any]:
+        parts = self.db.execute(
+            select(UPLOAD_PARTS.c.part_number)
+            .where(UPLOAD_PARTS.c.upload_session_id == session["upload_session_id"])
+            .order_by(UPLOAD_PARTS.c.part_number)
+        ).scalars().all()
+        return {
+            "contract": "UploadSessionV1",
+            "upload_session_id": session["upload_session_id"],
+            "state": session["state"],
+            "part_size_bytes": session["chunk_size_bytes"],
+            "expected_parts": session["expected_parts"],
+            "accepted_part_numbers": list(parts),
+            "expires_at": session["expires_at"],
+            "revision": upload_session_revision(session["state"], len(parts)),
+        }
 
     def _source_status(self, row: Any) -> dict[str, Any]:
         return {
@@ -1241,28 +1343,49 @@ class LessonLibraryService:
 
     def revoke_access_grant(
         self, *, organization_id: str, lesson_id: str, grant_id: str,
-        actor: str, manager: bool, expected_revision: int,
+        actor: str, manager: bool, expected_revision: int, idempotency_key: str,
     ) -> dict[str, Any]:
         grant = self._load_grant(grant_id, organization_id, for_update=True)
+        scope = (
+            f"DELETE /organizations/{organization_id}/lessons/{lesson_id}"
+            f"/access-grants/{grant_id}"
+        )
+        payload = {"if_match": expected_revision}
+        replay = self._replay(
+            organization_id=organization_id, actor=actor, scope=scope,
+            key=idempotency_key, payload=payload,
+        )
+        if replay is not None:
+            return replay
         if grant["lesson_id"] != lesson_id:
             fail(404, "RESOURCE_NOT_FOUND", "Access grant was not found")
         if not manager and grant["granted_by"] != actor:
             fail(404, "RESOURCE_NOT_FOUND", "Access grant was not found")
         self._require_revision(grant["revision"], expected_revision)
-        if grant["state"] == "REVOKED":
-            return self._grant_response(grant)
-        now = datetime.now(UTC)
-        self.db.execute(
-            ACCESS_GRANTS.update()
-            .where(ACCESS_GRANTS.c.access_grant_id == grant_id)
-            .values(state="REVOKED", revoked_at=now, revision=expected_revision + 1)
-        )
-        self._recalculate_visibility(lesson_id)
-        self._audit(organization_id, actor, "lesson.access_grant.revoke", "lesson_access_grant", grant_id)
-        self._commit()
-        return self._grant_response(
-            self.db.execute(select(ACCESS_GRANTS).where(ACCESS_GRANTS.c.access_grant_id == grant_id))
-            .mappings().one()
+
+        def execute() -> dict[str, Any]:
+            if grant["state"] == "REVOKED":
+                return self._grant_response(grant)
+            now = datetime.now(UTC)
+            self.db.execute(
+                ACCESS_GRANTS.update()
+                .where(ACCESS_GRANTS.c.access_grant_id == grant_id)
+                .values(state="REVOKED", revoked_at=now, revision=expected_revision + 1)
+            )
+            self._recalculate_visibility(lesson_id)
+            self._audit(
+                organization_id, actor, "lesson.access_grant.revoke",
+                "lesson_access_grant", grant_id,
+            )
+            return self._grant_response(
+                self.db.execute(
+                    select(ACCESS_GRANTS).where(ACCESS_GRANTS.c.access_grant_id == grant_id)
+                ).mappings().one()
+            )
+
+        return self._idempotent(
+            organization_id=organization_id, actor=actor, scope=scope,
+            key=idempotency_key, payload=payload, execute=execute,
         )
 
     def _load_grant(self, grant_id: str, organization_id: str, *, for_update: bool = False) -> Any:
@@ -1933,44 +2056,55 @@ class LessonLibraryService:
 
     def get_upload_session_status(self, *, upload_session_id: str, actor: str) -> dict[str, Any]:
         session = self._load_upload_session(upload_session_id, actor, for_update=False)
-        if session["state"] == "OPEN" and session["expires_at"] <= datetime.now(UTC):
+        if self._expire_if_due(session):
+            session = self._load_upload_session(upload_session_id, actor, for_update=False)
+        return self._upload_status(session)
+
+    def abort_upload_session(
+        self, *, upload_session_id: str, actor: str, expected_revision: int,
+        idempotency_key: str,
+    ) -> dict[str, Any]:
+        """DELETE an upload session (SRS 1658): expected version, idempotent, 202 (C4, CT-14)."""
+        session = self._load_upload_session(upload_session_id, actor, for_update=True)
+        organization_id = session["organization_id"]
+        scope = f"DELETE /upload-sessions/{upload_session_id}"
+        payload = {"if_match": expected_revision}
+        replay = self._replay(
+            organization_id=organization_id, actor=actor, scope=scope,
+            key=idempotency_key, payload=payload,
+        )
+        if replay is not None:
+            return replay
+        if self._expire_if_due(session):
+            session = self._load_upload_session(upload_session_id, actor, for_update=True)
+        current = self._upload_status(session)
+        self._require_revision(current["revision"], expected_revision)
+        if session["state"] == "EXPIRED":
+            fail(410, "UPLOAD_SESSION_EXPIRED", "Upload session has expired")
+        if session["state"] not in {"OPEN", "ABORTED"}:
+            fail(409, "UPLOAD_SESSION_STATE_CONFLICT", "Only an open upload session can be aborted")
+        aborting = session["state"] == "OPEN"
+
+        def execute() -> dict[str, Any]:
+            if not aborting:
+                return current
             self.db.execute(
                 UPLOAD_SESSIONS.update()
                 .where(UPLOAD_SESSIONS.c.upload_session_id == upload_session_id)
-                .values(state="EXPIRED")
+                .values(state="ABORTED", aborted_at=datetime.now(UTC))
             )
-            self._commit()
-            self._delete_upload_parts(upload_session_id)
-            session = self._load_upload_session(upload_session_id, actor, for_update=False)
-        parts = self.db.execute(
-            select(UPLOAD_PARTS.c.part_number)
-            .where(UPLOAD_PARTS.c.upload_session_id == upload_session_id)
-            .order_by(UPLOAD_PARTS.c.part_number)
-        ).scalars().all()
-        return {
-            "contract": "UploadSessionV1",
-            "upload_session_id": session["upload_session_id"],
-            "state": session["state"],
-            "part_size_bytes": session["chunk_size_bytes"],
-            "expected_parts": session["expected_parts"],
-            "accepted_part_numbers": list(parts),
-            "expires_at": session["expires_at"],
-        }
+            return self._upload_status(
+                self._load_upload_session(upload_session_id, actor, for_update=False)
+            )
 
-    def abort_upload_session(self, *, upload_session_id: str, actor: str) -> dict[str, Any]:
-        session = self._load_upload_session(upload_session_id, actor, for_update=True)
-        if session["state"] == "ABORTED":
-            return self.get_upload_session_status(upload_session_id=upload_session_id, actor=actor)
-        if session["state"] != "OPEN":
-            fail(409, "INVALID_TRANSITION", "Only an open upload session can be aborted")
-        self.db.execute(
-            UPLOAD_SESSIONS.update()
-            .where(UPLOAD_SESSIONS.c.upload_session_id == upload_session_id)
-            .values(state="ABORTED", aborted_at=datetime.now(UTC))
+        result = self._idempotent(
+            organization_id=organization_id, actor=actor, scope=scope,
+            key=idempotency_key, payload=payload, execute=execute,
         )
-        self._commit()
-        self._delete_upload_parts(upload_session_id)
-        return self.get_upload_session_status(upload_session_id=upload_session_id, actor=actor)
+        if aborting:
+            # Storage purge after the commit (C4, R1-12); partial bytes are never used.
+            self._delete_upload_parts(upload_session_id)
+        return result
 
     def moderate_lesson(
         self, *, lesson_id: str, actor: str, expected_revision: int,

@@ -12,7 +12,7 @@ CONTRACT_REVISION: Final = "FEAT-063 Rev37"
 SOURCE_FILE_NAME: Final = 'API_CONTRACT_CATALOG_FEAT063_REV37_20261030.md'
 SOURCE_SHA256: Final = '56FC8BEA01360E11F73E45B2D43AC1897540B30BC8AE524CDE1ECEFACFBB1B88'
 DECLARED_OPERATION_COUNT: Final = 135
-MOUNTED_OPERATION_COUNT: Final = 134
+MOUNTED_OPERATION_COUNT: Final = 135
 UNMOUNTED_OPERATION_COUNT: Final = 11
 TAG_DESCRIPTIONS: Final[dict[str, str]] = {'BE1 — Organizations & Classes': 'Organization membership, class setup, profiles, assignments, '
                                   'and consents.',
@@ -9759,7 +9759,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                               'string; '
                                                                                                               'header '
                                                                                                               '`If-Match`: '
-                                                                                                              'object',
+                                                                                                              'object; header `Idempotency-Key*`: string',
                                                                                             'surface': 'Lesson '
                                                                                                        'Library',
                                                                                             'tag': 'Teacher '
@@ -9868,7 +9868,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                              '(required): '
                                                                                                              'UpdateLessonRequestV1 '
                                                                                                              '{contract:string, '
-                                                                                                             'content*:LessonContentInputV1}',
+                                                                                                             'content*:LessonContentInputV1}; header `Idempotency-Key*`: string',
                                                                                            'surface': 'Lesson '
                                                                                                       'Library',
                                                                                            'tag': 'Teacher '
@@ -9985,7 +9985,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                                                               'string; '
                                                                                                                                               'header '
                                                                                                                                               '`If-Match`: '
-                                                                                                                                              'object',
+                                                                                                                                              'object; header `Idempotency-Key*`: string',
                                                                                                                             'surface': 'Lesson '
                                                                                                                                        'Library',
                                                                                                                             'tag': 'Teacher '
@@ -10148,7 +10148,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                                             '`lesson_id*`: '
                                                                                                                             'string; '
                                                                                                                             'header '
-                                                                                                                            '`Idempotency-Key`: '
+                                                                                                                            '`Idempotency-Key*`: '
                                                                                                                             'string; '
                                                                                                                             'application/json '
                                                                                                                             '(required): '
@@ -10217,7 +10217,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                                      'CreateLessonVersionRequestV1 '
                                                                                                                      '{contract:string, '
                                                                                                                      'source_document_revision_id*:string, '
-                                                                                                                     'content*:LessonContentInputV1}',
+                                                                                                                     'content*:LessonContentInputV1}; header `Idempotency-Key*`: string',
                                                                                                    'surface': 'Lesson '
                                                                                                               'Library',
                                                                                                    'tag': 'Teacher '
@@ -10538,7 +10538,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                        'riêng tư.',
                                                                             'request_inputs': 'path '
                                                                                               '`upload_session_id*`: '
-                                                                                              'string',
+                                                                                              'string; header `If-Match`: object; header `Idempotency-Key*`: string',
                                                                             'surface': 'Lesson '
                                                                                        'Library',
                                                                             'tag': 'Lesson Library '
@@ -10559,7 +10559,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                             'not '
                                                                                             'individually '
                                                                                             'live-probed',
-                                                                            'responses': ({'status': '200',
+                                                                            'responses': ({'status': '202',
                                                                                            'description': 'Successful '
                                                                                                           'Response',
                                                                                            'media_type': 'application/json',
@@ -10651,7 +10651,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                    'not '
                                                                                                    'individually '
                                                                                                    'live-probed',
-                                                                                   'responses': ({'status': '200',
+                                                                                   'responses': ({'status': '202',
                                                                                                   'description': 'Successful '
                                                                                                                  'Response',
                                                                                                   'media_type': 'application/json',
@@ -10854,14 +10854,15 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                               'schema_name': 'HTTPValidationError'})}}
 
 MOUNTED_OPERATIONS[('post', '/api/be1/v1/classes/{class_id}/assignments')] = {   'purpose': 'Gán một Teacher vào lớp.',
-    'request_inputs': 'path `class_id*`: string; header `X-Request-ID`: string; application/json '
-                      '(required): CreateAssignmentRequest {subject*:string}',
+    'request_inputs': 'path `class_id*`: string; header `X-Request-ID`: string; '
+                      'header `Idempotency-Key*`: string; header `If-Match`: string; application/json '
+                      '(required): CreateAssignmentRequest {candidate_ref*:string}',
     'surface': 'BE1 / classroom',
     'tag': 'BE1 — Organizations & Classes',
     'handler': 'be1_registry.py::assign_class_teacher',
     'authentication': 'HTTPBearer (bearer)',
     'verification': 'S1a-T class assignment contract; PostgreSQL acceptance is owner-only and not run here',
-    'responses': (   {   'status': '201',
+    'responses': (   {   'status': '200',
                          'description': 'Successful Response',
                          'media_type': 'application/json',
                          'schema_name': 'object'},
@@ -11060,7 +11061,7 @@ MOUNTED_OPERATIONS[('post', '/v1/story-runs')] = {
     'authentication': 'HTTPBearer (bearer)',
     'verification': 'Rev60 §21.2 alignment; context confirmation remains a proposal',
     'responses': (
-        {'status': '201', 'description': 'StoryRun created', 'media_type': 'application/json',
+        {'status': '201', 'description': 'StoryRun created, or the lifecycle projection when a replayed run is pending deletion or deleted', 'media_type': 'application/json',
          'schema_name': 'ParentStoryRunEnvelopeV1'},
         {'status': '400', 'description': 'The request is invalid', 'media_type': 'application/json',
          'schema_name': 'ParentStoryErrorEnvelopeV1'},
@@ -11088,7 +11089,7 @@ MOUNTED_OPERATIONS[('get', '/v1/story-runs/{run_id}')] = {
     'authentication': 'HTTPBearer (bearer)',
     'verification': 'Rev60 §21.2 resource-read path',
     'responses': (
-        {'status': '200', 'description': 'StoryRun resource', 'media_type': 'application/json',
+        {'status': '200', 'description': 'StoryRun resource, or the lifecycle projection from DELETE_PENDING on', 'media_type': 'application/json',
          'schema_name': 'ParentStoryRunEnvelopeV1'},
         {'status': '400', 'description': 'The request is invalid', 'media_type': 'application/json',
          'schema_name': 'ParentStoryErrorEnvelopeV1'},
@@ -11105,6 +11106,33 @@ MOUNTED_OPERATIONS[('get', '/v1/story-runs/{run_id}')] = {
         {'status': '503', 'description': 'A required service is unavailable', 'media_type': 'application/json',
          'schema_name': 'ParentStoryErrorEnvelopeV1'},
         {'status': '500', 'description': 'An unexpected error occurred', 'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+    ),
+}
+MOUNTED_OPERATIONS[('get', '/v1/story-runs')] = {
+    'purpose': "List the authenticated Parent's StoryRuns as content-free summaries, newest first.",
+    'request_inputs': 'query `limit`: integer; query `cursor`: string; query `parent_profile_id`: uuid',
+    'surface': 'Parent / StoryRun integration proposal',
+    'tag': 'Parent StoryRuns',
+    'handler': 'parent_story_runs.py::list_parent_story_runs',
+    'authentication': 'HTTPBearer (bearer)',
+    'verification': 'Proposed FEAT-081 C3b history read; Rev60 §21.2 does not name a list path (SRS §21.5 line 1707)',
+    'responses': (
+        {'status': '200', 'description': 'One page of run summaries', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryRunHistoryPageV1'},
+        {'status': '400', 'description': 'The request is invalid', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '401', 'description': 'Authentication is required', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '403', 'description': 'The action is not allowed', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '404', 'description': 'The requested resource was not found',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '422', 'description': 'Validation uses the standard error envelope',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '503', 'description': 'A required service is unavailable', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '500', 'description': 'An unexpected error occurred', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
     ),
 }
 MOUNTED_OPERATIONS[('get', '/v1/story-runs/active/current')] = {
@@ -11146,7 +11174,7 @@ MOUNTED_OPERATIONS[('post', '/v1/story-runs/{run_id}/context-confirmation')] = {
     'authentication': 'HTTPBearer (bearer)',
     'verification': 'Rev60 §21.2 path; request fields are a proposal',
     'responses': (
-        {'status': '200', 'description': 'Context snapshot confirmation recorded',
+        {'status': '200', 'description': 'Context snapshot confirmation recorded, or the lifecycle projection on a replay of a purged run',
          'media_type': 'application/json', 'schema_name': 'ParentStoryRunEnvelopeV1'},
         {'status': '400', 'description': 'The idempotency key is invalid',
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
@@ -11176,7 +11204,7 @@ MOUNTED_OPERATIONS[('post', '/v1/story-runs/{run_id}/subject-confirmation')] = {
     'authentication': 'HTTPBearer (bearer)',
     'verification': 'Rev60 §21.2 path; command contract is a proposal',
     'responses': (
-        {'status': '200', 'description': 'Subject confirmation recorded', 'media_type': 'application/json',
+        {'status': '200', 'description': 'Subject confirmation recorded, or the lifecycle projection on a replay of a purged run', 'media_type': 'application/json',
          'schema_name': 'ParentSubjectConfirmationResponseV1'},
         {'status': '400', 'description': 'The idempotency key is invalid',
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
@@ -11206,7 +11234,7 @@ MOUNTED_OPERATIONS[('post', '/v1/story-runs/{run_id}/script-confirmation')] = {
     'authentication': 'HTTPBearer (bearer)',
     'verification': 'Rev60 §21.2 path; command contract is a proposal',
     'responses': (
-        {'status': '200', 'description': 'Story revision confirmation recorded',
+        {'status': '200', 'description': 'Story revision confirmation recorded, or the lifecycle projection on a replay of a purged run',
          'media_type': 'application/json', 'schema_name': 'ParentStoryRunEnvelopeV1'},
         {'status': '400', 'description': 'The idempotency key is invalid',
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
@@ -11238,6 +11266,17 @@ IDEMPOTENCY_MISMATCH_OPERATION_KEYS: Final[tuple[tuple[str, str], ...]] = (
     ("post", "/api/lesson-library/v1/organizations/{organization_id}/parent-groups/{parent_group_id}/invitations"),
     ("patch", "/api/lesson-library/v1/platform/lessons/{lesson_id}/moderation"),
     ("post", "/api/lesson-library/v1/upload-sessions/{upload_session_id}/complete"),
+    # FEAT-066 C4: keyed commands A18, A19, B07, B08 and A25 (SRS §21.4).
+    ("patch", "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}"),
+    ("delete", "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}"),
+    ("post", "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}/versions"),
+    (
+        "delete",
+        "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}/access-grants/{access_grant_id}",
+    ),
+    ("delete", "/api/lesson-library/v1/upload-sessions/{upload_session_id}"),
+    # FEAT-066 M9-B (SRS §21.4): the first Teacher assignment command.
+    ("post", "/api/be1/v1/classes/{class_id}/assignments"),
 )
 
 _IDEMPOTENCY_MISMATCH_RESPONSE: Final[ResponseMetadata] = {

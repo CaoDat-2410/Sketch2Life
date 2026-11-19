@@ -1,6 +1,6 @@
 # Project context ledger
 
-> **Current product SRS:** use [`features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md`](../../features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md), the owner-supplied v2.7-draft copy adopted by D-209 on 2026-11-17 (self-described as the Rev57 base with Rev58–Rev69 documentation updates; 701157 bytes / SHA-256 B9B1F42D0BB118C19C81607D3913B7E4F1D8B6F673F0C3FBB6402888FEB675F5; header date 2026-11-13 accepted by the owner as stale), as the single canonical working baseline. It replaces the Rev67 selection of D-203 and the Rev68 working copy reconciled under D-208 as the requirements file. It remains unsigned; §§1–31 define target requirements and §32 separates environment-specific runtime/source observations. Older feature contexts/SRS documents are historical or feature-local. See [`SRS_AUTHORITY.md`](SRS_AUTHORITY.md).
+> **Current product SRS:** use [`features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md`](../../features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md), the owner-supplied v2.7-draft copy adopted by D-209 on 2026-11-17 (self-described as the Rev57 base with Rev58–Rev69 documentation updates; 701810 bytes / SHA-256 443A3CA37272D2FE96127564BAF400461F394E098724A6BD999D723A4E504021, after the D-219 FR-C-08 wording edit of 2026-11-19 (13 lines, no line moved; before it 701157 bytes / `B9B1F42D…`); header date 2026-11-13 accepted by the owner as stale), as the single canonical working baseline. It replaces the Rev67 selection of D-203 and the Rev68 working copy reconciled under D-208 as the requirements file. It remains unsigned; §§1–31 define target requirements and §32 separates environment-specific runtime/source observations. Older feature contexts/SRS documents are historical or feature-local. See [`SRS_AUTHORITY.md`](SRS_AUTHORITY.md).
 
 ## FEAT-063 Rev61–Rev65 — Firebase roles, Parent/Teacher Modal flows, Teacher presentation — 2026-11-10
 
@@ -932,3 +932,15 @@ D-207's owner launch signal was supplied for the pinned allowlist. The bounded c
 ## FEAT-063 M2 S2 implementation allowlist review — 2026-11-14
 
 The independent cold review of Implementation Allowlist Draft 1 returned READY WITH NOTES (0 P1, 0 P2, 1 P3). D-206 specifies the cancel-only HTTP 409 STALE_REVISION field current_version; the HTTP 202 success body remains as recorded by D-204. The P3 follow-up is to review stale-revision version details on other routes against Rev67 §21.4 in a separate task; it is outside the current allowlist and does not expand S2. The S2 implementation remains NOT LAUNCHED and requires the separate pinned owner launch prompt. OWNER_MODAL_CALL_APPROVED=NO.
+
+## FEAT-063 FR-C-08 Parent StoryRun lifecycle accepted — 2026-11-19
+
+The Parent-only first slice of FR-C-08 (cancel, the new DELETE, the lifecycle projection on GET and replays,
+the BE1 lifecycle purge consumer and reconciliation, the Core reference-closure port, one migration) was
+accepted by the owner with recorded debt and committed on local branch `feature/feat063-frc08-lifecycle`
+(not pushed). Evidence: `features/FEAT-063-system-architecture-rearchitecture/evidence/FR_C08_IMPLEMENTATION_REPORT_20261119.md` (55,655 bytes, `715EFEFA3659B90A…`); acceptance record in that feature's
+`approvals/TASK_APPROVAL.md`. Authority: D-214 to D-218.
+
+## FEAT-063 FR-C-08 SRS wording edit applied (D-219) — 2026-11-19
+
+The canonical working SRS `features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` now holds 701,810 bytes / SHA-256 `443A3CA37272D2FE96127564BAF400461F394E098724A6BD999D723A4E504021` (before: 701,157 bytes / `B9B1F42D…`, the copy adopted by D-209). The documentation-only FR-C-08 wording edit (program task B4, `features/FEAT-063-system-architecture-rearchitecture/plan/FR_C08_SRS_WORDING_EDIT_DRAFT3_20261119.md`) changed 13 lines with 14 edits: user delete is for runs in COMPLETED, FAILED or ABANDONED; FAILED and ABANDONED are never purged automatically; the retention sites name FAILED; and line 394 records SCRIPT_GENERATING and SCRIPT_GENERATION_UNKNOWN as noted extension values. The header and lines 1-39 were not changed and no line moved, so SRS line citations stay valid. Records pinned to `B9B1F42D…` stay as historical records of the earlier bytes. Contract alignment: `features/FEAT-063-system-architecture-rearchitecture/plan/FR_C08_PARENT_TEACHER_LIFECYCLE_CONTRACT_DRAFT12_20261119.md`. Authority: FEAT-063 D-219. Local commit on its own branch; not pushed or merged.

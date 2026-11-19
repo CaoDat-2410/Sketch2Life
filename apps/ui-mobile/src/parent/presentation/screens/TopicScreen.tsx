@@ -1,117 +1,218 @@
-import React, { useEffect, useState } from 'react';
-import { Image, Switch, Text, View } from 'react-native';
-import { Audio } from 'expo-av';
-import type { LessonDetail } from '../../domain/types';
-import type { SelectedAudio } from '../navigation/workflowTypes';
-import { Card, Field, Notice, PrimaryButton, SecondaryButton, SectionTitle, ScreenFrame, palette } from '../components/ui';
+import React from 'react';
+import { Image, type ImageSourcePropType, Pressable, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { Card, PrimaryButton, ScreenFrame, SectionTitle, palette } from '../components/ui';
 
 type Props = {
   topic: string;
-  idea: string;
-  audio: SelectedAudio | null;
-  guideEnabled: boolean;
-  guideBase64: string;
-  guideBusy: boolean;
-  guideError: string;
-  lesson: LessonDetail | null;
   stepLabel: string;
   onTopic: (value: string) => void;
-  onIdea: (value: string) => void;
-  onAudio: (audio: SelectedAudio | null) => void;
-  onGuideToggle: (value: boolean) => void;
-  onGenerateGuide: () => void;
-  onOpenLessons: () => void;
   onContinue: () => void;
   onBack: () => void;
 };
 
+type TopicOption = {
+  title: string;
+  detail: string;
+  image: ImageSourcePropType;
+  surface: string;
+  fit: 'cover' | 'contain';
+};
+
+const topicOptions: TopicOption[] = [
+  {
+    title: 'Khu vườn và thiên nhiên',
+    detail: 'Cây xanh, hoa lá và thiên nhiên',
+    image: require('../../../../assets/topics/topic-nature-landscape.png'),
+    surface: '#82C7F5',
+    fit: 'cover',
+  },
+  {
+    title: 'Phương tiện quanh em',
+    detail: 'Ô tô, máy bay và tàu thuyền',
+    image: require('../../../../assets/topics/topic-transport.png'),
+    surface: '#B9E0FF',
+    fit: 'cover',
+  },
+  {
+    title: 'Động vật đáng yêu',
+    detail: 'Những người bạn động vật',
+    image: require('../../../../assets/topics/topic-animals-landscape.png'),
+    surface: '#80C7F5',
+    fit: 'cover',
+  },
+  {
+    title: 'Đại dương',
+    detail: 'Cá, san hô và thế giới biển',
+    image: require('../../../../assets/topics/topic-ocean.png'),
+    surface: '#B7EAF7',
+    fit: 'cover',
+  },
+  {
+    title: 'Vũ trụ kỳ thú',
+    detail: 'Hành tinh, ngôi sao và tên lửa',
+    image: require('../../../../assets/topics/topic-space-landscape.png'),
+    surface: '#30206F',
+    fit: 'cover',
+  },
+  {
+    title: 'Thế giới cổ tích',
+    detail: 'Lâu đài, phép màu và nhân vật',
+    image: require('../../../../assets/topics/topic-fairy-tale.png'),
+    surface: '#F6D9F2',
+    fit: 'cover',
+  },
+] as const;
+
+const selectedTopicPurple = '#9333EA';
+
 export function TopicScreen(props: Props): React.JSX.Element {
-  const [recording, setRecording] = useState<Audio.Recording | null>(null);
-  const [recordingBusy, setRecordingBusy] = useState(false);
-  const [recordingSeconds, setRecordingSeconds] = useState(0);
-  const [recordingError, setRecordingError] = useState('');
-
-  useEffect(() => {
-    if (!recording) return undefined;
-    const timer = setInterval(() => {
-      void recording.getStatusAsync().then((status) => {
-        const seconds = Math.min(Math.floor(status.durationMillis / 1000), 120);
-        setRecordingSeconds(seconds);
-        if (status.durationMillis >= 120_000) void finishRecording(recording);
-      }).catch(() => setRecordingError('Không đọc được trạng thái ghi âm.'));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [recording]);
-
-  async function startRecording(): Promise<void> {
-    setRecordingError('');
-    setRecordingBusy(true);
-    try {
-      const permission = await Audio.requestPermissionsAsync();
-      if (!permission.granted) throw new Error('Cần cho phép dùng micro để ghi ý tưởng.');
-      await Audio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true });
-      const result = await Audio.Recording.createAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
-      setRecording(result.recording);
-      setRecordingSeconds(0);
-    } catch (cause) {
-      setRecordingError(cause instanceof Error ? cause.message : 'Không thể bắt đầu ghi âm.');
-    } finally {
-      setRecordingBusy(false);
-    }
-  }
-
-  async function finishRecording(target = recording): Promise<void> {
-    if (!target || recordingBusy) return;
-    setRecordingBusy(true);
-    try {
-      await target.stopAndUnloadAsync();
-      const uri = target.getURI();
-      if (!uri) throw new Error('Không lưu được bản ghi âm.');
-      const isWave = uri.toLowerCase().endsWith('.wav');
-      props.onAudio({ uri, fileName: isWave ? 'parent-idea.wav' : 'parent-idea.m4a', mediaType: isWave ? 'audio/wav' : 'audio/mp4' });
-      setRecording(null);
-      setRecordingSeconds(0);
-    } catch (cause) {
-      setRecordingError(cause instanceof Error ? cause.message : 'Không thể hoàn tất bản ghi.');
-      setRecording(null);
-    } finally {
-      setRecordingBusy(false);
-      await Audio.setAudioModeAsync({ allowsRecordingIOS: false, playsInSilentModeIOS: true }).catch(() => undefined);
-    }
-  }
+  const { width } = useWindowDimensions();
+  const heroWidth = Math.min(width - 30, 440);
+  const heroHeight = heroWidth * (520 / 1280);
+  const heroImageHeight = heroWidth * (640 / 1280);
 
   return (
-    <ScreenFrame title="Chọn chủ đề" subtitle="Bạn có thể để trống. Ảnh tranh vẫn là bước bắt buộc." step={props.stepLabel} onBack={props.onBack}>
-      <Card>
-        <Field label="Chủ đề (tùy chọn)" value={props.topic} onChangeText={props.onTopic} placeholder="Ví dụ: con bướm" />
-        <Field label="Ý tưởng của người lớn (tùy chọn)" value={props.idea} onChangeText={props.onIdea} placeholder="Điều bé đang tò mò…" multiline />
-        <SectionTitle>Hoặc ghi âm ý tưởng</SectionTitle>
-        <Text style={{ color: palette.muted, fontSize: 13 }}>Tối đa 2 phút. Transcript sẽ được người lớn xem và sửa trước khi dùng.</Text>
-        {recording ? <>
-          <Notice text={`Đang ghi âm · ${Math.floor(recordingSeconds / 60)}:${String(recordingSeconds % 60).padStart(2, '0')} / 2:00`} tone="warning" />
-          <PrimaryButton label="Dừng ghi âm" busy={recordingBusy} onPress={() => void finishRecording()} />
-        </> : props.audio ? <>
-          <Notice text="Đã lưu bản ghi âm cho buổi này." tone="success" />
-          <SecondaryButton label="Ghi âm lại" disabled={recordingBusy} onPress={() => void startRecording()} />
-          <SecondaryButton label="Bỏ bản ghi" disabled={recordingBusy} onPress={() => props.onAudio(null)} />
-        </> : <SecondaryButton label="Bắt đầu ghi âm" disabled={recordingBusy} onPress={() => void startRecording()} />}
-        {recordingError ? <Notice text={recordingError} tone="error" /> : null}
-      </Card>
-      <Card>
-        <SectionTitle>Giáo án mẫu</SectionTitle>
-        {props.lesson ? <Notice text={`Đã chọn: ${props.lesson.title}`} tone="success" /> : <Text style={{ color: palette.muted, fontSize: 14 }}>Không chọn giáo án cũng được.</Text>}
-        <SecondaryButton label={props.lesson ? 'Đổi giáo án' : 'Chọn giáo án (tùy chọn)'} onPress={props.onOpenLessons} />
-      </Card>
-      <Card>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <View style={{ flex: 1 }}><SectionTitle>Gợi ý nét vẽ</SectionTitle><Text style={{ color: palette.muted, fontSize: 13, lineHeight: 19, marginTop: 5 }}>Chỉ tạo khi bạn bật. Dùng chủ đề chung, không gửi ảnh hay hồ sơ trẻ.</Text></View>
-          <Switch value={props.guideEnabled} onValueChange={props.onGuideToggle} trackColor={{ true: palette.blue }} />
+    <ScreenFrame
+      title="Chọn chủ đề"
+      subtitle="Hôm nay bé muốn khám phá gì?"
+      step={props.stepLabel}
+      onBack={props.onBack}
+      visualTone="creative"
+    >
+      <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={[styles.heroArtwork, { width: heroWidth, height: heroHeight }]}>
+        <Image
+          source={require('../../../../assets/topics/topic-hero-girl-cat-castle.png')}
+          resizeMode="contain"
+          style={[styles.heroImage, { height: heroImageHeight }]}
+        />
+      </View>
+
+      <Card variant="creative" style={styles.introCard}>
+        <View style={styles.introIcon}>
+          <Ionicons name="color-palette-outline" size={24} color={palette.creativePrimary} accessible={false} />
         </View>
-        {props.guideEnabled ? <PrimaryButton label="Tạo gợi ý nét vẽ" busy={props.guideBusy} disabled={!props.topic.trim()} onPress={props.onGenerateGuide} /> : null}
-        {props.guideError ? <Notice text={props.guideError} tone="error" /> : null}
-        {props.guideBase64 ? <Image accessibilityLabel="Gợi ý line sketch được tạo bởi AI" source={{ uri: `data:image/png;base64,${props.guideBase64}` }} resizeMode="contain" style={{ width: '100%', height: 240, backgroundColor: '#fff', borderRadius: 12 }} /> : null}
+        <View style={styles.introCopy}>
+          <SectionTitle variant="creative">Bé thích chủ đề nào?</SectionTitle>
+          <Text style={styles.introText}>Chọn một chủ đề hoặc tự nhập ý tưởng của bé.</Text>
+        </View>
       </Card>
-      <PrimaryButton label="Tiếp tục đến chụp tranh" disabled={props.guideBusy} onPress={props.onContinue} />
+
+      <View accessibilityLabel="Các chủ đề gợi ý" style={styles.topicGrid}>
+        {topicOptions.map((option) => {
+          const selected = props.topic === option.title;
+          return (
+            <TopicCard
+              key={option.title}
+              option={option}
+              selected={selected}
+              onPress={() => props.onTopic(option.title)}
+            />
+          );
+        })}
+      </View>
+
+      <Card variant="creative" style={styles.customCard}>
+        <View style={styles.customHeading}>
+          <View style={styles.customIcon}>
+            <Ionicons name="pencil-outline" size={19} color={palette.creativePrimary} accessible={false} />
+          </View>
+          <View style={styles.customCopy}>
+            <SectionTitle variant="creative">Chủ đề khác của bé</SectionTitle>
+            <Text style={styles.customHint}>Tự nghĩ một ý tưởng cho buổi vẽ.</Text>
+          </View>
+        </View>
+        <View style={styles.topicInputWrap}>
+          <Ionicons name="pencil-outline" size={18} color={palette.creativeMuted} accessible={false} />
+          <TextInput
+            accessibilityLabel="Chủ đề riêng của bé"
+            value={props.topic}
+            onChangeText={props.onTopic}
+            placeholder="Ví dụ: Khu vườn phép thuật"
+            placeholderTextColor={palette.creativeMuted}
+            selectionColor={palette.creativePrimary}
+            returnKeyType="done"
+            style={styles.topicInput}
+          />
+        </View>
+      </Card>
+
+      <PrimaryButton variant="creative" label="Tiếp tục" onPress={props.onContinue} />
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Bỏ qua chủ đề"
+        onPress={() => { props.onTopic(''); props.onContinue(); }}
+        style={({ pressed }) => [styles.skipButton, pressed && styles.pressed]}
+      >
+        <Text style={styles.skipText}>Bỏ qua chủ đề</Text>
+      </Pressable>
     </ScreenFrame>
   );
 }
+
+function TopicCard({
+  option,
+  selected,
+  onPress,
+}: {
+  option: TopicOption;
+  selected: boolean;
+  onPress: () => void;
+}): React.JSX.Element {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`${option.title}. ${option.detail}${selected ? '. Đã chọn' : ''}`}
+      accessibilityState={{ selected }}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.topicTile,
+        selected && styles.topicTileSelected,
+        pressed && styles.pressed,
+      ]}
+    >
+      <View style={[styles.topicImageFrame, { backgroundColor: option.surface }]}>
+        <Image source={option.image} resizeMode={option.fit} style={styles.topicImage} accessible={false} />
+        {selected ? (
+          <View style={styles.selectedMark}>
+            <Ionicons name="checkmark" size={14} color="#FFFFFF" accessible={false} />
+          </View>
+        ) : null}
+      </View>
+      <View style={styles.topicCopy}>
+        <Text style={styles.topicTitle} numberOfLines={2}>{option.title}</Text>
+        <Text style={styles.topicDetail} numberOfLines={2}>{option.detail}</Text>
+      </View>
+      {selected ? <View pointerEvents="none" style={styles.selectedOutline} /> : null}
+    </Pressable>
+  );
+}
+
+const styles = StyleSheet.create({
+  heroArtwork: { alignSelf: 'center', marginTop: -4, marginBottom: -12, overflow: 'hidden' },
+  heroImage: { width: '100%' },
+  introCard: { alignItems: 'center', backgroundColor: '#FFFEFF', borderColor: palette.creativeBorder, flexDirection: 'row', gap: 10, minWidth: 0, paddingHorizontal: 12, paddingVertical: 10 },
+  introIcon: { alignItems: 'center', backgroundColor: palette.creativeLavender, borderRadius: 15, height: 42, justifyContent: 'center', width: 42 },
+  introCopy: { flex: 1, gap: 3, minWidth: 0 },
+  introText: { color: palette.creativeMuted, fontSize: 13, lineHeight: 18, flexShrink: 1 },
+  topicGrid: { width: '100%', flexDirection: 'row', flexWrap: 'wrap', columnGap: 12, rowGap: 12 },
+  topicTile: { flexGrow: 1, flexBasis: '48%', minWidth: 0, padding: 8, gap: 7, borderRadius: 20, borderWidth: 1.3, borderColor: palette.creativeBorder, backgroundColor: '#FFFEFF', shadowColor: '#492474', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.055, shadowRadius: 10, elevation: 1 },
+  topicTileSelected: { backgroundColor: '#F8F1FF', shadowColor: selectedTopicPurple, shadowOpacity: 0.13, elevation: 3 },
+  selectedOutline: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, borderWidth: 2, borderColor: selectedTopicPurple, borderRadius: 20 },
+  topicImageFrame: { width: '100%', aspectRatio: 16 / 9, borderTopLeftRadius: 16, borderTopRightRadius: 16, borderBottomLeftRadius: 12, borderBottomRightRadius: 12, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  topicImage: { width: '100%', height: '100%' },
+  selectedMark: { position: 'absolute', top: 7, right: 7, width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: selectedTopicPurple, borderWidth: 2, borderColor: '#FFFFFF' },
+  topicCopy: { gap: 3, minWidth: 0, paddingHorizontal: 2, paddingBottom: 2 },
+  topicTitle: { color: palette.creativeInk, fontSize: 13, fontWeight: '800', lineHeight: 17, minHeight: 34, flexShrink: 1 },
+  topicDetail: { color: palette.creativeMuted, fontSize: 12, lineHeight: 16, minHeight: 32, flexShrink: 1 },
+  customCard: { backgroundColor: '#FFFEFF', borderColor: palette.creativeBorder, gap: 9, minWidth: 0, padding: 12 },
+  customHeading: { alignItems: 'center', flexDirection: 'row', gap: 10, minWidth: 0 },
+  customIcon: { width: 38, height: 38, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: palette.creativeLavender },
+  customCopy: { flex: 1, minWidth: 0, gap: 2 },
+  customHint: { color: palette.creativeMuted, fontSize: 12, lineHeight: 17 },
+  topicInputWrap: { minHeight: 52, flexDirection: 'row', alignItems: 'center', gap: 10, borderWidth: 1.3, borderColor: palette.creativeBorder, borderRadius: 17, backgroundColor: '#FFFEFF', paddingHorizontal: 14 },
+  topicInput: { flex: 1, minWidth: 0, minHeight: 50, paddingVertical: 10, color: palette.creativeInk, fontSize: 14 },
+  skipButton: { minHeight: 48, alignSelf: 'center', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16 },
+  skipText: { color: palette.creativePrimary, fontSize: 13, fontWeight: '700' },
+  pressed: { opacity: 0.82 },
+});

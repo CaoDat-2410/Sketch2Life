@@ -2231,6 +2231,9 @@ dev = [
 image-admission = [
     { name = "av" },
 ]
+modal = [
+    { name = "modal" },
+]
 story-video-image = [
     { name = "accelerate" },
     { name = "diffusers" },
@@ -2272,6 +2275,7 @@ requires-dist = [
     { name = "imageio", marker = "extra == 'whiteboard-renderer'", specifier = ">=2.37,<3" },
     { name = "imageio-ffmpeg", marker = "extra == 'whiteboard-renderer'", specifier = ">=0.6,<1" },
     { name = "modal", specifier = "==1.6.3" },
+    { name = "modal", marker = "extra == 'modal'", specifier = "==1.6.3" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.17,<2" },
     { name = "numpy", marker = "extra == 'story-video-image'", specifier = ">=1.26,<2" },
     { name = "numpy", marker = "extra == 'whiteboard-renderer'", specifier = ">=1.26,<2" },
@@ -2299,7 +2303,7 @@ requires-dist = [
     { name = "transformers", marker = "extra == 'vision-qwen'", specifier = "==4.57.6" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.35,<1" },
 ]
-provides-extras = ["dev", "story-video-tts", "story-video-image", "asr-faster-whisper", "vision-qwen", "image-admission", "whiteboard-renderer"]
+provides-extras = ["dev", "story-video-tts", "story-video-image", "asr-faster-whisper", "vision-qwen", "image-admission", "whiteboard-renderer", "modal"]
 
 [[package]]
 name = "sqlalchemy"

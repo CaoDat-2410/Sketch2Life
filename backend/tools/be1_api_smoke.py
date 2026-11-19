@@ -56,6 +56,8 @@ def assert_error_response(
         or headers.get("X-Request-ID") != response_request_id
     ):
         raise RuntimeError("Error body request_id did not match the X-Request-ID response header")
+    if payload.get("correlation_id") != response_request_id:
+        raise RuntimeError("Error body correlation_id did not match request_id")
 
 
 def main() -> int:
@@ -86,7 +88,7 @@ def main() -> int:
         headers=headers,
         payload=payload,
         expected_status=401,
-        code="AUTHENTICATION_REQUIRED",
+        code="AUTH_REQUIRED",
     )
     if payload.get("request_id") != supplied_request_id:
         raise RuntimeError("BE1 API did not preserve a valid caller-supplied request ID")
@@ -102,8 +104,8 @@ def main() -> int:
         status=status,
         headers=headers,
         payload=payload,
-        expected_status=422,
-        code="REQUEST_VALIDATION_FAILED",
+        expected_status=400,
+        code="INVALID_REQUEST",
     )
     results.append({"case": "malformed_json", "status": status, "response": payload})
 
@@ -113,7 +115,7 @@ def main() -> int:
         headers=headers,
         payload=payload,
         expected_status=404,
-        code="NOT_FOUND",
+        code="RESOURCE_NOT_FOUND",
     )
     results.append({"case": "unknown_be1_route", "status": status, "response": payload})
 
@@ -133,7 +135,7 @@ def main() -> int:
     session_create = paths.get("/api/be1/v1/organizations/{organization_id}/sessions", {}).get(
         "post", {}
     )
-    if "422" not in session_create.get("responses", {}):
+    if "400" not in session_create.get("responses", {}):
         raise RuntimeError("BE1 commands do not document validation error responses")
     class_list = paths.get("/api/be1/v1/organizations/{organization_id}/classes", {}).get(
         "get", {}
