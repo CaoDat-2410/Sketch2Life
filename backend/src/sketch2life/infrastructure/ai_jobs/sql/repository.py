@@ -41,6 +41,7 @@ from sqlalchemy import (
     tuple_,
     update,
 )
+from sqlalchemy.dialects.postgresql import insert as postgresql_insert
 from sqlalchemy.exc import IntegrityError
 
 from sketch2life.application.ports.ai_jobs import (
@@ -896,6 +897,9 @@ class SqlAiJobUnitOfWork:
         Same predicate as ``notice_matches``; no LIMIT. A concurrent notice blocks on the
         locks and, after the first commits, no longer sees the rows it cancelled."""
 
+        if notice.is_parent:
+            # FR-C-08 (DTR Draft 6 §5.2): a Parent lifecycle notice matches no job (S4).
+            return ()
         j = t.job.c
         selects = []
         if notice.session_id is not None:
@@ -923,19 +927,26 @@ class SqlAiJobUnitOfWork:
     def record_notice(
         self, notice: CancellationNotice, *, applied_count: int, now: datetime
     ) -> None:
-        self._insert(
-            insert(t.cancellation_notice).values(
-                notice_id=notice.notice_id,
-                organization_id=notice.organization_id,
-                reason_code=notice.reason_code,
-                session_id=notice.session_id,
-                job_type=notice.job_type,
-                subject_ref=notice.subject_ref,
-                status="COMPLETE",
-                applied_count=applied_count,
-                recorded_at=now,
+        values: dict[str, Any] = {
+            "notice_id": notice.notice_id,
+            "organization_id": notice.organization_id,
+            "reason_code": notice.reason_code,
+            "session_id": notice.session_id,
+            "job_type": notice.job_type,
+            "subject_ref": notice.subject_ref,
+            "status": "COMPLETE",
+            "applied_count": applied_count,
+            "recorded_at": now,
+        }
+        if notice.is_parent:
+            # FR-C-08: only a Parent notice writes the scope columns; an organization notice
+            # keeps the statement of the B2 schema (server default ORGANIZATION, NULL ref).
+            values.update(
+                owner_scope_kind=notice.owner_scope_kind,
+                owner_scope_ref=notice.owner_scope_ref,
+                story_run_ref=notice.story_run_ref,
             )
-        )
+        self._insert(insert(t.cancellation_notice).values(**values))
 
     # helpers --------------------------------------------------------------------------------
     def _settle_lease(self, lease: OutboxLease, **values: Any) -> bool:
@@ -957,6 +968,64 @@ class SqlAiJobUnitOfWork:
             if kind is None:
                 raise
             raise UniqueConflict(kind) from None
+
+
+class SqlParentLifecycleNoticeStore:
+    """FR-C-08 AI Jobs owner write for a Parent lifecycle notice (DTR Draft 6 §5.2, step 2).
+
+    The notice is inserted if absent in one statement, ``COMPLETE`` with ``applied_count = 0``
+    because no Parent product run creates an AI job (S4). It never selects or changes a job.
+    """
+
+    def __init__(self, engine: Engine, *, clock: Callable[[], datetime]) -> None:
+        self._engine = engine
+        self._clock = clock
+
+    def notice_exists(self, notice_id: str) -> bool:
+        n = t.cancellation_notice.c
+        with self._engine.connect() as connection:
+            return bool(
+                connection.execute(select(exists().where(n.notice_id == notice_id))).scalar()
+            )
+
+    def record_parent_notice(
+        self,
+        *,
+        notice_id: str,
+        scope: Any,
+        story_run_ref: str,
+        reason_code: str,
+    ) -> None:
+        notice = CancellationNotice(
+            notice_id=notice_id,
+            organization_id=None,
+            reason_code=reason_code,
+            owner_scope_kind=str(scope.kind),
+            owner_scope_ref=str(scope.ref),
+            story_run_ref=story_run_ref,
+        )
+        if not notice.is_parent:
+            raise ValueError("only a Parent lifecycle notice is recorded here")
+        statement = (
+            postgresql_insert(t.cancellation_notice)
+            .values(
+                notice_id=notice.notice_id,
+                organization_id=None,
+                reason_code=notice.reason_code,
+                session_id=None,
+                job_type=None,
+                subject_ref=None,
+                status="COMPLETE",
+                applied_count=0,
+                recorded_at=self._clock(),
+                owner_scope_kind=notice.owner_scope_kind,
+                owner_scope_ref=notice.owner_scope_ref,
+                story_run_ref=notice.story_run_ref,
+            )
+            .on_conflict_do_nothing(index_elements=["notice_id"])
+        )
+        with self._engine.begin() as connection:
+            connection.execute(statement)
 
 
 class SqlAiJobRepository:
@@ -1007,4 +1076,5 @@ __all__ = [
     "OwnerFenceFactory",
     "SqlAiJobRepository",
     "SqlAiJobUnitOfWork",
+    "SqlParentLifecycleNoticeStore",
 ]

@@ -1,72 +1,76 @@
-import { useEffect, useState, type FormEvent } from "react";
-import { Plus, RefreshCw, School } from "lucide-react";
+import { useEffect, useState } from "react";
+import { RefreshCw, School } from "lucide-react";
 import { classService, type Be1Class } from "../services/classService";
-import { PageHeading } from "../../../../shared/FeatureAvailability";
+import { PageHeading } from "../../../../shared/components/FeatureAvailability";
 
 export function ClassesPage() {
   const [classes, setClasses] = useState<Be1Class[]>([]);
   const [selectedId, setSelectedId] = useState("");
   const [loading, setLoading] = useState(true);
-  const [creating, setCreating] = useState(false);
-  const [displayName, setDisplayName] = useState("");
   const [error, setError] = useState("");
   const selected = classes.find((item) => item.class_id === selectedId) ?? classes[0];
 
   const refresh = async () => {
-    setError("");
-    setLoading(true);
     try {
       const items = await classService.listClasses();
       setClasses(items);
-      setSelectedId((current) => items.some((item) => item.class_id === current) ? current : items[0]?.class_id ?? "");
+      setError("");
+      setSelectedId((current) =>
+        items.some((item) => item.class_id === current) ? current : items[0]?.class_id ?? "",
+      );
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Không tải được danh sách lớp từ BE1.");
+      setClasses([]);
+      setSelectedId("");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { void refresh(); }, []);
-
-  const createClass = async (event: FormEvent) => {
-    event.preventDefault();
-    const name = displayName.trim();
-    if (!name) return;
-    setCreating(true);
-    setError("");
-    try {
-      const created = await classService.createClass(name);
-      setDisplayName("");
-      await refresh();
-      setSelectedId(created.class_id);
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "BE1 chưa tạo được lớp.");
-    } finally {
-      setCreating(false);
-    }
-  };
+  useEffect(() => {
+    let current = true;
+    classService.listClasses()
+      .then((items) => {
+        if (!current) return;
+        setClasses(items);
+        setError("");
+        setSelectedId((selectedId) =>
+          items.some((item) => item.class_id === selectedId) ? selectedId : items[0]?.class_id ?? "",
+        );
+      })
+      .catch((cause: unknown) => {
+        if (!current) return;
+        setError(cause instanceof Error ? cause.message : "Không tải được danh sách lớp từ BE1.");
+        setClasses([]);
+        setSelectedId("");
+      })
+      .finally(() => {
+        if (current) setLoading(false);
+      });
+    return () => { current = false; };
+  }, []);
 
   return (
-    <div className="s2l-page s2l-data-page">
+    <div className="s2l-page s2l-data-page manager-business-page">
       <PageHeading
         eyebrow="School Manager · BE1"
         title="Lớp học"
-        description="Danh sách và tạo lớp dùng API được cấp quyền theo tài khoản school_admin."
-        action={<button type="button" className="s2l-button" onClick={() => void refresh()} disabled={loading}><RefreshCw size={16} aria-hidden="true" />Làm mới từ BE1</button>}
+        description="Danh sách lớp đọc từ API trong organization đã xác minh."
+        action={
+          <button type="button" className="manager-business-button" onClick={() => { setLoading(true); setError(""); void refresh(); }} disabled={loading}>
+            <RefreshCw size={16} aria-hidden="true" />Làm mới từ BE1
+          </button>
+        }
       />
 
-      {error && <div role="alert" className="s2l-alert">{error}</div>}
-
-      <form onSubmit={(event) => void createClass(event)} className="s2l-create-form">
-        <label className="s2l-field" htmlFor="school-class-name">Tên lớp mới
-          <input id="school-class-name" value={displayName} onChange={(event) => setDisplayName(event.target.value)} maxLength={200} required placeholder="Ví dụ: Lớp Lá 1" />
-        </label>
-        <button type="submit" disabled={creating || !displayName.trim()} className="s2l-button is-primary"><Plus size={17} aria-hidden="true" />{creating ? "Đang lưu…" : "Tạo lớp trên BE1"}</button>
-      </form>
+      <div className="manager-business-alert" role="status">
+        Tạo lớp đang tạm khóa: API hiện chưa kiểm tra giới hạn capacity bắt buộc theo SRS FR-T-03.
+      </div>
+      {error && <div role="alert" className="manager-business-alert">{error}</div>}
 
       <section className="s2l-data-grid" aria-label="Lớp học trong phạm vi được cấp quyền">
         <div className="s2l-data-card">
-          <h2>Danh sách được cấp quyền</h2>
+          <h2>Danh sách lớp</h2>
           {loading ? <p role="status">Đang tải danh sách lớp…</p> : classes.length === 0 ? <p className="s2l-note">BE1 chưa trả lớp nào cho tài khoản này.</p> : (
             <ul className="s2l-class-list">
               {classes.map((item) => (
@@ -90,7 +94,7 @@ export function ClassesPage() {
               <div><dt>Trạng thái BE1</dt><dd>{selected.state}</dd></div>
             </dl>
           ) : <p>Chọn một lớp trong danh sách để xem thông tin BE1 đã trả.</p>}
-          <p className="s2l-note">API chưa trả nhóm tuổi, giáo viên phụ trách, sĩ số, consent tổng hợp, chỉnh sửa hoặc lưu trữ lớp. Các trường này không được giả lập.</p>
+          <p className="s2l-note">BE1 hiện chưa cung cấp capacity, Teacher phụ trách hoặc thao tác lưu trữ lớp.</p>
         </aside>
       </section>
     </div>

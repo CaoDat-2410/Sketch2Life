@@ -2,7 +2,7 @@ import type {
   Activity,
   LessonDetail,
   ParentLessonVersionPinV1,
-  ParentCandidate,
+  ParentDrawingCandidateV1,
   ParentProfileDeletePendingV1,
   ParentProfilePageV1,
   ParentProfileRecordV1,
@@ -217,7 +217,7 @@ export function canConfirmDrawingSubject(input: {
   );
 }
 
-export function readDrawingCandidate(value: unknown): ParentCandidate | null {
+export function readDrawingCandidate(value: unknown): ParentDrawingCandidateV1 | null {
   if (!isRecord(value) || !Array.isArray(value.visible_features)) return null;
   if (!value.visible_features.every((feature) => typeof feature === 'string')) return null;
   if (typeof value.confidence !== 'number' || !Number.isFinite(value.confidence)
@@ -226,17 +226,22 @@ export function readDrawingCandidate(value: unknown): ParentCandidate | null {
   if (value.candidate_subject !== undefined && value.candidate_subject !== null
     && typeof value.candidate_subject !== 'string') return null;
 
+  const decision: ParentDrawingCandidateV1['decision'] = value.decision === 'CONFIRMED_BY_ADULT'
+    || value.decision === 'CORRECTED_BY_ADULT'
+    ? value.decision
+    : 'REVIEW_REQUIRED';
+
   return {
     candidate_subject: typeof value.candidate_subject === 'string' ? value.candidate_subject : null,
     visible_features: [...value.visible_features],
     confidence: value.confidence,
     adult_confirmation_required: true,
-    decision: value.decision,
+    decision,
   };
 }
 
 export function readRunUnderstanding(value: unknown): {
-  candidate: ParentCandidate;
+  candidate: ParentDrawingCandidateV1;
   understandingRevision: number;
   subject: string;
 } | null {
@@ -258,8 +263,7 @@ export function isConfirmedRunSubject(value: unknown, expectedSubject: string): 
   const candidate = readDrawingCandidate(value.candidate);
   return typeof value.subject_label === 'string'
     && value.subject_label.trim() === expectedSubject.trim()
-    && (candidate?.decision === 'CONFIRMED'
-      || candidate?.decision === 'CONFIRMED_BY_ADULT'
+    && (candidate?.decision === 'CONFIRMED_BY_ADULT'
       || candidate?.decision === 'CORRECTED_BY_ADULT');
 }
 
@@ -436,6 +440,7 @@ const parentRecoveryGroups: Record<string, ParentRecoveryGroup> = {
   CLASS_CAPACITY_REACHED: 'teacher-only',
   RATE_LIMITED: 'wait-retry-after',
   DELETE_PENDING: 'lifecycle-pending',
+  DELETED: 'lifecycle-pending',
   CAPABILITY_UNAVAILABLE: 'unavailable',
   ROUTE_NOT_IN_BE_HANDOFF: 'unavailable',
 };
@@ -454,6 +459,7 @@ export function safeParentFlowErrorMessage(error: unknown): string {
     INVALID_STATE_TRANSITION: 'Hồ sơ đã thay đổi trạng thái. Hãy kiểm tra lại trước khi tiếp tục.',
     ACTIVE_RUN_EXISTS: 'Hồ sơ đang có buổi học chưa hoàn tất. Hãy tiếp tục buổi học hiện tại.',
     RESOURCE_NOT_FOUND: 'Không tìm thấy nội dung hoặc bạn không thể truy cập nội dung này.',
+    DELETED: 'Buổi học đã được xóa.',
     MULTI_CHILD_NOT_SUPPORTED: 'Thao tác này chưa khả dụng trong luồng dành cho phụ huynh.',
     OCR_NOT_SUPPORTED: 'Thao tác này chưa khả dụng trong luồng dành cho phụ huynh.',
     UNSUPPORTED_LESSON_TYPE: 'Thao tác này chưa khả dụng trong luồng dành cho phụ huynh.',

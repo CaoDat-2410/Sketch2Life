@@ -37,7 +37,9 @@ class CreateClassRequest(Be1Request):
 
 
 class CreateAssignmentRequest(Be1Request):
-    subject: Annotated[str, StringConstraints(min_length=1, max_length=256)]
+    """FEAT-066 M9-B (O-3b): the opaque candidate ref from the candidate list, never a subject."""
+
+    candidate_ref: Annotated[str, StringConstraints(min_length=1, max_length=36)]
 
 
 class CreateProfileRequest(Be1Request):
@@ -447,9 +449,16 @@ class CanvasRestoreRequest(Be1Request):
 
 
 class Be1Error(BaseModel):
+    """CONV-1 error envelope (SRS §9.8 fields plus `request_id`; published as `ApiError`)."""
+
     code: str
     message: str
+    correlation_id: str
+    retryable: bool
+    retry_after_seconds: int | None = None
+    field_errors: list[dict[str, str]] | None = None
     request_id: str
+    current_version: int | None = None
 
 
 __all__ = [

@@ -1,5 +1,5 @@
 import { Presentation } from "lucide-react";
-import { FeatureAvailability, PageHeading } from "../../../shared/FeatureAvailability";
+import { FeatureAvailability, PageHeading } from "../../../shared/components/FeatureAvailability";
 
 export function TeacherPresentationPage() {
   return (

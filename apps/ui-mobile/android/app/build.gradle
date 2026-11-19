@@ -106,7 +106,7 @@ android {
 
     namespace 'com.sketch2life.parentexpo.dev'
     defaultConfig {
-        applicationId 'com.sketch2life.parentexpo.dev'
+        applicationId 'com.sketch2life.mobile'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

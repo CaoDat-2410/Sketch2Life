@@ -3,12 +3,13 @@ import { Animated, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
 import type { ParentCapabilityState } from '../../application/ports/ParentCapabilityPorts';
-import type { StoryRun } from '../../domain/types';
+import type { ParentStoryRunSummary } from '../../domain/types';
+import { runHistoryDateLabel } from '../../application/parentRunHistory';
 import { Card, ConfirmButton, Notice, PrimaryButton, ScreenFrame, palette } from '../components/ui';
 
 type Props = {
   capability: ParentCapabilityState;
-  runs: StoryRun[];
+  runs: ParentStoryRunSummary[];
   loading: boolean;
   error: string;
   hasMore: boolean;
@@ -18,8 +19,6 @@ type Props = {
   onDelete: (runId: string) => void;
   onBack: () => void;
 };
-
-const TERMINAL_STATES = new Set(['COMPLETED', 'FAILED', 'ABANDONED', 'DELETE_PENDING', 'DELETED']);
 
 export function StoryHistoryScreen(props: Props): React.JSX.Element {
   if (props.capability.state === 'unavailable') {
@@ -38,7 +37,7 @@ export function StoryHistoryScreen(props: Props): React.JSX.Element {
   }
 
   return (
-    <ScreenFrame title="Lịch sử buổi học" subtitle="Các buổi của hồ sơ đang chọn." onBack={props.onBack} visualTone="creative" safeAreaEdges={['top', 'right', 'left']}>
+    <ScreenFrame title="Lịch sử buổi học" subtitle="Các buổi sáng tạo gần đây." onBack={props.onBack} visualTone="creative" safeAreaEdges={['top', 'right', 'left']}>
       {props.error ? <Notice text={props.error} tone="error" /> : null}
       {props.error ? <PrimaryButton variant="creative" label="Thử tải lại" busy={props.loading} onPress={props.onLoad} /> : null}
       {props.runs.length > 0 ? (
@@ -59,11 +58,10 @@ export function StoryHistoryScreen(props: Props): React.JSX.Element {
         </Card>
       ) : null}
       {props.runs.map((run) => {
-        const canCancel = !TERMINAL_STATES.has(run.run_state);
-        const canDelete = run.run_state === 'COMPLETED';
-        const storyTitle = typeof run.story === 'object' && run.story !== null && 'title' in run.story
-          ? String((run.story as { title: unknown }).title)
-          : run.context_snapshot.topic || 'Buổi khám phá';
+        // FEAT-081 C3b: the server decides what is allowed (summary flags, SRS line 1518, D-214).
+        const canCancel = run.can_cancel && !run.deleting;
+        const canDelete = run.can_delete && !run.deleting;
+        const storyTitle = runHistoryDateLabel(run);
         return (
           <Card key={run.run_id} style={styles.runCard}>
             <View style={styles.runHeading}>
@@ -76,14 +74,13 @@ export function StoryHistoryScreen(props: Props): React.JSX.Element {
             <View style={styles.runMetaRow}>
               <View style={styles.runStatePill}>
                 <View style={[styles.runStateDot, run.run_state === 'COMPLETED' && styles.runStateDotComplete, run.run_state === 'FAILED' && styles.runStateDotFailed]} />
-                <Text style={styles.runStateText}>{runStateLabel(run.run_state)}</Text>
+                <Text style={styles.runStateText}>{run.deleting ? 'Đang xóa' : runStateLabel(run.run_state)}</Text>
               </View>
-            {run.context_snapshot.topic ? <View style={styles.topicPill}><Ionicons name="sparkles-outline" size={13} color={historyColors.purple} accessible={false} /><Text style={styles.runMeta}>{run.context_snapshot.topic}</Text></View> : null}
             </View>
             {canCancel ? <ConfirmButton
               label="Hủy buổi đang mở"
               title="Hủy buổi học?"
-              message="Buổi học sẽ chuyển sang trạng thái chờ xử lý."
+              message="Buổi học sẽ dừng và nội dung của buổi sẽ bị xóa, không khôi phục được."
               confirmLabel="Hủy buổi"
               destructive
               onConfirm={() => props.onCancel(run.run_id)}
@@ -91,7 +88,7 @@ export function StoryHistoryScreen(props: Props): React.JSX.Element {
             {canDelete ? <ConfirmButton
               label="Yêu cầu xóa buổi"
               title="Yêu cầu xóa dữ liệu buổi này?"
-              message="Trạng thái yêu cầu sẽ cập nhật tại đây."
+              message="Nội dung của buổi sẽ bị xóa và không khôi phục được. Trạng thái sẽ cập nhật tại đây."
               confirmLabel="Yêu cầu xóa"
               destructive
               onConfirm={() => props.onDelete(run.run_id)}

@@ -435,3 +435,15 @@ For the whole merged goal, the coordinator may run pnpm run test at most TWICE t
 - Baseline: commit `a0b382f8c21de0dc66f23c5aa752a3a67388a093` plus the accepted uncommitted Wave L working state.
 - Implementation reports and checkpoint snapshots/run-state are required as specified by the approved Plan Revision 9 and the Wave M instructions. No stage, commit, or push is authorized.
 - OWNER_MODAL_CALL_APPROVED=NO.
+
+## D-023 - FEAT-081 Plan Revision 20 (C-P Parent per-role slice) approval
+
+- Owner: Person 2.
+- Date: 2026-11-19.
+- Authority: the owner approved C-P Draft 4 without a further review round on 2026-11-19, after three cold-review rounds (Sonnet 5.5 high): round 1 NOT READY 0/8/8, round 2 NOT READY 0/4/7, round 3 NOT READY 0/2/6 (records `evidence/CP_ADDENDUM_COLD_REVIEW_DRAFT1_20261118.md`, `..._DRAFT2_20261118.md`, `..._DRAFT3_20261119.md`). Package questions were settled from the SRS or the recommendation, as the owner asked on 2026-11-18 (recorded in FEAT-066 D-066-75).
+- Approved plan pin: `features/FEAT-081-parent-ui-mobile-port/plan/PLAN_REVISION_20.md`, 22,981 bytes / SHA-256 `95C9E51ABAF997B0A5164A3EBB713E7060BBAC0A0E3BF05694DA192DC38EA55E` (Draft 4 content, 22,715 bytes / `126B41395335F070DDEA2B4969B1E368434CC0F40DD82EEE871716D2C93E2DB8`, with an approved title and status line).
+- Basis: FEAT-066 D-066-70 D-D (C-P carried by a FEAT-081 addendum for register rows M02 to M05 and M08 to M11); the M2 frozen client projection on `origin/dev` (`ba295f11`), SHA-256 `F23BF908A104667153F88D6438AE8E95BE9895A76DAB7099877EBE9EFC49589D`.
+- Settled answers recorded (Plan Revision 20 §6): CP-1 the frozen projection is the contract; CP-2 the three confirmations keep their wiring and only their types change, their exposure stays under O-PROJ; CP-3 M2 enters the mobile line by a side-branch merge pinned to `ba295f11`, fast-forward, no force-push, as its own task; CP-4 one tolerant error parser; CP-5 a new collision-free request id per attempt, the idempotency key is the retry-stable value; CP-6 the C-P half of FEAT-066 CV-1 is closed (the `ui-mobile` parser is already dual), `sketch-guides` waits for O-ASSIST; CP-7 consent routes out; CP-8 cancel, the Parent Lesson Library reads and main-activity selection out; CP-9 the owner runs `pnpm`; CP-10 the Bruno requests move to FEAT-066 L5; CP-11 `story`, `candidate` and `lesson_pin_snapshot` are tightened to the projection types.
+- Tasks: C-P0 (Addendum 35, the M2 merge) and C-P1 (Addendum 36, story-run type parity and request ids), each with its own owner word to start, one commit, and a push only on the owner's word.
+- Recording rule: decisions only, not the owner's chat wording.
+- OWNER_MODAL_CALL_APPROVED=NO.

@@ -25,6 +25,7 @@ from sketch2life.interfaces.http.openapi_contract import (
     UNMOUNTED_OPERATIONS,
 )
 from sketch2life.interfaces.http.openapi_contract_amendments import (
+    BE1_KEPT_422_OPERATIONS,
     PORTFOLIO_OPERATION_KEY,
     RESTORE_CHECKPOINT_OPERATION_KEY,
     RESTORE_CHECKPOINT_RESPONSE_DESCRIPTIONS,
@@ -62,6 +63,21 @@ EXPECTED_IDEMPOTENCY_MISMATCH_OPERATION_KEYS = {
     ),
     ("patch", "/api/lesson-library/v1/platform/lessons/{lesson_id}/moderation"),
     ("post", "/api/lesson-library/v1/upload-sessions/{upload_session_id}/complete"),
+    # FEAT-066 C4 (SRS §21.4): lesson PATCH and archive, version create, grant revoke, abort.
+    ("patch", "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}"),
+    ("delete", "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}"),
+    (
+        "post",
+        "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}/versions",
+    ),
+    (
+        "delete",
+        "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}"
+        "/access-grants/{access_grant_id}",
+    ),
+    ("delete", "/api/lesson-library/v1/upload-sessions/{upload_session_id}"),
+    # FEAT-066 M9-B: the first Teacher assignment command.
+    ("post", "/api/be1/v1/classes/{class_id}/assignments"),
 }
 
 
@@ -108,6 +124,8 @@ PILOT_ONLY_OPERATIONS = {
 }
 PR22_UNCATALOGUED_OPERATIONS = {
     # Mounted routes intentionally outside the Rev37 metadata map.
+    # FEAT-066 M9-B: the Teacher candidate list stays runtime-only like the C5 account routes.
+    ("get", "/api/be1/v1/organizations/{organization_id}/teacher-candidates"),
     ("post", "/api/auth/v1/registrations"),
     ("get", "/api/auth/v1/me"),
     ("get", "/api/platform-admin/v1/accounts"),
@@ -117,6 +135,8 @@ PR22_UNCATALOGUED_OPERATIONS = {
     ("post", "/api/parent/v1/ai/drawing-understandings"),
     ("post", "/api/parent/v1/ai/story-runs/{run_id}/story-revisions"),
     ("post", "/v1/story-runs/{run_id}/cancel"),
+    # FR-C-08 (Contract Draft 11 §3.7): the Parent delete route stays uncatalogued.
+    ("delete", "/v1/story-runs/{run_id}"),
     (
         "post",
         "/api/teacher/v1/organizations/{organization_id}/ai/lesson-plan-suggestions",
@@ -260,11 +280,11 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
 
     assert spec["openapi"] == "3.1.0"
     assert spec["tags"] == public_tags(TAG_DESCRIPTIONS)
-    assert len(operations) == 151
+    assert len(operations) == 154
     catalog_operations = set(MOUNTED_OPERATIONS)
     catalog_paths = {path for _method, path in catalog_operations}
     assert len(catalog_paths) == 118
-    assert len(catalog_operations) == MOUNTED_OPERATION_COUNT == 134
+    assert len(catalog_operations) == MOUNTED_OPERATION_COUNT == 135
     assert set(operations) - catalog_operations == (
         PILOT_ONLY_OPERATIONS | PR22_UNCATALOGUED_OPERATIONS
     )
@@ -278,7 +298,7 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
     ]
     assert "x-contract-surface" not in profile_lookup
     assert len(PILOT_ONLY_OPERATIONS) == 5
-    assert len(PR22_UNCATALOGUED_OPERATIONS) == 12
+    assert len(PR22_UNCATALOGUED_OPERATIONS) == 14
 
     assert (
         "post",
@@ -295,7 +315,7 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
     ]
     assignment_schema_name = next(iter(_schema_refs(assignment_body["schema"])))
     assert set(spec["components"]["schemas"][assignment_schema_name]["properties"]) == {
-        "subject"
+        "candidate_ref"
     }
 
     profile_key = (
@@ -401,28 +421,36 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
             assert schema == {"$ref": "#/components/schemas/MobileWorkflowResultV1"}
 
         if key[1].startswith("/api/be1/v1/"):
+            # CONV-1 (FEAT-066 D-066-71): 400 replaces the validation 422; 404 is explicit;
+            # 422 stays only on the named kept-422 operations (grouped under "default").
+            kept_422 = key in BE1_KEPT_422_OPERATIONS
             if key == RESTORE_CHECKPOINT_OPERATION_KEY:
                 expected_statuses = {
-                    "200", "401", "403", "404", "409", "410", "422", "500", "503"
+                    "200", "400", "401", "403", "404", "409", "410", "500", "503"
                 }
                 expected_default_codes = None
             elif key == PORTFOLIO_OPERATION_KEY:
-                expected_statuses = {"401", "403", "409", "422", "default"}
-                expected_default_codes = "404, 410, 413, 415, 429, 500, 503"
+                expected_statuses = {"400", "401", "403", "404", "409", "default"}
+                expected_default_codes = "410, 413, 415, 429, 500, 503"
             else:
                 success_status = next(
                     row["status"]
                     for row in declared_responses.values()
-                    if row["status"] not in {"401", "403", "422", "default"}
+                    if row["status"] not in {"400", "401", "403", "404", "default"}
                 )
                 expected_statuses = {
                     success_status,
+                    "400",
                     "401",
                     "403",
-                    "422",
+                    "404",
                     "default",
                 }
-                expected_default_codes = "404, 409, 410, 413, 415, 429, 500, 503"
+                expected_default_codes = (
+                    "409, 410, 413, 415, 422, 429, 500, 503"
+                    if kept_422
+                    else "409, 410, 413, 415, 429, 500, 503"
+                )
             assert set(operation["responses"]) == expected_statuses
             if expected_default_codes is not None:
                 default_response = operation["responses"]["default"]
@@ -455,6 +483,49 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
     assert "403" in parent_list["responses"]
     assert "403" in parent_delete["responses"]
 
+    # FR-C-08 (Contract Draft 11 §3.3-§3.4): GET and the four replaying operations declare the
+    # union of their current envelope and the content-free lifecycle envelope.
+    for (method, path), status, current in (
+        (("get", "/v1/story-runs/{run_id}"), "200", "ParentStoryRunEnvelopeV1"),
+        (("post", "/v1/story-runs"), "201", "ParentStoryRunEnvelopeV1"),
+        (
+            ("post", "/v1/story-runs/{run_id}/context-confirmation"),
+            "200",
+            "ParentStoryRunEnvelopeV1",
+        ),
+        (
+            ("post", "/v1/story-runs/{run_id}/subject-confirmation"),
+            "200",
+            "ParentSubjectConfirmationResponseV1",
+        ),
+        (
+            ("post", "/v1/story-runs/{run_id}/script-confirmation"),
+            "200",
+            "ParentStoryRunEnvelopeV1",
+        ),
+    ):
+        success = operations[(method, path)]["responses"][status]["content"]["application/json"]
+        assert {current, "ParentStoryRunLifecycleEnvelopeV1"} <= _schema_refs(success["schema"])
+    lifecycle_schema = spec["components"]["schemas"]["ParentStoryRunLifecycleProjectionV1"]
+    assert set(lifecycle_schema["properties"]) == {
+        "run_id",
+        "run_state",
+        "revision",
+        "version",
+        "lifecycle_request_ref",
+        "purge_state",
+    }
+    for key in (("post", "/v1/story-runs/{run_id}/cancel"), ("delete", "/v1/story-runs/{run_id}")):
+        accepted = operations[key]["responses"]["202"]["content"]["application/json"]
+        assert _schema_refs(accepted["schema"]) == {"ParentStoryRunLifecycleEnvelopeV1"}
+        key_parameter = next(
+            parameter
+            for parameter in operations[key]["parameters"]
+            if parameter["in"] == "header" and parameter["name"] == "Idempotency-Key"
+        )
+        assert key_parameter.get("required") is not True
+        assert "maxLength" not in str(key_parameter["schema"])
+
     candidate_keys = {(item["method"], item["path"]) for item in UNMOUNTED_OPERATIONS}
     assert len(candidate_keys) == UNMOUNTED_OPERATION_COUNT == 11
     assert not candidate_keys.intersection(operations)
@@ -468,6 +539,11 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
             "get",
             "/api/lesson-library/v1/organizations/{organization_id}/parent-groups",
         ),
+        # SRS 21.1: every cursor list defaults to 25 (goal v2 task C4).
+        ("get", "/api/lesson-library/v1/organizations/{organization_id}/lessons"),
+        ("get", "/api/lesson-library/v1/me/lessons"),
+        ("get", "/api/lesson-library/v1/me/lesson-invitations"),
+        ("get", "/api/lesson-library/v1/me/parent-group-invitations"),
     ):
         limit_parameter = next(
             parameter
@@ -484,7 +560,7 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
         assert "Be1Error" in _schema_refs(
             mismatch_response["content"]["application/json"]["schema"]
         )
-    assert len(IDEMPOTENCY_MISMATCH_OPERATION_KEYS) == 11
+    assert len(IDEMPOTENCY_MISMATCH_OPERATION_KEYS) == 17
     assert set(IDEMPOTENCY_MISMATCH_OPERATION_KEYS) == (
         EXPECTED_IDEMPOTENCY_MISMATCH_OPERATION_KEYS
     )
@@ -548,6 +624,34 @@ def test_runtime_openapi_operation_ids_are_non_empty_and_unique(
         for method, operation in path_item.items()
         if method.lower() in HTTP_METHODS
     ]
-    assert len(operation_ids) == 151
+    assert len(operation_ids) == 154
     assert all(isinstance(value, str) and value for value in operation_ids)
     assert len(set(operation_ids)) == len(operation_ids)
+
+
+def test_platform_admin_account_routes_publish_cursor_key_and_mismatch(
+    runtime_openapi: dict[str, Any],
+) -> None:
+    """FEAT-066 C5: the uncatalogued account routes still show cursor, key and the 400 row."""
+    base = "/api/platform-admin/v1/accounts"
+    listing = runtime_openapi["paths"][base]["get"]
+    names = {parameter["name"]: parameter for parameter in listing["parameters"]}
+    assert "cursor" in names
+    assert names["limit"]["schema"]["default"] == 25
+    assert names["limit"]["schema"]["maximum"] == 100
+    assert names["offset"].get("deprecated") is True
+    for method, path in (("post", base), ("patch", base + "/{account_id}")):
+        operation = runtime_openapi["paths"][path][method]
+        assert any(p["name"] == "Idempotency-Key" for p in operation["parameters"])
+        assert "INVALID_IDEMPOTENCY_KEY" in operation["responses"]["400"]["description"]
+
+
+def test_teacher_candidate_route_publishes_paging(runtime_openapi: dict[str, Any]) -> None:
+    """FEAT-066 M9-B: the runtime-only candidate list shows limit 25/100 and an opaque cursor."""
+    operation = runtime_openapi["paths"][
+        "/api/be1/v1/organizations/{organization_id}/teacher-candidates"
+    ]["get"]
+    names = {parameter["name"]: parameter for parameter in operation["parameters"]}
+    assert names["limit"]["schema"]["default"] == 25
+    assert names["limit"]["schema"]["maximum"] == 100
+    assert "cursor" in names

@@ -44,7 +44,6 @@ from sketch2life.application.services.whiteboard_video_job import (
 )
 from sketch2life.application.services.whiteboard_video_pipeline import WhiteboardVideoPipeline
 from sketch2life.contracts.schemas.asr import AsrProfileId
-from sketch2life.contracts.schemas.be1_runtime import Be1Error
 from sketch2life.contracts.schemas.mobile_workflow import (
     MobileWorkflowResultV1,
     WorkflowFailureV1,
@@ -120,10 +119,19 @@ from sketch2life.infrastructure.story_run_lite.composition import runtime_lifesp
 from sketch2life.infrastructure.vision_analysis.pilot_composition import (
     build_default_pilot_vision,
 )
+from sketch2life.interfaces.http.api_conventions import field_errors_from_validation
 from sketch2life.interfaces.http.be1_runtime import build_be1_runtime
 from sketch2life.interfaces.http.demo_composition import (
     build_demo_stores,
     build_ephemeral_session_service,
+)
+from sketch2life.interfaces.http.error_envelope import (
+    build_error_body,
+    is_conv1_path,
+    normalize_http_error,
+)
+from sketch2life.interfaces.http.error_envelope import (
+    retry_after_seconds as envelope_retry_after,
 )
 from sketch2life.interfaces.http.middleware.bounded_image_upload import (
     BoundedImageUploadMiddleware,
@@ -293,7 +301,9 @@ def _apply_catalog_metadata(
                 response["status"]: response for response in effective_responses
             }
             runtime_responses = operation.setdefault("responses", {})
-            if path.startswith(("/api/be1/v1/", "/v1/parent/profiles")):
+            if path.startswith(
+                ("/api/be1/v1/", "/v1/parent/profiles", "/api/lesson-library/v1/")
+            ):
                 for status in tuple(runtime_responses):
                     if status not in declared_responses:
                         del runtime_responses[status]
@@ -314,7 +324,7 @@ def _apply_catalog_metadata(
                     response["description"] = declared["description"]
                 if (
                     status == "422"
-                    and path.startswith("/v1/parent/profiles")
+                    and path.startswith(("/v1/parent/profiles", "/api/lesson-library/v1/"))
                     and declared["media_type"]
                 ):
                     response["content"] = {
@@ -419,19 +429,8 @@ def create_app(
 
     @application.middleware("http")
     async def be1_request_context(request: Request, call_next):
-        if not request.url.path.startswith(
-            (
-                "/api/be1/v1",
-                "/api/lesson-library/v1",
-                "/api/parent/v1/ai/story-runs/",
-                "/api/parent/v1/ai/drawing-understandings",
-                "/v1/parent/profiles",
-                "/v1/story-runs",
-            )
-        ) and not _legacy_parent_story_revision_path(request.url.path) and not (
-            _parent_drawing_understandings_path(request.url.path)
-        ):
-            return await call_next(request)
+        # CONV-1 (§3.2 item 4): every response carries X-Request-ID; a header that the route
+        # already set is never overwritten.
         supplied_id = request.headers.get("X-Request-ID", "")
         request_id = supplied_id if _SAFE_ID.fullmatch(supplied_id) else str(uuid4())
         if request.url.path.startswith("/v1/parent/profiles"):
@@ -443,10 +442,7 @@ def create_app(
         else:
             request.state.be1_request_id = request_id
         response = await call_next(request)
-        if not (
-            request.url.path.startswith(("/v1/parent/profiles", "/v1/story-runs"))
-            and response.headers.get("X-Request-ID")
-        ):
+        if not response.headers.get("X-Request-ID"):
             response.headers["X-Request-ID"] = request_id
         return response
 
@@ -580,69 +576,25 @@ def create_app(
                 ),
                 headers={**(exc.headers or {}), "X-Request-ID": request_id},
             )
-        if request.url.path.startswith("/api/lesson-library/v1"):
-            detail = exc.detail if isinstance(exc.detail, dict) else {}
-            status_codes = {
-                401: "UNAUTHENTICATED", 403: "FORBIDDEN", 404: "RESOURCE_NOT_FOUND",
-                409: "INVALID_TRANSITION", 413: "REQUEST_TOO_LARGE",
-                415: "UNSUPPORTED_MEDIA_TYPE", 422: "INVALID_REQUEST",
-                428: "PRECONDITION_REQUIRED", 503: "DEPENDENCY_UNAVAILABLE",
-            }
-            code = detail.get("code", status_codes.get(exc.status_code, "REQUEST_FAILED"))
-            message = detail.get("message", "The Lesson Library request could not be completed")
-            request_id = getattr(request.state, "be1_request_id", str(uuid4()))
-            return JSONResponse(
-                status_code=exc.status_code,
-                content={
-                    "code": code if isinstance(code, str) else "REQUEST_FAILED",
-                    "message": (
-                        message
-                        if isinstance(message, str)
-                        else "The request could not be completed"
-                    ),
-                    "request_id": request_id,
-                },
-                headers={**(exc.headers or {}), "X-Request-ID": request_id},
-            )
-        if not request.url.path.startswith("/api/be1/v1"):
+        if not is_conv1_path(request.url.path):
             return await http_exception_handler(request, exc)
-        detail = exc.detail if isinstance(exc.detail, dict) else {}
-        status_codes = {
-            401: "AUTHENTICATION_REQUIRED",
-            403: "FORBIDDEN",
-            404: "NOT_FOUND",
-            409: "CONFLICT",
-            422: "REQUEST_VALIDATION_FAILED",
-            503: "SERVICE_UNAVAILABLE",
-        }
-        safe_messages = {
-            "AUTHENTICATION_REQUIRED": "A verified bearer token is required",
-            "INVALID_IDENTITY_TOKEN": "The bearer token could not be verified",
-            "IDENTITY_PROVIDER_UNAVAILABLE": "Identity verification is temporarily unavailable",
-            "DEVICE_AUTHENTICATION_REQUIRED": "A valid device grant and device key are required",
-            "INVALID_DEVICE_CREDENTIAL": "The device credential could not be verified",
-            "FORBIDDEN": "The caller is not authorized for this resource",
-            "NOT_FOUND": "The requested BE1 resource was not found",
-            "CONFLICT": "The request conflicts with current BE1 state",
-            "REQUEST_VALIDATION_FAILED": "The request does not match the BE1 API contract",
-            "SERVICE_UNAVAILABLE": "A required BE1 service is temporarily unavailable",
-            "INTERNAL_SERVER_ERROR": "The server could not complete the request",
-            "HTTP_ERROR": "The request could not be completed",
-        }
-        code = detail.get("code", status_codes.get(exc.status_code, "HTTP_ERROR"))
-        if not isinstance(code, str):
-            code = "HTTP_ERROR"
-        fallback_message = safe_messages.get(code, safe_messages["HTTP_ERROR"])
-        message = detail.get("message", fallback_message)
-        error = Be1Error(
-            code=code,
-            message=message if isinstance(message, str) else fallback_message,
-            request_id=getattr(request.state, "be1_request_id", str(uuid4())),
+        request_id = getattr(request.state, "be1_request_id", str(uuid4()))
+        status, code, field_errors, current_version = normalize_http_error(
+            exc.status_code,
+            exc.detail,
+            idempotency_header_present=bool(request.headers.getlist("Idempotency-Key")),
         )
         return JSONResponse(
-            status_code=exc.status_code,
-            content=error.model_dump(mode="json"),
-            headers=exc.headers,
+            status_code=status,
+            content=build_error_body(
+                status=status,
+                code=code,
+                request_id=request_id,
+                field_errors=field_errors,
+                current_version=current_version,
+                retry_after=envelope_retry_after(exc.headers),
+            ),
+            headers={**(exc.headers or {}), "X-Request-ID": request_id},
         )
 
     @application.exception_handler(RequestValidationError)
@@ -720,22 +672,18 @@ def create_app(
                 ),
                 headers={"X-Request-ID": request_id},
             )
-        if request.url.path.startswith("/api/be1/v1"):
-            error = Be1Error(
-                code="REQUEST_VALIDATION_FAILED",
-                message="The request does not match the BE1 API contract",
-                request_id=getattr(request.state, "be1_request_id", str(uuid4())),
-            )
-            return JSONResponse(status_code=422, content=error.model_dump(mode="json"))
-        if request.url.path.startswith("/api/lesson-library/v1"):
+        if is_conv1_path(request.url.path):
             request_id = getattr(request.state, "be1_request_id", str(uuid4()))
             return JSONResponse(
-                status_code=422,
-                content={
-                    "code": "INVALID_REQUEST",
-                    "message": "The request does not match the Lesson Library API contract",
-                    "request_id": request_id,
-                },
+                status_code=400,
+                content=build_error_body(
+                    status=400,
+                    code="INVALID_REQUEST",
+                    request_id=request_id,
+                    field_errors=field_errors_from_validation(
+                        request.scope.get("route"), exc.errors()
+                    ),
+                ),
                 headers={"X-Request-ID": request_id},
             )
         is_context_options_route = request.url.path.endswith(
@@ -842,22 +790,6 @@ def create_app(
                 },
                 headers={"X-Request-ID": request_id},
             )
-        if request.url.path.startswith("/api/lesson-library/v1"):
-            request_id = getattr(request.state, "be1_request_id", str(uuid4()))
-            _LOGGER.error(
-                "lesson_library_unhandled_exception request_id=%s exception_type=%s",
-                request_id,
-                type(exc).__name__,
-            )
-            return JSONResponse(
-                status_code=500,
-                content={
-                    "code": "INTERNAL_SERVER_ERROR",
-                    "message": "The server could not complete the request",
-                    "request_id": request_id,
-                },
-                headers={"X-Request-ID": request_id},
-            )
         if request.url.path.startswith("/v1/parent/profiles"):
             request_id = getattr(request.state, "parent_request_id", str(uuid4()))
             _LOGGER.error(
@@ -876,23 +808,24 @@ def create_app(
                 },
                 headers={"X-Request-ID": request_id},
             )
-        if not request.url.path.startswith("/api/be1/v1"):
-            del exc
-            return PlainTextResponse("Internal Server Error", status_code=500)
         request_id = getattr(request.state, "be1_request_id", str(uuid4()))
+        if not is_conv1_path(request.url.path):
+            del exc
+            return PlainTextResponse(
+                "Internal Server Error",
+                status_code=500,
+                headers={"X-Request-ID": request_id},
+            )
         _LOGGER.error(
-            "be1_unhandled_exception request_id=%s exception_type=%s",
+            "conv1_unhandled_exception request_id=%s exception_type=%s",
             request_id,
             type(exc).__name__,
         )
-        error = Be1Error(
-            code="INTERNAL_SERVER_ERROR",
-            message="The server could not complete the request",
-            request_id=request_id,
-        )
         return JSONResponse(
             status_code=500,
-            content=error.model_dump(mode="json"),
+            content=build_error_body(
+                status=500, code="INTERNAL_SERVER_ERROR", request_id=request_id
+            ),
             headers={"X-Request-ID": request_id},
         )
 

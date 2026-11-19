@@ -179,6 +179,59 @@ def test_attach_artwork_carries_an_existing_lesson_pin(monkeypatch: pytest.Monke
     assert parameters["lesson_pin_snapshot"] == _LESSON_PIN
 
 
+def test_profile_ref_is_nullable_only_in_the_schema() -> None:
+    """FR-C-08 (D-218 A-4): the database accepts NULL; code requires it for live runs."""
+    from sketch2life.infrastructure.story_run_lite import tables as story_tables
+
+    assert story_tables.story_runs.c.profile_ref.nullable is True
+    checks = {
+        constraint.name: str(constraint.sqltext)
+        for constraint in story_tables.story_runs.constraints
+        if constraint.__class__.__name__ == "CheckConstraint"
+    }
+    assert "'DELETED'" in checks["ck_story_run_state"]
+    receipt_checks = {
+        constraint.name: str(constraint.sqltext)
+        for constraint in story_tables.story_command_receipts.constraints
+        if constraint.__class__.__name__ == "CheckConstraint"
+    }
+    assert "'DELETE_RUN'" in receipt_checks["ck_story_receipt_operation"]
+
+
+def test_a_live_run_with_a_null_profile_ref_is_never_served(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from sketch2life.application.ports.parent_story_runs import ParentStoryRunError
+
+    repository, _session = _repository()
+    run = {"run_id": _RUN_ID, "run_state": "SCRIPT_REVIEW", "profile_ref": None}
+    monkeypatch.setattr(repository, "_owned_run", lambda *_args, **_kwargs: dict(run))
+    with pytest.raises(ParentStoryRunError) as refused:
+        repository.get_run(principal=_PRINCIPAL, run_id=_RUN_ID)
+    assert refused.value.status_code == 503
+
+
+def test_a_deleted_tombstone_with_a_null_profile_ref_reads_as_the_projection(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from sketch2life.application.ports.parent_story_runs import ParentStoryLifecycleRecord
+
+    repository, session = _repository()
+    run = {
+        "run_id": _RUN_ID,
+        "run_state": "DELETED",
+        "revision": 5,
+        "version": 7,
+        "profile_ref": None,
+        "current_input_revision": None,
+    }
+    monkeypatch.setattr(repository, "_owned_run", lambda *_args, **_kwargs: dict(run))
+    view = repository.get_run(principal=_PRINCIPAL, run_id=_RUN_ID)
+    assert isinstance(view, ParentStoryLifecycleRecord)
+    assert (view.run_state, view.purge_state, view.revision) == ("DELETED", "COMPLETED", 5)
+    assert session.events == []  # no input, story or profile read
+
+
 def test_pending_receipt_writes_sql_null_response_body() -> None:
     repository, session = _repository()
     repository._store_pending_idempotency_receipt(

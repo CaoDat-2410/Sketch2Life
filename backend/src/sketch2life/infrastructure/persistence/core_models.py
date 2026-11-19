@@ -24,12 +24,41 @@ class CorePersistenceBase(DeclarativeBase):
     """Metadata for the new core persistence boundary."""
 
 
+# FR-C-08 (DTR Draft 6 rule 1): the typed owner-scope CHECK of ``core_asset_metadata`` (S6),
+# shared by the five lifecycle tables. ``GLOBAL`` is not accepted.
+OWNER_SCOPE_CHECK = (
+    "(owner_scope_kind = 'PARENT_ACCOUNT' AND owner_scope_ref IS NOT NULL "
+    "AND length(owner_scope_ref) > 0 "
+    "AND organization_id IS NULL) OR "
+    "(owner_scope_kind = 'ORGANIZATION' AND organization_id IS NOT NULL "
+    "AND (owner_scope_ref IS NULL OR "
+    "(length(owner_scope_ref) > 0 AND owner_scope_ref = organization_id)))"
+)
+# DTR Draft 6 §5.1: the shape of a completed Parent lifecycle token (the CHECK cannot verify
+# the hash).
+PARENT_COMPLETED_RESULT_PATTERN = (
+    "^lcr1;upload=v:[0-9]+:[0-9a-f]{16}@[0-9a-f]{8};ai=v:[0-9]+:[0-9a-f]{16}@[0-9a-f]{8};"
+    "asset=v:[0-9]+:[0-9a-f]{16}@[0-9a-f]{8};story=v:[0-9]+:[0-9a-f]{16}@[0-9a-f]{8};"
+    "sha256=[0-9a-f]{64}(;orph=[0-9]+)?$"
+)
+
+
 class CoreAggregateRevisionModel(CorePersistenceBase):
     __tablename__ = "core_aggregate_revisions"
-    __table_args__ = (CheckConstraint("revision > 0", name="ck_core_aggregate_revision_positive"),)
+    __table_args__ = (
+        CheckConstraint("revision > 0", name="ck_core_aggregate_revision_positive"),
+        CheckConstraint(OWNER_SCOPE_CHECK, name="ck_core_aggregate_owner_scope"),
+    )
 
     aggregate_id: Mapped[str] = mapped_column(String(128), primary_key=True)
-    organization_id: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
+    # FR-C-08: NULL for a Parent StoryRun aggregate (typed PARENT_ACCOUNT scope instead). The
+    # annotation stays ``str`` so the organization callers keep their types.
+    organization_id: Mapped[str] = mapped_column(String(128), nullable=True, index=True)
+    owner_scope_kind: Mapped[str] = mapped_column(
+        String(32), nullable=False, default="ORGANIZATION", server_default=text("'ORGANIZATION'")
+    )
+    # DTR rule 1: NULL ORM default for organization rows, so the downgrade guard stays usable.
+    owner_scope_ref: Mapped[str | None] = mapped_column(String(128), nullable=True)
     revision: Mapped[int] = mapped_column(BigInteger, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
@@ -187,12 +216,19 @@ class CoreAssetMetadataModel(CorePersistenceBase):
 class CoreAuditEntryModel(CorePersistenceBase):
     __tablename__ = "core_audit_entries"
     __table_args__ = (
+        CheckConstraint(OWNER_SCOPE_CHECK, name="ck_core_audit_owner_scope"),
         Index("ix_core_audit_org_created", "organization_id", "created_at"),
         Index("ix_core_audit_resource_created", "resource_id", "created_at"),
     )
 
     audit_id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    organization_id: Mapped[str] = mapped_column(String(128), nullable=False)
+    # FR-C-08: NULL for a Parent lifecycle audit row (metadata only, DTR Draft 6 §8).
+    organization_id: Mapped[str] = mapped_column(String(128), nullable=True)
+    owner_scope_kind: Mapped[str] = mapped_column(
+        String(32), nullable=False, default="ORGANIZATION", server_default=text("'ORGANIZATION'")
+    )
+    # DTR rule 1: NULL ORM default for organization rows, so the downgrade guard stays usable.
+    owner_scope_ref: Mapped[str | None] = mapped_column(String(128), nullable=True)
     actor_ref: Mapped[str | None] = mapped_column(String(128), nullable=True)
     action: Mapped[str] = mapped_column(String(128), nullable=False)
     resource_type: Mapped[str] = mapped_column(String(64), nullable=False)
@@ -216,13 +252,20 @@ class CoreOutboxEventModel(CorePersistenceBase):
             "status != 'leased' OR (lease_owner IS NOT NULL AND lease_until IS NOT NULL)",
             name="ck_core_outbox_lease_complete",
         ),
+        CheckConstraint(OWNER_SCOPE_CHECK, name="ck_core_outbox_owner_scope"),
         Index("ix_core_outbox_ready", "status", "available_at", "created_at"),
         Index("ix_core_outbox_lease", "status", "lease_until"),
     )
 
     event_id: Mapped[str] = mapped_column(String(36), primary_key=True)
     event_type: Mapped[str] = mapped_column(String(160), nullable=False)
-    organization_id: Mapped[str] = mapped_column(String(128), nullable=False)
+    # FR-C-08: NULL for a Parent lifecycle event (typed PARENT_ACCOUNT scope instead).
+    organization_id: Mapped[str] = mapped_column(String(128), nullable=True)
+    owner_scope_kind: Mapped[str] = mapped_column(
+        String(32), nullable=False, default="ORGANIZATION", server_default=text("'ORGANIZATION'")
+    )
+    # DTR rule 1: NULL ORM default for organization rows, so the downgrade guard stays usable.
+    owner_scope_ref: Mapped[str | None] = mapped_column(String(128), nullable=True)
     aggregate_id: Mapped[str] = mapped_column(
         String(128),
         ForeignKey("core_aggregate_revisions.aggregate_id", ondelete="RESTRICT"),
@@ -258,6 +301,8 @@ class CoreOutboxConsumerReceiptModel(CorePersistenceBase):
 
 
 __all__ = [
+    "OWNER_SCOPE_CHECK",
+    "PARENT_COMPLETED_RESULT_PATTERN",
     "CoreAggregateRevisionModel",
     "CoreAssetMetadataModel",
     "CoreAuditEntryModel",

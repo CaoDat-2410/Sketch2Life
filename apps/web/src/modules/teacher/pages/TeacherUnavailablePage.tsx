@@ -1,4 +1,4 @@
-import { FeatureAvailability, PageHeading } from "../../../shared/FeatureAvailability";
+import { FeatureAvailability, PageHeading } from "../../../shared/components/FeatureAvailability";
 
 export type TeacherUnavailablePageProps = {
   title: string;

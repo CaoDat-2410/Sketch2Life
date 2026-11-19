@@ -1,7 +1,7 @@
 import { lazy, Suspense, useLayoutEffect } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { PortalEntryPage } from "./PortalEntryPage";
-import { PortalSessionProvider } from "../shared/PortalSessionContext";
+import { PortalSessionProvider } from "../shared/auth/PortalSessionContext";
 
 const TeacherPortalApp = lazy(() => import("../modules/teacher/App").then((module) => ({ default: module.TeacherPortalApp })));
 const SchoolManagerBe1App = lazy(() => import("../modules/school-manager/be1/App").then((module) => ({ default: module.SchoolManagerBe1App })));

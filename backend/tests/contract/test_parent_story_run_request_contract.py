@@ -3,15 +3,30 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
+from datetime import UTC, datetime
 from types import SimpleNamespace
-from typing import NoReturn
+from typing import NoReturn, cast
+from uuid import UUID
 
 import pytest
+from fastapi import HTTPException
 from fastapi.testclient import TestClient
 from httpx import Response
 
 from sketch2life.application.ports.identity import VerifiedPrincipal
-from sketch2life.application.ports.parent_story_runs import ParentStoryRunError
+from sketch2life.application.ports.parent_story_runs import (
+    ParentStoryRunError,
+    ParentStoryRunSummary,
+)
+from sketch2life.application.ports.story_run_lifecycle import (
+    CANCEL_ELIGIBLE_STATES,
+    DELETE_ELIGIBLE_STATES,
+    PUBLIC_RUN_STATES,
+    PURGE_STATES,
+)
+from sketch2life.infrastructure.persistence.parent_story_repository import (
+    run_summary_capabilities,
+)
 from sketch2life.infrastructure.config.settings import (
     CoreDatabaseSettings,
     Settings,
@@ -41,7 +56,6 @@ _STORY_ERROR_KEYS = {
 }
 _COMMAND_REQUESTS = (
     ("POST", "/v1/story-runs", {"parent_profile_id": _PROFILE_ID}),
-    ("POST", f"/v1/story-runs/{_RUN_ID}/cancel", {"expected_revision": 1}),
     (
         "POST",
         f"/v1/story-runs/{_RUN_ID}/context-confirmation",
@@ -61,6 +75,12 @@ _COMMAND_REQUESTS = (
         f"/v1/story-runs/{_RUN_ID}/script-confirmation",
         {"expected_revision": 1, "story_sha256": "b" * 64},
     ),
+)
+# FR-C-08 (Contract Draft 11 §3.1-§3.2, D-217 item 7): cancel and delete read the key with
+# the CONV-1 parser (1-128 visible ASCII); the other Parent commands keep 1-256.
+_LIFECYCLE_REQUESTS = (
+    ("POST", f"/v1/story-runs/{_RUN_ID}/cancel", {"expected_revision": 1}),
+    ("DELETE", f"/v1/story-runs/{_RUN_ID}", None),
 )
 
 
@@ -87,7 +107,13 @@ class _FakeStoryRunService:
     def get_active_run(self, **_kwargs: object) -> None:
         return None
 
+    def list_runs(self, **_kwargs: object) -> list[object]:
+        return []
+
     def cancel_run(self, **_kwargs: object) -> NoReturn:
+        raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
+
+    def delete_run(self, **_kwargs: object) -> NoReturn:
         raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
 
     def confirm_context(self, **_kwargs: object) -> NoReturn:
@@ -187,7 +213,7 @@ def _command_response(
     )
 
 
-def test_seven_parent_story_run_routes_are_mounted_with_the_story_error_shape(
+def test_parent_story_run_routes_are_mounted_with_the_story_error_shape(
     request_client: TestClient,
 ) -> None:
     requests = (
@@ -212,7 +238,16 @@ def test_seven_parent_story_run_routes_are_mounted_with_the_story_error_shape(
             "INVALID_STATE_TRANSITION",
             409,
         ),
+        (
+            "DELETE",
+            f"/v1/story-runs/{_RUN_ID}",
+            None,
+            "INVALID_STATE_TRANSITION",
+            409,
+        ),
         ("GET", "/v1/story-runs/active/current", None, None, 200),
+        # FEAT-081 C3b: the history list on the collection path.
+        ("GET", "/v1/story-runs", None, "list", 200),
         (
             "POST",
             f"/v1/story-runs/{_RUN_ID}/context-confirmation",
@@ -243,10 +278,13 @@ def test_seven_parent_story_run_routes_are_mounted_with_the_story_error_shape(
     for index, (method, path, payload, code, status) in enumerate(requests):
         request_id = f"story-route-{index}"
         headers = {"X-Request-ID": request_id}
-        if method == "POST":
+        if method in {"POST", "DELETE"}:
             headers["Idempotency-Key"] = "valid-key"
         response = request_client.request(method, path, json=payload, headers=headers)
-        if code is None:
+        if code == "list":
+            assert response.status_code == status
+            assert set(response.json()) == {"request_id", "items", "next_cursor"}
+        elif code is None:
             assert response.status_code == status
             assert set(response.json()) == {"request_id", "story_run"}
             assert response.json()["story_run"] is None
@@ -260,11 +298,24 @@ def test_cancel_stale_revision_adds_current_version_only_to_cancel_error(
     def stale_cancel(**_kwargs: object) -> NoReturn:
         raise ParentStoryRunError(409, "STALE_REVISION", current_version=9)
 
+    def stale_delete(**_kwargs: object) -> NoReturn:
+        raise ParentStoryRunError(409, "STALE_REVISION", current_version=9)
+
     monkeypatch.setattr(
         story_routes,
-        "SqlParentStoryRunRepository",
-        lambda _db: SimpleNamespace(cancel_run=stale_cancel),
+        "_service",
+        lambda _db: SimpleNamespace(
+            cancel_run=stale_cancel,
+            delete_run=stale_delete,
+            confirm_context=_FakeStoryRunService().confirm_context,
+        ),
     )
+    delete = request_client.delete(
+        f"/v1/story-runs/{_RUN_ID}",
+        headers={"Idempotency-Key": "delete-key", "X-Request-ID": "delete-stale"},
+    )
+    assert delete.status_code == 409
+    assert "current_version" not in delete.json()  # the delete route never carries it
     cancel = request_client.post(
         f"/v1/story-runs/{_RUN_ID}/cancel",
         json={"expected_revision": 8},
@@ -347,6 +398,46 @@ def test_story_command_idempotency_key_rejects_out_of_range_lengths(
     ]
 
 
+@pytest.mark.parametrize(("method", "path", "payload"), _LIFECYCLE_REQUESTS)
+@pytest.mark.parametrize("key_length", (1, 128))
+def test_lifecycle_commands_accept_keys_of_1_to_128_characters(
+    request_client: TestClient,
+    method: str,
+    path: str,
+    payload: dict[str, object] | None,
+    key_length: int,
+) -> None:
+    response = request_client.request(
+        method,
+        path,
+        json=payload,
+        headers={"Idempotency-Key": "k" * key_length, "X-Request-ID": "lifecycle-key"},
+    )
+    _assert_story_error(
+        response, status=409, code="INVALID_STATE_TRANSITION", request_id="lifecycle-key"
+    )
+
+
+@pytest.mark.parametrize(("method", "path", "payload"), _LIFECYCLE_REQUESTS)
+@pytest.mark.parametrize("key", ("", "k" * 129, "with space", "tab\tkey", None))
+def test_lifecycle_commands_refuse_a_missing_or_invalid_key_with_invalid_request(
+    request_client: TestClient,
+    method: str,
+    path: str,
+    payload: dict[str, object] | None,
+    key: str | None,
+) -> None:
+    headers = {"X-Request-ID": "lifecycle-bad-key"}
+    if key is not None:
+        headers["Idempotency-Key"] = key
+    response = request_client.request(method, path, json=payload, headers=headers)
+    _assert_story_error(
+        response, status=400, code="INVALID_REQUEST", request_id="lifecycle-bad-key"
+    )
+    # Contract Draft 11 §3.6 (N-1): key errors raised by parse_idempotency_key carry null.
+    assert response.json()["field_errors"] is None
+
+
 def test_parent_profile_errors_keep_the_parent_specific_shape(
     request_client: TestClient,
 ) -> None:
@@ -376,3 +467,132 @@ def test_parent_profile_errors_keep_the_parent_specific_shape(
     assert body["code"] == "ACTION_NOT_ALLOWED"
     assert body["request_id"] == parent_request_id
     assert body["correlation_id"] == parent_request_id
+
+
+# --- FEAT-081 C3b: Parent run-history list ------------------------------------------------------
+
+_SUMMARY_KEYS = {
+    "run_id",
+    "parent_profile_id",
+    "run_state",
+    "revision",
+    "deleting",
+    "can_cancel",
+    "can_delete",
+    "created_at",
+    "updated_at",
+}
+
+
+def _history_rows(count: int) -> list[ParentStoryRunSummary]:
+    moment = datetime(2026, 11, 19, 8, 0, tzinfo=UTC)
+    return [
+        ParentStoryRunSummary(
+            run_id=f"33333333-3333-4333-8333-{index:012d}",
+            parent_profile_id=UUID(_PROFILE_ID) if index % 2 == 0 else None,
+            run_state="COMPLETED" if index % 2 == 0 else "DELETE_PENDING",
+            revision=2,
+            deleting=index % 2 == 1,
+            can_cancel=False,
+            can_delete=index % 2 == 0,
+            created_at=moment,
+            updated_at=moment,
+        )
+        for index in range(count)
+    ]
+
+
+def test_history_list_returns_summary_items_only(
+    request_client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    seen: dict[str, object] = {}
+
+    def list_runs(**kwargs: object) -> list[ParentStoryRunSummary]:
+        seen.update(kwargs)
+        return _history_rows(3)
+
+    monkeypatch.setattr(story_routes, "_service", lambda _db: SimpleNamespace(list_runs=list_runs))
+    response = request_client.get("/v1/story-runs?limit=2", headers={"X-Request-ID": "history-1"})
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert set(body) == {"request_id", "items", "next_cursor"}
+    assert len(body["items"]) == 2
+    assert all(set(item) == _SUMMARY_KEYS for item in body["items"])
+    assert body["items"][1]["parent_profile_id"] is None
+    assert body["next_cursor"]
+    assert seen["limit"] == 2 and seen["after"] is None and seen["profile_id"] is None
+
+    follow = request_client.get(
+        f"/v1/story-runs?cursor={body['next_cursor']}", headers={"X-Request-ID": "history-2"}
+    )
+    assert follow.status_code == 200
+    created_at, run_id = cast(tuple[datetime, str], seen["after"])
+    assert run_id == body["items"][1]["run_id"]
+    assert created_at.tzinfo is not None
+
+
+@pytest.mark.parametrize(
+    "query", ["limit=101", "limit=0", "parent_profile_id=not-a-uuid", "cursor="]
+)
+def test_history_list_validation_uses_the_story_envelope(
+    request_client: TestClient, query: str
+) -> None:
+    response = request_client.get(f"/v1/story-runs?{query}", headers={"X-Request-ID": "history-v"})
+    _assert_story_error(response, status=400, code="INVALID_REQUEST", request_id="history-v")
+    assert isinstance(response.json()["field_errors"], list)
+
+
+def test_history_list_malformed_cursor_is_400_without_field_errors(
+    request_client: TestClient,
+) -> None:
+    response = request_client.get(
+        "/v1/story-runs?cursor=bm90LWEtY3Vyc29y", headers={"X-Request-ID": "history-c"}
+    )
+    _assert_story_error(response, status=400, code="INVALID_REQUEST", request_id="history-c")
+    assert response.json()["field_errors"] is None
+
+
+def test_history_list_refuses_a_non_parent(request_client: TestClient) -> None:
+    class _TeacherDb:
+        def get(self, _model: object, _identity: object) -> SimpleNamespace:
+            return SimpleNamespace(
+                account_id="account-2",
+                issuer=_PRINCIPAL.issuer,
+                account_role="teacher",
+                state="active",
+            )
+
+    request_client.app.dependency_overrides[get_db] = _TeacherDb  # type: ignore[attr-defined]
+    response = request_client.get("/v1/story-runs", headers={"X-Request-ID": "history-403"})
+    _assert_story_error(response, status=403, code="ACTION_NOT_ALLOWED", request_id="history-403")
+
+
+def test_history_capabilities_follow_the_lifecycle_sets() -> None:
+    for state in PUBLIC_RUN_STATES:
+        deleting, can_cancel, can_delete = run_summary_capabilities(state)
+        assert deleting == (state in PURGE_STATES)
+        assert can_cancel == (state in CANCEL_ELIGIBLE_STATES and state not in PURGE_STATES)
+        assert can_delete == (state in DELETE_ELIGIBLE_STATES)
+    assert run_summary_capabilities("ABANDONED") == (False, False, True)
+    assert run_summary_capabilities("DELETE_PENDING") == (True, False, False)
+
+
+def test_history_cursor_round_trip_and_rejections() -> None:
+    moment = datetime(2026, 11, 19, 8, 0, 0, 123456, tzinfo=UTC)
+    cursor = story_routes._encode_history_cursor(moment, _RUN_ID)
+    assert story_routes._decode_history_cursor(cursor) == (moment, _RUN_ID)
+    import base64
+    import json
+
+    def raw(payload: object) -> str:
+        return base64.urlsafe_b64encode(json.dumps(payload).encode()).decode().rstrip("=")
+
+    for bad in (
+        raw({"created_at": moment.isoformat(), "run_id": _RUN_ID, "v": 2}),
+        raw({"created_at": "2026-11-19T08:00:00", "run_id": _RUN_ID, "v": 1}),
+        raw({"created_at": moment.isoformat(), "run_id": "not-a-uuid", "v": 1}),
+        "%%%",
+    ):
+        with pytest.raises(HTTPException) as caught:
+            story_routes._decode_history_cursor(bad)
+        assert caught.value.status_code == 400

@@ -79,9 +79,11 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
     )
     expected.update(
         {
-            "/v1/story-runs": ["POST"],
+            # FEAT-081 C3b: the Parent run-history list on the same path.
+            "/v1/story-runs": ["GET", "POST"],
             "/v1/story-runs/active/current": ["GET"],
-            "/v1/story-runs/{run_id}": ["GET"],
+            # FR-C-08 (Contract Draft 11 §3.2): the Parent delete route on the same path.
+            "/v1/story-runs/{run_id}": ["DELETE", "GET"],
             "/v1/story-runs/{run_id}/cancel": ["POST"],
             "/v1/story-runs/{run_id}/context-confirmation": ["POST"],
             "/v1/story-runs/{run_id}/subject-confirmation": ["POST"],
@@ -135,6 +137,8 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
     assert expected.items() <= actual.items()
     assert set(actual) - set(expected) == {
         "/api/be1/v1/classes/{class_id}/assignments",
+        # FEAT-066 M9-B: same-organization Teacher candidates for the first assignment.
+        "/api/be1/v1/organizations/{organization_id}/teacher-candidates",
         "/api/be1/v1/device-grants/{grant_id}/join-status",
         "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/completion",
         "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/learning-stage",

@@ -55,6 +55,8 @@ export interface ParentApplicationModule {
     | 'listRuns'
     | 'cancelRun'
     | 'deleteRun'
+    | 'cancelRunV1'
+    | 'deleteRunV1'
     | 'listShares'
     | 'inviteTeacher'
     | 'revokeShare'

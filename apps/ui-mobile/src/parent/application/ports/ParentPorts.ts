@@ -21,6 +21,8 @@ import type {
   ParentProfileShareGrant,
   ParentProfileSharePage,
   ParentRunLifecycleReceipt,
+  ParentStoryRunLifecycleEnvelopeV1,
+  ParentStoryRunResultV1,
   ParentActiveStoryRunEnvelopeV1,
   ParentTranscriptConfirmation,
   ParentStoryRunHistoryPage,
@@ -76,9 +78,11 @@ export interface ParentApiPort {
   getActiveStoryRun(): Promise<{ request_id: string; story_run: StoryRun | null }>;
   getStoryRun(runId: string): Promise<{ request_id: string; story_run: StoryRun }>;
   getActiveStoryRunV1(): Promise<ParentActiveStoryRunEnvelopeV1>;
-  getStoryRunV1(runId: string): Promise<ParentStoryRunEnvelopeV1>;
+  getStoryRunV1(runId: string): Promise<ParentStoryRunResultV1>;
   listStoryRuns(profileId?: string, cursor?: string | null): Promise<ParentStoryRunHistoryPage>;
   cancelStoryRun(runId: string): Promise<ParentRunLifecycleReceipt>;
+  cancelStoryRunV1(runId: string, expectedRevision: number, actionIdentity: ParentActionIdentity): Promise<ParentStoryRunLifecycleEnvelopeV1>;
+  deleteStoryRunV1(runId: string, actionIdentity: ParentActionIdentity): Promise<ParentStoryRunLifecycleEnvelopeV1>;
   deleteStoryRun(runId: string): Promise<ParentRunLifecycleReceipt>;
   listLessons(): Promise<{ contract: string; items: LessonSummary[]; next_cursor: string | null }>;
   getLesson(lessonId: string): Promise<LessonDetail>;

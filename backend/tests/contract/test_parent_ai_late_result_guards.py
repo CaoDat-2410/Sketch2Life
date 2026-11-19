@@ -37,6 +37,61 @@ def test_delete_pending_failure_guard_is_forwarded_as_http_409(operation: str) -
     assert blocked.value.detail == {"code": "INVALID_STATE_TRANSITION"}
 
 
+def test_artwork_route_rechecks_the_state_before_the_first_put_object(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """FR-C-08 (port design §7): a run purged after the input read gets no object."""
+    from types import SimpleNamespace
+
+    from sketch2life.contracts.schemas.modal_ai import ParentDrawingAnalysisRequestV1
+
+    puts: list[str] = []
+
+    class _Repository:
+        def read_current_input(self, **_kwargs: Any) -> Any:
+            return SimpleNamespace(original_asset_ref=None, input_revision=1)
+
+        def ensure_accepting_artwork(self, **_kwargs: Any) -> None:
+            raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
+
+    class _Storage:
+        def put_object(self, key: str, *_args: Any, **_kwargs: Any) -> None:
+            puts.append(key)
+
+    scanner = SimpleNamespace(
+        scan=lambda _body: SimpleNamespace(
+            verdict="CLEAN", scanner_name="fixture", scanner_version="1"
+        )
+    )
+    monkeypatch.setattr(parent_ai, "_require_parent", lambda *_args: None)
+    monkeypatch.setattr(parent_ai, "_require_modal_dev", lambda: None)
+    monkeypatch.setattr(parent_ai, "SqlParentStoryRunRepository", lambda _db: _Repository())
+    monkeypatch.setattr(
+        parent_ai,
+        "prepare_drawing_input",
+        lambda **_kwargs: SimpleNamespace(drawing_png=b"png", drawing_sha256="a" * 64),
+    )
+    state = SimpleNamespace(lesson_document_scanner=scanner, lesson_library_storage=_Storage())
+    request = SimpleNamespace(app=SimpleNamespace(state=state))
+    payload = ParentDrawingAnalysisRequestV1.model_validate(
+        {
+            "story_run_id": "22222222-2222-4222-8222-222222222222",
+            "media_type": "image/png",
+            "image_base64": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAAB",
+        }
+    )
+    with pytest.raises(HTTPException) as refused:
+        parent_ai.analyze_drawing(
+            payload=payload,
+            request=request,  # type: ignore[arg-type]
+            principal=object(),  # type: ignore[arg-type]
+            db=object(),  # type: ignore[arg-type]
+        )
+    assert refused.value.status_code == 409
+    assert refused.value.detail == {"code": "INVALID_STATE_TRANSITION"}
+    assert puts == []
+
+
 def test_artwork_guard_uses_parent_error_envelope_only_on_its_route(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

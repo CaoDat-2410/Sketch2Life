@@ -3253,3 +3253,91 @@ No implementation, tests, validators, database operation, or launch is claimed b
 - **State at closure:** M2-AT-05, 06, 07 NOT RUN / DEFERRED with S1b DEFERRED (D-171); M2-AT-09 NOT RUN / DEFERRED, client integration with the three assistance operations blocked until the OpenAPI P3 gate is closed and a PostgreSQL gate for M2-AT-09 has passed; NFR-36 and NFR-38 PARTIAL as D-171 gives them; K3 NOT VERIFIED; the Story-chain target established for a new database only (D-211 item 3). Client integration with the Parent target operations: allowed per operation for eight of them on the compared dimensions (decisions 3 to 5 above); not for `POST /v1/story-runs/{run_id}/cancel` while it is absent from the client-facing projection. All debt and deviations are those of `evidence/M2_S3_LIMITATION_LEDGER_20261118.md`, each with an owner or phase, plus the review's P3 note S6: the `validate_skeleton` result (pre-existing Android `applicationId` condition), owner Person 2.
 - **Staged-blob check (Draft 11 section 3.1, criterion 2), done before the commit with `git show :<path>` piped to `sha256sum` in Git Bash:** `artifacts/m2-s3/openapi-runtime-frozen.json` 847,426 bytes, `E9C2D7C8E95225F3D1F8B708C50C9ACC19CF822508ABEFD4F85298AD2E6B3A0C`; `artifacts/m2-s3/openapi-client-projection-frozen.json` 213,111 bytes, `F23BF908A104667153F88D6438AE8E95BE9895A76DAB7099877EBE9EFC49589D` — both equal to the pins.
 - **What this closure does not authorize:** M3 or any later milestone; FR-C-08; any client work (allowed operations still need their own task); a gate G2; the integration of PR #26; any database, container, provider, Modal or network action; any push; the merge of PR #29. Open side items remain open: an addendum to the S2 closure record; W3 verification on PostgreSQL and the survey for the same defect patterns; the cleanup of the kept gate containers, volumes, run folders and the secret directory. `OWNER_MODAL_CALL_APPROVED=NO`.
+
+## FR-C-08 — Parent StoryRun lifecycle: implementation approved (Parent-only first slice) — 2026-11-19
+
+- **Status:** APPROVED_FOR_IMPLEMENTATION / NOT LAUNCHED. Launch needs a separate owner word.
+- **Scope:** the Parent-only first slice of FR-C-08 (D-214 item 4): cancel (`POST /v1/story-runs/{run_id}/cancel`), the new `DELETE /v1/story-runs/{run_id}`, the lifecycle projection on `GET /v1/story-runs/{run_id}` and on replays, the purge protocol run by the BE1 lifecycle consumer, the schema delta and one migration, the Core reference-closure port (all or nothing), the access fence and metadata-only audit. Teacher, client code, video and the SRS wording edit are out of scope.
+- **Authority:** D-214 to D-218 in `DECISIONS.md` (260,722 bytes, SHA-256 `6F6DC3291E9AF96FD26400AFD8F4837F02FB7B9856086F79F19485CD6E6E9AE0` when this entry was drafted).
+- **Documents approved for implementation (exact bytes):**
+  - Contract `plan/FR_C08_PARENT_TEACHER_LIFECYCLE_CONTRACT_DRAFT11_20261119.md`, 17,168 bytes, `A209D0976B84573CCA31A85475F3EFEACBC136F3B48BA91DB737254719DD6737`;
+  - Allowlist `plan/FR_C08_PARENT_TEACHER_CANCEL_PURGE_IMPLEMENTATION_ALLOWLIST_DRAFT13_20261119.md`, 26,692 bytes, `82CB6E41ECBE532287762E01DBCC0716FA660C5A227BEC7FDACE6F4CF46D2E6B`;
+  - DTR `plan/FR_C08_LIFECYCLE_DTR_DRAFT6_20261119.md`, 40,580 bytes, `E4B255427A59B7D97E15D1530367AD5E406A12549A3785981A2C641C15BAB30C`;
+  - Core port design `plan/FR_C08_CORE_REFERENCE_CLOSURE_PORT_DESIGN_DRAFT6_20261119.md`, 21,768 bytes, `C8EDD923785AF25283C55B2C94405C1AE5979949CF8DDE0085344CC6BE6FA86A`.
+  Contract Draft 10 and Allowlist Draft 12 passed cold review round 2 (Sonnet 5.5 high, READY WITH NOTES, 0 P1 / 0 P2 / 6 P3); Draft 11 and Draft 13 apply those P3 notes without a further review. DTR Draft 5 and port Draft 5 passed their last rounds (READY WITH NOTES); Draft 6 of each applies the P3 notes without review.
+- **Base and branch:** commit `03342207ab10379e6c53449274edaf4d9bcf60e4` of local branch `feature/feat066-conv1`; the work runs on a new local branch cut from that commit in its own worktree. If the base moves, every pin of the allowlist is recomputed before the first edit. No push or merge without a separate owner word.
+- **Paths:** exactly the allowlist: 35 E (edit), 15 N (new), 30 H (read only), and the D documentation rows only after a verified result. Any other path, table, route or public state stops the task.
+- **Commands:** exactly Allowlist §7. Coordinator, without a database: ruff, mypy, pytest on the E and N unit and contract tests and the offline migration tests, the four repository validators, `git add -N` on the N paths and `git diff --check`. Owner-run only, loopback only: a fresh disposable PostgreSQL database whose name contains `frc08`, on a port other than 5432 and 5433; a local MinIO with an empty bucket whose name contains `frc08` and throwaway credentials; `alembic upgrade heads`, downgrade and upgrade; the integration test; the reconciliation command twice. Never `sketch2life_m2_s1a`, `be1_acceptance`, the seed database or ports 5432 and 5433; no provider, Modal or non-loopback network call; the local secrets directory is never read.
+- **Deliverables:** the code and tests of the allowlist; the evidence report (N path) with commands, exit codes, counts and hashes; the owner-run results.
+- **Acceptance path:** coordinator checks → owner run → independent review on Sonnet 5.5 high → owner acceptance → one task commit on the owner's word (code, tests, evidence and the D rows), no push.
+- **Stop rules:** Allowlist §10 and DTR §10 apply; any failed guard, any unexpected database or storage target, any needed decision beyond D-214 to D-218 stops the task and returns it to the owner.
+- **Not authorized by this entry:** the SRS wording edit; any client (FE) change; Teacher work; the owner-review re-open command; a least-privilege storage principal; push, merge or PR. `OWNER_MODAL_CALL_APPROVED=NO`.
+
+## FR-C-08 — Parent StoryRun lifecycle: implementation LAUNCHED by the owner — 2026-11-19
+
+- **Owner word:** the owner launched the FR-C-08 implementation approved in the entry above
+  (APPROVED_FOR_IMPLEMENTATION), with no change to its scope, paths, commands or stop rules.
+- **Branch and worktree:** local branch `feature/feat063-frc08-lifecycle` in `.worktrees/frc08`,
+  cut from `03342207ab10379e6c53449274edaf4d9bcf60e4`; the planning record is its first commit
+  `d6bdfe3a` (docs only; no E or H path of Allowlist Draft 13 changed, so the pins hold).
+- **Still separate owner gates:** the owner-run database and storage commands of Allowlist §7, the
+  acceptance of the result, the task commit, and any push or merge. `OWNER_MODAL_CALL_APPROVED=NO`.
+
+## FR-C-08 — Parent StoryRun lifecycle: amendment 1 to the allowlist and the command ceiling — 2026-11-19
+
+- **Cause:** independent implementation review round 1 (Sonnet 5.5 high, NEEDS REMEDIATION, 0 P1 / 2 P2 / 9 P3). P2-1: the new migration breaks `backend/tests/unit/test_synthetic_eligibility.py`, which pins the Alembic revision count and is not in Allowlist Draft 13. P2-2: the evidence report claims that existing organization writers behave as before, but the PostgreSQL suites that check it were not run.
+- **Owner decision:** both remedies approved. Everything else in the implementation approval and the launch record above stays as it is.
+- **Path added (E, one edit only):** `backend/tests/unit/test_synthetic_eligibility.py`: the revision count 31 becomes 32, the head pair (13, 10) becomes (14, 10), and the comment names the FR-C-08 lifecycle revision. No other change to that file.
+- **Coordinator commands added:** `pytest` on the whole `backend/tests/unit` and `backend/tests/contract` suites, in the worktree and in a read-only export of the base tree, compared by failing test id. Only failures new against the base count against the task.
+- **Owner-run commands added (loopback only, on the disposable frc08 PostgreSQL container, never ports 5432 or 5433):**
+  - `tests/integration/ai_jobs/test_migrations.py` and `tests/integration/ai_jobs/test_notice_coverage.py`, pointed at that container by their `BE2_TEST_PG_*` variables, with a throwaway password file outside the local secrets directory; these suites create and drop their own `be2_b2_*` databases on that container only.
+  - `tests/integration/test_be1_postgres_api.py` against a fresh database `frc08_be1_acceptance` on that container, migrated to `heads` first.
+  - Each suite may also be run at the base tree when a worktree failure needs a base comparison.
+- **Recorded as debt, NOT RUN:** `tests/integration/test_m2_s2_g1_parent_story_postgres.py`. Its guard accepts only the M2 gate databases, ports 55440 and 55441 and the gate role, so it cannot run on the disposable target without touching the M2 gate. Contract §8 condition 7 (second half, organization writers) stays OPEN for the parts that this suite alone covers.
+- **Unchanged:** never `sketch2life_m2_s1a`, the existing `be1_acceptance` database, the seed database, the M2 gate containers or volumes, or the local secrets directory; no provider, Modal or non-loopback call; acceptance, the task commit, push and merge stay separate owner gates. `OWNER_MODAL_CALL_APPROVED=NO`.
+
+## FR-C-08 — Parent StoryRun lifecycle: implementation ACCEPTED by the owner — 2026-11-19
+
+- **Owner decision:** the owner accepted the FR-C-08 Parent-only first slice implemented under the approval,
+  launch record and amendment 1 above, with the recorded debt below, and asked for the one task commit.
+- **Evidence:** `evidence/FR_C08_IMPLEMENTATION_REPORT_20261119.md`, 55,655 bytes, SHA-256 `715EFEFA3659B90A18F5CEC82E7F04FA3CE920E91BBA2CF164EEEC86A09B91F7`.
+  Owner runs: `20261119-110418` (migration up/down/up, integration, reconciliation), `20261119-130537`
+  (amendment-1 PostgreSQL suites, 0 failures new against the base) and `20261119-134002` (final tree: 9/9
+  steps exit 0, 15/15 integration tests, reconciliation 1/1 then 0/0).
+- **Independent reviews (Sonnet 5.5, high):** round 1 NEEDS REMEDIATION (0 P1 / 2 P2 / 9 P3), remediated under
+  amendment 1; round 2 ACCEPTABLE WITH NOTES (0 P1 / 0 P2 / 5 P3), all five fixed. Review files are local working
+  notes: `tmp/frc08-impl-review/FR_C08_IMPLEMENTATION_REVIEW_R1_20261119.md` and
+  `tmp/frc08-impl-review-r2/FR_C08_IMPLEMENTATION_REVIEW_R2_20261119.md` (22,895 bytes, `19553DFC…`).
+- **Recorded debt:** Contract §8 condition 7 second half partly evidenced; `test_m2_s2_g1_parent_story_postgres.py`
+  NOT RUN; storage verified on S3Mock only. Follow-ups: storage timeouts and sweep cap, a registered-consumer rule
+  for the default outbox claim, the SRS wording edit, the Parent FE client.
+- **Commit:** one task commit on local branch `feature/feat063-frc08-lifecycle`: the 51 task paths of Allowlist
+  Draft 13 and amendment 1, this record and the D rows. Not pushed, not merged; both need a separate owner word.
+  `OWNER_MODAL_CALL_APPROVED=NO`.
+
+## FEAT-063 FR-C-08 follow-up — SRS wording edit covered by the FEAT-066 goal v2 program — 2026-11-19
+
+- **Owner decision:** the FR-C-08 SRS wording edit (Draft 2, 14 sites) is task B4 of the FEAT-066 goal v2 program
+  that the owner approved on 2026-11-19 (`features/FEAT-066-fe-ui-srs-full-review/plan/GOAL_V2_PHASE_BC_PROGRAM_20261119.md`,
+  13,611 bytes, `5DFC1EDEFC79A1C4…`; approval entry in FEAT-066 `approvals/TASK_APPROVAL.md`).
+- **Boundary:** the edit is applied on the local integration branch `feature/feat066-be-integration`, reviewed on
+  Sonnet 5.5 high and committed locally; no push, PR or merge without the owner.
+
+## FEAT-063 FR-C-08 — SRS wording edit (program task B4): approved and applied — 2026-11-19
+
+- **Owner decision:** the owner was shown the fourteen edits of SRS wording edit Draft 2 (E1 to E10, R1 to R3,
+  E13) with their SRS lines and replacement strings, and instructed that the SRS edit be made now in a separately
+  started session. Recorded as the step-0 confirmation and step-1 approval of that edit set. Authority: D-219.
+- **Applied text:** `plan/FR_C08_SRS_WORDING_EDIT_DRAFT3_20261119.md` (14,787 bytes, `3C63E73C926BAC4B…`). It
+  changes three strings of the approved set within D-214 item 1 and D-216 item 4 (E1 comma, E2 shortened to the
+  D-214 form, E13 polish); D-219 item 1 lists them for the owner to confirm or reverse.
+- **Result:** the canonical SRS is 701,810 bytes, SHA-256 `443A3CA37272D2FE96127564BAF400461F394E098724A6BD999D723A4E504021`
+  (from 701,157 bytes, `B9B1F42D…`); 13 lines changed, no line moved, endings unchanged, post-edit check passed.
+- **Independent review:** separate session on Sonnet 5.5 at high effort, set explicitly: READY WITH NOTES, 0 P1 /
+  0 P2 / 5 P3; notes applied to the prose only.
+- **Contract:** `plan/FR_C08_PARENT_TEACHER_LIFECYCLE_CONTRACT_DRAFT12_20261119.md` (19,476 bytes, `9E275D0AB53A81CB…`),
+  SRS alignment only. Draft 11 stays the approved implementation contract; Draft 12 has no separate owner approval.
+- **Re-pins:** the seven live pointer files of D-219 item 6; historical records stay pinned to `B9B1F42D…`.
+- **Boundary:** one local commit on branch `claude/feat063-b4-srs-wording-7f4667` (cut from the integration tip
+  `63363081`), not on `feature/feat066-be-integration` itself; the owner merges it. No push, PR or merge.
+  `OWNER_MODAL_CALL_APPROVED=NO`.

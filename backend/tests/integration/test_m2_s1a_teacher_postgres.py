@@ -29,6 +29,7 @@ from sketch2life.infrastructure.persistence.be1_models import (
     OrganizationModel,
 )
 from sketch2life.interfaces.http.app import create_app
+from sketch2life.interfaces.http.error_envelope import MESSAGES
 
 
 def _error_core(response) -> dict[str, str]:
@@ -169,7 +170,13 @@ def s1a_t_client(
         db.flush()
         db.add_all(
             [
-                AdultIdentityModel(subject=subject, issuer=issuer, state="active")
+                # FEAT-066 M9-B: product roles so the scope rules and candidate eligibility apply.
+                AdultIdentityModel(
+                    subject=subject,
+                    issuer=issuer,
+                    state="active",
+                    account_role="school_manager" if subject == manager_subject else "teacher",
+                )
                 for subject in subjects
             ]
         )
@@ -208,6 +215,18 @@ def s1a_t_client(
                     role="teacher",
                     active=True,
                 ),
+                # FEAT-066 M9-B: the two race Teachers are organization members (candidates).
+                *(
+                    OrganizationAssignmentModel(
+                        assignment_id=str(uuid4()),
+                        organization_id=organization_id,
+                        subject=race_teacher,
+                        class_id=None,
+                        role="teacher",
+                        active=True,
+                    )
+                    for race_teacher in (teacher_a, teacher_b)
+                ),
             ]
         )
 
@@ -244,12 +263,27 @@ def test_teacher_postgres_contract_and_marker_accounting(s1a_t_client: SimpleNam
 
     barrier = Barrier(2)
 
+    with accepted.runtime.engine.connect() as connection:
+        candidate_refs = dict(
+            connection.execute(
+                text(
+                    "SELECT subject, account_id FROM be1_adult_identities "
+                    "WHERE subject IN (:a, :b)"
+                ),
+                {"a": accepted.teacher_a, "b": accepted.teacher_b},
+            ).all()
+        )
+
     def assign_teacher(subject: str):
         barrier.wait(timeout=15)
         return client.post(
             f"/api/be1/v1/classes/{class_id}/assignments",
-            headers=headers(accepted.manager_subject),
-            json={"subject": subject},
+            headers={
+                **headers(accepted.manager_subject),
+                "Idempotency-Key": f"s1at-assign-{subject}",
+                "If-Match": '"1"',
+            },
+            json={"candidate_ref": candidate_refs[subject]},
         )
 
     with ThreadPoolExecutor(max_workers=2) as executor:
@@ -259,19 +293,20 @@ def test_teacher_postgres_contract_and_marker_accounting(s1a_t_client: SimpleNam
         ]
         race_responses = [future.result(timeout=45) for future in futures]
 
-    created = [response for response in race_responses if response.status_code == 201]
+    created = [response for response in race_responses if response.status_code == 200]
     conflicts = [response for response in race_responses if response.status_code == 409]
     assert len(created) == 1
     assert len(conflicts) == 1
     assert created[0].json()["role"] == "teacher"
     assert created[0].json()["class_id"] == class_id
-    assert _error_core(conflicts[0]) == {
-        "code": "CLASS_TEACHER_EXISTS",
-        "message": "Class already has an active Teacher",
-    }
+    # FEAT-066 M9-B: both send If-Match "1"; the loser sees the moved revision first.
+    assert _error_core(conflicts[0])["code"] == "STALE_REVISION"
     assert accepted.teacher_a not in conflicts[0].text
     assert accepted.teacher_b not in conflicts[0].text
-    winning_subject = created[0].json()["subject"]
+    winning_ref = created[0].json()["candidate_ref"]
+    winning_subject = next(
+        subject for subject, ref in candidate_refs.items() if ref == winning_ref
+    )
     assert winning_subject in {accepted.teacher_a, accepted.teacher_b}
     with accepted.runtime.engine.connect() as connection:
         active_teachers = connection.execute(
@@ -301,19 +336,27 @@ def test_teacher_postgres_contract_and_marker_accounting(s1a_t_client: SimpleNam
         profile_request(accepted.teacher_other_class, 60, "other-class-teacher-denied"),
         profile_request(accepted.teacher_other_org, 60, "other-org-teacher-denied"),
     ]
-    for response in denied_profiles:
-        assert response.status_code == 403
+    # CONV-1 (D-066-68 C-D4, D-066-71): the org-wide School Manager is inside the class scope
+    # but its role is refused -> 403; every out-of-scope teacher gets one uniform 404 body.
+    manager_denial, *out_of_scope = denied_profiles
+    assert manager_denial.status_code == 403
+    assert _error_core(manager_denial) == {
+        "code": "ACTION_NOT_ALLOWED",
+        "message": MESSAGES["ACTION_NOT_ALLOWED"],
+    }
+    for response in out_of_scope:
+        assert response.status_code == 404
         assert _error_core(response) == {
-            "code": "SCOPE_DENIED",
-            "message": "Access to this resource is not permitted",
+            "code": "RESOURCE_NOT_FOUND",
+            "message": MESSAGES["RESOURCE_NOT_FOUND"],
         }
-    first_denial = _error_core(denied_profiles[0])
-    assert all(_error_core(response) == first_denial for response in denied_profiles)
+    first_denial = _error_core(out_of_scope[0])
+    assert all(_error_core(response) == first_denial for response in out_of_scope)
 
     too_young = profile_request(winning_subject, 35, "age-35-rejected")
     too_old = profile_request(winning_subject, 121, "age-121-rejected")
-    assert too_young.status_code == 422
-    assert too_old.status_code == 422
+    assert too_young.status_code == 400
+    assert too_old.status_code == 400
 
     created_profiles = []
     for age_months in (36, 120):

@@ -1,5 +1,6 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
+import { PortalSessionProvider } from '../../../../shared/auth/PortalSessionContext'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { User } from 'firebase/auth'
 import App from '../App'
@@ -11,9 +12,9 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-describe('School Manager BE1 authorization and connected class route', () => {
+describe('School Manager BE1 organization gate', () => {
   let signedIn = false
-  const user = { uid: 'admin-test' } as User
+  const user = { uid: 'manager-test' } as User
 
   beforeEach(() => {
     signedIn = false
@@ -28,27 +29,32 @@ describe('School Manager BE1 authorization and connected class route', () => {
     vi.spyOn(classService, 'listClasses').mockResolvedValue([])
   })
 
-  it('signs in with Firebase and verifies school_admin assignment before listing classes', async () => {
-    const login = vi.spyOn(authService, 'login').mockImplementation(async () => {
-      signedIn = true
-      return user
-    })
-    render(<MemoryRouter initialEntries={['/school/login']}><App /></MemoryRouter>)
-    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'admin@example.test' } })
-    fireEvent.change(screen.getByLabelText('Mật khẩu'), { target: { value: 'test-password' } })
-    fireEvent.submit(screen.getByLabelText('Email').closest('form')!)
+  it('checks an organization-wide school_admin assignment before listing classes', async () => {
+    signedIn = true
+    render(<PortalSessionProvider><MemoryRouter initialEntries={['/school/classes']}><App /></MemoryRouter></PortalSessionProvider>)
 
     expect(await screen.findByRole('heading', { name: 'Lớp học' })).toBeTruthy()
-    expect(login).toHaveBeenCalledWith({ email: 'admin@example.test', pass: 'test-password' })
     expect(classService.currentAssignments).toHaveBeenCalledOnce()
     expect(classService.listClasses).toHaveBeenCalledOnce()
   })
 
-  it('does not render unsupported administration screens as if they were connected', async () => {
+  it('denies a class-scoped assignment from the school-wide Manager portal', async () => {
     signedIn = true
-    render(<MemoryRouter initialEntries={['/school/users']}><App /></MemoryRouter>)
+    vi.mocked(classService.currentAssignments).mockResolvedValueOnce({
+      contract: 'Be1AdultAssignmentsV1',
+      assignments: [{ role: 'school_admin', class_id: 'class-1' }],
+    })
+    render(<PortalSessionProvider><MemoryRouter initialEntries={['/school/classes']}><App /></MemoryRouter></PortalSessionProvider>)
 
-    expect(await screen.findByRole('heading', { name: 'Chức năng quản trị chưa nối BE1' })).toBeTruthy()
+    expect(await screen.findByRole('heading', { name: 'Không thể mở cổng quản trị' })).toBeTruthy()
+    expect(classService.listClasses).not.toHaveBeenCalled()
+  })
+
+  it('keeps unsupported administration screens explicitly unavailable', async () => {
+    signedIn = true
+    render(<PortalSessionProvider><MemoryRouter initialEntries={['/school/users']}><App /></MemoryRouter></PortalSessionProvider>)
+
+    expect(await screen.findByRole('heading', { name: 'Chức năng trường học' })).toBeTruthy()
     expect(screen.queryByRole('heading', { name: 'Người dùng & vai trò' })).toBeNull()
   })
 })

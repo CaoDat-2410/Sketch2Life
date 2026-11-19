@@ -174,6 +174,61 @@ def test_exact_key_receives_catalog_metadata_and_keeps_unrelated_fields() -> Non
         assert operation[field] == before[field]
 
 
+def test_a_lifecycle_union_response_keeps_both_envelopes_after_mapping() -> None:
+    """FR-C-08 (Contract Draft 11 §3.3): the catalog sets the description of the Parent GET
+    and replay responses and keeps the union of the run envelope and the lifecycle envelope."""
+    key = ("get", "/v1/story-runs/{run_id}")
+    union = {
+        "anyOf": [
+            {"$ref": "#/components/schemas/ParentStoryRunEnvelopeV1"},
+            {"$ref": "#/components/schemas/ParentStoryRunLifecycleEnvelopeV1"},
+        ]
+    }
+    schema = {
+        "openapi": "3.1.0",
+        "info": {"title": "synthetic", "version": "0"},
+        "paths": {
+            key[1]: {
+                "get": {
+                    "operationId": "get_run",
+                    "responses": {
+                        "200": {
+                            "description": "Generated",
+                            "content": {"application/json": {"schema": copy.deepcopy(union)}},
+                        }
+                    },
+                }
+            }
+        },
+        "components": {
+            "schemas": {
+                "ParentStoryRunEnvelopeV1": {"type": "object"},
+                "ParentStoryRunLifecycleEnvelopeV1": {"type": "object"},
+            }
+        },
+    }
+    contract = {
+        "purpose": "Read one Parent StoryRun owned by the verified principal.",
+        "tag": "Parent StoryRuns",
+        "responses": (
+            {
+                "status": "200",
+                "description": (
+                    "StoryRun resource, or the lifecycle projection from DELETE_PENDING on"
+                ),
+                "media_type": "application/json",
+                "schema_name": "ParentStoryRunEnvelopeV1",
+            },
+        ),
+    }
+    _apply_catalog_metadata(schema, {key: contract})
+    response = schema["paths"][key[1]]["get"]["responses"]["200"]
+    assert response["description"] == contract["responses"][0]["description"]
+    assert response["content"]["application/json"]["schema"] == union
+    catalogued = MOUNTED_OPERATIONS[key]["responses"][0]
+    assert catalogued["description"] == contract["responses"][0]["description"]
+
+
 def test_metadata_is_not_applied_to_neighbouring_keys() -> None:
     schema = _schema()
     before = copy.deepcopy(schema)

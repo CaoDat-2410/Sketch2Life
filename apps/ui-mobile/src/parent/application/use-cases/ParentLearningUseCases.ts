@@ -56,7 +56,7 @@ export class ParentLearningUseCases {
       const active = await this.api.getActiveStoryRunV1();
       if (active.story_run) {
         return {
-          ...(active.request_id === undefined ? {} : { request_id: active.request_id }),
+          request_id: active.request_id,
           story_run: active.story_run,
         };
       }

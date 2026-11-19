@@ -17,8 +17,10 @@ runtime.
 - `144-update-account.bru` — state-changing; set the ID and body only for a
   disposable synthetic test account.
 
-These requests require Platform Admin authorization. They do not include an
-`Idempotency-Key` or `If-Match`, matching the current FE adapter and BE contract.
+These requests require Platform Admin authorization. `142` pages with an opaque `cursor`
+(default and example `limit=25`; `next_cursor` continues). `143` and `144` send an
+`Idempotency-Key` (FEAT-066 C5); neither sends `If-Match`, because the SRS names no
+expected-revision rule for the account role or state.
 
 ## Manager
 
@@ -43,6 +45,14 @@ All FE-backed requests send bearer auth, `Accept`, and `X-Request-ID`; writes
 also send `Content-Type`. The access-grant decision and parent-group creation
 send `Idempotency-Key`; the decision also sends the selected grant revision in
 `If-Match`. State-changing requests are for local synthetic data only.
+
+Added for the first-Teacher assignment (FEAT-066 M9-B); not yet called by the FE:
+
+- `145-list-teacher-candidates-...bru` — `GET /api/be1/v1/organizations/{organization_id}/teacher-candidates?limit=25`;
+  read-only; `next_cursor` continues.
+- `146-assign-class-teacher-...bru` — `POST /api/be1/v1/classes/{class_id}/assignments`; state-changing; sends
+  `If-Match` (class assignment revision) and `Idempotency-Key`; body `{candidate_ref}`. Replaces the stale `004`
+  and `005`.
 
 Manager endpoints that remain blocked by missing contract/policy are not listed
 as FE-integrated here.

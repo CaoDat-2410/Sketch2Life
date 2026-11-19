@@ -417,7 +417,9 @@ describe('R1 account and profile boundaries', () => {
     expect(profileControllerSource).not.toContain('getConsentPolicy');
     expect(profileControllerSource).not.toMatch(/application\.profiles\.(grantAuthorization|revokeAuthorization)/);
     expect(profileControllerSource).not.toMatch(/child_gender|childGender/);
-    expect(platformControllerSource).not.toContain('application.platform.');
+    // FEAT-081 C3b: only the run-history list and the two FR-C-08 lifecycle commands are live.
+    expect(new Set(Array.from(platformControllerSource.matchAll(/application\.platform\.(\w+)/g), (match) => match[1])))
+      .toEqual(new Set(['listRuns', 'cancelRunV1', 'deleteRunV1']));
     expect(authScreenSource).not.toContain('cause.message');
     expect(profileControllerSource).not.toContain('cause.message');
     expect(platformControllerSource).not.toContain('cause.message');
@@ -438,7 +440,6 @@ describe('R2 backend route boundary', () => {
       { capability: 'profiles', request: () => api.archiveProfile('synthetic-profile') },
       { capability: 'story-creation', request: () => api.getActiveStoryRun() },
       { capability: 'story-creation', request: () => api.getStoryRun('synthetic-run') },
-      { capability: 'run-history', request: () => api.listStoryRuns('synthetic-profile') },
       { capability: 'run-history', request: () => api.cancelStoryRun('synthetic-run') },
       { capability: 'run-history', request: () => api.deleteStoryRun('synthetic-run') },
       { capability: 'story-creation', request: () => api.createStoryRun({ parent_profile_id: 'synthetic-profile', expected_profile_revision_id: 'synthetic-revision', consent_policy_version: 'synthetic-v1', topic: 'synthetic topic', adult_confirmed_idea: 'synthetic idea', context_confirmed: true }) },
@@ -769,7 +770,8 @@ describe('R4 absent delivery and lifecycle contracts', () => {
     expect(platformControllerSource).toContain('markVideoUnsuitable');
     expect(platformControllerSource).toContain('regenerateVideo');
     expect(platformControllerSource).toContain('completeRun');
-    expect(platformControllerSource).not.toContain('application.platform.');
+    expect(new Set(Array.from(platformControllerSource.matchAll(/application\.platform\.(\w+)/g), (match) => match[1])))
+      .toEqual(new Set(['listRuns', 'cancelRunV1', 'deleteRunV1']));
     expect(platformControllerSource).toContain('videoOperationState: unavailableShareOperation');
     expect(jobStageHasNoPercent).toBe(false);
     expect(storyScreenSource).toContain('videoCapability.state === \'unavailable\'');

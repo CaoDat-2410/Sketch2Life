@@ -30,6 +30,8 @@ import type {
   ParentProfileShareGrant,
   ParentProfileSharePage,
   ParentRunLifecycleReceipt,
+  ParentStoryRunLifecycleEnvelopeV1,
+  ParentStoryRunResultV1,
   ParentActiveStoryRunEnvelopeV1,
   ParentStoryRunHistoryPage,
   ParentTranscriptConfirmation,
@@ -174,7 +176,7 @@ export class ParentApi implements ParentApiPort {
   }
 
   getStoryRunV1(runId: string) {
-    return this.request<ParentStoryRunEnvelopeV1>(`/v1/story-runs/${encodeURIComponent(runId)}`, 'GET');
+    return this.request<ParentStoryRunResultV1>(`/v1/story-runs/${encodeURIComponent(runId)}`, 'GET');
   }
 
   createStoryRunV1(input: ParentStoryRunCreateV1, actionIdentity: ParentActionIdentity) {
@@ -196,7 +198,7 @@ export class ParentApi implements ParentApiPort {
       input,
       30_000,
       { 'Idempotency-Key': actionIdentity },
-    );
+    ).then(liveRunOrLifecycleError);
   }
 
   confirmStoryRunSubjectV1(runId: string, revision: number, subject: string, actionIdentity: ParentActionIdentity) {
@@ -207,7 +209,7 @@ export class ParentApi implements ParentApiPort {
       { expected_understanding_revision: revision, confirmed_subject: subject },
       30_000,
       { 'Idempotency-Key': actionIdentity },
-    );
+    ).then(liveRunOrLifecycleError);
   }
 
   confirmStoryRunScriptV1(runId: string, revision: number, sha256: string, actionIdentity: ParentActionIdentity) {
@@ -218,7 +220,7 @@ export class ParentApi implements ParentApiPort {
       { expected_revision: revision, story_sha256: sha256 },
       30_000,
       { 'Idempotency-Key': actionIdentity },
-    );
+    ).then(liveRunOrLifecycleError);
   }
 
   createStoryRevisionV1(
@@ -237,13 +239,15 @@ export class ParentApi implements ParentApiPort {
       },
       1_850_000,
       { 'Idempotency-Key': actionIdentity },
-    );
+    ).then(liveRunOrLifecycleError);
   }
 
+  /** FEAT-081 C3b: the caller's run history, 25 per page, newest first (summary only). */
   listStoryRuns(profileId?: string, cursor?: string | null) {
-    void profileId;
-    void cursor;
-    return this.unavailable<ParentStoryRunHistoryPage>('run-history');
+    const query = new URLSearchParams({ limit: '25' });
+    if (cursor) query.set('cursor', cursor);
+    if (profileId) query.set('parent_profile_id', profileId);
+    return this.request<ParentStoryRunHistoryPage>(`/v1/story-runs?${query.toString()}`, 'GET', undefined, 30_000);
   }
 
   cancelStoryRun(runId: string) {
@@ -254,6 +258,30 @@ export class ParentApi implements ParentApiPort {
   deleteStoryRun(runId: string) {
     void runId;
     return this.unavailable<ParentRunLifecycleReceipt>('run-history');
+  }
+
+  /** FR-C-08 cancel: 202 with the lifecycle projection. The key is 1 to 128 printable ASCII characters. */
+  cancelStoryRunV1(runId: string, expectedRevision: number, actionIdentity: ParentActionIdentity) {
+    assertVisibleAsciiKey(actionIdentity);
+    return this.request<ParentStoryRunLifecycleEnvelopeV1>(
+      `/v1/story-runs/${encodeURIComponent(runId)}/cancel`,
+      'POST',
+      { expected_revision: expectedRevision },
+      30_000,
+      { 'Idempotency-Key': actionIdentity },
+    );
+  }
+
+  /** FR-C-08 delete of a COMPLETED, FAILED or ABANDONED run: 202 with the lifecycle projection; the request has no body. */
+  deleteStoryRunV1(runId: string, actionIdentity: ParentActionIdentity) {
+    assertVisibleAsciiKey(actionIdentity);
+    return this.request<ParentStoryRunLifecycleEnvelopeV1>(
+      `/v1/story-runs/${encodeURIComponent(runId)}`,
+      'DELETE',
+      undefined,
+      30_000,
+      { 'Idempotency-Key': actionIdentity },
+    );
   }
 
   listLessons() {
@@ -455,7 +483,7 @@ export class ParentApi implements ParentApiPort {
   ): Promise<T> {
     const baseUrl = this.apiBaseUrl.replace(/\/+$/, '');
     if (!baseUrl) throw new Error('Thiếu SKETCH2LIFE_MOBILE_API_BASE_URL trong .env gốc.');
-    const requestId = `parent-expo-${Date.now().toString(36)}`;
+    const requestId = createRequestId();
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
     try {
@@ -602,12 +630,39 @@ function stringValue(value: unknown): string | null {
   return typeof value === 'string' ? value : null;
 }
 
+/** The server accepts 1 to 128 visible ASCII characters (0x21 to 0x7E); a space is refused. */
+function assertVisibleAsciiKey(key: ParentActionIdentity): void {
+  if (!/^[\x21-\x7E]{1,128}$/.test(key)) {
+    throw new ParentApiError('IDEMPOTENCY_KEY_INVALID', 'local-request', 400);
+  }
+}
+
+/** A lifecycle answer where a live run is expected (the run was cancelled or deleted meanwhile). */
+function liveRunOrLifecycleError<T extends object>(payload: T): T {
+  const lifecycle = (payload as { lifecycle?: unknown }).lifecycle;
+  if (typeof lifecycle === 'object' && lifecycle !== null) {
+    const state = (lifecycle as { run_state?: unknown }).run_state;
+    const requestId = (payload as { request_id?: unknown }).request_id;
+    throw new ParentApiError(
+      state === 'DELETED' ? 'DELETED' : 'DELETE_PENDING',
+      typeof requestId === 'string' ? requestId : 'local-request',
+      200,
+    );
+  }
+  return payload;
+}
+
 function assertIdempotencyKey(key: ParentActionIdentity, maxLength: number, printableAscii = false): void {
   const validLength = key.length >= 1 && key.length <= maxLength;
   const validCharacters = !printableAscii || /^[\x20-\x7E]+$/.test(key);
   if (!validLength || !validCharacters) {
     throw new ParentApiError('IDEMPOTENCY_KEY_INVALID', 'local-request', 400);
   }
+}
+
+export function createRequestId(): string {
+  const randomSuffix = Array.from({ length: 12 }, () => Math.floor(Math.random() * 36).toString(36)).join('');
+  return `parent-${Date.now().toString(36)}-${randomSuffix}`;
 }
 
 function createIdempotencyKey(): string {

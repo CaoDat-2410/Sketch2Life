@@ -9,7 +9,7 @@ import type {
   LessonDetail,
   LessonInvitation,
   LessonSummary,
-  ParentCandidate,
+  ParentDrawingCandidateV1,
   ParentGroupInvitation,
   ParentProfileDeletePendingV1,
   ParentProfileViewV1,
@@ -18,6 +18,7 @@ import type {
   StoryDraft,
   SuggestedActivity,
 } from '../../domain/types';
+import { requireLiveStoryRun } from '../../application/storyRunResult';
 import {
   canStartProfileLearning,
   createUnavailableParentConsentState,
@@ -107,7 +108,7 @@ export function useParentController(application: ParentApplicationModule) {
   const [audio, setAudioValue] = useState<SelectedAudio | null>(null);
   const [contextRun, setContextRun] = useState<ParentStoryRunV1 | null>(null);
   const [contextConfirmed, setContextConfirmed] = useState(false);
-  const [candidate, setCandidate] = useState<ParentCandidate | null>(null);
+  const [candidate, setCandidate] = useState<ParentDrawingCandidateV1 | null>(null);
   const [subject, setSubject] = useState('');
   const [subjectConfirmed, setSubjectConfirmed] = useState(false);
   const [understandingRevision, setUnderstandingRevision] = useState(0);
@@ -735,7 +736,7 @@ export function useParentController(application: ParentApplicationModule) {
   }
 
   async function getLatestRun(runId: string): Promise<ParentStoryRunV1> {
-    const receipt = await application.learning.getRunV1(runId);
+    const receipt = requireLiveStoryRun(await application.learning.getRunV1(runId));
     if (receipt.story_run.run_id !== runId) {
       throw new ParentApplicationError('PARENT_STORY_REVISION_INVALID', 'The refreshed run did not match the current run.');
     }

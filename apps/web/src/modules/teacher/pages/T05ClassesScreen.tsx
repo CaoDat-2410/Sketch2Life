@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, LockKeyhole, RefreshCw, Users } from "lucide-react";
-import { PageHeading } from "../../../shared/FeatureAvailability";
+import { PageHeading } from "../../../shared/components/FeatureAvailability";
 import {
   BackendApiError,
   backendApi,
@@ -9,7 +9,7 @@ import {
   configuredOrganizationId,
   hasFirebaseAuthBridge,
   type Be1Class,
-} from "../../../shared/backendApi";
+} from "../../../shared/api/backendApi";
 
 type Profile = { child_id: string; display_name: string; age_months: number };
 type Consent = { consent_id: string; child_id: string; purpose_ref: string; state: string; effective: boolean };
