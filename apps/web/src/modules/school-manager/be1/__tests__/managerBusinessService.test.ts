@@ -43,9 +43,25 @@ describe("School Manager business API adapter", () => {
   it("lists parent groups with an opaque cursor", async () => {
     await managerBusinessService.parentGroups("next page");
     expect(mocks.adminApiRequest).toHaveBeenCalledWith(
-      "/lesson-library/v1/organizations/org%20%2Fqa/parent-groups?limit=50&cursor=next+page",
+      "/lesson-library/v1/organizations/org%20%2Fqa/parent-groups?cursor=next+page",
       {},
     );
+  });
+
+  it("lists the first page of parent groups without a query string", async () => {
+    await managerBusinessService.parentGroups();
+    expect(mocks.adminApiRequest).toHaveBeenCalledWith(
+      "/lesson-library/v1/organizations/org%20%2Fqa/parent-groups",
+      {},
+    );
+  });
+
+  it("never sends a page limit for parent groups", async () => {
+    await managerBusinessService.parentGroups(undefined);
+    await managerBusinessService.parentGroups("c");
+    const paths = mocks.adminApiRequest.mock.calls.map((call) => String(call[0]));
+    expect(paths).toHaveLength(2);
+    paths.forEach((path) => expect(path).not.toContain("limit="));
   });
 
   it("creates a parent group only with explicit idempotency", async () => {
