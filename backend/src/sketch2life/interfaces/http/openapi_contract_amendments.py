@@ -259,10 +259,11 @@ SYNTHETIC_RESPONSE_EXAMPLES: dict[tuple[str, str], dict[str, Any]] = {
     ("post", "/api/be1/v1/classes/{class_id}/assignments"): {
         "contract": "Be1AdultAssignmentV1",
         "assignment_id": "assignment-example-001",
-        "subject": "adult-example-002",
+        "candidate_ref": "00000000-0000-4000-8000-000000000002",
         "role": "teacher",
         "class_id": "class-example-001",
         "active": True,
+        "assignment_revision": 2,
     },
     ("get", "/api/be1/v1/organizations/{organization_id}/classes"): {
         "contract": "Be1ClassListV1",
@@ -271,6 +272,8 @@ SYNTHETIC_RESPONSE_EXAMPLES: dict[tuple[str, str], dict[str, Any]] = {
                 "class_id": "class-example-001",
                 "display_name": "Example Class",
                 "state": "active",
+                "assignment_revision": 1,
+                "has_active_teacher": False,
             }
         ],
     },

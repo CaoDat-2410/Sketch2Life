@@ -5,15 +5,26 @@
 
 from __future__ import annotations
 
+import base64
+import binascii
+import hashlib
+import json
+import re
 import secrets
 from datetime import UTC, datetime
+from typing import Annotated, Any
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import func, select
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, Response, status
+from sqlalchemy import Select, exists, func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from sketch2life.application.ports.identity import VerifiedPrincipal
+from sketch2life.application.ports.identity import (
+    IdentityAccountProvisioner,
+    IdentityAccountProvisioningUnavailable,
+    VerifiedPrincipal,
+)
 from sketch2life.contracts.schemas.be1_runtime import (
     Be1PilotProfileListResponse,
     CreateAssignmentRequest,
@@ -25,6 +36,7 @@ from sketch2life.domain.core_foundation import CoreRuleViolation, validate_age_m
 from sketch2life.domain.eligibility import PROOF_VERSION
 from sketch2life.infrastructure.persistence.be1_models import (
     AdultIdentityModel,
+    Be1CommandReceiptModel,
     ClassroomModel,
     ConsentRecordModel,
     EnrollmentModel,
@@ -33,6 +45,7 @@ from sketch2life.infrastructure.persistence.be1_models import (
     OrganizationModel,
     SyntheticEligibilityProofModel,
 )
+from sketch2life.interfaces.http.api_conventions import limit_query, raise_stale_revision
 from sketch2life.interfaces.http.be1_runtime import (
     Be1Runtime,
     get_db,
@@ -56,6 +69,125 @@ router = APIRouter(prefix="/api/be1/v1", tags=["BE1 registry"], responses=BE1_ER
 
 def _scope_denied() -> HTTPException:
     return failure(404, "RESOURCE_NOT_FOUND", "The requested resource was not found")
+
+
+# --- FEAT-066 C6 M9-B: first Teacher assignment (plan Draft 3) ------------------------------
+_ETAG = re.compile(r'^"([1-9][0-9]*)"$')
+
+
+def class_assignment_revision(teacher_row_count: int) -> int:
+    """Derived class assignment revision: 1 + teacher rows of the class (rows are never deleted)."""
+    return 1 + teacher_row_count
+
+
+def _active_teacher_row(organization_id: str) -> Any:
+    """Correlated EXISTS: the identity holds an active teacher row in the organization."""
+    return exists().where(
+        OrganizationAssignmentModel.organization_id == organization_id,
+        OrganizationAssignmentModel.subject == AdultIdentityModel.subject,
+        OrganizationAssignmentModel.role == "teacher",
+        OrganizationAssignmentModel.active.is_(True),
+    )
+
+
+def eligible_teachers_select(organization_id: str) -> Select[Any]:
+    """Candidates (M9B-3): active Teacher identities with an active teacher row in the org."""
+    return select(AdultIdentityModel).where(
+        AdultIdentityModel.state == "active",
+        AdultIdentityModel.account_role == "teacher",
+        _active_teacher_row(organization_id),
+    )
+
+
+def candidate_lock_select(organization_id: str, candidate_ref: str) -> Select[Any]:
+    """One statement: the eligible candidate locked FOR SHARE (blocks a concurrent role change)."""
+    return (
+        eligible_teachers_select(organization_id)
+        .where(AdultIdentityModel.account_id == candidate_ref)
+        .with_for_update(read=True, of=AdultIdentityModel)
+        .execution_options(populate_existing=True)
+    )
+
+
+def class_lock_select(class_id: str) -> Select[Any]:
+    """The active class row locked FOR UPDATE; serialises assignment commands for the class."""
+    return (
+        select(ClassroomModel)
+        .where(ClassroomModel.class_id == class_id, ClassroomModel.state == "active")
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
+
+
+def _teacher_counts(
+    db: Session, organization_id: str, class_ids: list[str]
+) -> dict[str, tuple[int, int]]:
+    """(all teacher rows, active teacher rows) per class, one grouped query."""
+    if not class_ids:
+        return {}
+    rows = db.execute(
+        select(
+            OrganizationAssignmentModel.class_id,
+            func.count(),
+            func.count().filter(OrganizationAssignmentModel.active.is_(True)),
+        )
+        .where(
+            OrganizationAssignmentModel.organization_id == organization_id,
+            OrganizationAssignmentModel.role == "teacher",
+            OrganizationAssignmentModel.class_id.in_(class_ids),
+        )
+        .group_by(OrganizationAssignmentModel.class_id)
+    ).all()
+    return {str(class_id): (int(total), int(active)) for class_id, total, active in rows}
+
+
+def _strong_revision(if_match: str | None) -> int:
+    if if_match is None:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "code": "INVALID_REQUEST",
+                "field_errors": [{"field": "If-Match", "code": "REQUIRED"}],
+            },
+        )
+    match = _ETAG.fullmatch(if_match.strip())
+    if match is None:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "code": "INVALID_REQUEST",
+                "field_errors": [{"field": "If-Match", "code": "INVALID_FORMAT"}],
+            },
+        )
+    return int(match.group(1))
+
+
+def _encode_candidate_cursor(account_id: str) -> str:
+    payload = json.dumps({"account_id": account_id, "v": 1}, sort_keys=True).encode("utf-8")
+    return base64.urlsafe_b64encode(payload).decode("ascii").rstrip("=")
+
+
+def _decode_candidate_cursor(cursor: str) -> str:
+    try:
+        encoded = cursor.encode("ascii")
+        decoded = json.loads(
+            base64.b64decode(encoded + b"=" * (-len(encoded) % 4), altchars=b"-_", validate=True)
+        )
+        if not isinstance(decoded, dict) or set(decoded) != {"account_id", "v"}:
+            raise ValueError
+        if decoded["v"] != 1 or not isinstance(decoded["account_id"], str):
+            raise ValueError
+        if not 1 <= len(decoded["account_id"]) <= 36:
+            raise ValueError
+        return decoded["account_id"]
+    except (binascii.Error, json.JSONDecodeError, UnicodeEncodeError, ValueError):
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "code": "INVALID_REQUEST",
+                "field_errors": [{"field": "cursor", "code": "INVALID_FORMAT"}],
+            },
+        ) from None
 
 
 def _require_m2_assignment(
@@ -126,17 +258,65 @@ def current_assignments(
     }
 
 
-@router.post("/classes/{class_id}/assignments", status_code=status.HTTP_201_CREATED)
-def assign_class_teacher(
-    class_id: str,
-    payload: CreateAssignmentRequest,
+@router.get("/organizations/{organization_id}/teacher-candidates")
+def list_teacher_candidates(
+    organization_id: str,
+    request: Request,
+    limit: int = limit_query(),
+    cursor: str | None = Query(default=None, min_length=1, max_length=512),
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
 ) -> dict[str, object]:
+    """FEAT-066 M9-B: same-organization Teacher candidates, minimum fields (O-3a, O-3b)."""
+    _require_m2_assignment(db, principal, organization_id, roles={"school_admin"})
+    statement = eligible_teachers_select(organization_id).order_by(AdultIdentityModel.account_id)
+    if cursor is not None:
+        after = _decode_candidate_cursor(cursor)
+        statement = statement.where(AdultIdentityModel.account_id > after)
+    rows = list(db.scalars(statement.limit(limit + 1)))
+    has_more = len(rows) > limit
+    rows = rows[:limit]
+    provisioner: IdentityAccountProvisioner = request.app.state.identity_account_provisioner
+    try:
+        profiles = provisioner.get_account_profiles([row.subject for row in rows]) if rows else {}
+    except IdentityAccountProvisioningUnavailable:
+        raise failure(
+            503, "IDENTITY_PROVIDER_UNAVAILABLE", "Identity service is temporarily unavailable"
+        ) from None
+    return {
+        "contract": "Be1TeacherCandidatePageV1",
+        "items": [
+            {
+                "candidate_ref": row.account_id,
+                "display_name": (
+                    profile.display_name
+                    if (profile := profiles.get(row.subject)) is not None
+                    else None
+                ),
+            }
+            for row in rows
+        ],
+        "next_cursor": _encode_candidate_cursor(rows[-1].account_id) if has_more and rows else None,
+    }
+
+
+@router.post("/classes/{class_id}/assignments")
+def assign_class_teacher(
+    class_id: str,
+    payload: CreateAssignmentRequest,
+    response: Response,
+    idempotency_key: Annotated[
+        str, Header(alias="Idempotency-Key", min_length=1, max_length=128)
+    ],
+    if_match: Annotated[str | None, Header(alias="If-Match")] = None,
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    db: Session = Depends(get_db),
+) -> dict[str, object]:
+    """FEAT-066 M9-B: first Teacher of a class; 200 + assignment revision (SRS §21.2 line 1650)."""
     classroom = db.scalar(
-        select(ClassroomModel)
-        .where(ClassroomModel.class_id == class_id, ClassroomModel.state == "active")
-        .with_for_update()
+        select(ClassroomModel).where(
+            ClassroomModel.class_id == class_id, ClassroomModel.state == "active"
+        )
     )
     if classroom is None:
         raise _scope_denied()
@@ -148,39 +328,66 @@ def assign_class_teacher(
         roles={"school_admin"},
         class_id=class_id,
     )
-    active_teacher_count = db.scalar(
-        select(func.count())
-        .select_from(OrganizationAssignmentModel)
-        .where(
-            OrganizationAssignmentModel.organization_id == organization_id,
-            OrganizationAssignmentModel.class_id == class_id,
-            OrganizationAssignmentModel.role == "teacher",
-            OrganizationAssignmentModel.active.is_(True),
-        )
+    expected_revision = _strong_revision(if_match)
+    if db.scalar(class_lock_select(class_id)) is None:
+        raise _scope_denied()
+    scope = f"POST /classes/{class_id}/assignments"
+    fingerprint = hashlib.sha256(
+        json.dumps(
+            {"candidate_ref": payload.candidate_ref, "if_match": expected_revision},
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    ).hexdigest()
+    receipt = db.get(Be1CommandReceiptModel, (principal.subject, scope, idempotency_key))
+    if receipt is not None:
+        if receipt.request_fingerprint != fingerprint:
+            raise failure(
+                400,
+                "INVALID_IDEMPOTENCY_KEY",
+                "Idempotency-Key was already used for another request",
+            )
+        stored = dict(receipt.response_json)
+        db.rollback()
+        response.headers["ETag"] = f'"{stored["assignment_revision"]}"'
+        return stored
+    total_rows, active_rows = _teacher_counts(db, organization_id, [class_id]).get(
+        class_id, (0, 0)
     )
-    if active_teacher_count:
+    current_revision = class_assignment_revision(total_rows)
+    if current_revision != expected_revision:
+        db.rollback()
+        raise_stale_revision(current_version=current_revision, etag=str(current_revision))
+    if active_rows:
         raise failure(
             409,
             "CLASS_TEACHER_EXISTS",
             "Class already has an active Teacher",
         )
-    existing_identity = db.get(AdultIdentityModel, payload.subject)
-    if existing_identity is None:
-        db.add(AdultIdentityModel(subject=payload.subject, issuer=principal.issuer, state="active"))
-        db.flush()
-    elif existing_identity.issuer != principal.issuer:
-        raise failure(409, "IDENTITY_ISSUER_MISMATCH", "Identity belongs to a different provider")
+    candidate = db.scalar(candidate_lock_select(organization_id, payload.candidate_ref))
+    if candidate is None:
+        # M9B-7: unknown, inactive, non-Teacher or other-organization candidate.
+        raise _scope_denied()
     assignment_id = str(uuid4())
-    row = OrganizationAssignmentModel(
-        assignment_id=assignment_id,
-        organization_id=organization_id,
-        subject=payload.subject,
-        class_id=class_id,
-        role="teacher",
-        active=True,
-    )
-    db.add(row)
-    db.flush()
+    new_revision = current_revision + 1
+    try:
+        db.add(
+            OrganizationAssignmentModel(
+                assignment_id=assignment_id,
+                organization_id=organization_id,
+                subject=candidate.subject,
+                class_id=class_id,
+                role="teacher",
+                active=True,
+            )
+        )
+        db.flush()
+    except IntegrityError:
+        # An earlier inactive row for this Teacher and class (reassignment is UC-12).
+        db.rollback()
+        raise failure(
+            409, "RESOURCE_CONFLICT", "The command conflicts with current records"
+        ) from None
     audit(
         db,
         organization_id=organization_id,
@@ -196,15 +403,28 @@ def assign_class_teacher(
         event_type="be1.identity.assignment_created.v1",
         payload={"assignment_id": assignment_id, "role": "teacher"},
     )
-    commit(db)
-    return {
+    body: dict[str, object] = {
         "contract": "Be1AdultAssignmentV1",
         "assignment_id": assignment_id,
-        "subject": payload.subject,
+        "candidate_ref": payload.candidate_ref,
         "role": "teacher",
         "class_id": class_id,
         "active": True,
+        "assignment_revision": new_revision,
     }
+    db.add(
+        Be1CommandReceiptModel(
+            principal_ref=principal.subject,
+            operation_scope=scope,
+            idempotency_key=idempotency_key,
+            organization_id=organization_id,
+            request_fingerprint=fingerprint,
+            response_json=body,
+        )
+    )
+    commit(db)
+    response.headers["ETag"] = f'"{new_revision}"'
+    return body
 
 
 @router.get("/organizations/{organization_id}/classes")
@@ -223,10 +443,20 @@ def list_classes(
     if not org_wide:
         statement = statement.where(ClassroomModel.class_id.in_(allowed_class_ids))
     rows = db.scalars(statement.order_by(ClassroomModel.created_at)).all()
+    # FEAT-066 M9-B: additive fields the assignment screen needs (one grouped query).
+    counts = _teacher_counts(db, organization_id, [row.class_id for row in rows])
     return {
         "contract": "Be1ClassListV1",
         "items": [
-            {"class_id": row.class_id, "display_name": row.display_name, "state": row.state}
+            {
+                "class_id": row.class_id,
+                "display_name": row.display_name,
+                "state": row.state,
+                "assignment_revision": class_assignment_revision(
+                    counts.get(row.class_id, (0, 0))[0]
+                ),
+                "has_active_teacher": counts.get(row.class_id, (0, 0))[1] > 0,
+            }
             for row in rows
         ],
     }

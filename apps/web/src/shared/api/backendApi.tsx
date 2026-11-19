@@ -374,11 +374,6 @@ export const backendApi = {
     headers: { "Idempotency-Key": idempotencyKey },
     body: JSON.stringify({ class_id: classId, child_id: childId, purpose_ref: purposeRef }),
   }),
-  createAssignment: (organizationId: string, subject: string, role: "school_admin" | "teacher", classId?: string, idempotencyKey = createRequestId()) => backendRequest<Record<string, unknown>>(`${orgPath(organizationId)}/assignments`, {
-    method: "POST",
-    headers: { "Idempotency-Key": idempotencyKey },
-    body: JSON.stringify({ subject, role, ...(classId ? { class_id: classId } : {}) }),
-  }),
   createClass: (organizationId: string, displayName: string) => backendRequest<Be1CreatedClass>(`${orgPath(organizationId)}/classes`, {
     method: "POST", body: JSON.stringify({ display_name: displayName }),
   }),

@@ -10,7 +10,7 @@ from types import SimpleNamespace
 from typing import Any, cast
 
 import pytest
-from fastapi import HTTPException
+from fastapi import HTTPException, Response
 from sqlalchemy.orm import Session
 
 from sketch2life.application.ports.identity import VerifiedPrincipal
@@ -126,6 +126,10 @@ def test_assign_class_teacher_missing_and_unassigned_class_look_the_same() -> No
         lambda: be1_registry.assign_class_teacher(
             "class-x",
             cast(Any, SimpleNamespace()),
+            # FEAT-066 M9-B: the command now takes the response, key and If-Match too.
+            response=Response(),
+            idempotency_key="synthetic-key",
+            if_match='"1"',
             principal=PRINCIPAL,
             db=cast(Session, _FakeSession(_identity(role="school_manager"), [], classroom=None)),
         )
@@ -134,6 +138,10 @@ def test_assign_class_teacher_missing_and_unassigned_class_look_the_same() -> No
         lambda: be1_registry.assign_class_teacher(
             "class-x",
             cast(Any, SimpleNamespace()),
+            # FEAT-066 M9-B: the command now takes the response, key and If-Match too.
+            response=Response(),
+            idempotency_key="synthetic-key",
+            if_match='"1"',
             principal=PRINCIPAL,
             db=cast(
                 Session,

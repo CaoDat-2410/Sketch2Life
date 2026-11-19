@@ -10854,14 +10854,15 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                               'schema_name': 'HTTPValidationError'})}}
 
 MOUNTED_OPERATIONS[('post', '/api/be1/v1/classes/{class_id}/assignments')] = {   'purpose': 'Gán một Teacher vào lớp.',
-    'request_inputs': 'path `class_id*`: string; header `X-Request-ID`: string; application/json '
-                      '(required): CreateAssignmentRequest {subject*:string}',
+    'request_inputs': 'path `class_id*`: string; header `X-Request-ID`: string; '
+                      'header `Idempotency-Key*`: string; header `If-Match`: string; application/json '
+                      '(required): CreateAssignmentRequest {candidate_ref*:string}',
     'surface': 'BE1 / classroom',
     'tag': 'BE1 — Organizations & Classes',
     'handler': 'be1_registry.py::assign_class_teacher',
     'authentication': 'HTTPBearer (bearer)',
     'verification': 'S1a-T class assignment contract; PostgreSQL acceptance is owner-only and not run here',
-    'responses': (   {   'status': '201',
+    'responses': (   {   'status': '200',
                          'description': 'Successful Response',
                          'media_type': 'application/json',
                          'schema_name': 'object'},
@@ -11274,6 +11275,8 @@ IDEMPOTENCY_MISMATCH_OPERATION_KEYS: Final[tuple[tuple[str, str], ...]] = (
         "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}/access-grants/{access_grant_id}",
     ),
     ("delete", "/api/lesson-library/v1/upload-sessions/{upload_session_id}"),
+    # FEAT-066 M9-B (SRS §21.4): the first Teacher assignment command.
+    ("post", "/api/be1/v1/classes/{class_id}/assignments"),
 )
 
 _IDEMPOTENCY_MISMATCH_RESPONSE: Final[ResponseMetadata] = {

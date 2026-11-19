@@ -37,7 +37,9 @@ class CreateClassRequest(Be1Request):
 
 
 class CreateAssignmentRequest(Be1Request):
-    subject: Annotated[str, StringConstraints(min_length=1, max_length=256)]
+    """FEAT-066 M9-B (O-3b): the opaque candidate ref from the candidate list, never a subject."""
+
+    candidate_ref: Annotated[str, StringConstraints(min_length=1, max_length=36)]
 
 
 class CreateProfileRequest(Be1Request):

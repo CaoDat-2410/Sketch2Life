@@ -4,7 +4,7 @@ from types import SimpleNamespace
 from typing import cast
 
 import pytest
-from fastapi import HTTPException
+from fastapi import HTTPException, Response
 from pydantic import ValidationError
 from sqlalchemy.dialects import postgresql
 
@@ -26,11 +26,14 @@ def _principal(subject: str = "synthetic-school-manager") -> VerifiedPrincipal:
 
 
 def test_teacher_requests_do_not_accept_client_identity_or_consent_fields() -> None:
-    assignment = CreateAssignmentRequest(subject="synthetic-teacher")
-    assert assignment.model_dump() == {"subject": "synthetic-teacher"}
+    # FEAT-066 M9-B (O-3b): the command takes only the opaque candidate ref, never a subject.
+    assignment = CreateAssignmentRequest(candidate_ref="synthetic-candidate")
+    assert assignment.model_dump() == {"candidate_ref": "synthetic-candidate"}
     with pytest.raises(ValidationError):
-        CreateAssignmentRequest(
-            subject="synthetic-teacher",
+        CreateAssignmentRequest(subject="synthetic-teacher")  # type: ignore[call-arg]
+    with pytest.raises(ValidationError):
+        CreateAssignmentRequest(  # type: ignore[call-arg]
+            candidate_ref="synthetic-candidate",
             role="teacher",
             class_id="synthetic-class",
         )
@@ -68,90 +71,35 @@ def test_teacher_requests_do_not_accept_client_identity_or_consent_fields() -> N
         )
 
 
-class _AssignmentSession:
-    def __init__(self, classroom: object, teacher_count: int) -> None:
-        self.values = [classroom, teacher_count]
-        self.statements: list[object] = []
-        self.added: list[object] = []
-
-    def scalar(self, statement: object) -> object:
-        self.statements.append(statement)
-        return self.values.pop(0)
-
-    def get(self, _model: object, _key: str) -> object:
-        return SimpleNamespace(issuer="synthetic-test-issuer")
-
-    def add(self, row: object) -> None:
-        self.added.append(row)
-
-    def flush(self) -> None:
-        return None
+def test_class_lock_select_takes_for_update() -> None:
+    """FEAT-066 M9-B (review R2-05): the class row is locked before the count and the insert."""
+    statement = be1_registry.class_lock_select("synthetic-class")
+    sql = str(statement.compile(dialect=postgresql.dialect()))
+    assert "FOR UPDATE" in sql
+    assert "be1_classrooms" in sql
 
 
-def test_class_teacher_assignment_locks_class_before_count_and_create(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    classroom = SimpleNamespace(class_id="synthetic-class", organization_id="synthetic-org")
-    db = _AssignmentSession(classroom, 0)
-    manager_assignment = SimpleNamespace(class_id=None, role="school_admin")
-    monkeypatch.setattr(
-        be1_registry,
-        "require_assignment",
-        lambda *_args, **_kwargs: (manager_assignment,),
-    )
-    monkeypatch.setattr(be1_registry, "audit", lambda *_args, **_kwargs: None)
-    monkeypatch.setattr(be1_registry, "event", lambda *_args, **_kwargs: None)
-    monkeypatch.setattr(be1_registry, "commit", lambda *_args, **_kwargs: None)
-
-    response = be1_registry.assign_class_teacher(
-        "synthetic-class",
-        CreateAssignmentRequest(subject="synthetic-teacher"),
-        _principal(),
-        cast(be1_registry.Session, db),
-    )
-
-    statement_sql = str(db.statements[0].compile(dialect=postgresql.dialect()))
-    assert "FOR UPDATE" in statement_sql
-    assert response["role"] == "teacher"
-    assert response["class_id"] == "synthetic-class"
-    assert len(db.added) == 1
-    added_row = cast(SimpleNamespace, db.added[0])
-    assert added_row.organization_id == "synthetic-org"
+def test_candidate_lock_select_is_one_statement_with_eligibility_for_share() -> None:
+    """The candidate is read and locked FOR SHARE in the same statement as its eligibility."""
+    statement = be1_registry.candidate_lock_select("synthetic-org", "synthetic-candidate")
+    sql = str(statement.compile(dialect=postgresql.dialect()))
+    assert "FOR SHARE OF be1_adult_identities" in sql
+    assert "EXISTS" in sql
+    assert "account_role" in sql and "state" in sql
 
 
-def test_second_active_class_teacher_is_rejected_without_identity_disclosure(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    classroom = SimpleNamespace(class_id="synthetic-class", organization_id="synthetic-org")
-    db = _AssignmentSession(classroom, 1)
-    manager_assignment = SimpleNamespace(class_id=None, role="school_admin")
-    monkeypatch.setattr(
-        be1_registry,
-        "require_assignment",
-        lambda *_args, **_kwargs: (manager_assignment,),
-    )
-
-    with pytest.raises(HTTPException) as error:
-        be1_registry.assign_class_teacher(
-            "synthetic-class",
-            CreateAssignmentRequest(subject="synthetic-second-teacher"),
-            _principal(),
-            cast(be1_registry.Session, db),
-        )
-
-    assert error.value.status_code == 409
-    assert error.value.detail == {
-        "code": "CLASS_TEACHER_EXISTS",
-        "message": "Class already has an active Teacher",
-    }
-    assert "synthetic-second-teacher" not in str(error.value.detail)
-    assert db.added == []
+def test_class_assignment_revision_grows_with_teacher_rows() -> None:
+    assert be1_registry.class_assignment_revision(0) == 1
+    assert be1_registry.class_assignment_revision(3) == 4
 
 
 def test_missing_class_assignment_uses_generic_scope_denial(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    db = _AssignmentSession(None, 0)
+    class _NoClassSession:
+        def scalar(self, _statement: object) -> object:
+            return None
+
     monkeypatch.setattr(
         be1_registry,
         "require_assignment",
@@ -161,9 +109,12 @@ def test_missing_class_assignment_uses_generic_scope_denial(
     with pytest.raises(HTTPException) as error:
         be1_registry.assign_class_teacher(
             "synthetic-missing-class",
-            CreateAssignmentRequest(subject="synthetic-teacher"),
+            CreateAssignmentRequest(candidate_ref="synthetic-candidate"),
+            Response(),
+            "synthetic-key",
+            '"1"',
             _principal(),
-            cast(be1_registry.Session, db),
+            cast(be1_registry.Session, _NoClassSession()),
         )
 
     assert error.value.status_code == 404
@@ -171,7 +122,6 @@ def test_missing_class_assignment_uses_generic_scope_denial(
         "code": "RESOURCE_NOT_FOUND",
         "message": "The requested resource was not found",
     }
-    assert db.added == []
 
 
 def test_profile_requires_exact_class_teacher_assignment(
