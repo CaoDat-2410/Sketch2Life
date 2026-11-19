@@ -17,6 +17,7 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  MessageSquareText,
   Presentation,
   School,
   Settings2,
@@ -25,9 +26,9 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
-import { BrandWordmark } from "./BrandMark";
-import { AccessibleDialog } from "./ui";
-import { authService } from "../modules/school-manager/be1/services/authService";
+import { BrandWordmark } from "../components/BrandMark";
+import { AccessibleDialog } from "../components/ui";
+import { authService } from "../../modules/school-manager/be1/services/authService";
 
 export type PortalNavigationItem = {
   href: string;
@@ -73,21 +74,34 @@ export const SCHOOL_MANAGER_NAVIGATION: PortalNavigationGroup[] = [
     items: [
       { href: "/school", label: "Tổng quan", icon: LayoutDashboard, state: "available" },
       { href: "/school/classes", label: "Lớp học", icon: School, state: "available" },
-      { href: "/school/review-content", label: "Duyệt học liệu", icon: BookOpen, state: "available" },
-      { href: "/school/teachers", label: "Giáo viên & roster", icon: Users, state: "waiting" },
+      { href: "/school/teachers", label: "Hồ sơ & consent", icon: ClipboardList, state: "available" },
+      { href: "/school/teacher-assignments", label: "Phân công giáo viên", icon: GraduationCap, state: "waiting" },
+      { href: "/school/teacher-groups", label: "Nhóm giáo viên", icon: Users, state: "waiting" },
+      { href: "/school/parent-groups", label: "Nhóm phụ huynh", icon: Users, state: "available" },
     ],
   },
   {
-    label: "Dịch vụ",
+    label: "Học liệu & phản hồi",
+    items: [
+      { href: "/school/review-content", label: "Duyệt học liệu", icon: BookOpen, state: "available" },
+      { href: "/school/feedback", label: "Phản hồi trong trường", icon: MessageSquareText, state: "waiting" },
+    ],
+  },
+  {
+    label: "Nguồn lực",
     items: [
       { href: "/school/capacity", label: "Sức chứa", icon: Gauge, state: "waiting" },
+      { href: "/school/quota", label: "Hạn mức video", icon: Activity, state: "waiting" },
       { href: "/school/billing", label: "Thanh toán", icon: CreditCard, state: "waiting" },
-      { href: "/school/quota", label: "Hạn mức", icon: Activity, state: "waiting" },
+    ],
+  },
+  {
+    label: "Thông báo",
+    items: [
       { href: "/school/inbox", label: "Hộp thư", icon: Inbox, state: "waiting" },
     ],
   },
 ];
-
 export const PLATFORM_ADMIN_NAVIGATION: PortalNavigationGroup[] = [
   {
     label: "Vận hành",
@@ -205,7 +219,7 @@ export function WebAppShell({
   };
 
   return (
-    <div className={"s2l-app-shell" + (menuOpen ? " is-menu-open" : "")} onKeyDown={(event) => {
+    <div className={"s2l-app-shell" + (roleLabel === "School Manager" ? " is-school-manager" : "") + (menuOpen ? " is-menu-open" : "")} onKeyDown={(event) => {
       if (event.key === "Escape" && menuOpen) closeMenu();
     }}>
       <a className="s2l-skip-link" href="#s2l-main">Bỏ qua điều hướng</a>
@@ -258,10 +272,18 @@ export function WebAppShell({
           </div>
           <div className="s2l-topbar-tools">
             <span className="s2l-mode-chip"><span aria-hidden="true" />{modeLabel}</span>
-            <button type="button" className="s2l-account-button" onClick={() => navigate(roleLabel === "Giáo viên" ? "/teacher/t11-profile" : roleLabel === "School Manager" ? "/school/teachers" : "/platform/a02-platform-operations?panel=permissions")}>
-              <span className="s2l-account-avatar" aria-hidden="true">{roleLabel === "Giáo viên" ? "GV" : roleLabel === "School Manager" ? "SM" : "PA"}</span>
-              <span>{roleLabel}</span><ArrowUpRight size={15} aria-hidden="true" />
-            </button>
+            {roleLabel === "School Manager" ? (
+              <span className="s2l-account-indicator" role="group" aria-label="Vai trò hiện tại: School Manager">
+                <span className="s2l-account-avatar" aria-hidden="true">SM</span>
+                <span>School Manager</span>
+                <ShieldCheck size={16} aria-hidden="true" />
+              </span>
+            ) : (
+              <button type="button" className="s2l-account-button" onClick={() => navigate(roleLabel === "Giáo viên" ? "/teacher/t11-profile" : "/platform/a02-platform-operations?panel=permissions")}>
+                <span className="s2l-account-avatar" aria-hidden="true">{roleLabel === "Giáo viên" ? "GV" : "PA"}</span>
+                <span>{roleLabel}</span><ArrowUpRight size={15} aria-hidden="true" />
+              </button>
+            )}
           </div>
         </header>
         {toast && <div className={"s2l-toast is-" + toast.kind} role="status" aria-live="polite">{toast.text}</div>}

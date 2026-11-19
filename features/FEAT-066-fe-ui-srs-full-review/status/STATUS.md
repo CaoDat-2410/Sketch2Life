@@ -479,3 +479,177 @@ Status: **PARTIAL — runtime behaviour verified, catalog pending.** This is the
 - **Record:** `evidence/notes/MGR_8_EVIDENCE_INDEPENDENT_REVIEW_20261118.md` (6,705 B, `8AE285D1B68DFFB2…`).
 - **Commit:** the owner word "Làm G0 luôn" covers the record, one S-LL task commit and a push to the M2 branch, which updates PR #30 into `dev`.
 - **Next:** Phase B, starting with CONV-1.
+## Revision 31 — Teacher-first API/UI plan — 2026-11-16
+
+- Status: PLANNED — AWAITING IMPLEMENTATION APPROVAL.
+- Plan: features/FEAT-066-fe-ui-srs-full-review/plan/PLAN_REV31_TEACHER_API_UI_REBUILD_20261116.md; SHA-256 2EB6235B8F8DFB5EB6EC4098FA2892687102DD4D922360E16751F6D21DA0E5E7.
+- Requirements: canonical unsigned FEAT-063 v2.7-draft Rev60. API source baseline: origin/dev 1c9148e88600a101887e477541c4c4893ba1c7df. Teacher UI baseline: codex/fe-ui-web-remediation b72f9e46f9c63e019807d7c4a2c309b0aa46a133.
+- EV-037 records the static route/guard/UI crosswalk and its limits. It confirms existing assignment/class/roster/lesson/upload routes, one backend-only lesson-version route, development-gated Teacher AI routes, and the missing occurrence/sample/job/playback/quota/supporting contracts.
+- No code, backend, contract, visual asset or approval register changed. No runtime API call, test/build, commit or push was performed for Rev31.
+- Next gate: owner approves a specific implementation scope and updates approvals/TASK_APPROVAL.md; resolve or preserve SRS owner-open decisions and the OI-17 visual review gate before affected implementation.
+## Revision 32 — Platform Admin available API wiring — 2026-11-16
+
+- Status: IMPLEMENTED; runtime response not verified in this task.
+- Approved plan: features/FEAT-066-fe-ui-srs-full-review/plan/PLAN_REV32_PLATFORM_ADMIN_AVAILABLE_API_INTEGRATION_20261116.md; SHA-256 56A6985B7D486E79F1B8C9AB39B4C56275BC401C7ECF4730014D01BC167A1A92. Approval: root approvals/TASK_APPROVAL.md, FEAT-066 Rev32.
+- Changed apps/web/src/modules/platform-admin/pages/AdminScreens.tsx: health probe now calls the configured API base instead of requiring loopback; blocked/loading/response/error/retry copy is explicit and does not claim subsystem health.
+- Preserved existing GET /api/auth/v1/me and Platform Admin account GET/POST/PATCH integrations. No account mutation behavior changed. Moderation remains unavailable pending queue/detail reads and Content Admin permission enforcement.
+- Validation: git diff --check passed; direct trailing-whitespace scan clean. No live API request, test/build, commit or push.
+- Evidence: features/FEAT-066-fe-ui-srs-full-review/evidence/notes/EV-038_PLATFORM_ADMIN_CONFIGURED_HEALTH_API_REV32_20261116.md. SRS remains unsigned Rev60; Q-13 and OI-17 remain open.
+## Revision 33 — Docker API verification and FE handoff — 2026-11-17
+
+- Status: LOCAL HANDOFF ACTIVE; backend/API scope partial due unavailable MinIO registry image.
+- Plan: features/FEAT-066-fe-ui-srs-full-review/plan/PLAN_REV33_DOCKER_API_FE_SMOKE_20261117.md; SHA-256 0AB2F79A26EDCBA27871C559016A8A6A56466DA82867519E2FB147995C8380F0. Approval: approvals/TASK_APPROVAL.md, FEAT-066 Rev33.
+- Docker Desktop running. PostgreSQL is healthy on 5432. API container `sketch2life-api-1` is healthy on 127.0.0.1:8000 using a local image equivalent to backend/Dockerfile except the absent optional renderer static bundle.
+- `GET /health`: 200. Unauthenticated `GET /api/auth/v1/me` and `GET /api/platform-admin/v1/accounts`: 401; no credentials or account data. Successful authenticated account operations remain unverified.
+- Quay MinIO pull failed with 401; MinIO, ClamAV and Redis are not running. API routes that need those services are not ready. The standard OpenAPI projection omits auth/account route paths.
+- Direct CORS is absent. Existing FE on 127.0.0.1:5173 is preserved. Proxy FE on 127.0.0.1:5174/login returns 200; proxied health returns 200 and protected routes return 401. Use 5174 for same-origin testing.
+- No app tests or frontend production build. Docker image build and ignored temporary Vite config were used to make the local handoff. No tracked application code/config change, commit or push in Rev33.
+- Evidence: features/FEAT-066-fe-ui-srs-full-review/evidence/notes/EV-039_DOCKER_API_FE_HANDOFF_20261117.md.
+## Revision 34 — Platform Admin test account — 2026-11-17
+
+- Status: COMPLETE; account ready for owner FE testing.
+- Plan: features/FEAT-066-fe-ui-srs-full-review/plan/PLAN_REV34_PLATFORM_ADMIN_TEST_ACCOUNT_20261117.md; SHA-256 3EBDE69AFFA105F09DFB04901DA5539EE555361EBCBC3F8D035831A5291A9EBE. Approval: approvals/TASK_APPROVAL.md, FEAT-066 Rev34.
+- Project: verified Firebase `sketch2life-dev`; local Docker PostgreSQL only. Applied `be1_core@head` and `lesson_library@head` to the previously empty schema; no volume reset or unrelated branch migration.
+- One Platform Admin identity provisioned through the documented bootstrap. Firebase sign-in: 200. Auth role endpoint: `platform_admin`. Account list: 200, total 1. No email delivery; test email is reserved `example.com` and unverified.
+- FE test URL: http://127.0.0.1:5174/login, with dev Firebase config and same-origin API proxy. Existing port 5173 is preserved.
+- Credential and ID token are absent from evidence/repo files and are returned directly to the owner. No Content Admin capability, child-media access, production action, app test suite, code edit, commit or push.
+- Evidence: features/FEAT-066-fe-ui-srs-full-review/evidence/notes/EV-040_PLATFORM_ADMIN_TEST_ACCOUNT_20261117.md.
+## Revision 35 — Active FE port API proxy — 2026-11-17
+
+- Status: COMPLETE; active FE port now proxies to Docker API.
+- Plan: features/FEAT-066-fe-ui-srs-full-review/plan/PLAN_REV35_ACTIVE_FE_PORT_API_PROXY_20261117.md; SHA-256 479A937FDDDD09AD6CC681B5D951C7D434B9ACAD29B3ECBB4918EC3225B9E200. Approval: approvals/TASK_APPROVAL.md, FEAT-066 Rev35.
+- Port 5173 uses a Git-ignored temporary Vite config with same-origin `/health` and `/api` proxies to 127.0.0.1:8000; dev Firebase config is process-only. Port 5174 remains available.
+- Verification: admin login route 200, proxied health 200, unauthenticated `/api/auth/v1/me` 401, expected dev project and API base injected.
+- No credential submitted, no app test suite, tracked source, account or backend change, commit or push.
+- Evidence: features/FEAT-066-fe-ui-srs-full-review/evidence/notes/EV-041_ACTIVE_FE_PORT_API_PROXY_20261117.md.
+
+## Revision 36 — Platform Accounts crayon UX rebuild — COMPLETE
+- Plan: PLAN_REV36_PLATFORM_ADMIN_ACCOUNTS_CRAYON_REBUILD_20261117.md, SHA-256 6AE92FAEB7ED005B463E05176A58539A6927323E9C61ED3350F9CA243446E0D9; approval recorded before app edits.
+- Task SRS: owner attachment dated 2026-11-13, amendments through Rev69, SHA-256 B9B1F42D0BB118C19C81607D3913B7E4F1D8B6F673F0C3FBB6402888FEB675F5. Repository Rev60 authority unchanged.
+- Four desktop/tablet/mobile captures: no horizontal overflow or runtime exceptions; expected missing-Firebase-session state, no fabricated empty result. Authenticated account operations were not runtime-verified.
+- Build, focused UsersPage oxlint and git diff --check pass. No app tests, commit or push.
+- Open gaps: offset pagination vs SRS cursor, missing capability grant/read API and no visible audit-event viewer on this page.
+- Evidence: evidence/notes/EV-042_PLATFORM_ACCOUNTS_CRAYON_UX_REV36_20261117.md and evidence/screenshots/rev36-platform-accounts/.
+
+
+## Revision 37 — Platform Admin sidebar crayon redesign — COMPLETE
+
+- Plan: PLAN_REV37_PLATFORM_ADMIN_SIDEBAR_CRAYON_REDESIGN_20261117.md; SHA-256 A3F276D0EB8D163F35B107A9CC154D448437A4F5F6BFAF65EE49F82DB399940C. Owner approval is in approvals/TASK_APPROVAL.md.
+- Source: only apps/web/src/modules/platform-admin/styles/admin-rebuild.css changed for Rev37. Shared shell behavior, routes, APIs, auth/session actions, and other role sidebars are unchanged.
+- Browser review: desktop 1440×900, open drawer at 768×1024 and 390×844. No horizontal overflow/runtime exceptions; mobile nav scrolls independently and footer remains anchored.
+- Validation: production build passed; focused shared-shell oxlint exited 0 with existing warnings; git diff --check passed.
+- Evidence: evidence/notes/EV-044_PLATFORM_ADMIN_SIDEBAR_CRAYON_REV37_20261117.md and evidence/screenshots/rev37-platform-sidebar/.
+- No application tests, credentials, protected mutations, commit, or push.
+
+## Revision 38 — Platform Accounts zoom-width layout — IMPLEMENTED
+
+- Plan: PLAN_REV38_PLATFORM_ACCOUNTS_ZOOM_WIDTH_20261117.md; SHA-256 DD3BC84855986B15C8FAA4356A4231B93E4096D4F6A0FC3C4316FD73C79ABC79. Approval recorded in approvals/TASK_APPROVAL.md before app-source changes.
+- Source: Platform Accounts CSS now fixes the five-column layout/action column through 1120px and switches to labelled cards through 900px. The desktop action-column heading is visible. API/auth/permissions/data behavior is unchanged.
+- Browser: no horizontal overflow or runtime exceptions at 1440×900, 1120×800, 1024×768, 987×600, 900×600, 820×900, 768×1024 and 390×844 in an isolated no-auth page state.
+- Verification limitation: the isolated browser had no Firebase session, so the populated row and its action buttons were not rendered or captured after the fix. No fake account fixture/token was used. The owner’s active local tab can hot-reload the source.
+- Validation: production build, focused UsersPage oxlint and git diff --check passed.
+- Evidence: evidence/notes/EV-046_PLATFORM_ACCOUNTS_ZOOM_WIDTH_REV38_20261117.md and evidence/screenshots/rev38-accounts-zoom/.
+- No app test suite, credential, account mutation, commit, or push.
+## Revision 39 — School Manager API/UI crosswalk — 2026-11-17
+
+- Status: DRAFT — planning only; awaiting explicit implementation approval.
+- Plan: `plan/PLAN_REV39_SCHOOL_MANAGER_API_UI_CROSSWALK_20261117.md`; SHA-256 `589D260604CE8DECBC54F8A88AE0F6749D3446CBA0155738B3FF3C3528E9C05F`.
+- API baseline: `origin/dev` `1c9148e88600a101887e477541c4c4893ba1c7df`; web worktree baseline `b72f9e46`.
+- Admin closeout: account GET/POST/PATCH and shared GET /health are wired. The moderation PATCH has no platform queue/exact-version reads and does not enforce SRS Content Admin permission; it remains blocked.
+- Manager: public-grant review and class list/create are already wired. Teacher assignment, profile/consent and Parent groups have backend routes without corresponding Manager UI wiring; exact-version review, teacher candidate read, quota/billing and organization feedback remain gaps as detailed in EV-047.
+- Evidence: `evidence/notes/EV-047_SCHOOL_MANAGER_API_UI_CROSSWALK_REV39_20261117.md`.
+- No application source, approval record, test, build, runtime API call, commit, or push changed in Rev39. Do not implement until the owner approves a concrete scope.
+
+## Revision 40 — School Manager API integration plan — 2026-11-17
+
+- Status: DRAFT — planning only; awaiting owner approval before implementation.
+- Plan: `plan/PLAN_REV40_SCHOOL_MANAGER_API_INTEGRATION_20261117.md`; SHA-256 `84E8779D7F169BEE9E5ECA8D02EABB571D23F66E11B167F782A04D04F261F070`.
+- Count: 17 Manager business routes (6 already wired, 10 proposed for integration, 1 class-assignment command blocked by missing scoped Teacher candidate read) plus shared `GET /api/auth/v1/me` = 18 BE routes relevant to Manager. Firebase SDK sign-in is not a BE route.
+- SRS scope: FEAT-063 v2.7-draft Rev60, unsigned. Preserve tenant scope, child-media deny-by-default, exact lesson-version gate and open quota-purchase policy Q193.
+- Evidence: `evidence/notes/EV-048_SCHOOL_MANAGER_API_INTEGRATION_PLAN_REV40_20261117.md`.
+- No app source, `approvals/TASK_APPROVAL.md`, tests, build, live API call, commit or push changed. Implementation remains unapproved.
+
+## Revision 41 — Manager login/auth API verification — 2026-11-17
+
+- Status: VERIFIED WITH LIVE AUTH LIMITATION; the existing login API chain is wired and a confirmed BE1 runtime configuration defect was fixed.
+- Plan: `plan/PLAN_REV41_MANAGER_LOGIN_AUTH_API_20261117.md`; SHA-256 `E06D84FCEE12A168765876C892B3D9DD170D64FB81F804D0E551CD5F9EBE672B`. Approval recorded in `approvals/TASK_APPROVAL.md` before implementation.
+- Fix: shared runtime config now falls back to `.env.example`'s `VITE_BE1_BASE_URL` and `VITE_BE1_ORGANIZATION_ID` after injected and generic config.
+- Tests: 2 focused files passed, 8 tests passed. `npm run build` passed. `npm run lint` exited 0 with existing warnings and no errors.
+- Runtime: local Docker API/PostgreSQL healthy; GET `/health` 200; unauthenticated GET `/api/auth/v1/me` 401 `AUTHENTICATION_REQUIRED`; unauthenticated BE1 assignment read 401. FE dev server port 5173 refused connection.
+- Limitation: no Manager test credential or active FE dev server was available, so successful Firebase sign-in against the live backend remains unverified. Positive FE role/assignment flow and BE1 config fallback passed focused tests. No account or role mutation.
+- Source: one production FE runtime-config fix and focused test changes; backend contract unchanged. Containers remain running locally. No commit or push.
+- Evidence: `evidence/notes/EV-049_MANAGER_LOGIN_API_VERIFICATION_20261117.md`.
+
+## Revision 42 — Manager QA account and live login — 2026-11-17
+
+- Status: APPROVED_FOR_EXECUTION; waiting for local Firebase Web config before account creation.
+- Plan: `plan/PLAN_REV42_MANAGER_QA_ACCOUNT_AND_LIVE_LOGIN_20261117.md`; SHA-256 `96AE1FC25F8BAE840371D9CB41D5F52652F74C1F59C0F6D2A6AD22F5848C9D6D`.
+- Read-only preflight: Docker API/PostgreSQL healthy; Firebase Admin configured for `sketch2life-dev`; DB has 1 Platform Admin, 0 Managers, 0 organizations and 0 assignments. No row identities were read.
+- Gate: no Firebase Web config exists in the worktree and port 5173 refuses connection. No account/organization/password/token was created. Wait for config in ignored `apps/web/.env.local` or its existing local path.
+- Rev43 business API integration is APPROVED_CONDITIONALLY and starts only after Rev42's live Manager login and both authenticated authorization reads pass. Static route audit allows five operations and blocks five Rev40 operations due to guard/contract gaps; the existing class-create API also lacks SRS capacity enforcement.
+- Evidence: `evidence/notes/EV-050_MANAGER_QA_ACCOUNT_READINESS_20261117.md`.
+
+## Revision 44 — Manager QA bootstrap ordering repair — 2026-11-17
+
+Plan Rev44 and its approval record the direct task authorization. The supported first-school-admin helper failed on the organization-assignment organization foreign key after Firebase sign-in. Its transaction rolled back; Firebase test identities were removed. Read-only counts are one existing identity, zero organizations, and zero assignments. The narrowly scoped repair will flush the organization and adult identity before adding the assignment, add a focused ordering test, then retry the local login flow. No user account is retained yet.
+
+## Revision 45 — Manager QA login and business API integration — 2026-11-17
+
+- Rev44 parent-row flush repair is implemented; the bootstrap ordering unit test passed.
+- Rev42 gate is fulfilled: Firebase password sign-in succeeded; authenticated account role is school_manager; the dedicated organization returns an organization-wide school_admin assignment.
+- Rev43 connected organization read, minimal class roster read, consent-status read, and Parent-group list/create with idempotency. Teacher assignment, Parent invitation/membership revoke, consent writes, class assignment, capacity/billing/quota/feedback remain unavailable under the approved route review.
+- Live organization, classes, and Parent-group reads returned 200; classes and groups are empty. Profile/consent reads require a class and were not sent. No business write was sent. Class creation remains unavailable until BE enforces SRS FR-T-03 capacity.
+- The FE dev server is running at 127.0.0.1:5173 with the ignored Firebase config and QA organization injected into process environment. Login and Manager SPA/API proxy routes returned 200. Browser-based SDK sign-in could not be automated in this environment; EV-051 records this limit.
+- Focused FE tests: 18 passed. Backend bootstrap test: 1 passed. TypeScript/Vite build passed. Targeted Oxlint exited 0 with existing WebAppShell warnings. No commit or push.
+- Evidence: evidence/notes/EV-051_MANAGER_LOGIN_AND_BUSINESS_API_INTEGRATION_20261117.md.
+
+## Revision 46 — School Manager navigation and theme restoration — IMPLEMENTED; visual review pending
+
+- Plan Rev46 is approved and implementation is recorded in EV-052.
+- Fixed the Manager CSS portal-key mismatch, reorganized the SRS navigation areas, and marked unsupported API areas as waiting.
+- Production build passed; targeted lint exited 0 with four existing shared-shell warnings; git diff --check passed. No app tests were run.
+- Port 5173 serves the FE. Authenticated visual inspection remains for owner review because the local browser CDP endpoint was unavailable.
+- No credentials, child data, commit or push.
+
+## Revision 47 — shared folder cleanup — IMPLEMENTED; BUILD PASSED
+
+- Plan: plan/PLAN_REV47_SHARED_FOLDER_CLEANUP_20261117.md; current SHA-256 `82AB4F0E97144E8070E228B0ACDA59CB33102CCFF13C5F7927A0746FFF590E22`.
+- Approval: recorded in approvals/TASK_APPROVAL.md before source moves.
+- Moved 17 files into api/auth/components/navigation/styles; preserved assets; updated 50 references in 27 source files.
+- No old shared-root paths remain. Four-group Manager navigation preserved.
+- Production build passed; git diff --check exit 0 with CRLF normalization warnings. No app tests, commit, or push.
+- Evidence: evidence/notes/EV-053_SHARED_FOLDER_ORGANIZATION_REV47_20261117.md.
+
+## Revision 48 — Manager 17 API test record — 2026-11-17
+
+- Plan Rev48 and owner approval are recorded.
+- Route composition: 17/17 mounted. Public OpenAPI projection: 11/17, omitting Lesson Library rows 4, 6, 13–16.
+- Focused FE tests: 18 passed; isolated BE contract/unit tests: 90 passed.
+- Build, lint command, harness, architecture, security, and diff checks completed; lint exits 0 with 28 React warnings.
+- No live business mutation. PostgreSQL acceptance tests skipped because no disposable BE1_TEST_DATABASE_URL is configured.
+- 11 routes remain wired/adapter-backed; six remain blocked pending contract/policy. See EV-054 for per-route status and limits.
+
+## Revision 49 — Admin and Manager QA credentials — 2026-11-17
+
+- Existing QA Admin and Manager passwords were reset in sketch2life-dev; no duplicate accounts were created.
+- Firebase sign-in and GET /api/auth/v1/me passed for both roles.
+- Admin accounts GET returned 200; Manager assignment GET returned 200 with organization-wide school_admin.
+- Both FE role login pages at port 5173 returned 200.
+- Credentials are stored only in Git-ignored tmp/qa-test-accounts.local.md. No source changes, commit, or push.
+- Browser form interaction remains for the owner; see EV-055.
+
+## Revision 50 — Manager Classes screen review — 2026-11-17
+
+- Authenticated classes GET returned 200 with zero items; the screenshot matches the QA organization state.
+- Class creation remains disabled pending BE1 capacity enforcement required by FR-T-03.
+- Review found duplicate error/empty feedback on failures, misleading empty copy, and an out-of-context detail note.
+- No source edit, test suite/build, commit, or push. See EV-056.
+
+## Revision 51 — consolidated web handoff — 2026-11-17
+
+- One-commit handoff approved for all current non-ignored worktree changes.
+- FE: 18 focused tests passed; production build passed; lint exit 0 with 28 warnings.
+- BE selected contract/unit suite: 90 passed.
+- Security, harness, architecture and diff checks passed after removing the approval EOF blank line.
+- .env and QA credentials under ignored tmp are excluded. No history rewrite; prior Rev48 commit remains.
+- EV-057 records the commit scope and verification.

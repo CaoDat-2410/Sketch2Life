@@ -56,3 +56,19 @@ Resolve the conflicts between PR #27 (`codex/fe-ui-web-remediation`) and its `de
 - Inspect unmerged path list, conflict markers, parent tree diffs, and final commit parents.
 - Run repository harness, security, architecture, and `git diff --check` commands from the final candidate tree.
 - Do not run automated app tests/builds under the current feature approvals.
+
+## Rev2 addendum — owner-authorized PR merge attempt
+
+- Recorded: 2026-11-16 (Asia/Bangkok), after completion of Rev1.
+- Trigger: the project owner directly changed the prior no-merge instruction in chat: “đc r :)))) lên dev r lỗi ci tính sau” (proceed to `dev` now; CI errors can be handled later).
+- Scope: submit the standard GitHub merge operation for PR #27 into its existing `dev` base, using the current verified PR head SHA. Preserve the completed Rev1 merge commit and its two-parent history.
+- CI disposition: the owner accepts proceeding while the current CI run is not green. Record known failures in evidence; do not wait for CI to pass before attempting the standard merge.
+- Protection boundary: do not bypass required checks, branch protection, or GitHub's mergeability gates. If GitHub rejects the normal merge request, leave the PR open and report the exact blocker.
+- No other scope changes: no force push, rebase, squashing, direct write to `dev`, product/SRS edit, or deployment.
+
+### Rev2 acceptance criteria
+
+1. GitHub confirms PR #27 is merged into `dev` through the standard merge API and reports the resulting merge SHA.
+2. The PR head matches the SHA captured immediately before the merge attempt.
+3. Existing CI failures are recorded as accepted by the owner's instruction; no checks are bypassed.
+4. If the standard merge is blocked by repository policy, preserve the open PR and record that outcome instead of circumventing the gate.

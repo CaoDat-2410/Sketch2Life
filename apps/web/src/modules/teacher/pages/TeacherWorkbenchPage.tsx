@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { ArrowRight, BookOpen, CalendarDays, RefreshCw, Users } from "lucide-react";
 import { Link } from "react-router-dom";
-import { FeatureAvailability, PageHeading } from "../../../shared/FeatureAvailability";
+import { FeatureAvailability, PageHeading } from "../../../shared/components/FeatureAvailability";
 import {
   BackendApiError,
   backendApi,
@@ -10,7 +10,7 @@ import {
   hasFirebaseAuthBridge,
   type Be1Class,
   type LessonSummary,
-} from "../../../shared/backendApi";
+} from "../../../shared/api/backendApi";
 
 type WorkbenchSnapshot = { classes: Be1Class[]; lessons: LessonSummary[] };
 

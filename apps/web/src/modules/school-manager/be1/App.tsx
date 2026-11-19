@@ -2,14 +2,17 @@ import type { ReactNode } from "react";
 import "../styles/tokens.css";
 import "../styles/mg-manage.css";
 import "../styles/manager-rebuild.css";
+import "../styles/manager-business.css";
 import { useEffect, useState } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
-import { WebAppShell, SCHOOL_MANAGER_NAVIGATION } from "../../../shared/WebAppShell";
-import { FeatureAvailability, PageHeading } from "../../../shared/FeatureAvailability";
-import { usePortalSession } from "../../../shared/PortalSessionContext";
+import { WebAppShell, SCHOOL_MANAGER_NAVIGATION } from "../../../shared/navigation/WebAppShell";
+import { FeatureAvailability, PageHeading } from "../../../shared/components/FeatureAvailability";
+import { usePortalSession } from "../../../shared/auth/PortalSessionContext";
 import { M01PublicationReviewPage } from "../pages/ManagerScreens";
 import { SchoolOverviewPage } from "./pages/SchoolOverviewPage";
 import { ClassesPage } from "./pages/ClassesPage";
+import { RosterConsentPage } from "./pages/RosterConsentPage";
+import { ParentGroupsPage } from "./pages/ParentGroupsPage";
 import { authService } from "./services/authService";
 import { classService } from "./services/classService";
 
@@ -70,10 +73,20 @@ function SchoolManagerFrame({ children }: { children: ReactNode }) {
 }
 
 const UNAVAILABLE: Record<string, { title: string; requirement: string; dependencies: string[] }> = {
-  teachers: {
-    title: "Giáo viên & roster",
-    requirement: "SRS yêu cầu quản lý giáo viên, phân công và roster theo organization; school_admin không được đọc story/media của trẻ.",
-    dependencies: ["API phân công teacher có version và audit.", "API roster có consent state và scoped access.", "Contract archive/suspend và xử lý xung đột assignment."],
+  "teacher-assignments": {
+    title: "Phân công giáo viên",
+    requirement: "SRS yêu cầu một giáo viên phụ trách mỗi lớp trong đúng organization.",
+    dependencies: ["API tra cứu ứng viên giáo viên theo organization.", "API phân công có revision, kiểm tra xung đột và audit."],
+  },
+  "teacher-groups": {
+    title: "Nhóm giáo viên",
+    requirement: "School Manager quản lý nhóm giáo viên trong phạm vi trường.",
+    dependencies: ["API nhóm giáo viên có tenant scope.", "API đọc và quản lý thành viên nhóm có revision và audit."],
+  },
+  feedback: {
+    title: "Phản hồi trong trường",
+    requirement: "Teacher/Manager trả lời feedback trong phạm vi organization liên quan; đây không phải chat tổng quát.",
+    dependencies: ["API danh sách và chi tiết feedback theo trường.", "API trả lời thread có kiểm tra scope, thứ tự và audit."],
   },
   capacity: {
     title: "Sức chứa",
@@ -104,7 +117,7 @@ function SchoolUnavailablePage() {
   return (
     <div className="s2l-page">
       <PageHeading eyebrow="School Manager · Đang chờ API" title={panel.title} description="Giao diện chỉ bật khi dữ liệu và quyền được xác minh từ backend." />
-      <FeatureAvailability title="Chưa khả dụng" summary="BE1 hiện đang nối danh sách và tạo lớp; các dịch vụ này chưa có contract trong adapter của School Manager." requirement={panel.requirement} dependencies={panel.dependencies} permissionNote="Mọi truy cập phải được backend xác minh lại theo organization hiện hành." backTo="/school" />
+      <FeatureAvailability title="Chưa khả dụng" summary="BE1 hiện chỉ nối các thao tác có contract và scope xác minh. Chức năng còn lại sẽ mở khi backend cung cấp API cùng quyền phù hợp." requirement={panel.requirement} dependencies={panel.dependencies} permissionNote="Mọi truy cập phải được backend xác minh lại theo organization hiện hành." backTo="/school" />
     </div>
   );
 }
@@ -120,6 +133,8 @@ export function SchoolManagerBe1App() {
   let page;
   if (location.pathname === "/school" || location.pathname === "/school/") page = <SchoolOverviewPage />;
   else if (location.pathname === "/school/classes") page = <ClassesPage />;
+  else if (location.pathname === "/school/teachers") page = <RosterConsentPage />;
+  else if (location.pathname === "/school/parent-groups") page = <ParentGroupsPage />;
   else if (location.pathname === "/school/review-content") page = <SchoolReviewPage />;
   else if (/^\/school\/[^/]+$/.test(location.pathname)) page = <SchoolUnavailablePage />;
   else return <Navigate to="/school" replace />;

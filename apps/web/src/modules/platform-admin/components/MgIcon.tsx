@@ -1,4 +1,4 @@
-import { RolePortalIcon, type RolePortalIconName, type RoleDashboardIconVariant } from "../../../shared/RoleDashboardIcon";
+import { RolePortalIcon, type RolePortalIconName, type RoleDashboardIconVariant } from "../../../shared/components/RoleDashboardIcon";
 
 export type MgIconName = RolePortalIconName;
 

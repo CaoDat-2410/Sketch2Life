@@ -46,6 +46,8 @@ async def _provision(display_name: str, id_token: str) -> tuple[str, str]:
                     account_role="school_manager",
                 )
             )
+            # Persist the referenced parent rows before adding their assignment.
+            session.flush()
             session.add(
                 OrganizationAssignmentModel(
                     assignment_id=str(uuid4()),

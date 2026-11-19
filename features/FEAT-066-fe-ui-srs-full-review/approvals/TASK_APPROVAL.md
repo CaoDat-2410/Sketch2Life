@@ -389,3 +389,51 @@ MGR-8 verification result, 2026-11-18: the owner ran D1, D2, D3 and `tests/contr
 | `test_app_composition` | 7 passed |
 
 Owner decision: "R ok verified làm bước 5 đi" — MGR-8 VERIFIED, with the ClamAV environment limit recorded. Evidence: `evidence/notes/MGR_8_ROOT_RUN_RESULTS_20261118.md` (6,785 bytes, SHA-256 `19A6E63C106EFF951A162CF4B48475FBF442EF3656A30D29F910FFC2CECE1601`). This note does not approve a commit or push.
+## FEAT-066 Revision 47 — shared web folder organization
+
+- Status: APPROVED_FOR_IMPLEMENTATION.
+- Approver: User, direct approval “OK làm đi” after reviewing the exact Rev47 folder map and import-update scope.
+- Plan: plan/PLAN_REV47_SHARED_FOLDER_CLEANUP_20261117.md.
+- Plan SHA-256 reviewed at approval: 3BF53425B5467913DA8DA188219E745BDD9B2EC647B73793B785D271BD8A3457.
+- Current plan SHA-256 after status-only update: 82AB4F0E97144E8070E228B0ACDA59CB33102CCFF13C5F7927A0746FFF590E22.
+- Worktree/branch: F:/Github/Sketch2Life-worktrees/fe-ui-web-remediation, codex/fe-ui-web-remediation.
+- Approved scope: move the 17 files under apps/web/src/shared into api/, auth/, components/, navigation/ and styles/ as specified in Rev47; preserve shared/assets; update only affected internal/external import specifiers in the 27 consumer files.
+- Acceptance/verification: preserve behavior and unrelated dirty content; validate path references and run the web production build. Do not run the application test suite.
+- Exclusions: no deletions, auth/API/style refactors, dependency changes, .env/secret access, commit, push, PR, merge or deployment.
+
+## FEAT-066 Revision 48 — Manager 17-route test and GitHub record
+
+- Status: APPROVED_FOR_EXECUTION.
+- Approver: User, direct instruction on 2026-11-17 (Asia/Bangkok): plan integration of all 17 Manager APIs, run tests, record results, and push the record to GitHub.
+- Plan: plan/PLAN_REV48_MANAGER_17_API_INTEGRATION_AND_TEST_20261117.md.
+- Plan SHA-256: 4856A0895714A8346E7666BB8ABFE4661D50E11C4F94700690A101F0F4FCDC9D.
+- Worktree/branch: F:/Github/Sketch2Life-worktrees/fe-ui-web-remediation, codex/fe-ui-web-remediation.
+- Approved scope: route/status audit, focused Manager FE and applicable isolated BE tests, read-only local smoke, build/lint/required push validators, FEAT-066 plan/evidence records, and a docs-only commit/push of the Rev48 plan/approval/test record.
+- Boundaries: do not bypass the current SRS/BE guards or enable the six blocked routes; no live business writes, child data, backend contract/schema/authorization changes, secrets/tokens in output, unrelated dirty-file staging, or application source commit.
+## FEAT-066 Revision 49 — local QA Admin and Manager accounts
+
+- Status: APPROVED_FOR_EXECUTION.
+- Approver: User, direct instruction on 2026-11-17 (Asia/Bangkok): “seed lại 2 cái 1 admin vs 1 manager cho tôi đi bỏ trong tmp”.
+- Plan: plan/PLAN_REV49_QA_ADMIN_MANAGER_CREDENTIALS_20261117.md.
+- Plan SHA-256: E59AA5D7522FE76F9441B80D6F95169240ADC662B720D7773F6E43F12A477557.
+- Scope: reset credentials only for the one active reserved-domain Platform Admin QA identity and one active reserved-domain School Manager QA identity in sketch2life-dev; preserve roles and existing organization assignment; verify Firebase login and role/scope; save credentials only to Git-ignored tmp/qa-test-accounts.local.md; record sanitized EV-055.
+- Boundaries: no production, duplicate/deleted users, non-QA account changes, database role/scope mutation, email, credential/token output, repo credential storage outside ignored tmp, source changes, commit, or push.
+- Approval basis: the owner directly requested both test accounts and local tmp storage. This narrowly supersedes earlier QA plans' prohibition on persisting credentials only for the explicitly Git-ignored tmp file.
+## FEAT-066 Revision 50 — Manager Classes empty-state review
+
+- Status: APPROVED_FOR_EXECUTION.
+- Approver: User, direct request on 2026-11-17: “Check cái này cho tôi đi” with the School Manager Classes screenshot.
+- Plan: plan/PLAN_REV50_MANAGER_CLASSES_EMPTY_STATE_REVIEW_20261117.md.
+- Plan SHA-256: D1837261C56BDEB688DF1D8F02653FC19C7C1ADAAA4A8E57C734095A4A254D19.
+- Scope: inspect screenshot, source, SRS FR-T-02/FR-T-03, responsive styles, and perform an authenticated read-only classes GET.
+- Boundaries: no API writes, class creation, account/database changes, source edits, tests/builds, commit or push.
+
+## FEAT-066 Revision 51 — consolidate pending web worktree
+
+- Status: APPROVED_FOR_EXECUTION.
+- Approver: User, direct instruction on 2026-11-17: “Ghi lại toàn bộ và gom thành 1 commit cho tôi để đẩy lên máy kia làm”.
+- Plan: plan/PLAN_REV51_WORKTREE_CONSOLIDATION_AND_PUSH_20261117.md.
+- Plan SHA-256: 487ED5EB4DAEB6326535CDC0B7BB805303720D8DB3F3DD7340135BB678CA44C6.
+- Scope: stage and commit all current non-ignored web-remediation worktree changes, records and reviewed screenshots in one new commit; run focused validation and push to the existing branch upstream.
+- Boundaries: keep the previously pushed Rev48 commit; no history rewrite/force push; exclude .env, tmp QA credentials, passwords/tokens, service-account keys, external references, and ignored build/runtime files.
+- Approval basis: the owner directly requested one consolidated commit and push for use on another machine; this supersedes earlier no-commit/push exclusions only for the current pending worktree changes.

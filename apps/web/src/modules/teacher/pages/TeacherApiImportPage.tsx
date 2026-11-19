@@ -12,10 +12,10 @@ import {
   type LessonSourceDocumentStatus,
   type LessonSummary,
   type LessonUploadSession,
-} from "../../../shared/backendApi";
-import { usePortalSession } from "../../../shared/PortalSessionContext";
+} from "../../../shared/api/backendApi";
+import { usePortalSession } from "../../../shared/auth/PortalSessionContext";
 import { Icon } from "../components/Icon";
-import { PageHeading } from "../../../shared/FeatureAvailability";
+import { PageHeading } from "../../../shared/components/FeatureAvailability";
 
 const MIME_BY_EXTENSION: Record<string, string> = {
   pdf: "application/pdf",

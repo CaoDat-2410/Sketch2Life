@@ -1,4 +1,4 @@
-import brandArtworkUrl from "./assets/sketch2life-brand-art-20261110.jpg";
+import brandArtworkUrl from "../assets/sketch2life-brand-art-20261110.jpg";
 
 export function BrandMark({ size = 32 }: { size?: number }) {
   return (

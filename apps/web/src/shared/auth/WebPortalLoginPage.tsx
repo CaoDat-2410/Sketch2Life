@@ -1,8 +1,8 @@
 import { useState, type FormEvent } from "react";
 import { ArrowRight, Eye, EyeOff, GraduationCap, LockKeyhole, School, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
-import { BrandWordmark } from "./BrandMark";
-import { backendMessage } from "./backendApi";
+import { BrandWordmark } from "../components/BrandMark";
+import { backendMessage } from "../api/backendApi";
 
 export type WebPortalAppRole = "TEACHER" | "MANAGER" | "ADMIN";
 
