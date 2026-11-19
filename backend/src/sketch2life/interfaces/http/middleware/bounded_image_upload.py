@@ -4,8 +4,11 @@ from __future__ import annotations
 
 import json
 import re
+from uuid import uuid4
 
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
+
+from sketch2life.interfaces.http.error_envelope import build_error_body
 
 _MAX_MULTIPART_BODY_BYTES = 20_100_000
 _UPLOAD_PATH_MARKER = "/media/image"
@@ -97,6 +100,19 @@ async def _send_too_large(send: Send, safe_message: str, *, scope: Scope) -> Non
             (b"content-type", b"application/json"),
             (b"x-request-id", request_id.encode("ascii")),
         ]
+    elif path.startswith("/api/lesson-library/v1/"):
+        # CONV-1 §3.2 item 5: the Lesson Library 413 uses the shared envelope and carries an
+        # X-Request-ID; its code stays REQUEST_TOO_LARGE until the C-T slice.
+        request_id = _supplied_request_id(scope) or str(uuid4())
+        body = json.dumps(
+            build_error_body(status=413, code="REQUEST_TOO_LARGE", request_id=request_id),
+            separators=(",", ":"),
+            ensure_ascii=False,
+        ).encode("utf-8")
+        response_headers = [
+            (b"content-type", b"application/json"),
+            (b"x-request-id", request_id.encode("ascii")),
+        ]
     else:
         body = json.dumps(
             {
@@ -115,6 +131,17 @@ async def _send_too_large(send: Send, safe_message: str, *, scope: Scope) -> Non
         }
     )
     await send({"type": "http.response.body", "body": body})
+
+
+def _supplied_request_id(scope: Scope) -> str | None:
+    for name, value in scope.get("headers", ()):
+        if name.lower() == b"x-request-id":
+            try:
+                candidate = value.decode("ascii")
+            except UnicodeDecodeError:
+                return None
+            return candidate if _SAFE_ID.fullmatch(candidate) else None
+    return None
 
 
 def _is_demo_media_upload(path: str) -> bool:

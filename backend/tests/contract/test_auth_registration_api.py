@@ -62,8 +62,8 @@ def test_registration_rejects_client_role_and_redacts_validation_input() -> None
 
     response = client.post("/api/auth/v1/registrations", json=payload)
 
-    assert response.status_code == 422
-    assert response.json()["code"] == "INVALID_REGISTRATION_REQUEST"
+    assert response.status_code == 400
+    assert response.json()["code"] == "INVALID_REQUEST"
     assert "secret-value-never-echo" not in response.text
     assert "parent@example.com" not in response.text
     assert provisioner.calls == []
@@ -78,8 +78,8 @@ def test_registration_rejects_invalid_email_and_short_password_safely() -> None:
         json={"email": "not-an-email", "password": "short"},
     )
 
-    assert response.status_code == 422
-    assert response.json()["code"] == "INVALID_REGISTRATION_REQUEST"
+    assert response.status_code == 400
+    assert response.json()["code"] == "INVALID_REQUEST"
     assert "not-an-email" not in response.text
     assert "short" not in response.text
     assert provisioner.calls == []

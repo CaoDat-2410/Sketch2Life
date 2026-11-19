@@ -166,10 +166,10 @@ def test_missing_class_assignment_uses_generic_scope_denial(
             cast(be1_registry.Session, db),
         )
 
-    assert error.value.status_code == 403
+    assert error.value.status_code == 404
     assert error.value.detail == {
-        "code": "SCOPE_DENIED",
-        "message": "Access to this resource is not permitted",
+        "code": "RESOURCE_NOT_FOUND",
+        "message": "The requested resource was not found",
     }
     assert db.added == []
 
@@ -213,10 +213,10 @@ def test_profile_requires_exact_class_teacher_assignment(
             db=cast(be1_registry.Session, db),
         )
 
-    assert error.value.status_code == 403
+    assert error.value.status_code == 404
     assert error.value.detail == {
-        "code": "SCOPE_DENIED",
-        "message": "Access to this resource is not permitted",
+        "code": "RESOURCE_NOT_FOUND",
+        "message": "The requested resource was not found",
     }
     assert db.added == []
 
@@ -264,8 +264,8 @@ def test_missing_or_wrong_class_scope_uses_generic_denial(
             db=cast(be1_registry.Session, FakeSession()),
         )
 
-    assert error.value.status_code == 403
+    assert error.value.status_code == 404
     assert error.value.detail == {
-        "code": "SCOPE_DENIED",
-        "message": "Access to this resource is not permitted",
+        "code": "RESOURCE_NOT_FOUND",
+        "message": "The requested resource was not found",
     }

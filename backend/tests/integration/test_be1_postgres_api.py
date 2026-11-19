@@ -91,7 +91,14 @@ def acceptance_client(monkeypatch: pytest.MonkeyPatch, tmp_path) -> Iterator[Acc
                 state="active",
             )
         )
-        db.add(AdultIdentityModel(subject=subject, issuer="synthetic-test-issuer", state="active"))
+        db.add(
+            AdultIdentityModel(
+                subject=subject,
+                issuer="synthetic-test-issuer",
+                state="active",
+                account_role="school_manager",
+            )
+        )
         db.flush()
         db.add(
             OrganizationAssignmentModel(
@@ -227,7 +234,10 @@ def test_real_http_writes_audits_outbox_and_enforces_assignment_scope(
     with accepted.app.state.be1_runtime.session_factory.begin() as db:
         db.add(
             AdultIdentityModel(
-                subject=outsider_subject, issuer="synthetic-test-issuer", state="active"
+                subject=outsider_subject,
+                issuer="synthetic-test-issuer",
+                state="active",
+                account_role="teacher",
             )
         )
         db.flush()
@@ -260,8 +270,8 @@ def test_real_http_writes_audits_outbox_and_enforces_assignment_scope(
         _url(accepted, "/classes"),
         json={"display_name": "Forged role attempt", "role": "school_admin"},
     )
-    assert forged_role.status_code == 422
-    assert forged_role.json()["code"] == "REQUEST_VALIDATION_FAILED"
+    assert forged_role.status_code == 400
+    assert forged_role.json()["code"] == "INVALID_REQUEST"
 
     with accepted.app.state.be1_runtime.session_factory() as db:
         audit_count = db.scalar(
@@ -299,7 +309,16 @@ def test_real_http_writes_audits_outbox_and_enforces_assignment_scope(
     assert be1_operations == 60
     assert "HTTPBearer" in openapi["components"]["securitySchemes"]
     error_schema = openapi["components"]["schemas"]["Be1Error"]
-    assert set(error_schema["properties"]) == {"code", "message", "request_id"}
+    assert set(error_schema["properties"]) == {
+        "code",
+        "message",
+        "correlation_id",
+        "retryable",
+        "retry_after_seconds",
+        "field_errors",
+        "request_id",
+        "current_version",
+    }
     upload_response = openapi["paths"][
         "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/artifacts"
     ]["post"]["responses"]
@@ -623,7 +642,7 @@ def test_room_code_start_revocation_stage_and_early_outcome_are_durable(
         headers={"Idempotency-Key": "early-end-reason-required"},
         json={"expected_stage_revision": 6, "outcome": "ended_early"},
     )
-    assert missing_reason.status_code == 422
+    assert missing_reason.status_code == 400
     premature_completion = client.post(
         _url(accepted, f"/sessions/{session_id}/completion"),
         headers={"Idempotency-Key": "completed-stage-required"},

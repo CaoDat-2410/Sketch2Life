@@ -6,7 +6,31 @@ from collections.abc import Mapping, Sequence
 from copy import deepcopy
 from typing import Any
 
-BE1_EXPLICIT_ERROR_STATUSES = frozenset({"401", "403", "422"})
+BE1_EXPLICIT_ERROR_STATUSES = frozenset({"400", "401", "403", "404"})
+# CONV-1 (§3.2 item 8): catalogued operations whose handlers can raise a kept domain 422 code.
+# Every other catalogued BE1 and Lesson Library operation publishes 400 instead of 422.
+BE1_KEPT_422_OPERATIONS = frozenset(
+    {
+        ("post", "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles"),
+        ("post", "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/consents"),
+        ("post", "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/observations"),
+        ("post", "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/artifacts"),
+        ("post", "/api/be1/v1/organizations/{organization_id}/sessions"),
+        (
+            "post",
+            "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/canvas/operations",
+        ),
+    }
+)
+LESSON_LIBRARY_KEPT_422_OPERATIONS = frozenset(
+    {
+        ("put", "/api/lesson-library/v1/upload-sessions/{upload_session_id}/parts/{part_number}"),
+        ("post", "/api/lesson-library/v1/upload-sessions/{upload_session_id}/complete"),
+    }
+)
+_CONV1_CATALOGUED_PREFIXES = ("/api/be1/v1/", "/api/lesson-library/v1/")
+_VALIDATION_400_DESCRIPTION = "The request is invalid (`INVALID_REQUEST`)"
+_BUSINESS_RULE_422_DESCRIPTION = "The request does not meet a business rule"
 PORTFOLIO_OPERATION_KEY = (
     "get",
     "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles/{child_id}/portfolio",
@@ -17,117 +41,160 @@ RESTORE_CHECKPOINT_OPERATION_KEY = (
     "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/groups/{group_id}/restore",
 )
 RESTORE_CHECKPOINT_STATUS_CODES = frozenset(
-    {"200", "401", "403", "404", "409", "410", "422", "500", "503"}
+    {"200", "400", "401", "403", "404", "409", "410", "500", "503"}
 )
 RESTORE_CHECKPOINT_RESPONSE_DESCRIPTIONS = {
     "200": "Canvas restored from the saved checkpoint.",
+    "400": "The request is invalid.",
     "401": "A valid bearer token is required.",
-    "403": "The caller lacks an active Teacher or School Admin assignment for this class.",
-    "404": "The session, group, or checkpoint was not found.",
+    "403": "The caller's role is not allowed this action for the class.",
+    "404": "The session, group, or checkpoint was not found, or is outside the caller's scope.",
     "409": "Consent is not effective or the canvas revision has changed.",
     "410": "Checkpoint bytes are unavailable or failed integrity validation.",
-    "422": "The request does not match the BE1 API contract.",
     "500": "The server could not complete the request.",
     "503": "Production checkpoint storage has not been selected.",
 }
 _RESPONSE_DESCRIPTIONS_BY_STATUS = {
     "400": "The request is invalid",
     "409": "The request conflicts with current state",
-    "422": "The request does not match the API contract",
+    "422": _BUSINESS_RULE_422_DESCRIPTION,
 }
 RESTORE_CHECKPOINT_ERROR_EXAMPLES: dict[str, dict[str, Any]] = {
+    "400": {
+        "invalidRequest":
+        {
+            "summary": "Request validation failed",
+            "value": {
+                "code": "INVALID_REQUEST",
+                "message": "Yêu cầu không hợp lệ.",
+                "correlation_id": "req_example_001",
+                "retryable": False,
+                "retry_after_seconds": None,
+                "field_errors": None,
+                "request_id": "req_example_001",
+            },
+        }
+    },
     "401": {
-        "authenticationRequired": {
+        "authenticationRequired":
+        {
             "summary": "Bearer token required",
             "value": {
-                "code": "AUTHENTICATION_REQUIRED",
-                "message": "A verified bearer token is required",
+                "code": "AUTH_REQUIRED",
+                "message": "Vui lòng đăng nhập để tiếp tục.",
+                "correlation_id": "req_example_001",
+                "retryable": False,
+                "retry_after_seconds": None,
+                "field_errors": None,
                 "request_id": "req_example_001",
             },
         }
     },
     "403": {
-        "classAssignmentRequired": {
-            "summary": "Teacher or school-admin assignment required",
+        "actionNotAllowed":
+        {
+            "summary": "Role not allowed for this class",
             "value": {
-                "code": "SCOPE_DENIED",
-                "message": "adult assignment does not cover this organization or class",
+                "code": "ACTION_NOT_ALLOWED",
+                "message": "Tài khoản không được phép thực hiện thao tác này.",
+                "correlation_id": "req_example_001",
+                "retryable": False,
+                "retry_after_seconds": None,
+                "field_errors": None,
                 "request_id": "req_example_001",
             },
         }
     },
     "404": {
-        "checkpointNotFound": {
-            "summary": "Checkpoint not found",
+        "resourceNotFound":
+        {
+            "summary": "Checkpoint not found or out of scope",
             "value": {
-                "code": "CHECKPOINT_NOT_FOUND",
-                "message": "Checkpoint was not found",
+                "code": "RESOURCE_NOT_FOUND",
+                "message": "Không tìm thấy tài nguyên được yêu cầu.",
+                "correlation_id": "req_example_001",
+                "retryable": False,
+                "retry_after_seconds": None,
+                "field_errors": None,
                 "request_id": "req_example_001",
             },
         }
     },
     "409": {
-        "staleCanvasRevision": {
+        "staleCanvasRevision":
+        {
             "summary": "Canvas revision changed",
             "value": {
                 "code": "STALE_CANVAS_REVISION",
-                "message": "Canvas changed; reload before restoring",
+                "message": "Yêu cầu xung đột với trạng thái hiện tại.",
+                "correlation_id": "req_example_001",
+                "retryable": False,
+                "retry_after_seconds": None,
+                "field_errors": None,
                 "request_id": "req_example_001",
             },
         },
-        "consentNotEffective": {
+        "consentNotEffective":
+        {
             "summary": "Consent is not effective",
             "value": {
                 "code": "CONSENT_NOT_EFFECTIVE",
-                "message": (
-                    "Consent verification and purpose approval are pending; "
-                    "child data is blocked"
-                ),
-                "request_id": "req_example_001",
-            },
-        },
-    },
-    "410": {
-        "checkpointUnavailable": {
-            "summary": "Checkpoint bytes unavailable",
-            "value": {
-                "code": "CHECKPOINT_UNAVAILABLE",
-                "message": "Checkpoint bytes are unavailable or failed integrity validation",
+                "message": "Yêu cầu xung đột với trạng thái hiện tại.",
+                "correlation_id": "req_example_001",
+                "retryable": False,
+                "retry_after_seconds": None,
+                "field_errors": None,
                 "request_id": "req_example_001",
             },
         }
     },
-    "422": {
-        "invalidRequest": {
-            "summary": "Request validation failed",
+    "410": {
+        "checkpointUnavailable":
+        {
+            "summary": "Checkpoint bytes unavailable",
             "value": {
-                "code": "REQUEST_VALIDATION_FAILED",
-                "message": "The request does not match the BE1 API contract",
+                "code": "CHECKPOINT_UNAVAILABLE",
+                "message": "Tài nguyên không còn khả dụng.",
+                "correlation_id": "req_example_001",
+                "retryable": False,
+                "retry_after_seconds": None,
+                "field_errors": None,
                 "request_id": "req_example_001",
             },
         }
     },
     "500": {
-        "internalServerError": {
+        "internalServerError":
+        {
             "summary": "Unexpected server error",
             "value": {
                 "code": "INTERNAL_SERVER_ERROR",
-                "message": "The server could not complete the request",
+                "message": "Máy chủ chưa thể hoàn tất yêu cầu.",
+                "correlation_id": "req_example_001",
+                "retryable": False,
+                "retry_after_seconds": None,
+                "field_errors": None,
                 "request_id": "req_example_001",
             },
         }
     },
     "503": {
-        "checkpointStorageUnavailable": {
+        "checkpointStorageUnavailable":
+        {
             "summary": "Checkpoint storage is not configured",
             "value": {
                 "code": "ARTIFACT_PROVIDER_UNCONFIGURED",
-                "message": "Production checkpoint storage has not been selected",
+                "message": "Dịch vụ tạm thời chưa sẵn sàng. Vui lòng thử lại sau.",
+                "correlation_id": "req_example_001",
+                "retryable": True,
+                "retry_after_seconds": None,
+                "field_errors": None,
                 "request_id": "req_example_001",
             },
         }
     },
 }
+
 PUBLIC_TAG_RENAMES = {
     "BE1 — Organizations & Classes": "Organizations & Classes",
     "BE1 — Sessions & Devices": "Sessions & Devices",
@@ -1251,6 +1318,59 @@ def add_error_examples(openapi_schema: dict[str, Any]) -> int:
         added += len(examples)
     return added
 
+def _conv1_error_rows(
+    operation_key: tuple[str, str], responses: Sequence[Mapping[str, Any]]
+) -> list[dict[str, Any]]:
+    """Publish 400 in place of the validation 422 (CONV-1 §3.2 item 8).
+
+    An existing 400 row (the Lesson Library `INVALID_IDEMPOTENCY_KEY` rows) is merged with the
+    generic validation 400 into one row. A 422 row stays only on the named kept-422 operations.
+    """
+    kept_422 = operation_key in BE1_KEPT_422_OPERATIONS or (
+        operation_key in LESSON_LIBRARY_KEPT_422_OPERATIONS
+    )
+    rows = [dict(source) for source in responses]
+    has_422 = any(str(row["status"]) == "422" for row in rows)
+    if not has_422:
+        return rows
+    result: list[dict[str, Any]] = []
+    existing_400 = next((row for row in rows if str(row["status"]) == "400"), None)
+    for row in rows:
+        status = str(row["status"])
+        if status == "422":
+            if existing_400 is None:
+                result.append(
+                    {
+                        "status": "400",
+                        "description": _VALIDATION_400_DESCRIPTION,
+                        "media_type": "application/json",
+                        "schema_name": "Be1Error",
+                    }
+                )
+            if kept_422:
+                result.append(
+                    {
+                        "status": "422",
+                        "description": _BUSINESS_RULE_422_DESCRIPTION,
+                        "media_type": "application/json",
+                        "schema_name": "Be1Error",
+                    }
+                )
+            continue
+        if status == "400":
+            description = str(row.get("description") or "").strip()
+            row["description"] = (
+                f"{description} It is also returned when the request is invalid "
+                "(`INVALID_REQUEST`)."
+                if description
+                else _VALIDATION_400_DESCRIPTION
+            )
+            row["media_type"] = row.get("media_type") or "application/json"
+            row["schema_name"] = "Be1Error"
+        result.append(row)
+    return result
+
+
 def published_responses(
     operation_key: tuple[str, str], responses: Sequence[Mapping[str, Any]]
 ) -> tuple[dict[str, Any], ...]:
@@ -1265,6 +1385,8 @@ def published_responses(
             )
         return row
 
+    if operation_key[1].startswith(_CONV1_CATALOGUED_PREFIXES):
+        responses = _conv1_error_rows(operation_key, responses)
     binary_override = BINARY_SUCCESS_RESPONSES.get(operation_key)
     if operation_key == RESTORE_CHECKPOINT_OPERATION_KEY:
         rows: list[dict[str, Any]] = []
@@ -1331,6 +1453,8 @@ def published_responses(
 
 __all__ = [
     "BE1_EXPLICIT_ERROR_STATUSES",
+    "BE1_KEPT_422_OPERATIONS",
+    "LESSON_LIBRARY_KEPT_422_OPERATIONS",
     "add_error_examples",
     "add_request_examples",
     "add_multipart_examples",

@@ -83,14 +83,20 @@ def _call(function):
 def _strong_revision(if_match: str | None) -> int:
     if if_match is None:
         raise HTTPException(
-            status_code=428,
-            detail={"code": "PRECONDITION_REQUIRED", "message": "If-Match is required"},
+            status_code=400,
+            detail={
+                "code": "INVALID_REQUEST",
+                "field_errors": [{"field": "If-Match", "code": "REQUIRED"}],
+            },
         )
     match = _ETAG.fullmatch(if_match.strip())
     if match is None:
         raise HTTPException(
-            status_code=422,
-            detail={"code": "INVALID_REQUEST", "message": "If-Match must contain a strong numeric ETag"},
+            status_code=400,
+            detail={
+                "code": "INVALID_REQUEST",
+                "field_errors": [{"field": "If-Match", "code": "INVALID_FORMAT"}],
+            },
         )
     return int(match.group(1))
 
@@ -613,7 +619,9 @@ def revoke_parent_group_membership(
         _manager(db, principal, organization_id)
         manager = True
     except HTTPException as exc:
-        if exc.status_code != 403:
+        # CONV-1: a caller who is not this organization's manager falls through to the Parent
+        # self-revoke path; after CONV-1 that caller gets 404 (out of scope) or 403 (role).
+        if exc.status_code not in {403, 404}:
             raise
     result = _call(lambda: service.revoke_parent_group_membership(
         organization_id=organization_id, group_id=parent_group_id,

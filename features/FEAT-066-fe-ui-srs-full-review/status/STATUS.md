@@ -653,3 +653,33 @@ Plan Rev44 and its approval record the direct task authorization. The supported 
 - Security, harness, architecture and diff checks passed after removing the approval EOF blank line.
 - .env and QA credentials under ignored tmp are excluded. No history rewrite; prior Rev48 commit remains.
 - EV-057 records the commit scope and verification.
+
+## 2026-11-18 — CONV-1 implemented and verified (local branch, not pushed)
+
+- **Status:** **VERIFIED** with recorded limits. The code is in the local branch `feature/feat066-conv1`, which is never pushed (CV-B). Evidence: `evidence/notes/CONV_1_IMPLEMENTATION_EVIDENCE_20261118.md`. Independent review: `evidence/notes/CONV_1_IMPLEMENTATION_REVIEW_20261118.md`, CHANGES REQUIRED (small), with the P2 fixed.
+- **Owner runs, against the disposable `be1_acceptance` database with no ClamAV:**
+  - contract and unit: 163 passed;
+  - DB integration: 130 passed;
+  - the last fixed test: 2/2.
+
+  Every remaining failure is pre-existing or comes from the environment (see the evidence).
+- **Not run:** tests that need `sketch2life_m2_s1a`, which is a forbidden database.
+- **Follow-ups (package §6, AC9):**
+
+  | Owner | Follow-up |
+  |---|---|
+  | Web FE | The callers in `backendApi.tsx`, `be1Client.ts`, `authService.ts`, `userService.ts`, `UsersPage.tsx`, `aiWorkflowService.ts` and `TeacherAiLessonWorkflowPage.tsx` must read the new envelope and codes. FEBASE and the role FE slices build on CONV-1 |
+  | Mobile | Read-only check of the `/api/auth/v1` and `/api/lesson-library/v1` calls in `apps/mobile` and `apps/ui-mobile` |
+  | C-P | `/api/parent/v1/ai` envelope, together with the mobile parser |
+  | C-T | Upload and file code and status alignment; the Lesson Library and Teacher AI domain 422 codes; Teacher AI request-ID logging and OpenAPI errors; `assistance_requests.py` envelope; ClamAV |
+  | C-M and C-T | BE1 domain 422 codes; `CLASS_SCOPE_MISMATCH` and route-specific scope checks; BE1 `IDEMPOTENCY_KEY_REUSED` aligned to `INVALID_IDEMPOTENCY_KEY` |
+  | C-A | Platform Admin domain 422 codes; Platform Admin and auth OpenAPI errors; account `Idempotency-Key`; `ACCOUNT_SETUP_UNAVAILABLE` status; account cursor paging |
+  | Lesson Library | `STALE_REVISION` current ETag |
+  | BRU-0 | Bruno status and code assertions for the in-scope families |
+
+- **Pre-existing defects found, not fixed** (outside CONV-1):
+  - the auth test spy returns `None`;
+  - the mapping test cannot parse `openapi_contract.py`;
+  - the BE1 OpenAPI path count is 54 where the test expects 55;
+  - `CANVAS_PROFILE_MISMATCH` in the room-code test;
+  - the pending-consent test still expects a School Manager to create a profile.

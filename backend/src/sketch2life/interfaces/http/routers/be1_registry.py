@@ -55,7 +55,7 @@ router = APIRouter(prefix="/api/be1/v1", tags=["BE1 registry"], responses=BE1_ER
 
 
 def _scope_denied() -> HTTPException:
-    return failure(403, "SCOPE_DENIED", "Access to this resource is not permitted")
+    return failure(404, "RESOURCE_NOT_FOUND", "The requested resource was not found")
 
 
 def _require_m2_assignment(
@@ -75,9 +75,9 @@ def _require_m2_assignment(
             class_id=class_id,
         )
     except HTTPException as exc:
-        detail = exc.detail
-        code = detail.get("code") if isinstance(detail, dict) else None
-        if exc.status_code == 403 and code in {"ADULT_NOT_ASSIGNED", "SCOPE_DENIED"}:
+        # CONV-1: every out-of-scope case answers with the one uniform 404 body; an in-scope
+        # role refusal (403 ACTION_NOT_ALLOWED) passes through unchanged.
+        if exc.status_code == 404:
             raise _scope_denied() from None
         raise
 

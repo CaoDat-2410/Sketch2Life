@@ -29,6 +29,7 @@ from sketch2life.infrastructure.persistence.be1_models import (
     OrganizationModel,
 )
 from sketch2life.interfaces.http.app import create_app
+from sketch2life.interfaces.http.error_envelope import MESSAGES, STATUS_MESSAGES
 
 
 def _error_core(response) -> dict[str, str]:
@@ -267,7 +268,7 @@ def test_teacher_postgres_contract_and_marker_accounting(s1a_t_client: SimpleNam
     assert created[0].json()["class_id"] == class_id
     assert _error_core(conflicts[0]) == {
         "code": "CLASS_TEACHER_EXISTS",
-        "message": "Class already has an active Teacher",
+        "message": STATUS_MESSAGES[409],
     }
     assert accepted.teacher_a not in conflicts[0].text
     assert accepted.teacher_b not in conflicts[0].text
@@ -301,19 +302,27 @@ def test_teacher_postgres_contract_and_marker_accounting(s1a_t_client: SimpleNam
         profile_request(accepted.teacher_other_class, 60, "other-class-teacher-denied"),
         profile_request(accepted.teacher_other_org, 60, "other-org-teacher-denied"),
     ]
-    for response in denied_profiles:
-        assert response.status_code == 403
+    # CONV-1 (D-066-68 C-D4, D-066-71): the org-wide School Manager is inside the class scope
+    # but its role is refused -> 403; every out-of-scope teacher gets one uniform 404 body.
+    manager_denial, *out_of_scope = denied_profiles
+    assert manager_denial.status_code == 403
+    assert _error_core(manager_denial) == {
+        "code": "ACTION_NOT_ALLOWED",
+        "message": MESSAGES["ACTION_NOT_ALLOWED"],
+    }
+    for response in out_of_scope:
+        assert response.status_code == 404
         assert _error_core(response) == {
-            "code": "SCOPE_DENIED",
-            "message": "Access to this resource is not permitted",
+            "code": "RESOURCE_NOT_FOUND",
+            "message": MESSAGES["RESOURCE_NOT_FOUND"],
         }
-    first_denial = _error_core(denied_profiles[0])
-    assert all(_error_core(response) == first_denial for response in denied_profiles)
+    first_denial = _error_core(out_of_scope[0])
+    assert all(_error_core(response) == first_denial for response in out_of_scope)
 
     too_young = profile_request(winning_subject, 35, "age-35-rejected")
     too_old = profile_request(winning_subject, 121, "age-121-rejected")
-    assert too_young.status_code == 422
-    assert too_old.status_code == 422
+    assert too_young.status_code == 400
+    assert too_old.status_code == 400
 
     created_profiles = []
     for age_months in (36, 120):

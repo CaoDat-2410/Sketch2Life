@@ -518,7 +518,8 @@ def test_teacher_lesson_crud_revision_guards_and_organization_scope(
         f"/api/lesson-library/v1/organizations/{accepted.organization_id}/lessons",
         headers=_headers(accepted.parent),
     )
-    assert forbidden.status_code == 403
+    # CONV-1 (D-066-68 C-D4, D-066-71 CV-5): a Parent account is out of scope here -> 404.
+    assert forbidden.status_code == 404
 
     archived = client.delete(lesson_url, headers=_headers(accepted.teacher, **{"If-Match": '"2"'}))
     assert archived.status_code == 200, archived.text
@@ -1159,8 +1160,66 @@ def test_manager_list_routes_default_to_25_and_preserve_limit_and_cursor_inputs(
                 invalid_page = accepted.client.get(
                     url, params={"limit": invalid_limit}, headers=headers
                 )
-                assert invalid_page.status_code == 422
+                assert invalid_page.status_code == 400
+                assert invalid_page.json()["code"] == "INVALID_REQUEST"
         assert len(service.parent_group_calls) == recorded_parent_calls
         assert len(service.access_grant_calls) == recorded_grant_calls
     finally:
         accepted.app.dependency_overrides.pop(get_lesson_library_service, None)
+
+
+def test_parent_can_still_self_revoke_parent_group_membership(
+    lesson_api_acceptance: LessonApiAcceptance,
+) -> None:
+    """CONV-1 AC10: the Parent self-revoke path survives the 404/403 guard change."""
+    accepted = lesson_api_acceptance
+    client = accepted.client
+    org = accepted.organization_id
+    group_response = client.post(
+        f"/api/lesson-library/v1/organizations/{org}/parent-groups",
+        json={"contract": "CreateParentGroupRequestV1", "display_name": "Synthetic CONV-1 group"},
+        headers=_headers(accepted.manager, **{"Idempotency-Key": f"conv1-group-{uuid4()}"}),
+    )
+    assert group_response.status_code == 201, group_response.text
+    group_id = group_response.json()["parent_group_id"]
+    invite_response = client.post(
+        f"/api/lesson-library/v1/organizations/{org}/parent-groups/{group_id}/invitations",
+        json={"contract": "InviteParentToGroupRequestV1", "parent_principal_ref": accepted.parent},
+        headers=_headers(accepted.manager, **{"Idempotency-Key": f"conv1-invite-{uuid4()}"}),
+    )
+    assert invite_response.status_code == 201, invite_response.text
+    membership_id = invite_response.json()["membership_id"]
+    accept_response = client.post(
+        f"/api/lesson-library/v1/me/parent-group-invitations/{membership_id}/accept",
+        headers=_headers(accepted.parent, **{"Idempotency-Key": f"conv1-accept-{uuid4()}"}),
+    )
+    assert accept_response.status_code == 200, accept_response.text
+    revision = accept_response.json()["revision"]
+
+    revoked = client.delete(
+        f"/api/lesson-library/v1/organizations/{org}/parent-groups/{group_id}/members/"
+        f"{membership_id}",
+        headers=_headers(accepted.parent, **{"If-Match": f'"{revision}"'}),
+    )
+    assert revoked.status_code == 200, revoked.text
+    assert revoked.json()["membership_id"] == membership_id
+
+
+def test_lesson_library_if_match_errors_are_400_with_field_errors(
+    lesson_api_acceptance: LessonApiAcceptance,
+) -> None:
+    """CONV-1 CV-4: missing or malformed If-Match gives 400 INVALID_REQUEST with a field error."""
+    accepted = lesson_api_acceptance
+    url = (
+        f"/api/lesson-library/v1/organizations/{accepted.organization_id}/parent-groups/"
+        f"{uuid4()}/members/{uuid4()}"
+    )
+    missing = accepted.client.delete(url, headers=_headers(accepted.manager))
+    assert missing.status_code == 400, missing.text
+    assert missing.json()["field_errors"] == [{"field": "If-Match", "code": "REQUIRED"}]
+    malformed = accepted.client.delete(
+        url, headers=_headers(accepted.manager, **{"If-Match": "W/weak"})
+    )
+    assert malformed.status_code == 400, malformed.text
+    assert malformed.json()["field_errors"] == [{"field": "If-Match", "code": "INVALID_FORMAT"}]
+    assert missing.headers["X-Request-ID"] == missing.json()["correlation_id"]

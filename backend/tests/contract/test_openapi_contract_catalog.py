@@ -25,6 +25,7 @@ from sketch2life.interfaces.http.openapi_contract import (
     UNMOUNTED_OPERATIONS,
 )
 from sketch2life.interfaces.http.openapi_contract_amendments import (
+    BE1_KEPT_422_OPERATIONS,
     PORTFOLIO_OPERATION_KEY,
     RESTORE_CHECKPOINT_OPERATION_KEY,
     RESTORE_CHECKPOINT_RESPONSE_DESCRIPTIONS,
@@ -401,28 +402,36 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
             assert schema == {"$ref": "#/components/schemas/MobileWorkflowResultV1"}
 
         if key[1].startswith("/api/be1/v1/"):
+            # CONV-1 (FEAT-066 D-066-71): 400 replaces the validation 422; 404 is explicit;
+            # 422 stays only on the named kept-422 operations (grouped under "default").
+            kept_422 = key in BE1_KEPT_422_OPERATIONS
             if key == RESTORE_CHECKPOINT_OPERATION_KEY:
                 expected_statuses = {
-                    "200", "401", "403", "404", "409", "410", "422", "500", "503"
+                    "200", "400", "401", "403", "404", "409", "410", "500", "503"
                 }
                 expected_default_codes = None
             elif key == PORTFOLIO_OPERATION_KEY:
-                expected_statuses = {"401", "403", "409", "422", "default"}
-                expected_default_codes = "404, 410, 413, 415, 429, 500, 503"
+                expected_statuses = {"400", "401", "403", "404", "409", "default"}
+                expected_default_codes = "410, 413, 415, 429, 500, 503"
             else:
                 success_status = next(
                     row["status"]
                     for row in declared_responses.values()
-                    if row["status"] not in {"401", "403", "422", "default"}
+                    if row["status"] not in {"400", "401", "403", "404", "default"}
                 )
                 expected_statuses = {
                     success_status,
+                    "400",
                     "401",
                     "403",
-                    "422",
+                    "404",
                     "default",
                 }
-                expected_default_codes = "404, 409, 410, 413, 415, 429, 500, 503"
+                expected_default_codes = (
+                    "409, 410, 413, 415, 422, 429, 500, 503"
+                    if kept_422
+                    else "409, 410, 413, 415, 429, 500, 503"
+                )
             assert set(operation["responses"]) == expected_statuses
             if expected_default_codes is not None:
                 default_response = operation["responses"]["default"]

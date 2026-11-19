@@ -447,9 +447,16 @@ class CanvasRestoreRequest(Be1Request):
 
 
 class Be1Error(BaseModel):
+    """CONV-1 error envelope (SRS §9.8 fields plus `request_id`; published as `ApiError`)."""
+
     code: str
     message: str
+    correlation_id: str
+    retryable: bool
+    retry_after_seconds: int | None = None
+    field_errors: list[dict[str, str]] | None = None
     request_id: str
+    current_version: int | None = None
 
 
 __all__ = [

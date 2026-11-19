@@ -437,3 +437,154 @@ Owner decision: "R ok verified làm bước 5 đi" — MGR-8 VERIFIED, with the 
 - Scope: stage and commit all current non-ignored web-remediation worktree changes, records and reviewed screenshots in one new commit; run focused validation and push to the existing branch upstream.
 - Boundaries: keep the previously pushed Rev48 commit; no history rewrite/force push; exclude .env, tmp QA credentials, passwords/tokens, service-account keys, external references, and ignored build/runtime files.
 - Approval basis: the owner directly requested one consolidated commit and push for use on another machine; this supersedes earlier no-commit/push exclusions only for the current pending worktree changes.
+
+## FEAT-066 CONV-1 — API conventions core (BE)
+
+- **Status:** APPROVED_FOR_IMPLEMENTATION, by the owner's chat answer of 2026-11-18 (option "Approve Draft 5"). **Not launched:** coding starts only on a separate owner word.
+- **Approved package:** `features/FEAT-066-fe-ui-srs-full-review/plan/PLAN_CONV1_BE_IMPLEMENTATION_APPROVAL_PACKAGE_DRAFT5_20261118.md`, 47,483 bytes, SHA-256 `3FCF47412F69D8A16EFFFC7978C5E2BD107EA429EF3F42D354BCE00FF7451278`.
+- **Reviews:** all four on Sonnet 5.5 at high effort, set explicitly. The records are in `evidence/notes/`:
+
+  | Round | Record | Verdict (P1/P2/P3) |
+  |---|---|---|
+  | 1 | `CONV_1_COLD_REVIEW_DRAFT1_20261118.md` (`801D0246…`) | NOT READY 1/8/7 |
+  | 2 | `CONV_1_COLD_REVIEW_DRAFT2_R2_20261118.md` (`73552C0B…`) | NOT READY 1/1/13 |
+  | 3 | `CONV_1_COLD_REVIEW_DRAFT3_R3_20261118.md` (`80DE3C1E…`) | NOT READY 0/2/8 |
+  | 4 | `CONV_1_COLD_REVIEW_DRAFT4_R4_20261118.md` (`FD63A12D…`) | READY WITH NOTES 0/0/5 |
+
+  Draft 5 fixes the round-4 P3 notes only and was not re-reviewed.
+- **Decisions:** `DECISIONS.md` D-066-68, D-066-69 and D-066-71.
+- **Branch:** `feature/feat066-conv1`, created from `08439b22`. It is local only and is never pushed.
+- **Approved allowlist:**
+  - files 1 to 29 of package §4, each within its stated limit;
+  - edits to existing tests 16 to 28 limited to status, code, envelope and message assertions;
+  - the governance documents named in §4, written by the coordinator, append-only.
+  - Any other file stops the task and needs an owner scope amendment.
+- **Approved behaviour:** package §3.2 items 1 to 8, with the D-066-71 answers.
+- **Exclusions:** package §3.3. In particular:
+  - no `/api/parent/v1/ai` change;
+  - no upload or file code or status alignment;
+  - no route move;
+  - no FE, mobile or Bruno file;
+  - no migration or dependency change;
+  - no OpenAPI change for Platform Admin, auth or Teacher AI.
+- **Verification boundary** (package §7):
+  - **Coordinator or Codex**, without a database or TestClient: ruff, mypy, the new unit tests, the four repository validators, and `git diff --check`.
+  - **Owner-run** in the owner's terminal against the disposable `be1_acceptance` database: the TestClient and database tests.
+  - No database, Docker, network, provider or Modal command is otherwise authorized.
+- **Git boundary:** no stage or commit without a separate owner word, and never a push.
+
+Scope amendment, 2026-11-18 (CONV-1 fixtures): the owner approved in chat ("Cho sửa fixture") one fixture change in two files that the allowlist already contains: `backend/tests/integration/test_be1_postgres_api.py` (row 23) and `backend/tests/integration/test_be1_synthetic_pilot_postgres.py` (row 24).
+
+**The change:** three synthetic adult identities get an `account_role`:
+- `test_be1_postgres_api.py`: the School Admin fixture (about line 94) gets `school_manager`, and the observer fixture (about line 229) gets `teacher`;
+- `test_be1_synthetic_pilot_postgres.py`: the pilot harness fixture (about line 425) gets `school_manager`.
+
+**Why:** the role gate in `be1_common.require_assignment` has required `account_role` since commit `800c8e9f`. Without it, these fixtures failed at the base too, with 403 instead of 404. In the first CONV-1 owner run, 73 setups errored, so the BE1 behaviour of CONV-1 could not be verified. This is the same gap as the MGR-8 fixture amendment for the Lesson Library test.
+
+**Unchanged:** no assertion meaning and no other file. This note authorizes no commit or push.
+
+## FEAT-066 SEED-1 — S1 core-data seed (tool and tests)
+
+- **Status:** APPROVED_FOR_IMPLEMENTATION, by the owner's chat instruction of 2026-11-18 ("làm SEED-1 tiếp đi check lại nếu ổn thì duyệt") after the coordinator's re-check. **Not launched:** coding starts in BE queue slot 3, after FR-C-08, and only on a separate owner word.
+- **Approved package:** `features/FEAT-066-fe-ui-srs-full-review/plan/PLAN_SEED1_S1_IMPLEMENTATION_APPROVAL_PACKAGE_DRAFT4_20261118.md`, 23,121 bytes, SHA-256 `141488271D7FB37FDDAD1B0BA7005CF96ABAAA00EC627E80E2AA848638410BFA`.
+- **Reviews** (in `evidence/notes/`):
+
+  | Round | Record | Verdict (P1/P2/P3) |
+  |---|---|---|
+  | 1 | `SEED_1_COLD_REVIEW_DRAFT1_20261118.md` (`33C2AC3D…`) | NOT READY 0/4/6 |
+  | 2 | `SEED_1_COLD_REVIEW_DRAFT2_R2_20261118.md` (`4A19BFAD…`) | NOT READY 0/2/6 |
+  | 3 | `SEED_1_COLD_REVIEW_DRAFT3_R3_20261118.md` (`797C024C…`) | READY WITH NOTES 0/0/7 |
+
+  Draft 4 fixes the P3 notes and was not re-reviewed.
+- **Decision:** D-066-72.
+- **Branch:** `feature/feat066-seed1`, local only and never pushed, cut from the tip of the BE queue when the slot opens.
+- **Approved allowlist:** package §4 rows 1 to 9:
+  - `backend/tools/seed/__init__.py`, `guard.py`, `data.py` and `s1_core.py`;
+  - tests `tests/unit/test_seed_guard.py`, `tests/unit/test_seed_data.py` and `tests/integration/test_seed_s1_postgres.py`;
+  - the runbook and the evidence note;
+  - the governance records, written by the coordinator, append-only.
+
+  Product modules are imported read-only. A change to any product module stops the task for an owner scope amendment.
+- **Approved behaviour:** package §3 (guard, markers and column rules, idempotency and atomicity, data set, counts).
+- **Exclusions:**
+  - S2 to S4 and anything in Billing;
+  - consent records, sessions and eligibility proofs;
+  - lesson source documents and revisions, and command receipts;
+  - Bruno environments;
+  - FE sign-in;
+  - migrations.
+- **Verification boundary:**
+  - **Coordinator or Codex:** the package §5 commands (ruff, mypy, unit tests 5 and 6, the four validators, `git diff --check` after `git add -N` on the nine task paths).
+  - **Owner-run, against the seed database only:** the name contains `seed`; the port is neither 5432 nor 5433; never `be1_acceptance` or `sketch2life_m2_s1a`. The steps are `alembic upgrade heads` on a fresh database with `S1A_P_ALEMBIC_DATABASE_URL` set explicitly to the seed URL, S1 run twice, the counts, and test 7.
+  - No other database, Docker, network, provider or Modal command is authorized.
+- **Git boundary:** no stage or commit without a separate owner word, and never a push.
+
+## FEAT-066 PAY-0 — payment interface skeleton (package)
+
+- **Status:** PACKAGE APPROVED on 2026-11-18 (D-066-73). **Not launched.** This entry approves the PAY-0 design and its split into three slices. It authorizes no code: each of PAY-0a, PAY-0b and PAY-0c needs its own Task Approval entry with an exact allowlist and command ceiling, and an owner word to start, in its BE queue slot after FR-C-08 and SEED-1.
+- **Approved package:** `features/FEAT-066-fe-ui-srs-full-review/plan/PLAN_PAY0_PAYMENT_INTERFACE_SKELETON_DRAFT6_20261118.md`, 68,734 bytes, SHA-256 `AE4DB60B67F935FB7F874B3498626B5DE1D38448891561906DC78B476388078E`.
+- **Reviews** (in `evidence/notes/`):
+
+  | Round | Record | Verdict (P1/P2/P3) |
+  |---|---|---|
+  | 1 | `PAY_0_COLD_REVIEW_DRAFT1_20261118.md` (`38C88823…`) | NOT READY 2/12/5 |
+  | 2 | `PAY_0_COLD_REVIEW_DRAFT2_20261118.md` (`117B7F32…`) | NOT READY 1/6/7 |
+  | 3 | `PAY_0_COLD_REVIEW_DRAFT3_20261118.md` (`D25733EC…`) | NOT READY 0/5/9 |
+  | 4 | `PAY_0_COLD_REVIEW_DRAFT4_20261118.md` (`6679D17B…`) | NOT READY 0/3/9 |
+  | 5 | `PAY_0_COLD_REVIEW_DRAFT5_20261118.md` (`B6C2512A…`) | NOT READY 0/1/7 |
+
+  Five rounds are used. Draft 6 fixes the round-5 findings and was not re-reviewed, by owner choice.
+- **Decision:** D-066-73 (amends D-066-65 for the skeleton only).
+- **Slices** (package §9):
+  - **PAY-0a Foundation:** domain types and the transition table, ports and DTOs, the Alembic migration for the three payment tables (branch label `billing`, independent root), repositories, the fake provider and test kit, the fake quote-inputs and fulfilment ports, and the settings with their validator.
+  - **PAY-0b Callback intake:** the intake service, the organization checkout lock helper, the abuse limiter, the callback route, security and warning events, the review transaction, the `signed:` receipt path, and the provider contract suite.
+  - **PAY-0c Checkout and jobs:** the checkout and status routes, the `CONV1_PREFIXES` addition and the new codes' messages, the background jobs with the job-transition rule, the one-shot command and the RQ enqueue.
+- **Exclusions:** Billing core (frozen), including the real `BillingQuoteInputsPortV1` and the Billing side of `PaymentFulfilmentPortV1`; real MoMo and VNPAY code (PAY-1 onward, payment teammate); the Parent top-up route; refunds and the operator review screen (PAY-3); the periodic scheduler (a separate owner-lane slice, PD-9a); option B of package §6; notifications, FE screens and Bruno.
+- **Dependency:** the CONV-1 envelope, which exists only on the local-only branch `feature/feat066-conv1` (D-066-71, CV-B). Each PAY-0 branch is cut from a queue tip that contains it.
+- **Test boundary for the later slices:** cases marked PG need a disposable PostgreSQL database whose name and port the slice approval fixes; never `sketch2life_m2_s1a`, never ports 5432 or 5433; run by the owner.
+- **Git boundary:** no stage or commit without a separate owner word, and never a push.
+
+## FEAT-066 C-M — School Manager per-role slice (package)
+
+- **Status:** PACKAGE APPROVED on 2026-11-18 (D-066-75). **Not launched.** This entry approves the C-M design, its five sub-slices and the settled answers CM-1 to CM-12. It authorizes no code: C-M1 BE, C-M1 FE, C-M2, C-M3, C-M4 and C-M5 each need their own Task Approval entry with exact paths and a command ceiling, and an owner word to start.
+- **Approved package:** `features/FEAT-066-fe-ui-srs-full-review/plan/PLAN_CM_SCHOOL_MANAGER_SLICE_PACKAGE_DRAFT4_20261118.md`, 28,716 bytes, SHA-256 `401E893503D5DC96071B88AE264DB3F029F076F10AF0824CA6366DACC092CF8A`.
+- **Reviews** (in `evidence/notes/`):
+
+  | Round | Record | Verdict (P1/P2/P3) |
+  |---|---|---|
+  | 1 | `CM_COLD_REVIEW_DRAFT1_20261118.md` (`E435B65D…`) | NOT READY 1/6/8 |
+  | 2 | `CM_COLD_REVIEW_DRAFT2_20261118.md` (`070D41F0…`) | NOT READY 0/5/6 |
+  | 3 | `CM_COLD_REVIEW_DRAFT3_20261118.md` (`C861311E…`) | NOT READY 0/2/7 |
+
+  Draft 4 fixes the round-3 findings and was not re-reviewed, by owner choice.
+- **Decision:** D-066-75.
+- **Sub-slices** (package §4):
+  - **C-M1 Roster reads and School Manager privacy:** cursor paging on A07 and A10; the School Manager A09 summary and A10 Manager list; the class-scoped Teacher rule; School Manager 403 on the session roster and pilot profiles; the repaired outdated test and the named PostgreSQL cases. BE part first, then the FE part after O-9 and before M9-A and M9-B.
+  - **C-M2 W-LESSON** (A12, A13, G06): after the MGR-6 answers and contract Draft 2; FE part is MGR-9 M9-C.
+  - **C-M3 W-ASSIGN** (B02, G02): after the MGR-3 answers and contract Draft 2; FE part is MGR-9 M9-B.
+  - **C-M4 W-CAP** (B01, G01): after Billing B-1 and B-2 (D-066-74); FE part is MGR-9 M9-A.
+  - **C-M5 UC-12** (G09): after C-M3.
+- **Queue:** C-M1 BE after FR-C-08, SEED-1 and PAY-0a to 0c, and before Billing B-1 (CM-10).
+- **Branch:** C-M1 BE on the local-only branch `feature/feat066-cm1`, never pushed (CM-9). A web branch that carries a local BE merge is not pushed until an owner-approved publication step.
+- **Exclusions:** consent writes and meaning (MGR-5), Parent-group invitations (MGR-4), Billing and payment, Teacher-only routes, and the privacy debt of package §8.
+- **Test boundary for the later slices:** PostgreSQL cases on a disposable database whose name contains `be1_acceptance`; never `sketch2life_m2_s1a`; never ports 5432 or 5433; run by the owner.
+- **Git boundary:** no stage or commit without a separate owner word, and never a push.
+
+## FEAT-066 L2 Billing — contract of record (Draft 9)
+
+- **Status:** CONTRACT APPROVED on 2026-11-18 (D-066-76). **Not launched.** This entry approves the Billing contract and its slice plan. It authorizes no code: each of B-1 to B-5 needs its own Task Approval entry with exact paths and a command ceiling, and an owner word to start in its BE queue slot.
+- **Approved contract:** `features/FEAT-066-fe-ui-srs-full-review/plan/PLAN_L2_BILLING_CONTRACT_DRAFT9_20261118.md`, 63,668 bytes, SHA-256 `3280BBC9486780E108D5A0C3A3921D7E8EF13E5F48A9BF2B748645739ADC7876`.
+- **Reviews:** Drafts 1 to 6 in six rounds (records `L2_BILLING_CONTRACT_DRAFT*_COLD_REVIEW_20261118.md`); Draft 7 closed without review (D-066-66); Draft 8 one round, NOT READY 0/3/10 (`L2_BILLING_CONTRACT_DRAFT8_COLD_REVIEW_20261118.md`, `5F3F80F5…`); Draft 9 fixes those findings and was not re-reviewed, by owner choice.
+- **Decisions:** D-066-66, D-066-67, D-066-73, D-066-74, D-066-75, D-066-76.
+- **Slices** (contract §11): B-1 Foundation (extends the PAY-0a `billing` branch; subscription foreign keys on the payment tables); B-2 class-create admission (BE1); B-3 video quota; B-4 the Billing side of the payment interface and the real quote-inputs port; B-5 lifecycle and downgrade. Plus the periodic runner slice of D-066-73 PD-9a.
+- **Queue:** FR-C-08 → SEED-1 → PAY-0a → PAY-0b → PAY-0c → C-M1 BE → B-1; the owner sets the runner position and the order of B-2 to B-5.
+- **Dependencies:** B-1 after PAY-0a; B-2 needs an approved price version in the environment and zero organizations without a subscription; B-4 after the payment teammate's review of contract §7.4 and §7.7.
+- **Exclusions:** payment flows and MoMo adapters (payment teammate, PAY-1 onward); purchase routes (payment side); notifications; FE screens.
+- **Test boundary for the later slices:** concurrency tests on a disposable PostgreSQL database whose name and port each slice approval fixes; never `sketch2life_m2_s1a`; never ports 5432 or 5433; run by the owner.
+- **Git boundary:** no stage or commit without a separate owner word, and never a push.
+
+### FEAT-066 SEED-1 — queue amendment (2026-11-19)
+
+- **Amends** the "Not launched" line and the branch line of the SEED-1 entry above: by D-066-77, SEED-1 now runs **before** FR-C-08. Its branch `feature/feat066-seed1` (local only, never pushed) is cut from the current BE queue tip, the CONV-1 line `feature/feat066-conv1`, when SEED-1 starts.
+- **Unchanged:** the approved package (Draft 4, `141488271D7F…`), the allowlist, the behaviour, the exclusions, the verification boundary (owner-run against the seed database only: name contains `seed`; port neither 5432 nor 5433; never `be1_acceptance` or `sketch2life_m2_s1a`), and the Git boundary.
+- **Still required:** a separate owner word to start coding.
