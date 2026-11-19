@@ -455,14 +455,15 @@ def test_new_revision_is_a_single_short_child_of_the_confirmed_parent() -> None:
 def test_head_counts_by_both_methods_match_the_derived_expectation() -> None:
     graph = _revision_graph()
     # Existing graph plus synthetic, age, vision, Parent, account-role, and
-    # Story context revisions.
-    assert len(graph) == 31
+    # Story context revisions, plus the FR-C-08 lifecycle revision
+    # (20261119_frc08_lifecycle_scope, its own frc08_lifecycle branch).
+    assert len(graph) == 32
     down_targets = {target for down, _ in graph.values() for target in down}
     dependency_targets = down_targets | {target for _, dep in graph.values() for target in dep}
     heads_down_only = {rev for rev in graph if rev not in down_targets}
     heads_with_depends = {rev for rev in graph if rev not in dependency_targets}
     # Parent is an independent root; the existing BE1 and pilot graph remains unchanged.
-    assert (len(heads_down_only), len(heads_with_depends)) == (13, 10)
+    assert (len(heads_down_only), len(heads_with_depends)) == (14, 10)
     assert "20261101_be1_age_0001" in heads_down_only
     assert "20261102_pv_0001" in heads_down_only
     assert "20261102_pv_0001" not in heads_with_depends

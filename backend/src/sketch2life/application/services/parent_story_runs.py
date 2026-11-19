@@ -13,9 +13,10 @@ from sketch2life.application.ports.parent_story_profile_lookup import (
     ParentStoryProfileReference,
 )
 from sketch2life.application.ports.parent_story_runs import (
+    ParentStoryLifecycleRecord,
     ParentStoryRevisionReservation,
-    ParentStoryRunRecord,
     ParentStoryRunRepositoryPort,
+    ParentStoryRunView,
 )
 
 _SAFE_TOPIC = re.compile(r"\S")
@@ -48,7 +49,7 @@ class ParentStoryRunService:
         adult_confirmed_idea: str,
         lesson_version_ref: dict[str, str] | None = None,
         lesson_pin_snapshot: dict[str, object] | None = None,
-    ) -> ParentStoryRunRecord:
+    ) -> ParentStoryRunView:
         normalized_topic, normalized_idea = self._normalize_create_values(
             topic=topic, adult_confirmed_idea=adult_confirmed_idea
         )
@@ -75,7 +76,7 @@ class ParentStoryRunService:
         topic: str,
         adult_confirmed_idea: str,
         lesson_version_ref: dict[str, str] | None = None,
-    ) -> ParentStoryRunRecord | None:
+    ) -> ParentStoryRunView | None:
         normalized_topic, normalized_idea = self._normalize_create_values(
             topic=topic, adult_confirmed_idea=adult_confirmed_idea
         )
@@ -101,13 +102,37 @@ class ParentStoryRunService:
             raise ParentStoryRunServiceError(422, "PARENT_STORY_IDEA_TOO_LONG")
         return normalized_topic, normalized_idea
 
-    def get_run(self, *, principal: VerifiedPrincipal, run_id: str) -> ParentStoryRunRecord:
+    def get_run(self, *, principal: VerifiedPrincipal, run_id: str) -> ParentStoryRunView:
         return self._repository.get_run(principal=principal, run_id=run_id)
 
     def get_active_run(
         self, *, principal: VerifiedPrincipal, account_id: str
-    ) -> ParentStoryRunRecord | None:
+    ) -> ParentStoryRunView | None:
         return self._repository.get_active_run(principal=principal, account_id=account_id)
+
+    def cancel_run(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        run_id: str,
+        expected_revision: int,
+        idempotency_key: str,
+    ) -> ParentStoryLifecycleRecord:
+        """FR-C-08 cancel: the run becomes DELETE_PENDING and the purge is requested."""
+        return self._repository.cancel_run(
+            principal=principal,
+            run_id=run_id,
+            expected_revision=expected_revision,
+            idempotency_key=idempotency_key,
+        )
+
+    def delete_run(
+        self, *, principal: VerifiedPrincipal, run_id: str, idempotency_key: str
+    ) -> ParentStoryLifecycleRecord:
+        """FR-C-08 delete of a COMPLETED, FAILED or ABANDONED run (D-214 item 1)."""
+        return self._repository.delete_run(
+            principal=principal, run_id=run_id, idempotency_key=idempotency_key
+        )
 
     def confirm_context(
         self,
@@ -117,7 +142,7 @@ class ParentStoryRunService:
         expected_context_revision: int,
         expected_context_snapshot_sha256: str,
         idempotency_key: str,
-    ) -> ParentStoryRunRecord:
+    ) -> ParentStoryRunView:
         return self._repository.confirm_context(
             principal=principal,
             run_id=run_id,
@@ -134,7 +159,7 @@ class ParentStoryRunService:
         expected_understanding_revision: int,
         confirmed_subject: str,
         idempotency_key: str,
-    ) -> int:
+    ) -> int | ParentStoryLifecycleRecord:
         subject = confirmed_subject.strip()
         if not subject or len(subject) > 160:
             raise ParentStoryRunServiceError(422, "PARENT_CONFIRMED_SUBJECT_INVALID")
@@ -181,7 +206,7 @@ class ParentStoryRunService:
         expected_revision: int,
         expected_story_sha256: str,
         idempotency_key: str,
-    ) -> ParentStoryRunRecord:
+    ) -> ParentStoryRunView:
         return self._repository.confirm_story_revision(
             principal=principal,
             run_id=run_id,

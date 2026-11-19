@@ -16,11 +16,16 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
     func,
+    text,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
-from sketch2life.infrastructure.persistence.core_models import CorePersistenceBase
+from sketch2life.infrastructure.persistence.core_models import (
+    OWNER_SCOPE_CHECK,
+    PARENT_COMPLETED_RESULT_PATTERN,
+    CorePersistenceBase,
+)
 
 
 class OrganizationModel(CorePersistenceBase):
@@ -561,11 +566,26 @@ class DataLifecycleRequestModel(CorePersistenceBase):
             name="ck_be1_data_request_state",
         ),
         CheckConstraint("unresolved_items >= 0", name="ck_be1_data_request_unresolved"),
+        CheckConstraint(OWNER_SCOPE_CHECK, name="ck_be1_data_request_owner_scope"),
+        CheckConstraint(
+            "owner_scope_kind <> 'PARENT_ACCOUNT' OR state <> 'completed' OR "
+            "(unresolved_items = 0 AND completed_at IS NOT NULL AND result_ref ~ "
+            f"'{PARENT_COMPLETED_RESULT_PATTERN}')",
+            name="ck_be1_data_request_parent_completed",
+        ),
         Index("ix_be1_data_request_org_state", "organization_id", "state"),
     )
 
     request_id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    organization_id: Mapped[str] = mapped_column(String(128), nullable=False)
+    # FR-C-08 (DTR Draft 6 §5.1): NULL for a Parent lifecycle request, which carries the typed
+    # PARENT_ACCOUNT owner scope instead. Organization writers always set it. The annotation
+    # stays ``str`` so existing organization callers keep their types.
+    organization_id: Mapped[str] = mapped_column(String(128), nullable=True)
+    owner_scope_kind: Mapped[str] = mapped_column(
+        String(32), nullable=False, default="ORGANIZATION", server_default=text("'ORGANIZATION'")
+    )
+    # DTR rule 1: the ORM default is NULL for organization rows (no copy of organization_id).
+    owner_scope_ref: Mapped[str | None] = mapped_column(String(128), nullable=True)
     request_type: Mapped[str] = mapped_column(String(24), nullable=False)
     target_ref: Mapped[str] = mapped_column(String(256), nullable=False)
     state: Mapped[str] = mapped_column(String(32), nullable=False, default="requested")

@@ -5,12 +5,13 @@ from __future__ import annotations
 import hashlib
 import hmac
 import json
-from collections.abc import Callable, Mapping
+from collections.abc import Mapping
 from datetime import UTC, datetime
 from typing import Any, cast
 from uuid import UUID, uuid4
 
-from sqlalchemy import insert, null, select, text, update
+from sqlalchemy import Table, and_, insert, null, select, text, update
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.engine import CursorResult, RowMapping
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
@@ -19,16 +20,62 @@ from sketch2life.application.ports.identity import VerifiedPrincipal
 from sketch2life.application.ports.parent_story_profile_lookup import ParentStoryProfileReference
 from sketch2life.application.ports.parent_story_runs import (
     ParentStoryInputRecord,
+    ParentStoryLifecycleRecord,
     ParentStoryRevisionReservation,
     ParentStoryRunError,
     ParentStoryRunRecord,
+    ParentStoryRunView,
 )
-from sketch2life.infrastructure.persistence.core_models import CoreAssetMetadataModel
+from sketch2life.application.ports.story_run_lifecycle import (
+    AUDIT_CANCEL_ACCEPTED,
+    AUDIT_DELETE_ACCEPTED,
+    AUDIT_RESOURCE_TYPE,
+    CANCEL_ELIGIBLE_STATES,
+    CANCEL_EVENT_TYPE,
+    DELETE_ELIGIBLE_STATES,
+    DELETE_EVENT_TYPE,
+    PURGE_STATES,
+    is_projection_body,
+    lifecycle_audit_id,
+    lifecycle_event_id,
+    lifecycle_projection_body,
+    lifecycle_request_id,
+)
+from sketch2life.infrastructure.persistence.core_models import (
+    CoreAggregateRevisionModel,
+    CoreAssetMetadataModel,
+    CoreAuditEntryModel,
+    CoreOutboxEventModel,
+)
 from sketch2life.infrastructure.story_run_lite import tables as story_tables
 
 _OWNER_SCOPE_KIND = "PARENT_ACCOUNT"
 _PARENT_CONTEXT_SCHEMA = "sketch2life.parent-context.v1"
 _PARENT_CONTEXT_MAX_BYTES = 32_768
+_PURGE_STATE_VALUES = tuple(sorted(PURGE_STATES))
+_AGGREGATES = cast(Table, CoreAggregateRevisionModel.__table__)
+_OUTBOX = cast(Table, CoreOutboxEventModel.__table__)
+_AUDIT = cast(Table, CoreAuditEntryModel.__table__)
+
+
+def _live_run(run_id: str) -> Any:
+    """DTR Draft 6 §7: every Parent Story writer updates only a run outside the purge states."""
+
+    return and_(
+        story_tables.story_runs.c.run_id == run_id,
+        story_tables.story_runs.c.run_state.not_in(_PURGE_STATE_VALUES),
+    )
+
+
+def _projection(run: Mapping[str, Any]) -> ParentStoryLifecycleRecord:
+    return ParentStoryLifecycleRecord.from_body(
+        lifecycle_projection_body(
+            run_id=str(run["run_id"]),
+            run_state=str(run["run_state"]),
+            revision=int(run["revision"]),
+            version=int(run["version"]),
+        )
+    )
 
 
 class SqlParentStoryRunRepository:
@@ -47,7 +94,7 @@ class SqlParentStoryRunRepository:
         adult_confirmed_idea: str,
         lesson_version_ref: dict[str, str] | None = None,
         lesson_pin_snapshot: dict[str, Any] | None = None,
-    ) -> ParentStoryRunRecord:
+    ) -> ParentStoryRunView:
         owner_scope_ref = _principal_scope_ref(principal)
         scope_kind = "COLLECTION"
         scope_ref = account_id
@@ -178,7 +225,7 @@ class SqlParentStoryRunRepository:
         topic: str,
         adult_confirmed_idea: str,
         lesson_version_ref: dict[str, str] | None = None,
-    ) -> ParentStoryRunRecord | None:
+    ) -> ParentStoryRunView | None:
         scope_kind = "COLLECTION"
         scope_ref = account_id
         key_hash = _idempotency_key_hash(idempotency_key)
@@ -218,8 +265,14 @@ class SqlParentStoryRunRepository:
 
     def get_run(
         self, *, principal: VerifiedPrincipal, run_id: str
-    ) -> ParentStoryRunRecord:
+    ) -> ParentStoryRunView:
         run = self._owned_run(principal, run_id)
+        if run["run_state"] in PURGE_STATES:
+            # DTR Draft 6 §6.5: the projection is returned before any input or profile access.
+            return _projection(run)
+        if run["profile_ref"] is None:
+            # Only the DELETED tombstone may hold a NULL profile ref (D-218 A-4).
+            raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE")
         input_row = self._current_input(run)
         latest_story = self._session.execute(
             select(story_tables.story_revisions)
@@ -310,7 +363,7 @@ class SqlParentStoryRunRepository:
 
     def get_active_run(
         self, *, principal: VerifiedPrincipal, account_id: str
-    ) -> ParentStoryRunRecord | None:
+    ) -> ParentStoryRunView | None:
         run_id = self._session.scalar(
             select(story_tables.story_runs.c.run_id).where(
                 story_tables.story_runs.c.actor_scope_kind == _OWNER_SCOPE_KIND,
@@ -332,18 +385,64 @@ class SqlParentStoryRunRepository:
         run_id: str,
         expected_revision: int,
         idempotency_key: str,
-        request_id: str,
-        response_builder: Callable[[ParentStoryRunRecord, str], dict[str, Any]],
-    ) -> dict[str, Any]:
+    ) -> ParentStoryLifecycleRecord:
+        """FR-C-08 cancel (Contract Draft 11 §3.1; DTR Draft 6 §6.1)."""
+
+        return self._accept_lifecycle_command(
+            principal=principal,
+            run_id=run_id,
+            operation="CANCEL_RUN",
+            idempotency_key=idempotency_key,
+            expected_revision=expected_revision,
+        )
+
+    def delete_run(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        run_id: str,
+        idempotency_key: str,
+    ) -> ParentStoryLifecycleRecord:
+        """FR-C-08 delete of a finished run (Contract Draft 11 §3.2; DTR Draft 6 §6.1)."""
+
+        return self._accept_lifecycle_command(
+            principal=principal,
+            run_id=run_id,
+            operation="DELETE_RUN",
+            idempotency_key=idempotency_key,
+            expected_revision=None,
+        )
+
+    def _accept_lifecycle_command(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        run_id: str,
+        operation: str,
+        idempotency_key: str,
+        expected_revision: int | None,
+    ) -> ParentStoryLifecycleRecord:
+        """One Story transaction: lock, replay, revision, state, then the five writes.
+
+        Error order (Contract §3.1-§3.2): owner-scoped lookup (404), replay, revision (cancel
+        only, 409 ``STALE_REVISION`` with ``current_version``), state (409
+        ``INVALID_STATE_TRANSITION``). The writes are the run (``DELETE_PENDING``, lock
+        released, revision and version +1), the Parent aggregate row, the outbox event, the
+        accepted audit row and the receipt whose body is the projection.
+        """
+
+        is_cancel = operation == "CANCEL_RUN"
         run = self._owned_run(principal, run_id, lock=True)
         key_hash = _idempotency_key_hash(idempotency_key)
         fingerprint = _sha256_json(
             {"run_id": run_id, "expected_revision": expected_revision}
+            if is_cancel
+            else {"run_id": run_id}
         )
         principal_scope = _principal_scope_ref(principal)
         self._lock_idempotency(
             principal=principal,
-            operation="CANCEL_RUN",
+            operation=operation,
             scope_kind="COLLECTION",
             scope_ref=principal_scope,
             key_hash=key_hash,
@@ -354,11 +453,13 @@ class SqlParentStoryRunRepository:
                     story_tables.story_command_receipts.c.actor_scope_kind
                     == _OWNER_SCOPE_KIND,
                     story_tables.story_command_receipts.c.actor_scope_ref == principal_scope,
-                    story_tables.story_command_receipts.c.operation == "CANCEL_RUN",
+                    story_tables.story_command_receipts.c.operation == operation,
                     story_tables.story_command_receipts.c.idempotency_key_sha256 == key_hash,
                 )
             ).mappings().one_or_none()
             if receipt is not None:
+                # SRS line 1697: the fingerprint check stays for cancel and delete replays;
+                # their fingerprints are never tombstoned (DTR step 4).
                 if (
                     receipt["idempotency_scope_kind"] != "STORY_RUN"
                     or receipt["idempotency_scope_ref"] != run_id
@@ -374,59 +475,121 @@ class SqlParentStoryRunRepository:
                     or not isinstance(body, dict)
                 ):
                     raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE")
+                if is_projection_body(body):
+                    replayed = ParentStoryLifecycleRecord.from_body(body)
+                elif run["run_state"] in PURGE_STATES:
+                    # A pre-existing M2 CANCEL_RUN body still holds run content until step 4
+                    # rewrites it; until then the replay returns the current projection.
+                    replayed = _projection(run)
+                else:
+                    raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE")
                 self._session.commit()
-                return dict(body)
+                return replayed
 
             current_revision = int(run["revision"])
-            if current_revision != expected_revision:
-                raise ParentStoryRunError(
-                    409, "STALE_REVISION", current_version=current_revision
-                )
-            if run["run_state"] not in {
-                "INPUT_PROCESSING",
-                "SUBJECT_REVIEW",
-                "PREPARATION_REVIEW",
-                "SCRIPT_GENERATING",
-                "SCRIPT_GENERATION_UNKNOWN",
-                "SCRIPT_REVIEW",
-                "VIDEO_ADMISSION_PENDING",
-            }:
+            if is_cancel:
+                if current_revision != expected_revision:
+                    raise ParentStoryRunError(
+                        409, "STALE_REVISION", current_version=current_revision
+                    )
+                if run["run_state"] not in CANCEL_ELIGIBLE_STATES:
+                    raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
+            elif run["run_state"] not in DELETE_ELIGIBLE_STATES:
                 raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
 
             now = datetime.now(UTC)
             new_revision = current_revision + 1
             new_version = int(run["version"]) + 1
-            self._session.execute(
-                update(story_tables.story_runs)
-                .where(
-                    story_tables.story_runs.c.run_id == run_id,
-                    story_tables.story_runs.c.revision == current_revision,
-                )
-                .values(
-                    run_state="DELETE_PENDING",
-                    active_owner_parent_account_id=None,
-                    revision=new_revision,
-                    version=new_version,
-                    updated_at=now,
-                )
+            changed = cast(
+                CursorResult[Any],
+                self._session.execute(
+                    update(story_tables.story_runs)
+                    .where(
+                        _live_run(run_id),
+                        story_tables.story_runs.c.revision == current_revision,
+                    )
+                    .values(
+                        run_state="DELETE_PENDING",
+                        active_owner_parent_account_id=None,
+                        revision=new_revision,
+                        version=new_version,
+                        updated_at=now,
+                    )
+                ),
             )
-            record = self.get_run(principal=principal, run_id=run_id)
-            response_body = response_builder(record, request_id)
+            if changed.rowcount != 1:
+                raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
+            request_id = lifecycle_request_id(run_id)
+            event_type = CANCEL_EVENT_TYPE if is_cancel else DELETE_EVENT_TYPE
+            self._upsert_parent_aggregate(
+                run_id=run_id, scope_ref=principal_scope, revision=new_revision, now=now
+            )
+            payload = {
+                "run_ref": run_id,
+                "lifecycle_request_ref": request_id,
+                "actor_ref": principal_scope,
+                "reason_code": (
+                    "PARENT_CANCEL_REQUESTED" if is_cancel else "PARENT_DELETE_REQUESTED"
+                ),
+            }
+            if is_cancel:
+                payload["expected_revision"] = str(expected_revision)
+            self._session.execute(
+                pg_insert(_OUTBOX)
+                .values(
+                    event_id=lifecycle_event_id(request_id, event_type),
+                    event_type=event_type,
+                    organization_id=None,
+                    owner_scope_kind=_OWNER_SCOPE_KIND,
+                    owner_scope_ref=principal_scope,
+                    aggregate_id=run_id,
+                    aggregate_revision=new_revision,
+                    payload=payload,
+                    status="pending",
+                    attempt_count=0,
+                    available_at=now,
+                    created_at=now,
+                )
+                .on_conflict_do_nothing(index_elements=["event_id"])
+            )
+            action = AUDIT_CANCEL_ACCEPTED if is_cancel else AUDIT_DELETE_ACCEPTED
+            self._session.execute(
+                pg_insert(_AUDIT)
+                .values(
+                    audit_id=lifecycle_audit_id(request_id, action),
+                    organization_id=None,
+                    owner_scope_kind=_OWNER_SCOPE_KIND,
+                    owner_scope_ref=principal_scope,
+                    actor_ref=principal_scope,
+                    action=action,
+                    resource_type=AUDIT_RESOURCE_TYPE,
+                    resource_id=run_id,
+                    decision="accepted:" + request_id,
+                    created_at=now,
+                )
+                .on_conflict_do_nothing(index_elements=["audit_id"])
+            )
+            body = lifecycle_projection_body(
+                run_id=run_id,
+                run_state="DELETE_PENDING",
+                revision=new_revision,
+                version=new_version,
+            )
             self._store_idempotency_receipt(
                 principal=principal,
-                operation="CANCEL_RUN",
+                operation=operation,
                 scope_kind="STORY_RUN",
                 scope_ref=run_id,
                 key_hash=key_hash,
                 fingerprint=fingerprint,
                 run_id=run_id,
                 resource_version=new_version,
-                response_body=response_body,
+                response_body=body,
                 now=now,
                 response_status=202,
             )
             self._session.commit()
-            return response_body
+            return ParentStoryLifecycleRecord.from_body(body)
         except ParentStoryRunError:
             self._session.rollback()
             raise
@@ -437,6 +600,49 @@ class SqlParentStoryRunRepository:
             self._session.rollback()
             raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE") from None
 
+    def _upsert_parent_aggregate(
+        self, *, run_id: str, scope_ref: str, revision: int, now: datetime
+    ) -> None:
+        """Parent aggregate row keyed by ``run_id``; ``revision`` = ``story.runs.revision``."""
+
+        statement = pg_insert(_AGGREGATES).values(
+            aggregate_id=run_id,
+            organization_id=None,
+            owner_scope_kind=_OWNER_SCOPE_KIND,
+            owner_scope_ref=scope_ref,
+            revision=revision,
+            updated_at=now,
+        )
+        self._session.execute(
+            statement.on_conflict_do_update(
+                index_elements=[_AGGREGATES.c.aggregate_id],
+                set_={
+                    "revision": statement.excluded.revision,
+                    "updated_at": statement.excluded.updated_at,
+                },
+                where=and_(
+                    _AGGREGATES.c.owner_scope_kind == _OWNER_SCOPE_KIND,
+                    _AGGREGATES.c.owner_scope_ref == scope_ref,
+                ),
+            )
+        )
+
+    def ensure_accepting_artwork(self, *, principal: VerifiedPrincipal, run_id: str) -> None:
+        """Port design §7: re-check the state immediately before the first ``put_object``."""
+
+        run = self._owned_run(principal, run_id)
+        if run["run_state"] in PURGE_STATES:
+            raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
+        if run["run_state"] != "INPUT_PROCESSING":
+            raise ParentStoryRunError(409, "PARENT_STORY_RUN_NOT_ACCEPTING_ARTWORK")
+
+    def _refuse_purged(self, run: Mapping[str, Any]) -> None:
+        """DTR Draft 6 §7: DELETE_PENDING and DELETED are refused by every Story writer."""
+
+        if run["run_state"] in PURGE_STATES:
+            self._session.rollback()
+            raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
+
     def confirm_context(
         self,
         *,
@@ -445,7 +651,7 @@ class SqlParentStoryRunRepository:
         expected_context_revision: int,
         expected_context_snapshot_sha256: str,
         idempotency_key: str,
-    ) -> ParentStoryRunRecord:
+    ) -> ParentStoryRunView:
         operation = "CONFIRM_CONTEXT"
         scope_kind = "STORY_RUN"
         scope_ref = run_id
@@ -476,6 +682,7 @@ class SqlParentStoryRunRepository:
         if replay is not None:
             self._session.commit()
             return self.get_run(principal=principal, run_id=run_id)
+        self._refuse_purged(run)
 
         input_row = self._current_input(run)
         context_revision = int(input_row["context_revision"] or 0)
@@ -506,7 +713,7 @@ class SqlParentStoryRunRepository:
             )
             self._session.execute(
                 update(story_tables.story_runs)
-                .where(story_tables.story_runs.c.run_id == run_id)
+                .where(_live_run(run_id))
                 .values(
                     version=new_version,
                     revision=story_tables.story_runs.c.revision + 1,
@@ -552,6 +759,7 @@ class SqlParentStoryRunRepository:
         scanner_version: str,
     ) -> ParentStoryInputRecord:
         run = self._owned_run(principal, run_id, lock=True)
+        self._refuse_purged(run)
         if run["run_state"] != "INPUT_PROCESSING":
             raise ParentStoryRunError(409, "PARENT_STORY_RUN_NOT_ACCEPTING_ARTWORK")
         previous = self._current_input(run)
@@ -647,7 +855,7 @@ class SqlParentStoryRunRepository:
             )
             self._session.execute(
                 update(story_tables.story_runs)
-                .where(story_tables.story_runs.c.run_id == run_id)
+                .where(_live_run(run_id))
                 .values(
                     current_input_revision=new_input_revision,
                     asset_ref=original_asset_ref,
@@ -675,6 +883,9 @@ class SqlParentStoryRunRepository:
         self, *, principal: VerifiedPrincipal, run_id: str
     ) -> ParentStoryInputRecord:
         run = self._owned_run(principal, run_id)
+        if run["run_state"] in PURGE_STATES:
+            # DTR Draft 6 §6.5: a lifecycle error, not PARENT_STORY_CONTEXT_UNAVAILABLE.
+            raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
         row = self._current_input(run)
         return self._input_record(row)
 
@@ -688,6 +899,7 @@ class SqlParentStoryRunRepository:
         confidence: float,
     ) -> int:
         run = self._owned_run(principal, run_id, lock=True)
+        self._refuse_purged(run)
         if run["run_state"] != "INPUT_PROCESSING":
             raise ParentStoryRunError(409, "PARENT_STORY_RUN_NOT_AWAITING_UNDERSTANDING")
         input_row = self._current_input(run)
@@ -720,7 +932,7 @@ class SqlParentStoryRunRepository:
             )
             self._session.execute(
                 update(story_tables.story_runs)
-                .where(story_tables.story_runs.c.run_id == run_id)
+                .where(_live_run(run_id))
                 .values(
                     run_state="SUBJECT_REVIEW",
                     understanding_revision=revision_no,
@@ -749,7 +961,7 @@ class SqlParentStoryRunRepository:
         expected_understanding_revision: int,
         confirmed_subject: str,
         idempotency_key: str,
-    ) -> int:
+    ) -> int | ParentStoryLifecycleRecord:
         run = self._owned_run(principal, run_id, lock=True)
         operation = "CONFIRM_SUBJECT"
         key_hash = _idempotency_key_hash(idempotency_key)
@@ -775,11 +987,16 @@ class SqlParentStoryRunRepository:
             fingerprint=fingerprint,
         )
         if replay is not None:
+            if run["run_state"] in PURGE_STATES:
+                # DTR Draft 6 §6.5: a replay of a purged run returns the projection.
+                self._session.commit()
+                return _projection(run)
             result = replay["response_body"].get("understanding_revision")
             self._session.commit()
             if not isinstance(result, int):
                 raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE")
             return result
+        self._refuse_purged(run)
         if run["run_state"] != "SUBJECT_REVIEW":
             raise ParentStoryRunError(409, "PARENT_SUBJECT_REVIEW_NOT_ACTIVE")
         latest = self._latest_understanding(run_id)
@@ -847,7 +1064,7 @@ class SqlParentStoryRunRepository:
             )
             self._session.execute(
                 update(story_tables.story_runs)
-                .where(story_tables.story_runs.c.run_id == run_id)
+                .where(_live_run(run_id))
                 .values(
                     run_state="PREPARATION_REVIEW",
                     understanding_revision=target_revision,
@@ -907,6 +1124,24 @@ class SqlParentStoryRunRepository:
             key_hash=key_hash,
             fingerprint=fingerprint,
         )
+        if replay is not None and run["run_state"] in PURGE_STATES:
+            # DTR Draft 6 §6.5 / S18: the replay branch of a purged run returns only the
+            # projection; nothing of the stored story body is rebuilt.
+            self._session.commit()
+            return ParentStoryRevisionReservation(
+                run_id=run_id,
+                story_revision_id=str(replay["receipt_id"]),
+                revision_no=0,
+                understanding_revision=0,
+                context_revision=0,
+                source_asset_sha256="",
+                worker_input={},
+                request_sha256=fingerprint,
+                receipt_id=str(replay["receipt_id"]),
+                replayed=True,
+                replay_body=None,
+                lifecycle=_projection(run),
+            )
         if replay is not None:
             if replay["state"] == "PENDING":
                 raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
@@ -938,6 +1173,7 @@ class SqlParentStoryRunRepository:
             self._session.commit()
             return replay_reservation
 
+        self._refuse_purged(run)
         if run["run_state"] not in {"PREPARATION_REVIEW", "SCRIPT_REVIEW"}:
             raise ParentStoryRunError(409, "PARENT_STORY_RUN_NOT_READY_FOR_SCRIPT")
         understanding = self._latest_understanding(run_id)
@@ -1051,7 +1287,7 @@ class SqlParentStoryRunRepository:
             )
             self._session.execute(
                 update(story_tables.story_runs)
-                .where(story_tables.story_runs.c.run_id == run_id)
+                .where(_live_run(run_id))
                 .values(
                     run_state="SCRIPT_GENERATING",
                     job_state="RUNNING",
@@ -1088,9 +1324,9 @@ class SqlParentStoryRunRepository:
         provider_call_id: str,
         model_id: str,
         model_revision: str,
-    ) -> ParentStoryRunRecord:
+    ) -> ParentStoryRunView:
         run = self._owned_run(principal, reservation.run_id, lock=True)
-        if run["run_state"] == "DELETE_PENDING":
+        if run["run_state"] in PURGE_STATES:
             raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
         revision_id = self._session.scalar(
             select(story_tables.story_revisions.c.story_revision_id).where(
@@ -1138,20 +1374,26 @@ class SqlParentStoryRunRepository:
                         character_anchors=scene["character_anchors"],
                     )
                 )
-            self._session.execute(
-                update(story_tables.story_runs)
-                .where(story_tables.story_runs.c.run_id == reservation.run_id)
-                .values(
-                    run_state="SCRIPT_REVIEW",
-                    job_state="SUCCEEDED",
-                    retryable=False,
-                    result_sha256=story_sha256,
-                    error_code=None,
-                    version=new_version,
-                    revision=story_tables.story_runs.c.revision + 1,
-                    updated_at=now,
-                )
+            run_update = cast(
+                CursorResult[Any],
+                self._session.execute(
+                    update(story_tables.story_runs)
+                    .where(_live_run(reservation.run_id))
+                    .values(
+                        run_state="SCRIPT_REVIEW",
+                        job_state="SUCCEEDED",
+                        retryable=False,
+                        result_sha256=story_sha256,
+                        error_code=None,
+                        version=new_version,
+                        revision=story_tables.story_runs.c.revision + 1,
+                        updated_at=now,
+                    )
+                ),
             )
+            if run_update.rowcount != 1:
+                self._session.rollback()
+                raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
             receipt_update = cast(
                 CursorResult[Any],
                 self._session.execute(
@@ -1206,7 +1448,7 @@ class SqlParentStoryRunRepository:
         outcome_unknown: bool,
     ) -> None:
         run = self._owned_run(principal, reservation.run_id, lock=True)
-        if run["run_state"] == "DELETE_PENDING":
+        if run["run_state"] in PURGE_STATES:
             raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
         now = datetime.now(UTC)
         revision_state = "AWAITING_RECONCILIATION" if outcome_unknown else "FAILED"
@@ -1226,22 +1468,28 @@ class SqlParentStoryRunRepository:
                 )
                 .values(**values)
             )
-            self._session.execute(
-                update(story_tables.story_runs)
-                .where(story_tables.story_runs.c.run_id == reservation.run_id)
-                .values(
-                    run_state=run_state,
-                    job_state=job_state,
-                    retryable=False,
-                    error_code=error_code,
-                    active_owner_parent_account_id=(
-                        run["active_owner_parent_account_id"] if outcome_unknown else None
-                    ),
-                    version=new_version,
-                    revision=story_tables.story_runs.c.revision + 1,
-                    updated_at=now,
-                )
+            run_update = cast(
+                CursorResult[Any],
+                self._session.execute(
+                    update(story_tables.story_runs)
+                    .where(_live_run(reservation.run_id))
+                    .values(
+                        run_state=run_state,
+                        job_state=job_state,
+                        retryable=False,
+                        error_code=error_code,
+                        active_owner_parent_account_id=(
+                            run["active_owner_parent_account_id"] if outcome_unknown else None
+                        ),
+                        version=new_version,
+                        revision=story_tables.story_runs.c.revision + 1,
+                        updated_at=now,
+                    )
+                ),
             )
+            if run_update.rowcount != 1:
+                self._session.rollback()
+                raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
             receipt_update = cast(
                 CursorResult[Any],
                 self._session.execute(
@@ -1277,26 +1525,32 @@ class SqlParentStoryRunRepository:
         self, *, principal: VerifiedPrincipal, run_id: str, error_code: str, outcome_unknown: bool
     ) -> None:
         run = self._owned_run(principal, run_id, lock=True)
-        if run["run_state"] == "DELETE_PENDING":
+        if run["run_state"] in PURGE_STATES:
             raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
         now = datetime.now(UTC)
         try:
-            self._session.execute(
-                update(story_tables.story_runs)
-                .where(story_tables.story_runs.c.run_id == run_id)
-                .values(
-                    run_state="INPUT_PROCESSING" if outcome_unknown else "FAILED",
-                    job_state="AWAITING_RECONCILIATION" if outcome_unknown else "FAILED",
-                    retryable=False,
-                    error_code=error_code,
-                    active_owner_parent_account_id=(
-                        run["active_owner_parent_account_id"] if outcome_unknown else None
-                    ),
-                    version=story_tables.story_runs.c.version + 1,
-                    revision=story_tables.story_runs.c.revision + 1,
-                    updated_at=now,
-                )
+            run_update = cast(
+                CursorResult[Any],
+                self._session.execute(
+                    update(story_tables.story_runs)
+                    .where(_live_run(run_id))
+                    .values(
+                        run_state="INPUT_PROCESSING" if outcome_unknown else "FAILED",
+                        job_state="AWAITING_RECONCILIATION" if outcome_unknown else "FAILED",
+                        retryable=False,
+                        error_code=error_code,
+                        active_owner_parent_account_id=(
+                            run["active_owner_parent_account_id"] if outcome_unknown else None
+                        ),
+                        version=story_tables.story_runs.c.version + 1,
+                        revision=story_tables.story_runs.c.revision + 1,
+                        updated_at=now,
+                    )
+                ),
             )
+            if run_update.rowcount != 1:
+                self._session.rollback()
+                raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
             self._session.commit()
         except SQLAlchemyError:
             self._session.rollback()
@@ -1310,7 +1564,7 @@ class SqlParentStoryRunRepository:
         expected_revision: int,
         expected_story_sha256: str,
         idempotency_key: str,
-    ) -> ParentStoryRunRecord:
+    ) -> ParentStoryRunView:
         run = self._owned_run(principal, run_id, lock=True)
         operation = "CONFIRM_STORY_REVISION"
         key_hash = _idempotency_key_hash(idempotency_key)
@@ -1338,6 +1592,7 @@ class SqlParentStoryRunRepository:
         if replay is not None:
             self._session.commit()
             return self.get_run(principal=principal, run_id=run_id)
+        self._refuse_purged(run)
         story_revision = self._session.execute(
             select(story_tables.story_revisions).where(
                 story_tables.story_revisions.c.run_id == run_id,
@@ -1390,7 +1645,7 @@ class SqlParentStoryRunRepository:
             )
             self._session.execute(
                 update(story_tables.story_runs)
-                .where(story_tables.story_runs.c.run_id == run_id)
+                .where(_live_run(run_id))
                 .values(
                     run_state="SCRIPT_REVIEW",
                     job_state="SUCCEEDED",
@@ -1472,8 +1727,25 @@ class SqlParentStoryRunRepository:
         if receipt is None:
             return None
         if not hmac.compare_digest(str(receipt["request_fingerprint_sha256"]), fingerprint):
+            # DTR Draft 6 §6.5 (A-3): a receipt of a run in DELETE_PENDING or DELETED is
+            # replayed without the fingerprint check (step 4 replaces those fingerprints).
+            if self._receipt_run_purged(principal, receipt):
+                return receipt
             raise ParentStoryRunError(400, "INVALID_IDEMPOTENCY_KEY")
         return receipt
+
+    def _receipt_run_purged(self, principal: VerifiedPrincipal, receipt: RowMapping) -> bool:
+        run_ref = receipt["resource_ref"]
+        if run_ref is None:
+            return False
+        state = self._session.scalar(
+            select(story_tables.story_runs.c.run_state).where(
+                story_tables.story_runs.c.run_id == str(run_ref),
+                story_tables.story_runs.c.actor_scope_kind == _OWNER_SCOPE_KIND,
+                story_tables.story_runs.c.actor_scope_ref == _principal_scope_ref(principal),
+            )
+        )
+        return state in PURGE_STATES
 
     def _store_idempotency_receipt(
         self,

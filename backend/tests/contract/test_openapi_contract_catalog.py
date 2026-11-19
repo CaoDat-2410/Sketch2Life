@@ -118,6 +118,8 @@ PR22_UNCATALOGUED_OPERATIONS = {
     ("post", "/api/parent/v1/ai/drawing-understandings"),
     ("post", "/api/parent/v1/ai/story-runs/{run_id}/story-revisions"),
     ("post", "/v1/story-runs/{run_id}/cancel"),
+    # FR-C-08 (Contract Draft 11 §3.7): the Parent delete route stays uncatalogued.
+    ("delete", "/v1/story-runs/{run_id}"),
     (
         "post",
         "/api/teacher/v1/organizations/{organization_id}/ai/lesson-plan-suggestions",
@@ -261,7 +263,7 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
 
     assert spec["openapi"] == "3.1.0"
     assert spec["tags"] == public_tags(TAG_DESCRIPTIONS)
-    assert len(operations) == 151
+    assert len(operations) == 152
     catalog_operations = set(MOUNTED_OPERATIONS)
     catalog_paths = {path for _method, path in catalog_operations}
     assert len(catalog_paths) == 118
@@ -279,7 +281,7 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
     ]
     assert "x-contract-surface" not in profile_lookup
     assert len(PILOT_ONLY_OPERATIONS) == 5
-    assert len(PR22_UNCATALOGUED_OPERATIONS) == 12
+    assert len(PR22_UNCATALOGUED_OPERATIONS) == 13
 
     assert (
         "post",
@@ -464,6 +466,49 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
     assert "403" in parent_list["responses"]
     assert "403" in parent_delete["responses"]
 
+    # FR-C-08 (Contract Draft 11 §3.3-§3.4): GET and the four replaying operations declare the
+    # union of their current envelope and the content-free lifecycle envelope.
+    for (method, path), status, current in (
+        (("get", "/v1/story-runs/{run_id}"), "200", "ParentStoryRunEnvelopeV1"),
+        (("post", "/v1/story-runs"), "201", "ParentStoryRunEnvelopeV1"),
+        (
+            ("post", "/v1/story-runs/{run_id}/context-confirmation"),
+            "200",
+            "ParentStoryRunEnvelopeV1",
+        ),
+        (
+            ("post", "/v1/story-runs/{run_id}/subject-confirmation"),
+            "200",
+            "ParentSubjectConfirmationResponseV1",
+        ),
+        (
+            ("post", "/v1/story-runs/{run_id}/script-confirmation"),
+            "200",
+            "ParentStoryRunEnvelopeV1",
+        ),
+    ):
+        success = operations[(method, path)]["responses"][status]["content"]["application/json"]
+        assert {current, "ParentStoryRunLifecycleEnvelopeV1"} <= _schema_refs(success["schema"])
+    lifecycle_schema = spec["components"]["schemas"]["ParentStoryRunLifecycleProjectionV1"]
+    assert set(lifecycle_schema["properties"]) == {
+        "run_id",
+        "run_state",
+        "revision",
+        "version",
+        "lifecycle_request_ref",
+        "purge_state",
+    }
+    for key in (("post", "/v1/story-runs/{run_id}/cancel"), ("delete", "/v1/story-runs/{run_id}")):
+        accepted = operations[key]["responses"]["202"]["content"]["application/json"]
+        assert _schema_refs(accepted["schema"]) == {"ParentStoryRunLifecycleEnvelopeV1"}
+        key_parameter = next(
+            parameter
+            for parameter in operations[key]["parameters"]
+            if parameter["in"] == "header" and parameter["name"] == "Idempotency-Key"
+        )
+        assert key_parameter.get("required") is not True
+        assert "maxLength" not in str(key_parameter["schema"])
+
     candidate_keys = {(item["method"], item["path"]) for item in UNMOUNTED_OPERATIONS}
     assert len(candidate_keys) == UNMOUNTED_OPERATION_COUNT == 11
     assert not candidate_keys.intersection(operations)
@@ -557,6 +602,6 @@ def test_runtime_openapi_operation_ids_are_non_empty_and_unique(
         for method, operation in path_item.items()
         if method.lower() in HTTP_METHODS
     ]
-    assert len(operation_ids) == 151
+    assert len(operation_ids) == 152
     assert all(isinstance(value, str) and value for value in operation_ids)
     assert len(set(operation_ids)) == len(operation_ids)

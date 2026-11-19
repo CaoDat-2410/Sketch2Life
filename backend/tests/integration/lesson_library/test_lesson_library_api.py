@@ -68,6 +68,10 @@ class InMemoryObjectStorage:
     def delete_object(self, key: str) -> None:
         self.objects.pop(key, None)
 
+    def list_keys(self, prefix: str) -> tuple[str, ...]:
+        # FR-C-08 (port design §5.3): every ObjectStoragePort fake lists keys by prefix.
+        return tuple(sorted(key for key in self.objects if key.startswith(prefix)))
+
 
 @dataclass
 class LessonApiAcceptance:

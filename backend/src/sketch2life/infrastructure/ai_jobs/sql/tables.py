@@ -53,6 +53,14 @@ JOB_STATES = (
 RESULT_DISPOSITIONS = ("accepted", "stale", "rejected")
 OUTBOX_KINDS = ("dispatch", "audit", "quarantine")
 NOTICE_STATUSES = ("COMPLETE",)
+# DTR Draft 6 rule 1: the typed owner-scope pattern of ``core_asset_metadata`` (S6).
+NOTICE_OWNER_SCOPE_CHECK = (
+    "(owner_scope_kind = 'PARENT_ACCOUNT' AND owner_scope_ref IS NOT NULL "
+    "AND length(owner_scope_ref) > 0 AND organization_id IS NULL) OR "
+    "(owner_scope_kind = 'ORGANIZATION' AND organization_id IS NOT NULL "
+    "AND (owner_scope_ref IS NULL OR "
+    "(length(owner_scope_ref) > 0 AND owner_scope_ref = organization_id)))"
+)
 
 _ID = 128
 _CODE = 80
@@ -230,7 +238,9 @@ cancellation_notice = Table(
     "cancellation_notice",
     AI_JOBS_METADATA,
     Column("notice_id", String(_ID), nullable=False),
-    Column("organization_id", String(_ID), nullable=False),
+    # FR-C-08 (DTR Draft 6 §5.2): NULL for a Parent lifecycle notice; organization notices keep
+    # it and a NULL scope ref.
+    Column("organization_id", String(_ID), nullable=True),
     Column("reason_code", String(_CODE), nullable=False),
     Column("session_id", String(_ID), nullable=True),
     Column("job_type", String(_ID), nullable=True),
@@ -238,9 +248,22 @@ cancellation_notice = Table(
     Column("status", String(16), nullable=False),
     Column("applied_count", Integer, nullable=False),
     _ts("recorded_at", nullable=False),
+    Column(
+        "owner_scope_kind",
+        String(32),
+        nullable=False,
+        server_default=text("'ORGANIZATION'"),
+    ),
+    Column("owner_scope_ref", String(_ID), nullable=True),
+    Column("story_run_ref", String(_ID), nullable=True),
     PrimaryKeyConstraint("notice_id"),
     CheckConstraint(_in("status", NOTICE_STATUSES), name="status_complete"),
     CheckConstraint("applied_count >= 0", name="applied_count_nonnegative"),
+    CheckConstraint(NOTICE_OWNER_SCOPE_CHECK, name="owner_scope"),
+    CheckConstraint(
+        "owner_scope_kind <> 'PARENT_ACCOUNT' OR story_run_ref IS NOT NULL",
+        name="parent_story_run_ref",
+    ),
 )
 
 # Transactional outbox (Δ6, Δ9, Δ14, Δ15). Payloads never carry worker capabilities or tokens.

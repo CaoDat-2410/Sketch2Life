@@ -107,14 +107,21 @@ class ParentStoryDisplayV1(BaseModel):
     scenes: list[ParentStorySceneDisplayV1] = Field(min_length=5, max_length=15)
 
 
+ParentStoryRunStateV1 = Literal[
+    # The 18 StoryRun states of SRS line 394 (D-215 item 4) ...
+    "DRAFT", "INPUT_PROCESSING", "INPUT_REVIEW", "SUBJECT_REVIEW", "PREPARATION_REVIEW",
+    "STORY_GENERATING", "SCRIPT_REVIEW", "VIDEO_ADMISSION_PENDING", "VIDEO_QUEUED",
+    "VIDEO_GENERATING", "VIDEO_SAFETY_VALIDATING", "VIDEO_READY", "SAFETY_BLOCKED",
+    "COMPLETED", "FAILED", "ABANDONED", "DELETE_PENDING", "DELETED",
+    # ... plus the two documented extensions of the frozen M2 contract (D-216 item 4).
+    "SCRIPT_GENERATING", "SCRIPT_GENERATION_UNKNOWN",
+]
+
+
 class ParentStoryRunResponseV1(BaseModel):
     run_id: UUID
     run_revision: int = Field(ge=1)
-    run_state: Literal[
-        "INPUT_PROCESSING", "SUBJECT_REVIEW", "PREPARATION_REVIEW", "SCRIPT_GENERATING",
-        "SCRIPT_GENERATION_UNKNOWN", "SCRIPT_REVIEW", "VIDEO_ADMISSION_PENDING",
-        "DELETE_PENDING", "FAILED", "COMPLETED",
-    ]
+    run_state: ParentStoryRunStateV1
     parent_profile_id: UUID
     profile_revision_ref: UUID
     context_revision: int
@@ -145,10 +152,35 @@ class ParentStoryRunEnvelopeV1(BaseModel):
     story_run: ParentStoryRunResponseV1
 
 
-class ParentStoryRunCancelEnvelopeV1(BaseModel):
+class ParentStoryRunLifecycleProjectionV1(BaseModel):
+    """FR-C-08 content-free projection from DELETE_PENDING on (Contract Draft 11 §3.4).
+
+    No context snapshot, story, candidate, subject label, profile ref, asset ref, count,
+    percentage or storage key is ever part of it (SRS lines 1053, 1520, 1809).
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    run_id: UUID
+    run_state: Literal["DELETE_PENDING", "DELETED"]
+    revision: int = Field(ge=1)
+    version: int = Field(ge=1)
+    lifecycle_request_ref: UUID
+    purge_state: Literal["PENDING", "COMPLETED"]
+
+
+class ParentStoryRunLifecycleEnvelopeV1(BaseModel):
+    """Cancel 202, delete 202, GET of a purged run and the replays of a purged run."""
+
+    model_config = ConfigDict(extra="forbid")
+
     request_id: UUID
-    story_run: ParentStoryRunResponseV1
-    purge_state: Literal["PENDING"]
+    lifecycle: ParentStoryRunLifecycleProjectionV1
+
+
+# D-218 A-3: the frozen cancel envelope that embedded the full run is replaced by the lifecycle
+# envelope. The name is kept as an alias for the cancel route's declared response.
+ParentStoryRunCancelEnvelopeV1 = ParentStoryRunLifecycleEnvelopeV1
 
 
 class ParentStoryErrorFieldV1(BaseModel):
@@ -229,7 +261,10 @@ __all__ = [
     "ParentStoryRunCancelEnvelopeV1",
     "ParentStoryCancelErrorEnvelopeV1",
     "ParentStoryRunEnvelopeV1",
+    "ParentStoryRunLifecycleEnvelopeV1",
+    "ParentStoryRunLifecycleProjectionV1",
     "ParentStoryRunResponseV1",
+    "ParentStoryRunStateV1",
     "ParentSubjectConfirmationRequestV1",
     "ParentSubjectConfirmationResponseV1",
 ]

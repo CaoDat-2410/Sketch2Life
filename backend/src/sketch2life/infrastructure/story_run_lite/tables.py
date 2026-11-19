@@ -216,7 +216,9 @@ story_runs = Table(
     Column("run_id", String(36), primary_key=True),
     Column("actor_scope_kind", String(32), nullable=False),
     Column("actor_scope_ref", String(128), nullable=False),
-    Column("profile_ref", String(128), nullable=False),
+    # FR-C-08 (D-218 A-4): NULL only on the DELETED tombstone; code keeps it required for
+    # every run that is not DELETED.
+    Column("profile_ref", String(128), nullable=True),
     Column("child_age_months", Integer, nullable=True),
     Column("run_state", String(32), nullable=False),
     Column("revision", BigInteger, nullable=False),
@@ -254,7 +256,7 @@ story_runs = Table(
     CheckConstraint(
         "run_state IN ('INPUT_PROCESSING','SUBJECT_REVIEW',"
         "'PREPARATION_REVIEW','SCRIPT_GENERATING','SCRIPT_GENERATION_UNKNOWN','SCRIPT_REVIEW',"
-        "'VIDEO_ADMISSION_PENDING','DELETE_PENDING','FAILED','COMPLETED')",
+        "'VIDEO_ADMISSION_PENDING','DELETE_PENDING','FAILED','COMPLETED','DELETED')",
         name="ck_story_run_state",
     ),
     CheckConstraint(
@@ -439,7 +441,7 @@ story_command_receipts = Table(
     ),
     CheckConstraint(
         "operation IN ('CREATE_RUN','ATTACH_ASSET','CONFIRM_SUBJECT','CONFIRM_CONTEXT',"
-        "'CANCEL_RUN','GENERATE_STORY_REVISION','CONFIRM_STORY_REVISION')",
+        "'CANCEL_RUN','GENERATE_STORY_REVISION','CONFIRM_STORY_REVISION','DELETE_RUN')",
         name="ck_story_receipt_operation",
     ),
     CheckConstraint(

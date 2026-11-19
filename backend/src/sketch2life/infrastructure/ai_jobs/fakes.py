@@ -434,6 +434,8 @@ class _UnitOfWork:
         return notice_id in self.state.notices
 
     def jobs_for_notice(self, notice: CancellationNotice) -> tuple[AiJob, ...]:
+        if notice.is_parent:
+            return ()  # FR-C-08: a Parent lifecycle notice matches no job (SQL parity).
         return tuple(job for job in self.list_jobs() if notice_matches(notice, job))
 
     def record_notice(
@@ -442,7 +444,14 @@ class _UnitOfWork:
         if notice.notice_id in self.state.notices:
             raise UniqueConflict("cancellation_notice")
         self.state.notices[notice.notice_id] = RecordedNotice(
-            notice.notice_id, notice.organization_id, notice.reason_code, applied_count, now
+            notice.notice_id,
+            notice.organization_id,
+            notice.reason_code,
+            applied_count,
+            now,
+            owner_scope_kind=notice.owner_scope_kind,
+            owner_scope_ref=notice.owner_scope_ref,
+            story_run_ref=notice.story_run_ref,
         )
 
 

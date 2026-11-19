@@ -11060,7 +11060,7 @@ MOUNTED_OPERATIONS[('post', '/v1/story-runs')] = {
     'authentication': 'HTTPBearer (bearer)',
     'verification': 'Rev60 §21.2 alignment; context confirmation remains a proposal',
     'responses': (
-        {'status': '201', 'description': 'StoryRun created', 'media_type': 'application/json',
+        {'status': '201', 'description': 'StoryRun created, or the lifecycle projection when a replayed run is pending deletion or deleted', 'media_type': 'application/json',
          'schema_name': 'ParentStoryRunEnvelopeV1'},
         {'status': '400', 'description': 'The request is invalid', 'media_type': 'application/json',
          'schema_name': 'ParentStoryErrorEnvelopeV1'},
@@ -11088,7 +11088,7 @@ MOUNTED_OPERATIONS[('get', '/v1/story-runs/{run_id}')] = {
     'authentication': 'HTTPBearer (bearer)',
     'verification': 'Rev60 §21.2 resource-read path',
     'responses': (
-        {'status': '200', 'description': 'StoryRun resource', 'media_type': 'application/json',
+        {'status': '200', 'description': 'StoryRun resource, or the lifecycle projection from DELETE_PENDING on', 'media_type': 'application/json',
          'schema_name': 'ParentStoryRunEnvelopeV1'},
         {'status': '400', 'description': 'The request is invalid', 'media_type': 'application/json',
          'schema_name': 'ParentStoryErrorEnvelopeV1'},
@@ -11146,7 +11146,7 @@ MOUNTED_OPERATIONS[('post', '/v1/story-runs/{run_id}/context-confirmation')] = {
     'authentication': 'HTTPBearer (bearer)',
     'verification': 'Rev60 §21.2 path; request fields are a proposal',
     'responses': (
-        {'status': '200', 'description': 'Context snapshot confirmation recorded',
+        {'status': '200', 'description': 'Context snapshot confirmation recorded, or the lifecycle projection on a replay of a purged run',
          'media_type': 'application/json', 'schema_name': 'ParentStoryRunEnvelopeV1'},
         {'status': '400', 'description': 'The idempotency key is invalid',
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
@@ -11176,7 +11176,7 @@ MOUNTED_OPERATIONS[('post', '/v1/story-runs/{run_id}/subject-confirmation')] = {
     'authentication': 'HTTPBearer (bearer)',
     'verification': 'Rev60 §21.2 path; command contract is a proposal',
     'responses': (
-        {'status': '200', 'description': 'Subject confirmation recorded', 'media_type': 'application/json',
+        {'status': '200', 'description': 'Subject confirmation recorded, or the lifecycle projection on a replay of a purged run', 'media_type': 'application/json',
          'schema_name': 'ParentSubjectConfirmationResponseV1'},
         {'status': '400', 'description': 'The idempotency key is invalid',
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
@@ -11206,7 +11206,7 @@ MOUNTED_OPERATIONS[('post', '/v1/story-runs/{run_id}/script-confirmation')] = {
     'authentication': 'HTTPBearer (bearer)',
     'verification': 'Rev60 §21.2 path; command contract is a proposal',
     'responses': (
-        {'status': '200', 'description': 'Story revision confirmation recorded',
+        {'status': '200', 'description': 'Story revision confirmation recorded, or the lifecycle projection on a replay of a purged run',
          'media_type': 'application/json', 'schema_name': 'ParentStoryRunEnvelopeV1'},
         {'status': '400', 'description': 'The idempotency key is invalid',
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},

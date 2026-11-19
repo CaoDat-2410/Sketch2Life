@@ -41,7 +41,6 @@ _STORY_ERROR_KEYS = {
 }
 _COMMAND_REQUESTS = (
     ("POST", "/v1/story-runs", {"parent_profile_id": _PROFILE_ID}),
-    ("POST", f"/v1/story-runs/{_RUN_ID}/cancel", {"expected_revision": 1}),
     (
         "POST",
         f"/v1/story-runs/{_RUN_ID}/context-confirmation",
@@ -61,6 +60,12 @@ _COMMAND_REQUESTS = (
         f"/v1/story-runs/{_RUN_ID}/script-confirmation",
         {"expected_revision": 1, "story_sha256": "b" * 64},
     ),
+)
+# FR-C-08 (Contract Draft 11 §3.1-§3.2, D-217 item 7): cancel and delete read the key with
+# the CONV-1 parser (1-128 visible ASCII); the other Parent commands keep 1-256.
+_LIFECYCLE_REQUESTS = (
+    ("POST", f"/v1/story-runs/{_RUN_ID}/cancel", {"expected_revision": 1}),
+    ("DELETE", f"/v1/story-runs/{_RUN_ID}", None),
 )
 
 
@@ -88,6 +93,9 @@ class _FakeStoryRunService:
         return None
 
     def cancel_run(self, **_kwargs: object) -> NoReturn:
+        raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
+
+    def delete_run(self, **_kwargs: object) -> NoReturn:
         raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
 
     def confirm_context(self, **_kwargs: object) -> NoReturn:
@@ -212,6 +220,13 @@ def test_seven_parent_story_run_routes_are_mounted_with_the_story_error_shape(
             "INVALID_STATE_TRANSITION",
             409,
         ),
+        (
+            "DELETE",
+            f"/v1/story-runs/{_RUN_ID}",
+            None,
+            "INVALID_STATE_TRANSITION",
+            409,
+        ),
         ("GET", "/v1/story-runs/active/current", None, None, 200),
         (
             "POST",
@@ -243,7 +258,7 @@ def test_seven_parent_story_run_routes_are_mounted_with_the_story_error_shape(
     for index, (method, path, payload, code, status) in enumerate(requests):
         request_id = f"story-route-{index}"
         headers = {"X-Request-ID": request_id}
-        if method == "POST":
+        if method in {"POST", "DELETE"}:
             headers["Idempotency-Key"] = "valid-key"
         response = request_client.request(method, path, json=payload, headers=headers)
         if code is None:
@@ -260,11 +275,24 @@ def test_cancel_stale_revision_adds_current_version_only_to_cancel_error(
     def stale_cancel(**_kwargs: object) -> NoReturn:
         raise ParentStoryRunError(409, "STALE_REVISION", current_version=9)
 
+    def stale_delete(**_kwargs: object) -> NoReturn:
+        raise ParentStoryRunError(409, "STALE_REVISION", current_version=9)
+
     monkeypatch.setattr(
         story_routes,
-        "SqlParentStoryRunRepository",
-        lambda _db: SimpleNamespace(cancel_run=stale_cancel),
+        "_service",
+        lambda _db: SimpleNamespace(
+            cancel_run=stale_cancel,
+            delete_run=stale_delete,
+            confirm_context=_FakeStoryRunService().confirm_context,
+        ),
     )
+    delete = request_client.delete(
+        f"/v1/story-runs/{_RUN_ID}",
+        headers={"Idempotency-Key": "delete-key", "X-Request-ID": "delete-stale"},
+    )
+    assert delete.status_code == 409
+    assert "current_version" not in delete.json()  # the delete route never carries it
     cancel = request_client.post(
         f"/v1/story-runs/{_RUN_ID}/cancel",
         json={"expected_revision": 8},
@@ -345,6 +373,46 @@ def test_story_command_idempotency_key_rejects_out_of_range_lengths(
             "message": "Giá trị trường không hợp lệ.",
         }
     ]
+
+
+@pytest.mark.parametrize(("method", "path", "payload"), _LIFECYCLE_REQUESTS)
+@pytest.mark.parametrize("key_length", (1, 128))
+def test_lifecycle_commands_accept_keys_of_1_to_128_characters(
+    request_client: TestClient,
+    method: str,
+    path: str,
+    payload: dict[str, object] | None,
+    key_length: int,
+) -> None:
+    response = request_client.request(
+        method,
+        path,
+        json=payload,
+        headers={"Idempotency-Key": "k" * key_length, "X-Request-ID": "lifecycle-key"},
+    )
+    _assert_story_error(
+        response, status=409, code="INVALID_STATE_TRANSITION", request_id="lifecycle-key"
+    )
+
+
+@pytest.mark.parametrize(("method", "path", "payload"), _LIFECYCLE_REQUESTS)
+@pytest.mark.parametrize("key", ("", "k" * 129, "with space", "tab\tkey", None))
+def test_lifecycle_commands_refuse_a_missing_or_invalid_key_with_invalid_request(
+    request_client: TestClient,
+    method: str,
+    path: str,
+    payload: dict[str, object] | None,
+    key: str | None,
+) -> None:
+    headers = {"X-Request-ID": "lifecycle-bad-key"}
+    if key is not None:
+        headers["Idempotency-Key"] = key
+    response = request_client.request(method, path, json=payload, headers=headers)
+    _assert_story_error(
+        response, status=400, code="INVALID_REQUEST", request_id="lifecycle-bad-key"
+    )
+    # Contract Draft 11 §3.6 (N-1): key errors raised by parse_idempotency_key carry null.
+    assert response.json()["field_errors"] is None
 
 
 def test_parent_profile_errors_keep_the_parent_specific_shape(

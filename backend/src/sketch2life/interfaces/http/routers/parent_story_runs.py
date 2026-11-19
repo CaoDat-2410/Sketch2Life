@@ -13,8 +13,10 @@ from sqlalchemy.orm import Session
 
 from sketch2life.application.ports.identity import VerifiedPrincipal
 from sketch2life.application.ports.parent_story_runs import (
+    ParentStoryLifecycleRecord,
     ParentStoryRunError,
     ParentStoryRunRecord,
+    ParentStoryRunView,
 )
 from sketch2life.application.services.parent_story_runs import (
     ParentStoryRunService,
@@ -27,10 +29,10 @@ from sketch2life.contracts.schemas.parent_story_runs import (
     ParentStoryCancelErrorEnvelopeV1,
     ParentStoryErrorEnvelopeV1,
     ParentStoryRevisionConfirmationRequestV1,
-    ParentStoryRunCancelEnvelopeV1,
     ParentStoryRunCancelRequestV1,
     ParentStoryRunCreateRequestV1,
     ParentStoryRunEnvelopeV1,
+    ParentStoryRunLifecycleEnvelopeV1,
     ParentStoryRunResponseV1,
     ParentSubjectConfirmationRequestV1,
     ParentSubjectConfirmationResponseV1,
@@ -43,6 +45,7 @@ from sketch2life.infrastructure.persistence.parent_story_profile_lookup import (
 from sketch2life.infrastructure.persistence.parent_story_repository import (
     SqlParentStoryRunRepository,
 )
+from sketch2life.interfaces.http.api_conventions import parse_idempotency_key
 from sketch2life.interfaces.http.be1_runtime import get_db, get_verified_adult
 from sketch2life.interfaces.http.routers.lesson_library import get_lesson_library_service
 
@@ -123,9 +126,26 @@ def _response(record: ParentStoryRunRecord) -> ParentStoryRunResponseV1:
     )
 
 
+# FR-C-08 (Contract Draft 11 §3.3-§3.4): from DELETE_PENDING on, a Parent response for the run
+# is the content-free lifecycle envelope; before it, the frozen run envelope.
+ParentStoryRunResult = ParentStoryRunEnvelopeV1 | ParentStoryRunLifecycleEnvelopeV1
+
+
+def _lifecycle_envelope(record: ParentStoryLifecycleRecord) -> ParentStoryRunLifecycleEnvelopeV1:
+    return ParentStoryRunLifecycleEnvelopeV1.model_validate(
+        {"request_id": uuid4(), "lifecycle": record.as_body()}
+    )
+
+
+def _envelope(view: ParentStoryRunView) -> ParentStoryRunResult:
+    if isinstance(view, ParentStoryLifecycleRecord):
+        return _lifecycle_envelope(view)
+    return ParentStoryRunEnvelopeV1(request_id=uuid4(), story_run=_response(view))
+
+
 @router.post(
     "",
-    response_model=ParentStoryRunEnvelopeV1,
+    response_model=ParentStoryRunResult,
     status_code=status.HTTP_201_CREATED,
     summary="Create a Parent StoryRun with a pinned profile and context proposal",
     responses=_PARENT_STORY_ERROR_RESPONSES,
@@ -136,7 +156,7 @@ def create_parent_story_run(
     idempotency_key: Annotated[str, Header(alias="Idempotency-Key", min_length=1, max_length=256)],
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
-) -> ParentStoryRunEnvelopeV1:
+) -> ParentStoryRunResult:
     identity = _require_parent(db, principal)
     service = _service(db)
     lesson_version_ref = (
@@ -155,7 +175,7 @@ def create_parent_story_run(
         lesson_version_ref=lesson_version_ref,
     )
     if replay is not None:
-        return ParentStoryRunEnvelopeV1(request_id=uuid4(), story_run=_response(replay))
+        return _envelope(replay)
 
     lesson_pin_snapshot = None
     if payload.lesson_version is not None:
@@ -204,7 +224,7 @@ def create_parent_story_run(
         lesson_version_ref=lesson_version_ref,
         lesson_pin_snapshot=lesson_pin_snapshot,
     )
-    return ParentStoryRunEnvelopeV1(request_id=uuid4(), story_run=_response(record))
+    return _envelope(record)
 
 
 @router.get(
@@ -225,13 +245,14 @@ def get_active_parent_story_run(
         account_id=identity.account_id,
     )
     return ParentActiveStoryRunEnvelopeV1(
-        request_id=uuid4(), story_run=_response(record) if record is not None else None
+        request_id=uuid4(),
+        story_run=_response(record) if isinstance(record, ParentStoryRunRecord) else None,
     )
 
 
 @router.get(
     "/{run_id}",
-    response_model=ParentStoryRunEnvelopeV1,
+    response_model=ParentStoryRunResult,
     summary="Read the authenticated Parent's saved StoryRun and review state",
     responses=_PARENT_STORY_ERROR_RESPONSES,
 )
@@ -239,7 +260,7 @@ def get_parent_story_run(
     run_id: UUID,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
-) -> ParentStoryRunEnvelopeV1:
+) -> ParentStoryRunResult:
     _require_parent(db, principal)
     service = _service(db)
     record = _invoke(
@@ -247,14 +268,14 @@ def get_parent_story_run(
         principal=principal,
         run_id=str(run_id),
     )
-    return ParentStoryRunEnvelopeV1(request_id=uuid4(), story_run=_response(record))
+    return _envelope(record)
 
 
 @router.post(
     "/{run_id}/cancel",
-    response_model=ParentStoryRunCancelEnvelopeV1,
+    response_model=ParentStoryRunLifecycleEnvelopeV1,
     status_code=status.HTTP_202_ACCEPTED,
-    summary="Mark the authenticated Parent StoryRun for deletion",
+    summary="Cancel the authenticated Parent StoryRun and request its deletion",
     responses={
         **_PARENT_STORY_ERROR_RESPONSES,
         409: {
@@ -266,37 +287,58 @@ def get_parent_story_run(
 def cancel_parent_story_run(
     run_id: UUID,
     payload: ParentStoryRunCancelRequestV1,
-    idempotency_key: Annotated[str, Header(alias="Idempotency-Key", min_length=1, max_length=256)],
+    request: Request,
+    # Contract Draft 11 §3.1: optional, no length constraint; parse_idempotency_key (1-128
+    # visible ASCII) decides, so a missing or invalid key is 400 INVALID_REQUEST.
+    idempotency_key: Annotated[str | None, Header(alias="Idempotency-Key")] = None,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
-) -> ParentStoryRunCancelEnvelopeV1:
+) -> ParentStoryRunLifecycleEnvelopeV1:
+    del idempotency_key
     _require_parent(db, principal)
-    request_id = str(uuid4())
-
-    def build_response(
-        record: ParentStoryRunRecord, persisted_request_id: str
-    ) -> dict[str, Any]:
-        return ParentStoryRunCancelEnvelopeV1(
-            request_id=persisted_request_id,
-            story_run=_response(record),
-            purge_state="PENDING",
-        ).model_dump(mode="json")
-
-    response_body = _invoke(
-        SqlParentStoryRunRepository(db).cancel_run,
+    # Key errors (400) come after the role check and before the owner-scoped lookup (404);
+    # the 400 does not depend on the run, so it reveals nothing about its existence.
+    key = parse_idempotency_key(request)
+    record = _invoke(
+        _service(db).cancel_run,
         principal=principal,
         run_id=str(run_id),
         expected_revision=payload.expected_revision,
-        idempotency_key=idempotency_key,
-        request_id=request_id,
-        response_builder=build_response,
+        idempotency_key=key,
     )
-    return ParentStoryRunCancelEnvelopeV1.model_validate(response_body)
+    return _lifecycle_envelope(record)
+
+
+@router.delete(
+    "/{run_id}",
+    response_model=ParentStoryRunLifecycleEnvelopeV1,
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Delete the authenticated Parent's finished StoryRun",
+    responses=_PARENT_STORY_ERROR_RESPONSES,
+)
+def delete_parent_story_run(
+    run_id: UUID,
+    request: Request,
+    idempotency_key: Annotated[str | None, Header(alias="Idempotency-Key")] = None,
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    db: Session = Depends(get_db),
+) -> ParentStoryRunLifecycleEnvelopeV1:
+    """Contract Draft 11 §3.2: COMPLETED, FAILED or ABANDONED; no body, no revision."""
+    del idempotency_key
+    _require_parent(db, principal)
+    key = parse_idempotency_key(request)  # after the role check, before the lookup
+    record = _invoke(
+        _service(db).delete_run,
+        principal=principal,
+        run_id=str(run_id),
+        idempotency_key=key,
+    )
+    return _lifecycle_envelope(record)
 
 
 @router.post(
     "/{run_id}/context-confirmation",
-    response_model=ParentStoryRunEnvelopeV1,
+    response_model=ParentStoryRunResult,
     summary="[PROPOSAL] Confirm the immutable Parent context snapshot before story generation",
     responses=_PARENT_STORY_ERROR_RESPONSES,
 )
@@ -306,7 +348,7 @@ def confirm_parent_story_context(
     idempotency_key: Annotated[str, Header(alias="Idempotency-Key", min_length=1, max_length=256)],
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
-) -> ParentStoryRunEnvelopeV1:
+) -> ParentStoryRunResult:
     _require_parent(db, principal)
     record = _invoke(
         _service(db).confirm_context,
@@ -316,12 +358,12 @@ def confirm_parent_story_context(
         expected_context_snapshot_sha256=payload.context_snapshot_sha256,
         idempotency_key=idempotency_key,
     )
-    return ParentStoryRunEnvelopeV1(request_id=uuid4(), story_run=_response(record))
+    return _envelope(record)
 
 
 @router.post(
     "/{run_id}/subject-confirmation",
-    response_model=ParentSubjectConfirmationResponseV1,
+    response_model=ParentSubjectConfirmationResponseV1 | ParentStoryRunLifecycleEnvelopeV1,
     summary="[PROPOSAL] Persist adult confirmation of an interpreted drawing subject",
     responses=_PARENT_STORY_ERROR_RESPONSES,
 )
@@ -331,7 +373,7 @@ def confirm_parent_story_subject(
     idempotency_key: Annotated[str, Header(alias="Idempotency-Key", min_length=1, max_length=256)],
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
-) -> ParentSubjectConfirmationResponseV1:
+) -> ParentSubjectConfirmationResponseV1 | ParentStoryRunLifecycleEnvelopeV1:
     _require_parent(db, principal)
     service = _service(db)
     revision = _invoke(
@@ -342,6 +384,8 @@ def confirm_parent_story_subject(
         confirmed_subject=payload.confirmed_subject,
         idempotency_key=idempotency_key,
     )
+    if isinstance(revision, ParentStoryLifecycleRecord):
+        return _lifecycle_envelope(revision)
     return ParentSubjectConfirmationResponseV1(
         request_id=uuid4(),
         story_run_id=run_id,
@@ -352,7 +396,7 @@ def confirm_parent_story_subject(
 
 @router.post(
     "/{run_id}/script-confirmation",
-    response_model=ParentStoryRunEnvelopeV1,
+    response_model=ParentStoryRunResult,
     summary="[PROPOSAL] Persist adult confirmation of a generated story revision",
     responses=_PARENT_STORY_ERROR_RESPONSES,
 )
@@ -362,7 +406,7 @@ def confirm_parent_story_revision(
     idempotency_key: Annotated[str, Header(alias="Idempotency-Key", min_length=1, max_length=256)],
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
-) -> ParentStoryRunEnvelopeV1:
+) -> ParentStoryRunResult:
     _require_parent(db, principal)
     service = _service(db)
     record = _invoke(
@@ -373,7 +417,7 @@ def confirm_parent_story_revision(
         expected_story_sha256=payload.story_sha256,
         idempotency_key=idempotency_key,
     )
-    return ParentStoryRunEnvelopeV1(request_id=uuid4(), story_run=_response(record))
+    return _envelope(record)
 
 
 __all__ = ["router"]

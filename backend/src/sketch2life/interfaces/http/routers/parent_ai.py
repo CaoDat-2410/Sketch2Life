@@ -26,6 +26,7 @@ from sketch2life.application.ports.lesson_documents import (
 )
 from sketch2life.application.ports.object_storage import ObjectStorageFailure
 from sketch2life.application.ports.parent_story_runs import (
+    ParentStoryLifecycleRecord,
     ParentStoryRunError,
     ParentStoryRunRecord,
 )
@@ -42,7 +43,10 @@ from sketch2life.contracts.schemas.modal_ai import (
     ParentSketchGuideRequestV1,
     ParentStoryRequestV1,
 )
-from sketch2life.contracts.schemas.parent_story_runs import ParentStoryRunResponseV1
+from sketch2life.contracts.schemas.parent_story_runs import (
+    ParentStoryRunLifecycleEnvelopeV1,
+    ParentStoryRunResponseV1,
+)
 from sketch2life.infrastructure.ai.modal_function_client import (
     FLUX_MODEL_PROVENANCE,
     STORY_MODEL_ID,
@@ -150,6 +154,12 @@ def _story_response(record: ParentStoryRunRecord) -> ParentStoryRunResponseV1:
         created_at=record.created_at,
         updated_at=record.updated_at,
     )
+
+
+def _lifecycle_body(request_id: str, record: ParentStoryLifecycleRecord) -> dict[str, object]:
+    return ParentStoryRunLifecycleEnvelopeV1.model_validate(
+        {"request_id": request_id, "lifecycle": record.as_body()}
+    ).model_dump(mode="json")
 
 
 def _fail_story_run(
@@ -280,6 +290,12 @@ def analyze_drawing(
 
     original_asset_ref = f"parent/{run_id}/{uuid4().hex}/original"
     derived_asset_ref = f"parent/{run_id}/{uuid4().hex}/normalized.png"
+    try:
+        # FR-C-08 (port design §7): re-check the run state immediately before the first
+        # put_object, so no object is written for a run in DELETE_PENDING or DELETED.
+        repository.ensure_accepting_artwork(principal=principal, run_id=run_id)
+    except ParentStoryRunError as exc:
+        raise HTTPException(status_code=exc.status_code, detail={"code": exc.code}) from None
     try:
         storage.put_object(
             original_asset_ref,
@@ -467,9 +483,15 @@ def generate_story_revision(
     except (ParentStoryRunError, ParentStoryRunServiceError) as exc:
         raise HTTPException(status_code=exc.status_code, detail={"code": exc.code}) from None
     response.headers["Idempotency-Replayed"] = str(reservation.replayed).lower()
+    if reservation.lifecycle is not None:
+        # FR-C-08 (Contract §3.3, DTR §6.5): the replay of a purged run returns only the
+        # lifecycle envelope, under the route's normal status.
+        return _lifecycle_body(request_id, reservation.lifecycle)
     if reservation.replayed:
         replay_body = reservation.replay_body or {}
         record = repository.get_run(principal=principal, run_id=str(run_id))
+        if isinstance(record, ParentStoryLifecycleRecord):
+            return _lifecycle_body(request_id, record)
         return {
             "request_id": request_id,
             "modal_call_id": replay_body.get("modal_call_id"),
@@ -578,6 +600,9 @@ def generate_story_revision(
         if exc.code != "INVALID_STATE_TRANSITION":
             raise
         raise HTTPException(status_code=exc.status_code, detail={"code": exc.code}) from None
+    if isinstance(record, ParentStoryLifecycleRecord):
+        # complete_story_revision refuses a purged run; a projection here is never served.
+        raise HTTPException(status_code=409, detail={"code": "INVALID_STATE_TRANSITION"})
     _LOGGER.info(
         "parent_modal_request_completed",
         request_id=request_id,

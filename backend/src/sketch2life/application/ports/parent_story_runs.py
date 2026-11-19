@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Protocol
@@ -51,6 +50,47 @@ class ParentStoryRunRecord:
 
 
 @dataclass(frozen=True, slots=True)
+class ParentStoryLifecycleRecord:
+    """FR-C-08 content-free projection of a run in DELETE_PENDING or DELETED (DTR §6.5).
+
+    It is read before any input or profile access, so it carries no profile, context, story,
+    candidate, subject or asset field: a purged run has none of them to report.
+    """
+
+    run_id: str
+    run_state: str
+    revision: int
+    version: int
+    lifecycle_request_ref: str
+    purge_state: str
+
+    def as_body(self) -> dict[str, Any]:
+        return {
+            "run_id": self.run_id,
+            "run_state": self.run_state,
+            "revision": self.revision,
+            "version": self.version,
+            "lifecycle_request_ref": self.lifecycle_request_ref,
+            "purge_state": self.purge_state,
+        }
+
+    @classmethod
+    def from_body(cls, body: dict[str, Any]) -> ParentStoryLifecycleRecord:
+        return cls(
+            run_id=str(body["run_id"]),
+            run_state=str(body["run_state"]),
+            revision=int(body["revision"]),
+            version=int(body["version"]),
+            lifecycle_request_ref=str(body["lifecycle_request_ref"]),
+            purge_state=str(body["purge_state"]),
+        )
+
+
+# A live run is reported in full; from DELETE_PENDING on only the projection is reported.
+ParentStoryRunView = ParentStoryRunRecord | ParentStoryLifecycleRecord
+
+
+@dataclass(frozen=True, slots=True)
 class ParentStoryInputRecord:
     run_input_id: str
     input_revision: int
@@ -82,6 +122,8 @@ class ParentStoryRevisionReservation:
     receipt_id: str
     replayed: bool = False
     replay_body: dict[str, Any] | None = None
+    # FR-C-08: set only on the replay of a purged run; the route returns the projection.
+    lifecycle: ParentStoryLifecycleRecord | None = None
 
 
 class ParentStoryRunRepositoryPort(Protocol):
@@ -95,7 +137,7 @@ class ParentStoryRunRepositoryPort(Protocol):
         topic: str,
         adult_confirmed_idea: str,
         lesson_version_ref: dict[str, str] | None = None,
-    ) -> ParentStoryRunRecord | None: ...
+    ) -> ParentStoryRunView | None: ...
 
     def create_run(
         self,
@@ -109,13 +151,13 @@ class ParentStoryRunRepositoryPort(Protocol):
         adult_confirmed_idea: str,
         lesson_version_ref: dict[str, str] | None = None,
         lesson_pin_snapshot: dict[str, Any] | None = None,
-    ) -> ParentStoryRunRecord: ...
+    ) -> ParentStoryRunView: ...
 
-    def get_run(self, *, principal: VerifiedPrincipal, run_id: str) -> ParentStoryRunRecord: ...
+    def get_run(self, *, principal: VerifiedPrincipal, run_id: str) -> ParentStoryRunView: ...
 
     def get_active_run(
         self, *, principal: VerifiedPrincipal, account_id: str
-    ) -> ParentStoryRunRecord | None: ...
+    ) -> ParentStoryRunView | None: ...
 
     def cancel_run(
         self,
@@ -124,9 +166,23 @@ class ParentStoryRunRepositoryPort(Protocol):
         run_id: str,
         expected_revision: int,
         idempotency_key: str,
-        request_id: str,
-        response_builder: Callable[[ParentStoryRunRecord, str], dict[str, Any]],
-    ) -> dict[str, Any]: ...
+    ) -> ParentStoryLifecycleRecord:
+        """FR-C-08 cancel (DTR §6.1): the stored projection body, as accepted or replayed."""
+        ...
+
+    def delete_run(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        run_id: str,
+        idempotency_key: str,
+    ) -> ParentStoryLifecycleRecord:
+        """FR-C-08 delete of a finished run (DTR §6.1); no expected revision."""
+        ...
+
+    def ensure_accepting_artwork(self, *, principal: VerifiedPrincipal, run_id: str) -> None:
+        """State re-check immediately before the artwork route's first ``put_object``."""
+        ...
 
     def confirm_context(
         self,
@@ -136,7 +192,7 @@ class ParentStoryRunRepositoryPort(Protocol):
         expected_context_revision: int,
         expected_context_snapshot_sha256: str,
         idempotency_key: str,
-    ) -> ParentStoryRunRecord: ...
+    ) -> ParentStoryRunView: ...
 
     def attach_artwork(
         self,
@@ -176,7 +232,7 @@ class ParentStoryRunRepositoryPort(Protocol):
         expected_understanding_revision: int,
         confirmed_subject: str,
         idempotency_key: str,
-    ) -> int: ...
+    ) -> int | ParentStoryLifecycleRecord: ...
 
     def reserve_story_revision(
         self,
@@ -202,7 +258,7 @@ class ParentStoryRunRepositoryPort(Protocol):
         provider_call_id: str,
         model_id: str,
         model_revision: str,
-    ) -> ParentStoryRunRecord: ...
+    ) -> ParentStoryRunView: ...
 
     def fail_story_revision(
         self,
@@ -225,13 +281,15 @@ class ParentStoryRunRepositoryPort(Protocol):
         expected_revision: int,
         expected_story_sha256: str,
         idempotency_key: str,
-    ) -> ParentStoryRunRecord: ...
+    ) -> ParentStoryRunView: ...
 
 
 __all__ = [
     "ParentStoryInputRecord",
+    "ParentStoryLifecycleRecord",
     "ParentStoryRevisionReservation",
     "ParentStoryRunError",
     "ParentStoryRunRecord",
     "ParentStoryRunRepositoryPort",
+    "ParentStoryRunView",
 ]
