@@ -129,7 +129,7 @@ export function SchoolOverviewPage() {
           <h2>Sức chứa và phân công giáo viên</h2>
           <p>
             Tạo lớp đang tạm khóa vì API hiện chưa kiểm tra capacity theo FR-T-03.
-            Phân công Teacher cần endpoint tra cứu Teacher trong organization trước khi có thể mở.
+            Phân công Teacher lần đầu đã có ở màn Roster &amp; consent; đổi Teacher của lớp chưa được hỗ trợ.
           </p>
         </div>
         <span className="manager-business-chip is-pending">Chờ API</span>

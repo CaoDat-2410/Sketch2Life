@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { RefreshCw, Users } from "lucide-react";
 import { PageHeading } from "../../../../shared/components/FeatureAvailability";
 import { classService, type Be1Class } from "../services/classService";
+import { TeacherAssignmentCard } from "./TeacherAssignmentCard";
 import {
   managerBusinessService,
   type Be1ConsentStatus,
@@ -256,14 +257,11 @@ export function RosterConsentPage() {
         </section>
       )}
 
-      <section className="manager-business-card manager-business-limitation">
-        <div>
-          <p className="manager-business-eyebrow">Chưa có API</p>
-          <h2>Phân công Teacher</h2>
-          <p>Backend chưa cung cấp danh sách Teacher theo organization; không thể gán người dùng bằng mã nhập tay.</p>
-        </div>
-        <span className="manager-business-chip is-pending">Chờ API</span>
-      </section>
+      <TeacherAssignmentCard
+        key={selectedClass?.class_id ?? "none"}
+        selectedClass={selectedClass}
+        onAssigned={() => setReloadCount((value) => value + 1)}
+      />
     </div>
   );
 }
