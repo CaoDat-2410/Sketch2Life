@@ -79,7 +79,8 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
     )
     expected.update(
         {
-            "/v1/story-runs": ["POST"],
+            # FEAT-081 C3b: the Parent run-history list on the same path.
+            "/v1/story-runs": ["GET", "POST"],
             "/v1/story-runs/active/current": ["GET"],
             # FR-C-08 (Contract Draft 11 §3.2): the Parent delete route on the same path.
             "/v1/story-runs/{run_id}": ["DELETE", "GET"],

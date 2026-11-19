@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 import uuid
+from datetime import datetime
 from uuid import UUID
 
 from sketch2life.application.ports.identity import VerifiedPrincipal
@@ -16,6 +17,7 @@ from sketch2life.application.ports.parent_story_runs import (
     ParentStoryLifecycleRecord,
     ParentStoryRevisionReservation,
     ParentStoryRunRepositoryPort,
+    ParentStoryRunSummary,
     ParentStoryRunView,
 )
 
@@ -213,6 +215,30 @@ class ParentStoryRunService:
             expected_revision=expected_revision,
             expected_story_sha256=expected_story_sha256,
             idempotency_key=idempotency_key,
+        )
+
+    def list_runs(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        profile_id: UUID | None,
+        limit: int,
+        after: tuple[datetime, str] | None,
+    ) -> list[ParentStoryRunSummary]:
+        """FEAT-081 C3b: the caller's run history (SRS §21.5 line 1707, FR-C-06 line 498)."""
+        if profile_id is not None:
+            try:
+                owned = self._profile_lookup.is_owned_profile(
+                    principal=principal, profile_id=profile_id
+                )
+            except ParentStoryProfileLookupUnavailable:
+                raise ParentStoryRunServiceError(
+                    503, "PARENT_STORY_RUN_STORE_UNAVAILABLE"
+                ) from None
+            if not owned:
+                raise ParentStoryRunServiceError(404, "RESOURCE_NOT_FOUND")
+        return self._repository.list_runs(
+            principal=principal, profile_id=profile_id, limit=limit, after=after
         )
 
     def _profile_for_run(

@@ -10,7 +10,7 @@ from datetime import UTC, datetime
 from typing import Any, cast
 from uuid import UUID, uuid4
 
-from sqlalchemy import Table, and_, insert, null, select, text, update
+from sqlalchemy import Table, and_, insert, null, or_, select, text, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.engine import CursorResult, RowMapping
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
@@ -24,6 +24,7 @@ from sketch2life.application.ports.parent_story_runs import (
     ParentStoryRevisionReservation,
     ParentStoryRunError,
     ParentStoryRunRecord,
+    ParentStoryRunSummary,
     ParentStoryRunView,
 )
 from sketch2life.application.ports.story_run_lifecycle import (
@@ -360,6 +361,49 @@ class SqlParentStoryRunRepository:
             created_at=run["created_at"],
             updated_at=run["updated_at"],
         )
+
+    def list_runs(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        profile_id: UUID | None,
+        limit: int,
+        after: tuple[datetime, str] | None,
+    ) -> list[ParentStoryRunSummary]:
+        """FEAT-081 C3b: owner-scoped history, newest first, ``limit + 1`` rows, no joins."""
+        runs = story_tables.story_runs
+        query = select(
+            runs.c.run_id,
+            runs.c.profile_ref,
+            runs.c.run_state,
+            runs.c.revision,
+            runs.c.created_at,
+            runs.c.updated_at,
+        ).where(
+            runs.c.actor_scope_kind == _OWNER_SCOPE_KIND,
+            runs.c.actor_scope_ref == _principal_scope_ref(principal),
+            runs.c.run_state != "DELETED",
+        )
+        if profile_id is not None:
+            # A purge row loses its profile at purge step 4, so a filter lists live runs only.
+            query = query.where(
+                runs.c.profile_ref == str(profile_id),
+                runs.c.run_state.not_in(_PURGE_STATE_VALUES),
+            )
+        if after is not None:
+            created_at, run_id = after
+            query = query.where(
+                or_(
+                    runs.c.created_at < created_at,
+                    and_(runs.c.created_at == created_at, runs.c.run_id < run_id),
+                )
+            )
+        query = query.order_by(runs.c.created_at.desc(), runs.c.run_id.desc()).limit(limit + 1)
+        try:
+            rows = self._session.execute(query).mappings().all()
+        except SQLAlchemyError as exc:
+            raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE") from exc
+        return [_run_summary(row) for row in rows]
 
     def get_active_run(
         self, *, principal: VerifiedPrincipal, account_id: str
@@ -1921,6 +1965,37 @@ def _idempotency_key_hash(value: str) -> str:
     if not normalized or len(normalized) > 256:
         raise ParentStoryRunError(400, "INVALID_IDEMPOTENCY_KEY")
     return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+
+
+def run_summary_capabilities(run_state: str) -> tuple[bool, bool, bool]:
+    """FEAT-081 C3b: (deleting, can_cancel, can_delete) for a run state (SRS 1518; D-214 item 1)."""
+    deleting = run_state in PURGE_STATES
+    return (
+        deleting,
+        not deleting and run_state in CANCEL_ELIGIBLE_STATES,
+        not deleting and run_state in DELETE_ELIGIBLE_STATES,
+    )
+
+
+def _run_summary(row: RowMapping) -> ParentStoryRunSummary:
+    deleting, can_cancel, can_delete = run_summary_capabilities(str(row["run_state"]))
+    profile_id: UUID | None = None
+    if not deleting and row["profile_ref"] is not None:
+        try:
+            profile_id = UUID(str(row["profile_ref"]))
+        except ValueError:
+            profile_id = None  # A defective row must not fail the whole page.
+    return ParentStoryRunSummary(
+        run_id=str(row["run_id"]),
+        parent_profile_id=profile_id,
+        run_state=str(row["run_state"]),
+        revision=int(row["revision"]),
+        deleting=deleting,
+        can_cancel=can_cancel,
+        can_delete=can_delete,
+        created_at=row["created_at"],
+        updated_at=row["updated_at"],
+    )
 
 
 def _principal_scope_ref(principal: VerifiedPrincipal) -> str:

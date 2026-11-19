@@ -11,7 +11,6 @@ import type {
   ParentNotification,
   ParentNotificationPage,
   ParentProfile,
-  ParentProfileArchivedV1,
   ParentProfileCreateV1,
   ParentProfileDeletePendingV1,
   ParentProfileReferenceV1,
@@ -22,6 +21,8 @@ import type {
   ParentProfileShareGrant,
   ParentProfileSharePage,
   ParentRunLifecycleReceipt,
+  ParentStoryRunLifecycleEnvelopeV1,
+  ParentStoryRunResultV1,
   ParentActiveStoryRunEnvelopeV1,
   ParentTranscriptConfirmation,
   ParentStoryRunHistoryPage,
@@ -66,9 +67,9 @@ export interface ParentApiPort {
   listProfiles(): Promise<{ request_id: string; profiles: ParentProfile[] }>;
   listProfilesV1(limit?: number, cursor?: string | null): Promise<ParentProfilePageV1>;
   getProfileV1(profileId: string): Promise<ParentProfileRecordV1>;
-  createProfileV1(input: ParentProfileCreateV1, actionIdentity: ParentActionIdentity): Promise<ParentProfileViewV1>;
+  createProfileV1(input: ParentProfileCreateV1, actionIdentity: ParentActionIdentity): Promise<ParentProfileReferenceV1>;
   patchProfileV1(profileId: string, input: ParentProfilePatchV1, actionIdentity: ParentActionIdentity): Promise<ParentProfileViewV1>;
-  requestProfileDeletionV1(profileId: string, actionIdentity: ParentActionIdentity): Promise<ParentProfileArchivedV1>;
+  requestProfileDeletionV1(profileId: string, actionIdentity: ParentActionIdentity): Promise<ParentProfileDeletePendingV1>;
   createProfile(input: ProfileCreateInput): Promise<{ request_id: string; profile: ParentProfile }>;
   updateProfile(profileId: string, input: ProfileUpdateInput): Promise<{ request_id: string; profile: ParentProfile }>;
   grantAuthorization(profileId: string, policyVersion: string): Promise<{ request_id: string; profile: ParentProfile }>;
@@ -77,9 +78,11 @@ export interface ParentApiPort {
   getActiveStoryRun(): Promise<{ request_id: string; story_run: StoryRun | null }>;
   getStoryRun(runId: string): Promise<{ request_id: string; story_run: StoryRun }>;
   getActiveStoryRunV1(): Promise<ParentActiveStoryRunEnvelopeV1>;
-  getStoryRunV1(runId: string): Promise<ParentStoryRunEnvelopeV1>;
+  getStoryRunV1(runId: string): Promise<ParentStoryRunResultV1>;
   listStoryRuns(profileId?: string, cursor?: string | null): Promise<ParentStoryRunHistoryPage>;
   cancelStoryRun(runId: string): Promise<ParentRunLifecycleReceipt>;
+  cancelStoryRunV1(runId: string, expectedRevision: number, actionIdentity: ParentActionIdentity): Promise<ParentStoryRunLifecycleEnvelopeV1>;
+  deleteStoryRunV1(runId: string, actionIdentity: ParentActionIdentity): Promise<ParentStoryRunLifecycleEnvelopeV1>;
   deleteStoryRun(runId: string): Promise<ParentRunLifecycleReceipt>;
   listLessons(): Promise<{ contract: string; items: LessonSummary[]; next_cursor: string | null }>;
   getLesson(lessonId: string): Promise<LessonDetail>;

@@ -12,7 +12,7 @@ CONTRACT_REVISION: Final = "FEAT-063 Rev37"
 SOURCE_FILE_NAME: Final = 'API_CONTRACT_CATALOG_FEAT063_REV37_20261030.md'
 SOURCE_SHA256: Final = '56FC8BEA01360E11F73E45B2D43AC1897540B30BC8AE524CDE1ECEFACFBB1B88'
 DECLARED_OPERATION_COUNT: Final = 135
-MOUNTED_OPERATION_COUNT: Final = 134
+MOUNTED_OPERATION_COUNT: Final = 135
 UNMOUNTED_OPERATION_COUNT: Final = 11
 TAG_DESCRIPTIONS: Final[dict[str, str]] = {'BE1 — Organizations & Classes': 'Organization membership, class setup, profiles, assignments, '
                                   'and consents.',
@@ -11105,6 +11105,33 @@ MOUNTED_OPERATIONS[('get', '/v1/story-runs/{run_id}')] = {
         {'status': '503', 'description': 'A required service is unavailable', 'media_type': 'application/json',
          'schema_name': 'ParentStoryErrorEnvelopeV1'},
         {'status': '500', 'description': 'An unexpected error occurred', 'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+    ),
+}
+MOUNTED_OPERATIONS[('get', '/v1/story-runs')] = {
+    'purpose': "List the authenticated Parent's StoryRuns as content-free summaries, newest first.",
+    'request_inputs': 'query `limit`: integer; query `cursor`: string; query `parent_profile_id`: uuid',
+    'surface': 'Parent / StoryRun integration proposal',
+    'tag': 'Parent StoryRuns',
+    'handler': 'parent_story_runs.py::list_parent_story_runs',
+    'authentication': 'HTTPBearer (bearer)',
+    'verification': 'Proposed FEAT-081 C3b history read; Rev60 §21.2 does not name a list path (SRS §21.5 line 1707)',
+    'responses': (
+        {'status': '200', 'description': 'One page of run summaries', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryRunHistoryPageV1'},
+        {'status': '400', 'description': 'The request is invalid', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '401', 'description': 'Authentication is required', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '403', 'description': 'The action is not allowed', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '404', 'description': 'The requested resource was not found',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '422', 'description': 'Validation uses the standard error envelope',
+         'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '503', 'description': 'A required service is unavailable', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
+        {'status': '500', 'description': 'An unexpected error occurred', 'media_type': 'application/json',
+         'schema_name': 'ParentStoryErrorEnvelopeV1'},
     ),
 }
 MOUNTED_OPERATIONS[('get', '/v1/story-runs/active/current')] = {

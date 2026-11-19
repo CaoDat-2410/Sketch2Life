@@ -126,7 +126,33 @@ class ParentStoryRevisionReservation:
     lifecycle: ParentStoryLifecycleRecord | None = None
 
 
+@dataclass(frozen=True, slots=True)
+class ParentStoryRunSummary:
+    """FEAT-081 C3b: content-free history item (no story, context, topic, media or provider)."""
+
+    run_id: str
+    parent_profile_id: UUID | None
+    run_state: str
+    revision: int
+    deleting: bool
+    can_cancel: bool
+    can_delete: bool
+    created_at: datetime
+    updated_at: datetime
+
+
 class ParentStoryRunRepositoryPort(Protocol):
+    def list_runs(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        profile_id: UUID | None,
+        limit: int,
+        after: tuple[datetime, str] | None,
+    ) -> list[ParentStoryRunSummary]:
+        """Owner-scoped runs, newest first; returns up to ``limit + 1`` rows."""
+        ...
+
     def replay_create_run(
         self,
         *,
@@ -291,5 +317,6 @@ __all__ = [
     "ParentStoryRunError",
     "ParentStoryRunRecord",
     "ParentStoryRunRepositoryPort",
+    "ParentStoryRunSummary",
     "ParentStoryRunView",
 ]

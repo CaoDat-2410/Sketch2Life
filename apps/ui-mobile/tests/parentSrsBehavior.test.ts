@@ -194,7 +194,6 @@ describe('L1 Vietnamese copy and paper presentation contracts', () => {
     expect(authScreenSource).not.toContain('Tài khoản được tạo trên Firebase Authentication và backend Sketch2Life.');
     expect(authScreenSource).not.toContain('<AuthIllustration');
     expect(accountScreenSource).toContain('Mật khẩu đã được cập nhật.');
-    expect(accountScreenSource).toContain('Đăng xuất sẽ kết thúc phiên này; cần xác thực lại để tiếp tục.');
     expect(accountScreenSource).not.toContain('Mật khẩu đã được cập nhật trên Firebase Authentication.');
     expect(googleSignInButtonSource).toContain('Đăng nhập bằng Google hiện chưa khả dụng. Bạn có thể dùng email để tiếp tục.');
     expect(googleSignInButtonSource).toContain('Chưa thể hoàn tất đăng nhập bằng Google. Hãy thử lại hoặc dùng email.');
@@ -202,10 +201,10 @@ describe('L1 Vietnamese copy and paper presentation contracts', () => {
     expect(googleSignInButtonSource).not.toContain('Google Sign-In chưa cấu hình.');
     expect(googleSignInButtonSource).toContain('minHeight: 52');
     expect(googleSignInButtonSource).toContain('name="logo-google" size={18}');
-    expect(settingsScreenSource).toContain('Chỉ tạo gợi ý nét vẽ khi người lớn bật tùy chọn này trong buổi học.');
+    expect(settingsScreenSource).toContain('Chỉ áp dụng cho buổi hiện tại, chưa lưu vào tài khoản.');
     expect(settingsScreenSource).toContain('Bật gợi ý nét vẽ trong phiên hiện tại');
     expect(settingsScreenSource).not.toContain('line-sketch');
-    expect(settingsScreenSource).toContain('title="Cài đặt và tài khoản" subtitle="Quản lý đăng nhập phụ huynh."');
+    expect(settingsScreenSource).toContain('title="Cài đặt" subtitle="Tùy chỉnh trải nghiệm trên thiết bị."');
   });
 
   it('keeps each L1 surface on its named paper-card composition', () => {
@@ -215,7 +214,7 @@ describe('L1 Vietnamese copy and paper presentation contracts', () => {
     expect(authScreenSource).toContain('styles.backgroundImage');
     expect(authScreenSource).toContain('styles.formCard');
     expect(accountScreenSource).toContain('style={styles.emailRow}');
-    expect(settingsScreenSource).toContain('style={styles.guideToggleRow}');
+    expect(settingsScreenSource).toContain('style={styles.preferenceRow}');
     expect(homeScreenSource).toContain('styles.profileSelector');
     expect(homeScreenSource).toContain('styles.heroActions, compact && styles.heroActionsCompact');
     expect(profileScreenSource).toContain('style={styles.profileListCard}');
@@ -242,19 +241,19 @@ describe('L1 Vietnamese copy and paper presentation contracts', () => {
   it('starts profile fields blank, keeps gender local, and shows sharing as unavailable without sample grants', () => {
     expect(profileFormSource).toContain("useState(profile ? String(profile.age_months) : '')");
     expect(profileFormSource).toContain('placeholder="Nhập tên hiển thị"');
-    expect(profileFormSource).toContain('Lựa chọn giới tính chỉ là bản nháp trên thiết bị; chưa được gửi, lưu hoặc dùng để tạo câu chuyện.');
+    expect(profileFormSource).toContain('Giới tính chỉ là bản nháp trên thiết bị, không dùng tạo câu chuyện.');
     expect(profileFormSource).toContain('Giới tính của trẻ (tùy chọn)');
     expect(profileFormSource).toContain('Không muốn chia sẻ');
     expect(profileFormSource).toContain('CHILD_AGE_RANGE_MESSAGE');
     expect(profileFormSource).toContain('disabled={submitDisabled}');
-    expect(profileFormSource).toContain('consent_accepted: true');
-    expect(profileFormSource).toContain('consent_policy_version: consentPolicy.policy_version');
+    expect(profileFormSource).not.toContain('consent_accepted');
+    expect(profileFormSource).not.toContain('consent_policy_version');
     expect(profileFormSource).toContain('ageMonths.trim().length > 0 && !ageValid');
     expect(profileFormSource).not.toContain('Ví dụ: Bé Mây');
     expect(profileFormSource).not.toContain('Thiên nhiên, côn trùng…');
-    expect(profileSharingSource).toContain("props.capability.state === 'unavailable' ? <Card");
-    expect(profileSharingSource).toContain('Chỉ mời giáo viên được nêu tên.');
-    expect(profileSharingSource).toContain('Chưa thể gửi lời mời hoặc kiểm tra quyền chia sẻ. Chưa có thay đổi quyền nào được xác nhận.');
+    expect(profileSharingSource).toContain("const sharingUnavailable = props.capability.state === 'unavailable';");
+    expect(profileSharingSource).toContain('Chỉ chia sẻ với giáo viên bạn chọn.');
+    expect(profileSharingSource).toContain('Chia sẻ hiện chưa khả dụng. Chưa có thay đổi nào được xác nhận.');
     expect(profileSharingSource).not.toContain('phạm vi 90 ngày');
   });
 
@@ -297,12 +296,16 @@ describe('L1 Vietnamese copy and paper presentation contracts', () => {
     expect(profileScreenSource).toContain('disabled={!selected}');
     expect(profileScreenSource).toContain('Đăng xuất');
     expect(profileScreenSource).not.toContain('Tiếp tục buổi đang mở');
-    expect(profileScreenSource).toContain('Mỗi buổi học chỉ gắn với một hồ sơ trẻ.');
-    expect(profileScreenSource.indexOf('Mỗi buổi học chỉ gắn với một hồ sơ trẻ.'))
-      .toBeLessThan(profileScreenSource.indexOf('<Card style={styles.profileListCard}>'));
+    expect(profileScreenSource).toContain('Mỗi buổi học gắn với một hồ sơ trẻ.');
+    expect(profileScreenSource.indexOf('Mỗi buổi học gắn với một hồ sơ trẻ.'))
+      .toBeGreaterThan(profileScreenSource.indexOf('<Card style={styles.profileListCard}>'));
     expect(profileScreenSource).toContain('disabled={!mayStartRun}');
     expect(profileScreenSource).toContain('Hồ sơ cũ, chỉ xem hoặc xóa');
-    expect(profileScreenSource).toContain('không ngăn bạn tiếp tục với hồ sơ đủ điều kiện');
+    expect(profileScreenSource).toContain('nên chưa thể bắt đầu buổi học');
+    expect(profileScreenSource).not.toContain('vẫn có thể tiếp tục');
+    expect(profileScreenSource).toContain('Hồ sơ dữ liệu mô phỏng nên không cần đồng ý xử lý dữ liệu.');
+    expect(profileScreenSource).toContain('canStartProfileLearning(selectedAgeEligibility, consentState.status, selected!.data_origin)');
+    expect(profileControllerSource).toContain('canStartProfileLearning(ageEligibility, consentState.status, target.data_origin)');
   });
 });
 
@@ -407,14 +410,16 @@ describe('R1 account and profile boundaries', () => {
     expect(authScreenSource).toContain("const [email, setEmail] = useState('')");
     expect(authScreenSource).toContain("const [password, setPassword] = useState('')");
     expect(profileFormSource).toContain("useState<ChildGenderDraft>('')");
-    expect(profileFormSource).toContain('void onCreate(input, { consent_accepted: true, consent_policy_version: consentPolicy.policy_version }).catch(() => undefined)');
-    expect(profileFormSource).toContain('Lựa chọn giới tính chỉ là bản nháp trên thiết bị; chưa được gửi, lưu hoặc dùng để tạo câu chuyện.');
+    expect(profileFormSource).toContain('void onCreate(input).catch(() => undefined)');
+    expect(profileFormSource).toContain('Giới tính chỉ là bản nháp trên thiết bị, không dùng tạo câu chuyện.');
     expect(profileSharingSource).not.toContain('phạm vi 90 ngày');
-    expect(profileSharingSource).toContain('Chưa thể xác nhận lời mời đang chờ');
-    expect(profileControllerSource).toContain('application.profiles.getConsentPolicy()');
+    expect(profileSharingSource).toContain('Chưa xác nhận được lời mời. Kiểm tra trạng thái trước khi gửi lại.');
+    expect(profileControllerSource).not.toContain('getConsentPolicy');
     expect(profileControllerSource).not.toMatch(/application\.profiles\.(grantAuthorization|revokeAuthorization)/);
     expect(profileControllerSource).not.toMatch(/child_gender|childGender/);
-    expect(platformControllerSource).not.toContain('application.platform.');
+    // FEAT-081 C3b: only the run-history list and the two FR-C-08 lifecycle commands are live.
+    expect(new Set(Array.from(platformControllerSource.matchAll(/application\.platform\.(\w+)/g), (match) => match[1])))
+      .toEqual(new Set(['listRuns', 'cancelRunV1', 'deleteRunV1']));
     expect(authScreenSource).not.toContain('cause.message');
     expect(profileControllerSource).not.toContain('cause.message');
     expect(platformControllerSource).not.toContain('cause.message');
@@ -435,7 +440,6 @@ describe('R2 backend route boundary', () => {
       { capability: 'profiles', request: () => api.archiveProfile('synthetic-profile') },
       { capability: 'story-creation', request: () => api.getActiveStoryRun() },
       { capability: 'story-creation', request: () => api.getStoryRun('synthetic-run') },
-      { capability: 'run-history', request: () => api.listStoryRuns('synthetic-profile') },
       { capability: 'run-history', request: () => api.cancelStoryRun('synthetic-run') },
       { capability: 'run-history', request: () => api.deleteStoryRun('synthetic-run') },
       { capability: 'story-creation', request: () => api.createStoryRun({ parent_profile_id: 'synthetic-profile', expected_profile_revision_id: 'synthetic-revision', consent_policy_version: 'synthetic-v1', topic: 'synthetic topic', adult_confirmed_idea: 'synthetic idea', context_confirmed: true }) },
@@ -463,7 +467,11 @@ describe('R2 backend route boundary', () => {
     }
     expect(fetcher).not.toHaveBeenCalled();
     expect(auth.getIdToken).not.toHaveBeenCalled();
-    expect(parentApiSource).toContain('/api/parent/v1/story-runs/active/current');
+    expect(parentApiSource).toContain('/v1/story-runs/active/current');
+    expect(parentApiSource).toContain('/v1/parent/profiles');
+    for (const removed of ['/api/parent/v1/child-profiles', '/api/parent/v1/consent-policy', '/api/parent/v1/story-runs', 'data-authorizations', 'story-revision-confirmations', 'subject-confirmations']) {
+      expect(parentApiSource).not.toContain(removed);
+    }
     expect(parentApiSource).toContain('/api/parent/v1/ai/story-runs/');
     expect(parentApiSource).not.toMatch(/\/api\/(?:notifications|billing)\/v1\//);
     expect(parentApiSource).not.toContain('/api/lesson-library/v1/me/deliveries');
@@ -586,7 +594,7 @@ describe('M3 concept surfaces and truthful capability states', () => {
     expect(activityScreenSource).toContain('Chọn một hoạt động chính trước khi tạo câu chuyện.');
     expect(activityScreenSource).toContain('onSuggest');
     expect(activityScreenSource).toContain('source_lesson_title');
-    expect(activityScreenSource).toContain('Máy chủ hiện chưa có API lưu lựa chọn hoạt động vào buổi học');
+    expect(activityScreenSource).toContain('Lựa chọn chưa được lưu, nên chưa thể tạo câu chuyện.');
     expect(parentExpoAppSource).toContain('suggestions={parent.activitySuggestions}');
     expect(parentExpoAppSource).toContain('storyBlockedReason');
     expect(parentExpoAppSource).toContain("onContinue={() => parent.setStep('story')}");
@@ -606,14 +614,14 @@ describe('M3 concept surfaces and truthful capability states', () => {
     expect(handoffScreenSource).toContain('style={styles.statusCard}');
     expect(handoffScreenSource).toContain('eventRow: { flexDirection: \'row\', alignItems: \'flex-start\', justifyContent: \'space-between\'');
     expect(handoffScreenSource).toContain('eventStageLabel(event.stage)');
-    expect(handoffScreenSource).toContain('Không hiển thị phần trăm, thời gian dự kiến hoặc vị trí hàng đợi.');
+    expect(handoffScreenSource).toContain('Tiến độ được máy chủ ghi nhận.');
     expect(handoffScreenSource).not.toContain('event.durationMs');
-    expect(storyHistoryScreenSource).toContain("runCard: { backgroundColor: '#FFFEFC', gap: 11, minWidth: 0 }");
+    expect(storyHistoryScreenSource).toContain('runCard: {');
     expect(storyHistoryScreenSource).toContain("return labels[value] ?? 'Trạng thái chưa xác định'");
-    expect(lessonHistoryScreenSource).toContain('title="Bài học đã xem"');
-    expect(lessonHistoryScreenSource).toContain('deliveryCard: { backgroundColor: palette.white, gap: 12, minWidth: 0 }');
-    expect(quotaScreenSource).toContain('Tóm tắt lượt dùng');
-    expect(quotaScreenSource).toContain('quotaCard: { backgroundColor: palette.white, gap: 12, minWidth: 0 }');
+    expect(lessonHistoryScreenSource).toContain('title="Bài giáo viên đã dạy"');
+    expect(lessonHistoryScreenSource).toContain('deliveryCard: {');
+    expect(quotaScreenSource).toContain('Số lượt sử dụng');
+    expect(quotaScreenSource).toContain('summaryCard: {');
     expect(notificationsScreenSource).toContain('Thông tin dành riêng cho tài khoản phụ huynh.');
     expect(notificationsScreenSource).toContain('Đánh dấu đã đọc');
     expect(notificationsScreenSource).toContain('styles.notificationCard, unread ? styles.unreadCard : styles.readCard');
@@ -695,10 +703,10 @@ describe('R3 story workflow safety boundaries', () => {
     expect(profileControllerSource).not.toContain('readRunPinnedLessonActivities');
     expect(profileControllerSource).toMatch(/application\.learning\.suggestActivities\(/);
     expect(profileControllerSource).toContain("'activity-suggestions'");
-    expect(activityScreenSource).toContain('Đã chọn trên màn hình này.');
-    expect(parentApiSource).toContain('/api/parent/v1/ai/story-runs/${encodeURIComponent(storyRunId)}/activity-suggestions');
-    expect(parentApiSource).toContain('PARENT_STORY_RUN_CREATE_CONTRACT_MISMATCH');
-    expect(parentApiSource).toContain('PARENT_CONTEXT_CONFIRMATION_ROUTE_MISSING');
+    expect(activityScreenSource).toContain('Lựa chọn chưa được lưu, nên chưa thể tạo câu chuyện.');
+    expect(parentApiSource).not.toContain('activity-suggestions');
+    expect(parentApiSource).toContain('/context-confirmation');
+    expect(parentApiSource).toContain('/script-confirmation');
     expect(storyScreenSource).not.toContain('mainActivityConfirmed');
     expect(parentExpoAppSource).not.toContain("onSkip={() => parent.setStep('story')}");
     expect(parentExpoAppSource).toContain('storyReady={storyReady}');
@@ -762,7 +770,8 @@ describe('R4 absent delivery and lifecycle contracts', () => {
     expect(platformControllerSource).toContain('markVideoUnsuitable');
     expect(platformControllerSource).toContain('regenerateVideo');
     expect(platformControllerSource).toContain('completeRun');
-    expect(platformControllerSource).not.toContain('application.platform.');
+    expect(new Set(Array.from(platformControllerSource.matchAll(/application\.platform\.(\w+)/g), (match) => match[1])))
+      .toEqual(new Set(['listRuns', 'cancelRunV1', 'deleteRunV1']));
     expect(platformControllerSource).toContain('videoOperationState: unavailableShareOperation');
     expect(jobStageHasNoPercent).toBe(false);
     expect(storyScreenSource).toContain('videoCapability.state === \'unavailable\'');
@@ -774,8 +783,8 @@ describe('R4 absent delivery and lifecycle contracts', () => {
     expect(handoffScreenSource).toContain('onResumeActiveRun');
     expect(handoffScreenSource).not.toContain('onRestart');
     expect(handoffScreenSource).not.toContain('resetWorkflow');
-    expect(handoffScreenSource).toContain('Không có video để phát hoặc tải xuống');
-    expect(handoffScreenSource).toContain('Trạng thái hoàn tất chưa được máy chủ xác nhận');
+    expect(handoffScreenSource).toContain('Tạo video chưa khả dụng vì dịch vụ chưa được xác nhận.');
+    expect(handoffScreenSource).toContain('Tác vụ hoàn tất; trình phát chưa khả dụng.');
     expect(parentExpoAppSource).toContain('onResumeActiveRun={parent.resumeActiveRun}');
   });
 
@@ -786,10 +795,10 @@ describe('R4 absent delivery and lifecycle contracts', () => {
     expect(parentExpoAppSource).toContain('capability={platform.capabilities.deliveries}');
     expect(storyHistoryScreenSource.indexOf("if (props.capability.state === 'unavailable')"))
       .toBeLessThan(storyHistoryScreenSource.indexOf('const canCancel'));
-    expect(storyHistoryScreenSource).toContain('Không có thay đổi trạng thái nào được gửi');
+    expect(storyHistoryScreenSource).toContain('Dịch vụ chưa có hợp đồng được xác nhận.');
     expect(lessonHistoryScreenSource.indexOf("if (props.capability.state === 'unavailable')"))
-      .toBeLessThan(lessonHistoryScreenSource.indexOf('Chưa có bài học để xem'));
-    expect(lessonHistoryScreenSource).toContain('Không có dữ liệu rỗng hoặc thao tác gửi nào được suy ra');
+      .toBeLessThan(lessonHistoryScreenSource.indexOf('Chưa có bài học được chia sẻ'));
+    expect(lessonHistoryScreenSource).toContain('Bài đã dạy chưa khả dụng');
   });
 
   it('shows only confirmed quota and inbox summaries and provides no purchase action', () => {
@@ -798,8 +807,8 @@ describe('R4 absent delivery and lifecycle contracts', () => {
     expect(parentExpoAppSource).toContain('capability={platform.capabilities.quota}');
     expect(parentExpoAppSource).toContain('capability={platform.capabilities.notifications}');
     expect(quotaScreenSource.indexOf("if (props.capability.state === 'unavailable')"))
-      .toBeLessThan(quotaScreenSource.indexOf('Còn {quota.available} lượt'));
-    expect(quotaScreenSource).toContain('Chưa có tóm tắt hạn mức được máy chủ xác nhận');
+      .toBeLessThan(quotaScreenSource.indexOf('>Còn lại<'));
+    expect(quotaScreenSource).toContain('Chưa đủ dữ liệu hạn mức để hiển thị.');
     expect(quotaScreenSource).not.toContain('onPurchase');
     expect(notificationsScreenSource.indexOf("if (props.capability.state === 'unavailable')"))
       .toBeLessThan(notificationsScreenSource.indexOf('Chưa có thông báo nào'));

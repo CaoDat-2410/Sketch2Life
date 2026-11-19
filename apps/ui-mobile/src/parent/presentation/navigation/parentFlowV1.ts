@@ -57,20 +57,10 @@ export function reconcileProfileRecord(
     };
   }
 
-  if (record.state === 'ARCHIVED' || record.state === 'DELETED') {
-    return {
-      profiles: profiles.filter((profile) => profile.profile_id !== record.profile_id),
-      pendingDeletions: pendingDeletions.filter((pending) => pending.profile_id !== record.profile_id),
-    };
-  }
-
-  if (record.state === 'ACTIVE') {
-    return {
-      profiles: [...profiles.filter((profile) => profile.profile_id !== record.profile_id), record],
-      pendingDeletions: pendingDeletions.filter((pending) => pending.profile_id !== record.profile_id),
-    };
-  }
-  return { profiles: [...profiles], pendingDeletions: [...pendingDeletions] };
+  return {
+    profiles: [...profiles.filter((profile) => profile.profile_id !== record.profile_id), record],
+    pendingDeletions: pendingDeletions.filter((pending) => pending.profile_id !== record.profile_id),
+  };
 }
 
 export function lessonVersionPinFromDetail(lesson: LessonDetail | null): ParentLessonVersionPinV1 | null {
@@ -450,6 +440,7 @@ const parentRecoveryGroups: Record<string, ParentRecoveryGroup> = {
   CLASS_CAPACITY_REACHED: 'teacher-only',
   RATE_LIMITED: 'wait-retry-after',
   DELETE_PENDING: 'lifecycle-pending',
+  DELETED: 'lifecycle-pending',
   CAPABILITY_UNAVAILABLE: 'unavailable',
   ROUTE_NOT_IN_BE_HANDOFF: 'unavailable',
 };
@@ -468,6 +459,7 @@ export function safeParentFlowErrorMessage(error: unknown): string {
     INVALID_STATE_TRANSITION: 'Hồ sơ đã thay đổi trạng thái. Hãy kiểm tra lại trước khi tiếp tục.',
     ACTIVE_RUN_EXISTS: 'Hồ sơ đang có buổi học chưa hoàn tất. Hãy tiếp tục buổi học hiện tại.',
     RESOURCE_NOT_FOUND: 'Không tìm thấy nội dung hoặc bạn không thể truy cập nội dung này.',
+    DELETED: 'Buổi học đã được xóa.',
     MULTI_CHILD_NOT_SUPPORTED: 'Thao tác này chưa khả dụng trong luồng dành cho phụ huynh.',
     OCR_NOT_SUPPORTED: 'Thao tác này chưa khả dụng trong luồng dành cho phụ huynh.',
     UNSUPPORTED_LESSON_TYPE: 'Thao tác này chưa khả dụng trong luồng dành cho phụ huynh.',
@@ -494,13 +486,7 @@ export function safeParentFlowErrorMessage(error: unknown): string {
     PARENT_LESSON_PIN_REQUIRED: 'Hãy chọn một bài học trước khi bắt đầu.',
     PARENT_CONTEXT_REQUIRED: 'Hãy chọn hồ sơ trước khi tiếp tục.',
     PARENT_CONTEXT_SNAPSHOT_INVALID: 'Chưa thể xác nhận ngữ cảnh của buổi học này.',
-    PARENT_CONTEXT_CONFIRMATION_ROUTE_MISSING: 'Backend chưa có API xác nhận ngữ cảnh riêng; hiện chỉ nhận xác nhận này khi tạo buổi học.',
     PARENT_CONTEXT_NOT_CONFIRMED: 'Người lớn cần xác nhận ngữ cảnh trước khi tiếp tục.',
-    PARENT_CONSENT_POLICY_UNAVAILABLE: 'Chưa tải được nội dung đồng ý từ máy chủ. Hãy thử tải lại trước khi tạo hồ sơ.',
-    PARENT_CONSENT_REQUIRED: 'Đọc và xác nhận nội dung đồng ý trước khi tạo hồ sơ.',
-    PARENT_CONSENT_VERSION_REQUIRED: 'Chưa xác định được phiên bản nội dung đồng ý. Hãy tải lại trước khi tạo hồ sơ.',
-    PARENT_CONSENT_POLICY_CHANGED: 'Nội dung đồng ý đã thay đổi. Hãy tải lại và xác nhận lại trước khi tạo hồ sơ.',
-    PARENT_STORY_RUN_CREATE_CONTRACT_MISMATCH: 'Chưa thể tạo buổi học: mobile chưa gửi phiên bản hồ sơ và chính sách đồng ý theo hợp đồng API.',
     PARENT_DRAWING_REQUIRED: 'Hãy chọn ảnh tranh trước khi tiếp tục xem xét.',
     PARENT_DRAWING_RESULT_INVALID: 'Chưa thể đọc kết quả xem xét tranh. Hãy kiểm tra trạng thái trước khi gửi lại.',
     PARENT_SUBJECT_CONFIRMATION_INVALID: 'Chưa thể xác nhận chủ thể của bức tranh.',

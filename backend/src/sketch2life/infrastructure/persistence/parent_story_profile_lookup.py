@@ -23,6 +23,20 @@ class SqlParentStoryProfileLookup:
     def __init__(self, session: Session) -> None:
         self._session = session
 
+    def is_owned_profile(self, *, principal: VerifiedPrincipal, profile_id: UUID) -> bool:
+        """FEAT-081 C3b: the caller owns this profile (any state); no revision is read."""
+        try:
+            owned = self._session.scalar(
+                select(ParentChildProfileModel.parent_profile_id).where(
+                    ParentChildProfileModel.parent_profile_id == profile_id,
+                    ParentChildProfileModel.owner_issuer == principal.issuer,
+                    ParentChildProfileModel.owner_subject == principal.subject,
+                )
+            )
+        except SQLAlchemyError as exc:
+            raise ParentStoryProfileLookupUnavailable("profile ownership unavailable") from exc
+        return owned is not None
+
     def get_owned_profile_current_revision(
         self, *, principal: VerifiedPrincipal, profile_id: UUID
     ) -> ParentStoryProfileReference | None:

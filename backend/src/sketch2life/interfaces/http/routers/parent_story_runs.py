@@ -4,11 +4,15 @@
 
 from __future__ import annotations
 
+import base64
+import binascii
+import json
 from collections.abc import Callable
+from datetime import datetime
 from typing import Annotated, Any
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, status
 from sqlalchemy.orm import Session
 
 from sketch2life.application.ports.identity import VerifiedPrincipal
@@ -32,8 +36,10 @@ from sketch2life.contracts.schemas.parent_story_runs import (
     ParentStoryRunCancelRequestV1,
     ParentStoryRunCreateRequestV1,
     ParentStoryRunEnvelopeV1,
+    ParentStoryRunHistoryPageV1,
     ParentStoryRunLifecycleEnvelopeV1,
     ParentStoryRunResponseV1,
+    ParentStoryRunSummaryV1,
     ParentSubjectConfirmationRequestV1,
     ParentSubjectConfirmationResponseV1,
 )
@@ -45,7 +51,7 @@ from sketch2life.infrastructure.persistence.parent_story_profile_lookup import (
 from sketch2life.infrastructure.persistence.parent_story_repository import (
     SqlParentStoryRunRepository,
 )
-from sketch2life.interfaces.http.api_conventions import parse_idempotency_key
+from sketch2life.interfaces.http.api_conventions import limit_query, parse_idempotency_key
 from sketch2life.interfaces.http.be1_runtime import get_db, get_verified_adult
 from sketch2life.interfaces.http.routers.lesson_library import get_lesson_library_service
 
@@ -225,6 +231,91 @@ def create_parent_story_run(
         lesson_pin_snapshot=lesson_pin_snapshot,
     )
     return _envelope(record)
+
+
+_HISTORY_RESPONSES: dict[int | str, dict[str, Any]] = {
+    status_code: _PARENT_STORY_ERROR_RESPONSES[status_code]
+    for status_code in (400, 401, 403, 404, 422, 500, 503)
+}
+
+
+def _encode_history_cursor(created_at: datetime, run_id: str) -> str:
+    payload = json.dumps(
+        {"created_at": created_at.isoformat(), "run_id": run_id, "v": 1},
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return base64.urlsafe_b64encode(payload).decode("ascii").rstrip("=")
+
+
+def _decode_history_cursor(cursor: str) -> tuple[datetime, str]:
+    """A malformed cursor is 400 INVALID_REQUEST in this family's envelope (C3B-2)."""
+    try:
+        encoded = cursor.encode("ascii")
+        decoded = json.loads(
+            base64.b64decode(encoded + b"=" * (-len(encoded) % 4), altchars=b"-_", validate=True)
+        )
+        if not isinstance(decoded, dict) or set(decoded) != {"created_at", "run_id", "v"}:
+            raise ValueError
+        if type(decoded["v"]) is not int or decoded["v"] != 1:
+            raise ValueError
+        if not isinstance(decoded["created_at"], str) or not isinstance(decoded["run_id"], str):
+            raise ValueError
+        created_at = datetime.fromisoformat(decoded["created_at"])
+        if created_at.tzinfo is None or created_at.utcoffset() is None:
+            raise ValueError
+        return created_at, str(UUID(decoded["run_id"]))
+    except (binascii.Error, json.JSONDecodeError, UnicodeEncodeError, ValueError):
+        raise HTTPException(status_code=400, detail={"code": "INVALID_REQUEST"}) from None
+
+
+@router.get(
+    "",
+    response_model=ParentStoryRunHistoryPageV1,
+    summary="[PROPOSAL] List the authenticated Parent's StoryRuns, newest first",
+    responses=_HISTORY_RESPONSES,
+)
+def list_parent_story_runs(
+    limit: int = limit_query(),
+    cursor: str | None = Query(default=None, min_length=1, max_length=512),
+    parent_profile_id: UUID | None = None,
+    principal: VerifiedPrincipal = Depends(get_verified_adult),
+    db: Session = Depends(get_db),
+) -> ParentStoryRunHistoryPageV1:
+    """FEAT-081 C3b: summary history (SRS §21.5 line 1707; §21.2 has no list route)."""
+    _require_parent(db, principal)
+    after = _decode_history_cursor(cursor) if cursor is not None else None
+    rows = _invoke(
+        _service(db).list_runs,
+        principal=principal,
+        profile_id=parent_profile_id,
+        limit=limit,
+        after=after,
+    )
+    has_more = len(rows) > limit
+    rows = rows[:limit]
+    return ParentStoryRunHistoryPageV1(
+        request_id=uuid4(),
+        items=[
+            ParentStoryRunSummaryV1(
+                run_id=UUID(row.run_id),
+                parent_profile_id=row.parent_profile_id,
+                run_state=row.run_state,
+                revision=row.revision,
+                deleting=row.deleting,
+                can_cancel=row.can_cancel,
+                can_delete=row.can_delete,
+                created_at=row.created_at,
+                updated_at=row.updated_at,
+            )
+            for row in rows
+        ],
+        next_cursor=(
+            _encode_history_cursor(rows[-1].created_at, rows[-1].run_id)
+            if has_more and rows
+            else None
+        ),
+    )
 
 
 @router.get(

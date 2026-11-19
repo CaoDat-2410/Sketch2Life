@@ -202,6 +202,30 @@ class ParentStoryCancelErrorEnvelopeV1(ParentStoryErrorEnvelopeV1):
     current_version: int | None = Field(default=None, ge=1)
 
 
+class ParentStoryRunSummaryV1(BaseModel):
+    """FEAT-081 C3b history item: summary only (no story, context, topic, media or provider)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    run_id: UUID
+    parent_profile_id: UUID | None
+    run_state: str
+    revision: int = Field(ge=1)
+    deleting: bool
+    can_cancel: bool
+    can_delete: bool
+    created_at: datetime
+    updated_at: datetime
+
+
+class ParentStoryRunHistoryPageV1(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    request_id: UUID
+    items: list[ParentStoryRunSummaryV1]
+    next_cursor: str | None
+
+
 class ParentActiveStoryRunEnvelopeV1(BaseModel):
     request_id: UUID
     story_run: ParentStoryRunResponseV1 | None

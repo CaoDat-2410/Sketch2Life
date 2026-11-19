@@ -28,6 +28,10 @@ class ParentStoryProfileLookupPort(Protocol):
         self, *, principal: VerifiedPrincipal, profile_id: UUID
     ) -> ParentStoryProfileReference | None: ...
 
+    def is_owned_profile(self, *, principal: VerifiedPrincipal, profile_id: UUID) -> bool:
+        """FEAT-081 C3b: ownership only, any profile state, no revision read."""
+        ...
+
 
 __all__ = [
     "ParentStoryProfileLookupPort",

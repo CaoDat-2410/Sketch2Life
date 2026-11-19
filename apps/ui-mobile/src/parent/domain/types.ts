@@ -148,11 +148,48 @@ export type StoryRun = {
   error_code: string | null;
 };
 
+/** FEAT-081 C3b: content-free history item (no story, context, topic or media). */
+export type ParentStoryRunSummary = {
+  run_id: string;
+  parent_profile_id: string | null;
+  run_state: string;
+  revision: number;
+  deleting: boolean;
+  can_cancel: boolean;
+  can_delete: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
 export type ParentStoryRunHistoryPage = {
-  contract: 'ParentStoryRunHistoryPageV1';
-  items: StoryRun[];
+  request_id: string;
+  items: ParentStoryRunSummary[];
   next_cursor: string | null;
 };
+
+/** FR-C-08 content-free projection of a run from DELETE_PENDING on (Contract Draft 11 3.4). */
+export type ParentStoryRunLifecycleV1 = {
+  run_id: string;
+  run_state: 'DELETE_PENDING' | 'DELETED';
+  revision: number;
+  version: number;
+  lifecycle_request_ref: string;
+  purge_state: 'PENDING' | 'COMPLETED';
+};
+
+export type ParentStoryRunLifecycleEnvelopeV1 = {
+  request_id: string;
+  lifecycle: ParentStoryRunLifecycleV1;
+};
+
+/** A run read is the full run before DELETE_PENDING and the lifecycle projection from then on. */
+export type ParentStoryRunResultV1 = ParentStoryRunEnvelopeV1 | ParentStoryRunLifecycleEnvelopeV1;
+
+export function isParentStoryRunLifecycleEnvelope(
+  value: ParentStoryRunResultV1,
+): value is ParentStoryRunLifecycleEnvelopeV1 {
+  return 'lifecycle' in value && typeof value.lifecycle === 'object' && value.lifecycle !== null;
+}
 
 export type ParentRunLifecycleReceipt = {
   contract: 'ParentRunLifecycleResponseV1';
@@ -298,9 +335,6 @@ export type ParentProfileViewV1 = ParentProfileReferenceV1 & {
   age_band_version: string | null;
   interests_summary: string | null;
   data_origin: string;
-  authorization_state: ParentProfile['authorization_state'];
-  authorization_policy_version: string | null;
-  authorization_current: boolean;
 };
 
 /** GET-by-ID may return this view while an asynchronous deletion is pending. */
@@ -310,13 +344,7 @@ export type ParentProfileDeletePendingV1 = {
   request_id: string;
 };
 
-export type ParentProfileArchivedV1 = {
-  profile_id: string;
-  state: 'ARCHIVED' | 'DELETED';
-  request_id: string;
-};
-
-export type ParentProfileRecordV1 = ParentProfileViewV1 | ParentProfileDeletePendingV1 | ParentProfileArchivedV1;
+export type ParentProfileRecordV1 = ParentProfileViewV1 | ParentProfileDeletePendingV1;
 
 export type ParentProfilePageV1 = {
   items: ParentProfileViewV1[];
@@ -328,8 +356,6 @@ export type ParentProfileCreateV1 = {
   display_name: string;
   age_months: number;
   interests_summary?: string | null;
-  consent_accepted: true;
-  consent_policy_version: string;
 };
 
 export type ParentProfilePatchV1 = {
