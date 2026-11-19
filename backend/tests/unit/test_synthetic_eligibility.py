@@ -457,7 +457,8 @@ def test_head_counts_by_both_methods_match_the_derived_expectation() -> None:
     # Existing graph plus synthetic, age, vision, Parent, account-role, and
     # Story context revisions, plus the FR-C-08 lifecycle revision
     # (20261119_frc08_lifecycle_scope, its own frc08_lifecycle branch).
-    assert len(graph) == 32
+    # FEAT-066 C5: 20261119_ar_0002 (BE1 command receipts) follows 20261110_ar_0001.
+    assert len(graph) == 33
     down_targets = {target for down, _ in graph.values() for target in down}
     dependency_targets = down_targets | {target for _, dep in graph.values() for target in dep}
     heads_down_only = {rev for rev in graph if rev not in down_targets}

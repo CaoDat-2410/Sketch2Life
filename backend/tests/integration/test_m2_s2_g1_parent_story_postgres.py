@@ -92,7 +92,8 @@ _EXPECTED_VERSION_ROWS = frozenset(
         "20261019_pa_0001",
         "20261019_vf_0001",
         "20261109_m2_parent_profiles",
-        "20261110_ar_0001",
+        # FEAT-066 C5: the BE1 command-receipt revision follows ar_0001 and replaces its row.
+        "20261119_ar_0002",
         # FR-C-08: the lifecycle revision depends on the Story head and replaces its row.
         "20261119_frc08_lifecycle_scope",
     }

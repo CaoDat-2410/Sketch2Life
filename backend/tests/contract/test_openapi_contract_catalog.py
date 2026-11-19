@@ -623,3 +623,20 @@ def test_runtime_openapi_operation_ids_are_non_empty_and_unique(
     assert len(operation_ids) == 152
     assert all(isinstance(value, str) and value for value in operation_ids)
     assert len(set(operation_ids)) == len(operation_ids)
+
+
+def test_platform_admin_account_routes_publish_cursor_key_and_mismatch(
+    runtime_openapi: dict[str, Any],
+) -> None:
+    """FEAT-066 C5: the uncatalogued account routes still show cursor, key and the 400 row."""
+    base = "/api/platform-admin/v1/accounts"
+    listing = runtime_openapi["paths"][base]["get"]
+    names = {parameter["name"]: parameter for parameter in listing["parameters"]}
+    assert "cursor" in names
+    assert names["limit"]["schema"]["default"] == 25
+    assert names["limit"]["schema"]["maximum"] == 100
+    assert names["offset"].get("deprecated") is True
+    for method, path in (("post", base), ("patch", base + "/{account_id}")):
+        operation = runtime_openapi["paths"][path][method]
+        assert any(p["name"] == "Idempotency-Key" for p in operation["parameters"])
+        assert "INVALID_IDEMPOTENCY_KEY" in operation["responses"]["400"]["description"]

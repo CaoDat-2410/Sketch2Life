@@ -65,6 +65,32 @@ class AdultIdentityModel(CorePersistenceBase):
     )
 
 
+class Be1CommandReceiptModel(CorePersistenceBase):
+    """BE1-owned idempotency receipt (FEAT-066 C5, CA-6; migration 20261119_ar_0002).
+
+    Only successful commands write a row. ``response_json`` holds no email or display name.
+    A tenant-scoped command puts its organization in ``operation_scope`` and re-authorises the
+    caller before a replay.
+    """
+
+    __tablename__ = "be1_command_receipts"
+    __table_args__ = (
+        CheckConstraint(
+            "length(request_fingerprint) = 64", name="ck_be1_command_receipt_fingerprint"
+        ),
+    )
+
+    principal_ref: Mapped[str] = mapped_column(String(256), primary_key=True)
+    operation_scope: Mapped[str] = mapped_column(String(256), primary_key=True)
+    idempotency_key: Mapped[str] = mapped_column(String(128), primary_key=True)
+    organization_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    request_fingerprint: Mapped[str] = mapped_column(String(64), nullable=False)
+    response_json: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+
 class OrganizationAssignmentModel(CorePersistenceBase):
     __tablename__ = "be1_organization_assignments"
     __table_args__ = (

@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import '../../../shared/styles/tailwind-utilities.css'
 import { BackendApiError, hasFirebaseAuthBridge } from '../../../shared/api/backendApi'
@@ -6,7 +6,7 @@ import { usePortalSession } from '../../../shared/auth/PortalSessionContext'
 import { MgIcon } from '../components/MgIcon'
 import '../styles/accounts-page.css'
 import { authService } from '../../school-manager/be1/services/authService'
-import { userService, type AccountRole, type AccountState, type ManagedAccount } from '../services/userService'
+import { keyForSignature, userService, type AccountRole, type AccountState, type ManagedAccount } from '../services/userService'
 
 const ROLE_LABELS: Record<AccountRole, string> = { parent: 'Phụ huynh', teacher: 'Giáo viên', school_manager: 'Quản lý trường', platform_admin: 'Quản trị nền tảng' }
 const ROLE_OPTIONS: AccountRole[] = ['parent', 'teacher', 'school_manager', 'platform_admin']
@@ -37,7 +37,10 @@ export function UsersPage() {
   const [roleFilter, setRoleFilter] = useState<AccountRole | ''>('')
   const [stateFilter, setStateFilter] = useState<AccountState | ''>('')
   const [hasAppliedFilters, setHasAppliedFilters] = useState(false)
-  const [offset, setOffset] = useState(0)
+  // FEAT-066 C5: cursor paging; pageStarts holds the start cursor of every page shown so far.
+  const [pageStarts, setPageStarts] = useState<(string | null)[]>([null])
+  const [nextCursor, setNextCursor] = useState<string | null>(null)
+  const mutationKeys = useRef(new Map<string, string>())
   const [roleEdits, setRoleEdits] = useState<Record<string, AccountRole | ''>>({})
   const [organizationEdits, setOrganizationEdits] = useState<Record<string, string>>({})
   const [loadState, setLoadState] = useState<LoadState>('loading')
@@ -51,10 +54,11 @@ export function UsersPage() {
   const [actionError, setActionError] = useState('')
   const [notice, setNotice] = useState('')
 
-  const loadAccounts = async (pageOffset = offset, filters: Filters = { search, role: roleFilter, state: stateFilter }) => {
+  const loadAccounts = async (starts: (string | null)[] = pageStarts, filters: Filters = { search, role: roleFilter, state: stateFilter }) => {
     setLoadState('loading')
     setLoadFailure(null)
-    setOffset(pageOffset)
+    setPageStarts(starts)
+    setNextCursor(null)
     if (!hasFirebaseAuthBridge()) {
       setAccounts([]); setTotal(0)
       setLoadFailure({ title: 'Chưa có phiên Firebase Authentication', message: 'Cổng Platform Admin đang mở nhưng chưa có Firebase ID token để backend xác minh. Đăng nhập lại bằng tài khoản Platform Admin.', auth: true, denied: false })
@@ -62,9 +66,11 @@ export function UsersPage() {
       return
     }
     try {
-      const page = await userService.listUsers({ search: filters.search.trim() || undefined, role: filters.role || undefined, state: filters.state || undefined, limit: PAGE_SIZE, offset: pageOffset })
+      const start = starts[starts.length - 1] ?? undefined
+      const page = await userService.listUsers({ search: filters.search.trim() || undefined, role: filters.role || undefined, state: filters.state || undefined, limit: PAGE_SIZE, cursor: start })
       setAccounts(page.items)
       setTotal(page.total)
+      setNextCursor(page.next_cursor ?? null)
       setRoleEdits(Object.fromEntries(page.items.map((account) => [account.account_id, account.role ?? ''])))
       setOrganizationEdits({})
       setLoadState('ready')
@@ -76,19 +82,19 @@ export function UsersPage() {
   }
 
   useEffect(() => {
-    void Promise.resolve().then(() => loadAccounts(0, { search: '', role: '', state: '' }))
+    void Promise.resolve().then(() => loadAccounts([null], { search: '', role: '', state: '' }))
   }, [])
 
   const submitFilters = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setHasAppliedFilters(Boolean(search.trim() || roleFilter || stateFilter))
     setActionError(''); setNotice('')
-    void loadAccounts(0, { search, role: roleFilter, state: stateFilter })
+    void loadAccounts([null], { search, role: roleFilter, state: stateFilter })
   }
 
   const clearFilters = () => {
-    setSearch(''); setRoleFilter(''); setStateFilter(''); setHasAppliedFilters(false); setOffset(0); setActionError('')
-    void loadAccounts(0, { search: '', role: '', state: '' })
+    setSearch(''); setRoleFilter(''); setStateFilter(''); setHasAppliedFilters(false); setActionError('')
+    void loadAccounts([null], { search: '', role: '', state: '' })
   }
 
   const createAccount = async (event: FormEvent<HTMLFormElement>) => {
@@ -96,14 +102,17 @@ export function UsersPage() {
     if (loadState !== 'ready' || !hasFirebaseAuthBridge()) return
     const submittedEmail = email.trim()
     setMutating(true); setActionError(''); setNotice('')
+    const payload = { email: submittedEmail, display_name: displayName.trim(), role: newRole, ...(newRole === 'school_manager' ? { organization_id: organizationId.trim() } : {}) }
+    const signature = JSON.stringify(['create-account', payload])
     try {
-      await userService.createAccount({ email: submittedEmail, display_name: displayName.trim(), role: newRole, ...(newRole === 'school_manager' ? { organization_id: organizationId.trim() } : {}) })
+      await userService.createAccount(payload, keyForSignature(mutationKeys.current, signature))
+      mutationKeys.current.delete(signature)
       setEmail(''); setDisplayName(''); setOrganizationId(''); setCreating(false)
       let sent = true
       try { await authService.resetPassword(submittedEmail) } catch { sent = false }
       setNotice(sent ? 'Đã tạo tài khoản và yêu cầu Firebase gửi email đặt mật khẩu.' : 'Đã tạo tài khoản nhưng chưa gửi được email đặt mật khẩu. Người dùng có thể chọn “Quên mật khẩu” ở màn đăng nhập.')
       setSearch(''); setRoleFilter(''); setStateFilter(''); setHasAppliedFilters(false)
-      await loadAccounts(0, { search: '', role: '', state: '' })
+      await loadAccounts([null], { search: '', role: '', state: '' })
     } catch (cause) { setActionError(messageFrom(cause, 'Không tạo được tài khoản.')) }
     finally { setMutating(false) }
   }
@@ -114,8 +123,11 @@ export function UsersPage() {
     const org = role === 'school_manager' ? organizationEdits[account.account_id]?.trim() : undefined
     if (role === 'school_manager' && !org) { setActionError('Nhập mã tổ chức trước khi gán vai trò Quản lý trường.'); return }
     setMutating(true); setActionError(''); setNotice('')
+    const payload = { role, ...(org ? { organization_id: org } : {}) }
+    const signature = JSON.stringify(['update-account', account.account_id, account.revision, payload])
     try {
-      await userService.updateAccount(account.account_id, { role, ...(org ? { organization_id: org } : {}) })
+      await userService.updateAccount(account.account_id, payload, keyForSignature(mutationKeys.current, signature))
+      mutationKeys.current.delete(signature)
       setNotice('Đã cập nhật vai trò. Quyền truy cập lớp vẫn cần phân công riêng bởi School Manager.')
       await loadAccounts()
     } catch (cause) { setActionError(messageFrom(cause, 'Không cập nhật được vai trò.')) }
@@ -125,8 +137,11 @@ export function UsersPage() {
   const toggleState = async (account: ManagedAccount) => {
     if (loadState !== 'ready' || !hasFirebaseAuthBridge()) return
     setMutating(true); setActionError(''); setNotice('')
+    const payload = { state: account.state === 'active' ? 'disabled' as const : 'active' as const }
+    const signature = JSON.stringify(['update-account', account.account_id, account.revision, payload])
     try {
-      await userService.updateAccount(account.account_id, { state: account.state === 'active' ? 'disabled' : 'active' })
+      await userService.updateAccount(account.account_id, payload, keyForSignature(mutationKeys.current, signature))
+      mutationKeys.current.delete(signature)
       setNotice(account.state === 'active' ? 'Đã khóa tài khoản và thu hồi refresh token.' : 'Đã mở lại tài khoản.')
       await loadAccounts()
     } catch (cause) { setActionError(messageFrom(cause, 'Không đổi được trạng thái tài khoản.')) }
@@ -137,9 +152,10 @@ export function UsersPage() {
   const filtersDisabled = loadState !== 'ready' || mutating
   const canManage = loadState === 'ready' && !mutating
   const pages = total ? Math.ceil(total / PAGE_SIZE) : 0
-  const currentPage = pages ? Math.floor(offset / PAGE_SIZE) + 1 : 0
-  const rangeStart = total ? offset + 1 : 0
-  const rangeEnd = Math.min(offset + accounts.length, total)
+  const currentPage = pages ? pageStarts.length : 0
+  const pageStartIndex = (pageStarts.length - 1) * PAGE_SIZE
+  const rangeStart = total ? pageStartIndex + 1 : 0
+  const rangeEnd = Math.min(pageStartIndex + accounts.length, total)
 
   return (
     <section className='platform-accounts' aria-labelledby='accounts-title'>
@@ -207,7 +223,7 @@ export function UsersPage() {
           })}
         </tbody></table></div>}
 
-        {loadState === 'ready' && accounts.length > 0 && <footer className='accounts-pagination'><p>Đang hiển thị {rangeStart.toLocaleString('vi-VN')}–{rangeEnd.toLocaleString('vi-VN')} trên {total.toLocaleString('vi-VN')} tài khoản.</p><div className='accounts-pagination-controls'><span>Trang {currentPage} / {pages}</span><button type='button' className='accounts-button accounts-button-secondary' disabled={mutating || offset === 0} onClick={() => void loadAccounts(Math.max(0, offset - PAGE_SIZE))}><MgIcon name='arrow-left' size={17} />Trước</button><button type='button' className='accounts-button accounts-button-secondary' disabled={mutating || offset + accounts.length >= total} onClick={() => void loadAccounts(offset + PAGE_SIZE)}>Tiếp<MgIcon name='arrow-right' size={17} /></button></div></footer>}
+        {loadState === 'ready' && accounts.length > 0 && <footer className='accounts-pagination'><p>Đang hiển thị {rangeStart.toLocaleString('vi-VN')}–{rangeEnd.toLocaleString('vi-VN')} trên {total.toLocaleString('vi-VN')} tài khoản.</p><div className='accounts-pagination-controls'><span>Trang {currentPage} / {pages}</span><button type='button' className='accounts-button accounts-button-secondary' disabled={mutating || pageStarts.length <= 1} onClick={() => void loadAccounts(pageStarts.slice(0, -1))}><MgIcon name='arrow-left' size={17} />Trước</button><button type='button' className='accounts-button accounts-button-secondary' disabled={mutating || !nextCursor} onClick={() => { if (nextCursor) void loadAccounts([...pageStarts, nextCursor]) }}>Tiếp<MgIcon name='arrow-right' size={17} /></button></div></footer>}
       </section>
 
       <p className='accounts-audit-note'><MgIcon name='info' size={17} /><span>Role và trạng thái được quản lý bằng API có xác thực. Quyền nội dung là capability riêng; màn này chưa cấp capability và không mở quyền xem hồ sơ hoặc media trẻ.</span></p>

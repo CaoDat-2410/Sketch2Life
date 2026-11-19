@@ -20,6 +20,8 @@ interface PlatformAccountPage {
   total: number;
   limit: number;
   offset: number;
+  /** FEAT-066 C5 (SRS 21.1): opaque cursor of the next page; null at the end. */
+  next_cursor: string | null;
 }
 
 export interface RuntimeConfig {
@@ -481,7 +483,7 @@ export const backendApi = {
     state?: PlatformAccountState;
     search?: string;
     limit?: number;
-    offset?: number;
+    cursor?: string;
   } = {}) => {
     const query = new URLSearchParams();
     for (const [key, value] of Object.entries(filters)) {
@@ -490,20 +492,25 @@ export const backendApi = {
     const suffix = query.toString();
     return backendRequest<PlatformAccountPage>(`/api/platform-admin/v1/accounts${suffix ? `?${suffix}` : ""}`);
   },
+  // FEAT-066 C5 (SRS 21.4): account create and update send an Idempotency-Key; the caller keeps
+  // the key for a retry of the same command.
   createPlatformAccount: (payload: {
     email: string;
     display_name: string;
     role: PlatformAccountRole;
     organization_id?: string;
-  }) => backendRequest<PlatformManagedAccount>("/api/platform-admin/v1/accounts", {
+  }, idempotencyKey = createRequestId()) => backendRequest<PlatformManagedAccount>("/api/platform-admin/v1/accounts", {
     method: "POST",
+    headers: { "Idempotency-Key": idempotencyKey },
     body: JSON.stringify(payload),
   }),
   updatePlatformAccount: (
     accountId: string,
     payload: { role?: PlatformAccountRole; state?: PlatformAccountState; organization_id?: string },
+    idempotencyKey = createRequestId(),
   ) => backendRequest<PlatformManagedAccount>(`/api/platform-admin/v1/accounts/${encodeURIComponent(accountId)}`, {
     method: "PATCH",
+    headers: { "Idempotency-Key": idempotencyKey },
     body: JSON.stringify(payload),
   }),
 };
