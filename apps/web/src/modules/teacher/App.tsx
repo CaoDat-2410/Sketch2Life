@@ -45,7 +45,7 @@ export function TeacherPortalApp() {
   const navigate = useNavigate();
   const { currentRole, isAuthenticated, toast, logout } = usePortalSession();
   if (isAuthenticated && currentRole !== ROLE) return <RoleMismatchPage roleLabel="Giáo viên" onLogout={logout} />;
-  if (!isAuthenticated) return <Navigate to="/login?role=teacher" replace />;
+  if (!isAuthenticated) return <Navigate to="/login?role=teacher" replace state={{ from: location }} />;
   if (location.pathname === "/teacher" || location.pathname === "/teacher/") return <Navigate to={ROLE_HOME} replace />;
 
   return (

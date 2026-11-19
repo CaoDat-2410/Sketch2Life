@@ -688,3 +688,10 @@ Status: **PARTIAL — runtime behaviour verified, catalog pending.** This is the
 ## FEAT-063 FR-C-08 SRS wording edit applied (D-219) — 2026-11-19
 
 The canonical working SRS `features/FEAT-063-system-architecture-rearchitecture/artifacts/SKETCH2LIFE_SYSTEM_ARCHITECTURE_SRS.md` now holds 701,810 bytes / SHA-256 `443A3CA37272D2FE96127564BAF400461F394E098724A6BD999D723A4E504021` (before: 701,157 bytes / `B9B1F42D…`, the copy adopted by D-209). The documentation-only FR-C-08 wording edit (program task B4, `features/FEAT-063-system-architecture-rearchitecture/plan/FR_C08_SRS_WORDING_EDIT_DRAFT3_20261119.md`) changed 13 lines with 14 edits: user delete is for runs in COMPLETED, FAILED or ABANDONED; FAILED and ABANDONED are never purged automatically; the retention sites name FAILED; and line 394 records SCRIPT_GENERATING and SCRIPT_GENERATION_UNKNOWN as noted extension values. The header and lines 1-39 were not changed and no line moved, so SRS line citations stay valid. Records pinned to `B9B1F42D…` stay as historical records of the earlier bytes. Contract alignment: `features/FEAT-063-system-architecture-rearchitecture/plan/FR_C08_PARENT_TEACHER_LIFECYCLE_CONTRACT_DRAFT12_20261119.md`. Authority: FEAT-063 D-219. Local commit on its own branch; not pushed or merged.
+## 2026-11-19 - Backend restart preflight (FEAT-066 Rev33)
+
+- The owner asked to run the backend again for FE testing under the already approved Rev33 runtime scope.
+- Docker is installed, but both configured named pipes deny access; WSL reports `E_ACCESSDENIED`. No Compose service started and no volume was touched.
+- The host API fallback exits on missing `av==18.1.0`; no online dependency install was attempted. PostgreSQL port 5432 is closed.
+- The backend is not running from this session. No HTTP probes, tests, builds, credentials, or data operations were used. See `evidence/notes/EV-058_DOCKER_API_RESTART_PREFLIGHT_20261119.md`.
+
