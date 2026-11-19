@@ -85,6 +85,14 @@ MESSAGES: Mapping[str, str] = {
     "MEDIA_TOO_LARGE": "Dữ liệu gửi lên vượt quá giới hạn cho phép.",
     "UNSUPPORTED_MEDIA_TYPE": "Định dạng nội dung không được hỗ trợ.",
     "INTERNAL_SERVER_ERROR": "Máy chủ chưa thể hoàn tất yêu cầu.",
+    # FEAT-066 C4: SRS §9.8 upload codes for the Lesson Library (SRS 867-871, 1725).
+    "LESSON_FILE_TOO_LARGE": (
+        "Tệp giáo án vượt quá 25 MB. Chỉ nhận PDF, DOCX hoặc PPTX; hãy chọn tệp khác."
+    ),
+    "UPLOAD_PART_CONFLICT": "Phần tệp này đã được gửi với nội dung khác.",
+    "UPLOAD_SESSION_STATE_CONFLICT": "Phiên tải lên không còn ở trạng thái cho phép thao tác này.",
+    "UPLOAD_SESSION_EXPIRED": "Phiên tải lên đã hết hạn. Vui lòng tải tệp lại từ đầu.",
+    "UPLOAD_INCOMPLETE": "Tệp chưa được tải lên đủ các phần.",
 }
 
 STATUS_MESSAGES: Mapping[int, str] = {
@@ -142,7 +150,7 @@ STATUS_MESSAGE_ONLY = frozenset(
         "SRS_STAGE_CONTRACT_UNAVAILABLE", "STALE_AGGREGATE", "STALE_CANVAS_REVISION",
         "STALE_SESSION_REVISION", "STALE_STAGE_REVISION", "SYNTHETIC_PROFILE_CREATION_UNAVAILABLE",
         "TEACHER_ORGANIZATION_ACCESS_REQUIRED", "TEACHER_PLAN_FIELD_LIMIT_EXCEEDED",
-        "UNFINISHED_GROUP_SET_MISMATCH", "UPLOAD_EXPIRED", "UPLOAD_INCOMPLETE", "UPLOAD_TOO_LARGE",
+        "UNFINISHED_GROUP_SET_MISMATCH", "UPLOAD_EXPIRED", "UPLOAD_TOO_LARGE",
     }
 )
 

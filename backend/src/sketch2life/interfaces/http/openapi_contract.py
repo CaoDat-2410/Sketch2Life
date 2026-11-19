@@ -9759,7 +9759,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                               'string; '
                                                                                                               'header '
                                                                                                               '`If-Match`: '
-                                                                                                              'object',
+                                                                                                              'object; header `Idempotency-Key*`: string',
                                                                                             'surface': 'Lesson '
                                                                                                        'Library',
                                                                                             'tag': 'Teacher '
@@ -9868,7 +9868,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                              '(required): '
                                                                                                              'UpdateLessonRequestV1 '
                                                                                                              '{contract:string, '
-                                                                                                             'content*:LessonContentInputV1}',
+                                                                                                             'content*:LessonContentInputV1}; header `Idempotency-Key*`: string',
                                                                                            'surface': 'Lesson '
                                                                                                       'Library',
                                                                                            'tag': 'Teacher '
@@ -9985,7 +9985,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                                                               'string; '
                                                                                                                                               'header '
                                                                                                                                               '`If-Match`: '
-                                                                                                                                              'object',
+                                                                                                                                              'object; header `Idempotency-Key*`: string',
                                                                                                                             'surface': 'Lesson '
                                                                                                                                        'Library',
                                                                                                                             'tag': 'Teacher '
@@ -10148,7 +10148,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                                             '`lesson_id*`: '
                                                                                                                             'string; '
                                                                                                                             'header '
-                                                                                                                            '`Idempotency-Key`: '
+                                                                                                                            '`Idempotency-Key*`: '
                                                                                                                             'string; '
                                                                                                                             'application/json '
                                                                                                                             '(required): '
@@ -10217,7 +10217,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                                      'CreateLessonVersionRequestV1 '
                                                                                                                      '{contract:string, '
                                                                                                                      'source_document_revision_id*:string, '
-                                                                                                                     'content*:LessonContentInputV1}',
+                                                                                                                     'content*:LessonContentInputV1}; header `Idempotency-Key*`: string',
                                                                                                    'surface': 'Lesson '
                                                                                                               'Library',
                                                                                                    'tag': 'Teacher '
@@ -10538,7 +10538,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                        'riêng tư.',
                                                                             'request_inputs': 'path '
                                                                                               '`upload_session_id*`: '
-                                                                                              'string',
+                                                                                              'string; header `If-Match`: object; header `Idempotency-Key*`: string',
                                                                             'surface': 'Lesson '
                                                                                        'Library',
                                                                             'tag': 'Lesson Library '
@@ -10559,7 +10559,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                             'not '
                                                                                             'individually '
                                                                                             'live-probed',
-                                                                            'responses': ({'status': '200',
+                                                                            'responses': ({'status': '202',
                                                                                            'description': 'Successful '
                                                                                                           'Response',
                                                                                            'media_type': 'application/json',
@@ -10651,7 +10651,7 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                    'not '
                                                                                                    'individually '
                                                                                                    'live-probed',
-                                                                                   'responses': ({'status': '200',
+                                                                                   'responses': ({'status': '202',
                                                                                                   'description': 'Successful '
                                                                                                                  'Response',
                                                                                                   'media_type': 'application/json',
@@ -11265,6 +11265,15 @@ IDEMPOTENCY_MISMATCH_OPERATION_KEYS: Final[tuple[tuple[str, str], ...]] = (
     ("post", "/api/lesson-library/v1/organizations/{organization_id}/parent-groups/{parent_group_id}/invitations"),
     ("patch", "/api/lesson-library/v1/platform/lessons/{lesson_id}/moderation"),
     ("post", "/api/lesson-library/v1/upload-sessions/{upload_session_id}/complete"),
+    # FEAT-066 C4: keyed commands A18, A19, B07, B08 and A25 (SRS §21.4).
+    ("patch", "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}"),
+    ("delete", "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}"),
+    ("post", "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}/versions"),
+    (
+        "delete",
+        "/api/lesson-library/v1/organizations/{organization_id}/lessons/{lesson_id}/access-grants/{access_grant_id}",
+    ),
+    ("delete", "/api/lesson-library/v1/upload-sessions/{upload_session_id}"),
 )
 
 _IDEMPOTENCY_MISMATCH_RESPONSE: Final[ResponseMetadata] = {

@@ -115,7 +115,7 @@ def test_lesson_library_part_over_limit_is_413_envelope(client: TestClient) -> N
         content=b"x" * (4 * 1024 * 1024 + 1),
         headers={"X-Request-ID": "conv1-req-413", "Content-Type": "application/octet-stream"},
     )
-    body = _assert_envelope(response, 413, "REQUEST_TOO_LARGE")
+    body = _assert_envelope(response, 413, "LESSON_FILE_TOO_LARGE")
     assert body["correlation_id"] == "conv1-req-413"
 
 

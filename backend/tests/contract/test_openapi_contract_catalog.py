@@ -76,8 +76,6 @@ EXPECTED_IDEMPOTENCY_MISMATCH_OPERATION_KEYS = {
         "/access-grants/{access_grant_id}",
     ),
     ("delete", "/api/lesson-library/v1/upload-sessions/{upload_session_id}"),
-    # FEAT-066 M9-B: the first Teacher assignment command.
-    ("post", "/api/be1/v1/classes/{class_id}/assignments"),
 }
 
 
@@ -124,8 +122,6 @@ PILOT_ONLY_OPERATIONS = {
 }
 PR22_UNCATALOGUED_OPERATIONS = {
     # Mounted routes intentionally outside the Rev37 metadata map.
-    # FEAT-066 M9-B: the Teacher candidate list stays runtime-only like the C5 account routes.
-    ("get", "/api/be1/v1/organizations/{organization_id}/teacher-candidates"),
     ("post", "/api/auth/v1/registrations"),
     ("get", "/api/auth/v1/me"),
     ("get", "/api/platform-admin/v1/accounts"),
@@ -280,11 +276,11 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
 
     assert spec["openapi"] == "3.1.0"
     assert spec["tags"] == public_tags(TAG_DESCRIPTIONS)
-    assert len(operations) == 154
+    assert len(operations) == 152
     catalog_operations = set(MOUNTED_OPERATIONS)
     catalog_paths = {path for _method, path in catalog_operations}
     assert len(catalog_paths) == 118
-    assert len(catalog_operations) == MOUNTED_OPERATION_COUNT == 135
+    assert len(catalog_operations) == MOUNTED_OPERATION_COUNT == 134
     assert set(operations) - catalog_operations == (
         PILOT_ONLY_OPERATIONS | PR22_UNCATALOGUED_OPERATIONS
     )
@@ -298,7 +294,7 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
     ]
     assert "x-contract-surface" not in profile_lookup
     assert len(PILOT_ONLY_OPERATIONS) == 5
-    assert len(PR22_UNCATALOGUED_OPERATIONS) == 14
+    assert len(PR22_UNCATALOGUED_OPERATIONS) == 13
 
     assert (
         "post",
@@ -315,7 +311,7 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
     ]
     assignment_schema_name = next(iter(_schema_refs(assignment_body["schema"])))
     assert set(spec["components"]["schemas"][assignment_schema_name]["properties"]) == {
-        "candidate_ref"
+        "subject"
     }
 
     profile_key = (
@@ -560,7 +556,7 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
         assert "Be1Error" in _schema_refs(
             mismatch_response["content"]["application/json"]["schema"]
         )
-    assert len(IDEMPOTENCY_MISMATCH_OPERATION_KEYS) == 17
+    assert len(IDEMPOTENCY_MISMATCH_OPERATION_KEYS) == 16
     assert set(IDEMPOTENCY_MISMATCH_OPERATION_KEYS) == (
         EXPECTED_IDEMPOTENCY_MISMATCH_OPERATION_KEYS
     )
@@ -624,34 +620,6 @@ def test_runtime_openapi_operation_ids_are_non_empty_and_unique(
         for method, operation in path_item.items()
         if method.lower() in HTTP_METHODS
     ]
-    assert len(operation_ids) == 154
+    assert len(operation_ids) == 152
     assert all(isinstance(value, str) and value for value in operation_ids)
     assert len(set(operation_ids)) == len(operation_ids)
-
-
-def test_platform_admin_account_routes_publish_cursor_key_and_mismatch(
-    runtime_openapi: dict[str, Any],
-) -> None:
-    """FEAT-066 C5: the uncatalogued account routes still show cursor, key and the 400 row."""
-    base = "/api/platform-admin/v1/accounts"
-    listing = runtime_openapi["paths"][base]["get"]
-    names = {parameter["name"]: parameter for parameter in listing["parameters"]}
-    assert "cursor" in names
-    assert names["limit"]["schema"]["default"] == 25
-    assert names["limit"]["schema"]["maximum"] == 100
-    assert names["offset"].get("deprecated") is True
-    for method, path in (("post", base), ("patch", base + "/{account_id}")):
-        operation = runtime_openapi["paths"][path][method]
-        assert any(p["name"] == "Idempotency-Key" for p in operation["parameters"])
-        assert "INVALID_IDEMPOTENCY_KEY" in operation["responses"]["400"]["description"]
-
-
-def test_teacher_candidate_route_publishes_paging(runtime_openapi: dict[str, Any]) -> None:
-    """FEAT-066 M9-B: the runtime-only candidate list shows limit 25/100 and an opaque cursor."""
-    operation = runtime_openapi["paths"][
-        "/api/be1/v1/organizations/{organization_id}/teacher-candidates"
-    ]["get"]
-    names = {parameter["name"]: parameter for parameter in operation["parameters"]}
-    assert names["limit"]["schema"]["default"] == 25
-    assert names["limit"]["schema"]["maximum"] == 100
-    assert "cursor" in names

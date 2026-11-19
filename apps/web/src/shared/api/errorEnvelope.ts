@@ -37,6 +37,12 @@ const CODE_MESSAGES: Record<string, string> = {
   RATE_LIMITED: "Bạn đã gửi quá nhiều yêu cầu. Vui lòng thử lại sau.",
   MEDIA_TOO_LARGE: "Dữ liệu gửi lên vượt quá giới hạn cho phép.",
   UNSUPPORTED_MEDIA_TYPE: "Định dạng nội dung không được hỗ trợ.",
+  // FEAT-066 C4: SRS 9.8 upload codes, same wording as the backend message table.
+  LESSON_FILE_TOO_LARGE: "Tệp giáo án vượt quá 25 MB. Chỉ nhận PDF, DOCX hoặc PPTX; hãy chọn tệp khác.",
+  UPLOAD_PART_CONFLICT: "Phần tệp này đã được gửi với nội dung khác.",
+  UPLOAD_SESSION_STATE_CONFLICT: "Phiên tải lên không còn ở trạng thái cho phép thao tác này.",
+  UPLOAD_SESSION_EXPIRED: "Phiên tải lên đã hết hạn. Vui lòng tải tệp lại từ đầu.",
+  UPLOAD_INCOMPLETE: "Tệp chưa được tải lên đủ các phần.",
 };
 
 const STATUS_MESSAGES: Record<number, string> = {

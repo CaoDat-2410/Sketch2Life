@@ -206,6 +206,25 @@ export interface LessonUploadSession {
   expected_parts: number;
   accepted_part_numbers: number[];
   expires_at: string;
+  /** Derived session revision (FEAT-066 C4): sent back as If-Match on abort. */
+  revision: number;
+}
+
+export interface UploadPartReceipt {
+  contract: "UploadPartReceiptV1";
+  part_number: number;
+  byte_length: number;
+  sha256: string;
+  accepted: boolean;
+}
+
+export interface LessonVersion {
+  contract: "LessonVersionV1";
+  version_id: string;
+  version_no: number;
+  review_state: string;
+  source_document_revision_id: string | null;
+  content?: LessonContent | null;
 }
 
 export interface LessonSourceDocumentStatus {
@@ -371,16 +390,24 @@ export const backendApi = {
       headers: { "Idempotency-Key": idempotencyKey },
       body: JSON.stringify({ contract: "CreateLessonRequestV1", content, visibility: "PRIVATE" }),
     }),
-  updateLesson: (organizationId: string, lesson: TeacherLessonDetail, content: LessonContent) =>
+  // FEAT-066 C4 (SRS 21.4): lesson save, archive, version create and upload abort send an
+  // Idempotency-Key with If-Match; reuse the key only for a retry of the same command.
+  updateLesson: (organizationId: string, lesson: TeacherLessonDetail, content: LessonContent, idempotencyKey = createRequestId()) =>
     backendRequest<TeacherLessonDetail>(`${lessonPath(organizationId)}/lessons/${encodeURIComponent(lesson.lesson_id)}`, {
       method: "PATCH",
-      headers: { "If-Match": `"${lesson.revision}"` },
+      headers: { "If-Match": `"${lesson.revision}"`, "Idempotency-Key": idempotencyKey },
       body: JSON.stringify({ contract: "UpdateLessonRequestV1", content }),
     }),
-  archiveLesson: (organizationId: string, lesson: TeacherLessonDetail) =>
+  archiveLesson: (organizationId: string, lesson: TeacherLessonDetail, idempotencyKey = createRequestId()) =>
     backendRequest<TeacherLessonDetail>(`${lessonPath(organizationId)}/lessons/${encodeURIComponent(lesson.lesson_id)}`, {
       method: "DELETE",
-      headers: { "If-Match": `"${lesson.revision}"` },
+      headers: { "If-Match": `"${lesson.revision}"`, "Idempotency-Key": idempotencyKey },
+    }),
+  createLessonVersion: (organizationId: string, lesson: TeacherLessonDetail, sourceDocumentRevisionId: string, content: LessonContent, idempotencyKey = createRequestId()) =>
+    backendRequest<LessonVersion>(`${lessonPath(organizationId)}/lessons/${encodeURIComponent(lesson.lesson_id)}/versions`, {
+      method: "POST",
+      headers: { "If-Match": `"${lesson.revision}"`, "Idempotency-Key": idempotencyKey },
+      body: JSON.stringify({ contract: "CreateLessonVersionRequestV1", source_document_revision_id: sourceDocumentRevisionId, content }),
     }),
   requestPublicReview: (organizationId: string, lesson: TeacherLessonDetail, idempotencyKey = createRequestId()) =>
     backendRequest<AccessGrant>(`${lessonPath(organizationId)}/lessons/${encodeURIComponent(lesson.lesson_id)}/access-grants`, {
@@ -402,7 +429,7 @@ export const backendApi = {
       body: JSON.stringify({ contract: "CreateLessonUploadSessionRequestV1", ...payload }),
     }),
   uploadLessonPart: (uploadSessionId: string, partNumber: number, chunk: Blob, start: number, end: number, total: number, sha256: string) =>
-    backendRequest<Record<string, unknown>>(`/api/lesson-library/v1/upload-sessions/${encodeURIComponent(uploadSessionId)}/parts/${partNumber}`, {
+    backendRequest<UploadPartReceipt>(`/api/lesson-library/v1/upload-sessions/${encodeURIComponent(uploadSessionId)}/parts/${partNumber}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/octet-stream",
@@ -418,8 +445,11 @@ export const backendApi = {
       method: "POST",
       headers: { "Idempotency-Key": idempotencyKey },
     }),
-  abortUploadSession: (uploadSessionId: string) =>
-    backendRequest<LessonUploadSession>(`/api/lesson-library/v1/upload-sessions/${encodeURIComponent(uploadSessionId)}`, { method: "DELETE" }),
+  abortUploadSession: (uploadSessionId: string, revision: number, idempotencyKey = createRequestId()) =>
+    backendRequest<LessonUploadSession>(`/api/lesson-library/v1/upload-sessions/${encodeURIComponent(uploadSessionId)}`, {
+      method: "DELETE",
+      headers: { "If-Match": `"${revision}"`, "Idempotency-Key": idempotencyKey },
+    }),
   sourceDocument: (organizationId: string, lessonId: string, documentId: string) =>
     backendRequest<LessonSourceDocumentStatus>(`${lessonPath(organizationId)}/lessons/${encodeURIComponent(lessonId)}/source-documents/${encodeURIComponent(documentId)}`),
   documentRevision: (organizationId: string, lessonId: string, documentId: string, revisionId: string) =>

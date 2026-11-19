@@ -6,6 +6,7 @@ import hashlib
 import os
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
+from datetime import UTC, datetime, timedelta
 from io import BytesIO
 from typing import Any
 from uuid import uuid4
@@ -14,13 +15,21 @@ import pytest
 from fastapi import FastAPI, Header
 from fastapi.testclient import TestClient
 from sketch2life.application.ports.identity import VerifiedPrincipal
+from sketch2life.application.ports.lesson_documents import (
+    LessonDocumentExtraction,
+    MalwareScanResult,
+)
 from sketch2life.application.ports.object_storage import StoredObject
 from sketch2life.application.services.storage_example import StorageExampleService
 from sketch2life.infrastructure.config.settings import get_core_database_settings, get_settings
 from sketch2life.infrastructure.documents.clamav_scanner import ClamAvScanner
 from sketch2life.infrastructure.documents.lesson_parser import DeterministicLessonDocumentParser
 from sketch2life.infrastructure.lesson_library.service import LessonLibraryService
-from sketch2life.infrastructure.lesson_library.tables import COMMAND_RECEIPTS, PARENT_GROUP_MEMBERS
+from sketch2life.infrastructure.lesson_library.tables import (
+    COMMAND_RECEIPTS,
+    PARENT_GROUP_MEMBERS,
+    UPLOAD_SESSIONS,
+)
 from sketch2life.infrastructure.persistence.be1_models import (
     AdultIdentityModel,
     OrganizationAssignmentModel,
@@ -504,7 +513,7 @@ def test_teacher_lesson_crud_revision_guards_and_organization_scope(
     updated = client.patch(
         lesson_url,
         json={"contract": "UpdateLessonRequestV1", "content": updated_content},
-        headers=_headers(accepted.teacher, **{"If-Match": '"1"'}),
+        headers=_keyed(accepted.teacher, 1, f"lesson-patch-{uuid4()}"),
     )
     assert updated.status_code == 200, updated.text
     assert updated.headers["ETag"] == '"2"'
@@ -513,10 +522,13 @@ def test_teacher_lesson_crud_revision_guards_and_organization_scope(
     stale = client.patch(
         lesson_url,
         json={"contract": "UpdateLessonRequestV1", "content": _content("Bản ghi cũ")},
-        headers=_headers(accepted.teacher, **{"If-Match": '"1"'}),
+        headers=_keyed(accepted.teacher, 1, f"lesson-patch-stale-{uuid4()}"),
     )
     assert stale.status_code == 409
     assert "STALE_REVISION" in stale.text
+    # C4 (C-D7): the stale answer carries the current version and the strong ETag.
+    assert stale.json()["current_version"] == 2
+    assert stale.headers["ETag"] == '"2"'
 
     forbidden = client.get(
         f"/api/lesson-library/v1/organizations/{accepted.organization_id}/lessons",
@@ -525,7 +537,12 @@ def test_teacher_lesson_crud_revision_guards_and_organization_scope(
     # CONV-1 (D-066-68 C-D4, D-066-71 CV-5): a Parent account is out of scope here -> 404.
     assert forbidden.status_code == 404
 
-    archived = client.delete(lesson_url, headers=_headers(accepted.teacher, **{"If-Match": '"2"'}))
+    archived = client.delete(
+        lesson_url,
+        headers=_headers(
+            accepted.teacher, **{"If-Match": '"2"', "Idempotency-Key": f"archive-{uuid4()}"}
+        ),
+    )
     assert archived.status_code == 200, archived.text
     assert archived.json()["state"] == "ARCHIVED"
     assert archived.headers["ETag"] == '"3"'
@@ -569,8 +586,9 @@ def test_teacher_uploads_and_reviews_a_synthetic_pdf_through_http(
         f"/api/lesson-library/v1/upload-sessions/{upload_id}/complete",
         headers=_headers(accepted.teacher, **{"Idempotency-Key": f"upload-complete-{uuid4()}"}),
     )
-    assert incomplete.status_code == 409
-    assert "UPLOAD_INCOMPLETE" in incomplete.text
+    # C4 (SRS §9.8 line 871): an incomplete upload is 422 UPLOAD_INCOMPLETE.
+    assert incomplete.status_code == 422
+    assert incomplete.json()["code"] == "UPLOAD_INCOMPLETE"
 
     part = client.put(
         f"/api/lesson-library/v1/upload-sessions/{upload_id}/parts/1",
@@ -596,7 +614,7 @@ def test_teacher_uploads_and_reviews_a_synthetic_pdf_through_http(
         f"/api/lesson-library/v1/upload-sessions/{upload_id}/complete",
         headers=_headers(accepted.teacher, **{"Idempotency-Key": f"upload-complete-{uuid4()}"}),
     )
-    assert completed.status_code == 200, completed.text
+    assert completed.status_code == 202, completed.text
     source = completed.json()
     assert source["state"] == "READY_FOR_REVIEW"
     assert source["asset_sha256"] == sha256
@@ -621,7 +639,7 @@ def test_teacher_uploads_and_reviews_a_synthetic_pdf_through_http(
             "source_document_revision_id": source["revision_id"],
             "content": _content("Bài học sau khi rà soát tài liệu"),
         },
-        headers=_headers(accepted.teacher, **{"If-Match": '"1"'}),
+        headers=_keyed(accepted.teacher, 1, f"version-{uuid4()}"),
     )
     assert version.status_code == 201, version.text
     assert version.json()["version_no"] == 2
@@ -649,11 +667,14 @@ def test_teacher_uploads_and_reviews_a_synthetic_pdf_through_http(
         headers=_headers(accepted.teacher, **{"Idempotency-Key": f"upload-abort-{uuid4()}"}),
     )
     assert aborted_session.status_code == 201, aborted_session.text
+    assert aborted_session.headers["ETag"] == '"1"'
     aborted = client.delete(
         f"/api/lesson-library/v1/upload-sessions/{aborted_session.json()['upload_session_id']}",
-        headers=_headers(accepted.teacher),
+        headers=_headers(
+            accepted.teacher, **{"If-Match": '"1"', "Idempotency-Key": f"abort-{uuid4()}"}
+        ),
     )
-    assert aborted.status_code == 200, aborted.text
+    assert aborted.status_code == 202, aborted.text
     assert aborted.json()["state"] == "ABORTED"
 
 
@@ -753,7 +774,7 @@ def test_manager_public_review_parent_read_export_moderation_and_revocation(
     for grant in (view_grant, download_grant):
         revoked = client.delete(
             f"{lesson_base}/access-grants/{grant['access_grant_id']}",
-            headers=_headers(accepted.teacher, **{"If-Match": '"2"'}),
+            headers=_keyed(accepted.teacher, 2, f"grant-revoke-{uuid4()}"),
         )
         assert revoked.status_code == 200, revoked.text
         assert revoked.json()["state"] == "REVOKED"
@@ -780,7 +801,7 @@ def test_direct_parent_and_group_sharing_can_be_accepted_then_revoked(
     _approve_public_grant(accepted, public_grant)
     public_revoked = client.delete(
         f"{lesson_base}/access-grants/{public_grant['access_grant_id']}",
-        headers=_headers(accepted.teacher, **{"If-Match": '"2"'}),
+        headers=_keyed(accepted.teacher, 2, f"grant-revoke-{uuid4()}"),
     )
     assert public_revoked.status_code == 200, public_revoked.text
 
@@ -825,7 +846,7 @@ def test_direct_parent_and_group_sharing_can_be_accepted_then_revoked(
     )
     direct_revoked = client.delete(
         f"{lesson_base}/access-grants/{direct.json()['access_grant_id']}",
-        headers=_headers(accepted.teacher, **{"If-Match": '"2"'}),
+        headers=_keyed(accepted.teacher, 2, f"grant-revoke-{uuid4()}"),
     )
     assert direct_revoked.status_code == 200, direct_revoked.text
     assert (
@@ -1227,3 +1248,332 @@ def test_lesson_library_if_match_errors_are_400_with_field_errors(
     assert malformed.status_code == 400, malformed.text
     assert malformed.json()["field_errors"] == [{"field": "If-Match", "code": "INVALID_FORMAT"}]
     assert missing.headers["X-Request-ID"] == missing.json()["correlation_id"]
+
+
+# --- FEAT-066 C4 (package Draft 4): keys, stale revisions, upload-session revision and codes ---
+
+
+class _CleanScanner:
+    """Synthetic CLEAN scanner so complete runs without ClamAV (C4 only)."""
+
+    def scan(self, file_obj: Any) -> MalwareScanResult:
+        file_obj.read()
+        return MalwareScanResult(scanner_name="synthetic", scanner_version="1", verdict="CLEAN")
+
+
+class _SyntheticParser:
+    """Synthetic PDF parser so complete runs without optional parser packages (C4 only)."""
+
+    def extract(self, file_obj: Any, *, file_extension: str) -> LessonDocumentExtraction:
+        file_obj.read()
+        return LessonDocumentExtraction(
+            detected_media_type="application/pdf",
+            parser_name="synthetic",
+            parser_version="1",
+            page_or_slide_count=1,
+            page_coverage=(1,),
+            extracted_fields={"title": "Synthetic Butterfly Lesson"},
+            warnings=(),
+        )
+
+
+def _add_second_teacher(accepted: LessonApiAcceptance) -> str:
+    subject = f"synthetic-teacher-two-{uuid4()}"
+    with accepted.app.state.be1_runtime.session_factory.begin() as db:
+        db.add(
+            AdultIdentityModel(
+                subject=subject,
+                issuer="synthetic-lesson-test-issuer",
+                state="active",
+                account_role="teacher",
+            )
+        )
+        db.flush()
+        db.add(
+            OrganizationAssignmentModel(
+                assignment_id=str(uuid4()),
+                organization_id=accepted.organization_id,
+                subject=subject,
+                class_id=None,
+                role="teacher",
+                active=True,
+            )
+        )
+    return subject
+
+
+def _set_upload_state(accepted: LessonApiAcceptance, upload_id: str, **values: Any) -> None:
+    with accepted.app.state.be1_runtime.session_factory.begin() as db:
+        db.execute(
+            UPLOAD_SESSIONS.update()
+            .where(UPLOAD_SESSIONS.c.upload_session_id == upload_id)
+            .values(**values)
+        )
+
+
+def _open_upload(accepted: LessonApiAcceptance, lesson: dict[str, object], pdf: bytes) -> str:
+    response = accepted.client.post(
+        f"/api/lesson-library/v1/organizations/{accepted.organization_id}/lessons/"
+        f"{lesson['lesson_id']}/upload-sessions",
+        json={
+            "contract": "CreateLessonUploadSessionRequestV1",
+            "file_name": "synthetic-c4.pdf",
+            "media_type": "application/pdf",
+            "byte_length": len(pdf),
+            "sha256": hashlib.sha256(pdf).hexdigest(),
+        },
+        headers=_headers(accepted.teacher, **{"Idempotency-Key": f"c4-upload-{uuid4()}"}),
+    )
+    assert response.status_code == 201, response.text
+    assert response.json()["revision"] == 1
+    assert response.headers["ETag"] == '"1"'
+    return str(response.json()["upload_session_id"])
+
+
+def _put_part(accepted: LessonApiAcceptance, upload_id: str, body: bytes) -> Any:
+    return accepted.client.put(
+        f"/api/lesson-library/v1/upload-sessions/{upload_id}/parts/1",
+        content=body,
+        headers=_headers(
+            accepted.teacher,
+            **{
+                "X-Part-SHA256": hashlib.sha256(body).hexdigest(),
+                "Content-Range": f"bytes 0-{len(body) - 1}/{len(body)}",
+                "Content-Type": "application/pdf",
+            },
+        ),
+    )
+
+
+def _abort(accepted: LessonApiAcceptance, upload_id: str, revision: int, key: str) -> Any:
+    return accepted.client.delete(
+        f"/api/lesson-library/v1/upload-sessions/{upload_id}",
+        headers=_headers(
+            accepted.teacher, **{"If-Match": f'"{revision}"', "Idempotency-Key": key}
+        ),
+    )
+
+
+def _keyed(subject: str, revision: int, key: str) -> dict[str, str]:
+    return _headers(subject, **{"If-Match": f'"{revision}"', "Idempotency-Key": key})
+
+
+def test_c4_lesson_commands_require_keys_replay_and_hide_other_authors(
+    lesson_api_acceptance: LessonApiAcceptance,
+) -> None:
+    accepted = lesson_api_acceptance
+    client = accepted.client
+    lesson = _create_lesson(accepted, visibility="PRIVATE")
+    url = (
+        f"/api/lesson-library/v1/organizations/{accepted.organization_id}/lessons/"
+        f"{lesson['lesson_id']}"
+    )
+    body = {"contract": "UpdateLessonRequestV1", "content": _content("Bản sửa C4")}
+
+    missing = client.patch(
+        url, json=body, headers=_headers(accepted.teacher, **{"If-Match": '"1"'})
+    )
+    assert missing.status_code == 400, missing.text
+    # C4 routes declare the key without an Ellipsis default, so a missing key is REQUIRED.
+    assert missing.json()["field_errors"] == [{"field": "Idempotency-Key", "code": "REQUIRED"}]
+
+    key = f"c4-patch-{uuid4()}"
+    first = client.patch(url, json=body, headers=_keyed(accepted.teacher, 1, key))
+    assert first.status_code == 200, first.text
+    assert first.headers["ETag"] == '"2"'
+    # Same key, same payload and the old If-Match: replay, not a stale 409 (CT-2).
+    replay = client.patch(url, json=body, headers=_keyed(accepted.teacher, 1, key))
+    assert replay.status_code == 200, replay.text
+    first_version = first.json()["current_version"]["version_id"]
+    assert replay.json()["current_version"]["version_id"] == first_version
+    assert client.get(url, headers=_headers(accepted.teacher)).headers["ETag"] == '"2"'
+    other = client.patch(
+        url,
+        json={"contract": "UpdateLessonRequestV1", "content": _content("Khác")},
+        headers=_keyed(accepted.teacher, 1, key),
+    )
+    assert other.status_code == 400, other.text
+    assert other.json()["code"] == "INVALID_IDEMPOTENCY_KEY"
+
+    # A non-author with a stale If-Match learns nothing: 404, no version, no ETag (R1-04).
+    second_teacher = _add_second_teacher(accepted)
+    hidden = client.patch(
+        url, json=body, headers=_keyed(second_teacher, 1, f"c4-other-{uuid4()}")
+    )
+    assert hidden.status_code == 404, hidden.text
+    assert "current_version" not in hidden.json()
+    assert "ETag" not in hidden.headers
+
+    no_key_archive = client.delete(
+        url, headers=_headers(accepted.teacher, **{"If-Match": '"2"'})
+    )
+    assert no_key_archive.status_code == 400, no_key_archive.text
+    archive_key = f"c4-archive-{uuid4()}"
+    archived = client.delete(url, headers=_keyed(accepted.teacher, 2, archive_key))
+    assert archived.status_code == 200, archived.text
+    assert archived.json()["state"] == "ARCHIVED"
+    archived_again = client.delete(url, headers=_keyed(accepted.teacher, 2, archive_key))
+    assert archived_again.status_code == 200, archived_again.text
+    assert archived_again.headers["ETag"] == '"3"'
+
+
+def test_c4_stale_archive_and_manager_keyed_commands(
+    lesson_api_acceptance: LessonApiAcceptance,
+) -> None:
+    accepted = lesson_api_acceptance
+    client = accepted.client
+    lesson = _create_lesson(accepted)
+    url = (
+        f"/api/lesson-library/v1/organizations/{accepted.organization_id}/lessons/"
+        f"{lesson['lesson_id']}"
+    )
+    stale = client.delete(url, headers=_keyed(accepted.teacher, 9, f"c4-stale-archive-{uuid4()}"))
+    assert stale.status_code == 409, stale.text
+    assert stale.json()["current_version"] == 1
+    assert stale.headers["ETag"] == '"1"'
+    # A stale attempt stores no receipt: the same key then succeeds with the current revision.
+    retry_key = f"c4-archive-after-stale-{uuid4()}"
+    refused = client.delete(url, headers=_keyed(accepted.teacher, 9, retry_key))
+    assert refused.status_code == 409, refused.text
+    manager_archive = client.delete(url, headers=_keyed(accepted.manager, 1, retry_key))
+    assert manager_archive.status_code == 200, manager_archive.text
+    assert manager_archive.json()["state"] == "ARCHIVED"
+    teacher_after = client.delete(url, headers=_keyed(accepted.teacher, 1, retry_key))
+    # The teacher's key was never stored, so this is a new command on revision 2: stale.
+    assert teacher_after.status_code == 409, teacher_after.text
+    assert teacher_after.json()["current_version"] == 2
+
+
+def test_c4_upload_session_revision_abort_states_and_codes(
+    lesson_api_acceptance: LessonApiAcceptance,
+) -> None:
+    accepted = lesson_api_acceptance
+    client = accepted.client
+    lesson = _create_lesson(accepted)
+    pdf = _synthetic_pdf()
+
+    upload_id = _open_upload(accepted, lesson, pdf)
+    status_read = client.get(
+        f"/api/lesson-library/v1/upload-sessions/{upload_id}", headers=_headers(accepted.teacher)
+    )
+    assert status_read.json()["revision"] == 1
+    assert status_read.headers["ETag"] == '"1"'
+    no_key = client.delete(
+        f"/api/lesson-library/v1/upload-sessions/{upload_id}",
+        headers=_headers(accepted.teacher, **{"If-Match": '"1"'}),
+    )
+    assert no_key.status_code == 400, no_key.text
+    stale = _abort(accepted, upload_id, 2, f"c4-abort-stale-{uuid4()}")
+    assert stale.status_code == 409, stale.text
+    assert stale.json()["code"] == "STALE_REVISION"
+    assert stale.json()["current_version"] == 1
+    assert stale.headers["ETag"] == '"1"'
+    key = f"c4-abort-{uuid4()}"
+    aborted = _abort(accepted, upload_id, 1, key)
+    assert aborted.status_code == 202, aborted.text
+    assert aborted.json()["state"] == "ABORTED"
+    assert aborted.json()["revision"] == 2
+    assert _abort(accepted, upload_id, 1, key).json() == aborted.json()
+    repeat = _abort(accepted, upload_id, 2, f"c4-abort-again-{uuid4()}")
+    assert repeat.status_code == 202, repeat.text
+    assert repeat.json()["state"] == "ABORTED"
+    closed_part = _put_part(accepted, upload_id, pdf)
+    assert closed_part.status_code == 409, closed_part.text
+    assert closed_part.json()["code"] == "UPLOAD_SESSION_STATE_CONFLICT"
+
+    # Part receipts move the revision; a different body for the same part is a conflict.
+    parts_id = _open_upload(accepted, lesson, pdf)
+    assert _put_part(accepted, parts_id, pdf).status_code == 200
+    after_part = client.get(
+        f"/api/lesson-library/v1/upload-sessions/{parts_id}", headers=_headers(accepted.teacher)
+    )
+    assert after_part.json()["revision"] == 2
+    conflict = _put_part(accepted, parts_id, bytes(reversed(pdf)))
+    assert conflict.status_code == 409, conflict.text
+    assert conflict.json()["code"] == "UPLOAD_PART_CONFLICT"
+
+    for state in ("COMPLETED", "FAILED"):
+        closed_id = _open_upload(accepted, lesson, pdf)
+        _set_upload_state(accepted, closed_id, state=state)
+        refused = _abort(accepted, closed_id, 2, f"c4-abort-{state.lower()}-{uuid4()}")
+        assert refused.status_code == 409, refused.text
+        assert refused.json()["code"] == "UPLOAD_SESSION_STATE_CONFLICT"
+
+    expired_id = _open_upload(accepted, lesson, pdf)
+    _set_upload_state(accepted, expired_id, state="EXPIRED")
+    assert _put_part(accepted, expired_id, pdf).status_code == 410
+    expired_complete = client.post(
+        f"/api/lesson-library/v1/upload-sessions/{expired_id}/complete",
+        headers=_headers(accepted.teacher, **{"Idempotency-Key": f"c4-complete-{uuid4()}"}),
+    )
+    assert expired_complete.status_code == 410, expired_complete.text
+    assert expired_complete.json()["code"] == "UPLOAD_SESSION_EXPIRED"
+    expired_abort = _abort(accepted, expired_id, 2, f"c4-abort-expired-{uuid4()}")
+    assert expired_abort.status_code == 410, expired_abort.text
+
+    # An OPEN session past its expiry is marked EXPIRED first, so its revision moves (R2-03).
+    lapsed_id = _open_upload(accepted, lesson, pdf)
+    _set_upload_state(accepted, lapsed_id, expires_at=datetime.now(UTC) - timedelta(minutes=1))
+    lapsed_stale = _abort(accepted, lapsed_id, 1, f"c4-abort-lapsed-{uuid4()}")
+    assert lapsed_stale.status_code == 409, lapsed_stale.text
+    assert lapsed_stale.headers["ETag"] == '"2"'
+    lapsed = _abort(accepted, lapsed_id, 2, f"c4-abort-lapsed-2-{uuid4()}")
+    assert lapsed.status_code == 410, lapsed.text
+
+
+def test_c4_complete_is_202_and_version_create_is_keyed(
+    lesson_api_acceptance: LessonApiAcceptance,
+) -> None:
+    accepted = lesson_api_acceptance
+    client = accepted.client
+    previous_scanner = accepted.app.state.lesson_document_scanner
+    previous_parser = accepted.app.state.lesson_document_parser
+    accepted.app.state.lesson_document_scanner = _CleanScanner()
+    accepted.app.state.lesson_document_parser = _SyntheticParser()
+    try:
+        lesson = _create_lesson(accepted)
+        pdf = _synthetic_pdf()
+        upload_id = _open_upload(accepted, lesson, pdf)
+        assert _put_part(accepted, upload_id, pdf).status_code == 200
+        completed = client.post(
+            f"/api/lesson-library/v1/upload-sessions/{upload_id}/complete",
+            headers=_headers(accepted.teacher, **{"Idempotency-Key": f"c4-complete-{uuid4()}"}),
+        )
+        assert completed.status_code == 202, completed.text
+        source = completed.json()
+        assert source["state"] == "READY_FOR_REVIEW"
+        done = client.get(
+            f"/api/lesson-library/v1/upload-sessions/{upload_id}",
+            headers=_headers(accepted.teacher),
+        )
+        assert done.json()["state"] == "COMPLETED"
+        assert done.json()["revision"] == 3
+
+        versions_url = (
+            f"/api/lesson-library/v1/organizations/{accepted.organization_id}/lessons/"
+            f"{lesson['lesson_id']}/versions"
+        )
+        version_body = {
+            "contract": "CreateLessonVersionRequestV1",
+            "source_document_revision_id": source["revision_id"],
+            "content": _content("Phiên bản từ tài liệu C4"),
+        }
+        no_key = client.post(
+            versions_url,
+            json=version_body,
+            headers=_headers(accepted.teacher, **{"If-Match": '"1"'}),
+        )
+        assert no_key.status_code == 400, no_key.text
+        key = f"c4-version-{uuid4()}"
+        created = client.post(
+            versions_url, json=version_body, headers=_keyed(accepted.teacher, 1, key)
+        )
+        assert created.status_code == 201, created.text
+        replayed = client.post(
+            versions_url, json=version_body, headers=_keyed(accepted.teacher, 1, key)
+        )
+        assert replayed.status_code == 201, replayed.text
+        assert replayed.json()["version_id"] == created.json()["version_id"]
+    finally:
+        accepted.app.state.lesson_document_scanner = previous_scanner
+        accepted.app.state.lesson_document_parser = previous_parser
