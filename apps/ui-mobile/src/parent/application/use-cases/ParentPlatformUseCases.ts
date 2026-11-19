@@ -19,6 +19,18 @@ export class ParentPlatformUseCases {
     return this.api.deleteStoryRun(runId);
   }
 
+  /** FR-C-08: the run becomes DELETE_PENDING; the answer is the content-free lifecycle projection. */
+  cancelRunV1(runId: string, expectedRevision: number, actionIdentity: string) {
+    if (!runId.trim()) throw new ParentApplicationError('PARENT_STORY_RUN_REQUIRED', 'Chưa chọn buổi học.');
+    return this.api.cancelStoryRunV1(runId, expectedRevision, actionIdentity);
+  }
+
+  /** FR-C-08: delete of a COMPLETED, FAILED or ABANDONED run. */
+  deleteRunV1(runId: string, actionIdentity: string) {
+    if (!runId.trim()) throw new ParentApplicationError('PARENT_STORY_RUN_REQUIRED', 'Chưa chọn buổi học.');
+    return this.api.deleteStoryRunV1(runId, actionIdentity);
+  }
+
   listShares(profileId: string) {
     this.requireId(profileId, 'PARENT_PROFILE_REQUIRED');
     return this.api.listProfileShares(profileId);

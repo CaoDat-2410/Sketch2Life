@@ -154,6 +154,30 @@ export type ParentStoryRunHistoryPage = {
   next_cursor: string | null;
 };
 
+/** FR-C-08 content-free projection of a run from DELETE_PENDING on (Contract Draft 11 3.4). */
+export type ParentStoryRunLifecycleV1 = {
+  run_id: string;
+  run_state: 'DELETE_PENDING' | 'DELETED';
+  revision: number;
+  version: number;
+  lifecycle_request_ref: string;
+  purge_state: 'PENDING' | 'COMPLETED';
+};
+
+export type ParentStoryRunLifecycleEnvelopeV1 = {
+  request_id: string;
+  lifecycle: ParentStoryRunLifecycleV1;
+};
+
+/** A run read is the full run before DELETE_PENDING and the lifecycle projection from then on. */
+export type ParentStoryRunResultV1 = ParentStoryRunEnvelopeV1 | ParentStoryRunLifecycleEnvelopeV1;
+
+export function isParentStoryRunLifecycleEnvelope(
+  value: ParentStoryRunResultV1,
+): value is ParentStoryRunLifecycleEnvelopeV1 {
+  return 'lifecycle' in value && typeof value.lifecycle === 'object' && value.lifecycle !== null;
+}
+
 export type ParentRunLifecycleReceipt = {
   contract: 'ParentRunLifecycleResponseV1';
   request_id: string;

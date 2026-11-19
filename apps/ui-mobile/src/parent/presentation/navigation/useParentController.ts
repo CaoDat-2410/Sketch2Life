@@ -18,6 +18,7 @@ import type {
   StoryDraft,
   SuggestedActivity,
 } from '../../domain/types';
+import { requireLiveStoryRun } from '../../application/storyRunResult';
 import {
   canStartProfileLearning,
   createUnavailableParentConsentState,
@@ -735,7 +736,7 @@ export function useParentController(application: ParentApplicationModule) {
   }
 
   async function getLatestRun(runId: string): Promise<ParentStoryRunV1> {
-    const receipt = await application.learning.getRunV1(runId);
+    const receipt = requireLiveStoryRun(await application.learning.getRunV1(runId));
     if (receipt.story_run.run_id !== runId) {
       throw new ParentApplicationError('PARENT_STORY_REVISION_INVALID', 'The refreshed run did not match the current run.');
     }

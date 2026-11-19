@@ -440,6 +440,7 @@ const parentRecoveryGroups: Record<string, ParentRecoveryGroup> = {
   CLASS_CAPACITY_REACHED: 'teacher-only',
   RATE_LIMITED: 'wait-retry-after',
   DELETE_PENDING: 'lifecycle-pending',
+  DELETED: 'lifecycle-pending',
   CAPABILITY_UNAVAILABLE: 'unavailable',
   ROUTE_NOT_IN_BE_HANDOFF: 'unavailable',
 };
@@ -458,6 +459,7 @@ export function safeParentFlowErrorMessage(error: unknown): string {
     INVALID_STATE_TRANSITION: 'Hồ sơ đã thay đổi trạng thái. Hãy kiểm tra lại trước khi tiếp tục.',
     ACTIVE_RUN_EXISTS: 'Hồ sơ đang có buổi học chưa hoàn tất. Hãy tiếp tục buổi học hiện tại.',
     RESOURCE_NOT_FOUND: 'Không tìm thấy nội dung hoặc bạn không thể truy cập nội dung này.',
+    DELETED: 'Buổi học đã được xóa.',
     MULTI_CHILD_NOT_SUPPORTED: 'Thao tác này chưa khả dụng trong luồng dành cho phụ huynh.',
     OCR_NOT_SUPPORTED: 'Thao tác này chưa khả dụng trong luồng dành cho phụ huynh.',
     UNSUPPORTED_LESSON_TYPE: 'Thao tác này chưa khả dụng trong luồng dành cho phụ huynh.',
