@@ -361,34 +361,6 @@ A source review found later important login-only rules in apps/shared/web-brand-
 - **Commit:** amend the existing one local commit after evidence and checks; no push.
 - **Boundary:** no backend/API/auth-contract or mobile changes, no credential entry, no application tests.
 
-## FEAT-066 MGR-7 — bounded BE contract-conformance implementation
-
-- **Status:** APPROVED_FOR_IMPLEMENTATION by the owner’s conditional instruction on 2026-11-18, following coordinator review of the exact package and its R2 cold review.
-- **Approved package:** `features/FEAT-066-fe-ui-srs-full-review/plan/PLAN_MGR7_BE_IMPLEMENTATION_APPROVAL_PACKAGE_DRAFT1_20261118.md`, 34,177 bytes, SHA-256 `37B412F3E10403238FDC9B940C437941293AD91F78EFDB76E61F5DE4C97E3FC3`.
-- **Review:** `features/FEAT-066-fe-ui-srs-full-review/evidence/notes/MGR_7_COLD_REVIEW_DRAFT1_R2_20261118.md`, SHA-256 `68947A735334E641CA966EED24BEF544A008A7BC042F3C867F4680C869E191D3`, ACCEPT with no findings.
-- **Worktree/baseline:** `.worktrees/manager-api`, branch `feature/feat066-manager-api-contracts`, HEAD `1c9148e88600a101887e477541c4c4893ba1c7df`.
-- **Approved exact BE allowlist:** `backend/src/sketch2life/interfaces/http/routers/lesson_library.py`; `backend/src/sketch2life/infrastructure/lesson_library/service.py`; `backend/src/sketch2life/interfaces/http/openapi_contract.py`; `backend/tests/integration/lesson_library/test_lesson_library_api.py`; `backend/tests/unit/test_lesson_library_receipt_compatibility.py`; `backend/tests/contract/test_openapi_contract_catalog.py`.
-- **Approved behavior:** set only the Parent Groups and access-grants list defaults to 25 while preserving max 100, filters, cursors and stable ordering; change shared Lesson Library same-key/different-payload idempotency response to HTTP 400 `INVALID_IDEMPOTENCY_KEY`; preserve same-key/same-payload original-response replay and receipt scope/retention; align the static full OpenAPI catalog and the allowlisted tests.
-- **Explicit exclusions:** no FE file or UI action; no new route/DTO, schema/table/migration, gateway/proxy, `app.py` error-envelope mapping, public SRS projection, MGR-2 capacity, MGR-3 assignment/candidate, MGR-4 invitation/member writes, MGR-5 consent writes, or MGR-6 exact-version/hash decision path. MGR-9 FE integration requires its own reviewed plan and approval after BE implementation evidence.
-- **Verification boundary:** source/test-file edits are approved within the exact allowlist. Test execution, build, typecheck, lint, validators, diff-check, OpenAPI generation, runtime, database, Docker, network/provider and Modal commands remain NOT AUTHORIZED by this entry and require a separate owner command instruction with the environment boundary specified in the plan.
-- **Git boundary:** no stage, commit or push is authorized by this approval.
-
-Verification limit, 2026-11-18: The owner authorized exactly the two MGR-8 pytest commands ("Đúng 2 lệnh này", "Codex chạy") against an owner-prepared disposable local be1_acceptance database. The first command was invoked once with the root backend virtual environment interpreter and PYTHONPATH=src, then interrupted while pending without captured output; no exit code or test summary was captured. The second command was not run. No retry was made. MGR-8 remains NOT VERIFIED.
-
-Diagnostic scope, 2026-11-18: The owner authorized exactly three diagnostic pytest commands ("Chạy chẩn đoán"), run by Codex with the root backend virtual environment interpreter, PYTHONPATH=src and PYTHONUNBUFFERED=1, against the owner-prepared disposable local be1_acceptance database. D1 exited 0 with 8 passed. D2 was interrupted after about 12 minutes when output had not grown for 10 minutes; the shell returned 1, with no pytest exit status or final summary captured. D3 was not run. The diagnostic does not decide whether MGR-8 verification is satisfied; owner disposition is required.
-
-Scope amendment, 2026-11-18 (MGR-8 fixture): The owner approved in chat ("Approve the fix") one minimal fixture edit inside the already-allowlisted `backend/tests/integration/lesson_library/test_lesson_library_api.py`. The edit sets `account_role` on the four synthetic adult identities created by the fixture: teacher to `teacher`, manager to `school_manager`, parent to `parent`, platform admin to `platform_admin`. `role_revision` is not set because the model defaults it to 1. Reason: the owner-run D3 failed 6 of 7 tests with HTTP 403 `ACCOUNT_SCOPE_UNAVAILABLE`, because the fixture predates the account-role gate in `routers/be1_common.py` and the parent and platform-admin role checks in `routers/lesson_library.py`. No other line, test assertion, source file or file outside the six-file allowlist is approved by this amendment. The owner re-runs D3 in their own terminal; this amendment authorizes no test run by an agent. The D2 catalog failure (`KeyError: 'description'`, pre-existing on dev in `app.py`) is not decided here: no `app.py` change is approved. No stage, commit or push is authorized. MGR-8 remains NOT VERIFIED. Pre-append pin of this file: 38982 bytes, SHA-256 5272BA9768407FFF04BD8414F1536DEFE1E8C8FBC0C5EF0596513CEA0BA6CCB3.
-
-MGR-8 verification result, 2026-11-18: the owner ran D1, D2, D3 and `tests/contract/test_app_composition.py` in their own terminal on the root checkout's M2 branch, after merge `b93d7334`. Each command was run once with the root backend virtual environment interpreter, `PYTHONPATH=src`, `PYTHONUNBUFFERED=1` and the diagnostic output flags, against the owner-prepared disposable local `be1_acceptance` database.
-
-| Test | Result |
-|---|---|
-| D1 | 8 passed |
-| D2 | 5 passed |
-| D3 | 6 passed, 1 failed (PDF upload: 503, because ClamAV is not running; outside the MGR-7 change) |
-| `test_app_composition` | 7 passed |
-
-Owner decision: "R ok verified làm bước 5 đi" — MGR-8 VERIFIED, with the ClamAV environment limit recorded. Evidence: `evidence/notes/MGR_8_ROOT_RUN_RESULTS_20261118.md` (6,785 bytes, SHA-256 `19A6E63C106EFF951A162CF4B48475FBF442EF3656A30D29F910FFC2CECE1601`). This note does not approve a commit or push.
 ## FEAT-066 Revision 47 — shared web folder organization
 
 - Status: APPROVED_FOR_IMPLEMENTATION.
@@ -437,6 +409,35 @@ Owner decision: "R ok verified làm bước 5 đi" — MGR-8 VERIFIED, with the 
 - Scope: stage and commit all current non-ignored web-remediation worktree changes, records and reviewed screenshots in one new commit; run focused validation and push to the existing branch upstream.
 - Boundaries: keep the previously pushed Rev48 commit; no history rewrite/force push; exclude .env, tmp QA credentials, passwords/tokens, service-account keys, external references, and ignored build/runtime files.
 - Approval basis: the owner directly requested one consolidated commit and push for use on another machine; this supersedes earlier no-commit/push exclusions only for the current pending worktree changes.
+
+## FEAT-066 MGR-7 — bounded BE contract-conformance implementation
+
+- **Status:** APPROVED_FOR_IMPLEMENTATION by the owner’s conditional instruction on 2026-11-18, following coordinator review of the exact package and its R2 cold review.
+- **Approved package:** `features/FEAT-066-fe-ui-srs-full-review/plan/PLAN_MGR7_BE_IMPLEMENTATION_APPROVAL_PACKAGE_DRAFT1_20261118.md`, 34,177 bytes, SHA-256 `37B412F3E10403238FDC9B940C437941293AD91F78EFDB76E61F5DE4C97E3FC3`.
+- **Review:** `features/FEAT-066-fe-ui-srs-full-review/evidence/notes/MGR_7_COLD_REVIEW_DRAFT1_R2_20261118.md`, SHA-256 `68947A735334E641CA966EED24BEF544A008A7BC042F3C867F4680C869E191D3`, ACCEPT with no findings.
+- **Worktree/baseline:** `.worktrees/manager-api`, branch `feature/feat066-manager-api-contracts`, HEAD `1c9148e88600a101887e477541c4c4893ba1c7df`.
+- **Approved exact BE allowlist:** `backend/src/sketch2life/interfaces/http/routers/lesson_library.py`; `backend/src/sketch2life/infrastructure/lesson_library/service.py`; `backend/src/sketch2life/interfaces/http/openapi_contract.py`; `backend/tests/integration/lesson_library/test_lesson_library_api.py`; `backend/tests/unit/test_lesson_library_receipt_compatibility.py`; `backend/tests/contract/test_openapi_contract_catalog.py`.
+- **Approved behavior:** set only the Parent Groups and access-grants list defaults to 25 while preserving max 100, filters, cursors and stable ordering; change shared Lesson Library same-key/different-payload idempotency response to HTTP 400 `INVALID_IDEMPOTENCY_KEY`; preserve same-key/same-payload original-response replay and receipt scope/retention; align the static full OpenAPI catalog and the allowlisted tests.
+- **Explicit exclusions:** no FE file or UI action; no new route/DTO, schema/table/migration, gateway/proxy, `app.py` error-envelope mapping, public SRS projection, MGR-2 capacity, MGR-3 assignment/candidate, MGR-4 invitation/member writes, MGR-5 consent writes, or MGR-6 exact-version/hash decision path. MGR-9 FE integration requires its own reviewed plan and approval after BE implementation evidence.
+- **Verification boundary:** source/test-file edits are approved within the exact allowlist. Test execution, build, typecheck, lint, validators, diff-check, OpenAPI generation, runtime, database, Docker, network/provider and Modal commands remain NOT AUTHORIZED by this entry and require a separate owner command instruction with the environment boundary specified in the plan.
+- **Git boundary:** no stage, commit or push is authorized by this approval.
+
+Verification limit, 2026-11-18: The owner authorized exactly the two MGR-8 pytest commands ("Đúng 2 lệnh này", "Codex chạy") against an owner-prepared disposable local be1_acceptance database. The first command was invoked once with the root backend virtual environment interpreter and PYTHONPATH=src, then interrupted while pending without captured output; no exit code or test summary was captured. The second command was not run. No retry was made. MGR-8 remains NOT VERIFIED.
+
+Diagnostic scope, 2026-11-18: The owner authorized exactly three diagnostic pytest commands ("Chạy chẩn đoán"), run by Codex with the root backend virtual environment interpreter, PYTHONPATH=src and PYTHONUNBUFFERED=1, against the owner-prepared disposable local be1_acceptance database. D1 exited 0 with 8 passed. D2 was interrupted after about 12 minutes when output had not grown for 10 minutes; the shell returned 1, with no pytest exit status or final summary captured. D3 was not run. The diagnostic does not decide whether MGR-8 verification is satisfied; owner disposition is required.
+
+Scope amendment, 2026-11-18 (MGR-8 fixture): The owner approved in chat ("Approve the fix") one minimal fixture edit inside the already-allowlisted `backend/tests/integration/lesson_library/test_lesson_library_api.py`. The edit sets `account_role` on the four synthetic adult identities created by the fixture: teacher to `teacher`, manager to `school_manager`, parent to `parent`, platform admin to `platform_admin`. `role_revision` is not set because the model defaults it to 1. Reason: the owner-run D3 failed 6 of 7 tests with HTTP 403 `ACCOUNT_SCOPE_UNAVAILABLE`, because the fixture predates the account-role gate in `routers/be1_common.py` and the parent and platform-admin role checks in `routers/lesson_library.py`. No other line, test assertion, source file or file outside the six-file allowlist is approved by this amendment. The owner re-runs D3 in their own terminal; this amendment authorizes no test run by an agent. The D2 catalog failure (`KeyError: 'description'`, pre-existing on dev in `app.py`) is not decided here: no `app.py` change is approved. No stage, commit or push is authorized. MGR-8 remains NOT VERIFIED. Pre-append pin of this file: 38982 bytes, SHA-256 5272BA9768407FFF04BD8414F1536DEFE1E8C8FBC0C5EF0596513CEA0BA6CCB3.
+
+MGR-8 verification result, 2026-11-18: the owner ran D1, D2, D3 and `tests/contract/test_app_composition.py` in their own terminal on the root checkout's M2 branch, after merge `b93d7334`. Each command was run once with the root backend virtual environment interpreter, `PYTHONPATH=src`, `PYTHONUNBUFFERED=1` and the diagnostic output flags, against the owner-prepared disposable local `be1_acceptance` database.
+
+| Test | Result |
+|---|---|
+| D1 | 8 passed |
+| D2 | 5 passed |
+| D3 | 6 passed, 1 failed (PDF upload: 503, because ClamAV is not running; outside the MGR-7 change) |
+| `test_app_composition` | 7 passed |
+
+Owner decision: "R ok verified làm bước 5 đi" — MGR-8 VERIFIED, with the ClamAV environment limit recorded. Evidence: `evidence/notes/MGR_8_ROOT_RUN_RESULTS_20261118.md` (6,785 bytes, SHA-256 `19A6E63C106EFF951A162CF4B48475FBF442EF3656A30D29F910FFC2CECE1601`). This note does not approve a commit or push.
 
 ## FEAT-066 CONV-1 — API conventions core (BE)
 
@@ -610,3 +611,100 @@ Scope amendment, 2026-11-18 (CONV-1 fixtures): the owner approved in chat ("Cho 
   goal fetches and merges the teammate's pushed commits locally before each web task and never rewrites them.
 - **Not covered:** the launch itself (a separate owner word); any push, PR or merge; anything on the program's
   never-list. `OWNER_MODAL_CALL_APPROVED=NO`.
+
+## FEAT-066 BRU-0a — Bruno scaffolding and A02 baseline (L5-0 part 1 plus the first positive case)
+
+- **Status:** APPROVED_FOR_IMPLEMENTATION by the owner's chat instruction of 2026-11-19. **Not launched:** coding starts only on a separate owner launch word.
+- **Scope:** the first part of plan step **L5-0** (a new loopback-guard `collection.bru`, the L5 README, the expected-failure list file, the owner-run runbook) and **one request, A02** (`GET /health`). **L5-0 is delivered in two parts.** This entry delivers 0a. O-BRU-AUTH, the runtime token variables (plan §5) and the `target` folder tags stay open in 0b. BRU-0b (A17, A20, A22, A26, A27) and A08 are **not** part of this entry; each needs its own entry after O-BRU-AUTH (and, for A08, O-L3SCOPE) is decided.
+- **Approved plan:** `features/FEAT-066-fe-ui-srs-full-review/plan/PLAN_L5_BRUNO_COVERAGE_DRAFT3_20261118.md`, 18,584 bytes, SHA-256 `3F5AFCC727F3C43451903582FF0DBA05BC0F181290AA6D510B0B6C54973786A9`. Sections used: §0 (S-3), §3 (rules 2 to 6), §4, §7 (L5-0 part 1, L5-1 for A02 only).
+- **Review of the plan and of this entry:** Draft 3 was reviewed in round 3 on 2026-11-19 (Sonnet 5.5, high): **NOT READY, 0 P1 / 3 P2 / 9 P3**. The report is `L5_DRAFT3_REVIEW_R3_20261119.md`, 34,247 bytes, SHA-256 `7766C981A0140439B571A9877FB9C309E6D32EB537FED1ECC5D32E3523E6D5CF` (stored in `evidence/notes/L5_DRAFT3_REVIEW_R3_20261119.md`). The three P2 items concerned the draft entry, not the plan, and are closed by the terms below (disposition table at the end). The plan itself needs a Draft 4 before BRU-0b and later steps (L5R3-04, 05, 11, 12); that is not required for 0a.
+- **Gates for this entry:**
+
+  | Gate | State |
+  |---|---|
+  | S-3 (`local.bru`) | Met: the owner's collection edits are committed in `b95fed64`; `environments/local.bru` holds placeholders only |
+  | O-BRU-BASE | Met (`b95fed64`) |
+  | **CONV-1** (`2dddc607`: `X-Request-ID` on every response, including `/health`) | Met **in the base** `4e2f6d96`; the app under test must run from that code (see Run record) |
+  | G0 | Met (`08439b22`); not needed by A02 |
+  | SEED-1 S1 | Met (`4e2f6d96`); A02 reads no seeded data |
+  | S-1 (password rotation) | **Not a gate for 0a:** A02 uses no credential. S-1 stays open and is tracked in plan §0; it is a gate for BRU-0b. This entry does not count the launch word as proof of rotation |
+  | O-BRU-AUTH, O-L3SCOPE | **Not needed:** A02 has `auth: none` and is not a CB route |
+
+- **Decision:** D-066-81 (drafted as D-066-78; renumbered because D-066-78 is taken in both lineages).
+- **Branch and base:** new local-only branch `feature/feat066-bru0` in a new worktree `D:\GitHub\Sketch2Life\.worktrees\bru0`, cut from the tip of `feature/feat066-seed1` (expected `4e2f6d96eb7d196867d0d1f049cbbf216f04c25c`). **Never pushed, no upstream.** The base is chosen for CONV-1 (the `X-Request-ID` behaviour). The BRU-0a commit therefore depends on `feature/feat066-conv1` and `feature/feat066-seed1`, which are also local-only and unmerged; it lands after them.
+- **Approved allowlist** (new files only; no existing request, environment file or `bruno.json` is edited). In `features/FEAT-063-system-architecture-rearchitecture/artifacts/be-full/bruno/`:
+  - `collection.bru`: a pre-request script, specified under "Loopback guard" below;
+  - `requests/l5/README.md`: the L5 listing, run instructions, the guard's reach, how to run a request outside loopback on purpose, labels for stale (004/005) and `dev`-only (128, 131 to 135) requests (O-BRU-LABELS). Role-variable names (upper snake case) are listed as **provisional until O-BRU-AUTH is decided**;
+  - `requests/l5/shared/bru-0/001-health-get.bru`: the one A02 request, `seq: 1`. **No `folder.bru` and no other file** is added.
+
+  In `features/FEAT-066-fe-ui-srs-full-review/`:
+  - `evidence/L5_EXPECTED_TARGET_FAILURES.md` (an empty list);
+  - `evidence/notes/BRU_0A_IMPLEMENTATION_EVIDENCE_20261119.md`;
+  - `plan/L5_BRU0A_RUNBOOK_20261119.md` (the owner-run block).
+
+  The governance records (this entry, DECISIONS, CONTEXT) are written by the coordinator, append-only.
+- **Loopback guard (`collection.bru`):**
+  - It applies to **every request in the collection** (the 144 existing request files, the Firebase helper folder included) and in the Bruno desktop as well as the CLI. This is by design. Effect: any request to a non-loopback host fails with a script error. The README documents how to run such a request deliberately (from a different collection, or on the owner's own branch without this file).
+  - **Owner decision (2026-11-19):** keep the collection-level file `collection.bru` (the stricter option); it applies to every request in the collection.
+  - It must check the **interpolated** URL. If the implementer cannot establish from material in the repository how to obtain the interpolated URL in a Bruno 4.3.0 pre-request script (for example `bru.interpolate(req.getUrl())`), it **stops and reports** instead of guessing. It parses the URL with a URL parser, accepts only the exact hostnames `127.0.0.1`, `localhost` and `[::1]`, rejects user-info and look-alike hosts, and **throws on any parse failure** (fail closed).
+  - Not covered, and stated as such in the README: redirects, and URL changes made later by a request script. The static scan below bans `setUrl`, `sendRequest` and `runRequest` in the new files.
+  - **Negative control (owner-run, in the runbook):** run the A02 request once with `baseUrl` overridden to `http://guard-test.invalid`; expected: a script error and zero HTTP traffic. Record the outcome only (counts). The override mechanism is not verified; if it does not apply, the owner edits the local, git-ignored environment value instead and reverts it.
+- **Approved behaviour (A02):** positive case only: `GET {{baseUrl}}/health`, no `Authorization` header, no `X-Request-ID` sent. Three assertions, as separate named checks:
+  1. status 200;
+  2. JSON body equals `{"status": "ok", "service": "sketch2life-api"}` (source: `health.py:16-18`, `test_health.py:6-10`);
+  3. **CONV-1 behaviour:** response header `X-Request-ID` is present and non-empty (presence only; the value is a generated id; source: `app.py` `be1_request_context`, `test_http_error_conventions.py:129-130`). Checks 1 and 2 stand without it.
+
+  The existing request `requests/health/090-health-health-get.bru` is left untouched. "No database needed" is a statement about the route only; whether the app process starts without a database is not verified.
+- **Run record (owner-run):** besides the plan's fields, the record states the **app commit**: the app is started from the `bru0` worktree and `git rev-parse HEAD` of that tree is written in the record. Running the app from the root checkout or the M2 tip (`08439b22`) is not valid for assertion 3.
+- **Exclusions:** A08, A17, A20, A22, A26, A27; any request that needs a token; any state-changing request; negative and target cases other than the guard negative control; the Firebase auth helper folder (`requests/firebase-auth-helper/`) and `.env` (never opened); edits to owner files; Bruno CLI installation; SEED amendments.
+- **Verification boundary:**
+  - **Coordinator or Codex:** read-only checks; a static scan of the new files for `setEnvVar`, `setGlobalEnvVar`, `setUrl`, `sendRequest`, `runRequest`, `console.log`, `eyJ`, `AIza`, `@gmail.com` and any host other than `{{baseUrl}}`; byte checks (CR, trailing whitespace); `python tools/validate_harness.py`, `validate_repository_security.py`, `validate_architecture.py`, `git diff --check`.
+  - **Owner-run only:** `bru run` with the pinned Bruno CLI (`@usebruno/cli` 4.3.0, `--env local`, `--reporter-skip-all-headers --reporter-skip-body`), against the app described in the Run record, plus the negative control. Any report or output file goes under `tmp/feat066-l5/` (git-ignored). Report counts only.
+  - Codex and the coordinator run **no** `bru`, database, Docker, network, provider or Modal command, never use ports 5432 or 5433, never read `D:\s2l-gate-secrets`, and never read or print tokens or passwords.
+- **Git boundary:** no stage or commit without a separate owner word, and never a push. One commit per finished task, explicit paths only, after `python tools/validate_repository_security.py`.
+- **Independent review:** after implementation, one review on Sonnet 5.5 at high effort, set explicitly, started by the coordinator.
+
+### Disposition of review round 3 (entry-related findings)
+
+| Finding | Disposition |
+|---|---|
+| L5R3-01 (P2) CONV-1 dependency, app commit | Closed: CONV-1 gate row, base rationale, Run record, assertion 3 marked CONV-1 |
+| L5R3-02 (P2) guard reach | Closed: disclosed in the guard section and the README; owner decision line for collection versus folder level |
+| L5R3-03 (P2) URL resolution, no guard test | Closed: interpolated-URL rule with stop condition, fail-closed parsing, owner-run negative control |
+| L5R3-04 (P3) guard hazards | Partly: parser rules and ban on `setUrl`, `sendRequest`, `runRequest`; redirects documented as not covered |
+| L5R3-05 (P3) secret gaps | Partly: scan list extended, output under `tmp/`; the rest goes to plan Draft 4 |
+| L5R3-06 (P3) allowlist | Closed: exact request path and `seq`, no `folder.bru` |
+| L5R3-07 (P3) L5-0 split, S-1 | Closed |
+| L5R3-08 (P3) placeholders | Closed |
+| L5R3-09 (P3) stacked local branches | Closed: dependency stated |
+| L5R3-10 (P3) A02 wording | Closed: three named assertions |
+| L5R3-11, 12 (P3) | Deferred to plan Draft 4 (BRU-0b and later) |
+
+### FEAT-066 BRU-0a — addendum 1 after review round 4 (2026-11-19, owner Person 2)
+
+- **Status:** APPROVED_FOR_IMPLEMENTATION, appended to the BRU-0a entry above; the approved text above is unchanged and this addendum prevails where they differ. **Not launched.** This addendum was not re-reviewed.
+- **Review:** round 4 of entry Draft 2 (Sonnet 5.5, high): NOT READY, 0 P1 / 2 P2 / 6 P3. Report `evidence/notes/BRU0A_ENTRY_D2_REVIEW_R4_20261119.md`, 29,156 bytes, SHA-256 `65569D1021575EAF6E62E87E1326E2CF640FC790E99E42907DE0F8BDFE0AEAF3`. The in-repo entry equalled Draft 2 except for the five permitted substitutions. O-BRU-AUTH, O-L3SCOPE and S-1 are not needed for 0a (confirmed).
+- **R4-01 (app code origin):** the runbook contains the app start-up step with `PYTHONPATH` set to the `bru0` worktree's `backend\src`, because the backend venv's editable install points at the root checkout (no CONV-1). The run record states `git rev-parse HEAD` of the `bru0` tree and the printed `sketch2life.__file__` under the same environment; the path must be inside the `bru0` worktree. An assertion-3 failure with a package from another tree is an invalid run, not an A02 defect.
+- **R4-02 (guard route b):** the guard is written as a candidate and marked **UNVERIFIED**. The implementer uses the interpolated URL (for example `bru.interpolate(req.getUrl())`), parses it, accepts only the exact hostnames, and throws on any failure. The entry's stop condition ("cannot establish from material in the repository") is **replaced**: the implementer does not stop for lack of Bruno 4.3.0 material; it records the interpolation and sandbox questions as NOT VERIFIED in the evidence note. The guard is proven only by the two owner-run controls: the positive run on loopback passes, and the negative control fails with a script or pre-request error that names the guard. Until both are recorded, the evidence note and the README call the guard unproven. An uninterpolated URL fails to parse and throws, so a mistake in this route makes A02 fail visibly and does not open the guard.
+- **R4-03 (control fallback):** if `--env-var baseUrl=...` does not apply, the owner runs the control from a throwaway copy of the collection under `tmp/feat066-l5/`, or edits the tracked `environments/local.bru` and checks that `git diff` of that file is empty after the revert. The task itself edits no environment file. Never `git add -u`.
+- **R4-04 (evidence):** the expected result of the negative control is the error class: a script or pre-request error naming the guard, not a connection or DNS error. The owner records the error class and counts. "Zero HTTP traffic" is no longer the criterion. Two further controls are optional: `http://127.0.0.1@guard-test.invalid/` and `http://localhost.guard-test.invalid/`.
+- **R4-05 (scan and diff check):**
+  - the host and API-name scan runs on `collection.bru` and the request file only, and the loopback hostnames are allowed inside the guard;
+  - the scan for `setEnvVar`, `setGlobalEnvVar`, `setUrl`, `sendRequest`, `runRequest` and `console.log` runs on the `.bru` files, so the README may name them;
+  - the scan for `eyJ`, `AIza` and `@gmail.com` runs on all new files;
+  - new untracked files are checked with `git diff --no-index --check` per file and a byte check for CR and trailing whitespace; `git add -N` stays forbidden;
+  - the README lists role-variable names without `NAME=value` lines (the repository security validator rejects them).
+- **R4-06 (guard reach):** the guard applies to every request of the collection: the 144 tracked request files, and the local-only Firebase helper folder where it exists. This is stated for the CLI. Behaviour in the Bruno desktop is **not verified** and the README must not claim it.
+- **R4-07 (run command):** the owner-run command is `bru run requests/l5/shared/bru-0 --env local --reporter-skip-all-headers --reporter-skip-body` with `@usebruno/cli` 4.3.0, **never from the collection root without a path**. A02 reads no data; the run record states that no database read is expected and records whether the app is connected to the seed database or to none, as plan §3 rule 2 asks.
+- **R4-08 (record):** the disposition rows L5R3-01 and L5R3-03 of the entry are **Partly**, not Closed. This addendum closes R4-01 to R4-07. No commit or push is authorized; the launch needs a separate owner word.
+
+### FEAT-066 BRU-0a — addendum 2, B2 completion record (2026-11-19, record of work done; owner Person 2 to accept)
+
+- **Status:** B2 IMPLEMENTED AND RUN; **owner acceptance pending**. Local commit only, never pushed. This addendum records what was done after the entry and addendum 1; it approves nothing new. Where it differs from the entry's run instructions (worktree `bru0`, port 8000), this addendum states what actually ran.
+- **Where:** branch `claude/feat066-b2-bruno-d20b0c`, cut from `feature/feat066-be-integration` at `6f10ec24` (C4, C5 and M9-B included), one commit: 95a5e7ba. The six BRU-0a files were copied from the untracked state in `.worktrees/be-integration` (that copy is untouched).
+- **Run:** a new disposable database on the loopback `frc08` container, `alembic upgrade heads` exit 0, API from this worktree on 127.0.0.1:8010, Bruno CLI 4.3.0, `--env-var baseUrl=http://127.0.0.1:8010`. Positive A02: 3 of 3 checks pass. The three negative controls fail with script errors that name the loopback guard (two with "only exact loopback hostnames are allowed", one with "user-info is not allowed"). The guard is therefore verified for the CLI; the Bruno desktop and the no-database start are still NOT VERIFIED.
+- **Guard rewrite (supersedes the entry's guard text):** the Bruno 4.3.0 CLI sandbox has no `URL` global, and its script preprocessor rejects a regex literal that contains slashes. `collection.bru` parses the interpolated URL by hand (2,638 bytes, SHA-256 `AD0A6A9A42A5038090725FF3E7615CCB9AA3BC070B951035E6D2774C0E9B69EE`). Decision D-066-83.
+- **Request set:** requests `145` (GET teacher candidates) and `146` (POST class assignment, `If-Match` and `Idempotency-Key`) added for the C6 M9-B routes; `ROLE_GUIDE.md` corrected for C5; `004` and `005` stay as labelled stale requests. The C4 and C5 header changes were already in the tree. Decision D-066-84.
+- **Full collection:** 147 requests run against the local API with the placeholder bearer value, no token and no Firebase write: 4 PASS, 0 FAIL, 95 BLOCKED-AUTH, 46 BLOCKED-ENV, 2 STALE. No real defect found. Decision D-066-85. Evidence: `evidence/notes/B2_BRUNO_FULL_COLLECTION_RUN_20261119.md` and the B2 re-run record in `evidence/notes/BRU_0A_IMPLEMENTATION_EVIDENCE_20261119.md`.
+- **Review:** one independent review round (Sonnet 5.5, high effort, fresh non-forked subagent, because the review was run inside this session): ACCEPTABLE WITH NOTES, 0 P1 / 3 P2 / 6 P3. Report `B2_REVIEW_R1.md` (kept outside the repository). The three P2 items (the explanation of Bruno's counter, a stale evidence-note status, and request 126 being counted as auth-blocked while its route is not mounted) and the README heading were corrected before the commit. Remaining notes: `144` uses an undefined variable, a missing `local.bru` entry for the owner to decide; the A02 run output was not retained.
+- **Not covered:** any push, PR or merge; authenticated runs (need SD-5 and tokens); BRU-0b (A17, A20, A22, A26, A27) and A08, which stay unapproved; Bruno requests for the routes listed as "no request" in the full-collection note.
