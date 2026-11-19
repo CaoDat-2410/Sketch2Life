@@ -1,5 +1,6 @@
 import React from "react";
 import { resolveBackendRuntimeConfig } from "./backendRuntimeConfig";
+import { parseApiError } from "./errorEnvelope";
 
 export type PortalRole = "parent" | "teacher" | "school_manager" | "platform_admin";
 export type PlatformAccountRole = PortalRole;
@@ -278,20 +279,8 @@ export function createIdempotencyKey(): string {
 }
 
 function errorFromResponse(body: unknown, status: number, headerRequestId: string | null): BackendApiError {
-  const record = typeof body === "object" && body !== null ? body as Record<string, unknown> : {};
-  const detail = typeof record.detail === "object" && record.detail !== null
-    ? record.detail as Record<string, unknown>
-    : record;
-  const code = typeof detail.code === "string" ? detail.code : `HTTP_${status}`;
-  const message = typeof detail.message === "string"
-    ? detail.message
-    : status === 401
-      ? "Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại."
-      : status === 403
-        ? "Tài khoản chưa được cấp quyền cho dữ liệu này."
-        : "Backend không thể hoàn tất yêu cầu.";
-  const requestId = typeof detail.request_id === "string" ? detail.request_id : headerRequestId ?? undefined;
-  return new BackendApiError(message, code, status, requestId);
+  const error = parseApiError(body, status, headerRequestId);
+  return new BackendApiError(error.message, error.code, status, error.requestId);
 }
 
 export async function backendRequest<T>(
