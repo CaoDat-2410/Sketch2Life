@@ -62,10 +62,12 @@ export const managerBusinessService = {
     ),
 
   parentGroups: (cursor?: string, signal?: AbortSignal) => {
-    const query = new URLSearchParams({ limit: "50" });
+    // SRS 21.1: cursor paging with the server default page size (25); no limit is sent.
+    const query = new URLSearchParams();
     if (cursor) query.set("cursor", cursor);
+    const queryString = query.toString();
     return adminApiRequest<ParentGroupPage>(
-      lessonLibraryOrganizationPath() + "/parent-groups?" + query.toString(),
+      lessonLibraryOrganizationPath() + "/parent-groups" + (queryString ? "?" + queryString : ""),
       withSignal(signal),
     );
   },
