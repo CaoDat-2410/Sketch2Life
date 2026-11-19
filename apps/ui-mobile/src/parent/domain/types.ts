@@ -148,9 +148,22 @@ export type StoryRun = {
   error_code: string | null;
 };
 
+/** FEAT-081 C3b: content-free history item (no story, context, topic or media). */
+export type ParentStoryRunSummary = {
+  run_id: string;
+  parent_profile_id: string | null;
+  run_state: string;
+  revision: number;
+  deleting: boolean;
+  can_cancel: boolean;
+  can_delete: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
 export type ParentStoryRunHistoryPage = {
-  contract: 'ParentStoryRunHistoryPageV1';
-  items: StoryRun[];
+  request_id: string;
+  items: ParentStoryRunSummary[];
   next_cursor: string | null;
 };
 

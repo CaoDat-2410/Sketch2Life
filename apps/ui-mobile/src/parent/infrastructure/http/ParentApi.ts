@@ -242,10 +242,12 @@ export class ParentApi implements ParentApiPort {
     ).then(liveRunOrLifecycleError);
   }
 
+  /** FEAT-081 C3b: the caller's run history, 25 per page, newest first (summary only). */
   listStoryRuns(profileId?: string, cursor?: string | null) {
-    void profileId;
-    void cursor;
-    return this.unavailable<ParentStoryRunHistoryPage>('run-history');
+    const query = new URLSearchParams({ limit: '25' });
+    if (cursor) query.set('cursor', cursor);
+    if (profileId) query.set('parent_profile_id', profileId);
+    return this.request<ParentStoryRunHistoryPage>(`/v1/story-runs?${query.toString()}`, 'GET', undefined, 30_000);
   }
 
   cancelStoryRun(runId: string) {
