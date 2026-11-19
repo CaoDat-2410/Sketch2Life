@@ -409,3 +409,32 @@ A source review found later important login-only rules in apps/shared/web-brand-
 - Scope: stage and commit all current non-ignored web-remediation worktree changes, records and reviewed screenshots in one new commit; run focused validation and push to the existing branch upstream.
 - Boundaries: keep the previously pushed Rev48 commit; no history rewrite/force push; exclude .env, tmp QA credentials, passwords/tokens, service-account keys, external references, and ignored build/runtime files.
 - Approval basis: the owner directly requested one consolidated commit and push for use on another machine; this supersedes earlier no-commit/push exclusions only for the current pending worktree changes.
+
+## FEAT-066 MGR-7 — bounded BE contract-conformance implementation
+
+- **Status:** APPROVED_FOR_IMPLEMENTATION by the owner’s conditional instruction on 2026-11-18, following coordinator review of the exact package and its R2 cold review.
+- **Approved package:** `features/FEAT-066-fe-ui-srs-full-review/plan/PLAN_MGR7_BE_IMPLEMENTATION_APPROVAL_PACKAGE_DRAFT1_20261118.md`, 34,177 bytes, SHA-256 `37B412F3E10403238FDC9B940C437941293AD91F78EFDB76E61F5DE4C97E3FC3`.
+- **Review:** `features/FEAT-066-fe-ui-srs-full-review/evidence/notes/MGR_7_COLD_REVIEW_DRAFT1_R2_20261118.md`, SHA-256 `68947A735334E641CA966EED24BEF544A008A7BC042F3C867F4680C869E191D3`, ACCEPT with no findings.
+- **Worktree/baseline:** `.worktrees/manager-api`, branch `feature/feat066-manager-api-contracts`, HEAD `1c9148e88600a101887e477541c4c4893ba1c7df`.
+- **Approved exact BE allowlist:** `backend/src/sketch2life/interfaces/http/routers/lesson_library.py`; `backend/src/sketch2life/infrastructure/lesson_library/service.py`; `backend/src/sketch2life/interfaces/http/openapi_contract.py`; `backend/tests/integration/lesson_library/test_lesson_library_api.py`; `backend/tests/unit/test_lesson_library_receipt_compatibility.py`; `backend/tests/contract/test_openapi_contract_catalog.py`.
+- **Approved behavior:** set only the Parent Groups and access-grants list defaults to 25 while preserving max 100, filters, cursors and stable ordering; change shared Lesson Library same-key/different-payload idempotency response to HTTP 400 `INVALID_IDEMPOTENCY_KEY`; preserve same-key/same-payload original-response replay and receipt scope/retention; align the static full OpenAPI catalog and the allowlisted tests.
+- **Explicit exclusions:** no FE file or UI action; no new route/DTO, schema/table/migration, gateway/proxy, `app.py` error-envelope mapping, public SRS projection, MGR-2 capacity, MGR-3 assignment/candidate, MGR-4 invitation/member writes, MGR-5 consent writes, or MGR-6 exact-version/hash decision path. MGR-9 FE integration requires its own reviewed plan and approval after BE implementation evidence.
+- **Verification boundary:** source/test-file edits are approved within the exact allowlist. Test execution, build, typecheck, lint, validators, diff-check, OpenAPI generation, runtime, database, Docker, network/provider and Modal commands remain NOT AUTHORIZED by this entry and require a separate owner command instruction with the environment boundary specified in the plan.
+- **Git boundary:** no stage, commit or push is authorized by this approval.
+
+Verification limit, 2026-11-18: The owner authorized exactly the two MGR-8 pytest commands ("Đúng 2 lệnh này", "Codex chạy") against an owner-prepared disposable local be1_acceptance database. The first command was invoked once with the root backend virtual environment interpreter and PYTHONPATH=src, then interrupted while pending without captured output; no exit code or test summary was captured. The second command was not run. No retry was made. MGR-8 remains NOT VERIFIED.
+
+Diagnostic scope, 2026-11-18: The owner authorized exactly three diagnostic pytest commands ("Chạy chẩn đoán"), run by Codex with the root backend virtual environment interpreter, PYTHONPATH=src and PYTHONUNBUFFERED=1, against the owner-prepared disposable local be1_acceptance database. D1 exited 0 with 8 passed. D2 was interrupted after about 12 minutes when output had not grown for 10 minutes; the shell returned 1, with no pytest exit status or final summary captured. D3 was not run. The diagnostic does not decide whether MGR-8 verification is satisfied; owner disposition is required.
+
+Scope amendment, 2026-11-18 (MGR-8 fixture): The owner approved in chat ("Approve the fix") one minimal fixture edit inside the already-allowlisted `backend/tests/integration/lesson_library/test_lesson_library_api.py`. The edit sets `account_role` on the four synthetic adult identities created by the fixture: teacher to `teacher`, manager to `school_manager`, parent to `parent`, platform admin to `platform_admin`. `role_revision` is not set because the model defaults it to 1. Reason: the owner-run D3 failed 6 of 7 tests with HTTP 403 `ACCOUNT_SCOPE_UNAVAILABLE`, because the fixture predates the account-role gate in `routers/be1_common.py` and the parent and platform-admin role checks in `routers/lesson_library.py`. No other line, test assertion, source file or file outside the six-file allowlist is approved by this amendment. The owner re-runs D3 in their own terminal; this amendment authorizes no test run by an agent. The D2 catalog failure (`KeyError: 'description'`, pre-existing on dev in `app.py`) is not decided here: no `app.py` change is approved. No stage, commit or push is authorized. MGR-8 remains NOT VERIFIED. Pre-append pin of this file: 38982 bytes, SHA-256 5272BA9768407FFF04BD8414F1536DEFE1E8C8FBC0C5EF0596513CEA0BA6CCB3.
+
+MGR-8 verification result, 2026-11-18: the owner ran D1, D2, D3 and `tests/contract/test_app_composition.py` in their own terminal on the root checkout's M2 branch, after merge `b93d7334`. Each command was run once with the root backend virtual environment interpreter, `PYTHONPATH=src`, `PYTHONUNBUFFERED=1` and the diagnostic output flags, against the owner-prepared disposable local `be1_acceptance` database.
+
+| Test | Result |
+|---|---|
+| D1 | 8 passed |
+| D2 | 5 passed |
+| D3 | 6 passed, 1 failed (PDF upload: 503, because ClamAV is not running; outside the MGR-7 change) |
+| `test_app_composition` | 7 passed |
+
+Owner decision: "R ok verified làm bước 5 đi" — MGR-8 VERIFIED, with the ClamAV environment limit recorded. Evidence: `evidence/notes/MGR_8_ROOT_RUN_RESULTS_20261118.md` (6,785 bytes, SHA-256 `19A6E63C106EFF951A162CF4B48475FBF442EF3656A30D29F910FFC2CECE1601`). This note does not approve a commit or push.

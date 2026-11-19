@@ -339,3 +339,193 @@ Do not enable Manager class creation before BE1 enforces the SRS capacity rule. 
 ## Rev51 — Commit pending handoff without rewriting prior history
 
 Include all current non-ignored worktree changes in one fast-forward commit. Keep the already-pushed Rev48 record commit intact. Exclude .env, ignored tmp credentials, provider keys/tokens and external references. This supersedes earlier no-commit/push boundaries only for the currently pending worktree content.
+
+## D-066-62 — Close Manager API MGR-1 policy boundaries (2026-11-17)
+
+At the owner's direct instruction on 2026-11-17, close these three MGR-1 policy choices:
+
+- **Manager-to-Parent group discovery/invitation:** Do not enable this flow in the current Manager API closure. Keep discovery and invitation unavailable until a separately approved, tenant-scoped recipient-discovery and invitation contract defines the verified Parent reference, minimum visible fields, authority, acceptance, expiry, revocation, and audit behavior. Do not infer recipient identity from a name or accept guessed principal references.
+- **Staff-created consent:** A School Manager or Teacher must not create or revoke effective Parent consent on the Parent's behalf. Parent remains the actor for Parent-profile sharing consent and grants. A staff-origin `pending` record is not effective Parent consent. Any distinct school-managed consent workflow remains out of scope/open until separately defined and approved.
+- **Teacher assignment candidates:** Only a verified Teacher principal belonging to the same organization is eligible for assignment. BE1 remains authoritative for organization, role, and current assignment facts; the server must validate eligibility and scope at command time. The candidate-read path and minimum response fields remain contract work; do not guess identities.
+
+These decisions close MGR-1 policy disposition only. They do not authorize API, persistence, UI, or schema implementation and do not modify the unsigned SRS or official task approval.
+
+## D-066-63 — Set the MGR-2 class-capacity contract direction (2026-11-17)
+
+For MGR-2 contract planning only, use the owner-selected unsigned SRS input recorded in the MGR-2 plan (SHA-256 `B9B1F42D0BB118C19C81607D3913B7E4F1D8B6F673F0C3FBB6402888FEB675F5`). Its header describes updates through Rev69 while its revision history ends at Rev68; keep that provenance discrepancy OPEN / NOT VERIFIED. The repository SRS authority remains the in-repository Rev60 pointer. This decision does not sign, replace, or modify either SRS or the authority record.
+
+- **Capacity owner and admission direction:** Billing owns the effective organization capacity and its effective-time suspension set. BE1 must obtain a versioned, concurrency-safe admission result before creating a class. A read-only capacity snapshot followed by an independent insert is insufficient to establish the SRS no-over-capacity invariant. Do not read Billing-owned storage directly or assume a cross-module transaction. The Billing owner must define the exact receipt/reservation, expiry, recovery, and persistence contract before MGR-7.
+- **Fail closed:** Do not create a class when current effective capacity cannot be verified. Preserve the SRS outcomes `201` and `409 CLASS_CAPACITY_REACHED` where applicable. The public status, code, and retry mapping for Billing unavailable, stale, or indeterminate outcomes remains OPEN; `503 CAPACITY_UNAVAILABLE` is not selected by this decision.
+- **Subscription and suspension behavior:** Permit creation during the SRS seven-day `GRACE` period only when effective capacity is verified. Block new class creation in `RESTRICTED`. Apply Billing-selected suspensions at their effective time through a versioned, idempotent BE1 projection; suspended classes remain readable and read-only, with class and roster history preserved.
+- **Idempotency and correlation:** Class creation is a state-changing command and must meet the selected SRS requirements: key scope by principal/operation/target, replay the original result for the same key and payload, and return HTTP 400 `INVALID_IDEMPOTENCY_KEY` for same-key/different-payload reuse. `X-Request-ID` is correlation only. The literal idempotency header name, format/length, receipt shape, and retention remain OPEN for the reviewed API contract.
+- **Scope and paths:** Apply the SRS §9.8 distinction: uniform `404` for nonexistent or out-of-scope resources, and `403` only for a known in-scope action denial. Reconcile the current BE1 source behavior in the implementation plan. The mapping between the SRS shorthand path and the existing `/api/be1/v1/...` route, generated OpenAPI output, and runtime behavior remain unverified/open; this decision does not alter routes.
+
+This is an owner-directed planning disposition following the MGR-2 independent review. It does not approve the MGR-2 draft for implementation, authorize tests/runtime, change the official task approval, or launch work. MGR-7 still requires reviewed contracts, exact allowlists, and separate owner approval. MGR-3 contract planning may proceed under the roadmap without source changes; any dependency or owner conflict must remain explicit.
+
+## D-066-64 — Use the D-209 SRS copy for all FEAT-066 work (2026-11-18)
+
+**Owner selection:** "Bản 701,157 B theo D-209", confirmed for recording with "Duyệt" on 2026-11-18.
+
+FEAT-066 uses one SRS for every lane and plan: the owner-supplied working SRS adopted by FEAT-063 D-209. It is 701,157 bytes, SHA-256 `B9B1F42D0BB118C19C81607D3913B7E4F1D8B6F673F0C3FBB6402888FEB675F5`, unsigned v2.7-draft.
+
+This supersedes, for FEAT-066 work only:
+- the D-066-63 sentence "The repository SRS authority remains the in-repository Rev60 pointer", together with its scoping of the copy to MGR-2 planning;
+- the SRS bullet of `evidence/notes/MGR_1_OWNER_DISPOSITION_20261117.md`;
+- the authority statements in the MGR-2 and MGR-3 plans that keep the copy out of authority.
+
+Earlier plans that cite Rev60 line numbers are re-mapped to the adopted copy in each slice's approval package.
+
+The worktree's in-repository `SRS_AUTHORITY.md` and SRS file still point to Rev60 on `dev`. They change when the M2 branch reaches `dev` or by a separate pointer update. This decision does not sign or modify any SRS file.
+
+## D-066-65 — Owner lanes and ownership for FEAT-066 (2026-11-18)
+
+**Owner's scope** (owner's words: "seed data, quota … sửa lệch giữa BE và FE và ghép api vào FE ở cả 4 role và cuối cùng là viết test ở bruno"; "payment tk khác làm nên tôi ko đụng"):
+- L1 seed data;
+- L2 quota, covering class capacity and video quota, without payment;
+- L3 API audit against the SRS, and BE–FE alignment;
+- L4 FE wiring for all four roles;
+- L5 Bruno tests.
+
+**Payment** (quote, invoice, checkout, provider callbacks, slot and top-up purchases) belongs to another teammate.
+
+**Seed scope (O-SEED):** all four roles (owner selection on 2026-11-18).
+
+**Billing module ownership (O-PAY):** "Tôi: contract + port + Billing trừ thanh toán". The owner builds:
+- the Billing contract;
+- its ports;
+- the Billing module, except payment.
+
+This is **pending agreement with the payment teammate** on the payment interface (Billing Draft 7 §7.4) and on the payment-owned tables. Until that agreement, no Billing implementation slice is approved.
+
+## D-066-66 — Billing contract direction for class capacity and video quota (2026-11-18)
+
+**Contract of record:** `plan/PLAN_L2_BILLING_CONTRACT_DRAFT7_20261118.md`, 49,498 bytes, SHA-256 `216B33D7B146E97DD2E0E99F13B034FC852A42E0933C9B30E520FF58DAB12BD0`.
+
+**Review history:** six cold-review rounds (Sonnet 5.5 high), the sixth granted by the owner beyond the five-round limit. The latest result was round 6, NOT READY with 0 P1, 1 P2 and 7 P3. Draft 7 is closed **without further review** by owner instruction ("Draft 7, không review"), with its F6 fixes as text edits.
+
+**Owner selections recorded here:**
+- **Admission design — "BE1 tự đếm lớp"** (replaces Q-L2-2 "Port giữ chỗ (reservation)").
+  - BE1 counts its own active classes inside its class-create transaction, under a lock on the organization row.
+  - Billing returns a versioned admission-capacity answer.
+  - No reservation, receipt or backfill exists.
+- **Stale-answer guard — "dấu version".**
+  - A BE1 column `be1_organizations.capacity_version_seen` is written only under the organization lock (Draft 7 §4 step 7).
+  - The downgrade use case runs under the same lock. If its outcome is indeterminate, it commits an unknown (null) stamp before releasing the lock.
+  - Billing's timeouts stay strictly inside BE1's call timeout.
+- **Earlier owner answers kept:**
+  - Q-L2-1 "Module mới trong backend";
+  - Q-L2-3 "503 BILLING_UNAVAILABLE" (this public code is still to be added to SRS §9.8);
+  - Q-L2-5 "Cấu hình, giá trị tạm";
+  - Q-L2-6 "Lười, lần dùng đầu";
+  - Q-L2-8 "Làm sổ + đọc trước";
+  - Q-L2-9 "Theo slice quy ước chung".
+- **Q-L2-7 "2 lệnh, key = payment event"** was extended by the Draft 1 review answer "Thêm lệnh thứ 3" into three payment-fulfilment commands, keyed by the verified provider event receipt.
+- **Q-L2-4 "Platform Admin + seed"** was refined by "Bootstrap + seed": organizations are created only by `be1_bootstrap.py`.
+- **Other Draft 1 review answers:**
+  - "Slot = 10 + add-on, đếm lớp active";
+  - "B-1 tạo sẵn bảng rỗng";
+  - "Seed giá trị tạm";
+  - "Kỳ local tự gia hạn".
+
+  "Backfill khi mở subscription" lapsed with the reservation design.
+- **Residuals accepted — "Chấp nhận cả hai":**
+  - **(d)** After a provider cancellation and until BE1 consumes `CapacityVersionChangedV1`, a create may still be admitted with a stale `can_create`. The result is an extra class in a cancelled subscription, never an over-capacity class.
+  - **(f)** If BE1's process dies or its commit fails after Billing committed a downgrade (or Billing commits after BE1 gave up), creates holding a pre-schedule answer can exceed the new capacity at the effective time. This is bounded by the stale creates in flight, made visible by an audit event, and resolved by an operator.
+- **Downgrade audit sink — "Duyệt":**
+  - Use the existing `core_audit_entries`: `action` = event type, `resource_type` = `capacity_downgrade`, `resource_id` = change group ref.
+  - Do not store the surplus count.
+  - De-duplicate by check-before-insert under the organization lock, without a new unique constraint on the core table.
+  - An HTTP read route for audit stays open, together with the downgrade route.
+
+**Still open** (Draft 7 §12):
+- the public names of the new codes and audit events;
+- the concrete timeout values and the Billing pool size;
+- the sweep and outbox publisher runner;
+- replacing or cancelling a scheduled downgrade;
+- the staging/production price version, supplied by the payment teammate;
+- the register and SRS updates for the NEW items.
+
+**Scope:** this decision fixes the contract direction only. It does not approve a Billing slice, schema, migration, test or runtime.
+
+## D-066-67 — Amend three sentences of D-066-63 (2026-11-18)
+
+Owner approval: "Duyệt sửa 3 câu". D-066-63 stays in place as written. For MGR-2 and Billing work its three sentences are read as follows, consistent with SRS UC-06 line 1460, §21.2 line 1649, §9.7 line 842 and §11.1 item 10 line 1027:
+
+1. "BE1 must obtain a versioned, concurrency-safe admission result before creating a class" → Billing supplies a versioned capacity answer, and BE1 makes the admission decision itself under its own organization lock (D-066-66).
+2. "A read-only capacity snapshot followed by an independent insert is insufficient" → still true; the capacity answer is read-only, but the count and the insert are one BE1 transaction under that lock, guarded by the version stamp and `valid_until`, so they are not independent.
+3. "The Billing owner must define the exact receipt/reservation, expiry, recovery, and persistence contract before MGR-7" → no receipt or reservation exists in the selected design; the Billing contract of D-066-66 defines the capacity answer, the version stamp, the downgrade use case and the events instead.
+
+The other parts of D-066-63 are unchanged:
+- fail closed;
+- GRACE and RESTRICTED behaviour;
+- suspension at the effective time;
+- idempotency semantics;
+- the §9.8 404/403 distinction, now governed by D-066-68.
+
+## D-066-68 — API conventions for the conventions slice CONV-1 (2026-11-18)
+
+**Source:** `plan/PLAN_API_CONVENTIONS_CONTRACT_DRAFT1_20261118.md`, 13,999 bytes, SHA-256 `1F41B74AD0F0A8425D5843851FEBA0CCFFDCD6D1572EE159E967F528C7D9DB01`. The SRS checks are recorded in `OWNER_DECISION_PROPOSALS_SRS_20261118.md`.
+
+**Owner answers:** given one question per item on 2026-11-18, each checked against the adopted SRS.
+
+- **C-D1 "Duyệt A":** every route uses the M2 Parent error envelope.
+  - The top-level §9.8 fields are `code`, `message`, `correlation_id`, `retryable`, `retry_after_seconds` and `field_errors`.
+  - Two extras are allowed under §21.1 line 1635: `current_version`, returned with `STALE_REVISION` (§21.4), and `request_id`, equal to `correlation_id`.
+  - This also confirms M2 limitation-ledger item O4.
+- **C-D2 "Duyệt A":** the correlation header is `X-Request-ID`. The body's `correlation_id` equals it.
+- **C-D3 "Duyệt A":** schema and validation failures return 400 `INVALID_REQUEST` with `field_errors`. 422 is used only for the §9.8 semantic codes.
+- **C-D4 "Duyệt":** the §9.8 rule applies.
+  - Uniform 404 `RESOURCE_NOT_FOUND` for an ID that does not exist or is out of scope.
+  - 403 `ACTION_NOT_ALLOWED` only when the resource is in scope.
+  - CONV-1 changes the shared scope guards; route-specific checks change in their own slices.
+- **C-D5 "Duyệt A":** header `Idempotency-Key` with exactly one value of 1–128 visible ASCII characters, which is the existing M2 Parent rule. A missing key on a state-changing command returns 400 `INVALID_REQUEST`.
+- **C-D6 "Duyệt A":** idempotency receipts are durable with no expiry, and only successful results are stored.
+- **C-D7 "Duyệt A":** the revision transport stays per resource family: body `expected_revision` for M2 Parent, strong `If-Match`/`ETag` for Lesson Library. Every stale case returns 409 `STALE_REVISION` with the current version or ETag, never 412.
+- **C-D8 "Duyệt A":** `limit` above 100 returns 400 `INVALID_REQUEST`. The page default is 25 with a maximum of 100; cursors are opaque.
+- **C-D9 "A: giữ tạm":** the `/api/<namespace>/v1/...` paths stay for now, as the §9.6 OpenAPI reconciliation of the §21.1 `/v1` base path. This is **not a literal match of §21.1**, and an SRS reconciliation note is required. The M2 Parent and StoryRun routes stay on `/v1/...`.
+- **C-D10 "Cho Parent đi trước":** the 8 M2-allowed Parent operations may be wired (C-P) before CONV-1.
+
+**Scope:** this decision fixes conventions for later slices only. CONV-1 still needs its own Task Approval, because MGR-7 excludes `app.py` envelope mapping. Nothing is implemented by this decision.
+
+## D-066-69 — School Manager profile visibility and account revisions (2026-11-18)
+
+- **O-PRIV — "Duyệt theo SRS"** (SRS §31.3 permission table line 2586, School Manager: "Không đọc profile contents mặc định"):
+  - By default the School Manager receives no child-profile contents: no name and no age.
+  - Roster views show counts and opaque references only, until the owner approves a separate process.
+  - Teachers keep the fields granted to them.
+- **O-ACCREV — "Duyệt":** Platform Admin account updates need no mandatory revision precondition, because SRS §21.4 line 1699 lists only profile, lesson plan, story and script. Accounts keep returning their revision, and the idempotency key is still required (D-066-68 C-D5).
+
+**Scope:** this decision does not implement anything. The BE and FE changes belong to their capability slices.
+
+## D-066-70 — Parent mobile reconciliation (2026-11-18)
+
+**Source:** `tmp/feat066-phase-a/mobile-brief/PARENT_MOBILE_RECONCILIATION_BRIEF_20261118.md`. Owner answers, given one question per item:
+
+- **D-A "(c) Lưu rồi làm sạch":**
+  - The staged FEAT-081 Plan Revision 19 / Addendum 34 work in the mobile worktree is preserved non-destructively: a patch of the staged diff plus both sides of the conflicted test under `tmp/`, or a backup branch.
+  - The Parent slice C-P then starts clean from the M2 contract.
+  - A FEAT-081 record marks Plan 19 as superseded. Plan 19 targets the legacy `/api/parent/v1/child-profiles…` routes, which `dev` and M2 removed and SRS §21.2 does not name.
+- **D-B "Tác giả tự xử lý":** the author of the unmerged `apps/ui-mobile/tests/parentSrsBehavior.test.ts` resolves it inside the D-A preserve step. No session resolves it automatically.
+- **D-C "Đúng, merge vào đó":** `origin/dev` is merged into `feature/fe-mobile-remediation` without a force-push.
+  - Only after D-A and D-B are done.
+  - Only after M2 has reached the base (O-0).
+  - HieuNewBie joins for the `backend/alembic` changes.
+- **D-D "FEAT-081 addendum":** C-P is carried by a new FEAT-081 addendum that references the FEAT-066 register rows M02–M05 and M08–M11.
+
+**Scope:** this decision authorizes no Git operation, file move or mobile edit. Each step needs its own owner instruction.
+
+## Decision-ID reconciliation note — two numbering lineages (2026-11-19)
+
+- **Why:** this file was merged from two branches that numbered FEAT-066 decisions independently. Both
+  histories are kept verbatim above, because earlier records pin their bytes; no entry was renumbered or
+  edited.
+- **Web lineage:** branch `codex/fe-ui-web-remediation`, decisions D-066-62 to D-066-78 (Revisions 31 to 51,
+  2026-11-16 to 2026-11-17), followed by the Rev48 to Rev51 entries. They appear first in the merged part.
+- **BE lineage:** `dev` and the local BE branches `feature/feat066-*`, decisions D-066-62 to D-066-79 as of
+  2026-11-19. `dev` holds D-066-62 to D-066-70 (they follow the web entries above); D-066-71 to D-066-79 exist
+  only on local BE branches so far and will arrive when those branches merge.
+- **How to cite from now on:** a decision ID in the range D-066-62 to D-066-79 must carry its lineage, for
+  example "D-066-62 (web)" or "D-066-62 (BE)". An ID without a lineage in that range is ambiguous.
+- **Next number:** every new FEAT-066 decision, in either lineage, takes the next number from D-066-80
+  upward, so the two lineages do not collide again.
+- **Authority:** this note records a merge resolution approved by the owner; it decides nothing else.

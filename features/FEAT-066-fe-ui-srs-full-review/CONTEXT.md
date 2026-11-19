@@ -396,3 +396,64 @@ Authenticated QA GET returned HTTP 200 with zero classes, confirming the screens
 ## Revision 51 — consolidated web handoff — 2026-11-17
 
 Owner approved consolidating all current non-ignored web-remediation worktree changes into one new commit for another machine. The scope includes role portals, Admin/Manager/Teacher frontend work, shared folder reorganization, bootstrap fix/test and FEAT-066 records through Rev51. .env and QA credentials in ignored tmp remain local. Validation and file inventory are recorded in EV-057.
+
+## School Manager API gap-closure checkpoint — MGR-1 complete (2026-11-17)
+
+The read-only MGR-0 inventory covers 17 Manager routes and distinguishes source declaration/composition from historical runtime evidence. Owner dispositions for MGR-1 are recorded in D-066-62 and `evidence/notes/MGR_1_OWNER_DISPOSITION_20261117.md`: Manager-to-Parent discovery/invitation stays unavailable pending a separately approved scoped contract; staff cannot create or revoke effective Parent consent; assignment candidates must be verified Teachers in the same organization. The MGR plan remains DRAFT / NOT APPROVED / NOT LAUNCHED. MGR-2 contract design for Billing-owned class capacity is next; implementation remains gated by MGR-7 approval. The owner-selected external Rev69 SRS input and the unchanged repository Rev60 authority pointer are both recorded; neither SRS has been signed or replaced.
+
+## MGR-2 independent review and disposition — 2026-11-17
+
+MGR-2 contract Draft 1 and its source evidence received an independent planning review: ACCEPT WITH NOTES, zero actionable findings. D-066-63 records the planning direction: Billing owns effective capacity; BE1 must obtain a versioned, concurrency-safe admission result before writing; fail closed if capacity cannot be verified; preserve SRS idempotency, GRACE/RESTRICTED, effective-time suspension, and scope behavior. Billing-unavailable public mapping, exact idempotency wire details, reservation/receipt protocol, and route-prefix mapping remain OPEN. The review did not verify runtime, generated OpenAPI, or Billing integration. MGR-2 remains DRAFT / NOT APPROVED / NOT LAUNCHED; no source or official Task Approval changed. Next roadmap work is MGR-3 contract planning, subject to its listed parallel dependencies and owner availability. See `evidence/notes/MGR_2_COLD_REVIEW_OWNER_DISPOSITION_20261117.md`.
+
+## MGR-2 Rev60 citation correction and cold review R3 — 2026-11-17
+
+The R2 traceability finding was corrected in the MGR-2 plan and source evidence. They now state that Rev60 §9.6 line 791 contains the general idempotency-key requirement; §§21.1/21.4 provide the key scope and replay/mismatch semantics; and §9.8 line 835 provides the HTTP 400 `INVALID_IDEMPOTENCY_KEY` mapping. The proposed route-group listing at §9.6 lines 766–775 is kept distinct from those requirements. An independent cold review of the exact updated pins returned **ACCEPT, zero P0/P1/P2/P3 findings**. The review was read-only and did not inspect the external SRS or verify runtime/generated OpenAPI/Billing integration. Current plan/evidence pins and the review are recorded in `evidence/notes/MGR_2_COLD_REVIEW_DRAFT1_R3_20261117.md`.
+
+MGR-2 remains **DRAFT / NOT APPROVED / NOT LAUNCHED**. Billing-owned protocol details, exact idempotency wire/receipt details, public outcomes for unavailable or stale Billing decisions, and route-prefix mapping remain open. No source, official approval, SRS, or decision record changed; no tests, validators, runtime, database, Docker, network/provider, or Modal commands were run.
+
+## MGR-7 bounded BE approval checkpoint — 2026-11-18
+
+The owner conditionally approved the exact MGR-7 package after coordinator review and its R2 cold review returned ACCEPT with no findings. The feature-local `approvals/TASK_APPROVAL.md` records the exact plan pin, six-file BE allowlist, behavior, exclusions, and verification boundary. Approval covers implementation edits only; tests/build/typecheck/lint/validators/diff-check/OpenAPI/runtime and external service commands still require a separate owner launch instruction. MGR-7 implementation has not started. MGR-2 through MGR-6 remain separate open contract gaps; MGR-9 FE integration is not approved and must follow BE implementation evidence and its own approval.
+
+### 2026-11-18 — MGR-8 verification attempt
+
+P1 preflight passed, but the first authorized pytest command remained pending without captured output and was interrupted. No exit code or test summary is available; the second command was not run. MGR-8 remains NOT VERIFIED. See the implementation verification evidence note.
+
+### 2026-11-18 — MGR-8 diagnostic
+
+D1 passed 8 tests. D2 was interrupted after about 12 minutes with no log growth for 10 minutes; faulthandler located the wait in the OpenAPI Swagger/TestClient test during AnyIO and Windows asyncio portal setup. D3 was not run. The diagnostic does not decide the MGR-8 verification gate; owner disposition remains required. See the diagnostic evidence note.
+
+### 2026-11-18 — MGR-8 owner-run results and fixture amendment
+
+The owner ran D2 and D3 in their own terminal, outside the Codex sandbox, which hangs on loopback sockets. D2 (OpenAPI catalog): 2 passed, 1 failed with `KeyError: 'description'` at test line 332. The cause is a pre-existing `dev` `app.py` description gate that the M2 branch already removed; the MGR-7 catalog assertions from line 460 were never reached. D3 (Lesson Library integration): 6 of 7 failed with 403 `ACCOUNT_SCOPE_UNAVAILABLE`, because the fixture created adults without `account_role`. The owner approved a scoped amendment ("Approve the fix"), recorded in Task Approval, which sets `account_role` on the four synthetic adults; no other line changed. The owner-run D3-R2 gave 6 passed and 1 failed. The passes include the MGR-7 default-25 list test and the 400 `INVALID_IDEMPOTENCY_KEY` retry assertion. The failure is the teacher PDF upload test: 503 `DEPENDENCY_UNAVAILABLE` because no ClamAV answered at 127.0.0.1:3310, and MGR-7 did not change that test. MGR-8 stays NOT VERIFIED pending owner disposition; the D2 path (wait for M2, port `app.py`, or accept the limitation) is undecided. See `evidence/notes/MGR_8_OWNER_RUN_RESULTS_20261118.md`.
+
+### 2026-11-18 — MGR-8 owner disposition: PARTIAL
+
+The owner's instruction was relayed by the coordinating BE session ("Theo SRS và đề xuất cho tôi sau đó đưa câu trả lời cho phiên đó đi"). MGR-8 is recorded as **PARTIAL — runtime behaviour verified, catalog pending**.
+
+- **Runtime behaviour: verified.** D1 passed 8 tests, and D3-R2 passed 6 of 7, covering the default-25 lists (SRS §21.1) and `INVALID_IDEMPOTENCY_KEY` (SRS §21.4).
+- **Environment limit, accepted:** the teacher PDF upload test failed with 503 because ClamAV was not running.
+- **Catalog: not verified.** The `openapi_contract.py` change has no passing test, and SRS §9.6 requires OpenAPI reconciliation, so it must not be committed unverified.
+- **D2 direction: (a), wait for M2 on `dev`.** No `app.py` port.
+
+Next steps, each only on the owner's word: M2 reaches `dev`; S-LL is rebased onto it; the owner re-runs D2 and D3; an independent review runs (Sonnet 5.5 high); then one S-LL commit. No commit until then. See the "Owner disposition" section of `evidence/notes/MGR_8_OWNER_RUN_RESULTS_20261118.md`.
+
+## 2026-11-18 — MGR-8 VERIFIED on the consolidated M2 branch
+
+The S-LL work (MGR-7 change and MGR-8 verification) moved from `.worktrees/manager-api` to the root checkout's M2 branch under the owner-approved consolidation plan. The steps were:
+- commit `b95fed64` (Bruno and FEAT-081 records);
+- merge `b93d7334` (`dev` plus the Phase A commit `9ceaf6cf`);
+- the S-LL patch applied cleanly.
+
+The owner then ran the tests in their own terminal:
+
+| Test | Result |
+|---|---|
+| D1 unit | 8 passed |
+| D2 catalog | 5 passed, including the MGR-7 assertions |
+| D3 integration | 6 of 7 passed: both MGR-7 behaviours pass; the PDF upload test needs ClamAV |
+| `test_app_composition` | 7 passed |
+
+The owner decision was "R ok verified làm bước 5 đi": MGR-8 is **VERIFIED**, with the ClamAV PDF test recorded as an environment limit outside MGR-7. ClamAV becomes a prerequisite for the Teacher C-T upload slice, the L5 upload runs and Phase D.
+
+Evidence: `evidence/notes/MGR_8_ROOT_RUN_RESULTS_20261118.md` (6,785 bytes, `19A6E63C106EFF951A162CF4B48475FBF442EF3656A30D29F910FFC2CECE1601`). Next: an independent evidence review, then one S-LL commit on the owner's word.

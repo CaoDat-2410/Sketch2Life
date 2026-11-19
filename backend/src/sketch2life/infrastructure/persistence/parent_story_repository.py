@@ -5,12 +5,12 @@ from __future__ import annotations
 import hashlib
 import hmac
 import json
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from datetime import UTC, datetime
 from typing import Any, cast
 from uuid import UUID, uuid4
 
-from sqlalchemy import insert, select, text, update
+from sqlalchemy import insert, null, select, text, update
 from sqlalchemy.engine import CursorResult, RowMapping
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
@@ -132,7 +132,9 @@ class SqlParentStoryRunRepository:
                     context_revision=1,
                     context_snapshot=context,
                     context_snapshot_sha256=context_hash,
-                    lesson_pin_snapshot=lesson_pin,
+                    # An explicit None on a JSONB column is bound as JSON null, which the
+                    # lesson-pin check refuses; SQL NULL is required.
+                    lesson_pin_snapshot=lesson_pin if lesson_pin is not None else null(),
                     lesson_pin_snapshot_sha256=lesson_pin_hash,
                     context_confirmed_by=None,
                     context_confirmed_at=None,
@@ -263,6 +265,7 @@ class SqlParentStoryRunRepository:
         return ParentStoryRunRecord(
             run_id=run_id,
             run_state=str(run["run_state"]),
+            run_revision=int(run["revision"]),
             parent_profile_id=UUID(str(run["profile_ref"])),
             profile_revision_ref=UUID(str(input_row["source_profile_revision_ref"])),
             context_revision=int(input_row["context_revision"]),
@@ -321,6 +324,118 @@ class SqlParentStoryRunRepository:
             principal=principal,
             run_id=str(run_id),
         )
+
+    def cancel_run(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        run_id: str,
+        expected_revision: int,
+        idempotency_key: str,
+        request_id: str,
+        response_builder: Callable[[ParentStoryRunRecord, str], dict[str, Any]],
+    ) -> dict[str, Any]:
+        run = self._owned_run(principal, run_id, lock=True)
+        key_hash = _idempotency_key_hash(idempotency_key)
+        fingerprint = _sha256_json(
+            {"run_id": run_id, "expected_revision": expected_revision}
+        )
+        principal_scope = _principal_scope_ref(principal)
+        self._lock_idempotency(
+            principal=principal,
+            operation="CANCEL_RUN",
+            scope_kind="COLLECTION",
+            scope_ref=principal_scope,
+            key_hash=key_hash,
+        )
+        try:
+            receipt = self._session.execute(
+                select(story_tables.story_command_receipts).where(
+                    story_tables.story_command_receipts.c.actor_scope_kind
+                    == _OWNER_SCOPE_KIND,
+                    story_tables.story_command_receipts.c.actor_scope_ref == principal_scope,
+                    story_tables.story_command_receipts.c.operation == "CANCEL_RUN",
+                    story_tables.story_command_receipts.c.idempotency_key_sha256 == key_hash,
+                )
+            ).mappings().one_or_none()
+            if receipt is not None:
+                if (
+                    receipt["idempotency_scope_kind"] != "STORY_RUN"
+                    or receipt["idempotency_scope_ref"] != run_id
+                    or not hmac.compare_digest(
+                        str(receipt["request_fingerprint_sha256"]), fingerprint
+                    )
+                ):
+                    raise ParentStoryRunError(400, "INVALID_IDEMPOTENCY_KEY")
+                body = receipt["response_body"]
+                if (
+                    receipt["state"] != "FINAL"
+                    or receipt["response_status"] != 202
+                    or not isinstance(body, dict)
+                ):
+                    raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE")
+                self._session.commit()
+                return dict(body)
+
+            current_revision = int(run["revision"])
+            if current_revision != expected_revision:
+                raise ParentStoryRunError(
+                    409, "STALE_REVISION", current_version=current_revision
+                )
+            if run["run_state"] not in {
+                "INPUT_PROCESSING",
+                "SUBJECT_REVIEW",
+                "PREPARATION_REVIEW",
+                "SCRIPT_GENERATING",
+                "SCRIPT_GENERATION_UNKNOWN",
+                "SCRIPT_REVIEW",
+                "VIDEO_ADMISSION_PENDING",
+            }:
+                raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
+
+            now = datetime.now(UTC)
+            new_revision = current_revision + 1
+            new_version = int(run["version"]) + 1
+            self._session.execute(
+                update(story_tables.story_runs)
+                .where(
+                    story_tables.story_runs.c.run_id == run_id,
+                    story_tables.story_runs.c.revision == current_revision,
+                )
+                .values(
+                    run_state="DELETE_PENDING",
+                    active_owner_parent_account_id=None,
+                    revision=new_revision,
+                    version=new_version,
+                    updated_at=now,
+                )
+            )
+            record = self.get_run(principal=principal, run_id=run_id)
+            response_body = response_builder(record, request_id)
+            self._store_idempotency_receipt(
+                principal=principal,
+                operation="CANCEL_RUN",
+                scope_kind="STORY_RUN",
+                scope_ref=run_id,
+                key_hash=key_hash,
+                fingerprint=fingerprint,
+                run_id=run_id,
+                resource_version=new_version,
+                response_body=response_body,
+                now=now,
+                response_status=202,
+            )
+            self._session.commit()
+            return response_body
+        except ParentStoryRunError:
+            self._session.rollback()
+            raise
+        except IntegrityError:
+            self._session.rollback()
+            raise ParentStoryRunError(400, "INVALID_IDEMPOTENCY_KEY") from None
+        except SQLAlchemyError:
+            self._session.rollback()
+            raise ParentStoryRunError(503, "PARENT_STORY_RUN_STORE_UNAVAILABLE") from None
 
     def confirm_context(
         self,
@@ -475,6 +590,9 @@ class SqlParentStoryRunRepository:
                     ),
                 ]
             )
+            # The session factory disables autoflush, so the asset rows must be written
+            # before the lineage insert, whose foreign keys are checked immediately.
+            self._session.flush()
             self._session.execute(
                 insert(lineage).values(
                     lineage_id=str(uuid4()),
@@ -517,7 +635,7 @@ class SqlParentStoryRunRepository:
                     context_snapshot=previous["context_snapshot"],
                     context_snapshot_sha256=previous["context_snapshot_sha256"],
                     lesson_pin_snapshot=(
-                        None
+                        null()
                         if previous["lesson_pin_snapshot"] is None
                         else dict(previous["lesson_pin_snapshot"])
                     ),
@@ -972,6 +1090,8 @@ class SqlParentStoryRunRepository:
         model_revision: str,
     ) -> ParentStoryRunRecord:
         run = self._owned_run(principal, reservation.run_id, lock=True)
+        if run["run_state"] == "DELETE_PENDING":
+            raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
         revision_id = self._session.scalar(
             select(story_tables.story_revisions.c.story_revision_id).where(
                 story_tables.story_revisions.c.story_revision_id == reservation.story_revision_id,
@@ -1086,6 +1206,8 @@ class SqlParentStoryRunRepository:
         outcome_unknown: bool,
     ) -> None:
         run = self._owned_run(principal, reservation.run_id, lock=True)
+        if run["run_state"] == "DELETE_PENDING":
+            raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
         now = datetime.now(UTC)
         revision_state = "AWAITING_RECONCILIATION" if outcome_unknown else "FAILED"
         run_state = "SCRIPT_GENERATION_UNKNOWN" if outcome_unknown else "FAILED"
@@ -1155,6 +1277,8 @@ class SqlParentStoryRunRepository:
         self, *, principal: VerifiedPrincipal, run_id: str, error_code: str, outcome_unknown: bool
     ) -> None:
         run = self._owned_run(principal, run_id, lock=True)
+        if run["run_state"] == "DELETE_PENDING":
+            raise ParentStoryRunError(409, "INVALID_STATE_TRANSITION")
         now = datetime.now(UTC)
         try:
             self._session.execute(
@@ -1417,7 +1541,8 @@ class SqlParentStoryRunRepository:
                 state="PENDING",
                 response_status=None,
                 response_resource_version=None,
-                response_body=None,
+                # SQL NULL, not JSON null: the receipt shape check requires IS NULL.
+                response_body=null(),
                 resource_ref=run_id,
                 resource_version=resource_version,
                 state_version=1,

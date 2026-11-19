@@ -693,3 +693,71 @@ The owner authorized substantive documentation updates for G01–G10 and explici
 - Focused Parent service/worker tests previously passed 28/28; one post-refinement Modal inference was cancelled after 976.326 seconds before output, so the live quality-gate result remains unknown. Dev catalog had zero eligible published/shared activities. Video was not called.
 - The canonical SRS remains v2.7-draft Rev60 and unsigned. The user's catalog-first clarification is recorded as D-172; SRS reconciliation remains open.
 - Plan, approval and synthetic evidence: plan/PLAN_REV78_PARENT_CATALOG_FIRST_ACTIVITY_SUGGESTIONS_20261111.md, plan/PLAN_REV78A_PARENT_ACTIVITY_GATE_REFINEMENT_20261111.md, plan/PLAN_REV78B_PARENT_CATALOG_PIN_AND_PUBLICATION_20261111.md, and evidence/EV-063-87_PARENT_FULL_API_UI_E2E_20261111/.
+
+## FR-C-08 cancellation/deletion/purge planning — Draft 4 (2026-11-15)
+
+- Current requirements authority is the unsigned FEAT-063 v2.7-draft Rev68 under D-203/D-208. Draft 4 preserves the D-208/Rev68 lifecycle rules and corrects Draft 3 review issues about owner timing, the M2 implementation gate, audit blockers, test-result attribution, and Draft 1 provenance; it also makes D-208's contract-update and independent-review pre-implementation gate explicit.
+- Current proposals: `plan/FR_C08_PARENT_TEACHER_CANCEL_PURGE_IMPLEMENTATION_SPEC_DRAFT4_20261115.md`, `plan/FR_C08_PARENT_TEACHER_CANCEL_PURGE_LIFECYCLE_PLAN_DRAFT4_20261115.md`, and `plan/FR_C08_PARENT_TEACHER_CANCEL_PURGE_IMPLEMENTATION_ALLOWLIST_DRAFT4_20261115.md`.
+- Status remains **PLANNING ONLY / BLOCKED FOR IMPLEMENTATION / NOT APPROVED / NOT LAUNCHED**. Coordinator review found no further SRS/D-208 policy mismatch after the contract-review gate was added; this is not an independent cold review, which remains pending. Technical contracts and the partial/dirty M2 baseline remain gates. No M2 approval or command ceiling transfers. The review state is tracked in `status/STATUS.md` and `evidence/`.
+- No implementation, source/test edit, database/migration action, approval, launch, stage, commit, or push is recorded by this planning update.
+
+## FR-C-08 route-scope correction and M2 snapshot — 2026-11-15
+
+- This update supersedes the preceding Draft 4 paragraph's “independent cold review ... pending” wording: that review completed CLEAN for the pinned Draft 4 bytes; the later source audit then found the DELETE route-scope omission.
+- The Draft 4 independent review was CLEAN for its pinned bytes, but the subsequent source/contract audit found that its Spec and Allowlist did not select Rev68 §21.2's already-defined DELETE /v1/story-runs/{id} operation. The route-scope correction now treats DELETE as required SRS implementation in the existing Parent router/composition; it adds no other route and leaves unspecified request/receipt details open.
+- The active worktree's dirty baseline was pinned in evidence/FR_C08_M2_BASELINE_SNAPSHOT_20261115.md: 60 paths (24 modified, 36 untracked), 0 staged at 2026-11-15 16:16:55 UTC. M2 remains PARTIAL / NOT COMPLETE; test/typecheck/lint outcomes remain historical non-passing or unavailable evidence.
+- Corrected drafts: plan/FR_C08_DELETE_ROUTE_SCOPE_CORRECTION_DRAFT1_20261115.md (10,582 bytes / E19028505E3945F3F290525332F33BD8292EB5EC29CEBAD2F978EDB407E698CD); plan/FR_C08_IMPLEMENTATION_READINESS_ADDENDUM_DRAFT2_20261115.md (9,537 / FE21C953B5DD9DCF564E0EACC884967D861995D84E3E6FE029AB0F60E9B3FEEA); plan/M3_M6_SRS_ALIGNED_ROADMAP_ADDENDUM_DRAFT2_20261115.md (8,024 / 8CE372A6F35F01C16EF67376636D3E0BA6A75E1F7D9F0CCCF6549E9B4B11D2C8).
+- Fresh independent cold review: CLEAN, 0 P1/P2/P3; evidence evidence/FR_C08_ROUTE_AND_READINESS_DRAFT2_COLD_REVIEW_20261115.md, 3,449 bytes / 42A94A0E228ED403A4FA234FA54E25D0B236083AE5686FA95165761FADFF0054. This is readiness for owner review only, not implementation approval.
+- Remaining blockers include typed Parent request/receipt ownership, complete 18-state/13-cancel mapping, current Teacher assignment authorization, immediate revocation, owner-module purge/reference proof and audit/retention mapping. Separate contract review, exact allowlist, Task Approval, named owners before launch and pinned launch instruction remain.
+- Roadmap Draft 3 remains the complete Rev68 M3–M6 scope; Addendum Draft 2 preserves that scope and the M2 → FR-C-08/P0 → API-contract → M3/M4 → M5 → M6 dependency order. Root Rev60 and active worktree Rev68 authority pointers remain a recorded lineage difference.
+- No code, SRS, DTR, decision, approval, test, runtime, database, migration, provider or Modal work occurred. Nothing was staged, committed or pushed.
+
+## M2-S2 OpenAPI mapper Draft 5 cold review — 2026-11-16
+
+- Draft 5 (`plan/M2_S2_SHARED_OPENAPI_MAPPER_FIX_DRAFT5_20261116.md`) is pinned at 29,568 bytes / SHA-256 `61D198C946085F35622ED00236D54DB6FC347A8AF960821BB3D2E6F99B652243`. Its status remains DRAFT / NOT APPROVED / NOT LAUNCHED.
+- Fresh-context independent cold review returned ACCEPT with no blocking finding for those exact bytes: thread `01a1e286-d311-78c3-9e52-1998f4f05f58`, turn `01a1e286-da4c-78b3-9ebd-5da431b5d61b`. Evidence: `evidence/M2_S2_SHARED_OPENAPI_MAPPER_FIX_DRAFT5_COLD_REVIEW_20261116.md`.
+- The review confirms the planning corrections and owner-selected Option A; it does not approve implementation. The disclosed stale-catalog risk remains, and lock-matched environment, exact allowlist/command/evidence scope, Task Approval, and launch instruction are still owner gates.
+- M2-S2 remains PARTIAL / NOT COMPLETE; M2-S3 remains a separate gate. No source, tests, decisions, approvals, SRS, or historical evidence were changed. No project tests, validators, typecheck, lint, or OpenAPI generation ran.
+
+## 2026-11-17 — SRS authority update (D-209)
+
+- The canonical working SRS is now the owner-supplied copy adopted by D-209 (701157 bytes / SHA-256 B9B1F42D0BB118C19C81607D3913B7E4F1D8B6F673F0C3FBB6402888FEB675F5; unsigned). Older revisions, including Rev60, Rev67 and the Rev68 working copy reconciled under D-208, are historical only.
+- Statements above that name Rev68 describe the state before this update; read them by their pins. Mapper Task Approval Draft 1, M2-S3 Draft 6, the FR-C-08 Draft 4 files and Roadmap Draft 3 / Addendum Draft 3 still cite the earlier pin and must be re-pinned before they are approved or launched.
+- Lifecycle requirements are read from the adopted copy. Whether UC-07 deletion covers FAILED and ABANDONED runs is OPEN-OWNER for the FR-C-08 gate (see D-209).
+- M2-S2 remains PARTIAL / NOT COMPLETE. No source, test, approval or launch record was changed.
+
+## 2026-11-17 — M2-S2 closure verification checkpoint
+
+- Evidence report: `evidence/M2_S2_CLOSURE_VERIFICATION_EVIDENCE_20261117.md` (10487 bytes / SHA-256 `CF644A09FF0802F7A2E4444CCBCC9E01B67528A3DC8B3F718686E441ED454525`). Plan: `plan/M2_S2_CLOSURE_VERIFICATION_TASK_APPROVAL_DRAFT1_20261117.md` revision 3; reviews R1 and R2 are in `evidence/`.
+- Results: the nine-file pytest selection passed, 84 of 84, with the egress block in effect. Ruff on the six S2 source paths: 17 diagnostics, all present at HEAD, none added. Mypy: 353 signatures against 336 at HEAD; 19 `arg-type` diagnostics added and 2 removed by the uncommitted work.
+- Owner decisions recorded in `approvals/TASK_APPROVAL.md`: keep the FEAT-047 description overlay on `be1_artifacts.py`; diagnostics that exist at HEAD are debt outside S2; the 19 added Mypy diagnostics are accepted as recorded typing debt.
+- The mapper task was accepted with recorded deviations earlier the same day; the out-of-scope OpenAPI finding of 2026-11-14 is addressed by it.
+- Follow-ups, none started: Mypy and Ruff debt, the stale-version P3 on broader routes, the open request-ID inventory.
+- Not done: owner decision to close M2-S2. Nothing staged, committed or pushed. No Modal or provider call. M2-S2 remains PARTIAL / NOT COMPLETE.
+
+## 2026-11-17 — M2-S2 CLOSED by the owner with recorded debt and deviations
+
+- The owner closed M2-S2; the entry is the last one in `approvals/TASK_APPROVAL.md` (record then 478,001 bytes / SHA-256 `249E096717A2D38465D20E26F542A2C4934933EC37532D9D6E1AB49FC0FEAE37`). Earlier statements in this file that M2-S2 is PARTIAL / NOT COMPLETE describe the state before this entry.
+- Evidence: `evidence/M2_S2_CLOSURE_VERIFICATION_EVIDENCE_20261117.md` and `evidence/M2_S2_SHARED_OPENAPI_MAPPER_IMPLEMENTATION_EVIDENCE_20261117.md`.
+- Debt carried as follow-ups, none started: 19 added and 336 existing Mypy diagnostics; 18 existing Ruff diagnostics; the stale-version P3 on broader routes; the open request-ID inventory. The full backend test suite was not run.
+- All S2 and mapper work is still uncommitted on `feature/feat063-m2-s2`; nothing staged, committed or pushed. M2-S3 and later gates are not started; M2-S3 Draft 6 still pins the earlier SRS copy and must be re-pinned.
+
+## 2026-11-18 — M2 PostgreSQL gate G1 passed with deviations; four PostgreSQL write defects repaired after the S2 closure
+
+- After the M2-S2 closure it was found that the D-151 baseline asks for PostgreSQL route evidence for M2-AT-08, M2-AT-09 and M2-AT-10, which the offline S2 evidence does not give. The owner chose a reduced PostgreSQL gate G1 for M2-AT-08 and M2-AT-10; M2-AT-09 (a gate G2 or a recorded deferral) is still undecided.
+- Rehearsal 1 of the gate showed that `POST /v1/story-runs` without a lesson version failed on PostgreSQL for every caller. Four write defects in `backend/src/sketch2life/infrastructure/persistence/parent_story_repository.py` were repaired in commit `b430b67a` under their own approval (`evidence/M2_S2_PARENT_STORY_POSTGRES_WRITE_DEFECTS_FIX_EVIDENCE_20261118.md`). Three are verified on PostgreSQL by the gate; the pending-receipt write (W3) is not. M2-S2 had been closed while these defects existed; whether its closure record needs an addendum is an open owner decision.
+- Gate G1: rehearsals 2 to 5 passed 20 of 20; gate attempt 1 was interrupted by an operator action and has no result; gate attempt 2 passed 20 of 20 at commit `67ef7d7c`. The owner accepted the result as "gate G1 passed with deviations DV-1 to DV-19, on the second attempt" for the M2-AT-08 and M2-AT-10 rows of the S3 ledger; the entry is the last one in `approvals/TASK_APPROVAL.md`. Evidence: `evidence/M2_S2_POSTGRES_GATE_G1_EVIDENCE_20261118.md` and its independent review `evidence/M2_S2_POSTGRES_GATE_G1_EVIDENCE_REVIEW_R3_20261118.md`.
+- The gate's test file and launcher are in `backend/tests/integration/` (`test_m2_s2_g1_parent_story_postgres.py`, `m2_s2_g1_launcher.py`); they skip unless run from the owner's gate card. The owner-run driver, the run outputs and the kept containers exist only on the owner's machine.
+- Not started: M2-S3 (Draft 7 was reviewed NOT READY and is not revised; it must take this gate result, the deviations and the repaired defects into its ledgers). Open: M2-AT-09; verification of W3; PG-D7; the earlier Mypy and Ruff debt. Nothing of this work is pushed; draft PR #29 is unchanged on the remote.
+
+## 2026-11-18 — M2-S3 work done; package awaiting independent review
+
+- S3 (documentation only) ran under Draft 11, approved under D-213 item 7, on base commit `7950d303`. Outputs: frozen runtime and client-projection schema copies (`artifacts/m2-s3/`), `evidence/M2_S3_OPERATION_INVENTORY_AND_CONTRACT_FREEZE_20261118.md`, `evidence/M2_S3_ACCEPTANCE_TEST_LEDGER_20261118.md`, `evidence/M2_S3_LIMITATION_LEDGER_20261118.md`, `evidence/M2_S3_CLOSEOUT_REPORT_20261118.md`. Uncommitted.
+- The OpenAPI P3 gate stays OPEN; M2-AT-09 DEFERRED with the client-integration block on the three assistance operations; client integration with the Parent target operations is per operation (the cancel operation not yet, being absent from the client-facing projection).
+- M2 is not closed; that is the owner's decision after the independent review of the package.
+
+## 2026-11-18 — M2 CLOSED with recorded debt and deviations
+
+- The owner accepted M2-S3 and closed M2 with recorded debt and deviations after an independent package review (READY WITH NOTES, 0 P1 / 0 P2). The closure entry in `approvals/TASK_APPROVAL.md` states the five departures from the foundation-plan baseline and what stays open; `evidence/M2_S3_LIMITATION_LEDGER_20261118.md` holds the debt with an owner or phase per item.
+- The frozen M2 contract is `artifacts/m2-s3/openapi-runtime-frozen.json` with its client projection; client integration is allowed per operation for eight Parent target operations, not for the cancel operation, and blocked for the three assistance operations until the OpenAPI P3 gate and a PostgreSQL gate for M2-AT-09.
+- Nothing is pushed; draft PR #29 is not merged. M3 is not opened.
