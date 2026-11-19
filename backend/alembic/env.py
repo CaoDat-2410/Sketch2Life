@@ -10,7 +10,7 @@ from __future__ import annotations
 import os
 from logging.config import fileConfig
 
-from sqlalchemy import create_engine
+from sqlalchemy import String, create_engine
 from sqlalchemy.engine import make_url
 from sqlalchemy.pool import NullPool
 
@@ -115,6 +115,16 @@ def _database_url() -> str:
     return url.render_as_string(hide_password=False)
 
 
+def _widen_version_table() -> None:
+    """Allow migration identifiers longer than Alembic's 32-char default."""
+
+    # Alembic creates its version table metadata with String(32). This project
+    # has one intentionally descriptive revision id longer than that limit.
+    # Adjust the generated table metadata before Alembic emits DDL or writes a
+    # version row, keeping online and offline migration output consistent.
+    context.get_context()._version.c.version_num.type = String(128)  # noqa: SLF001
+
+
 def run_migrations_offline() -> None:
     context.configure(
         url=_database_url(),
@@ -125,6 +135,7 @@ def run_migrations_offline() -> None:
         include_schemas=True,
         include_name=_include_name,
     )
+    _widen_version_table()
     with context.begin_transaction():
         context.run_migrations()
 
@@ -143,6 +154,7 @@ def run_migrations_online() -> None:
             include_schemas=True,
             include_name=_include_name,
         )
+        _widen_version_table()
         with context.begin_transaction():
             context.run_migrations()
 

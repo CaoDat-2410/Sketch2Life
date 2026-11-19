@@ -19,6 +19,5 @@ export * from './PixlErrorScreen';
 export * from './PreviewResultScreen';
 export * from './SceneUnderstandingScreen';
 export * from './SettingsScreen';
-export * from './SplashScreen';
 export * from './StoryPreviewScreen';
 export * from './VoiceScreen';

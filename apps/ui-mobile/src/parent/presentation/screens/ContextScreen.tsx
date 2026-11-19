@@ -20,7 +20,6 @@ type Props = {
 export function ContextScreen(props: Props): React.JSX.Element {
   const snapshot = props.contextRun?.context_snapshot;
   const lessonPin = props.contextRun?.lesson_pin_snapshot;
-  const stepLabel = (props.contextRun?.understanding_revision ?? 0) > 0 ? '5 / 7' : props.stepLabel;
   const subject = props.contextRun?.subject_label ?? '';
   const subjectConfirmed = Boolean(props.contextRun && subject && isConfirmedRunSubject(props.contextRun, subject));
   const awaitingDrawing = props.contextRun?.current_input_revision === 1
@@ -30,13 +29,13 @@ export function ContextScreen(props: Props): React.JSX.Element {
     <ScreenFrame
       title="Rà soát thông tin buổi"
       subtitle="Chỉ xem dữ liệu cần cho buổi học này."
-      step={stepLabel}
+      step={props.stepLabel}
       onBack={props.onBack}
     >
       {props.profile ? <Card style={styles.profileCard}>
         <SectionTitle>Hồ sơ được chọn</SectionTitle>
         <Text style={styles.profileText}>
-          {props.profile.display_name} · {props.profile.age_months} tháng
+          {props.profile.display_name}
         </Text>
       </Card> : null}
 

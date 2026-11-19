@@ -1,10 +1,12 @@
 import { useRef, useState } from 'react';
 import { ParentApplicationError } from '../../application/ParentApplicationError';
 import { createParentActionIdentity } from '../../application/ports/ParentPorts';
+import type { ActivitySuggestionResult } from '../../application/ports/ParentPorts';
 import type { ParentActionIdentity } from '../../application/ports/ParentPorts';
 import type { ParentApplicationModule } from '../../application/ports/ParentApplicationModule';
 import { parseStoryDraft } from '../../domain/storyDraft';
 import type {
+  ConsentPolicy,
   LessonDetail,
   LessonInvitation,
   LessonSummary,
@@ -51,7 +53,6 @@ import {
   mergeProfilePage,
   readStoryRevisionReadModel,
   nextProfileCursor,
-  readRunPinnedLessonActivities,
   readRunUnderstanding,
   readDrawingCandidate,
   reconcileProfileRecord,
@@ -60,7 +61,7 @@ import {
   selectProfileById,
 } from './parentFlowV1';
 
-const consentState: ParentConsentUiState = createUnavailableParentConsentState('route-not-in-be-handoff');
+const unavailableConsentState: ParentConsentUiState = createUnavailableParentConsentState('route-not-in-be-handoff');
 
 type ActiveRunPreflightResult =
   | { state: 'confirmed'; activeRun: ParentStoryRunV1 | null }
@@ -84,6 +85,9 @@ export function useParentController(application: ParentApplicationModule) {
   const [pendingDeletions, setPendingDeletions] = useState<ParentProfileDeletePendingV1[]>([]);
   const [pendingDeletionLoadingId, setPendingDeletionLoadingId] = useState('');
   const [profileFieldErrors, setProfileFieldErrors] = useState(safeProfileFieldMessages(null));
+  const [profileConsentPolicy, setProfileConsentPolicy] = useState<ConsentPolicy | null>(null);
+  const [profileConsentPolicyBusy, setProfileConsentPolicyBusy] = useState(false);
+  const [profileConsentPolicyError, setProfileConsentPolicyError] = useState('');
   const [activeRun, setActiveRun] = useState<ParentStoryRunV1 | null>(null);
   const [activeRunCheck, setActiveRunCheck] = useState<ParentActiveRunCheckState>('checking');
   const [topic, setTopic] = useState('');
@@ -111,10 +115,12 @@ export function useParentController(application: ParentApplicationModule) {
   const [subject, setSubject] = useState('');
   const [subjectConfirmed, setSubjectConfirmed] = useState(false);
   const [understandingRevision, setUnderstandingRevision] = useState(0);
-  const [activities, setActivities] = useState<SuggestedActivity[]>([]);
-  const [activitySource, setActivitySource] = useState('');
+  const [activitySuggestions, setActivitySuggestions] = useState<ActivitySuggestionResult | null>(null);
+  const [selectedActivityIndex, setSelectedActivityIndex] = useState<number | null>(null);
+  const [activityBusy, setActivityBusy] = useState(false);
   const [activityAttempted, setActivityAttempted] = useState(false);
   const [activityError, setActivityError] = useState('');
+  const activitySelectionPersisted = false as const;
   const [story, setStory] = useState<StoryDraft | null>(null);
   const [storyDisplayedRunId, setStoryDisplayedRunId] = useState('');
   const [storyRevisionNo, setStoryRevisionNo] = useState<number | null>(null);
@@ -141,6 +147,13 @@ export function useParentController(application: ParentApplicationModule) {
   const runCreationInFlight = useRef(false);
   const drawingAnalysisInFlight = useRef(false);
   const drawingAnalysisAttemptedRunId = useRef<string | null>(null);
+  const consentState: ParentConsentUiState = profile?.authorization_current && profile.authorization_policy_version?.trim()
+    ? {
+      status: { state: 'confirmed', source: 'server', policyRevision: profile.authorization_policy_version },
+      capture: { state: 'confirmed', value: undefined },
+      revoke: { state: 'unavailable', reason: 'route-not-in-be-handoff' },
+    }
+    : unavailableConsentState;
 
   async function timeRequest<T>(stage: string, request: () => Promise<T>): Promise<T> {
     const started = Date.now();
@@ -175,6 +188,23 @@ export function useParentController(application: ParentApplicationModule) {
       cursor = nextCursor;
     } while (cursor !== null);
     return loaded;
+  }
+
+  async function loadProfileConsentPolicy(): Promise<void> {
+    setProfileConsentPolicyBusy(true);
+    setProfileConsentPolicyError('');
+    try {
+      const result = await application.profiles.getConsentPolicy();
+      if (!result.policy.policy_version.trim() || !result.policy.consent_text.trim()) {
+        throw new ParentApplicationError('PARENT_CONSENT_POLICY_UNAVAILABLE', 'Chưa có nội dung xác nhận hợp lệ từ máy chủ.');
+      }
+      setProfileConsentPolicy(result.policy);
+    } catch (cause) {
+      setProfileConsentPolicy(null);
+      setProfileConsentPolicyError(safeProfileActionError(cause));
+    } finally {
+      setProfileConsentPolicyBusy(false);
+    }
   }
 
   function inspectActiveRun(): Promise<ActiveRunPreflightResult> {
@@ -253,10 +283,16 @@ export function useParentController(application: ParentApplicationModule) {
     }
   }
 
-  async function createProfile(input: { displayName: string; ageMonths: number; interests: string }): Promise<ParentProfileViewV1> {
+  async function createProfile(
+    input: { displayName: string; ageMonths: number; interests: string },
+    consent: { consent_accepted: true; consent_policy_version: string },
+  ): Promise<ParentProfileViewV1> {
     const displayName = input.displayName.trim();
     const interests = input.interests.trim();
-    const signature = JSON.stringify([displayName, input.ageMonths, interests || null]);
+    if (!profileConsentPolicy || consent.consent_policy_version !== profileConsentPolicy.policy_version) {
+      throw new ParentApplicationError('PARENT_CONSENT_POLICY_STALE', 'Nội dung xác nhận đã thay đổi. Hãy tải lại và kiểm tra trước khi tạo hồ sơ.');
+    }
+    const signature = JSON.stringify([displayName, input.ageMonths, interests, consent.consent_policy_version]);
     const actionIdentity = retainedActionIdentity(profileCreateAction, signature);
     setBusy('profile');
     setError('');
@@ -265,9 +301,11 @@ export function useParentController(application: ParentApplicationModule) {
       const created = await application.profiles.createV1({
         age_months: input.ageMonths,
         display_name: displayName,
-        interests_summary: interests || null,
+        interests_summary: interests || '',
+        consent_accepted: consent.consent_accepted,
+        consent_policy_version: consent.consent_policy_version,
       }, actionIdentity);
-      const record = await application.profiles.getV1(created.profile_id);
+      const record = created;
       const reconciled = reconcileProfileRecord(profiles, pendingDeletions, record);
       setProfiles(reconciled.profiles);
       setPendingDeletions(reconciled.pendingDeletions);
@@ -287,8 +325,11 @@ export function useParentController(application: ParentApplicationModule) {
     }
   }
 
-  async function createProfileAndReturn(input: { displayName: string; ageMonths: number; interests: string }): Promise<ParentProfileViewV1> {
-    const created = await createProfile(input);
+  async function createProfileAndReturn(
+    input: { displayName: string; ageMonths: number; interests: string },
+    consent: { consent_accepted: true; consent_policy_version: string },
+  ): Promise<ParentProfileViewV1> {
+    const created = await createProfile(input, consent);
     setStep('profile');
     return created;
   }
@@ -381,7 +422,14 @@ export function useParentController(application: ParentApplicationModule) {
         setProfiles(reconciled.profiles);
         setPendingDeletions(reconciled.pendingDeletions);
       } else {
-        setError('Máy chủ chưa xác nhận thay đổi trạng thái xóa. Hồ sơ vẫn bị khóa trong ứng dụng.');
+        const reconciled = reconcileProfileRecord(profiles, pendingDeletions, record);
+        setProfiles(reconciled.profiles);
+        setPendingDeletions(reconciled.pendingDeletions);
+        if (record.state === 'ARCHIVED' || record.state === 'DELETED') {
+          setError('Hồ sơ đã được lưu trữ trên máy chủ.');
+        } else {
+          setError('Máy chủ chưa xác nhận thay đổi trạng thái. Hồ sơ vẫn bị khóa trong ứng dụng.');
+        }
       }
     } catch (cause) {
       setError(safeProfileActionError(cause));
@@ -601,26 +649,32 @@ export function useParentController(application: ParentApplicationModule) {
     setPhotoValue((current) => current ? { ...current, analysisError: message } : current);
   }
 
-  async function createContextRun(): Promise<void> {
-    if (busy || runCreationInFlight.current || !ensureLearningProfileAllowed(profile)) return;
+  function resetActivityReview(): void {
+    setActivitySuggestions(null);
+    setSelectedActivityIndex(null);
+    setActivityBusy(false);
+    setActivityAttempted(false);
+    setActivityError('');
+  }
+
+  async function createContextRun(): Promise<ParentStoryRunV1 | null> {
+    if (busy || runCreationInFlight.current || !ensureLearningProfileAllowed(profile)) return null;
     const selectedPhoto = photo;
     const targetProfile = profile;
     if (!selectedPhoto || !isWithinOfflinePhotoLimit(selectedPhoto.fileSizeBytes)) {
       setPhotoMessage(safeParentFlowErrorMessage({ code: 'PARENT_DRAWING_REQUIRED' }));
-      return;
+      return null;
     }
     if (contextRun) {
-      setPhotoMessage('Buổi học đã được tạo. Hãy kiểm tra ngữ cảnh trước khi tiếp tục.');
-      setStep('context');
-      return;
+      return contextRun;
     }
-    if (!targetProfile) return;
+    if (!targetProfile) return null;
     const pin = lessonVersionPinFromDetail(lesson);
     if (!canBeginContextStep({
       profileId: targetProfile.profile_id, topic, adultIdea: idea, lessonPin: pin,
     })) {
-      setPhotoMessage(safeParentFlowErrorMessage({ code: 'PARENT_LESSON_PIN_REQUIRED' }));
-      return;
+      setPhotoMessage(safeParentFlowErrorMessage({ code: 'PARENT_CONTEXT_REQUIRED' }));
+      return null;
     }
 
     runCreationInFlight.current = true;
@@ -631,11 +685,11 @@ export function useParentController(application: ParentApplicationModule) {
       const preflight = await inspectActiveRun();
       if (preflight.state === 'unavailable') {
         setPhotoMessage(PARENT_RUN_PREFLIGHT_UNAVAILABLE_MESSAGE);
-        return;
+        return null;
       }
       if (preflight.activeRun) {
         setPhotoMessage(safeParentFlowErrorMessage({ code: 'ACTIVE_RUN_EXISTS' }));
-        return;
+        return null;
       }
       const signature = JSON.stringify([targetProfile.profile_id, topic.trim(), idea.trim(), pin]);
       const actionIdentity = retainedActionIdentity(runCreationAction, signature);
@@ -664,11 +718,14 @@ export function useParentController(application: ParentApplicationModule) {
       setContextRun(run);
       setActiveRun(run);
       setContextConfirmed(run.context_confirmed === true);
+      resetActivityReview();
       drawingAnalysisAttemptedRunId.current = null;
       setStep('capture');
       runCreationAction.current = null;
+      return run;
     } catch (cause) {
       setPhotoMessage(safeParentFlowErrorMessage(cause));
+      return null;
     } finally {
       runCreationInFlight.current = false;
       setBusy('');
@@ -772,10 +829,7 @@ export function useParentController(application: ParentApplicationModule) {
     setUnderstandingRevision(readModel.understandingRevision);
     const confirmed = isConfirmedRunSubject(run, readModel.subject);
     setSubjectConfirmed(confirmed);
-    setActivities(confirmed ? readRunPinnedLessonActivities(run.lesson_pin_snapshot) : []);
-    setActivityAttempted(confirmed);
-    setActivitySource(confirmed ? 'Pinned activities from the exact server run snapshot.' : '');
-    setActivityError(confirmed ? 'Chưa thể chọn hoặc gợi ý hoạt động.' : '');
+    resetActivityReview();
     if (revisionChanged || contextChanged || !confirmed) {
       setStory(null);
       setStoryDisplayedRunId('');
@@ -845,11 +899,6 @@ export function useParentController(application: ParentApplicationModule) {
       setContextConfirmed(true);
       contextConfirmationAction.current = null;
       setSubjectConfirmed(isConfirmedRunSubject(confirmedRun, subject));
-      const pinnedActivities = readRunPinnedLessonActivities(confirmedRun.lesson_pin_snapshot);
-      setActivityAttempted(true);
-      setActivities(pinnedActivities);
-      setActivitySource('Pinned activities from the exact server run snapshot.');
-      setActivityError('Chưa thể chọn hoặc gợi ý hoạt động.');
     } catch (cause) {
       if (cause instanceof ParentApplicationError && cause.code === 'STALE_REVISION') {
         contextConfirmationAction.current = null;
@@ -946,6 +995,7 @@ export function useParentController(application: ParentApplicationModule) {
       setSubject(returnedCandidate.candidate_subject ?? '');
       setUnderstandingRevision(understandingRevision);
       setSubjectConfirmed(false);
+      resetActivityReview();
       setStep('understanding');
     } catch (cause) {
       if (uploadAttempted) {
@@ -972,7 +1022,8 @@ export function useParentController(application: ParentApplicationModule) {
 
   async function analyzeDrawingForCurrentRun(): Promise<void> {
     if (!contextRun) {
-      await createContextRun();
+      const createdRun = await createContextRun();
+      if (createdRun) await analyzeDrawingForRun(createdRun.run_id);
       return;
     }
     await analyzeDrawingForRun(contextRun.run_id);
@@ -1012,10 +1063,6 @@ export function useParentController(application: ParentApplicationModule) {
           setSubject(currentUnderstanding.subject);
           setUnderstandingRevision(currentUnderstanding.understandingRevision);
           setSubjectConfirmed(true);
-          setActivities(readRunPinnedLessonActivities(latest.lesson_pin_snapshot));
-          setActivityAttempted(true);
-          setActivitySource('Pinned activities from the exact server run snapshot.');
-          setActivityError('Chưa thể chọn hoặc gợi ý hoạt động.');
           setStep(latest.context_confirmed === true ? 'activity' : 'context');
           subjectConfirmationAction.current = null;
           return;
@@ -1050,10 +1097,7 @@ export function useParentController(application: ParentApplicationModule) {
       setUnderstandingRevision(response.understanding_revision);
       setCandidate(confirmedRun.candidate ?? null);
       setSubjectConfirmed(true);
-      setActivities(readRunPinnedLessonActivities(confirmedRun.lesson_pin_snapshot));
-      setActivityAttempted(true);
-      setActivitySource('Pinned activities from the exact server run snapshot.');
-      setActivityError('Chưa thể chọn hoặc gợi ý hoạt động.');
+      resetActivityReview();
       setStep('context');
       subjectConfirmationAction.current = null;
     } catch (cause) {
@@ -1081,17 +1125,66 @@ export function useParentController(application: ParentApplicationModule) {
     }
   }
 
-  async function requestActivities(): Promise<void> {
+  async function requestActivitySuggestions(): Promise<void> {
+    if (activityBusy || (activityAttempted && activitySuggestions)) return;
     if (!ensureLearningProfileAllowed(profile)) return;
-    const pinned = readRunPinnedLessonActivities(contextRun?.lesson_pin_snapshot);
+    const run = contextRun;
+    if (!run || !contextConfirmed || !subjectConfirmed || !isConfirmedRunSubject(run, subject)) {
+      setActivityError('Xác nhận chủ thể và ngữ cảnh của buổi học trước khi tìm hoạt động.');
+      return;
+    }
+
     setActivityAttempted(true);
-    setActivities(pinned);
-    setActivitySource(pinned.length ? 'PINNED_LESSON' : 'NONE');
-    setActivityError('Chưa thể chọn, gợi ý hoặc thay thế hoạt động.');
+    setActivityBusy(true);
+    setActivityError('');
+    setActivitySuggestions(null);
+    setSelectedActivityIndex(null);
+    try {
+      const latest = await getLatestRun(run.run_id);
+      const latestUnderstanding = readRunUnderstanding(latest);
+      if (latest.context_revision !== run.context_revision
+        || latest.context_snapshot_sha256 !== run.context_snapshot_sha256
+        || !latestUnderstanding
+        || latestUnderstanding.understandingRevision !== understandingRevision
+        || !isConfirmedRunSubject(latest, subject)) {
+        setActivityError(safeParentFlowErrorMessage({ code: 'STALE_REVISION' }));
+        return;
+      }
+      const result = await timeRequest(
+        'activity-suggestions',
+        () => application.learning.suggestActivities(run.run_id, understandingRevision),
+      );
+      if (result.story_run_id !== run.run_id
+        || result.understanding_revision !== understandingRevision
+        || result.review_required !== true
+        || !Array.isArray(result.activities)
+        || result.activities.length === 0) {
+        throw new ParentApplicationError('PARENT_ACTIVITY_RESPONSE_INVALID', 'Chưa nhận được danh sách hoạt động hợp lệ.');
+      }
+      setActivitySuggestions(result);
+    } catch (cause) {
+      setActivityError(safeParentFlowErrorMessage(cause));
+    } finally {
+      setActivityBusy(false);
+    }
   }
+
+  function chooseActivity(index: number): void {
+    if (!activitySuggestions || !Number.isInteger(index) || index < 0 || index >= activitySuggestions.activities.length) return;
+    setSelectedActivityIndex(index);
+  }
+
   async function requestStory(instruction?: string, allowSameActionRetry = false): Promise<void> {
     if (busy) return;
     if (!ensureLearningProfileAllowed(profile)) return;
+    if (selectedActivityIndex === null || !activitySuggestions?.activities[selectedActivityIndex]) {
+      setError('Chọn một hoạt động phù hợp trước khi tạo câu chuyện.');
+      return;
+    }
+    if (!activitySelectionPersisted) {
+      setError('Chưa thể tạo câu chuyện: backend chưa có API để lưu hoạt động đã chọn vào StoryRun.');
+      return;
+    }
     const runId = contextRun?.run_id;
     const normalizedInstruction = instruction?.trim() ?? '';
     const expectedContextRevision = contextRun?.context_revision;
@@ -1373,6 +1466,7 @@ export function useParentController(application: ParentApplicationModule) {
   }
 
   async function resetCurrentPassword(): Promise<void> {
+    setAccountError('');
     if (!currentUser?.email) throw new Error('Không có email đăng nhập để gửi hướng dẫn.');
     await application.account.resetPassword(currentUser.email);
   }
@@ -1405,7 +1499,7 @@ export function useParentController(application: ParentApplicationModule) {
     setTopic(''); setIdea(''); setLesson(null); setPhotoValue(null); setCandidate(null); setSubject('');
     setContextRun(null); setContextConfirmed(false); setProfileFieldErrors({});
     setAudioValue(null); setDrawingGuideIndex(0); setUnderstandingRevision(0); setSubjectConfirmed(false);
-    setActivities([]); setActivitySource(''); setActivityAttempted(false); setActivityError('');
+    resetActivityReview();
     setStory(null); setStoryDisplayedRunId(''); setStoryRevisionNo(null); setStorySha256('');
     setStoryAttempted(false); setStoryConfirmed(false); setRewriteCount(0); setRewriteInstruction('');
     setGuideBase64(''); setGuideEnabled(false); setEvents([]); setError(''); setBusy('');
@@ -1423,23 +1517,27 @@ export function useParentController(application: ParentApplicationModule) {
   return {
     step, setStep, currentUser, profiles, profile, setProfile, selectedProfileId, profileBeingEdited, setProfileBeingEdited,
     pendingDeletions, pendingDeletionLoadingId, profileFieldErrors, consentState,
+    profileConsentPolicy, profileConsentPolicyBusy, profileConsentPolicyError, loadProfileConsentPolicy,
     publicSettings: application.publicSettings,
     activeRun, topic, setTopic, idea, setIdea, lesson, setLesson, lessons, lessonLoading, lessonLoadingId, lessonError,
     galleryMode, galleryLesson, lessonInvitations, groupInvitations, accountError, guideEnabled, setGuideEnabled,
     guideBase64, guideBusy, guideError, photo, setPhoto, audio, setAudio,
     contextRun, contextConfirmed, candidate, subject, setSubject, subjectConfirmed, understandingRevision,
-    activities, activitySource, activityAttempted, activityError, story, storyDisplayedRunId, storyRevisionNo,
+    activitySuggestions, selectedActivityIndex, activityBusy, activityAttempted, activityError,
+    activitySelectionPersisted: false as const, requestActivitySuggestions, chooseActivity,
+    story, storyDisplayedRunId, storyRevisionNo,
     storySha256, storyAttempted,
     storyConfirmed, rewriteCount, rewriteInstruction, setRewriteInstruction, events, busy, error, authError, bootstrapBusy,
     loadParentData, authenticate, signInWithGoogle, resetPassword, createProfileAndReturn, updateProfile,
     selectProfile, requestProfileDeletion, refreshPendingDeletion, continueWithProfile, openLessons, chooseLesson, acceptLessonInvitation,
     declineLessonInvitation, acceptGroupInvitation, createGuide, openDrawingGuide, openContextReview, confirmContext,
     continueToCapture, analyzeDrawingForCurrentRun, confirmSubject,
-    requestActivities, requestStory, confirmStory, drawingGuideIndex, setDrawingGuideIndex,
+    requestStory, confirmStory, drawingGuideIndex, setDrawingGuideIndex,
     resumeActiveRun, changePassword, resetCurrentPassword, signOut,
     retryContextCreation: createContextRun,
     resetWorkflow, backToProfile: () => { setStep('profile'); setError(''); },
     clearProfileFormErrors: () => setProfileFieldErrors({}),
+    clearAuthError: () => setAuthError(''),
     clearError: () => setError(''),
   };
 }

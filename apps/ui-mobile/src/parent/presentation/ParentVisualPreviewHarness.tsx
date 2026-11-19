@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
 import type {
   Activity,
@@ -9,6 +9,7 @@ import type {
   ParentAudioTranscription,
   ParentDrawingCandidateV1,
   ParentGroupInvitation,
+  ParentNotification,
   ParentProfileViewV1,
   ParentStoryRunV1,
   ParentUser,
@@ -17,7 +18,7 @@ import type {
 } from '../domain/types';
 import type { ParentCapabilityState } from '../application/ports/ParentCapabilityPorts';
 import { createUnavailableParentConsentState } from './navigation/workflowTypes';
-import { Card, Notice, PrimaryButton, ScreenFrame, SecondaryButton, palette } from './components/ui';
+import { Card, Notice, PrimaryButton, ScreenFrame, ScreenScrollView, SecondaryButton, palette } from './components/ui';
 import { AccountScreen } from './screens/AccountScreen';
 import { ActivityScreen } from './screens/ActivityScreen';
 import { AuthScreen } from './screens/AuthScreen';
@@ -25,6 +26,7 @@ import { ContextScreen } from './screens/ContextScreen';
 import { DrawingGuideScreen } from './screens/DrawingGuideScreen';
 import { HandoffScreen } from './screens/HandoffScreen';
 import { HomeScreen } from './screens/HomeScreen';
+import { IdeaScreen } from './screens/IdeaScreen';
 import { LessonGalleryScreen } from './screens/LessonGalleryScreen';
 import { LessonHistoryScreen } from './screens/LessonHistoryScreen';
 import { LessonPickerScreen } from './screens/LessonPickerScreen';
@@ -55,6 +57,7 @@ const previewTabs = [
   { id: 'gallery', label: 'Thư viện' },
   { id: 'picker', label: 'Chọn bài' },
   { id: 'topic', label: 'Chủ đề' },
+  { id: 'idea', label: 'Ý tưởng buổi vẽ' },
   { id: 'guide', label: 'Gợi ý vẽ' },
   { id: 'capture', label: 'Chụp tranh' },
   { id: 'capture-denied', label: 'Chụp · từ chối quyền' },
@@ -69,7 +72,9 @@ const previewTabs = [
   { id: 'history', label: 'Lịch sử buổi' },
   { id: 'lesson-history', label: 'Bài đã học' },
   { id: 'quota', label: 'Lượt dùng' },
-  { id: 'notifications', label: 'Thông báo' },
+  { id: 'notifications', label: 'Thông báo · khóa' },
+  { id: 'notifications-empty', label: 'Thông báo · trống' },
+  { id: 'notifications-list', label: 'Thông báo · danh sách' },
   { id: 'bottom-bar', label: 'Thanh điều hướng' },
 ] as const;
 
@@ -260,6 +265,56 @@ const previewStory: StoryDraft = {
 
 const previewTranscript: ParentAudioTranscription | null = null;
 
+function previewNotificationDate(daysAgo: number, hour: number): string {
+  const date = new Date();
+  date.setDate(date.getDate() - daysAgo);
+  date.setHours(hour, 18, 0, 0);
+  return date.toISOString();
+}
+
+const previewNotifications: ParentNotification[] = [
+  {
+    contract: 'NotificationInboxItemV1',
+    notification_id: 'preview-notification-share-invitation',
+    kind: 'PROFILE_SHARE_INVITATION',
+    title: 'Có lời mời chia sẻ hồ sơ của bé',
+    resource_kind: null,
+    resource_ref: null,
+    created_at: previewNotificationDate(0, 10),
+    read_at: null,
+  },
+  {
+    contract: 'NotificationInboxItemV1',
+    notification_id: 'preview-notification-lesson-reply',
+    kind: 'LESSON_REPLY',
+    title: 'Có phản hồi mới về bài học “Khu vườn màu sắc”',
+    resource_kind: null,
+    resource_ref: null,
+    created_at: previewNotificationDate(0, 9),
+    read_at: previewNotificationDate(0, 9),
+  },
+  {
+    contract: 'NotificationInboxItemV1',
+    notification_id: 'preview-notification-lesson-feedback',
+    kind: 'LESSON_FEEDBACK',
+    title: 'Bài học “Vẽ khu vườn nhiều màu sắc” vừa có phản hồi mới từ giáo viên',
+    resource_kind: null,
+    resource_ref: null,
+    created_at: previewNotificationDate(1, 15),
+    read_at: null,
+  },
+  {
+    contract: 'NotificationInboxItemV1',
+    notification_id: 'preview-notification-share-accepted',
+    kind: 'PROFILE_SHARE_ACCEPTED',
+    title: 'Lời mời chia sẻ hồ sơ đã được chấp nhận',
+    resource_kind: null,
+    resource_ref: null,
+    created_at: previewNotificationDate(4, 11),
+    read_at: previewNotificationDate(4, 11),
+  },
+];
+
 function ignoreAction(): void {}
 
 type CapturePreviewState = 'empty' | 'camera-denied' | 'photo-selected';
@@ -269,7 +324,7 @@ function CapturePreviewScreen({ state }: { state: CapturePreviewState }): React.
   const cameraDenied = state === 'camera-denied';
 
   return (
-    <ScreenFrame title="Chụp hoặc chọn tranh" subtitle="Ảnh tranh giấy là bắt buộc." step="3 / 7" onBack={ignoreAction}>
+    <ScreenFrame title="Chụp hoặc chọn tranh" subtitle="Ảnh tranh giấy là bắt buộc." step="4 / 8" onBack={ignoreAction}>
       <Card style={styles.capturePreviewCard}>
         <Text style={styles.capturePreviewRequired}>BẮT BUỘC</Text>
         {cameraDenied ? <Notice text="Camera chưa được cấp quyền. Vẫn có thể chọn tranh từ thư viện." tone="error" /> : null}
@@ -326,6 +381,10 @@ function unavailable(capability: ParentCapabilityState['capability']): ParentCap
   return { capability, state: 'unavailable', reason: 'route-not-in-be-handoff' };
 }
 
+function available(capability: ParentCapabilityState['capability']): ParentCapabilityState {
+  return { capability, state: 'available' };
+}
+
 export function ParentVisualPreviewHarness(): React.JSX.Element {
   const [activePreview, setActivePreview] = useState<PreviewId>('auth');
   const previewScreens: Record<PreviewId, React.JSX.Element> = {
@@ -339,17 +398,10 @@ export function ParentVisualPreviewHarness(): React.JSX.Element {
       onReset={pendingPreviewAsync}
       onGoogleSignIn={pendingPreviewAsync}
     />,
-    account: <AccountScreen user={previewUser} busy={false} error="" onChangePassword={pendingPreviewAsync} onResetPassword={pendingPreviewAsync} onSignOut={ignoreAction} onBack={ignoreAction} />,
+    account: <AccountScreen user={previewUser} busy={false} error="" onChangePassword={pendingPreviewAsync} onResetPassword={pendingPreviewAsync} onBack={ignoreAction} />,
     settings: <SettingsScreen
       sketchGuideEnabled={false}
       onSketchGuideEnabled={ignoreAction}
-      onOpenAccount={ignoreAction}
-      onOpenProfiles={ignoreAction}
-      onOpenNotifications={ignoreAction}
-      onOpenQuota={ignoreAction}
-      onOpenHistory={ignoreAction}
-      onOpenSharing={ignoreAction}
-      onOpenDeliveredLessons={ignoreAction}
       onBack={ignoreAction}
     />,
     home: <HomeScreen
@@ -360,15 +412,7 @@ export function ParentVisualPreviewHarness(): React.JSX.Element {
       onStart={ignoreAction}
       onManageProfiles={ignoreAction}
       onOpenLessons={ignoreAction}
-      onOpenAccount={ignoreAction}
-      onOpenSettings={ignoreAction}
-      onOpenNotifications={ignoreAction}
-      onOpenQuota={ignoreAction}
-      onOpenHistory={ignoreAction}
-      onOpenSharing={ignoreAction}
-      onOpenDeliveredLessons={ignoreAction}
       onResumeRun={ignoreAction}
-      onSignOut={ignoreAction}
     />,
     'home-new': <HomeScreen
       profiles={[previewProfile]}
@@ -378,15 +422,7 @@ export function ParentVisualPreviewHarness(): React.JSX.Element {
       onStart={ignoreAction}
       onManageProfiles={ignoreAction}
       onOpenLessons={ignoreAction}
-      onOpenAccount={ignoreAction}
-      onOpenSettings={ignoreAction}
-      onOpenNotifications={ignoreAction}
-      onOpenQuota={ignoreAction}
-      onOpenHistory={ignoreAction}
-      onOpenSharing={ignoreAction}
-      onOpenDeliveredLessons={ignoreAction}
       onResumeRun={ignoreAction}
-      onSignOut={ignoreAction}
     />,
     profiles: <ProfileScreen
       profiles={[previewProfile]}
@@ -465,7 +501,14 @@ export function ParentVisualPreviewHarness(): React.JSX.Element {
       onBack={ignoreAction}
     />,
     topic: <TopicScreen
-      topic="Mô phỏng · khu vườn nhỏ"
+      topic="Khu vườn và thiên nhiên"
+      stepLabel="1 / 8"
+      onTopic={ignoreAction}
+      onContinue={ignoreAction}
+      onBack={ignoreAction}
+    />,
+    idea: <IdeaScreen
+      topic="Khu vườn và thiên nhiên"
       idea="Mô phỏng · quan sát lá và bướm."
       audio={null}
       guideEnabled={false}
@@ -473,10 +516,9 @@ export function ParentVisualPreviewHarness(): React.JSX.Element {
       guideBusy={false}
       guideError=""
       lesson={null}
-      stepLabel="2 / 7"
+      stepLabel="2 / 8"
       canContinue={false}
       error=""
-      onTopic={ignoreAction}
       onIdea={ignoreAction}
       onAudio={ignoreAction}
       onGuideToggle={ignoreAction}
@@ -485,21 +527,22 @@ export function ParentVisualPreviewHarness(): React.JSX.Element {
       onContinue={ignoreAction}
       onBack={ignoreAction}
     />,
-    guide: <DrawingGuideScreen lesson={previewLesson} stepLabel="3 / 7" currentIndex={1} onIndexChange={ignoreAction} onContinue={ignoreAction} onBack={ignoreAction} />,
+    guide: <DrawingGuideScreen lesson={previewLesson} stepLabel="3 / 8" currentIndex={1} onIndexChange={ignoreAction} onContinue={ignoreAction} onBack={ignoreAction} />,
     capture: <CapturePreviewScreen state="empty" />,
     'capture-denied': <CapturePreviewScreen state="camera-denied" />,
     'capture-selected': <CapturePreviewScreen state="photo-selected" />,
-    transcript: <TranscriptReviewScreen stepLabel="5 / 7" transcript={previewTranscript} text="" busy={false} error="" onText={ignoreAction} onConfirm={ignoreAction} onContinueWithoutAudio={ignoreAction} onBack={ignoreAction} />,
-    understanding: <UnderstandingScreen candidate={previewCandidate} stepLabel="5 / 7" subject="Mô phỏng · một con bướm" busy={false} error="" onSubject={ignoreAction} onConfirm={ignoreAction} onBack={ignoreAction} />,
-    'context-before': <ContextScreen profile={previewProfile} contextRun={null} stepLabel="3 / 7" busy={false} confirmed={false} error="" onRetryCreate={ignoreAction} onConfirm={ignoreAction} onContinue={ignoreAction} onBack={ignoreAction} />,
-    'context-after': <ContextScreen profile={previewProfile} contextRun={previewContextRun} stepLabel="5 / 7" busy={false} confirmed={false} error="" onRetryCreate={ignoreAction} onConfirm={ignoreAction} onContinue={ignoreAction} onBack={ignoreAction} />,
-    activity: <ActivityScreen stepLabel="6 / 7" activities={[previewSuggestedActivity]} source="PINNED_LESSON" busy={false} requested={false} error="" onSuggest={ignoreAction} onBack={ignoreAction} />,
+    transcript: <TranscriptReviewScreen stepLabel="5 / 8" transcript={previewTranscript} text="" busy={false} error="" onText={ignoreAction} onConfirm={ignoreAction} onContinueWithoutAudio={ignoreAction} onBack={ignoreAction} />,
+    understanding: <UnderstandingScreen candidate={previewCandidate} stepLabel="5 / 8" subject="Mô phỏng · một con bướm" busy={false} error="" onSubject={ignoreAction} onConfirm={ignoreAction} onBack={ignoreAction} />,
+    'context-before': <ContextScreen profile={previewProfile} contextRun={null} stepLabel="6 / 8" busy={false} confirmed={false} error="" onRetryCreate={ignoreAction} onConfirm={ignoreAction} onContinue={ignoreAction} onBack={ignoreAction} />,
+    'context-after': <ContextScreen profile={previewProfile} contextRun={previewContextRun} stepLabel="6 / 8" busy={false} confirmed={false} error="" onRetryCreate={ignoreAction} onConfirm={ignoreAction} onContinue={ignoreAction} onBack={ignoreAction} />,
+    activity: <ActivityScreen stepLabel="7 / 8" topic="Khu vườn" subject="Một chú bướm" suggestions={null} selectedIndex={null} loading={false} attempted={false} error="" onSuggest={ignoreAction} onSelect={ignoreAction} onContinue={ignoreAction} onBack={ignoreAction} />,
     story: <StoryScreen
       videoCapability={unavailable('video')}
       jobStage={{ state: 'idle', stage: 'idle' }}
-      stepLabel="7 / 7"
+      stepLabel="8 / 8"
       story={previewStory}
-      mainActivityConfirmed={false}
+      storyReady
+      blockedReason="Mô phỏng · lựa chọn hoạt động chưa được lưu."
       rewriteCount={0}
       rewriteInstruction=""
       busy={false}
@@ -519,6 +562,8 @@ export function ParentVisualPreviewHarness(): React.JSX.Element {
     'lesson-history': <LessonHistoryScreen capability={unavailable('lesson-history')} deliveries={[]} loading={false} error="" hasMore={false} onLoad={ignoreAction} onLoadMore={ignoreAction} onSubmitFeedback={pendingPreviewAsync} onBack={ignoreAction} />,
     quota: <QuotaScreen capability={unavailable('quota')} quota={null} loading={false} error="" onLoad={ignoreAction} onBack={ignoreAction} />,
     notifications: <NotificationsScreen capability={unavailable('notifications')} items={[]} loading={false} error="" hasMore={false} onLoad={ignoreAction} onLoadMore={ignoreAction} onMarkRead={ignoreAction} onBack={ignoreAction} />,
+    'notifications-empty': <NotificationsScreen capability={available('notifications')} items={[]} loading={false} error="" hasMore={false} onLoad={ignoreAction} onLoadMore={ignoreAction} onMarkRead={ignoreAction} onBack={ignoreAction} />,
+    'notifications-list': <NotificationsScreen capability={available('notifications')} items={previewNotifications} loading={false} error="" hasMore onLoad={ignoreAction} onLoadMore={ignoreAction} onMarkRead={ignoreAction} onBack={ignoreAction} />,
     'bottom-bar': <View style={styles.bottomBarPreview}><ParentBottomBar activeTab="home" onNavigate={ignoreAction} onStart={ignoreAction} startLabel="Bắt đầu" /></View>,
   };
 
@@ -527,7 +572,7 @@ export function ParentVisualPreviewHarness(): React.JSX.Element {
       <View style={styles.markerWrap}>
         <Text accessibilityRole="header" numberOfLines={1} allowFontScaling={false} style={styles.marker}>BẢN XEM TRƯỚC · DỮ LIỆU MÔ PHỎNG</Text>
       </View>
-      <ScrollView
+      <ScreenScrollView
         horizontal
         style={styles.tabStrip}
         showsHorizontalScrollIndicator={false}
@@ -549,7 +594,7 @@ export function ParentVisualPreviewHarness(): React.JSX.Element {
             </Pressable>
           );
         })}
-      </ScrollView>
+      </ScreenScrollView>
       <View style={styles.screenContent}>{previewScreens[activePreview]}</View>
     </View>
   );

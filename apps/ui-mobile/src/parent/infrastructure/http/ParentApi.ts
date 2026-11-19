@@ -20,12 +20,11 @@ import type {
   ParentNotification,
   ParentNotificationPage,
   ParentProfile,
+  ParentProfileArchivedV1,
   ParentProfileCreateV1,
-  ParentProfileDeletePendingV1,
   ParentProfilePageV1,
   ParentProfilePatchV1,
   ParentProfileRecordV1,
-  ParentProfileReferenceV1,
   ParentProfileViewV1,
   ParentProfileShareGrant,
   ParentProfileSharePage,
@@ -51,6 +50,36 @@ export class ParentApiError extends ParentApplicationError {
   }
 }
 
+function toParentProfileView(profile: ParentProfile): ParentProfileViewV1 {
+  if (profile.state !== 'ACTIVE') {
+    throw new ParentApiError('INVALID_STATE_TRANSITION', 'local-response');
+  }
+  return {
+    profile_id: profile.parent_profile_id,
+    revision_no: profile.current_revision.revision,
+    revision_hash: profile.current_revision.revision_sha256,
+    state: 'ACTIVE',
+    display_name: profile.current_revision.display_name,
+    age_months: profile.current_revision.age_months,
+    age_band_ref: null,
+    age_band_version: null,
+    interests_summary: profile.current_revision.interests_summary || null,
+    data_origin: 'PARENT',
+    authorization_state: profile.authorization_state,
+    authorization_policy_version: profile.authorization_policy_version,
+    authorization_current: profile.authorization_current,
+  };
+}
+
+function toParentProfileRecord(profile: ParentProfile, requestId: string): ParentProfileRecordV1 {
+  if (profile.state === 'ACTIVE') return toParentProfileView(profile);
+  return {
+    profile_id: profile.parent_profile_id,
+    state: profile.state,
+    request_id: requestId,
+  };
+}
+
 export class ParentApiUnavailableError extends ParentApiError {
   readonly state = 'unavailable' as const;
   readonly reason = 'route-not-in-be-handoff' as const;
@@ -69,7 +98,7 @@ export class ParentApi implements ParentApiPort {
   ) {}
 
   getConsentPolicy() {
-    return this.unavailable<{ request_id: string; policy: ConsentPolicy }>('consent');
+    return this.request<{ request_id: string; policy: ConsentPolicy }>('/api/parent/v1/consent-policy', 'GET');
   }
 
   listProfiles() {
@@ -80,46 +109,59 @@ export class ParentApi implements ParentApiPort {
     if (!Number.isInteger(limit) || limit < 1 || limit > 100) {
       return Promise.reject(new ParentApiError('INVALID_LIMIT', 'local-request'));
     }
-    const query = new URLSearchParams({ limit: String(limit) });
-    if (cursor !== undefined && cursor !== null) query.set('cursor', cursor);
-    return this.request<ParentProfilePageV1>(`/v1/parent/profiles?${query.toString()}`, 'GET');
+    if (cursor !== undefined && cursor !== null) {
+      return Promise.reject(new ParentApiError('INVALID_LIMIT', 'local-request'));
+    }
+    return this.request<{ request_id: string; profiles: ParentProfile[] }>('/api/parent/v1/child-profiles', 'GET')
+      .then(({ request_id, profiles }) => ({
+        request_id,
+        items: profiles.filter((profile) => profile.state === 'ACTIVE').map(toParentProfileView),
+        next_cursor: null,
+      }));
   }
 
   getProfileV1(profileId: string) {
-    return this.request<ParentProfileRecordV1>(`/v1/parent/profiles/${encodeURIComponent(profileId)}`, 'GET');
+    return this.request<{ request_id: string; profile: ParentProfile }>(
+      `/api/parent/v1/child-profiles/${encodeURIComponent(profileId)}`,
+      'GET',
+    ).then(({ request_id, profile }) => toParentProfileRecord(profile, request_id));
   }
 
   createProfileV1(input: ParentProfileCreateV1, actionIdentity: ParentActionIdentity) {
     assertIdempotencyKey(actionIdentity, 128, true);
-    return this.request<ParentProfileReferenceV1>(
-      '/v1/parent/profiles',
+    return this.request<{ request_id: string; profile: ParentProfile }>(
+      '/api/parent/v1/child-profiles',
       'POST',
-      input,
+      { ...input, ...(input.interests_summary === undefined ? {} : { interests_summary: input.interests_summary ?? '' }) },
       30_000,
       { 'Idempotency-Key': actionIdentity },
-    );
+    ).then(({ profile }) => toParentProfileView(profile));
   }
 
   patchProfileV1(profileId: string, input: ParentProfilePatchV1, actionIdentity: ParentActionIdentity) {
     assertIdempotencyKey(actionIdentity, 128, true);
-    return this.request<ParentProfileViewV1>(
-      `/v1/parent/profiles/${encodeURIComponent(profileId)}`,
+    return this.request<{ request_id: string; profile: ParentProfile }>(
+      `/api/parent/v1/child-profiles/${encodeURIComponent(profileId)}`,
       'PATCH',
-      input,
+      { ...input, ...(input.interests_summary === undefined ? {} : { interests_summary: input.interests_summary ?? '' }) },
       30_000,
       { 'Idempotency-Key': actionIdentity },
-    );
+    ).then(({ profile }) => toParentProfileView(profile));
   }
 
   requestProfileDeletionV1(profileId: string, actionIdentity: ParentActionIdentity) {
     assertIdempotencyKey(actionIdentity, 128, true);
-    return this.request<ParentProfileDeletePendingV1>(
-      `/v1/parent/profiles/${encodeURIComponent(profileId)}`,
+    return this.request<{ request_id: string; profile: ParentProfile }>(
+      `/api/parent/v1/child-profiles/${encodeURIComponent(profileId)}`,
       'DELETE',
       undefined,
       30_000,
       { 'Idempotency-Key': actionIdentity },
-    );
+    ).then(({ request_id, profile }): ParentProfileArchivedV1 => ({
+      profile_id: profile.parent_profile_id,
+      state: profile.state === 'DELETED' ? 'DELETED' : 'ARCHIVED',
+      request_id,
+    }));
   }
 
   createProfile(input: {
@@ -170,39 +212,38 @@ export class ParentApi implements ParentApiPort {
   }
 
   getActiveStoryRunV1() {
-    return this.request<ParentActiveStoryRunEnvelopeV1>('/v1/story-runs/active/current', 'GET');
+    return this.request<ParentActiveStoryRunEnvelopeV1>('/api/parent/v1/story-runs/active/current', 'GET');
   }
 
   getStoryRunV1(runId: string) {
-    return this.request<ParentStoryRunEnvelopeV1>(`/v1/story-runs/${encodeURIComponent(runId)}`, 'GET');
+    return this.request<ParentStoryRunEnvelopeV1>(`/api/parent/v1/story-runs/${encodeURIComponent(runId)}`, 'GET');
   }
 
   createStoryRunV1(input: ParentStoryRunCreateV1, actionIdentity: ParentActionIdentity) {
-    assertIdempotencyKey(actionIdentity, 256);
-    return this.request<ParentStoryRunEnvelopeV1>(
-      '/v1/story-runs',
-      'POST',
-      input,
-      30_000,
-      { 'Idempotency-Key': actionIdentity },
-    );
+    void input;
+    void actionIdentity;
+    return Promise.reject(new ParentApplicationError(
+      'PARENT_STORY_RUN_CREATE_CONTRACT_MISMATCH',
+      'The mobile create-run payload is missing the current profile revision and consent policy version required by the backend.',
+      'local-contract-mismatch',
+    ));
   }
 
   confirmStoryRunContextV1(runId: string, input: ParentStoryContextConfirmationV1, actionIdentity: ParentActionIdentity) {
-    assertIdempotencyKey(actionIdentity, 256);
-    return this.request<ParentStoryRunEnvelopeV1>(
-      `/v1/story-runs/${encodeURIComponent(runId)}/context-confirmation`,
-      'POST',
-      input,
-      30_000,
-      { 'Idempotency-Key': actionIdentity },
-    );
+    void runId;
+    void input;
+    void actionIdentity;
+    return Promise.reject(new ParentApplicationError(
+      'PARENT_CONTEXT_CONFIRMATION_ROUTE_MISSING',
+      'The backend requires context confirmation during StoryRun creation and has no separate context-confirmation route.',
+      'local-contract-mismatch',
+    ));
   }
 
   confirmStoryRunSubjectV1(runId: string, revision: number, subject: string, actionIdentity: ParentActionIdentity) {
     assertIdempotencyKey(actionIdentity, 256);
     return this.request<ParentStorySubjectConfirmationV1>(
-      `/v1/story-runs/${encodeURIComponent(runId)}/subject-confirmation`,
+      `/api/parent/v1/story-runs/${encodeURIComponent(runId)}/subject-confirmations`,
       'POST',
       { expected_understanding_revision: revision, confirmed_subject: subject },
       30_000,
@@ -213,7 +254,7 @@ export class ParentApi implements ParentApiPort {
   confirmStoryRunScriptV1(runId: string, revision: number, sha256: string, actionIdentity: ParentActionIdentity) {
     assertIdempotencyKey(actionIdentity, 256);
     return this.request<ParentStoryScriptConfirmationV1>(
-      `/v1/story-runs/${encodeURIComponent(runId)}/script-confirmation`,
+      `/api/parent/v1/story-runs/${encodeURIComponent(runId)}/story-revision-confirmations`,
       'POST',
       { expected_revision: revision, story_sha256: sha256 },
       30_000,
@@ -358,9 +399,12 @@ export class ParentApi implements ParentApiPort {
   }
 
   suggestActivities(storyRunId: string, revision: number) {
-    void storyRunId;
-    void revision;
-    return this.unavailable<ActivitySuggestionResult>('story-creation');
+    return this.request<ActivitySuggestionResult>(
+      `/api/parent/v1/ai/story-runs/${encodeURIComponent(storyRunId)}/activity-suggestions`,
+      'POST',
+      { expected_understanding_revision: revision },
+      1_850_000,
+    );
   }
 
   generateStory(storyRunId: string, revision: number, rewriteInstruction?: string) {
@@ -455,7 +499,7 @@ export class ParentApi implements ParentApiPort {
   ): Promise<T> {
     const baseUrl = this.apiBaseUrl.replace(/\/+$/, '');
     if (!baseUrl) throw new Error('Thiếu SKETCH2LIFE_MOBILE_API_BASE_URL trong .env gốc.');
-    const requestId = createRequestId();
+    const requestId = `parent-expo-${Date.now().toString(36)}`;
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
     try {
@@ -608,11 +652,6 @@ function assertIdempotencyKey(key: ParentActionIdentity, maxLength: number, prin
   if (!validLength || !validCharacters) {
     throw new ParentApiError('IDEMPOTENCY_KEY_INVALID', 'local-request', 400);
   }
-}
-
-export function createRequestId(): string {
-  const randomSuffix = Array.from({ length: 12 }, () => Math.floor(Math.random() * 36).toString(36)).join('');
-  return `parent-${Date.now().toString(36)}-${randomSuffix}`;
 }
 
 function createIdempotencyKey(): string {

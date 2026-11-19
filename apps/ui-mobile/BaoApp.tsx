@@ -16,7 +16,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, radius, shadows } from './src/theme';
 import type { ScreenId, ScreenMeta } from './src/types';
 import {
-  SplashScreen,
   OnboardingScreen,
   DashboardScreen,
   ChildProfileScreen,
@@ -108,7 +107,7 @@ function MainAppContent() {
   const renderScreen = () => {
     switch (currentScreen) {
       case 'splash':
-        return <SplashScreen />;
+        return <OnboardingScreen />;
       case 'onboarding':
         return <OnboardingScreen />;
       case 'dashboard':
@@ -138,7 +137,7 @@ function MainAppContent() {
       case 'feedback':
         return <FeedbackLoopScreen />;
       default:
-        return <SplashScreen />;
+        return <OnboardingScreen />;
     }
   };
 

@@ -180,10 +180,10 @@ describe('parentFlowV1 pure flow decisions', () => {
     expect(isProfileDeletionPending(firstProfile.profile_id, restored.pendingDeletions)).toBe(false);
   });
 
-  it('allows an optional topic but requires an exact pinned lesson before starting a run', () => {
+  it('allows a run with no lesson pin and validates an exact pin when one is selected', () => {
     const complete = { lesson_id: 'lesson-1', version_id: 'version-2', content_sha256: 'a'.repeat(64) };
     expect(canBeginContextStep({ profileId: firstProfile.profile_id, topic: '', adultIdea: '', lessonPin: complete })).toBe(true);
-    expect(canBeginContextStep({ profileId: firstProfile.profile_id, topic: '', adultIdea: '', lessonPin: null })).toBe(false);
+    expect(canBeginContextStep({ profileId: firstProfile.profile_id, topic: '', adultIdea: '', lessonPin: null })).toBe(true);
     expect(canBeginContextStep({
       profileId: firstProfile.profile_id, topic: '', adultIdea: '', lessonPin: { ...complete, content_sha256: 'short' },
     })).toBe(false);

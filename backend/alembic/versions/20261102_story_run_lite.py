@@ -8,9 +8,9 @@ from sqlalchemy.dialects import postgresql
 from alembic import op
 
 revision = "20261102_story_run_lite"
-down_revision = None
+down_revision = "20261102_pv_0001"
 branch_labels = ("story_run_lite",)
-depends_on = ("20261102_pv_0001",)
+depends_on = None
 
 
 def upgrade() -> None:

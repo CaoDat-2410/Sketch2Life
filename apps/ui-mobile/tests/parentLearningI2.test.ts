@@ -59,6 +59,28 @@ function createUseCases() {
 }
 
 describe('ParentLearningUseCases I2 pre-drawing flow', () => {
+  it('creates a story run after photo without requiring a lesson pin', async () => {
+    const { api, useCases } = createUseCases();
+
+    await useCases.createRunAfterPhotoV1({
+      profileId: 'synthetic-profile',
+      topic: '  khu vườn  ',
+      adultIdea: '  chú bướm tìm bạn  ',
+      lessonPin: null,
+      actionIdentity: 'story-after-photo-1',
+    });
+
+    expect(api.createStoryRunV1).toHaveBeenCalledWith({
+      parent_profile_id: 'synthetic-profile',
+      topic: 'khu vườn',
+      adult_confirmed_idea: 'chú bướm tìm bạn',
+    }, 'story-after-photo-1');
+    const request = api.createStoryRunV1.mock.calls[0][0];
+    expect(request).not.toHaveProperty('lesson_version');
+    expect(request).not.toHaveProperty('image_base64');
+    expect(request).not.toHaveProperty('activity');
+  });
+
   it('requires a lesson pin and creates a run without image or legacy consent/context fields', async () => {
     const { api, useCases } = createUseCases();
     const lessonPin = { lesson_id: 'lesson-1', version_id: 'version-3', content_sha256: 'lesson-hash' };
