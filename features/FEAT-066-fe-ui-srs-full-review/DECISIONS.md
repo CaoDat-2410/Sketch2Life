@@ -694,3 +694,37 @@ Draft 4 fixes the round-3 findings and was not re-reviewed, by owner choice.
 **Effect on D-066-72:** SD-4 said the SEED-1 branch is cut from the BE queue tip "after FR-C-08"; it is now cut from the current queue tip, the CONV-1 line `feature/feat066-conv1`, when SEED-1 starts. Everything else in D-066-72 is unchanged.
 
 **Scope:** this decision changes the order only. SEED-1 coding still starts on a separate owner word, under its Task Approval entry.
+
+## D-066-78 — SEED-1 guard live check amended for a Docker-hosted seed database (2026-11-19)
+
+**Finding:** the first owner run against the seed database (a PostgreSQL 17 container published on `127.0.0.1:5435`) stopped at the guard, before any write: `the server port does not match the guarded port`. Through Docker port mapping the server reports its own side of the connection: `inet_server_port()` is the in-container port 5432 and `inet_server_addr()` is the container interface, not a loopback address. The live check of package §3.1 (Draft 4) therefore cannot pass for any container-hosted seed database. No row was written.
+
+**Owner decision:** amend the live check of package §3.1.
+- **Kept, server side:** `current_database()` equals the guarded database name, and `current_user` owns that database.
+- **Removed, server side:** the `inet_server_port()` comparison and the loopback `inet_server_addr()` check.
+- **Unchanged, client side, before any connection:** the only input is `S2L_SEED_DATABASE_URL`; the database name contains `seed` and neither `be1_acceptance` nor `m2_s1a`; the host is an explicit loopback address; the port is explicit and neither 5432 nor 5433; no query string; no libpq connection variable; the other URL variables are unset or equal; `settings.env` is `local` or `test`; the engine is built from the explicit URL and its database name, host and port are compared with the guarded values; no URL is ever printed.
+
+**Scope:** `backend/tools/seed/guard.py` and `backend/tests/unit/test_seed_guard.py` only, inside the existing SEED-1 allowlist. The rest of the approved package (Draft 4, `141488271D7F…`) is unchanged.
+
+## D-066-80 — Seed design Draft 11 accepted as the system-wide seed plan (2026-11-19)
+
+- **Decision:** the owner accepted `plan/PLAN_L1_SEED_DATA_DESIGN_DRAFT11_20261119.md` (73,863 bytes, SHA-256
+  `6E4EFDE08E2763B6A0B0CCAE6CC4DC5301457961B22EB46BBF520D401C727CE8`) as the FEAT-066 lane L1 seed plan for the
+  whole SRS data model. It supersedes Draft 6 as the seed design; the SEED-1 implementation of stage S1
+  (commit `4e2f6d96`) stays valid, with the later changes that Draft 11 §2 rule 12 and §11.8 name.
+- **Review basis:** five rounds on Sonnet 5.5 high under D-171. Draft 7 R1 NOT READY (1 P1 / 11 P2 / 8 P3);
+  Draft 8 R2 NOT READY (0 / 3 / 10); Draft 9 R3 NOT READY (0 / 1 / 10); Draft 10 targeted check NOT READY
+  (0 / 1 / 3); Draft 11 targeted check R5 READY WITH NOTES (0 / 0 / 3). The review records are local and ignored
+  under `tmp/seed-d7-review/`, `tmp/seed-d8-review/`, `tmp/seed-d9-review/` and `tmp/seed-d11-check/`; the R5
+  check is 9,785 bytes, `3B53A02E0409715B…`.
+- **Open notes carried forward:** the three R5 P3 notes are carried into the first stage Task Approval that
+  needs them, not fixed in the plan:
+  - name the two sources of the final Lesson object key (part keys from `core_upload_parts.storage_object_ref`;
+    final keys derived from `core_upload_sessions`);
+  - define the first object-store write as "the seed database records no seeded object", and add it to the
+    re-seed procedure;
+  - extend the allowed key set when the occurrence source upload, the video asset and the library visuals
+    are built.
+- **What this does not authorize:** no script, database, storage, Docker or provider command, and no stage
+  implementation. Each stage (S5, S7 item 2a and later) needs its own Task Approval and owner launch.
+- **Numbering:** first decision under the D-066-80 rule of the decision-ID reconciliation note (BE lineage).

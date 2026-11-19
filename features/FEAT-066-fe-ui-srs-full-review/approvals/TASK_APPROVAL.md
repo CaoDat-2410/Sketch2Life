@@ -588,3 +588,25 @@ Scope amendment, 2026-11-18 (CONV-1 fixtures): the owner approved in chat ("Cho 
 - **Amends** the "Not launched" line and the branch line of the SEED-1 entry above: by D-066-77, SEED-1 now runs **before** FR-C-08. Its branch `feature/feat066-seed1` (local only, never pushed) is cut from the current BE queue tip, the CONV-1 line `feature/feat066-conv1`, when SEED-1 starts.
 - **Unchanged:** the approved package (Draft 4, `141488271D7F…`), the allowlist, the behaviour, the exclusions, the verification boundary (owner-run against the seed database only: name contains `seed`; port neither 5432 nor 5433; never `be1_acceptance` or `sketch2life_m2_s1a`), and the Git boundary.
 - **Still required:** a separate owner word to start coding.
+
+### FEAT-066 SEED-1 — guard live-check amendment (2026-11-19)
+
+- **Amends** package §3.1 (Draft 4) by D-066-78: the server-side live check keeps the database-name and database-owner checks and drops the `inet_server_port()` and loopback `inet_server_addr()` checks, which cannot pass through Docker port mapping.
+- **Paths:** `backend/tools/seed/guard.py` and `backend/tests/unit/test_seed_guard.py`, already in the SEED-1 allowlist. No new path.
+- **Unchanged:** every client-side guard check, the data set, the writer, the verification boundary (owner-run against the seed database only: name contains `seed`; port neither 5432 nor 5433; never `be1_acceptance` or `sketch2life_m2_s1a`) and the Git boundary.
+
+## FEAT-066 Phase B and C — goal v2 program APPROVED by the owner — 2026-11-19
+
+- **Owner decision:** the owner approved the goal v2 program for Phase B and Phase C as written in
+  `plan/GOAL_V2_PHASE_BC_PROGRAM_20261119.md` (13,611 bytes, SHA-256 `5DFC1EDEFC79A1C4B57CC7F1C288F284AB9DFACD1CFD18B3864ACD14374795F8`), and asked the coordinator
+  to do the pre-launch setup (this record and the `pnpm install` of the web and mobile worktrees).
+- **What the approval covers:** the tasks B1 to B4 and C1 to C6 and the end steps D1 to D4 of that program, each
+  inside the program's ground rules (§1): decisions taken from the SRS (D-209 copy) and recorded as the goal's,
+  independent review on Sonnet 5.5 high for every plan and implementation, one local commit per finished task
+  after its checks, the disposable `frc08` loopback containers only, and the stated never-list. Billing
+  (B-1, PAY-0a to PAY-0c, C-M1 BE, seed S2 to S4, M9-A) is deferred and not covered.
+- **Git boundary:** commit locally only; **no push of any branch, no PR, no remote merge**. The owner checks the
+  final result and does every push. The web branch `codex/fe-ui-web-remediation` is shared with a teammate: the
+  goal fetches and merges the teammate's pushed commits locally before each web task and never rewrites them.
+- **Not covered:** the launch itself (a separate owner word); any push, PR or merge; anything on the program's
+  never-list. `OWNER_MODAL_CALL_APPROVED=NO`.
