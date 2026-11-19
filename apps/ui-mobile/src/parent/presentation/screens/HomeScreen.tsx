@@ -45,7 +45,7 @@ const colors = {
   blueDeep: '#315E87',
 };
 
-const terminalRunStates = new Set(['COMPLETED', 'FAILED', 'ABANDONED', 'DELETE_PENDING', 'DELETED']);
+const terminalRunStates = new Set(['COMPLETED', 'FAILED', 'DELETE_PENDING']);
 const roundedFont = Platform.OS === 'android' ? 'sans-serif-rounded' : undefined;
 
 export function HomeScreen({
@@ -498,7 +498,6 @@ function runProgressState(run: ParentStoryRunV1): { label: string; step: number 
   if (run.job_state === 'RUNNING' && run.run_state === 'VIDEO_ADMISSION_PENDING') return { label: 'Đang tạo video', step: 3 };
 
   const states: Record<string, { label: string; step: number | null }> = {
-    CONTEXT_PENDING: { label: 'Đang chuẩn bị buổi vẽ', step: 0 },
     INPUT_PROCESSING: { label: 'Đang xử lý ảnh tranh', step: 0 },
     SUBJECT_REVIEW: { label: 'Chờ xác nhận chủ thể', step: 1 },
     PREPARATION_REVIEW: { label: 'Đang chuẩn bị nội dung', step: 2 },

@@ -9,7 +9,7 @@ import type {
   LessonDetail,
   LessonInvitation,
   LessonSummary,
-  ParentCandidate,
+  ParentDrawingCandidateV1,
   ParentGroupInvitation,
   ParentProfileDeletePendingV1,
   ParentProfileViewV1,
@@ -107,7 +107,7 @@ export function useParentController(application: ParentApplicationModule) {
   const [audio, setAudioValue] = useState<SelectedAudio | null>(null);
   const [contextRun, setContextRun] = useState<ParentStoryRunV1 | null>(null);
   const [contextConfirmed, setContextConfirmed] = useState(false);
-  const [candidate, setCandidate] = useState<ParentCandidate | null>(null);
+  const [candidate, setCandidate] = useState<ParentDrawingCandidateV1 | null>(null);
   const [subject, setSubject] = useState('');
   const [subjectConfirmed, setSubjectConfirmed] = useState(false);
   const [understandingRevision, setUnderstandingRevision] = useState(0);

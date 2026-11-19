@@ -49,7 +49,7 @@ const runEnvelope = {
   request_id: 'synthetic-request',
   story_run: {
     run_id: 'synthetic-run',
-    run_state: 'CONTEXT_PENDING',
+    run_state: 'INPUT_PROCESSING',
     parent_profile_id: 'synthetic-profile',
     context_revision: 2,
     context_snapshot: { topic: 'mây', adult_confirmed_idea: 'vẽ một chiếc diều' },

@@ -249,7 +249,7 @@ describe('parentFlowV1 pure flow decisions', () => {
 
   it('clamps guide navigation at both ends and does not mutate the lesson pin or run', () => {
     const lessonPin = Object.freeze({ lesson_id: 'lesson-1', version_id: 'version-2', content_sha256: 'lesson-hash' });
-    const run = Object.freeze({ run_id: 'synthetic-run', run_state: 'CONTEXT_PENDING' });
+    const run = Object.freeze({ run_id: 'synthetic-run', run_state: 'INPUT_PROCESSING' });
     expect(clampDrawingGuideIndex(-5, 3)).toBe(0);
     expect(clampDrawingGuideIndex(8, 3)).toBe(2);
     expect(moveDrawingGuideIndex(0, 3, -1)).toBe(0);
@@ -257,7 +257,7 @@ describe('parentFlowV1 pure flow decisions', () => {
     expect(moveDrawingGuideIndex(2, 3, 1)).toBe(2);
     expect(clampDrawingGuideIndex(2, 0)).toBe(0);
     expect(lessonPin).toEqual({ lesson_id: 'lesson-1', version_id: 'version-2', content_sha256: 'lesson-hash' });
-    expect(run).toEqual({ run_id: 'synthetic-run', run_state: 'CONTEXT_PENDING' });
+    expect(run).toEqual({ run_id: 'synthetic-run', run_state: 'INPUT_PROCESSING' });
   });
 
   it('allows photo-first capture and analysis before the later context confirmation', () => {
@@ -277,7 +277,9 @@ describe('parentFlowV1 pure flow decisions', () => {
     expect(isWithinOfflineAudioLimit(120_001, 20 * 1024 * 1024)).toBe(false);
     expect(isWithinOfflineAudioLimit(120_000, 20 * 1024 * 1024 + 1)).toBe(false);
     const snapshot = {
+      schema_version: 'sketch2life.parent-lesson-pin.v1' as const,
       lesson_id: 'synthetic-lesson', version_id: 'synthetic-version', content_sha256: 'c'.repeat(64),
+      version_no: 1,
       title: 'Synthetic lesson', topic: 'Synthetic topic', drawing_subject: 'Synthetic subject',
       subject_learning_notes: 'Synthetic notes', script_direction: null, script_following_allowed: false,
       activities: [{
@@ -324,8 +326,12 @@ describe('parentFlowV1 pure flow decisions', () => {
     })).toBeNull();
     expect(readDrawingCandidate({
       candidate_subject: 'con bướm', visible_features: [], confidence: 0.9,
-      adult_confirmation_required: false, decision: 'CONFIRMED',
+      adult_confirmation_required: false, decision: 'REVIEW_REQUIRED',
     })).toBeNull();
+    expect(readDrawingCandidate({
+      candidate_subject: 'con bướm', visible_features: ['hai cánh'], confidence: 0.9,
+      adult_confirmation_required: true, decision: 'UNRECOGNIZED_DECISION',
+    })).toMatchObject({ decision: 'REVIEW_REQUIRED' });
   });
 
   it('validates the nested V1 story read model before exposing revision and hash pins', () => {

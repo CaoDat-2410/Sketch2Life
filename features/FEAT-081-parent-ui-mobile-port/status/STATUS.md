@@ -127,3 +127,20 @@ The sample P01 shows an active-child selector; HomeScreen has no selected-child 
 - Verification: owner run at `65e0332e`: `pnpm run typecheck` exit 0, `pnpm run test` 8 files / 92 tests passed and `UI_COPY_AND_RECOVERY_VALID`; before the alignment (at `401ded3c`, and after the dev merge at `e94cacbc`) the same test command gave 82 passed / 10 failed in `parentSrsBehavior.test.ts` and the validator did not run. Owner run after `9ae5696e` and `2e61b369`: typecheck exit 0, 8 files / 93 tests passed, `UI_COPY_AND_RECOVERY_VALID`. Owner-run validators on the side branch before the later two commits: `HARNESS_VALID`, `REPOSITORY_SECURITY_VALID` (7,429 files), `ARCHITECTURE_VALID`; `git diff --check origin/dev HEAD` reports trailing whitespace only in older FEAT-081 Markdown files, not in the files changed here.
 - Open owner items: (1) a backend consent source for real data (SRS OI-05 keeps real child data blocked); (2) no dev route for activity suggestions or saving the chosen activity, so the activity and story steps stay blocked (SRS FR-P-05 makes the main activity mandatory); (3) the SRS step 7 context snapshot names a consent version that the dev schema does not carry; (4) `POST /v1/story-runs/{run_id}/cancel` exists on the M2 branch, not on `origin/dev`.
 - Not done: no push, no move to `feature/fe-mobile-remediation`, no change to `TASK_APPROVAL.md`, no backend change except returning two Alembic files to their `origin/dev` content.
+
+## FEAT-081 C-P1 implementation checkpoint — 2026-11-19
+
+- C-P1 was launched under Addendum 36 / D-023 after the owner confirmed C-P0 complete. The launch snapshot was `700717fbe9befa01a1152dc7138540a1548a8083`, matching the local `origin/feature/fe-mobile-remediation` ref; no fetch was run.
+- Parent story-run V1 types now match the M2 frozen client projection. Parent request IDs use `parent-<base36 time>-<12 base36 characters>` per attempt; action identity remains the retry-stable `Idempotency-Key`.
+- Added the frozen-projection contract test and request-ID uniqueness test. Updated the approved Parent fixtures and preview harness. The cursor loop, stale-revision read, delete-pending reconciliation, active-run inspection, and tolerant error parser were left unchanged.
+- This checkpoint supersedes the historical line 122 statement that the feature branch remained at `401ded3c`: the C-P1 launch snapshot and local origin ref were both `700717fbe9befa01a1152dc7138540a1548a8083`.
+- `validate_harness.py`, `validate_repository_security.py`, `validate_architecture.py`, and `git diff --check` exited 0 after the C-P1 edits; see `evidence/CP1_IMPLEMENTATION_EVIDENCE_20261119.md` for command output and the file-by-file record.
+- `pnpm run typecheck`, `pnpm run test` (including Vitest and the UI-copy validator), and independent review are NOT RUN by this implementation session. They remain owner/coordinator hand-off steps. Nothing was staged, committed, or pushed.
+
+## FEAT-081 C-P1 owner-run verification and review — 2026-11-19
+
+- Addendum 36 amendment 1 was applied as approved: `apps/ui-mobile/src/parent/application/use-cases/ParentLearningUseCases.ts` was added to the allowlist for the single `request_id: active.request_id` fix.
+- Owner-run, 2026-11-19: `pnpm run typecheck` completed with no TypeScript errors.
+- Owner-run, 2026-11-19: `pnpm run test` passed: 10 files / 96 tests, including 2 tests in `parentStoryRunProjectionContract.test.ts` and 1 test in `parentRequestId.test.ts`; UI-copy validator returned `UI_COPY_AND_RECOVERY_VALID`.
+- Independent review CP1-R1: READY WITH NOTES, 0 P1 / 0 P2 / 5 P3; reviewer Sonnet 5.5 high.
+- C-P1 remains not committed, not pushed.

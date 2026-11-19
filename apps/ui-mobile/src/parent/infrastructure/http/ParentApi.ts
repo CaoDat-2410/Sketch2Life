@@ -455,7 +455,7 @@ export class ParentApi implements ParentApiPort {
   ): Promise<T> {
     const baseUrl = this.apiBaseUrl.replace(/\/+$/, '');
     if (!baseUrl) throw new Error('Thiếu SKETCH2LIFE_MOBILE_API_BASE_URL trong .env gốc.');
-    const requestId = `parent-expo-${Date.now().toString(36)}`;
+    const requestId = createRequestId();
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
     try {
@@ -608,6 +608,11 @@ function assertIdempotencyKey(key: ParentActionIdentity, maxLength: number, prin
   if (!validLength || !validCharacters) {
     throw new ParentApiError('IDEMPOTENCY_KEY_INVALID', 'local-request', 400);
   }
+}
+
+export function createRequestId(): string {
+  const randomSuffix = Array.from({ length: 12 }, () => Math.floor(Math.random() * 36).toString(36)).join('');
+  return `parent-${Date.now().toString(36)}-${randomSuffix}`;
 }
 
 function createIdempotencyKey(): string {

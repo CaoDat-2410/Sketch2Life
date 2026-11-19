@@ -7,7 +7,7 @@ import type {
   LessonInvitation,
   LessonSummary,
   ParentAudioTranscription,
-  ParentCandidate,
+  ParentDrawingCandidateV1,
   ParentGroupInvitation,
   ParentNotification,
   ParentProfileViewV1,
@@ -189,30 +189,36 @@ const previewUser: ParentUser = {
   role: 'parent',
 };
 
-const previewCandidate: ParentCandidate = {
+const previewCandidate: ParentDrawingCandidateV1 = {
   candidate_subject: 'Mô phỏng · một con bướm',
   visible_features: ['Mô phỏng · đôi cánh đối xứng', 'Mô phỏng · thân bướm ở giữa'],
   confidence: 0.86,
   adult_confirmation_required: true,
-  decision: 'PENDING',
+  decision: 'REVIEW_REQUIRED',
 };
 
 const previewContextRun: ParentStoryRunV1 = {
   run_id: 'preview-run-01',
-  run_state: 'ACTIVE',
+  run_revision: 1,
+  run_state: 'INPUT_PROCESSING',
   parent_profile_id: previewProfile.profile_id,
   profile_revision_ref: 'preview-profile-revision-01',
   context_revision: 1,
+  context_confirmed: false,
   context_snapshot: {
+    schema_version: 'sketch2life.parent-context.v1',
+    profile_revision_ref: 'preview-profile-revision-01',
     age_months: previewProfile.age_months,
-    interests_summary: previewProfile.interests_summary,
+    interests_summary: previewProfile.interests_summary ?? '',
     topic: 'Mô phỏng · khu vườn nhỏ',
     adult_confirmed_idea: 'Mô phỏng · quan sát lá và bướm.',
   },
   context_snapshot_sha256: 'Mô phỏng · không phải mã băm thật',
   lesson_pin_snapshot: {
+    schema_version: 'sketch2life.parent-lesson-pin.v1',
     lesson_id: previewLesson.lesson_id,
     version_id: previewLesson.version_id,
+    version_no: previewLesson.version_no,
     content_sha256: previewLesson.content_sha256,
     title: previewLesson.title,
     topic: previewLesson.topic,
@@ -226,6 +232,16 @@ const previewContextRun: ParentStoryRunV1 = {
   understanding_revision: 1,
   subject_label: 'Mô phỏng · một con bướm',
   candidate: previewCandidate,
+  story_revision_id: null,
+  story_revision_no: null,
+  story_status: null,
+  story_sha256: null,
+  story: null,
+  job_state: null,
+  retryable: false,
+  error_code: null,
+  created_at: '2026-11-19T00:00:00.000Z',
+  updated_at: '2026-11-19T00:00:00.000Z',
 };
 
 const previewStory: StoryDraft = {
