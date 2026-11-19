@@ -279,7 +279,7 @@ export function WebAppShell({
                 <ShieldCheck size={16} aria-hidden="true" />
               </span>
             ) : (
-              <button type="button" className="s2l-account-button" onClick={() => navigate(roleLabel === "Giáo viên" ? "/teacher/t11-profile" : "/platform/a02-platform-operations?panel=permissions")}>
+              <button type="button" className="s2l-account-button" onClick={() => navigate(roleLabel === "Giáo viên" ? "/teacher/t11-profile" : "/platform/accounts")}>
                 <span className="s2l-account-avatar" aria-hidden="true">{roleLabel === "Giáo viên" ? "GV" : "PA"}</span>
                 <span>{roleLabel}</span><ArrowUpRight size={15} aria-hidden="true" />
               </button>

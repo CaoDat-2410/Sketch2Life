@@ -17,6 +17,7 @@ import { authService } from "./services/authService";
 import { classService } from "./services/classService";
 
 function AdminAccessGate({ children }: { children: ReactNode }) {
+  const location = useLocation();
   const [state, setState] = useState<"loading" | "signed-out" | "authorized" | "forbidden" | "error">("loading");
   const [message, setMessage] = useState("");
 
@@ -35,7 +36,7 @@ function AdminAccessGate({ children }: { children: ReactNode }) {
   }), []);
 
   if (state === "loading") return <main className="s2l-main"><div className="s2l-data-card" role="status">Đang xác minh quyền school_admin qua BE1…</div></main>;
-  if (state === "signed-out") return <Navigate to="/login?role=manager" replace />;
+  if (state === "signed-out") return <Navigate to="/login?role=manager" replace state={{ from: location }} />;
   if (state === "forbidden" || state === "error") return <AccessError message={message || "Tài khoản này chưa có phân công school_admin cấp trường trong BE1."} />;
   return <>{children}</>;
 }

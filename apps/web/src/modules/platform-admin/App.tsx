@@ -13,7 +13,7 @@ export function PlatformAdminApp() {
   const navigate = useNavigate();
   const { currentRole, isAuthenticated, toast, logout } = usePortalSession();
   if (isAuthenticated && currentRole !== "ADMIN") return <RoleMismatchPage roleLabel="Quản trị nền tảng" onLogout={logout} />;
-  if (!isAuthenticated) return <Navigate to="/login?role=admin" replace />;
+  if (!isAuthenticated) return <Navigate to="/login?role=admin" replace state={{ from: location }} />;
   if (location.pathname === "/platform" || location.pathname === "/platform/") return <Navigate to="/platform/a02-platform-operations" replace />;
   const page = location.pathname === "/platform/accounts"
     ? <UsersPage />

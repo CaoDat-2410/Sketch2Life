@@ -654,3 +654,11 @@ Status: **PARTIAL — runtime behaviour verified, catalog pending.** This is the
 - **Record:** `evidence/notes/MGR_8_EVIDENCE_INDEPENDENT_REVIEW_20261118.md` (6,705 B, `8AE285D1B68DFFB2…`).
 - **Commit:** the owner word "Làm G0 luôn" covers the record, one S-LL task commit and a push to the M2 branch, which updates PR #30 into `dev`.
 - **Next:** Phase B, starting with CONV-1.
+
+## 2026-11-19 - Backend restart preflight (FEAT-066 Rev33)
+
+- The owner asked to run the backend again for FE testing under the already approved Rev33 runtime scope.
+- Docker is installed, but both configured named pipes deny access; WSL reports `E_ACCESSDENIED`. No Compose service started and no volume was touched.
+- The host API fallback exits on missing `av==18.1.0`; no online dependency install was attempted. PostgreSQL port 5432 is closed.
+- The backend is not running from this session. No HTTP probes, tests, builds, credentials, or data operations were used. See `evidence/notes/EV-058_DOCKER_API_RESTART_PREFLIGHT_20261119.md`.
+

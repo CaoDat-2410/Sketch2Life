@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
-import { ArrowRight, Eye, EyeOff, GraduationCap, LockKeyhole, School, ShieldCheck } from "lucide-react";
-import { Link } from "react-router-dom";
-import { BrandWordmark } from "../components/BrandMark";
+import { ArrowRight, Eye, EyeOff, GraduationCap, School, ShieldCheck } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import "./WebPortalLoginPage.css";
 import { backendMessage } from "../api/backendApi";
 
 export type WebPortalAppRole = "TEACHER" | "MANAGER" | "ADMIN";
@@ -33,14 +33,14 @@ const PORTALS: Record<WebPortalAppRole, PortalDetails> = {
     label: "Quản lý trường",
     code: "CỔNG NHÀ TRƯỜNG",
     heading: "Quản lý hoạt động trường",
-    description: "Xem lớp học và yêu cầu duyệt học liệu trong phạm vi tổ chức.",
+    description: "Quản lý lớp học, giáo viên và học liệu của trường.",
     icon: School,
   },
   ADMIN: {
     label: "Quản trị nền tảng",
     code: "CỔNG NỀN TẢNG",
     heading: "Vận hành nền tảng",
-    description: "Truy cập chức năng theo capability được backend xác nhận.",
+    description: "Quản lý tài khoản và hoạt động nền tảng.",
     icon: ShieldCheck,
   },
 };
@@ -58,8 +58,10 @@ export function WebPortalLoginPage({
   onAuthenticate: (role: WebPortalAppRole, email: string, password: string) => Promise<void>;
   onResetPassword: (email: string) => Promise<void>;
 }) {
+  const location = useLocation();
   const portal = PORTALS[portalRole];
   const Icon = portal.icon;
+  const roleQuery = portalRole === "TEACHER" ? "teacher" : portalRole === "MANAGER" ? "manager" : "admin";
   const [email, setEmail] = useState("");
   const [formState, setFormState] = useState<LoginFieldState>({
     role: portalRole,
@@ -69,6 +71,7 @@ export function WebPortalLoginPage({
   });
   const [pending, setPending] = useState(false);
   const [notice, setNotice] = useState("");
+  const [recovering, setRecovering] = useState(false);
   const fields = formState.role === portalRole
     ? formState
     : { role: portalRole, password: "", showPassword: false, error: null };
@@ -114,43 +117,41 @@ export function WebPortalLoginPage({
     setPending(true);
     try {
       await onResetPassword(email.trim());
-    } catch {
-      // Keep the response neutral so login recovery does not reveal account existence.
+    } catch (cause) {
+      const code = (cause as { code?: string }).code;
+      if (code !== "auth/user-not-found") {
+        updateFields({ error: code === "auth/too-many-requests"
+          ? "Bạn đã gửi quá nhiều yêu cầu. Vui lòng thử lại sau."
+          : "Chưa thể gửi hướng dẫn. Kiểm tra kết nối và thử lại." });
+        return;
+      }
     } finally {
-      setNotice("Nếu email thuộc tài khoản đã đăng ký, hướng dẫn đặt lại mật khẩu sẽ được gửi.");
       setPending(false);
     }
+    setNotice("Nếu email đã được đăng ký, bạn sẽ nhận được liên kết đặt lại mật khẩu. Kiểm tra cả thư mục spam.");
   };
-
   return (
     <main className="s2l-login-shell">
       <div className="s2l-login-card">
         <section className="s2l-login-intro">
-          <Link className="s2l-login-brand" to="/login" aria-label="Sketch2Life — đăng nhập">
-            <BrandWordmark size={30} />
-            <span><strong>Sketch2Life</strong><span>Cổng làm việc theo vai trò</span></span>
+          <Link className="s2l-login-brand" to={`/login?role=${roleQuery}`} state={location.state} aria-label="Sketch2Life, đăng nhập">
+            <span className="s2l-login-brand-name">Sketch2Life</span>
+            <span className="s2l-login-brand-context">Không gian làm việc giáo dục</span>
           </Link>
           <div className="s2l-login-message">
             <p className="s2l-login-eyebrow">{portal.code}</p>
             <h1>{portal.heading}</h1>
             <p>{portal.description}</p>
           </div>
-          <div className="s2l-login-note">
-            <LockKeyhole size={16} aria-hidden="true" />
-            <span>
-              {portalRole === "MANAGER"
-                ? "Quyền school_admin được kiểm tra qua phân công BE1 sau khi đăng nhập."
-                : "Quyền truy cập và phạm vi dữ liệu được xác minh theo tài khoản."}
-            </span>
-          </div>
+          <img className="s2l-login-illustration" src="/images/sketch2life-login-learning.png" alt="" aria-hidden="true" />
         </section>
 
         <section className="s2l-login-form-panel" aria-labelledby="s2l-login-title">
           <div className="s2l-login-role"><Icon size={19} aria-hidden="true" /><span>{portal.label}</span></div>
-          <h2 id="s2l-login-title">Đăng nhập</h2>
-          <p>Dùng tài khoản được cấp cho cổng {portal.label.toLowerCase()}.</p>
+          <h2 id="s2l-login-title">{recovering ? "Quên mật khẩu?" : "Đăng nhập"}</h2>
+          <p>{recovering ? "Nhập email tài khoản để nhận liên kết đặt lại mật khẩu." : "Chào mừng bạn trở lại Sketch2Life."}</p>
 
-          <div className="s2l-login-role-switch" role="group" aria-label="Chọn vai trò đăng nhập">
+          {!recovering && <div className="s2l-login-role-switch" role="group" aria-label="Chọn vai trò đăng nhập">
             {ROLE_ORDER.map((role) => {
               const target = PORTALS[role];
               const RoleIcon = target.icon;
@@ -168,35 +169,30 @@ export function WebPortalLoginPage({
                 </button>
               );
             })}
-          </div>
+          </div>}
 
-          <form className="s2l-login-form" onSubmit={(event) => void submit(event)} aria-busy={pending}>
+          <form className="s2l-login-form" onSubmit={(event) => { if (recovering) { event.preventDefault(); void resetPassword(); } else { void submit(event); } }} aria-busy={pending}>
             <label className="s2l-login-field" htmlFor="s2l-login-email">Email tài khoản
-              <input id="s2l-login-email" type="email" autoComplete="username" inputMode="email" required value={email} onChange={(event) => setEmail(event.target.value)} aria-describedby={fields.error ? "s2l-login-error" : undefined} />
+              <input id="s2l-login-email" type="email" autoComplete="username" inputMode="email" required value={email} onChange={(event) => { setEmail(event.target.value); setNotice(""); updateFields({ error: null }); }} aria-invalid={Boolean(fields.error)} aria-describedby={fields.error ? "s2l-login-error" : undefined} />
             </label>
-            <label className="s2l-login-field" htmlFor="s2l-login-password">Mật khẩu
+            {!recovering && <label className="s2l-login-field" htmlFor="s2l-login-password">Mật khẩu
               <span className="s2l-password-input">
-                <input id="s2l-login-password" type={fields.showPassword ? "text" : "password"} autoComplete="current-password" required value={fields.password} onChange={(event) => updateFields({ password: event.target.value })} aria-describedby={fields.error ? "s2l-login-error" : undefined} />
+                <input id="s2l-login-password" type={fields.showPassword ? "text" : "password"} autoComplete="current-password" required value={fields.password} onChange={(event) => updateFields({ password: event.target.value })} aria-invalid={Boolean(fields.error)} aria-describedby={fields.error ? "s2l-login-error" : undefined} />
                 <button type="button" className="s2l-password-toggle" aria-label={fields.showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"} aria-pressed={fields.showPassword} onClick={() => updateFields({ showPassword: !fields.showPassword })}><span aria-hidden="true">{fields.showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</span></button>
               </span>
-            </label>
+            </label>}
             {fields.error && <div id="s2l-login-error" className="s2l-alert" role="alert">{fields.error}</div>}
-            <button className="s2l-login-submit" type="submit" disabled={pending}>
-              {pending ? "Đang xác minh…" : "Đăng nhập"}
-              <ArrowRight size={17} aria-hidden="true" />
+            {notice && <p className="s2l-reset-notice" role="status">{notice}</p>}
+            <button className="s2l-login-submit" type="submit" disabled={pending || (recovering && Boolean(notice))}>
+              <span>{pending ? "Đang xử lý…" : recovering ? "Gửi liên kết đặt lại" : "Đăng nhập"}</span>
+              <span className="s2l-login-submit-icon"><ArrowRight size={16} aria-hidden="true" /></span>
             </button>
           </form>
           <div className="s2l-login-recovery">
-            <button type="button" onClick={() => void resetPassword()} disabled={pending}>
-              {pending ? "Đang xử lý…" : "Quên mật khẩu?"}
+            <button type="button" onClick={() => { setRecovering(!recovering); setNotice(""); updateFields({ error: null, password: "" }); }} disabled={pending}>
+              {recovering ? "← Quay lại đăng nhập" : "Quên mật khẩu?"}
             </button>
-            {notice && <p role="status" aria-live="polite">{notice}</p>}
           </div>
-          <p className="s2l-login-footer">
-            {portalRole === "MANAGER"
-              ? "School Manager không xem story hoặc media của trẻ theo mặc định."
-              : "Phiên chỉ mở sau khi xác thực thành công và vai trò được xác minh."}
-          </p>
         </section>
       </div>
     </main>

@@ -1,11 +1,25 @@
 import { lazy, Suspense, useLayoutEffect } from "react";
-import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { BrowserRouter, Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { PortalEntryPage } from "./PortalEntryPage";
 import { PortalSessionProvider } from "../shared/auth/PortalSessionContext";
 
 const TeacherPortalApp = lazy(() => import("../modules/teacher/App").then((module) => ({ default: module.TeacherPortalApp })));
 const SchoolManagerBe1App = lazy(() => import("../modules/school-manager/be1/App").then((module) => ({ default: module.SchoolManagerBe1App })));
 const PlatformAdminApp = lazy(() => import("../modules/platform-admin/App").then((module) => ({ default: module.PlatformAdminApp })));
+
+function PortalNotFoundPage() {
+  return (
+    <main className="s2l-route-not-found">
+      <Link className="s2l-route-not-found-brand" to="/login">Sketch2Life</Link>
+      <section>
+        <p>404 · KHÔNG TÌM THẤY TRANG</p>
+        <h1>Đường dẫn này chưa được hỗ trợ</h1>
+        <span>Kiểm tra lại địa chỉ hoặc quay về cổng đăng nhập để tiếp tục.</span>
+        <Link className="s2l-route-not-found-action" to="/login">Về trang đăng nhập <span aria-hidden="true">→</span></Link>
+      </section>
+    </main>
+  );
+}
 
 function PortalRoutes() {
   const location = useLocation();
@@ -34,7 +48,7 @@ function PortalRoutes() {
         <Route path="/school/*" element={<SchoolManagerBe1App />} />
         <Route path="/platform/*" element={<PlatformAdminApp />} />
         <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<PortalNotFoundPage />} />
       </Routes>
     </Suspense>
   );
