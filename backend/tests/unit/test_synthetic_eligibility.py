@@ -458,7 +458,9 @@ def test_head_counts_by_both_methods_match_the_derived_expectation() -> None:
     # Story context revisions, plus the FR-C-08 lifecycle revision
     # (20261119_frc08_lifecycle_scope, its own frc08_lifecycle branch).
     # FEAT-066 C5: 20261119_ar_0002 (BE1 command receipts) follows 20261110_ar_0001.
-    assert len(graph) == 33
+    # FEAT-066 T-2a: 20261119_uf_0001 (DDL-F upload scope) follows 20261119_ar_0002.
+    # FEAT-066 T-3a: 20261119_oc_0001 (DDL-A lesson occurrence and plan) follows 20261119_uf_0001.
+    assert len(graph) == 35
     down_targets = {target for down, _ in graph.values() for target in down}
     dependency_targets = down_targets | {target for _, dep in graph.values() for target in dep}
     heads_down_only = {rev for rev in graph if rev not in down_targets}

@@ -739,3 +739,17 @@ Scope amendment, 2026-11-18 (CONV-1 fixtures): the owner approved in chat ("Cho 
 - **Reviews (independent, fresh non-forked subagent, read-only):** round 1 on Sonnet 5.5 at high effort: ACCEPTABLE WITH NOTES, 0 P1 / 2 P2 / 8 P3. Round 2 on Sonnet 5.5 at **medium** effort at the owner's instruction (a deviation from the high-effort rule): ACCEPTABLE WITH NOTES, 0 P1 / 0 P2 / 3 P3. All findings were fixed in the commit and the final three P3 were fixed by amending it; the amended text was not reviewed a third time. Reports are kept outside the repository (`FOLLOWUP_REVIEW_R1.md`, `FOLLOWUP_REVIEW_R2.md`).
 - **Checks:** `validate_harness.py`, `validate_repository_security.py`, `validate_architecture.py` and `git diff --check` exited 0 before the amend.
 - **Not covered, still open:** authenticated runs (SD-5 and O-BRU-AUTH); BRU-0b and A08; any push, PR or merge into `feature/feat066-be-integration`.
+
+## FEAT-066 goal v3 — backend API completion program APPROVED and launched by the owner — 2026-11-19
+
+- **Owner decision:** the owner approved the goal v3 program `plan/GOAL_V3_BACKEND_API_COMPLETION_PROGRAM_20261119.md` (8,393 bytes, SHA-256 `822234B594A74FC81FBD9317FD4C79DDB1CC91C0C732B8527A23F32B13F17DD5`) and gave the launch word. The program merges the four planned goals (v3a, v3b, v4, v5) of the backend API completion plan Draft 5 into one run.
+- **What the approval covers:** this approval is the Task Approval for every task listed in the program's section 2, phases A to D, including T-7a (OD-05 option b). Each task stays inside the program's ground rules (section 1):
+  - decisions come from the SRS;
+  - each plan and each implementation is reviewed independently on Sonnet 5.5 high;
+  - each DDL package is approved by name under OD-01, and only after its task plan review;
+  - one local commit per finished task and branch;
+  - only the disposable `frc08` loopback containers are used;
+  - the program's never-list applies.
+- **Excluded:** T0.6 (OD-16 open), T0.7 (owner-run), Billing, PAY-0 and quota, and every exclusion and stay of the plan.
+- **Git boundary:** commits are local only, on `feature/backend-srs-api-v3` (cut from `d40f0514`), `codex/fe-ui-web-remediation` (shared; the teammate's commits are merged, never rewritten) and `feature/fe-mobile-remediation`. **No push, no PR, no remote merge**; the owner checks the result and pushes.
+- **Records:** the goal appends nothing to `TASK_APPROVAL.md` or `DECISIONS.md`. Its decisions stay in the per-task evidence notes and in the T0.8 draft, numbered from D-066-92. `OWNER_MODAL_CALL_APPROVED=NO`.

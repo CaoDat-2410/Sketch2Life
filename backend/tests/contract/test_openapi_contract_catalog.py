@@ -78,6 +78,21 @@ EXPECTED_IDEMPOTENCY_MISMATCH_OPERATION_KEYS = {
     ("delete", "/api/lesson-library/v1/upload-sessions/{upload_session_id}"),
     # FEAT-066 M9-B: the first Teacher assignment command.
     ("post", "/api/be1/v1/classes/{class_id}/assignments"),
+    # FEAT-066 T0.1: create class is a keyed command.
+    ("post", "/api/be1/v1/organizations/{organization_id}/classes"),
+    # FEAT-066 T-2a (SRS l.1697): the keyed generic upload commands.
+    ("post", "/v1/upload-sessions"),
+    ("post", "/v1/upload-sessions/{upload_id}/complete"),
+    ("delete", "/v1/upload-sessions/{upload_id}"),
+    # FEAT-066 T-3a (SRS l.1697): the keyed lesson occurrence create.
+    ("post", "/v1/lesson-occurrences"),
+    # FEAT-066 T-3b (SRS l.1697): the keyed document attach.
+    ("post", "/v1/lesson-occurrences/{occurrence_id}/documents"),
+    # FEAT-066 T-3c (SRS l.1697): the keyed text edit (a new immutable revision).
+    ("post", "/v1/lesson-occurrences/{occurrence_id}/documents/{document_id}/revisions"),
+    # FEAT-066 T-3d (SRS l.1697): the keyed plan revision create and confirm.
+    ("post", "/v1/lesson-occurrences/{occurrence_id}/plan-revisions"),
+    ("post", "/v1/lesson-occurrences/{occurrence_id}/plan-revisions/{revision_no}/confirm"),
 }
 
 
@@ -126,8 +141,12 @@ PR22_UNCATALOGUED_OPERATIONS = {
     # Mounted routes intentionally outside the Rev37 metadata map.
     # FEAT-066 M9-B: the Teacher candidate list stays runtime-only like the C5 account routes.
     ("get", "/api/be1/v1/organizations/{organization_id}/teacher-candidates"),
+    # FEAT-066 T0.3: the public liveness probe; /health/ready and /metrics are not in the schema.
+    ("get", "/health/live"),
     ("post", "/api/auth/v1/registrations"),
     ("get", "/api/auth/v1/me"),
+    # FEAT-066 T0.4: the live job poll route stays runtime-only until the first producer (T-3b).
+    ("get", "/v1/jobs/{job_id}"),
     ("get", "/api/platform-admin/v1/accounts"),
     ("post", "/api/platform-admin/v1/accounts"),
     ("patch", "/api/platform-admin/v1/accounts/{account_id}"),
@@ -280,11 +299,17 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
 
     assert spec["openapi"] == "3.1.0"
     assert spec["tags"] == public_tags(TAG_DESCRIPTIONS)
-    assert len(operations) == 154
+    assert len(operations) == 174
     catalog_operations = set(MOUNTED_OPERATIONS)
     catalog_paths = {path for _method, path in catalog_operations}
-    assert len(catalog_paths) == 118
-    assert len(catalog_operations) == MOUNTED_OPERATION_COUNT == 135
+    # FEAT-066 T-2a: five generic upload-session operations (four paths) join the catalog.
+    # FEAT-066 T-3a: three lesson occurrence operations (two paths) join it too.
+    # FEAT-066 T-3b: five document operations (four paths) join it as well.
+    # FEAT-066 T-3c: the keyed text edit is one more operation on an existing path.
+    # FEAT-066 T-3d: four plan operations (create, list, read, confirm) on three new paths.
+    assert len(catalog_paths) == 131
+    assert MOUNTED_OPERATION_COUNT == 135
+    assert len(catalog_operations) == MOUNTED_OPERATION_COUNT + 5 + 3 + 5 + 1 + 4 == 153
     assert set(operations) - catalog_operations == (
         PILOT_ONLY_OPERATIONS | PR22_UNCATALOGUED_OPERATIONS
     )
@@ -298,7 +323,7 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
     ]
     assert "x-contract-surface" not in profile_lookup
     assert len(PILOT_ONLY_OPERATIONS) == 5
-    assert len(PR22_UNCATALOGUED_OPERATIONS) == 14
+    assert len(PR22_UNCATALOGUED_OPERATIONS) == 16
 
     assert (
         "post",
@@ -411,6 +436,12 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
             assert bool(request_body.get("required")) == (requiredness == "required")
             if schema_name == "object":
                 assert request_body["content"][media_type]["schema"].get("type") == "object"
+            elif schema_name == "binary":
+                # FEAT-066 T-2a: the raw upload part is a binary body, not a component.
+                assert request_body["content"][media_type]["schema"] == {
+                    "type": "string",
+                    "format": "binary",
+                }
             else:
                 assert schema_name in _schema_refs(request_body["content"][media_type]["schema"])
 
@@ -526,6 +557,24 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
         assert key_parameter.get("required") is not True
         assert "maxLength" not in str(key_parameter["schema"])
 
+    # T0.1 (C-D5): the four keyed Parent StoryRun commands publish a required key of 1-128
+    # characters; create class publishes a required key too.
+    for key in (
+        ("post", "/v1/story-runs"),
+        ("post", "/v1/story-runs/{run_id}/context-confirmation"),
+        ("post", "/v1/story-runs/{run_id}/subject-confirmation"),
+        ("post", "/v1/story-runs/{run_id}/script-confirmation"),
+        ("post", "/api/be1/v1/organizations/{organization_id}/classes"),
+    ):
+        key_parameter = next(
+            parameter
+            for parameter in operations[key]["parameters"]
+            if parameter["in"] == "header" and parameter["name"] == "Idempotency-Key"
+        )
+        assert key_parameter["required"] is True
+        assert key_parameter["schema"]["minLength"] == 1
+        assert key_parameter["schema"]["maxLength"] == 128
+
     candidate_keys = {(item["method"], item["path"]) for item in UNMOUNTED_OPERATIONS}
     assert len(candidate_keys) == UNMOUNTED_OPERATION_COUNT == 11
     assert not candidate_keys.intersection(operations)
@@ -560,14 +609,14 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
         assert "Be1Error" in _schema_refs(
             mismatch_response["content"]["application/json"]["schema"]
         )
-    assert len(IDEMPOTENCY_MISMATCH_OPERATION_KEYS) == 17
+    assert len(IDEMPOTENCY_MISMATCH_OPERATION_KEYS) == 26
     assert set(IDEMPOTENCY_MISMATCH_OPERATION_KEYS) == (
         EXPECTED_IDEMPOTENCY_MISMATCH_OPERATION_KEYS
     )
 
     assert not _extension_keys(spec)
 
-    assert len(spec["tags"]) == 20
+    assert len(spec["tags"]) == 22
     assert all(tag.get("description") for tag in spec["tags"])
 
     operation_ids = [operation["operationId"] for operation in operations.values()]
@@ -624,7 +673,7 @@ def test_runtime_openapi_operation_ids_are_non_empty_and_unique(
         for method, operation in path_item.items()
         if method.lower() in HTTP_METHODS
     ]
-    assert len(operation_ids) == 154
+    assert len(operation_ids) == 174
     assert all(isinstance(value, str) and value for value in operation_ids)
     assert len(set(operation_ids)) == len(operation_ids)
 

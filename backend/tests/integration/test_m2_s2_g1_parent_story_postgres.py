@@ -93,7 +93,9 @@ _EXPECTED_VERSION_ROWS = frozenset(
         "20261019_vf_0001",
         "20261109_m2_parent_profiles",
         # FEAT-066 C5: the BE1 command-receipt revision follows ar_0001 and replaces its row.
-        "20261119_ar_0002",
+        # FEAT-066 T-2a: the DDL-F upload-scope revision follows ar_0002 and replaces its row.
+        # FEAT-066 T-3a: the DDL-A occurrence revision follows uf_0001 and replaces its row.
+        "20261119_oc_0001",
         # FR-C-08: the lifecycle revision depends on the Story head and replaces its row.
         "20261119_frc08_lifecycle_scope",
     }

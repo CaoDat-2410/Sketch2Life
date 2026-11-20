@@ -45,7 +45,11 @@ from sketch2life.infrastructure.persistence.be1_models import (
     OrganizationModel,
     SyntheticEligibilityProofModel,
 )
-from sketch2life.interfaces.http.api_conventions import limit_query, raise_stale_revision
+from sketch2life.interfaces.http.api_conventions import (
+    limit_query,
+    parse_idempotency_key,
+    raise_stale_revision,
+)
 from sketch2life.interfaces.http.be1_runtime import (
     Be1Runtime,
     get_db,
@@ -304,6 +308,7 @@ def list_teacher_candidates(
 def assign_class_teacher(
     class_id: str,
     payload: CreateAssignmentRequest,
+    request: Request,
     response: Response,
     idempotency_key: Annotated[
         str, Header(alias="Idempotency-Key", min_length=1, max_length=128)
@@ -328,6 +333,8 @@ def assign_class_teacher(
         roles={"school_admin"},
         class_id=class_id,
     )
+    # C-D5: 1-128 visible ASCII, one header; the parsed value replaces the declared one.
+    idempotency_key = parse_idempotency_key(request)
     expected_revision = _strong_revision(if_match)
     if db.scalar(class_lock_select(class_id)) is None:
         raise _scope_denied()
@@ -462,14 +469,69 @@ def list_classes(
     }
 
 
+def _create_class_fingerprint(display_name: str) -> str:
+    return hashlib.sha256(
+        json.dumps({"display_name": display_name}, sort_keys=True, separators=(",", ":")).encode(
+            "utf-8"
+        )
+    ).hexdigest()
+
+
+def _class_created_body(
+    *, class_id: str, display_name: str, state: str, assignment_revision: int
+) -> dict[str, object]:
+    # state and assignment_revision are additive fields (SRS l.1635). assignment_revision is the
+    # revision the next assignment command must send; it is not the class revision of l.1651.
+    return {
+        "contract": "Be1ClassV1",
+        "class_id": class_id,
+        "display_name": display_name,
+        "state": state,
+        "assignment_revision": assignment_revision,
+    }
+
+
+def _stored_class_replay(
+    receipt: Be1CommandReceiptModel, *, fingerprint: str, display_name: str
+) -> dict[str, object]:
+    if receipt.request_fingerprint != fingerprint:
+        raise failure(
+            400,
+            "INVALID_IDEMPOTENCY_KEY",
+            "Idempotency-Key was already used for another request",
+        )
+    stored = receipt.response_json
+    return _class_created_body(
+        class_id=str(stored["class_id"]),
+        display_name=display_name,
+        state=str(stored["state"]),
+        assignment_revision=int(str(stored["assignment_revision"])),
+    )
+
+
 @router.post("/organizations/{organization_id}/classes", status_code=status.HTTP_201_CREATED)
 def create_class(
     organization_id: str,
     payload: CreateClassRequest,
+    request: Request,
+    idempotency_key: Annotated[
+        str, Header(alias="Idempotency-Key", min_length=1, max_length=128)
+    ],
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
 ) -> dict[str, object]:
+    """SRS l.1649: 201 class reference; a durable Idempotency-Key receipt (l.1697, C-D5/C-D6)."""
     _require_m2_assignment(db, principal, organization_id, roles={"school_admin"})
+    idempotency_key = parse_idempotency_key(request)
+    scope = f"POST /organizations/{organization_id}/classes"
+    fingerprint = _create_class_fingerprint(payload.display_name)
+    receipt = db.get(Be1CommandReceiptModel, (principal.subject, scope, idempotency_key))
+    if receipt is not None:
+        replay = _stored_class_replay(
+            receipt, fingerprint=fingerprint, display_name=payload.display_name
+        )
+        db.rollback()
+        return replay
     class_id = str(uuid4())
     record = ClassroomModel(
         class_id=class_id,
@@ -494,8 +556,43 @@ def create_class(
         event_type="be1.class.created.v1",
         payload={"class_id": class_id},
     )
-    commit(db)
-    return {"contract": "Be1ClassV1", "class_id": class_id, "display_name": record.display_name}
+    body = _class_created_body(
+        class_id=class_id,
+        display_name=record.display_name,
+        state=record.state,
+        assignment_revision=class_assignment_revision(0),
+    )
+    db.add(
+        Be1CommandReceiptModel(
+            principal_ref=principal.subject,
+            operation_scope=scope,
+            idempotency_key=idempotency_key,
+            organization_id=organization_id,
+            request_fingerprint=fingerprint,
+            response_json={
+                "class_id": class_id,
+                "state": record.state,
+                "assignment_revision": body["assignment_revision"],
+            },
+        )
+    )
+    try:
+        db.commit()
+    except IntegrityError:
+        # A concurrent request with the same key committed first: its class and receipt stand,
+        # this transaction (class, audit and event rows included) is rolled back.
+        db.rollback()
+        winner = db.get(Be1CommandReceiptModel, (principal.subject, scope, idempotency_key))
+        if winner is None:
+            raise failure(
+                409, "RESOURCE_CONFLICT", "The command conflicts with current records"
+            ) from None
+        replay = _stored_class_replay(
+            winner, fingerprint=fingerprint, display_name=payload.display_name
+        )
+        db.rollback()
+        return replay
+    return body
 
 
 @router.get("/organizations/{organization_id}/classes/{class_id}/profiles")
@@ -505,7 +602,16 @@ def list_profiles(
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
 ) -> dict[str, object]:
-    require_assignment(db, principal, organization_id, class_id=class_id)
+    # T0.11 interim guard: the School Manager (school_admin rows) has no profile
+    # contents by default (SRS l.2586). Allow-list the Teacher-account roles; this
+    # set matches the account-role filter in be1_common.require_assignment.
+    require_assignment(
+        db,
+        principal,
+        organization_id,
+        roles=frozenset({"teacher", "guide", "observer"}),
+        class_id=class_id,
+    )
     get_class(db, organization_id, class_id)
     rows = db.scalars(
         select(ManagedProfileModel)
@@ -569,7 +675,7 @@ def list_pilot_profiles(
         db,
         principal,
         organization_id,
-        roles={"teacher", "school_admin"},
+        roles={"teacher"},  # T0.11: no School Manager (SRS l.2586)
         class_id=session.class_id,
     )
     if (

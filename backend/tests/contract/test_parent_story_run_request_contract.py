@@ -77,7 +77,7 @@ _COMMAND_REQUESTS = (
     ),
 )
 # FR-C-08 (Contract Draft 11 §3.1-§3.2, D-217 item 7): cancel and delete read the key with
-# the CONV-1 parser (1-128 visible ASCII); the other Parent commands keep 1-256.
+# the CONV-1 parser (1-128 visible ASCII); T0.1 applies the same rule to the other four.
 _LIFECYCLE_REQUESTS = (
     ("POST", f"/v1/story-runs/{_RUN_ID}/cancel", {"expected_revision": 1}),
     ("DELETE", f"/v1/story-runs/{_RUN_ID}", None),
@@ -341,7 +341,7 @@ def test_cancel_stale_revision_adds_current_version_only_to_cancel_error(
 
 
 @pytest.mark.parametrize(("method", "path", "payload"), _COMMAND_REQUESTS)
-@pytest.mark.parametrize("key_length", (1, 256))
+@pytest.mark.parametrize("key_length", (1, 128))
 def test_story_command_idempotency_key_accepts_both_length_bounds(
     request_client: TestClient,
     method: str,
@@ -367,35 +367,66 @@ def test_story_command_idempotency_key_accepts_both_length_bounds(
     )
 
 
+def _bad_key_headers(case: str, request_id: str) -> list[tuple[bytes, bytes]]:
+    """Raw header pairs, so a non-ASCII value and a repeated header reach the server as sent."""
+    pairs = [(b"x-request-id", request_id.encode("ascii"))]
+    if case == "missing":
+        return pairs
+    values: dict[str, list[bytes]] = {
+        "empty": [b""],
+        "too_long": [b"k" * 129],
+        "space": [b"with space"],
+        "tab": [b"tab	key"],
+        "non_ascii": ["khóa".encode()],
+        "two_headers": [b"first-key", b"second-key"],
+    }
+    return pairs + [(b"idempotency-key", value) for value in values[case]]
+
+
+# T0.1 (C-D5, OQ-2 ruling): a missing, empty, over-long (129), spaced, control-character,
+# non-ASCII or repeated Idempotency-Key is 400 INVALID_REQUEST with field_errors null on the
+# four keyed Parent StoryRun commands, the same shape as cancel and delete. The plan row P-04
+# wording "with field_errors" is deliberately not followed (Contract Draft 11 §3.6, N-1).
 @pytest.mark.parametrize(("method", "path", "payload"), _COMMAND_REQUESTS)
-@pytest.mark.parametrize("key_length", (0, 257))
-def test_story_command_idempotency_key_rejects_out_of_range_lengths(
+@pytest.mark.parametrize(
+    "case", ("missing", "empty", "too_long", "space", "tab", "non_ascii", "two_headers")
+)
+def test_story_command_refuses_a_missing_or_invalid_key_with_invalid_request(
     request_client: TestClient,
     method: str,
     path: str,
     payload: dict[str, object],
-    key_length: int,
+    case: str,
 ) -> None:
     request_id = "story-invalid-key"
     response = request_client.request(
         method,
         path,
         json=payload,
-        headers={"Idempotency-Key": "k" * key_length, "X-Request-ID": request_id},
+        headers=_bad_key_headers(case, request_id),
     )
-    _assert_story_error(
-        response,
-        status=400,
-        code="INVALID_IDEMPOTENCY_KEY",
-        request_id=request_id,
+    _assert_story_error(response, status=400, code="INVALID_REQUEST", request_id=request_id)
+    assert response.json()["field_errors"] is None
+
+
+@pytest.mark.parametrize(("method", "path", "payload"), _COMMAND_REQUESTS)
+def test_story_command_mixed_body_and_key_failure_lists_only_the_body_fields(
+    request_client: TestClient,
+    method: str,
+    path: str,
+    payload: dict[str, object],
+) -> None:
+    request_id = "story-mixed-key"
+    response = request_client.request(
+        method,
+        path,
+        json={**payload, "unexpected_field": True},
+        headers=[(b"x-request-id", request_id.encode("ascii"))],
     )
-    assert response.json()["field_errors"] == [
-        {
-            "field": "Idempotency-Key",
-            "code": "INVALID_FIELD",
-            "message": "Giá trị trường không hợp lệ.",
-        }
-    ]
+    _assert_story_error(response, status=400, code="INVALID_REQUEST", request_id=request_id)
+    fields = {item["field"] for item in response.json()["field_errors"]}
+    assert fields
+    assert not any("Idempotency" in field for field in fields)
 
 
 @pytest.mark.parametrize(("method", "path", "payload"), _LIFECYCLE_REQUESTS)

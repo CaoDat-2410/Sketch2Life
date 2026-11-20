@@ -72,6 +72,8 @@ export interface Be1CreatedClass {
   contract: "Be1ClassV1";
   class_id: string;
   display_name: string;
+  state: "active" | "inactive";
+  assignment_revision: number;
 }
 
 export interface Be1Assignment {
@@ -374,8 +376,10 @@ export const backendApi = {
     headers: { "Idempotency-Key": idempotencyKey },
     body: JSON.stringify({ class_id: classId, child_id: childId, purpose_ref: purposeRef }),
   }),
-  createClass: (organizationId: string, displayName: string) => backendRequest<Be1CreatedClass>(`${orgPath(organizationId)}/classes`, {
-    method: "POST", body: JSON.stringify({ display_name: displayName }),
+  createClass: (organizationId: string, displayName: string, idempotencyKey = createRequestId()) => backendRequest<Be1CreatedClass>(`${orgPath(organizationId)}/classes`, {
+    method: "POST",
+    headers: { "Idempotency-Key": idempotencyKey },
+    body: JSON.stringify({ display_name: displayName }),
   }),
   lessons: (organizationId: string, options: { state?: string; visibility?: string; cursor?: string } = {}) =>
     backendRequest<LessonPage>(`${lessonPath(organizationId)}/lessons${q(options)}`),

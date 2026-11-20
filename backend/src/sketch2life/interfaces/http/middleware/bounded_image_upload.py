@@ -1,7 +1,8 @@
-"""Hard request-body caps for FEAT-018 image and narration uploads."""
+"""Hard request-body caps for FEAT-018 image and narration uploads and the FEAT-066 JSON routes."""
 
 from __future__ import annotations
 
+import contextlib
 import json
 import re
 from uuid import uuid4
@@ -19,6 +20,47 @@ _DEFAULT_STORAGE_EXAMPLE_BODY_BYTES = 10 * 1024 * 1024 + 64 * 1024
 _LESSON_LIBRARY_PART_PATH_MARKER = "/api/lesson-library/v1/upload-sessions/"
 _MAX_LESSON_LIBRARY_PART_BYTES = 4 * 1024 * 1024
 _SAFE_ID = re.compile(r"^[A-Za-z0-9._:-]{1,120}$")
+
+# FEAT-066 T-3c (plan review R1 F-01): the Teacher's text edit carries up to 2 MiB of UTF-8 text in
+# a JSON string. JSON escaping inflates a character up to 6 bytes (a control character becomes a
+# six-byte u00XX escape), so a valid 2 MiB text is at most 12 MiB on the wire; with the small
+# envelope the body cap is 13 MiB. The guard runs before FastAPI reads, parses or validates the
+# body and before any authorisation or database access.
+MAX_REVISION_EDIT_BODY_BYTES = 13 * 1024 * 1024
+_REVISION_EDIT_PATH = re.compile(r"^/v1/lesson-occurrences/[^/]+/documents/[^/]+/revisions/?$")
+
+# FEAT-066 T-3d (T-3c review debt P3-4): the plan routes join the same guard through one table of
+# bounded JSON routes. A plan revision is at most 12 objectives of 1,000 characters, a direction and
+# notes of 2,000, and 24 activities of up to 4,160 characters plus ids: about 120,000 characters,
+# which is at most 6 bytes each once JSON-escaped, so 1 MiB is a safe cap. A confirm carries at most
+# 24 checklist entries of 64 items (about 150 KB), so 256 KiB is the cap.
+MAX_PLAN_CREATE_BODY_BYTES = 1024 * 1024
+MAX_PLAN_CONFIRM_BODY_BYTES = 256 * 1024
+_PLAN_CREATE_PATH = re.compile(r"^/v1/lesson-occurrences/[^/]+/plan-revisions/?$")
+_PLAN_CONFIRM_PATH = re.compile(r"^/v1/lesson-occurrences/[^/]+/plan-revisions/[^/]+/confirm/?$")
+
+# (method, anchored path, limit in bytes, safe message): every entry is bounded by Content-Length
+# and by the streamed byte count before FastAPI reads, parses or validates the body.
+_BOUNDED_JSON_ROUTES: tuple[tuple[str, re.Pattern[str], int, str], ...] = (
+    (
+        "POST",
+        _REVISION_EDIT_PATH,
+        MAX_REVISION_EDIT_BODY_BYTES,
+        "The text edit exceeds the request size limit.",
+    ),
+    (
+        "POST",
+        _PLAN_CREATE_PATH,
+        MAX_PLAN_CREATE_BODY_BYTES,
+        "The plan revision exceeds the request size limit.",
+    ),
+    (
+        "POST",
+        _PLAN_CONFIRM_PATH,
+        MAX_PLAN_CONFIRM_BODY_BYTES,
+        "The plan confirmation exceeds the request size limit.",
+    ),
+)
 
 
 class _RequestBodyTooLarge(Exception):
@@ -59,7 +101,18 @@ class BoundedImageUploadMiddleware:
             body_limit = _MAX_LESSON_LIBRARY_PART_BYTES
             error_message = "Lesson upload part exceeds the 4 MiB request limit."
         else:
-            await self.app(scope, receive, send)
+            bounded = next(
+                (
+                    (limit, message)
+                    for route_method, pattern, limit, message in _BOUNDED_JSON_ROUTES
+                    if method == route_method and pattern.match(path)
+                ),
+                None,
+            )
+            if bounded is None:
+                await self.app(scope, receive, send)
+                return
+            await self._call_bounded_json(scope, receive, send, *bounded)
             return
 
         content_length = next(
@@ -91,6 +144,55 @@ class BoundedImageUploadMiddleware:
         except _RequestBodyTooLarge:
             await _send_too_large(send, error_message, scope=scope)
 
+    async def _call_bounded_json(
+        self, scope: Scope, receive: Receive, send: Send, limit: int, message: str
+    ) -> None:
+        """Bound a JSON route by ``Content-Length`` and by the streamed byte count.
+
+        FastAPI turns an exception raised while it reads the body into its own 400, so the
+        streamed case records the breach, swallows whatever the application then answers and sends
+        the 413 envelope itself.
+        """
+        content_length = next(
+            (value for key, value in scope.get("headers", ()) if key.lower() == b"content-length"),
+            None,
+        )
+        if content_length is not None:
+            try:
+                declared = int(content_length)
+            except ValueError:
+                declared = limit + 1
+            if declared > limit:
+                await _send_too_large(send, message, scope=scope)
+                return
+
+        received = 0
+        exceeded = False
+        started = False
+
+        async def bounded_receive() -> Message:
+            nonlocal received, exceeded
+            incoming = await receive()
+            if incoming["type"] == "http.request":
+                received += len(incoming.get("body", b""))
+                if received > limit:
+                    exceeded = True
+                    raise _RequestBodyTooLarge
+            return incoming
+
+        async def guarded_send(outgoing: Message) -> None:
+            nonlocal started
+            if exceeded:
+                return
+            if outgoing["type"] == "http.response.start":
+                started = True
+            await send(outgoing)
+
+        with contextlib.suppress(_RequestBodyTooLarge):
+            await self.app(scope, bounded_receive, guarded_send)
+        if exceeded and not started:
+            await _send_too_large(send, message, scope=scope)
+
 
 async def _send_too_large(send: Send, safe_message: str, *, scope: Scope) -> None:
     path = str(scope.get("path", ""))
@@ -100,12 +202,18 @@ async def _send_too_large(send: Send, safe_message: str, *, scope: Scope) -> Non
             (b"content-type", b"application/json"),
             (b"x-request-id", request_id.encode("ascii")),
         ]
-    elif path.startswith("/api/lesson-library/v1/"):
+    elif path.startswith(("/api/lesson-library/v1/", "/v1/lesson-occurrences/")):
         # CONV-1 §3.2 item 5: the Lesson Library 413 uses the shared envelope and carries an
-        # X-Request-ID; FEAT-066 C4 gives it the SRS §9.8 code LESSON_FILE_TOO_LARGE.
+        # X-Request-ID; FEAT-066 C4 gives it the SRS §9.8 code LESSON_FILE_TOO_LARGE. The T-3c text
+        # edit is a JSON request, not a file, so its 413 is the generic MEDIA_TOO_LARGE.
         request_id = _supplied_request_id(scope) or str(uuid4())
+        too_large_code = (
+            "MEDIA_TOO_LARGE"
+            if path.startswith("/v1/lesson-occurrences/")
+            else "LESSON_FILE_TOO_LARGE"
+        )
         body = json.dumps(
-            build_error_body(status=413, code="LESSON_FILE_TOO_LARGE", request_id=request_id),
+            build_error_body(status=413, code=too_large_code, request_id=request_id),
             separators=(",", ":"),
             ensure_ascii=False,
         ).encode("utf-8")
@@ -217,4 +325,9 @@ def _mobile_workflow_upload_failure(scope: Scope, safe_message: str) -> tuple[by
     return body, request_id
 
 
-__all__ = ["BoundedImageUploadMiddleware"]
+__all__ = [
+    "MAX_PLAN_CONFIRM_BODY_BYTES",
+    "MAX_PLAN_CREATE_BODY_BYTES",
+    "MAX_REVISION_EDIT_BODY_BYTES",
+    "BoundedImageUploadMiddleware",
+]

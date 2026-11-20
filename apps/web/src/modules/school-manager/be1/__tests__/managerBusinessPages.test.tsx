@@ -67,6 +67,42 @@ describe("School Manager SRS-compatible business pages", () => {
     expect(screen.queryByText("child-opaque")).toBeNull();
   });
 
+  it("shows the roster-specific copy on 403 ACTION_NOT_ALLOWED, clears rows, keeps consent and does not log out", async () => {
+    const logout = vi.fn();
+    window.addEventListener("storage", logout);
+    vi.spyOn(classService, "listClasses").mockResolvedValue([
+      { class_id: "class-3", display_name: "Lớp Mầm", state: "active" },
+    ]);
+    vi.spyOn(managerBusinessService, "profiles").mockRejectedValue(
+      new AdminBe1Error("Không có quyền.", 403, "ACTION_NOT_ALLOWED"),
+    );
+    vi.spyOn(managerBusinessService, "consents").mockResolvedValue({
+      contract: "Be1ClassConsentPageV1",
+      items: [{ consent_id: "consent-3", child_id: "child-opaque", purpose_ref: "story_generation", state: "ACTIVE", effective: true }],
+    });
+
+    const { container } = render(<MemoryRouter><RosterConsentPage /></MemoryRouter>);
+
+    expect((await screen.findByRole("alert")).textContent).toContain("Bạn không có quyền xem hồ sơ trẻ trong lớp này.");
+    expect(await screen.findByText("Đã ghi nhận")).toBeTruthy();
+    expect(container.querySelectorAll("tbody tr").length).toBeGreaterThan(0);
+    expect(screen.queryByText("Minh Anh")).toBeNull();
+    expect(logout).not.toHaveBeenCalled();
+    window.removeEventListener("storage", logout);
+  });
+
+  it("keeps the server message for other roster errors", async () => {
+    vi.spyOn(classService, "listClasses").mockResolvedValue([
+      { class_id: "class-4", display_name: "Lớp Lá", state: "active" },
+    ]);
+    vi.spyOn(managerBusinessService, "profiles").mockRejectedValue(new AdminBe1Error("Máy chủ bận.", 503, "UNAVAILABLE"));
+    vi.spyOn(managerBusinessService, "consents").mockResolvedValue({ contract: "Be1ClassConsentPageV1", items: [] });
+
+    render(<MemoryRouter><RosterConsentPage /></MemoryRouter>);
+
+    expect((await screen.findByRole("alert")).textContent).toContain("Máy chủ bận.");
+  });
+
   it("creates a parent group with an idempotency key after explicit submit", async () => {
     vi.stubGlobal("crypto", { randomUUID: () => "parent-group-request-1" });
     vi.spyOn(managerBusinessService, "parentGroups").mockResolvedValue({

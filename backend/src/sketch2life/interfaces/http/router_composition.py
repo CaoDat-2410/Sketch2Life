@@ -1,7 +1,11 @@
 """HTTP router groups for classroom runtime and local/demo capabilities."""
 
-from fastapi import FastAPI
+from fastapi import APIRouter, FastAPI
 
+from sketch2life.infrastructure.lesson_occurrences.upload_target import (
+    OccurrenceUploadTargetResolver,
+)
+from sketch2life.infrastructure.uploads.purposes import OCCURRENCE_DOCUMENT
 from sketch2life.interfaces.http.routers.auth_registration import (
     router as auth_registration_router,
 )
@@ -11,7 +15,11 @@ from sketch2life.interfaces.http.routers.child_preferences import (
 )
 from sketch2life.interfaces.http.routers.health import router as health_router
 from sketch2life.interfaces.http.routers.images import router as images_router
+from sketch2life.interfaces.http.routers.jobs import router as jobs_router
 from sketch2life.interfaces.http.routers.lesson_library import router as lesson_library_router
+from sketch2life.interfaces.http.routers.lesson_occurrences import (
+    router as lesson_occurrences_router,
+)
 from sketch2life.interfaces.http.routers.parent_ai import router as parent_ai_router
 from sketch2life.interfaces.http.routers.parent_profiles import router as parent_profiles_router
 from sketch2life.interfaces.http.routers.parent_story_runs import router as parent_story_runs_router
@@ -26,10 +34,22 @@ from sketch2life.interfaces.http.routers.supervised_flow import (
     router as supervised_flow_router,
 )
 from sketch2life.interfaces.http.routers.teacher_ai import router as teacher_ai_router
+from sketch2life.interfaces.http.routers.upload_sessions import router as upload_sessions_router
 from sketch2life.interfaces.http.routers.whiteboard_storyboard import (
     router as whiteboard_storyboard_router,
 )
 from sketch2life.interfaces.http.routers.whiteboard_video import router as whiteboard_video_router
+
+
+def story_demo_replaced_routers() -> tuple[APIRouter, ...]:
+    """Real routers that stay unmounted while the StoryRun-lite main demo is on.
+
+    The demo router owns `/v1/story-runs*` and `/v1/upload-sessions*`; the startup guard
+    (`story_demo_guard`) reads these route tables. A task that mounts another real router
+    on one of those paths only when the demo is off adds it here. T-2a: the generic upload
+    sessions (`/v1/upload-sessions*`) are mounted only while the demo is off.
+    """
+    return (parent_story_runs_router, upload_sessions_router)
 
 
 def mount_classroom_routers(
@@ -41,6 +61,8 @@ def mount_classroom_routers(
     application.include_router(health_router)
     application.include_router(be1_runtime_router)
     application.include_router(parent_profiles_router)
+    # FEAT-066 T0.4: mounted here once; mount_all_routers reaches it through this function.
+    application.include_router(jobs_router)
     if include_pilot_assistance:
         application.include_router(pilot_assistance_router)
 
@@ -58,7 +80,10 @@ def mount_demo_routers(application: FastAPI) -> None:
 
 
 def mount_all_routers(
-    application: FastAPI, *, include_parent_story_runs: bool = True
+    application: FastAPI,
+    *,
+    include_parent_story_runs: bool = True,
+    include_upload_sessions: bool = True,
 ) -> None:
     """Preserve the original compatibility app's router registration order."""
     settings = application.state.be1_runtime.settings
@@ -74,4 +99,15 @@ def mount_all_routers(
     application.include_router(parent_ai_router)
     if include_parent_story_runs:
         application.include_router(parent_story_runs_router)
+    # FEAT-066 T-2a: the demo router answers the same literal paths with another contract, so
+    # the generic upload sessions are mounted only while the demo is off (T-2a-DEC-1).
+    if include_upload_sessions:
+        application.include_router(upload_sessions_router)
     application.include_router(teacher_ai_router)
+    # FEAT-066 T-3a: /v1/lesson-occurrences has no demo collision, so it mounts unconditionally.
+    application.include_router(lesson_occurrences_router)
+    # T-2a left OCCURRENCE_DOCUMENT without a resolver (it answers 404); T-3a registers it. A
+    # factory a caller put on app.state first (a test double) is kept.
+    factories = dict(getattr(application.state, "upload_target_resolver_factories", None) or {})
+    factories.setdefault(OCCURRENCE_DOCUMENT, OccurrenceUploadTargetResolver)
+    application.state.upload_target_resolver_factories = factories

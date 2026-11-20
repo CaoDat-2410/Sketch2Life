@@ -180,7 +180,7 @@ export class ParentApi implements ParentApiPort {
   }
 
   createStoryRunV1(input: ParentStoryRunCreateV1, actionIdentity: ParentActionIdentity) {
-    assertIdempotencyKey(actionIdentity, 256);
+    assertVisibleAsciiKey(actionIdentity);
     return this.request<ParentStoryRunEnvelopeV1>(
       '/v1/story-runs',
       'POST',
@@ -191,7 +191,7 @@ export class ParentApi implements ParentApiPort {
   }
 
   confirmStoryRunContextV1(runId: string, input: ParentStoryContextConfirmationV1, actionIdentity: ParentActionIdentity) {
-    assertIdempotencyKey(actionIdentity, 256);
+    assertVisibleAsciiKey(actionIdentity);
     return this.request<ParentStoryRunEnvelopeV1>(
       `/v1/story-runs/${encodeURIComponent(runId)}/context-confirmation`,
       'POST',
@@ -202,7 +202,7 @@ export class ParentApi implements ParentApiPort {
   }
 
   confirmStoryRunSubjectV1(runId: string, revision: number, subject: string, actionIdentity: ParentActionIdentity) {
-    assertIdempotencyKey(actionIdentity, 256);
+    assertVisibleAsciiKey(actionIdentity);
     return this.request<ParentStorySubjectConfirmationV1>(
       `/v1/story-runs/${encodeURIComponent(runId)}/subject-confirmation`,
       'POST',
@@ -213,7 +213,7 @@ export class ParentApi implements ParentApiPort {
   }
 
   confirmStoryRunScriptV1(runId: string, revision: number, sha256: string, actionIdentity: ParentActionIdentity) {
-    assertIdempotencyKey(actionIdentity, 256);
+    assertVisibleAsciiKey(actionIdentity);
     return this.request<ParentStoryScriptConfirmationV1>(
       `/v1/story-runs/${encodeURIComponent(runId)}/script-confirmation`,
       'POST',

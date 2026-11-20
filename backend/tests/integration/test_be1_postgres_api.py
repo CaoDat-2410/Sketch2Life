@@ -152,7 +152,9 @@ def test_real_http_writes_audits_outbox_and_enforces_assignment_scope(
     assert organization.headers["X-Request-ID"]
 
     created_class = client.post(
-        _url(accepted, "/classes"), json={"display_name": "Synthetic Class"}
+        _url(accepted, "/classes"),
+        json={"display_name": "Synthetic Class"},
+        headers={"Idempotency-Key": f"class-{uuid4().hex}"},
     )
     assert created_class.status_code == 201, created_class.text
     class_id = created_class.json()["class_id"]
@@ -262,13 +264,16 @@ def test_real_http_writes_audits_outbox_and_enforces_assignment_scope(
 
     accepted.app.dependency_overrides[get_verified_adult] = observer_principal
     forbidden = client.post(
-        _url(accepted, "/classes"), json={"display_name": "Forged role attempt"}
+        _url(accepted, "/classes"),
+        json={"display_name": "Forged role attempt"},
+        headers={"Idempotency-Key": f"class-{uuid4().hex}"},
     )
     assert forbidden.status_code == 403
     assert forbidden.json()["request_id"] == forbidden.headers["X-Request-ID"]
     forged_role = client.post(
         _url(accepted, "/classes"),
         json={"display_name": "Forged role attempt", "role": "school_admin"},
+        headers={"Idempotency-Key": f"class-{uuid4().hex}"},
     )
     assert forged_role.status_code == 400
     assert forged_role.json()["code"] == "INVALID_REQUEST"
@@ -357,7 +362,11 @@ def test_room_code_start_revocation_stage_and_early_outcome_are_durable(
     monkeypatch.setattr(be1_sessions, "consent_is_effective", lambda *args, **kwargs: True)
     accepted = acceptance_client
     client = accepted.client
-    class_response = client.post(_url(accepted, "/classes"), json={"display_name": "Join Test"})
+    class_response = client.post(
+        _url(accepted, "/classes"),
+        json={"display_name": "Join Test"},
+        headers={"Idempotency-Key": f"class-{uuid4().hex}"},
+    )
     assert class_response.status_code == 201, class_response.text
     class_id = class_response.json()["class_id"]
     created = client.post(
@@ -726,7 +735,9 @@ def test_pending_consent_stays_pending_and_blocks_profile_admission_and_canvas(
     accepted = acceptance_client
     client = accepted.client
     class_response = client.post(
-        _url(accepted, "/classes"), json={"display_name": "Consent Gate Class"}
+        _url(accepted, "/classes"),
+        json={"display_name": "Consent Gate Class"},
+        headers={"Idempotency-Key": f"class-{uuid4().hex}"},
     )
     assert class_response.status_code == 201, class_response.text
     class_id = class_response.json()["class_id"]
@@ -785,8 +796,12 @@ def test_pending_consent_stays_pending_and_blocks_profile_admission_and_canvas(
     assert "consent_state" not in profile_response.json()
 
     profile_list = client.get(_url(accepted, f"/classes/{class_id}/profiles"))
-    assert profile_list.status_code == 409
-    assert profile_list.json()["code"] == "CONSENT_NOT_EFFECTIVE"
+    # T0.11: the School Manager has no profile contents by default (SRS l.2586).
+    # NOTE: this test already fails at base before reaching this line (the Manager
+    # profile create above gets 403); the Manager 403 for this route is proven by
+    # test_t011_school_manager_is_refused_on_class_profile_list in the synthetic pilot file.
+    assert profile_list.status_code == 403
+    assert profile_list.json()["code"] == "ACTION_NOT_ALLOWED"
 
     child_id = f"synthetic-pending-child-{uuid4()}"
     consent_response = client.post(
@@ -900,7 +915,9 @@ def test_retention_worker_purges_local_bytes_once_but_keeps_external_purge_pendi
     accepted = acceptance_client
     client = accepted.client
     class_response = client.post(
-        _url(accepted, "/classes"), json={"display_name": "Retention Acceptance Class"}
+        _url(accepted, "/classes"),
+        json={"display_name": "Retention Acceptance Class"},
+        headers={"Idempotency-Key": f"class-{uuid4().hex}"},
     )
     assert class_response.status_code == 201, class_response.text
     class_id = class_response.json()["class_id"]

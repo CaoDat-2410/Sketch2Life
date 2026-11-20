@@ -1,3 +1,4 @@
+import { createIdempotencyKey } from '../../../../shared/api/backendApi'
 import { AdminBe1Error, adminBe1Request, adminOrganizationId } from './be1Client'
 
 export interface Be1Class {
@@ -22,6 +23,15 @@ export interface Be1TeacherAssignment {
   role: 'teacher'
   class_id: string
   active: boolean
+  assignment_revision: number
+}
+
+/** 201 body of create class; `state` and `assignment_revision` are additive. */
+export interface Be1CreatedClassResponse {
+  contract: 'Be1ClassV1'
+  class_id: string
+  display_name: string
+  state: 'active' | 'inactive'
   assignment_revision: number
 }
 
@@ -58,11 +68,16 @@ export const classService = {
       headers: { 'If-Match': `"${revision}"`, 'Idempotency-Key': idempotencyKey },
       body: JSON.stringify({ candidate_ref: candidateRef }),
     }),
-  createClass: async (displayName: string) => {
+  /** One Idempotency-Key per user action: the caller passes the same key when it retries that action. */
+  createClass: async (displayName: string, idempotencyKey: string = createIdempotencyKey()) => {
     const organization = adminOrganizationId()
-    return adminBe1Request<{ contract: 'Be1ClassV1'; class_id: string; display_name: string }>(
+    return adminBe1Request<Be1CreatedClassResponse>(
       `/organizations/${encodeURIComponent(organization)}/classes`,
-      { method: 'POST', body: JSON.stringify({ display_name: displayName }) },
+      {
+        method: 'POST',
+        headers: { 'Idempotency-Key': idempotencyKey },
+        body: JSON.stringify({ display_name: displayName }),
+      },
     )
   },
 }

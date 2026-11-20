@@ -23,6 +23,9 @@ SCANNED_MODULES = (
     "interfaces/http/routers/platform_admin_accounts.py",
     "interfaces/http/routers/auth_registration.py",
     "interfaces/http/routers/teacher_ai.py",
+    "interfaces/http/routers/jobs.py",
+    "interfaces/http/routers/upload_sessions.py",
+    "interfaces/http/routers/lesson_occurrences.py",
     "interfaces/http/be1_runtime.py",
     "infrastructure/lesson_library/service.py",
 )
@@ -206,6 +209,19 @@ def test_conv1_families() -> None:
     assert envelope.is_conv1_path("/api/platform-admin/v1/accounts")
     assert envelope.is_conv1_path("/api/auth/v1/me")
     assert envelope.is_conv1_path("/api/teacher/v1/organizations/o/ai/lesson-plan-suggestions")
+    assert envelope.is_conv1_path("/v1/jobs/job_fx_001")
+    assert not envelope.is_conv1_path("/v1/jobs")  # the prefix has a trailing slash
+    assert not envelope.is_conv1_path("/v1/jobsfoo/job_fx_001")
+    # FEAT-066 T-2a: the generic upload sessions, matched on whole path segments.
+    assert envelope.is_conv1_path("/v1/upload-sessions")
+    assert envelope.is_conv1_path("/v1/upload-sessions/up_1/parts/1")
+    assert not envelope.is_conv1_path("/v1/upload-sessionsfoo")
+    assert not envelope.is_conv1_path("/v1/upload-sessions/up_1", include_upload_sessions=False)
+    # FEAT-066 T-3a: the Teacher lesson occurrences, always in the family, whole segments only.
+    assert envelope.is_conv1_path("/v1/lesson-occurrences")
+    assert envelope.is_conv1_path("/v1/lesson-occurrences/occ_1/documents")
+    assert envelope.is_conv1_path("/v1/lesson-occurrences", include_upload_sessions=False)
+    assert not envelope.is_conv1_path("/v1/lesson-occurrencesfoo")
     assert not envelope.is_conv1_path("/api/parent/v1/ai/drawing-understandings")
     assert not envelope.is_conv1_path("/v1/parent/profiles")
     assert not envelope.is_conv1_path("/v1/story-runs")

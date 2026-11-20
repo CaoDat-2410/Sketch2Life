@@ -31,6 +31,9 @@ def configure_factory_environment(*, story: bool, storage: bool) -> None:
     os.environ["SKETCH2LIFE_AI_PROVIDER"] = "disabled"
     os.environ["SKETCH2LIFE_STORAGE_EXAMPLE_ENABLED"] = str(storage).lower()
     os.environ["STORYRUN_LITE_MAIN_DEMO_ENABLED"] = "1" if story else "0"
+    # FEAT-066 T0.5: the demo replaces the real Parent router; the app refuses to start
+    # without this acknowledgement (only read when the flag above is 1).
+    os.environ["STORYRUN_LITE_MAIN_DEMO_REPLACES_PARENT_ROUTER"] = "1" if story else "0"
     os.environ["AWS_EC2_METADATA_DISABLED"] = "true"
     for name in ("SKETCH2LIFE_DATABASE_URL", "STORYRUN_LITE_DATABASE_URL"):
         os.environ.pop(name, None)

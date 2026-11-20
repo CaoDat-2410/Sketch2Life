@@ -20,6 +20,16 @@ SRS_V22_INCLUDED_OPERATIONS: frozenset[tuple[str, str]] = frozenset(
         ("post", "/v1/story-runs/{run_id}/context-confirmation"),
         ("post", "/v1/story-runs/{run_id}/subject-confirmation"),
         ("post", "/v1/story-runs/{run_id}/script-confirmation"),
+        # FEAT-066 T-2a (SRS l.1654-1658): generic upload sessions.
+        ("post", "/v1/upload-sessions"),
+        ("get", "/v1/upload-sessions/{upload_id}"),
+        ("put", "/v1/upload-sessions/{upload_id}/parts/{part_no}"),
+        ("post", "/v1/upload-sessions/{upload_id}/complete"),
+        ("delete", "/v1/upload-sessions/{upload_id}"),
+        # FEAT-066 T-3a (SRS l.1652): Teacher lesson occurrences.
+        ("post", "/v1/lesson-occurrences"),
+        ("get", "/v1/lesson-occurrences"),
+        ("get", "/v1/lesson-occurrences/{occurrence_id}"),
         ("get", "/api/be1/v1/organizations/{organization_id}"),
         ("get", "/api/be1/v1/organizations/{organization_id}/me"),
         ("post", "/api/be1/v1/classes/{class_id}/assignments"),
@@ -115,6 +125,20 @@ SRS_V22_OPERATION_TAGS.update(
 )
 SRS_V22_OPERATION_TAGS.update(
     {
+        key: "Upload Sessions"
+        for key in SRS_V22_INCLUDED_OPERATIONS
+        if key[1].startswith("/v1/upload-sessions")
+    }
+)
+SRS_V22_OPERATION_TAGS.update(
+    {
+        key: "Lesson Occurrences"
+        for key in SRS_V22_INCLUDED_OPERATIONS
+        if key[1].startswith("/v1/lesson-occurrences")
+    }
+)
+SRS_V22_OPERATION_TAGS.update(
+    {
         key: "Teacher — Lesson Preparation"
         for key in SRS_V22_INCLUDED_OPERATIONS
         if key[1].startswith("/api/lesson-library/v1/organizations/")
@@ -178,6 +202,14 @@ SRS_V22_TAGS: list[dict[str, str]] = [
     {
         "name": "Parent StoryRuns",
         "description": "Proposed Parent StoryRun create, read, and confirmation slice.",
+    },
+    {
+        "name": "Upload Sessions",
+        "description": "Resumable uploads for Parent artwork and Teacher documents.",
+    },
+    {
+        "name": "Lesson Occurrences",
+        "description": "Teacher lesson occurrences: create, read and list per class.",
     },
 ]
 

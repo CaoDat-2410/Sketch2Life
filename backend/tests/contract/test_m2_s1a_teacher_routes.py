@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
-from typing import cast
+from typing import Any, cast
 
 import pytest
 from fastapi import HTTPException, Response
@@ -110,6 +110,7 @@ def test_missing_class_assignment_uses_generic_scope_denial(
         be1_registry.assign_class_teacher(
             "synthetic-missing-class",
             CreateAssignmentRequest(candidate_ref="synthetic-candidate"),
+            cast(Any, SimpleNamespace()),  # T0.1: the request
             Response(),
             "synthetic-key",
             '"1"',

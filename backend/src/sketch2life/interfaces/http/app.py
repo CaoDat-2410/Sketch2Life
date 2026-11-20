@@ -5,10 +5,8 @@ import os
 import re
 from collections.abc import AsyncIterator, Awaitable, Callable, Mapping
 from contextlib import asynccontextmanager
-from ipaddress import ip_address
 from pathlib import Path
 from typing import Any, Literal
-from urllib.parse import urlsplit
 from uuid import uuid4
 
 from fastapi import FastAPI, Request
@@ -93,7 +91,10 @@ from sketch2life.infrastructure.catalog.pixi_show_assets import (
 )
 from sketch2life.infrastructure.catalog.workflow_metadata import FileWorkflowCatalogMetadata
 from sketch2life.infrastructure.config.settings import Settings, get_settings
-from sketch2life.infrastructure.documents.clamav_scanner import ClamAvScanner
+from sketch2life.infrastructure.documents.factory import (
+    build_document_scanner,
+    build_upload_media_validator,
+)
 from sketch2life.infrastructure.documents.lesson_parser import DeterministicLessonDocumentParser
 from sketch2life.infrastructure.identity.firebase_admin_account_provisioner import (
     FirebaseAdminAccountProvisioner,
@@ -133,6 +134,7 @@ from sketch2life.interfaces.http.error_envelope import (
 from sketch2life.interfaces.http.error_envelope import (
     retry_after_seconds as envelope_retry_after,
 )
+from sketch2life.interfaces.http.metrics import HttpMetricsMiddleware, MetricsRegistry
 from sketch2life.interfaces.http.middleware.bounded_image_upload import (
     BoundedImageUploadMiddleware,
 )
@@ -150,10 +152,13 @@ from sketch2life.interfaces.http.openapi_contract_amendments import (
     published_responses,
 )
 from sketch2life.interfaces.http.openapi_srs_v22 import project_srs_v22_openapi
+from sketch2life.interfaces.http.probe_access import is_local_host_header as _local_host_header
+from sketch2life.interfaces.http.probe_access import is_loopback_address as _loopback
 from sketch2life.interfaces.http.router_composition import (
     mount_all_routers,
     mount_classroom_routers,
     mount_demo_routers,
+    story_demo_replaced_routers,
 )
 from sketch2life.interfaces.http.routers.auth_registration import RegistrationRateLimiter
 from sketch2life.interfaces.http.routers.storage_examples import router as storage_examples_router
@@ -163,10 +168,21 @@ from sketch2life.interfaces.http.routers.story_run_lite import (
     story_unexpected_error_response,
     story_validation_error_response,
 )
+from sketch2life.interfaces.http.story_demo_guard import (
+    StoryDemoReplacement,
+    read_replacement_acknowledgement,
+    replacement_error_message,
+    replacement_summary,
+    shadowed_routes,
+)
 from sketch2life.interfaces.http.story_run_lite_contract import add_story_run_lite_contract
 
 _LOGGER = logging.getLogger("sketch2life.api")
 _SAFE_ID = re.compile(r"^[A-Za-z0-9._:-]{1,120}$")
+_STORY_DEMO_REPLACEMENT_SENTENCE = (
+    "\n\nWith this demo on, the StoryRun-lite routes replace the real Parent story-run "
+    "routes on the same paths; the real Parent router is not mounted."
+)
 
 
 def _story_run_lite_path(path: str) -> bool:
@@ -192,24 +208,6 @@ def _parent_drawing_understandings_path(path: str) -> bool:
     return path == "/api/parent/v1/ai/drawing-understandings"
 
 
-def _loopback(address: object) -> bool:
-    try:
-        return ip_address(str(address)).is_loopback
-    except ValueError:
-        return False
-
-
-def _local_host_header(value: str) -> bool:
-    try:
-        parsed = urlsplit("http://" + value)
-        return bool(
-            parsed.hostname in {"127.0.0.1", "::1", "localhost"}
-            and parsed.username is None and parsed.password is None
-            and not parsed.path and not parsed.query and not parsed.fragment
-            and (parsed.port is None or 1 <= parsed.port <= 65535)
-        )
-    except ValueError:
-        return False
 _SAFE_CONTEXT_PROFILE_FIELDS = frozenset(
     {
         "contract_name",
@@ -302,7 +300,15 @@ def _apply_catalog_metadata(
             }
             runtime_responses = operation.setdefault("responses", {})
             if path.startswith(
-                ("/api/be1/v1/", "/v1/parent/profiles", "/api/lesson-library/v1/")
+                (
+                    "/api/be1/v1/",
+                    "/v1/parent/profiles",
+                    "/api/lesson-library/v1/",
+                    # T-2a: validation answers 400 in the CONV-1 envelope, never FastAPI's 422.
+                    "/v1/upload-sessions",
+                    # T-3a: the same for the Teacher lesson occurrences.
+                    "/v1/lesson-occurrences",
+                )
             ):
                 for status in tuple(runtime_responses):
                     if status not in declared_responses:
@@ -324,7 +330,14 @@ def _apply_catalog_metadata(
                     response["description"] = declared["description"]
                 if (
                     status == "422"
-                    and path.startswith(("/v1/parent/profiles", "/api/lesson-library/v1/"))
+                    and path.startswith(
+                        (
+                            "/v1/parent/profiles",
+                            "/api/lesson-library/v1/",
+                            "/v1/upload-sessions",
+                            "/v1/lesson-occurrences",
+                        )
+                    )
                     and declared["media_type"]
                 ):
                     response["content"] = {
@@ -379,6 +392,22 @@ def create_app(
         _composition_profile != "combined" or storage_example_settings.env not in {"local", "test"}
     ):
         raise ValueError("StoryRun-lite main demo requires the combined local/test app")
+    story_replacement = StoryDemoReplacement()
+    if story_demo_enabled:
+        # TD-18 (FEAT-066 T0.5): the demo router replaces real routes on the same paths, so a
+        # stale flag must not do that silently. Validated before any router is mounted.
+        story_ack = read_replacement_acknowledgement(os.environ)
+        story_replacement = shadowed_routes(
+            [route for router in story_demo_replaced_routers() for route in router.routes],
+            story_run_lite_router.routes,
+        )
+        if story_replacement.replaces_real_routes and not story_ack:
+            raise ValueError(replacement_error_message(story_replacement))
+
+    def conv1_path(path: str) -> bool:
+        # T-2a: `/v1/upload-sessions*` joins the CONV-1 envelope only while the generic router is
+        # mounted; with the StoryRun-lite demo on, the demo bodies stay byte-identical.
+        return is_conv1_path(path, include_upload_sessions=not story_demo_enabled)
 
     @asynccontextmanager
     async def main_lifespan(app: FastAPI) -> AsyncIterator[None]:
@@ -406,6 +435,8 @@ def create_app(
             "\n\nStoryRun-lite routes are an unauthenticated, loopback-only synthetic demo; "
             "they do not establish a real Parent identity."
         )
+        if story_replacement.replaces_real_routes:
+            application.description += _STORY_DEMO_REPLACEMENT_SENTENCE
 
     if story_demo_enabled:
         @application.middleware("http")
@@ -576,7 +607,7 @@ def create_app(
                 ),
                 headers={**(exc.headers or {}), "X-Request-ID": request_id},
             )
-        if not is_conv1_path(request.url.path):
+        if not conv1_path(request.url.path):
             return await http_exception_handler(request, exc)
         request_id = getattr(request.state, "be1_request_id", str(uuid4()))
         status, code, field_errors, current_version = normalize_http_error(
@@ -609,6 +640,11 @@ def create_app(
             or _parent_drawing_understandings_path(request.url.path)
         ):
             request_id = getattr(request.state, "story_request_id", str(uuid4()))
+            # T0.1 (C-D5): on the Parent StoryRun routes a bad Idempotency-Key header is a plain
+            # 400 INVALID_REQUEST without a field_errors item (same shape as parse_idempotency_key
+            # in the cancel/delete handlers). INVALID_IDEMPOTENCY_KEY stays for payload reuse and
+            # for the /api/parent/v1/ai routes (T-2d).
+            key_is_request_error = request.url.path.startswith("/v1/story-runs")
             safe_fields = []
             invalid_idempotency_key = False
             for issue in exc.errors():
@@ -618,6 +654,8 @@ def create_app(
                     and location[0] == "header"
                     and location[1] == "Idempotency-Key"
                 ):
+                    if key_is_request_error:
+                        continue
                     invalid_idempotency_key = True
                 field_parts = [
                     str(part)
@@ -672,7 +710,7 @@ def create_app(
                 ),
                 headers={"X-Request-ID": request_id},
             )
-        if is_conv1_path(request.url.path):
+        if conv1_path(request.url.path):
             request_id = getattr(request.state, "be1_request_id", str(uuid4()))
             return JSONResponse(
                 status_code=400,
@@ -809,7 +847,7 @@ def create_app(
                 headers={"X-Request-ID": request_id},
             )
         request_id = getattr(request.state, "be1_request_id", str(uuid4()))
-        if not is_conv1_path(request.url.path):
+        if not conv1_path(request.url.path):
             del exc
             return PlainTextResponse(
                 "Internal Server Error",
@@ -835,6 +873,10 @@ def create_app(
             storage_example_settings.storage_example_max_upload_bytes + 64 * 1024
         ),
     )
+    # T0.3: keep this the last add_middleware call so it stays the outermost user middleware.
+    metrics_registry = MetricsRegistry()
+    application.state.metrics_registry = metrics_registry
+    application.add_middleware(HttpMetricsMiddleware, registry=metrics_registry)
     scene_localizer = None
     pixi_show_planner_required = False
     if _composition_profile != "classroom" and session_service is None:
@@ -1054,10 +1096,24 @@ def create_app(
     application.state.lesson_library_storage = None
     application.state.lesson_document_parser = None
     application.state.lesson_document_scanner = None
+    application.state.upload_media_validator = None
     if _composition_profile == "combined":
-        mount_all_routers(application, include_parent_story_runs=not story_demo_enabled)
+        mount_all_routers(
+            application,
+            include_parent_story_runs=not story_demo_enabled,
+            include_upload_sessions=not story_demo_enabled,
+        )
         if story_demo_enabled:
             application.include_router(story_run_lite_router)
+            if story_replacement.replaces_real_routes:
+                application.state.story_demo_replaces_real_routes = story_replacement.collides
+                application.state.story_demo_unmounted_real_routes = story_replacement.unmounted
+                _LOGGER.warning(
+                    "storyrun_lite_main_demo_replaces_real_routes %s "
+                    "parent_router_mounted=false env=%s",
+                    replacement_summary(story_replacement),
+                    storage_example_settings.env,
+                )
     elif _composition_profile == "classroom":
         mount_classroom_routers(application)
     else:
@@ -1092,9 +1148,11 @@ def create_app(
             secret_key=secret_key.get_secret_value() if secret_key else None,
         )
         application.state.lesson_document_parser = DeterministicLessonDocumentParser()
-        application.state.lesson_document_scanner = ClamAvScanner(
-            host=storage_example_settings.clamav_host,
-            port=storage_example_settings.clamav_port,
+        application.state.lesson_document_scanner = build_document_scanner(
+            storage_example_settings
+        )
+        application.state.upload_media_validator = build_upload_media_validator(
+            storage_example_settings
         )
     renderer_dist = Path(__file__).resolve().parents[5] / "packages" / "art-renderer" / "dist-demo"
     if renderer_dist.is_dir():
@@ -1295,6 +1353,8 @@ def create_app(
             schema["info"]["description"] += (
                 "\n\nStoryRun-lite is an unauthenticated loopback-only synthetic demo."
             )
+            if story_replacement.replaces_real_routes:
+                schema["info"]["description"] += _STORY_DEMO_REPLACEMENT_SENTENCE
         application.openapi_schema = schema
         return schema
 

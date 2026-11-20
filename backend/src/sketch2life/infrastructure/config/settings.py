@@ -6,7 +6,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal, Self
 
-from pydantic import Field, SecretStr, model_validator
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -19,6 +19,8 @@ class Settings(BaseSettings):
         env_file=(_BACKEND_ROOT.parent / ".env",),
         # The shared file also contains Compose and Vite client keys owned elsewhere.
         extra="ignore",
+        # A validation error must never echo the raw environment values (the probe credential).
+        hide_input_in_errors=True,
     )
 
     env: Literal["local", "test", "staging", "production"] = "local"
@@ -34,6 +36,10 @@ class Settings(BaseSettings):
     s3_secret_key: SecretStr | None = None
     clamav_host: str | None = None
     clamav_port: int = Field(default=3310, ge=1, le=65535)
+    # T-2z (TD-29): "local_test_allowlist" swaps ClamAV for a fixture-hash allowlist scanner and a
+    # signature media validator. Refused outside local/test (see the policy validator below).
+    scanner_adapter: Literal["clamav", "local_test_allowlist"] = "clamav"
+    local_scanner_allowlist_file: Path | None = None
     platform_admin_bootstrap_email: str = ""
     storage_example_enabled: bool = False
     storage_example_max_upload_bytes: int = Field(
@@ -43,6 +49,9 @@ class Settings(BaseSettings):
     session_idle_ttl_seconds: int = Field(default=1800, ge=60, le=86_400)
     # FEAT-064 dev pilot: synthetic eligibility is honored only when this is on in local/test.
     synthetic_pilot_enabled: bool = False
+    # T0.3 (SRS l.814): optional operator credential for /health/ready and /metrics. Empty or
+    # whitespace-only counts as not set (Compose passes unset optionals as an empty string).
+    ops_probe_token: SecretStr | None = None
 
     auth_provider: Literal["development", "firebase"] = "development"
     firebase_project_id: str = ""
@@ -86,8 +95,29 @@ class Settings(BaseSettings):
         """Keep the owner-authorized preview unavailable outside local/test deployments."""
         return self.pixi_sprite_cycle_dev_preview_enabled and self.env in {"local", "test"}
 
+    @field_validator("ops_probe_token", mode="before")
+    @classmethod
+    def blank_ops_probe_token_is_unset(cls, value: object) -> object:
+        if isinstance(value, str) and not value.strip():
+            return None
+        if isinstance(value, SecretStr) and not value.get_secret_value().strip():
+            return None
+        return value
+
     @model_validator(mode="after")
     def enforce_deployment_provider_policy(self) -> Self:
+        # Checked first so staging/production fail on this reason before any other policy reason.
+        if self.scanner_adapter != "clamav" and self.env not in {"local", "test"}:
+            raise ValueError("the local test scanner adapter is available only in local/test")
+
+        if self.ops_probe_token is not None:
+            # Checked here, not in a field validator, so a validation error never echoes the value.
+            probe_token = self.ops_probe_token.get_secret_value()
+            if len(probe_token) < 32 or not all("!" <= char <= "~" for char in probe_token):
+                raise ValueError(
+                    "the operator probe credential must be 32 or more visible ASCII characters"
+                )
+
         if self.storage_example_enabled and self.env != "local":
             raise ValueError("the storage example is available only in local development")
 

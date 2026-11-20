@@ -159,11 +159,15 @@ def _envelope(view: ParentStoryRunView) -> ParentStoryRunResult:
 def create_parent_story_run(
     payload: ParentStoryRunCreateRequestV1,
     request: Request,
-    idempotency_key: Annotated[str, Header(alias="Idempotency-Key", min_length=1, max_length=256)],
+    idempotency_key: Annotated[str, Header(alias="Idempotency-Key", min_length=1, max_length=128)],
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
 ) -> ParentStoryRunResult:
+    # The declaration above publishes the header as required; parse_idempotency_key (C-D5, 1-128
+    # visible ASCII) is the authority and runs after the role check, as for cancel/delete.
+    del idempotency_key
     identity = _require_parent(db, principal)
+    key = parse_idempotency_key(request)
     service = _service(db)
     lesson_version_ref = (
         payload.lesson_version.model_dump(mode="json")
@@ -175,7 +179,7 @@ def create_parent_story_run(
         principal=principal,
         account_id=identity.account_id,
         parent_profile_id=payload.parent_profile_id,
-        idempotency_key=idempotency_key,
+        idempotency_key=key,
         topic=payload.topic,
         adult_confirmed_idea=payload.adult_confirmed_idea,
         lesson_version_ref=lesson_version_ref,
@@ -224,7 +228,7 @@ def create_parent_story_run(
         principal=principal,
         account_id=identity.account_id,
         parent_profile_id=payload.parent_profile_id,
-        idempotency_key=idempotency_key,
+        idempotency_key=key,
         topic=payload.topic,
         adult_confirmed_idea=payload.adult_confirmed_idea,
         lesson_version_ref=lesson_version_ref,
@@ -436,18 +440,21 @@ def delete_parent_story_run(
 def confirm_parent_story_context(
     run_id: UUID,
     payload: ParentContextConfirmationRequestV1,
-    idempotency_key: Annotated[str, Header(alias="Idempotency-Key", min_length=1, max_length=256)],
+    request: Request,
+    idempotency_key: Annotated[str, Header(alias="Idempotency-Key", min_length=1, max_length=128)],
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
 ) -> ParentStoryRunResult:
+    del idempotency_key
     _require_parent(db, principal)
+    key = parse_idempotency_key(request)
     record = _invoke(
         _service(db).confirm_context,
         principal=principal,
         run_id=str(run_id),
         expected_context_revision=payload.expected_context_revision,
         expected_context_snapshot_sha256=payload.context_snapshot_sha256,
-        idempotency_key=idempotency_key,
+        idempotency_key=key,
     )
     return _envelope(record)
 
@@ -461,11 +468,14 @@ def confirm_parent_story_context(
 def confirm_parent_story_subject(
     run_id: UUID,
     payload: ParentSubjectConfirmationRequestV1,
-    idempotency_key: Annotated[str, Header(alias="Idempotency-Key", min_length=1, max_length=256)],
+    request: Request,
+    idempotency_key: Annotated[str, Header(alias="Idempotency-Key", min_length=1, max_length=128)],
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
 ) -> ParentSubjectConfirmationResponseV1 | ParentStoryRunLifecycleEnvelopeV1:
+    del idempotency_key
     _require_parent(db, principal)
+    key = parse_idempotency_key(request)
     service = _service(db)
     revision = _invoke(
         service.confirm_subject,
@@ -473,7 +483,7 @@ def confirm_parent_story_subject(
         run_id=str(run_id),
         expected_understanding_revision=payload.expected_understanding_revision,
         confirmed_subject=payload.confirmed_subject,
-        idempotency_key=idempotency_key,
+        idempotency_key=key,
     )
     if isinstance(revision, ParentStoryLifecycleRecord):
         return _lifecycle_envelope(revision)
@@ -494,11 +504,14 @@ def confirm_parent_story_subject(
 def confirm_parent_story_revision(
     run_id: UUID,
     payload: ParentStoryRevisionConfirmationRequestV1,
-    idempotency_key: Annotated[str, Header(alias="Idempotency-Key", min_length=1, max_length=256)],
+    request: Request,
+    idempotency_key: Annotated[str, Header(alias="Idempotency-Key", min_length=1, max_length=128)],
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
 ) -> ParentStoryRunResult:
+    del idempotency_key
     _require_parent(db, principal)
+    key = parse_idempotency_key(request)
     service = _service(db)
     record = _invoke(
         service.confirm_story_revision,
@@ -506,7 +519,7 @@ def confirm_parent_story_revision(
         run_id=str(run_id),
         expected_revision=payload.expected_revision,
         expected_story_sha256=payload.story_sha256,
-        idempotency_key=idempotency_key,
+        idempotency_key=key,
     )
     return _envelope(record)
 

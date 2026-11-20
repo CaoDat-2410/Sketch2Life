@@ -281,6 +281,8 @@ SYNTHETIC_RESPONSE_EXAMPLES: dict[tuple[str, str], dict[str, Any]] = {
         "contract": "Be1ClassV1",
         "class_id": "class-example-001",
         "display_name": "Example Class",
+        "state": "active",
+        "assignment_revision": 1,
     },
     (
         "get",

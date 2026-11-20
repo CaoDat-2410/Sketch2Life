@@ -5,7 +5,10 @@ from __future__ import annotations
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
 
-from sketch2life.infrastructure.persistence.core_models import CorePersistenceBase
+from sketch2life.infrastructure.persistence.core_models import (
+    OWNER_SCOPE_CHECK,
+    CorePersistenceBase,
+)
 
 CORE_METADATA = CorePersistenceBase.metadata
 LESSON_METADATA = sa.MetaData(schema="lesson")
@@ -59,7 +62,15 @@ UPLOAD_SESSIONS = sa.Table(
     "core_upload_sessions",
     CORE_METADATA,
     sa.Column("upload_session_id", sa.String(36), primary_key=True),
-    sa.Column("organization_id", sa.String(128), nullable=False),
+    # DDL-F (20261119_uf_0001): nullable for a Parent-scoped session; typed owner scope below.
+    sa.Column("organization_id", sa.String(128), nullable=True),
+    sa.Column(
+        "owner_scope_kind",
+        sa.String(32),
+        nullable=False,
+        server_default=sa.text("'ORGANIZATION'"),
+    ),
+    sa.Column("owner_scope_ref", sa.String(128), nullable=True),
     sa.Column("owner_principal_ref", sa.String(256), nullable=False),
     sa.Column("purpose", sa.String(32), nullable=False),
     sa.Column("target_ref", sa.String(256), nullable=False),
@@ -75,10 +86,17 @@ UPLOAD_SESSIONS = sa.Table(
     sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
     sa.Column("completed_at", sa.DateTime(timezone=True)),
     sa.Column("aborted_at", sa.DateTime(timezone=True)),
+    sa.Column("error_code", sa.String(64)),
+    sa.Column("scan_verdict", sa.String(16)),
+    sa.Column("scanner_name", sa.String(64)),
+    sa.Column("scanner_version", sa.String(64)),
+    sa.Column("validated_at", sa.DateTime(timezone=True)),
     sa.CheckConstraint(
-        "purpose IN ('PROFILE_IMAGE', 'RUN_ARTWORK', 'RUN_AUDIO', 'LESSON_SOURCE')",
+        "purpose IN ('PROFILE_IMAGE', 'RUN_ARTWORK', 'RUN_AUDIO', 'LESSON_SOURCE', "
+        "'OCCURRENCE_DOCUMENT')",
         name="ck_core_upload_purpose",
     ),
+    sa.CheckConstraint(OWNER_SCOPE_CHECK, name="ck_core_upload_owner_scope"),
     sa.CheckConstraint("expected_size_bytes BETWEEN 1 AND 25000000", name="ck_core_upload_size"),
     sa.CheckConstraint("chunk_size_bytes = 4194304", name="ck_core_upload_chunk_size"),
     sa.CheckConstraint("expected_parts BETWEEN 1 AND 7", name="ck_core_upload_parts_count"),
@@ -88,6 +106,10 @@ UPLOAD_SESSIONS = sa.Table(
     ),
     sa.CheckConstraint("length(expected_sha256) = 64", name="ck_core_upload_hash"),
     sa.Index("ix_core_upload_owner_state", "owner_principal_ref", "state", "expires_at"),
+    sa.Index(
+        "ix_core_upload_scope_state", "owner_scope_kind", "owner_scope_ref", "state", "expires_at"
+    ),
+    sa.Index("ix_core_upload_target_state", "target_ref", "state"),
 )
 
 UPLOAD_PARTS = sa.Table(

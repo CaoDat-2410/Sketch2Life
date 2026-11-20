@@ -136,6 +136,8 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
     # reviewed classroom, Parent profile, and Lesson Library contracts.
     assert expected.items() <= actual.items()
     assert set(actual) - set(expected) == {
+        # FEAT-066 T0.3: the public liveness probe (the operator probes are not in the schema).
+        "/health/live",
         "/api/be1/v1/classes/{class_id}/assignments",
         # FEAT-066 M9-B: same-organization Teacher candidates for the first assignment.
         "/api/be1/v1/organizations/{organization_id}/teacher-candidates",
@@ -157,6 +159,25 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
     } | set(lesson_library_methods) | {
         "/api/auth/v1/registrations",
         "/api/auth/v1/me",
+        # FEAT-066 T0.4: live job poll route (runtime-only).
+        "/v1/jobs/{job_id}",
+        # FEAT-066 T-2a: generic upload sessions (SRS l.1654-1658), mounted with the demo off.
+        "/v1/upload-sessions",
+        "/v1/upload-sessions/{upload_id}",
+        "/v1/upload-sessions/{upload_id}/parts/{part_no}",
+        "/v1/upload-sessions/{upload_id}/complete",
+        # FEAT-066 T-3a: Teacher lesson occurrences (SRS l.1652), always mounted.
+        "/v1/lesson-occurrences",
+        "/v1/lesson-occurrences/{occurrence_id}",
+        # FEAT-066 T-3b: the occurrence source documents (SRS l.1653).
+        "/v1/lesson-occurrences/{occurrence_id}/documents",
+        "/v1/lesson-occurrences/{occurrence_id}/documents/{document_id}",
+        "/v1/lesson-occurrences/{occurrence_id}/documents/{document_id}/revisions",
+        "/v1/lesson-occurrences/{occurrence_id}/documents/{document_id}/revisions/{revision_no}",
+        # FEAT-066 T-3d: the occurrence plan revisions (SRS l.1659-1660).
+        "/v1/lesson-occurrences/{occurrence_id}/plan-revisions",
+        "/v1/lesson-occurrences/{occurrence_id}/plan-revisions/{revision_no}",
+        "/v1/lesson-occurrences/{occurrence_id}/plan-revisions/{revision_no}/confirm",
         "/api/platform-admin/v1/accounts",
         "/api/platform-admin/v1/accounts/{account_id}",
         "/api/parent/v1/ai/sketch-guides",
@@ -316,3 +337,84 @@ def test_real_app_composes_pilot_only_for_valid_local_synthetic_gate(
     unavailable = create_app()
     assert unavailable.state.be1_runtime.engine is None
     assert unavailable.state.be1_runtime.pilot_vision is None
+
+
+# --- T-2z: scanner and media-validator selection (TD-29) -----------------------------------
+
+
+def test_default_composition_keeps_clamav_and_no_media_validator() -> None:
+    from sketch2life.infrastructure.documents.clamav_scanner import ClamAvScanner
+
+    application = create_app()
+
+    assert isinstance(application.state.lesson_document_scanner, ClamAvScanner)
+    assert application.state.upload_media_validator is None
+
+
+def test_other_profiles_define_the_media_validator_state_as_none() -> None:
+    assert create_classroom_app().state.upload_media_validator is None
+    assert create_demo_app().state.upload_media_validator is None
+
+
+def test_local_test_adapter_selection_composes_both_local_adapters(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    from sketch2life.infrastructure.documents.local_test_adapters import (
+        LocalTestAllowlistScanner,
+        LocalTestSignatureMediaValidator,
+    )
+
+    allowlist = tmp_path / "allowlist.json"
+    allowlist.write_text(json.dumps({"sha256": ["a" * 64]}), encoding="utf-8")
+    monkeypatch.setenv("SKETCH2LIFE_SCANNER_ADAPTER", "local_test_allowlist")
+    monkeypatch.setenv("SKETCH2LIFE_LOCAL_SCANNER_ALLOWLIST_FILE", str(allowlist))
+    get_settings.cache_clear()
+
+    application = create_app()
+
+    assert isinstance(application.state.lesson_document_scanner, LocalTestAllowlistScanner)
+    assert isinstance(application.state.upload_media_validator, LocalTestSignatureMediaValidator)
+    assert application.state.lesson_document_scanner.scanner_name == "local-test-allowlist"
+
+
+def test_allowlist_file_without_the_adapter_flag_keeps_clamav(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    from sketch2life.infrastructure.documents.clamav_scanner import ClamAvScanner
+
+    allowlist = tmp_path / "allowlist.json"
+    allowlist.write_text(json.dumps({"sha256": ["a" * 64]}), encoding="utf-8")
+    monkeypatch.setenv("SKETCH2LIFE_LOCAL_SCANNER_ALLOWLIST_FILE", str(allowlist))
+    get_settings.cache_clear()
+
+    application = create_app()
+
+    assert isinstance(application.state.lesson_document_scanner, ClamAvScanner)
+    assert application.state.upload_media_validator is None
+
+
+def test_local_adapter_selection_with_an_unusable_allowlist_stops_startup(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    from sketch2life.infrastructure.documents.local_test_adapters import LocalAdapterRefused
+
+    monkeypatch.setenv("SKETCH2LIFE_SCANNER_ADAPTER", "local_test_allowlist")
+    monkeypatch.setenv("SKETCH2LIFE_LOCAL_SCANNER_ALLOWLIST_FILE", str(tmp_path / "absent.json"))
+    get_settings.cache_clear()
+
+    with pytest.raises(LocalAdapterRefused):
+        create_app()
+
+
+@pytest.mark.parametrize("env", ["staging", "production"])
+def test_the_process_does_not_start_with_the_local_scanner_outside_local_and_test(
+    monkeypatch: pytest.MonkeyPatch, env: str
+) -> None:
+    from pydantic import ValidationError
+
+    monkeypatch.setenv("SKETCH2LIFE_ENV", env)
+    monkeypatch.setenv("SKETCH2LIFE_SCANNER_ADAPTER", "local_test_allowlist")
+    get_settings.cache_clear()
+
+    with pytest.raises(ValidationError, match="local test scanner adapter"):
+        create_app()

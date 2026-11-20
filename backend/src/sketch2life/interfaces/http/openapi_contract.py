@@ -37,6 +37,8 @@ TAG_DESCRIPTIONS: Final[dict[str, str]] = {'BE1 — Organizations & Classes': 'O
                                           'lesson downloads.',
  'Parent Profiles': 'Create, read, and revise synthetic Parent-owned profiles.',
  'Parent StoryRuns': 'Proposed Parent StoryRun create, read, and confirmation slice.',
+ 'Upload Sessions': 'Resumable uploads for Parent artwork and Teacher documents.',
+ 'Lesson Occurrences': 'Teacher lesson occurrences: create, read and list per class.',
  'Parent & School Manager — Group Membership': 'Parent-group membership revocation available to '
                                                'the parent or school manager.',
  'Platform Admin — Moderation': 'Platform-level lesson moderation.',
@@ -2843,6 +2845,9 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                      'string; '
                                                                                      'header '
                                                                                      '`X-Request-ID`: '
+                                                                                     'string; '
+                                                                                     'header '
+                                                                                     '`Idempotency-Key*`: '
                                                                                      'string; '
                                                                                      'application/json '
                                                                                      '(required): '
@@ -11254,6 +11259,482 @@ MOUNTED_OPERATIONS[('post', '/v1/story-runs/{run_id}/script-confirmation')] = {
     ),
 }
 
+# FEAT-066 goal v3 T-2a (SRS l.1654-1658): generic upload sessions, mounted only while the
+# StoryRun-lite main demo is off. Lesson sources keep the Lesson Library routes (P-17).
+_UPLOAD_ERROR_DESCRIPTIONS: Final[dict[str, str]] = {
+    "400": "The request is invalid (`INVALID_REQUEST`, `INVALID_IDEMPOTENCY_KEY`)",
+    "401": "Authentication is required",
+    "404": "The session or its target was not found or is outside the caller's scope",
+    "409": "The request conflicts with current state (`UPLOAD_PART_CONFLICT`, "
+    "`UPLOAD_SESSION_STATE_CONFLICT`, `STALE_REVISION`, `INVALID_STATE_TRANSITION`)",
+    "410": "The upload session has expired (`UPLOAD_SESSION_EXPIRED`)",
+    "413": "The part or file is too large (`MEDIA_TOO_LARGE`, `LESSON_FILE_TOO_LARGE`)",
+    "415": "The media type is not accepted (`UNSUPPORTED_MEDIA_TYPE`, `UNSUPPORTED_LESSON_TYPE`)",
+    "422": "The upload failed validation (`UPLOAD_INCOMPLETE`, `UPLOAD_CHECKSUM_MISMATCH`, "
+    "`UPLOAD_CONTENT_MISMATCH`, `MALWARE_DETECTED`)",
+    "503": "A required service is unavailable (`STORAGE_UNAVAILABLE`, `PROVIDER_UNAVAILABLE`)",
+}
+
+
+def _upload_responses(
+    success: tuple[str, str, str], *error_statuses: str
+) -> tuple[ResponseMetadata, ...]:
+    status, description, schema_name = success
+    rows: list[ResponseMetadata] = [
+        {
+            "status": status,
+            "description": description,
+            "media_type": "application/json",
+            "schema_name": schema_name,
+        }
+    ]
+    rows.extend(
+        {
+            "status": error_status,
+            "description": _UPLOAD_ERROR_DESCRIPTIONS[error_status],
+            "media_type": "application/json",
+            "schema_name": "Be1Error",
+        }
+        for error_status in error_statuses
+    )
+    return tuple(rows)
+
+
+_UPLOAD_SURFACE: Final = "Upload sessions (Parent artwork, Teacher occurrence documents)"
+_UPLOAD_TAG: Final = "Upload Sessions"
+_UPLOAD_AUTHENTICATION: Final = "HTTPBearer (bearer)"
+_UPLOAD_VERIFICATION: Final = "SRS l.1654-1658; FR-C-12; goal v3 T-2a"
+MOUNTED_OPERATIONS[("post", "/v1/upload-sessions")] = {
+    "purpose": "Create an upload session for a Parent run artwork or a Teacher occurrence document.",
+    "request_inputs": "header `Idempotency-Key*`: string; application/json (required): "
+    "CreateGenericUploadRequestV1 {purpose*:RUN_ARTWORK|RUN_AUDIO|OCCURRENCE_DOCUMENT, "
+    "target_ref*:string, media_type*:string, expected_size_bytes*:integer, "
+    "expected_sha256*:string, file_name:string}",
+    "handler": "upload_sessions.py::create_upload_session",
+    "responses": _upload_responses(
+        ("201", "Upload session created, or the first response of a replayed key", "GenericUploadSessionV1"),
+        "400", "401", "404", "409", "413", "415", "503",
+    ),
+    "surface": _UPLOAD_SURFACE,
+    "tag": _UPLOAD_TAG,
+    "authentication": _UPLOAD_AUTHENTICATION,
+    "verification": _UPLOAD_VERIFICATION,
+}
+MOUNTED_OPERATIONS[("get", "/v1/upload-sessions/{upload_id}")] = {
+    "purpose": "Read an upload session: state, accepted parts, byte count and expiry.",
+    "request_inputs": "path `upload_id*`: string",
+    "handler": "upload_sessions.py::get_upload_session",
+    "responses": _upload_responses(
+        ("200", "Upload session state", "GenericUploadSessionV1"), "401", "404", "410", "503"
+    ),
+    "surface": _UPLOAD_SURFACE,
+    "tag": _UPLOAD_TAG,
+    "authentication": _UPLOAD_AUTHENTICATION,
+    "verification": _UPLOAD_VERIFICATION,
+}
+MOUNTED_OPERATIONS[("put", "/v1/upload-sessions/{upload_id}/parts/{part_no}")] = {
+    "purpose": "Upload one raw part (at most 4 MiB); the same part and hash is idempotent.",
+    "request_inputs": "path `upload_id*`: string; path `part_no*`: integer; header "
+    "`X-Part-SHA256*`: string; application/octet-stream (required): binary",
+    "handler": "upload_sessions.py::put_upload_part",
+    "responses": _upload_responses(
+        ("200", "Part receipt and progress", "GenericUploadPartReceiptV1"),
+        "400", "401", "404", "409", "410", "413", "415", "422", "503",
+    ),
+    "surface": _UPLOAD_SURFACE,
+    "tag": _UPLOAD_TAG,
+    "authentication": _UPLOAD_AUTHENTICATION,
+    "verification": _UPLOAD_VERIFICATION,
+}
+MOUNTED_OPERATIONS[("post", "/v1/upload-sessions/{upload_id}/complete")] = {
+    "purpose": "Verify parts, media type and malware scan, then create the asset; the asset is usable only after this succeeds.",
+    "request_inputs": "path `upload_id*`: string; header `Idempotency-Key*`: string; application/json "
+    "(required): CompleteGenericUploadRequestV1 {expected_size_bytes*:integer, "
+    "expected_sha256*:string}",
+    "handler": "upload_sessions.py::complete_upload_session",
+    "responses": _upload_responses(
+        ("202", "Upload completed: asset reference and scan provenance", "GenericUploadCompletionV1"),
+        "400", "401", "404", "409", "410", "415", "422", "503",
+    ),
+    "surface": _UPLOAD_SURFACE,
+    "tag": _UPLOAD_TAG,
+    "authentication": _UPLOAD_AUTHENTICATION,
+    "verification": _UPLOAD_VERIFICATION,
+}
+MOUNTED_OPERATIONS[("delete", "/v1/upload-sessions/{upload_id}")] = {
+    "purpose": "Abort an open upload session; idempotent, with a strong If-Match.",
+    "request_inputs": "path `upload_id*`: string; header `Idempotency-Key*`: string; header "
+    "`If-Match`: string",
+    "handler": "upload_sessions.py::abort_upload_session",
+    "responses": _upload_responses(
+        ("202", "Upload session aborted", "GenericUploadSessionV1"),
+        "400", "401", "404", "409", "410", "503",
+    ),
+    "surface": _UPLOAD_SURFACE,
+    "tag": _UPLOAD_TAG,
+    "authentication": _UPLOAD_AUTHENTICATION,
+    "verification": _UPLOAD_VERIFICATION,
+}
+
+# FEAT-066 goal v3 T-3a (SRS l.775, l.798, l.1652): Teacher lesson occurrences. The create is
+# keyed; reads carry a strong ETag (the occurrence revision). T-3b..T-3d add the document, revision
+# and plan operations to the same router.
+_OCCURRENCE_ERROR_DESCRIPTIONS: Final[dict[str, str]] = {
+    "400": "The request is invalid (`INVALID_REQUEST`, `INVALID_IDEMPOTENCY_KEY`)",
+    "401": "Authentication is required",
+    "403": "The caller is assigned to the class without the Teacher role (`ACTION_NOT_ALLOWED`)",
+    "404": "The class, occurrence or lesson was not found or is outside the caller's scope "
+    "(`RESOURCE_NOT_FOUND`)",
+    "409": "The request conflicts with current state (`TEACHER_ASSIGNMENT_REQUIRED`, "
+    "`INVALID_STATE_TRANSITION`, `STALE_REVISION`, `RESOURCE_CONFLICT`)",
+    # FEAT-066 T-3b: the document attach refuses a bad file before it writes any row.
+    "413": "The stored file is over 25,000,000 bytes (`LESSON_FILE_TOO_LARGE`)",
+    "415": "The file type is not a PDF, DOCX or PPTX (`UNSUPPORTED_LESSON_TYPE`)",
+    "422": "The file cannot be used (`UPLOAD_INCOMPLETE`, `UPLOAD_CHECKSUM_MISMATCH`, "
+    "`OCR_NOT_SUPPORTED`, `ENCRYPTED_DOCUMENT_UNSUPPORTED`, `DOCUMENT_PAGE_LIMIT_EXCEEDED`, "
+    "`DOCUMENT_TEXT_LIMIT_EXCEEDED`)",
+    "503": "A required service is unavailable (`PROVIDER_UNAVAILABLE`, `STORAGE_UNAVAILABLE`, "
+    "`DATABASE_UNAVAILABLE`)",
+}
+
+
+def _occurrence_responses(
+    success: tuple[str, str, str], *error_statuses: str
+) -> tuple[ResponseMetadata, ...]:
+    status, description, schema_name = success
+    rows: list[ResponseMetadata] = [
+        {
+            "status": status,
+            "description": description,
+            "media_type": "application/json",
+            "schema_name": schema_name,
+        }
+    ]
+    for error_status in error_statuses:
+        if error_status == "304":
+            rows.append(
+                {
+                    "status": "304",
+                    "description": "Not modified (only after the caller was authorised)",
+                    "media_type": "",
+                    "schema_name": "",
+                }
+            )
+            continue
+        rows.append(
+            {
+                "status": error_status,
+                "description": _OCCURRENCE_ERROR_DESCRIPTIONS[error_status],
+                "media_type": "application/json",
+                "schema_name": "Be1Error",
+            }
+        )
+    return tuple(rows)
+
+
+_OCCURRENCE_SURFACE: Final = "Teacher lesson occurrences"
+_OCCURRENCE_TAG: Final = "Lesson Occurrences"
+_OCCURRENCE_AUTHENTICATION: Final = "HTTPBearer (bearer)"
+_OCCURRENCE_VERIFICATION: Final = "SRS l.775, l.798, l.1652; goal v3 T-3a"
+MOUNTED_OPERATIONS[("post", "/v1/lesson-occurrences")] = {
+    "purpose": "Create a lesson occurrence (one teaching event) for a class the Teacher is "
+    "assigned to, with an optional exact lesson version pin.",
+    "request_inputs": "header `Idempotency-Key*`: string; application/json (required): "
+    "CreateLessonOccurrenceRequestV1 {class_id*:string, title*:string, "
+    "scheduled_date:string, lesson_version_ref:LessonVersionRefV1}",
+    "handler": "lesson_occurrences.py::create_lesson_occurrence",
+    "responses": _occurrence_responses(
+        ("201", "Occurrence created, or the first response of a replayed key", "LessonOccurrenceV1"),
+        "400", "401", "403", "404", "409", "503",
+    ),
+    "surface": _OCCURRENCE_SURFACE,
+    "tag": _OCCURRENCE_TAG,
+    "authentication": _OCCURRENCE_AUTHENTICATION,
+    "verification": _OCCURRENCE_VERIFICATION,
+}
+MOUNTED_OPERATIONS[("get", "/v1/lesson-occurrences/{occurrence_id}")] = {
+    "purpose": "Read one lesson occurrence with its state, revision (strong ETag), approved plan "
+    "summary and sample-video slot; send the ETag in If-None-Match to get 304 while unchanged.",
+    "request_inputs": "path `occurrence_id*`: string",
+    "handler": "lesson_occurrences.py::get_lesson_occurrence",
+    "responses": _occurrence_responses(
+        ("200", "Lesson occurrence", "LessonOccurrenceV1"), "304", "400", "401", "404", "503"
+    ),
+    "surface": _OCCURRENCE_SURFACE,
+    "tag": _OCCURRENCE_TAG,
+    "authentication": _OCCURRENCE_AUTHENTICATION,
+    "verification": _OCCURRENCE_VERIFICATION,
+}
+MOUNTED_OPERATIONS[("get", "/v1/lesson-occurrences")] = {
+    "purpose": "List the lesson occurrences of one class, newest first (25 per page by default, "
+    "at most 100); this is the occurrence-state list, not the run history.",
+    "request_inputs": "query `class_id*`: string; query `state`: string; query `limit`: integer; "
+    "query `cursor`: string",
+    "handler": "lesson_occurrences.py::list_lesson_occurrences",
+    "responses": _occurrence_responses(
+        ("200", "Page of lesson occurrences", "LessonOccurrencePageV1"),
+        "400", "401", "404", "503",
+    ),
+    "surface": _OCCURRENCE_SURFACE,
+    "tag": _OCCURRENCE_TAG,
+    "authentication": _OCCURRENCE_AUTHENTICATION,
+    "verification": _OCCURRENCE_VERIFICATION,
+}
+
+# FEAT-066 goal v3 T-3b (SRS l.1653, l.1708): the occurrence source document. The attach is keyed and
+# answers 202 with an extraction job that is already terminal (TD-15); reads carry strong ETags.
+_DOCUMENT_VERIFICATION: Final = "SRS l.545, l.1437, l.1653, l.1692, l.1708; goal v3 T-3b"
+MOUNTED_OPERATIONS[("post", "/v1/lesson-occurrences/{occurrence_id}/documents")] = {
+    "purpose": "Attach the asset of a completed, clean upload to the occurrence and start its text "
+    "extraction; the server verifies size and SHA-256, parses the PDF, DOCX or PPTX and answers "
+    "202 with the document id and an extraction job that is already finished.",
+    "request_inputs": "path `occurrence_id*`: string; header `Idempotency-Key*`: string; "
+    "application/json (required): AttachOccurrenceDocumentRequestV1 {asset_ref*:string}",
+    "handler": "lesson_occurrences.py::attach_occurrence_document",
+    "responses": _occurrence_responses(
+        (
+            "202",
+            "Document attached; poll the job at `Location` (already `succeeded`)",
+            "LessonSourceDocumentAcceptedV1",
+        ),
+        "400", "401", "403", "404", "409", "413", "415", "422", "503",
+    ),
+    "surface": _OCCURRENCE_SURFACE,
+    "tag": _OCCURRENCE_TAG,
+    "authentication": _OCCURRENCE_AUTHENTICATION,
+    "verification": _DOCUMENT_VERIFICATION,
+}
+MOUNTED_OPERATIONS[("get", "/v1/lesson-occurrences/{occurrence_id}/documents")] = {
+    "purpose": "List the documents attached to an occurrence, newest first (25 per page by "
+    "default, at most 100).",
+    "request_inputs": "path `occurrence_id*`: string; query `limit`: integer; query `cursor`: string",
+    "handler": "lesson_occurrences.py::list_occurrence_documents",
+    "responses": _occurrence_responses(
+        ("200", "Page of attached documents", "LessonSourceDocumentPageV1"),
+        "400", "401", "404", "503",
+    ),
+    "surface": _OCCURRENCE_SURFACE,
+    "tag": _OCCURRENCE_TAG,
+    "authentication": _OCCURRENCE_AUTHENTICATION,
+    "verification": _DOCUMENT_VERIFICATION,
+}
+MOUNTED_OPERATIONS[("get", "/v1/lesson-occurrences/{occurrence_id}/documents/{document_id}")] = {
+    "purpose": "Read one attached document: file name, type, page or slide count, head revision, "
+    "extraction job id, warnings and page coverage (strong ETag = head revision number).",
+    "request_inputs": "path `occurrence_id*`: string; path `document_id*`: string",
+    "handler": "lesson_occurrences.py::get_occurrence_document",
+    "responses": _occurrence_responses(
+        ("200", "Attached document", "LessonSourceDocumentV1"), "304", "400", "401", "404", "503"
+    ),
+    "surface": _OCCURRENCE_SURFACE,
+    "tag": _OCCURRENCE_TAG,
+    "authentication": _OCCURRENCE_AUTHENTICATION,
+    "verification": _DOCUMENT_VERIFICATION,
+}
+MOUNTED_OPERATIONS[
+    ("get", "/v1/lesson-occurrences/{occurrence_id}/documents/{document_id}/revisions")
+] = {
+    "purpose": "List the text revisions of a document without their text, newest first.",
+    "request_inputs": "path `occurrence_id*`: string; path `document_id*`: string; "
+    "query `limit`: integer; query `cursor`: string",
+    "handler": "lesson_occurrences.py::list_document_revisions",
+    "responses": _occurrence_responses(
+        ("200", "Page of text revisions", "LessonDocumentRevisionPageV1"),
+        "400", "401", "404", "503",
+    ),
+    "surface": _OCCURRENCE_SURFACE,
+    "tag": _OCCURRENCE_TAG,
+    "authentication": _OCCURRENCE_AUTHENTICATION,
+    "verification": _DOCUMENT_VERIFICATION,
+}
+MOUNTED_OPERATIONS[
+    (
+        "get",
+        "/v1/lesson-occurrences/{occurrence_id}/documents/{document_id}/revisions/{revision_no}",
+    )
+] = {
+    "purpose": "Read one text revision with its extracted text, hash, parser and warnings "
+    "(strong ETag = text hash and review state).",
+    "request_inputs": "path `occurrence_id*`: string; path `document_id*`: string; "
+    "path `revision_no*`: integer",
+    "handler": "lesson_occurrences.py::get_document_revision",
+    "responses": _occurrence_responses(
+        ("200", "Text revision", "LessonDocumentRevisionV2"), "304", "400", "401", "404", "503"
+    ),
+    "surface": _OCCURRENCE_SURFACE,
+    "tag": _OCCURRENCE_TAG,
+    "authentication": _OCCURRENCE_AUTHENTICATION,
+    "verification": _DOCUMENT_VERIFICATION,
+}
+
+# FEAT-066 goal v3 T-3c (SRS l.546, l.1437, l.1699): the Teacher's text edit is a new immutable
+# revision (never an update of the head). Keyed; the stale fence is a body field.
+_EDIT_RESPONSES: Final = _occurrence_responses(
+    (
+        "201",
+        "New revision written; `Location` is its read, `ETag` its text hash and review state",
+        "LessonDocumentRevisionV2",
+    ),
+    "400",
+    "401",
+    "403",
+    "404",
+    "409",
+    "503",
+)
+MOUNTED_OPERATIONS[
+    ("post", "/v1/lesson-occurrences/{occurrence_id}/documents/{document_id}/revisions")
+] = {
+    "purpose": "Save the Teacher's edit of the extracted text as a new immutable revision "
+    "(`origin` TEACHER_EDIT, `base_revision_no` = the head edited from). Send "
+    "`expected_head_revision_no` (the head the edit started from); a different head is 409 "
+    "`STALE_REVISION` with `current_version` and the head `ETag` and nothing is written. The text "
+    "is stored exactly as sent (no trimming or line-ending change), 1 to 2,097,152 UTF-8 bytes, "
+    "not blank, without NUL; text equal to the head writes nothing and answers 200 with the "
+    "head. A revision never confirms itself: its review state stays NEEDS_REVIEW until a plan "
+    "that pins it is confirmed. At most 50 revisions per document (the 51st is 409 "
+    "`RESOURCE_CONFLICT`, reloading does not help). The request body is limited to 13 MiB "
+    "(413 `MEDIA_TOO_LARGE`).",
+    "request_inputs": "path `occurrence_id*`: string; path `document_id*`: string; header "
+    "`Idempotency-Key*`: string; application/json (required): EditDocumentRevisionRequestV1 "
+    "{extracted_text*:string, expected_head_revision_no*:integer}",
+    "handler": "lesson_occurrences.py::edit_document_revision",
+    "responses": (
+        _EDIT_RESPONSES[0],
+        {
+            "status": "200",
+            "description": "The text equals the head: nothing was written; the head is returned",
+            "media_type": "application/json",
+            "schema_name": "LessonDocumentRevisionV2",
+        },
+        *_EDIT_RESPONSES[1:],
+        {
+            "status": "413",
+            "description": "The request body is over 13 MiB (`MEDIA_TOO_LARGE`)",
+            "media_type": "application/json",
+            "schema_name": "Be1Error",
+        },
+    ),
+    "surface": _OCCURRENCE_SURFACE,
+    "tag": _OCCURRENCE_TAG,
+    "authentication": _OCCURRENCE_AUTHENTICATION,
+    "verification": "SRS l.546, l.1437, l.1699, l.1708; goal v3 T-3c",
+}
+
+# FEAT-066 goal v3 T-3d (SRS l.547-548, l.775, l.1659-1660, l.1699): the occurrence plan. A draft is
+# immutable once written; only the head revision can be confirmed; a stale head or hash is 409
+# `STALE_REVISION` with `current_version`; the safety checklist gate answers 400 with `field_errors`.
+_PLAN_VERIFICATION: Final = "SRS l.547-548, l.775, l.1442, l.1659-1660, l.1699; goal v3 T-3d"
+_PLAN_BASE: Final = "/v1/lesson-occurrences/{occurrence_id}/plan-revisions"
+
+
+def _plan_413(limit: str) -> ResponseMetadata:
+    return {
+        "status": "413",
+        "description": f"The request body is over {limit} (`MEDIA_TOO_LARGE`)",
+        "media_type": "application/json",
+        "schema_name": "Be1Error",
+    }
+
+
+_PLAN_CREATE_RESPONSES: Final = _occurrence_responses(
+    (
+        "201",
+        "Draft written as head + 1; `Location` is its read, `ETag` its content hash and state",
+        "LessonPlanRevisionV1",
+    ),
+    "400",
+    "401",
+    "403",
+    "404",
+    "409",
+    "503",
+)
+MOUNTED_OPERATIONS[("post", _PLAN_BASE)] = {
+    "purpose": "Write a draft plan revision of the occurrence as head + 1 (objectives 1 to 12 of up "
+    "to 1,000 characters, the story direction up to 2,000, optional safety notes up to 2,000, up "
+    "to 24 activities, an optional reference to a text revision of one of its documents). Send "
+    "`expected_head_revision_no` (0 when no plan revision exists); a different head is 409 "
+    "`STALE_REVISION` with `current_version` and the head `ETag`, and nothing is written. The plan "
+    "copies the occurrence's exact lesson pin (there is no pin field and no `latest`); a `LESSON` "
+    "activity copies an activity of that pinned version; a `CUSTOM` activity is refused with the "
+    "field error `NOT_SUPPORTED` on `activities[i].kind` while no safety checklist is defined, and "
+    "so is `CATALOG`. The request body is limited to 1 MiB (413 `MEDIA_TOO_LARGE`).",
+    "request_inputs": "path `occurrence_id*`: string; header `Idempotency-Key*`: string; "
+    "application/json (required): CreatePlanRevisionRequestV1 {expected_head_revision_no*:integer, "
+    "document_revision_ref:PlanDocumentRefV1, objectives*:array, teacher_direction*:string, "
+    "safety_notes:string, activities:array}",
+    "handler": "lesson_occurrences.py::create_plan_revision",
+    "responses": (*_PLAN_CREATE_RESPONSES, _plan_413("1 MiB")),
+    "surface": _OCCURRENCE_SURFACE,
+    "tag": _OCCURRENCE_TAG,
+    "authentication": _OCCURRENCE_AUTHENTICATION,
+    "verification": _PLAN_VERIFICATION,
+}
+MOUNTED_OPERATIONS[("get", _PLAN_BASE)] = {
+    "purpose": "List the plan revisions of an occurrence, newest first (25 per page by default, at "
+    "most 100); the head is the first item.",
+    "request_inputs": "path `occurrence_id*`: string; query `limit`: integer; query `cursor`: string",
+    "handler": "lesson_occurrences.py::list_plan_revisions",
+    "responses": _occurrence_responses(
+        ("200", "Page of plan revisions", "LessonPlanRevisionPageV1"),
+        "400", "401", "404", "503",
+    ),
+    "surface": _OCCURRENCE_SURFACE,
+    "tag": _OCCURRENCE_TAG,
+    "authentication": _OCCURRENCE_AUTHENTICATION,
+    "verification": _PLAN_VERIFICATION,
+}
+MOUNTED_OPERATIONS[("get", _PLAN_BASE + "/{revision_no}")] = {
+    "purpose": "Read one plan revision with its activities (strong ETag = content hash and state; "
+    "send it in If-None-Match to get 304 while unchanged).",
+    "request_inputs": "path `occurrence_id*`: string; path `revision_no*`: integer",
+    "handler": "lesson_occurrences.py::get_plan_revision",
+    "responses": _occurrence_responses(
+        ("200", "Plan revision", "LessonPlanRevisionV1"), "304", "400", "401", "404", "503"
+    ),
+    "surface": _OCCURRENCE_SURFACE,
+    "tag": _OCCURRENCE_TAG,
+    "authentication": _OCCURRENCE_AUTHENTICATION,
+    "verification": _PLAN_VERIFICATION,
+}
+MOUNTED_OPERATIONS[("post", _PLAN_BASE + "/{revision_no}/confirm")] = {
+    "purpose": "Approve the head plan revision. Send `expected_plan_hash` (the `content_hash` that "
+    "was read) and, for each Teacher-written activity, its safety checklist answers. Only the head "
+    "revision can be confirmed and a hash that differs is 409 `STALE_REVISION` with "
+    "`current_version` (a confirm never overwrites a newer approval); an unsatisfied checklist is "
+    "400 with a field error per missing item and nothing is written. One transaction marks the "
+    "previous approved plan `SUPERSEDED`, approves this one, stamps the referenced text revision "
+    "`CONFIRMED` and moves the occurrence to `APPROVED` (its `revision` and `ETag` change). "
+    "Confirming an approved plan again with the same hash answers 200 and changes nothing. The "
+    "request body is limited to 256 KiB (413 `MEDIA_TOO_LARGE`).",
+    "request_inputs": "path `occurrence_id*`: string; path `revision_no*`: integer; header "
+    "`Idempotency-Key*`: string; application/json (required): ConfirmPlanRevisionRequestV1 "
+    "{expected_plan_hash*:string, checklist:array}",
+    "handler": "lesson_occurrences.py::confirm_plan_revision",
+    "responses": (
+        *_occurrence_responses(
+            (
+                "200",
+                "Plan approved (or already approved with this hash); `supersedes_revision_no` "
+                "names the plan it replaced",
+                "LessonPlanRevisionV1",
+            ),
+            "400",
+            "401",
+            "403",
+            "404",
+            "409",
+            "503",
+        ),
+        _plan_413("256 KiB"),
+    ),
+    "surface": _OCCURRENCE_SURFACE,
+    "tag": _OCCURRENCE_TAG,
+    "authentication": _OCCURRENCE_AUTHENTICATION,
+    "verification": _PLAN_VERIFICATION,
+}
+
 IDEMPOTENCY_MISMATCH_OPERATION_KEYS: Final[tuple[tuple[str, str], ...]] = (
     ("post", "/api/lesson-library/v1/me/lesson-invitations/{access_grant_id}/accept"),
     ("post", "/api/lesson-library/v1/me/lesson-invitations/{access_grant_id}/decline"),
@@ -11277,6 +11758,21 @@ IDEMPOTENCY_MISMATCH_OPERATION_KEYS: Final[tuple[tuple[str, str], ...]] = (
     ("delete", "/api/lesson-library/v1/upload-sessions/{upload_session_id}"),
     # FEAT-066 M9-B (SRS §21.4): the first Teacher assignment command.
     ("post", "/api/be1/v1/classes/{class_id}/assignments"),
+    # FEAT-066 T0.1 (C-D5, SRS l.1697): create class is a keyed command.
+    ("post", "/api/be1/v1/organizations/{organization_id}/classes"),
+    # FEAT-066 T-2a (SRS l.1697): the keyed generic upload commands.
+    ("post", "/v1/upload-sessions"),
+    ("post", "/v1/upload-sessions/{upload_id}/complete"),
+    ("delete", "/v1/upload-sessions/{upload_id}"),
+    # FEAT-066 T-3a (SRS l.1697): the keyed lesson occurrence create.
+    ("post", "/v1/lesson-occurrences"),
+    # FEAT-066 T-3b (SRS l.1697): the keyed document attach.
+    ("post", "/v1/lesson-occurrences/{occurrence_id}/documents"),
+    # FEAT-066 T-3c (SRS l.1697): the keyed text edit (a new immutable revision).
+    ("post", "/v1/lesson-occurrences/{occurrence_id}/documents/{document_id}/revisions"),
+    # FEAT-066 T-3d (SRS l.1697): the keyed plan revision create and confirm.
+    ("post", "/v1/lesson-occurrences/{occurrence_id}/plan-revisions"),
+    ("post", "/v1/lesson-occurrences/{occurrence_id}/plan-revisions/{revision_no}/confirm"),
 )
 
 _IDEMPOTENCY_MISMATCH_RESPONSE: Final[ResponseMetadata] = {

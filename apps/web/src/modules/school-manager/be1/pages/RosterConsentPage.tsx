@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { RefreshCw, Users } from "lucide-react";
 import { PageHeading } from "../../../../shared/components/FeatureAvailability";
 import { classService, type Be1Class } from "../services/classService";
+import { AdminBe1Error } from "../services/be1Client";
 import { TeacherAssignmentCard } from "./TeacherAssignmentCard";
 import {
   managerBusinessService,
@@ -13,6 +14,13 @@ type LoadState = "idle" | "loading" | "loaded" | "error";
 
 function errorMessage(cause: unknown, fallback: string) {
   return cause instanceof Error ? cause.message : fallback;
+}
+
+function rosterErrorMessage(cause: unknown, fallback: string) {
+  if (cause instanceof AdminBe1Error && cause.status === 403 && cause.code === "ACTION_NOT_ALLOWED") {
+    return "Bạn không có quyền xem hồ sơ trẻ trong lớp này.";
+  }
+  return errorMessage(cause, fallback);
 }
 
 function formatAge(ageMonths: number) {
@@ -93,7 +101,7 @@ export function RosterConsentPage() {
       .catch((cause: unknown) => {
         if (!controller.signal.aborted) {
           setProfiles([]);
-          setProfileError(errorMessage(cause, "Không tải được roster từ BE1."));
+          setProfileError(rosterErrorMessage(cause, "Không tải được roster từ BE1."));
           setProfileState("error");
         }
       });
