@@ -5,6 +5,7 @@ import { UsersPage } from "../UsersPage";
 import { PortalSessionProvider } from "../../../../shared/auth/PortalSessionContext";
 import { backendApi } from "../../../../shared/api/backendApi";
 import { keyForSignature } from "../../services/userService";
+import * as adminService from "../../services/adminService";
 
 type ListArgs = Parameters<typeof backendApi.listPlatformAccounts>[0];
 
@@ -44,6 +45,20 @@ afterEach(() => {
 const renderPage = () => render(<MemoryRouter><PortalSessionProvider><UsersPage /></PortalSessionProvider></MemoryRouter>);
 
 describe("Platform Admin accounts cursor paging (FEAT-066 C5)", () => {
+  it("confirms the recipient before requesting a setup email and blocks disabled accounts", async () => {
+    vi.spyOn(backendApi, 'listPlatformAccounts').mockResolvedValue({ ...pageOf(1, 1, null, 2), items: [account(1), { ...account(2), state: 'disabled' }] });
+    const send = vi.fn(async () => ({ delivery_id: 'delivery-1', state: 'pending' }));
+    vi.spyOn(adminService, 'commandClient').mockReturnValue(send as ReturnType<typeof adminService.commandClient>);
+    renderPage();
+    await screen.findByText('Người dùng 1');
+    expect(screen.getAllByRole('button', { name: 'Gửi email thiết lập' })).toHaveLength(1);
+    fireEvent.click(screen.getByRole('button', { name: 'Gửi email thiết lập' }));
+    expect(screen.getByRole('dialog').textContent).toContain('user1@example.test');
+    expect(send).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Xác nhận gửi' }));
+    await waitFor(() => expect(send).toHaveBeenCalledWith('/accounts/account-1/setup-email'));
+    expect(await screen.findByText(/Đã đưa email thiết lập mật khẩu vào hàng đợi/)).toBeTruthy();
+  });
   it("walks forward with next_cursor and back to the previous page start", async () => {
     const list = vi.spyOn(backendApi, "listPlatformAccounts").mockImplementation(async (filters: ListArgs = {}) => {
       if (filters.cursor === "c2") return pageOf(26, 25, "c3");
@@ -89,9 +104,11 @@ describe("Platform Admin accounts cursor paging (FEAT-066 C5)", () => {
     renderPage();
     await screen.findByText("Người dùng 1");
     fireEvent.click(screen.getByRole("button", { name: "Khóa tài khoản" }));
+    fireEvent.click(screen.getByRole("button", { name: "Xác nhận" }));
     await waitFor(() => expect(update).toHaveBeenCalledTimes(1));
-    await waitFor(() => expect((screen.getByRole("button", { name: "Khóa tài khoản" }) as HTMLButtonElement).disabled).toBe(false));
-    fireEvent.click(screen.getByRole("button", { name: "Khóa tài khoản" }));
+    await waitFor(() => expect((screen.getByRole("button", { name: "Xác nhận" }) as HTMLButtonElement).disabled).toBe(false));
+
+    fireEvent.click(screen.getByRole("button", { name: "Xác nhận" }));
     await waitFor(() => expect(update).toHaveBeenCalledTimes(2));
     expect(update.mock.calls[1][2]).toBe(update.mock.calls[0][2]);
     expect(update.mock.calls[0][1]).toEqual({ state: "disabled" });
@@ -114,9 +131,11 @@ describe("Platform Admin accounts after a change (FEAT-066 C5)", () => {
     fireEvent.click(screen.getByRole("button", { name: /Tiếp/ }));
     await screen.findByText("Người dùng 26");
     fireEvent.click(screen.getByRole("button", { name: "Khóa tài khoản" }));
+    fireEvent.click(screen.getByRole("button", { name: "Xác nhận" }));
     await waitFor(() => expect(update).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(list).toHaveBeenLastCalledWith(expect.objectContaining({ cursor: "c2" })));
     fireEvent.click(await screen.findByRole("button", { name: "Mở lại" }));
+    fireEvent.click(screen.getByRole("button", { name: "Xác nhận" }));
     await waitFor(() => expect(update).toHaveBeenCalledTimes(2));
     expect(update.mock.calls[1][2]).not.toBe(update.mock.calls[0][2]);
   });
@@ -124,19 +143,21 @@ describe("Platform Admin accounts after a change (FEAT-066 C5)", () => {
 
 describe("backendApi account requests (FEAT-066 C5)", () => {
   it("sends cursor without offset and an Idempotency-Key on create and update", async () => {
-    const seen: Array<{ url: string; key: string | null }> = [];
+    const seen: Array<{ url: string; key: string | null; revision: string | null }> = [];
     vi.stubGlobal("fetch", vi.fn(async (url: string, init: RequestInit) => {
-      seen.push({ url, key: new Headers(init.headers).get("Idempotency-Key") });
+      const headers = new Headers(init.headers);
+      seen.push({ url, key: headers.get("Idempotency-Key"), revision: headers.get("If-Match") });
       return new Response(JSON.stringify(pageOf(1, 0, null, 0)), { status: 200, headers: { "Content-Type": "application/json" } });
     }));
     await backendApi.listPlatformAccounts({ limit: 25, cursor: "abc" });
     await backendApi.createPlatformAccount({ email: "a@example.test", display_name: "A", role: "teacher" }, "key-create");
-    await backendApi.updatePlatformAccount("account-1", { state: "disabled" }, "key-update");
+    await backendApi.updatePlatformAccount("account-1", { state: "disabled" }, "key-update", 7);
     expect(seen[0].url).toContain("cursor=abc");
     expect(seen[0].url).toContain("limit=25");
     expect(seen[0].url).not.toContain("offset");
     expect(seen[1].key).toBe("key-create");
     expect(seen[2].key).toBe("key-update");
+    expect(seen[2].revision).toBe('"7"');
     vi.unstubAllGlobals();
   });
 });

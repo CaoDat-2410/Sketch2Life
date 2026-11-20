@@ -61,6 +61,7 @@ REVIEW = Table(
     Column("review_revision", BigInteger, nullable=False),
     Column("dimension", String(24), nullable=False),
     Column("proof", JSONB, nullable=False),
+    Column("permission_revision", Integer, nullable=True),
     ForeignKeyConstraint(["organization_id", "record_id", "version"],
                          [f"{SCHEMA}.version.organization_id", f"{SCHEMA}.version.record_id",
                           f"{SCHEMA}.version.version"]),

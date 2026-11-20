@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 from typing import Any
+from sketch2life.interfaces.http.admin_contract import ADMIN_OPERATIONS
 
 SRS_V22_INCLUDED_OPERATIONS: frozenset[tuple[str, str]] = frozenset(
     {
@@ -199,9 +200,9 @@ def project_srs_v22_openapi(runtime_spec: dict[str, Any]) -> dict[str, Any]:
         retained: dict[str, Any] = {}
         for method, operation in path_item.items():
             key = (method.lower(), path)
-            if key not in SRS_V22_INCLUDED_OPERATIONS:
+            if key not in SRS_V22_INCLUDED_OPERATIONS and key not in ADMIN_OPERATIONS:
                 continue
-            operation["tags"] = [SRS_V22_OPERATION_TAGS[key]]
+            operation["tags"] = ["Admin" if key in ADMIN_OPERATIONS else SRS_V22_OPERATION_TAGS[key]]
             retained[method] = operation
         if retained:
             published[path] = retained
@@ -209,6 +210,7 @@ def project_srs_v22_openapi(runtime_spec: dict[str, Any]) -> dict[str, Any]:
     spec["info"]["title"] = "Sketch2Life FE API"
     spec["info"]["description"] = SRS_V22_OPENAPI_DESCRIPTION
     spec["tags"] = deepcopy(SRS_V22_TAGS)
+    spec["tags"].append({"name": "Admin", "description": "Administration, identity and school-scoped feedback."})
     schemas = spec.get("components", {}).get("schemas", {})
     if isinstance(schemas, dict) and "Be1Error" in schemas:
         schemas["ApiError"] = schemas.pop("Be1Error")

@@ -1,0 +1,22 @@
+/* Shared reset, typography, controls and legacy fallback tokens. */
+@import "./tokens.css";
+
+/* Existing shell and page rules consume the tokens below at computed-value time. */
+@import "./admin-rebuild.css";
+@import "./admin-workspace.css";
+
+/* One Platform Admin palette source, followed by its visual component refinements. */
+@import "./admin-color-tokens.css";
+@import "./admin-palette.css";
+@import "./admin-dashboard.css";
+@import "./admin-components.css";
+
+/* Feature-specific styles. Keep these after the shared component foundations. */
+@import "./admin-organizations.css";
+@import "./admin-topbar.css";
+@import "./admin-accounts.css";
+@import "./admin-select.css";
+@import "./admin-states.css";
+@import "./admin-search.css";
+@import "../../../shared/styles/tailwind-utilities.css";
+@import "./accounts-page.css";

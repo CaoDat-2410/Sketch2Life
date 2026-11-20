@@ -114,8 +114,10 @@ describe('School Manager login auth API flow', () => {
     expect(requests.map((request) => request.path)).toEqual([
       '/api/auth/v1/me',
       '/api/be1/v1/organizations/org-manager-test/me',
+      '/api/auth/v1/me',
     ])
     expect(fetchMock.mock.calls.map(([input]) => new URL(String(input)).origin)).toEqual([
+      'https://api.example.test',
       'https://api.example.test',
       'https://api.example.test',
     ])

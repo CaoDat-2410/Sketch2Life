@@ -11,6 +11,7 @@ from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
@@ -20,7 +21,11 @@ from sketch2life.application.ports.identity import (
     IdentityAccountProvisioningUnavailable,
     VerifiedPrincipal,
 )
-from sketch2life.infrastructure.persistence.be1_models import AdultIdentityModel
+from sketch2life.infrastructure.persistence.be1_models import (
+    AdultIdentityModel,
+    OrganizationAssignmentModel,
+)
+from sketch2life.infrastructure.persistence.core_models import CoreAuditEntryModel
 from sketch2life.interfaces.http.be1_runtime import get_db, get_verified_adult
 
 router = APIRouter(prefix="/api/auth/v1", tags=["authentication"])
@@ -187,6 +192,43 @@ def current_account(
     db: Session = Depends(get_db),
 ) -> CurrentAccountResponse:
     identity = db.get(AdultIdentityModel, principal.subject)
+    if (
+        identity is not None
+        and identity.issuer == principal.issuer
+        and identity.email_verification_required
+        and identity.state != "disabled"
+    ):
+        if not principal.email_verified:
+            raise HTTPException(
+                403,
+                detail={
+                    "code": "EMAIL_VERIFICATION_REQUIRED",
+                    "message": "Verify your email before signing in",
+                },
+            )
+        identity.email_verification_required = False
+        identity.state = "active"
+        identity.role_revision += 1
+        for assignment in db.scalars(
+            select(OrganizationAssignmentModel).where(
+                OrganizationAssignmentModel.subject == identity.subject,
+                OrganizationAssignmentModel.pending_activation.is_(True),
+            )
+        ):
+            assignment.pending_activation = False
+            assignment.active = True
+        db.add(
+            CoreAuditEntryModel(
+                audit_id=str(uuid4()),
+                organization_id="platform",
+                actor_ref=principal.subject,
+                action="ACCOUNT_EMAIL_VERIFIED",
+                resource_type="adult_account",
+                resource_id=identity.account_id,
+                decision="allowed",
+            )
+        )
+        db.commit()
     if (
         identity is None
         or identity.state != "active"

@@ -100,7 +100,7 @@ class SqlContentTransaction:
             recalled_at=row["recalled_at"], recall_reason=row["recall_reason"])
 
     def save(self, content: ContentVersion, *, expected_revision: int | None,
-             event: ContentEvent) -> None:
+             event: ContentEvent, permission_revision: int | None = None) -> None:
         if content_hash(content.body_json) != content.hash:
             raise ContentError("CONTENT_HASH_MISMATCH")
         values: dict[str, Any] = asdict(content)
@@ -157,7 +157,7 @@ class SqlContentTransaction:
                     record_id=content.record_id, version=content.version,
                     context_revision=content.context_revision,
                     review_revision=proof.review_revision,
-                    dimension=proof.dimension, proof=asdict(proof)))
+                    dimension=proof.dimension, proof=asdict(proof), permission_revision=permission_revision))
         if event.occurred_at.tzinfo is None:
             raise ContentError("CONTENT_INVALID_TIME")
         payload = {"record_id": content.record_id, "organization_id": content.organization_id,

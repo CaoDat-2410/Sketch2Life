@@ -31,9 +31,13 @@ from sketch2life.infrastructure.learning_content.tables import SCHEMA as CONTENT
 from sketch2life.infrastructure.lesson_library.tables import (
     LESSON_METADATA as LESSON_LIBRARY_METADATA,
 )
+from sketch2life.infrastructure.lesson_library import publication_tables as _publication_tables  # noqa: F401
+from sketch2life.infrastructure.lesson_library import feedback_tables as _feedback_tables  # noqa: F401
 from sketch2life.infrastructure.persistence import be1_models as _be1_models  # noqa: F401
 from sketch2life.infrastructure.persistence import parent_models as _parent_models  # noqa: F401
+from sketch2life.infrastructure.persistence import platform_models as _platform_models  # noqa: F401
 from sketch2life.infrastructure.persistence.core_models import CorePersistenceBase
+from sketch2life.infrastructure.persistence.billing_models import BillingBase
 from sketch2life.infrastructure.persistence.parent_models import ParentPersistenceBase
 from sketch2life.infrastructure.preset_automation.tables import METADATA as PRESET_METADATA
 from sketch2life.infrastructure.preset_automation.tables import SCHEMA as PRESET_SCHEMA
@@ -55,7 +59,9 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 target_metadata = [CorePersistenceBase.metadata, AI_JOBS_METADATA, CONTENT_METADATA]
+target_metadata.append(BillingBase.metadata)
 _MANAGED_SCHEMAS = {None, AI_JOBS_SCHEMA, CONTENT_SCHEMA}
+_MANAGED_SCHEMAS.add("billing")
 _MANAGED_SCHEMAS.add("parent")
 target_metadata.append(LESSON_LIBRARY_METADATA)
 _MANAGED_SCHEMAS.add("lesson")

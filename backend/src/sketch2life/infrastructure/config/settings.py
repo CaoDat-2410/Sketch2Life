@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     api_port: int = 8000
     log_level: str = "INFO"
     database_url: SecretStr | None = None
+    redis_url: SecretStr | None = None
     room_code_hmac_key: SecretStr | None = None
     s3_endpoint: str | None = None
     s3_region: str = "us-east-1"
@@ -35,6 +36,13 @@ class Settings(BaseSettings):
     clamav_host: str | None = None
     clamav_port: int = Field(default=3310, ge=1, le=65535)
     platform_admin_bootstrap_email: str = ""
+    smtp_host: str | None = None
+    smtp_port: int = Field(default=1025, ge=1, le=65535)
+    smtp_from: str = "Sketch2Life <no-reply@sketch2life.local>"
+    smtp_starttls: bool = False
+    smtp_username: str | None = None
+    smtp_password: SecretStr | None = None
+    billing_sandbox_enabled: bool = False
     storage_example_enabled: bool = False
     storage_example_max_upload_bytes: int = Field(
         default=10 * 1024 * 1024, ge=1, le=50 * 1024 * 1024

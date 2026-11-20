@@ -30,6 +30,7 @@
 .s2l-sidebar-caption { margin: 17px 9px 23px; color: var(--s2l-muted); font-size: 12px; line-height: 1.45; }
 .s2l-nav { overflow: auto; flex: 1; padding: 0 1px 12px; scrollbar-width: thin; }
 .s2l-nav-group { display: grid; gap: 4px; margin: 0 0 24px; }
+.s2l-nav-group-items { display: grid; gap: 4px; }
 .s2l-nav-group h2 { margin: 0 9px 7px; color: #84918d; font-size: 10px; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
 .s2l-nav-link { display: flex; min-height: 43px; align-items: center; gap: 11px; padding: 0 10px; border: 1px solid transparent; border-radius: 10px; color: #50615d; font-size: 13px; font-weight: 600; text-decoration: none; transition: color .16s ease, background .16s ease, border-color .16s ease; }
 .s2l-nav-link:hover { background: #f4f6f1; color: var(--s2l-ink); }

@@ -120,7 +120,7 @@ export function WebPortalLoginPage({
     } catch (cause) {
       const code = (cause as { code?: string }).code;
       if (code !== "auth/user-not-found") {
-        updateFields({ error: code === "auth/too-many-requests"
+        updateFields({ error: code === "auth/too-many-requests" || code === "RATE_LIMITED"
           ? "Bạn đã gửi quá nhiều yêu cầu. Vui lòng thử lại sau."
           : "Chưa thể gửi hướng dẫn. Kiểm tra kết nối và thử lại." });
         return;

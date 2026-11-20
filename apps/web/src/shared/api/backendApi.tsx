@@ -4,7 +4,7 @@ import { parseApiError } from "./errorEnvelope";
 
 export type PortalRole = "parent" | "teacher" | "school_manager" | "platform_admin";
 export type PlatformAccountRole = PortalRole;
-export type PlatformAccountState = "active" | "disabled";
+export type PlatformAccountState = "active" | "disabled" | "pending_verification";
 
 export interface PlatformManagedAccount {
   account_id: string;
@@ -19,7 +19,6 @@ interface PlatformAccountPage {
   items: PlatformManagedAccount[];
   total: number;
   limit: number;
-  offset: number;
   /** FEAT-066 C5 (SRS 21.1): opaque cursor of the next page; null at the end. */
   next_cursor: string | null;
 }
@@ -487,6 +486,31 @@ export const backendApi = {
     const suffix = query.toString();
     return backendRequest<PlatformAccountPage>(`/api/platform-admin/v1/accounts${suffix ? `?${suffix}` : ""}`);
   },
+  listAllPlatformAccounts: async (filters: {
+    role?: PlatformAccountRole;
+    state?: PlatformAccountState;
+    search?: string;
+  } = {}) => {
+    const items: PlatformManagedAccount[] = [];
+    const seen = new Set<string>();
+    let cursor: string | undefined;
+    let total = 0;
+    do {
+      const params = new URLSearchParams();
+      for (const [key, value] of Object.entries({ ...filters, limit: 100, cursor })) {
+        if (value !== undefined && value !== "") params.set(key, String(value));
+      }
+      const page = await backendRequest<PlatformAccountPage>(
+        `/api/platform-admin/v1/accounts?${params.toString()}`,
+      );
+      items.push(...page.items);
+      total = page.total;
+      cursor = page.next_cursor ?? undefined;
+      if (cursor && seen.has(cursor)) throw new Error("Tài khoản trả về cursor phân trang bị lặp.");
+      if (cursor) seen.add(cursor);
+    } while (cursor);
+    return { items, total };
+  },
   // FEAT-066 C5 (SRS 21.4): account create and update send an Idempotency-Key; the caller keeps
   // the key for a retry of the same command.
   createPlatformAccount: (payload: {
@@ -502,10 +526,11 @@ export const backendApi = {
   updatePlatformAccount: (
     accountId: string,
     payload: { role?: PlatformAccountRole; state?: PlatformAccountState; organization_id?: string },
-    idempotencyKey = createRequestId(),
+    idempotencyKey: string,
+    revision: number,
   ) => backendRequest<PlatformManagedAccount>(`/api/platform-admin/v1/accounts/${encodeURIComponent(accountId)}`, {
     method: "PATCH",
-    headers: { "Idempotency-Key": idempotencyKey },
+    headers: { "Idempotency-Key": idempotencyKey, "If-Match": `"${revision}"` },
     body: JSON.stringify(payload),
   }),
 };

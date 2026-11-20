@@ -9,9 +9,9 @@ import re
 from typing import Literal
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, status
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
@@ -22,18 +22,35 @@ from sketch2life.application.ports.identity import (
     IdentityAccountProvisioningUnavailable,
     VerifiedPrincipal,
 )
+from sketch2life.domain.platform_admin import AdminError
 from sketch2life.infrastructure.persistence.be1_models import (
     AdultIdentityModel,
     OrganizationAssignmentModel,
     OrganizationModel,
 )
 from sketch2life.infrastructure.persistence.core_models import CoreAuditEntryModel
+from sketch2life.infrastructure.persistence.platform_models import (
+    AdminCommandReceiptModel,
+    EmailDeliveryModel,
+    PermissionGrantModel,
+)
+from sketch2life.infrastructure.platform_admin.service import begin_receipt
+from sketch2life.infrastructure.platform_admin.pagination import (
+    apply_datetime_cursor,
+    cursor_scope,
+    decode_datetime_cursor,
+    encode_datetime_cursor,
+    row_is_after_cursor,
+)
+from sketch2life.interfaces.http.admin_route import AdminRoute
 from sketch2life.interfaces.http.be1_runtime import get_db, get_verified_adult
 
-router = APIRouter(prefix="/api/platform-admin/v1", tags=["Platform Admin accounts"])
+router = APIRouter(
+    prefix="/api/platform-admin/v1", tags=["Platform Admin accounts"], route_class=AdminRoute
+)
 
 AccountRole = Literal["parent", "teacher", "school_manager", "platform_admin"]
-AccountState = Literal["active", "disabled"]
+AccountState = Literal["active", "disabled", "pending_verification"]
 _EMAIL_PATTERN = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
 
 
@@ -99,7 +116,7 @@ class AccountPageResponse(BaseModel):
     items: list[AccountResponse]
     total: int = Field(ge=0)
     limit: int = Field(ge=1, le=100)
-    offset: int = Field(ge=0)
+    next_cursor: str | None = None
 
 
 def _forbidden() -> HTTPException:
@@ -107,6 +124,16 @@ def _forbidden() -> HTTPException:
         status_code=403,
         detail={"code": "FORBIDDEN", "message": "Platform Admin authority is required"},
     )
+
+
+def _receipt(db, principal, key: str, operation, payload):
+    if not 1 <= len(key) <= 128:
+        raise HTTPException(422, detail={"code": "INVALID_IDEMPOTENCY_KEY"})
+    try:
+        receipt, fingerprint = begin_receipt(db, principal.subject, operation, key, payload)
+    except AdminError as exc:
+        raise HTTPException(exc.status, detail={"code": exc.code}) from None
+    return key, receipt, fingerprint
 
 
 def _require_platform_admin(db: Session, principal: VerifiedPrincipal) -> AdultIdentityModel:
@@ -153,7 +180,7 @@ def _get_organization(db: Session, organization_id: str) -> OrganizationModel:
 
 
 def _ensure_school_manager_assignment(
-    db: Session, *, organization_id: str, subject: str
+    db: Session, *, organization_id: str, subject: str, pending_activation: bool = False
 ) -> None:
     assignment = db.scalar(
         select(OrganizationAssignmentModel).where(
@@ -171,11 +198,13 @@ def _ensure_school_manager_assignment(
                 subject=subject,
                 class_id=None,
                 role="school_admin",
-                active=True,
+                active=not pending_activation,
+                pending_activation=pending_activation,
             )
         )
     else:
-        assignment.active = True
+        assignment.active = not pending_activation
+        assignment.pending_activation = pending_activation
 
 
 def _revoke_assignments(
@@ -188,7 +217,10 @@ def _revoke_assignments(
     rows = db.scalars(
         select(OrganizationAssignmentModel).where(
             OrganizationAssignmentModel.subject == subject,
-            OrganizationAssignmentModel.active.is_(True),
+            (
+                OrganizationAssignmentModel.active.is_(True)
+                | OrganizationAssignmentModel.pending_activation.is_(True)
+            ),
         )
     )
     for assignment in rows:
@@ -201,6 +233,7 @@ def _revoke_assignments(
         if preserve_teacher_assignments and assignment.role in {"teacher", "guide", "observer"}:
             continue
         assignment.active = False
+        assignment.pending_activation = False
 
 
 def _response(
@@ -241,8 +274,8 @@ def list_accounts(
     role: AccountRole | None = Query(default=None),
     state: AccountState | None = Query(default=None),
     search: str | None = Query(default=None, min_length=1, max_length=120),
-    limit: int = Query(default=50, ge=1, le=100),
-    offset: int = Query(default=0, ge=0),
+    limit: int = Query(default=25, ge=1, le=100),
+    cursor: str | None = Query(default=None, max_length=768),
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
 ) -> AccountPageResponse:
@@ -260,8 +293,20 @@ def list_accounts(
     )
     search_term = search.strip().casefold() if search is not None else ""
     search_all = bool(search_term)
+    scope = cursor_scope("accounts", role or "", state or "", search_term)
+    try:
+        position = decode_datetime_cursor(scope, cursor)
+    except AdminError as exc:
+        raise HTTPException(exc.status, detail={"code": exc.code}) from None
     if not search_all:
-        statement = statement.limit(limit).offset(offset)
+        statement = apply_datetime_cursor(
+            statement,
+            created_at_column=AdultIdentityModel.created_at,
+            reference_column=AdultIdentityModel.account_id,
+            scope=scope,
+            cursor=cursor,
+            dialect=db.get_bind().dialect.name,
+        ).limit(limit + 1)
     rows = list(db.scalars(statement))
     provisioner: IdentityAccountProvisioner = request.app.state.identity_account_provisioner
     profiles = _load_profiles(provisioner, [row.subject for row in rows])
@@ -278,12 +323,20 @@ def list_accounts(
             )
         ]
         total = len(matching_rows)
-        rows = matching_rows[offset : offset + limit]
+        rows = [
+            row
+            for row in matching_rows
+            if row_is_after_cursor(row.created_at, row.account_id, position=position)
+        ][: limit + 1]
+    next_cursor = None
+    if len(rows) > limit:
+        last = rows[limit - 1]
+        next_cursor = encode_datetime_cursor(scope, last.created_at, last.account_id)
     return AccountPageResponse(
-        items=[_response(row, profiles.get(row.subject)) for row in rows],
+        items=[_response(row, profiles.get(row.subject)) for row in rows[:limit]],
         total=total,
         limit=limit,
-        offset=offset,
+        next_cursor=next_cursor,
     )
 
 
@@ -298,8 +351,14 @@ def create_account(
     request: Request,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
+    idempotency_key: str = Header(alias="Idempotency-Key", min_length=1, max_length=128),
 ) -> AccountResponse:
     _require_platform_admin(db, principal)
+    key, receipt, fingerprint = _receipt(
+        db, principal, idempotency_key, "account.create", payload.model_dump()
+    )
+    if receipt is not None:
+        return AccountResponse(**receipt.response_json)
     if payload.organization_id is not None:
         _get_organization(db, payload.organization_id)
     provisioner: IdentityAccountProvisioner = request.app.state.identity_account_provisioner
@@ -315,21 +374,37 @@ def create_account(
     except IdentityAccountProvisioningUnavailable:
         raise HTTPException(
             status_code=503,
-            detail={"code": "IDENTITY_PROVIDER_UNAVAILABLE", "message": "Identity service is unavailable"},
+            detail={
+                "code": "IDENTITY_PROVIDER_UNAVAILABLE",
+                "message": "Identity service is unavailable",
+            },
         ) from None
 
     identity = AdultIdentityModel(
         account_id=str(uuid4()),
         subject=provisioned.subject,
         issuer=provisioned.issuer,
-        state="active",
+        state="pending_verification",
+        email_verification_required=True,
         account_role=payload.role,
         role_revision=1,
     )
     db.add(identity)
+    db.add(
+        EmailDeliveryModel(
+            delivery_id=str(uuid4()),
+            recipient_ref=identity.subject,
+            template="password_setup",
+            state="pending",
+            attempts=0,
+        )
+    )
     if payload.role == "school_manager" and payload.organization_id is not None:
         _ensure_school_manager_assignment(
-            db, organization_id=payload.organization_id, subject=provisioned.subject
+            db,
+            organization_id=payload.organization_id,
+            subject=provisioned.subject,
+            pending_activation=True,
         )
     _record_account_event(
         db,
@@ -339,6 +414,23 @@ def create_account(
         organization_id=payload.organization_id,
     )
     try:
+        if key:
+            db.add(
+                AdminCommandReceiptModel(
+                    actor_ref=principal.subject,
+                    operation="account.create",
+                    key=key,
+                    fingerprint=fingerprint,
+                    response_json={
+                        "account_id": identity.account_id,
+                        "email": payload.email,
+                        "display_name": payload.display_name,
+                        "role": identity.account_role,
+                        "state": identity.state,
+                        "revision": identity.role_revision,
+                    },
+                )
+            )
         db.commit()
     except IntegrityError:
         db.rollback()
@@ -358,7 +450,10 @@ def create_account(
             pass
         raise HTTPException(
             status_code=503,
-            detail={"code": "ACCOUNT_SETUP_UNAVAILABLE", "message": "Account setup is temporarily unavailable"},
+            detail={
+                "code": "ACCOUNT_SETUP_UNAVAILABLE",
+                "message": "Account setup is temporarily unavailable",
+            },
         ) from None
     return _response(
         identity,
@@ -381,21 +476,55 @@ def update_account(
     request: Request,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
+    idempotency_key: str = Header(alias="Idempotency-Key", min_length=1, max_length=128),
+    if_match: str | None = Header(default=None, alias="If-Match", max_length=22),
 ) -> AccountResponse:
+    if db.get_bind().dialect.name == "postgresql":
+        db.execute(
+            text("SELECT pg_advisory_xact_lock(hashtextextended('identity-admin-role-update', 0))")
+        )
     _require_platform_admin(db, principal)
+    expected_header = if_match
+    if expected_header is None:
+        raise HTTPException(428, detail={"code": "PRECONDITION_REQUIRED"})
+    if not re.fullmatch(r'"[1-9][0-9]{0,18}"', expected_header):
+        raise HTTPException(422, detail={"code": "INVALID_REVISION"})
+    key, receipt, fingerprint = _receipt(
+        db,
+        principal,
+        idempotency_key,
+        "account.update:" + account_id,
+        {**payload.model_dump(), "if_match": expected_header},
+    )
+    if receipt is not None:
+        return AccountResponse(**receipt.response_json)
     identity = db.scalar(
-        select(AdultIdentityModel).where(AdultIdentityModel.account_id == account_id)
+        select(AdultIdentityModel)
+        .where(AdultIdentityModel.account_id == account_id)
+        .with_for_update()
     )
     if identity is None:
         raise HTTPException(
             status_code=404,
             detail={"code": "ACCOUNT_NOT_FOUND", "message": "Account was not found"},
         )
+    if int(expected_header[1:-1]) != identity.role_revision:
+        raise HTTPException(409, detail={"code": "STALE_REVISION"})
     provisioner: IdentityAccountProvisioner = request.app.state.identity_account_provisioner
     profile = _load_profiles(provisioner, [identity.subject]).get(identity.subject)
 
     next_role = payload.role if payload.role is not None else identity.account_role
     next_state = payload.state or identity.state
+    if next_state == "active" and identity.email_verification_required:
+        next_state = "pending_verification"
+    if identity.subject == principal.subject and next_state != "active":
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "code": "SELF_DISABLE_DENIED",
+                "message": "You cannot disable your own account",
+            },
+        )
     org_id = payload.organization_id
     if payload.role == "school_manager" and org_id is None:
         raise HTTPException(
@@ -407,22 +536,31 @@ def update_account(
     if identity.subject == principal.subject and next_role != "platform_admin":
         raise HTTPException(
             status_code=409,
-            detail={"code": "SELF_ROLE_CHANGE_DENIED", "message": "You cannot remove your own Platform Admin role"},
+            detail={
+                "code": "SELF_ROLE_CHANGE_DENIED",
+                "message": "You cannot remove your own Platform Admin role",
+            },
         )
 
     if identity.account_role == "platform_admin" and identity.state == "active":
-        admin_count = db.scalar(
-            select(func.count())
-            .select_from(AdultIdentityModel)
-            .where(
-                AdultIdentityModel.account_role == "platform_admin",
-                AdultIdentityModel.state == "active",
+        admin_count = (
+            db.scalar(
+                select(func.count())
+                .select_from(AdultIdentityModel)
+                .where(
+                    AdultIdentityModel.account_role == "platform_admin",
+                    AdultIdentityModel.state == "active",
+                )
             )
-        ) or 0
+            or 0
+        )
         if admin_count <= 1 and (next_role != "platform_admin" or next_state != "active"):
             raise HTTPException(
                 status_code=409,
-                detail={"code": "LAST_PLATFORM_ADMIN", "message": "At least one active Platform Admin is required"},
+                detail={
+                    "code": "LAST_PLATFORM_ADMIN",
+                    "message": "At least one active Platform Admin is required",
+                },
             )
 
     previous_role = identity.account_role
@@ -435,7 +573,12 @@ def update_account(
         if next_role == "school_manager":
             _revoke_assignments(db, subject=identity.subject, except_school_manager_org=org_id)
             assert org_id is not None
-            _ensure_school_manager_assignment(db, organization_id=org_id, subject=identity.subject)
+            _ensure_school_manager_assignment(
+                db,
+                organization_id=org_id,
+                subject=identity.subject,
+                pending_activation=identity.email_verification_required,
+            )
         elif next_role == "teacher":
             _revoke_assignments(
                 db,
@@ -447,11 +590,21 @@ def update_account(
         identity.account_role = next_role
     elif next_role == "school_manager" and org_id is not None:
         _revoke_assignments(db, subject=identity.subject, except_school_manager_org=org_id)
-        _ensure_school_manager_assignment(db, organization_id=org_id, subject=identity.subject)
+        _ensure_school_manager_assignment(
+            db,
+            organization_id=org_id,
+            subject=identity.subject,
+            pending_activation=identity.email_verification_required,
+        )
 
     if role_changed or state_changed:
         identity.role_revision += 1
     identity.state = next_state
+    if next_role != "platform_admin" or next_state != "active":
+        grant = db.get(PermissionGrantModel, (identity.subject, "content_admin"))
+        if grant and grant.active:
+            grant.active = False
+            grant.revision += 1
     action = "ACCOUNT_ROLE_CHANGED" if role_changed else "ACCOUNT_STATE_CHANGED"
     _record_account_event(
         db,
@@ -468,9 +621,22 @@ def update_account(
             db.rollback()
             raise HTTPException(
                 status_code=503,
-                detail={"code": "IDENTITY_PROVIDER_UNAVAILABLE", "message": "Identity service is unavailable"},
+                detail={
+                    "code": "IDENTITY_PROVIDER_UNAVAILABLE",
+                    "message": "Identity service is unavailable",
+                },
             ) from None
     try:
+        if key:
+            db.add(
+                AdminCommandReceiptModel(
+                    actor_ref=principal.subject,
+                    operation="account.update:" + account_id,
+                    key=key,
+                    fingerprint=fingerprint,
+                    response_json=_response(identity, profile).model_dump(),
+                )
+            )
         db.commit()
     except SQLAlchemyError:
         db.rollback()
@@ -481,7 +647,10 @@ def update_account(
                 pass
         raise HTTPException(
             status_code=503,
-            detail={"code": "ACCOUNT_UPDATE_UNAVAILABLE", "message": "Account update is temporarily unavailable"},
+            detail={
+                "code": "ACCOUNT_UPDATE_UNAVAILABLE",
+                "message": "Account update is temporarily unavailable",
+            },
         ) from None
     return _response(identity, profile)
 

@@ -1,0 +1,43 @@
+/* Component-level palette styling. Token values live in admin-color-tokens.css. */
+html[data-portal="platform"] body,
+html[data-portal="platform"] .s2l-workspace { background: var(--pa-canvas) !important; color: var(--pa-ink) !important; }
+html[data-portal="platform"] .s2l-sidebar { background: var(--pa-sidebar); border-color: var(--pa-border); }
+html[data-portal="platform"] .s2l-topbar { background: var(--pa-surface-soft); }
+html[data-portal="platform"] .s2l-nav-link.is-active {
+  background: var(--pa-primary-soft); color: var(--pa-primary-hover); border-color: var(--pa-tone-d4d5f3);
+  box-shadow: inset 3px 0 0 var(--pa-primary);
+}
+html[data-portal="platform"] .s2l-nav-link.is-active svg { color: var(--pa-primary); }
+html[data-portal="platform"] :is(.pa-button.is-primary,.accounts-button-primary) { background: var(--pa-primary); color: var(--pa-surface); border-color: var(--pa-primary); }
+html[data-portal="platform"] .pa-dashboard :is(.pa-shortcut strong,.pa-notification strong,.pa-calm-empty h3) { color: var(--pa-ink); }
+html[data-portal="platform"] .pa-dashboard .pa-metrics > a strong { color: var(--pa-primary-hover); }
+html[data-portal="platform"] .s2l-sidebar :focus-visible { outline-color: var(--pa-primary) !important; }
+html[data-portal="platform"] .pa-account-popover .pa-account-logout { color: var(--pa-danger); }
+
+/* Skydash-inspired palette: indigo, sail blue and restrained coral. */
+html[data-portal="platform"] .pa-dashboard .pa-metrics > a {
+  background: var(--pa-tone-eef0ff); border-color: var(--pa-tone-dde1f3);
+}
+html[data-portal="platform"] .pa-dashboard .pa-metrics > a:nth-child(2) {
+  background: var(--pa-tone-e3f1fc); border-color: var(--pa-tone-cfe3f3);
+}
+html[data-portal="platform"] .pa-dashboard .pa-metrics > a:nth-child(4) {
+  background: var(--pa-tone-fbece9); border-color: var(--pa-tone-f0d8d2);
+}
+html[data-portal="platform"] .pa-dashboard .pa-metrics > a:hover { border-color: var(--pa-tone-9695d1); }
+html[data-portal="platform"] .pa-dashboard .pa-metrics > a .pa-metric-icon {
+  background: var(--pa-tone-dddef7); color: var(--pa-primary);
+}
+html[data-portal="platform"] .pa-dashboard .pa-metrics > a:nth-child(2) .pa-metric-icon {
+  background: var(--pa-tone-cce5f8); color: var(--pa-tone-315879);
+}
+html[data-portal="platform"] .pa-dashboard .pa-metrics > a:nth-child(4) .pa-metric-icon {
+  background: var(--pa-tone-f2d4cc); color: var(--pa-tone-8a4941);
+}
+html[data-portal="platform"] .pa-dashboard .pa-metrics > a:nth-child(4) strong { color: var(--pa-tone-8a4941); }
+html[data-portal="platform"] .pa-dashboard .pa-panel { background: var(--pa-surface-soft); border-color: var(--pa-border); }
+html[data-portal="platform"] .pa-dashboard .pa-shortcut:hover { background: var(--pa-tone-eef0fc); }
+html[data-portal="platform"] .pa-brand-symbol { color: var(--pa-primary); background: var(--pa-primary-soft); }
+html[data-portal="platform"] .pa-button:not(.is-primary):not(.is-danger) {
+  background: var(--pa-surface); border-color: var(--pa-border); color: var(--pa-ink);
+}
