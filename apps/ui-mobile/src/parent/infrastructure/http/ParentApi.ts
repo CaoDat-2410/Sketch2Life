@@ -545,7 +545,7 @@ function apiErrorMessage(code: string): string {
   return messages[code] ?? 'Yêu cầu chưa hoàn tất. Vui lòng kiểm tra lại rồi thử lại sau.';
 }
 
-function apiErrorFromResponse(
+export function apiErrorFromResponse(
   payload: Record<string, unknown> | null,
   status: number,
   fallbackRequestId: string,
@@ -590,6 +590,16 @@ function safeFieldErrors(value: unknown): ParentSafeFieldError[] | undefined {
     lesson_version: 'lesson_version',
     topic: 'topic',
     adult_confirmed_idea: 'adult_confirmed_idea',
+    // Generic upload sessions (T-2a): request fields and the two headers the server names.
+    purpose: 'purpose',
+    target_ref: 'target_ref',
+    media_type: 'media_type',
+    expected_size_bytes: 'expected_size_bytes',
+    expected_sha256: 'expected_sha256',
+    part_no: 'part_no',
+    body: 'body',
+    'if-match': 'if_match',
+    'x-part-sha256': 'part_sha256',
   };
   const codes = new Set([
     'REQUIRED', 'EMPTY', 'TOO_LONG', 'OUT_OF_RANGE', 'INVALID_TYPE', 'INVALID_FORMAT',
@@ -631,7 +641,7 @@ function stringValue(value: unknown): string | null {
 }
 
 /** The server accepts 1 to 128 visible ASCII characters (0x21 to 0x7E); a space is refused. */
-function assertVisibleAsciiKey(key: ParentActionIdentity): void {
+export function assertVisibleAsciiKey(key: ParentActionIdentity): void {
   if (!/^[\x21-\x7E]{1,128}$/.test(key)) {
     throw new ParentApiError('IDEMPOTENCY_KEY_INVALID', 'local-request', 400);
   }
