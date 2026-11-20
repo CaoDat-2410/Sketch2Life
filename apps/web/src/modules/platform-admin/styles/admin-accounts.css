@@ -1,0 +1,89 @@
+/* Account management: strong reading hierarchy and color tied to role/state. */
+html[data-portal="platform"] .platform-accounts { font-size: 14px; color: var(--pa-ink-strong); }
+html[data-portal="platform"] .platform-accounts .accounts-heading h1 { font-size: clamp(28px,2.2vw,34px); color: var(--pa-ink-strong); font-weight: 750; }
+html[data-portal="platform"] .platform-accounts .accounts-description { font-size: 14px; color: var(--pa-muted-strong); }
+html[data-portal="platform"] .platform-accounts .accounts-heading-side { display: flex; align-items: center; }
+html[data-portal="platform"] .platform-accounts .accounts-filters {
+  padding: 18px; gap: 12px; border-color: var(--pa-border); background: var(--pa-surface);
+}
+html[data-portal="platform"] .platform-accounts .accounts-filters :is(input,select) { font-size: 14px; font-weight: 500; color: var(--pa-ink-strong); }
+html[data-portal="platform"] .platform-accounts .accounts-filters > button {
+  background: var(--pa-primary-soft); color: var(--pa-primary-hover); border-color: var(--pa-primary-soft);
+}
+html[data-portal="platform"] .platform-accounts .accounts-list-panel { background: var(--pa-surface); border-color: var(--pa-border); }
+html[data-portal="platform"] .platform-accounts .accounts-list-heading { padding: 24px; gap: 16px; border-color: var(--pa-border); }
+html[data-portal="platform"] .platform-accounts .accounts-directory-title { display: flex; align-items: center; gap: 14px; }
+html[data-portal="platform"] .platform-accounts .accounts-directory-icon {
+  display: grid; place-items: center; width: 44px; height: 44px; flex: 0 0 44px;
+  background: var(--pa-primary-soft); color: var(--pa-primary); border-radius: 12px;
+}
+html[data-portal="platform"] .platform-accounts .accounts-directory-title h2 { margin: 0; font-size: 18px; font-weight: 700; color: var(--pa-ink-strong); }
+html[data-portal="platform"] .platform-accounts .accounts-directory-title p { margin: 5px 0 0; font-size: 13px; color: var(--pa-muted-strong); }
+html[data-portal="platform"] .platform-accounts .accounts-result-pill {
+  background: var(--pa-primary-soft); color: var(--pa-primary-hover); border: 0; padding: 8px 12px;
+  border-radius: 8px; font-size: 13px; font-weight: 650;
+}
+html[data-portal="platform"] .platform-accounts .accounts-table th {
+  padding-block: 16px; background: var(--pa-sidebar); font-size: 13px; font-weight: 700;
+  color: var(--pa-tone-414560); border-bottom-color: var(--pa-border); letter-spacing: 0;
+}
+html[data-portal="platform"] .platform-accounts .accounts-table td {
+  padding-block: 20px; border-bottom-color: var(--pa-border); color: var(--pa-ink-strong);
+}
+html[data-portal="platform"] .platform-accounts .accounts-person-copy strong { font-size: 15px; font-weight: 650; color: var(--pa-ink-strong); }
+html[data-portal="platform"] .platform-accounts .accounts-person-copy > span { font-size: 13px; color: var(--pa-muted-strong); line-height: 1.6; }
+html[data-portal="platform"] .platform-accounts .accounts-avatar {
+  width: 40px; height: 40px; flex-basis: 40px; border: 0; border-radius: 11px;
+  font-size: 14px; font-weight: 750; color: var(--pa-primary); background: var(--pa-primary-soft);
+}
+html[data-portal="platform"] .platform-accounts [data-account-role="parent"] .accounts-avatar { background: var(--pa-success-soft); color: var(--pa-success); }
+html[data-portal="platform"] .platform-accounts [data-account-role="school_manager"] .accounts-avatar { background: var(--pa-danger-soft); color: var(--pa-danger); }
+html[data-portal="platform"] .platform-accounts [data-account-role="platform_admin"] .accounts-avatar { background: var(--pa-primary); color: var(--pa-surface); }
+html[data-portal="platform"] .platform-accounts .accounts-role-editor select {
+  border: 1px solid var(--pa-tone-b7bfd9); border-radius: 8px; min-height: 44px;
+  background: var(--pa-surface); color: var(--pa-ink-strong); font-size: 14px; font-weight: 550;
+}
+html[data-portal="platform"] .platform-accounts tr[data-role-edited="true"] { background: var(--pa-warning-soft); }
+html[data-portal="platform"] .platform-accounts tr[data-role-edited="true"] .accounts-role-editor .pa-select-trigger { border-color: var(--pa-warning); }
+html[data-portal="platform"] .platform-accounts .accounts-status {
+  padding: 7px 10px; border: 0; border-radius: 7px; font-size: 12px; font-weight: 650; line-height: 1.5;
+}
+html[data-portal="platform"] .platform-accounts .accounts-status.is-active { background: var(--pa-success-soft); color: var(--pa-success); }
+html[data-portal="platform"] .platform-accounts .accounts-status.is-pending { background: var(--pa-warning-soft); color: var(--pa-warning); }
+html[data-portal="platform"] .platform-accounts .accounts-status.is-disabled { background: var(--pa-danger-soft); color: var(--pa-danger); }
+html[data-portal="platform"] .platform-accounts .accounts-row-actions { gap: 8px; }
+html[data-portal="platform"] .platform-accounts .accounts-row-actions .accounts-button { min-height: 42px; font-size: 13px; font-weight: 650; border-radius: 8px; }
+html[data-portal="platform"] .platform-accounts .accounts-row-actions .accounts-button-primary {
+  background: var(--pa-primary); border-color: var(--pa-primary); color: var(--pa-surface);
+}
+html[data-portal="platform"] .platform-accounts .accounts-row-actions .accounts-button-primary:hover:not(:disabled) {
+  background: var(--pa-primary-hover); border-color: var(--pa-primary-hover);
+}
+html[data-portal="platform"] .platform-accounts .accounts-button-danger {
+  background: var(--pa-danger-soft); color: var(--pa-danger); border: 1px solid var(--pa-tone-e5d4d0);
+}
+html[data-portal="platform"] .platform-accounts .accounts-button-danger:hover:not(:disabled) { border-color: var(--pa-danger); background: var(--pa-danger-soft); }
+html[data-portal="platform"] .platform-accounts .accounts-button:disabled { opacity: .55; cursor: not-allowed; }
+html[data-portal="platform"] .platform-accounts .accounts-pagination { padding: 18px 24px; background: var(--pa-canvas); border-color: var(--pa-border); }
+html[data-portal="platform"] .platform-accounts .accounts-pagination :is(p,span) { color: var(--pa-muted-strong); font-size: 13px; }
+html[data-portal="platform"] .platform-accounts .accounts-create-form { border-top: 3px solid var(--pa-primary); }
+html[data-portal="platform"] .platform-accounts .accounts-create-form :is(label,input,select) { font-size: 14px; color: var(--pa-ink-strong); }
+@media (max-width: 600px) {
+  html[data-portal="platform"] .platform-accounts .accounts-list-heading { padding: 18px; align-items: flex-start; flex-wrap: wrap; }
+  html[data-portal="platform"] .platform-accounts .accounts-pagination { padding: 16px; }
+}
+html[data-portal='platform'] .s2l-dialog-content.accounts-email-dialog {
+  width: min(480px, calc(100vw - 32px)); max-width: 480px; margin: 0; padding: 30px;
+  background: var(--pa-surface); color: var(--pa-ink-strong); border-radius: 18px; border-color: var(--pa-border); font-size: 14px; line-height: 1.6;
+}
+html[data-portal='platform'] .accounts-email-dialog .accounts-email-icon { display: grid; place-items: center; width: 48px; height: 48px; margin-bottom: 18px; border-radius: 14px; background: var(--pa-primary-soft); color: var(--pa-primary); }
+html[data-portal='platform'] .accounts-email-dialog h2 { margin: 0 32px 8px 0; font-size: 21px; font-weight: 700; line-height: 1.35; letter-spacing: -.4px; }
+html[data-portal='platform'] .accounts-email-dialog p { margin: 0; color: var(--pa-muted-strong); }
+html[data-portal='platform'] .accounts-email-recipient { display: grid; gap: 3px; margin: 22px 0 16px; padding: 16px; border: 1px solid var(--pa-border); border-radius: 10px; background: var(--pa-canvas); overflow-wrap: anywhere; }
+html[data-portal='platform'] .accounts-email-recipient > span { color: var(--pa-muted-strong); font-size: 13px; }
+html[data-portal='platform'] .accounts-email-recipient > span:first-child { margin-bottom: 3px; font-size: 12px; font-weight: 600; }
+html[data-portal='platform'] .accounts-email-dialog .accounts-email-hint { font-size: 13px; }
+html[data-portal='platform'] .accounts-email-dialog .accounts-row-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 26px; padding-top: 20px; border-top: 1px solid var(--pa-border); }
+html[data-portal='platform'] .accounts-email-dialog .accounts-button { width: auto; min-height: 44px; padding: 10px 18px; }
+html[data-portal='platform'] .platform-accounts .accounts-role-editor .pa-select-trigger { min-width: 0; }
+@media (max-width: 600px) { html[data-portal='platform'] .s2l-dialog-content.accounts-email-dialog { padding: 24px; } }

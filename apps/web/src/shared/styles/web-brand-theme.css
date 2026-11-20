@@ -272,7 +272,7 @@ html[data-portal] .mg-input, html[data-portal] .mg-textarea, html[data-portal] .
   border-color: var(--color-rule) !important;
   color: var(--color-ink);
 }
-html[data-portal] .mg-input:focus, html[data-portal] .mg-textarea:focus, html[data-portal] .tw-input:focus, html[data-portal] input:focus, html[data-portal] select:focus, html[data-portal] textarea:focus {
+html[data-portal] .mg-input:focus, html[data-portal] .mg-textarea:focus, html[data-portal] .tw-input:focus, html[data-portal] input:not(.pa-search-input):focus, html[data-portal] select:focus, html[data-portal] textarea:focus {
   border-color: var(--color-focus) !important;
   box-shadow: 0 0 0 3px var(--color-accent-soft) !important;
 }

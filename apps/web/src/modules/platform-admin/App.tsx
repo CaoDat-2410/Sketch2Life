@@ -1,6 +1,4 @@
-import "./styles/tokens.css";
-import "./styles/mg-manage.css";
-import "./styles/admin-rebuild.css";
+import "./styles/admin.css";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { WebAppShell, PLATFORM_ADMIN_NAVIGATION } from "../../shared/navigation/WebAppShell";
 import { usePortalSession } from "../../shared/auth/PortalSessionContext";

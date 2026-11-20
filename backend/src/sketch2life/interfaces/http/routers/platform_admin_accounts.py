@@ -5,18 +5,13 @@
 
 from __future__ import annotations
 
-import base64
-import binascii
-import hashlib
-import json
 import re
-from datetime import datetime
-from typing import Any, Literal
+from typing import Literal
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, status
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
-from sqlalchemy import and_, func, or_, select
+from sqlalchemy import func, select, text
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
@@ -27,9 +22,9 @@ from sketch2life.application.ports.identity import (
     IdentityAccountProvisioningUnavailable,
     VerifiedPrincipal,
 )
+from sketch2life.domain.platform_admin import AdminError
 from sketch2life.infrastructure.persistence.be1_models import (
     AdultIdentityModel,
-    Be1CommandReceiptModel,
     OrganizationAssignmentModel,
     OrganizationModel,
 )
@@ -113,121 +108,7 @@ class AccountPageResponse(BaseModel):
     items: list[AccountResponse]
     total: int = Field(ge=0)
     limit: int = Field(ge=1, le=100)
-    offset: int = Field(ge=0)
-    # FEAT-066 C5 (SRS §21.1 line 1640): opaque cursor of the next page; null at the end.
     next_cursor: str | None = None
-
-
-# FEAT-066 C5 (SRS §21.4 line 1697): the key is read by `parse_idempotency_key`; the optional
-# declaration only publishes the header in the runtime OpenAPI (review C5-R2-06).
-_IDEMPOTENCY_RESPONSES: dict[int | str, dict[str, Any]] = {
-    400: {
-        "description": (
-            "The request is invalid (`INVALID_REQUEST`, also for a missing or malformed "
-            "`Idempotency-Key`), or the Idempotency-Key was reused with a different payload "
-            "(`INVALID_IDEMPOTENCY_KEY`)."
-        )
-    }
-}
-_CREATE_SCOPE = "POST /accounts"
-
-
-def _invalid_field(field: str) -> HTTPException:
-    return HTTPException(
-        status_code=400,
-        detail={
-            "code": "INVALID_REQUEST",
-            "field_errors": [{"field": field, "code": "INVALID_FORMAT"}],
-        },
-    )
-
-
-def _encode_cursor(created_at: datetime, account_id: str) -> str:
-    payload = json.dumps(
-        {"account_id": account_id, "created_at": created_at.isoformat(), "v": 1},
-        sort_keys=True,
-        separators=(",", ":"),
-    ).encode("utf-8")
-    return base64.urlsafe_b64encode(payload).decode("ascii").rstrip("=")
-
-
-def _decode_cursor(cursor: str) -> tuple[datetime, str]:
-    try:
-        if not cursor or len(cursor) > 2048:
-            raise ValueError
-        encoded = cursor.encode("ascii")
-        decoded = json.loads(
-            base64.b64decode(encoded + b"=" * (-len(encoded) % 4), altchars=b"-_", validate=True)
-        )
-        if not isinstance(decoded, dict) or set(decoded) != {"account_id", "created_at", "v"}:
-            raise ValueError
-        if type(decoded["v"]) is not int or decoded["v"] != 1:
-            raise ValueError
-        if not isinstance(decoded["account_id"], str) or not isinstance(decoded["created_at"], str):
-            raise ValueError
-        created_at = datetime.fromisoformat(decoded["created_at"])
-        if created_at.tzinfo is None or created_at.utcoffset() is None:
-            raise ValueError
-        if not 1 <= len(decoded["account_id"]) <= 36:
-            raise ValueError
-        return created_at, decoded["account_id"]
-    except (binascii.Error, json.JSONDecodeError, UnicodeEncodeError, ValueError):
-        raise _invalid_field("cursor") from None
-
-
-def _after_cursor(row: AdultIdentityModel, position: tuple[datetime, str]) -> bool:
-    created_at, account_id = position
-    return row.created_at < created_at or (
-        row.created_at == created_at and row.account_id > account_id
-    )
-
-
-def _fingerprint(payload: dict[str, Any]) -> str:
-    return hashlib.sha256(
-        json.dumps(
-            payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")
-        ).encode("utf-8")
-    ).hexdigest()
-
-
-def _stored_values(response: AccountResponse) -> dict[str, Any]:
-    """Receipt body without email or display name (plan Draft 2 §3 step 1)."""
-    return {
-        "account_id": response.account_id,
-        "role": response.role,
-        "state": response.state,
-        "revision": response.revision,
-    }
-
-
-def _replay(
-    db: Session, *, principal_ref: str, scope: str, key: str, fingerprint: str
-) -> dict[str, Any] | None:
-    receipt = db.get(Be1CommandReceiptModel, (principal_ref, scope, key))
-    if receipt is None:
-        return None
-    if receipt.request_fingerprint != fingerprint:
-        raise HTTPException(
-            status_code=400,
-            detail={
-                "code": "INVALID_IDEMPOTENCY_KEY",
-                "message": "Idempotency-Key was already used for another request",
-            },
-        )
-    return dict(receipt.response_json)
-
-
-def _replayed_response(
-    stored: dict[str, Any], *, email: str | None, display_name: str | None
-) -> AccountResponse:
-    return AccountResponse(
-        account_id=stored["account_id"],
-        email=email,
-        display_name=display_name,
-        role=stored["role"],
-        state=stored["state"],
-        revision=stored["revision"],
-    )
 
 
 def _forbidden() -> HTTPException:
@@ -235,6 +116,16 @@ def _forbidden() -> HTTPException:
         status_code=403,
         detail={"code": "FORBIDDEN", "message": "Platform Admin authority is required"},
     )
+
+
+def _receipt(db, principal, key: str, operation, payload):
+    if not 1 <= len(key) <= 128:
+        raise HTTPException(422, detail={"code": "INVALID_IDEMPOTENCY_KEY"})
+    try:
+        receipt, fingerprint = begin_receipt(db, principal.subject, operation, key, payload)
+    except AdminError as exc:
+        raise HTTPException(exc.status, detail={"code": exc.code}) from None
+    return key, receipt, fingerprint
 
 
 def _require_platform_admin(db: Session, principal: VerifiedPrincipal) -> AdultIdentityModel:
@@ -375,26 +266,12 @@ def list_accounts(
     role: AccountRole | None = Query(default=None),
     state: AccountState | None = Query(default=None),
     search: str | None = Query(default=None, min_length=1, max_length=120),
-    limit: int = limit_query(),
-    offset: int = Query(
-        default=0,
-        ge=0,
-        deprecated=True,
-        description="Deprecated compatibility paging; use `cursor` (SRS §21.1).",
-    ),
-    cursor: str | None = Query(
-        default=None,
-        min_length=1,
-        max_length=2048,
-        description="Opaque cursor from `next_cursor`; valid only with the same filters.",
-    ),
+    limit: int = Query(default=25, ge=1, le=100),
+    cursor: str | None = Query(default=None, max_length=768),
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
 ) -> AccountPageResponse:
     _require_platform_admin(db, principal)
-    if cursor is not None and offset > 0:
-        raise _invalid_field("offset")
-    position = _decode_cursor(cursor) if cursor is not None else None
     conditions = []
     if role is not None:
         conditions.append(AdultIdentityModel.account_role == role)
@@ -408,32 +285,27 @@ def list_accounts(
     )
     search_term = search.strip().casefold() if search is not None else ""
     search_all = bool(search_term)
-    provisioner: IdentityAccountProvisioner = request.app.state.identity_account_provisioner
+    scope = cursor_scope("accounts", role or "", state or "", search_term)
+    try:
+        position = decode_datetime_cursor(scope, cursor)
+    except AdminError as exc:
+        raise HTTPException(exc.status, detail={"code": exc.code}) from None
     if not search_all:
-        # Keyset page (FEAT-066 C5): order created_at desc, account_id asc; read one extra row.
-        if position is not None:
-            statement = statement.where(
-                or_(
-                    AdultIdentityModel.created_at < position[0],
-                    and_(
-                        AdultIdentityModel.created_at == position[0],
-                        AdultIdentityModel.account_id > position[1],
-                    ),
-                )
-            )
-        else:
-            statement = statement.offset(offset)
-        rows = list(db.scalars(statement.limit(limit + 1)))
-        has_more = len(rows) > limit
-        rows = rows[:limit]
-        profiles = _load_profiles(provisioner, [row.subject for row in rows])
-    else:
-        # Search keeps the full ordered scan so `total` counts every match (review C5-R1-03).
-        scanned = list(db.scalars(statement))
-        profiles = _load_profiles(provisioner, [row.subject for row in scanned])
+        statement = apply_datetime_cursor(
+            statement,
+            created_at_column=AdultIdentityModel.created_at,
+            reference_column=AdultIdentityModel.account_id,
+            scope=scope,
+            cursor=cursor,
+            dialect=db.get_bind().dialect.name,
+        ).limit(limit + 1)
+    rows = list(db.scalars(statement))
+    provisioner: IdentityAccountProvisioner = request.app.state.identity_account_provisioner
+    profiles = _load_profiles(provisioner, [row.subject for row in rows])
+    if search_all:
         matching_rows = [
             row
-            for row in scanned
+            for row in rows
             if (
                 (profile := profiles.get(row.subject)) is not None
                 and (
@@ -443,33 +315,19 @@ def list_accounts(
             )
         ]
         total = len(matching_rows)
-        start = offset
-        if position is not None:
-            # Locate the cursor by position in the database order (review C5-R2-05).
-            scan_index = {row.account_id: index for index, row in enumerate(scanned)}
-            cursor_index = scan_index.get(position[1])
-            start = next(
-                (
-                    index
-                    for index, row in enumerate(matching_rows)
-                    if (
-                        scan_index[row.account_id] > cursor_index
-                        if cursor_index is not None
-                        else _after_cursor(row, position)
-                    )
-                ),
-                len(matching_rows),
-            )
-        rows = matching_rows[start : start + limit]
-        has_more = start + limit < len(matching_rows)
-    next_cursor = (
-        _encode_cursor(rows[-1].created_at, rows[-1].account_id) if has_more and rows else None
-    )
+        rows = [
+            row
+            for row in matching_rows
+            if row_is_after_cursor(row.created_at, row.account_id, position=position)
+        ][: limit + 1]
+    next_cursor = None
+    if len(rows) > limit:
+        last = rows[limit - 1]
+        next_cursor = encode_datetime_cursor(scope, last.created_at, last.account_id)
     return AccountPageResponse(
-        items=[_response(row, profiles.get(row.subject)) for row in rows],
+        items=[_response(row, profiles.get(row.subject)) for row in rows[:limit]],
         total=total,
         limit=limit,
-        offset=0 if position is not None else offset,
         next_cursor=next_cursor,
     )
 
@@ -479,30 +337,20 @@ def list_accounts(
     response_model=AccountResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Create a Firebase account and assign its application role",
-    responses=_IDEMPOTENCY_RESPONSES,
 )
 def create_account(
     payload: AccountCreateRequest,
     request: Request,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
-    idempotency_key_header: str | None = Header(
-        default=None, alias="Idempotency-Key", description="Required; 1–128 printable characters."
-    ),
+    idempotency_key: str = Header(alias="Idempotency-Key", min_length=1, max_length=128),
 ) -> AccountResponse:
     _require_platform_admin(db, principal)
-    key = parse_idempotency_key(request)
-    fingerprint = _fingerprint(payload.model_dump(mode="json"))
-    stored = _replay(
-        db,
-        principal_ref=principal.subject,
-        scope=_CREATE_SCOPE,
-        key=key,
-        fingerprint=fingerprint,
+    key, receipt, fingerprint = _receipt(
+        db, principal, idempotency_key, "account.create", payload.model_dump()
     )
-    if stored is not None:
-        # Same fingerprint means the same payload: no provider call, no audit row.
-        return _replayed_response(stored, email=payload.email, display_name=payload.display_name)
+    if receipt is not None:
+        return AccountResponse(**receipt.response_json)
     if payload.organization_id is not None:
         _get_organization(db, payload.organization_id)
     provisioner: IdentityAccountProvisioner = request.app.state.identity_account_provisioner
@@ -518,7 +366,10 @@ def create_account(
     except IdentityAccountProvisioningUnavailable:
         raise HTTPException(
             status_code=503,
-            detail={"code": "IDENTITY_PROVIDER_UNAVAILABLE", "message": "Identity service is unavailable"},
+            detail={
+                "code": "IDENTITY_PROVIDER_UNAVAILABLE",
+                "message": "Identity service is unavailable",
+            },
         ) from None
 
     identity = AdultIdentityModel(
@@ -554,25 +405,24 @@ def create_account(
         action="ACCOUNT_CREATED",
         organization_id=payload.organization_id,
     )
-    created = _response(
-        identity,
-        IdentityAccountProfile(
-            subject=provisioned.subject,
-            email=payload.email,
-            display_name=payload.display_name,
-        ),
-    )
-    db.add(
-        Be1CommandReceiptModel(
-            principal_ref=principal.subject,
-            operation_scope=_CREATE_SCOPE,
-            idempotency_key=key,
-            organization_id=payload.organization_id,
-            request_fingerprint=fingerprint,
-            response_json=_stored_values(created),
-        )
-    )
     try:
+        if key:
+            db.add(
+                AdminCommandReceiptModel(
+                    actor_ref=principal.subject,
+                    operation="account.create",
+                    key=key,
+                    fingerprint=fingerprint,
+                    response_json={
+                        "account_id": identity.account_id,
+                        "email": payload.email,
+                        "display_name": payload.display_name,
+                        "role": identity.account_role,
+                        "state": identity.state,
+                        "revision": identity.role_revision,
+                    },
+                )
+            )
         db.commit()
     except IntegrityError:
         db.rollback()
@@ -580,18 +430,6 @@ def create_account(
             provisioner.delete_account(provisioned.subject)
         except IdentityAccountProvisioningUnavailable:
             pass
-        # A concurrent request may have stored this key first (review C5-R1-06).
-        stored = _replay(
-            db,
-        principal_ref=principal.subject,
-        scope=_CREATE_SCOPE,
-        key=key,
-        fingerprint=fingerprint,
-        )
-        if stored is not None:
-            return _replayed_response(
-                stored, email=payload.email, display_name=payload.display_name
-            )
         raise HTTPException(
             status_code=409,
             detail={"code": "ACCOUNT_SETUP_UNAVAILABLE", "message": "Account setup is unavailable"},
@@ -604,16 +442,25 @@ def create_account(
             pass
         raise HTTPException(
             status_code=503,
-            detail={"code": "ACCOUNT_SETUP_UNAVAILABLE", "message": "Account setup is temporarily unavailable"},
+            detail={
+                "code": "ACCOUNT_SETUP_UNAVAILABLE",
+                "message": "Account setup is temporarily unavailable",
+            },
         ) from None
-    return created
+    return _response(
+        identity,
+        IdentityAccountProfile(
+            subject=provisioned.subject,
+            email=payload.email,
+            display_name=payload.display_name,
+        ),
+    )
 
 
 @router.patch(
     "/accounts/{account_id}",
     response_model=AccountResponse,
     summary="Change account role or access state",
-    responses=_IDEMPOTENCY_RESPONSES,
 )
 def update_account(
     account_id: str,
@@ -621,50 +468,42 @@ def update_account(
     request: Request,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
-    idempotency_key_header: str | None = Header(
-        default=None, alias="Idempotency-Key", description="Required; 1–128 printable characters."
-    ),
+    idempotency_key: str = Header(alias="Idempotency-Key", min_length=1, max_length=128),
+    if_match: str | None = Header(default=None, alias="If-Match", max_length=22),
 ) -> AccountResponse:
-    _require_platform_admin(db, principal)
-    key = parse_idempotency_key(request)
-    # FEAT-066 C5 (review C5-R1-04, C5-R2-01): lock the active Platform Admin rows in subject
-    # order, then the target, so concurrent updates serialise without deadlock and the
-    # last-admin count is stable; populate_existing refreshes an already loaded row (C5-R2-02).
-    db.execute(
-        select(AdultIdentityModel.subject)
-        .where(
-            AdultIdentityModel.account_role == "platform_admin",
-            AdultIdentityModel.state == "active",
+    if db.get_bind().dialect.name == "postgresql":
+        db.execute(
+            text("SELECT pg_advisory_xact_lock(hashtextextended('identity-admin-role-update', 0))")
         )
-        .order_by(AdultIdentityModel.subject)
-        # NO KEY UPDATE: does not block foreign-key inserts that reference these rows (C5-IMPL-R1).
-        .with_for_update(key_share=True)
-    ).all()
+    _require_platform_admin(db, principal)
+    expected_header = if_match
+    if expected_header is None:
+        raise HTTPException(428, detail={"code": "PRECONDITION_REQUIRED"})
+    if not re.fullmatch(r'"[1-9][0-9]{0,18}"', expected_header):
+        raise HTTPException(422, detail={"code": "INVALID_REVISION"})
+    key, receipt, fingerprint = _receipt(
+        db,
+        principal,
+        idempotency_key,
+        "account.update:" + account_id,
+        {**payload.model_dump(), "if_match": expected_header},
+    )
+    if receipt is not None:
+        return AccountResponse(**receipt.response_json)
     identity = db.scalar(
         select(AdultIdentityModel)
         .where(AdultIdentityModel.account_id == account_id)
-        .with_for_update(key_share=True)
-        .execution_options(populate_existing=True)
+        .with_for_update()
     )
     if identity is None:
         raise HTTPException(
             status_code=404,
             detail={"code": "ACCOUNT_NOT_FOUND", "message": "Account was not found"},
         )
-    scope = f"PATCH /accounts/{account_id}"
-    fingerprint = _fingerprint({"account_id": account_id, **payload.model_dump(mode="json")})
+    if int(expected_header[1:-1]) != identity.role_revision:
+        raise HTTPException(409, detail={"code": "STALE_REVISION"})
     provisioner: IdentityAccountProvisioner = request.app.state.identity_account_provisioner
-    stored = _replay(
-        db, principal_ref=principal.subject, scope=scope, key=key, fingerprint=fingerprint
-    )
     profile = _load_profiles(provisioner, [identity.subject]).get(identity.subject)
-    if stored is not None:
-        db.rollback()
-        return _replayed_response(
-            stored,
-            email=profile.email if profile is not None else None,
-            display_name=profile.display_name if profile is not None else None,
-        )
 
     next_role = payload.role if payload.role is not None else identity.account_role
     next_state = payload.state or identity.state
@@ -689,22 +528,31 @@ def update_account(
     if identity.subject == principal.subject and next_role != "platform_admin":
         raise HTTPException(
             status_code=409,
-            detail={"code": "SELF_ROLE_CHANGE_DENIED", "message": "You cannot remove your own Platform Admin role"},
+            detail={
+                "code": "SELF_ROLE_CHANGE_DENIED",
+                "message": "You cannot remove your own Platform Admin role",
+            },
         )
 
     if identity.account_role == "platform_admin" and identity.state == "active":
-        admin_count = db.scalar(
-            select(func.count())
-            .select_from(AdultIdentityModel)
-            .where(
-                AdultIdentityModel.account_role == "platform_admin",
-                AdultIdentityModel.state == "active",
+        admin_count = (
+            db.scalar(
+                select(func.count())
+                .select_from(AdultIdentityModel)
+                .where(
+                    AdultIdentityModel.account_role == "platform_admin",
+                    AdultIdentityModel.state == "active",
+                )
             )
-        ) or 0
+            or 0
+        )
         if admin_count <= 1 and (next_role != "platform_admin" or next_state != "active"):
             raise HTTPException(
                 status_code=409,
-                detail={"code": "LAST_PLATFORM_ADMIN", "message": "At least one active Platform Admin is required"},
+                detail={
+                    "code": "LAST_PLATFORM_ADMIN",
+                    "message": "At least one active Platform Admin is required",
+                },
             )
 
     previous_role = identity.account_role
@@ -757,17 +605,6 @@ def update_account(
         action=action,
         organization_id=org_id,
     )
-    updated = _response(identity, profile)
-    db.add(
-        Be1CommandReceiptModel(
-            principal_ref=principal.subject,
-            operation_scope=scope,
-            idempotency_key=key,
-            organization_id=org_id,
-            request_fingerprint=fingerprint,
-            response_json=_stored_values(updated),
-        )
-    )
 
     if state_changed:
         try:
@@ -776,9 +613,22 @@ def update_account(
             db.rollback()
             raise HTTPException(
                 status_code=503,
-                detail={"code": "IDENTITY_PROVIDER_UNAVAILABLE", "message": "Identity service is unavailable"},
+                detail={
+                    "code": "IDENTITY_PROVIDER_UNAVAILABLE",
+                    "message": "Identity service is unavailable",
+                },
             ) from None
     try:
+        if key:
+            db.add(
+                AdminCommandReceiptModel(
+                    actor_ref=principal.subject,
+                    operation="account.update:" + account_id,
+                    key=key,
+                    fingerprint=fingerprint,
+                    response_json=_response(identity, profile).model_dump(),
+                )
+            )
         db.commit()
     except SQLAlchemyError:
         db.rollback()
@@ -789,9 +639,12 @@ def update_account(
                 pass
         raise HTTPException(
             status_code=503,
-            detail={"code": "ACCOUNT_UPDATE_UNAVAILABLE", "message": "Account update is temporarily unavailable"},
+            detail={
+                "code": "ACCOUNT_UPDATE_UNAVAILABLE",
+                "message": "Account update is temporarily unavailable",
+            },
         ) from None
-    return updated
+    return _response(identity, profile)
 
 
 __all__ = ["router"]

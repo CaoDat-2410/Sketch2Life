@@ -4,12 +4,13 @@ import {
   EmailAuthProvider,
   onAuthStateChanged,
   reauthenticateWithCredential,
-  sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signOut,
   updatePassword,
   type User,
 } from 'firebase/auth'
+import { apiBaseUrl, BackendApiError } from '../../../../shared/api/backendApi'
+import { parseApiError } from '../../../../shared/api/errorEnvelope'
 
 function configuredAuth() {
   const config = {
@@ -55,7 +56,16 @@ export const authService = {
     return body.role
   },
   resetPassword: async (email: string) => {
-    await sendPasswordResetEmail(configuredAuth(), email.trim())
+    const response = await fetch(`${apiBaseUrl()}/api/auth/v1/password-recovery`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ email: email.trim() }),
+      signal: AbortSignal.timeout(15_000),
+    })
+    if (!response.ok) {
+      const error = parseApiError(await response.json().catch(() => null), response.status)
+      throw new BackendApiError(error.message, error.code, response.status)
+    }
   },
   changePassword: async (currentPassword: string, newPassword: string) => {
     const user = configuredAuth().currentUser
@@ -65,7 +75,9 @@ export const authService = {
     await updatePassword(user, newPassword)
   },
   getIdToken: async (): Promise<string> => {
-    const user = configuredAuth().currentUser
+    const auth = configuredAuth()
+    await auth.authStateReady()
+    const user = auth.currentUser
     if (!user) throw new Error('Sign in with a school administrator account before using BE1.')
     return user.getIdToken()
   },
