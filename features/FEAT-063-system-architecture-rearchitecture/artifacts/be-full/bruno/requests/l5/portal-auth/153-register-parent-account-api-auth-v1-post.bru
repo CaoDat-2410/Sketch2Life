@@ -1,0 +1,24 @@
+meta {
+  name: 153 [PORTAL AUTH - LOCAL TEST ONLY - NEVER RUN CONFIGURED] Register Parent Account
+  type: http
+  seq: 153
+}
+
+post {
+  url: {{baseUrl}}/api/auth/v1/registrations
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_REQUEST_ID_153
+}
+
+body:json {
+  {
+    "email": "REPLACE_WITH_SYNTHETIC_EMAIL",
+    "password": "REPLACE_WITH_SYNTHETIC_PASSWORD"
+  }
+}

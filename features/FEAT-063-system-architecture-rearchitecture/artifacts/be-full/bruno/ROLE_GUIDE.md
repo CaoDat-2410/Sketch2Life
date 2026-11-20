@@ -57,6 +57,21 @@ Added for the first-Teacher assignment (FEAT-066 M9-B); not yet called by the FE
 Manager endpoints that remain blocked by missing contract/policy are not listed
 as FE-integrated here.
 
+## Parent mobile lifecycle
+
+- `137`–`140` are Parent profile and StoryRun reads; they require a verified Parent bearer.
+- `147`–`152` are Parent profile and StoryRun state-changing requests, labelled local-test-only. Profile PATCH carries `expected_revision` in the body. Context and script confirmations carry the expected revision/hash in the body. These requests use `Idempotency-Key`; they do not use `If-Match`.
+- Use only disposable synthetic Parent data. Delete requests may be run only against the disposable local database/API.
+
+## Portal authentication
+
+- `153` is the unauthenticated Parent registration route. It can create an identity-provider account and is never run against a configured environment.
+
+## Parent and Teacher AI
+
+- `154`–`156` are Parent AI routes; `157`–`159` are Teacher AI routes. They are local-test-only examples and were not sent to the API.
+- Requests `153`–`159` must never be run against a configured environment: registration may create an identity-provider account, and AI calls may reach a model provider.
+
 ## Service health
 
 - `090` is the existing unauthenticated health request; it is not tied to an FE

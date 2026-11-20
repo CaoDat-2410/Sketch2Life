@@ -1,0 +1,34 @@
+meta {
+  name: 157 [TEACHER AI - LOCAL TEST ONLY - NEVER RUN CONFIGURED] Suggest Teacher Lesson Plan
+  type: http
+  seq: 157
+}
+
+post {
+  url: {{baseUrl}}/api/teacher/v1/organizations/{{organization_id}}/ai/lesson-plan-suggestions
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_REQUEST_ID_157
+}
+
+body:json {
+  {
+    "topic": "REPLACE_WITH_SYNTHETIC_TOPIC",
+    "target_age_months": 60,
+    "objectives": ["REPLACE_WITH_SYNTHETIC_OBJECTIVE"],
+    "drawing_subject": "REPLACE_WITH_SYNTHETIC_SUBJECT",
+    "activity_count": 1,
+    "activity_kind": "indoor",
+    "script_following_allowed": false,
+    "script_direction": null
+  }
+}

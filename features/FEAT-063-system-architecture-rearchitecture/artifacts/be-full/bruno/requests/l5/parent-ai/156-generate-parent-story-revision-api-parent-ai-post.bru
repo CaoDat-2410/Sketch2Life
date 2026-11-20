@@ -1,0 +1,29 @@
+meta {
+  name: 156 [PARENT AI - LOCAL TEST ONLY - NEVER RUN CONFIGURED] Generate Parent Story Revision
+  type: http
+  seq: 156
+}
+
+post {
+  url: {{baseUrl}}/api/parent/v1/ai/story-runs/{{parent_story_run_id}}/story-revisions
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_REQUEST_ID_156
+  Idempotency-Key: REPLACE_WITH_SYNTHETIC_KEY_156
+}
+
+body:json {
+  {
+    "expected_understanding_revision": 1,
+    "rewrite_instruction": "REPLACE_WITH_SYNTHETIC_REWRITE_INSTRUCTION"
+  }
+}

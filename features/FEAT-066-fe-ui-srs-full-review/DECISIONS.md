@@ -792,3 +792,17 @@ Draft 4 fixes the round-3 findings and was not re-reviewed, by owner choice.
 **Decision:** the full collection was run against the local API with the placeholder bearer value only. No token was created or faked and no Firebase request was made. Requests are classified PASS, FAIL (real defect), BLOCKED-AUTH, BLOCKED-ENV or STALE by HTTP status and error code; Bruno's own pass/fail counter is not used because only A02 and requests 137 to 140 carry checks (five of those fail on the 503, which is BLOCKED-AUTH) and the other requests have none. Result: 4 PASS, 0 FAIL, 95 BLOCKED-AUTH (503 `IDENTITY_PROVIDER_UNAVAILABLE` or 401), 46 BLOCKED-ENV, 2 STALE. Authenticated runs wait for SD-5 and owner-approved test tokens (O-BRU-AUTH, still open).
 
 **Numbering note:** D-066-78 and D-066-79 were used in the first BRU-0a drafts. D-066-78 already exists in both lineages (web: shared-folder organization; BE: SEED-1 guard live check), so the BRU-0a approval and review decisions are numbered D-066-81 and D-066-82 here. Cite D-066-62 to D-066-79 with their lineage, "(web)" or "(BE)".
+
+## D-066-86 — Bruno follow-up: requests for every route, run classification (2026-11-20)
+
+**Source:** `evidence/notes/BRUNO_POST_B2_FOLLOWUP_RUN_20261119.md`; SRS (v2.7-draft, 701,810 bytes, starts `443A3CA3`) section 9.8 and section 21 for the routes.
+
+**Decision:** the collection holds 160 request files (159 regular plus the L5 A02 request) and every non-framework route of the running app has a request; the stale and dev-only requests stay labelled. `environments/local.bru` defines `platform_account_id` (used by request `144`). The local run of 153 requests (placeholder bearer, loopback API, guard active, requests `153` to `159` excluded) classifies as 4 PASS, 0 FAIL, 101 BLOCKED-AUTH, 46 BLOCKED-ENV, 2 STALE; the classification rules of D-066-85 are unchanged. Requests `153` to `159` (registration and the six AI routes) are written but are never run against a configured environment; they parse in Bruno CLI 4.3.0 and are stopped by the loopback guard when the base URL is not loopback.
+
+**Not decided:** authenticated runs, O-BRU-AUTH, SD-5 timing, registration or AI-provider requests in any run.
+
+## D-066-87 — AI routes take no client idempotency key; backend check kept open (2026-11-20)
+
+**Source:** SRS section 21.4 (line 1697): state-changing commands carry an idempotency key; SRS section 9.8 (line 904): "AI dùng job/semantic request receipt"; SRS lines 800, 816 and 818: the Parent drawing-guide route and the idempotency/concurrency contract of new resources are not frozen and are reconciled in M0.
+
+**Decision:** requests `154`, `155` and `157` to `159` follow their routers and send no `Idempotency-Key`. Under line 904, AI generation is deduplicated by job or semantic request receipt, not by a client key, so the missing key is not recorded as an SRS violation for the draft-generating routes (`155`, `157` to `159`). Request `154` also attaches artwork to a StoryRun (a state change); whether the route dedupes by a semantic receipt is **not verified here** and stays an open backend check (owner of the check: BE). Request `156` already requires a key. No request-side key is invented.

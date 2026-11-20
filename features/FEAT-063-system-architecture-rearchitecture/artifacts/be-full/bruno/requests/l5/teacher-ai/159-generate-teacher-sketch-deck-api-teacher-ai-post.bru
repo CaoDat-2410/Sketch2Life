@@ -1,0 +1,48 @@
+meta {
+  name: 159 [TEACHER AI - LOCAL TEST ONLY - NEVER RUN CONFIGURED] Generate Teacher Sketch Deck
+  type: http
+  seq: 159
+}
+
+post {
+  url: {{baseUrl}}/api/teacher/v1/organizations/{{organization_id}}/ai/sketch-decks
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_REQUEST_ID_159
+}
+
+body:json {
+  {
+    "review_confirmed": true,
+    "plan_revision_ref": "REPLACE_WITH_SYNTHETIC_PLAN_REVISION",
+    "topic": "REPLACE_WITH_SYNTHETIC_TOPIC",
+    "target_age_months": 60,
+    "objectives": ["REPLACE_WITH_SYNTHETIC_OBJECTIVE"],
+    "drawing_steps": [
+      {"action": "REPLACE_WITH_SYNTHETIC_ACTION_1", "placement": "REPLACE_WITH_SYNTHETIC_PLACEMENT_1"},
+      {"action": "REPLACE_WITH_SYNTHETIC_ACTION_2", "placement": "REPLACE_WITH_SYNTHETIC_PLACEMENT_2"},
+      {"action": "REPLACE_WITH_SYNTHETIC_ACTION_3", "placement": "REPLACE_WITH_SYNTHETIC_PLACEMENT_3"}
+    ],
+    "subject_knowledge": ["REPLACE_WITH_SYNTHETIC_SUBJECT_KNOWLEDGE"],
+    "activities": [
+      {
+        "activity_ref": "synthetic-activity-1",
+        "title": "REPLACE_WITH_SYNTHETIC_ACTIVITY_TITLE",
+        "goal": "REPLACE_WITH_SYNTHETIC_ACTIVITY_GOAL",
+        "materials": "REPLACE_WITH_SYNTHETIC_MATERIALS",
+        "preparation": "REPLACE_WITH_SYNTHETIC_PREPARATION",
+        "instructions": "REPLACE_WITH_SYNTHETIC_INSTRUCTIONS",
+        "safety_notes": "REPLACE_WITH_SYNTHETIC_SAFETY_NOTES"
+      }
+    ]
+  }
+}
