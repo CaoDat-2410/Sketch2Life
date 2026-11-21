@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { BackendApiError, hasFirebaseAuthBridge } from '../../../shared/api/backendApi'
 import { usePortalSession } from '../../../shared/auth/PortalSessionContext'
 import { MgIcon } from '../components/MgIcon'
+import { Heading } from '../components/AdminUI'
 import { useAdminQuery } from '../components/adminHooks'
 import { AdminSearchInput } from '../components/AdminSearchInput'
 import { AccessibleDialog } from '../../../shared/components/ui'
@@ -190,15 +191,10 @@ export function UsersPage() {
   const rangeEnd = Math.min(pageStartIndex + accounts.length, total)
 
   return (
-    <section className='platform-accounts' aria-labelledby='accounts-title'>
-      <header className='accounts-heading'>
-        <div className='accounts-heading-copy'>
-          <h1 id='accounts-title'>Tài khoản và vai trò</h1>
-        </div>
-        <div className='accounts-heading-side'>
-          <button type='button' className='accounts-button accounts-button-primary' disabled={!canManage} onClick={() => { setCreating((value) => !value); setActionError('') }}><MgIcon name={creating ? 'close' : 'plus'} size={18} />{creating ? 'Đóng biểu mẫu' : 'Tạo tài khoản'}</button>
-        </div>
-      </header>
+    <section className='platform-accounts' aria-label='Tài khoản và vai trò'>
+      <Heading title='Tài khoản và vai trò'>
+        <button type='button' className='accounts-button accounts-button-primary' disabled={!canManage} onClick={() => { setCreating((value) => !value); setActionError('') }}><MgIcon name={creating ? 'close' : 'plus'} size={18} />{creating ? 'Đóng biểu mẫu' : 'Tạo tài khoản'}</button>
+      </Heading>
 
       {notice && <div className='accounts-feedback is-success' role='status'><span aria-hidden='true'><MgIcon name='check' size={18} /></span><p>{notice}</p></div>}
       {actionError && <div className='accounts-feedback is-error' role='alert'><span aria-hidden='true'><MgIcon name='alert' size={18} /></span><p>{actionError}</p></div>}

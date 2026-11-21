@@ -36,8 +36,13 @@ describe('Every admin screen handles absent data and unavailable APIs', () => {
     const { container } = mount(panel)
     await screen.findAllByText(/Chưa có|Chưa chọn|Không tìm thấy quản trị viên/)
     expect(screen.queryByRole('alert')).toBeNull()
-    expect(container.querySelector('.pa-pager')).toBeNull()
-    expect(container.querySelector('.pa-data-state')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Trước' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Tiếp' })).toBeNull()
+    if (panel === 'queues') {
+      expect(screen.getByText('Chưa có bản ghi công việc ai')).toBeTruthy()
+    } else {
+      expect(container.querySelector('.s2l-empty-state')).toBeTruthy()
+    }
   })
   it.each(panels)('%s keeps an API failure distinct from an empty dataset and offers retry', async panel => {
     vi.stubGlobal('fetch', vi.fn(async () => response({ code: 'PROVIDER_UNAVAILABLE' }, 503)))
@@ -46,12 +51,12 @@ describe('Every admin screen handles absent data and unavailable APIs', () => {
     expect(screen.getAllByText('Không tải được dữ liệu').length).toBeGreaterThan(0)
     expect(screen.getAllByRole('button', { name: 'Tải lại' }).length).toBeGreaterThan(0)
     expect(screen.queryByText('Chưa có dữ liệu')).toBeNull()
-    const errorStates = container.querySelectorAll('.pa-data-state.is-error')
+    const errorStates = container.querySelectorAll('.s2l-admin-load-error')
     expect(errorStates.length).toBeGreaterThan(0)
     errorStates.forEach(state => {
-      expect(state.querySelector('.pa-data-state-copy h2')?.textContent).toBe('Không tải được dữ liệu')
-      expect(state.querySelector('.pa-data-state-copy [role="alert"]')?.textContent).toBeTruthy()
-      expect(state.querySelector('.pa-data-state-actions button')).toBeTruthy()
+      expect(state.querySelector('h2')?.textContent).toBe('Không tải được dữ liệu')
+      expect(state.querySelector('[role="alert"]')?.textContent).toBeTruthy()
+      expect(state.querySelector('button')).toBeTruthy()
     })
   })
   it('recovers from a temporary error to a genuine empty school directory', async () => {

@@ -727,24 +727,13 @@ export function CatalogPage() {
   }
   return (
     <div className="pa-page pa-catalog-page">
-      <header className="pa-heading pa-catalog-heading">
-        <div className="pa-catalog-heading-copy">
-          <span className="pa-catalog-heading-icon" aria-hidden="true">
-            <BookOpen size={20} strokeWidth={2} />
-          </span>
-          <div>
-            <h1>Danh mục hoạt động</h1>
-            <p>Quản lý và duyệt hoạt động dùng chung.</p>
-          </div>
-        </div>
-        <div className="pa-actions">
-          <Button primary onClick={() => setCreating(true)}>
-            <Plus size={16} />
-            Thêm hoạt động
-          </Button>
-          <Refresh onClick={refresh} />
-        </div>
-      </header>
+      <Heading title="Danh mục hoạt động" description="Quản lý và duyệt hoạt động dùng chung.">
+        <Button primary onClick={() => setCreating(true)}>
+          <Plus size={16} />
+          Thêm hoạt động
+        </Button>
+        <Refresh onClick={refresh} />
+      </Heading>
       <Feedback {...cmd} />
       {creating ? (
         <CatalogEditor

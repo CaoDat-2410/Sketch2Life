@@ -12,7 +12,7 @@ html[data-portal='platform'] .pa-select-trigger[aria-expanded='true'] { outline:
 html[data-portal='platform'] .pa-select-trigger:disabled { opacity: .55; cursor: not-allowed; }
 html[data-portal='platform'] .pa-select-menu {
   position: fixed; z-index: 1100; overflow: auto; padding: 6px; box-sizing: border-box; border: 1px solid var(--pa-border); border-radius: 12px;
-  background: var(--pa-surface); box-shadow: 0 10px 28px var(--pa-tone-29272f12); color: var(--pa-ink-strong); font-size: 14px; line-height: 1.5;
+  background: var(--pa-surface); box-shadow: 0 10px 28px color-mix(in srgb, var(--s2l-ui-shadow-tint) 7.06%, transparent); color: var(--pa-ink-strong); font-size: 14px; line-height: 1.5;
 }
 html[data-portal='platform'] .pa-select-option { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 40px; padding: 9px 12px; border-radius: 7px; cursor: pointer; }
 html[data-portal='platform'] .pa-select-option[aria-selected='true'] { color: var(--pa-primary-hover); font-weight: 650; }

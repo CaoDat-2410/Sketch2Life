@@ -12,7 +12,7 @@ html[data-portal="platform"] .pa-topbar-breadcrumb a {
   color: var(--pa-muted-strong); text-decoration: none; white-space: nowrap;
 }
 html[data-portal="platform"] .pa-topbar-breadcrumb a:hover { color: var(--pa-primary); }
-html[data-portal="platform"] .pa-topbar-breadcrumb > svg { color: var(--pa-tone-717895); flex-shrink: 0; }
+html[data-portal="platform"] .pa-topbar-breadcrumb > svg { color: var(--s2l-ui-neutral-500); flex-shrink: 0; }
 html[data-portal="platform"] .pa-topbar-breadcrumb > span {
   color: var(--pa-ink-strong); font-size: 14px; font-weight: 650; overflow-wrap: anywhere;
 }
@@ -33,7 +33,7 @@ html[data-portal="platform"] .pa-topbar-account[open] > summary > svg { transfor
 html[data-portal="platform"] .pa-topbar-account .pa-topbar-popover {
   top: calc(100% + 12px); bottom: auto; left: auto; right: 0; width: 268px;
   padding: 7px; border-color: var(--pa-border); background: var(--pa-surface);
-  box-shadow: 0 12px 32px rgb(37 39 67 / 12%); border-radius: 12px;
+  box-shadow: 0 12px 32px color-mix(in srgb, var(--s2l-ui-primary-900) 12%, transparent); border-radius: 12px;
 }
 html[data-portal="platform"] .pa-topbar-account-info { display: grid; gap: 5px; padding: 12px 10px 16px; margin-bottom: 6px; border-bottom: 1px solid var(--pa-border); }
 html[data-portal="platform"] .pa-topbar-account-info strong { color: var(--pa-ink-strong); font-size: 14px; }

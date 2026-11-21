@@ -22,6 +22,7 @@ import {
   Database,
   Server,
   Clock3,
+  RefreshCw,
   Trash2,
   TriangleAlert,
   ListFilter,
@@ -34,6 +35,7 @@ import {
   type Page,
   type Organization,
   type OrganizationSummary,
+  type Operation,
   type Operations,
   type Audit,
   type AuditRetention,
@@ -71,6 +73,16 @@ import {
   SearchForm,
   Status,
 } from "../components/AdminUI";
+import {
+  Button as CozyButton,
+  DataTable,
+  EmptyState,
+  Section,
+  StatCard,
+  StatusBadge,
+  type StatAccent,
+  type StatusTone,
+} from "../../../shared/ui";
 
 type ApiHealth = { status: "ok"; service: string };
 async function readApiHealth(): Promise<ApiHealth> {
@@ -476,7 +488,7 @@ export function OrganizationsPage() {
             </div>
             <span className="pa-org-result-count">{q.data?.total ?? 0} kết quả</span>
           </div>
-          {q.data?.items.length ? <Table items={q.data.items} rowKey={(row) => row.organization_id}
+          {q.data?.items.length ? <Table className="pa-organizations-table-scroll" items={q.data.items} rowKey={(row) => row.organization_id}
             columns={[
               { title: "Trường học", render: (row) => <div className="pa-person">
                 <span className="pa-avatar" aria-hidden="true">{row.display_name.replace(/^\[TEST\]\s*/, "").split(/\s+/).filter(Boolean).slice(0, 2).map((word) => word[0]).join("").toUpperCase()}</span>
@@ -509,6 +521,55 @@ export function OrganizationsPage() {
     </div>
   );
 }
+function healthTone(value: string): StatusTone {
+  switch (value) {
+    case "healthy": return "success";
+    case "unavailable":
+    case "error": return "danger";
+    case "not_configured":
+    case "idle": return "warn";
+    case "loading": return "info";
+    default: return "neutral";
+  }
+}
+
+function healthAccent(value: string): StatAccent {
+  switch (healthTone(value)) {
+    case "success": return "mint";
+    case "warn": return "butter";
+    case "danger": return "coral";
+    case "info": return "sky";
+    case "neutral": return "neutral";
+  }
+}
+
+function operationTone(value: string): StatusTone {
+  switch (value.toLowerCase()) {
+    case "healthy":
+    case "active":
+    case "approved":
+    case "completed":
+    case "sent":
+    case "published":
+    case "paid": return "success";
+    case "failed":
+    case "exception":
+    case "unavailable":
+    case "error":
+    case "rejected":
+    case "disabled": return "danger";
+    case "queued":
+    case "pending":
+    case "requested":
+    case "not_configured":
+    case "idle": return "warn";
+    case "running":
+    case "sending":
+    case "received": return "info";
+    default: return "neutral";
+  }
+}
+
 export function OperationsPage() {
   const q = useAdminQuery(() => read<Operations>("/operations"), "operations");
   const apiHealth = useAdminQuery(readApiHealth, "platform-api-health");
@@ -569,65 +630,85 @@ export function OperationsPage() {
     not_configured: "Chưa cấu hình",
     idle: "Chưa có worker",
   })[value as "healthy" | "loading" | "error" | "unavailable" | "not_configured" | "idle"] ?? "Chưa rõ trạng thái";
+  const tables: Array<{ title: string; rows: Operation[] }> = q.data ? [
+    { title: "Công việc AI", rows: q.data.jobs },
+    { title: "Sự kiện chờ xử lý", rows: q.data.core_outbox },
+    { title: "Gửi email", rows: q.data.email },
+    { title: "Vòng đời dữ liệu", rows: q.data.lifecycle },
+  ] : [];
+
   return (
-    <div className="pa-page pa-operations-page">
-      <Heading
-        title="Giám sát vận hành"
-      >
-        <Refresh onClick={refresh} disabled={q.loading || apiHealth.loading} />
+    <div className="s2l-ops-page box-border -mx-[clamp(22px,4vw,58px)] -mt-[33px] -mb-[64px] flex min-h-screen min-w-0 flex-col gap-5 bg-cream px-[clamp(22px,4vw,58px)] pt-[33px] pb-[64px] font-ui text-ink max-[1120px]:-mx-[25px] max-[1120px]:px-[25px] max-[820px]:-mt-[26px] max-[620px]:-mx-[15px] max-[620px]:-mt-[22px] max-[620px]:-mb-[42px] max-[620px]:px-[15px] max-[620px]:pt-[22px] max-[620px]:pb-[42px]">
+      <Heading title="Giám sát vận hành">
+        <CozyButton className="max-[620px]:w-full" onClick={refresh} disabled={q.loading || apiHealth.loading} iconLeft={<RefreshCw size={16} aria-hidden="true" />}>Tải lại</CozyButton>
       </Heading>
-      <section className="pa-panel pa-ops-health" aria-label="Tình trạng hệ thống">
-        <div className="pa-section-heading">
-          <div>
-            <h2>Tình trạng hệ thống</h2>
-          </div>
-        </div>
-        <div className="pa-ops-health-grid" aria-live="polite">
+      <Section title="Tình trạng hệ thống" variant="plain">
+        <div aria-live="polite" className="grid min-w-0 grid-cols-1 gap-3 p-4 sm:grid-cols-2 xl:grid-cols-4">
           {healthCards.map(({ title, status, detail, value, icon: Icon }) => (
-            <article className={`pa-ops-health-card is-${status}`} key={title}>
-              <div className="pa-ops-health-top"><span className="pa-ops-health-icon"><Icon size={18} aria-hidden="true" /></span>
-                <span className="pa-ops-health-state"><i aria-hidden="true" />{healthLabel(status)}</span></div>
-              <h3>{title}</h3><strong>{value}</strong><p>{detail}</p>
-            </article>
+            <StatCard
+              key={title}
+              label={title}
+              value={value}
+              helperText={detail}
+              icon={<Icon size={19} aria-hidden="true" />}
+              accent={healthAccent(status)}
+              badge={<StatusBadge tone={healthTone(status)} dot size="sm">{healthLabel(status)}</StatusBadge>}
+            />
           ))}
         </div>
-      </section>
+      </Section>
       <LoadBoundary {...q}>
-        {q.data?.queue && <section className="pa-ops-queue-summary" aria-label="Tóm tắt hàng đợi">
-          <article><span>Tác vụ đang chờ</span><strong>{q.data.queue.queued_jobs.toLocaleString("vi-VN")}</strong>
-            <small>{q.data.queue.oldest_queued_at ? `Cũ nhất từ ${date(q.data.queue.oldest_queued_at)}` : "Không có tác vụ đang chờ"}</small></article>
-          <article><span>Đang xử lý</span><strong>{q.data.queue.running_jobs.toLocaleString("vi-VN")}</strong></article>
-          <article><span>Cần chú ý</span><strong>{q.data.queue.failed_jobs.toLocaleString("vi-VN")}</strong><small>Thất bại có thể thử lại, thất bại cuối hoặc bị chặn</small></article>
-          <article><span>Tác vụ trên Redis</span><strong>{q.data.broker?.transport_pending_count?.toLocaleString("vi-VN") ?? "—"}</strong><small>{q.data.queue.last_dispatched_at ? `Gửi gần nhất ${date(q.data.queue.last_dispatched_at)}` : "Chưa ghi nhận lần gửi gần đây"}</small></article>
-        </section>}
-        <div className="pa-two-column">
-          {q.data &&
-            (
-              [
-                ["Công việc AI", q.data.jobs],
-                ["Sự kiện chờ xử lý", q.data.core_outbox],
-                ["Gửi email", q.data.email],
-                ["Vòng đời dữ liệu", q.data.lifecycle],
-              ] as const
-            ).map(([title, rows]) => (
-              <section className="pa-panel" key={title}>
-                <h2 className="pa-section-heading">{title}</h2>
-                <Table
-                  items={[...rows]}
-                  rowKey={(r) => r.state + (r.job_type ?? "")}
-                  emptyText={`Chưa có bản ghi ${title.toLocaleLowerCase("vi-VN")}`}
-                  columns={[
-                    {
-                      title: "Trạng thái",
-                      render: (r) => <Status value={r.state} />,
-                    },
-                    { title: "Loại", render: (r) => r.job_type ?? "—" },
-                    { title: "Số lượng", render: (r) => r.count },
-                  ]}
-                />
-              </section>
-            ))}
-        </div>
+        {q.data?.queue && <div aria-label="Tóm tắt hàng đợi" className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <StatCard
+            label="Tác vụ đang chờ"
+            value={q.data.queue.queued_jobs.toLocaleString("vi-VN")}
+            icon={<Clock3 size={19} aria-hidden="true" />}
+            accent="primary"
+            helperText={q.data.queue.oldest_queued_at ? `Cũ nhất từ ${date(q.data.queue.oldest_queued_at)}` : "Không có tác vụ đang chờ"}
+          />
+          <StatCard
+            label="Đang xử lý"
+            value={q.data.queue.running_jobs.toLocaleString("vi-VN")}
+            icon={<Activity size={19} aria-hidden="true" />}
+            accent="mint"
+          />
+          <StatCard
+            label="Cần chú ý"
+            value={q.data.queue.failed_jobs.toLocaleString("vi-VN")}
+            icon={<TriangleAlert size={19} aria-hidden="true" />}
+            accent={q.data.queue.failed_jobs > 0 ? "coral" : "mint"}
+            helperText="Thất bại có thể thử lại, thất bại cuối hoặc bị chặn"
+          />
+          <StatCard
+            label="Tác vụ trên Redis"
+            value={q.data.broker?.transport_pending_count?.toLocaleString("vi-VN") ?? "—"}
+            icon={<Server size={19} aria-hidden="true" />}
+            accent="butter"
+            helperText={q.data.queue.last_dispatched_at ? `Gửi gần nhất ${date(q.data.queue.last_dispatched_at)}` : "Chưa ghi nhận lần gửi gần đây"}
+          />
+        </div>}
+        {q.data && <div className="grid min-w-0 grid-cols-1 items-start gap-4 xl:grid-cols-2">
+          {tables.map(({ title, rows }) => (
+            <Section title={title} key={title}>
+              <DataTable
+                caption={title}
+                rows={rows}
+                getRowKey={(row) => row.state + (row.job_type ?? "")}
+                density="dense"
+                columns={[
+                  {
+                    key: "state",
+                    header: "Trạng thái",
+                    render: (row) => <StatusBadge tone={operationTone(row.state)} size="sm">{label(row.state)}</StatusBadge>,
+                  },
+                  { key: "type", header: "Loại", render: (row) => row.job_type ?? "—" },
+                  { key: "count", header: "Số lượng", numeric: true, render: (row) => row.count },
+                ]}
+                emptyState={<EmptyState title={`Chưa có bản ghi ${title.toLocaleLowerCase("vi-VN")}`} />}
+              />
+            </Section>
+          ))}
+        </div>}
       </LoadBoundary>
     </div>
   );
@@ -910,8 +991,8 @@ export function AuditPage() {
     </div>
   );
 }
-export function PermissionsPage() {
-  const [account, setAccount] = useState(""),
+export function PermissionsPage({ initialAccount }: { initialAccount?: string } = {}) {
+  const [account, setAccount] = useState(initialAccount ?? ""),
     [search, setSearch] = useState(""),
     [reason, setReason] = useState("");
   const q = useAdminQuery(
@@ -1141,6 +1222,7 @@ function PreferenceForm({
 }
 export function SettingsPage() {
   const q = useAdminQuery(() => read<Settings>("/settings"), "settings"),
+    [preferenceSaved, setPreferenceSaved] = useState(false),
     [deliveryState, setDeliveryState] = useState(""),
     pagination = useAdminCursor(deliveryState),
     deliveries = useAdminQuery(
@@ -1162,6 +1244,7 @@ export function SettingsPage() {
           }}
         />
       </Heading>
+      <Feedback notice={preferenceSaved ? "Đã lưu thay đổi." : undefined} />
       <LoadBoundary {...q}>
         {q.data && (
           <div className="pa-two-column">
@@ -1170,7 +1253,10 @@ export function SettingsPage() {
               <PreferenceForm
                 key={q.data.preferences.revision}
                 value={q.data.preferences}
-                onSaved={q.reload}
+                onSaved={() => {
+                  setPreferenceSaved(true);
+                  q.reload();
+                }}
               />
             </section>
             <section className="pa-panel pa-padded">

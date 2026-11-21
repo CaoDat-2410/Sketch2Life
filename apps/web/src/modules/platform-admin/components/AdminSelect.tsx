@@ -57,7 +57,7 @@ export function AdminSelect({ value, onChange, children, id, disabled, required,
   useLayoutEffect(() => { if (open) document.getElementById(listId + '-' + active)?.scrollIntoView?.({ block: 'nearest' }) }, [open, active, listId])
   return <>
     <select className='pa-select-native' hidden aria-hidden='true' tabIndex={-1} value={value} required={required} disabled={disabled} onChange={onChange} onInvalid={event => { event.preventDefault(); trigger.current?.focus() }}>{children}</select>
-    <button id={id ?? generated + '-trigger'} ref={trigger} type='button' role='combobox' className='pa-select-trigger' aria-label={ariaLabel} aria-required={required} aria-haspopup='listbox' aria-expanded={open} aria-controls={open ? listId : undefined} aria-activedescendant={open ? listId + '-' + active : undefined} disabled={disabled}
+    <button id={id ?? generated + '-trigger'} ref={trigger} type='button' role='combobox' className='pa-select-trigger box-border flex min-h-11 w-full min-w-0 items-center justify-between gap-3 rounded-xl border border-rule bg-paper px-3.5 py-2 font-ui text-sm font-medium text-ink shadow-cozy transition-colors hover:bg-paper-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-55' aria-label={ariaLabel} aria-required={required} aria-haspopup='listbox' aria-expanded={open} aria-controls={open ? listId : undefined} aria-activedescendant={open ? listId + '-' + active : undefined} disabled={disabled}
       onClick={() => open ? setOpen(false) : reveal()}
       onBlur={event => { if (!popup.current?.contains(event.relatedTarget as Node)) setOpen(false) }}
       onKeyDown={event => {
@@ -74,9 +74,9 @@ export function AdminSelect({ value, onChange, children, id, disabled, required,
           const found = options.findIndex(option => !option.disabled && String(option.label).toLocaleLowerCase('vi-VN').startsWith(search.current.text))
           if (found >= 0) { setOpen(true); setActive(found) }
         }
-      }}><span>{options[selected]?.label}</span><ChevronDown size={16} aria-hidden='true' /></button>
-    {open && createPortal(<div ref={popup} id={listId} role='listbox' aria-label={ariaLabel} aria-labelledby={ariaLabel ? undefined : id ?? generated + '-trigger'} className='pa-select-menu' style={position}>
-      {options.map((option, index) => <div key={option.value} id={listId + '-' + index} role='option' aria-selected={option.value === String(value)} aria-disabled={option.disabled} className={'pa-select-option' + (active === index ? ' is-highlighted' : '')} onPointerMove={() => { if (!option.disabled) setActive(index) }} onPointerDown={event => event.preventDefault()} onClick={() => choose(index)}><span>{option.label}</span>{option.value === String(value) && <Check size={16} aria-hidden='true' />}</div>)}
+      }}><span className='min-w-0 truncate text-left'>{options[selected]?.label}</span><ChevronDown size={16} aria-hidden='true' /></button>
+    {open && createPortal(<div ref={popup} id={listId} role='listbox' aria-label={ariaLabel} aria-labelledby={ariaLabel ? undefined : id ?? generated + '-trigger'} className='pa-select-menu z-[100] overflow-auto rounded-xl border border-rule bg-paper p-1.5 font-ui text-sm text-ink shadow-cozy-hover' style={position}>
+      {options.map((option, index) => <div key={option.value} id={listId + '-' + index} role='option' aria-selected={option.value === String(value)} aria-disabled={option.disabled} className={'pa-select-option flex min-h-10 cursor-pointer items-center justify-between gap-3 rounded-lg px-3 py-2 ' + (active === index ? 'is-highlighted bg-primary-soft text-primary-ink ' : 'text-ink ') + (option.disabled ? 'cursor-not-allowed opacity-55' : '')} onPointerMove={() => { if (!option.disabled) setActive(index) }} onPointerDown={event => event.preventDefault()} onClick={() => choose(index)}><span>{option.label}</span>{option.value === String(value) && <Check size={16} aria-hidden='true' />}</div>)}
     </div>, document.body)}
   </>
 }

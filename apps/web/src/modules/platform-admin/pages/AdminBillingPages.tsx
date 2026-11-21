@@ -399,20 +399,20 @@ function BillingWorkspace() {
     </>
   );
 }
-export function QuotaPage() {
+export function QuotaPage({ initialScope }: { initialScope?: Scope } = {}) {
   return (
     <div className="pa-page">
       <Heading
         title="Hạn mức video"
       />
       <SandboxGate>
-        <QuotaWorkspace />
+        <QuotaWorkspace initialScope={initialScope} />
       </SandboxGate>
     </div>
   );
 }
-function QuotaWorkspace() {
-  const [scope, setScope] = useState<Scope>({
+function QuotaWorkspace({ initialScope }: { initialScope?: Scope }) {
+  const [scope, setScope] = useState<Scope>(initialScope ?? {
       owner_kind: "ORGANIZATION",
       owner_ref: "",
     }),

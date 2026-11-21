@@ -30,6 +30,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { BrandWordmark } from "../components/BrandMark";
+import platformAdminLogo from "../assets/sketch2life-logo-mark-128.png";
 import { AccessibleDialog } from "../components/ui";
 import { authService } from "../../modules/school-manager/be1/services/authService";
 
@@ -194,8 +195,7 @@ export function WebAppShell({
   const activeAdminGroup = navigation.find((group) =>
     group.items.some((item) => navigationMatches(item.href, location.pathname, location.search, item.matchPrefix)),
   )?.label ?? navigation[0]?.label;
-  const adminLocationKey = location.pathname + location.search;
-  const [adminGroups, setAdminGroups] = useState<Record<string, { locationKey: string; open: boolean }>>({});
+  const [adminGroups, setAdminGroups] = useState<Record<string, boolean>>({});
   const topAccountDetails = useRef<HTMLDetailsElement>(null);
   const menuButton = useRef<HTMLButtonElement>(null);
   const firstLink = useRef<HTMLAnchorElement>(null);
@@ -278,8 +278,10 @@ export function WebAppShell({
       <a className="s2l-skip-link" href="#s2l-main">Bỏ qua điều hướng</a>
       <aside className="s2l-sidebar" id="s2l-navigation" aria-label={"Cổng " + roleLabel}>
         <div className="s2l-brand-lockup">
-          {roleLabel === "Platform Admin" ? <span className="pa-brand-symbol" aria-hidden="true">S<span>2</span></span> : <BrandWordmark size={30} />}
-          <div><strong>Sketch2Life</strong>{!isPlatformAdmin && <span>{roleLabel}</span>}</div>
+          {isPlatformAdmin
+            ? <span className="pa-brand-logo-chip"><img src={platformAdminLogo} alt="Sketch2Life" /></span>
+            : <BrandWordmark size={30} />}
+          <div className={isPlatformAdmin ? "pa-brand-wordmark" : undefined}><strong>Sketch2Life</strong>{!isPlatformAdmin && <span>{roleLabel}</span>}</div>
           <button type="button" className="s2l-close-menu" aria-label="Đóng điều hướng" onClick={closeMenu}><X size={19} /></button>
         </div>
         {!isPlatformAdmin && <div className="s2l-sidebar-caption">{roleSubtitle}</div>}
@@ -288,7 +290,8 @@ export function WebAppShell({
             const groupId = `s2l-nav-group-${groupIndex}`;
             const preference = adminGroups[group.label];
             const defaultOpen = group.label === "Quản lý" || group.label === "Nội dung" || activeAdminGroup === group.label;
-            const isCollapsed = isPlatformAdmin && !!group.label && !(preference?.locationKey === adminLocationKey ? preference.open : defaultOpen);
+            const isActiveGroup = activeAdminGroup === group.label;
+            const isCollapsed = isPlatformAdmin && !!group.label && !isActiveGroup && !(preference ?? defaultOpen);
             return (
             <section className={"s2l-nav-group" + (isPlatformAdmin ? " is-collapsible" : "") + (isCollapsed ? " is-collapsed" : "")} key={group.label} aria-label={group.label}>
               {isPlatformAdmin && group.label ? (
@@ -297,10 +300,10 @@ export function WebAppShell({
                   type="button"
                   aria-expanded={!isCollapsed}
                   aria-controls={groupId}
-                  onClick={() => setAdminGroups((current) => ({
-                    ...current,
-                    [group.label]: { locationKey: adminLocationKey, open: isCollapsed },
-                  }))}
+                  onClick={() => {
+                    if (isActiveGroup) return;
+                    setAdminGroups((current) => ({ ...current, [group.label]: isCollapsed }));
+                  }}
                 >
                   <span>{group.label}</span>
                   <ChevronDown size={15} strokeWidth={1.8} aria-hidden="true" />

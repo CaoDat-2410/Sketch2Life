@@ -7,16 +7,43 @@ import {
   type ReactNode,
   type FormEvent,
 } from "react";
-import { ArrowLeft, ArrowRight, RefreshCw, Inbox, CircleAlert } from "lucide-react";
+import { ArrowLeft, ArrowRight, CircleAlert, RefreshCw } from "lucide-react";
+import {
+  Button as CozyButton,
+  DataTable,
+  EmptyState,
+  PageHeader,
+  StatusBadge,
+  type StatusTone,
+} from "../../../shared/ui";
+import { CrayonStub } from "../../../shared/ui/illustrations";
 import { AdminSearchInput } from "./AdminSearchInput";
 import { label } from "./adminHooks";
 
+const successfulStates = new Set([
+  "active", "approved", "approve", "available", "completed", "enabled", "healthy", "paid", "public", "published", "received", "sent",
+]);
+const warningStates = new Set([
+  "awaiting_external_purge", "cancel_at_period_end", "changes_requested", "draft", "grace", "identity_check", "inactive", "paused", "pending", "pending_review", "pending_verification", "private", "recall", "recalled", "request_changes", "requested", "scope_review", "suspended", "top_up",
+]);
+const dangerStates = new Set([
+  "blocked", "cancelled", "canceled", "disabled", "error", "exception", "failed", "hidden", "overdue", "rejected", "restricted",
+]);
+const informationalStates = new Set([
+  "included", "processing", "running", "sending",
+]);
+
+function statusTone(value: string): StatusTone {
+  const normalized = value.toLowerCase();
+  if (successfulStates.has(normalized)) return "success";
+  if (warningStates.has(normalized)) return "warn";
+  if (dangerStates.has(normalized)) return "danger";
+  if (informationalStates.has(normalized)) return "info";
+  return "neutral";
+}
+
 export function Status({ value }: { value: string }) {
-  return (
-    <span className={"pa-status pa-status-" + value.toLowerCase()}>
-      {label(value)}
-    </span>
-  );
+  return <StatusBadge className="s2l-admin-status" tone={statusTone(value)} size="sm" dot>{label(value)}</StatusBadge>;
 }
 export function Heading({
   title,
@@ -27,15 +54,12 @@ export function Heading({
   description?: string;
   children?: ReactNode;
 }) {
-  return (
-    <header className={"pa-heading" + (description ? " has-description" : " is-compact")}>
-      <div>
-        <h1>{title}</h1>
-        {description && <p>{description}</p>}
-      </div>
-      <div className="pa-actions">{children}</div>
-    </header>
-  );
+  return <PageHeader
+    title={title}
+    description={description}
+    actions={children ? <div className="flex min-w-0 flex-wrap items-center gap-2">{children}</div> : undefined}
+    className="pa-admin-page-header mb-1"
+  />;
 }
 export function Button({
   children,
@@ -51,14 +75,15 @@ export function Button({
   type?: "button" | "submit";
 }) {
   return (
-    <button
+    <CozyButton
       type={type}
-      className={"pa-button" + (primary ? " is-primary" : "")}
+      variant={primary ? "primary" : "secondary"}
+      size="sm"
       disabled={disabled}
       onClick={onClick}
     >
       {children}
-    </button>
+    </CozyButton>
   );
 }
 export function Refresh({
@@ -84,8 +109,8 @@ export function Field({
 }) {
   const id = useId();
   return (
-    <div className="pa-field">
-      <label htmlFor={id}>{title}</label>
+    <div className="s2l-admin-field grid min-w-0 gap-1.5 font-ui text-sm font-semibold text-ink-soft">
+      <label className="leading-5" htmlFor={id}>{title}</label>
       {isValidElement(children)
         ? cloneElement(children as ReactElement<{ id?: string }>, { id })
         : children}
@@ -101,7 +126,7 @@ export function Form({
 }) {
   return (
     <form
-      className="pa-form"
+      className="pa-form grid min-w-0 gap-4"
       onSubmit={(e: FormEvent) => {
         e.preventDefault();
         onSubmit();
@@ -121,14 +146,15 @@ export function Feedback({
   return (
     <>
       {error && (
-        <p className="pa-alert" role="alert">
+      <div className="s2l-admin-feedback flex min-w-0 items-start gap-2 rounded-xl border border-coral-soft bg-coral-soft/70 px-4 py-3 font-ui text-sm leading-5 text-coral-ink" role="alert">
+          <CircleAlert aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
           {error}
-        </p>
+        </div>
       )}
       {notice && (
-        <p className="pa-notice" role="status">
+        <div className="s2l-admin-feedback rounded-xl border border-mint-soft bg-mint-soft/70 px-4 py-3 font-ui text-sm leading-5 text-mint-ink" role="status">
           {notice}
-        </p>
+        </div>
       )}
     </>
   );
@@ -146,21 +172,26 @@ export function LoadBoundary({
 }) {
   if (loading)
     return (
-      <div className="pa-data-loading" role="status" aria-label="Đang tải dữ liệu" aria-busy="true">
-        <div className="pa-loading-symbol" />
-        <div className="pa-loading-lines"><span /><span /><span /></div>
-        <span className="pa-loading-label">Đang tải dữ liệu…</span>
+      <div className="s2l-admin-loading flex min-w-0 items-center gap-4 rounded-cozy border border-rule bg-paper p-5 shadow-cozy" role="status" aria-label="Đang tải dữ liệu" aria-busy="true">
+        <div aria-hidden="true" className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary-soft text-primary-ink">
+          <RefreshCw className="size-5 animate-spin motion-reduce:animate-none" />
+        </div>
+        <div className="grid min-w-0 flex-1 gap-2">
+          <span className="font-ui text-sm font-semibold text-ink">Đang tải dữ liệu…</span>
+          <span aria-hidden="true" className="h-2.5 w-3/4 animate-pulse rounded-full bg-paper-muted motion-reduce:animate-none" />
+          <span aria-hidden="true" className="h-2.5 w-1/2 animate-pulse rounded-full bg-paper-muted motion-reduce:animate-none" />
+        </div>
       </div>
     );
   if (error)
     return (
-      <section className="pa-data-state is-error">
-        <span className="pa-data-state-icon" aria-hidden="true"><CircleAlert size={24} /></span>
-        <div className="pa-data-state-copy">
-          <h2>Không tải được dữ liệu</h2>
-          <p role="alert">{error}</p>
+      <section className="s2l-admin-load-error flex min-w-0 flex-wrap items-center gap-4 rounded-cozy border border-coral-soft bg-paper p-5 shadow-cozy" aria-labelledby="admin-load-error-title">
+        <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-coral-soft text-coral-ink" aria-hidden="true"><CircleAlert size={22} /></span>
+        <div className="min-w-0 flex-1">
+          <h2 id="admin-load-error-title" className="m-0 font-ui text-base font-bold text-ink">Không tải được dữ liệu</h2>
+          <p className="mb-0 mt-1 font-ui text-sm leading-5 text-ink-soft" role="alert">{error}</p>
         </div>
-        <div className="pa-data-state-actions"><Refresh onClick={reload} /></div>
+        <Refresh onClick={reload} />
       </section>
     );
   return <>{children}</>;
@@ -174,13 +205,7 @@ export function Empty({
   detail?: string;
   action?: ReactNode;
 }) {
-  return (
-    <div className="pa-data-state">
-      <span className="pa-data-state-icon" aria-hidden="true"><Inbox size={24} /></span>
-      <div className="pa-data-state-copy"><h2>{text}</h2>{detail && <p>{detail}</p>}</div>
-      {action && <div className="pa-data-state-actions">{action}</div>}
-    </div>
-  );
+  return <EmptyState title={text} description={detail || undefined} action={action} illustration={<CrayonStub />} />;
 }
 export function Table<T>({
   items,
@@ -188,39 +213,26 @@ export function Table<T>({
   rowKey,
   emptyText = "Chưa có dữ liệu",
   emptyDetail = "",
+  caption = "Danh sách dữ liệu",
+  className,
 }: {
   items: T[];
   columns: { title: string; render: (row: T) => ReactNode }[];
   rowKey: (row: T) => string;
   emptyText?: string;
   emptyDetail?: string;
+  caption?: string;
+  className?: string;
 }) {
-  return items.length ? (
-    <div className="pa-table-scroll">
-      <table className="pa-table">
-        <thead>
-          <tr>
-            {columns.map((c) => (
-              <th key={c.title} scope="col">
-                {c.title}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((row) => (
-            <tr key={rowKey(row)}>
-              {columns.map((c) => (
-                <td key={c.title}>{c.render(row)}</td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  ) : (
-    <Empty text={emptyText} detail={emptyDetail} />
-  );
+  return <DataTable
+    className={className}
+    caption={caption}
+    rows={items}
+    getRowKey={rowKey}
+    columns={columns.map((column) => ({ key: column.title, header: column.title, render: column.render }))}
+    density="dense"
+    emptyState={<Empty text={emptyText} detail={emptyDetail} />}
+  />;
 }
 export function CursorPager({
   page,
@@ -243,12 +255,12 @@ export function CursorPager({
   const start = page * 25 + 1;
   const end = page * 25 + count;
   return (
-    <footer className="pa-pager">
-      <span>
+    <footer className="s2l-admin-pager flex min-w-0 flex-wrap items-center justify-between gap-3 border-t border-rule px-4 py-3 font-ui text-sm text-ink-soft">
+      <span className="tabular-nums">
         {count ? `${start}–${end}` : "0"}
         {total === undefined ? " kết quả" : ` / ${total} kết quả`}
       </span>
-      <div>
+      <div className="flex items-center gap-2">
         <Button
           disabled={disabled || page === 0}
           onClick={onPrevious}
@@ -281,7 +293,7 @@ export function SearchForm({
   const [value, setValue] = useState(initialValue);
   return (
     <form
-      className="pa-search-form"
+      className="pa-search-form flex min-w-0 flex-wrap items-end gap-3"
       onSubmit={(e) => {
         e.preventDefault();
         onSearch(value.trim());

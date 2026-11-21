@@ -25,7 +25,7 @@ html[data-portal="platform"] .platform-accounts .accounts-result-pill {
 }
 html[data-portal="platform"] .platform-accounts .accounts-table th {
   padding-block: 16px; background: var(--pa-sidebar); font-size: 13px; font-weight: 700;
-  color: var(--pa-tone-414560); border-bottom-color: var(--pa-border); letter-spacing: 0;
+  color: var(--s2l-ui-primary-800); border-bottom-color: var(--pa-border); letter-spacing: 0;
 }
 html[data-portal="platform"] .platform-accounts .accounts-table td {
   padding-block: 20px; border-bottom-color: var(--pa-border); color: var(--pa-ink-strong);
@@ -40,7 +40,7 @@ html[data-portal="platform"] .platform-accounts [data-account-role="parent"] .ac
 html[data-portal="platform"] .platform-accounts [data-account-role="school_manager"] .accounts-avatar { background: var(--pa-danger-soft); color: var(--pa-danger); }
 html[data-portal="platform"] .platform-accounts [data-account-role="platform_admin"] .accounts-avatar { background: var(--pa-primary); color: var(--pa-surface); }
 html[data-portal="platform"] .platform-accounts .accounts-role-editor select {
-  border: 1px solid var(--pa-tone-b7bfd9); border-radius: 8px; min-height: 44px;
+  border: 1px solid var(--s2l-ui-primary-500); border-radius: 8px; min-height: 44px;
   background: var(--pa-surface); color: var(--pa-ink-strong); font-size: 14px; font-weight: 550;
 }
 html[data-portal="platform"] .platform-accounts tr[data-role-edited="true"] { background: var(--pa-warning-soft); }
@@ -54,16 +54,28 @@ html[data-portal="platform"] .platform-accounts .accounts-status.is-disabled { b
 html[data-portal="platform"] .platform-accounts .accounts-row-actions { gap: 8px; }
 html[data-portal="platform"] .platform-accounts .accounts-row-actions .accounts-button { min-height: 42px; font-size: 13px; font-weight: 650; border-radius: 8px; }
 html[data-portal="platform"] .platform-accounts .accounts-row-actions .accounts-button-primary {
-  background: var(--pa-primary); border-color: var(--pa-primary); color: var(--pa-surface);
+  background: var(--pa-primary); border-color: var(--pa-primary); color: var(--s2l-ui-on-primary);
 }
 html[data-portal="platform"] .platform-accounts .accounts-row-actions .accounts-button-primary:hover:not(:disabled) {
-  background: var(--pa-primary-hover); border-color: var(--pa-primary-hover);
+  background: var(--pa-primary-action-hover); border-color: var(--pa-primary-action-hover);
 }
 html[data-portal="platform"] .platform-accounts .accounts-button-danger {
-  background: var(--pa-danger-soft); color: var(--pa-danger); border: 1px solid var(--pa-tone-e5d4d0);
+  background: var(--pa-danger-soft); color: var(--pa-danger); border: 1px solid var(--s2l-ui-coral-200);
 }
 html[data-portal="platform"] .platform-accounts .accounts-button-danger:hover:not(:disabled) { border-color: var(--pa-danger); background: var(--pa-danger-soft); }
-html[data-portal="platform"] .platform-accounts .accounts-button:disabled { opacity: .55; cursor: not-allowed; }
+html[data-portal="platform"] .platform-accounts .accounts-button:disabled { opacity: 1; cursor: not-allowed; }
+html[data-portal="platform"] .platform-accounts .accounts-button-primary:disabled {
+  background: var(--s2l-ui-primary-600); border-color: var(--s2l-ui-primary-600); color: var(--s2l-ui-on-primary);
+}
+html[data-portal="platform"] .platform-accounts .accounts-button-secondary:disabled {
+  background: var(--s2l-ui-primary-soft); border-color: var(--s2l-ui-rule); color: var(--s2l-ui-primary-ink);
+}
+html[data-portal="platform"] .platform-accounts .accounts-button-outline:disabled {
+  background: var(--s2l-ui-neutral-soft); border-color: var(--s2l-ui-neutral-soft); color: var(--s2l-ui-neutral-ink);
+}
+html[data-portal="platform"] .platform-accounts .accounts-button-danger:disabled {
+  background: var(--s2l-ui-danger-soft); border-color: var(--s2l-ui-danger-soft); color: var(--s2l-ui-danger-ink);
+}
 html[data-portal="platform"] .platform-accounts .accounts-pagination { padding: 18px 24px; background: var(--pa-canvas); border-color: var(--pa-border); }
 html[data-portal="platform"] .platform-accounts .accounts-pagination :is(p,span) { color: var(--pa-muted-strong); font-size: 13px; }
 html[data-portal="platform"] .platform-accounts .accounts-create-form { border-top: 3px solid var(--pa-primary); }

@@ -1,0 +1,701 @@
+/* Round 2 cozy refinements. Every selector stays inside the Platform Admin portal. */
+html[data-portal="platform"] body,
+html[data-portal="platform"] .s2l-app-shell,
+html[data-portal="platform"] .s2l-workspace {
+  background: var(--pa-canvas);
+  color: var(--pa-ink);
+}
+
+html[data-portal="platform"] .s2l-sidebar {
+  background: var(--pa-sidebar);
+  border-right-color: var(--pa-border);
+}
+html[data-portal="platform"] .s2l-brand-lockup {
+  border-bottom: 1px solid var(--pa-border);
+  padding-bottom: 15px;
+}
+html[data-portal="platform"] .pa-brand-symbol {
+  border: 1px solid var(--pa-border);
+  background: var(--pa-primary-soft);
+  color: var(--pa-primary-hover);
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--pa-border) 70%, transparent);
+}
+html[data-portal="platform"] .pa-brand-pencil {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  place-items: center;
+  margin-left: -8px;
+  align-self: flex-start;
+  border-radius: 8px;
+  background: var(--s2l-ui-butter-200);
+  color: var(--s2l-ui-butter-700);
+  transform: rotate(5deg);
+}
+html[data-portal="platform"] .pa-brand-pencil svg { width: 15px; height: 15px; }
+html[data-portal="platform"] .s2l-password-dialog { padding: 26px; }
+html[data-portal="platform"] .s2l-nav-group-toggle { color: var(--pa-muted); }
+html[data-portal="platform"] .s2l-nav-group h2 { color: var(--pa-muted); }
+html[data-portal="platform"] .s2l-nav-link {
+  border-radius: 16px;
+  color: var(--pa-ink-strong);
+}
+html[data-portal="platform"] .s2l-nav-link > svg { color: var(--pa-muted); }
+html[data-portal="platform"] .s2l-nav-link:hover {
+  border-color: var(--pa-border);
+  background: color-mix(in srgb, var(--pa-surface) 65%, var(--pa-sidebar));
+  color: var(--pa-ink);
+}
+html[data-portal="platform"] .s2l-nav-link.is-active {
+  border-color: var(--s2l-ui-primary-400);
+  border-radius: 16px;
+  background: var(--pa-primary-soft);
+  box-shadow: inset 3px 0 0 var(--pa-primary);
+  color: var(--pa-primary-hover);
+  font-weight: 700;
+}
+html[data-portal="platform"] .s2l-nav-link.is-active > svg { color: var(--pa-primary-hover); }
+
+html[data-portal="platform"] .s2l-topbar {
+  border-bottom-color: var(--pa-border);
+  background: color-mix(in srgb, var(--pa-canvas) 94%, var(--pa-surface));
+}
+html[data-portal="platform"] .pa-topbar-breadcrumb a { color: var(--pa-muted); }
+html[data-portal="platform"] .pa-topbar-breadcrumb > span { color: var(--pa-ink); }
+html[data-portal="platform"] .pa-topbar-account > summary {
+  border-color: var(--pa-border);
+  border-radius: var(--pa-radius-control);
+  background: var(--pa-surface);
+  color: var(--pa-ink);
+}
+html[data-portal="platform"] .pa-topbar-account > summary:hover,
+html[data-portal="platform"] .pa-topbar-account[open] > summary { background: var(--pa-sidebar); }
+html[data-portal="platform"] .pa-topbar-account .s2l-account-avatar {
+  background: var(--pa-primary-soft);
+  color: var(--pa-primary-hover);
+}
+
+html[data-portal="platform"] .s2l-main { color: var(--pa-ink); }
+html[data-portal="platform"][data-theme="dark"] a:not([role="button"]):not([class*="button"]):not([class*="btn"]) {
+  color: var(--s2l-ui-primary-ink);
+}
+html[data-portal="platform"] .pa-select-trigger { border-radius: var(--pa-radius-control); }
+html[data-portal="platform"] .pa-select-menu { border-color: var(--pa-border); border-radius: var(--pa-radius-control); background: var(--pa-surface); }
+html[data-portal="platform"] .pa-select-option.is-highlighted { background: var(--pa-primary-soft); color: var(--pa-primary-hover); }
+html[data-portal="platform"] .s2l-admin-table th {
+  background: var(--pa-sidebar);
+  color: var(--pa-ink-strong);
+}
+html[data-portal="platform"] .s2l-admin-table td { border-color: var(--pa-border); color: var(--pa-ink); }
+html[data-portal="platform"] .s2l-admin-table tbody tr:hover { background: color-mix(in srgb, var(--pa-sidebar) 68%, transparent); }
+html[data-portal="platform"] .s2l-empty-state { min-height: 72px; gap: 12px; padding: 14px 16px; }
+html[data-portal="platform"] .s2l-empty-state > span { width: 40px; height: 40px; border-radius: 11px; }
+html[data-portal="platform"] .s2l-admin-load-error { border-color: var(--pa-danger-soft); }
+html[data-portal="platform"] .s2l-admin-pager { border-color: var(--pa-border); }
+html[data-portal="platform"] .pa-page,
+html[data-portal="platform"] .platform-accounts {
+  color: var(--pa-ink);
+}
+html[data-portal="platform"] .pa-page :is(h1, h2, h3, h4),
+html[data-portal="platform"] .platform-accounts :is(h1, h2, h3, h4) { color: var(--pa-ink); }
+html[data-portal="platform"] .pa-page :is(p, small, .pa-muted),
+html[data-portal="platform"] .platform-accounts :is(p, small) { color: var(--pa-muted); }
+html[data-portal="platform"] .pa-panel,
+html[data-portal="platform"] .accounts-panel,
+html[data-portal="platform"] .pa-card,
+html[data-portal="platform"] .pa-metric-card,
+html[data-portal="platform"] .pa-org-stat {
+  border-color: var(--pa-border);
+  border-radius: var(--pa-radius-panel);
+  background-color: var(--pa-surface);
+  box-shadow: 0 3px 12px color-mix(in srgb, var(--s2l-ui-neutral-800) 6%, transparent);
+}
+html[data-portal="platform"] .pa-page :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea),
+html[data-portal="platform"] .platform-accounts :is(input, select, textarea) {
+  border-color: var(--pa-border);
+  border-radius: var(--pa-radius-control);
+  background-color: var(--pa-surface);
+  color: var(--pa-ink);
+}
+html[data-portal="platform"] .pa-page :is(input, select, textarea)::placeholder,
+html[data-portal="platform"] .platform-accounts :is(input, textarea)::placeholder { color: var(--pa-muted); opacity: 1; }
+html[data-portal="platform"] :is(.pa-page, .platform-accounts) :is(button, input, select, textarea, a, summary):focus-visible {
+  outline: 3px solid var(--pa-primary);
+  outline-offset: 2px;
+}
+html[data-portal="platform"] .pa-page .pa-table th,
+html[data-portal="platform"] .platform-accounts .accounts-table th { background: var(--pa-sidebar); color: var(--pa-ink-strong); }
+html[data-portal="platform"] .pa-page .pa-table td,
+html[data-portal="platform"] .platform-accounts .accounts-table td { border-color: var(--pa-border); color: var(--pa-ink); }
+html[data-portal="platform"] .pa-page .pa-status,
+html[data-portal="platform"] .platform-accounts .accounts-status { font-weight: 700; }
+html[data-portal="platform"] .pa-status-active,
+html[data-portal="platform"] .pa-status-approved,
+html[data-portal="platform"] .pa-status-available,
+html[data-portal="platform"] .pa-status-completed,
+html[data-portal="platform"] .pa-status-healthy,
+html[data-portal="platform"] .pa-status-paid,
+html[data-portal="platform"] .pa-status-published,
+html[data-portal="platform"] .pa-status-sent { background: var(--s2l-ui-mint-100); color: var(--s2l-ui-mint-600); }
+html[data-portal="platform"] .pa-status-pending,
+html[data-portal="platform"] .pa-status-pending_review,
+html[data-portal="platform"] .pa-status-draft,
+html[data-portal="platform"] .pa-status-paused,
+html[data-portal="platform"] .pa-status-grace { background: var(--s2l-ui-butter-200); color: var(--s2l-ui-butter-700); }
+html[data-portal="platform"] .pa-status-failed,
+html[data-portal="platform"] .pa-status-error,
+html[data-portal="platform"] .pa-status-disabled,
+html[data-portal="platform"] .pa-status-rejected { background: var(--s2l-ui-coral-100); color: var(--s2l-ui-coral-600); }
+html[data-portal="platform"] .s2l-app-shell .s2l-status-badge[data-tone="info"] {
+  border-color: var(--s2l-ui-primary-soft);
+  background: var(--s2l-ui-primary-soft);
+  color: var(--s2l-ui-primary-hover);
+}
+html[data-portal="platform"] .s2l-app-shell .s2l-status-badge[data-tone="info"] > [aria-hidden="true"] {
+  background: var(--s2l-ui-primary);
+}
+html[data-portal="platform"][data-theme="dark"] .s2l-app-shell .s2l-status-badge[data-tone="info"] {
+  color: var(--s2l-ui-primary-ink);
+}
+html[data-portal="platform"][data-theme="dark"] .s2l-app-shell .s2l-status-badge[data-tone="info"] > [aria-hidden="true"] {
+  background: var(--s2l-ui-chart-violet);
+}
+
+@media (max-width: 820px) {
+  html[data-portal="platform"] .s2l-sidebar { background: var(--pa-sidebar); }
+  html[data-portal="platform"] .s2l-topbar { background: var(--pa-canvas); }
+}
+
+@media (max-width: 620px) {
+  html[data-portal="platform"] .s2l-main {
+    min-width: 0;
+    max-width: 100vw;
+    overflow-x: clip;
+  }
+  html[data-portal="platform"] .s2l-ops-page {
+    min-width: 0;
+    max-width: 100vw;
+    overflow-x: clip;
+  }
+  html[data-portal="platform"] .s2l-app-shell .s2l-main .pa-two-column {
+    grid-template-columns: minmax(0, 1fr);
+    min-width: 0;
+  }
+  html[data-portal="platform"] .s2l-app-shell .s2l-main .pa-two-column > * {
+    box-sizing: border-box;
+    min-width: 0;
+    max-width: 100%;
+  }
+  html[data-portal="platform"] .s2l-app-shell .s2l-main .pa-catalog-list-toolbar {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  html[data-portal="platform"] .s2l-app-shell .s2l-main .pa-catalog-list-toolbar .pa-field { width: 100%; }
+  html[data-portal="platform"] .s2l-app-shell .s2l-main .pa-catalog-list-panel,
+  html[data-portal="platform"] .s2l-app-shell .s2l-main .pa-catalog-detail-column,
+  html[data-portal="platform"] .s2l-app-shell .s2l-main .pa-catalog-detail-panel {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+  html[data-portal="platform"] .s2l-app-shell .s2l-main .pa-catalog-detail-header { flex-wrap: wrap; padding: 16px; }
+  html[data-portal="platform"] .s2l-app-shell .s2l-main .pa-catalog-detail-header > .pa-button { margin-left: auto; }
+  html[data-portal="platform"] .s2l-app-shell .s2l-main .pa-catalog-review-checks,
+  html[data-portal="platform"] .s2l-app-shell .s2l-main .pa-catalog-page .pa-content-activity { padding-inline: 16px; }
+  html[data-portal="platform"] .s2l-app-shell .s2l-main .pa-catalog-command-area { margin-inline: 16px; }
+  html[data-portal="platform"] .s2l-app-shell .s2l-main .pa-audit-policy-footnote {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  html[data-portal="platform"] .s2l-password-dialog { padding: 22px; }
+}
+
+@media (max-width: 900px) {
+  html[data-portal="platform"] .s2l-app-shell .s2l-main .pa-catalog-layout:not(.is-browsing) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  html[data-portal="platform"] .s2l-app-shell .s2l-main .pa-catalog-layout:not(.is-browsing) .pa-catalog-detail-column {
+    display: block;
+    grid-column: 1;
+  }
+}
+
+@media (max-width: 540px) {
+  html[data-portal="platform"] .platform-accounts {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+  html[data-portal="platform"] .platform-accounts .accounts-heading {
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  html[data-portal="platform"] .platform-accounts .accounts-heading-side {
+    display: grid;
+    width: 100%;
+    min-width: 0;
+  }
+  html[data-portal="platform"] .platform-accounts .accounts-heading-side .accounts-button {
+    width: 100%;
+    min-width: 0;
+  }
+  html[data-portal="platform"] .platform-accounts .accounts-filters {
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr);
+    padding: 12px;
+  }
+  html[data-portal="platform"] .platform-accounts .accounts-select-field,
+  html[data-portal="platform"] .platform-accounts .accounts-filters > .accounts-button {
+    grid-column: 1;
+    width: 100%;
+    min-width: 0;
+  }
+  html[data-portal="platform"] .platform-accounts .accounts-list-panel,
+  html[data-portal="platform"] .platform-accounts .accounts-table-wrap,
+  html[data-portal="platform"] .platform-accounts .accounts-table,
+  html[data-portal="platform"] .platform-accounts .accounts-table tbody,
+  html[data-portal="platform"] .platform-accounts .accounts-table tbody tr {
+    min-width: 0;
+    max-width: 100%;
+  }
+  html[data-portal="platform"] .platform-accounts .accounts-table td {
+    width: 100%;
+    min-width: 0;
+  }
+  html[data-portal="platform"] .platform-accounts .accounts-row-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+html[data-portal="platform"][data-theme="dark"] .s2l-sidebar,
+html[data-portal="platform"][data-theme="dark"] .s2l-topbar,
+html[data-portal="platform"][data-theme="dark"] .pa-panel,
+html[data-portal="platform"][data-theme="dark"] .accounts-panel { background: var(--pa-surface); }
+html[data-portal="platform"][data-theme="dark"] .pa-brand-pencil { background: var(--s2l-ui-neutral-800); color: var(--s2l-ui-butter-300); }
+html[data-portal="platform"][data-theme="dark"] .s2l-nav-link.is-active { border-color: var(--s2l-ui-primary-600); }
+html[data-portal="platform"][data-theme="dark"] .pa-status-active,
+html[data-portal="platform"][data-theme="dark"] .pa-status-approved,
+html[data-portal="platform"][data-theme="dark"] .pa-status-available,
+html[data-portal="platform"][data-theme="dark"] .pa-status-completed,
+html[data-portal="platform"][data-theme="dark"] .pa-status-healthy,
+html[data-portal="platform"][data-theme="dark"] .pa-status-paid,
+html[data-portal="platform"][data-theme="dark"] .pa-status-published,
+html[data-portal="platform"][data-theme="dark"] .pa-status-sent { background: var(--s2l-ui-mint-800); color: var(--s2l-ui-mint-200); }
+html[data-portal="platform"][data-theme="dark"] .pa-status-pending,
+html[data-portal="platform"][data-theme="dark"] .pa-status-pending_review,
+html[data-portal="platform"][data-theme="dark"] .pa-status-draft,
+html[data-portal="platform"][data-theme="dark"] .pa-status-paused,
+html[data-portal="platform"][data-theme="dark"] .pa-status-grace { background: var(--s2l-ui-neutral-800); color: var(--s2l-ui-butter-300); }
+html[data-portal="platform"][data-theme="dark"] .pa-status-failed,
+html[data-portal="platform"][data-theme="dark"] .pa-status-error,
+html[data-portal="platform"][data-theme="dark"] .pa-status-disabled,
+html[data-portal="platform"][data-theme="dark"] .pa-status-rejected { background: var(--s2l-ui-coral-700); color: var(--s2l-ui-coral-300); }
+
+/* Dark-mode page surfaces use semantic Platform tokens instead of the light accent ramps. */
+html[data-portal="platform"][data-theme="dark"] .pa-organizations :is(.pa-org-search-panel,.pa-org-stat) {
+  background: var(--pa-surface);
+  border-color: var(--pa-border);
+}
+html[data-portal="platform"][data-theme="dark"] .pa-organizations .pa-org-state-filter .pa-select-trigger {
+  background: var(--pa-canvas);
+  border-color: var(--pa-border);
+  color: var(--pa-ink);
+}
+html[data-portal="platform"][data-theme="dark"] .pa-organizations .pa-org-stat-icon {
+  background: var(--pa-primary-soft);
+  color: var(--s2l-ui-primary-ink);
+}
+html[data-portal="platform"][data-theme="dark"] .pa-organizations .pa-org-stat-label { color: var(--s2l-ui-sky-ink); }
+html[data-portal="platform"][data-theme="dark"] .pa-organizations .pa-org-stat.is-total .pa-org-stat-label { color: var(--s2l-ui-sky-ink); }
+html[data-portal="platform"][data-theme="dark"] .pa-organizations .pa-org-stat strong,
+html[data-portal="platform"][data-theme="dark"] .pa-organizations .pa-org-stat.is-total strong { color: var(--pa-ink); }
+html[data-portal="platform"][data-theme="dark"] .pa-organizations .pa-org-stat.is-active .pa-org-stat-icon {
+  background: var(--pa-success-soft);
+  color: var(--pa-success);
+}
+html[data-portal="platform"][data-theme="dark"] .pa-organizations .pa-org-stat.is-paused .pa-org-stat-icon {
+  background: var(--pa-warning-soft);
+  color: var(--pa-warning);
+}
+html[data-portal="platform"][data-theme="dark"] .pa-organizations .pa-org-stat.is-disabled .pa-org-stat-icon {
+  background: var(--s2l-ui-sky-soft);
+  color: var(--s2l-ui-sky-ink);
+}
+html[data-portal="platform"][data-theme="dark"] .pa-organizations .pa-table th {
+  background: var(--pa-sidebar);
+  color: var(--pa-ink);
+}
+html[data-portal="platform"][data-theme="dark"] .pa-organizations .pa-org-edit-button {
+  border-color: var(--pa-border);
+  background: var(--pa-primary-soft);
+  color: var(--s2l-ui-primary-ink);
+}
+html[data-portal="platform"][data-theme="dark"] .pa-organizations .pa-org-edit-button:hover {
+  background: var(--pa-surface);
+  border-color: var(--s2l-ui-primary-500);
+}
+
+html[data-portal="platform"][data-theme="dark"] .pa-lessons .pa-content-item { background: var(--pa-surface); }
+html[data-portal="platform"][data-theme="dark"] .pa-lessons .pa-content-item:hover { background: var(--pa-sidebar); }
+
+html[data-portal="platform"][data-theme="dark"] .pa-catalog-page :is(.pa-catalog-list-panel,.pa-catalog-detail-panel) {
+  background: var(--pa-surface);
+}
+html[data-portal="platform"][data-theme="dark"] .pa-catalog-page :is(.pa-catalog-list-toolbar,.pa-catalog-detail-header) {
+  background: var(--pa-surface);
+}
+html[data-portal="platform"][data-theme="dark"] .pa-catalog-list-heading > span,
+html[data-portal="platform"][data-theme="dark"] .pa-catalog-detail-meta > span:first-child {
+  border-color: var(--pa-border);
+  background: var(--pa-primary-soft);
+  color: var(--s2l-ui-primary-ink);
+}
+html[data-portal="platform"][data-theme="dark"] .pa-catalog-list-panel .pa-content-item {
+  border-bottom-color: var(--pa-border);
+  background: var(--pa-canvas);
+  color: var(--pa-ink);
+}
+html[data-portal="platform"][data-theme="dark"] .pa-catalog-list-panel .pa-content-item:hover { background: var(--pa-sidebar); }
+html[data-portal="platform"][data-theme="dark"] .pa-catalog-list-panel .pa-content-item.is-selected {
+  background: var(--pa-primary-soft);
+}
+html[data-portal="platform"][data-theme="dark"] .pa-catalog-review-checks { background: var(--pa-canvas); }
+html[data-portal="platform"][data-theme="dark"] .pa-catalog-review-checks > div {
+  border-color: var(--pa-border);
+  background: var(--pa-surface);
+}
+html[data-portal="platform"][data-theme="dark"] .pa-catalog-review-state.is-approved {
+  background: var(--pa-success-soft);
+  color: var(--pa-success);
+}
+html[data-portal="platform"][data-theme="dark"] .pa-catalog-review-state.is-pending {
+  background: var(--pa-warning-soft);
+  color: var(--pa-warning);
+}
+html[data-portal="platform"][data-theme="dark"] .pa-catalog-review-state.is-decided {
+  background: var(--pa-danger-soft);
+  color: var(--pa-danger);
+}
+html[data-portal="platform"][data-theme="dark"] .pa-catalog-page .pa-content-activity p { color: var(--pa-ink); }
+html[data-portal="platform"][data-theme="dark"] .pa-catalog-page .pa-activity-objective { background: var(--pa-primary-soft); }
+html[data-portal="platform"][data-theme="dark"] .pa-catalog-page .pa-safety { background: var(--pa-warning-soft); }
+html[data-portal="platform"][data-theme="dark"] .pa-catalog-page .pa-safety :is(h3,p) { color: var(--pa-warning); }
+html[data-portal="platform"][data-theme="dark"] .pa-catalog-command-area textarea,
+html[data-portal="platform"][data-theme="dark"] .pa-catalog-empty-panel { background: var(--pa-canvas); color: var(--pa-ink); }
+
+html[data-portal="platform"][data-theme="dark"] .pa-audit-log-toolbar,
+html[data-portal="platform"][data-theme="dark"] .pa-audit-retention-heading { background: var(--pa-surface); }
+html[data-portal="platform"][data-theme="dark"] .pa-audit-log .pa-field select,
+html[data-portal="platform"][data-theme="dark"] .pa-audit-policy-fields input {
+  border-color: var(--pa-border);
+  background: var(--pa-canvas);
+  color: var(--pa-ink);
+}
+html[data-portal="platform"][data-theme="dark"] .pa-audit-log-icon,
+html[data-portal="platform"][data-theme="dark"] .pa-audit-retention-icon {
+  border-color: var(--pa-border);
+  background: var(--pa-primary-soft);
+  color: var(--s2l-ui-primary-ink);
+}
+html[data-portal="platform"][data-theme="dark"] .pa-audit-result-count {
+  border-color: var(--pa-border);
+  background: var(--pa-primary-soft);
+  color: var(--pa-ink);
+}
+html[data-portal="platform"][data-theme="dark"] .pa-audit-result-count strong { color: var(--s2l-ui-primary-ink); }
+html[data-portal="platform"][data-theme="dark"] .pa-audit-log .pa-table th {
+  border-bottom-color: var(--pa-border);
+  background: var(--pa-sidebar);
+  color: var(--pa-ink);
+}
+html[data-portal="platform"][data-theme="dark"] .pa-audit-log .pa-table td { border-bottom-color: var(--pa-border); }
+html[data-portal="platform"][data-theme="dark"] .pa-audit-log .pa-table tbody tr:hover { background: var(--pa-primary-soft); }
+html[data-portal="platform"][data-theme="dark"] .pa-audit-event-mark { box-shadow: 0 0 0 4px var(--pa-primary-soft); }
+html[data-portal="platform"][data-theme="dark"] .pa-audit-scope-tag {
+  border-color: var(--pa-border);
+  background: var(--s2l-ui-sky-soft);
+  color: var(--s2l-ui-sky-ink);
+}
+html[data-portal="platform"][data-theme="dark"] .pa-audit-scope-tag.is-platform {
+  background: var(--pa-primary-soft);
+  color: var(--s2l-ui-primary-ink);
+}
+html[data-portal="platform"][data-theme="dark"] .pa-audit-actor code,
+html[data-portal="platform"][data-theme="dark"] .pa-audit-time { color: var(--s2l-ui-primary-ink); }
+html[data-portal="platform"][data-theme="dark"] .pa-audit-policy-state {
+  border-color: var(--pa-border);
+  background: var(--s2l-ui-sky-soft);
+  color: var(--s2l-ui-sky-ink);
+}
+html[data-portal="platform"][data-theme="dark"] .pa-audit-policy-state.is-limited {
+  border-color: var(--pa-border);
+  background: var(--pa-warning-soft);
+  color: var(--pa-warning);
+}
+html[data-portal="platform"][data-theme="dark"] .pa-audit-revision,
+html[data-portal="platform"][data-theme="dark"] .pa-audit-retention-facts { background: var(--pa-surface); }
+html[data-portal="platform"][data-theme="dark"] .pa-audit-policy-fields > .pa-button:disabled {
+  border-color: var(--pa-border);
+  background: var(--pa-primary-soft);
+  color: var(--s2l-ui-primary-ink);
+}
+
+/* Round 4: deeper mobile-violet accents and owner review fixes. */
+html[data-portal="platform"] .s2l-sidebar {
+  background: var(--s2l-ui-sidebar);
+  border-right: 1px solid var(--s2l-ui-sidebar-edge);
+}
+html[data-portal="platform"] .pa-brand-logo-chip {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--s2l-ui-logo-chip-border);
+  border-radius: 12px;
+  background: var(--s2l-ui-logo-chip);
+  box-shadow: 0 2px 7px color-mix(in srgb, var(--s2l-ui-shadow-tint) 9%, transparent);
+}
+html[data-portal="platform"] .pa-brand-logo-chip img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+html[data-portal="platform"] .pa-brand-wordmark strong {
+  color: var(--s2l-ui-ink);
+  font-weight: 750;
+  letter-spacing: -0.025em;
+}
+html[data-portal="platform"] .s2l-nav-link.is-active {
+  border-color: var(--s2l-ui-primary-400);
+  background: var(--s2l-ui-active-nav);
+  box-shadow: inset 4px 0 0 var(--s2l-ui-primary);
+  color: var(--s2l-ui-primary-hover);
+  font-weight: 750;
+}
+html[data-portal="platform"] .s2l-nav-link.is-active > svg { color: var(--s2l-ui-primary-hover); }
+html[data-portal="platform"] .s2l-nav-group-toggle,
+html[data-portal="platform"] .s2l-nav-group h2 { color: var(--pa-muted); }
+
+html[data-portal="platform"] .pa-admin-page-header,
+html[data-portal="platform"] .s2l-ops-page > header {
+  min-width: 0;
+  padding: 13px 16px;
+  border-radius: 16px;
+  background: linear-gradient(112deg, var(--s2l-ui-header-wash-start), var(--s2l-ui-header-wash-end));
+}
+html[data-portal="platform"] .pa-admin-page-header h1,
+html[data-portal="platform"] .s2l-ops-page > header h1,
+html[data-portal="platform"] .platform-accounts .accounts-heading h1 {
+  color: var(--s2l-ui-ink);
+  font-weight: 750;
+}
+html[data-portal="platform"] .platform-accounts .accounts-heading {
+  min-width: 0;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background-image: linear-gradient(112deg, var(--s2l-ui-header-wash-start), var(--s2l-ui-header-wash-end));
+}
+html[data-portal="platform"] .pa-page .text-2xl,
+html[data-portal="platform"] .s2l-ops-page .text-2xl {
+  color: var(--s2l-ui-ink);
+  font-size: 1.875rem;
+  font-weight: 750;
+  line-height: 1.15;
+}
+html[data-portal="platform"] .pa-stat-icon { color: var(--s2l-ui-ink); }
+html[data-portal="platform"] .pa-stat-value {
+  color: var(--s2l-ui-ink);
+  font-size: 1.875rem;
+  font-weight: 750;
+  line-height: 1.15;
+}
+html[data-portal="platform"] .pa-dashboard-v2 .pa-metrics > a > strong,
+html[data-portal="platform"] .pa-org-stat > strong {
+  color: var(--s2l-ui-ink);
+  font-size: 2rem;
+  font-weight: 750;
+}
+
+html[data-portal="platform"] .s2l-app-shell :is(button.bg-primary, .pa-button.is-primary, .accounts-button-primary, .s2l-password-form button[type="submit"]) {
+  border-color: transparent;
+  border-radius: 15px;
+  background: var(--s2l-ui-primary-gradient);
+  color: var(--s2l-ui-on-primary);
+  box-shadow: 0 5px 13px color-mix(in srgb, var(--s2l-ui-primary-800) 22%, transparent);
+  font-weight: 700;
+  transition: background 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+html[data-portal="platform"] .s2l-app-shell :is(button.bg-primary, .pa-button.is-primary, .accounts-button-primary, .s2l-password-form button[type="submit"]):hover:not(:disabled) {
+  border-color: transparent;
+  background: var(--s2l-ui-primary-hover-gradient);
+  color: var(--s2l-ui-on-primary);
+  box-shadow: 0 6px 15px color-mix(in srgb, var(--s2l-ui-primary-800) 25%, transparent);
+}
+html[data-portal="platform"] .s2l-app-shell :is(button.bg-primary, .pa-button.is-primary, .accounts-button-primary, .s2l-password-form button[type="submit"]):active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--s2l-ui-primary-800) 20%, transparent);
+}
+html[data-portal="platform"] .s2l-app-shell :is(button.bg-primary, .pa-button.is-primary, .accounts-button-primary, .s2l-password-form button[type="submit"]):is(:disabled, [aria-busy="true"]) {
+  border-color: var(--s2l-ui-primary-disabled);
+  background: var(--s2l-ui-primary-disabled);
+  color: var(--s2l-ui-primary-disabled-ink);
+  opacity: 1;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+html[data-portal="platform"] .s2l-app-shell :is(button.bg-danger-base, .pa-button.is-danger, .accounts-button-danger) {
+  border-color: var(--s2l-ui-danger-base);
+  border-radius: 15px;
+  background: var(--s2l-ui-danger-base);
+  color: var(--s2l-ui-on-primary);
+  font-weight: 700;
+}
+html[data-portal="platform"] .s2l-app-shell :is(button.bg-danger-base, .pa-button.is-danger, .accounts-button-danger):hover:not(:disabled) {
+  border-color: var(--s2l-ui-coral-800);
+  background: var(--s2l-ui-coral-800);
+  color: var(--s2l-ui-on-primary);
+}
+html[data-portal="platform"] .s2l-app-shell :is(button.bg-paper, button.bg-transparent, .pa-button:not(.is-primary):not(.is-danger), .accounts-button-outline):disabled {
+  border-color: var(--pa-border);
+  background: var(--s2l-ui-primary-disabled);
+  color: var(--s2l-ui-primary-disabled-ink);
+  opacity: 1;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+html[data-portal="platform"] .s2l-app-shell :is(button, input, select, textarea, a, summary):focus-visible {
+  outline: 2px solid var(--s2l-ui-focus);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--pa-canvas);
+}
+html[data-portal="platform"] .s2l-app-shell :is(.pa-page, .platform-accounts) :is(input, select, textarea):is(:focus, :focus-visible) {
+  border-color: var(--s2l-ui-input-focus);
+}
+html[data-portal="platform"] .pa-panel > .pa-section-heading,
+html[data-portal="platform"] .pa-page .pa-table thead th,
+html[data-portal="platform"] .platform-accounts .accounts-list-heading,
+html[data-portal="platform"] .platform-accounts .accounts-table thead th {
+  background: var(--s2l-ui-section-header);
+  color: var(--s2l-ui-primary-hover);
+}
+html[data-portal="platform"] .pa-panel > .pa-section-heading h2,
+html[data-portal="platform"] .pa-page .pa-table thead th,
+html[data-portal="platform"] .platform-accounts .accounts-list-heading h2,
+html[data-portal="platform"] .platform-accounts .accounts-table thead th {
+  color: var(--s2l-ui-primary-hover);
+  font-weight: 700;
+}
+html[data-portal="platform"] .pa-page .pa-table tbody tr:hover,
+html[data-portal="platform"] .platform-accounts .accounts-table tbody tr:hover { background: var(--s2l-ui-row-hover); }
+html[data-portal="platform"] .pa-page .pa-table tbody tr[aria-selected="true"],
+html[data-portal="platform"] .pa-page .pa-table tbody tr.is-selected,
+html[data-portal="platform"] .platform-accounts .accounts-table tbody tr[aria-selected="true"],
+html[data-portal="platform"] .platform-accounts .accounts-table tbody tr.is-selected { background: var(--s2l-ui-row-selected); }
+html[data-portal="platform"] .pa-page a,
+html[data-portal="platform"] .platform-accounts a { color: var(--s2l-ui-link); }
+html[data-portal="platform"] .pa-page a:hover,
+html[data-portal="platform"] .platform-accounts a:hover { color: var(--s2l-ui-primary-hover); text-decoration: underline; }
+
+html[data-portal="platform"] .pa-panel:not(.pa-padded) > form.pa-form {
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 20px 24px;
+  gap: 16px;
+}
+html[data-portal="platform"] .pa-panel > form.pa-form > h3 {
+  margin: 10px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--pa-border);
+  color: var(--pa-ink-strong);
+}
+html[data-portal="platform"] .pa-panel > form.pa-form > h3:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+html[data-portal="platform"] .pa-panel > form.pa-form .pa-form-grid { gap: 14px 18px; }
+html[data-portal="platform"] .pa-panel > form.pa-form .pa-field { gap: 7px; }
+
+html[data-portal="platform"] .platform-accounts .accounts-heading-side {
+  justify-self: end;
+  min-width: 0;
+}
+html[data-portal="platform"] .platform-accounts .accounts-heading-side .accounts-button {
+  margin-right: 0;
+}
+html[data-portal="platform"] .platform-accounts .accounts-filters {
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) minmax(155px, .42fr) minmax(165px, .46fr) auto;
+  align-items: end;
+}
+html[data-portal="platform"] .platform-accounts .accounts-list-panel {
+  display: flex;
+  min-width: 0;
+  max-width: 100%;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 22px;
+  border-color: var(--pa-border);
+  background: var(--pa-surface);
+}
+html[data-portal="platform"] .platform-accounts .accounts-table-wrap {
+  box-sizing: border-box;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+html[data-portal="platform"] .platform-accounts .accounts-table {
+  width: 100%;
+  max-width: 100%;
+}
+html[data-portal="platform"] .platform-accounts .accounts-table :is(th, td),
+html[data-portal="platform"] .platform-accounts .accounts-table tbody,
+html[data-portal="platform"] .platform-accounts .accounts-table tbody tr,
+html[data-portal="platform"] .platform-accounts .accounts-person,
+html[data-portal="platform"] .platform-accounts .accounts-person-copy,
+html[data-portal="platform"] .platform-accounts .accounts-role-editor,
+html[data-portal="platform"] .platform-accounts .accounts-row-actions { min-width: 0; }
+html[data-portal="platform"] .platform-accounts .accounts-person-copy :is(strong, span) { overflow-wrap: anywhere; }
+html[data-portal="platform"] .platform-accounts .accounts-role-editor select,
+html[data-portal="platform"] .platform-accounts .accounts-select-field select { width: 100%; min-width: 0; }
+html[data-portal="platform"] .platform-accounts .accounts-row-actions { flex-wrap: wrap; }
+html[data-portal="platform"] .platform-accounts .accounts-pagination {
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0;
+  border-top: 1px solid var(--pa-border);
+  border-radius: 0 0 22px 22px;
+  background: var(--pa-surface);
+}
+
+@media (max-width: 900px) {
+  html[data-portal="platform"] .platform-accounts .accounts-heading-side,
+  html[data-portal="platform"] .platform-accounts .accounts-heading-side .accounts-button {
+    width: 100%;
+    min-width: 0;
+  }
+  html[data-portal="platform"] .platform-accounts .accounts-filters {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  html[data-portal="platform"] .platform-accounts .accounts-select-field,
+  html[data-portal="platform"] .platform-accounts .accounts-filters > .accounts-button {
+    grid-column: 1;
+    width: 100%;
+    min-width: 0;
+  }
+}
+@media (max-width: 600px) {
+  html[data-portal="platform"] .pa-panel:not(.pa-padded) > form.pa-form { padding: 16px 18px; }
+  html[data-portal="platform"] .pa-admin-page-header,
+  html[data-portal="platform"] .s2l-ops-page > header { padding: 12px; }
+  html[data-portal="platform"] .s2l-app-shell .pa-page :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea),
+  html[data-portal="platform"] .s2l-app-shell .platform-accounts :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) { width: 100%; min-width: 0; }
+  html[data-portal="platform"] .s2l-app-shell .platform-accounts .accounts-heading { padding: 12px; }
+  html[data-portal="platform"] .s2l-app-shell .platform-accounts .accounts-pagination { padding: 13px 12px; }
+}
