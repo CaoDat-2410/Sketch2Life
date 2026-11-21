@@ -33,6 +33,10 @@ UPLOAD_SESSIONS_BASE = "/v1/upload-sessions"
 # base is always part of the family; it is matched on a whole segment like the upload base.
 LESSON_OCCURRENCES_BASE = "/v1/lesson-occurrences"
 
+# FEAT-066 T-8a: the notification inbox (SRS l.1681). Matched on a whole segment, so
+# ``/v1/notificationsfoo`` is not captured; the T-8b push-endpoint paths are not registered.
+NOTIFICATIONS_BASE = "/v1/notifications"
+
 FIELD_ERROR_CODES = frozenset(
     {
         "REQUIRED",
@@ -208,6 +212,8 @@ def is_conv1_path(path: str, *, include_upload_sessions: bool = True) -> bool:
         return True
     if path == LESSON_OCCURRENCES_BASE or path.startswith(LESSON_OCCURRENCES_BASE + "/"):
         return True
+    if path == NOTIFICATIONS_BASE or path.startswith(NOTIFICATIONS_BASE + "/"):
+        return True
     return include_upload_sessions and (
         path == UPLOAD_SESSIONS_BASE or path.startswith(UPLOAD_SESSIONS_BASE + "/")
     )
@@ -320,6 +326,7 @@ __all__ = [
     "KEPT_404_CODES",
     "LESSON_OCCURRENCES_BASE",
     "MESSAGES",
+    "NOTIFICATIONS_BASE",
     "STATUS_DEFAULT_CODES",
     "STATUS_MESSAGES",
     "STATUS_MESSAGE_ONLY",

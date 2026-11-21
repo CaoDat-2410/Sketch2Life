@@ -528,7 +528,7 @@ def test_a_stale_revision_carries_current_version_and_other_conflicts_do_not(
     ids=["no-identity", "teacher", "manager", "admin", "inactive", "other-issuer"],
 )
 def test_a_non_parent_or_inactive_caller_gets_the_same_404_as_an_unknown_run(
-    client: TestClient, db: _Db
+    client: TestClient, db: _Db, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     _Repository.result = ParentStoryRunError(404, "RESOURCE_NOT_FOUND")
     _use_db(client, _Db("parent"))
@@ -536,11 +536,16 @@ def test_a_non_parent_or_inactive_caller_gets_the_same_404_as_an_unknown_run(
     assert unknown_run[0] == 404 and unknown_run[1]["code"] == "RESOURCE_NOT_FOUND"
     _Repository.calls = []
     _use_db(client, db)
+    # story-rewrites stays Parent-only (T-4a1-DEC-4): a Teacher is stopped by the guard.
     assert _wire(_rewrite(client)) == unknown_run
     assert _Repository.calls == []  # the guard ran first
     _SubjectService.result = ParentStoryRunError(404, "RESOURCE_NOT_FOUND")
+    # T-4a1: the subject confirmation also admits a Teacher, whose service answers the same 404
+    # for an unassigned run; every other wrong caller never reaches a service.
+    monkeypatch.setattr(story_routes, "_teacher_service", lambda _db, _actor: _SubjectService())
     assert _wire(_subject(client)) == unknown_run
-    assert _SubjectService.calls == []
+    is_teacher = db._identity is not None and db._identity.account_role == "teacher"
+    assert bool(_SubjectService.calls) == is_teacher
 
 
 # ------------------------------------------------------------------------- subject confirmation

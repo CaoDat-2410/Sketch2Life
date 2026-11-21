@@ -47,6 +47,10 @@ SRS_V22_INCLUDED_OPERATIONS: frozenset[tuple[str, str]] = frozenset(
         ("post", "/v1/lesson-occurrences"),
         ("get", "/v1/lesson-occurrences"),
         ("get", "/v1/lesson-occurrences/{occurrence_id}"),
+        # FEAT-066 T-8a (SRS l.1681, l.812): the notification inbox and mark-read.
+        ("get", "/v1/notifications"),
+        ("post", "/v1/notifications/{inbox_item_id}/read"),
+        ("post", "/v1/notifications/read-all"),
         ("get", "/api/be1/v1/organizations/{organization_id}"),
         ("get", "/api/be1/v1/organizations/{organization_id}/me"),
         ("post", "/api/be1/v1/classes/{class_id}/assignments"),
@@ -161,6 +165,13 @@ SRS_V22_OPERATION_TAGS.update(
 )
 SRS_V22_OPERATION_TAGS.update(
     {
+        key: "Notifications"
+        for key in SRS_V22_INCLUDED_OPERATIONS
+        if key[1].startswith("/v1/notifications")
+    }
+)
+SRS_V22_OPERATION_TAGS.update(
+    {
         key: "Teacher — Lesson Preparation"
         for key in SRS_V22_INCLUDED_OPERATIONS
         if key[1].startswith("/api/lesson-library/v1/organizations/")
@@ -233,6 +244,10 @@ SRS_V22_TAGS: list[dict[str, str]] = [
         "name": "Lesson Occurrences",
         "description": "Teacher lesson occurrences: create, read and list per class.",
     },
+    {
+        "name": "Notifications",
+        "description": "Own notification inbox: cursor page and mark-read.",
+    },
 ]
 
 SRS_V22_OPENAPI_DESCRIPTION = "\n\n".join(
@@ -241,7 +256,7 @@ SRS_V22_OPENAPI_DESCRIPTION = "\n\n".join(
         "organization/class management, consent, and Teacher lesson preparation.",
         "Authentication and role/resource access are checked per operation.",
         "Parent activity catalog, Teacher occurrence, Sketch Deck, sample video, jobs/playback, "
-        "quota/payment, and notifications are unavailable.",
+        "quota/payment, and notification push endpoints are unavailable.",
         "Proposed Parent confirmations and draft SRS status remain subject to approval.",
     )
 )

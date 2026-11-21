@@ -469,7 +469,9 @@ def test_head_counts_by_both_methods_match_the_derived_expectation() -> None:
     # 20261119_frc08_lifecycle_scope and replaces it as the head of the frc08_lifecycle branch.
     # FEAT-066 T-1a: 20261120_vb_0002 (DDL-B1 video generations) follows 20261120_b1_0001 and
     # replaces it as the head of the same branch (heads stay 14 and 10).
-    assert len(graph) == 46
+    # FEAT-066 T-8a: 20261120_nt_0001 (DDL-C part 1, the notification inbox) follows
+    # 20261120_cls_0002 and replaces it as the head of the lesson_library branch.
+    assert len(graph) == 47
     down_targets = {target for down, _ in graph.values() for target in down}
     dependency_targets = down_targets | {target for _, dep in graph.values() for target in dep}
     heads_down_only = {rev for rev in graph if rev not in down_targets}

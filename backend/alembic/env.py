@@ -33,6 +33,8 @@ from sketch2life.infrastructure.lesson_library.tables import (
 )
 from sketch2life.infrastructure.lesson_library import publication_tables as _publication_tables  # noqa: F401
 from sketch2life.infrastructure.lesson_library import feedback_tables as _feedback_tables  # noqa: F401
+from sketch2life.infrastructure.notifications.tables import METADATA as NOTIFICATIONS_METADATA
+from sketch2life.infrastructure.notifications.tables import SCHEMA as NOTIFICATIONS_SCHEMA
 from sketch2life.infrastructure.persistence import be1_models as _be1_models  # noqa: F401
 from sketch2life.infrastructure.persistence import parent_models as _parent_models  # noqa: F401
 from sketch2life.infrastructure.persistence import platform_models as _platform_models  # noqa: F401
@@ -93,6 +95,10 @@ target_metadata.append(STORY_RUN_LITE_METADATA)
 _MANAGED_SCHEMAS.add("story")
 target_metadata.append(ParentPersistenceBase.metadata)
 _MANAGED_SCHEMAS.add("parent")
+
+# FEAT-066 T-8a: DDL-C part 1, the notification inbox.
+target_metadata.append(NOTIFICATIONS_METADATA)
+_MANAGED_SCHEMAS.add(NOTIFICATIONS_SCHEMA)
 
 
 def _include_name(name: str | None, type_: str, parent_names: object) -> bool:

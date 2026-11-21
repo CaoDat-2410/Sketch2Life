@@ -488,7 +488,9 @@ def _repository(
         "active_owner_parent_account_id": "parent-account-1",
         "actor_scope_ref": "scope-1",
     }
-    monkeypatch.setattr(repository, "_owned_run", lambda *_args, **_kwargs: dict(run))
+    monkeypatch.setattr(
+        repository, "_owned_run_access", lambda *_args, **_kwargs: (dict(run), None)
+    )
     # T-2d-fix D2: the accepted attempts of the slot come from the stored receipts
     monkeypatch.setattr(repository, "_rewrite_attempts_used", lambda *_args, **_kwargs: attempts)
     monkeypatch.setattr(repository, "_lock_idempotency", lambda **_kwargs: None)
@@ -1047,8 +1049,13 @@ def test_an_edit_with_the_rerun_queues_the_vlm_and_writes_no_decision(
 
 
 def _confirm_with_input(repository: SqlParentStoryRunRepository, **overrides: Any) -> Any:
-    original = repository._owned_run
-    repository._owned_run = lambda *a, **k: {**original(*a, **k), "current_input_revision": 3}  # type: ignore[method-assign]
+    original = repository._owned_run_access
+
+    def with_input(*a: Any, **k: Any) -> Any:
+        row, access = original(*a, **k)
+        return {**row, "current_input_revision": 3}, access
+
+    repository._owned_run_access = with_input  # type: ignore[method-assign]
     return _confirm(repository, **overrides)
 
 

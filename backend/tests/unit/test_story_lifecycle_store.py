@@ -307,7 +307,10 @@ class _ReconcileSession:
                 from types import SimpleNamespace
 
                 return SimpleNamespace(
-                    run_state=outer.state, revision=2, actor_scope_ref="a" * 64
+                    run_state=outer.state,
+                    revision=2,
+                    actor_scope_ref="a" * 64,
+                    actor_scope_kind="PARENT_ACCOUNT",
                 )
 
             def scalar_one_or_none(self) -> Any:

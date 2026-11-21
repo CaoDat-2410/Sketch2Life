@@ -39,6 +39,7 @@ TAG_DESCRIPTIONS: Final[dict[str, str]] = {'BE1 — Organizations & Classes': 'O
  'Parent StoryRuns': 'Proposed Parent StoryRun create, read, and confirmation slice.',
  'Upload Sessions': 'Resumable uploads for Parent artwork and Teacher documents.',
  'Lesson Occurrences': 'Teacher lesson occurrences: create, read and list per class.',
+ 'Notifications': 'Own notification inbox: cursor page and mark-read.',
  'Parent & School Manager — Group Membership': 'Parent-group membership revocation available to '
                                                'the parent or school manager.',
  'Platform Admin — Moderation': 'Platform-level lesson moderation.',
@@ -9924,16 +9925,31 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                                    'yêu '
                                                                                                                    'cầu '
                                                                                                                    'Public '
+                                                                                                                   '(cần '
+                                                                                                                   'School '
+                                                                                                                   'Manager '
+                                                                                                                   'duyệt) '
                                                                                                                    'hoặc '
                                                                                                                    'cấp '
                                                                                                                    'quyền '
                                                                                                                    'chia '
                                                                                                                    'sẻ '
-                                                                                                                   'lesson '
+                                                                                                                   'riêng '
                                                                                                                    'cho '
-                                                                                                                   'audience '
-                                                                                                                   'phù '
-                                                                                                                   'hợp.',
+                                                                                                                   'trường, '
+                                                                                                                   'Parent '
+                                                                                                                   'được '
+                                                                                                                   'mời '
+                                                                                                                   'hoặc '
+                                                                                                                   'nhóm '
+                                                                                                                   'Parent; '
+                                                                                                                   'chia '
+                                                                                                                   'sẻ '
+                                                                                                                   'riêng '
+                                                                                                                   'không '
+                                                                                                                   'cần '
+                                                                                                                   'duyệt '
+                                                                                                                   'Public.',
                                                                                                         'request_inputs': 'path '
                                                                                                                           '`organization_id*`: '
                                                                                                                           'string; '
@@ -11112,7 +11128,8 @@ MOUNTED_OPERATIONS[('get', '/v1/story-runs/{run_id}')] = {
          'schema_name': 'ParentStoryErrorEnvelopeV1'},
         {'status': '401', 'description': 'Authentication is required', 'media_type': 'application/json',
          'schema_name': 'ParentStoryErrorEnvelopeV1'},
-        {'status': '404', 'description': 'The requested resource was not found, or the caller is not an active Parent',
+        {'status': '404', 'description': 'The requested resource was not found, or the caller is neither an active Parent '
+                                         'nor the Teacher currently assigned to the child\'s class',
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
         {'status': '409', 'description': 'The request conflicts with current state',
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
@@ -11191,9 +11208,10 @@ MOUNTED_OPERATIONS[('post', '/v1/story-runs/{run_id}/context-confirmation')] = {
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
         {'status': '401', 'description': 'Authentication is required', 'media_type': 'application/json',
          'schema_name': 'ParentStoryErrorEnvelopeV1'},
-        {'status': '404', 'description': 'The requested resource was not found, or the caller is not an active Parent',
+        {'status': '404', 'description': 'The requested resource was not found, or the caller is neither an active Parent '
+                                         'nor the Teacher currently assigned to the child\'s class',
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
-        {'status': '409', 'description': 'The snapshot or run state is stale',
+        {'status': '409', 'description': 'The snapshot or run state is stale, or the Teacher\'s class is not active',
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
         {'status': '422', 'description': 'Validation uses the standard error envelope',
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
@@ -11222,10 +11240,12 @@ MOUNTED_OPERATIONS[('post', '/v1/story-runs/{run_id}/subject-confirmation')] = {
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
         {'status': '401', 'description': 'Authentication is required', 'media_type': 'application/json',
          'schema_name': 'ParentStoryErrorEnvelopeV1'},
-        {'status': '404', 'description': 'The requested resource was not found, or the caller is not an active Parent',
+        {'status': '404', 'description': 'The requested resource was not found, or the caller is neither an active Parent '
+                                         'nor the Teacher currently assigned to the child\'s class',
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
         {'status': '409', 'description': 'The understanding revision is stale (`STALE_REVISION` with `current_version`) '
-                                         'or the run state does not allow it (`INVALID_STATE_TRANSITION`)',
+                                         'or the run state does not allow it (`INVALID_STATE_TRANSITION`; also a '
+                                         'Teacher whose class is not active)',
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
         {'status': '422', 'description': 'Validation uses the standard error envelope',
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
@@ -11251,9 +11271,10 @@ MOUNTED_OPERATIONS[('post', '/v1/story-runs/{run_id}/script-confirmation')] = {
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
         {'status': '401', 'description': 'Authentication is required', 'media_type': 'application/json',
          'schema_name': 'ParentStoryErrorEnvelopeV1'},
-        {'status': '404', 'description': 'The requested resource was not found, or the caller is not an active Parent',
+        {'status': '404', 'description': 'The requested resource was not found, or the caller is neither an active Parent '
+                                         'nor the Teacher currently assigned to the child\'s class',
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
-        {'status': '409', 'description': 'The run or story revision is stale',
+        {'status': '409', 'description': 'The run or story revision is stale, or the Teacher\'s class is not active',
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
         {'status': '422', 'description': 'Validation uses the standard error envelope',
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
@@ -12491,6 +12512,93 @@ MOUNTED_OPERATIONS[_PROFILE_MOVE_KEY] = {
     "responses": _CLASS_STATE_RESPONSES,
 }
 
+# FEAT-066 goal v3 T-8a (SRS l.812, l.1681, l.1697; FR-B-09; UC-15; DDL-C part 1): the notification
+# inbox. The inbox is the source of truth; nothing is delivered (no e-mail, no push). T-8b (push
+# endpoints, SRS l.1682-1683) is deferred and not registered.
+_NOTIFICATION_ERROR_DESCRIPTIONS: Final[dict[str, str]] = {
+    "400": "The request is invalid (`INVALID_REQUEST`, `INVALID_IDEMPOTENCY_KEY`)",
+    "401": "Authentication is required",
+    "404": "The notification was not found, belongs to someone else, or the caller has no active "
+    "adult identity with a role (`RESOURCE_NOT_FOUND`)",
+    "503": "A required service is unavailable (`DATABASE_UNAVAILABLE`)",
+}
+
+
+def _notification_responses(
+    success: tuple[str, str, str], *error_statuses: str
+) -> tuple[ResponseMetadata, ...]:
+    status, description, schema_name = success
+    rows: list[ResponseMetadata] = [
+        {
+            "status": status,
+            "description": description,
+            "media_type": "application/json",
+            "schema_name": schema_name,
+        }
+    ]
+    rows.extend(
+        {
+            "status": error_status,
+            "description": _NOTIFICATION_ERROR_DESCRIPTIONS[error_status],
+            "media_type": "application/json",
+            "schema_name": "Be1Error",
+        }
+        for error_status in error_statuses
+    )
+    return tuple(rows)
+
+
+_NOTIFICATION_SURFACE: Final = "Notification inbox"
+_NOTIFICATION_TAG: Final = "Notifications"
+_NOTIFICATION_VERIFICATION: Final = "SRS l.784, l.812, l.1681, l.1697; goal v3 T-8a"
+MOUNTED_OPERATIONS[("get", "/v1/notifications")] = {
+    "purpose": "Read the caller's own notification inbox, newest first (25 per page by default, "
+    "at most 100) with an opaque cursor. An item names its template and version and carries safe "
+    "parameters only (codes, counts and opaque references): no child name, media or playback URL. "
+    "Expired items are not listed. `unread_count` is exact up to 99; the value 100 means 100 or "
+    "more. Every caller sees only their own items.",
+    "request_inputs": "query `limit`: integer; query `cursor`: string",
+    "handler": "notifications.py::list_notifications",
+    "responses": _notification_responses(
+        ("200", "Page of notifications", "NotificationPageV1"), "400", "401", "404", "503"
+    ),
+    "surface": _NOTIFICATION_SURFACE,
+    "tag": _NOTIFICATION_TAG,
+    "authentication": "HTTPBearer (bearer)",
+    "verification": _NOTIFICATION_VERIFICATION,
+}
+MOUNTED_OPERATIONS[("post", "/v1/notifications/{inbox_item_id}/read")] = {
+    "purpose": "Mark one notification of the caller as read. Send `Idempotency-Key`: the same key "
+    "with the same request replays the first answer, the same key with another item is 400 "
+    "`INVALID_IDEMPOTENCY_KEY`. Marking an already read item keeps the first `read_at`. An item of "
+    "another user, an unknown or an expired item is the uniform 404.",
+    "request_inputs": "path `inbox_item_id*`: string; header `Idempotency-Key*`: string",
+    "handler": "notifications.py::mark_notification_read",
+    "responses": _notification_responses(
+        ("200", "The notification, read, or the first answer of a replayed key", "NotificationV1"),
+        "400", "401", "404", "503",
+    ),
+    "surface": _NOTIFICATION_SURFACE,
+    "tag": _NOTIFICATION_TAG,
+    "authentication": "HTTPBearer (bearer)",
+    "verification": _NOTIFICATION_VERIFICATION,
+}
+MOUNTED_OPERATIONS[("post", "/v1/notifications/read-all")] = {
+    "purpose": "Mark every unread, unexpired notification of the caller as read. Send "
+    "`Idempotency-Key`: a replay returns the first `marked_count` and does not touch items that "
+    "arrived later; the same key on another request is 400 `INVALID_IDEMPOTENCY_KEY`.",
+    "request_inputs": "header `Idempotency-Key*`: string",
+    "handler": "notifications.py::mark_all_notifications_read",
+    "responses": _notification_responses(
+        ("200", "How many items were marked read", "NotificationReadAllV1"),
+        "400", "401", "404", "503",
+    ),
+    "surface": _NOTIFICATION_SURFACE,
+    "tag": _NOTIFICATION_TAG,
+    "authentication": "HTTPBearer (bearer)",
+    "verification": _NOTIFICATION_VERIFICATION,
+}
+
 IDEMPOTENCY_MISMATCH_OPERATION_KEYS: Final[tuple[tuple[str, str], ...]] = (
     ("post", "/api/lesson-library/v1/me/lesson-invitations/{access_grant_id}/accept"),
     ("post", "/api/lesson-library/v1/me/lesson-invitations/{access_grant_id}/decline"),
@@ -12536,6 +12644,9 @@ IDEMPOTENCY_MISMATCH_OPERATION_KEYS: Final[tuple[tuple[str, str], ...]] = (
     # FEAT-066 T-3d (SRS l.1697): the keyed plan revision create and confirm.
     ("post", "/v1/lesson-occurrences/{occurrence_id}/plan-revisions"),
     ("post", "/v1/lesson-occurrences/{occurrence_id}/plan-revisions/{revision_no}/confirm"),
+    # FEAT-066 T-8a (SRS l.1697): the two keyed mark-read commands of the notification inbox.
+    ("post", "/v1/notifications/{inbox_item_id}/read"),
+    ("post", "/v1/notifications/read-all"),
 )
 
 _IDEMPOTENCY_MISMATCH_RESPONSE: Final[ResponseMetadata] = {

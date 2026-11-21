@@ -20,6 +20,7 @@ from sketch2life.interfaces.http.routers.lesson_library import router as lesson_
 from sketch2life.interfaces.http.routers.lesson_occurrences import (
     router as lesson_occurrences_router,
 )
+from sketch2life.interfaces.http.routers.notifications import router as notifications_router
 from sketch2life.interfaces.http.routers.parent_ai import router as parent_ai_router
 from sketch2life.interfaces.http.routers.parent_profiles import router as parent_profiles_router
 from sketch2life.interfaces.http.routers.parent_story_inputs import (
@@ -126,6 +127,8 @@ def mount_all_routers(
     application.include_router(teacher_ai_router)
     # FEAT-066 T-3a: /v1/lesson-occurrences has no demo collision, so it mounts unconditionally.
     application.include_router(lesson_occurrences_router)
+    # FEAT-066 T-8a: /v1/notifications (the inbox) has no demo collision: mounted unconditionally.
+    application.include_router(notifications_router)
     # T-2a left OCCURRENCE_DOCUMENT without a resolver (it answers 404); T-3a registers it. A
     # factory a caller put on app.state first (a test double) is kept.
     factories = dict(getattr(application.state, "upload_target_resolver_factories", None) or {})

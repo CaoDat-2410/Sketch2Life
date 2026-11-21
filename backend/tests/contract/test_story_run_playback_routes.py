@@ -692,7 +692,7 @@ def test_the_detail_shows_the_video_the_quota_marker_and_a_strong_etag(
 
 
 def test_the_304_comes_only_after_authorisation_and_a_fresh_read(
-    client: TestClient, reader: type[_Reader]
+    client: TestClient, reader: type[_Reader], monkeypatch: pytest.MonkeyPatch
 ) -> None:
     reader.view = _record(_video())
     etag = client.get(f"/v1/story-runs/{RUN_ID}").headers["etag"]
@@ -709,9 +709,15 @@ def test_the_304_comes_only_after_authorisation_and_a_fresh_read(
     reader.view = ParentStoryRunError(404, "RESOURCE_NOT_FOUND")
     foreign = client.get(f"/v1/story-runs/{RUN_ID}", headers={"If-None-Match": etag})
     assert foreign.status_code == 404 and "etag" not in foreign.headers
-    _Session.role = "teacher"
+    _Session.role = "school_manager"
     wrong_role = client.get(f"/v1/story-runs/{RUN_ID}", headers={"If-None-Match": etag})
     assert wrong_role.status_code == 404 and "etag" not in wrong_role.headers
+    # T-4a1: a Teacher passes the role guard; without the current assignment the repository
+    # answers the same 404, never the 304 (the assignment is read before the tag is compared).
+    _Session.role = "teacher"
+    monkeypatch.setattr(run_routes, "_teacher_service", lambda _db, _actor: _Reader())
+    unassigned = client.get(f"/v1/story-runs/{RUN_ID}", headers={"If-None-Match": etag})
+    assert unassigned.status_code == 404 and "etag" not in unassigned.headers
 
 
 def test_a_run_being_deleted_returns_the_content_free_envelope_without_a_tag(

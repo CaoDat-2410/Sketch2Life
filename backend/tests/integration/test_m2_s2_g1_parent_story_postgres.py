@@ -97,7 +97,9 @@ _EXPECTED_VERSION_ROWS = frozenset(
         # FEAT-066 T-3a: the DDL-A occurrence revision follows uf_0001 and replaces its row.
         # FEAT-066 T-7b: the DDL-H class-revision revision follows oc_0001 and replaces its row.
         # FEAT-066 T-7d: the DDL-H enrollment-index revision follows cls_0001 and replaces its row.
-        "20261120_cls_0002",
+        # FEAT-066 T-8a: the DDL-C part 1 notification-inbox revision follows cls_0002 and
+        # replaces its row.
+        "20261120_nt_0001",
         # FR-C-08: the lifecycle revision depends on the Story head and replaces its row.
         # FEAT-066 T-2c: the DDL-B1 voice-idea revision follows the lifecycle revision and
         # replaces its row (this gate test runs only on the fixed gate databases).

@@ -1,10 +1,13 @@
-"""Story-owned PostgreSQL adapter for the FR-C-08 Parent StoryRun purge (DTR Draft 6).
+"""Story-owned PostgreSQL adapter for the FR-C-08 StoryRun purge (DTR Draft 6).
 
 It implements the Story lifecycle port and ``RunAssetReferencePort`` of
 ``application.ports.story_run_lifecycle``: the step-4 plan and purge of run-owned Story
 content, the ``DELETED`` finalization of step 5, the run state read and the cross-run asset
 reference answer. It also holds the one-time reconciliation of pre-existing ``DELETE_PENDING``
-runs (DTR §6.4). Every statement is scoped to one run; no content is ever logged.
+runs (DTR §6.4). Every statement is scoped to one run; no content is ever logged. A run is a
+Parent run (``PARENT_ACCOUNT``, no organization column) or, since FEAT-066 T-13a, a Teacher run
+(``ORGANIZATION``, ``organization_id`` = the scope ref): the run row names its own kind and the
+aggregate, audit and event rows copy it.
 """
 
 from __future__ import annotations
@@ -20,6 +23,7 @@ from sqlalchemy.engine import CursorResult, RowMapping
 from sqlalchemy.orm import Session, sessionmaker
 
 from sketch2life.application.ports.core_foundation import (
+    ORGANIZATION_SCOPE_KIND,
     PARENT_SCOPE_KIND,
     LifecycleScope,
     validate_run_ref,
@@ -53,6 +57,7 @@ _AGGREGATES = cast(Table, CoreAggregateRevisionModel.__table__)
 _OUTBOX = cast(Table, CoreOutboxEventModel.__table__)
 _AUDIT = cast(Table, CoreAuditEntryModel.__table__)
 _PURGE_STATE_VALUES = tuple(sorted(PURGE_STATES))
+_LIFECYCLE_SCOPE_KINDS = (PARENT_SCOPE_KIND, ORGANIZATION_SCOPE_KIND)
 
 # DTR S10: the run-owned private columns of ``story.runs`` that step 4 sets to NULL. Identity,
 # scope, state, revision and version are kept.
@@ -97,6 +102,8 @@ class StoryRunSnapshot:
     receipts: tuple[tuple[str, str, str, Any], ...]  # (receipt_id, operation, fingerprint, body)
     # T-1a: video requests that a worker or the reconciler still owns (an intent or in flight).
     unsettled_generations: int = 0
+    # T-13a: the owner scope kind of the run row (``PARENT_ACCOUNT`` or ``ORGANIZATION``).
+    scope_kind: str = PARENT_SCOPE_KIND
 
 
 def _require_settled_video(snapshot: StoryRunSnapshot) -> None:
@@ -140,7 +147,8 @@ class SqlStoryLifecycleStore:
         with self._sessions() as session:
             state = session.scalar(
                 select(_RUNS.c.run_state).where(
-                    _RUNS.c.run_id == run_id, _RUNS.c.actor_scope_kind == PARENT_SCOPE_KIND
+                    _RUNS.c.run_id == run_id,
+                    _RUNS.c.actor_scope_kind.in_(_LIFECYCLE_SCOPE_KINDS),
                 )
             )
             return None if state is None else str(state)
@@ -267,13 +275,20 @@ class SqlStoryLifecycleStore:
             )
             if changed.rowcount != 1:
                 raise StoryLifecycleError("RUN_NOT_PURGEABLE")
-            _upsert_aggregate(session, run_id=run_id, scope_ref=scope_ref, revision=new_revision)
+            scope_kind = snapshot.scope_kind
+            _upsert_aggregate(
+                session,
+                run_id=run_id,
+                scope_kind=scope_kind,
+                scope_ref=scope_ref,
+                revision=new_revision,
+            )
             session.execute(
                 pg_insert(_AUDIT)
                 .values(
                     audit_id=lifecycle_audit_id(request_id, AUDIT_COMPLETED),
-                    organization_id=None,
-                    owner_scope_kind=PARENT_SCOPE_KIND,
+                    organization_id=_organization_column(scope_kind, scope_ref),
+                    owner_scope_kind=scope_kind,
                     owner_scope_ref=scope_ref,
                     actor_ref=LIFECYCLE_WORKER_ACTOR,
                     action=AUDIT_COMPLETED,
@@ -288,7 +303,7 @@ class SqlStoryLifecycleStore:
 
     # ---------------------------------------------------------------- DTR §6.4
     def delete_pending_runs_without_event(self, *, limit: int = 500) -> tuple[str, ...]:
-        """Parent ``DELETE_PENDING`` runs that have no outbox event for their aggregate."""
+        """``DELETE_PENDING`` runs (Parent or Teacher) with no outbox event for their aggregate."""
 
         if not 1 <= limit <= 5000:
             raise ValueError("reconciliation page size is outside the allowed bounds")
@@ -296,7 +311,7 @@ class SqlStoryLifecycleStore:
             rows = session.scalars(
                 select(_RUNS.c.run_id)
                 .where(
-                    _RUNS.c.actor_scope_kind == PARENT_SCOPE_KIND,
+                    _RUNS.c.actor_scope_kind.in_(_LIFECYCLE_SCOPE_KINDS),
                     _RUNS.c.run_state == "DELETE_PENDING",
                     ~exists().where(_OUTBOX.c.aggregate_id == _RUNS.c.run_id),
                 )
@@ -315,8 +330,16 @@ class SqlStoryLifecycleStore:
         run_id = validate_run_ref(run_ref)
         with self._sessions.begin() as session:
             run = session.execute(
-                select(_RUNS.c.run_state, _RUNS.c.revision, _RUNS.c.actor_scope_ref)
-                .where(_RUNS.c.run_id == run_id, _RUNS.c.actor_scope_kind == PARENT_SCOPE_KIND)
+                select(
+                    _RUNS.c.run_state,
+                    _RUNS.c.revision,
+                    _RUNS.c.actor_scope_ref,
+                    _RUNS.c.actor_scope_kind,
+                )
+                .where(
+                    _RUNS.c.run_id == run_id,
+                    _RUNS.c.actor_scope_kind.in_(_LIFECYCLE_SCOPE_KINDS),
+                )
                 .with_for_update()
             ).one_or_none()
             if run is None or run.run_state != "DELETE_PENDING":
@@ -324,14 +347,25 @@ class SqlStoryLifecycleStore:
             if session.scalar(select(exists().where(_OUTBOX.c.aggregate_id == run_id))):
                 return False
             scope_ref = str(run.actor_scope_ref)
+            scope_kind = str(run.actor_scope_kind)
             revision = int(run.revision)
-            _upsert_aggregate(session, run_id=run_id, scope_ref=scope_ref, revision=revision)
+            _upsert_aggregate(
+                session,
+                run_id=run_id,
+                scope_kind=scope_kind,
+                scope_ref=scope_ref,
+                revision=revision,
+            )
             now = datetime.now(UTC)
             # The insert is judged by RETURNING, not by rowcount: SQLAlchemy only guarantees
             # rowcount for UPDATE and DELETE (owner run 20261119-103216 saw an inserted=0 here).
             inserted = session.execute(
                 reconciliation_event_statement(
-                    run_id=run_id, scope_ref=scope_ref, revision=revision, now=now
+                    run_id=run_id,
+                    scope_ref=scope_ref,
+                    revision=revision,
+                    now=now,
+                    scope_kind=scope_kind,
                 )
             ).scalar_one_or_none()
             return inserted is not None
@@ -339,7 +373,7 @@ class SqlStoryLifecycleStore:
     # ---------------------------------------------------------------- helpers
     def _snapshot(self, session: Session, run_id: str, *, lock: bool) -> StoryRunSnapshot:
         query = select(_RUNS).where(
-            _RUNS.c.run_id == run_id, _RUNS.c.actor_scope_kind == PARENT_SCOPE_KIND
+            _RUNS.c.run_id == run_id, _RUNS.c.actor_scope_kind.in_(_LIFECYCLE_SCOPE_KINDS)
         )
         if lock:
             query = query.with_for_update()
@@ -366,6 +400,7 @@ class SqlStoryLifecycleStore:
             receipts=tuple(
                 (str(row[0]), str(row[1]), str(row[2]), row[3]) for row in receipts
             ),
+            scope_kind=str(run["actor_scope_kind"]),
             unsettled_generations=int(
                 session.scalar(
                     select(func.count())
@@ -485,8 +520,19 @@ class SqlStoryLifecycleStore:
         return value
 
 
+def _organization_column(scope_kind: str, scope_ref: str) -> str | None:
+    """NULL for a Parent row; the organization (= the scope ref) for an ``ORGANIZATION`` row."""
+
+    return scope_ref if scope_kind == ORGANIZATION_SCOPE_KIND else None
+
+
 def reconciliation_event_statement(
-    *, run_id: str, scope_ref: str, revision: int, now: datetime
+    *,
+    run_id: str,
+    scope_ref: str,
+    revision: int,
+    now: datetime,
+    scope_kind: str = PARENT_SCOPE_KIND,
 ) -> Any:
     """DTR §6.4 insert-if-absent of the cancel event; RETURNING yields the id only if inserted."""
 
@@ -496,8 +542,8 @@ def reconciliation_event_statement(
         .values(
             event_id=lifecycle_event_id(request_id, CANCEL_EVENT_TYPE),
             event_type=CANCEL_EVENT_TYPE,
-            organization_id=None,
-            owner_scope_kind=PARENT_SCOPE_KIND,
+            organization_id=_organization_column(scope_kind, scope_ref),
+            owner_scope_kind=scope_kind,
             owner_scope_ref=scope_ref,
             aggregate_id=run_id,
             aggregate_revision=revision,
@@ -521,11 +567,13 @@ def _s10_present(run: Mapping[str, Any] | RowMapping) -> bool:
     return any(run.get(name) is not None for name in S10_RUN_COLUMNS)
 
 
-def _upsert_aggregate(session: Session, *, run_id: str, scope_ref: str, revision: int) -> None:
+def _upsert_aggregate(
+    session: Session, *, run_id: str, scope_kind: str, scope_ref: str, revision: int
+) -> None:
     statement = pg_insert(_AGGREGATES).values(
         aggregate_id=run_id,
-        organization_id=None,
-        owner_scope_kind=PARENT_SCOPE_KIND,
+        organization_id=_organization_column(scope_kind, scope_ref),
+        owner_scope_kind=scope_kind,
         owner_scope_ref=scope_ref,
         revision=revision,
         updated_at=datetime.now(UTC),
@@ -538,7 +586,7 @@ def _upsert_aggregate(session: Session, *, run_id: str, scope_ref: str, revision
                 "updated_at": statement.excluded.updated_at,
             },
             where=and_(
-                _AGGREGATES.c.owner_scope_kind == PARENT_SCOPE_KIND,
+                _AGGREGATES.c.owner_scope_kind == scope_kind,
                 _AGGREGATES.c.owner_scope_ref == scope_ref,
             ),
         )

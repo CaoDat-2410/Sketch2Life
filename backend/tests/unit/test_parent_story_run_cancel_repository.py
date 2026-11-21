@@ -30,6 +30,7 @@ from sketch2life.application.ports.story_run_lifecycle import (
 )
 from sketch2life.infrastructure.persistence.parent_story_repository import (
     SqlParentStoryRunRepository,
+    _principal_scope_ref,
 )
 
 _PRINCIPAL = VerifiedPrincipal("parent-1", "issuer-1", frozenset({"parent"}))
@@ -112,8 +113,14 @@ def _repository(
         "revision": 7,
         "version": 9,
         "active_owner_parent_account_id": "parent-account-1",
+        # T-13a: the lifecycle rows copy the OWNER scope of the run row.
+        "actor_scope_kind": "PARENT_ACCOUNT",
+        "actor_scope_ref": _principal_scope_ref(_PRINCIPAL),
     }
     monkeypatch.setattr(repository, "_owned_run", lambda *_args, **_kwargs: dict(run))
+    monkeypatch.setattr(
+        repository, "_owned_run_access", lambda *_args, **_kwargs: (dict(run), None)
+    )
     monkeypatch.setattr(repository, "_lock_idempotency", lambda **_kwargs: None)
     monkeypatch.setattr(
         repository, "_store_idempotency_receipt", lambda **kwargs: stored.update(kwargs)
@@ -396,6 +403,7 @@ def test_non_owned_runs_are_hidden_before_any_statement(monkeypatch: pytest.Monk
         raise ParentStoryRunError(404, "RESOURCE_NOT_FOUND")
 
     monkeypatch.setattr(repository, "_owned_run", not_owned)
+    monkeypatch.setattr(repository, "_owned_run_access", not_owned)
     for command in (_cancel, _delete):
         with pytest.raises(ParentStoryRunError, match="RESOURCE_NOT_FOUND"):
             command(repository)

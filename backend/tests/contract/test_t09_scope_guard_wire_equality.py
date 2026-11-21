@@ -138,6 +138,12 @@ class _StoryService:
     def get_active_run(self, **_kwargs: object) -> None:
         return None
 
+    def cancel_run(self, **_kwargs: object) -> NoReturn:
+        raise ParentStoryRunError(404, "RESOURCE_NOT_FOUND")
+
+    def delete_run(self, **_kwargs: object) -> NoReturn:
+        raise ParentStoryRunError(404, "RESOURCE_NOT_FOUND")
+
     def list_runs(self, **_kwargs: object) -> list[object]:
         return []
 
@@ -304,10 +310,17 @@ def test_story_run_wrong_role_equals_unknown_run(app_client: TestClient) -> None
     for role in ("teacher", "school_manager", "platform_admin"):
         _use(app_client, _Db(role=role))
         for method, path, extra in (
-            ("GET", f"/v1/story-runs/{RUN_ID}", {}),
+            # T-4a1: the run read admits the assigned Teacher, so the Teacher row of the GET is
+            # compared in the next test (an unassigned Teacher gets the Teacher service's 404).
+            *((("GET", f"/v1/story-runs/{RUN_ID}", {}),) if role != "teacher" else ()),
             ("GET", "/v1/story-runs", {}),
             ("GET", "/v1/story-runs/active/current", {}),
-            ("DELETE", f"/v1/story-runs/{RUN_ID}", {"Idempotency-Key": "t09-key-1"}),
+            # T-13a: DELETE admits the assigned Teacher as well (compared in the next test)
+            *(
+                (("DELETE", f"/v1/story-runs/{RUN_ID}", {"Idempotency-Key": "t09-key-1"}),)
+                if role != "teacher"
+                else ()
+            ),
         ):
             wrong_role = app_client.request(method, path, headers={**headers, **extra})
             _same(wrong_role, unknown, status=404, code="RESOURCE_NOT_FOUND")
@@ -317,6 +330,33 @@ def test_story_run_wrong_role_equals_unknown_run(app_client: TestClient) -> None
             json={"parent_profile_id": PROFILE_ID},
         )
         _same(created, unknown, status=404, code="RESOURCE_NOT_FOUND")
+
+
+def test_unassigned_teacher_run_read_equals_unknown_run(
+    app_client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """T-4a1: a Teacher passes the role guard; the Teacher service answers the uniform 404 for a
+    run the CURRENT assignment does not grant, byte for byte the answer for an unknown id."""
+
+    headers = {"X-Request-ID": "t09-story-teacher"}
+    _use(app_client, _Db(role="parent"))
+    unknown = app_client.get(f"/v1/story-runs/{UNKNOWN_ID}", headers=headers)
+    monkeypatch.setattr(story_routes, "_teacher_service", lambda _db, _actor: _StoryService())
+    _use(app_client, _Db(role="teacher"))
+    teacher = app_client.get(f"/v1/story-runs/{RUN_ID}", headers=headers)
+    _same(teacher, unknown, status=404, code="RESOURCE_NOT_FOUND")
+    # T-13a: the cancel and the DELETE of a run the CURRENT assignment does not grant answer the
+    # same bytes; the Teacher service is the one that decides.
+    deleted = app_client.delete(
+        f"/v1/story-runs/{RUN_ID}", headers={**headers, "Idempotency-Key": "t09-key-1"}
+    )
+    _same(deleted, unknown, status=404, code="RESOURCE_NOT_FOUND")
+    cancelled = app_client.post(
+        f"/v1/story-runs/{RUN_ID}/cancel",
+        headers={**headers, "Idempotency-Key": "t09-key-1"},
+        json={"expected_revision": 1},
+    )
+    _same(cancelled, unknown, status=404, code="RESOURCE_NOT_FOUND")
 
 
 # --- F-1 regression (BE1 pilot-profile lookup) ----------------------------------------------

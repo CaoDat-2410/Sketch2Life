@@ -94,6 +94,9 @@ EXPECTED_IDEMPOTENCY_MISMATCH_OPERATION_KEYS = {
     # FEAT-066 T-3d (SRS l.1697): the keyed plan revision create and confirm.
     ("post", "/v1/lesson-occurrences/{occurrence_id}/plan-revisions"),
     ("post", "/v1/lesson-occurrences/{occurrence_id}/plan-revisions/{revision_no}/confirm"),
+    # FEAT-066 T-8a (SRS l.1697): the keyed notification mark-read commands.
+    ("post", "/v1/notifications/{inbox_item_id}/read"),
+    ("post", "/v1/notifications/read-all"),
     # FEAT-066 T-7b (SRS l.1697): the keyed class suspend and archive commands.
     ("post", "/api/be1/v1/classes/{class_id}/suspend"),
     ("post", "/api/be1/v1/classes/{class_id}/archive"),
@@ -307,7 +310,7 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
 
     assert spec["openapi"] == "3.1.0"
     assert spec["tags"] == public_tags(TAG_DESCRIPTIONS)
-    assert len(operations) == 187 + len(ADMIN_OPERATIONS - PR22_UNCATALOGUED_OPERATIONS)
+    assert len(operations) == 190 + len(ADMIN_OPERATIONS - PR22_UNCATALOGUED_OPERATIONS)
     catalog_operations = set(MOUNTED_OPERATIONS)
     catalog_paths = {path for _method, path in catalog_operations}
     # FEAT-066 T-2a: five generic upload-session operations (four paths) join the catalog.
@@ -324,12 +327,13 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
     # FEAT-066 T-1b: the video-unsuitable and complete commands, two new paths.
     # FEAT-066 T-1c: the playback grant and the stream route, two new paths (the run detail read
     # stays one catalogued operation).
-    assert len(catalog_paths) == 144
+    # FEAT-066 T-8a: the notification inbox page and the two mark-read commands, three new paths.
+    assert len(catalog_paths) == 147
     assert MOUNTED_OPERATION_COUNT == 135
     assert (
         len(catalog_operations)
-        == MOUNTED_OPERATION_COUNT + 5 + 3 + 5 + 1 + 4 + 2 + 1 + 1 + 3 + 1 + 1 + 2 + 2
-        == 166
+        == MOUNTED_OPERATION_COUNT + 5 + 3 + 5 + 1 + 4 + 2 + 1 + 1 + 3 + 1 + 1 + 2 + 2 + 3
+        == 169
     )
     assert set(operations) - catalog_operations == (
         PILOT_ONLY_OPERATIONS | PR22_UNCATALOGUED_OPERATIONS | ADMIN_OPERATIONS
@@ -641,14 +645,14 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
         assert "Be1Error" in _schema_refs(
             mismatch_response["content"]["application/json"]["schema"]
         )
-    assert len(IDEMPOTENCY_MISMATCH_OPERATION_KEYS) == 30
+    assert len(IDEMPOTENCY_MISMATCH_OPERATION_KEYS) == 32
     assert set(IDEMPOTENCY_MISMATCH_OPERATION_KEYS) == (
         EXPECTED_IDEMPOTENCY_MISMATCH_OPERATION_KEYS
     )
 
     assert not _extension_keys(spec)
 
-    assert len(spec["tags"]) == 22
+    assert len(spec["tags"]) == 23
     assert all(tag.get("description") for tag in spec["tags"])
 
     operation_ids = [operation["operationId"] for operation in operations.values()]
@@ -705,7 +709,7 @@ def test_runtime_openapi_operation_ids_are_non_empty_and_unique(
         for method, operation in path_item.items()
         if method.lower() in HTTP_METHODS
     ]
-    assert len(operation_ids) == 187 + len(ADMIN_OPERATIONS - PR22_UNCATALOGUED_OPERATIONS)
+    assert len(operation_ids) == 190 + len(ADMIN_OPERATIONS - PR22_UNCATALOGUED_OPERATIONS)
     assert all(isinstance(value, str) and value for value in operation_ids)
     assert len(set(operation_ids)) == len(operation_ids)
 

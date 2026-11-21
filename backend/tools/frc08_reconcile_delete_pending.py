@@ -1,8 +1,9 @@
-"""One-time, re-runnable reconciliation of pre-existing Parent DELETE_PENDING runs (DTR §6.4).
+"""One-time, re-runnable reconciliation of pre-existing DELETE_PENDING runs (DTR §6.4).
 
-For every Parent run in ``DELETE_PENDING`` that has no outbox event for its aggregate, the tool
-inserts ``StoryRunCancellationRequestedV1`` with the deterministic event id and the Parent
-aggregate row (insert-if-absent). Runs cancelled by the FR-C-08 code already have their event
+For every Parent or Teacher (organization) run in ``DELETE_PENDING`` that has no outbox event for
+its aggregate, the tool inserts ``StoryRunCancellationRequestedV1`` with the deterministic event
+id and the aggregate row of the run's own owner scope (insert-if-absent; T-13a widened the target
+set from Parent runs to Teacher runs). Runs cancelled by the FR-C-08 code already have their event
 and are skipped; a second run inserts nothing. It is used only on a deployment where the Parent
 router is mounted (S19).
 

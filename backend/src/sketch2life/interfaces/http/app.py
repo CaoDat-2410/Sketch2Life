@@ -338,6 +338,8 @@ def _apply_catalog_metadata(
                     "/v1/upload-sessions",
                     # T-3a: the same for the Teacher lesson occurrences.
                     "/v1/lesson-occurrences",
+                    # T-8a: and for the notification inbox.
+                    "/v1/notifications",
                 )
             ):
                 for status in tuple(runtime_responses):

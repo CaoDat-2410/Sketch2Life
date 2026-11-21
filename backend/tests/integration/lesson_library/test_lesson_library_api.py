@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import os
 from collections.abc import Iterator, Sequence
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from io import BytesIO
@@ -21,15 +22,24 @@ from sketch2life.application.ports.lesson_documents import (
 )
 from sketch2life.application.ports.object_storage import StoredObject
 from sketch2life.application.services.storage_example import StorageExampleService
+from sketch2life.contracts.schemas.lesson_occurrences import LessonVersionRefV1
 from sketch2life.infrastructure.config.settings import get_core_database_settings, get_settings
 from sketch2life.infrastructure.documents.clamav_scanner import ClamAvScanner
 from sketch2life.infrastructure.documents.lesson_parser import DeterministicLessonDocumentParser
-from sketch2life.infrastructure.lesson_library.service import LessonLibraryService
+from sketch2life.infrastructure.lesson_library.service import (
+    LessonLibraryError,
+    LessonLibraryService,
+)
 from sketch2life.infrastructure.lesson_library.tables import (
+    ACCESS_GRANTS,
     COMMAND_RECEIPTS,
+    LIBRARY_VERSIONS,
     PARENT_GROUP_MEMBERS,
+    PARENT_GROUPS,
     UPLOAD_SESSIONS,
 )
+from sketch2life.infrastructure.lesson_occurrences.scope import LessonOccurrenceError
+from sketch2life.infrastructure.lesson_occurrences.service import LessonOccurrenceService
 from sketch2life.infrastructure.persistence.be1_models import (
     AdultIdentityModel,
     OrganizationAssignmentModel,
@@ -44,7 +54,7 @@ from sketch2life.interfaces.http.app import create_app
 from sketch2life.interfaces.http.be1_runtime import get_verified_adult
 from sketch2life.interfaces.http.routers.lesson_library import get_lesson_library_service
 from sketch2life.interfaces.http.routers.storage_examples import get_storage_example_service
-from sqlalchemy import MetaData, Table, and_, delete, func, insert, inspect, or_, select
+from sqlalchemy import MetaData, Table, and_, delete, func, insert, inspect, or_, select, update
 from sqlalchemy.sql.elements import ColumnElement
 
 
@@ -1589,3 +1599,553 @@ def test_c4_complete_is_202_and_version_create_is_keyed(
     finally:
         accepted.app.state.lesson_document_scanner = previous_scanner
         accepted.app.state.lesson_document_parser = previous_parser
+
+
+# ---------------------------------------------------------------------------------------------
+# T-10d (TD-24, FR-PL-05, FR-PL-06): only a PUBLIC lesson needs a Manager decision; a private
+# share (school, named Parent, Parent group) works for a version in any review state.
+# ---------------------------------------------------------------------------------------------
+_FULL_READ = {
+    "shared": True,
+    "public": False,
+    "detail": 200,
+    "export": 200,
+    "catalog": True,
+    "pin": True,
+}
+_PUBLIC_READ = {**_FULL_READ, "shared": False, "public": True}
+_NO_READ = {
+    "shared": False,
+    "public": False,
+    "detail": 404,
+    "export": 404,
+    "catalog": False,
+    "pin": False,
+}
+
+
+def _lesson_base(accepted: LessonApiAcceptance, lesson: dict[str, object]) -> str:
+    return (
+        f"/api/lesson-library/v1/organizations/{accepted.organization_id}/lessons/"
+        f"{lesson['lesson_id']}"
+    )
+
+
+def _share(
+    accepted: LessonApiAcceptance,
+    lesson: dict[str, object],
+    kind: str,
+    ref: str | None,
+    capability: str = "VIEW",
+    *,
+    actor: str | None = None,
+    version_id: str | None = None,
+) -> Any:
+    return accepted.client.post(
+        _lesson_base(accepted, lesson) + "/access-grants",
+        json={
+            "contract": "CreateLessonAccessGrantRequestV1",
+            "version_id": version_id or lesson["current_version"]["version_id"],
+            "audience_kind": kind,
+            "audience_ref": ref,
+            "capability": capability,
+            "expires_at": None,
+        },
+        headers=_headers(
+            actor or accepted.teacher,
+            **{"Idempotency-Key": f"t10d-{kind.lower()}-{capability.lower()}-{uuid4()}"},
+        ),
+    )
+
+
+def _share_pair(
+    accepted: LessonApiAcceptance, lesson: dict[str, object], kind: str, ref: str | None
+) -> list[dict[str, Any]]:
+    """VIEW (list, detail, catalog, pin) and DOWNLOAD (export) grants for one audience."""
+    grants = []
+    for capability in ("VIEW", "DOWNLOAD"):
+        response = _share(accepted, lesson, kind, ref, capability)
+        assert response.status_code == 201, response.text
+        grants.append(response.json())
+    return grants
+
+
+def _accept_invitations(accepted: LessonApiAcceptance, grants: list[dict[str, Any]]) -> None:
+    for grant in grants:
+        response = accepted.client.post(
+            f"/api/lesson-library/v1/me/lesson-invitations/{grant['access_grant_id']}/accept",
+            headers=_headers(accepted.parent, **{"Idempotency-Key": f"t10d-accept-{uuid4()}"}),
+        )
+        assert response.status_code == 200, response.text
+        assert response.json()["state"] == "ACTIVE"
+
+
+def _revoke(
+    accepted: LessonApiAcceptance,
+    lesson: dict[str, object],
+    grants: list[dict[str, Any]],
+    revision: int,
+) -> None:
+    for grant in grants:
+        response = accepted.client.delete(
+            f"{_lesson_base(accepted, lesson)}/access-grants/{grant['access_grant_id']}",
+            headers=_keyed(accepted.teacher, revision, f"t10d-revoke-{uuid4()}"),
+        )
+        assert response.status_code == 200, response.text
+        assert response.json()["state"] == "REVOKED"
+
+
+def _library_service(accepted: LessonApiAcceptance, db: Any) -> LessonLibraryService:
+    return LessonLibraryService(
+        db,
+        storage=accepted.storage,
+        parser=accepted.app.state.lesson_document_parser,
+        scanner=accepted.app.state.lesson_document_scanner,
+    )
+
+
+def _parent_view(
+    accepted: LessonApiAcceptance, subject: str, lesson: dict[str, object]
+) -> dict[str, object]:
+    """Every Parent read path for one lesson, including the Parent StoryRun pin lookup."""
+    client = accepted.client
+    lesson_id = lesson["lesson_id"]
+    headers = _headers(subject)
+    shared = client.get("/api/lesson-library/v1/me/lessons?source=SHARED", headers=headers)
+    public = client.get("/api/lesson-library/v1/me/lessons?source=PUBLIC", headers=headers)
+    assert shared.status_code == 200, shared.text
+    assert public.status_code == 200, public.text
+    detail = client.get(f"/api/lesson-library/v1/me/lessons/{lesson_id}", headers=headers)
+    export = client.get(
+        f"/api/lesson-library/v1/me/lessons/{lesson_id}/download", headers=headers
+    )
+    with accepted.app.state.be1_runtime.session_factory.begin() as db:
+        service = _library_service(accepted, db)
+        catalog = any(
+            row["lesson_id"] == lesson_id
+            for row in service.list_parent_activity_catalog(parent_principal_ref=subject)
+        )
+        try:
+            pinned = service.get_parent_lesson(parent_principal_ref=subject, lesson_id=lesson_id)
+            pin = pinned["version_id"] == lesson["current_version"]["version_id"] and bool(
+                pinned["content_sha256"]
+            )
+        except LessonLibraryError as exc:
+            assert (exc.status_code, exc.code) == (404, "LESSON_NOT_FOUND")
+            pin = False
+    return {
+        "shared": any(item["lesson_id"] == lesson_id for item in shared.json()["items"]),
+        "public": any(item["lesson_id"] == lesson_id for item in public.json()["items"]),
+        "detail": detail.status_code,
+        "export": export.status_code,
+        "catalog": catalog,
+        "pin": pin,
+    }
+
+
+def _version_review_state(accepted: LessonApiAcceptance, lesson: dict[str, object]) -> str:
+    with accepted.app.state.be1_runtime.session_factory.begin() as db:
+        return str(
+            db.execute(
+                select(LIBRARY_VERSIONS.c.review_state).where(
+                    LIBRARY_VERSIONS.c.version_id == lesson["current_version"]["version_id"]
+                )
+            ).scalar_one()
+        )
+
+
+def _request_changes(accepted: LessonApiAcceptance, grant: dict[str, Any]) -> None:
+    response = accepted.client.post(
+        f"/api/lesson-library/v1/organizations/{accepted.organization_id}/access-grants/"
+        f"{grant['access_grant_id']}/decision",
+        json={
+            "contract": "DecideLessonAccessGrantRequestV1",
+            "decision": "REQUEST_CHANGES",
+            "reason": "Synthetic change request",
+        },
+        headers=_headers(
+            accepted.manager,
+            **{"If-Match": '"1"', "Idempotency-Key": f"t10d-changes-{uuid4()}"},
+        ),
+    )
+    assert response.status_code == 200, response.text
+    assert response.json()["state"] == "CHANGES_REQUESTED"
+
+
+@contextmanager
+def _second_tenant(accepted: LessonApiAcceptance) -> Iterator[dict[str, str]]:
+    """Another organization with its own Teacher, plus another Parent account (removed after)."""
+    other_org = f"synthetic-lesson-other-org-{uuid4()}"
+    other_teacher = f"synthetic-other-teacher-{uuid4()}"
+    other_parent = f"synthetic-other-parent-{uuid4()}"
+    with accepted.app.state.be1_runtime.session_factory.begin() as db:
+        db.add(
+            OrganizationModel(
+                organization_id=other_org,
+                display_name="Synthetic Other Lesson Organization",
+                state="active",
+            )
+        )
+        for subject, role in ((other_teacher, "teacher"), (other_parent, "parent")):
+            db.add(
+                AdultIdentityModel(
+                    subject=subject,
+                    issuer="synthetic-lesson-test-issuer",
+                    state="active",
+                    account_role=role,
+                )
+            )
+        db.flush()
+        db.add(
+            OrganizationAssignmentModel(
+                assignment_id=str(uuid4()),
+                organization_id=other_org,
+                subject=other_teacher,
+                class_id=None,
+                role="teacher",
+                active=True,
+            )
+        )
+    try:
+        yield {"organization": other_org, "teacher": other_teacher, "parent": other_parent}
+    finally:
+        with accepted.app.state.be1_runtime.session_factory.begin() as db:
+            db.execute(
+                delete(OrganizationAssignmentModel).where(
+                    OrganizationAssignmentModel.organization_id == other_org
+                )
+            )
+            db.execute(
+                delete(OrganizationModel).where(OrganizationModel.organization_id == other_org)
+            )
+            for subject in (other_teacher, other_parent):
+                db.execute(delete(AdultIdentityModel).where(AdultIdentityModel.subject == subject))
+
+
+def test_t10d_a_draft_version_shared_to_a_parent_needs_accept_and_revoke_ends_every_read(
+    lesson_api_acceptance: LessonApiAcceptance,
+) -> None:
+    accepted = lesson_api_acceptance
+    lesson = _create_lesson(accepted, visibility="PRIVATE")
+    assert lesson["current_version"]["review_state"] == "DRAFT"
+
+    grants = _share_pair(accepted, lesson, "PRINCIPAL", accepted.parent)
+    assert [grant["state"] for grant in grants] == ["INVITED", "INVITED"]
+    assert _version_review_state(accepted, lesson) == "DRAFT"  # a private grant never writes it
+    assert _parent_view(accepted, accepted.parent, lesson) == _NO_READ  # before accept
+
+    _accept_invitations(accepted, grants)
+    assert _parent_view(accepted, accepted.parent, lesson) == _FULL_READ
+    assert _version_review_state(accepted, lesson) == "DRAFT"
+    with accepted.app.state.be1_runtime.session_factory.begin() as db:
+        pinned = _library_service(accepted, db).get_parent_lesson(
+            parent_principal_ref=accepted.parent, lesson_id=lesson["lesson_id"]
+        )
+        stored_hash = db.execute(
+            select(LIBRARY_VERSIONS.c.structured_content_hash).where(
+                LIBRARY_VERSIONS.c.version_id == lesson["current_version"]["version_id"]
+            )
+        ).scalar_one()
+    # (i) the Parent StoryRun lesson pin check: get_parent_lesson plus the exact version/hash match
+    assert pinned["version_id"] == lesson["current_version"]["version_id"]
+    assert pinned["content_sha256"] == stored_hash
+
+    _revoke(accepted, lesson, grants, revision=2)
+    assert _parent_view(accepted, accepted.parent, lesson) == _NO_READ
+
+
+def test_t10d_b_decline_and_expiry_end_every_read_path(
+    lesson_api_acceptance: LessonApiAcceptance,
+) -> None:
+    accepted = lesson_api_acceptance
+    lesson = _create_lesson(accepted, visibility="PRIVATE")
+
+    declined = _share_pair(accepted, lesson, "PRINCIPAL", accepted.parent)
+    for grant in declined:
+        response = accepted.client.post(
+            f"/api/lesson-library/v1/me/lesson-invitations/{grant['access_grant_id']}/decline",
+            headers=_headers(accepted.parent, **{"Idempotency-Key": f"t10d-decline-{uuid4()}"}),
+        )
+        assert response.status_code == 200, response.text
+        assert response.json()["state"] == "DECLINED"
+    assert _parent_view(accepted, accepted.parent, lesson) == _NO_READ
+
+    expiring = _share_pair(accepted, lesson, "PRINCIPAL", accepted.parent)
+    _accept_invitations(accepted, expiring)
+    assert _parent_view(accepted, accepted.parent, lesson) == _FULL_READ
+    with accepted.app.state.be1_runtime.session_factory.begin() as db:
+        db.execute(
+            update(ACCESS_GRANTS)
+            .where(
+                ACCESS_GRANTS.c.access_grant_id.in_(
+                    [grant["access_grant_id"] for grant in expiring]
+                )
+            )
+            .values(expires_at=datetime.now(UTC) - timedelta(minutes=1))
+        )
+    assert _parent_view(accepted, accepted.parent, lesson) == _NO_READ
+
+
+def test_t10d_c_parent_group_member_reads_a_draft_version_and_others_do_not(
+    lesson_api_acceptance: LessonApiAcceptance,
+) -> None:
+    accepted = lesson_api_acceptance
+    client = accepted.client
+    org = accepted.organization_id
+    lesson = _create_lesson(accepted, visibility="PRIVATE")
+    group = client.post(
+        f"/api/lesson-library/v1/organizations/{org}/parent-groups",
+        json={"contract": "CreateParentGroupRequestV1", "display_name": "Synthetic T-10d group"},
+        headers=_headers(accepted.manager, **{"Idempotency-Key": f"t10d-group-{uuid4()}"}),
+    )
+    assert group.status_code == 201, group.text
+    group_id = group.json()["parent_group_id"]
+    invitation = client.post(
+        f"/api/lesson-library/v1/organizations/{org}/parent-groups/{group_id}/invitations",
+        json={"contract": "InviteParentToGroupRequestV1", "parent_principal_ref": accepted.parent},
+        headers=_headers(accepted.manager, **{"Idempotency-Key": f"t10d-invite-{uuid4()}"}),
+    )
+    assert invitation.status_code == 201, invitation.text
+    membership_id = invitation.json()["membership_id"]
+    member = client.post(
+        f"/api/lesson-library/v1/me/parent-group-invitations/{membership_id}/accept",
+        headers=_headers(accepted.parent, **{"Idempotency-Key": f"t10d-member-{uuid4()}"}),
+    )
+    assert member.status_code == 200, member.text
+
+    grants = _share_pair(accepted, lesson, "PARENT_GROUP", group_id)
+    assert [grant["state"] for grant in grants] == ["ACTIVE", "ACTIVE"]
+    assert _version_review_state(accepted, lesson) == "DRAFT"
+    assert _parent_view(accepted, accepted.parent, lesson) == _FULL_READ
+    with _second_tenant(accepted) as other:
+        assert _parent_view(accepted, other["parent"], lesson) == _NO_READ  # not a member
+
+    def set_group_state(state: str) -> None:
+        with accepted.app.state.be1_runtime.session_factory.begin() as db:
+            db.execute(
+                update(PARENT_GROUPS)
+                .where(PARENT_GROUPS.c.parent_group_id == group_id)
+                .values(state=state)
+            )
+
+    set_group_state("archived")
+    assert _parent_view(accepted, accepted.parent, lesson) == _NO_READ
+    refused = _share(accepted, lesson, "PARENT_GROUP", group_id)
+    assert (refused.status_code, refused.json()["code"]) == (409, "INVALID_STATE_TRANSITION")
+    set_group_state("active")
+    assert _parent_view(accepted, accepted.parent, lesson) == _FULL_READ
+
+    removed = client.delete(
+        f"/api/lesson-library/v1/organizations/{org}/parent-groups/{group_id}"
+        f"/members/{membership_id}",
+        headers=_headers(accepted.manager, **{"If-Match": '"2"'}),
+    )
+    assert removed.status_code == 200, removed.text
+    assert _parent_view(accepted, accepted.parent, lesson) == _NO_READ
+
+
+def test_t10d_d_school_share_of_a_draft_version_is_active_and_never_reaches_parents(
+    lesson_api_acceptance: LessonApiAcceptance,
+) -> None:
+    accepted = lesson_api_acceptance
+    lesson = _create_lesson(accepted, visibility="PRIVATE")
+    response = _share(accepted, lesson, "ORGANIZATION", accepted.organization_id)
+    assert response.status_code == 201, response.text
+    assert response.json()["state"] == "ACTIVE"
+    assert _version_review_state(accepted, lesson) == "DRAFT"
+    detail = accepted.client.get(_lesson_base(accepted, lesson), headers=_headers(accepted.teacher))
+    assert detail.status_code == 200
+    assert detail.json()["visibility"] == "SCHOOL"
+    # a school share is not a Parent grant
+    assert _parent_view(accepted, accepted.parent, lesson) == _NO_READ
+
+
+def test_t10d_e_public_request_still_needs_the_manager_and_parents_read_it_only_after(
+    lesson_api_acceptance: LessonApiAcceptance,
+) -> None:
+    accepted = lesson_api_acceptance
+    lesson = _create_lesson(accepted, visibility="PRIVATE")
+    view = _create_public_grant(accepted, lesson, capability="VIEW")
+    download = _create_public_grant(accepted, lesson, capability="DOWNLOAD")
+    assert _version_review_state(accepted, lesson) == "PENDING_REVIEW"
+    assert _parent_view(accepted, accepted.parent, lesson) == _NO_READ
+    for grant in (view, download):
+        _approve_public_grant(accepted, grant)
+    assert _version_review_state(accepted, lesson) == "APPROVED"
+    assert _parent_view(accepted, accepted.parent, lesson) == _PUBLIC_READ
+
+
+def test_t10d_f_a_declined_public_request_leaves_private_shares_readable_and_shareable(
+    lesson_api_acceptance: LessonApiAcceptance,
+) -> None:
+    accepted = lesson_api_acceptance
+    lesson = _create_lesson(accepted, visibility="PRIVATE")
+    private = _share_pair(accepted, lesson, "PRINCIPAL", accepted.parent)
+    _accept_invitations(accepted, private)
+    assert _parent_view(accepted, accepted.parent, lesson) == _FULL_READ
+
+    requested = _create_public_grant(accepted, lesson, capability="VIEW")
+    assert _version_review_state(accepted, lesson) == "PENDING_REVIEW"
+    assert _parent_view(accepted, accepted.parent, lesson) == _FULL_READ  # shared yes, public no
+
+    _request_changes(accepted, requested)
+    assert _version_review_state(accepted, lesson) == "CHANGES_REQUESTED"
+    assert _parent_view(accepted, accepted.parent, lesson) == _FULL_READ
+    again = _share(accepted, lesson, "PRINCIPAL", accepted.parent, "REUSE")
+    assert again.status_code == 201, again.text
+    assert again.json()["state"] == "INVITED"
+
+    view = _create_public_grant(accepted, lesson, capability="VIEW")
+    download = _create_public_grant(accepted, lesson, capability="DOWNLOAD")
+    for grant in (view, download):
+        _approve_public_grant(accepted, grant)
+    assert _version_review_state(accepted, lesson) == "APPROVED"
+    after = _parent_view(accepted, accepted.parent, lesson)
+    assert after == {**_FULL_READ, "public": True}
+    # the private grants are untouched by the decision
+    with accepted.app.state.be1_runtime.session_factory.begin() as db:
+        states = db.execute(
+            select(ACCESS_GRANTS.c.state).where(
+                ACCESS_GRANTS.c.access_grant_id.in_([g["access_grant_id"] for g in private])
+            )
+        ).scalars().all()
+    assert set(states) == {"ACTIVE"}
+
+
+def test_t10d_g_unchanged_refusals_hidden_archived_and_tenant_isolation(
+    lesson_api_acceptance: LessonApiAcceptance,
+) -> None:
+    accepted = lesson_api_acceptance
+    client = accepted.client
+    lesson = _create_lesson(accepted, visibility="PRIVATE")
+    lesson_id = lesson["lesson_id"]
+    base = _lesson_base(accepted, lesson)
+
+    # share to self, non-author, unknown version, past expiry
+    own = _share(accepted, lesson, "PRINCIPAL", accepted.teacher)
+    assert (own.status_code, own.json()["code"]) == (400, "INVALID_REQUEST")
+    not_author = _share(accepted, lesson, "PRINCIPAL", accepted.parent, actor=accepted.manager)
+    assert not_author.status_code in {403, 404}, not_author.text
+    unknown = _share(accepted, lesson, "PRINCIPAL", accepted.parent, version_id="unknown-version")
+    assert (unknown.status_code, unknown.json()["code"]) == (404, "RESOURCE_NOT_FOUND")
+    past = client.post(
+        base + "/access-grants",
+        json={
+            "contract": "CreateLessonAccessGrantRequestV1",
+            "version_id": lesson["current_version"]["version_id"],
+            "audience_kind": "PRINCIPAL",
+            "audience_ref": accepted.parent,
+            "capability": "VIEW",
+            "expires_at": (datetime.now(UTC) - timedelta(days=1)).isoformat(),
+        },
+        headers=_headers(accepted.teacher, **{"Idempotency-Key": f"t10d-past-{uuid4()}"}),
+    )
+    assert (past.status_code, past.json()["code"]) == (400, "INVALID_REQUEST")
+
+    # hide ends Parent reads of a private share; restore brings them back
+    grants = _share_pair(accepted, lesson, "PRINCIPAL", accepted.parent)
+    _accept_invitations(accepted, grants)
+    assert _parent_view(accepted, accepted.parent, lesson) == _FULL_READ
+    moderation = f"/api/lesson-library/v1/platform/lessons/{lesson_id}/moderation"
+    hidden = client.patch(
+        moderation,
+        json={"contract": "ModerateLessonRequestV1", "state": "HIDDEN", "reason": "Synthetic test"},
+        headers=_keyed(accepted.platform_admin, 1, f"t10d-hide-{uuid4()}"),
+    )
+    assert hidden.status_code == 200, hidden.text
+    assert _parent_view(accepted, accepted.parent, lesson) == _NO_READ
+    shown = client.patch(
+        moderation,
+        json={"contract": "ModerateLessonRequestV1", "state": "VISIBLE", "reason": "Synthetic ok"},
+        headers=_keyed(accepted.platform_admin, 2, f"t10d-show-{uuid4()}"),
+    )
+    assert shown.status_code == 200, shown.text
+    assert _parent_view(accepted, accepted.parent, lesson) == _FULL_READ
+
+    # AC-63: another organization neither lists, reads nor shares into this one, and another
+    # Parent sees no lesson that was shared to someone else or to the school
+    school = _share(accepted, lesson, "ORGANIZATION", accepted.organization_id)
+    assert school.status_code == 201, school.text
+    with _second_tenant(accepted) as other:
+        other_base = f"/api/lesson-library/v1/organizations/{other['organization']}/lessons"
+        listed = client.get(other_base, headers=_headers(other["teacher"]))
+        assert listed.status_code == 200, listed.text
+        assert all(item["lesson_id"] != lesson_id for item in listed.json()["items"])
+        crossed = client.get(f"{other_base}/{lesson_id}", headers=_headers(other["teacher"]))
+        assert crossed.status_code == 404
+        assert client.get(base, headers=_headers(other["teacher"])).status_code in {403, 404}
+        cross_share = _share(accepted, lesson, "ORGANIZATION", other["organization"])
+        assert (cross_share.status_code, cross_share.json()["code"]) == (404, "RESOURCE_NOT_FOUND")
+        foreign = _share(accepted, lesson, "PRINCIPAL", accepted.parent, actor=other["teacher"])
+        assert foreign.status_code in {403, 404}, foreign.text
+        assert _parent_view(accepted, other["parent"], lesson) == _NO_READ
+
+    current = client.get(base, headers=_headers(accepted.teacher))
+    assert current.status_code == 200, current.text
+    archived = client.delete(
+        base,
+        headers=_headers(
+            accepted.teacher,
+            **{"If-Match": current.headers["ETag"], "Idempotency-Key": f"t10d-archive-{uuid4()}"},
+        ),
+    )
+    assert archived.status_code == 200, archived.text
+    assert _parent_view(accepted, accepted.parent, lesson) == _NO_READ
+    after_archive = _share(accepted, lesson, "PRINCIPAL", accepted.parent)
+    assert (after_archive.status_code, after_archive.json()["code"]) == (404, "RESOURCE_NOT_FOUND")
+
+
+def test_t10d_h_a_forced_public_grant_on_an_unapproved_version_stays_invisible(
+    lesson_api_acceptance: LessonApiAcceptance,
+) -> None:
+    accepted = lesson_api_acceptance
+    lesson = _create_lesson(accepted, visibility="PRIVATE")
+    grants = [
+        _create_public_grant(accepted, lesson, capability="VIEW"),
+        _create_public_grant(accepted, lesson, capability="DOWNLOAD"),
+    ]
+    with accepted.app.state.be1_runtime.session_factory.begin() as db:
+        db.execute(
+            update(ACCESS_GRANTS)
+            .where(ACCESS_GRANTS.c.access_grant_id.in_([g["access_grant_id"] for g in grants]))
+            .values(state="ACTIVE")
+        )
+        db.execute(
+            update(LIBRARY_VERSIONS)
+            .where(LIBRARY_VERSIONS.c.version_id == lesson["current_version"]["version_id"])
+            .values(review_state="DRAFT")
+        )
+    assert _parent_view(accepted, accepted.parent, lesson) == _NO_READ
+
+
+def test_t10d_j_an_occurrence_pin_of_a_privately_shared_draft_version_is_still_refused(
+    lesson_api_acceptance: LessonApiAcceptance,
+) -> None:
+    """D8: the occurrence pin keeps its APPROVED gate (T-3a-DEC-6); T-10d does not change it."""
+    accepted = lesson_api_acceptance
+    lesson = _create_lesson(accepted, visibility="PRIVATE")
+    grants = _share_pair(accepted, lesson, "PRINCIPAL", accepted.parent)
+    _accept_invitations(accepted, grants)
+    assert _parent_view(accepted, accepted.parent, lesson) == _FULL_READ
+    with accepted.app.state.be1_runtime.session_factory.begin() as db:
+        stored_hash = db.execute(
+            select(LIBRARY_VERSIONS.c.structured_content_hash).where(
+                LIBRARY_VERSIONS.c.version_id == lesson["current_version"]["version_id"]
+            )
+        ).scalar_one()
+        ref = LessonVersionRefV1(
+            lesson_id=str(lesson["lesson_id"]),
+            version_id=str(lesson["current_version"]["version_id"]),
+            content_sha256=stored_hash,
+        )
+        teacher = VerifiedPrincipal(
+            subject=accepted.teacher,
+            issuer="synthetic-lesson-test-issuer",
+            roles=frozenset(),
+            token_id="synthetic-lesson-test-token",
+        )
+        with pytest.raises(LessonOccurrenceError) as refused:
+            LessonOccurrenceService(db).resolve_lesson_pin(
+                principal=teacher, organization_id=accepted.organization_id, ref=ref
+            )
+    assert (refused.value.status_code, refused.value.code) == (409, "INVALID_STATE_TRANSITION")

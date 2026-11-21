@@ -14,6 +14,7 @@ import re
 from collections.abc import Callable, Collection, Sequence
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from types import SimpleNamespace
 from typing import Any
 
 import pytest
@@ -298,14 +299,27 @@ class FakeNotices:
     def notice_exists(self, notice_id: str) -> bool:
         return notice_id in self.w.notices
 
-    def record_parent_notice(
+    def record_lifecycle_notice(
         self, *, notice_id: str, scope: LifecycleScope, story_run_ref: str, reason_code: str
     ) -> None:
         self.w.hit("ai.act")
         self.w.notices.setdefault(
-            notice_id, {"applied_count": 0, "status": "COMPLETE", "run": story_run_ref}
+            notice_id,
+            {
+                "applied_count": 0,
+                "status": "COMPLETE",
+                "run": story_run_ref,
+                "scope_kind": scope.kind,
+                "reason_code": reason_code,
+            },
         )
         self.w.hit("ai.after_act")
+
+    def record_parent_notice(
+        self, *, notice_id: str, scope: LifecycleScope, story_run_ref: str, reason_code: str
+    ) -> None:
+        # FEAT-066 T-13a: the consumer calls ``record_lifecycle_notice`` for every scope kind.
+        raise AssertionError("the consumer must not call record_parent_notice")
 
 
 class FakeStory:
@@ -743,11 +757,10 @@ def _leased_event(h: Harness, event_id: str, **envelope: Any) -> OutboxEnvelope:
 @pytest.mark.parametrize(
     "envelope",
     (
-        {
-            "owner_scope_kind": "ORGANIZATION",
-            "owner_scope_ref": "org-1",
-            "organization_id": "org-1",
-        },
+        # FEAT-066 T-13a: ``ORGANIZATION`` is a lifecycle scope now (a Teacher run); a kind that
+        # is neither Parent nor organization, or an organization event without a ref, is refused.
+        {"owner_scope_kind": "GLOBAL", "owner_scope_ref": "org-1", "organization_id": "org-1"},
+        {"owner_scope_kind": "ORGANIZATION", "owner_scope_ref": None, "organization_id": "org-1"},
         {"aggregate_id": "story_run:" + RUN},
         {"aggregate_id": RUN.upper()[:9] + "ABCD" + RUN[13:]},
         {"event_type": "canvas.operation.accepted.v1"},
@@ -788,8 +801,6 @@ def test_a_receipt_of_another_owner_scope_stops_the_attempt_and_is_left_unchange
 
 
 def test_the_sql_receipt_store_refuses_a_receipt_with_another_target() -> None:
-    from types import SimpleNamespace
-
     from sketch2life.application.ports.core_foundation import CoreAssetPurgeError
     from sketch2life.infrastructure.persistence.be1_lifecycle_consumer import (
         SqlLifecycleReceiptStore,
@@ -825,7 +836,7 @@ def test_the_sql_receipt_store_refuses_a_receipt_with_another_target() -> None:
         store.ensure(
             request_id=REQUEST_ID,
             run_ref=RUN,
-            scope=LifecycleScope("ORGANIZATION", "org-1"),
+            scope=SimpleNamespace(kind="GLOBAL", ref="org-1"),  # type: ignore[arg-type]
             tx=session,
         )
 

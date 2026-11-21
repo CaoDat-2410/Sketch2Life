@@ -1186,8 +1186,8 @@ class LessonLibraryService:
         if audience_kind == "PUBLIC":
             state = "PENDING_REVIEW"
         else:
-            if version["review_state"] != "APPROVED":
-                fail(409, "PUBLICATION_REQUIRED", "Only an approved version can be shared privately")
+            # T-10d (TD-24, FR-PL-05/FR-PL-06): only PUBLIC needs the Manager decision. A
+            # private audience (school, named Parent, Parent group) does not read review_state.
             if audience_kind == "ORGANIZATION" and audience_ref != organization_id:
                 fail(404, "RESOURCE_NOT_FOUND", "The audience organization was not found")
             if audience_kind == "PRINCIPAL":
@@ -1882,7 +1882,6 @@ class LessonLibraryService:
             or_(ACCESS_GRANTS.c.expires_at.is_(None), ACCESS_GRANTS.c.expires_at > now),
             LIBRARY_ITEMS.c.state == "ACTIVE",
             LIBRARY_ITEMS.c.moderation_state == "VISIBLE",
-            LIBRARY_VERSIONS.c.review_state == "APPROVED",
         )
         if source_kind == "PUBLIC":
             kinds = ("PUBLIC",)
@@ -1893,7 +1892,12 @@ class LessonLibraryService:
         stmt = stmt.where(ACCESS_GRANTS.c.audience_kind.in_(kinds))
         scoped: list[dict[str, Any]] = []
         if "PUBLIC" in kinds:
-            public_stmt = stmt.where(ACCESS_GRANTS.c.audience_kind == "PUBLIC")
+            # T-10d: only a PUBLIC lesson needs the Manager-approved version (FR-PL-05, BR-51);
+            # a private share (PRINCIPAL, PARENT_GROUP) reads a version in any review state.
+            public_stmt = stmt.where(
+                ACCESS_GRANTS.c.audience_kind == "PUBLIC",
+                LIBRARY_VERSIONS.c.review_state == "APPROVED",
+            )
             public_stmt = self._cursor_filter(
                 public_stmt, cursor, LIBRARY_ITEMS.c.created_at, LIBRARY_ITEMS.c.lesson_id
             )
@@ -1929,7 +1933,6 @@ class LessonLibraryService:
                 or_(ACCESS_GRANTS.c.expires_at.is_(None), ACCESS_GRANTS.c.expires_at > now),
                 LIBRARY_ITEMS.c.state == "ACTIVE",
                 LIBRARY_ITEMS.c.moderation_state == "VISIBLE",
-                LIBRARY_VERSIONS.c.review_state == "APPROVED",
             )
             group_stmt = self._cursor_filter(
                 group_stmt, cursor, LIBRARY_ITEMS.c.created_at, LIBRARY_ITEMS.c.lesson_id

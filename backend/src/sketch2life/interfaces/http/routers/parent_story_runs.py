@@ -33,6 +33,7 @@ from sketch2life.application.ports.parent_story_runs import (
     ParentStoryRunRecord,
     ParentStoryRunView,
 )
+from sketch2life.application.ports.story_run_actor import RunActor
 from sketch2life.application.services.parent_story_runs import (
     ParentStoryRunService,
     ParentStoryRunServiceError,
@@ -71,11 +72,13 @@ from sketch2life.infrastructure.persistence.parent_story_profile_lookup import (
 from sketch2life.infrastructure.persistence.parent_story_repository import (
     SqlParentStoryRunRepository,
 )
+from sketch2life.infrastructure.persistence.teacher_run_access import SqlTeacherRunAccess
 from sketch2life.infrastructure.story_inputs.runner import ParentInputJobRunner
 from sketch2life.infrastructure.story_video.repository import SqlStoryVideoRepository
 from sketch2life.interfaces.http.api_conventions import limit_query, parse_idempotency_key
 from sketch2life.interfaces.http.be1_runtime import get_db, get_verified_adult
 from sketch2life.interfaces.http.routers.lesson_library import get_lesson_library_service
+from sketch2life.interfaces.http.story_run_actor import require_story_run_actor
 
 router = APIRouter(prefix="/v1/story-runs", tags=["Parent StoryRuns"])
 _LOG = logging.getLogger(__name__)
@@ -98,12 +101,39 @@ _PARENT_STORY_ERROR_RESPONSES: dict[int | str, dict[str, Any]] = {
     500: {"model": ParentStoryErrorEnvelopeV1, "description": "An unexpected error occurred."},
 }
 
+# T-4a1: the run read and the three confirmations are open to the current class Teacher as well
+# (SRS l.1664-1669, l.1676 "Actor của run"); the 404 row says so, the 409 row names the class state.
+_ACTOR_STORY_ERROR_RESPONSES: dict[int | str, dict[str, Any]] = {
+    **_PARENT_STORY_ERROR_RESPONSES,
+    404: {
+        "model": ParentStoryErrorEnvelopeV1,
+        "description": (
+            "The resource was not found, or the caller is neither an active Parent nor the "
+            "Teacher currently assigned to the child's class."
+        ),
+    },
+}
+
 
 def _service(db: Session) -> ParentStoryRunService:
     return ParentStoryRunService(
         SqlParentStoryRunRepository(db),
         SqlParentStoryProfileLookup(db),
     )
+
+
+def _teacher_service(db: Session, actor: RunActor) -> ParentStoryRunService:
+    """The service of a Teacher actor: the repository re-reads the CURRENT assignment on every
+    step (FR-T-14, l.553). The profile lookup stays the Parent one and is never used for a run."""
+
+    return ParentStoryRunService(
+        SqlParentStoryRunRepository(db, actor=actor, teacher_access=SqlTeacherRunAccess(db)),
+        SqlParentStoryProfileLookup(db),
+    )
+
+
+def _service_for(db: Session, actor: RunActor) -> ParentStoryRunService:
+    return _teacher_service(db, actor) if actor.is_teacher else _service(db)
 
 
 def _require_parent(db: Session, principal: VerifiedPrincipal) -> AdultIdentityModel:
@@ -409,7 +439,7 @@ _DETAIL_READ_HEADERS = {"Cache-Control": "private, no-cache", "Vary": "Authoriza
     response_model=ParentStoryRunResult,
     summary="Read the authenticated Parent's saved StoryRun and review state",
     responses={
-        **_PARENT_STORY_ERROR_RESPONSES,
+        **_ACTOR_STORY_ERROR_RESPONSES,
         304: {"description": "Not modified (only after the caller was authorised)"},
     },
 )
@@ -423,8 +453,8 @@ def get_parent_story_run(
     """``StoryRunDetailV1`` (SRS l.1811): the strong ``ETag`` is a content hash of the body; the
     304 comes only after authorisation and a recomputation from the database (no cache)."""
 
-    _require_parent(db, principal)
-    service = _service(db)
+    actor = require_story_run_actor(db, principal)
+    service = _service_for(db, actor)
     record = _invoke(
         service.get_run,
         principal=principal,
@@ -445,9 +475,9 @@ def get_parent_story_run(
     "/{run_id}/cancel",
     response_model=ParentStoryRunLifecycleEnvelopeV1,
     status_code=status.HTTP_202_ACCEPTED,
-    summary="Cancel the authenticated Parent StoryRun and request its deletion",
+    summary="Cancel the StoryRun of the authenticated actor and request its deletion",
     responses={
-        **_PARENT_STORY_ERROR_RESPONSES,
+        **_ACTOR_STORY_ERROR_RESPONSES,
         409: {
             "model": ParentStoryCancelErrorEnvelopeV1,
             "description": "The request conflicts with the current StoryRun revision or state.",
@@ -465,18 +495,22 @@ def cancel_parent_story_run(
     db: Session = Depends(get_db),
 ) -> ParentStoryRunLifecycleEnvelopeV1:
     del idempotency_key
-    _require_parent(db, principal)
+    # T-13a: the owning Parent or the Teacher currently assigned to the child's class (SRS l.1673,
+    # UC-07 l.1467, UC-11 l.1515); everyone else gets the one 404.
+    actor = require_story_run_actor(db, principal)
     # Key errors (400) come after the role check and before the owner-scoped lookup (404);
     # the 400 does not depend on the run, so it reveals nothing about its existence.
     key = parse_idempotency_key(request)
     record = _invoke(
-        _service(db).cancel_run,
+        _service_for(db, actor).cancel_run,
         principal=principal,
         run_id=str(run_id),
         expected_revision=payload.expected_revision,
         idempotency_key=key,
     )
-    _meet_video_saga(request, db, str(run_id))
+    if not actor.is_teacher:
+        # No Teacher run owns a video generation before T-4b2/T-5a (hand-off H6).
+        _meet_video_saga(request, db, str(run_id))
     return _lifecycle_envelope(record)
 
 
@@ -484,8 +518,8 @@ def cancel_parent_story_run(
     "/{run_id}",
     response_model=ParentStoryRunLifecycleEnvelopeV1,
     status_code=status.HTTP_202_ACCEPTED,
-    summary="Delete the authenticated Parent's finished StoryRun",
-    responses=_PARENT_STORY_ERROR_RESPONSES,
+    summary="Delete the finished StoryRun of the authenticated actor",
+    responses=_ACTOR_STORY_ERROR_RESPONSES,
 )
 def delete_parent_story_run(
     run_id: UUID,
@@ -496,10 +530,10 @@ def delete_parent_story_run(
 ) -> ParentStoryRunLifecycleEnvelopeV1:
     """Contract Draft 11 §3.2: COMPLETED, FAILED or ABANDONED; no body, no revision."""
     del idempotency_key
-    _require_parent(db, principal)
+    actor = require_story_run_actor(db, principal)  # Parent owner or current class Teacher
     key = parse_idempotency_key(request)  # after the role check, before the lookup
     record = _invoke(
-        _service(db).delete_run,
+        _service_for(db, actor).delete_run,
         principal=principal,
         run_id=str(run_id),
         idempotency_key=key,
@@ -511,7 +545,7 @@ def delete_parent_story_run(
     "/{run_id}/context-confirmation",
     response_model=ParentStoryRunResult,
     summary="[PROPOSAL] Confirm the immutable Parent context snapshot before story generation",
-    responses=_PARENT_STORY_ERROR_RESPONSES,
+    responses=_ACTOR_STORY_ERROR_RESPONSES,
 )
 def confirm_parent_story_context(
     run_id: UUID,
@@ -522,10 +556,10 @@ def confirm_parent_story_context(
     db: Session = Depends(get_db),
 ) -> ParentStoryRunResult:
     del idempotency_key
-    _require_parent(db, principal)
+    actor = require_story_run_actor(db, principal)
     key = parse_idempotency_key(request)
     record = _invoke(
-        _service(db).confirm_context,
+        _service_for(db, actor).confirm_context,
         principal=principal,
         run_id=str(run_id),
         expected_context_revision=payload.expected_context_revision,
@@ -540,7 +574,7 @@ def confirm_parent_story_context(
     response_model=ParentSubjectConfirmationResponseV1 | ParentStoryRunLifecycleEnvelopeV1,
     status_code=status.HTTP_202_ACCEPTED,
     summary="[PROPOSAL] Persist adult confirmation of an interpreted drawing subject",
-    responses=_PARENT_STORY_ERROR_RESPONSES,
+    responses=_ACTOR_STORY_ERROR_RESPONSES,
 )
 def confirm_parent_story_subject(
     run_id: UUID,
@@ -559,14 +593,19 @@ def confirm_parent_story_subject(
     step (the recorded deviation DEV-1), so no client waits for a worker that does not exist.
     """
     del idempotency_key
-    _require_parent(db, principal)
+    actor = require_story_run_actor(db, principal)
     key = parse_idempotency_key(request)
     state = request.app.state
     analyzer = getattr(state, "drawing_analyzer", None)
     runtime = getattr(state, "be1_runtime", None)
-    rerun = bool(getattr(state, "subject_edit_reruns_vlm", True)) and analyzer is not None
+    # T-4a1-DEC-8: the VLM rerun is a Parent job; a Teacher edit is confirmed at once (DEV-1).
+    rerun = (
+        bool(getattr(state, "subject_edit_reruns_vlm", True))
+        and analyzer is not None
+        and not actor.is_teacher
+    )
     outcome = _invoke(
-        _service(db).confirm_subject,
+        _service_for(db, actor).confirm_subject,
         principal=principal,
         run_id=str(run_id),
         expected_understanding_revision=payload.expected_understanding_revision,
@@ -602,7 +641,7 @@ def confirm_parent_story_subject(
     "/{run_id}/script-confirmation",
     response_model=ParentStoryRunResult,
     summary="[PROPOSAL] Persist adult confirmation of a generated story revision",
-    responses=_PARENT_STORY_ERROR_RESPONSES,
+    responses=_ACTOR_STORY_ERROR_RESPONSES,
 )
 def confirm_parent_story_revision(
     run_id: UUID,
@@ -613,9 +652,9 @@ def confirm_parent_story_revision(
     db: Session = Depends(get_db),
 ) -> ParentStoryRunResult:
     del idempotency_key
-    _require_parent(db, principal)
+    actor = require_story_run_actor(db, principal)
     key = parse_idempotency_key(request)
-    service = _service(db)
+    service = _service_for(db, actor)
     record = _invoke(
         service.confirm_story_revision,
         principal=principal,

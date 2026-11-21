@@ -191,6 +191,10 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
         "/v1/lesson-occurrences/{occurrence_id}/plan-revisions",
         "/v1/lesson-occurrences/{occurrence_id}/plan-revisions/{revision_no}",
         "/v1/lesson-occurrences/{occurrence_id}/plan-revisions/{revision_no}/confirm",
+        # FEAT-066 T-8a: the notification inbox (SRS l.1681), always mounted.
+        "/v1/notifications",
+        "/v1/notifications/read-all",
+        "/v1/notifications/{inbox_item_id}/read",
         "/api/platform-admin/v1/accounts",
         "/api/platform-admin/v1/accounts/{account_id}",
         "/api/parent/v1/ai/sketch-guides",

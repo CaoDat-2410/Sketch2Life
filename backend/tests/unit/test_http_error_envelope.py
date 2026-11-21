@@ -26,6 +26,8 @@ SCANNED_MODULES = (
     "interfaces/http/routers/jobs.py",
     "interfaces/http/routers/upload_sessions.py",
     "interfaces/http/routers/lesson_occurrences.py",
+    "interfaces/http/routers/notifications.py",
+    "infrastructure/notifications/inbox_repository.py",
     "interfaces/http/be1_runtime.py",
     "infrastructure/lesson_library/service.py",
 )
@@ -222,6 +224,11 @@ def test_conv1_families() -> None:
     assert envelope.is_conv1_path("/v1/lesson-occurrences/occ_1/documents")
     assert envelope.is_conv1_path("/v1/lesson-occurrences", include_upload_sessions=False)
     assert not envelope.is_conv1_path("/v1/lesson-occurrencesfoo")
+    # FEAT-066 T-8a: the notification inbox, always in the family, whole segments only.
+    assert envelope.is_conv1_path("/v1/notifications")
+    assert envelope.is_conv1_path("/v1/notifications/read-all")
+    assert envelope.is_conv1_path("/v1/notifications/ntf_1/read", include_upload_sessions=False)
+    assert not envelope.is_conv1_path("/v1/notificationsfoo")
     assert not envelope.is_conv1_path("/api/parent/v1/ai/drawing-understandings")
     assert not envelope.is_conv1_path("/v1/parent/profiles")
     assert not envelope.is_conv1_path("/v1/story-runs")
