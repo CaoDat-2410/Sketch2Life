@@ -1,0 +1,37 @@
+meta {
+  name: 192 [PLATFORM ADMIN - STATE CHANGE - SYNTHETIC ONLY] Update Preferences
+  type: http
+  seq: 192
+}
+
+put {
+  url: {{baseUrl}}/api/platform-admin/v1/preferences
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
+  Idempotency-Key: REPLACE_WITH_SYNTHETIC_VALUE
+}
+
+body:json {
+  {
+    "locale": "en-US",
+    "email_notifications": false,
+    "expected_revision": 0
+  }
+}
+
+docs {
+  Expected success status: 200
+  Main error cases: 401 AUTH_REQUIRED; 403 ACTION_NOT_ALLOWED; 400 INVALID_REQUEST; 409 STALE_REVISION.
+  If-Match required: no.
+  Idempotency-Key required: yes.
+}

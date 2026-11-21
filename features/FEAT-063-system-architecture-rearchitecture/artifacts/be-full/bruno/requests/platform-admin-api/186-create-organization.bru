@@ -1,0 +1,35 @@
+meta {
+  name: 186 [PLATFORM ADMIN - STATE CHANGE - SYNTHETIC ONLY] Create Organization
+  type: http
+  seq: 186
+}
+
+post {
+  url: {{baseUrl}}/api/platform-admin/v1/organizations
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  X-Request-ID: REPLACE_WITH_SYNTHETIC_VALUE
+  Idempotency-Key: REPLACE_WITH_SYNTHETIC_VALUE
+}
+
+body:json {
+  {
+    "display_name": "Synthetic example organization"
+  }
+}
+
+docs {
+  Expected success status: 201
+  Main error cases: 401 AUTH_REQUIRED; 403 ACTION_NOT_ALLOWED; 400 INVALID_REQUEST; 400 INVALID_IDEMPOTENCY_KEY.
+  If-Match required: no.
+  Idempotency-Key required: yes.
+}

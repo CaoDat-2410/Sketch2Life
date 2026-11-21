@@ -11,16 +11,68 @@ runtime.
 
 ## Platform Admin
 
-- `142-list-accounts.bru` — read-only account list.
-- `143-create-account.bru` — state-changing; use only disposable synthetic local
-  accounts. The sample email uses the reserved `.test` domain.
-- `144-update-account.bru` — state-changing; set the ID and body only for a
-  disposable synthetic test account.
+| Seq | Request | Class |
+| --- | --- | --- |
+| 142 | List Accounts | read |
+| 143 | Create Account | state_change |
+| 144 | Update Account | state_change |
+| 160 | List Organizations | read |
+| 161 | Organization Summary | read |
+| 162 | Get Organization | read |
+| 163 | Get Account Permissions | read |
+| 164 | List Audit Events | read |
+| 165 | Get Audit Retention | read |
+| 166 | Preview Audit Retention | read |
+| 167 | List Inbox Items | read |
+| 168 | Get Preferences | read |
+| 169 | List Platform Lessons | read |
+| 170 | Get Platform Lesson | read |
+| 171 | List Catalog Records | read |
+| 172 | Get Catalog Record | read |
+| 173 | Get Admin Session | read |
+| 174 | Get Operations Summary | read |
+| 175 | List Lifecycle Requests | read |
+| 176 | List Email Deliveries | read |
+| 177 | Get Runtime Settings | read |
+| 178 | List Organization Feedback | read |
+| 179 | Get Feedback Thread | read |
+| 180 | List Capacity Classes | read |
+| 181 | [SANDBOX MAY BE DISABLED] List Billing Offers | read |
+| 182 | [SANDBOX MAY BE DISABLED] List Billing Invoices | read |
+| 183 | [SANDBOX MAY BE DISABLED] Get Billing Quota | read |
+| 184 | [SANDBOX MAY BE DISABLED] List Billing Subscriptions | read |
+| 185 | [SANDBOX MAY BE DISABLED] List Billing Capacity Prices | read |
+| 186 | Create Organization | state_change |
+| 187 | Update Organization | state_change |
+| 188 | Set Content Admin Permission | state_change |
+| 189 | Request Account Setup Email | state_change |
+| 190 | Update Audit Retention | state_change |
+| 191 | Mark Inbox Item Read | state_change |
+| 192 | Update Preferences | state_change |
+| 193 | Create Platform Lesson | state_change |
+| 194 | Revise Platform Lesson | state_change |
+| 195 | Platform Lesson Action | state_change |
+| 196 | Create Catalog Record | state_change |
+| 197 | Revise Catalog Record | state_change |
+| 198 | Catalog Action | state_change |
+| 199 | Reply to Feedback Thread | state_change |
+| 200 | Create Billing Offer | state_change |
+| 201 | Create Billing Invoice | state_change |
+| 202 | Settle Billing Invoice | state_change |
+| 203 | Create Included Grant | state_change |
+| 204 | Consume Billing Quota | state_change |
+| 205 | Create Capacity Price | state_change |
+| 206 | Quote New Subscription | state_change |
+| 207 | Quote Existing Subscription | state_change |
+| 208 | Configure Subscription | state_change |
 
-These requests require Platform Admin authorization. `142` pages with an opaque `cursor`
-(default and example `limit=25`; `next_cursor` continues). `143` and `144` send an
-`Idempotency-Key` (FEAT-066 C5); neither sends `If-Match`, because the SRS names no
-expected-revision rule for the account role or state.
+All Platform Admin requests require Platform Admin authorization. State-changing requests need disposable synthetic data. Billing sandbox requests require the sandbox to be enabled; real payments are disabled.
+
+Notes on the account requests: `142` pages with an opaque `cursor` (default and example
+`limit=25`; `next_cursor` continues). `143` and `144` send an `Idempotency-Key` (FEAT-066 C5);
+neither sends `If-Match`, because the SRS names no expected-revision rule for the account role
+or state. `143` and `144` use only disposable synthetic local accounts; the sample email uses the
+reserved `.test` domain.
 
 ## Manager
 
