@@ -17,6 +17,7 @@ import { TeacherAssignmentsPage } from "./pages/TeacherAssignmentsPage";
 import { FeedbackPage } from "./pages/FeedbackPage";
 import { authService } from "./services/authService";
 import { classService } from "./services/classService";
+import { InboxPage } from "../../../shared/notifications/InboxPage";
 
 function AdminAccessGate({ children }: { children: ReactNode }) {
   const location = useLocation();
@@ -92,11 +93,6 @@ const UNAVAILABLE: Record<string, { title: string; requirement: string; dependen
     requirement: "SRS yêu cầu quota theo organization và hiển thị usage/reconciliation có nguồn.",
     dependencies: ["API quota summary và grant history.", "Policy revision và audit trail.", "Trạng thái reconciliation từ backend."],
   },
-  inbox: {
-    title: "Hộp thư",
-    requirement: "Thông báo cần scope theo organization và đồng bộ trạng thái đã đọc.",
-    dependencies: ["API inbox phân trang.", "API read state và unread state.", "Không làm lộ notification ngoài phạm vi."],
-  },
 };
 
 function SchoolUnavailablePage() {
@@ -128,6 +124,7 @@ export function SchoolManagerBe1App() {
   else if (location.pathname === "/school/teacher-groups") return <Navigate to="/school" replace />;
   else if (location.pathname === "/school/parent-groups") page = <ParentGroupsPage />;
   else if (location.pathname === "/school/review-content") page = <SchoolReviewPage />;
+  else if (location.pathname === "/school/inbox") page = <InboxPage />;
   else if (/^\/school\/[^/]+$/.test(location.pathname)) page = <SchoolUnavailablePage />;
   else return <Navigate to="/school" replace />;
 

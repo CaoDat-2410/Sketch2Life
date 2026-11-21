@@ -64,7 +64,7 @@ export const TEACHER_NAVIGATION: PortalNavigationGroup[] = [
     label: "Tài khoản",
     items: [
       { href: "/teacher/t09-history", label: "Lịch sử", icon: History, state: "waiting" },
-      { href: "/teacher/t10-inbox", label: "Hộp thư", icon: Inbox, state: "waiting" },
+      { href: "/teacher/t10-inbox", label: "Hộp thư", icon: Inbox, state: "available" },
       { href: "/teacher/t11-profile", label: "Hồ sơ cá nhân", icon: GraduationCap, state: "waiting" },
       { href: "/teacher/t08-settings", label: "Cài đặt", icon: Settings2, state: "waiting" },
     ],
@@ -100,7 +100,7 @@ export const SCHOOL_MANAGER_NAVIGATION: PortalNavigationGroup[] = [
   {
     label: "Thông báo",
     items: [
-      { href: "/school/inbox", label: "Hộp thư", icon: Inbox, state: "waiting" },
+      { href: "/school/inbox", label: "Hộp thư", icon: Inbox, state: "available" },
     ],
   },
 ];
