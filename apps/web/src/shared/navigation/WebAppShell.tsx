@@ -29,7 +29,6 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
-import { BrandWordmark } from "../components/BrandMark";
 import platformAdminLogo from "../assets/sketch2life-logo-mark-128.png";
 import { AccessibleDialog } from "../components/ui";
 import { authService } from "../../modules/school-manager/be1/services/authService";
@@ -158,6 +157,7 @@ function pageTitle(groups: PortalNavigationGroup[], pathname: string, search: st
 }
 
 export function WebAppShell({
+  portal,
   roleLabel,
   roleSubtitle,
   navigation,
@@ -167,6 +167,7 @@ export function WebAppShell({
   onLogout,
   children,
 }: {
+  portal: "teacher" | "manager" | "platform";
   roleLabel: string;
   roleSubtitle: string;
   navigation: PortalNavigationGroup[];
@@ -185,16 +186,17 @@ export function WebAppShell({
   const [passwordConfirmation, setPasswordConfirmation] = useState("");
   const [passwordMessage, setPasswordMessage] = useState("");
   const [passwordBusy, setPasswordBusy] = useState(false);
-  const isPlatformAdmin = roleLabel === "Platform Admin";
+  const isPlatformAdmin = portal === "platform";
+  const isSchoolManager = portal === "manager";
   const [accountEmail, setAccountEmail] = useState("");
   useEffect(() => {
     if (!isPlatformAdmin) return;
     return authService.observe((user) => setAccountEmail(user?.email ?? ""));
   }, [isPlatformAdmin]);
-  const activeAdminGroup = navigation.find((group) =>
+  const activeGroup = navigation.find((group) =>
     group.items.some((item) => navigationMatches(item.href, location.pathname, location.search, item.matchPrefix)),
   )?.label ?? navigation[0]?.label;
-  const [adminGroups, setAdminGroups] = useState<Record<string, boolean>>({});
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
   const topAccountDetails = useRef<HTMLDetailsElement>(null);
   const menuButton = useRef<HTMLButtonElement>(null);
   const firstLink = useRef<HTMLAnchorElement>(null);
@@ -203,6 +205,12 @@ export function WebAppShell({
     : isPlatformAdmin && new URLSearchParams(location.search).get("panel") === "inbox"
     ? "Hộp thư"
     : pageTitle(navigation, location.pathname, location.search);
+  const homePath = navigation[0]?.items[0]?.href.split("?")[0] ?? "/";
+  const portalBreadcrumb = isPlatformAdmin
+    ? "Không gian quản trị"
+    : isSchoolManager
+      ? "Không gian quản lý"
+      : "Không gian giáo viên";
 
   useEffect(() => {
     const closeAccount = (event: PointerEvent) => {
@@ -241,7 +249,7 @@ export function WebAppShell({
         if (topAccountDetails.current) topAccountDetails.current.open = false;
         setPasswordMessage(""); setPasswordDialogOpen(true);
       }}><KeyRound size={17} aria-hidden="true" />Đổi mật khẩu</button>
-      <button className="pa-account-logout" type="button" onClick={logout}><LogOut size={17} aria-hidden="true" />Đăng xuất</button>
+      <button className="s2l-account-logout" type="button" onClick={logout}><LogOut size={17} aria-hidden="true" />Đăng xuất</button>
     </>
   );
 
@@ -267,7 +275,7 @@ export function WebAppShell({
   };
 
   return (
-    <div className={"s2l-app-shell" + (roleLabel === "School Manager" ? " is-school-manager" : "") + (menuOpen ? " is-menu-open" : "")} onKeyDown={(event) => {
+    <div className={"s2l-app-shell" + (isSchoolManager ? " is-school-manager" : "") + (menuOpen ? " is-menu-open" : "")} onKeyDown={(event) => {
       if (event.key === "Escape" && menuOpen) closeMenu();
       if (event.key === "Escape" && topAccountDetails.current?.open) {
         topAccountDetails.current.open = false;
@@ -277,23 +285,21 @@ export function WebAppShell({
       <a className="s2l-skip-link" href="#s2l-main">Bỏ qua điều hướng</a>
       <aside className="s2l-sidebar" id="s2l-navigation" aria-label={"Cổng " + roleLabel}>
         <div className="s2l-brand-lockup">
-          {isPlatformAdmin
-            ? <span className="pa-brand-logo-chip"><img src={platformAdminLogo} alt="Sketch2Life" /></span>
-            : <BrandWordmark size={30} />}
-          <div className={isPlatformAdmin ? "pa-brand-wordmark" : undefined}><strong>Sketch2Life</strong>{!isPlatformAdmin && <span>{roleLabel}</span>}</div>
+          <span className="s2l-brand-logo-chip"><img src={platformAdminLogo} alt="Sketch2Life" /></span>
+          <div className="s2l-brand-wordmark"><strong>Sketch2Life</strong>{!isPlatformAdmin && <span>{roleLabel}</span>}</div>
           <button type="button" className="s2l-close-menu" aria-label="Đóng điều hướng" onClick={closeMenu}><X size={19} /></button>
         </div>
         {!isPlatformAdmin && <div className="s2l-sidebar-caption">{roleSubtitle}</div>}
         <nav className="s2l-nav" aria-label={"Điều hướng " + roleLabel}>
           {navigation.map((group, groupIndex) => {
             const groupId = `s2l-nav-group-${groupIndex}`;
-            const preference = adminGroups[group.label];
-            const defaultOpen = group.label === "Quản lý" || group.label === "Nội dung" || activeAdminGroup === group.label;
-            const isActiveGroup = activeAdminGroup === group.label;
-            const isCollapsed = isPlatformAdmin && !!group.label && !isActiveGroup && !(preference ?? defaultOpen);
+            const preference = expandedGroups[group.label];
+            const defaultOpen = group.label === "Quản lý" || group.label === "Nội dung" || activeGroup === group.label;
+            const isActiveGroup = activeGroup === group.label;
+            const isCollapsed = !!group.label && !isActiveGroup && !(preference ?? defaultOpen);
             return (
-            <section className={"s2l-nav-group" + (isPlatformAdmin ? " is-collapsible" : "") + (isCollapsed ? " is-collapsed" : "")} key={group.label} aria-label={group.label}>
-              {isPlatformAdmin && group.label ? (
+            <section className={"s2l-nav-group" + (group.label ? " is-collapsible" : "") + (isCollapsed ? " is-collapsed" : "")} key={group.label || groupIndex} aria-label={group.label || undefined}>
+              {group.label ? (
                 <button
                   className="s2l-nav-group-toggle"
                   type="button"
@@ -301,13 +307,13 @@ export function WebAppShell({
                   aria-controls={groupId}
                   onClick={() => {
                     if (isActiveGroup) return;
-                    setAdminGroups((current) => ({ ...current, [group.label]: isCollapsed }));
+                    setExpandedGroups((current) => ({ ...current, [group.label]: isCollapsed }));
                   }}
                 >
                   <span>{group.label}</span>
                   <ChevronDown size={15} strokeWidth={1.8} aria-hidden="true" />
                 </button>
-              ) : group.label ? <h2>{group.label}</h2> : null}
+              ) : null}
               <div className="s2l-nav-group-items" id={groupId} hidden={isCollapsed}>
               {group.items.map((item, index) => {
                 const active = navigationMatches(item.href, location.pathname, location.search, item.matchPrefix);
@@ -344,34 +350,34 @@ export function WebAppShell({
             <button ref={menuButton} className="s2l-menu-button" type="button" aria-label={menuOpen ? "Đóng điều hướng" : "Mở điều hướng"} aria-controls="s2l-navigation" aria-expanded={menuOpen} onClick={() => setMenuOpen((open) => !open)}>
               {menuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
-            {isPlatformAdmin ? <nav className="pa-topbar-breadcrumb" aria-label="Đường dẫn trang">
-              <Link to="/platform/a02-platform-operations">Không gian quản trị</Link>
+            <nav className="s2l-topbar-breadcrumb" aria-label="Đường dẫn trang">
+              <Link to={homePath}>{portalBreadcrumb}</Link>
               <ChevronRight size={15} aria-hidden="true" />
               <span aria-current="page">{heading}</span>
-            </nav> : <div><span>Sketch2Life <span aria-hidden="true">/</span> {roleLabel}</span><strong>{heading}</strong></div>}
+            </nav>
           </div>
           <div className="s2l-topbar-tools">
             {!isPlatformAdmin && <span className="s2l-mode-chip"><span aria-hidden="true" />{modeLabel}</span>}
-            {isPlatformAdmin ? <details className="pa-topbar-account" ref={topAccountDetails}>
+            {isPlatformAdmin ? <details className="s2l-topbar-account" ref={topAccountDetails}>
               <summary aria-label="Mở tài khoản quản trị viên">
                 <span className="s2l-account-avatar" aria-hidden="true">PA</span>
-                <span className="pa-topbar-account-name">Quản trị viên</span>
+                <span className="s2l-topbar-account-name">Quản trị viên</span>
                 <ChevronDown size={15} aria-hidden="true" />
               </summary>
-              <div className="pa-account-popover pa-topbar-popover">
-                <div className="pa-topbar-account-info"><strong>Quản trị viên</strong><span>{accountEmail || "Tài khoản của tôi"}</span></div>
+              <div className="s2l-account-popover s2l-topbar-popover">
+                <div className="s2l-topbar-account-info"><strong>Quản trị viên</strong><span>{accountEmail || "Tài khoản của tôi"}</span></div>
                 {accountOptions}
               </div>
-            </details> : roleLabel === "School Manager" ? (
+            </details> : isSchoolManager ? (
               <span className="s2l-account-indicator" role="group" aria-label="Vai trò hiện tại: School Manager">
                 <span className="s2l-account-avatar" aria-hidden="true">SM</span>
                 <span>School Manager</span>
                 <ShieldCheck size={16} aria-hidden="true" />
               </span>
             ) : (
-              <button type="button" className="s2l-account-button" onClick={() => navigate(roleLabel === "Giáo viên" ? "/teacher/t11-profile" : "/platform/accounts")}>
-                <span className="s2l-account-avatar" aria-hidden="true">{roleLabel === "Giáo viên" ? "GV" : "PA"}</span>
-                <span>{roleLabel === "Platform Admin" ? "Quản trị viên" : roleLabel}</span><ArrowUpRight size={15} aria-hidden="true" />
+              <button type="button" className="s2l-account-button" onClick={() => navigate("/teacher/t11-profile")}>
+                <span className="s2l-account-avatar" aria-hidden="true">GV</span>
+                <span>{roleLabel}</span><ArrowUpRight size={15} aria-hidden="true" />
               </button>
             )}
           </div>

@@ -23,6 +23,7 @@ export function PlatformAdminApp() {
 
   return (
     <WebAppShell
+      portal="platform"
       roleLabel="Platform Admin"
       roleSubtitle="Vận hành nền tảng · nội dung theo quyền"
       navigation={PLATFORM_ADMIN_NAVIGATION}

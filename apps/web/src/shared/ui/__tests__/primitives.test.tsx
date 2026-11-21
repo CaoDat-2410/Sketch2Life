@@ -22,9 +22,32 @@ describe("shared cozy UI primitives", () => {
     expect(screen.getByRole("button", { name: "Refresh" })).toBeTruthy();
   });
 
+  it("keeps the shared form-rhythm class structure inside a card", () => {
+    render(
+      <Card className="cozy-form-card">
+        <form className="cozy-form-stack" aria-label="Profile form">
+          <label className="cozy-form-field">
+            <span>Display name</span>
+            <input />
+          </label>
+          <p className="cozy-form-hint">Helper text</p>
+          <div className="cozy-form-actions"><button type="submit">Save</button></div>
+        </form>
+      </Card>,
+    );
+    const card = screen.getByRole("article");
+    const form = within(card).getByRole("form", { name: "Profile form" });
+    expect(card.className).toContain("cozy-form-card");
+    expect(form.className).toContain("cozy-form-stack");
+    expect(within(form).getByLabelText("Display name")).toBeTruthy();
+    expect(within(form).getByText("Helper text").className).toContain("cozy-form-hint");
+    expect(within(form).getByRole("button", { name: "Save" }).parentElement?.className).toContain("cozy-form-actions");
+  });
+
   it("renders PageHeader without a decorative illustration chip", () => {
-    const { container } = render(<PageHeader title="Operations" description="Status overview" actions={<button type="button">Reload</button>} />);
+    const { container } = render(<PageHeader eyebrow="Platform Admin" title="Operations" description="Status overview" actions={<button type="button">Reload</button>} />);
     const header = container.querySelector("header");
+    expect(screen.getByText("Platform Admin")).toBeTruthy();
     expect(screen.getByRole("heading", { level: 1, name: "Operations" })).toBeTruthy();
     expect(screen.getByText("Status overview")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Reload" })).toBeTruthy();

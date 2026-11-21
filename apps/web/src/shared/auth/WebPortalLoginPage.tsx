@@ -1,8 +1,9 @@
 import { useState, type FormEvent } from "react";
-import { ArrowRight, Eye, EyeOff, GraduationCap, School, ShieldCheck } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, GraduationCap, LoaderCircle, School, ShieldCheck } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import "./WebPortalLoginPage.css";
 import { backendMessage } from "../api/backendApi";
+import sketch2lifeLogo from "../assets/sketch2life-logo-mark-256.png";
 
 export type WebPortalAppRole = "TEACHER" | "MANAGER" | "ADMIN";
 
@@ -134,10 +135,6 @@ export function WebPortalLoginPage({
     <main className="s2l-login-shell">
       <div className="s2l-login-card">
         <section className="s2l-login-intro">
-          <Link className="s2l-login-brand" to={`/login?role=${roleQuery}`} state={location.state} aria-label="Sketch2Life, đăng nhập">
-            <span className="s2l-login-brand-name">Sketch2Life</span>
-            <span className="s2l-login-brand-context">Không gian làm việc giáo dục</span>
-          </Link>
           <div className="s2l-login-message">
             <p className="s2l-login-eyebrow">{portal.code}</p>
             <h1>{portal.heading}</h1>
@@ -147,6 +144,13 @@ export function WebPortalLoginPage({
         </section>
 
         <section className="s2l-login-form-panel" aria-labelledby="s2l-login-title">
+          <Link className="s2l-login-brand" to={`/login?role=${roleQuery}`} state={location.state} aria-label="Sketch2Life, đăng nhập">
+            <img src={sketch2lifeLogo} alt="" aria-hidden="true" />
+            <span className="s2l-login-brand-copy">
+              <span className="s2l-login-brand-name">Sketch2Life</span>
+              <span className="s2l-login-brand-context">Không gian làm việc giáo dục</span>
+            </span>
+          </Link>
           <div className="s2l-login-role"><Icon size={19} aria-hidden="true" /><span>{portal.label}</span></div>
           <h2 id="s2l-login-title">{recovering ? "Quên mật khẩu?" : "Đăng nhập"}</h2>
           <p>{recovering ? "Nhập email tài khoản để nhận liên kết đặt lại mật khẩu." : "Chào mừng bạn trở lại Sketch2Life."}</p>
@@ -185,7 +189,7 @@ export function WebPortalLoginPage({
             {notice && <p className="s2l-reset-notice" role="status">{notice}</p>}
             <button className="s2l-login-submit" type="submit" disabled={pending || (recovering && Boolean(notice))}>
               <span>{pending ? "Đang xử lý…" : recovering ? "Gửi liên kết đặt lại" : "Đăng nhập"}</span>
-              <span className="s2l-login-submit-icon"><ArrowRight size={16} aria-hidden="true" /></span>
+              <span className="s2l-login-submit-icon">{pending ? <LoaderCircle size={17} aria-hidden="true" /> : <ArrowRight size={16} aria-hidden="true" />}</span>
             </button>
           </form>
           <div className="s2l-login-recovery">

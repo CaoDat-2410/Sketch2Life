@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 const theme = readFileSync(resolve(process.cwd(), "src/shared/styles/sketch2life-theme.css"), "utf8");
 const customProperties = new Set(theme.match(/--s2l-ui-[a-z0-9-]+(?=\s*:)/g) ?? []);
 
-describe("Platform Admin palette tokens", () => {
+describe("cozy portal palette tokens", () => {
   it("exposes primary, accent, status, and dark-theme variables", () => {
     [
       "--s2l-ui-primary",
@@ -43,8 +43,8 @@ describe("Platform Admin palette tokens", () => {
       "--s2l-ui-neutral-ink",
     ].forEach((name) => expect(customProperties.has(name), `${name} is defined`).toBe(true));
 
-    expect(theme).toContain('html[data-portal="platform"] {');
-    expect(theme).toContain('html[data-portal="platform"][data-theme="dark"] {');
+    expect(theme).toContain('html[data-cozy="1"] {');
+    expect(theme).toContain('html[data-cozy="1"][data-theme="dark"]:not([data-portal="entry"]) {');
     expect(theme).toContain("--s2l-ui-primary: #7435D5;");
     expect(theme).toContain("--s2l-ui-cream: #FFFAF6;");
     expect(theme).not.toContain("var(--color-accent, #245b9b)");

@@ -1,6 +1,7 @@
 import "./styles/tokens.css";
 import "./styles/teacher-paper-crayon.css";
 import "./styles/teacher-rebuild.css";
+import "./styles/teacher-cozy.css";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { WebAppShell, TEACHER_NAVIGATION } from "../../shared/navigation/WebAppShell";
 import { usePortalSession } from "../../shared/auth/PortalSessionContext";
@@ -50,6 +51,7 @@ export function TeacherPortalApp() {
 
   return (
     <WebAppShell
+      portal="teacher"
       roleLabel="Giáo viên"
       roleSubtitle="Lớp được phân công · học liệu · buổi dạy"
       navigation={TEACHER_NAVIGATION}

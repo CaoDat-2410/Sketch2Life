@@ -23,7 +23,7 @@ export function TeacherAssignmentsPage() {
     <PageHeading eyebrow="School Manager" title="Phân công giáo viên" description="Xem lớp và phân công giáo viên phụ trách." />
     <section className="manager-business-card manager-business-class-picker">
       {state === "loading" && <p role="status">Đang tải danh sách lớp…</p>}
-      {state === "error" && <><p role="alert">Không tải được danh sách lớp.</p><button className="manager-business-button" onClick={() => { setState("loading"); setReload((n) => n + 1); }}>Tải lại</button></>}
+      {state === "error" && <><p role="alert" className="manager-business-alert">Không tải được danh sách lớp.</p><button className="manager-business-button" onClick={() => { setState("loading"); setReload((n) => n + 1); }}>Tải lại</button></>}
       {state === "loaded" && classes.length === 0 && <p role="status">Chưa có lớp nào trong trường.</p>}
       {state === "loaded" && classes.length > 0 && <>
         <label htmlFor="assignment-class">Chọn lớp</label>

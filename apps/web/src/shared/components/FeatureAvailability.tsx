@@ -1,6 +1,7 @@
 import React from "react";
 import { ArrowLeft, CircleAlert, ExternalLink, LockKeyhole } from "lucide-react";
 import { Link } from "react-router-dom";
+import { PageHeader } from "../ui/PageHeader";
 
 export function PageHeading({
   eyebrow,
@@ -13,16 +14,16 @@ export function PageHeading({
   description: string;
   action?: React.ReactNode;
 }) {
-  return (
-    <header className="s2l-page-heading">
-      <div>
-        <p className="s2l-page-eyebrow">{eyebrow}</p>
-        <h1>{title}</h1>
-        <p className="s2l-page-lede">{description}</p>
-      </div>
-      {action && <div className="s2l-page-heading-action">{action}</div>}
-    </header>
-  );
+  return <PageHeader
+    eyebrow={eyebrow}
+    title={title}
+    description={description}
+    actions={action}
+    className="s2l-page-heading"
+    eyebrowClassName="s2l-page-eyebrow"
+    descriptionClassName="s2l-page-lede"
+    actionClassName="s2l-page-heading-action"
+  />;
 }
 
 export function FeatureAvailability({

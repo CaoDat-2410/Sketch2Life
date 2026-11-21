@@ -116,7 +116,7 @@ export function FeedbackPage() {
         {thread.next_cursor && <button className="manager-business-button" disabled={threadLoading || busy} onClick={() => void loadThread(selected, thread.next_cursor ?? undefined)}>Tải thêm tin nhắn</button>}
         <form className="manager-feedback-form" onSubmit={(event) => void submit(event)}><label htmlFor="feedback-reply">Nội dung phản hồi</label><textarea id="feedback-reply" maxLength={2000} value={body} disabled={busy} onChange={(event) => setBody(event.target.value)} /><span>{body.length}/2000</span><button className="manager-business-button is-primary" disabled={busy || threadLoading || !!threadError || !body.trim()}>Gửi phản hồi</button></form>
       </>}
-      {replyProblem && <p role="alert" className="manager-business-alert">{replyProblem}</p>}{notice && <p role="status">{notice}</p>}
+      {replyProblem && <p role="alert" className="manager-business-alert">{replyProblem}</p>}{notice && <p role="status" className="manager-business-success">{notice}</p>}
     </section>}
   </div>;
 }

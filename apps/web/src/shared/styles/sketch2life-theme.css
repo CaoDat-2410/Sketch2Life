@@ -54,7 +54,7 @@
   --spacing-cozy-xl: 2rem;
 }
 
-/* Generic role values retain the existing crayon theme for non-Platform portals. */
+/* Generic fallback values remain for the login/entry portal. Authenticated roles opt into the cozy palette below. */
 html[data-portal] {
   --s2l-ui-cream: var(--color-paper, #fff9f0);
   --s2l-ui-paper: var(--color-sheet, #fffefa);
@@ -167,7 +167,7 @@ html[data-portal] {
 }
 
 /* Parent app source: HomeScreen.colors and components/ui.tsx palette. */
-html[data-portal="platform"] {
+html[data-cozy="1"] {
   --s2l-ui-cream: #FFFAF6; /* HomeScreen.colors.background */
   --s2l-ui-paper: #FFFFFF; /* HomeScreen.colors.surface */
   --s2l-ui-paper-muted: #F6F0FF; /* HomeScreen.colors.lavenderSoft */
@@ -414,7 +414,7 @@ html[data-portal][data-theme="dark"] {
 }
 
 /* Dark compatibility surfaces retain the mobile hue family and use inked dark surfaces. */
-html[data-portal="platform"][data-theme="dark"] {
+html[data-cozy="1"][data-theme="dark"]:not([data-portal="entry"]) {
   --s2l-ui-cream: #24172d;
   --s2l-ui-paper: #30223d;
   --s2l-ui-paper-muted: #3b2c4a;
@@ -424,7 +424,7 @@ html[data-portal="platform"][data-theme="dark"] {
   --s2l-ui-primary: #7435d5;
   --s2l-ui-primary-soft: #3b2b4a;
   --s2l-ui-primary-ink: #e8daff;
-  --s2l-ui-primary-hover: #54239a;
+  --s2l-ui-primary-hover: #c49cf6;
   --s2l-ui-on-primary: #ffffff;
   --s2l-ui-primary-gradient-start: #8D3BEA;
   --s2l-ui-primary-gradient-end: #7429D0;
@@ -538,9 +538,9 @@ html[data-portal="platform"][data-theme="dark"] {
   --s2l-ui-neutral-200: #e7ddf0;
   --s2l-ui-neutral-300: #d8c8e2;
   --s2l-ui-neutral-400: #b7a8c5;
-  --s2l-ui-neutral-500: #897e91;
-  --s2l-ui-neutral-600: #70667c;
-  --s2l-ui-neutral-700: #51465d;
-  --s2l-ui-neutral-800: #332342;
-  --s2l-ui-neutral-900: #24172d;
+  --s2l-ui-neutral-500: #a99ab6;
+  --s2l-ui-neutral-600: #b7a8c5;
+  --s2l-ui-neutral-700: #d7c9e8;
+  --s2l-ui-neutral-800: #e7ddf0;
+  --s2l-ui-neutral-900: #fbf7ff;
 }

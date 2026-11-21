@@ -62,6 +62,7 @@ function SchoolManagerFrame({ children }: { children: ReactNode }) {
   const { toast } = usePortalSession();
   return (
     <WebAppShell
+      portal="manager"
       roleLabel="School Manager"
       roleSubtitle="Quản lý trường trong organization được xác minh"
       navigation={SCHOOL_MANAGER_NAVIGATION}

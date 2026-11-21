@@ -211,7 +211,7 @@ export function TeacherDeckPresentation({
   }, [slideIndex, onClose])
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col bg-slate-950 p-3 text-white sm:p-5" role="dialog" aria-modal="true" aria-label="Trình chiếu Sketch Deck">
+    <div className="teacher-deck-presentation fixed inset-0 z-[100] flex flex-col bg-slate-950 p-3 text-white sm:p-5" role="dialog" aria-modal="true" aria-label="Trình chiếu Sketch Deck">
       <header className="mx-auto flex w-full max-w-[1440px] items-center justify-between gap-4 pb-3">
         <div className="min-w-0">
           <p className="truncate text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">Sketch Deck · {deck.topic}</p>

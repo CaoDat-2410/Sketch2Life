@@ -605,10 +605,10 @@ export function BackendNotice({
   tone?: "info" | "warn" | "error" | "success";
 }) {
   const palette = {
-    info: { background: "#E8EAFF", border: "#C7CCFF", color: "#192477" },
-    warn: { background: "#fffbeb", border: "#fde68a", color: "#78350f" },
-    error: { background: "#fef2f2", border: "#fecaca", color: "#7f1d1d" },
-    success: { background: "#ecfdf5", border: "#a7f3d0", color: "#064e3b" },
+    info: { background: "var(--s2l-ui-primary-soft, #f1e7ff)", border: "var(--s2l-ui-primary-300, #e9d9ff)", color: "var(--s2l-ui-primary-hover, #54239a)" },
+    warn: { background: "var(--s2l-ui-warn-soft, #fff3d1)", border: "var(--s2l-ui-butter-300, #ffe29a)", color: "var(--s2l-ui-warn-ink, #5a4100)" },
+    error: { background: "var(--s2l-ui-danger-soft, #fce8e2)", border: "var(--s2l-ui-coral-300, #ffaa99)", color: "var(--s2l-ui-danger-ink, #5b211a)" },
+    success: { background: "var(--s2l-ui-success-soft, #e6f4e1)", border: "var(--s2l-ui-mint-300, #b8e2a7)", color: "var(--s2l-ui-success-ink, #193b20)" },
   }[tone];
   return (
     <section role="status" style={{ margin: "14px 0", padding: "12px 16px", border: `1px solid ${palette.border}`, borderRadius: 14, background: palette.background, color: palette.color }}>

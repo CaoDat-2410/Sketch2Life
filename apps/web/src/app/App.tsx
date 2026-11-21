@@ -26,13 +26,16 @@ function PortalRoutes() {
 
   useLayoutEffect(() => {
     const path = location.pathname;
-    document.documentElement.dataset.portal = path.startsWith("/teacher")
+    const portal = path.startsWith("/teacher")
       ? "teacher"
       : path.startsWith("/school")
         ? "school-be1"
         : path.startsWith("/platform")
           ? "platform"
           : "entry";
+    document.documentElement.dataset.portal = portal;
+    if (portal === "entry" && path !== "/login") delete document.documentElement.dataset.cozy;
+    else document.documentElement.dataset.cozy = "1";
   }, [location.pathname]);
 
   return (

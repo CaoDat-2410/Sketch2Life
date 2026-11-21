@@ -21,6 +21,7 @@ function renderPlatformShell(initialPath = "/platform/a02-platform-operations") 
   return render(
     <MemoryRouter initialEntries={[initialPath]}>
       <WebAppShell
+        portal="platform"
         roleLabel="Platform Admin"
         roleSubtitle=""
         navigation={PLATFORM_ADMIN_NAVIGATION}
@@ -34,10 +35,11 @@ function renderPlatformShell(initialPath = "/platform/a02-platform-operations") 
   );
 }
 
-function renderRoleShell(roleLabel: string, navigation: typeof TEACHER_NAVIGATION) {
+function renderRoleShell(roleLabel: string, navigation: typeof TEACHER_NAVIGATION, portal: "teacher" | "manager", initialPath: string) {
   return render(
-    <MemoryRouter initialEntries={["/"]}>
+    <MemoryRouter initialEntries={[initialPath]}>
       <WebAppShell
+        portal={portal}
         roleLabel={roleLabel}
         roleSubtitle=""
         navigation={navigation}
@@ -81,23 +83,38 @@ describe("Platform Admin navigation groups", () => {
   });
 });
 
-describe("Platform Admin brand mark", () => {
-  it("renders the approved logo image with its accessible name in the Platform Admin shell", () => {
-    renderPlatformShell();
+describe("cozy role shell", () => {
+  it("uses the approved logo chip in all three authenticated portals", () => {
+    const admin = renderPlatformShell();
+    expect(screen.getByRole("img", { name: "Sketch2Life" }).getAttribute("src")).toContain("sketch2life-logo-mark-128.png");
+    admin.unmount();
 
-    const logo = screen.getByRole("img", { name: "Sketch2Life" });
-    expect(logo.getAttribute("src")).toContain("sketch2life-logo-mark-128.png");
+    const teacher = renderRoleShell("Giáo viên", TEACHER_NAVIGATION, "teacher", "/teacher/t01-lesson-workspace");
+    expect(screen.getByRole("img", { name: "Sketch2Life" }).getAttribute("src")).toContain("sketch2life-logo-mark-128.png");
+    teacher.unmount();
+
+    renderRoleShell("School Manager", SCHOOL_MANAGER_NAVIGATION, "manager", "/school");
+    expect(screen.getByRole("img", { name: "Sketch2Life" }).getAttribute("src")).toContain("sketch2life-logo-mark-128.png");
   });
 
-  it("does not render the Platform Admin logo image in the Teacher shell", () => {
-    renderRoleShell("Teacher", TEACHER_NAVIGATION);
+  it("keeps the active Teacher navigation group open and remembers another group preference", () => {
+    renderRoleShell("Giáo viên", TEACHER_NAVIGATION, "teacher", "/teacher/t01-lesson-workspace");
+    const teaching = screen.getByRole("button", { name: "Dạy học" });
+    const account = screen.getByRole("button", { name: "Tài khoản" });
+    expect(teaching.getAttribute("aria-expanded")).toBe("true");
+    expect(account.getAttribute("aria-expanded")).toBe("false");
 
-    expect(screen.queryByRole("img", { name: "Sketch2Life" })).toBeNull();
+    fireEvent.click(account);
+    expect(account.getAttribute("aria-expanded")).toBe("true");
+    fireEvent.click(screen.getByRole("link", { name: "Giáo án" }));
+    expect(teaching.getAttribute("aria-expanded")).toBe("true");
+    expect(account.getAttribute("aria-expanded")).toBe("true");
+    expect(screen.getByRole("link", { name: "Giáo án" }).getAttribute("aria-current")).toBe("page");
   });
 
-  it("does not render the Platform Admin logo image in the School Manager shell", () => {
-    renderRoleShell("School Manager", SCHOOL_MANAGER_NAVIGATION);
-
-    expect(screen.queryByRole("img", { name: "Sketch2Life" })).toBeNull();
+  it("renders the School Manager breadcrumb and keeps its active group expanded", () => {
+    renderRoleShell("School Manager", SCHOOL_MANAGER_NAVIGATION, "manager", "/school");
+    expect(screen.getByRole("link", { name: "Không gian quản lý" }).getAttribute("href")).toBe("/school");
+    expect(screen.getByRole("button", { name: "Nhà trường" }).getAttribute("aria-expanded")).toBe("true");
   });
 });

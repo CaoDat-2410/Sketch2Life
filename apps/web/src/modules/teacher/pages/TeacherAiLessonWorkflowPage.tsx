@@ -179,7 +179,7 @@ export function TeacherAiLessonWorkflowPage() {
   const presentationDeck = parseTeacherSketchDeck(deck)
 
   return (
-    <main className="mx-auto max-w-5xl space-y-5 px-6 py-7">
+    <main className="teacher-ai-workflow mx-auto max-w-5xl space-y-5 px-6 py-7">
       <header>
         <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-700">Soạn nội dung · bản nháp</p>
         <h1 className="mt-1 text-3xl font-extrabold text-slate-950">Tạo giáo án có AI hỗ trợ</h1>
