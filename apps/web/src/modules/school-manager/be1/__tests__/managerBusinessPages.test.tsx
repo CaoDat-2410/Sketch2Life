@@ -117,26 +117,25 @@ describe("School Manager SRS-compatible business pages", () => {
     expect(candidates).not.toHaveBeenCalled();
   });
 
-  it("shows the roster-specific copy on 403 ACTION_NOT_ALLOWED, clears rows, keeps consent and does not log out", async () => {
+  it("shows the roster-specific copy on 403 ACTION_NOT_ALLOWED, keeps consent and does not log out", async () => {
     const logout = vi.fn();
     window.addEventListener("storage", logout);
     vi.spyOn(classService, "listClasses").mockResolvedValue([
       { class_id: "class-3", display_name: "Lớp Mầm", state: "active" },
     ]);
-    vi.spyOn(managerBusinessService, "profiles").mockRejectedValue(
+    vi.spyOn(managerBusinessService, "rosterSummary").mockRejectedValue(
       new AdminBe1Error("Không có quyền.", 403, "ACTION_NOT_ALLOWED"),
     );
-    vi.spyOn(managerBusinessService, "consents").mockResolvedValue({
-      contract: "Be1ClassConsentPageV1",
-      items: [{ consent_id: "consent-3", child_id: "child-opaque", purpose_ref: "story_generation", state: "ACTIVE", effective: true }],
-    });
+    vi.spyOn(managerBusinessService, "consents").mockResolvedValue([
+      { consent_id: "consent-3", state: "ACTIVE", effective: true },
+    ]);
 
     const { container } = render(<MemoryRouter><RosterConsentPage /></MemoryRouter>);
 
     expect((await screen.findByRole("alert")).textContent).toContain("Bạn không có quyền xem hồ sơ trẻ trong lớp này.");
     expect(await screen.findByText("Đã ghi nhận")).toBeTruthy();
     expect(container.querySelectorAll("tbody tr").length).toBeGreaterThan(0);
-    expect(screen.queryByText("Minh Anh")).toBeNull();
+    expect(screen.queryByText(/hồ sơ đang hoạt động/)).toBeNull();
     expect(logout).not.toHaveBeenCalled();
     window.removeEventListener("storage", logout);
   });
@@ -145,12 +144,28 @@ describe("School Manager SRS-compatible business pages", () => {
     vi.spyOn(classService, "listClasses").mockResolvedValue([
       { class_id: "class-4", display_name: "Lớp Lá", state: "active" },
     ]);
-    vi.spyOn(managerBusinessService, "profiles").mockRejectedValue(new AdminBe1Error("Máy chủ bận.", 503, "UNAVAILABLE"));
-    vi.spyOn(managerBusinessService, "consents").mockResolvedValue({ contract: "Be1ClassConsentPageV1", items: [] });
+    vi.spyOn(managerBusinessService, "rosterSummary").mockRejectedValue(new AdminBe1Error("Máy chủ bận.", 503, "UNAVAILABLE"));
+    vi.spyOn(managerBusinessService, "consents").mockResolvedValue([]);
 
     render(<MemoryRouter><RosterConsentPage /></MemoryRouter>);
 
     expect((await screen.findByRole("alert")).textContent).toContain("Máy chủ bận.");
+  });
+
+  it("labels a suspended class as read-only and does not offer a Teacher assignment", async () => {
+    vi.spyOn(classService, "listClasses").mockResolvedValue([
+      { class_id: "class-5", display_name: "Lớp Hoa", state: "suspended", class_revision: 3, assignment_revision: 1, has_active_teacher: false },
+    ]);
+    const candidates = vi.spyOn(classService, "listTeacherCandidates");
+    vi.spyOn(managerBusinessService, "rosterSummary").mockResolvedValue({ contract: "Be1ClassRosterSummaryV1", class_id: "class-5", active_profile_count: 0 });
+    vi.spyOn(managerBusinessService, "consents").mockResolvedValue([]);
+
+    render(<MemoryRouter><RosterConsentPage /></MemoryRouter>);
+
+    expect(await screen.findByText(/Tạm ngưng · Lớp tạm ngưng chỉ đọc, mọi dữ liệu vẫn được giữ./)).toBeTruthy();
+    expect(await screen.findByText(/không thể phân công Teacher/)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Phân công" })).toBeNull();
+    expect(candidates).not.toHaveBeenCalled();
   });
 
   it("creates a parent group with an idempotency key after explicit submit", async () => {
