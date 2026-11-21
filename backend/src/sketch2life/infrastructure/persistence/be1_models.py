@@ -30,10 +30,12 @@ from sketch2life.infrastructure.persistence.core_models import (
 
 class OrganizationModel(CorePersistenceBase):
     __tablename__ = "be1_organizations"
+    __table_args__ = (CheckConstraint("revision > 0", name="ck_be1_organization_revision"),)
 
     organization_id: Mapped[str] = mapped_column(String(128), primary_key=True)
     display_name: Mapped[str] = mapped_column(String(200), nullable=False)
     state: Mapped[str] = mapped_column(String(24), nullable=False, default="active")
+    revision: Mapped[int] = mapped_column(Integer, nullable=False, default=1, server_default="1")
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
@@ -59,6 +61,9 @@ class AdultIdentityModel(CorePersistenceBase):
     issuer: Mapped[str] = mapped_column(String(512), nullable=False)
     state: Mapped[str] = mapped_column(String(24), nullable=False, default="active")
     account_role: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    email_verification_required: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
+    )
     role_revision: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
@@ -116,6 +121,7 @@ class OrganizationAssignmentModel(CorePersistenceBase):
     class_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
     role: Mapped[str] = mapped_column(String(32), nullable=False)
     active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    pending_activation: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

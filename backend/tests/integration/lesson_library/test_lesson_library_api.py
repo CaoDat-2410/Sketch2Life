@@ -39,6 +39,7 @@ from sketch2life.infrastructure.persistence.core_models import (
     CoreAuditEntryModel,
     CoreOutboxEventModel,
 )
+from sketch2life.infrastructure.persistence.platform_models import PermissionGrantModel
 from sketch2life.interfaces.http.app import create_app
 from sketch2life.interfaces.http.be1_runtime import get_verified_adult
 from sketch2life.interfaces.http.routers.lesson_library import get_lesson_library_service
@@ -154,6 +155,17 @@ def lesson_api_acceptance(monkeypatch: pytest.MonkeyPatch) -> Iterator[LessonApi
                     account_role=account_role,
                 )
             )
+        db.flush()
+        # FEAT-072: lesson moderation needs the Platform Admin content_admin permission.
+        db.add(
+            PermissionGrantModel(
+                subject=platform_admin,
+                permission="content_admin",
+                active=True,
+                revision=1,
+                granted_by=platform_admin,
+            )
+        )
         db.flush()
         db.add_all(
             [

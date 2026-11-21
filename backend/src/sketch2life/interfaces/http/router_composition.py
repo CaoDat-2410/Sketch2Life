@@ -27,6 +27,9 @@ from sketch2life.interfaces.http.routers.pilot_assistance import router as pilot
 from sketch2life.interfaces.http.routers.platform_admin_accounts import (
     router as platform_admin_accounts_router,
 )
+from sketch2life.interfaces.http.routers.platform_admin import router as platform_admin_router
+from sketch2life.interfaces.http.routers.password_recovery import router as password_recovery_router
+from sketch2life.interfaces.http.routers.lesson_feedback import router as lesson_feedback_router
 from sketch2life.interfaces.http.routers.sessions import router as sessions_router
 from sketch2life.interfaces.http.routers.story_video import router as story_video_router
 from sketch2life.interfaces.http.routers.supervised_flow import renderer_source_router
@@ -58,6 +61,8 @@ def mount_classroom_routers(
     """Mount durable identity, classroom health, and BE1 runtime route groups."""
     application.include_router(auth_registration_router)
     application.include_router(platform_admin_accounts_router)
+    application.include_router(platform_admin_router)
+    application.include_router(password_recovery_router)
     application.include_router(health_router)
     application.include_router(be1_runtime_router)
     application.include_router(parent_profiles_router)
@@ -96,6 +101,7 @@ def mount_all_routers(
     )
     mount_demo_routers(application)
     application.include_router(lesson_library_router)
+    application.include_router(lesson_feedback_router)
     application.include_router(parent_ai_router)
     if include_parent_story_runs:
         application.include_router(parent_story_runs_router)

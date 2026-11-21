@@ -460,13 +460,16 @@ def test_head_counts_by_both_methods_match_the_derived_expectation() -> None:
     # FEAT-066 C5: 20261119_ar_0002 (BE1 command receipts) follows 20261110_ar_0001.
     # FEAT-066 T-2a: 20261119_uf_0001 (DDL-F upload scope) follows 20261119_ar_0002.
     # FEAT-066 T-3a: 20261119_oc_0001 (DDL-A lesson occurrence and plan) follows 20261119_uf_0001.
-    assert len(graph) == 35
+    # FEAT-072: seven forward-only Platform Admin revisions (20261119_admin_foundation to
+    # 20261120_admin_ops_retention) branch from 20261110_ar_0001.
+    # 20261119_admin_publication depends on 20261017_lc_0001, so it stops being a depends head.
+    assert len(graph) == 42
     down_targets = {target for down, _ in graph.values() for target in down}
     dependency_targets = down_targets | {target for _, dep in graph.values() for target in dep}
     heads_down_only = {rev for rev in graph if rev not in down_targets}
     heads_with_depends = {rev for rev in graph if rev not in dependency_targets}
     # Parent is an independent root; the existing BE1 and pilot graph remains unchanged.
-    assert (len(heads_down_only), len(heads_with_depends)) == (14, 10)
+    assert (len(heads_down_only), len(heads_with_depends)) == (15, 10)
     assert "20261101_be1_age_0001" in heads_down_only
     assert "20261102_pv_0001" in heads_down_only
     assert "20261102_pv_0001" not in heads_with_depends

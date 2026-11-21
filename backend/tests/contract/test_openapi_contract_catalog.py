@@ -37,6 +37,7 @@ from sketch2life.interfaces.http.openapi_srs_v22 import (
     SRS_V22_INCLUDED_OPERATIONS,
     SRS_V22_TAGS,
 )
+from sketch2life.interfaces.http.admin_contract import ADMIN_OPERATIONS
 
 HTTP_METHODS = {"get", "post", "put", "patch", "delete", "options", "head"}
 EXPECTED_IDEMPOTENCY_MISMATCH_OPERATION_KEYS = {
@@ -215,7 +216,7 @@ def test_swagger_ui_and_openapi_json_are_published(monkeypatch: pytest.MonkeyPat
         published_spec = openapi_response.json()
         assert published_spec["openapi"] == "3.1.0"
         assert published_spec["info"]["title"] == "Sketch2Life FE API"
-        assert published_spec["tags"] == SRS_V22_TAGS
+        assert published_spec["tags"] == SRS_V22_TAGS + [{"name": "Admin", "description": "Administration, identity and school-scoped feedback."}]
         assert len(published_spec["info"]["description"].split()) <= 55
         assert all(len(tag["description"].split()) <= 9 for tag in published_spec["tags"])
         assert "ApiError" in published_spec["components"]["schemas"]
@@ -232,7 +233,7 @@ def test_swagger_ui_and_openapi_json_are_published(monkeypatch: pytest.MonkeyPat
             for method in path_item
             if method.lower() in HTTP_METHODS
         }
-        assert published_operations == set(SRS_V22_INCLUDED_OPERATIONS)
+        assert published_operations == set(SRS_V22_INCLUDED_OPERATIONS) | ADMIN_OPERATIONS
     finally:
         if runtime is not None and runtime.engine is not None:
             runtime.engine.dispose()
@@ -299,7 +300,7 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
 
     assert spec["openapi"] == "3.1.0"
     assert spec["tags"] == public_tags(TAG_DESCRIPTIONS)
-    assert len(operations) == 174
+    assert len(operations) == 174 + len(ADMIN_OPERATIONS - PR22_UNCATALOGUED_OPERATIONS)
     catalog_operations = set(MOUNTED_OPERATIONS)
     catalog_paths = {path for _method, path in catalog_operations}
     # FEAT-066 T-2a: five generic upload-session operations (four paths) join the catalog.
@@ -311,7 +312,7 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
     assert MOUNTED_OPERATION_COUNT == 135
     assert len(catalog_operations) == MOUNTED_OPERATION_COUNT + 5 + 3 + 5 + 1 + 4 == 153
     assert set(operations) - catalog_operations == (
-        PILOT_ONLY_OPERATIONS | PR22_UNCATALOGUED_OPERATIONS
+        PILOT_ONLY_OPERATIONS | PR22_UNCATALOGUED_OPERATIONS | ADMIN_OPERATIONS
     )
     assert PILOT_ONLY_OPERATIONS.isdisjoint(MOUNTED_OPERATIONS)
     assert PR22_UNCATALOGUED_OPERATIONS.isdisjoint(MOUNTED_OPERATIONS)
@@ -673,7 +674,7 @@ def test_runtime_openapi_operation_ids_are_non_empty_and_unique(
         for method, operation in path_item.items()
         if method.lower() in HTTP_METHODS
     ]
-    assert len(operation_ids) == 174
+    assert len(operation_ids) == 174 + len(ADMIN_OPERATIONS - PR22_UNCATALOGUED_OPERATIONS)
     assert all(isinstance(value, str) and value for value in operation_ids)
     assert len(set(operation_ids)) == len(operation_ids)
 

@@ -34,13 +34,20 @@ from sketch2life.infrastructure.persistence.be1_models import (
     OrganizationModel,
 )
 from sketch2life.infrastructure.persistence.core_models import CoreAuditEntryModel
+from sketch2life.infrastructure.persistence.platform_models import (
+    EmailDeliveryModel,
+    PermissionGrantModel,
+)
+from sketch2life.interfaces.http.admin_route import AdminRoute
 from sketch2life.interfaces.http.api_conventions import limit_query, parse_idempotency_key
 from sketch2life.interfaces.http.be1_runtime import get_db, get_verified_adult
 
-router = APIRouter(prefix="/api/platform-admin/v1", tags=["Platform Admin accounts"])
+router = APIRouter(
+    prefix="/api/platform-admin/v1", tags=["Platform Admin accounts"], route_class=AdminRoute
+)
 
 AccountRole = Literal["parent", "teacher", "school_manager", "platform_admin"]
-AccountState = Literal["active", "disabled"]
+AccountState = Literal["active", "disabled", "pending_verification"]
 _EMAIL_PATTERN = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
 
 
@@ -274,7 +281,7 @@ def _get_organization(db: Session, organization_id: str) -> OrganizationModel:
 
 
 def _ensure_school_manager_assignment(
-    db: Session, *, organization_id: str, subject: str
+    db: Session, *, organization_id: str, subject: str, pending_activation: bool = False
 ) -> None:
     assignment = db.scalar(
         select(OrganizationAssignmentModel).where(
@@ -292,11 +299,13 @@ def _ensure_school_manager_assignment(
                 subject=subject,
                 class_id=None,
                 role="school_admin",
-                active=True,
+                active=not pending_activation,
+                pending_activation=pending_activation,
             )
         )
     else:
-        assignment.active = True
+        assignment.active = not pending_activation
+        assignment.pending_activation = pending_activation
 
 
 def _revoke_assignments(
@@ -309,7 +318,10 @@ def _revoke_assignments(
     rows = db.scalars(
         select(OrganizationAssignmentModel).where(
             OrganizationAssignmentModel.subject == subject,
-            OrganizationAssignmentModel.active.is_(True),
+            (
+                OrganizationAssignmentModel.active.is_(True)
+                | OrganizationAssignmentModel.pending_activation.is_(True)
+            ),
         )
     )
     for assignment in rows:
@@ -322,6 +334,7 @@ def _revoke_assignments(
         if preserve_teacher_assignments and assignment.role in {"teacher", "guide", "observer"}:
             continue
         assignment.active = False
+        assignment.pending_activation = False
 
 
 def _response(
@@ -512,14 +525,27 @@ def create_account(
         account_id=str(uuid4()),
         subject=provisioned.subject,
         issuer=provisioned.issuer,
-        state="active",
+        state="pending_verification",
+        email_verification_required=True,
         account_role=payload.role,
         role_revision=1,
     )
     db.add(identity)
+    db.add(
+        EmailDeliveryModel(
+            delivery_id=str(uuid4()),
+            recipient_ref=identity.subject,
+            template="password_setup",
+            state="pending",
+            attempts=0,
+        )
+    )
     if payload.role == "school_manager" and payload.organization_id is not None:
         _ensure_school_manager_assignment(
-            db, organization_id=payload.organization_id, subject=provisioned.subject
+            db,
+            organization_id=payload.organization_id,
+            subject=provisioned.subject,
+            pending_activation=True,
         )
     _record_account_event(
         db,
@@ -642,6 +668,16 @@ def update_account(
 
     next_role = payload.role if payload.role is not None else identity.account_role
     next_state = payload.state or identity.state
+    if next_state == "active" and identity.email_verification_required:
+        next_state = "pending_verification"
+    if identity.subject == principal.subject and next_state != "active":
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "code": "SELF_DISABLE_DENIED",
+                "message": "You cannot disable your own account",
+            },
+        )
     org_id = payload.organization_id
     if payload.role == "school_manager" and org_id is None:
         raise HTTPException(
@@ -681,7 +717,12 @@ def update_account(
         if next_role == "school_manager":
             _revoke_assignments(db, subject=identity.subject, except_school_manager_org=org_id)
             assert org_id is not None
-            _ensure_school_manager_assignment(db, organization_id=org_id, subject=identity.subject)
+            _ensure_school_manager_assignment(
+                db,
+                organization_id=org_id,
+                subject=identity.subject,
+                pending_activation=identity.email_verification_required,
+            )
         elif next_role == "teacher":
             _revoke_assignments(
                 db,
@@ -693,11 +734,21 @@ def update_account(
         identity.account_role = next_role
     elif next_role == "school_manager" and org_id is not None:
         _revoke_assignments(db, subject=identity.subject, except_school_manager_org=org_id)
-        _ensure_school_manager_assignment(db, organization_id=org_id, subject=identity.subject)
+        _ensure_school_manager_assignment(
+            db,
+            organization_id=org_id,
+            subject=identity.subject,
+            pending_activation=identity.email_verification_required,
+        )
 
     if role_changed or state_changed:
         identity.role_revision += 1
     identity.state = next_state
+    if next_role != "platform_admin" or next_state != "active":
+        grant = db.get(PermissionGrantModel, (identity.subject, "content_admin"))
+        if grant and grant.active:
+            grant.active = False
+            grant.revision += 1
     action = "ACCOUNT_ROLE_CHANGED" if role_changed else "ACCOUNT_STATE_CHANGED"
     _record_account_event(
         db,

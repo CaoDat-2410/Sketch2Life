@@ -20,6 +20,7 @@ from sketch2life.infrastructure.persistence.database import CoreDatabaseConfigur
 from sketch2life.infrastructure.vision_analysis.pilot_composition import (
     PilotVisionComposition,
 )
+from sketch2life.interfaces.http.admin_contract import ADMIN_OPERATIONS
 from sketch2life.interfaces.http.app import (
     create_app,
     create_classroom_app,
@@ -34,9 +35,7 @@ def _disable_dotenv_for_composition_tests(monkeypatch: pytest.MonkeyPatch) -> It
     monkeypatch.setitem(CoreDatabaseSettings.model_config, "env_file", None)
     monkeypatch.setenv("SKETCH2LIFE_ENV", "test")
     monkeypatch.setenv("STORYRUN_LITE_MAIN_DEMO_ENABLED", "0")
-    monkeypatch.setenv(
-        "SKETCH2LIFE_DATABASE_URL", "postgresql+psycopg://localhost:9/s1at_closed"
-    )
+    monkeypatch.setenv("SKETCH2LIFE_DATABASE_URL", "postgresql+psycopg://localhost:9/s1at_closed")
     get_settings.cache_clear()
     get_core_database_settings.cache_clear()
     assert Settings.model_config.get("env_file") is None
@@ -69,14 +68,9 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
         / "baseline_routes.json"
     )
     expected_entries = json.loads(baseline_path.read_text(encoding="utf-8"))
-    expected = {
-        entry["path"]: sorted(entry["methods"])
-        for entry in expected_entries
-    }
+    expected = {entry["path"]: sorted(entry["methods"]) for entry in expected_entries}
     expected.pop("/api/be1/v1/organizations/{organization_id}/assignments", None)
-    expected.pop(
-        "/api/be1/v1/organizations/{organization_id}/assignments/{assignment_id}", None
-    )
+    expected.pop("/api/be1/v1/organizations/{organization_id}/assignments/{assignment_id}", None)
     expected.update(
         {
             # FEAT-081 C3b: the Parent run-history list on the same path.
@@ -156,7 +150,7 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
         "/api/be1/v1/organizations/{organization_id}/sessions/{session_id}/teacher/assistance-requests/pending",
         "/v1/parent/profiles",
         "/v1/parent/profiles/{profile_id}",
-    } | set(lesson_library_methods) | {
+    } | set(lesson_library_methods) | {path for _, path in ADMIN_OPERATIONS} | {
         "/api/auth/v1/registrations",
         "/api/auth/v1/me",
         # FEAT-066 T0.4: live job poll route (runtime-only).

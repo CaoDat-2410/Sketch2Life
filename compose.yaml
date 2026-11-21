@@ -1,6 +1,22 @@
 name: sketch2life
 
 services:
+  email-worker:
+    image: sketch2life-api:local
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    profiles: ["email"]
+    working_dir: /workspace/backend
+    command: ["python", "-m", "sketch2life.infrastructure.platform_admin.email_worker", "--loop"]
+    environment:
+      PYTHONPATH: /workspace/backend/src
+    volumes:
+      - .:/workspace:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
   postgres:
     image: postgres:17-alpine
     environment:
@@ -84,8 +100,16 @@ services:
     environment:
       SKETCH2LIFE_ENV: local
       SKETCH2LIFE_API_HOST: 0.0.0.0
+      SKETCH2LIFE_BILLING_SANDBOX_ENABLED: ${SKETCH2LIFE_BILLING_SANDBOX_ENABLED:-false}
+      SKETCH2LIFE_SMTP_HOST: ${SKETCH2LIFE_SMTP_HOST:-}
+      SKETCH2LIFE_SMTP_PORT: ${SKETCH2LIFE_SMTP_PORT:-587}
+      SKETCH2LIFE_SMTP_FROM: ${SKETCH2LIFE_SMTP_FROM:-}
+      SKETCH2LIFE_SMTP_STARTTLS: ${SKETCH2LIFE_SMTP_STARTTLS:-true}
+      SKETCH2LIFE_SMTP_USERNAME: ${SKETCH2LIFE_SMTP_USERNAME:-}
+      SKETCH2LIFE_SMTP_PASSWORD: ${SKETCH2LIFE_SMTP_PASSWORD:-}
       SKETCH2LIFE_API_PORT: 8000
       SKETCH2LIFE_DATABASE_URL: postgresql+psycopg://${SKETCH2LIFE_POSTGRES_USER:-sketch2life}:${SKETCH2LIFE_POSTGRES_PASSWORD:-change-me}@postgres:5432/${SKETCH2LIFE_POSTGRES_DB:-sketch2life}
+      SKETCH2LIFE_REDIS_URL: redis://redis:6379/0
       SKETCH2LIFE_S3_ENDPOINT: ${SKETCH2LIFE_S3_ENDPOINT-http://minio:9000}
       SKETCH2LIFE_S3_REGION: ${SKETCH2LIFE_S3_REGION:-us-east-1}
       SKETCH2LIFE_S3_BUCKET: ${SKETCH2LIFE_S3_BUCKET:-sketch2life-private}
@@ -108,6 +132,8 @@ services:
       - "127.0.0.1:${SKETCH2LIFE_API_PORT:-8000}:8000"
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
       minio-init:
         condition: service_completed_successfully

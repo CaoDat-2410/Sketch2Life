@@ -14,6 +14,7 @@ from fastapi import FastAPI, Response
 from fastapi.testclient import TestClient
 
 from sketch2life.application.ports.identity import VerifiedPrincipal
+from sketch2life.interfaces.http.admin_contract import ADMIN_OPERATIONS
 from sketch2life.interfaces.http.app import create_app
 from sketch2life.interfaces.http.be1_runtime import get_db, get_verified_adult
 from sketch2life.interfaces.http.error_envelope import MESSAGES
@@ -148,6 +149,9 @@ def test_openapi_shows_400_envelope_for_catalogued_families(client: TestClient) 
             continue
         for method, operation in path_item.items():
             responses = operation.get("responses", {})
+            if (method, path) in ADMIN_OPERATIONS:
+                # FEAT-072 Admin additions (lesson feedback) are published as implemented.
+                continue
             if (method, path) not in kept:
                 assert "422" not in responses, (method, path)
             checked += 1

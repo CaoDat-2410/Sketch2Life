@@ -135,7 +135,7 @@ LIBRARY_ITEMS = sa.Table(
     "library_items",
     LESSON_METADATA,
     sa.Column("lesson_id", sa.String(36), primary_key=True),
-    sa.Column("organization_id", sa.String(128), nullable=False),
+    sa.Column("organization_id", sa.String(128), nullable=True),
     sa.Column("owner_kind", sa.String(24), nullable=False, server_default="ORGANIZATION"),
     sa.Column("created_by", sa.String(256), nullable=False),
     sa.Column("state", sa.String(24), nullable=False, server_default="ACTIVE"),
@@ -150,7 +150,10 @@ LIBRARY_ITEMS = sa.Table(
     sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
     sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
     sa.Column("archived_at", sa.DateTime(timezone=True)),
-    sa.CheckConstraint("owner_kind = 'ORGANIZATION'", name="ck_lesson_owner_kind"),
+    sa.CheckConstraint("owner_kind IN ('ORGANIZATION', 'PLATFORM')", name="ck_lesson_owner_kind"),
+    sa.CheckConstraint("(owner_kind = 'PLATFORM' AND organization_id IS NULL) OR "
+                       "(owner_kind = 'ORGANIZATION' AND organization_id IS NOT NULL)",
+                       name="ck_lesson_owner_scope"),
     sa.CheckConstraint("state IN ('ACTIVE', 'ARCHIVED')", name="ck_lesson_item_state"),
     sa.CheckConstraint(
         "visibility IN ('PRIVATE', 'SCHOOL', 'SELECTED_AUDIENCE', 'PUBLIC')",
