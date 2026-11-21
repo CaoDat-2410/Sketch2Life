@@ -75,5 +75,6 @@ export interface ParentApplicationModule {
     | 'submitFeedback'
     | 'listNotifications'
     | 'markNotificationRead'
+    | 'markAllNotificationsRead'
     | 'getVideoQuota'>;
 }

@@ -18,6 +18,7 @@ import type {
   ParentLessonDeliveryPage,
   ParentNotification,
   ParentNotificationPage,
+  ParentNotificationReadAllV1,
   ParentProfile,
   ParentProfileCreateV1,
   ParentProfileDeletePendingV1,
@@ -56,6 +57,11 @@ import type {
   StoryRun,
 } from '../../domain/types';
 import { buildPlaybackSource, isPlaybackGrantForRun } from '../../application/parentPhaseB';
+import {
+  readNotificationPageV1,
+  readNotificationReadAllV1,
+  readNotificationV1,
+} from '../../application/parentNotifications';
 
 export class ParentApiError extends ParentApplicationError {
   constructor(code: string, requestId: string, status?: number, metadata: ParentApplicationErrorMetadata = {}) {
@@ -614,14 +620,53 @@ export class ParentApi implements ParentApiPort {
     }>('lesson-history');
   }
 
-  listNotifications(cursor?: string | null) {
-    void cursor;
-    return this.unavailable<ParentNotificationPage>('notifications');
+  listNotifications(cursor?: string | null, limit = 25): Promise<ParentNotificationPage> {
+    if (!Number.isInteger(limit) || limit < 1 || limit > 100) {
+      return Promise.reject(new ParentApiError('INVALID_LIMIT', 'local-request', 400));
+    }
+    const query = new URLSearchParams({ limit: String(limit) });
+    if (cursor !== undefined && cursor !== null) query.set('cursor', cursor);
+    return this.request<unknown>('/v1/notifications?' + query.toString(), 'GET', undefined, 30_000)
+      .then((payload) => {
+        const page = readNotificationPageV1(payload);
+        if (!page) throw new ParentApiError('INVALID_API_RESPONSE', 'local-response', 200);
+        return page;
+      });
   }
 
-  markNotificationRead(notificationId: string) {
-    void notificationId;
-    return this.unavailable<ParentNotification>('notifications');
+  markNotificationRead(notificationId: string, actionIdentity: ParentActionIdentity): Promise<ParentNotification> {
+    assertVisibleAsciiKey(actionIdentity);
+    if (!/^[A-Za-z0-9._:-]{1,64}$/.test(notificationId)) {
+      return Promise.reject(new ParentApiError('INVALID_REQUEST', 'local-request', 400));
+    }
+    return this.request<unknown>(
+      '/v1/notifications/' + encodeURIComponent(notificationId) + '/read',
+      'POST',
+      undefined,
+      30_000,
+      { 'Idempotency-Key': actionIdentity },
+    ).then((payload) => {
+      const item = readNotificationV1(payload);
+      if (!item || item.inbox_item_id !== notificationId || item.read_at === null) {
+        throw new ParentApiError('INVALID_API_RESPONSE', 'local-response', 200);
+      }
+      return item;
+    });
+  }
+
+  markAllNotificationsRead(actionIdentity: ParentActionIdentity): Promise<ParentNotificationReadAllV1> {
+    assertVisibleAsciiKey(actionIdentity);
+    return this.request<unknown>(
+      '/v1/notifications/read-all',
+      'POST',
+      undefined,
+      30_000,
+      { 'Idempotency-Key': actionIdentity },
+    ).then((payload) => {
+      const receipt = readNotificationReadAllV1(payload);
+      if (!receipt) throw new ParentApiError('INVALID_API_RESPONSE', 'local-response', 200);
+      return receipt;
+    });
   }
 
   getVideoQuota() {

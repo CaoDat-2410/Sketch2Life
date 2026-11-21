@@ -9,6 +9,7 @@ import type {
   ParentLessonDeliveryPage,
   ParentNotification,
   ParentNotificationPage,
+  ParentNotificationReadAllV1,
   ParentProfile,
   ParentProfileCreateV1,
   ParentProfileDeletePendingV1,
@@ -128,8 +129,9 @@ export interface ParentApiPort {
   submitLessonFeedback(occurrenceId: string, profileId: string, feedbackText: string): Promise<{
     contract: 'LessonDeliveryFeedbackV1'; feedback_id: string; feedback_text: string; created_at: string; updated_at: string;
   }>;
-  listNotifications(cursor?: string | null): Promise<ParentNotificationPage>;
-  markNotificationRead(notificationId: string): Promise<ParentNotification>;
+  listNotifications(cursor?: string | null, limit?: number): Promise<ParentNotificationPage>;
+  markNotificationRead(notificationId: string, actionIdentity: ParentActionIdentity): Promise<ParentNotification>;
+  markAllNotificationsRead(actionIdentity: ParentActionIdentity): Promise<ParentNotificationReadAllV1>;
   getVideoQuota(): Promise<ParentVideoQuota>;
 }
 

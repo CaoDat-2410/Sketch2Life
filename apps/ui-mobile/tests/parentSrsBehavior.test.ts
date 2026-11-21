@@ -418,9 +418,9 @@ describe('R1 account and profile boundaries', () => {
     expect(profileControllerSource).not.toContain('getConsentPolicy');
     expect(profileControllerSource).not.toMatch(/application\.profiles\.(grantAuthorization|revokeAuthorization)/);
     expect(profileControllerSource).not.toMatch(/child_gender|childGender/);
-    // FEAT-081 C3b: only the run-history list and the two FR-C-08 lifecycle commands are live.
+    // FEAT-081 C3b plus goal v3 Phase C T-8a: only confirmed run-history and inbox routes are live.
     expect(new Set(Array.from(platformControllerSource.matchAll(/application\.platform\.(\w+)/g), (match) => match[1])))
-      .toEqual(new Set(['listRuns', 'cancelRunV1', 'deleteRunV1']));
+      .toEqual(new Set(['listRuns', 'cancelRunV1', 'deleteRunV1', 'listNotifications', 'markNotificationRead', 'markAllNotificationsRead']));
     expect(authScreenSource).not.toContain('cause.message');
     expect(profileControllerSource).not.toContain('cause.message');
     expect(platformControllerSource).not.toContain('cause.message');
@@ -451,8 +451,6 @@ describe('R2 backend route boundary', () => {
       { capability: 'profile-sharing', request: () => api.revokeProfileShare('synthetic-profile', 'synthetic-grant') },
       { capability: 'lesson-history', request: () => api.listLessonDeliveries('synthetic-profile') },
       { capability: 'lesson-history', request: () => api.submitLessonFeedback('synthetic-occurrence', 'synthetic-profile', 'synthetic feedback') },
-      { capability: 'notifications', request: () => api.listNotifications() },
-      { capability: 'notifications', request: () => api.markNotificationRead('synthetic-notification') },
       { capability: 'quota', request: () => api.getVideoQuota() },
     ];
 
@@ -778,9 +776,14 @@ describe('R4 absent delivery and lifecycle contracts', () => {
     expect(platformControllerSource).toContain("jobStatus: apiConfigured('job-status')");
     expect(platformControllerSource).toContain("video: apiConfigured('video')");
     expect(platformControllerSource).not.toContain('requestVideo');
+    // Phase C review P2-1: the inbox and the run list never outlive the account that loaded them.
+    expect(platformControllerSource).toContain('function resetAccountData(): void');
+    expect(platformControllerSource).toContain('notificationActionKeys.current.clear()');
+    expect(platformControllerSource).toContain('isDefinitiveNotificationFailure(failure)');
+    expect(parentExpoAppSource).toContain('platform.resetAccountData()');
     expect(platformControllerSource).not.toContain('videoOperationState');
     expect(new Set(Array.from(platformControllerSource.matchAll(/application\.platform\.(\w+)/g), (match) => match[1])))
-      .toEqual(new Set(['listRuns', 'cancelRunV1', 'deleteRunV1']));
+      .toEqual(new Set(['listRuns', 'cancelRunV1', 'deleteRunV1', 'listNotifications', 'markNotificationRead', 'markAllNotificationsRead']));
     expect(jobStageHasNoPercent).toBe(false);
     // The player lives only on the video step and receives headers, never a token in the address.
     expect(storyScreenSource).not.toMatch(/<(?:Video|VideoPlayer|VideoView)\b/);
@@ -823,5 +826,11 @@ describe('R4 absent delivery and lifecycle contracts', () => {
     expect(notificationsScreenSource.indexOf("if (props.capability.state === 'unavailable')"))
       .toBeLessThan(notificationsScreenSource.indexOf('Chưa có thông báo nào'));
     expect(notificationsScreenSource).toContain('Danh sách chưa tải không cho biết bạn có hay không có thông báo mới.');
+    expect(platformControllerSource).toContain("const notificationCapability = apiConfigured('notifications')");
+    expect(notificationsScreenSource).toContain('classifyNotificationInbox');
+    expect(notificationsScreenSource).toContain('notificationUnreadCountLabel');
+    expect(notificationsScreenSource).not.toContain('item.notification_type');
+    expect(notificationsScreenSource).not.toContain('item.safe_parameters');
+    expect(notificationsScreenSource).not.toContain('item.title');
   });
 });

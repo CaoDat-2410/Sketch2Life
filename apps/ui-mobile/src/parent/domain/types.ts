@@ -223,20 +223,26 @@ export type ParentProfileSharePage = {
 };
 
 export type ParentNotification = {
-  contract: 'NotificationInboxItemV1';
-  notification_id: string;
-  kind: 'PROFILE_SHARE_INVITATION' | 'PROFILE_SHARE_ACCEPTED' | 'LESSON_FEEDBACK' | 'LESSON_REPLY';
-  title: string;
-  resource_kind: string | null;
-  resource_ref: string | null;
+  contract: 'NotificationV1';
+  inbox_item_id: string;
+  notification_type: string;
+  template_version: number;
+  safe_parameters: Record<string, boolean | number | string>;
   created_at: string;
   read_at: string | null;
+  expires_at: string | null;
 };
 
 export type ParentNotificationPage = {
-  contract: 'NotificationInboxPageV1';
+  contract: 'NotificationPageV1';
   items: ParentNotification[];
   next_cursor: string | null;
+  unread_count: number;
+};
+
+export type ParentNotificationReadAllV1 = {
+  contract: 'NotificationReadAllV1';
+  marked_count: number;
 };
 
 export type ParentVideoQuota = {

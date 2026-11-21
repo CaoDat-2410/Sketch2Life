@@ -57,6 +57,9 @@ function ParentExpoAppContent({ application }: Props): React.JSX.Element {
   const parent = useParentController(application);
   const platform = useParentPlatformController(application);
   const selectedProfile = selectProfileById(parent.profiles, parent.selectedProfileId);
+  // The inbox and the run list belong to one account: they are cleared on sign-out and on another sign-in.
+  const accountSubject = parent.currentUser?.subject ?? null;
+  React.useEffect(() => { platform.resetAccountData(); }, [accountSubject]);
   const [historyReturnStep, setHistoryReturnStep] = React.useState<'home' | 'profile'>('profile');
   const [pendingCaptureSource, setPendingCaptureSource] = React.useState<'camera' | 'gallery' | null>(null);
   const [drawingGuideEntryRequested, setDrawingGuideEntryRequested] = React.useState(false);
@@ -277,12 +280,14 @@ function ParentExpoAppContent({ application }: Props): React.JSX.Element {
   if (parent.step === 'notifications') return mainSection('profiles', <NotificationsScreen
     capability={platform.capabilities.notifications}
     items={platform.notifications}
+    unreadCount={platform.notificationsUnreadCount}
     loading={platform.notificationsBusy}
     error={platform.notificationsError}
     hasMore={Boolean(platform.notificationsCursor)}
     onLoad={() => void platform.loadNotifications()}
     onLoadMore={() => void platform.loadNotifications(platform.notificationsCursor)}
     onMarkRead={(id) => void platform.markNotificationRead(id)}
+    onMarkAllRead={() => void platform.markAllNotificationsRead()}
     onBack={() => parent.setStep('profile')}
   />);
   if (parent.step === 'quota') return mainSection('profiles', <QuotaScreen
