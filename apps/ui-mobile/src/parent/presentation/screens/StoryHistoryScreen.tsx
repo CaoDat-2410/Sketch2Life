@@ -228,12 +228,18 @@ function runIcon(value: string): React.ComponentProps<typeof Ionicons>['name'] {
 function runStateLabel(value: string): string {
   const labels: Record<string, string> = {
     INPUT_PROCESSING: 'Đang xử lý ảnh',
+    INPUT_REVIEW: 'Chờ xem lại ảnh và ý tưởng',
     SUBJECT_REVIEW: 'Chờ xác nhận chủ thể',
     PREPARATION_REVIEW: 'Đang chuẩn bị nội dung',
     SCRIPT_GENERATING: 'Đang tạo kịch bản',
     SCRIPT_GENERATION_UNKNOWN: 'Đang xác minh kết quả',
     SCRIPT_REVIEW: 'Chờ người lớn xem kịch bản',
     VIDEO_ADMISSION_PENDING: 'Đang chờ xử lý',
+    VIDEO_QUEUED: 'Video đang chờ xử lý',
+    VIDEO_GENERATING: 'Đang tạo video',
+    VIDEO_SAFETY_VALIDATING: 'Đang kiểm tra video',
+    VIDEO_READY: 'Video đã sẵn sàng',
+    SAFETY_BLOCKED: 'Video chưa qua kiểm tra',
     DELETE_PENDING: 'Đang chờ dọn dữ liệu',
     FAILED: 'Không hoàn tất',
     COMPLETED: 'Đã hoàn tất',

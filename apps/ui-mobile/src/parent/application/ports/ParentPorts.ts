@@ -1,6 +1,5 @@
 import type {
   Activity,
-  ParentAudioTranscription,
   ConsentPolicy,
   LessonDetail,
   LessonSummary,
@@ -24,7 +23,6 @@ import type {
   ParentStoryRunLifecycleEnvelopeV1,
   ParentStoryRunResultV1,
   ParentActiveStoryRunEnvelopeV1,
-  ParentTranscriptConfirmation,
   ParentStoryRunHistoryPage,
   ParentUser,
   ParentVideoQuota,
@@ -34,7 +32,18 @@ import type {
   ParentStoryRunEnvelopeV1,
   ParentStoryRunV1,
   ParentStoryScriptConfirmationV1,
-  ParentStorySubjectConfirmationV1,
+  ParentStorySubjectConfirmationAcceptedV1,
+  ParentPlaybackSourceV1,
+  ParentRunAssetAcceptedV1,
+  ParentRunIdeaAcceptedV1,
+  ParentRunIdeaRequestV1,
+  ParentRunTranscriptV1,
+  ParentStoryRewriteAcceptedV1,
+  ParentStoryRewriteRequestV1,
+  ParentTranscriptConfirmedV1,
+  ParentVideoGenerationAcceptedV1,
+  ParentVideoRequestV1,
+  ParentVideoUnsuitableRequestV1,
   StoryRun,
   SuggestedActivity,
 } from '../../domain/types';
@@ -95,7 +104,7 @@ export interface ParentApiPort {
   createStoryRun(input: StoryRunCreateInput): Promise<{ request_id: string; story_run: StoryRun }>;
   createStoryRunV1(input: ParentStoryRunCreateV1, actionIdentity: ParentActionIdentity): Promise<ParentStoryRunEnvelopeV1>;
   confirmStoryRunContextV1(runId: string, input: ParentStoryContextConfirmationV1, actionIdentity: ParentActionIdentity): Promise<ParentStoryRunEnvelopeV1>;
-  confirmStoryRunSubjectV1(runId: string, revision: number, subject: string, actionIdentity: ParentActionIdentity): Promise<ParentStorySubjectConfirmationV1>;
+  confirmStoryRunSubjectV1(runId: string, revision: number, subject: string, actionIdentity: ParentActionIdentity): Promise<ParentStorySubjectConfirmationAcceptedV1>;
   confirmStoryRunScriptV1(runId: string, revision: number, sha256: string, actionIdentity: ParentActionIdentity): Promise<ParentStoryScriptConfirmationV1>;
   createStoryRevisionV1(runId: string, revision: number, rewriteInstruction: string | undefined, actionIdentity: ParentActionIdentity): Promise<ParentStoryRevisionResultV1>;
   analyzeDrawing(storyRunId: string, imageBase64: string, mediaType: ParentDrawingMediaType): Promise<DrawingUnderstandingResult>;
@@ -103,8 +112,15 @@ export interface ParentApiPort {
   suggestActivities(storyRunId: string, revision: number): Promise<ActivitySuggestionResult>;
   generateStory(storyRunId: string, revision: number, rewriteInstruction?: string): Promise<StoryGenerationResult>;
   confirmStory(storyRunId: string, revision: number, sha256: string): Promise<{ request_id: string; story_run: StoryRun }>;
-  transcribeAudio(storyRunId: string, audio: AudioUploadInput): Promise<ParentAudioTranscription>;
-  confirmTranscript(storyRunId: string, revision: number, transcriptText: string): Promise<ParentTranscriptConfirmation>;
+  attachRunAssetV1(runId: string, assetRef: string, expectedRunRevision: number | null, actionIdentity: ParentActionIdentity): Promise<ParentRunAssetAcceptedV1>;
+  addRunIdeaV1(runId: string, input: ParentRunIdeaRequestV1, actionIdentity: ParentActionIdentity): Promise<ParentRunIdeaAcceptedV1>;
+  getRunTranscriptV1(runId: string): Promise<ParentRunTranscriptV1>;
+  confirmRunTranscriptV1(runId: string, revision: number, sha256: string, actionIdentity: ParentActionIdentity): Promise<ParentTranscriptConfirmedV1>;
+  createStoryRewriteV1(runId: string, input: ParentStoryRewriteRequestV1, actionIdentity: ParentActionIdentity): Promise<ParentStoryRewriteAcceptedV1>;
+  requestVideoGenerationV1(runId: string, input: ParentVideoRequestV1, actionIdentity: ParentActionIdentity): Promise<ParentVideoGenerationAcceptedV1>;
+  markVideoUnsuitableV1(runId: string, input: ParentVideoUnsuitableRequestV1, actionIdentity: ParentActionIdentity): Promise<ParentStoryRunEnvelopeV1>;
+  completeRunV1(runId: string, expectedRevision: number, actionIdentity: ParentActionIdentity): Promise<ParentStoryRunEnvelopeV1>;
+  openPlaybackV1(runId: string): Promise<ParentPlaybackSourceV1>;
   listProfileShares(profileId: string): Promise<ParentProfileSharePage>;
   createProfileShare(profileId: string, teacherSubject: string): Promise<{ request_id: string; grant: ParentProfileShareGrant }>;
   revokeProfileShare(profileId: string, grantId: string): Promise<{ request_id: string; grant: ParentProfileShareGrant }>;
@@ -123,12 +139,6 @@ export type ProfileCreateInput = {
   interests_summary: string;
   consent_accepted: true;
   consent_policy_version: string;
-};
-
-export type AudioUploadInput = {
-  uri: string;
-  file_name: string;
-  media_type: string;
 };
 
 export type ProfileUpdateInput = {

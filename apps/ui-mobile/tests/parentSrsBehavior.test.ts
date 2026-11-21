@@ -47,6 +47,7 @@ const contextScreenSource = readFileSync(new URL('../src/parent/presentation/scr
 const transcriptReviewSource = readFileSync(new URL('../src/parent/presentation/screens/TranscriptReviewScreen.tsx', import.meta.url), 'utf8');
 const previewHarnessSource = readFileSync(new URL('../src/parent/presentation/ParentVisualPreviewHarness.tsx', import.meta.url), 'utf8');
 const activityScreenSource = readFileSync(new URL('../src/parent/presentation/screens/ActivityScreen.tsx', import.meta.url), 'utf8');
+const videoScreenSource = readFileSync(new URL('../src/parent/presentation/screens/VideoScreen.tsx', import.meta.url), 'utf8');
 const storyScreenSource = readFileSync(new URL('../src/parent/presentation/screens/StoryScreen.tsx', import.meta.url), 'utf8');
 const handoffScreenSource = readFileSync(new URL('../src/parent/presentation/screens/HandoffScreen.tsx', import.meta.url), 'utf8');
 const storyHistoryScreenSource = readFileSync(new URL('../src/parent/presentation/screens/StoryHistoryScreen.tsx', import.meta.url), 'utf8');
@@ -445,8 +446,6 @@ describe('R2 backend route boundary', () => {
       { capability: 'story-creation', request: () => api.createStoryRun({ parent_profile_id: 'synthetic-profile', expected_profile_revision_id: 'synthetic-revision', consent_policy_version: 'synthetic-v1', topic: 'synthetic topic', adult_confirmed_idea: 'synthetic idea', context_confirmed: true }) },
       { capability: 'story-creation', request: () => api.confirmSubject('synthetic-run', 1, 'synthetic subject') },
       { capability: 'story-creation', request: () => api.confirmStory('synthetic-run', 1, 'a'.repeat(64)) },
-      { capability: 'story-creation', request: () => api.transcribeAudio('synthetic-run', { uri: 'synthetic://audio', file_name: 'synthetic.m4a', media_type: 'audio/mp4' }) },
-      { capability: 'story-creation', request: () => api.confirmTranscript('synthetic-run', 1, 'synthetic transcript') },
       { capability: 'profile-sharing', request: () => api.listProfileShares('synthetic-profile') },
       { capability: 'profile-sharing', request: () => api.createProfileShare('synthetic-profile', 'synthetic-teacher') },
       { capability: 'profile-sharing', request: () => api.revokeProfileShare('synthetic-profile', 'synthetic-grant') },
@@ -483,7 +482,7 @@ describe('R2 backend route boundary', () => {
     expect(lessonPickerSource).toContain('title="Chọn bài học"');
     expect(ideaScreenSource).toContain('Bài học tham khảo');
     expect(ideaScreenSource).toContain('Có thể ghim một bài học từ thư viện.');
-    expect(profileControllerSource).toContain('Chuyển giọng nói thành chữ chưa khả dụng.');
+    expect(profileControllerSource).toContain('Định dạng bản ghi âm chưa được hỗ trợ.');
     expect(topicScreenSource).toContain('onPress={() => props.onTopic(option.title)}');
     expect(ideaScreenSource).toContain('Tiếp tục đến bức tranh');
     expect(lessonGallerySource).not.toContain('Có thể tiếp tục không cần bài giảng');
@@ -553,8 +552,8 @@ describe('R2 backend route boundary', () => {
     expect(previewHarnessSource).toContain('canContinue={false}');
     expect(previewHarnessSource).toContain('guideBase64=""');
     expect(previewHarnessSource).toContain('transcript={previewTranscript}');
-    expect(previewHarnessSource).toContain('const previewTranscript: ParentAudioTranscription | null = null;');
-    expect(transcriptReviewSource).toContain('{props.transcript ? <Card style={styles.transcriptCard}>');
+    expect(previewHarnessSource).toContain('const previewTranscript: ParentRunTranscriptV1 | null = null;');
+    expect(transcriptReviewSource).toContain('{props.transcript && !props.waiting ? <Card style={styles.transcriptCard}>');
     expect(previewHarnessSource).toContain('<LessonGalleryScreen');
     expect(previewHarnessSource).toContain('<LessonPickerScreen');
     expect(previewHarnessSource).toContain('<AuthScreen');
@@ -606,7 +605,7 @@ describe('M3 concept surfaces and truthful capability states', () => {
     expect(storyScreenSource).toContain('!props.storyReady || !props.canConfirm');
     expect(storyScreenSource).toContain('storyLanguageLabel(props.story.language)');
     expect(storyScreenSource).toContain('Viết lại câu chuyện');
-    expect(storyScreenSource).toContain('props.rewriteCount < 3');
+    expect(storyScreenSource).toContain('props.rewritesLeft > 0');
     expect(storyScreenSource).toContain('generationCard: { gap: 13 }');
     expect(storyScreenSource).toContain('style={styles.scene}');
     expect(storyScreenSource).toContain('storyReady');
@@ -679,15 +678,25 @@ describe('R3 story workflow safety boundaries', () => {
     expect(ideaScreenSource).toContain('Audio.requestPermissionsAsync()');
     expect(ideaScreenSource).toContain('onChangeText={props.onIdea}');
     expect(ideaScreenSource).toContain('durationMillis >= 120_000');
-    expect(profileControllerSource).toContain('if (latest.current_input_revision !== 1)');
+    expect(profileControllerSource).toContain("stage.kind !== 'awaiting-drawing'");
+    expect(profileControllerSource).toContain('!retakeAvailable');
+    // Review F7b and F2: a cancelled wait never clears a newer action's busy flag, and a fresh run is not "processing".
+    expect(profileControllerSource).toContain('function beginBusy(label: string): number');
+    expect(profileControllerSource).toContain('if (busyEpoch.current === token) setBusy(\'\')');
+    expect(profileControllerSource).toContain('function leaveWait(next: AppStep): void');
+    expect(profileControllerSource).toContain('if (waitsBlocked.current)');
+    expect(profileControllerSource).toContain('retakeUsed.current = false');
+    expect(profileControllerSource).toContain('currentRunRevision: async () => (await readLiveRun(run.run_id)).run_revision');
+    expect(parentExpoAppSource).toContain("parent.leaveWait(parent.story ? 'story' : 'home')");
     expect(profileControllerSource).toContain('createRunAfterPhotoV1');
     expect(profileControllerSource).not.toContain('createRunBeforeDrawingV1(');
     expect(profileControllerSource).not.toContain('application.learning.generateSketchGuide(');
     expect(profileControllerSource).toContain('Gợi ý nét vẽ tự động 4–8 bước chưa khả dụng.');
     expect(parentApiSource).toContain('image_base64: string');
     expect(parentApiSource).not.toMatch(/generateSketchGuide\([\s\S]*?ordered_steps/);
-    expect(profileControllerSource).toContain('drawingAnalysisAttemptedRunId.current === runId');
-    expect(profileControllerSource).toContain('Không gửi lại ảnh; hãy kiểm tra trạng thái buổi học sau.');
+    expect(profileControllerSource).toContain('retainedKeySet(drawingUploadAction');
+    expect(profileControllerSource).toContain('await handleOrWaitDrawing(latest)');
+    expect(profileControllerSource).not.toContain('drawingAnalysisAttemptedRunId');
     expect(captureScreenSource).toContain('step={stepLabel}');
     expect(understandingScreenSource).toContain('step={props.stepLabel}');
     expect(contextScreenSource).toContain('step={props.stepLabel}');
@@ -718,7 +727,9 @@ describe('R3 story workflow safety boundaries', () => {
     const analysisEnd = profileControllerSource.indexOf('async function analyzeDrawingForCurrentRun', analysisStart);
     const analysisSource = profileControllerSource.slice(analysisStart, analysisEnd);
     expect(analysisSource.indexOf('getLatestRun(runId)')).toBeGreaterThanOrEqual(0);
-    expect(analysisSource.indexOf('getLatestRun(runId)')).toBeLessThan(analysisSource.indexOf('understandDrawing(runId'));
+    // T-2b: the screen no longer calls the synchronous legacy route; the drawing goes through an upload session.
+    expect(analysisSource.indexOf('getLatestRun(runId)')).toBeLessThan(analysisSource.indexOf('attachDrawingV1('));
+    expect(analysisSource).not.toContain('understandDrawing(');
     const storyMethod = parentApiSource.slice(
       parentApiSource.indexOf('  createStoryRevisionV1('),
       parentApiSource.indexOf('  listStoryRuns(', parentApiSource.indexOf('  createStoryRevisionV1(')),
@@ -763,20 +774,19 @@ describe('R3 story workflow safety boundaries', () => {
 
 describe('R4 absent delivery and lifecycle contracts', () => {
   it('keeps video and job operations typed unavailable without dispatching an adapter call', () => {
-    expect(platformControllerSource).toContain("jobStatus: createUnavailableCapabilityState('job-status', unavailableReason)");
-    expect(platformControllerSource).toContain("video: createUnavailableCapabilityState('video', unavailableReason)");
-    expect(platformControllerSource).toContain("{ state: 'unavailable', stage: 'unavailable' }");
-    expect(platformControllerSource).toContain('requestVideo');
-    expect(platformControllerSource).toContain('markVideoUnsuitable');
-    expect(platformControllerSource).toContain('regenerateVideo');
-    expect(platformControllerSource).toContain('completeRun');
+    // Goal v3 Phase B: the video routes are live and owned by the main controller; the platform hook keeps only the absent ones.
+    expect(platformControllerSource).toContain("jobStatus: apiConfigured('job-status')");
+    expect(platformControllerSource).toContain("video: apiConfigured('video')");
+    expect(platformControllerSource).not.toContain('requestVideo');
+    expect(platformControllerSource).not.toContain('videoOperationState');
     expect(new Set(Array.from(platformControllerSource.matchAll(/application\.platform\.(\w+)/g), (match) => match[1])))
       .toEqual(new Set(['listRuns', 'cancelRunV1', 'deleteRunV1']));
-    expect(platformControllerSource).toContain('videoOperationState: unavailableShareOperation');
     expect(jobStageHasNoPercent).toBe(false);
-    expect(storyScreenSource).toContain('videoCapability.state === \'unavailable\'');
-    expect(storyScreenSource).toContain('jobStageMessage(props.jobStage)');
+    // The player lives only on the video step and receives headers, never a token in the address.
     expect(storyScreenSource).not.toMatch(/<(?:Video|VideoPlayer|VideoView)\b/);
+    expect(videoScreenSource).toMatch(/<Video\b/);
+    expect(videoScreenSource).toContain('headers: props.playback.headers');
+    expect(videoScreenSource).not.toMatch(/[?&]token=|X-Playback-Token|Authorization/);
   });
 
   it('uses only resume for the active run and never claims video or run completion', () => {

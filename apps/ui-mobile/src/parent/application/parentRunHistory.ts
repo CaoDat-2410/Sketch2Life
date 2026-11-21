@@ -72,12 +72,18 @@ export function runActionOutcome(code: string | undefined, status: number | unde
 
 const STATE_LABELS: Record<string, string> = {
   INPUT_PROCESSING: 'Đang xử lý tranh',
+  INPUT_REVIEW: 'Chờ xem lại ảnh và ý tưởng',
   SUBJECT_REVIEW: 'Chờ xác nhận nội dung tranh',
   PREPARATION_REVIEW: 'Chờ xác nhận chuẩn bị',
   SCRIPT_GENERATING: 'Đang tạo câu chuyện',
   SCRIPT_GENERATION_UNKNOWN: 'Đang kiểm tra câu chuyện',
   SCRIPT_REVIEW: 'Chờ duyệt câu chuyện',
   VIDEO_ADMISSION_PENDING: 'Chờ xếp hàng video',
+  VIDEO_QUEUED: 'Video đang chờ xử lý',
+  VIDEO_GENERATING: 'Đang tạo video',
+  VIDEO_SAFETY_VALIDATING: 'Đang kiểm tra video',
+  VIDEO_READY: 'Video đã sẵn sàng',
+  SAFETY_BLOCKED: 'Video chưa qua kiểm tra',
   COMPLETED: 'Đã hoàn tất',
   FAILED: 'Không hoàn tất',
   ABANDONED: 'Đã dừng',

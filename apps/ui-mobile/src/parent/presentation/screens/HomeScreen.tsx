@@ -45,7 +45,7 @@ const colors = {
   blueDeep: '#315E87',
 };
 
-const terminalRunStates = new Set(['COMPLETED', 'FAILED', 'DELETE_PENDING']);
+const terminalRunStates = new Set(['COMPLETED', 'FAILED', 'ABANDONED', 'DELETE_PENDING', 'DELETED']);
 const roundedFont = Platform.OS === 'android' ? 'sans-serif-rounded' : undefined;
 
 export function HomeScreen({
@@ -499,12 +499,18 @@ function runProgressState(run: ParentStoryRunV1): { label: string; step: number 
 
   const states: Record<string, { label: string; step: number | null }> = {
     INPUT_PROCESSING: { label: 'Đang xử lý ảnh tranh', step: 0 },
+    INPUT_REVIEW: { label: 'Chờ xem lại ảnh và ý tưởng', step: 0 },
     SUBJECT_REVIEW: { label: 'Chờ xác nhận chủ thể', step: 1 },
     PREPARATION_REVIEW: { label: 'Đang chuẩn bị nội dung', step: 2 },
     SCRIPT_GENERATING: { label: 'Đang tạo câu chuyện', step: 2 },
     SCRIPT_GENERATION_UNKNOWN: { label: 'Đang xác minh câu chuyện', step: 2 },
     SCRIPT_REVIEW: { label: 'Chờ xem lại câu chuyện', step: 2 },
     VIDEO_ADMISSION_PENDING: { label: 'Đang chờ tạo video', step: 3 },
+    VIDEO_QUEUED: { label: 'Video đang chờ xử lý', step: 3 },
+    VIDEO_GENERATING: { label: 'Đang tạo video', step: 3 },
+    VIDEO_SAFETY_VALIDATING: { label: 'Đang kiểm tra video', step: 3 },
+    VIDEO_READY: { label: 'Video đã sẵn sàng', step: 3 },
+    SAFETY_BLOCKED: { label: 'Video chưa qua kiểm tra', step: 3 },
   };
   return states[run.run_state] ?? { label: 'Buổi sáng tạo đang mở', step: null };
 }

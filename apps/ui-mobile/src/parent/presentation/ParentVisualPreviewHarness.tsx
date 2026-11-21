@@ -6,7 +6,7 @@ import type {
   LessonDetail,
   LessonInvitation,
   LessonSummary,
-  ParentAudioTranscription,
+  ParentRunTranscriptV1,
   ParentDrawingCandidateV1,
   ParentGroupInvitation,
   ParentNotification,
@@ -263,7 +263,7 @@ const previewStory: StoryDraft = {
   ],
 };
 
-const previewTranscript: ParentAudioTranscription | null = null;
+const previewTranscript: ParentRunTranscriptV1 | null = null;
 
 function previewNotificationDate(daysAgo: number, hour: number): string {
   const date = new Date();
@@ -531,14 +531,12 @@ export function ParentVisualPreviewHarness(): React.JSX.Element {
     capture: <CapturePreviewScreen state="empty" />,
     'capture-denied': <CapturePreviewScreen state="camera-denied" />,
     'capture-selected': <CapturePreviewScreen state="photo-selected" />,
-    transcript: <TranscriptReviewScreen stepLabel="5 / 8" transcript={previewTranscript} text="" busy={false} error="" onText={ignoreAction} onConfirm={ignoreAction} onContinueWithoutAudio={ignoreAction} onBack={ignoreAction} />,
+    transcript: <TranscriptReviewScreen stepLabel="5 / 8" transcript={previewTranscript} waiting={false} text="" edited={false} busy={false} error="" onText={ignoreAction} onConfirm={ignoreAction} onRefresh={ignoreAction} onBack={ignoreAction} />,
     understanding: <UnderstandingScreen candidate={previewCandidate} stepLabel="5 / 8" subject="Mô phỏng · một con bướm" busy={false} error="" onSubject={ignoreAction} onConfirm={ignoreAction} onBack={ignoreAction} />,
     'context-before': <ContextScreen profile={previewProfile} contextRun={null} stepLabel="6 / 8" busy={false} confirmed={false} error="" onRetryCreate={ignoreAction} onConfirm={ignoreAction} onContinue={ignoreAction} onBack={ignoreAction} />,
     'context-after': <ContextScreen profile={previewProfile} contextRun={previewContextRun} stepLabel="6 / 8" busy={false} confirmed={false} error="" onRetryCreate={ignoreAction} onConfirm={ignoreAction} onContinue={ignoreAction} onBack={ignoreAction} />,
     activity: <ActivityScreen stepLabel="7 / 8" topic="Khu vườn" subject="Một chú bướm" suggestions={null} selectedIndex={null} loading={false} attempted={false} error="" onSuggest={ignoreAction} onSelect={ignoreAction} onContinue={ignoreAction} onBack={ignoreAction} />,
     story: <StoryScreen
-      videoCapability={unavailable('video')}
-      jobStage={{ state: 'idle', stage: 'idle' }}
       stepLabel="8 / 8"
       story={previewStory}
       storyReady
@@ -550,6 +548,11 @@ export function ParentVisualPreviewHarness(): React.JSX.Element {
       canConfirm={false}
       error=""
       confirmed={false}
+      rewriting={false}
+      rewriteNotice=""
+      rewriteAfterVideo={false}
+      rewritesLeft={3}
+      onOpenVideo={ignoreAction}
       onRewriteInstruction={ignoreAction}
       onGenerate={ignoreAction}
       onRetry={ignoreAction}

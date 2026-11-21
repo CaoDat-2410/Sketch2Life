@@ -1,4 +1,5 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { AppState } from 'react-native';
 import { ParentApplicationError } from '../../application/ParentApplicationError';
 import { createParentActionIdentity } from '../../application/ports/ParentPorts';
 import type { ActivitySuggestionResult } from '../../application/ports/ParentPorts';
@@ -12,13 +13,32 @@ import type {
   ParentDrawingCandidateV1,
   ParentGroupInvitation,
   ParentProfileDeletePendingV1,
+  ParentPlaybackSourceV1,
   ParentProfileViewV1,
+  ParentRunTranscriptV1,
   ParentStoryRunV1,
   ParentUser,
+  ParentVideoReasonCodeV1,
   StoryDraft,
   SuggestedActivity,
 } from '../../domain/types';
 import { requireLiveStoryRun } from '../../application/storyRunResult';
+import {
+  BACKGROUND_RUN_STATES,
+  classifyDrawingProgress,
+  rewriteRangeForRun,
+  scriptSpentByVideo,
+  classifyRewriteProgress,
+  classifyTranscript,
+  isClosedRunState,
+  readVideoPanel,
+} from '../../application/parentPhaseB';
+import {
+  RunWaitCancelled,
+  delayWithSignal,
+  waitForRun,
+  type RunWaitAppState,
+} from '../../application/parentRunWait';
 import {
   canStartProfileLearning,
   createUnavailableParentConsentState,
@@ -54,6 +74,7 @@ import {
   readStoryRevisionReadModel,
   nextProfileCursor,
   readRunUnderstanding,
+  readSubjectConfirmationOutcome,
   readDrawingCandidate,
   reconcileProfileRecord,
   safeParentFlowErrorMessage,
@@ -126,6 +147,16 @@ export function useParentController(application: ParentApplicationModule) {
   const [storyConfirmed, setStoryConfirmed] = useState(false);
   const [rewriteCount, setRewriteCount] = useState(0);
   const [rewriteInstruction, setRewriteInstruction] = useState('');
+  const [transcript, setTranscript] = useState<ParentRunTranscriptV1 | null>(null);
+  const [transcriptText, setTranscriptTextValue] = useState('');
+  const [transcriptWaiting, setTranscriptWaiting] = useState(false);
+  const [retakeAvailable, setRetakeAvailable] = useState(false);
+  const [playback, setPlayback] = useState<ParentPlaybackSourceV1 | null>(null);
+  const [videoReason, setVideoReason] = useState<ParentVideoReasonCodeV1 | null>(null);
+  const [markingUnsuitable, setMarkingUnsuitable] = useState(false);
+  const [spentStoryRevisionNo, setSpentStoryRevisionNo] = useState<number | null>(null);
+  const [confirmedStoryRevisionNo, setConfirmedStoryRevisionNo] = useState<number | null>(null);
+  const [rewriteNotice, setRewriteNotice] = useState('');
   const [events, setEvents] = useState<TimedEvent[]>([]);
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
@@ -143,7 +174,25 @@ export function useParentController(application: ParentApplicationModule) {
   const scriptConfirmationAction = useRef<RetainedActionIdentity | null>(null);
   const runCreationInFlight = useRef(false);
   const drawingAnalysisInFlight = useRef(false);
-  const drawingAnalysisAttemptedRunId = useRef<string | null>(null);
+  const drawingUploadAction = useRef<RetainedKeySet<'create' | 'complete' | 'attach'> | null>(null);
+  const voiceUploadAction = useRef<RetainedKeySet<'create' | 'complete' | 'idea'> | null>(null);
+  const audioSubmittedRunId = useRef<string | null>(null);
+  const transcriptCorrectionAction = useRef<RetainedActionIdentity | null>(null);
+  const transcriptConfirmAction = useRef<RetainedActionIdentity | null>(null);
+  const storyRewriteAction = useRef<RetainedActionIdentity | null>(null);
+  const videoRequestAction = useRef<RetainedActionIdentity | null>(null);
+  const videoUnsuitableAction = useRef<RetainedActionIdentity | null>(null);
+  const completeRunAction = useRef<RetainedActionIdentity | null>(null);
+  const waitAbort = useRef<AbortController | null>(null);
+  const playbackOpenedAt = useRef(0);
+  const playbackAutoRetries = useRef(0);
+  const retakeUsed = useRef(false);
+  const busyEpoch = useRef(0);
+  /** Set when the adult leaves a waiting screen: a chain that was already running may not start another wait. */
+  const waitsBlocked = useRef(false);
+
+  // A wait must never outlive the controller (sign-out, unmount): it only reads, but it holds a timer.
+  useEffect(() => () => { waitAbort.current?.abort(); }, []);
 
   async function timeRequest<T>(stage: string, request: () => Promise<T>): Promise<T> {
     const started = Date.now();
@@ -584,13 +633,22 @@ export function useParentController(application: ParentApplicationModule) {
   }
 
   function setAudio(value: SelectedAudio | null): void {
-    setAudioValue(null);
-    if (value) setError('Chuyển giọng nói thành chữ chưa khả dụng. Bạn vẫn có thể tiếp tục bằng ý tưởng đã nhập.');
+    // T-2c, Q-2c-1: the server accepts `audio/mp4` and `audio/wav` up to two minutes and 20 MB.
+    if (value && value.mediaType !== 'audio/mp4' && value.mediaType !== 'audio/wav') {
+      setAudioValue(null);
+      setError('Định dạng bản ghi âm chưa được hỗ trợ. Bạn vẫn có thể nhập ý tưởng bằng chữ.');
+      return;
+    }
+    setAudioValue(value);
+    audioSubmittedRunId.current = null;
+    voiceUploadAction.current = null;
+    setError('');
   }
 
   function setPhoto(value: SelectedPhoto): void {
-    if ((photo as SelectedPhotoWithRunLock | null)?.locked
-      || (contextRun && (contextRun.current_input_revision ?? 0) > 1)) {
+    // One retake is allowed after a recoverable analysis failure (T-2b); otherwise the drawing is fixed to the run.
+    if (!retakeAvailable && ((photo as SelectedPhotoWithRunLock | null)?.locked
+      || (contextRun && (contextRun.current_input_revision ?? 0) > 1))) {
       setPhotoValue((current) => current
         ? { ...current, analysisError: 'Ảnh đã được gắn với buổi học này và không thể thay bằng ảnh khác.' }
         : current);
@@ -601,6 +659,8 @@ export function useParentController(application: ParentApplicationModule) {
   }
 
   function setPhotoMessage(message: string): void {
+    // After a resume there is no photo in memory: the message still has to reach the adult.
+    if (message && !photo) setError(message);
     setPhotoValue((current) => current ? { ...current, analysisError: message } : current);
   }
 
@@ -674,7 +734,6 @@ export function useParentController(application: ParentApplicationModule) {
       setActiveRun(run);
       setContextConfirmed(run.context_confirmed === true);
       resetActivityReview();
-      drawingAnalysisAttemptedRunId.current = null;
       setStep('capture');
       runCreationAction.current = null;
       return run;
@@ -892,9 +951,8 @@ export function useParentController(application: ParentApplicationModule) {
       return;
     }
     drawingAnalysisInFlight.current = true;
-    setBusy('understanding');
+    const busyToken = beginBusy('understanding');
     setError('');
-    let uploadAttempted = false;
     try {
       const latest = await getLatestRun(runId);
       const revision = latest.current_input_revision;
@@ -902,76 +960,45 @@ export function useParentController(application: ParentApplicationModule) {
         setPhotoMessage(safeParentFlowErrorMessage({ code: 'PARENT_DRAWING_RESULT_INVALID' }));
         return;
       }
-      if (revision > 1) {
-        if (adoptServerUnderstanding(latest)) return;
-        setPhotoMessage('Ảnh đã được gắn với buổi học nhưng máy chủ chưa trả về kết quả xem xét. Không gửi lại ảnh trong buổi học này.');
+      const stage = classifyDrawingProgress(latest);
+      if (revision > 1 && !retakeAvailable && stage.kind !== 'awaiting-drawing') {
+        // The server already holds a drawing for this run: it is never sent again. Follow what the server did with it.
+        await handleOrWaitDrawing(latest);
         return;
       }
-      if (revision !== 1) {
-        setPhotoMessage(safeParentFlowErrorMessage({ code: 'PARENT_DRAWING_RESULT_INVALID' }));
-        return;
-      }
-      if (isActiveOrUnreconciledStoryRun(latest)) {
+      if (revision === 1 && isActiveOrUnreconciledStoryRun(latest)) {
         setPhotoMessage(safeParentFlowErrorMessage({ code: 'AWAITING_RECONCILIATION' }));
         return;
       }
-      if (drawingAnalysisAttemptedRunId.current === runId) {
-        setPhotoMessage('Chưa có phiên tải lên có thể tiếp tục. Không gửi lại ảnh; hãy kiểm tra trạng thái buổi học sau.');
-        return;
-      }
-      uploadAttempted = true;
-      drawingAnalysisAttemptedRunId.current = runId;
-      const understanding = await timeRequest(
-        'drawing-understanding',
-        () => application.learning.understandDrawing(runId, selectedPhoto.base64, selectedPhoto.mediaType),
-      );
-      const returnedCandidate = readDrawingCandidate(understanding.candidate);
-      const understandingRevision = understanding.understanding_revision;
-      const inputRevision = understanding.run_input_revision;
-      if (!returnedCandidate
-        || typeof understandingRevision !== 'number'
-        || !Number.isInteger(understandingRevision)
-        || understandingRevision < 1
-        || inputRevision !== revision + 1) {
-        setPhotoMessage(safeParentFlowErrorMessage({ code: 'PARENT_DRAWING_RESULT_INVALID' }));
-        return;
-      }
-      const updatedRun = {
-        ...latest,
-        current_input_revision: inputRevision,
-        understanding_revision: understandingRevision,
-        candidate: returnedCandidate,
-        subject_label: returnedCandidate.candidate_subject ?? null,
-      };
-      setContextRun(updatedRun);
-      setActiveRun(updatedRun);
+      // T-2b: the upload session and the attach each keep their own key per file, so a repeated tap replays.
+      const signature = JSON.stringify([runId, revision, selectedPhoto.uri, selectedPhoto.fileSizeBytes ?? null]);
+      const keys = retainedKeySet(drawingUploadAction, signature, ['create', 'complete', 'attach'] as const);
+      const accepted = await timeRequest('drawing-attach', () => application.learning.attachDrawingV1({
+        runId,
+        runRevision: latest.run_revision,
+        photo: { base64: selectedPhoto.base64, mediaType: selectedPhoto.mediaType },
+        keys,
+      }));
+      drawingUploadAction.current = null;
+      if (retakeAvailable) retakeUsed.current = true;
+      setRetakeAvailable(false);
       setPhotoValue((current) => current ? { ...current, locked: true, analysisError: undefined } as SelectedPhoto : current);
-      setCandidate(returnedCandidate);
-      setSubject(returnedCandidate.candidate_subject ?? '');
-      setUnderstandingRevision(understandingRevision);
-      setSubjectConfirmed(false);
-      resetActivityReview();
-      setStep('understanding');
+      const attached: ParentStoryRunV1 = {
+        ...latest,
+        run_revision: accepted.run_revision,
+        current_input_revision: accepted.input_revision,
+        run_state: accepted.run_state as ParentStoryRunV1['run_state'],
+      };
+      adoptPolledRun(attached);
+      await submitVoiceIdea(attached);
+      await settleDrawingStage(runId);
     } catch (cause) {
-      if (uploadAttempted) {
-        try {
-          const latest = await getLatestRun(runId);
-          if (latest.current_input_revision !== 1) {
-            if (!adoptServerUnderstanding(latest)) {
-              setPhotoMessage('Ảnh đã được gắn với buổi học nhưng máy chủ chưa trả về kết quả xem xét. Không gửi lại ảnh trong buổi học này.');
-            }
-          } else {
-            setPhotoMessage('Chưa xác nhận được kết quả tranh. Không có phiên tải lên để tiếp tục và ảnh sẽ không được gửi lại tự động.');
-          }
-        } catch {
-          setPhotoMessage(PARENT_RUN_PREFLIGHT_UNAVAILABLE_MESSAGE);
-        }
-      } else {
-        setPhotoMessage(safeParentFlowErrorMessage(cause));
-      }
+      if (cause instanceof RunWaitCancelled) return;
+      if (isDefinitiveClientError(cause)) drawingUploadAction.current = null;
+      setPhotoMessage(safeParentFlowErrorMessage(cause));
     } finally {
       drawingAnalysisInFlight.current = false;
-      setBusy('');
+      endBusy(busyToken);
     }
   }
 
@@ -1001,7 +1028,7 @@ export function useParentController(application: ParentApplicationModule) {
     }
     const confirmedSubject = subject.trim();
     const signature = JSON.stringify([runId, understandingRevision, confirmedSubject]);
-    setBusy('subject');
+    const busyToken = beginBusy('subject');
     setError('');
     try {
       if (subjectConfirmationAction.current) {
@@ -1035,12 +1062,34 @@ export function useParentController(application: ParentApplicationModule) {
       }
       const actionIdentity = retainedActionIdentity(subjectConfirmationAction, signature);
       const response = await application.learning.confirmSubjectV1(runId, understandingRevision, confirmedSubject, actionIdentity);
-      if (response.story_run_id !== runId
-        || response.understanding_revision !== understandingRevision
-        || response.decision !== 'CONFIRMED') {
+      const subjectEdited = confirmedSubject !== (candidate?.candidate_subject ?? '').trim();
+      const outcome = readSubjectConfirmationOutcome(response, { runId, understandingRevision, subjectEdited });
+      if (outcome === 'invalid') {
         throw new ParentApplicationError('PARENT_SUBJECT_CONFIRMATION_INVALID', 'Subject confirmation did not match the reviewed result.');
       }
-      const decision = confirmedSubject === candidate?.candidate_subject ? 'CONFIRMED_BY_ADULT' : 'CORRECTED_BY_ADULT';
+      if (outcome === 'rerun-requested') {
+        // SRS l.394: an edited subject runs the visual understanding again. Nothing is confirmed yet;
+        // the app follows the run until the new revision is ready, then asks for the second confirmation.
+        subjectConfirmationAction.current = null;
+        setSubjectConfirmed(false);
+        const result = await waitRun(runId, (candidateRun) => candidateRun.run_state !== 'INPUT_PROCESSING', { onRun: adoptPolledRun });
+        const rerunRun = result.value;
+        const refreshed = rerunRun ? readRunUnderstanding(rerunRun) : null;
+        if (!rerunRun || result.timedOut) {
+          setError(safeParentFlowErrorMessage({ code: 'SUBJECT_RERUN_PENDING' }));
+        } else if (rerunRun.run_state === 'SUBJECT_REVIEW' && refreshed && refreshed.understandingRevision > understandingRevision) {
+          adoptServerUnderstanding(rerunRun);
+        } else if (rerunRun.run_state === 'SUBJECT_REVIEW') {
+          // A failed rerun returns to the unchanged revision: the adult may confirm it or edit again.
+          setError('Chưa xem lại được bức tranh theo chủ thể bạn sửa. Bạn có thể xác nhận kết quả hiện tại hoặc sửa lại.');
+        } else if (rerunRun.run_state === 'INPUT_REVIEW') {
+          await handleDrawingProgress(rerunRun);
+        } else {
+          setError(safeParentFlowErrorMessage({ code: isClosedRunState(rerunRun.run_state) ? rerunRun.run_state : 'PARENT_DRAWING_RESULT_INVALID' }));
+        }
+        return;
+      }
+      const decision = subjectEdited ? 'CORRECTED_BY_ADULT' : 'CONFIRMED_BY_ADULT';
       const confirmedRun: ParentStoryRunV1 = {
         ...run,
         understanding_revision: response.understanding_revision,
@@ -1076,7 +1125,7 @@ export function useParentController(application: ParentApplicationModule) {
       }
       setError(safeParentFlowErrorMessage(cause));
     } finally {
-      setBusy('');
+      endBusy(busyToken);
     }
   }
 
@@ -1357,6 +1406,7 @@ export function useParentController(application: ParentApplicationModule) {
       setContextRun(confirmedRun);
       setActiveRun(confirmedRun);
       setStoryConfirmed(true);
+      setConfirmedStoryRevisionNo(revisionNo);
       scriptConfirmationAction.current = null;
     } catch (cause) {
       if (cause instanceof ParentApplicationError && cause.code === 'STALE_REVISION') {
@@ -1397,6 +1447,7 @@ export function useParentController(application: ParentApplicationModule) {
     setContextConfirmed(run.context_confirmed === true);
     setTopic(run.context_snapshot.topic);
     setIdea(run.context_snapshot.adult_confirmed_idea);
+    if (await resumePhaseBRun(run)) return;
     if (readRunUnderstanding(run)) {
       if (adoptServerUnderstanding(run)) return;
     }
@@ -1407,6 +1458,633 @@ export function useParentController(application: ParentApplicationModule) {
     setStep('home');
     setError('Buổi học đã có ảnh được máy chủ ghi nhận nhưng chưa có kết quả xem xét. Không gửi lại ảnh; hãy kiểm tra trạng thái sau.');
   }
+  // ---------------------------------------------------------------------------------------------
+  // Goal v3 Phase B (SRS l.1664-1676): waits on the run, voice idea and transcript, async rewrites,
+  // video request and playback, closeout states. The run detail is the single source of truth; every
+  // command keeps its action identity per signature, so a repeated tap replays instead of re-sending.
+  // ---------------------------------------------------------------------------------------------
+
+  /** `busy` belongs to the latest action: an older, cancelled one must not clear it (review F7b). */
+  function beginBusy(label: string): number {
+    busyEpoch.current += 1;
+    waitsBlocked.current = false;
+    setBusy(label);
+    return busyEpoch.current;
+  }
+
+  function endBusy(token: number): void {
+    if (busyEpoch.current === token) setBusy('');
+  }
+
+  /** Leaves a waiting screen: the wait stops, nothing it would have shown can steal the navigation, the grant is dropped. */
+  function leaveWait(next: AppStep): void {
+    stopWait();
+    waitsBlocked.current = true;
+    busyEpoch.current += 1;
+    drawingAnalysisInFlight.current = false;
+    setBusy('');
+    setPlayback(null);
+    setMarkingUnsuitable(false);
+    setStep(next);
+  }
+
+  function startWait(): AbortSignal {
+    if (waitsBlocked.current) {
+      // An action that started before the adult left the screen cannot open a new wait (it would navigate later).
+      const blocked = new AbortController();
+      blocked.abort();
+      return blocked.signal;
+    }
+    waitAbort.current?.abort();
+    const controller = new AbortController();
+    waitAbort.current = controller;
+    return controller.signal;
+  }
+
+  function stopWait(): void {
+    waitAbort.current?.abort();
+    waitAbort.current = null;
+  }
+
+  async function readLiveRun(runId: string): Promise<ParentStoryRunV1> {
+    const run = requireLiveStoryRun(await application.learning.getRunV1(runId)).story_run;
+    if (run.run_id !== runId) {
+      throw new ParentApplicationError('PARENT_STORY_REVISION_INVALID', 'The refreshed run did not match the current run.');
+    }
+    return run;
+  }
+
+  /** Reads the run every 2 to 10 seconds until `isSettled`; a closed or cancelled wait ends the loop. */
+  async function waitRun(
+    runId: string,
+    isSettled: (run: ParentStoryRunV1) => boolean,
+    options: { budgetMs?: number; onRun?: (run: ParentStoryRunV1) => void } = {},
+  ) {
+    const signal = startWait();
+    return waitForRun<ParentStoryRunV1>({
+      read: () => readLiveRun(runId),
+      isSettled: (run) => isSettled(run) || isClosedRunState(run.run_state),
+      sleep: delayWithSignal,
+      signal,
+      appState: AppState as unknown as RunWaitAppState,
+      budgetMs: options.budgetMs,
+      isTransient: isTransientReadError,
+      onValue: options.onRun,
+    });
+  }
+
+  function adoptPolledRun(run: ParentStoryRunV1): void {
+    setContextRun(run);
+    setActiveRun(run);
+    setContextConfirmed(run.context_confirmed === true);
+  }
+
+  /** After a drawing, a voice idea or a transcript confirmation: wait for the server, then show what it answered. */
+  async function settleDrawingStage(runId: string): Promise<void> {
+    const result = await waitRun(runId, (run) => classifyDrawingProgress(run).kind !== 'processing', { onRun: adoptPolledRun });
+    if (result.timedOut || !result.value) {
+      setPhotoMessage('Việc nhận diện đang mất lâu hơn dự kiến. Ảnh đã được gửi; hãy quay lại sau để xem kết quả.');
+      return;
+    }
+    await handleDrawingProgress(result.value);
+  }
+
+  async function handleDrawingProgress(run: ParentStoryRunV1): Promise<void> {
+    const progress = classifyDrawingProgress(run);
+    if (progress.kind === 'awaiting-drawing') {
+      // A run with no analysis job yet (new, or only an idea): the adult still has to attach the drawing.
+      adoptPolledRun(run);
+      const pending = await application.learning.getTranscriptV1(run.run_id);
+      const pendingProgress = classifyTranscript(pending);
+      if (pendingProgress.kind === 'review' || pendingProgress.kind === 'waiting') {
+        applyTranscript(pending);
+        setTranscriptWaiting(pendingProgress.kind === 'waiting');
+        setStep('transcript');
+        return;
+      }
+      setStep('capture');
+      return;
+    }
+    if (progress.kind === 'subject-ready') {
+      setRetakeAvailable(false);
+      if (adoptServerUnderstanding(run)) return;
+      setPhotoMessage(safeParentFlowErrorMessage({ code: 'PARENT_DRAWING_RESULT_INVALID' }));
+      return;
+    }
+    if (progress.kind === 'beyond-subject') {
+      if (readRunUnderstanding(run) && adoptServerUnderstanding(run)) return;
+      setPhotoMessage(safeParentFlowErrorMessage({ code: 'PARENT_DRAWING_RESULT_INVALID' }));
+      return;
+    }
+    if (progress.kind === 'input-review') {
+      const current = await application.learning.getTranscriptV1(run.run_id);
+      const transcriptProgress = classifyTranscript(current);
+      adoptPolledRun(run);
+      if (transcriptProgress.kind === 'review' || transcriptProgress.kind === 'waiting'
+        || (transcriptProgress.kind === 'failed' && !progress.analysisFailed)) {
+        applyTranscript(current);
+        setTranscriptWaiting(transcriptProgress.kind === 'waiting');
+        setStep('transcript');
+        return;
+      }
+      if (progress.analysisFailed) {
+        if (retakeUsed.current) {
+          // T-2b: the server allows one retake only; after it the way on is to cancel the run.
+          setRetakeAvailable(false);
+          setPhotoMessage('Vẫn chưa nhận diện được bức tranh. Bạn có thể hủy buổi học trong lịch sử rồi bắt đầu lại.');
+          setStep('capture');
+          return;
+        }
+        // T-2b: one retake is allowed after a recoverable failure; the photo is unlocked for it.
+        setRetakeAvailable(true);
+        setPhotoValue((currentPhoto) => currentPhoto ? { ...currentPhoto, locked: false } as SelectedPhoto : currentPhoto);
+        setPhotoMessage('Chưa nhận diện được bức tranh. Bạn có thể chụp lại một lần.');
+        setStep('capture');
+        return;
+      }
+      setPhotoMessage('Buổi học đang chờ bạn xem lại ảnh và ý tưởng.');
+      return;
+    }
+    if (progress.kind === 'closed') {
+      setPhotoMessage(safeParentFlowErrorMessage({ code: progress.state }));
+      return;
+    }
+    setPhotoMessage(safeParentFlowErrorMessage({ code: 'PARENT_DRAWING_RESULT_INVALID' }));
+  }
+
+  function applyTranscript(value: ParentRunTranscriptV1): void {
+    setTranscript(value);
+    setTranscriptTextValue(value.text ?? '');
+  }
+
+  function setTranscriptText(value: string): void {
+    setTranscriptTextValue(value.slice(0, 500));
+  }
+
+  /** The recording is sent once per run, after the drawing; a failure leaves the typed idea usable. */
+  async function submitVoiceIdea(run: ParentStoryRunV1): Promise<void> {
+    const selectedAudio = audio;
+    if (!selectedAudio || audioSubmittedRunId.current === run.run_id) return;
+    const signature = JSON.stringify([run.run_id, selectedAudio.uri, selectedAudio.fileName]);
+    const keys = retainedKeySet(voiceUploadAction, signature, ['create', 'complete', 'idea'] as const);
+    try {
+      // The analysis worker bumps the run revision right after the drawing is attached, so the revision is read
+      // again just before `/idea` (the backend compares it for equality) instead of reusing the attach answer.
+      const accepted = await timeRequest('parent-story-run-idea', () => application.learning.submitVoiceIdeaV1({
+        runId: run.run_id,
+        currentRunRevision: async () => (await readLiveRun(run.run_id)).run_revision,
+        audio: { uri: selectedAudio.uri, mediaType: selectedAudio.mediaType },
+        keys,
+      }));
+      audioSubmittedRunId.current = run.run_id;
+      voiceUploadAction.current = null;
+      setContextRun((current) => current && current.run_id === run.run_id
+        ? { ...current, run_revision: accepted.run_revision } : current);
+    } catch (cause) {
+      if (isDefinitiveClientError(cause)) voiceUploadAction.current = null;
+      setError(`Chưa gửi được bản ghi âm. Bạn vẫn có thể tiếp tục bằng ý tưởng đã nhập. ${safeRunMessage(cause)}`);
+    }
+  }
+
+  async function refreshTranscript(): Promise<void> {
+    const runId = contextRun?.run_id;
+    if (!runId || busy) return;
+    const busyToken = beginBusy('transcript-load');
+    setError('');
+    try {
+      const signal = startWait();
+      const result = await waitForRun<ParentRunTranscriptV1>({
+        read: () => application.learning.getTranscriptV1(runId),
+        isSettled: (value) => classifyTranscript(value).kind !== 'waiting',
+        sleep: delayWithSignal,
+        signal,
+        appState: AppState as unknown as RunWaitAppState,
+        budgetMs: 3 * 60_000,
+        isTransient: isTransientReadError,
+        onValue: applyTranscript,
+      });
+      setTranscriptWaiting(result.timedOut);
+    } catch (cause) {
+      if (cause instanceof RunWaitCancelled) return;
+      setError(safeRunMessage(cause));
+    } finally {
+      endBusy(busyToken);
+    }
+  }
+
+  /** TD-04: a corrected text is saved first, then the exact revision and hash that the server returns are confirmed. */
+  async function confirmTranscriptReview(): Promise<void> {
+    const run = contextRun;
+    const current = transcript;
+    if (busy || !run || !current) return;
+    const text = transcriptText.trim();
+    if (!text) return;
+    const busyToken = beginBusy('transcript-confirm');
+    setError('');
+    try {
+      let target = current;
+      const progress = classifyTranscript(current);
+      const edited = progress.kind !== 'review' || text !== progress.text.trim();
+      if (edited) {
+        let accepted;
+        if (current.transcript_revision === null) {
+          const signature = JSON.stringify([run.run_id, current.run_revision, 'text', text]);
+          const key = retainedActionIdentity(transcriptCorrectionAction, signature);
+          accepted = await timeRequest('parent-story-run-idea', () => application.learning.submitTextIdeaV1(run.run_id, current.run_revision, text, key));
+        } else {
+          const signature = JSON.stringify([run.run_id, current.run_revision, current.transcript_revision, text]);
+          const key = retainedActionIdentity(transcriptCorrectionAction, signature);
+          accepted = await timeRequest('parent-story-run-idea', () => application.learning.correctTranscriptV1({
+            runId: run.run_id,
+            runRevision: current.run_revision,
+            baseRevision: current.transcript_revision as number,
+            text,
+            actionIdentity: key,
+          }));
+        }
+        void accepted;
+        transcriptCorrectionAction.current = null;
+        target = await application.learning.getTranscriptV1(run.run_id);
+        applyTranscript(target);
+      }
+      const reread = classifyTranscript(target);
+      if (reread.kind === 'confirmed') {
+        setStep('capture');
+        setBusy('understanding');
+        await settleDrawingStage(run.run_id);
+        return;
+      }
+      if (reread.kind !== 'review') {
+        setTranscriptWaiting(reread.kind === 'waiting');
+        setError('Chưa có bản chép lời mới để xác nhận. Hãy thử tải lại.');
+        return;
+      }
+      const signature = JSON.stringify([run.run_id, reread.revision, reread.sha256]);
+      const key = retainedActionIdentity(transcriptConfirmAction, signature);
+      await timeRequest('parent-story-run-transcript', () => application.learning.confirmTranscriptV1(run.run_id, reread.revision, reread.sha256, key));
+      transcriptConfirmAction.current = null;
+      setTranscript(null);
+      setTranscriptTextValue('');
+      setStep('capture');
+      setBusy('understanding');
+      await settleDrawingStage(run.run_id);
+    } catch (cause) {
+      if (cause instanceof RunWaitCancelled) return;
+      if (cause instanceof ParentApplicationError && cause.code === 'STALE_REVISION') {
+        transcriptConfirmAction.current = null;
+        transcriptCorrectionAction.current = null;
+        try {
+          applyTranscript(await application.learning.getTranscriptV1(run.run_id));
+        } catch { /* the message below already asks for a reload */ }
+      }
+      const tooLong = cause instanceof ParentApplicationError
+        && (cause.fieldErrors ?? []).some((item) => (item.field === 'transcript' || item.field === 'text') && item.code === 'TOO_LONG');
+      setError(tooLong
+        ? 'Ý tưởng đã nhập và nội dung chép lời dài quá 500 ký tự. Hãy rút gọn bản chép lời rồi xác nhận lại.'
+        : safeRunMessage(cause));
+    } finally {
+      endBusy(busyToken);
+    }
+  }
+
+  /** FR-P-07, T-2d: one more story revision, asynchronous. The previous story stays until the new draft is ready. */
+  async function rewriteStory(hint?: string): Promise<void> {
+    const run = contextRun;
+    if (busy || !run || !ensureLearningProfileAllowed(profile)) return;
+    const instruction = (hint ?? rewriteInstruction).trim();
+    const busyToken = beginBusy('rewrite');
+    setError('');
+    setRewriteNotice('');
+    try {
+      const latest = await getLatestRun(run.run_id);
+      if (latest.run_state === 'SCRIPT_GENERATING' || latest.run_state === 'STORY_GENERATING') {
+        // A rewrite the server already accepted (a slow wait that ended early): follow it, never send another.
+        const range = rewriteRangeForRun(latest);
+        await followRewrite(run.run_id, range.fromRevisionNo, range.toRevisionNo);
+        return;
+      }
+      const read = readStoryRevisionReadModel({ story_run: latest }, run.run_id);
+      if (read.kind !== 'valid' || latest.run_state !== 'SCRIPT_REVIEW'
+        || read.value.storyRevisionNo !== storyRevisionNo || read.value.storySha256 !== storySha256) {
+        if (read.kind === 'valid') adoptServerStory(latest);
+        setError(safeParentFlowErrorMessage({ code: 'STALE_REVISION' }));
+        return;
+      }
+      const fromRevisionNo = read.value.storyRevisionNo;
+      const signature = JSON.stringify([run.run_id, fromRevisionNo, read.value.storySha256, instruction]);
+      const key = retainedActionIdentity(storyRewriteAction, signature);
+      const accepted = await timeRequest('story-rewrite', () => application.learning.rewriteStoryV1(latest, instruction || undefined, key));
+      setContextRun({ ...latest, run_state: accepted.run_state, run_revision: accepted.run_revision });
+      await followRewrite(run.run_id, fromRevisionNo, accepted.story_revision_no);
+    } catch (cause) {
+      if (cause instanceof RunWaitCancelled) return;
+      if (cause instanceof ParentApplicationError && (cause.code === 'STALE_REVISION' || cause.code === 'STORY_REWRITE_LIMIT_REACHED' || cause.code === 'INVALID_STATE_TRANSITION')) {
+        storyRewriteAction.current = null;
+      }
+      setError(safeRunMessage(cause));
+    } finally {
+      endBusy(busyToken);
+    }
+  }
+
+  async function followRewrite(runId: string, fromRevisionNo: number, toRevisionNo: number): Promise<void> {
+    const result = await waitRun(
+      runId,
+      (run) => classifyRewriteProgress(run, { fromRevisionNo, toRevisionNo }).kind !== 'generating',
+      { onRun: adoptPolledRun },
+    );
+    const run = result.value;
+    if (!run || result.timedOut) {
+      setRewriteNotice('Việc viết lại đang mất lâu hơn dự kiến. Câu chuyện hiện tại vẫn được giữ; hãy quay lại sau.');
+      return;
+    }
+    const progress = classifyRewriteProgress(run, { fromRevisionNo, toRevisionNo });
+    if (progress.kind === 'ready') {
+      storyRewriteAction.current = null;
+      if (!adoptServerStory(run)) {
+        setError(safeParentFlowErrorMessage({ code: 'PARENT_STORY_REVISION_INVALID' }));
+        return;
+      }
+      adoptPolledRun(run);
+      setRewriteInstruction('');
+      setStep('story');
+      return;
+    }
+    if (progress.kind === 'failed') {
+      // The attempt is final on the server (T-2d-fix): the next try is a new command with a new key.
+      storyRewriteAction.current = null;
+      adoptServerStory(run);
+      adoptPolledRun(run);
+      setRewriteNotice(progress.retryable
+        ? 'Chưa viết lại được. Câu chuyện hiện tại vẫn được giữ nguyên; bạn có thể thử lại.'
+        : 'Chưa viết lại được. Câu chuyện hiện tại vẫn được giữ nguyên; bạn có thể xác nhận câu chuyện này hoặc dừng buổi học.');
+      return;
+    }
+    if (progress.kind === 'unknown-outcome') {
+      setRewriteNotice('Chưa xác nhận được kết quả viết lại. Không gửi lại yêu cầu; hãy kiểm tra lại sau.');
+      return;
+    }
+    if (progress.kind === 'closed') {
+      setError(safeParentFlowErrorMessage({ code: progress.state }));
+      return;
+    }
+    setError(safeParentFlowErrorMessage({ code: 'PARENT_STORY_REVISION_INVALID' }));
+  }
+
+  /** Opens the video step with the latest run; a run that is still working is followed until it settles. */
+  async function openVideoStep(explicitRunId?: string): Promise<void> {
+    // A resume passes the run it just read: the state of this render does not hold it yet.
+    const runId = explicitRunId ?? contextRun?.run_id;
+    if (!runId) return;
+    setStep('video');
+    setError('');
+    const busyToken = beginBusy('video-refresh');
+    try {
+      const latest = await readLiveRun(runId);
+      adoptPolledRun(latest);
+      if (BACKGROUND_RUN_STATES.has(latest.run_state)) await followVideo(runId);
+    } catch (cause) {
+      if (cause instanceof RunWaitCancelled) return;
+      setError(safeRunMessage(cause));
+    } finally {
+      endBusy(busyToken);
+    }
+  }
+
+  async function followVideo(runId: string): Promise<ParentStoryRunV1 | null> {
+    const result = await waitRun(
+      runId,
+      (run) => !BACKGROUND_RUN_STATES.has(run.run_state),
+      { budgetMs: 15 * 60_000, onRun: adoptPolledRun },
+    );
+    if (result.value) adoptPolledRun(result.value);
+    if (result.timedOut) setError('Video đang được tạo. Bạn có thể rời màn hình này và quay lại sau.');
+    return result.value;
+  }
+
+  async function refreshVideo(): Promise<void> {
+    if (busy) return;
+    await openVideoStep();
+  }
+
+  async function requestVideo(): Promise<void> {
+    const run = contextRun;
+    if (busy || !run) return;
+    const sessionKnowledge = { spentRevisionNo: spentStoryRevisionNo, confirmedRevisionNo: confirmedStoryRevisionNo };
+    const panel = readVideoPanel(run, sessionKnowledge);
+    if (!panel.canRequest) return;
+    if (panel.requiresReason && videoReason === null) return;
+    const reason = panel.requiresReason ? videoReason : null;
+    const busyToken = beginBusy('video-request');
+    setError('');
+    try {
+      const latest = await readLiveRun(run.run_id);
+      adoptPolledRun(latest);
+      if (BACKGROUND_RUN_STATES.has(latest.run_state)) {
+        // The earlier request got through (a lost answer): follow it instead of sending another.
+        setBusy('video-refresh');
+        await followVideo(run.run_id);
+        return;
+      }
+      if (!readVideoPanel(latest, sessionKnowledge).canRequest) {
+        setError('Chưa thể tạo video ở trạng thái hiện tại. Hãy mở lại buổi học để xem trạng thái mới nhất.');
+        return;
+      }
+      const signature = JSON.stringify([latest.run_id, latest.run_revision, latest.story_sha256, reason]);
+      const key = retainedActionIdentity(videoRequestAction, signature);
+      await timeRequest('video-request', () => application.learning.requestVideoV1(latest, reason, key));
+      videoRequestAction.current = null;
+      setVideoReason(null);
+      setBusy('video-refresh');
+      const followed = await followVideo(run.run_id);
+      // The script is spent only once the generation was not rejected at admission (T-1a: a refused admission keeps it).
+      if (followed && followed.video && followed.video.state !== 'ADMISSION_REJECTED') {
+        setSpentStoryRevisionNo(latest.story_revision_no);
+      }
+    } catch (cause) {
+      if (cause instanceof RunWaitCancelled) return;
+      if (cause instanceof ParentApplicationError && cause.code === 'INVALID_STATE_TRANSITION') {
+        // The server refuses a second request on the same confirmed script: the way on is the script review.
+        videoRequestAction.current = null;
+        setSpentStoryRevisionNo(run.story_revision_no);
+        setError('Kịch bản này đã được dùng để tạo video. Hãy viết lại kịch bản, xác nhận lại rồi tạo video mới.');
+      } else {
+        if (isDefinitiveClientError(cause)) videoRequestAction.current = null;
+        setError(safeRunMessage(cause));
+      }
+    } finally {
+      endBusy(busyToken);
+    }
+  }
+
+  /** T-1c: the grant is issued fresh for every open; it is never stored beyond the player source. */
+  async function playVideo(userInitiated = true): Promise<void> {
+    const runId = contextRun?.run_id;
+    if (!runId || (busy && busy !== 'video-playback')) return;
+    if (userInitiated) playbackAutoRetries.current = 0;
+    setBusy('video-playback');
+    setError('');
+    try {
+      const source = await application.learning.openPlaybackV1(runId);
+      playbackOpenedAt.current = Date.now();
+      setPlayback(source);
+    } catch (cause) {
+      setPlayback(null);
+      setError(safePlaybackMessage(cause));
+    } finally {
+      setBusy('');
+    }
+  }
+
+  /** A player error usually means the grant expired mid-stream: ask for a new one once, then stop. */
+  function onPlaybackError(): void {
+    if (Date.now() - playbackOpenedAt.current < 10_000 || playbackAutoRetries.current >= 1) {
+      setPlayback(null);
+      setError('Chưa phát được video. Hãy thử mở lại.');
+      return;
+    }
+    playbackAutoRetries.current += 1;
+    void playVideo(false);
+  }
+
+  function startUnsuitable(): void {
+    setMarkingUnsuitable(true);
+    setVideoReason(null);
+    setError('');
+  }
+
+  function cancelUnsuitable(): void {
+    setMarkingUnsuitable(false);
+    setVideoReason(null);
+  }
+
+  async function markVideoUnsuitable(): Promise<void> {
+    const run = contextRun;
+    if (busy || !run || videoReason === null) return;
+    setBusy('video-unsuitable');
+    setError('');
+    try {
+      const latest = await readLiveRun(run.run_id);
+      adoptPolledRun(latest);
+      const signature = JSON.stringify([latest.run_id, latest.run_revision, latest.video?.current_generation_id ?? null, videoReason]);
+      const key = retainedActionIdentity(videoUnsuitableAction, signature);
+      const envelope = await timeRequest('video-unsuitable', () => application.learning.markVideoUnsuitableV1(latest, videoReason, key));
+      videoUnsuitableAction.current = null;
+      const updated = envelope.story_run;
+      adoptPolledRun(updated);
+      adoptServerStory(updated);
+      setPlayback(null);
+      setMarkingUnsuitable(false);
+      setSpentStoryRevisionNo(updated.story_revision_no);
+      // The reason stays selected: the next request asks for one again (T-1b P3-3).
+    } catch (cause) {
+      if (cause instanceof ParentApplicationError && cause.status !== undefined && cause.status >= 400 && cause.status < 500
+        && cause.code !== 'RATE_LIMITED' && cause.code !== 'REQUEST_TIMEOUT') {
+        videoUnsuitableAction.current = null;
+      }
+      setError(safeRunMessage(cause));
+    } finally {
+      setBusy('');
+    }
+  }
+
+  async function completeRun(): Promise<void> {
+    const run = contextRun;
+    if (busy || !run) return;
+    setBusy('video-complete');
+    setError('');
+    try {
+      const latest = await readLiveRun(run.run_id);
+      adoptPolledRun(latest);
+      const signature = JSON.stringify([latest.run_id, latest.run_revision]);
+      const key = retainedActionIdentity(completeRunAction, signature);
+      const envelope = await timeRequest('video-complete', () => application.learning.completeRunV1(latest, key));
+      completeRunAction.current = null;
+      setContextRun(envelope.story_run);
+      setActiveRun(null);
+      setPlayback(null);
+    } catch (cause) {
+      if (cause instanceof ParentApplicationError && cause.status !== undefined && cause.status >= 400 && cause.status < 500
+        && cause.code !== 'RATE_LIMITED' && cause.code !== 'REQUEST_TIMEOUT') {
+        completeRunAction.current = null;
+      }
+      setError(safeRunMessage(cause));
+    } finally {
+      setBusy('');
+    }
+  }
+
+  /** Puts the confirmed subject and context of a resumed run back, so the story and video steps can act on it. */
+  function adoptRunForLaterSteps(run: ParentStoryRunV1): void {
+    adoptServerStory(run);
+    adoptPolledRun(run);
+    const understanding = readRunUnderstanding(run);
+    if (understanding) {
+      setCandidate(understanding.candidate);
+      setUnderstandingRevision(understanding.understandingRevision);
+      setSubject(understanding.subject);
+      setSubjectConfirmed(isConfirmedRunSubject(run, understanding.subject));
+    }
+  }
+
+  /** Resume of a run the server already moved past the subject review (idle app, other device, restart). */
+  async function resumePhaseBRun(run: ParentStoryRunV1): Promise<boolean> {
+    const state = run.run_state;
+    if (state === 'INPUT_PROCESSING' || state === 'INPUT_REVIEW' || state === 'DRAFT') {
+      setStep('capture');
+      const busyToken = classifyDrawingProgress(run).kind === 'processing' ? beginBusy('understanding') : null;
+      try {
+        await handleOrWaitDrawing(run);
+      } catch (cause) {
+        if (!(cause instanceof RunWaitCancelled)) setPhotoMessage(safeRunMessage(cause));
+      } finally {
+        if (busyToken !== null) endBusy(busyToken);
+      }
+      return true;
+    }
+    if (state === 'SCRIPT_GENERATING' || state === 'STORY_GENERATING') {
+      adoptRunForLaterSteps(run);
+      setStep('story');
+      const busyToken = beginBusy('rewrite');
+      try {
+        const range = rewriteRangeForRun(run);
+        await followRewrite(run.run_id, range.fromRevisionNo, range.toRevisionNo);
+      } catch (cause) {
+        if (!(cause instanceof RunWaitCancelled)) setError(safeRunMessage(cause));
+      } finally {
+        endBusy(busyToken);
+      }
+      return true;
+    }
+    const videoStates = new Set(['VIDEO_ADMISSION_PENDING', 'VIDEO_QUEUED', 'VIDEO_GENERATING', 'VIDEO_SAFETY_VALIDATING', 'VIDEO_READY', 'SAFETY_BLOCKED']);
+    if (videoStates.has(state) || (state === 'SCRIPT_REVIEW' && run.story_status === 'CONFIRMED')) {
+      adoptRunForLaterSteps(run);
+      await openVideoStep(run.run_id);
+      return true;
+    }
+    if (state === 'SCRIPT_REVIEW' && run.story_revision_id) {
+      // A draft (or a draft left by a failed rewrite) is shown for review, never dropped for the activity step.
+      adoptRunForLaterSteps(run);
+      if (run.job_state === 'FAILED') {
+        setRewriteNotice(run.retryable
+          ? 'Lần viết lại trước chưa thành công. Câu chuyện hiện tại vẫn được giữ nguyên; bạn có thể thử lại.'
+          : 'Lần viết lại trước chưa thành công. Câu chuyện hiện tại vẫn được giữ nguyên; bạn có thể xác nhận câu chuyện này hoặc dừng buổi học.');
+      }
+      setStep('story');
+      return true;
+    }
+    return false;
+  }
+
+  async function handleOrWaitDrawing(run: ParentStoryRunV1): Promise<void> {
+    const progress = classifyDrawingProgress(run);
+    if (progress.kind === 'processing') {
+      await settleDrawingStage(run.run_id);
+      return;
+    }
+    await handleDrawingProgress(run);
+  }
+
   async function changePassword(currentPassword: string, nextPassword: string): Promise<void> {
     setAccountError('');
     setBusy('password');
@@ -1462,7 +2140,21 @@ export function useParentController(application: ParentApplicationModule) {
     profilePatchActions.current.clear();
     profileDeleteActions.current.clear();
     runCreationAction.current = null;
-    drawingAnalysisAttemptedRunId.current = null;
+    stopWait();
+    waitsBlocked.current = true;
+    retakeUsed.current = false;
+    setConfirmedStoryRevisionNo(null);
+    drawingUploadAction.current = null;
+    voiceUploadAction.current = null;
+    audioSubmittedRunId.current = null;
+    transcriptCorrectionAction.current = null;
+    transcriptConfirmAction.current = null;
+    storyRewriteAction.current = null;
+    videoRequestAction.current = null;
+    videoUnsuitableAction.current = null;
+    completeRunAction.current = null;
+    setTranscript(null); setTranscriptTextValue(''); setTranscriptWaiting(false); setRetakeAvailable(false);
+    setPlayback(null); setVideoReason(null); setMarkingUnsuitable(false); setSpentStoryRevisionNo(null); setRewriteNotice('');
     contextConfirmationAction.current = null;
     subjectConfirmationAction.current = null;
     storyRevisionAction.current = null;
@@ -1488,6 +2180,17 @@ export function useParentController(application: ParentApplicationModule) {
     continueToCapture, analyzeDrawingForCurrentRun, confirmSubject,
     requestStory, confirmStory, drawingGuideIndex, setDrawingGuideIndex,
     resumeActiveRun, changePassword, resetCurrentPassword, signOut,
+    leaveWait,
+    transcript, transcriptText, setTranscriptText, transcriptWaiting, refreshTranscript, confirmTranscriptReview,
+    transcriptEdited: transcript !== null && classifyTranscript(transcript).kind === 'review'
+      ? transcriptText.trim() !== (transcript.text ?? '').trim()
+      : transcriptText.trim().length > 0,
+    retakeAvailable, rewriteStory, rewriteNotice,
+    videoPanel: readVideoPanel(contextRun, { spentRevisionNo: spentStoryRevisionNo, confirmedRevisionNo: confirmedStoryRevisionNo }),
+    playback, videoReason, setVideoReason, markingUnsuitable, startUnsuitable, cancelUnsuitable,
+    openVideoStep, refreshVideo, requestVideo, playVideo, onPlaybackError, markVideoUnsuitable, completeRun,
+    rewriteAfterVideo: Boolean(contextRun && storyConfirmed
+      && scriptSpentByVideo(contextRun, { spentRevisionNo: spentStoryRevisionNo, confirmedRevisionNo: confirmedStoryRevisionNo }) !== 'no'),
     retryContextCreation: createContextRun,
     resetWorkflow, backToProfile: () => { setStep('profile'); setError(''); },
     clearProfileFormErrors: () => setProfileFieldErrors({}),
@@ -1529,6 +2232,60 @@ function requestIdOf(value: unknown): string | undefined {
     return typeof requestId === 'string' ? requestId : undefined;
   }
   return undefined;
+}
+
+type RetainedKeySet<Name extends string> = {
+  signature: string;
+  keys: Record<Name, ParentActionIdentity>;
+};
+
+/** One key per command of a multi-call action (upload create, complete, attach), kept while the file is the same. */
+function retainedKeySet<Name extends string>(
+  reference: { current: RetainedKeySet<Name> | null },
+  signature: string,
+  names: readonly Name[],
+): Record<Name, ParentActionIdentity> {
+  if (!reference.current || reference.current.signature !== signature) {
+    const keys = {} as Record<Name, ParentActionIdentity>;
+    for (const name of names) keys[name] = createParentActionIdentity();
+    reference.current = { signature, keys };
+  }
+  return reference.current.keys;
+}
+
+/** A 4xx other than a timeout or a rate limit is final: the next try needs fresh keys, not a replay. */
+function isDefinitiveClientError(cause: unknown): boolean {
+  return cause instanceof ParentApplicationError
+    && cause.status !== undefined && cause.status >= 400 && cause.status < 500
+    && cause.status !== 408 && cause.status !== 429;
+}
+
+/** A read that may succeed on the next try (the wait keeps going) versus one that must stop it. */
+function isTransientReadError(cause: unknown): boolean {
+  if (!(cause instanceof ParentApplicationError)) return false;
+  return ['NETWORK_ERROR', 'REQUEST_TIMEOUT', 'HTTP_429', 'HTTP_502', 'HTTP_503', 'HTTP_504', 'RATE_LIMITED'].includes(cause.code)
+    || cause.retryable === true;
+}
+
+/** Calm wording for run commands: the shared codes say "profile", the object here is the learning session. */
+function safeRunMessage(cause: unknown): string {
+  const code = cause instanceof ParentApplicationError ? cause.code : null;
+  if (code === 'STALE_REVISION' || code === 'INVALID_STATE_TRANSITION') {
+    return 'Buổi học đã thay đổi. Hãy mở lại buổi học để xem trạng thái mới nhất.';
+  }
+  if (code === 'SUBSCRIPTION_RESTRICTED') return 'Gói dịch vụ hiện tại chưa cho phép tạo video.';
+  return safeParentFlowErrorMessage(cause);
+}
+
+/** The player or the grant failed: never show the grant, the address or a raw code. */
+function safePlaybackMessage(cause: unknown): string {
+  if (isParentSessionExpired(cause)) return safeParentIdentityErrorMessage(cause);
+  if (cause instanceof ParentApplicationError) {
+    if (cause.code === 'PLAYBACK_TOKEN_REJECTED') return 'Chưa mở được video. Hãy thử lại sau ít phút.';
+    if (cause.code === 'INVALID_STATE_TRANSITION') return 'Video này không còn phát được trong ứng dụng.';
+    if (cause.code === 'RESOURCE_NOT_FOUND') return 'Video chưa sẵn sàng hoặc không còn phát được.';
+  }
+  return safeParentFlowErrorMessage(cause);
 }
 
 type RetainedActionIdentity = {

@@ -267,6 +267,31 @@ export function isConfirmedRunSubject(value: unknown, expectedSubject: string): 
       || candidate?.decision === 'CORRECTED_BY_ADULT');
 }
 
+export type SubjectConfirmationOutcome = 'confirmed' | 'rerun-requested' | 'invalid';
+
+/**
+ * Reads the 202 body of the subject confirmation (SRS l.1666). `CONFIRMED` keeps the reviewed
+ * understanding revision, or moves it up by one when the server recorded an edited subject as the
+ * next revision without a rerun. `RERUN_REQUESTED` (SRS l.394, l.1413) is an accepted edit whose
+ * result is not confirmed yet: it must never be shown as a confirmed subject or as an error.
+ * Any other decision, run or revision is `invalid`.
+ */
+export function readSubjectConfirmationOutcome(
+  response: unknown,
+  expected: { runId: string; understandingRevision: number; subjectEdited: boolean },
+): SubjectConfirmationOutcome {
+  if (!isRecord(response) || response.story_run_id !== expected.runId) return 'invalid';
+  const revision = response.understanding_revision;
+  if (typeof revision !== 'number' || !Number.isInteger(revision)) return 'invalid';
+  if (response.decision === 'RERUN_REQUESTED') {
+    return revision === expected.understandingRevision ? 'rerun-requested' : 'invalid';
+  }
+  if (response.decision !== 'CONFIRMED') return 'invalid';
+  const accepted = revision === expected.understandingRevision
+    || (expected.subjectEdited && revision === expected.understandingRevision + 1);
+  return accepted ? 'confirmed' : 'invalid';
+}
+
 export function isActiveOrUnreconciledStoryRun(value: unknown): boolean {
   if (!isRecord(value)) return true;
   return value.story_status === 'GENERATING'
@@ -424,10 +449,26 @@ const parentRecoveryGroups: Record<string, ParentRecoveryGroup> = {
   LESSON_FILE_TOO_LARGE: 'teacher-only',
   TRANSCRIPT_NOT_CONFIRMED: 'transcript-review',
   SUBJECT_NOT_CONFIRMED: 'subject-review',
+  SUBJECT_RERUN_PENDING: 'subject-review',
   PROFILE_CONTEXT_NOT_CONFIRMED: 'context-review',
   LESSON_PLAN_NOT_APPROVED: 'teacher-only',
   STORY_REWRITE_LIMIT_REACHED: 'story-review',
   PARENT_STORY_REWRITE_LIMIT: 'story-review',
+  UNSUPPORTED_MEDIA_TYPE: 'review-current-state',
+  MEDIA_TOO_LARGE: 'review-current-state',
+  AUDIO_TOO_LARGE: 'review-current-state',
+  IMAGE_DIMENSIONS_EXCEEDED: 'review-current-state',
+  UPLOAD_CHECKSUM_MISMATCH: 'review-current-state',
+  UPLOAD_CONTENT_MISMATCH: 'review-current-state',
+  UPLOAD_INCOMPLETE: 'review-current-state',
+  MALWARE_DETECTED: 'review-current-state',
+  STORAGE_UNAVAILABLE: 'provider-hold',
+  VIDEO_DEADLINE_EXCEEDED: 'story-review',
+  VIDEO_TECHNICAL_FAILURE: 'story-review',
+  VIDEO_SAFETY_BLOCKED: 'story-review',
+  PLAYBACK_TOKEN_REJECTED: 'unavailable',
+  INVALID_IDEMPOTENCY_KEY: 'review-current-state',
+  IDEMPOTENCY_KEY_INVALID: 'review-current-state',
   VIDEO_REGENERATION_LIMIT_REACHED: 'quota-summary',
   VIDEO_QUOTA_EXCEEDED: 'quota-summary',
   AI_COST_LIMIT_REACHED: 'provider-hold',
@@ -489,7 +530,40 @@ export function safeParentFlowErrorMessage(error: unknown): string {
     PARENT_CONTEXT_NOT_CONFIRMED: 'Người lớn cần xác nhận ngữ cảnh trước khi tiếp tục.',
     PARENT_DRAWING_REQUIRED: 'Hãy chọn ảnh tranh trước khi tiếp tục xem xét.',
     PARENT_DRAWING_RESULT_INVALID: 'Chưa thể đọc kết quả xem xét tranh. Hãy kiểm tra trạng thái trước khi gửi lại.',
+    SUBJECT_RERUN_PENDING: 'Hệ thống đang xem lại bức tranh theo chủ thể bạn vừa sửa. Hãy chờ một lát rồi mở lại buổi học để xác nhận kết quả mới.',
     PARENT_SUBJECT_CONFIRMATION_INVALID: 'Chưa thể xác nhận chủ thể của bức tranh.',
+    // Goal v3 Phase B: uploads, idea, transcript, rewrite, video and playback (copy for owner review).
+    UNSUPPORTED_MEDIA_TYPE: 'Định dạng tệp chưa được hỗ trợ. Hãy chọn ảnh JPEG hoặc PNG, hoặc ghi âm lại.',
+    MEDIA_TOO_LARGE: 'Tệp quá lớn. Hãy chọn tệp nhỏ hơn.',
+    AUDIO_TOO_LARGE: 'Bản ghi âm quá dài hoặc quá lớn. Hãy ghi lại trong 2 phút hoặc nhập ý tưởng bằng chữ.',
+    IMAGE_DIMENSIONS_EXCEEDED: 'Ảnh quá lớn để xử lý. Hãy chọn ảnh nhỏ hơn.',
+    UPLOAD_CHECKSUM_MISMATCH: 'Tệp tải lên chưa khớp với bản gốc. Hãy thử lại.',
+    UPLOAD_CONTENT_MISMATCH: 'Nội dung tệp không đúng định dạng đã chọn. Hãy chọn tệp khác.',
+    UPLOAD_INCOMPLETE: 'Tệp chưa tải lên đủ. Hãy thử lại.',
+    MALWARE_DETECTED: 'Tệp này không an toàn nên không được dùng. Hãy chọn tệp khác.',
+    STORAGE_UNAVAILABLE: 'Kho lưu trữ tạm thời chưa sẵn sàng. Hãy thử lại sau ít phút.',
+    UPLOAD_NOT_OPEN: 'Phiên tải lên đã đóng. Hãy thử lại từ đầu.',
+    UPLOAD_NOT_COMPLETED: 'Chưa xác nhận được tệp đã tải lên. Hãy thử lại.',
+    PARENT_IDEA_RESULT_INVALID: 'Chưa xác nhận được ý tưởng vừa gửi. Hãy kiểm tra buổi học trước khi gửi lại.',
+    PARENT_IDEA_TEXT_INVALID: 'Ý tưởng cần có nội dung, tối đa 500 ký tự.',
+    PARENT_AUDIO_REQUIRED: 'Chưa có bản ghi âm để gửi.',
+    PARENT_TRANSCRIPT_RESULT_INVALID: 'Chưa đọc được bản chép lời. Hãy tải lại.',
+    PARENT_TRANSCRIPT_TEXT_INVALID: 'Kiểm tra lại nội dung đã nhận dạng.',
+    PARENT_REWRITE_HINT_INVALID: 'Gợi ý viết lại tối đa 400 ký tự và không xuống dòng.',
+    PARENT_REWRITE_RESULT_INVALID: 'Chưa xác nhận được yêu cầu viết lại. Hãy kiểm tra buổi học trước khi gửi lại.',
+    PARENT_VIDEO_REASON_INVALID: 'Hãy chọn lý do khi tạo lại video.',
+    PARENT_VIDEO_RESULT_INVALID: 'Chưa xác nhận được yêu cầu tạo video. Hãy kiểm tra buổi học trước khi gửi lại.',
+    VIDEO_DEADLINE_EXCEEDED: 'Video chưa tạo xong trong thời gian cho phép. Lượt này vẫn được tính.',
+    VIDEO_TECHNICAL_FAILURE: 'Video gặp lỗi kỹ thuật. Lượt này vẫn được tính.',
+    VIDEO_SAFETY_BLOCKED: 'Video chưa qua kiểm tra an toàn nên không được phát.',
+    PLAYBACK_TOKEN_REJECTED: 'Chưa mở được video. Hãy thử lại sau ít phút.',
+    PROVIDER_TIMEOUT: 'Dịch vụ tạo nội dung không phản hồi kịp. Hãy thử lại.',
+    REQUEST_CANCELLED: 'Đã dừng thao tác.',
+    ABANDONED: 'Buổi học đã tự đóng sau 7 ngày không thao tác.',
+    COMPLETED: 'Buổi học đã hoàn tất.',
+    FAILED: 'Buổi học đã dừng. Bạn có thể xem lịch sử hoặc bắt đầu buổi học mới.',
+    INVALID_IDEMPOTENCY_KEY: 'Thao tác này không khớp với lần gửi trước. Hãy kiểm tra buổi học rồi thử lại.',
+    IDEMPOTENCY_KEY_INVALID: 'Thao tác chưa thể gửi. Vui lòng bắt đầu lại thao tác.',
     PARENT_STORY_REVISION_INVALID: 'Chưa thể xác nhận đúng phiên bản kịch bản. Hãy kiểm tra lại buổi học.',
     PARENT_STORY_NOT_CONFIRMABLE: 'Kịch bản chưa có đủ thông tin để xác nhận.',
     PARENT_STORY_REWRITE_LIMIT: 'Đã dùng hết 3 lượt gợi ý viết lại.',

@@ -13,7 +13,6 @@ import type {
   LessonDetail,
   LessonInvitation,
   LessonSummary,
-  ParentAudioTranscription,
   ParentCandidate,
   ParentGroupInvitation,
   ParentLessonDeliveryPage,
@@ -34,7 +33,6 @@ import type {
   ParentStoryRunResultV1,
   ParentActiveStoryRunEnvelopeV1,
   ParentStoryRunHistoryPage,
-  ParentTranscriptConfirmation,
   ParentVideoQuota,
   ParentStoryContextConfirmationV1,
   ParentStoryRevisionResultV1,
@@ -42,9 +40,22 @@ import type {
   ParentStoryRunEnvelopeV1,
   ParentStoryRunV1,
   ParentStoryScriptConfirmationV1,
-  ParentStorySubjectConfirmationV1,
+  ParentStorySubjectConfirmationAcceptedV1,
+  ParentPlaybackSourceV1,
+  ParentPlaybackTokenResponseV1,
+  ParentRunAssetAcceptedV1,
+  ParentRunIdeaAcceptedV1,
+  ParentRunIdeaRequestV1,
+  ParentRunTranscriptV1,
+  ParentStoryRewriteAcceptedV1,
+  ParentStoryRewriteRequestV1,
+  ParentTranscriptConfirmedV1,
+  ParentVideoGenerationAcceptedV1,
+  ParentVideoRequestV1,
+  ParentVideoUnsuitableRequestV1,
   StoryRun,
 } from '../../domain/types';
+import { buildPlaybackSource, isPlaybackGrantForRun } from '../../application/parentPhaseB';
 
 export class ParentApiError extends ParentApplicationError {
   constructor(code: string, requestId: string, status?: number, metadata: ParentApplicationErrorMetadata = {}) {
@@ -180,7 +191,7 @@ export class ParentApi implements ParentApiPort {
   }
 
   createStoryRunV1(input: ParentStoryRunCreateV1, actionIdentity: ParentActionIdentity) {
-    assertIdempotencyKey(actionIdentity, 256);
+    assertVisibleAsciiKey(actionIdentity);
     return this.request<ParentStoryRunEnvelopeV1>(
       '/v1/story-runs',
       'POST',
@@ -191,7 +202,7 @@ export class ParentApi implements ParentApiPort {
   }
 
   confirmStoryRunContextV1(runId: string, input: ParentStoryContextConfirmationV1, actionIdentity: ParentActionIdentity) {
-    assertIdempotencyKey(actionIdentity, 256);
+    assertVisibleAsciiKey(actionIdentity);
     return this.request<ParentStoryRunEnvelopeV1>(
       `/v1/story-runs/${encodeURIComponent(runId)}/context-confirmation`,
       'POST',
@@ -202,8 +213,8 @@ export class ParentApi implements ParentApiPort {
   }
 
   confirmStoryRunSubjectV1(runId: string, revision: number, subject: string, actionIdentity: ParentActionIdentity) {
-    assertIdempotencyKey(actionIdentity, 256);
-    return this.request<ParentStorySubjectConfirmationV1>(
+    assertVisibleAsciiKey(actionIdentity);
+    return this.request<ParentStorySubjectConfirmationAcceptedV1>(
       `/v1/story-runs/${encodeURIComponent(runId)}/subject-confirmation`,
       'POST',
       { expected_understanding_revision: revision, confirmed_subject: subject },
@@ -213,7 +224,7 @@ export class ParentApi implements ParentApiPort {
   }
 
   confirmStoryRunScriptV1(runId: string, revision: number, sha256: string, actionIdentity: ParentActionIdentity) {
-    assertIdempotencyKey(actionIdentity, 256);
+    assertVisibleAsciiKey(actionIdentity);
     return this.request<ParentStoryScriptConfirmationV1>(
       `/v1/story-runs/${encodeURIComponent(runId)}/script-confirmation`,
       'POST',
@@ -282,6 +293,162 @@ export class ParentApi implements ParentApiPort {
       30_000,
       { 'Idempotency-Key': actionIdentity },
     );
+  }
+
+  /**
+   * T-2b (SRS l.1664): attaches a completed `RUN_ARTWORK` upload to the run as its drawing. 202, no job
+   * reference; the analysis is followed through `GET /v1/story-runs/{id}`. The key is 1 to 128 visible ASCII.
+   */
+  attachRunAssetV1(runId: string, assetRef: string, expectedRunRevision: number | null, actionIdentity: ParentActionIdentity) {
+    assertVisibleAsciiKey(actionIdentity);
+    return this.request<ParentRunAssetAcceptedV1>(
+      `/v1/story-runs/${encodeURIComponent(runId)}/assets`,
+      'POST',
+      { asset_ref: assetRef, ...(expectedRunRevision === null ? {} : { expected_run_revision: expectedRunRevision }) },
+      30_000,
+      { 'Idempotency-Key': actionIdentity },
+    ).then(liveRunOrLifecycleError);
+  }
+
+  /** T-2c (SRS l.1665): text and/or `audio_ref`, or one transcript correction. 202; the ASR job reference is parked (Q-J). */
+  addRunIdeaV1(runId: string, input: ParentRunIdeaRequestV1, actionIdentity: ParentActionIdentity) {
+    assertVisibleAsciiKey(actionIdentity);
+    return this.request<ParentRunIdeaAcceptedV1>(
+      `/v1/story-runs/${encodeURIComponent(runId)}/idea`,
+      'POST',
+      input,
+      30_000,
+      { 'Idempotency-Key': actionIdentity },
+    ).then(liveRunOrLifecycleError);
+  }
+
+  /** T-2c: the adult's read of the current transcript (a child's words: `no-store` on the server, never logged here). */
+  getRunTranscriptV1(runId: string) {
+    return this.request<ParentRunTranscriptV1>(`/v1/story-runs/${encodeURIComponent(runId)}/transcript`, 'GET');
+  }
+
+  /** T-2c (TD-04): confirms one exact transcript revision and hash. 200. */
+  confirmRunTranscriptV1(runId: string, revision: number, sha256: string, actionIdentity: ParentActionIdentity) {
+    assertVisibleAsciiKey(actionIdentity);
+    return this.request<ParentTranscriptConfirmedV1>(
+      `/v1/story-runs/${encodeURIComponent(runId)}/transcript-confirmation`,
+      'POST',
+      { expected_transcript_revision: revision, transcript_sha256: sha256, confirmed: true },
+      30_000,
+      { 'Idempotency-Key': actionIdentity },
+    ).then(liveRunOrLifecycleError);
+  }
+
+  /** T-2d (SRS l.1668, FR-P-07): one more story revision, asynchronous. 202; 409 `STORY_REWRITE_LIMIT_REACHED` at the cap. */
+  createStoryRewriteV1(runId: string, input: ParentStoryRewriteRequestV1, actionIdentity: ParentActionIdentity) {
+    assertVisibleAsciiKey(actionIdentity);
+    return this.request<ParentStoryRewriteAcceptedV1>(
+      `/v1/story-runs/${encodeURIComponent(runId)}/story-rewrites`,
+      'POST',
+      input,
+      30_000,
+      { 'Idempotency-Key': actionIdentity },
+    ).then(liveRunOrLifecycleError);
+  }
+
+  /** T-1a (SRS l.1670): asks for a video of the confirmed script. 202 `ADMISSION_PENDING` or `ACCEPTED`. */
+  requestVideoGenerationV1(runId: string, input: ParentVideoRequestV1, actionIdentity: ParentActionIdentity) {
+    assertVisibleAsciiKey(actionIdentity);
+    return this.request<ParentVideoGenerationAcceptedV1>(
+      `/v1/story-runs/${encodeURIComponent(runId)}/video-generations`,
+      'POST',
+      input,
+      30_000,
+      { 'Idempotency-Key': actionIdentity },
+    ).then(liveRunOrLifecycleError);
+  }
+
+  /** T-1b (SRS l.1671): marks the current ready video unsuitable; the run returns to the script review. 200 run envelope. */
+  markVideoUnsuitableV1(runId: string, input: ParentVideoUnsuitableRequestV1, actionIdentity: ParentActionIdentity) {
+    assertVisibleAsciiKey(actionIdentity);
+    return this.request<ParentStoryRunEnvelopeV1>(
+      `/v1/story-runs/${encodeURIComponent(runId)}/video-unsuitable`,
+      'POST',
+      input,
+      30_000,
+      { 'Idempotency-Key': actionIdentity },
+    ).then(liveRunOrLifecycleError);
+  }
+
+  /** T-1b (SRS l.1672): finishes the run at `VIDEO_READY`; not a video approval. 200 run envelope. */
+  completeRunV1(runId: string, expectedRevision: number, actionIdentity: ParentActionIdentity) {
+    assertVisibleAsciiKey(actionIdentity);
+    return this.request<ParentStoryRunEnvelopeV1>(
+      `/v1/story-runs/${encodeURIComponent(runId)}/complete`,
+      'POST',
+      { expected_revision: expectedRevision },
+      30_000,
+      { 'Idempotency-Key': actionIdentity },
+    ).then(liveRunOrLifecycleError);
+  }
+
+  /**
+   * T-1c (SRS l.1676, l.1691-1693): issues a short-lived grant and returns what a native player needs. The
+   * grant is a bearer secret: it travels only in the `X-Playback-Token` header, never in a URL, a log or an
+   * error. The address is rebuilt from the configured base URL and the run id; a `stream_path` that names
+   * anything else is refused, so the Firebase bearer can never be sent to another host. One 1-byte ranged
+   * read proves the grant works; a 401 means the grant (or the session) expired, and the grant is issued
+   * once more before giving up. A 401 on the second issue is the session and surfaces as such.
+   */
+  async openPlaybackV1(runId: string): Promise<ParentPlaybackSourceV1> {
+    const issued = await this.issuePlaybackTokenV1(runId);
+    const first = await this.probePlayback(runId, issued);
+    if (first.ok) return first.source;
+    if (first.status !== 401) throw first.error;
+    const reissued = await this.issuePlaybackTokenV1(runId);
+    const second = await this.probePlayback(runId, reissued);
+    if (second.ok) return second.source;
+    // The session was valid (the grant was issued twice) but the stream still refuses the grant: not a sign-in problem.
+    if (second.status === 401) throw new ParentApiError('PLAYBACK_TOKEN_REJECTED', second.error.requestId ?? 'local-request');
+    throw second.error;
+  }
+
+  private issuePlaybackTokenV1(runId: string) {
+    return this.request<ParentPlaybackTokenResponseV1>(
+      `/v1/story-runs/${encodeURIComponent(runId)}/playback-token`,
+      'POST',
+      undefined,
+      30_000,
+    );
+  }
+
+  private async probePlayback(
+    runId: string,
+    response: ParentPlaybackTokenResponseV1,
+  ): Promise<{ ok: true; source: ParentPlaybackSourceV1 } | { ok: false; status: number; error: ParentApiError }> {
+    const requestId = createRequestId();
+    const baseUrl = this.apiBaseUrl.replace(/\/+$/, '');
+    if (!baseUrl) throw new ParentApiError('API_UNAVAILABLE', requestId);
+    const grant = response?.playback;
+    if (!isPlaybackGrantForRun(grant, runId)) throw new ParentApiError('INVALID_API_RESPONSE', requestId, 200);
+    const source = buildPlaybackSource({ baseUrl, runId, grant, bearer: await this.auth.getIdToken(), nowMs: Date.now() });
+    if (!source) throw new ParentApiError('INVALID_API_RESPONSE', requestId, 200);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30_000);
+    try {
+      const probe = await this.fetcher(source.uri, {
+        method: 'GET',
+        headers: { ...source.headers, 'X-Request-ID': requestId, Range: 'bytes=0-0' },
+        signal: controller.signal,
+      });
+      if (probe.status === 200 || probe.status === 206) {
+        await probe.body?.cancel?.().catch(() => undefined);
+        return { ok: true, source };
+      }
+      const payload = await probe.json().catch(() => null) as Record<string, unknown> | null;
+      return { ok: false, status: probe.status, error: apiErrorFromResponse(payload, probe.status, requestId, probe.headers) };
+    } catch (error) {
+      if (error instanceof ParentApiError) throw error;
+      if (error instanceof Error && error.name === 'AbortError') throw new ParentApiError('REQUEST_TIMEOUT', requestId, 408);
+      throw new ParentApiError('NETWORK_ERROR', requestId);
+    } finally {
+      clearTimeout(timeout);
+    }
   }
 
   listLessons() {
@@ -409,19 +576,6 @@ export class ParentApi implements ParentApiPort {
     void revision;
     void sha256;
     return this.unavailable<{ request_id: string; story_run: StoryRun }>('story-creation');
-  }
-
-  transcribeAudio(storyRunId: string, audio: { uri: string; file_name: string; media_type: string }) {
-    void storyRunId;
-    void audio;
-    return this.unavailable<ParentAudioTranscription>('story-creation');
-  }
-
-  confirmTranscript(storyRunId: string, revision: number, transcriptText: string) {
-    void storyRunId;
-    void revision;
-    void transcriptText;
-    return this.unavailable<ParentTranscriptConfirmation>('story-creation');
   }
 
   listProfileShares(profileId: string) {
@@ -600,10 +754,19 @@ function safeFieldErrors(value: unknown): ParentSafeFieldError[] | undefined {
     body: 'body',
     'if-match': 'if_match',
     'x-part-sha256': 'part_sha256',
+    // Phase B story-run commands (T-2b to T-1b).
+    asset_ref: 'asset_ref',
+    audio_ref: 'audio_ref',
+    text: 'text',
+    transcript: 'transcript',
+    hint: 'hint',
+    quality_reason_code: 'quality_reason_code',
+    reason_code: 'reason_code',
+    expected_story_revision: 'expected_story_revision',
   };
   const codes = new Set([
     'REQUIRED', 'EMPTY', 'TOO_LONG', 'OUT_OF_RANGE', 'INVALID_TYPE', 'INVALID_FORMAT',
-    'UNKNOWN_FIELD', 'INVALID_CURSOR', 'INVALID_LIMIT', 'STALE_REVISION',
+    'UNKNOWN_FIELD', 'INVALID_CURSOR', 'INVALID_LIMIT', 'STALE_REVISION', 'NOT_ALLOWED', 'INVALID_VALUE',
   ]);
   const result: ParentSafeFieldError[] = [];
   for (const item of value) {

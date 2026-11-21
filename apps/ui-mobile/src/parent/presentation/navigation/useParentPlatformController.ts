@@ -14,9 +14,9 @@ import type { ParentApplicationModule } from '../../application/ports/ParentAppl
 import {
   createUnavailableCapabilityState,
   createUnavailableOperationState,
+  type ParentCapabilityId,
   type ParentCapabilityState,
   type ParentCapabilityUnavailableReason,
-  type ParentJobStageState,
   type ParentOperationState,
 } from '../../application/ports/ParentCapabilityPorts';
 import type {
@@ -30,6 +30,12 @@ import type {
 const unavailableReason: ParentCapabilityUnavailableReason = 'route-not-in-be-handoff';
 const unavailableMessage = 'Chức năng này chưa có tuyến dịch vụ được xác nhận. Chưa có thao tác nào được gửi.';
 
+function apiConfigured(capability: ParentCapabilityId): ParentCapabilityState {
+  return parentConfig.apiBaseUrl
+    ? { capability, state: 'available' }
+    : createUnavailableCapabilityState(capability, 'capability-not-configured');
+}
+
 // FEAT-081 C3b: run history is available whenever the live API is configured.
 const runHistoryCapability: ParentCapabilityState = parentConfig.apiBaseUrl
   ? { capability: 'run-history', state: 'available' }
@@ -41,13 +47,13 @@ const platformCapabilities = {
   deliveries: createUnavailableCapabilityState('lesson-history', unavailableReason),
   notifications: createUnavailableCapabilityState('notifications', unavailableReason),
   quota: createUnavailableCapabilityState('quota', unavailableReason),
-  jobStatus: createUnavailableCapabilityState('job-status', unavailableReason),
-  video: createUnavailableCapabilityState('video', unavailableReason),
+  // Goal v3 Phase B: the video request, the run detail and the playback routes are live (the main controller owns them).
+  jobStatus: apiConfigured('job-status'),
+  video: apiConfigured('video'),
 };
 
 const unavailableShareOperation: ParentOperationState<void> =
   createUnavailableOperationState<void>(unavailableReason);
-const unavailableJobStage: ParentJobStageState = { state: 'unavailable', stage: 'unavailable' };
 
 const runHistoryLoadError = 'Không tải được lịch sử buổi học. Vui lòng thử lại.';
 const runActionMessages = {
@@ -171,34 +177,6 @@ export function useParentPlatformController(application: ParentApplicationModule
     return unavailableShareOperation;
   }
 
-  async function loadVideoJob(runId: string): Promise<ParentOperationState<void>> {
-    void runId;
-    return unavailableShareOperation;
-  }
-
-  async function requestVideo(runId: string, storySha256: string): Promise<ParentOperationState<void>> {
-    void runId;
-    void storySha256;
-    return unavailableShareOperation;
-  }
-
-  async function markVideoUnsuitable(runId: string, videoId: string): Promise<ParentOperationState<void>> {
-    void runId;
-    void videoId;
-    return unavailableShareOperation;
-  }
-
-  async function regenerateVideo(runId: string, storySha256: string): Promise<ParentOperationState<void>> {
-    void runId;
-    void storySha256;
-    return unavailableShareOperation;
-  }
-
-  async function completeRun(runId: string): Promise<ParentOperationState<void>> {
-    void runId;
-    return unavailableShareOperation;
-  }
-
   return {
     runs,
     runsCursor,
@@ -235,13 +213,6 @@ export function useParentPlatformController(application: ParentApplicationModule
     quotaBusy: false,
     quotaError: unavailableMessage,
     loadQuota,
-    videoJobStage: unavailableJobStage,
-    videoOperationState: unavailableShareOperation,
-    loadVideoJob,
-    requestVideo,
-    markVideoUnsuitable,
-    regenerateVideo,
-    completeRun,
     capabilities: platformCapabilities,
   };
 }

@@ -2,6 +2,7 @@ import React from 'react';
 import { ActivityIndicator, StatusBar, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { ParentApplicationModule } from '../application/ports/ParentApplicationModule';
+import { rewritesLeft } from '../application/parentPhaseB';
 import type { ParentMainTab } from './screens/ParentBottomBar';
 import type { AppStep } from './navigation/workflowTypes';
 import {
@@ -22,6 +23,8 @@ import { DrawingGuideScreen } from './screens/DrawingGuideScreen';
 import { HandoffScreen } from './screens/HandoffScreen';
 import { HomeScreen } from './screens/HomeScreen';
 import { IdeaScreen } from './screens/IdeaScreen';
+import { TranscriptReviewScreen } from './screens/TranscriptReviewScreen';
+import { VideoScreen } from './screens/VideoScreen';
 import { LessonGalleryScreen } from './screens/LessonGalleryScreen';
 import { LessonHistoryScreen } from './screens/LessonHistoryScreen';
 import { LessonPickerScreen } from './screens/LessonPickerScreen';
@@ -346,12 +349,12 @@ function renderLearningStep(
     contextConfirmed: parent.contextConfirmed,
     photoSelected: Boolean(parent.photo),
   });
+  // A story the server already holds (resume, rewrite, video) needs no activity selection again.
   const storyReady = Boolean(
     parent.contextRun?.run_id
     && parent.contextConfirmed
     && parent.subjectConfirmed
-    && parent.selectedActivityIndex !== null
-    && parent.activitySelectionPersisted,
+    && ((parent.selectedActivityIndex !== null && parent.activitySelectionPersisted) || parent.story),
   );
   const storyBlockedReason = parent.selectedActivityIndex === null
     ? 'Chọn hoạt động chính trước khi tiếp tục.'
@@ -434,7 +437,7 @@ function renderLearningStep(
     onCaptureIntentHandled={onCaptureIntentHandled}
     onPhoto={parent.setPhoto}
     onContinue={() => void parent.analyzeDrawingForCurrentRun()}
-    onBack={() => parent.setStep(parent.contextRun ? 'context' : 'idea')}
+    onBack={() => parent.leaveWait(parent.contextRun ? 'context' : 'idea')}
   />;
   if (step === 'understanding' && parent.candidate) return <UnderstandingScreen
     candidate={parent.candidate}
@@ -444,7 +447,7 @@ function renderLearningStep(
     error={parent.error}
     onSubject={parent.setSubject}
     onConfirm={() => void parent.confirmSubject()}
-    onBack={() => parent.setStep('capture')}
+    onBack={() => parent.leaveWait('capture')}
   />;
   if (step === 'activity') return <ActivityScreen
     stepLabel={stepLabel(7)}
@@ -460,9 +463,41 @@ function renderLearningStep(
     onContinue={() => parent.setStep('story')}
     onBack={() => parent.setStep('context')}
   />;
+  if (step === 'transcript') return <TranscriptReviewScreen
+    stepLabel={stepLabel(5)}
+    transcript={parent.transcript}
+    waiting={parent.transcriptWaiting}
+    text={parent.transcriptText}
+    edited={parent.transcriptEdited}
+    busy={parent.busy === 'transcript-confirm'}
+    error={parent.error}
+    onText={parent.setTranscriptText}
+    onConfirm={() => void parent.confirmTranscriptReview()}
+    onRefresh={() => void parent.refreshTranscript()}
+    onBack={() => parent.leaveWait('capture')}
+  />;
+  if (step === 'video') return <VideoScreen
+    stepLabel={stepLabel(8)}
+    panel={parent.videoPanel}
+    busy={['video-request', 'video-playback', 'video-unsuitable', 'video-complete', 'video-refresh'].includes(parent.busy) ? parent.busy : ''}
+    error={parent.error}
+    playback={parent.playback}
+    reason={parent.videoReason}
+    markingUnsuitable={parent.markingUnsuitable}
+    onReason={parent.setVideoReason}
+    onRequest={() => void parent.requestVideo()}
+    onPlay={() => void parent.playVideo()}
+    onPlaybackError={parent.onPlaybackError}
+    onStartUnsuitable={parent.startUnsuitable}
+    onCancelUnsuitable={parent.cancelUnsuitable}
+    onConfirmUnsuitable={() => void parent.markVideoUnsuitable()}
+    onComplete={() => void parent.completeRun()}
+    onBackToStory={() => parent.leaveWait('story')}
+    onOpenHistory={() => parent.leaveWait('history')}
+    onRefresh={() => void parent.refreshVideo()}
+    onBack={() => parent.leaveWait(parent.story ? 'story' : 'home')}
+  />;
   if (step === 'story') return <StoryScreen
-    videoCapability={platform.capabilities.video}
-    jobStage={platform.videoJobStage}
     stepLabel={stepLabel(8)}
     story={parent.story}
     storyReady={storyReady}
@@ -474,18 +509,23 @@ function renderLearningStep(
     canConfirm={canConfirmStory}
     error={parent.error}
     confirmed={parent.storyConfirmed}
+    rewriting={parent.busy === 'rewrite'}
+    rewriteNotice={parent.rewriteNotice}
+    rewriteAfterVideo={parent.rewriteAfterVideo}
+    rewritesLeft={rewritesLeft(parent.storyRevisionNo)}
+    onOpenVideo={() => void parent.openVideoStep()}
     onRewriteInstruction={parent.setRewriteInstruction}
     onGenerate={() => void parent.requestStory()}
-    onRewrite={() => void parent.requestStory(parent.rewriteInstruction)}
+    onRewrite={() => void parent.rewriteStory(parent.rewriteInstruction)}
     onRetry={() => void parent.requestStory(undefined, true)}
     onConfirm={() => void parent.confirmStory()}
-    onBack={() => parent.setStep('activity')}
+    onBack={() => parent.leaveWait('activity')}
   />;
   if (step === 'handoff') return <HandoffScreen
     storyTitle={parent.story?.title ?? ''}
     events={parent.events}
     videoCapability={platform.capabilities.video}
-    jobStage={platform.videoJobStage}
+    jobStage={{ state: 'idle', stage: 'idle' }}
     onResumeActiveRun={parent.resumeActiveRun}
   />;
 
