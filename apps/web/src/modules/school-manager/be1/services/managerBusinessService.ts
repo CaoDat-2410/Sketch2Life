@@ -45,7 +45,38 @@ const lessonLibraryOrganizationPath = () =>
 const withSignal = (signal?: AbortSignal): RequestInit =>
   signal ? { signal } : {};
 
+export interface FeedbackSummary { thread_id: string; lesson_id: string; version_id: string; revision: number; created_at: string }
+export interface FeedbackMessage { message_id: string; body: string; from_you: boolean; created_at: string }
+export interface FeedbackPage<T> { items: T[]; next_cursor: string | null }
+export interface FeedbackThread extends FeedbackPage<FeedbackMessage> { thread_id: string; revision: number }
+
+function feedbackPath(threadId?: string, cursor?: string) {
+  const base = lessonLibraryOrganizationPath() + "/feedback" + (threadId === undefined ? "" : "/" + encodeURIComponent(threadId));
+  return base + (cursor ? "?cursor=" + encodeURIComponent(cursor) : "");
+}
+
+function validPage(value: unknown, id: string): value is FeedbackPage<Record<string, unknown>> {
+  if (!value || typeof value !== "object") return false;
+  const page = value as Record<string, unknown>;
+  return Array.isArray(page.items) && (page.next_cursor === null || typeof page.next_cursor === "string") && page.items.every((item: unknown) => !!item && typeof item === "object" && typeof (item as Record<string, unknown>)[id] === "string");
+}
+
 export const managerBusinessService = {
+  feedbackThreads: async (cursor?: string, signal?: AbortSignal): Promise<FeedbackPage<FeedbackSummary>> => {
+    const value: unknown = await adminApiRequest(feedbackPath(undefined, cursor), withSignal(signal));
+    if (!validPage(value, "thread_id") || !value.items.every((item) => typeof item.lesson_id === "string" && typeof item.version_id === "string" && typeof item.created_at === "string" && typeof item.revision === "number")) throw new Error("Không thể đọc danh sách phản hồi.");
+    return value as unknown as FeedbackPage<FeedbackSummary>;
+  },
+  feedbackThread: async (threadId: string, cursor?: string, signal?: AbortSignal): Promise<FeedbackThread> => {
+    const value: unknown = await adminApiRequest(feedbackPath(threadId, cursor), withSignal(signal));
+    if (!validPage(value, "message_id") || typeof (value as unknown as FeedbackThread).thread_id !== "string" || typeof (value as unknown as FeedbackThread).revision !== "number" || !value.items.every((item) => typeof item.body === "string" && typeof item.from_you === "boolean" && typeof item.created_at === "string")) throw new Error("Không thể đọc phản hồi.");
+    return value as unknown as FeedbackThread;
+  },
+  replyFeedback: async (threadId: string, body: string, revision: number, idempotencyKey: string): Promise<{ thread_id: string; revision: number }> => {
+    const value: unknown = await adminApiRequest(feedbackPath(threadId) + "/replies", { method: "POST", headers: { "If-Match": `"${revision}"`, "Idempotency-Key": idempotencyKey }, body: JSON.stringify({ body }) });
+    if (!value || typeof value !== "object" || typeof (value as { thread_id?: unknown }).thread_id !== "string" || typeof (value as { revision?: unknown }).revision !== "number") throw new Error("Không thể đọc kết quả phản hồi.");
+    return value as { thread_id: string; revision: number };
+  },
   organization: (signal?: AbortSignal) =>
     adminBe1Request<Be1Organization>(organizationPath(), withSignal(signal)),
 

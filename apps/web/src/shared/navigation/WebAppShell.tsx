@@ -79,8 +79,7 @@ export const SCHOOL_MANAGER_NAVIGATION: PortalNavigationGroup[] = [
       { href: "/school", label: "Tổng quan", icon: LayoutDashboard, state: "available" },
       { href: "/school/classes", label: "Lớp học", icon: School, state: "available" },
       { href: "/school/teachers", label: "Hồ sơ & consent", icon: ClipboardList, state: "available" },
-      { href: "/school/teacher-assignments", label: "Phân công giáo viên", icon: GraduationCap, state: "waiting" },
-      { href: "/school/teacher-groups", label: "Nhóm giáo viên", icon: Users, state: "waiting" },
+      { href: "/school/teacher-assignments", label: "Phân công giáo viên", icon: GraduationCap, state: "available" },
       { href: "/school/parent-groups", label: "Nhóm phụ huynh", icon: Users, state: "available" },
     ],
   },
@@ -88,7 +87,7 @@ export const SCHOOL_MANAGER_NAVIGATION: PortalNavigationGroup[] = [
     label: "Học liệu & phản hồi",
     items: [
       { href: "/school/review-content", label: "Duyệt học liệu", icon: BookOpen, state: "available" },
-      { href: "/school/feedback", label: "Phản hồi trong trường", icon: MessageSquareText, state: "waiting" },
+      { href: "/school/feedback", label: "Phản hồi trong trường", icon: MessageSquareText, state: "available" },
     ],
   },
   {

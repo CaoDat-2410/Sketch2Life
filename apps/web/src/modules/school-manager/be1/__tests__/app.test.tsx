@@ -6,6 +6,9 @@ import type { User } from 'firebase/auth'
 import App from '../App'
 import { authService } from '../services/authService'
 import { classService } from '../services/classService'
+import { SCHOOL_MANAGER_NAVIGATION } from '../../../../shared/navigation/WebAppShell'
+
+vi.mock('../pages/SchoolOverviewPage', () => ({ SchoolOverviewPage: () => <h1>Tổng quan</h1> }))
 
 afterEach(() => {
   cleanup()
@@ -56,5 +59,21 @@ describe('School Manager BE1 organization gate', () => {
 
     expect(await screen.findByRole('heading', { name: 'Chức năng trường học' })).toBeTruthy()
     expect(screen.queryByRole('heading', { name: 'Người dùng & vai trò' })).toBeNull()
+  })
+
+  it.each(['inbox', 'capacity', 'quota', 'billing'])('keeps %s unavailable', async (route) => {
+    signedIn = true
+    render(<PortalSessionProvider><MemoryRouter initialEntries={[`/school/${route}`]}><App /></MemoryRouter></PortalSessionProvider>)
+    expect((await screen.findAllByText('Chưa khả dụng')).length).toBeGreaterThan(0)
+  })
+
+  it('redirects the removed teacher groups route and updates the navigation', async () => {
+    signedIn = true
+    render(<PortalSessionProvider><MemoryRouter initialEntries={['/school/teacher-groups']}><App /></MemoryRouter></PortalSessionProvider>)
+    await screen.findByRole('heading', { name: /tổng quan/i })
+    const links = SCHOOL_MANAGER_NAVIGATION.flatMap((group) => group.items)
+    expect(links.some((item) => item.href === '/school/teacher-groups')).toBe(false)
+    expect(links.find((item) => item.href === '/school/feedback')?.state).toBe('available')
+    expect(links.find((item) => item.href === '/school/teacher-assignments')?.state).toBe('available')
   })
 })

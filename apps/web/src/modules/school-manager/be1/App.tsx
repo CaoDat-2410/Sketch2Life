@@ -13,6 +13,8 @@ import { SchoolOverviewPage } from "./pages/SchoolOverviewPage";
 import { ClassesPage } from "./pages/ClassesPage";
 import { RosterConsentPage } from "./pages/RosterConsentPage";
 import { ParentGroupsPage } from "./pages/ParentGroupsPage";
+import { TeacherAssignmentsPage } from "./pages/TeacherAssignmentsPage";
+import { FeedbackPage } from "./pages/FeedbackPage";
 import { authService } from "./services/authService";
 import { classService } from "./services/classService";
 
@@ -74,21 +76,6 @@ function SchoolManagerFrame({ children }: { children: ReactNode }) {
 }
 
 const UNAVAILABLE: Record<string, { title: string; requirement: string; dependencies: string[] }> = {
-  "teacher-assignments": {
-    title: "Phân công giáo viên",
-    requirement: "SRS yêu cầu một giáo viên phụ trách mỗi lớp trong đúng organization.",
-    dependencies: ["API tra cứu ứng viên giáo viên theo organization.", "API phân công có revision, kiểm tra xung đột và audit."],
-  },
-  "teacher-groups": {
-    title: "Nhóm giáo viên",
-    requirement: "School Manager quản lý nhóm giáo viên trong phạm vi trường.",
-    dependencies: ["API nhóm giáo viên có tenant scope.", "API đọc và quản lý thành viên nhóm có revision và audit."],
-  },
-  feedback: {
-    title: "Phản hồi trong trường",
-    requirement: "Teacher/Manager trả lời feedback trong phạm vi organization liên quan; đây không phải chat tổng quát.",
-    dependencies: ["API danh sách và chi tiết feedback theo trường.", "API trả lời thread có kiểm tra scope, thứ tự và audit."],
-  },
   capacity: {
     title: "Sức chứa",
     requirement: "SRS yêu cầu xem giới hạn lớp và capacity hiện hành của trường.",
@@ -135,6 +122,9 @@ export function SchoolManagerBe1App() {
   if (location.pathname === "/school" || location.pathname === "/school/") page = <SchoolOverviewPage />;
   else if (location.pathname === "/school/classes") page = <ClassesPage />;
   else if (location.pathname === "/school/teachers") page = <RosterConsentPage />;
+  else if (location.pathname === "/school/teacher-assignments") page = <TeacherAssignmentsPage />;
+  else if (location.pathname === "/school/feedback") page = <FeedbackPage />;
+  else if (location.pathname === "/school/teacher-groups") return <Navigate to="/school" replace />;
   else if (location.pathname === "/school/parent-groups") page = <ParentGroupsPage />;
   else if (location.pathname === "/school/review-content") page = <SchoolReviewPage />;
   else if (/^\/school\/[^/]+$/.test(location.pathname)) page = <SchoolUnavailablePage />;
