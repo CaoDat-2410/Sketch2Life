@@ -42,7 +42,7 @@ import type {
   ParentStoryRunEnvelopeV1,
   ParentStoryRunV1,
   ParentStoryScriptConfirmationV1,
-  ParentStorySubjectConfirmationV1,
+  ParentStorySubjectConfirmationAcceptedV1,
   StoryRun,
 } from '../../domain/types';
 
@@ -203,7 +203,7 @@ export class ParentApi implements ParentApiPort {
 
   confirmStoryRunSubjectV1(runId: string, revision: number, subject: string, actionIdentity: ParentActionIdentity) {
     assertVisibleAsciiKey(actionIdentity);
-    return this.request<ParentStorySubjectConfirmationV1>(
+    return this.request<ParentStorySubjectConfirmationAcceptedV1>(
       `/v1/story-runs/${encodeURIComponent(runId)}/subject-confirmation`,
       'POST',
       { expected_understanding_revision: revision, confirmed_subject: subject },

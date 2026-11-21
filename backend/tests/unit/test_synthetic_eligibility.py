@@ -463,7 +463,13 @@ def test_head_counts_by_both_methods_match_the_derived_expectation() -> None:
     # FEAT-072: seven forward-only Platform Admin revisions (20261119_admin_foundation to
     # 20261120_admin_ops_retention) branch from 20261110_ar_0001.
     # 20261119_admin_publication depends on 20261017_lc_0001, so it stops being a depends head.
-    assert len(graph) == 42
+    # FEAT-066 T-7b: 20261120_cls_0001 (DDL-H class revision) follows 20261119_oc_0001.
+    # FEAT-066 T-7d: 20261120_cls_0002 (DDL-H enrollment active-unique) follows 20261120_cls_0001.
+    # FEAT-066 T-2c: 20261120_b1_0001 (DDL-B1 voice idea and transcripts) follows
+    # 20261119_frc08_lifecycle_scope and replaces it as the head of the frc08_lifecycle branch.
+    # FEAT-066 T-1a: 20261120_vb_0002 (DDL-B1 video generations) follows 20261120_b1_0001 and
+    # replaces it as the head of the same branch (heads stay 14 and 10).
+    assert len(graph) == 46
     down_targets = {target for down, _ in graph.values() for target in down}
     dependency_targets = down_targets | {target for _, dep in graph.values() for target in dep}
     heads_down_only = {rev for rev in graph if rev not in down_targets}

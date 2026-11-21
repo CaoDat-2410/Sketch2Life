@@ -226,3 +226,44 @@ def test_conv1_families() -> None:
     assert not envelope.is_conv1_path("/v1/parent/profiles")
     assert not envelope.is_conv1_path("/v1/story-runs")
     assert not envelope.is_conv1_path("/v1/sessions/s/media/image")
+
+
+# --- FEAT-066 T-2b (D10): the Parent story envelope passes route field errors through ----------
+def test_story_field_errors_pass_plain_items_with_a_fixed_message() -> None:
+    from sketch2life.interfaces.http.app import _story_field_errors
+
+    assert _story_field_errors([{"field": "asset_ref", "code": "INVALID_FORMAT"}]) == [
+        {
+            "field": "asset_ref",
+            "code": "INVALID_FORMAT",
+            "message": "Giá trị trường không hợp lệ.",
+        }
+    ]
+    assert _story_field_errors(None) is None
+    assert _story_field_errors([]) is None
+    assert _story_field_errors("INVALID_FORMAT") is None
+
+
+def test_story_field_errors_drop_anything_that_is_not_plain_and_hide_the_key_item() -> None:
+    from sketch2life.interfaces.http.app import _story_field_errors
+
+    for bad in (
+        [{"field": "x", "code": "lowercase"}],
+        [{"field": "has space", "code": "INVALID_FORMAT"}],
+        [{"field": "x" * 121, "code": "INVALID_FORMAT"}],
+        [{"field": "x", "code": 3}],
+        [{"field": "x"}],
+        ["x"],
+        [{"field": "ok", "code": "INVALID_FORMAT"}, {"field": "bad field", "code": "X"}],
+    ):
+        assert _story_field_errors(bad) is None, bad
+    # T0.1 (C-D5): a bad Idempotency-Key stays a plain 400 without field_errors on these routes.
+    assert _story_field_errors([{"field": "Idempotency-Key", "code": "INVALID_FORMAT"}]) is None
+    kept = _story_field_errors(
+        [
+            {"field": "Idempotency-Key", "code": "INVALID_FORMAT"},
+            {"field": "asset_ref", "code": "REQUIRED"},
+        ]
+    )
+    assert kept is not None and [item["field"] for item in kept] == ["asset_ref"]
+    assert len(_story_field_errors([{"field": "f", "code": "C"}] * 30) or []) == 20

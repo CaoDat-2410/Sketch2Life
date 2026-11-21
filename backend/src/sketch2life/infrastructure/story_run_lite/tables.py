@@ -16,6 +16,7 @@ from sqlalchemy import (
     Numeric,
     String,
     Table,
+    Text,
     UniqueConstraint,
     text,
 )
@@ -240,6 +241,21 @@ story_runs = Table(
     Column("error_code", String(64)),
     Column("active_owner_parent_account_id", String(128)),
     Column("current_input_revision", Integer),
+    # DDL-B1 part 2 (T-1a): the current video generation of the run (REG l.373; the run match is
+    # enforced in code), the adult-wait clock and the closeout markers T-1d1 reads.
+    Column(
+        "current_video_generation_id",
+        String(36),
+        ForeignKey(
+            "story.video_generations.video_generation_id",
+            ondelete="SET NULL",
+            use_alter=True,
+            name="fk_story_run_current_video_generation",
+        ),
+    ),
+    Column("adult_wait_started_at", DateTime(timezone=True)),
+    Column("last_meaningful_activity_at", DateTime(timezone=True)),
+    Column("finished_at", DateTime(timezone=True)),
     Column("created_at", DateTime(timezone=True), nullable=False, server_default=text("now()")),
     Column("updated_at", DateTime(timezone=True), nullable=False, server_default=text("now()")),
     UniqueConstraint(
@@ -254,9 +270,11 @@ story_runs = Table(
         name="ck_story_run_current_input_revision",
     ),
     CheckConstraint(
-        "run_state IN ('INPUT_PROCESSING','SUBJECT_REVIEW',"
+        "run_state IN ('INPUT_PROCESSING','INPUT_REVIEW','SUBJECT_REVIEW',"
         "'PREPARATION_REVIEW','SCRIPT_GENERATING','SCRIPT_GENERATION_UNKNOWN','SCRIPT_REVIEW',"
-        "'VIDEO_ADMISSION_PENDING','DELETE_PENDING','FAILED','COMPLETED','DELETED')",
+        "'VIDEO_ADMISSION_PENDING','DELETE_PENDING','FAILED','COMPLETED','DELETED',"
+        "'VIDEO_QUEUED','VIDEO_GENERATING','VIDEO_SAFETY_VALIDATING','VIDEO_READY',"
+        "'SAFETY_BLOCKED','ABANDONED')",
         name="ck_story_run_state",
     ),
     CheckConstraint(
@@ -295,6 +313,10 @@ run_inputs = Table(
     Column("input_revision", Integer, nullable=False),
     Column("typed_idea", String(500)),
     Column("idea_source", String(16)),
+    # DDL-B1 part 1 (T-2c): the voice idea; hash, type and size live in core_asset_metadata.
+    Column("voice_asset_ref", String(256)),
+    Column("voice_asset_version", Integer),
+    Column("voice_duration_ms", Integer),
     Column("original_asset_ref", String(256)),
     Column("original_asset_version", Integer),
     Column("original_sha256", String(64)),
@@ -332,10 +354,21 @@ run_inputs = Table(
         name="ck_story_run_input_versions",
     ),
     CheckConstraint(
-        "(typed_idea IS NULL AND idea_source IS NULL) OR "
+        "(typed_idea IS NULL AND voice_asset_ref IS NULL AND idea_source IS NULL) OR "
         "(typed_idea IS NOT NULL AND length(typed_idea) BETWEEN 1 AND 500 "
-        "AND idea_source = 'TEXT')",
-        name="ck_story_run_input_typed_idea",
+        "AND voice_asset_ref IS NULL AND idea_source = 'TEXT') OR "
+        "(typed_idea IS NULL AND voice_asset_ref IS NOT NULL AND idea_source = 'VOICE') OR "
+        "(typed_idea IS NOT NULL AND length(typed_idea) BETWEEN 1 AND 500 "
+        "AND voice_asset_ref IS NOT NULL AND idea_source = 'TEXT_AND_VOICE')",
+        name="ck_story_run_input_idea",
+    ),
+    CheckConstraint(
+        "(voice_asset_ref IS NULL AND voice_asset_version IS NULL "
+        "AND voice_duration_ms IS NULL) OR "
+        "(voice_asset_ref IS NOT NULL AND voice_asset_version IS NOT NULL "
+        "AND voice_asset_version > 0 AND voice_duration_ms IS NOT NULL "
+        "AND voice_duration_ms BETWEEN 1 AND 120000)",
+        name="ck_story_run_input_voice",
     ),
     CheckConstraint(
         "(original_sha256 IS NULL AND derived_sha256 IS NULL) OR "
@@ -407,6 +440,84 @@ understanding_revisions = Table(
     ),
 )
 
+transcript_revisions = Table(
+    "transcript_revisions",
+    STORY_METADATA,
+    Column("transcript_revision_id", String(36), primary_key=True),
+    Column("run_id", String(36), nullable=False),
+    Column("run_input_id", String(36), nullable=False),
+    Column("source_asset_ref", String(256), nullable=False),
+    Column("revision_no", Integer, nullable=False),
+    Column("origin", String(24), nullable=False),
+    Column("state", String(24), nullable=False),
+    Column("raw_transcript", Text),
+    Column("adult_corrected_text", String(500)),
+    Column("transcript_sha256", String(64)),
+    Column("language", String(16)),
+    Column("asr_profile_ref", String(128)),
+    Column("model_revision", String(128)),
+    Column("config_hash", String(64)),
+    Column("segment_timing", JSONB),
+    Column("error_code", String(64)),
+    Column("reviewed_by", String(256)),
+    Column("reviewed_at", DateTime(timezone=True)),
+    Column("created_at", DateTime(timezone=True), nullable=False, server_default=text("now()")),
+    ForeignKeyConstraint(
+        ["run_id", "run_input_id"],
+        ["story.run_inputs.run_id", "story.run_inputs.run_input_id"],
+        ondelete="CASCADE",
+        name="fk_story_transcript_run_input",
+    ),
+    UniqueConstraint("run_id", "revision_no", name="uq_story_transcript_revision"),
+    CheckConstraint("revision_no > 0", name="ck_story_transcript_revision_no"),
+    CheckConstraint("origin IN ('ASR','ADULT_CORRECTION')", name="ck_story_transcript_origin"),
+    CheckConstraint(
+        "state IN ('PENDING','NEEDS_CONFIRMATION','CONFIRMED','SUPERSEDED','FAILED')",
+        name="ck_story_transcript_state",
+    ),
+    CheckConstraint(
+        "(raw_transcript IS NULL OR length(raw_transcript) <= 20000) AND "
+        "(adult_corrected_text IS NULL OR length(adult_corrected_text) BETWEEN 1 AND 500)",
+        name="ck_story_transcript_text_bound",
+    ),
+    CheckConstraint(
+        "(transcript_sha256 IS NULL OR transcript_sha256 ~ '^[0-9a-f]{64}$') AND "
+        "(state NOT IN ('NEEDS_CONFIRMATION','CONFIRMED') OR "
+        "(transcript_sha256 IS NOT NULL AND "
+        "(raw_transcript IS NOT NULL OR adult_corrected_text IS NOT NULL)))",
+        name="ck_story_transcript_hash",
+    ),
+    CheckConstraint(
+        "state <> 'CONFIRMED' OR (reviewed_by IS NOT NULL AND reviewed_at IS NOT NULL)",
+        name="ck_story_transcript_confirmed",
+    ),
+    CheckConstraint(
+        "state <> 'FAILED' OR error_code IS NOT NULL", name="ck_story_transcript_failed"
+    ),
+    CheckConstraint(
+        "origin <> 'ADULT_CORRECTION' OR adult_corrected_text IS NOT NULL",
+        name="ck_story_transcript_correction",
+    ),
+    CheckConstraint(
+        "segment_timing IS NULL OR octet_length(segment_timing::text) <= 65536",
+        name="ck_story_transcript_timing_bound",
+    ),
+)
+Index(
+    "uq_story_transcript_confirmed",
+    transcript_revisions.c.run_id,
+    transcript_revisions.c.source_asset_ref,
+    unique=True,
+    postgresql_where=text("state = 'CONFIRMED'"),
+)
+Index(
+    "uq_story_transcript_open",
+    transcript_revisions.c.run_id,
+    transcript_revisions.c.source_asset_ref,
+    unique=True,
+    postgresql_where=text("state IN ('PENDING','NEEDS_CONFIRMATION')"),
+)
+
 story_command_receipts = Table(
     "command_receipts",
     STORY_METADATA,
@@ -441,7 +552,9 @@ story_command_receipts = Table(
     ),
     CheckConstraint(
         "operation IN ('CREATE_RUN','ATTACH_ASSET','CONFIRM_SUBJECT','CONFIRM_CONTEXT',"
-        "'CANCEL_RUN','GENERATE_STORY_REVISION','CONFIRM_STORY_REVISION','DELETE_RUN')",
+        "'CANCEL_RUN','GENERATE_STORY_REVISION','CONFIRM_STORY_REVISION','DELETE_RUN',"
+        "'SUBMIT_IDEA','CONFIRM_TRANSCRIPT','CREATE_VIDEO_GENERATION',"
+        "'MARK_VIDEO_UNSUITABLE','COMPLETE_RUN')",
         name="ck_story_receipt_operation",
     ),
     CheckConstraint(
@@ -572,6 +685,8 @@ story_scenes = Table(
     Column("duration_ms", Integer, nullable=False),
     Column("character_anchors", JSONB, nullable=False),
     UniqueConstraint("story_revision_id", "scene_index", name="uq_story_scene_revision_index"),
+    # DDL-B1 part 2 (T-1a): the target of the composite FK of story.video_generation_scenes.
+    UniqueConstraint("story_revision_id", "scene_id", name="uq_story_scene_revision_scene"),
     CheckConstraint("scene_index BETWEEN 1 AND 15", name="ck_story_scene_index"),
     CheckConstraint(
         "start_ms >= 0 AND duration_ms BETWEEN 1000 AND 20000", name="ck_story_scene_timing"
@@ -604,8 +719,202 @@ story_revision_reviews = Table(
         name="fk_story_revision_review_owner",
     ),
     UniqueConstraint("story_revision_id", name="uq_story_revision_review_once"),
+    # DDL-B1 part 2 (T-1a): the target of the composite FK of story.video_generations.
+    UniqueConstraint(
+        "run_id", "story_revision_id", "review_id", name="uq_story_review_run_revision"
+    ),
     CheckConstraint("decision = 'CONFIRM'", name="ck_story_revision_review_decision"),
     CheckConstraint("length(target_story_sha256) = 64", name="ck_story_revision_review_hash"),
+)
+
+# DDL-B1 part 2 (T-1a, migration 20261120_vb_0002; REG l.380-381). One row is one video request
+# (an intent first, then the accepted generation); the run holds the pointer to the current one.
+# Opaque refs only: no quota balance, price or provider text lives here.
+video_generations = Table(
+    "video_generations",
+    STORY_METADATA,
+    Column("video_generation_id", String(36), primary_key=True),
+    Column(
+        "story_run_id",
+        String(36),
+        ForeignKey("story.runs.run_id", ondelete="CASCADE"),
+        nullable=False,
+    ),
+    Column("story_revision_id", String(36), nullable=False),
+    Column("story_review_id", String(36), nullable=False),
+    Column("generation_no", Integer),
+    Column("generation_kind", String(16), nullable=False),
+    Column("state", String(24), nullable=False),
+    Column("request_idempotency_key_hash", String(64), nullable=False),
+    Column("request_fingerprint_sha256", String(64), nullable=False),
+    Column("target_script_hash", String(64), nullable=False),
+    Column("quality_reason_code", String(32)),
+    Column("rejection_reason_code", String(32)),
+    Column("compute_reservation_ref", String(128)),
+    Column("compute_released_at", DateTime(timezone=True)),
+    Column("billing_quota_usage_ref", String(128)),
+    Column("job_ref", String(64)),
+    Column("output_asset_ref", String(256)),
+    Column("output_asset_version", Integer),
+    Column("video_profile_ref", String(128)),
+    Column("model_revision", String(128)),
+    Column("config_hash", String(64)),
+    Column(
+        "technical_validation_state", String(16), nullable=False, server_default=text("'PENDING'")
+    ),
+    Column(
+        "consistency_validation_state", String(16), nullable=False, server_default=text("'PENDING'")
+    ),
+    Column("safety_validation_state", String(16), nullable=False, server_default=text("'PENDING'")),
+    Column("safety_policy_version", String(64)),
+    Column("safety_finding_codes", JSONB),
+    Column("admission_started_at", DateTime(timezone=True), nullable=False),
+    Column("accepted_at", DateTime(timezone=True)),
+    Column("rejected_at", DateTime(timezone=True)),
+    Column("started_at", DateTime(timezone=True)),
+    Column("completed_at", DateTime(timezone=True)),
+    Column("safe_failure_code", String(64)),
+    Column("generation_revision", Integer, nullable=False, server_default=text("1")),
+    Column("created_at", DateTime(timezone=True), nullable=False, server_default=text("now()")),
+    Column("updated_at", DateTime(timezone=True), nullable=False, server_default=text("now()")),
+    ForeignKeyConstraint(
+        ["story_run_id", "story_revision_id"],
+        ["story.story_revisions.run_id", "story.story_revisions.story_revision_id"],
+        name="fk_vg_story_revision",
+    ),
+    ForeignKeyConstraint(
+        ["story_run_id", "story_revision_id", "story_review_id"],
+        [
+            "story.story_revision_reviews.run_id",
+            "story.story_revision_reviews.story_revision_id",
+            "story.story_revision_reviews.review_id",
+        ],
+        name="fk_vg_story_review",
+    ),
+    UniqueConstraint("video_generation_id", "story_revision_id", name="uq_vg_generation_revision"),
+    UniqueConstraint("job_ref", name="uq_vg_job_ref"),
+    UniqueConstraint("story_run_id", "request_idempotency_key_hash", name="uq_vg_run_key"),
+    CheckConstraint(
+        "state IN ('ADMISSION_PENDING','ADMISSION_REJECTED','ACCEPTED','QUEUED','GENERATING',"
+        "'TECHNICAL_VALIDATING','SAFETY_VALIDATING','READY','SAFETY_BLOCKED','FAILED',"
+        "'REJECTED_BY_ADULT','SUPERSEDED')",
+        name="ck_vg_state",
+    ),
+    CheckConstraint("generation_kind IN ('INITIAL','QUALITY_REGEN')", name="ck_vg_kind"),
+    CheckConstraint(
+        "technical_validation_state IN ('PENDING','PASSED','FAILED') "
+        "AND consistency_validation_state IN ('PENDING','PASSED','FAILED') "
+        "AND safety_validation_state IN ('PENDING','PASSED','FAILED')",
+        name="ck_vg_validation_states",
+    ),
+    CheckConstraint(
+        "length(request_idempotency_key_hash) = 64 AND length(request_fingerprint_sha256) = 64 "
+        "AND length(target_script_hash) = 64",
+        name="ck_vg_hashes",
+    ),
+    CheckConstraint("generation_revision > 0", name="ck_vg_revision"),
+    CheckConstraint(
+        "(output_asset_ref IS NULL AND output_asset_version IS NULL) OR "
+        "(output_asset_ref IS NOT NULL AND output_asset_version IS NOT NULL "
+        "AND output_asset_version > 0)",
+        name="ck_vg_output",
+    ),
+    CheckConstraint(
+        "(state = 'ADMISSION_PENDING' AND generation_no IS NULL AND accepted_at IS NULL "
+        "AND rejected_at IS NULL AND billing_quota_usage_ref IS NULL AND job_ref IS NULL) OR "
+        "(state = 'ADMISSION_REJECTED' AND generation_no IS NULL AND accepted_at IS NULL "
+        "AND rejected_at IS NOT NULL AND billing_quota_usage_ref IS NULL AND job_ref IS NULL) OR "
+        "(state NOT IN ('ADMISSION_PENDING','ADMISSION_REJECTED') "
+        "AND generation_no BETWEEN 1 AND 3 AND accepted_at IS NOT NULL AND rejected_at IS NULL "
+        "AND compute_reservation_ref IS NOT NULL AND billing_quota_usage_ref IS NOT NULL "
+        "AND job_ref IS NOT NULL)",
+        name="ck_vg_shape",
+    ),
+    CheckConstraint(
+        "state <> 'READY' OR (output_asset_ref IS NOT NULL "
+        "AND technical_validation_state = 'PASSED' AND consistency_validation_state = 'PASSED' "
+        "AND safety_validation_state = 'PASSED' AND completed_at IS NOT NULL)",
+        name="ck_vg_ready",
+    ),
+    CheckConstraint(
+        "generation_kind = 'INITIAL' OR quality_reason_code IS NOT NULL", name="ck_vg_reason"
+    ),
+    CheckConstraint(
+        "state <> 'REJECTED_BY_ADULT' OR rejection_reason_code IS NOT NULL",
+        name="ck_vg_rejected_by_adult",
+    ),
+    CheckConstraint(
+        "state NOT IN ('FAILED','ADMISSION_REJECTED') OR safe_failure_code IS NOT NULL",
+        name="ck_vg_failure_code",
+    ),
+)
+Index(
+    "uq_vg_one_open",
+    video_generations.c.story_run_id,
+    unique=True,
+    postgresql_where=text(
+        "state IN ('ADMISSION_PENDING','ACCEPTED','QUEUED','GENERATING','TECHNICAL_VALIDATING',"
+        "'SAFETY_VALIDATING')"
+    ),
+)
+Index(
+    "uq_vg_one_ready",
+    video_generations.c.story_run_id,
+    unique=True,
+    postgresql_where=text("state = 'READY'"),
+)
+Index(
+    "uq_vg_review_consumed",
+    video_generations.c.story_review_id,
+    unique=True,
+    postgresql_where=text("state <> 'ADMISSION_REJECTED'"),
+)
+Index(
+    "uq_vg_number",
+    video_generations.c.story_run_id,
+    video_generations.c.generation_no,
+    unique=True,
+    postgresql_where=text("generation_no IS NOT NULL"),
+)
+
+video_generation_scenes = Table(
+    "video_generation_scenes",
+    STORY_METADATA,
+    Column("generation_scene_id", String(36), primary_key=True),
+    Column("video_generation_id", String(36), nullable=False),
+    Column("story_revision_id", String(36), nullable=False),
+    Column("story_scene_id", String(36), nullable=False),
+    Column("state", String(16), nullable=False),
+    Column("clip_asset_ref", String(256)),
+    Column("clip_asset_version", Integer),
+    Column("source_job_ref", String(64)),
+    Column("consistency_result_code", String(64)),
+    Column("safe_failure_code", String(64)),
+    Column("started_at", DateTime(timezone=True)),
+    Column("completed_at", DateTime(timezone=True)),
+    Column("created_at", DateTime(timezone=True), nullable=False, server_default=text("now()")),
+    ForeignKeyConstraint(
+        ["video_generation_id", "story_revision_id"],
+        [
+            "story.video_generations.video_generation_id",
+            "story.video_generations.story_revision_id",
+        ],
+        ondelete="CASCADE",
+        name="fk_vgs_generation",
+    ),
+    ForeignKeyConstraint(
+        ["story_revision_id", "story_scene_id"],
+        ["story.story_scenes.story_revision_id", "story.story_scenes.scene_id"],
+        name="fk_vgs_scene",
+    ),
+    UniqueConstraint("video_generation_id", "story_scene_id", name="uq_vgs_generation_scene"),
+    CheckConstraint("state IN ('QUEUED','GENERATING','READY','FAILED')", name="ck_vgs_state"),
+    CheckConstraint(
+        "(clip_asset_ref IS NULL AND clip_asset_version IS NULL) OR "
+        "(clip_asset_ref IS NOT NULL AND clip_asset_version IS NOT NULL "
+        "AND clip_asset_version > 0)",
+        name="ck_vgs_clip",
+    ),
 )
 
 
@@ -621,8 +930,11 @@ __all__ = [
     "story_scenes",
     "story_revision_reviews",
     "story_runs",
+    "transcript_revisions",
     "understanding_revisions",
     "upload_command_receipts",
     "upload_parts",
     "upload_sessions",
+    "video_generation_scenes",
+    "video_generations",
 ]

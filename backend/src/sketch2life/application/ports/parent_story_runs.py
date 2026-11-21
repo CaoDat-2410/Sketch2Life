@@ -2,22 +2,39 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Protocol
 from uuid import UUID
 
 from sketch2life.application.ports.identity import VerifiedPrincipal
+from sketch2life.application.ports.object_storage import ObjectStoragePort
+from sketch2life.application.ports.parent_story_inputs import (
+    DrawingAttachOutcome,
+    IdeaOutcome,
+    SpeechTranscriptionRequest,
+    SubjectConfirmOutcome,
+    TranscriptConfirmOutcome,
+    TranscriptView,
+    VoiceInput,
+)
 from sketch2life.application.ports.parent_story_profile_lookup import ParentStoryProfileReference
 
 
 class ParentStoryRunError(RuntimeError):
     def __init__(
-        self, status_code: int, code: str, *, current_version: int | None = None
+        self,
+        status_code: int,
+        code: str,
+        *,
+        current_version: int | None = None,
+        field_errors: list[dict[str, str]] | None = None,
     ) -> None:
         self.status_code = status_code
         self.code = code
         self.current_version = current_version
+        # Plain ``[{field, code}]`` items for a 400 ``INVALID_REQUEST`` (T-2c); never free text.
+        self.field_errors = field_errors
         super().__init__(code)
 
 
@@ -47,6 +64,11 @@ class ParentStoryRunRecord:
     created_at: datetime
     updated_at: datetime
     lesson_pin_snapshot: dict[str, Any] | None = None
+    # T-1c (StoryRunDetailV1, SRS l.1811): the names equal the response model fields, which is how
+    # the seed tests rebuild the model from every dataclass field. ``video`` is None until a video
+    # request was accepted or is waiting; ``timeline`` is derived from existing timestamps.
+    video: dict[str, Any] | None = None
+    timeline: list[dict[str, Any]] = field(default_factory=list)
 
 
 @dataclass(frozen=True, slots=True)
@@ -119,10 +141,28 @@ class ParentStoryRevisionReservation:
     source_asset_sha256: str
     worker_input: dict[str, Any]
     request_sha256: str
-    receipt_id: str
+    # ``None`` for the rewrite route (T-2d): its receipt is FINAL at reservation, so completing or
+    # failing the generation touches no receipt.
+    receipt_id: str | None
     replayed: bool = False
     replay_body: dict[str, Any] | None = None
     # FR-C-08: set only on the replay of a purged run; the route returns the projection.
+    lifecycle: ParentStoryLifecycleRecord | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class StoryRewriteOutcome:
+    """The committed result of one ``story-rewrites`` command; also the stored receipt body.
+
+    ``reservation`` is set only on a fresh command (the runner needs the worker input, which is
+    never stored); ``lifecycle`` only on the replay of a purged run.
+    """
+
+    story_revision_no: int
+    run_revision: int
+    run_state: str
+    replayed: bool = False
+    reservation: ParentStoryRevisionReservation | None = None
     lifecycle: ParentStoryLifecycleRecord | None = None
 
 
@@ -248,6 +288,7 @@ class ParentStoryRunRepositoryPort(Protocol):
         result_snapshot: dict[str, Any],
         candidate_subject: str,
         confidence: float,
+        expected_input_revision: int | None = None,
     ) -> int: ...
 
     def confirm_subject(
@@ -258,7 +299,12 @@ class ParentStoryRunRepositoryPort(Protocol):
         expected_understanding_revision: int,
         confirmed_subject: str,
         idempotency_key: str,
-    ) -> int | ParentStoryLifecycleRecord: ...
+        rerun_on_edit: bool = False,
+    ) -> SubjectConfirmOutcome | ParentStoryLifecycleRecord: ...
+
+    def read_subject_rerun_hint(self, *, principal: VerifiedPrincipal, run_id: str) -> str | None:
+        """The adult's edited subject while its VLM rerun is pending, else ``None`` (T-2d)."""
+        ...
 
     def reserve_story_revision(
         self,
@@ -273,6 +319,31 @@ class ParentStoryRunRepositoryPort(Protocol):
         model_revision: str,
         prompt_version: str,
     ) -> ParentStoryRevisionReservation: ...
+
+    def reserve_story_rewrite(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        run_id: str,
+        idempotency_key: str,
+        expected_story_revision: int,
+        expected_story_sha256: str | None,
+        hint: str | None,
+        story_revision_id: str,
+        model_id: str,
+        model_revision: str,
+        prompt_version: str,
+        instruction_version: str,
+        instruction: str,
+    ) -> StoryRewriteOutcome:
+        """T-2d: accept one rewrite; the receipt is FINAL 202 in the same transaction."""
+        ...
+
+    def start_story_generation(
+        self, *, principal: VerifiedPrincipal, run_id: str, story_revision_id: str
+    ) -> bool:
+        """QUEUED -> RUNNING for the reserved revision; ``False`` when the work is stale."""
+        ...
 
     def complete_story_revision(
         self,
@@ -296,8 +367,58 @@ class ParentStoryRunRepositoryPort(Protocol):
     ) -> None: ...
 
     def fail_drawing_analysis(
-        self, *, principal: VerifiedPrincipal, run_id: str, error_code: str, outcome_unknown: bool
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        run_id: str,
+        error_code: str,
+        outcome_unknown: bool,
+        expected_input_revision: int | None = None,
     ) -> None: ...
+
+    def fail_drawing_analysis_recoverable(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        run_id: str,
+        error_code: str,
+        expected_input_revision: int,
+    ) -> bool:
+        """T-2b: a failure a retake can fix; the run stays INPUT_PROCESSING (False when stale)."""
+        ...
+
+    def start_drawing_analysis(
+        self, *, principal: VerifiedPrincipal, run_id: str, expected_input_revision: int
+    ) -> bool: ...
+
+    def prepare_drawing_attach(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        run_id: str,
+        idempotency_key: str,
+        fingerprint: str,
+        expected_run_revision: int | None,
+    ) -> DrawingAttachOutcome | ParentStoryLifecycleRecord | None: ...
+
+    def attach_uploaded_drawing(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        run_id: str,
+        idempotency_key: str,
+        fingerprint: str,
+        expected_run_revision: int | None,
+        original_asset_ref: str,
+        original_sha256: str,
+        original_media_type: str,
+        original_size_bytes: int,
+        scanner_name: str,
+        scanner_version: str,
+        derived_png: bytes,
+        derived_sha256: str,
+        storage: ObjectStoragePort,
+    ) -> DrawingAttachOutcome | ParentStoryLifecycleRecord: ...
 
     def confirm_story_revision(
         self,
@@ -309,6 +430,80 @@ class ParentStoryRunRepositoryPort(Protocol):
         idempotency_key: str,
     ) -> ParentStoryRunView: ...
 
+    # ------------------------------------------------------------------ T-2c: idea and transcript
+    def ensure_accepting_audio(self, *, principal: VerifiedPrincipal, run_id: str) -> None:
+        """State re-check immediately before the audio upload's first ``put_object``."""
+        ...
+
+    def prepare_idea(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        run_id: str,
+        idempotency_key: str,
+        fingerprint: str,
+        expected_run_revision: int,
+    ) -> IdeaOutcome | ParentStoryLifecycleRecord | None:
+        """Replay or the cheap pre-checks that run before any audio byte is read."""
+        ...
+
+    def submit_idea(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        run_id: str,
+        idempotency_key: str,
+        fingerprint: str,
+        expected_run_revision: int,
+        text: str | None = None,
+        voice: VoiceInput | None = None,
+        correction_base_revision: int | None = None,
+        correction_text: str | None = None,
+    ) -> IdeaOutcome | ParentStoryLifecycleRecord:
+        """Text and/or audio (new input revision) or a transcript correction (new revision)."""
+        ...
+
+    def get_transcript(self, *, principal: VerifiedPrincipal, run_id: str) -> TranscriptView: ...
+
+    def confirm_transcript(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        run_id: str,
+        idempotency_key: str,
+        expected_transcript_revision: int,
+        transcript_sha256: str,
+    ) -> TranscriptConfirmOutcome | ParentStoryLifecycleRecord: ...
+
+    def read_pending_transcription(
+        self, *, principal: VerifiedPrincipal, run_id: str, transcript_revision_id: str
+    ) -> SpeechTranscriptionRequest | None:
+        """The request for a still-current ``PENDING`` transcript, else ``None`` (stale work)."""
+        ...
+
+    def complete_transcript(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        run_id: str,
+        transcript_revision_id: str,
+        text: str,
+        language: str,
+        model_revision: str,
+        config_hash: str | None,
+        asr_profile_ref: str | None,
+        segment_timing: list[dict[str, int]] | None,
+    ) -> bool: ...
+
+    def fail_transcript(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        run_id: str,
+        transcript_revision_id: str,
+        error_code: str,
+    ) -> bool: ...
+
 
 __all__ = [
     "ParentStoryInputRecord",
@@ -319,4 +514,5 @@ __all__ = [
     "ParentStoryRunRepositoryPort",
     "ParentStoryRunSummary",
     "ParentStoryRunView",
+    "StoryRewriteOutcome",
 ]

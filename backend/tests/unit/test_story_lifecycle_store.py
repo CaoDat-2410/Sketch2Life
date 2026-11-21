@@ -107,6 +107,8 @@ def test_s10_columns_are_the_dtr_list_and_exclude_identity_scope_state_and_versi
         "understanding_revision",
         "error_code",
         "current_input_revision",
+        # FEAT-066 T-1a: the pointer to the current video generation.
+        "current_video_generation_id",
     }
     assert not {"run_id", "actor_scope_ref", "run_state", "revision", "version"} & set(
         S10_RUN_COLUMNS
@@ -163,18 +165,24 @@ def test_purge_story_content_deletes_children_nulls_s10_and_tombstones_in_one_tr
     store, session = _store(monkeypatch, snapshot)
     store.purge_story_content(StoryPurgePlan(RUN, story_plan_ids(snapshot)))
     tables = session.tables()
-    assert tables[:6] == [
+    assert tables[:10] == [
+        # FEAT-066 T-1a: video scenes, the run pointer, then the generations go before the reviews.
+        "video_generation_scenes",
+        "runs",
+        "video_generations",
         "story_revision_reviews",
         "review_decisions",
         "story_scenes",
         "story_revisions",
         "understanding_revisions",
+        # FEAT-066 T-2c: the transcript text is deleted before its run input (BR-23).
+        "transcript_revisions",
         "run_inputs",
     ]
-    run_update = session.statements[6]
+    run_update = session.statements[10]
     assert run_update.table.name == "runs"
     assert {name for name in run_update._values} == set(S10_RUN_COLUMNS)
-    receipt_updates = session.statements[7:]
+    receipt_updates = session.statements[11:]
     assert len(receipt_updates) == 2  # the CREATE_RUN fingerprint and the M2 CANCEL_RUN body
     dialect: Any = postgresql.dialect
     params = [dict(update.compile(dialect=dialect()).params) for update in receipt_updates]

@@ -21,6 +21,7 @@ from sketch2life.infrastructure.lesson_occurrences.scope import (
     LessonOccurrenceError,
     OccurrenceAccess,
     authorize_occurrence,
+    class_is_read_only,
 )
 
 
@@ -51,7 +52,12 @@ class OccurrenceUploadTargetResolver:
 
     def ensure_accepting(self, principal: VerifiedPrincipal, target_ref: str) -> None:
         access = self._access(principal, target_ref)
-        if access is None or access.occurrence["state"] == "ARCHIVED":
+        if (
+            access is None
+            or access.occurrence["state"] == "ARCHIVED"
+            # T-7b-DEC-9: no new upload for the occurrence of a suspended or archived class.
+            or class_is_read_only(self._db, access.occurrence, lock=False)
+        ):
             raise UploadTargetNotAccepting("INVALID_STATE_TRANSITION")
 
 

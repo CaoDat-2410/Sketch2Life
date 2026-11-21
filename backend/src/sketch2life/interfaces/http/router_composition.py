@@ -22,6 +22,9 @@ from sketch2life.interfaces.http.routers.lesson_occurrences import (
 )
 from sketch2life.interfaces.http.routers.parent_ai import router as parent_ai_router
 from sketch2life.interfaces.http.routers.parent_profiles import router as parent_profiles_router
+from sketch2life.interfaces.http.routers.parent_story_inputs import (
+    router as parent_story_inputs_router,
+)
 from sketch2life.interfaces.http.routers.parent_story_runs import router as parent_story_runs_router
 from sketch2life.interfaces.http.routers.pilot_assistance import router as pilot_assistance_router
 from sketch2life.interfaces.http.routers.platform_admin_accounts import (
@@ -31,6 +34,7 @@ from sketch2life.interfaces.http.routers.platform_admin import router as platfor
 from sketch2life.interfaces.http.routers.password_recovery import router as password_recovery_router
 from sketch2life.interfaces.http.routers.lesson_feedback import router as lesson_feedback_router
 from sketch2life.interfaces.http.routers.sessions import router as sessions_router
+from sketch2life.interfaces.http.routers.story_run_video import router as story_run_video_router
 from sketch2life.interfaces.http.routers.story_video import router as story_video_router
 from sketch2life.interfaces.http.routers.supervised_flow import renderer_source_router
 from sketch2life.interfaces.http.routers.supervised_flow import (
@@ -50,9 +54,17 @@ def story_demo_replaced_routers() -> tuple[APIRouter, ...]:
     The demo router owns `/v1/story-runs*` and `/v1/upload-sessions*`; the startup guard
     (`story_demo_guard`) reads these route tables. A task that mounts another real router
     on one of those paths only when the demo is off adds it here. T-2a: the generic upload
-    sessions (`/v1/upload-sessions*`) are mounted only while the demo is off.
+    sessions (`/v1/upload-sessions*`) are mounted only while the demo is off. T-2b: the Parent run
+    input routes (`POST /v1/story-runs/{run_id}/assets`, later T-2c and T-2d routes) mount and
+    unmount together with the Parent StoryRun router. T-1a: the video request route
+    (`POST /v1/story-runs/{run_id}/video-generations`) does the same.
     """
-    return (parent_story_runs_router, upload_sessions_router)
+    return (
+        parent_story_runs_router,
+        parent_story_inputs_router,
+        story_run_video_router,
+        upload_sessions_router,
+    )
 
 
 def mount_classroom_routers(
@@ -105,6 +117,8 @@ def mount_all_routers(
     application.include_router(parent_ai_router)
     if include_parent_story_runs:
         application.include_router(parent_story_runs_router)
+        application.include_router(parent_story_inputs_router)
+        application.include_router(story_run_video_router)
     # FEAT-066 T-2a: the demo router answers the same literal paths with another contract, so
     # the generic upload sessions are mounted only while the demo is off (T-2a-DEC-1).
     if include_upload_sessions:

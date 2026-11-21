@@ -132,6 +132,7 @@ class ClassroomModel(CorePersistenceBase):
     __table_args__ = (
         UniqueConstraint("organization_id", "class_id", name="uq_be1_class_org"),
         Index("ix_be1_class_org_state", "organization_id", "state"),
+        CheckConstraint("revision > 0", name="ck_be1_class_revision"),
     )
 
     class_id: Mapped[str] = mapped_column(String(128), primary_key=True)
@@ -141,7 +142,11 @@ class ClassroomModel(CorePersistenceBase):
         nullable=False,
     )
     display_name: Mapped[str] = mapped_column(String(200), nullable=False)
+    # active | suspended | archived (T-7b). No state CHECK: the column predates the states.
     state: Mapped[str] = mapped_column(String(24), nullable=False, default="active")
+    # The expected class revision of SRS l.1651 (TD-28): 1 at creation, +1 on a state change and
+    # on a Teacher assignment (migration 20261120_cls_0001). Incremented by the application.
+    revision: Mapped[int] = mapped_column(Integer, nullable=False, default=1, server_default="1")
     created_by: Mapped[str] = mapped_column(String(256), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
@@ -257,8 +262,18 @@ class SyntheticEligibilityProofModel(CorePersistenceBase):
 class EnrollmentModel(CorePersistenceBase):
     __tablename__ = "be1_enrollments"
     __table_args__ = (
-        UniqueConstraint("organization_id", "class_id", "child_id", name="uq_be1_enrollment"),
         CheckConstraint("state IN ('active', 'withdrawn')", name="ck_be1_enrollment_state"),
+        # T-7d (DDL-H part 2, migration 20261120_cls_0002): a child may return to a class it left,
+        # so the (class, child) pair is a lookup index; the database holds "one active enrollment
+        # per child" with a partial unique index (REG l.102, l.248, l.273).
+        Index("ix_be1_enrollment_class_child", "organization_id", "class_id", "child_id"),
+        Index(
+            "uq_be1_enrollment_active",
+            "organization_id",
+            "child_id",
+            unique=True,
+            postgresql_where=text("state = 'active'"),
+        ),
     )
 
     enrollment_id: Mapped[str] = mapped_column(String(36), primary_key=True)

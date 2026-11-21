@@ -150,6 +150,29 @@ def authorize_create(
     return CreateAuthorization(classroom=locked, account_ref=facts.account_ref)
 
 
+def class_is_read_only(db: Session, occurrence: RowMapping, *, lock: bool = True) -> bool:
+    """True when the occurrence's class exists and is not ``active`` (T-7b-DEC-9).
+
+    A suspended or archived class is read-only (SRS l.593, l.1425, l.1461), so every write of its
+    occurrences is refused with 409 ``INVALID_STATE_TRANSITION``, as the occurrence create is
+    (T-3a). ``lock`` takes the class row ``FOR SHARE`` so a concurrent suspend waits for this
+    transaction (the suspend takes ``FOR UPDATE``). An unknown class ref (the ref is opaque, there
+    is no foreign key) does not refuse.
+    """
+    statement = select(ClassroomModel.state).where(
+        ClassroomModel.class_id == occurrence["class_ref"]
+    )
+    if lock:
+        statement = statement.with_for_update(read=True)
+    state = db.scalar(statement)
+    return state is not None and state != "active"
+
+
+def require_class_writable(db: Session, occurrence: RowMapping, *, lock: bool = True) -> None:
+    if class_is_read_only(db, occurrence, lock=lock):
+        raise LessonOccurrenceError(409, "INVALID_STATE_TRANSITION")
+
+
 def authorize_occurrence(
     db: Session,
     principal: VerifiedPrincipal,
@@ -193,6 +216,8 @@ __all__ = [
     "OccurrenceAccess",
     "authorize_create",
     "authorize_occurrence",
+    "class_is_read_only",
     "load_caller_facts",
     "not_found",
+    "require_class_writable",
 ]

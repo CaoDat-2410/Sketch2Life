@@ -45,7 +45,7 @@ const colors = {
   blueDeep: '#315E87',
 };
 
-const terminalRunStates = new Set(['COMPLETED', 'FAILED', 'DELETE_PENDING']);
+const terminalRunStates = new Set(['COMPLETED', 'FAILED', 'ABANDONED', 'DELETE_PENDING', 'DELETED']);
 const roundedFont = Platform.OS === 'android' ? 'sans-serif-rounded' : undefined;
 
 export function HomeScreen({
@@ -499,6 +499,7 @@ function runProgressState(run: ParentStoryRunV1): { label: string; step: number 
 
   const states: Record<string, { label: string; step: number | null }> = {
     INPUT_PROCESSING: { label: 'Đang xử lý ảnh tranh', step: 0 },
+    INPUT_REVIEW: { label: 'Chờ xem lại ảnh và ý tưởng', step: 0 },
     SUBJECT_REVIEW: { label: 'Chờ xác nhận chủ thể', step: 1 },
     PREPARATION_REVIEW: { label: 'Đang chuẩn bị nội dung', step: 2 },
     SCRIPT_GENERATING: { label: 'Đang tạo câu chuyện', step: 2 },

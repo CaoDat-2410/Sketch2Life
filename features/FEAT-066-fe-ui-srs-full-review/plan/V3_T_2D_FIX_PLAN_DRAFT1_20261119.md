@@ -1,0 +1,72 @@
+# V3 T-2d-fix plan, Draft 1: story rewrite failure recovery and lost-background-task reaper (2026-11-19)
+
+Task: owner decision (via the BE session) after T-2d, counted in the Phase B squash as the last Phase B commit. Base read: HEAD `3d424e38` (T-1a) plus the T-1d1 plan (not yet committed: re-read its committed code first; this plan uses its `wait_columns` helper and its sweeper shape). SRS lines are `l.N` of the canonical SRS (443A3CA3). Out of scope: the VLM analyzer (OD-13), the hint safety screen (FR-AI-12), Android handling, any route or contract change.
+
+## 1. Facts verified at the tree
+
+- F1 T-2b/T-2c/T-2d background work runs in FastAPI `BackgroundTasks` (runners in `infrastructure/story_inputs/`), not in `ai_jobs`; a replay never reschedules; nothing times a run out (T-2d review N-4/N-5; evidence "lost background tasks have no reaper").
+- F2 `fail_story_revision` known failure ends the run: revision `FAILED`, run `FAILED`, lock released. The previous `DRAFT` was already `SUPERSEDED` by `reserve_story_rewrite`, so the adult loses the story. The unknown outcome ends in `SCRIPT_GENERATION_UNKNOWN` (revision `AWAITING_RECONCILIATION`), left until cancel.
+- F3 Clocks that exist (no lease or heartbeat column anywhere): `story.runs.updated_at` (written by every run transition: reserve writes `QUEUED`, `start_*` writes `RUNNING`), `story.transcript_revisions.created_at` (state `PENDING` = ASR enqueued), `story.story_revisions.created_at`. Script stage columns `started_at`/`finished_at` exist only for video (T-1a) and `finished_at` on runs.
+- F4 Constraints: `ck_story_revision_no` 1..4 and `uq_story_revision_run_no`; `ck_story_revision_result_shape` lets a row move `SUPERSEDED -> DRAFT`; no trigger on `story_revisions`; `ck_story_run_state` has every state used below; `ck_story_run_job_state` allows `FAILED` with any run state; receipts: `ck_story_receipt_operation` is closed (no new operation without DDL). `reserve_story_rewrite` stores a FINAL 202 receipt with body `{story_revision_no, story_revision_id, run_revision, run_state}` and `receipt_id=None` in the reservation (the legacy route keeps a PENDING receipt).
+- F5 `get_run` and `confirm_story_revision` read the revision with the highest `revision_no`; `reserve_story_rewrite` counts every row toward the limit of 4.
+- F6 Existing reuse: `fail_drawing_analysis_recoverable` + `_apply_settle` (recoverable failure to `INPUT_REVIEW`/`SUBJECT_REVIEW`), `fail_transcript` (`PENDING -> FAILED`, adult types the idea), T-1a `reconcile_pending_admissions` sweep (list, then compare-and-set under the run lock, report counters). Video generations are covered elsewhere: pending intents by the T-1a reconciler, in-flight rows of cancelled runs by its sweep, the 6 h deadline by T-1d1 D4 (verify in the committed T-1d1; if absent, open a question, do not duplicate).
+
+## 2. Decisions
+
+- D1 (rewrite failure returns to the previous story; owner decision, deviates from l.1413 "out of technical retries marks the run failed" for the rewrite case): a rewrite generation that fails technically (`StoryGenerationFailure`, invalid draft, or the reaper below) restores the previous story and keeps the run alive. l.394 allows `STORY_GENERATING -> SCRIPT_REVIEW`; `SCRIPT_REVIEW` plus a failed job is the "adult needs to act, not an AI job" state (FR-O-10 l.615: safe error code, retryability). Recorded as a deviation (T2DF-DEV-1).
+- D2 (slot, OPEN Q1): l.405 and FR-P-07 l.516 count rewrites "up to three after the first", l.1728 keeps the current story at the limit; no clause says whether a failed attempt consumes one (video differs: l.395/l.1907, an accepted request is consumed even on failure, because it costs quota). Conservative: a failed attempt does not consume a slot. Bound: at most 3 attempts per slot (a first attempt plus 2 retries, the shape of l.985), counted from existing receipts (D4); the 4th is 409 `STORY_REWRITE_LIMIT_REACHED` (l.866, l.1728: keep the story, confirm or cancel). Constants in one place, changeable.
+- D3 (no DDL): recovery deletes the failed `GENERATING` row (no scenes, reviews or generations can reference it: `story_sha256` is NULL) and sets the one `SUPERSEDED` row `revision_no - 1` back to `DRAFT`. The story tree is then exactly as before the rewrite, so `get_run`, `confirm_story_revision`, the rewrite limit and the T-1a admission need no change, and the freed `revision_no` is reused by the next attempt. Cost: the failed row (request hash, generator ids) is not kept; its facts survive as the run `error_code` and the receipt. If the owner wants failed rows kept for audit, that needs DDL (an attempt column and a new unique key) and the task would park BLOCKED_GATE: not planned.
+- D4 attempts counter without a column: failed attempts for slot k = count of receipts of this actor and run with operation `GENERATE_STORY_REVISION`, status 202 and body `story_revision_no = k` (every attempt of the new route stores one; replays do not; the unique index prefix `actor, operation, scope` serves the query). A receipt body is not edited. The legacy route (`/ai/story-revisions`, dev only) keeps its behaviour: its reservation has a PENDING receipt, so failure stays terminal there (recovery applies only when a new-route receipt names the revision id).
+- D5 (first story out of scope, OPEN Q3): revision 1 and legacy reservations have no previous story; failure stays `FAILED` and the lock is released (l.1413).
+- D6 (unknown outcome, OPEN Q4): the runner's `SCRIPT_GENERATION_UNKNOWN` (l.398, l.1748: stop for reconciliation, no blind repeat) is not changed; nothing can reconcile a text call, so the reaper resolves it at the 6 h AI job deadline (l.394, l.615, l.988) as a timed-out attempt (rewrite: D1 recovery; first story: `FAILED`).
+- D7 (reaper, bounded lease): `StoryTaskReaperService.run_once(now, lease, unknown_deadline, batch_size)`. `lease` (QUEUED/RUNNING, no write for that long, an inactivity lease on `updated_at`/`created_at`) is a required argument with no default: the SRS gives only the 6 h AI job deadline and says per-stage numbers need a benchmark (FR-O-06 l.611), so the value is the scheduler's (OPEN Q2); validated `0 < lease <= AI_JOB_DEADLINE` (6 h constant). `unknown_deadline` defaults to `AI_JOB_DEADLINE`. `batch_size` 1..200.
+- D8 safe code: all reaper timeouts use the existing `PROVIDER_TIMEOUT` (vocabulary of `ai_jobs`, public text "The AI step took too long"); no new code.
+
+## 3. Stuck states, detection and transition (one compare-and-set per row)
+
+All rows: Parent scope only, run not in `DELETE_PENDING`/`DELETED`, each re-read `FOR UPDATE SKIP LOCKED` on the run row with state, job state, clock and `revision` re-checked; a busy or changed row is `skipped`.
+
+| Kind | Detected | Becomes | SRS |
+|---|---|---|---|
+| K1 drawing job lost | `INPUT_PROCESSING`, `job_state` QUEUED/RUNNING, `updated_at <= now - lease` | `job_state FAILED`, `retryable true`, `PROVIDER_TIMEOUT`, then `_apply_settle`: `INPUT_REVIEW` (retake) or, for a lost subject rerun, `SUBJECT_REVIEW` with the old understanding still confirmable | l.394, l.1413 |
+| K2 drawing outcome unknown | same, `job_state AWAITING_RECONCILIATION`, `updated_at <= now - unknown_deadline` | as K1 | l.398, l.988 |
+| K3 ASR job lost | transcript `PENDING`, `created_at <= now - lease` | transcript `FAILED` (`PROVIDER_TIMEOUT`), run bump, `_apply_settle` (adult types the idea) | l.394 |
+| K4 story job lost | `SCRIPT_GENERATING`, QUEUED/RUNNING, `updated_at <= now - lease`, revision `GENERATING` | rewrite: D1 recovery; first story or legacy: revision `FAILED`, run `FAILED`, lock released, pending legacy receipt finalised 502 | l.394, l.405 |
+| K5 story outcome unknown | `SCRIPT_GENERATION_UNKNOWN`, `updated_at <= now - unknown_deadline` | as K4 | l.394 ext., l.398 |
+
+D1 recovery (shared by the runner failure path and K4/K5, one method, purged-run guard first): delete the `GENERATING`/`AWAITING_RECONCILIATION` row (rowcount 1), `SUPERSEDED -> DRAFT` for `revision_no - 1` (rowcount 1; on any mismatch roll back and fall back to the terminal failure), run -> `SCRIPT_REVIEW`, `job_state FAILED`, `error_code` the safe code, `retryable = failed attempts for the slot < 3`, lock kept, `version`/`revision` +1, `wait_columns` for the new adult wait (l.394: the wait starts when the AI job fails). The state model gains the transitions `SCRIPT_GENERATING -> SCRIPT_REVIEW` with a failed job and `SCRIPT_GENERATION_UNKNOWN -> SCRIPT_REVIEW|FAILED`; `INPUT_PROCESSING -> INPUT_REVIEW` after a timeout already exists.
+
+Late worker versus reaper: both take the run row lock. Worker first: the run left the stuck state, the reaper skips. Reaper first: `complete_story_revision` finds no `GENERATING` row for that revision id (deleted, or a newer attempt has another id) and is refused 409; `record_understanding` finds the run not in `INPUT_PROCESSING` or the input replaced; `start_*` returns False. A second pass finds nothing (idempotent); a crash between statements rolls the whole row back.
+
+## 4. What the Parent sees (GET run, no schema change)
+
+After a failed rewrite: `run_state SCRIPT_REVIEW`, `story_revision_no` and `story_status DRAFT` and the story of the previous revision, `job_state FAILED`, `retryable true` (false after the 3rd failed attempt), `error_code` safe. Next `story-rewrites` with the same `expected_story_revision` and a new key starts attempt 2 (same slot); the stored 202 of the failed key still replays. Cancel still works. FE impact for the Phase B FE fixes: show a banner from `job_state FAILED` + `error_code` in `SCRIPT_REVIEW` and use `retryable`; the mobile client does not treat `FAILED` as in flight (checked `parentFlowV1.ts`).
+
+## 5. Invocation, authorization, logging
+
+Callable service and store only; no route, no scheduler, nothing calls it yet (same residual as the T-1a reconciler and the T-1d1 closeout: three unscheduled sweepers at the end of Phase B, owner-visible; one periodic runner slice should call all three). Test hook: injected `now` and small `lease`; worker death injected by composing no generator (lost QUEUED), by `start_story_generation` and never completing (lost RUNNING), by an unknown-outcome failure. System job, no principal, no key; actor scope read from the row. Route authorization and the uniform 404 are untouched. Logs and metrics: counts and opaque run ids only (BR-34 l.278, NFR l.2075); no story, hint, transcript, subject or error text is read or logged.
+
+## 6. Files (allowlist)
+
+New: `application/ports/story_task_reaper.py`, `application/services/story_task_reaper.py`, `infrastructure/persistence/story_task_reaper_store.py`; tests `unit/test_story_task_reaper_service.py`, `integration/test_story_task_reaper_postgres.py`.
+Edit: `infrastructure/persistence/parent_story_repository.py` (D1 recovery in `fail_story_revision`, attempt count and bound in `reserve_story_rewrite`, three small system methods for the store: lost drawing, lost transcript, lost story), `infrastructure/story_inputs/story_generation.py` (docstring only), existing `tests/integration/test_parent_story_rewrites_postgres.py` (`test_the_runner_records_each_failure_with_its_code`: the known-failure and invalid-draft cases now expect `SCRIPT_REVIEW`/`FAILED`/`DRAFT` and one story row; new recovery and bound tests go here).
+Must still pass unchanged (legacy path): `test_m2_s2_g1_parent_story_postgres.py` fail calls, `unit/test_parent_story_run_cancel_repository.py`, `unit/test_story_output.py`, `contract/test_parent_ai_late_result_guards.py`. No OpenAPI, catalog, settings or `app.py` change.
+
+## 7. Tests
+
+Unit (service, fake store): lease validation, batch bound, counters, an error on one row does not stop the batch, idempotent second pass, injected clock. PostgreSQL (fresh database, `alembic upgrade heads`): rewrite failure returns to the DRAFT with `SCRIPT_REVIEW`/`FAILED`/`retryable`, replay of the failed key still 202, retry in the same slot reuses `revision_no`, 3rd failure gives `retryable false` and the 4th attempt 409, a success after two failures leaves 2 rewrites left; each of K1..K5 (lease just under and over, rerun case returns to `SUBJECT_REVIEW`, legacy and first story end `FAILED` with the pending receipt finalised); reaper holding off a run locked by a worker, worker completion after the reaper refused, reaper after worker completion a no-op, two reapers in parallel one winner; cancelled run untouched; no DDL (no alembic file in the diff); log capture has no story text. Then unit+contract against the 83 base ids, ruff and mypy on touched files, validators.
+
+## 8. Rollback and risks
+
+Rollback: revert the commit; no schema change; rows written by recovery are ordinary `DRAFT`/`SCRIPT_REVIEW` rows. R1 inactivity clock: an adult input (idea) during a lost drawing job rewrites `updated_at` and defers K1, bounded by adult action. R2 `story.runs` has no index on state and clock: the sweep scans in batches ordered by `updated_at`; fine for the demo scale, an index is a later DDL. R3 a retake already used (`_MAX_DRAWING_INPUTS`) leaves `INPUT_REVIEW` with no further retake after K1 (existing limit, cancel remains). R4 a late result arriving after recovery is discarded, so a paid provider call may be wasted (text only here). R5 `l.2082` says an operator alert on a lost worker should not auto-edit business rows; this reaper is the stopgap until OD-13 moves the work into `ai_jobs` leases (l.1780), which then replace it.
+
+## 9. OPEN questions (none blocks; defaults above are applied)
+
+- Q1 Does a technically failed rewrite attempt consume one of the three rewrites? Default: no, at most 3 attempts per rewrite, then 409 `STORY_REWRITE_LIMIT_REACHED`.
+- Q2 What are the stage deadlines for the lost QUEUED/RUNNING lease of story, ASR and VLM work (SRS gives only the 6 h AI job deadline)? The scheduler slice must pass a value.
+- Q3 After a failed first story (no earlier story) should the run return to `PREPARATION_REVIEW` instead of `FAILED`?
+- Q4 After an unknown outcome of a rewrite should the adult return to the previous story at once instead of at the 6 h deadline?
+
+## 10. Review rule
+
+2 reviews (plan, then implementation): the task adds run-state transitions (`SCRIPT_GENERATING`/`SCRIPT_GENERATION_UNKNOWN` to `SCRIPT_REVIEW`, a recoverable failure in a review state) and edits the shared repository failure path, although there is no DDL. One round each.

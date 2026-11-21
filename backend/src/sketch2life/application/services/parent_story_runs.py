@@ -8,6 +8,7 @@ from datetime import datetime
 from uuid import UUID
 
 from sketch2life.application.ports.identity import VerifiedPrincipal
+from sketch2life.application.ports.parent_story_inputs import SubjectConfirmOutcome
 from sketch2life.application.ports.parent_story_profile_lookup import (
     ParentStoryProfileLookupPort,
     ParentStoryProfileLookupUnavailable,
@@ -161,7 +162,8 @@ class ParentStoryRunService:
         expected_understanding_revision: int,
         confirmed_subject: str,
         idempotency_key: str,
-    ) -> int | ParentStoryLifecycleRecord:
+        rerun_on_edit: bool = False,
+    ) -> SubjectConfirmOutcome | ParentStoryLifecycleRecord:
         subject = confirmed_subject.strip()
         if not subject or len(subject) > 160:
             raise ParentStoryRunServiceError(422, "PARENT_CONFIRMED_SUBJECT_INVALID")
@@ -171,6 +173,7 @@ class ParentStoryRunService:
             expected_understanding_revision=expected_understanding_revision,
             confirmed_subject=subject,
             idempotency_key=idempotency_key,
+            rerun_on_edit=rerun_on_edit,
         )
 
     def reserve_story_revision(

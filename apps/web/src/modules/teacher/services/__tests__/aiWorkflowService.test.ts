@@ -46,4 +46,17 @@ describe("Teacher AI workflow errors", () => {
       "Yêu cầu AI thất bại (ACTION_NOT_ALLOWED). Tài khoản không được phép thực hiện thao tác này.",
     );
   });
+
+  // T0.9 (SRS l.864-865, l.1720-1721): the old 403 TEACHER_ORGANIZATION_ACCESS_REQUIRED is gone; a caller
+  // outside scope gets the uniform 404, an in-organization non-Teacher role the safe 403.
+  it.each([
+    ["suggestLessonPlan", 404, "RESOURCE_NOT_FOUND", "Không tìm thấy tài nguyên được yêu cầu."],
+    ["generateSketchDeck", 404, "RESOURCE_NOT_FOUND", "Không tìm thấy tài nguyên được yêu cầu."],
+    ["generateLessonVisual", 403, "ACTION_NOT_ALLOWED", "Tài khoản không được phép thực hiện thao tác này."],
+  ] as const)("T0.9: %s projects %i %s without a policy detail", async (method, status, code, message) => {
+    vi.stubGlobal("fetch", vi.fn(async () => jsonResponse({ code, message, correlation_id: "corr-9", retryable: false }, status)));
+    const error = await aiWorkflowService[method](input).then(() => { throw new Error("expected a rejection"); }, (cause: unknown) => cause as Error);
+    expect(error.message).toBe(`Yêu cầu AI thất bại (${code}). ${message}`);
+    expect(error.message).not.toContain("TEACHER_ORGANIZATION_ACCESS_REQUIRED");
+  });
 });

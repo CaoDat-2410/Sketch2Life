@@ -162,8 +162,12 @@ def test_assign_class_teacher_missing_and_unassigned_class_look_the_same() -> No
 
 
 def test_create_profile_missing_and_unassigned_class_look_the_same() -> None:
-    runtime = SimpleNamespace(settings=SimpleNamespace(env="test", synthetic_pilot_enabled=True))
-    payload = SimpleNamespace(class_id="class-x")
+    runtime = SimpleNamespace(
+        settings=SimpleNamespace(
+            env="test", synthetic_pilot_enabled=True, real_profile_data_enabled=False
+        )
+    )
+    payload = SimpleNamespace(display_name="Synthetic Learner", age_months=60, consent_id=None)
 
     def call(classroom: Any) -> HTTPException:
         return _registry_error(
@@ -171,6 +175,11 @@ def test_create_profile_missing_and_unassigned_class_look_the_same() -> None:
                 ORG,
                 "class-x",
                 cast(Any, payload),
+                # T-7c: the request, the response, the key and If-Match (never reached here).
+                request=cast(Any, SimpleNamespace()),
+                response=Response(),
+                idempotency_key="synthetic-key",
+                if_match='"1"',
                 principal=PRINCIPAL,
                 runtime=cast(Any, runtime),
                 db=cast(Session, _FakeSession(_identity(), [], classroom=classroom)),
@@ -183,9 +192,10 @@ def test_create_profile_missing_and_unassigned_class_look_the_same() -> None:
     _assert_not_found(missing)
 
 
-# T0.11: interim School Manager roster guard (SRS l.2586, D-066-69 O-PRIV, D-066-75 CM-2/CM-3).
-# The class profile list and the pilot profile list answer 403 ACTION_NOT_ALLOWED to the
-# School Manager account (school_admin rows) and keep today's behaviour for Teacher accounts.
+# T0.11: School Manager roster guard (SRS l.2586, D-066-69 O-PRIV, D-066-75 CM-2/CM-3).
+# The pilot profile list answers 403 ACTION_NOT_ALLOWED to the School Manager account
+# (school_admin rows). T-7a: the class profile list now answers the Manager with a count-only
+# summary (CM-3) and keeps the Teacher path; the full matrix is in test_be1_roster_privacy_guards.
 
 
 def _list_profiles_error(session: _FakeSession, class_id: str = "class-a") -> HTTPException:
@@ -202,18 +212,38 @@ def _assert_role_refused(error: HTTPException) -> None:
     assert error.detail["code"] == "ACTION_NOT_ALLOWED"
 
 
-def test_t011_list_profiles_school_manager_is_403() -> None:
-    session = _FakeSession(
-        _identity(role="school_manager"), [_row(role="school_admin", class_id=None)]
-    )
-    _assert_role_refused(_list_profiles_error(session))
+class _CountingFakeSession(_FakeSession):
+    """`scalar` answers the count query with a number and every other query with the class."""
+
+    def __init__(self, identity: Any, rows: list[Any], classroom: Any, count: int) -> None:
+        super().__init__(identity, rows, classroom)
+        self._count = count
+
+    def scalar(self, statement: Any) -> Any:
+        return self._count if "count(" in str(statement).lower() else self._classroom
 
 
-def test_t011_list_profiles_school_manager_with_class_row_is_403() -> None:
-    session = _FakeSession(
-        _identity(role="school_manager"), [_row(role="school_admin", class_id="class-a")]
+def _list_profiles_body(session: _FakeSession, class_id: str = "class-a") -> Any:
+    return be1_registry.list_profiles(
+        ORG, class_id, principal=PRINCIPAL, db=cast(Session, session)
     )
-    _assert_role_refused(_list_profiles_error(session))
+
+
+@pytest.mark.parametrize("row_class_id", [None, "class-a"])
+def test_t7a_list_profiles_school_manager_gets_the_count_summary(
+    row_class_id: str | None,
+) -> None:
+    session = _CountingFakeSession(
+        _identity(role="school_manager"),
+        [_row(role="school_admin", class_id=row_class_id)],
+        classroom=SimpleNamespace(organization_id=ORG, class_id="class-a", state="active"),
+        count=3,
+    )
+    assert _list_profiles_body(session) == {
+        "contract": "Be1ClassRosterSummaryV1",
+        "class_id": "class-a",
+        "active_profile_count": 3,
+    }
 
 
 @pytest.mark.parametrize("role", ["teacher", "guide", "observer"])
@@ -288,6 +318,15 @@ def test_t011_list_pilot_profiles_guide_and_observer_stay_403(role: str) -> None
         _identity(), [_row(role=role, class_id="class-a")], classroom=_lobby_session()
     )
     _assert_role_refused(_list_pilot_profiles_error(session))
+
+
+def test_t7a2_list_pilot_profiles_orgwide_teacher_row_is_403() -> None:
+    # T-7a2: an org-wide `teacher` row covers the class but is not the class assignment.
+    session = _FakeSession(
+        _identity(), [_row(role="teacher", class_id=None)], classroom=_lobby_session()
+    )
+    _assert_role_refused(_list_pilot_profiles_error(session))
+    _assert_role_refused(_list_pilot_profiles_error(session, env="local"))
 
 
 def test_t011_list_pilot_profiles_out_of_scope_caller_is_still_404() -> None:

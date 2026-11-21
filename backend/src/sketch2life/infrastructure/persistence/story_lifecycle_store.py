@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any, cast
 
-from sqlalchemy import Table, and_, delete, exists, select, update
+from sqlalchemy import Table, and_, delete, exists, func, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.engine import CursorResult, RowMapping
 from sqlalchemy.orm import Session, sessionmaker
@@ -39,6 +39,7 @@ from sketch2life.application.ports.story_run_lifecycle import (
     lifecycle_request_id,
     sha256_hex,
 )
+from sketch2life.domain.story_video.model import OPEN_STATES as OPEN_VIDEO_STATES
 from sketch2life.infrastructure.persistence.core_models import (
     CoreAggregateRevisionModel,
     CoreAuditEntryModel,
@@ -69,6 +70,8 @@ S10_RUN_COLUMNS: tuple[str, ...] = (
     "understanding_revision",
     "error_code",
     "current_input_revision",
+    # T-1a: the pointer to the current video generation; the generation rows go in step 4 too.
+    "current_video_generation_id",
 )
 # The two receipt operations whose fingerprints hold only the run id (and, for cancel, the
 # expected revision) and are never tombstoned (DTR step 4, S12).
@@ -92,6 +95,19 @@ class StoryRunSnapshot:
     s10_present: bool
     child_ids: tuple[str, ...]
     receipts: tuple[tuple[str, str, str, Any], ...]  # (receipt_id, operation, fingerprint, body)
+    # T-1a: video requests that a worker or the reconciler still owns (an intent or in flight).
+    unsettled_generations: int = 0
+
+
+def _require_settled_video(snapshot: StoryRunSnapshot) -> None:
+    """T-1a (D4): a purge never deletes a request that the saga or a worker still owns.
+
+    The error is retryable: the lifecycle consumer fails the attempt and tries again once the
+    cancel hook or the reconciler has settled the generation.
+    """
+
+    if snapshot.unsettled_generations:
+        raise StoryLifecycleError("VIDEO_GENERATION_UNSETTLED")
 
 
 def story_plan_ids(snapshot: StoryRunSnapshot) -> tuple[str, ...]:
@@ -133,6 +149,7 @@ class SqlStoryLifecycleStore:
         run_id = validate_run_ref(run_ref)
         with self._sessions() as session:
             snapshot = self._snapshot(session, run_id, lock=False)
+        _require_settled_video(snapshot)
         return StoryPurgePlan(run_ref=run_id, ids=story_plan_ids(snapshot))
 
     def assets_referenced_by_other_runs(
@@ -155,7 +172,11 @@ class SqlStoryLifecycleStore:
                         select(column).where(_RUNS.c.run_id != run_id, column.in_(refs))
                     )
                 )
-            for column in (inputs.c.original_asset_ref, inputs.c.derived_asset_ref):
+            for column in (
+                inputs.c.original_asset_ref,
+                inputs.c.derived_asset_ref,
+                inputs.c.voice_asset_ref,
+            ):
                 found.update(
                     str(value)
                     for value in session.scalars(
@@ -173,6 +194,7 @@ class SqlStoryLifecycleStore:
             snapshot = self._snapshot(session, run_id, lock=True)
             if snapshot.run_state not in PURGE_STATES:
                 raise StoryLifecycleError("RUN_NOT_PURGEABLE")
+            _require_settled_video(snapshot)
             current = story_plan_ids(snapshot)
             if current != plan.ids:
                 raise StoryLifecycleError("PLAN_CHANGED")
@@ -344,6 +366,19 @@ class SqlStoryLifecycleStore:
             receipts=tuple(
                 (str(row[0]), str(row[1]), str(row[2]), row[3]) for row in receipts
             ),
+            unsettled_generations=int(
+                session.scalar(
+                    select(func.count())
+                    .select_from(story_tables.video_generations)
+                    .where(
+                        story_tables.video_generations.c.story_run_id == run_id,
+                        story_tables.video_generations.c.state.in_(
+                            sorted(str(state) for state in OPEN_VIDEO_STATES)
+                        ),
+                    )
+                )
+                or 0
+            ),
         )
 
     @staticmethod
@@ -352,12 +387,30 @@ class SqlStoryLifecycleStore:
         revisions = select(t.story_revisions.c.story_revision_id).where(
             t.story_revisions.c.run_id == run_id
         )
+        generations = select(t.video_generations.c.video_generation_id).where(
+            t.video_generations.c.story_run_id == run_id
+        )
         sources: tuple[tuple[str, Any, Any], ...] = (
             ("run_inputs", t.run_inputs.c.run_input_id, t.run_inputs.c.run_id == run_id),
+            (
+                "video_generation_scenes",
+                t.video_generation_scenes.c.generation_scene_id,
+                t.video_generation_scenes.c.video_generation_id.in_(generations),
+            ),
+            (
+                "video_generations",
+                t.video_generations.c.video_generation_id,
+                t.video_generations.c.story_run_id == run_id,
+            ),
             (
                 "understanding_revisions",
                 t.understanding_revisions.c.understanding_revision_id,
                 t.understanding_revisions.c.run_id == run_id,
+            ),
+            (
+                "transcript_revisions",
+                t.transcript_revisions.c.transcript_revision_id,
+                t.transcript_revisions.c.run_id == run_id,
             ),
             (
                 "review_decisions",
@@ -390,6 +443,23 @@ class SqlStoryLifecycleStore:
         revisions = select(t.story_revisions.c.story_revision_id).where(
             t.story_revisions.c.run_id == run_id
         )
+        # T-1a: generations hold composite keys to the revisions and the reviews, so they go first
+        # (scenes, then the run pointer, then the generations); the pointer is set NULL before the
+        # row it names is deleted.
+        generations = select(t.video_generations.c.video_generation_id).where(
+            t.video_generations.c.story_run_id == run_id
+        )
+        session.execute(
+            delete(t.video_generation_scenes).where(
+                t.video_generation_scenes.c.video_generation_id.in_(generations)
+            )
+        )
+        session.execute(
+            update(_RUNS).where(_RUNS.c.run_id == run_id).values(current_video_generation_id=None)
+        )
+        session.execute(
+            delete(t.video_generations).where(t.video_generations.c.story_run_id == run_id)
+        )
         session.execute(
             delete(t.story_revision_reviews).where(t.story_revision_reviews.c.run_id == run_id)
         )
@@ -400,6 +470,10 @@ class SqlStoryLifecycleStore:
         session.execute(delete(t.story_revisions).where(t.story_revisions.c.run_id == run_id))
         session.execute(
             delete(t.understanding_revisions).where(t.understanding_revisions.c.run_id == run_id)
+        )
+        # T-2c: the transcript text is deleted with the run (BR-23); rows go before run_inputs.
+        session.execute(
+            delete(t.transcript_revisions).where(t.transcript_revisions.c.run_id == run_id)
         )
         session.execute(delete(t.run_inputs).where(t.run_inputs.c.run_id == run_id))
 

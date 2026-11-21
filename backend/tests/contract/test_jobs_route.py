@@ -616,8 +616,10 @@ def test_parent_seam_is_closed_at_head_and_opens_only_through_the_port(
         def __init__(self) -> None:
             self.asked: list[tuple[str, str]] = []
 
-        def owned_job(self, account_id: str, requested: str) -> AiJob | None:
-            self.asked.append((account_id, requested))
+        def owned_job(self, actor: JobActor, requested: str) -> AiJob | None:
+            # T-1a: the port receives the actor (account id and the Parent story scope ref).
+            assert actor.story_scope_ref is not None and len(actor.story_scope_ref) == 64
+            self.asked.append((actor.account_id, requested))
             return job if requested == job_id else None
 
     port = OwnsJob()

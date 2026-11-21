@@ -40,6 +40,8 @@ from sketch2life.application.ports.identity import VerifiedPrincipal
 from sketch2life.infrastructure.ai_jobs.read_only import build_read_only_job_repository
 from sketch2life.infrastructure.lesson_occurrences.job_lookup import SqlSourceDocumentClassLookup
 from sketch2life.infrastructure.persistence.be1_models import AdultIdentityModel
+from sketch2life.infrastructure.story_video.job_projection import SqlParentVideoJobs
+from sketch2life.infrastructure.uploads.resolvers import parent_scope_ref
 from sketch2life.interfaces.http.account_scope import load_granted_scope
 from sketch2life.interfaces.http.be1_runtime import get_db, get_verified_adult
 
@@ -138,6 +140,8 @@ def get_job_status_reader(request: Request) -> JobStatusReader:
             build_read_only_job_repository(engine),
             build_job_kind_registry(SqlSourceDocumentClassLookup(engine)),
             _SystemClock(),
+            # T-1a: the Parent video generation is the one Parent producer so far (plan D10).
+            parent_jobs=SqlParentVideoJobs(engine),
         )
         state.job_status_reader = reader
     return reader
@@ -186,6 +190,7 @@ def _resolve_actor(db: Session, principal: VerifiedPrincipal) -> JobActor:
         account_id=identity.account_id,
         account_role=identity.account_role,
         membership_for=membership_for,
+        story_scope_ref=parent_scope_ref(principal),
     )
 
 

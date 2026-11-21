@@ -207,7 +207,8 @@ def test_c3b_history_scope_order_states_and_paging(history_api: HistoryApi) -> N
     assert _get(api, "?limit=101").status_code == 400
     bad = _get(api, "?cursor=bm90LWEtY3Vyc29y")
     assert bad.status_code == 400 and bad.json()["field_errors"] is None
-    assert _get(api, subject=api.teacher).status_code == 403
+    # FEAT-066 T0.9: a non-Parent account is out of scope, the uniform 404.
+    assert _get(api, subject=api.teacher).status_code == 404
 
 
 def test_c3b_history_profile_filter(history_api: HistoryApi) -> None:

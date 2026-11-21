@@ -114,6 +114,8 @@ MESSAGES: Mapping[str, str] = {
     "UPLOAD_CHECKSUM_MISMATCH": "Nội dung tải lên không khớp với mã kiểm tra đã khai báo.",
     "UPLOAD_CONTENT_MISMATCH": "Nội dung tệp không khớp với định dạng đã khai báo.",
     "STORAGE_UNAVAILABLE": "Kho lưu trữ tạm thời chưa sẵn sàng. Vui lòng thử lại sau.",
+    # FEAT-066 T-2c: SRS l.982, a run audio over 20,000,000 bytes or two minutes.
+    "AUDIO_TOO_LARGE": "Bản ghi âm vượt quá 2 phút hoặc 20 MB. Vui lòng ghi âm ngắn hơn.",
     # FEAT-066 T-3a: SRS §9.8 l.866, a Teacher who is not assigned to the class.
     "TEACHER_ASSIGNMENT_REQUIRED": "Giáo viên chưa được phân công phụ trách lớp học này.",
     # FEAT-066 T-3b: refusals of an attached occurrence document (SRS §9.8 l.862-873; the last

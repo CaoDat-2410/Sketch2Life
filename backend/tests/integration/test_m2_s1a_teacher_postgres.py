@@ -322,9 +322,13 @@ def test_teacher_postgres_contract_and_marker_accounting(s1a_t_client: SimpleNam
     def profile_request(subject: str, age_months: int, suffix: str):
         return client.post(
             f"/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles",
-            headers=headers(subject),
+            # T-7c: a keyed command; the class revision is 2 after the first assignment.
+            headers={
+                **headers(subject),
+                "Idempotency-Key": f"s1at-profile-{uuid4()}",
+                "If-Match": '"2"',
+            },
             json={
-                "class_id": class_id,
                 "display_name": f"Synthetic S1AT {run_id} {suffix}",
                 "age_months": age_months,
             },

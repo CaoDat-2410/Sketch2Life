@@ -76,6 +76,7 @@ from sketch2life.infrastructure.lesson_occurrences.scope import (
     LessonOccurrenceError,
     authorize_occurrence,
     not_found,
+    require_class_writable,
 )
 from sketch2life.infrastructure.lesson_occurrences.tables import (
     DOCUMENT_REVISIONS,
@@ -288,7 +289,7 @@ class OccurrenceDocumentService:
             replay = self._replay(receipt, fingerprint)
             self.db.rollback()
             return AttachResult(replay, True)
-        self._require_writable(access.occurrence)
+        self._require_writable(access.occurrence, lock=False)
         candidate = self._candidate(principal, access.occurrence, payload.asset_ref)
         # No row lock and no connection is held while the object is read and parsed.
         self.db.rollback()
@@ -303,12 +304,13 @@ class OccurrenceDocumentService:
             extracted=extracted,
         )
 
-    @staticmethod
-    def _require_writable(occurrence: RowMapping) -> None:
+    def _require_writable(self, occurrence: RowMapping, *, lock: bool = True) -> None:
         # ARCHIVED is the only non-writable state in v3 (the document and plan states of the
         # occurrence are never moved by a v3 route; T-3a-DEC-9 uses the same rule for uploads).
+        # T-7b-DEC-9: a suspended or archived class is read-only too (SRS l.593, l.1425).
         if occurrence["state"] == "ARCHIVED":
             raise DocumentError(409, "INVALID_STATE_TRANSITION")
+        require_class_writable(self.db, occurrence, lock=lock)
 
     def _session_row(
         self, principal: VerifiedPrincipal, occurrence: RowMapping, upload_id: str, *, lock: bool

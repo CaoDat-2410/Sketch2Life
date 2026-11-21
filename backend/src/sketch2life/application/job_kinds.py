@@ -67,6 +67,9 @@ class JobActor:
     account_id: str
     account_role: str
     membership_for: MembershipLookup
+    # SHA-256 of the canonical issuer and subject: the owner scope of a Parent StoryRun (T-1a). A
+    # Parent job is proven by ``actor_scope_ref`` of its run, so it works once the run is closed.
+    story_scope_ref: str | None = None
 
 
 ScopeRule = Callable[[ActorMembership, AiJob], bool]
@@ -189,21 +192,64 @@ def lesson_source_document_spec(classes: SourceDocumentClassLookup) -> JobKindSp
     )
 
 
+# ------------------------------------------------------------------------------ video generation
+# FEAT-066 T-1a (SRS l.779, l.1670, l.1675). The video job of a Parent run is the generation row
+# (D9, plan Q2: no ``ai_jobs`` row before the first real worker). It is read only through the
+# Parent seam below, never through an organization membership.
+VIDEO_GENERATION_JOB_TYPE = "story.video_generation"
+
+
+def deny_organization_actors(membership: ActorMembership, job: AiJob) -> bool:
+    """A Parent video job has no organization: no membership, role or class ever grants a read."""
+
+    return False
+
+
+def withhold_video_results(job: AiJob) -> bool:
+    """Result refs stay empty: the video plays through the playback route only (SRS l.1692)."""
+
+    return False
+
+
+def video_generation_spec() -> JobKindSpec:
+    return JobKindSpec(
+        JobTargetKind.VIDEO_GENERATION,
+        (VIDEO_GENERATION_JOB_TYPE,),
+        scope_rule=deny_organization_actors,
+        eligibility=withhold_video_results,
+    )
+
+
 def build_job_kind_registry(source_documents: SourceDocumentClassLookup) -> JobKindRegistry:
     """The production registry: the module default plus the kinds that have a producer."""
-    return JobKindRegistry([lesson_source_document_spec(source_documents)])
+    return JobKindRegistry([lesson_source_document_spec(source_documents), video_generation_spec()])
 
 
 class ParentJobScopePort(Protocol):
     """Seam for Parent-owned jobs. ``owned_job`` returns the job only when it belongs to the
-    Parent account; the HEAD implementation owns none (no Parent job shape exists before the
-    first Parent producer adds its owner-scope columns, plan open question 1)."""
+    Parent actor (the actor carries ``story_scope_ref``, the owner scope of its StoryRuns); an
+    implementation that owns none answers ``None``. T-1a registers the video generation producer;
+    the other Parent producers add theirs through ``FirstOwnedParentJobs``."""
 
-    def owned_job(self, account_id: str, job_id: str) -> AiJob | None: ...
+    def owned_job(self, actor: JobActor, job_id: str) -> AiJob | None: ...
 
 
 class NoParentJobs:
-    def owned_job(self, account_id: str, job_id: str) -> AiJob | None:
+    def owned_job(self, actor: JobActor, job_id: str) -> AiJob | None:
+        return None
+
+
+class FirstOwnedParentJobs:
+    """Several Parent producers behind the one port the reader takes: the first owner wins."""
+
+    def __init__(self, *ports: ParentJobScopePort) -> None:
+        self._ports = ports
+
+    def owned_job(self, actor: JobActor, job_id: str) -> AiJob | None:
+        for port in self._ports:
+            job = port.owned_job(actor, job_id)
+            if job is not None:
+                return job
         return None
 
 
@@ -279,7 +325,7 @@ class JobStatusReader:
     def _read_parent(
         self, actor: JobActor, job_id: str, if_none_match: str | None
     ) -> JobStatusRead:
-        job = self._parent_jobs.owned_job(actor.account_id, job_id)
+        job = self._parent_jobs.owned_job(actor, job_id)
         spec = None if job is None else self._registry.for_job_type(job.job_type)
         if job is None or spec is None:
             raise JobNotVisible
@@ -303,7 +349,9 @@ class JobStatusReader:
 __all__ = [
     "DEFAULT_JOB_KIND_REGISTRY",
     "SRS_JOB_POLL_POLICY",
+    "VIDEO_GENERATION_JOB_TYPE",
     "ActorMembership",
+    "FirstOwnedParentJobs",
     "JobActor",
     "JobKindRegistry",
     "JobKindSpec",
@@ -318,7 +366,10 @@ __all__ = [
     "ScopeRule",
     "SourceDocumentClassLookup",
     "build_job_kind_registry",
+    "deny_organization_actors",
     "deny_scope",
     "lesson_source_document_spec",
+    "video_generation_spec",
     "withhold_results",
+    "withhold_video_results",
 ]

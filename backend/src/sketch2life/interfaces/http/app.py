@@ -117,6 +117,8 @@ from sketch2life.infrastructure.storage.in_memory_auto_rig_grants import (
 )
 from sketch2life.infrastructure.storage.s3_compatible import Boto3S3CompatibleObjectStorage
 from sketch2life.infrastructure.story_run_lite.composition import runtime_lifespan
+from sketch2life.infrastructure.story_video.composition import build_story_video_adapters
+from sketch2life.infrastructure.story_video.playback_tokens import build_playback_codec
 from sketch2life.infrastructure.vision_analysis.pilot_composition import (
     build_default_pilot_vision,
 )
@@ -200,8 +202,36 @@ def _legacy_parent_story_revision_path(path: str) -> bool:
     return bool(run_id) and "/" not in run_id
 
 
-def _parent_story_cancel_path(path: str) -> bool:
-    return re.fullmatch(r"/v1/story-runs/[0-9a-fA-F-]{36}/cancel", path) is not None
+def _story_field_errors(value: object) -> list[dict[str, str]] | None:
+    """Pass a route's ``[{field, code}]`` detail through the Parent story envelope (T-2b D10).
+
+    Only plain, bounded items are accepted; anything else is dropped, so a handler cannot put
+    free text or internals on the wire. The message is the fixed field message of the family.
+    An ``Idempotency-Key`` item is never shown: on these routes a bad key is a plain 400
+    ``INVALID_REQUEST`` without ``field_errors`` (T0.1, C-D5).
+    """
+    if not isinstance(value, list) or not value:
+        return None
+    items: list[dict[str, str]] = []
+    for item in value[:20]:
+        if not (
+            isinstance(item, dict)
+            and isinstance(item.get("field"), str)
+            and isinstance(item.get("code"), str)
+            and re.fullmatch(r"[A-Za-z0-9_.-]{1,120}", item["field"])
+            and re.fullmatch(r"[A-Z][A-Z0-9_]{0,63}", item["code"])
+        ):
+            return None
+        if item["field"] == "Idempotency-Key":
+            continue
+        items.append(
+            {
+                "field": item["field"],
+                "code": item["code"],
+                "message": "Giá trị trường không hợp lệ.",
+            }
+        )
+    return items or None
 
 
 def _parent_drawing_understandings_path(path: str) -> bool:
@@ -504,18 +534,41 @@ def create_app(
             }
             safe_messages = {
                 "ACTIVE_RUN_EXISTS": "Đã có một lượt kể chuyện đang hoạt động.",
+                # FEAT-066 T-2d: the story rewrite route (SRS l.866, l.871, l.1668).
+                "STORY_REWRITE_LIMIT_REACHED": "Đã hết số lần viết lại câu chuyện.",
+                "SUBJECT_NOT_CONFIRMED": "Vui lòng xác nhận chủ thể của bức tranh trước.",
+                # FEAT-066 T-2c: the idea and transcript routes (SRS l.982, l.1665, l.1713).
+                "AUDIO_TOO_LARGE": "Bản ghi âm quá dài hoặc quá lớn.",
+                "TRANSCRIPT_NOT_CONFIRMED": "Vui lòng xác nhận nội dung bản ghi âm trước.",
+                # FEAT-066 T-1a: the video request route (SRS l.395, l.866, l.873, l.1670); its
+                # SUBJECT_NOT_CONFIRMED text is the T-2d one above.
+                "AI_COST_LIMIT_REACHED": "Hệ thống tạm thời chưa nhận thêm yêu cầu tạo video.",
+                "SUBSCRIPTION_RESTRICTED": "Gói dịch vụ hiện tại chưa cho phép tạo video.",
+                "VIDEO_QUOTA_EXCEEDED": "Đã hết lượt tạo video của kỳ này.",
+                "VIDEO_REGENERATION_LIMIT_REACHED": "Đã hết số lần tạo lại video của lượt này.",
+                # FEAT-066 T-1c: the playback routes (SRS l.1676, l.1691-1693).
+                "INVALID_TOKEN": "Mã xem video không hợp lệ.",
+                "TOKEN_EXPIRED": "Mã xem video đã hết hạn. Vui lòng yêu cầu mã mới.",
+                "RANGE_NOT_SATISFIABLE": "Phạm vi video được yêu cầu không hợp lệ.",
                 "ACTION_NOT_ALLOWED": "Tài khoản không được phép thực hiện thao tác này.",
                 "AUTH_REQUIRED": "Vui lòng xác thực lại tài khoản.",
                 "INVALID_IDEMPOTENCY_KEY": "Khóa yêu cầu trùng với nội dung khác.",
                 "INVALID_REQUEST": "Yêu cầu không hợp lệ.",
                 "INVALID_STATE_TRANSITION": "Lượt kể chuyện chưa ở trạng thái phù hợp.",
+                # FEAT-066 T-2b: the drawing asset route (SRS l.983, l.1664).
+                "IMAGE_DIMENSIONS_EXCEEDED": "Ảnh quá lớn để xử lý. Vui lòng chọn ảnh nhỏ hơn.",
+                "MEDIA_TOO_LARGE": "Tệp quá lớn.",
                 "PROFILE_CONTEXT_NOT_CONFIRMED": "Vui lòng xác nhận thông tin lượt kể chuyện.",
                 "PROVIDER_BAD_RESPONSE": "Không thể hoàn tất yêu cầu hiện tại.",
                 "PROVIDER_UNAVAILABLE": "Dịch vụ tạm thời chưa sẵn sàng.",
                 "RATE_LIMITED": "Bạn đã gửi quá nhiều yêu cầu. Vui lòng thử lại sau.",
                 "RESOURCE_NOT_FOUND": "Không tìm thấy tài nguyên được yêu cầu.",
                 "STALE_REVISION": "Thông tin đã thay đổi. Vui lòng tải lại và xác nhận lại.",
+                "STORAGE_UNAVAILABLE": "Kho lưu trữ tạm thời chưa sẵn sàng.",
                 "UNSUPPORTED_MEDIA_TYPE": "Định dạng nội dung không được hỗ trợ.",
+                "UPLOAD_CHECKSUM_MISMATCH": "Nội dung tệp không khớp với bản đã tải lên.",
+                "UPLOAD_CONTENT_MISMATCH": "Nội dung tệp không đúng định dạng đã khai báo.",
+                "UPLOAD_INCOMPLETE": "Tệp tải lên chưa hoàn tất.",
             }
             raw_code = detail.get("code", status_codes.get(exc.status_code, "REQUEST_FAILED"))
             code = (
@@ -537,10 +590,10 @@ def create_app(
                     "correlation_id": request_id,
                     "retryable": exc.status_code in {429, 502, 503, 504},
                     "retry_after_seconds": retry_after_seconds,
-                    "field_errors": None,
+                    "field_errors": _story_field_errors(detail.get("field_errors")),
                     **(
                         {"current_version": detail["current_version"]}
-                        if _parent_story_cancel_path(request.url.path)
+                        if request.url.path.startswith("/v1/story-runs")
                         and exc.status_code == 409
                         and code == "STALE_REVISION"
                         and type(detail.get("current_version")) is int
@@ -1097,6 +1150,33 @@ def create_app(
     application.state.lesson_document_parser = None
     application.state.lesson_document_scanner = None
     application.state.upload_media_validator = None
+    # FEAT-066 T-2b: no drawing analyzer is composed by default (OD-13 owns the real worker); a run
+    # with a drawing then waits in INPUT_PROCESSING/QUEUED. Tests and local runs put a fixture here.
+    application.state.drawing_analyzer = None
+    # FEAT-066 T-2c: no speech transcriber is composed by default (OD-13 owns the real worker); a
+    # voice idea then waits with a PENDING transcript. Tests and local runs put a fixture here.
+    application.state.speech_transcriber = None
+    # FEAT-066 T-2d: no story generator is composed by default (OD-13 owns the real worker); an
+    # accepted rewrite then waits in SCRIPT_GENERATING/QUEUED. Tests and local runs put a fixture
+    # here. A subject edit reruns the VLM only while a drawing analyzer is composed too (SRS
+    # l.394, l.1413); this switch turns the rerun off (recorded deviation DEV-1: the edit is
+    # recorded and confirmed at once).
+    application.state.story_generator = None
+    application.state.subject_edit_reruns_vlm = True
+    # FEAT-066 T-1a (OD-03): the video admission ports. None unless the flag story_video_adapters is
+    # "local_test" (refused outside local/test by Settings); with none the route answers 503
+    # PROVIDER_UNAVAILABLE after its authorization and state checks.
+    application.state.story_video_ports = build_story_video_adapters(storage_example_settings)
+    application.state.story_video_port_timeout_seconds = (
+        storage_example_settings.story_video_port_timeout_seconds
+    )
+    # FEAT-066 T-1c: the playback token codec. None without a signing secret in staging/production:
+    # the token and stream routes then answer 503 PROVIDER_UNAVAILABLE and the API still starts (a
+    # warning names the setting, never its value). local/test get a per-process key.
+    application.state.story_playback_tokens = build_playback_codec(storage_example_settings)
+    application.state.story_playback_max_object_bytes = (
+        storage_example_settings.story_playback_max_object_bytes
+    )
     if _composition_profile == "combined":
         mount_all_routers(
             application,

@@ -1,4 +1,4 @@
-"""Upload target resolvers (T-2a): the Parent run for ``RUN_ARTWORK`` and the factory registry.
+"""Upload target resolvers (T-2a, T-2c): the Parent run for ``RUN_ARTWORK`` and ``RUN_AUDIO``.
 
 A resolver answers two questions for one verified principal: which owner scope a target has (or
 ``None`` for absent and out-of-scope targets alike, so the route answers the uniform 404), and
@@ -30,7 +30,7 @@ from sketch2life.infrastructure.persistence.parent_story_repository import (
     SqlParentStoryRunRepository,
 )
 from sketch2life.infrastructure.story_run_lite import tables as story_tables
-from sketch2life.infrastructure.uploads.purposes import RUN_ARTWORK
+from sketch2life.infrastructure.uploads.purposes import RUN_ARTWORK, RUN_AUDIO
 
 ResolverFactory = Callable[[Session], UploadTargetResolver]
 
@@ -87,8 +87,20 @@ class ParentRunArtworkResolver:
             raise UploadTargetNotAccepting(exc.code) from None
 
 
+class ParentRunAudioResolver(ParentRunArtworkResolver):
+    """``RUN_AUDIO``: the same run scope; the run must still accept an idea (T-2c)."""
+
+    def ensure_accepting(self, principal: VerifiedPrincipal, target_ref: str) -> None:
+        try:
+            SqlParentStoryRunRepository(self._db).ensure_accepting_audio(
+                principal=principal, run_id=target_ref
+            )
+        except ParentStoryRunError as exc:
+            raise UploadTargetNotAccepting(exc.code) from None
+
+
 def default_resolver_factories() -> dict[str, ResolverFactory]:
-    return {RUN_ARTWORK: ParentRunArtworkResolver}
+    return {RUN_ARTWORK: ParentRunArtworkResolver, RUN_AUDIO: ParentRunAudioResolver}
 
 
 def merged_resolver_factories(registered: Mapping[str, Any] | None) -> dict[str, ResolverFactory]:
@@ -101,6 +113,7 @@ def merged_resolver_factories(registered: Mapping[str, Any] | None) -> dict[str,
 
 __all__ = [
     "ParentRunArtworkResolver",
+    "ParentRunAudioResolver",
     "ResolverFactory",
     "default_resolver_factories",
     "merged_resolver_factories",

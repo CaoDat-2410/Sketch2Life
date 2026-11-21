@@ -72,6 +72,7 @@ export function runActionOutcome(code: string | undefined, status: number | unde
 
 const STATE_LABELS: Record<string, string> = {
   INPUT_PROCESSING: 'Đang xử lý tranh',
+  INPUT_REVIEW: 'Chờ xem lại ảnh và ý tưởng',
   SUBJECT_REVIEW: 'Chờ xác nhận nội dung tranh',
   PREPARATION_REVIEW: 'Chờ xác nhận chuẩn bị',
   SCRIPT_GENERATING: 'Đang tạo câu chuyện',

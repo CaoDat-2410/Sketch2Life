@@ -54,6 +54,7 @@ import {
   readStoryRevisionReadModel,
   nextProfileCursor,
   readRunUnderstanding,
+  readSubjectConfirmationOutcome,
   readDrawingCandidate,
   reconcileProfileRecord,
   safeParentFlowErrorMessage,
@@ -1035,12 +1036,26 @@ export function useParentController(application: ParentApplicationModule) {
       }
       const actionIdentity = retainedActionIdentity(subjectConfirmationAction, signature);
       const response = await application.learning.confirmSubjectV1(runId, understandingRevision, confirmedSubject, actionIdentity);
-      if (response.story_run_id !== runId
-        || response.understanding_revision !== understandingRevision
-        || response.decision !== 'CONFIRMED') {
+      const subjectEdited = confirmedSubject !== (candidate?.candidate_subject ?? '').trim();
+      const outcome = readSubjectConfirmationOutcome(response, { runId, understandingRevision, subjectEdited });
+      if (outcome === 'invalid') {
         throw new ParentApplicationError('PARENT_SUBJECT_CONFIRMATION_INVALID', 'Subject confirmation did not match the reviewed result.');
       }
-      const decision = confirmedSubject === candidate?.candidate_subject ? 'CONFIRMED_BY_ADULT' : 'CORRECTED_BY_ADULT';
+      if (outcome === 'rerun-requested') {
+        // SRS l.394: an edited subject runs the visual understanding again. Nothing is confirmed
+        // yet; the next call confirms the new revision, so the retained key is dropped.
+        subjectConfirmationAction.current = null;
+        setSubjectConfirmed(false);
+        const latest = await getLatestRun(runId);
+        const refreshed = readRunUnderstanding(latest);
+        if (latest.run_state === 'SUBJECT_REVIEW' && refreshed && refreshed.understandingRevision > understandingRevision) {
+          adoptServerUnderstanding(latest);
+        } else {
+          setError(safeParentFlowErrorMessage({ code: 'SUBJECT_RERUN_PENDING' }));
+        }
+        return;
+      }
+      const decision = subjectEdited ? 'CORRECTED_BY_ADULT' : 'CONFIRMED_BY_ADULT';
       const confirmedRun: ParentStoryRunV1 = {
         ...run,
         understanding_revision: response.understanding_revision,

@@ -36,6 +36,8 @@ _SIGNATURES: dict[str, Callable[[bytes], bool]] = {
     "image/webp": lambda header: _is_riff(header, b"WEBP"),
     "application/pdf": lambda header: header.startswith(b"%PDF-"),
     "audio/wav": lambda header: _is_riff(header, b"WAVE"),
+    # MP4 and M4A: the first box is ``ftyp`` (size, then the type at bytes 4-8).
+    "audio/mp4": lambda header: len(header) >= 8 and header[4:8] == b"ftyp",
     DOCX_MEDIA_TYPE: lambda header: header.startswith(_ZIP_LOCAL_HEADER),
     PPTX_MEDIA_TYPE: lambda header: header.startswith(_ZIP_LOCAL_HEADER),
 }

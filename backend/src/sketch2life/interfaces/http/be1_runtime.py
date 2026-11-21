@@ -8,7 +8,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 from collections.abc import Callable, Iterator
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from uuid import uuid4
 
 from fastapi import Depends, Header, HTTPException, Request
@@ -30,7 +30,11 @@ from sketch2life.domain.core_foundation import (
 from sketch2life.domain.core_foundation import (
     VerifiedPrincipal as CoreVerifiedPrincipal,
 )
-from sketch2life.infrastructure.config.settings import Settings, get_core_database_settings
+from sketch2life.infrastructure.config.settings import (
+    MIN_PROFILE_RECEIPT_KEY_BYTES,
+    Settings,
+    get_core_database_settings,
+)
 from sketch2life.infrastructure.identity.firebase_token_verifier import (
     FirebaseTokenVerifier,
     IdentityVerificationUnavailable,
@@ -52,6 +56,7 @@ from sketch2life.infrastructure.persistence.database import (
     create_core_session_factory,
 )
 from sketch2life.infrastructure.storage.persistent_local_artifacts import LocalArtifactStore
+from sketch2life.interfaces.http.rate_limit import SlidingWindowLimiter
 from sketch2life.interfaces.http.routers.be1_common import consent_is_effective, eligibility_ready
 
 
@@ -65,6 +70,8 @@ class Be1Runtime:
     artifact_store: LocalArtifactStore
     pilot_vision: object | None = None
     pilot_job_repository: AiJobRepository | None = None
+    # T-7c-fix (O-2): per-account and per-IP limits of the real-data profile gate (NFR-12).
+    profile_gate_limiter: SlidingWindowLimiter = field(default_factory=SlidingWindowLimiter)
 
 
 @dataclass(frozen=True, slots=True)
@@ -98,6 +105,7 @@ def build_be1_runtime(
     *,
     pilot_vision_factory: PilotVisionFactory | None = None,
 ) -> Be1Runtime:
+    _require_receipt_key_for_real_data(settings)
     configured = get_core_database_settings().database_url
     database_url = configured.get_secret_value() if configured else None
     engine: Engine | None = None
@@ -126,7 +134,27 @@ def build_be1_runtime(
         artifact_store=LocalArtifactStore(settings.be1_artifact_root),
         pilot_vision=pilot_vision,
         pilot_job_repository=pilot_job_repository,
+        profile_gate_limiter=SlidingWindowLimiter(
+            account_limit=settings.profile_gate_account_limit,
+            ip_limit=settings.profile_gate_ip_limit,
+            window_seconds=settings.profile_gate_window_seconds,
+        ),
     )
+
+
+def _require_receipt_key_for_real_data(settings: Settings) -> None:
+    """T-7c-fix (O-1): real-data profiles never run in staging/production without the key.
+
+    `Settings` refuses the same case at load; this repeats it for a hand-built or mutated object.
+    The message never contains the key.
+    """
+    if settings.env not in {"staging", "production"} or not settings.real_profile_data_enabled:
+        return
+    key = settings.profile_receipt_hmac_key
+    if key is None or len(key.get_secret_value().encode("utf-8")) < MIN_PROFILE_RECEIPT_KEY_BYTES:
+        raise RuntimeError(
+            "real profile data in staging/production requires the profile receipt key"
+        )
 
 
 def _pilot_job_repository(pilot_vision: object | None) -> AiJobRepository | None:

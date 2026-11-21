@@ -21,6 +21,22 @@ SRS_V22_INCLUDED_OPERATIONS: frozenset[tuple[str, str]] = frozenset(
         ("post", "/v1/story-runs/{run_id}/context-confirmation"),
         ("post", "/v1/story-runs/{run_id}/subject-confirmation"),
         ("post", "/v1/story-runs/{run_id}/script-confirmation"),
+        # FEAT-066 T-2b (SRS l.1664): attach the drawing asset to a Parent run.
+        ("post", "/v1/story-runs/{run_id}/assets"),
+        # FEAT-066 T-2c (SRS l.1665, l.1713): the idea, the transcript read and its confirmation.
+        ("post", "/v1/story-runs/{run_id}/idea"),
+        ("get", "/v1/story-runs/{run_id}/transcript"),
+        ("post", "/v1/story-runs/{run_id}/transcript-confirmation"),
+        # FEAT-066 T-2d (SRS l.1668, FR-P-07): one more story revision, at most three rewrites.
+        ("post", "/v1/story-runs/{run_id}/story-rewrites"),
+        # FEAT-066 T-1a (SRS l.1670): the Parent video request.
+        ("post", "/v1/story-runs/{run_id}/video-generations"),
+        # FEAT-066 T-1b (SRS l.1671-1672): the adult's decisions on a ready video.
+        ("post", "/v1/story-runs/{run_id}/video-unsuitable"),
+        ("post", "/v1/story-runs/{run_id}/complete"),
+        # FEAT-066 T-1c (SRS l.1676, l.1691): the playback grant and the header-borne stream.
+        ("post", "/v1/story-runs/{run_id}/playback-token"),
+        ("get", "/v1/story-runs/{run_id}/playback"),
         # FEAT-066 T-2a (SRS l.1654-1658): generic upload sessions.
         ("post", "/v1/upload-sessions"),
         ("get", "/v1/upload-sessions/{upload_id}"),
@@ -34,6 +50,11 @@ SRS_V22_INCLUDED_OPERATIONS: frozenset[tuple[str, str]] = frozenset(
         ("get", "/api/be1/v1/organizations/{organization_id}"),
         ("get", "/api/be1/v1/organizations/{organization_id}/me"),
         ("post", "/api/be1/v1/classes/{class_id}/assignments"),
+        # FEAT-066 T-7b (SRS l.1709): School Manager class archive and manual suspend.
+        ("post", "/api/be1/v1/classes/{class_id}/suspend"),
+        ("post", "/api/be1/v1/classes/{class_id}/archive"),
+        # FEAT-066 T-7d (SRS l.544, l.1651): the Teacher enrollment move between two classes.
+        ("post", "/api/be1/v1/classes/{class_id}/profiles/{child_id}/move"),
         ("get", "/api/be1/v1/organizations/{organization_id}/classes"),
         ("post", "/api/be1/v1/organizations/{organization_id}/classes"),
         (

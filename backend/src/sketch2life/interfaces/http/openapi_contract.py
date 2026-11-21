@@ -2712,6 +2712,15 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                   'request_inputs': 'path '
                                                                                     '`organization_id*`: '
                                                                                     'string; '
+                                                                                    'query '
+                                                                                    '`state`: '
+                                                                                    'string; '
+                                                                                    'query '
+                                                                                    '`limit`: '
+                                                                                    'integer; '
+                                                                                    'query '
+                                                                                    '`cursor`: '
+                                                                                    'string; '
                                                                                     'header '
                                                                                     '`X-Request-ID`: '
                                                                                     'string',
@@ -2989,6 +2998,12 @@ MOUNTED_OPERATIONS: Final[dict[tuple[str, str], OperationMetadata]] = {('post', 
                                                                                                         'string; '
                                                                                                         'path '
                                                                                                         '`class_id*`: '
+                                                                                                        'string; '
+                                                                                                        'query '
+                                                                                                        '`limit`: '
+                                                                                                        'integer; '
+                                                                                                        'query '
+                                                                                                        '`cursor`: '
                                                                                                         'string; '
                                                                                                         'header '
                                                                                                         '`X-Request-ID`: '
@@ -10933,7 +10948,7 @@ MOUNTED_OPERATIONS[('post', '/v1/parent/profiles')] = {
          'schema_name': 'ParentErrorResponse'},
         {'status': '401', 'description': 'Authentication is required or invalid',
          'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
-        {'status': '403', 'description': 'The action is not allowed',
+        {'status': '404', 'description': 'The caller is not an active Parent',
          'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
         {'status': '409', 'description': 'The request conflicts with profile state',
          'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
@@ -10959,7 +10974,7 @@ MOUNTED_OPERATIONS[('get', '/v1/parent/profiles')] = {
          'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
         {'status': '401', 'description': 'Authentication is required or invalid',
          'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
-        {'status': '403', 'description': 'The action is not allowed',
+        {'status': '404', 'description': 'The caller is not an active Parent',
          'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
         {'status': '409', 'description': 'The request conflicts with profile state',
          'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
@@ -10984,9 +10999,7 @@ MOUNTED_OPERATIONS[('get', '/v1/parent/profiles/{profile_id}')] = {
          'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
         {'status': '401', 'description': 'Authentication is required or invalid',
          'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
-        {'status': '403', 'description': 'The action is not allowed',
-         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
-        {'status': '404', 'description': 'The profile was not found', 'media_type': 'application/json',
+        {'status': '404', 'description': 'The profile was not found, or the caller is not an active Parent', 'media_type': 'application/json',
          'schema_name': 'ParentErrorResponse'},
         {'status': '409', 'description': 'The request conflicts with profile state',
          'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
@@ -11012,9 +11025,7 @@ MOUNTED_OPERATIONS[('delete', '/v1/parent/profiles/{profile_id}')] = {
          'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
         {'status': '401', 'description': 'Authentication is required or invalid',
          'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
-        {'status': '403', 'description': 'The action is not allowed',
-         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
-        {'status': '404', 'description': 'The profile was not found',
+        {'status': '404', 'description': 'The profile was not found, or the caller is not an active Parent',
          'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
         {'status': '409', 'description': 'The request conflicts with profile state',
          'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
@@ -11042,9 +11053,7 @@ MOUNTED_OPERATIONS[('patch', '/v1/parent/profiles/{profile_id}')] = {
          'schema_name': 'ParentErrorResponse'},
         {'status': '401', 'description': 'Authentication is required or invalid',
          'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
-        {'status': '403', 'description': 'The action is not allowed',
-         'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
-        {'status': '404', 'description': 'The profile was not found', 'media_type': 'application/json',
+        {'status': '404', 'description': 'The profile was not found, or the caller is not an active Parent', 'media_type': 'application/json',
          'schema_name': 'ParentErrorResponse'},
         {'status': '409', 'description': 'The request conflicts with profile state',
          'media_type': 'application/json', 'schema_name': 'ParentErrorResponse'},
@@ -11072,9 +11081,7 @@ MOUNTED_OPERATIONS[('post', '/v1/story-runs')] = {
          'schema_name': 'ParentStoryErrorEnvelopeV1'},
         {'status': '401', 'description': 'Authentication is required', 'media_type': 'application/json',
          'schema_name': 'ParentStoryErrorEnvelopeV1'},
-        {'status': '403', 'description': 'The action is not allowed', 'media_type': 'application/json',
-         'schema_name': 'ParentStoryErrorEnvelopeV1'},
-        {'status': '404', 'description': 'The requested resource was not found', 'media_type': 'application/json',
+        {'status': '404', 'description': 'The requested resource was not found, or the caller is not an active Parent', 'media_type': 'application/json',
          'schema_name': 'ParentStoryErrorEnvelopeV1'},
         {'status': '409', 'description': 'An active run already exists or the version is stale',
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
@@ -11086,7 +11093,10 @@ MOUNTED_OPERATIONS[('post', '/v1/story-runs')] = {
     ),
 }
 MOUNTED_OPERATIONS[('get', '/v1/story-runs/{run_id}')] = {
-    'purpose': 'Read one Parent StoryRun owned by the verified principal.',
+    'purpose': 'Read one Parent StoryRun owned by the verified principal as the aggregated run '
+               'detail: the review state plus the video, its job, scenes, playback readiness, '
+               'request counts, a quota summary marker and a safe timeline. The response carries a '
+               'strong `ETag` and a matching `If-None-Match` answers 304 after authorisation.',
     'request_inputs': 'path `run_id*`: uuid',
     'surface': 'Parent / StoryRun integration proposal',
     'tag': 'Parent StoryRuns',
@@ -11096,13 +11106,13 @@ MOUNTED_OPERATIONS[('get', '/v1/story-runs/{run_id}')] = {
     'responses': (
         {'status': '200', 'description': 'StoryRun resource, or the lifecycle projection from DELETE_PENDING on', 'media_type': 'application/json',
          'schema_name': 'ParentStoryRunEnvelopeV1'},
+        {'status': '304', 'description': 'Not modified (only after the caller was authorised)',
+         'media_type': '', 'schema_name': ''},
         {'status': '400', 'description': 'The request is invalid', 'media_type': 'application/json',
          'schema_name': 'ParentStoryErrorEnvelopeV1'},
         {'status': '401', 'description': 'Authentication is required', 'media_type': 'application/json',
          'schema_name': 'ParentStoryErrorEnvelopeV1'},
-        {'status': '403', 'description': 'The action is not allowed', 'media_type': 'application/json',
-         'schema_name': 'ParentStoryErrorEnvelopeV1'},
-        {'status': '404', 'description': 'The requested resource was not found',
+        {'status': '404', 'description': 'The requested resource was not found, or the caller is not an active Parent',
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
         {'status': '409', 'description': 'The request conflicts with current state',
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
@@ -11128,9 +11138,7 @@ MOUNTED_OPERATIONS[('get', '/v1/story-runs')] = {
          'schema_name': 'ParentStoryErrorEnvelopeV1'},
         {'status': '401', 'description': 'Authentication is required', 'media_type': 'application/json',
          'schema_name': 'ParentStoryErrorEnvelopeV1'},
-        {'status': '403', 'description': 'The action is not allowed', 'media_type': 'application/json',
-         'schema_name': 'ParentStoryErrorEnvelopeV1'},
-        {'status': '404', 'description': 'The requested resource was not found',
+        {'status': '404', 'description': 'The requested resource was not found, or the caller is not an active Parent',
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
         {'status': '422', 'description': 'Validation uses the standard error envelope',
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
@@ -11155,9 +11163,7 @@ MOUNTED_OPERATIONS[('get', '/v1/story-runs/active/current')] = {
          'schema_name': 'ParentStoryErrorEnvelopeV1'},
         {'status': '401', 'description': 'Authentication is required', 'media_type': 'application/json',
          'schema_name': 'ParentStoryErrorEnvelopeV1'},
-        {'status': '403', 'description': 'The action is not allowed', 'media_type': 'application/json',
-         'schema_name': 'ParentStoryErrorEnvelopeV1'},
-        {'status': '404', 'description': 'The resource was not found',
+        {'status': '404', 'description': 'The resource was not found, or the caller is not an active Parent',
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
         {'status': '409', 'description': 'The request conflicts with current state',
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
@@ -11185,9 +11191,7 @@ MOUNTED_OPERATIONS[('post', '/v1/story-runs/{run_id}/context-confirmation')] = {
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
         {'status': '401', 'description': 'Authentication is required', 'media_type': 'application/json',
          'schema_name': 'ParentStoryErrorEnvelopeV1'},
-        {'status': '403', 'description': 'The action is not allowed', 'media_type': 'application/json',
-         'schema_name': 'ParentStoryErrorEnvelopeV1'},
-        {'status': '404', 'description': 'The requested resource was not found',
+        {'status': '404', 'description': 'The requested resource was not found, or the caller is not an active Parent',
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
         {'status': '409', 'description': 'The snapshot or run state is stale',
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
@@ -11199,7 +11203,8 @@ MOUNTED_OPERATIONS[('post', '/v1/story-runs/{run_id}/context-confirmation')] = {
     ),
 }
 MOUNTED_OPERATIONS[('post', '/v1/story-runs/{run_id}/subject-confirmation')] = {
-    'purpose': 'Persist adult confirmation of a drawing-understanding subject.',
+    'purpose': 'Persist adult confirmation of a drawing-understanding subject; an edited subject '
+               'asks for a new visual understanding of the same drawing (SRS l.394, l.1666).',
     'request_inputs': 'path `run_id*`: uuid; header `Idempotency-Key*`: string; '
                       'application/json (required): ParentSubjectConfirmationRequestV1 '
                       '{expected_understanding_revision*:integer, confirmed_subject*:string}',
@@ -11207,19 +11212,20 @@ MOUNTED_OPERATIONS[('post', '/v1/story-runs/{run_id}/subject-confirmation')] = {
     'tag': 'Parent StoryRuns',
     'handler': 'parent_story_runs.py::confirm_parent_story_subject',
     'authentication': 'HTTPBearer (bearer)',
-    'verification': 'Rev60 §21.2 path; command contract is a proposal',
+    'verification': 'Rev60 §21.2 path; command contract is a proposal; goal v3 T-2d (202, SRS l.1666)',
     'responses': (
-        {'status': '200', 'description': 'Subject confirmation recorded, or the lifecycle projection on a replay of a purged run', 'media_type': 'application/json',
-         'schema_name': 'ParentSubjectConfirmationResponseV1'},
+        {'status': '202', 'description': 'Subject confirmation accepted (`decision` `CONFIRMED`, or '
+                                         '`RERUN_REQUESTED` when the edited subject queued a new visual '
+                                         'understanding), or the lifecycle projection on a replay of a purged run',
+         'media_type': 'application/json', 'schema_name': 'ParentSubjectConfirmationResponseV1'},
         {'status': '400', 'description': 'The idempotency key is invalid',
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
         {'status': '401', 'description': 'Authentication is required', 'media_type': 'application/json',
          'schema_name': 'ParentStoryErrorEnvelopeV1'},
-        {'status': '403', 'description': 'The action is not allowed', 'media_type': 'application/json',
-         'schema_name': 'ParentStoryErrorEnvelopeV1'},
-        {'status': '404', 'description': 'The requested resource was not found',
+        {'status': '404', 'description': 'The requested resource was not found, or the caller is not an active Parent',
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
-        {'status': '409', 'description': 'The run or understanding revision is stale',
+        {'status': '409', 'description': 'The understanding revision is stale (`STALE_REVISION` with `current_version`) '
+                                         'or the run state does not allow it (`INVALID_STATE_TRANSITION`)',
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
         {'status': '422', 'description': 'Validation uses the standard error envelope',
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
@@ -11245,9 +11251,7 @@ MOUNTED_OPERATIONS[('post', '/v1/story-runs/{run_id}/script-confirmation')] = {
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
         {'status': '401', 'description': 'Authentication is required', 'media_type': 'application/json',
          'schema_name': 'ParentStoryErrorEnvelopeV1'},
-        {'status': '403', 'description': 'The action is not allowed', 'media_type': 'application/json',
-         'schema_name': 'ParentStoryErrorEnvelopeV1'},
-        {'status': '404', 'description': 'The requested resource was not found',
+        {'status': '404', 'description': 'The requested resource was not found, or the caller is not an active Parent',
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
         {'status': '409', 'description': 'The run or story revision is stale',
          'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
@@ -11256,6 +11260,650 @@ MOUNTED_OPERATIONS[('post', '/v1/story-runs/{run_id}/script-confirmation')] = {
         {'status': '503', 'description': 'A required service is unavailable', 'media_type': 'application/json',
          'schema_name': 'ParentStoryErrorEnvelopeV1'},
         {'status': '500', 'description': 'An unexpected error occurred', 'media_type': 'application/json', 'schema_name': 'ParentStoryErrorEnvelopeV1'},
+    ),
+}
+
+# FEAT-066 goal v3 T-2b (SRS l.1664): attach a completed artwork upload as the run's drawing.
+# Mounted with the Parent StoryRun router only (the StoryRun-lite demo owns the same path).
+_ASSET_ERROR_DESCRIPTIONS: Final[dict[str, str]] = {
+    "400": "The request or the idempotency key is invalid (`INVALID_REQUEST`, "
+    "`INVALID_IDEMPOTENCY_KEY`)",
+    "401": "Authentication is required",
+    "404": "The run or the asset was not found, or the caller is not its active Parent owner",
+    "409": "The run state or revision does not allow this drawing (`INVALID_STATE_TRANSITION`, "
+    "`STALE_REVISION` with `current_version`)",
+    "413": "The image is too large (`MEDIA_TOO_LARGE`)",
+    "415": "The asset is not a drawing image (`UNSUPPORTED_MEDIA_TYPE`)",
+    "422": "The image failed validation (`IMAGE_DIMENSIONS_EXCEEDED`, `UPLOAD_INCOMPLETE`, "
+    "`UPLOAD_CHECKSUM_MISMATCH`, `UPLOAD_CONTENT_MISMATCH`)",
+    "503": "A required service is unavailable (`STORAGE_UNAVAILABLE`)",
+    "500": "An unexpected error occurred",
+}
+MOUNTED_OPERATIONS[("post", "/v1/story-runs/{run_id}/assets")] = {
+    "purpose": "Attach a completed artwork upload to the Parent StoryRun as its drawing; the "
+    "normalized copy is made here and the visual analysis runs after the response.",
+    "request_inputs": "path `run_id*`: uuid; header `Idempotency-Key*`: string; "
+    "application/json (required): AttachRunAssetRequestV1 "
+    "{asset_ref*:string, expected_run_revision:integer}",
+    "surface": "Parent / StoryRun input (SRS l.1664)",
+    "tag": "Parent StoryRuns",
+    "handler": "parent_story_inputs.py::attach_parent_run_asset",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": "SRS l.1664; goal v3 T-2b",
+    "responses": (
+        {
+            "status": "202",
+            "description": "Drawing attached and queued for analysis, or the lifecycle "
+            "projection on a replay of a purged run",
+            "media_type": "application/json",
+            "schema_name": "ParentRunAssetAcceptedV1",
+        },
+        {
+            "status": "400",
+            "description": _ASSET_ERROR_DESCRIPTIONS["400"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryErrorEnvelopeV1",
+        },
+        {
+            "status": "401",
+            "description": _ASSET_ERROR_DESCRIPTIONS["401"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryErrorEnvelopeV1",
+        },
+        {
+            "status": "404",
+            "description": _ASSET_ERROR_DESCRIPTIONS["404"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryErrorEnvelopeV1",
+        },
+        {
+            "status": "409",
+            "description": _ASSET_ERROR_DESCRIPTIONS["409"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryErrorEnvelopeV1",
+        },
+        {
+            "status": "413",
+            "description": _ASSET_ERROR_DESCRIPTIONS["413"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryErrorEnvelopeV1",
+        },
+        {
+            "status": "415",
+            "description": _ASSET_ERROR_DESCRIPTIONS["415"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryErrorEnvelopeV1",
+        },
+        {
+            "status": "422",
+            "description": _ASSET_ERROR_DESCRIPTIONS["422"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryErrorEnvelopeV1",
+        },
+        {
+            "status": "503",
+            "description": _ASSET_ERROR_DESCRIPTIONS["503"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryErrorEnvelopeV1",
+        },
+        {
+            "status": "500",
+            "description": _ASSET_ERROR_DESCRIPTIONS["500"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryErrorEnvelopeV1",
+        },
+    ),
+}
+
+# FEAT-066 goal v3 T-2c (SRS l.1665, TD-04 l.1713): the Parent run idea, the transcript read and
+# the transcript confirmation. Mounted with the Parent StoryRun router only.
+_IDEA_ERROR_DESCRIPTIONS: Final[dict[str, str]] = {
+    "400": "The request or the idempotency key is invalid (`INVALID_REQUEST`, "
+    "`INVALID_IDEMPOTENCY_KEY`)",
+    "401": "Authentication is required",
+    "404": "The run or the audio was not found, or the caller is not its active Parent owner",
+    "409": "The run state or a revision does not allow this command (`INVALID_STATE_TRANSITION`, "
+    "`STALE_REVISION` with `current_version`)",
+    "413": "The audio is too large or too long (`AUDIO_TOO_LARGE`)",
+    "415": "The asset is not accepted audio (`UNSUPPORTED_MEDIA_TYPE`)",
+    "422": "The audio failed validation (`UPLOAD_CONTENT_MISMATCH`, `UPLOAD_INCOMPLETE`, "
+    "`UPLOAD_CHECKSUM_MISMATCH`)",
+    "503": "A required service is unavailable (`STORAGE_UNAVAILABLE`)",
+    "500": "An unexpected error occurred",
+}
+_TRANSCRIPT_ERROR_DESCRIPTIONS: Final[dict[str, str]] = {
+    "400": "The request or the idempotency key is invalid (`INVALID_REQUEST` with `field_errors` "
+    "when the text is too long, `INVALID_IDEMPOTENCY_KEY`)",
+    "401": "Authentication is required",
+    "404": "The run was not found, or the caller is not its active Parent owner",
+    "409": "The run state or the transcript revision does not allow this "
+    "(`INVALID_STATE_TRANSITION`, `STALE_REVISION` with `current_version`)",
+    "422": "Validation uses the standard error envelope",
+    "503": "A required service is unavailable",
+    "500": "An unexpected error occurred",
+}
+MOUNTED_OPERATIONS[("post", "/v1/story-runs/{run_id}/idea")] = {
+    "purpose": "Add the adult's idea to the Parent StoryRun: text and/or a completed audio upload, or a "
+    "correction of the current transcript; the transcription runs after the response.",
+    "request_inputs": "path `run_id*`: uuid; header `Idempotency-Key*`: string; "
+    "application/json (required): AddRunIdeaRequestV1 "
+    "{expected_run_revision*:integer, text:string, audio_ref:string, "
+    "transcript_correction:{base_revision*:integer, text*:string}}",
+    "surface": "Parent / StoryRun input (SRS l.1665)",
+    "tag": "Parent StoryRuns",
+    "handler": "parent_story_inputs.py::add_parent_run_idea",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": "SRS l.1665; goal v3 T-2c",
+    "responses": (
+        {
+            "status": "202",
+            "description": "Idea accepted (a new input revision, or a transcript correction), or the lifecycle "
+            "projection on a replay of a purged run",
+            "media_type": "application/json",
+            "schema_name": "ParentRunIdeaAcceptedV1",
+        },
+        {
+            "status": "400",
+            "description": _IDEA_ERROR_DESCRIPTIONS["400"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryErrorEnvelopeV1",
+        },
+        {
+            "status": "401",
+            "description": _IDEA_ERROR_DESCRIPTIONS["401"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryErrorEnvelopeV1",
+        },
+        {
+            "status": "404",
+            "description": _IDEA_ERROR_DESCRIPTIONS["404"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryErrorEnvelopeV1",
+        },
+        {
+            "status": "409",
+            "description": _IDEA_ERROR_DESCRIPTIONS["409"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryErrorEnvelopeV1",
+        },
+        {
+            "status": "413",
+            "description": _IDEA_ERROR_DESCRIPTIONS["413"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryErrorEnvelopeV1",
+        },
+        {
+            "status": "415",
+            "description": _IDEA_ERROR_DESCRIPTIONS["415"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryErrorEnvelopeV1",
+        },
+        {
+            "status": "422",
+            "description": _IDEA_ERROR_DESCRIPTIONS["422"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryErrorEnvelopeV1",
+        },
+        {
+            "status": "503",
+            "description": _IDEA_ERROR_DESCRIPTIONS["503"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryErrorEnvelopeV1",
+        },
+        {
+            "status": "500",
+            "description": _IDEA_ERROR_DESCRIPTIONS["500"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryErrorEnvelopeV1",
+        },
+    ),
+}
+MOUNTED_OPERATIONS[("get", "/v1/story-runs/{run_id}/transcript")] = {
+    "purpose": "Read the current transcript of the Parent StoryRun's voice idea; the text is returned "
+    "only to the run owner and is never cached.",
+    "request_inputs": "path `run_id*`: uuid",
+    "surface": "Parent / StoryRun input (SRS l.1665)",
+    "tag": "Parent StoryRuns",
+    "handler": "parent_story_inputs.py::get_parent_run_transcript",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": "SRS l.780, l.1164, l.1707; goal v3 T-2c (candidate route, TD-04)",
+    "responses": (
+        {
+            "status": "200",
+            "description": "The current transcript, or state `NONE` when the run has no voice idea",
+            "media_type": "application/json",
+            "schema_name": "ParentRunTranscriptV1",
+        },
+        {
+            "status": "400",
+            "description": _TRANSCRIPT_ERROR_DESCRIPTIONS["400"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryErrorEnvelopeV1",
+        },
+        {
+            "status": "401",
+            "description": _TRANSCRIPT_ERROR_DESCRIPTIONS["401"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryErrorEnvelopeV1",
+        },
+        {
+            "status": "404",
+            "description": _TRANSCRIPT_ERROR_DESCRIPTIONS["404"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryErrorEnvelopeV1",
+        },
+        {
+            "status": "409",
+            "description": _TRANSCRIPT_ERROR_DESCRIPTIONS["409"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryErrorEnvelopeV1",
+        },
+        {
+            "status": "422",
+            "description": _TRANSCRIPT_ERROR_DESCRIPTIONS["422"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryErrorEnvelopeV1",
+        },
+        {
+            "status": "503",
+            "description": _TRANSCRIPT_ERROR_DESCRIPTIONS["503"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryErrorEnvelopeV1",
+        },
+        {
+            "status": "500",
+            "description": _TRANSCRIPT_ERROR_DESCRIPTIONS["500"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryErrorEnvelopeV1",
+        },
+    ),
+}
+MOUNTED_OPERATIONS[("post", "/v1/story-runs/{run_id}/transcript-confirmation")] = {
+    "purpose": "Confirm one exact transcript revision and hash; only then can the text reach the story.",
+    "request_inputs": "path `run_id*`: uuid; header `Idempotency-Key*`: string; "
+    "application/json (required): ConfirmTranscriptRequestV1 "
+    "{expected_transcript_revision*:integer, transcript_sha256*:string, confirmed*:boolean}",
+    "surface": "Parent / StoryRun input (SRS l.1665)",
+    "tag": "Parent StoryRuns",
+    "handler": "parent_story_inputs.py::confirm_parent_run_transcript",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": "SRS l.1713, l.1829 TD-04; goal v3 T-2c (candidate route)",
+    "responses": (
+        {
+            "status": "200",
+            "description": "Transcript confirmed, or the lifecycle projection on a replay of a purged run",
+            "media_type": "application/json",
+            "schema_name": "ParentTranscriptConfirmationV1",
+        },
+        {
+            "status": "400",
+            "description": _TRANSCRIPT_ERROR_DESCRIPTIONS["400"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryErrorEnvelopeV1",
+        },
+        {
+            "status": "401",
+            "description": _TRANSCRIPT_ERROR_DESCRIPTIONS["401"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryErrorEnvelopeV1",
+        },
+        {
+            "status": "404",
+            "description": _TRANSCRIPT_ERROR_DESCRIPTIONS["404"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryErrorEnvelopeV1",
+        },
+        {
+            "status": "409",
+            "description": _TRANSCRIPT_ERROR_DESCRIPTIONS["409"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryErrorEnvelopeV1",
+        },
+        {
+            "status": "422",
+            "description": _TRANSCRIPT_ERROR_DESCRIPTIONS["422"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryErrorEnvelopeV1",
+        },
+        {
+            "status": "503",
+            "description": _TRANSCRIPT_ERROR_DESCRIPTIONS["503"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryErrorEnvelopeV1",
+        },
+        {
+            "status": "500",
+            "description": _TRANSCRIPT_ERROR_DESCRIPTIONS["500"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryErrorEnvelopeV1",
+        },
+    ),
+}
+
+# FEAT-066 goal v3 T-2d (SRS l.1668, FR-P-07): one more story revision, at most three rewrites.
+# Mounted with the Parent StoryRun router only (the StoryRun-lite demo has no twin of this path).
+_REWRITE_ERROR_DESCRIPTIONS: Final[dict[str, str]] = {
+    "400": "The request or the idempotency key is invalid (`INVALID_REQUEST`, "
+    "`INVALID_IDEMPOTENCY_KEY`)",
+    "401": "Authentication is required",
+    "404": "The run was not found, or the caller is not its active Parent owner",
+    "409": "The run state does not allow a rewrite (`INVALID_STATE_TRANSITION`), the story "
+    "revision or hash is stale (`STALE_REVISION` with `current_version`), or the three rewrites are "
+    "used (`STORY_REWRITE_LIMIT_REACHED`)",
+    "422": "A precondition of the story is not met (`SUBJECT_NOT_CONFIRMED`, "
+    "`PROFILE_CONTEXT_NOT_CONFIRMED`, `TRANSCRIPT_NOT_CONFIRMED`)",
+    "503": "A required service is unavailable",
+    "500": "An unexpected error occurred",
+}
+MOUNTED_OPERATIONS[("post", "/v1/story-runs/{run_id}/story-rewrites")] = {
+    "purpose": "Ask for one more revision of the Parent StoryRun's story (the first story plus at "
+    "most three rewrites); the new revision is generated after the response.",
+    "request_inputs": "path `run_id*`: uuid; header `Idempotency-Key*`: string; "
+    "application/json (required): RewriteStoryRequestV1 "
+    "{expected_story_revision*:integer, expected_story_sha256:string, hint:string}",
+    "surface": "Parent / StoryRun story (SRS l.1668)",
+    "tag": "Parent StoryRuns",
+    "handler": "parent_story_inputs.py::rewrite_parent_run_story",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": "SRS l.1668, FR-P-07 l.516, l.866, l.1699; goal v3 T-2d",
+    "responses": (
+        {
+            "status": "202",
+            "description": "Rewrite accepted (the new revision number and the run revision), or the "
+            "lifecycle projection on a replay of a purged run",
+            "media_type": "application/json",
+            "schema_name": "ParentStoryRewriteAcceptedV1",
+        },
+        {
+            "status": "400",
+            "description": _REWRITE_ERROR_DESCRIPTIONS["400"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryErrorEnvelopeV1",
+        },
+        {
+            "status": "401",
+            "description": _REWRITE_ERROR_DESCRIPTIONS["401"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryErrorEnvelopeV1",
+        },
+        {
+            "status": "404",
+            "description": _REWRITE_ERROR_DESCRIPTIONS["404"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryErrorEnvelopeV1",
+        },
+        {
+            "status": "409",
+            "description": _REWRITE_ERROR_DESCRIPTIONS["409"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryErrorEnvelopeV1",
+        },
+        {
+            "status": "422",
+            "description": _REWRITE_ERROR_DESCRIPTIONS["422"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryErrorEnvelopeV1",
+        },
+        {
+            "status": "503",
+            "description": _REWRITE_ERROR_DESCRIPTIONS["503"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryErrorEnvelopeV1",
+        },
+        {
+            "status": "500",
+            "description": _REWRITE_ERROR_DESCRIPTIONS["500"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryErrorEnvelopeV1",
+        },
+    ),
+}
+
+# FEAT-066 goal v3 T-1a (SRS l.395, l.1670): the Parent video request. Mounted with the Parent
+# StoryRun router only; the saga answers 202 and the job is polled through GET /v1/jobs/{job_id}.
+_VIDEO_GENERATION_ERROR_DESCRIPTIONS: Final[dict[str, str]] = {
+    "400": "The request or the idempotency key is invalid (`INVALID_REQUEST` with `field_errors` "
+    "for the quality reason, `INVALID_IDEMPOTENCY_KEY`)",
+    "401": "Authentication is required",
+    "404": "The run was not found, or the caller is not its active Parent owner",
+    "409": "The run state, the revision or the script does not allow a video request "
+    "(`INVALID_STATE_TRANSITION`, `STALE_REVISION` with `current_version`), the regeneration "
+    "limit was reached (`VIDEO_REGENERATION_LIMIT_REACHED`), or the quota or the subscription "
+    "refused it (`VIDEO_QUOTA_EXCEEDED`, `SUBSCRIPTION_RESTRICTED`)",
+    "422": "The subject or the context of the run was not confirmed "
+    "(`SUBJECT_NOT_CONFIRMED`, `PROFILE_CONTEXT_NOT_CONFIRMED`)",
+    "503": "The compute budget refused the request (`AI_COST_LIMIT_REACHED`) or the admission "
+    "service is not available (`PROVIDER_UNAVAILABLE`)",
+    "500": "An unexpected error occurred",
+}
+MOUNTED_OPERATIONS[("post", "/v1/story-runs/{run_id}/video-generations")] = {
+    "purpose": "Ask for a video of the confirmed script of the Parent StoryRun; the request is stored "
+    "as an intent first and becomes accepted only after the compute reservation and the quota "
+    "admission are both confirmed.",
+    "request_inputs": "path `run_id*`: uuid; header `Idempotency-Key*`: string; "
+    "application/json (required): ParentVideoGenerationRequestV1 "
+    "{expected_revision*:integer, story_sha256*:string, quality_reason_code:string}",
+    "surface": "Parent / StoryRun video (SRS l.1670)",
+    "tag": "Parent StoryRuns",
+    "handler": "story_run_video.py::create_parent_video_generation",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": "SRS l.395, l.1670, l.1697-1699; goal v3 T-1a",
+    "responses": (
+        {
+            "status": "202",
+            "description": "The intent reference and its state (`ADMISSION_PENDING` until both receipts are clear, "
+            "`ACCEPTED` with a `job_id` once they are), or the lifecycle projection on a replay of a purged run",
+            "media_type": "application/json",
+            "schema_name": "ParentVideoGenerationAcceptedV1",
+        },
+        {
+            "status": "400",
+            "description": _VIDEO_GENERATION_ERROR_DESCRIPTIONS["400"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryCancelErrorEnvelopeV1",
+        },
+        {
+            "status": "401",
+            "description": _VIDEO_GENERATION_ERROR_DESCRIPTIONS["401"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryCancelErrorEnvelopeV1",
+        },
+        {
+            "status": "404",
+            "description": _VIDEO_GENERATION_ERROR_DESCRIPTIONS["404"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryCancelErrorEnvelopeV1",
+        },
+        {
+            "status": "409",
+            "description": _VIDEO_GENERATION_ERROR_DESCRIPTIONS["409"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryCancelErrorEnvelopeV1",
+        },
+        {
+            "status": "422",
+            "description": _VIDEO_GENERATION_ERROR_DESCRIPTIONS["422"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryCancelErrorEnvelopeV1",
+        },
+        {
+            "status": "503",
+            "description": _VIDEO_GENERATION_ERROR_DESCRIPTIONS["503"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryCancelErrorEnvelopeV1",
+        },
+        {
+            "status": "500",
+            "description": _VIDEO_GENERATION_ERROR_DESCRIPTIONS["500"],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryCancelErrorEnvelopeV1",
+        },
+    ),
+}
+
+# FEAT-066 goal v3 T-1b (SRS l.1671-1672): the adult's two decisions on a ready video.
+_RUN_COMMAND_ERROR_DESCRIPTIONS: Final[dict[str, str]] = {
+    "400": "The request or the idempotency key is invalid (`INVALID_REQUEST`, "
+    "`INVALID_IDEMPOTENCY_KEY`)",
+    "401": "Authentication is required",
+    "404": "The run was not found, or the caller is not its active Parent owner",
+    "409": "The run is not at `VIDEO_READY` (`INVALID_STATE_TRANSITION`), the run revision or the "
+    "generation is stale (`STALE_REVISION` with `current_version`), or, for `video-unsuitable`, the "
+    "regeneration limit was reached (`VIDEO_REGENERATION_LIMIT_REACHED`; the video stays)",
+    "422": "Validation uses the standard error envelope",
+    "503": "A required service is unavailable",
+    "500": "An unexpected error occurred",
+}
+
+
+def _run_command_responses(success_description: str) -> tuple[ResponseMetadata, ...]:
+    rows: list[ResponseMetadata] = [
+        {
+            "status": "200",
+            "description": success_description,
+            "media_type": "application/json",
+            "schema_name": "ParentStoryRunEnvelopeV1",
+        }
+    ]
+    rows.extend(
+        {
+            "status": error_status,
+            "description": _RUN_COMMAND_ERROR_DESCRIPTIONS[error_status],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryCancelErrorEnvelopeV1",
+        }
+        for error_status in ("400", "401", "404", "409", "422", "503", "500")
+    )
+    return tuple(rows)
+
+
+MOUNTED_OPERATIONS[("post", "/v1/story-runs/{run_id}/video-unsuitable")] = {
+    "purpose": "Mark the current ready video of the Parent StoryRun unsuitable with a safe reason; "
+    "the rejected video is no longer playable and the run returns to the script review.",
+    "request_inputs": "path `run_id*`: uuid; header `Idempotency-Key*`: string; "
+    "application/json (required): ParentVideoUnsuitableRequestV1 "
+    "{expected_revision*:integer, generation_id*:uuid, "
+    "reason_code*:QUALITY_LOW|NOT_MATCHING_STORY|CONTENT_CONCERN|OTHER}",
+    "surface": "Parent / StoryRun video (SRS l.1671)",
+    "tag": "Parent StoryRuns",
+    "handler": "story_run_video.py::mark_parent_video_unsuitable",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": "SRS l.395, l.518, l.1671, l.1697-1699; goal v3 T-1b",
+    "responses": _run_command_responses(
+        "The run in `SCRIPT_REVIEW` (the lifecycle projection on a replay of a run that is "
+        "already being deleted)"
+    ),
+}
+MOUNTED_OPERATIONS[("post", "/v1/story-runs/{run_id}/complete")] = {
+    "purpose": "Complete the Parent StoryRun at `VIDEO_READY`: the run ends as `COMPLETED`, the "
+    "active-run lock is released and the content stays until the user deletes the run. This is "
+    "not a video approval.",
+    "request_inputs": "path `run_id*`: uuid; header `Idempotency-Key*`: string; "
+    "application/json (required): ParentStoryRunCompleteRequestV1 {expected_revision*:integer}",
+    "surface": "Parent / StoryRun video (SRS l.1672)",
+    "tag": "Parent StoryRuns",
+    "handler": "story_run_video.py::complete_parent_story_run",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": "SRS l.503, l.517, l.1672, l.1697-1699; goal v3 T-1b",
+    "responses": _run_command_responses(
+        "The run in `COMPLETED` (the lifecycle projection on a replay of a run that is already "
+        "being deleted)"
+    ),
+}
+
+# FEAT-066 goal v3 T-1c (SRS l.1676, l.1691-1693): the playback grant and the stream route.
+_PLAYBACK_ERROR_DESCRIPTIONS: Final[dict[str, str]] = {
+    "401": "Authentication is required, or the playback token is invalid (`INVALID_TOKEN`) or "
+    "expired (`TOKEN_EXPIRED`)",
+    "404": "The run was not found, or the caller is not its active Parent owner; also the answer "
+    "to a token that no longer grants anything (the run was cancelled, deleted, completed, closed "
+    "or the video was hidden)",
+    "409": "The run has no video that can be played now (`INVALID_STATE_TRANSITION`)",
+    "416": "The requested byte range cannot be served (`RANGE_NOT_SATISFIABLE`)",
+    "422": "Validation uses the standard error envelope",
+    "503": "Playback or the object store is unavailable (`PROVIDER_UNAVAILABLE`, "
+    "`STORAGE_UNAVAILABLE`)",
+    "500": "An unexpected error occurred",
+}
+
+
+def _playback_rows(
+    success: tuple[ResponseMetadata, ...], *error_statuses: str
+) -> tuple[ResponseMetadata, ...]:
+    rows: list[ResponseMetadata] = list(success)
+    rows.extend(
+        {
+            "status": error_status,
+            "description": _PLAYBACK_ERROR_DESCRIPTIONS[error_status],
+            "media_type": "application/json",
+            "schema_name": "ParentStoryCancelErrorEnvelopeV1",
+        }
+        for error_status in error_statuses
+    )
+    return tuple(rows)
+
+
+MOUNTED_OPERATIONS[("post", "/v1/story-runs/{run_id}/playback-token")] = {
+    "purpose": "Issue a short-lived playback grant for the ready video of the Parent StoryRun: one "
+    "video, the verified owner, a few minutes. No body and no idempotency key (a grant, not a state "
+    "change). The token is sent only in the `X-Playback-Token` header of the stream route; the "
+    "response carries no storage location.",
+    "request_inputs": "path `run_id*`: uuid",
+    "surface": "Parent / StoryRun video (SRS l.1676)",
+    "tag": "Parent StoryRuns",
+    "handler": "story_run_video.py::issue_parent_playback_token",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": "SRS l.575-576, l.1676, l.1691-1693; goal v3 T-1c",
+    "responses": _playback_rows(
+        (
+            {
+                "status": "200",
+                "description": "The grant: a token, its expiry, the stream path and an opaque "
+                "asset handle",
+                "media_type": "application/json",
+                "schema_name": "ParentPlaybackTokenResponseV1",
+            },
+        ),
+        "401",
+        "404",
+        "409",
+        "422",
+        "503",
+        "500",
+    ),
+}
+MOUNTED_OPERATIONS[("get", "/v1/story-runs/{run_id}/playback")] = {
+    "purpose": "Stream the ready video of the Parent StoryRun to the verified owner who presents a "
+    "valid playback token. Ownership, run state and generation are rechecked on every request. "
+    "One `Range` is honoured; there is no download, export, listing or storage location.",
+    "request_inputs": "path `run_id*`: uuid; header `X-Playback-Token`: string; "
+    "header `Range`: string",
+    "surface": "Parent / StoryRun video (SRS l.1676)",
+    "tag": "Parent StoryRuns",
+    "handler": "story_run_video.py::stream_parent_playback",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": "SRS l.575-576, l.1676, l.1691-1693; goal v3 T-1c",
+    "responses": _playback_rows(
+        (
+            {
+                "status": "200",
+                "description": "The whole video, streamed.",
+                "media_type": "video/mp4",
+                "schema_name": "binary",
+            },
+            {
+                "status": "206",
+                "description": "One byte range of the video.",
+                "media_type": "video/mp4",
+                "schema_name": "binary",
+            },
+        ),
+        "401",
+        "404",
+        "416",
+        "422",
+        "503",
+        "500",
     ),
 }
 
@@ -11735,6 +12383,114 @@ MOUNTED_OPERATIONS[("post", _PLAN_BASE + "/{revision_no}/confirm")] = {
     "verification": _PLAN_VERIFICATION,
 }
 
+# FEAT-066 goal v3 T-7b (SRS l.593, l.1425, l.1651, l.1697-1699, l.1709; TD-08, TD-28): the School
+# Manager suspends or archives a class. Both are keyed commands that send the class revision as a
+# strong `If-Match`; a stale revision is 409 `STALE_REVISION`, an impossible move is 409
+# `INVALID_STATE_TRANSITION`. There is no reactivate or unarchive command (SRS l.1896, X-13).
+_CLASS_STATE_VERIFICATION: Final = "SRS l.593, l.1425, l.1651, l.1697-1699, l.1709; goal v3 T-7b"
+_CLASS_STATE_TAG: Final = "BE1 — Organizations & Classes"
+# The BE1 error set is the one of the other class commands (the runtime schema groups 409 and
+# the rarer statuses under `default`).
+_CLASS_STATE_RESPONSES: Final = MOUNTED_OPERATIONS[
+    ("post", "/api/be1/v1/classes/{class_id}/assignments")
+]["responses"]
+
+
+MOUNTED_OPERATIONS[("post", "/api/be1/v1/classes/{class_id}/suspend")] = {
+    "purpose": "Suspend an active class (a School Manager command). A suspended class is read-only: "
+    "its records stay readable and its writes are refused with 409 `INVALID_STATE_TRANSITION`. "
+    "Send the `class_revision` as a strong `If-Match` (409 `STALE_REVISION` with "
+    "`current_version` when it differs). Only `active -> suspended` is allowed; there is no "
+    "reactivate command. The body of the answer holds the class id, the state and the new revision "
+    "(`ETag`).",
+    "request_inputs": "path `class_id*`: string; header `X-Request-ID`: string; header "
+    "`Idempotency-Key*`: string; header `If-Match`: string",
+    "surface": "BE1 / classroom",
+    "tag": _CLASS_STATE_TAG,
+    "handler": "be1_registry.py::suspend_class",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": _CLASS_STATE_VERIFICATION,
+    "responses": _CLASS_STATE_RESPONSES,
+}
+MOUNTED_OPERATIONS[("post", "/api/be1/v1/classes/{class_id}/archive")] = {
+    "purpose": "Archive an active or suspended class (a School Manager command). `archived` is "
+    "terminal and read-only for a School Manager; a Teacher no longer sees the class. Send the "
+    "`class_revision` as a strong `If-Match` (409 `STALE_REVISION` with `current_version` when it "
+    "differs). Only `active -> archived` and `suspended -> archived` are allowed; there is no "
+    "unarchive command.",
+    "request_inputs": "path `class_id*`: string; header `X-Request-ID`: string; header "
+    "`Idempotency-Key*`: string; header `If-Match`: string",
+    "surface": "BE1 / classroom",
+    "tag": _CLASS_STATE_TAG,
+    "handler": "be1_registry.py::archive_class",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": _CLASS_STATE_VERIFICATION,
+    "responses": _CLASS_STATE_RESPONSES,
+}
+
+# FEAT-066 goal v3 T-7c (SRS l.543, l.832, l.1651, l.1697-1699; TD-28): the Teacher profile create is
+# a keyed command with the expected class revision as a strong `If-Match`. The class is the path
+# only. Create does not move the class revision. The real-data path is a refusing gate
+# (409 `CONSENT_NOT_EFFECTIVE`) until X-19 defines a valid consent state.
+_PROFILE_CREATE_KEY: Final = (
+    "post",
+    "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles",
+)
+MOUNTED_OPERATIONS[_PROFILE_CREATE_KEY] = {
+    **MOUNTED_OPERATIONS[_PROFILE_CREATE_KEY],
+    "purpose": "Create a synthetic child profile and its enrollment in a class (an assigned Teacher "
+    "command). Send `Idempotency-Key` and the `class_revision` as a strong `If-Match`; the server "
+    "requires both, although the runtime schema declares `If-Match` as optional (409 "
+    "`STALE_REVISION` with `current_version` when it differs; a missing header is 400 `REQUIRED`, "
+    "a malformed one 400 `INVALID_FORMAT`, a reused key with another request 400 "
+    "`INVALID_IDEMPOTENCY_KEY`); creating a profile does not change the class revision. A class "
+    "that is not active is 409 `INVALID_STATE_TRANSITION`; a School Manager is 403 and any other "
+    "caller outside the class is 404; with the pilot off the answer is 409 "
+    "`SYNTHETIC_PROFILE_CREATION_UNAVAILABLE`. `display_name` must start with `Synthetic `. "
+    "`consent_id` is refused (400) while real data is off and, when on, answered with 409 "
+    "`CONSENT_NOT_EFFECTIVE` until a valid consent state exists; that real-data gate is rate "
+    "limited per account and per client address (provisional limits, not SRS values, X-18) and "
+    "answers 429 `RATE_LIMITED` with a `Retry-After` header once the limit is reached. A reused "
+    "key from before the keyed receipt format is 400 `INVALID_IDEMPOTENCY_KEY` too, and a missing "
+    "server secret is 503 `PROVIDER_UNAVAILABLE`, never a write. The answer holds the child id, "
+    "the enrollment id and the class revision (`ETag`).",
+    "request_inputs": "path `organization_id*`: string; path `class_id*`: string; header "
+    "`X-Request-ID`: string; header `Idempotency-Key*`: string; header `If-Match`: string; "
+    "application/json (required): CreateProfileRequest {display_name*:string, "
+    "age_months*:integer, consent_id:string}",
+    "verification": "SRS l.543, l.832, l.1651, l.1697-1699, l.637; goal v3 T-7c, T-7c-fix",
+}
+
+# FEAT-066 goal v3 T-7d (SRS l.544, l.830, l.1093, l.1425, l.1651, l.1697-1699; TD-28): a Teacher of
+# both classes moves a child. The old enrollment is closed and kept, a new one opens in the target
+# class, and both class revisions move by one. No capacity, quota or billing rule applies.
+_PROFILE_MOVE_KEY: Final = ("post", "/api/be1/v1/classes/{class_id}/profiles/{child_id}/move")
+MOUNTED_OPERATIONS[_PROFILE_MOVE_KEY] = {
+    "purpose": "Move a child from this class to another class of the same Teacher (a Teacher "
+    "command; the caller needs a class-scoped Teacher row on both classes). Send "
+    "`Idempotency-Key`, the source `class_revision` as a strong `If-Match` and the target "
+    "`target_class_revision` in the body (409 `STALE_REVISION` with `current_version` for the "
+    "source first, then the target; a missing `If-Match` is 400 `REQUIRED`, a reused key with "
+    "another request 400 `INVALID_IDEMPOTENCY_KEY`, the same class 400 `INVALID_FORMAT`). The "
+    "source enrollment is closed and kept (`withdrawn`), a new enrollment opens in the target "
+    "and both class revisions increase by one. A class that is not active (either side), a "
+    "profile without an active enrollment and a child in an unfinished session are 409 "
+    "`INVALID_STATE_TRANSITION`; an unknown child is 404; a School Manager is 403 and any other "
+    "caller outside the classes, or a target class of another organization or not taught by the "
+    "caller, is the uniform 404. A move between Teachers is not available. The answer holds ids "
+    "and the two new revisions (no `ETag`: two resources).",
+    "request_inputs": "path `class_id*`: string; path `child_id*`: string; header "
+    "`X-Request-ID`: string; header `Idempotency-Key*`: string; header `If-Match`: string; "
+    "application/json (required): MoveProfileRequest {target_class_id*:string, "
+    "target_class_revision*:integer}",
+    "surface": "BE1 / classroom",
+    "tag": _CLASS_STATE_TAG,
+    "handler": "be1_registry.py::move_profile",
+    "authentication": "HTTPBearer (bearer)",
+    "verification": "SRS l.544, l.830, l.1093, l.1425, l.1651, l.1697-1699; goal v3 T-7d",
+    "responses": _CLASS_STATE_RESPONSES,
+}
+
 IDEMPOTENCY_MISMATCH_OPERATION_KEYS: Final[tuple[tuple[str, str], ...]] = (
     ("post", "/api/lesson-library/v1/me/lesson-invitations/{access_grant_id}/accept"),
     ("post", "/api/lesson-library/v1/me/lesson-invitations/{access_grant_id}/decline"),
@@ -11760,6 +12516,13 @@ IDEMPOTENCY_MISMATCH_OPERATION_KEYS: Final[tuple[tuple[str, str], ...]] = (
     ("post", "/api/be1/v1/classes/{class_id}/assignments"),
     # FEAT-066 T0.1 (C-D5, SRS l.1697): create class is a keyed command.
     ("post", "/api/be1/v1/organizations/{organization_id}/classes"),
+    # FEAT-066 T-7b (SRS l.1697): the keyed class state commands.
+    ("post", "/api/be1/v1/classes/{class_id}/suspend"),
+    ("post", "/api/be1/v1/classes/{class_id}/archive"),
+    # FEAT-066 T-7c (SRS l.1697): the keyed Teacher profile create.
+    ("post", "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles"),
+    # FEAT-066 T-7d (SRS l.1697): the keyed Teacher enrollment move.
+    ("post", "/api/be1/v1/classes/{class_id}/profiles/{child_id}/move"),
     # FEAT-066 T-2a (SRS l.1697): the keyed generic upload commands.
     ("post", "/v1/upload-sessions"),
     ("post", "/v1/upload-sessions/{upload_id}/complete"),

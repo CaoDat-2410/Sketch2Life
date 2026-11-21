@@ -82,6 +82,7 @@ from sketch2life.interfaces.http.routers.be1_common import (
     get_class,
     get_session,
     require_assignment,
+    require_class_teacher_row,
     session_event,
     session_response,
 )
@@ -304,9 +305,12 @@ def read_session_roster(
     db: Session = Depends(get_db),
 ) -> dict[str, object]:
     record = get_session(db, organization_id, session_id)
-    require_assignment(
-        db, principal, organization_id, roles={"school_admin", "teacher"}, class_id=record.class_id
+    # T-7a (SRS l.2586, D-066-75 CM-2): the School Manager reads no child names or device grants.
+    assignments = require_assignment(
+        db, principal, organization_id, roles={"teacher"}, class_id=record.class_id
     )
+    # T-7a2-DEC-1: the roster names children, so only the class's own Teacher row counts.
+    require_class_teacher_row(assignments, record.class_id)
     memberships = db.scalars(
         select(SessionMembershipModel)
         .where(
@@ -862,6 +866,9 @@ def _transition(
     return session_response(record)
 
 
+_RUN_STARTING_ACTIONS = frozenset({"lobby", "start", "resume"})
+
+
 def _do_transition(
     organization_id: str,
     session_id: str,
@@ -875,6 +882,11 @@ def _do_transition(
     require_assignment(
         db, principal, organization_id, roles={"school_admin", "teacher"}, class_id=record.class_id
     )
+    if action in _RUN_STARTING_ACTIONS:
+        # T-7b review F-01: a read-only (suspended or archived) class starts or continues no run
+        # (SRS l.593, l.1425, l.1461); pause, finish and completion stay open so a running
+        # session can still be closed (Q-3). After the scope check, so a stranger learns nothing.
+        get_class(db, organization_id, record.class_id)
     return _transition(
         db,
         record,

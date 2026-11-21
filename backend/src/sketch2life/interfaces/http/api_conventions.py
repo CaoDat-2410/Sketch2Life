@@ -6,9 +6,13 @@ slices adopt them for their own routes (FEAT-066 D-066-68, D-066-71).
 
 from __future__ import annotations
 
+import base64
+import binascii
+import json
 import types
 import typing
 from collections.abc import Iterable, Mapping, Sequence
+from datetime import datetime
 from typing import Any, NoReturn
 
 from fastapi import HTTPException, Query, Request
@@ -16,6 +20,13 @@ from pydantic import BaseModel
 
 PAGE_LIMIT_DEFAULT = 25
 PAGE_LIMIT_MAX = 100
+# The longest cursor is the consents one: scope with two 128-character ids, a 36-character
+# consent id and a timestamp come to about 490 characters; 1024 leaves a wide margin.
+CURSOR_MAX_LENGTH = 1024
+_CURSOR_VERSION = 1
+_CURSOR_KEYS = frozenset({"i", "k", "s", "v"})
+_CURSOR_ID_MAX = 128
+_CURSOR_SORT_KEY_MAX = 64
 
 _LOCATION_PARTS = frozenset({"body", "query", "header", "path", "cookie"})
 _MAX_FIELD_LENGTH = 120
@@ -49,11 +60,79 @@ def limit_query() -> Any:
     return Query(default=PAGE_LIMIT_DEFAULT, ge=1, le=PAGE_LIMIT_MAX)
 
 
+def cursor_query() -> Any:
+    """Return the shared opaque `cursor` query parameter (SRS l.1640)."""
+    return Query(default=None, min_length=1, max_length=CURSOR_MAX_LENGTH)
+
+
 def _invalid(field: str, code: str) -> HTTPException:
     return HTTPException(
         status_code=400,
         detail={"code": "INVALID_REQUEST", "field_errors": [{"field": field, "code": code}]},
     )
+
+
+def encode_cursor(*, scope: str, sort_key: str, item_id: str) -> str:
+    """Encode an opaque keyset cursor bound to one route scope (not signed, not secret).
+
+    The scope binding stops a cursor from one route or organization being replayed on another;
+    the scope and authorization checks still gate every page.
+    """
+    payload = json.dumps(
+        {"i": item_id, "k": sort_key, "s": scope, "v": _CURSOR_VERSION},
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return base64.urlsafe_b64encode(payload).decode("ascii").rstrip("=")
+
+
+def decode_cursor(cursor: str, *, scope: str) -> tuple[str, str]:
+    """Return `(sort_key, item_id)` of a cursor made for `scope`, else 400 INVALID_FORMAT."""
+    try:
+        encoded = cursor.encode("ascii")
+        decoded = json.loads(
+            base64.b64decode(encoded + b"=" * (-len(encoded) % 4), altchars=b"-_", validate=True)
+        )
+        if not isinstance(decoded, dict) or set(decoded) != _CURSOR_KEYS:
+            raise ValueError
+        version, cursor_scope = decoded["v"], decoded["s"]
+        sort_key, item_id = decoded["k"], decoded["i"]
+        if type(version) is not int or version != _CURSOR_VERSION:
+            raise ValueError
+        if not isinstance(cursor_scope, str) or cursor_scope != scope:
+            raise ValueError
+        if not isinstance(sort_key, str) or not 1 <= len(sort_key) <= _CURSOR_SORT_KEY_MAX:
+            raise ValueError
+        if not isinstance(item_id, str) or not 1 <= len(item_id) <= _CURSOR_ID_MAX:
+            raise ValueError
+        # Printable ASCII only (no NUL or control characters reach the database), and only the
+        # one form `encode_cursor` writes: no base64 padding, no `+` or `/`, no re-spelled JSON.
+        if not (sort_key.isascii() and sort_key.isprintable()):
+            raise ValueError
+        if not (item_id.isascii() and item_id.isprintable()):
+            raise ValueError
+        if encode_cursor(scope=scope, sort_key=sort_key, item_id=item_id) != cursor:
+            raise ValueError
+        return sort_key, item_id
+    except (binascii.Error, ValueError, RecursionError):
+        raise _invalid("cursor", "INVALID_FORMAT") from None
+
+
+def decode_time_cursor(cursor: str, *, scope: str) -> tuple[datetime, str]:
+    """Return `(timestamp, item_id)` of a time-keyed cursor.
+
+    The timestamp needs a timezone and must be spelled exactly as `datetime.isoformat` writes it.
+    """
+    sort_key, item_id = decode_cursor(cursor, scope=scope)
+    try:
+        moment = datetime.fromisoformat(sort_key)
+    except ValueError:
+        raise _invalid("cursor", "INVALID_FORMAT") from None
+    if moment.tzinfo is None or moment.utcoffset() is None:
+        raise _invalid("cursor", "INVALID_FORMAT")
+    if moment.isoformat() != sort_key:
+        raise _invalid("cursor", "INVALID_FORMAT")
+    return moment, item_id
 
 
 def parse_idempotency_key(request: Request) -> str:
@@ -168,9 +247,14 @@ def field_errors_from_validation(
 
 
 __all__ = [
+    "CURSOR_MAX_LENGTH",
     "PAGE_LIMIT_DEFAULT",
     "PAGE_LIMIT_MAX",
+    "cursor_query",
     "declared_field_names",
+    "decode_cursor",
+    "decode_time_cursor",
+    "encode_cursor",
     "field_errors_from_validation",
     "limit_query",
     "parse_idempotency_key",

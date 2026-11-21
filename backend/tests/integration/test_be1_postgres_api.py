@@ -304,14 +304,16 @@ def test_real_http_writes_audits_outbox_and_enforces_assignment_scope(
     assert openapi_response.json()["info"]["title"] == "Sketch2Life FE API"
     openapi = accepted.app.state.runtime_openapi_schema
     be1_paths = [path for path in openapi["paths"] if path.startswith("/api/be1/v1/")]
-    assert len(be1_paths) == 55
+    # FEAT-066 T-7b: the class suspend and archive commands add two paths and two operations.
+    # FEAT-066 T-7d: the enrollment move adds one path and one operation.
+    assert len(be1_paths) == 58
     be1_operations = sum(
         1
         for path in be1_paths
         for method in openapi["paths"][path]
         if method in {"get", "post", "put", "patch", "delete"}
     )
-    assert be1_operations == 60
+    assert be1_operations == 63
     assert "HTTPBearer" in openapi["components"]["securitySchemes"]
     error_schema = openapi["components"]["schemas"]["Be1Error"]
     assert set(error_schema["properties"]) == {
@@ -780,15 +782,33 @@ def test_pending_consent_stays_pending_and_blocks_profile_admission_and_canvas(
     assert assignment.json()["class_id"] == class_id
     assert assignment.json()["assignment_revision"] == 2
 
+    # T-7a repair of the base failure: profile create needs a Teacher row of this class (the
+    # School Manager gets 403), so this step and the roster read run as the class-scoped
+    # Teacher created above. The Manager override comes back for the later steps.
+    manager_override = accepted.app.dependency_overrides[get_verified_adult]
+    teacher_principal = VerifiedPrincipal(
+        subject=teacher_subject,
+        issuer="synthetic-test-issuer",
+        roles=frozenset(),
+        token_id="synthetic-test-teacher-token",
+    )
+
+    async def verified_class_teacher() -> VerifiedPrincipal:
+        return teacher_principal
+
+    accepted.app.dependency_overrides[get_verified_adult] = verified_class_teacher
     profile_response = client.post(
         _url(accepted, f"/classes/{class_id}/profiles"),
         json={
-            "class_id": class_id,
             "display_name": "Synthetic Child",
             "age_months": 36,
         },
+        # T-7c: a keyed command with the expected class revision (2 after the assignment).
+        headers={"Idempotency-Key": f"profile-{uuid4()}", "If-Match": '"2"'},
     )
     assert profile_response.status_code == 201, profile_response.text
+    assert profile_response.json()["class_revision"] == 2
+    assert profile_response.headers["ETag"] == '"2"'
     synthetic_child_id = profile_response.json()["child_id"]
     assert synthetic_child_id.startswith("synthetic-")
     assert len(synthetic_child_id.removeprefix("synthetic-")) == 24
@@ -796,12 +816,42 @@ def test_pending_consent_stays_pending_and_blocks_profile_admission_and_canvas(
     assert "consent_state" not in profile_response.json()
 
     profile_list = client.get(_url(accepted, f"/classes/{class_id}/profiles"))
-    # T0.11: the School Manager has no profile contents by default (SRS l.2586).
-    # NOTE: this test already fails at base before reaching this line (the Manager
-    # profile create above gets 403); the Manager 403 for this route is proven by
-    # test_t011_school_manager_is_refused_on_class_profile_list in the synthetic pilot file.
-    assert profile_list.status_code == 403
-    assert profile_list.json()["code"] == "ACTION_NOT_ALLOWED"
+    assert profile_list.status_code == 409
+    assert profile_list.json()["code"] == "CONSENT_NOT_EFFECTIVE"
+
+    # T-7a (SRS l.2586, D-066-75 CM-3, CM-5): the School Manager reads a count only, with no
+    # consent gate, no child field and no new audit row.
+    accepted.app.dependency_overrides[get_verified_adult] = manager_override
+    with accepted.app.state.be1_runtime.session_factory() as db:
+        profile_list_audits = db.scalar(
+            select(func.count())
+            .select_from(CoreAuditEntryModel)
+            .where(
+                CoreAuditEntryModel.organization_id == accepted.organization_id,
+                CoreAuditEntryModel.action == "profile.list",
+            )
+        )
+    assert profile_list_audits == 1
+    manager_roster = client.get(_url(accepted, f"/classes/{class_id}/profiles"))
+    assert manager_roster.status_code == 200, manager_roster.text
+    assert manager_roster.json() == {
+        "contract": "Be1ClassRosterSummaryV1",
+        "class_id": class_id,
+        "active_profile_count": 1,
+    }
+    assert "Synthetic Child" not in manager_roster.text
+    with accepted.app.state.be1_runtime.session_factory() as db:
+        assert (
+            db.scalar(
+                select(func.count())
+                .select_from(CoreAuditEntryModel)
+                .where(
+                    CoreAuditEntryModel.organization_id == accepted.organization_id,
+                    CoreAuditEntryModel.action == "profile.list",
+                )
+            )
+            == profile_list_audits
+        )
 
     child_id = f"synthetic-pending-child-{uuid4()}"
     consent_response = client.post(

@@ -82,6 +82,22 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
             "/v1/story-runs/{run_id}/context-confirmation": ["POST"],
             "/v1/story-runs/{run_id}/subject-confirmation": ["POST"],
             "/v1/story-runs/{run_id}/script-confirmation": ["POST"],
+            # FEAT-066 T-2b: the Parent run drawing attach (SRS l.1664).
+            "/v1/story-runs/{run_id}/assets": ["POST"],
+            # FEAT-066 T-2c: the run idea, the transcript read and its confirmation (SRS l.1665).
+            "/v1/story-runs/{run_id}/idea": ["POST"],
+            "/v1/story-runs/{run_id}/transcript": ["GET"],
+            "/v1/story-runs/{run_id}/transcript-confirmation": ["POST"],
+            # FEAT-066 T-2d: the story rewrite (SRS l.1668).
+            "/v1/story-runs/{run_id}/story-rewrites": ["POST"],
+            # FEAT-066 T-1a: the Parent video request (SRS l.1670).
+            "/v1/story-runs/{run_id}/video-generations": ["POST"],
+            # FEAT-066 T-1b: the adult's decisions on a ready video (SRS l.1671-1672).
+            "/v1/story-runs/{run_id}/video-unsuitable": ["POST"],
+            "/v1/story-runs/{run_id}/complete": ["POST"],
+            # FEAT-066 T-1c: the playback grant and the header-borne stream (SRS l.1676, l.1691).
+            "/v1/story-runs/{run_id}/playback-token": ["POST"],
+            "/v1/story-runs/{run_id}/playback": ["GET"],
         }
     )
     application = create_app()
@@ -133,6 +149,9 @@ def test_compatibility_app_preserves_baseline_route_surface() -> None:
         # FEAT-066 T0.3: the public liveness probe (the operator probes are not in the schema).
         "/health/live",
         "/api/be1/v1/classes/{class_id}/assignments",
+        "/api/be1/v1/classes/{class_id}/suspend",  # FEAT-066 T-7b
+        "/api/be1/v1/classes/{class_id}/archive",  # FEAT-066 T-7b
+        "/api/be1/v1/classes/{class_id}/profiles/{child_id}/move",  # FEAT-066 T-7d
         # FEAT-066 M9-B: same-organization Teacher candidates for the first assignment.
         "/api/be1/v1/organizations/{organization_id}/teacher-candidates",
         "/api/be1/v1/device-grants/{grant_id}/join-status",

@@ -156,17 +156,68 @@ def require_assignment(
     return tuple(row for row in rows if row.assignment_id in allowed_ids)
 
 
-def get_class(db: Session, organization_id: str, class_id: str) -> ClassroomModel:
-    row = db.scalar(
-        select(ClassroomModel).where(
-            ClassroomModel.organization_id == organization_id,
-            ClassroomModel.class_id == class_id,
-            ClassroomModel.state == "active",
-        )
+def is_class_teacher_row(
+    assignments: tuple[OrganizationAssignmentModel, ...], class_id: str
+) -> bool:
+    """True when one of the rows is an active `teacher` row of exactly this class.
+
+    Org-wide rows (`class_id` NULL), `guide`, `observer` and `school_admin` rows never count.
+    """
+    return any(row.role == "teacher" and row.class_id == class_id for row in assignments)
+
+
+def require_class_teacher_row(
+    assignments: tuple[OrganizationAssignmentModel, ...], class_id: str
+) -> None:
+    """The assigned-Teacher rule for child-profile reads (T-7a2-DEC-1; SRS l.541, l.2586, l.2602).
+
+    `assignments` MUST be the rows `require_assignment` returned for this principal,
+    organization and class: they are active, filtered by the account role and already cover the
+    class, so a caller with no covering row has already got the uniform 404 (SRS l.864-865,
+    AC-27). A caller who is in scope but holds no active `teacher` row of this class (an org-wide
+    `teacher` row, a guide, an observer, a School Manager) is refused with 403.
+    """
+    if not is_class_teacher_row(assignments, class_id):
+        raise failure(403, "ACTION_NOT_ALLOWED", "The action is not allowed for this role")
+
+
+def get_class(
+    db: Session, organization_id: str, class_id: str, *, write: bool = True
+) -> ClassroomModel:
+    """The class row in any state; a missing class is 404 (T-7b-DEC-5).
+
+    ``write=True`` (the default, so a new caller fails closed) refuses a class that is not
+    ``active`` with 409 ``INVALID_STATE_TRANSITION``: a suspended or archived class is read-only
+    (SRS l.593, l.1425, l.1461). A read passes ``write=False`` and sees every state.
+    """
+    statement = select(ClassroomModel).where(
+        ClassroomModel.organization_id == organization_id,
+        ClassroomModel.class_id == class_id,
     )
+    if write:
+        # A write holds the class row FOR SHARE until it commits: a suspension (FOR UPDATE) that
+        # races it waits, so no write lands after the suspension (T-7b review F-02).
+        statement = statement.with_for_update(read=True)
+    row = db.scalar(statement)
     if row is None:
         raise failure(404, "CLASS_NOT_FOUND", "Class was not found")
+    if write and row.state != "active":
+        raise failure(
+            409, "INVALID_STATE_TRANSITION", "The class is read-only in its current state"
+        )
     return row
+
+
+def hide_archived_from_teacher(
+    classroom: ClassroomModel, assignments: tuple[OrganizationAssignmentModel, ...]
+) -> None:
+    """An archived class is visible to a School Manager only; anyone else gets the uniform 404.
+
+    Archived is read-only for the Manager and gone for a Teacher (T-7b-DEC-6, an inference: the
+    SRS names only the suspended class as read-only, l.1425, l.1461).
+    """
+    if classroom.state == "archived" and not any(row.role == "school_admin" for row in assignments):
+        raise failure(404, "CLASS_NOT_FOUND", "Class was not found")
 
 
 def get_session(db: Session, organization_id: str, session_id: str) -> ClassroomSessionModel:
@@ -481,7 +532,10 @@ __all__ = [
     "failure",
     "get_class",
     "get_session",
+    "hide_archived_from_teacher",
+    "is_class_teacher_row",
     "require_assignment",
+    "require_class_teacher_row",
     "session_event",
     "session_response",
 ]

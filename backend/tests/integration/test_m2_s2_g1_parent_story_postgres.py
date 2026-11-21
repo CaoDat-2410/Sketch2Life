@@ -95,9 +95,15 @@ _EXPECTED_VERSION_ROWS = frozenset(
         # FEAT-066 C5: the BE1 command-receipt revision follows ar_0001 and replaces its row.
         # FEAT-066 T-2a: the DDL-F upload-scope revision follows ar_0002 and replaces its row.
         # FEAT-066 T-3a: the DDL-A occurrence revision follows uf_0001 and replaces its row.
-        "20261119_oc_0001",
+        # FEAT-066 T-7b: the DDL-H class-revision revision follows oc_0001 and replaces its row.
+        # FEAT-066 T-7d: the DDL-H enrollment-index revision follows cls_0001 and replaces its row.
+        "20261120_cls_0002",
         # FR-C-08: the lifecycle revision depends on the Story head and replaces its row.
-        "20261119_frc08_lifecycle_scope",
+        # FEAT-066 T-2c: the DDL-B1 voice-idea revision follows the lifecycle revision and
+        # replaces its row (this gate test runs only on the fixed gate databases).
+        # FEAT-066 T-1a: the DDL-B1 video-generation revision follows the voice-idea revision and
+        # replaces its row.
+        "20261120_vb_0002",
     }
 )
 _MUST_START_EMPTY = (

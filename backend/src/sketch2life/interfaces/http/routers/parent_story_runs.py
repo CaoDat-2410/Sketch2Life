@@ -7,12 +7,23 @@ from __future__ import annotations
 import base64
 import binascii
 import json
+import logging
 from collections.abc import Callable
 from datetime import datetime
 from typing import Annotated, Any
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, status
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    Header,
+    HTTPException,
+    Query,
+    Request,
+    Response,
+    status,
+)
 from sqlalchemy.orm import Session
 
 from sketch2life.application.ports.identity import VerifiedPrincipal
@@ -25,6 +36,11 @@ from sketch2life.application.ports.parent_story_runs import (
 from sketch2life.application.services.parent_story_runs import (
     ParentStoryRunService,
     ParentStoryRunServiceError,
+)
+from sketch2life.application.services.story_run_detail import detail_etag, etag_matches
+from sketch2life.application.services.story_run_video import (
+    DEFAULT_PORT_TIMEOUT_SECONDS,
+    StoryVideoProgressService,
 )
 from sketch2life.contracts.schemas.parent_story_runs import (
     ParentActiveStoryRunEnvelopeV1,
@@ -43,6 +59,10 @@ from sketch2life.contracts.schemas.parent_story_runs import (
     ParentSubjectConfirmationRequestV1,
     ParentSubjectConfirmationResponseV1,
 )
+from sketch2life.contracts.schemas.story_run_video import (
+    ParentStoryRunVideoV1,
+    ParentStoryTimelineEventV1,
+)
 from sketch2life.infrastructure.lesson_library.service import LessonLibraryError
 from sketch2life.infrastructure.persistence.be1_models import AdultIdentityModel
 from sketch2life.infrastructure.persistence.parent_story_profile_lookup import (
@@ -51,16 +71,21 @@ from sketch2life.infrastructure.persistence.parent_story_profile_lookup import (
 from sketch2life.infrastructure.persistence.parent_story_repository import (
     SqlParentStoryRunRepository,
 )
+from sketch2life.infrastructure.story_inputs.runner import ParentInputJobRunner
+from sketch2life.infrastructure.story_video.repository import SqlStoryVideoRepository
 from sketch2life.interfaces.http.api_conventions import limit_query, parse_idempotency_key
 from sketch2life.interfaces.http.be1_runtime import get_db, get_verified_adult
 from sketch2life.interfaces.http.routers.lesson_library import get_lesson_library_service
 
 router = APIRouter(prefix="/v1/story-runs", tags=["Parent StoryRuns"])
+_LOG = logging.getLogger(__name__)
 _PARENT_STORY_ERROR_RESPONSES: dict[int | str, dict[str, Any]] = {
     400: {"model": ParentStoryErrorEnvelopeV1, "description": "The request is invalid."},
     401: {"model": ParentStoryErrorEnvelopeV1, "description": "Authentication is required."},
-    403: {"model": ParentStoryErrorEnvelopeV1, "description": "The action is not allowed."},
-    404: {"model": ParentStoryErrorEnvelopeV1, "description": "The resource was not found."},
+    404: {
+        "model": ParentStoryErrorEnvelopeV1,
+        "description": "The resource was not found, or the caller is not an active Parent.",
+    },
     409: {
         "model": ParentStoryErrorEnvelopeV1,
         "description": "The request conflicts with current state.",
@@ -89,8 +114,29 @@ def _require_parent(db: Session, principal: VerifiedPrincipal) -> AdultIdentityM
         or identity.account_role != "parent"
         or identity.issuer != principal.issuer
     ):
-        raise HTTPException(status_code=403, detail={"code": "ACTION_NOT_ALLOWED"})
+        # CONV-1 (SRS l.864-865, C-D4, OD-18b): not an active Parent means out of scope.
+        raise HTTPException(status_code=404, detail={"code": "RESOURCE_NOT_FOUND"})
     return identity
+
+
+def _meet_video_saga(request: Request, db: Session, run_id: str) -> None:
+    """After the cancel commit, outside any transaction: resolve what the video saga still owns.
+
+    Best effort (T-1a, D4): the cancel is already durable. An intent whose admission cannot be read
+    stays pending for the reconciler and the purge waits for it; only the error type is logged.
+    """
+
+    try:
+        state = request.app.state
+        StoryVideoProgressService(
+            SqlStoryVideoRepository(db),
+            getattr(state, "story_video_ports", None),
+            call_timeout_seconds=getattr(
+                state, "story_video_port_timeout_seconds", DEFAULT_PORT_TIMEOUT_SECONDS
+            ),
+        ).on_run_cancelled(run_id)
+    except Exception as exc:  # the lifecycle consumer retries the purge until it settles
+        _LOG.warning("story_video_cancel_hook_failed kind=%s", type(exc).__name__)
 
 
 def _invoke[ResultT](callable_: Callable[..., ResultT], **kwargs: Any) -> ResultT:
@@ -103,7 +149,10 @@ def _invoke[ResultT](callable_: Callable[..., ResultT], **kwargs: Any) -> Result
         raise HTTPException(status_code=exc.status_code, detail=detail) from None
 
 
-def _response(record: ParentStoryRunRecord) -> ParentStoryRunResponseV1:
+def story_run_response(record: ParentStoryRunRecord) -> ParentStoryRunResponseV1:
+    """The one builder of ``StoryRunDetailV1`` (SRS l.1811): every route that returns the model
+    (this family and the legacy ``/api/parent/v1/ai`` routes) shows the same shape."""
+
     return ParentStoryRunResponseV1(
         run_id=record.run_id,
         run_revision=record.run_revision,
@@ -129,7 +178,14 @@ def _response(record: ParentStoryRunRecord) -> ParentStoryRunResponseV1:
         error_code=record.error_code,
         created_at=record.created_at,
         updated_at=record.updated_at,
+        video=(
+            ParentStoryRunVideoV1.model_validate(record.video) if record.video is not None else None
+        ),
+        timeline=[ParentStoryTimelineEventV1.model_validate(event) for event in record.timeline],
     )
+
+
+_response = story_run_response
 
 
 # FR-C-08 (Contract Draft 11 §3.3-§3.4): from DELETE_PENDING on, a Parent response for the run
@@ -239,7 +295,7 @@ def create_parent_story_run(
 
 _HISTORY_RESPONSES: dict[int | str, dict[str, Any]] = {
     status_code: _PARENT_STORY_ERROR_RESPONSES[status_code]
-    for status_code in (400, 401, 403, 404, 422, 500, 503)
+    for status_code in (400, 401, 404, 422, 500, 503)
 }
 
 
@@ -345,17 +401,28 @@ def get_active_parent_story_run(
     )
 
 
+_DETAIL_READ_HEADERS = {"Cache-Control": "private, no-cache", "Vary": "Authorization"}
+
+
 @router.get(
     "/{run_id}",
     response_model=ParentStoryRunResult,
     summary="Read the authenticated Parent's saved StoryRun and review state",
-    responses=_PARENT_STORY_ERROR_RESPONSES,
+    responses={
+        **_PARENT_STORY_ERROR_RESPONSES,
+        304: {"description": "Not modified (only after the caller was authorised)"},
+    },
 )
 def get_parent_story_run(
     run_id: UUID,
+    request: Request,
+    response: Response,
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
-) -> ParentStoryRunResult:
+) -> Any:
+    """``StoryRunDetailV1`` (SRS l.1811): the strong ``ETag`` is a content hash of the body; the
+    304 comes only after authorisation and a recomputation from the database (no cache)."""
+
     _require_parent(db, principal)
     service = _service(db)
     record = _invoke(
@@ -363,7 +430,15 @@ def get_parent_story_run(
         principal=principal,
         run_id=str(run_id),
     )
-    return _envelope(record)
+    result = _envelope(record)
+    if isinstance(result, ParentStoryRunEnvelopeV1):
+        etag = detail_etag(result.story_run.model_dump(mode="json"))
+        if etag_matches(request.headers.get("If-None-Match"), etag):
+            return Response(status_code=304, headers={**_DETAIL_READ_HEADERS, "ETag": etag})
+        for name, value in _DETAIL_READ_HEADERS.items():
+            response.headers[name] = value
+        response.headers["ETag"] = etag
+    return result
 
 
 @router.post(
@@ -401,6 +476,7 @@ def cancel_parent_story_run(
         expected_revision=payload.expected_revision,
         idempotency_key=key,
     )
+    _meet_video_saga(request, db, str(run_id))
     return _lifecycle_envelope(record)
 
 
@@ -462,6 +538,7 @@ def confirm_parent_story_context(
 @router.post(
     "/{run_id}/subject-confirmation",
     response_model=ParentSubjectConfirmationResponseV1 | ParentStoryRunLifecycleEnvelopeV1,
+    status_code=status.HTTP_202_ACCEPTED,
     summary="[PROPOSAL] Persist adult confirmation of an interpreted drawing subject",
     responses=_PARENT_STORY_ERROR_RESPONSES,
 )
@@ -469,29 +546,55 @@ def confirm_parent_story_subject(
     run_id: UUID,
     payload: ParentSubjectConfirmationRequestV1,
     request: Request,
+    response: Response,
+    background_tasks: BackgroundTasks,
     idempotency_key: Annotated[str, Header(alias="Idempotency-Key", min_length=1, max_length=128)],
     principal: VerifiedPrincipal = Depends(get_verified_adult),
     db: Session = Depends(get_db),
 ) -> ParentSubjectConfirmationResponseV1 | ParentStoryRunLifecycleEnvelopeV1:
+    """SRS l.1666: 202. A plain confirmation settles at once; an edited subject reruns the VLM.
+
+    The rerun (SRS l.394, l.1413) needs an analyzer to answer it: with none composed, or with
+    ``app.state.subject_edit_reruns_vlm`` switched off, the edit is recorded and confirmed in one
+    step (the recorded deviation DEV-1), so no client waits for a worker that does not exist.
+    """
     del idempotency_key
     _require_parent(db, principal)
     key = parse_idempotency_key(request)
-    service = _service(db)
-    revision = _invoke(
-        service.confirm_subject,
+    state = request.app.state
+    analyzer = getattr(state, "drawing_analyzer", None)
+    runtime = getattr(state, "be1_runtime", None)
+    rerun = bool(getattr(state, "subject_edit_reruns_vlm", True)) and analyzer is not None
+    outcome = _invoke(
+        _service(db).confirm_subject,
         principal=principal,
         run_id=str(run_id),
         expected_understanding_revision=payload.expected_understanding_revision,
         confirmed_subject=payload.confirmed_subject,
         idempotency_key=key,
+        rerun_on_edit=rerun,
     )
-    if isinstance(revision, ParentStoryLifecycleRecord):
-        return _lifecycle_envelope(revision)
-    return ParentSubjectConfirmationResponseV1(
-        request_id=uuid4(),
-        story_run_id=run_id,
-        understanding_revision=revision,
-        decision="CONFIRMED",
+    response.headers["Content-Location"] = f"/v1/story-runs/{run_id}"
+    if isinstance(outcome, ParentStoryLifecycleRecord):
+        return _lifecycle_envelope(outcome)
+    if (
+        outcome.decision == "RERUN_REQUESTED"
+        and not outcome.replayed
+        and outcome.input_revision is not None
+        and analyzer is not None
+        and runtime is not None
+        and runtime.session_factory is not None
+    ):
+        runner = ParentInputJobRunner(runtime.session_factory, analyzer)
+        background_tasks.add_task(runner.run, principal, str(run_id), outcome.input_revision)
+    return ParentSubjectConfirmationResponseV1.model_validate(
+        {
+            "request_id": uuid4(),
+            "story_run_id": run_id,
+            "understanding_revision": outcome.understanding_revision,
+            "decision": outcome.decision,
+            "run_revision": outcome.run_revision,
+        }
     )
 
 

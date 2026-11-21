@@ -3,8 +3,10 @@
 ``RUN_ARTWORK`` (Parent): JPEG, PNG or WebP, at most 20 MiB encoded (SRS l.983, l.1942); the 40
 megapixel decode check belongs to T-2b. ``OCCURRENCE_DOCUMENT`` (Teacher): PDF, DOCX or PPTX, at
 most 25,000,000 bytes (FR-T-06, l.545); page count and encryption checks belong to T-3b.
-``RUN_AUDIO`` is deferred to T-2c: the SRS lists no audio type and the 2 minute rule needs a
-decoder (l.982, l.1942), so it is declared but disabled.
+``RUN_AUDIO`` (Parent, T-2c): WAV or MP4/M4A, at most 20,000,000 bytes (l.982). The SRS lists no
+audio type, so the two types the Android recorder produces are the default (Q-2c-1); the 2 minute
+rule is read from the stored bytes by ``media_validation.audio_duration`` when the audio is
+submitted to ``POST /v1/story-runs/{id}/idea`` (no decoder), not when it is uploaded.
 
 Signatures are not repeated here: the shared table of ``upload_validation`` decides whether the
 bytes match a declared type (T-2z).
@@ -23,6 +25,8 @@ OCCURRENCE_DOCUMENT: Final = "OCCURRENCE_DOCUMENT"
 
 MAX_IMAGE_BYTES: Final = 20 * 1024 * 1024
 MAX_DOCUMENT_BYTES: Final = 25_000_000
+MAX_AUDIO_BYTES: Final = 20_000_000
+MAX_AUDIO_DURATION_MS: Final = 120_000
 
 DOCUMENT_EXTENSIONS: Final[dict[str, str]] = {
     ".pdf": "application/pdf",
@@ -72,12 +76,12 @@ POLICIES: Final[dict[str, UploadPurposePolicy]] = {
     RUN_AUDIO: UploadPurposePolicy(
         purpose=RUN_AUDIO,
         account_role="parent",
-        media_types=frozenset(),
-        max_bytes=20 * 1000 * 1000,
+        media_types=frozenset({"audio/wav", "audio/mp4"}),
+        max_bytes=MAX_AUDIO_BYTES,
         too_large_code="AUDIO_TOO_LARGE",
         unsupported_code="UNSUPPORTED_MEDIA_TYPE",
         needs_file_name=False,
-        enabled=False,
+        enabled=True,
     ),
 }
 # Purposes the generic routes serve. ``LESSON_SOURCE`` stays on the lesson routes (P-17) and
@@ -98,6 +102,8 @@ def document_media_type_for(file_name: str) -> str | None:
 
 __all__ = [
     "GENERIC_PURPOSES",
+    "MAX_AUDIO_BYTES",
+    "MAX_AUDIO_DURATION_MS",
     "MAX_DOCUMENT_BYTES",
     "MAX_IMAGE_BYTES",
     "OCCURRENCE_DOCUMENT",

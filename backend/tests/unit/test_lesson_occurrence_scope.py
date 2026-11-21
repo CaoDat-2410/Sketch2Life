@@ -82,7 +82,9 @@ def test_a_teacher_without_a_row_in_the_organization_has_no_facts() -> None:
     assert load_caller_facts(FakeDb(_identity(), [_row()]), blank, "org") is None  # type: ignore[arg-type]
 
 
-def _resolver(monkeypatch: pytest.MonkeyPatch, outcome: object) -> OccurrenceUploadTargetResolver:
+def _resolver(
+    monkeypatch: pytest.MonkeyPatch, outcome: object, *, class_read_only: bool = False
+) -> OccurrenceUploadTargetResolver:
     def fake(
         _db: object, _principal: object, occurrence_id: str, *, write: bool = False, **_: Any
     ) -> Any:
@@ -92,6 +94,8 @@ def _resolver(monkeypatch: pytest.MonkeyPatch, outcome: object) -> OccurrenceUpl
         return OccurrenceAccess(occurrence=outcome, account_ref="acct-1")  # type: ignore[arg-type]
 
     monkeypatch.setattr(upload_target, "authorize_occurrence", fake)
+    # T-7b: the class of the occurrence is read from the database; the fake answers for it.
+    monkeypatch.setattr(upload_target, "class_is_read_only", lambda *_a, **_k: class_read_only)
     return OccurrenceUploadTargetResolver(object())  # type: ignore[arg-type]
 
 
@@ -122,6 +126,17 @@ def test_the_resolver_refuses_out_of_scope_and_archived_targets(
     assert archived.resolve(PRINCIPAL, "occ-1") is not None
     with pytest.raises(UploadTargetNotAccepting):
         archived.ensure_accepting(PRINCIPAL, "occ-1")
+
+
+def test_the_resolver_accepts_no_new_upload_for_a_suspended_or_archived_class(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    row = {"occurrence_id": "occ-1", "organization_ref": "org-1", "state": "DRAFT"}
+    read_only = _resolver(monkeypatch, row, class_read_only=True)
+    # The scope answer stays (the Teacher may still read), only a new upload is refused (T-7b).
+    assert read_only.resolve(PRINCIPAL, "occ-1") is not None
+    with pytest.raises(UploadTargetNotAccepting):
+        read_only.ensure_accepting(PRINCIPAL, "occ-1")
 
 
 def test_scope_module_is_the_single_place_that_builds_the_refusals() -> None:

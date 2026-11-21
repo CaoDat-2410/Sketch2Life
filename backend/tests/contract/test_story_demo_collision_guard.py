@@ -17,8 +17,12 @@ from sketch2life.infrastructure.config.settings import (
 )
 from sketch2life.interfaces.http.app import create_app, create_classroom_app
 from sketch2life.interfaces.http.router_composition import story_demo_replaced_routers
+from sketch2life.interfaces.http.routers.parent_story_inputs import (
+    router as parent_story_inputs_router,
+)
 from sketch2life.interfaces.http.routers.parent_story_runs import router as parent_story_runs_router
 from sketch2life.interfaces.http.routers.story_run_lite import router as story_run_lite_router
+from sketch2life.interfaces.http.routers.story_run_video import router as story_run_video_router
 from sketch2life.interfaces.http.routers.upload_sessions import router as upload_sessions_router
 from sketch2life.interfaces.http.story_demo_guard import (
     ACKNOWLEDGEMENT_ENV,
@@ -36,6 +40,8 @@ EXPECTED_COLLISIONS = {
     "GET /v1/story-runs/{run_id}",
     "POST /v1/story-runs/{run_id}/cancel",
     "POST /v1/story-runs/{run_id}/subject-confirmation",
+    # FEAT-066 T-2b: the Parent run drawing attach answers the demo's asset path.
+    "POST /v1/story-runs/{run_id}/assets",
     # FEAT-066 T-2a: the generic upload sessions answer the same literal paths as the demo.
     "POST /v1/upload-sessions",
     "GET /v1/upload-sessions/{upload_id}",
@@ -43,8 +49,11 @@ EXPECTED_COLLISIONS = {
     "POST /v1/upload-sessions/{upload_id}/complete",
     "DELETE /v1/upload-sessions/{upload_id}",
 }
-EXPECTED_UNMOUNTED_COUNT = len(parent_story_runs_router.routes) + len(
-    upload_sessions_router.routes
+EXPECTED_UNMOUNTED_COUNT = (
+    len(parent_story_runs_router.routes)
+    + len(parent_story_inputs_router.routes)
+    + len(story_run_video_router.routes)  # FEAT-066 T-1a
+    + len(upload_sessions_router.routes)
 )  # derived, not hard-coded
 
 
@@ -158,6 +167,9 @@ def test_acknowledged_demo_builds_warns_once_and_records_replacement(monkeypatch
     paths = _route_paths(application)
     assert "/v1/story-runs/{run_ref}" in paths  # demo router answers
     assert "/v1/story-runs/{run_id}" not in paths  # real Parent router is not mounted
+    # FEAT-066 T-2b: the real drawing route is replaced by the demo's asset route, not added to it.
+    assert "/v1/story-runs/{run_ref}/assets" in paths
+    assert "/v1/story-runs/{run_id}/assets" not in paths
 
 
 def test_acknowledged_demo_openapi_names_the_replacement(monkeypatch):

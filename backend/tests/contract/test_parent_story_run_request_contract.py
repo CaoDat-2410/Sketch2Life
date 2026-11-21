@@ -292,7 +292,7 @@ def test_parent_story_run_routes_are_mounted_with_the_story_error_shape(
             _assert_story_error(response, status=status, code=code, request_id=request_id)
 
 
-def test_cancel_stale_revision_adds_current_version_only_to_cancel_error(
+def test_stale_revision_adds_current_version_on_story_run_routes(
     request_client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     def stale_cancel(**_kwargs: object) -> NoReturn:
@@ -315,7 +315,9 @@ def test_cancel_stale_revision_adds_current_version_only_to_cancel_error(
         headers={"Idempotency-Key": "delete-key", "X-Request-ID": "delete-stale"},
     )
     assert delete.status_code == 409
-    assert "current_version" not in delete.json()  # the delete route never carries it
+    # FEAT-066 T-2b (D10, SRS l.1699): any /v1/story-runs* stale revision carries the version
+    # (it was the cancel route only); the real delete route never raises STALE_REVISION.
+    assert delete.json()["current_version"] == 9
     cancel = request_client.post(
         f"/v1/story-runs/{_RUN_ID}/cancel",
         json={"expected_revision": 8},
@@ -484,7 +486,8 @@ def test_parent_profile_errors_keep_the_parent_specific_shape(
     parent = request_client.get(
         "/v1/parent/profiles", headers={"X-Request-ID": parent_request_id}
     )
-    assert parent.status_code == 403
+    # FEAT-066 T0.9: a caller who is not an active Parent gets the family's not-found body.
+    assert parent.status_code == 404
     body = parent.json()
     assert set(body) == {
         "code",
@@ -495,7 +498,7 @@ def test_parent_profile_errors_keep_the_parent_specific_shape(
     }
     assert "detail" not in body
     assert "retry_after_seconds" not in body
-    assert body["code"] == "ACTION_NOT_ALLOWED"
+    assert body["code"] == "PROFILE_NOT_FOUND"
     assert body["request_id"] == parent_request_id
     assert body["correlation_id"] == parent_request_id
 
@@ -583,7 +586,7 @@ def test_history_list_malformed_cursor_is_400_without_field_errors(
     assert response.json()["field_errors"] is None
 
 
-def test_history_list_refuses_a_non_parent(request_client: TestClient) -> None:
+def test_history_list_answers_404_for_a_non_parent(request_client: TestClient) -> None:
     class _TeacherDb:
         def get(self, _model: object, _identity: object) -> SimpleNamespace:
             return SimpleNamespace(
@@ -594,8 +597,10 @@ def test_history_list_refuses_a_non_parent(request_client: TestClient) -> None:
             )
 
     request_client.app.dependency_overrides[get_db] = _TeacherDb  # type: ignore[attr-defined]
-    response = request_client.get("/v1/story-runs", headers={"X-Request-ID": "history-403"})
-    _assert_story_error(response, status=403, code="ACTION_NOT_ALLOWED", request_id="history-403")
+    response = request_client.get("/v1/story-runs", headers={"X-Request-ID": "history-404"})
+    _assert_story_error(
+        response, status=404, code="RESOURCE_NOT_FOUND", request_id="history-404"
+    )
 
 
 def test_history_capabilities_follow_the_lifecycle_sets() -> None:

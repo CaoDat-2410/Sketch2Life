@@ -1579,29 +1579,31 @@ def _add_pending_consent_profile(harness: PilotHarness) -> str:
     return child_id
 
 
-def test_t011_school_manager_is_refused_on_class_profile_list(
+def test_t011_school_manager_gets_the_count_summary_on_class_profile_list(
     pilot_harness: PilotHarness,
 ) -> None:
-    # T0.11 (P2-2 of the plan review): a PostgreSQL test of the class roster Manager 403 that
-    # really runs. The assertion in test_be1_postgres_api sits behind a step that fails at
-    # base, so it proves nothing there.
+    # T-7a (SRS l.2586, D-066-75 CM-3, CM-5) flips the T0.11 interim 403: the Manager reads a
+    # count only, with no child field, no consent gate and no 409.
     harness = pilot_harness
     empty = harness.client.get(_class_profiles_path(harness))
-    assert empty.status_code == 403, empty.text
-    assert empty.json()["code"] == "ACTION_NOT_ALLOWED"
-    assert "items" not in empty.json()
+    assert empty.status_code == 200, empty.text
+    assert empty.json() == {
+        "contract": "Be1ClassRosterSummaryV1",
+        "class_id": harness.class_id,
+        "active_profile_count": 0,
+    }
 
     _add_pending_consent_profile(harness)
     with_profile = harness.client.get(_class_profiles_path(harness))
-    # Before T0.11 this was a 409 CONSENT_NOT_EFFECTIVE (or a 200 with child fields).
-    assert with_profile.status_code == 403, with_profile.text
-    assert with_profile.json()["code"] == "ACTION_NOT_ALLOWED"
-    assert "items" not in with_profile.json()
+    # A pending consent made a Teacher read 409; the Manager summary has no gate.
+    assert with_profile.status_code == 200, with_profile.text
+    assert with_profile.json()["active_profile_count"] == 1
+    assert set(with_profile.json()) == {"contract", "class_id", "active_profile_count"}
     assert "Synthetic Roster Guard Profile" not in with_profile.text
 
-    # One uniform answer for a class that does not exist; an unknown organization stays 404.
+    # An unknown class inside the organization is 404; an unknown organization stays 404.
     unknown_class = harness.client.get(_class_profiles_path(harness, _synthetic_id()))
-    assert unknown_class.status_code == 403, unknown_class.text
+    assert unknown_class.status_code == 404, unknown_class.text
     unknown_org = harness.client.get(
         f"/api/be1/v1/organizations/{_synthetic_id()}/classes/{harness.class_id}/profiles"
     )

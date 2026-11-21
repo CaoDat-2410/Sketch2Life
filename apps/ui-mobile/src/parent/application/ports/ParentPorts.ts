@@ -34,7 +34,7 @@ import type {
   ParentStoryRunEnvelopeV1,
   ParentStoryRunV1,
   ParentStoryScriptConfirmationV1,
-  ParentStorySubjectConfirmationV1,
+  ParentStorySubjectConfirmationAcceptedV1,
   StoryRun,
   SuggestedActivity,
 } from '../../domain/types';
@@ -95,7 +95,7 @@ export interface ParentApiPort {
   createStoryRun(input: StoryRunCreateInput): Promise<{ request_id: string; story_run: StoryRun }>;
   createStoryRunV1(input: ParentStoryRunCreateV1, actionIdentity: ParentActionIdentity): Promise<ParentStoryRunEnvelopeV1>;
   confirmStoryRunContextV1(runId: string, input: ParentStoryContextConfirmationV1, actionIdentity: ParentActionIdentity): Promise<ParentStoryRunEnvelopeV1>;
-  confirmStoryRunSubjectV1(runId: string, revision: number, subject: string, actionIdentity: ParentActionIdentity): Promise<ParentStorySubjectConfirmationV1>;
+  confirmStoryRunSubjectV1(runId: string, revision: number, subject: string, actionIdentity: ParentActionIdentity): Promise<ParentStorySubjectConfirmationAcceptedV1>;
   confirmStoryRunScriptV1(runId: string, revision: number, sha256: string, actionIdentity: ParentActionIdentity): Promise<ParentStoryScriptConfirmationV1>;
   createStoryRevisionV1(runId: string, revision: number, rewriteInstruction: string | undefined, actionIdentity: ParentActionIdentity): Promise<ParentStoryRevisionResultV1>;
   analyzeDrawing(storyRunId: string, imageBase64: string, mediaType: ParentDrawingMediaType): Promise<DrawingUnderstandingResult>;

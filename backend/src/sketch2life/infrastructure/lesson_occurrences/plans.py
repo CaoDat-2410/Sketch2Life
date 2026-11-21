@@ -68,6 +68,7 @@ from sketch2life.infrastructure.lesson_occurrences.documents import DocumentErro
 from sketch2life.infrastructure.lesson_occurrences.scope import (
     authorize_occurrence,
     not_found,
+    require_class_writable,
 )
 from sketch2life.infrastructure.lesson_occurrences.tables import (
     DOCUMENT_REVISIONS,
@@ -173,10 +174,11 @@ class PlanRevisionService:
         self._checklists = checklists
 
     # ------------------------------------------------------------------ shared reads
-    @staticmethod
-    def _require_writable(occurrence: RowMapping) -> None:
+    def _require_writable(self, occurrence: RowMapping) -> None:
         if occurrence["state"] == "ARCHIVED":
             raise DocumentError(409, "INVALID_STATE_TRANSITION")
+        # T-7b-DEC-9: a suspended or archived class is read-only (SRS l.593, l.1425).
+        require_class_writable(self.db, occurrence)
 
     def _head(self, occurrence_id: str) -> RowMapping | None:
         return (

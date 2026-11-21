@@ -9,6 +9,11 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field
 
 from sketch2life.contracts.schemas.lesson_library import LessonActivityInputV1
+from sketch2life.contracts.schemas.story_run_video import (
+    ParentStoryQuotaSummaryV1,
+    ParentStoryRunVideoV1,
+    ParentStoryTimelineEventV1,
+)
 
 
 class ParentLessonVersionRefV1(BaseModel):
@@ -145,6 +150,10 @@ class ParentStoryRunResponseV1(BaseModel):
     error_code: str | None
     created_at: datetime
     updated_at: datetime
+    # FEAT-066 T-1c (StoryRunDetailV1, SRS l.1811): additive fields only (l.1635).
+    video: ParentStoryRunVideoV1 | None = None
+    quota: ParentStoryQuotaSummaryV1 = Field(default_factory=ParentStoryQuotaSummaryV1)
+    timeline: list[ParentStoryTimelineEventV1] = Field(default_factory=list)
 
 
 class ParentStoryRunEnvelopeV1(BaseModel):
@@ -247,10 +256,20 @@ class ParentContextConfirmationRequestV1(BaseModel):
 
 
 class ParentSubjectConfirmationResponseV1(BaseModel):
+    """202 body of the subject confirmation (SRS l.1666).
+
+    ``CONFIRMED``: the subject was accepted as ``understanding_revision``. ``RERUN_REQUESTED``: the
+    adult edited the subject, the visual understanding runs again and the new revision is
+    confirmed in a second call (SRS l.394, l.1413); ``understanding_revision`` is then the revision
+    the adult edited. ``run_revision`` is the revision the command created. The job reference is
+    parked (Q-J), so there is no ``job`` field.
+    """
+
     request_id: UUID
     story_run_id: UUID
     understanding_revision: int
-    decision: Literal["CONFIRMED"]
+    decision: Literal["CONFIRMED", "RERUN_REQUESTED"]
+    run_revision: int = Field(ge=1)
 
 
 class ParentStoryRevisionRequestV1(BaseModel):

@@ -27,6 +27,7 @@ import hashlib
 import json
 import math
 from collections.abc import Mapping
+from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from io import BytesIO
 from tempfile import SpooledTemporaryFile
@@ -179,6 +180,75 @@ def resolve_asset_key(
         .first()
     )
     return None if row is None else str(row)
+
+
+@dataclass(frozen=True, slots=True)
+class CompletedUpload:
+    """A completed, clean upload as a consumer (T-2b, T-3b) may use it; server side only."""
+
+    upload_id: str
+    purpose: str
+    target_ref: str
+    asset_key: str
+    media_type: str
+    size_bytes: int
+    sha256: str
+    scanner_name: str
+    scanner_version: str
+
+
+def resolve_completed_upload(
+    db: Session,
+    asset_ref: str,
+    *,
+    purpose: str,
+    owner_scope_kind: str,
+    owner_scope_ref: str | None,
+    organization_id: str | None,
+    target_ref: str,
+) -> CompletedUpload | None:
+    """The completed upload behind ``asset_ref`` for exactly this purpose, scope and target.
+
+    Unlike ``resolve_asset_key`` (scope only), a consumer that binds an asset to a target needs the
+    handle to belong to that target and purpose, and the stored bytes to carry a clean scan
+    verdict with its scanner identity. Every miss is ``None`` so a route answers one 404 for an
+    unknown handle, another actor's handle, another target, another purpose or an unscanned
+    session (SRS l.864-865, CV-5).
+    """
+    if not asset_ref.startswith(ASSET_HANDLE_PREFIX):
+        return None
+    row = (
+        db.execute(
+            select(UPLOAD_SESSIONS).where(
+                UPLOAD_SESSIONS.c.upload_session_id == asset_ref[len(ASSET_HANDLE_PREFIX) :],
+                UPLOAD_SESSIONS.c.state == "COMPLETED",
+                UPLOAD_SESSIONS.c.purpose == purpose,
+                UPLOAD_SESSIONS.c.target_ref == target_ref,
+                UPLOAD_SESSIONS.c.scan_verdict == "CLEAN",
+                UPLOAD_SESSIONS.c.final_asset_ref.is_not(None),
+                UPLOAD_SESSIONS.c.scanner_name.is_not(None),
+                UPLOAD_SESSIONS.c.scanner_version.is_not(None),
+                UPLOAD_SESSIONS.c.owner_scope_kind == owner_scope_kind,
+                UPLOAD_SESSIONS.c.owner_scope_ref.is_not_distinct_from(owner_scope_ref),
+                UPLOAD_SESSIONS.c.organization_id.is_not_distinct_from(organization_id),
+            )
+        )
+        .mappings()
+        .first()
+    )
+    if row is None:
+        return None
+    return CompletedUpload(
+        upload_id=str(row["upload_session_id"]),
+        purpose=str(row["purpose"]),
+        target_ref=str(row["target_ref"]),
+        asset_key=str(row["final_asset_ref"]),
+        media_type=str(row["expected_media_type"]),
+        size_bytes=int(row["expected_size_bytes"]),
+        sha256=str(row["expected_sha256"]),
+        scanner_name=str(row["scanner_name"]),
+        scanner_version=str(row["scanner_version"]),
+    )
 
 
 def part_key(prefix: str, upload_id: str, part_no: int) -> str:
@@ -432,7 +502,7 @@ class UploadSessionService:
     ) -> dict[str, Any]:
         policy = self._policy_for(payload.purpose, principal)
         if not policy.enabled:
-            # RUN_AUDIO waits for T-2c (no SRS audio type list, no decoder yet).
+            # A purpose whose policy is switched off is refused like an unknown purpose value.
             raise UploadSessionError(
                 400,
                 "INVALID_REQUEST",
@@ -883,10 +953,12 @@ class UploadSessionService:
 
 
 __all__ = [
+    "CompletedUpload",
     "UploadSessionError",
     "UploadSessionService",
     "asset_key",
     "part_key",
     "public_asset_ref",
     "resolve_asset_key",
+    "resolve_completed_upload",
 ]

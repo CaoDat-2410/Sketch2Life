@@ -94,6 +94,13 @@ EXPECTED_IDEMPOTENCY_MISMATCH_OPERATION_KEYS = {
     # FEAT-066 T-3d (SRS l.1697): the keyed plan revision create and confirm.
     ("post", "/v1/lesson-occurrences/{occurrence_id}/plan-revisions"),
     ("post", "/v1/lesson-occurrences/{occurrence_id}/plan-revisions/{revision_no}/confirm"),
+    # FEAT-066 T-7b (SRS l.1697): the keyed class suspend and archive commands.
+    ("post", "/api/be1/v1/classes/{class_id}/suspend"),
+    ("post", "/api/be1/v1/classes/{class_id}/archive"),
+    # FEAT-066 T-7c (SRS l.1697): the keyed Teacher profile create.
+    ("post", "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles"),
+    # FEAT-066 T-7d (SRS l.1697): the keyed Teacher enrollment move.
+    ("post", "/api/be1/v1/classes/{class_id}/profiles/{child_id}/move"),
 }
 
 
@@ -300,7 +307,7 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
 
     assert spec["openapi"] == "3.1.0"
     assert spec["tags"] == public_tags(TAG_DESCRIPTIONS)
-    assert len(operations) == 174 + len(ADMIN_OPERATIONS - PR22_UNCATALOGUED_OPERATIONS)
+    assert len(operations) == 187 + len(ADMIN_OPERATIONS - PR22_UNCATALOGUED_OPERATIONS)
     catalog_operations = set(MOUNTED_OPERATIONS)
     catalog_paths = {path for _method, path in catalog_operations}
     # FEAT-066 T-2a: five generic upload-session operations (four paths) join the catalog.
@@ -308,9 +315,22 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
     # FEAT-066 T-3b: five document operations (four paths) join it as well.
     # FEAT-066 T-3c: the keyed text edit is one more operation on an existing path.
     # FEAT-066 T-3d: four plan operations (create, list, read, confirm) on three new paths.
-    assert len(catalog_paths) == 131
+    # FEAT-066 T-7b: the class suspend and archive commands, two new paths.
+    # FEAT-066 T-7d: the enrollment move, one new path.
+    # FEAT-066 T-2b: the Parent run drawing attach, one new path.
+    # FEAT-066 T-2c: the run idea, the transcript read and its confirmation, three new paths.
+    # FEAT-066 T-2d: the story rewrite, one new path.
+    # FEAT-066 T-1a: the Parent video request, one new path.
+    # FEAT-066 T-1b: the video-unsuitable and complete commands, two new paths.
+    # FEAT-066 T-1c: the playback grant and the stream route, two new paths (the run detail read
+    # stays one catalogued operation).
+    assert len(catalog_paths) == 144
     assert MOUNTED_OPERATION_COUNT == 135
-    assert len(catalog_operations) == MOUNTED_OPERATION_COUNT + 5 + 3 + 5 + 1 + 4 == 153
+    assert (
+        len(catalog_operations)
+        == MOUNTED_OPERATION_COUNT + 5 + 3 + 5 + 1 + 4 + 2 + 1 + 1 + 3 + 1 + 1 + 2 + 2
+        == 166
+    )
     assert set(operations) - catalog_operations == (
         PILOT_ONLY_OPERATIONS | PR22_UNCATALOGUED_OPERATIONS | ADMIN_OPERATIONS
     )
@@ -353,11 +373,13 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
     ]
     profile_schema_name = next(iter(_schema_refs(profile_body["schema"])))
     profile_schema = spec["components"]["schemas"][profile_schema_name]
+    # T-7c: the class is the path only; `consent_id` is the optional real-data reference.
     assert set(profile_schema["properties"]) == {
-        "class_id",
         "display_name",
         "age_months",
+        "consent_id",
     }
+    assert set(profile_schema["required"]) == {"display_name", "age_months"}
     assert profile_schema["properties"]["age_months"]["minimum"] == 36
     assert profile_schema["properties"]["age_months"]["maximum"] == 120
 
@@ -512,8 +534,16 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
     assert "ParentProfileDeletePendingView" in _schema_refs(
         parent_delete["responses"]["202"]["content"]["application/json"]["schema"]
     )
-    assert "403" in parent_list["responses"]
-    assert "403" in parent_delete["responses"]
+    # FEAT-066 T0.9: a caller who is not an active Parent is out of scope (SRS l.864-865), so
+    # every M2 Parent profile and StoryRun operation documents the uniform 404 and no 403.
+    assert "404" in parent_list["responses"]
+    assert "404" in parent_delete["responses"]
+    assert "403" not in parent_list["responses"]
+    assert "403" not in parent_delete["responses"]
+    for (method, path), operation in operations.items():
+        if path.startswith(("/v1/parent/profiles", "/v1/story-runs")):
+            assert "404" in operation["responses"], (method, path)
+            assert "403" not in operation["responses"], (method, path)
 
     # FR-C-08 (Contract Draft 11 §3.3-§3.4): GET and the four replaying operations declare the
     # union of their current envelope and the content-free lifecycle envelope.
@@ -526,8 +556,9 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
             "ParentStoryRunEnvelopeV1",
         ),
         (
+            # FEAT-066 T-2d (SRS l.1666): the subject confirmation answers 202.
             ("post", "/v1/story-runs/{run_id}/subject-confirmation"),
-            "200",
+            "202",
             "ParentSubjectConfirmationResponseV1",
         ),
         (
@@ -610,7 +641,7 @@ def test_runtime_openapi_matches_all_mounted_rev37_operations_and_records_unmoun
         assert "Be1Error" in _schema_refs(
             mismatch_response["content"]["application/json"]["schema"]
         )
-    assert len(IDEMPOTENCY_MISMATCH_OPERATION_KEYS) == 26
+    assert len(IDEMPOTENCY_MISMATCH_OPERATION_KEYS) == 30
     assert set(IDEMPOTENCY_MISMATCH_OPERATION_KEYS) == (
         EXPECTED_IDEMPOTENCY_MISMATCH_OPERATION_KEYS
     )
@@ -674,7 +705,7 @@ def test_runtime_openapi_operation_ids_are_non_empty_and_unique(
         for method, operation in path_item.items()
         if method.lower() in HTTP_METHODS
     ]
-    assert len(operation_ids) == 174 + len(ADMIN_OPERATIONS - PR22_UNCATALOGUED_OPERATIONS)
+    assert len(operation_ids) == 187 + len(ADMIN_OPERATIONS - PR22_UNCATALOGUED_OPERATIONS)
     assert all(isinstance(value, str) and value for value in operation_ids)
     assert len(set(operation_ids)) == len(operation_ids)
 
@@ -705,3 +736,70 @@ def test_teacher_candidate_route_publishes_paging(runtime_openapi: dict[str, Any
     assert names["limit"]["schema"]["default"] == 25
     assert names["limit"]["schema"]["maximum"] == 100
     assert "cursor" in names
+
+
+def test_t7a_class_and_consent_lists_publish_paging(runtime_openapi: dict[str, Any]) -> None:
+    """T-7a (SRS l.1640): A07 and A10 show limit 25/1/100, an opaque cursor and the 400 row."""
+    base = "/api/be1/v1/organizations/{organization_id}/classes"
+    for path in (base, base + "/{class_id}/consents"):
+        operation = runtime_openapi["paths"][path]["get"]
+        names = {parameter["name"]: parameter for parameter in operation["parameters"]}
+        assert names["limit"]["schema"]["default"] == 25
+        assert names["limit"]["schema"]["minimum"] == 1
+        assert names["limit"]["schema"]["maximum"] == 100
+        assert names["cursor"]["in"] == "query"
+        assert not names["cursor"].get("required")
+        assert "400" in operation["responses"]
+        success = operation["responses"]["200"]["content"]["application/json"]["schema"]
+        listing = success["oneOf"][0] if "oneOf" in success else success
+        assert listing["properties"]["next_cursor"]["type"] == ["string", "null"]
+        assert "next_cursor" in listing["required"]
+
+
+def test_t7a_roster_and_consent_reads_publish_both_role_bodies(
+    runtime_openapi: dict[str, Any],
+) -> None:
+    """T-7a (D-066-75 CM-3, CM-4): A09 and A10 publish a Teacher and a Manager body under oneOf."""
+    base = "/api/be1/v1/organizations/{organization_id}/classes/{class_id}"
+    expected = {
+        base + "/profiles": ("Be1ManagedProfileListV1", "Be1ClassRosterSummaryV1"),
+        base + "/consents": ("Be1ConsentListV1", "Be1ConsentListManagerV1"),
+    }
+    for path, (teacher_contract, manager_contract) in expected.items():
+        media = runtime_openapi["paths"][path]["get"]["responses"]["200"]["content"][
+            "application/json"
+        ]
+        variants = media["schema"]["oneOf"]
+        assert media["schema"]["type"] == "object"
+        assert [variant["properties"]["contract"]["enum"] for variant in variants] == [
+            [teacher_contract],
+            [manager_contract],
+        ]
+        assert {"syntheticResponse"} < set(media["examples"])
+        assert len(media["examples"]) == 2
+        values = {example["value"]["contract"] for example in media["examples"].values()}
+        assert values == {teacher_contract, manager_contract}
+    summary_schema = runtime_openapi["paths"][base + "/profiles"]["get"]["responses"]["200"][
+        "content"
+    ]["application/json"]["schema"]["oneOf"][1]
+    assert set(summary_schema["properties"]) == {"contract", "class_id", "active_profile_count"}
+    manager_items = runtime_openapi["paths"][base + "/consents"]["get"]["responses"]["200"][
+        "content"
+    ]["application/json"]["schema"]["oneOf"][1]["properties"]["items"]["items"]
+    assert set(manager_items["properties"]) == {"consent_id", "state", "effective"}
+
+
+def test_t7a2_child_profile_reads_publish_the_403_and_404_rows(
+    runtime_openapi: dict[str, Any],
+) -> None:
+    """T-7a2: the pilot-profiles list, the session roster and the portfolio read keep a 403 row
+    (in scope, not the class's own Teacher) and a 404 row (out of scope); no catalog edit."""
+    base = "/api/be1/v1/organizations/{organization_id}"
+    for path in (
+        base + "/sessions/{session_id}/pilot-profiles",
+        base + "/sessions/{session_id}/roster",
+        base + "/classes/{class_id}/profiles/{child_id}/portfolio",
+    ):
+        responses = runtime_openapi["paths"][path]["get"]["responses"]
+        assert "403" in responses, path
+        assert "404" in responses, path

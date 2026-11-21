@@ -86,11 +86,12 @@ def test_occurrence_document_accepts_pdf_docx_pptx_up_to_25_million_bytes() -> N
     assert -(-policy.max_bytes // UPLOAD_PART_SIZE_BYTES) == 6 <= UPLOAD_MAX_PARTS
 
 
-def test_run_audio_is_declared_but_disabled_until_t2c() -> None:
+def test_run_audio_is_enabled_for_wav_and_mp4_up_to_20_megabytes() -> None:
     policy = POLICIES[RUN_AUDIO]
-    assert not policy.enabled and policy.media_types == frozenset()
-    assert policy.too_large_code == "AUDIO_TOO_LARGE"  # omitted from MESSAGES: T-2a deviation
-    assert "AUDIO_TOO_LARGE" not in envelope.MESSAGES
+    assert policy.enabled and policy.media_types == frozenset({"audio/wav", "audio/mp4"})
+    assert policy.max_bytes == 20_000_000 and policy.account_role == "parent"
+    assert policy.too_large_code == "AUDIO_TOO_LARGE" and "AUDIO_TOO_LARGE" in envelope.MESSAGES
+    assert -(-policy.max_bytes // UPLOAD_PART_SIZE_BYTES) == 5 <= UPLOAD_MAX_PARTS
 
 
 def test_lesson_source_and_profile_image_are_not_generic_purposes() -> None:
@@ -103,11 +104,17 @@ def test_every_signature_the_policies_accept_is_known_to_the_shared_table() -> N
         "image/png": b"\x89PNG\r\n\x1a\nxxxx",
         "image/jpeg": b"\xff\xd8\xff\xe0xxxxxxxx",
         "image/webp": b"RIFF\x00\x00\x00\x00WEBPxxxx",
+        "audio/wav": b"RIFF\x00\x00\x00\x00WAVExxxx",
+        "audio/mp4": b"\x00\x00\x00\x18ftypM4A xxxx",
         "application/pdf": b"%PDF-1.7xxxxxxx",
         DOCX_MEDIA_TYPE: b"PK\x03\x04xxxxxxxxxxxx",
         PPTX_MEDIA_TYPE: b"PK\x03\x04xxxxxxxxxxxx",
     }
-    accepted = POLICIES[RUN_ARTWORK].media_types | POLICIES[OCCURRENCE_DOCUMENT].media_types
+    accepted = (
+        POLICIES[RUN_ARTWORK].media_types
+        | POLICIES[RUN_AUDIO].media_types
+        | POLICIES[OCCURRENCE_DOCUMENT].media_types
+    )
     assert set(samples) == accepted
     for media_type, sample in samples.items():
         assert header_matches_media_type(media_type, sample)
@@ -181,11 +188,11 @@ def test_revision_math_is_the_lesson_derivation() -> None:
         assert upload_session_revision(state, 2) == 4
 
 
-def test_default_resolvers_serve_artwork_only_and_registered_ones_win() -> None:
-    assert set(default_resolver_factories()) == {RUN_ARTWORK}
+def test_default_resolvers_serve_the_run_purposes_and_registered_ones_win() -> None:
+    assert set(default_resolver_factories()) == {RUN_ARTWORK, RUN_AUDIO}
     sentinel = object()
     merged = merged_resolver_factories({OCCURRENCE_DOCUMENT: sentinel})
-    assert set(merged) == {RUN_ARTWORK, OCCURRENCE_DOCUMENT}
+    assert set(merged) == {RUN_ARTWORK, RUN_AUDIO, OCCURRENCE_DOCUMENT}
     assert merged[OCCURRENCE_DOCUMENT] is sentinel
     assert merged_resolver_factories(None).keys() == default_resolver_factories().keys()
 

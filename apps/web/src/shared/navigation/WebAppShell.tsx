@@ -51,7 +51,7 @@ export const TEACHER_NAVIGATION: PortalNavigationGroup[] = [
       { href: "/teacher/t05-classes-and-children", label: "Lớp được phân công", icon: Users, state: "available", matchPrefix: true },
       { href: "/teacher/t02-lesson-authoring", label: "Giáo án", icon: BookOpen, state: "available" },
       { href: "/teacher/t03-document-import-review", label: "Nhập tài liệu", icon: FileUp, state: "available" },
-      { href: "/teacher/t04-session-sketch-deck", label: "Buổi dạy", icon: CalendarDays, state: "waiting" },
+      { href: "/teacher/t04-session-sketch-deck", label: "Buổi dạy", icon: CalendarDays, state: "available" },
       { href: "/teacher/t02-presentation", label: "Trình bày giáo án", icon: Presentation, state: "waiting" },
       { href: "/teacher/t12-activities", label: "Hoạt động", icon: ClipboardList, state: "waiting" },
       { href: "/teacher/t13-ai-lesson-workflow", label: "Gợi ý giáo án AI", icon: BookOpen, state: "available" },

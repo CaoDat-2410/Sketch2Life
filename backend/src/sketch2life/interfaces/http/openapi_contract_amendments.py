@@ -265,6 +265,27 @@ SYNTHETIC_RESPONSE_EXAMPLES: dict[tuple[str, str], dict[str, Any]] = {
         "active": True,
         "assignment_revision": 2,
     },
+    ("post", "/api/be1/v1/classes/{class_id}/suspend"): {
+        "contract": "Be1ClassStateV1",
+        "class_id": "class-example-001",
+        "state": "suspended",
+        "class_revision": 2,
+    },
+    ("post", "/api/be1/v1/classes/{class_id}/archive"): {
+        "contract": "Be1ClassStateV1",
+        "class_id": "class-example-001",
+        "state": "archived",
+        "class_revision": 3,
+    },
+    ("post", "/api/be1/v1/classes/{class_id}/profiles/{child_id}/move"): {
+        "contract": "Be1ProfileMoveV1",
+        "child_id": "synthetic-0123456789abcdef01234567",
+        "from_class_id": "class-example-001",
+        "to_class_id": "class-example-002",
+        "enrollment_id": "00000000-0000-4000-8000-000000000001",
+        "from_class_revision": 2,
+        "to_class_revision": 3,
+    },
     ("get", "/api/be1/v1/organizations/{organization_id}/classes"): {
         "contract": "Be1ClassListV1",
         "items": [
@@ -272,10 +293,12 @@ SYNTHETIC_RESPONSE_EXAMPLES: dict[tuple[str, str], dict[str, Any]] = {
                 "class_id": "class-example-001",
                 "display_name": "Example Class",
                 "state": "active",
+                "class_revision": 1,
                 "assignment_revision": 1,
                 "has_active_teacher": False,
             }
         ],
+        "next_cursor": None,
     },
     ("post", "/api/be1/v1/organizations/{organization_id}/classes"): {
         "contract": "Be1ClassV1",
@@ -305,9 +328,11 @@ SYNTHETIC_RESPONSE_EXAMPLES: dict[tuple[str, str], dict[str, Any]] = {
         "contract": "Be1ManagedProfileV1",
         "child_id": "synthetic-aaaaaaaaaaaaaaaaaaaaaaaa",
         "class_id": "class-example-001",
+        "enrollment_id": "00000000-0000-4000-8000-000000000003",
         "display_name": "Synthetic Learner",
         "age_months": 60,
         "data_origin": "SYNTHETIC_DEV",
+        "class_revision": 1,
     },
     (
         "post",
@@ -334,6 +359,7 @@ SYNTHETIC_RESPONSE_EXAMPLES: dict[tuple[str, str], dict[str, Any]] = {
                 "effective": False,
             }
         ],
+        "next_cursor": None,
     },
     (
         "post",
@@ -1267,6 +1293,55 @@ def add_multipart_examples(openapi_schema: dict[str, Any]) -> int:
     return added
 
 
+# T-7a (D-066-75 CM-3, CM-4): one operation answers with one of several bodies by caller role.
+# The primary example above stays the Teacher body; the alternates are the School Manager bodies.
+# Each variant is published under `oneOf` with its own `contract` enum and one named example.
+ALTERNATE_RESPONSE_EXAMPLES: dict[
+    tuple[str, str], tuple[tuple[str, dict[str, Any]], ...]
+] = {
+    (
+        "get",
+        "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/profiles",
+    ): (
+        (
+            "syntheticManagerSummary",
+            {
+                "contract": "Be1ClassRosterSummaryV1",
+                "class_id": "class-example-001",
+                "active_profile_count": 12,
+            },
+        ),
+    ),
+    (
+        "get",
+        "/api/be1/v1/organizations/{organization_id}/classes/{class_id}/consents",
+    ): (
+        (
+            "syntheticManagerConsentList",
+            {
+                "contract": "Be1ConsentListManagerV1",
+                "items": [
+                    {
+                        "consent_id": "consent-example-001",
+                        "state": "pending",
+                        "effective": False,
+                    }
+                ],
+                "next_cursor": None,
+            },
+        ),
+    ),
+}
+
+
+def _variant_schema(example: dict[str, Any]) -> dict[str, Any]:
+    schema = _schema_for_example(example)
+    contract = schema.get("properties", {}).get("contract")
+    if isinstance(contract, dict):
+        contract["enum"] = [example["contract"]]
+    return schema
+
+
 def add_response_examples(openapi_schema: dict[str, Any]) -> int:
     """Publish representative examples and derive response properties from handlers."""
     added = 0
@@ -1288,6 +1363,16 @@ def add_response_examples(openapi_schema: dict[str, Any]) -> int:
             _mark_nullable(media["schema"], field_path)
         for field_path in CONDITIONALLY_OMITTED_RESPONSE_FIELDS.get(operation_key, ()):
             _mark_optional(media["schema"], field_path)
+        alternates = ALTERNATE_RESPONSE_EXAMPLES.get(operation_key, ())
+        if alternates:
+            primary = media["schema"]
+            contract = primary.get("properties", {}).get("contract")
+            if isinstance(contract, dict) and isinstance(example.get("contract"), str):
+                contract["enum"] = [example["contract"]]
+            media["schema"] = {
+                "type": "object",
+                "oneOf": [primary, *(_variant_schema(value) for _name, value in alternates)],
+            }
         _describe_open_objects(media["schema"], {})
         media["examples"] = {
             "syntheticResponse": {
@@ -1299,6 +1384,15 @@ def add_response_examples(openapi_schema: dict[str, Any]) -> int:
                 "value": deepcopy(example),
             }
         }
+        for name, value in alternates:
+            media["examples"][name] = {
+                "summary": f"Response example: {value['contract']}",
+                "description": (
+                    "Illustrative values for the School Manager body of this operation. "
+                    "Identifiers are fictional."
+                ),
+                "value": deepcopy(value),
+            }
         added += 1
     return added
 
@@ -1457,6 +1551,7 @@ def published_responses(
 
 
 __all__ = [
+    "ALTERNATE_RESPONSE_EXAMPLES",
     "BE1_EXPLICIT_ERROR_STATUSES",
     "BE1_KEPT_422_OPERATIONS",
     "LESSON_LIBRARY_KEPT_422_OPERATIONS",

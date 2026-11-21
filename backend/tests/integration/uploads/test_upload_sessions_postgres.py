@@ -801,9 +801,11 @@ def test_the_client_cannot_set_role_owner_organization_or_unknown_fields(api: Up
     for purpose in ("LESSON_SOURCE", "PROFILE_IMAGE", "NOPE"):
         response = create(api, api.parent, run_id, data, purpose=purpose)
         assert response.status_code == 400 and code_of(response) == "INVALID_REQUEST"
+    # FEAT-066 T-2c enables RUN_AUDIO (WAV and MP4 up to 20,000,000 bytes); an image type is 415.
     audio = create(api, api.parent, run_id, data, purpose="RUN_AUDIO", media_type="audio/wav")
-    assert audio.status_code == 400 and code_of(audio) == "INVALID_REQUEST"
-    assert audio.json()["field_errors"] == [{"field": "purpose", "code": "INVALID_FORMAT"}]
+    assert audio.status_code == 201
+    wrong = create(api, api.parent, run_id, data, purpose="RUN_AUDIO", media_type="image/png")
+    assert wrong.status_code == 415 and code_of(wrong) == "UNSUPPORTED_MEDIA_TYPE"
     bad_hash = create(api, api.parent, run_id, data, expected_sha256="G" * 64)
     assert bad_hash.status_code == 400
     with api.sessions()() as db:

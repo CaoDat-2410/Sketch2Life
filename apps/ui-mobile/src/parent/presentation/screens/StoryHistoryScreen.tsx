@@ -228,6 +228,7 @@ function runIcon(value: string): React.ComponentProps<typeof Ionicons>['name'] {
 function runStateLabel(value: string): string {
   const labels: Record<string, string> = {
     INPUT_PROCESSING: 'Đang xử lý ảnh',
+    INPUT_REVIEW: 'Chờ xem lại ảnh và ý tưởng',
     SUBJECT_REVIEW: 'Chờ xác nhận chủ thể',
     PREPARATION_REVIEW: 'Đang chuẩn bị nội dung',
     SCRIPT_GENERATING: 'Đang tạo kịch bản',
