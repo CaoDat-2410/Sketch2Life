@@ -34,6 +34,7 @@ import {
   type UploadSessionsPort,
 } from '../src/parent/application/parentRunUploads';
 import { RunWaitCancelled, waitForRun } from '../src/parent/application/parentRunWait';
+import { readRunUnderstanding } from '../src/parent/presentation/navigation/parentFlowV1';
 
 const RUN = '11111111-1111-4111-8111-111111111111';
 const ASSET = 'upl_22222222-2222-4222-8222-222222222222';
@@ -87,6 +88,21 @@ const videoOf = (overrides: Record<string, unknown> = {}) => ({
 }) as ParentStoryRunV1['video'];
 
 describe('Phase B API commands (SRS l.1664-1676)', () => {
+  it('ignores future run fields and treats unknown states safely', () => {
+    // A run with a real candidate, so the readers return a value that an unknown field could change.
+    const withCandidate = runOf({
+      understanding_revision: 2,
+      candidate: { candidate_subject: 'bướm', visible_features: ['cánh'], confidence: 0.9, adult_confirmation_required: true, decision: 'REVIEW_REQUIRED' },
+    });
+    const future = { ...withCandidate, occurrence_ref: 'ignored', owner_kind: 'ignored' };
+    expect(readRunUnderstanding(withCandidate)).not.toBeNull();
+    expect(readRunUnderstanding(future)).toEqual(readRunUnderstanding(withCandidate));
+    expect(readVideoPanel(future)).toEqual(readVideoPanel(withCandidate));
+    expect(classifyDrawingProgress(future)).toEqual(classifyDrawingProgress(withCandidate));
+    const unknown = { ...future, run_state: 'FUTURE_STATE' } as unknown as ParentStoryRunV1;
+    expect(classifyDrawingProgress(unknown)).toEqual({ kind: 'unexpected' });
+    expect(readVideoPanel(unknown)).toMatchObject({ canPlay: false, canRequest: false, tone: 'warning' });
+  });
   it('attaches a drawing with a key, the opaque handle and the optional run revision', async () => {
     const { api, calls } = apiWith([reply(202, { story_run_id: RUN })]);
     await api.attachRunAssetV1(RUN, ASSET, 7, 'key-1');
@@ -207,6 +223,20 @@ describe('Playback grant (T-1c, SRS l.1676, l.1691-1693)', () => {
   it('surfaces a 401 of the token issue itself as the session, not as a playback problem', async () => {
     const { api } = apiWith([reply(401, { code: 'TOKEN_EXPIRED' })]);
     await expect(api.openPlaybackV1(RUN)).rejects.toMatchObject({ status: 401 });
+  });
+
+  it('handles an invalid grant and missing or unavailable streams without leaking the response', async () => {
+    const invalid = apiWith([reply(200, grant()), reply(401, { code: 'INVALID_TOKEN' }), reply(200, grant()), reply(206)]);
+    await expect(invalid.api.openPlaybackV1(RUN)).resolves.toBeDefined();
+    expect(invalid.calls).toHaveLength(4);
+    for (const status of [404, 416, 503]) {
+      const { api, calls } = apiWith([reply(200, grant()), reply(status, { code: 'RESOURCE_NOT_FOUND', message: 'private data' })]);
+      const error = await api.openPlaybackV1(RUN).catch((cause: unknown) => cause);
+      expect(error).toBeInstanceOf(ParentApiError);
+      expect((error as ParentApiError).status).toBe(status);
+      expect(String(error)).not.toContain('private data');
+      expect(calls).toHaveLength(2);
+    }
   });
 
   it('never sends the bearer to a path or media type the grant names differently', async () => {

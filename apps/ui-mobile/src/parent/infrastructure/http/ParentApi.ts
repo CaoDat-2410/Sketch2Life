@@ -201,7 +201,16 @@ export class ParentApi implements ParentApiPort {
     return this.request<ParentStoryRunEnvelopeV1>(
       '/v1/story-runs',
       'POST',
-      input,
+      {
+        parent_profile_id: input.parent_profile_id,
+        topic: input.topic,
+        adult_confirmed_idea: input.adult_confirmed_idea,
+        ...(input.lesson_version === undefined ? {} : { lesson_version: input.lesson_version === null ? null : {
+          lesson_id: input.lesson_version.lesson_id,
+          version_id: input.lesson_version.version_id,
+          content_sha256: input.lesson_version.content_sha256,
+        } }),
+      },
       30_000,
       { 'Idempotency-Key': actionIdentity },
     );

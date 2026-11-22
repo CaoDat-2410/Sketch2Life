@@ -218,6 +218,32 @@ describe('ParentApi I2 contract', () => {
     expect(requestBody(calls[3])).toEqual(contextBody);
   });
 
+  it('only serializes Parent create fields even if a caller supplies Teacher fields at runtime', async () => {
+    const { api, calls } = createApi([{ status: 201, body: runEnvelope }]);
+    const input = {
+      parent_profile_id: 'synthetic-profile', topic: 'clouds', adult_confirmed_idea: 'kite',
+      occurrence_id: 'teacher-occurrence', selection_id: 'teacher-selection', plan_revision: 2,
+      lesson_version: { lesson_id: 'lesson-1', version_id: 'v1', content_sha256: 'hash', selection_id: 'hidden' },
+    };
+    expect(await api.createStoryRunV1(input, 'parent-action')).toEqual(runEnvelope);
+    expect(new URL(calls[0].url).pathname).toBe('/v1/story-runs');
+    expect(header(calls[0], 'Idempotency-Key')).toBe('parent-action');
+    expect(requestBody(calls[0])).toEqual({
+      parent_profile_id: 'synthetic-profile', topic: 'clouds', adult_confirmed_idea: 'kite',
+      lesson_version: { lesson_id: 'lesson-1', version_id: 'v1', content_sha256: 'hash' },
+    });
+  });
+
+  it('keeps an omitted lesson pin omitted and an explicit null pin null in the create body', async () => {
+    const { api, calls } = createApi([{ status: 201, body: runEnvelope }, { status: 201, body: runEnvelope }]);
+    const base = { parent_profile_id: 'synthetic-profile', topic: 'clouds', adult_confirmed_idea: 'kite' };
+    await api.createStoryRunV1(base, 'parent-action-1');
+    await api.createStoryRunV1({ ...base, lesson_version: null }, 'parent-action-2');
+    expect(String(calls[0].init.body)).not.toContain('lesson_version');
+    expect(requestBody(calls[0])).toEqual(base);
+    expect(requestBody(calls[1])).toEqual({ ...base, lesson_version: null });
+  });
+
   it('uses the versioned active/read/subject/script/revision routes and explicit action keys', async () => {
     const { api, calls } = createApi([
       { status: 200, body: { request_id: 'active-request', story_run: null } },
