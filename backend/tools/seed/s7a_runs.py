@@ -10,9 +10,10 @@ content.
 
 from __future__ import annotations
 
+import hashlib
 import sys
 from collections.abc import Callable
-from typing import Any, Protocol
+from typing import Protocol
 from uuid import UUID
 
 from sqlalchemy import Connection, Engine, func, select
@@ -21,6 +22,7 @@ from sqlalchemy.orm import Session
 
 from sketch2life.application.ports.identity import VerifiedPrincipal
 from sketch2life.application.ports.parent_story_runs import (
+    ParentStoryLifecycleRecord,
     ParentStoryRunError,
     ParentStoryRunRecord,
     ParentStoryRunView,
@@ -58,10 +60,21 @@ class S7aError(RuntimeError):
 
 
 class RunService(Protocol):
-    """The three service methods S7a uses (the real service and the unit-test fake)."""
+    """The service methods S7a uses (the real service and the unit-test fake)."""
 
     def get_active_run(
         self, *, principal: VerifiedPrincipal, account_id: str
+    ) -> ParentStoryRunView | None: ...
+
+    def replay_create_run(
+        self,
+        *,
+        principal: VerifiedPrincipal,
+        account_id: str,
+        parent_profile_id: UUID,
+        idempotency_key: str,
+        topic: str,
+        adult_confirmed_idea: str,
     ) -> ParentStoryRunView | None: ...
 
     def create_run(
@@ -117,9 +130,25 @@ def ensure_parent_run(
     """Apply the decision table of package section 3.3 and return the action taken."""
 
     try:
-        active = service.get_active_run(principal=principal, account_id=account_id)
+        replay = service.replay_create_run(
+            principal=principal,
+            account_id=account_id,
+            parent_profile_id=profile_id,
+            idempotency_key=data.s7a_create_key(parent_key),
+            topic=topic,
+            adult_confirmed_idea=idea,
+        )
         action = "kept"
-        if active is None:
+        if replay is not None:
+            if isinstance(replay, ParentStoryRunRecord) and not _is_seed_run(
+                replay, profile_id, topic, idea
+            ):
+                raise S7aError("S7A_FOREIGN_ACTIVE_RUN")
+            record = replay
+        else:
+            active = service.get_active_run(principal=principal, account_id=account_id)
+            if active is not None:
+                raise S7aError("S7A_FOREIGN_ACTIVE_RUN")
             created = service.create_run(
                 principal=principal,
                 account_id=account_id,
@@ -130,13 +159,9 @@ def ensure_parent_run(
             )
             record = _expect_record(created)
             action = "created"
-        else:
-            if isinstance(active, ParentStoryRunRecord) and not _is_seed_run(
-                active, profile_id, topic, idea
-            ):
-                raise S7aError("S7A_FOREIGN_ACTIVE_RUN")
-            record = _expect_record(active)
-        if not record.context_confirmed:
+        if isinstance(record, ParentStoryRunRecord) and not record.context_confirmed:
+            if record.run_state != _RUN_STATE:
+                raise S7aError("S7A_UNEXPECTED_RUN_STATE")
             confirmed = service.confirm_context(
                 principal=principal,
                 run_id=record.run_id,
@@ -146,7 +171,7 @@ def ensure_parent_run(
             )
             record = _expect_record(confirmed)
             action = "created" if action == "created" else "confirmed"
-        if not record.context_confirmed:
+        if isinstance(record, ParentStoryRunRecord) and not record.context_confirmed:
             raise S7aError("S7A_UNEXPECTED_RUN_STATE")
     except (ParentStoryRunError, ParentStoryRunServiceError) as exc:
         raise S7aError(f"S7A_COMMAND_FAILED_{exc.code}") from None
@@ -189,8 +214,9 @@ def run_s7a(
         session = factory()
         try:
             _require_parent(session, principal)
-            actions[parent_key] = ensure_parent_run(
-                service_factory(session),
+            service = service_factory(session)
+            action = ensure_parent_run(
+                service,
                 principal=principal,
                 account_id=data.parent_account_id(parent_key),
                 profile_id=data.parent_profile_id(profile_key),
@@ -198,6 +224,18 @@ def run_s7a(
                 topic=topic,
                 idea=idea,
             )
+            current = service.replay_create_run(
+                principal=principal,
+                account_id=data.parent_account_id(parent_key),
+                parent_profile_id=data.parent_profile_id(profile_key),
+                idempotency_key=data.s7a_create_key(parent_key),
+                topic=topic,
+                adult_confirmed_idea=idea,
+            )
+            if isinstance(current, (ParentStoryRunRecord, ParentStoryLifecycleRecord)):
+                actions[parent_key] = f"{current.run_state}/{action}"
+            else:
+                raise S7aError("S7A_UNEXPECTED_RUN_STATE")
         except SQLAlchemyError:
             raise S7aError("S7A_DATABASE_ERROR") from None
         finally:
@@ -213,14 +251,26 @@ def _s7a_scope_refs() -> list[str]:
 
 
 def count_s7a_rows(connection: Connection) -> dict[str, int]:
-    """Count the S7a-owned rows through the seeded Parent principals and the run FK."""
+    """Count only S7a-keyed runs and commands, even after a later stage advances those runs."""
 
     runs = story_tables.story_runs
-    run_ids = select(runs.c.run_id).where(
-        runs.c.actor_scope_kind == "PARENT_ACCOUNT",
-        runs.c.actor_scope_ref.in_(_s7a_scope_refs()),
-    )
     receipts = story_tables.story_command_receipts
+    create_hashes = tuple(
+        _idempotency_key_hash(data.s7a_create_key(parent_key))
+        for parent_key, _profile, _topic, _idea in data.S7A_RUN_SPECS
+    )
+    owned_receipt_hashes = tuple(
+        _idempotency_key_hash(key)
+        for parent_key, _profile, _topic, _idea in data.S7A_RUN_SPECS
+        for key in (data.s7a_create_key(parent_key), data.s7a_confirm_key(parent_key))
+    )
+    run_ids = select(receipts.c.resource_ref).where(
+        receipts.c.operation == "CREATE_RUN",
+        receipts.c.idempotency_scope_kind == "COLLECTION",
+        receipts.c.actor_scope_kind == "PARENT_ACCOUNT",
+        receipts.c.actor_scope_ref.in_(_s7a_scope_refs()),
+        receipts.c.idempotency_key_sha256.in_(create_hashes),
+    )
     return {
         "story.runs": int(
             connection.execute(
@@ -231,17 +281,27 @@ def count_s7a_rows(connection: Connection) -> dict[str, int]:
             connection.execute(
                 select(func.count())
                 .select_from(story_tables.run_inputs)
-                .where(story_tables.run_inputs.c.run_id.in_(run_ids))
+                .where(
+                    story_tables.run_inputs.c.run_id.in_(run_ids),
+                    story_tables.run_inputs.c.input_revision == 1,
+                )
             ).scalar_one()
         ),
         "story.command_receipts": int(
             connection.execute(
                 select(func.count())
                 .select_from(receipts)
-                .where(receipts.c.resource_ref.in_(run_ids))
+                .where(
+                    receipts.c.resource_ref.in_(run_ids),
+                    receipts.c.idempotency_key_sha256.in_(owned_receipt_hashes),
+                )
             ).scalar_one()
         ),
     }
+
+
+def _idempotency_key_hash(value: str) -> str:
+    return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
 
 def format_s7a(
@@ -286,8 +346,7 @@ def main() -> int:
             return 3
     finally:
         engine.dispose()
-    states: dict[str, Any] = {key: f"{_RUN_STATE}/{action}" for key, action in actions.items()}
-    print(format_s7a(before, after, data.EXPECTED_S7A_COUNTS, states))
+    print(format_s7a(before, after, data.EXPECTED_S7A_COUNTS, actions))
     return 0 if after == data.EXPECTED_S7A_COUNTS else 1
 
 

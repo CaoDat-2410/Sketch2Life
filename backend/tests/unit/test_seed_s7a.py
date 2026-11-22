@@ -86,11 +86,19 @@ def _lifecycle() -> ParentStoryLifecycleRecord:
 @dataclass
 class FakeService:
     active: Any = None
+    replayed: Any = None
     created: Any = None
     confirmed: Any = None
     create_error: Exception | None = None
     confirm_error: Exception | None = None
     calls: list[str] = field(default_factory=list)
+
+    def replay_create_run(self, **kwargs: Any) -> Any:
+        self.calls.append("replay_create_run")
+        assert kwargs["idempotency_key"] == data.s7a_create_key(PARENT_KEY)
+        assert kwargs["parent_profile_id"] == PROFILE_ID
+        assert kwargs["topic"] == TOPIC and kwargs["adult_confirmed_idea"] == IDEA
+        return self.replayed
 
     def get_active_run(self, **_kwargs: Any) -> Any:
         self.calls.append("get_active_run")
@@ -127,19 +135,36 @@ def _run(service: FakeService) -> str:
 def test_row_1_no_active_run_creates_then_confirms() -> None:
     service = FakeService(created=_record(), confirmed=_record(confirmed=True))
     assert _run(service) == "created"
-    assert service.calls == ["get_active_run", "create_run", "confirm_context"]
+    assert service.calls == ["replay_create_run", "get_active_run", "create_run", "confirm_context"]
 
 
 def test_row_2_unconfirmed_seed_run_only_confirms() -> None:
-    service = FakeService(active=_record(), confirmed=_record(confirmed=True))
+    service = FakeService(replayed=_record(), confirmed=_record(confirmed=True))
     assert _run(service) == "confirmed"
-    assert service.calls == ["get_active_run", "confirm_context"]
+    assert service.calls == ["replay_create_run", "confirm_context"]
 
 
 def test_row_3_confirmed_seed_run_changes_nothing() -> None:
-    service = FakeService(active=_record(confirmed=True))
+    service = FakeService(replayed=_record(confirmed=True))
     assert _run(service) == "kept"
-    assert service.calls == ["get_active_run"]
+    assert service.calls == ["replay_create_run"]
+
+
+@pytest.mark.parametrize("state", ["SUBJECT_REVIEW", "VIDEO_READY", "COMPLETED"])
+def test_keyed_seed_run_is_kept_after_later_stage_advances_it(state: str) -> None:
+    service = FakeService(replayed=_record(state=state, confirmed=True))
+    assert _run(service) == "kept"
+    assert service.calls == ["replay_create_run"]
+
+
+def test_a_keyed_replay_still_checks_profile_topic_and_idea() -> None:
+    service = FakeService(
+        replayed=_record(state="VIDEO_READY", confirmed=True, topic="another topic")
+    )
+    with pytest.raises(S7aError) as info:
+        _run(service)
+    assert info.value.code == "S7A_FOREIGN_ACTIVE_RUN"
+    assert service.calls == ["replay_create_run"]
 
 
 @pytest.mark.parametrize(
@@ -155,7 +180,7 @@ def test_row_4_foreign_active_run_stops(active: ParentStoryRunRecord) -> None:
     with pytest.raises(S7aError) as info:
         _run(service)
     assert info.value.code == "S7A_FOREIGN_ACTIVE_RUN"
-    assert service.calls == ["get_active_run"]
+    assert service.calls == ["replay_create_run", "get_active_run"]
 
 
 def test_a_tampered_snapshot_hash_is_foreign() -> None:
@@ -182,13 +207,13 @@ def test_other_run_states_stop_after_create_or_in_the_table(view: Any) -> None:
     with pytest.raises(S7aError) as info:
         _run(created)
     assert info.value.code == "S7A_UNEXPECTED_RUN_STATE"
-    assert created.calls == ["get_active_run", "create_run"]
+    assert created.calls == ["replay_create_run", "get_active_run", "create_run"]
 
     active = FakeService(active=view)
     with pytest.raises(S7aError) as info:
         _run(active)
-    assert info.value.code == "S7A_UNEXPECTED_RUN_STATE"
-    assert active.calls == ["get_active_run"]
+    assert info.value.code == "S7A_FOREIGN_ACTIVE_RUN"
+    assert active.calls == ["replay_create_run", "get_active_run"]
 
 
 def test_a_confirm_that_leaves_the_context_unconfirmed_stops() -> None:
