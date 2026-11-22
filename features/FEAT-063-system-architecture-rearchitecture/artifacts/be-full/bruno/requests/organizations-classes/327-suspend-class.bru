@@ -1,0 +1,39 @@
+meta {
+  name: 327 [LOCAL / TEST ONLY] Suspend active class with strong revision precondition
+  type: http
+  seq: 327
+}
+
+post {
+  url: {{baseUrl}}/api/be1/v1/classes/{{phase_b_lifecycle_class_id}}/suspend
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Idempotency-Key: {{$guid}}
+  If-Match: {{phase_b_lifecycle_class_revision_etag}}
+}
+
+script:post-response {
+  const body = res.getBody();
+  bru.setVar("phase_b_lifecycle_class_revision", String(body.class_revision));
+  bru.setVar("phase_b_lifecycle_suspended_etag", res.getHeader("ETag"));
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().contract).to.equal("Be1ClassStateV1");
+    expect(res.getBody().state).to.equal("suspended");
+    expect(res.getHeader("ETag")).to.equal('"' + String(res.getBody().class_revision) + '"');
+  });
+}
+

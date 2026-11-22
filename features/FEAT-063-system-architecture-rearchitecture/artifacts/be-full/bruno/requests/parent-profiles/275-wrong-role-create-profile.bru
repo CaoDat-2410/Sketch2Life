@@ -1,0 +1,39 @@
+meta {
+  name: 275 [LOCAL / TEST ONLY] Teacher gets profile-family not-found on create
+  type: http
+  seq: 275
+}
+
+post {
+  url: {{baseUrl}}/v1/parent/profiles
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{phase_b_profile_wrong_role_key}}
+}
+
+body:json {
+  {
+    "display_name": "Phase B synthetic profile",
+    "age_months": 60,
+    "interests_summary": "Butterflies and drawing"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("PROFILE_NOT_FOUND");
+  });
+}
+

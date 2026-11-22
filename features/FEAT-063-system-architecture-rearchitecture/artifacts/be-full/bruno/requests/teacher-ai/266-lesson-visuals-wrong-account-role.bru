@@ -1,0 +1,55 @@
+meta {
+  name: 266 [LOCAL / TEST ONLY] Parent account is outside lesson-visual scope
+  type: http
+  seq: 266
+}
+
+post {
+  url: {{baseUrl}}/api/teacher/v1/organizations/{{organization_id}}/ai/lesson-visuals
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "review_confirmed": true,
+    "plan_revision_ref": "phase-b-plan-1",
+    "topic": "Butterflies",
+    "target_age_months": 60,
+    "objectives": ["Notice butterfly wings"],
+    "drawing_steps": [
+      {"action": "Draw a small circle", "placement": "Near the center"},
+      {"action": "Add two upper wings", "placement": "On each side"},
+      {"action": "Add two lower wings", "placement": "Below the upper wings"}
+    ],
+    "subject_knowledge": ["Butterflies have two pairs of wings"],
+    "activities": [{
+      "activity_ref": "butterfly-observe",
+      "title": "Observe a butterfly",
+      "goal": "Notice wing patterns",
+      "materials": "Paper and crayons",
+      "preparation": "Place paper on the table",
+      "instructions": "Look at a butterfly picture and draw its wing patterns",
+      "safety_notes": "Use crayons with adult supervision"
+    }]
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("RESOURCE_NOT_FOUND");
+  });
+}
+

@@ -1,0 +1,29 @@
+meta {
+  name: 307 [LOCAL / TEST ONLY] Foreign Teacher receives uniform A10 not-found
+  type: http
+  seq: 307
+}
+
+get {
+  url: {{baseUrl}}/api/be1/v1/organizations/seed-org-a/classes/seed-org-a-class-1/consents
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("RESOURCE_NOT_FOUND");
+  });
+}
+

@@ -1,0 +1,36 @@
+meta {
+  name: 235 [LOCAL / TEST ONLY] Create occurrence without key
+  type: http
+  seq: 235
+}
+
+post {
+  url: {{baseUrl}}/v1/lesson-occurrences
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "class_id": "seed-org-a-class-1",
+    "title": "Lesson for the paper kite"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(400);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("INVALID_REQUEST");
+  });
+}

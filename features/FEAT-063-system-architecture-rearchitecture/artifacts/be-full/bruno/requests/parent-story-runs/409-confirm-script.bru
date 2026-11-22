@@ -1,0 +1,37 @@
+meta {
+  name: 409 [LOCAL / TEST ONLY] Confirm generated script
+  type: http
+  seq: 409
+}
+
+post {
+  url: {{baseUrl}}/v1/story-runs/{{parent_story_run_id}}/script-confirmation
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{$guid}}
+}
+
+body:json {
+  {
+    "expected_revision": {{story_revision_no}},
+    "story_sha256": "{{story_sha256}}"
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().story_run.story_status).to.equal("CONFIRMED");
+  });
+}

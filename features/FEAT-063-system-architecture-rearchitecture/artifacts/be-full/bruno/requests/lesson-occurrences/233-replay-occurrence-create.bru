@@ -1,0 +1,39 @@
+meta {
+  name: 233 [LOCAL / TEST ONLY] Replay occurrence create receipt
+  type: http
+  seq: 233
+}
+
+post {
+  url: {{baseUrl}}/v1/lesson-occurrences
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Content-Type: application/json
+  Idempotency-Key: {{occurrence_create_key}}
+}
+
+body:json {
+  {
+    "class_id": "seed-org-a-class-1",
+    "title": "Lesson for the paper kite",
+    "scheduled_date": "2026-11-21",
+    "lesson_version_ref": null
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().occurrence_id).to.equal(bru.getVar("occurrence_id"));
+  });
+}

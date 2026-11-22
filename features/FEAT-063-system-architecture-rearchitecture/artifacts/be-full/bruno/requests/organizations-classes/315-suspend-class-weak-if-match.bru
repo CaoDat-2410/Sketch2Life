@@ -1,0 +1,31 @@
+meta {
+  name: 315 [LOCAL / TEST ONLY] Suspend command rejects weak If-Match
+  type: http
+  seq: 315
+}
+
+post {
+  url: {{baseUrl}}/api/be1/v1/classes/{{phase_b_lifecycle_class_id}}/suspend
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Idempotency-Key: {{$guid}}
+  If-Match: W/{{phase_b_lifecycle_class_revision_etag}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(400);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().code).to.equal("INVALID_REQUEST");
+  });
+}
+

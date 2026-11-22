@@ -1,0 +1,31 @@
+meta {
+  name: 274 [LOCAL / TEST ONLY] Request Parent profile deletion
+  type: http
+  seq: 274
+}
+
+delete {
+  url: {{baseUrl}}/v1/parent/profiles/{{phase_b_parent_profile_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+  Idempotency-Key: {{$guid}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(202);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().profile_id).to.equal(bru.getVar("phase_b_parent_profile_id"));
+    expect(res.getBody().state).to.equal("DELETE_PENDING");
+  });
+}
+

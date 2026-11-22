@@ -1,0 +1,29 @@
+meta {
+  name: 435 [LOCAL / TEST ONLY] Teacher class profiles control
+  type: http
+  seq: 435
+}
+
+get {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/classes/{{class_id}}/profiles
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect([200, 409]).to.include(res.getStatus());
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    if (res.getStatus() === 200) expect(res.getBody().contract).to.equal("Be1ManagedProfileListV1");
+    if (res.getStatus() === 409) expect(res.getBody().code).to.equal("CONSENT_NOT_EFFECTIVE");
+  });
+}

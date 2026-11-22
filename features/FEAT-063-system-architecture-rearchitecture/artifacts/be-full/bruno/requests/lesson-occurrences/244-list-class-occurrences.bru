@@ -1,0 +1,29 @@
+meta {
+  name: 244 [LOCAL / TEST ONLY] List occurrences for assigned class
+  type: http
+  seq: 244
+}
+
+get {
+  url: {{baseUrl}}/v1/lesson-occurrences?class_id=seed-org-a-class-1&state=DRAFT&limit=25
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().contract).to.equal("LessonOccurrencePageV1");
+    expect(res.getBody().items.some(item => item.occurrence_id === bru.getVar("occurrence_id"))).to.equal(true);
+  });
+}

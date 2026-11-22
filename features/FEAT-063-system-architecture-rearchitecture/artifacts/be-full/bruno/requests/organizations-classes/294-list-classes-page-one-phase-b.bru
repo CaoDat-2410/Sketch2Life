@@ -1,0 +1,41 @@
+meta {
+  name: 294 [LOCAL / TEST ONLY] A07 list classes and capture cursor and class revision
+  type: http
+  seq: 294
+}
+
+get {
+  url: {{baseUrl}}/api/be1/v1/organizations/{{organization_id}}/classes?state=active&limit=1
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+headers {
+  Accept: application/json
+  X-Request-ID: {{request_id}}
+}
+
+script:post-response {
+  const body = res.getBody();
+  bru.setVar("phase_b_class_list_cursor", body.next_cursor || "");
+  const row = body.items.find(item => item.class_id === bru.getVar("created_class_id"));
+  if (row) {
+    bru.setVar("phase_b_created_class_revision", String(row.class_revision));
+    bru.setVar("phase_b_created_class_revision_etag", '"' + String(row.class_revision) + '"');
+  }
+}
+
+tests {
+  test("assert response contract", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("X-Request-ID")).to.equal(bru.getVar("request_id"));
+    expect(res.getBody().items).to.be.an("array");
+    expect(res.getBody().items[0].class_revision).to.be.a("number");
+    expect(res.getBody().next_cursor).to.be.a("string");
+  });
+}
+
